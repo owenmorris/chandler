@@ -79,74 +79,34 @@
     <characterStyle itemref="doc:TitleStyle"/>
     <title>Demo View</title>
 
-    <minimumSize>400,100</minimumSize>
+    <minimumSize>400,50</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
-  <StaticText itsName="IntroTextBlank">
+  <StaticText itsName="IntroText">
     <!-- Attributes -->
     <characterStyle itemref="doc:TextStyle"/>
-    <title></title>
+    <title>The demo view demonstrates the new CPIA functionality and some of the available blocks.
 
+It is used as an example for developers new to Chandler to see the kinds of blocks that are available and as a test framework for blocks.
+    </title>
     <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
-    <stretchFactor>0.0</stretchFactor>
-  </StaticText>  
-
-  <StaticText itsName="IntroTextOne">
-    <!-- Attributes -->
-    <characterStyle itemref="doc:TextStyle"/>
-    <title>The demo view demonstrates the new CPIA functionality and some of the available blocks.  It is used as an example for</title>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
+    <minimumSize>400,200</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
 
-    <stretchFactor>0.0</stretchFactor>
-  </StaticText>  
-
-  <StaticText itsName="IntroTextTwo">
-    <!-- Attributes -->
-    <characterStyle itemref="doc:TextStyle"/>
-    <title>developers new to Chandler to see the kinds of blocks that are available and as a test framework</title>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
-    <stretchFactor>0.0</stretchFactor>
-  </StaticText>  
-
-  <StaticText itsName="IntroTextThree">
-    <!-- Attributes -->
-    <characterStyle itemref="doc:TextStyle"/>
-    <title>for blocks.</title>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
-    <stretchFactor>0.0</stretchFactor>
-  </StaticText>  
- 
-  <StaticText itsName="IntroInstructionsBlank">
-    <!-- Attributes -->
-    <characterStyle itemref="doc:TextStyle"/>
-    <title></title>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
   <StaticText itsName="IntroInstructions">
     <!-- Attributes -->
     <characterStyle itemref="doc:TextStyle"/>
-    <title>Click through the tabs to view the kinds of blocks that Chandler supports.</title>
+    <title>
 
+Click through the tabs to view the kinds of blocks that Chandler supports.
+    </title>
     <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
+    <minimumSize>400,50</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
@@ -154,11 +114,7 @@
   <BoxContainer itsName="IntroTab">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:IntroTitle"/>
-    <childrenBlocks itemref="doc:IntroTextBlank"/>
-    <childrenBlocks itemref="doc:IntroTextOne"/>
-    <childrenBlocks itemref="doc:IntroTextTwo"/>
-    <childrenBlocks itemref="doc:IntroTextThree"/>
-    <childrenBlocks itemref="doc:IntroInstructionsBlank"/>
+    <childrenBlocks itemref="doc:IntroText"/>
     <childrenBlocks itemref="doc:IntroInstructions"/>
 
     <!-- Attributes -->
