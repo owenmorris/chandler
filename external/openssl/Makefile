@@ -30,40 +30,43 @@ endif
 
 ifeq ($(REAL_OS),WINNT)
 # Build using Visual C++ compiler
-# TODO: debug version, and the ability to build both debug & release simult.
-#       Do we need patches file or can we get rid of it?
 
-$(SRC)/$(BUILD)/Makefile:  $(SRC)/Configure
-	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
-	cp -r crypto ssl apps certs tools util include $(BUILD)/;cd $(BUILD);\
-	MAKEFLAGS=;\
-	perl ../Configure --openssldir=$(PREFIX) --install_prefix=$(PREFIX) $(CONF_OPT) VC-WIN32; \
+ifeq ($(DEBUG),1)
+MK1MF=sed -e "s/mk1mf\.pl/mk1mf\.pl debug/" ms/do_masm.bat > ms/do_masm_debug.bat
+OUT32DLL=out32dll.dbg
+DOMASM=do_masm_debug.bat
+else
+MK1MF=echo "Defaults work"
+OUT32DLL=out32dll
+DOMASM=do_masm.bat
+endif
 
+ms/$(DOMASM):
+	cd $(SRC);\
+	$(MK1MF);\
+	chmod a+x ms/$(DOMASM);
 
-openssl: $(SRC)/$(BUILD)/Makefile.ssl
-	ms/do_masm.bat; \
+openssl: ms/$(DOMASM)
+	cd $(SRC); \
+	MAKEFLAGS=; \
+	perl Configure --openssldir=$(PREFIX) --install_prefix=$(PREFIX) $(CONF_OPT) VC-WIN32; \
+	ms/$(DOMASM); \
 	nmake -f ms/ntdll.mak;\
-	cd out32dll; \
+	cd $(OUT32DLL); \
 	../ms/test.bat; \
 	echo 'Installing...';\
 	cp -f ssleay32.dll $(PREFIX)/bin/; \
 	cp -f libeay32.dll $(PREFIX)/bin/; \
-	cp -f ssleay32.lib $(PREFIX)/lib/; \
-	cp -f libeay32.lib $(PREFIX)/lib/; \
-	cp -fr ../inc32/openssl $(PREFIX)/Include/;\
+	cp -f ssleay32.lib $(PREFIX)/bin/libs/; \
+	cp -f libeay32.lib $(PREFIX)/bin/libs/; \
+	cp -fr ../inc32/openssl $(PREFIX)/bin/Include;\
 	echo 'Installation done.'
 
 snap: 
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(OPENSSL)/$(SNAP).tar.gz \
+        tar -cvzf $(OPENSSL)/$(SNAP).tar.gz \
                    $(SNAP)/bin/ssleay32.dll \
-                   $(SNAP)/bin/libeay32.dll \
-                   $(SNAP)/include/openssl \
-                   $(SNAP)/lib/ssleay32.lib \
-                   $(SNAP)/lib/libeay32.lib  \
-                   $(SNAP)/misc \
-                   $(SNAP)/private \
-                   $(SNAP)/certs
+                   $(SNAP)/bin/libeay32.dll
 
 else
 
@@ -96,12 +99,10 @@ $(SRC): apply
 
 expand: openssl-$(VERSION).tar.gz
 	tar xvzf openssl-$(VERSION).tar.gz
-	rm -f openssl-$(VERSION)/Makefile
 
-apply: expand patches
-	patch -Nup0 < patches; echo ok
+apply: echo ok
 
 clean:
-	rm -rf $(SRC)/$(BUILD)
+	rm -rf $(SRC)
 
 build: openssl
