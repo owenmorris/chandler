@@ -9,10 +9,13 @@ srcdir=		../../../../python
 VERSION=	2.3
 
 # Compiler flags
-OPT=		-g
 INCLUDES=	-I$(srcdir)/Include -I$(blddir)
-CFLAGS=		$(OPT)
 CPPFLAGS=	$(INCLUDES)
+ifeq ($(DEBUG),1)
+    CFLAGS=		-g -DDEBUGMODE=1
+else
+    CFLAGS=		-O
+endif
 
 # The Python library
 LIBPYTHON=	$(blddir)/libpython$(VERSION).a
