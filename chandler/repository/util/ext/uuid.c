@@ -92,7 +92,7 @@ long hash_uuid(unsigned char *uuid, int len)
  * Source code for this function is inspired from Mac OS X 10.2.6 ifconfig's.
  */
 
-static int get_ethernet_node_id(unsigned char *node_id, size_t node_len)
+static int get_ethernet_node_id(unsigned char *node_id, int node_len)
 {
     int mib[] = { CTL_NET, PF_ROUTE, 0, AF_LINK, NET_RT_IFLIST, 0 };
     size_t info_len;
@@ -387,7 +387,8 @@ int generate_uuid(unsigned char *uuid)
 #ifdef _MSC_VER
     {
         /* microseconds * 10 from January 1, 1601 to October 15, 1582. */
-        static const __int64 gregorian_cutover = -5748192000000000L;
+        static const __int64 gregorian_cutover =
+            (__int64) -5748192 * 1000000000;
         ULARGE_INTEGER system_time;
 
         GetSystemTimeAsFileTime((FILETIME *) &system_time);
@@ -396,7 +397,8 @@ int generate_uuid(unsigned char *uuid)
 #else
     {
         /* microseconds * 10 from January 1, 1970 to October 15, 1582. */
-        static const __int64 gregorian_cutover = -122192928000000000L;
+        static const __int64 gregorian_cutover =
+            (__int64) -122192928 * 1000000000;
         struct timeval tv;
 
         gettimeofday(&tv, NULL);
