@@ -78,6 +78,14 @@ class RepositoryTestCase(TestCase):
         self.loadParcels([namespace])
 
     def loadParcels(self, namespaces=None):
+        import application
+        import application.Globals as Globals
+        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+        from osaf.framework.notifications.NotificationManager import NotificationManager
+        Globals.repository = self.rep
+        Globals.notificationManager = NotificationManager()
+        Globals.notificationManager.PrepareSubscribers()
+
         self.manager.loadParcels(namespaces)
         if namespaces:
             for namespace in namespaces:
