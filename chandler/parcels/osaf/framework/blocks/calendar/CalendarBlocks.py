@@ -340,7 +340,10 @@ class wxWeekBlock(wxCalendarBlock):
 
         dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
 
-        startDay = self.blockItem.rangeStart + DateTime.RelativeDateTime(days=-6, weekday=(DateTime.Sunday, 0))
+        if self.blockItem.daysPerView == 1:
+            startDay = self.blockItem.rangeStart
+        else:
+            startDay = self.blockItem.rangeStart + DateTime.RelativeDateTime(days=-6, weekday=(DateTime.Sunday, 0))
         
         # Draw lines between the days
         for i in range (self.blockItem.daysPerView):
@@ -355,10 +358,10 @@ class WeekBlock(CalendarBlock):
     def __init__(self, *arguments, **keywords):
         super (WeekBlock, self).__init__(*arguments, **keywords)
         
-        self.rangeIncrement = DateTime.RelativeDateTime(days=7)
+    def instantiateWidget(self):
+        self.rangeIncrement = DateTime.RelativeDateTime(days=self.daysPerView)
         self.updateRange(DateTime.today() + self.rangeIncrement)
 
-    def instantiateWidget(self):
         widget = wxWeekBlock(self.parentBlock.widget,
                              Block.Block.getWidgetID(self))
         # @@@ hack hack??
@@ -380,8 +383,11 @@ class WeekBlock(CalendarBlock):
     # date methods
     
     def updateRange(self, date):
-        delta = DateTime.RelativeDateTime(days=-6, weekday=(DateTime.Sunday, 0))
-        self.rangeStart = date + delta
+        if self.daysPerView == 1:
+            self.rangeStart = date
+        else:
+            delta = DateTime.RelativeDateTime(days=-6, weekday=(DateTime.Sunday, 0))
+            self.rangeStart = date + delta
 
     def getTimeFromPosition(self, y):
         hour = (y - self.offset) / self.hourHeight
@@ -570,7 +576,8 @@ class wxMiniCalendar(wx.calendar.CalendarCtrl):
 
     def wxSynchronizeWidget(self):
         self.SetWindowStyle(wx.calendar.CAL_SUNDAY_FIRST |
-                            wx.calendar.CAL_SHOW_SURROUNDING_WEEKS)
+                            wx.calendar.CAL_SHOW_SURROUNDING_WEEKS |
+                            wx.calendar.CAL_SHOW_HOLIDAYS)
 
     def OnWXSelectionChanged(self, event):
         self.blockItem.Post(Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectedDateChanged'),

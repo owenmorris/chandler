@@ -146,6 +146,17 @@
     <characterStyle itemref="view:CalendarTitle"/>
   </calendarBlocks:WeekBlock>
 
+  <!-- Day -->
+  <calendarBlocks:WeekBlock itsName="SummaryDay">
+    <contents itemref="view:calendarItemCollection"/>
+
+    <daysPerView>1</daysPerView>
+    <hoursPerView>16</hoursPerView>
+    <offset>60</offset>
+
+    <characterStyle itemref="view:CalendarTitle"/>
+  </calendarBlocks:WeekBlock>
+
   <!-- Mixed List -->
   <List itsName="MixedList">
     <contents itemref="view:mixedItemCollection"/>
@@ -304,6 +315,10 @@
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
 
+  <ItemDetail itsName="DayItemDetail"
+              itemClass="osaf.views.content.Content.ContentItemDetail">
+  </ItemDetail>
+
   <!-- Note View -->
   <SplitterWindow itsName="NoteListView">
     <displayName>NoteList</displayName>
@@ -447,6 +462,17 @@
 
     <childrenBlocks itemref="view:SummaryWeek"/>
     <childrenBlocks itemref="view:WeekItemDetail"/>
+
+    <eventBoundary>True</eventBoundary>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+  </SplitterWindow>
+
+  <!-- Day View -->
+  <SplitterWindow itsName="DayView">
+    <displayName>Day</displayName>
+
+    <childrenBlocks itemref="view:SummaryDay"/>
+    <childrenBlocks itemref="view:DayItemDetail"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
