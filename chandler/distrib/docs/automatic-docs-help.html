@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>How to read the Chandler's automatic documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+</head>
+
+<body>
+<div align="center">
+  <h1>How to read  Chandler's automatic documentation</h1>
+</div>
+  <h3 align="left">Background</h3>
+  <p align="left">Chandler's automatic documentation gives details about Chandler's <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/DataModelIntro">Data Model</a> and <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ContentModel">Content Model</a>. The  <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/DataModelIntro">Data Model</a> provides a base set of Kinds, Attributes, and other  types which are drawn on to create new Kinds and Attributes using a consistent vocabulary. The <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/ContentModel">Content Model</a> builds on these base types to create types for different areas of Chandler functionality.</p>
+  <p align="left">The Data Model and the Content Model are defined in a collection of XML files called parcels. These XML files are  automatically transformed into documentation. See the <a href="repository-intro.html">repository intro</a> for more about the format of the parcel.xml files.</p>
+  <hr />
+  <h3 align="left">Parcel Index</h3>
+  <p align="left">The index page for the latest Content Model documentation is available at <a href="http://builds.osafoundation.org/autogen/">http://builds.osafoundation.org/autogen/</a>, these pages are updated every three hours.</p>
+  <p align="left">Each row of the index refers to a particular parcel, with links to various views of that parcel. Each parcel's summary page for  is meant to give an overview of the Kinds defined in that parcel. There are also pages that describe the parcel's Kinds, Attributes, Enumeration, Aliases, and Types in detail. If a row doesn't have a link to one of these base types, it means that parcel didn't define anything of that type.</p>
+  <hr />
+  <h3 align="left">Summary Page</h3>
+  <p align="left">Each parcel's summary page lists gives the parcel's general description, then summarizes the Kinds the parcel defines. The beginning of each Kind summary will say something like: &quot;<a href="http://builds.osafoundation.org/autogen/parcels/OSAF/contentmodel/Kinds.html#ContentItem">Content Item</a> is a Kind defined in Chandler Content Model&quot; followed by any description, examples, or issues associated with the Kind.</p>
+  <p align="left">Next, all the   attributes the parcel specifies for the Kind (but not its inherited attributes) are listed, with a sentence explaining the attribute's type, cardinality,  and whether it's a reference to some other Kind or normal value. For instance, &quot;<a href="http://builds.osafoundation.org/autogen/parcels/OSAF/contentmodel/Attributes.html#projects">Projects</a> is a list of references to Project items.&quot; Next, the attribute's description or any issues associated with it are listed.</p>
+  <p align="left">The summary page is meant to give a quick overview of the parcel, but it doesn't say everything, so the Kinds and Attributes listed on the summary page link to the more detailed Kinds and Attributes pages.</p>
+  <hr />
+  <h3 align="left">Kinds Page </h3>
+  <p align="left">The Aliases, Enumerations, and Types pages are fairly self explanatory, but the Kinds page has enough going on that it deserves a little attention.</p>
+  <p align="left">All Kinds have superKinds, the default superKind is Item. At the top of each parcel's Kinds page is a tree describing its Kinds' inheritance structure, with a link to each Kind lower down on the page.</p>
+  <p align="left">The detail section for each  Kind gives the Kind's general description, then a table with a row for all the attributes associated with the Kind, including any  attributes inherited from its superKind. The columns of the table list common <a href="http://wiki.osafoundation.org/twiki/bin/view/Glossary/Aspect">aspects</a>:</p>
+  <ul>
+    <li>displayName - the full name of the Attribute </li>
+    <li>itemName - the name used to refer to the attribute, which in fact is not an aspect</li>
+    <li>type - the Kind of the Attribute</li>
+    <li>cardinality - the Attribute's <a href="http://wiki.osafoundation.org/twiki/bin/view/Glossary/Cardinality">cardinality</a></li>
+    <li>inverseAttribute - if the Attribute is a reference, the Attribute it refers to </li>
+    <li>superAttribute - the Attribute's parent, if it has one </li>
+    <li>required - whether the attribute is required. By default, Attributes are not required </li>
+    <li>defaultValue - some attributes define a default value the Attribute should be set to</li>
+  </ul>
+  <hr />
+  <h3>Known Bugs </h3>
+  <p>Documentation is generated by running XSL transforms against parcel.xml files. Known bugs in this process: </p>
+  <ul>
+    <li>The XSL may die a painful death if a Kind has more than one superKind.</li>
+    <li>At one point some algorithms assumed that itemNames were globally unique. Most code no longer assumes this, but vestiges of the old may remain, this hasn't been tested thorougly enough yet. </li>
+    <li>The XSL transforms use EXSL functions. libxslt's EXSL implementation is known to work, other implementations haven't been tested. </li>
+  </ul>
+  <p>If you believe you've found a bug, please make a bug report on the <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/SchemaDocumentationProject">OSAF wiki</a>. </p>
+  <hr />
+  <h3>Comments and Questions</h3>
+  <p>If something doesn't make sense or you'd like to know more, talk to us! There's a <a href="http://wiki.osafoundation.org/twiki/bin/view/Chandler/SchemaDocumentationProject">wiki page</a> especially for comments and questions about the automatic documentation. </p>
+  <hr />
+  </body>
+</html>
