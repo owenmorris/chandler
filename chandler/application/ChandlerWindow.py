@@ -43,7 +43,7 @@ class ChandlerWindow(Persistent):
         self.showActionsBar = false
         self.showSideBar = true
         self.showStatusBar = true
-        
+
     def SynchronizeView(self):
         """
           Notifies the window's wxPython view counterpart that they need to
@@ -58,7 +58,7 @@ class ChandlerWindow(Persistent):
             app.association[id(self)] = wxWindow
         else:
             wxWindow = app.association[id(self)]
-            
+
         wxWindow.sideBar.model.SynchronizeView()
         wxWindow.navigationBar.model.SynchronizeView()
         wxWindow.MoveOntoScreen()
@@ -77,7 +77,7 @@ class wxChandlerWindow(wxFrame):
         value = wxPreFrame ()
         self.this = value.this
         self._setOORInfo (self)
-        
+
         self.isRemote = false
         
     def OnActivate(self, event):
@@ -99,7 +99,7 @@ class wxChandlerWindow(wxFrame):
         our model.
         """
         self.model = model
-        
+
         self.CreateStatusBar ()
         statusBar = self.GetStatusBar()
         statusBar.SetFieldsCount(2)
@@ -108,7 +108,7 @@ class wxChandlerWindow(wxFrame):
         self.SetStatusText(version.build, 1)
 
         self.SetBackgroundColour(wxColor(236, 233, 216))
-        
+
         assert (self.GetToolBar() == None)
         applicationResources = application.Application.app.applicationResources
         self.menuBar = applicationResources.LoadMenuBar ("MainMenuBar")
@@ -124,12 +124,12 @@ class wxChandlerWindow(wxFrame):
         self.emptyActionsBar = self.actionsBar
         self.splitterWindow = self.FindWindowByName("SplitterWindow")
         assert (self.splitterWindow != None)
-        
+
         self.ShowOrHideNavigationBar()
         self.ShowOrHideActionsBar()
         self.ShowOrHideSideBar()
         self.ShowOrHideStatusBar()
-      
+
         if __debug__:
             """
               In the debugging version, we add a command key combination that
@@ -153,6 +153,7 @@ class wxChandlerWindow(wxFrame):
         EVT_SIZE(self, self.OnSize)
         EVT_CLOSE(self, self.OnClose)
         EVT_ACTIVATE(self, self.OnActivate)
+        EVT_MENU(self, XRCID("Close"), self.OnClose)
         EVT_UPDATE_UI(self, XRCID("ShowNavigationBar"), 
                       self.UpdateViewMenuDisplay)
         EVT_MENU(self, XRCID("ShowNavigationBar"), self.OnShowNavigationBar)
@@ -228,7 +229,7 @@ class wxChandlerWindow(wxFrame):
         application.Application.app.model.URLTree.RemoveSideBar(self.model)
         del application.Application.app.applicationResources
         self.Destroy()
-
+        
     def UpdateViewMenuDisplay(self, event):
         """
           This method is called when the view menu is displayed.  It sets up

@@ -89,7 +89,11 @@
     <object class="wxMenuBar" name="MainMenuBar">
         <object class="wxMenu" name="FileMenu">
             <label>&amp;File</label>
-            <object class="wxMenuItem" name="Quit">
+            <object class="wxMenuItem" name="Close">
+                <label>Close</label>
+                <accel>Ctrl+W</accel>
+            </object>
+            <object platform="win|unix" class="wxMenuItem" name="Quit">
                 <label>Quit</label>
                 <accel>Ctrl+Q</accel>
             </object>
