@@ -13,7 +13,7 @@ False = 0
 # vintage with a "cvs update -A" before running it, since after running
 # it, it may get reverted to a slightly earlier version
 
-import hardhatutil, time, smtplib, os, sys
+import hardhatutil, time, smtplib, os, sys, md5, sha
 
 # args:  toAddr, buildName, project, outputDir
 
@@ -204,6 +204,26 @@ _descriptions = {
     'debug' : ["Pre-built debug directory", "If you are using CVS to check out Chandler you can either build everything yourself or you can download this pre-compiled 'debug' directory.  Download, unpack, and place the contained 'debug' directory next to your 'Chandler' directory."],
 }
 
+def MD5sum(filename):
+    """Compute MD5 checksum for the file
+    """
+    m = md5.new()
+    fileobj = open(filename)
+    filedata = fileobj.read()
+    fileobj.close()
+    m.update(filedata)
+    return m.hexdigest()
+
+def SHAsum(filename):
+    """Compute SHA-1 checksum for the file
+    """
+    s = sha.new()
+    fileobj = open(filename)
+    filedata = fileobj.read()
+    fileobj.close()
+    s.update(filedata)
+    return s.hexdigest()
+
 def CreateIndex(outputDir, newDirName, nowString, buildName):
     """Generates an index.html page from the hint files that hardhat creates
     which contain the actual distro filenames"""
@@ -212,14 +232,17 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
     fileOut.write("<h2>Chandler Build: " + nowString + " PDT (machine: " + buildName +")</h2>\n")
     for x in ["enduser", "developer", "release", "debug"]:
         actual = _readFile(outputDir+os.sep+newDirName+os.sep+x)
-        fileOut.write("<p><a href="+newDirName+"/"+actual+"> "+ _descriptions[x][0] +"</a>: " + _descriptions[x][1] +"</p>\n")
+        fileOut.write("<p><a href="+x+".html> "+ _descriptions[x][0] +"</a>: " + _descriptions[x][1] +"</p>\n")
         fileOut2 = file(outputDir+os.sep+x+".html", "w")
         fileOut2.write("<html><head><META HTTP-EQUIV=Pragma CONTENT=no-cache><link rel=Stylesheet href=http://www.osafoundation.org/css/OSAF.css type=text/css charset=iso-8859-1></head><body topmargin=0 leftmargin=0 marginwith=0 marginheight=0><img src=http://www.osafoundation.org/images/OSAFLogo.gif><table border=0><tr><td width=19>&nbsp;</td><td width=550>\n")
         fileOut2.write("<h2>Chandler Build: " + nowString + " PDT (machine: " + buildName +")</h2>\n")
-        fileOut2.write("<p><a href="+newDirName+"/"+actual+"> "+ _descriptions[x][0] +"</a>: " + _descriptions[x][1] +"</p>\n")
-        fileOut2.write("<p>Download <a href="+newDirName+"/"+actual+">" + actual + "</a></p>\n")
+        fileOut2.write("<p>Download <a href="+newDirName+"/"+actual+"> "+ _descriptions[x][0] +"</a>: <br>")
+        fileOut2.write(" MD5 checksum: " + MD5sum(buildDir+os.sep+newDirName+os.sep+actual) + "<br>")
+        fileOut2.write(" SHA checksum: " + SHAsum(buildDir+os.sep+newDirName+os.sep+actual) + "<br>")
+        fileOut2.write("<p> " + _descriptions[x][1] +"</p>\n")
         fileOut2.write("</td></tr></table></body></html>\n")
         fileOut2.close()
+
     fileOut.write("</td></tr></table></body></html>\n")
     fileOut.close()
     fileOut = file(outputDir+os.sep+"time.js", "w")
