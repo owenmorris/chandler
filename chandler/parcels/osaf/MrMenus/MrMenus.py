@@ -6,6 +6,7 @@ __license__ = "OSAF"
 
 
 from wxPython.wx import *
+from application.SplashScreen import SplashScreen
 from application.ViewerParcel import *
 from application.Application import app
 
@@ -31,6 +32,8 @@ class wxMrMenus(wxViewerParcel):
 
         EVT_MENU(self, XRCID ('EditMenu1'), self.OnEditMenu0)
         EVT_UPDATE_UI(self, XRCID ('EditMenu1'), self.OnEditMenu1UIUpdate)
+
+        EVT_MENU(self, XRCID('AboutMrMenusMenuItem'), self.OnAboutMrMenus)
 
         self.radioBox = self.FindWindowById (XRCID ('RadioBox'))
         assert (self.radioBox != None)
@@ -83,5 +86,10 @@ class wxMrMenus(wxViewerParcel):
     def OnEditMenu1UIUpdate(self, event):
         event.Enable (self.model.radioSelection == 0)
         
-        
-
+    def OnAboutMrMenus(self, event):
+        pageLocation = "parcels" + os.sep + "OSAF" + os.sep +\
+                     "mrmenus" + os.sep + "AboutMrMenus.html"
+        infoPage = SplashScreen(self, _("About MrMenus"), pageLocation, false)
+        if infoPage.ShowModal():
+            infoPage.Destroy()
+            
