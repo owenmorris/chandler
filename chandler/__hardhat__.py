@@ -1,6 +1,6 @@
 import os, hardhatlib, hardhatutil, errno, sys
 
-bogus2()
+bogus3()
 
 info = {
         'name':'Chandler',
