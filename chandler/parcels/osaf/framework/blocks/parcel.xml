@@ -159,11 +159,19 @@
   </Kind>
   
   <!--
-    ContainerChild
+    ContainerChild is the most generic container
   -->
   <Kind itemName="ContainerChild">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.ContainerChild</classes>
     <superKinds itemref="docSchema:Block"/>
+  </Kind>
+
+  <!--
+    RectContainer is a rectangular container
+  -->
+  <Kind itemName="RectContainer">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.RectContainer</classes>
+    <superKinds itemref="docSchema:ContainerChild"/>
 
     <Attribute itemName="size">
       <type itemref="docSchema:SizeType"/>
@@ -192,18 +200,18 @@
     </Enumeration>
 
     <Attribute itemName="alignmentEnum">
-      <type itemref="docSchema:ContainerChild/alignmentEnumType"/>
+      <type itemref="docSchema:RectContainer/alignmentEnumType"/>
     </Attribute>
 
     <Attribute itemName="stretchFactor">
       <type itemref="Float"/>
     </Attribute>
 
-    <attributes itemref="docSchema:ContainerChild/size"/>
-    <attributes itemref="docSchema:ContainerChild/minimumSize"/>
-    <attributes itemref="docSchema:ContainerChild/border"/>
-    <attributes itemref="docSchema:ContainerChild/alignmentEnum"/>
-    <attributes itemref="docSchema:ContainerChild/stretchFactor"/>
+    <attributes itemref="docSchema:RectContainer/size"/>
+    <attributes itemref="docSchema:RectContainer/minimumSize"/>
+    <attributes itemref="docSchema:RectContainer/border"/>
+    <attributes itemref="docSchema:RectContainer/alignmentEnum"/>
+    <attributes itemref="docSchema:RectContainer/stretchFactor"/>
   </Kind>
 
   <!--
@@ -211,7 +219,7 @@
   -->
   <Kind itemName="BoxContainer">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.BoxContainer</classes>
-    <superKinds itemref="docSchema:ContainerChild"/>
+    <superKinds itemref="docSchema:RectContainer"/>
 
     <Enumeration itemName="orientationEnumType">
       <values>Horizontal</values>
@@ -230,7 +238,7 @@
   -->
   <Kind itemName="StaticText">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.StaticText</classes>
-    <superKinds itemref="docSchema:ContainerChild"/>
+    <superKinds itemref="docSchema:RectContainer"/>
 
     <Enumeration itemName="alignmentEnumType">
       <values>Left</values>
@@ -305,7 +313,7 @@
   -->
   <Kind itemName="TreeList">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.TreeList</classes>
-    <superKinds itemref="docSchema:ContainerChild"/>
+    <superKinds itemref="docSchema:RectContainer"/>
 
     <Attribute itemName="columnHeadings">
       <type itemref="String"/>
@@ -326,7 +334,7 @@
   -->
   <Kind itemName="EditText">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.EditText</classes>
-    <superKinds itemref="docSchema:ContainerChild"/>
+    <superKinds itemref="docSchema:RectContainer"/>
 
     <Enumeration itemName="lineStyleEnumType">
       <values>SingleLine</values>

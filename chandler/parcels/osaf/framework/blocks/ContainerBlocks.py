@@ -41,13 +41,15 @@ class Font(wxFont):
                          underline,
                          characterStyle.fontName)
 
-
+        
 class ContainerChild(Block):
     def Render (self, parent, parentWindow):
         (parent, parentWindow) = self.RenderOneBlock (parent, parentWindow)
         for child in self.childrenBlocks:
             child.Render (parent, parentWindow)
 
+
+class RectContainer(ContainerChild):
     def Calculate_wxFlag (self):
         if self.alignmentEnum == 'grow':
             flag = wxGROW
@@ -73,7 +75,6 @@ class ContainerChild(Block):
             flag = wxALIGN_BOTTOM | wxALIGN_RIGHT
         return flag
 
-
     def Calculate_wxBorder (self):
         border = 0
         spacerRequired = False
@@ -95,7 +96,7 @@ class ContainerChild(Block):
         return int (border)
 
 
-class BoxContainer(ContainerChild):
+class BoxContainer(RectContainer):
     def RenderOneBlock (self, parent, parentWindow):
         if self.orientationEnum == 'Horizontal':
             orientation = wxHORIZONTAL
@@ -113,7 +114,7 @@ class BoxContainer(ContainerChild):
         return sizer, parentWindow
 
 
-class StaticText(ContainerChild):
+class StaticText(RectContainer):
     def RenderOneBlock (self, parent, parentWindow):
         assert isinstance (parent, wxSizerPtr) #must be in a container
         if self.alignment == "Left":
@@ -169,7 +170,7 @@ class MenuItem(ContainerChild):
         return None, None
 
 
-class TreeList(ContainerChild):
+class TreeList(RectContainer):
     def RenderOneBlock(self, parent, parentWindow):
         treeList = wxTreeListCtrl(parentWindow)
         info = wxTreeListColumnInfo()
@@ -182,6 +183,6 @@ class TreeList(ContainerChild):
         return None, None
 
 
-class EditText(ContainerChild):
+class EditText(RectContainer):
     def __init__(self, *arguments, **keywords):
         super (EditText, self).__init__ (*arguments, **keywords)
