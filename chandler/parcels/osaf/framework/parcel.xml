@@ -6,11 +6,26 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itemName="AppSchema"
-        xmlns="//Schema/Core">
+        xmlns="//Schema/Core"
+        xmlns:app="//Parcels/OSAF/AppSchema"
+        itemClass="OSAF.AppSchema.AppSchema.AppSchema">
 
   <displayName>Application Schema</displayName>
   <description>Schemas used by the Chandler Application</description>
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
+
+  <Kind itemName="Preferences">
+    <displayName>Preferences</displayName>
+    <description>The user's preferences for Chandler.</description>
+    <attributes itemref="app:Preferences/startView"/>
+    <classes key="python">OSAF.AppSchema.Preferences.Preferences</classes>
+
+    <Attribute itemName="startView">
+      <displayName>Start View</displayName>
+      <description>The top level, starting view for Chandler.</description>
+      <type itemref="UUID"/>
+    </Attribute>
+  </Kind>
 
 </Parcel>
