@@ -3,7 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import gettext, os, sys, threading
+import gettext, os, sys, threading, time
 from new import classobj
 import wx
 import Globals
@@ -178,14 +178,17 @@ class wxApplication (wx.App):
         seem worth adding yet another command line flag for just turning off the
         splash screen.
         """
+        splash = None
         if not (__debug__ and application.Globals.options.nocatch):
             splashBitmap = self.GetImage ("splash")
-            splash = wx.SplashScreen(splashBitmap,
-                                     wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT,
-                                     6000, None, -1, wx.DefaultPosition,
-                                     wx.DefaultSize,
-                                     wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR)
+##            splash = wx.SplashScreen(splashBitmap,
+##                                     wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT,
+##                                     6000, None, -1, wx.DefaultPosition,
+##                                     wx.DefaultSize,
+##                                     wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR)
+            splash=StartupSplash(None, splashBitmap)
             splash.Show()
+            wx.Yield() #let the splash screen render itself
         """
           Setup internationalization
         To experiment with a different locale, try 'fr' and wx.LANGUAGE_FRENCH
@@ -204,6 +207,7 @@ class wxApplication (wx.App):
         """
           Crypto initialization
         """
+        if splash: splash.updateGauge('crypto')
         Globals.crypto = Crypto.Crypto()
         Globals.crypto.init(Globals.options.profileDir)
         """
@@ -211,6 +215,7 @@ class wxApplication (wx.App):
         Load the Repository after the path has been altered, but before
         the parcels are loaded. 
         """
+        if splash: splash.updateGauge('repository')
         if Globals.options.profileDir:
             path = os.sep.join([Globals.options.profileDir, '__repository__'])
         else:
@@ -226,13 +231,14 @@ class wxApplication (wx.App):
                  
         if Globals.options.repo:
             kwds['fromPath'] = Globals.options.repo
-            
+        wx.Yield()
         self.repository = DBRepository(path)
         if Globals.options.create:
             self.repository.create(**kwds)
         else:
             self.repository.open(**kwds)
-
+        wx.Yield()
+        
         self.UIRepositoryView = self.repository.getCurrentView()
 
         if not self.UIRepositoryView.findPath('//Packs/Schema'):
@@ -241,27 +247,26 @@ class wxApplication (wx.App):
             can't be loaded in a data parcel.
             """
             self.UIRepositoryView.loadPack("repository/packs/schema.pack")
+            wx.Yield()
             self.UIRepositoryView.loadPack("repository/packs/chandler.pack")
         """
           Load Parcels
         """
+        if splash: splash.updateGauge('parcels')
         parcelSearchPath = [ parcelDir ]
         if debugParcelDir:
             parcelSearchPath.append( debugParcelDir )
-
+        wx.Yield()
         application.Parcel.Manager.get(self.UIRepositoryView,
                                        path=parcelSearchPath).loadParcels()
 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
-        self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
-        self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroyWindow, id=-1)
-        self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
+
         """
           The Twisted Reactor should be started before other Managers
           and stopped last.
         """
+        if splash: splash.updateGauge('twisted')
         import osaf.framework.twisted.TwistedReactorManager as TwistedReactorManager 
         self.__twistedReactorManager = TwistedReactorManager.TwistedReactorManager()
         self.__twistedReactorManager.startReactor()
@@ -281,12 +286,14 @@ class wxApplication (wx.App):
         """
           Register to some global events for name lookup.
         """
+        if splash: splash.updateGauge('globalevents')
         globalEvents = self.UIRepositoryView.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
         from osaf.framework.blocks.Block import Block
         Block.addToNameToItemUUIDDictionary (globalEvents.eventsForNamedDispatch,
                                              Block.eventNameToItemUUID)
 
         self.ignoreSynchronizeWidget = False
+        if splash: splash.updateGauge('mainview')
         self.RenderMainView ()
 
         if Globals.options.profile:
@@ -299,8 +306,17 @@ class wxApplication (wx.App):
             stats.sort_stats('time', 'calls')
             stats.print_stats(125)
         else:
+            wx.Yield()
             self.UIRepositoryView.commit()
             
+        if splash: splash.Destroy()
+        #OnDestroyWindow Binding has to appear after splash.Destroy
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
+        self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroyWindow, id=-1)
+        self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
+
         self.mainFrame.Show()
 
         from osaf.framework.wakeup.WakeupCaller import WakeupCaller
@@ -308,6 +324,7 @@ class wxApplication (wx.App):
         Globals.wakeupCaller.startup()
 
         tools.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
+
 
         return True                     #indicates we succeeded with initialization
 
@@ -656,4 +673,79 @@ class TransportWrapper (object):
         else:
             item = Globals.mainViewRoot.findUUID (theUUID)
             return item
+
+class StartupSplash(wx.Frame):
+    def __init__(self, parent, bmp):
+        height = bmp.GetHeight()
+        width = bmp.GetWidth()
+        msgHeight = 20
+        gaugeHeight = 15
+        gaugeBorder = 1
+        gaugeWidth = min(300, width - 100)
+        padding = 5
+        frameSize = wx.Size(width, height + msgHeight + gaugeHeight + 2*padding)
+        wx.Frame.__init__(self, size=frameSize, parent=parent, style=wx.SIMPLE_BORDER)
+        self.CenterOnScreen()
+        self.SetBackgroundColour(wx.WHITE)
         
+        #                    name            weight      text
+        self.statusTable = {'crypto'      : ( 5,  "Initializing crypto services"),
+                            'repository'  : ( 10,  "Opening the repository"),
+                            'parcels'     : ( 15, "Loading parcels"),
+                            'twisted'     : ( 10,  "Starting Twisted"),
+                            'globalevents': ( 15,  "Registering global events"),
+                            'mainview'    : ( 10,  "Rendering the main view")}
+        
+        self.gaugeTicks = reduce(lambda x, y: x + y[0], self.statusTable.values(), 0)
+        
+        wx.StaticBitmap(self, -1, bmp, wx.Point(0, 0), wx.Size(width, height))
+        self.progressText = wx.StaticText(self, -1, "", wx.Point(0, height + padding), 
+                                wx.Size(width, msgHeight),
+                                wx.ALIGN_CENTRE | wx.ST_NO_AUTORESIZE)
+        self.progressText.SetBackgroundColour(wx.WHITE)
+        gaugeBox = wx.Window(self, -1, wx.Point((width - gaugeWidth)/2, height + msgHeight + padding), 
+                        wx.Size(gaugeWidth, gaugeHeight))
+        gaugeBox.SetBackgroundColour(wx.BLACK)
+        self.gauge = wx.Gauge(gaugeBox, -1,
+                              range = self.gaugeTicks,
+                              style = wx.GA_HORIZONTAL,#|wx.GA_SMOOTH,
+                              pos   = (gaugeBorder, gaugeBorder),
+                              size  = (gaugeWidth - 2 * gaugeBorder,
+                                       gaugeHeight - 2 * gaugeBorder))
+        self.gauge.SetBackgroundColour(wx.Colour(0x33, 0x33, 0x33))
+        self.workingTicks = 0
+        self.completedTicks = 0
+        self.timerTicks = 0
+        
+        #Without a lock, spawning a new thread modestly improves the smoothness
+        #of the gauge, but then Destroy occasionally raises an exception and the
+        #gauge occasionally moves backwards, which is unsettling. Unfortunately,
+        #my feeble attempt at using a lock seemed to create a race condition.
+        
+        #threading._start_new_thread(self.timerLoop, ())
+        
+    def timerLoop(self):#currently unused
+        self._startup = True
+        while self and self._startup:
+            self.updateGauge('timer')
+            time.sleep(1.5)
+
+    def updateGauge(self, type):
+        if type == 'timer': #currently unused
+            if self.timerTicks < self.workingTicks:
+                self.timerTicks += 1
+                self.gauge.SetValue(self.completedTicks + self.timerTicks)
+        else:
+            self.timerTicks = 0
+            self.completedTicks += self.workingTicks
+            self.gauge.SetValue(self.completedTicks + self.timerTicks)
+            self.progressText.SetLabel(self.statusTable[type][1])
+            self.workingTicks = self.statusTable[type][0]
+        wx.Yield()
+
+    def Destroy(self):
+        self._startup = False
+        self.gauge.SetValue(self.gaugeTicks)
+        wx.Yield()
+        time.sleep(.25) #give the user a chance to see the gauge reach 100%
+        wx.Frame.Destroy(self)
