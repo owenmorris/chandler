@@ -81,14 +81,12 @@ class wxZaoBaoViewer(wxViewerParcel):
         self.urlTextArea = wxTextCtrl(self, -1, "",style=wxTE_PROCESS_ENTER)
         self.addURLButton = wxButton(self, -1, "Add", style=wxBU_EXACTFIT)
         self.addURLButton.SetToolTipString(_("Add me"))
-        #self.addURLButton.SetDefault()
         self.RSSIndexView = wxZaoBaoIndexView(self.twoPane, -1,
                                               style=wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL)
         self.RSSItemView = wxZaoBaoItemView(self.twoPane, -1,path=self.model.path + os.sep)
         self.RSSIndexView.setItemView(self.RSSItemView)
         self.twoPane.SplitHorizontally(self.RSSIndexView, self.RSSItemView, 250)
 
-        wxCallAfter(self.RSSIndexView.Refresh)
         wxCallAfter(self.urlTextArea.SetFocus)
 
         self.__do_layout()
@@ -104,14 +102,13 @@ class wxZaoBaoViewer(wxViewerParcel):
 
         self.RSSIndexView.register(self)
         self.RSSIndexView.updateRSSFeeds()
-
-
+        
     def onAddRssUrl(self, event):
         rssURL = self.urlTextArea.GetLineText(0)
         try:
             progressDlg = wxProgressDialog("Searching the Internet...",
                                            "Looking for feed: " + rssURL,
-                                           8,
+                                           9,
                                            NULL,
                                            wxPD_CAN_ABORT|wxPD_APP_MODAL)
             possibleFeeds = rssfinder.getFeeds(rssURL,progressDlg)
@@ -141,34 +138,11 @@ class wxZaoBaoViewer(wxViewerParcel):
                         answer = wxMessageBox(e.args)
                     else:
                         self.RSSIndexView.addRSS(anRSSData)
-                self.RSSIndexView.selectKey(id(anRSSData))
-                self.RSSIndexView.SetFocus()
+                wxCallAfter(self.RSSIndexView.selectKey,id(anRSSData))
+                wxCallAfter(self.RSSIndexView.SetFocus)
         except IOError, e:
             if progressDlg: progressDlg.Destroy()
             wxMessageBox(_("Could not load URL: ") + rssURL)
-
-    #def onAddRssUrl(self, event):
-        #"""Add RSS URL typed into text input area, checking first if
-        #input text is a valid RSS URL"""
-        #self.SetCursor(wxHOURGLASS_CURSOR)
-        #rssURL = self.urlTextArea.GetLineText(0)
-        #defaultPrefix = 'http://'
-        #if self.RSSIndexView.alreadySubscribed(rssURL) or self.RSSIndexView.alreadySubscribed(defaultPrefix + rssURL):
-            #wxMessageBox(rssURL +_(" is already subscribed."))
-        #else:
-            #success = 1
-            #try:
-                #anRSSData = RSSData.getNewRSSChannel(rssURL)
-            #except RSSData.RSSChannelException, e:
-                #if (rssURL[:4] != 'http'):
-                    #try:
-                        #anRSSData = RSSData.getNewRSSChannel(defaultPrefix + rssURL)
-                    #except RSSData.RSSChannelException, e:
-                        #success = 0
-                #else: success = 0
-            #if success: self.RSSIndexView.addRSS(anRSSData)
-            #else: answer = wxMessageBox(e.args)
-        #self.SetCursor(wxNullCursor)
 
     def OnReload(self):
         """Spawns a thread to check for updates from RSS feed"""
@@ -206,10 +180,7 @@ class wxZaoBaoViewer(wxViewerParcel):
         urlSizer.Add(self.addURLButton, 0, wxALL, 5)
         mainSizer.Add(urlSizer, 0, wxEXPAND, 0)
         mainSizer.Add(self.twoPane, 1, wxEXPAND, 0)
-
-        #RSSData.registerStatus(self)
-
-        #self.SetSizerAndFit(mainSizer)
+        
         self.SetAutoLayout(1)
         self.SetSizer(mainSizer)
         self.Layout()
@@ -221,15 +192,6 @@ class wxZaoBaoViewer(wxViewerParcel):
             self.urlTextArea.SetValue(args.getRSSURL())
         else:
             self.frame.GetStatusBar().SetStatusText(args.get('event',''))
-
-    def Deactivate(self):
-        """Removes observers from the model (RSSData) and remembers the previously
-        selected RSS feed just before deactivation"""
-        wxViewerParcel.Deactivate(self)
-
-    def Activate(self):
-        wxViewerParcel.Activate(self)
-
 
     def GoToURL(self, remoteAddress, url):
        self.RSSIndexView.loadObjects(remoteAddress,url)

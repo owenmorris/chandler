@@ -267,8 +267,7 @@ class RSSItemFactory:
         self._kind = rep.find('//Schema/RSSSchema/RSSItem')
         
     def newItem(self, itemData, encoding):
-        item = RSSItem(unicode(itemData.get('title',''), encoding),
-                       self._container,self._kind)
+        item = RSSItem(None,self._container,self._kind)
         item.initAttributes(itemData, encoding)
         return item
     

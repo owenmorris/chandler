@@ -9,11 +9,9 @@ ZaoBao is an news aggregator which takes advantage of
 ("ZaoBao" is Mandarin Chinese for "morning newspaper".) RSS is particularly
 popular for Web logs ("blogs").
 <P>
-If no RSS feeds are present, ZaoBao will load some defaults.  (This is
-currently a slow process.)
-You can remove a feed by selecting the <tt>Delete Item</tt> from the ZaoBao menu.
-You can add a feed by entering its URL in the text entry box between the
-magenta stripe and the list of feeds.
+Click the "Reload" button on the Chandler toolbar to poll for new data in your subscribed channels
+(background polling is not supported by Chandler yet). You can remove a feed by selecting the <tt>Delete Item</tt> from the ZaoBao menu.
+You can add a feed by entering its URL in the text entry box to the left of the "Add" button.
 <P>
 You can find URLs for many RSS feeds at sites like
 <A HREF="http://www.syndic8.com/">Syndic8</A>,
@@ -30,7 +28,8 @@ he started this project.
 <P>
 Chao used Mark Pilgrim's fine
 <A HREF="http://diveintomark.org/projects/misc/rssparser.py.txt">Ultra-liberal
-RSS Parser</A> as a base, and someone less modest than he wrote this text,
+Feed Parser</A> and <A HREF="http://diveintomark.org/projects/rss_finder/">RSS Finder </A>
+(for RSS auto discovery) as a base, and someone less modest than he wrote this text,
 but Chao got minimal support otherwise.  While ZaoBao started as a hobby project,
 it turned into a compelling proof that users would be able to develop 
 Chandler parcels easily.

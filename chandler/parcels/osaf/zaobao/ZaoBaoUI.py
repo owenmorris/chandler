@@ -460,13 +460,14 @@ class wxZaoBaoItemView(wxHtmlWindow):
             
         bodyHTML =  ''.join([self.subItemsForHTML(item,self._defaultItemHTML)
                             for item in self.data.getItems()])
-        return re.sub('<%items>',bodyHTML,self._defaultPageHTML)
-
+        pageHTML = re.sub('<%items>',bodyHTML,self._defaultPageHTML)
+        pageHTML = pageHTML.encode('latin_1','ignore') #@@@ wxHTMLWindow doesn't seem to support non latin_1 encoding for now
+        return pageHTML
+    
     def SetData(self, data):
         """Set the RSSChannel that this content view should represent"""
         self.data = data
         pageHTML = self.getNewItemsHTML()
-        pageHTML = pageHTML.encode('latin_1','ignore') #@@@ wxHTMLWindow doesn't seem to support non latin_1 encoding for now
         self.SetPage(pageHTML)
         
     def __init__(self,parent,id,path=''):

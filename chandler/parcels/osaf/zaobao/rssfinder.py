@@ -200,14 +200,16 @@ def getFeedsFromSyndic8(uri):
         pass
     return feeds
 
-_progressBarMessages = [_("Searching for RSS feed on page"),
+_progressBarMessages = [_("Loading page to search for RSS feed"),
                         _("Searching for RSS feed on page"),
                         _("Searching for RSS links on page"),
                         _("Looking harder for XML-type RSS feeds..."),
                         _("Searching on other servers for RSS feed"),
                         _("Trying harder.."),
+                        _("Trying even harder.."),
                         _("Found it!")]
 def getFeeds(uri,progressDlg):
+    if not progressDlg.Update(1, _progressBarMessages[0]): return 'cancelled'
     fulluri = makeFullURI(uri)
     data = _gatekeeper.get(fulluri)
     # is this already a feed?
@@ -216,36 +218,37 @@ def getFeeds(uri,progressDlg):
     # nope, it's a page, try LINK tags first
     _debuglog('looking for LINK tags')
     feeds = getLinks(data, fulluri)
-    if not progressDlg.Update(1, _progressBarMessages[0]): return 'cancelled'
-    _debuglog('found %s feeds through LINK tags' % len(feeds))
     if not progressDlg.Update(2, _progressBarMessages[1]): return 'cancelled'
+    _debuglog('found %s feeds through LINK tags' % len(feeds))
+    if not progressDlg.Update(3, _progressBarMessages[2]): return 'cancelled'
     feeds = filter(isFeed, feeds)
     if not feeds:
         # no LINK tags, look for regular <A> links that point to feeds
         _debuglog('no LINK tags, looking at A tags')
-        if not progressDlg.Update(3, _progressBarMessages[2]): return 'cancelled'
+        if not progressDlg.Update(4, _progressBarMessages[3]): return 'cancelled'
         links = getALinks(data, fulluri)
         locallinks = getLocalLinks(links, fulluri)
         # look for obvious feed links on the same server
         feeds = filter(isFeed, filter(isFeedLink, locallinks))
         if not feeds:
             # look harder for feed links on the same server
-            if not progressDlg.Update(4, _progressBarMessages[3]): return 'cancelled'
+            if not progressDlg.Update(5, _progressBarMessages[4]): return 'cancelled'
             feeds = filter(isFeed, filter(isXMLRelatedLink, locallinks))
         if not feeds:
             # look for obvious feed links on another server
-            if not progressDlg.Update(5, _progressBarMessages[4]): return 'cancelled'
+            if not progressDlg.Update(6, _progressBarMessages[5]): return 'cancelled'
             feeds = filter(isFeed, filter(isFeedLink, links))
         if not feeds:
-            if not progressDlg.Update(6, _progressBarMessages[5]): return 'cancelled'
+            if not progressDlg.Update(7, _progressBarMessages[6]): return 'cancelled'
             # look harder for feed links on another server
             feeds = filter(isFeed, filter(isXMLRelatedLink, links))
     #if not feeds:
-        #if not progressDlg.Update(7, "last resort: search Syndic8"): return 'cancelled'
+        #if not progressDlg.Update(8, "last resort: search Syndic8"): return 'cancelled'
         ## still no luck, search Syndic8 for feeds (requires xmlrpclib)
         #_debuglog('still no luck, searching Syndic8')
         #feeds = getFeedsFromSyndic8(uri)
     #progressDlg.Destroy()
+    if not progressDlg.Update(8, _progressBarMessages[7]): return 'cancelled'
     return feeds
 
 if __name__ == '__main__':
