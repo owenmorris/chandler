@@ -8,7 +8,7 @@ import twisted.internet.reactor as reactor
 import logging as logging
 import chandlerdb.util.UUID as UUID
 
-class WakeupCall:
+class WakeupCall(object):
     def receiveWakeupCall(self, wakeupCallItem):
         """
            This method will be called by the C{WakeupCaller}.
@@ -34,6 +34,7 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
         super(WakeupCaller, self).__init__(Globals.repository, "WC_%s" % (str(UUID.UUID())))
         self.wakeupCallies = {}
         self.threadPool = TwistedThreadPool.RepositoryThreadPool()
+        self.wakeupCallKind = None
 
     def startup(self):
         """
@@ -87,12 +88,10 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
 
     def __proxy(self, wakeupCallCallback, UUID):
         wakeupCall = self.__getKind().findUUID(UUID)
-        assert wakeupCall is not None
         wakeupCallCallback(wakeupCall)
 
     def __triggerEvent(self, uuid):
         wakeupCall = self.wakeupCallies[uuid]
-        assert wakeupCall is not None
 
         self.threadPool.callInThread(self.__proxy, wakeupCall.callback.receiveWakeupCall,
                                      wakeupCall.itsUUID)
@@ -119,7 +118,10 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
                 self.wakeupCallies[wakeupCall.itsUUID] = wakeupCall
 
     def __getKind(self):
-        return Globals.repository.findPath('//parcels/osaf/framework/wakeup/WakeupCall')
+        if self.wakeupCallKind is None:
+            self.wakeupCallKind = Globals.repository.findPath('//parcels/osaf/framework/wakeup/WakeupCall')
+
+        return self.wakeupCallKind
 
     def __isValid(self, wakeupCall):
         if wakeupCall is None or wakeupCall.delay.seconds <= 0:
