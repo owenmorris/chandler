@@ -34,7 +34,7 @@ python2.3/lib-dynload
 recursive=no
 python2.3
 
-# Grab the GTK library
+# Grab the WX GTK library
 libwx_gtk-2.4.so
 
 # Grab Chandler.py and LICENSE.txt
