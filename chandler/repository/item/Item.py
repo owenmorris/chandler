@@ -264,7 +264,7 @@ class Item(object):
         if value is None:
             return default
 
-        if isinstance(value, dict):
+        if isinstance(value, dict) or isinstance(value, RefDict):
             return value.get(key, default)
 
         if isinstance(value, list):
@@ -324,7 +324,7 @@ class Item(object):
 
         if attrValue is None:
             self.setValue(attribute, value, key, _attrDict=_attrDict)
-        elif isinstance(attrValue, dict):
+        elif isinstance(attrValue, dict) or isinstance(attrValue, RefDict):
             attrValue[key] = value
         elif isinstance(attrValue, list):
             attrValue.append(value)
@@ -337,7 +337,7 @@ class Item(object):
         value = (self._attributes.get(attribute, None) or
                  self._references.get(attribute, None))
 
-        if isinstance(value, dict):
+        if isinstance(value, dict) or isinstance(value, RefDict):
             return value.has_key(key)
         elif isinstance(value, list):
             return 0 <= key and key < len(value)
@@ -352,7 +352,7 @@ class Item(object):
         attrValue = (self._attributes.get(attribute, None) or
                      self._references.get(attribute, None))
 
-        if isinstance(attrValue, dict):
+        if isinstance(attrValue, dict) or isinstance(attrValue, RefDict):
             for v in attrValue.itervalues():
                 if v == value:
                     return True
@@ -375,7 +375,7 @@ class Item(object):
             value = (self._attributes.get(attribute, None) or
                      self._references.get(attribute, None))
 
-        if isinstance(value, dict):
+        if isinstance(value, dict) or isinstance(value, RefDict):
             del value[key]
         elif isinstance(value, list):
             value.pop(key)

@@ -66,7 +66,7 @@ class ItemRef(object):
     def _detach(self, item, name, other, otherName):
 
         if other is not None:
-            old = other.getAttribute(name, _attrDict=other._references)
+            old = other.getAttribute(otherName, _attrDict=other._references)
             if isinstance(old, RefDict):
                 old._removeRef(item.refName(otherName))
             else:
@@ -129,12 +129,13 @@ class ItemRef(object):
         generator.endElement('ref')
 
 
-class RefDict(dict):
+class RefDict(object):
 
     def __init__(self, item, name, otherName, initialDict=None):
 
         super(RefDict, self).__init__()
 
+        self._dict = {}
         self._item = item
         self._name = name
         self._otherName = otherName
@@ -159,7 +160,7 @@ class RefDict(dict):
 
     def __getitem__(self, key):
 
-        value = super(RefDict, self).__getitem__(key)
+        value = self._dict.__getitem__(key)
         if value is not None:
             value = value.other(self._item)
 
@@ -167,7 +168,7 @@ class RefDict(dict):
 
     def __setitem__(self, key, value):
 
-        old = super(RefDict, self).get(key)
+        old = self._dict.get(key)
         isItem = isinstance(value, Item.Item)
 
         if isinstance(old, ItemRef):
@@ -181,7 +182,7 @@ class RefDict(dict):
             if isItem:
                 value = ItemRef(self._item, self._name, value, self._otherName)
             
-            super(RefDict, self).__setitem__(key, value)
+            self._dict.__setitem__(key, value)
 
     def __delitem__(self, key):
 
@@ -192,19 +193,39 @@ class RefDict(dict):
 
     def _removeRef(self, key):
 
-        super(RefDict, self).__delitem__(key)
+        self._dict.__delitem__(key)
 
     def _getRef(self, key):
 
-        return super(RefDict, self).get(key)
+        return self._dict.get(key)
 
     def get(self, key, default=None):
 
-        value = super(RefDict, self).get(key, default)
+        value = self._dict.get(key, default)
         if value is not default:
             value = value.other(self._item)
 
         return value
+
+    def has_key(self, key):
+
+        return self._dict.has_key(key)
+
+    def keys(self):
+
+        return self._dict.keys()
+
+    def iterkeys(self):
+
+        return self._dict.iterkeys()
+
+    def iteritems(self):
+
+        return self._dict.iteritems()
+
+    def __len__(self):
+
+        return len(self._dict)
 
     def __iter__(self):
 
