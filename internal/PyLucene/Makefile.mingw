@@ -1,0 +1,98 @@
+
+!if "$(DEBUG)" == "1"
+
+CCFLAGS = -O -g
+LDFLAGS = -g
+PYDBG = -DPy_TRACE_REFS
+mode = debug
+dbg = d
+_dbg = _d
+
+!else
+
+CCFLAGS = -O2
+LDFLAGS = 
+PYDBG = 
+mode = release
+dbg =
+_dbg =
+
+!endif
+
+SRCDIR = .
+BINDIR = build_$(mode)
+RELDIR = ..\..\$(mode)
+
+CLASSES = $(BINDIR)/classes
+CC = $(GCJ)\bin\gcc
+CXX = $(GCJ)\bin\g++
+JCC = $(GCJ)\bin\gcj
+JCCH = $(GCJ)\bin\gcjh
+
+LUCENE = $(SRCDIR)\lucene
+DB = $(SRCDIR)\..\db
+
+PYTHON_INC = $(RELDIR)\bin\include
+PYTHON_SITE = $(RELDIR)\bin\Lib\site-packages
+
+OBJS = $(BINDIR)\db_const.o $(BINDIR)\db.o $(BINDIR)\store.o $(BINDIR)\lucene.o  $(BINDIR)\reader.java.o $(BINDIR)\reader.cpp.o
+
+$(BINDIR)\lucene.o:
+	if not exist $(BINDIR) mkdir $(BINDIR)\classes
+	$(JCC) -C -d $(CLASSES) @lucene.lst
+	$(JCC) $(CCFLAGS) -c -o $(BINDIR)\lucene.o @lucene.lst
+
+$(BINDIR)\db_const.o:
+	if not exist $(BINDIR) mkdir $(BINDIR)\classes
+	$(JCC) -C -d $(CLASSES) $(DB)/java/src/com/sleepycat/db/$(mode)/DbConstants.java
+	$(JCC) -fjni $(CCFLAGS) -c -o $(BINDIR)\db_const.o $(DB)/java/src/com/sleepycat/db/$(mode)/DbConstants.java
+
+$(BINDIR)\db.o: $(BINDIR)\db_const.o
+	$(JCC) -C -d $(CLASSES) --classpath=$(CLASSES) @db.lst
+	$(JCC) -fjni $(CCFLAGS) -c -o $(BINDIR)\db.o --classpath=$(CLASSES) @db.lst
+
+$(BINDIR)\libdb_java42$(dbg).dll:
+	$(CC) -shared $(CCFLAGS) -D_NO_OLDNAMES -DGCJ -o $(BINDIR)\libdb_java42$(dbg).dll -I$(DB) -I$(DB)\build_$(mode) -I$(RELDIR)\include\db $(DB)\libdb_java\db_java_wrap.c $(RELDIR)\bin\libdb42$(dbg).dll
+
+$(BINDIR)\store.o: $(BINDIR)\db.o $(BINDIR)\lucene.o
+	$(JCC) -C -d $(CLASSES) --classpath=$(CLASSES) @store.lst
+	$(JCC) -fjni $(CCFLAGS) -c -o $(BINDIR)\store.o --classpath=$(CLASSES) @store.lst
+
+$(BINDIR)\reader.java.o: java/org/osafoundation/io/PythonReader.java
+	$(JCC) -C -d $(CLASSES) java/org/osafoundation/io/PythonReader.java
+	$(JCC) $(CCFLAGS) -c -o $(BINDIR)/reader.java.o java/org/osafoundation/io/PythonReader.java
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.osafoundation.io.PythonReader
+
+$(BINDIR)\reader.cpp.o: cpp/PythonReader.cpp $(BINDIR)/reader.java.o
+	$(JCC) -I$(PYTHON_INC) -I$(CLASSES) $(CCFLAGS) -c -o $(BINDIR)/reader.cpp.o cpp/PythonReader.cpp
+
+$(BINDIR)\_PyLucene$(_dbg).pyd: $(OBJS) PyLucene_wrap.cxx
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.DbEnv
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.Db
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.DbTxn
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.store.Directory
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.store.db.DbDirectory
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.analysis.Analyzer
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.analysis.standard.StandardAnalyzer
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.document.Field
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.document.Document
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.index.IndexWriter
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.search.Searcher
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.search.Query
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.search.Hits
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.search.IndexSearcher
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.queryParser.QueryParser
+
+	$(CXX) -c $(CCFLAGS) $(PYDBG) -D_NO_OLDNAMES -I$(CLASSES) -I$(PYTHON_INC) -I$(RELDIR)\include\db -o $(BINDIR)\PyLucene_wrap.o PyLucene_wrap.cxx
+	$(CXX) -shared $(LDFLAGS) -o $(BINDIR)\_PyLucene$(_dbg).pyd $(OBJS) $(RELDIR)\bin\python23$(_dbg).dll $(BINDIR)\PyLucene_wrap.o -lgcj -lwin32k -lws2_32
+
+all: $(BINDIR)\_PyLucene$(_dbg).pyd $(BINDIR)\libdb_java42$(dbg).dll
+	echo build of $(BINDIR)\_PyLucene$(_dbg).pyd complete
+
+install: $(BINDIR)\_PyLucene$(_dbg).pyd $(BINDIR)\libdb_java42$(dbg).dll
+	copy PyLucene.py $(PYTHON_SITE)
+	copy $(BINDIR)\_PyLucene$(_dbg).pyd $(PYTHON_SITE)
+	copy $(BINDIR)\libdb_java42$(dbg).dll $(RELDIR)\bin
+
+clean:
+	rmdir build_$(mode) /s/q
