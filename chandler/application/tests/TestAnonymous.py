@@ -72,11 +72,41 @@ class AnonymousTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.assert_(attributeValue)
         
         for key, value in attributeValue.iteritems():
+            # Raise if any of the children has a name
+            self.assert_(value.itsName == None)
             # Raise if value is not present in itemChildren 
             index = itemChildren.index(value)
             del itemChildren[index]
             
         self.assert_(itemChildren == [])
+
+    def testAnonymousItemWithAttributes(self):
+        """
+        Test to ensure anonymous items (i.e. items without an itsName
+        parameter in parcel.xml) can be set up correctly when they are
+        specified as values of an attribute.
+        """
+
+        item = self.manager.lookup("http://testparcels.org/anonymous",
+                                   "anonymousItemWithAttributes")
+
+        #PrintItem("//parcels/anonymous", self.manager.repo, recursive=True)
+        
+        self.assert_(item)
+
+        itemChildren = [child for child in item.iterChildren()]
+        
+        self.assert_(itemChildren)
+        self.assert_(len(itemChildren) == 1)
+
+        anonymousChild = itemChildren[0]
+        
+        self.assert_(anonymousChild)
+        self.assert_(anonymousChild.itsName == None)
+
+        attributeValue = anonymousChild.innerAttr
+        self.assert_(attributeValue == "Inner attribute value")
+
 
 
 if __name__ == "__main__":

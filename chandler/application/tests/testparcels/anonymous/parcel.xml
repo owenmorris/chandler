@@ -28,19 +28,21 @@
       </Attribute>
   </Kind>
   
+  <this:myKind itsName="itemWithSubItem">
+    <this:myKind />
+    <this:myKind />
+  </this:myKind>
+
   <this:myKind itsName="itemWithAttributes">
       <this:myAttribute key="one"/>
       <this:myAttribute key="two"/>
       <this:myAttribute key="three"/>
   </this:myKind>
   
-  <this:myKind itsName="itemWithSubItem">
-    <this:myInner>
-        <!-- eventually we should be able to uncomment this to set
-             attributes on inner anonymous nodes -->
-        <!-- <innerAttr value="Inner attribute value"/> -->
-    </this:myInner>
-    <this:myKind />
+  <this:myKind itsName="anonymousItemWithAttributes">
+      <this:myInnerKind>
+          <innerAttr value="Inner attribute value" />
+      </this:myInnerKind>
   </this:myKind>
 
 </Parcel>

@@ -978,7 +978,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 if element is not 'Ignore':
                     currentItem = self.createItem(kind, parent,
                                                   nameString, classString)
-                    self.itemsCreated.append(currentItem)
 
         elif nameString:
             
@@ -1047,13 +1046,98 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
             if attrs.has_key((None, 'value')):
                 currentValue = attrs.getValue((None, 'value'))
-    
+            else:
+                item = self.__getCurrentItem()
+                
+                if item is not None:
+                    itemType = self._getTypeForAttribute(item, uri, local, attrs)
+                    
+                    if itemType is not None and \
+                       itemType.itsKind.itsUUID == self.manager.kindUUID:
+                        currentItem = self.createItem(itemType, item,
+                                                      None, None)
+                        currentValue = currentItem
+
         # Add the tag to our context stack
         self.elementStack.append(ParcelXMLElement(uri, local, attrs,
                           element, currentItem,
                           currentValue,
                           self.currentAssignments,
                           self.reloadingCurrentItem))
+
+    def _getTypeForAttribute(self, currentItem,
+                             elementUri, elementLocal, elementAttrs):
+        resultType = None
+        
+        if elementAttrs.has_key((None, 'type')):
+            # Store the full path to the type item
+            (typeNamespace, typeName) = \
+             self.getNamespaceName(elementAttrs.getValue((None, 'type')))
+            resultType = self.manager.lookup(typeNamespace, typeName)
+            if resultType is None:
+                explanation = \
+                 "Type doesn't exist: %s:%s" % (typeNamespace, typeName)
+                self.saveExplanation(explanation)
+                raise ParcelException(explanation)
+        
+        # "initialValue", regrettably, is a special case. In many cases, we
+        # don't know enough about its Kind to be able to figure out the correct
+        # type (eg, we need to know <type> and possibly <cardinality>), but
+        # due to the delayed assignment mechanism, these aren't known at the
+        # time this method is called.
+        #
+        # One way to fix this would be to parse "initialValue" when
+        # self.schemaPhase is False. (Or change Manager.handleKind() to
+        # be able to reject attributes as well as kinds).
+        if elementLocal != "initialValue":
+            
+            if resultType is None:
+                #
+                # Possibly element is pointing to an attribute
+                # of currentItem
+                #
+                if currentItem is None:
+                    explanation = "Neither attribute type or item specified"
+                    self.saveExplanation(explanation)
+                    raise ParcelException(explanation)
+
+                kindItem = currentItem.itsKind
+                try:
+                    resultType = kindItem.getAttribute(elementLocal)
+                except AttributeError:
+                    resultType = None
+
+            if resultType is None:
+                #
+                # See what the (elementUri, elementLocal) pair point to.
+                # Hopefully, it's either some known attribute of the
+                # currentItem, or a type (including kinds).
+                resultType = self.manager.lookup(elementUri, elementLocal)
+
+            if resultType is None:
+                explanation = \
+                            "Kind %s does not have the attribute '%s'" \
+                            % (kindItem.itsPath, elementLocal)
+                self.saveExplanation(explanation)
+                raise ParcelException(explanation)
+                
+
+            # If it's an Attribute, try to figure out the appropriate
+            # type
+            if resultType.itsKind.itsUUID == self.manager.attrUUID:
+                
+                try:
+                    resultType = resultType.type
+                except Exception, e:
+                    explanation = \
+                        "Unable to determine type of attribute '%s' for value '%s':'%s'" % \
+                        ( resultType.itsPath, currentElement.value, e )
+                    self.saveExplanation(explanation)
+                    raise
+                
+        return resultType
+
+
 
     def endElementNS(self, (uri, local), qname):
         """SAX2 callback for the end of a tag"""
@@ -1081,64 +1165,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 self.currentAssignments = nextElement.assignments
                 self.reloadingCurrentItem = nextElement.reloading
         elif currentElement.elementType in ('Attribute', 'Subattribute'):
-            currentType = None
-            if currentElement.attributes.has_key((None, 'type')):
-                # Store the full path to the type item
-                (typeNamespace, typeName) = \
-                 self.getNamespaceName(currentElement.attributes.getValue((None, 'type')))
-                currentType = self.manager.lookup(typeNamespace, typeName)
-                if currentType is None:
-                    explanation = \
-                     "Type doesn't exist: %s:%s" % (typeNamespace, typeName)
-                    self.saveExplanation(explanation)
-                    raise ParcelException(explanation)
-            
-            if elementLocal != "initialValue":
-                
-                if currentType is None:
-                    #
-                    # Possibly element is pointing to an attribute
-                    # of currentItem
-                    #
-                    if currentItem is None:
-                        explanation = "Neither attribute type or item specified"
-                        self.saveExplanation(explanation)
-                        raise ParcelException(explanation)
-    
-                    kindItem = currentItem.itsKind
-                    try:
-                        currentType = kindItem.getAttribute(elementLocal)
-                    except AttributeError:
-                        currentType = None
-    
-                if currentType is None:
-                    #
-                    # See what the (elementUri, elementLocal) pair point to.
-                    # Hopefully, it's either some known attribute of the
-                    # currentItem, or a type (including kinds).
-                    currentType = self.manager.lookup(elementUri, elementLocal)
-    
-                if currentType is None:
-                    explanation = \
-                                "Kind %s does not have the attribute '%s'" \
-                                % (kindItem.itsPath, elementLocal)
-                    self.saveExplanation(explanation)
-                    raise ParcelException(explanation)
-                    
-
-                # If it's an Attribute, try to figure out the appropriate
-                # type
-                if currentType.itsKind.itsUUID == self.manager.attrUUID:
-                    
-                    try:
-                        currentType = currentType.type
-                    except Exception, e:
-                        explanation = \
-                            "Unable to determine type of attribute '%s' for value '%s':'%s'" % \
-                            ( currentType.itsPath, currentElement.value, e )
-                        self.saveExplanation(explanation)
-                        raise
-
+            currentType = self._getTypeForAttribute(currentItem,
+                                                    elementUri,
+                                                    elementLocal, 
+                                                    currentElement.attributes)
             # For non-top-level attributes (i.e. literals), make sure we
             # propagate the value up the tags stack.
             if (len(self.elementStack) >= 2):
@@ -1255,13 +1285,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         value = rawValue
         
-        # If we have a Kind, we should create a new Item that's
-        # an anonymous child of item.
-        if valueType.itsKind.itsUUID == self.manager.kindUUID:
-            
-            value = valueType.newItem(None, item)
-        
-        elif type(value) in (unicode, str):
+        if type(value) in (unicode, str):
             try:
                 value = valueType.makeValue(value)
             except Exception, e:
@@ -1358,6 +1382,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             explanation = "Item not created"
             self.saveExplanation(explanation)
             raise ParcelException(explanation)
+
+        self.itemsCreated.append(item)
 
         return item
 
@@ -1581,10 +1607,20 @@ class ValueSet(object):
             relPath = ""
             parcel = item
         else:
-            relPath = str(item.itsName)
+            #
+            # Note that it's possible (for anonymous items)
+            # to have an itsName of None. So, we don't want
+            # to build up the relative path to each item by using
+            # str(item.itsName), or item.itsName, because those
+            # return "None", or None. Instead, we use item.itsPath[-1]:
+            # that returns the UUID-generated path component the
+            # repository uses for anonymous items, and is suitable for
+            # tracking down items for comparisons.
+            #
+            relPath = item.itsPath[-1]
             parcel = item.itsParent
             while str(parcel.itsKind.itsPath) != "//Schema/Core/Parcel":
-                relPath = "%s/%s" % (str(parcel.itsName), relPath)
+                relPath = "%s/%s" % (parcel.itsPath[-1], relPath)
                 parcel = parcel.itsParent
 
         # parcel now points to a parcel
