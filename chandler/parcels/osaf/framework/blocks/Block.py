@@ -179,10 +179,24 @@ class Block(Item):
         self.synchronizeWidget()
         self.parentBlock.synchronizeWidget()
 
-
     def onShowHideEventUpdateUI(self, notification):
         notification.data['Check'] = self.isShown
 
+    def onModifyContentsEvent(self, notification):
+        event = notification.event
+        operation = event.operation
+        for item in event.items:
+            if event.copyItems:
+                pass # eventually item = copy of event.item
+            if operation == 'toggle':
+                try:
+                    index = self.contents.index (item)
+                except ValueError:
+                    operation = 'include'
+                else:
+                    operation = 'exclude'
+            method = getattr (self.contents, operation)
+            method (item)
 
     def synchronizeWidget (self):
         """
@@ -278,7 +292,4 @@ class RectangularChild(ContainerChild):
 class BlockEvent(Event):
     pass
 
-
-class ChoiceEvent(BlockEvent):
-    pass
 

@@ -78,44 +78,6 @@ class MainView(View):
     def onReloadParcelsEvent(self, notification):
         ParcelManager.getManager().loadParcels()
 
-    def onAddAllAdditionalViewsEvent(self, notification):
-        self.onAddDemoViewEvent(notification)
-        self.onAddRepositoryViewEvent(notification)
-        self.onAddMixedViewEvent(notification)
-        self.onAddStockQuoteEvent(notification)
-        self.onAddKindViewsEvent(notification)
-        
-    def onAddDemoViewEvent(self, notification):
-        self._addNewView('//parcels/osaf/views/demo/BlockDemoView')
-
-    def onAddRepositoryViewEvent(self, notification):
-        self._addNewView('//parcels/osaf/views/repositoryviewer/RepositoryView')
-
-    def onAddMixedViewEvent(self, notification):
-        self._addNewView('//parcels/osaf/views/content/MixedListView')
-
-    def onAddStockQuoteEvent(self, notification):
-        self._addNewView('//parcels/osaf/examples/stockquote/views/StockQuoteView')
-
-    def onAddNoteViewEvent(self, notification):
-        self._addNewView('//parcels/osaf/views/content/NoteListView')
-
-    def onAddTaskViewEvent(self, notification):
-        self._addNewView('//parcels/osaf/views/content/TaskListView')
-
-    def onAddMailViewEvent(self, notification):
-        self._addNewView('//parcels/osaf/views/content/MailListView')
-
-    def onAddKindViewsEvent(self, notification):
-        self.onAddNoteViewEvent(notification)
-        self.onAddTaskViewEvent(notification)
-        self.onAddMailViewEvent(notification)
-        
-    def _addNewView(self, path):
-        sidebarCollection = Globals.repository.findPath('//parcels/osaf/views/main/sidebarItemCollection')
-        newView = Globals.repository.findPath(path)
-        sidebarCollection.include(newView)        
-                
     def onAboutChandlerEvent(self, notification):
         """
           Show the splash screen in response to the about command

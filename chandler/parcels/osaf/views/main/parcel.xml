@@ -15,7 +15,8 @@
              xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
              xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
              xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
-             xmlns:calendar="http://osafoundation.org/parcels/osaf/framework/blocks/calendar">
+             xmlns:calendar="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"
+             xmlns:stockQuote="http://osafoundation.org/parcels/osaf/examples/stockquote/views">
 
   <core:version>0.3</core:version>
 
@@ -107,6 +108,77 @@
     <dispatchToBlock itemref="doc:NavigationBar"/>
   </BlockEvent>
 
+  <ModifyContentsEvent itsName="AddAllAdditionalViews">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="demo:BlockDemoView"/>
+    <items itemref="repository:RepositoryView"/>
+    <items itemref="content:MixedListView"/>
+    <items itemref="stockQuote:StockQuoteView"/>
+    <items itemref="content:NoteListView"/>
+    <items itemref="content:TaskListView"/>
+    <items itemref="content:MailListView"/>
+  </ModifyContentsEvent>
+  
+  <ModifyContentsEvent itsName="AddDemoView">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="demo:BlockDemoView"/>
+  </ModifyContentsEvent>
+  
+  <ModifyContentsEvent itsName="AddRepositoryView">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="repository:RepositoryView"/>
+  </ModifyContentsEvent>
+  
+  <ModifyContentsEvent itsName="AddMixedListView">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="content:MixedListView"/>
+  </ModifyContentsEvent>
+  
+  <ModifyContentsEvent itsName="AddStockQuoteView">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="stockQuote:StockQuoteView"/>
+  </ModifyContentsEvent>
+  
+  <ModifyContentsEvent itsName="AddNoteListView">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="content:NoteListView"/>
+  </ModifyContentsEvent>
+  
+  <ModifyContentsEvent itsName="AddTaskListView">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="content:TaskListView"/>
+  </ModifyContentsEvent>
+  
+  <ModifyContentsEvent itsName="AddMailListView">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="content:MailListView"/>
+  </ModifyContentsEvent>
+  
+  <ModifyContentsEvent itsName="AddKindViews">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:SidebarTree"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="content:NoteListView"/>
+    <items itemref="content:TaskListView"/>
+    <items itemref="content:MailListView"/>
+  </ModifyContentsEvent>
+  
   <!--
     Menus
   -->  
@@ -305,7 +377,7 @@
   <MenuItem itsName="AddAllAdditionalViewsItem">
     <title>Add All Additional Views</title>
     <location>AddAdditionalViewsItem</location>
-    <event itemref="events:AddAllAdditionalViews"/>
+    <event itemref="doc:AddAllAdditionalViews"/>
     <helpString>Adds all of the extra views to the sidebar</helpString>
   </MenuItem>
 
@@ -317,21 +389,21 @@
   <MenuItem itsName="AddDemoViewItem">
     <title>Add Block Demo View</title>
     <location>AddAdditionalViewsItem</location>
-    <event itemref="events:AddDemoView"/>
+    <event itemref="doc:AddDemoView"/>
     <helpString>Adds the block demo view to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="AddRepositoryViewItem">
     <title>Add Repository Viewer</title>
     <location>AddAdditionalViewsItem</location>
-    <event itemref="events:AddRepositoryView"/>
+    <event itemref="doc:AddRepositoryView"/>
     <helpString>Adds the repository viewer to the sidebar</helpString>
   </MenuItem>
   
   <MenuItem itsName="AddMixedViewItem">
     <title>Add Mixed View</title>
     <location>AddAdditionalViewsItem</location>
-    <event itemref="events:AddMixedView"/>
+    <event itemref="doc:AddMixedListView"/>
     <helpString>Adds the mixed list view to the sidebar</helpString>
   </MenuItem>
 
@@ -343,28 +415,28 @@
   <MenuItem itsName="AddNoteViewItem">
     <title>Add Note-Kind View</title>
     <location>AddAdditionalViewsItem</location>
-    <event itemref="events:AddNoteView"/>
+    <event itemref="doc:AddNoteListView"/>
     <helpString>Adds the Note-Kind view to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="AddTaskViewItem">
     <title>Add Task-Kind View</title>
     <location>AddAdditionalViewsItem</location>
-    <event itemref="events:AddTaskView"/>
+    <event itemref="doc:AddTaskListView"/>
     <helpString>Adds the Task-Kind view to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="AddMailViewItem">
     <title>Add Mail-Kind View</title>
     <location>AddAdditionalViewsItem</location>
-    <event itemref="events:AddMailView"/>
+    <event itemref="doc:AddMailListView"/>
     <helpString>Adds the Mail-Kind view to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="AddKindViewsItem">
     <title>Add all Kind-specific Views</title>
     <location>AddAdditionalViewsItem</location>
-    <event itemref="events:AddKindViews"/>
+    <event itemref="doc:AddKindViews"/>
     <helpString>Adds the Kind-specific views to the sidebar</helpString>
   </MenuItem>
 
@@ -376,7 +448,7 @@
   <MenuItem itsName="AddStockQuoteItem">
     <title>Add Stock Quote</title>
     <location>AddAdditionalViewsItem</location>
-    <event itemref="events:AddStockQuote"/>
+    <event itemref="doc:AddStockQuoteView"/>
     <helpString>Adds the stock quote view to the sidebar</helpString>
   </MenuItem>
 
@@ -729,6 +801,15 @@
     <!-- Block Events -->
     <subscribeWhenVisibleEvents itemref="doc:ShowHideSidebar"/>
     <subscribeWhenVisibleEvents itemref="doc:ShowHideStatusBar"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddAllAdditionalViews"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddDemoView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddRepositoryView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddMixedListView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddStockQuoteView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddNoteListView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddTaskListView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddMailListView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddKindViews"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

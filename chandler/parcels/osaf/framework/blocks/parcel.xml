@@ -207,7 +207,7 @@
   </Kind>
 
   <Kind itsName="ChoiceEvent">
-    <classes key="python">osaf.framework.blocks.Block.ChoiceEvent</classes>
+    <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
     <superKinds itemref="docSchema:BlockEvent"/>
 
     <Attribute itsName="choice">
@@ -216,6 +216,37 @@
     </Attribute>
 
     <attributes itemref="docSchema:ChoiceEvent/choice"/>
+  </Kind>
+
+  <Kind itsName="ModifyContentsEvent">
+    <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
+    <superKinds itemref="docSchema:BlockEvent"/>
+
+    <Attribute itsName="items">
+      <type itemref="SingleRef"/>
+      <cardinality>list</cardinality>
+      <required>True</required>
+    </Attribute>
+
+    <Enumeration itsName="operationType">
+      <values>include</values>
+      <values>exclude</values>
+      <values>toggle</values>
+    </Enumeration>
+
+    <Attribute itsName="operation">
+      <type itemref="docSchema:ModifyContentsEvent/operationType"/>
+      <defaultValue type="docSchema:ModifyContentsEvent/operationType">include</defaultValue>
+    </Attribute>
+
+    <Attribute itsName="copyItems">
+      <type itemref="Boolean"/>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+
+    <attributes itemref="docSchema:ModifyContentsEvent/items"/>
+    <attributes itemref="docSchema:ModifyContentsEvent/operation"/>
+    <attributes itemref="docSchema:ModifyContentsEvent/copyItems"/>
   </Kind>
 
   <Attribute itsName="subscribeWhenVisibleEvents">

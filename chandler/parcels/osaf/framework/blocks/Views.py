@@ -26,7 +26,6 @@ class View(BoxContainer):
             print "Calling %s" % methodName
             """
 
-
             member (notification)
             return True
         
