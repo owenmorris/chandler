@@ -43,6 +43,16 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
 
 default: all
 
+env:
+	@if [ "$(BUILD_ROOT)" = "" ]; then \
+	    echo BUILD_ROOT is not set; \
+	    false; \
+        fi; \
+	if [ "$(GCJ_HOME)" = "" ]; then \
+	    echo GCJ_HOME is not set; \
+	    false; \
+        fi
+
 sources:
 	tar -cvf sources.tar $(SOURCES)
 
@@ -56,7 +66,7 @@ expand: sources.tar
 	    (cd $$system; $(MAKE) expand); \
 	done
 
-binaries:
+binaries: env
 	@rm -f $(SNAP).tar $(SNAP).tar.gz; \
 	for system in $(SYSTEMS); \
 	do \
@@ -72,13 +82,13 @@ binaries:
 	echo compressing $(SNAP).tar; \
         gzip $(SNAP).tar;
 
-all:
+all: env
 	@for system in $(SYSTEMS); \
 	do \
 	    (cd $$system; $(MAKE) DEBUG=$(DEBUG) all); \
 	done
 
-clean:
+clean: env
 	@for system in $(SYSTEMS); \
 	do \
 	    (cd $$system; $(MAKE) -k DEBUG=$(DEBUG) clean); \

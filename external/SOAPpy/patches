@@ -1,0 +1,233 @@
+--- SOAPpy-0.10.2/SOAPpy/wstools/XMLSchema.py	Mon Jul 21 07:18:54 2003
++++ SOAPpy-0.10.2-patched/SOAPpy/wstools/XMLSchema.py	Mon Sep 22 16:00:57 2003
+@@ -7,15 +7,23 @@
+ # WARRANTIES OF TITLE, MERCHANTABILITY, AGAINST INFRINGEMENT, AND FITNESS
+ # FOR A PARTICULAR PURPOSE.
+ 
+-ident = "$Id: XMLSchema.py,v 1.7 2003/07/21 14:18:54 warnes Exp $"
++ident = "$Id: XMLSchema.py,v 1.3 2003/09/22 22:59:42 vajda Exp $"
+ 
+ import types, weakref, urllib, sys
+ from threading import RLock
+-from xml.dom.ext import SplitQName
+-from xml.ns import SCHEMA, XMLNS
++#from xml.dom.ext import SplitQName
++#from xml.ns import SCHEMA, XMLNS
+ from Utility import DOM, Collection
+ from StringIO import StringIO
+ 
++def SplitQName(name):
++    pair = name.split(':')
++    if len(pair) > 1:
++        return (pair[0], pair[1])
++    return ('', pair[0])
++
++XMLNS="xmlns"
++
+ 
+ class SchemaReader:
+     """A SchemaReader creates XMLSchema objects from urls and xml data.
+@@ -1437,24 +1445,24 @@
+                     self.annotation = Annotation(self)
+                     self.annotation.fromDom(i)
+                 elif component == 'simpleType' and not self.content:
+-	            self.content = AnonymousSimpleType(self)
++                    self.content = AnonymousSimpleType(self)
+                     self.content.fromDom(i)
+                 elif component == 'complexType' and not self.content:
+-	            self.content = LocalComplexType(self)
++                    self.content = LocalComplexType(self)
+                     self.content.fromDom(i)
+                 elif component == 'key':
+-	            constraints.append(Key(self))
+-	            constraints[-1].fromDom(i)
++                    constraints.append(Key(self))
++                    constraints[-1].fromDom(i)
+                 elif component == 'keyref':
+-	            constraints.append(KeyRef(self))
+-	            constraints[-1].fromDom(i)
++                    constraints.append(KeyRef(self))
++                    constraints[-1].fromDom(i)
+                 elif component == 'unique':
+-	            constraints.append(Unique(self))
+-	            constraints[-1].fromDom(i)
++                    constraints.append(Unique(self))
++                    constraints[-1].fromDom(i)
+                 else:
+-	            raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                    raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+             else:
+-	        raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+         self.constraints = tuple(constraints)
+ 
+ 
+@@ -1587,22 +1595,22 @@
+                     continue
+                 elif component == 'element':
+                     if i.hasattr('ref'):
+-	                content.append(ElementReference(self))
++                        content.append(ElementReference(self))
+                     else:
+-	                content.append(LocalElementDeclaration(self))
++                        content.append(LocalElementDeclaration(self))
+                 elif component == 'group':
+-	            content.append(ModelGroupReference(self))
++                    content.append(ModelGroupReference(self))
+                 elif component == 'choice':
+-	            content.append(Choice(self))
++                    content.append(Choice(self))
+                 elif component == 'sequence':
+-	            content.append(Sequence(self))
++                    content.append(Sequence(self))
+                 elif component == 'any':
+-	            content.append(ElementWildCard(self))
++                    content.append(ElementWildCard(self))
+                 else:
+-	            raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                    raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+                 content[-1].fromDom(i)
+             else:
+-	        raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+         self.content = tuple(content)
+ 
+ 
+@@ -1644,14 +1652,14 @@
+                     continue
+                 elif component == 'element':
+                     if i.hasattr('ref'):
+-	                content.append(ElementReference())
++                        content.append(ElementReference())
+                     else:
+-	                content.append(LocalElementDeclaration())
++                        content.append(LocalElementDeclaration())
+                 else:
+-	            raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                    raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+                 content[-1].fromDom(i)
+             else:
+-	        raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+         self.content = tuple(content)
+ 
+ 
+@@ -1694,22 +1702,22 @@
+                     continue
+                 elif component == 'element':
+                     if i.hasattr('ref'):
+-	                content.append(ElementReference())
++                        content.append(ElementReference())
+                     else:
+-	                content.append(LocalElementDeclaration())
++                        content.append(LocalElementDeclaration())
+                 elif component == 'group':
+-	            content.append(ModelGroupReference())
++                    content.append(ModelGroupReference())
+                 elif component == 'choice':
+-	            content.append(Choice())
++                    content.append(Choice())
+                 elif component == 'sequence':
+-	            content.append(Sequence())
++                    content.append(Sequence())
+                 elif component == 'any':
+-	            content.append(ElementWildCard())
++                    content.append(ElementWildCard())
+                 else:
+-	            raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                    raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+                 content[-1].fromDom(i)
+             else:
+-	        raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+         self.content = tuple(content)
+ 
+ 
+@@ -1755,10 +1763,10 @@
+                 elif component == 'sequence' and not self.content:
+                     self.content = Sequence()
+                 else:
+-	            raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                    raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+                 self.content.fromDom(i)
+             else:
+-	        raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+ 
+ 
+ class ModelGroupReference(XMLSchemaComponent,\
+@@ -1795,9 +1803,9 @@
+                     self.annotation = Annotation()
+                     self.annotation.fromDom(i)
+                 else:
+-	            raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                    raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+             else:
+-	        raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+ 
+ 
+ 
+@@ -1887,12 +1895,12 @@
+                 elif component == 'anyAttribute':
+                     self.attr_content.append(AttributeWildCard(self))
+                 else:
+-	            raise SchemaError, 'Unknown component (%s)' %(contents[indx].getTagName())
++                    raise SchemaError, 'Unknown component (%s)' %(contents[indx].getTagName())
+                 self.attr_content[-1].fromDom(contents[indx])
+                 indx += 1
+ 
+     class _DerivedType(XMLSchemaComponent):
+-	def __init__(self, parent):
++        def __init__(self, parent):
+             XMLSchemaComponent.__init__(self, parent)
+             self.annotation = None
+             self.derivation = None
+@@ -1913,9 +1921,9 @@
+                     elif component == 'extension' and not self.derivation:
+                         self.derivation = self.__class__.Extension(self)
+                     else:
+-	                raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                        raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+                 else:
+-	            raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
++                    raise SchemaError, 'Unknown component (%s)' %(i.getTagName())
+                 self.derivation.fromDom(i)
+ 
+     class ComplexContent(_DerivedType,\
+@@ -1978,7 +1986,7 @@
+                 elif component == 'group':
+                     self.content = ModelGroupReference(self)
+                 else:
+-	            raise SchemaError, 'Unknown component (%s)' %(contents[indx].getTagName())
++                    raise SchemaError, 'Unknown component (%s)' %(contents[indx].getTagName())
+ 
+                 self.content.fromDom(contents[indx])
+                 indx += 1
+@@ -1995,7 +2003,7 @@
+                     elif component == 'anyAttribute':
+                         self.attr_content.append(AttributeWildCard(self))
+                     else:
+-	                raise SchemaError, 'Unknown component (%s)' %(contents[indx].getTagName())
++                        raise SchemaError, 'Unknown component (%s)' %(contents[indx].getTagName())
+                     self.attr_content[-1].fromDom(contents[indx])
+                     indx += 1
+ 
+@@ -2087,7 +2095,7 @@
+                 elif component == 'group':
+                     self.content = ModelGroupReference(self)
+                 else:
+-	            raise SchemaError, 'Unknown component (%s)' %(contents[indx].getTagName())
++                    raise SchemaError, 'Unknown component (%s)' %(contents[indx].getTagName())
+ 
+                 self.content.fromDom(contents[indx])
+                 indx += 1
+@@ -2104,7 +2112,7 @@
+                     elif component == 'anyAttribute':
+                         self.attr_content.append(AttributeWildCard(self))
+                     else:
+-	                raise SchemaError, 'Unknown component (%s)' %(contents[indx].getTagName())
++                        raise SchemaError, 'Unknown component (%s)' %(contents[indx].getTagName())
+                     self.attr_content[-1].fromDom(contents[indx])
+                     indx += 1
+ 

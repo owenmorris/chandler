@@ -29,7 +29,7 @@ default: all
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../dist/configure --prefix=$(PREFIX)/dbxml \
-                          --with-berkeley-db=$(PREFIX)/db \
+                          --with-berkeleydb=$(PREFIX)/db \
                           --with-xerces=$(PREFIX) \
                           --with-pathan=$(PREFIX) \
                           $(CONF_DBG)
@@ -41,7 +41,7 @@ build: apply
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install; \
 	cd $(SRC)/src/python; \
 	$(PYTHON) setup.py build --build-base=$(BUILD) \
-                                 --with-berkeley-db=$(PREFIX)/db \
+                                 --with-berkeleydb=$(PREFIX)/db \
                                  --with-xerces=$(PREFIX) \
                                  --with-pathan=$(PREFIX) \
                                  $(DIST_DBG) \

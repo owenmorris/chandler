@@ -46,7 +46,8 @@ expand: Python-$(VERSION).tgz
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYTHON)/$(SNAP).tar.gz \
-                  $(SNAP)/Library/Frameworks/Python.framework
+                  $(SNAP)/Library/Frameworks/Python.framework \
+            -X $(PYTHON)/xcludes
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)

@@ -1,5 +1,6 @@
 
 VERSION=1.1.2
+LIBXML2VERSION=2.6.3
 LIBXSLT=$(BUILD_ROOT)/persistence/libxslt
 SRC=$(LIBXSLT)/libxslt-$(VERSION)
 
@@ -31,6 +32,9 @@ $(SRC)/$(BUILD)/Makefile: patches
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../configure --prefix=$(PREFIX) \
                      --srcdir=$(SRC) \
+                     --with-libxml-prefix=$(PREFIX) \
+                     --with-libxml-include-prefix=$(PREFIX) \
+                     --with-libxml-lib-prefix=$(PREFIX) \
                      --with-python=$(PREFIX)/Library/Frameworks/Python.framework/Versions/Current \
                      $(CONF_DBG)
 
