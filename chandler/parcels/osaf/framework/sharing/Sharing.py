@@ -155,9 +155,10 @@ class ShareConduit(ContentModel.ChandlerItem):
                  (item.getItemDisplayName(), item.itsUUID, itemVersion,
                  prevVersion, externalItemExists))
                 data = self._putItem(item)
-                self.__addToManifest(item, data, itemVersion)
-                logger.info("...done, data: %s, version: %d" %
-                 (data, itemVersion))
+                if data is not None:
+                    self.__addToManifest(item, data, itemVersion)
+                    logger.info("...done, data: %s, version: %d" %
+                     (data, itemVersion))
             else:
                 pass
                 # logger.info("Item is up to date")
@@ -483,6 +484,8 @@ class FileSystemConduit(ShareConduit):
     def _putItem(self, item): # must implement
         path = self._getItemPath(item)
         text = self.share.format.exportProcess(item)
+        if text is None:
+            return None
         out = file(path, 'w')
         out.write(text)
         out.close
@@ -757,6 +760,8 @@ class WebDAVConduit(ShareConduit):
         """
         url = self.__getItemURL(item)
         text = self.share.format.exportProcess(item)
+        if text is None:
+            return None
 
         try:
             resp = self.__getClient().put(url, text)

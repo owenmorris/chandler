@@ -117,6 +117,26 @@
     <attributes itemref="zaobao:author"/>
     <attributes itemref="zaobao:date"/>
 
+    <Cloud itsName="SharingCloud">
+        <Endpoint itsName="author">
+            <attribute value="author"/>
+        </Endpoint>
+        <endpoints itemref="zaobao:RSSChannel/SharingCloud/author"/>
+        <Endpoint itsName="copyright">
+            <attribute value="copyright"/>
+        </Endpoint>
+        <endpoints itemref="zaobao:RSSChannel/SharingCloud/copyright"/>
+        <Endpoint itsName="link">
+            <attribute value="link"/>
+        </Endpoint>
+        <endpoints itemref="zaobao:RSSChannel/SharingCloud/link"/>
+        <Endpoint itsName="url">
+            <attribute value="url"/>
+        </Endpoint>
+        <endpoints itemref="zaobao:RSSChannel/SharingCloud/url"/>
+    </Cloud>
+    <clouds alias="sharing" itemref="zaobao:RSSChannel/SharingCloud"/>
+
   </Kind>  
 
 
