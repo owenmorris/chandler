@@ -14,5 +14,5 @@
 #     ])
 
 mail = ConfigurationSet([
-    (None, None, None, MailNotification(["commits@osafoundation.org"])),
+    (None, None, None, MailNotification(["morgen@osafoundation.org"])),
     ])
