@@ -11,3 +11,6 @@
 2003-04-28 Jed Burgess <jed@osafoundation.org>
     * Made it so that entering addresses in the uriBox is no longer 
       case sensitive.
+      
+2003-05-20 Jed Burgess <jed@osafoundation.org>
+    * Added a InstalledParcelsViewer parcel to handle the root url.

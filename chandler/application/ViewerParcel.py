@@ -91,6 +91,7 @@ class ViewerParcel (Parcel):
                     self.displayName = node.GetChildren().GetContent()
                     break
                 node = menuNode.GetNext()
+        self.description = _('The ' + self.displayName + ' parcel')
 
     def SynchronizeView (self):
         """

@@ -16,10 +16,7 @@ class URLTree(Persistent):
         Persistent.__init__(self)
         self.tree = PersistentList()
         self.sideBars = PersistentList()
-        # FIXME:  Right now there is no class handling the '/'
-        # url.  Once there is a default handler for that, it
-        # should be used here.
-        self.tree.append(TreeEntry(self, '', PersistentList()))
+        self.tree.append(TreeEntry(None, '', PersistentList()))
 
     def RegisterSideBar(self, sideBar):
         """
@@ -87,14 +84,15 @@ class URLTree(Persistent):
         """
         fields = self.__GetURLFields(url)
         separator = '/'
-        if parcel != None and\
-           self.URLExists(separator.join(fields[:-1])) and\
-           not self.URLExists(url):
-            parentEntry = self.__GetURLEntry(fields[:-1], self.tree)
-            newEntry = TreeEntry(parcel, fields[-1], PersistentList())
-            parentEntry.children.append(newEntry)
-            self.__SynchronizeSideBars()
-            return true
+        if parcel != None:
+            parentURL = separator.join(fields[:-1])
+            if self.URLExists(parentURL) or parentURL == '':
+                if not self.URLExists(url):
+                    parentEntry = self.__GetURLEntry(fields[:-1], self.tree)
+                    newEntry = TreeEntry(parcel, fields[-1], PersistentList())
+                    parentEntry.children.append(newEntry)
+                    self.__SynchronizeSideBars()
+                    return true
         return false
     
     def RemoveURL(self, url):
