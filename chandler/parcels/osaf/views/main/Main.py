@@ -95,7 +95,7 @@ class MainView(View):
 
         # Tell the sidebar we want to go to the 'All' box
         args = {}
-        args['itemName'] = 'AllTableView'
+        args['itemName'] = 'AllView'
         contactKind = Contacts.ContactsParcel.getContactKind ()
         if newItem.isItemOf (contactKind):
             # go to Contacts for a new Contact
