@@ -15,7 +15,7 @@ from repository.persistence.RepositoryError import NoSuchItemError
 
 class Cloud(Item):
 
-    def getItems(self, item, items=None, references=None):
+    def getItems(self, item, items=None, references=None, cloudAlias=None):
         """
         Gather all items in the cloud.
 
@@ -31,9 +31,16 @@ class Cloud(Item):
 
             - C{byCloud}: the item is added to the result set and is used
               as an entrypoint for a cloud gathering operation. The cloud
-              used is the cloud specified on the endpoint or, by default,
-              the first cloud specified for the item's kind. The results of
-              the cloud gathering operation are merged with the current one.
+              used is determined in this order:
+
+                  - the cloud specified on the endpoint
+
+                  - the cloud obtained by the optional C{cloudAlias}
+
+                  - the first cloud specified for the item's kind
+
+              The results of the cloud gathering operation are merged with
+              the current one.
 
         @param item: the entry point of the cloud.
         @type item: an C{Item} instance
@@ -44,6 +51,9 @@ class Cloud(Item):
         that receives all items referenced from an endpoint with a C{byRef}
         include policy.
         @type references: dict
+        @param cloudAlias: the optional alias name to use for C{byCloud}
+        policy endpoints where the cloud is unspecified.
+        @type cloudAlias: a string
         @return: the list of all items considered part of the cloud.
         """
 
@@ -78,18 +88,21 @@ class Cloud(Item):
                 if isinstance(value, Item):
                     if value._uuid not in items:
                         results.extend(endpoint.getItems(value, items,
-                                                         references))
+                                                         references,
+                                                         cloudAlias))
                 elif isinstance(value, RefDict) or isinstance(value, list):
                     for other in value:
                         if other is not None and other._uuid not in items:
                             results.extend(endpoint.getItems(other, items,
-                                                             references))
+                                                             references,
+                                                             cloudAlias))
                 else:
                     raise TypeError, type(value)
 
         return results
 
-    def copyItems(self, item, name=None, parent=None, copies=None):
+    def copyItems(self, item, name=None, parent=None,
+                  copies=None, cloudAlias=None):
         """
         Copy all items in the cloud.
 
@@ -117,12 +130,15 @@ class Cloud(Item):
         @param copies: an optional dictionary keyed on the original item
         UUIDs that also received all items copies.
         @type items: dict
+        @param cloudAlias: the optional alias name to use for C{byCloud}
+        policy endpoints where the cloud is unspecified.
+        @type cloudAlias: a string
         @return: the list of all item copies considered part of the cloud.
         """
 
         items = {}
         references = {}
-        copying = self.getItems(item, items, references)
+        copying = self.getItems(item, items, references, cloudAlias)
         
         if copies is None:
             copies = {}
@@ -203,7 +219,7 @@ class Cloud(Item):
 
 class Endpoint(Item):
 
-    def getItems(self, item, items, references):
+    def getItems(self, item, items, references, cloudAlias):
 
         policy = self.includePolicy
         results = []
@@ -220,12 +236,13 @@ class Endpoint(Item):
             cloud = self.getAttributeValue('cloud', default=None,
                                            _attrDict=self._references)
             if cloud is None:
-                cloud = kind.getClouds()
-                if not cloud:
-                    raise TypeError, 'No cloud for %s' %(kind.itsPath)
-                cloud = cloud[0]
+                kind = item._kind
+                if cloudAlias is not None:
+                    cloud = kind.getCloud(cloudAlias)
+                else:
+                    cloud = kind.getClouds().first()
 
-            results.extend(cloud.getItems(item, items, references))
+            results.extend(cloud.getItems(item, items, references, cloudAlias))
 
         else:
             raise NotImplementedError, policy

@@ -445,18 +445,58 @@ class Kind(Item):
 
     # end typeness of Kind as SingleRef
 
-    def getClouds(self):
+    def getCloud(self, cloudAlias, **kwds):
+        """
+        Get the cloud for this alias, inheriting it if necessary.
+
+        @param cloudAlias: the alias the cloud reference is stored under in
+        the kind's C{clouds} ref collection.
+        @type cloudAlias: a string
+        @return: a L{Cloud<repository.schema.Cloud.Cloud>} instance, 
+        C{default} if specified, raises TypeError otherwise.
+        """
+
+        clouds = self.getAttributeValue('clouds', default=None,
+                                        _attrDict=self._references)
+
+        if not clouds or not clouds.resolveAlias(cloudAlias):
+            for superKind in self._getSuperKinds():
+                cloud = superKind.getCloud(cloudAlias, default=None)
+                if cloud is not None:
+                    return cloud
+        else:
+            return clouds.getByAlias(cloudAlias)
+
+        try:
+            return kwds['default']
+        except KeyError:
+            raise TypeError, 'No cloud aliased %s for kind %s' %(cloudAlias,
+                                                                 self.itsPath)
+
+    def getClouds(self, **kwds):
+        """
+        Get the clouds for this kind, inheriting them if necessary.
+
+        @return: a L{Cloud<repository.schema.Cloud.Cloud>} ref collection or
+        C{default} if specified, raises TypeError otherwise.
+        """
 
         clouds = self.getAttributeValue('clouds', default=None,
                                         _attrDict=self._references)
 
         if not clouds:
             for superKind in self._getSuperKinds():
-                clouds = superKind.getClouds()
+                clouds = superKind.getClouds(default=None)
                 if clouds:
-                    break
+                    return clouds
+        else:
+            return clouds
 
-        return clouds
+        try:
+            return kwds['default']
+        except KeyError:
+            raise TypeError, 'No cloud for kind %s' % self.itsPath
+
 
     NoneString = "__NONE__"
 

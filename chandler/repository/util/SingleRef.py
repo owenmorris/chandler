@@ -6,6 +6,15 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 class SingleRef(object):
+    """
+    Wraps a L{UUID<repository.util.UUID.UUID>} to form a uni-directional
+    reference to an item.
+
+    Direct use of this type is not necessary since setting an item as a value
+    into an attribute not setup for bi-directional references causes a value
+    of this type to be set instead. Similarly, instead of returning a value
+    of this type, the data model returns the referenced item.
+    """
 
     __slots__ = "_uuid"
 

@@ -15,7 +15,7 @@
         -->
     </ref>
 
-    <ref name="kind" otherName="clouds" otherCard="list"
+    <ref name="kind" otherName="clouds" otherCard="list" otherAlias="default"
          type="path">//Schema/Core/Attribute</ref>
   </item>
 

@@ -339,7 +339,8 @@ class RefArgs(object):
     'A wrapper around arguments necessary to make and store an ItemRef'
     
     def __init__(self, attrName, refName, spec, otherName, otherCard,
-                 valueDict, previous=None, next=None, alias=None):
+                 valueDict, previous=None, next=None,
+                 alias=None, otherAlias=None):
 
         super(RefArgs, self).__init__()
         
@@ -352,6 +353,7 @@ class RefArgs(object):
         self.previous = previous
         self.next = next
         self.alias = alias
+        self.otherAlias = otherAlias
         self.ref = None
         
     def attach(self, item, repository):
@@ -377,7 +379,8 @@ class RefArgs(object):
         else:
             self.ref = ItemRef(item, self.attrName,
                                ItemStub(item, self), self.otherName,
-                               self.otherCard)
+                               otherCard = self.otherCard,
+                               otherAlias = self.otherAlias)
             repository._addStub(self.ref)
             self.valueDict.__setitem__(self.refName, self.ref, 
                                        self.previous, self.next, self.alias,
@@ -392,10 +395,14 @@ class RefArgs(object):
         if value is None or value is NoneRef:
             if self.ref is not None:
                 self.ref.attach(item, self.attrName,
-                                other, self.otherName, self.otherCard)
+                                other, self.otherName,
+                                otherCard=self.otherCard,
+                                otherAlias=self.otherAlias)
             else:
                 value = ItemRef(item, self.attrName,
-                                other, self.otherName, self.otherCard)
+                                other, self.otherName,
+                                otherCard=self.otherCard,
+                                otherAlias=self.otherAlias)
                 self.valueDict.__setitem__(self.refName, value,
                                            self.previous, self.next,
                                            self.alias, False)
@@ -436,10 +443,14 @@ class RefArgs(object):
             else:
                 if self.ref is not None:
                     self.ref.attach(item, self.attrName,
-                                    other, self.otherName, self.otherCard)
+                                    other, self.otherName,
+                                    otherCard=self.otherCard,
+                                    otherAlias=self.otherAlias)
                 else:
                     value = ItemRef(item, self.attrName,
-                                    other, self.otherName, self.otherCard)
+                                    other, self.otherName,
+                                    otherCard=self.otherCard,
+                                    otherAlias=self.otherAlias)
                     self.valueDict.__setitem__(self.refName, value,
                                                self.previous, self.next,
                                                self.alias, False)

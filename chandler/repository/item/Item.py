@@ -1276,14 +1276,22 @@ class Item(object):
 
         return False
 
-    def copy(self, name=None, parent=None, copies=None, copyPolicy=None):
+    def copy(self, name=None, parent=None, copies=None,
+             copyPolicy=None, cloudAlias=None):
         """
         Copy this item.
 
         The item's literal attribute values are copied.
         The item's reference attribute values are copied if the
-        C{copyPolicy} aspect on the attribute is C{copy}. The C{copyPolicy}
-        is C{remove} by default.
+        C{copyPolicy} aspect on the attribute is C{copy} or C{cascade}.
+
+        By default, an attribute's copyPolicy aspect is C{remove} for
+        bi-directional references and C{copy} for
+        L{SingleRef<repository.util.SingleRef.SingleRef>} values.
+
+        Attribute copy policies can be overriden with a
+        L{Cloud<repository.schema.Cloud.Cloud>} instance to drive the copy
+        operation by using the C{cloudAlias} argument.
 
         @param name: the name of the item's copy
         @type name: a string
@@ -1296,11 +1304,20 @@ class Item(object):
         @param copyPolicy: an optional copyPolicy to override the reference
         attributes copy policies with.
         @type copyPolicy: a string
+        @param cloudAlias: the optional alias name of a cloud in the item's
+        kind clouds list.
+        @type cloudAlias: a string
+        @return: the item copy
         """
 
         if copies is None:
             copies = {}
         elif self._uuid in copies:
+            return copies[self._uuid]
+
+        if cloudAlias is not None:
+            cloud = self._kind.getCloud(cloudAlias)
+            cloud.copyItems(self, name, parent, copies, cloudAlias)
             return copies[self._uuid]
             
         cls = type(self)
@@ -1572,6 +1589,8 @@ class Item(object):
                 superKinds.insert(superKinds.index(kind[1]), kind[2])
             elif kind[0] == 'after':
                 superKinds.insert(superKinds.index(kind[1]) + 1, kind[2])
+            else:
+                raise ValueError, kind[0]
 
         count = len(superKinds)
         kind = self._kind

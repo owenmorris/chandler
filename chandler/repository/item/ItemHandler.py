@@ -307,13 +307,16 @@ class ItemHandler(ContentHandler):
                 self.refs.append(RefArgs(self.collections[-1]._name, name,
                                          ref, self.collections[-1]._otherName,
                                          otherCard, self.collections[-1],
-                                         previous, next, attrs.get('alias')))
+                                         previous, next,
+                                         attrs.get('alias'),
+                                         attrs.get('otherAlias')))
             else:
                 name = attrs['name']
                 otherName = self.getOtherName(name, self.getAttribute(name),
                                               attrs)
                 self.refs.append(RefArgs(name, name, ref, otherName, otherCard,
-                                         self.references))
+                                         self.references,
+                                         otherAlias=attrs.get('otherAlias')))
         else:
             value = self.collections.pop()
             self.references[attrs['name']] = value
