@@ -48,6 +48,7 @@ libdb-4.1.so
 src=debug/lib
 libxerces-c.so.23
 libpathan.so.2
+libxml2.so.2
 src=debug/dbxml/lib
 libdbxml-1.1.so
 
