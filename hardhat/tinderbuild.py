@@ -69,7 +69,7 @@ def main():
 
 
 
-        log = open(logFile, "w+")
+        log = open(logFile, "w")
         try:
             # bring this hardhat directory up to date
             outputList = hardhatutil.executeCommandReturnOutputRetry(
@@ -83,7 +83,7 @@ def main():
             SendMail(fromAddr, toAddr, startTime, buildName, "building", 
              treeName, None)
 
-            log.write( "Start = " + nowString)
+            log.write("Start = " + nowString + "\n")
 
             ret = mod.Start(hardhatFile, buildDir, "-D'"+ nowString + "'", 
              buildVersion, 0, log)
@@ -91,16 +91,16 @@ def main():
         except Exception, e:
             print e
             print "something failed"
-            log.write("Failed; exception: " + e)
+            log.write("Failed; exception: " + e + "\n")
             status = "build_failed"
         else:
             if ret:
                 print "There were changes, and the build was successful"
-                log.write("There were changes, and the build was successful")
+                log.write("There were changes, and the build was successful\n")
                 status = "success"
                 newDir = os.path.join(outputDir, buildVersion)
                 os.rename(os.path.join(buildDir, "output"), newDir)
-                log.write("Calling CreateIndex with " + newDir)
+                log.write("Calling CreateIndex with " + newDir + "\n")
                 CreateIndex(newDir)
                 RotateDirectories(outputDir)
             else:
@@ -108,7 +108,7 @@ def main():
                 log.write("There were no changes in CVS\n")
                 status = "success"
 
-        log.write( "End = " + time.strftime("%Y-%m-%d %H:%M:%S"))
+        log.write( "End = " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n")
 
         log.close()
 
