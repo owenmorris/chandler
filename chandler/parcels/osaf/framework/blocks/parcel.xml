@@ -98,7 +98,7 @@
       <inverseAttribute itemref="docSchema:Block/content-spec"/>
     </Attribute>
 
-   <Enumeration itemName="queryEnumType">
+    <Enumeration itemName="queryEnumType">
       <values>ContainerSearch</values>
       <values>listOfItems</values>
     </Enumeration>
