@@ -34,7 +34,7 @@ def main():
     setup(name='chandlerdb', version='0.4',
           ext_modules=extensions,
           py_modules=modules)
-    if os.name == 'nt':
+    if os.name == 'nt' and os.path.exists('rijndael.py'):
         shutil.move('rijndael.py', 'chandlerdb/util/rijndael.py')
     setup(name='chandlerdb', version='0.4',
           py_modules=['chandlerdb.util.rijndael'])
