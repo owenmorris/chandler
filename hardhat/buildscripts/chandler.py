@@ -65,8 +65,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
  clobber, log):
 
     print "Do " + mode
-    log.write("Do " + mode + "\n")
-    log.write("Build Version " + buildVersion + "\n")
+    log.write("Performing " + mode + "build, version " + buildVersion + "\n")
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
     print buildVersion, buildVersionEscaped
@@ -108,7 +107,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
     for module in cvsModules:
         print "- - - -", module, "- - - - - - - - - - - - - - - - -"
-        log.write("module: " + module + "\n")
+        log.write("- - - - Processing module: " + module + " - - - - - - -\n")
 
         moduleData[module] = {}
         moduleDir = os.path.join(modeDir, module)
@@ -117,7 +116,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             # check out that module
             os.chdir(modeDir)
             print "checking out", module
-            log.write("checking out: " + module + " with " + cvsVintage + "\n")
+            log.write("Checking out: " + module + " with " + cvsVintage + "\n")
             outputList = hardhatutil.executeCommandReturnOutputRetry(
              [cvsProgram, "-q", "checkout", cvsVintage, module])
             dumpOutputList(outputList, log)
@@ -125,33 +124,38 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             # it exists, see if it has changed
             os.chdir(moduleDir)
             print "seeing if we need to update", module
+            log.write("Seeing if we need to update " + module)
             outputList = hardhatutil.executeCommandReturnOutputRetry(
              [cvsProgram, "-qn", "update", "-d", cvsVintage])
-            dumpOutputList(outputList, log)
+            # dumpOutputList(outputList, log)
             if NeedsUpdate(outputList):
                 print "YES"
                 moduleData[module]["changed"] = 1
                 # update it
                 os.chdir(moduleDir)
                 print "updating", module
-                log.write("updating: " + module + " with " + cvsVintage + "\n")
+                log.write("Module out of date; updating: " + module + " with " + cvsVintage + "\n")
                 outputList = hardhatutil.executeCommandReturnOutputRetry(
                  [cvsProgram, "-q", "update", "-d", cvsVintage])
                 dumpOutputList(outputList, log)
                 if scrubAllModules.has_key(module):
                     print "we need to scrub everything"
+                    log.write("Scrubbing everything before build\n")
                     needToScrubAll = 1
             else:
                 print "NO, unchanged"
-                log.write("unchanged" + "\n")
+                log.write("Module unchanged" + "\n")
                 moduleData[module]["changed"] = 0
 
+    log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+    log.write("Done with CVS\n")
     mainModuleDir = os.path.join(modeDir, mainModule)
     print "Main module dir =", mainModuleDir
     if needToScrubAll:
         os.chdir(mainModuleDir)
         print "Scrubbing all"
-        log.write("scrubbing all" + "\n")
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("Scrubbing all modules" + "\n")
         outputList = hardhatutil.executeCommandReturnOutput(
          [hardhatScript, "-nS"])
         libraryDir = os.path.join(modeDir, "osaf", "chandler", mode)
@@ -162,7 +166,8 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     else:
         os.chdir(mainModuleDir)
         print "scrubbing only Chandler"
-        log.write("scrubbing only Chandler" + "\n")
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("Scrubbing only Chandler" + "\n")
         outputList = hardhatutil.executeCommandReturnOutput(
          [hardhatScript, "-ns"])
 
@@ -170,28 +175,35 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     try:
         if mode == "debug":
             print "Building debug"
-            log.write("building debug" + "\n")
+            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+            log.write("Building debug" + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
              [hardhatScript, "-o", outputDir, "-dBt", 
              "-D", buildVersionEscaped])
         if mode == "release":
             print "Building release"
-            log.write("building release" + "\n")
+            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+            log.write("Building release" + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
              [hardhatScript, "-o", outputDir, "-rBt", 
              "-D", buildVersionEscaped])
     except Exception, e:
         print "a build error"
-        log.write("error during build" + "\n")
-        log.write("build log:" + "\n")
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("***Error during build***" + "\n")
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("Build log:" + "\n")
         CopyLog(os.path.join(modeDir, logPath), log)
-        log.write("end of log" + "\n")
+        log.write("End of log" + "\n")
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         raise e
     else:
-        log.write("build successful" + "\n")
-        log.write("build log:" + "\n")
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("Build successful" + "\n")
+        log.write("Build log:" + "\n")
         CopyLog(os.path.join(modeDir, logPath), log)
-        log.write("end of log" + "\n")
+        log.write("End of log" + "\n")
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
 
 
 def dumpOutputList(outputList, fd = None):
