@@ -389,16 +389,44 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
 
         selectedDate = self.parent.blockItem.selectedDate
         startDate = self.parent.blockItem.rangeStart
+
+        # Update the month button given the selected date
         
         self.monthButton.SetLabel(selectedDate.Format("%B %Y"))
         self.monthButton.UpdateSize()
         self.todayButton.UpdateSize()
 
+        # Update the days in the header based on the selected date
+        # @@@ hack hack until we get the colheader
+
+        if (('__WXMAC__' in wx.PlatformInfo) or
+            ('__WXGTK__' in wx.PlatformInfo)):
+        
+            if self.parent.blockItem.dayMode:
+                self.weekButton.SetLabel("Week", font=self.bigFont,
+                                         fgcolor=self.bigFontColor)
+            else:
+                self.weekButton.SetLabel("Week", font=self.bigBoldFont,
+                                         fgcolor=wx.BLUE)
+
         for day in range(7):
             currentDate = startDate + DateTime.RelativeDateTime(days=day)
             dayName = currentDate.Format('%a ') + str(currentDate.day)
 
-            self.dayButtons[day].SetLabel(dayName)
+            if (('__WXMAC__' in wx.PlatformInfo) or
+                ('__WXGTK__' in wx.PlatformInfo)):
+                if (self.parent.blockItem.dayMode and
+                    (selectedDate == currentDate)):
+                    self.dayButtons[day].SetLabel(dayName,
+                                                  font=self.bigBoldFont,
+                                                  fgcolor=wx.BLUE)
+                else:
+                    self.dayButtons[day].SetLabel(dayName,
+                                                  font=self.bigFont,
+                                                  fgcolor=self.bigFontColor)
+            else:
+                self.dayButtons[day].SetLabel(dayName)
+                                
             
         self.Layout()
         self.Refresh()
@@ -478,7 +506,8 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         # for us.
         
         startDay = self.parent.blockItem.rangeStart
-        dc.SetPen(wx.Pen(wx.BLUE))
+        dc.SetPen(wx.Pen(wx.Color(153,204,255)))
+        dc.SetBrush(wx.Brush(wx.Color(153,204,255)))
 
         if self.parent.blockItem.dayMode == True:
             selectedDay = self.parent.blockItem.selectedDate
