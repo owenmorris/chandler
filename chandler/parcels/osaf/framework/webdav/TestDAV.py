@@ -21,22 +21,29 @@ class TestDAV(TestContentModel.ContentModelTestCase):
 
         self.loadParcel("http://osafoundation.org/parcels/osaf/framework/webdav")
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
+        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel")
 
         return
 
+        # this should return None
+        #DAV('http://code-bear.com/dav/this_item_doesnt_exist').get()
+
         """ item exporting """
         testItem = GenerateItems.GenerateCalendarEvent(100)
-        url = 'http://code-bear.com/dav/' + testItem.itsUUID.str16()
+        url = 'http://code-bear.com/dav/' + 'my_test_item' #testItem.itsUUID.str16()
         a = DAV(url)
+        print 'put 1'
         a.put(testItem)
+        print 'put 2'
         a.put(testItem)
-        print url
 
         """ item fetching """
         # fetch the item we put above
         testItem = DAV(url).get()
         testItem2 = DAV(url).get()
         testItem3 = DAV(url).get()
+
+
 
         print testItem, testItem2, testItem3
 

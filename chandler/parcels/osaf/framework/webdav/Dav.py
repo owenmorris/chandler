@@ -57,13 +57,14 @@ class DAV(object):
 
     def put(self, item):
         # add an entry here to say that we're already here
-        sharing = Globals.repository.findPath('//parcels/osaf/framework/GlobalShare') 
+        sharing = Globals.repository.findPath('//parcels/osaf/framework/GlobalShare')
+        #if item.itsUUID not in sharing.values(): # only add us if we originated here
         sharing.itemMap[item.itsUUID] = item.itsUUID
-        
+
         if item.hasAttributeValue('sharedURL'):
             # we only support you sharing to a single URL at the moment
             # it is an error to try and share to another place..
-            if item.sharedURL != self.url:
+            if unicode(item.sharedURL) != unicode(self.url):
                 print 'Warning: trying to share %s to %s' % (unicode(item.sharedURL), unicode(self.url))
             # for now, force our current url to be the shared url
             self.url = item.sharedURL

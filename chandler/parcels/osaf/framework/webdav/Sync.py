@@ -91,6 +91,10 @@ def syncToServer(dav, item):
             makePropString('uuid', '//core', item.itsUUID.str16())
 
     for (name, value) in item.iterAttributeValues():
+        # don't export these local attributes
+        if name in ['etag', 'lastModified', 'sharedURL']:
+            continue
+
         # the attribute's namespace is its path...
         namespace = kind.getAttribute(name).itsPath[0:-1]
 
@@ -101,9 +105,9 @@ def syncToServer(dav, item):
             listData = ''
             for i in value:
                 if isinstance(i, Item):
-                    # mmm, recursion
                     defaultURL = dav.url.join(i.itsUUID.str16())
                     durl = i.getAttributeValue('sharedURL', default=defaultURL)
+                    # mmm, recursion
                     DAV(durl).put(i)
                     listData += '<itemref>' + unicode(durl) + '</itemref>'
                 else:
@@ -127,9 +131,25 @@ def syncToServer(dav, item):
         else:
             raise Exception
 
+    #
+    # XXX refactor this code with the code above
+    #
+    if item.isItemOf(Globals.repository.findPath('//parcels/osaf/contentmodel/ItemCollection')):
+        listData = ''
+        for i in item:
+            # mmm, recursion
+            defaultURL = dav.url.join(i.itsUUID.str16())
+            durl = i.getAttributeValue('sharedURL', default=defaultURL)
+            DAV(durl).put(i)
+            listData += '<itemref>' + unicode(durl) + '</itemref>'
+        props += makePropString('results', '//special/case', listData)
+    #
+    # End refactor
+    #
+
     r = dav.newConnection().setprops2(url, props)
-    print url, r.status, r.reason
-    print r.read()
+    #print url, r.status, r.reason
+    #print r.read()
 
 
 
@@ -176,6 +196,40 @@ def syncFromServer(item, davItem):
             print 'Got.....: ', value
             item.setAttributeValue(name, attr.type.makeValue(value))
 
+
+    #
+    # XXX refactor this code
+    #
+    if item.isItemOf(Globals.repository.findPath('//parcels/osaf/contentmodel/ItemCollection')):
+        value = davItem._getAttribute('results', '//special/case')
+
+        # time for some xml parsing! yum!
+
+        # given a chunk of text that is a flat xml tree like:
+        # "<foo/><foo/><foo/>"
+        # parse it and return a list of the nodes
+        xmlgoop = davlib.XML_DOC_HEADER + \
+                  '<doc>' + value + '</doc>'
+        doc = libxml2.parseDoc(xmlgoop)
+        nodes = doc.xpathEval('/doc/*')
+
+        serverCollectionResults = []
+        for node in nodes:
+            otherItem = DAV(node.content).get()
+            serverCollectionResults.append(otherItem)
+
+        print 'Merging itemCollection'
+        # for now, just sync with whatever the server gave us
+        for i in serverCollections:
+            if i not in item:
+                item.add(i)
+        for i in item:
+            if i not in serverCollections:
+                item.remove(i)
+    #
+    # End refactor
+    #
+
     item.etag = davItem.etag
     item.lastModified = davItem.lastModified
     item.sharedVersion = item._version # XXX should we commit first?
@@ -186,23 +240,26 @@ def syncFromServer(item, davItem):
 def getItem(dav):
     repository = Globals.repository
 
-    # fetch the item
-    davItem = DAVItem.DAVItem(dav)
+    # Fetch the headers (uuid, kind, etag, lastmodified) from the WebDAV server.
+    davItem = DAVItem.DAVItem(dav, True)
 
     sharing = repository.findPath('//parcels/osaf/framework/GlobalShare') 
 
     # get the exported item's UUID and see if we have already fetched it
     origUUID = davItem.itsUUID
     newItem = repository.findUUID(sharing.itemMap[origUUID])
-    if newItem:
-        dav.sync(newItem)
-        return newItem
 
-    # otherwise, create a new item for the davItem
-    kind = davItem.itsKind
-    newItem = kind.newItem(None, repository.findPath('//userdata/contentitems'))
+    if not newItem:
+        # create a new item for the davItem
+        kind = davItem.itsKind
+        newItem = kind.newItem(None, repository.findPath('//userdata/contentitems'))
+        newItem.sharedURL = dav.url
+        # set the version to avoid sync thinking there are local changes
+        newItem.sharedVersion = newItem._version
 
-    # XXX i'd much rather just call syncItem() here... 
-    syncFromServer(newItem, davItem)
+        # toss this in to the itemMap so we can find it later
+        sharing.itemMap[origUUID] = newItem.itsUUID
+
+    dav.sync(newItem)
 
     return newItem

@@ -215,8 +215,6 @@ class DAV(httplib.HTTPConnection):
            '<D:set><D:prop>' + xmlstuff + '</D:prop></D:set>' + \
            '</D:propertyupdate>'
 
-    print body
-
     return self.proppatch(url, body)
 
 

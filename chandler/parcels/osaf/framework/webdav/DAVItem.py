@@ -22,31 +22,26 @@ Currently it is read-only.  Soon it will be read-write.
 
 class DAVItem(object):
     """ utility class that represents an item from a webdav server """
-    def __init__(self, dav):
+    def __init__(self, dav, headersOnly=False):
         super(DAVItem, self).__init__()
 
         self.dav = dav
-        self.doc = self._allprop(unicode(dav.url))
+        self.doc = self._getprops(unicode(dav.url), headersOnly)
 
-    def _allprop(self, url, depth = 0):
+    def _getprops(self, url, headersOnly=False):
         """ Fetch all the properties of a resource """
+        # XXX this doesn't work, but should...
+        #        if headersOnly:
+        #            props = '<O:uuid/><O:kind/>'
+        #        else:
+        #            props = '<D:allprop/>'
+
         body = davlib.XML_DOC_HEADER + \
-               '<D:propfind xmlns:D="DAV:">' + \
+               '<D:propfind xmlns:D="DAV:" xmlns:O="//core">' + \
                '<D:allprop/><D:getetag/><D:getlastmodified/>' + \
                '</D:propfind>'
 
-        # In order to get see if the etag matches something, we need
-        # to first fetch the item, get its uuid and getetag properties.
-        # At that point we can look it up in the itemMap and see if we
-        # already have it, and then match the etag associated with that.
-        #
-        # for now, lets just fetch all the properties and match the etag
-        # later.
-        #
-        # we could also make the get code smarter by allowing you to "get"
-        # an item that was already shared (and hence has a url and an etag
-        # already.  This might be the best solution.
-        r = self.dav.newConnection().propfind(url, body, depth)
+        r = self.dav.newConnection().propfind(url, body, 0)
 
         if r.status == 404:
             raise Dav.NotFound
