@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel xmlns="http://osafoundation.org/parcels/core"
+        xmlns:this="http://testparcels.org/anonymous">
+
+  <namespace value="http://testparcels.org/anonymous" />
+  
+  <Kind itsName="myKind">
+      <Attribute itsName="myAttribute">
+          <type itemref="this:myKind"/>
+          <cardinality value="dict"/>
+      </Attribute>
+  </Kind>
+  
+  <this:myKind itsName="itemWithAttributes">
+      <this:myAttribute key="one"/>
+      <this:myAttribute key="two"/>
+      <this:myAttribute key="three"/>
+  </this:myKind>
+  
+  <this:myKind itsName="itemWithSubItem">
+      <this:myKind />
+  </this:myKind>
+
+</Parcel>

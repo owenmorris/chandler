@@ -901,6 +901,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         currentItem = None
         currentValue = None
 
+        # Find the kind represented by the tag (uri, local). The
+        # parser has already mapped the prefix to the namespace (uri).
+        kind = self.findItem(uri, local, self.locator.getLineNumber())
         nameString = None
         if attrs.has_key((None, 'itemName')):
             print "Deprecation warning: 'itemName' should be 'itsName' at", \
@@ -909,8 +912,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         elif attrs.has_key((None, 'itsName')):
             nameString = attrs.getValue((None, 'itsName'))
             
-        if nameString:
-            # If it has an item name, it's an item
+        
+        if kind and kind.itsKind.itsUUID == self.manager.kindUUID:
             element = 'Item'
 
             if attrs.has_key((None, 'itemClass')):
@@ -918,25 +921,23 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             else:
                 classString = None
 
-            # Find the kind represented by the tag (uri, local). The
-            # parser has already mapped the prefix to the namespace (uri).
-            kind = self.findItem(uri, local, self.locator.getLineNumber())
-            if kind is None:
-                explanation = "Kind doesn't exist: %s:%s" % (uri, local)
-                self.saveExplanation(explanation)
-                raise ParcelException(explanation)
-
             # If we have the document root, use the parcel parent.
             # Otherwise, the currentItem is the parent.
             parent = self.__getCurrentItem()
             if parent is None:
                 parent = self.parcelParent
+                lastComponent = self.repoPath.split('/')[-1]
+
+                # A top-level anonymous Parcel item has an implicit
+                # itsName of lastComponent here.
+                if nameString is None:
+                    nameString = lastComponent
                 # <http://bugzilla.osafoundation.org/show_bug.cgi?id=2495>
                 # Make sure that the top-level parcel's itsName
                 # actually matches where it's going in the repository.
                 # Otherwise, it's possible to run into an infinite
                 # recursion here.
-                if self.repoPath.split('/')[-1] != nameString:
+                elif nameString != lastComponent:
                     explanation = "Parcel's itsName '%s' doesn't match last component of repository path '%s'" % \
                                 (nameString, self.repoPath)
                     self.saveExplanation(explanation)
@@ -960,6 +961,19 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                     currentItem = self.createItem(kind, parent,
                                                   nameString, classString)
                     self.itemsCreated.append(currentItem)
+
+        elif nameString:
+            
+            # We have an itsName, but for some reason we can't figure out
+            # the Kind of this item. Either it doesn't exist...
+            if kind is None:
+                explanation = "Kind doesn't exist: %s:%s" % (uri, local)
+            # ... or it isn't a Kind at all.
+            else:
+                explanation = "Expected a kind: %s:%s" % (uri, local)
+                
+            self.saveExplanation(explanation)
+            raise ParcelException(explanation)
 
         elif len(self.elementStack) > 0 and \
              self.elementStack[-1].elementType == 'Ignore':
@@ -1223,7 +1237,13 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         value = rawValue
         
-        if type(value) in (unicode, str):
+        # If we have a Kind, we should create a new Item that's
+        # an anonymous child of item.
+        if valueType.itsKind.itsUUID == self.manager.kindUUID:
+            
+            value = valueType.newItem(None, item)
+        
+        elif type(value) in (unicode, str):
             try:
                 value = valueType.makeValue(value)
             except Exception, e:
