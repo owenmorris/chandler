@@ -9,5 +9,5 @@
        type="path" otherCard="list">/Core/String</ref>
 
   <attribute name="cardinality">single</attribute>
-  <attribute name="displayName">Display Name</attribute>
+  <attribute name="displayName">Title</attribute>
 </item>
