@@ -1,4 +1,4 @@
-<Parcel parcelName="pim:CalendarSchema"
+<Parcel itemName="pim:CalendarSchema"
         xmlns="//Schema/Core"
 	xmlns:pim="//Parcels/OSAF/PimSchema"
         xmlns:cal="//Parcels/OSAF/PimSchema/CalendarSchema"

@@ -1,4 +1,4 @@
-<Parcel parcelName="base:PimSchema"
+<Parcel itemName="base:PimSchema"
         xmlns="//Schema/Core"
         xmlns:core="//Schema/Core"
         xmlns:base="//Parcels/OSAF"

@@ -1,4 +1,4 @@
-<Parcel parcelName="pim:ContactSchema"
+<Parcel itemName="pim:ContactSchema"
         xmlns="//Schema/Core"
         xmlns:core="//Schema/Core"
         xmlns:pim="//Parcels/OSAF/PimSchema"

@@ -3,7 +3,7 @@
 <!-- Here are schema definitions for the AgentItem repository object, as well as related subjects -->
 <!-- Schemas for: Condition, Action, Instruction, Repertoire, AgentItem -->
 
-<Parcel parcelName="app:AgentSchema"
+<Parcel itemName="app:AgentSchema"
         xmlns="//Schema/Core"
         xmlns:core="//Schema/Core"
 	xmlns:app="//Parcels/OSAF/AppSchema"

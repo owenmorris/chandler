@@ -1,4 +1,4 @@
-<Parcel parcelName="base:AppSchema"
+<Parcel itemName="base:AppSchema"
         xmlns="//Schema/Core"
         xmlns:core="//Schema/Core"
         xmlns:base="//Parcels/OSAF"
