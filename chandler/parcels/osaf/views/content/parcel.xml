@@ -14,7 +14,6 @@
              xmlns:calendarModel="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
              xmlns:contactsModel="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
              xmlns:notesDetail="http://osafoundation.org/parcels/osaf/framework/blocks/detail/notes"
-             xmlns:calendarDetail="http://osafoundation.org/parcels/osaf/framework/blocks/detail/calendar"
              xmlns:view="http://osafoundation.org/parcels/osaf/views/content"
 	     xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events">
 
@@ -254,14 +253,6 @@
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
 
-  <ItemDetail itsName="InItemDetail"
-              itemClass="osaf.views.content.Content.ContentItemDetail">
-  </ItemDetail>
-
-  <ItemDetail itsName="OutItemDetail"
-              itemClass="osaf.views.content.Content.ContentItemDetail">
-  </ItemDetail>
-
   <ItemDetail itsName="NewContactItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
@@ -288,7 +279,7 @@
     <displayName>OldCalendar</displayName>
 
     <childrenBlocks itemref="view:CalendarList"/>
-    <childrenBlocks itemref="calendarDetail:DetailRoot"/>
+    <childrenBlocks itemref="notesDetail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -333,10 +324,11 @@
   <SplitterWindow itsName="InListView">
     <displayName>In</displayName>
     <childrenBlocks itemref="view:InList"/>
-    <childrenBlocks itemref="view:InItemDetail"/>
+    <childrenBlocks itemref="notesDetail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
+    <splitPercentage>0.2</splitPercentage>
   </SplitterWindow>
 
   <!-- Out View -->
@@ -344,10 +336,11 @@
     <displayName>Out</displayName>
 
     <childrenBlocks itemref="view:OutList"/>
-    <childrenBlocks itemref="view:OutItemDetail"/>
+    <childrenBlocks itemref="notesDetail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
+    <splitPercentage>0.2</splitPercentage>
   </SplitterWindow>
 
   <!-- New Calendar View -->
@@ -355,7 +348,7 @@
     <displayName>Calendar</displayName>
 
     <childrenBlocks itemref="view:NewCalendarList"/>
-    <childrenBlocks itemref="calendarDetail:DetailRoot"/>
+    <childrenBlocks itemref="notesDetail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>

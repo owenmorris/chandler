@@ -56,16 +56,12 @@
   -->
   <CharacterStyle itsName="TextStyle">
     <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>12.0</fontSize>
-    <fontStyle></fontStyle>
-    <fontName></fontName>
+    <fontSize>10</fontSize>
   </CharacterStyle>
 
   <CharacterStyle itsName="LabelStyle">
     <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>14.0</fontSize>
-    <fontStyle></fontStyle>
-    <fontName></fontName>
+    <fontSize>12</fontSize>
   </CharacterStyle>
 
   <ColorStyle itsName="GrayBackground1">

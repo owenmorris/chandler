@@ -61,6 +61,18 @@
     <core:type itemref="ContextEnum"/>
   </core:Attribute>
 
+  <core:Attribute itsName="who">
+    <redirectTo>creator</redirectTo>
+  </core:Attribute>
+
+  <core:Attribute itsName="about">
+    <redirectTo>displayName</redirectTo>
+  </core:Attribute>
+
+  <core:Attribute itsName="date">
+    <redirectTo>createdOn</redirectTo>
+  </core:Attribute>
+
   <core:Kind itsName="ContentItem">
     <core:superKinds itemref="core:Item"/>
     <core:displayName>Default Content Item Display Name</core:displayName>
@@ -75,6 +87,10 @@
     <core:attributes itemref="core:Parcel/createdOn"/>
     <core:attributes itemref="core:Parcel/modifiedOn"/>
     <core:attributes itemref="conversations"/>
+    <!-- redirections -->
+    <core:attributes itemref="who"/>
+    <core:attributes itemref="date"/>
+    <core:attributes itemref="about"/>
 
     <core:classes key="python">osaf.contentmodel.ContentModel.ContentItem</core:classes>
   </core:Kind>

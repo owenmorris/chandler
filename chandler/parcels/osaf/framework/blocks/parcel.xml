@@ -386,13 +386,15 @@
       <type itemref="docSchema:Block"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="docSchema:DynamicChild/dynamicParent"/>
+      <copyPolicy value="cascade"/>
       <required>False</required>
     </Attribute>
-
+    
     <Attribute itemName="collectionDelegate">
       <redirectTo>dynamicChildren</redirectTo>
+      <copyPolicy value="copy"/>
     </Attribute>
-
+    
     <attributes itemref="docSchema:DynamicContainer/collectionDelegate"/>
     <attributes itemref="docSchema:DynamicContainer/dynamicChildren"/>
   </Kind>
@@ -830,6 +832,18 @@
       <type itemref="docSchema:SizeType"/>
     </Attribute>
     
+    <Attribute itsName="buttons3D">
+      <type itemref="Boolean"/>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+
+    <Attribute itsName="buttonsLabeled">
+      <type itemref="Boolean"/>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+
+    <attributes itemref="docSchema:Toolbar/buttons3D"/>
+    <attributes itemref="docSchema:Toolbar/buttonsLabeled"/>
     <attributes itemref="docSchema:Toolbar/toolSize"/>
     <attributes itemref="docSchema:colorStyle"/>
   </Kind>
@@ -869,9 +883,16 @@
       <type itemref="docSchema:Block"/>
     </Attribute>
     
+    <Attribute itemName="label">
+      <description>The label that goes under this ToolbarItem</description>
+      <type itemref="String"/> 
+      <defaultValue type="String"></defaultValue>
+    </Attribute>
+    
     <attributes itemref="docSchema:ToolbarItem/bitmap"/>
     <attributes itemref="docSchema:ToolbarItem/selectedBitmap"/>
     <attributes itemref="docSchema:ToolbarItem/toolbarItemKind"/>
+    <attributes itemref="docSchema:ToolbarItem/label"/>
     <attributes itemref="docSchema:event"/>
   </Kind>
   

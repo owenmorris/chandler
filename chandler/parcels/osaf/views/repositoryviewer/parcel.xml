@@ -15,35 +15,6 @@
   <core:version>0.3</core:version>
 
   <!--
-    Menus
-  -->
-  <Menu itsName="RepositoryMenu">
-    <title>Repository Viewer</title>
-    <itemLocation>HelpMenu</itemLocation>
-    <helpString></helpString>
-  </Menu>
-
-  <!--
-    Menu Items
-  -->
-  <MenuItem itsName="BlankItem">
-    <title>Do Something...</title>
-    <location>RepositoryMenu</location>
-    <menuItemKind>Normal</menuItemKind>
-    <helpString>Not yet implemented</helpString>
-    <event itemref="doc:dummyEvent"/>
-  </MenuItem>
-
-  <!-- 
-    Events
-   -->
-
-  <BlockEvent itsName="dummyEvent">
-    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
-    <methodName>OndummyEvent</methodName>
-  </BlockEvent>
-
-  <!--
     Layout blocks
   -->
   <Tree itsName="RepositoryTree">
@@ -74,16 +45,7 @@
     <minimumSize>100,50</minimumSize>
   </ItemDetail>
 
-  <BoxContainer itsName="RepositoryBox">
-    <displayName>Repository</displayName>
-
-    <!-- Layout children -->
-    <childrenBlocks itemref="doc:RepositorySplit"/>
-    <childrenBlocks itemref="doc:BlankItem"/>
-    <childrenBlocks itemref="doc:RepositoryMenu"/>
-  </BoxContainer>
-  
-  <SplitterWindow itsName="RepositorySplit">
+  <SplitterWindow itsName="RepositoryBox">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:RepositoryTree"/>
     <childrenBlocks itemref="doc:ItemDetail"/>

@@ -38,7 +38,9 @@ class DateTimeBlock(ControlBlocks.StaticText):
         """
         item = notification.data['item']
         widget = self.widget
-        widget.SetLabel(item.getDate())
+        theDate = item.date # get the redirected date attribute
+        theDate = str(theDate)
+        widget.SetLabel(theDate)
         
 class EditTextAttribute(ControlBlocks.EditText):
     """
@@ -139,7 +141,16 @@ class ToEditField(EditTextAttribute):
             item.who = toFieldString
        
     def loadAttributeIntoWidget(self, item, widget):
-        widget.SetValue(item.who)
+        try:
+            whoString = item.who # get redirected who list
+        except AttributeError:
+            whoString = ''
+        if len(whoString) > 0:
+            whoNames = []
+            for whom in whoString.values():
+                whoNames += (whom.getItemDisplayName(),)
+            whoString = ', '.join(whoNames)
+        widget.SetValue(whoString)
 
 class FromEditField(EditTextAttribute):
     """Edit field containing the sender's contact"""

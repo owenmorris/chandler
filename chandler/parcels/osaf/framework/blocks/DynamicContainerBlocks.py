@@ -82,7 +82,11 @@ class RefCollectionDictionary(object):
         """
         @return: C{int} length of the collection attribute.
         """
-        return len(self.getAttributeValue(self.collectionDelegate()))
+        # In case our collection doesn't exist return zero
+        try:
+            return len(self.getAttributeValue(self.collectionDelegate()))
+        except AttributeError:
+            return 0
     
     def has_key(self, key):
         """
@@ -505,6 +509,10 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
 
     def calculate_wxStyle (self):
         style = wx.TB_HORIZONTAL
+        if self.buttons3D:
+            style |= wx.TB_3DBUTTONS
+        if self.buttonsLabeled:
+            style |= wx.TB_TEXT
         return style
     
     def synchronizeColor (self):
@@ -524,8 +532,13 @@ class ToolbarItem(Block.Block, DynamicChild):
         if self.toolbarItemKind == 'Button':
             bitmap = wx.Image (self.bitmap, 
                                wx.BITMAP_TYPE_PNG).ConvertToBitmap()
-            tool = wxToolbar.AddSimpleTool (id, bitmap, 
-                                            self.title, self.helpString)
+            if self.label:
+                tool = wxToolbar.AddLabelTool(id, self.label, bitmap, 
+                                              shortHelp=self.title, 
+                                              longHelp=self.helpString)
+            else:
+                tool = wxToolbar.AddSimpleTool (id, bitmap, 
+                                                self.title, self.helpString)
             # Bind events to the Application OnCommand dispatcher, which will
             #  call the block.event method
             wxToolbar.Bind (wx.EVT_TOOL, Globals.wxApplication.OnCommand, id=id)            
