@@ -32,7 +32,6 @@ src=chandler
 dest=
 Chandler.py
 version.py
-HISTORY.txt
 LICENSE.txt
 Chandler-project.wpr
 
