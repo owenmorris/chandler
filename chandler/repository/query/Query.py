@@ -149,9 +149,9 @@ class Query(object):
                 name = name[1:-1]
             kind = self.__rep.findPath(name)
             if kind is not None:
-                return kind
+                return ('kind', kind)
             if name.startswith('$'): # variable argument
-                return self.args[int(name[1:])-1]
+                return ('arg',self.args[int(name[1:])-1])
             assert False, "lookup_source couldn't handle %s" % name
 
         def compile_predicate(ast):
@@ -294,11 +294,15 @@ class Query(object):
         @type param: tuple (source collection, compiled predicate)
         """
         source = plan[0]
-        self._kind = source
-        self._predicate = plan[1]
 
-        import repository.item.Query as RepositoryQuery
-        items = RepositoryQuery.KindQuery(recursive=self.recursive).run([source])
+        if source[0] == 'kind':
+            self._kind = source[1]
+            self._predicate = plan[1]
+
+            import repository.item.Query as RepositoryQuery
+            items = RepositoryQuery.KindQuery(recursive=self.recursive).run([source[1]])
+        else: # it = 'arg'
+            items = source[1]
 
         for i in items:
             if eval(self._predicate):

@@ -61,7 +61,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         results = self._executeQuery(u'for i in "//Schema/Core/Kind" where i.hasAttributeValue("superKinds")')
         self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
 
-    def testWithData(self):
+    def testItemTraversalQuery(self):
         """ Test a multiple item path traversal in the query predicate """
         tools.timing.reset()
         tools.timing.begin("Setup Infrastructure")
@@ -90,6 +90,49 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         
         results = self._executeQuery(u"for i in '//parcels/osaf/contentmodel/contacts/Contact' where contains(i.contactName.firstName,'a')")
         self._checkQuery(lambda i: not 'a' in i.contactName.firstName, results)
+
+    def testEnumerationQuery(self):
+        """ Test an enumeration attribute in the query predicate """
+        tools.timing.reset()
+        tools.timing.begin("Setup Infrastructure")
+        import application
+        import application.Globals as Globals
+        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+        from osaf.framework.notifications.NotificationManager import NotificationManager
+        Globals.repository = self.rep
+        Globals.notificationManager = NotificationManager()
+        tools.timing.end("Setup Infrastructure")
+
+        tools.timing.begin("Load Calendar Parcel")
+        self.loadParcels(
+         ['http://osafoundation.org/parcels/osaf/contentmodel/calendar']
+        )
+        tools.timing.end("Load Calendar Parcel")
+
+        tools.timing.begin("Generate Calendar Events")
+        GenerateItems.generateCalendarEventItems(100,30)
+        tools.timing.end("Generate Calendar Events")
+
+        tools.timing.begin("Commit Calendar Events")
+        self.rep.commit()
+        tools.timing.end("Commit Calendar Events")
+#        tools.timing.results()
+        
+        results = self._executeQuery(u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.importance == 'fyi'")
+        self._checkQuery(lambda i: not i.importance == 'fyi', results)
+
+    def testRefCollectionQuery(self):
+        """ Test a query over ref collections """
+        import repository.query.Query as Query
+        kind = self.rep.findPath('//Schema/Core/Kind')
+        refcol = kind.attributes
+
+        queryString = u"for i in $0 where contains(i.itsName,'ttributes')"
+        q = Query.Query(self.rep, queryString)
+        q.args = [ refcol ]
+        q.execute()
+
+        self._checkQuery(lambda i: not 'ttributes' in i.itsName, q)
 
 if __name__ == "__main__":
 #    import hotshot
