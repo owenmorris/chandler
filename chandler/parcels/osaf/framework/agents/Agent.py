@@ -3,20 +3,10 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import logging
-import threading
 from AgentThread import AgentThread
+import logging, threading
 
 class Agent:
-
-    # We only need to add the handler/formatter to the 'Agent' logger once
-    _log = logging.getLogger('Agent')
-    _hdlr = logging.FileHandler('agent.log')
-    _formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    _hdlr.setFormatter(_formatter)
-    _log.addHandler(_hdlr)
-    _log.setLevel(logging.DEBUG)
-
     def __init__(self, agentID):
         """ initialize the dynamic state of the agent """
         self.agentID = agentID
