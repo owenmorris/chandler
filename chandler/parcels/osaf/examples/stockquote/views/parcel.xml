@@ -42,8 +42,8 @@
       <buttonKind>Text</buttonKind>
       <event itemref="views:GetQuoteEvent"/>
       <isShown>True</isShown>
-      <size>80,20</size>
-      <minimumSize>80,20</minimumSize>
+      <size>100,24</size>
+      <minimumSize>100,24</minimumSize>
       <alignmentEnum>alignCenter</alignmentEnum>
       <stretchFactor>0.0</stretchFactor>
     </blocks:Button>
@@ -58,8 +58,8 @@
       <characterStyle itemref="views:StockQuoteView/TextStyle"/>
       <!-- XXX Should somehow set a default value here -->
       <isShown>True</isShown>
-      <size>80,20</size>
-      <minimumSize>80,20</minimumSize>
+      <size>100,24</size>
+      <minimumSize>100,24</minimumSize>
       <alignmentEnum>alignCenter</alignmentEnum>
       <stretchFactor>0.0</stretchFactor>
     </blocks:EditText>
@@ -69,8 +69,8 @@
       <textAlignmentEnum>Left</textAlignmentEnum>
       <characterStyle itemref="views:StockQuoteView/TextStyle"/>
       <title>$</title>
-      <size>80,20</size>
-      <minimumSize>80,20</minimumSize>
+      <size>100,24</size>
+      <minimumSize>100,24</minimumSize>
       <border>3.0, 3.0, 3.0, 3.0</border>
       <alignmentEnum>alignCenter</alignmentEnum>
       <stretchFactor>0.0</stretchFactor>
