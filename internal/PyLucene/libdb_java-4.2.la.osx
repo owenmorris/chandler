@@ -1,2 +1,0 @@
-# The name that we can dlopen(3).
-dlname='libdb_java-4.2.jnilib'
