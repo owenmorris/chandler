@@ -8,7 +8,7 @@ import osaf.contentmodel.mail.Mail as Mail
 import twisted.internet.defer as defer
 import twisted.internet.reactor as reactor
 import twisted.internet.protocol as protocol
-import twisted.protocols.imap4 as imap4
+import twisted.mail.imap4 as imap4
 import repository.persistence.RepositoryView as RepositoryView
 import mx.DateTime as DateTime
 import message as message
