@@ -130,7 +130,7 @@ class wxRepositoryView(wxViewerParcel):
         self.viewTable = not self.viewTable
 
     def OnAboutRepository(self, event):
-        pageLocation = "parcels" + os.sep + "repository" + os.sep + "AboutRepository.html"
+        pageLocation = self.model.path + os.sep + "AboutRepository.html"
         infoPage = SplashScreen(self, _("About Repository"), pageLocation, false)
         if infoPage.ShowModal():
             infoPage.Destroy()

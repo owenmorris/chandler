@@ -143,7 +143,7 @@ class wxZaoBaoViewer(wxViewerParcel):
         pass
 
     def onAboutZaoBaoItem(self, event):
-        pageLocation = "parcels" + os.sep + "zaobao" + os.sep + "AboutZaoBao.html"
+        pageLocation = self.model.path + os.sep + "AboutZaoBao.html"
         infoPage = SplashScreen(self, _("About ZaoBao"), pageLocation, false)
         if infoPage.ShowModal():
             infoPage.Destroy()

@@ -116,8 +116,7 @@ class wxMrMenus(wxViewerParcel):
         self.SynchronizeActionsBar()
 
     def OnAboutMrMenus(self, event):
-        pageLocation = "parcels" + os.sep + "OSAF" + os.sep +\
-                     "mrmenus" + os.sep + "AboutMrMenus.html"
+        pageLocation = self.model.path + os.sep + "AboutMrMenus.html"
         infoPage = SplashScreen(self, _("About MrMenus"), pageLocation, false)
         if infoPage.ShowModal():
             infoPage.Destroy()

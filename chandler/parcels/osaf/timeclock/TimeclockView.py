@@ -215,7 +215,7 @@ class wxTimeclockView(wxViewerParcel):
         self.rateTextDisplay.SetInsertionPoint(0)
 
     def OnAboutTimeclock(self, event):
-        pageLocation = "parcels" + os.sep + "timeclock" + os.sep + "AboutTimeclock.html"
+        pageLocation = self.model.path + os.sep + "AboutTimeclock.html"
         infoPage = SplashScreen(self, _("About Timeclock"), pageLocation, false)
         if infoPage.ShowModal():
             infoPage.Destroy()

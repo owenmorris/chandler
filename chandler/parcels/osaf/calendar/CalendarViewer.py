@@ -265,7 +265,7 @@ class wxCalendarViewer(wxViewerParcel):
         dialog.Destroy()
 
     def OnAboutCalendar(self, event):
-        pageLocation = "parcels" + os.sep + "OSAF" + os.sep + "calendar" + os.sep + "AboutCalendar.html"
+        pageLocation = self.model.path + os.sep + "AboutCalendar.html"
         infoPage = SplashScreen(self, _("About Calendar"), pageLocation, false)
         if infoPage.ShowModal():
             infoPage.Destroy()
