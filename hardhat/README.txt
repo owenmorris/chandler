@@ -7,6 +7,7 @@ __license__	= "GPL -- see LICENSE.txt"
 
 HardHat README.txt
 
+
 HardHat is the Chandler project build tool, consisting of a set
 of Python scripts which orchestrate the building of all the modules
 required by Chandler.  In our CVS repository we have checked in copies
@@ -38,8 +39,80 @@ directory (in Chandler's case that is "osaf/chandler") and are rotated
 
 
 
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Build Instructions for Chandler
+
+
+Requirements:
+
+- You will need to have Python installed on your system to run HardHat.  If 
+  you don't already have Python, download it from http://python.org/ 
+
+- Under Linux, you will need the gcc compiler and the GTK development packages
+
+- Under Windows, you will need VisualStudio 7
+
+- Under Mac OSX, you will need to have the Developers' package installed
+
+
+If you don't already have the Chandler source code, you can download a source
+distribution from:
+
+   http://downloads.osafoundation.org/
+
+
+Or, if you would like to fetch the source from our CVS repository:
+
+- Set your CVSROOT to 
+  :pserver:anonymous@cvs.osafoundation.org:/usr/local/cvsrep
+
+- cvs login
+  (When prompted for a password, just hit Enter)
+
+- cvs checkout -r TAG chandler-source 
+  (Replace "TAG" with one of the available CVS tags listed at
+  http://downloads.osafoundation.org/chandler/cvs/ , for example:
+  cvs checkout -r CHANDLER_0_1 chandler-source)
+
+
+
+Running HardHat (the Chandler build tool):
+
+At this point you should now have "hardhat" and "osaf" directories that you
+either checked out of CVS or downloaded and unpacked from a distribution file.
+
+- Put the hardhat directory in your PATH (optional)
+
+The following commands must be run from the osaf/chandler/Chandler
+directory.  If you didn't put the hardhat directory in your PATH you will
+need to specify the path to hardhat.py when running these commands:
+
+- Build entire tree:
+hardhat.py -B 
+
+- Run Chandler:
+hardhat.py -x
+
+
+In addition, you can:
+
+- Clean entire tree:
+hardhat.py -C
+
+- Build entire tree (with debugging flags passed to each module):
+hardhat.py -dB
+
+- Run Chandler using the debug binaries:
+hardhat.py -dx
+
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 HardHat command line options
-----------------------------
+
+
 
 -b 	build module 
 
@@ -135,38 +208,10 @@ HardHat command line options
 
 
 
-Build Instructions for Chandler
--------------------------------
-
-- Make sure you have Python installed on your system.
-- set your CVSROOT to :pserver:username@cvs.osafoundation.org:/usr/local/cvsrep
-- cvs login
-- cvs checkout chandler-source  (to retreive HardHat, Chandler and required 
-  modules)
-
-
-The following commands should be run from the osaf/chandler/Chandler directory 
-that you checked out via "cvs checkout chandler-source":
-
-- Build entire tree:
-hardhat.py -B 
-
-- Run Chandler using the non-debug binaries:
-hardhat.py -x
-
-- Clean entire tree:
-hardhat.py -C
-
-- Build entire tree (with debugging flags passed to each module):
-hardhat.py -dB
-
-- Run Chandler using the debug binaries:
-hardhat.py -dx
-
-
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Also:
+
 
 If you want to run an aribtrary python script via the release or debug
 version of Python that you have built (as opposed to your system's installed 
@@ -179,9 +224,12 @@ osaf/chandler/wxpython and run:
 
 hardhat.py wxPython/demo/demo.py
 
+
+
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Other files in this directory:
+
 
 - hardhatlib.py is where most of the work takes place, and hardhat.py is
   just the command line interface to it.  Eventually I'd like to write a
