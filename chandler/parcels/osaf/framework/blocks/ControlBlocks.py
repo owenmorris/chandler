@@ -496,9 +496,9 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
 
         # The scroll bars aren't resized (at least on windows) 
         # Jiggling the size of the window rescales the scrollbars 
-        h,w = self.GetSize() 
-        self.SetSize ((h+1, w)) 
-        self.SetSize ((h, w)) 
+        w,h = self.GetSize() 
+        self.SetSize ((w+1, h)) 
+        self.SetSize ((w, h)) 
         self.ForceRefresh () 
 
     def wxSynchronizeWidget(self):
