@@ -222,6 +222,7 @@ def distribute(buildenv):
 
             # reset 'distdir' up a level so that it gets removed below.
             buildenv['distdir'] = distDirParent
+            distDir = distDirParent
 
             os.chdir(buildenv['root'])
             compFile2 = hardhatlib.compressDirectory(buildenv, "release",
