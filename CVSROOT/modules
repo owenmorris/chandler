@@ -48,7 +48,15 @@ morgen -a \
     osaf/chandler/distutils \
     osaf/chandler/egenix-mx \
     osaf/chandler/hardhat \
-    osaf/chandler/wxpython
+    osaf/chandler/wxpython \
+    osaf/chandler/net/expat-win \
+    osaf/chandler/net/gettext-darwin \
+    osaf/chandler/net/glib \
+    osaf/chandler/net/libiconv \
+    osaf/chandler/net/libxml2 \
+    osaf/chandler/net/roadrunner \
+    osaf/chandler/net/swig \
+    osaf/chandler/net/rap
 
 rap -a \
     osaf/chandler/net/expat-win \
@@ -57,4 +65,5 @@ rap -a \
     osaf/chandler/net/libiconv \
     osaf/chandler/net/libxml2 \
     osaf/chandler/net/roadrunner \
+    osaf/chandler/net/swig \
     osaf/chandler/net/rap
