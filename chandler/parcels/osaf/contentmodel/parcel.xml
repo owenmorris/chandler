@@ -372,7 +372,7 @@
     <core:attributes itemref="rule"/>
     <core:attributes itemref="inclusions"/>
     <core:attributes itemref="exclusions"/>
-    <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
+    <core:classes key="python">osaf.contentmodel.ItemCollection.NamedCollection</core:classes>
   </core:Kind>
 
   <core:Kind itsName="AdHocCollection">
@@ -380,14 +380,14 @@
     <core:displayName>Ad-Hoc Collection</core:displayName>
     <core:attributes itemref="inclusions"/>
     <core:attributes itemref="exclusions"/>
-    <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
+    <core:classes key="python">osaf.contentmodel.ItemCollection.AdHocCollection</core:classes>
   </core:Kind>
 
   <core:Kind itsName="EphemeralCollection">
     <core:superKinds itemref="ItemCollection"/>
     <core:displayName>Ephemeral Collection</core:displayName>
     <core:attributes itemref="rule"/>
-    <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
+    <core:classes key="python">osaf.contentmodel.ItemCollection.EphemeralCollection</core:classes>
   </core:Kind>
 
 
