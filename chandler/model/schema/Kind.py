@@ -48,8 +48,11 @@ class Kind(Item):
         child = self.getItemChild(name)
         if child:
             return child.getUUID()
+        
+        if self.hasAttributeValue('attributes', _attrDict=self._references):
+            return self.attributes.resolveAlias(name)
 
-        return self.attributes.resolveAlias(name)
+        return None
 
     def getAttribute(self, name):
 
