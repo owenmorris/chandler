@@ -59,6 +59,12 @@ class ContactEntityItem(InformationItem):
     def SetName(self, name):
         self.setRdfAttribute(chandler.name, name, ContactEntityItem.rdfs)
 
+    def GetContactType(self):
+        return self.getRdfAttribute(chandler.contactType, ContactEntityItem.rdfs)
+    
+    def SetContactType(self, newType):
+        self.setRdfAttribute(chandler.contactType, str(newType), ContactEntityItem.rdfs)
+   
     def GetContactMethods(self):
         return self.getRdfAttribute(chandler.contactMethods, ContactEntityItem.rdfs)
     
@@ -215,6 +221,7 @@ class ContactEntityItem(InformationItem):
         return ''
     
     name = property(GetName, SetName)
+    contactType = property(GetContactType, SetContactType)
     contactMethods = property(GetContactMethods, SetContactMethods)
     photoURL = property(GetPhotoURL, SetPhotoURL)
     contactFormat = property(GetContactFormat, SetContactFormat)
