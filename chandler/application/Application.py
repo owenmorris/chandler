@@ -280,7 +280,7 @@ class wxApplication (wxApp):
                                                   "schema.pack"))
 
         # set the new global repository
-        Globals.app = self.repository
+        Globals.repository = self.repository
 
         self.model = self.repository.find('//Application')
         if not self.model:
