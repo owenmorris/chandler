@@ -59,6 +59,7 @@ def build(buildenv):
         if buildenv['os'] == "posix":
             buildOptions.append("--with-gtk")
             buildOptions.append("--with-gtk2")
+            buildOptions.append("--enable-unicode")
 
         # Configure
 
