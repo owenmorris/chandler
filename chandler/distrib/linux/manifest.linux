@@ -18,21 +18,21 @@ src=release/lib
 dest=lib
 recursive=yes
 glob=*.py,*.pyc,*.pyo,*.pyd,*.so
-python2.2/lib-old
-python2.2/lib-tk
-python2.2/site-packages
-python2.2/encodings
-python2.2/email
-python2.2/compiler
-python2.2/hotshot
-python2.2/xml
-python2.2/curses
-python2.2/plat-linux2
-python2.2/lib-dynload
+python2.3/lib-old
+python2.3/lib-tk
+python2.3/site-packages
+python2.3/encodings
+python2.3/email
+python2.3/compiler
+python2.3/hotshot
+python2.3/xml
+python2.3/curses
+python2.3/plat-linux2
+python2.3/lib-dynload
 
 # Grab files from the lib/python2.2 directory
 recursive=no
-python2.2
+python2.3
 
 # Grab the GTK library
 libwx_gtk-2.5.so
