@@ -15,8 +15,8 @@ from application.Application import app
 from application.repository.Repository import Repository
 from application.repository.Namespace import chandler
 
-from parcels.OSAF.contacts.AutoCompleteTextCtrl import *
-from parcels.OSAF.contacts.ContactsDialog import *
+from OSAF.contacts.AutoCompleteTextCtrl import *
+from OSAF.contacts.ContactsDialog import *
 
 class ContactAddressList(wxPanel):
     def __init__(self, parent, contact, singleContactView, indexView, images):
@@ -34,8 +34,8 @@ class ContactAddressList(wxPanel):
         
         # allocate the fonts used by the address list
         self.labelFont = wxFont(10, wxSWISS, wxNORMAL, wxBOLD, false, "Arial")
-        self.valueFont = wxFont(10, wxSWISS, wxNORMAL, wxNORMAL, false, "Arial")		
-        self.commentFont = wxFont(9, wxSWISS, wxITALIC, wxNORMAL, false, "Arial")		
+        self.valueFont = wxFont(10, wxSWISS, wxNORMAL, wxNORMAL, false, "Arial")        
+        self.commentFont = wxFont(9, wxSWISS, wxITALIC, wxNORMAL, false, "Arial")       
 
         # set up a minimum horizontal size
         self.SetSize((220, -1))
@@ -46,7 +46,7 @@ class ContactAddressList(wxPanel):
         self.LayoutWidgets()
         self.SetAutoLayout(true)
         
-        # receive an event when the user clicks in us		
+        # receive an event when the user clicks in us       
         EVT_LEFT_DOWN(self, self.OnLeftClick)
         
     # get the contact associated with the addresslist
@@ -280,10 +280,10 @@ class ContactAddressList(wxPanel):
         
         hBox = wxBoxSizer(wxHORIZONTAL)
 
-        for attribute in attributes:	
+        for attribute in attributes:    
             if attribute == 'linebreak':
                vBox.Add(hBox, 0)
-               hBox = wxBoxSizer(wxHORIZONTAL)		
+               hBox = wxBoxSizer(wxHORIZONTAL)      
             else:
                 displayString = item.GetFormattedAttribute(attribute)
                 if displayString == None:
@@ -294,7 +294,7 @@ class ContactAddressList(wxPanel):
                 
             hBox.Add(4, -1)          
           
-        vBox.Add(hBox, 0)	
+        vBox.Add(hBox, 0)   
             
         # add the comment field, if necessary
         if item.HasComment():
@@ -308,7 +308,7 @@ class ContactAddressList(wxPanel):
         container.Add(-1, 3)
         container.Add(-1, 3)
 
-    # loop through the addresses, laying them out in a table		
+    # loop through the addresses, laying them out in a table        
     def LayoutWidgets(self):
         if self.contact == None:
             return
@@ -341,7 +341,7 @@ class ContactAddressList(wxPanel):
     # ActivateNextField is used to handle tabs, by selecting the next field
     # after the active one, or the first one if the last is activated
     def ActivateNextField(self):
-        if self.singleContactView.editAddressItem != None:	
+        if self.singleContactView.editAddressItem != None:  
             # look up the current item position
             addresses = self.contact.GetAddresses()
             index = addresses.index(self.singleContactView.editAddressItem)
@@ -361,7 +361,7 @@ class ContactAddressList(wxPanel):
                 newPart = attributes[0]
             elif (self.singleContactView.editPart == chandler.methodComment):
                 newPart = ''
-            else:	
+            else:   
                 # it's not the last one, so bump to the next attribute
                 attributeIndex = attributes.index(self.singleContactView.editPart)
                 newPart = attributes[attributeIndex + 1]
@@ -462,7 +462,7 @@ class ContactAddressList(wxPanel):
             self.ActivateNextField()
         # handle escape by rejecting
         elif keycode == 27:
-            self.SetEditItem(None, '', false)			
+            self.SetEditItem(None, '', false)           
         else:
             if keycode < 32 or keycode > 255 or self.singleContactView.editAddressItem.GetMethodType() == 'note':
                 event.Skip()
@@ -589,9 +589,9 @@ class AddressActionHandler:
     def PresentActionMenu(self, event):
         actionMenu = wxMenu()
         addressType = self.item.GetMethodType()
-        self.addressList.addressLocationItem = self.item			
+        self.addressList.addressLocationItem = self.item            
         
-        needsSeparator = self.AddTypeActions(actionMenu)		
+        needsSeparator = self.AddTypeActions(actionMenu)        
         if needsSeparator:
             actionMenu.AppendSeparator()
 

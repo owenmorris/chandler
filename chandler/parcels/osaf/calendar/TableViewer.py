@@ -18,7 +18,7 @@ from application.Application import app
 from application.repository.Repository import Repository
 from application.repository.Namespace import chandler
 
-from parcels.OSAF.calendar.CalendarEvents import *
+from OSAF.calendar.CalendarEvents import *
 
 class TableViewer(Persistent):
     def __init__(self, calendarViewer):

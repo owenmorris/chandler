@@ -47,6 +47,12 @@ glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html
 application
 parcels
 
+glob=*
+model
+
+glob=*.po,*.mo
+locale
+
 # Grab the launcher and linux README
 src=Chandler/distrib/win
 Chandler.bat

@@ -17,7 +17,7 @@ import xml.sax.handler
 from wxPython.wx import *
 import random
 
-from parcels.OSAF.contacts.ContactsModel import *
+from OSAF.contacts.ContactsModel import *
 
 from application.repository.Namespace import chandler
 from application.repository.Repository import Repository
@@ -67,9 +67,9 @@ class ContactsTest:
         if lastnameMode < 2:
             last = random.choice(self.firstnames)
         elif lastnameMode == 2:
-            last = random.choice(self.firstnames) + suffixes[random.randint(0, 3)]			
+            last = random.choice(self.firstnames) + suffixes[random.randint(0, 3)]          
         elif lastnameMode == 3:
-            last = last + suffixes[random.randint(0, 3)]			
+            last = last + suffixes[random.randint(0, 3)]            
                 
         return [first, last]
         
@@ -90,7 +90,7 @@ class ContactsTest:
     
     def AddAddresses(self, contact, firstName):
         phoneNumber = self.GeneratePhoneNumber()
-        contactMethod = contact.AddAddress("phone", "Home Phone")		
+        contactMethod = contact.AddAddress("phone", "Home Phone")       
         contactMethod.SetAttribute(chandler.phonenumber, phoneNumber)
         
         phoneNumber = self.GeneratePhoneNumber()
@@ -106,7 +106,7 @@ class ContactsTest:
 
     def GenerateContact(self):
         # make a new contact
-        newContact = Contact('Person')		
+        newContact = Contact('Person')      
                 
         # generate a name
         contactName = self.GenerateName()

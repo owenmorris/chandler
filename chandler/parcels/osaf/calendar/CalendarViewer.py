@@ -24,13 +24,13 @@ from application.Application import app
 from application.ViewerParcel import *
 from application.SplashScreen import SplashScreen
 
-from parcels.OSAF.calendar.ColumnarViewer import ColumnarViewer
-from parcels.OSAF.calendar.MonthViewer import MonthViewer
-from parcels.OSAF.calendar.TableViewer import TableViewer
-from parcels.OSAF.calendar.CalendarDialog import wxCalendarDialog
-from parcels.OSAF.calendar.MonthNavigator import MonthNavigator
+from OSAF.calendar.ColumnarViewer import ColumnarViewer
+from OSAF.calendar.MonthViewer import MonthViewer
+from OSAF.calendar.TableViewer import TableViewer
+from OSAF.calendar.CalendarDialog import wxCalendarDialog
+from OSAF.calendar.MonthNavigator import MonthNavigator
 
-from parcels.OSAF.calendar.CalendarEvents import *
+from OSAF.calendar.CalendarEvents import *
 
 class CalendarViewer(ViewerParcel):
     def __init__(self):

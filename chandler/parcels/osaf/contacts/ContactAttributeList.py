@@ -12,7 +12,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from wxPython.wx import *
 from application.Application import app
 from application.repository.Repository import Repository
-from parcels.OSAF.contacts.AutoCompleteTextCtrl import *
+from OSAF.contacts.AutoCompleteTextCtrl import *
 
 # here's the text widget used to display a group name, and link to the group when clicked on
 class GroupTextWidget(wxStaticText):      
@@ -310,7 +310,7 @@ class AttributeMenuHandler:
             self.attributeList.SetEditAttribute(self.attribute, true)
             
     def AddNewAttributeValue(self, event):
-        self.attributeList.SetEditAttribute(self.attribute, false)	
+        self.attributeList.SetEditAttribute(self.attribute, false)  
 
 # utility class to actually set the attribute value
 class SetAttributeHandler:
@@ -534,7 +534,7 @@ class ContactAttributeList(wxPanel):
             self.ActivateNextField()
         # handle escape by cancelling whatever's in the field
         elif keycode == 27:
-            self.SetEditAttribute('', false)	
+            self.SetEditAttribute('', false)    
         else:
             if keycode < 32:
                 event.Skip()

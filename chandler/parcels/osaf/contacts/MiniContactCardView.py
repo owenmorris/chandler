@@ -12,8 +12,8 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from wxPython.wx import *
 
-from parcels.OSAF.contacts.ContactsModel import *
-from parcels.OSAF.contacts.MiniContactCard import *
+from OSAF.contacts.ContactsModel import *
+from OSAF.contacts.MiniContactCard import *
 
 # FIXME:  this implemention (which flashes alot) is due to be replace with one built on the SimpleCanvas
 # soon
@@ -150,7 +150,7 @@ class MiniContactCardView(wxPanel):
         size = self.GetSize()
         zoomSize = self.GetZoomSize()
 
-        columns = ((size[0] - 16) / (zoomSize[0] + 12))	
+        columns = ((size[0] - 16) / (zoomSize[0] + 12)) 
         if columns <= 0:
             columns = 1
 
@@ -208,7 +208,7 @@ class MiniContactCardView(wxPanel):
                 
     # re-render the cards, preserving the selection, if any
     def RenderWidgets(self):    
-        selectedContact = self.GetSelectedContact()	
+        selectedContact = self.GetSelectedContact() 
         self.selectedCard = None
 
         self.miniCardArea.DestroyChildren()        
@@ -266,7 +266,7 @@ class MiniContactCardView(wxPanel):
             self.zoomIndex = newIndex
             self.SetUpFonts()
             
-            self.CalculateCardCount()	
+            self.CalculateCardCount()   
             self.UpdateVirtualSize(self.GetSize())
             self.RenderWidgets()
             
@@ -284,7 +284,7 @@ class MiniContactCardView(wxPanel):
             miniCard.SetSelected(true)
                 
     def ContactsChanged(self):
-        self.CalculateCardCount()	
+        self.CalculateCardCount()   
         self.UpdateVirtualSize(self.GetSize())
         self.RenderWidgets()
         
@@ -307,6 +307,6 @@ class MiniContactCardView(wxPanel):
     def OnSize(self, event):
         event.Skip()
                 
-        self.CalculateCardCount()	
+        self.CalculateCardCount()   
         self.UpdateVirtualSize(self.GetSize())
         self.RenderWidgets()

@@ -17,8 +17,8 @@ from application.model.InformationItem import InformationItem
 from application.model.LocalRepository import LocalRepository
 
 # ZaoBao modules
-from parcels.OSAF.zaobao import rssparser
-from parcels.OSAF.zaobao.Observable import Observable1
+from OSAF.zaobao import rssparser
+from OSAF.zaobao.Observable import Observable1
 
 def loadLocalObjects():
     rssDict = {}

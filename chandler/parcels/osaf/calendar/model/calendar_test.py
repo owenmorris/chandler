@@ -2,8 +2,8 @@
 
 from model.persistence.Repository import Repository
 from model.item.Item import Item
-from parcels.OSAF.calendar.model.CalendarEvent import CalendarEvent
-from parcels.OSAF.calendar.model.CalendarEvent import CalendarEventFactory
+from OSAF.calendar.model.CalendarEvent import CalendarEvent
+from OSAF.calendar.model.CalendarEvent import CalendarEventFactory
 from mx import DateTime
 
 rep = Repository('data')

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <resource version="2.4.0.0">
-    <object class="wxPanel" subclass="parcels.OSAF.roster.RosterViewer.wxRosterViewer" name="RosterViewer">
+    <object class="wxPanel" subclass="OSAF.roster.RosterViewer.wxRosterViewer" name="RosterViewer">
     <style>wxNO_FULL_REPAINT_ON_RESIZE|wxNO_BORDER</style>	
     </object>
 

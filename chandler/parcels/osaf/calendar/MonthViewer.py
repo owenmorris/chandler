@@ -21,7 +21,7 @@ from application.SimpleCanvas import wxSimpleCanvas
 from application.repository.Repository import Repository
 from application.repository.Namespace import chandler
 
-from parcels.OSAF.calendar.CalendarEvents import *
+from OSAF.calendar.CalendarEvents import *
 
 # @@@ Note, lots in common with ColumnarViewer, perhaps create a common
 #     superclass

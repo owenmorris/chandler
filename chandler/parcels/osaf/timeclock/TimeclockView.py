@@ -24,7 +24,7 @@ from application.ViewerParcel import *
 from application.SplashScreen import SplashScreen
 from persistence.list import PersistentList
 from time import *
-from CustomerModel import *
+from OSAF.timeclock.CustomerModel import *
 
 """
 Chandler uses a model-view-controller (MVC) way of splitting up 

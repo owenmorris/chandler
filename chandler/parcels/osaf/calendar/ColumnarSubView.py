@@ -18,7 +18,7 @@ from application.SimpleCanvas import wxSimpleCanvas
 from persistence import Persistent
 from persistence.dict import PersistentDict
 
-from parcels.OSAF.calendar.CalendarEvents import *
+from OSAF.calendar.CalendarEvents import *
 
 class ColumnarSubView (Persistent):
     def __init__(self, columnarView):

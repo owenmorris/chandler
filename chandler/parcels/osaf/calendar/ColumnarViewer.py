@@ -19,11 +19,11 @@ from persistence import Persistent
 
 from application.Application import app
 
-from parcels.OSAF.calendar.ColumnarHeadView import ColumnarHeadView
-from parcels.OSAF.calendar.ColumnarTimeView import ColumnarTimeView
-from parcels.OSAF.calendar.ColumnarFootView import ColumnarFootView
+from OSAF.calendar.ColumnarHeadView import ColumnarHeadView
+from OSAF.calendar.ColumnarTimeView import ColumnarTimeView
+from OSAF.calendar.ColumnarFootView import ColumnarFootView
 
-from parcels.OSAF.calendar.CalendarEvents import *
+from OSAF.calendar.CalendarEvents import *
 
 # @@@ Note, lots in common with MonthViewer, perhaps create a common
 #     superclass

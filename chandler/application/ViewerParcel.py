@@ -57,13 +57,13 @@ class ViewerParcel (Parcel):
 
     def __init__(self):
         """
-          modulePath is the path to the module, which must exist.
+          modulePath is the path to the module's .xrc file, which must exist.
         """
         Parcel.__init__(self)
         module = sys.modules[self.__class__.__module__]
         self.modulename = os.path.basename (module.__file__)
         self.modulename = os.path.splitext (self.modulename)[0]
-        self.modulePath = os.sep.join(module.__name__.split("."))  + ".xrc"
+        self.modulePath = self.path + os.sep + self.modulename + ".xrc"
         assert (os.path.exists (self.modulePath))
         """
           Go dig the module name out of the XRC, which requires FindResource.

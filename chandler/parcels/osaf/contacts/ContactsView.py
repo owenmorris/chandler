@@ -24,14 +24,14 @@ from persistence.list import PersistentList
 
 from application.repository.Contact import Contact
 
-from parcels.OSAF.contacts.ContactsControlBar import ContactsControlBar
-from parcels.OSAF.contacts.ContactsIndexView import ContactsIndexView
-from parcels.OSAF.contacts.ContactsSingleContactView import *
+from OSAF.contacts.ContactsControlBar import ContactsControlBar
+from OSAF.contacts.ContactsIndexView import ContactsIndexView
+from OSAF.contacts.ContactsSingleContactView import *
 
-from parcels.OSAF.contacts.ContactViewInfo import *
-from parcels.OSAF.contacts.ContactsDialog import *
-from parcels.OSAF.contacts.ContactsModel import *
-from parcels.OSAF.contacts.ContactsTest import *
+from OSAF.contacts.ContactViewInfo import *
+from OSAF.contacts.ContactsDialog import *
+from OSAF.contacts.ContactsModel import *
+from OSAF.contacts.ContactsTest import *
 
 class ContactsViewer(ViewerParcel):
     def __init__(self):
@@ -177,7 +177,7 @@ class ContactsViewer(ViewerParcel):
         # first, see if we already have a contact with this name
         newContact = self.FindContactByName(fullname)
         if newContact == None:
-            newContact = Contact('Person')		
+            newContact = Contact('Person')      
             newContact.SetNameAttribute(chandler.fullname, fullname)
 
             # add the contact and commit the changes
@@ -279,7 +279,7 @@ class wxContactsViewer(wxViewerParcel):
         EVT_MENU(self, wxID_CLEAR, self.DeleteContactCommand)
  
         # initialize an image cache for the subviews to use
-        self.images = parcels.OSAF.contacts.ImageCache.ImageCache(self.model.path)
+        self.images = OSAF.contacts.ImageCache.ImageCache(self.model.path)
         
         # create the splitter window
         self.splitter = wxSplitterWindow(self, -1, style=wxSP_NOBORDER)
@@ -549,7 +549,7 @@ class wxContactsViewer(wxViewerParcel):
     def AddNewContact(self, contactType):   
         template = self.contactMetaData.GetTemplate(contactType)
         classType = template.GetContactClass()
-        newContact = Contact(classType)		
+        newContact = Contact(classType)     
         
         # fetch the default name and set it up
         firstDefault = self.contactMetaData.GetNameAttributeDefaultValue(chandler.firstname)

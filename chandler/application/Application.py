@@ -226,10 +226,27 @@ class wxApplication (wxApp):
         wxPython object associated with each persistent object.
         """
         self.association={id(self.model) : self}
+
         """
           Load the parcels which are contained in the PARCEL_IMPORT directory.
+          It's necessary to add the "parcels" directory to sys.path in order
+          to import parcels.
         """
-        self.LoadParcelsInDirectory (Application.PARCEL_IMPORT.replace ('.', os.sep))
+        systemParcelDir = os.path.join(self.chandlerDirectory,
+         Application.PARCEL_IMPORT.replace ('.', os.sep))
+        sys.path.insert(0,systemParcelDir)
+        self.LoadParcelsInDirectory(systemParcelDir)
+
+        if __debug__:
+            """
+              In the debugging version, also load parcels from the PARCELDIR
+            directory if that environment variable is set.
+            """
+            if os.environ.has_key('PARCELDIR'):
+                parcelDir = os.environ['PARCELDIR']
+                if parcelDir and os.path.exists(parcelDir):
+                    sys.path.insert(0,parcelDir)
+                    self.LoadParcelsInDirectory(parcelDir)
 
         self.model.SynchronizeView()
         EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
@@ -322,7 +339,7 @@ class wxApplication (wxApp):
             dialog.SavePreferences()
             self.HandleSystemPreferences()
 
-    def LoadParcelsInDirectory (self, directory):
+    def LoadParcelsInDirectory (self, baseDir, relDir=""):
         """
           Load the parcels and call the class method to install them. Parcels
         are Python Packages and are defined by directories that contain
@@ -336,13 +353,21 @@ class wxApplication (wxApp):
         the parcel class.
 
         For examples, look in the parcel directory.
+
+        The method now takes two directory arguments, baseDir and relDir.
+        baseDir should be a directory containing parcel subdirectories,
+        while relDir is only used when recursing through directories below
+        baseDir.
         """
-        path = self.chandlerDirectory + os.sep + directory
+        path = os.path.join(baseDir, relDir)
         assert (os.path.exists (path) and os.path.isdir(path))
 
-        if (os.path.exists(path + os.sep + "__init__.py") or \
-            os.path.exists(path + os.sep + "__init__.pyc")):
-            importArgument = directory.replace (os.sep, '.')
+        if (relDir and \
+            (os.path.exists(path + os.sep + "__init__.py")  or \
+             os.path.exists(path + os.sep + "__init__.pyc") or \
+             os.path.exists(path + os.sep + "__init__.pyo"))   \
+            ):
+            importArgument = relDir.replace (os.sep, '.')
             """
               Import the parcel, which should define parcelClass.
               
@@ -389,7 +414,8 @@ class wxApplication (wxApp):
         """
         for pathComponent in os.listdir(path):
             if os.path.isdir(path + os.sep + pathComponent):
-                self.LoadParcelsInDirectory (directory + os.sep + pathComponent)
+                self.LoadParcelsInDirectory(baseDir, os.path.join(relDir,
+                 pathComponent))
 
     def OnCommand(self, event):
         """

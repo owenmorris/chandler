@@ -31,10 +31,10 @@ else:
     from application.model.LocalRepository import LocalRepository
     
     #ZaoBao modules
-    from parcels.OSAF.zaobao import RSSData
-    from parcels.OSAF.zaobao.wxScrolledEditDialog import scrolledEditDialog
-    from parcels.OSAF.zaobao.Observable import Observable1
-    from parcels.OSAF.zaobao.dialogs import *
+    from OSAF.zaobao import RSSData
+    from OSAF.zaobao.wxScrolledEditDialog import scrolledEditDialog
+    from OSAF.zaobao.Observable import Observable1
+    from OSAF.zaobao.dialogs import *
 
 def getChangedStatus(data):
     """function used by list control to display if this feed has been read or not.

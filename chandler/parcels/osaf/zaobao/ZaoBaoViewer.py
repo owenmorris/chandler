@@ -12,8 +12,8 @@ from application.Application import app
 from application.SplashScreen import SplashScreen
 
 #ZaoBao modules
-from parcels.OSAF.zaobao.ZaoBaoUI import *
-from parcels.OSAF.zaobao import RSSData
+from OSAF.zaobao.ZaoBaoUI import *
+from OSAF.zaobao import RSSData
 
 class ZaoBaoViewer (ViewerParcel):
     def __init__(self):

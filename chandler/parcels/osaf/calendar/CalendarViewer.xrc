@@ -36,7 +36,7 @@
 </object>
 
 <object class="wxPanel" 
-        subclass="parcels.OSAF.calendar.CalendarViewer.wxCalendarViewer"
+        subclass="OSAF.calendar.CalendarViewer.wxCalendarViewer"
         name="CalendarViewer">
    <object class="wxBoxSizer">
       <orient>wxHORIZONTAL</orient>
@@ -114,7 +114,7 @@
             </object>
             <object class="sizeritem">
                <object class="wxCalendarCtrl"
-                   subclass="parcels.OSAF.calendar.MonthNavigator.wxMonthNavigator"
+                   subclass="OSAF.calendar.MonthNavigator.wxMonthNavigator"
                        name="MonthNavigator">
                   <style>wxSUNKEN_BORDER</style>
                </object>
@@ -146,28 +146,28 @@
 </object>
 
 <object class="wxScrolledWindow"
-        subclass = "parcels.OSAF.calendar.MonthViewer.wxMonthViewer"
+        subclass = "OSAF.calendar.MonthViewer.wxMonthViewer"
         name="MonthViewer">
    <style>wxSUNKEN_BORDER</style>
    <size>500, 500</size>
 </object>
 
 <object class="wxPanel"
-        subclass = "parcels.OSAF.calendar.TableViewer.wxTableViewer"
+        subclass = "OSAF.calendar.TableViewer.wxTableViewer"
         name="TableViewer">
     <style>wxSUNKEN_BORDER</style>
     <size>500, 500</size>
 </object>
 
 <object class="wxPanel" 
-        subclass="parcels.OSAF.calendar.ColumnarViewer.wxColumnarViewer"
+        subclass="OSAF.calendar.ColumnarViewer.wxColumnarViewer"
         name="ColumnarViewer">
    <style>wxSUNKEN_BORDER</style>
    <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
       <object class="sizeritem">
          <object class="wxScrolledWindow"
-                 subclass="parcels.OSAF.calendar.ColumnarHeadView.wxColumnarHeadView" 
+                 subclass="OSAF.calendar.ColumnarHeadView.wxColumnarHeadView" 
                  name="ColumnarHeadView">
             <label>Columnar Head View</label>
             <size>500, 20</size>
@@ -177,7 +177,7 @@
       </object>
       <object class="sizeritem">
          <object class="wxScrolledWindow"
-                 subclass="parcels.OSAF.calendar.ColumnarTimeView.wxColumnarTimeView"
+                 subclass="OSAF.calendar.ColumnarTimeView.wxColumnarTimeView"
                  name="ColumnarTimeView">
          <label>Columnar Time View</label>
             <size>500, 500</size>
@@ -187,7 +187,7 @@
       </object>
       <object class="sizeritem">
          <object class="wxScrolledWindow"
-                 subclass="parcels.OSAF.calendar.ColumnarFootView.wxColumnarFootView"
+                 subclass="OSAF.calendar.ColumnarFootView.wxColumnarFootView"
                  name="ColumnarFootView">
          <label>Columnar Foot View</label>
             <size>500, 0</size>

@@ -13,10 +13,10 @@ from wxPython.wx import *
 
 from application.Application import app
 
-from parcels.OSAF.contacts.ContactNamePlate import *
-from parcels.OSAF.contacts.ContactAddressList import *
-from parcels.OSAF.contacts.ContactAttributeList import *
-import parcels.OSAF.contacts.ImageCache
+from OSAF.contacts.ContactNamePlate import *
+from OSAF.contacts.ContactAddressList import *
+from OSAF.contacts.ContactAttributeList import *
+import OSAF.contacts.ImageCache
 
 class ContactContentView(wxPanel):
     def __init__(self, parent, contactsView, indexView, contact):

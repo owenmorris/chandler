@@ -18,8 +18,8 @@ from application.repository.Repository import Repository
 
 import urllib
 from copy import copy
-import parcels.OSAF.contacts.ImageCache
-from parcels.OSAF.contacts.AutoCompleteTextCtrl import *
+import OSAF.contacts.ImageCache
+from OSAF.contacts.AutoCompleteTextCtrl import *
 
 # here's the ContactNamePlate class, which displays the name and other
 # attributes of the associated contact, as well as an optional photo
@@ -40,7 +40,7 @@ class ContactNamePlate(wxPanel):
         wxPanel.__init__(self, parent, -1)
         
         self.nameFont = wxFont(20, wxSWISS, wxNORMAL, wxNORMAL, false, "Arial")
-        self.itemFont = wxFont(12, wxSWISS, wxNORMAL, wxNORMAL, false, "Arial")		
+        self.itemFont = wxFont(12, wxSWISS, wxNORMAL, wxNORMAL, false, "Arial")     
 
         self.LayOutWidgets()
                 
@@ -181,7 +181,7 @@ class ContactNamePlate(wxPanel):
         self.DestroyChildren()
         self.LayOutWidgets()
         
-    # allocate and layout the widgets to represent the contact	
+    # allocate and layout the widgets to represent the contact  
     # for now, we're keeping two different approaches around: a single, parsed field for the name,
     # or two seperate fields, selectable by a boolean
     def LayOutWidgets(self):
@@ -204,17 +204,17 @@ class ContactNamePlate(wxPanel):
         
         if self.UseOneNameField():
             fullName = self.contact.GetFullName()
-            widget = self.RenderTextField(fullName, chandler.fullname, self.nameFont)	
+            widget = self.RenderTextField(fullName, chandler.fullname, self.nameFont)   
             nameBox.Add(widget, 0)            
         else:
             firstName = self.contact.GetNameAttribute(chandler.firstname)
-            widget = self.RenderTextField(firstName, chandler.firstname, self.nameFont)	
+            widget = self.RenderTextField(firstName, chandler.firstname, self.nameFont) 
             nameBox.Add(widget, 0)
 
             nameBox.Add(8, -1)
 
             lastName = self.contact.GetNameAttribute(chandler.lastname)
-            widget = self.RenderTextField(lastName, chandler.lastname, self.nameFont)	
+            widget = self.RenderTextField(lastName, chandler.lastname, self.nameFont)   
             nameBox.Add(widget, 1)
 
         vBox.Add(nameBox, 0)
@@ -231,7 +231,7 @@ class ContactNamePlate(wxPanel):
             vBox.Add(newWidget, 0, wxEXPAND)
 
 
-        hBox.Add(vBox, false)				        
+        hBox.Add(vBox, false)                       
         self.SetSizerAndFit(hBox)
         self.Layout()
                 
@@ -305,7 +305,7 @@ class ContactNamePlate(wxPanel):
             self.ActivateNextField()
         # handle escape by cancelling whatever's in the field
         elif keycode == 27:
-            self.SetEditAttribute('', false)	
+            self.SetEditAttribute('', false)    
         else:
             if keycode < 32:
                 event.Skip()
@@ -397,7 +397,7 @@ class AttributeMenuHandler:
             self.namePlate.SetEditAttribute(self.attribute, true)
             
     def AddNewAttributeValue(self, event):
-        self.namePlate.SetEditAttribute(self.attribute, false)	
+        self.namePlate.SetEditAttribute(self.attribute, false)  
 
 # utility class to actually set the attribute value
 class SetAttributeHandler:

@@ -12,8 +12,8 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from wxPython.wx import *
 
-import parcels.OSAF.contacts.ContactsListView
-import parcels.OSAF.contacts.MiniContactCardView
+import OSAF.contacts.ContactsListView
+import OSAF.contacts.MiniContactCardView
 
 class ContactsIndexView(wxPanel):
     def __init__(self, parent, contactsView):
@@ -27,12 +27,12 @@ class ContactsIndexView(wxPanel):
         self.indexViewList = []
         
         # allocate the table view
-        tableView = parcels.OSAF.contacts.ContactsListView.ContactsListPanel(self, contactsView)
+        tableView = OSAF.contacts.ContactsListView.ContactsListPanel(self, contactsView)
         tableView.Hide()
         self.indexViewList.append(tableView)
 
         # allocate the minicard view
-        miniCardView = parcels.OSAF.contacts.MiniContactCardView.MiniContactCardView(self, contactsView)
+        miniCardView = OSAF.contacts.MiniContactCardView.MiniContactCardView(self, contactsView)
         miniCardView.Hide()
         self.indexViewList.append(miniCardView)
 

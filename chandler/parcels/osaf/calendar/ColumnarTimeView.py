@@ -24,10 +24,10 @@ from application.repository.Event import Event
 from application.repository.Repository import Repository
 from application.repository.Namespace import chandler
 
-from parcels.OSAF.calendar.ColumnarItem import ColumnarItem
-from parcels.OSAF.calendar.ColumnarItemEditor import ColumnarItemEditor
-from parcels.OSAF.calendar.ColumnarSubView import ColumnarSubView, wxColumnarSubView
-from parcels.OSAF.calendar.CalendarEvents import *
+from OSAF.calendar.ColumnarItem import ColumnarItem
+from OSAF.calendar.ColumnarItemEditor import ColumnarItemEditor
+from OSAF.calendar.ColumnarSubView import ColumnarSubView, wxColumnarSubView
+from OSAF.calendar.CalendarEvents import *
 
 class ColumnarTimeView (ColumnarSubView):
     def __init__(self, columnarView):

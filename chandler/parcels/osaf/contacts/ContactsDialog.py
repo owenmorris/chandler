@@ -12,8 +12,8 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from wxPython.wx import *
 from application.Application import app
 
-from parcels.OSAF.contacts.ContactsModel import *
-from parcels.OSAF.contacts.ContactViewInfo import *
+from OSAF.contacts.ContactsModel import *
+from OSAF.contacts.ContactViewInfo import *
 
 class ContactsDialog(wxDialog):
     def __init__(self, parent, title, label):

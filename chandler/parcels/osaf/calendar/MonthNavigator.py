@@ -27,7 +27,7 @@ from wxPython.xrc import *
 
 from persistence import Persistent
 
-from parcels.OSAF.calendar.CalendarEvents import *
+from OSAF.calendar.CalendarEvents import *
 
 from mx import DateTime
 
