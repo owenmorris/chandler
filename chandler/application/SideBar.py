@@ -141,22 +141,20 @@ class SideBar(Persistent):
     
     def SetUriColor(self, uri, color):
         """
-          Changes the color of the item representing the uri.  Will also
-        expand any ancestors of the item representing the supplied uri.        
+          Changes the color of the item representing the uri.       
         Returns true if the color was successfully set, false otherwise.
         """
         wxWindow = app.association[id(self)]
-        return wxWindow.SetUriColor(uri)
+        return wxWindow.SetUriColor(uri, color)
 
     def SetUriBold(self, uri, isBold=true):
         """
           Sets whether or not the item representing the uri should be bold.
-        Will also expand any ancestors of the item representing the supplied
-        uri.  Returns true if the bold state of the item was successfully set,
+        Returns true if the bold state of the item was successfully set,
         false otherwise.
         """
         wxWindow = app.association[id(self)]
-        return wxWindow.SetUriBold(uri)
+        return wxWindow.SetUriBold(uri, isBold)
     
         
 class URLTreeEntry(Persistent):
@@ -293,8 +291,7 @@ class wxSideBar(wxTreeCtrl):
     
     def SetUriColor(self, uri, color):
         """
-          Changes the color of the item representing the uri.  Will also
-        expand any ancestors of the item representing the supplied uri.        
+          Changes the color of the item representing the uri.         
         Returns true if the color was successfully set, false otherwise.
         """
         item = self.__GetItemFromUri(uri)
@@ -306,8 +303,7 @@ class wxSideBar(wxTreeCtrl):
     def SetUriBold(self, uri, isBold=true):
         """
           Sets whether or not the item representing the uri should be bold.
-        Will also expand any ancestors of the item representing the supplied
-        uri.  Returns true if the bold state of the item was successfully set,
+        Returns true if the bold state of the item was successfully set,
         false otherwise.
         """
         item = self.__GetItemFromUri(uri)
