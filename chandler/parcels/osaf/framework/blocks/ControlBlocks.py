@@ -319,10 +319,10 @@ class List(RectangularChild):
 
     def onSelectionChangedEvent (self, notification):
         """
-          Display the item in the wxWidget.
+          Display the item in the widget.
         """
         self.selection = notification.data['item']
-        self.GoToItem (self.selection)
+        self.widget.GoToItem (self.selection)
 
 
 class wxTableData(wx.grid.PyGridTableBase):
@@ -631,10 +631,10 @@ class Table(RectangularChild):
 
     def onSelectionChangedEvent (self, notification):
         """
-          Display the item in the wxWidget.
+          Display the item in the widget.
         """
         self.selection = notification.data['item']
-        self.GoToItem (self.selection)
+        self.widget.GoToItem (self.selection)
 
 
 class RadioBox(RectangularChild):

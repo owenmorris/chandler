@@ -324,6 +324,8 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
             self.selectedTab = event.GetSelection()
             page = self.GetPage(self.selectedTab)
             Globals.mainView.onSetActiveView(page.blockItem)
+            self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                                                              {'item':page.blockItem})
         event.Skip()
         
     def OnRequestDrop(self, x, y):
