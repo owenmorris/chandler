@@ -1,5 +1,9 @@
 # ChangeLog for Contacts Parcel
 
+2003-07-21 ducky@osafoundation.org
+
+   * Added "About Contacts" Help menu option
+
 2003-07-10 john@osafoundation.org
 
    * Moved from parcels directory to parcels/OSAF.

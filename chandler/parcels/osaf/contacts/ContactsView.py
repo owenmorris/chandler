@@ -33,6 +33,8 @@ from OSAF.contacts.ContactsDialog import *
 from OSAF.contacts.ContactsModel import *
 from OSAF.contacts.ContactsTest import *
 
+from application.SplashScreen import SplashScreen
+
 class ContactsViewer(ViewerParcel):
     def __init__(self):
         ViewerParcel.__init__ (self)
@@ -275,6 +277,7 @@ class wxContactsViewer(wxViewerParcel):
         EVT_MENU(self, XRCID("AddViewMenuItem"), self.AddNewViewCommand)
         EVT_MENU(self, XRCID("EditViewMenuItem"), self.EditViewCommand)
         EVT_MENU(self, XRCID("DeleteViewMenuItem"), self.DeleteViewCommand)
+        EVT_MENU(self, XRCID("AboutContactsMenuItem"), self.AboutContactsCommand)
  
         EVT_MENU(self, wxID_CLEAR, self.DeleteContactCommand)
  
@@ -743,6 +746,12 @@ class wxContactsViewer(wxViewerParcel):
 
         # tell remote listeners about it
         app.jabberClient.PermissionsChanged(viewName)
+
+    def AboutContactsCommand(self, event):
+        pageLocation = pageLocation = self.model.path + os.sep + "AboutContacts.html"
+        infoPage = SplashScreen(self, "About Contacts", pageLocation, false)
+        if infoPage.ShowModal():
+            infoPage.Destroy()
 
     # command to change the image associated with a contact
     def ChangeContactImage(self, event):

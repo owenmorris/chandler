@@ -45,5 +45,14 @@
 
     </object>
 
+    <object class="wxMenu" name="HelpMenu">
+        <label>Help</label>
+        <object class="wxMenuItem" name="AboutContactsMenuItem">
+            <label>About Contacts...</label>
+            <insertBefore>About Chandler...</insertBefore>
+        </object>
+    </object>
+
+
 </resource>
 
