@@ -145,8 +145,6 @@
       <cardinality>list</cardinality>
       <inverseAttribute itemref="docSchema:Block/styles"/>
     </Attribute>
-
-    <attributes itemref="docSchema:Style/usedInBlocks"/>
   </Kind>
 
   <Kind itsName="CharacterStyle">
@@ -219,10 +217,6 @@
     <Attribute itsName="methodName">
       <type itemref="String"/>
     </Attribute>
-
-    <attributes itemref="docSchema:BlockEvent/dispatchEnum"/>
-    <attributes itemref="docSchema:BlockEvent/dispatchToBlock"/>
-    <attributes itemref="docSchema:BlockEvent/methodName"/>
   </Kind>
 
   <Kind itsName="ChoiceEvent">
@@ -233,8 +227,6 @@
       <type itemref="String"/>
       <required>True</required>
     </Attribute>
-
-    <attributes itemref="docSchema:ChoiceEvent/choice"/>
   </Kind>
 
   <Kind itsName="KindParameterizedEvent">
@@ -245,8 +237,6 @@
       <type itemref="Kind"/>
       <required>True</required>
     </Attribute>
-
-    <attributes itemref="docSchema:KindParameterizedEvent/kindParameter"/>
   </Kind>
 
   <Kind itsName="ModifyContentsEvent">
@@ -274,10 +264,6 @@
       <type itemref="Boolean"/>
       <initialValue type="Boolean">False</initialValue>
     </Attribute>
-
-    <attributes itemref="docSchema:ModifyContentsEvent/items"/>
-    <attributes itemref="docSchema:ModifyContentsEvent/operation"/>
-    <attributes itemref="docSchema:ModifyContentsEvent/copyItems"/>
   </Kind>
 
   <Attribute itsName="subscribeWhenVisibleEvents">
@@ -350,14 +336,6 @@
       <type itemref="docSchema:ContextMenu"/>
     </Attribute>
 
-    <attributes itemref="docSchema:Block/blockName"/>
-    <attributes itemref="docSchema:Block/contents"/>
-    <attributes itemref="docSchema:Block/childrenBlocks"/>
-    <attributes itemref="docSchema:Block/parentBlock"/>
-    <attributes itemref="docSchema:Block/styles"/>
-    <attributes itemref="docSchema:Block/isShown"/>
-    <attributes itemref="docSchema:Block/eventBoundary"/>
-    <attributes itemref="docSchema:Block/contextMenu"/>
     <attributes itemref="docSchema:subscribeWhenVisibleEvents"/>    
     <attributes itemref="docSchema:subscribeAlwaysEvents"/>    
     <attributes itemref="contentModel:itemCollectionInclusions"/>
@@ -457,12 +435,6 @@
       <type itemref="Float"/>
       <initialValue type="Float">1.0</initialValue>
     </Attribute>
-
-    <attributes itemref="docSchema:RectangularChild/size"/>
-    <attributes itemref="docSchema:RectangularChild/minimumSize"/>
-    <attributes itemref="docSchema:RectangularChild/border"/>
-    <attributes itemref="docSchema:RectangularChild/alignmentEnum"/>
-    <attributes itemref="docSchema:RectangularChild/stretchFactor"/>
   </Kind>
 
   <!--
@@ -504,9 +476,6 @@
       <copyPolicy value="copy"/>
     </Attribute>
     
-    <attributes itemref="docSchema:DynamicContainer/collectionSpecifier"/>
-    <attributes itemref="docSchema:DynamicContainer/dynamicChildren"/>
-
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="dynamicChildren">
             <attribute value="dynamicChildren"/>
@@ -564,13 +533,6 @@
       <type itemref="String"/>
       <initialValue type="String"></initialValue>
     </Attribute>
-    
-    <attributes itemref="docSchema:DynamicChild/dynamicParent"/>
-    <attributes itemref="docSchema:DynamicChild/title"/>
-    <attributes itemref="docSchema:DynamicChild/operation"/>
-    <attributes itemref="docSchema:DynamicChild/location"/>
-    <attributes itemref="docSchema:DynamicChild/itemLocation"/>
-    <attributes itemref="docSchema:DynamicChild/helpString"/>
   </Kind>
 
   <!--
@@ -598,8 +560,6 @@
       <initialValue type="String"></initialValue>
     </Attribute>
     
-    <attributes itemref="docSchema:MenuItem/menuItemKind"/>
-    <attributes itemref="docSchema:MenuItem/accel"/>
     <attributes itemref="docSchema:event"/>
   </Kind>
 
@@ -651,12 +611,9 @@
       <type itemref="docSchema:BlockEvent"/>
     </Attribute>
 
-    <attributes itemref="docSchema:Button/title"/>
-    <attributes itemref="docSchema:Button/buttonKind"/>
-    <attributes itemref="docSchema:Button/icon"/>
     <attributes itemref="docSchema:characterStyle"/>    
     <attributes itemref="docSchema:event"/>
-    <attributes itemref="docSchema:Button/rightClicked"/>
+
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="characterStyle">
             <attribute value="characterStyle"/>
@@ -682,9 +639,6 @@
     <Attribute itsName="itemSelected">
       <type itemref="docSchema:BlockEvent"/>
     </Attribute>
-
-    <attributes itemref="docSchema:Choice/choices"/>
-    <attributes itemref="docSchema:Choice/itemSelected"/>    
   </Kind>
 
   <!--
@@ -698,8 +652,6 @@
       <type itemref="docSchema:Block"/>
       <cardinality>list</cardinality>
     </Attribute>
-
-    <attributes itemref="docSchema:LayoutChooser/choices"/>
   </Kind>
 
   <!--
@@ -721,10 +673,6 @@
     <Attribute itsName="itemSelected">
       <type itemref="docSchema:BlockEvent"/>
     </Attribute>
-
-    <attributes itemref="docSchema:ComboBox/selection"/>
-    <attributes itemref="docSchema:ComboBox/choices"/>
-    <attributes itemref="docSchema:ComboBox/itemSelected"/>    
   </Kind>
 
   <!--
@@ -743,7 +691,6 @@
       <type itemref="String"/>
     </Attribute>
     
-    <attributes itemref="docSchema:ContextMenuItem/title"/>
     <attributes itemref="docSchema:event"/>
   </Kind>
   <!--
@@ -776,10 +723,8 @@
     </Attribute>
 
     <attributes itemref="docSchema:textAlignmentEnum"/>
-    <attributes itemref="docSchema:EditText/lineStyleEnum"/>
-    <attributes itemref="docSchema:EditText/textStyleEnum"/>
-    <attributes itemref="docSchema:EditText/readOnly"/>
     <attributes itemref="docSchema:characterStyle"/>
+
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="characterStyle">
             <attribute value="characterStyle"/>
@@ -800,8 +745,6 @@
     <Attribute itsName="url">
       <type itemref="String"/>
     </Attribute>
-    
-    <attributes itemref="docSchema:HTML/url"/>
   </Kind>    
   
   <!--
@@ -844,8 +787,6 @@
 
     <attributes itemref="docSchema:elementDelegate"/>
     <attributes itemref="docSchema:selection"/>
-    <attributes itemref="docSchema:Table/selectedColumn"/>
-    <attributes itemref="docSchema:Table/hideColumnHeadings"/>
   </Kind>  
 
   <!--
@@ -886,12 +827,7 @@
     <attributes itemref="docSchema:columnWidths"/>
 
     <attributes itemref="docSchema:elementDelegate"/>
-    <attributes itemref="docSchema:Tree/hideRoot"/>
-    <attributes itemref="docSchema:Tree/noLines"/>
-    <attributes itemref="docSchema:Tree/useButtons"/>    
-    <attributes itemref="docSchema:Tree/openedContainers"/>
     <attributes itemref="docSchema:selection"/>
-    <attributes itemref="docSchema:Tree/rootPath"/>
   </Kind>  
 
   <!--
@@ -923,10 +859,6 @@
       <type itemref="Integer"/>
     </Attribute>
 
-    <attributes itemref="docSchema:RadioBox/title"/>
-    <attributes itemref="docSchema:RadioBox/choices"/>
-    <attributes itemref="docSchema:RadioBox/radioAlignEnum"/>
-    <attributes itemref="docSchema:RadioBox/itemsPerLine"/>
     <attributes itemref="docSchema:event"/>
   </Kind>
 
@@ -943,7 +875,6 @@
     </Attribute>
     
     <attributes itemref="docSchema:orientationEnum"/>
-    <attributes itemref="docSchema:SplitterWindow/splitPercentage"/>
   </Kind>  
 
   <!--
@@ -958,8 +889,8 @@
     </Attribute>
     
     <attributes itemref="docSchema:textAlignmentEnum"/>
-    <attributes itemref="docSchema:StaticText/title"/>
     <attributes itemref="docSchema:characterStyle"/>
+
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="characterStyle">
             <attribute value="characterStyle"/>
@@ -1000,9 +931,6 @@
       <type itemref="String"/>
       <cardinality>list</cardinality>
     </Attribute>
-      
-    <attributes itemref="docSchema:TabbedContainer/tabPosEnum"/>
-    <attributes itemref="docSchema:TabbedContainer/tabNames"/>
   </Kind>  
   
   <!--
@@ -1032,10 +960,6 @@
       <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
-    <attributes itemref="docSchema:Toolbar/buttons3D"/>
-    <attributes itemref="docSchema:Toolbar/buttonsLabeled"/>
-    <attributes itemref="docSchema:Toolbar/toolSize"/>
-    <attributes itemref="docSchema:Toolbar/separatorWidth"/>
     <attributes itemref="docSchema:colorStyle"/>
 
     <Cloud itsName="DefaultCloud">
@@ -1096,10 +1020,6 @@
       <initialValue type="Boolean">False</initialValue>
     </Attribute>
     
-    <attributes itemref="docSchema:ToolbarItem/bitmap"/>
-    <attributes itemref="docSchema:ToolbarItem/selectedBitmap"/>
-    <attributes itemref="docSchema:ToolbarItem/toolbarItemKind"/>
-    <attributes itemref="docSchema:ToolbarItem/label"/>
     <attributes itemref="docSchema:event"/>
 
     <Cloud itsName="DefaultCloud">
@@ -1145,7 +1065,6 @@
       <initialValue type="String"/>
     </Attribute>
 
-    <attributes itemref="docSchema:ContentItemDetail/selectedItemsAttribute"/>
     <attributes itemref="docSchema:colorStyle"/>    
   </Kind>    
 
@@ -1172,10 +1091,6 @@
       <type itemref="docSchema:Block"/>
       <cardinality>single</cardinality>
     </Attribute>
-
-    <attributes itemref="docSchema:Node/children"/>
-    <attributes itemref="docSchema:Node/parent"/>
-    <attributes itemref="docSchema:Node/item"/>
   </Kind>
 
 </Parcel>
