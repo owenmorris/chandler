@@ -717,8 +717,11 @@ class NoteBody (EditTextAttribute):
         textType = item.getAttributeAspect(attributeName, 'type')
         widgetText = widget.GetValue()
         if widgetText:
-            item.body = textType.makeValue(widgetText, encoding='ascii',
-             indexed=True)
+            #XXX: Ensures that any non-ascii text entered in to the detail view
+            #     is properly encoded to ascii. This is a short term fix
+            #     and will not address issues related to internationalization
+            text = unicode(widgetText, 'utf-8', 'ignore').encode('ascii', 'ignore')
+            item.body = textType.makeValue(text, encoding='ascii', indexed=True)
         
     def loadAttributeIntoWidget (self, item, widget):  
         attributeName = GetRedirectAttribute(item, 'body');
