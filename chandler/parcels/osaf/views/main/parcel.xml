@@ -591,8 +591,8 @@
   
   <MenuItem itsName="NewItemCollectionItem">
     <blockName>NewItemCollectionItem</blockName>
-    <title>New Item Collection</title>
-    <helpString>Create a new Item Collection</helpString>
+    <title>New Collection</title>
+    <helpString>Create a new Collection</helpString>
     <event itemref="doc:NewItemCollection"/>
   </MenuItem>
 
