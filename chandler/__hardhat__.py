@@ -1,4 +1,4 @@
-import os, hardhatlib, errno
+import os, hardhatlib, errno, sys
 
 info = {
         'name':'Chandler',
@@ -12,6 +12,8 @@ dependencies = (
                 'zodb',
                 'jabber-py',
                )
+if sys.platform != 'darwin':
+    dependencies.append('net/rap')
 
 
 def build(buildenv):
