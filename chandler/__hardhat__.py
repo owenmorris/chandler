@@ -1,4 +1,4 @@
-import os, hardhatlib, hardhatutil, errno, sys, time
+import os, hardhatlib, hardhatutil, errno, sys
 
 
 info = {
@@ -423,85 +423,11 @@ def _createVersionFile(buildenv):
     versionFileHandle.write("build = \"" + buildenv['buildVersion'] + "\"\n")
     versionFileHandle.close()
 
-
-def _transformFilesXslt(buildenv, transformFile, srcDir, destDir, outFile, 
- fileList):
-    """ Run the list of files through an XSLT transform """
-    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
-     "Running XSLT processor using " + transformFile)
-
-    if buildenv['version'] == 'debug':
-        python = buildenv['python_d']
-    if buildenv['version'] == 'release':
-        python = buildenv['python']
-    sitePkg = os.path.join(buildenv['root'], buildenv['version'], 'bin')
-    
-    if buildenv['os'] == 'win':
-        xsltScript = os.path.join(sitePkg,"xsltproc.exe")
-    else:
-        xsltScript = os.path.join(sitePkg,"xsltproc")
-
-
-    if not os.path.exists(destDir):
-        os.mkdir(destDir)
-
-    for file in fileList:
-        srcFile = srcDir + os.sep + file
-        destFile = destDir + os.sep + file
-        destFile = os.path.join(os.path.dirname(destFile), outFile)
-        try:
-            os.makedirs(os.path.dirname(destFile))
-        except Exception, e:
-            pass
-        if os.path.exists(srcFile):
-            hardhatlib.executeCommandNoCapture( buildenv, info['name'], 
-                 [xsltScript, 
-                 "--output", destFile,
-                 transformFile, srcFile 
-                 ], 
-                 "XSLT: " + file )
-
-
-def _findFiles(path, filename):
-    fileList = []
-    if os.path.isfile(os.path.join(path, filename)):
-        fileList.append(os.path.join(path, filename))
-    for name in os.listdir(path):
-        full_name = os.path.join(path, name)
-        if os.path.isdir(full_name) and name != 'tests':
-            fileList = fileList + _findFiles(full_name, filename)
-    return fileList
-
 def generateDocs(buildenv):
 
-    xslFiles =  ["Kinds", "Attributes", "Aliases", "Enumerations", "index", 
-     "Types", "sentences"]
-    fileList = _findFiles(".", "parcel.xml")
-    indexList = [('index.html', 'Main Schema Documentation'),
-                 ('sentences.html', 'Sentences Describing Schema')]
+    xslDir = os.path.join("distrib","transforms")
+    targetDir = os.path.join("..",buildenv['version'],"docs")
+    hardhatlib.copyFile(os.path.join(xslDir,"includes","schema.css"), targetDir)
 
-    for xsl in xslFiles:
-        _transformFilesXslt(buildenv, 
-         os.path.join("distrib","transforms",xsl+".xsl"),
-         os.path.join("."),
-         os.path.join("..",buildenv['version'],"docs"),
-         xsl+".html",
-         fileList
-        )
-
-    for index, title in indexList:
-        indexFile = file(os.path.join("..",buildenv['version'],"docs",index),
-         'w+')
-        indexFile.write("<html><head><title>Chandler Schema Documents</title></head>")
-        indexFile.write("<body><h1>%s</h1>" % title)
-        indexFile.write("<h3>Generated %s</h3>" % time.strftime("%m/%d %I:%M%p"))        
-        indexFile.write("<ul>")
-        for xmlFile in fileList:
-            (head, tail) = os.path.split(xmlFile[2:])
-            indexFile.write("<li>")
-            indexFile.write("<a href=%s/%s>%s</a> " % (head, index, head))
-            indexFile.write("\n")
-        indexFile.write("</ul>")
-        indexFile.write("</body>")
-        indexFile.write("</html>")
-        indexFile.close()
+    args = [os.path.join(xslDir, "generateDocs.py"), targetDir, xslDir, "."]
+    hardhatlib.executeScript(buildenv, args)
