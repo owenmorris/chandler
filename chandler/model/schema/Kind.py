@@ -25,9 +25,9 @@ class Kind(Item):
         
         return self.getAttribute('Class')(name, parent, self)
         
-    def getAttrDef(self, name, inherit=False):
+    def getAttrDef(self, name, inheriting=False):
 
-        attrDef = self.getValue('AttrDefs', name, _attrDict=self._references)
+        attrDef = self._getAttrDef(name, inheriting)
         if attrDef is None:
             attrDef = self.getValue('InheritedAttrDefs', name,
                                     _attrDict=self._references)
@@ -35,6 +35,10 @@ class Kind(Item):
                 return self.inheritAttrDef(name)
 
         return attrDef
+
+    def _getAttrDef(self, name, inheriting):
+
+        return self.getValue('AttrDefs', name, _attrDict=self._references)
 
     def inheritAttrDef(self, name):
 
@@ -61,20 +65,53 @@ class Kind(Item):
 
         for attr in self._references.items():
             if self.getAttrAspect(attr[0], 'Persist', True):
-                attr[1]._xmlValue(attr[0], self, '\n  ',
-                                  generator, withSchema)
+                attr[1]._xmlValue(attr[0], self, '\n  ', generator, withSchema)
 
 
 class KindKind(Kind):
 
-    def getAttrDef(self, name, inherit=False):
+    def getAttrAspect(self, name, aspect, default=None):
 
-        attrDef = super(KindKind, self).getAttrDef(name, inherit)
+        kind = self._kind or self.Class.kind
+
+        if kind is not None:
+            attrDef = kind.getAttrDef(name)
+            if attrDef is not None:
+                return attrDef.getAspect(aspect, default)
+
+        return default
+
+    def _getAttrDef(self, name, inheriting):
+
+        attrDef = super(KindKind, self)._getAttrDef(name, inheriting)
         if attrDef is None:
-            attrDef = self.Class.kind.getAttrDef(name, inherit)
+            attrDef = self.Class.kind.getAttrDef(name, inheriting)
 
         return attrDef
+
+
+class SchemaRoot(Item):
+
+    def __init__(self, name, parent, kind, **_kwds):
+
+        super(SchemaRoot, self).__init__(name, parent, kind, **_kwds)
+
+        afterLoadHooks = _kwds.get('_afterLoadHooks', None)
+        if afterLoadHooks is not None:
+            afterLoadHooks.append(self.afterLoadHook)
+
+    def afterLoadHook(self):
+
+        def cacheKind(item):
+
+            if item._kind is None and item.hasAttribute('Kind'):
+                item._kind = item.Kind
+            for child in item:
+                cacheKind(child)
+
+        cacheKind(self)
     
+
 
 Kind.kind = MetaKind(Kind, { 'SuperKind': { 'Required': False,
                                             'Cardinality': 'list',
@@ -87,7 +124,6 @@ Kind.kind = MetaKind(Kind, { 'SuperKind': { 'Required': False,
                                         'OtherName': 'Kind' },
                              'Kind': { 'Required': False,
                                        'Cardinality': 'single',
-                                       'Persist': False,
                                        'OtherName': 'Items' },
                              'AttrDefs': { 'Required': True,
                                            'Cardinality': 'dict',
@@ -104,5 +140,4 @@ Kind.kind = MetaKind(Kind, { 'SuperKind': { 'Required': False,
 
 Item.kind = MetaKind(Kind, { 'Kind': { 'Required': False,
                                        'Cardinality': 'single',
-                                       'Persist': False,
                                        'OtherName': 'Items' } })

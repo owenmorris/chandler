@@ -6,5 +6,4 @@
 
     <attribute name="Cardinality">single</attribute>
     <attribute name="OtherName">Items</attribute>
-    <attribute name="Persist" type="bool">False</attribute>
 </item>

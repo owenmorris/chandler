@@ -523,11 +523,6 @@ class Item(object):
 
         return self._parent
 
-    def getKind(self):
-        '''Return this item's kind.'''
-
-        return getattr(self, '_kind', None)
-
     def _setKind(self, kind):
 
         if self._kind is not None:
@@ -652,7 +647,7 @@ class Item(object):
 
         self._xmlTag('name', {}, self._name, generator)
 
-        if kind is not None:
+        if not withSchema and kind is not None:
             self._xmlTag('kind', { 'type': 'uuid' },
                          str(kind.getUUID()), generator)
 
@@ -783,10 +778,11 @@ class ItemHandler(xml.sax.ContentHandler):
     
     typeHandlers = {}
     
-    def __init__(self, repository, parent):
+    def __init__(self, repository, parent, afterLoadHooks):
 
         self.repository = repository
         self.parent = parent
+        self.afterLoadHooks = afterLoadHooks
 
     def startDocument(self):
 
@@ -863,11 +859,14 @@ class ItemHandler(xml.sax.ContentHandler):
                 
     def itemEnd(self, attrs):
 
-        cls = self.cls or (self.kind and self.kind.Class) or Item
+        cls = (self.cls or
+               self.kind and getattr(self.kind, 'Class', Item) or
+               Item)
         self.item = item = cls(self.name, self.repository, self.kind,
                                _uuid = UUID(attrs.get('uuid')),
                                _attributes = self.attributes,
-                               _references = self.references)
+                               _references = self.references,
+                               _afterLoadHooks = self.afterLoadHooks)
 
         for value in item._references.itervalues():
             if isinstance(value, RefDict):
@@ -877,10 +876,6 @@ class ItemHandler(xml.sax.ContentHandler):
             item._parentRef = self.parentRef
         elif self.parent is not None:
             item.move(self.parent)
-
-        if hasattr(self, 'kindRef'):
-            item._kindRef = self.kindRef
-            self.repository._appendKindRef(item)
 
         for ref in self.refs:
             other = item.find(ref[1])
@@ -899,11 +894,11 @@ class ItemHandler(xml.sax.ContentHandler):
                 otherName = ref[2]._otherName
                 valueDict = ref[2]
                 valueDict._item = item
-                
+
             if other is not None:
                 value = other._references.get(otherName)
                 if value is None:
-                    value = ItemRef(item, other, otherName)
+                    valueDict[name] = ItemRef(item, other, otherName)
                 elif isinstance(value, ItemRef):
                     value._other = item
                 elif isinstance(value, RefDict):
@@ -913,11 +908,10 @@ class ItemHandler(xml.sax.ContentHandler):
                         value._other = item
                     else:
                         value = ItemRef(item, other, otherName)
+                    valueDict[name] = value
             else:
-                value = ItemRef(item, other, otherName)
+                valueDict[name] = value = ItemRef(item, other, otherName)
                 self.repository._appendRef(item, ref[1], otherName, value)
-
-            valueDict[name] = value
 
     def kindEnd(self, attrs):
 
@@ -928,13 +922,11 @@ class ItemHandler(xml.sax.ContentHandler):
 
         self.kind = self.repository.find(kindRef)
         if self.kind is None:
-            self.kindRef = kindRef
+            raise ValueError, "Kind %s not found" %(str(kindRef))
 
     def classEnd(self, attrs):
 
         self.cls = Item.loadClass(self.data, attrs['module'])
-        if self.kind is None:
-            self.kind = getattr(self.cls, 'kind', None)
 
     def nameEnd(self, attrs):
 

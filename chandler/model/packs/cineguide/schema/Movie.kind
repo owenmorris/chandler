@@ -12,7 +12,7 @@
     <ref name="Actors" type="path">/CineGuide/Attributes/Actors</ref>
   </ref>
 
-  <ref name="SuperKind" cardinality="list">
+  <ref name="SuperKind">
     <ref type="path">/Model/Item</ref>
   </ref>
 

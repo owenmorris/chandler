@@ -2,4 +2,5 @@
 
 <item>
     <name>Schema</name>
+    <class module="model.schema.Kind">SchemaRoot</class>
 </item>

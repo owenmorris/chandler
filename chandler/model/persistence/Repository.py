@@ -33,7 +33,6 @@ class Repository(object):
         self._roots = {}
         self._registry = {}
         self._unresolvedRefs = []
-        self._kindRefs = []
 
     def __iter__(self):
 
@@ -131,11 +130,12 @@ class Repository(object):
     def _loadRoot(self, dir, verbose=False):
 
         cover = Repository.stub(self)
+        hooks = []
 
         contents = file(os.path.join(self._dir, dir, 'contents.lst'), 'r')
         for uuid in contents.readlines():
             self._loadItem(os.path.join(self._dir, dir, uuid[:-1] + '.item'),
-                           cover, verbose=verbose)
+                           cover, verbose=verbose, afterLoadHooks=hooks)
         contents.close()
         
         for item in cover:
@@ -143,25 +143,16 @@ class Repository(object):
                 item.move(self.find(item._parentRef))
                 del item._parentRef
 
-    def _resolveKinds(self):
-        
-        for item in self._kindRefs:
-            if item.hasAttribute('Kind'):
-                item._kind = item.Kind
-            else:
-                ref = item._kindRef
-                item._setKind(item.find(ref))
+        for hook in hooks:
+            hook()
 
-            del item._kindRef
-            
-        del self._kindRefs[:]
-        
-    def _loadItem(self, path, cover, parent=None, verbose=False):
+    def _loadItem(self, path, cover,
+                  parent=None, verbose=False, afterLoadHooks=None):
 
         if verbose:
             print path
             
-        handler = ItemHandler(cover, parent or self)
+        handler = ItemHandler(cover, parent or self, afterLoadHooks)
         xml.sax.parse(path, handler)
 
         return handler.item
@@ -331,9 +322,6 @@ class Repository(object):
 
         def resolveRefs(self, verbose=False):
             self.repository.resolveRefs(verbose)
-
-        def _resolveKinds(self):
-            self.repository._resolveKinds()
 
         def find(self, spec):
             return self.repository.find(spec)

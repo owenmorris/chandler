@@ -9,7 +9,7 @@
     <ref name="Directed" type="path">/CineGuide/Attributes/Directed</ref>
   </ref>
 
-  <ref name="SuperKind" cardinality="list">
+  <ref name="SuperKind">
     <ref type="path">/Model/Item</ref>
   </ref>
 

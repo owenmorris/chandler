@@ -5,11 +5,11 @@
   <kind type="path">//Schema/Model/Kind</kind>
   <class module="model.schema.Kind">KindKind</class>
 
-  <ref name="AttrDefs">
+  <ref name="AttrDefs" otherName="Kinds" cardinality="dict">>
     <ref name="Values" type="path">//Schema/Model/Attributes/Values</ref>
   </ref>
 
-  <ref name="SuperKind" cardinality="list">
+  <ref name="SuperKind" cardinality="list" otherName="SubKind">
     <ref name="5ddf5752-ab0d-11d7-8a19-000393db837c" nameType="uuid"
          type="path">//Schema/Model/Type</ref>
   </ref>

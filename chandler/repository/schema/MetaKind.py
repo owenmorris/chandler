@@ -17,9 +17,9 @@ class MetaKind(object):
         for attrDef in attrDefs.iteritems():
             self.AttrDefs[attrDef[0]] = MetaKind.attr(attrDef[1])
 
-    def getAttrDef(self, name, inherit=False):
+    def getAttrDef(self, name, inheriting=False):
 
-        if not inherit:
+        if not inheriting:
             return self.AttrDefs.get(name)
 
         return None

@@ -34,7 +34,6 @@ class AttrDef(Item):
                                        'OtherName': 'AttrDefs' },
                             'Kind': { 'Required': False,
                                       'Cardinality': 'single',
-                                      'Persist': False,
                                       'OtherName': 'Items' } })
 
     def refName(self, name):

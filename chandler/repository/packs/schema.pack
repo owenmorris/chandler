@@ -4,7 +4,14 @@
 
   <item file="Schema.root">
     <item file="Model.domain" cwd="model">
-      <item files="*.kind" />
+
+      <!-- Must be loaded first -->
+      <item file="Kind.kind" /> 
+
+      <item file="AttrDef.kind" />
+      <item file="Item.kind" />
+      <item file="Type.kind" />
+      <item file="Enum.kind" />
 
       <item file="Types.container" cwd="types">
         <item files="*.type" />

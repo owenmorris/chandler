@@ -31,7 +31,6 @@ class PackHandler(xml.sax.ContentHandler):
 
     def endDocument(self):
 
-        self.repository._resolveKinds()
         self.repository.resolveRefs(True)
         
     def startElement(self, tag, attrs):

@@ -35,6 +35,9 @@ class ItemRef(object):
 
     def _attach(self, item, other, name):
 
+        if item is None:
+            raise ValueError, "Originating endpoint is None"
+
         self._item = item
         self._other = other
 

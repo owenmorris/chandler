@@ -11,7 +11,7 @@
     <ref name="Movies" type="path">/CineGuide/Attributes/Movies</ref>
   </ref>
 
-  <ref name="SuperKind" cardinality="list">
+  <ref name="SuperKind">
     <ref type="path">/Model/Item</ref>
   </ref>
 
