@@ -4,7 +4,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-# testing bonsai
+# testing bonsai..
 
 from application.Application import app
 from application.ViewerParcel import *
