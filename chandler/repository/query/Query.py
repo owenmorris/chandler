@@ -522,9 +522,6 @@ class ForPlan(LogicalPlan):
                     if len(self.__item.monitorCallbacks) > 0:
                         if  len(self.affectedAttributes) > 1:
                             print "monitoring of multi-item paths is not yet supported"
-                        else:
-                            for a in self.affectedAttributes:
-                                i.monitorValue(a,True)
                     yield i
             except AttributeError, ae:
                 #@@@ log

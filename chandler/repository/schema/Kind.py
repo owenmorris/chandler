@@ -22,9 +22,7 @@ class Kind(Item):
 
         super(Kind, self).__init__(name, parent, kind)
 
-        self.monitorValue('attributes', set=True, _attrDict=self._references)
-        self.monitorValue('superKinds', set=True, _attrDict=self._references)
-        self.monitorAttributes = False
+        self.monitorSchema = False
         self.__init()
         
     def __init(self):
@@ -87,7 +85,7 @@ class Kind(Item):
                         else:
                             cls._defaultKind = self._uuid
 
-            self.monitorAttributes = True
+            self.monitorSchema = True
             self._setupDescriptors(cls)
 
         except RecursiveLoadItemError:
@@ -857,7 +855,7 @@ class SchemaMonitor(Monitor):
 
     def schemaChange(self, op, kind, attrName):
 
-        if isinstance(kind, Kind) and kind.monitorAttributes:
+        if isinstance(kind, Kind) and kind.monitorSchema:
             kind.flushCaches()
             logger = kind.itsView.logger
             for cls in Kind._kinds.get(kind._uuid, []):

@@ -415,11 +415,6 @@ class Item(object):
         
         return value
 
-    def _invokeMonitors(self, name, attrDict):
-
-        from repository.item.Monitors import Monitors
-        Monitors.invoke('set', self, name)
-
     def _reIndex(self, op, item, attrName, collectionName, indexName):
 
         if op == 'set':
@@ -427,29 +422,6 @@ class Item(object):
                                              _attrDict=self._references)
             if refList is not None and item._uuid in refList:
                 refList.placeItem(item, None, indexName)
-
-    def monitorValue(self, name, set=True, _attrDict=None):
-
-        if _attrDict is None:
-            if self._values.has_key(name):
-                _attrDict = self._values
-            elif self._references.has_key(name):
-                _attrDict = self._references
-            elif self._kind.getOtherName(name, default=None) is not None:
-                _attrDict = self._references
-            elif self.getAttributeAspect(name, 'redirectTo',
-                                         default=None) is not None:
-                raise IndirectAttributeError, (self, name, 'redirectTo')
-            elif self.getAttributeAspect(name, 'inheritFrom',
-                                         default=None) is not None:
-                raise IndirectAttributeError, (self, name, 'inheritFrom')
-            else:
-                _attrDict = self._values
-
-        if set:
-            _attrDict._setMonitored(name)
-        else:
-            _attrDict._clearMonitored(name)
 
     def getAttributeValue(self, name, _attrDict=None, _attrID=None, **kwds):
         """
@@ -1294,24 +1266,24 @@ class Item(object):
                 assert attribute is not None
                 assert attrDict is not None
                 attrDict._setDirty(attribute)
-                if not noMonitors:                
-                    self._invokeMonitors(attribute, attrDict)
+                if not noMonitors:
+                    # Item._invokeMonitors is defined in Monitors.py
+                    Item._invokeMonitors('set', self, attribute)
                 
             self._lastAccess = Item._countAccess()
             if self._status & Item.DIRTY == 0:
-                repository = self.getRepositoryView()
-                if repository is not None and not repository.isLoading():
-
+                view = self.getRepositoryView()
+                if view is not None and not view.isLoading():
                     if attribute is not None:
                         if not self.getAttributeAspect(attribute, 'persist',
                                                        noError=True,
                                                        default=True):
                             return False
-                    if repository._logItem(self):
+                    if view._logItem(self):
                         self._status |= dirty
                         return True
                     elif self._status & Item.NEW:
-                        repository.logger.error('logging of new item %s failed', self.itsPath)
+                        view.logger.error('logging of new item %s failed', self.itsPath)
             else:
                 self._status |= dirty
 

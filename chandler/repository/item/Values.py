@@ -132,10 +132,6 @@ class Values(dict):
 
         return self._getFlags(key) & Values.TRANSIENT != 0
 
-    def _isMonitored(self, key):
-
-        return self._getFlags(key) & Values.MONITORED != 0
-
     def _isDirty(self, key):
 
         return self._getFlags(key) & Values.DIRTY != 0
@@ -147,10 +143,6 @@ class Values(dict):
     def _setTransient(self, key):
 
         self._setFlag(key, Values.TRANSIENT)
-
-    def _setMonitored(self, key):
-
-        self._setFlag(key, Values.MONITORED)
 
     def _setDirty(self, key):
 
@@ -164,13 +156,6 @@ class Values(dict):
 
         try:
             self._flags[key] &= ~Values.TRANSIENT
-        except AttributeError:
-            pass
-
-    def _clearMonitored(self, key):
-
-        try:
-            self._flags[key] &= ~Values.MONITORED
         except AttributeError:
             pass
 
@@ -358,7 +343,7 @@ class Values(dict):
 
     
     READONLY  = 0x0001         # value is read-only
-    MONITORED = 0x0002         # value is monitored
+
     DIRTY     = 0x0100         # value is dirty
     TRANSIENT = 0x0200         # value is transient
     NOINHERIT = 0x0400         # no schema for inheriting a value

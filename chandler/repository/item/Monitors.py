@@ -67,3 +67,10 @@ class Monitors(Item):
 
 class Monitor(Item):
     pass
+
+
+#
+# recursive import prevention
+#
+
+Item._invokeMonitors = Monitors.invoke
