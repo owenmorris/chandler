@@ -22,7 +22,7 @@ def main():
         and logged to a file: chandler.log
         """
         handler = logging.FileHandler('chandler.log')
-        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s')
         handler.setFormatter(formatter)
         root = logging.getLogger()
         root.addHandler(handler)
