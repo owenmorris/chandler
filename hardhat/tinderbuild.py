@@ -3,6 +3,9 @@
 # tinderbox build client script for continuously building a project and
 # reporting to a tinderbox server
 
+False = 0
+True = 1
+
 # must be run from the hardhat directory, which will be updated to the
 # appropriate CVS vintage by this script, so it's a good idea to first
 # bring the hardhat directory (or at least this file) up to the latest
