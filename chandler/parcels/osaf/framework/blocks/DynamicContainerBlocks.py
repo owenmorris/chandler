@@ -56,11 +56,22 @@ class RefCollectionDictionary(Item):
         """
         returns a tuple with the item refered to by the key, and the collection
         @param key: the key used for lookup into the ref collection.
-        @type key: C{immutable}, typically C{String}
+        @type key: C{immutable}, typically C{String} or C{int}
         @return: a C{Tuple} containing C{(item, collection)} or raises an exception if not found.
         """
         coll = self.getAttributeValue(self.collectionSpecifier())
-        i = coll.getByAlias(key)
+        if isinstance (key, int):
+            if key >= 0:
+                i = coll.first ()
+                next = coll.next
+            else:
+                i = coll.last ()
+                next = coll.previous
+                key = -key
+            for index in xrange (key):
+                i = next (i)
+        else:
+            i = coll.getByAlias(key)
         return (i, coll)
         
     def index(self, key):
@@ -341,6 +352,9 @@ class DynamicBlock(Item):
             else:
                 bar.widget.wxSynchronizeWidget()
 
+        # Since menus have changed, we need to reissue UpdateUI events
+        Globals.wxApplication.needsUpdateUI = True
+
 class DynamicChild (DynamicBlock):
     # Abstract mixin class used to detect DynamicChild blocks
     def isDynamicChild (self):
@@ -387,6 +401,22 @@ class wxMenuItem (wx.MenuItem):
         # unpack the style arguments, wx expects them separately
         arguments = style + arguments
         super (wxMenuItem, self).__init__ (*arguments, **keywords)
+
+    def __cmp__ (self, other):
+        """
+          Shouldn't be needed, but wxWidgets will return it's internal
+        wx.MenuItem when you ask for a menu item, instead of the wxMenuItem
+        subclass that we supply to wx.  So we use this compare to test if 
+        the two instances are really the same thing.
+        @@@DLD - remove when wx.MenuItem subclasses are returned by wx.
+        """
+        try:
+            if self.this == other.this:
+                return 0
+            else:
+                return -1
+        except AttributeError:
+            raise NotImplementedError
 
     def wxSynchronizeWidget(self):
         # placeholder in case Menu Items change
@@ -442,8 +472,33 @@ class wxMenu(wx.Menu):
 
     def wxSynchronizeWidget(self):
         self.blockItem.synchronizeItems()
+
+    def __cmp__ (self, other):
+        """
+          CPIA and wxWidgets have different ideas about how submenus work.
+        In CPIA a menu can appear in the menu bar, or inside another menu.
+        In wxWidgets, only a MenuItem can appear in a Menu, and you have to
+        get the "subMenu" out of the MenuItem to deal with it as a Menu.
+        This method lets us compare a CPIA wxMenu widget with a wx.MenuItem
+        and they will be the same if the wx.MenuItem has the right subMenu.
+        """
+        # self is a CPIA wxMenu.  "other" could be a wx.MenuItem
+        try:
+            # the menu is in the sub-menu of the item
+            subMenu = other.GetSubMenu ()
+        except AttributeError:
+            pass # wasn't a wx.MenuItem
+        else:
+            # check if it actually had a submenu
+            if subMenu is not None:
+                other = subMenu # use the submenu for the compare
+        if self is other:
+            return 0 # they matched
+        else:
+            return -1
+
     """
-      wxWindows doesn't implement convenient menthods for dealing
+      wxWindows doesn't implement convenient methods for dealing
     with menus, so we'll write our own: getMenuItems, removeItem
     getItemTitle, and setMenuItem
     """
@@ -459,17 +514,19 @@ class wxMenu(wx.Menu):
         self.RemoveItem (oldItem)
             
     def setMenuItem (self, newItem, oldItem, index):
-        # now set the menu item
+        # set the menu item, replacing an old one if specified
+        # the widget stays attached to the block until the block is destroyed
         itemsInMenu = self.GetMenuItemCount()
         assert (index <= itemsInMenu)
-        if index < itemsInMenu:
+        if oldItem is not None:
+            assert index < itemsInMenu, "index out of range replacing menu item"
             self.removeItem (index, oldItem)
         if isinstance (newItem.widget, wxMenuItem):
             success = self.InsertItem (index, newItem.widget)
-            assert success
+            assert success, "error inserting menu item"
             """
               Disable menus by default. If they have an event then they will
-            be enabled by an UpdateUIEvent or out command dispatch in Application.py
+            be enabled by an UpdateUIEvent or our command dispatch in Application.py
             """
             self.Enable (newItem.widget.GetId(), False)
         else:
@@ -508,10 +565,19 @@ class wxMenuBar (wx.MenuBar):
         itemsInMenu = self.GetMenuCount()
         assert (index <= itemsInMenu)
         title = newItem.title
+        # operating within the current list?
         if index < itemsInMenu:
-            oldMenu = self.Replace (index, newItem.widget, title)
-            assert oldMenu == oldItem
+            # check if the new item is already installed, and remove it first
+            if newItem.widget in self.getMenuItems (): # invokes wxMenu.__cmp__
+                self.removeItem (index, newItem.widget)
+            # if there's an old item present, replace it, else just insert
+            if oldItem is not None:
+                oldMenu = self.Replace (index, newItem.widget, title)
+                assert oldMenu is oldItem
+            else:
+                self.Insert (index, newItem.widget, title)
         else:
+            # beyond list, add to the end
             success = self.Append (newItem.widget, title)
             assert success
 
@@ -533,29 +599,45 @@ class MenuBar (Block.Block, DynamicContainer):
         """
           Install the menus into supplied menu list, and submenus
         into their menu items.
+        Used for both Menus and MenuBars.
         """
-        oldMenuList = self.widget.getMenuItems ()
+        menuList = self.widget.getMenuItems () # keep track of menus here
         
-        index = 0
+        index = 0 # cur menu item index
+        # for each new menu
         for menuItem in self.dynamicChildren:
             # ensure that the menuItem has been instantiated
             if not hasattr (menuItem, "widget"):
+                # @@@DLD - use framework block/widget linkage
                 menuItem.widget = menuItem.instantiateWidget()
                 menuItem.widget.blockItem = menuItem
                 menuItem.widget.wxSynchronizeWidget()
 
+            # get the current item installed in the menu, if any
             try:
-                oldItem = oldMenuList.pop(0)
+                curItem = menuList.pop(0)
             except IndexError:
-                oldItem = None
+                curItem = None
 
-            if oldItem is None or menuItem.widget.this is not oldItem.this:
-                # set the new item in the menu
-                self.widget.setMenuItem (menuItem, oldItem, index)
+            # current and new items match?
+            if curItem is None or menuItem.widget != curItem: # invokes our __cmp__
 
+                # is the new item already somewhere in our menu?
+                if menuItem.widget in menuList: # invokes our __cmp__
+                    # yes, rip out existing items till we get to our new item
+                    while menuItem.widget != curItem:
+                        self.widget.removeItem (index, curItem)
+                        curItem = menuList.pop(0)
+                        # until we get to the matching item
+                else:
+                    # no, we're inserting a new item
+                    self.widget.setMenuItem (menuItem, None, index)
+                    if curItem is not None:
+                        menuList.insert (0, curItem) # put the cur item back, we didn't use it
             index += 1
-                
-        for oldItem in oldMenuList:
+
+        # remove any remaining items in the menu
+        for oldItem in menuList:
             self.widget.removeItem (index, oldItem)
             index += 1
 
