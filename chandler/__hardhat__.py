@@ -44,20 +44,21 @@ def build(buildenv):
 
 
     # Build the windows launcher program
-    version = buildenv['version']
+    if buildenv['os'] == 'win':
+        version = buildenv['version']
 
-    try:
-        os.remove('output.txt')
-    except:
-        pass
+        try:
+            os.remove('output.txt')
+        except:
+            pass
 
-    hardhatlib.executeCommand(buildenv, info['name'],
-                              [ buildenv['compiler'],
-                                'distrib/win/launcher/launcher.sln',
-                                '/build', version.capitalize(),
-                                '/out', 'output.txt' ],
-                              'Building launcher ' + version,
-                              0, 'output.txt')
+        hardhatlib.executeCommand(buildenv, info['name'],
+                                  [ buildenv['compiler'],
+                                    'distrib/win/launcher/launcher.sln',
+                                    '/build', version.capitalize(),
+                                    '/out', 'output.txt' ],
+                                  'Building launcher ' + version,
+                                  0, 'output.txt')
 
 
     # Build UUID Extension and install it
