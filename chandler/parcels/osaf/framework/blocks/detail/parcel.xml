@@ -62,10 +62,10 @@
   -->
   
   <!-- Root -->
-  <ContentItemDetail itemName="DetailRoot"
+  <SelectionContainer itemName="DetailRoot"
                      itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
     <childrenBlocks itemref="doc:DetailTrunk"/>
-  </ContentItemDetail>
+  </SelectionContainer>
 
   <ContentItemDetail itemName="DetailTrunk">
     <!-- child blocks -->

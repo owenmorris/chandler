@@ -103,12 +103,12 @@ class DetailSynchronizer(object):
             block.synchronizeWidget()
 
     def synchronizeItemDetail (self, item):
-        # if there is an item, we should show the From and To Area
+        # if there is an item, we should show ourself, else hide
         shouldShow = item is not None
         return self.show(shouldShow)
         
     def show(self, shouldShow):
-        # if the show status has changed, tell our widget, and our parent
+        # if the show status has changed, tell our widget, and return True
         if shouldShow != self.isShown:
             try:
                 widget = self.widget
@@ -137,7 +137,11 @@ class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
         return relayout
 
     def synchronizeItemDetail (self, item):
-        return self.synchronizeLabel(self.staticTextLabelValue(item))
+        hasChanged = super(StaticTextLabel, self).synchronizeItemDetail(item)
+        if self.isShown:
+            labelChanged = self.synchronizeLabel(self.staticTextLabelValue(item))
+            hasChanged = hasChanged or labelChanged
+        return hasChanged
 
 class DateTimeBlock (StaticTextLabel):
     """
@@ -213,33 +217,29 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     def onButtonPressed (self, notification):
         # Rekind the item by adding or removing the associated Mixin Kind
         tool = notification.data['sender']
-        # DLDTBD - use self instead of bar here, once block copy problem is fixed.
-        bar = tool.dynamicParent
-        item = bar.selectedItem()
-        # DLDTBD - once block copy problem is fixed, we won't
-        # need this check, because the buttons will not be enabled.
+        item = self.selectedItem()
         isANoteKind = item.itsKind.isKindOf(ContentModel.ContentModel.getNoteKind())
         if not isANoteKind:
             return
         if item is not None:
             mixinKind = tool.stampMixinKind()
-            if bar.widget.GetToolState(tool.toolID):
+            if self.widget.GetToolState(tool.toolID):
                 operation = 'add'
             else:
                 operation = 'remove'
             item.StampKind(operation, mixinKind)
             # notify the world that the item has a new kind.
-            block = bar
+            block = self
             while block.eventBoundary == False:
                 block = block.parentBlock
             block.parentBlock.synchronizeWidget()
 
     def onButtonPressedUpdateUI (self, notification):
         item = self.selectedItem()
-        # DLDTBD - fix the line below to False when the block copy problem is fixed.
-        enable = True
         if item is not None:
-            enable = item.itsKind.isKindOf(ContentModel.ContentModel.getNoteKind())            
+            enable = item.itsKind.isKindOf(ContentModel.ContentModel.getNoteKind())
+        else:
+            enable = False
         notification.data ['Enable'] = enable
 
 class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
