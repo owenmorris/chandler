@@ -1195,8 +1195,8 @@ def executeShell(buildenv):
 # A manifest file describes which files to copy and where they should go in
 # order to create a binary distribution.  Comments are denoted by #; empty
 # lines are skipped.  There are five "variables" that you set in order to
-# control what's going on:  src, dest, recursive, exclude and glob.  The file is
-# processed sequentially; variables maintain their values until reassigned.
+# control what's going on:  src, dest, recursive, exclude and glob.  The file
+# is processed sequentially; variables maintain their values until reassigned.
 # The "src" variable should be set to a path relative to buildenv['root'],
 # and "dest" should be set to a path relative to buildenv['distdir']; either
 # can be set to an empty string (e.g. "dest=").  When a non-assignment line
@@ -1209,7 +1209,7 @@ def executeShell(buildenv):
 # current pattern). If any file or directory matches any pattern in the 
 # "excludes" parameter/list, it is skipped.
 
-def handleManifest(buildenv, filename):
+def handleManifest(buildenv, filename, fatalErrors=True):
 
     params = {}
     params["src"] = None
@@ -1220,6 +1220,11 @@ def handleManifest(buildenv, filename):
     srcdir = buildenv['root']
     destdir = buildenv['distdir']
 
+    if fatalErrors:
+        hhMsg = HARDHAT_ERROR
+    else:
+        hhMsg = HARDHAT_WARNING
+        
     for line in fileinput.input(filename):
         line = line.strip()
         if len(line) == 0:
@@ -1269,9 +1274,12 @@ def handleManifest(buildenv, filename):
                     else:
                         shutil.copy(abspath, copyto)
                 else:
-                    log(buildenv, HARDHAT_WARNING, "HardHat", "File missing: " 
+                    log(buildenv, hhMsg, "HardHat", "File missing: " 
                      + abspath)
-                    continue
+                    if fatalErrors:
+                        raise HardHatError, 'File missing: ' + abspath
+                    else:
+                        continue
 
 #expand $(VAR) with value of VAR environment variable
 #expand ${program} with full path of directory containing program from PATH

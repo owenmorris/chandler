@@ -178,6 +178,7 @@ def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildV
         hardhatutil.dumpOutputList(outputList, log)
     except Exception, e:
         doCopyLog("***Error during distribution building process*** ", workingDir, logPath, log)
+        forceBuildNextCycle(log, workingDir)
         raise e
 
 
