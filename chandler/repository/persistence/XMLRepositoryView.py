@@ -564,6 +564,7 @@ class XMLText(Text, ItemValue):
                                            self._getItem().getUUID(),
                                            self._getAttribute(),
                                            self.getVersion())
+            self._dirty = False
 
         attrs = {}
         attrs['version'] = str(self._version)
@@ -665,6 +666,8 @@ class XMLBinary(Binary, ItemValue):
                 out = store._binary.createFile(self._makeKey())
             out.write(self._data)
             out.close()
+
+            self._dirty = False
 
         attrs = {}
         attrs['version'] = str(self._version)

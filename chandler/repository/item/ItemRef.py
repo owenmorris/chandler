@@ -227,6 +227,9 @@ class _noneRef(ItemRef):
             _noneRef._noneRef = ItemRef.__new__(cls, *args, **kwds)
             return _noneRef._noneRef
 
+    def __nonzero__(self):
+        return False
+    
 NoneRef = _noneRef()
 
 
