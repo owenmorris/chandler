@@ -51,8 +51,6 @@ class osafApp(wxApp):
     
 
 if __name__=="__main__":
-    storage = Storage("_CHANDLER_APP_")
-    
     app = osafApp()
     app.MainLoop()
     # This doesn't belong here, but due to the commit problem we are having
