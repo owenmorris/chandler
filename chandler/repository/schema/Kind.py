@@ -133,17 +133,19 @@ class Kind(Item):
                                                      localOnly, globalOnly):
                     yield pair
 
-        if not localOnly:
-            attributes = self.getAttributeValue('attributes', default=None)
-            if attributes is not None:
+        attributes = self.getAttributeValue('attributes', default=None)
+        if attributes is not None:
+
+            if not localOnly:
                 aliases = attributes._aliases
                 if aliases:
                     for (alias, uuid) in aliases.iteritems():
                         yield (alias, attributes[uuid])
-
-        if not globalOnly:
-            for attribute in self.iterChildren():
-                yield (attribute._name, attribute)
+    
+            if not globalOnly:
+                for attribute in self.iterChildren():
+                    if attribute._uuid in attributes:
+                        yield (attribute._name, attribute)
 
     def _inheritAttribute(self, name):
 

@@ -585,7 +585,7 @@ class Item(object):
         @return: C{None}
         """
         
-        for child in self:
+        for child in self.iterChildren():
             print child.getItemPath()
             if recursive:
                 child.dir(True)
@@ -682,34 +682,39 @@ class Item(object):
             return True
 
         for key, value in self._values.iteritems():
-            attrType = self.getAttributeAspect(key, 'type', default=None)
-            if attrType is not None:
-                attrCard = self.getAttributeAspect(key, 'cardinality',
-                                                   default='single')
-                if attrCard == 'single':
-                    check = checkValue(key, value, attrType)
-                    result = result and check
-                elif attrCard == 'list':
-                    check = checkCardinality(key, value, list, 'list')
-                    result = result and check
-                    if check:
-                        for v in value:
-                            check = checkValue(key, v, attrType)
-                            result = result and check
-                elif attrCard == 'dict':
-                    check = checkCardinality(key, value, dict, 'dict')
-                    result = result and check
-                    if check:
-                        for v in value.itervalues():
-                            check = checkValue(key, v, attrType)
-                            result = result and check
+            attribute = self.kind.getAttribute(key)
+            if attribute is None:
+                logger.error('Item %s has a value for attribute %s but its kind %s has no definition for this attribute', self.getItemPath(), key, self.kind.getItemPath())
+                result = False
+            else:
+                attrType = self.getAttributeAspect(key, 'type', default=None)
+                if attrType is not None:
+                    attrCard = self.getAttributeAspect(key, 'cardinality',
+                                                       default='single')
+                    if attrCard == 'single':
+                        check = checkValue(key, value, attrType)
+                        result = result and check
+                    elif attrCard == 'list':
+                        check = checkCardinality(key, value, list, 'list')
+                        result = result and check
+                        if check:
+                            for v in value:
+                                check = checkValue(key, v, attrType)
+                                result = result and check
+                    elif attrCard == 'dict':
+                        check = checkCardinality(key, value, dict, 'dict')
+                        result = result and check
+                        if check:
+                            for v in value.itervalues():
+                                check = checkValue(key, v, attrType)
+                                result = result and check
         
         for key, value in self._references.iteritems():
             check = value.check(self, key)
             result = result and check
 
         if recursive:
-            for child in self:
+            for child in self.iterChildren():
                 check = child.check(True)
                 result = result and check
 
@@ -1157,7 +1162,7 @@ class Item(object):
             self._status |= Item.DELETING
             others = []
 
-            for child in self:
+            for child in self.iterChildren():
                 child.delete(True)
 
             self._values.clear()
