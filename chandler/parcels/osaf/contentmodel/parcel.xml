@@ -422,7 +422,7 @@
   </core:Attribute>
 
   <core:Kind itsName="ItemCollection">
-    <core:superKinds itemref="core:Item"/>
+    <core:superKinds itemref="ContentItem"/>
     <core:displayName>Item Collection</core:displayName>
     <core:attributes itemref="collectionOwner"/>
 

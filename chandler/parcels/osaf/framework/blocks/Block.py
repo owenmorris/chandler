@@ -14,14 +14,6 @@ import logging
 class Block(Item):
     def __init__(self, *arguments, **keywords):
         super (Block, self).__init__ (*arguments, **keywords)
-        """
-          We currently have to initialize this data here because of
-        limitations of our repository/XML parcel. We should fix
-        these limitations so we can initialize them in the parcel
-        XML -- DJA
-        """
-        self.childrenBlocks = []
-        self.styles = []
 
     def Post (self, event, args):
         """
@@ -208,14 +200,25 @@ class Block(Item):
     def onModifyContentsEvent(self, notification):
         event = notification.event
         operation = event.operation
+
+        # 'collection' is an item collection that we want our new view
+        # to contain
+        collection = notification.data.get('collection', None)
+
+        # we'll put the copies in //userdata
+        userdata = Globals.repository.findPath('//userdata')
+
         for item in event.items:
             if event.copyItems:
-                item = item.copy (None, #NewName
-                                  Globals.repository.findPath('//userdata')) #parent
+                item = item.copy(parent=userdata, cloudAlias='default')
+                if collection is not None:
+                    print "I am setting collection to", collection
+                    collection.displayName = "XYZZY"
+                    item.contents = collection
                 """
                   Hack to work around Stuarts bug #1568 -- DJA
                 """
-                item.contents._ItemCollection__refresh()               
+                item.contents._ItemCollection__refresh()
             if operation == 'toggle':
                 try:
                     index = self.contents.index (item)

@@ -20,6 +20,8 @@ from repository.persistence.RepositoryError import VersionConflictError
 import repository.util.UUID as UUID
 import osaf.framework.webdav.Dav
 
+EVENTS = "http://osafoundation.org/parcels/osaf/framework/blocks/Events"
+
 class MainView(View):
     """
       Main Chandler view contains event handlers for Chandler
@@ -59,7 +61,10 @@ class MainView(View):
          Globals.wxApplication.mainFrame, "Subscribe to Collection...",
          "Collection URL:", "http://webdav.osafoundation.org/")
         if url is not None:
-            item = osaf.framework.webdav.Dav.DAV(url).get( )
+            collection = osaf.framework.webdav.Dav.DAV(url).get( )
+            event = Globals.parcelManager.lookup(EVENTS,
+             "NewItemCollectionItem")
+            event.Post({'collection':collection})
             Globals.repository.commit()
 
     def onEditAccountPreferencesEvent (self, notification):

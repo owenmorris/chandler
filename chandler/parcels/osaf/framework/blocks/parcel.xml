@@ -311,12 +311,14 @@
       <copyPolicy value="cascade"/>
       <inverseAttribute itemref="docSchema:Block/parentBlock"/>
       <required>True</required>
+      <initialValue />
     </Attribute>
 
     <Attribute itsName="styles">
       <type itemref="docSchema:Style"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="docSchema:Style/usedInBlocks"/>
+      <initialValue />
     </Attribute>
 
     <Attribute itsName="isShown">
