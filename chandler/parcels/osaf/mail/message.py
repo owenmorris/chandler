@@ -138,7 +138,7 @@ def messageTextToKind(messageText):
 
     return messageObjectToKind(email.message_from_string(messageText), messageText)
 
-def messageObjectToKind(messageObject, messageText = None):
+def messageObjectToKind(messageObject, messageText=None):
     """
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object

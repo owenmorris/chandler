@@ -21,24 +21,24 @@ def downloadIMAPMail():
 
 
 def sendInvitation():
-    sharing.SMTPInvitationSender("http://test.com", ['brian@localhost', 'bkirsch@osafoundation.org']).sendInvitation()
+    sharing.sendInvitation("http://test.com", ['brian@localhost'])
 
 def sendSMTPMessage():
-    account, replyToAddress = smtp.getDefaultSMTPAccount()
+    account, replyToAddress = smtp.getSMTPAccount()
 
     m = Mail.MailMessage()
 
     ea = Mail.EmailAddress()
-    ea.emailAddress = "brian@saofoundation.org"
+    ea.emailAddress = "brian@localhost"
     ea.fullName = "Brian Kirsch"
 
     ea1 = Mail.EmailAddress()
-    ea1.emailAddress = "bkirsch@osafoundation.org"
+    ea1.emailAddress = "brian@localhost"
     ea1.fullName = "Brian Kirsch"
 
 
     m.toAddress.append(ea)
-    m.toAddress.append(ea1)
+    #m.toAddress.append(ea1)
 
     m.fromAddress = replyToAddress
     m.subject = "This is a Test From SMTPSenderAction"

@@ -13,6 +13,7 @@ import twisted.mail.imap4 as imap4
 import repository.persistence.RepositoryView as RepositoryView
 import mx.DateTime as DateTime
 import message as message
+import sharing as sharing
 import email as email
 import email.Utils as Utils
 import logging as logging
@@ -44,32 +45,29 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
         if not self.useSSL:
             self.serverCapabilities =  common.disableTwistedTLS(caps)
 
-        d = defer.Deferred()
-        d.addCallback(self.factory.callback, self)
-        d.addErrback(self.factory.errback)
+        self.factory.deferred.callback(self)
 
-        d.callback(True)
+        return self.factory.deferred
 
 
 class ChandlerIMAP4Factory(protocol.ClientFactory):
     protocol = ChandlerIMAP4Client
 
-    def __init__(self, callback, errback, useSSL=False):
+    def __init__(self, deferred, useSSL=False):
         """
         A C{protocol.ClientFactory} that creates C{ChandlerIMAP4Client} instances
         and stores the callback and errback to be used by the C{ChandlerIMAP4Client} instances
 
-        @param callback: A method name to call when a C{ChandlerIMAP4Client} connects
-                        to a IMAP Server
-        @type callback: string
-        @param errback: A method name to call if an error is thrown in the C{ChandlerIMAPClient}
-                        C{defer.Deferred} callback chain
-        @type errback: string
+        @param: deferred: A C{defer.Deferred} to callback when connected to the IMAP server 
+                          and errback if no connection or command failed
+        @type deferred: C{defer.Deferred}
         @return: C{None}
         """
 
-        self.callback = callback
-        self.errback = errback
+        if not isinstance(deferred, defer.Deferred):
+            raise IMAPException("deferred must be a defer.Deferred instance")
+
+        self.deferred = deferred
         self.useSSL = useSSL
 
     def buildProtocol(self, addr):
@@ -82,7 +80,7 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
         return p
 
     def clientConnectionFailed(self, connector, reason):
-        logging.error("Unable to connect to server; reason: '%s'", reason)
+        self.deferred.errback(reason)
 
 
 class IMAPException(common.MailException):
@@ -108,6 +106,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         self.accountUUID = account.itsUUID
         self.account = None
         self.downloadedStr = None
+        self.loginTried = False
 
 
     def getMail(self):
@@ -148,7 +147,11 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         finally:
             self.restorePreviousView()
 
-        factory = ChandlerIMAP4Factory(self.loginClient, self.catchErrors, useSSL)
+        d = defer.Deferred()
+        d.addCallback(self.loginClient)
+        d.addErrback(self.catchErrors)
+
+        factory = ChandlerIMAP4Factory(d, useSSL)
 
         if useSSL:
             reactor.connectSSL(host, port, factory, ssl.ClientContextFactory(useM2=1))
@@ -175,21 +178,19 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
         self.log.info(str)
 
-    def catchErrors(self, result):
+    def catchErrors(self, error):
         """
         This method captures all errors thrown while in the Twisted Reactor Thread.
         @return: C{None}
         """
 
-        self.log.error("Twisted Error %s" % result)
+        self.log.error("Twisted Error %s" % error)
 
-    def loginClient(self, result, proto):
+    def loginClient(self, proto):
         """
         This method is a Twisted C{defer.Deferred} callback that logs in to an IMAP Server
         based on the account information stored in a C{EmailAccountKind}.
 
-        @param result: A Twisted callback result
-        @type result: Could be anything
         @param proto: The C{ChandlerIMAP4Client} protocol instance
         @type proto: C{ChandlerIMAP4Client}
         @return: C{None}
@@ -204,14 +205,26 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
             """ Save the IMAP4Client instance """
             self.proto = proto
 
-            """ Login using plain text login """
-
             assert self.account is not None, "Account is None can not login client"
 
-            return self.proto.login(str(self.account.username),
-                                    str(self.account.password)).addCallback(self.__selectInbox)
+            username = self.account.username
+            password = self.account.password
+
+            self.proto.registerAuthenticator(imap4.CramMD5ClientAuthenticator(username))
+            self.proto.registerAuthenticator(imap4.LOGINAuthenticator(username))
+
+            return self.proto.authenticate(password
+                         ).addCallback(self.__selectInbox
+                         ).addErrback(self.loginClientInsecure, username, password)
+
         finally:
            self.restorePreviousView()
+
+    #XXX: This needs be tested for failure conditions
+    def loginClientInsecure(self, error, username, password):
+        if not self.loginTried:
+            self.loginTried = True
+            return self.proto.login(username, password)
 
 
     def __selectInbox(self, result):
@@ -302,17 +315,27 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
             self.view.commit()
 
             totalDownloaded = 0
+            foundInvitation = False
+            sharingInvitations = {}
+            sharingHeader = sharing.getChandlerSharingHeader() 
 
             for msg in msgs:
-                repMessage = message.messageTextToKind(msgs[msg]['RFC822'])
+
+                messageText = msgs[msg]['RFC822']
                 uid = long(msgs[msg]['UID'])
 
-                repMessage.incomingMessage(account=self.account)
+                messageObject = email.message_from_string(messageText)
 
+                if messageObject[sharingHeader] is not None:
+                    sharingInvitations[uid] = messageObject[sharingHeader]
+                    foundInvitation = True
+                    continue
+
+                repMessage = message.messageObjectToKind(messageObject, messageText)
+
+                repMessage.incomingMessage(account=self.account)
                 repMessage.deliveryExtension.folder = "INBOX"
                 repMessage.deliveryExtension.uid = uid
-
-                #self.account.downloadedMail.append(repMessage)
 
                 if uid > self.__getLastUID():
                     self.__setLastUID(uid)
@@ -326,6 +349,13 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         """Commit the view in a thread to prevent blocking"""
         self.commitView(True)
 
+        if foundInvitation:
+            uids = ','.join(map(str, sharingInvitations.keys()))
+
+            return self.proto.setFlags(uids, ['\\Deleted'], uid=True
+                              ).addCallback(self._expunge
+                              ).addCallback(self._processSharingRequests,
+                                            sharingInvitations.values())
 
     def _viewCommitSuccess(self):
         """
@@ -343,6 +373,17 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         self.account.setPinned(False)
         self.account = None
 
+    def _expunge(self, result):
+        if __debug__:
+            self.printCurrentView("_expunge")
+
+        return self.proto.expunge()
+
+    def _processSharingRequests(self, result, urls):
+        if __debug__:
+            self.printCurrentView("_processSharingRequests")
+
+       #sharing.receivedInvitation(urls)
 
     def __getLastUID(self):
         return self.account.messageDownloadSequence
@@ -374,19 +415,36 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         self.log.info(str)
 
 
-def getFirstIMAPAccount():
+def getIMAPAccount(UUID=None):
     """
-    This method returns the first IMAP Account found in the Repository.
-    The method will throw a C{IMAPException} if there is no C{IMAPAccount}
-    in the Repository.
+    This method returns a C{IMAPAccount} in the Repository. If UUID is not
+    None will try and retrieve the C{IMAPAccount} that has the UUID passed.
+    Otherwise the method will try and retrieve the first C{IMAPAccount}
+    found in the Repository.
 
+    It will throw a C{IMAPException} if there is either no C{IMAPAccount}
+    matching the UUID passed or if there is no C{IMAPAccount}
+    at all in the Repository.
+
+    @param UUID: The C{UUID} of the C{IMAPAccount}. If no C{UUID} passed will return
+                 the first C{IMAPAccount}
+    @type UUID: C{UUID}
     @return C{IMAPAccount}
     """
+
     accountKind = Mail.MailParcel.getIMAPAccountKind()
     account = None
 
-    for acc in Query.KindQuery().run([accountKind]):
-        account = acc
+    if UUID is not None:
+        if not isinstance(UUID.UUID):
+            raise IMAPException("The UUID argument must be of type UUID.UUID")
+
+        account = accountKind.findUUID(UUID)
+
+    else:
+        for acc in Query.KindQuery().run([accountKind]):
+            account = acc
+            break
 
     if account is None:
         raise IMAPException("No IMAP Account exists in Repository")

@@ -371,10 +371,10 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         self.account.setPinned()
         self.mailMessage.setPinned()
 
-def getDefaultSMTPAccount():
+def getSMTPAccount(UUID=None):
     """
     This method returns a tuple containing:
-        1. the first C{SMTPAccount} account in the Repository.
+        1. An C{SMTPAccount} account in the Repository.
         2. The ReplyTo C{EmailAddress} associated with the C{SMTPAccounts}
            parent which will either be a POP or IMAP Acccount.
 
@@ -383,16 +383,27 @@ def getDefaultSMTPAccount():
     2. No parent account associated with the C{SMTPAccount}
     3. The replyToAddress of the parent account is None
 
+    @param UUID: The C{UUID} of the C{SMTPAccount}. If no C{UUID} passed will return
+                 the default (first) C{SMTPAccount}
+    @type UUID: C{UUID}
     @return C{tuple} in the form (C{SMTPAccount}, C{EmailAddress})
     """
+
     accountKind = Mail.MailParcel.getSMTPAccountKind()
     account = None
     replyToAddress = None
 
-    """Get the first SMTP Account"""
-    for acc in Query.KindQuery().run([accountKind]):
-        account = acc
-        break
+    if UUID is not None:
+        if not isinstance(UUID.UUID):
+            raise SMTPException("The UUID argument must be of type UUID.UUID")
+
+        account = accountKind.findUUID(UUID)
+
+    else:
+        """Get the first SMTP Account"""
+        for acc in Query.KindQuery().run([accountKind]):
+            account = acc
+            break
 
     if account is None:
         raise SMTPException("No SMTP Account found")

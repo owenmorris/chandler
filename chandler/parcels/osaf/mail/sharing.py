@@ -14,6 +14,7 @@ import osaf.contentmodel.mail.Mail as Mail
 import repository.persistence.RepositoryView as RepositoryView
 import repository.util.UUID as UUID
 import mx.DateTime as DateTime
+import osaf.framework.sharing as chandlerSharing
 
 try:
     from cStringIO import StringIO
@@ -21,14 +22,32 @@ except ImportError:
     from StringIO import StringIO
 
 
-"""
-    Receiving:
-    1. I Post the URL for sharing
-    2. Delete the message on the imap server
+def receivedInvitation(url):
+    """
+       Calls osaf.framework.sharing.anounceSharingUrl.
+       If url is a C{list} will call the above method
+       for each URL in the C{list} otherwise will call
+       the above methodf with the url C{str} passed in.
 
-def osaf.framework.sharing.announceSharingUrl(url):
-    TO DO: Hook up events if invitation fails or succeeds
-"""
+       @param url: The invitation url or a list of invitation url's
+       @type: C: {str} or C{list} of C{str}'s
+    """
+
+    if isinstance(url, list):
+       for u in url:
+          if not isinstance(u, str):
+             raise SharingException("URL List contains a value that is not a String")
+
+             chandlerSharing.announceSharingUrl(u)
+
+    elif isinstance(url, str):
+        chandlerSharing.announceSharingUrl(url)
+
+    else:
+        raise SharingException("URL must be a list of Strings or a String")
+
+def sendInvitation(url, sendToList):
+    SMTPInvitationSender(url, sendToList).sendInvitation()
 
 class SharingConstants(object):
     SHARING_HEADER = "Sharing-URL"
@@ -37,9 +56,9 @@ class SharingException(Exception):
     pass
 
 class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
-    """Sends from the first SMTP Account it can find"""
-
-    def __init__(self, url, sendToList):
+    def __init__(self, url, sendToList, account=None):
+        if account is not None and not account.isItemOf(Mail.MailParcel.getSMTPAccountKind()):
+            raise SharingException("You must pass a SMTPAccount instance")
 
         if not isinstance(url, str):
             raise SharingException("URL must be a String")
@@ -55,6 +74,11 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
         self.from_addr = None
         self.url = url
         self.sendToList = sendToList
+        self.accountUUID = None
+
+        if account is not None:
+            self.accountUUID = account.itsUUID
+
 
     def sendInvitation(self):
         if __debug__:
@@ -144,7 +168,7 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
 
     def __createMessageText(self):
         messageObject = common.getChandlerTransportMessage()
-        messageObject[message.createChandlerHeader(SharingConstants.SHARING_HEADER)] = self.url
+        messageObject[getChandlerSharingHeader()] = self.url
         messageObject['From'] = self.from_addr
         messageObject['To'] = ', '.join(self.sendToList)
         messageObject['Message-ID'] = message.createMessageID()
@@ -153,5 +177,10 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
         return messageObject.as_string()
 
     def __getData(self):
-        self.account, replyToAddress = smtp.getDefaultSMTPAccount()
+        """If accountUUID is None will return the first SMTPAccount found""" 
+        self.account, replyToAddress = smtp.getSMTPAccount(self.accountUUID)
         self.from_addr = replyToAddress.emailAddress
+
+
+def getChandlerSharingHeader():
+    return message.createChandlerHeader(SharingConstants.SHARING_HEADER)
