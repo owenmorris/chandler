@@ -638,7 +638,7 @@ class XMLBinary(Binary, ItemValue):
 
     def __init__(self, view, *args, **kwds):
 
-        XMLBinary.__init__(self, *args, **kwds)
+        Binary.__init__(self, *args, **kwds)
         ItemValue.__init__(self)
 
         self._uuid = None
