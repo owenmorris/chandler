@@ -199,7 +199,8 @@ class wxApplicationNew (wxApp):
         """
         Globals.repository.commit(purge=True)
         Globals.repository.close()
-          
+
+
     def OnCommand(self, event):
         """
           Catch commands and pass them along to the blocks.
@@ -212,14 +213,32 @@ class wxApplicationNew (wxApp):
         wxID = event.GetId()
         if wxID >= BlockEvent.MINIMUM_WX_ID and wxID <= BlockEvent.MAXIMUM_WX_ID:
 
-            type = 'Normal'
-            if event.GetEventType() == wxEVT_UPDATE_UI:
-                type = 'UpdateUI'
-
             blockEvent = BlockEvent.wxIDToEvent (wxID)
+            data = {'event':blockEvent}
+            if event.GetEventType() == wxEVT_UPDATE_UI:
+                data ['type'] = 'UpdateUI'
+            else:
+                data ['type'] = 'Normal'
+
             notification = Notification(blockEvent.name, None, None)
-            notification.SetData({'event':blockEvent, 'type':type})
+            notification.SetData(data)
             Globals.notificationManager.PostNotification(notification)
+            if event.GetEventType() == wxEVT_UPDATE_UI:
+                try:
+                    event.Check (data ['Check'])
+                except KeyError:
+                    pass
+                try:
+                    event.Enable (data ['Enable'])
+                except KeyError:
+                    pass
+                try:
+                    text = data ['Text']
+                    eventObject = event.GetEventObject()
+                    event.SetText (data ['Text'])
+                except KeyError:
+                    pass
+
 
     def OnQuit(self):
         """

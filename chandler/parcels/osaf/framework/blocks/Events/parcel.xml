@@ -19,4 +19,29 @@ of a limitation of the XML format, which will be eliminated</description>
     <dispatchEnum>Controller</dispatchEnum>
   </BlockEvent>
 
+  <BlockEvent itemName="Undo">
+    <name>chandler/Undo</name>
+    <dispatchEnum>Controller</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itemName="Redo">
+    <name>chandler/Redo</name>
+    <dispatchEnum>Controller</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itemName="Cut">
+    <name>chandler/Cut</name>
+    <dispatchEnum>Controller</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itemName="Copy">
+    <name>chandler/Copy</name>
+    <dispatchEnum>Controller</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itemName="Paste">
+    <name>chandler/Paste</name>
+    <dispatchEnum>Controller</dispatchEnum>
+  </BlockEvent>
+
 </core:Parcel>

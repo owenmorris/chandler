@@ -164,7 +164,6 @@ class Menu(ContainerChild):
 class MenuItem(ContainerChild):
     def __init__(self, *arguments, **keywords):
         super (ContainerChild, self).__init__ (*arguments, **keywords)
-        #self.event = None # Big hack, should set in XML DJA
 
     def renderOneBlock(self, parent, parentWindow):
 

@@ -66,7 +66,7 @@ class Block(Item):
             while (controller):
                 if hasattr (controller, methodName):
                     member = getattr (controller, methodName)
-                    member (event)
+                    member (notification)
                     break
                 else:
                     controller = controller.GetParent().GetParent()

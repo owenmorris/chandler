@@ -27,11 +27,28 @@
     <event itemref="events:Quit"/>
   </MenuItem>
   
+  <MenuItem itemName="UndoItem">
+    <title>Undo</title>
+    <menuItemKind>Normal</menuItemKind>
+    <accel>Z</accel>
+    <helpString></helpString>
+    <event itemref="events:Undo"/>
+  </MenuItem>
+
+  <MenuItem itemName="RedoItem">
+    <title>Redo</title>
+    <menuItemKind>Normal</menuItemKind>
+    <accel>Y</accel>
+    <helpString></helpString>
+    <event itemref="events:Redo"/>
+  </MenuItem>
+
   <MenuItem itemName="CutItem">
     <title>Cut</title>
     <menuItemKind>Normal</menuItemKind>
     <accel>X</accel>
     <helpString></helpString>
+    <event itemref="events:Cut"/>
   </MenuItem>
 
   <MenuItem itemName="CopyItem">
@@ -39,6 +56,7 @@
     <menuItemKind>Normal</menuItemKind>
     <accel>C</accel>
     <helpString></helpString>
+    <event itemref="events:Copy"/>
   </MenuItem>
 
   <MenuItem itemName="PasteItem">
@@ -46,6 +64,7 @@
     <menuItemKind>Normal</menuItemKind>
     <accel>V</accel>
     <helpString></helpString>
+    <event itemref="events:Paste"/>
   </MenuItem>
   
   <MenuItem itemName="Separator">
@@ -68,6 +87,8 @@
   </Menu>
 
   <Menu itemName="EditMenu">
+    <childrenBlocks itemref="doc:UndoItem"/>
+    <childrenBlocks itemref="doc:RedoItem"/>
     <childrenBlocks itemref="doc:CutItem"/>
     <childrenBlocks itemref="doc:CopyItem"/>
     <childrenBlocks itemref="doc:PasteItem"/>
