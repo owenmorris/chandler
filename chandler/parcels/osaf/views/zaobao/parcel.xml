@@ -23,55 +23,14 @@
     <fontStyle>bold</fontStyle>
   </CharacterStyle>  
 
-  <!-- The main ZaoBao view -->
-
-  <Tree itsName="ZaoBaoTree">
-    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoTreeDelegate</elementDelegate>
-    <rootPath itemref="zb:RSSChannel"/>
-
-    <columnHeadings>Subject</columnHeadings>
-    <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
-    <columnWidths>150</columnWidths>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-  </Tree>
-
   <ItemDetail itsName="ItemBodyArea" itemClass="osaf.examples.zaobao.blocks.ZaoBaoItemDetail">
     <blockName value="articletext"/>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>    
   </ItemDetail>
   
-  <EditText itsName="NewChannel">
-    <size>100,20</size>
-    <minimumSize>100,20</minimumSize>
-    <stretchFactor>0.0</stretchFactor>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
-    <readOnly>False</readOnly>
-    <characterStyle itemref="doc:HeaderCharacterStyle"/>
-  </EditText>
-
-  <HTML itsName="AboutZaoBao">
-    <url>parcels/osaf/examples/zaobao/AboutZaoBao.html</url>
-    <eventBoundary>True</eventBoundary>
-    <size>900,580</size>
-    <minimumSize>900,580</minimumSize>
-  </HTML>
-
-
   <!-- ## detail view for RSSItems ## -->
-  
-  <!-- ContentItem will handle display of the channel title -->
-  
-  <!-- The raw HTML channel data  -->
-  <ItemDetail itsName="ChannelItemDetail" itemClass="osaf.examples.zaobao.blocks.ZaoBaoItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
-  </ItemDetail>
-
+    
   <!-- URL -->
   <ContentItemDetail itsName="LinkArea"
     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
