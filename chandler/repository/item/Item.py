@@ -560,22 +560,6 @@ class Item(object):
             else:
                 raise TypeError, (type(value), value)
 
-    def clearValues(self):
-        """
-        Clear all Chandler attribute values on this item.
-
-        All Chandler attribute values are cleared and restored to their
-        initial values.
-        """
-
-        self._values.clear()
-        self._references.clear()
-
-        if self._kind is not None:
-            self._kind.getInitialValues(self, self._values, self._references)
-
-        self.setDirty()
-
     def hasChild(self, name, load=True):
         """
         Tell whether this item has a child of that name.
@@ -1535,6 +1519,7 @@ class Item(object):
                 self.__class__ = Item
             else:
                 self.__class__ = kind.getItemClass()
+                kind.getInitialValues(self, self._values, self._references)
 
     def mixinKinds(self, *kinds):
         """
@@ -2341,7 +2326,11 @@ class Item(object):
 
                        When setting an item's kind, only the values for
                        attributes common to both current and new kind are
-                       retained.
+                       retained. After the new kind is set, its attributes'
+                       optional L{initial values<getAttributeAspect>} are
+                       set for attributes for which there is no value on the
+                       item. Setting an item's kind to C{None} clears all
+                       its values.
                        """)
 
 

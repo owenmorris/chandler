@@ -287,27 +287,29 @@ class Kind(Item):
                         self._initialReferences[name] = value
 
         for name, value in self._initialValues.iteritems():
-            if isinstance(value, PersistentCollection):
-                value = value._copy(item, name, value._companion)
-            elif isinstance(value, ItemValue):
-                value = value._copy(item, name)
+            if name not in values:
+                if isinstance(value, PersistentCollection):
+                    value = value._copy(item, name, value._companion)
+                elif isinstance(value, ItemValue):
+                    value = value._copy(item, name)
 
-            values[name] = value
+                values[name] = value
 
         for name, value in self._initialReferences.iteritems():
-            if value is None:
-                value = NoneRef
-            elif isinstance(value, Item):
-                value = ItemRef(item, name, value, self.getOtherName(name))
-            elif isinstance(value, PersistentCollection):
-                refDict = item._refDict(name, self.getOtherName(name))
-                for other in value.itervalues():
-                    refDict.append(other)
-                value = refDict
-            else:
-                raise TypeError, value
+            if name not in references:
+                if value is None:
+                    value = NoneRef
+                elif isinstance(value, Item):
+                    value = ItemRef(item, name, value, self.getOtherName(name))
+                elif isinstance(value, PersistentCollection):
+                    refDict = item._refDict(name, self.getOtherName(name))
+                    for other in value.itervalues():
+                        refDict.append(other)
+                    value = refDict
+                else:
+                    raise TypeError, value
             
-            references[name] = value
+                references[name] = value
 
     def flushCaches(self):
 
