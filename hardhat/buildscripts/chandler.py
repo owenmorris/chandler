@@ -40,6 +40,7 @@ cvsModules = (
     'osaf/chandler/wxpython',
     'osaf/chandler/jabber-py',
     'osaf/chandler/pychecker',
+    'osaf/chandler/persistence',
 )
 
 # If any of these modules have changed, scrub everything before building
@@ -51,6 +52,7 @@ scrubAllModules = {
     'osaf/chandler/wxpython':1,
     'osaf/chandler/jabber-py':1,
     'osaf/chandler/pychecker':1,
+    'osaf/chandler/persistence':1,
 }
 
 mainModule = 'osaf/chandler/Chandler'
