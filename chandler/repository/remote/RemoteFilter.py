@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import cStringIO
 
 from repository.util.SAX import XMLFilter, XMLGenerator
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 from repository.util.Streams import StringReader
 from repository.util.Streams import BZ2OutputStream, ZlibOutputStream
 

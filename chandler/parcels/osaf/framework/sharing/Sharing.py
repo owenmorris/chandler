@@ -7,7 +7,7 @@ import application.Globals as Globals
 import application.Parcel
 import osaf.framework.webdav.Dav
 import osaf.mail.message
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 import application.dialogs.PublishCollection
 from repository.item.Query import KindQuery
 import wx

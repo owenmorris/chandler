@@ -109,7 +109,7 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
             self.assert_(m.hasValue('employees', i))
 
     def testListReferenceAttributes(self):
-        """Test list valued bidirectional references"""
+        """Test dictionary valued bidirectional references"""
         (managerKind, employeeKind) = self._createManagerAndEmployeeKinds('list')
 
         # now write what we've done and read it back
@@ -117,67 +117,6 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         managerKind = self._find('//manager')
         employeesAttribute = managerKind.getAttribute('employees')
         self.assertEquals(employeesAttribute.cardinality, 'list')
-        self.assertEquals(employeesAttribute.getAttributeValue('otherName'),
-                          'manager')
-        employeeKind = self._find('//employee')
-        managerAttribute = employeeKind.getAttribute('manager')
-        self.assertEquals(managerAttribute.otherName, 'employees')
-
-        # add employees to manager
-        manager = managerKind.newItem('boss', self.rep)
-
-        emp1 = employeeKind.newItem('employee1', self.rep)
-        emp2 = employeeKind.newItem('employee2', self.rep)
-        emp3 = employeeKind.newItem('employee3', self.rep)
-        emp4 = employeeKind.newItem('employee4', self.rep)
-        manager.setValue('employees', emp1)
-        manager.addValue('employees', emp2)
-        manager.addValue('employees', emp3)
-        manager.addValue('employees', emp4)
-        self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
-
-        # now write what we've done and read it back
-        self._reopenRepository()
-        managerKind = self.rep['manager']
-        employeeKind = self.rep['employee']
-        emp1 = None
-        emp2 = None
-        emp3 = None
-        emp4 = None
-        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees('//boss','//employee1','//employee2','//employee3','//employee4')
-        self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
-
-        # now do it from the other end add manager to employees
-        manager = managerKind.newItem('bossA', self.rep)
-
-        emp1 = employeeKind.newItem('employeeA1', self.rep)
-        emp1.manager = manager
-        emp2 = employeeKind.newItem('employeeA2', self.rep)
-        emp2.manager = manager
-        emp3 = employeeKind.newItem('employeeA3', self.rep)
-        emp3.manager = manager
-        emp4 = employeeKind.newItem('employeeA4', self.rep)
-        emp4.manager = manager
-        self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
-
-        # now write what we've done and read it back
-        self._reopenRepository()
-        emp1 = None
-        emp2 = None
-        emp3 = None
-        emp4 = None
-        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees('//bossA','//employeeA1','//employeeA2','//employeeA3','//employeeA4')
-        self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
-
-    def testDictReferenceAttributes(self):
-        """Test dictionary valued bidirectional references"""
-        (managerKind, employeeKind) = self._createManagerAndEmployeeKinds('dict')
-
-        # now write what we've done and read it back
-        self._reopenRepository()
-        managerKind = self._find('//manager')
-        employeesAttribute = managerKind.getAttribute('employees')
-        self.assertEquals(employeesAttribute.cardinality, 'dict')
         self.assertEquals(employeesAttribute.getAttributeValue('otherName'),
                           'manager')        
         employeeKind = self._find('//employee')

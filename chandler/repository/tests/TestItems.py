@@ -10,7 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import RepositoryTestCase, os, unittest
 
 from repository.item.Item import Item
-from repository.item.ItemRef import RefDict
+from repository.item.RefCollections import RefList
 from repository.schema.Kind import Kind
 
 class ItemsTest(RepositoryTestCase.RepositoryTestCase):
@@ -175,7 +175,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
                                    'inheritedAttributes']
         for i in kind.iterAttributeValues(referencesOnly=True):
             self.failUnless(i[0] in referenceAttributeNames)
-            self.failUnless(isinstance(i[1], RefDict) or
+            self.failUnless(isinstance(i[1], RefList) or
                             isinstance(i[1], Kind))
 
 if __name__ == "__main__":

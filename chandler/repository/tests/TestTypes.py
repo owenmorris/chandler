@@ -15,6 +15,7 @@ import repository.item.PersistentCollections
 
 from repository.schema.Attribute import Attribute
 from repository.util.Path import Path
+from chandlerdb.util.UUID import UUID
 from repository.util.SingleRef import SingleRef
 from mx.DateTime import DateTime, DateTimeDelta, ISO, RelativeDateTime
 
@@ -74,9 +75,9 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         # because they are abstract and have no implementation type
         implTypeNames = { 'String':'unicode', 'Symbol':'str', 'Integer':'int',
                           'Long':'long', 'Float':'float', 'Complex':'complex',
-                          'Boolean':'bool', 'UUID':'repository.util.UUID.UUID',
-                          'SingleRef':'repository.util.SingleRef.SingleRef',
-                          'Path':'repository.util.Path.Path', 'Class':'type',
+                          'Boolean':'bool', 'UUID':'UUID',
+                          'SingleRef':'SingleRef',
+                          'Path':'Path', 'Class':'type',
                           'DateTime':'type(mx.DateTime.now())',
                           'DateTimeDelta':'type(mx.DateTime.DateTimeDelta(0))',
                           'RelativeDateTime':'type(mx.DateTime.RelativeDateTime())',

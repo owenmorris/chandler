@@ -70,12 +70,6 @@
     <core:inverseAttribute itemref="ItemCollection/_inclusions"/>
   </core:Attribute>
 
-  <core:Attribute itsName="itemCollectionInclusions">
-    <core:type itemref="ItemCollection"/>
-    <core:cardinality>list</core:cardinality>
-    <core:inverseAttribute itemref="ItemCollection/_inclusions"/>
-  </core:Attribute>
-
   <core:Attribute itsName="itemCollectionExclusions">
     <core:type itemref="ItemCollection"/>
     <core:cardinality>list</core:cardinality>

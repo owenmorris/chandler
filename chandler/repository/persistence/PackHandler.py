@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os.path
 import re
 
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.SAX import ContentHandler
 from repository.item.Item import Item
@@ -29,11 +29,6 @@ class PackHandler(ContentHandler):
     def startDocument(self):
 
         self.tagAttrs = []
-
-    def endDocument(self):
-
-        if not self.errorOccurred():
-            self.repository._resolveStubs()
 
     def startElement(self, tag, attrs):
 
@@ -147,8 +142,9 @@ class PackHandler(ContentHandler):
                                                    afterLoadHooks=self.hooks[-1])
 
             for item in items:
-                item._status |= item.NEW
-                item.setDirty(item.NDIRTY, None)
+                if item._status & item.NDIRTY == 0:
+                    item._status |= item.NEW
+                    item.setDirty(item.NDIRTY, None)
 
             return items[0]
 

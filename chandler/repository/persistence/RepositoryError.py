@@ -9,6 +9,12 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 class RepositoryError(ValueError):
     "All repository related exceptions go here"
 
+class ExclusiveOpenDeniedError(RepositoryError):
+    pass
+
+class RepositoryOpenDeniedError(RepositoryError):
+    pass
+
 
 class VersionConflictError(RepositoryError):
     "Another view changed %s and saved those changes before this view - %s - got a chance to do so. These changes conflict with this thread's changes, the item cannot be saved (0x%0.4x/0x%0.4x)."

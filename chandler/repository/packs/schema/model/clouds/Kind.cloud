@@ -2,59 +2,53 @@
 
 <items>
 
-  <item withSchema="True">
+  <item>
     <name>Kind</name>
     <kind type="path">//Schema/Core/Cloud</kind>
 
-    <ref name="endpoints" otherName="clouds"
-         cardinality="list" otherCard="list">
-
+    <ref name="endpoints">
       <!-- 
          - plus local endpoints below:
          -     attributes, inheritedAttributes
         -->
     </ref>
 
-    <ref name="kind" otherName="clouds" otherCard="list" otherAlias="default"
+    <ref name="kind" otherAlias="default"
          type="path">//Schema/Core/Kind</ref>
   </item>
 
-  <item withSchema="True">
+  <item>
     <name>attributes</name>
     <kind type="path">//Schema/Core/Endpoint</kind>
     <parent type="path">//Schema/Core/Clouds/Kind</parent>
 
-    <ref name="clouds" otherName="endpoints"
-         cardinality="list" otherCard="list">
+    <ref name="clouds">
       <ref otherAlias="attributes" type="path">..</ref>
     </ref>
 
-    <attribute name="attribute" cardinality="list">
+    <attribute name="attribute">
       <value>attributes</value>
     </attribute>
     <attribute name="includePolicy">byCloud</attribute>
 
-    <ref name="cloud" otherName="cloudFor" otherCard="list"
-         type="path">//Schema/Core/Clouds/Attribute</ref>
+    <ref name="cloud" type="path">//Schema/Core/Clouds/Attribute</ref>
   </item>
 
-  <item withSchema="True">
+  <item>
     <name>inheritedAttributes</name>
     <kind type="path">//Schema/Core/Endpoint</kind>
     <parent type="path">//Schema/Core/Clouds/Kind</parent>
 
-    <ref name="clouds" otherName="endpoints"
-         cardinality="list" otherCard="list">
+    <ref name="clouds">
       <ref otherAlias="inheritedAttributes" type="path">..</ref>
     </ref>
 
-    <attribute name="attribute" cardinality="list">
+    <attribute name="attribute">
       <value>inheritedAttributes</value>
     </attribute>
     <attribute name="includePolicy">byCloud</attribute>
 
-    <ref name="cloud" otherName="cloudFor" otherCard="list"
-         type="path">//Schema/Core/Clouds/Attribute</ref>
+    <ref name="cloud" type="path">//Schema/Core/Clouds/Attribute</ref>
   </item>
 
 </items>

@@ -16,12 +16,10 @@ from application.Parcel import Manager as ParcelManager
 from osaf.mail.imap import IMAPDownloader
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
-from repository.persistence.RepositoryError import VersionConflictError
-from repository.item.Item import Item
-import repository.util.UUID as UUID
 import osaf.framework.sharing.Sharing as Sharing
 import repository.query.Query as Query
-import repository.item.Query as ItemQuery
+from repository.item.Query import KindQuery
+from repository.item.Item import Item
 import osaf.mail.sharing as MailSharing
 
 
@@ -313,7 +311,7 @@ class MainView(View):
                 collections.append (item)
         else:
             itemCollectionKind = Globals.repository.findPath("//parcels/osaf/contentmodel/ItemCollection")
-            allCollections = ItemQuery.KindQuery().run([itemCollectionKind])
+            allCollections = KindQuery().run([itemCollectionKind])
             collections = []
             for collection in allCollections:
                 if Sharing.isShared (collection):

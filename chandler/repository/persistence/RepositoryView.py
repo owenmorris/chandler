@@ -4,14 +4,13 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import libxml2, threading, heapq, logging
+import libxml2, threading, logging, heapq, sys, gc
 
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
 from repository.persistence.RepositoryError import RepositoryError, VersionConflictError
 from repository.item.Item import Item
 from repository.item.ItemHandler import ItemHandler, ItemsHandler
-from repository.item.ItemRef import ItemStub, DanglingRefError
 from repository.persistence.PackHandler import PackHandler
 
 timing = True
@@ -70,9 +69,9 @@ class RepositoryView(object):
 
         return False
 
-    def _createRefDict(self, item, name, otherName, persist, readOnly, uuid):
+    def _createRefList(self, item, name, otherName, persist, readOnly, uuid):
 
-        raise NotImplementedError, "%s._createRefDict" %(type(self))
+        raise NotImplementedError, "%s._createRefList" %(type(self))
     
     def _createChildren(self, parent):
 
@@ -94,8 +93,11 @@ class RepositoryView(object):
         self._registry = {}
         self._deletedRegistry = {}
         self._childrenRegistry = {}
-        self._stubs = []
+        self._instanceRegistry = {}
         self._status = RepositoryView.OPEN
+
+        if self.repository.isRefCounted():
+            self._status |= RepositoryView.REFCOUNTED
         
         self.repository.store.attachView(self)
 
@@ -106,7 +108,8 @@ class RepositoryView(object):
     def setDirty(self, dirty):
 
         if dirty:
-            self._status |= Item.CDIRTY
+            if not self._status & RepositoryView.LOADING:
+                self._status |= Item.CDIRTY
         else:
             self._status &= ~Item.CDIRTY
 
@@ -135,7 +138,7 @@ class RepositoryView(object):
         self._roots = None
         self._deletedRegistry.clear()
         self._childrenRegistry.clear()
-        del self._stubs[:]
+        self._instanceRegistry.clear()
         self._status &= ~(RepositoryView.OPEN | Item.CDIRTY)
 
         self.repository.store.detachView(self)
@@ -176,6 +179,10 @@ class RepositoryView(object):
     def isStale(self):
 
         return False
+
+    def isRefCounted(self):
+
+        return (self._status & RepositoryView.REFCOUNTED) != 0
         
     def isLoading(self):
         """
@@ -186,7 +193,7 @@ class RepositoryView(object):
 
         return (self._status & RepositoryView.LOADING) != 0
 
-    def _setLoading(self, loading=True):
+    def _setLoading(self, loading, runHooks=False):
 
         if self.repository.view is not self:
             raise RepositoryError, "In thread %s the current view is %s, not %s" %(threading.currentThread(), self.repository.view, self)
@@ -269,7 +276,7 @@ class RepositoryView(object):
 
         @param spec: a path or UUID
         @type spec: L{Path<repository.util.Path.Path>} or
-                    L{UUID<repository.util.UUID.UUID>} 
+                    L{UUID<chandlerdb.util.UUID.UUID>} 
         @param load: load the item if it not yet loaded, C{True} by default
         @type load: boolean
         @return: an item or C{None} if not found
@@ -323,7 +330,7 @@ class RepositoryView(object):
         See L{find} for more information.
 
         @param uuid: a UUID
-        @type uuid: L{UUID<repository.util.UUID.UUID>} or a uuid string
+        @type uuid: L{UUID<chandlerdb.util.UUID.UUID>} or a uuid string
         @param load: load the item if it not yet loaded, C{True} by default
         @type load: boolean
         @return: an item or C{None} if not found
@@ -353,7 +360,7 @@ class RepositoryView(object):
         None)} and the ACL for an attribute value on an item is stored with
         C{(item.itsUUID, attributeName)}.
 
-        @param uuid: a L{UUID<repository.util.UUID.UUID>} instance
+        @param uuid: a L{UUID<chandlerdb.util.UUID.UUID>} instance
         @param name: a string or C{None}
         @return: an L{ACL<repository.item.Access.ACL>} instance or C{None}
         """
@@ -411,23 +418,7 @@ class RepositoryView(object):
                 self.dir(child, path)
             path.pop()
 
-    def _resolveStubs(self):
-
-        i = 0
-        for ref in self._stubs[:]:
-            if isinstance(ref._other, ItemStub):
-                try:
-                    other = ref.getOther()
-                except DanglingRefError:
-                    if self.isDebug():
-                        self.logger.debug("%s -> %s is missing",
-                                          ref, ref._other)
-                    i += 1
-                    continue
-
-            self._stubs.pop(i)
-        
-    def _loadItemsFile(self, path, parent=None, afterLoadHooks=None):
+    def _loadItemsFile(self, path, parent, afterLoadHooks):
 
         self.logger.debug("Loading item file: %s", path)
             
@@ -438,7 +429,7 @@ class RepositoryView(object):
 
         return handler.items
 
-    def _loadItemString(self, string, parent=None, afterLoadHooks=None):
+    def _loadItemString(self, string, parent, afterLoadHooks):
 
         if self.isDebug():
             index = string.find('uuid="')
@@ -455,8 +446,7 @@ class RepositoryView(object):
 
         return handler.item
 
-    def _loadItemDoc(self, doc, parser, parent=None, afterLoadHooks=None,
-                     instance=None):
+    def _loadItemDoc(self, doc, parser, parent, afterLoadHooks):
 
         if self.isDebug():
             string = self.repository.store.getDocContent(doc)
@@ -466,7 +456,7 @@ class RepositoryView(object):
             else:
                 self.logger.debug('loading item %s', string)
 
-        handler = ItemHandler(self, parent or self, afterLoadHooks, instance)
+        handler = ItemHandler(self, parent, afterLoadHooks)
         parser.parseDoc(doc, handler)
 
         return handler.item
@@ -615,7 +605,7 @@ class RepositoryView(object):
 
         old = self._registry.get(uuid)
         if old is not None and old is not item:
-            raise ValueError, 're-registering %s with different object' %(item)
+            raise ValueError, '%s: re-registering %s with different object' %(self, item)
         
         self._registry[uuid] = item
 
@@ -623,12 +613,25 @@ class RepositoryView(object):
 
         self._childrenRegistry[uuid] = children
 
-    def _unregisterItem(self, item):
+    def _unregisterItem(self, item, reloadable):
 
         uuid = item.itsUUID
         del self._registry[uuid]
+
         if item.isDeleting():
             self._deletedRegistry[uuid] = uuid
+        elif reloadable:
+            self._instanceRegistry[uuid] = item
+
+    def _reuseItemInstance(self, uuid):
+
+        try:
+            instance = self._instanceRegistry[uuid]
+            del self._instanceRegistry[uuid]
+        except KeyError:
+            instance = None
+
+        return instance
 
     def refresh(self):
         """
@@ -720,11 +723,6 @@ class RepositoryView(object):
     def _newItems(self):
         raise NotImplementedError, "%s._newItems" %(type(self))
 
-    def _addStub(self, stub):
-
-        if not self.isLoading():
-            self._stubs.append(stub)
-
     def __getUUID(self):
 
         return self.repository.itsUUID
@@ -769,8 +767,8 @@ class RepositoryView(object):
         """
         Invoke a callable for every committed item change in other views.
 
-        For each item in this view that was changed and committed in and
-        other view a callable is invoked with the following arguments:
+        For each item in this view that was changed and committed in another
+        view a callable is invoked with the following arguments:
 
             - the item as it is in this view
 
@@ -814,9 +812,10 @@ class RepositoryView(object):
     store = property(_getStore)
 
     OPEN       = 0x0001
-    LOADING    = 0x0002
-    COMMITTING = 0x0004
-
+    REFCOUNTED = 0x0002
+    LOADING    = 0x0004
+    COMMITTING = 0x0008
+    
     # flags from Item
     # CDIRTY   = 0x0200
     # merge flags
@@ -827,7 +826,7 @@ class OnDemandRepositoryView(RepositoryView):
     def __init__(self, repository, name):
 
         self._version = repository.store.getVersion()
-        self._hooks = None
+        self._hooks = []
         
         super(OnDemandRepositoryView, self).__init__(repository, name)
 
@@ -835,7 +834,19 @@ class OnDemandRepositoryView(RepositoryView):
 
         return self._version == 0
 
-    def _loadDoc(self, doc, instance=None):
+    def _setLoading(self, loading, runHooks=False):
+
+        if not loading and self.isLoading() and runHooks:
+            try:
+                for hook in self._hooks:
+                    hook()
+            finally:
+                self._hooks = []
+
+        return super(OnDemandRepositoryView, self)._setLoading(loading,
+                                                               runHooks)
+
+    def _loadDoc(self, doc):
 
         try:
             loading = self.isLoading()
@@ -846,8 +857,7 @@ class OnDemandRepositoryView(RepositoryView):
             exception = None
 
             item = self._loadItemDoc(doc, self.repository.store,
-                                     afterLoadHooks = self._hooks,
-                                     instance=instance)
+                                     self, self._hooks)
 
             if item is None:
                 self.logger.error("Item didn't load properly, xml parsing didn't balance: %s", self.repository.store.getDocContent(doc))
@@ -873,34 +883,28 @@ class OnDemandRepositoryView(RepositoryView):
 
         except:
             if not loading:
-                self._setLoading(False)
-                self._hooks = None
+                self._setLoading(False, False)
+                self._hooks = []
             raise
         
         else:
             if not loading:
-                try:
-                    if self._hooks:
-                        for hook in self._hooks:
-                            hook()
-                finally:
-                    self._hooks = None
-                    self._setLoading(False)
+                self._setLoading(False, True)
 
         return item
 
-    def _loadItem(self, uuid, instance=None):
+    def _loadItem(self, uuid):
 
         if not uuid in self._deletedRegistry:
             doc = self.repository.store.loadItem(self._version, uuid)
 
             if doc is not None:
                 self.logger.debug("loading item %s", uuid)
-                return self._loadDoc(doc, instance)
+                return self._loadDoc(doc)
 
         return None
 
-    def _findKind(self, spec, withSchema):
+    def _findSchema(self, spec, withSchema):
 
         if withSchema:
             return self.find(spec, load=False)
@@ -908,8 +912,6 @@ class OnDemandRepositoryView(RepositoryView):
         # when crossing the schema boundary, reset loading status so that
         # hooks get called before resuming regular loading
 
-        hooks = None
-        
         try:
             hooks = self._hooks
             loading = self._setLoading(False)
@@ -936,17 +938,31 @@ class OnDemandRepositoryView(RepositoryView):
     def prune(self, size):
 
         registry = self._registry
-
+        
         if len(registry) > size * 1.1:
-            heap = [ (item._lastAccess, item._uuid)
-                     for item in registry.itervalues()
-                     if not item._status & (item.PINNED | item.DIRTY) ]
+            gc.collect()
+            heap = [(item._lastAccess, item._uuid)
+                    for item in registry.itervalues()
+                    if not item._status & (item.PINNED | item.DIRTY)]
+
             heapq.heapify(heap)
             count = len(heap) - int(size * 0.9)
             self.logger.info('pruning %d items', count)
-            for i in xrange(count):
-                registry[heapq.heappop(heap)[1]]._unloadItem()
 
+            if self.isRefCounted():
+                for i in xrange(count):
+                    item = registry[heapq.heappop(heap)[1]]
+                    itemRefs = item._refCount()
+                    pythonRefs = sys.getrefcount(item)
+                    if pythonRefs - itemRefs <= 3:
+                        item._unloadItem(False)
+                    else:
+                        self.logger.warn('not pruning %s (refCount %d)',
+                                         Item.__repr__(item),
+                                         pythonRefs - itemRefs)
+            else:
+                for i in xrange(count):
+                    registry[heapq.heappop(heap)[1]]._unloadItem(False)
 
 
 class AbstractRepositoryViewManager(object):

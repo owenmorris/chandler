@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<item withSchema="True">
+<item>
   <name>Rectangle</name>
   <kind type="path">//Schema/Core/Struct</kind>
   <class module="repository.schema.Types">Struct</class>
 
-  <attribute name="fields" type="dict" cardinality="dict">
+  <attribute name="fields">
     <value name="x">
       <values>
         <value name="type" type="path" eval="true">/Core/Integer</value>
@@ -18,7 +18,7 @@
     </value>
   </attribute>
 
-  <attribute name="implementationTypes" cardinality="dict" type="class">
+  <attribute name="implementationTypes">
     <value name="python">repository.tests.Types.Rectangle</value>
   </attribute>
 </item>

@@ -5,6 +5,6 @@
   <class module="repository.schema.Types">UUID</class>
 
   <attribute name="implementationTypes" cardinality="dict" type="class">
-    <value name="python">repository.util.UUID.UUID</value>
+    <value name="python">chandlerdb.util.UUID.UUID</value>
   </attribute>
 </item>

@@ -13,11 +13,7 @@
 
     <ref name="attributes" otherName="kinds" cardinality="list" 
          otherCard="list">
-
       <ref alias="displayName" type="path">/Core/displayName</ref>
-      <ref alias="description" type="path">/Core/description</ref>
-      <ref alias="issues" type="path">/Core/issues</ref>
-      <ref alias="examples" type="path">/Core/examples</ref>
     </ref>
 
     <attribute name="classes" cardinality="dict" type="class">

@@ -8,11 +8,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from application.Parcel import Parcel
 from repository.util.Path import Path
+from repository.item.RefCollections import RefList
 import repository.item.Item as Item
 import repository.item.Query as Query
 import repository.persistence.XMLRepositoryView as XMLRepositoryView
 import mx.DateTime as DateTime
-import repository.item.ItemRef as ItemRef
 import logging
 
 import application.Globals as Globals
@@ -248,7 +248,7 @@ class ContentItem(Item.Item):
     def copyValue (self, value):
         # don't need to clone single items
         # @@@DLD - find out if there's a better way to copy an attribute value
-        if not isinstance (value, ItemRef.RefDict):
+        if not isinstance (value, RefList):
             return value
 
         # check the first item to see if it has an alias
@@ -446,7 +446,8 @@ class ContentItem(Item.Item):
         import osaf.contentmodel.contacts.Contacts as Contacts
         """
         return str(item.who)
-        DLDTBD - XMLRefDicts that have EmailAddress items should know how to do this
+        DLDTBD - RefLists that have EmailAddress items should know how to do
+        this
         """
         try:
             whoContacts = self.who # get redirected who list

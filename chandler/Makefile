@@ -5,17 +5,16 @@
 #
 
 # these get installed into release or debug
-BIN_ARCHIVES=../$(SNAP)-0.3-18.tar.gz \
+BIN_ARCHIVES=../$(SNAP)-0.4-1.tar.gz \
              ../wxPython-$(SNAP)-2.5.2.9-2.tar.gz \
-             ../UUIDext-$(SNAP)-0.3-3.tar.gz \
+             ../chandlerdb-$(SNAP)-0.4-1.tar.gz \
              ../m2crypto-$(SNAP)-0.12-2.tar.gz \
-             ../Launchers-$(SNAP)-0.3-8.tar.gz
+             ../Launchers-$(SNAP)-0.4-1.tar.gz
 
 # these get installed into chandler
-HOME_ARCHIVES=../QueryParser-$(SNAP)-0.1-4.tar.gz
+HOME_ARCHIVES=../QueryParser-$(SNAP)-0.4-1.tar.gz
 
 ARCHIVES = $(BIN_ARCHIVES) $(HOME_ARCHIVES)
-
 ARCHIVES_MD5 = $(addsuffix .md5,$(ARCHIVES))
 
 
@@ -95,9 +94,9 @@ downloads: $(ARCHIVES)
 
 $(ARCHIVES):
 	$(CURL) $@ $(URL)/$(notdir $@)
-	$(CURL) $(@:=.md5) $(URL)/$(notdir $(@:=.md5))
+	$(CURL) $@.md5 $(URL)/$(notdir $@.md5)
 
-#	(cd ..; $(MD5CHECK) $(notdir $(@:=.md5)))
+#	cd ..; $(MD5CHECK) $(notdir $@.md5)
 
 $(BIN_ARCHIVES_INST):
 	tar -C $(CHANDLERBIN) -xvzf ../$(notdir $(basename $@))

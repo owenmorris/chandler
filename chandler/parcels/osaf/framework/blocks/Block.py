@@ -5,7 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from repository.item.Item import Item
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 from osaf.framework.notifications.schema.Event import Event
 import wx
 import logging
@@ -50,7 +50,8 @@ class Block(Item):
 
             if widget:
                 Globals.wxApplication.needsUpdateUI = True
-                self.setPinned()
+                if not self.itsView.isRefCounted():
+                    self.setPinned()
                 self.widget = widget
                 widget.blockItem = self
                 """
@@ -104,6 +105,7 @@ class Block(Item):
                     widget.Freeze()
                 for child in self.childrenBlocks:
                     child.render()
+
                 """
                   After the blocks are wired up give the window a chance
                 to synchronize itself to any persistent state.
@@ -169,7 +171,8 @@ class Block(Item):
             delattr (self.widget, 'subscribeWhenVisibleEventsUUID')
 
         delattr (self, 'widget')
-        self.setPinned (False)
+        if not self.itsView.isRefCounted():
+            self.setPinned (False)
         Globals.wxApplication.needsUpdateUI = True
 
     def widgetIDToBlock (theClass, wxID):

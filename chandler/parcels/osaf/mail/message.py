@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import osaf.contentmodel.mail.Mail as Mail
-import repository.util.UUID as UUID
+import chandlerdb.util.UUID as UUID
 import repository.persistence.XMLRepositoryView as XMLRepositoryView
 import mx.DateTime as DateTime
 import email as email

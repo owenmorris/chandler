@@ -11,8 +11,10 @@ class Monitors(Item):
 
     def onItemLoad(self):
 
-        self.setPinned()
-        Monitors.instances[self.itsView] = self
+        view = self.itsView
+        if not view.isRefCounted():
+            self.setPinned()
+        Monitors.instances[view] = self
 
         if 'monitoring' not in self._values:
             self.setAttributeValue('monitoring', { 'set': {} },

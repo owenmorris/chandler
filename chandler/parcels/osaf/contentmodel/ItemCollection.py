@@ -5,12 +5,12 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application.Globals as Globals
 import osaf.contentmodel.ContentModel as ContentModel
 import repository.query.Query as RepositoryQuery
-from repository.item.ItemRef import NoSuchIndexError
+from repository.item.RefCollections import NoSuchIndexError
 
 class ItemCollection(ContentModel.ContentItem):
 
     def __init__(self, name=None, parent=None, kind=None):
-        if not kind:
+        if kind is None:
             kind = Globals.repository.findPath("//parcels/osaf/contentmodel/ItemCollection")
         super (ItemCollection, self).__init__(name, parent, kind)
 
@@ -20,13 +20,23 @@ class ItemCollection(ContentModel.ContentItem):
         you can specify a method on an item to be called when the results change. There
         may be more than one subscriber.
         """
-        if not self.isPinned():
-            self.setPinned()
+        if not self._isInitialized():
+            if not self.itsView.isRefCounted():
+                self.setPinned()
+            self._setInitialized()
             query = self.createRepositoryQuery()
             query.subscribe (self, "onItemCollectionChanged")
             self.notifyOfChanges ("multiple changes")
         if callbackItem is not None:
             self._callbacks [callbackItem.itsUUID] = callbackMethodName
+
+    def _isInitialized(self):
+
+        return self.__dict__.get('_initialized', False)
+
+    def _setInitialized(self, initialized=True):
+
+        self.__dict__['_initialized'] = initialized
 
     def createRepositoryQuery (self):
         self._callbacks = {} # transient
@@ -53,14 +63,16 @@ class ItemCollection(ContentModel.ContentItem):
             if remainingSubscribers == 0:
                 del self._query
                 del self._callbacks
-                self.setPinned (False)
+                self._setInitialized(False)
+                if not self.itsView.isRefCounted():
+                    self.setPinned(False)
     
     def onItemCollectionChanged (self, action):
         self.resultsStale = True
         self.notifyOfChanges (action)
 
     def notifyOfChanges (self, action):
-        if self.isPinned() and self._updateCount == 0:
+        if self._isInitialized() and self._updateCount == 0:
             for callbackUUID in self._callbacks.keys():
                 item = Globals.repository.find (callbackUUID)
                 method = getattr (type(item), self._callbacks [callbackUUID])
@@ -175,7 +187,7 @@ class ItemCollection(ContentModel.ContentItem):
             query.execute ()
             self.queryStringStale = False
             self.resultsStale = True
-        if self.resultsStale or not self.isPinned():
+        if self.resultsStale or not self._isInitialized():
             self._results = [index for index in query]
             self.resultsStale = False
 

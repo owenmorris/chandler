@@ -8,12 +8,12 @@ import os, os.path
 
 from datetime import datetime
 
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 from repository.util.SAX import XMLGenerator
 from repository.persistence.Repository import Repository
 from repository.persistence.RepositoryError import RepositoryError
 from repository.persistence.RepositoryView import RepositoryView
-from repository.item.ItemRef import RefDict, TransientRefDict
+from repository.item.RefCollections import RefList, TransientRefList
 
 
 class FileRepository(Repository):
@@ -52,12 +52,12 @@ class FileRepository(Repository):
 
 class FileRepositoryView(RepositoryView):
 
-    def _createRefDict(self, item, name, otherName, persist, readOnly, uuid):
+    def _createRefList(self, item, name, otherName, persist, readOnly, uuid):
 
         if persist:
-            return FileRefDict(item, name, otherName, readOnly)
+            return FileRefList(item, name, otherName, readOnly)
         else:
-            return TransientRefDict(item, name, otherName, readOnly)
+            return TransientRefList(item, name, otherName, readOnly)
     
     def _load(self):
         'Load items from the directory the repository was initialized with.'
@@ -66,7 +66,7 @@ class FileRepositoryView(RepositoryView):
         dbHome = self.repository.dbHome
         
         try:
-            loading = self._setLoading()
+            loading = self._setLoading(True)
             if os.path.isdir(dbHome):
                 contents = file(os.path.join(dbHome, 'contents.lst'), 'r')
             
@@ -195,7 +195,7 @@ class FileRepositoryView(RepositoryView):
         out.close()
 
 
-class FileRefDict(RefDict):
+class FileRefList(RefList):
 
     def _load(self, key):
         return False

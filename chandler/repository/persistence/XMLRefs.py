@@ -7,10 +7,10 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from cStringIO import StringIO
 
 from repository.item.Item import Item, Children
-from repository.item.ItemRef import RefDict
+from repository.item.RefCollections import RefList
 from repository.item.Indexes import NumericIndex
 from repository.persistence.RepositoryError import MergeError
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 from repository.util.LinkedMap import LinkedMap
 
 
@@ -88,6 +88,9 @@ class PersistentRefs(object):
         return self._getRefs().loadRef(self._key, self._item._version, key)
 
     def _writeRef(self, key, version, previous, next, alias):
+
+        if key is None:
+            raise ValueError, 'key is None'
 
         self._getRefs().saveRef(self._key, self._value, version, key,
                                 previous, next, alias)
@@ -170,14 +173,14 @@ class PersistentRefs(object):
             self.place(child, previousKey)
 
 
-class XMLRefDict(RefDict, PersistentRefs):
+class XMLRefList(RefList, PersistentRefs):
 
     def __init__(self, view, item, name, otherName, readOnly, uuid):
 
         self.uuid = uuid or UUID()
 
         PersistentRefs.__init__(self, view)
-        RefDict.__init__(self, item, name, otherName, readOnly)
+        RefList.__init__(self, item, name, otherName, readOnly)
 
     def _getRepository(self):
 
@@ -189,27 +192,27 @@ class XMLRefDict(RefDict, PersistentRefs):
 
     def resolveAlias(self, alias, load=True):
 
-        return (RefDict.resolveAlias(self, alias, load) or
+        return (RefList.resolveAlias(self, alias, load) or
                 PersistentRefs.resolveAlias(self, alias, load))
             
     def linkChanged(self, link, key):
 
-        super(XMLRefDict, self).linkChanged(link, key)
+        super(XMLRefList, self).linkChanged(link, key)
         self._changeRef(key, link)
         
-    def _removeRef(self, key, _detach=False):
+    def _removeRef(self, other):
 
-        link = RefDict._removeRef(self, key, _detach)
-        PersistentRefs._removeRef(self, key, link)
+        link = RefList._removeRef(self, other)
+        PersistentRefs._removeRef(self, other._uuid, link)
 
     def _setItem(self, item):
 
-        RefDict._setItem(self, item)
+        RefList._setItem(self, item)
         PersistentRefs._setItem(self, item)
 
     def __setitem__(self, key, value,
                     previousKey=None, nextKey=None, alias=None,
-                    load=True):
+                    load=True, direct=True):
 
         loading = self.view.isLoading()
         if loading and previousKey is None and nextKey is None:
@@ -219,11 +222,11 @@ class XMLRefDict(RefDict, PersistentRefs):
                 if alias is not None:
                     assert alias == refAlias
 
-        value = super(XMLRefDict, self).__setitem__(key, value,
+        value = super(XMLRefList, self).__setitem__(key, value,
                                                     previousKey, nextKey, alias,
-                                                    load)
+                                                    load, direct)
 
-        if not loading and value is not None:
+        if not loading:
             self._count += 1
 
     def _xmlValue(self, name, item, generator, withSchema,
@@ -232,7 +235,7 @@ class XMLRefDict(RefDict, PersistentRefs):
         if mode == 'save':
             attrs['uuid'] = self.uuid.str64()
 
-        super(XMLRefDict, self)._xmlValue(name, item, generator, withSchema,
+        super(XMLRefList, self)._xmlValue(name, item, generator, withSchema,
                                           version, attrs, mode)
         
     def _xmlValues(self, generator, version, mode):
@@ -250,7 +253,6 @@ class XMLRefDict(RefDict, PersistentRefs):
                            self._firstKey, self._lastKey, self._count)
             
             for key, (op, oldAlias) in self._changedRefs.iteritems():
-
                 if op == 0:               # change
                     link = self._get(key, load=False)
                     ref = link._value
@@ -259,16 +261,17 @@ class XMLRefDict(RefDict, PersistentRefs):
                     alias = link._alias
     
                     self._writeRef(key, version, previous, next, alias)
-                    if oldAlias is not None and oldAlias != alias:
+                    if (oldAlias is not None and
+                        oldAlias != alias and
+                        oldAlias not in self._aliases):
                         store.writeName(version, self.uuid, oldAlias, None)
                     if alias is not None:
                         store.writeName(version, self.uuid, alias, key)
                         
                 elif op == 1:             # remove
                     self._deleteRef(key, version)
-                    if oldAlias is not None:
-                        store.writeName(version, self.uuid, oldAlias,
-                                        None)
+                    if oldAlias is not None and oldAlias not in self._aliases:
+                        store.writeName(version, self.uuid, oldAlias, None)
 
                 else:                     # error
                     raise ValueError, op
@@ -282,7 +285,7 @@ class XMLRefDict(RefDict, PersistentRefs):
                     index._xmlValues(generator, version, attrs, mode)
 
         elif mode == 'serialize':
-            super(XMLRefDict, self)._xmlValues(generator, version, mode)
+            super(XMLRefList, self)._xmlValues(generator, version, mode)
 
         else:
             raise ValueError, mode
@@ -304,7 +307,7 @@ class XMLRefDict(RefDict, PersistentRefs):
         if indexType == 'numeric':
             return XMLNumericIndex(self._getRepository(), **kwds)
 
-        return super(XMLRefDict, self)._createIndex(indexType, **kwds)
+        return super(XMLRefList, self)._createIndex(indexType, **kwds)
 
 
 class XMLNumericIndex(NumericIndex):
@@ -463,7 +466,18 @@ class XMLChildren(Children, PersistentRefs):
 
     def _load(self, key):
 
-        return not self._isRemoved(key) and self.view._loadItem(key) is not None
+        if not self._isRemoved(key):
+            child = self.view.find(key)
+            if child is not None:
+                if key not in self:
+                    try:
+                        loading = self.view._setLoading(True)
+                        self.__setitem__(key, child, alias=child._name)
+                    finally:
+                        self.view._setLoading(loading, True)
+                return True
+
+        return False
 
     def resolveAlias(self, alias, load=True):
 
@@ -514,17 +528,19 @@ class XMLChildren(Children, PersistentRefs):
                 alias = link._alias
                     
                 self._writeRef(key, version, previous, next, alias)
-                if oldAlias is not None and oldAlias != alias:
+                if (oldAlias is not None and
+                    oldAlias != alias and
+                    oldAlias not in self._aliases):
                     store.writeName(version, self.uuid, oldAlias, None)
                 if alias is not None:
                     store.writeName(version, self.uuid, alias, key)
 
                 if link._value is None:
                     unloads.append((key, link._alias))
-                        
+
             elif op == 1:             # remove
                 self._deleteRef(key, version)
-                if oldAlias is not None:
+                if oldAlias is not None and oldAlias not in self._aliases:
                     store.writeName(version, self.uuid, oldAlias, None)
 
             else:                     # error

@@ -8,7 +8,7 @@ import repository.query.parser.QueryParser as QueryParser
 import tools.timing
 import sets
 import mx.DateTime.ISO
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 
 import logging
 log = logging.getLogger("RepoQuery")

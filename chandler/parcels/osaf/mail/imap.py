@@ -20,7 +20,7 @@ import sharing as sharing
 import email as email
 import email.Utils as Utils
 import logging as logging
-import repository.util.UUID as UUID
+import chandlerdb.util.UUID as UUID
 import common as common
 import repository.item.Query as Query
 
@@ -514,7 +514,8 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         NotifyUIAsync(self.downloadedStr, self.__printInfo)
         self.downloadedStr = None
 
-        self.account.setPinned(False)
+        if not self.account.itsView.isRefCounted():
+            self.account.setPinned(False)
         self.account = None
 
     def _expunge(self, result):
@@ -545,7 +546,8 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
     def __getAccount(self):
 
         self.account = getIMAPAccount(self.accountUUID)
-        self.account.setPinned()
+        if not self.account.itsView.isRefCounted():
+            self.account.setPinned()
 
 
     def __printInfo(self, info):

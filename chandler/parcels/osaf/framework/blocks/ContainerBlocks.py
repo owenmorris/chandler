@@ -8,7 +8,7 @@ from Block import Block, RectangularChild, wxRectangularChild, ContainerChild
 from DragAndDrop import DropReceiveWidget as DropReceiveWidget
 from DynamicContainerBlocks import Toolbar as Toolbar
 from Styles import Font
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 import wx
 import time
 

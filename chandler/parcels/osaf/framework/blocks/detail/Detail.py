@@ -76,12 +76,12 @@ class DetailRoot (ControlBlocks.SelectionContainer):
             except AttributeError:
                 pass
             try:
-                syncMethod = block.synchronizeItemDetail
+                syncMethod = type(block).synchronizeItemDetail
             except AttributeError:
                 if notifyParent:
                     block.synchronizeWidget()
             else:
-                notifyParent = syncMethod(item) or notifyParent
+                notifyParent = syncMethod(block, item) or notifyParent
             return notifyParent
 
         children = self.childrenBlocks

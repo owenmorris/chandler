@@ -12,7 +12,7 @@ import email as email
 import email.Message as Message
 import email.Utils as Utils
 import unittest as unittest
-import repository.persistence.XMLRefDict as XMLRefDict
+from repository.item.RefCollections import RefList
 
 import mx.DateTime as MXDateTime
 
@@ -104,8 +104,8 @@ This is the body"""
 
     def __compareEmailAddressLists(self, adOne, adTwo):
 
-        self.assertNotEqual(adOne, XMLRefDict.XMLRefDict)
-        self.assertNotEqual(adTwo, XMLRefDict.XMLRefDict)
+        self.assertNotEqual(adOne, RefList)
+        self.assertNotEqual(adTwo, RefList)
 
         self.assertEquals(len(adOne), len(adTwo))
 

@@ -13,6 +13,7 @@
     <ref alias="dictionaries" type="path">/Collections/Attributes/dictionaries</ref>
     <ref alias="alias" type="path">/Collections/Attributes/alias</ref>
     <ref alias="strings" type="path">/Collections/Attributes/strings</ref>
+    <ref alias="tuple" type="path">/Collections/Attributes/tuple</ref>
   </ref>
 
   <ref name="superKinds">

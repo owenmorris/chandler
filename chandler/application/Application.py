@@ -7,9 +7,10 @@ import gettext, os, sys, threading
 from new import classobj
 import wx
 import Globals
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 import application.Parcel
 from repository.persistence.XMLRepository import XMLRepository
+from repository.persistence.RepositoryError import VersionConflictError
 from crypto import Crypto
 import logging as logging
 
@@ -202,7 +203,9 @@ class wxApplication (wx.App):
         kwds = { 'stderr': '-stderr' in sys.argv,
                  'ramdb': '-ramdb' in sys.argv,
                  'create': True,
-                 'recover': True }
+                 'recover': True,
+                 'exclusive': '-exclusive' in sys.argv,
+                 'refcounted': '-refcounted' in sys.argv }
 
         if '-repo' in sys.argv:
             for i in range(0, len(sys.argv)):
@@ -221,6 +224,7 @@ class wxApplication (wx.App):
             can't be loaded in a data parcel.
             """
             Globals.repository.loadPack("repository/packs/schema.pack")
+            Globals.repository.loadPack("repository/packs/chandler.pack")
 
         """
           Create the notification manager. Start later.
@@ -449,8 +453,14 @@ class wxApplication (wx.App):
         need to add a final commit when the application quits to save data the
         state of the user's world, e.g. window location and size.
         """
-        Globals.repository.commit()
-        Globals.repository.close()
+
+        try:
+            try:
+                Globals.repository.commit()
+            except VersionConflictError, e:
+                Globals.repository.logger.warning(str(e))
+        finally:
+            Globals.repository.close()
 
         Globals.crypto.shutdown()
 

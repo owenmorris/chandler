@@ -13,7 +13,7 @@ import osaf.contentmodel.Notes as Notes
 import application.Globals as Globals
 import repository.query.Query as Query
 import repository.item.Query as ItemQuery
-import repository.util.UUID as UUID
+import chandlerdb.util.UUID as UUID
 
 from repository.util.Path import Path
 

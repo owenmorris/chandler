@@ -11,7 +11,7 @@ from cStringIO import StringIO
 from bsddb.db import DBLockDeadlockError, DBNotFoundError
 
 from repository.item.Item import Item
-from repository.item.ItemRef import TransientRefDict
+from repository.item.RefCollections import TransientRefList
 from repository.item.ItemHandler import MergeHandler
 from repository.persistence.RepositoryError import RepositoryError, MergeError
 from repository.persistence.RepositoryError import VersionConflictError
@@ -20,7 +20,7 @@ from repository.persistence.RepositoryView import OnDemandRepositoryView
 from repository.persistence.Repository import Repository
 from repository.persistence.Repository import RepositoryNotifications
 from repository.persistence.XMLLob import XMLText, XMLBinary
-from repository.persistence.XMLRefDict import XMLRefDict, XMLChildren
+from repository.persistence.XMLRefs import XMLRefList, XMLChildren
 from repository.persistence.DBContainer import HashTuple
 from repository.util.SAX import XMLGenerator
 
@@ -58,19 +58,20 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
     def cancel(self):
 
+        refCounted = self.isRefCounted()
         for item in self._log:
             if item.isDeleted():
                 del self._deletedRegistry[item.itsUUID]
                 item._status &= ~Item.DELETED
             else:
                 item.setDirty(0)
-                item._unloadItem()
+                item._unloadItem(not item.isNew())
 
         for item in self._log:
             if not item.isNew():
                 self.logger.debug('reloading version %d of %s',
                                   self._version, item)
-                self._loadItem(item._uuid, instance=item)
+                self.find(item._uuid)
 
         del self._log[:]
         if self.isDirty():
@@ -107,12 +108,12 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         return results
 
-    def _createRefDict(self, item, name, otherName, persist, readOnly, uuid):
+    def _createRefList(self, item, name, otherName, persist, readOnly, uuid):
 
         if persist:
-            return XMLRefDict(self, item, name, otherName, readOnly, uuid)
+            return XMLRefList(self, item, name, otherName, readOnly, uuid)
         else:
-            return TransientRefDict(item, name, otherName, readOnly)
+            return TransientRefList(item, name, otherName, readOnly)
 
     def _createChildren(self, parent):
 
@@ -162,7 +163,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         history = self.repository.store._history
         newVersion = history.getVersion()
-
+        
         if newVersion > self._version:
             histNotifications = RepositoryNotifications()
             unloads = {}
@@ -173,15 +174,16 @@ class XMLRepositoryView(OnDemandRepositoryView):
                               self._version, newVersion)
             self._version = newVersion
 
+            refCounted = self.isRefCounted()
             for item in unloads.itervalues():
                 self.logger.debug('unloading version %d of %s',
                                   item._version, item)
-                item._unloadItem()
+                item._unloadItem(refCounted or item.isPinned())
             for item in unloads.itervalues():
-                if item._status & Item.PINNED:
+                if refCounted or item.isPinned():
                     self.logger.debug('reloading version %d of %s',
                                       newVersion, item)
-                    self._loadItem(item._uuid, instance=item)
+                    self.find(item._uuid)
 
             before = datetime.now()
             count = len(histNotifications)
@@ -251,9 +253,10 @@ class XMLRepositoryView(OnDemandRepositoryView):
                         self.logger.info('retrying commit aborted by deadlock')
                         lock, txnStarted = finish(lock, txnStarted, False)
                         continue
-            
+
                     except:
-                        self.logger.exception('aborting transaction (%ld bytes)', size)
+                        if txnStarted:
+                            self.logger.exception('aborting transaction (%ld bytes)', size)
                         lock, txnStarted = finish(lock, txnStarted, False)
                         raise
 
@@ -307,7 +310,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
         out = StringIO()
         generator = XMLGenerator(out, 'utf-8')
         generator.startDocument()
-        item._saveItem(generator, newVersion, None)
+        item._saveItem(generator, newVersion)
         generator.endDocument()
         xml = out.getvalue()
         out.close()
@@ -498,7 +501,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         store = self.repository.store
         mergeHandler = MergeHandler(self, item)
-        doc = store._data.getDocument(docId)
+        doc = store._xml.getDocument(docId)
         store.parseDoc(doc, mergeHandler)
 
     def _i_merged(self, item):

@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import threading, logging
 
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 from repository.util.ThreadLocal import ThreadLocal
 from repository.item.Item import Item
 from repository.persistence.RepositoryView import RepositoryView
@@ -44,6 +44,15 @@ class Repository(object):
         """
         Create a new repository in C{self.dbHome}. Some implementations may
         remove files for existing repositories in the same location.
+
+        A number of keywords can be passed to this method. Their support
+        depends on the actual implementation chosen for the persistence
+        layer.
+        
+        @param ramdb: a keyword argument that causes the repository to be
+        created in memory instead of in the underlying file system.
+        C{False} by default, supported by C{XMLRepository} only.
+        @type ramdb: boolean
         """
 
         self._init(**kwds)
@@ -52,10 +61,27 @@ class Repository(object):
         """
         Open a repository in C{self.dbHome}.
 
-        @param create: a keyword argument that causes a repository to be
-        created if no repository exists in C{self.dbHome}, defaulting to
-        C{False}
+        A number of keywords can be passed to this method. Their support
+        depends on the actual implementation chosen for the persistence
+        layer.
+        
+        @param create: a keyword argument that causes the repository to be
+        created if no repository exists in C{self.dbHome}. C{False}, by
+        default.
         @type create: boolean
+        @param ramdb: a keyword argument that causes the repository to be
+        created in memory instead of using the underlying file system.
+        C{False} by default, supported by C{XMLRepository} only.
+        @type ramdb: boolean
+        @param recover: a keyword argument that causes the repository to be
+        opened with recovery. C{False} by default, supported by
+        C{XMLRepository} only.
+        @type recover: boolean
+        @param exclusive: a keyword argument that causes the repository to be
+        opened with exclusive access, preventing other processes from
+        opening it until this process closes it. C{False} by default,
+        supported by C{XMLRepository} only.
+        @type exclusive: boolean
         """
 
         self._init(**kwds)
@@ -82,6 +108,9 @@ class Repository(object):
         if kwds.get('stderr', False) or not self.logger.root.handlers:
             if not self.logger.handlers:
                 self.logger.addHandler(logging.StreamHandler())
+
+        if kwds.get('refcounted', False):
+            self._status |= Repository.REFCOUNTED
             
     def _isRepository(self):
 
@@ -255,6 +284,10 @@ class Repository(object):
         """
 
         return (self._status & Repository.OPEN) != 0
+
+    def isRefCounted(self):
+
+        return (self._status & Repository.REFCOUNTED) != 0
 
     def hasRoot(self, name, load=True):
         """
@@ -442,7 +475,10 @@ class Repository(object):
             self.logger.setLevel(logging.INFO)
 
     itsUUID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
-    OPEN = 0x1
+
+    OPEN       = 0x0001
+    REFCOUNTED = 0x0002
+
     view = property(getCurrentView, setCurrentView)
     debug = property(isDebug, setDebug)
 

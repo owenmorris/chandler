@@ -16,7 +16,7 @@ import twisted.internet.error as error
 import errors as errorCode
 import message as message
 import osaf.contentmodel.mail.Mail as Mail
-import repository.util.UUID as UUID
+import chandlerdb.util.UUID as UUID
 import repository.item.Query as Query
 import mx.DateTime as DateTime
 import twisted.protocols.policies as policies
@@ -456,8 +456,9 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         @return: C{None}
         """
 
-        self.account.setPinned(False)
-        self.mailMessage.setPinned(False)
+        if not self.account.itsView.isRefCounted():
+            self.account.setPinned(False)
+            self.mailMessage.setPinned(False)
         self.account = None
         self.mailMessage = None
 
@@ -494,8 +495,9 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         if self.mailMessage is None:
             raise SMTPException("No MailMessage for UUID: %s" % self.mailMessageUUID)
 
-        self.account.setPinned()
-        self.mailMessage.setPinned()
+        if not self.account.itsView.isRefCounted():
+            self.account.setPinned()
+            self.mailMessage.setPinned()
 
 def getSMTPAccount(UUID=None):
     """

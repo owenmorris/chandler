@@ -4,7 +4,10 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from chandlerdb.util.UUID import UUID
+from repository.util.Path import Path
 from repository.item.PersistentCollections import PersistentCollection
+from repository.item.RefCollections import RefList
 from repository.util.SingleRef import SingleRef
 
 
@@ -17,10 +20,8 @@ class Values(dict):
 
     def clear(self):
 
-        try:
-            del self._flags
-        except AttributeError:
-            pass
+        for name in self.iterkeys():
+            self._setDirty(name)
 
         super(Values, self).clear()
 
@@ -31,6 +32,18 @@ class Values(dict):
     def _setItem(self, item):
 
         self._item = item
+
+    def _refCount(self):
+
+        count = 1
+
+        for value in self.itervalues():
+            if isinstance(value, ItemValue):
+                count += value._refCount()
+            elif isinstance(value, PersistentCollection):
+                count += value._refCount()
+
+        return count
 
     def _copy(self, orig, copyPolicy, copyFn):
 
@@ -73,7 +86,7 @@ class Values(dict):
 
     def _unload(self):
 
-        self.clear()
+        super(Values, self).clear()
 
     def _setFlag(self, key, flag):
 
@@ -234,6 +247,63 @@ class Values(dict):
             self._item._values = self._original
         except AttributeError:
             pass
+
+        
+    def _checkValue(self, logger, name, value, attrType):
+
+        if not attrType.recognizes(value):
+            logger._error('Value %s of type %s in attribute %s on %s is not recognized by type %s', value, type(value), name, self._item.itsPath, attrType.itsPath)
+            return False
+
+        return True
+
+    def _checkCardinality(self, logger, name, value, cardType, attrCard):
+
+        if not (value is None or isinstance(value, cardType)):
+            logger.error('Value %s of type %s in attribute %s on %s is not an instance of type %s which is required for cardinality %s', value, type(value), name, self._item.itsPath, cardType, attrCard)
+            return False
+
+        return True
+
+    def check(self):
+        
+        item = self._item
+        logger = item.itsView.logger
+        result = True
+
+        for key, value in self.iteritems():
+            try:
+                attribute = item._kind.getAttribute(key)
+            except AttributeError:
+                logger.error('Item %s has a value for attribute %s but its kind %s has no definition for this attribute', item.itsPath, key, item._kind.itsPath)
+                result = False
+                continue
+
+            attrType = attribute.getAspect('type', default=None)
+            if attrType is not None:
+                attrCard = attribute.getAspect('cardinality', default='single')
+                if attrCard == 'single':
+                    check = self._checkValue(logger, key, value, attrType)
+                    result = result and check
+                elif attrCard == 'list':
+                    check = self._checkCardinality(logger, key, value,
+                                                   list, 'list')
+                    result = result and check
+                    if check:
+                        for v in value:
+                            check = self._checkValue(logger, key, v, attrType)
+                            result = result and check
+                elif attrCard == 'dict':
+                    check = self._checkCardinality(logger, key, value,
+                                                   dict, 'dict')
+                    result = result and check
+                    if check:
+                        for v in value.itervalues():
+                            check = self._checkValue(logger, key, v, attrType)
+                            result = result and check
+
+        return result
+
     
     READONLY  = 0x0001         # value is read-only
     MONITORED = 0x0002         # value is monitored
@@ -244,6 +314,129 @@ class Values(dict):
 
 class References(Values):
 
+    def _setValue(self, name, other, otherName, **kwds):
+
+        value = self.get(name)
+        if value is not None and value._isItem():
+            value._references._removeRef(otherName, self._item)
+
+        self._setRef(name, other, otherName, **kwds)
+        if other is not None:
+            other._references._setRef(otherName, self._item, name,
+                                      cardinality=kwds.get('otherCard'),
+                                      alias=kwds.get('otherAlias'))
+
+    def _addValue(self, name, other, otherName, **kwds):
+
+        kwds['cardinality'] = 'list'
+        self._setValue(name, other, otherName, **kwds)
+
+    def _setRef(self, name, other, otherName, **kwds):
+
+        item = self._item
+        value = self.get(name)
+        if value is None:
+            cardinality = (kwds.get('cardinality') or
+                           item.getAttributeAspect(name, 'cardinality',
+                                                   noError=True,
+                                                   default='single'))
+            if cardinality == 'list':
+                self[name] = value = item._refList(name, otherName)
+            elif cardinality != 'single':
+                raise ValueError, 'bogus cardinality %s' %(cardinality)
+
+        if value is not None and value._isRefList():
+            value._setRef(other, **kwds)
+        else:
+            self[name] = other
+            if not item.itsView.isLoading():
+                item.setDirty(item.VDIRTY, name, self)
+
+    def _getRef(self, name, other=None):
+
+        value = self.get(name, self)
+
+        if other is None:
+            if value is self:
+                raise KeyError
+            if value is None:
+                return value
+            if value._isUUID():
+                other = self._item.find(value)
+                if other is None:
+                    raise ValueError, 'bad ref for %s.%s: %s' %(self._item.itsPath, name, value)
+                self[name] = other
+                if self._item.itsKind is None:
+                    raise ValueError, '%s: no kind' %(self._item.itsPath)
+                other._references._getRef(self._item.itsKind.getOtherName(name),
+                                          self._item)
+                return other
+            if value._isRefList() or value._isItem():
+                return value
+            raise TypeError, '%s, type: %s' %(value, type(value))
+
+        if value is other:
+            if value._isUUID():
+                other = self._item.find(value)
+                if other is None:
+                    raise ValueError, 'bad ref for %s.%s: %s' %(self._item.itsPath, name, value)
+            self[name] = other
+            return other
+
+        if value is self or value is None:
+            raise ValueError, 'no ref for %s.%s, should be %s' %(self._item.itsPath, name, other)
+
+        if value == other._uuid:
+            self[name] = other
+            return other
+
+        if value._isRefList() and other in value:
+            return other
+
+        raise ValueError, 'refs mismatch for %s.%s' %(self._item.itsPath, name,
+                                                      value, other)
+    
+    def _removeValue(self, name, other, otherName):
+
+        self._removeRef(name, other)
+        if not (other is None or other._isRefList()):
+            other._references._removeRef(otherName, self._item)
+
+    def _removeRef(self, name, other):
+
+        value = self.get(name, self)
+        if value is self:
+            raise ValueError, '_removeRef: no value for %s' %(name)
+
+        if value is other:
+            if other is not None and other._isRefList():
+                other.clear()
+                self._item.setDirty(self._item.RDIRTY, name, self, True)
+            else:
+                self._item.setDirty(self._item.VDIRTY, name, self, True)
+            del self[name]
+        elif value._isRefList():
+            value._removeRef(other)
+        else:
+            raise ValueError, '_removeRef: %s is not %s' %(other, value)
+        
+    def _unloadValue(self, name, other, otherName):
+
+        self._unloadRef(name, other, otherName)
+        other._references._unloadRef(otherName, self._item, name)
+
+    def _unloadRef(self, name, other, otherName):
+
+        if not (other is None or other._isUUID()):
+            value = self[name]
+            if value._isRefList():
+                value._unloadRef(other)
+            elif value is other:
+                self[name] = other._uuid
+            else:
+                raise ValueError, '%s.%s: _unloadRef: %s' %(self._item.itsPath,
+                                                            name, other)
+
     def clear(self):
 
         item = self._item
@@ -253,21 +446,113 @@ class References(Values):
     def _setItem(self, item):
 
         for value in self.itervalues():
-            value._setItem(item)
+            if value is not None and value._isRefList():
+                value._setItem(item)
 
         self._item = item
 
+    def refCount(self, loaded):
+
+        count = 0
+
+        for value in self.itervalues():
+            if value is not None:
+                if value._isItem():
+                    count += 1
+                elif value._isRefList():
+                    count += value.refCount(loaded)
+                elif not loaded and value._isUUID():
+                    count += 1
+
+        return count
+
+    def _refCount(self):
+
+        count = 1
+
+        for value in self.itervalues():
+            if value is not None:
+                if value._isItem():
+                    count += 1
+                elif value._isRefList():
+                    count += value._refCount()
+
+        return count
+
+    # copy a ref from self into copyItem._references
+    def _copyRef(self, copyItem, name, other, policy, copyFn):
+
+        value = self._getRef(name, other)
+        copyOther = copyFn(copyItem, value, policy)
+
+        if copyOther is not None and name not in copyItem._references:
+            copyItem._references._setValue(name, copyOther,
+                                           copyItem._kind.getOtherName(name))
+
+    # copy orig._references into self
     def _copy(self, orig, copyPolicy, copyFn):
 
         item = self._item
         for name, value in orig.iteritems():
             policy = copyPolicy or item.getAttributeAspect(name, 'copyPolicy')
-            value._copy(self, orig._item, item, name, policy, copyFn)
+            if value is not None:
+                if value._isRefList():
+                    value._copy(item, name, policy, copyFn)
+                else:
+                    orig._copyRef(item, name, value, policy, copyFn)
 
     def _unload(self):
 
-        for value in self.itervalues():
-            value._unload(self._item)
+        for name, value in self.iteritems():
+            if value is not None:
+                if value._isRefList():
+                    value._unload()
+                elif value._isItem():
+                    otherName = self._item.itsKind.getOtherName(name)
+                    self._unloadValue(name, value, otherName)
+
+        super(References, self)._unload()
+
+    def _saveRef(self, name, other, generator, withSchema, version, attrs,
+                 mode, previous=None, next=None, alias=None):
+
+        def addAttr(attrs, attr, value):
+
+            if value is not None:
+                if isinstance(value, UUID):
+                    attrs[attr + 'Type'] = 'uuid'
+                    attrs[attr] = value.str64()
+                elif isinstance(attr, str) or isinstance(attr, unicode):
+                    attrs[attr] = value.encode('utf-8')
+                elif isinstance(attr, Path):
+                    attrs[attr + 'Type'] = 'path'
+                    attrs[attr] = str(value).encode('utf-8')
+                else:
+                    raise TypeError, "%s, type: %s" %(value, type(value))
+
+        attrs['type'] = 'uuid'
+
+        addAttr(attrs, 'name', name)
+        addAttr(attrs, 'previous', previous)
+        addAttr(attrs, 'next', next)
+        addAttr(attrs, 'alias', alias)
+
+        if withSchema:
+            otherName = self._item._kind.getOtherName(name)
+            otherCard = other.getAttributeAspect(otherName, 'cardinality',
+                                                 default='single')
+            attrs['otherName'] = otherName
+            if otherCard != 'single':
+                attrs['otherCard'] = otherCard
+            uuid = other._uuid
+        elif other._isUUID():
+            uuid = other
+        else:
+            uuid = other._uuid
+
+        generator.startElement('ref', attrs)
+        generator.characters(uuid.str64())
+        generator.endElement('ref')
 
     def _xmlValues(self, generator, withSchema, version, mode):
 
@@ -279,15 +564,29 @@ class References(Values):
                 attrs = {}
                 if flags:
                     attrs['flags'] = str(flags)
-                value._xmlValue(key, item, generator, withSchema, version,
-                                attrs, mode)
+
+                if withSchema and value._isUUID():
+                    value = self._getRef(key, value)
+
+                if value is None:
+                    attrs['name'] = key
+                    attrs['type'] = 'none'
+                    generator.startElement('ref', attrs)
+                    generator.endElement('ref')
+                elif not withSchema and value._isUUID() or value._isItem():
+                    self._saveRef(key, value, generator, withSchema, version,
+                                  attrs, mode)
+                else:
+                    value._xmlValue(key, item, generator, withSchema, version,
+                                    attrs, mode)
 
     def _clearDirties(self):
 
         super(References, self)._clearDirties()
         # clearing according to flags is not enough, flags not set on new items
         for value in self.itervalues():
-            value._clearDirties()
+            if value is not None and value._isRefList():
+                value._clearDirties()
 
     def _commitMerge(self):
 
@@ -302,6 +601,7 @@ class References(Values):
         except AttributeError:
             dirties = None
 
+        # catch-up on ref collections (dirties only covers those for now)
         if dirties is not None:
             for key in self.iterkeys():
                 if key in dirties:
@@ -319,10 +619,79 @@ class References(Values):
         except AttributeError:
             pass
 
-    def _isRefDict(self):
+    def _checkRef(self, logger, name, other):
 
-        return False
+        if other is not None:
+            if not other._isItem():
+                other = self._item.find(other)
+                if other is None:
+                    logger.error('DanglingRefError: %s.%s',
+                                 self._item.itsPath, name)
+                    return False
 
+            if other.isStale():
+                logger.error('Found stale item %s at %s.%s',
+                             other, self._item.itsPath, name)
+                return False
+
+        otherName = self._item._kind.getOtherName(name, default=None)
+        if otherName is None:
+            logger.error('otherName is None for attribute %s.%s',
+                         self._item._kind.itsPath, name)
+            return False
+
+        if other is not None:
+            if other._kind is None:
+                raise ValueError, 'no kind for %s' %(other.itsPath)
+            otherOtherName = other._kind.getOtherName(otherName, default=None)
+            if otherOtherName != name:
+                logger.error("otherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s",
+                             self._item._kind.itsPath, name, otherName,
+                             other._kind.itsPath, otherName, otherOtherName)
+                return False
+
+            otherOther = other._references.get(otherName)
+            if not (otherOther is self._item or
+                    otherOther._isRefList() and self._item in otherOther):
+                logger.error("%s.%s doesn't reference %s.%s",
+                             other.itsPath, otherName, self._item.itsPath, name)
+                return False
+
+        return True
+
+    def check(self):
+
+        from repository.item.Item import Item
+
+        item = self._item
+        logger = item.itsView.logger
+        result = True
+
+        for key, value in self.iteritems():
+            if value is not None and value._isUUID():
+                value = self._getRef(key, value)
+                
+            attrCard = item.getAttributeAspect(key, 'cardinality',
+                                               default='single')
+            if attrCard == 'single':
+                check = self._checkCardinality(logger, key, value,
+                                               Item, 'single')
+                if check:
+                    check = self._checkRef(logger, key, value)
+            elif attrCard == 'list':
+                check = self._checkCardinality(logger, key, value,
+                                               RefList, 'list')
+                if check:
+                    check = value.check(logger, key, item)
+            elif attrCard == 'dict':
+                logger.error("Attribute %s on %s is using deprecated 'dict' cardinality, use 'list' instead", key, self._item.itsPath)
+                check = value.check(logger, key, item)
+                check = False
+                
+            result = result and check
+
+        return result
+        
 
 class ItemValue(object):
     'A superclass for values that are owned by an item.'
@@ -349,6 +718,10 @@ class ItemValue(object):
     def _getItem(self):
 
         return self._item
+
+    def _refCount(self):
+
+        return 1
 
     def _getAttribute(self):
 

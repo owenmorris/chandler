@@ -7,11 +7,13 @@ import application.Globals as Globals
 import Block as Block
 import logging
 import wx
+from repository.item.Item import Item
 
-class RefCollectionDictionary(object):
+
+class RefCollectionDictionary(Item):
     """
       Provides dictionary access to a reference collection attribute 
-    L{RefDict<repository.item.ItemRef.RefDict>}.
+    L{RefList<repository.item.RefCollections.RefList>}.
     The attribute that contains the reference collection is determined
     through attribute indirection using the collectionSpecifier attribute.
     The "itsName" property of the items in the reference collection
@@ -163,7 +165,7 @@ class RefCollectionDictionary(object):
             barList.append (entry.itsName or entry.itsUUID.str64())
         return str (barList)
 
-class DynamicBlock (object):
+class DynamicBlock(Item):
     """
       Mixin class for any Dynamic Block, both DynamicContainers
     and DynamicChild blocks.

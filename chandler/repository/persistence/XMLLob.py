@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.item.Values import Values, ItemValue
 from repository.util.Lob import Text, Binary
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 from repository.util.Streams import ConcatenatedInputStream, NullInputStream
 
 
@@ -22,14 +22,15 @@ class XMLText(Text, ItemValue):
         self._view = view
         self._version = 0
 
-    def _copy(self, item, attribute):
+    def _copy(self, item, attribute, key=None):
 
         view = item.itsView
         copy = view._getLobType('text')(view, self.encoding,
                                         self.mimetype, self._indexed)
 
-        inputStream = self.getInputStream()
-        outputStream = copy.getOutputStream(self._compression)
+        inputStream = self.getInputStream(key)
+        outputStream = copy.getOutputStream(self._compression, self._encryption,
+                                            key)
 
         outputStream.write(inputStream.read())
         outputStream.close()
@@ -69,6 +70,8 @@ class XMLText(Text, ItemValue):
         attrs['encoding'] = self.encoding
         if self._compression:
             attrs['compression'] = self._compression
+        if self._encryption:
+            attrs['encryption'] = self._encryption
         attrs['type'] = 'uuid'
         if self._indexed:
             attrs['indexed'] = 'True'
@@ -92,6 +95,7 @@ class XMLText(Text, ItemValue):
 
         self.mimetype = attrs.get('mimetype', 'text/plain')
         self._compression = attrs.get('compression', None)
+        self._encryption = attrs.get('encryption', None)
         self._version = long(attrs.get('version', '0'))
         self._indexed = attrs.get('indexed', 'False') == 'True'
 
@@ -110,12 +114,13 @@ class XMLText(Text, ItemValue):
         super(XMLText, self)._setData(data)
         self._setDirty()
 
-    def getOutputStream(self, compression=None, append=False):
+    def getOutputStream(self, compression=None, encryption=None, key=None,
+                        append=False):
 
         if self._isReadOnly():
             raise TypeError, 'Value for %s on %s is read-only' %(self._getAttribute(), self._getItem())
 
-        return Text.getOutputStream(self, compression, append)
+        return Text.getOutputStream(self, compression, encryption, key, append)
 
     def _getInputStream(self):
 
@@ -153,13 +158,14 @@ class XMLBinary(Binary, ItemValue):
         self._view = view
         self._version = 0
         
-    def _copy(self, item, attribute):
+    def _copy(self, item, attribute, key=None):
 
         view = item.itsView
         copy = view._getLobType('binary')(view, self.mimetype, self._indexed)
 
-        inputStream = self.getInputStream()
-        outputStream = copy.getOutputStream(self._compression)
+        inputStream = self.getInputStream(key)
+        outputStream = copy.getOutputStream(self._compression, self._encryption,
+                                            key)
 
         outputStream.write(inputStream.read())
         outputStream.close()
@@ -199,6 +205,8 @@ class XMLBinary(Binary, ItemValue):
         attrs['mimetype'] = self.mimetype
         if self._compression:
             attrs['compression'] = self._compression
+        if self._encryption:
+            attrs['encryption'] = self._encryption
         attrs['type'] = 'uuid'
         
         generator.startElement('binary', attrs)
@@ -220,6 +228,7 @@ class XMLBinary(Binary, ItemValue):
 
         self.mimetype = attrs.get('mimetype', 'text/plain')
         self._compression = attrs.get('compression', None)
+        self._encryption = attrs.get('encryption', None)
         self._version = long(attrs.get('version', '0'))
 
         if attrs.get('type', 'binary') == 'binary':
@@ -234,12 +243,14 @@ class XMLBinary(Binary, ItemValue):
         super(XMLBinary, self)._setData(data)
         self._setDirty()
 
-    def getOutputStream(self, compression=None, append=False):
+    def getOutputStream(self, compression=None, encryption=None, key=None,
+                        append=False):
 
         if self._isReadOnly():
             raise TypeError, 'Value for %s on %s is read-only' %(self._getAttribute(), self._getItem())
 
-        return Binary.getOutputStream(self, compression, append)
+        return Binary.getOutputStream(self, compression, encryption, key,
+                                      append)
 
     def _getInputStream(self):
 

@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import cStringIO
 
-from repository.item.ItemRef import ItemRef, NoneRef, RefArgs, RefDict
+from repository.item.RefCollections import RefList
 from repository.item.Values import Values, References, ItemValue
 from repository.item.Access import ACL
 from repository.item.PersistentCollections import PersistentCollection
@@ -14,7 +14,7 @@ from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
 
 from repository.util.SingleRef import SingleRef
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 from repository.util.SAX import XMLGenerator
@@ -45,6 +45,9 @@ class Item(object):
         @type kind: an item
         """
 
+        # This needs to be the top of the inheritance diamond, hence we're
+        # not calling super() here.
+
         self.__dict__.update({ '_status': Item.NEW,
                                '_version': 0L,
                                '_lastAccess': 0L,
@@ -52,18 +55,11 @@ class Item(object):
                                '_values': Values(self),
                                '_references': References(self),
                                '_name': name or None,
-                               '_kind': kind,
-                               '_root': None,
-                               '_parent': None,
-                               '_children': None,
-                               '_acls': None })
+                               '_kind': kind })
 
         if parent is None:
             raise ValueError, 'parent cannot be None'
         self._setParent(parent)
-
-        # at this point, we may go reentrant
-        super(Item, self).__init__()
 
         if kind is not None:
             kind.getInitialValues(self, self._values, self._references)
@@ -78,21 +74,11 @@ class Item(object):
         self.__dict__.update({ '_uuid': kwds['uuid'],
                                '_name': name or None,
                                '_kind': kind,
-                               '_root': None,
-                               '_status': 0,
+                               '_status': kwds.get('status', 0),
                                '_version': kwds['version'],
                                '_lastAccess': 0L,
                                '_values': values,
-                               '_references': references,
-                               '_parent': None,
-                               '_children': None,
-                               '_acls': None })
-
-        if values is not None:
-            values._setItem(self)
-
-        if references is not None:
-            references._setItem(self)
+                               '_references': references })
 
         self._setParent(parent)
 
@@ -102,6 +88,10 @@ class Item(object):
         """
 
         return self.iterChildren()
+
+    def _repr_(self):
+
+        return Item.__repr__(self)
     
     def __repr__(self):
         """
@@ -313,17 +303,20 @@ class Item(object):
         """
 
         if self._kind is not None:
-            attribute = self._kind.getAttribute(name)
-            if aspect != 'redirectTo':
-                redirect = attribute.getAspect('redirectTo', default=None)
-                if redirect is not None:
-                    item = self
-                    names = redirect.split('.')
-                    for i in xrange(len(names) - 1):
-                        item = item.getAttributeValue(names[i])
-                    return item.getAttributeAspect(names[-1], aspect, **kwds)
+            noError = kwds.get('noError', False)
+            attribute = self._kind.getAttribute(name, noError=noError)
+            if attribute is not None:
+                if aspect != 'redirectTo':
+                    redirect = attribute.getAspect('redirectTo', default=None)
+                    if redirect is not None:
+                        item = self
+                        names = redirect.split('.')
+                        for i in xrange(len(names) - 1):
+                            item = item.getAttributeValue(names[i])
+                        return item.getAttributeAspect(names[-1], aspect,
+                                                       **kwds)
                     
-            return attribute.getAspect(aspect, **kwds)
+                return attribute.getAspect(aspect, **kwds)
 
         return kwds.get('default', None)
         
@@ -339,99 +332,78 @@ class Item(object):
         @param value: the value being set
         @type value: anything compatible with the attribute's type
         @param setAliases: when the attribute is to contain a
-        L{ref collection<repository.item.ItemRef.RefDict>} and the C{value}
-        is a dictionary, use the keys in the dictionary as aliases into the
-        ref collection when this parameter is C{True}
+        L{ref collection<repository.item.RefCollections.RefList>} and the
+        C{value} is a dictionary, use the keys in the dictionary as aliases
+        into the ref collection when this parameter is C{True}
         @type setAliases: boolean
         @return: the value actually set.
         """
 
+        otherName = None
+
         if _attrDict is None:
             if self._values.has_key(name):
                 _attrDict = self._values
+                otherName = Item.Nil
             elif self._references.has_key(name):
                 _attrDict = self._references
-            elif self._kind.getOtherName(name, default=None) is not None:
-                _attrDict = self._references
             else:
-                redirect = self.getAttributeAspect(name, 'redirectTo',
-                                                   default=None)
-                if redirect is not None:
-                    item = self
-                    names = redirect.split('.')
-                    for i in xrange(len(names) - 1):
-                        item = item.getAttributeValue(names[i])
-
-                    return item.setAttributeValue(names[-1], value)
-
+                otherName = self._kind.getOtherName(name, default=Item.Nil)
+                if otherName is not Item.Nil:
+                     _attrDict = self._references
                 else:
-                    _attrDict = self._values
+                    redirect = self.getAttributeAspect(name, 'redirectTo',
+                                                       default=None)
+                    if redirect is not None:
+                        item = self
+                        names = redirect.split('.')
+                        for i in xrange(len(names) - 1):
+                            item = item.getAttributeValue(names[i])
+
+                        return item.setAttributeValue(names[-1], value)
+
+                    else:
+                        _attrDict = self._values
 
         isItem = isinstance(value, Item)
-        isRef = not isItem and (isinstance(value, ItemRef) or
-                                isinstance(value, RefDict))
         old = None
 
         if _attrDict is self._references:
-            if value is None:
-                value = NoneRef
-                isRef = True
             if name in _attrDict:
                 old = _attrDict[name]
-
-                if isinstance(old, ItemRef):
-                    if isItem:
-                        if old is not NoneRef:
-                            # reattaching on original endpoint
-                            old.reattach(self, name, old.other(self), value,
-                                         self._kind.getOtherName(name),
-                                         setDirty=setDirty)
-                            return value
-                    elif isRef:
-                        # reattaching on other endpoint,
-                        # can't reuse ItemRef
-                        old.detach(self, name, old.other(self),
-                                   self._kind.getOtherName(name))
-
-                elif isinstance(old, RefDict):
-                    if old is value:
-                        return value
+                if old is value:
+                    return value
+                if isinstance(old, RefList):
                     old.clear()
 
-                else:
-                    raise TypeError, type(old)
-
-        if isItem:
-            otherName = self._kind.getOtherName(name, default=None)
-            card = self.getAttributeAspect(name, 'cardinality',
-                                           default='single')
+        if isItem or value is None:
+            card = self.getAttributeAspect(name, 'cardinality')
 
             if card != 'single':
                 raise ValueError, 'cardinality %s of %s.%s requires collection' %(self, name, card)
 
-            if otherName is None:
-                self._values[name] = value = SingleRef(value.itsUUID)
-                
+            if _attrDict is self._values:
+                if isItem:
+                    self._values[name] = value = SingleRef(value.itsUUID)
+                else:
+                    self._values[name] = None
+                dirty = Item.VDIRTY
             else:
-                value = ItemRef(self, name, value, otherName)
-                self._references[name] = value
-
-            dirty = Item.VDIRTY
-            
-        elif isRef:
-            self._references[name] = value
-            dirty = Item.VDIRTY
+                if otherName is None:
+                    otherName = self._kind.getOtherName(name)
+                self._references._setValue(name, value, otherName)
+                setDirty = False
 
         elif isinstance(value, list):
             if _attrDict is self._references:
                 if old is None:
-                    self._references[name] = refDict = self._refDict(name)
+                    self._references[name] = refList = self._refList(name)
                 else:
-                    assert isinstance(old, RefDict)
-                    refDict = old
+                    assert isinstance(old, RefList)
+                    refList = old
 
-                refDict.extend(value)
-                value = refDict
+                refList.extend(value)
+                value = refList
                 setDirty = False
             else:
                 companion = self.getAttributeAspect(name, 'companion',
@@ -444,13 +416,13 @@ class Item(object):
         elif isinstance(value, dict):
             if _attrDict is self._references:
                 if old is None:
-                    self._references[name] = refDict = self._refDict(name)
+                    self._references[name] = refList = self._refList(name)
                 else:
-                    assert isinstance(old, RefDict)
-                    refDict = old
+                    assert isinstance(old, RefList)
+                    refList = old
 
-                refDict.update(value, setAliases)
-                value = refDict
+                refList.update(value, setAliases)
+                value = refList
                 setDirty = False
             else:
                 companion = self.getAttributeAspect(name, 'companion',
@@ -483,10 +455,10 @@ class Item(object):
     def _reIndex(self, op, item, attrName, collectionName, indexName):
 
         if op == 'set':
-            refDict = self.getAttributeValue(collectionName, default=None,
+            refList = self.getAttributeValue(collectionName, default=None,
                                              _attrDict=self._references)
-            if refDict is not None and item._uuid in refDict:
-                refDict.placeItem(item, None, indexName)
+            if refList is not None and item._uuid in refList:
+                refList.placeItem(item, None, indexName)
 
     def monitorValue(self, name, set=True, _attrDict=None):
 
@@ -559,10 +531,7 @@ class Item(object):
 
             elif (_attrDict is self._references or
                   _attrDict is None and name in self._references):
-                value = self._references[name]
-                if isinstance(value, ItemRef):
-                    return value.other(self)
-                return value
+                return self._references._getRef(name)
 
         except KeyError:
             pass
@@ -620,27 +589,15 @@ class Item(object):
                 _attrDict = self._values
             elif self._references.has_key(name):
                 _attrDict = self._references
+            else:
+                raise AttributeError, 'no value for %s' %(name)
 
         if _attrDict is self._values:
             del _attrDict[name]
-            dirty = Item.VDIRTY
-        elif _attrDict is self._references:
-            value = _attrDict[name]
-
-            if isinstance(value, ItemRef):
-                value.detach(self, name,
-                             value.other(self), self._kind.getOtherName(name))
-                del _attrDict[name]
-                dirty = Item.VDIRTY
-            elif isinstance(value, RefDict):
-                value.clear()
-                del _attrDict[name]
-                dirty = None
-            else:
-                raise TypeError, (type(value), value)
-
-        if dirty is not None:
-            self.setDirty(dirty, name, _attrDict, True)
+            self.setDirty(Item.VDIRTY, name, _attrDict, True)
+        else:
+            _attrDict._removeValue(name, _attrDict._getRef(name),
+                                   self._kind.getOtherName(name))
 
     def hasChild(self, name, load=True):
         """
@@ -759,11 +716,10 @@ class Item(object):
                 yield attr
 
         if not valuesOnly:
-            for ref in self._references.iteritems():
-                if isinstance(ref[1], ItemRef):
-                    yield (ref[0], ref[1].other(self))
-                else:
-                    yield ref
+            for name, ref in self._references.iteritems():
+                if ref is not None and ref._isUUID():
+                    ref = self._references._getRef(name, ref)
+                yield name, ref
 
     def check(self, recursive=False):
         """
@@ -784,70 +740,10 @@ class Item(object):
         are logged in the Chandler execution log.
         """
 
-        logger = self.getRepositoryView().logger
-        result = True
-
-        def checkValue(name, value, attrType):
-
-            if not attrType.recognizes(value):
-                logger.error('Value %s of type %s in attribute %s on %s is not recognized by type %s', value, type(value), name, self.itsPath, attrType.itsPath)
-
-                return False
-
-            return True
-
-        def checkCardinality(name, value, cardType, attrCard):
-
-            if not isinstance(value, cardType):
-                logger.error('Value %s of type %s in attribute %s on %s is not an instance of type %s which is required for cardinality %s', value, type(value), name, self.itsPath, cardType, attrCard)
-
-                return False
-
-            return True
-
-        for key, value in self._values.iteritems():
-            try:
-                attribute = self._kind.getAttribute(key)
-            except AttributeError:
-                logger.error('Item %s has a value for attribute %s but its kind %s has no definition for this attribute', self.itsPath, key, self._kind.itsPath)
-                result = False
-            else:
-                attrType = attribute.getAspect('type', default=None)
-                if attrType is not None:
-                    attrCard = attribute.getAspect('cardinality',
-                                                   default='single')
-                    if attrCard == 'single':
-                        check = checkValue(key, value, attrType)
-                        result = result and check
-                    elif attrCard == 'list':
-                        check = checkCardinality(key, value, list, 'list')
-                        result = result and check
-                        if check:
-                            for v in value:
-                                check = checkValue(key, v, attrType)
-                                result = result and check
-                    elif attrCard == 'dict':
-                        check = checkCardinality(key, value, dict, 'dict')
-                        result = result and check
-                        if check:
-                            for v in value.itervalues():
-                                check = checkValue(key, v, attrType)
-                                result = result and check
+        checkValues = self._values.check()
+        checkRefs = self._references.check()
+        result = checkValues and checkRefs
         
-        for key, value in self._references.iteritems():
-            attrCard = self.getAttributeAspect(key, 'cardinality',
-                                               default='single')
-            if attrCard == 'single':
-                check = checkCardinality(key, value, ItemRef, 'single')
-            elif attrCard == 'list':
-                check = checkCardinality(key, value, RefDict, 'list')
-            elif attrCard == 'dict':
-                logger.error("Attribute %s on %s is using deprecated 'dict' cardinality, use 'list' instead", key, itsPath)
-                check = False
-                
-            check = value.check(self, key)
-            result = result and check
-
         if recursive:
             for child in self.iterChildren():
                 check = child.check(True)
@@ -868,7 +764,7 @@ class Item(object):
         is no reason to use this method instead of the regular python syntax
         for accessing instance attributes and collection elements. The
         C{alias} argument can be used instead of C{key} when the collection
-        is a L{ref collection<repository.item.ItemRef.RefDict>}.
+        is a L{ref collection<repository.item.RefCollections.RefList>}.
 
         @param attribute: the name of the attribute
         @type attribute: a string
@@ -889,6 +785,9 @@ class Item(object):
 
         if alias is not None:
             return value.getByAlias(alias, default)
+
+        if isinstance(value, dict):
+            return value.get(key, default)
 
         if isinstance(value, dict):
             return value.get(key, default)
@@ -915,11 +814,12 @@ class Item(object):
         @param attribute: the name of the attribute
         @type attribute: a string
         @param key: the key into the collection, not used when the
-        collection is a L{ref collection<repository.item.ItemRef.RefDict>}.
+        collection is a
+        L{ref collection<repository.item.RefCollections.RefList>}. 
         @type key: integer for lists, anything for dictionaries
         @param alias: when the collection is a
-        L{ref collection<repository.item.ItemRef.RefDict>}, C{alias} may be
-        used to specify an alias for the reference to insert into the
+        L{ref collection<repository.item.RefCollections.RefList>}, C{alias}
+        may be used to specify an alias for the reference to insert into the
         collection
         @type alias: a string
         @param value: the value to set
@@ -958,7 +858,7 @@ class Item(object):
             if card == 'dict':
                 if _attrDict is self._references:
                     if isItem:
-                        attrValue = self._refDict(attribute)
+                        attrValue = self._refList(attribute)
                     else:
                         raise TypeError, type(value)
                 else:
@@ -973,7 +873,7 @@ class Item(object):
             elif card == 'list':
                 if _attrDict is self._references:
                     if isItem:
-                        attrValue = self._refDict(attribute)
+                        attrValue = self._refList(attribute)
                     else:
                         raise TypeError, type(value)
                 else:
@@ -1014,11 +914,11 @@ class Item(object):
         @param attribute: the name of the attribute
         @type attribute: a string
         @param key: the key into the collection, not used with lists or
-        L{ref collections<repository.item.ItemRef.RefDict>}
+        L{ref collections<repository.item.RefCollections.RefList>}
         @type key: anything
         @param alias: when the collection is a
-        L{ref collection<repository.item.ItemRef.RefDict>}, C{alias} may be
-        used to specify an alias for the reference to insert into the
+        L{ref collection<repository.item.RefCollections.RefList>}, C{alias}
+        may be used to specify an alias for the reference to insert into the
         collection
         @type alias: a string
         @param value: the value to set
@@ -1051,7 +951,7 @@ class Item(object):
         if attrValue is Item.Nil:
             return self.setValue(attribute, value, key, alias, _attrDict)
 
-        elif isinstance(attrValue, RefDict):
+        elif isinstance(attrValue, RefList):
             if isinstance(value, Item):
                 attrValue.append(value, alias)
             else:
@@ -1079,8 +979,8 @@ class Item(object):
         @param key: the key into the collection, not used with lists
         @type key: anything
         @param alias: when the collection is a
-        L{ref collection<repository.item.ItemRef.RefDict>}, C{alias} may be
-        used to specify an alias for the reference to check
+        L{ref collection<repository.item.RefCollections.RefList>}, C{alias}
+        may be used to specify an alias for the reference to check
         @type alias: a string
         @return: C{True} or C{False}
         """
@@ -1120,7 +1020,7 @@ class Item(object):
         if attrValue is Item.Nil:
             return False
 
-        if isinstance(attrValue, RefDict) or isinstance(attrValue, list):
+        if isinstance(attrValue, RefList) or isinstance(attrValue, list):
             return value in attrValue
 
         elif isinstance(attrValue, dict):
@@ -1149,7 +1049,8 @@ class Item(object):
         provided.
 
         The C{alias} argument can be used instead of C{key} when the
-        collection is a L{ref collection<repository.item.ItemRef.RefDict>}.
+        collection is a
+        L{ref collection<repository.item.RefCollections.RefList>}.
 
         @param attribute: the name of the attribute
         @type attribute: a string
@@ -1158,9 +1059,9 @@ class Item(object):
         @param key: the key into the collection
         @type key: integer for lists, anything for dictionaries
         @param alias: when the collection is a
-        L{ref collection<repository.item.ItemRef.RefDict>}, C{alias} may be
-        used instead to specify an alias for the reference to insert into the
-        collection
+        L{ref collection<repository.item.RefCollections.RefList>}, C{alias}
+        may be used instead to specify an alias for the reference to insert
+        into the collection
         @type alias: a string
         """
 
@@ -1204,10 +1105,6 @@ class Item(object):
                 raise TypeError, type(values)
         else:
             raise KeyError, 'No value for attribute %s' %(attribute)
-
-    def _removeRef(self, name):
-
-        del self._references[name]
 
     def hasAttributeValue(self, name, _attrDict=None):
         """
@@ -1385,8 +1282,9 @@ class Item(object):
                 if repository is not None and not repository.isLoading():
 
                     if attribute is not None:
-                        if self.getAttributeAspect(attribute, 'persist',
-                                                   default=True) == False:
+                        if not self.getAttributeAspect(attribute, 'persist',
+                                                       noError=True,
+                                                       default=True):
                             return False
                     if repository._logItem(self):
                         self._status |= dirty
@@ -1534,10 +1432,10 @@ class Item(object):
                 if policy == 'cascade':
                     value = self._references[name]
                     if value is not None:
-                        if isinstance(value, ItemRef):
-                            others.append(value.other(self))
-                        elif isinstance(value, RefDict):
+                        if isinstance(value, RefList):
                             others.extend([other for other in value])
+                        else:
+                            others.append(value)
                     
                 self.removeAttributeValue(name, _attrDict=self._references)
 
@@ -1551,9 +1449,11 @@ class Item(object):
             self._status &= ~Item.DELETING
 
             for other in others:
-                if other.refCount() == 0:
+                if other.refCount(counted=True) == 0:
                     other.delete()
-        
+
+            self._kind = None
+            
     def __getName(self):
 
         return self._name
@@ -1583,24 +1483,48 @@ class Item(object):
                 
         return self._name or '{%s}' %(self._uuid.str64())
 
-    def refCount(self):
+    def refCount(self, counted=False, loaded=False):
         """
-        Return the number of counted references to this item.
+        Return the number of bi-directional references to this item.
 
-        A reference is counted if the C{countPolicy} aspect of the attribute
-        containing it is C{count}.
+        The number returned depends on:
+
+            - C{counted}: if C{True}, return the number of references in
+              attributes whose C{countPolicy} is C{count).
+
+            - C{loaded}: if C{True}, return the number of loaded references.
+
+        These keyword arguments may be used together. If they are both
+        C{False} this method returns the total number of references to this
+        item.
 
         @return: an integer
         """
 
         count = 0
 
-        if not (self._status & Item.DELETED):
+        if not (self._status & Item.STALE):
             for name in self._references.iterkeys():
-                policy = self.getAttributeAspect(name, 'countPolicy',
-                                                 default='none')
-                if policy == 'count':
-                    count += self._references[name]._refCount()
+                if counted:
+                    policy = self.getAttributeAspect(name, 'countPolicy',
+                                                     default='none')
+                    if policy == 'count':
+                        count += self._references.refCount(name, loaded)
+                else:
+                    count += self._references.refCount(name, loaded)
+
+        return count
+
+    def _refCount(self):
+
+        count = 0
+
+        if not (self._status & Item.STALE):
+            count += self._values._refCount()
+            count += self._references._refCount()
+            if self._children is not None:
+                count += self._children._refCount()
+            count += 1  #parent
 
         return count
 
@@ -1638,7 +1562,7 @@ class Item(object):
                     raise NotImplementedError, 'changing repositories'
 
                 if oldView is not None:
-                    oldView._unregisterItem(self)
+                    oldView._unregisterItem(self, False)
 
                 if newView is not None:
                     newView._registerItem(self)
@@ -1906,13 +1830,20 @@ class Item(object):
     def _isItem(self):
         return True
 
+    def _isRefList(self):
+        return False
+
+    def _isUUID(self):
+        return False
+
     def _setParent(self, parent, previous=None, next=None, oldView=None):
 
         if parent is not None:
-            if parent._isRepository():
-                parent = parent.view
-            self._parent = parent
-            self._setRoot(parent._addItem(self, previous, next), oldView)
+            if self._parent is not parent:
+                if parent._isRepository():
+                    parent = parent.view
+                self._parent = parent
+                self._setRoot(parent._addItem(self, previous, next), oldView)
         else:
             self._parent = None
 
@@ -2116,7 +2047,7 @@ class Item(object):
 
         @param spec: a path or UUID
         @type spec: L{Path<repository.util.Path.Path>} or
-                    L{UUID<repository.util.UUID.UUID>} 
+                    L{UUID<chandlerdb.util.UUID.UUID>} 
         @param attribute: the attribute for the ref-collections to search
         @type attribute: a string
         @param load: load the item if it not yet loaded, C{True} by default
@@ -2163,7 +2094,7 @@ class Item(object):
         See L{find} for more information.
 
         @param uuid: a UUID
-        @type uuid: L{UUID<repository.util.UUID.UUID>} or a uuid string
+        @type uuid: L{UUID<chandlerdb.util.UUID.UUID>} or a uuid string
         @param load: load the item if it not yet loaded, C{True} by default
         @type load: boolean
         @return: an item or C{None} if not found
@@ -2192,7 +2123,7 @@ class Item(object):
             generator = XMLGenerator(out, 'utf-8')
             generator.startDocument()
             self._xmlItem(generator,
-                          withSchema = (self._status & Item.SCHEMA) != 0)
+                          withSchema = (self._status & Item.CORESCHEMA) != 0)
             generator.endDocument()
 
             return out.getvalue()
@@ -2201,60 +2132,11 @@ class Item(object):
             if out is not None:
                 out.close()
 
-    def _saveItem(self, generator, version, mergeWith=None):
+    def _saveItem(self, generator, version):
 
-        withSchema = (self._status & Item.SCHEMA) != 0
-
-        if mergeWith is None:
-            self._xmlItem(generator, withSchema, version, 'save')
-            self._status |= Item.SAVED
-
-        else:
-            oldDoc, oldDirty, newDirty = mergeWith
-            if oldDirty & newDirty:
-                raise ValueError, "merges overlap (%0.4x:%0.4x)" %(oldDirty,
-                                                                   newDirty)
-            def mergeNewOld(*attributes):
-                class merger(XMLOffFilter):
-                    def startElement(_self, tag, attrs):
-                        if tag == 'item':
-                            attrs['version'] = str(version)
-                        XMLOffFilter.startElement(_self, tag, attrs)
-                    def endElement(_self, tag):
-                        if tag == 'item':
-                            self._values._xmlValues(generator, withSchema,
-                                                    version, 'save')
-                        XMLOffFilter.endElement(_self, tag)
-
-                merger(generator, *attributes).parse(oldDoc)
-                self._status |= Item.MERGED
-
-            def mergeOldNew(dirty, *attributes):
-                class merger(XMLThruFilter):
-                    def endElement(_self, tag):
-                        if tag == 'item':
-                            XMLOnFilter(generator, *attributes).parse(oldDoc)
-                        XMLThruFilter.endElement(_self, tag)
-
-                out = cStringIO.StringIO()
-                xml = XMLGenerator(out, 'utf-8')
-                xml.startDocument()
-                self._xmlItem(xml, withSchema, version, 'save',
-                              Item.DIRTY & ~dirty)
-                xml.endDocument()
-                newDoc = out.getvalue()
-                out.close()
-
-                merger(generator).parse(newDoc)
-                self._status |= Item.MERGED
-                
-            if newDirty == Item.VDIRTY:
-                mergeNewOld('attribute', 'ref')
-            elif oldDirty == Item.VDIRTY:
-                mergeOldNew(Item.VRDIRTY, 'attribute', 'ref')
-            else:
-                raise NotImplementedError, "merge %0.4x:%0.4x" %(oldDirty,
-                                                                 newDirty)
+        withSchema = (self._status & Item.CORESCHEMA) != 0
+        self._xmlItem(generator, withSchema, version, 'save')
+        self._status |= Item.SAVED
 
     def _xmlItem(self, generator, withSchema=False, version=None,
                  mode='serialize', save=None):
@@ -2296,19 +2178,18 @@ class Item(object):
             if mode == 'save':
                 self._children._saveValues(version)
 
-        xmlTag('parent', attrs, self.itsParent.itsUUID.str64(), generator)
+        if not isDeleted:
+            xmlTag('parent', attrs, self.itsParent.itsUUID.str64(), generator)
             
-        if not isDeleted and save & Item.VRDIRTY:
-            self._values._xmlValues(generator, withSchema, version, mode)
-            self._references._xmlValues(generator, withSchema, version, mode)
+            if save & Item.VRDIRTY:
+                self._values._xmlValues(generator, withSchema, version,
+                                        mode)
+                self._references._xmlValues(generator, withSchema, version,
+                                            mode)
 
         generator.endElement('item')
 
-    def _loadItem(self):
-
-        return self
-
-    def _unloadItem(self):
+    def _unloadItem(self, reloadable):
 
         if self._status & Item.DIRTY:
             raise ValueError, 'Item %s has changed, cannot be unloaded' %(self.itsPath)
@@ -2325,26 +2206,34 @@ class Item(object):
                 self._values._unload()
             if self._references:
                 self._references._unload()
-            repository._unregisterItem(self)
 
             self._parent._unloadChild(self)
             if self._children is not None:
+                if not reloadable:
+                    self._children._item = None
                 repository._registerChildren(self._uuid, self._children)
 
+            repository._unregisterItem(self, reloadable)
+
+            if not reloadable:
+                self._parent = None
+                self._root = None
+                self._kind = None
+            
             self._status |= Item.STALE
 
     def _unloadChild(self, child):
 
         self._children._unloadChild(child)
 
-    def _refDict(self, name, otherName=None, persist=None):
+    def _refList(self, name, otherName=None, persist=None):
 
         if otherName is None:
             otherName = self._kind.getOtherName(name)
         if persist is None:
             persist = self.getAttributeAspect(name, 'persist', default=True)
 
-        return self.getRepositoryView()._createRefDict(self, name, otherName,
+        return self.getRepositoryView()._createRefList(self, name, otherName,
                                                        persist, False, None)
 
     def _commitMerge(self, version):
@@ -2384,7 +2273,11 @@ class Item(object):
     def __new__(cls, *args, **kwds):
 
         item = object.__new__(cls, *args, **kwds)
-        item.__dict__['_status'] = Item.RAW
+        item.__dict__.update({ '_status': Item.RAW,
+                               '_parent': None,
+                               '_children': None,
+                               '_root': None,
+                               '_acls': None })
 
         return item
 
@@ -2406,7 +2299,7 @@ class Item(object):
     NDIRTY     = 0x0100           # parent or name changed
     CDIRTY     = 0x0200           # children list changed
     RDIRTY     = 0x0400           # ref collection changed
-
+    CORESCHEMA = 0x0800           # core schema item
     SAVED      = 0x1000
     ADIRTY     = 0x2000           # acl(s) changed
     PINNED     = 0x4000           # auto-refresh, don't stale
@@ -2524,6 +2417,10 @@ class Children(LinkedMap):
                 link._value._parent = item
 
         self._item = item
+
+    def _refCount(self):
+
+        return super(Children, self).__len__() + 1
         
     def linkChanged(self, link, key):
 
@@ -2576,7 +2473,7 @@ class StaleItemError(ItemError):
     "Item is stale"
 
     def __str__(self):
-        return Item.__repr__(self.getItem())
+        return self.getItem()._repr_()
 
 class IndirectValueError(ValueError):
     "Indirect values on %s.%s via %s are not supported"

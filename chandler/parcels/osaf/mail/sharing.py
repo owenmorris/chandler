@@ -12,7 +12,7 @@ import errors as errorCode
 import message as message
 import osaf.contentmodel.mail.Mail as Mail
 import repository.persistence.RepositoryView as RepositoryView
-import repository.util.UUID as UUID
+import chandlerdb.util.UUID as UUID
 import mx.DateTime as DateTime
 import osaf.framework.sharing as chandlerSharing
 

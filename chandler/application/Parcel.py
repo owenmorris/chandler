@@ -16,6 +16,8 @@ from repository.item.Query import KindQuery
 from repository.schema.Kind import Kind
 from repository.util.ClassLoader import ClassLoader
 from repository.util.Path import Path
+from repository.item.RefCollections import RefList
+
 
 NS_ROOT = "http://osafoundation.org/parcels"
 CORE = "%s/core" % NS_ROOT
@@ -1616,7 +1618,7 @@ def PrintItem(path, rep, recursive=False, level=0):
     @type recursive:  Boolean
     """
 
-    for i in range(level):
+    for i in xrange(level):
         print " ",
     item = rep.findPath(path)
     if item is None:
@@ -1631,7 +1633,7 @@ def PrintItem(path, rep, recursive=False, level=0):
     # For Kinds, display their attributes (except for the internal ones
     # like notFoundAttributes:
     if item.itsKind and "//Schema/Core/Kind" == str(item.itsKind.itsPath):
-        for i in range(level+2):
+        for i in xrange(level+2):
             print " ",
         print "attributes for this kind:"
 
@@ -1642,7 +1644,7 @@ def PrintItem(path, rep, recursive=False, level=0):
         keys = displayedAttrs.keys()
         keys.sort()
         for key in keys:
-            for k in range(level+4):
+            for k in xrange(level+4):
                 print " ",
             print "%s %s" % ( key, displayedAttrs[key].itsPath )
 
@@ -1654,48 +1656,43 @@ def PrintItem(path, rep, recursive=False, level=0):
     keys.sort()
     for name in keys:
         value = displayedAttrs[name]
-        t = type(value)
 
-        if name == "attributes" or \
-           name == "notFoundAttributes" or \
-           name == "inheritedAttributes" or \
-           name == "kind":
+        if name in ("attributes", "notFoundAttributes",
+                    "inheritedAttributes", "kind"):
             pass
 
-        elif t == list \
-         or t == repository.item.PersistentCollections.PersistentList:
-            for i in range(level+2):
+        if isinstance(value, RefList):
+            for i in xrange(level+2):
                 print " ",
 
-            print "%s: (list)" % name
+            print "%s: (dict)" % name
             for j in value:
-                for k in range(level+4):
+                for k in xrange(level+4):
                     print " ",
-                print j
+                print j.itsPath
 
-        elif t == repository.item.PersistentCollections.PersistentDict:
-            for i in range(level+2):
+        elif isinstance(value, dict):
+            for i in xrange(level+2):
                 print " ",
 
             print "%s: (dict)" % name
             for key in value.keys():
-                for k in range(level+4):
+                for k in xrange(level+4):
                     print " ",
                 print "%s:" % key, value[key]
 
-        elif t == repository.persistence.XMLRepositoryView.XMLRefDict \
-         or t == repository.item.ItemRef.TransientRefDict:
-            for i in range(level+2):
+        elif isinstance(value, list):
+            for i in xrange(level+2):
                 print " ",
 
-            print "%s: (dict)" % name
+            print "%s: (list)" % name
             for j in value:
-                for k in range(level+4):
+                for k in xrange(level+4):
                     print " ",
-                print j.itsPath
+                print j
 
         else:
-            for i in range(level+2):
+            for i in xrange(level+2):
                 print " ",
 
             print "%s:" % name,

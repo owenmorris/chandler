@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import mx.DateTime
 
-import repository.util.UUID
+import chandlerdb.util.UUID
 import repository.util.Path
 import repository.util.SingleRef
 import repository.util.URL
@@ -15,7 +15,6 @@ from new import classobj
 
 from repository.item.Item import Item
 from repository.item.ItemHandler import ItemHandler
-from repository.item.ItemRef import RefDict
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
 from repository.item.Query import KindQuery
@@ -274,7 +273,7 @@ class UUID(Type):
         if data == Type.NoneString:
             return None
 
-        return repository.util.UUID.UUID(data)
+        return chandlerdb.util.UUID.UUID(data)
 
     def makeString(self, value):
 
@@ -285,7 +284,7 @@ class UUID(Type):
     
     def recognizes(self, value):
 
-        return value is None or type(value) is repository.util.UUID.UUID
+        return value is None or type(value) is chandlerdb.util.UUID.UUID
 
     def eval(self, value):
 
@@ -314,7 +313,7 @@ class SingleRef(Type):
         if data == Type.NoneString:
             return None
         
-        uuid = repository.util.UUID.UUID(data)
+        uuid = chandlerdb.util.UUID.UUID(data)
         return repository.util.SingleRef.SingleRef(uuid)
 
     def makeString(self, value):
@@ -530,7 +529,7 @@ class Struct(Type):
         name = attrs['name']
 
         if attrs.has_key('typeid'):
-            typeHandler = itemHandler.repository[repository.util.UUID.UUID(attrs['typeid'])]
+            typeHandler = itemHandler.repository[chandlerdb.util.UUID.UUID(attrs['typeid'])]
             value = typeHandler.makeValue(itemHandler.data)
         elif attrs.has_key('type'):
             value = itemHandler.makeValue(attrs['type'], itemHandler.data)
@@ -848,6 +847,61 @@ class List(Collection):
         return PersistentList(None, None, None)
 
 
+class Tuple(Collection):
+
+    def getImplementationType(self):
+
+        return tuple
+
+    def handlerName(self):
+
+        return 'tuple'
+
+    def recognizes(self, value):
+
+        return isinstance(value, tuple)
+
+    def typeXML(self, value, generator, withSchema):
+
+        repository = self.itsView
+
+        generator.startElement('values', {})
+        for val in value:
+            ItemHandler.xmlValue(repository,
+                                 None, val, 'value', None, 'single', None, {},
+                                 generator, withSchema)
+        generator.endElement('values')
+
+    def makeValue(self, data):
+        """
+        Make a tuple of strings from comma separated strings.
+
+        The implementation is very cheap, using split, so spaces are part of
+        the tuple's elements and the strings cannot contain spaces.
+        """
+
+        if data:
+            return tuple(data.split(','))
+        else:
+            return ()
+
+    def makeString(self, value):
+
+        return ",".join([str(v) for v in value])
+
+    def _empty(self):
+
+        class _tuple(list):
+            def append(self, value, setDirty=True):
+                super(_tuple, self).append(value)
+
+        return _tuple()
+
+    def getParsedValue(self, itemHandler, data):
+
+        return tuple(super(Tuple, self).getParsedValue(itemHandler, data))
+
+
 class Lob(Type):
 
     def getParsedValue(self, itemHandler, data):
@@ -876,12 +930,12 @@ class Text(Lob):
 
     def makeValue(self, data,
                   encoding='utf-8', mimetype='text/plain', compression='bz2',
-                  indexed=False):
+                  encryption=None, key=None, indexed=False):
 
         text = self.getImplementationType()(self.itsView,
                                             encoding, mimetype, indexed)
         if data:
-            writer = text.getWriter(compression)
+            writer = text.getWriter(compression, encryption, key)
             writer.write(data)
             writer.close()
 
@@ -912,11 +966,11 @@ class Binary(Lob):
         return self.itsView._getLobType('binary')
 
     def makeValue(self, data, mimetype='text/plain', compression=None,
-                  indexed=False):
+                  encryption=None, key=None, indexed=False):
 
         binary = self.getImplementationType()(self.itsView, mimetype, indexed)
         if data:
-            out = binary.getOutputStream(compression)
+            out = binary.getOutputStream(compression, encryption, key)
             out.write(data)
             out.close()
 

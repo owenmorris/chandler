@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from libxml2 import createPushParser
 
 from repository.remote.ItemFilter import ItemFilter
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 from repository.util.SAX import ContentHandler, XMLOffFilter
 from repository.persistence.RepositoryError import NoSuchItemError
 

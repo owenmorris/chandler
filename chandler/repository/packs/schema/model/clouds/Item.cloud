@@ -2,15 +2,14 @@
 
 <items>
 
-  <item withSchema="True">
+  <item>
     <name>Item</name>
     <kind type="path">//Schema/Core/Cloud</kind>
 
-    <ref name="endpoints" otherName="clouds"
-         cardinality="list" otherCard="list">
+    <ref name="endpoints">
     </ref>
 
-    <ref name="kind" otherName="clouds" otherCard="list" otherAlias="default"
+    <ref name="kind" otherAlias="default"
          type="path">//Schema/Core/Item</ref>
   </item>
 

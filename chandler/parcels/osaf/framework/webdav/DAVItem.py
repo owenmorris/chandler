@@ -66,7 +66,7 @@ class DAVItem(object):
         if not value:
             raise BadItem, 'Unable to find a uuid at %s' % (self.dav.url)
 
-        from repository.util.UUID import UUID
+        from chandlerdb.util.UUID import UUID
         return UUID(value)
 
     def _getETag(self):

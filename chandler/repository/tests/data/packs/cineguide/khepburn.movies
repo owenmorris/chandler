@@ -20,7 +20,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Interné depuis vingt-cinq ans, un homme s'échappe le jour où il apprend que sa femme va divorcer. Il retrouve sa fille qui lui donne toute son affection.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ADQSW50ZXJuw6kgZGVwdWlzIHZpbmd0LWNpbnEgYW5zLCB1biBob21tZSBzJ8OpY2hhcHBlIGxlIGpvdXIgb8O5IGlsIGFwcHJlbmQgcXVlIHNhIGZlbW1lIHZhIGRpdm9yY2VyLiBJbCByZXRyb3V2ZSBzYSBmaWxsZSBxdWkgbHVpIGRvbm5lIHRvdXRlIHNvbiBhZmZlY3Rpb24u</text>
     </attribute>
 
     <attribute name="website">http://www.billthemovie.html</attribute>
@@ -42,7 +42,7 @@
     </ref>
 
    <attribute name="synopsis">
-      <text indexed="True">Les débuts d'une jeune actrice</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">AAoTGVzIGTDqWJ1dHMgZCd1bmUgamV1bmUgYWN0cmlj//8ZQ==</text>
    </attribute>
   </item>
 
@@ -64,7 +64,7 @@
     </ref>
 
    <attribute name="synopsis">
-      <text indexed="True">Pendant la guerre de Sécession, le docteur Marsch se dans les rangs nordistes. Sa femme et ses quatre filles doivent se débrouiller pour vivre.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ADAUGVuZGFudCBsYSBndWVycmUgZGUgU8OpY2Vzc2lvbiwgbGUgZG9jdGV1ciBNYXJzY2ggc2UgZGFucyBsZXMgcmFuZ3Mgbm9yZGlzdGVzLiBTYSBmZW1tZSBldCBzZXMgcXVhdHJlIGZpbGxlcyBkb2l2ZW50IHNlIGTDqWJyb3VpbGxlciBwb3VyIHZpdnJl//8Lg==</text>
    </attribute>
   </item>
 
@@ -85,7 +85,7 @@
     </ref>
 
    <attribute name="synopsis">
-      <text indexed="True">Une jeune femme s'éprend d'un homme déjà marié.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ABEVW5lIGpldW5lIGZlbW1lIHMnw6lwcmVuZCBkJ3VuIGhvbW1lIGTDqWrDoCBtYXJpw6ku</text>
    </attribute>
   </item>
 
@@ -107,7 +107,7 @@
     </ref>
 
    <attribute name="synopsis">
-      <text indexed="True">Les tentatives d'une jeune fille modeste pour entrer dans la bonne société.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ABkTGVzIHRlbnRhdGl2ZXMgZCd1bmUgamV1bmUgZmlsbGUgbW9kZXN0ZSBwb3VyIGVudHJlciBkYW5zIGxhIGJvbm5lIHNvY2nDqXTD//4qS4=</text>
    </attribute>
   </item>
 
@@ -124,7 +124,7 @@
     </ref>
 
    <attribute name="synopsis">
-      <text indexed="True">La rivalité entre Elisabeth Ire d'Angleterre et Marie d'Écosse et de France.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ABoTGEgcml2YWxpdMOpIGVudHJlIEVsaXNhYmV0aCBJcmUgZCdBbmdsZXRlcnJlIGV0IE1hcmllIGQnw4ljb3NzZSBldCBkZSBGcmFuY2Uu</text>
    </attribute>
   </item>
 
@@ -140,7 +140,7 @@
     </ref>
 
    <attribute name="synopsis">
-      <text indexed="True">Une jeune fille se déguise en garçon pour participer aux activités d'une bande d'escrocs. Grâce à une rencontre, elle réalisera son rêve : la création d'une compagnie théâtrale.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">AD4VW5lIGpldW5lIGZpbGxlIHNlIGTDqWd1aXNlIGVuIGdhcsOnb24gcG91ciBwYXJ0aWNpcGVyIGF1eCBhY3Rpdml0w6lzIGQndW5lIGJhbmRlIGQnZXNjcm9jcy4gR3LDomNlIMOgIHVuZSByZW5jb250cmUsIGVsbGUgcsOpYWxpc2VyYSBzb24gcsOqdmUgOiBsYSBjcsOpYXRpb24gZCd1bmUgY29tcGFnbmllIHRow6nDonRyYWxl//8Lg==</text>
    </attribute>
   </item>
 
@@ -157,7 +157,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Rêvant de devenir actrices de théâtre, plusieurs filles se retrouvent dans la même pension de famille.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ACMUsOqdmFudCBkZSBkZXZlbmlyIGFjdHJpY2VzIGRlIHRow6nDonRyZSwgcGx1c2lldXJzIGZpbGxlcyBzZSByZXRyb3V2ZW50IGRhbnMgbGEgbcOqbWUgcGVuc2lvbiBkZSBmYW1pbGxl//8Lg==</text>
     </attribute>
   </item>
 
@@ -174,7 +174,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Une jeune fille excentrique provoque la perte d'un os de dinosaure et d'un léopard apprivoisé, propriété d'un professeur de zoologie.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">AC0VW5lIGpldW5lIGZpbGxlIGV4Y2VudHJpcXVlIHByb3ZvcXVlIGxhIHBlcnRlIGQndW4gb3MgZGUgZGlub3NhdXJlIGV0IGQndW4gbMOpb3BhcmQgYXBwcml2b2lzw6ksIHByb3ByacOpdMOpIGQndW4gcHJvZmVzc2V1ciBkZSB6b29sb2dp//4ZS4=</text>
     </attribute>
   </item>
 
@@ -191,7 +191,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Un journaliste sportif épouse une femme qui fait de la politique. Ils n'ont en commun que leur amour.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ACIVW4gam91cm5hbGlzdGUgc3BvcnRpZiDDqXBvdXNlIHVuZSBmZW1tZSBxdWkgZmFpdCBkZSBsYSBwb2xpdGlxdWUuIElscyBuJ29udCBlbiBjb21tdW4gcXVlIGxldXIgYW1vdXIu</text>
     </attribute>
   </item>
 
@@ -208,7 +208,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Un journaliste américain revenu d'un camp de concentration découvre au risque de sa vie le secret d'un patriote qui vient de mourir.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ACwVW4gam91cm5hbGlzdGUgYW3DqXJpY2FpbiByZXZlbnUgZCd1biBjYW1wIGRlIGNvbmNlbnRyYXRpb24gZMOpY291dnJlIGF1IHJpc3F1ZSBkZSBzYSB2aWUgbGUgc2VjcmV0IGQndW4gcGF0cmlvdGUgcXVpIHZpZW50IGRlIG1vdXJp//4ci4=</text>
     </attribute>
   </item>
 
@@ -225,7 +225,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Histoire d'amour d'un engagé américain de la Seconde Guerre mondiale et sa "marraine" de New-York.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ACESGlzdG9pcmUgZCdhbW91ciBkJ3VuIGVuZ2Fnw6kgYW3DqXJpY2FpbiBkZSBsYSBTZWNvbmRlIEd1ZXJyZSBtb25kaWFsZSBldCBzYSAibWFycmFpbmUiIGRlIE5ldy1Zb3Jr//8Lg==</text>
     </attribute>
   </item>
 
@@ -242,7 +242,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Des paysans chinois combattent les Japonais.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">AA4RGVzIHBheXNhbnMgY2hpbm9pcyBjb21iYXR0ZW50IGxlcyBKYXBvbmFp//4cy4=</text>
     </attribute>
   </item>
 
@@ -259,7 +259,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Un aventurier tombe amoureux d'une jeune fille et l'épouse. Le mariage ne se révèle pas très satisfaisant.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ACQVW4gYXZlbnR1cmllciB0b21iZSBhbW91cmV1eCBkJ3VuZSBqZXVuZSBmaWxsZSBldCBsJ8OpcG91c2UuIExlIG1hcmlhZ2UgbmUgc2UgcsOpdsOobGUgcGFzIHRyw6hzIHNhdGlzZmFpc2Fu//4dC4=</text>
     </attribute>
   </item>
 
@@ -276,7 +276,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Un riche fermier règne en maître sur les pâturages du Nouveau-Mexique.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ABgVW4gcmljaGUgZmVybWllciByw6hnbmUgZW4gbWHDrnRyZSBzdXIgbGVzIHDDonR1cmFnZXMgZHUgTm91dmVhdS1NZXhpcXVl//8Lg==</text>
     </attribute>
   </item>
 
@@ -293,7 +293,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Un millionnaire soutient la campagne à la présidence des États-Unis d'un homme intègre aidé par sa femme.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ACQVW4gbWlsbGlvbm5haXJlIHNvdXRpZW50IGxhIGNhbXBhZ25lIMOgIGxhIHByw6lzaWRlbmNlIGRlcyDDiXRhdHMtVW5pcyBkJ3VuIGhvbW1lIGludMOoZ3JlIGFpZMOpIHBhciBzYSBmZW1t//4ZS4=</text>
     </attribute>
   </item>
 
@@ -310,7 +310,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Un couple d'avocats se retrouve opposé à la défense et à l'accusation d'un criminel.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">AB0VW4gY291cGxlIGQnYXZvY2F0cyBzZSByZXRyb3V2ZSBvcHBvc8OpIMOgIGxhIGTDqWZlbnNlIGV0IMOgIGwnYWNjdXNhdGlvbiBkJ3VuIGNyaW1pbmVs//8Lg==</text>
     </attribute>
   </item>
 
@@ -327,7 +327,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">1915, en Afrique. Un marin sauve une jeune missionnaire anglaise. Ils vont descendre ensemble une rivière périlleuse et affronter les Allemands.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ADAMTkxNSwgZW4gQWZyaXF1ZS4gVW4gbWFyaW4gc2F1dmUgdW5lIGpldW5lIG1pc3Npb25uYWlyZSBhbmdsYWlzZS4gSWxzIHZvbnQgZGVzY2VuZHJlIGVuc2VtYmxlIHVuZSByaXZpw6hyZSBww6lyaWxsZXVzZSBldCBhZmZyb250ZXIgbGVzIEFsbGVtYW5k//4cy4=</text>
     </attribute>
   </item>
 
@@ -344,7 +344,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Après de multiples disputes, une championne de tennis et son entraîneur tombent amoureux l'un de l'autre.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ACMQXByw6hzIGRlIG11bHRpcGxlcyBkaXNwdXRlcywgdW5lIGNoYW1waW9ubmUgZGUgdGVubmlzIGV0IHNvbiBlbnRyYcOubmV1ciB0b21iZW50IGFtb3VyZXV4IGwndW4gZGUgbCdhdXRy//4ZS4=</text>
     </attribute>
   </item>
 
@@ -361,7 +361,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Une vieille fille américaine, en vacances à Venise, s'éprend d'un Italien dont elle va découvrir qu'il est déjà marié.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ACkVW5lIHZpZWlsbGUgZmlsbGUgYW3DqXJpY2FpbmUsIGVuIHZhY2FuY2VzIMOgIFZlbmlzZSwgcyfDqXByZW5kIGQndW4gSXRhbGllbiBkb250IGVsbGUgdmEgZMOpY291dnJpciBxdSdpbCBlc3QgZMOpasOgIG1hcmnD//4qS4=</text>
     </attribute>
   </item>
 
@@ -378,7 +378,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Un homme, qui prétend pouvoir faire la pluie et le beau temps, s'empare surtout du coeur d'une femme, ce qui déclenchera l'orage.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ACsVW4gaG9tbWUsIHF1aSBwcsOpdGVuZCBwb3V2b2lyIGZhaXJlIGxhIHBsdWllIGV0IGxlIGJlYXUgdGVtcHMsIHMnZW1wYXJlIHN1cnRvdXQgZHUgY29ldXIgZCd1bmUgZmVtbWUsIGNlIHF1aSBkw6ljbGVuY2hlcmEgbCdvcmFn//4ZS4=</text>
     </attribute>
   </item>
 
@@ -395,7 +395,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Un avion soviétique va atterrir en Allemagne de l'Ouest, dans la zone américaine. Il est piloté par une femme. Sur le thème de Ninotchka.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">AC8VW4gYXZpb24gc292acOpdGlxdWUgdmEgYXR0ZXJyaXIgZW4gQWxsZW1hZ25lIGRlIGwnT3Vlc3QsIGRhbnMgbGEgem9uZSBhbcOpcmljYWluZS4gSWwgZXN0IHBpbG90w6kgcGFyIHVuZSBmZW1tZS4gU3VyIGxlIHRow6htZSBkZSBOaW5vdGNoa2Eu</text>
     </attribute>
   </item>
 
@@ -412,7 +412,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Un ingénieur est chargé de mettre au point une machine électronique. Celle-ci établira des listes de licenciements à la place des fiches de paie et conseillera un mariage.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ADoVW4gaW5nw6luaWV1ciBlc3QgY2hhcmfDqSBkZSBtZXR0cmUgYXUgcG9pbnQgdW5lIG1hY2hpbmUgw6lsZWN0cm9uaXF1ZS4gQ2VsbGUtY2kgw6l0YWJsaXJhIGRlcyBsaXN0ZXMgZGUgbGljZW5jaWVtZW50cyDDoCBsYSBwbGFjZSBkZXMgZmljaGVzIGRlIHBhaWUgZXQgY29uc2VpbGxlcmEgdW4gbWFyaWFn//4ZS4=</text>
     </attribute>
   </item>
 
@@ -429,7 +429,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Un étrange triangle sentimental entre un médecin spécialiste des nerfs, une femme très riche et sa nièce.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ACQVW4gw6l0cmFuZ2UgdHJpYW5nbGUgc2VudGltZW50YWwgZW50cmUgdW4gbcOpZGVjaW4gc3DDqWNpYWxpc3RlIGRlcyBuZXJmcywgdW5lIGZlbW1lIHRyw6hzIHJpY2hlIGV0IHNhIG5pw6hj//4ZS4=</text>
     </attribute>
   </item>
 
@@ -445,7 +445,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">La chronique d'une famille dans les années 1910.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ABATGEgY2hyb25pcXVlIGQndW5lIGZhbWlsbGUgZGFucyBsZXMgYW5uw6llcyAxOTEw//8Lg==</text>
     </attribute>
   </item>
 
@@ -462,7 +462,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Une jeune femme présente son fiancé noir à ses parents.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ABMVW5lIGpldW5lIGZlbW1lIHByw6lzZW50ZSBzb24gZmlhbmPDqSBub2lyIMOgIHNlcyBwYXJlbnRz//8Lg==</text>
     </attribute>
   </item>
 
@@ -479,7 +479,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Drame du roi Henri II méditant pour se trouver lui-même un successeur, la veille de Noël.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">AB4RHJhbWUgZHUgcm9pIEhlbnJpIElJIG3DqWRpdGFudCBwb3VyIHNlIHRyb3V2ZXIgbHVpLW3Dqm1lIHVuIHN1Y2Nlc3NldXIsIGxhIHZlaWxsZSBkZSBOb8Or//4bC4=</text>
     </attribute>
   </item>
 
@@ -496,7 +496,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Une femme excentrique refuse de croire que le monde a perdu de sa beauté.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ABgVW5lIGZlbW1lIGV4Y2VudHJpcXVlIHJlZnVzZSBkZSBjcm9pcmUgcXVlIGxlIG1vbmRlIGEgcGVyZHUgZGUgc2EgYmVhdXTD//4qS4=</text>
     </attribute>
   </item>
 
@@ -513,7 +513,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Après la chute de Troie, les femmes de la cité se révoltent contre les Grecs, avant d'être contraintes à l'exil.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ACcQXByw6hzIGxhIGNodXRlIGRlIFRyb2llLCBsZXMgZmVtbWVzIGRlIGxhIGNpdMOpIHNlIHLDqXZvbHRlbnQgY29udHJlIGxlcyBHcmVjcywgYXZhbnQgZCfDqnRyZSBjb250cmFpbnRlcyDDoCBsJ2V4aWwu</text>
     </attribute>
   </item>
 
@@ -530,7 +530,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Le Duke retrouve ici le rôle du marshal borgne de 'Cent dollars pour un shérif'.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ABsTGUgRHVrZSByZXRyb3V2ZSBpY2kgbGUgcsO0bGUgZHUgbWFyc2hhbCBib3JnbmUgZGUgJ0NlbnQgZG9sbGFycyBwb3VyIHVuIHNow6lyaWYn//8Lg==</text>
     </attribute>
   </item>
 
@@ -546,7 +546,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Alby, qui a dix ans, casse sa tirelire et celle d'un copain pour faire un merveilleux cadeau d'anniversaire à son grand-père : refaire voler son vieux ballon dirigeable.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ADkQWxieSwgcXVpIGEgZGl4IGFucywgY2Fzc2Ugc2EgdGlyZWxpcmUgZXQgY2VsbGUgZCd1biBjb3BhaW4gcG91ciBmYWlyZSB1biBtZXJ2ZWlsbGV1eCBjYWRlYXUgZCdhbm5pdmVyc2FpcmUgw6Agc29uIGdyYW5kLXDDqHJlIDogcmVmYWlyZSB2b2xlciBzb24gdmlldXggYmFsbG9uIGRpcmlnZWFibGUu</text>
     </attribute>
   </item>
 
@@ -563,7 +563,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Un couple de personnes âgées passe ses dernières vacances dans sa maison de campagne.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">AB0VW4gY291cGxlIGRlIHBlcnNvbm5lcyDDomfDqWVzIHBhc3NlIHNlcyBkZXJuacOocmVzIHZhY2FuY2VzIGRhbnMgc2EgbWFpc29uIGRlIGNhbXBhZ25l//8Lg==</text>
     </attribute>
   </item>
 
@@ -579,7 +579,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Evocation de l'oeuvre d'un des géants d'Hollywood par son fils.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ABURXZvY2F0aW9uIGRlIGwnb2V1dnJlIGQndW4gZGVzIGfDqWFudHMgZCdIb2xseXdvb2QgcGFyIHNvbiBmaWxz//8Lg==</text>
     </attribute>
   </item>
 
@@ -596,7 +596,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Un voleur de bijoux s'évade et se cache chez une vieille dame. Ils deviennent amis.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ABwVW4gdm9sZXVyIGRlIGJpam91eCBzJ8OpdmFkZSBldCBzZSBjYWNoZSBjaGV6IHVuZSB2aWVpbGxlIGRhbWUuIElscyBkZXZpZW5uZW50IGFtaXMu</text>
     </attribute>
   </item>
 
@@ -613,7 +613,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text indexed="True">Mike et Terry tombent amoureux fous, mais ils sont fiancés chacun de leur côté.</text>
+      <text indexed="True" mimetype="text/vnd.osaf-stream64">ABsTWlrZSBldCBUZXJyeSB0b21iZW50IGFtb3VyZXV4IGZvdXMsIG1haXMgaWxzIHNvbnQgZmlhbmPDqXMgY2hhY3VuIGRlIGxldXIgY8O0dMOp//8Lg==</text>
     </attribute>
   </item>
 

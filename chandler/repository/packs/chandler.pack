@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<pack name="Chandler" cwd="chandler">
+
+  <item path="//Schema/Core" afterLoadHooks="True">
+    <item file="description.attr" />
+    <item file="annotations.attr" />
+    <item file="examples.attr" />
+    <item file="issues.attr" />
+    <item file="displayName.attr" />
+    <item file="Item.kind" />
+    <item file="Parcel.kind" />
+    <item file="ParcelManager.kind" />
+  </item>
+
+</pack>

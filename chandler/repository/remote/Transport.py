@@ -9,7 +9,7 @@ import sys, re, xmlrpclib, jabber
 from libxml2 import createPushParser
 from SOAPpy import SOAPProxy
 
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 
 
 class RemoteError(ValueError):

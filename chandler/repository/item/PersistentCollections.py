@@ -5,10 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-import repository.item.Item
-import repository.item.Values 
-
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID
 from repository.util.SingleRef import SingleRef
 
 
@@ -17,10 +14,12 @@ class ReadOnlyError(ValueError):
     
 
 class PersistentCollection(object):
-    '''A persistence aware collection, tracking changes into a dirty bit.
+    """
+    A persistence aware collection, tracking changes into a dirty bit.
 
     This class is abstract and is to be used together with a concrete
-    collection class such as list or dict.'''
+    collection class such as list or dict.
+    """
 
     def __init__(self, item, attribute, companion):
 
@@ -28,6 +27,19 @@ class PersistentCollection(object):
 
         self._readOnly = False
         self.__setItem(item, attribute, companion)
+
+    def _refCount(self):
+
+        from repository.item.Values import ItemValue
+
+        count = 1
+        for value in self.itervalues():
+            if isinstance(value, ItemValue):
+                count += value._refCount()
+            elif isinstance(value, PersistentCollection):
+                count += value._refCount()
+
+        return count
 
     def setReadOnly(self, readOnly=True):
 
@@ -39,6 +51,8 @@ class PersistentCollection(object):
 
     def _setItem(self, item, attribute, companion):
 
+        from repository.item.Values import ItemValue
+
         if self._item is not None and self._item is not item:
             raise ValueError, "Collection already owned by %s" %(self._item)
 
@@ -46,7 +60,7 @@ class PersistentCollection(object):
         for value in self.itervalues():
             if isinstance(value, PersistentCollection):
                 value._setItem(item, attribute, companion)
-            elif isinstance(value, repository.item.Values.ItemValue):
+            elif isinstance(value, ItemValue):
                 value._setItem(item, attribute)
 
     def __setItem(self, item, attribute, companion):
@@ -66,6 +80,9 @@ class PersistentCollection(object):
 
     def _prepareValue(self, value, setDirty=True):
 
+        from repository.item.Item import Item
+        from repository.item.Values import ItemValue
+        
         if isinstance(value, PersistentCollection):
             value = value._copy(self._item, self._attribute, self._companion,
                                 'copy', lambda x, other, z: other)
@@ -79,9 +96,9 @@ class PersistentCollection(object):
                                              self._companion)
             persistentValue.update(value, setDirty)
             value = persistentValue
-        elif isinstance(value, repository.item.Item.Item):
+        elif isinstance(value, Item):
             value = SingleRef(value._uuid)
-        elif isinstance(value, repository.item.Values.ItemValue):
+        elif isinstance(value, ItemValue):
             value._setItem(self._item, self._attribute)
 
         return value
@@ -99,8 +116,10 @@ class PersistentCollection(object):
 
     def _storeValue(self, value):
 
+        from repository.item.Item import Item
+
         if self._companion is not None:
-            if isinstance(value, repository.item.Item.Item):
+            if isinstance(value, Item):
                 if not self._item.hasValue(self._companion, value):
                     self._item.addValue(self._companion, value)
 
@@ -135,12 +154,14 @@ class PersistentList(list, PersistentCollection):
 
     def _copy(self, item, attribute, companion, copyPolicy, copyFn):
 
+        from repository.item.Item import Item
+
         copy = type(self)(item, attribute, companion)
         policy = copyPolicy or item.getAttributeAspect(attribute, 'copyPolicy',
                                                        default='copy')
 
         for value in self:
-            if isinstance(value, repository.item.Item.Item):
+            if isinstance(value, Item):
                 value = copyFn(item, value, policy)
                 if value is not None:
                     copy.append(value, False)
@@ -276,12 +297,14 @@ class PersistentDict(dict, PersistentCollection):
 
     def _copy(self, item, attribute, companion, copyPolicy, copyFn):
 
+        from repository.item.Item import Item
+
         copy = type(self)(item, attribute, companion)
         policy = copyPolicy or item.getAttributeAspect(attribute, 'copyPolicy',
                                                        default='copy')
         
         for key, value in self.iteritems():
-            if isinstance(value, repository.item.Item.Item):
+            if isinstance(value, Item):
                 value = copyFn(item, value, policy)
                 if value is not None:
                     copy.__setitem__(key, value, False)

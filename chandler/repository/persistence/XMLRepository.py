@@ -10,13 +10,16 @@ from datetime import datetime
 from threading import currentThread
 from struct import pack
 
+from chandlerdb.util import lock
+from chandlerdb.util.UUID import UUID
 from repository.item.Item import Item
-from repository.util.UUID import UUID
 from repository.util.ThreadLocal import ThreadLocal
 from repository.util.SAX import XMLGenerator
 from repository.persistence.Repository import Repository
 from repository.persistence.Repository import OnDemandRepository, Store
 from repository.persistence.RepositoryError import RepositoryError
+from repository.persistence.RepositoryError import ExclusiveOpenDeniedError
+from repository.persistence.RepositoryError import RepositoryOpenDeniedError
 from repository.persistence.XMLRepositoryView import XMLRepositoryView
 from repository.persistence.DBContainer import DBContainer, RefContainer
 from repository.persistence.DBContainer import HistContainer
@@ -27,7 +30,8 @@ from repository.persistence.FileContainer import IndexContainer
 from repository.remote.CloudFilter import CloudFilter
 
 from bsddb.db import DBEnv, DB, DBError
-from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD, DB_LOCK_WRITE
+from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD
+from bsddb.db import DB_LOCK_WRITE
 from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL, DB_PRIVATE, DB_LOCK_MINLOCKS
 from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_TXN, DB_DIRTY_READ
 from bsddb.db import DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError
@@ -37,16 +41,18 @@ from dbxml import XmlQueryContext, XmlUpdateContext
 
 
 class XMLRepository(OnDemandRepository):
-    """A Berkeley DBXML based repository.
-
-    This simple repository implementation saves all items in separate XML
-    item files in a given directory. It can then load them back to restore
-    the same exact item hierarchy."""
+    """
+    A Berkeley DBXML based repository.
+    """
 
     def __init__(self, dbHome):
-        'Construct an XMLRepository giving it a DBXML container pathname'
+        """
+        Construct an XMLRepository giving it a DBXML container pathname
+        """
         
         super(XMLRepository, self).__init__(dbHome)
+        self._openLock = None
+        self._exclusiveLock = None
         self._env = None
         
     def create(self, **kwds):
@@ -58,9 +64,13 @@ class XMLRepository(OnDemandRepository):
 
     def _create(self, **kwds):
 
-        ramdb = kwds.get('ramdb', False)
-
-        if not ramdb:
+        if kwds.get('ramdb', False):
+            flags = DB_INIT_MPOOL | DB_PRIVATE | DB_THREAD
+            self._env = self._createEnv()
+            self._env.open(self.dbHome, DB_CREATE | flags, 0)
+            self._lockEnv = None
+            
+        else:
             if not os.path.exists(self.dbHome):
                 os.makedirs(self.dbHome)
             elif not os.path.isdir(self.dbHome):
@@ -68,13 +78,9 @@ class XMLRepository(OnDemandRepository):
             else:
                 self.delete()
 
-        self._env = self._createEnv()
-
-        if ramdb:
-            flags = DB_INIT_MPOOL | DB_PRIVATE | DB_THREAD
-        else:
-            flags = self.OPEN_FLAGS
-        self._env.open(self.dbHome, DB_CREATE | flags, 0)
+            self._lockOpen()
+            self._env = self._createEnv()
+            self._env.open(self.dbHome, DB_CREATE | self.OPEN_FLAGS, 0)
 
         self.store = self._createStore()
         kwds['create'] = True
@@ -83,6 +89,26 @@ class XMLRepository(OnDemandRepository):
     def _createStore(self):
 
         return XMLStore(self)
+
+    def _lockOpen(self):
+        
+        fd = lock.open(os.path.join(self.dbHome, '__lock__'))
+        if not lock.lock(fd, lock.LOCK_SH | lock.LOCK_NB):
+            lock.close(fd)
+            raise RepositoryOpenDeniedError
+
+        self._openLock = fd
+
+    def _lockClose(self):
+
+        if self._openLock is not None:
+            if self._exclusiveLock is not None:
+                lock.lock(self._exclusiveLock, lock.LOCK_UN | lock.LOCK_SH)
+                self._exclusiveLock = None
+            
+            lock.lock(self._openLock, lock.LOCK_UN)
+            lock.close(self._openLock)
+            self._openLock = None
 
     def _createEnv(self):
 
@@ -101,6 +127,7 @@ class XMLRepository(OnDemandRepository):
                     f = os.path.join(path, f)
                     if not os.path.isdir(f):
                         os.remove(f)
+                        
         os.path.walk(self.dbHome, purge, None)
 
     def open(self, **kwds):
@@ -120,16 +147,43 @@ class XMLRepository(OnDemandRepository):
                         shutil.copy2(os.path.join(fromPath,f), self.dbHome)
 
             super(XMLRepository, self).open(**kwds)
+
+            self._lockOpen()
             self._env = self._createEnv()
 
             try:
-                if kwds.get('recover', False):
-                    before = datetime.now()
-                    self._env.open(self.dbHome,
-                                   DB_RECOVER | DB_CREATE | self.OPEN_FLAGS, 0)
-                    after = datetime.now()
-                    self.logger.info('opened db with recovery in %s',
-                                     after - before)
+                recover = kwds.get('recover', False)
+                exclusive = kwds.get('exclusive', False)
+
+                if recover or exclusive:
+                    try:
+                        locked = False
+                        fd = self._openLock
+
+                        locked = lock.lock(fd, (lock.LOCK_UN |
+                                                lock.LOCK_EX | lock.LOCK_NB))
+                        if not locked:
+                            if exclusive:
+                                raise ExclusiveOpenDeniedError
+                            recover = False
+                            self.logger.info('unable to obtain exclusive access to open with recovery, downgrading to regular open')
+
+                        if recover:
+                            before = datetime.now()
+                            flags = DB_RECOVER | DB_CREATE | self.OPEN_FLAGS
+                            self._env.open(self.dbHome, flags, 0)
+                            after = datetime.now()
+                            self.logger.info('opened db with recovery in %s',
+                                             after - before)
+                        else:
+                            self._env.open(self.dbHome, self.OPEN_FLAGS, 0)
+
+                    finally:
+                        if locked:
+                            if exclusive:
+                                self._exclusiveLock = fd
+                            else:
+                                lock.lock(fd, lock.LOCK_UN | lock.LOCK_SH)
                 else:
                     self._env.open(self.dbHome, self.OPEN_FLAGS, 0)
 
@@ -153,13 +207,14 @@ class XMLRepository(OnDemandRepository):
             self.store.close()
             self._env.close()
             self._env = None
+            self._lockClose()
             self._status &= ~self.OPEN
 
     def createView(self, name=None):
 
         return XMLRepositoryView(self, name)
 
-
+    openUUID = UUID('c54211ac-131a-11d9-8475-000393db837c')
     OPEN_FLAGS = DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN | DB_THREAD
 
 
@@ -291,7 +346,7 @@ class XMLStore(Store):
             txnStarted = self.startTransaction()
             txn = self.txn
                 
-            self._data = XMLContainer(self, "__data__", txn, **kwds)
+            self._xml = XMLContainer(self, "__xml__", txn, **kwds)
             self._refs = RefContainer(self, "__refs__", txn, **kwds)
             self._names = NamesContainer(self, "__names__", txn, **kwds)
             self._history = HistContainer(self, "__history__", txn, **kwds)
@@ -307,7 +362,7 @@ class XMLStore(Store):
 
     def close(self):
 
-        self._data.close()
+        self._xml.close()
         self._refs.close()
         self._names.close()
         self._history.close()
@@ -320,7 +375,7 @@ class XMLStore(Store):
 
     def attachView(self, view):
 
-        self._data.attachView(view)
+        self._xml.attachView(view)
         self._refs.attachView(view)
         self._names.attachView(view)
         self._history.attachView(view)
@@ -333,7 +388,7 @@ class XMLStore(Store):
 
     def detachView(self, view):
 
-        self._data.detachView(view)
+        self._xml.detachView(view)
         self._refs.detachView(view)
         self._names.detachView(view)
         self._history.detachView(view)
@@ -346,7 +401,7 @@ class XMLStore(Store):
 
     def loadItem(self, version, uuid):
 
-        return self._data.loadItem(version, uuid)
+        return self._xml.loadItem(version, uuid)
     
     def loadRef(self, version, uItem, uuid, key):
 
@@ -400,7 +455,7 @@ class XMLStore(Store):
 
     def queryItems(self, version, query):
 
-        return self._data.queryItems(version, query)
+        return self._xml.queryItems(version, query)
 
     def searchItems(self, version, query):
 
@@ -408,15 +463,15 @@ class XMLStore(Store):
 
     def parseDoc(self, doc, handler):
 
-        self._data.parseDoc(doc, handler)
+        self._xml.parseDoc(doc, handler)
 
     def getDocUUID(self, doc):
 
-        return self._data.getDocUUID(doc)
+        return self._xml.getDocUUID(doc)
 
     def getDocVersion(self, doc):
 
-        return self._data.getDocVersion(doc)
+        return self._xml.getDocVersion(doc)
 
     def getDocContent(self, doc):
 
@@ -499,7 +554,7 @@ class XMLStore(Store):
             return self._threaded.updateCtx
 
         except AttributeError:
-            updateCtx = XmlUpdateContext(self._data._xml)
+            updateCtx = XmlUpdateContext(self._xml._xml)
             self._threaded.updateCtx = updateCtx
 
             return updateCtx
@@ -539,7 +594,7 @@ class XMLStore(Store):
             doc.setMetaData('', '', 'deleted', XmlValue('True'))
 
         try:
-            docId = self._data.putDocument(doc)
+            docId = self._xml.putDocument(doc)
         except:
             self.repository.logger.exception("putDocument failed, xml is: %s",
                                              xml)

@@ -4,13 +4,13 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import UUIDext, cStringIO
+import cStringIO
 
 from struct import pack, unpack
 
 from repository.item.Access import ACL, ACE
 from repository.item.Item import Item
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID, _uuid
 from repository.persistence.Repository import Repository
 
 from bsddb.db import DB
@@ -445,11 +445,11 @@ class HistContainer(DBContainer):
             for name in dirtyValues:
                 if isinstance(name, unicode):
                     name = name.encode('utf-8')
-                buffer.write(pack('>l', UUIDext.hash(name)))
+                buffer.write(pack('>l', _uuid.hash(name)))
             for name in dirtyRefs:
                 if isinstance(name, unicode):
                     name = name.encode('utf-8')
-                buffer.write(pack('>l', UUIDext.hash(name)))
+                buffer.write(pack('>l', _uuid.hash(name)))
 
             value = buffer.getvalue()
             buffer.close()
@@ -554,7 +554,7 @@ class HistContainer(DBContainer):
                         if version == 0 or ~docVersion <= version:
                             status, docId, parentId = unpack('>ll16s',
                                                              value[1][0:24])
-                            return (status, docId, parentId, ~docVersion)
+                            return status, docId, parentId, ~docVersion
                         
                         value = cursor.next()
 
@@ -603,7 +603,7 @@ class NamesContainer(DBContainer):
         if uuid is None:
             uuid = key
 
-        self.put(pack('>16sll', key._uuid, UUIDext.hash(name), ~version),
+        self.put(pack('>16sll', key._uuid, _uuid.hash(name), ~version),
                  uuid._uuid)
 
     def readName(self, version, key, name):
@@ -614,7 +614,7 @@ class NamesContainer(DBContainer):
         if isinstance(name, unicode):
             name = name.encode('utf-8')
 
-        cursorKey = pack('>16sl', key._uuid, UUIDext.hash(name))
+        cursorKey = pack('>16sl', key._uuid, _uuid.hash(name))
             
         while True:
             txnStarted = False
@@ -726,7 +726,7 @@ class ACLContainer(DBContainer):
         else:
             if isinstance(name, unicode):
                 name = name.encode('utf-8')
-            key = pack('>16sll', key._uuid, UUIDext.hash(name), ~version)
+            key = pack('>16sll', key._uuid, _uuid.hash(name), ~version)
 
         if acl is None:    # deleted acl
             value = pack('>l', 0)
@@ -743,7 +743,7 @@ class ACLContainer(DBContainer):
         else:
             if isinstance(name, unicode):
                 name = name.encode('utf-8')
-            cursorKey = pack('>16sl', key._uuid, UUIDext.hash(name))
+            cursorKey = pack('>16sl', key._uuid, _uuid.hash(name))
 
         while True:
             txnStarted = False
@@ -943,4 +943,4 @@ class HashTuple(tuple):
         if isinstance(name, unicode):
             name = name.encode('utf-8')
 
-        return super(HashTuple, self).__contains__(UUIDext.hash(name))
+        return super(HashTuple, self).__contains__(_uuid.hash(name))

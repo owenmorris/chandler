@@ -194,7 +194,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         """ Test a free text query """
 
         def checkLob(lob, value):
-            reader = lob.getReader()
+            reader = lob.getPlainTextReader()
             text = reader.read()
             reader.close()
             return value in text

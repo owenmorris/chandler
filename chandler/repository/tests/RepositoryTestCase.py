@@ -19,6 +19,8 @@ class RepositoryTestCase(TestCase):
         self.rootdir = os.environ['CHANDLERHOME']
         self.schemaPack = os.path.join(self.rootdir, 'repository',
                                   'packs', 'schema.pack')
+        self.chandlerPack = os.path.join(self.rootdir, 'repository',
+                                         'packs', 'chandler.pack')
 
         handler = logging.FileHandler(os.path.join(self.rootdir,'chandler.log'))
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
@@ -44,6 +46,7 @@ class RepositoryTestCase(TestCase):
             self.rep.create(ramdb=self.ramdb)
 
             self.rep.loadPack(self.schemaPack)
+            self.rep.loadPack(self.chandlerPack)
             self.rep.commit()
 
         self.manager = \

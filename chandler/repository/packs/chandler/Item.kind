@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item update="Item" type="path">
+  <ref name="attributes" operation="append">
+    <ref alias="issues" type="path">/Core/issues</ref>
+    <ref alias="examples" type="path">/Core/examples</ref>
+    <ref alias="description" type="path">/Core/description</ref>
+  </ref>
+</item>

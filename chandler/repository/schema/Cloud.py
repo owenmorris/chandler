@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import libxml2, re
 
 from repository.item.Item import Item
-from repository.item.ItemRef import RefDict
+from repository.item.RefCollections import RefList
 from repository.item.PersistentCollections import PersistentCollection
 from repository.remote.CloudFilter import CloudFilter, EndpointFilter
 from repository.remote.CloudFilter import RefHandler
@@ -373,7 +373,7 @@ class Endpoint(Item):
 
         def append(values, value):
             if value is not None:
-                if isinstance(value, Item) or isinstance(value, RefDict):
+                if isinstance(value, Item) or isinstance(value, RefList):
                     values.append(value)
                 elif isinstance(value, PersistentCollection):
                     values.append(value._getItems())
@@ -387,7 +387,7 @@ class Endpoint(Item):
                 for v in value._getItems():
                     append(values, v.getAttributeValue(name, default=None))
                 value = values
-            elif isinstance(value, RefDict):
+            elif isinstance(value, RefList):
                 values = []
                 for v in value:
                     append(values, v.getAttributeValue(name, default=None))
@@ -406,7 +406,7 @@ class Endpoint(Item):
                 if value is None:
                     break
                 if not (isinstance(value, Item) or
-                        isinstance(value, RefDict) or
+                        isinstance(value, RefList) or
                         isinstance(value, PersistentCollection)):
                     raise TypeError, type(value)
 

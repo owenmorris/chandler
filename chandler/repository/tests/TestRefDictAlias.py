@@ -13,7 +13,7 @@ from repository.schema.Attribute import Attribute
 from repository.util.Path import Path
 
 
-class RefDictionaryAliasTest(RepositoryTestCase.RepositoryTestCase):
+class RefListAliasTest(RepositoryTestCase.RepositoryTestCase):
     """Test Ref Dictionary Alias manipulation"""
     
     # When I use the alias feature to add items to a ref dictionary
@@ -55,7 +55,7 @@ class RefDictionaryAliasTest(RepositoryTestCase.RepositoryTestCase):
             newList.append(self.rep.find(uuid))
         return newList
         
-    def testRefDictAlias(self):
+    def testRefListAlias(self):
         # create some blocks to work with
         blockKind = self._createBlockKind('list')
         aBlock = blockKind.newItem('aBlock', self.rep)

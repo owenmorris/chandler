@@ -2,8 +2,8 @@
 
 <pack name="Schema" cwd="schema">
 
-  <item file="Schema.root" afterLoadHooks="True">
-    <item file="Core.domain" cwd="model">
+  <item file="Schema.root">
+    <item file="Core.domain" cwd="model" afterLoadHooks="True">
 
       <item files="*.type" />
       <item files="*.alias" />
@@ -13,18 +13,19 @@
       <item file="Item.kind" />
       <item file="Attribute.kind" />
       <item file="Taxon.kind" />
-      <item file="Kind.kind" /> 
+      <item file="Kind.kind" />
       <item file="Alias.kind" />
       <item file="Type.kind" />
-      <item file="Struct.kind" />
       <item file="Enumeration.kind" />
-      <item file="Parcel.kind" />
-      <item file="ParcelManager.kind" />
+      <item file="Struct.kind" />
+
       <item file="Cloud.kind" />
       <item file="Endpoint.kind" />
       <item file="Principal.kind" />
       <item file="Monitors.kind" />
+    </item>
 
+    <item path="//Schema/Core" cwd="model" afterLoadHooks="True">
       <item file="Clouds.namespace" cwd="clouds">
         <item file="Kind.cloud" />
         <item file="Attribute.cloud" />

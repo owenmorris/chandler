@@ -4,16 +4,13 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import UUIDext
-
 from new import classobj
 
 from repository.item.Item import Item
 from repository.item.Values import ItemValue
-from repository.item.ItemRef import ItemRef, RefDict, NoneRef
 from repository.item.PersistentCollections import PersistentCollection
 from repository.util.Path import Path
-from repository.util.UUID import UUID
+from chandlerdb.util.UUID import UUID, _uuid
 from repository.util.SingleRef import SingleRef
 
 
@@ -28,10 +25,10 @@ class Kind(Item):
 
         # recursion avoidance
         self._values['notFoundAttributes'] = []
-        refDict = self._refDict('inheritedAttributes',
+        refList = self._refList('inheritedAttributes',
                                 'inheritingKinds', False)
         
-        self._references['inheritedAttributes'] = refDict
+        self._references['inheritedAttributes'] = refList
         self._status |= Item.SCHEMA | Item.PINNED
 
         self.__dict__['_initialValues'] = None
@@ -40,7 +37,15 @@ class Kind(Item):
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Kind, self)._fillItem(name, parent, kind, **kwds)
-        self.__init()
+        if not kwds['update']:
+            self.__init()
+
+    def onItemLoad(self):
+
+        # force-load attributes for schema bootstrapping
+        if 'attributes' in self._references:
+            for attribute in self.attributes:
+                pass
 
     def newItem(self, name, parent):
         """
@@ -71,12 +76,12 @@ class Kind(Item):
 
         superClasses = []
         
-        hash = UUIDext.combine(0, self._uuid._hash)
+        hash = _uuid.combine(0, self._uuid._hash)
         for superKind in self.superKinds:
             c = superKind.getItemClass()
             if c is not Item and c not in superClasses:
                 superClasses.append(c)
-                hash = UUIDext.combine(hash, superKind._uuid._hash)
+                hash = _uuid.combine(hash, superKind._uuid._hash)
 
         count = len(superClasses)
 
@@ -104,6 +109,20 @@ class Kind(Item):
             if self is not self.getItemKind():
                 self.itsView.logger.warn('No superKinds for %s', self.itsPath)
                 result = False
+
+        def checkClass(cls):
+            if cls is not Item:
+                if not (isinstance(cls, type) and issubclass(cls, Item)):
+                    return cls
+                for base in cls.__bases__:
+                    if checkClass(base) is not None:
+                        return base
+            return None
+
+        cls = checkClass(self.getItemClass())
+        if cls is not None:
+            self.itsView.logger.warn('Kind %s has an item class or superclass that is not a subclass of Item: %s %s', self.itsPath, cls, type(cls))
+            result = False
 
         return result
         
@@ -224,7 +243,7 @@ class Kind(Item):
             for uuid, link in inheritedAttributes._iteritems():
                 name = link._alias
                 if not self.resolve(name):
-                    yield (name, link._value.other(self))
+                    yield (name, link._value)
 
     def _inheritAttribute(self, name):
 
@@ -236,10 +255,7 @@ class Kind(Item):
             if superKind is not None:
                 attribute = superKind.getAttribute(name, True)
                 if attribute is not None:
-                    # during core schema loading _kind can be None
-                    if attribute._kind is not None:
-                        self.addValue('inheritedAttributes',
-                                      attribute, alias=name)
+                    self.addValue('inheritedAttributes', attribute, alias=name)
                     return attribute
             else:
                 cache = False
@@ -276,9 +292,9 @@ class Kind(Item):
             else:
                 duplicates[superKind._uuid] = superKind
                 
-        hash = UUIDext.combine(0, self._uuid._hash)
+        hash = _uuid.combine(0, self._uuid._hash)
         for superKind in superKinds:
-            hash = UUIDext.combine(hash, superKind._uuid._hash)
+            hash = _uuid.combine(hash, superKind._uuid._hash)
         if hash < 0:
             hash = ~hash
         name = "mixin_%08x" %(hash)
@@ -348,19 +364,13 @@ class Kind(Item):
 
         for name, value in self._initialReferences.iteritems():
             if name not in references:
-                if value is None:
-                    value = NoneRef
-                elif isinstance(value, Item):
-                    value = ItemRef(item, name, value, self.getOtherName(name))
-                elif isinstance(value, PersistentCollection):
-                    refDict = item._refDict(name, self.getOtherName(name))
+                otherName = self.getOtherName(name)
+                if isinstance(value, PersistentCollection):
+                    refList = references[name] = item._refList(name, otherName)
                     for other in value.itervalues():
-                        refDict.append(other)
-                    value = refDict
+                        refList.append(other)
                 else:
-                    raise TypeError, value
-            
-                references[name] = value
+                    references._setValue(name, value, otherName)
 
     def flushCaches(self):
         """

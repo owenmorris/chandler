@@ -8,3 +8,5 @@ debug
 release
 randpool.dat
 *.inst
+*.gz
+*.md5
