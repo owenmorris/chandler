@@ -925,11 +925,11 @@ class wxTreeAndList(DraggableWidget):
         except AttributeError:
             pass # A wx.TreeCtrl won't use columnWidths
         else:
-            for index in xrange(self.GetColumnCount()):
+            for index in xrange(wx.gizmos.TreeListCtrl.GetColumnCount(self)):
                 self.RemoveColumn (0)
     
-            info = wx.gizmos.TreeListColumnInfo()
             for index in xrange (self.GetColumnCount()):
+                info = wx.gizmos.TreeListColumnInfo()
                 info.SetText (self.GetColumnHeading (index, None))
                 info.SetWidth (self.blockItem.columnWidths [index])
                 self.AddColumnInfo (info)
