@@ -31,7 +31,7 @@ lib
 src=chandler/debug/lib
 dest=debug/lib
 recursive=yes
-glob=*.py,*.pyd,*.so
+glob=*.py,*.pyd,*.so,*.security
 python2.3/bsddb
 python2.3/compiler
 python2.3/curses

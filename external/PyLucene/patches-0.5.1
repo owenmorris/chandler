@@ -86,3 +86,45 @@
  	install $(GCJ_HOME)/lib/libgcc_s.so.1 $(DISTRIB)/gcj
  else
  
+--- PyLucene-0.5.1/Makefile	Tue Sep 14 14:52:58 2004
++++ PyLucene-0.5.1-patched/Makefile	Tue Sep 14 14:51:34 2004
+@@ -347,6 +347,9 @@
+ install:: all
+ 	install PyLucene.py $(PYTHON_SITE)
+ 	install $(PYLUCENE_LIB) $(PYTHON_SITE)
++	mkdir -p $(PYTHON_SITE)/security
++	install $(GCJ_HOME)/lib/security/classpath.security $(PYTHON_SITE)/security
++	install $(GCJ_HOME)/lib/security/libgcj.security $(PYTHON_SITE)/security
+ 
+ ifeq ($(OS),Darwin)
+ install::
+--- PyLucene-0.5.1/PyLucene.i	Sun Jul 11 16:15:15 2004
++++ PyLucene-0.5.1-patched/PyLucene.i	Tue Sep 14 19:09:56 2004
+@@ -674,6 +674,27 @@
+         java::lang::System::getProperties();
+     props->put(JvNewStringUTF("inPython"), objects);
+ 
++    PyObject *sys = PyImport_ImportModule("sys");
++    PyObject *path = PyObject_GetAttrString(sys, "path");
++    int count = PyList_Size(path);
++
++    while (count-- > 0) {
++        PyObject *pp = PyList_GET_ITEM(path, count);
++        char *p = PyString_AsString(pp);
++        int l = strlen(p);
++
++        if (l > 13 && !strcmp(p + l - 13, "site-packages"))
++        {
++            jstring jp = JvNewStringUTF(p);
++
++            props->put(JvNewStringUTF("gnu.classpath.home.url"),
++		       JvNewStringUTF("file:")->concat(jp->replace('\\','/')));
++            break;
++        }
++    }
++    Py_DECREF(path);
++    Py_DECREF(sys);
++
+     JvInitClass(&org::apache::lucene::document::Field::class$);
+     JvInitClass(&org::apache::lucene::queryParser::QueryParser::class$);
+     JvInitClass(&org::apache::lucene::store::FSDirectory::class$);

@@ -18,6 +18,8 @@ PREFIX_PYTHON=$(PREFIX)/bin
 PREFIX_DB=$(BUILD_ROOT)/persistence/db/db-4.2.52
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
+         $(SNAP)/$(SITE)/security/classpath.security \
+         $(SNAP)/$(SITE)/security/libgcj.security \
          $(SNAP)/bin/libdb_java42$(SUFFIX).dll
 else
 
@@ -26,6 +28,8 @@ PREFIX_PYTHON=$(PREFIX)/$(FRAMEWORK)
 PREFIX_DB=$(PREFIX)/db
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene.so \
+         $(SNAP)/$(SITE)/security/classpath.security \
+         $(SNAP)/$(SITE)/security/libgcj.security \
          $(SNAP)/db/lib/libdb_java-4.2.jnilib \
          $(SNAP)/db/lib/libdb_java-4.2.la \
          $(SNAP)/lib/libgcc_s.1.0.dylib \
@@ -38,6 +42,8 @@ PREFIX_PYTHON=$(PREFIX)
 PREFIX_DB=$(PREFIX)/db
 MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
          $(SNAP)/$(SITE)/_PyLucene.so \
+         $(SNAP)/$(SITE)/security/classpath.security \
+         $(SNAP)/$(SITE)/security/libgcj.security \
          $(SNAP)/db/lib/libdb_java-4.2.so \
          $(SNAP)/lib/libgcc_s.so.1 \
          $(SNAP)/lib/libgcj.so.5 \

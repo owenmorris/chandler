@@ -29,7 +29,7 @@ msvcr71.dll
 # Grab all py, pyc, etc. from debug/bin/DLLs and debug/bin/Lib
 src=chandler/debug/bin
 dest=debug/bin
-glob=*.py,*.pyd,*.so,*.dll
+glob=*.py,*.pyd,*.so,*.dll,*.security
 recursive=yes
 DLLs
 Lib
