@@ -120,6 +120,30 @@
     <textAlignmentEnum>Left</textAlignmentEnum>    
   </StaticText>
   
+  <!-- Date area -->
+  <ContentItemDetail itsName="DateArea" itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
+    <position>0.4</position>
+    <selectedItemsAttribute>date</selectedItemsAttribute>
+    <childrenBlocks itemref="doc:DateLabel"/>
+    <childrenBlocks itemref="doc:DateAttribute"/>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+
+  <StaticText itsName="DateAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+    <title>date</title>
+    <characterStyle itemref="detail:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Left</textAlignmentEnum>    
+  </StaticText>
+  
+  <StaticText itsName="DateLabel" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttributeLabel">
+    <title>date</title>
+    <characterStyle itemref="detail:LabelStyle"/>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
+  </StaticText>
   
     
   <!-- The actual detail area -->
@@ -128,9 +152,11 @@
     <key itemref="zb:RSSItem"/>
     
     <!-- UI Elements for detail view -->
+    <rootBlocks itemref="detail:MarkupBar"/>
     <rootBlocks itemref="doc:ItemBodyArea"/>
     <rootBlocks itemref="doc:LinkArea"/>
     <rootBlocks itemref="doc:AuthorArea"/>
+    <rootBlocks itemref="doc:DateArea"/>
     <!--<rootBlocks itemref="doc:DateArea"/> -->
     <rootBlocks itemref="doc:CategoryArea"/>
   </detail:DetailTrunkSubtree>
