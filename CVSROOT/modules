@@ -51,7 +51,7 @@ chandler-source -a \
     osaf/chandler/wxpython \
     osaf/chandler/jabber-py \
     osaf/chandler/swig \
-    osaf/chandler/net/expat-win \
+    osaf/chandler/net/expat \
     osaf/chandler/net/gettext-darwin \
     osaf/chandler/net/glib \
     osaf/chandler/net/libiconv \
@@ -61,7 +61,7 @@ chandler-source -a \
 
 rap -a \
     osaf/chandler/swig \
-    osaf/chandler/net/expat-win \
+    osaf/chandler/net/expat \
     osaf/chandler/net/gettext-darwin \
     osaf/chandler/net/glib \
     osaf/chandler/net/libiconv \
