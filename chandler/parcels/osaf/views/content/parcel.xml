@@ -38,7 +38,7 @@
   <!-- Events -->
   <BlockEvent itemName="GenerateContentItemsEvent">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="view:MixedTreeList"/>
+    <dispatchToBlock itemref="view:MixedTree"/>
     <methodName>OnGenerateContentItems</methodName>
   </BlockEvent>
 
@@ -63,9 +63,9 @@
     <helpString>generates sample content items: notes, calendar events and contacts</helpString>
   </MenuItem>
 
-  <!-- Calendar Tree List -->
-  <TreeList itemName="CalendarTreeList"
-            itemClass="OSAF.framework.blocks.Content.CalendarTreeList">
+  <!-- Calendar Tree -->
+  <Tree itemName="CalendarTree"
+            itemClass="OSAF.framework.blocks.Content.CalendarTree">
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
     <useButtons>False</useButtons>
@@ -82,11 +82,11 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </TreeList>
+  </Tree>
 
-  <!-- Contact Tree List -->
-  <TreeList itemName="ContactTreeList"
-            itemClass="OSAF.framework.blocks.Content.ContactTreeList">
+  <!-- Contact Tree -->
+  <Tree itemName="ContactTree"
+            itemClass="OSAF.framework.blocks.Content.ContactTree">
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
     <useButtons>False</useButtons>
@@ -105,11 +105,11 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </TreeList>
+  </Tree>
 
-  <!-- Note Tree List -->
-  <TreeList itemName="NoteTreeList"
-            itemClass="OSAF.framework.blocks.Content.NoteTreeList">
+  <!-- Note Tree -->
+  <Tree itemName="NoteTree"
+            itemClass="OSAF.framework.blocks.Content.NoteTree">
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
     <useButtons>False</useButtons>
@@ -124,11 +124,11 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </TreeList>
+  </Tree>
 
-  <!-- Mixed Tree List -->
-  <TreeList itemName="MixedTreeList"
-            itemClass="OSAF.framework.blocks.Content.MixedTreeList">
+  <!-- Mixed Tree -->
+  <Tree itemName="MixedTree"
+            itemClass="OSAF.framework.blocks.Content.MixedTree">
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
     <useButtons>False</useButtons>
@@ -145,7 +145,7 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </TreeList>
+  </Tree>
 
   <!-- Calendar View -->
   <BoxContainer itemName="CalendarListView">
@@ -153,7 +153,7 @@
 
     <childrenBlocks itemref="view:ContentMenu"/>
     <childrenBlocks itemref="view:GenerateContentMenuItem"/>
-    <childrenBlocks itemref="view:CalendarTreeList"/>
+    <childrenBlocks itemref="view:CalendarTree"/>
 
     <blockEvents itemref="view:GenerateContentItemsEvent"/>
 
@@ -175,7 +175,7 @@
 
     <childrenBlocks itemref="view:ContentMenu"/>
     <childrenBlocks itemref="view:GenerateContentMenuItem"/>
-    <childrenBlocks itemref="view:NoteTreeList"/>
+    <childrenBlocks itemref="view:NoteTree"/>
 
     <blockEvents itemref="view:GenerateContentItemsEvent"/>
 
@@ -197,7 +197,7 @@
 
     <childrenBlocks itemref="view:ContentMenu"/>
     <childrenBlocks itemref="view:GenerateContentMenuItem"/>
-    <childrenBlocks itemref="view:ContactTreeList"/>
+    <childrenBlocks itemref="view:ContactTree"/>
 
     <blockEvents itemref="view:GenerateContentItemsEvent"/>
 
@@ -219,7 +219,7 @@
 
     <childrenBlocks itemref="view:ContentMenu"/>
     <childrenBlocks itemref="view:GenerateContentMenuItem"/>
-    <childrenBlocks itemref="view:MixedTreeList"/>
+    <childrenBlocks itemref="view:MixedTree"/>
 
     <blockEvents itemref="view:GenerateContentItemsEvent"/>
 

@@ -1,11 +1,11 @@
 import application.Globals as Globals
 from repository.item.Query import KindQuery
-from OSAF.framework.blocks.ContainerBlocks import TreeList
-from OSAF.framework.blocks.Views import wxItemView, ItemView
+from OSAF.framework.blocks.ControlBlocks import Tree
+from OSAF.framework.blocks.RepositoryBlocks import wxItemDetail, ItemDetail
 from OSAF.framework.notifications.Notification import Notification
 from OSAF.examples.zaobao.RSSData import ZaoBaoParcel
 
-class ZaoBaoList(TreeList):
+class ZaoBaoList(Tree):
     def _addChildNode(self, node, child, hasKids):
         displayName = child.getAttributeValue('displayName',
                                               default='<Untitled>')
@@ -37,8 +37,8 @@ class ZaoBaoList(TreeList):
 
 
     def OnGoToURI(self, notification):
-        wxTreeListWindow = Globals.association[self.getUUID()]
-        wxTreeListWindow.GoToURI(notification.data['URI'])
+        wxTreeWindow = Globals.association[self.getUUID()]
+        wxTreeWindow.GoToURI(notification.data['URI'])
 
     def OnEnterPressedEvent(self, notification):
         from OSAF.examples.zaobao.RSSData import RSSChannel
@@ -56,7 +56,7 @@ class ZaoBaoList(TreeList):
         Globals.repository.commit()
 
 
-class ZaoBaoTreeList(TreeList):
+class ZaoBaoTree(Tree):
     def _addChildNode(self, node, child, hasKids):
         displayName = child.getAttributeValue('displayName',
                                               default='<Untitled>')
@@ -82,8 +82,8 @@ class ZaoBaoTreeList(TreeList):
             node.AddRootNode(Globals.repository, ['//'], True)
 
     def OnGoToURI(self, notification):
-        wxTreeListWindow = Globals.association[self.getUUID()]
-        wxTreeListWindow.GoToURI(notification.data['URI'])
+        wxTreeWindow = Globals.association[self.getUUID()]
+        wxTreeWindow.GoToURI(notification.data['URI'])
 
     def OnEnterPressedEvent(self, notification):
         from OSAF.examples.zaobao.RSSData import RSSChannel
@@ -101,7 +101,7 @@ class ZaoBaoTreeList(TreeList):
         Globals.repository.commit()
 
         
-class wxZaoBaoItemView(wxItemView):
+class wxZaoBaoItemDetail(wxItemDetail):
     def OnLinkClicked(self, wx_linkinfo):
         itemURL = wx_linkinfo.GetHref()
         item = Globals.repository.find(itemURL)
@@ -141,12 +141,12 @@ class wxZaoBaoItemView(wxItemView):
             except TypeError:
                 self.SetPage('<body><html><h1>Error displaying the item</h1></body></html>')
 
-class ZaoBaoItemView(ItemView):
+class ZaoBaoItemDetail(ItemDetail):
     def renderOneBlock (self, parent, parentWindow):
         from OSAF.framework.blocks.Block import Block
         from wxPython.wx import wxDefaultPosition
         
-        htmlWindow = wxZaoBaoItemView(parentWindow,
+        htmlWindow = wxZaoBaoItemDetail(parentWindow,
                                       Block.getwxID(self),
                                       wxDefaultPosition,
                                       (self.minimumSize.width, self.minimumSize.height))

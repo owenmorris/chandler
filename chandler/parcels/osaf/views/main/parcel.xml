@@ -342,7 +342,7 @@
     <noLines>True</noLines>
     <useButtons>False</useButtons>
     <columnHeadings>View</columnHeadings>    
-    <columnWidths>200</columnWidths>
+    <columnWidths>150</columnWidths>
     <rootPath  itemref="doc:URLRoot"/>
     <selection>/Repository</selection>
 

@@ -349,7 +349,7 @@
     ContainerChild is the most generic child of a container
   -->
   <Kind itemName="ContainerChild">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.ContainerChild</classes>
+    <classes key="python">OSAF.framework.blocks.Block.ContainerChild</classes>
     <superKinds itemref="docSchema:Block"/>
   </Kind>
 
@@ -357,7 +357,7 @@
     RectangularChild is a rectangular child of a container
   -->
   <Kind itemName="RectangularChild">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.RectangularChild</classes>
+    <classes key="python">OSAF.framework.blocks.Block.RectangularChild</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
     <Attribute itemName="size">
@@ -503,7 +503,7 @@
     Button
   -->
   <Kind itemName="Button">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.Button</classes>
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.Button</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="title">
@@ -544,7 +544,7 @@
     Choice
   -->
   <Kind itemName="Choice">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.Choice</classes>
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.Choice</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="choices">
@@ -564,7 +564,7 @@
     ComboBox
   -->
   <Kind itemName="ComboBox">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.ComboBox</classes>
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.ComboBox</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="selection">
@@ -589,7 +589,7 @@
     EditText
   -->
   <Kind itemName="EditText">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.EditText</classes>
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.EditText</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <Enumeration itemName="lineStyleEnumType">
@@ -625,7 +625,7 @@
     HTML
   -->
   <Kind itemName="HTML">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.HTML</classes>
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.HTML</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="url">
@@ -639,7 +639,7 @@
     List
   -->
   <Kind itemName="List">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.List</classes>
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.List</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <Attribute itemName="columnHeadings">
@@ -660,7 +660,7 @@
     RadioBox
   -->
   <Kind itemName="RadioBox">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.RadioBox</classes>
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.RadioBox</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
     <Attribute itemName="title">
@@ -700,7 +700,7 @@
     ScrolledWindow
   -->
   <Kind itemName="ScrolledWindow">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.ScrolledWindow</classes>
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.ScrolledWindow</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
   </Kind>    
@@ -724,7 +724,7 @@
     StaticText
   -->
   <Kind itemName="StaticText">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.StaticText</classes>
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.StaticText</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <Attribute itemName="title">
@@ -740,7 +740,7 @@
     StatusBar
   -->
   <Kind itemName="StatusBar">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.StatusBar</classes>
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.StatusBar</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
   </Kind>
 
@@ -794,7 +794,7 @@
     ToolbarItem
   -->
   <Kind itemName="ToolbarItem">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.ToolbarItem</classes>
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.ToolbarItem</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
     <Attribute itemName="toolbarLocation">
@@ -836,21 +836,12 @@
     <attributes itemref="docSchema:ToolbarItem/toolbarItemKind"/>
     <attributes itemref="docSchema:ToolbarItem/statusMessage"/>
   </Kind>
-
+  
   <!--
     Tree
   -->
   <Kind itemName="Tree">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.Tree</classes>
-    <superKinds itemref="docSchema:RectangularChild"/>
-
-  </Kind>  
-
-  <!--
-    TreeList
-  -->
-  <Kind itemName="TreeList">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.TreeList</classes>
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.Tree</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <Attribute itemName="hideRoot">
@@ -889,29 +880,29 @@
       <type itemref="Item"/>
     </Attribute>
 
-    <attributes itemref="docSchema:TreeList/hideRoot"/>
-    <attributes itemref="docSchema:TreeList/noLines"/>
-    <attributes itemref="docSchema:TreeList/useButtons"/>    
-    <attributes itemref="docSchema:TreeList/columnHeadings"/>
-    <attributes itemref="docSchema:TreeList/columnWidths"/>
-    <attributes itemref="docSchema:TreeList/openedContainers"/>
-    <attributes itemref="docSchema:TreeList/selection"/>
-    <attributes itemref="docSchema:TreeList/rootPath"/>
+    <attributes itemref="docSchema:Tree/hideRoot"/>
+    <attributes itemref="docSchema:Tree/noLines"/>
+    <attributes itemref="docSchema:Tree/useButtons"/>    
+    <attributes itemref="docSchema:Tree/columnHeadings"/>
+    <attributes itemref="docSchema:Tree/columnWidths"/>
+    <attributes itemref="docSchema:Tree/openedContainers"/>
+    <attributes itemref="docSchema:Tree/selection"/>
+    <attributes itemref="docSchema:Tree/rootPath"/>
   </Kind>  
 
   <!--
     Sidebar
   -->
   <Kind itemName="Sidebar">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.Sidebar</classes>
-    <superKinds itemref="docSchema:TreeList"/>
+    <classes key="python">OSAF.framework.blocks.NavigationBlocks.Sidebar</classes>
+    <superKinds itemref="docSchema:Tree"/>
   </Kind>  
 
   <!--
     NavigationBar
   -->
   <Kind itemName="NavigationBar">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.NavigationBar</classes>
+    <classes key="python">OSAF.framework.blocks.NavigationBlocks.NavigationBar</classes>
     <superKinds itemref="docSchema:Toolbar"/>
   </Kind>  
 
@@ -919,17 +910,17 @@
     BookmarksBar
   -->
   <Kind itemName="BookmarksBar">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.BookmarksBar</classes>
+    <classes key="python">OSAF.framework.blocks.NavigationBlocks.BookmarksBar</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
   </Kind>  
 
-  <Kind itemName="RepositoryTreeList">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.RepositoryTreeList</classes>
-    <superKinds itemref="docSchema:TreeList"/>
+  <Kind itemName="RepositoryTree">
+    <classes key="python">OSAF.framework.blocks.RepositoryBlocks.RepositoryTree</classes>
+    <superKinds itemref="docSchema:Tree"/>
   </Kind>  
 
-  <Kind itemName="ItemView">
-    <classes key="python">OSAF.framework.blocks.Views.ItemView</classes>
+  <Kind itemName="ItemDetail">
+    <classes key="python">OSAF.framework.blocks.RepositoryBlocks.ItemDetail</classes>
     <superKinds itemref="docSchema:HTML"/>
 
     <Attribute itemName="selection">
@@ -937,7 +928,7 @@
       <defaultValue type="UUID"></defaultValue>
     </Attribute>
 
-    <attributes itemref="docSchema:ItemView/selection"/>
+    <attributes itemref="docSchema:ItemDetail/selection"/>
   </Kind>  
 
   <!--

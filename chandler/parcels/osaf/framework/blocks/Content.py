@@ -4,10 +4,11 @@ import OSAF.contentmodel.notes.Notes as Notes
 import OSAF.contentmodel.contacts.Contacts as Contacts
 import OSAF.contentmodel.tests.GenerateItems as GenerateItems
 import OSAF.framework.blocks.ContainerBlocks as ContainerBlocks
+import OSAF.framework.blocks.ControlBlocks as ControlBlocks
 import repository.item.Query as Query
 import repository.parcel.Parcel as Parcel
 
-class ContentTreeList(ContainerBlocks.TreeList):
+class ContentTree(ControlBlocks.Tree):
 
     def GetTreeDataName(self, item):
         return item.getUUID()
@@ -22,7 +23,7 @@ class ContentTreeList(ContainerBlocks.TreeList):
         else:
             node.AddRootNode(self.GetQuery(), ["Items"], True)
 
-class MixedTreeList(ContentTreeList):
+class MixedTree(ContentTree):
 
     def GetQuery(self):
         calendarEventKind = Calendar.CalendarParcel.getCalendarEventKind()
@@ -41,23 +42,23 @@ class MixedTreeList(ContentTreeList):
         Globals.repository.commit()
 
     def OnSelectionChangedEvent(self, notification):
-        wxTreeListWindow = Globals.association[self.getUUID()]
+        wxTreeWindow = Globals.association[self.getUUID()]
         data = notification.GetData()
         item = data['item']
 
         whoAttribute = item.getAttributeValue('whoAttribute')
         whoDisplay = item.getAttributeAspect(whoAttribute, 'displayName')
-        wxTreeListWindow.SetColumnText(0, "Who (%s)" % whoDisplay)
+        wxTreeWindow.SetColumnText(0, "Who (%s)" % whoDisplay)
 
         aboutAttribute = item.getAttributeValue('aboutAttribute')
         aboutDisplay = item.getAttributeAspect(aboutAttribute, 'displayName')
-        wxTreeListWindow.SetColumnText(1, "About (%s)" % aboutDisplay)
+        wxTreeWindow.SetColumnText(1, "About (%s)" % aboutDisplay)
 
         dateAttribute = item.getAttributeValue('dateAttribute')
         dateDisplay = item.getAttributeAspect(dateAttribute, 'displayName')
-        wxTreeListWindow.SetColumnText(2, "Date (%s)" % str(dateDisplay))
+        wxTreeWindow.SetColumnText(2, "Date (%s)" % str(dateDisplay))
 
-class CalendarTreeList(ContentTreeList):
+class CalendarTree(ContentTree):
     
     def GetQuery(self):
         calendarEventKind = Calendar.CalendarParcel.getCalendarEventKind()
@@ -72,7 +73,7 @@ class CalendarTreeList(ContentTreeList):
         GenerateItems.GenerateCalendarEvents(10, 10)
         Globals.repository.commit()
 
-class NoteTreeList(ContentTreeList):
+class NoteTree(ContentTree):
     
     def GetQuery(self):
         noteKind = Notes.NotesParcel.getNoteKind()
@@ -87,7 +88,7 @@ class NoteTreeList(ContentTreeList):
         GenerateItems.GenerateNotes(10)
         Globals.repository.commit()
 
-class ContactTreeList(ContentTreeList):
+class ContactTree(ContentTree):
     
     def GetQuery(self):
         contactKind = Contacts.ContactsParcel.getContactKind()

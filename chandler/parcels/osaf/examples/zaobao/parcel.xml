@@ -170,17 +170,17 @@
 
   <Kind itemName="ZaoBaoList">
     <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoList</classes>
-    <superKinds itemref="docSchema:TreeList"/>
+    <superKinds itemref="docSchema:Tree"/>
   </Kind>  
 
-  <Kind itemName="ZaoBaoTreeList">
-    <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoTreeList</classes>
-    <superKinds itemref="docSchema:TreeList"/>
+  <Kind itemName="ZaoBaoTree">
+    <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoTree</classes>
+    <superKinds itemref="docSchema:Tree"/>
   </Kind>  
 
-  <Kind itemName="ZaoBaoItemView">
-    <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoItemView</classes>
-    <superKinds itemref="docSchema:ItemView"/>
+  <Kind itemName="ZaoBaoItemDetail">
+    <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoItemDetail</classes>
+    <superKinds itemref="docSchema:ItemDetail"/>
   </Kind>  
 
 

@@ -46,7 +46,7 @@
 
   <!-- The main ZaoBao view -->
 
-  <zb:ZaoBaoTreeList itemName="ZaoBaoTreeList">
+  <zb:ZaoBaoTree itemName="ZaoBaoTree">
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
     <useButtons>True</useButtons>
@@ -61,9 +61,9 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </zb:ZaoBaoTreeList>
+  </zb:ZaoBaoTree>
 
-  <zb:ZaoBaoItemView itemName="ItemView">
+  <zb:ZaoBaoItemDetail itemName="ItemDetail">
     <url></url>
     <open>True</open>
     <size>100,50</size>
@@ -71,7 +71,7 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </zb:ZaoBaoItemView>
+  </zb:ZaoBaoItemDetail>
 
   <EditText itemName="NewChannel">
     <open>True</open>
@@ -97,8 +97,8 @@
     <stretchFactor>1.0</stretchFactor>
     <orientationEnum>Vertical</orientationEnum>
 
-    <childrenBlocks itemref="doc:ZaoBaoTreeList"/>
-    <childrenBlocks itemref="doc:ItemView"/>
+    <childrenBlocks itemref="doc:ZaoBaoTree"/>
+    <childrenBlocks itemref="doc:ItemDetail"/>
     <childrenBlocks itemref="doc:NewChannel"/>
 
   </BoxContainer>
@@ -131,7 +131,7 @@
     <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoList>
 
-  <zb:ZaoBaoItemView itemName="ChannelItemView">
+  <zb:ZaoBaoItemDetail itemName="ChannelItemDetail">
     <url></url>
     <open>True</open>
     <size>100,50</size>
@@ -139,7 +139,7 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </zb:ZaoBaoItemView>
+  </zb:ZaoBaoItemDetail>
 
   <BoxContainer itemName="ZaoBaoChannelView">
     <eventBoundary>True</eventBoundary>
@@ -152,7 +152,7 @@
     <orientationEnum>Vertical</orientationEnum>
 
     <childrenBlocks itemref="doc:ChannelList"/>
-    <childrenBlocks itemref="doc:ChannelItemView"/>
+    <childrenBlocks itemref="doc:ChannelItemDetail"/>
 
   </BoxContainer>
 

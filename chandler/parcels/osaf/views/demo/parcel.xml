@@ -391,7 +391,7 @@
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
 
-  <TreeList itemName="TreeExample">
+  <Tree itemName="TreeExample">
     <columnHeadings>Heading</columnHeadings>    
     <columnWidths>200</columnWidths>
     <noLines>False</noLines>
@@ -406,7 +406,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
-  </TreeList>
+  </Tree>
   
   <BoxContainer itemName="TreeSizer">
     <contentSpec itemref="doc:myQuery"/>
