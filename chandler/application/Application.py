@@ -352,7 +352,7 @@ class wxApplication (wxApp):
         self.jabberClient.Login()
 
         # start the agent manager
-        from application.agents.AgentManager import AgentManager
+        from OSAF.framework.agents.AgentManager import AgentManager
         Globals.agentManager = AgentManager()
         Globals.agentManager.Startup()
 
