@@ -22,7 +22,9 @@ from repository.util.Path import Path
 class CalendarTest(TestContentModel.ContentModelTestCase):
     """ Test Calendar Content Model """
 
+
     def testCalendar(self):
+
         """ Simple test for creating instances of calendar related kinds """
 
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
@@ -48,14 +50,14 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
         # Check that the globals got created by the parcel
         calendarPath = Path('//parcels/osaf/contentmodel/calendar')
-        
-        self.assertEqual(Calendar.CalendarParcel.getCalendarEventKind(),
+
+        self.assertEqual(Calendar.CalendarEvent.getKind(),
                          self.rep.find(Path(calendarPath, 'CalendarEvent')))
-        self.assertEqual(Calendar.CalendarParcel.getCalendarKind(),
+        self.assertEqual(Calendar.Calendar.getKind(),
                          self.rep.find(Path(calendarPath, 'Calendar')))
-        self.assertEqual(Calendar.CalendarParcel.getLocationKind(),
+        self.assertEqual(Calendar.Location.getKind(),
                          self.rep.find(Path(calendarPath, 'Location')))
-        self.assertEqual(Calendar.CalendarParcel.getRecurrencePatternKind(),
+        self.assertEqual(Calendar.RecurrencePattern.getKind(),
                          self.rep.find(Path(calendarPath, 'RecurrencePattern')))
 
         # Construct a sample item
@@ -98,14 +100,14 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         calendarItem = contentItemParent.getItemChild("calendarItem")
         locationItem = contentItemParent.getItemChild("locationItem")
         recurrenceItem = contentItemParent.getItemChild("recurrenceItem")
-        
+
         _verifyCalendarEvent(calendarEventItem)
         _verifyCalendarItems(calendarItem, locationItem,
                              recurrenceItem)
 
     def testTimeFields(self):
         """ Test time related fields and methods """
-        
+
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
 
         # Test getDuration
@@ -126,17 +128,18 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(firstItem.duration, DateTime.DateTimeDelta(0, 1.5))
         self.assertEqual(firstItem.startTime,
                          DateTime.DateTime(2003, 3, 4, 12, 45))
-        
+
         # Test reminderTime
         firstItem.SetReminderDelta(DateTime.DateTimeDeltaFrom(minutes=30))
         self.assertEqual(firstItem.reminderTime, DateTime.DateTime(2003, 3, 4, 12, 15))
         firstItem.SetReminderDelta(None)
         self.failIf(firstItem.hasAttributeValue('reminderTime'))
-        
+
 
     def testDeleteItem(self):
+
         """ Test calendar event deletion """
-        
+
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
 
         item = Calendar.CalendarEvent()

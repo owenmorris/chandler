@@ -96,7 +96,7 @@ def GenerateTasks(count):
 def GenerateEventTask():
     """ Generate one Task/Event stamped item """
     event = GenerateCalendarEvent(30)
-    event.StampKind('add', Task.TaskParcel.getTaskMixinKind())
+    event.StampKind('add', Task.TaskMixin.getKind())
 
 def GenerateEventTasks(count):
     for index in range(count):

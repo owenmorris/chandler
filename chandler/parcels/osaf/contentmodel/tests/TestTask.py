@@ -37,10 +37,10 @@ class TaskTest(TestContentModel.ContentModelTestCase):
 
         # Check that the globals got created by the parcel
         taskPath = Path('//parcels/osaf/contentmodel/tasks')
-        self.assert_(Task.TaskParcel.getTaskKind() != None)
+        self.assert_(Task.Task.getKind() != None)
         self.assert_(self.rep.find(Path(taskPath, 'Task')) != None)
 
-        self.assertEqual(Task.TaskParcel.getTaskKind(),
+        self.assertEqual(Task.Task.getKind(),
                          self.rep.find(Path(taskPath, 'Task')))
 
         # Construct A Sample Item

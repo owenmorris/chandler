@@ -59,7 +59,6 @@ class MailParcel(application.Parcel.Parcel):
         repository.walk(Path(contentitemsPath, 'outboundMailItems'),
                         makeContainer)
 
-        self._setUUIDs()
 
     def getMailItemParent(cls, inbound=False):
 
@@ -73,171 +72,6 @@ class MailParcel(application.Parcel.Parcel):
 
     def onItemLoad(self):
         super(MailParcel, self).onItemLoad()
-        self._setUUIDs()
-
-    def _setUUIDs(self):
-        accountBaseKind = self['AccountBase']
-        MailParcel.accountBaseKindID = accountBaseKind.itsUUID
-
-        imapAccountKind = self['IMAPAccount']
-        MailParcel.imapAccountKindID = imapAccountKind.itsUUID
-
-        smtpAccountKind = self['SMTPAccount']
-        MailParcel.smtpAccountKindID = smtpAccountKind.itsUUID
-
-        mailDeliveryErrorKind = self['MailDeliveryError']
-
-        MailParcel.mailDeliveryErrorKindID = mailDeliveryErrorKind.itsUUID
-
-        mailDeliveryBaseKind = self['MailDeliveryBase']
-        MailParcel.mailDeliveryBaseKindID = mailDeliveryBaseKind.itsUUID
-
-        smtpDeliveryKind = self['SMTPDelivery']
-        MailParcel.smtpDeliveryKindID = smtpDeliveryKind.itsUUID
-
-        imapDeliveryKind = self['IMAPDelivery']
-        MailParcel.imapDeliveryKindID = imapDeliveryKind.itsUUID
-
-        mimeBaseKind = self['MIMEBase']
-        MailParcel.mimeBaseKindID = mimeBaseKind.itsUUID
-
-        mimeNoteKind = self['MIMENote']
-        MailParcel.mimeNoteKindID = mimeNoteKind.itsUUID
-
-        mailMessageKind = self['MailMessage']
-        MailParcel.mailMessageKindID = mailMessageKind.itsUUID
-
-        mailMessageMixinKind = self['MailMessageMixin']
-        MailParcel.mailMessageMixinKindID = mailMessageMixinKind.itsUUID
-
-        mimeBinaryKind = self['MIMEBinary']
-        MailParcel.mimeBinaryKindID = mimeBinaryKind.itsUUID
-
-        mimeTextKind = self['MIMEText']
-        MailParcel.mimeTextKindID = mimeTextKind.itsUUID
-
-        mimeContainerKind = self['MIMEContainer']
-        MailParcel.mimeContainerKindID = mimeContainerKind.itsUUID
-
-        mimeSecurityKind = self['MIMESecurity']
-        MailParcel.mimeSecurityKindID = mimeSecurityKind.itsUUID
-
-        emailAddressKind = self['EmailAddress']
-        MailParcel.emailAddressKindID = emailAddressKind.itsUUID
-
-    def getAccountBaseKind(cls):
-        assert cls.accountBaseKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.accountBaseKindID]
-
-    getAccountBaseKind = classmethod(getAccountBaseKind)
-
-    def getIMAPAccountKind(cls):
-        assert cls.imapAccountKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.imapAccountKindID]
-
-    getIMAPAccountKind = classmethod(getIMAPAccountKind)
-
-    def getSMTPAccountKind(cls):
-        assert cls.smtpAccountKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.smtpAccountKindID]
-
-    getSMTPAccountKind = classmethod(getSMTPAccountKind)
-
-    def getMailDeliveryErrorKind(cls):
-        assert cls.mailDeliveryErrorKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.mailDeliveryErrorKindID]
-
-    getMailDeliveryErrorKind = classmethod(getMailDeliveryErrorKind)
-
-    def getMailDeliveryBaseKind(cls):
-        assert cls.mailDeliveryBaseKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.mailDeliveryBaseKindID]
-
-    getMailDeliveryBaseKind = classmethod(getMailDeliveryBaseKind)
-
-
-    def getSMTPDeliveryKind(cls):
-        assert cls.smtpDeliveryKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.smtpDeliveryKindID]
-
-    getSMTPDeliveryKind = classmethod(getSMTPDeliveryKind)
-
-    def getIMAPDeliveryKind(cls):
-        assert cls.imapDeliveryKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.imapDeliveryKindID]
-
-    getIMAPDeliveryKind = classmethod(getIMAPDeliveryKind)
-
-    def getMIMEBaseKind(cls):
-        assert cls.mimeBaseKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.mimeBaseKindID]
-
-    getMIMEBaseKind = classmethod(getMIMEBaseKind)
-
-    def getMIMENoteKind(cls):
-        assert cls.mimeNoteKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.mimeNoteKindID]
-
-    getMIMENoteKind = classmethod(getMIMENoteKind)
-
-    def getMailMessageKind(cls):
-        assert cls.mailMessageKindID, "Mail message not yet loaded"
-        return Globals.repository[cls.mailMessageKindID]
-
-    getMailMessageKind = classmethod(getMailMessageKind)
-
-    def getMailMessageMixinKind(cls):
-        assert cls.mailMessageMixinKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.mailMessageMixinKindID]
-
-    getMailMessageMixinKind = classmethod(getMailMessageMixinKind)
-
-    def getMIMEBinaryKind(cls):
-        assert cls.mimeBinaryKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.mimeBinaryKindID]
-
-    getMIMEBinaryKind = classmethod(getMIMEBinaryKind)
-
-    def getMIMETextKind(cls):
-        assert cls.mimeTextKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.mimeTextKindID]
-
-    getMIMETextKind = classmethod(getMIMETextKind)
-
-    def getMIMEContainerKind(cls):
-        assert cls.mimeContainerKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.mimeContainerKindID]
-
-    getMIMEContainerKind = classmethod(getMIMEContainerKind)
-
-    def getMIMESecurityKind(cls):
-        assert cls.mimeSecurityKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.mimeSecurityKindID]
-
-    getMIMESecurityKind = classmethod(getMIMESecurityKind)
-
-    def getEmailAddressKind(cls):
-        assert cls.emailAddressKindID, "Mail parcel not yet loaded"
-        return Globals.repository[cls.emailAddressKindID]
-
-    getEmailAddressKind = classmethod(getEmailAddressKind)
-
-    accountBaseKindID = None
-    imapAccountKindID = None
-    smtpAccountKindID = None
-    mailDeliveryErrorKindID = None
-    mailDeliveryBaseKindID = None
-    smtpDeliveryKindID = None
-    imapDeliveryKindID = None
-    mimeBaseKindID = None
-    mimeNoteKindID = None
-    mailMessageKindID = None
-    mailMessageMixinKindID = None
-    mimeBinaryKindID = None
-    mimeTextKindID = None
-    mimeContainerKindID = None
-    mimeSecurityKindID = None
-    emailAddressKindID = None
 
 
     def getSMTPAccount(cls, UUID=None):
@@ -258,7 +92,7 @@ class MailParcel(application.Parcel.Parcel):
         @return C{tuple} in the form (C{SMTPAccount}, C{EmailAddress})
         """
 
-        accountKind = MailParcel.getSMTPAccountKind()
+        accountKind = SMTPAccount.getKind()
         account = None
         replyToAddress = None
 
@@ -307,7 +141,7 @@ class MailParcel(application.Parcel.Parcel):
         @return C{IMAPAccount}
         """
 
-        accountKind = MailParcel.getIMAPAccountKind()
+        accountKind = IMAPAccount.getKind()
         account = None
 
         if UUID is not None:
@@ -326,20 +160,22 @@ class MailParcel(application.Parcel.Parcel):
     getIMAPAccount = classmethod(getIMAPAccount)
 
 
-class AccountBase(Item.Item):
+class AccountBase(ContentModel.ChandlerItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/AccountBase"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getAccountBaseKind()
         super(AccountBase, self).__init__(name, parent, kind)
 
 class SMTPAccount(AccountBase):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/SMTPAccount"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getSMTPAccountKind()
         super(SMTPAccount, self).__init__(name, parent, kind)
 
 
@@ -347,23 +183,25 @@ class SMTPAccount(AccountBase):
         self.accountType = "SMTP"
 
 class IMAPAccount(AccountBase):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/IMAPAccount"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getIMAPAccountKind()
         super(IMAPAccount, self).__init__(name, parent, kind)
 
         #XXX: Is account type really needed
         self.accountType = "IMAP"
 
 
-class MailDeliveryError(Item.Item):
+class MailDeliveryError(ContentModel.ChandlerItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/MailDeliveryError"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getMailDeliveryErrorKind()
         super(MailDeliveryError, self).__init__(name, parent, kind)
 
     def __str__(self):
@@ -374,21 +212,23 @@ class MailDeliveryError(Item.Item):
         return "| %d | %s | %s |" % (self.errorCode, self.errorString, self.errorDate.strftime())
 
 
-class MailDeliveryBase(Item.Item):
+class MailDeliveryBase(ContentModel.ChandlerItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/MailDeliveryBase"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getMailDeliveryBaseKind()
         super(MailDeliveryBase, self).__init__(name, parent, kind)
 
 
 class SMTPDelivery(MailDeliveryBase):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/SMTPDelivery"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getSMTPDeliveryKind()
         super(SMTPDelivery, self).__init__(name, parent, kind)
 
 
@@ -416,44 +256,51 @@ class SMTPDelivery(MailDeliveryBase):
 
 
 class IMAPDelivery(MailDeliveryBase):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/IMAPDelivery"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getIMAPDeliveryKind()
 
         super(IMAPDelivery, self).__init__(name, parent, kind)
 
         self.deliveryType = "IMAP"
 
-class MIMEBase(Item.Item):
+class MIMEBase(ContentModel.ChandlerItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/MIMEBase"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getMIMEBaseKind()
 
         super(MIMEBase, self).__init__(name, parent, kind)
 
 class MIMENote(Notes.Note, MIMEBase):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/MIMENote"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getMIMENoteKind()
 
         super(MIMENote, self).__init__(name, parent, kind)
 
 class MIMEContainer(MIMEBase):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/MIMEContainer"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getMIMEContainerKind()
 
         super(MIMEContainer, self).__init__(name, parent, kind)
 
 class MailMessageMixin(MIMEContainer):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/MailMessageMixin"
+
     """
       Mail Message Mixin is the bag of Message-specific attributes.
 
@@ -461,8 +308,6 @@ class MailMessageMixin(MIMEContainer):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getMailMessageMixinKind()
 
         super(MailMessageMixin, self).__init__(name, parent, kind)
 
@@ -553,7 +398,7 @@ class MailMessageMixin(MIMEContainer):
         if account is None:
             account, replyAddress = MailParcel.getSMTPAccount()
 
-        assert account.isItemOf(MailParcel.getSMTPAccountKind()), "Only SMTP Accounts Supported"
+        assert account.isItemOf(SMTPAccount.getKind()), "Only SMTP Accounts Supported"
 
         if self.deliveryExtension is None:
             self.deliveryExtension = SMTPDelivery()
@@ -567,7 +412,7 @@ class MailMessageMixin(MIMEContainer):
         if account is None:
             account = MailParcel.getIMAPAccount()
 
-        assert account.isItemOf(MailParcel.getIMAPAccountKind()), "Only IMAP Accounts Supported"
+        assert account.isItemOf(IMAPAccount.getKind()), "Only IMAP Accounts Supported"
 
         if self.deliveryExtension is None:
             self.deliveryExtension = IMAPDelivery()
@@ -585,47 +430,52 @@ class MailMessageMixin(MIMEContainer):
         targetView.PostEventByName('SendMail', {'item': self})
 
 class MailMessage(MailMessageMixin, Notes.Note):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/MailMessage"
+
 
     def __init__(self, name=None, parent=None, kind=None):
-        if not kind:
-            kind = MailParcel.getMailMessageKind()
 
         super(MailMessage, self).__init__(name, parent, kind)
 
 class MIMEBinary(MIMENote):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/MIMEBinary"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getMIMEBinaryKind()
 
         super(MIMEBinary, self).__init__(name, parent, kind)
 
 class MIMEText(MIMENote):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/MIMEText"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getMIMETextKind()
 
         super(MIMEText, self).__init__(name, parent, kind)
 
 
 class MIMESecurity(MIMEContainer):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/MIMESecurity"
+
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getMIMESecurityKind()
 
         super(MIMESecurity, self).__init__(name, parent, kind)
 
-class EmailAddress(Item.Item):
+class EmailAddress(ContentModel.ChandlerItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/mail/EmailAddress"
+
     def __init__(self, name=None, parent=None, kind=None, clone=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
-        if not kind:
-            kind = MailParcel.getEmailAddressKind()
 
         super(EmailAddress, self).__init__(name, parent, kind)
 
@@ -757,7 +607,7 @@ class EmailAddress(Item.Item):
 
         else:
             # old slow query method
-            emailAddressKind = MailParcel.getEmailAddressKind()
+            emailAddressKind = EmailAddress.getKind()
             allAddresses = ItemQuery.KindQuery().run([emailAddressKind])
             addresses = []
             for candidate in allAddresses:

@@ -12,9 +12,11 @@ import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
 
 class Note(ContentModel.ContentItem):
+
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/Note"
+
     def __init__(self, name=None, parent=None, kind=None):
-        if not kind:
-            kind = ContentModel.ContentModel.getNoteKind()
         super (Note, self).__init__(name, parent, kind)
 
     def InitOutgoingAttributes (self):

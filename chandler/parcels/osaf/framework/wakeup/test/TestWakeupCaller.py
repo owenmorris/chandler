@@ -8,7 +8,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 import osaf.framework.wakeup.WakeupCaller as WakeupCaller
 import osaf.framework.wakeup.WakeupCallerParcel as WakeupCallerParcel
-import osaf.framework.twisted.TwistedReactorManager as TwistedReactorManager 
+import osaf.framework.twisted.TwistedReactorManager as TwistedReactorManager
 import application.Globals as Globals
 import unittest as unittest
 import time

@@ -29,52 +29,52 @@ class MailTest(TestContentModel.ContentModelTestCase):
         # Test the globals
         mailPath = Path('//parcels/osaf/contentmodel/mail')
 
-        self.assertEqual(Mail.MailParcel.getAccountBaseKind(),
+        self.assertEqual(Mail.AccountBase.getKind(),
                          self.rep.find(Path(mailPath, 'AccountBase')))
 
-        self.assertEqual(Mail.MailParcel.getIMAPAccountKind(),
+        self.assertEqual(Mail.IMAPAccount.getKind(),
                          self.rep.find(Path(mailPath, 'IMAPAccount')))
 
-        self.assertEqual(Mail.MailParcel.getSMTPAccountKind(),
+        self.assertEqual(Mail.SMTPAccount.getKind(),
                          self.rep.find(Path(mailPath, 'SMTPAccount')))
 
-        self.assertEqual(Mail.MailParcel.getMailDeliveryErrorKind(),
+        self.assertEqual(Mail.MailDeliveryError.getKind(),
                          self.rep.find(Path(mailPath, 'MailDeliveryError')))
 
-        self.assertEqual(Mail.MailParcel.getMailDeliveryBaseKind(),
+        self.assertEqual(Mail.MailDeliveryBase.getKind(),
                          self.rep.find(Path(mailPath, 'MailDeliveryBase')))
 
-        self.assertEqual(Mail.MailParcel.getSMTPDeliveryKind(),
+        self.assertEqual(Mail.SMTPDelivery.getKind(),
                          self.rep.find(Path(mailPath, 'SMTPDelivery')))
 
-        self.assertEqual(Mail.MailParcel.getIMAPDeliveryKind(),
+        self.assertEqual(Mail.IMAPDelivery.getKind(),
                          self.rep.find(Path(mailPath, 'IMAPDelivery')))
 
-        self.assertEqual(Mail.MailParcel.getMIMEBaseKind(),
+        self.assertEqual(Mail.MIMEBase.getKind(),
                          self.rep.find(Path(mailPath, 'MIMEBase')))
 
-        self.assertEqual(Mail.MailParcel.getMIMENoteKind(),
+        self.assertEqual(Mail.MIMENote.getKind(),
                          self.rep.find(Path(mailPath, 'MIMENote')))
 
-        self.assertEqual(Mail.MailParcel.getMailMessageKind(),
+        self.assertEqual(Mail.MailMessage.getKind(),
                          self.rep.find(Path(mailPath, 'MailMessage')))
 
-        self.assertEqual(Mail.MailParcel.getMailMessageMixinKind(),
+        self.assertEqual(Mail.MailMessageMixin.getKind(),
                          self.rep.find(Path(mailPath, 'MailMessageMixin')))
 
-        self.assertEqual(Mail.MailParcel.getMIMEBinaryKind(),
+        self.assertEqual(Mail.MIMEBinary.getKind(),
                          self.rep.find(Path(mailPath, 'MIMEBinary')))
 
-        self.assertEqual(Mail.MailParcel.getMIMETextKind(),
+        self.assertEqual(Mail.MIMEText.getKind(),
                          self.rep.find(Path(mailPath, 'MIMEText')))
 
-        self.assertEqual(Mail.MailParcel.getMIMEContainerKind(),
+        self.assertEqual(Mail.MIMEContainer.getKind(),
                          self.rep.find(Path(mailPath, 'MIMEContainer')))
 
-        self.assertEqual(Mail.MailParcel.getMIMESecurityKind(),
+        self.assertEqual(Mail.MIMESecurity.getKind(),
                          self.rep.find(Path(mailPath, 'MIMESecurity')))
 
-        self.assertEqual(Mail.MailParcel.getEmailAddressKind(),
+        self.assertEqual(Mail.EmailAddress.getKind(),
                          self.rep.find(Path(mailPath, 'EmailAddress')))
 
 
@@ -98,52 +98,52 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
         # Double check kinds
         self.assertEqual(accountBaseItem.itsKind,
-                         Mail.MailParcel.getAccountBaseKind())
+                         Mail.AccountBase.getKind())
 
         self.assertEqual(imapAccountItem.itsKind,
-                         Mail.MailParcel.getIMAPAccountKind())
+                         Mail.IMAPAccount.getKind())
 
         self.assertEqual(smtpAccountItem.itsKind,
-                         Mail.MailParcel.getSMTPAccountKind())
+                         Mail.SMTPAccount.getKind())
 
         self.assertEqual(mailDeliveryErrorItem.itsKind,
-                         Mail.MailParcel.getMailDeliveryErrorKind())
+                         Mail.MailDeliveryError.getKind())
 
         self.assertEqual(mailDeliveryBaseItem.itsKind,
-                         Mail.MailParcel.getMailDeliveryBaseKind())
+                         Mail.MailDeliveryBase.getKind())
 
         self.assertEqual(smtpDeliveryItem.itsKind,
-                         Mail.MailParcel.getSMTPDeliveryKind())
+                         Mail.SMTPDelivery.getKind())
 
         self.assertEqual(imapDeliveryItem.itsKind,
-                         Mail.MailParcel.getIMAPDeliveryKind())
+                         Mail.IMAPDelivery.getKind())
 
         self.assertEqual(mimeBaseItem.itsKind,
-                         Mail.MailParcel.getMIMEBaseKind())
+                         Mail.MIMEBase.getKind())
 
         self.assertEqual(mimeNoteItem.itsKind,
-                         Mail.MailParcel.getMIMENoteKind())
+                         Mail.MIMENote.getKind())
 
         self.assertEqual(mailMessageItem.itsKind,
-                         Mail.MailParcel.getMailMessageKind())
+                         Mail.MailMessage.getKind())
 
         self.assertEqual(mailMessageMixinItem.itsKind,
-                         Mail.MailParcel.getMailMessageMixinKind())
+                         Mail.MailMessageMixin.getKind())
 
         self.assertEqual(mimeBinaryItem.itsKind,
-                         Mail.MailParcel.getMIMEBinaryKind())
+                         Mail.MIMEBinary.getKind())
 
         self.assertEqual(mimeTextItem.itsKind,
-                         Mail.MailParcel.getMIMETextKind())
+                         Mail.MIMEText.getKind())
 
         self.assertEqual(mimeContainerItem.itsKind,
-                         Mail.MailParcel.getMIMEContainerKind())
+                         Mail.MIMEContainer.getKind())
 
         self.assertEqual(mimeSecurityItem.itsKind,
-                         Mail.MailParcel.getMIMESecurityKind())
+                         Mail.MIMESecurity.getKind())
 
         self.assertEqual(emailAddressItem.itsKind,
-                         Mail.MailParcel.getEmailAddressKind())
+                         Mail.EmailAddress.getKind())
 
         accountBaseItem = self.__populateAccount(accountBaseItem)
         smtpAccountItem = self.__populateAccount(smtpAccountItem)

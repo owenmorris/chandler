@@ -15,6 +15,7 @@ import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.contacts.Contacts as Contacts
+import osaf.contentmodel.Notes as Notes
 import application.dialogs.Util as Util
 import application.dialogs.AccountPreferences as AccountPreferences
 import repository.item.Query as Query
@@ -319,7 +320,7 @@ class DateTimeBlock (StaticTextLabel):
     """
     def shouldShow (self, item):
         # only shown for non-CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
         return not item.isItemOf (calendarMixinKind)
 
     def staticTextLabelValue (self, item):
@@ -352,7 +353,7 @@ class StaticRedirectAttribute (StaticTextLabel):
       Static Text that displays the name of the selected item's Attribute
     """
     def shouldShow (self, item):
-        contactKind = Contacts.ContactsParcel.getContactKind ()
+        contactKind = Contacts.Contact.getKind ()
         if item is None or item.isItemOf (contactKind):
             return False
         return True
@@ -375,7 +376,7 @@ class StaticRedirectAttribute (StaticTextLabel):
 class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
     def synchronizeItemDetail(self, item):
         whichAttr = self.selectedItemsAttribute
-        contactKind = Contacts.ContactsParcel.getContactKind ()
+        contactKind = Contacts.Contact.getKind ()
         if item is None or item.isItemOf (contactKind):
             self.isShown = False
         else:
@@ -383,7 +384,7 @@ class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
         self.synchronizeWidget()
 
     def shouldShow (self, item):
-        contactKind = Contacts.ContactsParcel.getContactKind ()
+        contactKind = Contacts.Contact.getKind ()
         if item is None or item.isItemOf (contactKind):
             return False
         return True
@@ -391,14 +392,14 @@ class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
 class EmailAddressBlock (DetailSynchronizer, LabeledTextAttributeBlock):
     def shouldShow (self, item):
         # if the item is a Contact, we should show ourself
-        contactKind = Contacts.ContactsParcel.getContactKind ()
+        contactKind = Contacts.Contact.getKind ()
         shouldShow = item.isItemOf (contactKind)
         return shouldShow
 
 def ItemCollectionOrMailMessageMixin (item):
     # if the item is a MailMessageMixin, or an ItemCollection,
     # then return True
-    mailKind = Mail.MailParcel.getMailMessageMixinKind ()
+    mailKind = Mail.MailMessageMixin.getKind ()
     isCollection = isinstance (item, ItemCollection.ItemCollection)
     isOneOrOther = isCollection or item.isItemOf (mailKind)
     return isOneOrOther
@@ -413,7 +414,7 @@ class ToMailBlock (DetailSynchronizer, LabeledTextAttributeBlock):
     def shouldShow (self, item):
         # if the item is a MailMessageMixin, or an ItemCollection,
         # then we should show ourself
-        mailKind = Mail.MailParcel.getMailMessageMixinKind ()
+        mailKind = Mail.MailMessageMixin.getKind ()
         return item.isItemOf (mailKind)
 
 class ToCollectionBlock (DetailSynchronizer, LabeledTextAttributeBlock):
@@ -448,7 +449,7 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         self.finishSelectionChanges () # finish changes to editable fields 
         tool = event.arguments['sender']
         item = self.selectedItem()
-        isANoteKind = item.isItemOf(ContentModel.ContentModel.getNoteKind())
+        isANoteKind = item.isItemOf(Notes.Note.getKind())
         if not isANoteKind:
             return
         if item is not None:
@@ -464,7 +465,7 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     def onButtonPressedEventUpdateUI(self, event):
         item = self.selectedItem()
         if item is not None:
-            enable = item.isItemOf(ContentModel.ContentModel.getNoteKind())
+            enable = item.isItemOf(Notes.Note.getKind())
         else:
             enable = False
         event.arguments ['Enable'] = enable
@@ -508,7 +509,7 @@ class MailMessageButton (DetailStampButton):
         return Mail.MailMessageMixin
     
     def stampMixinKind(self):
-        return Mail.MailParcel.getMailMessageMixinKind()
+        return Mail.MailMessageMixin.getKind()
     
 class CalendarStamp (DetailStampButton):
     """
@@ -518,7 +519,7 @@ class CalendarStamp (DetailStampButton):
         return Calendar.CalendarEventMixin
 
     def stampMixinKind(self):
-        return Calendar.CalendarParcel.getCalendarEventMixinKind()
+        return Calendar.CalendarEventMixin.getKind()
 
 class TaskStamp (DetailStampButton):
     """
@@ -528,7 +529,7 @@ class TaskStamp (DetailStampButton):
         return Task.TaskMixin
 
     def stampMixinKind(self):
-        return Task.TaskParcel.getTaskMixinKind()
+        return Task.TaskMixin.getKind()
 
 
 class PrivateSwitchButton(DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
@@ -679,7 +680,7 @@ class ToMailEditField (EditToAddressTextAttribute):
     'To' attribute of a Mail ContentItem, e.g. who it's sent to
     """
     def shouldShow (self, item):
-        mailKind = Mail.MailParcel.getMailMessageMixinKind ()
+        mailKind = Mail.MailMessageMixin.getKind ()
         return item.isItemOf (mailKind)
 
     def whichAttribute(self):
@@ -755,14 +756,14 @@ class EditHeadlineRedirectAttribute (EditRedirectAttribute):
     """
     def shouldShow (self, item):
         # don't show if the item is a Contact
-        contactKind = Contacts.ContactsParcel.getContactKind ()
+        contactKind = Contacts.Contact.getKind ()
         shouldShow = not item.isItemOf (contactKind)
         return shouldShow
 
 class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
     def shouldShow (self, item):
         # if the item is a MailMessageMixin, we should show ourself
-        shouldShow = item.isItemOf(Mail.MailParcel.getMailMessageMixinKind())
+        shouldShow = item.isItemOf(Mail.MailMessageMixin.getKind())
         # if the item is a collection, we should show ourself
         shouldShow = shouldShow or isinstance (item, ItemCollection.ItemCollection)
         return shouldShow
@@ -803,7 +804,7 @@ Classes to support Contact details
 class ContactFullNameBlock (DetailSynchronizer, LabeledTextAttributeBlock):
     def shouldShow (self, item):
         # if the item is a Contact, we should show ourself
-        contactKind = Contacts.ContactsParcel.getContactKind ()
+        contactKind = Contacts.Contact.getKind ()
         shouldShow = item.isItemOf (contactKind)
         return shouldShow
 
@@ -848,7 +849,7 @@ class ContactFullNameEditField (EditRedirectAttribute):
 
     def shouldShow (self, item):
         # if the item is a Contact, we should show ourself
-        contactKind = Contacts.ContactsParcel.getContactKind ()
+        contactKind = Contacts.Contact.getKind ()
         shouldShow = item.isItemOf (contactKind)
         return shouldShow
 
@@ -863,7 +864,7 @@ class StaticEmailAddressAttribute (StaticRedirectAttribute):
 
     def shouldShow (self, item):
         # if the item is a Contact, we should show ourself
-        contactKind = Contacts.ContactsParcel.getContactKind ()
+        contactKind = Contacts.Contact.getKind ()
         shouldShow = item.isItemOf (contactKind)
         return shouldShow
 
@@ -875,7 +876,7 @@ class EditEmailAddressAttribute (EditRedirectAttribute):
     """
     def shouldShow (self, item):
         # if the item is a Contact, we should show ourself
-        contactKind = Contacts.ContactsParcel.getContactKind ()
+        contactKind = Contacts.Contact.getKind ()
         shouldShow = item.isItemOf (contactKind)
         return shouldShow
 
@@ -912,7 +913,7 @@ Classes to support CalendarEvent details
 class CalendarEventBlock (DetailSynchronizer, LabeledTextAttributeBlock):
     def shouldShow (self, item):
         # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
         return item.isItemOf (calendarMixinKind)
 
     def synchronizeItemDetail (self, item):
@@ -926,7 +927,7 @@ class CalendarEventBlock (DetailSynchronizer, LabeledTextAttributeBlock):
 class StaticTimeAttribute (StaticTextLabel):
     def shouldShow (self, item):
         # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
         shouldShow = item.isItemOf (calendarMixinKind)
         return shouldShow
 
@@ -943,7 +944,7 @@ class EditTimeAttribute (EditRedirectAttribute):
     timeFormat = '%Y-%m-%d %I:%M %p'
     def shouldShow (self, item):
         # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
         return item.isItemOf (calendarMixinKind)
 
     def parseDateTime (self, dateString):
@@ -1005,7 +1006,7 @@ class StaticDurationAttribute (StaticTextLabel):
     """
     def shouldShow (self, item):
         # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
         return item.isItemOf (calendarMixinKind)
 
     def staticTextLabelValue (self, item):
@@ -1045,7 +1046,7 @@ class AECalendarDuration (DetailSynchronizer, ControlBlocks.AEBlock):
 
     def shouldShow (self, item):
         # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
         return item.isItemOf (calendarMixinKind)
 
 class EditDurationAttribute (EditRedirectAttribute):
@@ -1059,7 +1060,7 @@ class EditDurationAttribute (EditRedirectAttribute):
     hundredDays = DateTime.DateTimeDelta (100)
     def shouldShow (self, item):
         # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
         return item.isItemOf (calendarMixinKind)
 
     def saveAttributeFromWidget(self, item, widget, validate):
@@ -1122,7 +1123,7 @@ class StaticLocationAttribute (StaticTextLabel):
     """
     def shouldShow (self, item):
         # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
         return item.isItemOf (calendarMixinKind)
 
     def staticTextLabelValue (self, item):
@@ -1135,7 +1136,7 @@ class EditLocationAttribute (EditRedirectAttribute):
     """
     def shouldShow (self, item):
         # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
         return item.isItemOf (calendarMixinKind)
 
     def saveAttributeFromWidget(self, item, widget, validate):
@@ -1171,7 +1172,7 @@ class AllDayCheckBox (DetailSynchronizer, ControlBlocks.CheckBox):
     """
     def shouldShow (self, item):
         # @@@BJS For now, don't show
-        shown = False # item is not None and item.isItemOf (Calendar.CalendarParcel.getCalendarEventMixinKind())
+        shown = False # item is not None and item.isItemOf (Calendar.CalendarEventMixin.getKind())
         return shown
 
     def synchronizeItemDetail (self, item):
@@ -1198,7 +1199,7 @@ class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
     """
     def shouldShow (self, item):
         # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
         return item.isItemOf (calendarMixinKind)
 
     def synchronizeItemDetail (self, item):

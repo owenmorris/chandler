@@ -32,28 +32,102 @@ Usage:
         >>> pp(tree) # pretty-print the item
 
 """
-import os
-import application.Globals
+import os, sys
+import application.Globals as Globals
 import application.Parcel
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-r = application.Globals.repository
+def initRepository(directory, destroy=False):
+    """
+    Create an instance of a repository (or open one if existing)
 
-if r is None:
+    If the repository hasn't had its //Schema loaded, the schema.pack will
+    get loaded.  Also the notification manager will be initialized.
+
+    @param directory: The directory to use for the repository files
+    @type directory: string
+    @param destroy: If True, wipe out existing repository first (default=False)
+    @type directory: boolean
+    @return: the repository object
+    """
+
     from repository.persistence.XMLRepository import XMLRepository
+    rep = XMLRepository(directory)
 
-    # No matter our cwd, or sys.argv[0], locate the chandler directory:
-    home = \
-     os.path.dirname(os.path.dirname(os.path.abspath(application.__file__)))
+    kwds = { 'create' : True, 'recover' : True, 'refcounted' : True }
+    if destroy:
+        rep.create(**kwds)
+    else:
+        rep.open(**kwds)
 
-    application.Globals.chandlerDirectory = home
-    r = XMLRepository(os.path.join(home, "__repository__"))
-    r.open(create=True)
-    if r.findPath("//Schema") is None:
-        r.loadPack(
-         os.path.join(home, "repository", "packs", "schema.pack")
-        )
-    application.Globals.repository = r
+    if rep.findPath("//Schema") is None:
+        rep.loadPack(os.path.join(Globals.chandlerDirectory, 'repository',
+         'packs', 'schema.pack'))
+        rep.loadPack(os.path.join(Globals.chandlerDirectory, 'repository',
+         'packs', 'chandler.pack'))
+    Globals.repository = rep
+
+def initLogger(file):
+    """
+    Set up the logging handler
+
+    @param file: path to the file to log to
+    @type file: string
+    """
+
+    import logging
+    handler = logging.FileHandler(file)
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    handler.setFormatter(formatter)
+    logging.getLogger().addHandler(handler)
+
+def initParcels():
+    """
+    Load all parcels under the 'parcels' directory
+    """
+
+    parcelDir = os.path.join(Globals.chandlerDirectory, "parcels")
+    parcelSearchPath = [ parcelDir ]
+    sys.path.insert(1, parcelDir)
+
+    """
+    If PARCELDIR env var is set, put that
+    directory into sys.path before any modules are imported.
+    """
+    debugParcelDir = None
+    if os.environ.has_key('PARCELDIR'):
+        path = os.environ['PARCELDIR']
+        if path and os.path.exists(path):
+            print "Using PARCELDIR environment variable (%s)" % path
+            debugParcelDir = path
+            sys.path.insert (2, debugParcelDir)
+            parcelSearchPath.append( debugParcelDir )
+
+    from application.Parcel import Manager
+    manager = Manager.getManager(path=parcelSearchPath)
+    manager.loadParcels()
+
+def setup(directory, destroy=False):
+    """
+    Prepare the repository, logger, and parcels
+
+    @param directory: the directory to set Globals.chandlerDirectory to
+    @type directory: string
+    @param destroy: If True, wipe out existing repository first (default=False)
+    @type destroy: boolean
+    @return: the repository object
+    """
+
+    Globals.chandlerDirectory = directory
+    initLogger(os.path.join(directory, 'chandler.log'))
+    initRepository(os.path.join(directory, '__repository__'), destroy)
+    initParcels()
+    return Globals.repository
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+r = setup(os.environ['CHANDLERHOME'])
 
 # Bind some useful variables:
 pm = application.Parcel.Manager.getManager()

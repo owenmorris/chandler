@@ -8,10 +8,10 @@ import repository.query.Query as RepositoryQuery
 from repository.item.ItemError import NoSuchIndexError
 
 class ItemCollection(ContentModel.ContentItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/ItemCollection"
 
     def __init__(self, name=None, parent=None, kind=None):
-        if kind is None:
-            kind = Globals.repository.findPath("//parcels/osaf/contentmodel/ItemCollection")
         super (ItemCollection, self).__init__(name, parent, kind)
 
     def subscribe (self, callbackItem=None, callbackMethodName=None):

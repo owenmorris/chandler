@@ -97,13 +97,13 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         self.loadParcel("http://osafoundation.org/parcels/osaf/mail")
 
         # Get the stamp kinds
-        mailMixin = Mail.MailParcel.getMailMessageMixinKind()
-        taskMixin = Task.TaskParcel.getTaskMixinKind()
-        eventMixin = Calendar.CalendarParcel.getCalendarEventMixinKind()
-        taskKind = Task.TaskParcel.getTaskKind()
-        mailKind = Mail.MailParcel.getMailMessageKind()
-        eventKind = Calendar.CalendarParcel.getCalendarEventKind()
-        noteKind = ContentModel.ContentModel.getNoteKind()
+        mailMixin = Mail.MailMessageMixin.getKind()
+        taskMixin = Task.TaskMixin.getKind()
+        eventMixin = Calendar.CalendarEventMixin.getKind()
+        taskKind = Task.Task.getKind()
+        mailKind = Mail.MailMessage.getKind()
+        eventKind = Calendar.CalendarEvent.getKind()
+        noteKind = Notes.Note.getKind()
 
         # start out with a Note
         aNote = Notes.Note("noteItem1")

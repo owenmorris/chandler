@@ -5,7 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 import osaf.framework.wakeup.WakeupCaller as WakeupCaller
-from osaf.examples.zaobao.RSSData import ZaoBaoParcel
+import osaf.examples.zaobao.RSSData as RSSData
 from repository.item.Query import KindQuery, TextQuery
 import socket
 import logging
@@ -15,7 +15,7 @@ class WakeupCall(WakeupCaller.WakeupCall):
     def receiveWakeupCall(self, wakeupCallItem):
         Globals.repository.view.refresh()
 
-        chanKind = ZaoBaoParcel.getRSSChannelKind()
+        chanKind = RSSData.RSSChannel.getKind()
 
         for item in KindQuery().run([chanKind]):
             try:

@@ -26,7 +26,7 @@ class LocationsTest(TestContentModel.ContentModelTestCase):
         # Test the globals
         locationsPath = Path('//parcels/osaf/contentmodel/calendar')
 
-        self.assertEqual(Calendar.CalendarParcel.getLocationKind(),
+        self.assertEqual(Calendar.Location.getKind(),
                          self.rep.find(Path(locationsPath, 'Location')))
 
         locationNames = ["Alderon", "Atlantis", "Arcadia"]
@@ -43,7 +43,7 @@ class LocationsTest(TestContentModel.ContentModelTestCase):
         self.assert_ (aRoom is sameLocation, "Location factory failed to return the same location!")
 
         # Double check kinds
-        self.assertEqual(aRoom.itsKind, Calendar.CalendarParcel.getLocationKind())
+        self.assertEqual(aRoom.itsKind, Calendar.Location.getKind())
 
         # Literal properties
         aRoom.displayName = "A Nice Place" # change the Location name

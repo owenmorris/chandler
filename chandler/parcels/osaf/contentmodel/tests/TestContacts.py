@@ -34,9 +34,9 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         # Test the globals
         contactsPath = Path('//parcels/osaf/contentmodel/contacts')
 
-        self.assertEqual(Contacts.ContactsParcel.getContactKind(),
+        self.assertEqual(Contacts.Contact.getKind(),
                          self.rep.find(Path(contactsPath, 'Contact')))
-        self.assertEqual(Contacts.ContactsParcel.getContactNameKind(),
+        self.assertEqual(Contacts.ContactName.getKind(),
                          self.rep.find(Path(contactsPath, 'ContactName')))
 
         # Construct sample items
@@ -45,9 +45,9 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
 
         # Double check kinds
         self.assertEqual(contactItem.itsKind,
-                         Contacts.ContactsParcel.getContactKind())
+                         Contacts.Contact.getKind())
         self.assertEqual(contactNameItem.itsKind,
-                         Contacts.ContactsParcel.getContactNameKind())
+                         Contacts.ContactName.getKind())
 
         # Literal properties
         contactNameItem.firstName = "Sylvia"

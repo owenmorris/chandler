@@ -41,9 +41,9 @@ class ContentItemTest(ContentModelTestCase):
 
         # Check that the globals got created by the parcel
         self.assert_(ContentModel.ContentModel.getContentItemParent())
-        self.assert_(ContentModel.ContentModel.getContentItemKind())
-        self.assert_(ContentModel.ContentModel.getProjectKind())
-        self.assert_(ContentModel.ContentModel.getGroupKind())
+        self.assert_(ContentModel.ContentItem.getKind())
+        self.assert_(ContentModel.Project.getKind())
+        self.assert_(ContentModel.Group.getKind())
 
         # Construct a sample item
         genericContentItem = ContentModel.ContentItem("genericContentItem")

@@ -20,78 +20,23 @@ import mx.DateTime as DateTime
 
 class CalendarParcel(application.Parcel.Parcel):
 
-    def _setUUIDs(self):
-        calendarEventKind = self['CalendarEvent']
-        CalendarParcel.calendarEventKindID = calendarEventKind.itsUUID
-
-        locationKind = self['Location']
-        CalendarParcel.locationKindID = locationKind.itsUUID
-        
-        calendarKind = self['Calendar']
-        CalendarParcel.calendarKindID = calendarKind.itsUUID
-        
-        recurrenceKind = self['RecurrencePattern']
-        CalendarParcel.recurrencePatternKindID = recurrenceKind.itsUUID
-        
-        calendarEventMixinKind = self['CalendarEventMixin']
-        CalendarParcel.calendarEventMixinKindID = calendarEventMixinKind.itsUUID
-
     def onItemLoad(self):
         super(CalendarParcel, self).onItemLoad()
-        self._setUUIDs()
 
     def startupParcel(self):
         super(CalendarParcel, self).startupParcel()
-        self._setUUIDs()
 
-    def getCalendarEventKind(cls):
-        assert cls.calendarEventKindID, "CalendarParcel not yet loaded"
-        return Globals.repository[cls.calendarEventKindID]
 
-    getCalendarEventKind = classmethod(getCalendarEventKind)
+class CalendarEventMixin(ContentModel.ChandlerItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/calendar/CalendarEventMixin"
 
-    def getCalendarEventMixinKind(cls):
-        assert cls.calendarEventMixinKindID, "CalendarParcel not yet loaded"
-        return Globals.repository[cls.calendarEventMixinKindID]
-
-    getCalendarEventMixinKind = classmethod(getCalendarEventMixinKind)
-
-    def getLocationKind(cls):
-        assert cls.locationKindID, "CalendarParcel not yet loaded"
-        return Globals.repository[cls.locationKindID]
-
-    getLocationKind = classmethod(getLocationKind)
-
-    def getCalendarKind(cls):
-        assert cls.calendarKindID, "CalendarParcel not yet loaded"
-        return Globals.repository[cls.calendarKindID]
-
-    getCalendarKind = classmethod(getCalendarKind)
-
-    def getRecurrencePatternKind(cls):
-        assert cls.recurrencePatternKindID, "CalendarParcel not yet loaded"
-        return Globals.repository[cls.recurrencePatternKindID]
-
-    getRecurrencePatternKind = classmethod(getRecurrencePatternKind)
-
-    # The parcel knows the UUIDs for the Kinds, once the parcel is loaded
-    calendarEventKindID = None
-    calendarEventMixinKindID = None
-    locationKindID = None
-    calendarKindID = None
-    recurrencePatternKindID = None
-
-class CalendarEventMixin(Item.Item):
     """
       Calendar Event Mixin is the bag of Event-specific attributes.
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
     def __init__ (self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
-        if not kind:
-            kind = CalendarParcel.getCalendarEventMixinKind()
         super (CalendarEventMixin, self).__init__(name, parent, kind)
 
     def InitOutgoingAttributes (self):
@@ -234,20 +179,18 @@ class CalendarEventMixin(Item.Item):
         self.endTime = self.startTime + duration
 
 class CalendarEvent(CalendarEventMixin, Notes.Note):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/calendar/CalendarEvent"
+
     def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
-        if not kind:
-            kind = Globals.repository.findPath("//parcels/osaf/contentmodel/calendar/CalendarEvent")
         super (CalendarEvent, self).__init__(name, parent, kind)
         self.participants = []
 
-class Location(Item.Item):
+class Location(ContentModel.ChandlerItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/calendar/Location"
+
     def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
-        if not kind:
-            kind = CalendarParcel.getLocationKind()
         super (Location, self).__init__(name, parent, kind)
 
     def __str__ (self):
@@ -292,18 +235,16 @@ class Location(Item.Item):
 
     getLocation = classmethod (getLocation)
 
-class Calendar(Item.Item):
+class Calendar(ContentModel.ChandlerItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/calendar/Calendar"
+
     def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
-        if not kind:
-            kind = CalendarParcel.getCalendarKind()
         super (Calendar, self).__init__(name, parent, kind)
 
-class RecurrencePattern(Item.Item):
+class RecurrencePattern(ContentModel.ChandlerItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/calendar/RecurrencePattern"
+
     def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
-        if not kind:
-            kind = CalendarParcel.getRecurrencePatternKind()
         super (RecurrencePattern, self).__init__(name, parent, kind)

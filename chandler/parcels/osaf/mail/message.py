@@ -346,8 +346,8 @@ def getMailMessage(UUID):
     """Returns a C{MailMessage} from its C{UUID}"""
     assert isinstance(UUID, UUID.UUID), "Must pass a UUID.UUID object"
 
-    mailMessageKind = Mail.MailParcel.getMailMessageKind()
-    return Mail.mailMessageKind.findUUID(UUID)
+    mailMessageKind = Mail.MailMessage.getKind()
+    return mailMessageKind.findUUID(UUID)
 
 
 def __populateParam(messageObject, param, var, type='String'):

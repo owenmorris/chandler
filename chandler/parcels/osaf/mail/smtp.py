@@ -67,7 +67,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
            @type account: C{Mail.MailMessageMixin}
         """
 
-        assert account is not None and account.isItemOf(Mail.MailParcel.getSMTPAccountKind())
+        assert account is not None and account.isItemOf(Mail.SMTPAccount.getKind())
         assert mailMessage is not None and isinstance(mailMessage, Mail.MailMessageMixin)
 
         """Create a unique view string to prevent multiple sends using same view"""
@@ -358,10 +358,10 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         """Returns instances of C{SMTPAccount} and C{MailMessage}
            based on C{UUID}'s"""
 
-        accountKind = Mail.MailParcel.getSMTPAccountKind()
+        accountKind = Mail.SMTPAccount.getKind()
         self.account = accountKind.findUUID(self.accountUUID)
 
-        mailMessageKind = Mail.MailParcel.getMailMessageKind()
+        mailMessageKind = Mail.MailMessage.getKind()
         self.mailMessage = mailMessageKind.findUUID(self.mailMessageUUID)
 
         assert self.account is not None, "No Account for UUID: %s" % self.accountUUID

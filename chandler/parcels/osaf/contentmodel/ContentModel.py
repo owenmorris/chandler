@@ -15,39 +15,19 @@ import repository.persistence.XMLRepositoryView as XMLRepositoryView
 import mx.DateTime as DateTime
 import logging
 
+import threading # @@@ Temporary, see "thread hack" below
+
 import application.Globals as Globals
 
 class ContentModel(Parcel):
 
-    # The parcel knows the UUIDs for the Kinds, once the parcel is loaded
-    contentItemKindID = None
-    projectKindID = None
-    groupKindID = None
-    noteKindID = None
     contentitemsPath = Path('//userdata/contentitems')
 
-    # The parcel knows the UUID for the parent, once the parcel is loaded
+    # Cached UUID of //userdata/contentitems
     contentItemParentID = None
 
-    def _setUUIDs(self, parent):
-        ContentModel.contentItemParentID = parent.itsUUID
-
-        ContentModel.contentItemKindID = self['ContentItem'].itsUUID
-        ContentModel.projectKindID = self['Project'].itsUUID
-        ContentModel.groupKindID = self['Group'].itsUUID
-        ContentModel.noteKindID = self['Note'].itsUUID
-
-    def onItemLoad(self):
-        super(ContentModel, self).onItemLoad()
-        repository = self.itsView
-        parent = repository.find(ContentModel.contentitemsPath)
-        self._setUUIDs(parent)
-
-    def startupParcel(self):
-        super(ContentModel, self).startupParcel()
-
-        repository = self.itsView
-        itemKind = repository.findPath('//Schema/Core/Item')
+    def getContentItemParent(cls):
+        """ Return //userdata/contentitems or create if non-existent """
 
         def makeContainer(parent, name, child):
             if child is None:
@@ -55,46 +35,83 @@ class ContentModel(Parcel):
             else:
                 return child
 
-        parent = repository.walk(ContentModel.contentitemsPath, makeContainer)
-        self._setUUIDs(parent)
+        if cls.contentItemParentID is not None:
+            parent = Globals.repository.findUUID(cls.contentItemParentID)
+            if parent is not None:
+                return parent
+            # Our cached UUID is invalid
+            cls.contentItemParentID is None
 
-    def getContentItemParent(cls):
-        assert cls.contentItemParentID, "ContentModel parcel not yet loaded"
-        return Globals.repository[cls.contentItemParentID]
+        parent = Globals.repository.find(cls.contentitemsPath)
+        if parent is None:
+            itemKind = Globals.repository.findPath('//Schema/Core/Item')
+            parent = Globals.repository.walk(cls.contentitemsPath,
+             makeContainer)
+        cls.contentItemParentID = parent.itsUUID
+        return parent
 
     getContentItemParent = classmethod(getContentItemParent)
 
-    def getContentItemKind(cls):
-        assert cls.contentItemKindID, "ContentModel parcel not yet loaded"
-        return Globals.repository[cls.contentItemKindID]
 
-    getContentItemKind = classmethod(getContentItemKind)
+class ChandlerItem(Item.Item):
+    """ Subclasses of ChandlerItem get the following behavior for free:
+        1. parent will automatically be set to //userdata/contentitems
+        2. kind will be determined from the particular subclass's myKindPath
 
-    def getProjectKind(cls):
-        assert cls.projectKindID, "ContentModel parcel not yet loaded"
-        return Globals.repository[cls.projectKindID]
+        All subclasses should have myKindID initialized to None, and set
+        myKindPath to a string describing their kind's repository path.
 
-    getProjectKind = classmethod(getProjectKind)
+        @@@ Better name suggestion welcomed!
+    """
 
-    def getGroupKind(cls):
-        assert cls.groupKindID, "ContentModel parcel not yet loaded"
-        return Globals.repository[cls.groupKindID]
+    myKindID = None
 
-    getGroupKind = classmethod(getGroupKind)
-
-    def getNoteKind(cls):
-        assert cls.noteKindID, "ContentModel parcel not yet loaded"
-        return Globals.repository[cls.noteKindID]
-
-    getNoteKind = classmethod(getNoteKind)
-
-class ContentItem(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = ContentModel.getContentItemParent()
         if not kind:
-            kind = ContentModel.getContentItemKind()
+            kind = self.getKind()
+        super (ChandlerItem, self).__init__(name, parent, kind)
+
+
+    def getKind(cls):
+        """ Look up a class's kind, based on its myKindPath attribute """
+
+        """ The UUID of the kind is cached in the class's myKindID 
+            attribute """
+
+        if cls.myKindID is not None:
+            myKind = Globals.repository.findUUID(cls.myKindID)
+            if myKind is not None:
+                return myKind
+            # Our cached UUID is invalid
+            cls.myKindID = None
+
+        myKind = Globals.repository.findPath(cls.myKindPath)
+        assert myKind, "%s not yet loaded" % cls.myKindPath
+        cls.myKindID = myKind.itsUUID
+        return myKind
+
+    getKind = classmethod(getKind)
+
+
+class ContentItem(ChandlerItem):
+    myKindPath = "//parcels/osaf/contentmodel/ContentItem"
+    myKindID = None
+
+    def __init__(self, name=None, parent=None, kind=None):
         super (ContentItem, self).__init__(name, parent, kind)
+
+        self.createdOn = DateTime.now()
+
+        # @@@ thread hack (be sure to remove "import threading" above)
+        # Currently, ref collection merging isn't activated in the repository
+        # and setting creator in both the main thread and a background thread
+        # will cause a merge conflict.  For now, only set creator in the main
+        # thread:
+        if threading.currentThread().getName() == "MainThread":
+            self.creator = self.getCurrentMeContact()
+
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
@@ -106,9 +123,6 @@ class ContentItem(Item.Item):
             pass
 
         self.importance = 'normal'
-        self.createdOn = DateTime.now ()
-        me = self.getCurrentMeContact ()
-        self.creator = me
 
         # default the displayName to 'untitled'
         self.displayName = _('untitled')
@@ -259,7 +273,7 @@ class ContentItem(Item.Item):
         kindKind = Globals.repository.findPath('//Schema/Core/Kind')
         allKinds = Query.KindQuery().run([kindKind])
         contentItemKinds = []
-        contentItemKind = ContentModel.getContentItemKind ()
+        contentItemKind = ContentItem.getKind ()
         for aKind in allKinds:
             if aKind.isKindOf (contentItemKind):
                 contentItemKinds.append (aKind)
@@ -565,18 +579,16 @@ class _SuperKindSignature(list):
         theList = ', '.join(readable)
         return '['+theList+']'
 
-class Project(Item.Item):
+class Project(ChandlerItem):
+    myKindPath = "//parcels/osaf/contentmodel/Project"
+    myKindID = None
+
     def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.getContentItemParent()
-        if not kind:
-            kind = ContentModel.getProjectKind()
         super (Project, self).__init__(name, parent, kind)
 
-class Group(ContentItem):
+class Group(ChandlerItem):
+    myKindPath = "//parcels/osaf/contentmodel/Project"
+    myKindID = None
+
     def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.getContentItemParent()
-        if not kind:
-            kind = ContentModel.getGroupKind()
         super (Group, self).__init__(name, parent, kind)

@@ -27,8 +27,8 @@
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itsName="creator">
-    <displayName>Creator</displayName>
+  <Attribute itsName="author">
+    <displayName>Author</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
@@ -96,7 +96,7 @@
 
     <attributes itemref="zaobao:link"/>
     <attributes itemref="zaobao:category"/>
-    <attributes itemref="zaobao:creator"/>
+    <attributes itemref="zaobao:author"/>
     <attributes itemref="zaobao:date"/>
     <attributes itemref="zaobao:RSSChannel/copyright"/>
     <attributes itemref="zaobao:RSSChannel/language"/>
@@ -129,7 +129,7 @@
     <attributes itemref="zaobao:RSSItem/content"/>
     <attributes itemref="zaobao:link"/>
     <attributes itemref="zaobao:category"/>
-    <attributes itemref="zaobao:creator"/>
+    <attributes itemref="zaobao:author"/>
     <attributes itemref="zaobao:date"/>
 
     <attributes itemref="zaobao:RSSItem/channel"/>

@@ -1432,6 +1432,7 @@
 
   </contacts:Contact>
 
+  <!--
   <contacts:Contact itsName="MeContact">
     <description value="@@@ A temporary Contact to represent 'me', until we have a better way"/>
     <emailAddress value=""/>
@@ -1443,5 +1444,6 @@
       </contacts:ContactName>
 
   </contacts:Contact>
+  -->
 
 </core:Parcel>

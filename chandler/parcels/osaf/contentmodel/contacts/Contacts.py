@@ -7,6 +7,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application
+import repository
 import repository.item.Item as Item
 import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
@@ -15,39 +16,24 @@ import mx.DateTime as DateTime
 class ContactsParcel(application.Parcel.Parcel):
     def onItemLoad(self):
         super(ContactsParcel, self).onItemLoad()
-        self._setUUIDs()
 
     def startupParcel(self):
         super(ContactsParcel, self).startupParcel()
-        self._setUUIDs()
 
-    def _setUUIDs(self):
-        contactKind = self['Contact']
-        ContactsParcel.contactKindID = contactKind.itsUUID
-
-        contactNameKind = self['ContactName']
-        ContactsParcel.contactNameKindID = contactNameKind.itsUUID
-
-    def getContactKind(cls):
-        assert cls.contactKindID, "Contacts parcel not yet loaded"
-        return Globals.repository[cls.contactKindID]
-
-    getContactKind = classmethod(getContactKind)
-
-    def getContactNameKind(cls):
-        assert cls.contactNameKindID, "Contacts parcel not yet loaded"
-        return Globals.repository[cls.contactNameKindID]
-
-    getContactNameKind = classmethod(getContactNameKind)
-
-    contactKindID = None
-    contactNameKindID = None
 
 class Contact(ContentModel.ContentItem):
+
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/contacts/Contact"
+
+
     def __init__(self, name=None, parent=None, kind=None):
-        if not kind:
-            kind = ContactsParcel.getContactKind()
         super (Contact, self).__init__(name, parent, kind)
+
+        # If I didn't get assigned a creator, then I must be the "me" contact
+        # and I want to be my own creator:
+        if self.creator is None:
+            self.creator = self
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
@@ -65,11 +51,38 @@ class Contact(ContentModel.ContentItem):
     def getCurrentMeContact(cls):
         """ Lookup the current "me" Contact """
 
-        # For now, just hardcode a contact to use:
-        return \
-         Globals.repository.findPath("//parcels/osaf/views/main/MeContact")
+        # cls.meContactID caches the Contact representing the user.  One will
+        # be created if it doesn't yet exist.
+
+        if cls.meContactID is not None:
+            me = Globals.repository.findUUID(cls.meContactID)
+            if me is not None:
+                return me
+            # Our cached UUID is invalid
+            cls.meContactID is None
+
+        parent = ContentModel.ContentModel.getContentItemParent()
+        me = parent.findPath("me")
+        if me is None:
+            try:
+                me = Contact(name="me", parent=parent)
+                me.displayName = "Me"
+                me.contactName = ContactName(parent=me)
+                me.contactName.firstName = "Chandler"
+                me.contactName.lastName = "User"
+            except repository.item.ItemError.ChildNameError:
+                # If "me" already exists, that means we're actually
+                # in the process of creating it.
+                return None
+        cls.meContactID = me.itsUUID
+
+        return me
 
     getCurrentMeContact = classmethod(getCurrentMeContact)
+
+    # Cache "me" for fast lookup; used by getCurrentMeContact()
+    meContactID = None
+
 
     def __str__(self):
         """ User readable string version of this address. """
@@ -87,10 +100,10 @@ class Contact(ContentModel.ContentItem):
 
         return value
 
-class ContactName(Item.Item):
+class ContactName(ContentModel.ChandlerItem):
+
+    myKindID = None
+    myKindPath = "//parcels/osaf/contentmodel/contacts/ContactName"
+
     def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
-        if not kind:
-            kind = ContactsParcel.getContactNameKind()
         super (ContactName, self).__init__(name, parent, kind)

@@ -5,8 +5,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application
 import application.Globals as Globals
-from repository.item.Item import Item
-from repository.util.Path import Path
 from osaf.contentmodel.ContentModel import ContentItem
 import mx.DateTime
 import types
@@ -16,63 +14,9 @@ import feedparser
 # ZaoBaoParcel
 ##
 class ZaoBaoParcel(application.Parcel.Parcel):
-    def _setUUIDs(self, parent):
-
-        # hackery to avoid threading conflicts
-        ZaoBaoParcel.RSSItemParentID = parent.itsUUID
-        
-        ZaoBaoParcel.RSSChannelKindID = self['RSSChannel'].itsUUID
-        ZaoBaoParcel.RSSItemKindID = self['RSSItem'].itsUUID
-
-    def onItemLoad(self):
-        super(ZaoBaoParcel, self).onItemLoad()
-
-        # @@@ hackery to avoid threading conflicts
-        repository = self.itsView
-        parent = repository.findPath('//userdata/zaobaoitems')
-        
-        self._setUUIDs(parent)
 
     def startupParcel(self):
         super(ZaoBaoParcel, self).startupParcel()
-
-        # @@@ hackery to avoid threading conflicts
-        # Create a separate parent for RSSItems
-        repository = self.itsView
-        parent = repository.findPath('//userdata/zaobaoitems')
-        if not parent:
-            itemKind = repository.findPath('//Schema/Core/Item')
-            userdata = repository.getRoot('userdata')
-            if not userdata:
-                userdata = itemKind.newItem('userdata', repository)
-            parent = itemKind.newItem('zaobaoitems', userdata)
-        
-        self._setUUIDs(parent)
-
-    # @@@ hackery to avoid threading conflicts
-    # Keep track of a separate parent for RSSItems
-
-    def getRSSItemParent(cls):
-        assert cls.RSSItemParentID, "ZaoBaoParcel not yet loaded"
-        return Globals.repository[cls.RSSItemParentID]
-
-    getRSSItemParent = classmethod(getRSSItemParent)
-
-    def getRSSChannelKind(cls):
-        assert cls.RSSChannelKindID, "ZaoBaoParcel not yet loaded"
-        return Globals.repository[cls.RSSChannelKindID]
-
-    getRSSChannelKind = classmethod(getRSSChannelKind)
-
-    def getRSSItemKind(cls):
-        assert cls.RSSItemKindID, "ZaoBaoParcel not yet loaded"
-        return Globals.repository[cls.RSSItemKindID]
-
-    getRSSItemKind = classmethod(getRSSItemKind)
-    
-    # The parcel knows the UUIDs for the Kinds, once the parcel is loaded
-    RSSChannelKindID = None
-    RSSItemKindID = None
 
 
 def SetAttribute(self, data, attr, nattr=None):
@@ -113,12 +57,10 @@ def NewChannelFromURL(url, update = True):
     return channel
 
 class RSSChannel(ContentItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/examples/zaobao/RSSChannel"
+
     def __init__(self, name=None, parent=None, kind=None):
-        # @@@ parent is hackery to avoid threading conflicts
-        if not parent:
-            parent = ZaoBaoParcel.getRSSItemParent()
-        if not kind:
-            kind = ZaoBaoParcel.getRSSChannelKind()
         super(RSSChannel, self).__init__(name, parent, kind)
         self.items = []
 
@@ -154,7 +96,8 @@ class RSSChannel(ContentItem):
         attrs = {'title':'displayName'}
         SetAttributes(self, data, attrs)
 
-        attrs = ['link', 'description', 'copyright', 'creator', 'category', 'language']
+        attrs = ['link', 'description', 'copyright', 'category', 'language']
+        # @@@MOR attrs = ['link', 'description', 'copyright', 'creator', 'category', 'language']
         SetAttributes(self, data, attrs)
 
         date = data.get('date')
@@ -183,12 +126,10 @@ class RSSChannel(ContentItem):
 # RSSItem
 ##
 class RSSItem(ContentItem):
+    myKindID = None
+    myKindPath = "//parcels/osaf/examples/zaobao/RSSItem"
+
     def __init__(self, name=None, parent=None, kind=None):
-        # @@@ parent is hackery to avoid threading conflicts
-        if not parent:
-            parent = ZaoBaoParcel.getRSSItemParent()
-        if not kind:
-            kind = ZaoBaoParcel.getRSSItemKind()
         super(RSSItem, self).__init__(name, parent, kind)
 
     def Update(self, data):
@@ -196,7 +137,8 @@ class RSSItem(ContentItem):
         attrs = {'title':'displayName'}
         SetAttributes(self, data, attrs)
 
-        attrs = ['creator', 'link', 'category']
+        attrs = ['link', 'category']
+        # @@@MOR attrs = ['creator', 'link', 'category']
         SetAttributes(self, data, attrs)
 
         description = data.get('description')

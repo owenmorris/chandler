@@ -100,7 +100,7 @@ class MainView(View):
         self.RepositoryCommitWithStatus ()
 
         # Tell the sidebar we want to go to the All or contacts box
-        if newItem.isItemOf (Contacts.ContactsParcel.getContactKind ()):
+        if newItem.isItemOf (Contacts.Contact.getKind ()):
             itemName = 'ContactsView'
         else:
             itemName = 'AllView'
