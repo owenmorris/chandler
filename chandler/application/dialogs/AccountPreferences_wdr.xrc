@@ -116,7 +116,7 @@
                     <object class="wxStaticText" name="ID_TEXT">
                         <size>110,-1</size>
                         <style>wxALIGN_RIGHT</style>
-                        <label>Username:</label>
+                        <label>User name:</label>
                     </object>
                 </object>
                 <object class="sizeritem">
@@ -246,7 +246,7 @@
                     <border>5</border>
                     <object class="wxStaticText" name="ID_TEXT">
                         <style>wxALIGN_RIGHT</style>
-                        <label>Username:</label>
+                        <label>User name:</label>
                     </object>
                 </object>
                 <object class="sizeritem">
@@ -438,7 +438,7 @@
                     <object class="wxStaticText" name="ID_TEXT">
                         <size>110,-1</size>
                         <style>wxALIGN_RIGHT</style>
-                        <label>Username:</label>
+                        <label>User name:</label>
                     </object>
                 </object>
                 <object class="sizeritem">
