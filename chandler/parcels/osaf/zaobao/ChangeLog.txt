@@ -32,3 +32,8 @@ This allows sharing of views, whereby each view has its own list of RSS feeds
    
 2003-07-16 Ducky Sherwood <ducky@osafoundation.org>
    * Internationalized strings with gettext()
+2003-09-08 Chao Lam <chao@osafoundation.org>
+   * Support for new data model and data framework
+   * Added new feature: RSS auto discovery. Thanks to Mark Pilgrim's rssfinder.py code and
+Stuart Lange for informing me about auto discovery
+   
