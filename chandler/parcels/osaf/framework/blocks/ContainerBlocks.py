@@ -326,7 +326,7 @@ class wxToolbar(wx.ToolBar):
         
     def CalculateWXStyle(self, block):
         style = wx.TB_HORIZONTAL
-        if self.CalculateWXBorder() != 0:
+        if wxRectangularChild.CalculateWXBorder(block) != 0:
             style |= wx.SIMPLE_BORDER
         return style
     CalculateWXStyle = classmethod(CalculateWXStyle)
