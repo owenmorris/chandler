@@ -41,6 +41,12 @@
     <cardinality>single</cardinality>
     <type itemref="types:Boolean"/>
   </Attribute>
+  
+  <Attribute itemName="doc:positionInParent">
+    <displayName>Position in Parent</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="types:Integer"/>
+  </Attribute>
 
   <Kind itemName="doc:Document">
     <displayName>Document</displayName>
@@ -58,6 +64,7 @@
     <attributes itemref="doc:contentspec"/>
     <attributes itemref="doc:style"/>
     <attributes itemref="doc:notifications"/>
+    <attributes itemref="doc:positionInParent"/>
 
     <classes key="python">OSAF.document.model.BoxContainer.BoxContainer</classes>
   </Kind>
@@ -69,6 +76,7 @@
     <attributes itemref="doc:style"/>
     <attributes itemref="doc:notifications"/>
     <attributes itemref="doc:isOpen"/>
+    <attributes itemref="doc:positionInParent"/>
 
     <classes key="python">OSAF.document.model.Block.Block</classes>
   </Kind>

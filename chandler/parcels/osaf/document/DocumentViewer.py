@@ -67,8 +67,9 @@ class wxDocumentViewer(wxViewerParcel):
           NOT YET IMPLEMENTED.
         """
         calendarDocument = app.repository.find('//Document/CalendarDocument')
-        if calendarDocument == None:
-            calendarDocument = self.CreateCalendarDocument()
+        if calendarDocument != None:
+            calendarDocument.delete()
+        calendarDocument = self.CreateCalendarDocument()
         self.RenderDocument(calendarDocument)
 
     def OnShowContacts(self, event):
@@ -78,8 +79,9 @@ class wxDocumentViewer(wxViewerParcel):
           NOT YET IMPLEMENTED.
         """
         contactsDocument = app.repository.find('//Document/ContactsDocument')
-        if contactsDocument == None:
-            contactsDocument = self.CreateContactsDocument()
+        if contactsDocument != None:
+            contactsDocument.delete()
+        contactsDocument = self.CreateContactsDocument()
         self.RenderDocument(contactsDocument)
 
     def OnShowMrMenus(self, event):
@@ -87,8 +89,9 @@ class wxDocumentViewer(wxViewerParcel):
           Show the MrMenus document.
         """
         mrmenusDocument = app.repository.find('//Document/MrMenusDocument')
-        if mrmenusDocument == None:
-            mrmenusDocument = self.CreateMrMenusDocument()
+        if mrmenusDocument != None:
+            mrmenusDocument.delete()
+        mrmenusDocument = self.CreateMrMenusDocument()
         self.RenderDocument(mrmenusDocument)
 
     def OnShowRepositoryViewer(self, event):
@@ -98,8 +101,9 @@ class wxDocumentViewer(wxViewerParcel):
           NOT YET IMPLEMENTED.
         """
         repositoryDocument = app.repository.find('//Document/RepositoryDocument')
-        if repositoryDocument == None:
-            repositoryDocument = self.CreateRepositoryDocument()
+        if repositoryDocument != None:
+            repositoryDocument.delete()
+        repositoryDocument = self.CreateRepositoryDocument()
         self.RenderDocument(repositoryDocument)
 
     def OnShowRoster(self, event):
@@ -109,8 +113,9 @@ class wxDocumentViewer(wxViewerParcel):
           NOT YET IMPLEMENTED.
         """
         rosterDocument = app.repository.find('//Document/RosterDocument')
-        if rosterDocument == None:
-            rosterDocument = self.CreateRosterDocument()
+        if rosterDocument != None:
+            rosterDocument.delete()
+        rosterDocument = self.CreateRosterDocument()
         self.RenderDocument(rosterDocument)
 
     def OnShowTimeclock(self, event):
@@ -120,8 +125,9 @@ class wxDocumentViewer(wxViewerParcel):
           NOT YET IMPLEMENTED.
         """
         timeclockDocument = app.repository.find('//Document/TimeclockDocument')
-        if timeclockDocument == None:
-            timeclockDocument = self.CreateTimeclockDocument()
+        if timeclockDocument != None:
+            timeclockDocument.delete()
+        timeclockDocument = self.CreateTimeclockDocument()
         self.RenderDocument(timeclockDocument)
 
     def OnShowZaoBao(self, event):
@@ -131,8 +137,9 @@ class wxDocumentViewer(wxViewerParcel):
           NOT YET IMPLEMENTED.
         """
         zaobaoDocument = app.repository.find('//Document/ZaoBaoDocument')
-        if zaobaoDocument == None:
-            zaobaoDocument = self.CreateZaoBaoDocument()
+        if zaobaoDocument != None:
+            zaobaoDocument.delete()
+        zaobaoDocument = self.CreateZaoBaoDocument()
         self.RenderDocument(zaobaoDocument)
         
         
@@ -167,6 +174,9 @@ class wxDocumentViewer(wxViewerParcel):
         radiobox.style['label'] = 'Please choose'
         radiobox.style['dimensions'] = 1
         radiobox.style['choices'] = ['Lunch', 'Dinner']
+        radiobox.style['weight'] = 0
+        radiobox.style['flag'] = wxALIGN_CENTER|wxALL
+        radiobox.style['border'] = 25
         
         return mrmenusDocument
     
@@ -199,16 +209,23 @@ class wxDocumentViewer(wxViewerParcel):
         buttonSizer = BoxContainerFactory(app.repository, verticalSizer).NewItem('ButtonSizer',
                                                                              'container')
         buttonSizer.style['orientation'] = wxHORIZONTAL
-        startButton = BlockFactory(app.repository, buttonSizer).NewItem('StartButton',
-                                                                        'button')
+        startButton = BlockFactory(app.repository, buttonSizer).NewItem('StartButton', 
+                                                                        'button', 
+                                                                        positionInParent=0)
         startButton.style['label'] = 'Start Clock'
-        stopButton = BlockFactory(app.repository, buttonSizer).NewItem('StopButton',
-                                                                       'button')
+        startButton.style['flag'] = wxALIGN_CENTRE|wxALL
+        startButton.style['border'] = 5
+
+        stopButton = BlockFactory(app.repository, buttonSizer).NewItem('StopButton', 
+                                                                       'button',
+                                                                       positionInParent=1)
         stopButton.style['label'] = 'Stop Clock'
-
-
+        stopButton.style['flag'] = wxALIGN_CENTRE|wxALL
+        stopButton.style['border'] = 5
+        
         radiobox = BlockFactory(app.repository, verticalSizer).NewItem('CustomerBox',
-                                                                       'radiobox')
+                                                                       'radiobox',
+                                                                       positionInParent=1)
         radiobox.style['label'] = 'Customer:'
         radiobox.style['dimensions'] = 1
         radiobox.style['choices'] = ['Floss Recycling Incorporated', 
@@ -216,14 +233,15 @@ class wxDocumentViewer(wxViewerParcel):
                                      'Cuneiform Designs, Ltd.']
 
         billableHours = BlockFactory(app.repository, verticalSizer).NewItem('BillableHours',
-                                                                            'button')
+                                                                            'button',
+                                                                            positionInParent=2)
         billableHours.style['label'] = 'See Billable Hours'
 
         billableAmount = BlockFactory(app.repository, verticalSizer).NewItem('BillableAmount',
-                                                                            'button')
+                                                                            'button',
+                                                                             positionInParent=3)
         billableAmount.style['label'] = 'See Billable Amount'
         
-
         return timeclockDocument
         
     def CreateZaoBaoDocument(self):
@@ -244,11 +262,12 @@ class wxDocumentViewer(wxViewerParcel):
           Renders the document provided.
         """
         assert(document.blocktype == 'document')
-        orientation = wxHORIZONTAL
+        orientation = wxVERTICAL
         
         for key in document.style.keys():
             exec(key + ' = document.style[\'' + key + '\']')
 
+        self.DestroyChildren()
         sizer = wxBoxSizer(orientation)
         self.RenderChildren(document, self, sizer)
         self.SetSizerAndFit(sizer)
@@ -257,17 +276,26 @@ class wxDocumentViewer(wxViewerParcel):
         """
           Renders all of the children of the item provided (if they exist).
           
-        @@@ Ordering is not currently preserved among children.  This is the
-        first thing I plan to fix.
+        @@@ This method for ordering puts a lot of the burdon of ordering on
+        the client.  We may or may not want a method where the order of elements
+        is derived from the client's order of adding items.
+
         """
         try:
             children = item._children
         except:
             return # Item has no children
+        childList = []
         for key in children.keys():
             childItem = children[key]
+            childList.append(childItem)
+        childList.sort(self.SortChildren)
+        for childItem in childList:
             self.RenderItem(childItem, parent, sizer)
 
+    def SortChildren(self, itemOne, itemTwo):
+        return itemOne.positionInParent - itemTwo.positionInParent
+            
     def RenderItem(self, item, parent, sizer):
         """
           Renders the given item of unknown type.
@@ -302,137 +330,118 @@ class wxDocumentViewer(wxViewerParcel):
         """
           Renders a container and all of it's children.
         """
-        id = -1
-        orientation = wxHORIZONTAL
-        weight = 1
+        blockStyle = BlockStyle()
         
         for key in item.style.keys():
-            exec(key + ' = item.style[\'' + key + '\']')
+            exec('blockStyle.' + key + ' = item.style[\'' + key + '\']')
 
-        sizer = wxBoxSizer(orientation)
-        parentSizer.Add(sizer, weight, wxEXPAND)            
+        sizer = wxBoxSizer(blockStyle.orientation)
+        parentSizer.Add(sizer, blockStyle.weight, blockStyle.flag, 
+                        blockStyle.border)
         self.RenderChildren(item, parent, sizer)
     
     def RenderButton(self, item, parent, sizer):
-        label = ""
-        id = -1
-        style = 0
-        weight = 1
+        blockStyle = BlockStyle()
 
         for key in item.style.keys():
-            exec(key + ' = item.style[\'' + key + '\']')
+            exec('blockStyle.' + key + ' = item.style[\'' + key + '\']')
 
-        button = wxButton(parent, id, label, style=style)
-        sizer.Add(button, weight, wxEXPAND)
+        button = wxButton(parent, blockStyle.id, 
+                          blockStyle.label, style=blockStyle.style)
+        sizer.Add(button, blockStyle.weight, blockStyle.flag, 
+                  blockStyle.border)
         
     def RenderList(self, item, parent, sizer):
-        id = -1
-        style = wxLC_ICON
-        weight = 1
+        blockStyle = BlockStyle()
 
         for key in item.style.keys():
-            exec(key + ' = item.style[\'' + key + '\']')
+            exec('blockStyle.' + key + ' = item.style[\'' + key + '\']')
 
-        list = wxListCtrl(parent, id, style=style)
-        sizer.Add(list, weight, wxEXPAND)
+        list = wxListCtrl(parent, blockStyle.id, style=blockStyle.style)
+        sizer.Add(list, blockStyle.weight, blockStyle.flag, blockStyle.border)
 
     def RenderTextCtrl(self, item, parent, sizer):
-        id = -1
-        value = ''
-        style = 0
-        weight = 1
+        blockStyle = BlockStyle()
 
         for key in item.style.keys():
-            exec(key + ' = item.style[\'' + key + '\']')
+            exec('blockStyle.' + key + ' = item.style[\'' + key + '\']')
 
-        text = wxTextCtrl(parent, id, value, style=style)
-        sizer.Add(text, weight, wxEXPAND)
+        text = wxTextCtrl(parent, blockStyle.id, blockStyle.value, 
+                          style=blockStyle.style)
+        sizer.Add(text, blockStyle.weight, blockStyle.flag, blockStyle.border)
 
     def RenderLabel(self, item, parent, sizer):
-        id = -1
-        label = ''
-        style = 0
-        weight = 1
+        blockStyle = BlockStyle()
         
         for key in item.style.keys():
-            exec(key + ' = item.style[\'' + key + '\']')
+            exec('blockStyle.' + key + ' = item.style[\'' + key + '\']')
 
-        label = wxStaticText(parent, id, label, style=style)
-        sizer.Add(label, weight, wxEXPAND)
+        label = wxStaticText(parent, blockStyle.id, blockStyle.label, 
+                             style=blockStyle.style)
+        sizer.Add(label, blockStyle.weight, blockStyle.flag, blockStyle.border)
 
     def RenderScrolledWindow(self, item, parent, sizer):
-        id = -1
-        style = wxHSCROLL|wxVSCROLL
-        weight = 1
+        blockStyle = BlockStyle()
 
         for key in item.style.keys():
-            exec(key + ' = item.style[\'' + key + '\']')
+            exec('blockStyle.' + key + ' = item.style[\'' + key + '\']')
             
-        scrolledWindow = wxScrolledWindow(parent, id, style=style)
-        sizer.Add(scrolledWindow, weight, wxEXPAND)
+        scrolledWindow = wxScrolledWindow(parent, blockStyle.id, 
+                                          style=blockStyle.style)
+        sizer.Add(scrolledWindow, blockStyle.weight, blockStyle.flag, 
+                  blockStyle.border)
 
     def RenderToggleButton(self, item, parent, sizer):
-        id = -1
-        label = ''
-        style = 0
-        weight = 1
+        blockStyle = BlockStyle()
 
         for key in item.style.keys():
-            exec(key + ' = item.style[\'' + key + '\']')
+            exec('blockStyle.' + key + ' = item.style[\'' + key + '\']')
             
-        toggleButton = wxToggleButton(parent, id, label, style=style)
-        sizer.Add(toggleButton, weight, wxEXPAND)
+        toggleButton = wxToggleButton(parent, blockStyle.id, blockStyle.label, 
+                                      style=blockStyle.style)
+        sizer.Add(toggleButton, blockStyle.weight, blockStyle.flag, 
+                  blockStyle.border)
 
     def RenderChoice(self, item, parent, sizer):
-        id = -1
-        chioces = []
-        style = 0
-        weight = 1
+        blockStyle = BlockStyle()
 
         for key in item.style.keys():
-            exec(key + ' = item.style[\'' + key + '\']')
+            exec('blockStyle.' + key + ' = item.style[\'' + key + '\']')
 
-        choice = wxChoice(parent, id, choices=choices, style=style)
-        sizer.Add(choice, weight, wxEXPAND)
+        choice = wxChoice(parent, blockStyle.id, choices=blockStyle.choices, 
+                          style=blockStyle.style)
+        sizer.Add(choice, blockStyle.weight, blockStyle.flag, blockStyle.border)
             
     def RenderTree(self, item, parent, sizer):
-        id = -1
-        style = wxTR_HAS_BUTTONS
-        weight = 1
+        blockStyle = BlockStyle()
 
         for key in item.style.keys():
-            exec(key + ' = item.style[\'' + key + '\']')
+            exec('blockStyle.' + key + ' = item.style[\'' + key + '\']')
             
-        tree = wxTreeCtrl(parent, id, style=style)
-        sizer.Add(tree, weight, wxEXPAND)
+        tree = wxTreeCtrl(parent, blockStyle.id, style=blockStyle.style)
+        sizer.Add(tree, blockStyle.weight, blockStyle.flag, blockStyle.border)
 
     def RenderRadioBox(self, item, parent, sizer):
-        id = -1
-        label = ''
-        choices = []
-        style = wxRA_SPECIFY_COLS
-        dimensions = 1
-        weight = 1
+        blockStyle = BlockStyle()
 
         for key in item.style.keys():
-            exec(key + ' = item.style[\'' + key + '\']')
+            exec('blockStyle.' + key + ' = item.style[\'' + key + '\']')
 
             
-        radioBox = wxRadioBox(parent, id, label, choices=choices, 
-                              style=style, majorDimension=dimensions)
-        sizer.Add(radioBox, weight, wxEXPAND)
+        radioBox = wxRadioBox(parent, blockStyle.id, blockStyle.label, 
+                              choices=blockStyle.choices, style=blockStyle.style, 
+                              majorDimension=blockStyle.dimensions)
+        sizer.Add(radioBox, blockStyle.weight, blockStyle.flag, blockStyle.border)
 
     def RenderRadioButton(self, item, parent, sizer):
-        id = -1
-        label = ''
-        style = 0
-        weight = 1
+        blockStyle = BlockStyle()
 
         for key in item.style.keys():
-            exec(key + ' = item.style[\'' + key + '\']')
+            exec('blockStyle.' + key + ' = item.style[\'' + key + '\']')
             
-        radioButton = wxRadioButton(parent, id, label, style=style)
-        sizer.Add(radioButton, weight, wxEXPAND)
+        radioButton = wxRadioButton(parent, blockStyle.id, blockStyle.label, 
+                                    style=blockStyle.style)
+        sizer.Add(radioButton, blockStyle.weight, blockStyle.flag, blockStyle.border)
 
     def OnEraseBackground(self, event):
         pass
@@ -442,3 +451,16 @@ class wxDocumentViewer(wxViewerParcel):
         infoPage = SplashScreen(self, _("About Document"), pageLocation, false)
         infoPage.ShowModal()
         infoPage.Destroy()
+
+class BlockStyle:
+    def __init__(self):
+        self.label = ""
+        self.id = -1
+        orientation = wxVERTICAL
+        value = ''
+        choices = []
+        dimensions = 1
+        self.style = 0
+        self.weight = 1
+        self.flag = 0
+        self.border = 0

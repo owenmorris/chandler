@@ -14,13 +14,15 @@ class BlockFactory:
         self._kind = rep.find("//Schema/DocumentSchema/Block")
         
     def NewItem(self, name="", type="", content=None,
-                style=None, notifications=None, isOpen=False):
+                style=None, notifications=None, isOpen=False,
+                positionInParent=0):
         item = Block(name, self._container, self._kind)
         item.setAttributeValue("blocktype", type)
         item.setAttributeValue("contentspec", content or {})
         item.setAttributeValue("style", style or {})
         item.setAttributeValue("notifications", notifications or {})
         item.setAttributeValue("isOpen", isOpen)
+        item.setAttributeValue("positionInParent", positionInParent)
         
         return item
 
