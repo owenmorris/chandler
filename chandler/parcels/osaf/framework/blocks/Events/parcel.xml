@@ -25,7 +25,7 @@ application specific parcels here</description>
     <eventsForNamedDispatch itemref="events:Print"/>
     <eventsForNamedDispatch itemref="events:Copy"/>
     <eventsForNamedDispatch itemref="events:Cut"/>
-    <eventsForNamedDispatch itemref="events:Delete"/>
+    <eventsForNamedDispatch itemref="events:Remove"/>
     <eventsForNamedDispatch itemref="events:New"/>
     <eventsForNamedDispatch itemref="events:Open"/>
     <eventsForNamedDispatch itemref="events:Paste"/>
@@ -71,8 +71,8 @@ application specific parcels here</description>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itsName="Delete">
-    <blockName>Delete</blockName>
+  <BlockEvent itsName="Remove">
+    <blockName>Remove</blockName>
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 

@@ -142,7 +142,7 @@
     We replace the "Undo" item with our own Undo,
     delete the "Redo" item completely,
     insert a sub-menu "Paste Special",
-    and insert a "Clear" menu item before "Delete".
+    and insert a "Clear" menu item before "Remove".
   -->
   <MenuItem itsName="ReplaceUndoItem">
     <blockName>ReplaceUndoItem</blockName>
@@ -181,7 +181,7 @@
   <MenuItem itsName="InsertClearItem">
     <blockName>InsertClearItem</blockName>
     <location>EditMenu</location>
-    <itemLocation value="DeleteItem"/>
+    <itemLocation value="RemoveItem"/>
     <title>Clear</title>
   </MenuItem>
 

@@ -424,7 +424,7 @@
     <childrenBlocks itemref="doc:CutItem"/>
     <childrenBlocks itemref="doc:CopyItem"/>
     <childrenBlocks itemref="doc:PasteItem"/>
-    <childrenBlocks itemref="doc:DeleteItem"/>
+    <childrenBlocks itemref="doc:RemoveItem"/>
     <childrenBlocks itemref="doc:SelectAllItem"/>
   </Menu>
     
@@ -771,12 +771,12 @@
     <event itemref="events:Paste"/>
   </MenuItem>
   
-  <MenuItem itsName="DeleteItem">
-    <blockName>DeleteItem</blockName>
-    <title>Delete</title>
+  <MenuItem itsName="RemoveItem">
+    <blockName>RemoveItem</blockName>
+    <title>Remove</title>
     <accel>DELETE</accel>
-    <event itemref="events:Delete"/>
-    <helpString value="Delete the selection"/>
+    <event itemref="events:Remove"/>
+    <helpString value="Remove the selection"/>
   </MenuItem>
   
   <MenuItem itsName="SelectAllItem">

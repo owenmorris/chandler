@@ -861,10 +861,10 @@ class Table (RectangularChild):
                 self.widget.SelectBlock (row, 0, row, self.widget.GetColumnCount() - 1)
                 self.widget.MakeCellVisible (row, 0)
 
-    def onDeleteEvent (self, event):
+    def onRemoveEvent (self, event):
         self.widget.DeleteSelection()
         
-    def onDeleteEventUpdateUI (self, event):
+    def onRemoveEventUpdateUI (self, event):
         event.arguments ['Enable'] = len (self.selection) != 0
 
 class RadioBox(RectangularChild):

@@ -102,7 +102,7 @@ class MainView(View):
     def onCutEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
 
-    def onDeleteEventUpdateUI (self, event):
+    def onRemoveEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
 
     def onEditAccountPreferencesEvent (self, event):
