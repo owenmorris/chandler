@@ -1,7 +1,5 @@
 import os, hardhatlib, hardhatutil, errno, sys
 
-thisdoesntexist_onpurpose4()
-
 info = {
         'name':'Chandler',
         'root':'..',
