@@ -11,6 +11,9 @@
     * singlebuild.py is a script which will build a Chandler from any date
         or CVS tag
 
-    * tinderbuild.py and singlebuild.py are both clients of 
+    * tinderbuild.py and singlebuild.py are both clients of
         buildscripts/chandler.py which contains the instructions for
         how to do a complete Chandler build
+
+    * Merged wxPython 2.4.1.2 into our codebase
+
