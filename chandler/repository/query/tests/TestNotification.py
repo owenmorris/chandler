@@ -24,8 +24,6 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         self.rep.commit()
 
-        ic = ItemCollection.NamedCollection()
-        
         # basic query processing
         queryString = 'for i in "//parcels/osaf/contentmodel/contacts/ContactName" where contains(i.firstName,"i"))'
         q = Query.Query(self.rep, queryString)

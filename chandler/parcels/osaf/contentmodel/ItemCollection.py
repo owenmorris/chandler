@@ -3,10 +3,15 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-import repository.item.Item as Item
+import osaf.contentmodel.ContentModel as ContentModel
 import repository.query.Query as RepositoryQuery
 
-class ItemCollection(Item.Item):
+class ItemCollection(ContentModel.ContentItem):
+
+    def __init__(self, name=None, parent=None, kind=None):
+        if not kind:
+            kind = Globals.repository.findPath("//parcels/osaf/contentmodel/ItemCollection")
+        super (ItemCollection, self).__init__(name, parent, kind)
 
     def subscribe (self, callbackItem=None, callbackMethodName=None):
         """
@@ -185,7 +190,7 @@ class ItemCollection(Item.Item):
         if rule:
             if len (self._exclusions):
                 rule = "difference (" + rule + ", for i in $1 where True)"
-                args ["$1"] = (self.isUUID, "_exclusions")
+                args ["$1"] = (self.itsUUID, "_exclusions")
             if len (self._filterKinds) != 0:
                 for kindPath in self._filterKinds:
                     rule = "intersect (" + rule + ", for i in '" + kindPath + "' where True)"

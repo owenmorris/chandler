@@ -19,7 +19,7 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
 
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
 
-        ic = ItemCollection.NamedCollection()
+        ic = ItemCollection.ItemCollection()
         for index in range(100):
             item = GenerateItems.GenerateCalendarEvent(100)
             ic.add(item)
@@ -56,54 +56,33 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
         item = GenerateItems.GenerateCalendarEvent(100)
         self.rep.commit()
 
-        import osaf.contentmodel.Query as Query
-
-        kind = self.rep.findPath('//parcels/osaf/contentmodel/calendar/CalendarEvent')
-        queryKind = self.rep.findPath('//parcels/osaf/contentmodel/Query')
-
-        log.debug("Creating query item")
-        q = Query.Query('TestQuery',self.rep,queryKind)
+        log.debug("Creating ItemCollection")
+        ic = ItemCollection.ItemCollection()
+        ic.subscribe()
 
         # a newly initialized query with no string has a size 0 rsult
-        log.debug("Committing query item #1")
-        self.assertEqual(0, len([i for i in q]))
+        self.assertEqual(0, len(ic))
         
         # give it a real query string
-        log.debug("Setting data attribute")
-        q.data = 'for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True'
-        log.debug("Committing query item #2")
+        log.debug("Setting rule attribute")
+        ic.rule = 'for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True'
+        log.debug("Committing ItemCollection")
         self.rep.commit()
-        print "Test/query: %s, %s" % (q.data, q.itsUUID)
-        self.assertEqual(1, len([i for i in q]))
+        print "Rule/ItemCollection: %s, %s" % (ic.rule, ic.itsUUID)
+        self.assertEqual(1, len([i for i in ic]))
 
         # test notification
         item = GenerateItems.GenerateCalendarEvent(100)
         self.rep.commit()
-        self.assertEqual(2, len([i for i in q]))
+        self.assertEqual(2, len(ic))
         
         # see if we can reload stored data
-        uuid = q.itsUUID
-        q.onItemUnload() # hack?
-        q = None
+        uuid = ic.itsUUID
+        ic = None
         self._reopenRepository()
-        log.debug("reloading query item")
-        q1 = self.rep.findUUID(uuid)
-        self.assertEqual(2, len([i for i in q1]))
-
-##         log.debug("Creating item collection")
-##         ic = ItemCollection.NamedCollection()
-##         print "Test/itemcollection", ic.itsUUID
-##         ic.rule = q
-##         #@@@@ why _ItemCollection__refresh?
-##         log.debug("Refreshing query")
-##         q._Query__refresh()
-##         print type(q.__iter__())
-##         log.debug("Refreshing item collection")
-##         ic._ItemCollection__refresh()
-##         print len(ic)
-##         for i in ic:
-##             print i
-
+        log.debug("reloading ItemCollection")
+        ic = self.rep.findUUID(uuid)
+        self.assertEqual(2, len([i for i in ic]))
 
 if __name__ == "__main__":
     unittest.main()

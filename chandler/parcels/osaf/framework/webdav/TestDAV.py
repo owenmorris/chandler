@@ -51,7 +51,7 @@ class TestDAV(TestContentModel.ContentModelTestCase):
 
         if testExportCollection:
             # export item collections
-            ic = ItemCollection.NamedCollection()
+            ic = ItemCollection.ItemCollection()
             ic.displayName = "DAV Test Collection"
             for index in range(3):
                 ic.add(GenerateItems.GenerateCalendarEvent(100))

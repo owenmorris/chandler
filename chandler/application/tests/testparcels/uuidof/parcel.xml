@@ -12,14 +12,14 @@
 
     <namespace value="http://testparcels.org/uuidof" />
 
-    <cm:NamedCollection itsName="myColl">
-        <inclusions uuidOf="me:item0"/>
-        <inclusions uuidOf="me:item1"/>
-        <inclusions uuidOf="me:item2"/>
-    </cm:NamedCollection>
+    <cm:ItemCollection itsName="myColl">
+        <_inclusions itemref="me:item0"/>
+        <_inclusions itemref="me:item1"/>
+        <_inclusions itemref="me:item2"/>
+    </cm:ItemCollection>
 
-    <Item itsName="item0" />
-    <Item itsName="item1" />
-    <Item itsName="item2" />
+    <cm:ContentItem itsName="item0" />
+    <cm:ContentItem itsName="item1" />
+    <cm:ContentItem itsName="item2" />
 
 </Parcel>

@@ -426,18 +426,6 @@
     <core:attributes itemref="ItemCollection/queryStringStale"/>
     <core:attributes itemref="ItemCollection/resultsStale"/>
 
-    <core:Attribute itsName="who">
-      <redirectTo>sharees</redirectTo>
-    </core:Attribute>
-
-    <core:Attribute itsName="whoFrom">
-      <redirectTo>sharer</redirectTo>
-    </core:Attribute>
-
-    <core:Attribute itsName="about">
-      <redirectTo>displayName</redirectTo>
-    </core:Attribute>
-
     <core:Cloud itsName="DefaultCloud">
       <core:Endpoint itsName="_inclusions">
         <attribute value="_inclusions"/>
