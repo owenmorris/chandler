@@ -154,6 +154,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
                 if ret != 'success':
                     break
 
+    os.chdir(workingDir + '/external')
+
     return ret + changes 
 
 def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log):
