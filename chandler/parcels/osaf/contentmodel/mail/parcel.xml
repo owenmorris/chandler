@@ -55,29 +55,11 @@
             <initialValue ref="None" />
         </Attribute>
 
-        <Attribute itsName="portSSL">
-            <displayName value="Port SSL" />
-            <description value="The SSL port number to use" />
-            <type ref="Integer" />
-            <initialValue ref="None" />
-            <issues>Heikki: This seems like a needless complication. The IMAP/IMAP over SSL port numbers are standards, and could be hardcoded for defaults. If user has not touched port number, then useSSL attribute would select which default port number to use. Look at Mozilla Mail, for example.</issues>
-        </Attribute>
-
-        <Enumeration itsName="useSSLEnumType">
-            <values>NoSSL</values>
-            <values>ServerSTARTTLS</values>
-            <values>SSL</values>
-            <issues>Heikki: I don't like the name of this enumeration or the values.</issues>
-            <issues>Heikki: Do we need TLS value as well? Or should that be covered by a global user pref (what SSL/TLS versions to use)?</issues>
-            <issues>Heikki: ServerSTARTTLS is something that I don't know if any other email clients supports. It basically means that we start connection in non-SSL mode, but if the server sends STARTTLS to us we will try to switch to TLS.</issues>
-        </Enumeration>
-
         <Attribute itsName="useSSL">
             <displayName value="Use secure connection (SSL/TLS)" />
             <description value="Whether or not to use SSL/TLS" />
-            <type ref="mail:AccountBase/useSSLEnumType" />
-            <initialValue type="mail:AccountBase/useSSLEnumType">NoSSL</initialValue>
-            <issues>ServerSTARTTLS should be default value, but we make NoSSL default to make debugging/testing easier. Should be switched before we make any publicly usable versions available.</issues>
+            <type ref="Boolean" />
+            <initialValue type="Boolean" value="False" />
         </Attribute>
 
         <Attribute itsName="pollingFrequency">
@@ -87,16 +69,24 @@
             <initialValue type="Integer" value="300" />
         </Attribute>
 
+        <Attribute itsName="mailMessages">
+            <displayName value="Mail Messages" />
+            <description value="Mail Messages sent or retrieved with this account " />
+            <cardinality value="list" />
+            <type ref="mail:MailMessageMixin" />
+            <inverseAttribute ref="mail:MailMessageMixin/parentAccount" />
+            <initialValue />
+        </Attribute>
+
         <Attribute itsName="accountType">
             <displayName value="Account Type" />
-            <description value="POP, IMAP, WEBDAV, or SMTP" />
+            <description value="POP, IMAP, or SMTP" />
             <type ref="mail:AccountBase/accountType/accountTypeEnum" />
 
             <Enumeration itsName="accountTypeEnum">
                 <values value="POP" />
                 <values value="IMAP" />
                 <values value="SMTP" />
-                <values value="WEBDAV" />
             </Enumeration>
         </Attribute>
     </Kind>
@@ -115,27 +105,10 @@
             <issues value="In order to get a custom initialValue for this attribute for an IMAPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase" />
         </Attribute>
 
-        <Attribute itsName="portSSL">
-            <displayName value="Port SSL" />
-            <description value="The SSL port number to use" />
-            <type ref="Integer" />
-            <initialValue type="Integer" value="993" />
-            <issues value="In order to get a custom initialValue for this attribute for an IMAPAccount, I defined a 'duplicate' attribute, also named 'portSSL', which normally would have been inherited from AccountBase" />
-        </Attribute>
-
         <Attribute itsName="messageDownloadSequence">
             <displayName value="Message Download Sequence" />
             <type ref="Long" />
             <initialValue type="Long" value="0" />
-        </Attribute>
-
-        <Attribute itsName="downloadedMail">
-            <displayName value="Downloaded Mail" />
-            <description value="All messages that have been downloaded from this account" />
-            <cardinality value="list" />
-            <type ref="mail:MailMessageMixin" />
-            <inverseAttribute ref="mail:MailMessageMixin/parentAccount" />
-            <initialValue />
         </Attribute>
 
         <Attribute itsName="defaultSMTPAccount">
@@ -177,14 +150,6 @@
             <type ref="Integer" />
             <initialValue type="Integer" value="25" />
             <issues value="In order to get a custom initialValue for this attribute for an SMTPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase" />
-        </Attribute>
-
-        <Attribute itsName="portSSL">
-            <displayName value="Port SSL" />
-            <description value="The SSL port number to use" />
-            <type ref="Integer" />
-            <initialValue type="Integer" value="465" />
-            <issues value="In order to get a custom initialValue for this attribute for an SMTPAccount, I defined a 'duplicate' attribute, also named 'portSSL', which normally would have been inherited from AccountBase" />
         </Attribute>
 
         <Attribute itsName="useAuth">
@@ -343,7 +308,7 @@
         <Attribute itsName="contentLength">
             <description value="Content-Length: header" />
             <type ref="String" />
-            <initialValue type="String" value="0" />
+            <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="contentTransferEncoding">
@@ -448,7 +413,7 @@
         <Attribute itsName="parentAccount">
             <type ref="mail:AccountBase" />
             <initialValue ref="None" />
-            <inverseAttribute ref="mail:IMAPAccount/downloadedMail" />
+            <inverseAttribute ref="mail:AccountBase/mailMessages" />
         </Attribute>
 
         <Attribute itsName="spamScore">
@@ -547,7 +512,7 @@
 
         <Attribute itsName="mimeVersion">
             <type ref="String" />
-            <initialValue type="String" value="1.0" />
+            <initialValue type="String" value="" />
         </Attribute>
 
         <!-- redirections -->
