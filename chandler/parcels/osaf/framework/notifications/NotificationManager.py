@@ -1,7 +1,7 @@
-__version__ = "$Revision$"
-__date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+"""
+@copyright: Copyright (c) 2004 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 import application.Globals as Globals
 import Queue
@@ -9,16 +9,15 @@ import threading
 import types
 
 # Exceptions
-class AlreadyDeclared(Exception):
-    pass
 class AlreadySubscribed(Exception):
-    pass
-class NotDeclared(Exception):
+    """ Raised when you try to subscribe with a clientID already subscribed """
     pass
 class NotSubscribed(Exception):
+    """ Raised when you try to unsubscribe to a clientID not subscribed """
     pass
 
 class NotificationManager(object):
+    """ The Notification Manager """
     def __init__(self):
         super(NotificationManager, self).__init__()
         # XXX Ideally declarations would be a 'live' query
@@ -37,7 +36,22 @@ class NotificationManager(object):
         finally:
             self.declarations.release()
 
-    def Subscribe(self, events, clientID, callback = None, *args):
+    def Subscribe(self, events, clientID, callback):
+        """
+        Subscribe a callback to a list of events
+
+        @param events: events you wish to subscribe to
+        @type events: C{list} of L{OSAF.framework.notifications.schema.Event} items
+
+        @param clientID: The 'name' of this subscription.  Used to unsubscribe.
+        @type clientID: L{UUID}
+
+        @param callback: Function to call when an event that matches is posted
+        @type callback: callable function
+
+        @raise AlreadySubscribed: When you have already subscribed with the same clientID
+        """
+
         # make a subscription object
         self.subscriptions.acquire()
         try:
@@ -55,7 +69,7 @@ class NotificationManager(object):
             #print decls
 
             # make a new subscription object
-            sub = Subscription(decls, callback, *args)
+            sub = Subscription(decls, callback)
             for decl in decls:
                 # add the subscription to the declaration's list of subscribers
                 decl.subscribers[clientID] = sub
@@ -71,6 +85,16 @@ class NotificationManager(object):
             self.declarations.release()
 
     def Unsubscribe(self, clientID):
+        """
+        Unsubscribe
+
+        @param clientID: The clientID you used to subscribe
+        @type clientID: L{UUID}
+
+        @raise NotSubscribed: When you try to unsubscribe to something not
+            subscribed
+        """
+
         self.declarations.acquire()
         try:
             if not self.subscriptions.has_key(clientID):
@@ -89,14 +113,18 @@ class NotificationManager(object):
         finally:
             self.declarations.release()
 
-    def PostNotification(self, notification, sender = None):
+    def PostNotification(self, notification):
+        """
+        Get the next notification in the queue or None if there are no pending events
+
+        @param notification: The notification you wish to send
+        @type notification: L{OSAF.framework.notifications.Notification.Notification}
+        """
         # for now we don't care who posts......
         # future version should check notification for validity
         self.declarations.acquire()
         try:
             eventID = notification.event.getUUID()
-            if not self.declarations.has_key(eventID):
-                raise NotDeclared, '%s %s' % (eventID, clientID)
 
             decl = self.declarations[eventID]
 
@@ -107,40 +135,8 @@ class NotificationManager(object):
         for sub in subscribers:
             sub.post(notification)
 
-    def GetNextNotification(self, clientID):
-        self.subscriptions.acquire()
-        try:
-            try:
-                subscription = self.subscriptions[clientID]
-            except KeyError:
-                #raise NotSubscribed
-                return None
-        finally:
-            self.subscriptions.release()
-
-        try:
-            return subscription.get(False)
-        except Queue.Empty:
-            # Queue.Empty: empty queue
-            return None
-
-    def WaitForNextNotification(self, clientID):
-        self.subscriptions.acquire()
-        try:
-            try:
-                subscription = self.subscriptions[clientID]
-            except KeyError:
-                raise NotSubscribed
-        finally:
-            self.subscriptions.release()
-
-        return subscription.get(True)
-
-    def CancelNotification(self, notificationID, clientID = 0):
-        # we need a way to remove the notification from all the queues its in
-        pass
-
 class Declaration(object):
+    """ Internal class used by the notification manager"""
     __slots__ = [ 'subscribers', '__uuid' ]
     def __init__(self, event):
         self.subscribers = {}
@@ -152,39 +148,34 @@ class Declaration(object):
     event = property(__getEvent)
 
 class Subscription(object):
-    __slots__ = [ 'declarations', 'queue', 'callback', 'args', 'threadid' ]
-    def __init__(self, declarations, callback, *args):
+    """ Internal class used by the notification manager"""
+    __slots__ = [ 'declarations', 'callback', 'threadid' ]
+    def __init__(self, declarations, callback):
         super(Subscription, self).__init__()
         self.declarations = declarations
         self.callback = callback
-        self.args = args
         self.threadid = id(threading.currentThread())
-        if not callable(callback):
-            self.queue = Queue.Queue()
 
     def post(self, notification):
-        if callable(self.callback):
-            if notification.threadid != None:
-                if notification.threadid != id(threading.currentThread()):
-                    print 'ignoring notification from', notification.threadid
-                    return
-            self.callback(notification, *self.args)
-        else:
-            self.queue.put(notification)
-
-    def get(self, wait):
-        if callable(self.callback):
-            return None
-        return self.queue.get(wait)
-
+        if notification.threadid != None:
+            if notification.threadid != id(threading.currentThread()):
+                return
+        self.callback(notification)
 
 class LockableDict(dict):
+    """ Lockable dictionary """
     def __init__(self, *args, **kwds):
         super(LockableDict, self).__init__(*args, **kwds)
         self.__lock = threading.Lock()
     def acquire(self):
+        """ @see: C{threading.Lock::acquire()} """
         self.__lock.acquire()
     def release(self):
+        """ @see: C{threading.Lock::release()} """
         self.__lock.release()
     def locked(self):
+        """
+        @see: C{threading.Lock::locked()}
+        @return: L{bool}
+        """
         return self.__lock.locked()

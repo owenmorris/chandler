@@ -1,9 +1,9 @@
-""" Notification Manager unit tests """
+"""
+Notification Manager unit tests
 
-__revision__  = "$Revision$"
-__date__      = "$Date$"
-__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
-__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+@copyright: Copyright (c) 2004 Open Source Applications Foundation
+@license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
+"""
 
 import logging, threading
 import unittest, os
