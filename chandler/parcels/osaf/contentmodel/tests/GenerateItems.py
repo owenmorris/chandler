@@ -34,6 +34,8 @@ def GenerateCalendarParticipant(view):
 IMPORTANCE = ["important", "normal", "fyi"]
 LOCATIONS  = ["Home", "Office", "School"]
 
+
+
 def GenerateCalendarEvent(view, days=30):
     event = Calendar.CalendarEvent(view=view)
     event.displayName = random.choice(HEADLINES)
@@ -61,11 +63,59 @@ def GenerateCalendarEvent(view, days=30):
 
     event.importance = random.choice(IMPORTANCE)
     return event
-    
+
 
 TITLES = ["reading list", "restaurant recommendation", "vacation ideas",
           "grocery list", "gift ideas", "life goals", "fantastic recipe",
           "garden plans", "funny joke", "story idea", "poem"]
+
+EVENT, TASK, BOTH = range(2, 5)
+M_TEXT  = "This is a test email message"
+M_EVENT = " that has been stamped as a Calendar Event"
+M_TASK  = " that has been stamped as a Task"
+M_BOTH  = " that has been stamped as a Task and a Calendar Event"
+
+def GenerateMailMessage(view):
+    message  = Mail.MailMessage(view=view)
+    body     = M_TEXT
+
+    outbound = random.randint(0, 1)
+    type     = random.randint(1, 8)
+    numTo    = random.randint(1, 3)
+
+    message.fromAddress = GenerateCalendarParticipant(view)
+
+    for num in range(numTo):
+        message.toAddress.append(GenerateCalendarParticipant(view))
+
+    message.subject  = random.choice(TITLES)
+    message.dateSent = DateTime.now()
+
+    if outbound:
+        message.outgoingMessage()
+
+        """Make the Message appear as if it has already been sent"""
+        message.deliveryExtension.sendSucceeded()
+
+    else:
+        message.incomingMessage()
+
+    if type == EVENT:
+        message.StampKind('add', Calendar.CalendarEventMixin.getKind(message.itsView))
+        body += M_EVENT
+
+    if type == TASK:
+        message.StampKind('add', Task.TaskMixin.getKind(message.itsView))
+        body += M_TASK
+
+    if type == BOTH:
+        message.StampKind('add', Task.TaskMixin.getKind(message.itsView))
+        message.StampKind('add', Calendar.CalendarEventMixin.getKind(message.itsView))
+        body += M_BOTH
+
+    message.body = message.getAttributeAspect('body', 'type').makeValue(body)
+
+    return message
 
 def GenerateNote(view):
     """ Generate one Note item """
@@ -206,7 +256,7 @@ def GenerateAllItems(view, count, mainView=None, sidebarCollection=None):
     existingNames = sidebarCollection is not None and [ existingCollection.displayName for existingCollection in sidebarCollection] or []
     collections = GenerateItems(view, 5, GenerateCollection, [], mainView, existingNames)
     
-    for fn in GenerateNote, GenerateCalendarEvent, GenerateTask, GenerateEventTask: # GenerateContact omitted.
+    for fn in GenerateMailMessage, GenerateNote, GenerateCalendarEvent, GenerateTask, GenerateEventTask: # GenerateContact omitted.
         GenerateItems(view, count, fn, collections)
 
     view.commit() 
