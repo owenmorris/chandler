@@ -16,8 +16,8 @@ class AgentItemFactory:
         self._kind = repository.find("//Schema/AgentsSchema/AgentItem")
         self.repository = repository
         
-    def NewItem(self, agentName):
-        item = AgentItem(agentName, self._container, self._kind)
+    def NewItem(self, name):
+        item = AgentItem(name, self._container, self._kind)
         
         return item
 
@@ -25,7 +25,7 @@ class AgentItem(Item):
 
     def GetName(self):
         """ return the name of the agent"""
-        return self.agentName
+        return self.getItemName()
     
     def GetRoles(self):
         """ return a list of strings, specified roles this agent can play"""
@@ -64,18 +64,24 @@ class AgentItem(Item):
                 notificationList += instructionList
         return notificationList
     
-    def SubscribeToNotifications(self):
+    def SubscribeToNotifications(self, notificationManager):
         """
           Subscribe to the notifications used by the active instructions 
         """
+        clientID = self.getUUID()
         notifications = self.GetActiveNotifications()
-        
-    def UnsubscribeFromNotifications(self):
+        for notification in notifications:
+            notificationManager.Subscribe(notification, clientID)
+
+    def UnsubscribeFromNotifications(self, notificationManager):
         """
           Unsubscribe from the notifications used by the active instructions 
         """
+        clientID = self.getUUID()
         notifications = self.GetActiveNotifications()
-        
+        for notification in notifications:
+            notificationManager.Unsubscribe(notification, clientID)
+
     # method for manipulating instructions
     
     def GetInstructions(self):

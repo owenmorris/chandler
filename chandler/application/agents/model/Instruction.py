@@ -5,6 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from model.item.Item import Item
+from Action import *
 
 """
 The Instruction Class associates a list of conditions with a list of actions.  It is called
@@ -64,11 +65,25 @@ class Instruction(Item):
         actionsToLaunch = []
         if not self.enabled:
             return actionsToLaunch
-        
+
         if self.condition.IsSatisfied(notification):
             for action in self.actions:
                 actionsToLaunch.append(action)
-                        
+
         return actionsToLaunch
-    
-   
+
+    def ExecuteActions(self, agent, actions, notification):
+        result = None
+        for action in actions:
+            if action.IsAsynchronous():
+                agent.MakeTask(action, notification)
+            else:
+                app = agent.agentManager.application
+                confirmFlag = action.NeedsConfirmation()
+                if action.UseWxThread() or confirmFlag:
+                    actionProxy = DeferredAction(action, agent, confirmFlag, notification)
+                    app.PostAsyncEvent(actionProxy.Execute)
+                    result = None # should be would_block
+                else:
+                    result = action.Execute(agent, notification)
+            # yield result

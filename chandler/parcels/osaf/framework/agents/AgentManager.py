@@ -8,6 +8,7 @@ import os
 import xml.sax.handler
 
 from Agent import *
+#from AgentControl import *
 from model.AgentItem import *
 from model.Instruction import *
 from model.Repertoire import *
@@ -95,7 +96,7 @@ class AgentManager:
         
         try:
             parser.parse(filePath)
-            item = handler.agentItem      
+            item = handler.agentItem
         except:
             print "failed to load agent", filePath
             item = None
@@ -147,9 +148,9 @@ class AgentManager:
                 self.notificationManager.Register(clientID)
             
             # subscribe to notifications
-            notifications = agent.model.GetActiveNotifications()
-            for notification in notifications:    
-                  self.notificationManager.Subscribe(notification, clientID)
+            agent.model.SubscribeToNotifications(self.notificationManager)
+            # widget = wxAgentControl(agent)
+            # widget.AddToToolBar()
               
     def Unregister(self, agent):
         """
@@ -157,12 +158,8 @@ class AgentManager:
         """
         if self.IsRegistered(agent):           
             # unsubscribe to notifications
-            clientID = agent.GetClientID()
-            
-            notifications = agent.model.GetActiveNotifications()
-            for notification in notifications:    
-                  self.notificationManager.Unsubscribe(notification, clientID)
-            
+            agent.model.UnsubscribeFromNotifications(self.notificationManager)
+
             del self.agentMap[agent.model]
  
     def Stop(self):

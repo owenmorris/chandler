@@ -5,13 +5,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import xml.sax, xml.sax.saxutils
 import os.path
-import thread
-import time
-import random
 
-from wxPython.wx import wxWakeUpIdle
-
-from model.Action import *
+from AgentThread import *
 
 class Agent:
 
@@ -21,7 +16,7 @@ class Agent:
         """    
         self.model = agentItem
         self.agentManager = agentManager
-        
+
         # initialize dynamic state
         self.status = {}       
         self.activeActions = {}
@@ -30,13 +25,13 @@ class Agent:
         self._BuildInstructionMap()
         
         self.isRunning = False
-        
+
     # methods concerning agent identity 
     
     def GetName(self):
         """ return the user-oriented display name of the agent
         """
-        return self.model.getItemName()
+        return self.model.GetName()
 
     def GetRoles(self):
         """
@@ -110,37 +105,20 @@ class Agent:
            FIXME:  not yet implemented
         """
         pass
-    
-    def LaunchNewActions(self, newActions, notification):
-        """
-          launch the actions in the passed-in list
-        """ 
-        result = None
-        for action in newActions:
-            if action.IsAsynchronous():
-                self.MakeTask(action, notification)
-            else:
-                confirmFlag = action.NeedsConfirmation()
-                if action.UseWxThread() or confirmFlag:
-                    actionProxy = DeferredAction(action, self, confirmFlag, notification)
-                    self.agentManager.application.deferredActions.append(actionProxy)
-                    
-                    # call wxWakeUpIdle to give a chance for idle handlers to process the deferred action
-                    wxWakeUpIdle()
-                    
-                else:
-                    result = action.Execute(self, notification)
-                
+
     def UpdateStatus(self):
         """
           UpdateStatus calculates various status properties of the agent, which are kept
-          in the status dictionary.  This method maintains the "business" and "urgency
+          in the status dictionary.  This method maintains the 'business' and 'urgency'
           attributes, but subclasses can override this to add new status attributes.
           
           UpdateStatus returns True if any aspect of the status has changed
           FIXME: Not implemented yet
         """
-        return False
+
+        self.SetStatus('busyness', self._CalculateBusyness())
+        self.SetStatus('urgency', self._CalculateUrgency())
+        return True
     
     def StatusChanged(self):
         """
@@ -150,7 +128,7 @@ class Agent:
  
      # routines that deal with instructions
      
-    def GetInstructions(self, notificationName):
+    def GetInstructionsByName(self, notificationName):
         """
           return a list of active instructions associated with the passed-in notification
           if the notification name is 'all', return all the instructions
@@ -172,56 +150,19 @@ class Agent:
            loop through the instructions to build a hash table, mapping notification types
            to a list of instructions that use the notification. 
         """
-        self.instructionMap = {}
-        self.instructionMap['polled'] = []
+        instructionMap = {}
+        instructionMap['polled'] = []
         
         for instruction in self.model.instructions:
             notifications = instruction.GetNotifications()
             for notification in notifications:
-                if self.instructionMap.has_key(notification):
-                    self.instructionMap[notification].append(instruction)
+                if instructionMap.has_key(notification):
+                    instructionMap[notification].append(instruction)
                 else:
-                    self.instructionMap[notification] = [instruction]
+                    instructionMap[notification] = [instruction]
+
+        self.instructionMap = instructionMap
          
-    def ExecuteInstructions(self, instructions, notification):
-        """
-          here is the interpreter loop that executes a list of instructions
-        """        
-        for instruction in instructions:
-            newActions = instruction.GetNewActions(notification)
-            self.LaunchNewActions(newActions, notification)
-            
-    # here is the agent's main loop, which fetches notifications and evaluates conditions
-    def Mainloop(self):
-        clientID = self.GetClientID()
-        
-        while self.isRunning:
-            self.RemoveCompletedActions()
-            # loop, fetching notifications and handing them off to the appropriate instructions
-            notificationManager = self.agentManager.notificationManager
-            notification = notificationManager.GetNextNotification(clientID)
- 
-            while notification != None:
-                # get instructions associated with the notification
-                instructions = self.GetInstructions(notification.name)
-                self.ExecuteInstructions(instructions, notification)
-                notification = notificationManager.GetNextNotification(clientID)
-
-            # now execute instructions that aren't dependent on notifications
-            instructions = self.GetInstructions('polled')
-            self.ExecuteInstructions(instructions, None)
-            
-            # run status handlers and update the status dictionary
-            if self.UpdateStatus():
-                self.StatusChanged()
-
-            self.Idle()
-            
-            # sleep for a minimum of one second, and and average of 1.5 seconds
-            # FIXME:  Perhaps the average time should be adjustable per agent
-            extraSleep = random.random()
-            time.sleep(1.0 + extraSleep)
-            
     # methods concerning the agent's execution state
     
     def Idle(self):
@@ -235,29 +176,52 @@ class Agent:
         """
            suspend execution of the agent
         """
+        # XXX we need to post a notification (will that cause a context
+        # switch?) that the thread can wake up on.  Then join the thread
+        # and wait for it to die
         self.isRunning = False
-        
-        
+
     def Resume(self):
         """
            resume execution of the agent
         """
         if not self.isRunning:
             self.isRunning = True
-            thread.start_new(self.Mainloop, ())
+            AgentThread(self).start()
         
     def IsSuspended(self):
         """
            return True if the agent is suspended
         """
         return self.isRunning
-      
+
     def Reset(self):
         """
           reset an agent to its initial state
           FIXME: not yet implemented
         """
         pass
-    
-    
-    
+
+    def DumpStatus(self):
+        print self.GetName()
+        for instruction in self.model.GetInstructions():
+            print "- Instruction"
+            for action in instruction.GetActions():
+                print "  -", action.GetName(), "[" + str(action.GetCompletionPercentage()) + "%]", action.GetMagicNumber()
+
+    def _CalculateBusyness(self):
+        # returns the average magic number of all the agent's actions
+        i = 0
+        n = 0.0
+        for instruction in self.model.GetInstructions():
+            for action in instruction.GetActions():
+                n += action.GetMagicNumber()
+                i += 1
+        if i == 0:
+            return 0.0
+        return n / i
+
+    def _CalculateUrgency(self):
+        # n% of the total urgency should be the amount of busyness
+        # over the norm
+        return 0.0
