@@ -33,15 +33,14 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
     # make sure workingDir is absolute, remove it, and create it
     workingDir = os.path.abspath(workingDir)
-    print "Check for output dir... (indicates first time through)"
-    if not os.path.exists(outputDir):
+    print "Check for debug dir ... (indicates first time through)"
+    debugDir = os.path.join(workingDir, "debug")
+    if not os.path.exists(debugDir):
 
-        os.mkdir(outputDir)
         # Initialize external (hardly ever changes)
         print "Initializing external modules ..."
         log.write("- - - - external - - - - - - -\n")
-        # not needed here?    moduleData["external"] = {}
-        
+
         # Do external setup for both debug and release here
         for releaseMode in ('debug', 'release'):
             releaseModeDir = os.path.join(workingDir, releaseMode)
