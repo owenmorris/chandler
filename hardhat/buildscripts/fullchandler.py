@@ -144,7 +144,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
                     break
 
         if upload and (changes in ('-changes', '-first-run')) and ret == 'success':
-            doUploadToStaging(releaseMode, workingDir, cvsVintage, log)
+            for releaseMode in releaseModes:
+                doUploadToStaging(releaseMode, workingDir, cvsVintage, log)
 
     return ret + changes 
 
