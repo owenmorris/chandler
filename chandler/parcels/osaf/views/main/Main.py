@@ -500,7 +500,7 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
         event.arguments ['Enable'] = collection is not None
         if collection:
-            menuTitle = _('Share collection "%s"') \
+            menuTitle = _('Share "%s" collection') \
                     % collection.displayName
         else:
             menuTitle = _('Share a collection')
@@ -551,7 +551,7 @@ class MainView(View):
         
         if collection is not None:
             # event.arguments['Enable'] = True
-            menuTitle = _('%s collection "%s"') % (verb, collection.displayName)
+            menuTitle = _('%s "%s" collection') % (verb, collection.displayName)
         else:
             menuTitle = _('%s a collection') % verb
             
@@ -579,7 +579,7 @@ class MainView(View):
         """
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            menuTitle = _('Sync collection "%s"') % collection.displayName
+            menuTitle = _('Sync "%s" collection') % collection.displayName
             if Sharing.isShared(collection):
                 event.arguments['Enable'] = True
             else:
