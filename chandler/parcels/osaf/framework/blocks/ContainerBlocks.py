@@ -185,21 +185,16 @@ class EmbeddedContainer(RectangularChild):
     
     def OnSelectionChangedEvent (self, notification):
         node = notification.data['node']
-        name = node.treeList.GetItemText(node.nodeId)
         oldChild = Globals.repository.find (self.contentSpec.data)
         wxOldChild = Globals.association [oldChild.getUUID()]
-        embeddedPanel = Globals.association [ self.getUUID()]
+        embeddedPanel = Globals.association [self.getUUID()]
         embeddedSizer = embeddedPanel.GetSizer ()
         embeddedSizer.Remove(wxOldChild)
         wxOldChild.Destroy()
         embeddedSizer.Layout()
         oldChild.parentBlock = None
         
-        if name == "Demo":
-            self.contentSpec.data = 'parcels/OSAF/views/demo/TabBox'
-        else:
-            self.contentSpec.data = 'parcels/OSAF/views/repositoryviewer/RepositoryBox'        
-        
+        self.contentSpec.data = node.GetData()        
         newChild = Globals.repository.find (self.contentSpec.data)
         if newChild:
             newChild.parentBlock = self
@@ -732,10 +727,12 @@ class Sidebar(TreeList):
         item = node.GetData()
         if item:
             for child in item:
-                node.AddChildNode (None, [child], false)
+                node.AddChildNode (child[1], [child[0]], false)
         else:
-            node.AddRootNode (['Repository Viewer', 'Demo'], ['Views'], true)
-    
+            node.AddRootNode ([('Repository Viewer','parcels/OSAF/views/repositoryviewer/RepositoryBox'),
+                               ('Demo', 'parcels/OSAF/views/demo/TabBox')], 
+                              ['Views'], true)
+            
     def OnSelectionChangedEvent (self, notification):
         node = notification.data['node']
         name = node.treeList.GetItemText(node.nodeId)
