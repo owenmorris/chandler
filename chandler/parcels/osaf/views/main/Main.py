@@ -363,7 +363,7 @@ class MainView(View):
         wildcard = "iCalendar files|*.ics|All files (*.*)|*.*"
         dlg = wx.FileDialog(wx.GetApp().mainFrame, "Choose filename to export to",
                               "", "export.ics", wildcard,
-                              wx.SAVE | wx.CHANGE_DIR | wx.OVERWRITE_PROMPT)
+                              wx.SAVE | wx.OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
             (dir, filename) = os.path.split(dlg.GetPath())
             dlg.Destroy()
