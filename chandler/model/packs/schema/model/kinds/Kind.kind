@@ -1,32 +1,91 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<item withSchema="True">
-  <name>Kind</name>
-  <kind type="path">//Schema/Model/Kinds/Kind</kind>
-  <class module="model.schema.Kind">Kind</class>
+<items>
 
-  <ref name="kind" otherName="items" 
-       type="path" otherCard="dict">/Model/Kinds/Kind</ref>
+  <item withSchema="True">
+    <name>Kind</name>
+    <kind type="path">//Schema/Model/Kinds/Kind</kind>
+    <class module="model.schema.Kind">Kind</class>
 
-  <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
-    <ref type="path">/Model/Attributes/superKinds</ref>
-    <ref type="path">/Model/Attributes/subKinds</ref>
-    <ref type="path">/Model/Attributes/items</ref>
-    <ref type="path">/Model/Attributes/attributes</ref>
-    <ref type="path">/Model/Attributes/inheritedNames</ref>
-    <ref type="path">/Model/Attributes/inheritedAttributes</ref>
-    <ref type="path">/Model/Attributes/notFoundAttributes</ref>
-    <ref type="path">/Model/Attributes/classes</ref>
-    <ref type="path">/Model/Attributes/displayAttribute</ref>
-  </ref>
+    <ref name="kind" otherName="items" 
+         type="path" otherCard="dict">/Model/Kinds/Kind</ref>
 
-  <ref name="superKinds" cardinality="list"
-       otherName="subKinds" otherCard="dict">
-    <ref type="path">/Model/Kinds/Taxon</ref>
-  </ref>
+    <ref name="attributes" otherName="kinds"
+         cardinality="dict" otherCard="dict">
+      <ref type="path">/Model/Attributes/superKinds</ref>
+      <ref type="path">/Model/Attributes/subKinds</ref>
+      <ref type="path">/Model/Attributes/items</ref>
+      <ref type="path">/Model/Attributes/attributes</ref>
+      <ref type="path">/Model/Attributes/classes</ref>
+      <ref type="path">/Model/Attributes/displayAttribute</ref>
 
-  <attribute name="classes" cardinality="dict" 
-             type="model.schema.Types.Class">
-    <value name="python">model.schema.Kind.Kind</value>
-  </attribute>
-</item>
+      <!-- 
+         - plus local attributes below:
+         -     notFoundAttributes, inheritedAttributes, inheritedNames
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="dict">
+      <ref type="path">/Model/Kinds/Taxon</ref>
+    </ref>
+
+    <attribute name="classes" cardinality="dict" 
+               type="model.schema.Types.Class">
+      <value name="python">model.schema.Kind.Kind</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>notFoundAttributes</name>
+    <kind type="path">//Schema/Model/Kinds/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Kinds/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="dict" otherCard="dict">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="dict">/Model/Types/Symbol</ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="persist" type="bool">False</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>inheritedAttributes</name>
+    <kind type="path">//Schema/Model/Kinds/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Kinds/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="dict" otherCard="dict">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">dict</attribute>
+    <attribute name="persist" type="bool">False</attribute>
+    <attribute name="otherName">inheritingKinds</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>inheritedNames</name>
+    <kind type="path">//Schema/Model/Kinds/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Kinds/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="dict" otherCard="dict">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="dict">/Model/Types/UUID</ref>
+
+    <attribute name="cardinality">dict</attribute>
+    <attribute name="persist" type="bool">False</attribute>
+  </item>
+
+</items>

@@ -32,8 +32,6 @@ class ItemHandler(xml.sax.ContentHandler):
         self.delegates = []
         self.fields = None
 
-        assert not self.item
-        
     def startElement(self, tag, attrs):
 
         self.data = ''
@@ -156,6 +154,8 @@ class ItemHandler(xml.sax.ContentHandler):
             refArgs.attach(item, self.repository)
 
     def kindEnd(self, itemHandler, attrs):
+
+        assert not self.item
 
         if attrs['type'] == 'uuid':
             self.kindRef = UUID(self.data)
@@ -543,3 +543,43 @@ class ItemHandler(xml.sax.ContentHandler):
     typeName = classmethod(typeName)
     makeString = classmethod(makeString)
     xmlValue = classmethod(xmlValue)
+
+
+class ItemsHandler(xml.sax.ContentHandler):
+
+    def __init__(self, repository, parent, afterLoadHooks):
+
+        self.repository = repository
+        self.parent = parent
+        self.afterLoadHooks = afterLoadHooks
+
+    def startDocument(self):
+
+        self.itemHandler = None
+        self.item = None
+        
+    def startElement(self, tag, attrs):
+
+        if tag == 'item':
+            self.itemHandler = ItemHandler(self.repository, self.parent,
+                                           self.afterLoadHooks)
+            self.itemHandler.startDocument()
+
+        if self.itemHandler is not None:
+            self.itemHandler.startElement(tag, attrs)
+
+    def characters(self, data):
+
+        if self.itemHandler is not None:
+            self.itemHandler.characters(data)
+
+    def endElement(self, tag):
+
+        if self.itemHandler is not None:
+            self.itemHandler.endElement(tag)
+            
+        if tag == 'item':
+            if self.item is None:
+                self.item = self.itemHandler.item
+            self.itemHandler.endDocument()
+            self.itemHandler = None

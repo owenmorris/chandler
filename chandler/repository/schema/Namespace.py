@@ -20,6 +20,12 @@ class Namespace(Item):
         if child:
             return child.getUUID()
 
+        if self.hasAttributeValue('imports'):
+            for i in self.imports:
+                uuid = i.resolve(name)
+                if uuid is not None:
+                    return uuid
+
         return None
 
 

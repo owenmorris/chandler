@@ -9,7 +9,7 @@ import os, os.path, xml.sax
 from model.util.UUID import UUID
 from model.util.Path import Path
 from model.item.Item import Item
-from model.item.ItemHandler import ItemHandler
+from model.item.ItemHandler import ItemHandler, ItemsHandler
 from model.item.ItemRef import ItemStub, DanglingRefError
 from model.persistence.PackHandler import PackHandler
 
@@ -231,7 +231,7 @@ class Repository(object):
         if verbose:
             print path
             
-        handler = ItemHandler(self, parent or self, afterLoadHooks)
+        handler = ItemsHandler(self, parent or self, afterLoadHooks)
         xml.sax.parse(path, handler)
 
         return handler.item
