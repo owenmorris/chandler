@@ -41,14 +41,29 @@ endif
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 
+# Nothing to do
 snap:
-	tar -cvzf $(SNAP).tar.gz . --no-recursion
+
+# Nothing to do
+upload:
+
+# Nothing to do
+install:
 
 clean:
 	rm -rf $(SRC)/$(BUILD)
 
-expand: SWIG-$(VERSION).tar.gz 
-	tar xvzf SWIG-$(VERSION).tar.gz
+SWIG-$(VERSION).tar.gz:
+	$(CURL) http://builds.o11n.org/external/SWIG-$(VERSION).tar.gz 
+	$(CURL) http://builds.o11n.org/external/SWIG-$(VERSION).tar.gz.md5
 
-build: apply swig
+sources: SWIG-$(VERSION).tar.gz
+
+SWIG-$(VERSION)-expanded: SWIG-$(VERSION).tar.gz
+	tar xvzf SWIG-$(VERSION).tar.gz
+	touch SWIG-$(VERSION)-expanded
+
+expand: SWIG-$(VERSION)-expanded
+
+build: expand apply swig
 

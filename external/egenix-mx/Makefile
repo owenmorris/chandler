@@ -1,5 +1,6 @@
 
 VERSION=2.1.0
+RELVER=$(VERSION)-1
 EGENIX=$(BUILD_ROOT)/egenix-mx
 SRC=$(EGENIX)/egenix-mx-base-$(VERSION)
 
@@ -11,19 +12,36 @@ BUILD=build_$(SNAP)
 apply: patches
 	patch -Nup0 < patches; echo ok
 
-build: apply
+build: expand apply
 	cd $(SRC); \
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
-expand: egenix-mx-base-$(VERSION).tar.gz
+egenix-mx-base-$(VERSION).tar.gz:
+	$(CURL) http://builds.o11n.org/external/egenix-mx-base-$(VERSION).tar.gz
+	$(CURL) http://builds.o11n.org/external/egenix-mx-base-$(VERSION).tar.gz.md5
+
+sources: egenix-mx-base-$(VERSION).tar.gz
+
+egenix-mx-base-$(VERSION)-expanded: egenix-mx-base-$(VERSION).tar.gz
 	tar xvzf egenix-mx-base-$(VERSION).tar.gz
+	touch egenix-mx-base-$(VERSION)-expanded
+
+expand: egenix-mx-base-$(VERSION)-expanded
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(EGENIX)/$(SNAP).tar.gz \
+        tar -cvzf $(EGENIX)/egenix-mx-base-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/mx \
-            --exclude Examples
+            --exclude Examples; \
+	$(MD5) $(EGENIX)/egenix-mx-base-$(SNAP)-$(RELVER).tar.gz > $(EGENIX)/egenix-mx-base-$(SNAP)-$(RELVER).tar.gz.md5
+
+install: egenix-mx-base-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf egenix-mx-base-$(SNAP)-$(RELVER).tar.gz
 
 clean:
 	rm -rf $(SRC)/$(BUILD)
+
+upload: egenix-mx-base-$(SNAP)-$(RELVER).tar.gz
+	scp egenix-mx-base-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp egenix-mx-base-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)

@@ -1,5 +1,6 @@
 
 VERSION=3.0.0b1
+RELVER=$(VERSION)-1
 ZOPE=$(BUILD_ROOT)/zope
 SRC=$(ZOPE)/ZopeInterface-$(VERSION)
 
@@ -10,19 +11,37 @@ BUILD=build_$(SNAP)
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION);echo ok
 
-build: apply
+build: expand apply
 	cd $(SRC); \
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
-expand: ZopeInterface-$(VERSION).tgz
+ZopeInterface-$(VERSION).tgz:
+	$(CURL) http://builds.o11n.org/external/ZopeInterface-$(VERSION).tgz
+	$(CURL) http://builds.o11n.org/external/ZopeInterface-$(VERSION).tgz.md5
+
+sources: ZopeInterface-$(VERSION).tgz
+
+ZopeInterface-$(VERSION)-expanded: ZopeInterface-$(VERSION).tgz
 	tar xzvf ZopeInterface-$(VERSION).tgz
+	touch ZopeInterface-$(VERSION)-expanded
+
+expand: ZopeInterface-$(VERSION)-expanded
 
 snap: 
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(ZOPE)/$(SNAP).tar.gz $(SNAP)/$(SITE)/zope \
-            --exclude tests \
-            --exclude testing
+	tar -cvzf $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz \
+		$(SNAP)/$(SITE)/zope \
+		--exclude tests \
+		--exclude testing; \
+	$(MD5) $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz > $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz.md5
+
+install: zopeinterface-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf zopeinterface-$(SNAP)-$(RELVER).tar.gz
+
+upload: zopeinterface-$(SNAP)-$(RELVER).tar.gz
+	scp zopeinterface-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp zopeinterface-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 clean:
 	rm -rf  $(SRC)/$(BUILD)

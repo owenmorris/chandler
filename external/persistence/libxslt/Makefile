@@ -1,5 +1,6 @@
 
 VERSION=1.1.2
+RELVER=$(VERSION)-1
 LIBXSLT=$(BUILD_ROOT)/persistence/libxslt
 SRC=$(LIBXSLT)/libxslt-$(VERSION)
 
@@ -32,7 +33,7 @@ compile: $(SRC)/$(BUILD)/config.msvc
 	cd $(SRC)/win32; MAKEFLAGS=; \
 	nmake -nologo -f Makefile.msvc BUILD_VERSION=$(SNAP) all install
 
-install:
+installext:
 	install $(SRC)/$(BUILD)/bin/xsltproc.exe $(PREFIX)/bin
 
 py:
@@ -40,7 +41,7 @@ py:
 	$(PYTHON) winSetup.py build --build-base=build_$(SNAP) $(DIST_OPT) \
                               install --force
 
-build: compile install py
+build: expand compile installext py
 
 clean:
 	cd $(SRC)/win32; MAKEFLAGS=; \
@@ -49,8 +50,9 @@ clean:
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(LIBXSLT)/$(SNAP).tar.gz \
-                  $(SNAP)/$(SITE)/libxslt* $(SNAP)/bin/xsltproc.exe
+        tar -cvzf $(LIBXSLT)/libxslt-$(SNAP)-$(RELVER).tar.gz \
+                  $(SNAP)/$(SITE)/libxslt* $(SNAP)/bin/xsltproc.exe; \
+	$(MD5) $(LIBXSLT)/libxslt-$(SNAP)-$(RELVER).tar.gz > $(LIBXSLT)/libxslt-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
 
@@ -74,22 +76,39 @@ $(SRC)/$(BUILD)/Makefile: apply
                      --with-pic \
                      $(CONF_DBG)
 
-build: $(SRC)/$(BUILD)/Makefile
+build: expand $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(LIBXSLT)/$(SNAP).tar.gz \
+        tar -cvzf $(LIBXSLT)/libxslt-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/lib/libxslt* $(SNAP)/lib/libexslt* \
-                  $(SNAP)/$(SITE)/libxslt*
+                  $(SNAP)/$(SITE)/libxslt*; \
+	$(MD5) $(LIBXSLT)/libxslt-$(SNAP)-$(RELVER).tar.gz > $(LIBXSLT)/libxslt-$(SNAP)-$(RELVER).tar.gz.md5
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
 
 endif
 
-expand: libxslt-$(VERSION).tar.gz
+libxslt-$(VERSION).tar.gz:
+	$(CURL) http://builds.o11n.org/external/libxslt-$(VERSION).tar.gz
+	$(CURL) http://builds.o11n.org/external/libxslt-$(VERSION).tar.gz.md5
+
+sources: libxslt-$(VERSION).tar.gz
+
+libxslt-$(VERSION)-expanded: libxslt-$(VERSION).tar.gz
 	tar xvzf libxslt-$(VERSION).tar.gz
+	touch libxslt-$(VERSION)-expanded
+
+expand: libxslt-$(VERSION)-expanded
 
 apply: patches
 	patch -Nup0 < patches; echo ok;
+
+upload: libxslt-$(SNAP)-$(RELVER).tar.gz
+	scp libxslt-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp libxslt-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
+
+install: libxslt-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf libxslt-$(SNAP)-$(RELVER).tar.gz

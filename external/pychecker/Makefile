@@ -1,5 +1,6 @@
 
 VERSION=0.8.13
+RELVER=$(VERSION)-1
 PYCHECKER=$(BUILD_ROOT)/pychecker
 SRC=$(PYCHECKER)/pychecker-$(VERSION)
 
@@ -18,19 +19,36 @@ endif
 BUILD=build_$(SNAP)
 
 
-build:
+build: expand
 	cd $(SRC); \
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
-expand: pychecker-$(VERSION).tar.gz
+pychecker-$(VERSION).tar.gz:
+	$(CURL) http://builds.o11n.org/external/pychecker-$(VERSION).tar.gz
+	$(CURL) http://builds.o11n.org/external/pychecker-$(VERSION).tar.gz.md5
+
+sources: pychecker-$(VERSION).tar.gz
+
+pychecker-$(VERSION)-expanded: pychecker-$(VERSION).tar.gz
 	tar xvzf pychecker-$(VERSION).tar.gz
+	touch pychecker-$(VERSION)-expanded
+
+expand: pychecker-$(VERSION)-expanded
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYCHECKER)/$(SNAP).tar.gz \
+        tar -cvzf $(PYCHECKER)/pychecker-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/pychecker \
-                  $(SNAP)/$(BIN)/pychecker*
+                  $(SNAP)/$(BIN)/pychecker*; \
+	$(MD5) $(PYCHECKER)/pychecker-$(SNAP)-$(RELVER).tar.gz > $(PYCHECKER)/pychecker-$(SNAP)-$(RELVER).tar.gz.md5
+
+install: pychecker-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf pychecker-$(SNAP)-$(RELVER).tar.gz
+
+upload: pychecker-$(SNAP)-$(RELVER).tar.gz
+	scp pychecker-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp pychecker-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 clean:
 	rm -rf $(SRC)/$(BUILD)

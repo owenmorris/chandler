@@ -1,5 +1,6 @@
 
 VERSION=2.6.10
+RELVER=$(VERSION)-1
 LIBXML2=$(BUILD_ROOT)/persistence/libxml2
 SRC=$(LIBXML2)/libxml2-$(VERSION)
 
@@ -37,7 +38,7 @@ py:
 	$(PYTHON) winSetup.py build --build-base=build_$(SNAP) $(DIST_OPT) \
                               install --force
 
-build: compile py
+build: expand compile py
 
 clean:
 	cd $(SRC)/win32; rm -rf $(SNAP)
@@ -45,8 +46,9 @@ clean:
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(LIBXML2)/$(SNAP).tar.gz \
-                  $(SNAP)/$(SITE)/*libxml2*
+        tar -cvzf $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz \
+                  $(SNAP)/$(SITE)/*libxml2*; \
+	$(MD5) $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz > $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
 
@@ -75,13 +77,14 @@ py:
 	$(PYTHON) setup.py build --build-base=build_$(SNAP) $(DIST_OPT) \
                               install --force
 
-build: compile py
+build: expand compile py
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(LIBXML2)/$(SNAP).tar.gz \
+        tar -cvzf $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/lib/libxml2* \
-                  $(SNAP)/$(SITE)/*libxml2*
+                  $(SNAP)/$(SITE)/*libxml2*; \
+	$(MD5) $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz > $(LIBXML2)/libxml2-$(SNAP)-$(RELVER).tar.gz.md5
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
@@ -91,5 +94,21 @@ endif
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 
-expand: libxml2-$(VERSION).tar.gz
+libxml2-$(VERSION).tar.gz:
+	$(CURL) http://builds.o11n.org/external/libxml2-$(VERSION).tar.gz
+	$(CURL) http://builds.o11n.org/external/libxml2-$(VERSION).tar.gz.md5
+
+sources: libxml2-$(VERSION).tar.gz
+
+libxml2-$(VERSION)-expanded: libxml2-$(VERSION).tar.gz
 	tar xvzf libxml2-$(VERSION).tar.gz
+	touch libxml2-$(VERSION)-expanded
+
+expand: libxml2-$(VERSION)-expanded
+
+upload: libxml2-$(SNAP)-$(RELVER).tar.gz
+	scp libxml2-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp libxml2-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
+
+install: libxml2-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf libxml2-$(SNAP)-$(RELVER).tar.gz

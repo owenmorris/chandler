@@ -95,7 +95,7 @@ export LIB:=$(shell cygpath -awp $(MSVC_DIR)/atlmfc/lib:$(MSVC_DIR)/LIB:$(MSVC_D
 endif
 endif
 
-UPLOAD=builder@builds.o11n.org:/www/docs/external/$(PLATFORM)
+UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
 
 .PHONY: default all build compile install clean env realclean
 
@@ -207,5 +207,6 @@ _realclean::
 	elif [ "$(SRC)" = "/" ]; then \
 	    echo SRC is set to $(SRC); false; \
 	else \
-	    rm -rf $(SRC); \
+	    rm -rf $(SRC)*; \
+	    rm -f $(SRC)/../*-release-* $(SRC)/../*-debug-* $(SRC); \
 	fi

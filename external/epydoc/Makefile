@@ -1,5 +1,6 @@
 
 VERSION=2.1
+RELVER=$(VERSION)-1
 EPYDOC=$(BUILD_ROOT)/epydoc
 SRC=$(EPYDOC)/epydoc-$(VERSION)
 
@@ -14,18 +15,36 @@ apply: patches-$(VERSION)
             patch -Nup0 < patches-$(VERSION); echo ok; \
         fi
 
-build: apply
+build: expand apply
 	cd $(SRC); \
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
-expand: epydoc-$(VERSION).tar.gz
+epydoc-$(VERSION).tar.gz:
+	$(CURL) http://builds.o11n.org/external/epydoc-$(VERSION).tar.gz
+	$(CURL) http://builds.o11n.org/external/epydoc-$(VERSION).tar.gz.md5
+
+sources: epydoc-$(VERSION).tar.gz
+
+epydoc-$(VERSION)-expanded: epydoc-$(VERSION).tar.gz
 	tar xvzf epydoc-$(VERSION).tar.gz
+	touch epydoc-$(VERSION)-expanded
+
+expand: epydoc-$(VERSION)-expanded
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(EPYDOC)/$(SNAP).tar.gz $(SNAP)/$(SITE)/epydoc \
-            --exclude test
+        tar -cvzf $(EPYDOC)/epydoc-$(SNAP)-$(RELVER).tar.gz \
+		$(SNAP)/$(SITE)/epydoc \
+		--exclude test; \
+	$(MD5) $(EPYDOC)/epydoc-$(SNAP)-$(RELVER).tar.gz > $(EPYDOC)/epydoc-$(SNAP)-$(RELVER).tar.gz.md5
+
+install: epydoc-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf epydoc-$(SNAP)-$(RELVER).tar.gz
+
+upload: epydoc-$(SNAP)-$(RELVER).tar.gz
+	scp epydoc-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp epydoc-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 clean:
 	rm -rf $(SRC)/$(BUILD)

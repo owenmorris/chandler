@@ -1,5 +1,6 @@
 
 VERSION=4.2.52
+RELVER=$(VERSION)-1
 DB=$(BUILD_ROOT)/persistence/db
 SRC=$(DB)/db-$(VERSION)
 
@@ -13,13 +14,13 @@ BINDIR=$(SRC)/$(BUILD)/$(Snap)
 $(SRC)/$(BUILD)/Berkeley_DB.sln:
 	(cd win32; tar -cf - *.sln *.vcproj) | (cd $(SRC)/$(BUILD); tar -xf -)
 
-build: apply compile install
+build: expand apply compile installext
 
 compile: $(SRC)/$(BUILD)/Berkeley_DB.sln
 	cd $(SRC)/$(BUILD); \
         devenv.com Berkeley_DB.sln /project build_all /build $(Snap)
 
-install:
+installext:
 	mkdir -p $(PREFIX)/bin/db $(PREFIX)/include/db $(PREFIX)/lib
 	(cd $(SRC)/dbinc; tar cf - cxx_*.h) | (cd $(PREFIX)/include/db; tar xvf -)
 	(cd $(SRC)/$(BUILD); tar cf - *.h) | (cd $(PREFIX)/include/db; tar xvf -)
@@ -34,9 +35,10 @@ clean:
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(DB)/$(SNAP).tar.gz \
+        tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/bin/libdb*.dll \
-                  $(SNAP)/bin/db/db_*.exe
+                  $(SNAP)/bin/db/db_*.exe; \
+	$(MD5) $(DB)/db-$(SNAP)-$(RELVER).tar.gz > $(DB)/db-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
 
@@ -56,7 +58,7 @@ $(SRC)/$(BUILD)/Makefile:
                           --with-pic \
                           $(CONF_DBG)
 
-build: apply $(SRC)/$(BUILD)/Makefile
+build: expand apply $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
 
 clean:
@@ -64,13 +66,33 @@ clean:
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(DB)/$(SNAP).tar.gz $(SNAP)/db/bin $(SNAP)/db/lib \
-            --exclude '*.a'
+        tar -cvzf $(DB)/db-$(SNAP)-$(RELVER).tar.gz \
+		$(SNAP)/db/bin $(SNAP)/db/lib \
+		--exclude '*.a'; \
+	$(MD5) $(DB)/db-$(SNAP)-$(RELVER).tar.gz > $(DB)/db-$(SNAP)-$(RELVER).tar.gz.md5
 
 endif
 
 apply: patches
 	patch -Nup0 < patches; echo ok
 
-expand: db-$(VERSION).tar.gz
+db-$(VERSION).tar.gz:
+	$(CURL) http://builds.o11n.org/external/db-$(VERSION).tar.gz
+	$(CURL) http://builds.o11n.org/external/db-$(VERSION).tar.gz.md5
+
+#      $(MD5CHECK) db-$(VERSION).tar.gz.md5
+
+sources: db-$(VERSION).tar.gz
+
+db-$(VERSION)-expanded: db-$(VERSION).tar.gz
 	tar xvzf db-$(VERSION).tar.gz
+	touch db-$(VERSION)-expanded
+
+expand: db-$(VERSION)-expanded
+
+upload: db-$(SNAP)-$(RELVER).tar.gz
+	scp db-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp db-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
+
+install: db-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf db-$(SNAP)-$(RELVER).tar.gz

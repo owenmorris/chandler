@@ -1,5 +1,6 @@
 
 VERSION=1.2
+RELVER=$(VERSION)-1
 PATHAN=$(BUILD_ROOT)/persistence/pathan
 XERCESC=$(BUILD_ROOT)/persistence/xerces-c/xerces-c-src2_4_0
 SRC=$(PATHAN)/libpathan-$(VERSION)
@@ -24,7 +25,7 @@ compile: $(SRC)/Win32Projects/Pathan/Pathan.sln
 	devenv.com Win32Projects/Pathan/Pathan.sln \
                    /project PathanDll /build $(Snap)
 
-install:
+installext:
 	mkdir -p $(PREFIX)/include/pathan
 	(cd $(SRC)/src/dom3-xpath; \
          tar cf - `find . -name '*.hpp' -print`) | \
@@ -33,7 +34,7 @@ install:
 	(cd $(SRC)/lib; tar -cf - *.dll) | (cd $(PREFIX)/bin; tar xvf - )
 	(cd $(SRC)/lib; tar -cf - *.lib *.exp) | (cd $(PREFIX)/lib; tar xvf - )
 
-build: apply compile install
+build: expand apply compile installext
 
 clean:
 	cd $(SRC); \
@@ -44,7 +45,8 @@ clean:
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PATHAN)/$(SNAP).tar.gz $(SNAP)/bin/Pathan*.dll
+        tar -cvzf $(PATHAN)/pathan-$(SNAP)-$(RELVER).tar.gz $(SNAP)/bin/Pathan*.dll; \
+	$(MD5) $(PATHAN)/pathan-$(SNAP)-$(RELVER).tar.gz > $(PATHAN)/pathan-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
 
@@ -60,15 +62,16 @@ $(SRC)/$(BUILD)/Makefile.defs:
         XERCESCROOT=$(XERCESC)/$(BUILD) \
 	./runConfigure --prefix=$(PREFIX) --with-pic $(CONF_DBG)
 
-build: apply $(SRC)/$(BUILD)/Makefile.defs
+build: expand apply $(SRC)/$(BUILD)/Makefile.defs
 	cd $(SRC)/$(BUILD); \
 	XERCESCROOT=$(XERCESC)/$(BUILD) $(MAKE); \
 	XERCESCROOT=$(XERCESC)/$(BUILD) $(MAKE) install
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PATHAN)/$(SNAP).tar.gz $(SNAP)/lib/libpathan* \
-            --exclude '*.a'
+        tar -cvzf $(PATHAN)/pathan-$(SNAP)-$(RELVER).tar.gz $(SNAP)/lib/libpathan* \
+            --exclude '*.a'; \
+	$(MD5) $(PATHAN)/pathan-$(SNAP)-$(RELVER).tar.gz > $(PATHAN)/pathan-$(SNAP)-$(RELVER).tar.gz.md5
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
@@ -79,5 +82,21 @@ endif
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 
-expand: libpathan-$(VERSION)-2-src.tar.gz
+libpathan-$(VERSION)-2-src.tar.gz:
+	$(CURL) http://builds.o11n.org/external/libpathan-$(VERSION)-2-src.tar.gz
+	$(CURL) http://builds.o11n.org/external/libpathan-$(VERSION)-2-src.tar.gz.md5
+
+sources: libpathan-$(VERSION)-2-src.tar.gz
+
+libpathan-$(VERSION)-expand: libpathan-$(VERSION)-2-src.tar.gz
 	tar xvzf libpathan-$(VERSION)-2-src.tar.gz
+	touch libpathan-$(VERSION)-expand
+
+expand: libpathan-$(VERSION)-expand
+
+upload: pathan-$(SNAP)-$(RELVER).tar.gz
+	scp pathan-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp pathan-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
+
+install: pathan-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf pathan-$(SNAP)-$(RELVER).tar.gz

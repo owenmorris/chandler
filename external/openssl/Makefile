@@ -2,6 +2,7 @@
 include ../Makefile.inc
 
 VERSION=0.9.7d
+RELVER=$(VERSION)-1
 OPENSSL=$(BUILD_ROOT)/openssl
 SRC=$(OPENSSL)/openssl-$(VERSION)
 
@@ -44,7 +45,12 @@ openssl: apply $(SRC)/$(BUILD)/ms/$(DOMASM)
 # to make sure Chandler will find our DLLs and not anything in Windows
 # system directories.
 snap: 
-	tar -cvzf $(SNAP).tar.gz . --no-recursion
+
+# M2Crypto upload handles this as well
+upload:
+
+# and this
+install:
 
 else
 
@@ -58,39 +64,53 @@ openssl: apply $(SRC)/$(BUILD)
 	$(MAKE);\
 	$(MAKE) install
 
+upload: openssl-$(SNAP)-$(RELVER).tar.gz
+	scp openssl-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp openssl-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
+
+install: openssl-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf openssl-$(SNAP)-$(RELVER).tar.gz
+
 ifeq ($(OS),Darwin)
 
 snap: 
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(OPENSSL)/$(SNAP).tar.gz \
+	tar -cvzf $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz \
 		   $(SNAP)/lib/libcrypto.0.9.7.dylib \
 		   $(SNAP)/lib/libcrypto.0.dylib \
-		   $(SNAP)/lib/libcrypto.a \
 		   $(SNAP)/lib/libcrypto.dylib \
 		   $(SNAP)/lib/libssl.0.9.7.dylib \
 		   $(SNAP)/lib/libssl.0.dylib \
-		   $(SNAP)/lib/libssl.a \
-		   $(SNAP)/lib/libssl.dylib
+		   $(SNAP)/lib/libssl.dylib; \
+	$(MD5) $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz > $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
 
 snap: 
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(OPENSSL)/$(SNAP).tar.gz \
+	tar -cvzf $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz \
 		   $(SNAP)/lib/libcrypto.so.0.9.7 \
 		   $(SNAP)/lib/libcrypto.so.0 \
 		   $(SNAP)/lib/libcrypto.so \
-		   $(SNAP)/lib/libcrypto.a \
 		   $(SNAP)/lib/libssl.so.0.9.7 \
 		   $(SNAP)/lib/libssl.so.0 \
-		   $(SNAP)/lib/libssl.so \
-		   $(SNAP)/lib/libssl.a
+		   $(SNAP)/lib/libssl.so; \
+	$(MD5) $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz > $(OPENSSL)/openssl-$(SNAP)-$(RELVER).tar.gz.md5
 
 endif # if OS X or linux
 endif # if Cygwin or not
 
-expand: openssl-$(VERSION).tar.gz
+openssl-$(VERSION).tar.gz:
+	$(CURL) http://builds.o11n.org/external/openssl-$(VERSION).tar.gz
+	$(CURL) http://builds.o11n.org/external/openssl-$(VERSION).tar.gz.md5
+
+sources: openssl-$(VERSION).tar.gz
+
+openssl-$(VERSION)-expanded: openssl-$(VERSION).tar.gz
 	tar xvzf openssl-$(VERSION).tar.gz
+	touch openssl-$(VERSION)-expanded
+
+expand: openssl-$(VERSION)-expanded
 
 apply:
 	patch -Nup0 < patches-$(VERSION); echo ok
@@ -98,4 +118,4 @@ apply:
 clean:
 	rm -rf $(SRC)/$(BUILD)
 
-build: openssl
+build: expand openssl

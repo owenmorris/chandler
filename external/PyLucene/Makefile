@@ -1,5 +1,6 @@
 
 VERSION=0.6.2
+RELVER=$(VERSION)-1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
 
@@ -77,7 +78,7 @@ ifeq ($(PYLUCENE_JAR),)
 PYLUCENE_JAR=$(GCJ_HOME)/bin/jar
 endif
 
-build: apply
+build: expand apply
 	$(MAKE) -C $(SRC) \
             PREFIX=$(PREFIX) \
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
@@ -98,7 +99,24 @@ clean:
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYLUCENE)/$(SNAP).tar.gz $(MANIFEST)
+        tar -cvzf $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz $(MANIFEST); \
+	$(MD5) $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz > $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz.md5
 
-expand: PyLucene-$(VERSION).tar.gz
+install: pylucene-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf pylucene-$(SNAP)-$(RELVER).tar.gz
+
+upload: $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz
+	scp $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp $(PYLUCENE)/pylucene-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
+
+PyLucene-$(VERSION).tar.gz:
+	$(CURL) http://builds.o11n.org/external/PyLucene-$(VERSION).tar.gz
+	$(CURL) http://builds.o11n.org/external/PyLucene-$(VERSION).tar.gz.md5
+
+sources: PyLucene-$(VERSION).tar.gz
+
+PyLucene-$(VERSION)-expanded: PyLucene-$(VERSION).tar.gz
 	tar xvzf PyLucene-$(VERSION).tar.gz
+	touch PyLucene-$(VERSION)-expanded
+
+expand: PyLucene-$(VERSION)-expanded

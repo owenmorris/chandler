@@ -1,5 +1,6 @@
 
 VERSION=1.2.1
+RELVER=$(VERSION)-1
 DBXML=$(BUILD_ROOT)/persistence/dbxml
 SRC=$(DBXML)/dbxml-$(VERSION)
 
@@ -27,13 +28,13 @@ $(SRC)/$(BUILD)/Berkeley_DB_XML.sln:
 apply: patches
 	patch -Nup0 < patches; echo ok
 
-build: $(SRC)/$(BUILD)/Berkeley_DB_XML.sln compile install py
+build: expand $(SRC)/$(BUILD)/Berkeley_DB_XML.sln compile installext py
 
 compile:
 	cd $(SRC)/$(BUILD); \
         devenv.com Berkeley_DB_XML.sln /project dbxml /build $(Snap)
 
-install:
+installext:
 	(cd $(SRC)/$(BUILD)/$(Snap); \
          tar cf - *.dll) | (cd $(PREFIX)/bin; tar xvf -)
 	(cd $(SRC)/$(BUILD)/$(Snap); \
@@ -55,10 +56,10 @@ clean:
 
 snap:
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(DBXML)/$(SNAP).tar.gz \
+        tar -cvzf $(DBXML)/dbxml-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/bin/libdbxml*.dll \
-                  $(SNAP)/$(SITE)/*dbxml*
-
+                  $(SNAP)/$(SITE)/*dbxml*; \
+	$(MD5) $(DBXML)/dbxml-$(SNAP)-$(RELVER).tar.gz > $(DBXML)/dbxml-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
 
@@ -77,7 +78,7 @@ $(SRC)/$(BUILD)/Makefile:
 apply: $(SRC)/$(BUILD)/Makefile patches
 	patch -Nup0 < patches; echo ok
 
-build: apply
+build: expand apply
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install; \
 	cd $(SRC)/src/python; \
 	$(PYTHON) setup.py build --build-base=$(BUILD) \
@@ -89,15 +90,32 @@ build: apply
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(DBXML)/$(SNAP).tar.gz \
+        tar -cvzf $(DBXML)/dbxml-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/dbxml/bin $(SNAP)/dbxml/lib \
                   $(SNAP)/$(SITE)/*dbxml* \
-            --exclude '*.a'
+            --exclude '*.a'; \
+	$(MD5) $(DBXML)/dbxml-$(SNAP)-$(RELVER).tar.gz > $(DBXML)/dbxml-$(SNAP)-$(RELVER).tar.gz.md5
 
 clean:
 	cd $(SRC); rm -rf $(BUILD); rm -rf src/python/$(BUILD)
 
 endif
 
-expand: dbxml-$(VERSION).tar.gz
+dbxml-$(VERSION).tar.gz:
+	$(CURL) http://builds.o11n.org/external/dbxml-$(VERSION).tar.gz 
+	$(CURL) http://builds.o11n.org/external/dbxml-$(VERSION).tar.gz.md5
+
+sources: dbxml-$(VERSION).tar.gz
+
+dbxml-$(VERSION)-expanded: dbxml-$(VERSION).tar.gz
 	tar xvzf dbxml-$(VERSION).tar.gz
+	touch dbxml-$(VERSION)-expanded
+
+expand: dbxml-$(VERSION)-expanded
+
+upload: dbxml-$(SNAP)-$(RELVER).tar.gz
+	scp dbxml-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp dbxml-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
+
+install: dbxml-$(SNAP)-$(RELVER).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf dbxml-$(SNAP)-$(RELVER).tar.gz
