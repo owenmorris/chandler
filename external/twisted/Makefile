@@ -7,6 +7,11 @@ include $(BUILD_ROOT)/Makefile.inc
 
 BUILD=build_$(SNAP)
 
+# Temporary until integrated into Twisted
+applysmtp:
+	patch $(SRC)/twisted/mail/smtp.py smtp-patches; echo ok
+
+# Temporary until refactored and integrated into Twisted
 applym2:
 	rm -f $(SRC)/twisted/internet/m2ssl.py ; \
 	cd $(SRC); \
@@ -15,7 +20,7 @@ applym2:
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION);echo ok
 
-build: apply applym2
+build: apply applym2 applysmtp
 	cd $(SRC); \
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force

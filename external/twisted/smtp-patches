@@ -1,0 +1,65 @@
+141a142
+> 
+156a158,173
+> 
+> class ESMTPClientError(SMTPClientError):
+>     pass
+> 
+> class EHLORequiredError(ESMTPClientError):
+>     pass
+> 
+> class AUTHRequiredError(ESMTPClientError):
+>     pass
+> 
+> class TLSRequiredError(ESMTPClientError):
+>     pass
+> 
+> class AuthenticationError(ESMTPClientError):
+>     pass
+> 
+1064a1082,1096
+>     def esmtpEHLORequired(self, code, resp):
+>         return EHLORequiredError(502, "Error: server does not support ESMTP", str(self.log))
+> 
+>     def esmtpAUTHRequired(self, code, resp):
+>         return AUTHRequiredError(502, "Error: server does not support registered Authenticators", str(self.log))
+> 
+>     def esmtpTLSRequired(self, code, resp):
+>         return TLSRequiredError(502, "Error: server does not support TLS", str(self.log))
+> 
+>     def esmtpAUTHFailed(self, code, resp):
+>         return AuthenticationError(code, resp, str(self.log))
+> 
+>     def esmtpAUTHMalformedChallenge(self, code, resp):
+>         return AuthenticationError(501, "Error: server returned a malformed Authentication Challenge", str(self.log))
+> 
+1077a1110
+>         self._failresponse = self.esmtpEHLORequired
+1082d1114
+< 
+1107c1139,1140
+<             self._okresponse = self.smtpState_disconnect
+---
+>             self._okresponse = self.esmtpTLSRequired
+>             self._failresponse = self.esmtpTLSRequired
+1148c1181,1182
+<             self._okresponse = self.smtpState_disconnect
+---
+>             self._okresponse = self.esmtpAUTHRequired
+>             self._failresponse = self.esmtpAUTHRequired
+1154c1188,1189
+<         self._failresponse = self.smtpState_disconnect
+---
+>         self._failresponse = self.esmtpAUTHFailed
+> 
+1164a1200,1201
+>         self._failresponse = self.esmtpAUTHFailed
+> 
+1171,1172c1208,1209
+<             self._okresponse = self.smtpState_disconnect
+<             self._failresponse = self.smtpState_disconnect
+---
+>             self._okresponse = self.esmtpAUTHMalformedChallenge
+>             self._failresponse = self.esmtpAUTHMalformedChallenge
+1178d1214
+<             self._failresponse = self.smtpState_disconnect
