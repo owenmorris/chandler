@@ -72,9 +72,9 @@
     <columnHeadings>Participants</columnHeadings>
     <columnHeadings>Headline</columnHeadings>
     <columnHeadings>Start Time</columnHeadings>
-    <columnWidths>135</columnWidths>
-    <columnWidths>80</columnWidths>
-    <columnWidths>80</columnWidths>
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
 
     <open>True</open>
     <size>600,200</size>
@@ -94,10 +94,10 @@
     <columnHeadings>Last Name</columnHeadings>
     <columnHeadings>Telephone</columnHeadings>
     <columnHeadings>Address</columnHeadings>
-    <columnWidths>135</columnWidths>
-    <columnWidths>80</columnWidths>
-    <columnWidths>80</columnWidths>
-    <columnWidths>80</columnWidths>
+    <columnWidths>140</columnWidths>
+    <columnWidths>140</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>240</columnWidths>
 
     <open>True</open>
     <size>600,200</size>
@@ -115,8 +115,8 @@
     <useButtons>False</useButtons>
     <columnHeadings>Description</columnHeadings>
     <columnHeadings>Created On</columnHeadings>
-    <columnWidths>135</columnWidths>
-    <columnWidths>80</columnWidths>
+    <columnWidths>270</columnWidths>
+    <columnWidths>170</columnWidths>
 
     <open>True</open>
     <size>600,200</size>
@@ -135,9 +135,9 @@
     <columnHeadings>Who (Participants)</columnHeadings>
     <columnHeadings>About (Headline)</columnHeadings>
     <columnHeadings>Date (Start Time)</columnHeadings>
-    <columnWidths>135</columnWidths>
-    <columnWidths>80</columnWidths>
-    <columnWidths>80</columnWidths>
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
 
     <open>True</open>
     <size>600,200</size>

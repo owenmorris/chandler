@@ -342,13 +342,13 @@
     <noLines>True</noLines>
     <useButtons>False</useButtons>
     <columnHeadings>View</columnHeadings>    
-    <columnWidths>150</columnWidths>
+    <columnWidths>125</columnWidths>
     <rootPath  itemref="doc:URLRoot"/>
     <selection>/Repository</selection>
 
     <open>True</open>
-    <size>200,600</size>
-    <minimumSize>200,600</minimumSize>
+    <size>125,600</size>
+    <minimumSize>125,600</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
@@ -372,12 +372,12 @@
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-    <splitPercentage>0.25</splitPercentage>
+    <splitPercentage>0.15</splitPercentage>
     
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
-    <size>900,580</size>
-    <minimumSize>900,580</minimumSize>
+    <size>900,600</size>
+    <minimumSize>900,600</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>

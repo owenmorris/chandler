@@ -73,11 +73,11 @@
     <columnHeadings>Kind</columnHeadings>
     <columnHeadings>UUID</columnHeadings>
     <columnHeadings>Path</columnHeadings>    
-    <columnWidths>135</columnWidths>
-    <columnWidths>80</columnWidths>
-    <columnWidths>60</columnWidths>
-    <columnWidths>210</columnWidths>
-    <columnWidths>154</columnWidths>
+    <columnWidths>160</columnWidths>
+    <columnWidths>110</columnWidths>
+    <columnWidths>70</columnWidths>
+    <columnWidths>245</columnWidths>
+    <columnWidths>155</columnWidths>
 
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
