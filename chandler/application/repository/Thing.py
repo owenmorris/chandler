@@ -11,7 +11,7 @@
 
 __revision__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF"
 
 from persistence import Persistent
@@ -78,7 +78,7 @@ class Thing(PersistentDict):
         """
         ako = self.GetAko()
         if ako:
-            template = type.GetAttributeTemplate(uri)
+            template = ako.GetAttributeTemplate(uri)
         else:
             template = None
         return template
@@ -90,13 +90,13 @@ class Thing(PersistentDict):
         """ Returns the kind of Thing this object is an instance of. 
         Should return an instance of KindOfThing, or None.
         """
-        return self.get(chandler.type)
+        return self.get(chandler.ako)
     
     def SetAko(self, akoThing):
         """ Set the kind of Thing this object is an instance of. 
         Expects an instance of KindOfThing.
         """
-        self[chandler.type] = akoThing
+        self[chandler.ako] = akoThing
         
     def GetUri(self):
         """ Returns the uri that uniquely names this Thing.
@@ -108,7 +108,13 @@ class Thing(PersistentDict):
         """
         self[chandler.uri] = uri
         
+        
+    # For debugging purposes, be able to print a 'thing' as a list of
+    # triples. From this exercise, one could imagine how one would
+    # generate the appropriate RAP call to a repository.
+    
     def PrintTriples(self):
+        print ('******* Triples for ' + self.GetUri() + ' *********')
         for key in self.keys():
             value = self[key]
             if (type(value) is PersistentList):
@@ -116,7 +122,8 @@ class Thing(PersistentDict):
                     self.PrintTriple(key, oneValue)
             else:
                 self.PrintTriple(key, value)
-                
+        print('')
+
     def PrintTriple(self, key, value):
         if (isinstance(value, Thing)):
             print (self.GetUri(), key, value.GetUri())

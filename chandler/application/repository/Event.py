@@ -1,44 +1,49 @@
-""" Item.
+""" Event.
 """
 
 __revision__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF"
 
 from application.repository.Thing import Thing
-from application.repository.KindOfThing import KindOfThing
+from application.repository.KindOfThing import AkoThingFactory
 from application.repository.Repository import Repository
 from application.repository.Namespace import chandler
 
-_attributeTemplates = [{ chandler.uri : chandler.startTime,
-                         chandler.type : dateTime,
-                         chandler.cardinality : 1,
-                         chandler.required : true,
-                         chandler.default : None },
-                       
-                       { chandler.uri : chandler.endTime,
-                         chandler.type : dateTime,
-                         chandler.cardinality : 1,
-                         chandler.required : false,
-                         chandler.default : None }
-                       
-                       { chandler.uri : chandler.headline,
-                         chandler.type : str,
-                         chandler.cardinality : 1,
-                         chandler.required : true,
-                         chandler.default : None }
-                       ]
+from application.repository.Item import Item
 
-_akoEvent = KindOfThing(chandler.Event, _attributeTemplates)
-_repository = Repository()
-_repository.AddThing(_akoEvent)
+_attributes = [{ chandler.uri : chandler.startTime,
+                 chandler.displayName : 'Start Time',
+                 chandler.range : 'dateTime',
+                 chandler.cardinality : 1,
+                 chandler.required : True,
+                 chandler.default : None },
+               
+               { chandler.uri : chandler.endTime,
+                 chandler.displayName : 'End Time',
+                 chandler.range : 'dateTime',
+                 chandler.cardinality : 1,
+                 chandler.required : False,
+                 chandler.default : None },
+                       
+               { chandler.uri : chandler.headline,
+                 chandler.displayName : 'Headline',
+                 chandler.range : str,
+                 chandler.cardinality : 1,
+                 chandler.required : True,
+                 chandler.default : None }
+               ]
+
+class AkoEventFactory(AkoThingFactory):
+    def __init__(self):
+        AkoThingFactory.__init__(self, chandler.Event, _attributes)
 
 class Event(Item):
     def __init__(self):
         Item.__init__(self)
-        self.SetAko(_akoEvent)
-        
+        self.SetAko(AkoEventFactory().GetAko())
+    
     def GetStartTime(self):
         """Returns the start date and time of the event, as an mxDateTime"""
         return self.GetAttribute(chandler.startTime)
@@ -82,85 +87,6 @@ class Event(Item):
     headline = property(GetHeadline, SetHeadline,
                         doc='string: headline, or event summary')
 
-    def GetRecurrence(self):
-        """Get RecurrencePattern object.
-        Describes recurring events."""
-        return self.GetAttribute(chandler.recurrence)
-
-    def SetRecurrence(self, recurrence):
-        """Set the RecurrencePattern object, describing recurring events."""
-        self.SetAttribute(chandler.recurrence, recurrence)
-
-    # RecurrencePattern
-    recurrence = property(getRecurrence, setRecurrence,
-                          doc='RecurrencePattern')
-
-    def getReminders(self):
-        """List of ReminderItems associated with this event."""
-        return self.GetAttribute(chandler.reminder)
-
-    def setReminders(self, reminder):
-        """Set the list of ReminderItems associated with this event.
-        Expects a Persistent.List containing ReminderItems"""
-        self.SetAttribute(chandler.reminder, reminder)
-
-    # List of ReminderItems
-    reminders = property(getReminders, setReminders,
-                        doc='Persistent list of ReminderItems')
-
-    def getTimeTransparency(self):
-        """Get free busy time associated with this event, returns FreeBusy"""
-        return self.GetAttribute(chandler.timeTransparency)
-
-    def setTimeTransparency(self, freeBusy):
-        """Set free busy time associated with this event, expects FreeBusy"""
-        self.SetAttribute(chandler.timeTransparency, freeBusy)
-
-    # FreeBusy
-    timeTransparency = property(getTimeTransparency, setTimeTransparency,
-                                doc='FreeBusy time associated with event')
-
-    def getParticipants(self):
-        """Get the list of participants associated with this event.
-        Returns a list of EntityItems, which may be PersonItems, GroupItems."""
-        return self.GetAttribute(chandler.participant)
-
-    def setParticipants(self, participants):
-        """Set a persistent list of participants assocated with this event.
-        Expects a Persistent.List of EntityItems"""
-        self.GetAttribute(chandler.participant, participants)
-
-    # List of EntityItems
-    participants = property(getParticipants, setParticipants,
-                            doc='List of EntityItems: event participants')
-
-    def getLocations(self):
-        """Get list of PlaceItems related to this event"""
-        return self.GetAttribute(chandler.location)
-
-    def setLocations(self, locations):
-        """Set persistent list of PlaceItems related to this event.
-        Expects a Persistent.List of PlaceItems."""
-        self.SetAttribute(chandler.location, locations)
-
-    # List of PlaceItems
-    locations = property(getLocations, setLocations,
-                         doc='List of PlaceItems: event location')
-
-    def getCalendars(self):
-        """Get the list of calendars this event belongs to.
-        Returns a list of CalendarItems"""
-        return self.GetAttribute(chandler.calendar)
-
-    def setCalendars(self, calendars):
-        """Set a list of calendars this event belongs to.
-        Expects a Persist.List of CalendarItems"""
-        self.SetAttribute(chandler.calendar, calendars)
-
-    # List of CalendarItems
-    calendars = property(getCalendars, setCalendars,
-                         doc='Persistent list of CalendarItems')
-    
     def GetDuration(self):
         """Returns an mxDateTimeDelta, None if startTime or endTime is None"""
 

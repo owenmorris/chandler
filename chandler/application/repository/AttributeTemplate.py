@@ -3,10 +3,10 @@
 
 __revision__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-from application.repository import Thing
+from application.repository.Thing import Thing
 from application.repository.Namespace import chandler
 
 class AttributeTemplate(Thing):
@@ -42,5 +42,5 @@ class AttributeTemplate(Thing):
     required = property(GetRequired, SetRequired)
     default = property(GetDefault, SetDefault)
 
-    def IsValid(self):
-        pass
+    def IsValid(self, value):
+        return True

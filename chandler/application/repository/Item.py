@@ -3,53 +3,72 @@
 
 __revision__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-from application.repository import Thing, KindOfThing
+from application.repository.Namespace import chandler, dc
+from application.repository.Thing import Thing
+from application.repository.KindOfThing import KindOfThing
+from application.repository.KindOfThing import AkoThingFactory
 
-_attributeTemplates = [{ chandler.uri : dc.identifier,
-                          chandler.type : str,
-                          chandler.cardinality : 1,
-                          chandler.required : false,
-                          chandler.default : None },
-                        
-                        { chandler.uri : dc.subject,
-                          chandler.type : str,
-                          chandler.cardinality : 1,
-                          chandler.required : false,
-                          chandler.default : None },
-                        
-                        { chandler.uri : chandler.project,
-                          chandler.type : str,
-                          chandler.cardinality : None,
-                          chandler.required : false,
-                          chandler.default : None },
-                        
-                        { chandler.uri : chandler.dateCreated,
-                          chandler.type : DateTime,
-                          chandler.cardinality : 1,
-                          chandler.required : false,
-                          chandler.default : None },
-                        
-                        { chandler.uri : chandler.dateModified,
-                          chandler.type : DateTime,
-                          chandler.cardinality : 1,
-                          chandler.required : false,
-                          chandler.default : None }
-                        ]
+from application.repository.Repository import Repository
 
-akoItem = KindOfThing(chandler.Item, _attributeTemplates)
-repository.addThing(akoItem)
+from mx import DateTime
+
+_attributes = [{ chandler.uri : dc.identifier,
+                 chandler.range : str,
+                 chandler.cardinality : 1,
+                 chandler.required : False,
+                 chandler.default : None },
+               
+               { chandler.uri : dc.subject,
+                 chandler.range : str,
+                 chandler.cardinality : 1,
+                 chandler.required : False,
+                 chandler.default : None },
+               
+               { chandler.uri : chandler.project,
+                 chandler.range : str,
+                 chandler.cardinality : None,
+                 chandler.required : False,
+                 chandler.default : None },
+               
+               { chandler.uri : chandler.dateCreated,
+                 chandler.range : 'DateTime',
+                 chandler.cardinality : 1,
+                 chandler.required : False,
+                 chandler.default : None },
+                        
+               { chandler.uri : chandler.dateModified,
+                 chandler.range : 'DateTime',
+                 chandler.cardinality : 1,
+                 chandler.required : False,
+                 chandler.default : None }
+               ]
+
+class AkoItemFactory(AkoThingFactory):
+    def __init__(self):
+        AkoThingFactory.__init__(self, chandler.Item, _attributes)
 
 class Item(Thing):
     def __init__(self, dict=None):
         Thing.__init__(self, dict)
-        self.SetAko(akoItem)
+        self.SetAko(AkoItemFactory().GetAko())
+        self.SetUri(self.GetUniqueId())
         
+    def GetUniqueId(self):
+        """ @@@ Scaffolding hack, really the repository will take
+        care of generating universally unique ids. We just need 
+        something for now for item uris.
+        """
+        now = DateTime.now()
+        name = (str(now.absdate) + '.' + 
+                str(now.abstime))
+        return chandler.prefix + name
+
     # Convenience methods make chandler attributes accessible
     # via python object attributes
-    
+
     def GetProjects(self):
         return GetAttribute(chandler.project)
     
@@ -82,3 +101,4 @@ class Item(Thing):
     dateCreated = property(GetDateCreated)
     dateModified = property(GetDateModified)
         
+

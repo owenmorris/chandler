@@ -43,6 +43,7 @@ class Repository:
         assert(isinstance(thing, Thing.Thing))
         self.thingList.append(thing)
         transaction.get_transaction().commit()
+        print "Added a thing: " + thing.GetUri()
 
     def DeleteThing(self, thing):
         """ Delete the 'thing' from the repository
@@ -53,6 +54,12 @@ class Repository:
         except:
             # FIXME: need to indicate failure somehow...
             pass
+        
+    def FindThing(self, uri):
+        for thing in self.thingList:
+            if (thing.GetUri() == uri):
+                return thing
+        return None
         
     def Commit(self):
         """ Commit all ZODB changes.
