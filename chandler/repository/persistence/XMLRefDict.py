@@ -52,7 +52,7 @@ class PersistentRefs(object):
 
     def _changeRef(self, key, link):
 
-        if not self.view.isLoading():
+        if key is not None and not self.view.isLoading():
             op, alias = self._changedRefs.get(key, (1, link._alias))
             if op != 0:
                 # changed element: key, maybe old alias: alias
@@ -246,28 +246,23 @@ class XMLRefDict(RefDict, PersistentRefs):
                     len(self._changedRefs) == 0):
                 raise AssertionError, '%s.%s not marked dirty' %(Item.__repr__(item), self._name)
 
+            self._writeRef(self.uuid, version,
+                           self._firstKey, self._lastKey, self._count)
+            
             for key, (op, oldAlias) in self._changedRefs.iteritems():
 
                 if op == 0:               # change
-                    if key is not None:
-                        link = self._get(key, load=False)
-                        ref = link._value
-                        previous = link._previousKey
-                        next = link._nextKey
-                        alias = link._alias
+                    link = self._get(key, load=False)
+                    ref = link._value
+                    previous = link._previousKey
+                    next = link._nextKey
+                    alias = link._alias
     
-                        self._writeRef(key, version, previous, next, alias)
-                        if oldAlias is not None and oldAlias != alias:
-                            store.writeName(version, self.uuid, oldAlias,
-                                            None)
-                        if alias is not None:
-                            store.writeName(version, self.uuid, alias,
-                                            key)
-
-                    else:
-                        self._writeRef(self.uuid, version,
-                                       self._firstKey, self._lastKey,
-                                       self._count)
+                    self._writeRef(key, version, previous, next, alias)
+                    if oldAlias is not None and oldAlias != alias:
+                        store.writeName(version, self.uuid, oldAlias, None)
+                    if alias is not None:
+                        store.writeName(version, self.uuid, alias, key)
                         
                 elif op == 1:             # remove
                     self._deleteRef(key, version)
@@ -507,27 +502,25 @@ class XMLChildren(Children, PersistentRefs):
         store = self.view.repository.store
         unloads = []
         
+        self._writeRef(self.uuid, version,
+                       self._firstKey, self._lastKey, self._count)
+        
         for key, (op, oldAlias) in self._changedRefs.iteritems():
     
             if op == 0:               # change
-                if key is not None:
-                    link = self._get(key, load=False)
-                    previous = link._previousKey
-                    next = link._nextKey
-                    alias = link._alias
+                link = self._get(key, load=False)
+                previous = link._previousKey
+                next = link._nextKey
+                alias = link._alias
                     
-                    self._writeRef(key, version, previous, next, alias)
-                    if oldAlias is not None and oldAlias != alias:
-                        store.writeName(version, self.uuid, oldAlias, None)
-                    if alias is not None:
-                        store.writeName(version, self.uuid, alias, key)
+                self._writeRef(key, version, previous, next, alias)
+                if oldAlias is not None and oldAlias != alias:
+                    store.writeName(version, self.uuid, oldAlias, None)
+                if alias is not None:
+                    store.writeName(version, self.uuid, alias, key)
 
-                    if link._value is None:
-                        unloads.append((key, link._alias))
-
-                else:
-                    self._writeRef(self.uuid, version,
-                                   self._firstKey, self._lastKey, self._count)
+                if link._value is None:
+                    unloads.append((key, link._alias))
                         
             elif op == 1:             # remove
                 self._deleteRef(key, version)

@@ -33,7 +33,7 @@ class LinkedMap(dict):
 
             if nextKey is None:
                 linkedMap._lastKey = key
-                linkedMap.linkChanged(self, None)
+                linkedMap.linkChanged(linkedMap._head, None)
 
             self._nextKey = nextKey
             linkedMap.linkChanged(self, key)
@@ -42,7 +42,7 @@ class LinkedMap(dict):
 
             if previousKey is None:
                 linkedMap._firstKey = key
-                linkedMap.linkChanged(self, None)
+                linkedMap.linkChanged(linkedMap._head, None)
                 
             self._previousKey = previousKey
             linkedMap.linkChanged(self, key)
@@ -213,12 +213,14 @@ class LinkedMap(dict):
                                                   link._previousKey, self)
         else:
             self._firstKey = link._nextKey
+            self.linkChanged(self._head, None)
             
         if link._nextKey is not None:
             self._get(link._nextKey)._setPrevious(link._previousKey,
                                                   link._nextKey, self)
         else:
             self._lastKey = link._previousKey
+            self.linkChanged(self._head, None)
                 
         super(LinkedMap, self).__delitem__(key)
 
