@@ -34,7 +34,7 @@ class Parcel(application.Parcel.Parcel):
         else:
             if application.dialogs.Util.yesNo( \
              Globals.wxApplication.mainFrame, "Sharing Invitation",
-             "%s\nhas invited you to subscribe to '%s'\n" \
+             "%s\nhas invited you to subscribe to\n'%s'\n\n" \
              "Would you like to accept the invitation?" \
              % (fromAddress, collectionName) ):
                 subscribeToWebDavCollection(url)

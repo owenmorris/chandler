@@ -31,7 +31,7 @@
             <displayName value="Username" />
             <description value="The account login name" />
             <type itemref="String" />
-            <initialValue itemref="None" />
+            <initialValue type="String" value=""/>
         </Attribute>
 
         <Attribute itsName="password">
@@ -39,21 +39,20 @@
             <description value="This could either be a password or some other sort of authentication info. We can use it for whatever is needed for this account type." />
             <issues value="This should not be a simple string. We need some solution for encrypting it." />
             <type itemref="String" />
-            <initialValue itemref="None" />
+            <initialValue type="String" value=""/>
         </Attribute>
 
         <Attribute itsName="host">
             <displayName value="Host" />
             <description value="The hostname of the account" />
             <type itemref="String" />
-            <initialValue itemref="None" />
+            <initialValue type="String" value=""/>
         </Attribute>
 
         <Attribute itsName="port">
             <displayName value="Port" />
             <description value="The non-SSL port number to use" />
             <type itemref="Integer" />
-            <initialValue itemref="None" />
         </Attribute>
 
         <Attribute itsName="useSSL">
@@ -689,7 +688,7 @@
             <examples>"Abe Lincoln {abe@osafoundation.org}" (except with angle brackets instead of '{' and '}')</examples>
             <description value="An RFC 822 email address." />
             <type itemref="String" />
-            <initialValue itemref="None" />
+            <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="fullName">
