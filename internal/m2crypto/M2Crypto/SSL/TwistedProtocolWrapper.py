@@ -1,3 +1,12 @@
+"""
+M2Crypto.SSL.TwistedProtocolWrapper
+
+Copyright (c) 2004-2005 Open Source Applications Foundation.
+All rights reserved.
+"""
+
+RCS_id='$Id$'
+
 from twisted.protocols.policies import ProtocolWrapper
 from twisted.python.failure import Failure
 
@@ -18,7 +27,11 @@ class TLSProtocolWrapper(ProtocolWrapper):
     Usage:
         factory = MyFactory()
         factory.startTLS = True # Starts SSL immediately, otherwise waits
-                                # for STARTTLS from peer (XXX TODO)
+                                # for STARTTLS from peer. Application must
+                                # handle STARTTLS up to the point where
+                                # SSL handshake happens, after which startTLS()
+                                # method needs to be called. Twisted handles
+                                # this automatically with SMTP, for example.
         wrappingFactory = TLSWrappingFactory(factory)
         wrappingFactory.protocol = TLSProtocolWrapper
         reactor.connectTCP(host, port, wrappingFactory)
@@ -37,9 +50,6 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
         # wrappedProtocol == client/server instance
         # factory.wrappedFactory == client/server factory
-
-        # Do this at connectionMade? would capture STARTTLS? bad internals...
-        #wrappedProtocol.transport.startTLS = self.startTLS
 
         self.data = '' # Clear text to encrypt and send
         self.encrypted = '' # Encrypted data we need to decrypt and pass on
@@ -91,6 +101,9 @@ class TLSProtocolWrapper(ProtocolWrapper):
         Start SSL/TLS. If this is not called, this instance just passes data
         through untouched.
         """
+        # NOTE: This method signature must match the startTLS() method Twisted
+        #       expects transports to have. This will be called automatically
+        #       by Twisted in STARTTLS situations, for example with SMTP.
         if self.tlsStarted:
             raise Exception, 'TLS already started'
 
@@ -191,7 +204,6 @@ class TLSProtocolWrapper(ProtocolWrapper):
         if debug:
             print 'MyProtocolWrapper.dataReceived'
         if not self.tlsStarted:
-            # XXX STARTTLS support
             ProtocolWrapper.dataReceived(self, data)
             return
 

@@ -1,7 +1,11 @@
+__revision__  = "$Revision$"
+__date__      = "$Date$"
+__copyright__ = "Copyright (c) 2004-2005 Open Source Applications Foundation"
+__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+
 import application.Globals as Globals
 import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
-import twisted.internet.ssl as ssl
 import email.Message as Message
 import logging as logging
 import smtp as smtp
@@ -14,6 +18,9 @@ import chandlerdb.util.UUID as UUID
 import mx.DateTime as DateTime
 import osaf.framework.sharing as chandlerSharing
 import cStringIO as StringIO
+import crypto.ssl as ssl
+import twisted.protocols.policies as policies
+import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 
 def receivedInvitation(url, collectionName, fromAddress):
     """
@@ -103,7 +110,7 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
             heloFallback = False
 
         if self.account.useSSL:
-            sslContext = ssl.ClientContextFactory(useM2=1)
+            sslContext = ssl.getSSLContext()
 
         messageText = self.__createMessageText()
 
@@ -117,7 +124,12 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
         factory.protocol = smtp.ChandlerESMTPSender
 
-        reactor.connectTCP(self.account.host, self.account.port, factory)
+        wrappingFactory = policies.WrappingFactory(factory)
+        wrappingFactory.protocol = wrapper.TLSProtocolWrapper
+
+        reactor.connectTCP(self.account.host,
+                           self.account.port,
+                           wrappingFactory)
 
     def __invitationSuccessCheck(self, result):
         if __debug__:

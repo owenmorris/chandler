@@ -1,6 +1,6 @@
 
 VERSION=r11303
-RELVER=$(VERSION)-3
+RELVER=$(VERSION)-4
 TWISTED=$(BUILD_ROOT)/twisted
 SRC=$(TWISTED)/Twisted-$(VERSION)
 
@@ -15,16 +15,10 @@ applysmtp:
 applyimap4:
 	patch -Nup0 < imap4-patches; echo ok
 
-# Temporary until refactored and integrated into Twisted
-applym2:
-	rm -f $(SRC)/twisted/internet/m2ssl.py ; \
-	cd $(SRC); \
-	patch -Nup0<../m2-patches;echo ok
-
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION);echo ok
 
-build: expand apply applysmtp applyimap4 applym2
+build: expand apply applysmtp applyimap4
 	cd $(SRC); \
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force

@@ -1,3 +1,12 @@
+"""
+M2Crypto.SSL.Checker
+
+Copyright (c) 2004-2005 Open Source Applications Foundation.
+All rights reserved.
+"""
+
+RCS_id='$Id$'
+
 from M2Crypto import util, EVP
 
 class SSLVerificationError(Exception):

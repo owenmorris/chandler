@@ -8,7 +8,6 @@ import application.Globals as Globals
 import twisted.mail.smtp as smtp
 import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
-import twisted.internet.ssl as ssl
 import email.Message as Message
 import logging as logging
 import common as common
@@ -20,7 +19,8 @@ import chandlerdb.util.UUID as UUID
 import mx.DateTime as DateTime
 import twisted.protocols.policies as policies
 import cStringIO as StringIO
-
+import crypto.ssl as ssl
+import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 
 """
  Notes:
@@ -114,7 +114,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
             heloFallback = False
 
         if self.account.useSSL:
-            sslContext = ssl.ClientContextFactory(useM2=1)
+            sslContext = ssl.getSSLContext()
 
         self.mailMessage.outgoingMessage(account=self.account)
 
@@ -142,7 +142,12 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
         factory.protocol = ChandlerESMTPSender
 
-        reactor.connectTCP(self.account.host, self.account.port, factory)
+        wrappingFactory = policies.WrappingFactory(factory)
+        wrappingFactory.protocol = wrapper.TLSProtocolWrapper
+        
+        reactor.connectTCP(self.account.host,
+                           self.account.port,
+                           wrappingFactory)
 
     def __mailSuccessCheck(self, result):
         """Twisted smtp.py will call the deferred callback (this method) if

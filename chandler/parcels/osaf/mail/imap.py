@@ -10,7 +10,6 @@ import twisted.internet.reactor as reactor
 import twisted.internet.protocol as protocol
 import twisted.protocols.policies as policies
 import twisted.python.failure as failure
-import twisted.internet.ssl as ssl
 import twisted.internet.error as error
 import twisted.mail.imap4 as imap4
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
@@ -24,6 +23,8 @@ import logging as logging
 import chandlerdb.util.UUID as UUID
 import common as common
 import repository.item.Query as Query
+import crypto.ssl as ssl
+import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 
 """
   Bug:
@@ -47,7 +48,6 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
         @type caps: dict
         @return C{None}
         """
-
         self.factory.imapDownloader.proto = self
 
         if caps is None:
@@ -88,9 +88,6 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
 
         assert isinstance(retries, (int, long))
         self.retries = -retries
-
-    def clientConnectionFailed(self, connector, err):
-        self._processConnectionError(connector, err)
 
     def clientConnectionFailed(self, connector, err):
         self._processConnectionError(connector, err)
@@ -164,11 +161,13 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
         self.factory = ChandlerIMAP4Factory(self, self.account.numRetries)
 
-        if self.account.useSSL:
-            reactor.connectSSL(self.account.host, self.account.port,
-                               self.factory, ssl.ClientContextFactory(useM2=1))
-        else:
-            reactor.connectTCP(self.account.host, self.account.port, self.factory)
+        self.wrappingFactory = policies.WrappingFactory(self.factory)
+        self.wrappingFactory.protocol = wrapper.TLSProtocolWrapper
+        self.factory.startTLS = self.account.useSSL
+        self.factory.getContext = lambda : ssl.getSSLContext()
+        reactor.connectTCP(self.account.host,
+                           self.account.port,
+                           self.wrappingFactory)
 
     def catchErrors(self, err):
         """

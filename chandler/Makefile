@@ -25,7 +25,7 @@ BIN_ARCHIVES=../Launchers-$(SNAP)-0.4-7.tar.gz \
              ../epydoc-$(SNAP)-2.1-2.tar.gz \
              ../jabberpy-$(SNAP)-0.4-0-2.tar.gz \
              ../libxml2-$(SNAP)-2.6.10-2.tar.gz \
-             ../m2crypto-$(SNAP)-0.12-5.tar.gz \
+             ../m2crypto-$(SNAP)-0.12-6.tar.gz \
              ../pychecker-$(SNAP)-0.8.13-2.tar.gz \
              ../pylucene-$(SNAP)-0.9.3-137-2.tar.gz \
              ../python-$(SNAP)-2.4-2.tar.gz \
