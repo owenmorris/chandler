@@ -845,7 +845,7 @@ def executeCommandNoCapture(buildenv, name, args, message, flags=0):
     # spawnl wants the name of the file we're executing twice -- the first
     # one is the full path, the second is just the filename
     if buildenv['os'] == 'win' and sys.platform != 'cygwin':
-        args[:0] = [ os.path.basename(args[0]) ]
+        args[1:0] = [ os.path.basename(args[0]) ]
     else:
         args[:0] = [ args[0] ]
     args = map(escapeBackslashes, args)
