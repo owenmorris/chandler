@@ -143,7 +143,6 @@ def build(buildenv):
          "Building wxPython")
 
         installOptions = [
-         python,
          'setup.py',
          'install',
          'BUILD_BASE=build_%s' % version,
@@ -157,27 +156,41 @@ def build(buildenv):
 
     if buildenv['os'] == 'win':
 
-        os.chdir("build")
-        os.chdir("msw")
-
         hardhatlib.executeCommand( buildenv, info['name'],
          [buildenv['compiler'], 
-         "msw.sln",
+         "build/msw/msw.sln",
          "/build",
          version.capitalize(),
          "/out",
          "output.txt"],
          "Building %s %s" % (info['name'], version),
          0, "output.txt")
-         
 
+        os.putenv('WXWIN', os.getcwd())
 
+        os.chdir("wxPython")
+
+        if version == 'release':
+
+            hardhatlib.executeCommand( buildenv, info['name'],
+             [buildenv['python'], 'setup.py', 'build_ext', 
+             '--inplace', 'install'], "Building wxPython")
+
+        elif version == 'debug':
+
+            hardhatlib.executeCommand( buildenv, info['name'],
+             [buildenv['python_d'], 'setup.py', 'build_ext', 
+             '--inplace', '--debug', 'install'], "Building wxPython")
 
 def clean(buildenv):
 
+    version = buildenv['version']
+
     if buildenv['os'] == 'posix':
 
-        if buildenv['version'] == 'release':
+        os.chdir("../wxPython")
+
+        if version == 'release':
 
             buildDir=buildenv['root']+os.sep+'wxpython'+os.sep+'build_release'
             if os.access(buildDir, os.F_OK):
@@ -186,7 +199,7 @@ def clean(buildenv):
                  "Removing temporary build directory: " + buildDir)
                 hardhatlib.rmdir_recursive(buildDir)
 
-        if buildenv['version'] == 'debug':
+        elif version == 'debug':
 
             buildDir = buildenv['root']+os.sep+'wxpython'+os.sep+'build_debug'
             if os.access(buildDir, os.F_OK):
@@ -198,7 +211,7 @@ def clean(buildenv):
 
     if buildenv['os'] == 'osx':
 
-        if buildenv['version'] == 'release':
+        if version == 'release':
 
             buildDir = buildenv['root']+os.sep+'wxpython'+os.sep+'build_release'
             if os.access(buildDir, os.F_OK):
@@ -207,7 +220,7 @@ def clean(buildenv):
                  "Removing temporary build directory: " + buildDir)
                 hardhatlib.rmdir_recursive(buildDir)
 
-        if buildenv['version'] == 'debug':
+        elif version == 'debug':
 
             buildDir = buildenv['root']+os.sep+'wxpython'+os.sep+'build_debug'
             if os.access(buildDir, os.F_OK):
@@ -219,39 +232,32 @@ def clean(buildenv):
 
     if buildenv['os'] == 'win':
 
-        os.putenv('WXWIN', buildenv['root_dos'] + '\\wxpython')
-
-
-        if buildenv['version'] == 'release':
-
-            os.chdir("src")
-            os.chdir("msw")
-            hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['nmake'], '-f', 'makefile.vc', 'cleandll', 'FINAL=1'],
-             "Cleaning wxWindows dll")
-            hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['nmake'], '-f', 'makefile.vc', 'cleanall', 'FINAL=1'],
-             "Cleaning wxWindows all")
-
-        if buildenv['version'] == 'debug':
-
-            os.chdir("src")
-            os.chdir("msw")
-            hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['nmake'], '-f', 'makefile.vc', 'cleandll', 'FINAL=0'],
-             "Cleaning wxWindows dll")
-            hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['nmake'], '-f', 'makefile.vc', 'cleanall', 'FINAL=0'],
-             "Cleaning wxWindows all")
-
-
-        os.chdir("..")
-        os.chdir("..")
-        os.chdir("wxPython")
-        os.chdir("wxSWIG")
         hardhatlib.executeCommand( buildenv, info['name'],
-         [buildenv['nmake'], '-f', 'makefile.vc', 'clean'],
-         "Cleaning wxSWIG")
+         [buildenv['compiler'], 
+         "build/msw/msw.sln",
+         "/clean",
+         version.capitalize(),
+         "/out",
+         "output.txt"],
+         "Cleaning %s %s" % (info['name'], version),
+         0, "output.txt")
+         
+         
+        os.putenv('WXWIN', os.getcwd())
+
+        os.chdir("wxPython")
+
+        if version == 'release':
+
+            hardhatlib.executeCommand( buildenv, info['name'],
+             [buildenv['python'], 'setup.py', 'clean', 
+             '--all'], "Cleaning wxPython")
+
+        elif version == 'debug':
+
+            hardhatlib.executeCommand( buildenv, info['name'],
+             [buildenv['python_d'], 'setup.py', 'clean', 
+             '--all'], "Cleaning wxPython")
 
 
 def run(buildenv):
