@@ -50,22 +50,10 @@
   </zb:RSSChannel>
 
 
-  <!-- Queries -->
-  <Query itemName="myQuery">
-    <queryEnum>ListOfItems</queryEnum>
-  </Query>
-
   <!-- Styles -->
   <CharacterStyle itemName="HeaderCharacterStyle">
     <fontStyle>bold</fontStyle>
   </CharacterStyle>  
-
-  <!-- Events -->
-
-  <!-- Menus -->
-
-  <!-- Menu Items -->
-
 
   <!-- The main ZaoBao view -->
 

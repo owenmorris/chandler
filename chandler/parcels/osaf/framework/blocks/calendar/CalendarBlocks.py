@@ -74,7 +74,7 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
         block = Globals.repository.find(self.blockUUID)
         
         # populate canvas with drawable items for each event on the calendar
-        for item in block.contentSpec:
+        for item in block.contents:
             if block.isDateInRange(item.startTime):
                 drawableObject = CalendarItem(self, item)
                 self.zOrderedDrawableObjects.append(drawableObject)
@@ -91,7 +91,7 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
             self.subscriptionUUID = UUID.UUID()
             Globals.notificationManager.Subscribe(events,
                                                   self.subscriptionUUID,
-                                                  block.contentSpec.onItemChanges)
+                                                  block.contents.onItemChanges)
 
         self.scheduleUpdate = False
         self.lastUpdateTime = time.time()
@@ -229,7 +229,7 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
         block = Globals.repository.find(self.blockUUID)
 
         # populate canvas with drawable items for each event on the calendar
-        for item in block.contentSpec:
+        for item in block.contents:
             if block.isDateInRange(item.startTime):
                 drawableObject = CalendarItem(self, item)
                 self.zOrderedDrawableObjects.append(drawableObject)
@@ -245,7 +245,7 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
             self.subscriptionUUID = UUID.UUID()
             Globals.notificationManager.Subscribe(events,
                                                   self.subscriptionUUID,
-                                                  block.contentSpec.onItemChanges)
+                                                  block.contents.onItemChanges)
 
             self.scheduleUpdate = False
             self.lastUpdateTime = time.time()

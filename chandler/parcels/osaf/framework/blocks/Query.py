@@ -3,10 +3,10 @@ import application.Globals as Globals
 from repository.item.Item import Item
 import repository.item.Query as RepositoryQuery
 
-class Query (Item):
+class ItemCollection (Item):
 
     def __init__ (self, *arguments, **keywords):
-        super (Query, self).__init__ (*arguments, **keywords)
+        super (ItemCollection, self).__init__ (*arguments, **keywords)
         self.data = []
         self.results = []
 

@@ -15,13 +15,6 @@
   <core:version>0.3</core:version>
 
   <!--
-    Queries
-  -->
-  <Query itemName="myQuery">
-    <queryEnum>ListOfItems</queryEnum>
-  </Query>
-
-  <!--
     Styles
   -->
   <CharacterStyle itemName="HeaderCharacterStyle">
@@ -87,7 +80,6 @@
   <ItemDetail itemName="ItemDetail"
               itemClass="osaf.views.repositoryviewer.Repository.RepositoryItemDetail">
     <!-- Attributes -->
-    <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
@@ -104,7 +96,6 @@
     <!-- Attributes -->
     <splitPercentage>0.5</splitPercentage>
 
-    <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
     <eventBoundary>True</eventBoundary>
     <size>517,564</size>

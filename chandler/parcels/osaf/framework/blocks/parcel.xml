@@ -40,12 +40,12 @@
   -->
   <Attribute itemName="fontStyle">
     <type itemref="String"/> 
-    <defaultValue type="String">""</defaultValue>
+    <defaultValue type="String"></defaultValue>
   </Attribute>
 
   <Attribute itemName="fontName">
     <type itemref="String"/>
-    <defaultValue type="String">""</defaultValue>
+    <defaultValue type="String"></defaultValue>
   </Attribute>
 
   <Struct itemName="ColorType" itemClass="osaf.framework.blocks.DocumentTypes.ColorStruct">
@@ -106,16 +106,16 @@
   </Attribute>
 
   <!--
-    Chandler Query
+    Chandler ItemCollection
   -->
-  <Kind itemName="Query">
-    <classes key="python">osaf.framework.blocks.Query.Query</classes>
+  <Kind itemName="ItemCollection">
+    <classes key="python">osaf.framework.blocks.Query.ItemCollection</classes>
     <superKinds itemref="Item"/>
 
     <Attribute itemName="usedInBlocks">
       <type itemref="docSchema:Block"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="docSchema:Block/contentSpec"/>
+      <inverseAttribute itemref="docSchema:Block/contents"/>
     </Attribute>
 
     <Enumeration itemName="queryEnumType">
@@ -125,12 +125,8 @@
     </Enumeration>
 
     <Attribute itemName="queryEnum">
-      <type itemref="docSchema:Query/queryEnumType"/>
-    </Attribute>
-
-    <Attribute itemName="data">
-      <type itemref="Item"/>
-      <type itemref="docSchema:Query/queryEnumType"/>
+      <type itemref="docSchema:ItemCollection/queryEnumType"/>
+      <defaultValue type="docSchema:ItemCollection/queryEnumType">Kind</defaultValue>
     </Attribute>
 
     <Attribute itemName="data">
@@ -148,11 +144,11 @@
       <defaultValue type="Boolean">True</defaultValue>
     </Attribute>
 
-    <attributes itemref="docSchema:Query/queryEnum"/>
-    <attributes itemref="docSchema:Query/data"/>
-    <attributes itemref="docSchema:Query/results"/>
-    <attributes itemref="docSchema:Query/resultsStale"/>
-    <attributes itemref="docSchema:Query/usedInBlocks"/>
+    <attributes itemref="docSchema:ItemCollection/queryEnum"/>
+    <attributes itemref="docSchema:ItemCollection/data"/>
+    <attributes itemref="docSchema:ItemCollection/results"/>
+    <attributes itemref="docSchema:ItemCollection/resultsStale"/>
+    <attributes itemref="docSchema:ItemCollection/usedInBlocks"/>
   </Kind>
 
   <!--
@@ -254,9 +250,9 @@
     <classes key="python">osaf.framework.blocks.Block.Block</classes>
     <superKinds itemref="Item"/>
 
-    <Attribute itemName="contentSpec">
-      <type itemref="docSchema:Query"/>
-      <inverseAttribute itemref="docSchema:Query/usedInBlocks"/>
+    <Attribute itemName="contents">
+      <type itemref="docSchema:ItemCollection"/>
+      <inverseAttribute itemref="docSchema:ItemCollection/usedInBlocks"/>
     </Attribute>
 
     <Attribute itemName="parentBlock">
@@ -287,7 +283,7 @@
       <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
 
-    <attributes itemref="docSchema:Block/contentSpec"/>
+    <attributes itemref="docSchema:Block/contents"/>
     <attributes itemref="docSchema:Block/childrenBlocks"/>
     <attributes itemref="docSchema:Block/parentBlock"/>
     <attributes itemref="docSchema:Block/styles"/>

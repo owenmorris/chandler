@@ -19,13 +19,6 @@
   <core:version>0.3</core:version>
 
   <!--
-    Queries
-  -->
-  <Query itemName="myQuery">
-    <queryEnum>ListOfItems</queryEnum>
-  </Query>
-
-  <!--
     Styles
   -->
   <CharacterStyle itemName="HeaderCharacterStyle">
@@ -485,7 +478,6 @@
     <!-- Attributes -->
     <bookmarksPath itemref="doc:BookmarksRoot"/>
 
-    <contentSpec itemref="doc:myQuery"/>
     <size>200,20</size>
     <minimumSize>200,20</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -502,7 +494,6 @@
     <orientationEnum>Vertical</orientationEnum>
     <splitPercentage>0.25</splitPercentage>
     
-    <contentSpec itemref="doc:myQuery"/>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -518,7 +509,6 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
 
-    <contentSpec itemref="doc:myQuery"/>
     <size>400,200</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -578,7 +568,6 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
 
-    <contentSpec itemref="doc:myQuery"/>
     <size>900,600</size>
     <minimumSize>900,600</minimumSize>
     <border>10.0, 10.0, 10.0, 10.0</border>

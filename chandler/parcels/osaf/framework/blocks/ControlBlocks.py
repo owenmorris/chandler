@@ -172,12 +172,12 @@ class HTML(RectangularChild):
  
 class ListDelegate:
     """
-      Default delegate for Lists that use the block's contentSpec. Override
+      Default delegate for Lists that use the block's contents. Override
     to customize your behavior.
     """
     def GetElementText (self, row, column):
         block = Globals.repository.find (self.blockUUID)
-        result = block.contentSpec[item]
+        result = block.contents[item]
         name = block.columnHeadings[column]
         try:
             return str (result.getAttributeValue(name))
@@ -186,13 +186,13 @@ class ListDelegate:
 
     def SetElementText (self, row, column, value):
         block = Globals.repository.find (self.blockUUID)
-        result = block.contentSpec[item]
+        result = block.contents[item]
         column = block.columnHeadings[column]
         result.setAttributeValue(column, value)
 
     def ElementCount (self):
         block = Globals.repository.find (self.blockUUID)
-        return block.contentSpec.len()
+        return block.contents.len()
 
 
 class wxList (wx.ListCtrl):
@@ -232,7 +232,7 @@ class wxList (wx.ListCtrl):
     def On_wxSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             block = Globals.repository.find (self.blockUUID)
-            item = block.contentSpec [event.GetIndex()]
+            item = block.contents [event.GetIndex()]
             if block.selection != item:
                 block.selection = item
             block.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
@@ -246,8 +246,8 @@ class wxList (wx.ListCtrl):
             elementDelegate = '//parcels/osaf/framework/blocks/ControlBlocks/ListDelegate'
         mixinAClass (self, elementDelegate)
 
-        queryItem = block.contentSpec
-        queryItem.resultsStale = True
+        itemCollection = block.contents
+        itemCollection.resultsStale = True
         self.Freeze()
         self.ClearAll()
         for index in xrange (len(block.columnHeadings)):
@@ -267,7 +267,7 @@ class wxList (wx.ListCtrl):
             self.subscriptionUUID = UUID()
             Globals.notificationManager.Subscribe (events,
                                                    self.subscriptionUUID,
-                                                   queryItem.onItemChanges)
+                                                   itemCollection.onItemChanges)
                 
         if block.selection:
             self.GoToItem (block.selection)
@@ -288,7 +288,7 @@ class wxList (wx.ListCtrl):
 
     def GoToItem(self, item):
         block = Globals.repository.find (self.blockUUID)
-        index = block.contentSpec.index (item)
+        index = block.contents.index (item)
         self.Select (index)
 
 
@@ -429,8 +429,8 @@ class wxSummary(wx.grid.Grid):
 
     def wxSynchronizeWidget(self):
         block = Globals.repository.find (self.blockUUID)
-        queryItem = block.contentSpec
-        queryItem.resultsStale = True
+        itemCollection = block.contents
+        itemCollection.resultsStale = True
         elementDelegate = block.elementDelegate
         if not elementDelegate:
             elementDelegate = '//parcels/osaf/framework/blocks/ControlBlocks/ListDelegate'
@@ -458,7 +458,7 @@ class wxSummary(wx.grid.Grid):
             self.subscriptionUUID = UUID()
             Globals.notificationManager.Subscribe (events,
                                                    self.subscriptionUUID,
-                                                   queryItem.onItemChanges)
+                                                   itemCollection.onItemChanges)
         self.Reset()
         if block.selection:
             self.GoToItem (block.selection)
@@ -479,7 +479,7 @@ class wxSummary(wx.grid.Grid):
 
     def GoToItem(self, item):
         block = Globals.repository.find (self.blockUUID)
-        row = block.contentSpec.index (item)
+        row = block.contents.index (item)
         self.SelectRow (row)
 
 

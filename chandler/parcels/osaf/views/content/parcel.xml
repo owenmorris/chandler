@@ -18,32 +18,28 @@
   <core:version>0.3</core:version>
 
   <!-- Queries -->
-  <Query itemName="calendarQuery">
-    <queryEnum>Kind</queryEnum>
+  <ItemCollection itemName="calendarItemCollection">
     <data itemref="calendarModel:CalendarEvent"/>
-  </Query>
+  </ItemCollection>
 
-  <Query itemName="notesQuery">
-    <queryEnum>Kind</queryEnum>
+  <ItemCollection itemName="notesItemCollection">
     <data itemref="noteModel:Note"/>
-  </Query>
+  </ItemCollection>
 
-  <Query itemName="contactQuery">
-    <queryEnum>Kind</queryEnum>
+  <ItemCollection itemName="contactItemCollection">
     <data itemref="contactsModel:Contact"/>
-  </Query>
+  </ItemCollection>
 
-  <Query itemName="mixedQuery">
-    <queryEnum>Kind</queryEnum>
+  <ItemCollection itemName="mixedItemCollection">
     <data itemref="calendarModel:CalendarEvent"/>
     <data itemref="noteModel:Note"/>
-  </Query>
+  </ItemCollection>
 
   <!-- Styles -->
 
   <!-- Calendar List -->
   <List itemName="CalendarList">
-    <contentSpec itemref="view:calendarQuery"/>
+    <contents itemref="view:calendarItemCollection"/>
 
     <elementDelegate>osaf.views.content.Content.CalendarListDelegate</elementDelegate>
 
@@ -64,7 +60,7 @@
 
   <!-- Contact List -->
   <List itemName="ContactList">
-    <contentSpec itemref="view:contactQuery"/>
+    <contents itemref="view:contactItemCollection"/>
 
     <elementDelegate>osaf.views.content.Content.ContactListDelegate</elementDelegate>
     
@@ -87,7 +83,7 @@
 
   <!-- Note List -->
   <List itemName="NoteList">
-    <contentSpec itemref="view:notesQuery"/>
+    <contents itemref="view:notesItemCollection"/>
 
     <elementDelegate>osaf.views.content.Content.NoteListDelegate</elementDelegate>
 
@@ -106,7 +102,7 @@
 
   <!-- Month -->
   <calendarBlocks:MonthBlock itemName="SummaryMonth">
-    <contentSpec itemref="view:calendarQuery"/>
+    <contents itemref="view:calendarItemCollection"/>
 
     <daysPerWeek>7</daysPerWeek>
     <weeksPerView>6</weeksPerView>
@@ -122,7 +118,7 @@
 
   <!-- Week -->
   <calendarBlocks:WeekBlock itemName="SummaryWeek">
-    <contentSpec itemref="view:calendarQuery"/>
+    <contents itemref="view:calendarItemCollection"/>
 
     <daysPerView>7</daysPerView>
     <hoursPerView>24</hoursPerView>
@@ -138,7 +134,7 @@
 
   <!-- Mixed List -->
   <Summary itemName="MixedList">
-    <contentSpec itemref="view:mixedQuery"/>
+    <contents itemref="view:mixedItemCollection"/>
 
     <elementDelegate>osaf.views.content.Content.MixedListDelegate</elementDelegate>
 

@@ -16,13 +16,6 @@
   <core:version>0.3</core:version>
 
   <!--
-    Queries
-  -->
-  <Query itemName="myQuery">
-    <queryEnum>ListOfItems</queryEnum>
-  </Query>
-
-  <!--
     Styles
   -->
   <CharacterStyle itemName="TitleStyle">
@@ -229,7 +222,6 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
 
-    <contentSpec itemref="doc:myQuery"/>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -252,7 +244,6 @@
     <title>Add Text</title>
     <buttonKind>Text</buttonKind>
 
-    <contentSpec itemref="doc:myQuery"/>    
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -266,7 +257,6 @@
     <buttonKind>Image</buttonKind>
     <icon>application/images/refresh.png</icon>
 
-    <contentSpec itemref="doc:myQuery"/>    
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -280,7 +270,6 @@
     <title>Toggle</title>
     <buttonKind>Toggle</buttonKind>
 
-    <contentSpec itemref="doc:myQuery"/>    
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -295,7 +284,6 @@
     <childrenBlocks itemref="doc:TextButton"/>
 
     <!-- Attributes -->
-    <contentSpec itemref="doc:myQuery"/>
     <size>200,40</size>
     <minimumSize>200,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -322,7 +310,6 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
 
-    <contentSpec itemref="doc:myQuery"/>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -339,7 +326,6 @@
     <radioAlignEnum>Down</radioAlignEnum>
     <itemsPerLine>3</itemsPerLine>
 
-    <contentSpec itemref="doc:myQuery"/>
     <size>200,200</size>
     <minimumSize>200,10</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -353,7 +339,6 @@
     <choices>Second</choices>
     <choices>Third</choices>
 
-    <contentSpec itemref="doc:myQuery"/>
     <size>200,200</size>
     <minimumSize>200,10</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -365,7 +350,6 @@
     <childrenBlocks itemref="doc:RadioExample"/>
 
     <!-- Attributes -->
-    <contentSpec itemref="doc:myQuery"/>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -376,7 +360,6 @@
     <childrenBlocks itemref="doc:ComboExample"/>
 
     <!-- Attributes -->
-    <contentSpec itemref="doc:myQuery"/>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -390,7 +373,6 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
 
-    <contentSpec itemref="doc:myQuery"/>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -400,7 +382,6 @@
     <!-- Attributes -->
     <url>parcels/osaf/views/demo/example.html</url>
 
-    <contentSpec itemref="doc:myQuery"/>
     <size>200,200</size>
     <minimumSize>200,200</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -412,7 +393,6 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
 
-    <contentSpec itemref="doc:myQuery"/>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -460,7 +440,6 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
 
-    <contentSpec itemref="doc:myQuery"/>
     <eventBoundary>True</eventBoundary>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>

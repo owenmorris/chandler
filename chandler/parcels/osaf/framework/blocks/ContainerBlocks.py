@@ -61,7 +61,7 @@ class EmbeddedContainer(RectangularChild):
         panel = wx.Panel(parentWidget, -1)
         panel.SetSizer(sizer)
         try:
-            newChild = self.contentSpec.data[0]
+            newChild = self.contents.data[0]
         except IndexError:
             return None
         else:
@@ -81,13 +81,13 @@ class EmbeddedContainer(RectangularChild):
                     return  # embedded container hasn't been rendered yet
                 embeddedSizer = embeddedPanel.GetSizer ()
 
-                assert self.contentSpec.queryEnum  == "ListOfItems", "EmbeddedContainers must have a ListOfItems Query"
-                oldChild = self.contentSpec.data[0]
+                assert self.contents.queryEnum  == "ListOfItems", "EmbeddedContainers must have a ListOfItems Query"
+                oldChild = self.contents.data[0]
                 wxOldChild = Globals.association [oldChild.itsUUID]
                 self.UnregisterEvents(oldChild)
                 oldChild.parentBlock = None
             
-                self.contentSpec.data = [newChild]
+                self.contents.data = [newChild]
                 newChild.parentBlock = self
                 newChild.render()
                 self.RegisterEvents(newChild)
