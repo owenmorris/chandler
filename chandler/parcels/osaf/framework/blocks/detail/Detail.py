@@ -215,12 +215,6 @@ class DetailSynchronizer(object):
         # define the attribute to be used
         return self.parentBlock.selectedItemsAttribute
 
-    def nonEditableIfSharedCollection (self, item):
-        # make editable/noneditable based on shared collection status
-        if isinstance (item, ItemCollection.ItemCollection):
-            shouldAllowEdits = not Sharing.isShared (item)
-            self.widget.SetEditable (shouldAllowEdits)
-
     def parseEmailAddresses(self, item, addressesString):
         """
           Parse the email addresses in addressesString and return
@@ -546,9 +540,6 @@ class ToEditField (EditTextAttribute):
     def loadAttributeIntoWidget (self, item, widget):
         whoString = item.ItemWhoString ()
         widget.SetValue (whoString)
-
-        # also update editability based on shared collection status
-        self.nonEditableIfSharedCollection (item)
 
     def shouldShow (self, item):
         contactKind = Contacts.ContactsParcel.getContactKind ()
