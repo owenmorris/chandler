@@ -263,7 +263,7 @@
         <Attribute itsName="folder">
             <displayName value="Folder" />
             <type ref="String" />
-            <initialValue ref="None" />
+            <initialValue type="String" value="INBOX" />
         </Attribute>
 
         <Attribute itsName="uid">
@@ -277,7 +277,7 @@
             <displayName value="Namespace" />
             <description value="The namespace of the message" />
             <type ref="String" />
-            <initialValue ref="None" />
+            <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="flags">
@@ -423,9 +423,6 @@
 
         <Attribute itsName="rfc2822Message">
             <type ref="Text" />
-            <!--
-            <initialValue type="Text" value="" />
-            -->
         </Attribute>
 
         <Attribute itsName="dateSentString">
@@ -590,7 +587,7 @@
         <Attribute itsName="filename">
             <displayName value="File name" />
             <type ref="String" />
-            <initialValue ref="None" />
+            <initialValue type="String" value="" />
         </Attribute>
 
     </Kind>
@@ -602,7 +599,7 @@
         <Attribute itsName="charset">
             <displayName value="Character set" />
             <type ref="String" />
-            <initialValue ref="None" />
+            <initialValue type="String" value="ISO=8859-1" />
         </Attribute>
 
     </Kind>

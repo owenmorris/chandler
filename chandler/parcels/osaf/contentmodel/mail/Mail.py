@@ -188,7 +188,7 @@ class SMTPAccount(AccountBase):
         if not parent:
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
-            kind = MailParcel.geSMTPAccountKind()
+            kind = MailParcel.getSMTPAccountKind()
         super (SMTPAccount, self).__init__(name, parent, kind)
 
 class IMAPAccount(AccountBase):
@@ -196,7 +196,7 @@ class IMAPAccount(AccountBase):
         if not parent:
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
-            kind = MailParcel.geIMAPAccountKind()
+            kind = MailParcel.getIMAPAccountKind()
         super (IMAPAccount, self).__init__(name, parent, kind)
 
 class MailDeliveryBase(Item.Item):
@@ -250,9 +250,15 @@ class MIMEContainer(MIMEBase):
 class MailMessageMixin(MIMEContainer):
     """
       Mail Message Mixin is the bag of Message-specific attributes.
-    We only instantiate these Items when we "unstamp" an
-    Item, to save the attributes for later "restamping".
+
     """
+    def __init__(self, name=None, parent=None, kind=None):
+        if not parent:
+            parent = ContentModel.ContentModel.getContentItemParent()
+        if not kind:
+            kind = MailParcel.getMailMessageMixinKind()
+        super (MailMessageMixin, self).__init__(name, parent, kind)
+
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
