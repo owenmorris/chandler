@@ -7,9 +7,10 @@ import osaf.framework.tasks.Action as Action
 import osaf.contentmodel.mail.Mail as Mail
 import repository.item.Query as Query
 import imap as imap
+import logging as logging
 
 
-class MailDownloadAction(Action.Action):
+class IMAPDownloadAction(Action.Action):
 
     def Execute(self, task):
         """
