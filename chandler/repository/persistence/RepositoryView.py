@@ -769,8 +769,8 @@ class RepositoryView(object):
         """
         Invoke a callable for every committed item change in other views.
 
-        For each item in this view that was changed and committed in other
-        a callable is invoked with the following arguments:
+        For each item in this view that was changed and committed in and
+        other view a callable is invoked with the following arguments:
 
             - the item as it is in this view
 

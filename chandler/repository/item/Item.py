@@ -483,7 +483,6 @@ class Item(object):
     def _reIndex(self, op, item, attrName, collectionName, indexName):
 
         if op == 'set':
-            print item, attrName, collectionName, indexName
             refDict = self.getAttributeValue(collectionName, default=None,
                                              _attrDict=self._references)
             if refDict is not None and item._uuid in refDict:
@@ -1223,6 +1222,21 @@ class Item(object):
             return name in self._values or name in self._references
 
         return name in _attrDict
+
+    def isAttributeDirty(self, name, _attrDict=None):
+        """
+        Tell if an attribute's local value has changed.
+
+        @param name: the name of the attribute
+        @type name: a string
+        @return: C{True} or C{False}
+        """
+
+        if _attrDict is None:
+            return (self._values._isDirty(name) or
+                    self._references._isDirty(name))
+        else:
+            return _attrDict._isDirty(name)
 
     def _isAttaching(self):
 

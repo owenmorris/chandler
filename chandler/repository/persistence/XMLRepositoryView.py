@@ -358,10 +358,12 @@ class XMLRepositoryView(OnDemandRepositoryView):
             if item is not None:
                 values = []
                 references = []
-                if item._kind is not None:
-                    for name, attr in item._kind.iterAttributes():
+                kind = item._kind
+                if kind is not None:
+                    for name, attr in kind.iterAttributes():
                         if name in dirties:
-                            if item._kind.getOtherName(name) is not None:
+                            if kind.getOtherName(name,
+                                                 default=None) is not None:
                                 references.append(name)
                             else:
                                 values.append(name)
