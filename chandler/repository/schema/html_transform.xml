@@ -1,28 +1,30 @@
 <xsl:stylesheet version="1.0"
      xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-     xmlns:chan="http://osafoundation.org/2003/08/schema_definition">
+     xmlns:core="http://osafoundation.org/2003/08/schema_definition">
    <xsl:output method="html" encoding="ISO-8859-1"/>
-   <xsl:key name="attr" match="chan:Attribute" use="@itemName"/>
+   <xsl:key name="attr" match="core:Attribute" use="@itemName"/>
+
+   <!-- Originally contributed by Micah Dubinko -->
    
    <!-- starting point -->
-   <xsl:template match="chan:DomainSchema">
+   <xsl:template match="core:DomainSchema">
      <html>
        <head>
          <title>Chander Schema Documentation</title>
        </head>
        <body>
          <h1>Chandler Schema Documentation</h1>
-         <xsl:apply-templates select="chan:Kind"/>
+         <xsl:apply-templates select="core:Kind"/>
        </body>
      </html>
    </xsl:template>
    
    <!-- match once here for each Kind -->
-   <xsl:template match="chan:Kind">
-     <h2><xsl:value-of select="chan:displayName"/></h2>
+   <xsl:template match="core:Kind">
+     <h2><xsl:value-of select="core:displayName"/></h2>
      <ul>
-     <xsl:for-each select="chan:attributes">
-        <li><xsl:value-of select="key('attr', @itemref)/chan:displayName"/></li>
+     <xsl:for-each select="core:attributes">
+        <li><xsl:value-of select="key('attr', @itemref)/core:displayName"/></li>
      </xsl:for-each>
      </ul>
    </xsl:template>

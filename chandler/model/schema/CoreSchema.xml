@@ -51,7 +51,7 @@
     <type itemref="core:AnyString"/>
   </Attribute>
 
-  <Attribute itemName="core:displayName" bootstrap="False">
+  <Attribute itemName="core:displayName" bootstrap="True">
     <displayName>name</displayName>
     <description>A human-readable display name for an item.</description>
     <superAttribute itemref="core:anyName"/>
@@ -80,7 +80,7 @@
     <type itemref="core:AnyString"/>
   </Attribute>
 
-  <Attribute itemName="core:description" boostrap="False">
+  <Attribute itemName="core:description" boostrap="True">
     <displayName>description</displayName>
     <description>Any sort of comment or description to explain more about an item.</description>
     <cardinality>single</cardinality>
@@ -562,7 +562,7 @@
     <inverseAttribute itemref="core:kinds"/>
   </Attribute>
 
-  <Attribute itemName="core:displayAttribute" bootstrap="False">
+  <Attribute itemName="core:displayAttribute" bootstrap="True">
     <displayName>display attribute</displayName>
     <description>For items of this kind, what attribute should we look in to find a human readable name for this item?  For example, in an Email Message item we might use the 'subject' attribute, and in a Contact item we might use the 'person name' attribute.</description>
     <cardinality>single</cardinality>

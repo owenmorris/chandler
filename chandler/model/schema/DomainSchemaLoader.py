@@ -65,7 +65,12 @@ ATTRIBUTE_BOOL_TAGS = {'hidden' : 'hidden',
 
 NAME_REF_TAGS = ['inverseAttribute', 'displayAttribute']
 
-BOOTSTRAP_IGNORE = ['DaylightSavingTimezone', 'FixedTimezone', 'EnumKind', 'Item']
+BOOTSTRAP_IGNORE = ['DaylightSavingTimezone',
+                    'FixedTimezone',
+                    'EnumKind',
+                    'Item',
+                    'ReferencePolicy',
+                    'HeavyweightEnumeration']
 
 BOOTSTRAP = {'Boolean' : '//Schema/Model/Types/Boolean',
              'Number' : '//Schema/Model/Types/Integer',
@@ -259,16 +264,24 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
     def createKind(self, prefix, name):
         """Create a Kind item with the given id."""
         kind = self.repository.find('//Schema/Model/Kind')
+        itemKind = self.repository.find('//Schema/Model/Item')
+        
         if self.verbose:
-            print "Creating Kind: (%s, %s)" % (self.domainSchema.getItemPath(), name)
+            print "Creating Kind: (%s, %s)" % (self.domainSchema.getItemPath(),
+                                               name)
+
         item = Kind(name, self.domainSchema, kind)
+        item.attach('superKinds', itemKind)
+        
         return item
 
     def createAttribute(self, prefix, name):
         """Create an Attribute item with the given id."""
         kind = self.repository.find('//Schema/Model/Attribute')
         if self.verbose:
-            print "Creating Attribute: (%s, %s)" % (self.domainSchema.getItemPath(), name)
+            print "Creating Attribute: (%s, %s)" % (self.domainSchema.getItemPath(),
+                                                    name)
+        
         item = Attribute(name, self.domainSchema, kind)
         return item
 
