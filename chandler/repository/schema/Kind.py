@@ -16,6 +16,14 @@ class Kind(Item):
         super(Kind, self).__init__(name, parent, kind, **_kwds)
 
         self._attributes['NotFoundAttrDefs'] = []  # recursion avoidance
+
+    def newItem(self, name, parent):
+        '''Create an item of this kind.
+
+        The class instantiate is taken from the Kind's Class attribute if it
+        is set. The Item class is used otherwise.'''
+        
+        return self.getAttribute('Class')(name, parent, self)
         
     def getAttrDef(self, name):
 
