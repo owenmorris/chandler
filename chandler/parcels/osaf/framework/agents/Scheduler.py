@@ -10,7 +10,7 @@ import logging
 
 __all__ = ['Scheduler']
 
-class Event:
+class Event(object):
     def __init__(self, startTime, repeat, repeatDelay, action, *args):
         self._startTime = startTime
         self._delay = repeatDelay
@@ -28,7 +28,7 @@ class Event:
         self.time = _time.time() + self._delay
 
 
-class Queue:
+class Queue(object):
     def __init__(self):
         self.__lock = threading.Lock()
         self.__queue = []
@@ -116,7 +116,7 @@ class Queue:
         return None
 
 
-class Scheduler:
+class Scheduler(object):
     def __init__(self):
         self.queue = Queue()
         self.__running = False
