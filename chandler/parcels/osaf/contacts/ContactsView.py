@@ -775,9 +775,9 @@ class wxContactsViewer(wxViewerParcel):
 
     def AboutContactsCommand(self, event):
         pageLocation = pageLocation = self.model.path + os.sep + "AboutContacts.html"
-        infoPage = SplashScreen(self, "About Contacts", pageLocation, false)
-        infoPage.ShowModal()
-        infoPage.Destroy()
+        infoPage = SplashScreen(self, _("About Contacts"), pageLocation, 
+                                False, False)
+        infoPage.Show(True)
 
     # command to change the image associated with a contact
     def ChangeContactImage(self, event):

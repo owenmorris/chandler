@@ -15,15 +15,19 @@ class SplashScreen(wxDialog):
     Common uses are for splash screens or 'About' pages.
     The page can be dismissed either by clicking on it or by a timer.
     """
-    def __init__(self, parent, title="", pageLocation="", useTimer=true, timerLength=10000):
+    def __init__(self, parent, title="", pageLocation="",
+                 isModal=False, useTimer=True, timerLength=10000):
         """
           Sets up the splash screen and starts its timer.
         """
-        wxDialog.__init__(self, parent, -1, title, 
-                         style=wxFRAME_FLOAT_ON_PARENT|\
-                         wxDEFAULT_FRAME_STYLE)
+        if isModal:
+            style= wxFRAME_FLOAT_ON_PARENT|wxDEFAULT_FRAME_STYLE
+        else:
+            style = wxDEFAULT_FRAME_STYLE
+        wxDialog.__init__(self, parent, -1, title, style=style)
         defaultWindowWidth = 700
         maxWindowHeight = 600
+        self.isModal = isModal
         panel = HTMLPanel(self, pageLocation, size=(defaultWindowWidth, -1))
         internalRep = panel.GetInternalRepresentation()
         width = internalRep.GetWidth()
@@ -49,7 +53,9 @@ class SplashScreen(wxDialog):
         """
         if self.timer != None:
             self.timer.Stop()
-        self.EndModal(true)
+        if self.IsModal():
+            self.EndModal(True)
+        self.Destroy()
         
 class HTMLPanel(wxHtmlWindow):
     """

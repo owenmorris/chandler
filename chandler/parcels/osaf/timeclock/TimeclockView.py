@@ -216,7 +216,7 @@ class wxTimeclockView(wxViewerParcel):
 
     def OnAboutTimeclock(self, event):
         pageLocation = self.model.path + os.sep + "AboutTimeclock.html"
-        infoPage = SplashScreen(self, _("About Timeclock"), pageLocation, false)
-        if infoPage.ShowModal():
-            infoPage.Destroy()
+        infoPage = SplashScreen(self, _("About Timeclock"), pageLocation, 
+                                False, False)
+        infoPage.Show(True)
 

@@ -186,10 +186,9 @@ class wxZaoBaoViewer(wxViewerParcel):
  
     def onAboutZaoBaoItem(self, event):
         pageLocation = pageLocation = self.model.path + os.sep + "AboutZaoBao.html"
-        # KDS: not sure if "About ZaoBao" should be internationalized or not.
-        infoPage = SplashScreen(self, "About ZaoBao", pageLocation, false)
-        if infoPage.ShowModal():
-            infoPage.Destroy()
+        infoPage = SplashScreen(self, _("About ZaoBao"), pageLocation,
+                               False, False)
+        infoPage.Show(True)
     
     def editPageTemplate(self, event):
         """Edits RSSItemView HTML template"""

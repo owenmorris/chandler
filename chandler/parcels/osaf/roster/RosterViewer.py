@@ -399,8 +399,8 @@ class wxRosterViewer(wxViewerParcel):
     # display the roster about page
     def ViewAboutRosterPage(self, event):
         pageLocation = self.model.path + os.sep + "AboutRoster.html"
-        infoPage = SplashScreen(self, _("About Roster"), pageLocation, false)
-        if infoPage.ShowModal():
-            infoPage.Destroy()
+        infoPage = SplashScreen(self, _("About Roster"), pageLocation, 
+                                False, False)
+        infoPage.Show(True)
                
     

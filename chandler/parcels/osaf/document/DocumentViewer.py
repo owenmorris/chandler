@@ -37,6 +37,8 @@ class wxDocumentViewer(wxViewerParcel):
         EVT_MENU(self, XRCID('TimeclockDocument'), self.OnShowTimeclock)
         EVT_MENU(self, XRCID('ZaoBaoDocument'), self.OnShowZaoBao)
         
+        EVT_MENU(self, XRCID('MenuAboutDocument'), self.OnAboutDocument)
+        
         if wxPlatform == '__WXMSW__':
             EVT_ERASE_BACKGROUND(self, self.OnEraseBackground)
 
@@ -448,9 +450,9 @@ class wxDocumentViewer(wxViewerParcel):
 
     def OnAboutDocument(self, event):
         pageLocation = self.model.path + os.sep + "AboutDocument.html"
-        infoPage = SplashScreen(self, _("About Document"), pageLocation, false)
-        infoPage.ShowModal()
-        infoPage.Destroy()
+        infoPage = SplashScreen(self, _("About Document"), pageLocation, 
+                                False, False)
+        infoPage.Show(True)
 
 class BlockStyle:
     def __init__(self):

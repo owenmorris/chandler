@@ -262,9 +262,9 @@ class wxCalendarViewer(wxViewerParcel):
 
     def OnAboutCalendar(self, event):
         pageLocation = self.model.path + os.sep + "AboutCalendar.html"
-        infoPage = SplashScreen(self, _("About Calendar"), pageLocation, false)
-        infoPage.ShowModal()
-        infoPage.Destroy()
+        infoPage = SplashScreen(self, _("About Calendar"), pageLocation, 
+                                False, False)
+        infoPage.Show(True)
 
     def OnGenerateEvents(self, event):
         """ Generates 100 events over the next few months """

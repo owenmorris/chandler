@@ -94,7 +94,7 @@ class Application(Persistent):
         if self.splashWasShown < 2:
             pageLocation = os.path.join ('application', 'welcome.html')
             splash = SplashScreen(None, _("Welcome to Chandler"),
-                                  pageLocation, false)
+                                  pageLocation, True, False)
             splash.ShowModal()
             splash.Destroy()
             
@@ -432,7 +432,7 @@ class wxApplication (wxApp):
         """
         pageLocation = os.path.join ('application', 'welcome.html')
         splash = SplashScreen(app.wxMainFrame, _("About Chandler"), 
-                              pageLocation, useTimer=false)
+                              pageLocation, True, False)
         splash.ShowModal()
         splash.Destroy()
 
