@@ -9,7 +9,7 @@ dependencies = (
                 'persistence/db',
                 'python',
                 'distutils',
-#                'persistence/xerces-c',
+                'persistence/xerces-c',
                 'wxpython',
                 'egenix-mx',
                 'zodb',
