@@ -1,7 +1,7 @@
-__copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
-__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
-
 """
+@copyright: Copyright (c) 2005 Open Source Applications Foundation
+@license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
+
 Low level Access Control List (ACL) API for WebDAV.
 
 One could construct an ACL object like this, starting with ACE:
@@ -13,26 +13,61 @@ One could construct an ACL object like this, starting with ACE:
 
 Then creating the actual ACL by passing in the ACE:
     
->>> acl = ACL(acl=[allACE])
->>> print acl
+>>> aclObj = ACL(acl=[allACE])
+>>> print aclObj
+<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" ><D:ace><D:principal><D:all/></D:principal><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace></D:acl>
+
+Let's play with the ACE object some more:
+
+>>> allACE.deny('yawn', 'http://www.example.com/namespaces/acl/')
+>>> print allACE
+<D:ace><D:principal><D:all/></D:principal><D:deny><D:privilege><ns-1:yawn/></D:privilege></D:deny><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace>
+>>> allACE.deny('yawn', 'http://www.example.com/namespaces/fooledya/acl/')
+>>> print allACE
+<D:ace><D:principal><D:all/></D:principal><D:deny><D:privilege><ns-2:yawn/></D:privilege></D:deny><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace>
+>>> allACE._deny = _Deny(())
+>>> print allACE
+<D:ace><D:principal><D:all/></D:principal><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace>
+
+You can also modify the ACL object:
+
+>>> aclObj.add(allACE)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+  File "acl.py", line 95, in add
+    raise ValueError, 'ace already added'
+ValueError: ace already added
+>>> dummyACE = ACE(principal='http://example.com/users/dummy', deny=(), grant=('read', 'DAV:'))
+>>> aclObj.add(dummyACE)
+>>> print aclObj
+<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" ><D:ace><D:principal><D:all/></D:principal><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace><D:ace><D:principal><D:href>http://example.com/users/dummy</D:href></D:principal><D:grant><D:privilege><D:read/></D:privilege></D:grant></D:ace></D:acl>
+>>> aclObj.remove(dummyACE)
+>>> aclObj.remove(dummyACE)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+  File "acl.py", line 99, in remove
+    self.acl.remove(ace)
+ValueError: list.remove(x): x not in list
+>>> print aclObj
 <D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" ><D:ace><D:principal><D:all/></D:principal><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace></D:acl>
 
 TODO:
-    * Parse ACLs from XML.
-    * Complete the API.
-    * Might want to rething a more user friendly API.
-    * Higher level API:
-        - pythonic (raise exceptions on errors, return python objects
-          instead of XML etc.)
-        - combine WebDAV operations into one call, for example
-          when setting ACL we should lock resource
-        - add a higher level API to modify ACLs (currently only get and set)
-        - read and understand server mappings for ACL, and respond to requests
-          in a smart way - for example if want to set read access but there
-          is no read per se but it consists of finer graned properties then
-          detect and set these automatically
-        - figure out protected properties
+   * Complete the API.
+   * Might want to rething a more user friendly API.
+   * Higher level API:
+      - pythonic (raise exceptions on errors, return python objects
+        instead of XML etc.)
+      - combine WebDAV operations into one call, for example
+        when setting ACL we should lock resource
+      - add a higher level API to modify ACLs (currently only get and set)
+      - read and understand server mappings for ACL, and respond to requests
+        in a smart way - for example if want to set read access but there
+        is no read per se but it consists of finer graned properties then
+        detect and set these automatically
+      - figure out protected properties
 """
+
+import libxml2
 
 class ACE(object):
     """
@@ -49,6 +84,11 @@ class ACE(object):
         self._principal = _Principal(principal)
         self._deny  = _Deny(deny)
         self._grant = _Grant(grant)
+
+        """
+        The protected flag is true for ACEs that can not be changed.
+        """
+        self.protected = False
 
     def deny(self, privilege, namespace='DAV:'):
         self._deny.add(privilege, namespace)
@@ -77,7 +117,12 @@ class ACL(object):
         self.acl = acl
 
     def add(self, ace):
+        if ace in self.acl:
+            raise ValueError, 'ace already added'
         self.acl += [ace]
+
+    def remove(self, ace):
+        self.acl.remove(ace)
 
     def __str__(self):
         acl = '<D:acl xmlns:D="DAV:" '
@@ -100,6 +145,23 @@ class ACL(object):
             s += str(ace)
 
         return '%s>%s</D:acl>' %(acl, s)
+
+def parse(text):
+    # @@@ Hack to avoid libxml2 complaints: (maybe fixed 1/19/2005)
+    text = text.replace('="DAV:"', '="http://osafoundation.org/dav"')
+    try:    
+        doc = libxml2.parseDoc(text)
+        for node in doc.children:
+            if node.name == 'ace' and node.ns().content == 'http://osafoundation.org/dav':
+                # 1. get principal
+                # 2. get deny privileges
+                # 3. get grant privileges
+                # 4. get protected property
+                pass
+    finally:
+        doc.freeDoc() # It really really sucks I need to do this.
+
+    return None
 
 class _Principal(object):
     def __init__(self, url):
@@ -136,6 +198,7 @@ class _Privileges(object):
                 prefix = 'ns-1'
             self.privileges = {privilege[0] : [prefix, privilege[1]]}
         else:
+            self.nsCounter = 0
             self.privileges = {}
 
     def add(self, name, namespace='DAV:'):
@@ -168,8 +231,7 @@ class _Grant(_Privileges):
     """
     def __str__(self):
         if self.privileges:
-            # Why doesn't this work?: super(_Privileges, self).__str__()
-            return '<D:grant>%s</D:grant>' %(_Privileges.__str__(self))
+            return '<D:grant>%s</D:grant>' %(super(_Grant, self).__str__())
         else:
             return ''
 
@@ -179,11 +241,15 @@ class _Deny(_Privileges):
     """
     def __str__(self):
         if self.privileges:
-            # Why doesn't this work?: super(_Privileges, self).__str__()
-            return '<D:deny>%s</D:deny>' %(_Privileges.__str__(self))
+            return '<D:deny>%s</D:deny>' %(super(_Deny, self).__str__())
         else:
             return ''
 
 if __name__ == '__main__':
     import doctest
+    libxml2.debugMemory(1)
     doctest.testmod()
+    libxml2.cleanupParser()
+    if libxml2.debugMemory(1) != 0:
+        print '***error***: libxml2 memory leak %d bytes' %(libxml2.debugMemory(1))
+        libxml2.dumpMemory()
