@@ -27,6 +27,8 @@ class UUID(object):
         instance from a string representation or from the 16 bytes
         equivalent to the 128 bit number.
 
+        This class is considered final and therefore should not be extended.
+
         @param uuid: a 36 or 22 byte string representation of a UUID or 16
         intrinsic bytes, C{None} by default.
         @type uuid: a string
@@ -75,27 +77,27 @@ class UUID(object):
 
     def __eq__(self, other):
 
-        return isinstance(other, UUID) and self._uuid == other._uuid
+        return type(other) is UUID and self._uuid == other._uuid
 
     def __ge__(self, other):
 
-        return isinstance(other, UUID) and self._uuid >= other._uuid
+        return type(other) is UUID and self._uuid >= other._uuid
 
     def __gt__(self, other):
 
-        return isinstance(other, UUID) and self._uuid > other._uuid
+        return type(other) is UUID and self._uuid > other._uuid
 
     def __le__(self, other):
 
-        return isinstance(other, UUID) and self._uuid <= other._uuid
+        return type(other) is UUID and self._uuid <= other._uuid
 
     def __lt__(self, other):
 
-        return isinstance(other, UUID) and self._uuid < other._uuid
+        return type(other) is UUID and self._uuid < other._uuid
 
     def __ne__(self, other):
 
-        if isinstance(other, UUID):
+        if type(other) is UUID:
             return self._uuid != other._uuid
 
         return True
