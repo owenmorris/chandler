@@ -12,24 +12,17 @@ int WINAPI WinMain(
 	int retval = 0;
 	FILE *fp;
 
-	int argc = 1;
-	char *name = "Chandler";
-	char **argv = &name;
-
-    /* MessageBox(NULL, "Loading Chandler!", "", MB_OK); */
+#ifndef _DEBUG
+	_putenv("PYTHONOPTIMIZE=1");
+#endif
 	Py_SetProgramName("Chandler");
 	Py_Initialize();
-	PySys_SetArgv(argc,argv);
+	PySys_SetArgv(__argc,__argv);
 	fp = fopen("Chandler.py", "r+");
 	retval = PyRun_SimpleFile(fp, "Chandler.py");
-	/*
 	if(retval){
-		MessageBox(NULL, "Boo!", "", MB_OK);
-	}else{
-		MessageBox(NULL, "Yeah!", "", MB_OK);
+		MessageBox(NULL, "Failed to run Chandler.py", "", MB_OK);
 	}
-	*/
-
 	Py_Exit(0);
 	/*NOTREACHED*/
 }
