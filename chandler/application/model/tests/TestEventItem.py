@@ -117,7 +117,9 @@ class TestInformationItem(unittest.TestCase):
         item.topics = topicList
         self.assertEqual(item.topics, topicList)
         self.assertEqual(item.getTopics(), topicList)
-
+        
+def shellTest():
+    unittest.main()
 
 if __name__ == "__main__":
     unittest.main()

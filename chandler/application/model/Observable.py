@@ -3,7 +3,6 @@
 """Mixin class implementing the observer/observable pattern
 """
 
-__author__ = "Katie Capps Parlante"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"

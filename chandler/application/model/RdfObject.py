@@ -3,7 +3,6 @@
 """Base classes for RDF objects in Chandler
 """
 
-__author__ = "Katie Capps Parlante"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
@@ -50,7 +49,8 @@ class RdfObject(RdfResource):
     #   * Should the schema definition remain in the python code?
     #   * Where do we define properties?
 
-    rdfs = PersistentDict()
+    # @@@ not used
+    # rdfs = PersistentDict()
 
     def __init__(self):
         RdfResource.__init__(self)
@@ -59,6 +59,7 @@ class RdfObject(RdfResource):
         # each entry in the dictionary represents a triple
         # (self, key, value)
         self.rdf = PersistentDict()
+        self.rdfClass = None
 
     def getRdfAttribute(self, uri, rdfs):
         restriction = rdfs[uri]

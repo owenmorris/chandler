@@ -8,7 +8,6 @@ when referring to RDF properties.
 Inspired by TRAMP (http://www.aaronsw.com/2002/tramp)
 """
 
-__author__ = "Katie Capps Parlante"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"

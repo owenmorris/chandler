@@ -10,7 +10,6 @@ concerns: 'all day' or banner events apply to the day, timezone concerns.
 * duration should probably be a property, do we store derived properties?
 """
 
-__author__ = "Katie Capps Parlante"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"

@@ -7,7 +7,6 @@ InformationItem groups together many of the dublin core attributes, as well
 as other common attributes.
 """
 
-__author__ = "Katie Capps Parlante"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
@@ -27,6 +26,14 @@ from mx.DateTime import *
 # ugly hack! I can't find the type for DateTime
 _DateTimeType = type(now())
 
+# forward declarations, so that the types can be used
+# in InformationItem's RdfRestrictions
+class InformationItem:
+    pass
+
+class EntityItem:
+    pass
+
 class InformationItem(RdfObject, Observable):
     """Information Item"""
 
@@ -45,20 +52,20 @@ class InformationItem(RdfObject, Observable):
     
     rdfs[dc.identifier] = RdfRestriction(str, 1)
     rdfs[dc.subject] = RdfRestriction(str, 1) # dcq.SubjectSchema
-    rdfs[dc.relation] = RdfRestriction(RdfObject) #InformationItem
-    rdfs[chandler.linkedWith] = RdfRestriction(RdfObject) #InformationItem
-    rdfs[chandler.annotatedBy] = RdfRestriction(RdfObject) #InformationItem
+    rdfs[dc.relation] = RdfRestriction(InformationItem)
+    rdfs[chandler.linkedWith] = RdfRestriction(InformationItem)
+    rdfs[chandler.annotatedBy] = RdfRestriction(InformationItem)
     rdfs[dc.title] = RdfRestriction(str, 1)
-    rdfs[dc.creator] = RdfRestriction(RdfObject) #EntityItem
+    rdfs[dc.creator] = RdfRestriction(EntityItem)
     rdfs[dc.date] = RdfRestriction(_DateTimeType) 
     rdfs[chandler.dateCreated] = RdfRestriction(_DateTimeType, 1)
     rdfs[chandler.dateModified] = RdfRestriction(_DateTimeType, 1)
     rdfs[dc.description] = RdfRestriction(str, 1)
     rdfs[chandler.project] = RdfRestriction(RdfObject) #ProjectItem 
-    rdfs[dc.contributor] = RdfRestriction(RdfObject) #EntityItem
+    rdfs[dc.contributor] = RdfRestriction(EntityItem)
     rdfs[dc.type] = RdfRestriction(str) # some enumeration?
     rdfs[dc.source] = RdfRestriction(str)
-    rdfs[dc.publisher] = RdfRestriction(RdfObject) #EntityItem
+    rdfs[dc.publisher] = RdfRestriction(EntityItem)
     rdfs[dc.coverage] = RdfRestriction(str)
     rdfs[dc.language] = RdfRestriction(str) # some I18N type?
     rdfs[chandler.topic] = RdfRestriction(str) # dcq.SubjectSchema
