@@ -372,26 +372,24 @@ def __assignToKind(kindVar, messageObject, key, type, attr = None):
 
     elif type == "EmailAddress":
         if messageObject[key] is not None:
-            ea = Mail.EmailAddress()
             addr = Utils.parseaddr(messageObject[key])
 
-            ea.emailAddress = addr[1]
-
+            keyArgs = {}
             if hasValue(addr[0]):
-                ea.fullName = addr[0]
+                keyArgs['fullName'] = addr[0]
+                
+            ea = Mail.EmailAddress.getEmailAddress(addr[1], **keyArgs)
 
             setattr(kindVar, attr, ea)
 
     elif type == "EmailAddressList":
         if messageObject[key] is not None:
             for addr in Utils.getaddresses(messageObject.get_all(key, [])):
-                ea = Mail.EmailAddress()
-
-                ea.emailAddress = addr[1]
-
+                keyArgs = {}
                 if hasValue(addr[0]):
-                    ea.fullName = addr[0]
+                    keyArgs['fullName'] = addr[0]
 
+                ea = Mail.EmailAddress.getEmailAddress(addr[1], **keyArgs)
                 kindVar.append(ea)
     else:
         logging.error("in osaf.mail.message.__assignToKind: HEADER SLIPPED THROUGH")

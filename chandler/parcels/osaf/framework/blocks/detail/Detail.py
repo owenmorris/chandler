@@ -13,7 +13,6 @@ import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.item.Query as Query
-import osaf.mail.message as message
 import wx
 
 """
@@ -96,11 +95,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
 
     def onSendMailMessageEvent (self, notification):
         item = self.selectedItem()
-        # DLDTBD - Brian, paste a call to the mail service here
-        # item is the MailMessage
-        print "Email Subject is %s" % item.ItemAboutString ()
-        print "Email To field is %s" % item.ItemWhoString ()
-        print "Email Body is %s" % item.ItemBodyString ()
+        item.shareSend() # tell the ContentItem to share/send itself.
 
     """
     This is a copy of the global NULL event
@@ -187,8 +182,12 @@ class DateTimeBlock (StaticTextLabel):
         """
           return the item's date.
         """
-        theDate = item.date # get the redirected date attribute
-        theDate = str(theDate)
+        try:
+            theDate = item.date # get the redirected date attribute
+        except AttributeError:
+            theDate = "No date specified"
+        else:
+            theDate = str(theDate)
         return theDate
 
 class KindLabel (StaticTextLabel):
@@ -397,43 +396,31 @@ class ToEditField (EditTextAttribute):
     def saveAttributeFromWidget(self, item, widget):  
         toFieldString = widget.GetValue()
 
-        # get the user's addresses into a list
+        # get the user's address strings into a list
         addresses = toFieldString.split(',')
 
-        # get all known addresses
-        addressKind = Mail.MailParcel.getEmailAddressKind()
-        knownAddresses = Query.KindQuery().run([addressKind])
+        # build a list of all processed addresses, and all valid addresses
+        validAddresses = []
+        processedAddresses = []
 
-        # for each address, strip white space, and match with existing
-        addressList = []
-
-        #List of strings containing invalid email addresses
-        badAddressList = []
-
+        # convert the text addresses into EmailAddresses
         for address in addresses:
-            address = address.strip()
-
-            if message.isValidEmailAddress(address):
-                for candidate in knownAddresses:
-                    if message.emailAddressesAreEqual(candidate.emailAddress, address):
-                        # found an existing address!
-                        addressList.append(candidate)
-                        break
-                else:
-                    # make a new EmailAddress
-                    newAddress = Mail.EmailAddress()
-                    newAddress.emailAddress = address
-                    addressList.append(newAddress)
+            whoAddress = item.getEmailAddress (address)
+            if whoAddress is None:
+                processedAddresses.append (address + '?')
             else:
-                badAddressList.append(address)
-
-        ##Pop-up Error Dialog about bad address
-        if len(badAddressList) > 0:
-            pass
-            #print "The following addresses are invalid: ", ", ".join(badAddressList)
+                processedAddresses.append (str (whoAddress))
+                validAddresses.append (whoAddress)
 
         # reassign the list to the attribute
-        item.who = addressList
+        if len (validAddresses) > 0:
+            try:
+                item.who = validAddresses
+            except:
+                pass
+
+        # redisplay the processed addresses in the widget
+        widget.SetValue (', '.join (processedAddresses))
 
     def loadAttributeIntoWidget (self, item, widget):
         whoString = item.ItemWhoString ()
@@ -444,7 +431,8 @@ class FromEditField (EditTextAttribute):
     def saveAttributeFromWidget(self, item, widget):  
         pass       
     def loadAttributeIntoWidget(self, item, widget):
-        pass
+        whoString = item.ItemWhoFromString ()
+        widget.SetValue (whoString)
 
 class EditRedirectAttribute (EditTextAttribute):
     """

@@ -180,7 +180,9 @@ class ContentItem(Item.Item):
             pass
 
         self.importance = 'normal'
-        self.createdOn = DateTime.now()
+        self.createdOn = DateTime.now ()
+        me = self.getCurrentMeEmailAddress ()
+        self.creator = me
 
 
     def StampKind(self, operation, mixinKind):
@@ -345,7 +347,7 @@ class ContentItem(Item.Item):
         addedKinds, removedKinds = self.AddedRemovedKinds(futureKind)
         addedMixins = []
         removedMixins = []
-        # DLDTBD - flesh out
+        # DLDTBD - flesh out mixin re-stamp data saving
         return (addedMixins, removedMixins)
 
     def ValuePreProcess(self, futureKind):
@@ -457,17 +459,26 @@ class ContentItem(Item.Item):
         try:
             numContacts = len(whoContacts)
         except TypeError:
-            numContacts = 0            
+            numContacts = -1
+        if numContacts == 0:
+            return ''
         if numContacts > 0:
             whoNames = []
             for whom in whoContacts.values():
-                whoNames.append(whom.getItemDisplayName())
+                whoNames.append (str (whom))
             whoString = ', '.join(whoNames)
         else:
-            whoString = ''
+            whoString = str (whoContacts)
             if isinstance(whoContacts, Contacts.ContactName):
                 whoString = whoContacts.firstName + ' ' + whoContacts.lastName
         return whoString
+
+    def ItemWhoFromString (self):
+        try:
+            whoFrom = self.whoFrom # get redirected whoFrom list
+        except AttributeError:
+            return ''
+        return str (whoFrom)
 
     def ItemBodyString (self):
         """
@@ -492,6 +503,32 @@ class ContentItem(Item.Item):
         except AttributeError:
             about = ''
         return about
+
+    def shareSend (self):
+        """
+          Share this item, or Send if it's an Email
+        """
+        raise NotImplementedError, "Don't know how to Send/Share this item"
+
+    def getEmailAddress (self, nameOrAddressString):
+        """
+          Lookup or create an EmailAddress based
+        on the supplied string.
+        This method is here for convenient access, so users
+        don't need to import Mail.
+        """
+        import mail.Mail as Mail
+        return Mail.EmailAddress.getEmailAddress (nameOrAddressString)
+
+    def getCurrentMeEmailAddress (self):
+        """
+          Lookup or create a current "me" EmailAddress.
+        The "me" EmailAddress is whichever one has the current IMAP default address.
+        This method is here for convenient access, so users
+        don't need to import Mail.
+        """
+        import mail.Mail as Mail
+        return Mail.EmailAddress.getCurrentMeEmailAddress ()
 
 class Project(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):

@@ -96,9 +96,19 @@ class CalendarEventMixin(Item.Item):
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
-    pass
+    def InitOutgoingAttributes (self):
+        """ Init any attributes on ourself that are appropriate for
+        a new outgoing item.
+        """
+        try:
+            super(CalendarEventMixin, self).InitOutgoingAttributes ()
+        except AttributeError:
+            pass
 
-class CalendarEvent(Notes.Note, CalendarEventMixin):
+        # default the requestor to "me"
+        self.organizer = self.getCurrentMeEmailAddress ()
+
+class CalendarEvent(CalendarEventMixin, Notes.Note):
 
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:

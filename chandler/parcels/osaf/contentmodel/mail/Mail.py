@@ -11,6 +11,9 @@ import repository.item.Item as Item
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.Notes as Notes
 import application.Globals as Globals
+import repository.query.Query as Query
+import repository.item.Query as ItemQuery
+import repository.util.UUID as UUID
 
 from repository.util.Path import Path
 
@@ -37,6 +40,8 @@ class MailParcel(application.Parcel.Parcel):
             
         self._setUUIDs()
 
+        SMTPDelivery.startup ()
+        
     def getMailItemParent(cls, inbound=False):
 
         parent = ContentModel.ContentModel.getContentItemParent()
@@ -265,6 +270,11 @@ class MailDeliveryBase(Item.Item):
 
 
 class SMTPDelivery(MailDeliveryBase):
+    """
+    SMTP Delivery Notification Class
+    Some of these methods are called from Twisted, some from 
+    the UI Thread.
+    """
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
@@ -275,18 +285,114 @@ class SMTPDelivery(MailDeliveryBase):
         self.deliveryType = "SMTP"
         self.state = "DRAFT"
 
+    MAILPARCEL = "//parcels/osaf/contentmodel/mail/"
+
+    def startup (cls):
+        # subscribe to the error and success events, and specify class
+        # methods to be called.
+        event = Globals.repository.findPath(cls.MAILPARCEL + 'smtpSendErrorEvent')
+        Globals.notificationManager.Subscribe([event], UUID.UUID(),
+                                              cls._smtpSendErrorCallback)
+        event = Globals.repository.findPath(cls.MAILPARCEL + 'smtpSendSuccessEvent')
+        Globals.notificationManager.Subscribe([event], UUID.UUID(),
+                                              cls._smtpSendSuccessCallback)
+    startup = classmethod (startup)
+
     #XXX: Will want to expand state to an object with error or sucess code 
     #     desc string, and date
     def sendFailed(self):
+        """
+          Called from the Twisted thread to log errors in Send.
+        """
         self.history.append("FAILED")
         self.state = "FAILED"
         self.tries += 1
 
+        # announce to the UI thread that an error occurred
+        self.announceSMTPSendError (self.mailMessage.itsUUID)
+
     #XXX: See comments above
     def sendSucceeded(self):
+        """
+          Called from the Twisted thread to log successes in Send.
+        """
         self.history.append("SENT")
         self.state = "SENT"
         self.tries += 1
+
+        # announce to the UI thread that an error occurred
+        self.announceSMTPSendSuccess (self.mailMessage.itsUUID)
+
+    def _smtpSendErrorCallback (notification):
+        """
+          Called from the UI thread when we receive this event, 
+        to display the error
+        """
+        mailMessageUUID = notification.data['messageUUID']
+
+        # Lookup the message
+        mailMessageKind = MailParcel.getMailMessageKind ()
+        mailMessage = mailMessageKind.findUUID(mailMessageUUID)
+    
+        if mailMessage is not None and mailMessage.isOutbound:
+            """DLDTBD - Switch the CPIA view to show the message"""
+    
+            errorStrings = []
+    
+            for error in mailMessage.deliveryExtension.deliveryErrors:
+                 errorStrings.append(error.errorString)
+   
+            str = "error"
+   
+            if len(errorStrings) > 1:
+                str = "errors"
+   
+            errorMessage = "The following %s occurred: %s" % (str, ', '.join(errorStrings))
+            application.dialogs.Util.showAlert(Globals.wxApplication.mainFrame, errorMessage)
+    _smtpSendErrorCallback = staticmethod (_smtpSendErrorCallback)
+
+    def _smtpSendSuccessCallback (notification):
+        """
+          Called from the UI Thread when send was a success, 
+        to give the user feedback.
+        """
+        mailMessageUUID = notification.data['messageUUID']
+
+        # Lookup the message
+        mailMessageKind = MailParcel.getMailMessageKind ()
+        mailMessage = mailMessageKind.findUUID(mailMessageUUID)
+    
+        if mailMessage is not None and mailMessage.isOutbound:
+            # DLDTBD - do something instead of printing when mail sent.
+            print 'mailMessage "%s" sent!' % mailMessage.about
+    _smtpSendSuccessCallback = staticmethod (_smtpSendSuccessCallback)
+
+    def announceSMTPSendError (cls, uuid):
+        """ 
+          Call this method to announce that an SMTP sending error has
+        occurred. This method is non-blocking.
+        Called from the Twisted thread.
+        """
+    
+        def _announceSMTPSendError (uuid):
+            # find and post a Chandler event to get back to the UI Thread
+            event = Globals.repository.findPath(cls.MAILPARCEL + 'smtpSendErrorEvent')
+            event.Post( { 'messageUUID' : uuid } )
+    
+        # post an application event to call above
+        Globals.wxApplication.PostAsyncEvent(_announceSMTPSendError, uuid)
+    announceSMTPSendError = classmethod (announceSMTPSendError)
+
+    def announceSMTPSendSuccess (cls, uuid):
+        """ Call this method to announce that SMTP sending was
+            a success. This method is non-blocking. """
+    
+        def _announceSMTPSendSuccess (uuid):
+            event = Globals.repository.findPath(cls.MAILPARCEL + 'smtpSendSuccessEvent')
+            event.Post( { 'messageUUID' : uuid } )
+    
+        Globals.wxApplication.PostAsyncEvent(_announceSMTPSendSuccess, uuid)
+    announceSMTPSendSuccess = classmethod (announceSMTPSendSuccess)
 
 
 class IMAPDelivery(MailDeliveryBase):
@@ -348,21 +454,18 @@ class MailMessageMixin(MIMEContainer):
 
         self.outgoingMessage()
 
+    def defaultSMTPAccount (self):
+        import osaf.mail.smtp as smtp
+
+        account, replyAddress = smtp.getSMTPAccount ()
+        return account
 
     def outgoingMessage(self, type="SMTP", account=None):
         if type != "SMTP":
             raise TypeError("Only SMTP currently supported")
 
         if account is None:
-            accountKind = MailParcel.getSMTPAccountKind()
-
-            """Get the first SMTP Account"""
-            for acc in Query.KindQuery().run([accountKind]):
-                acccount = acc
-                break
-
-            if account is None:
-                raise Exception("No SMTP Account exists in the Repository")
+            account = self.defaultSMTPAccount ()
 
         #XXX:SAdd test to make sure it is an item
         elif not account.isItemOf(MailParcel.getSMTPAccountKind()):
@@ -371,6 +474,7 @@ class MailMessageMixin(MIMEContainer):
         self.deliveryExtension = SMTPDelivery()
         self.isOutbound = True
         self.parentAccount = account
+        self.fromAddress = self.getCurrentMeEmailAddress ()
 
 
     def incomingMessage(self, type="IMAP", account=None):
@@ -378,15 +482,8 @@ class MailMessageMixin(MIMEContainer):
             raise TypeError("Only IMAP currently supported")
 
         if account is None:
-            accountKind = MailParcel.getIMAPAccountKind()
-
-            """Get the first IMAP Account"""
-            for acc in Query.KindQuery().run([accountKind]):
-                acccount = acc
-                break
-
-            if account is None:
-                raise Exception("No IMAP Account exists in the Repository")
+            import osaf.mail.imap as imap
+            account = imap.getIMAPAccount ()
 
         #XXX:SAdd test to make sure it is an item
         elif not account.isItemOf(MailParcel.getIMAPAccountKind()):
@@ -396,12 +493,27 @@ class MailMessageMixin(MIMEContainer):
         self.isInbound = True
         self.parentAccount = account
 
-
 class MailMessage(Notes.Note, MailMessageMixin):
+    # DLDTBD - fix MI ordering issue
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = MailParcel.getMailMessageKind()
         super (MailMessage, self).__init__(name, parent, kind)
+
+    def shareSend (self):
+        """
+          Share this item, or Send if it's an Email
+        We assume we want to send this MailMessage here.
+        """
+        # commit changes, since we'll be switching to Twisted thread
+        Globals.repository.commit()
+    
+        # get default SMTP account
+        account = self.defaultSMTPAccount ()
+
+        # Now send the mail
+        import osaf.mail.smtp as smtp
+        smtp.SMTPSender(account, self).sendMail()
 
 class MIMEBinary(MIMENote):
     def __init__(self, name=None, parent=None, kind=None):
@@ -429,9 +541,223 @@ class MIMESecurity(MIMEContainer):
         super (MIMESecurity, self).__init__(name, parent, kind)
 
 class EmailAddress(Item.Item):
-    def __init__(self, name=None, parent=None, kind=None):
+    def __init__(self, name=None, parent=None, kind=None, clone=None):
         if not parent:
             parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getEmailAddressKind()
         super (EmailAddress, self).__init__(name, parent, kind)
+
+        # copy the attributes if a clone was supplied
+        if clone is not None:
+            try:
+                self.emailAddress = clone.emailAddress[:]
+            except AttributeError:
+                pass
+            try:
+                self.fullName = clone.fullName[:]
+            except AttributeError:
+                pass
+
+    def __str__ (self):
+        """
+          User readable string version of this address
+        """
+        if self.emailAddress == self._getTheMeAddress():
+            return 'me'
+        try:
+            fullName = self.fullName
+        except AttributeError:
+            fullName = ''
+        if fullName is not None and len (fullName) > 0:
+            return fullName + ' <' + self.emailAddress + '>'
+        else:
+            return self.getItemDisplayName ()
+
+        """
+        Factory Methods
+        --------------
+        When creating a new EmailAddress, we check for an existing item first.
+        We do look them up in the repository to prevent duplicates, but there's
+        nothing to keep bad ones from accumulating, although repository
+        garbage collection should eventually remove them.
+        The "me" entity is used for Items created by the user, and it
+        gets a reasonable emailaddress filled in when a send is done.
+        This code needs to be reworked!
+        """
+        
+    def getEmailAddress (cls, nameOrAddressString, fullName=''):
+        """
+          Lookup or create an EmailAddress based
+        on the supplied string.
+        @param nameOrAddressString: emailAddress string, or fullName for lookup
+        @type nameOrAddressString: C{String}
+        @param fullName: the fullName to use when a new item is created
+        @type fullName: C{String}
+        @return: C{EmailAddress} or None if not found, and nameOrAddressString is\
+               not a valid email address.
+        """
+        import osaf.mail.message as message # avoid circularity
+
+        # strip the address string of whitespace and question marks
+        address = nameOrAddressString.strip ().strip ('?')
+
+        # check for "me"
+        if address == 'me':
+            return cls.getCurrentMeEmailAddress ()
+
+        # if no fullName specified, parse apart the fullName and emailAddress if we can
+        if fullName == '':
+            try:
+                address.index ('<')
+            except ValueError:
+                pass
+            else:
+                fullName, address = address.split ('<')
+                address = address.strip ('>').strip ()
+                fullName = fullName.strip ()
+
+        # check if it looks like a valid email address
+        isValidAddress = message.isValidEmailAddress (address)
+
+        # DLDTBD - switch on the better queries
+        useBetterQuery = False
+        if useBetterQuery:
+
+            # get all addresses whose emailAddress or fullName match the param
+            queryString = u'for i in "//parcels/osaf/contentmodel/mail/EmailAddress" \
+                          where contains(i.emailAddress,$0) or contains(i.fullName, $0)'
+            addrQuery = Query.Query (Globals.repository, queryString)
+            addrQuery.args = [ address ]
+            addresses = addrQuery.execute ()
+            
+            try:
+                n = len (addresses)
+            except TypeError:
+                addresses = []
+        else:
+            # old slow query method
+            emailAddressKind = MailParcel.getEmailAddressKind ()
+            allAddresses = ItemQuery.KindQuery().run([emailAddressKind])
+            addresses = []
+            for candidate in allAddresses:
+                if isValidAddress:
+                    if message.emailAddressesAreEqual(candidate.emailAddress, address):
+                        # found an existing address!
+                        addresses.append (candidate)
+                elif address == candidate.fullName:
+                    # full name match
+                    addresses.append (candidate)
+
+        # process the result(s)
+        for candidate in addresses:
+            if isValidAddress:
+                if message.emailAddressesAreEqual(candidate.emailAddress, address):
+                    # found an existing address!
+                    if fullName != '':
+                        # update the fullname with what the caller supplied.
+                        candidate.fullName = fullName
+                    return candidate
+            elif address == candidate.fullName:
+                # full name match
+                return candidate
+        else:
+            if isValidAddress:
+                # make a new EmailAddress
+                newAddress = EmailAddress()
+                newAddress.emailAddress = address
+                newAddress.fullName = fullName
+                return newAddress
+            else:
+                return None
+    getEmailAddress = classmethod (getEmailAddress)
+
+    # theMeAddress is cached here.  It's an emailAddress string.
+    _theMeAddress = None
+
+    def _getTheMeAddress (cls):
+        """
+          Lookup the "me" emailAddress string.
+        @return: C{String} the email address of the default account, or None
+        """
+        if cls._theMeAddress is not None:
+            return cls._theMeAddress
+
+        # get the default IMAP address, and use it to find/build "me"
+        import osaf.mail.imap as imap
+    
+        try:
+            account = imap.getIMAPAccount ()
+        except imap.IMAPException:
+            return None
+        try:
+            address = account.emailAddress
+        except AttributeError:
+            return None
+        cls._theMeAddress = address
+        return address
+    _getTheMeAddress = classmethod (_getTheMeAddress)
+
+    def getCurrentMeEmailAddress (cls):
+        """
+          Lookup or create the "me" EmailAddress.
+        The "me" EmailAddress is whichever entry is the current IMAP default address.
+        """
+        meAddress = cls._getTheMeAddress()
+        # if there is no account, we'll get None, and just create an EmailAddress for it
+        return cls.getEmailAddress (meAddress)
+    getCurrentMeEmailAddress = classmethod (getCurrentMeEmailAddress)
+
+    def captureCurrentMeEmailAddress (cls):
+        """
+          Prepare for editing of the "me" EmailAddress.
+        Since many messages refer to "me" we'd like it to be preserved
+        across the edit, rather than change all those messages, which
+        would make it look like sent mail was sent from the new address.
+        """
+        
+        # get the account that owns the "me" address
+        meEmailAddress = cls.getCurrentMeEmailAddress ()
+        imapAccounts = meEmailAddress.accounts
+        assert len (imapAccounts) == 1, "The EmailAddress %s is not being used in %d accounts!" \
+                  %  (len (imapAccounts), meEmailAddress.emailAddress)
+        account = imapAccounts.first()
+
+        # Create a fresh unused EmailAddress for editing
+        newMe = EmailAddress(clone=meEmailAddress) # a fresh unused EmailAddress
+
+        # Put the new EmailAddress into the account that owns "me",
+        account.replyToAddress = newMe
+        assert cls._capturedAccount is None, "capturedAccount error"
+        cls._capturedAccount = account
+    captureCurrentMeEmailAddress = classmethod (captureCurrentMeEmailAddress)
+
+    # the captured IMAP account is save here during capture/release
+    _capturedAccount = None
+
+    def releaseCurrentMeEmailAddress (cls):
+        """
+          If the "me" address was changed by editing, we'll start using a new one.
+        If unchanged, we revert back to the old one.
+        """
+        # get the new user-edited "me" address out of the account
+        assert cls._capturedAccount is not None, "capuredAccount error"
+        account = cls._capturedAccount
+        cls._capturedAccount = None
+        newMeCandidate = account.replyToAddress
+
+        """
+          We'll want to use whatever existing address matches the user's edit.
+        Could be the new fresh one, could be an existing reuse, 
+        and could be the old one if no edit was made. 
+        If we're not using the new fresh copy, then we delete it.
+        """
+        theNewMe = cls.getEmailAddress (newMeCandidate.emailAddress)
+        account.replyToAddress = theNewMe
+        if theNewMe is not newMeCandidate:
+            newMeCandidate.delete ()
+
+        # Invalidate the "me" emailAddress string cache in case there was an edit.
+        cls._theMeAddress = None
+    releaseCurrentMeEmailAddress = classmethod (releaseCurrentMeEmailAddress)
+

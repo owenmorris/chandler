@@ -62,7 +62,10 @@ class MainView(View):
 
     def onEditAccountPreferencesEvent (self, notification):
         # Triggered from "File | Prefs | Accounts..."
+        Mail.EmailAddress.captureCurrentMeEmailAddress()
         application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(Globals.wxApplication.mainFrame)
+        # if the "me" address was changed by editing, we'll start using a new one.
+        Mail.EmailAddress.releaseCurrentMeEmailAddress()
 
     def onEditMailAccountEvent (self, notification):
         # @@@ Deprecated, replaced by onEditAccountPreferencesEvent, above

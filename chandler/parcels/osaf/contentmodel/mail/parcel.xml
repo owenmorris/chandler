@@ -12,6 +12,7 @@
     xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
     xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
     xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
+    xmlns:notif="http://osafoundation.org/parcels/osaf/framework/notifications/schema"
     xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks">
 
     <displayName>Mail Content Model</displayName>
@@ -784,10 +785,21 @@
 
         <attributes ref="contact:onceBelongedTo"/>
         <attributes ref="contact:emailAddressOwner"/>
+        <attributes ref="contact:itemsCreated"/>
         <attributes ref="calendar:participatingIn"/>
         <attributes ref="tasks:requestedTasks"/>
         <attributes ref="tasks:taskRequests"/>
 
     </Kind>
+
+    <notif:Event itsName="smtpSendErrorEvent">
+        <displayName value="SMTP Send Error Event" />
+        <description value="This event is posted from the mail system when an SMTP Send error happens." />
+    </notif:Event>
+
+    <notif:Event itsName="smtpSendSuccessEvent">
+        <displayName value="SMTP Send Success Event" />
+        <description value="This event is posted from the mail system when an SMTP Send succeeds." />
+    </notif:Event>
 
 </Parcel>

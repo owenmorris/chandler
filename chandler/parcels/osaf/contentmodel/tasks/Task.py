@@ -65,7 +65,11 @@ class TaskMixin(Item.Item):
         # default due date is 7 days hence
         self.dueDate = DateTime.now() + DateTime.DateTimeDelta(7)
 
-class Task(Notes.Note, TaskMixin):
+        # default the requestor to "me"
+        self.requestor = self.getCurrentMeEmailAddress ()
+
+
+class Task(TaskMixin, Notes.Note):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = Globals.repository.findPath("//parcels/osaf/contentmodel/tasks/Task")
