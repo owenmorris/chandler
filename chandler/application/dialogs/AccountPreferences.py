@@ -337,11 +337,11 @@ class AccountPreferencesDialog(wx.Dialog):
             control = wx.xrc.XRCCTRL(panel, field)
             valueType = PANELS[panelType]['fields'][field]['type']
             if valueType == "string":
-                val = control.GetValue()
+                val = control.GetValue().strip()
             elif valueType == "boolean":
                 val = (control.GetValue() == True)
             elif valueType == "integer":
-                val = int(control.GetValue())
+                val = int(control.GetValue().strip())
             data[field] = val
 
     def __FetchFormData(self, panelType, panel, data):
