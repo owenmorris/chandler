@@ -83,7 +83,8 @@ snap:
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYTHON)/$(SNAP).tar.gz \
                   $(SNAP)/bin/python*.* $(SNAP)/bin/libs \
-                  $(SNAP)/bin/DLLs $(SNAP)/bin/Include $(SNAP)/bin/Lib
+                  $(SNAP)/bin/DLLs $(SNAP)/bin/Include $(SNAP)/bin/Lib \
+            -X $(PYTHON)/xcludes
 
 else
 

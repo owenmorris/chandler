@@ -21,3 +21,18 @@
  
  ##################################################
  # Creating individual dependencies and actions for building class
+--- db-4.2.52/libdb_java/db_java_wrap.c	2003-12-03 13:10:36.000000000 -0800
++++ db-4.2.52-patched/libdb_java/db_java_wrap.c	2004-03-20 17:13:46.827006400 -0800
+@@ -16,6 +16,12 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
++#if defined(GCJ) && defined(WIN32) /* gcj jni doesn't use __stdcall */
++#undef JNIEXPORT
++#undef JNICALL
++#define JNIEXPORT
++#define JNICALL
++#endif
+ 
+ /* Support for throwing Java exceptions */
+ typedef enum {

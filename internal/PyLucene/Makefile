@@ -70,6 +70,7 @@ endif
 
 apply: patches
 	patch -Nup0 < patches; echo ok
+	make -C $(BUILD_ROOT)/persistence/db apply
 
 build: apply
 	MAKEFLAGS=; \

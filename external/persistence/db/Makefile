@@ -13,7 +13,7 @@ BINDIR=$(SRC)/$(BUILD)/$(Snap)
 $(SRC)/$(BUILD)/Berkeley_DB.sln:
 	(cd win32; tar -cf - *.sln *.vcproj) | (cd $(SRC)/$(BUILD); tar -xf -)
 
-build: compile install
+build: apply compile install
 
 compile: $(SRC)/$(BUILD)/Berkeley_DB.sln
 	cd $(SRC)/$(BUILD); \
@@ -49,8 +49,7 @@ endif
 
 BUILD=build_$(SNAP)
 
-$(SRC)/$(BUILD)/Makefile: patches
-	patch -Nup0 < patches; echo ok; \
+$(SRC)/$(BUILD)/Makefile: apply
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../dist/configure --prefix=$(PREFIX)/db \
                           --enable-cxx $(CONF_DBG)
@@ -66,6 +65,9 @@ snap:
         tar -cvzf $(DB)/$(SNAP).tar.gz $(SNAP)/db/bin $(SNAP)/db/lib
 
 endif
+
+apply: patches
+	patch -Nup0 < patches; echo ok
 
 expand: db-$(VERSION).tar.gz
 	tar xvzf db-$(VERSION).tar.gz

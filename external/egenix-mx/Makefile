@@ -22,7 +22,8 @@ expand: egenix-mx-base-$(VERSION).tar.gz
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(EGENIX)/$(SNAP).tar.gz \
-                  $(SNAP)/$(SITE)/mx
+                  $(SNAP)/$(SITE)/mx \
+            -X xcludes
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
