@@ -15,6 +15,7 @@ hardhatFile = os.path.join(whereAmI, "hardhat.py")
 homeDir = os.environ['HOME']
 buildDir = os.path.join(homeDir, "tinderbuild")
 logFile = os.path.join(buildDir, "build.log")
+HHlogFile = os.path.join(buildDir, "hardhat.log")
 stopFile = os.path.join(buildDir, "stop")
 fromAddr = "builds"
 mailtoAddr = "buildreport"
@@ -107,6 +108,9 @@ def main():
         log = open(logFile, "r")
         logContents = log.read()
         log.close()
+        log = open(HHlogFile, "r")
+        logContents += log.read()
+        log.close()
         SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", 
          treeName, logContents)
         SendMail(fromAddr, mailtoAddr, startTime, buildName, status, 
@@ -122,6 +126,9 @@ def main():
 
         log = open(logFile, "r")
         logContents = log.read()
+        log.close()
+        log = open(HHlogFile, "r")
+        logContents += log.read()
         log.close()
         SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", 
          treeName, logContents)
@@ -164,7 +171,7 @@ def main():
             outputList = hardhatutil.executeCommandReturnOutputRetry(
              [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
              outputDir + os.sep, 
-             "192.168.101.46:continuous/" + buildNameNoSpaces])
+             options.rsyncServer + ":continuous/" + buildNameNoSpaces])
             hardhatutil.dumpOutputList(outputList, log)
 
         elif ret == "build_failed":
