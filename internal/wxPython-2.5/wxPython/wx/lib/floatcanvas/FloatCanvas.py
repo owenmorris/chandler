@@ -1581,7 +1581,7 @@ class FloatCanvas(wx.Panel):
             pass
 
     def LeftUpEvent(self,event):
-            if self.HasCapture():
+        if self.HasCapture():
             self.ReleaseMouse()
         if self.GUIMode:
             if self.GUIMode == "ZoomIn":
