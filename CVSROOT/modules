@@ -42,12 +42,12 @@ dbxml-module -a \
     osaf/chandler/bsddb3
 
 chandler-source -a \
+    hardhat \
     osaf/chandler/Chandler \
     osaf/chandler/python \
     osaf/chandler/zodb \
     osaf/chandler/distutils \
     osaf/chandler/egenix-mx \
-    osaf/chandler/hardhat \
     osaf/chandler/wxpython \
     osaf/chandler/jabber-py \
     osaf/chandler/swig \
@@ -62,6 +62,7 @@ chandler-source -a \
     osaf/chandler/net/rap
 
 rap -a \
+    hardhat \
     osaf/chandler/swig \
     osaf/chandler/pkgconfig \
     osaf/chandler/net/expat \
