@@ -22,11 +22,23 @@ build:
 expand: pychecker-$(VERSION).tar.gz
 	tar xvzf pychecker-$(VERSION).tar.gz
 
+ifeq ($(OS),Cygwin)
+
+snap: 
+	cd $(BUILD_ROOT); \
+        tar -cvzf $(PYCHECKER)/$(SNAP).tar.gz \
+                  $(SNAP)/$(SITE)/pychecker \
+                  $(SNAP)/bin/Scripts/pychecker.bat
+
+else
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYCHECKER)/$(SNAP).tar.gz \
                   $(SNAP)/$(SITE)/pychecker \
                   $(SNAP)/$(BIN)/pychecker
+
+endif
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
