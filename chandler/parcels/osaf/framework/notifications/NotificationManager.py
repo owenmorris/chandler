@@ -158,7 +158,7 @@ class Subscription(object):
 
     def post(self, notification):
         if notification.threadid != None:
-            if notification.threadid != id(threading.currentThread()):
+            if notification.threadid != self.threadid:
                 return
         self.callback(notification)
 
