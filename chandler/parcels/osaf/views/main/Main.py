@@ -14,6 +14,7 @@ from application.Parcel import Manager as ParcelManager
 from osaf.mail.IMAPMailTask import IMAPDownloader
 import osaf.framework.utils.imports.OutlookContacts as OutlookContacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
+from repository.persistence.RepositoryError import VersionConflictError
 
 class MainView(View):
     """
@@ -42,17 +43,50 @@ class MainView(View):
         notification.data ['Enable'] = False
 
     def onEditMailAccountEvent (self, notification):
+        account = \
+         Globals.repository.findPath('//parcels/osaf/mail/IMAPAccount One')
         if application.Application.promptForItemValues(
          Globals.wxApplication.mainFrame,
          "IMAP Account",
-         Globals.repository.findPath('//parcels/osaf/mail/IMAPAccount One'),
+         account,
          [
            { "attr":"serverName", "label":"IMAP Server" },
            { "attr":"accountName", "label":"Username" },
            { "attr":"password", "label":"Password", "password":True },
          ]
         ):
-            Globals.repository.commit()
+            try:
+                Globals.repository.commit()
+            except VersionConflictError, e:
+                # A first experiment with resolving conflicts.  Not sure
+                # yet where the logic for handling this should live.  Could
+                # be here, could be handled by the conflicting item itself(?).
+
+                # Retrieve the conflicting item
+                conflict = e.getItem()
+                itemPath = conflict.itsPath
+                serverName = conflict.serverName
+                accountName = conflict.accountName
+                password = conflict.password
+                print "Got a conflict with item:", itemPath
+                # The conflict item has *our* values in it; to see the
+                # values that were committed by the other thread, we need
+                # to cancel our transaction, commit, and refetch the item.
+                Globals.repository.cancel()
+                # Get the latest items committed from other threads
+                Globals.repository.commit()
+                # Refetch item
+                account = Globals.repository.findPath(itemPath)
+                # To resolve this conflict we're going to simply reapply the 
+                # values that were set in the dialog box.
+                account.serverName = serverName
+                account.accountName = accountName
+                account.password = password
+                Globals.repository.commit()
+                # Note: this commit, too, could get a conflict I suppose, so
+                # do we need to put this sort of conflict resolution in a loop?
+                print "Conflict resolved"
+
 
 
     def onGetNewMailEvent (self, notification):

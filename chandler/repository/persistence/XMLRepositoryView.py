@@ -63,7 +63,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 item.setDirty(0)
                 item._unloadItem()
 
-        for item in self._log():
+        for item in self._log:
             if not item.isNew():
                 self.logger.debug('reloading version %d of %s',
                                   self.version, item)

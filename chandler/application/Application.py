@@ -543,7 +543,7 @@ class ItemValuesDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
 
         textControls = []
-        for (valueDict) in attrList:
+        for valueDict in attrList:
             box = wx.BoxSizer(wx.HORIZONTAL)
 
             label = wx.StaticText(self, -1, valueDict["label"])
