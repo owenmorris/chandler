@@ -9,30 +9,30 @@
 # glob: set to a comma-separated list of glob patterns
 
 # Grab the python modules 
-src=release/Library/Frameworks/Python.framework/Versions/2.3/lib
+src=chandler/release/Library/Frameworks/Python.framework/Versions/2.3/lib
 dest=Contents/release/Resources/Library/Frameworks/Python.framework/Versions/2.3/lib
 glob=*
 recursive=yes
 python2.3
 
 # Grab python Framework file
-src=release/Library/Frameworks/Python.framework/Versions/2.3
+src=chandler/release/Library/Frameworks/Python.framework/Versions/2.3
 dest=Contents/release/Resources/Library/Frameworks/Python.framework/Versions/2.3
 Python
 
 # Grab python executable file
-src=release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS
+src=chandler/release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS
 dest=Contents/MacOS/release
 python
 
 # Grab wx and db libs
-src=release
+src=chandler/release
 dest=Contents/release/Resources
 glob=*.dylib,*.r,*.rsrc,*.jnilib,*.la
 lib
-src=release/db
+src=chandler/release/db
 lib
-src=release/dbxml
+src=chandler/release/dbxml
 lib
 
 # Grab Chandler.py and others
