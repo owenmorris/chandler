@@ -293,7 +293,7 @@ class wxApplication (wxApp):
         if not self.InMenuCommand:
             self.InMenuCommand = true
             activeParcel = self.wxMainFrame.activeParcel
-            if not activeParcel != None:
+            if activeParcel != None:
                 activeParcel.GetEventHandler().ProcessEvent(event)
             self.InMenuCommand = false
             
