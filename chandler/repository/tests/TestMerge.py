@@ -60,7 +60,6 @@ class TestMerge(RepositoryTestCase):
         am = []
 
         oc = [c.itsName for c in pm.iterChildren()]
-        
         view = self.rep.createView('view')
         main = self.rep.setCurrentView(view)
 
@@ -118,7 +117,7 @@ class TestMerge(RepositoryTestCase):
         for i in xrange(o):
             c = ko.newItem('ao_%02d' %(i), co)
             c.ac = po
-            po.ap.dir()
+            #po.ap.dir()
             ao.append(c)
         view.commit()
 
@@ -126,7 +125,7 @@ class TestMerge(RepositoryTestCase):
         for i in xrange(m):
             c = km.newItem('am_%02d' %(i), cm)
             c.ac = pm
-            pm.ap.dir()
+            #pm.ap.dir()
             am.append(c)
         main.commit()
 
@@ -211,6 +210,7 @@ class TestMerge(RepositoryTestCase):
         self.rep.find(TestMerge.cPath).newItem('c0', self.rep['p'])
         self.rep.commit()
         self.merge(5, 8)
+        self.assert_(self.rep.view.check(), 'view did not check out')
 
     def test0Merge1(self):
         self.merge(1, 1)
@@ -423,33 +423,75 @@ class TestMerge(RepositoryTestCase):
         m.writers.clear()
         main.commit()
 
-#    def testMergeOverlapRefCollections(self):
-#
-#        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
-#                                     'cineguide.pack')
-#        self.rep.loadPack(cineguidePack)
-#        self.rep.commit()
-#
-#        view = self.rep.createView('view')
-#        main = self.rep.setCurrentView(view)
-#
-#        k = view.findPath('//CineGuide/KHepburn')
-#        m = k.movies.first()
-#        m.actors.clear()
-#        view.commit()
-#
-#        view = self.rep.setCurrentView(main)
-#        k = main.findPath('//CineGuide/KHepburn')
-#        m = k.movies.first()
-#        m.actors.clear()
-#
-#        try:
-#            main.commit()
-#        except MergeError, e:
-#            #print e
-#            self.assert_(e.getReasonCode() == MergeError.BUG)
-#        else:
-#            self.assert_(False)
+    def testMergeOverlapRefCollections1(self):
+
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        self.rep.loadPack(cineguidePack)
+        self.rep.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.actors.clear()
+        view.commit()
+
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.actors.clear()
+        main.commit()
+
+        self.assert_(main.check(), 'main view did not check out')
+
+    def testMergeOverlapRefCollections2(self):
+
+        import mx.DateTime
+        
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        self.rep.loadPack(cineguidePack)
+        self.rep.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        vl = len(k.movies)
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m3 = k.movies.next(m2)
+        m2.title = 'm2title'
+        m3.title = 'm3title'
+        k.born = b2 = mx.DateTime.RelativeDateTimeFrom('1907-05-12')
+        tf = m3.title
+        k.movies.placeItem(m3, None)
+        view.commit()
+
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        ml = len(k.movies)
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m3 = k.movies.next(m2)
+        m2.frenchTitle = 'm2titre'
+        m3.frenchTitle = 'm3titre'
+        k.died = d2 = mx.DateTime.RelativeDateTimeFrom('2003-06-29')
+        tl = m2.title
+        k.movies.placeItem(m2, k.movies.last())
+        main.commit()
+
+        self.assert_(main.check(), 'main view did not check out')
+        self.assert_(len(k.movies) == ml, 'length changed')
+        self.assert_(len(k.movies) == vl, 'length changed')
+        self.assert_(str(k.born) == str(b2))
+        self.assert_(str(k.died) == str(d2))
+        self.assert_(m2.title == 'm2title')
+        self.assert_(m2.frenchTitle == 'm2titre')
+        self.assert_(m3.title == 'm3title')
+        self.assert_(m3.frenchTitle == 'm3titre')
 
     def testMergeNoOverlapRV(self):
 
@@ -555,15 +597,31 @@ class TestMerge(RepositoryTestCase):
 #
 #        self.assertEquals(m.title, 'changed title in main')
 
-#    def testRefs1Merge1(self):
-#
-#        p = self.rep['p']
-#        cm = self.rep['cm']
-#        c0 = self.rep.find(TestMerge.cPath).newItem('c0', cm)
-#        c0.ac = p
-#        self.rep.commit()
-#        self.mergeRefs(1, 1)
+    def makeC0(self):
 
+        p = self.rep['p']
+        cm = self.rep['cm']
+        c0 = self.rep.find(TestMerge.cPath).newItem('c0', cm)
+        c0.ac = p
+        self.rep.commit()
+
+    def testRefs1Merge1(self):
+
+        self.makeC0()
+        self.mergeRefs(1, 1)
+        self.assert_(self.rep.view.check(), 'view did not check out')
+
+    def testRefs1Merge2(self):
+
+        self.makeC0()
+        self.mergeRefs(2, 2)
+        self.assert_(self.rep.view.check(), 'view did not check out')
+
+    def testRefs1MergeN(self):
+
+        self.makeC0()
+        self.mergeRefs(5, 8)
+        self.assert_(self.rep.view.check(), 'view did not check out')
 
 
 if __name__ == "__main__":

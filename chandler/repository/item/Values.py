@@ -195,17 +195,6 @@ class Values(dict):
         except AttributeError:
             pass
 
-    def _copyChanges(self, source):
-
-        if '_flags' in source.__dict__:
-            for key, flags in source._flags.iteritems():
-                self._setFlags(key, flags)
-                if flags & Values.DIRTY:
-                    if key in source:
-                        self[key] = source[key]
-                    elif key in self:
-                        del self[key]
-
     def _xmlValues(self, generator, withSchema, version, mode):
 
         from repository.item.ItemHandler import ValueHandler
@@ -253,6 +242,13 @@ class Values(dict):
                     e.args = ("while saving attribute '%s' of item %s, %s" %(key, item.itsPath, e.args[0]),)
                     raise
 
+    def _prepareMerge(self):
+
+        if not hasattr(self, '_original'):
+            self._original = self.copy()
+
+        return self
+
     def _commitMerge(self):
 
         try:
@@ -263,10 +259,10 @@ class Values(dict):
     def _revertMerge(self):
 
         try:
-            self._item._values = self._original
+            self.update(self._original)
+            del self._original
         except AttributeError:
             pass
-
         
     def _checkValue(self, logger, name, value, attrType):
 
@@ -541,6 +537,14 @@ class References(Values):
 
         super(References, self)._unload()
 
+    def _isRefList(self, name):
+
+        try:
+            value = self[name]
+            return value is not None and value._isRefList()
+        except KeyError:
+            return False
+
     def _saveRef(self, name, other, generator, withSchema, version, attrs,
                  mode, previous=None, next=None, alias=None):
 
@@ -644,19 +648,21 @@ class References(Values):
     def _revertMerge(self):
 
         try:
-            self._item._references = references = self._original
+            self.update(self._original)
+            del self._original
         except AttributeError:
-            references = self
+            pass
 
         try:
             del self._dirties
         except AttributeError:
             pass
 
-        for key, value in references.iteritems():
+        for key, value in self.iteritems():
             try:
                 if value is not None and value._isRefList():
-                    references[key] = value._original
+                    self[key] = value._original
+                    del value._original
             except AttributeError:
                 pass
 

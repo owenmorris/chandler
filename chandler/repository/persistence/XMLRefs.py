@@ -48,6 +48,7 @@ class PersistentRefs(object):
 
         target._changedRefs.clear()
         target._changedRefs.update(self._changedRefs)
+        target._count = self._count
 
     def _setItem(self, item):
 
@@ -146,28 +147,28 @@ class PersistentRefs(object):
 
         moves = {}
 
-        def merge(version, (collection, child), ref):
-            if collection == self.uuid:     # the children collection
+        def merge(version, (collection, item), ref):
+            if collection == self.uuid:     # the collection
 
-                if child == self.uuid:      # the list head
+                if item == self.uuid:       # the list head
                     pass
 
-                elif ref is None:           # removed child
-                    op, oldAlias = self._changedRefs.get(child, (-1, None))
+                elif ref is None:           # removed item
+                    op, oldAlias = self._changedRefs.get(item, (-1, None))
                     if op == 0:
-                        self._e_1_remove(child)
-                    elif self.has_key(child):
-                        del self[child]
+                        self._e_1_remove(item)
+                    elif self.has_key(item):
+                        del self[item]
 
                 else:
                     previousKey, nextKey, alias = ref
-                    op, oldAlias = self._changedRefs.get(child, (0, None))
+                    op, oldAlias = self._changedRefs.get(item, (0, None))
 
                     if op == 1:
-                        self._e_2_remove(child)
+                        self._e_2_remove(item)
 
                     try:
-                        link = self._get(child)
+                        link = self._get(item)
                         if link._alias != alias:
                             if oldAlias is not None:
                                 self._e_1_renames(oldAlias, link._alias, alias)
@@ -175,25 +176,25 @@ class PersistentRefs(object):
                                 if alias is not None:
                                     key = self.resolveAlias(alias)
                                     if key is not None:
-                                        self._e_2_renames(key, alias, child)
-                                self.setAlias(child, alias)
+                                        self._e_2_renames(key, alias, item)
+                                self.setAlias(item, alias)
 
                     except KeyError:
                         if alias is not None:
                             key = self.resolveAlias(alias)
                             if key is not None:
-                                self._e_names(child, key, alias)
-                        link = self.__setitem__(child, None, alias=alias)
+                                self._e_names(item, key, alias)
+                        self._setFuture(item, alias)
 
                     if previousKey is None or self.has_key(previousKey):
-                        self.place(child, previousKey)
+                        self.place(item, previousKey)
                     else:
-                        moves[previousKey] = child
+                        moves[previousKey] = item
 
         self._getRefs().applyHistory(merge, self.uuid, oldVersion, toVersion)
 
-        for previousKey, child in moves.iteritems():
-            self.place(child, previousKey)
+        for previousKey, item in moves.iteritems():
+            self.place(item, previousKey)
 
 
 class XMLRefList(RefList, PersistentRefs):
@@ -248,6 +249,11 @@ class XMLRefList(RefList, PersistentRefs):
         if not loading:
             self._count += 1
 
+    def _setFuture(self, key, alias):
+        
+        super(RefList, self).__setitem__(key, key, alias=alias)
+        self._count += 1
+    
     def _xmlValue(self, name, item, generator, withSchema,
                   version, attrs, mode):
 
@@ -338,18 +344,19 @@ class XMLRefList(RefList, PersistentRefs):
 
     def _mergeChanges(self, oldVersion, toVersion):
 
-        raise MergeError, ('ref collections', self._item, 'merging ref collections is not yet implemented, overlapping attribute: %s' %(self._name), MergeError.BUG)
+        if self._indexes is not None:
+            raise MergeError, ('ref collections', self._item, 'merging ref collections with indexes is not yet implemented, overlapping attribute: %s' %(self._name), MergeError.BUG)
 
-#        target = self.view._createRefList(self._item, self._name,
-#                                          self._otherName, True, False, False,
-#                                          self.uuid)
-#
-#        target._original = self
-#
-#        self._copy_(target)
-#        self._item._references[self._name] = target
-#
-#        PersistentRefs._mergeChanges(target, oldVersion, toVersion)
+        target = self.view._createRefList(self._item, self._name,
+                                          self._otherName, True, False, False,
+                                          self.uuid)
+
+        target._original = self
+
+        self._copy_(target)
+        self._item._references[self._name] = target
+
+        PersistentRefs._mergeChanges(target, oldVersion, toVersion)
 
 
 class XMLNumericIndex(NumericIndex):
@@ -563,6 +570,10 @@ class XMLChildren(Children, PersistentRefs):
         if not loading:
             self._count += 1
 
+    def _setFuture(self, key, alias):
+        
+        self.__setitem__(key, None, alias=alias)
+    
     def _saveValues(self, version):
 
         store = self.view.repository.store

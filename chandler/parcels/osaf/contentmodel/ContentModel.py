@@ -101,14 +101,7 @@ class ContentItem(ChandlerItem):
         super (ContentItem, self).__init__(name, parent, kind)
 
         self.createdOn = DateTime.now()
-
-        # @@@ hack to avoid ref collection merging.
-        # Currently, ref collection merging isn't activated in the repository
-        # and setting creator in both the main thread and a background thread
-        # will cause a merge conflict.  For now, only set creator in the main
-        # thread:
-        if self.itsView.name == "MainThread":
-            self.creator = self.getCurrentMeContact()
+        self.creator = self.getCurrentMeContact()
 
 
     def InitOutgoingAttributes (self):

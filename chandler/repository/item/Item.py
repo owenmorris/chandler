@@ -747,10 +747,15 @@ class Item(object):
         checkRefs = self._references.check()
         result = checkValues and checkRefs
         
-        if recursive:
+        if recursive and self._children is not None:
+            l = len(self._children)
             for child in self.iterChildren():
+                l -= 1
                 check = child.check(True)
                 result = result and check
+            if l != 0:
+                self.itsView.logger.error("Iterator on children of %s doesn't match length (%d left for %d total)", self._repr_(), l, len(self._children))
+                return False
 
         return result
 
@@ -2299,8 +2304,7 @@ class Item(object):
             self._children._revertMerge()
         if status & Item.VMERGED:
             self._values._revertMerge()
-            self._references._revertMerge()
-        if status & Item.RMERGED:
+        if status & (Item.RMERGED | Item.VMERGED):
             self._references._revertMerge()
 
         self._status &= ~Item.MERGED

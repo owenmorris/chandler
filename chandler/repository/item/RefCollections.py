@@ -882,14 +882,20 @@ class RefList(LinkedMap):
         result = True
 
         key = self.firstKey()
+        prevKey = None
         while key:
             other = self._getRef(key)
             result = result and refs._checkRef(logger, name, other)
             l -= 1
+            prevKey = key
             key = self.nextKey(key)
             
         if l != 0:
             logger.error("Iterator on %s doesn't match length (%d left for %d total)", self, l, len(self))
+            return False
+
+        if prevKey != self.lastKey():
+            logger.error("iterator on %s doesn't finish on last key %s but on %s", self, self.lastKey(), prevKey)
             return False
 
         return result

@@ -6,8 +6,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from datetime import timedelta
 from time import time
-from struct import pack
-from cStringIO import StringIO
 
 from bsddb.db import DBLockDeadlockError
 
@@ -498,17 +496,22 @@ class XMLRepositoryView(OnDemandRepositoryView):
         if dirties is not None:
             dirties = HashTuple(dirties)
             overlaps = []
-            overlaps.extend([name for name in item._values._getDirties()
+            values = item._values
+            references = item._references
+            overlaps.extend([name for name in values._getDirties()
                              if name in dirties])
-            overlaps.extend([name for name in item._references._getDirties()
-                             if name in dirties])
+            overlaps.extend([name for name in references._getDirties()
+                             if name in dirties and
+                             not references._isRefList(name)])
             if overlaps:
                 self._e_2_overlap(item, overlaps[0])
 
         store = self.repository.store
-        mergeHandler = MergeHandler(self, item)
+        mergeHandler = MergeHandler(self, item, dirties)
         doc = store.loadItem(toVersion, item._uuid)
         store.parseDoc(doc, mergeHandler)
+        if mergeHandler.errorOccurred():
+            raise mergeHandler.saxError()
 
     def _i_merged(self, item):
 

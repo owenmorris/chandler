@@ -812,42 +812,32 @@ class ItemsHandler(ContentHandler):
 
 class MergeHandler(ItemHandler):
 
-    def __init__(self, repository, origItem):
+    def __init__(self, repository, origItem, dirties):
 
         super(MergeHandler, self).__init__(repository, None, None, False)
 
         self.origItem = origItem
-
-        if hasattr(origItem._values, '_original'):
-            self.values = origItem._values
-        else:
-            self.values = Values(None)
-            self.values._original = origItem._values
-            
-        if hasattr(origItem._references, '_original'):
-            self.references = origItem._references
-        else:
-            self.references = References(None)
-            self.references._original = origItem._references
+        self.values = origItem._values._prepareMerge()
+        self.references = origItem._references._prepareMerge()
+        self.dirties = dirties
 
     def itemEnd(self, itemHandler, attrs):
 
-        item = self.origItem
-        values = self.values
-        references = self.references
+        pass
 
-        values._copyChanges(item._values)
-        references._copyChanges(item._references)
+    def attributeEnd(self, itemHandler, attrs, **kwds):
 
-        for key, value in item._references.iteritems():
-            if value is not None and value._isRefList():
-                references[key] = value
-
-        item._values = values
-        item._references = references
-
-        values._item = item
-        references._item = item
+        name = attrs['name']
+        if self.dirties is None or name in self.dirties:
+            super(MergeHandler, self).attributeEnd(itemHandler, attrs, **kwds)
+        else:
+            Nil = self.origItem.Nil
+            value = self.values.get(name, Nil)
+            super(MergeHandler, self).attributeEnd(itemHandler, attrs, **kwds)
+            if value is Nil:
+                del self.values[name]
+            else:
+                self.values[name] = value
 
     def refEnd(self, itemHandler, attrs):
 
@@ -874,23 +864,24 @@ class MergeHandler(ItemHandler):
                 raise TypeError, (self.data, typeName)
 
             name = attrs['name']
-            otherName = self.getOtherName(name, self.getAttribute(name), attrs)
+            if self.dirties is None or name in self.dirties:
+                otherName = self.getOtherName(name, self.getAttribute(name),
+                                              attrs)
+                origItem = self.origItem
+                origRef = origItem._references.get(name, None)
 
-            origItem = self.origItem
-            origRef = origItem._references.get(name, None)
+                if origRef is None:
+                    itemRef = uuid
+                elif (origRef._isItem() and origRef._uuid == uuid or
+                      origRef._isUUID() and origRef == uuid):
+                    itemRef = origRef
+                else:
+                    if origRef._isUUID():
+                        origRef = origItem._references._getRef(name, origRef)
+                    origItem._references._unloadValue(name, origRef, otherName)
+                    itemRef = uuid
 
-            if origRef is None:
-                itemRef = uuid
-            elif (origRef._isItem() and origRef._uuid == uuid or
-                  origRef._isUUID() and origRef == uuid):
-                itemRef = origRef
-            else:
-                if origRef._isUUID():
-                    origRef = origItem._references._getRef(name, origRef)
-                origItem._references._unloadValue(name, origRef, otherName)
-                itemRef = uuid
-
-            self.references[name] = itemRef
+                self.references[name] = itemRef
 
     def kindEnd(self, itemHandler, attrs):
 
