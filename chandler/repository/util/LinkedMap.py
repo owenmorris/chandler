@@ -297,16 +297,8 @@ class LinkedMap(dict):
 
     def items(self):
 
-        items = []
-        for key in self.iterkeys():
-            items.append((key, self[key]))
-
-        return items
+        return [(key, self[key]) for key in self.iterkeys()]
 
     def _items(self):
 
-        items = []
-        for key in self._iterkeys():
-            items.append((key, self._get(key)))
-
-        return items
+        return [(key, self._get(key)) for key in self._iterkeys()]
