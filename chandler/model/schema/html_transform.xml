@@ -1,0 +1,46 @@
+<xsl:stylesheet version="1.0"
+     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+     xmlns:chan="http://osafoundation.org/2003/08/CoreSchema">
+   <xsl:output method="html" encoding="ISO-8859-1"/>
+   <xsl:key name="attr" match="chan:AttributeDefinition" use="@id"/>
+   
+   <!-- note on namespaces: since the source format uses namespaces,
+ALL LocationPaths must use a prefix here
+        The default namespace doesn't make a difference. -->
+   
+   <!-- starting point -->
+   <xsl:template match="chan:DomainSchema">
+     <html>
+       <head>
+         <title>Chander Schema Documentation</title>
+       </head>
+       <body>
+         <h1>Chandler Schema Documentation</h1>
+         <xsl:apply-templates select="chan:Kind"/>
+       </body>
+     </html>
+   </xsl:template>
+   
+   <!-- match once here for each Kind -->
+   <xsl:template match="chan:Kind">
+     <h2 class="kind"><a name="{translate(chan:label, ' ',
+'_')}"><xsl:value-of select="chan:label"/></a></h2>
+     <p class="kinddesc"><xsl:value-of select="chan:comment"/></p>
+     <table border="1">
+       <tr>
+         <th>Attribute</th>
+         <th>Description</th>
+       </tr>
+       <xsl:for-each select="chan:attribute">
+         <tr>
+           <td><xsl:value-of select="key('attr',
+@itemref)/chan:label"/></td>
+           <td><xsl:value-of select="key('attr',
+@itemref)/chan:comment"/></td>
+         </tr>
+       </xsl:for-each>
+     </table>
+     
+   </xsl:template>
+   
+ </xsl:stylesheet>
