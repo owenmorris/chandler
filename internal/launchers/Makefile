@@ -50,7 +50,7 @@ build: apply
 
 apply:
 ifeq ($(PYTHON_VER),2.4)
-	patch -Nup0 < patches-2.4
+	patch -Nup0 < patches-2.4; echo ok
 endif
 
 endif
