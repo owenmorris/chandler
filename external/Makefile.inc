@@ -99,7 +99,7 @@ compiler=$(BUILD_ROOT)/mingw-3.1
 
 $(compiler): mingw-3.1.zip
 	cd $(BUILD_ROOT); \
-	gunzip mingw-3.1.zip
+	unzip mingw-3.1.zip
 
 mingw-3.1.zip:
 	cd $(BUILD_ROOT); \
