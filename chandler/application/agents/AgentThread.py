@@ -3,9 +3,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import threading, logging
 import Scheduler
-import threading
-import logging
 import application.Application # for repository
 
 class AgentThread(threading.Thread):
@@ -18,7 +17,7 @@ class AgentThread(threading.Thread):
         self.setDaemon(True)
         self.agent = agent
         self.agentID = agent.agentID
-        self.setName("AgentThread(" + str(self.agentID) + ")")
+        self.setName('AgentThread(' + str(self.agentID) + ')')
         self.scheduler = Scheduler.Scheduler()
         self.log = logging.getLogger('Agent')
 
@@ -26,7 +25,7 @@ class AgentThread(threading.Thread):
         #print 'checking for notification'
         notification = notificationManager.GetNextNotification(self.agentID)
         if notification:
-            self.scheduler.schedule(0, False, self._HandleNotification, notification, agentItem)
+            self.scheduler.schedule(0, False, 0, self._HandleNotification, notification, agentItem)
 
     def _HandleNotification(self, notification, agentItem):
         self.log.debug('got notification %s', notification.GetName())
@@ -49,10 +48,13 @@ class AgentThread(threading.Thread):
 
         self.instructionMap = _BuildInstructionMap(agentItem)
 
+        # schedule all instructions with times
+        self._ScheduleInstructions(agentItem)
+
         # XXX Set up a scheduler to look for new notifications until the
         #     notification manager can give us callbacks
         notificationManager = app.model.notificationManager
-        self.scheduler.schedule(0.1, True, self._CheckForNotifications, notificationManager, agentItem)
+        self.scheduler.schedule(0.1, True, 0.1, self._CheckForNotifications, notificationManager, agentItem)
 
         # Start the scheduler
         self.scheduler.start()
@@ -77,6 +79,37 @@ class AgentThread(threading.Thread):
                 instructions.append(instruction)
 
         return instructions
+
+    def _ScheduleInstructions(self, agentItem):
+        # this function is really ugly.. i should clean it up :)
+        instructions = agentItem.GetInstructions()
+        for instruction in instructions:
+            try:
+                schedule = instruction.schedule
+            except AttributeError:
+                continue
+
+            try:
+                startTime = schedule.startTime.ticks()
+            except AttributeError:
+                startTime = None
+
+            try:
+                repeatFlag = schedule.repeatFlag
+            except AttributeError:
+                repeatFlag = False
+
+            if repeatFlag:
+                try:
+                    repeatDelay = schedule.repeatDelay.seconds
+                except AttributeError:
+                    repeatDelay = 0
+
+            if startTime:
+                self.scheduler.scheduleabs(startTime, repeatFlag, repeatDelay, _ExecuteInstructions, agentItem, [instruction], None)
+            else:
+                self.scheduler.schedule(repeatDelay, repeatFlag, repeatDelay, _ExecuteInstructions, agentItem, [instruction], None)
+
 
 def _BuildInstructionMap(agentItem):
     """
@@ -109,3 +142,4 @@ def _ExecuteInstructions(agentItem, instructions, notification):
         result = instruction.Execute(agentItem, notification)
         log.debug('_ExecuteInstructions - yielding')
         yield result
+

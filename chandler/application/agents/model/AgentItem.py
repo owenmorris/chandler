@@ -4,7 +4,6 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.item.Item import Item
-import application.Application # for repository
 
 """
 The Agent Class is the base class for all agents.  It holds the transient dynamic state of an agent,
@@ -90,10 +89,7 @@ class AgentItem(Item):
           FIXME: Not implemented yet
         """
 
-        try:
-            if self.status == None:
-                pass
-        except:
+        if not self.hasAttributeValue('status'):
             self.status = {}
 
         self.status['busyness'] = str(self._CalculateBusyness())
@@ -114,7 +110,7 @@ class AgentItem(Item):
             print "- Instruction"
             actions = instruction.GetActions()
             for action in actions:
-                print "  -", action.GetName(), "[" + str(action.GetCompletionPercentage()) + "%]", action.GetMagicNumber()
+                print "  -", action.GetName(), "[" + str(action.GetCompletionPercentage()) + "%]", instruction.GetMagicNumber(action.getUUID())
 
     def _CalculateBusyness(self):
         # returns the average magic number of all the agent's actions
@@ -124,7 +120,7 @@ class AgentItem(Item):
         for instruction in instructions:
             actions = instruction.GetActions()
             for action in actions:
-                n += action.GetMagicNumber()
+                n += instruction.GetMagicNumber(action.getUUID())
                 i += 1
         if i == 0:
             return 0.0

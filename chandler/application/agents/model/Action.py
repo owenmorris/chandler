@@ -3,32 +3,12 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os
-import os.path
-import time
+import os, os.path, time
 
 from wxPython.wx import *
 
 from repository.item.Item import Item
 import application.Application # for repository
-
-class Timer:
-    def __init__(self):
-        self.starttime = time.time()
-        self.count = 0
-        self.executeTime = 0 # amount of time spent executing
-
-    def getNumber(self):
-        try:
-            running = time.time() - self.starttime # seconds
-            #averagetime = self.executeTime / self.count
-            return self.executeTime / running
-        except:
-            return -1
-
-    def update(self, length):
-        self.count += 1
-        self.executeTime += length
 
 """
 The Action Class is a persistent object containing information about a
@@ -36,22 +16,14 @@ particular action that can be executed by an agent, either explictly at the
 user's request, or automatically, as specified by a conditional instruction.
 """
 class Action(Item):
-    def __init__(self, name, parent, kind):
-        Item.__init__(self, name, parent, kind)
-        self.timer = Timer()
-
-    def _fillItem(self, name, parent, kind, **kwds):
-        Item._fillItem(self, name, parent, kind, **kwds)
-        self.timer = Timer()
-
     def IsAsynchronous(self):
         """
           return True if the action should be executed asynchronously
         """
-        if self.hasAttributeValue('asyncFlag'):
+        try:
             return self.asyncFlag
-        
-        return False
+        except:
+            return False
         
     def UseWxThread(self):
         """
@@ -60,20 +32,20 @@ class Action(Item):
            they can safely make wxWindows calls, but they shouldn't be
            time consuming
         """
-        if self.hasAttributeValue('wxThreadFlag'):
+        try:
             return self.wxThreadFlag
-        
-        return False
+        except:
+            return False
 
     def NeedsConfirmation(self):
         """
           if the confirmFlag is True, we require that the user confirms
           the action
         """
-        if self.hasAttributeValue('confirmFlag'):
+        try:
             return self.confirmFlag
-        
-        return False
+        except:
+            return False
     
     def GetName(self):
         return self.getItemName()
@@ -88,14 +60,6 @@ class Action(Item):
             __import__(moduleName, {}, {}, className)
         
     def Execute(self, agent, notification):
-        start = time.clock()
-
-        result = self._Execute(agent, notification)
-
-        self.timer.update(time.clock() - start)
-        return result
-
-    def _Execute(self, agent, notification):
         '''
           perform an action according to the action type.
           FIXME:  right now we run the scripts in the current context, so
@@ -105,7 +69,8 @@ class Action(Item):
         result = None
         script = self.actionScript
         actionType = self.actionType
-        data = notification.GetData()
+        if notification:
+            data = notification.GetData()
         
         # set up an optional value to be used by the script
         if self.hasAttributeValue('actionValue'):
@@ -152,9 +117,6 @@ class Action(Item):
            get the completion percentage of asynchronous actions
         '''
         return 0
-
-    def GetMagicNumber(self):
-        return self.timer.getNumber()
 
 
 """

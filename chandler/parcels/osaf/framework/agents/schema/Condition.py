@@ -17,11 +17,9 @@ class Condition(Item):
           return a list of notifications used by this condition
         """
         try:
-            resultList = self.conditionNotification.split(',')  
+            return self.conditionNotification.split(',')
         except AttributeError:
-            resultList = []
-                
-        return resultList
+            return []
          
     def IsSatisfied(self, notification):
         """
@@ -84,4 +82,3 @@ class Condition(Item):
                return False               
         
         return False
-    

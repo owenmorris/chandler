@@ -11,14 +11,18 @@ import logging
 __all__ = ['Scheduler']
 
 class Event:
-    def __init__(self, delay, repeat, action, *args):
-        self._delay = delay
+    def __init__(self, startTime, repeat, repeatDelay, action, *args):
+        self._startTime = startTime
+        self._delay = repeatDelay
         self.repeat = repeat
+
         self.action = action
         self.args = args
+
         self.condition = None
         self.conditionis = True
-        self.resetTime()
+
+        self.time = self._startTime
 
     def resetTime(self):
         self.time = _time.time() + self._delay
@@ -133,17 +137,15 @@ class Scheduler:
         finally:
             self.__condition.release()
 
-    def schedule(self, delay, repeat, action, *args):
-        event = Event(delay, repeat, action, *args)
+    def schedule(self, delay, repeatFlag, repeatDelay, action, *args):
+        event = Event(_time.time() + delay, repeatFlag, repeatDelay, action, *args)
         self._scheduleEvent(event)
         return event
 
-    def scheduleabs(self, time, action, *args):
-        now = _time.time()
-        delay = 0
-        if now <= time:
-            delay = time - now
-        return self.schedule(delay, False, action, *args)
+    def scheduleabs(self, startTime, repeatFlag, repeatDelay, action, *args):
+        event = Event(startTime, repeatFlag, repeatDelay, action, *args)
+        self._scheduleEvent(event)
+        return event
 
     def start(self):
         #self.log.debug("starting scheduler")
@@ -236,7 +238,7 @@ class Scheduler:
                 event.conditionis = result[2]
         elif isinstance(result, types.GeneratorType):
             #print 'got generator'
-            self.schedule(0.01, True, result.next)
+            self.schedule(0.01, True, 0.01, result.next)
 
         if event.repeat:
             event.resetTime()
@@ -280,17 +282,17 @@ def lala():
 def _main():
     thread = TestThread()
     thread.start()
-    thread.scheduler.schedule(10,  False, foo, '10 blah')
-    thread.scheduler.schedule(5,   False, foo, '5 blah')
-    thread.scheduler.schedule(15,  False, foo, '15 blah')
-    thread.scheduler.schedule(5.2, False, foo, '5.2 blah')
-    thread.scheduler.schedule(5.3, False, foo, '5.3 blah')
-    thread.scheduler.schedule(5.4, False, foo, '5.4 blah')
-    thread.scheduler.schedule(2,   False, foo, '2 blah')
-    thread.scheduler.schedule(1,   False, foo, '1 blah')
-    thread.scheduler.schedule(4,   False, bar)
-    thread.scheduler.schedule(3,   False, bar)
-    thread.scheduler.schedule(2,   False, lala)
+    thread.scheduler.schedule(10,  False, 0, foo, '10 blah')
+    thread.scheduler.schedule(5,   False, 0, foo, '5 blah')
+    thread.scheduler.schedule(15,  False, 0, foo, '15 blah')
+    thread.scheduler.schedule(5.2, False, 0, foo, '5.2 blah')
+    thread.scheduler.schedule(5.3, False, 0, foo, '5.3 blah')
+    thread.scheduler.schedule(5.4, False, 0, foo, '5.4 blah')
+    thread.scheduler.schedule(2,   False, 0, foo, '2 blah')
+    thread.scheduler.schedule(1,   False, 0, foo, '1 blah')
+    thread.scheduler.schedule(4,   False, 0, bar)
+    thread.scheduler.schedule(3,   False, 0, bar)
+    thread.scheduler.schedule(2,   False, 0, lala)
 
 if __name__ == '__main__':
     _main()

@@ -6,7 +6,7 @@ from application.agents.model.Action import Action
 whitelist = [ ".*osafoundation.*" ]
 
 class ApproveAction(Action):
-    def _Execute(self, agent, notification):
+    def Execute(self, agent, notification):
         print 'Executing', self.getItemDisplayName()
 
         data = notification.GetData()
