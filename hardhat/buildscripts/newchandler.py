@@ -114,7 +114,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     
             if changes == "-changes":
                 doInstall(releaseMode, workingDir, log)
-                makeDistrib(hardhatScript, releaseMode, outputDir, buildVersion, log)
+                makeDistrib(hardhatScript, releaseMode, outputDir, buildVersionEscaped, log)
     
             ret = Do(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
@@ -167,7 +167,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log
     return "success"  # end of Do( )
 
 #   Create end-user, developer distributions
-def makeDistrib(hardhatScript, mode, outputDir, buildVersion, log):
+def makeDistrib(hardhatScript, mode, outputDir, buildVersionEscaped, log):
 
     print "Making distribution files for " + mode
     log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
