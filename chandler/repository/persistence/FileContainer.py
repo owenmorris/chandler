@@ -61,28 +61,37 @@ class FileContainer(DBContainer):
         cursor = None
         results = []
 
-        try:
-            cursor = self.cursor()
-            
+        while True:
             try:
-                value = cursor.set_range('', flags=DB_DIRTY_READ,
-                                         dlen=0, doff=0)
-            except DBNotFoundError:
-                return results
+                cursor = self.cursor()
+            
+                try:
+                    value = cursor.set_range('', flags=DB_DIRTY_READ,
+                                             dlen=0, doff=0)
+                except DBNotFoundError:
+                    return results
+                except DBLockDeadlockError:
+                    self._logDL(7)
+                    continue
 
-            else:
-                while value is not None:
-                    value = value[0]
-                    length = unpack('>H', value[0:2])[0]
-                    results.append(value[2:2+length])
+                else:
+                    while value is not None:
+                        value = value[0]
+                        length = unpack('>H', value[0:2])[0]
+                        results.append(value[2:2+length])
 
-                    value = cursor.next()
+                        while True:
+                            try:
+                                value = cursor.next()
+                                break
+                            except DBLockDeadlockError:
+                                self._logDL(6)
                         
-                return results
+                    return results
 
-        finally:
-            if cursor:
-                cursor.close()
+            finally:
+                if cursor:
+                    cursor.close()
 
     def openFile(self, name):
 
@@ -416,13 +425,14 @@ class IndexContainer(FileContainer):
 
         super(IndexContainer, self).__init__(store, name, txn, create)
 
+        attachCurrentThread()
         if create:
-            attachCurrentThread()
+#            attachCurrentThread()
             directory = DbDirectory(txn, self._db, store._blocks._db,
                                     DB_DIRTY_READ)
             indexWriter = IndexWriter(directory, StandardAnalyzer(), True)
             indexWriter.close()
-            detachCurrentThread()
+#            detachCurrentThread()
 
     def close(self):
 
@@ -431,12 +441,12 @@ class IndexContainer(FileContainer):
     def attachView(self, view):
 
         super(IndexContainer, self).attachView(view)
-        attachCurrentThread()
+#        attachCurrentThread()
 
     def detachView(self, view):
 
         super(IndexContainer, self).detachView(view)
-        detachCurrentThread()
+#        detachCurrentThread()
 
     def getIndexWriter(self):
 
