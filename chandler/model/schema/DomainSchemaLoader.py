@@ -30,39 +30,38 @@ from model.item.Item import Item
 # XML format tag is the key, Repository expected kind is the value
 
 ITEM_TAGS = {'Kind' : 'Kind',
-             'AttributeDefinition' : 'Attribute',
+             'Attribute' : 'Attribute',
              'Alias': 'Alias',
              'Type' : 'Type'}
 
-
 # XML format tag is the key, Repository expected attribute is the value
 
-ATTRIBUTE_TEXT_TAGS = {'label': 'DisplayName',
-                       'comment': 'comment',
-                       'example': 'example',
-                       'issue' : 'issue',
+ATTRIBUTE_TEXT_TAGS = {'displayName': 'DisplayName',
+                       'description': 'description',
                        'version' : 'version',
-                       'default' : 'DefaultValue',
-                       'derivation' : 'derivation',
+                       'defaultValue' : 'DefaultValue',
                        'cardinality': 'Cardinality',
-                       'relationshipType': 'relationshipType',
-                       'pythonClass' : 'Class'}
+                       'relationshipType': 'relationshipType'}
 
-ATTRIBUTE_REF_TAGS = {'superKind' : 'SuperKinds',
-                      'superAttribute': 'SuperAttribute',
-                      'attribute': 'Attributes',
+ATTRIBUTES_TEXT_TAGS = {'examples': 'examples',
+                        'issues' : 'issues'}
+
+ATTRIBUTE_REF_TAGS = {'superAttribute': 'SuperAttribute',
                       'type': 'Type',
-                      'equivalentKind':'equivalentKind',
-                      'equivalentAttribute':'equivalentAttribute',
                       'inverseAttribute':'OtherName',
-                      'aliasFor':'aliasFor'}
+                      'displayAttribute':'DisplayAttribute',
+                      'inheritFrom' : 'InheritFrom'}
+
+ATTRIBUTES_REF_TAGS = {'superKinds' : 'SuperKinds',
+                       'attributes': 'Attributes',
+                       'equivalentKinds':'equivalentKinds',
+                       'equivalentAttributes':'equivalentAttributes',
+                       'aliasFor':'aliasFor'}
 
 ATTRIBUTE_BOOL_TAGS = {'hidden' : 'hidden',
                        'abstract' : 'abstract',
                        'unidirectional' : 'unidirectional',
                        'required' : 'Required'}
-
-IGNORE_TAGS = ['displayAttribute']
 
 class DomainSchemaLoader(object):
     """ Load items defined in the schema file into the repository,
@@ -113,8 +112,13 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
         currentTag = self.tags[-1]
 
         # Add the text as the value of the current attribute
-        if currentTag in ATTRIBUTE_TEXT_TAGS:
+        if (currentTag in ATTRIBUTE_TEXT_TAGS):
             self.currentAttributes[currentTag] = content
+        elif (currentTag in ATTRIBUTES_TEXT_TAGS):
+            if not self.currentAttributes.has_key(currentTag):
+                self.currentAttributes[currentTag] = []
+            self.currentAttributes[currentTag].append(content)
+
 
     def startElementNS(self, (uri, local), qname, attrs):
 
@@ -126,32 +130,33 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
             self.schemaAttributes = {}
             self.currentAttributes = self.schemaAttributes
             
-            idString = attrs.getValue((None, 'id'))
+            idString = attrs.getValue((None, 'itemName'))
             rootName = attrs.getValue((None, 'root'))
             self.domainSchema = self.createDomainSchema(idString, rootName)
 
         # Create the item
         if local in ITEM_TAGS:
             self.currentAttributes = {}
-            self.currentAttributes['attribute'] = []
-            idString = attrs.getValue((None, 'id'))
+            idString = attrs.getValue((None, 'itemName'))
             if local == 'Kind':
                 self.currentItem = self.createKind(idString)
-            elif local == 'AttributeDefinition':
+            elif local == 'Attribute':
                 self.currentItem = self.createAttributeDefinition(idString)
 
         # Add an attribute to the current item
         elif local in ATTRIBUTE_REF_TAGS:
             refValue = attrs.getValue((None, 'itemref'))
-            if local == 'attribute':
-                self.currentAttributes[local].append(refValue)
-            else:
-                self.currentAttributes[local] = refValue
+            self.currentAttributes[local] = refValue
+        elif local in ATTRIBUTES_REF_TAGS:
+            refValue = attrs.getValue((None, 'itemref'))
+            if not self.currentAttributes.has_key(local):
+                self.currentAttributes[local] = []
+            self.currentAttributes[local].append(refValue)
         elif local in ATTRIBUTE_BOOL_TAGS:
             self.currentAttributes[local] = True
 
         # Create a mapping from a prefix to the repository path
-        if local == 'containmentPath':
+        if local == 'itemPathMapping':
             prefix = attrs.getValue((None, 'prefix'))
             path = attrs.getValue((None, 'path'))
             self.mapping[prefix] = path
@@ -174,7 +179,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
     def findItem(self, reference):
         """Given a reference with a namespace prefix,
            find the item in the repository. Look up the prefix
-           using the mapping defined by the containmentPath tag.
+           using the mapping defined by the itemPathMapping tag.
         """
         [prefix, local] = reference.split(':')
         path = self.mapping[prefix] + local
@@ -219,38 +224,46 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
         for key in attributeDictionary.keys():
 
+            # @@@ debugging junk
             #print "Loading attributes(%s, %s)" % (key,
             #                                      attributeDictionary[key])
-            
-            # For references, find the item to set the attribute
-            if key in ATTRIBUTE_REF_TAGS:
 
-                # Special case for 'attribute', our only multivalued attribute
-                if key == 'attribute':
-                    for attr in attributeDictionary[key]:
-                        ref = self.findItem(attr)
-                        # print "Loading aspects(%s, %s)" % (attr, ref)
-                        item.attach(ATTRIBUTE_REF_TAGS[key], ref)
-
-                # Special case for 'OtherName'
-                elif key == 'inverseAttribute':
-                    ref = self.findItem(attributeDictionary[key])
-                    item.setAttributeValue(ATTRIBUTE_REF_TAGS[key],
-                                           ref.getItemName())
-                                        
-                else:
-                    ref = self.findItem(attributeDictionary[key])
-                    item.setAttributeValue(ATTRIBUTE_REF_TAGS[key], ref)
+            # Special cases first
 
             # Store class mapping in a dictionary
-            elif key == 'pythonClass':
+            if key == 'classes':
                 value = attributeDictionary[key]
                 item.setValue('Classes', value, 'python')
-                    
-            # For booleans or text, look up the value in the dictionary
-            elif key in ATTRIBUTE_TEXT_TAGS:
+
+            # Special case for 'OtherName'
+            elif key == 'inverseAttribute':
+                ref = self.findItem(attributeDictionary[key])
+                item.setAttributeValue(ATTRIBUTE_REF_TAGS[key],
+                                       ref.getItemName())
+            
+            # For references, find the item to set the attribute
+            elif key in ATTRIBUTE_REF_TAGS:
+                ref = self.findItem(attributeDictionary[key])
+                item.setAttributeValue(ATTRIBUTE_REF_TAGS[key], ref)
+
+            # Multivalued references
+            elif key in ATTRIBUTES_REF_TAGS:
+                for attr in attributeDictionary[key]:
+                    ref = self.findItem(attr)
+                    # print "Loading aspects(%s, %s)" % (attr, ref)
+                    item.attach(ATTRIBUTES_REF_TAGS[key], ref)
+                                        
+            # Text, look up attribute in the dictionary
+            elif (key in ATTRIBUTE_TEXT_TAGS):
                 value = attributeDictionary[key]
                 item.setAttributeValue(ATTRIBUTE_TEXT_TAGS[key], value)
+                
+            # Multivalued text, look up attribute in the dictionary
+            elif (key in ATTRIBUTES_TEXT_TAGS):
+                value = attributeDictionary[key]
+                item.setAttributeValue(ATTRIBUTES_TEXT_TAGS[key], value)
+
+            # Booleans, look up the value in the dictionary
             elif key in ATTRIBUTE_BOOL_TAGS:
                 value = attributeDictionary[key]
                 item.setAttributeValue(ATTRIBUTE_BOOL_TAGS[key], value)

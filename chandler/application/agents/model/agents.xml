@@ -3,262 +3,262 @@
 <!-- Here are schema definitions for the AgentItem repository object, as well as related subjects -->
 <!-- Schemas for: Condition, Action, Instruction, Repertoire, AgentItem -->
 
-<DomainSchema id="agents:AgentsSchema"
+<DomainSchema itemName="agents:AgentsSchema"
               root="Agents"
               xmlns="http://osafoundation.org/2003/08/schema_definition">
 
-  <label>Agents Schema</label>
-  <comment>Agents schema for the 0.2 release</comment>
+  <displayName>Agents Schema</displayName>
+  <description>Agents schema for the 0.2 release</description>
   <version>0.1</version>
 
-  <containmentPath prefix="types"
+  <itemPathMapping prefix="types"
                    path="//Schema/Model/Types/"/>
-  <containmentPath prefix="agents"
+  <itemPathMapping prefix="agents"
                    path="//Schema/AgentsSchema/"/>
 
 
 <!-- Attributes used in Actions -->
 
-  <AttributeDefinition id="agents:actionName">
-    <label>Action Name</label>
+  <Attribute itemName="agents:actionName">
+    <displayName>Action Name</displayName>
     <cardinality>single</cardinality>
     <type itemref="types:String"/>
-  </AttributeDefinition>
+  </Attribute>
   
-    <AttributeDefinition id="agents:actionDescription">
-    <label>Action Description</label>
+  <Attribute itemName="agents:actionDescription">
+    <displayName>Action Description</displayName>
     <type itemref="types:String"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:actionType">
-    <label>Action Type</label>
+  <Attribute itemName="agents:actionType">
+    <displayName>Action Type</displayName>
     <type itemref="types:String"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:actionScript">
-    <label>Action Script</label>
+  <Attribute itemName="agents:actionScript">
+    <displayName>Action Script</displayName>
     <type itemref="types:String"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:asyncFlag">
-    <label>Asynchrounous Flag</label>
+  <Attribute itemName="agents:asyncFlag">
+    <displayName>Asynchrounous Flag</displayName>
     <type itemref="types:Bool"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:actionOwner">
-    <label>Action Instruction Backlink</label>
+  <Attribute itemName="agents:actionOwner">
+    <displayName>Action Instruction Backlink</displayName>
     <type itemref="agents:Instruction"/>
     <cardinality>single</cardinality>
     <inverseAttribute itemref="agents:actions"/>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:actionRepertoireOwner">
-    <label>Action Repertoire Backlink</label>
+  <Attribute itemName="agents:actionRepertoireOwner">
+    <displayName>Action Repertoire Backlink</displayName>
     <type itemref="agents:Repertoire"/>
     <cardinality>single</cardinality>
     <inverseAttribute itemref="agents:possibleActions"/>
-  </AttributeDefinition>
+  </Attribute>
   
   <!-- Action Item Definition -->
-    <Kind id="agents:Action">
-      <label>Action</label>
-      <attribute itemref="agents:actionName"/>
-      <attribute itemref="agents:actionDescription"/>
-      <attribute itemref="agents:actionType"/>
-      <attribute itemref="agents:actionScript"/>
-      <attribute itemref="agents:asyncFlag"/>
-      <attribute itemref="agents:actionOwner"/>
-      <attribute itemref="agents:actionRepertoireOwner"/>
-      <pythonClass>application.agents.model.Action.Action</pythonClass>
+    <Kind itemName="agents:Action">
+      <displayName>Action</displayName>
+      <attributes itemref="agents:actionName"/>
+      <attributes itemref="agents:actionDescription"/>
+      <attributes itemref="agents:actionType"/>
+      <attributes itemref="agents:actionScript"/>
+      <attributes itemref="agents:asyncFlag"/>
+      <attributes itemref="agents:actionOwner"/>
+      <attributes itemref="agents:actionRepertoireOwner"/>
+      <classes key="python">application.agents.model.Action.Action</classes>
     </Kind>
   
   <!-- Attributes used in Condition, which is a sub-class of action -->
-  <AttributeDefinition id="agents:conditionType">
-    <label>Condition Type</label>
+  <Attribute itemName="agents:conditionType">
+    <displayName>Condition Type</displayName>
     <type itemref="types:String"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:conditionMinimum">
-    <label>Minimum Value</label>
+  <Attribute itemName="agents:conditionMinimum">
+    <displayName>Minimum Value</displayName>
     <type itemref="types:Integer"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:conditionMaximum">
-    <label>Maximum Value</label>
+  <Attribute itemName="agents:conditionMaximum">
+    <displayName>Maximum Value</displayName>
     <type itemref="types:Integer"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:conditionNotification">
-    <label>Condition Notification</label>
+  <Attribute itemName="agents:conditionNotification">
+    <displayName>Condition Notification</displayName>
     <type itemref="types:String"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:conditionOwner">
-    <label>Instruction Backlink</label>
+  <Attribute itemName="agents:conditionOwner">
+    <displayName>Instruction Backlink</displayName>
     <type itemref="agents:Instruction"/>
     <cardinality>single</cardinality>
     <inverseAttribute itemref="agents:conditions"/>
-  </AttributeDefinition>
+  </Attribute>
   
   <!-- Condition Item Definition -->
   
-  <Kind id="agents:Condition">
-    <label>Action</label>
-    <attribute itemref="agents:conditionType"/>
-    <attribute itemref="agents:conditionMinimum"/>
-    <attribute itemref="agents:conditionMaximum"/>
-    <attribute itemref="agents:conditionNotification"/>
-    <attribute itemref="agents:conditionOwner"/>
-    <superKind itemref="agents:Action"/>
-    <pythonClass>application.agents.model.Condition.Condition</pythonClass>
+  <Kind itemName="agents:Condition">
+    <displayName>Action</displayName>
+    <attributes itemref="agents:conditionType"/>
+    <attributes itemref="agents:conditionMinimum"/>
+    <attributes itemref="agents:conditionMaximum"/>
+    <attributes itemref="agents:conditionNotification"/>
+    <attributes itemref="agents:conditionOwner"/>
+    <superKinds itemref="agents:Action"/>
+    <classes key="python">application.agents.model.Condition.Condition</classes>
   </Kind>
   
   <!-- Attributes used in Instruction -->
-  <AttributeDefinition id="agents:enabled">
-    <label>Enabled Flag</label>
+  <Attribute itemName="agents:enabled">
+    <displayName>Enabled Flag</displayName>
     <type itemref="types:Bool"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:conditions">
-    <label>Instruction Conditions</label>
+  <Attribute itemName="agents:conditions">
+    <displayName>Instruction Conditions</displayName>
     <type itemref="agents:Condition"/>
     <cardinality>list</cardinality>
     <inverseAttribute itemref="agents:conditionOwner"/>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:actions">
-    <label>Instruction Conditions</label>
+  <Attribute itemName="agents:actions">
+    <displayName>Instruction Conditions</displayName>
     <type itemref="agents:Action"/>
     <cardinality>list</cardinality>
     <inverseAttribute itemref="agents:actionOwner"/>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:instructionOwner">
-    <label>Owning Agent</label>
+  <Attribute itemName="agents:instructionOwner">
+    <displayName>Owning Agent</displayName>
     <type itemref="agents:AgentItem"/>
     <cardinality>single</cardinality>
     <inverseAttribute itemref="agents:instructions"/>
-  </AttributeDefinition>
+  </Attribute>
   
   <!-- Instruction Item Definition -->
-  <Kind id="agents:Instruction">
-    <label>Instruction</label>
-    <attribute itemref="agents:enabled"/>
-    <attribute itemref="agents:conditions"/>
-    <attribute itemref="agents:actions"/>
-    <attribute itemref="agents:instructionOwner"/>
-    <pythonClass>application.agents.model.Instruction.Instruction</pythonClass>
+  <Kind itemName="agents:Instruction">
+    <displayName>Instruction</displayName>
+    <attributes itemref="agents:enabled"/>
+    <attributes itemref="agents:conditions"/>
+    <attributes itemref="agents:actions"/>
+    <attributes itemref="agents:instructionOwner"/>
+    <classes key="python">application.agents.model.Instruction.Instruction</classes>
   </Kind>
   
   <!-- Attributes used in Repertoire -->
-  <AttributeDefinition id="agents:possibleActions">
-    <label>POssible Actions</label>
+  <Attribute itemName="agents:possibleActions">
+    <displayName>POssible Actions</displayName>
     <type itemref="agents:Action"/>
     <cardinality>list</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:possibleConditions">
-    <label>Possible Conditions</label>
+  <Attribute itemName="agents:possibleConditions">
+    <displayName>Possible Conditions</displayName>
     <type itemref="agents:Condition"/>
     <cardinality>list</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:repertoireOwner">
-    <label>Owning Agent</label>
+  <Attribute itemName="agents:repertoireOwner">
+    <displayName>Owning Agent</displayName>
     <type itemref="agents:AgentItem"/>
     <cardinality>single</cardinality>
     <inverseAttribute itemref="agents:repertoire"/>
-  </AttributeDefinition>
+  </Attribute>
   
   <!-- Repertoire Item Definition -->
-  <Kind id="agents:Repertoire">
-    <label>Repertoire</label>
-    <attribute itemref="agents:possibleActions"/>
-    <attribute itemref="agents:possibleConditions"/>
-    <attribute itemref="agents:repertoireOwner"/>
-    <pythonClass>application.agents.model.Repertoire.Repertoire</pythonClass>
+  <Kind itemName="agents:Repertoire">
+    <displayName>Repertoire</displayName>
+    <attributes itemref="agents:possibleActions"/>
+    <attributes itemref="agents:possibleConditions"/>
+    <attributes itemref="agents:repertoireOwner"/>
+    <classes key="python">application.agents.model.Repertoire.Repertoire</classes>
   </Kind>
   
   <!-- Attributes used in AgentItem -->
-  <AttributeDefinition id="agents:agentName">
-    <label>Agent Name</label>
+  <Attribute itemName="agents:agentName">
+    <displayName>Agent Name</displayName>
     <type itemref="types:String"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:agentOwner">
-    <label>Agent Owner</label>
+  <Attribute itemName="agents:agentOwner">
+    <displayName>Agent Owner</displayName>
     <type itemref="types:String"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:roles">
-    <label>Agent Roles</label>
+  <Attribute itemName="agents:roles">
+    <displayName>Agent Roles</displayName>
     <type itemref="types:String"/>
     <cardinality>list</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:resume">
-    <label>Agent Resume</label>
+  <Attribute itemName="agents:resume">
+    <displayName>Agent Resume</displayName>
     <type itemref="types:String"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:repertoire">
-    <label>Agent Repertoire</label>
+  <Attribute itemName="agents:repertoire">
+    <displayName>Agent Repertoire</displayName>
     <type itemref="agents:Repertoire"/>
     <cardinality>single</cardinality>
     <inverseAttribute itemref="agents:repertoireOwner"/>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:instructions">
-    <label>Agent Instructions</label>
+  <Attribute itemName="agents:instructions">
+    <displayName>Agent Instructions</displayName>
     <type itemref="agents:Instruction"/>
     <cardinality>list</cardinality>
     <inverseAttribute itemref="agents:instructionOwner"/>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:sourceFile">
-    <label>Path of Source File</label>
+  <Attribute itemName="agents:sourceFile">
+    <displayName>Path of Source File</displayName>
     <type itemref="types:String"/>
     <cardinality>single</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:imageData">
-    <label>Image Data</label>
+  <Attribute itemName="agents:imageData">
+    <displayName>Image Data</displayName>
     <type itemref="types:String"/>
     <cardinality>dict</cardinality>
-  </AttributeDefinition>
+  </Attribute>
   
-  <AttributeDefinition id="agents:prefData">
-    <label>Preference Data</label>
+  <Attribute itemName="agents:prefData">
+    <displayName>Preference Data</displayName>
     <type itemref="types:String"/>
     <cardinality>dict</cardinality>
-  </AttributeDefinition>
+  </Attribute>
 
   <!-- Finally, here's the AgentItem Definition -->
   
-  <Kind id="agents:AgentItem">
-    <label>The Agent</label>
-    <attribute itemref="agents:agentName"/>
-    <attribute itemref="agents:agentOwner"/>
-    <attribute itemref="agents:roles"/>
-    <attribute itemref="agents:resume"/>
-    <attribute itemref="agents:repertoire"/>
-    <attribute itemref="agents:instructions"/>
-    <attribute itemref="agents:sourceFile"/>
-    <attribute itemref="agents:imageData"/>
-    <attribute itemref="agents:prefData"/>
-    <pythonClass>application.agents.model.AgentItem.AgentItem</pythonClass>
+  <Kind itemName="agents:AgentItem">
+    <displayName>The Agent</displayName>
+    <attributes itemref="agents:agentName"/>
+    <attributes itemref="agents:agentOwner"/>
+    <attributes itemref="agents:roles"/>
+    <attributes itemref="agents:resume"/>
+    <attributes itemref="agents:repertoire"/>
+    <attributes itemref="agents:instructions"/>
+    <attributes itemref="agents:sourceFile"/>
+    <attributes itemref="agents:imageData"/>
+    <attributes itemref="agents:prefData"/>
+    <classes key="python">application.agents.model.AgentItem.AgentItem</classes>
   </Kind>
 
 </DomainSchema>

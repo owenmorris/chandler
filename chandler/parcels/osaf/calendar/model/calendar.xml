@@ -1,80 +1,80 @@
-<DomainSchema id="cal:CalendarSchema"
+<DomainSchema itemName="cal:CalendarSchema"
               root="Calendar"
               xmlns="http://osafoundation.org/2003/08/schema_definition">
 
-  <label>Calendar Schema</label>
-  <comment>Calendar schema for the 0.2 release</comment>
+  <displayName>Calendar Schema</displayName>
+  <description>Calendar schema for the 0.2 release</description>
   <version>0.1</version>
 
-  <containmentPath prefix="types" 
+  <itemPathMapping prefix="types" 
                    path="//Schema/Model/Types/"/>
-  <containmentPath prefix="cal" 
+  <itemPathMapping prefix="cal" 
                    path="//Schema/CalendarSchema/"/>
 
-  <AttributeDefinition id="cal:startTime">
-    <label>Start Time</label>
+  <Attribute itemName="cal:startTime">
+    <displayName>Start Time</displayName>
     <cardinality>single</cardinality>
     <type itemref="types:DateTime"/>
-  </AttributeDefinition>
+  </Attribute>
 
-  <AttributeDefinition id="cal:endTime">
-    <label>End Time</label>
+  <Attribute itemName="cal:endTime">
+    <displayName>End Time</displayName>
     <cardinality>single</cardinality>
     <type itemref="types:DateTime"/>
-  </AttributeDefinition>
+  </Attribute>
 
-  <AttributeDefinition id="cal:headline">
-    <label>Headline</label>
+  <Attribute itemName="cal:headline">
+    <displayName>Headline</displayName>
     <cardinality>single</cardinality>
     <type itemref="types:String"/>
-  </AttributeDefinition>
+  </Attribute>
 
-  <AttributeDefinition id="cal:location">
-    <label>Location</label>
+  <Attribute itemName="cal:location">
+    <displayName>Location</displayName>
     <cardinality>single</cardinality>
     <type itemref="cal:Location"/>
     <inverseAttribute itemref="cal:eventsAtLocation"/>
-  </AttributeDefinition>
+  </Attribute>
 
-  <AttributeDefinition id="cal:calendar">
-    <label>Calendar</label>
+  <Attribute itemName="cal:calendar">
+    <displayName>Calendar</displayName>
     <cardinality>set</cardinality>
     <type itemref="cal:Calendar"/>
-  </AttributeDefinition>
+  </Attribute>
 
-  <AttributeDefinition id="cal:name">
-    <label>Name</label>
+  <Attribute itemName="cal:name">
+    <displayName>Name</displayName>
     <cardinality>single</cardinality>
     <type itemref="types:String"/>
-  </AttributeDefinition>
+  </Attribute>
 
-  <AttributeDefinition id="cal:eventsAtLocation">
-    <label>Calendar Events</label>
+  <Attribute itemName="cal:eventsAtLocation">
+    <displayName>Calendar Events</displayName>
     <cardinality>dict</cardinality>
     <type itemref="cal:CalendarEvent"/>
     <inverseAttribute itemref="cal:location"/>
-  </AttributeDefinition>
+  </Attribute>
 
-  <Kind id="cal:CalendarEvent">
-    <label>Calendar Event</label>
-    <attribute itemref="cal:headline"/>
-    <attribute itemref="cal:startTime"/>
-    <attribute itemref="cal:endTime"/>
-    <attribute itemref="cal:location"/>
-    <pythonClass>OSAF.calendar.model.CalendarEvent.CalendarEvent</pythonClass>
+  <Kind itemName="cal:CalendarEvent">
+    <displayName>Calendar Event</displayName>
+    <attributes itemref="cal:headline"/>
+    <attributes itemref="cal:startTime"/>
+    <attributes itemref="cal:endTime"/>
+    <attributes itemref="cal:location"/>
+    <classes key="python">OSAF.calendar.model.CalendarEvent.CalendarEvent</classes>
   </Kind>
 
-  <Kind id="cal:Location">
-    <label>Location</label>
-    <attribute itemref="cal:name"/>
-    <attribute itemref="cal:eventsAtLocation"/>
-    <pythonClass>OSAF.calendar.model.Location.Location</pythonClass>
+  <Kind itemName="cal:Location">
+    <displayName>Location</displayName>
+    <attributes itemref="cal:name"/>
+    <attributes itemref="cal:eventsAtLocation"/>
+    <classes key="python">OSAF.calendar.model.Location.Location</classes>
   </Kind>
 
-  <Kind id="cal:Calendar">
-    <label>Calendar</label>
-    <attribute itemref="cal:name"/>
-    <pythonClass>OSAF.calendar.model.Calendar.Calendar</pythonClass>
+  <Kind itemName="cal:Calendar">
+    <displayName>Calendar</displayName>
+    <attributes itemref="cal:name"/>
+    <classes key="python">OSAF.calendar.model.Calendar.Calendar</classes>
   </Kind>
 
 </DomainSchema>
