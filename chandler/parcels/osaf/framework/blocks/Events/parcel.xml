@@ -15,8 +15,8 @@ of a limitation of the XML format, which will be eliminated</description>
   <version>0.3</version>
   
   <BlockEvent itemName="Quit">
-    <dispatchEnum>SendToTopController</dispatchEnum>
     <name>chandler/Quit</name>
+    <dispatchEnum>Controller</dispatchEnum>
   </BlockEvent>
 
 </core:Parcel>

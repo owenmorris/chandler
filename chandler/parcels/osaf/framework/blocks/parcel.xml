@@ -135,10 +135,8 @@
     <superKinds itemref="events:Event"/>
 
     <Enumeration itemName="dispatchEnumType">
-      <values>UUID</values>
       <values>Broadcast</values>
-      <values>SendToTopController</values>
-      <values>SendUpOneController</values>
+      <values>Controller</values>
     </Enumeration>
 
     <Attribute itemName="dispatchEnum">

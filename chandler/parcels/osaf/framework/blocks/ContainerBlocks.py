@@ -170,7 +170,7 @@ class MenuItem(ContainerChild):
 
         title = self.title
         if len(self.accel) > 0:
-            title = title + "\tChtrl+" + self.accel
+            title = title + "\tCtrl+" + self.accel
 
         id = 0
         if self.hasAttributeValue ("event"):  # Repository bug/feature -- DJA

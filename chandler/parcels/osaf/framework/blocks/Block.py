@@ -28,22 +28,50 @@ class Block(Item):
             
         return None
 
-    def dispatchEvent (self, event):
+    def dispatchEvent (self, notification):
+        
+        def broadcast (block, methodName, event):
+            """
+              Call method named methodName on every block and it's children
+            who implements it
+            """
+            if hasattr (block, methodName):
+                member = getattr (block, methodName)
+                member (event)
+            for child in block.childrenBlocks:
+                broadcast (child, methodName, event)
+            
+        event = notification.data['event']
+        """
+          Find the controller for the window with the focus
+        """
         window = wxWindow_FindFocus()
         while not hasattr (window, "counterpartUUID"):
             window = window.GetParent()
         focusWindow = Globals.repository.find (window.counterpartUUID)
         controller = focusWindow.findController()
-        assert (controller)
-
-        methodName = 'on' + event.getItemName()
-        while (controller):
-            if hasattr (controller, methodName):
-                member = getattr (controller, methodName)
-                member (event)
-                break
-            else:
-                controller = controller.GetParent().GetParent()
+        """
+          Construct method name based upon the name of the event.
+        """
+        methodName = 'on_' + event.name.replace ('/', '_')
+        if notification.data['type'] == 'UpdateUI':
+            methodName += '_UpdateUI'
+        
+        if event.dispatchEnum == 'Broadcast':
+            broadcast (controller.parentBlock, methodName, event)
+        elif event.dispatchEnum == 'Controller':
+            """
+              Bubble the event up through all the containing controllers
+            """
+            while (controller):
+                if hasattr (controller, methodName):
+                    member = getattr (controller, methodName)
+                    member (event)
+                    break
+                else:
+                    controller = controller.GetParent().GetParent()
+        elif __debug__:
+            assert (False)
         
 
 class BlockEvent(Event):

@@ -175,8 +175,13 @@ class wxApplicationNew (wxApp):
             topDocument.render (self.testFramePanel, self.testFramePanel)
 
             events = Globals.repository.find('//parcels/OSAF/framework/blocks/events')
+            names = []
             for child in events:
-                Globals.notificationManager.Subscribe (child.name, Globals.topController.getUUID())
+                names.append (child.name)
+            
+            Globals.notificationManager.Subscribe (names,
+                                                   Globals.topController.getUUID(),
+                                                   Globals.topController.dispatchEvent)
 
             self.testFrame.Show()
         return true                     #indicates we succeeded with initialization
@@ -202,17 +207,20 @@ class wxApplicationNew (wxApp):
         """
         from OSAF.framework.blocks.Controller import Controller
         from OSAF.framework.blocks.Block import BlockEvent
+        from OSAF.framework.notifications.Notification import Notification
 
         wxID = event.GetId()
         if wxID >= BlockEvent.MINIMUM_WX_ID and wxID <= BlockEvent.MAXIMUM_WX_ID:
-            eventType = event.GetEventType()
-            if eventType == wxEVT_UPDATE_UI:
-                pass
-            elif eventType == wxEVT_COMMAND_MENU_SELECTED:
-                Globals.topController.dispatchEvent (BlockEvent.wxIDToEvent (wxID))
-            elif __debug__:
-                assert (False)
-            
+
+            type = 'Normal'
+            if event.GetEventType() == wxEVT_UPDATE_UI:
+                type = 'UpdateUI'
+
+            blockEvent = BlockEvent.wxIDToEvent (wxID)
+            notification = Notification(blockEvent.name, None, None)
+            notification.SetData({'event':blockEvent, 'type':type})
+            Globals.notificationManager.PostNotification(notification)
+
     def OnQuit(self):
         """
           Exit the application. Close with an argument of True forces the
