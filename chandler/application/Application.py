@@ -49,7 +49,7 @@ def mixinAClass (self, myMixinClassImportPath):
             _classesByName = self.__class__._classesByName
 
         parts = myMixinClassImportPath.split (".")
-        assert len(parts) >= 2, "Delegate %s isn't a module and class" % counterpart.elementDelegate
+        assert len(parts) >= 2, "Delegate %s isn't a module and class" % myMixinClassImportPath
         delegateClassName = parts.pop ()
         newClassName = self.__class__.__name__ + '_' + delegateClassName
         try:

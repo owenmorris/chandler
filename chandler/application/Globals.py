@@ -10,8 +10,8 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 Don't add to the globals without reviewing the addition.
 """
 
-association = {}              # A dictionary mapping persistent object ids
-                              #    to non-persistent wxPython counterparts
+association = {}              # A dictionary mapping persistent object UUIDs
+                              #    to non-persistent python objects, typically wxPython widgets
 agentManager = None           # AgentManager
 taskManager = None            # TaskManager
 chandlerDirectory = None      # Directory containing chandler executable

@@ -149,14 +149,14 @@ class wxSplitWindow(wx.SplitterWindow):
  
     def OnSplitChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            counterpart = Globals.repository.find (self.blockUUID)
+            block = Globals.repository.find (self.blockUUID)
             width, height = self.GetSizeTuple()
             position = float (event.GetSashPosition())
             splitMode = self.GetSplitMode()
             if splitMode == wx.SPLIT_HORIZONTAL:
-                counterpart.splitPercentage = position / height
+                block.splitPercentage = position / height
             elif splitMode == wx.SPLIT_VERTICAL:
-                counterpart.splitPercentage = position / width
+                block.splitPercentage = position / width
 
     def wxSynchronizeWidget(self):
         block = Globals.repository.find (self.blockUUID)

@@ -63,8 +63,8 @@ class RepositoryDelegate:
 
             parentUUID = parent.itsUUID
 
-        counterpart = Globals.repository.find (self.blockUUID)
-        if counterpart.openedContainers.has_key (parentUUID):
+        block = Globals.repository.find (self.blockUUID)
+        if block.openedContainers.has_key (parentUUID):
             self.scheduleUpdate = True
 
 

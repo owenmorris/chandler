@@ -41,11 +41,11 @@ class Block(Item):
     def instantiateWidget(self, parent, parentWindow):
         """
           You should usually override instantiateWidget in your Block subclass
-        to create a platform specific counterpart for the block. The three
+        to create a platform specific widget for the block. The three
         objects returned are:
-         - The platform specific counterpart created, e.g. wx.Panel
-         - The platform specific counterpart for the Block's parent block
-         - The platform specific parent of the counterpart created, e.g.
+         - The platform specific widget created, e.g. wx.Panel
+         - The platform specific widget for the Block's parent block
+         - The platform specific parent of the widget created, e.g.
            wx.Panel's platform specific parent.
           We need to occasionally return all these arguments because our
         blocks containers are included in our hierarchy of Blocks, where as
@@ -112,18 +112,17 @@ class Block(Item):
 
     def synchronizeWidget (self):
         """
-          synchronizeWidget's job is to make the wx counterpart match the state of
+          synchronizeWidget's job is to make the wxWidget match the state of
         the data persisted in the block. There's a tricky problem that occurs: Often
-        we add a handler to the wx counterpart of a block to, for example, get called
+        we add a handler to the wxWidget of a block to, for example, get called
         when the user changes the selection, which we use to update the block's selection
         and post a selection changed notification. It turns out that while we are in
-        synchronizeWidget, changes to the wx counterpart cause these handlers to be
+        synchronizeWidget, changes to the wxWidget cause these handlers to be
         called, and in this case we don't want to post a notification. So we wrap calls
         to synchronizeWidget and set a flag indicating that we're inside
         synchronizeWidget so the handlers can tell when not to post selection
         changed events. We use this flag in other similar situations, for example,
-        during shutdown to ignore events caused by the framework tearing down wx
-        counterparts.
+        during shutdown to ignore events caused by the framework tearing down wxWidgets.
         """
         try:
             theWindow = Globals.association[self.itsUUID]
@@ -155,7 +154,7 @@ class ContainerChild(Block):
         if widget:
             UUID = self.itsUUID
             """
-              Currently not all wxWindows counterpart objects have a __del__
+              Currently not all wxWidget objects have a __del__
             funcation to removed themselves from the association when they
             are deleted. However, they should. Bug #1177. For now I'll comment
             out the assert and log the bugs
@@ -164,7 +163,7 @@ class ContainerChild(Block):
             """
             if __debug__ and Globals.association.has_key(UUID):
                 Globals.repository.find (UUID).itsPath
-                logging.warn("Bug #1177: item %s doesn't remove it's counterpart from the association",
+                logging.warn("Bug #1177: item %s doesn't remove it's widget from the association",
                              str (Globals.repository.find (UUID).itsPath))
             Globals.association[UUID] = widget
             widget.blockUUID = UUID
@@ -213,10 +212,10 @@ class wxRectangularChild (wx.Panel):
         """
         event.Skip()
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            counterpart = Globals.repository.find (self.blockUUID)
-            counterpart.size.width = event.GetSize().x
-            counterpart.size.height = event.GetSize().y
-            counterpart.setDirty()   # Temporary repository hack -- DJA
+            block = Globals.repository.find (self.blockUUID)
+            block.size.width = event.GetSize().x
+            block.size.height = event.GetSize().y
+            block.setDirty()   # Temporary repository hack -- DJA
 
 
 class RectangularChild(ContainerChild):

@@ -89,9 +89,9 @@ class wxEditText(wx.TextCtrl):
         self.Bind(wx.EVT_TEXT_ENTER, self.OnEnterPressed, id=self.GetId())
 
     def OnEnterPressed(self, event):
-        counterpart = Globals.repository.find (self.blockUUID)
-        counterpart.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/EnterPressed'),
-                          {'text':self.GetValue()})
+        block = Globals.repository.find (self.blockUUID)
+        block.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/EnterPressed'),
+                   {'text':self.GetValue()})
 
             
 class EditText(RectangularChild):
@@ -160,23 +160,23 @@ class ListDelegate:
     to customize your behavior.
     """
     def GetElementText (self, row, column):
-        counterpart = Globals.repository.find (self.blockUUID)
-        result = counterpart.contentSpec[item]
-        name = counterpart.columnHeadings[column]
+        block = Globals.repository.find (self.blockUUID)
+        result = block.contentSpec[item]
+        name = block.columnHeadings[column]
         try:
             return str (result.getAttributeValue(name))
         except AttributeError:
             return ""
 
     def SetElementText (self, row, column, value):
-        counterpart = Globals.repository.find (self.blockUUID)
-        result = counterpart.contentSpec[item]
-        column = counterpart.columnHeadings[column]
+        block = Globals.repository.find (self.blockUUID)
+        result = block.contentSpec[item]
+        column = block.columnHeadings[column]
         result.setAttributeValue(column, value)
 
     def ElementCount (self):
-        counterpart = Globals.repository.find (self.blockUUID)
-        return counterpart.contentSpec.len()
+        block = Globals.repository.find (self.blockUUID)
+        return block.contentSpec.len()
 
 
 class wxListBlock(wx.ListCtrl):
@@ -195,8 +195,8 @@ class wxListBlock(wx.ListCtrl):
         """
         if self.scheduleUpdate:
             if (time.time() - self.lastUpdateTime) > 1.0:
-                counterpart = Globals.repository.find (self.blockUUID)
-                counterpart.synchronizeWidget()
+                block = Globals.repository.find (self.blockUUID)
+                block.synchronizeWidget()
         else:
             lastupdateTime = time.time()
         event.Skip()
@@ -215,36 +215,36 @@ class wxListBlock(wx.ListCtrl):
 
     def On_wxSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            counterpart = Globals.repository.find (self.blockUUID)
-            item = counterpart.contentSpec [event.GetIndex()]
-            if counterpart.selection != item:
-                counterpart.selection = item
-            counterpart.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                              {'item':item})
+            block = Globals.repository.find (self.blockUUID)
+            item = block.contentSpec [event.GetIndex()]
+            if block.selection != item:
+                block.selection = item
+            block.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                       {'item':item})
 
 
     def wxSynchronizeWidget(self):
-        counterpart = Globals.repository.find (self.blockUUID)
-        elementDelegate = counterpart.elementDelegate
+        block = Globals.repository.find (self.blockUUID)
+        elementDelegate = block.elementDelegate
         if not elementDelegate:
             elementDelegate = '//parcels/osaf/framework/blocks/ControlBlocks/ListDelegate'
         mixinAClass (self, elementDelegate)
 
-        queryItem = counterpart.contentSpec
+        queryItem = block.contentSpec
         queryItem.resultsStale = True
         self.Freeze()
         self.ClearAll()
-        for index in xrange (len(counterpart.columnHeadings)):
+        for index in xrange (len(block.columnHeadings)):
             self.InsertColumn(index,
-                              str(counterpart.columnHeadings[index]),
-                              width = counterpart.columnWidths[index])
+                              str(block.columnHeadings[index]),
+                              width = block.columnWidths[index])
 
         self.SetItemCount (self.ElementCount())
         self.Thaw()
         try:
             subscription = self.subscriptionUUID
         except AttributeError:
-            counterpart = Globals.repository.find (self.blockUUID)
+            block = Globals.repository.find (self.blockUUID)
             events = [Globals.repository.find('//parcels/osaf/framework/item_changed'),
                       Globals.repository.find('//parcels/osaf/framework/item_added'),
                       Globals.repository.find('//parcels/osaf/framework/item_deleted')]
@@ -253,8 +253,8 @@ class wxListBlock(wx.ListCtrl):
                                                    self.subscriptionUUID,
                                                    queryItem.onItemChanges)
                 
-        if counterpart.selection:
-            self.GoToItem (counterpart.selection)
+        if block.selection:
+            self.GoToItem (block.selection)
 
         self.scheduleUpdate = False
         self.lastUpdateTime = time.time()
@@ -272,8 +272,8 @@ class wxListBlock(wx.ListCtrl):
         return self.GetElementText (row, column)
 
     def GoToItem(self, item):
-        counterpart = Globals.repository.find (self.blockUUID)
-        index = counterpart.contentSpec.index (item)
+        block = Globals.repository.find (self.blockUUID)
+        index = block.contentSpec.index (item)
         self.Select (index)
 
 
@@ -300,7 +300,7 @@ class List(RectangularChild):
 
     def OnSelectionChangedEvent (self, notification):
         """
-          Display the item in the wxWindow counterpart.
+          Display the item in the wxWidget.
         """
         self.selection = notification.data['item']
         self.GoToItem (self.selection)
@@ -320,12 +320,12 @@ class wxSummaryTable(wx.grid.PyGridTableBase):
         return self.elementDelegate.ElementCount() 
 
     def GetNumberCols(self): 
-        counterpart = Globals.repository.find (self.elementDelegate.blockUUID)
-        return len(counterpart.columnHeadings)
+        block = Globals.repository.find (self.elementDelegate.blockUUID)
+        return len(block.columnHeadings)
 
     def GetColLabelValue(self, column):
-        counterpart = Globals.repository.find (self.elementDelegate.blockUUID)
-        return counterpart.columnHeadings[column]
+        block = Globals.repository.find (self.elementDelegate.blockUUID)
+        return block.columnHeadings[column]
 
     def IsEmptyCell(self, row, column): 
         return False 
@@ -353,17 +353,17 @@ class wxSummary(wx.grid.Grid):
         """
         if self.scheduleUpdate:
             if (time.time() - self.lastUpdateTime) > 1.0:
-                counterpart = Globals.repository.find (self.blockUUID)
-                counterpart.synchronizeWidget()
+                block = Globals.repository.find (self.blockUUID)
+                block.synchronizeWidget()
         else:
             lastupdateTime = time.time()
         event.Skip()
 
     def OnColumnDrag(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            counterpart = Globals.repository.find (self.blockUUID)
+            block = Globals.repository.find (self.blockUUID)
             columnIndex = event.GetRowOrCol()
-            counterpart.columnWidths [columnIndex] = self.GetColSize (columnIndex)
+            block.columnWidths [columnIndex] = self.GetColSize (columnIndex)
 
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
@@ -381,12 +381,12 @@ class wxSummary(wx.grid.Grid):
 
     def removeFromContainer(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            counterpart = Globals.repository.find (self.blockUUID)
-            item = counterpart.contentSpec [event.GetIndex()]
-            if counterpart.selection != item:
-                counterpart.selection = item
-            counterpart.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                              {'item':item})
+            block = Globals.repository.find (self.blockUUID)
+            item = block.contentSpec [event.GetIndex()]
+            if block.selection != item:
+                block.selection = item
+            block.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                       {'item':item})
 
 
     def Reset(self): 
@@ -394,7 +394,7 @@ class wxSummary(wx.grid.Grid):
           A Grid can't easily redisplay its contents, so we write the following
         helper function to readjust everything after the contents change
         """
-        counterpart = Globals.repository.find (self.blockUUID)
+        block = Globals.repository.find (self.blockUUID)
         #Trim/extend the control's rows and update all values
         self.BeginBatch()
         gridTable = self.GetTable()
@@ -412,7 +412,7 @@ class wxSummary(wx.grid.Grid):
         self.currentRows = newRows
         self.currentColumns = newColumns
         for columnIndex in xrange (newColumns):
-            self.SetColSize (columnIndex, counterpart.columnWidths [columnIndex])
+            self.SetColSize (columnIndex, block.columnWidths [columnIndex])
 
         #Update all displayed values
         message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
@@ -427,10 +427,10 @@ class wxSummary(wx.grid.Grid):
         self.ForceRefresh () 
 
     def wxSynchronizeFramework(self):
-        counterpart = Globals.repository.find (self.blockUUID)
-        queryItem = counterpart.contentSpec
+        block = Globals.repository.find (self.blockUUID)
+        queryItem = block.contentSpec
         queryItem.resultsStale = True
-        elementDelegate = counterpart.elementDelegate
+        elementDelegate = block.elementDelegate
         if not elementDelegate:
             elementDelegate = '//parcels/osaf/framework/blocks/ControlBlocks/ListDelegate'
         mixinAClass (self, elementDelegate)
@@ -450,7 +450,7 @@ class wxSummary(wx.grid.Grid):
         try:
             subscription = self.subscriptionUUID
         except AttributeError:
-            counterpart = Globals.repository.find (self.blockUUID)
+            block = Globals.repository.find (self.blockUUID)
             events = [Globals.repository.find('//parcels/osaf/framework/item_changed'),
                       Globals.repository.find('//parcels/osaf/framework/item_added'),
                       Globals.repository.find('//parcels/osaf/framework/item_deleted')]
@@ -459,8 +459,8 @@ class wxSummary(wx.grid.Grid):
                                                    self.subscriptionUUID,
                                                    queryItem.onItemChanges)
         self.Reset()
-        if counterpart.selection:
-            self.GoToItem (counterpart.selection)
+        if block.selection:
+            self.GoToItem (block.selection)
 
         self.scheduleUpdate = False
         self.lastUpdateTime = time.time()
@@ -478,8 +478,8 @@ class wxSummary(wx.grid.Grid):
         return self.GetElementText (row, column)
 
     def GoToItem(self, item):
-        counterpart = Globals.repository.find (self.blockUUID)
-        row = counterpart.contentSpec.index (item)
+        block = Globals.repository.find (self.blockUUID)
+        row = block.contentSpec.index (item)
         self.SelectRow (row)
 
 
@@ -504,7 +504,7 @@ class Summary(RectangularChild):
 
     def OnSelectionChangedEvent (self, notification):
         """
-          Display the item in the wxWindow counterpart.
+          Display the item in the wxWidget.
         """
         self.selection = notification.data['item']
         self.GoToItem (self.selection)
@@ -622,8 +622,8 @@ class wxTreeAndList:
         """
         if self.scheduleUpdate:
            if (time.time() - self.lastUpdateTime) > 0.5:
-               counterpart = Globals.repository.find (self.blockUUID)
-               counterpart.synchronizeWidget()
+               block = Globals.repository.find (self.blockUUID)
+               block.synchronizeWidget()
         else:
             lastupdateTime = time.time()
         event.Skip()
@@ -653,7 +653,7 @@ class wxTreeAndList:
         child, cookie = self.GetFirstChild (parentId)
         if not child.IsOk():
             
-            counterpart = Globals.repository.find (self.blockUUID)
+            block = Globals.repository.find (self.blockUUID)
     
             parentUUID = self.GetItemData(parentId).GetData()
             for child in self.ElementChildren (Globals.repository [parentUUID]):
@@ -669,41 +669,41 @@ class wxTreeAndList:
                     index += 1
                 self.SetItemHasChildren (childNodeId, self.ElementHasChildren (child))
     
-            counterpart.openedContainers [parentUUID] = True
+            block.openedContainers [parentUUID] = True
 
     def OnCollapsing(self, event):
-        counterpart = Globals.repository.find (self.blockUUID)
+        block = Globals.repository.find (self.blockUUID)
         id = event.GetItem()
         """
           if the data passed in has a UUID we'll keep track of the
         state of the opened tree
         """
         try:
-            del counterpart.openedContainers [self.GetItemData(id).GetData()]
+            del block.openedContainers [self.GetItemData(id).GetData()]
         except AttributeError:
             pass
         self.CollapseAndReset (id)
 
     def OnColumnDrag(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            counterpart = Globals.repository.find (self.blockUUID)
+            block = Globals.repository.find (self.blockUUID)
             columnIndex = event.GetColumn()
             try:
-                counterpart.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
+                block.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
             except AttributeError:
                 pass
 
     def On_wxSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            counterpart = Globals.repository.find (self.blockUUID)
+            block = Globals.repository.find (self.blockUUID)
     
             itemUUID = self.GetItemData(self.GetSelection()).GetData()
             selection = Globals.repository.find (itemUUID)
-            if counterpart.selection != selection:
-                counterpart.selection = selection
+            if block.selection != selection:
+                block.selection = selection
         
-                counterpart.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                                  {'item':selection})
+                block.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                           {'item':selection})
 
     def wxSynchronizeWidget(self):
         def ExpandContainer (self, openedContainers, id):
@@ -721,11 +721,11 @@ class wxTreeAndList:
                 ExpandContainer (self, openedContainers, child)
                 child = self.GetNextSibling (child)
 
-        counterpart = Globals.repository.find (self.blockUUID)
-        mixinAClass (self, counterpart.elementDelegate)
+        block = Globals.repository.find (self.blockUUID)
+        mixinAClass (self, block.elementDelegate)
         
         try:
-            counterpart.columnHeadings
+            block.columnHeadings
         except AttributeError:
             pass # A wx.TreeCtrl won't use columnHeadings
         else:
@@ -733,14 +733,14 @@ class wxTreeAndList:
                 self.RemoveColumn (0)
     
             info = wx.gizmos.TreeListColumnInfo()
-            for index in xrange (len(counterpart.columnHeadings)):
-                info.SetText (counterpart.columnHeadings[index])
-                info.SetWidth (counterpart.columnWidths[index])
+            for index in xrange (len(block.columnHeadings)):
+                info.SetText (block.columnHeadings[index])
+                info.SetWidth (block.columnWidths[index])
                 self.AddColumnInfo (info)
 
         self.DeleteAllItems()
 
-        root = counterpart.rootPath
+        root = block.rootPath
         if not root:
             root = self.ElementChildren (None)
         cellValues = self.ElementCellValues (root)
@@ -754,9 +754,9 @@ class wxTreeAndList:
             index += 1
         self.SetItemHasChildren (rootNodeId, self.ElementHasChildren (root))
         self.LoadChildren(rootNodeId)
-        ExpandContainer (self, counterpart.openedContainers, self.GetRootItem ())
+        ExpandContainer (self, block.openedContainers, self.GetRootItem ())
 
-        selection = counterpart.selection
+        selection = block.selection
         if not selection:
             selection = root
         self.GoToItem (selection)
@@ -767,7 +767,7 @@ class wxTreeAndList:
             events = [Globals.repository.find('//parcels/osaf/framework/item_changed'),
                       Globals.repository.find('//parcels/osaf/framework/item_added'),
                       Globals.repository.find('//parcels/osaf/framework/item_deleted')]
-            counterpart = Globals.repository.find (self.blockUUID)
+            block = Globals.repository.find (self.blockUUID)
             self.subscriptionUUID = UUID()
             Globals.notificationManager.Subscribe (events,
                                                    self.subscriptionUUID,
@@ -835,8 +835,8 @@ class Tree(RectangularChild):
         return tree, None, None
 
     def OnSelectionChangedEvent (self, notification):
-        wxCounterpart = Globals.association[self.itsUUID]
-        wxCounterpart.GoToItem (notification.GetData()['item'])
+        widget = Globals.association[self.itsUUID]
+        widget.GoToItem (notification.GetData()['item'])
 
     def Calculate_wxStyle (self):
         style = wx.TR_DEFAULT_STYLE|wx.NO_BORDER
@@ -866,9 +866,9 @@ class wxItemDetail(wx.html.HtmlWindow):
             event.Post({'item':item, 'type':'Normal'})
 
     def wxSynchronizeWidget(self):
-        counterpart = Globals.repository.find (self.blockUUID)
-        if counterpart.selection:
-            self.SetPage(counterpart.getHTMLText(counterpart.selection))
+        block = Globals.repository.find (self.blockUUID)
+        if block.selection:
+            self.SetPage(block.getHTMLText(block.selection))
         else:
             self.SetPage('<html><body></body></html>')
 
@@ -899,7 +899,7 @@ class ItemDetail(RectangularChild):
 
     def OnSelectionChangedEvent (self, notification):
         """
-          Display the item in the wxWindow counterpart.
+          Display the item in the wxWidget.
         """
         self.selection = notification.data['item']
         self.synchronizeWidget ()
