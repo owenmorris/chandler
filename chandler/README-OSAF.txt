@@ -1,8 +1,10 @@
 Here are some brief instructions for running Chandler on Windows:
 
-I'd suggest download and installing WingIDE (http://www.WingIDE.com). You can try it out for 30 days free. Free licenses are also available for open source projects. Let me know if you want a license and I'll get one or you. You should also check out the WingIDE project and copy the new debugger I built with the version 7 Microsoft compiler: "WingIDE\bin\2.2.1\src\debug\server\dbgtracer22.pyd" and "WingIDE\bin\2.2.1\src\debug\server\dbgtracer22_d.pyd" over the top of the files with the same name in the WingIDE installation directories.
+I'd suggest download and installing WingIDE (http://www.WingIDE.com). Check out the README-OSAF.txt in the wingIDE project.
 
-If you have trouble learning WingIDE, give me a call and I'll guide you through the initial steps.
+Copy the subdirectory 2.2.1 of the wingIDE project directory to the wing program directory, e.g. c:\Project Files\WingIDE\bin. This includes versions of the 
+
+Open the project file, named Chandler-project, in the top level of the Chandler project using WingIDE. Next open the project properties in the project menu and set the path to the python.exe you built, e.g. c:\osaf\osaf\bin\python_d.exe.
 
 E-mail me any problems you encounter so I can fix them.
 
