@@ -925,6 +925,16 @@ bool				bIsSelected;
 			RefreshItem( i + (m_ItemCount - itemCount) );
 	}
 
+	// if this moves the selection, reset it
+	if (m_ItemSelected >= beforeIndex)
+	{
+	long		savedIndex;
+
+		savedIndex = m_ItemSelected;
+		m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
+		SetSelectedItem( savedIndex );
+	}
+
 	SetViewDirty();
 }
 

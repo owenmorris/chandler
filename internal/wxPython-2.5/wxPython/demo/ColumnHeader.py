@@ -36,7 +36,7 @@ class TestPanel( wx.Panel ):
             ch1.AddItem( -1, v, wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 0, 1 )
         ch1.SetSelectedItem( 0 )
         self.ch1 = ch1
-        self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnColumnHeaderClick, ch1 )
+        self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnClickColumnHeader, ch1 )
         #ch1.SetToolTipString( "ColumnHeader (%d)" %(cntlID) )
 
         # "yes" to sort arrows for this list
@@ -51,33 +51,33 @@ class TestPanel( wx.Panel ):
         ch2.SetSelectedItem( 0 )
 
         self.ch2 = ch2
-        self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnColumnHeaderClick, ch2 )
+        self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnClickColumnHeader, ch2 )
         #ch2.SetToolTipString( "ColumnHeader (%d)" %(cntlID) )
 
         # add demo UI controls
         miscControlsY = 175
-        l0O = wx.StaticText( self, -1, "Last Action", (10, miscControlsY + 25), (150, 20) )
-        l0 = wx.StaticText( self, -1, "[result]", (10, miscControlsY + 45), (150, 20) )
-        self.l0 = l0
-
         prompt = "[Unicode build: %d]" %(ch1.GetFlagUnicode())
         hasUnicode = ch1.GetFlagUnicode()
-        l1 = wx.StaticText( self, -1, prompt, (10, miscControlsY + 85), (150, 20) )
+        l1 = wx.StaticText( self, -1, prompt, (10, miscControlsY + 25), (150, 20) )
+
+        l0O = wx.StaticText( self, -1, "Last Action:", (10, miscControlsY + 65), (150, 20) )
+        l0 = wx.StaticText( self, -1, "[result]", (10, miscControlsY + 85), (150, 20) )
+        self.l0 = l0
 
         btn = wx.Button( self, -1, "Resize Bounds", (10, self.colStartY) )
-        self.Bind( wx.EVT_BUTTON, self.OnTestResizeBoundsButton, btn )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeBounds, btn )
 
         btn = wx.Button( self, -1, "Delete Selection", (10, self.colStartY + 25) )
-        self.Bind( wx.EVT_BUTTON, self.OnTestDeleteItemButton, btn )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestDeleteItem, btn )
 
         btn = wx.Button( self, -1, "Add Bitmap Item", (10, self.colStartY + 80 + 10) )
-        self.Bind( wx.EVT_BUTTON, self.OnTestAddBitmapItemButton, btn )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestAddBitmapItem, btn )
 
         btn = wx.Button( self, -1, "Resize Division", (10, self.colStartY + 80 + 10 + 25) )
-        self.Bind( wx.EVT_BUTTON, self.OnTestResizeDivisionButton, btn )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestResizeDivision, btn )
 
         btn = wx.Button( self, -1, "Deselect", (10, self.colStartY + 80 + 10 + 50) )
-        self.Bind( wx.EVT_BUTTON, self.OnTestDeselectButton, btn )
+        self.Bind( wx.EVT_BUTTON, self.OnButtonTestDeselect, btn )
 
         self.colStartX += 60
 
@@ -95,12 +95,12 @@ class TestPanel( wx.Panel ):
 
         self.colStartX -= 60
 
-    def OnColumnHeaderClick( self, event ):
+    def OnClickColumnHeader( self, event ):
         ch = event.GetEventObject()
         self.l0.SetLabel( "(%d): clicked - selected (%ld)" %(event.GetId(), ch.GetSelectedItem()) )
         # self.log.write( "Click! (%ld)\n" % event.GetEventType() )
 
-    def OnTestResizeBoundsButton( self, event ):
+    def OnButtonTestResizeBounds( self, event ):
         if (self.stepSize == 1):
             self.stepDir = (-1)
         else:
@@ -110,22 +110,27 @@ class TestPanel( wx.Panel ):
         ch = self.ch1
         newSize = self.baseWidth1 + 40 * self.stepSize
         ch.DoSetSize( self.colStartX, self.colStartY + 20, newSize, 20, 0 )
-        self.l0.SetLabel( "(%d): resized bounds to %d" %(ch.GetId(), newSize) )
+        ch = self.ch2
+        newSize = self.baseWidth2 + 40 * self.stepSize
+        ch.DoSetSize( self.colStartX, self.colStartY + 100, newSize, 20, 0 )
+        self.l0.SetLabel( "(both): resized bounds by (%d)" %(40 * self.stepSize) )
 
-    def OnTestDeleteItemButton( self, event ):
+    def OnButtonTestDeleteItem( self, event ):
         ch = self.ch1
         itemIndex = ch.GetSelectedItem()
         if (itemIndex >= 0):
             ch.DeleteItem( itemIndex )
+            self.baseWidth1 -= 70
             self.l0.SetLabel( "(%d): deleted item (%d)" %(ch.GetId(), itemIndex) )
         else:
             self.l0.SetLabel( "(%d): no item selected" %(ch.GetId()) )
 
-    def OnTestDeselectButton( self, event ):
+    def OnButtonTestDeselect( self, event ):
         self.ch1.SetSelectedItem( -1 )
         self.ch2.SetSelectedItem( -1 )
+        self.l0.SetLabel( "(both): deselected items" )
 
-    def OnTestAddBitmapItemButton( self, event ):
+    def OnButtonTestAddBitmapItem( self, event ):
         ch = self.ch2
         itemCount = ch.GetItemCount()
         if (itemCount <= 8):
@@ -133,15 +138,17 @@ class TestPanel( wx.Panel ):
              if (itemIndex < 0):
                  itemIndex = itemCount
              ch.AddItem( itemIndex, "", wx.colheader.COLUMNHEADER_JUST_Center, 40, 0, 0, 1 )
+             ch.SetFlagAttribute( itemIndex, wx.colheader.COLUMNHEADER_FLAGATTR_FixedWidth, 1 )
              testBmp = images.getTest2Bitmap()
              ch.SetBitmapRef( itemIndex, testBmp )
              ch.SetSelectedItem( itemIndex )
              ch.ResizeToFit()
+             self.baseWidth2 += 40
              self.l0.SetLabel( "(%d): added bitmap item (%d)" %(ch.GetId(), itemIndex) )
         else:
              self.l0.SetLabel( "(%d): enough items!" %(ch.GetId()) )
 
-    def OnTestResizeDivisionButton( self, event ):
+    def OnButtonTestResizeDivision( self, event ):
         ch = self.ch2
         itemIndex = ch.GetSelectedItem()
         if ((itemIndex > 0) and (itemIndex < ch.GetItemCount())):
