@@ -67,6 +67,8 @@ def syncItem(dav, item):
 def merge(dav, item, davItem, hasLocalChanges):
     # for now, just pull changes from the server and overwrite local changes...
     print 'Doing merge'
+    item.etag = davItem.etag
+
     syncFromServer(item, davItem)
 
 
