@@ -23,6 +23,8 @@ import chandlerdb
 import vobject
 import WebDAV
 
+logger = logging.getLogger('Sharing')
+
 
 SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
 EVENTS = "http://osafoundation.org/parcels/osaf/framework/blocks/Events"
@@ -34,7 +36,7 @@ class Parcel(application.Parcel.Parcel):
 
     def _sharingUpdateCallback(self, url, collectionName, fromAddress):
         # When we receive the event, display a dialog
-        logging.info("_sharingUpdateCallback: [%s][%s][%s]" % \
+        logger.info("_sharingUpdateCallback: [%s][%s][%s]" % \
          (url, collectionName, fromAddress))
         collection = collectionFromSharedUrl(url)
         if collection is not None:
@@ -58,7 +60,7 @@ class Parcel(application.Parcel.Parcel):
 
     def _errorCallback(self, error):
         # When we receive this event, display the error
-        logging.info("_errorCallback: [%s]" % error)
+        logger.info("_errorCallback: [%s]" % error)
         application.dialogs.Util.ok( \
          Globals.wxApplication.mainFrame, "Error", error)
 
@@ -198,18 +200,18 @@ def isMailSetUp():
 def announceSharingInvitation(url, collectionName, fromAddress):
     """ Call this method to announce that an inbound sharing invitation has
         arrived. This method is non-blocking. """
-    logging.info("announceSharingInvitation() received an invitation from " \
+    logger.info("announceSharingInvitation() received an invitation from " \
     "mail: [%s][%s][%s]" % (url, collectionName, fromAddress))
 
     sharingParcel = \
      Globals.repository.findPath("//parcels/osaf/framework/sharing")
     Globals.wxApplication.CallItemMethodAsync( sharingParcel,
      '_sharingUpdateCallback', url, collectionName, fromAddress)
-    logging.info("invite, just after CallItemMethodAsync")
+    logger.info("invite, just after CallItemMethodAsync")
 
 def announceError(error):
     """ Call this method to announce an error. This method is non-blocking. """
-    logging.info("announceError() received an error from mail: [%s]" % error)
+    logger.info("announceError() received an error from mail: [%s]" % error)
 
     sharingParcel = \
      Globals.repository.findPath("//parcels/osaf/framework/sharing")
@@ -290,25 +292,25 @@ class ShareConduit(ContentModel.ChandlerItem):
         itemVersion = item.getVersion()
         prevVersion = self.__lookupVersion(item)
         if itemVersion > prevVersion or not externalItemExists:
-            logging.info("...putting Item %s (%d vs %d) (on server: %s)" % \
+            logger.info("...putting Item %s (%d vs %d) (on server: %s)" % \
              (item.externalUUID, itemVersion, prevVersion, externalItemExists))
             data = self._putItem(item)
             self.__addToManifest(item, data, itemVersion)
-            logging.info("...done, data: %s, version: %d" %
+            logger.info("...done, data: %s, version: %d" %
              (data, itemVersion))
         else:
             pass
-            # logging.info("Item is up to date")
+            # logger.info("Item is up to date")
         try:
             del self.resourceList[self._getItemPath(item)]
         except:
-            logging.info("...external item didn't previously exist")
+            logger.info("...external item didn't previously exist")
 
     def put(self):
         """ Transfer entire 'contents', transformed, to server. """
 
         location = self._getLocation()
-        logging.info("Starting PUT of %s" % (location))
+        logger.info("Starting PUT of %s" % (location))
 
         self.itsView.commit() # Make sure locally modified items have had
                               # their version numbers bumped up.
@@ -329,35 +331,35 @@ class ShareConduit(ContentModel.ChandlerItem):
         elif style == ImportExportFormat.STYLE_SINGLE:
             pass # @@@
 
-        logging.info("Finished PUT of %s" % (location))
+        logger.info("Finished PUT of %s" % (location))
 
     def __conditionalGetItem(self, itemPath, into=None):
         # assumes self.resourceList is populated
 
         if itemPath not in self.resourceList:
             print "Hey, it's not there:", itemPath # @@@
-            logging.info("...Not on server")
+            logger.info("...Not on server")
             return None
 
         if not self.__haveLatest(itemPath):
-            # logging.info("...getting: %s" % itemPath)
+            # logger.info("...getting: %s" % itemPath)
             (item, data) = self._getItem(itemPath, into)
             # The version is set to -1 to indicate it needs to be
             # set later on (by syncManifestVersions) because we won't
             # know the item version until *after* commit
             self.__addToManifest(item, data, -1)
-            logging.info("...imported item %s, data: %s" % (item, data))
+            logger.info("...imported item %s, data: %s" % (item, data))
             return item
         else:
             pass
-            # logging.info("...skipping")
+            # logger.info("...skipping")
 
         return None
 
     def get(self):
 
         location = self._getLocation()
-        logging.info("Starting GET of %s" % (location))
+        logger.info("Starting GET of %s" % (location))
 
         self.resourceList = self._getResourceList(location)
 
@@ -381,7 +383,7 @@ class ShareConduit(ContentModel.ChandlerItem):
             uuid = self.manifest[unseenPath]['uuid']
             item = self.itsView.findUUID(uuid)
             if item is not None:
-                logging.info("...removing %s from collection" % item)
+                logger.info("...removing %s from collection" % item)
                 self.share.contents.remove(item)
                 toRemove.append(unseenPath)
         for removePath in toRemove:
@@ -393,7 +395,7 @@ class ShareConduit(ContentModel.ChandlerItem):
         self.__syncManifestVersions()
         self.itsView.commit()
 
-        logging.info("Finished GET of %s" % location)
+        logger.info("Finished GET of %s" % location)
 
     # Methods that subclasses *must* implement:
 
@@ -495,17 +497,17 @@ class ShareConduit(ContentModel.ChandlerItem):
         try:
             record = self.manifest[path]
             if record['data'] == data:
-                # logging.info("haveLatest: Yes (%s %s)" % (path, data))
+                # logger.info("haveLatest: Yes (%s %s)" % (path, data))
                 return True
             else:
                 # print "MISMATCH: local=%s, remote=%s" % (record['data'], data)
-                logging.info("...don't have latest (%s local:%s remote:%s)" % (path,
+                logger.info("...don't have latest (%s local:%s remote:%s)" % (path,
                  record['data'], data))
                 return False
         except KeyError:
             pass
             # print "%s is not in manifest" % path
-        logging.info("...don't yet have %s" % path)
+        logger.info("...don't yet have %s" % path)
         return False
 
     def __resetSeen(self):
@@ -582,11 +584,11 @@ class FileSystemConduit(ShareConduit):
         return stat.st_mtime
 
     def _deleteItem(self, itemPath): # must implement
-        logging.info("...removing from disk: %s" % itemPath)
+        logger.info("...removing from disk: %s" % itemPath)
         os.remove(itemPath)
 
     def _getItem(self, itemPath, into=None): # must implement
-        # logging.info("Getting item: %s" % itemPath)
+        # logger.info("Getting item: %s" % itemPath)
         text = file(itemPath).read()
         item = self.share.format.importProcess(text, item=into)
         stat = os.stat(itemPath)
@@ -776,7 +778,7 @@ class WebDAVConduit(ShareConduit):
 
     def _deleteItem(self, itemPath): # must implement
         itemURL = self.__URLFromPath(itemPath)
-        logging.info("...removing from server: %s" % itemURL)
+        logger.info("...removing from server: %s" % itemURL)
         resp = self.__getClient().delete(itemURL)
         deleteResp = resp.read()
 
@@ -962,7 +964,7 @@ class ICalendarFormat(ImportExportFormat):
             item.add(eventItem)
             # print "Imported", eventItem.displayName, eventItem.startTime,
             #  eventItem.duration, eventItem.endTime
-        logging.info("...iCalendar import of %d new items, %d updated" % \
+        logger.info("...iCalendar import of %d new items, %d updated" % \
          (countNew, countUpdated))
 
         return item

@@ -34,7 +34,7 @@ class ICalendarTestCase(unittest.TestCase):
         parcelpath = [os.path.join(rootdir, 'parcels')]
 
         handler = logging.FileHandler(os.path.join(rootdir,'chandler.log'))
-        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
         handler.setFormatter(formatter)
         root = logging.getLogger()
         root.setLevel(logging.INFO)
@@ -81,5 +81,4 @@ class ICalendarTestCase(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    pass
-    # unittest.main()
+    unittest.main()

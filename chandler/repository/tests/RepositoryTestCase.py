@@ -22,8 +22,10 @@ class RepositoryTestCase(TestCase):
         self.chandlerPack = os.path.join(self.rootdir, 'repository',
                                          'packs', 'chandler.pack')
 
-        handler = logging.FileHandler(os.path.join(self.rootdir,'chandler.log'))
-        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        handler = \
+         logging.FileHandler(os.path.join(self.rootdir,'chandler.log'))
+        formatter = \
+         logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
         handler.setFormatter(formatter)
         root = logging.getLogger()
         root.addHandler(handler)

@@ -17,11 +17,15 @@ import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.contacts.Contacts as Contacts
 
+import time # @@@ temporary
+
 class SharingTestCase(unittest.TestCase):
 
     def runTest(self):
         self._setup()
         self.RoundTrip()
+        time.sleep(1)  # @@@ if all happens within the same second, changes
+                       # aren't detected.  perhaps checksum checking is needed
         self.Modify()
         self.Remove()
         self._teardown()
@@ -36,7 +40,7 @@ class SharingTestCase(unittest.TestCase):
         parcelpath = [os.path.join(rootdir, 'parcels')]
 
         handler = logging.FileHandler(os.path.join(rootdir,'chandler.log'))
-        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        formatter = logging.Formatter('%(asctime)s %(name)s %(levelname)s %(message)s')
         handler.setFormatter(formatter)
         root = logging.getLogger()
         root.setLevel(logging.INFO)
@@ -213,5 +217,4 @@ class SharingTestCase(unittest.TestCase):
             self.assert_(item.displayName != "lunch")
 
 if __name__ == "__main__":
-    pass
-    # unittest.main()
+    unittest.main()
