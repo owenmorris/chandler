@@ -415,7 +415,7 @@ class wxTableData(wx.grid.PyGridTableBase):
             """
             view = self.GetView()
             if (view.GetElementCount() != 0 and
-                delegate.ReadOnly (view.GetElementValue (row, column))):
+                not delegate.ReadOnly (view.GetElementValue (row, column))):
                 attribute = self.defaultRWAttribute
             attribute.IncRef()
         return attribute

@@ -46,7 +46,7 @@ class AttributeEditor (object):
 
 class StringAttributeEditor (AttributeEditor):
     def ReadOnly (self, (item, attribute)):
-        return str (item.itsParent.itsPath) ==  '//userdata'
+        return str (item.itsParent.itsPath) !=  '//userdata'
 
     def Draw (self, dc, rect, item, attributeName, isSelected):
         """
