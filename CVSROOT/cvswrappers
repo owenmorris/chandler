@@ -21,12 +21,11 @@
 #  and value is a single-quote delimited value.
 # For example:
 #*.gif -k 'b'
-*.gif   -k 'b' -m 'COPY'
-*.jpg   -k 'b' -m 'COPY'
 *.avi   -k 'b' -m 'COPY'
 *.bin   -k 'b' -m 'COPY'
 *.bz    -k 'b' -m 'COPY'
 *.bz2   -k 'b' -m 'COPY'
+*.dll   -k 'b' -m 'COPY'
 *.doc   -k 'b' -m 'COPY'
 *.exe   -k 'b' -m 'COPY'
 *.gif   -k 'b' -m 'COPY'
@@ -35,6 +34,7 @@
 *.jar   -k 'b' -m 'COPY'
 *.jpeg  -k 'b' -m 'COPY'
 *.jpg   -k 'b' -m 'COPY'
+*.lib   -k 'b' -m 'COPY'
 *.mov   -k 'b' -m 'COPY'
 *.mp3   -k 'b' -m 'COPY'
 *.mpg   -k 'b' -m 'COPY'
