@@ -387,8 +387,7 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
         # Scaffolding, we'll get more sophisticated here
 
         # Set up fonts and brushes for drawing the events
-        dc.SetBrush(wx.Brush(wx.Colour(180, 192, 159)))
-        dc.SetTextForeground(self.smallFontColor)
+        dc.SetTextForeground(wx.WHITE)
         dc.SetFont(self.smallFont)
 
         # Draw the events
@@ -404,9 +403,11 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
             headline = time.Format('%I:%M %p ') + item.displayName
 
             if (self.parent.blockItem.selection is item):
-                dc.SetPen(wx.BLACK_PEN)
+                dc.SetBrush(wx.Brush(wx.Colour(128, 128, 128)))
+                dc.SetPen(wx.Pen(wx.Colour(153, 153, 153)))
             else:
-                dc.SetPen(wx.TRANSPARENT_PEN)
+                dc.SetBrush(wx.Brush(wx.Colour(204, 204, 204)))
+                dc.SetPen(wx.Pen(wx.Colour(179, 179, 179)))
             
             dc.DrawRoundedRectangleRect(itemRect, radius=10)
             self.DrawWrappedText(dc, headline, itemRect)
