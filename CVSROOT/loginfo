@@ -26,4 +26,4 @@
 #DEFAULT (echo ""; id; echo %{sVv}; date; cat) >> $CVSROOT/CVSROOT/commitlog
 #ALL /usr/bin/loginfo  %{sVv}
 # Bonsai, new checkins
-ALL $CVSROOT/CVSROOT/dolog.pl -r /usr/local/cvsrep bonsai-checkin-daemon@hula.osafoundation.org
+ALL $CVSROOT/CVSROOT/dolog.pl -r /usr/local/cvsrep bonsai-checkin-daemon
