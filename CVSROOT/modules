@@ -34,6 +34,7 @@ chandler-system -a \
     hardhat \
     osaf/chandler/Chandler \
     osaf/chandler/python \
+    osaf/chandler/persistence \
     osaf/chandler/zodb \
     osaf/chandler/distutils \
     osaf/chandler/egenix-mx \
@@ -55,6 +56,7 @@ chandler-small -a \
     hardhat \
     osaf/chandler/Chandler \
     osaf/chandler/python \
+    osaf/chandler/persistence \
     osaf/chandler/zodb \
     osaf/chandler/distutils \
     osaf/chandler/egenix-mx \
@@ -66,10 +68,6 @@ chandler-small -a \
 # chandler-system -u /disk1/cvs-scripts/count-checkouts
 # chandler-app -o /disk1/cvs-scripts/count-checkouts
 # chandler-app -u /disk1/cvs-scripts/count-checkouts
-
-dbxml-module -a \
-    osaf/chandler/dbxml \
-    osaf/chandler/bsddb3
 
 rap -a \
     hardhat \
