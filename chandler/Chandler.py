@@ -13,7 +13,6 @@ if '-wing' in sys.argv:
     import wingdbstub
 
 from application.Application import wxApplication
-from transaction import get_transaction
 
 def main():
 
@@ -34,20 +33,9 @@ def main():
     except:
         ShowExceptionDialog("Unhandled Exception", "During MainLoop(), "+\
          "the following exception occurred:")
-        raise 
-        
-    """
-      Since Chandler doesn't have a save command and commits typically happen
-    only when the user completes a command that changes the user's data, we
-    need to add a final commit when the application quits to save data the
-    state of the user's world, e.g. window location and size.
+        raise
 
-    We're using ZODB's transactions here. In the future we may replace ZODB with
-    another database that provides similar functionality.
-    """
-    transaction = get_transaction ()
-    transaction.note ("Normal Exit")
-    transaction.commit ()
+    application.OnTerminate()
 
 def ShowExceptionDialog(title, message):
     """

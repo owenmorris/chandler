@@ -12,7 +12,7 @@ July 4th, 2003
 
 While listening to "Mystery Achievement" :-)
 """
-
+        
 from NotificationQueue import NotificationQueue
 import Queue
 import re
@@ -20,9 +20,8 @@ import thread
 
 from wxPython.wx import wxWakeUpIdle
 
-from persistence import Persistent 
-from persistence.list import PersistentList
-from persistence.dict import PersistentDict
+from model.schema.AutoItem import AutoItem
+import application.Application
 
 DuplicateClient = "Duplicate Client"
 SchemaNotFound = "Schema not found"
@@ -30,7 +29,7 @@ SubscriberNotFound = "Subscriber not Found"
 SubscriberRegistered = "Subscriber Already registered"
 InvalidSubscriberId = "Invalid Subscriber Id"
 
-class NotificationManager(Persistent):
+class NotificationManager(AutoItem):
     
     TRUE = 1
     FALSE = 0
@@ -50,14 +49,18 @@ class NotificationManager(Persistent):
 
     notificationMutex = thread.allocate_lock()
     
-    # the message queues are not persistent, so keep them in a class variable
-    # messageTable = MessageTable()
-    
-    def __init__(self):
-        self.declarations = Declarations()   #handle declarations
+    def __init__(self, **args):
+        super (NotificationManager, self).__init__ (**args)
+        self.newAttribute ("declarations", Declarations())   #handle declarations
+        self.newAttribute ("subscriberList", [])
+
         self.messageTable = MessageTable()
-        self.subscriberList = PersistentList()
-                
+
+    def _fillItem(self, name, parent, kind, **kwds):
+        super(NotificationManager, self)._fillItem(name, parent, kind, **kwds)
+        self.messageTable = MessageTable()
+
+
     # EXPERIMENTAL
     def Register(self,clientID):
         self.messageTable.AddQueue(clientID)
@@ -371,7 +374,7 @@ The MessageTable class handles subscription details
 class MessageTable: 
    
     table = {}
-    
+
     def __init__(self): 
         return
     
@@ -433,18 +436,19 @@ class MessageTable:
 The Declaration class handles declaration details
 """
 
-class Declarations(Persistent):
-    def __init__(self):
-        self.subscriptions = PersistentDict()
+class Declarations(AutoItem):
+    def __init__(self, **args):
+        super (Declarations, self).__init__ (**args)
+        self.newAttribute ("subscriptions", {})   #handle declarations
         return
-         
+
     
     def AddDeclaration(self, name, description, type, clientID = 0):
         if self.subscriptions.has_key(name):
             return False
         else:
-            self.subscriptions[name] = DeclarationEntry(name, clientID, type, \
-                                                        description)
+            item = DeclarationEntry(name, clientID, type, description)
+            self.subscriptions[name] = item.getUUID()
         return True           
     
     
@@ -452,11 +456,13 @@ class Declarations(Persistent):
     #associate a subscriber with a declaration
     def AddSubscriber(self, name, clientID):
         try:
-            subscriptionList = self.subscriptions[name].GetSubscriptionList()
+            item = application.Application.app.repository.find (self.subscriptions[name])
+            assert (item)
         except KeyError:
             raise SchemaNotFound, name
        
         #cannot have duplicates 
+        subscriptionList = item.GetSubscriptionList()
         if (clientID in subscriptionList):
             raise DuplicateClient, clientID
         else:
@@ -465,6 +471,9 @@ class Declarations(Persistent):
        
     def DeleteDeclaration(self, name, clientID=0):
         try:
+            item = application.Application.app.repository.find (self.subscriptions[name])
+            assert (item)
+            item.delete()
             del self.subscriptions[name]
             result = NotificationManager.OKAY
         except:
@@ -474,7 +483,9 @@ class Declarations(Persistent):
        
     def DeleteSubscriber(self, name, clientID):
         try:
-            subscriptionList = self.subscriptions[name].GetSubscriptionList()
+            item = application.Application.app.repository.find (self.subscriptions[name])
+            assert (item)
+            subscriptionList = item.GetSubscriptionList()
             del subscriptionList[subscriptionList.index(clientID)]
         except KeyError:
             raise SchemaNotFound, name
@@ -485,7 +496,9 @@ class Declarations(Persistent):
     # NOTE this ought to throw an error
     def GetDeclarationDescription(self,name):
         try:
-            result =  self.subscriptions[name].GetDescription()
+            item = application.Application.app.repository.find (self.subscriptions[name])
+            assert (item)
+            result = item.GetDescription()
         except KeyError:
             result = None
             #raise SchemaNotFound, name
@@ -497,7 +510,9 @@ class Declarations(Persistent):
     #get the list of subscribers associated with a declaration type
     def GetSubscriptionList(self, name):
         try:
-            subscriptionList = self.subscriptions[name].GetSubscriptionList()
+            item = application.Application.app.repository.find (self.subscriptions[name])
+            assert (item)
+            subscriptionList = item.GetSubscriptionList()
         
         except KeyError:
             subscriptionList = None
@@ -512,15 +527,17 @@ class Declarations(Persistent):
     DeclarationEntry class
     """
     
-class DeclarationEntry(Persistent):
-    def __init__(self, name, clientID, type, description, acl = None):
-        self.name = name
-        self.owner = clientID
-        self.type = type
-        self.description = description
-        self.acl = acl
-        self.subscriptionList = PersistentList()
-        return 
+class DeclarationEntry(AutoItem):
+    def __init__(self, entryName, clientID, type, description, acl = None, **args):
+        super (DeclarationEntry, self).__init__ (**args)
+        self.newAttribute ("name", entryName)
+        self.newAttribute ("owner", clientID)
+        self.newAttribute ("type", type)
+        self.newAttribute ("description", description)
+        self.newAttribute ("acl", acl)
+        self.newAttribute ("subscriptionList", [])
+
+        return
     
     #def __repr__(self):
     #    return self.name + " " + self.clientID + self.type + \

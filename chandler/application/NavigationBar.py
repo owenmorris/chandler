@@ -7,21 +7,22 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from wxPython.wx import *
 from wxPython.xrc import *
 from application.Application import app
-from persistence import Persistent
-from persistence.list import PersistentList
+from model.schema.AutoItem import AutoItem
 
-class NavigationBar(Persistent):
+class NavigationBar(AutoItem):
     """
       NavigationBar is the navigation bar in the ChandlerWindow and is the
     model counterpart to the wxNavigationBar view object (see below)..
     """
-    def __init__(self):
+    def __init__(self, **args):
         """
           The model part of the navigation bar simply tracks the history
         and future of visited url's.
         """
-        self.history = PersistentList()
-        self.future = PersistentList()
+        super (NavigationBar, self).__init__ (**args)
+        self.newAttribute ("history", [])
+        self.newAttribute ("future", [])
+
         
     def SynchronizeView(self):
         """
@@ -44,7 +45,7 @@ class NavigationBar(Persistent):
           Adds the specified url to the history list and clears the future
         list.
         """
-        self.future = PersistentList()
+        del self.future[:]
         urlWithCase = app.model.URLTree.GetProperCaseOfURL(url)
         # FIXME:  There is a problem where, when parcels can 
         # redirect urls (within ChandlerWindow) we do not properly
@@ -74,13 +75,11 @@ class wxNavigationBar(wxToolBar):
         
         """
           Check to see if we've already created the persistent counterpart,
-        if not create it, otherwise get it. Finally add it to the association.
+        if not create it. Finally add it to the association.
         """
-        if not app.model.mainFrame.__dict__.has_key('NavigationBar'):
-            self.model = NavigationBar()
-            app.model.mainFrame.NavigationBar = self.model
-        else:
-            self.model = app.model.mainFrame.NavigationBar
+        if not app.model.mainFrame.hasAttributeValue('NavigationBar'):
+            app.model.mainFrame.newAttribute ("NavigationBar", NavigationBar())
+        self.model = app.model.mainFrame.NavigationBar
         """
            The model persists, so it can't store a reference to self, which
         is a wxApp object. We use the association to keep track of the

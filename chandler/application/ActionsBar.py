@@ -7,9 +7,9 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from wxPython.wx import *
 from wxPython.xrc import *
 from application.Application import app
-from persistence import Persistent
+from model.item.Item import Item
 
-class ActionsBar(Persistent):
+class ActionsBar(Item):
     def __init__(self):
         pass
         

@@ -98,6 +98,7 @@ class wxCanvasDropSource (wxDropSource):
 
     def GiveFeedback (self, effect):
         windowX, windowY = wxGetMousePosition()
+        self.drawableObject.Show (effect != wxDragMove)
         x, y = self.drawableObject.canvas.ScreenToClientXY (windowX, windowY)
         self.drawableObject.dragImage.Move((x, y))
         return False
@@ -118,8 +119,6 @@ class wxCanvasDropTarget (wxPyDropTarget):
             x, y = self.canvas.CalcUnscrolledPosition (x, y)
             result = self.canvas.OnData (self.data, x, y, result)
         return result
-
-
 
 class wxSimpleDrawableObject (wxEvtHandler):
     def __init__(self, canvas):
@@ -514,6 +513,7 @@ class wxSimpleCanvas (wxScrolledWindow):
                 self.zOrderedDrawableObjects.remove (self.internalDnDItem)
                 self.zOrderedDrawableObjects.insert (0, self.internalDnDItem)
                 self.internalDnDItem.MoveTo (x, y)
+                self.internalDnDItem.Show (True)
             else:
 
                 drawableObject = self.ConvertDataObjectToDrawableObject(dataObject, x, y, False)

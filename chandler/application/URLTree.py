@@ -3,20 +3,19 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-
 from wxPython.wx import *
-from persistence import Persistent 
-from persistence.list import PersistentList
+from model.schema.AutoItem import AutoItem
+import application.Application
 
-class URLTree(Persistent):
-    def __init__(self):
+class URLTree(AutoItem):
+    def __init__(self, **args):
+        super (URLTree, self).__init__ (**args)
         """
           Set up the URLTree.
         """
-        Persistent.__init__(self)
-        self.tree = PersistentList()
-        self.sideBars = PersistentList()
-        self.tree.append(TreeEntry(None, '', PersistentList()))
+        self.newReferenceCollection ("tree")
+        self.newReferenceCollection ("sideBars")
+        self.addItemToReferenceCollection ("tree", TreeEntry(None, ''))
 
     def RegisterSideBar(self, sideBar):
         """
@@ -24,19 +23,8 @@ class URLTree(Persistent):
         have to let the URLTree know, so that it can tell that
         sideBar to update itself when changes are made.
         """
-        self.sideBars.append(sideBar)
+        self.addItemToReferenceCollection("sidebars", sideBar)
         
-    def RemoveSideBar(self, sideBar):
-        """
-          When a sideBar is no longer around, we have to let the 
-        URLTree know, so that it no longer sends SynchronizeView
-        messages.
-        """
-        for item in self.sideBars:
-            if item == sideBar:
-                return true
-        return false
-
     def GetParcelList(self):
         """
           return a list of all the parcels currently installed in
@@ -45,11 +33,12 @@ class URLTree(Persistent):
           the list once.
         """
         parcels = []
-        for entry in self.tree[0].children:
+        for entry in self.tree.first().children:
+            parcel = application.Application.app.repository.find (entry.parcelUUID)
             try:
-                index = parcels.index(entry.parcel)
+                index = parcels.index(parcel)
             except ValueError:
-                parcels.append(entry.parcel)
+                parcels.append(parcel)
         return parcels
     
     def URLExists(self, url):
@@ -59,7 +48,7 @@ class URLTree(Persistent):
         """
         treeEntry = self.__GetURLEntry(self.__GetURLFields(url), self.tree)
         if treeEntry != None:
-            return treeEntry.parcel
+            return application.Application.app.repository.find (treeEntry.parcelUUID)
         return None
 
     def GetURLChildren(self, url):
@@ -89,8 +78,7 @@ class URLTree(Persistent):
             if self.URLExists(parentURL) or parentURL == '':
                 if not self.URLExists(url):
                     parentEntry = self.__GetURLEntry(fields[:-1], self.tree)
-                    newEntry = TreeEntry(parcel, fields[-1], PersistentList())
-                    parentEntry.children.append(newEntry)
+                    parentEntry.addItemToReferenceCollection ("children", TreeEntry(parcel, fields[-1]))
                     self.__SynchronizeSideBars()
                     return true
         return false
@@ -106,7 +94,7 @@ class URLTree(Persistent):
             parentEntry = self.__GetURLEntry(fields[:-1], self.tree)
             for item in parentEntry.children:
                 if item.name == fields[-1]:
-                    parcel = item.parcel
+                    parcel = application.Application.app.repository.find (item.parcelUUID)
                     
                     parentEntry.children.remove(item)
                     del item
@@ -132,7 +120,7 @@ class URLTree(Persistent):
                 entry = self.__GetURLEntry(oldFields, self.tree)
                 entry.name = newFields[-1]
                 self.__SynchronizeSideBars()
-                return entry.parcel
+                return app.repository.find (entry.parcelUUID)
         return None
 
     def MoveParcel(self, oldURL, newURL):
@@ -156,9 +144,9 @@ class URLTree(Persistent):
                         entry = child
                         oldParent.children.remove(child)
                 entry.name = newFields[-1]
-                newParent.children.append(entry)
+                newParent.addItemToReferenceCollection ("children", entry)
                 self.__SynchronizeSideBars()
-                return entry.parcel
+                return application.Application.app.repository.find (entry.parcelUUID)
         return None
     
     def SetParcelAtURL(self, url, newParcel):
@@ -171,10 +159,10 @@ class URLTree(Persistent):
         """
         entry = self.__GetURLEntry(self.__GetURLFields(url), self.tree)
         if entry != None:
-            oldParcel = entry.parcel
-            entry.parcel = newParcel
+            oldParcelUUID = entry.parcelUUID
+            entry.parcelUUID = newParcel.getUUID()
             self.__SynchronizeSideBars()
-            return oldParcel
+            return application.Application.app.repository.find (oldParcelUUID)
         return None
     
     def GetProperCaseOfURL(self, url):
@@ -227,12 +215,15 @@ class URLTree(Persistent):
         for sideBar in self.sideBars:
             sideBar.SynchronizeView()
             
-class TreeEntry(Persistent):
+class TreeEntry (AutoItem):
     """
       Just a wrapper class to encapsulate a single level of the URLTree.
     """
-    def __init__(self, parcel, name, children):
-        Persistent.__init__(self)
-        self.parcel = parcel
-        self.name = name
-        self.children = children
+    def __init__ (self, parcel, treeName, **args):
+        super (TreeEntry, self).__init__ (**args)
+        parcelUUID = None
+        if parcel:
+            parcelUUID = parcel.getUUID()
+        self.newAttribute ("parcelUUID", parcelUUID)
+        self.newAttribute ("name", treeName)
+        self.newReferenceCollection ("children")

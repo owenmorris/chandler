@@ -3,19 +3,17 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from persistence import Persistent
-from persistence.dict import PersistentDict
+from model.schema.AutoItem import AutoItem
 
-class Preferences (Persistent):
+class Preferences (AutoItem):
     """
        Global Application preferences.
     """
-    def __init__(self):
-        self.windowSize = PersistentDict()
-        self.windowSize['width'] = 850
-        self.windowSize['height'] = 650
-        
-        self.attributes = PersistentDict()
+    def __init__(self, **args):
+        super (Preferences, self).__init__ (**args)
+        self.newAttribute ('windowSizeWidth', 850)
+        self.newAttribute ('windowSizeHeight', 650)
+        self.newAttribute ('attributes', {})
         
     def GetPreferenceValue(self, preferenceKey):
         if self.attributes.has_key(preferenceKey):

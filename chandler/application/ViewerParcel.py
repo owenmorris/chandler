@@ -10,9 +10,9 @@ parcel viewer.
 import new, types, exceptions, sys, os
 from wxPython.wx import *
 from wxPython.xrc import *
-from application.Parcel import Parcel
+from application.ParcelV2 import ParcelV2
 from application.Application import app
-from persistence.list import PersistentList
+from model.schema.AutoItem import AutoItem
 
 wxEVT_POST_PAINT = wxNewEventType()
 def EVT_POST_PAINT(win, func):
@@ -90,7 +90,7 @@ class WindowProxy (wxEvtHandler):
         dc.DrawRectangle(0, 0, size.width, size.height)
         pass
 
-class ViewerParcel (Parcel):
+class ViewerParcel (ParcelV2):
     """
       The ViewerParcel set's up the following data for the parcel's use:
 
@@ -108,9 +108,7 @@ class ViewerParcel (Parcel):
         """
           The class method that is used to install the parcel Viewer. Check
         to see if we've been installed into the URLTree, and if not install.
-        Classes may be "old style" (type (theClass) == types.ClassType) or
-        "new style". The construction method is different in each case: see
-        below.
+        Classes must be "new style".
           Currently we install by appending to the end of the list
         """
         urlList = app.model.URLTree.GetURLChildren('')
@@ -122,24 +120,22 @@ class ViewerParcel (Parcel):
                 break
         
         if not found:
-            if type (theClass) == types.ClassType:
-                instance = new.instance (theClass, {})
-            else:
-                instance = theClass.__new__ (theClass)
+            assert type (theClass) != types.ClassType # only new-style classes allowed
+            instance = theClass.__new__ (theClass)
             instance.__init__()
             app.model.URLTree.AddURL(instance, instance.displayName)
         
     Install = classmethod (Install)
 
-    def __init__(self):
+    def __init__(self, **args):
         """
           modulePath is the path to the module's .xrc file, which must exist.
         """
-        Parcel.__init__(self)
-        module = sys.modules[self.__class__.__module__]
-        self.modulename = os.path.basename (module.__file__)
-        self.modulename = os.path.splitext (self.modulename)[0]
-        self.modulePath = self.path + os.sep + self.modulename + ".xrc"
+        super (ViewerParcel, self).__init__ (**args)
+        name = os.path.basename (sys.modules[self.__class__.__module__].__file__)
+        name = os.path.splitext (name)[0]
+        self.newAttribute ("moduleName", name)
+        self.newAttribute ("modulePath", self.path + os.sep + self.moduleName + ".xrc")
         assert (os.path.exists (self.modulePath))
         """
           Go dig the module name out of the XRC, which requires FindResourceWithoutLogging.
@@ -153,12 +149,12 @@ class ViewerParcel (Parcel):
         assert (resources)
 
         parcelMenuResourceXRC = resources.FindResourceWithoutLogging ('ViewerParcelMenu','wxMenu')
-        self.hasParcelMenu = parcelMenuResourceXRC != None
+        self.newAttribute ("hasParcelMenu", parcelMenuResourceXRC != None)
         """
           Make sure you call the base class before defining your own displayName.
         """
-        assert not hasattr (self, 'displayName')
-        self.displayName = _('UnnamedParcel')
+        assert not self.hasAttributeValue('displayName')
+        self.newAttribute ("displayName", _('UnnamedParcel'))
         if parcelMenuResourceXRC != None:
             node = parcelMenuResourceXRC.GetChildren()
             while node != None:
@@ -166,7 +162,7 @@ class ViewerParcel (Parcel):
                     self.displayName = node.GetChildren().GetContent()
                     break
                 node = node.GetNext()
-        self.description = _('The ' + self.displayName + ' parcel')
+        self.newAttribute ('description', 'The ' + self.displayName + ' parcel')
 
         # register with the notification manager
         app.model.notificationManager.Register(self.GetClientID())
@@ -188,7 +184,7 @@ class ViewerParcel (Parcel):
             resources = wxXmlResource(self.modulePath)
             assert (resources)
             app.wxMainFrame.Freeze ()
-            panel = resources.LoadObject(app.wxMainFrame, self.modulename, "wxPanel")
+            panel = resources.LoadObject(app.wxMainFrame, self.moduleName, "wxPanel")
             assert (panel != None)
             panel.Show (FALSE)
             app.wxMainFrame.Thaw ()
@@ -255,7 +251,7 @@ class ViewerParcel (Parcel):
         """
         derive the clientID from the parcel's name
         """
-        return 'parcel/OSAF/' + self.modulename         
+        return 'parcel/OSAF/' + self.moduleName         
             
     def GoToURL(self, remoteaddress, url):
         """
@@ -336,7 +332,6 @@ class wxViewerParcel(wxPanel):
         value = wxPrePanel()
         self.this = value.this
         self._setOORInfo(self)
-        app.wxMainFrame.activeParcel = None
 
     def Setup(self, model, resources):
         """

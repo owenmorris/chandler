@@ -4,6 +4,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+
 from wxPython.wx import *
 from wxPython.xrc import *
 
@@ -15,35 +16,34 @@ however, because Application imports ChandlerWindow (the mutually recursive
 import problem), app isn't defined yet. Further attempt postpone the include
 of ChandlerWindow after app is setup lead to hairballs
 """
-from persistence import Persistent
-from persistence.dict import PersistentDict
+from model.schema.AutoItem import AutoItem
 
 import version
 
-class ChandlerWindow(Persistent):
+class ChandlerWindow (AutoItem):
     """
       ChandlerWindow is the main window in Chandler and is the model
     counterpart wxChandlerWindow view object (see below). A ChandlerWindow
     contains all of the appropriate navigation elements along with the
     current viewer parcel.
     """
-    def __init__(self):
+    def __init__(self, **args):
+        super (ChandlerWindow, self).__init__ (**args)
         """
           The initial size (x, y, width, height) is set to (-1, -1, -1, -1) to
         indicate that the window should be tiled to fit the screen, rather than
         being brought up in it's last location and size.
         """
-        self.size = PersistentDict()
-        self.size['x'] = -1
-        self.size['y'] = -1
-        self.size['width'] = -1
-        self.size['height'] = -1
-        self.sashSize = -1
-        self.showNavigationBar = true
-        self.showActionsBar = false
-        self.showSideBar = true
-        self.showStatusBar = true
-        self.buildMode = False
+        self.newAttribute ("sizeX", -1)
+        self.newAttribute ("sizeY", -1)
+        self.newAttribute ("sizeWidth", -1)
+        self.newAttribute ("sizeHeight", -1)
+        self.newAttribute ("sashSize", -1)
+        self.newAttribute ("showNavigationBar", True)
+        self.newAttribute ("showActionsBar", False)
+        self.newAttribute ("showSideBar", True)
+        self.newAttribute ("showStatusBar", True)
+        self.newAttribute ("buildMode", False)
 
     def SynchronizeView(self):
         """
@@ -100,6 +100,7 @@ class wxChandlerWindow(wxFrame):
         our model.
         """
         self.model = model
+        self.activeParcel = None
 
         self.CreateStatusBar ()
         statusBar = self.GetStatusBar()
@@ -209,8 +210,8 @@ class wxChandlerWindow(wxFrame):
         will cause the parent class to get a crack at the event.
         """
         event.Skip()
-        self.model.size['x'] = self.GetPosition().x
-        self.model.size['y'] = self.GetPosition().y
+        self.model.sizeX = self.GetPosition().x
+        self.model.sizeY = self.GetPosition().y
 
     def OnSize(self, event):
         """
@@ -218,12 +219,14 @@ class wxChandlerWindow(wxFrame):
         will cause the parent class to get a crack at the event.
         """
         event.Skip()
-        self.model.size['width'] = self.GetSize().x
-        self.model.size['height'] = self.GetSize().y
+        self.model.sizeWidth = self.GetSize().x
+        self.model.sizeHeight = self.GetSize().y
 
     def OnClose(self, event):
         """
-          Closing the last window causes the application to quit.
+          Closing the last window causes the application to quit. If you need to do
+        something when the application quits, put in in application.OnTerminate instead
+        of here.
         """
         if hasattr(self, "wasClosed"):
             return
@@ -231,13 +234,7 @@ class wxChandlerWindow(wxFrame):
 
         app = application.Application.app
 
-        app.agentManager.Stop()
-        app.repository.commit(purge=True)
-        app.repository.close()
-
         del app.association[id(self.model)]
-        app.model.URLTree.RemoveSideBar(self.model)
-        del app.applicationResources
         if self.activeParcel:
             self.activeParcel.Deactivate()
 
@@ -416,27 +413,27 @@ class wxChandlerWindow(wxFrame):
           If the window isn't on the screen, set it to the default size and
         position.
         """
-        if self.model.size['x'] < screenSize[0] or \
-           self.model.size['y'] < screenSize[1] or \
-           self.model.size['x'] + self.model.size['width'] > screenSize[2] or \
-           self.model.size['y'] + self.model.size['height'] > screenSize[3] or \
+        if self.model.sizeX < screenSize[0] or \
+           self.model.sizeY < screenSize[1] or \
+           self.model.sizeX + self.model.sizeWidth > screenSize[2] or \
+           self.model.sizeY + self.model.sizeHeight > screenSize[3] or \
            self.model.sashSize < 0:
             preferences = application.Application.app.model.preferences
-            self.SetSize ((preferences.windowSize['width'],
-                          preferences.windowSize['height']))
+            self.SetSize ((preferences.windowSizeWidth,
+                          preferences.windowSizeHeight))
             self.CentreOnScreen ()
         else:
-            self.SetRect ((self.model.size['x'],
-                           self.model.size['y'],
-                           self.model.size['width'],
-                           self.model.size['height']))
+            self.SetRect ((self.model.sizeX,
+                           self.model.sizeY,
+                           self.model.sizeWidth,
+                           self.model.sizeHeight))
             self.splitterWindow.SetSashPosition (self.model.sashSize)
             
         rect = self.GetRect()
-        self.model.size['x'] = rect.GetX()
-        self.model.size['y'] = rect.GetY()
-        self.model.size['width'] = rect.GetWidth()
-        self.model.size['height'] = rect.GetHeight()
+        self.model.sizeX = rect.GetX()
+        self.model.sizeY = rect.GetY()
+        self.model.sizeWidth = rect.GetWidth()
+        self.model.sizeHeight = rect.GetHeight()
         self.model.sashSize = self.splitterWindow.GetSashPosition ()
 
     # parse a url to extract the remote address and parcel name

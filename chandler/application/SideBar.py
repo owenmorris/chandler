@@ -3,30 +3,29 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-
 from wxPython.wx import *
 from application.Application import app
-from persistence import Persistent
-from persistence.dict import PersistentDict
-import application.Application
+from model.schema.AutoItem import AutoItem
+import time
 
-class SideBar(Persistent):
+class SideBar(AutoItem):
     """
       SideBar is the side bar in the ChandlerWindow and is the model
     counterpart of the wxSideBar view object (see below)..
     """
-    def __init__(self):
+    def __init__(self, **args):
         """
           sideBarURLTree is a dict mapping what this instance of SideBar
         has visible to the application's full URLTree.  The dict is a 
         tree of dicts that contain extra data specific to this instance of
         SideBar (like which levels are expanded).
         """
-        self.sideBarURLTree = PersistentDict()
-        self.ignoreChangeSelect = false
-        self.ignoreExpand = false
-        self.ignoreCollapse = false
-        application.Application.app.model.URLTree.RegisterSideBar(self)
+        super (SideBar, self).__init__ (**args)
+        self.newAttribute ("sideBarURLTree", {})
+        self.newAttribute ("ignoreChangeSelect", False)
+        self.newAttribute ("ignoreExpand", False)
+        self.newAttribute ("ignoreCollapse", False)
+        app.model.URLTree.RegisterSideBar(self)
                 
     def SynchronizeView(self):
         """
@@ -66,9 +65,8 @@ class SideBar(Persistent):
                 itemId = wxWindow.AppendItem(parentItem, name)
                 wxWindow.urlDictMap[urlNoCase] = itemId
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
-                sideBarLevel[name] = URLTreeEntry(parcel, false, 
-                                                  PersistentDict(),
-                                                  false)
+                node = URLTreeEntry(parcel, False, {}, False)
+                sideBarLevel[name] = node.getUUID()
             else:
                 if not wxWindow.urlDictMap.has_key(urlNoCase):
                     itemId = wxWindow.AppendItem(parentItem, name)
@@ -76,9 +74,9 @@ class SideBar(Persistent):
                 else:
                     itemId = wxWindow.urlDictMap[urlNoCase]
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
-                if sideBarLevel[name].isOpen:
-                    self.__UpdateURLTree(sideBarLevel[name].children, 
-                                         url + '/', itemId)
+                node = app.repository.find (sideBarLevel[name])
+                if node.isOpen:
+                    self.__UpdateURLTree(node.children, url + '/', itemId)
                     self.ignoreExpand = true
                     wxWindow.Expand(itemId)
                     self.ignoreExpand = false
@@ -86,21 +84,23 @@ class SideBar(Persistent):
                     self.ignoreCollapse = true
                     wxWindow.Collapse(itemId)
                     self.ignoreCollapse = false
-            sideBarLevel[name].isMarked = true
+            node.isMarked = true
+            time.sleep (1)
         # Now we clean up items that exist in the dict, but not 
         # in the app's URLTree
         for key in sideBarLevel.keys():
             urlToDelete = parentURL + key
             urlToDelete = urlToDelete.lower()
-            item = sideBarLevel[key]
-            if not item.isMarked:
+            node = app.repository.find (sideBarLevel[key])
+            if not node.isMarked:
                 if wxWindow.urlDictMap.has_key(urlToDelete):
                     itemId = wxWindow.urlDictMap[urlToDelete]
                     wxWindow.Delete(itemId)
                     del wxWindow.urlDictMap[urlToDelete]
+                node.delete()
                 del sideBarLevel[key]
             else:
-                item.isMarked = false
+                node.isMarked = false
     
     def SelectURL(self, url):
         """
@@ -158,17 +158,18 @@ class SideBar(Persistent):
         wxWindow = app.association[id(self)]
         return wxWindow.SetURLBold(url, isBold)
     
-        
-class URLTreeEntry(Persistent):
+
+class URLTreeEntry(AutoItem):
     """
       URLTreeEntry is just a container class for items inserted into the
     SideBar's URLTree dictionary.
     """
-    def __init__(self, instance, isOpen, children, isMarked):
-        self.instance = instance
-        self.isOpen = isOpen
-        self.children = children
-        self.isMarked = isMarked        
+    def __init__(self, instance, isOpen, children, isMarked, **args):
+        super (URLTreeEntry, self).__init__ (**args)
+        self.newAttribute ("instance", instance)
+        self.newAttribute ("isOpen", isOpen)
+        self.newAttribute ("children", children)
+        self.newAttribute ("isMarked", isMarked)
 
 class wxSideBar(wxTreeCtrl):
     def __init__(self):
@@ -185,11 +186,9 @@ class wxSideBar(wxTreeCtrl):
           Check to see if we've already created the persistent counterpart,
         if not create it, otherwise get it. Finally add it to the association.
         """
-        if not app.model.mainFrame.__dict__.has_key('SideBar'):
-            self.model = SideBar()
-            app.model.mainFrame.SideBar = self.model
-        else:
-            self.model = app.model.mainFrame.SideBar
+        if not app.model.mainFrame.hasAttributeValue('SideBar'):
+            app.model.mainFrame.newAttribute ("SideBar", SideBar())
+        self.model = app.model.mainFrame.SideBar
         """
            The model persists, so it can't store a reference to self, which
         is a wxApp object. We use the association to keep track of the

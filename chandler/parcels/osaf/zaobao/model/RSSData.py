@@ -46,8 +46,12 @@ def OnInit(loader):
         notificationManager.DeclareNotification(FEED_CHANGED_NOTIFICATION,
                                                 NotificationManager.SYSTEM_CLIENT,
                                                 'unknown','')
+        """
+          Temporarily comment out thread since the repository doesn't work
+          in threads yet -- DJA
+        """
         #threading.Thread(target=_loadInitialFeeds).start()
-        _loadInitialFeeds()
+        #_loadInitialFeeds()
         
 def _loadInitialFeeds():
     global rssDict

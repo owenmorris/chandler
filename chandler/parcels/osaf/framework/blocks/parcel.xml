@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Parcel itemName="DocumentSchema"
+        xmlns="//Schema/Core"
+        xmlns:core="//Schema/Core"
+        xmlns:app="//Parcels/OSAF/AppSchema"
+        xmlns:doc="//Parcels/OSAF/AppSchema/DocumentSchema">
+
+  <description>Schema for blocks that make up CPIA documents </description>
+  <version>0.1</version>
+
+  <Kind itemName="Block">
+    <classes key="python">OSAF.AppSchema.DocumentSchema.Block.Block</classes>
+
+    <Attribute itemName="Name">
+      <type itemref="core:String"/>
+    </Attribute>
+
+  </Kind>
+
+</Parcel>

@@ -8,27 +8,20 @@ import os, sys, stat, gettext, locale
 from wxPython.wx import *
 from wxPython.xrc import *
 
-from model.schema.DomainSchemaLoader import DomainSchemaLoader
-
-from application.Preferences import Preferences
-from application.SplashScreen import SplashScreen
-from application.URLTree import URLTree
-
-from application.agents.Notifications.NotificationManager import NotificationManager
-from application.agents.AgentManager import AgentManager
-
-from persistence import Persistent 
-from persistence.list import PersistentList
-
-import application.ChandlerWindow
 import PreferencesDialog
 import ChandlerJabber
 import PresencePanel
 
-from zodb import db
-from zodb.storage.file import FileStorage
-from application.repository.Repository import Repository
+from application.agents.Notifications.NotificationManager import NotificationManager
+from model.schema.AutoItem import AutoItem
+from application.agents.AgentManager import AgentManager
+from application.ChandlerWindow import ChandlerWindow
 from application.ImportExport import ImportExport
+from application.Preferences import Preferences
+from application.SplashScreen import SplashScreen
+from application.URLTree import URLTree
+
+import model.schema.LoadParcels as LoadParcels
 
 """
   The application module makes available the following global data to
@@ -52,13 +45,13 @@ class MainThreadCallbackEvent(wxPyEvent):
         self.target = target
         self.args = args
 
-class Application(Persistent):
+class Application(AutoItem):
     """
       The main application class. It's view counterpart is the wxPython class
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 44
+    VERSION = 0
     """
       PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -66,7 +59,7 @@ class Application(Persistent):
     """
     PARCEL_IMPORT = 'parcels'
 
-    def __init__(self):
+    def __init__(self, **args):
         """
           Create instances of other objects that belong to the application.
         Here are all the public attributes:
@@ -74,16 +67,18 @@ class Application(Persistent):
         self.preferences         object containing all application preferences
         self.mainFrame           ChandlerWindow
         self.URLTree             tree of URL's
-        self.version             see __setstate__
         self.notificationManager notification manager
-        """
-        self.preferences = Preferences()
-        self.mainFrame = application.ChandlerWindow.ChandlerWindow()
-        self.URLTree = URLTree()
-        self.version = Application.VERSION
-        
-        self.notificationManager = NotificationManager()
-   
+        self.splashCount         how many times the splash screen has been shown
+        self.version             used for schema evolution
+         """
+        super (Application, self).__init__ (**args)
+        self.newAttribute ('preferences', Preferences ())
+        self.newAttribute ('mainFrame', ChandlerWindow ())
+        self.newAttribute ('URLTree', URLTree ())
+        self.newAttribute ('notificationManager', NotificationManager ())
+        self.newAttribute ('version', Application.VERSION)
+        self.newAttribute ('splashCount', 0)
+
     def SynchronizeView(self):
         """
           Notifies each of the application's wxPython view counterparts
@@ -101,16 +96,13 @@ class Application(Persistent):
         dialog explaining the current field of play.  Once Chandler has
         grown past this initial stage, this dialog will be removed.
         """
-        if hasattr(self, 'splashWasShown'):
-            self.splashWasShown += 1
-        else:
-            self.splashWasShown = 0
-        if self.splashWasShown < 2:
+        if self.splashCount < 2:
             pageLocation = os.path.join ('application', 'welcome.html')
             splash = SplashScreen(None, _("Welcome to Chandler"),
                                   pageLocation, True, False)
             splash.ShowModal()
             splash.Destroy()
+            self.splashCount += 1
             
     def __setstate__(self, dict):
         """
@@ -133,7 +125,7 @@ class wxApplication (wxApp):
     persistent model counterparts. The persistent object stores data that
     needs to be saved across successive application executions. The 
     non-persistent object, usually a wxPython object can't be easily be saved
-    because they contain data that doesn't pickle.
+    because they contain data that doesn't persist well (e.g. C pointers).
       We'll use the convention of naming the wxPython view object with a "wx"
     prefix using the same name its persistent model counterpart.
       Here's a description of the data available that the wxApplication makes
@@ -145,19 +137,12 @@ class wxApplication (wxApp):
     self.chandlerDirectory        directory containing chandler executable
     self.parcels                  global dictionary of parcel classes
     self.model                    the persistent counterpart
-    self.storage                  ZODB low level database
-    self.db                       ZODB high level database (object cache)
-    self.connection               connection to ZODB
-    self.dbroot                   ZODB root object tree
     self.wxMainFrame              active wxChandlerWindow
     self.locale                   locale used for internationalization
     self.jabberClient             state of jabber client including presence dictionary
     self.repository               the model.persistence.Repository instance
     self.argv                     the command line arguments of the process
-    
-    In the future we may replace ZODB with another database that provides 
-    similar functionality
-    """
+        """
 
     def __init__(self, argv=[]):
         """
@@ -185,10 +170,12 @@ class wxApplication (wxApp):
 
     def OnInit(self):       
         """
-        Main application initialization. Open the persistent object
-        store, lookup of the application's persistent model counterpart, or
-        create it if it doesn't exist.
+        Main application initialization.
         """
+        def loadClass(moduleName, className):
+            return getattr(__import__(moduleName, {}, {}, className),
+                           className)
+            
         self.applicationResources=None
         self.association={}
         self.chandlerDirectory=None
@@ -229,25 +216,6 @@ class wxApplication (wxApp):
         """
         assert stat.S_ISREG(os.stat(resourceFile)[stat.ST_MODE])
         self.applicationResources = wxXmlResource(resourceFile)
-        """
-          Open the database
-        """
-        self.storage = FileStorage ('_CHANDLER_')
-        self.db = db.DB (self.storage)
-        self.connection = self.db.open ()
-        self.dbroot = self.connection.root ()
-
-        if self.dbroot.has_key('Application'):
-            self.model = self.dbroot['Application']
-        else:
-            self.model = Application()
-            self.dbroot['Application'] = self.model
-        """
-          The model persists, so it can't store a reference to self, which
-        is a wxApp object. We use the association to keep track of the
-        wxPython object associated with each persistent object.
-        """
-        self.association={id(self.model) : self}
 
         """
           Load the parcels which are contained in the PARCEL_IMPORT directory.
@@ -260,10 +228,10 @@ class wxApplication (wxApp):
 
         if __debug__:
             """
-            In the debugging version, if PARCELDIR env var is set, put that
-            directory into sys.path because zodb might be loading objects
-            based on modules in that directory.  This must be done prior to
-            loading the system parcels
+              In the debugging version, if PARCELDIR env var is set, put that
+              directory into sys.path because zodb might be loading objects
+              based on modules in that directory.  This must be done prior to
+              loading the system parcels
             """
             debugParcelDir = None
             if os.environ.has_key('PARCELDIR'):
@@ -273,28 +241,23 @@ class wxApplication (wxApp):
                     sys.path.insert (2, debugParcelDir)
 
         """
-        Load the Repository after the path has been altered, but before
-        the parcels are loaded. Only load packs if they have not yet been loaded.
+          Open the repository.
+          -file argument to use file repository
+          -create argument forces a new repository.
+          Load the Repository after the path has been altered, but before
+          the parcels are loaded. 
         """
-        repositoryPath = os.path.join(self.chandlerDirectory, "__database__")
-
-        # because on OS X, importing dbxml is currently not working
-        def loadClass(moduleName, className):
-            return getattr(__import__(moduleName, {}, {}, className),
-                           className)
-            
+        repositoryPath = os.path.join(self.chandlerDirectory, "__repository__")
         if '-file' in self.argv:
-            cls = loadClass('model.persistence.FileRepository',
-                            'FileRepository')
+            theClass = loadClass('model.persistence.FileRepository',
+                                 'FileRepository')
         else:
-            cls = loadClass('model.persistence.XMLRepository',
-                            'XMLRepository')
-        self.repository = cls(repositoryPath)
+            theClass = loadClass('model.persistence.XMLRepository',
+                                 'XMLRepository')
+        self.repository = theClass(repositoryPath)
 
-        # force create the repository if -create passed in, otherwise open it
-        # and create it only if it doesn't yet exist
         if '-create' in self.argv:
-            self.repository.create(notxn='-notxn' in self.argv)
+            self.repository.create(notxn='-notxn' in self.argv,)
         else:
             self.repository.open(create=True, notxn='-notxn' in self.argv)
 
@@ -302,21 +265,37 @@ class wxApplication (wxApp):
         # @@@ This repository loading code should not be embedded in the
         #     application.
         if not self.repository.find('//Schema'):
+            """
+              Bootstrap an empty repository by loading only the stuff that
+              can't be loaded in a data parcel.
+            """
             self.repository.loadPack(os.path.join(self.chandlerDirectory,
-                                                  "model", "packs",
+                                                  "model",
+                                                  "packs",
                                                   "schema.pack"))
+
+        self.model = self.repository.find('//Application')
+        if not self.model:
+            self.model = Application(name='Application', parent=self.repository)
+        """
+          The model persists, so it can't store a reference to self, which
+        is a wxApp object. We use the association to keep track of the
+        wxPython object associated with each persistent object.
+        """
+        self.association={id(self.model) : self}
 
         # Load individual data parcels
         # @@@ This should not be hardcoded, but part of a larger
         #     parcel loading framework.
+        from model.schema.DomainSchemaLoader import DomainSchemaLoader
         loader = DomainSchemaLoader(self.repository)
 
-        # Load the ZaoBao data model
-        try:
-            from OSAF.zaobao.model import RSSData
-            RSSData.OnInit(loader)
-        except ImportError,e: 
-            print "Warning: ZaoBao ImportError: " + e
+        # Load the ZaoBao data model **DJA**
+        #try:
+            #from OSAF.zaobao.model import RSSData
+            #RSSData.OnInit(loader)
+        #except ImportError,e: 
+            #print "Warning: ZaoBao ImportError: " + e
         
         # Load the contacts parcel
         if not self.repository.find('//Contacts'):
@@ -328,7 +307,7 @@ class wxApplication (wxApp):
         # Load the calendar parcel
         if not self.repository.find('//Calendar'):
             calendarPath = os.path.join(self.chandlerDirectory, 'parcels',
-                                        'OSAF', 'calendar', 'model',
+                                        'OSAF', 'calendar', 'schema',
                                         'calendar.xml')
             loader.load(calendarPath)
 
@@ -346,19 +325,16 @@ class wxApplication (wxApp):
                                     'agents.xml')
             loader.load(agentsPath)
 
-        self.repository.commit()
-
         # @@@ New parcel loading -- not tested on all platforms
-        # import model.schema.LoadParcels as LoadParcels
-        # LoadParcels.LoadParcels(parcelDir, self.repository)
-        # self.repository.commit()
+        LoadParcels.LoadParcels(parcelDir, self.repository)
+        self.repository.commit()
                                 
-        """ Load the parcels """
-        self.LoadParcelsInDirectory(parcelDir)
+        #""" Load the parcels """
+        self.LoadParcelsV2InDirectory(parcelDir)
 
-        """ Load the debugging parcels """
+        #""" Load the debugging parcels """
         if __debug__ and debugParcelDir:
-            self.LoadParcelsInDirectory(debugParcelDir)
+            self.LoadParcelsV2InDirectory(debugParcelDir)
 
         self.model.SynchronizeView()
         EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
@@ -382,9 +358,9 @@ class wxApplication (wxApp):
         EVT_UPDATE_UI(self, -1, self.OnCommand)
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
         
-        """
-        initialize the non-persistent part of the NotificationManager
-        """
+        #"""
+        #initialize the non-persistent part of the NotificationManager
+        #"""
         self.model.notificationManager.PrepareSubscribers()
                 
         """
@@ -398,9 +374,24 @@ class wxApplication (wxApp):
         # initialize the agent manager
         self.agentManager = AgentManager(self)
         
-        self.OpenStartingURL()
+        #self.OpenStartingURL()
         
         return true                     #indicates we succeeded with initialization
+
+    def OnTerminate(self):
+        """
+          Main application termination.
+        """
+        self.agentManager.Stop()
+        """
+          Since Chandler doesn't have a save command and commits typically happen
+        only when the user completes a command that changes the user's data, we
+        need to add a final commit when the application quits to save data the
+        state of the user's world, e.g. window location and size.
+        """
+        self.repository.commit(purge=True)
+        self.repository.close()
+        del self.applicationResources
 
     def OpenStartingURL(self):
         """
@@ -459,7 +450,7 @@ class wxApplication (wxApp):
             self.HandleSystemPreferences()
         dialog.Destroy()
 
-    def LoadParcelsInDirectory (self, baseDir, relDir=""):
+    def LoadParcelsV2InDirectory (self, baseDir, relDir=""):
         """
           Load the parcels and call the class method to install them. Parcels
         are Python Packages and are defined by directories that contain
@@ -480,7 +471,7 @@ class wxApplication (wxApp):
         baseDir.
         """
         path = os.path.join(baseDir, relDir)
-        assert (os.path.exists (path) and os.path.isdir(path))
+        assert (os.path.exists (path) and os.path.isdir(path))     
 
         if (relDir and \
             (os.path.exists(os.path.join (path, "__init__.py"))  or \
@@ -507,12 +498,12 @@ class wxApplication (wxApp):
                 else:
                     module = None
                     break
-            if hasattr (module, 'parcelClass'):
+            if hasattr (module, 'parcelClassV2'):
                 """
                   Import the parcel's class and append it to our global list
                 of parcels and install it.
                 """
-                parcelFile, parcelClass = module.parcelClass.split('.')
+                parcelFile, parcelClass = module.parcelClassV2.split('.')
                 moduleClass = __import__(importArgument + '.' + parcelFile,
                                          globals(),
                                          locals(),
@@ -534,8 +525,8 @@ class wxApplication (wxApp):
         """
         for pathComponent in os.listdir(path):
             if os.path.isdir (os.path.join (path, pathComponent)):
-                self.LoadParcelsInDirectory (baseDir,
-                                             os.path.join(relDir, pathComponent))
+                self.LoadParcelsV2InDirectory (baseDir,
+                                               os.path.join(relDir, pathComponent))
 
     def OnCommand(self, event):
         """

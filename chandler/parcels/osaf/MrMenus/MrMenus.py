@@ -12,9 +12,9 @@ from application.SplashScreen import SplashScreen
 
 class MrMenus(ViewerParcel):
 
-    def __init__(self):
-        ViewerParcel.__init__(self)
-        self.radioSelection = 0
+    def __init__(self, **args):
+        super (MrMenus, self).__init__ (**args)
+        self.newAttribute ("radioSelection", 0)
  
 class wxMrMenus(wxViewerParcel):
 
