@@ -77,9 +77,7 @@ class AgentItem(Item):
           Unsubscribe from the notifications used by the active instructions 
         """
         clientID = self.getUUID()
-        notifications = self._GetActiveNotifications()
-        for notification in notifications:
-            Globals.notificationManager.Unsubscribe(notification, clientID)
+        Globals.notificationManager.Unsubscribe(clientID)
 
 
     # methods concerning the agent's status

@@ -70,22 +70,21 @@ class NotificationManager(object):
         finally:
             self.declarations.release()
 
-    def Unsubscribe(self, event, clientID):
-        # this function doesn't work correctly right now
-        return
-    
+    def Unsubscribe(self, clientID):
         self.declarations.acquire()
         try:
-            if not self.declarations.has_key(event):
-                raise NotDeclared, '%s %s' % (event, clientID)
+            if not self.subscriptions.has_key(clientID):
+                raise NotSubscribed, '%s' % (clientID)
 
-            # eventually if the subscriber isn't subscribed to anything
-            # we should remove it from self.subscribers as well
+            sub = self.subscriptions[clientID]
+            for decl in sub.declarations:
+                del decl.subscribers[clientID]
+
+            self.subscriptions.acquire()
             try:
-                del self.declarations[event].subscribers[clientID]
-            except KeyError:
-                # throw something here
-                return
+                del self.subscriptions[clientID]
+            finally:
+                self.subscriptions.release()
 
         finally:
             self.declarations.release()
