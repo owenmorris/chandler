@@ -33,16 +33,6 @@ cvsModules = (
     'osaf/chandler/egenix-mx',
     'osaf/chandler/wxpython',
     'osaf/chandler/jabber-py',
-    'osaf/chandler/swig',
-    'osaf/chandler/pkgconfig',
-    'osaf/chandler/net/expat',
-    'osaf/chandler/net/gettext',
-    'osaf/chandler/net/glib',
-    'osaf/chandler/net/libiconv',
-    'osaf/chandler/net/libxml2',
-    'osaf/chandler/net/roadrunner',
-    'osaf/chandler/net/sc-db',
-    'osaf/chandler/net/rap'
 )
 
 # If any of these modules have changed, scrub everything before building
@@ -53,16 +43,6 @@ scrubAllModules = {
     'osaf/chandler/egenix-mx':1,
     'osaf/chandler/wxpython':1,
     'osaf/chandler/jabber-py':1,
-    'osaf/chandler/swig':1,
-    'osaf/chandler/pkgconfig':1,
-    'osaf/chandler/net/expat':1,
-    'osaf/chandler/net/gettext':1,
-    'osaf/chandler/net/glib':1,
-    'osaf/chandler/net/libiconv':1,
-    'osaf/chandler/net/libxml2':1,
-    'osaf/chandler/net/roadrunner':1,
-    'osaf/chandler/net/sc-db':1,
-    'osaf/chandler/net/rap':1
 }
 
 mainModule = 'osaf/chandler/Chandler'
