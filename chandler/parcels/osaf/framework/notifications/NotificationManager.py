@@ -92,7 +92,7 @@ class NotificationManager(object):
         finally:
             self.declarations.release()
 
-    def PostNotification(self, notification):
+    def PostNotification(self, notification, sender = None):
         # for now we don't care who posts......
         # future version should check notification for validity
         self.declarations.acquire()
@@ -155,17 +155,22 @@ class Declaration(object):
     event = property(__getEvent)
 
 class Subscription(object):
-    __slots__ = [ 'declarations', 'queue', 'callback', 'args' ]
+    __slots__ = [ 'declarations', 'queue', 'callback', 'args', 'threadid' ]
     def __init__(self, declarations, callback, *args):
         super(Subscription, self).__init__()
         self.declarations = declarations
         self.callback = callback
         self.args = args
+        self.threadid = id(threading.currentThread())
         if not callable(callback):
             self.queue = Queue.Queue()
 
     def post(self, notification):
         if callable(self.callback):
+            if notification.threadid != None:
+                if notification.threadid != id(threading.currentThread()):
+                    print 'ignoring notification from', notification.threadid
+                    return
             self.callback(notification, *self.args)
         else:
             self.queue.put(notification)
