@@ -1069,3 +1069,6 @@ Chandler/parcels/test/__init__.py
 Chandler/parcels/__init__.py
 !Chandler/distrib/win,
 Chandler/distrib/win/Chandler.bat
+Chandler/distrib/win/README.win
+!Chandler/distrib,
+Chandler/distrib/README

@@ -2354,3 +2354,6 @@ Chandler/parcels/test/Test.xml
 Chandler/parcels/test/Test.xrc
 !Chandler/distrib/osx,
 Chandler/distrib/osx/Chandler.sh
+Chandler/distrib/osx/README.osx
+!Chandler/distrib,
+Chandler/distrib/README
