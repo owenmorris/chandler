@@ -868,11 +868,13 @@ class Item(object):
     def move(self, newParent, previous=None, next=None):
         'Move this item under another container or make it a root.'
 
+        if newParent is None:
+            raise ValueError, 'newParent cannot be None'
+            
         parent = self.getItemParent()
         if parent is not newParent:
             parent._removeItem(self)
-            self._setRoot(newParent._addItem(self, previous, next))
-            self._parent = newParent
+            self._setParent(newParent)
 
     def _isRepository(self):
         return False
