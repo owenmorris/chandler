@@ -116,7 +116,7 @@ def syncToServer(dav, item):
                     defaultURL = dav.url.join(i.itsUUID.str16())
                     durl = i.getAttributeValue('sharedURL', default=defaultURL)
                     # mmm, recursion
-                    DAV(durl).put(i)
+                    #DAV(durl).put(i)
                     listData += '<itemref>' + unicode(durl) + '</itemref>'
                 else:
                     #XXX fix this (Value is a PersistentList here??)
@@ -128,7 +128,7 @@ def syncToServer(dav, item):
             if isinstance(value, Item):
                 defaultURL = dav.url.join(value.itsUUID.str16())
                 durl = value.getAttributeValue('sharedURL', default=defaultURL)
-                DAV(durl).put(value)
+                #DAV(durl).put(value)
                 props += makePropString(name, namespace, '<itemref>%s</itemref>' % (unicode(durl)))
             else:
                 atypepath = "%s" % (atype.itsPath)

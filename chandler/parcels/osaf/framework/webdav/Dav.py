@@ -74,15 +74,18 @@ class DAV(object):
         else:
             item.sharedURL = self.url
 
-        self.sync(item)
-
-    def sync(self, item):
-        """
         clouds = item.itsKind.getClouds('default')
         for cloud in clouds:
             for i in cloud.getItems(item):
-                Sync.syncItem(self, i)
-        """
+                defaultURL = self.url.join(i.itsUUID.str16())
+                durl = i.getAttributeValue('sharedURL', default=defaultURL)
+                i.sharedURL = durl
+                sharing.itemMap[i.itsUUID] = i.itsUUID
+                DAV(durl).sync(i)
+
+        #self.sync(item)
+
+    def sync(self, item):
         Sync.syncItem(self, item)
 
     etag = property(_getETag)

@@ -30,15 +30,16 @@ class DAVItem(object):
 
     def _getprops(self, url, headersOnly=False):
         """ Fetch all the properties of a resource """
-        # XXX this doesn't work, but should...
-        #        if headersOnly:
-        #            props = '<O:uuid/><O:kind/>'
-        #        else:
-        #            props = '<D:allprop/>'
+        if headersOnly:
+            props = '<D:prop>' + \
+                    '<O:uuid/><O:kind/><D:getetag/><D:getlastmodified/>' + \
+                    '</D:prop>'
+        else:
+            props = '<D:allprop/><D:getetag/><D:getlastmodified/>'
 
         body = davlib.XML_DOC_HEADER + \
                '<D:propfind xmlns:D="DAV:" xmlns:O="//core">' + \
-               '<D:allprop/><D:getetag/><D:getlastmodified/>' + \
+               props + \
                '</D:propfind>'
 
         r = self.dav.newConnection().propfind(url, body, 0)
