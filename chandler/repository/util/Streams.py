@@ -545,7 +545,7 @@ class OutputStreamWriter(object):
 
         super(OutputStreamWriter, self).__init__()
         self.outputStream = outputStream
-        self.encoding = encoding
+        self.encoding = encoding or 'utf-8'
 
     def write(self, text):
 
@@ -569,7 +569,7 @@ class InputStreamReader(object):
 
         super(InputStreamReader, self).__init__()
         self.inputStream = inputStream
-        self.encoding = encoding
+        self.encoding = encoding or 'utf-8'
 
     def _read(self, length):
 
