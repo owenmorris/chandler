@@ -146,6 +146,9 @@ def main():
                 status = "success"
 
                 newDir = os.path.join(outputDir, buildVersion)
+                print "Renaming " + os.path.join(buildDir, "output") + " to " + newDir 
+                log.write("Renaming " + os.path.join(buildDir, "output") + " to " + newDir + "\n")
+                os.rename(os.path.join(buildDir, "output"), newDir)
                 if os.path.exists(outputDir+os.sep+"index.html"):
                     os.remove(outputDir+os.sep+"index.html")
                 if os.path.exists(outputDir+os.sep+"time.js"):
