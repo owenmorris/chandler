@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+  <item>
+    <name>Query</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+    <class module="repository.schema.Kind">Kind</class>
+
+    <ref name="attributes">
+      <!-- 
+         - plus local attributes below:
+         -     TODO PUT NAMES HERE: monitoring, items
+        -->
+    </ref>
+
+    <ref name="superKinds">
+      <ref type="path">/Core/Item</ref>
+    </ref>
+
+    <attribute name="classes">
+      <value name="python">repository.query.Query.Query</value>
+    </attribute>
+  </item>
+
+  <item>
+    <name>_queryString</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Query</parent>
+
+    <ref name="kinds">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" type="path">//Schema/Core/String</ref>
+    <attribute name="cardinality">single</attribute>
+  </item>
+
+  <item>
+    <name>_resultSet</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Query</parent>
+
+    <ref name="kinds">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">queries</attribute>
+  </item>
+
+  <item>
+    <name>stale</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Query</parent>
+
+    <ref name="kinds">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" type="path">//Schema/Core/Boolean</ref>
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue" type="bool">True</attribute>
+  </item>
+
+  <item>
+    <name>args</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Query</parent>
+
+    <ref name="kinds">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" type="path">//Schema/Core/Tuple</ref>
+    <attribute name="cardinality">dict</attribute>
+  </item>
+
+</items>

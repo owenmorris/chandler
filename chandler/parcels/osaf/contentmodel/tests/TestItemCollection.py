@@ -20,7 +20,7 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
 
         view = self.rep.view
-        ic = ItemCollection.ItemCollection(view=view)
+        ic = ItemCollection.ItemCollection("TestCollectionEvents", view=view)
         for index in range(100):
             item = GenerateItems.GenerateCalendarEvent(view, 100)
             ic.add(item)
@@ -59,7 +59,7 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
         view.commit()
 
         log.debug("Creating ItemCollection")
-        ic = ItemCollection.ItemCollection(view=view)
+        ic = ItemCollection.ItemCollection("TestRule",view=view)
         ic.subscribe()
 
         # a newly initialized query with no string has a size 0 rsult
@@ -67,7 +67,7 @@ class TestItemCollection(TestContentModel.ContentModelTestCase):
         
         # give it a real query string
         log.debug("Setting rule attribute")
-        ic.rule = 'for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True'
+        ic.rule = 'for i inevery "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True'
         log.debug("Committing ItemCollection")
         view.commit()
         print "Rule/ItemCollection: %s, %s" % (ic.rule, ic.itsUUID)

@@ -1,24 +1,27 @@
 
 __revision__  = "$Revision$"
 __date__      = "$Date$"
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2004, 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import repository.query.parser.QueryParser as QueryParser
+import repository.item.Item as Item
 import tools.timing
 import sets
 import mx.DateTime.ISO
 from chandlerdb.util.UUID import UUID
+import repository.item.Monitors as Monitors
 
 import logging
 log = logging.getLogger("RepoQuery")
 log.setLevel(logging.INFO)
 
 import time
+#import wingdbstub
 
-class Query(object):
+class Query(Item.Item):
 
-    def __init__(self, repo, queryString = None):
+    def __init__(self, name = None, parent=None, kind=None, queryString = ""):
         """
         @param repo: The repository associated with the query @@@ replace with factory method
         @type repo: Repository
@@ -27,43 +30,60 @@ class Query(object):
         @type queryString: string
         """
         log.debug("RepoQuery.__init__: ")
-        self.__rep = repo
-        self._view = self.__rep.view
-        self.queryString = queryString
-        self.args = {}
-        self._kind = None
-        self._logical_plan = None
-        self._predicate = None
-        self.recursive = True
-        self._callbacks = {}
 
-    def execute(self):
+        super(Query, self).__init__(name, parent, kind)
+
+        self._queryString = queryString
+        self._queryStringIsStale = True
+        self.args = {}
+        self._logical_plan = None
+        self._callbacks = {}
+        self.monitorCallbacks = {}
+
+    def onItemLoad(self, view):
+        self._callbacks = {}
+        self.monitorCallbacks = {}
+        try:
+            if self._resultSet is not []:
+                self._compile()
+                self._queryStringIsStale = False
+                self.stale = False
+            else:
+                self._queryStringIsStale = True
+        except AttributeError:
+            self._queryStringIsStale = True
+            self.stale = True
+
+    def getQueryString(self):
+        return self._queryString
+
+    def setQueryString(self, queryString):
+        self._queryString = queryString
+        self._queryStringIsStale = True
+
+    queryString = property(getQueryString, setQueryString)
+
+    def _compile(self):
         """
         Compile this query
 
         Before calling compile, be sure that they queryString
         and any parameters have been set
         """
-        
-        start = time.time()
-        if self.queryString is None:
+        if not self.queryString or self.queryString == "":
             return
+
         log.debug("RepoQuery.compile(): %s" % self.queryString)
 
         if self.queryString:
-            #tools.timing.reset()
-            #tools.timing.begin("Parsing query")
             self.ast = QueryParser.parse('stmt', self.queryString)
-            #tools.timing.end("Parsing query")
-            log.debug("execute: AST = %s" % self.ast)
-    
-            #tools.timing.begin("Analyzing query")
+            log.debug("compile: AST = %s" % self.ast)
             self._logical_plan = self.__analyze(self.ast)
-            #tools.timing.end("Analyzing query")
-            #tools.timing.results()
-            log.debug("compile: %s:%f" % (self.queryString,time.time()-start))
+            self._queryStringIsStale = False
+            self.stale = True
         else:
             self._logical_plan = None
+            self.stale = True
 
     def subscribe(self, callbackItem = None, callbackMethodName = None):
         """
@@ -78,7 +98,7 @@ class Query(object):
         if callbackItem is not None:
             self._callbacks [callbackItem.itsUUID] = callbackMethodName
         log.debug("RepoQuery<>.subscribe(): %s" % (self.queryString))
-        self.__rep.addNotificationCallback(self.queryCallback)
+        self.itsView.addNotificationCallback(self.queryCallback)
         
     def unsubscribe(self, callbackItem=None):
         """
@@ -92,9 +112,12 @@ class Query(object):
             self._callbacks = {}
         else:
             del self._callbacks [callbackItem.itsUUID]
-        self.__rep.removeNotificationCallback(self.queryCallback)
+        self.itsView.removeNotificationCallback(self.queryCallback)
         return len (self._callbacks)
-    
+
+    def __queryHasChanged(self):
+        return self._queryStringIsStale and self.queryString
+
     def queryCallback(self, view, changes, notification, **kwds):
         """
         queryCallback implements the callback used by L{Repository.addNotificationCallback<repository.persistence.Repository.Repository.addNotificationCallback>}
@@ -108,31 +131,40 @@ class Query(object):
         @param notification: a string containing the kind of notification
         @type notification: string
         """
-        if self._view != view:
+        if self.itsView != view:
             return
         start = time.time()
         log.debug("RepoQuery.queryCallback for %s" % self.queryString)
-        if self.queryString is None or self.queryString == "":
+
+        # we can commit before we've compiled the query
+        #@@@ This should be an error, I think
+        if not self.queryString or self.queryString == "":
             return
-        elif self._logical_plan is None and self.queryString is not None:
-            self.execute()
+        elif self.__queryHasChanged():
+            self._compile()
         changed = False
+
+        #@@@ change this to batch notifications
         for uuid, reason, kwds in changes:
+            i = None # kill this
             i = view.findUUID(uuid)
-            #@@@ there's a big problem with this if there are paths through multiple items -- we're going to need something fairly sophisticated here.
+           #@@@ there's a big problem with this if there are paths through multiple items -- we're going to need something fairly sophisticated here.
             if i is not None:
-#                log.debug("RepoQuery.queryCallback %s:%s:%s" % (i, i.itsKind, self._kind))
+                log.debug("RepoQuery.queryCallback %s:%s" % (i, i.itsKind))
                 flag = self._logical_plan.changed(i)
                 if flag is not None:
                     changed = True
                     if flag:
                         action = "entered"
+                        self._resultSet.append(i)
                     else:
                         action = "exited"
-                    break #@@@ this means we stop after 1 item (like old code) efficient, but wrong
+                        if i in self._resultSet: # should we need this?
+                            self._resultSet.remove(i)
+
         if changed:
             log.debug("RepoQuery.queryCallback: %s %s query result" % (uuid, action))
-            for callbackUUID in self._callbacks.keys():
+            for callbackUUID in self._callbacks:
                 item = view.find (callbackUUID)
                 method = getattr (type(item), self._callbacks [callbackUUID])
                 method (item, action)
@@ -142,13 +174,33 @@ class Query(object):
         """
         Return a generator of the query results
         """
-        if self._logical_plan is None and self.queryString is not None:
-            self.execute()
-        if self._logical_plan is not None:
+        return self.resultSet
+
+    def getResultSet(self):
+        return self.__generateResults()
+
+    resultSet = property(getResultSet)
+
+    def __generateResults(self):
+        if self.__queryHasChanged():
+            self._compile()
+        if self.queryString == "":
+            try:
+                self._resultSet.clear()
+            except AttributeError:
+                self._resultSet = []
+            self.stale = False
+        if self.stale:
+            try:
+                self._resultSet.clear()
+            except:
+                self._resultSet = []
+            self.stale = False
             for i in self._logical_plan.execute():
+                self._resultSet.append(i)
                 yield i
-        else: # queries without plans are empty
-            for i in []:
+        else: 
+            for i in self._resultSet:
                 yield i
                 
     def __analyze(self, ast):
@@ -159,25 +211,66 @@ class Query(object):
         @type ast: list
         """                   
         log.debug("__analyze %s" % ast)
-        op = ast[0]
+        queryType = ast[0]
+        queryArgs = ast[1:]
 
-        if op == 'for':
+        if queryType == 'for':
             #@@@ recursive handling is a problem now, just like args
-            plan = ForPlan(self.__rep, ast[1:], self.args, self.recursive)
-        elif op == 'union':
-            plans = [ self.__analyze(i) for i in ast[1:][0] ]
-            plan = UnionPlan(self.__rep, plans)
-        elif op == 'intersect':
-            plans = [ self.__analyze(i) for i in ast[1:][0:2] ]
-            plan = IntersectionPlan(self.__rep, plans)
-        elif op == 'difference':
-            plans = [ self.__analyze(i) for i in ast[1:][0:2] ]
-            plan = DifferencePlan(self.__rep, plans)
+            plan = ForPlan(self, queryArgs, self.args)
+        elif queryType == 'union':
+            childPlans = [ self.__analyze(i) for i in queryArgs[0] ]
+            plan = UnionPlan(self, childPlans)
+        elif queryType == 'intersect':
+            childPlans = [ self.__analyze(i) for i in queryArgs[0:2] ]
+            plan = IntersectionPlan(self, childPlans)
+        elif queryType == 'difference':
+            childPlans = [ self.__analyze(i) for i in queryArgs[0:2] ]
+            plan = DifferencePlan(self, childPlans)
         else:
             raise ValueError, "Unrecognized operator %s" % op
 
         return plan
 
+    def monitor(self, callbackItem = None, callbackMethodName = None):
+        """
+        This query should subscribe to monitor changes
+
+        @param callbackItem: a Chandler Item that provides a callback method
+        @type callbackItem: Item
+
+        @param callbackMethodName: The name of the callback method on the callbackItem
+        @type callbackMethodName: string
+        """
+        if callbackItem is not None:
+            self.monitorCallbacks[callbackItem.itsUUID] = callbackMethodName
+        #@@@ add monitor for items in result set
+
+    def unMonitor(self, callbackItem=None):
+        """
+        This query should stop subscribing to monitor changes. If you don't specify a
+        callbackItemUUID, all subscriptions will be removed.
+
+        @param callbackItem: callbackItem to be removed
+        @type callbackItem: Item
+        """
+        if callbackItem is None:
+            self.monitorCallbacks = {}
+        else:
+            del self.monitorCallbacks [callbackItem.itsUUID]
+        #@@@ remove monitor for items in result set
+        return len (self._callbacks)
+
+    def monitorCallback(self, op, item, attribute, *args, **kwds):
+        flag = self._logical_plan.monitored(op, item, attribute, *args, **kwds)
+        if flag is not None:
+            if flag:
+                action = "entered"
+            else:
+                action = "exited"
+        for callbackUUID in self.monitorCallbacks:
+            i = self.itsView.find(callbackUUID)
+            method = getattr(type(i), self.monitorCallbacks[callbackUUID])
+            method(i, action)
 
 class LogicalPlan(object):
     """
@@ -190,7 +283,7 @@ class ForPlan(LogicalPlan):
     """
     Logical plan which implements for queries
     """
-    def __init__(self, rep, ast, args, recursive):
+    def __init__(self, item, ast, args):
         """
         constructor
 
@@ -202,14 +295,11 @@ class ForPlan(LogicalPlan):
 
         @param args: the set of query parameters/arguments
         @type arts: dict
-
-        @param recursive: whether or not a Kind based query is recursive over subkinds
-        @type recursive: boolean
         """
-        self.__rep = rep
+        self.__item = item # need an item for Monitors.attach
         self.args = args #@@@ AUAUGUGUGH
-        self.recursive = recursive
         self._pathKinds = {}
+        self.affectedAttributes = [] # attributes that we need to watch
         self.analyze(ast)
 
     def lookup_source(self, name):
@@ -228,7 +318,7 @@ class ForPlan(LogicalPlan):
         if (name.startswith('"') and name.endswith('"')) or \
            (name.startswith("'") and name.endswith("'")):
             name = name[1:-1]
-        kind = self.__rep.findPath(name)
+        kind = self.__item.itsView.findPath(name)
         if kind is not None:
             return ('kind', kind)
 
@@ -270,11 +360,11 @@ class ForPlan(LogicalPlan):
 
         log.debug("compile_predicate: ast=%s, ast[0]=%s" % (ast,ast[0]))
         # function
-        if ast[0] == 'fn':
-            tok = ast[0]
+        token = ast[0]
+        if token == 'fn':
             fn = ast[1]
             args = ast [2:][0]
-            log.debug("%s %s %s" % (tok, fn, args))
+            log.debug("%s %s %s" % (token, fn, args))
             if fn in unary_fns and len(args) == 1:
                 if fn == 'date':
                     pred = "mx.DateTime.ISO.ParseDateTime(%s)" % self.compile_predicate(args[0])
@@ -291,15 +381,15 @@ class ForPlan(LogicalPlan):
                 assert False, "unhandled fn %s" % fn
             return pred
         # unary operators
-        elif ast[0] in unary_ops and len(ast[1:]) == 1:
+        elif token in unary_ops and len(ast[1:]) == 1:
             pred = "%s %s" % (ast[0], self.compile_predicate(ast[1]))
             return pred
         # infix operators
-        elif ast[0] in infix_ops:
+        elif token in infix_ops:
             args = ast[1:]
             return infix_op(ast[0],[args[0],args[1]])
         # path expression
-        elif ast[0] == 'path': 
+        elif token is 'path': 
             # handle path expressions by computing the set of kinds/types covered
             # by the attributes along a path.  changed() will check commit against
             # this list of types to do incremental checking of multi-item paths
@@ -307,12 +397,13 @@ class ForPlan(LogicalPlan):
             #@@@ do iteration variable checks
             source = self.lookup_source(self.iter_source)
             path_type = source[0]
+            args = ast[1]
 
             if path_type == 'kind':
                 current = source[1]
                 count = 1
                 # walk path, building reverse lookup to be used by changed()
-                for i in ast[1][1:]:
+                for i in args[1:]:
                     try:
                         if (i.startswith('its')): #@@@ is this right?
                             attr = getattr(current, i)
@@ -320,7 +411,7 @@ class ForPlan(LogicalPlan):
                             attr = current.getAttribute(i)
                     except AttributeError:
                         #@@@ raise a compilation error?
-                        #@@@What about the case wher only some items only have the attr?
+                        #@@@What about the case where only some items only have the attr?
                         break
 
                     # stop at literal attributes
@@ -334,9 +425,10 @@ class ForPlan(LogicalPlan):
                             current = current.getAttribute(i).type
                         #@@@ this needs to generalize to multiple path expressions per predicate
                         self._pathKinds[current] = (attr.otherName, count)
-            return '.'.join(ast[1])
+            self.affectedAttributes = args[1:]
+            return '.'.join(args)
         # other methods
-        elif ast[0] == 'method':
+        elif token is 'method':
             path = ast[1]
             args = ast[2]
             #@@@ check method name against approved list
@@ -345,7 +437,8 @@ class ForPlan(LogicalPlan):
         elif type(ast) == str or type(ast) == unicode: 
             #@@@ check that ast != iteration variable, or parameter
             if ast.startswith('$'):
-                arg = self.args[int(ast[1:])]
+                key = ast
+                arg = self.args[key][0]
                 if arg.isdigit():
                     return arg
                 else:
@@ -368,7 +461,11 @@ class ForPlan(LogicalPlan):
         
         self.iter_var = ast[0]
         self.iter_source = ast[1]
+
+        # this next line is for when we do notification checks ahead of query exexecution, as when we re-read a stored result set.
+        self._sourceKind = self.lookup_source(self.iter_source)[1] 
         predicate = ast[2]
+        self.recursive = ast[3]
         
         log.debug("analyze_for: var = %s, source = %s, predicate = %s" % (self.iter_var, self.iter_source, predicate))
         
@@ -379,17 +476,21 @@ class ForPlan(LogicalPlan):
         log.debug("analyze_for: collection = %s, closure = %s" % (self.collection, self.closure))
             
         self.plan= (self.collection, compile(self.closure,'<string>','eval'))
+        if len(self.__item.monitorCallbacks) > 0:
+            for a in self.affectedAttributes:
+                Monitors.Monitors.attach(self.__item, 'monitorCallback', 'set', a)
 
     def execute(self):
         """
         Execute the query plan for a for statement
         """
         source = self.plan[0]
+        sourceType = source[0]
 
         # source is full text
-        if type(source) == tuple and source[0] == 'ftcontains': 
+        if type(source) == tuple and sourceType == 'ftcontains': 
             args = source[1]
-            textItems = self.__rep.searchItems(args[0])
+            textItems = self.__item.itsView.searchItems(args[0])
             items = []
             for i in textItems:
                 s = i[1]
@@ -400,26 +501,34 @@ class ForPlan(LogicalPlan):
                 else:
                     items.append(i[0])
         # source is a Kind
-        elif source[0] == 'kind':
-            self._kind = source[1]
+        elif sourceType == 'kind':
+            self._sourceKind = source[1]
             self._predicate = self.plan[1]
 
             import repository.item.Query as RepositoryQuery
-            items = RepositoryQuery.KindQuery(recursive=self.recursive).run([source[1]])
+            items = RepositoryQuery.KindQuery(recursive=self.recursive).run([self._sourceKind])
         # source is an argument (ref-collection)
-        elif source[0] == 'argsrc':
+        elif sourceType == 'argsrc':
             items = self._getSourceIterator(source)
-        elif source[0] == 'arg':
+        elif sourceType == 'arg':
             items = source[1]
         else:
             assert False, "ForPlan.execute couldn't handle %s " % str(source)
 
         for i in items:
             try:
-                if eval(self._predicate):
+                c = eval(self._predicate)
+                if c:
+                    if len(self.__item.monitorCallbacks) > 0:
+                        if  len(self.affectedAttributes) > 1:
+                            print "monitoring of multi-item paths is not yet supported"
+                        else:
+                            for a in self.affectedAttributes:
+                                i.monitorValue(a,True)
                     yield i
-            except AttributeError:
+            except AttributeError, ae:
                 #@@@ log
+                log.debug("AttributeError, %s" % ae)
                 pass
 
     def _getSourceIterator(self, source):
@@ -428,12 +537,15 @@ class ForPlan(LogicalPlan):
         else:
             arg, uuid = source
             attrName = None
-        item = self.__rep.findUUID(uuid)
+        item = self.__item.itsView.findUUID(uuid)
         if attrName:
             items = item.getAttributeValue(attrName)
         else:
             items = item
         return items
+
+    def monitored(self, op, item, attribute, *args, **kwds):
+        return self.changed(item, attribute)
 
     def changed(self, item, attribute=None):
         """
@@ -463,7 +575,7 @@ class ForPlan(LogicalPlan):
         i = item #@@@ predicates are hardwired to 'i'
 
         # is the item's kind in the set covered by the predicate?
-        if self._pathKinds.has_key(i.itsKind):
+        if i.itsKind in self._pathKinds:
             # the item may be in the middle of a path expression
             # so try to walk backwards until we reach the kind that is the root of the query
             kind, count = self._pathKinds[i.itsKind]
@@ -472,14 +584,16 @@ class ForPlan(LogicalPlan):
                 right_i = right_i.getAttributeValue(self._pathKinds[right_i.itsKind][0])
             i = right_i
 
-        # handle recursive queries
+#        try: # in case someone commits before the query is ever compiled
+            # handle recursive queries
         if self.recursive:
-            rightKind = i.isItemOf(self._kind)
+            rightKind = i.isItemOf(self._sourceKind)
         else:
-            rightKind = i.itsKind is self._kind
+            rightKind = i.itsKind is self._sourceKind
 
         if rightKind:
             result = eval(self._predicate)
+            log.debug("change(): %s %s %s" % (i, self._predicate, result))
         else:
             result = None
 
@@ -491,7 +605,7 @@ class UnionPlan(LogicalPlan):
     Logical plan which implements for queries
     """
 
-    def __init__(self, rep, ast):
+    def __init__(self, item, ast):
         """
         constructor
 
@@ -501,7 +615,7 @@ class UnionPlan(LogicalPlan):
         @param ast: an abstract syntax tree of the query
         @type ast: list
         """
-        self.__rep = rep
+        self.__item = item
         self.analyze(ast)
 
     def analyze(self, plans):
@@ -522,8 +636,8 @@ class UnionPlan(LogicalPlan):
         plans = self.__plans
         log.debug("__execute_union: plan = %s" % plans)
         
-        #@@@ DANGER - hack for self._kind - fix with notification upgrade
-        self._kind = None
+        #@@@ DANGER - hack for self._sourceKind - fix with notification upgrade
+#        self._sourceKind = None
 
         s = sets.Set(plans[0].execute())
         for p in plans[1:]:
@@ -550,12 +664,14 @@ class UnionPlan(LogicalPlan):
             return reduce((lambda x,y: x or y), bools)
         return None
 
+    def monitored(self, op, item, attribute, *args, **kwds):
+        return self.changed(item, attribute)
     
 class IntersectionPlan(LogicalPlan):
     """
     Logical plan which implements for queries
     """
-    def __init__(self, rep, ast):
+    def __init__(self, item, ast):
         """
         constructor
 
@@ -565,7 +681,7 @@ class IntersectionPlan(LogicalPlan):
         @param ast: an abstract syntax tree of the query
         @type ast: list
         """
-        self.__rep = rep
+        self.__item = item
         self.analyze(ast)
 
     def analyze(self, plans):
@@ -585,7 +701,6 @@ class IntersectionPlan(LogicalPlan):
         """
         plans = self.__plans
         log.debug("__execute_intersect: plan = %s" % plans)
-        self._kind = None
         s1 = sets.Set(plans[0].execute())
         s2 = sets.Set(plans[1].execute())
         return s1.intersection(s2)
@@ -606,14 +721,15 @@ class IntersectionPlan(LogicalPlan):
         #@@@ in prep for n-way intersect
         return reduce((lambda x,y: x and y), [ x.changed(item, attribute) for x in self.__plans ])
 
-
+    def monitored(self, op, item, attribute, *args, **kwds):
+        return self.changed(item, attribute)
 
 class DifferencePlan(LogicalPlan):
     """
     Logical plan which implements for queries
     """
 
-    def __init__(self, rep, ast):
+    def __init__(self, item, ast):
         """
         constructor
 
@@ -623,7 +739,7 @@ class DifferencePlan(LogicalPlan):
         @param ast: an abstract syntax tree of the query
         @type ast: list
         """
-        self.__rep = rep
+        self.__item = item
         self.analyze(ast)
 
     def analyze(self, plans):
@@ -643,7 +759,6 @@ class DifferencePlan(LogicalPlan):
         """
         plans = self.__plans
         log.debug("__execute_difference: plan = %s" % plans)
-        self._kind = None
         s1 = sets.Set(plans[0].execute())
         s2 = sets.Set(plans[1].execute())
         return s1.difference(s2)
@@ -663,3 +778,6 @@ class DifferencePlan(LogicalPlan):
         """
         flags = [ x.changed(item, attribute) for x in self.__plans ]
         return flags[0] and not flags[1]
+
+    def monitored(self, op, item, attribute, *args, **kwds):
+        return self.changed(item, attribute)

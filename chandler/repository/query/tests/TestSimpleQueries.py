@@ -1,7 +1,7 @@
 
 __revision__  = "$Revision$"
 __date__      = "$Date$"
-__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2004, 2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, unittest
@@ -24,67 +24,65 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         # now run the query
 
         qString = u"for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"
-        results = self._compileQuery(qString)
+        results = self._compileQuery('testOutboxQuery',qString)
         self._checkQuery(lambda i: not i.isInbound is True, results)
 
     def testKindQuery(self):
         """ Test a simulation of kindQuery """
-        results = self._compileQuery('for i in "//Schema/Core/Kind" where True')
+        results = self._compileQuery('testKindQuery','for i in "//Schema/Core/Kind" where True')
         self._checkQuery(lambda i: False, results)
 
     def testFunctionKindQuery(self):
         """ Test calling a function in the query predicate """
-        results = self._compileQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc")')
+        results = self._compileQuery('testFunctionQuery','for i in "//Schema/Core/Kind" where contains(i.itsName,"arc")')
         self._checkQuery(lambda i: not 'arc' in i.itsName, results)
                 
     def testVariableKindQuery(self):
         """ Test query where source (kind) is specified in a variable """
         k = self.rep.findPath('//Schema/Core/Kind')
-        results = self._compileQuery('for i in $1 where contains(i.itsName,"arc")', {"$1": ([k], None)})
+        results = self._compileQuery('testVariableKindQuery','for i in $1 where contains(i.itsName,"arc")', {"$1": ([k], None)})
         self._checkQuery(lambda i: not 'arc' in i.itsName, results)
 
     def testVariableRefCollectonQuery(self):
         """ Test query where source (ref collection) is specified in a variable """
         k = self.rep.findPath('//Schema/Core/Kind')
-        results = self._compileQuery('for i in $1 where contains(i.itsName,"Kind")', {"$1": (k.itsUUID,'attributes')})
-        for i in results:
-            print i
+        results = self._compileQuery('testVariableRefCollectonQuery','for i in $1 where contains(i.itsName,"Kind")', {"$1": (k.itsUUID,'attributes')})
         self._checkQuery(lambda i: not 'Kind' in i.itsName, results)
 
 
     def testNotFunctionKindQuery(self):
         """ Test negating a function call in the query predicate """
-        results = self._compileQuery('for i in "//Schema/Core/Kind" where not contains(i.itsName,"arc")')
+        results = self._compileQuery('testNotFunctionKindQuery','for i in "//Schema/Core/Kind" where not contains(i.itsName,"arc")')
         self._checkQuery(lambda i: 'arc' in i.itsName, results)
 
     def testEqualityKindQuery(self):
         """ Test equality operator in the query predicate """
-        results = self._compileQuery('for i in "//Schema/Core/Kind" where i.itsName == "Item"')
+        results = self._compileQuery('testEqualityKindQuery','for i in "//Schema/Core/Kind" where i.itsName == "Item"')
         self._checkQuery(lambda i: not i.itsName == 'Item', results)
 
     def testInequalityKindQuery(self):
         """ Test inequality operator in the query predicate """
-        results = self._compileQuery('for i in "//Schema/Core/Kind" where i.itsName != "Item"')
+        results = self._compileQuery('testInequalityKindQuery','for i in "//Schema/Core/Kind" where i.itsName != "Item"')
         self._checkQuery(lambda i: not i.itsName != 'Item', results)
 
     def testLengthKindQuery(self):
         """ Test calling a unary function in the query predicate """
-        results = self._compileQuery('for i in "//Schema/Core/Kind" where len(i.attributes) >= 4')
+        results = self._compileQuery('testLengthKindQuery','for i in "//Schema/Core/Kind" where len(i.attributes) >= 4')
         self._checkQuery(lambda i: not len(i.attributes) >= 4, results)
         
     def testAndKindQuery(self):
         """ Test AND operator in the query predicate """
-        results = self._compileQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and len(i.attributes) >= 4')
+        results = self._compileQuery('testAndKindQuery','for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and len(i.attributes) >= 4')
         self._checkQuery(lambda i: not ("arc" in i.itsName and len(i.attributes) >= 4), results)
 
     def testNotAndKindQuery(self):
         """ Test AND NOT operation in the query predicate """
-        results = self._compileQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and not len(i.attributes) >= 4')
+        results = self._compileQuery('testNotAndKindQuery','for i in "//Schema/Core/Kind" where contains(i.itsName,"arc") and not len(i.attributes) >= 4')
         self._checkQuery(lambda i: not ('arc' in i.itsName and not len(i.attributes) >= 4), results)
 
     def testMethodCallQuery(self):
         """  """
-        results = self._compileQuery('for i in "//Schema/Core/Kind" where i.hasAttributeValue("superKinds")')
+        results = self._compileQuery('testMethodCallQuery','for i in "//Schema/Core/Kind" where i.hasAttributeValue("superKinds")')
         self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
 
     def testItemTraversalQuery(self):
@@ -107,7 +105,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         tools.timing.end("Commit Contacts")
 #        tools.timing.results()
         
-        results = self._compileQuery(u"for i in '//parcels/osaf/contentmodel/contacts/Contact' where contains(i.contactName.firstName,'a')")
+        results = self._compileQuery('testItemTraversalQuery',u"for i in '//parcels/osaf/contentmodel/contacts/Contact' where contains(i.contactName.firstName,'a')")
         self._checkQuery(lambda i: not 'a' in i.contactName.firstName, results)
 
     def testEnumerationQuery(self):
@@ -131,7 +129,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         tools.timing.end("Commit Calendar Events")
         tools.timing.results()
         
-        results = self._compileQuery(u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.importance == 'fyi'")
+        results = self._compileQuery('testEnumerationQuery',u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.importance == 'fyi'")
         self._checkQuery(lambda i: not i.importance == 'fyi', results)
 
     def testRefCollectionQuery(self):
@@ -140,9 +138,10 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         kind = self.rep.findPath('//Schema/Core/Kind')
 
         queryString = u"for i in $0 where contains(i.itsName,'ttributes')"
-        q = Query.Query(self.rep, queryString)
+        p = self.rep.findPath('//Queries')
+        k = self.rep.findPath('//Schema/Core/Query')
+        q = Query.Query('testRefCollctionQuery', p, k, queryString)
         q.args ["$0"] = (kind.itsUUID, "attributes")
-        q.execute()
 
         self._checkQuery(lambda i: not 'ttributes' in i.itsName, q)
 
@@ -150,10 +149,11 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         """ Test using a variable in the where clause """
         queryString= 'for i in "//Schema/Core/Kind" where contains(i.itsName,$0)'
         import repository.query.Query as Query
-        q = Query.Query(self.rep, queryString)
+        p = self.rep.findPath('//Queries')
+        k = self.rep.findPath('//Schema/Core/Query')
+        q = Query.Query('testWhereQuery', p, k, queryString)
         pattern = 'arc'
-        q.args = [ pattern ]
-        q.execute()
+        q.args["$0"] = ( pattern, ) # one item tuple
         self._checkQuery(lambda i: not pattern in i.itsName, q)
 
     def testDateQuery(self):
@@ -187,17 +187,16 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         startDate = mx.DateTime.ISO.ParseDate(startDateString)
         startDateString = startDate.date
         if month == 12:
-            month1 = 1
-            year1 = year+1
-            endDateString = "%d-%d-%d" % (year1,month1,1)
+            month = 1
+            year = year+1
         else:
-            endDateString = "%d-%d-%d" % (year,month+1,1)
-
+            month = month+1
+        endDateString = "%d-%d-%d" % (year,month,1)
         endDate = mx.DateTime.ISO.ParseDate(endDateString) -1
         endDateString = endDate.date
         
         queryString = u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.startTime > date(\"%s\") and i.startTime < date(\"%s\")" % (startDate.date,endDate.date)
-        results = self._compileQuery(queryString)
+        results = self._compileQuery('testDateQuery',queryString)
         self._checkQuery(lambda i: not (i.startTime > startDate and i.startTime < endDate), results)
 
     def testTextQuery(self):
@@ -214,20 +213,47 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         self.rep.loadPack(cineguidePack)
         self.rep.commit()
 
-        results = self._compileQuery(u"for i in ftcontains('femme AND homme') where True")
+        results = self._compileQuery('testTextQuery1',u"for i in ftcontains('femme AND homme') where True")
         self._checkQuery(lambda i: not (checkLob(i.synopsis,"femme") and checkLob(i.synopsis,"homme")), results)
 
-        results = self._compileQuery(u"for i in ftcontains('femme AND homme','synopsis') where True")
+        results = self._compileQuery('testTextQuery2',u"for i in ftcontains('femme AND homme','synopsis') where True")
         self._checkQuery(lambda i: not (checkLob(i.synopsis,"femme") and checkLob(i.synopsis,"homme")), results)
 
-        results = self._compileQuery(u"for i in ftcontains('femme AND homme','synopsis') where len(i.title) < 10")
+        results = self._compileQuery('testTextQuery3',u"for i in ftcontains('femme AND homme','synopsis') where len(i.title) < 10")
         self._checkQuery(lambda i: not (checkLob(i.synopsis,"femme") and checkLob(i.synopsis,"homme") and len(i.title) < 10), results)
 
     def testBug1815(self):
         """ Test that missing attributes don't blow up the query [Bug 1815] """
-        results = self._compileQuery('for i in "//Schema/Core/Kind" where contains(i.itsNme,"arc")')
+        results = self._compileQuery('testTextQuery4','for i in "//Schema/Core/Kind" where contains(i.itsNme,"arc")')
         self._checkQuery(lambda i: not "arc" in i.itsNme, results)
 
+    def testResetQueryString(self):
+        """ Make sure we can change the query string and still get an answer"""
+        import repository.query.Query as Query
+        p = self.rep.findPath('//Queries')
+        k = self.rep.findPath('//Schema/Core/Query')
+        q = Query.Query('testResetQuery', p, k)
+        self.assert_(len([ i for i in q]) == 0)
+        q.queryString = 'for i in "//Schema/Core/Kind" where True'
+        self.assert_(len([ i for i in q ]) == 16)
+        q.queryString = 'for i in "//Schema/Core/Kind" where contains(i.itsName,"o")'
+        self.assert_(len([ i for i in q ]) == 6)
+
+    def testReloadQuery(self):
+        """ Test to see that we can reload a query and it's result set from the store without recomputing the query contents """
+        import repository.query.Query as Query
+        p = self.rep.findPath('//Queries')
+        k = self.rep.findPath('//Schema/Core/Query')
+        q = Query.Query('testResetQuery', p, k, 'for i in "//Schema/Core/Kind" where True')
+        print len([ i for i in q])
+        self.assert_(len([ i for i in q ]) == 16)
+        self.rep.check()
+        self.rep.commit()
+        uuid = q.itsUUID
+
+        self._reopenRepository()
+        q1 = self.rep.findUUID(uuid)
+        self.assert_(len([ i for i in q1 ]) == 16)
 
 if __name__ == "__main__":
 #    import hotshot

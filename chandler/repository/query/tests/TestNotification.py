@@ -18,7 +18,6 @@ class TestNotification(QueryTestCase.QueryTestCase):
     def testNotifyFor(self):
         """ Test query notification """
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
-        import osaf.contentmodel.ItemCollection as ItemCollection
 
         self.manager.path.append(os.path.join(self.testdir,'parcels'))
         self.loadParcels(
@@ -36,7 +35,9 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         # basic query processing
         queryString = 'for i in "//parcels/osaf/contentmodel/contacts/ContactName" where contains(i.firstName,"i"))'
-        q = Query.Query(self.rep, queryString)
+        p = self.rep.findPath('//Queries')
+        k = self.rep.findPath('//Schema/Core/Query')
+        q = Query.Query('testQuery', p, k, queryString)
 #        notify_client = self.rep.findPath('//parcels/notification/testNotifier')      
         k = self.rep.findPath('//parcels/notification/NotificationItem')
         notify_client = NotificationItem.NotificationItem('testNotifier',self.rep,k)
@@ -44,15 +45,76 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.rep.commit()
 
         q.subscribe(notify_client, 'handle')
-        r = q.execute()
-        results = [ i for i in q ]
-        self._checkQuery(lambda i: not 'i' in i.firstName, results)
-        c = results[0]
+        self._checkQuery(lambda i: not 'i' in i.firstName, q.resultSet)
+        c = q.resultSet.next()
         self.assert_('i' in c.firstName)
+        self.rep.commit()
 
         # now make c leave the query
         c.firstName = 'Harry'
         self.rep.commit()
+        self.assert_(notify_client.action == 'exited')
+        self.assert_(c.firstName == 'Harry')
+
+        # now make c come back into the query
+        c.firstName = 'Michael'
+        self.rep.commit()
+        #import wingdbstub
+        self.assert_('i' in c.firstName)
+        self.assert_(notify_client.action == 'entered')
+
+    def testMonitorFor(self):
+        """ Test query notification via monitors """
+        import osaf.contentmodel.tests.GenerateItems as GenerateItems
+
+        self.manager.path.append(os.path.join(self.testdir,'parcels'))
+        self.loadParcels(
+         ['http://osafoundation.org/parcels/osaf/contentmodel/contacts',
+          'http://osafoundation.org/parcels/osaf/contentmodel',
+          'http://testparcels.org/notification']
+        )
+
+        view = self.rep.view
+        GenerateItems.GenerateContacts(view, 100)
+        contact = GenerateItems.GenerateContact(view)
+        contact.contactName.firstName = "Alexis"
+
+        self.rep.commit()
+
+        # basic query processing
+        queryString = 'for i in "//parcels/osaf/contentmodel/contacts/ContactName" where contains(i.firstName,"i"))'
+        p = self.rep.findPath('//Queries')
+        k = self.rep.findPath('//Schema/Core/Query')
+        q = Query.Query('testQuery', p, k, queryString)
+#        notify_client = self.rep.findPath('//parcels/notification/testNotifier')      
+        k = self.rep.findPath('//parcels/notification/NotificationItem')
+        monitor_client = NotificationItem.NotificationItem('testMonitorNotifier', self.rep, k)
+#        item = monitor_client
+        
+        monitor_client.action = ""
+        notify_client = NotificationItem.NotificationItem('testNotifier',self.rep, k)
+#        item = notify_client
+        notify_client.action = ""
+        self.rep.commit()
+
+        q.subscribe(notify_client, 'handle')
+#        print "monitor item: %s %s" % (monitor_client, monitor_client.itsUUID)
+        q.monitor(monitor_client, 'handle')
+        self._checkQuery(lambda i: not 'i' in i.firstName, q.resultSet)
+        c = q.resultSet.next()
+        self.assert_('i' in c.firstName)
+        self.rep.commit()
+
+        # now make c leave the query
+        c.firstName = 'Tom'
+#        print "monitor_action %s" % monitor_client.action
+        c.firstName = 'Dick'
+#        print "monitor_action %s" % monitor_client.action
+        c.firstName = 'Harry'
+#        print "monitor_action %s" % monitor_client.action
+        self.rep.commit()
+#        print "notify_action %s" % notify_client.action
+
         self.assert_(notify_client.action == 'exited')
         self.assert_(c.firstName == 'Harry')
 
@@ -91,21 +153,20 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         queryString = 'union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where i.displayName == "Meeting", for i in "//parcels/osaf/contentmodel/Note" where contains(i.displayName,"idea"), for i in "//parcels/osaf/contentmodel/contacts/Contact" where contains(i.contactName.firstName,"i"))'
 
-        union_query = Query.Query(self.rep, queryString)
+        p = self.rep.findPath('//Queries')
+        k = self.rep.findPath('//Schema/Core/Query')
+        union_query = Query.Query('testQuery', p, k, queryString)
         k = self.rep.findPath('//parcels/notification/NotificationItem')
         notify_client = NotificationItem.NotificationItem('testNotifier',self.rep,k)
         item = notify_client
         self.rep.commit()
 
         union_query.subscribe(notify_client, 'handle')
-        union_query.execute()
-        union_results = [i for i in union_query ]
+        union_query.resultSet.next() # force evaluation of some of the query at least
 
         #test first query in union
-        for1_results = self._compileQuery('for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where i.displayName == "Meeting"')
-        for i in for1_results:
-            one = i
-            break
+        for1_query = self._compileQuery('testNotifyUnionQuery1','for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where i.displayName == "Meeting"')        
+        one = for1_query.resultSet.next()
         self.rep.commit()
         one.displayName = "Lunch"
 
@@ -117,10 +178,8 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.assert_(notify_client.action == 'entered')
         
         # test second query in union
-        for2_results = self._compileQuery('for i in "//parcels/osaf/contentmodel/Note" where contains(i.displayName,"idea")')
-        for i in for2_results:
-            two = i
-            break
+        for2_query = self._compileQuery('testNotifyUnionQuery2','for i in "//parcels/osaf/contentmodel/Note" where contains(i.displayName,"idea")')
+        two = for2_query.resultSet.next()
         self.rep.commit()
         origName = two.displayName
         two.displayName = "Foo"
@@ -133,11 +192,9 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.assert_(notify_client.action == 'entered')
 
         # test third query in Union -- has an item traversal
-        for3_results = self._compileQuery('for i in "//parcels/osaf/contentmodel/contacts/Contact" where contains(i.contactName.firstName,"i")')
-        for i in for3_results:
-            three = i
-            break
-
+        for3_query = self._compileQuery('testNotifyUnionQuery3','for i in "//parcels/osaf/contentmodel/contacts/Contact" where contains(i.contactName.firstName,"i")')
+        
+        three = for3_query.resultSet.next()
         self.rep.commit()
         origName = three.contactName.firstName
         three.contactName.firstName = "Harry"
@@ -161,10 +218,12 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.rep.commit()
 
         queryString = "for i in $0 where True"
-        q = Query.Query(self.rep, queryString)
+        p = self.rep.findPath('//Queries')
+        k = self.rep.findPath('//Schema/Core/Query')
+        q = Query.Query('testQuery', p, k, queryString)
         q.args ["$0"] = (kind.itsUUID, "attributes")
         q.subscribe(notify_client, 'handle')
-        q.execute()
+        q.compile()
 
         for i in q:
             print i
@@ -174,9 +233,9 @@ class TestNotification(QueryTestCase.QueryTestCase):
             print i
 
 
-#if __name__ == "__main__":
+if __name__ == "__main__":
 #    import hotshot
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
 #    profiler.run('unittest.main()')
 #    profiler.close()
-#    unittest.main()
+    unittest.main()

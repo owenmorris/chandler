@@ -417,7 +417,7 @@ class RepositoryView(object):
             else:
                 path.append(item._name or item._uuid)
             print path
-            for child in item:
+            for child in item.iterChildren():
                 self.dir(child, path)
             path.pop()
 
@@ -783,6 +783,11 @@ class RepositoryView(object):
     # CDIRTY   = 0x0200
     # merge flags
 
+    def addNotificationCallback(self, fn):
+        self.repository.addNotificationCallback(fn)
+
+    def removeNotificationCallback(self, fn):
+        return self.repository.removeNotificationCallback(fn)
 
 class OnDemandRepositoryView(RepositoryView):
 

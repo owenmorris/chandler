@@ -23,32 +23,32 @@
   <!-- ItemCollections -->
   <contentModel:ItemCollection itsName="calendarItemCollection">
     <displayName>Calendar Demo</displayName>
-    <_rule value="for i in '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True"/>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="notesItemCollection">
     <displayName>Notes</displayName>
-    <_rule value="for i in '//parcels/osaf/contentmodel/Note' where True"/>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/Note' where True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="taskItemCollection">
     <displayName>TaskList</displayName>
-    <_rule value="for i in '//parcels/osaf/contentmodel/tasks/TaskMixin' where True"/>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/tasks/TaskMixin' where True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="mailItemCollection">
     <displayName>MailList</displayName>
-    <_rule value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where True"/>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="contactItemCollection">
     <displayName>Contacts</displayName>
-    <_rule value="for i in '//parcels/osaf/contentmodel/contacts/Contact' where True"/>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/contacts/Contact' where True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="mixedItemCollection">
     <displayName>Mixed</displayName>
-    <_rule value="union(for i in '//parcels/osaf/contentmodel/Note' where True, for i in '//parcels/osaf/contentmodel/contacts/Contact' where True)"/>
+    <_rule value="union(for i inevery '//parcels/osaf/contentmodel/Note' where True, for i inevery '//parcels/osaf/contentmodel/contacts/Contact' where True)"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="untitledItemCollection">
@@ -57,17 +57,17 @@
 
   <contentModel:ItemCollection itsName="allItemCollection">
     <displayName>All</displayName>
-    <_rule value="for i in '//parcels/osaf/contentmodel/Note' where True"/>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/Note' where True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="inItemCollection">
     <displayName>In</displayName>
-    <_rule value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"/>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"/>
   </contentModel:ItemCollection>
 
   <contentModel:ItemCollection itsName="outItemCollection">
     <displayName>Out</displayName>
-    <_rule value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isOutbound == True"/>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isOutbound == True"/>
   </contentModel:ItemCollection>
 
   <!-- LayoutSelector -->

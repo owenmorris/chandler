@@ -1649,7 +1649,7 @@
 
   <contentModel:ItemCollection itsName="ReminderItems">
     <displayName>ReminderItems</displayName>
-    <_rule value="for i in '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True"/><!-- i.hasAttribute('reminderTime') -->
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True"/><!-- i.hasAttribute('reminderTime') -->
   </contentModel:ItemCollection>
 
   <Timer itsName="ReminderTimer"

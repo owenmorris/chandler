@@ -6,10 +6,16 @@ import application.Globals as Globals
 import osaf.contentmodel.ContentModel as ContentModel
 import repository.query.Query as RepositoryQuery
 from repository.item.ItemError import NoSuchIndexError
+import traceback
 
 class ItemCollection(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/ItemCollection"
+
+    def onItemLoad(self, view):
+        self._callbacks = {}
+        self._updateCount = 0 # transient
+        self._resultsLength = -1
 
     def subscribe (self, callbackItem=None, callbackMethodName=None):
         """
@@ -20,8 +26,16 @@ class ItemCollection(ContentModel.ContentItem):
         if not self._isInitialized():
             assert self.itsView.isRefCounted(), "must be run repository with refcounting"
             self._setInitialized()
-            query = self.createRepositoryQuery()
-            query.subscribe (self, "onItemCollectionChanged")
+            try:
+                path = '//Queries/' + self.__computeQueryName()
+                self._query = self.findPath(path)
+                if not self._query:
+                    self._query = self.createRepositoryQuery()
+                else:
+                    self._callbacks = {} # shouldn't need to do this, but createRepository does it
+            except NoSuchAttributeError:
+                self._query = self.createRepositoryQuery()
+            self._query.subscribe (self, "onItemCollectionChanged")
             self.notifyOfChanges ("multiple changes")
         if callbackItem is not None:
             self._callbacks [callbackItem.itsUUID] = callbackMethodName
@@ -34,9 +48,19 @@ class ItemCollection(ContentModel.ContentItem):
 
         self.__dict__['_initialized'] = initialized
 
+    def __computeQueryName(self):
+        if self._name:
+            return self._name+"Query"
+        else:
+            return str(self.itsUUID)+"Query"
+
     def createRepositoryQuery (self):
         self._callbacks = {} # transient
-        self._query = RepositoryQuery.Query (self.itsView.repository) # transient
+        # these two should be cached
+        parent = self.findPath('//Queries')
+        kind = self.findPath('//Schema/Core/Query')
+        name = self.__computeQueryName()
+        self._query = RepositoryQuery.Query (name, parent, kind, '') # transient
         self._updateCount = 0 # transient
         self.queryStringStale = True
         return self._query
@@ -175,15 +199,18 @@ class ItemCollection(ContentModel.ContentItem):
         try:
             query = self._query
         except AttributeError:
-            query = self.createRepositoryQuery()
-
+            path = '//Queries/'+self.__computeQueryName()
+            self._query = self.findPath(path)
+            if not self._query:
+                self.createRepositoryQuery()
+            query = self._query
+            self.queryStringStale = True
+            
         if self.queryStringStale:
             query.queryString, query.args = self.calculateQueryStringAndArgs()
-            query.execute ()
             self.queryStringStale = False
             self.resultsStale = True
         if self.resultsStale or not self._isInitialized():
-            # self._results = [index for index in query]
             current = None  # current is the "insertion point" for _results
             # make _results look like query:
             for item in query:
@@ -234,7 +261,12 @@ class ItemCollection(ContentModel.ContentItem):
         Globals.views[0].postEventByName ('ShareItem', {'item': self})
 
     def __len__ (self):
-        return len (self.results)
+        try:
+            if self.resultsStale or self._resultsLength < 0:
+                self._resultsLength = len(self.results)
+        except AttributeError:
+            self._resultsLength = len(self.results)
+        return self._resultsLength
 
     def __iter__ (self):
         for item in self.results:

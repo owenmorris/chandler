@@ -44,7 +44,7 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
 
         # (The parcel manager sticks the //parcels root in there)
         for root in self.rep.iterRoots():
-            self.assert_(root.itsName in ['Schema', 'Packs', 'parcels'])
+            self.assert_(root.itsName in ['Schema', 'Packs', 'parcels', 'Queries'])
 
     def testWalk(self):
         def callme(self, path, x):

@@ -43,7 +43,7 @@ BIN_ARCHIVES += ../openssl-$(SNAP)-0.9.7d-1.tar.gz
 endif
 
 # these get installed into chandler
-HOME_ARCHIVES=../QueryParser-$(SNAP)-0.4-2.tar.gz
+HOME_ARCHIVES=../QueryParser-$(SNAP)-0.4-3.tar.gz
 
 ARCHIVES = $(BIN_ARCHIVES) $(HOME_ARCHIVES)
 ARCHIVES_MD5 = $(addsuffix .md5,$(ARCHIVES))

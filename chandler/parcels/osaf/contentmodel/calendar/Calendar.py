@@ -221,11 +221,19 @@ class Location(ContentModel.ChandlerItem):
         assert locationName, "Invalid locationName passed to getLocation factory"
 
         # get all Location objects whose displayName match the param
-        queryString = u'for i in "//parcels/osaf/contentmodel/calendar/Location" \
-                      where i.displayName ==$0'
-        locQuery = Query.Query (view.repository, queryString)
-        locQuery.args = [ locationName ]
-        locQuery.execute ()
+        import repository.item.Query
+        k = view.findPath(Location.myKindPath)
+        its = repository.item.Query.KindQuery(recursive=False).run([k])
+        locQuery = [ i for i in its if i.displayName == locationName ]
+
+##         locQuery = view.findPath('//Queries/calendarLocationQuery')
+##         if locQuery is None:
+##             queryString = u'for i in "//parcels/osaf/contentmodel/calendar/Location" \
+##                       where i.displayName == $0'
+##             p = view.findPath('//Queries')
+##             k = view.findPath('//Schema/Core/Query')
+##             locQuery = Query.Query ('calendarLocationQuery', p, k, queryString)
+##         locQuery.args["$0"] = ( locationName, )
 
         # return the first match found, if any
         for firstSpot in locQuery:

@@ -138,29 +138,31 @@ def test():
 
   ## FOR_EXPR
   >>> print parse('for_stmt','for i in x where i.name == "id"')
-  ['for', 'i', 'x', ['==', ['path', ['i', 'name'], None], '"id"']]
+  ['for', 'i', 'x', ['==', ['path', ['i', 'name'], None], '"id"'], False]
   >>> print parse('for_stmt','for i in $1 where i.name == "id"')
-  ['for', 'i', '$1', ['==', ['path', ['i', 'name'], None], '"id"']]
+  ['for', 'i', '$1', ['==', ['path', ['i', 'name'], None], '"id"'], False]
   >>> print parse('for_stmt', "for i in '//userdata/zaobaoitems' where i.channel.creator == 'Ted Leung'")
-  ['for', 'i', "'//userdata/zaobaoitems'", ['==', ['path', ['i', 'channel', 'creator'], None], "'Ted Leung'"]]
+  ['for', 'i', "'//userdata/zaobaoitems'", ['==', ['path', ['i', 'channel', 'creator'], None], "'Ted Leung'"], False]
   >>> print parse('for_stmt','for i in z where i.price < 10 and i.color == "green"')
-  ['for', 'i', 'z', ['and', ['<', ['path', ['i', 'price'], None], '10'], ['==', ['path', ['i', 'color'], None], '"green"']]]
+  ['for', 'i', 'z', ['and', ['<', ['path', ['i', 'price'], None], '10'], ['==', ['path', ['i', 'color'], None], '"green"']], False]
   >>> print parse('for_stmt', 'for i in z where len(z.messages) > 1000')
-  ['for', 'i', 'z', ['>', ['fn', 'len', [['path', ['z', 'messages'], None]]], '1000']]
+  ['for', 'i', 'z', ['>', ['fn', 'len', [['path', ['z', 'messages'], None]]], '1000'], False]
   >>> print parse('for_stmt', 'for i in "//Schema/Core/Kind" where i.hasAttributeValue("itsName")')
-  ['for', 'i', '"//Schema/Core/Kind"', ['method', ['path', ['i', 'hasAttributeValue'], None], ['"itsName"']]]
+  ['for', 'i', '"//Schema/Core/Kind"', ['method', ['path', ['i', 'hasAttributeValue'], None], ['"itsName"']], False]
   >>> print parse('for_stmt', u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.importance == 'fyi'")
-  ['for', u'i', u"'//parcels/osaf/contentmodel/calendar/CalendarEvent'", [u'==', ['path', [u'i', u'importance'], None], u"'fyi'"]]
+  ['for', u'i', u"'//parcels/osaf/contentmodel/calendar/CalendarEvent'", [u'==', ['path', [u'i', u'importance'], None], u"'fyi'"], False]
   >>> print parse('for_stmt', u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.startTime > date('2004-08-01') and i.startTime < date('2004-08-01')")
-  ['for', u'i', u"'//parcels/osaf/contentmodel/calendar/CalendarEvent'", [u'and', [u'>', ['path', [u'i', u'startTime'], None], ['fn', u'date', [u"'2004-08-01'"]]], [u'<', ['path', [u'i', u'startTime'], None], ['fn', u'date', [u"'2004-08-01'"]]]]]
+  ['for', u'i', u"'//parcels/osaf/contentmodel/calendar/CalendarEvent'", [u'and', [u'>', ['path', [u'i', u'startTime'], None], ['fn', u'date', [u"'2004-08-01'"]]], [u'<', ['path', [u'i', u'startTime'], None], ['fn', u'date', [u"'2004-08-01'"]]]], False]
   >>> print parse('for_stmt', u"for i in '//Schema/Core/Kind' where ftcontains(i.description,'\\"howard johnson\\" and pancakes')")
-  ['for', u'i', u"'//Schema/Core/Kind'", ['fn', u'ftcontains', [['path', [u'i', u'description'], None], u'\\'"howard johnson" and pancakes\\'']]]
+  ['for', u'i', u"'//Schema/Core/Kind'", ['fn', u'ftcontains', [['path', [u'i', u'description'], None], u'\\'"howard johnson" and pancakes\\'']], False]
   >>> print parse('for_stmt', u"for i in ftcontains('\\"howard johnson\\" and pancakes') where i.itsKind.itsName == 'Movie'")
-  ['for', u'i', ('ftcontains', [u'\\'"howard johnson" and pancakes\\'']), [u'==', ['path', [u'i', u'itsKind', u'itsName'], None], u"'Movie'"]]
+  ['for', u'i', ('ftcontains', [u'\\'"howard johnson" and pancakes\\'']), [u'==', ['path', [u'i', u'itsKind', u'itsName'], None], u"'Movie'"], False]
+  >>> print parse('for_stmt', u"for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where i.importance == 'fyi'")
+  ['for', u'i', u"'//parcels/osaf/contentmodel/calendar/CalendarEventMixin'", [u'==', ['path', [u'i', u'importance'], None], u"'fyi'"], True]
 
   ### UNION_EXPR
   >>> print parse('union_stmt','union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True, for i in "//parcels/osaf/contentmodel/Note" where True, for i in "//parcels/osaf/contentmodel/contacts/Contact" where True)')
-  ['union', [['for', 'i', '"//parcels/osaf/contentmodel/calendar/CalendarEvent"', 'True'], ['for', 'i', '"//parcels/osaf/contentmodel/Note"', 'True'], ['for', 'i', '"//parcels/osaf/contentmodel/contacts/Contact"', 'True']]]
+  ['union', [['for', 'i', '"//parcels/osaf/contentmodel/calendar/CalendarEvent"', 'True', False], ['for', 'i', '"//parcels/osaf/contentmodel/Note"', 'True', False], ['for', 'i', '"//parcels/osaf/contentmodel/contacts/Contact"', 'True', False]]]
   """
   pass
 
