@@ -110,7 +110,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         """
         Convenience method for changing the selected date.
         """
-        self.postEventByName ('SelectedDateChanged',{'start':self.rangeStart})
+        self.postEventByName ('SelectedDateChanged',{'start':self.selectedDate})
 
     # Managing the date range
 
@@ -238,10 +238,13 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         # @@@ add method on block item for setting selected date
         self.blockItem.selectedDate = selectedDate
         self.blockItem.dayMode = True
+        self.blockItem.postDateChanged()
         self.wxSynchronizeWidget()
 
     def OnWeekSelect(self, event):
         self.blockItem.dayMode = False
+        self.blockItem.selectedDate = self.blockItem.rangeStart
+        self.blockItem.postDateChanged()
         self.wxSynchronizeWidget()
 
     def OnExpand(self, event):
