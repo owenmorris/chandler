@@ -1025,6 +1025,7 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
     def onAcceptShareEventUpdateUI(self, event):
         # If we're already sharing it, we should disable the button and change the text.
         enabled = True
+        item = self.selectedItem()
         try:
             url, collectionName = MailSharing.getSharingHeaderInfo(item)
             existingSharedCollection = Sharing.findMatchingShare(self.itsView, url)
@@ -1032,7 +1033,7 @@ class AcceptShareButton (DetailSynchronizer, ControlBlocks.Button):
             enabled = True
         else:
             if existingSharedCollection is not None:
-                self.widget.SetValue(_("(Already sharing this collection)"))
+                self.widget.SetLabel(_("(Already sharing this collection)"))
                 enabled = False
         event.arguments['Enable'] = enabled
 
