@@ -95,12 +95,18 @@ openssl:   $(SRC)/$(BUILD)/Makefile
 $(SRC)/$(BUILD)/Makefile: $(SRC)/Configure
 	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
 	cp -r crypto ssl apps certs tools util doc include $(BUILD)/;cd $(BUILD);\
-	perl ../Configure --openssldir=$(PREFIX) $(CONF_OPT) $(PLATFORM)
+	perl ../Configure shared --openssldir=$(PREFIX) $(CONF_OPT) $(PLATFORM)
 
 snap: 
 	cd $(BUILD_ROOT); \
 	tar -cvzf $(OPENSSL)/$(SNAP).tar.gz \
+		   $(SNAP)/lib/libcrypto.so.0.9.7 \
+		   $(SNAP)/lib/libcrypto.so.0 \
+		   $(SNAP)/lib/libcrypto.so \
 		   $(SNAP)/lib/libcrypto.a \
+		   $(SNAP)/lib/libssl.so.0.9.7 \
+		   $(SNAP)/lib/libssl.so.0 \
+		   $(SNAP)/lib/libssl.so \
 		   $(SNAP)/lib/libssl.a
 
 endif # if OS X or linux
