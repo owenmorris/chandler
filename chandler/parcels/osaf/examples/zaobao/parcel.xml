@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Parcel itemName="zaobao"
+        xmlns="//Schema/Core"
+        xmlns:zaobao="//Parcels/OSAF/examples/zaobao"
+        xmlns:agent="//Parcels/OSAF/AppSchema/AgentSchema">
+
+  <displayName>ZaoBao RSS Schema</displayName>
+  <description>RSS schema for ZaoBao parcel for 0.2 release</description>
+  <version>0.1</version>
+
+  <!-- Kind: RSSBase -->
+
+  <Kind itemName="RSSBase">
+    <displayName>RSS Base Item</displayName>
+
+    <Attribute itemName="creator">
+      <displayName>Creator</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+
+    <Attribute itemName="link">
+      <displayName>Web URL</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+
+    <Attribute itemName="title">
+      <displayName>Title</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+
+    <Attribute itemName="category">
+      <displayName>Category</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+
+    <attributes itemref="zaobao:RSSBase/creator"/>
+    <attributes itemref="zaobao:RSSBase/link"/>
+    <attributes itemref="zaobao:RSSBase/title"/>
+    <attributes itemref="zaobao:RSSBase/category"/>
+    <superKinds itemref="Item"/>
+  </Kind>
+
+
+  <!-- Kind: RSSChannel -->
+
+  <Kind itemName="RSSItem">
+    <displayName>RSS Item</displayName>
+
+    <Attribute itemName="channel">
+      <displayName>Channel</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="zaobao:RSSChannel"/>
+      <inverseAttribute itemref="zaobao:RSSChannel/items"/>
+    </Attribute>
+
+    <attributes itemref="zaobao:RSSItem/channel"/>
+    <superKinds itemref="zaobao:RSSBase"/>
+    <classes key="python">OSAF.examples.zaobao.RSSData.RSSItem</classes>
+  </Kind>
+
+
+  <!-- Kind: RSSChannel -->
+
+  <Kind itemName="RSSChannel">
+    <displayName>RSS Channel</displayName>
+
+    <Attribute itemName="language">
+      <displayName>Language</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+  
+    <Attribute itemName="encoding">
+      <displayName>Encoding</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+  
+    <Attribute itemName="etag">
+      <displayName>eTag</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+  
+    <Attribute itemName="lastModified">
+      <displayName>Last Modified</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="DateTime"/>
+    </Attribute>
+  
+    <Attribute itemName="rssURL">
+      <displayName>RSS URL</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+
+    <Attribute itemName="isUnread">
+      <displayName>Is Unread</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="Boolean"/>
+    </Attribute>
+  
+    <Attribute itemName="items">
+      <displayName>Items</displayName>
+      <cardinality>list</cardinality>
+      <type itemref="zaobao:RSSItem"/>
+      <inverseAttribute itemref="zaobao:RSSItem/channel"/>
+    </Attribute>
+
+    <attributes itemref="zaobao:RSSChannel/language"/>
+    <attributes itemref="zaobao:RSSChannel/encoding"/>
+    <attributes itemref="zaobao:RSSChannel/etag"/>
+    <attributes itemref="zaobao:RSSChannel/lastModified"/>
+    <attributes itemref="zaobao:RSSChannel/rssURL"/>
+    <attributes itemref="zaobao:RSSChannel/isUnread"/>
+    <attributes itemref="zaobao:RSSChannel/items"/>
+    <superKinds itemref="zaobao:RSSBase"/>
+    <classes key="python">OSAF.examples.zaobao.RSSData.RSSChannel</classes>
+  </Kind>  
+
+  <agent:AgentItem itemName="ZaoBaoAgent">
+    <displayName>The ZaoBao Agent</displayName>
+    <description>This agent does ZaoBao's work</description>
+
+    <agent:Schedule itemName="ZaoBaoSchedule">
+      <agent:startTime>2003-11-11 12:56:00+0800</agent:startTime>
+      <agent:repeatFlag>True</agent:repeatFlag>
+      <agent:repeatDelay>00:10:00:00</agent:repeatDelay>
+    </agent:Schedule>
+
+    <agent:Action itemName="GetFeeds" itemClass="OSAF.examples.zaobao.ZaoBaoAgent.UpdateAction">
+      <description>Gets and updates all the feeds</description>
+    </agent:Action>
+
+    <agent:Instruction itemName="UpdateFeeds">
+      <description>Update feeds every so often based on the ZaoBaoSchedule</description>
+      <agent:enabled>True</agent:enabled>
+      <agent:schedule itemref="zaobao:ZaoBaoAgent/ZaoBaoSchedule"/>
+      <agent:actions itemref="zaobao:ZaoBaoAgent/GetFeeds"/>
+    </agent:Instruction>
+
+    <agent:instructions itemref="zaobao:ZaoBaoAgent/UpdateFeeds"/>
+  </agent:AgentItem>
+
+</Parcel>

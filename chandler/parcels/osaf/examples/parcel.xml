@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Parcel itemName="examples"
+        xmlns="//Schema/Core">
+
+  <displayName>empty parcel</displayName>
+  <description>empty parcel</description>
+  <version>0.0</version>
+</Parcel>
