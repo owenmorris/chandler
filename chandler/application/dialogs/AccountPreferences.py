@@ -126,6 +126,7 @@ PANELS = {
             "WEBDAV_PORT" : {
                 "attr" : "port",
                 "type" : "integer",
+                "default": 80
             },
             "WEBDAV_USE_SSL" : {
                 "attr" : "useSSL",
@@ -136,6 +137,9 @@ PANELS = {
     },
 }
 
+# Generic defaults based on the attr type.  Use "default" on attr for specific defaults.
+DEFAULTS = {'string': '', 'integer': 0, 'boolean': False}
+    
 class AccountPreferencesDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
@@ -193,7 +197,14 @@ class AccountPreferencesDialog(wx.Dialog):
             values = { }
             for (field, desc) in \
              PANELS[item.accountType]['fields'].iteritems():
-                values[field] = item.getAttributeValue(desc['attr'])
+                try:
+                    setting = item.getAttributeValue(desc['attr'])
+                except AttributeError:
+                    try:
+                        setting = desc['default']
+                    except KeyError:
+                        setting = DEFAULTS[desc['type']]
+                values[field] = setting
             self.data.append( { "item" : item, "values" : values } )
             self.accountsList.Append(item.displayName)
             i += 1
