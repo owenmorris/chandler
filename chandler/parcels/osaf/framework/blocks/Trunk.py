@@ -6,7 +6,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import sys
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
-import osaf.contentmodel.ItemCollection as ItemCollection
 from repository.item.Item import Item
 
 """
@@ -143,16 +142,4 @@ class TrunkDelegate(Item):
             result = item.copy(parent = userData, cloudAlias="default")
             
         return result
-
-class SidebarTrunkDelegate(TrunkDelegate):
-    def _makeTrunkForCacheKey(self, keyItem):
-        """ 
-          Return the treeTemplate if we've got an item collection otherwise let the super
-          class make a copy
-        """
-        if isinstance (keyItem, ItemCollection.ItemCollection):
-            return self._copyItem(self.findPath (self.treeTemplatePath),
-                                  onlyIfReadOnly=True)
-        else:
-            return super(SidebarTrunkDelegate, self)._makeTrunkForCacheKey (keyItem)
 

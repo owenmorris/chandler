@@ -10,7 +10,6 @@
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:doc="http://osafoundation.org/parcels/osaf/views/demo"
              xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
-             xmlns:contentView="http://osafoundation.org/parcels/osaf/views/content"
              xmlns:main="http://osafoundation.org/parcels/osaf/views/main">
 
   <core:version>0.3</core:version>
@@ -425,7 +424,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
 
   <!-- Attribute Editors Table -->
   <Table itsName="AttributeEditorsSummaryTable">
-    <contents itemref="contentView:allItemCollection"/>
+    <contents itemref="main:allItemCollection"/>
 
     <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>

@@ -298,21 +298,24 @@ class wxTabbedViewContainer(DropReceiveWidget, wx.Notebook):
 
     def wxSynchronizeWidget(self):
         self.Freeze()
+        blockItem = self.blockItem
         self.DeleteAllPages()
-        oldView = self.blockItem.childrenBlocks.first()
+        oldView = blockItem.childrenBlocks.first()
         if not oldView is None:
             oldView.unRender()
 
         selectionIndex = 0
-        for view in self.blockItem.views:
-            if selectionIndex == self.blockItem.selectionIndex:
-                self.blockItem.childrenBlocks = [view]
+        for view in blockItem.views:
+            if selectionIndex == blockItem.selectionIndex:
+                blockItem.childrenBlocks = [view]
                 view.render()
                 window = view.widget
             else:
                 window = wx.Panel (self, -1)
             self.AddPage (window, view.getItemDisplayName(), False)
             selectionIndex = selectionIndex + 1
+        self.SetSelection (blockItem.selectionIndex)
+        self.Thaw()
 
     def CalculateWXStyle(theClass, block):
         return {
@@ -362,7 +365,7 @@ class ViewContainer(BoxContainer):
             if view.getItemDisplayName() == choice:
                 if self.hasTabs:
                     self.selectionIndex = selectionIndex
-                    self.widget.SetSelection (selectionIndex)
+                    self.widget.wxSynchronizeWidget()
                 else:
                     self.postEventByName('SelectItemBroadcast', {'item':view})
                 break
@@ -501,7 +504,7 @@ class TabbedView(TabbedContainer):
 
     def onNewEvent (self, event):
         "Create a new tab"
-        originalItem = self.findPath('parcels/osaf/views/content/untitledItemCollection')
+        originalItem = self.findPath('parcels/osaf/views/main/untitledItemCollection')
         userdata = self.findPath('//userdata')
         newItem = originalItem.copy(parent=userdata, cloudAlias='default')
         newItem.contents.displayName = self._getUniqueName("Untitled")
@@ -573,10 +576,10 @@ class TabbedView(TabbedContainer):
         if not self.hasChild(name):
             return name
         number = 1
-        uniqueName = name + "-" + str(number)
+        uniqueName = name + u"-" + unicode(number)
         while self.hasChild(uniqueName):
             number += 1
-            uniqueName = name + "-" + str(number)
+            uniqueName = name + u"-" + unicode(number)
         return uniqueName
 
         

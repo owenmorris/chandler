@@ -275,18 +275,18 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
     def OnSize(self, event):
-        (width, height) = self.GetVirtualSize()
-        (wMonth, hMonth) = self.monthButton.GetSize()
-        xMonth = (width - wMonth)/2
+        size = self.GetVirtualSize()
+        monthButtonSize = self.monthButton.GetSize()
+        xMonth = (size.width - monthButtonSize.width)/2
         self.monthButton.Move((xMonth, 5))
 
-        (wNext, hNext) = self.nextButton.GetSize()
-        (wPrev, hPrev) = self.prevButton.GetSize()        
-        (wToday, hToday) = self.todayButton.GetSize()
+        nextButtonSize = self.nextButton.GetSize()
+        prevButtonSize = self.prevButton.GetSize()        
+        todayButtonSize = self.todayButton.GetSize()
 
-        self.nextButton.Move((width - wNext - 5, 5))
-        self.prevButton.Move((width - wNext - wPrev - 10, 5))
-        self.todayButton.Move((width - wNext - wPrev - wToday - 15, 5))
+        self.nextButton.Move((size.width - nextButtonSize.width - 5, 5))
+        self.prevButton.Move((size.width - nextButtonSize.width - prevButtonSize.width - 10, 5))
+        self.todayButton.Move((size.width - nextButtonSize.width - prevButtonSize.width - todayButtonSize.width - 15, 5))
 
         self.Refresh()
         event.Skip()

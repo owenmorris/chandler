@@ -202,7 +202,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.MailMessageButton">
     <blockName>MailMessageButton</blockName>
     <title>Send as message</title>
-    <bitmap>application/images/KindFilterMessage.gif</bitmap>
+    <bitmap>application/images/ApplicationBarMessage.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Send this item as a mail message</helpString>
@@ -213,7 +213,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.TaskStamp">
     <blockName>TaskStamp</blockName>
     <title>Put on Taskpad</title>
-    <bitmap>application/images/KindFilterTask.gif</bitmap>
+    <bitmap>application/images/ApplicationBarTask.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Put this item onto the Taskpad</helpString>
@@ -224,7 +224,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.CalendarStamp">
     <blockName>CalendarStamp</blockName>
     <title>Put on Calendar</title>
-    <bitmap>application/images/KindFilterEvent.gif</bitmap>
+    <bitmap>application/images/ApplicationBarEvent.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Put this item onto the Calendar</helpString>

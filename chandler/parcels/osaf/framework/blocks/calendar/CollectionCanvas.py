@@ -10,6 +10,7 @@ import wx
 
 import osaf.framework.blocks.DragAndDrop as DragAndDrop
 import osaf.framework.blocks.Block as Block
+import osaf.contentmodel.ItemCollection as ItemCollection
 
 
 # @@@ These buttons could become a more general utility
@@ -585,6 +586,11 @@ class CollectionBlock(Block.RectangularChild):
 
     # Event handling
     
+    def onSetContentsEvent (self, event):
+        item = event.arguments ['item']
+        assert (item, ItemCollection.ItemCollection)
+        self.contents = item
+
     def onSelectItemEvent(self, event):
         """
         Sets the block selection and synchronizes the widget.

@@ -12,7 +12,6 @@
              xmlns:doc="http://osafoundation.org/parcels/osaf/views/main"
              xmlns:repository="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
              xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
-             xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
              xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
              xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
              xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
@@ -27,7 +26,6 @@
   <!--
     Block Events
   -->
-
   <ModifyContentsEvent itsName="AddToSidebarWithoutCopying">
     <blockName>AddToSidebarWithoutCopying</blockName>
     <methodName>onModifyContentsEvent</methodName>
@@ -61,7 +59,7 @@
   <ModifyContentsEvent itsName="NewItemCollection">
     <blockName>NewItemCollection</blockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:untitledItemCollection"/>
+    <items itemref="doc:untitledItemCollection"/>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </ModifyContentsEvent>
@@ -125,7 +123,7 @@
     <blockName>ShowHideSidebar</blockName>
     <methodName>onShowHideEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>SidebarBoxContainer</dispatchToBlockName>
+    <dispatchToBlockName>SidebarContainer</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ShowHideStatusBar">
@@ -159,6 +157,11 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
+  <BlockEvent itsName="ReminderTime">
+    <blockName>ReminderTime</blockName>
+    <destinationBlockReference itemref="doc:ReminderTimer"/>
+  </BlockEvent>
+
   <!-- Test Block Events -->
 
   <ModifyContentsEvent itsName="AddAllAdditionalViews">
@@ -169,11 +172,11 @@
     <items itemref="demo:BlockDemoView"/>
     <items itemref="repository:RepositoryView"/>
     <items itemref="repository:CPIAView"/>
-    <items itemref="content:mixedItemCollection"/>
-    <items itemref="content:notesItemCollection"/>
-    <items itemref="content:contactItemCollection"/>
-    <items itemref="content:taskItemCollection"/>
-    <items itemref="content:mailItemCollection"/>
+    <items itemref="doc:mixedItemCollection"/>
+    <items itemref="doc:notesItemCollection"/>
+    <items itemref="doc:contactItemCollection"/>
+    <items itemref="doc:taskItemCollection"/>
+    <items itemref="doc:mailItemCollection"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddContactsView">
@@ -181,7 +184,7 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:contactItemCollection"/>
+    <items itemref="doc:contactItemCollection"/>
   </ModifyContentsEvent>
 
   <ModifyContentsEvent itsName="AddDemoView">
@@ -197,9 +200,9 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:notesItemCollection"/>
-    <items itemref="content:taskItemCollection"/>
-    <items itemref="content:mailItemCollection"/>
+    <items itemref="doc:notesItemCollection"/>
+    <items itemref="doc:taskItemCollection"/>
+    <items itemref="doc:mailItemCollection"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddMailView">
@@ -207,7 +210,7 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:mailItemCollection"/>
+    <items itemref="doc:mailItemCollection"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddMixedView">
@@ -215,7 +218,7 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:mixedItemCollection"/>
+    <items itemref="doc:mixedItemCollection"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddNotesView">
@@ -223,7 +226,7 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:notesItemCollection"/>
+    <items itemref="doc:notesItemCollection"/>
   </ModifyContentsEvent>
 
   <ModifyContentsEvent itsName="AddRepositoryView">
@@ -247,9 +250,14 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:taskItemCollection"/>
+    <items itemref="doc:taskItemCollection"/>
   </ModifyContentsEvent>
   
+  <BlockEvent itsName="ChangeLayout">
+    <blockName>ChangeLayout</blockName>
+    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
+  </BlockEvent>
+
   <BlockEvent itsName="CheckRepository">
     <blockName>CheckRepository</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -497,9 +505,6 @@
     <childrenBlocks itemref="doc:HelpMenu"/>
   </MenuBar>
 
-  <!--
-    Menu Items and Sub-Menus
-  -->
   <Menu itsName="NewItemMenu">
     <blockName>NewItemMenu</blockName>
     <title>New Item</title>
@@ -1060,7 +1065,6 @@
     <helpString>Loads mail messages containing a variety of Charsets and Languages</helpString>
   </MenuItem>
 
-
   <MenuItem itsName="CheckRepositoryItem">
     <blockName>CheckRepositoryItem</blockName>
     <title>Check Repository</title>
@@ -1275,25 +1279,34 @@
     <helpString>Manage the selected collection</helpString>
   </MenuItem>
 
+  <ContextMenu itsName="sidebarContextMenu">
+    <childrenBlocks itemref="doc:OpenTabContextItem"/>
+    <childrenBlocks itemref="doc:CloseTabContextItem"/>
+  </ContextMenu>
+  
+  <ContextMenuItem itsName="OpenTabContextItem">
+    <title>Open in New Tab</title>
+    <event itemref="events:Open"/>
+  </ContextMenuItem>
+
+  <ContextMenuItem itsName="CloseTabContextItem">
+    <title>Close Tab</title>
+    <event itemref="events:Close"/>
+  </ContextMenuItem>
+
   <!--
     NavigationBar
   -->
   <Toolbar itsName="NavigationBar">
     <blockName>NavigationBar</blockName>
-    <!-- Children -->
     <childrenBlocks itemref="doc:SyncButton"/>
     <childrenBlocks itemref="doc:NewButton"/>
     <childrenBlocks itemref="doc:SendButton"/>
-    
-    <!-- Attributes -->
     <toolSize>24,24</toolSize>
     <buttonsLabeled>True</buttonsLabeled>
     <stretchFactor>0</stretchFactor>
   </Toolbar>
 
-  <!--
-    NavigationBar ToolbarItems
-  -->
   <ToolbarItem itsName="SyncButton">
     <blockName>SyncButton</blockName>
     <title>Sync</title>
@@ -1325,87 +1338,81 @@
   </ToolbarItem>
 
   <!--
-    KindFilterBar
+    ApplicationBar
   -->
-  <Toolbar itsName="KindFilterBar">
-    <blockName>NavigationBar</blockName>
-    <!-- Children -->
-    <childrenBlocks itemref="doc:KindFilterAllItem"/>
-    <childrenBlocks itemref="doc:KindFilterMessageItem"/>
-    <childrenBlocks itemref="doc:KindFilterEventItem"/>
-    <childrenBlocks itemref="doc:KindFilterTaskItem"/>
-    
-    <!-- Attributes -->
-    <toolSize>20,20</toolSize>
+  <Toolbar itsName="ApplicationBar">
+    <blockName>ApplicationBar</blockName>
+    <childrenBlocks itemref="doc:ApplicationBarAllItem"/>
+    <childrenBlocks itemref="doc:ApplicationBarMessageItem"/>
+    <childrenBlocks itemref="doc:ApplicationBarEventItem"/>
+    <childrenBlocks itemref="doc:ApplicationBarTaskItem"/>
+    <toolSize>24,24</toolSize>
     <separatorWidth>20</separatorWidth>
     <stretchFactor>0</stretchFactor>
   </Toolbar>
 
-  <!--
-    KindFilterBar ToolbarItems
-  -->
-  <ToolbarItem itsName="KindFilterAllItem">
-    <blockName>KindFilterAllItem</blockName>
+  <ToolbarItem itsName="ApplicationBarAllItem">
+    <blockName>ApplicationBarAllItem</blockName>
     <title>All</title>
-    <bitmap>application/images/KindFilterAll.gif</bitmap>
+    <bitmap>application/images/ApplicationBarAll.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
-    <event itemref="doc:KindFilterAll"/>
+    <event itemref="doc:ApplicationBarAll"/>
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itsName="KindFilterAll">
-    <blockName>KindFilterAll</blockName>
+  <KindParameterizedEvent itsName="ApplicationBarAll">
+    <blockName>ApplicationBarAll</blockName>
     <kindParameter itemref="core:None" />
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </KindParameterizedEvent>
 
-  <ToolbarItem itsName="KindFilterMessageItem">
-    <blockName>KindFilterMessageItem</blockName>
+  <ToolbarItem itsName="ApplicationBarMessageItem">
+    <blockName>ApplicationBarMessageItem</blockName>
     <title>Messages</title>
-    <bitmap>application/images/KindFilterMessage.gif</bitmap>
+    <bitmap>application/images/ApplicationBarMessage.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
-    <event itemref="doc:KindFilterMessage"/>
+    <event itemref="doc:ApplicationBarMessage"/>
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itsName="KindFilterMessage">
-    <blockName>KindFilterMessage</blockName>
+  <KindParameterizedEvent itsName="ApplicationBarMessage">
+    <blockName>ApplicationBarMessage</blockName>
     <kindParameter itemref="mail:MailMessageMixin"/>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </KindParameterizedEvent>
 
-  <ToolbarItem itsName="KindFilterEventItem">
-    <blockName>KindFilterEventItem</blockName>
+  <ToolbarItem itsName="ApplicationBarEventItem">
+    <blockName>ApplicationBarEventItem</blockName>
     <title>Calendar</title>
-    <bitmap>application/images/KindFilterEvent.gif</bitmap>
+    <bitmap>application/images/ApplicationBarEvent.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
-    <event itemref="doc:KindFilterEvent"/>
+    <event itemref="doc:ApplicationBarEvent"/>
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itsName="KindFilterEvent">
-    <blockName>KindFilterEvent</blockName>
+  <KindParameterizedEvent itsName="ApplicationBarEvent">
+    <blockName>ApplicationBarEvent</blockName>
     <kindParameter itemref="calendarModel:CalendarEventMixin"/>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </KindParameterizedEvent>
 
-  <ToolbarItem itsName="KindFilterTaskItem">
-    <blockName>KindFilterTaskItem</blockName>
+  <ToolbarItem itsName="ApplicationBarTaskItem">
+    <blockName>ApplicationBarTaskItem</blockName>
     <title>Taskpad</title>
-    <bitmap>application/images/KindFilterTask.gif</bitmap>
+    <bitmap>application/images/ApplicationBarTask.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
-    <event itemref="doc:KindFilterTask"/>
+    <event itemref="doc:ApplicationBarTask"/>
     <helpString></helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itsName="KindFilterTask">
-    <blockName>KindFilterTask</blockName>
+  <KindParameterizedEvent itsName="ApplicationBarTask">
+    <blockName>ApplicationBarTask</blockName>
     <kindParameter itemref="tasks:TaskMixin"/>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -1420,312 +1427,77 @@
   </StatusBar>
 
   <!--
-    Layout blocks
+    Odds and ends refered to by the user interface
   -->
-  <TabbedContainer itsName="TabbedView"
-                   itemClass="osaf.framework.blocks.ContainerBlocks.TabbedView">
-    <!-- Layout children -->
-    <childrenBlocks itemref="doc:SidebarDetailView"/>
-  </TabbedContainer>  
-
-  <TrunkParentBlock itsName="SidebarDetailView">
-    <blockName>SidebarDetailView</blockName>
-    <detailItem itemref="content:allItemCollection"/>
-    <trunkDelegate itemref="doc:SidebarTrunkDelegate"/>
-  </TrunkParentBlock>
-
-  <SidebarTrunkDelegate itsName="SidebarTrunkDelegate">
-    <treeTemplatePath>//parcels/osaf/views/main/SidebarDetailViewTemplate</treeTemplatePath>
-  </SidebarTrunkDelegate>
-
-  <calendar:MiniCalendar itsName="MiniCalendar">
-    <stretchFactor>0</stretchFactor>
-  </calendar:MiniCalendar>
-
-  <BoxContainer itsName="SidebarBoxContainer">
-    <blockName>SidebarBoxContainer</blockName>
-    <!-- Layout children -->
-    <childrenBlocks itemref="doc:KindFilterBar"/>
-    <childrenBlocks itemref="doc:Sidebar"/>
-    <childrenBlocks itemref="doc:MiniCalendar"/>
-
-    <!-- Attributes -->
-    <orientationEnum>Vertical</orientationEnum>
-    <stretchFactor>0</stretchFactor>
-  </BoxContainer>
-
-  <contentModel:ItemCollection itsName="sidebarItemCollection">
-    <_inclusions itemref="content:allItemCollection"/>
-    <_inclusions itemref="content:inItemCollection"/>
-    <_inclusions itemref="content:outItemCollection"/>
-    <_inclusions itemref="content:CalendarView"/>
-  </contentModel:ItemCollection>
+  <Timer itsName="ReminderTimer"
+         itemClass="osaf.views.main.Main.ReminderTimer">
+    <event itemref="doc:ReminderTime"/>
+    <contents itemref="doc:ReminderItems"/>
+  </Timer> 
   
-  <ContextMenu itsName="sidebarContextMenu">
-    <childrenBlocks itemref="doc:OpenTabContextItem"/>
-    <childrenBlocks itemref="doc:CloseTabContextItem"/>
-  </ContextMenu>
-  
-  <ContextMenuItem itsName="OpenTabContextItem">
-    <title>Open in New Tab</title>
-    <event itemref="events:Open"/>
-  </ContextMenuItem>
-
-  <ContextMenuItem itsName="CloseTabContextItem">
-    <title>Close Tab</title>
-    <event itemref="events:Close"/>
-  </ContextMenuItem>
-
-  <BoxContainer itsName="MainBoxContainer">
-    <!-- Layout children -->
-    <childrenBlocks itemref="doc:NavigationBar"/>
-    <childrenBlocks itemref="doc:ChandlerMainContainer"/>
-    
-    <!-- Attributes -->
-    <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
-
-  <Table itsName="Sidebar"
-         itemClass="osaf.views.main.SideBar.Sidebar">
-    <blockName>Sidebar</blockName>
-    <contents itemref="doc:sidebarItemCollection"/>
-    <columnHeadings></columnHeadings>
-    <columnData>displayName</columnData>
-    <columnWidths>150</columnWidths>
-    <hideColumnHeadings>True</hideColumnHeadings>
-    <contextMenu itemref="doc:sidebarContextMenu"/>
-  </Table>
- 
-  <BoxContainer itsName="ChandlerMainContainer">
-    <!-- Layout children -->
-    <childrenBlocks itemref="doc:SidebarBoxContainer"/>
-    <childrenBlocks itemref="doc:TabbedView"/>
-
-    <!-- Attributes -->
-    <orientationEnum>Horizontal</orientationEnum>
-  </BoxContainer>
-  
-  <SplitterWindow itsName="SidebarDetailViewTemplate">
-    <childrenBlocks itemref="doc:SummaryView"/>
-    <childrenBlocks itemref="detail:DetailTrunkParentBlock" copy="SidebarDetailTrunkParentBlock"/>
-
-    <eventBoundary>True</eventBoundary>
-    <orientationEnum>Vertical</orientationEnum>
-  </SplitterWindow>
-
-  <LayoutChooser itsName="SummaryView">
-    <blockName>SummaryViewChooser</blockName>
-    <childrenBlocks itemref="doc:LayoutToolbar"/>
-    <childrenBlocks itemref="doc:Table"/>
-    <choices itemref="doc:Table"/>
-    <choices itemref="doc:Month"/>
-    <choices itemref="doc:Week"/>
-    <choices itemref="doc:Day"/>    
-    <orientationEnum>Vertical</orientationEnum>
-  </LayoutChooser>
-
-  <!--
-    Layout Toolbar
-  -->
-  <Toolbar itsName="LayoutToolbar">
-    <childrenBlocks itemref="doc:ListViewButton"/>
-    <childrenBlocks itemref="doc:MonthViewButton"/>
-    <childrenBlocks itemref="doc:WeekViewButton"/>
-    <childrenBlocks itemref="doc:DayViewButton"/>
-    <!-- Attributes -->
-    <toolSize>16,16</toolSize>
-    <separatorWidth>100</separatorWidth>
-    <stretchFactor>0.0</stretchFactor>
-  </Toolbar>
-
-  <!--
-    Layout ToolbarItems
-  -->
-  <ToolbarItem itsName="ListViewButton">
-    <blockName>ListViewButton1</blockName>
-    <title>List View</title>
-    <bitmap>application/images/list.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in list mode</helpString>
-    <event itemref="content:ChangeLayout"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="MonthViewButton">
-    <blockName>MonthViewButton1</blockName>
-    <title>Month View</title>
-    <bitmap>application/images/month.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in month mode</helpString>
-    <event itemref="content:ChangeLayout"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="WeekViewButton">
-    <blockName>WeekViewButton1</blockName>
-    <title>Week View</title>
-    <bitmap>application/images/week.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in week mode</helpString>
-    <event itemref="content:ChangeLayout"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="DayViewButton">
-    <blockName>DayViewButton1</blockName>
-    <title>Day View</title>
-    <bitmap>application/images/day.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in day mode</helpString>
-    <event itemref="content:ChangeLayout"/>
-  </ToolbarItem>
-
-  <!-- Table -->
-  <Table itsName="Table">
-    <contents itemref="core:None"/>
-
-    <columnHeadings></columnHeadings>
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
-
-    <columnData>itsKind</columnData>
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
-    
-    <columnWidths>20</columnWidths>
-    <columnWidths>130</columnWidths>
-    <columnWidths>130</columnWidths>
-    <columnWidths>130</columnWidths>
-  </Table>
-
-  <!-- Month -->
-  <calendar:CanvasMonth itsName="Month">
-    <contents itemref="core:None"/>
-  </calendar:CanvasMonth>
-
-  <!-- Week -->
-  <calendar:CanvasWeek itsName="Week">
-    <contents itemref="core:None"/>
-    <daysPerView>7</daysPerView>
-  </calendar:CanvasWeek>
-
-  <!-- Day -->
-  <calendar:CanvasWeek itsName="Day">
-    <contents itemref="core:None"/>
-    <daysPerView>1</daysPerView>
-  </calendar:CanvasWeek>
-
-  <BlockEvent itsName="ReminderTime">
-    <blockName>ReminderTime</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>ReminderTimer</dispatchToBlockName>
-  </BlockEvent>
-
   <contentModel:ItemCollection itsName="ReminderItems">
     <displayName>ReminderItems</displayName>
     <_rule value="for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True"/><!-- i.hasAttribute('reminderTime') -->
   </contentModel:ItemCollection>
 
-  <Timer itsName="ReminderTimer"
-         itemClass="osaf.views.main.Main.ReminderTimer">
-    <blockName>ReminderTimer</blockName>
-    <event itemref="doc:ReminderTime"/>
-    <contents itemref="doc:ReminderItems"/>
-  </Timer> 
-  
-  <View itsName="ChandlerMainView"
-        itemClass="osaf.views.main.Main.MainView">
+  <!--
+    Item collections
+  -->
+  <contentModel:ItemCollection itsName="sidebarItemCollection">
+    <_inclusions itemref="doc:allItemCollection"/>
+    <_inclusions itemref="doc:inItemCollection"/>
+    <_inclusions itemref="doc:outItemCollection"/>
+  </contentModel:ItemCollection>
 
-    <displayName>ChandlerMainView</displayName>
-    <blockName>MainView</blockName>
+  <contentModel:ItemCollection itsName="allItemCollection">
+    <displayName>All</displayName>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/Note' where True"/>
+  </contentModel:ItemCollection>
 
-    <childrenBlocks itemref="doc:MenuBar"/>
-    <childrenBlocks itemref="doc:StatusBar"/>
-    <childrenBlocks itemref="doc:MainBoxContainer"/>
-    <childrenBlocks itemref="doc:ReminderTimer"/>
-    
-    <!-- Block Events dispatched by name -->
-    <eventsForNamedDispatch itemref="doc:RequestSelectSidebarItem"/>
-    <eventsForNamedDispatch itemref="doc:SendMail"/>
-    <eventsForNamedDispatch itemref="doc:ShareItem"/>
-    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopying"/>
+  <contentModel:ItemCollection itsName="inItemCollection">
+    <displayName>In</displayName>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"/>
+  </contentModel:ItemCollection>
 
-    <orientationEnum>Vertical</orientationEnum>
-    <size>1024,720</size>
-    <eventBoundary>True</eventBoundary>
-    <viewContainer itemref="doc:MainViewRoot"/>
-  </View>
+  <contentModel:ItemCollection itsName="outItemCollection">
+    <displayName>Out</displayName>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isOutbound == True"/>
+  </contentModel:ItemCollection>
 
-  <View itsName="CPIATestMainView"
-        itemClass="osaf.views.main.Main.MainView">
+  <contentModel:ItemCollection itsName="untitledItemCollection">
+    <displayName>Untitled</displayName>
+  </contentModel:ItemCollection>
 
-    <displayName>CPIATestMainView</displayName>
-    <blockName>MainView</blockName>
+  <!-- Test Item collections -->
 
+  <contentModel:ItemCollection itsName="mixedItemCollection">
+    <displayName>Mixed</displayName>
+    <_rule value="union(for i inevery '//parcels/osaf/contentmodel/Note' where True, for i inevery '//parcels/osaf/contentmodel/contacts/Contact' where True)"/>
+  </contentModel:ItemCollection>
 
-    <childrenBlocks itemref="doc:MenuBar" copy="CPIATestMenuBar"/>
-    <childrenBlocks itemref="doc:StatusBar" copy="CPIATestStatusBar"/>
-    <childrenBlocks itemref="doc:CPIATestMainBoxContainer"/>
-    <childrenBlocks itemref="doc:ReminderTimer" copy="CPIATestReminderTimer"/>
-    
-    <!-- Block Events dispatched by name -->
-    <eventsForNamedDispatch itemref="doc:RequestSelectSidebarItem"/>
-    <eventsForNamedDispatch itemref="doc:SendMail"/>
-    <eventsForNamedDispatch itemref="doc:ShareItem"/>
-    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopying"/>
+  <contentModel:ItemCollection itsName="notesItemCollection">
+    <displayName>Notes</displayName>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/Note' where True"/>
+  </contentModel:ItemCollection>
 
-    <orientationEnum>Vertical</orientationEnum>
-    <size>1024,720</size>
-    <eventBoundary>True</eventBoundary>
-    <viewContainer itemref="doc:MainViewRoot"/>
-  </View>
+  <contentModel:ItemCollection itsName="contactItemCollection">
+    <displayName>Contacts</displayName>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/contacts/Contact' where True"/>
+  </contentModel:ItemCollection>
 
-  <BoxContainer itsName="CPIATestMainBoxContainer">
-    <!-- Layout children -->
-    <childrenBlocks itemref="doc:NavigationBar" copy="CPIATestNavigationBar"/>
-    <childrenBlocks itemref="doc:CPIATestMainSplitter"/>
-    
-    <!-- Attributes -->
-    <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
+  <contentModel:ItemCollection itsName="taskItemCollection">
+    <displayName>TaskList</displayName>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/tasks/TaskMixin' where True"/>
+  </contentModel:ItemCollection>
 
-  <SplitterWindow itsName="CPIATestMainSplitter">
-    <!-- Layout children -->
-    <childrenBlocks itemref="doc:SidebarBoxContainer" copy="CPIATestSidebarBoxContainer"/>
-    <childrenBlocks itemref="doc:CPIATestTabbedView"/>
+  <contentModel:ItemCollection itsName="mailItemCollection">
+    <displayName>MailList</displayName>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where True"/>
+  </contentModel:ItemCollection>
 
-    <!-- Attributes -->
-    <orientationEnum>Vertical</orientationEnum>
-    <splitPercentage>0.2</splitPercentage>
-  </SplitterWindow>
-  
-  <TabbedContainer itsName="CPIATestTabbedView"
-                   itemClass="osaf.framework.blocks.ContainerBlocks.TabbedView">
-    <!-- Layout children -->
-    <childrenBlocks itemref="doc:CPIATestSidebarDetailView"/>
-  </TabbedContainer>  
-
-  <TrunkParentBlock itsName="CPIATestSidebarDetailView">
-    <blockName>SidebarDetailView</blockName>
-    <detailItem itemref="content:allItemCollection"/>
-    <trunkDelegate itemref="doc:CPIATestSidebarTrunkDelegate"/>
-  </TrunkParentBlock>
-
-  <SidebarTrunkDelegate itsName="CPIATestSidebarTrunkDelegate">
-    <treeTemplatePath>//parcels/osaf/views/main/CPIATestSidebarDetailViewTemplate</treeTemplatePath>
-  </SidebarTrunkDelegate>
-
-  <SplitterWindow itsName="CPIATestSidebarDetailViewTemplate">
-    <childrenBlocks itemref="doc:SummaryView" copy="CPIATestSummaryView"/>
-    <childrenBlocks itemref="detail:DetailTrunkParentBlock" copy="SidebarDetailTrunkParentBlock"/>
-
-    <eventBoundary>True</eventBoundary>
-    <orientationEnum>Horizontal</orientationEnum>
-  </SplitterWindow>
-
+  <!--
+    Root of User Interface
+  -->
   <ViewContainer itsName="MainViewRoot">
     <blockName>MainViewRoot</blockName>
     <size>1024,720</size>
@@ -1744,6 +1516,309 @@
   <TrunkDelegate itsName="MainTrunkDelegate">
   </TrunkDelegate>
 
+  <!--
+    Chandler's main view
+  -->
+  <View itsName="ChandlerMainView"
+        itemClass="osaf.views.main.Main.MainView">
+
+    <displayName>ChandlerMainView</displayName>
+    <blockName>MainView</blockName>
+
+    <childrenBlocks itemref="doc:MenuBar"/>
+    <childrenBlocks itemref="doc:StatusBar"/>
+    <childrenBlocks itemref="doc:ReminderTimer"/>
+    <childrenBlocks itemref="doc:ToolbarContainer"/>
+
+    <eventsForNamedDispatch itemref="doc:RequestSelectSidebarItem"/>
+    <eventsForNamedDispatch itemref="doc:SendMail"/>
+    <eventsForNamedDispatch itemref="doc:ShareItem"/>
+    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopying"/>
+
+    <orientationEnum>Vertical</orientationEnum>
+    <size>1024,720</size>
+    <eventBoundary>True</eventBoundary>
+    <viewContainer itemref="doc:MainViewRoot"/>
+  </View>
+
+  <BoxContainer itsName="ToolbarContainer">
+    <childrenBlocks itemref="doc:ApplicationBarContainer"/>
+    <childrenBlocks itemref="doc:SidebarContainerContainer"/>
+    <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
+
+  <BoxContainer itsName="ApplicationBarContainer">
+    <childrenBlocks itemref="doc:ApplicationBar"/>
+    <childrenBlocks itemref="doc:NavigationBar"/>
+    <stretchFactor>0</stretchFactor>
+  </BoxContainer>
+
+  <BoxContainer itsName="SidebarContainerContainer">
+    <childrenBlocks itemref="doc:SidebarContainer"/>
+    <childrenBlocks itemref="doc:SidebarTPB"/>
+  </BoxContainer>
+  
+  <BoxContainer itsName="SidebarContainer">
+    <blockName>SidebarContainer</blockName>
+    <childrenBlocks itemref="doc:Sidebar"/>
+    <childrenBlocks itemref="doc:MiniCalendar"/>
+    <orientationEnum>Vertical</orientationEnum>
+    <stretchFactor>0</stretchFactor>
+  </BoxContainer>
+
+  <Sidebar itsName="Sidebar">
+    <blockName>Sidebar</blockName>
+    <contents itemref="doc:sidebarItemCollection"/>
+    <columnHeadings></columnHeadings>
+    <columnData>displayName</columnData>
+    <columnWidths>150</columnWidths>
+    <hideColumnHeadings>True</hideColumnHeadings>
+    <contextMenu itemref="doc:sidebarContextMenu"/>
+  </Sidebar>
+ 
+  <calendar:MiniCalendar itsName="MiniCalendar">
+    <stretchFactor>0</stretchFactor>
+  </calendar:MiniCalendar>
+
+  <TrunkParentBlock itsName="SidebarTPB">
+    <blockName value="SidebarTPB"/>
+    <detailItem itemref="doc:allItemCollection"/>
+    <trunkDelegate itemref="doc:SidebarTrunkDelegate"/>
+  </TrunkParentBlock>
+
+  <SidebarTrunkDelegate itsName="SidebarTrunkDelegate">
+    <tableTemplatePath>//parcels/osaf/views/main/TableSummaryViewTemplate</tableTemplatePath>
+    <calendarTemplatePath>//parcels/osaf/views/main/CalendarSummaryViewTemplate</calendarTemplatePath>
+  </SidebarTrunkDelegate>
+
+  <SplitterWindow itsName="TableSummaryViewTemplate">
+    <blockName>TableSummaryView</blockName>
+    <childrenBlocks itemref="doc:TableSummaryView"/>
+    <childrenBlocks itemref="doc:TableSummaryDetailTPB"/>
+    <eventBoundary>True</eventBoundary>
+    <orientationEnum>Vertical</orientationEnum>
+  </SplitterWindow>
+
+  <Table itsName="TableSummaryView">
+    <contents itemref="doc:allItemCollection"/>
+    <blockName>TableSummaryView</blockName>
+    <columnHeadings></columnHeadings>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnData>itsKind</columnData>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
+    
+    <columnWidths>20</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+  </Table>
+
+  <TrunkParentBlock itsName="TableSummaryDetailTPB">
+    <blockName>TableSummaryDetailTPB</blockName>
+    <detailItem itemref="core:None"/>
+    <trunkDelegate itemref="detail:DetailTrunkDelegate" copy="DetailTrunkDelegate"/>
+  </TrunkParentBlock>
+
+  <SplitterWindow itsName="CalendarSummaryViewTemplate">
+    <blockName>CalendarSummaryView</blockName>
+    <childrenBlocks itemref="doc:CalendarSummaryView"/>
+    <childrenBlocks itemref="doc:CalendarDetailTPB"/>
+    <eventBoundary>True</eventBoundary>
+    <orientationEnum>Vertical</orientationEnum>
+  </SplitterWindow>
+
+  <calendar:CanvasWeek itsName="CalendarSummaryView">
+    <contents itemref="doc:allItemCollection"/>
+    <blockName>CalendarSummaryView</blockName>
+    <daysPerView>7</daysPerView>
+    <eventBoundary>True</eventBoundary>
+  </calendar:CanvasWeek>
+
+  <TrunkParentBlock itsName="CalendarDetailTPB">
+    <blockName>CalendarDetailTPB</blockName>
+    <detailItem itemref="core:None"/>
+    <trunkDelegate itemref="detail:DetailTrunkDelegate" copy="DetailTrunkDelegate"/>
+  </TrunkParentBlock>
+
+  <!--
+    CPIA test view: like a unit test/testing ground for CPIA
+  -->
+  <View itsName="CPIATestMainView"
+        itemClass="osaf.views.main.Main.MainView">
+
+    <displayName>CPIATestMainView</displayName>
+    <blockName>MainView</blockName>
+
+    <childrenBlocks itemref="doc:MenuBar" copy="CPIATestMenuBar"/>
+    <childrenBlocks itemref="doc:StatusBar" copy="CPIATestStatusBar"/>
+    <childrenBlocks itemref="doc:ReminderTimer" copy="CPIATestReminderTimer"/>
+    <childrenBlocks itemref="doc:CPIATestMainContainer"/>
+
+    <eventsForNamedDispatch itemref="doc:RequestSelectSidebarItem"/>
+    <eventsForNamedDispatch itemref="doc:SendMail"/>
+    <eventsForNamedDispatch itemref="doc:ShareItem"/>
+    <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopying"/>
+
+    <orientationEnum>Vertical</orientationEnum>
+    <size>1024,720</size>
+    <eventBoundary>True</eventBoundary>
+    <viewContainer itemref="doc:MainViewRoot"/>
+  </View>
+
+  <BoxContainer itsName="CPIATestMainContainer">
+    <childrenBlocks itemref="doc:NavigationBar" copy="CPIATestNavigationBar"/>
+    <childrenBlocks itemref="doc:CPIATestMainSplitter"/>
+    <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
+
+  <SplitterWindow itsName="CPIATestMainSplitter">
+    <childrenBlocks itemref="doc:CPIATestSidebarContainer"/>
+    <childrenBlocks itemref="doc:CPIATestTabbedView"/>
+    <orientationEnum>Vertical</orientationEnum>
+    <splitPercentage>0.2</splitPercentage>
+  </SplitterWindow>
+  
+  <BoxContainer itsName="CPIATestSidebarContainer">
+    <blockName>CPIATestSidebarContainer</blockName>
+    <childrenBlocks itemref="doc:Sidebar" copy="CPIATestSidebar"/>
+    <childrenBlocks itemref="doc:MiniCalendar" copy="CPIATestMiniCalendar"/>
+    <orientationEnum>Vertical</orientationEnum>
+    <stretchFactor>0</stretchFactor>
+  </BoxContainer>
+
+  <TabbedContainer itsName="CPIATestTabbedView"
+                   itemClass="osaf.framework.blocks.ContainerBlocks.TabbedView">
+    <childrenBlocks itemref="doc:CPIATestSidebarDetailView"/>
+  </TabbedContainer>  
+
+  <TrunkParentBlock itsName="CPIATestSidebarDetailView">
+    <blockName>CPIATestSidebarDetailView</blockName>
+    <detailItem itemref="doc:allItemCollection"/>
+    <trunkDelegate itemref="doc:CPIATestSidebarTrunkDelegate"/>
+  </TrunkParentBlock>
+
+  <CPIATestSidebarTrunkDelegate itsName="CPIATestSidebarTrunkDelegate">
+    <templatePath>//parcels/osaf/views/main/CPIATestTableSummaryViewTemplate</templatePath>
+  </CPIATestSidebarTrunkDelegate>
+
+  <SplitterWindow itsName="CPIATestTableSummaryViewTemplate">
+    <blockName>SidebarDetailView</blockName>
+    <childrenBlocks itemref="doc:CPIATestSummaryView"/>
+    <childrenBlocks itemref="doc:CPIATestSummaryDetailTPB"/>
+    <eventBoundary>True</eventBoundary>
+  </SplitterWindow>
+
+  <LayoutChooser itsName="CPIATestSummaryView">
+    <blockName>CPIATestSummaryViewhooser</blockName>
+    <childrenBlocks itemref="doc:CPIATestLayoutToolbar"/>
+    <childrenBlocks itemref="doc:CPIATestTable"/>
+    <choices itemref="doc:CPIATestTable"/>
+    <choices itemref="doc:CPIATestMonth"/>
+    <choices itemref="doc:CPIATestWeek"/>
+    <choices itemref="doc:CPIATestDay"/>    
+    <orientationEnum>Vertical</orientationEnum>
+  </LayoutChooser>
+
+  <!--
+    Layout Toolbar
+  -->
+  <Toolbar itsName="CPIATestLayoutToolbar">
+    <childrenBlocks itemref="doc:ListViewButton"/>
+    <childrenBlocks itemref="doc:MonthViewButton"/>
+    <childrenBlocks itemref="doc:WeekViewButton"/>
+    <childrenBlocks itemref="doc:DayViewButton"/>
+    <toolSize>16,16</toolSize>
+    <separatorWidth>100</separatorWidth>
+    <stretchFactor>0.0</stretchFactor>
+  </Toolbar>
+
+  <ToolbarItem itsName="ListViewButton">
+    <blockName>ListViewButton1</blockName>
+    <title>List View</title>
+    <bitmap>application/images/list.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in list mode</helpString>
+    <event itemref="doc:ChangeLayout"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="MonthViewButton">
+    <blockName>MonthViewButton1</blockName>
+    <title>Month View</title>
+    <bitmap>application/images/month.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in month mode</helpString>
+    <event itemref="doc:ChangeLayout"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="WeekViewButton">
+    <blockName>WeekViewButton1</blockName>
+    <title>Week View</title>
+    <bitmap>application/images/week.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in week mode</helpString>
+    <event itemref="doc:ChangeLayout"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="DayViewButton">
+    <blockName>DayViewButton1</blockName>
+    <title>Day View</title>
+    <bitmap>application/images/day.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in day mode</helpString>
+    <event itemref="doc:ChangeLayout"/>
+  </ToolbarItem>
+
+  <Table itsName="CPIATestTable">
+    <contents itemref="core:None"/>
+
+    <columnHeadings></columnHeadings>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnData>itsKind</columnData>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
+    
+    <columnWidths>20</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+  </Table>
+
+  <calendar:CanvasMonth itsName="CPIATestMonth">
+    <contents itemref="core:None"/>
+  </calendar:CanvasMonth>
+
+  <calendar:CanvasWeek itsName="CPIATestWeek">
+    <contents itemref="core:None"/>
+    <daysPerView>7</daysPerView>
+  </calendar:CanvasWeek>
+
+  <calendar:CanvasWeek itsName="CPIATestDay">
+    <contents itemref="core:None"/>
+    <daysPerView>1</daysPerView>
+  </calendar:CanvasWeek>
+
+  <TrunkParentBlock itsName="CPIATestSummaryDetailTPB">
+    <blockName>CPIATestSummaryDetailTPB</blockName>
+    <detailItem itemref="core:None"/>
+    <trunkDelegate itemref="detail:DetailTrunkDelegate" copy="DetailTrunkDelegate"/>
+  </TrunkParentBlock>
+
+  <!--
+    Content items
+  -->
   <contentModel:Note itsName="WelcomeNote">
       <displayName value="Welcome to Chandler 0.4"/>
       <body value="Welcome to the Chandler 0.4 Release! &#x0a; &#x0a;This release is a milestone for us at OSAF. It marks a shift in focus from infrastructure and architecture to demonstrating key experimentally usable end-user features. In particular, we provide basic sharing, calendaring, and email functionality. &#x0a; &#x0a;To get started, be sure to set up your e-mail and WebDAV account settings under the File | Preferences | Accounts menu. For a self-guided demo of 0.4 with accompanying screenshots, point your browser to &#x0a; &#x0a;http://wiki.osafoundation.org/bin/view/Chandler/ZeroPointFourGuidedTour &#x0a; &#x0a;To find out more about this release, please visit &#x0a; &#x0a;http://wiki.osafoundation.org/bin/view/Chandler/ChandlerZeroPointFourReadme &#x0a; &#x0a;This release is not intended for day-to-day use. Please do not trust your data with this version. &#x0a; &#x0a;Thank you for downloading Chandler, &#x0a;The Chandler Team" />
@@ -1761,19 +1836,5 @@
       </contacts:ContactName>
 
   </contacts:Contact>
-
-  <!--
-  <contacts:Contact itsName="MeContact">
-    <description value="@@@ A temporary Contact to represent 'me', until we have a better way"/>
-    <emailAddress value=""/>
-    <contactName itemref="doc:MeContact/MeContactName"/>
-
-      <contacts:ContactName itsName="MeContactName">
-        <firstName value="Chandler"/>
-        <lastName value="User"/>
-      </contacts:ContactName>
-
-  </contacts:Contact>
-  -->
 
 </core:Parcel>

@@ -5,6 +5,8 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 import osaf.framework.blocks.Block as Block
+import osaf.framework.blocks.Trunk as Trunk
+import osaf.contentmodel.ItemCollection as ItemCollection
 import wx
 
 
@@ -29,19 +31,8 @@ class Sidebar (ControlBlocks.Table):
         return wxSidebar (self.parentBlock.widget, Block.Block.getWidgetID(self))    
 
     def onKindParameterizedEvent (self, event):
-        kindParameter = event.kindParameter
-
-        self.contents.beginUpdate()
-        for view in self.contents:
-            try:
-                contents = view.contents
-            except AttributeError:
-                pass
-            else:
-                contents.removeFilterKind (None)
-                if kindParameter:
-                    contents.addFilterKind (kindParameter)
-        self.contents.endUpdate()
+        self.filterKind = event.kindParameter
+        self.postEventByName("SelectItemBroadcast", {'item':self.selectedItemToView})
 
     def onRequestSelectSidebarItemEvent (self, event):
         # Request the sidebar to change selection
@@ -60,3 +51,30 @@ class Sidebar (ControlBlocks.Table):
 
         self.onSelectItemEvent (event)
 
+
+class SidebarTrunkDelegate(Trunk.TrunkDelegate):
+    def _makeTrunkForCacheKey(self, keyItem):
+        if isinstance (keyItem, ItemCollection.ItemCollection):
+            sidebar = Block.Block.findBlockByName ("Sidebar")
+            if (sidebar.filterKind is
+                self.findPath ("//parcels/osaf/contentmodel/calendar/CalendarEventMixin")):
+                templatePath = self.calendarTemplatePath
+            else:
+                templatePath = self.tableTemplatePath
+            trunk = self.findPath (templatePath)
+        else:
+            trunk = keyItem
+        
+        assert isinstance (trunk, Block.Block)
+        return self._copyItem(trunk, onlyIfReadOnly=True)
+
+
+class CPIATestSidebarTrunkDelegate(Trunk.TrunkDelegate):
+    def _makeTrunkForCacheKey(self, keyItem):
+        if isinstance (keyItem, ItemCollection.ItemCollection):
+            trunk = self.findPath (self.templatePath)
+        else:
+            trunk = keyItem
+        
+        assert isinstance (trunk, Block.Block)
+        return self._copyItem(trunk, onlyIfReadOnly=True)
