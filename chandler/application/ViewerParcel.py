@@ -77,6 +77,7 @@ class ViewerParcel (Parcel):
         assert (resources)
 
         parcelMenuResourceXRC = resources.FindResourceWithoutLogging ('ViewerParcelMenu','wxMenu')
+        self.hasParcelMenu = parcelMenuResourceXRC != None
         """
           Make sure you call the base class before defining your own displayName.
         """
@@ -449,11 +450,8 @@ class wxViewerParcel(wxPanel):
             noParcelMenu = (menuBar.FindMenu(_('Help')) == menuIndex) or \
                            (menuBar.FindMenu(_('Debug')) == menuIndex)
 
-#            ignoreErrors = wxLogNull ()
-            viewerParcelMenu = self.resources.LoadMenu ('ViewerParcelMenu')
-#            del ignoreErrors
-
-            if viewerParcelMenu != None:
+            if self.model.hasParcelMenu:
+                viewerParcelMenu = self.resources.LoadMenu ('ViewerParcelMenu')
                 if noParcelMenu:
                     menuBar.Insert (menuIndex,
                                     viewerParcelMenu, 
@@ -463,13 +461,12 @@ class wxViewerParcel(wxPanel):
                                                viewerParcelMenu, 
                                                self.model.displayName)
                     oldMenu.Destroy()
+                return viewerParcelMenu     
             else:
                 if not noParcelMenu:
                     oldMenu = menuBar.Remove (menuIndex)
                     oldMenu.Destroy()
-            
-            return viewerParcelMenu     
-        
+
         return None
     
     def UpdateActionsBar(self):
