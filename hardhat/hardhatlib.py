@@ -1074,6 +1074,8 @@ def handleManifest(buildenv, filename):
         if line[0:1] == "#":
             continue
 
+        line = line.expandVars(line)
+
         if line.find("=") != -1:
             (name,value) = line.split("=")
             params[name] = value
@@ -1111,6 +1113,25 @@ def handleManifest(buildenv, filename):
                     log(buildenv, HARDHAT_WARNING, "HardHat", "File missing: " 
                      + abspath)
                     continue
+
+def expandVars(line):
+
+    start = 0
+    while True:
+        start = line.find('$(', start)
+        if start == -1:
+            return line
+        end = line.find(')', start)
+        if end == -1:
+            return line
+
+        var = line[start+2:end]
+        var = os.getenv(var)
+
+        if var is not None:
+            line = "%s%s%s" %(line[0:start], var, line[end+1:])
+        else:
+            start = start + 2
 
 def _copyTree(srcdir, destdir, recursive, patterns):
     os.chdir(srcdir)
