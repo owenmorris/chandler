@@ -458,7 +458,8 @@ class wxApplication (wx.App):
         """
           Main application termination.
         """
-
+        if __debug__:
+            wx.GetApp().UIRepositoryView.repository.check()
         Globals.wakeupCaller.shutdown()
         self.__twistedReactorManager.stopReactor()
         """

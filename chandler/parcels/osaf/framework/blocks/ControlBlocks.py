@@ -1001,7 +1001,7 @@ class wxTreeAndList(DraggableWidget):
         if not child.IsOk():
 
             parentUUID = self.GetItemData(parentId).GetData()
-            for child in self.GetElementChildren (Globals.wxApplication.UIRepositoryView [parentUUID]):
+            for child in self.GetElementChildren (wx.GetApp().UIRepositoryView [parentUUID]):
                 cellValues = self.GetElementValues (child)
                 childNodeId = self.AppendItem (parentId,
                                                cellValues.pop(0),

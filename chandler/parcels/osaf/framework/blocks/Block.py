@@ -617,18 +617,4 @@ class RectangularChild (Block):
                 
         
 class BlockEvent(Item):
-
-    def includePolicyMethod(self, items, references, cloudAlias):
-        """ Method for handling an endpoint's byMethod includePolicy """
-
-        # Determine if we are a global event
-        events = self.findPath("//parcels/osaf/framework/blocks/Events")
-        if self.itsParent is events:
-            # Yes, global: don't copy me
-            references[self.itsUUID] = self
-            return []
-
-        # No, not global: copy me
-        items[self.itsUUID] = self
-        return [self]
-
+    pass
