@@ -64,7 +64,6 @@
 				</a>
 				</div>
 				<br clear="all"/>
-
 		<div class="topDetailBox">
 				<xsl:apply-templates select = "core:description" />
 				<xsl:apply-templates select = "core:examples" />
@@ -104,16 +103,15 @@
 
 
 <xsl:template match="core:attributes">
+
 	   <xsl:if test = "position()=1">
           <div class="indentTitle">Attributes</div>
 	   </xsl:if>
 	   <xsl:variable name = "attribute" select="func:deref(@itemref)"/>
+		<div class="detailBox">
 
 <xsl:choose>
 	<xsl:when test="$attribute">
-	 
-					<li class="sentenceAttributes">
-
                         <xsl:variable name = "type">
 					       <xsl:apply-templates select="func:deref($attribute/core:type/@itemref)" mode="getDisplayName"/>
 					    </xsl:variable>
@@ -170,16 +168,14 @@
 					    </xsl:choose>
 
 <xsl:if test = "$attribute/core:description or $attribute/core:issues">
-		<div class="detailBox">
-				<xsl:apply-templates select = "$attribute/core:description" />
+		<xsl:apply-templates select = "$attribute/core:description" />
         <xsl:if test = "$attribute/core:issues">
 				<ul>
 				<xsl:apply-templates select = "$attribute/core:issues" />
 				</ul>
         </xsl:if>
-		</div>
 </xsl:if>
-					</li>
+
 	</xsl:when>
   
 	<xsl:otherwise>
@@ -188,24 +184,26 @@
 
 	</xsl:otherwise>
 </xsl:choose>
-
+</div>
 
 </xsl:template>
 	
 	<xsl:template match="core:Kind">
 		<div class="sectionBox">
+        <div class="kindDetailBox">
+
 	    <span class="sentenceHeader">		
             <xsl:apply-templates select="." mode="getHrefAnchor"/>
 		    is a Kind defined in 
 					<xsl:apply-templates select="/core:Parcel" mode="getDisplayName"/>
 		</span><br/><br/>
         <xsl:if test = "core:description or core:examples or core:issues">
-		<div class="detailBox">
 				<xsl:apply-templates select = "core:description" />
 				<xsl:apply-templates select = "core:examples" />
 				<xsl:apply-templates select = "core:issues" />
-		</div>
 		</xsl:if>
+		</div>
+
 				<xsl:apply-templates select = "core:attributes" />
 		</div>
 
