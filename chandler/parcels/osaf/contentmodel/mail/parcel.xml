@@ -37,8 +37,15 @@
 
 <!-- Email Account -->
   <Attribute itemName="serverName">
-    <displayName>Server</displayName>
+    <displayName>Server DNS Name</displayName>
     <type itemref="String"/>
+  </Attribute>
+  
+  <Attribute itemName="serverPort">
+    <displayName>Server Port</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="Integer"/>
+    <defaultValue type="Integer">143</defaultValue>
   </Attribute>
 
   <Attribute itemName="accountName">
@@ -52,6 +59,14 @@
     <displayName>Account Type</displayName>
     <description>POP, IMAP, etc.</description>
     <type itemref="String"/>
+  </Attribute>
+  
+  <Attribute itemName="messageDownloadSequence">
+    <displayName>Message Download Sequence</displayName>
+    <description>The uid or number of the last message downloaded</description>
+    <cardinality>single</cardinality>
+    <type itemref="Long"/>
+    <defaultValue type="Long">0</defaultValue>
   </Attribute>
 
   <Attribute itemName="password">
@@ -67,6 +82,7 @@
     <cardinality>list</cardinality>
     <type itemref="mail:MailMessage"/>
     <inverseAttribute itemref="mail:downloadAccount"/>
+    <initialValue/>
   </Attribute>
 
   <Attribute itemName="returnAddress">
@@ -100,11 +116,13 @@
     <issues>We might also want some more attributes, to keep track of things like 'port number', 'use SSL (boolean)', 'check for messages at startup (boolean)', </issues>
     <displayAttribute itemref="mail:accountName"/>
     <attributes itemref="mail:serverName"/>
+    <attributes itemref="mail:serverPort"/>
     <attributes itemref="mail:accountName"/>
     <attributes itemref="mail:accountType"/>
     <attributes itemref="mail:password"/>
     <attributes itemref="mail:downloadedMail"/>
     <attributes itemref="mail:returnAddress"/>
+    <attributes itemref="mail:messageDownloadSequence"/>
     <attributes itemref="mail:pollingFrequency"/>
     <classes key="python">osaf.contentmodel.mail.Mail.EmailAccount</classes>
   </Kind>
