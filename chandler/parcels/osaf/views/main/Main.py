@@ -77,6 +77,18 @@ class MainView(View):
 
     def onGetNewMailEvent (self, notification):
         # Triggered from "Test | Get Mail" menu
+
+        if not Sharing.isMailSetUp():
+            if application.dialogs.Util.okCancel( \
+             Globals.wxApplication.mainFrame,
+             "Account information required",
+             "Please set up your accounts."):
+                if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
+                 Globals.wxApplication.mainFrame):
+                    return
+            else:
+                return
+
         account = \
          Globals.repository.findPath('//parcels/osaf/mail/IMAPAccountOne')
 
