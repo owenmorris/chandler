@@ -736,6 +736,7 @@ class Item(object):
             cls.__module__
 
             return cls
+
         except AttributeError:
             raise ImportError, "Module %s has no class %s" %(module, name)
 

@@ -20,7 +20,7 @@ class Kind(Item):
     def newItem(self, name, parent):
         '''Create an item of this kind.
 
-        The class instantiate is taken from the Kind's Class attribute if it
+        The class instantiated is taken from the Kind's Class attribute if it
         is set. The Item class is used otherwise.'''
         
         return self.getAttribute('Class')(name, parent, self)
