@@ -29,7 +29,7 @@ from repository.persistence.DBItemIO import DBItemReader
 from repository.remote.CloudFilter import CloudFilter
 
 from bsddb.db import DBEnv, DB, DBError
-from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD, DB_REGION_INIT
+from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD, DB_LOG_AUTOREMOVE
 from bsddb.db import DB_LOCK_WRITE
 from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL, DB_PRIVATE, DB_LOCK_MINLOCKS
 from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_LOG, DB_INIT_TXN
@@ -84,8 +84,10 @@ class DBRepository(OnDemandRepository):
         if not self.isOpen():
             super(DBRepository, self).create(**kwds)
             self._create(**kwds)
-            self._status |= self.OPEN
-            if not kwds.get('ramdb', False):
+            self._status |= Repository.OPEN
+            if kwds.get('ramdb', False):
+                self._status |= Repository.RAMDB
+            else:
                 self._touchOpenFile()
 
     def _create(self, **kwds):
@@ -154,7 +156,6 @@ class DBRepository(OnDemandRepository):
         ramdb = kwds.get('ramdb', False)
         locks = 32767
         cache = 0x4000000
-        logbs = 0x2000000
         
         if create and not ramdb:
             db_config = file(os.path.join(self.dbHome, 'DB_CONFIG'), 'w+b')
@@ -167,6 +168,10 @@ class DBRepository(OnDemandRepository):
             db_config.write("set_lk_detect DB_LOCK_MINLOCKS\n")
             db_config.write("set_lk_max_locks %d\n" %(locks))
             db_config.write("set_lk_max_objects %d\n" %(locks))
+
+        if create and not ramdb:
+            env.set_flags(DB_LOG_AUTOREMOVE, 1)
+            db_config.write("set_flags DB_LOG_AUTOREMOVE\n")
 
         if os.name == 'nt':
             if create or ramdb:
@@ -187,9 +192,8 @@ class DBRepository(OnDemandRepository):
                         db_config.write("set_cachesize 0 %d 1\n" %(cache))
 
                 elif osname == 'Darwin':
-                    if create or ramdb:
-                        env.set_flags(DB_DSYNC_LOG, 1)
                     if create and not ramdb:
+                        env.set_flags(DB_DSYNC_LOG, 1)
                         db_config.write("set_flags DB_DSYNC_LOG\n")
 
         if create and not ramdb:
@@ -290,20 +294,29 @@ class DBRepository(OnDemandRepository):
                 else:
                     raise
 
-            self._status |= self.OPEN
+            self._status |= Repository.OPEN
             self._touchOpenFile()
 
     def close(self):
 
         super(DBRepository, self).close()
+        status = self._status
+        
+        if status & Repository.OPEN:
 
-        if self.isOpen():
+            ramdb = status & Repository.RAMDB
+            if not ramdb:
+                self._env.txn_checkpoint()
+
             self.store.close()
             self._env.close()
             self._env = None
             self._lockClose()
-            self._status &= ~self.OPEN
-            if self._openFile is not None:
+            self._status &= ~Repository.OPEN
+
+            if ramdb:
+                self._status &= ~Repository.RAMDB
+            else:
                 os.remove(self._openFile)
                 self._openFile = None
 

@@ -479,6 +479,7 @@ class Repository(object):
 
     OPEN       = 0x0001
     REFCOUNTED = 0x0002
+    RAMDB      = 0x0004
 
     view = property(getCurrentView, setCurrentView)
     repository = property(lambda self: self)
