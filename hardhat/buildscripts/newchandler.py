@@ -23,7 +23,7 @@ logPath = 'hardhat.log'
 
 def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
-    global buildenv
+    global buildenv, changes
 
     try:
         buildenv = hardhatlib.defaults
@@ -72,6 +72,9 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         hardhatutil.rmdirRecursive(outputDir)
     os.mkdir(outputDir)
     
+    buildVersionEscaped = "\'" + buildVersion + "\'"
+    buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
+    
     if not os.path.exists(chanDir):
         # Initialize sources
         print "Setup source tree..."
@@ -81,27 +84,34 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
          [cvsProgram, "-q", "checkout", cvsVintage, "chandler"])
         hardhatutil.dumpOutputList(outputList, log)
     
-        # hack for linux until we fix things    
-        if buildenv['os'] == 'posix':
-            if not os.path.exists("Chandler"):
-                os.symlink(chanDir, "Chandler")
-    
         os.chdir(chanDir)
     
         for releaseMode in ('debug', 'release'):
     
             doInstall(releaseMode, workingDir, log)
+            #   Create end-user, developer distributions
+            print "Making distribution files for " + releaseMode
+            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+            log.write("Making distribution files for " + releaseMode + "\n")
+            if releaseMode == "debug":
+                distOption = "-dD"
+            else:
+                distOption = "-D"
+                
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
+            hardhatutil.dumpOutputList(outputList, log)
+            
             ret = Do(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
             CopyLog(os.path.join(workingDir, logPath), log)
+
+        changes = "-nochanges"
     else:
         os.chdir(chanDir)
     
         print "Checking CVS for updates"
         log.write("Checking CVS for updates\n")
-        buildVersionEscaped = "\'" + buildVersion + "\'"
-        buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
-        
         if changesInCVS(chanDir, workingDir, cvsVintage, log):
             log.write("Changes in CVS, do an install\n")
             changes = "-changes"
@@ -125,7 +135,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                     distOption = "-D"
                     
                 outputList = hardhatutil.executeCommandReturnOutput(
-                 [hardhatScript, "-o", outputDir, distOption, buildVersionEscaped])
+                 [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
                 hardhatutil.dumpOutputList(outputList, log)
                 
     
