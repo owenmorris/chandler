@@ -1766,7 +1766,7 @@ bool					bSelected, bHasIcon;
 
 	// draw text label, with justification
 	insetX = wxCHI_kMetricInsetX;
-	originX = localBoundsR.x + insetX;
+	originX = localBoundsR.x;
 
 	switch (m_TextJust)
 	{
@@ -1777,14 +1777,15 @@ bool					bSelected, bHasIcon;
 		if (m_ExtentX > labelTextSize.x)
 		{
 			if (m_TextJust == wxCOLUMNHEADER_JUST_Center)
-				originX += ((m_ExtentX - labelTextSize.x) - insetX) / 2;
+				originX += (m_ExtentX - labelTextSize.x) / 2;
 			else
-				originX += (m_ExtentX - labelTextSize.x) - insetX;
+				originX += m_ExtentX - (labelTextSize.x + insetX);
 		}
 		break;
 
 	case wxCOLUMNHEADER_JUST_Left:
 	default:
+		originX += insetX;
 		break;
 	}
 
@@ -1807,7 +1808,7 @@ bool					bSelected, bHasIcon;
 	// render the bitmap, should one be present
 	if (bHasIcon)
 	{
-		GetBitmapItemBounds( boundsR, m_TextJust, &subItemBoundsR );
+		GetBitmapItemBounds( &localBoundsR, m_TextJust, &subItemBoundsR );
 		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
 	}
 
@@ -1916,7 +1917,7 @@ int		sizeX, sizeY, insetX;
 		sizeY = wxCHI_kMetricArrowSizeY;
 		insetX = wxCHI_kMetricInsetX;
 
-		targetBoundsR->x = itemBoundsR->x - (sizeX + insetX);
+		targetBoundsR->x = itemBoundsR->x + itemBoundsR->width - (sizeX + insetX);
 		targetBoundsR->y = itemBoundsR->y + (itemBoundsR->height - sizeY) / 2;
 		targetBoundsR->width = sizeX;
 		targetBoundsR->height = sizeY;
