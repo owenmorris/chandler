@@ -77,7 +77,7 @@
     <Kind itsName="ContentItem">
         <superKinds itemref="cm:ChandlerItem"/>
         <classes key="python">osaf.contentmodel.ContentModel.ContentItem</classes>
-        <displayName>Default Content Item Display Name</displayName>
+        <displayName>Content Item</displayName>
         <examples>an Calendar Event -- 'Lunch with Tug'</examples>
         <examples>a Contact -- 'Terry Smith'</examples>
         <examples>a Task -- 'mail 1040 to IRS'</examples>

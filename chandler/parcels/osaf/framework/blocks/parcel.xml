@@ -1222,7 +1222,7 @@
 
   <!-- View Style Kind -->
   <Kind itsName="ViewStyleKind">
-    <displayName itsValue="View Style"/>
+    <displayName value="View Style"/>
     <description>Name/Value pairs that describe the style of view to present</description>
     <description> when rendering or editing a value in this context.</description>
     
@@ -1234,7 +1234,7 @@
 
   <!-- Attribute Editor Block Kind -->
   <Kind itsName="AEBlock">
-    <displayName itsValue="Attribute Editor Block Kind"/>
+    <displayName value="Attribute Editor Block Kind"/>
     <description>Block that instantiates an appropriate Attribute Editor.</description>
     <superKinds itemref="docSchema:BoxContainer"/>
     <classes key="python">osaf.framework.blocks.ControlBlocks.AEBlock</classes>
