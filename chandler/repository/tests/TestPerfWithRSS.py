@@ -10,19 +10,20 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, os.path, sys, unittest
 
 from bsddb.db import DBNoSuchFileError
+from repository.item.Query import KindQuery
 from repository.persistence.XMLRepository import XMLRepository
 from repository.schema.DomainSchemaLoader import DomainSchemaLoader
 import repository.parcel.LoadParcels as LoadParcels
 import application.Globals as Globals
 
 # get Zaobao's feedparser
-_chandlerDir = os.environ['CHANDLERDIR']
-sys.path.append(os.path.join(_chandlerDir,'parcels','OSAF','examples','zaobao'))
+_chandlerDir = os.environ['CHANDLERHOME']
+sys.path.append(os.path.join(_chandlerDir,'Chandler','parcels','OSAF','examples','zaobao'))
 import feedparser
 
 # get all the RSS files in RSS_HOME (repository/tests/data/rssfeeds)
 # You can obtain the files from http://aloha.osafoundation.org/~twl/rssfeeds.tar.gz
-RSS_HOME=os.path.join(_chandlerDir,'repository','tests','data','rssfeeds/')
+RSS_HOME=os.path.join(_chandlerDir,'Chandler','repository','tests','data','rssfeeds/')
 if os.path.exists(RSS_HOME):
     _rssfiles = os.listdir(RSS_HOME)
 else:
@@ -38,13 +39,15 @@ class TestPerfWithRSS(unittest.TestCase):
 
     def setUp(self):
         self.rootdir = _chandlerDir
-        self.rep = XMLRepository('__repository__')
+        self.testdir = os.path.join(self.rootdir, 'Chandler', 'repository',
+                                    'tests')
+        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
         Globals.repository = self.rep # to keep indexer happy
         self.rep.create()
-        schemaPack = os.path.join(self.rootdir, 'repository', 'packs', 'schema.pack')
+        schemaPack = os.path.join(self.rootdir, 'Chandler', 'repository', 'packs', 'schema.pack')
         self.rep.loadPack(schemaPack)
 
-        parcelDir = os.path.join(self.rootdir,'parcels')
+        parcelDir = os.path.join(self.rootdir,'Chandler','parcels')
         sys.path.insert(1, parcelDir)
         LoadParcels.LoadParcel(os.path.join(parcelDir, 'OSAF', 'examples', 
          'zaobao'), '//parcels/OSAF/examples/zaobao', parcelDir, self.rep)
@@ -52,17 +55,24 @@ class TestPerfWithRSS(unittest.TestCase):
         self.rep.commit()
         self.rep.logger.debug("Going to try: ",len(_defaultBlogs)," feeds")
 
-    def test(self):
+    def _stressTest(self, commitInsideLoop=False):
         """ grab a bunch of RSS data from disk and insert into the repository """
         repository = self.rep
 
         itemCount = 0
         feeds = self.__getFeeds()
 
-        print 'got %d feeds' %(len(feeds)), '(running 20 for the demo)'
-        feeds = feeds[0:20]
+        if feeds == []:
+            self.rep.logger.info("got 0 feeds")
+            print "If you haven't installed the feed data, you can retreive it from"
+            print "http://aloha.osafoundation.org/~twl"
+            print "select a tarball, download it, and unpack it in repository/tests/data"
+            print "The data will be in a new directory called rssfeeds"
+            print "You can now run the tests"
+        else:
+            self.rep.logger.info('got %d feeds' %(len(feeds)))
 
-        for feed in feeds:
+        for feed in feeds[:]:
             self.rep.logger.debug(feed.url)
             etag = feed.getAttributeValue('etag', default=None)
             lastModified = feed.getAttributeValue('lastModified', default=None)
@@ -74,13 +84,20 @@ class TestPerfWithRSS(unittest.TestCase):
                 data = feedparser.parse(feed.url, etag, modified)
                 itemCount += len(data['items'])
                 feed.Update(data)
+                if commitInsideLoop:
+                    repository.commit()
             except Exception, e:
                 self.rep.logger.error("%s in %s" % (e,feed.url))
 
         try:
-            repository.commit()
+            import hotshot
+            profiler = hotshot.Profile('/tmp/TestPerfWithRss.stressTest.hotshot')
+            profiler.runcall(repository.commit)
+            profiler.close()
+#            repository.commit()
         except Exception, e:
-            self.rep.logger.error("Final commit:",e)
+            print e
+            self.rep.logger.error("Final commit:")
             self.fail()
         self.rep.logger.info("Processed %d items" % itemCount)
         self.assert_(True)
@@ -103,13 +120,34 @@ class TestPerfWithRSS(unittest.TestCase):
 
         return feeds
 
+    def testCommitAtEnd(self):
+        self._stressTest()
+
+    def testCommitInsideLoop(self):
+        self._stressTest(True)
+
+    def _readItems(self, kind):
+        items = KindQuery().run([kind]) 
+        for i in items:
+            assert(i.getItemName() is not None)
+
+    def testReadBackRSS(self):
+        self._stressTest()
+        self.rep.close()
+        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
+        self.rep.open()
+        RSSItem = self.rep.find('//parcels/OSAF/examples/zaobao/RSSItem')
+        profiler = hotshot.Profile('/tmp/TestPerfWithRss.readBack.hotshot')
+        profiler.runcall(TestPerfWithRSS._readItems, self, RSSItem.kind)
+        profiler.close()
+
     def tearDown(self):
         self.rep.close()
         self.rep.delete()
 
 if __name__ == "__main__":
 #    import hotshot
-#    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
+#    profiler = hotshot.Profile('/tmp/TestPerfWithRss.hotshot')
 #    profiler.run('unittest.main()')
 #    profiler.close()
     unittest.main()
