@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
-<item>
-  <name>CalendarEndTime</name>
-  <kind type="path">//Schema/Model/AttrDef</kind>
-
-  <ref name="Type" type="path">//Schema/Model/Types/DateTime</ref>  
-  <attribute name="Cardinality">single</attribute>
-</item>
