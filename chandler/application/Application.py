@@ -332,7 +332,7 @@ class wxApplication (wx.App):
                    mainViewRoot.stretchFactor, 
                    wxRectangularChild.CalculateWXFlag(mainViewRoot), 
                    wxRectangularChild.CalculateWXBorder(mainViewRoot))
-        self.mainFrame.Layout()
+        sizer.Layout()
 
     def UnRenderMainView (self):
         mainViewRoot = Globals.mainViewRoot.unRender()
