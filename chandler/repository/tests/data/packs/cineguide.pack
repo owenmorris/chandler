@@ -14,7 +14,7 @@
   <item file="CineGuide.root">
     <item files="*.director" />
     <item files="*.actor" />
-    <item files="*.movie" />
+    <item files="khepburn.movies" />
   </item>
 
 </pack>

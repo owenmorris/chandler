@@ -775,19 +775,11 @@ class ItemHandler(xml.sax.ContentHandler):
         self.tagMethods = []
         self.tagAttrs = []
         self.tags = []
-        self.attributes = {}
-        self.references = {}
-        self.refs = []
-        self.collections = []
-        self.attrDefs = []
-        self.name = None
-        self.kind = None
-        self.cls = None
         
     def startElement(self, tag, attrs):
 
         self.data = ''
-        self.tagMethods.append(getattr(ItemHandler, tag + 'End'))
+        self.tagMethods.append(getattr(ItemHandler, tag + 'End', None))
         self.tagAttrs.append(attrs)
 
         method = getattr(ItemHandler, tag + 'Start', None)
@@ -799,7 +791,12 @@ class ItemHandler(xml.sax.ContentHandler):
     def endElement(self, tag):
 
         self.tags.pop()
-        self.tagMethods.pop()(self, self.tagAttrs.pop())
+
+        attrs = self.tagAttrs.pop()
+        method = self.tagMethods.pop()
+
+        if method:
+            method(self, attrs)
 
     def characters(self, data):
 
@@ -834,6 +831,17 @@ class ItemHandler(xml.sax.ContentHandler):
                     self.collections.append(RefDict(None, name, otherName))
                 elif cardinality == 'list':
                     self.collections.append(RefList(None, name, otherName))
+
+    def itemStart(self, attrs):
+
+        self.attributes = {}
+        self.references = {}
+        self.refs = []
+        self.collections = []
+        self.attrDefs = []
+        self.name = None
+        self.kind = None
+        self.cls = None
                 
     def itemEnd(self, attrs):
 
