@@ -1,6 +1,6 @@
 
-VERSION=2.6.10
-RELVER=$(VERSION)-2
+VERSION=2.6.16
+RELVER=$(VERSION)-3
 LIBXML2=$(BUILD_ROOT)/persistence/libxml2
 SRC=$(LIBXML2)/libxml2-$(VERSION)
 
@@ -67,6 +67,7 @@ $(SRC)/$(BUILD)/Makefile: apply
                      --srcdir=$(SRC) \
                      --with-python=$(WP) \
                      --with-pic \
+                     --without-pattern \
                      $(CONF_DBG)
 
 compile: $(SRC)/$(BUILD)/Makefile
