@@ -39,14 +39,15 @@ class TabbedView(ControlBlocks.TabbedContainer):
 
     def onNewEvent (self, notification):
         "Create a new tab"
-        kind = Globals.repository.findPath("parcels/osaf/framework/blocks/HTML")
-        name = self._getUniqueName("untitled")
+        originalItem = Globals.repository.findPath('parcels/osaf/views/content/UntitledView')
+        name = self._getUniqueName("Untitled")
+        newItem = originalItem.copy(name, self)
+        newItem.contents._ItemCollection__refresh() # @@@ Hack to work around Bug#1568
+
         self.widget.selectedTab = len(self.tabNames)
         self.tabNames.append(name)
-        item = kind.newItem(name, self)
-        item.url = ""
-        item.parentBlock = self
-        item.render()
+        newItem.parentBlock = self
+        newItem.render()
         self.synchronizeWidget()
 
     def onCloseEvent (self, notification):
@@ -68,7 +69,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
         if not self.hasChild(name):
             return name
         number = 1
-        while self.hasChild(name + str(number)):
+        while self.hasChild(name + " " + str(number)):
             number += 1
         return name + str(number)
 
