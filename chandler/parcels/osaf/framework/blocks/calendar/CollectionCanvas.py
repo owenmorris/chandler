@@ -739,13 +739,25 @@ class CollectionBlock(Block.RectangularChild):
           Clear the selection each time we view a new contents
         """
         self.selection = None
+        self.postSelectItemBroadcast()
 
     def onSelectItemEvent(self, event):
         """
         Sets the block selection and synchronizes the widget.
         """
         self.selection = event.arguments['item']
-        self.widget.wxSynchronizeWidget()
+        """
+          Occasionally we'll get a SelectItemEvent before our widget is
+        created -- during the setup before the blocks are rendered, so
+        we'll ignore this first call to wxSynchronizeWidget since it will
+        get called later.
+        """
+        try:
+            widget = self.widget
+        except AttributeError:
+            pass
+        else:
+            widget.wxSynchronizeWidget ()
 
     def postSelectItemBroadcast(self):
         """
