@@ -424,8 +424,8 @@ class StaticText(RectangularChild):
 class wxStatusBar (wx.StatusBar):
     
     def wxSynchronizeWidget(self):
-        if self.blockItem.open != self.IsShown():
-            self.Show (self.blockItem.open)
+        if self.blockItem.isShown != self.IsShown():
+            self.Show (self.blockItem.isShown)
 
 
 class StatusBar(Block):

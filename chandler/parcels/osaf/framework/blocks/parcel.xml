@@ -302,7 +302,7 @@
       <inverseAttribute itemref="docSchema:Style/usedInBlocks"/>
     </Attribute>
 
-    <Attribute itemName="open">
+    <Attribute itemName="isShown">
       <type itemref="Boolean"/>
       <defaultValue type="Boolean">True</defaultValue>
     </Attribute>
@@ -316,7 +316,7 @@
     <attributes itemref="docSchema:Block/childrenBlocks"/>
     <attributes itemref="docSchema:Block/parentBlock"/>
     <attributes itemref="docSchema:Block/styles"/>
-    <attributes itemref="docSchema:Block/open"/>
+    <attributes itemref="docSchema:Block/isShown"/>
     <attributes itemref="docSchema:Block/eventBoundary"/>
     <attributes itemref="docSchema:blockEvents"/>    
   </Kind>

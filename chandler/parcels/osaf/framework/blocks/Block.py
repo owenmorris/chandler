@@ -119,13 +119,13 @@ class Block(Item):
     getWidgetID = classmethod (getWidgetID)
 
     def OnShowHide(self, notification):
-        self.open = not self.open
+        self.isShown = not self.isShown
         self.synchronizeWidget()
         self.parentBlock.synchronizeWidget()
 
 
     def OnShowHideUpdateUI(self, notification):
-        notification.data['Check'] = self.open
+        notification.data['Check'] = self.isShown
 
 
     def synchronizeWidget (self):
@@ -165,8 +165,8 @@ class wxRectangularChild (wx.Panel):
         super (wxRectangularChild, self).__init__ (*arguments, **keywords)
 
     def wxSynchronizeWidget(self):
-        if self.blockItem.open != self.IsShown():
-            self.Show (block.open)
+        if self.blockItem.isShown != self.IsShown():
+            self.Show (self.blockItem.isShown)
 
         
 class RectangularChild(ContainerChild):

@@ -96,18 +96,18 @@ class NavigationBar(Toolbar):
                        {'item':item})
         
     def OnViewNavigationBarEvent(self, notification):
-        self.open = not self.open
+        self.isShown = not self.isShown
         self.showOrHideNavigationBar()
         
     def showOrHideNavigationBar(self):
         frame = Globals.wxApplication.mainFrame
         navigationBar = frame.GetToolBar()
-        if navigationBar.IsShown() != self.open:
-            navigationBar.Show(self.open)
+        if navigationBar.IsShown() != self.isShown:
+            navigationBar.Show(self.isShown)
             frame.Layout()
         
     def OnViewNavigationBarEventUpdateUI(self, notification):
-        notification.data['Check'] = self.open
+        notification.data['Check'] = self.isShown
 
     def GoBack(self):
         if len(self.history) > 1:

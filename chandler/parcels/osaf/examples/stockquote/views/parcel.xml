@@ -18,7 +18,7 @@
     <childrenBlocks itemref="views:StockQuoteView/TitleLabel"/>
     <childrenBlocks itemref="views:StockQuoteView/layout"/>
     <orientationEnum>Vertical</orientationEnum>
-    <open>True</open>
+    <isShown>True</isShown>
     <size>0,0</size>
     <minimumSize>0,0</minimumSize>
     <blockEvents itemref="views:GetQuoteEvent"/>
@@ -28,7 +28,7 @@
       <childrenBlocks itemref="views:StockQuoteView/SymbolText"/>
       <childrenBlocks itemref="views:StockQuoteView/ValueLabel"/>
       <orientationEnum>Horizontal</orientationEnum>
-      <open>True</open>
+      <isShown>True</isShown>
       <size>0,0</size>
       <minimumSize>0,0</minimumSize>
     </blocks:BoxContainer>
@@ -39,7 +39,7 @@
       <title>Get Quote</title>
       <buttonKind>Text</buttonKind>
       <event itemref="views:GetQuoteEvent"/>
-      <open>True</open>
+      <isShown>True</isShown>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>
       <alignmentEnum>alignCenter</alignmentEnum>
@@ -56,7 +56,7 @@
       <characterStyle itemref="views:StockQuoteView/TextStyle"/>
       <!-- XXX Should somehow set a default value here -->
       <!-- XXX Pressing enter should send same event as button -->
-      <open>True</open>
+      <isShown>True</isShown>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>
       <alignmentEnum>alignCenter</alignmentEnum>

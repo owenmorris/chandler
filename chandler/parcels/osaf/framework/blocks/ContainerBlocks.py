@@ -17,11 +17,11 @@ class wxBoxContainer (wxRectangularChild):
     def wxSynchronizeWidget(self, *arguments, **keywords):
         super (wxBoxContainer, self).wxSynchronizeWidget (*arguments, **keywords)
         
-        if self.blockItem.open:
+        if self.blockItem.isShown:
             sizer = self.GetSizer()
             sizer.Clear()
             for childBlock in self.blockItem.childrenBlocks:
-                if childBlock.open and isinstance (childBlock, RectangularChild):
+                if childBlock.isShown and isinstance (childBlock, RectangularChild):
                     sizer.Add (childBlock.widget,
                                childBlock.stretchFactor, 
                                childBlock.Calculate_wxFlag(), 
@@ -156,16 +156,16 @@ class wxSplitterWindow(wx.SplitterWindow):
 
         window1 = None
         child1 = children.next()
-        if child1.open:
+        if child1.isShown:
             window1 = child1.widget
-        child1.widget.Show (child1.open)
+        child1.widget.Show (child1.isShown)
 
         window2 = None
         if len (self.blockItem.childrenBlocks) >= 2:
             child2 = children.next()
-            if child2.open:
+            if child2.isShown:
                 window2 = child2.widget
-            child2.widget.Show (child2.open)
+            child2.widget.Show (child2.isShown)
 
         shouldSplit = bool (window1) and bool (window2)
         
