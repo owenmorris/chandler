@@ -119,8 +119,8 @@ static PyTypeObject DescriptorType = {
     0,                                          /* tp_getset */
     0,                                          /* tp_base */
     0,                                          /* tp_dict */
-    t_descriptor___get__,                       /* tp_descr_get */
-    t_descriptor___set__,                       /* tp_descr_set */
+    (descrgetfunc)t_descriptor___get__,         /* tp_descr_get */
+    (descrsetfunc)t_descriptor___set__,         /* tp_descr_set */
     0,                                          /* tp_dictoffset */
     (initproc)t_descriptor_init,                /* tp_init */
     0,                                          /* tp_alloc */
