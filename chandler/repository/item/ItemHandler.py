@@ -470,7 +470,7 @@ class ItemHandler(ValueHandler):
         self.parentRef = None
         self.isContainer = False
         self.uuid = UUID(attrs.get('uuid'))
-        self.version = long(attrs.get('version', '0L'))
+        self.version = int(attrs.get('version', '0'))
         self.update = update = attrs.get('update')
 
         if update is not None:

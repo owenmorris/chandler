@@ -48,12 +48,12 @@ class Item(CItem):
         super(Item, self).__init__()
 
         cls = type(self)
-        self.__dict__.update({ '_version': 0L,
-                               '_uuid': UUID(),
-                               '_values': Values(self),
-                               '_references': References(self),
-                               '_name': name or None,
-                               '_kind': kind })
+        self._values = Values(self)
+        self._references = References(self)
+        self._uuid = UUID()
+        self._name = name or None
+        self._kind = kind
+        self._version = 0
 
         if kind is not None:
             kind._setupClass(cls)
@@ -82,12 +82,12 @@ class Item(CItem):
     def _fillItem(self, name, parent, kind, **kwds):
 
         self._status = kwds.get('status', 0)
-        self.__dict__.update({ '_uuid': kwds['uuid'],
-                               '_name': name or None,
-                               '_kind': kind,
-                               '_version': kwds['version'],
-                               '_values': kwds.get('values'),
-                               '_references': kwds.get('references') })
+        self._version = kwds['version']
+        self._values = kwds.get('values')
+        self._references = kwds.get('references')
+        self._uuid = kwds['uuid']
+        self._name = name or None
+        self._kind = kind
 
         self._setParent(parent)
 

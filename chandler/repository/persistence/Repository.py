@@ -36,6 +36,7 @@ class Repository(object):
         self._status = 0
         self._threaded = threading.local()
         self._notifications = []
+        self._openViews = []
 
     def create(self, **kwds):
         """
@@ -263,6 +264,10 @@ class Repository(object):
 
         return previous
 
+    def getOpenViews(self):
+
+        return self._openViews
+
     def __iter__(self):
         """
         (deprecated) Use L{iterRoots} instead.
@@ -482,6 +487,7 @@ class Repository(object):
     RAMDB      = 0x0004
 
     view = property(getCurrentView, setCurrentView)
+    views = property(getOpenViews)
     repository = property(lambda self: self)
     debug = property(isDebug, setDebug)
 

@@ -108,10 +108,11 @@ class RepositoryView(object):
         self._loadingRegistry = set()
         self._status = RepositoryView.OPEN
 
-        if self.repository.isRefCounted():
+        repository = self.repository
+        if repository.isRefCounted():
             self._status |= RepositoryView.REFCOUNTED
-        
-        self.repository.store.attachView(self)
+        repository.store.attachView(self)
+        repository._openViews.append(self)
 
     def __len__(self):
 
@@ -144,8 +145,10 @@ class RepositoryView(object):
         if not self._status & RepositoryView.OPEN:
             raise RepositoryError, "RepositoryView is not open"
 
-        if self.repository._threaded.view is self:
-            del self.repository._threaded.view
+        repository = self.repository
+        if repository._threaded.view is self:
+            del repository._threaded.view
+        repository._openViews.remove(self)
         
         for item in self._registry.itervalues():
             item._setStale()
@@ -156,7 +159,7 @@ class RepositoryView(object):
         self._instanceRegistry.clear()
         self._status &= ~(RepositoryView.OPEN | Item.CDIRTY)
 
-        self.repository.store.detachView(self)
+        repository.store.detachView(self)
 
     def prune(self, size):
         """
@@ -792,6 +795,7 @@ class RepositoryView(object):
     logger = property(getLogger)
     debug = property(isDebug)
     store = property(_getStore)
+    views = property(lambda self: self.repository.getOpenViews())
 
     OPEN       = 0x0001
     REFCOUNTED = 0x0002

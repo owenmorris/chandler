@@ -1091,14 +1091,6 @@ class ValueContainer(DBContainer, CValueContainer):
         # uValue -> uAttr, uValue
         return pack('>16s16s', value[0:16], key)
 
-    def loadValue(self, uValue):
-
-        value = self.get(uValue._uuid)
-        if value is not None:
-            return UUID(value[0:16]), value[36:]
-
-        return None, None
-
     def getVersionInfo(self, uuid):
 
         value = self.get(uuid._uuid)

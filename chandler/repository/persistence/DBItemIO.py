@@ -475,8 +475,10 @@ class DBItemReader(ItemReader):
     def _values(self, values, references, uValues, kind,
                 withSchema, view, afterLoadHooks):
 
+        store = self.store
+        
         for uuid in uValues:
-            attrId, data = self.store._values.loadValue(uuid)
+            attrId, data = store._values.loadValue(store.txn, uuid)
             valueFlags, = unpack('>I', data[0:4])
             if withSchema:
                 attribute = None
