@@ -33,6 +33,17 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
     # make sure workingDir is absolute, remove it, and create it
     workingDir = os.path.abspath(workingDir)
+    if not os.path.exists(workingDir):
+        os.mkdir(workingDir)
+    os.chdir(workingDir)
+
+    # remove outputDir and create it
+    outputDir = os.path.join(workingDir, "output")
+    if os.path.exists(outputDir):
+        hardhatutil.rmdirRecursive(outputDir)
+    os.mkdir(outputDir)
+    
+    # Test to determine if this is a brand new checkout
     print "Check for debug dir ... (indicates first time through)"
     debugDir = os.path.join(workingDir, "debug")
     if not os.path.exists(debugDir):
@@ -345,7 +356,7 @@ def DoTests (hardhatScript, modeDir, mode, log):
         if mode == "debug":
             testStr = "-dt"
         else:
-            testStr = "-t"
+            testStr = "-rt"
     
         print "Testing " + mode
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
