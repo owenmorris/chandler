@@ -72,6 +72,8 @@ Milestone 13 (CVS tag CHANDLER_M_13) 2004-1-21
 
     * Integrated libxml2 and updated db/dbxml/xerces libraries
 
+    * Unit tests
+
     * Bug fixes
 
 
