@@ -95,10 +95,11 @@
       <redirectTo>displayName</redirectTo>
     </Attribute>
 
+    <!-- @@@BJS Removing for now, per bug 2654
     <Attribute itsName="date">
       <redirectTo>dueDate</redirectTo>
     </Attribute>
-
+    -->
 
     <Cloud itsName="Cloud">
       <Endpoint itsName="requestor">

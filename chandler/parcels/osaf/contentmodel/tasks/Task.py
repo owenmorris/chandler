@@ -85,10 +85,14 @@ class TaskMixin(ContentModel.ContentItem):
         """
         Get any non-empty definition for the "date" attribute.
         """
+        
+        # @@@ Don't do this for now, per bug 2654; will be revisited in 0.6.
+        """
         try:
             return self.dueDate
         except AttributeError:
             pass
+        """
         return super (TaskMixin, self).getAnyDate ()
 
     def getAnyWho (self):
