@@ -290,21 +290,15 @@
   </Kind>
 
   <!--
-    StaticText
+    TabbedContainer
   -->
-  <Kind itemName="StaticText">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.StaticText</classes>
+  <Kind itemName="TabbedContainer">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.TabbedContainer</classes>
     <superKinds itemref="docSchema:RectContainer"/>
 
-    <Attribute itemName="title">
-      <type itemref="String"/>
-    </Attribute>
-    
-    <attributes itemref="docSchema:textAlignmentEnum"/>
-    <attributes itemref="docSchema:StaticText/title"/>
-    <attributes itemref="docSchema:characterStyle"/>
-  </Kind>
-
+  </Kind>  
+  
+  
   <!--
     Menu Entries are either MenuItems or Menus
   -->
@@ -384,27 +378,57 @@
     <superKinds itemref="docSchema:MenuEntry"/>
   </Kind>
 
+  
   <!--
-    TreeList
+    Button
   -->
-  <Kind itemName="TreeList">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.TreeList</classes>
+  <Kind itemName="Button">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.Button</classes>
     <superKinds itemref="docSchema:RectContainer"/>
+    
+    <Attribute itemName="title">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <Enumeration itemName="buttonKindEnumType">
+      <values>Text</values>
+      <values>Image</values>
+      <values>Both</values>
+    </Enumeration>
+    
+    <Attribute itemName="buttonKind">
+      <type itemref="docSchema:Button/buttonKindEnumType"/>
+    </Attribute>
 
-    <Attribute itemName="columnHeadings">
+    <Attribute itemName="event">
+      <type itemref="docSchema:BlockEvent"/>
+    </Attribute>
+    
+    <attributes itemref="docSchema:Button/title"/>
+    <attributes itemref="docSchema:Button/buttonKind"/>
+    <attributes itemref="docSchema:Button/event"/>
+  </Kind>
+  
+  <!--
+    ComboBox
+  -->
+  <Kind itemName="ComboBox">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.ComboBox</classes>
+    <superKinds itemref="docSchema:RectContainer"/>
+    
+    <Attribute itemName="selection">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <Attribute itemName="choices">
       <type itemref="String"/>
       <cardinality>list</cardinality>
     </Attribute>
 
-    <Attribute itemName="columnWidths">
-      <type itemref="Integer"/>
-      <cardinality>list</cardinality>
-    </Attribute>
+    <attributes itemref="docSchema:ComboBox/selection"/>
+    <attributes itemref="docSchema:ComboBox/choices"/>
+  </Kind>
 
-    <attributes itemref="docSchema:TreeList/columnHeadings"/>
-    <attributes itemref="docSchema:TreeList/columnWidths"/>
-  </Kind>  
-  
   <!--
     EditText
   -->
@@ -440,5 +464,177 @@
     <attributes itemref="docSchema:EditText/readOnly"/>
     <attributes itemref="docSchema:characterStyle"/>
   </Kind>
+
+  <!--
+    HTML
+  -->
+  <Kind itemName="HTML">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.HTML</classes>
+    <superKinds itemref="docSchema:RectContainer"/>
+
+  </Kind>    
+  
+  <!--
+    List
+  -->
+  <Kind itemName="List">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.List</classes>
+    <superKinds itemref="docSchema:RectContainer"/>
+
+  </Kind>  
+
+  <!--
+    RadioBox
+  -->
+  <Kind itemName="RadioBox">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.RadioBox</classes>
+    <superKinds itemref="docSchema:RectContainer"/>
+    
+    <Attribute itemName="title">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <Attribute itemName="choices">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+    
+    <Enumeration itemName="orientationEnumType">
+      <values>Horizontal</values>
+      <values>Vertical</values>
+    </Enumeration>
+    
+    <Attribute itemName="orientationEnum">
+      <type itemref="docSchema:RadioBox/orientationEnumType"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:RadioBox/title"/>
+    <attributes itemref="docSchema:RadioBox/choices"/>
+    <attributes itemref="docSchema:RadioBox/orientationEnum"/>
+  </Kind>
+
+  <!--
+    ScrolledWindow
+  -->
+  <Kind itemName="ScrolledWindow">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.ScrolledWindow</classes>
+    <superKinds itemref="docSchema:RectContainer"/>
+
+  </Kind>    
+
+  <!--
+    SplitterWindow
+  -->
+  <Kind itemName="SplitterWindow">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.SplitterWindow</classes>
+    <superKinds itemref="docSchema:RectContainer"/>
+
+  </Kind>  
+
+  <!--
+    StaticText
+  -->
+  <Kind itemName="StaticText">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.StaticText</classes>
+    <superKinds itemref="docSchema:RectContainer"/>
+
+    <Attribute itemName="title">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <attributes itemref="docSchema:textAlignmentEnum"/>
+    <attributes itemref="docSchema:StaticText/title"/>
+    <attributes itemref="docSchema:characterStyle"/>
+  </Kind>
+
+  <!--
+    Toolbar
+  -->
+  <Kind itemName="Toolbar">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.Toolbar</classes>
+    <superKinds itemref="docSchema:ContainerChild"/>
+
+    <Attribute itemName="toolSize">
+      <type itemref="docSchema:SizeType"/>
+    </Attribute>
+    
+    <attributes itemref="docSchema:Toolbar/toolSize"/>
+  </Kind>
+
+  <!--
+    ToolbarItem
+  -->
+  <Kind itemName="ToolbarItem">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.ToolbarItem</classes>
+    <superKinds itemref="docSchema:ContainerChild"/>
+
+    <Attribute itemName="title">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <Attribute itemName="bitmap">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <Attribute itemName="selectedBitmap">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <Enumeration itemName="toolbarItemKindEnumType">
+      <values>Button</values>
+      <values>Separator</values>
+      <values>Check</values>
+      <values>Radio</values>
+    </Enumeration>
+    
+    <Attribute itemName="toolbarItemKind">
+      <type itemref="docSchema:ToolbarItem/toolbarItemKindEnumType"/>
+    </Attribute>
+
+    <Attribute itemName="tooltip">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <Attribute itemName="statusMessage">
+      <type itemref="String"/>
+    </Attribute>
+                
+    <attributes itemref="docSchema:ToolbarItem/title"/>
+    <attributes itemref="docSchema:ToolbarItem/bitmap"/>
+    <attributes itemref="docSchema:ToolbarItem/selectedBitmap"/>
+    <attributes itemref="docSchema:ToolbarItem/toolbarItemKind"/>
+    <attributes itemref="docSchema:ToolbarItem/tooltip"/>
+    <attributes itemref="docSchema:ToolbarItem/statusMessage"/>
+  </Kind>
+
+  <!--
+    Tree
+  -->
+  <Kind itemName="Tree">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.Tree</classes>
+    <superKinds itemref="docSchema:RectContainer"/>
+
+  </Kind>  
+
+  <!--
+    TreeList
+  -->
+  <Kind itemName="TreeList">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.TreeList</classes>
+    <superKinds itemref="docSchema:RectContainer"/>
+
+    <Attribute itemName="columnHeadings">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
+    <Attribute itemName="columnWidths">
+      <type itemref="Integer"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
+    <attributes itemref="docSchema:TreeList/columnHeadings"/>
+    <attributes itemref="docSchema:TreeList/columnWidths"/>
+  </Kind>  
 
 </Parcel>

@@ -1,4 +1,3 @@
-
 import application.Globals as Globals
 from Block import Block
 from wxPython.wx import *
@@ -104,7 +103,6 @@ class RectContainer(ContainerChild):
         
         return int (border)
 
-
 class BoxContainer(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
         if self.orientationEnum == 'Horizontal':
@@ -122,42 +120,49 @@ class BoxContainer(RectContainer):
             parent.Add(sizer, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return sizer, sizer, parentWindow
 
-
-class StaticText(RectContainer):
+class TabbedContainer(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
-        assert isinstance (parent, wxSizerPtr) #must be in a container
-        if self.textAlignmentEnum == "Left":
-            style = wxALIGN_LEFT
-        elif self.textAlignmentEnum == "Center":
-            style = wxALIGN_CENTRE
-        elif self.textAlignmentEnum == "Right":
-            style = wxALIGN_RIGHT
-
-        staticText = wxStaticText (parentWindow,
-                                   -1,
-                                   self.title,
-                                   wxDefaultPosition,
-                                   (self.minimumSize.width, self.minimumSize.height),
-                                   style)
-
-        staticText.SetFont(Font (self.characterStyle))
-        parent.Add(staticText, int(self.stretchFactor), 
-                   self.Calculate_wxFlag(), self.Calculate_wxBorder())
-        return staticText, None, None
-        
-     
-class TreeList(RectContainer):
+        return None, None, None
+    
+class Button(RectContainer):
     def renderOneBlock(self, parent, parentWindow):
-        treeList = wxTreeListCtrl(parentWindow)
-        info = wxTreeListColumnInfo()
-        for x in range(len(self.columnHeadings)):
-            info.SetText(self.columnHeadings[x])
-            info.SetWidth(self.columnWidths[x])
-            treeList.AddColumnInfo(info)
-        
-        parent.Add(treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
-        return treeList, None, None
+        title = self.title
+        id = 0
+        if self.hasAttributeValue ("event"):  # Repository bug/feature -- DJA
+            id = self.event.getwxID()
 
+        if self.buttonKind == "Text":
+            pass
+        elif self.buttonKind == "Image":
+            pass
+        elif self.buttonKind == "Both":
+            pass
+        elif __debug__:
+            assert (False)
+                        
+        assert isinstance (parent, wxSizerPtr) #must be in a container
+        button = wxButton(parentWindow, id, self.title, 
+                          wxDefaultPosition,
+                          (self.minimumSize.width, self.minimumSize.height))
+
+        parent.Add(button, int(self.stretchFactor), 
+                   self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        return button, None, None
+        
+class ComboBox(RectContainer):
+    def renderOneBlock(self, parent, parentWindow):
+#        id = 0
+#        if self.hasAttributeValue ("event"):  # Repository bug/feature -- DJA
+#            id = self.event.getwxID()
+
+        assert isinstance (parent, wxSizerPtr) #must be in a container
+        comboBox = wxComboBox(parentWindow, -1, self.selection, 
+                              wxDefaultPosition,
+                              (self.minimumSize.width, self.minimumSize.height),
+                              self.choices)
+        parent.Add(comboBox, int(self.stretchFactor), 
+                   self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        return comboBox, None, None
 
 class EditText(RectContainer):
     def __init__(self, *arguments, **keywords):
@@ -194,3 +199,88 @@ class EditText(RectContainer):
         parent.Add(editText, int(self.stretchFactor), 
                    self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return editText, None, None
+
+class HTML(RectContainer):
+    def renderOneBlock (self, parent, parentWindow):
+        return None, None, None
+    
+class List(RectContainer):
+    def renderOneBlock (self, parent, parentWindow):
+        return None, None, None
+
+class RadioBox(RectContainer):
+    def renderOneBlock(self, parent, parentWindow):
+#        id = 0
+#        if self.hasAttributeValue ("event"):  # Repository bug/feature -- DJA
+#            id = self.event.getwxID()
+
+        choices = self.choices
+        if self.orientationEnum == "Horizontal":
+            pass
+        elif self.orientationEnum == "Vertical":
+            pass
+        elif __debug__:
+            assert (False)
+                                    
+        assert isinstance (parent, wxSizerPtr) #must be in a container
+        radioBox = wxRadioBox(parentWindow, -1, self.title,
+                              wxDefaultPosition, 
+                              (self.minimumSize.width, self.minimumSize.height),
+                              choices)        
+        parent.Add(radioBox, int(self.stretchFactor), 
+                   self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        return radioBox, None, None
+         
+class ScrolledWindow(RectContainer):
+    def renderOneBlock (self, parent, parentWindow):
+        return None, None, None
+    
+class SplitterWindow(RectContainer):
+    def renderOneBlock (self, parent, parentWindow):
+        return None, None, None
+    
+class StaticText(RectContainer):
+    def renderOneBlock (self, parent, parentWindow):
+        assert isinstance (parent, wxSizerPtr) #must be in a container
+        if self.textAlignmentEnum == "Left":
+            style = wxALIGN_LEFT
+        elif self.textAlignmentEnum == "Center":
+            style = wxALIGN_CENTRE
+        elif self.textAlignmentEnum == "Right":
+            style = wxALIGN_RIGHT
+
+        staticText = wxStaticText (parentWindow,
+                                   -1,
+                                   self.title,
+                                   wxDefaultPosition,
+                                   (self.minimumSize.width, self.minimumSize.height),
+                                   style)
+
+        staticText.SetFont(Font (self.characterStyle))
+        parent.Add(staticText, int(self.stretchFactor), 
+                   self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        return staticText, None, None
+        
+class Toolbar(RectContainer):
+    def renderOneBlock (self, parent, parentWindow):
+        return None, None, None
+
+class ToolbarItem(RectContainer):
+    def renderOneBlock (self, parent, parentWindow):
+        return None, None, None
+
+class Tree(RectContainer):
+    def renderOneBlock (self, parent, parentWindow):
+        return None, None, None
+    
+class TreeList(RectContainer):
+    def renderOneBlock(self, parent, parentWindow):
+        treeList = wxTreeListCtrl(parentWindow)
+        info = wxTreeListColumnInfo()
+        for x in range(len(self.columnHeadings)):
+            info.SetText(self.columnHeadings[x])
+            info.SetWidth(self.columnWidths[x])
+            treeList.AddColumnInfo(info)
+        
+        parent.Add(treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        return treeList, None, None
