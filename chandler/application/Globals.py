@@ -13,7 +13,6 @@ Don't add to the globals without reviewing the addition.
 from repository.util.Path import Path
 
 
-agentManager = None           # AgentManager
 taskManager = None            # TaskManager
 chandlerDirectory = None      # Directory containing chandler executable
 notificationManager = None    # NotificationManager

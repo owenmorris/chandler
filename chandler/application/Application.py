@@ -250,13 +250,6 @@ class wxApplication (wx.App):
 
         # Set it up so that repository changes generate notifications
         Globals.repository.addNotificationCallback(repositoryCallback)
-        """
-          Create and start the agent manager. Delay imports to avoid
-        circular references.
-        """
-        from osaf.framework.agents.AgentManager import AgentManager
-        Globals.agentManager = AgentManager()
-        Globals.agentManager.Startup()
 
         # It is important to commit before the task manager starts
         Globals.repository.commit()
@@ -426,7 +419,6 @@ class wxApplication (wx.App):
         """
           Main application termination.
         """
-        Globals.agentManager.Shutdown()
         Globals.taskManager.stop()
         Globals.twistedReactorManager.stopReactor()
         """
