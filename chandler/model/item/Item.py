@@ -49,7 +49,7 @@ class Item(object):
         class nullIter(object):
             def next(self): raise StopIteration
         
-        if hasattr(self, '_children'):
+        if self.__dict__.has_key('_children'):
             return self._children.itervalues()
 
         return nullIter()
@@ -400,11 +400,14 @@ class Item(object):
 
         del self._references[name]
 
-    def hasAttribute(self, name):
+    def hasAttribute(self, name, _attrDict=None):
         'Check for existence of a Chandler attribute.'
 
-        return (self._attributes.has_key(name) or
-                self._references.has_key(name))
+        if _attrDict is None:
+            return (self._attributes.has_key(name) or
+                    self._references.has_key(name))
+        else:
+            return _attrDict.has_key(name)
     
     def delete(self):
         """Delete this item and disconnect all its item references.
@@ -419,7 +422,7 @@ class Item(object):
             self._deleting = True
             others = []
             
-            if hasattr(self, '_children'):
+            if self.__dict__.has_key('_children'):
                 for item in self._children.values():
                     item.delete()
 
@@ -563,7 +566,7 @@ class Item(object):
 
         name = item._name
         
-        if hasattr(self, '_children'):
+        if self.__dict__.has_key('_children'):
 
             current = self._children.get(name)
             if current is not None:
@@ -583,7 +586,7 @@ class Item(object):
     def getChild(self, name):
         'Return the child as named or None if not found.'
 
-        if hasattr(self, '_children'):
+        if self.__dict__.has_key('_children'):
             return self._children.get(name)
 
         return None
