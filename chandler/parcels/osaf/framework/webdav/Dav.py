@@ -1,21 +1,23 @@
 import davlib
-import httplib
-import xml.sax.saxutils
-import libxml2
 
 from repository.item.Item import Item
+from repository.util.URL import URL
 
 import Import, Export
-
-# WebDAVServer APIs
 
 class DAV(object):
     def __init__(self, resourceURL):
         super(DAV, self).__init__()
+        if isinstance(resourceURL, basestring):
+            resourceURL = URL(resourceURL)
+
+        if not isinstance(resourceURL, URL):
+            raise TypeError
+
         self.url = resourceURL
 
     def newConnection(self):
-        return DavConnection(self.url)
+        return DAVConnection(self.url)
 
     # importing
     def get(self):
@@ -26,7 +28,7 @@ class DAV(object):
         """ gives back a new ItemCollection """
         # figure out properties of the collection itself.. I should share code
         # with Import.py here..
-        # get a listing of all items in the collection... propfind?
+        # get a listing of all items in the collection... propfind depth 1
 
         # make a new ItemCollection based on the properties of the dav
         # collection
@@ -37,7 +39,7 @@ class DAV(object):
 
     # exporting
     def put(self, item):
-        Export.DAVExport(self, item)
+        Export.putItem(self, item)
 
     def putCollection(self, itemCollection):
         """
@@ -47,18 +49,24 @@ class DAV(object):
         # XXX the following code probably belongs in Export.py
 
         # make new dir for the collection, get its base url
-        collectionURL = self.url.join(itemCollection.itsUUID.str16())
+        collectionURL = self.url.join(itemCollection.itsUUID.str16() + '/')
 
         r = DAV(collectionURL).newConnection().mkcol(collectionURL.path)
-        # parse response..
+        print collectionURL, collectionURL.path
+        # XXX parse response..
         # set attributes on the collection
 
         for item in itemCollection:
-            itemURL = self.url.join(item.itsUUID.str16())
+            itemURL = collectionURL.join(item.itsUUID.str16())
             DAV(itemURL).put(item)
 
+        return collectionURL
 
-class DavConnection(davlib.DAV):
+    def sync(self):
+        raise NotImplementedError
+
+
+class DAVConnection(davlib.DAV):
     def __init__(self, url):
         host = url.host
         port = url.port or 80
