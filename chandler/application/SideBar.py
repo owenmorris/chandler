@@ -42,15 +42,11 @@ class SideBar(Persistent):
         else:
             wxWindow = app.association[id(self)]
         
-        wasEmpty = false
         if not hasattr(wxWindow, 'root'):
             wxWindow.root = wxWindow.AddRoot('Root')
-            wasEmpty = true
-        self.__UpdateURLTree(self.sideBarURLTree, '',
-                             wxWindow.root, wasEmpty)
+        self.__UpdateURLTree(self.sideBarURLTree, '', wxWindow.root)
 
-    def __UpdateURLTree(self, sideBarLevel, parentUri,
-                        parentItem, wasEmpty=false):
+    def __UpdateURLTree(self, sideBarLevel, parentUri, parentItem):
         """
           Synchronizes the sideBar's URLTree with the application's
         URLTree.  The sideBar only stores a dict mapping visible
@@ -73,7 +69,7 @@ class SideBar(Persistent):
                                                   PersistentDict(),
                                                   false)
             else:
-                if wasEmpty:
+                if not wxWindow.uriDictMap.has_key(uri):
                     itemId = wxWindow.AppendItem(parentItem, name)
                     wxWindow.uriDictMap[uri] = itemId
                 else:
@@ -81,7 +77,7 @@ class SideBar(Persistent):
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
                 if sideBarLevel[name].isOpen:
                     self.__UpdateURLTree(sideBarLevel[name].children, 
-                                         uri + '/', itemId, wasEmpty)
+                                         uri + '/', itemId)
                     self.ignoreExpand = true
                     wxWindow.Expand(itemId)
                     self.ignoreExpand = false
@@ -109,7 +105,6 @@ class SideBar(Persistent):
           Selects the proper uri when we have navigated to a different one
         via some tool other than the sideBar.
         """
-        
         # if the uri is remote, don't do this
         if app.wxMainFrame.IsRemoteUri():
             return
@@ -134,23 +129,15 @@ class SideBar(Persistent):
         true if the expansion was successful, false otherwise.
         """
         wxWindow = app.association[id(self)]
-        item = wxWindow.GetItemFromUri(uri)
-        if item != None:
-            wxWindow.Expand(item)
-            return true
-        return false
-
+        return wxWindow.ExpandUri(uri)
+        
     def CollapseUri(self, uri):
         """
           Collapses the item representing the given uri.  Returns true if
         the collapse was successful, false otherwise.
         """
         wxWindow = app.association[id(self)]
-        item = wxWindow.GetItemFromUri(uri)
-        if item != None:
-            wxWindow.Collapse(item)
-            return true
-        return false
+        return wxWindow.CollapseUri(uri)
     
     def SetUriColor(self, uri, color):
         """
@@ -159,11 +146,7 @@ class SideBar(Persistent):
         Returns true if the color was successfully set, false otherwise.
         """
         wxWindow = app.association[id(self)]
-        item = wxWindow.GetItemFromUri(uri)
-        if item != None:
-            wxWindow.SetItemTextColour(item, color)
-            return true
-        return false
+        return wxWindow.SetUriColor(uri)
 
     def SetUriBold(self, uri, isBold=true):
         """
@@ -173,14 +156,10 @@ class SideBar(Persistent):
         false otherwise.
         """
         wxWindow = app.association[id(self)]
-        item = wxWindow.GetItemFromUri(uri)
-        if item != None:
-            wxWindow.SetItemBold(item, isBold)
-            return true
-        return false
+        return wxWindow.SetUriBold(uri)
+    
         
-        
-class URLTreeEntry:
+class URLTreeEntry(Persistent):
     """
       URLTreeEntry is just a container class for items inserted into the
     SideBar's URLTree dictionary.
@@ -277,6 +256,60 @@ class wxSideBar(wxTreeCtrl):
         fields = uri.split('/')
         entry = self.__GetSideBarURLTreeEntry(fields, self.model.sideBarURLTree)
         entry.isOpen = false
+        
+    def ExpandUri(self, uri):
+        """
+          Expands the item representing the given uri.  Will also expand 
+        any ancestors of the item representing the supplied uri.  Returns 
+        true if the expansion was successful, false otherwise.
+        """
+        item = self.__GetItemFromUri(uri)
+        if item != None:
+            fields = uri.split('/')
+            entry = self.__GetSideBarURLTreeEntry(fields, self.model.sideBarURLTree)
+            entry.isOpen = true
+            self.Expand(item)
+            return true
+        return false
+
+    def CollapseUri(self, uri):
+        """
+          Collapses the item representing the given uri.  Returns true if
+        the collapse was successful, false otherwise.
+        """
+        item = self.__GetItemFromUri(uri)
+        if item != None:
+            fields = uri.split('/')
+            entry = self.__GetSideBarURLTreeEntry(fields, self.model.sideBarURLTree)
+            entry.isOpen = false
+            self.Collapse(item)
+            return true
+        return false
+    
+    def SetUriColor(self, uri, color):
+        """
+          Changes the color of the item representing the uri.  Will also
+        expand any ancestors of the item representing the supplied uri.        
+        Returns true if the color was successfully set, false otherwise.
+        """
+        item = self.__GetItemFromUri(uri)
+        if item != None:
+            self.SetItemTextColour(item, color)
+            return true
+        return false
+
+    def SetUriBold(self, uri, isBold=true):
+        """
+          Sets whether or not the item representing the uri should be bold.
+        Will also expand any ancestors of the item representing the supplied
+        uri.  Returns true if the bold state of the item was successfully set,
+        false otherwise.
+        """
+        item = self.__GetItemFromUri(uri)
+        if item != None:
+            self.SetItemBold(item, isBold)
+            return true
+        return false
 
     def __GetSideBarURLTreeEntry(self, fields, dict):
         if len(fields) == 1:
@@ -284,7 +317,7 @@ class wxSideBar(wxTreeCtrl):
         return self.__GetSideBarURLTreeEntry(fields[1:], 
                                              dict[fields[0]].children)
         
-    def GetItemFromUri(self, uri):
+    def __GetItemFromUri(self, uri):
         if not self.uriDictMap.has_key(uri):
             urlTree = app.model.URLTree
             if urlTree.UriExists(uri):
@@ -306,6 +339,4 @@ class wxSideBar(wxTreeCtrl):
           Remove from the association when the sidebar is destroyed.
         """
         del app.association[id(self.model)]
-            
-    
-     
+ 
