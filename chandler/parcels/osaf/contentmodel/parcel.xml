@@ -2,7 +2,7 @@
         xmlns="//Schema/Core"
         xmlns:core="//Schema/Core"
         xmlns:base="//Parcels/OSAF"
-        xmlns:common="//Parcels/OSAF/PimSchema">
+        xmlns:pim="//Parcels/OSAF/PimSchema">
 
   <displayName>Pim Schema</displayName>
   <description>Pim schema for the 0.3 release</description>
@@ -16,23 +16,23 @@
   </description>
 
 <!-- Information Item -->
-  <Attribute id="common:projects">
+  <Attribute id="pim:projects">
     <displayName>projects</displayName>
     <description>What project does this item belong to?</description>
     <cardinality>set</cardinality>
     <type itemref="core:Project"/>
-    <inverseAttribute itemref="common:items"/>
+    <inverseAttribute itemref="pim:items"/>
   </Attribute>
 
-  <Attribute id="common:folders">
+  <Attribute id="pim:folders">
     <displayName>folders</displayName>
     <description>What folders is this item filed in?</description>
     <cardinality>set</cardinality>
     <type itemref="core:Folder"/>
-    <inverseAttribute itemref="common:items"/>
+    <inverseAttribute itemref="pim:items"/>
   </Attribute>
 
-  <Kind id="common:InformationItem">
+  <Kind id="pim:InformationItem">
     <displayName>Information Item</displayName>
     <examples>an Calendar Event -- 'Lunch with Tug'</examples>
     <examples>a Contact -- 'Terry Smith'</examples>
@@ -45,64 +45,64 @@
       Everything is a type of Item.
     </description>
     <issue>@@@ -- add a categories attribute, to keep track of what 'virtual folders' the item appears in</issue>
-    <superKinds itemref="common:Item"/>
+    <superKinds itemref="pim:Item"/>
     <abstract/>
-    <attributes itemref="common:projects"/>
-    <attributes itemref="common:folders"/>
+    <attributes itemref="pim:projects"/>
+    <attributes itemref="pim:folders"/>
   </Kind>
 
 
 <!-- Project -->
-  <Attribute id="common:parent_project">
+  <Attribute id="pim:parentProject">
     <displayName>parent project</displayName>
     <description>projects can be organized into hierarchies</description>
     <cardinality>single</cardinality>
     <type itemref="core:Project"/>
-    <inverseAttribute itemref="common:sub projects"/>
+    <inverseAttribute itemref="pim:subProjects"/>
   </Attribute>
 
-  <Attribute id="common:sub_projects">
+  <Attribute id="pim:subProjects">
     <displayName>sub projects</displayName>
     <description>projects can be organized into hierarchies</description>
     <cardinality>set</cardinality>
     <type itemref="core:Project"/>
-    <inverseAttribute itemref="common:parent project"/>
+    <inverseAttribute itemref="pim:parentProject"/>
   </Attribute>
 
-  <Attribute id="common:items">
+  <Attribute id="pim:items">
     <displayName>items</displayName>
     <description>items can be organized into projects</description>
     <cardinality>set</cardinality>
-    <type itemref="core:InformationItem"/>
-    <inverseAttribute itemref="common:projects"/>
+    <type itemref="pim:InformationItem"/>
+    <inverseAttribute itemref="pim:projects"/>
   </Attribute>
 
-  <Kind id="common:Project">
+  <Kind id="pim:Project">
     <displayName>Project</displayName>
-    <superKinds itemref="common:Item"/>
-    <attributes itemref="common:name"/>
-    <attributes itemref="common:description"/>
-    <attributes itemref="common:parent_project"/>
-    <attributes itemref="common:sub_projects"/>
-    <attributes itemref="common:items"/>
+    <superKinds itemref="pim:Item"/>
+    <attributes itemref="pim:name"/>
+    <attributes itemref="pim:description"/>
+    <attributes itemref="pim:parentProject"/>
+    <attributes itemref="pim:subProjects"/>
+    <attributes itemref="pim:items"/>
   </Kind>
 
 <!-- Folder -->
-  <Attribute id="common:items">
+  <Attribute id="pim:items">
     <displayName>items</displayName>
     <description>What's in the folder?</description>
     <cardinality>list</cardinality>
     <type itemref="core:Item"/>
   </Attribute>
 
-  <Attribute id="common:type">
+  <Attribute id="pim:type">
     <displayName>type</displayName>
     <description>What types of items should the folder be expected to hold?</description>
     <cardinality>set</cardinality>
     <type itemref="core:Taxon"/>
   </Attribute>
 
-  <Kind id="common:Folder">
+  <Kind id="pim:Folder">
     <displayName>Folder</displayName>
     <examples>Inbox</examples>
     <examples>Sent</examples>
@@ -118,11 +118,11 @@
     <description>
       A Folder represents a folder of e-mail messages (a mailbox) or a folder of any other type of Item.
     </description>
-    <superKinds itemref="common:Item"/>
-    <attributes itemref="common:name"/>
-    <attributes itemref="common:description"/>
-    <attributes itemref="common:items"/>
-    <attributes itemref="common:type"/>
+    <superKinds itemref="pim:Item"/>
+    <attributes itemref="pim:name"/>
+    <attributes itemref="pim:description"/>
+    <attributes itemref="pim:items"/>
+    <attributes itemref="pim:type"/>
   </Kind>
 
 </Parcel>

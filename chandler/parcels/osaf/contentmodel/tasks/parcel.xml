@@ -41,35 +41,35 @@
     <displayName>super-task</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Task"/>
+    <type itemref="task:Task"/>
   </Attribute>
 
   <Attribute itemName="task:sub_tasks">
     <displayName>sub-tasks</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
-    <type itemref="core:Task"/>
+    <type itemref="task:Task"/>
   </Attribute>
 
   <Attribute itemName="task:required_resources">
     <displayName>required resources</displayName>
     <description>examples: 'hammer', 'ladder', 'flashlight'</description>
     <cardinality>list</cardinality>
-    <type itemref="core:SimpleString"/>
+    <type itemref="core:String"/>
   </Attribute>
 
   <Attribute itemName="task:dependencies">
     <displayName>dependencies</displayName>
     <description>tasks that are preconditions for this task</description>
     <cardinality>set</cardinality>
-    <type itemref="core:Task"/>
+    <type itemref="task:Task"/>
   </Attribute>
 
   <Attribute itemName="task:dependent_tasks">
     <displayName>dependent tasks</displayName>
     <description>tasks that this task is a precondition for</description>
     <cardinality>set</cardinality>
-    <type itemref="core:Task"/>
+    <type itemref="task:Task"/>
   </Attribute>
 
   <Attribute itemName="task:priority">
@@ -83,63 +83,63 @@
     <displayName>status</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Status"/>
+    <type itemref="task:Status"/>
   </Attribute>
 
   <Attribute itemName="task:work_location">
     <displayName>work location</displayName>
     <description>examples: 'work' or 'home'</description>
     <cardinality>single</cardinality>
-    <type itemref="core:SimpleString"/>
+    <type itemref="core:String"/>
   </Attribute>
 
   <Attribute itemName="task:due_date">
     <displayName>due date</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Datetime"/>
+    <type itemref="core:DateTime"/>
   </Attribute>
 
   <Attribute itemName="task:plan_to_do_on_date">
     <displayName>plan to do on date</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Datetime"/>
+    <type itemref="core:DateTime"/>
   </Attribute>
 
   <Attribute itemName="task:tentative_start_date">
     <displayName>tentative start date</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Datetime"/>
+    <type itemref="core:DateTime"/>
   </Attribute>
 
   <Attribute itemName="task:time_estimate">
     <displayName>time estimate</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:TimeEstimate"/>
+    <type itemref="task:TimeEstimate"/>
   </Attribute>
 
   <Attribute itemName="task:task_type">
     <displayName>task type</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:TaskType"/>
+    <type itemref="task:TaskType"/>
   </Attribute>
 
   <Attribute itemName="task:delegation">
     <displayName>delegation</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Delegation"/>
+    <type itemref="task:Delegation"/>
   </Attribute>
 
   <Kind itemName="task:Task">
     <displayName>Task</displayName>
     <issues>possible alternate names: 'Action Item' or 'To Do Item'</issues>
     <issues>see also: TaskDataModelIssues</issues>
-    <superKinds itemref="task:InformationItem"/>
+    <superKinds itemref="pim:InformationItem"/>
     <attributes itemref="task:name"/>
     <attributes itemref="task:notes"/>
     <attributes itemref="task:time_frame"/>
@@ -163,7 +163,7 @@
 <!-- Task List -->
   <Kind itemName="task:TaskList">
     <displayName>Task List</displayName>
-    <superKinds itemref="task:Item"/>
+    <superKinds itemref="core:Item"/>
   </Kind>
 
 <!-- Time Estimate -->
@@ -171,7 +171,7 @@
     <displayName>estimated time</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Duration"/>
+    <type itemref="core:DateTimeDelta"/>
   </Attribute>
 
   <Attribute itemName="task:estimated_by">
@@ -185,28 +185,28 @@
     <displayName>confidence</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:SimpleString"/>
+    <type itemref="core:String"/>
   </Attribute>
 
   <Attribute itemName="task:percent_complete">
     <displayName>percent complete</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Number"/>
+    <type itemref="core:Integer"/>
   </Attribute>
 
   <Attribute itemName="task:actual_time">
     <displayName>actual time</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Duration"/>
+    <type itemref="core:DateTimeDelta"/>
   </Attribute>
 
   <Kind itemName="task:TimeEstimate">
     <displayName>Time Estimate</displayName>
     <examples>'2 days'</examples>
     <examples>'1 hour'</examples>
-    <superKinds itemref="task:Item"/>
+    <superKinds itemref="core:Item"/>
     <attributes itemref="task:estimated_time"/>
     <attributes itemref="task:estimated_by"/>
     <attributes itemref="task:confidence"/>
@@ -233,12 +233,12 @@
     <displayName>further delegation</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Delegation"/>
+    <type itemref="task:Delegation"/>
   </Attribute>
 
   <Kind itemName="task:Delegation">
     <displayName>Delegation</displayName>
-    <superKinds itemref="task:Item"/>
+    <superKinds itemref="core:Item"/>
     <attributes itemref="task:assigned_by"/>
     <attributes itemref="task:assigned_to"/>
     <attributes itemref="task:further_delegation"/>
@@ -256,14 +256,14 @@
     <displayName>sub-status</displayName>
     <description>...add description here...</description>
     <cardinality>set</cardinality>
-    <type itemref="core:Status"/>
+    <type itemref="task:Status"/>
   </Attribute>
 
   <Attribute itemName="task:super_status">
     <displayName>super-status</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:Status"/>
+    <type itemref="task:Status"/>
   </Attribute>
 
   <Kind itemName="task:Status">
@@ -273,7 +273,7 @@
     <examples>'Completed'</examples>
     <examples>'Underway'</examples>
     <examples>'Waiting on...'</examples>
-    <superKinds itemref="task:Item"/>
+    <superKinds itemref="core:Item"/>
     <attributes itemref="task:name"/>
     <attributes itemref="task:sub_status"/>
     <attributes itemref="task:super_status"/>
@@ -291,14 +291,14 @@
     <displayName>sub-types</displayName>
     <description>...add description here...</description>
     <cardinality>set</cardinality>
-    <type itemref="core:TaskType"/>
+    <type itemref="task:TaskType"/>
   </Attribute>
 
   <Attribute itemName="task:super_type">
     <displayName>super-type</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:TaskType"/>
+    <type itemref="task:TaskType"/>
   </Attribute>
 
   <Kind itemName="task:TaskType">
@@ -306,7 +306,7 @@
     <examples>'Phone call'</examples>
     <examples>'Errand'</examples>
     <examples>'Send e-mail'</examples>
-    <superKinds itemref="task:Item"/>
+    <superKinds itemref="core:Item"/>
     <attributes itemref="task:name"/>
     <attributes itemref="task:sub_types"/>
     <attributes itemref="task:super_type"/>
@@ -315,7 +315,7 @@
 <!-- Priority Level -->
   <Kind itemName="task:PriorityLevel">
     <displayName>Priority Level</displayName>
-    <superKinds itemref="task:Item"/>
+    <superKinds itemref="core:Item"/>
   </Kind>
 
 </Parcel>

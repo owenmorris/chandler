@@ -14,7 +14,7 @@
     <description>the file name that the user sees</description>
     <cardinality>single</cardinality>
     <required/>
-    <type itemref="core:SimpleString"/>
+    <type itemref="core:String"/>
   </Attribute>
 
   <Attribute itemName="email:item">
@@ -40,7 +40,7 @@
       An Attachment represents an e-mail attachment.
     </description>
     <issues>see http://lists.osafoundation.org/pipermail/design/2003-April/002400.html</issues>
-    <superKinds itemref="email:Item"/>
+    <superKinds itemref="core:Item"/>
     <attributes itemref="email:name"/>
     <attributes itemref="email:item"/>
     <attributes itemref="email:file"/>
@@ -49,7 +49,7 @@
 <!-- Email Account -->
   <Kind itemName="email:EmailAccount">
     <displayName>Email Account</displayName>
-    <superKinds itemref="email:Item"/>
+    <superKinds itemref="core:Item"/>
   </Kind>
 
 <!-- Email Message -->
@@ -57,7 +57,7 @@
     <displayName>subject</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:SimpleString"/>
+    <type itemref="core:String"/>
   </Attribute>
 
   <Attribute itemName="email:sent_to">
@@ -102,14 +102,14 @@
     <displayName>date sent</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:RigidDatetime"/>
+    <type itemref="core:DateTime"/>
   </Attribute>
 
   <Attribute itemName="email:date_received">
     <displayName>date received</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:RigidDatetime"/>
+    <type itemref="core:DateTime"/>
   </Attribute>
 
   <Attribute itemName="email:delivery_receipt_requested">
@@ -130,28 +130,28 @@
     <displayName>message header</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:SimpleString"/>
+    <type itemref="core:String"/>
   </Attribute>
 
   <Attribute itemName="email:message_body">
     <displayName>message body</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="core:SimpleString"/>
+    <type itemref="core:String"/>
   </Attribute>
 
   <Attribute itemName="email:related_messages">
     <displayName>related messages</displayName>
     <description>...add description here...</description>
     <cardinality>set</cardinality>
-    <type itemref="core:EmailMessage"/>
+    <type itemref="email:EmailMessage"/>
   </Attribute>
 
   <Attribute itemName="email:forwarded_in">
     <displayName>forwarded in</displayName>
     <description>a list of other Email Messages that contain forwarded copies of this message</description>
     <cardinality>set</cardinality>
-    <type itemref="core:EmailMessage"/>
+    <type itemref="email:EmailMessage"/>
     <superAttribute itemref="email:related_messages"/>
   </Attribute>
 
@@ -159,7 +159,7 @@
     <displayName>replied to in</displayName>
     <description>a list of other Email Messages that are replies to this message</description>
     <cardinality>set</cardinality>
-    <type itemref="core:EmailMessage"/>
+    <type itemref="email:EmailMessage"/>
     <superAttribute itemref="email:related_messages"/>
   </Attribute>
 
@@ -167,7 +167,7 @@
     <displayName>in reply to</displayName>
     <description>the Email Message that this message is a reply to</description>
     <cardinality>single</cardinality>
-    <type itemref="core:EmailMessage"/>
+    <type itemref="email:EmailMessage"/>
     <superAttribute itemref="email:related_messages"/>
   </Attribute>
 
@@ -175,7 +175,7 @@
     <displayName>attachments</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
-    <type itemref="core:Attachment"/>
+    <type itemref="email:Attachment"/>
   </Attribute>
 
   <Attribute itemName="email:language_encoding">
@@ -210,7 +210,7 @@
     <displayName>download account</displayName>
     <description>used when sending the reply, to make the reply be 'from' the right account</description>
     <cardinality>single</cardinality>
-    <type itemref="core:EmailAccount"/>
+    <type itemref="email:EmailAccount"/>
   </Attribute>
 
   <Attribute itemName="email:persona_used">
@@ -224,7 +224,7 @@
     <displayName>server status</displayName>
     <description>used for POP email somehow?</description>
     <cardinality>single</cardinality>
-    <type itemref="core:SimpleString"/>
+    <type itemref="core:String"/>
   </Attribute>
 
   <Kind itemName="email:EmailMessage">
@@ -236,7 +236,7 @@
     <issues>see also: MessageDataModelIssues</issues>
     <issues>We want people to be able to use e-mail messages as tasks, so the data model needs to reflect that.  We might want ot make it so that an Item can be both an Email Message and a Task.  Or we might want to just add a few lightweight taskish attribute to the Email Message Kind: attributes like 'priority', 'due-by date', and 'has been done'.</issues>
     <issues>We might also want to add a few derived attributes, like 'message size' or 'has been forwarded'.</issues>
-    <superKinds itemref="email:InformationItem"/>
+    <superKinds itemref="pim:InformationItem"/>
     <attributes itemref="email:subject"/>
     <attributes itemref="email:sent_to"/>
     <attributes itemref="email:to_address"/>
@@ -266,49 +266,49 @@
 <!-- Phone Number -->
   <Kind itemName="email:PhoneNumber">
     <displayName>Phone Number</displayName>
-    <superKinds itemref="email:Item"/>
+    <superKinds itemref="core:Item"/>
   </Kind>
 
 <!-- Read Receipt -->
   <Kind itemName="email:ReadReceipt">
     <displayName>Read Receipt</displayName>
-    <superKinds itemref="email:Item"/>
+    <superKinds itemref="core:Item"/>
   </Kind>
 
 <!-- Response -->
   <Kind itemName="email:Response">
     <displayName>Response</displayName>
-    <superKinds itemref="email:Item"/>
+    <superKinds itemref="core:Item"/>
   </Kind>
 
 <!-- Signature -->
   <Kind itemName="email:Signature">
     <displayName>Signature</displayName>
-    <superKinds itemref="email:Item"/>
+    <superKinds itemref="core:Item"/>
   </Kind>
 
 <!-- Style Sheet -->
   <Kind itemName="email:StyleSheet">
     <displayName>Style Sheet</displayName>
-    <superKinds itemref="email:Item"/>
+    <superKinds itemref="core:Item"/>
   </Kind>
 
 <!-- Template -->
   <Kind itemName="email:Template">
     <displayName>Template</displayName>
-    <superKinds itemref="email:Item"/>
+    <superKinds itemref="core:Item"/>
   </Kind>
 
 <!-- Message Thread -->
   <Kind itemName="email:MessageThread">
     <displayName>Message Thread</displayName>
-    <superKinds itemref="email:Item"/>
+    <superKinds itemref="core:Item"/>
   </Kind>
 
 <!-- Vacation Message -->
   <Kind itemName="email:VacationMessage">
     <displayName>Vacation Message</displayName>
-    <superKinds itemref="email:Item"/>
+    <superKinds itemref="core:Item"/>
   </Kind>
 
 </Parcel>
