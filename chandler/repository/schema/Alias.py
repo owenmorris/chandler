@@ -19,7 +19,7 @@ class Alias(Type):
 
     def type(self, value):
 
-        if self.hasAttributeValue('types'):
+        if 'types' in self._references:
             for t in self.getAttributeValue('types',
                                             _attrDict=self._references):
                 if t.recognizes(value):
@@ -31,7 +31,7 @@ class Alias(Type):
         
     def recognizes(self, value):
 
-        if not self.hasAttributeValue('types'):
+        if 'types' not in self._references:
             return True
         
         for t in self.types:
@@ -40,7 +40,7 @@ class Alias(Type):
     
     def typeXML(self, value, generator):
 
-        if not self.hasAttributeValue('types'):
+        if 'types' not in self._references:
             super(Alias, self).typeXML(value, generator)
             return
 

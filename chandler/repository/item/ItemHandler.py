@@ -91,19 +91,19 @@ class ItemHandler(ContentHandler):
 
     def startElement(self, tag, attrs):
 
-        if not self.errorOccurred():
+        if tag != 'xml' and not self.errorOccurred():
             try:
                 self.data = ''
                 if attrs is None:
                     attrs = {}
-            
+
                 if self.delegates:
                     delegate = self.delegates[-1]
                     delegateClass = type(delegate)
                 else:
                     delegate = self
                     delegateClass = self.handlerClass
-            
+        
                 method = getattr(delegateClass, tag + 'Start', None)
                 if method is not None:
                     method(delegate, self, attrs)
@@ -115,7 +115,7 @@ class ItemHandler(ContentHandler):
 
     def endElement(self, tag):
 
-        if not self.errorOccurred():
+        if tag != 'xml' and not self.errorOccurred():
             try:
                 withValue = False
 

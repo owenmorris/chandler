@@ -26,10 +26,12 @@ class Attribute(Item):
 
     def getAspect(self, name, **kwds):
 
-        if self.hasAttributeValue(name):
-            return self.getAttributeValue(name)
+        if name in self._values:
+            return self._values[name]
+        elif name in self._references:
+            return self._references._getRef(name)
 
-        if self.hasAttributeValue('superAttribute'):
+        if 'superAttribute' in self._references:
             superAttribute = self.getAttributeValue('superAttribute')
             return superAttribute.getAspect(name, **kwds)
 

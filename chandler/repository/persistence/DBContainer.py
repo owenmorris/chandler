@@ -47,6 +47,32 @@ class DBContainer(object):
                           flags = DB_THREAD | self._flags,
                           txn = txn)
 
+    def openIndex(self, name, dbname, txn, keyMethod, **kwds):
+
+        if kwds.get('ramdb', False):
+            name = None
+            dbname = None
+
+        index = DB(self.store.env)
+
+        if kwds.get('create', False):
+            index.open(filename = name, dbname = dbname,
+                       dbtype = DB_BTREE,
+                       flags = DB_CREATE | DB_THREAD | self._flags,
+                       txn = txn)
+        else:
+            index.open(filename = name, dbname = dbname,
+                       dbtype = DB_BTREE,
+                       flags = DB_THREAD | self._flags,
+                       txn = txn)
+
+        self._db.associate(secondaryDB = index,
+                           callback = keyMethod,
+                           flags = 0,
+                           txn = txn)
+
+        return index
+
     def close(self):
 
         self._db.close()
@@ -86,6 +112,100 @@ class DBContainer(object):
 
         self.store.repository.logger.info('detected deadlock: %d', n)
 
+    def _readValue(self, value, offset):
+
+        code = value[offset]
+        offset += 1
+
+        if code == '\0':
+            return (1, None)
+
+        if code == '\1':
+            return (1, True)
+
+        if code == '\2':
+            return (1, False)
+
+        if code == '\3':
+            return (17, UUID(value[offset:offset+16]))
+
+        if code == '\4':
+            return (5, unpack('>l', value[offset:offset+4])[0])
+
+        if code == '\5':
+            l, = unpack('>H', value[offset:offset+2])
+            offset += 2
+            return (l + 3, value[offset:offset+l])
+
+        raise ValueError, code
+
+    def _writeUUID(self, buffer, value):
+
+        if value is None:
+            buffer.write('\0')
+        else:
+            buffer.write('\3')
+            buffer.write(value._uuid)
+
+    def _writeString(self, buffer, value):
+
+        if value is None:
+            buffer.write('\0')
+        
+        elif isinstance(value, str):
+            buffer.write('\5')
+            buffer.write(pack('>H', len(value)))
+            buffer.write(value)
+
+        elif isinstance(value, unicode):
+            value = value.encode('utf-8')
+            buffer.write('\5')
+            buffer.write(pack('>H', len(value)))
+            buffer.write(value)
+
+        else:
+            raise TypeError, type(value)
+
+    def _writeBoolean(self, buffer, value):
+
+        if value is True:
+            buffer.write('\1')
+
+        elif value is False:
+            buffer.write('\2')
+        
+        else:
+            raise TypeError, type(value)
+
+    def _writeInteger(self, buffer, value):
+
+        if value is None:
+            buffer.write('\0')
+        
+        buffer.write('\4')
+        buffer.write(pack('>l', value))
+
+    def _writeValue(self, buffer, value):
+
+        if value is None:
+            buffer.write('\0')
+
+        elif value is True or value is False:
+            self._writeBoolean(buffer, value)
+
+        elif isinstance(value, str) or isinstance(value, unicode):
+            self._writeString(buffer, value)
+
+        elif isinstance(value, int) or isinstance(value, long):
+            self._writeInteger(buffer, value)
+
+        elif isinstance(value, UUID):
+            self._writeUUID(buffer, value)
+
+        else:
+            raise NotImplementedError, "value: %s, type: %s" %(value,
+                                                               type(value))
+
 
 class RefContainer(DBContainer):
         
@@ -94,29 +214,8 @@ class RefContainer(DBContainer):
         super(RefContainer, self).__init__(store, name, txn,
                                            dbname = 'data', **kwds)
 
-        if kwds.get('ramdb', False):
-            name = None
-            dbname = None
-        else:
-            dbname = 'history'
-
-        self._history = DB(store.env)
-
-        if kwds.get('create', False):
-            self._history.open(filename = name, dbname = dbname,
-                               dbtype = DB_BTREE,
-                               flags = DB_CREATE | DB_THREAD | self._flags,
-                               txn = txn)
-        else:
-            self._history.open(filename = name, dbname = dbname,
-                               dbtype = DB_BTREE,
-                               flags = DB_THREAD | self._flags,
-                               txn = txn)
-
-        self._db.associate(secondaryDB = self._history,
-                           callback = self._historyKey,
-                           flags = 0,
-                           txn = txn)
+        self._history = self.openIndex(name, 'history', txn,
+                                       self._historyKey, **kwds)
 
     def close(self):
 
@@ -143,62 +242,13 @@ class RefContainer(DBContainer):
 
         return buffer.getvalue()
 
-    def _readValue(self, value, offset):
-
-        code = value[offset]
-        offset += 1
-
-        if code == '\0':
-            return (17, UUID(value[offset:offset+16]))
-
-        if code == '\1':
-            l, = unpack('>H', value[offset:offset+2])
-            offset += 2
-            return (l + 3, value[offset:offset+l])
-
-        if code == '\2':
-            return (1, None)
-
-        if code == '\3':
-            return (5, unpack('>l', value[offset:offset+4])[0])
-
-        raise ValueError, code
-
-    def _writeValue(self, buffer, value):
-        
-        if isinstance(value, UUID):
-            buffer.write('\0')
-            buffer.write(value._uuid)
-
-        elif isinstance(value, str):
-            buffer.write('\1')
-            buffer.write(pack('>H', len(value)))
-            buffer.write(value)
-
-        elif isinstance(value, unicode):
-            value = value.encode('utf-8')
-            buffer.write('\1')
-            buffer.write(pack('>H', len(value)))
-            buffer.write(value)
-
-        elif value is None:
-            buffer.write('\2')
-
-        elif isinstance(value, int) or isinstance(value, long):
-            buffer.write('\3')
-            buffer.write(pack('>l', value))
-
-        else:
-            raise NotImplementedError, "value: %s, type: %s" %(value,
-                                                               type(value))
-
     def saveRef(self, keyBuffer, buffer, version, key, previous, next, alias):
 
         buffer.truncate(0)
         buffer.seek(0)
 
-        self._writeValue(buffer, previous)
-        self._writeValue(buffer, next)
+        self._writeUUID(buffer, previous)
+        self._writeUUID(buffer, next)
         self._writeValue(buffer, alias)
         self.put(self._packKey(keyBuffer, key, version), buffer.getvalue())
 
@@ -263,7 +313,7 @@ class RefContainer(DBContainer):
         buffer.truncate(0)
         buffer.seek(0)
 
-        self._writeValue(buffer, None)
+        self._writeUUID(buffer, None)
         self.put(self._packKey(keyBuffer, key, version), buffer.getvalue())
 
     def eraseRef(self, buffer, key):
@@ -356,241 +406,6 @@ class RefContainer(DBContainer):
         finally:
             if cursor is not None:
                 cursor.close()
-
-
-class HistContainer(DBContainer):
-
-    def __init__(self, store, name, txn, **kwds):
-
-        super(HistContainer, self).__init__(store, name, txn,
-                                            dbname = 'data', **kwds)
-
-        if kwds.get('ramdb', False):
-            name = None
-            dbname = None
-        else:
-            dbname = 'versions'
-
-        self._versions = DB(store.env)
-
-        if kwds.get('create', False):
-            self._versions.open(filename = name, dbname = dbname,
-                                dbtype = DB_BTREE,
-                                flags = DB_CREATE | DB_THREAD | self._flags,
-                                txn = txn)
-        else:
-            self._versions.open(filename = name, dbname = dbname,
-                                dbtype = DB_BTREE,
-                                flags = DB_THREAD | self._flags,
-                                txn = txn)
-
-        self._db.associate(secondaryDB = self._versions,
-                           callback = self._versionKey,
-                           flags = 0,
-                           txn = txn)
-
-        if kwds.get('create', False):
-            self.setVersion(0)
-
-    def close(self):
-
-        self._versions.close()
-        self._versions = None
-
-        super(HistContainer, self).close()
-
-    def _versionKey(self, key, value):
-
-        # version, uuid -> uuid, ~version
-        version, uuid = unpack('>l16s', key)
-
-        return pack('>16sl', uuid, ~version)
-
-    def setVersion(self, version, uuid=None):
-        
-        if uuid is None:
-            uuid = Repository.itsUUID
-
-        if version != 0:
-            versionId = self.getVersionId(uuid)
-        else:
-            versionId = UUID()
-            
-        self.writeVersion(uuid, version, -1, 0, versionId, (), ())
-
-    def getVersion(self, versionId=None):
-
-        if versionId is None:
-            versionId = Repository.itsUUID
-            
-        return self.getDocVersion(versionId)
-
-    def getVersionId(self, uuid):
-
-        return UUID(self._readHistory(uuid, 0)[2])
-
-    def setVersionId(self, versionId, uuid):
-
-        self.writeVersion(uuid, 0, -1, 0, versionId, (), ())
-
-    def writeVersion(self, uuid, version, docId, status, parentId,
-                     dirtyValues, dirtyRefs):
-
-        if status & Item.DELETED:
-            value = pack('>ll16s', status, docId, parentId._uuid)
-
-        else:
-            buffer = cStringIO.StringIO()
-
-            buffer.write(pack('>ll16s', status, docId, parentId._uuid))
-            for name in dirtyValues:
-                if isinstance(name, unicode):
-                    name = name.encode('utf-8')
-                buffer.write(pack('>l', _uuid.hash(name)))
-            for name in dirtyRefs:
-                if isinstance(name, unicode):
-                    name = name.encode('utf-8')
-                buffer.write(pack('>l', _uuid.hash(name)))
-
-            value = buffer.getvalue()
-            buffer.close()
-            
-        self.put(pack('>l16s', version, uuid._uuid), value)
-
-    def apply(self, fn, oldVersion, newVersion):
-
-        store = self.store
-        
-        while True:
-            txnStatus = 0
-            cursor = None
-
-            try:
-                txnStatus = store.startTransaction()
-                cursor = self.cursor()
-
-                try:
-                    value = cursor.set_range(pack('>l', oldVersion + 1),
-                                             flags=self._flags)
-                except DBNotFoundError:
-                    return
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXNSTARTED:
-                        self._logDL(18)
-                        continue
-                    else:
-                        raise
-
-                repositoryId = Repository.itsUUID._uuid
-
-                try:
-                    while value is not None:
-                        version, uuid = unpack('>l16s', value[0])
-                        if version > newVersion:
-                            break
-
-                        if uuid != repositoryId:
-                            value = value[1]
-                            status, = unpack('>l', value[0:4])
-                            value = value[4:]
-
-                            if status & Item.DELETED:
-                                docId, parentId = unpack('>l16s', value)
-                                parentId = UUID(parentId)
-                                dirties = HashTuple()
-                            else:
-                                docId, parentId = unpack('>l16s', value[0:20])
-                                parentId = UUID(parentId)
-                                value = value[20:]
-                                dirties = unpack('>%dl' %(len(value) >> 2),
-                                                 value)
-                                dirties = HashTuple(dirties)
-
-                            fn(UUID(uuid), version, docId, status, parentId,
-                               dirties)
-
-                        value = cursor.next()
-
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXNSTARTED:
-                        self._logDL(19)
-                        continue
-                    else:
-                        raise
-
-                return
-
-            finally:
-                if cursor is not None:
-                    cursor.close()
-                store.abortTransaction(txnStatus)
-
-    def _readHistory(self, uuid, version):
-
-        store = self.store
-        
-        while True:
-            txnStatus = 0
-            cursor = None
-
-            try:
-                txnStatus = store.startTransaction()
-                cursor = self.cursor(self._versions)
-
-                try:
-                    key = uuid._uuid
-                    value = cursor.set_range(key, flags=self._flags)
-                except DBNotFoundError:
-                    return None, None, None, None
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXNSTARTED:
-                        self._logDL(7)
-                        continue
-                    else:
-                        raise
-
-                try:
-                    while value is not None and value[0].startswith(key):
-                        uuid, docVersion = unpack('>16sl', value[0])
-                        if uuid != key:
-                            return None, None, None, None
-                        
-                        if version == 0 or ~docVersion <= version:
-                            status, docId, parentId = unpack('>ll16s',
-                                                             value[1][0:24])
-                            return status, docId, parentId, ~docVersion
-                        
-                        value = cursor.next()
-
-                except DBLockDeadlockError:
-                    if txnStatus & store.TXNSTARTED:
-                        self._logDL(5)
-                        continue
-                    else:
-                        raise
-                        
-                return None, None, None, None
-
-            finally:
-                if cursor is not None:
-                    cursor.close()
-                store.abortTransaction(txnStatus)
-
-    def getDocId(self, uuid, version):
-
-        return self._readHistory(uuid, version)[1]
-
-    def getDocVersion(self, uuid, version=0):
-
-        return self._readHistory(uuid, version)[3]
-
-    def getDocRecord(self, uuid, version=0):
-
-        status, docId, parentId, version = self._readHistory(uuid, version)
-        if parentId is not None:
-            parentId = UUID(parentId)
-
-        return status, docId, parentId, version
 
 
 class NamesContainer(DBContainer):
@@ -823,31 +638,6 @@ class IndexesContainer(DBContainer):
 
         return buffer.getvalue()
 
-    def _readValue(self, value, offset):
-
-        code = value[offset]
-        offset += 1
-
-        if code == '\0':
-            return (17, UUID(value[offset:offset+16]))
-
-        if code == '\1':
-            return (1, None)
-
-        raise ValueError, code
-
-    def _writeValue(self, buffer, value):
-        
-        if isinstance(value, UUID):
-            buffer.write('\0')
-            buffer.write(value._uuid)
-
-        elif value is None:
-            buffer.write('\1')
-
-        else:
-            raise TypeError, "value: %s, type: %s" %(value, type(value))
-
     def saveKey(self, keyBuffer, buffer, version, key, node):
 
         buffer.truncate(0)
@@ -859,8 +649,8 @@ class IndexesContainer(DBContainer):
             buffer.write(pack('>l', node._entryValue))
             for lvl in xrange(1, level + 1):
                 point = node.getPoint(lvl)
-                self._writeValue(buffer, point.prevKey)
-                self._writeValue(buffer, point.nextKey)
+                self._writeUUID(buffer, point.prevKey)
+                self._writeUUID(buffer, point.nextKey)
                 buffer.write(pack('>l', point.dist))
         else:
             buffer.write('\0')
@@ -938,6 +728,388 @@ class IndexesContainer(DBContainer):
                 if cursor is not None:
                     cursor.close()
                 store.abortTransaction(txnStatus)
+
+
+class ItemContainer(DBContainer):
+
+    def __init__(self, store, name, txn, **kwds):
+
+        super(ItemContainer, self).__init__(store, name, txn,
+                                            dbname = 'data', **kwds)
+
+        self._index = self.openIndex(name, 'index', txn, 
+                                     self._indexKey, **kwds)
+        self._versions = self.openIndex(name, 'versions', txn,
+                                        self._versionKey, **kwds)
+
+    def close(self):
+
+        self._index.close()
+        self._index = None
+        self._versions.close()
+        self._versions = None
+
+        super(ItemContainer, self).close()
+
+    def _indexKey(self, key, value):
+
+        # uItem, ~version -> uKind, uItem, ~version
+        return pack('>16s20s', value[0:16], key)
+
+    def _versionKey(self, key, value):
+
+        # uItem, ~version -> version, uItem
+        uuid, version = unpack('>16sl', key)
+
+        return pack('>l16s', ~version, uuid)
+
+    def saveItem(self, buffer, uItem, version, uKind, status,
+                 uParent, name, moduleName, className,
+                 values, dirtyValues, dirtyRefs):
+
+        buffer.truncate(0)
+        buffer.seek(0)
+
+        buffer.write(uKind._uuid)
+        buffer.write(pack('>l', status))
+        buffer.write(uParent._uuid)
+
+        self._writeString(buffer, name)
+        self._writeString(buffer, moduleName)
+        self._writeString(buffer, className)
+
+        buffer.write(pack('>l', len(values)))
+        for uValue in values:
+            buffer.write(uValue._uuid)
+
+        count = 0
+        for name in dirtyValues:
+            if isinstance(name, unicode):
+                name = name.encode('utf-8')
+            buffer.write(pack('>l', _uuid.hash(name)))
+            count += 1
+        for name in dirtyRefs:
+            if isinstance(name, unicode):
+                name = name.encode('utf-8')
+            buffer.write(pack('>l', _uuid.hash(name)))
+            count += 1
+        buffer.write(pack('>l', count))
+
+        self.put(pack('>16sl', uItem._uuid, ~version), buffer.getvalue())
+
+    def _readItem(self, itemVer, value):
+
+        uKind = UUID(value[0:16])
+        status, = unpack('>l', value[16:20])
+        uParent = UUID(value[20:36])
+        
+        offset = 36
+        l, name = self._readValue(value, offset)
+        offset += l
+        l, moduleName = self._readValue(value, offset)
+        offset += l
+        l, className = self._readValue(value, offset)
+        offset += l
+
+        count, = unpack('>l', value[offset:offset+4])
+        offset += 4
+        values = []
+        for i in xrange(count):
+            values.append(UUID(value[offset:offset+16]))
+            offset += 16
+
+        return (itemVer, uKind, status, uParent, name,
+                moduleName, className, values)
+
+    def _findItem(self, version, uuid):
+
+        key = uuid._uuid
+        store = self.store
+
+        while True:
+            txnStatus = 0
+            cursor = None
+
+            try:
+                txnStatus = store.startTransaction()
+                cursor = self.cursor()
+
+                try:
+                    value = cursor.set_range(key, flags=self._flags)
+                except DBNotFoundError:
+                    return None, None
+                except DBLockDeadlockError:
+                    if txnStatus & store.TXNSTARTED:
+                        self._logDL(20)
+                        continue
+                    else:
+                        raise
+
+                try:
+                    while value is not None and value[0].startswith(key):
+                        itemVer = ~unpack('>l', value[0][16:20])[0]
+                
+                        if itemVer <= version:
+                            return itemVer, value[1]
+                        else:
+                            value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if txnStatus & store.TXNSTARTED:
+                        self._logDL(21)
+                        continue
+                    else:
+                        raise
+
+                return None, None
+
+            finally:
+                if cursor is not None:
+                    cursor.close()
+                store.abortTransaction(txnStatus)
+
+    def loadItem(self, version, uuid):
+
+        version, item = self._findItem(version, uuid)
+        if item is not None:
+            return self._readItem(version, item)
+
+        return None
+
+    def getItemParentId(self, version, uuid):
+
+        version, item = self._findItem(version, uuid)
+        if item is not None:
+            return UUID(item[20:36])
+
+        return None
+
+    def getItemVersion(self, version, uuid):
+
+        version, item = self._findItem(version, uuid)
+        if item is not None:
+            return version
+
+        return None
+
+    def kindQuery(self, version, uuid, fn):
+
+        store = self.store
+        
+        while True:
+            txnStatus = 0
+            cursor = None
+
+            try:
+                txnStatus = store.startTransaction()
+                cursor = self.cursor(self._index)
+
+                try:
+                    value = cursor.set_range(uuid._uuid,
+                                             flags=self._flags)
+                except DBNotFoundError:
+                    return
+                except DBLockDeadlockError:
+                    if txnStatus & store.TXNSTARTED:
+                        self._logDL(22)
+                        continue
+                    else:
+                        raise
+
+                try:
+                    lastItem = None
+                    while value is not None:
+                        uKind, uItem, vItem = unpack('>16s16sl', value[0])
+                        if uKind != uuid._uuid:
+                            break
+
+                        vItem = ~vItem
+                        if vItem <= version and uItem != lastItem:
+                            args = self._readItem(vItem, value[1])
+                            if not fn(UUID(uItem), *args):
+                                break
+                            else:
+                                lastItem = uItem
+
+                        value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if txnStatus & store.TXNSTARTED:
+                        self._logDL(23)
+                        continue
+                    else:
+                        raise
+
+                return
+
+            finally:
+                if cursor is not None:
+                    cursor.close()
+                store.abortTransaction(txnStatus)
+
+    def applyHistory(self, fn, oldVersion, newVersion):
+
+        store = self.store
+        
+        while True:
+            txnStatus = 0
+            cursor = None
+
+            try:
+                txnStatus = store.startTransaction()
+                cursor = self.cursor(self._versions)
+
+                try:
+                    value = cursor.set_range(pack('>l', oldVersion + 1),
+                                             flags=self._flags)
+                except DBNotFoundError:
+                    return
+                except DBLockDeadlockError:
+                    if txnStatus & store.TXNSTARTED:
+                        self._logDL(18)
+                        continue
+                    else:
+                        raise
+
+                try:
+                    while value is not None:
+                        version, uuid = unpack('>l16s', value[0])
+                        if version > newVersion:
+                            break
+
+                        value = value[1]
+                        status, parentId = unpack('>l16s', value[16:36])
+
+                        if status & Item.DELETED:
+                            dirties = HashTuple()
+                        else:
+                            pos = -(unpack('>l', value[-4:])[0] + 1) << 2
+                            value = value[pos:-4]
+                            dirties = unpack('>%dl' %(len(value) >> 2), value)
+                            dirties = HashTuple(dirties)
+
+                        fn(UUID(uuid), version, status, UUID(parentId), dirties)
+
+                        value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if txnStatus & store.TXNSTARTED:
+                        self._logDL(19)
+                        continue
+                    else:
+                        raise
+
+                return
+
+            finally:
+                if cursor is not None:
+                    cursor.close()
+                store.abortTransaction(txnStatus)
+
+
+class ValueContainer(DBContainer):
+
+    def __init__(self, store, name, txn, **kwds):
+
+        super(ValueContainer, self).__init__(store, name, txn,
+                                             dbname = 'data', **kwds)
+
+        if kwds.get('ramdb', False):
+            name = None
+            dbname = None
+        else:
+            dbname = 'index'
+
+        self._index = DB(store.env)
+
+        if kwds.get('create', False):
+            self._index.open(filename = name, dbname = dbname,
+                             dbtype = DB_BTREE,
+                             flags = DB_CREATE | DB_THREAD | self._flags,
+                             txn = txn)
+        else:
+            self._index.open(filename = name, dbname = dbname,
+                             dbtype = DB_BTREE,
+                             flags = DB_THREAD | self._flags,
+                             txn = txn)
+
+        self._db.associate(secondaryDB = self._index,
+                           callback = self._indexKey,
+                           flags = 0,
+                           txn = txn)
+
+        if kwds.get('create', False):
+            self.setVersion(0)
+
+    def close(self):
+
+        self._index.close()
+        self._index = None
+
+        super(ValueContainer, self).close()
+
+    def _indexKey(self, key, value):
+
+        # uValue -> uAttr, uValue
+        return pack('>16s16s', value[0:16], key)
+
+    def saveValue(self, buffer, uItem, version, uAttr, uValue, value):
+
+        buffer.truncate(0)
+        buffer.seek(0)
+
+        buffer.write(uAttr._uuid)
+        buffer.write(uItem._uuid)
+        buffer.write(pack('>l', ~version))
+        buffer.write(value)
+
+        self.put(uValue._uuid, buffer.getvalue())
+
+    def loadValue(self, uValue):
+
+        value = self.get(uValue._uuid)
+        if value is not None:
+            return value[36:]
+
+        return None
+
+    def getVersionInfo(self, uuid):
+
+        value = self.get(uuid._uuid)
+        if value is None:
+            return None
+
+        uuid, version = unpack('>16sl', value)
+
+        return UUID(uuid), version
+        
+    def getVersion(self, uuid=None):
+
+        if uuid is None:
+            uuid = Repository.itsUUID
+
+        value = self.get(uuid._uuid)
+        if value is None:
+            return None
+
+        return unpack('>l', value[16:])[0]
+        
+    def setVersion(self, version, uuid=None):
+        
+        if uuid is None:
+            uuid = Repository.itsUUID
+
+        if version != 0:
+            versionId = self.get(uuid._uuid)[0:16]
+        else:
+            versionId = UUID()._uuid
+
+        self.put(uuid._uuid, pack('>16sl', versionId, version))
+
+    def setVersionId(self, versionId, uuid):
+
+        version = self.getVersion(uuid)
+        self.put(uuid._uuid, pack('>16sl', versionId._uuid, version))
 
 
 class HashTuple(tuple):

@@ -55,20 +55,12 @@ python2.3
 # Grab the DB libraries
 dest=debug/db/lib
 src=chandler/debug/db/lib
-libdb_cxx-4.2.so
-libdb-4.2.so
-libdb_java-4.2.so
+libdb-4.3.so
+libdb_java-4.3.so
 src=chandler/debug/lib
 dest=debug/lib
-libxerces-c.so.24
-libxerces-c.so.24.0
-libpathan.so.2
-libpathan.so.2.0.2
 libxml2.so.2
 libxml2.so.2.6.10
-src=chandler/debug/dbxml/lib
-dest=debug/dbxml/lib
-libdbxml-1.2.so
 
 # Grab the gcj 3.4.x runtime libs
 src=chandler/debug/lib

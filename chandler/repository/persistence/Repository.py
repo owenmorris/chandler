@@ -353,9 +353,9 @@ class Repository(object):
 
         return self.view.findUUID(uuid, load)
 
-    def queryItems(self, query, load=True):
+    def queryItems(self, kind=None, attribute=None, load=True):
         """
-        Query items in the current view using an xpath.
+        Query items in the current view.
 
         See L{RepositoryView.queryItems
         <repository.persistence.RepositoryView.RepositoryView.queryItems>}
@@ -527,7 +527,7 @@ class Store(object):
     def loadACL(self, version, uuid, name):
         raise NotImplementedError, "%s.loadACL" %(type(self))
 
-    def queryItems(self, version, query):
+    def queryItems(self, version, kind=None, attribute=None):
         raise NotImplementedError, "%s.queryItems" %(type(self))
     
     def searchItems(self, version, query):
@@ -541,9 +541,6 @@ class Store(object):
 
     def getDocVersion(self, doc):
         raise NotImplementedError, "%s.getDocVersion" %(type(self))
-
-    def getDocContent(self, doc):
-        raise NotImplementedError, "%s.getDocContent" %(type(self))
 
     def attachView(self, view):
         pass

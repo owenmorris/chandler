@@ -452,12 +452,7 @@ class RepositoryView(object):
     def _loadItemDoc(self, doc, parser, parent, afterLoadHooks):
 
         if self.isDebug():
-            string = self.repository.store.getDocContent(doc)
-            index = string.find('uuid="')
-            if index > -1:
-                self.logger.debug('loading item %s', string[index+6:index+28])
-            else:
-                self.logger.debug('loading item %s', string)
+            self.logger.debug('loading item %s', doc.getDocUUID())
 
         handler = ItemHandler(self, parent, afterLoadHooks)
         parser.parseDoc(doc, handler)
@@ -693,12 +688,14 @@ class RepositoryView(object):
         
         raise NotImplementedError, "%s.cancel" %(type(self))
 
-    def queryItems(self, query, load=True):
+    def queryItems(self, kind=None, attribute=None, load=True):
         """
-        Query this view for items using an XPath query.
+        Query this view for items.
 
-        @param query: an xpath expression
-        @type query: a string
+        @param kind: a kind item for a kind query
+        @type kind: an item
+        @param attribute: an attribute UUID for a value query
+        @type attribute: a UUID
         @param load: if C{False} only return loaded items
         @type load: boolean
         """
@@ -866,7 +863,7 @@ class OnDemandRepositoryView(RepositoryView):
                                      self, self._hooks)
 
             if item is None:
-                self.logger.error("Item didn't load properly, xml parsing didn't balance: %s", self.repository.store.getDocContent(doc))
+                self.logger.error("Item didn't load properly, xml parsing didn't balance: %s", doc)
                 raise ValueError, "item didn't load, see log for more info"
                                   
             uuid = item._uuid

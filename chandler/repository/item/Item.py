@@ -2157,7 +2157,6 @@ class Item(object):
 
         withSchema = (self._status & Item.CORESCHEMA) != 0
         self._xmlItem(generator, withSchema, version, 'save')
-        self._status |= Item.SAVED
 
     def _xmlItem(self, generator, withSchema=False, version=None,
                  mode='serialize', save=None):
@@ -2175,6 +2174,8 @@ class Item(object):
         attrs = { 'uuid': self._uuid.str64() }
         if withSchema:
             attrs['withSchema'] = 'True'
+        if isDeleted:
+            attrs['deleted'] = 'True'
         if version is not None:
             attrs['version'] = str(version)
         generator.startElement('item', attrs)
@@ -2321,7 +2322,7 @@ class Item(object):
     CDIRTY     = 0x0200           # children list changed
     RDIRTY     = 0x0400           # ref collection changed
     CORESCHEMA = 0x0800           # core schema item
-    SAVED      = 0x1000
+    CONTAINER  = 0x1000           # has children
     ADIRTY     = 0x2000           # acl(s) changed
     PINNED     = 0x4000           # auto-refresh, don't stale
     NODIRTY    = 0x8000           # turn off dirtying
@@ -2334,7 +2335,9 @@ class Item(object):
     VRDIRTY    = VDIRTY | RDIRTY
     DIRTY      = VDIRTY | RDIRTY | NDIRTY | CDIRTY
     MERGED     = VMERGED | RMERGED | NMERGED | CMERGED
-    SAVEMASK   = DIRTY | ADIRTY | NEW | DELETED | SCHEMA
+    SAVEMASK   = (DIRTY | ADIRTY |
+                  NEW | DELETED |
+                  SCHEMA | CORESCHEMA | CONTAINER)
 
     __access__ = 0L
 
@@ -2437,6 +2440,9 @@ class Children(LinkedMap):
             for link in self._itervalues():
                 link._value._parent = item
 
+        if item is not None and item._isItem():
+            item._status |= Item.CONTAINER
+            
         self._item = item
 
     def _refCount(self):

@@ -18,25 +18,22 @@ endif
 # When a version changes, the ARCHIVES lists below needs to be updated.
 
 # these get installed into release or debug
-BIN_ARCHIVES=../twisted-$(SNAP)-r11303-1.tar.gz \
-             ../pychecker-$(SNAP)-0.8.13-1.tar.gz \
-             ../soappy-$(SNAP)-0.10.2-1.tar.gz \
+BIN_ARCHIVES=../Launchers-$(SNAP)-0.4-5.tar.gz \
+             ../chandlerdb-$(SNAP)-0.4-2.tar.gz \
+             ../db-$(SNAP)-4.3.21-1.tar.gz \
              ../egenix-mx-base-$(SNAP)-2.1.0-1.tar.gz \
-             ../yapps-$(SNAP)-2.1.1-1.tar.gz \
-             ../zopeinterface-$(SNAP)-3.0.0b1-1.tar.gz \
+             ../epydoc-$(SNAP)-2.1-1.tar.gz \
              ../jabberpy-$(SNAP)-0.4-0-1.tar.gz \
              ../libxml2-$(SNAP)-2.6.10-1.tar.gz \
-             ../dbxml-$(SNAP)-1.2.1-1.tar.gz \
-             ../pathan-$(SNAP)-1.2-1.tar.gz \
-             ../xerces-c-$(SNAP)-2_4_0-1.tar.gz \
-             ../pylucene-$(SNAP)-0.8.2-6.tar.gz \
-             ../epydoc-$(SNAP)-2.1-1.tar.gz \
-             ../python-$(SNAP)-2.3.3-1.tar.gz \
-             ../db-$(SNAP)-4.2.52-1.tar.gz \
-             ../wxPython-$(SNAP)-2.5.2.9-3.tar.gz \
-             ../chandlerdb-$(SNAP)-0.4-1.tar.gz \
              ../m2crypto-$(SNAP)-0.12-3.tar.gz \
-             ../Launchers-$(SNAP)-0.4-4.tar.gz
+             ../pychecker-$(SNAP)-0.8.13-1.tar.gz \
+             ../pylucene-$(SNAP)-0.9.2-1.tar.gz \
+             ../python-$(SNAP)-2.3.3-2.tar.gz \
+             ../soappy-$(SNAP)-0.10.2-1.tar.gz \
+             ../twisted-$(SNAP)-r11303-1.tar.gz \
+             ../wxPython-$(SNAP)-2.5.2.9-3.tar.gz \
+             ../yapps-$(SNAP)-2.1.1-1.tar.gz \
+             ../zopeinterface-$(SNAP)-3.0.0b1-1.tar.gz
 
 # OpenSSL gets bundled into M2Crypto on Windows
 ifneq ($(OS),Cygwin)

@@ -564,11 +564,13 @@ class References(Values):
     def _xmlValues(self, generator, withSchema, version, mode):
 
         item = self._item
+        kind = item._kind
 
         for key, value in self.iteritems():
-            if item.getAttributeAspect(key, 'persist', default=True):
+            attribute = kind.getAttribute(key)
+            if attribute.getAspect('persist', default=True):
                 flags = self._getFlags(key) & Values.SAVEMASK
-                attrs = {}
+                attrs = { 'id': attribute.itsUUID.str64() }
                 if flags:
                     attrs['flags'] = str(flags)
 

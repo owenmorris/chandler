@@ -23,7 +23,7 @@ from repository.persistence.Repository import RepositoryNotifications
 from repository.persistence.XMLLob import XMLText, XMLBinary
 from repository.persistence.XMLRefs import XMLRefList, XMLChildren
 from repository.persistence.DBContainer import HashTuple
-from repository.util.SAX import XMLGenerator
+from repository.persistence.DBGenerator import DBGenerator
 
 timing = False
 if timing: import tools.timing
@@ -81,12 +81,12 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         self.prune(10000)
 
-    def queryItems(self, query, load=True):
+    def queryItems(self, kind=None, attribute=None, load=True):
 
         store = self.repository.store
         items = []
         
-        for doc in store.queryItems(self._version, query):
+        for doc in store.queryItems(self._version, kind, attribute):
             uuid = store.getDocUUID(doc)
             if not uuid in self._deletedRegistry:
                 # load and doc, trick to pass doc directly to find
@@ -162,13 +162,13 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
     def refresh(self):
 
-        history = self.repository.store._history
-        newVersion = history.getVersion()
+        store = self.repository.store
+        newVersion = store.getVersion()
         
         if newVersion > self._version:
             histNotifications = RepositoryNotifications()
             unloads = {}
-            self._mergeItems(history, self._version, newVersion,
+            self._mergeItems(self._version, newVersion,
                              histNotifications, unloads)
                     
             self.logger.debug('refreshing view from version %d to %d',
@@ -206,7 +206,6 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 self._status |= RepositoryView.COMMITTING
                 
                 store = self.repository.store
-                history = store._history
                 before = time()
 
                 size = 0L
@@ -229,7 +228,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                         while True:
                             self.refresh()
                             lock = store.acquireLock()
-                            newVersion = history.getVersion()
+                            newVersion = store.getVersion()
                             if newVersion > self._version:
                                 lock = store.releaseLock(lock)
                             else:
@@ -240,7 +239,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
                         if count > 0:
                             newVersion += 1
-                            history.setVersion(newVersion)
+                            store._values.setVersion(newVersion)
 
                             for item in self._log:
                                 size += self._saveItem(item, newVersion, store)
@@ -267,7 +266,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                     for item in self._log:
                         item._version = newVersion
                         item.setDirty(0, None)
-                        item._status &= ~(Item.NEW | Item.MERGED | Item.SAVED)
+                        item._status &= ~(Item.NEW | Item.MERGED)
                     del self._log[:]
 
                     if self.isDirty():
@@ -282,8 +281,8 @@ class XMLRepositoryView(OnDemandRepositoryView):
                         speed = ", %d/s" % round(count / duration)
                     except ZeroDivisionError:
                         speed = ' (speed could not be measured)'
-                    self.logger.info('%s committed %d items (%ld bytes) in %s%s',
-                                     self, count, size,
+                    self.logger.info('%s committed %d items in %s%s',
+                                     self, count,
                                      timedelta(seconds=duration), speed)
 
                 if len(self._notifications) > 0:
@@ -314,32 +313,27 @@ class XMLRepositoryView(OnDemandRepositoryView):
             self.logger.debug('saving version %d of %s',
                               newVersion, item.itsPath)
 
-        out = StringIO()
-        generator = XMLGenerator(out, 'utf-8')
+        generator = DBGenerator(store, uuid, newVersion,
+                                item._status & Item.SAVEMASK,
+                                item._values._getDirties(),
+                                item._references._getDirties())
         generator.startDocument()
         item._saveItem(generator, newVersion)
         generator.endDocument()
-        xml = out.getvalue()
-        out.close()
-
-        parent = item.itsParent.itsUUID
-        store.saveItem(xml, uuid, newVersion, parent,
-                       item._status & Item.SAVEMASK,
-                       item._values._getDirties(),
-                       item._references._getDirties())
 
         if item._status & item.ADIRTY:
             for name, acl in item._acls.iteritems():
                 store.saveACL(newVersion, uuid, name, acl)
 
         if isDeleted:
+            parent = item.itsParent.itsUUID
             self._notifications.changed(uuid, 'deleted', parent=parent)
         elif isNew:
             self._notifications.changed(uuid, 'added')
         else:
             self._notifications.changed(uuid, 'changed')
                     
-        return len(xml)
+        return 0
 
     def mapChanges(self, callable):
 
@@ -357,14 +351,14 @@ class XMLRepositoryView(OnDemandRepositoryView):
     
     def mapHistory(self, callable, fromVersion=0, toVersion=0):
 
-        history = self.repository.store._history
+        store = self.repository.store
         
         if fromVersion == 0:
             fromVersion = self._version
         if toVersion == 0:
-            toVersion = history.getVersion()
+            toVersion = store.getVersion()
 
-        def call(uuid, version, docId, status, parentId, dirties):
+        def call(uuid, version, status, parentId, dirties):
             item = self.find(uuid)
             if item is not None:
                 values = []
@@ -380,10 +374,9 @@ class XMLRepositoryView(OnDemandRepositoryView):
                                 values.append(name)
                 callable(item, version, status, values, references)
 
-        history.apply(call, fromVersion, toVersion)
+        store._items.applyHistory(call, fromVersion, toVersion)
 
-    def _mergeItems(self, history, oldVersion, toVersion,
-                    histNotifications, unloads):
+    def _mergeItems(self, oldVersion, toVersion, histNotifications, unloads):
 
         merges = {}
 
@@ -392,7 +385,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 if not i in l0:
                     l0.append(i)
 
-        def check(uuid, version, docId, status, parent, dirties):
+        def check(uuid, version, status, parent, dirties):
             item = self.find(uuid, False)
 
             if item is not None:
@@ -400,10 +393,10 @@ class XMLRepositoryView(OnDemandRepositoryView):
                     oldDirty = status & Item.DIRTY
                     if uuid in merges:
                         x, od, x, d = merges[uuid]
-                        merges[uuid] = (docId, od | oldDirty, parent,
+                        merges[uuid] = (od | oldDirty, parent,
                                         union(d, dirties))
                     else:
-                        merges[uuid] = (docId, oldDirty, parent,
+                        merges[uuid] = (oldDirty, parent,
                                         list(dirties))
 
                 elif item._version < version:
@@ -414,10 +407,10 @@ class XMLRepositoryView(OnDemandRepositoryView):
             else:
                 histNotifications.history(uuid, 'changed', dirties=dirties)
 
-        history.apply(check, oldVersion, toVersion)
+        self.store._items.applyHistory(check, oldVersion, toVersion)
 
         try:
-            for uuid, (docId, oldDirty, parent, dirties) in merges.iteritems():
+            for uuid, (oldDirty, parent, dirties) in merges.iteritems():
             
                 item = self.find(uuid, False)
                 newDirty = item.getDirty()
@@ -438,13 +431,13 @@ class XMLRepositoryView(OnDemandRepositoryView):
                     item._status |= Item.RMERGED
 
                 if newDirty & oldDirty & Item.VDIRTY:
-                    self._mergeVDIRTY(item, docId, dirties)
+                    self._mergeVDIRTY(item, toVersion, dirties)
                     oldDirty &= ~Item.VDIRTY
                     item._status |= Item.VMERGED
 
                 if newDirty & oldDirty == 0:
                     if oldDirty & Item.VDIRTY:
-                        self._mergeVDIRTY(item, docId, None)
+                        self._mergeVDIRTY(item, toVersion, None)
                         oldDirty &= ~Item.VDIRTY
                         item._status |= Item.VMERGED
                     if oldDirty & Item.RDIRTY:
@@ -474,8 +467,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         newParentId = item.itsParent.itsUUID
         if parentId != newParentId:
-            s, d, p, v = self.store._history.getDocRecord(item._uuid,
-                                                          oldVersion)
+            p = self.store._items.getItemParentId(oldVersion, item._uuid)
             if p != parentId and p != newParentId:
                 self._e_1_rename(item, p, newParentId)
     
@@ -494,7 +486,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 self._e_1_overlap(item, name)
         item._references._dirties = dirties
 
-    def _mergeVDIRTY(self, item, docId, dirties):
+    def _mergeVDIRTY(self, item, toVersion, dirties):
 
         if dirties is not None:
             dirties = HashTuple(dirties)
@@ -508,7 +500,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         store = self.repository.store
         mergeHandler = MergeHandler(self, item)
-        doc = store._xml.getDocument(docId)
+        doc = store.loadItem(toVersion, item._uuid)
         store.parseDoc(doc, mergeHandler)
 
     def _i_merged(self, item):

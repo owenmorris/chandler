@@ -47,8 +47,7 @@ class KindQuery(Query):
                 if item.itsKind is kind:
                     yield item
 
-            query = "/item[kind='%s']" %(kind.itsUUID.str64())
-            for item in kind.itsView.queryItems(query):
+            for item in kind.itsView.queryItems(kind=kind):
                 yield item
 
             if self.recursive:

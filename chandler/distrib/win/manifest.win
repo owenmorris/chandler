@@ -13,14 +13,11 @@ exclude=CVS,tests,*.pyo,*.pyc
 # Grab certain dll's from release/bin
 src=chandler/release/bin
 dest=release/bin
-libdb42.dll
-libdbxml12.dll
-libdb_java42.dll
+libdb43.dll
+libdb_java43.dll
 msvcp71.dll
 msvcr71.dll
-Pathan.dll
 python23.dll
-xerces-c_2_4_0.dll
 
 # Grab all py, pyc, etc. from release/bin/DLLs and release/bin/Lib
 src=chandler/release/bin

@@ -54,8 +54,8 @@ class RemoteStore(XMLStore):
 
         doc = super(RemoteStore, self).loadItem(version, uuid)
         if doc is None:
-            versionId = self._history.getVersionId(self.itsUUID)
-            remoteVersion = self._history.getVersion(versionId)
+            v, versionId = self._values.getVersionInfo(self.itsUUID)
+            remoteVersion = self._values.getVersion(versionId)
             xml = self.transport.serveItem(remoteVersion, uuid,
                                            self.repository.cloudAlias)
             if xml is not None:
@@ -68,7 +68,7 @@ class RemoteStore(XMLStore):
     def getVersion(self):
 
         version = super(RemoteStore, self).getVersion()
-        history = self._history
+        values = self._values
         
         if version == 0:
             versionId, version = self.transport.getVersionInfo()
@@ -76,9 +76,9 @@ class RemoteStore(XMLStore):
             txnStatus = 0
             try:
                 txnStatus = self.startTransaction()
-                history.setVersion(version)
-                history.setVersion(version, versionId)
-                history.setVersionId(versionId, self.itsUUID)
+                values.setVersion(version)
+                values.setVersion(version, versionId)
+                values.setVersionId(versionId, self.itsUUID)
             except:
                 self.abortTransaction(txnStatus)
                 raise

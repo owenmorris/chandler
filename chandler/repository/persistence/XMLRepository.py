@@ -21,11 +21,12 @@ from repository.persistence.RepositoryError import ExclusiveOpenDeniedError
 from repository.persistence.RepositoryError import RepositoryOpenDeniedError
 from repository.persistence.XMLRepositoryView import XMLRepositoryView
 from repository.persistence.DBContainer import DBContainer, RefContainer
-from repository.persistence.DBContainer import HistContainer
 from repository.persistence.DBContainer import NamesContainer, ACLContainer
 from repository.persistence.DBContainer import IndexesContainer
+from repository.persistence.DBContainer import ItemContainer, ValueContainer
 from repository.persistence.FileContainer import FileContainer, BlockContainer
 from repository.persistence.FileContainer import IndexContainer
+from repository.persistence.DBGenerator import ItemDoc
 from repository.remote.CloudFilter import CloudFilter
 
 from bsddb.db import DBEnv, DB, DBError
@@ -35,18 +36,16 @@ from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL, DB_PRIVATE, DB_LOCK_MINLOCKS
 from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_TXN, DB_DIRTY_READ
 from bsddb.db import DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError
 from bsddb.db import DBLockDeadlockError
-from dbxml import XmlContainer, XmlDocument, XmlValue
-from dbxml import XmlQueryContext, XmlUpdateContext
 
 
 class XMLRepository(OnDemandRepository):
     """
-    A Berkeley DBXML based repository.
+    A Berkeley DB based repository.
     """
 
     def __init__(self, dbHome):
         """
-        Construct an XMLRepository giving it a DBXML container pathname
+        Construct an XMLRepository giving it a DB container pathname
         """
         
         super(XMLRepository, self).__init__(dbHome)
@@ -217,115 +216,6 @@ class XMLRepository(OnDemandRepository):
     OPEN_FLAGS = DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN | DB_THREAD
 
 
-class XMLContainer(object):
-
-    def __init__(self, store, name, txn, **kwds):
-
-        super(XMLContainer, self).__init__()
-        
-        self.store = store
-        self._filename = name
-
-        if kwds.get('ramdb', False):
-            name = ''
-
-        self._xml = XmlContainer(store.env, name)
-        self.version = "%d.%d.%d" %(self._xml.get_version_major(),
-                                    self._xml.get_version_minor(),
-                                    self._xml.get_version_patch())
-            
-        if kwds.get('create', False):
-            self._xml.open(txn, DB_CREATE | DB_DIRTY_READ | DB_THREAD)
-            self._xml.addIndex(txn, "", "kind",
-                               "node-element-equality-string")
-            self._xml.addIndex(txn, "", "id",
-                               "node-attribute-equality-string")
-        else:
-            self._xml.open(txn, DB_DIRTY_READ | DB_THREAD)
-
-    def attachView(self, view):
-        pass
-
-    def detachView(self, view):
-        pass
-
-    def loadItem(self, version, uuid):
-
-        docId = self.store._history.getDocId(uuid, version)
-
-        # None -> not found, 0 -> deleted
-        if docId: 
-            return self.getDocument(docId)
-
-        return None
-            
-    def queryItems(self, version, query):
-
-        store = self.store
-        txnStatus = 0
-
-        docs = {}
-        try:
-            txnStatus = store.startTransaction()
-            for value in self._xml.queryWithXPath(store.txn,
-                                                  query, store.ctx,
-                                                  DB_DIRTY_READ):
-                doc = value.asDocument()
-                ver = self.getDocVersion(doc)
-                if ver <= version:
-                    uuid = self.getDocUUID(doc)
-                    dv = docs.get(uuid, None)
-                    if dv is None or dv is not None and dv[1] < ver:
-                        docs[uuid] = (doc, ver)
-
-        finally:
-            store.abortTransaction(txnStatus)
-
-        results = []
-        for uuid, (doc, ver) in docs.iteritems():
-            # verify that match version is latest,
-            # if not it is out of date for the view
-            if store._history.getDocVersion(uuid, version) == ver:
-                results.append(doc)
-
-        return results
-
-    def getDocument(self, docId):
-
-        return self._xml.getDocument(self.store.txn, docId, DB_DIRTY_READ)
-
-    def putDocument(self, doc):
-
-        return self._xml.putDocument(self.store.txn, doc, self.store.updateCtx)
-
-    def close(self):
-
-        self._xml.close()
-        self._xml = None
-
-    def parseDoc(self, doc, handler):
-
-        string = doc.getContent()
-        ctx = libxml2.createPushParser(handler, string, len(string), "doc")
-        ctx.parseChunk('', 0, 1)
-        if handler.errorOccurred():
-            raise handler.saxError()
-            
-    def getDocUUID(self, doc):
-
-        xml = doc.getContent()
-        index = xml.index('uuid=') + 6
-
-        return UUID(xml[index:xml.index('"', index)])
-
-    def getDocVersion(self, doc):
-
-        xml = doc.getContent()
-        index = xml.index('version=', xml.index('version=') + 9) + 9
-
-        return long(xml[index:xml.index('"', index)])
-    
-
 class XMLStore(Store):
 
     def __init__(self, repository):
@@ -342,10 +232,10 @@ class XMLStore(Store):
             txnStatus = self.startTransaction()
             txn = self.txn
                 
-            self._xml = XMLContainer(self, "__xml__", txn, **kwds)
+            self._items = ItemContainer(self, "__items__", txn, **kwds)
+            self._values = ValueContainer(self, "__values__", txn, **kwds)
             self._refs = RefContainer(self, "__refs__", txn, **kwds)
             self._names = NamesContainer(self, "__names__", txn, **kwds)
-            self._history = HistContainer(self, "__history__", txn, **kwds)
             self._text = FileContainer(self, "__text__", txn, **kwds)
             self._binary = FileContainer(self, "__binary__", txn, **kwds)
             self._blocks = BlockContainer(self, "__blocks__", txn, **kwds)
@@ -357,10 +247,10 @@ class XMLStore(Store):
 
     def close(self):
 
-        self._xml.close()
+        self._items.close()
+        self._values.close()
         self._refs.close()
         self._names.close()
-        self._history.close()
         self._text.close()
         self._binary.close()
         self._blocks.close()
@@ -370,10 +260,10 @@ class XMLStore(Store):
 
     def attachView(self, view):
 
-        self._xml.attachView(view)
+        self._items.attachView(view)
+        self._values.attachView(view)
         self._refs.attachView(view)
         self._names.attachView(view)
-        self._history.attachView(view)
         self._text.attachView(view)
         self._binary.attachView(view)
         self._blocks.attachView(view)
@@ -383,10 +273,10 @@ class XMLStore(Store):
 
     def detachView(self, view):
 
-        self._xml.detachView(view)
+        self._items.detachView(view)
+        self._values.detachView(view)
         self._refs.detachView(view)
         self._names.detachView(view)
-        self._history.detachView(view)
         self._text.detachView(view)
         self._binary.detachView(view)
         self._blocks.detachView(view)
@@ -396,7 +286,15 @@ class XMLStore(Store):
 
     def loadItem(self, version, uuid):
 
-        return self._xml.loadItem(version, uuid)
+        args = self._items.loadItem(version, uuid)
+        if args is None:
+            return None
+
+        doc = ItemDoc(self, uuid, *args)
+        if doc.isDeleted():
+            return None
+
+        return doc
     
     def loadRef(self, version, uItem, uuid, key):
 
@@ -447,9 +345,26 @@ class XMLStore(Store):
 
         return self._acls.writeACL(version, uuid, name, acl)
 
-    def queryItems(self, version, query):
+    def queryItems(self, version, kind=None, attribute=None):
 
-        return self._xml.queryItems(version, query)
+        if kind is not None:
+            results = []
+            
+            def fn(*args):
+                doc = ItemDoc(self, *args)
+                if self._items.getItemVersion(version, doc.getUUID()) == doc.getVersion():
+                    results.append(doc)
+                return True
+
+            self._items.kindQuery(version, kind._uuid, fn)
+
+            return results
+
+        elif attribute is not None:
+            raise NotImplementedError, 'attribute query'
+
+        else:
+            raise ValueError, 'one of kind or value must be set'
 
     def searchItems(self, version, query):
 
@@ -457,27 +372,23 @@ class XMLStore(Store):
 
     def parseDoc(self, doc, handler):
 
-        self._xml.parseDoc(doc, handler)
+        doc.parse(handler)
 
     def getDocUUID(self, doc):
 
-        return self._xml.getDocUUID(doc)
+        return doc.getUUID()
 
     def getDocVersion(self, doc):
 
-        return self._xml.getDocVersion(doc)
-
-    def getDocContent(self, doc):
-
-        return doc.getContent()
+        return doc.getVersion()
 
     def getVersion(self):
 
-        return self._history.getVersion()
+        return self._values.getVersion()
 
     def getVersionInfo(self):
 
-        return (self._history.getVersionId(), self._history.getVersion())
+        return self._values.getVersionInfo()
 
     def startTransaction(self):
 
@@ -547,30 +458,6 @@ class XMLStore(Store):
 
         return self.repository._env
 
-    def _getCtx(self):
-
-        try:
-            return self._threaded.ctx
-
-        except AttributeError:
-            ctx = XmlQueryContext()
-            ctx.setReturnType(XmlQueryContext.ResultDocuments)
-            ctx.setEvaluationType(XmlQueryContext.Lazy)
-            self._threaded.ctx = ctx
-            
-            return ctx
-
-    def _getUpdateCtx(self):
-
-        try:
-            return self._threaded.updateCtx
-
-        except AttributeError:
-            updateCtx = XmlUpdateContext(self._xml._xml)
-            self._threaded.updateCtx = updateCtx
-
-            return updateCtx
-
     def _getLockId(self):
 
         try:
@@ -597,33 +484,11 @@ class XMLStore(Store):
             self.repository._env.lock_put(lock)
         return None
 
-    def saveItem(self, xml, uuid, version, parent, status,
-                 dirtyValues, dirtyRefs):
-        
-        doc = XmlDocument()
-        doc.setContent(xml)
-        if status & Item.DELETED:
-            doc.setMetaData('', '', 'deleted', XmlValue('True'))
-
-        try:
-            docId = self._xml.putDocument(doc)
-        except:
-            self.repository.logger.exception("putDocument failed, xml is: %s",
-                                             xml)
-            raise
-
-        if status & Item.DELETED:
-            self._history.writeVersion(uuid, version, 0, status,
-                                       parent, [], [])
-
-        else:
-            self._history.writeVersion(uuid, version, docId, status,
-                                       parent, dirtyValues, dirtyRefs)
-
     def serveItem(self, version, uuid, cloudAlias):
 
+        v, versionId = self._values.getVersionInfo()
         if version == 0:
-            version = self._history.getVersion()
+            version = v
         
         doc = self.loadItem(version, uuid)
         if doc is None:
@@ -635,7 +500,7 @@ class XMLStore(Store):
 
         try:
             attrs = { 'version': str(version),
-                      'versionId': self._history.getVersionId().str64() }
+                      'versionId': versionId.str64() }
             generator.startElement('items', attrs)
             filter = CloudFilter(None, cloudAlias, self, uuid, version,
                                  generator)
@@ -649,7 +514,7 @@ class XMLStore(Store):
     def serveChild(self, version, uuid, name, cloudAlias):
 
         if version == 0:
-            version = self._history.getVersion()
+            version = self._values.getVersion()
         
         uuid = self.readName(version, uuid, name)
         if uuid is None:
@@ -661,7 +526,5 @@ class XMLStore(Store):
     EXCLUSIVE  = 0x0002
 
     env = property(_getEnv)
-    ctx = property(_getCtx)
-    updateCtx = property(_getUpdateCtx)
     txn = property(_getTxn, _setTxn)
     lockId = property(_getLockId)

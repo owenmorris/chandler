@@ -151,23 +151,25 @@ class Kind(Item):
         instance
         """
 
-        uuid = self.resolve(name)
-        if uuid is not None:
-            attribute = self.getValue('attributes', uuid,
-                                      _attrDict=self._references)
+        refs = self._references
+        child = self.getItemChild(name)
+
+        if 'attributes' in refs:
+            attrs = refs['attributes']
+            if child is not None and child in attrs:
+                return child
+            attribute = attrs.getByAlias(name)
         else:
             attribute = None
             
         if attribute is None:
-            uuid = self.inheritedAttributes.resolveAlias(name)
-            if uuid is not None:
-                attribute = self.getValue('inheritedAttributes', uuid,
-                                          _attrDict=self._references)
-            else:
+            attribute = refs['inheritedAttributes'].getByAlias(name)
+
+            if attribute is None:
                 attribute = self._inheritAttribute(name)
 
-        if attribute is None and noError is False:
-            raise NoSuchAttributeError, (self, name)
+                if attribute is None and noError is False:
+                    raise NoSuchAttributeError, (self, name)
 
         return attribute
 
