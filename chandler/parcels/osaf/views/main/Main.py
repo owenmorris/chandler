@@ -43,6 +43,7 @@ class MainView(View):
     # Test Methods
 
     def onGenerateContentItemsEvent(self, notification):
+        GenerateItems.GenerateNotes(5)
         GenerateItems.generateCalendarEventItems(5, 30)
         GenerateItems.GenerateContacts(5)
         Globals.repository.commit()
