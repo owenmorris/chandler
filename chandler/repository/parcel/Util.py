@@ -10,7 +10,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import repository
 
 def PrintItem(uri, rep, level=0):
-    """ Given a uri, display its info along with all its children recursively
+    """ 
+    Given a uri, display its info along with all its children recursively
+
+    Example:  PrintItem("//Schema", rep)
+
     """
     for i in range(level):
         print " ",
