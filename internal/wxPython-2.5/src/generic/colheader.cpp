@@ -274,21 +274,9 @@ bool			bResultV;
 #endif
 	}
 
-	// FIXME: sloppy hack
+	// NB: is this advisable?
 	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
 	wxControl::DoGetSize( &(m_NativeBoundsR.width), &(m_NativeBoundsR.height) );
-
-#if 0
-	// for debugging
-	if (m_NativeBoundsR.x < 0)
-		m_NativeBoundsR.x = 0;
-	if (m_NativeBoundsR.y < 0)
-		m_NativeBoundsR.y = 0;
-	if (m_NativeBoundsR.width)
-		m_NativeBoundsR.width = 200;
-	if (m_NativeBoundsR.height)
-		m_NativeBoundsR.height = 17;
-#endif
 
 	return bResultV;
 }
@@ -369,7 +357,7 @@ int		yDiff;
 
 	wxControl::DoMoveWindow( x, y + yDiff, width, height - yDiff );
 
-	// FIXME: sloppy hack
+	// NB: is this advisable?
 	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
 }
 
@@ -445,14 +433,20 @@ void wxColumnHeader::DoSetSize(
 	int		height,
 	int		sizeFlags )
 {
+wxSize		actualSize;
+
 	// FIXME: should be - invalidate( origBoundsR )
+
+	// NB: correct height for native platform limitations
+	actualSize = CalculateDefaultSize();
+	height = actualSize.y;
 
 	wxControl::DoSetSize( x, y, width, height, sizeFlags );
 
 	if (m_BProportionalResizing)
 		RescaleToFit( width );
 
-	// FIXME: sloppy hack
+	// NB: is this advisable?
 	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
 	wxControl::DoGetSize( &(m_NativeBoundsR.width), &(m_NativeBoundsR.height) );
 
