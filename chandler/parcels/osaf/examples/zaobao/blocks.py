@@ -84,7 +84,10 @@ class wxZaoBaoItemView(wxItemView):
 
             HTMLText = HTMLText + '</body></html>\n'
 
-            self.SetPage(HTMLText)
+            try:
+                self.SetPage(HTMLText)
+            except TypeError:
+                self.SetPage('<body><html><h1>Error displaying the item</h1></body></html>')
 
 class ZaoBaoItemView(ItemView):
     def renderOneBlock (self, parent, parentWindow):
