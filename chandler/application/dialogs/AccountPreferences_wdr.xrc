@@ -28,7 +28,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxStaticText" name="ID_TEXT">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <label>SMTP (Outoing Mail)</label>
                     </object>
                 </object>
@@ -45,7 +45,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="SMTP_DESCRIPTION">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -62,7 +62,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="SMTP_SERVER">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -83,7 +83,7 @@
                             <flag>wxALIGN_CENTER|wxALL</flag>
                             <border>5</border>
                             <object class="wxTextCtrl" name="SMTP_PORT">
-                                <size>60,-1</size>
+                                <size>100,-1</size>
                                 <value></value>
                             </object>
                         </object>
@@ -123,7 +123,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="SMTP_USERNAME">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -140,7 +140,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="SMTP_PASSWORD">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <style>wxTE_PASSWORD</style>
                         <value></value>
                     </object>
@@ -174,7 +174,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxStaticText" name="ID_TEXT">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <label>IMAP (Incoming Mail)</label>
                     </object>
                 </object>
@@ -191,7 +191,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="IMAP_DESCRIPTION">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -208,7 +208,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="IMAP_EMAIL_ADDRESS">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -225,7 +225,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="IMAP_FULL_NAME">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -242,7 +242,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="IMAP_SERVER">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -259,7 +259,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="IMAP_USERNAME">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -276,7 +276,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="IMAP_PASSWORD">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <style>wxTE_PASSWORD</style>
                         <value></value>
                     </object>
@@ -298,7 +298,7 @@
                             <flag>wxALIGN_CENTER|wxALL</flag>
                             <border>5</border>
                             <object class="wxTextCtrl" name="IMAP_PORT">
-                                <size>60,-1</size>
+                                <size>100,-1</size>
                                 <value></value>
                             </object>
                         </object>
@@ -340,7 +340,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxStaticText" name="ID_TEXT">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <label>WebDAV (Collection publishing)</label>
                     </object>
                 </object>
@@ -357,7 +357,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="WEBDAV_DESCRIPTION">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -374,7 +374,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="WEBDAV_SERVER">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -391,7 +391,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="WEBDAV_PATH">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -408,7 +408,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="WEBDAV_USERNAME">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <value></value>
                     </object>
                 </object>
@@ -425,7 +425,7 @@
                     <flag>wxALIGN_CENTER|wxALL</flag>
                     <border>5</border>
                     <object class="wxTextCtrl" name="WEBDAV_PASSWORD">
-                        <size>200,-1</size>
+                        <size>300,-1</size>
                         <style>wxTE_PASSWORD</style>
                         <value></value>
                     </object>
@@ -447,7 +447,7 @@
                             <flag>wxALIGN_CENTER|wxALL</flag>
                             <border>5</border>
                             <object class="wxTextCtrl" name="WEBDAV_PORT">
-                                <size>60,-1</size>
+                                <size>100,-1</size>
                                 <value></value>
                             </object>
                         </object>
