@@ -11,9 +11,7 @@ class Monitors(Item):
 
     def onItemLoad(self, view):
 
-        if not view.isRefCounted():
-            self.setPinned()
-
+        self.setPinned()
         Monitors.instances[view] = self
 
     def getInstance(cls, view):
