@@ -731,8 +731,9 @@ class RepositoryTreeList(TreeList):
         if item:
             for child in item:
                 names = [child.getItemName()]
+                names.append (str(child.getItemDisplayName()))
                 try:
-                    names.append (str(child.getItemDisplayName()))
+                    names.append (child.kind.getItemName())
                 except AttributeError:
                     names.append ('(kindless)')
                 names.append (str(child.getUUID()))

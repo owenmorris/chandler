@@ -72,7 +72,7 @@
     <columnHeadings>Display Name</columnHeadings>
     <columnHeadings>Kind</columnHeadings>
     <columnHeadings>UUID</columnHeadings>
-    <columnHeadings>URI</columnHeadings>    
+    <columnHeadings>Path</columnHeadings>    
     <columnWidths>135</columnWidths>
     <columnWidths>80</columnWidths>
     <columnWidths>60</columnWidths>
