@@ -4,12 +4,20 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from application.Application import wxApplication
-from transaction import get_transaction
 from sys import argv
 
+# Check for -wing command line argument; if specified, try to connect to
+# an already-running WingIDE instance.  See:
+#    http://wiki.osafoundation.org/bin/view/Main/DebuggingChandler#wingIDE
+# for details.
+if '-wing' in argv:
+    import wingdbstub
+
+from application.Application import wxApplication
+from transaction import get_transaction
+
 if __name__=="__main__":
-        
+
     application = wxApplication(argv)
     application.MainLoop()
     """
