@@ -381,7 +381,8 @@ class wxViewerParcel(wxPanel):
         self.UpdateParcelMenus()
         self.UpdateActionsBar()
         self.UpdateProxies()
-        
+        self.model._SubscribeToNotifications(True)
+
     def Deactivate(self):
         """
           Override to do tasks that need to happen just before your parcel is
