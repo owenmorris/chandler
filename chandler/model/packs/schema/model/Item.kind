@@ -5,10 +5,15 @@
   <item withSchema="True">
     <name>Item</name>
     <kind type="path">//Schema/Core/Kind</kind>
-    <class module="model.schema.Kind">ItemKind</class>
+    <class module="repository.schema.Kind">ItemKind</class>
 
     <ref name="attributes" otherName="kinds" cardinality="list" 
          otherCard="list">
+
+      <ref alias="displayName" type="path">/Core/displayName</ref>
+      <ref alias="description" type="path">/Core/description</ref>
+      <ref alias="issues" type="path">/Core/issues</ref>
+      <ref alias="examples" type="path">/Core/examples</ref>
 
       <!-- 
          - plus local attributes below:
@@ -17,15 +22,15 @@
     </ref>
 
     <attribute name="classes" cardinality="dict" 
-               type="model.schema.Types.Class">
-      <value name="python">model.item.Item.Item</value>
+               type="repository.schema.Types.Class">
+      <value name="python">repository.item.Item.Item</value>
     </attribute>
   </item>
 
   <item withSchema="True">
     <name>kind</name>
     <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="model.schema.Attribute">Attribute</class>
+    <class module="repository.schema.Attribute">Attribute</class>
     <parent type="path">//Schema/Core/Item</parent>
 
     <ref name="kinds" otherName="attributes"

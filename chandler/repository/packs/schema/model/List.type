@@ -2,5 +2,5 @@
 <item withSchema="True">
   <name>List</name>
   <kind type="path">//Schema/Core/Type</kind>
-  <class module="model.schema.Types">List</class>
+  <class module="repository.schema.Types">List</class>
 </item>

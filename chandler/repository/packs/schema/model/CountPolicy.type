@@ -2,7 +2,7 @@
 <item withSchema="True">
   <name>CountPolicy</name>
   <kind type="path">//Schema/Core/Enumeration</kind>
-  <class module="model.schema.Types">Enumeration</class>
+  <class module="repository.schema.Types">Enumeration</class>
 
   <attribute name="values" cardinality="list">
     <value>none</value>

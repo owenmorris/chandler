@@ -5,12 +5,12 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from model.item.Item import Item
-from model.schema.Kind import Kind
-from model.schema.Types import Type
-from model.schema.Attribute import Attribute
-from model.util.PersistentList import PersistentList
-from model.util.PersistentDict import PersistentDict
+from repository.item.Item import Item
+from repository.schema.Kind import Kind
+from repository.schema.Types import Type
+from repository.schema.Attribute import Attribute
+from repository.util.PersistentList import PersistentList
+from repository.util.PersistentDict import PersistentDict
 
 
 class AutoKind(object):

@@ -8,9 +8,9 @@ import xml.sax, xml.sax.saxutils
 import os.path
 import re
 
-from model.util.UUID import UUID
-from model.util.Path import Path
-from model.item.Item import Item
+from repository.util.UUID import UUID
+from repository.util.Path import Path
+from repository.item.Item import Item
 
 
 class PackHandler(xml.sax.ContentHandler):

@@ -2,5 +2,5 @@
 <item withSchema="True">
   <name>Boolean</name>
   <kind type="path">//Schema/Core/Type</kind>
-  <class module="model.schema.Types">Boolean</class>
+  <class module="repository.schema.Types">Boolean</class>
 </item>

@@ -3,5 +3,5 @@
 <item withSchema="True">
   <name>Anything</name>
   <kind type="path">//Schema/Core/Alias</kind>
-  <class module="model.schema.Alias">Alias</class>
+  <class module="repository.schema.Alias">Alias</class>
 </item>

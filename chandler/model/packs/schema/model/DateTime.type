@@ -3,7 +3,7 @@
 <item withSchema="True">
   <name>DateTime</name>
   <kind type="path">//Schema/Core/Type</kind>
-  <class module="model.schema.Types">DateTime</class>
+  <class module="repository.schema.Types">DateTime</class>
 
   <attribute name="fields" cardinality="list">
     <value>year</value>

@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from model.schema.Types import Type
+from repository.schema.Types import Type
 
 
 class Alias(Type):

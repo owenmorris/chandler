@@ -8,8 +8,8 @@ import sys, re, xmlrpclib, jabber
 
 from xml.sax import parseString
 from SOAPpy import SOAPProxy
-from model.util.UUID import UUID
-from model.persistence.Repository import Store
+from repository.util.UUID import UUID
+from repository.persistence.Repository import Store
 
 
 class Transport(Store):

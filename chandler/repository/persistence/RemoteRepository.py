@@ -6,9 +6,10 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import re
 
-from model.persistence.Repository import OnDemandRepository, RepositoryError
-from model.persistence.Repository import OnDemandRepositoryView
-from model.item.ItemRef import RefDict
+from repository.persistence.Repository import OnDemandRepository
+from repository.persistence.Repository import RepositoryError
+from repository.persistence.Repository import OnDemandRepositoryView
+from repository.item.ItemRef import RefDict
 
 
 class RemoteRepository(OnDemandRepository):

@@ -12,12 +12,13 @@ from struct import pack, unpack
 from sys import exc_info
 from threading import currentThread, RLock
 
-from model.util.UUID import UUID
-from model.item.Item import Item
-from model.item.ItemRef import ItemRef, ItemStub, RefDict, TransientRefDict
-from model.persistence.Repository import Repository, RepositoryError
-from model.persistence.Repository import OnDemandRepository, Store
-from model.persistence.Repository import OnDemandRepositoryView
+from repository.util.UUID import UUID
+from repository.item.Item import Item
+from repository.item.ItemRef import ItemRef, ItemStub
+from repository.item.ItemRef import RefDict, TransientRefDict
+from repository.persistence.Repository import Repository, RepositoryError
+from repository.persistence.Repository import OnDemandRepository, Store
+from repository.persistence.Repository import OnDemandRepositoryView
 
 from bsddb.db import DBEnv, DB, DBError
 from bsddb.db import DB_CREATE, DB_BTREE, DB_TXN_NOWAIT

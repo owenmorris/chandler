@@ -2,5 +2,5 @@
 <item withSchema="True">
   <name>Float</name>
   <kind type="path">//Schema/Core/Type</kind>
-  <class module="model.schema.Types">Float</class>
+  <class module="repository.schema.Types">Float</class>
 </item>

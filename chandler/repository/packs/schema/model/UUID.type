@@ -2,5 +2,5 @@
 <item withSchema="True">
   <name>UUID</name>
   <kind type="path">//Schema/Core/Type</kind>
-  <class module="model.schema.Types">UUID</class>
+  <class module="repository.schema.Types">UUID</class>
 </item>

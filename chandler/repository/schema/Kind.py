@@ -5,9 +5,9 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from model.item.Item import Item
-from model.item.ItemRef import RefDict
-from model.util.Path import Path
+from repository.item.Item import Item
+from repository.item.ItemRef import RefDict
+from repository.util.Path import Path
 
 
 class Kind(Item):

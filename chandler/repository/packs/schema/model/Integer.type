@@ -2,5 +2,5 @@
 <item withSchema="True">
   <name>Integer</name>
   <kind type="path">//Schema/Core/Type</kind>
-  <class module="model.schema.Types">Integer</class>
+  <class module="repository.schema.Types">Integer</class>
 </item>

@@ -6,13 +6,13 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, os.path, xml.sax, threading
 
-from model.util.UUID import UUID
-from model.util.Path import Path
-from model.util.ThreadLocal import ThreadLocal
-from model.item.Item import Item
-from model.item.ItemHandler import ItemHandler, ItemsHandler
-from model.item.ItemRef import ItemStub, DanglingRefError
-from model.persistence.PackHandler import PackHandler
+from repository.util.UUID import UUID
+from repository.util.Path import Path
+from repository.util.ThreadLocal import ThreadLocal
+from repository.item.Item import Item
+from repository.item.ItemHandler import ItemHandler, ItemsHandler
+from repository.item.ItemRef import ItemStub, DanglingRefError
+from repository.persistence.PackHandler import PackHandler
 
 
 class RepositoryError(ValueError):

@@ -4,11 +4,11 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import model.item.Item
+import repository.item.Item
 
-from model.util.UUID import UUID
-from model.util.Path import Path
-from model.util.LinkedMap import LinkedMap
+from repository.util.UUID import UUID
+from repository.util.Path import Path
+from repository.util.LinkedMap import LinkedMap
 
 
 class ItemRef(object):
@@ -426,7 +426,7 @@ class RefDict(LinkedMap):
 
     def __contains__(self, obj):
 
-        if isinstance(obj, model.item.Item.Item):
+        if isinstance(obj, repository.item.Item.Item):
             return self.has_key(obj._refName(self._name))
 
         return self.has_key(obj)

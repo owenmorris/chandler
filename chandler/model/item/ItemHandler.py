@@ -5,13 +5,13 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import xml.sax, xml.sax.saxutils
-import model.item.Item
+import repository.item.Item
 
-from model.util.UUID import UUID
-from model.util.Path import Path
-from model.util.PersistentCollection import PersistentCollection
-from model.util.PersistentList import PersistentList
-from model.util.PersistentDict import PersistentDict
+from repository.util.UUID import UUID
+from repository.util.Path import Path
+from repository.util.PersistentCollection import PersistentCollection
+from repository.util.PersistentList import PersistentList
+from repository.util.PersistentDict import PersistentDict
 
 from ItemRef import Values, References, RefArgs
 
@@ -151,7 +151,7 @@ class ItemHandler(xml.sax.ContentHandler):
         cls = self.cls
         if cls is None:
             if self.kind is None:
-                cls = model.item.Item.Item
+                cls = repository.item.Item.Item
             else:
                 cls = self.kind.getItemClass()
 
@@ -163,7 +163,7 @@ class ItemHandler(xml.sax.ContentHandler):
                        version = self.version)
 
         if self.first or self.last:
-            item._children = model.item.Item.Children(item)
+            item._children = repository.item.Item.Children(item)
             item._children._firstKey = self.first
             item._children._lastKey = self.last
 
@@ -242,7 +242,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def classEnd(self, itemHandler, attrs):
 
-        self.cls = model.item.Item.Item.loadClass(self.data, attrs['module'])
+        self.cls = repository.item.Item.Item.loadClass(self.data, attrs['module'])
 
     def nameEnd(self, itemHandler, attrs):
 
@@ -484,7 +484,7 @@ class ItemHandler(xml.sax.ContentHandler):
             return complex(data)
 
         if typeName == 'class':
-            return model.item.Item.Item.loadClass(str(data))
+            return repository.item.Item.Item.loadClass(str(data))
 
         if typeName == 'NoneType':
             return None
@@ -561,7 +561,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 for val in value:
                     cls.xmlValue(None, val, 'value', attrType, 'single',
                                  generator, withSchema)
-            elif isinstance(value, model.item.Item.Item):
+            elif isinstance(value, repository.item.Item.Item):
                 raise TypeError, 'Item %s cannot be stored in a collection of literals' %(value.getItemPath())
             else:
                 generator.characters(cls.makeString(value))

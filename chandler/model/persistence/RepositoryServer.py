@@ -9,9 +9,9 @@ import sys, re, xmlrpclib, jabber
 
 from SOAPpy import SOAPServer
 
-from model.persistence.XMLRepository import XMLRepository
-from model.item.ItemRef import RefDict
-from model.util.UUID import UUID
+from repository.persistence.XMLRepository import XMLRepository
+from repository.item.ItemRef import RefDict
+from repository.util.UUID import UUID
 
 
 class RepositoryServer(object):

@@ -9,10 +9,10 @@ import os, os.path
 
 from datetime import datetime
 
-from model.util.UUID import UUID
-from model.persistence.Repository import Repository, RepositoryError
-from model.persistence.Repository import RepositoryView
-from model.item.ItemRef import RefDict, TransientRefDict
+from repository.util.UUID import UUID
+from repository.persistence.Repository import Repository, RepositoryError
+from repository.persistence.Repository import RepositoryView
+from repository.item.ItemRef import RefDict, TransientRefDict
 
 
 class FileRepository(Repository):

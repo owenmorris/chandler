@@ -6,11 +6,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import mx.DateTime
 
-from model.item.Item import Item
-from model.item.ItemHandler import ItemHandler
-from model.item.ItemRef import RefDict
-from model.util.PersistentList import PersistentList
-from model.util.PersistentDict import PersistentDict
+from repository.item.Item import Item
+from repository.item.ItemHandler import ItemHandler
+from repository.item.ItemRef import RefDict
+from repository.util.PersistentList import PersistentList
+from repository.util.PersistentDict import PersistentDict
 from Kind import Kind
 
 
@@ -230,7 +230,7 @@ class Boolean(Type):
 class UUID(Type):
 
     def makeValue(cls, data):
-        return model.util.UUID(data)
+        return repository.util.UUID(data)
 
     def unserialize(self, data):
         return UUID.makeValue(data)
@@ -244,7 +244,7 @@ class UUID(Type):
 class Path(Type):
 
     def makeValue(cls, data):
-        return model.util.Path(data)
+        return repository.util.Path(data)
 
     def unserialize(self, data):
         return Path.makeValue(data)

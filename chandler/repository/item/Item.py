@@ -11,11 +11,11 @@ from ItemRef import ItemRef, RefArgs
 from ItemRef import Values, References, RefDict
 from ItemHandler import ItemHandler
 
-from model.util.UUID import UUID
-from model.util.Path import Path
-from model.util.LinkedMap import LinkedMap
-from model.util.PersistentList import PersistentList
-from model.util.PersistentDict import PersistentDict
+from repository.util.UUID import UUID
+from repository.util.Path import Path
+from repository.util.LinkedMap import LinkedMap
+from repository.util.PersistentList import PersistentList
+from repository.util.PersistentDict import PersistentDict
 
 
 class Item(object):
@@ -1090,7 +1090,7 @@ class Item(object):
             name = name[lastDot+1:]
 
         m = __import__(module, {}, {}, name)
-
+        
         try:
             cls = getattr(m, name)
             cls.__module__

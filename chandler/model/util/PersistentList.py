@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from model.util.PersistentCollection import PersistentCollection
+from repository.util.PersistentCollection import PersistentCollection
 
 
 class PersistentList(list, PersistentCollection):
