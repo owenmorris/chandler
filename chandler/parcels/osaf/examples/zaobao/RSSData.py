@@ -5,7 +5,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.item.Item import Item
 from repository.util.Path import Path
-from application.Application import app
 import mx.DateTime
 import types
 
@@ -31,7 +30,7 @@ def SetAttributes(self, data, attributes, encoding):
 
 class RSSFeed(Item):
     def Update(self, data):
-        chanKind = app.repository.find(BASE_PATH + '/RSSChannel')
+        chanKind = self.getRepository().find(BASE_PATH + '/RSSChannel')
 
         # get the encoding
         encoding = data.get('encoding', 'latin_1')
@@ -61,8 +60,9 @@ class RSSChannel(Item):
         SetAttributes(self, data, attrs, encoding)
 
         # make children
-        itemKind = app.repository.find(RSSITEM_KIND_PATH)
+        itemKind = self.getRepository().find(RSSITEM_KIND_PATH)
         for itemData in items:
+            #print 'new item'
             item = itemKind.newItem(None, self)
             item.Update(itemData, encoding)
             self.addValue('items', item)
