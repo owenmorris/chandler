@@ -240,6 +240,9 @@ def distribute(buildenv):
                 os.remove(buildenv['outputdir']+os.sep+compFile2)
                 os.rename(compFile2, buildenv['outputdir']+os.sep+compFile2)
 
+        # remove the distribution directory, since we have a tarball/zip
+        if os.access(distDir, os.F_OK):
+            hardhatlib.rmdir_recursive(distDir)
 
     if buildenv['version'] == 'release':
 
