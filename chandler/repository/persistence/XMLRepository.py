@@ -44,11 +44,10 @@ class XMLRepository(OnDemandRepository):
         self._env = None
         self._ctx = XmlQueryContext()
         
-    def create(self, verbose=False, notxn=False):
+    def create(self, verbose=False):
 
         if not self.isOpen():
             super(XMLRepository, self).create(verbose)
-            self._notxn = notxn
             self._create()
             self._status |= self.OPEN
 
@@ -62,10 +61,7 @@ class XMLRepository(OnDemandRepository):
             self.delete()
         
         self._env = DBEnv()
-        if self._notxn:
-            self._env.open(self.dbHome, DB_CREATE | DB_INIT_MPOOL, 0)
-        else:
-            self._env.open(self.dbHome, DB_CREATE | self.OPEN_FLAGS, 0)
+        self._env.open(self.dbHome, DB_CREATE | self.OPEN_FLAGS, 0)
 
         self._openDb(True)
 
@@ -79,25 +75,23 @@ class XMLRepository(OnDemandRepository):
                         os.remove(f)
         os.path.walk(self.dbHome, purge, None)
 
-    def open(self, verbose=False, create=False, notxn=False):
+    def open(self, verbose=False, create=False, recover=False):
 
         if not self.isOpen():
             super(XMLRepository, self).open(verbose)
-            self._notxn = notxn
             self._env = DBEnv()
 
             try:
-                if self._notxn:
-                    self._env.open(self.dbHome, DB_INIT_MPOOL, 0)
-                    self._openDb(False)
-
-                else:
+                if recover:
                     before = datetime.now()
-                    self._env.open(self.dbHome, self.OPEN_FLAGS)
-#                                   DB_RECOVER | self.OPEN_FLAGS, 0)
+                    self._env.open(self.dbHome,
+                                   DB_RECOVER | DB_CREATE | self.OPEN_FLAGS, 0)
                     after = datetime.now()
-#                    print 'opened db with recovery in %s' %(after - before)
-                    self._openDb(False)
+                    print 'opened db with recovery in %s' %(after - before)
+                else:
+                    self._env.open(self.dbHome, self.OPEN_FLAGS, 0)
+
+                self._openDb(False)
 
             except DBNoSuchFileError:
                 if create:
@@ -112,10 +106,7 @@ class XMLRepository(OnDemandRepository):
         txn = None
         
         try:
-            if self._notxn:
-                txn = None
-            else:
-                txn = self._env.txn_begin(None, DB_DIRTY_READ | DB_TXN_NOWAIT)
+            txn = self._env.txn_begin(None, DB_DIRTY_READ | DB_TXN_NOWAIT)
                 
             self._refs = XMLRepository.refContainer(self, "__refs__",
                                                     txn, create)
@@ -562,12 +553,8 @@ class XMLRepositoryView(OnDemandRepositoryView):
         count = 0
         
         try:
-            if not repository._notxn:
-                self._txn = repository._env.txn_begin(None, (DB_DIRTY_READ |
-                                                             DB_TXN_NOWAIT))
-            else:
-                self._txn = None
-
+            self._txn = repository._env.txn_begin(None, (DB_DIRTY_READ |
+                                                         DB_TXN_NOWAIT))
             newVersion = versions.nextVersion(self, not self._log)
             
             if self._log:
