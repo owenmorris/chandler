@@ -480,8 +480,8 @@ class wxViewerParcel(wxPanel):
         mainFrameId = id(app.model.mainFrame)
         if app.association.has_key(mainFrameId):
             mainFrame = app.association[mainFrameId]
-#            ignoreErrors = wxLogNull()
+            ignoreErrors = wxLogNull()
             actionsBar = self.resources.LoadToolBar(mainFrame, 'ActionsBar')
-#            del ignoreErrors
+            del ignoreErrors
             mainFrame.ReplaceActionsBar(actionsBar)
             
