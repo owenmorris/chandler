@@ -45,6 +45,8 @@ chandler-system -a \
     osaf/chandler/SOAPpy \
     osaf/chandler/wxpython \
     osaf/chandler/zodb \
+    osaf/chandler/openssl \
+    osaf/chandler/m2crypto \
     osaf/hardhat
 
 0.3 osaf/chandler/Chandler/distrib/docs
