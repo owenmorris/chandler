@@ -10,7 +10,7 @@ from distutils.core import setup, Extension
 def main():
 
     PREFIX = os.environ['PREFIX']
-    DEBUG = os.environ.get('DEBUG', 0)
+    DEBUG = int(os.environ.get('DEBUG', '0'))
 
     extensions = []
     modules = ['chandlerdb.__init__',
