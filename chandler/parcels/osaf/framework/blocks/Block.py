@@ -434,7 +434,7 @@ class Block(Item):
 
             # allow the compiler to optimize for non-debug cases
             if not __debug__:
-                callNamedMethod(block, methodName, event)
+                return callNamedMethod(block, methodName, event)
             else:
                 if Block.profileEvents and not Block.__profilerActive:                        
                     # create profiler lazily
@@ -453,7 +453,7 @@ class Block(Item):
                         Block.__profilerActive = False
                         raise
                 else:
-                    callNamedMethod(block, methodName, event)
+                    return callNamedMethod(block, methodName, event)
                             
         def callNamedMethod (block, methodName, event):
             """
