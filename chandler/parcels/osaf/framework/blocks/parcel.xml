@@ -254,6 +254,7 @@
     <Attribute itsName="childrenBlocks">
       <type itemref="docSchema:Block"/>
       <cardinality>list</cardinality>
+      <copyPolicy value="cascade"/>
       <inverseAttribute itemref="docSchema:Block/parentBlock"/>
       <required>True</required>
     </Attribute>
