@@ -23,7 +23,7 @@ class UUID(object):
         if uuid is None:
             self._uuid = UUIDext.make()
         else:
-            self._uuid = UUIDext.make(uuid)
+            self._uuid = UUIDext.make(str(uuid))
             if not self._uuid:
                 raise ValueError, "Generating UUID from '%s' failed" %(uuid)
 
