@@ -1349,7 +1349,7 @@
   </SplitterWindow>
   
   <BoxContainer itsName="CPIATestSidebarContainer">
-    <blockName>CPIATestSidebarContainer</blockName>
+    <blockName>SidebarContainer</blockName>
     <childrenBlocks itemref="doc:Sidebar" copy="CPIATestSidebar"/>
     <childrenBlocks itemref="doc:MiniCalendar" copy="CPIATestMiniCalendar"/>
     <orientationEnum>Vertical</orientationEnum>
