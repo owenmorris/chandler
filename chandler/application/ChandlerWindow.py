@@ -48,11 +48,6 @@ class ChandlerWindow(Persistent):
         if not app.association.has_key(id(self)):
             wxWindow = app.applicationResources.LoadFrame (None, "ChandlerWindow")
             assert (wxWindow != None)
-            # FIXME:  Setting the toolbar to None does not work on Linux.
-            # However, removing this line on Windows causes an extra grey 
-            # box to be drawn.
-            if wxPlatform != '__WXGTK__':
-                wxWindow.SetToolBar (None)
             wxWindow.OnInit (self)
             app.association[id(self)] = wxWindow
         else:
@@ -102,6 +97,7 @@ class wxChandlerWindow(wxFrame):
 
         self.SetBackgroundColour(wxColor(236, 233, 216))
         
+        assert (self.GetToolBar() == None)
         applicationResources = application.Application.app.applicationResources
         self.menuBar = applicationResources.LoadMenuBar ("MainMenuBar")
         assert (self.menuBar != None)
@@ -109,13 +105,7 @@ class wxChandlerWindow(wxFrame):
 
         self.sideBar = self.FindWindowByName("SideBar")
         assert (self.sideBar != None)
-        # FIXME:  See FIXME note above.  FindWindowByName does not work on
-        # Linux, but due to the SetToolBar(None) above on Windows, GetToolBar
-        # does not work.
-        if wxPlatform == '__WXGTK__':
-            self.navigationBar = self.GetToolBar()
-        else:
-            self.navigationBar = self.FindWindowByName("NavigationBar")
+        self.navigationBar = self.FindWindowByName("NavigationBar")
         assert (self.navigationBar != None)
         self.splitterWindow = self.FindWindowByName("SplitterWindow")
         assert (self.splitterWindow != None)
