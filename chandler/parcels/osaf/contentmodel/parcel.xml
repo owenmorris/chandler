@@ -99,6 +99,12 @@
             <initialValue type="Boolean">False</initialValue>
         </Attribute>
 
+        <Attribute itsName="isRead">
+            <type itemref="Boolean"/>
+            <initialValue type="Boolean">False</initialValue>
+            <description value="A flag indicating whether the this item has been 'viewed' by the user"/>
+        </Attribute>
+
         <Attribute itsName="previousStamps">
             <description value="A list of mixin items that were used as stamps on this item previously." />
             <type itemref="Item"/>
