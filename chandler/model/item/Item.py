@@ -2,8 +2,8 @@
 import xml.sax
 import ItemRef
 
-from util.UUID import UUID
-from util.Path import Path
+from model.util.UUID import UUID
+from model.util.Path import Path
 
 
 class Item(object):

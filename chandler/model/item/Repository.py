@@ -4,8 +4,8 @@ import os.path
 import os
 import sys
 
-from util.UUID import UUID
-from util.Path import Path
+from model.util.UUID import UUID
+from model.util.Path import Path
 from Item import ItemHandler
 
 

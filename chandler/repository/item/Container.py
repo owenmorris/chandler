@@ -1,7 +1,7 @@
 
 from Item import Item
-from util.Path import Path
-from util.UUID import UUID
+from model.util.Path import Path
+from model.util.UUID import UUID
 
 
 class Container(Item):
