@@ -14,7 +14,7 @@ def test():
   >>> print parse('value_expr','abc')
   abc
   >>> print parse('value_expr','f()')
-  f
+  ['fn', 'f', []]
   >>> print parse('value_expr','f(1,2)')
   ['fn', 'f', ['1', '2']]
   >>> print parse('value_expr','x.y.z')
@@ -30,7 +30,8 @@ def test():
   >>> print parse('value_expr','2a')
   2
 
-  # print parse('value_expr','x.y.z.f(1,2)')
+  >>> print parse('value_expr','x.y.z.f(1,2)')
+  ['method', ['path', ['x', 'y', 'z', 'f'], None], ['1', '2']]
 
   ## NAME_EXPR
   >>> print parse('name_expr','abc')
@@ -144,6 +145,8 @@ def test():
   ['for', 'i', 'z', ['and', ['<', ['path', ['i', 'price'], None], '10'], ['==', ['path', ['i', 'color'], None], '"green"']]]
   >>> print parse('for_stmt', 'for i in z where len(z.messages) > 1000')
   ['for', 'i', 'z', ['>', ['fn', 'len', [['path', ['z', 'messages'], None]]], '1000']]
+  >>> print parse('for_stmt', 'for i in "//Schema/Core/Kind" where i.hasAttributeValue("itsName")')
+  ['for', 'i', '"//Schema/Core/Kind"', ['method', ['path', ['i', 'hasAttributeValue'], None], ['"itsName"']]]
 
   ### UNION_EXPR
   >>> print parse('union_stmt','union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True, for i in "//parcels/osaf/contentmodel/Note" where True, for i in "//parcels/osaf/contentmodel/contacts/Contact" where True)')
@@ -153,6 +156,6 @@ def test():
 
 if __name__ == '__main__':
     import doctest, unittest, sys
-#    from repository.query.parser.QueryParser import parse
-#    sys.exit(doctest.testmod()[0])
+    from repository.query.parser.QueryParser import parse
+    sys.exit(doctest.testmod()[0])
 
