@@ -42,6 +42,7 @@ def usage():
     print "-s          scrub MODULE (remove all local files not in CVS)"
     print "-S          scrub MODULE and its dependencies"
     print "-t          test module MODULE"
+    print "-u          checkout (update) source using CVS"
     # print "-v          verbose"
     print "-x          execute MODULE"
 
@@ -51,7 +52,7 @@ False = 0
 
 # Check the command line
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "bBcCdD:eghij:lno:rsStvx")
+    opts, args = getopt.getopt(sys.argv[1:], "bBcCdD:eghij:lno:rsStuvx")
 except getopt.GetoptError:
     usage()
     sys.exit(1)
@@ -207,6 +208,9 @@ try:
 
         if opt == "-t":
             hardhatlib.test(buildenv, curdir)
+
+        if opt == "-u":
+            hardhatlib.cvsCheckout(buildenv, projectRoot)
 
         if opt == "-v":
             buildenv['verbosity'] = buildenv['verbosity'] + 1

@@ -117,6 +117,7 @@ def init(buildenv):
     buildenv['tar']  = findInPath(buildenv['path'], "tar")
     buildenv['gzip'] = findInPath(buildenv['path'], "gzip")
     buildenv['zip']  = findInPath(buildenv['path'], "zip")
+    buildenv['cvs']  = findInPath(buildenv['path'], "cvs")
 
     
     # set OS-specific variables
@@ -765,7 +766,33 @@ def epydoc(buildenv, name, message, *args):
         raise HardHatExternalCommandError
     
     return exit_code
+
+def cvsCheckout(buildenv, projectRoot):
+
+    cvs = buildenv['cvs']
+    cvsroot = os.getenv('CHANDLER_CVSROOT')
+
+    if cvsroot == None:
+        log(buildenv, HARDHAT_ERROR, "HardHat",
+            "CHANDLER_CVSROOT environment variable not set")
+        raise HardHatBuildEnvError
+        
+    command = [ cvs, '-z3', '-d', cvsroot, 'co chandler-system' ]
+    os.chdir(os.path.join(projectRoot, '..', '..'))
+
+    print os.path.abspath(".") + '>' + string.join(command)
+
+    exit_code = os.spawnv(os.P_WAIT, cvs, command)
+
+    if exit_code == 0:
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", "OK")
+    else:
+        log(buildenv, HARDHAT_ERROR, "HardHat",
+            "Command exited with code = " + str(exit_code) )
+        raise HardHatExternalCommandError
     
+    return exit_code
+
 
 def findHardHatFile(dir):
     """ Look for __hardhat__.py in directory "dir", and if it's not there,
