@@ -9,9 +9,9 @@
 <core:Parcel describes="//parcels/osaf/contentmodel"
              itemName="contentmodel"
              xmlns:core="//Schema/Core"
-	     xmlns:notes="//parcels/osaf/contentmodel/notes"
+             xmlns:notes="//parcels/osaf/contentmodel/notes"
              xmlns:contact="//parcels/osaf/contentmodel/contacts"
-	     xmlns:blocks="//parcels/osaf/framework/blocks"
+             xmlns:blocks="//parcels/osaf/framework/blocks"
              xmlns:events="//parcels/osaf/framework/notifications/schema"
              xmlns="//parcels/osaf/contentmodel"
              itemClass="osaf.contentmodel.ContentModel.ContentModel">
@@ -232,7 +232,7 @@
     <core:attributes itemref="rule"/>
     <core:attributes itemref="inclusions"/>
     <core:attributes itemref="exclusions/"/>
-    <core:classes key="python">osaf.contentmodel.ContentModel.ItemCollection</core:classes>
+    <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
   </core:Kind>
 
   <core:Kind itemName="AdHocCollection">
@@ -240,14 +240,14 @@
     <core:displayName>Ad-Hoc Collection</core:displayName>
     <core:attributes itemref="inclusions"/>
     <core:attributes itemref="exclusions/"/>
-    <core:classes key="python">osaf.contentmodel.ContentModel.ItemCollection</core:classes>
+    <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
   </core:Kind>
 
   <core:Kind itemName="EphemeralCollection">
     <core:superKinds itemref="ItemCollection"/>
     <core:displayName>Ephemeral Collection</core:displayName>
     <core:attributes itemref="rule"/>
-    <core:classes key="python">osaf.contentmodel.ContentModel.ItemCollection</core:classes>
+    <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
   </core:Kind>
 
 
