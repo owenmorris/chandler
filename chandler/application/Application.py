@@ -21,7 +21,7 @@ logger.setLevel(logging.INFO)
 #@@@Temporary testing tool written by Morgen -- DJA
 import tools.timing
 
-SCHEMA_VERSION = "1"
+SCHEMA_VERSION = "2"
 
 """
   Event used to post callbacks on the UI thread
@@ -333,6 +333,7 @@ class wxApplication (wx.App):
         #OnDestroyWindow Binding has to appear after splash.Destroy
         self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
+        self.Bind(wx.EVT_TOOL, self.OnCommand, id=-1)
         self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroyWindow, id=-1)
         self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)

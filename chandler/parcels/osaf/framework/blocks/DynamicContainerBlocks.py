@@ -719,10 +719,8 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         # draw the bar, and we're done.
         self.Realize()
         
-# class to use for wxToobarItem
-wxToolBarToolClass = wx.ToolBarToolBase
 
-class wxToolbarItem (wxToolBarToolClass):
+class wxToolbarItem (wx.ToolBarToolBase):
     """
     Toolbar Tool Widget.
 
@@ -741,8 +739,18 @@ class wxToolbarItem (wxToolBarToolClass):
     """
     def wxSynchronizeWidget(self):
         """
-        For now, synchronizing is done by the Toolbar, not the Tools
+          Currently, we only synchronize radio buttons, eventually we
+        need to synchronize other kinds, e.g. Text, Combo, and Choice types
         """
+        block = self.blockItem
+        if block.toolbarItemKind == "Radio":
+            try:
+                selected = block.selected
+            except AttributeError:
+                pass
+            else:
+                if selected:
+                    self.GetToolBar().ToggleTool (self.GetId(), True)
         pass
 
     def IsShown (self):
@@ -758,7 +766,37 @@ class wxToolbarItem (wxToolBarToolClass):
         self.SetLabel (event.GetText())
         self.GetToolBar().Realize()
 
-        
+    def OnToolEvent (self,event):
+        """
+          Persist state of ToolbarItems. Currently limited to radio buttons,
+        eventually we need to synchronize other kinds, e.g. Text, Combo, and
+        Choice types
+        """
+        block = self.blockItem
+        if block.toolbarItemKind == "Radio":
+            children = [child for child in block.parentBlock.childrenBlocks]
+            blockIndex = children.index (block)
+            """
+              Unselect all the items in the radio group before this toolbar item
+            """
+            index = blockIndex - 1
+            while index >= 0 and children [index].toolbarItemKind == "Radio":
+                children [index].selected = False
+                index -= 1
+            """
+              Select this toolbar item
+            """
+            children [blockIndex].selected = True
+            """
+              Unselect all the items in the radio group after this toolbar item
+            """
+            index = blockIndex + 1
+            while index < len (children) and children [index].toolbarItemKind == "Radio":
+                children [index].selected = False
+                index += 1
+        event.Skip()
+
+
 class Toolbar (Block.RectangularChild, DynamicContainer):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
@@ -830,9 +868,8 @@ class ToolbarItem (Block.Block, DynamicChild):
                                         kind = theKind,
                                         shortHelp=self.title,
                                         longHelp=self.helpString)
-            # Bind events to the Application OnCommand dispatcher, which will
-            #  call the block.event method
-            theToolbar.Bind (wx.EVT_TOOL, wx.GetApp().OnCommand, id=id)            
+            tool.__class__ = wxToolbarItem
+            theToolbar.Bind (wx.EVT_TOOL, tool.OnToolEvent, id=id)            
         elif self.toolbarItemKind == 'Separator':
             theToolbar.AddSeparator()
         elif self.toolbarItemKind == 'Check':
@@ -881,10 +918,10 @@ class ToolbarItem (Block.Block, DynamicChild):
         elif __debug__:
             assert False, "unknown toolbarItemKind"
         
-        if tool is not None:
+        if tool is not None and tool.__class__ != wxToolbarItem:
             # convert this object from a wx.ToolBarTool to a wxToolBarItem,
             # so we can call methods on that widget class.
-            assert tool.__class__ is wxToolBarToolClass, "wx ToolBarTool class mismatch with ToolbarItem"
+            assert tool.__class__ is wx.ToolBarToolBase, "wx ToolBarTool class mismatch with ToolbarItem"
             tool.__class__ = wxToolbarItem
         return tool
 

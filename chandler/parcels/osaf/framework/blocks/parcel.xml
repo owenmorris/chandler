@@ -1237,6 +1237,10 @@
     
     <attributes itemref="docSchema:event"/>
 
+    <Attribute itsName="selected">
+      <type itemref="Boolean"/>
+    </Attribute>
+
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="prototype">
             <attribute value="prototype"/>

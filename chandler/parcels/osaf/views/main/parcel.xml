@@ -992,6 +992,7 @@
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:ApplicationBarAll"/>
     <helpString>No Filter</helpString>
+    <selected>True</selected>
   </ToolbarItem>
 
   <KindParameterizedEvent itsName="ApplicationBarAll">
