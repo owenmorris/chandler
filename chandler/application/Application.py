@@ -165,7 +165,7 @@ class wxApplication (wxApp):
             """
             EVT_MENU(self, XRCID ('Test1'), self.OnTest1)
             EVT_MENU(self, XRCID ('Test2'), self.OnTest2)
-            EVT_MENU(self, XRCID ('Test3'), self.OnTest2)
+            EVT_MENU(self, XRCID ('Test3'), self.OnTest3)
 
         return true  #indicates we succeeded with initialization
 
@@ -190,7 +190,7 @@ class wxApplication (wxApp):
                     parcel.synchronizeView ()
                     return
         
-        def OnTest2 (self, event):
+        def OnTest3 (self, event):
             for parcel in self.model.URLTree:
                 """
                   Each parcel must have an attribute which is the displayName.

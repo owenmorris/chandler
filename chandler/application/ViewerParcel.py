@@ -93,6 +93,7 @@ class ViewerParcel (Parcel):
                 del app.association[id(window.model)]
             container.DestroyChildren ()
             """
-              Attach the new parce to the view.
+              Attach the new parcel to the view.
             """
             app.applicationResources.AttachUnknownControl ("ViewerParcel", panel)
+        
