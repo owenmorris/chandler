@@ -46,8 +46,8 @@ def OnInit(loader):
         notificationManager.DeclareNotification(FEED_CHANGED_NOTIFICATION,
                                                 NotificationManager.SYSTEM_CLIENT,
                                                 'unknown','')
-        threading.Thread(target=_loadInitialFeeds).start()
-        #_loadInitialFeeds()
+        #threading.Thread(target=_loadInitialFeeds).start()
+        _loadInitialFeeds()
         
 def _loadInitialFeeds():
     global rssDict
