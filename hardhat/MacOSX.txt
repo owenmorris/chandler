@@ -1,17 +1,5 @@
 Notes about MacOSX build issues:
 
-- Building Python on the Mac results in two copies of Python executables, one
-  under the Frameworks directory and one under the Applications directory.
-  The python in Frameworks/ doesn't quite work when it comes to running a GUI
-  application (mouse events seem to be ignored); however this python does 
-  accept command line arguments (required for building egenix code, for 
-  example).  The python in Applications/ does run GUI apps properly, however 
-  it doesn't handle command line arguments, so egenix code doesn't build.
-  Hardhat creates wrapper scripts around these two python executables in
-  release/bin:
-     python        (used for running Chandler)
-     python.build  (used for building extensions)
-
 - Since we don't want to interfere with whatever Python is installed on the
   system already, we are building a private Framework version of Python.  This
   leads to some build problems since everyone seems to assume that the Python
@@ -20,4 +8,6 @@ Notes about MacOSX build issues:
   linker, telling it where to look for frameworks.  Distutils builds the 
   linking command lines based on information in the Python Makefile, so to
   get distutils to add the -F argument I modified the Python configure script
-  to include -F in the LDSHARED variable.
+  to include -F in the LDSHARED variable.  See:  
+
+  http://cvs.osafoundation.org/index.cgi/osaf/chandler/python/configure.diff?r1=1.1&r2=1.2
