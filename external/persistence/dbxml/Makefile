@@ -22,7 +22,7 @@ ifeq ($(OS),Cygwin)
 BUILD=build_win32
 
 $(SRC)/$(BUILD)/Berkeley_DB_XML.sln:
-	(cd win32; tar - cf *.sln *.vcproj) | (cd $(SRC)/$(BUILD); tar xvf -)
+	(cd win32; tar cf - *.sln *.vcproj) | (cd $(SRC)/$(BUILD); tar xvf -)
 
 apply: patches
 	patch -Nup0 < patches; echo ok
