@@ -1,5 +1,5 @@
 """
-Basic Unit tests for calendar
+Unit tests for calendar
 """
 
 __revision__  = "$Revision$"
@@ -9,18 +9,16 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-import repository.persistence.XMLRepository as XMLRepository
-import repository.parcel.LoadParcels as LoadParcels
 import OSAF.contentmodel.calendar.Calendar as Calendar
-import OSAF.contentmodel.ContentModel as ContentModel
 import OSAF.contentmodel.tests.TestContentModel as TestContentModel
-import application.Globals as Globals
 
 import mx.DateTime as DateTime
 
 class CalendarTest(TestContentModel.ContentModelTestCase):
+    """ Test Calendar Content Model """
 
     def testCalendar(self):
+        """ Simple test for creating instances of calendar related kinds """
 
         def _verifyCalendarEvent(event):
             self.assertEqual(event.headline, "simple headline")
@@ -79,19 +77,21 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         # Re-examine items
         self._reopenRepository()
 
-        parent = ContentModel.ContentItemParent
+        contentItemParent = self.rep.find("//userdata/contentitems")
 
-        calendarEventItem = parent.find("calendarEventItem")
-        calendarItem = parent.find("calendarItem")
-        locationItem = parent.find("locationItem")
-        recurrenceItem = parent.find("recurrenceItem")
-        reminderItem = parent.find("reminderItem")
+        calendarEventItem = contentItemParent.find("calendarEventItem")
+        calendarItem = contentItemParent.find("calendarItem")
+        locationItem = contentItemParent.find("locationItem")
+        recurrenceItem = contentItemParent.find("recurrenceItem")
+        reminderItem = contentItemParent.find("reminderItem")
         
         _verifyCalendarEvent(calendarEventItem)
         _verifyCalendarItems(calendarItem, locationItem,
                              recurrenceItem, reminderItem)
 
     def testTimeFields(self):
+        """ Test time related fields and methods """
+        
         # Test getDuration
         firstItem = Calendar.CalendarEvent()
         firstItem.startTime = DateTime.DateTime(2003, 2, 1, 10)
@@ -112,6 +112,8 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
                          DateTime.DateTime(2003, 3, 4, 12, 45))
 
     def testDeleteItem(self):
+        """ Test calendar event deletion """
+        
         item = Calendar.CalendarEvent()
         path = item.getItemPath()
         item.delete()

@@ -1,4 +1,4 @@
-""" Class used for Items of Kind Calendar
+""" Classes used for Calendar parcel kinds
 """
 
 __revision__  = "$Revision$"
