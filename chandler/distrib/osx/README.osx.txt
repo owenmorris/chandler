@@ -1,6 +1,6 @@
 Chandler README.osx
 -------------------
 
-* Running Chandler * 
+* Running Chandler *
 
-To run chandler, doublc-click the Chandler application icon.
+To run chandler, double-click the Chandler application icon.
