@@ -292,6 +292,8 @@ def doRealclean(log):
         # automatically. This will also sort us out of corrupted debug/release.
         print "Doing make realclean\n"
         log.write("Doing make realclean\n")
+        moduleDir = os.path.join(workingDir, mainModule)
+        os.chdir(moduleDir)
         outputList = hardhatutil.executeCommandReturnOutput(
          [buildenv['make'], "realclean"])
         hardhatutil.dumpOutputList(outputList, log)
