@@ -1,4 +1,3 @@
-diff -r -u SWIG-20Feb04/Source/Modules/main.cxx SWIG-20Feb04-patched/Source/Modules/main.cxx
 --- SWIG-20Feb04/Source/Modules/main.cxx	2004-01-09 16:04:34.000000000 -0800
 +++ SWIG-20Feb04-patched/Source/Modules/main.cxx	2004-08-16 15:07:19.305283200 -0700
 @@ -89,6 +89,7 @@
@@ -54,7 +53,6 @@ diff -r -u SWIG-20Feb04/Source/Modules/main.cxx SWIG-20Feb04-patched/Source/Modu
    }
    if (tm_debug) Swig_typemap_debug();
    if (memory_debug) DohMemoryDebug();
-diff -r -u SWIG-20Feb04/Source/Modules/python.cxx SWIG-20Feb04-patched/Source/Modules/python.cxx
 --- SWIG-20Feb04/Source/Modules/python.cxx	2003-12-13 15:52:31.000000000 -0800
 +++ SWIG-20Feb04-patched/Source/Modules/python.cxx	2004-08-16 15:07:19.415441600 -0700
 @@ -24,6 +24,7 @@
@@ -629,18 +627,8 @@ diff -r -u SWIG-20Feb04/Source/Modules/python.cxx SWIG-20Feb04-patched/Source/Mo
        }
      }
      return SWIG_OK;
-diff -r -u SWIG-20Feb04/Source/Modules/xml.cxx SWIG-20Feb04-patched/Source/Modules/xml.cxx
 --- SWIG-20Feb04/Source/Modules/xml.cxx	2003-12-28 13:47:58.000000000 -0800
 +++ SWIG-20Feb04-patched/Source/Modules/xml.cxx	2004-08-16 14:54:35.506995200 -0700
-@@ -10,7 +10,7 @@
-  * See the file LICENSE for information on usage and redistribution.
-  * ----------------------------------------------------------------------------- */
- 
--char cvsroot_xml_cxx[] = "$Header$";
-+char cvsroot_xml_cxx[] = "$Header$";
- static const char *usage = "\
- XML Options (available with -xml)\n\
-      -xmllang <lang> - Typedef language\n\
 @@ -198,6 +198,7 @@
  					Replaceall( o, "<", "&lt;" );
  					Replaceall( o, "\"", "&quot;" );
@@ -703,7 +691,6 @@ diff -r -u SWIG-20Feb04/Source/Modules/xml.cxx SWIG-20Feb04-patched/Source/Modul
 +    Printf( out, "<?xml version=\"1.0\" ?> \n" );
 +    xml.Xml_print_tree(obj);
 +}
-diff -r -u SWIG-20Feb04/Source/Swig/swig.h SWIG-20Feb04-patched/Source/Swig/swig.h
 --- SWIG-20Feb04/Source/Swig/swig.h	2004-01-09 16:04:17.000000000 -0800
 +++ SWIG-20Feb04-patched/Source/Swig/swig.h	2004-08-16 15:07:19.515585600 -0700
 @@ -355,6 +355,8 @@
