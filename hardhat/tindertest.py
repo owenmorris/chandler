@@ -117,26 +117,25 @@ def main():
                 print "There were changes, and the build was successful"
                 log.write("There were changes, and the build was successful\n")
                 status = "success"
-                newDir = os.path.join(outputDir, buildVersion)
-                os.rename(os.path.join(buildDir, "output"), newDir)
+#                 newDir = os.path.join(outputDir, buildVersion)
+#                 os.rename(os.path.join(buildDir, "output"), newDir)
 #                 log.write("Calling CreateIndex with " + newDir + "\n")
 #                 if os.path.exists(outputDir+os.sep+"index.html"):
 #                     os.remove(outputDir+os.sep+"index.html")
 #                 if os.path.exists(outputDir+os.sep+"time.js"):
 #                     os.remove(outputDir+os.sep+"time.js")
-#                 for x in ["enduser", "developer", "release", "debug"]:
+#                 for x in ["enduser", "developer"]:
 #                     if os.path.exists(outputDir+os.sep+x+".html"):
 #                         os.remove(outputDir+os.sep+x+".html")
 #                 RotateDirectories(outputDir)
 #                 CreateIndex(outputDir, buildVersion, nowString, buildName)
 # 
 #                 buildNameNoSpaces = buildName.replace(" ", "")
-#     # rsync -e ssh -avzp --delete /home/builder/output/ 192.168.101.46:continuous/kilauea-osx
 #                 print "Rsyncing..."
 #                 outputList = hardhatutil.executeCommandReturnOutputRetry(
 #                  [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
 #                  outputDir + os.sep, 
-#                  "192.168.101.46:continuous/" + buildNameNoSpaces])
+#                  "192.168.101.46:continuous-new/" + buildNameNoSpaces])
 
             elif ret == "build_failed":
                 print "The build failed"
