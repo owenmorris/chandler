@@ -599,7 +599,39 @@
   <Menu itsName="ViewColumnsMenu">
     <blockName>ViewColumnsMenu</blockName>
     <title>Columns</title>
+    <childrenBlocks itemref="doc:ShowStampColumn"/>
+    <childrenBlocks itemref="doc:ShowWhoColumn"/>
+    <childrenBlocks itemref="doc:ShowAboutColumn"/>
+    <childrenBlocks itemref="doc:ShowDateColumn"/>
   </Menu>
+
+  <MenuItem itsName="ShowStampColumn">
+    <blockName>ShowStampColumn</blockName>
+    <title>stamp</title>
+    <menuItemKind>Check</menuItemKind>
+    <event itemref="events:ShowColumn"/>
+  </MenuItem>
+
+  <MenuItem itsName="ShowWhoColumn">
+    <blockName>ShowWhoColumn</blockName>
+    <title>who</title>
+    <menuItemKind>Check</menuItemKind>
+    <event itemref="events:ShowColumn"/>
+  </MenuItem>
+
+  <MenuItem itsName="ShowAboutColumn">
+    <blockName>ShowAboutColumn</blockName>
+    <title>about</title>
+    <menuItemKind>Check</menuItemKind>
+    <event itemref="events:ShowColumn"/>
+  </MenuItem>
+
+  <MenuItem itsName="ShowDateColumn">
+    <blockName>ShowDateColumn</blockName>
+    <title>date</title>
+    <menuItemKind>Check</menuItemKind>
+    <event itemref="events:ShowColumn"/>
+  </MenuItem>
 
   <Menu itsName="ViewSortByMenu">
     <blockName>ViewSortByMenu</blockName>
@@ -657,7 +689,7 @@
     <title>View Toolbar</title>
     <menuItemKind>Check</menuItemKind>
     <event itemref="doc:ShowHideNavigationBar"/>
-    <helpString value="Shor or Hide the Toolbar"/>
+    <helpString value="Show or Hide the Toolbar"/>
   </MenuItem>
 
   <MenuItem itsName="ViewSideBarItem">

@@ -69,6 +69,13 @@ class MainView(View):
         # Triggered from "File | Prefs | Accounts..."
         application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(Globals.wxApplication.mainFrame)
 
+    def onShowColumnEvent (self, notification):
+        pass
+
+    def onShowColumnEventUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+        notification.data ['Check'] = True
+
     def onGetNewMailEvent (self, notification):
         # Triggered from "Test | Get Mail" menu
         account = \
