@@ -88,9 +88,10 @@ class SideBar(Persistent):
             uriToDelete = parentUri + key
             item = sideBarLevel[key]
             if not item.isMarked:
-                itemId = wxWindow.uriDictMap[uriToDelete]
-                wxWindow.Delete(itemId)
-                del wxWindow.uriDictMap[uriToDelete]
+                if wxWindow.uriDictMap.has_key(uriToDelete):
+                    itemId = wxWindow.uriDictMap[uriToDelete]
+                    wxWindow.Delete(itemId)
+                    del wxWindow.uriDictMap[uriToDelete]
                 del sideBarLevel[key]
             else:
                 item.isMarked = false
