@@ -1,4 +1,4 @@
-
+#-*- Mode: Makefile; -*-
 OS=$(shell uname)
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
