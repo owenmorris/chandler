@@ -59,8 +59,9 @@ class Block(Item):
                   For those blocks with contents, we need to subscribe to notice changes
                 to items in the contents.
                 """
-                if self.hasAttributeValue ('contents'):
-                    self.contents.subscribeWidgetToChanges (widget)
+                events = [Globals.repository.findPath('//parcels/osaf/contentmodel/collection_changed')]
+                Globals.notificationManager.Subscribe(events, id(widget), self.onCollectionChanged)
+
                 """
                   For those blocks with subscribeWhenVisibleEvents or subscribeAlwaysEvents,
                 we need to subscribe to them.
@@ -84,6 +85,16 @@ class Block(Item):
                     child.render()
                 self.synchronizeWidget()
 
+    def onCollectionChanged (self, notification):
+        """
+          When our item collection has changed, we need to synchronize
+        """
+        ourCollection = self.getAttributeValue('contents', default=None)
+        if ourCollection:
+            collectionUUID = notification.data['collection']
+            if ourCollection.itsUUID == collectionUUID:
+                self.synchronizeWidget()
+
     IdToUUID = []               # A list mapping Ids to UUIDS
     UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
 
@@ -95,8 +106,7 @@ class Block(Item):
           Called just before a widget is destroyed. It is the opposite of
         instantiateWidget.
         """
-        if self.hasAttributeValue ('contents'):
-            self.contents.unSubscribeWidgetToChanges (self.widget)
+        Globals.notificationManager.Unsubscribe(id(self.widget))
 
         if hasattr (self.widget, 'subscribeWhenVisibleEventsUUID'):
             Globals.notificationManager.Unsubscribe (self.widget.subscribeWhenVisibleEventsUUID)

@@ -207,7 +207,7 @@ class ListDelegate:
         result.setAttributeValue(column, value)
 
     def ElementCount (self):
-        return self.blockItem.contents.len()
+        return len(self.blockItem.contents)
 
 
 class wxList (DraggableWidget, wx.ListCtrl):

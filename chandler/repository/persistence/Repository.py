@@ -392,12 +392,13 @@ class Repository(object):
 
         The callback needs to be able to accept the following arguments:
 
-            - a UUID, representing an item
+            - a an array of tuples (UUID, reason, kwds)
+              - UUID, representing an item
+              - a string, representing the reason
+              - kwds, an arbitrary C{**kwds} dictionary containing more
+                notification-specific values.
             - a string, one of C{ItemChanged}, C{CollectionChanged}, or
               C{History} 
-            - a string, representing the reason
-            - kwds, an arbitrary C{**kwds} dictionary containing more
-              notification-specific values.
 
         @param fn: the callback to add
         @type fn: a python callable
@@ -523,20 +524,6 @@ class RepositoryNotifications(dict):
         else:
             self[uuid] = [ (reason, kwds) ]
 
-    def dispatchChanges(self):
-
-        callbacks = self.repository._notifications
-        if callbacks:
-            for uuid, reasons in self.iteritems():
-                (reason, kwds) = reasons.pop()
-                for callback in callbacks:
-                    callback(uuid, 'ItemChanged', reason, **kwds)
-                for (reason, kwds) in reasons:
-                    for callback in callbacks:
-                        callback(uuid, 'CollectionChanged', reason, **kwds)
-
-        self.clear()
-
     def history(self, uuid, reason, **kwds):
 
         self[uuid] = (reason, kwds)
@@ -545,9 +532,11 @@ class RepositoryNotifications(dict):
 
         callbacks = self.repository._notifications
         if callbacks:
+            changes = []
             for uuid, (reason, kwds) in self.iteritems():
-                for callback in callbacks:
-                    callback(uuid, 'History', reason, **kwds)
+                changes.append( (uuid, reason, kwds) )
+            for callback in callbacks:
+                callback(changes, 'History')
 
         self.clear()
 

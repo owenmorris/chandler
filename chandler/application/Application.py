@@ -18,19 +18,20 @@ from repository.persistence.XMLRepository import XMLRepository
 wxEVT_MAIN_THREAD_CALLBACK = wx.NewEventType()
 EVT_MAIN_THREAD_CALLBACK = wx.PyEventBinder(wxEVT_MAIN_THREAD_CALLBACK, 0)
 
-def repositoryCallback(uuid, notification, reason, **kwds):
-    if notification == 'History':
-        eventPath = '//parcels/osaf/framework/item_' + reason
-    else:
+def repositoryCallback(changes, notification, **kwds):
+    # Postpone import to avoid circular imports
+    from osaf.framework.notifications.Notification import Notification
+
+    if notification != 'History':
         return
+    
+    eventPath = '//parcels/osaf/framework/commit_history'
 
     event = Globals.repository.findPath(eventPath)
 
-    # Postpone import to avoid circular imports
-    from osaf.framework.notifications.Notification import Notification
     note = Notification(event)
     note.threadid = id(threading.currentThread())
-    note.SetData({'uuid' : uuid, 'keywords' : kwds})
+    note.SetData({'changes' : changes})
     Globals.notificationManager.PostNotification(note)
 
 
@@ -210,6 +211,12 @@ class wxApplication (wx.App):
             """
             Globals.repository.loadPack("repository/packs/schema.pack")
 
+        """
+          Create the notification manager. Start later.
+        """
+        from osaf.framework.notifications.NotificationManager import NotificationManager
+        Globals.notificationManager = NotificationManager()
+
         # Load Parcels
         parcelSearchPath = parcelDir
         if __debug__ and debugParcelDir:
@@ -220,7 +227,7 @@ class wxApplication (wx.App):
         Globals.repository.commit()
 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
-        
+
         """
           The Twisted Reactor should be started before other Managers
           and stopped last. Is this true?
@@ -229,13 +236,10 @@ class wxApplication (wx.App):
         from osaf.framework.twisted.TwistedReactorManager import TwistedReactorManager
         Globals.twistedReactorManager = TwistedReactorManager()
         Globals.twistedReactorManager.startReactor()
+
         """
-          Create and start the notification manager. Delay imports to avoid
-          circular references.
+          Start the notification manager
         """
-        
-        from osaf.framework.notifications.NotificationManager import NotificationManager
-        Globals.notificationManager = NotificationManager()
         Globals.notificationManager.PrepareSubscribers()
 
         # Set it up so that repository changes generate notifications

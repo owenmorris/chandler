@@ -16,11 +16,7 @@
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
 
-  <events:Event itemName="item_added"/>
-  <events:Event itemName="item_deleted"/>
-  <events:Event itemName="item_changed"/>
-  <events:Event itemName="collection_added"/>
-  <events:Event itemName="collection_deleted"/>
-  <events:Event itemName="collection_changed"/>
+  <events:Event itemName="commit_history"/>
+  <events:Event itemName="query_changed"/>
 
 </Parcel>

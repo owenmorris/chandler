@@ -9,8 +9,10 @@
 <core:Parcel describes="//parcels/osaf/contentmodel"
              itemName="contentmodel"
              xmlns:core="//Schema/Core"
-	         xmlns:notes="//parcels/osaf/contentmodel/notes"
-	         xmlns:contact="//parcels/osaf/contentmodel/contacts"
+	     xmlns:notes="//parcels/osaf/contentmodel/notes"
+             xmlns:contact="//parcels/osaf/contentmodel/contacts"
+	     xmlns:blocks="//parcels/osaf/framework/blocks"
+             xmlns:events="//parcels/osaf/framework/notifications/schema"
              xmlns="//parcels/osaf/contentmodel"
              itemClass="osaf.contentmodel.ContentModel.ContentModel">
 
@@ -142,5 +144,111 @@
     <core:classes key="python">osaf.contentmodel.ContentModel.Group</core:classes>
   </core:Kind>
 
+
+  <!--
+    Chandler Query
+  -->
+
+  <core:Enumeration itemName="queryEnumType">
+    <core:values>Kind</core:values>
+  </core:Enumeration>
+
+  <core:Attribute itemName="queryEnum">
+    <core:type itemref="queryEnumType"/>
+    <core:defaultValue type="queryEnumType">Kind</core:defaultValue>
+  </core:Attribute>
+
+  <core:Attribute itemName="data">
+    <core:type itemref="core:Item"/>
+    <core:cardinality>list</core:cardinality>
+  </core:Attribute>
+
+  <core:Attribute itemName="results">
+    <core:type itemref="core:Item"/>
+    <core:cardinality>list</core:cardinality>
+  </core:Attribute>
+
+  <core:Attribute itemName="resultsStale">
+    <core:type itemref="core:Boolean"/>
+    <core:defaultValue type="core:Boolean">True</core:defaultValue>
+  </core:Attribute>
+
+  <core:Attribute itemName="queryOwner">
+    <core:type itemref="core:Item"/>
+    <core:cardinality>list</core:cardinality>
+    <core:inverseAttribute itemref="rule"/>
+  </core:Attribute>
+
+  <core:Kind itemName="Query">
+    <core:classes key="python">osaf.contentmodel.Query.Query</core:classes>
+    <core:superKinds itemref="core:Item"/>
+
+    <core:attributes itemref="queryOwner"/>
+
+    <core:attributes itemref="queryEnum"/>
+    <core:attributes itemref="data"/>
+    <core:attributes itemref="results"/>
+    <core:attributes itemref="resultsStale"/>
+  </core:Kind>
+
+  <!-- Item Collection stuff -->
+
+  <!-- this gets sent whenever the items in a collection change -->
+  <events:Event itemName="collection_changed"/>
+
+
+  <core:Attribute itemName="collectionOwner">
+    <core:type itemref="core:Item"/>
+    <core:cardinality>list</core:cardinality>
+    <core:inverseAttribute itemref="blocks:Block/contents"/>
+  </core:Attribute>
+
+  <core:Attribute itemName="rule">
+    <core:displayName>Rule</core:displayName>
+    <core:cardinality>single</core:cardinality>
+    <core:type itemref="Query"/>
+    <core:inverseAttribute itemref="queryOwner"/>
+  </core:Attribute>
+
+  <core:Attribute itemName="inclusions">
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="core:UUID"/>
+  </core:Attribute>
+
+  <core:Attribute itemName="exclusions">
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="core:UUID"/>
+  </core:Attribute>
+
+  <core:Kind itemName="ItemCollection">
+    <core:superKinds itemref="core:Item"/>
+    <core:displayName>Item Collection</core:displayName>
+    <core:attributes itemref="collectionOwner"/>
+  </core:Kind>
+
+  <core:Kind itemName="NamedCollection">
+    <core:superKinds itemref="ItemCollection"/>
+    <core:displayName>Named Collection</core:displayName>
+    <core:attributes itemref="rule"/>
+    <core:attributes itemref="inclusions"/>
+    <core:attributes itemref="exclusions/"/>
+    <core:classes key="python">osaf.contentmodel.ContentModel.ItemCollection</core:classes>
+  </core:Kind>
+
+  <core:Kind itemName="AdHocCollection">
+    <core:superKinds itemref="ItemCollection"/>
+    <core:displayName>Ad-Hoc Collection</core:displayName>
+    <core:attributes itemref="inclusions"/>
+    <core:attributes itemref="exclusions/"/>
+    <core:classes key="python">osaf.contentmodel.ContentModel.ItemCollection</core:classes>
+  </core:Kind>
+
+  <core:Kind itemName="EphemeralCollection">
+    <core:superKinds itemref="ItemCollection"/>
+    <core:displayName>Ephemeral Collection</core:displayName>
+    <core:attributes itemref="rule"/>
+    <core:classes key="python">osaf.contentmodel.ContentModel.ItemCollection</core:classes>
+  </core:Kind>
+
+
 </core:Parcel>
-     

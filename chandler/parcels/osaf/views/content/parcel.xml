@@ -10,6 +10,7 @@
              xmlns="//parcels/osaf/framework/blocks"
 	     xmlns:core="//Schema/Core"
              xmlns:calendarBlocks="//parcels/osaf/framework/blocks/calendar"
+             xmlns:contentModel="//parcels/osaf/contentmodel"
              xmlns:calendarModel="//parcels/osaf/contentmodel/calendar"
              xmlns:noteModel="//parcels/osaf/contentmodel/notes"
              xmlns:contactsModel="//parcels/osaf/contentmodel/contacts"
@@ -20,22 +21,34 @@
   <core:version>0.3</core:version>
 
   <!-- Queries -->
-  <ItemCollection itemName="calendarItemCollection">
-    <data itemref="calendarModel:CalendarEvent"/>
-  </ItemCollection>
+  <contentModel:Query itemName="calendarQuery">
+     <data itemref="calendarModel:CalendarEvent"/>
+  </contentModel:Query>
+  <contentModel:NamedCollection itemName="calendarItemCollection">
+    <rule itemref="view:calendarQuery"/>
+  </contentModel:NamedCollection>
 
-  <ItemCollection itemName="notesItemCollection">
+  <contentModel:Query itemName="notesQuery">
     <data itemref="noteModel:Note"/>
-  </ItemCollection>
+  </contentModel:Query>
+  <contentModel:NamedCollection itemName="notesItemCollection">
+    <rule itemref="view:notesQuery"/>
+  </contentModel:NamedCollection>
 
-  <ItemCollection itemName="contactItemCollection">
+  <contentModel:Query itemName="contactQuery">
     <data itemref="contactsModel:Contact"/>
-  </ItemCollection>
+  </contentModel:Query>
+  <contentModel:NamedCollection itemName="contactItemCollection">
+    <rule itemref="view:contactQuery"/>
+  </contentModel:NamedCollection>
 
-  <ItemCollection itemName="mixedItemCollection">
+  <contentModel:Query itemName="mixedQuery">
     <data itemref="calendarModel:CalendarEvent"/>
     <data itemref="noteModel:Note"/>
-  </ItemCollection>
+  </contentModel:Query>
+  <contentModel:NamedCollection itemName="mixedItemCollection">
+    <rule itemref="view:mixedQuery"/>
+  </contentModel:NamedCollection>
 
   <!-- Calendar List -->
   <List itemName="CalendarList">

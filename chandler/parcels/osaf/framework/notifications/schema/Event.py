@@ -11,6 +11,10 @@ class Event(Item):
     """
     The Event Item
     """
+    def __init__(self, *args, **kwds):
+        super(Event, self).__init__(*args, **kwds)
+        Globals.notificationManager.AddEvent(self)
+    
     def Post(self, data):
         """
         Post a notification to all subscribers of this event

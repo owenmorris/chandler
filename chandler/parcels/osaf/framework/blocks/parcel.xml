@@ -9,6 +9,7 @@
         itemName="blocks"
         xmlns="//Schema/Core"
         xmlns:docSchema="//parcels/osaf/framework/blocks"
+        xmlns:contentModel="//parcels/osaf/contentmodel"
         xmlns:events="//parcels/osaf/framework/notifications/schema">
 
   <description>Schema for blocks that make up CPIA documents </description>
@@ -112,52 +113,6 @@
   <Attribute itemName="selection">
     <type itemref="SingleRef"/>
   </Attribute>
-
-  <!--
-    Chandler ItemCollection
-  -->
-  <Kind itemName="ItemCollection">
-    <classes key="python">osaf.framework.blocks.Query.ItemCollection</classes>
-    <superKinds itemref="Item"/>
-
-    <Attribute itemName="usedInBlocks">
-      <type itemref="docSchema:Block"/>
-      <cardinality>list</cardinality>
-      <inverseAttribute itemref="docSchema:Block/contents"/>
-    </Attribute>
-
-    <Enumeration itemName="queryEnumType">
-      <values>ContainerSearch</values>
-      <values>ListOfItems</values>
-      <values>Kind</values>
-    </Enumeration>
-
-    <Attribute itemName="queryEnum">
-      <type itemref="docSchema:ItemCollection/queryEnumType"/>
-      <defaultValue type="docSchema:ItemCollection/queryEnumType">Kind</defaultValue>
-    </Attribute>
-
-    <Attribute itemName="data">
-      <type itemref="Item"/>
-      <cardinality>list</cardinality>
-    </Attribute>
-
-    <Attribute itemName="results">
-      <type itemref="Item"/>
-      <cardinality>list</cardinality>
-    </Attribute>
-
-    <Attribute itemName="resultsStale">
-      <type itemref="Boolean"/>
-      <defaultValue type="Boolean">True</defaultValue>
-    </Attribute>
-
-    <attributes itemref="docSchema:ItemCollection/queryEnum"/>
-    <attributes itemref="docSchema:ItemCollection/data"/>
-    <attributes itemref="docSchema:ItemCollection/results"/>
-    <attributes itemref="docSchema:ItemCollection/resultsStale"/>
-    <attributes itemref="docSchema:ItemCollection/usedInBlocks"/>
-  </Kind>
 
   <!--
     Named styles
@@ -285,8 +240,8 @@
     <superKinds itemref="Item"/>
 
     <Attribute itemName="contents">
-      <type itemref="docSchema:ItemCollection"/>
-      <inverseAttribute itemref="docSchema:ItemCollection/usedInBlocks"/>
+      <type itemref="contentModel:ItemCollection"/>
+      <inverseAttribute itemref="contentModel:collectionOwner"/>
     </Attribute>
 
     <Attribute itemName="parentBlock">

@@ -270,7 +270,6 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         if histNotifications is not None:
             histNotifications.dispatchHistory()
-        self._notifications.dispatchChanges()
 
         if count > 0:
             self.logger.info('%s committed %d items (%ld bytes) in %s',
