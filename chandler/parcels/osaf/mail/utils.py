@@ -91,6 +91,20 @@ def dateIsEmpty(date):
 
     return False
 
+
+def disableTwistedAUTH(items):
+    """Disables AUTH support
+    """
+
+    if items != None:
+        try:
+            del items["AUTH"]
+        except KeyError:
+            pass
+
+    return items
+
+
 def disableTwistedTLS(items):
     """Disables SSL support for debugging so
        a tcpflow trace can be done on the Client / Server

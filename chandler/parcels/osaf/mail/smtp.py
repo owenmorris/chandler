@@ -114,11 +114,6 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         for item in self.mailMessage.deliveryExtension.deliveryErrors:
             item.delete()
 
-        if self.account.useTLS and self.account.useSSL:
-            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, \
-                              "TLS and SSL both enabled. Please select only one.")
-            return
-
 
 
         """Get the sender's Email Address will either be the Reply-To or From field"""
@@ -289,7 +284,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
             #XXX: Users password may get logged will need to enhance in a 
             #     future release to prevent this from happening
-            if __debug__ and self.account.useSSL and err.log is not None:
+            if __debug__ and self.account.connectionSecurity == 'SSL' and err.log is not None:
                 self.log.error("\n%s" % err.log)
 
             deliveryError.errorCode = err.code
@@ -440,11 +435,13 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
     def sendMailMessage(cls, from_addr, to_addrs, messageText, deferred, account):
         #XXX: Perform some error checking
-        username     = None
-        password     = None
-        authRequired = False
-        tlsContext   = None
-        heloFallback = True
+        username         = None
+        password         = None
+        authRequired     = False
+        tlsContext       = None
+        securityRequired = False
+        heloFallback     = True
+
 
         if account.useAuth:
             username     = account.username
@@ -452,17 +449,19 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
             authRequired = True
             heloFallback = False
 
-        if account.useTLS:
+        if account.connectionSecurity == 'TLS':
             tlsContext = Globals.crypto.getSSLContext()
+            securityRequired = True
 
         msg = StringIO.StringIO(messageText)
 
         factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
                                           deferred, account.numRetries, constants.TIMEOUT,
-                                          tlsContext, heloFallback, authRequired, account.useTLS)
+                                          tlsContext, heloFallback, authRequired, securityRequired)
 
 
-        if account.useSSL:
+        if account.connectionSecurity == 'SSL':
+            #XXX: This method actually begins the SSL exchange. Confusing name!
             factory.startTLS = True
             factory.getContext = lambda : Globals.crypto.getSSLContext()
 

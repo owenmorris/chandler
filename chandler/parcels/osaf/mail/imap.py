@@ -84,25 +84,37 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
         self.factory.imapDownloader.catchErrors(exc)
 
     def __getCapabilities(self, caps):
-        self._capCache = utils.disableTwistedTLS(caps)
+        if self.factory.useTLS:
+            self._capCache = utils.disableTwistedAUTH(caps)
+
         self.factory.imapDownloader.loginClient()
 
 
 class ChandlerIMAP4Factory(protocol.ClientFactory):
     protocol = ChandlerIMAP4Client
 
-    def __init__(self, imapDownloader):
+    def __init__(self, imapDownloader, useTLS):
         """
         @return: C{None}
         """
         self.imapDownloader = imapDownloader
         self.connectionLost = False
         self.sendFinished = 0
+        self.useTLS = useTLS
 
         retries = self.imapDownloader.account.numRetries
 
         assert isinstance(retries, (int, long))
         self.retries = -retries
+
+        def buildProtocol(self, addr):
+            if self.useTLS:
+                p = self.protocol(Globals.crypto.getSSLContext())
+            else:
+                p = self.protocol()
+
+            p.factory = self
+            return p
 
     def clientConnectionFailed(self, connector, err):
         self._processConnectionError(connector, err)
@@ -184,10 +196,12 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
         self.__getAccount()
 
-        self.factory = ChandlerIMAP4Factory(self)
+        self.factory = ChandlerIMAP4Factory(self, self.account.connectionSecurity == 'TLS')
         self.factory.getContext = lambda : Globals.crypto.getSSLContext()
         self.factory.sslChecker = SSL.Checker.Checker()
-        self.factory.startTLS = self.account.useSSL
+
+        #XXX: This method actually begins the SSL exchange. Confusing name!
+        self.factory.startTLS   = self.account.connectionSecurity == 'SSL'
 
         wrappingFactory = policies.WrappingFactory(self.factory)
         wrappingFactory.protocol = wrapper.TLSProtocolWrapper
