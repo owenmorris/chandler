@@ -181,11 +181,6 @@ class wxApplication (wx.App):
         splash = None
         if not (__debug__ and application.Globals.options.nocatch):
             splashBitmap = self.GetImage ("splash")
-##            splash = wx.SplashScreen(splashBitmap,
-##                                     wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT,
-##                                     6000, None, -1, wx.DefaultPosition,
-##                                     wx.DefaultSize,
-##                                     wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR)
             splash=StartupSplash(None, splashBitmap)
             splash.Show()
             wx.Yield() #let the splash screen render itself
