@@ -235,10 +235,19 @@ class Item(object):
                 self._values[name] = value
             
         elif isinstance(value, dict):
-            companion = self.getAttributeAspect(name, 'companion',
-                                                default=None)
-            value = PersistentDict(self, companion, **value)
-            self._values[name] = value
+            if _attrDict is self._references:
+                if old is None:
+                    self._references[name] = refDict = self._refDict(name)
+                else:
+                    assert isinstance(old, RefDict)
+                    refDict = old
+                refDict.extend(value.values())
+                value = refDict
+            else:
+                companion = self.getAttributeAspect(name, 'companion',
+                                                    default=None)
+                value = PersistentDict(self, companion, **value)
+                self._values[name] = value
             
         else:
             self._values[name] = value
