@@ -362,6 +362,32 @@ class MainView(View):
         GenerateItems.GenerateNotes(self.itsView, 10)
         self.itsView.commit()
 
+    def onMimeTestEvent (self, event):
+        self.__loadMailTests ("mime_tests")
+
+    def oni18nMailTestEvent (self, event):
+        self.__loadMailTests ("i18n_tests")
+
+
+    def __loadMailTests (self, dir):
+        if not Sharing.isMailSetUp(self.itsView):
+            if application.dialogs.Util.okCancel( \
+             wx.GetApp().mainFrame,
+             "Account information required",
+             "Please set up your accounts."):
+                if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
+                 wx.GetApp().mainFrame):
+                    return
+            else:
+                return
+
+        view = self.itsView
+        view.commit()
+
+        import osaf.mail.utils as utils
+        utils.loadMailTests(view, dir)
+        view.refresh()
+
     def onGetNewMailEvent (self, event):
         # Triggered from "Test | Get Mail" menu
 

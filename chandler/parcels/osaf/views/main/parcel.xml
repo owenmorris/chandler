@@ -312,6 +312,18 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
+  <BlockEvent itsName="MimeTest">
+    <blockName>MimeTest</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+
+  <BlockEvent itsName="i18nMailTest">
+    <blockName>i18nMailTest</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+
   <BlockEvent itsName="LogRepositoryHistory">
     <blockName>LogRepositoryHistory</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -471,6 +483,8 @@
     <childrenBlocks itemref="doc:ResendSharingInvitationsItem"/>
     <childrenBlocks itemref="doc:ShareToolItem"/>
     <childrenBlocks itemref="doc:GetNewMailItem"/>
+    <childrenBlocks itemref="doc:MimeTestItem"/>
+    <childrenBlocks itemref="doc:i18nMailTestItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:LogViewChangesItem"/>
     <childrenBlocks itemref="doc:LogRepositoryHistoryItem"/>
@@ -1052,6 +1066,21 @@
     <event itemref="doc:GetNewMail"/>
     <helpString>Gets new email from IMAP server</helpString>
   </MenuItem>
+
+  <MenuItem itsName="MimeTestItem">
+    <blockName>MimeTestItem</blockName>
+    <title>MIME Torture Tests</title>
+    <event itemref="doc:MimeTest"/>
+    <helpString>Loads real world complex / broken mime message examples provided by Anthony Baxter</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="i18nMailTestItem">
+    <blockName>i18nMailTestItem</blockName>
+    <title>i18n Mail Tests</title>
+    <event itemref="doc:i18nMailTest"/>
+    <helpString>Loads mail messages containing a variety of Charsets and Languages</helpString>
+  </MenuItem>
+
 
   <MenuItem itsName="CheckRepositoryItem">
     <blockName>CheckRepositoryItem</blockName>
