@@ -14,6 +14,7 @@ import PresencePanel
 
 from application.agents.Notifications.NotificationManager import NotificationManager
 from repository.schema.AutoItem import AutoItem
+from repository.persistence.XMLRepository import XMLRepository
 import application.agents.AgentManager as AgentManager
 from application.ChandlerWindow import ChandlerWindow
 from application.Preferences import Preferences
@@ -175,10 +176,6 @@ class wxApplication (wxApp):
         """
         Main application initialization.
         """
-        def loadClass(moduleName, className):
-            return getattr(__import__(moduleName, {}, {}, className),
-                           className)
-            
         self.applicationResources=None
         self.association={}
         self.chandlerDirectory=None
@@ -248,20 +245,13 @@ class wxApplication (wxApp):
 
         """
           Open the repository.
-          -file argument to use file repository
           -create argument forces a new repository.
           -recover argument runs recovery when opening after a crash.
           Load the Repository after the path has been altered, but before
           the parcels are loaded. 
         """
         repositoryPath = os.path.join(self.chandlerDirectory, "__repository__")
-        if '-file' in self.argv:
-            theClass = loadClass('repository.persistence.FileRepository',
-                                 'FileRepository')
-        else:
-            theClass = loadClass('repository.persistence.XMLRepository',
-                                 'XMLRepository')
-        self.repository = theClass(repositoryPath)
+        self.repository = XMLRepository(repositoryPath)
 
         if '-create' in self.argv:
             self.repository.create()
@@ -435,6 +425,7 @@ class wxApplication (wxApp):
         """
           Show the splash screen in response to the about command
         """
+
         pageLocation = os.path.join ('application', 'welcome.html')
         splash = SplashScreen(app.wxMainFrame, _("About Chandler"), 
                               pageLocation, True, False)

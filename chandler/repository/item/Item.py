@@ -10,6 +10,7 @@ import cStringIO
 from repository.item.ItemRef import ItemRef, RefArgs
 from repository.item.ItemRef import Values, References, RefDict
 from repository.item.ItemHandler import ItemHandler
+from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
 from repository.item.PersistentCollections import SingleRef
@@ -78,12 +79,15 @@ class Item(object):
         if self._status & Item.RAW:
             return super(Item, self).__repr__()
 
+        if self._status & Item.DELETED:
+            return "<%s (deleted): %s %s>" %(type(self).__name__, self._name,
+                                             self._uuid.str16())
         if self._status & Item.STALE:
             return "<%s (stale): %s %s>" %(type(self).__name__, self._name,
                                            self._uuid.str16())
-        else:
-            return "<%s: %s %s>" %(type(self).__name__, self._name,
-                                   self._uuid.str16())
+        
+        return "<%s: %s %s>" %(type(self).__name__, self._name,
+                               self._uuid.str16())
 
     def __getattr__(self, name):
 
@@ -269,19 +273,27 @@ class Item(object):
         except KeyError:
             pass
 
+        value = self.getAttributeAspect(name, 'initialValue', default=Item.Nil)
+        if value is not Item.Nil:
+            return self.setAttributeValue(name, value)
+
         inherit = self.getAttributeAspect(name, 'inheritFrom', default=None)
         if inherit is not None:
             value = self
             for attr in inherit.split('.'):
                 value = value.getAttributeValue(attr)
-
+            if isinstance(value, PersistentCollection):
+                value.setReadOnly(True)
             return value
 
         elif kwds.has_key('default'):
             return kwds['default']
 
-        elif self.hasAttributeAspect(name, 'defaultValue'):
-            return self.getAttributeAspect(name, 'defaultValue')
+        value = self.getAttributeAspect(name, 'defaultValue', default=Item.Nil)
+        if value is not Item.Nil:
+            if isinstance(value, PersistentCollection):
+                value.setReadOnly(True)
+            return value
 
         raise AttributeError, name
 
@@ -380,15 +392,8 @@ class Item(object):
 
     def check(self):
 
-        for key, value in self.iterAttributes(referencesOnly=True):
-            if isinstance(value, RefDict) and not value._isTransient():
-                l = len(value)
-                for other in value:
-                    l -= 1
-                    if l < 0:
-                        break
-                if l != 0:
-                    raise ValueError, "Iterator on %s.%s doesn't match length (%d left for %d total)" %(self.getItemPath(), key, l, len(value))
+        for key, value in self._references.iteritems():
+            value.check(self, key)
         
     def getValue(self, attribute, key, default=None, _attrDict=None):
         'Get a value from a multi-valued attribute.'
@@ -491,6 +496,12 @@ class Item(object):
 
         isItem = isinstance(value, Item)
         attrValue = _attrDict.get(attribute, Item.Nil)
+
+        if attrValue is Item.Nil:
+            attrValue = self.getAttributeAspect(attribute, 'initialValue',
+                                                default=Item.Nil)
+            if attrValue is not Item.Nil:
+                attrValue = self.setAttributeValue(attribute, attrValue)
 
         if attrValue is Item.Nil:
             self.setValue(attribute, value, key, alias, _attrDict)
@@ -651,6 +662,8 @@ class Item(object):
                     if repository.logItem(self):
                         self._status |= Item.DIRTY
                         return True
+                    elif self._status & Item.NEW:
+                        print 'logging of new item %s failed' %(self.getItemPath())
         else:
             self._status &= ~Item.DIRTY
 
@@ -698,7 +711,7 @@ class Item(object):
                         if isinstance(value, ItemRef):
                             others.append(value.other(self))
                         elif isinstance(value, RefDict):
-                            others.extend(value.others())
+                            others.extend([other for other in value])
                     
                 self.removeAttributeValue(name, _attrDict=self._references)
 
@@ -883,9 +896,7 @@ class Item(object):
             current = self.getItemChild(name, not loading)
                 
             if current is not None:
-                if loading:
-                    print "Warning, deleting %s while loading" %(current)
-                current.delete()
+                raise ValueError, "A child '%s' exists already under %s" %(item._name, self.getItemPath())
 
         else:
             self._children = Children(self)
@@ -1092,7 +1103,7 @@ class Item(object):
 
         if self._status & Item.DIRTY:
             raise ValueError, 'Item %s has changed, cannot be unloaded' %(self.getItemPath())
-        
+
         if not self._status & Item.STALE:
             repository = self.getRepository()
 
@@ -1159,31 +1170,6 @@ class Item(object):
         return self.getRepository().createRefDict(self, name,
                                                   otherName, persist)
 
-    def loadClass(cls, name, module=None):
-
-        if module is None:
-            lastDot = name.rindex('.')
-            module = name[:lastDot]
-            name = name[lastDot+1:]
-
-        try:
-            m = __import__(module, {}, {}, name)
-        except ImportError:
-            raise
-        except Exception, e:
-            raise ImportError, 'Importing class %s.%s failed with %s' %(module, name, e)
-        
-        try:
-            cls = getattr(m, name)
-            cls.__module__
-
-            return cls
-
-        except AttributeError:
-            raise ImportError, "Module %s has no class %s" %(module, name)
-        except Exception, e:
-            raise ImportError, 'Importing class %s.%s failed with %s' %(module, name, e)
-
     def __new__(cls, *args, **kwds):
 
         item = object.__new__(cls, *args, **kwds)
@@ -1192,7 +1178,6 @@ class Item(object):
         return item
 
 
-    loadClass = classmethod(loadClass)
     __new__   = classmethod(__new__)
     Nil       = object()
     

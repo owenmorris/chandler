@@ -1,16 +1,4 @@
-_Repository_.tmp
-_Repository_.lock
-_Repository_.index
-_Repository_
-_RepositoryTest_.tmp
-_RepositoryTest_.lock
-_RepositoryTest_.index
-_RepositoryTest_
-_CHANDLER_.tmp
-_CHANDLER_.lock
-_CHANDLER_.index
-_CHANDLER_
-__database__
+__repository__
 Chandler-project.wpu
 Chandler-project-debug.wpu
 *.pyc

@@ -15,6 +15,7 @@ from repository.item.ItemRef import RefDict
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
 from repository.schema.Kind import Kind
+from repository.util.ClassLoader import ClassLoader
 
 
 class TypeKind(Kind):
@@ -277,7 +278,7 @@ class Path(Type):
 class Class(Type):
 
     def makeValue(cls, data):
-        return cls.loadClass(data)
+        return ClassLoader.loadClass(data)
 
     def makeString(cls, value):
         return "%s.%s" %(value.__module__, value.__name__)

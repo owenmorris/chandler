@@ -15,11 +15,9 @@ import xml.sax
 import xml.sax.handler
 import logging
 
-from repository.item.Item import Item
-from repository.schema.Kind import Kind
-from repository.schema.Attribute import Attribute
 from repository.schema.Parcel import Parcel
-import repository.schema.Types
+from repository.util.ClassLoader import ClassLoader
+
 
 class ParcelLoader(object):
     """ Load items defined in the XML file into the repository,
@@ -291,7 +289,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
         if className:
             # Use the given class to instantiate the item
-            cls = Item.loadClass(className)
+            cls = ClassLoader.loadClass(className)
             item = cls(name, parent, kind)
         else:
             # The kind knows how to instantiate an instance of the item

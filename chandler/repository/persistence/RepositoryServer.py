@@ -27,26 +27,15 @@ class RepositoryServer(object):
     def terminate(self):
         raise NotImplementedError, 'RepositoryServer.terminate'
 
-    def loadItem(self, uuid):
+    def open(self):
 
-        item = self.repository.find(UUID(uuid))
-        if item is not None:
-            return item.toXML()
+        self._stores, viewClass = self.repository.serverOpen()
+        return (viewClass.__module__, viewClass.__name__)
 
-        return None
+    def call(self, store, method, *args):
 
-    def loadChild(self, parent, name):
-
-        parent = self.repository.find(UUID(parent))
-        if parent is not None:
-            if parent is self.repository:
-                item = self.repository.getRoot(name)
-            else:
-                item = parent.getItemChild(name)
-            if item is not None:
-                return item.toXML()
-
-        return None
+        store = self._stores[store]
+        return getattr(type(store), method)(store, *args)
 
 
 class SOAPRepositoryServer(RepositoryServer):
@@ -101,10 +90,9 @@ class JabberRepositoryServer(RepositoryServer, jabber.Client):
         xmlrpc = iq.getQueryPayload()
         args, func = xmlrpclib.loads("<?xml version='1.0'?>%s" % xmlrpc)
 
-        if func == 'loadItem':
-            result = self.loadItem(args[0])
-        elif func == 'loadChild':
-            result = self.loadChild(args[0], args[1])
+        method = getattr(JabberRepositoryServer, func, None)
+        if method:
+            result = method(self, *args)
         else:
             result = "<error>%s</error>" %(func)
 

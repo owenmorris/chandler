@@ -10,6 +10,7 @@ from repository.persistence.Repository import OnDemandRepository
 from repository.persistence.Repository import RepositoryError
 from repository.persistence.Repository import OnDemandRepositoryView
 from repository.item.ItemRef import RefDict
+from repository.util.ClassLoader import ClassLoader
 
 
 class RemoteRepository(OnDemandRepository):
@@ -18,38 +19,34 @@ class RemoteRepository(OnDemandRepository):
         'Construct an RemoteRepository giving it a transport handler'
         
         super(RemoteRepository, self).__init__(None)
-        self._store = transport
+        self._transport = transport
         
     def create(self, verbose=False):
 
-        if not self.isOpen():
-            super(RemoteRepository, self).create(verbose)
-            self._store.open()
-            self._status |= self.OPEN
+        raise NotImplementedError, "RemoteRepository.create"
 
     def open(self, verbose=False, create=False):
 
+        if create:
+            raise NotImplementedError, "RemoteRepository.open(create)"
+        
         if not self.isOpen():
-            super(RemoteRepository, self).open(verbose, create)
-            self._store.open()
+            super(RemoteRepository, self).open(verbose)
+            module, className = self._transport.open()
+            self.viewClass = ClassLoader.loadClass(className, module)
             self._status |= self.OPEN
 
     def close(self, purge=False):
 
         if self.isOpen():
-            self._store.close()
+            self._transport.close()
             self._status &= ~self.OPEN
+
+    def call(self, store, method, *args):
+
+        return self._transport.call(store, method, *args)
 
     def _createView(self):
 
-        return RemoteRepositoryView(self)
+        return self.viewClass(self)
 
-
-class RemoteRepositoryView(OnDemandRepositoryView):
-    
-    def commit(self, purge=False, verbose=False):
-        pass
-    
-    def createRefDict(self, item, name, otherName, persist):
-
-        return RefDict(item, name, otherName)

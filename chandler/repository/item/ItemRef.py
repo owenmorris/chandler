@@ -99,7 +99,7 @@ class ItemRef(object):
         elif item is self.getOther():
             self._other = UUIDStub(self.getItem(), item)
         else:
-            raise ValueError, 'item %s is not part of this ref' %(item)
+            raise ValueError, "%s doesn't reference %s" %(self, item)
 
     def other(self, item):
         'Return the other end of the ref relative to item.'
@@ -110,6 +110,25 @@ class ItemRef(object):
             return self.getItem()
         else:
             raise ValueError, "%s doesn't reference %s" %(self, item)
+
+    def check(self, item, name):
+
+        try:
+            other = self.other(item)
+        except DanglingRefError, e:
+            print 'DanglingRefError', e
+        except ValueError, e:
+            print 'ValueError', e
+        else:
+            if other.isStale():
+                print 'Found stale item %s at %s of kind %s' %(other, other.getItemPath(), other._kind.getItemPath())
+            else:
+                otherName = item.getAttributeAspect(name, 'otherName',
+                                                    default=None)
+                otherOtherName = other.getAttributeAspect(otherName, 'otherName',
+                                                          default=None)
+                if otherOtherName != name:
+                    print "otherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s" %(item._kind.getItemPath(), name, otherName, other._item._kind.getItemPath(), otherName, otherOtherName)
 
     def _refCount(self):
 
@@ -680,6 +699,32 @@ class RefDict(LinkedMap):
 
         return None
 
+    def check(self, item, name):
+
+        l = len(self)
+
+        key = self.firstKey()
+        while key:
+            try:
+                other = self[key]
+            except DanglingRefError, e:
+                print 'DanglingRefError on %s.%s: %s' %(self._item.getItemPath(), self._name, e)
+            except KeyError, e:
+                print 'KeyError on %s.%s: %s' %(self._item.getItemPath(), self._name, e)
+            else:
+                if other.isStale():
+                    print 'Found stale item %s at %s of kind %s' %(other, other.getItemPath(), other._kind.getItemPath())
+                else:
+                    name = other.getAttributeAspect(self._otherName, 'otherName', default=None)
+                    if name != self._name:
+                        print "OtherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s" %(other._kind.getItemPath(),self._otherName, name, self._item._kind.getItemPath(), self._name, self._otherName)
+                        
+            l -= 1
+            key = self.nextKey(key)
+            
+        if l != 0:
+            print "Iterator on %s.%s doesn't match length (%d left for %d total)" %(self._item.getItemPath(), self._name, l, len(self))
+
 
 class TransientRefDict(RefDict):
 
@@ -687,6 +732,9 @@ class TransientRefDict(RefDict):
         pass
     
     def _changeRef(self, key):
+        pass
+
+    def check(self, item, name):
         pass
 
     def _load(self, key):

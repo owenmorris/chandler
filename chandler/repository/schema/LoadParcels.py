@@ -11,6 +11,8 @@ import mx.DateTime as DateTime
 
 from repository.schema.ParcelLoader import ParcelLoader
 from repository.schema.Parcel import Parcel
+from repository.persistence.Repository import RepositoryError
+
 
 def LoadDependency(repository, uri, searchPath):
     # Easy success if we find the parcel
@@ -67,7 +69,11 @@ def LoadParcels(searchPath, repository):
                             parcel.modifiedOn = DateTime.now()
                     except Exception, e:
                         logging.exception("Failed to load parcel %s" % path)
-                        repository.cancel()
+                        try:
+                            repository.cancel()
+                        except:
+                            logging.exception("repository.cancel() failed")
+                            raise RepositoryError, "See log for exceptions"
                     else:
                         logging.debug("Loaded the parcel %s" % path)
                         repository.commit()

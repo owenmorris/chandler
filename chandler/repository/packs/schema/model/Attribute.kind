@@ -117,6 +117,23 @@
   </item>
 
   <item withSchema="True">
+    <name>initialValue</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Attribute</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor" 
+         type="path" otherCard="list">/Core/Anything</ref>
+
+    <attribute name="cardinality">single</attribute>
+  </item>
+
+  <item withSchema="True">
     <name>inheritFrom</name>
     <kind type="path">//Schema/Core/Attribute</kind>
     <class module="repository.schema.Attribute">Attribute</class>

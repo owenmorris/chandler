@@ -41,6 +41,10 @@ class Repository(object):
 
         self._init(verbose)
 
+    def serverOpen(self):
+
+        raise NotImplementedError, "Repository.serverOpen"
+
     def delete(self):
         
         raise NotImplementedError, "Repository.delete"
@@ -485,6 +489,12 @@ class Store(object):
     def loadRoots(self, view):
         raise NotImplementedError, "Store.loadRoots"
 
+    def deleteDocument(self, view, doc):
+        raise NotImplementedError, "Store.deleteDocument"
+
+    def putDocument(self, view, doc):
+        raise NotImplementedError, "Store.putDocument"
+        
     def parseDoc(self, doc, handler):
         raise NotImplementedError, "Store.parseDoc"
 

@@ -9,6 +9,9 @@ import repository.item.Item
 
 from repository.util.UUID import UUID
 
+class ReadOnlyError(ValueError):
+    "thrown when a read-only collection is modified"
+    
 
 class PersistentCollection(object):
     '''A persistence aware collection, tracking changes into a dirty bit.
@@ -21,7 +24,16 @@ class PersistentCollection(object):
         super(PersistentCollection, self).__init__()
 
         self._dirty = False
+        self._readOnly = False
         self.__setItem(item, companion)
+
+    def setReadOnly(self, readOnly=True):
+
+        self._readOnly = readOnly
+
+    def isReadOnly(self):
+
+        return self._readOnly
 
     def _setItem(self, item, companion):
 
@@ -39,6 +51,9 @@ class PersistentCollection(object):
         self._companion = companion
 
     def _setDirty(self):
+
+        if self._readOnly:
+            raise ReadOnlyError, 'collection is read-only'
 
         if not self._dirty and self._item:
             self._dirty = True
@@ -89,84 +104,82 @@ class PersistentList(list, PersistentCollection):
 
         self._storeValue(value)
         value = self._prepareValue(value)
-        super(PersistentList, self).__setitem__(index, value)
         self._setDirty()
+        super(PersistentList, self).__setitem__(index, value)
 
     def __delitem__(self, index):
 
-        super(PersistentList, self).__delitem__(index)        
         self._setDirty()
+        super(PersistentList, self).__delitem__(index)        
 
     def __setslice__(self, start, end, value):
 
         for v in value:
             self._storeValue(v)
         value = [self._prepareValue(v) for v in value]
-        super(PersistentList, self).__setslice__(start, end, value)
         self._setDirty()
+        super(PersistentList, self).__setslice__(start, end, value)
 
     def __delslice__(self, start, end):
 
-        super(PersistentList, self).__delslice__(start, end)
         self._setDirty()
+        super(PersistentList, self).__delslice__(start, end)
 
     def __iadd__(self, value):
 
         for v in value:
             self._storeValue(v)
         value = [self._prepareValue(v) for v in value]
-        super(PersistentList, self).__iadd__(value)
         self._setDirty()
+        super(PersistentList, self).__iadd__(value)
 
     def __imul__(self, value):
 
-        super(PersistentList, self).__imul__(value)
         self._setDirty()
+        super(PersistentList, self).__imul__(value)
 
     def append(self, value):
 
         self._storeValue(value)
         value = self._prepareValue(value)
-        super(PersistentList, self).append(value)
         self._setDirty()
+        super(PersistentList, self).append(value)
 
     def insert(self, index, value):
 
         self._storeValue(value)
         value = self._prepareValue(value)
-        super(PersistentList, self).insert(index, value)
         self._setDirty()
+        super(PersistentList, self).insert(index, value)
 
     def pop(self, index = -1):
 
-        try:
-            return super(PersistentList, self).pop(index)
-        finally:
-            self._setDirty()
+        self._setDirty()
+        return super(PersistentList, self).pop(index)
 
     def remove(self, value):
 
         value = self._prepareValue(value)
-        super(PersistentList, self).remove(value)
         self._setDirty()
+        super(PersistentList, self).remove(value)
 
     def reverse(self):
 
-        super(PersistentList, self).reverse()
         self._setDirty()
+        super(PersistentList, self).reverse()
 
     def sort(self, *args):
 
-        super(PersistentList, self).sort(*args)
         self._setDirty()
+        super(PersistentList, self).sort(*args)
 
     def extend(self, value):
 
         for v in value:
             self._storeValue(v)
         value = [self._prepareValue(v) for v in value]
-        super(PersistentList, self).extend(value)
         self._setDirty()
+        super(PersistentList, self).extend(value)
 
     def __getitem__(self, key):
 
@@ -209,20 +222,20 @@ class PersistentDict(dict, PersistentCollection):
 
     def __delitem__(self, key):
 
-        super(PersistentDict, self).__delitem__(key)
         self._setDirty()
+        super(PersistentDict, self).__delitem__(key)
 
     def __setitem__(self, key, value):
 
         self._storeValue(value)
         value = self._prepareValue(value)
-        super(PersistentDict, self).__setitem__(key, value)
         self._setDirty()
+        super(PersistentDict, self).__setitem__(key, value)
 
     def clear(self):
 
-        super(PersistentDict, self).clear()
         self._setDirty()
+        super(PersistentDict, self).clear()
 
     def update(self, value):
 
@@ -230,8 +243,8 @@ class PersistentDict(dict, PersistentCollection):
         dictionary = {}
         for k, v in value.iteritems():
             dictionary[k] = self._prepareValue(v)
-        super(PersistentDict, self).update(dictionary)
         self._setDirty()
+        super(PersistentDict, self).update(dictionary)
 
     def setdefault(self, key, value=None):
 
@@ -245,11 +258,11 @@ class PersistentDict(dict, PersistentCollection):
 
     def popitem(self):
 
+        self._setDirty()
+
         value = super(PersistentDict, self).popitem()
         value = (value[0], self._restoreValue(value[1]))
         
-        self._setDirty()
-
         return value
 
     def __getitem__(self, key):

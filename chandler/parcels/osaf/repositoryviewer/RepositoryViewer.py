@@ -266,6 +266,11 @@ class wxRepositoryViewer(wxViewerParcel):
 
         app.repository.commit()
         
+    def OnStop(self):
+
+        app.repository.commit()
+        app.repository.check()
+        
     def UpdateDisplay(self):
         item = self.model.GetDetailItem()
         self.detail.DisplayItem(item)

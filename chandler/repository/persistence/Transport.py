@@ -12,8 +12,16 @@ from repository.util.UUID import UUID
 from repository.persistence.Repository import Store
 
 
-class Transport(Store):
-    pass
+class Transport(object):
+
+    def open(self):
+        raise NotImplementedError, "Transport.open"
+        
+    def close(self):
+        raise NotImplementedError, "Transport.close"
+        
+    def call(self, store, method, *args):
+        raise NotImplementedError, "Transport.call"
 
 
 class SOAPTransport(Transport):
@@ -24,16 +32,14 @@ class SOAPTransport(Transport):
 
     def open(self):
         self.server = SOAPProxy(self.url)
+        return self.server.open()
 
     def close(self):
         pass
+
+    def call(self, store, method, *args):
+        return self.server.call(store, method, *args)
         
-    def loadItem(self, uuid):
-        return self.server.loadItem(uuid)
-
-    def loadChild(self, parent, name):
-        return self.server.loadChild(parent, name)
-
     def parseDoc(self, doc, handler):
         parseString(doc, handler)
         
@@ -68,41 +74,23 @@ class JabberTransport(Transport, jabber.Client):
             raise ValueError, "Auth failed %s %s" %(self.lastErr,
                                                     self.lastErrCode)
 
+        return self._call('open')
+
     def close(self):
 
         self.disconnect()
 
-    def loadItem(self, uuid):
+    def call(self, store, method, *args):
 
+        return self._call('call', store, method, *args)
+
+    def _call(self, method, *args):
+        
         iq = jabber.Iq(to=self.iqTo, type='get')
 
         iq.setQuery('jabber:iq:rpc')
         iq.setID(UUID().str64())
-        iq.setQueryPayload(xmlrpclib.dumps((uuid.str64(),), 'loadItem'))
-
-        self.send(iq)
-        response = self.waitForResponse(iq.getID())
-
-        if response is None:
-            raise ValueError, self.lastErr
-
-        xml = response.getQueryPayload()
-        if xml.name == 'none':
-            return None
-        if xml.name == 'error':
-            raise ValueError, xml.data
-
-        return xml
-
-    def loadChild(self, parent, name):
-
-        iq = jabber.Iq(to=self.iqTo, type='get')
-
-        iq.setQuery('jabber:iq:rpc')
-        iq.setID(UUID().str64())
-        iq.setQueryPayload(xmlrpclib.dumps((parent.str64(),
-                                            name.encode('utf-8')),
-                                           'loadChild'))
+        iq.setQueryPayload(xmlrpclib.dumps(args, method))
 
         self.send(iq)
         response = self.waitForResponse(iq.getID())

@@ -15,6 +15,7 @@ from repository.item.ItemRef import Values, References, RefArgs
 
 from repository.util.UUID import UUID
 from repository.util.Path import Path
+from repository.util.ClassLoader import ClassLoader
 
 
 class ItemHandler(xml.sax.ContentHandler):
@@ -245,8 +246,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def classEnd(self, itemHandler, attrs):
 
-        self.cls = repository.item.Item.Item.loadClass(self.data,
-                                                       attrs['module'])
+        self.cls = ClassLoader.loadClass(self.data, attrs['module'])
 
     def nameEnd(self, itemHandler, attrs):
 
@@ -416,7 +416,7 @@ class ItemHandler(xml.sax.ContentHandler):
             otherName = attribute.getAspect('otherName')
 
         if otherName is None:
-            raise TypeError, 'Undefined other endpoint for %s' %(name)
+            raise TypeError, 'Undefined other endpoint for %s/%s.%s of kind %s' %(self.parent.getItemPath(), self.name, name, self.kind.getItemPath())
 
         return otherName
 
@@ -571,7 +571,7 @@ class ItemHandler(xml.sax.ContentHandler):
         'long': long,
         'float': float,
         'complex': complex,
-        'class': lambda(data): repository.item.Item.Item.loadClass(str(data)),
+        'class': lambda(data): ClassLoader.loadClass(str(data)),
         'NoneType': lambda(data): None,
     }
 
