@@ -23,7 +23,7 @@ buildDir = os.path.join(homeDir, "tinderbuild")
 logFile = os.path.join(buildDir, "build.log")
 stopFile = os.path.join(buildDir, "stop")
 fromAddr = "builds@osafoundation.org"
-blueprintFile = os.path.join("blueprints", project + ".py")
+buildscriptFile = os.path.join("buildscripts", project + ".py")
 
 
 def main():
@@ -70,8 +70,8 @@ def main():
             outputList = hardhatutil.executeCommandReturnOutput(
              [cvsProgram, "update", "-D '"+ nowString + "'"])
 
-            # load (or reload) the blueprint file for the project
-            mod = hardhatutil.ModuleFromFile(blueprintFile, "blueprint")
+            # load (or reload) the buildscript file for the project
+            mod = hardhatutil.ModuleFromFile(buildscriptFile, "buildscript")
 
             treeName = mod.treeName
 
