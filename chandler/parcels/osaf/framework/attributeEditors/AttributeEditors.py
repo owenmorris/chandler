@@ -507,9 +507,15 @@ class LocationAttributeEditor (LabeledAttributeEditor):
             # @@@DLD is there a way to get values whose displayName *starts* with the string?
             queryString = u'for i in "//parcels/osaf/contentmodel/calendar/Location" \
                           where contains(i.displayName, $0)'
-            locQuery = Query.Query (wx.GetApp().UIRepositoryView.repository, queryString)
-            locQuery.args = [ controlValue ]
-            locQuery.execute ()
+            view = wx.GetApp().UIRepositoryView
+            queryName = 'locationAttributeEditorQuery'
+            locQuery = view.findPath('//Queries/'+queryName)
+            if not locQuery:
+                p = view.findPath('//Queries')
+                k = view.findPath('//Schema/Core/Query')
+                locQuery = Query.Query (queryName, p, k, queryString)
+                print "AE:controlValue", controlValue
+                locQuery.args["$0"] = ( controlValue, )
     
             # build a list of matches here
             candidates = []
