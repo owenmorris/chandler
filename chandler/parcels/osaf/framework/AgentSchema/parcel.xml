@@ -80,7 +80,7 @@
   <Attribute itemName="actionOwner">
     <displayName>Action Instruction Backlink</displayName>
     <type itemref="agents:Instruction"/>
-    <cardinality>single</cardinality>
+    <cardinality>list</cardinality>
     <inverseAttribute itemref="agents:actions"/>
   </Attribute>
   
