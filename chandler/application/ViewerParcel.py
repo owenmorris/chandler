@@ -319,5 +319,8 @@ class wxViewerParcel(wxPanel):
                 if not noParcelMenu:
                     oldMenu = menuBar.Remove (menuIndex)
                     del oldMenu
-                    
+            
+            return viewerParcelMenu     
         
+        return None
+    
