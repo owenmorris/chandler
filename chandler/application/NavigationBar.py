@@ -47,6 +47,14 @@ class NavigationBar(Persistent):
         self.future = PersistentList()
         self.history.append(uri)
         
+    def GetCurrentUri(self):
+        """
+          Returns the current uri.  Returns None if there is no current uri
+        (when first launching the app).
+        """
+        if len(self.history) == 0:
+            return None
+        return self.history[-1]        
     
 class wxNavigationBar(wxToolBar):
     def __init__(self):

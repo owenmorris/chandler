@@ -208,6 +208,7 @@ class wxApplication (wxApp):
 
         EVT_MENU(self, -1, self.OnMenuCommand)
         self.InMenuCommand = false      #used by OnMenuCommand
+        self.OpenStartingUri()
         return true  #indicates we succeeded with initialization
 
     if __debug__:
@@ -219,7 +220,21 @@ class wxApplication (wxApp):
             menuBar = self.wxMainFrame.GetMenuBar ()
             menuBar.Check (XRCID ('CreateNewRepository'),
                            hasattr (self.model, 'CreateNewRepository'))
-                    
+
+    def OpenStartingUri(self):
+        """
+          Opens the proper uri when the application first starts.  If
+        this is the first time running, then we just take the first item
+        in the URLTree.  If we have persisted, then we use the last
+        remembered uri.
+        """
+        uri = self.wxMainFrame.navigationBar.model.GetCurrentUri()
+        if uri != None:
+            self.wxMainFrame.GoToUri(uri, false)
+        else:
+            if len(self.model.URLTree) > 0:
+                self.wxMainFrame.GoToUri(self.model.URLTree[0][1], true)
+            
     def OnQuit(self, event):
         """
           Exit the application
