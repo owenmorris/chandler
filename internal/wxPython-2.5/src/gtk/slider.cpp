@@ -141,10 +141,7 @@ bool wxSlider::Create(wxWindow *parent, wxWindowID id,
 
     m_parent->DoAddChild( this );
 
-    PostCreation();
-    InheritAttributes();
-
-    Show( TRUE );
+    PostCreation(size);
 
     return TRUE;
 }
@@ -268,12 +265,6 @@ bool wxSlider::IsOwnGtkWindow( GdkWindow *window )
 #endif
 }
 
-void wxSlider::ApplyWidgetStyle()
-{
-    SetWidgetStyle();
-    gtk_widget_set_style( m_widget, m_widgetStyle );
-}
-
 void wxSlider::GtkDisableEvents()
 {
     gtk_signal_disconnect_by_func( GTK_OBJECT(m_adjust),
@@ -287,6 +278,13 @@ void wxSlider::GtkEnableEvents()
                         "value_changed",
                         GTK_SIGNAL_FUNC(gtk_slider_callback),
                         (gpointer) this );
+}
+
+// static
+wxVisualAttributes
+wxSlider::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    return GetDefaultAttributesFromGTKWidget(gtk_vscale_new);
 }
 
 #endif

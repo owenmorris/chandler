@@ -1147,7 +1147,21 @@ void wxWindowDC::DoDrawBitmap( const wxBitmap &bitmap,
     }
     else
     {
-        gdk_draw_pixmap( m_window, m_penGC, use_bitmap.GetPixmap(), 0, 0, xx, yy, -1, -1 );
+#if GTK_CHECK_VERSION(2,2,0)
+        if (use_bitmap.HasPixbuf())
+        {
+            gdk_draw_pixbuf(m_window, m_penGC,
+                            use_bitmap.GetPixbuf(),
+                            0, 0, xx, yy, -1, -1,
+                            GDK_RGB_DITHER_NORMAL, xx, yy);
+        }
+        else
+#endif
+        {
+            gdk_draw_pixmap(m_window, m_penGC,
+                            use_bitmap.GetPixmap(),
+                            0, 0, xx, yy, -1, -1);
+        }
     }
 
     // remove mask again if any
@@ -1467,13 +1481,29 @@ void wxWindowDC::DoDrawText( const wxString &text, wxCoord x, wxCoord y )
     wxCHECK_RET( m_layout, wxT("no Pango layout") );
     wxCHECK_RET( m_fontdesc, wxT("no Pango font description") );
 
+    bool underlined = m_font.Ok() && m_font.GetUnderlined();
+
 #if wxUSE_UNICODE
     const wxCharBuffer data = wxConvUTF8.cWC2MB( text );
 #else
     const wxWCharBuffer wdata = wxConvLocal.cMB2WC( text );
+    if ( !wdata )
+        return;
     const wxCharBuffer data = wxConvUTF8.cWC2MB( wdata );
 #endif
-    pango_layout_set_text( m_layout, (const char*) data, strlen( (const char*) data ));
+    size_t datalen = strlen((const char*)data);
+    pango_layout_set_text( m_layout, (const char*) data, datalen);
+    
+    if (underlined)
+    {
+        PangoAttrList *attrs = pango_attr_list_new();
+        PangoAttribute *a = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE);
+        a->start_index = 0;
+        a->end_index = datalen;
+        pango_attr_list_insert(attrs, a);
+        pango_layout_set_attributes(m_layout, attrs);
+        pango_attr_list_unref(attrs);
+    }
 
     int w,h;
     
@@ -1519,6 +1549,12 @@ void wxWindowDC::DoDrawText( const wxString &text, wxCoord x, wxCoord y )
         }
         // Draw layout.
         gdk_draw_layout( m_window, m_textGC, x, y, m_layout );
+    }
+
+    if (underlined)
+    {
+        // undo underline attributes setting:
+        pango_layout_set_attributes(m_layout, NULL);
     }
     
     wxCoord width = w;
@@ -1690,29 +1726,48 @@ void wxWindowDC::DoGetTextExtent(const wxString &string,
     // Set layout's text
 #if wxUSE_UNICODE
     const wxCharBuffer data = wxConvUTF8.cWC2MB( string );
-    pango_layout_set_text( m_layout, (const char*) data, strlen( (const char*) data ));
+    const char *dataUTF8 = (const char *)data;
 #else
     const wxWCharBuffer wdata = wxConvLocal.cMB2WC( string );
+    if ( !wdata )
+    {
+        if (width) (*width) = 0;
+        if (height) (*height) = 0;
+        return;
+    }
     const wxCharBuffer data = wxConvUTF8.cWC2MB( wdata );
-    pango_layout_set_text( m_layout, (const char*) data, strlen( (const char*) data ));
+    const char *dataUTF8 = (const char *)data;
 #endif
+
+    if ( !dataUTF8 )
+    {
+        // hardly ideal, but what else can we do if conversion failed?
+        return;
+    }
+
+    pango_layout_set_text( m_layout, dataUTF8, strlen(dataUTF8) );
  
     int w,h;
     pango_layout_get_pixel_size( m_layout, &w, &h );
     
-    if (width) (*width) = (wxCoord) w; 
-    if (height) (*height) = (wxCoord) h;
+    if (width)
+        *width = (wxCoord) w; 
+    if (height)
+        *height = (wxCoord) h;
     if (descent)
     {
-        // Do something about metrics here. TODO.
-        (*descent) = 0;
+        PangoLayoutIter *iter = pango_layout_get_iter(m_layout);
+        int baseline = pango_layout_iter_get_baseline(iter);
+        pango_layout_iter_free(iter);
+        *descent = h - PANGO_PIXELS(baseline);
     }
-    if (externalLeading) (*externalLeading) = 0;  // ??
+    if (externalLeading)
+        *externalLeading = 0;  // ??
     
     // Reset old font description
     if (theFont)
         pango_layout_set_font_description( m_layout, m_fontdesc );
-#else
+#else // GTK+ 1.x
     wxFont fontToUse = m_font;
     if (theFont) fontToUse = *theFont;
     
@@ -1721,7 +1776,7 @@ void wxWindowDC::DoGetTextExtent(const wxString &string,
     if (height) (*height) = wxCoord((font->ascent + font->descent) / m_scaleY);
     if (descent) (*descent) = wxCoord(font->descent / m_scaleY);
     if (externalLeading) (*externalLeading) = 0;  // ??
-#endif
+#endif // GTK+ 2/1
 }
 
 wxCoord wxWindowDC::GetCharWidth() const

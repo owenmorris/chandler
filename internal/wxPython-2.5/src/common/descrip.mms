@@ -142,6 +142,7 @@ OBJECTS1=fs_inet.obj,\
 		socket.obj,\
 		settcmn.obj,\
 		statbar.obj,\
+		stockitem.obj,\
 		stopwatch.obj,\
 		strconv.obj,\
 		stream.obj,\
@@ -176,7 +177,7 @@ OBJECTS_MOTIF=bmpbase.obj,gaugecmn.obj
 
 OBJECTS_X11=accesscmn.obj,bmpbase.obj,dndcmn.obj,dpycmn.obj,dseldlg.obj,\
 	dynload.obj,effects.obj,fddlgcmn.obj,fs_mem.obj,gaugecmn.obj,\
-	gbsizer.obj,geometry.obj,gzstream.obj,matrix.obj,radiocmn.obj,\
+	gbsizer.obj,geometry.obj,matrix.obj,radiocmn.obj,\
 	regex.obj,taskbarcmn.obj,xti.obj,xtistrm.obj,xtixml.obj
 
 SOURCES = \
@@ -280,6 +281,7 @@ SOURCES = \
 		socket.cpp,\
 		settcmn.cpp,\
 		statbar.cpp,\
+		stockitem.cpp,\
 		stopwatch.cpp,\
 		strconv.cpp,\
 		stream.cpp,\
@@ -317,7 +319,6 @@ SOURCES = \
 		fs_mem.cpp,\
 		gbsizer.cpp,\
 		geometry.cpp,\
-		gzstream.cpp,\
 		matrix.cpp,\
 		radiocmn.cpp,\
 		regex.cpp,\
@@ -452,6 +453,7 @@ sizer.obj : sizer.cpp
 socket.obj : socket.cpp
 settcmn.obj : settcmn.cpp
 statbar.obj : statbar.cpp
+stockitem.obj : stockitem.cpp
 stopwatch.obj : stopwatch.cpp
 strconv.obj : strconv.cpp
 stream.obj : stream.cpp
@@ -489,7 +491,6 @@ fddlgcmn.obj : fddlgcmn.cpp
 fs_mem.obj : fs_mem.cpp
 gbsizer.obj : gbsizer.cpp
 geometry.obj : geometry.cpp
-gzstream.obj : gzstream.cpp
 matrix.obj : matrix.cpp
 radiocmn.obj : radiocmn.cpp
 regex.obj : regex.cpp

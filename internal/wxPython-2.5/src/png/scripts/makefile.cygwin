@@ -78,11 +78,11 @@ CFLAGS= $(strip $(MINGW_CCFLAGS) $(addprefix -I,$(ZLIBINC)) \
 
 LIBNAME = libpng12
 PNGMAJ = 0
-PNGDLL = 13
-PNGMIN = 1.2.4
+CYGDLL = 12
+PNGMIN = 1.2.7
 PNGVER = $(PNGMAJ).$(PNGMIN)
 
-SHAREDLIB=cygpng$(PNGDLL).dll
+SHAREDLIB=cygpng$(CYGDLL).dll
 STATLIB=libpng.a
 IMPLIB=libpng.dll.a
 SHAREDDEF=libpng.def
@@ -147,10 +147,9 @@ libpng-config: scripts/libpng-config-head.in scripts/libpng-config-body.in
  installation..'\n' using PREFIX=\"$(prefix)\"'\n'
 	( cat $(S)/scripts/libpng-config-head.in; \
 	echo prefix=\"$(prefix)\"; \
-	echo cppflags=\"-I$(INCPATH)/$(LIBNAME)\"; \
-	echo cflags=\"\"; \
-	echo ldflags=\"-L$(LIBPATH)\"; \
-	echo libs=\"-lpng$(PNGMAJ) -lz\"; \
+	echo I_opts=\"-I$(INCPATH)/$(LIBNAME)\"; \
+	echo L_opts=\"-L$(LIBPATH)\"; \
+	echo libs=\"-lpng$(CYGDLL) -lz\"; \
 	cat $(S)/scripts/libpng-config-body.in ) > libpng-config
 	chmod +x libpng-config
 
@@ -177,7 +176,7 @@ $(STATLIB): $(OBJS)
 	ar rc $@ $(OBJS)
 	$(RANLIB) $@
 
-$(SHAREDDEF): projects/msvc/png32ms.def
+$(SHAREDDEF): scripts/png32ms.def
 	cat $< | sed -e '1{G;s/^\(.*\)\(\n\)/EXPORTS/;};2,/^EXPORTS/d' | \
 	sed -e 's/\([^;]*\);/;/' > $@
 
@@ -261,13 +260,23 @@ test-config-install: $(DB)/libpng-config
 install: install-static install-shared install-man install-config
 
 # If you installed in $(DESTDIR), test-installed won't work until you
-# move the library to its final location.
+# move the library to its final location.  Use test-dd to test it
+# before then.
+
+test-dd:
+	echo
+	echo Testing installed dynamic shared library in $(DL).
+	$(CC) -I$(DI) $(CFLAGS) \
+	   `$(BINPATH)/libpng12-config --cflags` pngtest.c \
+	   -L$(DL) -L$(ZLIBLIB) \
+	   -o pngtestd `$(BINPATH)/libpng12-config --ldflags`
+	./pngtestd pngtest.png
 
 test-installed:
 	$(CC) $(CFLAGS) \
-	   `$(BINPATH)/libpng12-config --cppflags --cflags` pngtest.c \
+	   `$(BINPATH)/libpng12-config --cflags` pngtest.c \
 	   -L$(ZLIBLIB) \
-	   -o pngtesti$(EXE) `$(BINPATH)/libpng12-config --ldflags --libs`
+	   -o pngtesti$(EXE) `$(BINPATH)/libpng12-config --ldflags`
 	./pngtesti$(EXE) pngtest.png
 
 clean:

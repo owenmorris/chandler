@@ -36,6 +36,10 @@
     #include "wx/settings.h"
 #endif
 
+#ifdef __WXMAC__
+    #include "wx/mac/private.h"
+#endif
+
 #include "wx/renderer.h"
 
 #include "wx/splitter.h"
@@ -50,12 +54,12 @@ DEFINE_EVENT_TYPE(wxEVT_COMMAND_SPLITTER_UNSPLIT)
 IMPLEMENT_DYNAMIC_CLASS(wxSplitterWindow, wxWindow)
 
 /*
-	TODO PROPERTIES
-		style wxSP_3D
-		sashpos (long , 0 )
-		minsize (long -1 )
-		object, object_ref
-		orientation
+    TODO PROPERTIES
+        style wxSP_3D
+        sashpos (long , 0 )
+        minsize (long -1 )
+        object, object_ref
+        orientation
 */
 
 IMPLEMENT_DYNAMIC_CLASS(wxSplitterEvent, wxNotifyEvent)
@@ -183,7 +187,7 @@ void wxSplitterWindow::OnInternalIdle()
         SizeWindows();
         return; // it won't needUpdating in this case
     }
-    
+
     if (m_needUpdating)
         SizeWindows();
 }
@@ -200,15 +204,18 @@ void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
     // following the mouse movement while it drags the sash, without it we only
     // draw the sash at the new position but only resize the windows when the
     // dragging is finished
+#if defined( __WXMAC__ ) && TARGET_API_MAC_OSX == 1
+    bool isLive = true ;
+#else
     bool isLive = (GetWindowStyleFlag() & wxSP_LIVE_UPDATE) != 0;
-
+#endif
     if (event.LeftDown())
     {
         if ( SashHitTest(x, y) )
         {
             // Start the drag now
             m_dragMode = wxSPLIT_DRAG_DRAGGING;
-            
+
             // Capture mouse and set the cursor
             CaptureMouse();
             SetResizeCursor();
@@ -233,7 +240,7 @@ void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
     {
         // We can stop dragging now and see what we've got.
         m_dragMode = wxSPLIT_DRAG_NONE;
-        
+
         // Release mouse and unset the cursor
         ReleaseMouse();
         SetCursor(* wxSTANDARD_CURSOR);
@@ -423,7 +430,7 @@ bool wxSplitterWindow::SashHitTest(int x, int y, int tolerance)
     int z = m_splitMode == wxSPLIT_VERTICAL ? x : y;
     int hitMin = m_sashPosition - tolerance;
     int hitMax = m_sashPosition + GetSashSize() + tolerance;
-    
+
     return z >=  hitMin && z <= hitMax;
 }
 
@@ -582,6 +589,12 @@ bool wxSplitterWindow::DoSetSashPosition(int sashPos)
 
 void wxSplitterWindow::SetSashPositionAndNotify(int sashPos)
 {
+    // we must reset the request here, otherwise the sash would be stuck at
+    // old position if the user attempted to move the sash after invalid
+    // (e.g. smaller than minsize) sash position was requested using 
+    // SetSashPosition():
+    m_requestedSashPosition = INT_MAX;
+
     if ( DoSetSashPosition(sashPos) )
     {
         wxSplitterEvent event(wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED, this);
@@ -662,7 +675,7 @@ void wxSplitterWindow::SizeWindows()
 // Set pane for unsplit window
 void wxSplitterWindow::Initialize(wxWindow *window)
 {
-    wxASSERT_MSG( window && window->GetParent() == this,
+    wxASSERT_MSG( (!window || (window && window->GetParent() == this)),
                   _T("windows in the splitter should have it as parent!") );
 
     m_windowOne = window;
@@ -694,7 +707,7 @@ bool wxSplitterWindow::DoSplit(wxSplitMode mode,
     // right now (e.g. because the window is too small)
     m_requestedSashPosition = sashPosition;
     m_checkRequestedSashPosition = false;
-    
+
     DoSetSashPosition(ConvertSashPosition(sashPosition));
 
     SizeWindows();
@@ -792,7 +805,7 @@ void wxSplitterWindow::SetSashPosition(int position, bool redraw)
     // right now (e.g. because the window is too small)
     m_requestedSashPosition = position;
     m_checkRequestedSashPosition = false;
-    
+
     DoSetSashPosition(ConvertSashPosition(position));
 
     if ( redraw )

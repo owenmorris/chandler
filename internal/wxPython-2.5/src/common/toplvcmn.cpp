@@ -54,6 +54,8 @@ IMPLEMENT_DYNAMIC_CLASS(wxTopLevelWindow, wxWindow)
 
 wxTopLevelWindowBase::wxTopLevelWindowBase()
 {
+    // Unlike windows, top level windows are created hidden by default.
+    m_isShown = false;
 }
 
 wxTopLevelWindowBase::~wxTopLevelWindowBase()
@@ -119,6 +121,30 @@ wxSize wxTopLevelWindowBase::GetMaxSize() const
 
     if( size.GetHeight() == -1 )
         size.SetHeight( h );
+
+    return size;
+}
+
+/* static */
+wxSize wxTopLevelWindowBase::GetDefaultSize()
+{
+    wxSize size = wxGetClientDisplayRect().GetSize();
+
+    // create proportionally bigger windows on small screens
+    if ( size.x >= 1024 )
+        size.x = 400;
+    else if ( size.x >= 800 )
+        size.x = 300;
+    else if ( size.x >= 320 )
+        size.x = 240;
+
+    if ( size.y >= 768 )
+        size.y = 250;
+    else if ( size.y > 200 )
+    {
+        size.y *= 2;
+        size.y /= 3;
+    }
 
     return size;
 }
@@ -239,4 +265,9 @@ void wxTopLevelWindowBase::DoUpdateWindowUI(wxUpdateUIEvent& event)
     }
 }
 
-// vi:sts=4:sw=4:et
+void wxTopLevelWindowBase::RequestUserAttention(int WXUNUSED(flags))
+{
+    // it's probably better than do nothing, isn't it?
+    Raise();
+}
+

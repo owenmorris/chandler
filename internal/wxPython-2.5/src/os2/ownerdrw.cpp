@@ -246,7 +246,7 @@ bool wxOwnerDrawn::OnDrawItem(
         // Fall back to default colors if none explicitly specified
         //
         vRef = ::WinQuerySysColor( HWND_DESKTOP
-                                  ,SYSCLR_MENU  // we are using gray for all our window backgrounds in wxWindows
+                                  ,SYSCLR_MENU  // we are using gray for all our window backgrounds in wxWidgets
                                   ,0L
                                  );
         vColBack.Set( GetRValue(vRef)

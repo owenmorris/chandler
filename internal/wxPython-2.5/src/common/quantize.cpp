@@ -1578,7 +1578,7 @@ bool wxQuantize::Quantize(const wxImage& src, wxImage& dest,
         delete[] data8bit;
 
 #if wxUSE_PALETTE
-    // Make a wxWindows palette
+    // Make a wxWidgets palette
     if (pPalette)
     {
         unsigned char* r = new unsigned char[256];

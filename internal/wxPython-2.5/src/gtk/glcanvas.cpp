@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        gtk/glcanvas.cpp
-// Purpose:     wxGLCanvas, for using OpenGL/Mesa with wxWindows and GTK
+// Purpose:     wxGLCanvas, for using OpenGL/Mesa with wxWidgets and GTK
 // Author:      Robert Roebling
 // Modified by:
 // Created:     17/08/98
@@ -160,10 +160,16 @@ wxPalette wxGLContext::CreateDefaultPalette()
 static gint
 gtk_glwindow_realized_callback( GtkWidget * WXUNUSED(widget), wxGLCanvas *win )
 {
-    wxGLContext *share= win->m_sharedContext;
-    if (share==NULL && win->m_sharedContextOf) share=win->m_sharedContextOf->GetContext();
+    // VZ: apparently in some cases we're called twice -- no idea why,
+    //     but a check doesn't hurt
+    if ( !win->m_glContext )
+    {
+        wxGLContext *share = win->m_sharedContext;
+        if ( !share && win->m_sharedContextOf )
+            share = win->m_sharedContextOf->GetContext();
 
-    win->m_glContext = new wxGLContext( TRUE, win, wxNullPalette, share );
+        win->m_glContext = new wxGLContext( TRUE, win, wxNullPalette, share );
+    }
 
     return FALSE;
 }
@@ -365,7 +371,7 @@ wxGLCanvas::~wxGLCanvas()
     XVisualInfo *vi = (XVisualInfo *) m_vi;
 
     if (vi && m_canFreeVi) XFree( vi );
-    if (m_glContext) delete m_glContext;
+    delete m_glContext;
 }
 
 void* wxGLCanvas::ChooseGLVisual(int *attribList)

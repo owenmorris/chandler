@@ -51,7 +51,7 @@
 #include <ole2.h>
 #include <shellapi.h>
 #include <commctrl.h>
-#if _WIN32_WCE < 400
+#if (_WIN32_WCE < 400) && !defined(__HANDHELDPC__)
 #include <aygshell.h>
 #endif
 
@@ -93,6 +93,9 @@ static void SetDefaultMenuItem(HMENU hmenu, UINT id)
     {
         wxLogLastError(wxT("SetMenuItemInfo"));
     }
+#else
+    wxUnusedVar(hmenu);
+    wxUnusedVar(id);
 #endif
 }
 
@@ -103,7 +106,7 @@ UINT GetMenuState(HMENU hMenu, UINT id, UINT flags)
     wxZeroMemory(info);
     info.cbSize = sizeof(info);
     info.fMask = MIIM_STATE;
-    if ( !GetMenuItemInfo(hMenu, id, flags & MF_BYCOMMAND ? FALSE : TRUE, & info) )
+    if ( !::GetMenuItemInfo(hMenu, id, flags & MF_BYCOMMAND ? FALSE : TRUE, & info) )
         wxLogLastError(wxT("GetMenuItemInfo"));
     return info.fState;
 }
@@ -135,9 +138,9 @@ template<> void wxCollectionToVariantArray( wxMenuItemList const &theList, wxxVa
 }
 
 wxBEGIN_PROPERTIES_TABLE(wxMenu)
-	wxEVENT_PROPERTY( Select , wxEVT_COMMAND_MENU_SELECTED , wxCommandEvent)
+    wxEVENT_PROPERTY( Select , wxEVT_COMMAND_MENU_SELECTED , wxCommandEvent)
     wxPROPERTY( Title, wxString , SetTitle, GetTitle, wxString(), 0 /*flags*/ , wxT("Helpstring") , wxT("group") )
-    wxREADONLY_PROPERTY_FLAGS( MenuStyle , wxMenuStyle , long , GetStyle , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
+    wxREADONLY_PROPERTY_FLAGS( MenuStyle , wxMenuStyle , long , GetStyle , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
     wxPROPERTY_COLLECTION( MenuItems , wxMenuItemList , wxMenuItem* , Append , GetMenuItems , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
 wxEND_PROPERTIES_TABLE()
 
@@ -163,14 +166,14 @@ IMPLEMENT_DYNAMIC_CLASS_XTI_CALLBACK(wxMenuBar, wxWindow ,"wx/menu.h",wxMenuBarS
 IMPLEMENT_DYNAMIC_CLASS_XTI(wxMenuInfo, wxObject , "wx/menu.h" )
 
 wxBEGIN_PROPERTIES_TABLE(wxMenuInfo)
-    wxREADONLY_PROPERTY( Menu , wxMenu* , GetMenu , , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxREADONLY_PROPERTY( Menu , wxMenu* , GetMenu , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
     wxREADONLY_PROPERTY( Title , wxString , GetTitle , wxString() , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
 wxEND_PROPERTIES_TABLE()
 
 wxBEGIN_HANDLERS_TABLE(wxMenuInfo)
 wxEND_HANDLERS_TABLE()
 
-wxCONSTRUCTOR_2( wxMenuInfo , wxMenu* , Menu , wxString , Title ) 
+wxCONSTRUCTOR_2( wxMenuInfo , wxMenu* , Menu , wxString , Title )
 
 wxCOLLECTION_TYPE_INFO( wxMenuInfo * , wxMenuInfoList ) ;
 
@@ -214,7 +217,7 @@ const wxMenuInfoList& wxMenuBar::GetMenuInfos() const
 // Construct a menu with optional title (then use append)
 void wxMenu::Init()
 {
-    m_doBreak = FALSE;
+    m_doBreak = false;
     m_startRadioGroup = -1;
 
     // create the menu
@@ -225,7 +228,7 @@ void wxMenu::Init()
     }
 
     // if we have a title, insert it in the beginning of the menu
-    if ( !!m_title )
+    if ( !m_title.IsEmpty() )
     {
         Append(idMenuTitle, m_title);
         AppendSeparator();
@@ -255,7 +258,7 @@ wxMenu::~wxMenu()
 void wxMenu::Break()
 {
     // this will take effect during the next call to Append()
-    m_doBreak = TRUE;
+    m_doBreak = true;
 }
 
 void wxMenu::Attach(wxMenuBarBase *menubar)
@@ -321,7 +324,7 @@ void wxMenu::UpdateAccel(wxMenuItem *item)
 
         if ( IsAttached() )
         {
-            m_menuBar->RebuildAccelTable();
+            GetMenuBar()->RebuildAccelTable();
         }
     }
     //else: it is a separator, they can't have accels, nothing to do
@@ -342,7 +345,7 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
     // (and don't forget to reset the flag)
     if ( m_doBreak ) {
         flags |= MF_MENUBREAK;
-        m_doBreak = FALSE;
+        m_doBreak = false;
     }
 
     if ( pItem->IsSeparator() ) {
@@ -406,7 +409,7 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
     {
         wxLogLastError(wxT("Insert or AppendMenu"));
 
-        return FALSE;
+        return false;
     }
 
     // if we just appended the title, highlight it
@@ -419,12 +422,12 @@ bool wxMenu::DoInsertOrAppend(wxMenuItem *pItem, size_t pos)
 #endif // __WIN32__
 
     // if we're already attached to the menubar, we must update it
-    if ( IsAttached() && m_menuBar->IsAttached() )
+    if ( IsAttached() && GetMenuBar()->IsAttached() )
     {
-        m_menuBar->Refresh();
+        GetMenuBar()->Refresh();
     }
 
-    return TRUE;
+    return true;
 }
 
 void wxMenu::EndRadioGroup()
@@ -437,7 +440,7 @@ wxMenuItem* wxMenu::DoAppend(wxMenuItem *item)
 {
     wxCHECK_MSG( item, NULL, _T("NULL item in wxMenu::DoAppend") );
 
-    bool check = FALSE;
+    bool check = false;
 
     if ( item->GetKind() == wxITEM_RADIO )
     {
@@ -453,7 +456,7 @@ wxMenuItem* wxMenu::DoAppend(wxMenuItem *item)
             item->SetRadioGroupEnd(m_startRadioGroup);
 
             // ensure that we have a checked item in the radio group
-            check = TRUE;
+            check = true;
         }
         else // extend the current radio group
         {
@@ -484,7 +487,7 @@ wxMenuItem* wxMenu::DoAppend(wxMenuItem *item)
     if ( check )
     {
         // check the item initially
-        item->Check(TRUE);
+        item->Check(true);
     }
 
     return item;
@@ -532,10 +535,10 @@ wxMenuItem *wxMenu::DoRemove(wxMenuItem *item)
         wxLogLastError(wxT("RemoveMenu"));
     }
 
-    if ( IsAttached() && m_menuBar->IsAttached() )
+    if ( IsAttached() && GetMenuBar()->IsAttached() )
     {
         // otherwise, the chane won't be visible
-        m_menuBar->Refresh();
+        GetMenuBar()->Refresh();
     }
 
     // and from internal data structures
@@ -651,7 +654,7 @@ bool wxMenu::MSWCommand(WXUINT WXUNUSED(param), WXWORD id)
         SendEvent(id, menuState & MF_CHECKED);
     }
 
-    return TRUE;
+    return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -662,8 +665,8 @@ wxWindow *wxMenu::GetWindow() const
 {
     if ( m_invokingWindow != NULL )
         return m_invokingWindow;
-    else if ( m_menuBar != NULL)
-        return m_menuBar->GetFrame();
+    else if ( GetMenuBar() != NULL)
+        return GetMenuBar()->GetFrame();
 
     return NULL;
 }
@@ -676,14 +679,15 @@ void wxMenuBar::Init()
 {
     m_eventHandler = this;
     m_hMenu = 0;
-#if wxUSE_TOOLBAR && defined(__WXWINCE__) && (_WIN32_WCE < 400 || wxUSE_POCKETPC_UI)
+#if wxUSE_TOOLBAR && defined(__WXWINCE__)
     m_toolBar = NULL;
 #endif
     // Not using a combined wxToolBar/wxMenuBar? then use
     // a commandbar in WinCE .NET just to implement the
     // menubar.
-#if defined(__WXWINCE__) && (_WIN32_WCE >= 400 && !wxUSE_POCKETPC_UI)
+#if defined(WINCE_WITH_COMMANDBAR)
     m_commandBar = NULL;
+    m_adornmentsAdded = false;
 #endif
 }
 
@@ -716,7 +720,7 @@ wxMenuBar::~wxMenuBar()
 {
     // In Windows CE (not .NET), the menubar is always associated
     // with a toolbar, which destroys the menu implicitly.
-#if defined(__WXWINCE__) && (_WIN32_WCE < 400 || wxUSE_POCKETPC_UI)
+#if defined(WINCE_WITHOUT_COMMANDBAR)
     if (GetToolBar())
         GetToolBar()->SetMenuBar(NULL);
 #else
@@ -724,12 +728,12 @@ wxMenuBar::~wxMenuBar()
     // which happens if we're attached to a frame
     if (m_hMenu && !IsAttached())
     {
-#if defined(__WXWINCE__) && (_WIN32_WCE >= 400 && !wxUSE_POCKETPC_UI)
+#if defined(WINCE_WITH_COMMANDBAR)
         ::DestroyWindow((HWND) m_commandBar);
         m_commandBar = (WXHWND) NULL;
 #else
         ::DestroyMenu((HMENU)m_hMenu);
-#endif        
+#endif
         m_hMenu = (WXHMENU)NULL;
     }
 #endif
@@ -743,12 +747,12 @@ void wxMenuBar::Refresh()
 {
     wxCHECK_RET( IsAttached(), wxT("can't refresh unattached menubar") );
 
-#if defined(__WXWINCE__) && (_WIN32_WCE < 400 || wxUSE_POCKETPC_UI)
+#if defined(WINCE_WITHOUT_COMMANDBAR)
     if (GetToolBar())
     {
         CommandBar_DrawMenuBar((HWND) GetToolBar()->GetHWND(), 0);
     }
-#elif defined(__WXWINCE__) && (_WIN32_WCE >= 400 && !wxUSE_POCKETPC_UI)
+#elif defined(WINCE_WITH_COMMANDBAR)
     if (m_commandBar)
         DrawMenuBar((HWND) m_commandBar);
 #else
@@ -762,7 +766,7 @@ WXHMENU wxMenuBar::Create()
     // since you have to use resources.
     // We'll have to find another way to add a menu
     // by changing/adding menu items to an existing menu.
-#if defined(__WXWINCE__) && _WIN32_WCE < 400
+#if defined(WINCE_WITHOUT_COMMANDBAR)
     if ( m_hMenu != 0 )
         return m_hMenu;
 
@@ -773,12 +777,12 @@ WXHMENU wxMenuBar::Create()
     HMENU hMenu = (HMENU)::SendMessage(hCommandBar, SHCMBM_GETMENU, (WPARAM)0, (LPARAM)0);
     if (hMenu)
     {
-        TBBUTTON tbButton; 
+        TBBUTTON tbButton;
         memset(&tbButton, 0, sizeof(TBBUTTON));
         tbButton.iBitmap = I_IMAGENONE;
         tbButton.fsState = TBSTATE_ENABLED;
         tbButton.fsStyle = TBSTYLE_DROPDOWN | TBSTYLE_NO_DROPDOWN_ARROW | TBSTYLE_AUTOSIZE;
-        
+
         size_t i;
         for (i = 0; i < GetMenuCount(); i++)
         {
@@ -788,7 +792,7 @@ WXHMENU wxMenuBar::Create()
             tbButton.iString = (int) label.c_str();
 
             int position = i;
-            
+
             tbButton.idCommand = NewControlId();
             if (!::SendMessage(hCommandBar, TB_INSERTBUTTON, position, (LPARAM)&tbButton))
             {
@@ -919,7 +923,7 @@ void wxMenuBar::SetLabelTop(size_t pos, const wxString& label)
     {
         wxLogLastError(wxT("SetMenuItemInfo"));
     }
-    
+
 #else
     if ( ::ModifyMenu(GetHmenu(), mswpos, MF_BYPOSITION | MF_STRING | flagsOld,
         id, label) == (int)0xFFFFFFFF )
@@ -992,31 +996,31 @@ bool wxMenuBar::Insert(size_t pos, wxMenu *menu, const wxString& title)
         :   MSWPositionForWxMenu(GetMenu(pos),pos);
 
     if ( !wxMenuBarBase::Insert(pos, menu, title) )
-        return FALSE;
+        return false;
 
     m_titles.Insert(title, pos);
 
     if ( IsAttached() )
     {
-#if defined(__WXWINCE__) && (_WIN32_WCE < 400 || wxUSE_POCKETPC_UI)
+#if defined(WINCE_WITHOUT_COMMANDAR)
         if (!GetToolBar())
-            return FALSE;
-        TBBUTTON tbButton; 
+            return false;
+        TBBUTTON tbButton;
         memset(&tbButton, 0, sizeof(TBBUTTON));
         tbButton.iBitmap = I_IMAGENONE;
         tbButton.fsState = TBSTATE_ENABLED;
         tbButton.fsStyle = TBSTYLE_DROPDOWN | TBSTYLE_NO_DROPDOWN_ARROW | TBSTYLE_AUTOSIZE;
-        
+
         HMENU hPopupMenu = (HMENU) menu->GetHMenu() ;
         tbButton.dwData = (DWORD)hPopupMenu;
         wxString label = wxStripMenuCodes(title);
         tbButton.iString = (int) label.c_str();
-            
+
         tbButton.idCommand = NewControlId();
         if (!::SendMessage((HWND) GetToolBar()->GetHWND(), TB_INSERTBUTTON, pos, (LPARAM)&tbButton))
         {
             wxLogLastError(wxT("TB_INSERTBUTTON"));
-            return FALSE;
+            return false;
         }
 #else
         if ( !::InsertMenu(GetHmenu(), mswpos,
@@ -1037,41 +1041,41 @@ bool wxMenuBar::Insert(size_t pos, wxMenu *menu, const wxString& title)
         Refresh();
     }
 
-    return TRUE;
+    return true;
 }
 
 bool wxMenuBar::Append(wxMenu *menu, const wxString& title)
 {
     WXHMENU submenu = menu ? menu->GetHMenu() : 0;
-    wxCHECK_MSG( submenu, FALSE, wxT("can't append invalid menu to menubar") );
+    wxCHECK_MSG( submenu, false, wxT("can't append invalid menu to menubar") );
 
     if ( !wxMenuBarBase::Append(menu, title) )
-        return FALSE;
+        return false;
 
     m_titles.Add(title);
 
     if ( IsAttached() )
     {
-#if defined(__WXWINCE__) && (_WIN32_WCE < 400 || wxUSE_POCKETPC_UI)
+#if defined(WINCE_WITHOUT_COMMANDAR)
         if (!GetToolBar())
-            return FALSE;
-        TBBUTTON tbButton; 
+            return false;
+        TBBUTTON tbButton;
         memset(&tbButton, 0, sizeof(TBBUTTON));
         tbButton.iBitmap = I_IMAGENONE;
         tbButton.fsState = TBSTATE_ENABLED;
         tbButton.fsStyle = TBSTYLE_DROPDOWN | TBSTYLE_NO_DROPDOWN_ARROW | TBSTYLE_AUTOSIZE;
-        
+
         size_t pos = GetMenuCount();
         HMENU hPopupMenu = (HMENU) menu->GetHMenu() ;
         tbButton.dwData = (DWORD)hPopupMenu;
         wxString label = wxStripMenuCodes(title);
         tbButton.iString = (int) label.c_str();
-            
+
         tbButton.idCommand = NewControlId();
         if (!::SendMessage((HWND) GetToolBar()->GetHWND(), TB_INSERTBUTTON, pos, (LPARAM)&tbButton))
         {
             wxLogLastError(wxT("TB_INSERTBUTTON"));
-            return FALSE;
+            return false;
         }
 #else
         if ( !::AppendMenu(GetHmenu(), MF_POPUP | MF_STRING,
@@ -1092,7 +1096,7 @@ bool wxMenuBar::Append(wxMenu *menu, const wxString& title)
         Refresh();
     }
 
-    return TRUE;
+    return true;
 }
 
 wxMenu *wxMenuBar::Remove(size_t pos)
@@ -1103,7 +1107,7 @@ wxMenu *wxMenuBar::Remove(size_t pos)
 
     if ( IsAttached() )
     {
-#if defined(__WXWINCE__) && (_WIN32_WCE < 400 || wxUSE_POCKETPC_UI)
+#if defined(WINCE_WITHOUT_COMMANDAR)
         if (GetToolBar())
         {
             if (!::SendMessage((HWND) GetToolBar()->GetHWND(), TB_DELETEBUTTON, (UINT) pos, (LPARAM) 0))
@@ -1170,19 +1174,9 @@ void wxMenuBar::Attach(wxFrame *frame)
 {
     wxMenuBarBase::Attach(frame);
 
-#if defined(__WXWINCE__) && _WIN32_WCE >= 400
+#if defined(WINCE_WITH_COMMANDBAR)
     if (!m_hMenu)
         this->Create();
-#if wxUSE_POCKETPC_UI
-    if (GetToolBar())
-    {
-        HWND hCommandBar = (HWND) GetToolBar()->GetHWND();
-        if (!CommandBar_InsertMenubarEx(hCommandBar, NULL, (LPTSTR) m_hMenu, 0))
-        {
-            wxLogLastError(wxT("CommandBar_InsertMenubarEx"));
-        }
-    }
-#else
     if (!m_commandBar)
         m_commandBar = (WXHWND) CommandBar_Create(wxGetInstance(), (HWND) frame->GetHWND(), NewControlId());
     if (m_commandBar)
@@ -1196,14 +1190,28 @@ void wxMenuBar::Attach(wxFrame *frame)
         }
     }
 #endif
-    // wxUSE_POCKETPC_UI
-#endif
-    // __WXWINCE__ && _WIN32_WCE >= 400
 
 #if wxUSE_ACCEL
     RebuildAccelTable();
 #endif // wxUSE_ACCEL
 }
+
+#if defined(WINCE_WITH_COMMANDBAR)
+bool wxMenuBar::AddAdornments(long style)
+{
+    if (m_adornmentsAdded || !m_commandBar)
+        return false;
+
+    if (style & wxCLOSE_BOX)
+    {
+        if (!CommandBar_AddAdornments((HWND) m_commandBar, 0, 0))
+            wxLogLastError(wxT("CommandBar_AddAdornments"));
+        else
+            return true;
+    }
+    return false;
+}
+#endif
 
 void wxMenuBar::Detach()
 {

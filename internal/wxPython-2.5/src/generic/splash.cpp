@@ -22,12 +22,17 @@
 
 #if wxUSE_SPLASH
 
+#ifdef __WXGTK20__
+    #include <gtk/gtk.h>
+#endif
+
 #ifndef WX_PRECOMP
 #include "wx/dcmemory.h"
 #include "wx/dcclient.h"
 #endif
 
 #include "wx/splash.h"
+
 
 /*
  * wxSplashScreen
@@ -50,11 +55,16 @@ END_EVENT_TABLE()
 wxSplashScreen::wxSplashScreen(const wxBitmap& bitmap, long splashStyle, int milliseconds, wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style):
     wxFrame(parent, id, wxEmptyString, wxPoint(0, 0), wxSize(100, 100), style)
 {
+#ifdef __WXGTK20__
+    gtk_window_set_type_hint(GTK_WINDOW(m_widget),
+                             GDK_WINDOW_TYPE_HINT_SPLASHSCREEN);
+#endif
+    
     m_window = NULL;
     m_splashStyle = splashStyle;
     m_milliseconds = milliseconds;
 
-    m_window = new wxSplashScreenWindow(bitmap, this, -1, pos, size, wxNO_BORDER);
+    m_window = new wxSplashScreenWindow(bitmap, this, wxID_ANY, pos, size, wxNO_BORDER);
 
     SetClientSize(bitmap.GetWidth(), bitmap.GetHeight());
 
@@ -66,10 +76,10 @@ wxSplashScreen::wxSplashScreen(const wxBitmap& bitmap, long splashStyle, int mil
     if (m_splashStyle & wxSPLASH_TIMEOUT)
     {
         m_timer.SetOwner(this, wxSPLASH_TIMER_ID);
-        m_timer.Start(milliseconds, TRUE);
+        m_timer.Start(milliseconds, true);
     }
 
-    Show(TRUE);
+    Show(true);
     m_window->SetFocus();
 #if defined( __WXMSW__ ) || defined(__WXMAC__)
     Update(); // Without this, you see a blank screen for an instant
@@ -85,7 +95,7 @@ wxSplashScreen::~wxSplashScreen()
 
 void wxSplashScreen::OnNotify(wxTimerEvent& WXUNUSED(event))
 {
-    Close(TRUE);
+    Close(true);
 }
 
 void wxSplashScreen::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
@@ -182,12 +192,12 @@ void wxSplashScreenWindow::OnEraseBackground(wxEraseEvent& event)
 void wxSplashScreenWindow::OnMouseEvent(wxMouseEvent& event)
 {
     if (event.LeftDown() || event.RightDown())
-        GetParent()->Close(TRUE);
+        GetParent()->Close(true);
 }
 
 void wxSplashScreenWindow::OnChar(wxKeyEvent& WXUNUSED(event))
 {
-    GetParent()->Close(TRUE);
+    GetParent()->Close(true);
 }
 
 #endif // wxUSE_SPLASH

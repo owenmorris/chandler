@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // RCS-ID:      $Id$
 // Copyright:   (c) 1999 Vaclav Slavik
-// Licence:     wxWindows Licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -35,10 +35,15 @@
 #include "wx/dynarray.h"
 #include "wx/arrimpl.cpp"
 
+#ifdef __WXWINCE__
+    #include "wx/msw/wince/missing.h"       // for bsearch()
+#endif
 
 // DLL options compatibility check:
 #include "wx/app.h"
 WX_CHECK_BUILD_OPTIONS("wxHTML")
+
+const wxChar *wxTRACE_HTML_DEBUG = _T("htmldebug");
 
 //-----------------------------------------------------------------------------
 // wxHtmlParser helpers
@@ -514,7 +519,9 @@ wxString wxHtmlEntitiesParser::Parse(const wxString& input)
             else
             {
                 output.append(ent_s-1, c-ent_s+2);
-                wxLogDebug(wxT("Unrecognized HTML entity: '%s'"), entity.c_str());
+                wxLogTrace(wxTRACE_HTML_DEBUG,
+                           wxT("Unrecognized HTML entity: '%s'"),
+                           entity.c_str());
             }
         }
     }
@@ -853,7 +860,8 @@ wxChar wxHtmlEntitiesParser::GetEntityChar(const wxString& entity)
 wxFSFile *wxHtmlParser::OpenURL(wxHtmlURLType WXUNUSED(type), 
                                 const wxString& url) const
 {
-    return GetFS()->OpenFile(url);
+    return m_FS ? m_FS->OpenFile(url) : NULL;
+    
 }
 
 

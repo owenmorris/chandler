@@ -669,7 +669,7 @@ struct MwmHints {
 #define PROP_MOTIF_WM_HINTS_ELEMENTS 5
 
 // Set the window manager decorations according to the
-// given wxWindows style
+// given wxWidgets style
 bool wxSetWMDecorations(Window w, long style)
 {
 #if wxUSE_NANOX

@@ -66,9 +66,7 @@ bool wxStaticBox::Create( wxWindow *parent,
 
     m_parent->DoAddChild( this );
 
-    PostCreation();
-
-    InheritAttributes();
+    PostCreation(size);
 
     // need to set non default alignment?
     gfloat xalign;
@@ -82,8 +80,6 @@ bool wxStaticBox::Create( wxWindow *parent,
     if ( xalign )
         gtk_frame_set_label_align(GTK_FRAME( m_widget ), xalign, 0.0);
 
-    Show( TRUE );
-
     return TRUE;
 }
 
@@ -95,10 +91,19 @@ void wxStaticBox::SetLabel( const wxString &label )
                          m_label.empty() ? (char *)NULL : (const char*) wxGTK_CONV( m_label ) );
 }
 
-void wxStaticBox::ApplyWidgetStyle()
+void wxStaticBox::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    SetWidgetStyle();
-    gtk_widget_set_style( m_widget, m_widgetStyle );
+    gtk_widget_modify_style(m_widget, style);
+#ifdef __WXGTK20__
+    gtk_widget_modify_style(GTK_FRAME(m_widget)->label_widget, style);
+#endif
+}
+
+// static
+wxVisualAttributes
+wxStaticBox::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    return GetDefaultAttributesFromGTKWidget(gtk_frame_new);
 }
 
 #endif // wxUSE_STATBOX

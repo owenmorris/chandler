@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
 // CVS-ID:      $Id$
-// Licence:     wxWindows Licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
@@ -519,7 +519,7 @@ wxString wxFileSystem::FileNameToURL(const wxFileName& filename)
     // unc notation, wxMSW
     if ( url.Find(wxT("\\\\")) == 0 ) 
     {
-        url = url.Mid(2);
+        url = wxT("//") + url.Mid(2);
     }
     else
     {

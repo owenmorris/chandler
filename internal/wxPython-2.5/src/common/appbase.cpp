@@ -28,9 +28,7 @@
     #include "wx/app.h"
     #include "wx/intl.h"
     #include "wx/list.h"
-    #if wxUSE_LOG
-        #include "wx/log.h"
-    #endif // wxUSE_LOG
+    #include "wx/log.h"
 #endif //WX_PRECOMP
 
 #include "wx/utils.h"
@@ -46,7 +44,7 @@
 #endif  //Win/Unix
 
 #if defined(__WXMSW__)
-  #include  "wx/msw/private.h"  // includes windows.h for MessageBox()
+  #include  "wx/msw/wrapwin.h"  // includes windows.h for MessageBox()
 #endif
 
 #if wxUSE_FONTMAP
@@ -109,6 +107,13 @@ wxAppConsole::wxAppConsole()
 
 #ifdef __WXDEBUG__
     SetTraceMasks();
+#if wxUSE_UNICODE
+    // In unicode mode the SetTraceMasks call can cause an apptraits to be
+    // created, but since we are still in the constructor the wrong kind will
+    // be created for GUI apps.  Destroy it so it can be created again later.
+    delete m_traits;
+    m_traits = NULL;
+#endif
 #endif
 }
 
@@ -123,6 +128,14 @@ wxAppConsole::~wxAppConsole()
 
 bool wxAppConsole::Initialize(int& argc, wxChar **argv)
 {
+#if wxUSE_LOG
+    // If some code logged something before wxApp instance was created,
+    // wxLogStderr was set as the target. Undo it here by destroying the
+    // current target. It will be re-created next time logging is needed, but
+    // this time wxAppTraits will be used:
+    delete wxLog::SetActiveTarget(NULL);
+#endif // wxUSE_LOG
+
     // remember the command line arguments
     this->argc = argc;
     this->argv = argv;
@@ -152,7 +165,7 @@ bool wxAppConsole::OnInit()
     OnInitCmdLine(parser);
 
     bool cont;
-    switch ( parser.Parse(FALSE /* don't show usage */) )
+    switch ( parser.Parse(false /* don't show usage */) )
     {
         case -1:
             cont = OnCmdLineHelp(parser);
@@ -168,10 +181,10 @@ bool wxAppConsole::OnInit()
     }
 
     if ( !cont )
-        return FALSE;
+        return false;
 #endif // wxUSE_CMDLINE_PARSER
 
-    return TRUE;
+    return true;
 }
 
 int wxAppConsole::OnExit()
@@ -277,6 +290,10 @@ int wxAppConsole::FilterEvent(wxEvent& WXUNUSED(event))
     return -1;
 }
 
+// ----------------------------------------------------------------------------
+// exception handling
+// ----------------------------------------------------------------------------
+
 #if wxUSE_EXCEPTIONS
 
 void
@@ -286,6 +303,17 @@ wxAppConsole::HandleEvent(wxEvtHandler *handler,
 {
     // by default, simply call the handler
     (handler->*func)(event);
+}
+
+bool
+wxAppConsole::OnExceptionInMainLoop()
+{
+    throw;
+
+    // some compilers are too stupid to know that we never return after throw
+#if defined(__DMC__) || (defined(_MSC_VER) && _MSC_VER < 1200)
+    return false;
+#endif
 }
 
 #endif // wxUSE_EXCEPTIONS
@@ -342,25 +370,27 @@ bool wxAppConsole::OnCmdLineParsed(wxCmdLineParser& parser)
 #if wxUSE_LOG
     if ( parser.Found(OPTION_VERBOSE) )
     {
-        wxLog::SetVerbose(TRUE);
+        wxLog::SetVerbose(true);
     }
+#else
+    wxUnusedVar(parser);
 #endif // wxUSE_LOG
 
-    return TRUE;
+    return true;
 }
 
 bool wxAppConsole::OnCmdLineHelp(wxCmdLineParser& parser)
 {
     parser.Usage();
 
-    return FALSE;
+    return false;
 }
 
 bool wxAppConsole::OnCmdLineError(wxCmdLineParser& parser)
 {
     parser.Usage();
 
-    return FALSE;
+    return false;
 }
 
 #endif // wxUSE_CMDLINE_PARSER
@@ -388,14 +418,14 @@ bool wxAppConsole::CheckBuildOptions(const char *optionsSignature,
         msg.Printf(_T("Mismatch between the program and library build versions detected.\nThe library used %s,\nand %s used %s."),
                    lib.c_str(), progName.c_str(), prog.c_str());
 
-        wxLogFatalError(msg);
+        wxLogFatalError(msg.c_str());
 
         // normally wxLogFatalError doesn't return
-        return FALSE;
+        return false;
     }
 #undef wxCMP
 
-    return TRUE;
+    return true;
 }
 
 #ifdef __WXDEBUG__
@@ -559,19 +589,19 @@ void wxOnAssert(const wxChar *szFile,
                 const wxChar *szMsg)
 {
     // FIXME MT-unsafe
-    static bool s_bInAssert = FALSE;
+    static bool s_bInAssert = false;
 
     if ( s_bInAssert )
     {
         // He-e-e-e-elp!! we're trapped in endless loop
         wxTrap();
 
-        s_bInAssert = FALSE;
+        s_bInAssert = false;
 
         return;
     }
 
-    s_bInAssert = TRUE;
+    s_bInAssert = true;
 
     if ( !wxTheApp )
     {
@@ -585,7 +615,7 @@ void wxOnAssert(const wxChar *szFile,
         wxTheApp->OnAssert(szFile, nLine, szCond, szMsg);
     }
 
-    s_bInAssert = FALSE;
+    s_bInAssert = false;
 }
 
 #endif // __WXDEBUG__
@@ -621,7 +651,7 @@ bool DoShowAssertDialog(const wxString& msg)
               wxT("You can also choose [Cancel] to suppress ")
               wxT("further warnings.");
 
-    switch ( ::MessageBox(NULL, msgDlg, _T("wxWindows Debug Alert"),
+    switch ( ::MessageBox(NULL, msgDlg, _T("wxWidgets Debug Alert"),
                           MB_YESNOCANCEL | MB_ICONSTOP ) )
     {
         case IDYES:
@@ -655,7 +685,7 @@ void ShowAssertDialog(const wxChar *szFile,
                       wxAppTraits *traits)
 {
     // this variable can be set to true to suppress "assert failure" messages
-    static bool s_bNoAsserts = FALSE;
+    static bool s_bNoAsserts = false;
 
     wxString msg;
     msg.reserve(2048);

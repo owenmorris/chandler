@@ -108,7 +108,7 @@ public:
     // normally, wxDataObject controls our lifetime (i.e. we're deleted when it
     // is), but in some cases, the situation is inversed, that is we delete it
     // when this object is deleted - setting this flag enables such logic
-    void SetDeleteFlag() { m_mustDelete = TRUE; }
+    void SetDeleteFlag() { m_mustDelete = true; }
 
     DECLARE_IUNKNOWN_METHODS;
 
@@ -267,7 +267,7 @@ IMPLEMENT_IUNKNOWN_METHODS(wxIDataObject)
 wxIDataObject::wxIDataObject(wxDataObject *pDataObject)
 {
     m_pDataObject = pDataObject;
-    m_mustDelete = FALSE;
+    m_mustDelete = false;
 }
 
 wxIDataObject::~wxIDataObject()
@@ -465,7 +465,7 @@ STDMETHODIMP wxIDataObject::SetData(FORMATETC *pformatetc,
                     case CF_OEMTEXT:
                         size = strlen((const char *)pBuf);
                         break;
-#if !defined(__WATCOMC__) && ! (defined(__BORLANDC__) && (__BORLANDC__ < 0x500))
+#if !(defined(__BORLANDC__) && (__BORLANDC__ < 0x500))
                     case CF_UNICODETEXT:
 #if ( defined(__BORLANDC__) && (__BORLANDC__ > 0x530) ) \
     || ( defined(__MWERKS__) && defined(__WXMSW__) )
@@ -723,7 +723,6 @@ const wxChar *wxDataObject::GetFormatName(wxDataFormat format)
     switch ( format ) {
         case CF_TEXT:         return wxT("CF_TEXT");
         case CF_BITMAP:       return wxT("CF_BITMAP");
-        case CF_METAFILEPICT: return wxT("CF_METAFILEPICT");
         case CF_SYLK:         return wxT("CF_SYLK");
         case CF_DIF:          return wxT("CF_DIF");
         case CF_TIFF:         return wxT("CF_TIFF");
@@ -734,9 +733,12 @@ const wxChar *wxDataObject::GetFormatName(wxDataFormat format)
         case CF_RIFF:         return wxT("CF_RIFF");
         case CF_WAVE:         return wxT("CF_WAVE");
         case CF_UNICODETEXT:  return wxT("CF_UNICODETEXT");
+#ifndef __WXWINCE__
+        case CF_METAFILEPICT: return wxT("CF_METAFILEPICT");
         case CF_ENHMETAFILE:  return wxT("CF_ENHMETAFILE");
-        case CF_HDROP:        return wxT("CF_HDROP");
         case CF_LOCALE:       return wxT("CF_LOCALE");
+        case CF_HDROP:        return wxT("CF_HDROP");
+#endif
 
         default:
             if ( !::GetClipboardFormatName(format, s_szBuf, WXSIZEOF(s_szBuf)) )
@@ -759,9 +761,11 @@ const wxChar *wxDataObject::GetFormatName(wxDataFormat format)
 // wxBitmapDataObject supports CF_DIB format
 // ----------------------------------------------------------------------------
 
+// TODO: support CF_DIB under Windows CE as well
+
 size_t wxBitmapDataObject::GetDataSize() const
 {
-#if wxUSE_WXDIB
+#if wxUSE_WXDIB && !defined(__WXWINCE__)
     return wxDIB::ConvertFromBitmap(NULL, GetHbitmapOf(GetBitmap()));
 #else
     return 0;
@@ -770,18 +774,19 @@ size_t wxBitmapDataObject::GetDataSize() const
 
 bool wxBitmapDataObject::GetDataHere(void *buf) const
 {
-#if wxUSE_WXDIB
+#if wxUSE_WXDIB && !defined(__WXWINCE__)
     BITMAPINFO * const pbi = (BITMAPINFO *)buf;
 
     return wxDIB::ConvertFromBitmap(pbi, GetHbitmapOf(GetBitmap())) != 0;
 #else
-    return FALSE;
+    wxUnusedVar(buf);
+    return false;
 #endif
 }
 
 bool wxBitmapDataObject::SetData(size_t WXUNUSED(len), const void *buf)
 {
-#if wxUSE_WXDIB
+#if wxUSE_WXDIB && !defined(__WXWINCE__)
     const BITMAPINFO * const pbmi = (const BITMAPINFO *)buf;
 
     HBITMAP hbmp = wxDIB::ConvertToBitmap(pbmi);
@@ -796,9 +801,10 @@ bool wxBitmapDataObject::SetData(size_t WXUNUSED(len), const void *buf)
 
     SetBitmap(bitmap);
 
-    return TRUE;
+    return true;
 #else
-    return FALSE;
+    wxUnusedVar(buf);
+    return false;
 #endif
 }
 
@@ -821,7 +827,7 @@ bool wxBitmapDataObject2::GetDataHere(void *pBuf) const
     // we put a bitmap handle into pBuf
     *(WXHBITMAP *)pBuf = GetBitmap().GetHBITMAP();
 
-    return TRUE;
+    return true;
 }
 
 bool wxBitmapDataObject2::SetData(size_t WXUNUSED(len), const void *pBuf)
@@ -840,12 +846,12 @@ bool wxBitmapDataObject2::SetData(size_t WXUNUSED(len), const void *pBuf)
     if ( !bitmap.Ok() ) {
         wxFAIL_MSG(wxT("pasting/dropping invalid bitmap"));
 
-        return FALSE;
+        return false;
     }
 
     SetBitmap(bitmap);
 
-    return TRUE;
+    return true;
 }
 
 #if 0
@@ -910,7 +916,7 @@ bool wxBitmapDataObject::GetDataHere(const wxDataFormat& format,
         {
             wxLogLastError(wxT("GetDIBits"));
 
-            return FALSE;
+            return false;
         }
     }
     else // CF_BITMAP
@@ -919,7 +925,7 @@ bool wxBitmapDataObject::GetDataHere(const wxDataFormat& format,
         *(HBITMAP *)pBuf = hbmp;
     }
 
-    return TRUE;
+    return true;
 }
 
 bool wxBitmapDataObject::SetData(const wxDataFormat& format,
@@ -964,7 +970,7 @@ bool wxBitmapDataObject::SetData(const wxDataFormat& format,
 
     wxASSERT_MSG( m_bitmap.Ok(), wxT("pasting invalid bitmap") );
 
-    return TRUE;
+    return true;
 }
 
 #endif // 0
@@ -1007,9 +1013,10 @@ bool wxFileDataObject::SetData(size_t WXUNUSED(size), const void *pData)
         }
     }
 
-    return TRUE;
+    return true;
 #else
-    return FALSE;
+    wxUnusedVar(pData);
+    return false;
 #endif
 }
 
@@ -1033,13 +1040,13 @@ size_t wxFileDataObject::GetDataSize() const
         return 0;
 
     // inital size of DROPFILES struct + null byte
-    size_t sz = sizeof(DROPFILES) + 1;
+    size_t sz = sizeof(DROPFILES) + (1 * sizeof(wxChar));
 
     size_t count = m_filenames.GetCount();
     for ( size_t i = 0; i < count; i++ )
     {
         // add filename length plus null byte
-        sz += m_filenames[i].Len() + 1;
+        sz += (m_filenames[i].Len() + 1) * sizeof(wxChar);
     }
 
     return sz;
@@ -1056,7 +1063,7 @@ bool wxFileDataObject::GetDataHere(void *pData) const
 
     // if pData is NULL, or there are no files, return
     if ( !pData || m_filenames.GetCount() == 0 )
-        return FALSE;
+        return false;
 
     // convert data pointer to a DROPFILES struct pointer
     LPDROPFILES pDrop = (LPDROPFILES) pData;
@@ -1078,7 +1085,7 @@ bool wxFileDataObject::GetDataHere(void *pData) const
     {
         // copy filename to pbuf and add null terminator
         size_t len = m_filenames[i].Len();
-        memcpy(pbuf, m_filenames[i], len);
+        memcpy(pbuf, m_filenames[i], len*sizeof(wxChar));
         pbuf += len;
         *pbuf++ = wxT('\0');
     }
@@ -1086,9 +1093,10 @@ bool wxFileDataObject::GetDataHere(void *pData) const
     // add final null terminator
     *pbuf = wxT('\0');
 
-    return TRUE;
+    return true;
 #else
-    return FALSE;
+    wxUnusedVar(pData);
+    return false;
 #endif
 }
 
@@ -1131,7 +1139,7 @@ protected:
         memcpy( buffer, unicode_buffer.c_str(),
                 ( unicode_buffer.length() + 1 ) * sizeof(wxChar) );
 
-        return TRUE;
+        return true;
     }
     virtual bool GetDataHere(const wxDataFormat& WXUNUSED(format),
                              void *buf) const

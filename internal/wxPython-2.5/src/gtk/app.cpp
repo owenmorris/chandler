@@ -543,13 +543,15 @@ GdkVisual *wxApp::GetGdkVisual()
 
 bool wxApp::Initialize(int& argc, wxChar **argv)
 {
+    bool init_result;
+    
 #if wxUSE_THREADS
     // GTK 1.2 up to version 1.2.3 has broken threads
     if ((gtk_major_version == 1) &&
         (gtk_minor_version == 2) &&
         (gtk_micro_version < 4))
     {
-        printf( "wxWindows warning: GUI threading disabled due to outdated GTK version\n" );
+        printf( "wxWidgets warning: GUI threading disabled due to outdated GTK version\n" );
     }
     else
     {
@@ -588,9 +590,10 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
     int argcGTK = argc;
     
 #ifdef __WXGPE__
+    init_result = true;  // is there a _check() version of this?
     gpe_application_init( &argcGTK, &argvGTK );
 #else
-    gtk_init( &argcGTK, &argvGTK );
+    init_result = gtk_init_check( &argcGTK, &argvGTK );
 #endif
 
     if ( argcGTK != argc )
@@ -618,9 +621,14 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
 #else // !wxUSE_UNICODE
     // gtk_init() shouldn't actually change argv itself (just its contents) so
     // it's ok to pass pointer to it
-    gtk_init( &argc, &argv );
+    init_result = gtk_init_check( &argc, &argv );
 #endif // wxUSE_UNICODE/!wxUSE_UNICODE
 
+    if (!init_result) {
+        wxLogError(wxT("Unable to initialize gtk, is DISPLAY set properly?"));
+        return false;
+    }
+    
     // we can not enter threads before gtk_init is done
     gdk_threads_enter();
 
@@ -636,8 +644,6 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
 #if wxUSE_INTL
     wxFont::SetDefaultEncoding(wxLocale::GetSystemEncoding());
 #endif
-
-    wxGetRootWindow();
 
     return true;
 }

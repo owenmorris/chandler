@@ -141,7 +141,7 @@ bool wxPen::RealizeResource()
        if (M_PENDATA->m_style==wxTRANSPARENT)
        {
            M_PENDATA->m_hPen = (WXHPEN) ::GetStockObject(NULL_PEN);
-           return TRUE;
+           return true;
        }
 
        COLORREF ms_colour = M_PENDATA->m_colour.GetPixel();
@@ -219,7 +219,7 @@ bool wxPen::RealizeResource()
                default:
                    logb.lbStyle = BS_SOLID;
 #ifdef __WXDEBUG__
-                   // this should be unnecessary (it's unused) but suppresses the Purigy
+                   // this should be unnecessary (it's unused) but suppresses the Purify
                    // messages about uninitialized memory read
                    logb.lbHatch = 0;
 #endif
@@ -274,9 +274,9 @@ bool wxPen::RealizeResource()
        if (M_PENDATA->m_hPen==0)
            wxError("Cannot create pen","Internal error") ;
 #endif
-       return TRUE;
+       return true;
     }
-    return FALSE;
+    return false;
 }
 
 WXHANDLE wxPen::GetResourceHandle() const
@@ -293,9 +293,9 @@ bool wxPen::FreeResource(bool WXUNUSED(force))
   {
     DeleteObject((HPEN) M_PENDATA->m_hPen);
     M_PENDATA->m_hPen = 0;
-    return TRUE;
+    return true;
   }
-  else return FALSE;
+  else return false;
 }
 
 bool wxPen::IsFree() const
@@ -394,46 +394,29 @@ void wxPen::SetCap(int Cap)
 
 int wx2msPenStyle(int wx_style)
 {
-    int cstyle;
+#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
     switch (wx_style)
     {
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
-       case wxDOT:
-           cstyle = PS_DOT;
-           break;
+        case wxDOT:
+            return PS_DOT;
 
-       case wxDOT_DASH:
-           cstyle = PS_DASHDOT;
-           break;
+        case wxDOT_DASH:
+            return PS_DASHDOT;
 
-       case wxSHORT_DASH:
-       case wxLONG_DASH:
-           cstyle = PS_DASH;
-           break;
+        case wxSHORT_DASH:
+        case wxLONG_DASH:
+            return PS_DASH;
 
-       case wxTRANSPARENT:
-           cstyle = PS_NULL;
-           break;
-#endif
+        case wxTRANSPARENT:
+            return PS_NULL;
 
-       case wxUSER_DASH:
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
-#ifdef __WIN32__
-           // Win32s doesn't have PS_USERSTYLE
-           if (wxGetOsVersion()==wxWINDOWS_NT || wxGetOsVersion()==wxWIN95)
-               cstyle = PS_USERSTYLE;
-           else
-               cstyle = PS_DOT; // We must make a choice... This is mine!
+        case wxUSER_DASH:
+            // if (wxGetOsVersion()==wxWINDOWS_NT || wxGetOsVersion()==wxWIN95)
+                return PS_USERSTYLE;
+    }
 #else
-           cstyle = PS_DASH;
+    wxUnusedVar(wx_style);
 #endif
-#endif
-           break;
-       case wxSOLID:
-       default:
-           cstyle = PS_SOLID;
-           break;
-   }
-   return cstyle;
+    return PS_SOLID;
 }
 

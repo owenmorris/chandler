@@ -194,7 +194,7 @@ bool wxListBox::Create(
     SetFont(*pTextFont);
 
     //
-    // Set standard wxWindows colors for Listbox items and highlighting
+    // Set standard wxWidgets colors for Listbox items and highlighting
     //
     wxColour                        vColour;
 

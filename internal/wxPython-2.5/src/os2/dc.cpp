@@ -39,22 +39,22 @@
     IMPLEMENT_ABSTRACT_CLASS(wxDC, wxObject)
 
 //
-// wxWindows uses the Microsoft convention that the origin is the UPPER left.
+// wxWidgets uses the Microsoft convention that the origin is the UPPER left.
 // Native OS/2 however in the GPI and PM define the origin as the LOWER left.
-// In order to map OS/2 GPI/PM y coordinates to wxWindows coordinates we must
+// In order to map OS/2 GPI/PM y coordinates to wxWidgets coordinates we must
 // perform the following transformation:
 //
 // Parent object height:     POBJHEIGHT
 // Desried origin:           WXORIGINY
 // Object to place's height: OBJHEIGHT
 //
-// To get the OS2 position from the wxWindows one:
+// To get the OS2 position from the wxWidgets one:
 //
 // OS2Y = POBJHEIGHT - (WXORIGINY + OBJHEIGHT)
 //
 // For OS/2 wxDC's we will always determine m_vRclPaint as the size of the
 // OS/2 Presentation Space associated with the device context.  y is the
-// desired application's y coordinate of the origin in wxWindows space.
+// desired application's y coordinate of the origin in wxWidgets space.
 // objy is the height of the object we are going to draw.
 //
 #define OS2Y(y, objy) ((m_vRclPaint.yTop - m_vRclPaint.yBottom) - (y + objy))
@@ -503,7 +503,7 @@ void wxDC::DestroyClippingRegion(void)
 
          ::GpiSetClipRegion(m_hPS, hRgn, &hRgnOld);
      }
-      m_clipping = false;
+    ResetClipping();
 } // end of wxDC::DestroyClippingRegion
 
 // ---------------------------------------------------------------------------
@@ -526,7 +526,7 @@ bool wxDC::CanGetTextExtent() const
 int wxDC::GetDepth() const
 {
     LONG                            lArray[CAPS_COLOR_BITCOUNT];
-    int                             nBitsPerPixel;
+    int                             nBitsPerPixel = 0;
 
     if(::DevQueryCaps( GetHDC()
                       ,CAPS_FAMILY
@@ -972,8 +972,8 @@ void wxDC::DoDrawLines(
     {
         int                         i;
 
-        CalcBoundingBox( vPoints[i].x
-                        ,vPoints[i].y
+        CalcBoundingBox( vPoints[0].x
+                        ,vPoints[0].y
                        );
         vPoint.x = vPoints[0].x;
         vPoint.y = OS2Y(vPoints[0].y,0);
@@ -1397,7 +1397,7 @@ void wxDC::DoDrawBitmap(
 
                     lColor = pWindowDC->m_pCanvas->GetBackgroundColour().GetPixel();
                 }
-                else if (GetBrush() != wxNullBrush)
+                else if (GetBrush().Ok())
                     lColor = GetBrush().GetColour().GetPixel();
                 else
                     lColor = m_textBackgroundColour.GetPixel();
@@ -2271,7 +2271,7 @@ void wxDC::DoGetTextExtent(
        sError = wxPMErrorToStr(vErrorCode);
        // DEBUG
        sprintf(zMsg, "GpiQueryTextBox for %s: failed with Error: %lx - %s", pStr, vErrorCode, sError.c_str());
-       (void)wxMessageBox( "wxWindows Menu sample"
+       (void)wxMessageBox( "wxWidgets Menu sample"
                           ,zMsg
                           ,wxICON_INFORMATION
                          );

@@ -122,7 +122,7 @@ bool wxCheckListBoxItem::OnDrawItem (
     //
     // Unfortunately PM doesn't quite get the text position exact.  We need to alter
     // it down and to the right, just a little bit.  The coords in rRect are OS/2
-    // coords not wxWindows coords.
+    // coords not wxWidgets coords.
     //
     vRect.x += 5;
     vRect.y -= 3;

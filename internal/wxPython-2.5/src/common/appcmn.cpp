@@ -78,8 +78,8 @@ wxDEFINE_TIED_SCOPED_PTR_TYPE(wxEventLoop);
 wxAppBase::wxAppBase()
 {
     m_topWindow = (wxWindow *)NULL;
-    m_useBestVisual = FALSE;
-    m_isActive = TRUE;
+    m_useBestVisual = false;
+    m_isActive = true;
 
 #if wxUSE_EVTLOOP_IN_APP
     m_mainLoop = NULL;
@@ -91,10 +91,10 @@ wxAppBase::wxAppBase()
     // OTOH, if we set it to No initially we'll have to overwrite it with Yes
     // when we enter our OnRun() because we do want the default behaviour from
     // then on. But this would be a problem if the user code calls
-    // SetExitOnFrameDelete(FALSE) from OnInit().
+    // SetExitOnFrameDelete(false) from OnInit().
     //
     // So we use the special "Later" value which is such that
-    // GetExitOnFrameDelete() returns FALSE for it but which we know we can
+    // GetExitOnFrameDelete() returns false for it but which we know we can
     // safely (i.e. without losing the effect of the users SetExitOnFrameDelete
     // call) overwrite in OnRun()
     m_exitOnFrameDelete = Later;
@@ -220,7 +220,7 @@ bool wxAppBase::OnCmdLineParsed(wxCmdLineParser& parser)
         if ( !theme )
         {
             wxLogError(_("Unsupported theme '%s'."), themeName.c_str());
-            return FALSE;
+            return false;
         }
 
         // Delete the defaultly created theme and set the new theme.
@@ -237,11 +237,11 @@ bool wxAppBase::OnCmdLineParsed(wxCmdLineParser& parser)
         if ( wxSscanf(modeDesc.c_str(), _T("%ux%u-%u"), &w, &h, &bpp) != 3 )
         {
             wxLogError(_("Invalid display mode specification '%s'."), modeDesc.c_str());
-            return FALSE;
+            return false;
         }
 
         if ( !SetDisplayMode(wxVideoMode(w, h, bpp)) )
-            return FALSE;
+            return false;
     }
 #endif // __WXMGL__
 
@@ -311,10 +311,10 @@ bool wxAppBase::OnInitGui()
 {
 #ifdef __WXUNIVERSAL__
     if ( !wxTheme::Get() && !wxTheme::CreateDefault() )
-        return FALSE;
+        return false;
 #endif // __WXUNIVERSAL__
 
-    return TRUE;
+    return true;
 }
 
 int wxAppBase::OnRun()
@@ -384,34 +384,34 @@ void wxAppBase::DeletePendingObjects()
     }
 }
 
-// Returns TRUE if more time is needed.
+// Returns true if more time is needed.
 bool wxAppBase::ProcessIdle()
 {
     wxIdleEvent event;
-    bool needMore = FALSE;
+    bool needMore = false;
     wxWindowList::compatibility_iterator node = wxTopLevelWindows.GetFirst();
     while (node)
     {
         wxWindow* win = node->GetData();
         if (SendIdleEvents(win, event))
-            needMore = TRUE;
+            needMore = true;
         node = node->GetNext();
     }
 
     event.SetEventObject(this);
     (void) ProcessEvent(event);
     if (event.MoreRequested())
-        needMore = TRUE;
+        needMore = true;
 
     wxUpdateUIEvent::ResetUpdateTime();
-    
+
     return needMore;
 }
 
 // Send idle event to window and all subwindows
 bool wxAppBase::SendIdleEvents(wxWindow* win, wxIdleEvent& event)
 {
-    bool needMore = FALSE;
+    bool needMore = false;
 
     win->OnInternalIdle();
 
@@ -421,14 +421,14 @@ bool wxAppBase::SendIdleEvents(wxWindow* win, wxIdleEvent& event)
         win->GetEventHandler()->ProcessEvent(event);
 
         if (event.MoreRequested())
-            needMore = TRUE;
+            needMore = true;
     }
     wxWindowList::compatibility_iterator node = win->GetChildren().GetFirst();
     while ( node )
     {
         wxWindow *child = node->GetData();
         if (SendIdleEvents(child, event))
-            needMore = TRUE;
+            needMore = true;
 
         node = node->GetNext();
     }
@@ -526,7 +526,7 @@ bool wxGUIAppTraitsBase::ShowAssertDialog(const wxString& msg)
               wxT("You can also choose [Cancel] to suppress ")
               wxT("further warnings.");
 
-    switch ( wxMessageBox(msgDlg, wxT("wxWindows Debug Alert"),
+    switch ( wxMessageBox(msgDlg, wxT("wxWidgets Debug Alert"),
                           wxYES_NO | wxCANCEL | wxICON_STOP ) )
     {
         case wxYES:
@@ -593,19 +593,7 @@ GSocketGUIFunctionsTable* wxGUIAppTraitsBase::GetSocketGUIFunctionsTable()
     //     so it doesn't need this table at all
     return NULL;
 #else // !__WXMAC__ || __DARWIN__
-    static GSocketGUIFunctionsTable table =
-    {
-        _GSocket_GUI_Init,
-        _GSocket_GUI_Cleanup,
-        _GSocket_GUI_Init_Socket,
-        _GSocket_GUI_Destroy_Socket,
-#ifndef __WINDOWS__
-        _GSocket_Install_Callback,
-        _GSocket_Uninstall_Callback,
-#endif
-        _GSocket_Enable_Events,
-        _GSocket_Disable_Events
-    };
+    static GSocketGUIFunctionsTableConcrete table;
     return &table;
 #endif // !__WXMAC__ || __DARWIN__
 }

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     13.07.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -77,6 +77,7 @@ wxTextAttr::wxTextAttr(const wxColour& colText,
 {
     m_flags = 0;
     m_leftIndent = 0;
+    m_leftSubIndent = 0;
     m_rightIndent = 0;
     if (m_colText.Ok()) m_flags |= wxTEXT_ATTR_TEXT_COLOUR;
     if (m_colBack.Ok()) m_flags |= wxTEXT_ATTR_BACKGROUND_COLOUR;
@@ -90,6 +91,7 @@ void wxTextAttr::Init()
     m_textAlignment = wxTEXT_ALIGNMENT_DEFAULT;
     m_flags = 0;
     m_leftIndent = 0;
+    m_leftSubIndent = 0;
     m_rightIndent = 0;
 }
 
@@ -138,9 +140,9 @@ wxTextAttr wxTextAttr::Combine(const wxTextAttr& attr,
         newAttr.SetTabs(attrDef.GetTabs());
     
     if (attr.HasLeftIndent())
-        newAttr.SetLeftIndent(attr.GetLeftIndent());
+        newAttr.SetLeftIndent(attr.GetLeftIndent(), attr.GetLeftSubIndent());
     else if (attrDef.HasLeftIndent())
-        newAttr.SetLeftIndent(attrDef.GetLeftIndent());
+        newAttr.SetLeftIndent(attrDef.GetLeftIndent(), attr.GetLeftSubIndent());
     
     if (attr.HasRightIndent())
         newAttr.SetRightIndent(attr.GetRightIndent());
@@ -157,6 +159,7 @@ void wxTextAttr::operator= (const wxTextAttr& attr)
     m_colBack = attr.m_colBack;
     m_textAlignment = attr.m_textAlignment;
     m_leftIndent = attr.m_leftIndent;
+    m_leftSubIndent = attr.m_leftSubIndent;
     m_rightIndent = attr.m_rightIndent;
     m_tabs = attr.m_tabs;
     m_flags = attr.m_flags;
@@ -493,9 +496,25 @@ void wxTextCtrlBase::DoUpdateWindowUI(wxUpdateUIEvent& event)
 // ----------------------------------------------------------------------------
 
 wxTextCtrlHitTestResult
+wxTextCtrlBase::HitTest(const wxPoint& pt, wxTextCoord *x, wxTextCoord *y) const
+{
+    // implement in terms of the other overload as the native ports typically
+    // can get the position and not (x, y) pair directly (although wxUniv
+    // directly gets x and y -- and so overrides this method as well)
+    long pos;
+    wxTextCtrlHitTestResult rc = HitTest(pt, &pos);
+
+    if ( rc != wxTE_HT_UNKNOWN )
+    {
+        PositionToXY(pos, x, y);
+    }
+
+    return rc;
+}
+
+wxTextCtrlHitTestResult
 wxTextCtrlBase::HitTest(const wxPoint& WXUNUSED(pt),
-                        wxTextCoord * WXUNUSED(col),
-                        wxTextCoord * WXUNUSED(row)) const
+                        long * WXUNUSED(pos)) const
 {
     // not implemented
     return wxTE_HT_UNKNOWN;

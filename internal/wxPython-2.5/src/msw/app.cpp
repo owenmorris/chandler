@@ -76,6 +76,11 @@
 
 #include "wx/msw/wrapcctl.h"
 
+// For MB_TASKMODAL
+#ifdef __WXWINCE__
+#include "wx/msw/wince/missing.h"
+#endif
+
 #if (!defined(__MINGW32__) || wxCHECK_W32API_VERSION( 2, 0 )) && \
     !defined(__CYGWIN__) && !defined(__DIGITALMARS__) && !defined(__WXWINCE__) && \
     (!defined(_MSC_VER) || (_MSC_VER > 1100))
@@ -94,8 +99,13 @@ extern void wxSetKeyboardHook(bool doIt);
 
 // NB: all "NoRedraw" classes must have the same names as the "normal" classes
 //     with NR suffix - wxWindow::MSWCreate() supposes this
+#ifdef __WXWINCE__
+      wxChar *wxCanvasClassName;
+      wxChar *wxCanvasClassNameNR;
+#else
 const wxChar *wxCanvasClassName        = wxT("wxWindowClass");
 const wxChar *wxCanvasClassNameNR      = wxT("wxWindowClassNR");
+#endif
 const wxChar *wxMDIFrameClassName      = wxT("wxMDIFrameClass");
 const wxChar *wxMDIFrameClassNameNoRedraw = wxT("wxMDIFrameClassNR");
 const wxChar *wxMDIChildFrameClassName = wxT("wxMDIChildFrameClass");
@@ -175,7 +185,7 @@ void wxGUIAppTraits::AfterChildWaitLoop(void *dataOrig)
 {
     wxEndBusyCursor();
 
-    const ChildWaitLoopData * const data = (ChildWaitLoopData *)dataOrig;
+    ChildWaitLoopData * const data = (ChildWaitLoopData *)dataOrig;
 
     delete data->wd;
 
@@ -183,6 +193,9 @@ void wxGUIAppTraits::AfterChildWaitLoop(void *dataOrig)
     // the other windows reenabled, the activation is going to return to the
     // window which had had it before
     data->winActive->Destroy();
+
+    // also delete the temporary data object itself
+    delete data;
 }
 
 bool wxGUIAppTraits::DoMessageFromThreadWait()
@@ -249,6 +262,20 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
     // ensure that base cleanup is done if we return too early
     wxCallBaseCleanup callBaseCleanup(this);
 
+#ifdef __WXWINCE__
+    wxString tmp = GetAppName();
+    tmp += wxT("ClassName");
+    wxCanvasClassName = wxStrdup( tmp.c_str() );
+    tmp += wxT("NR");
+    wxCanvasClassNameNR = wxStrdup( tmp.c_str() );
+    HWND hWnd = FindWindow( wxCanvasClassNameNR, NULL );
+    if (hWnd)
+    {
+        SetForegroundWindow( (HWND)(((DWORD)hWnd)|0x01) );
+        return false;
+    }
+#endif
+
     // the first thing to do is to check if we're trying to run an Unicode
     // program under Win9x w/o MSLU emulation layer - if so, abort right now
     // as it has no chance to work
@@ -262,11 +289,11 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
         (
          NULL,
          _T("This program uses Unicode and requires Windows NT/2000/XP/CE.\nProgram aborted."),
-         _T("wxWindows Fatal Error"),
+         _T("wxWidgets Fatal Error"),
          MB_ICONERROR | MB_OK
         );
 
-        return FALSE;
+        return false;
     }
 #endif // wxUSE_UNICODE && !wxUSE_UNICODE_MSLU
 
@@ -275,13 +302,6 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
 #endif // __WIN95__
 
 #if wxUSE_OLE || wxUSE_DRAG_AND_DROP
-
-#ifdef __WIN16__
-    // for OLE, enlarge message queue to be as large as possible
-    int iMsg = 96;
-    while (!SetMessageQueue(iMsg) && (iMsg -= 8))
-        ;
-#endif // Win16
 
 #if wxUSE_OLE
     // we need to initialize OLE library
@@ -305,20 +325,19 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
 
     RegisterWindowClasses();
 
-#if defined(__WXMICROWIN__) && !defined(__WXWINCE__)
+#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
     // Create the brush for disabling bitmap buttons
-
     LOGBRUSH lb;
     lb.lbStyle = BS_PATTERN;
     lb.lbColor = 0;
     lb.lbHatch = (int)LoadBitmap( wxhInstance, wxT("wxDISABLE_BUTTON_BITMAP") );
     if ( lb.lbHatch )
     {
-        wxDisableButtonBrush = ::CreateBrushIndirect( & lb );
+        wxDisableButtonBrush = ::CreateBrushIndirect( &lb );
         ::DeleteObject( (HGDIOBJ)lb.lbHatch );
     }
-    //else: wxWindows resources are probably not linked in
-#endif
+    //else: wxWidgets resources are probably not linked in
+#endif // !__WXMICROWIN__ && !__WXWINCE__
 
 #if wxUSE_PENWINDOWS
     wxRegisterPenWin();
@@ -326,15 +345,8 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
 
     wxWinHandleHash = new wxWinHashTable(wxKEY_INTEGER, 100);
 
-    // This is to foil optimizations in Visual C++ that throw out dummy.obj.
-    // PLEASE DO NOT ALTER THIS.
-#if defined(__VISUALC__) && defined(__WIN16__) && !defined(WXMAKINGDLL)
-    extern char wxDummyChar;
-    if (wxDummyChar) wxDummyChar++;
-#endif
-
 #if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
-    wxSetKeyboardHook(TRUE);
+    wxSetKeyboardHook(true);
 #endif
 
     callBaseCleanup.Dismiss();
@@ -421,7 +433,7 @@ bool wxApp::RegisterWindowClasses()
         wxLogLastError(wxT("RegisterClass(no redraw MDI child)"));
     }
 
-    return TRUE;
+    return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -430,7 +442,7 @@ bool wxApp::RegisterWindowClasses()
 
 bool wxApp::UnregisterWindowClasses()
 {
-    bool retval = TRUE;
+    bool retval = true;
 
 #ifndef __WXMICROWIN__
     // MDI frame window class.
@@ -438,7 +450,7 @@ bool wxApp::UnregisterWindowClasses()
     {
         wxLogLastError(wxT("UnregisterClass(MDI parent)"));
 
-        retval = FALSE;
+        retval = false;
     }
 
     // "no redraw" MDI frame
@@ -446,7 +458,7 @@ bool wxApp::UnregisterWindowClasses()
     {
         wxLogLastError(wxT("UnregisterClass(no redraw MDI parent frame)"));
 
-        retval = FALSE;
+        retval = false;
     }
 
     // MDI child frame window class.
@@ -454,7 +466,7 @@ bool wxApp::UnregisterWindowClasses()
     {
         wxLogLastError(wxT("UnregisterClass(MDI child)"));
 
-        retval = FALSE;
+        retval = false;
     }
 
     // "no redraw" MDI child frame
@@ -462,7 +474,7 @@ bool wxApp::UnregisterWindowClasses()
     {
         wxLogLastError(wxT("UnregisterClass(no redraw MDI child)"));
 
-        retval = FALSE;
+        retval = false;
     }
 
     // canvas class name
@@ -470,14 +482,14 @@ bool wxApp::UnregisterWindowClasses()
     {
         wxLogLastError(wxT("UnregisterClass(canvas)"));
 
-        retval = FALSE;
+        retval = false;
     }
 
     if ( !::UnregisterClass(wxCanvasClassNameNR, wxhInstance) )
     {
         wxLogLastError(wxT("UnregisterClass(no redraw canvas)"));
 
-        retval = FALSE;
+        retval = false;
     }
 #endif // __WXMICROWIN__
 
@@ -493,7 +505,7 @@ void wxApp::CleanUp()
     wxAppBase::CleanUp();
 
 #if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
-    wxSetKeyboardHook(FALSE);
+    wxSetKeyboardHook(false);
 #endif
 
 #if wxUSE_PENWINDOWS
@@ -523,6 +535,11 @@ void wxApp::CleanUp()
 
     delete wxWinHandleHash;
     wxWinHandleHash = NULL;
+    
+#ifdef __WXWINCE__
+    free( wxCanvasClassName );
+    free( wxCanvasClassNameNR );
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -548,6 +565,10 @@ wxApp::~wxApp()
     // but m_argv itself -- using new[]
     delete [] argv;
 }
+
+// ----------------------------------------------------------------------------
+// wxApp idle handling
+// ----------------------------------------------------------------------------
 
 void wxApp::OnIdle(wxIdleEvent& event)
 {
@@ -579,10 +600,14 @@ void wxApp::WakeUpIdle()
     }
 }
 
+// ----------------------------------------------------------------------------
+// other wxApp event hanlders
+// ----------------------------------------------------------------------------
+
 void wxApp::OnEndSession(wxCloseEvent& WXUNUSED(event))
 {
     if (GetTopWindow())
-        GetTopWindow()->Close(TRUE);
+        GetTopWindow()->Close(true);
 }
 
 // Default behaviour: close the application with prompts. The
@@ -592,15 +617,18 @@ void wxApp::OnQueryEndSession(wxCloseEvent& event)
     if (GetTopWindow())
     {
         if (!GetTopWindow()->Close(!event.CanVeto()))
-            event.Veto(TRUE);
+            event.Veto(true);
     }
 }
+
+// ----------------------------------------------------------------------------
+// miscellaneous
+// ----------------------------------------------------------------------------
 
 /* static */
 int wxApp::GetComCtl32Version()
 {
-//FIX ME FOR DIGITALMARS!!
-#if defined(__WXMICROWIN__) || defined(__WXWINCE__) || defined(__DIGITALMARS__)
+#if defined(__WXMICROWIN__) || defined(__WXWINCE__)
     return 0;
 #else
     // cache the result
@@ -687,7 +715,7 @@ int wxApp::GetComCtl32Version()
 bool wxApp::Yield(bool onlyIfNeeded)
 {
     // MT-FIXME
-    static bool s_inYield = FALSE;
+    static bool s_inYield = false;
 
 #if wxUSE_LOG
     // disable log flushing from here because a call to wxYield() shouldn't
@@ -702,10 +730,10 @@ bool wxApp::Yield(bool onlyIfNeeded)
             wxFAIL_MSG( wxT("wxYield called recursively" ) );
         }
 
-        return FALSE;
+        return false;
     }
 
-    s_inYield = TRUE;
+    s_inYield = true;
 
     // we don't want to process WM_QUIT from here - it should be processed in
     // the main event loop in order to stop it
@@ -729,8 +757,78 @@ bool wxApp::Yield(bool onlyIfNeeded)
     wxLog::Resume();
 #endif // wxUSE_LOG
 
-    s_inYield = FALSE;
+    s_inYield = false;
 
-    return TRUE;
+    return true;
 }
+
+#if wxUSE_EXCEPTIONS
+
+// ----------------------------------------------------------------------------
+// exception handling
+// ----------------------------------------------------------------------------
+
+bool wxApp::OnExceptionInMainLoop()
+{
+    // ask the user about what to do: use the Win32 API function here as it
+    // could be dangerous to use any wxWidgets code in this state
+    switch (
+            ::MessageBox
+              (
+                NULL,
+                _T("An unhandled exception occurred. Press \"Abort\" to \
+terminate the program,\r\n\
+\"Retry\" to exit the program normally and \"Ignore\" to try to continue."),
+                _T("Unhandled exception"),
+                MB_ABORTRETRYIGNORE |
+                MB_ICONERROR| 
+                MB_TASKMODAL
+              )
+           )
+    {
+        case IDABORT:
+            throw;
+
+        default:
+            wxFAIL_MSG( _T("unexpected MessageBox() return code") );
+            // fall through
+
+        case IDRETRY:
+            return false;
+
+        case IDIGNORE:
+            return true;
+    }
+}
+
+#endif // wxUSE_EXCEPTIONS
+
+// ----------------------------------------------------------------------------
+// deprecated event loop functions
+// ----------------------------------------------------------------------------
+
+#if WXWIN_COMPATIBILITY_2_4
+
+#include "wx/evtloop.h"
+
+void wxApp::DoMessage(WXMSG *pMsg)
+{
+    wxEventLoop *evtLoop = wxEventLoop::GetActive();
+    if ( evtLoop )
+        evtLoop->ProcessMessage(pMsg);
+}
+
+bool wxApp::DoMessage()
+{
+    wxEventLoop *evtLoop = wxEventLoop::GetActive();
+    return evtLoop ? evtLoop->Dispatch() : false;
+}
+
+bool wxApp::ProcessMessage(WXMSG* pMsg)
+{
+    wxEventLoop *evtLoop = wxEventLoop::GetActive();
+    return evtLoop && evtLoop->PreProcessMessage(pMsg);
+}
+
+#endif // WXWIN_COMPATIBILITY_2_4
 

@@ -42,7 +42,7 @@
     #include "wx/msgdlg.h"
 #endif
 
-#if wxUSE_COLOURDLG && !wxUSE_SMARTPHONE
+#if wxUSE_COLOURDLG && !defined(__SMARTPHONE__)
 
 #include "wx/msw/private.h"
 #include "wx/colordlg.h"
@@ -117,7 +117,7 @@ bool wxColourDialog::Create(wxWindow *parent, wxColourData *data)
     if (data)
         m_colourData = *data;
 
-    return TRUE;
+    return true;
 }
 
 int wxColourDialog::ShowModal()
@@ -128,7 +128,12 @@ int wxColourDialog::ShowModal()
 
     int i;
     for (i = 0; i < 16; i++)
-      custColours[i] = wxColourToRGB(m_colourData.m_custColours[i]);
+    {
+        if (m_colourData.m_custColours[i].Ok())
+            custColours[i] = wxColourToRGB(m_colourData.m_custColours[i]);
+        else
+            custColours[i] = RGB(255,255,255);
+    }
 
     chooseColorStruct.lStructSize = sizeof(CHOOSECOLOR);
     if ( m_parent )
@@ -147,10 +152,9 @@ int wxColourDialog::ShowModal()
     bool success = ::ChooseColor(&(chooseColorStruct)) != 0;
 
     // Try to highlight the correct window (the parent)
-    HWND hWndParent = 0;
     if (GetParent())
     {
-      hWndParent = (HWND) GetParent()->GetHWND();
+      HWND hWndParent = (HWND) GetParent()->GetHWND();
       if (hWndParent)
         ::BringWindowToTop(hWndParent);
     }
@@ -197,10 +201,10 @@ void wxColourDialog::DoSetSize(int x, int y,
                                int WXUNUSED(width), int WXUNUSED(height),
                                int WXUNUSED(sizeFlags))
 {
-    if ( x != -1 )
+    if ( x != wxDefaultCoord )
         m_pos.x = x;
 
-    if ( y != -1 )
+    if ( y != wxDefaultCoord )
         m_pos.y = y;
 
     // ignore the size params - we can't change the size of a standard dialog

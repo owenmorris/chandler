@@ -30,7 +30,7 @@
 
 #if wxUSE_LOG
 
-// wxWindows
+// wxWidgets
 #ifndef WX_PRECOMP
     #include "wx/app.h"
     #include "wx/arrstr.h"
@@ -199,7 +199,10 @@ void wxLogFatalError(const wxChar *szFormat, ...)
     va_list argptr;
     va_start(argptr, szFormat);
     wxVLogFatalError(szFormat, argptr);
-    va_end(argptr);
+
+    // some compilers warn about unreachable code and it shouldn't matter
+    // for the others anyhow...
+    //va_end(argptr);
 }
 
 // same as info, but only if 'verbose' mode is on
@@ -721,12 +724,7 @@ static void wxLogWrap(FILE *f, const char *pszPrefix, const char *psz)
 unsigned long wxSysErrorCode()
 {
 #if defined(__WXMSW__) && !defined(__WXMICROWIN__)
-#ifdef  __WIN32__
     return ::GetLastError();
-#else   //WIN16
-    // TODO what to do on Windows 3.1?
-    return 0;
-#endif  //WIN16/32
 #else   //Unix
     return errno;
 #endif  //Win/Unix
@@ -739,7 +737,6 @@ const wxChar *wxSysErrorMsg(unsigned long nErrCode)
         nErrCode = wxSysErrorCode();
 
 #if defined(__WXMSW__) && !defined(__WXMICROWIN__)
-#ifdef  __WIN32__
     static wxChar s_szBuf[LOG_BUFFER_SIZE / 2];
 
     // get error message from system
@@ -751,7 +748,9 @@ const wxChar *wxSysErrorMsg(unsigned long nErrCode)
             0, NULL);
 
     // copy it to our buffer and free memory
-    if( lpMsgBuf != 0 ) {
+    // Crashes on SmartPhone
+#if !defined(__SMARTPHONE__)
+     if( lpMsgBuf != 0 ) {
         wxStrncpy(s_szBuf, (const wxChar *)lpMsgBuf, WXSIZEOF(s_szBuf) - 1);
         s_szBuf[WXSIZEOF(s_szBuf) - 1] = wxT('\0');
 
@@ -766,16 +765,14 @@ const wxChar *wxSysErrorMsg(unsigned long nErrCode)
                 s_szBuf[len - 2] = wxT('\0');
         }
     }
-    else {
+    else
+#endif
+    {
         s_szBuf[0] = wxT('\0');
     }
 
     return s_szBuf;
-#else   //Win16
-    // TODO
-    return NULL;
-#endif // Win16/32
-#else   // Unix
+#else   // Unix-WXMICROWIN
 #if wxUSE_UNICODE
     static wxChar s_szBuf[LOG_BUFFER_SIZE / 2];
     wxConvCurrent->MB2WC(s_szBuf, strerror(nErrCode), WXSIZEOF(s_szBuf) -1);
@@ -783,7 +780,7 @@ const wxChar *wxSysErrorMsg(unsigned long nErrCode)
 #else
     return strerror((int)nErrCode);
 #endif
-#endif  // Win/Unix
+#endif  // Win/Unix-WXMICROWIN
 }
 
 #endif // wxUSE_LOG

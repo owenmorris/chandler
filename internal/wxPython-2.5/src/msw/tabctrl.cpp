@@ -113,12 +113,12 @@ bool wxTabCtrl::Create(wxWindow *parent, wxWindowID id, const wxPoint& pos, cons
 
   m_hWnd = (WXHWND) hWndTabCtrl;
   if (parent) parent->AddChild(this);
-  
+
   SubclassWin((WXHWND) hWndTabCtrl);
 
   SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
-  return TRUE;
+  return true;
 }
 
 wxTabCtrl::~wxTabCtrl()
@@ -129,7 +129,7 @@ wxTabCtrl::~wxTabCtrl()
 bool wxTabCtrl::MSWOnNotify(int idCtrl, WXLPARAM lParam, WXLPARAM *result)
 {
     wxTabEvent event(wxEVT_NULL, m_windowId);
-    wxEventType eventType = wxEVT_NULL;
+    wxEventType eventType wxDUMMY_INITIALIZE(wxEVT_NULL);
     NMHDR* hdr1 = (NMHDR*) lParam;
     switch ( hdr1->code )
     {
@@ -215,13 +215,13 @@ bool wxTabCtrl::GetItemRect(int item, wxRect& wxrect) const
 {
     RECT rect;
     if ( !TabCtrl_GetItemRect( (HWND) GetHWND(), item, & rect) )
-        return FALSE;
+        return false;
     else
     {
         wxrect.x = rect.left; wxrect.y = rect.top;
         wxrect.width = rect.right - rect.left;
         wxrect.height = rect.bottom - rect.top;
-        return TRUE;
+        return true;
     }
 }
 

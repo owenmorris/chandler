@@ -68,7 +68,7 @@
 
 #include "wx/memory.h"
 
-#if wxUSE_THREADS && defined(__WXDEBUG__) && !defined(__WXMAC__)
+#if wxUSE_THREADS && defined(__WXDEBUG__)
 #define USE_THREADSAFE_MEMORY_ALLOCATION 1
 #else
 #define USE_THREADSAFE_MEMORY_ALLOCATION 0
@@ -117,7 +117,7 @@
 */
 void wxMemStruct::ErrorMsg (const char * mesg)
 {
-  wxLogMessage(wxT("wxWindows memory checking error: %s"), mesg);
+  wxLogMessage(wxT("wxWidgets memory checking error: %s"), mesg);
   PrintNode ();
 }
 
@@ -126,7 +126,7 @@ void wxMemStruct::ErrorMsg (const char * mesg)
 */
 void wxMemStruct::ErrorMsg ()
 {
-  wxLogMessage(wxT("wxWindows over/underwrite memory error:"));
+  wxLogMessage(wxT("wxWidgets over/underwrite memory error:"));
   PrintNode ();
 }
 
@@ -332,7 +332,7 @@ void wxMemStruct::PrintNode ()
 
     // Let's put this in standard form so IDEs can load the file at the appropriate
     // line
-    wxString msg(wxT(""));
+    wxString msg;
 
     if (m_fileName)
       msg.Printf(wxT("%s(%d): "), m_fileName, (int)m_lineNum);
@@ -350,7 +350,7 @@ void wxMemStruct::PrintNode ()
   }
   else
   {
-    wxString msg(wxT(""));
+    wxString msg;
 
     if (m_fileName)
       msg.Printf(wxT("%s(%d): "), m_fileName, (int)m_lineNum);
@@ -371,7 +371,7 @@ void wxMemStruct::Dump ()
   {
     wxObject *obj = (wxObject *)m_actualData;
 
-    wxString msg(wxT(""));
+    wxString msg;
     if (m_fileName)
       msg.Printf(wxT("%s(%d): "), m_fileName, (int)m_lineNum);
 
@@ -388,7 +388,7 @@ void wxMemStruct::Dump ()
     else
       msg += wxT("unknown object class");
 
-    wxString msg2(wxT(""));
+    wxString msg2;
     msg2.Printf(wxT(" at 0x%lX, size %d"), (long)GetActualData(), (int)RequestSize());
     msg += msg2;
 
@@ -396,11 +396,11 @@ void wxMemStruct::Dump ()
   }
   else
   {
-    wxString msg(wxT(""));
+    wxString msg;
     if (m_fileName)
       msg.Printf(wxT("%s(%d): "), m_fileName, (int)m_lineNum);
 
-    wxString msg2(wxT(""));
+    wxString msg2;
     msg2.Printf(wxT("non-object data at 0x%lX, size %d"), (long)GetActualData(), (int)RequestSize() );
     msg += msg2;
     wxDebugContext::OutputDumpLine(msg);
@@ -464,9 +464,9 @@ int wxMemStruct::ValidateNode ()
 wxMemStruct *wxDebugContext::m_head = NULL;
 wxMemStruct *wxDebugContext::m_tail = NULL;
 
-bool wxDebugContext::m_checkPrevious = FALSE;
+bool wxDebugContext::m_checkPrevious = false;
 int wxDebugContext::debugLevel = 1;
-bool wxDebugContext::debugOn = TRUE;
+bool wxDebugContext::debugOn = true;
 wxMemStruct *wxDebugContext::checkPoint = NULL;
 
 // For faster alignment calculation
@@ -597,9 +597,9 @@ bool wxDebugContext::PrintList (void)
 #ifdef __WXDEBUG__
   TraverseList ((PmSFV)&wxMemStruct::PrintNode, (checkPoint ? checkPoint->m_next : (wxMemStruct*)NULL));
 
-  return TRUE;
+  return true;
 #else
-  return FALSE;
+  return false;
 #endif
 }
 
@@ -608,7 +608,7 @@ bool wxDebugContext::Dump(void)
 #ifdef __WXDEBUG__
   {
     wxChar* appName = (wxChar*) wxT("application");
-    wxString appNameStr(wxT(""));
+    wxString appNameStr;
     if (wxTheApp)
     {
         appNameStr = wxTheApp->GetAppName();
@@ -623,12 +623,12 @@ bool wxDebugContext::Dump(void)
 
   TraverseList ((PmSFV)&wxMemStruct::Dump, (checkPoint ? checkPoint->m_next : (wxMemStruct*)NULL));
 
-  OutputDumpLine( wxT("") );
-  OutputDumpLine( wxT("") );
+  OutputDumpLine(wxEmptyString);
+  OutputDumpLine(wxEmptyString);
 
-  return TRUE;
+  return true;
 #else
-  return FALSE;
+  return false;
 #endif
 }
 
@@ -664,7 +664,7 @@ bool wxDebugContext::PrintStatistics(bool detailed)
 #ifdef __WXDEBUG__
   {
     wxChar* appName = (wxChar*) wxT("application");
-    wxString appNameStr(wxT(""));
+    wxString appNameStr;
     if (wxTheApp)
     {
         appNameStr = wxTheApp->GetAppName();
@@ -678,7 +678,7 @@ bool wxDebugContext::PrintStatistics(bool detailed)
   }
 
   bool currentMode = GetDebugMode();
-  SetDebugMode(FALSE);
+  SetDebugMode(false);
 
   long noNonObjectNodes = 0;
   long noObjectNodes = 0;
@@ -736,7 +736,7 @@ bool wxDebugContext::PrintStatistics(bool detailed)
       list = old->next;
       free((char *)old);
     }
-    OutputDumpLine(wxT(""));
+    OutputDumpLine(wxEmptyString);
   }
 
   SetDebugMode(currentMode);
@@ -744,13 +744,13 @@ bool wxDebugContext::PrintStatistics(bool detailed)
   OutputDumpLine(wxT("Number of object items: %ld"), noObjectNodes);
   OutputDumpLine(wxT("Number of non-object items: %ld"), noNonObjectNodes);
   OutputDumpLine(wxT("Total allocated size: %ld"), totalSize);
-  OutputDumpLine(wxT(""));
-  OutputDumpLine(wxT(""));
+  OutputDumpLine(wxEmptyString);
+  OutputDumpLine(wxEmptyString);
 
-  return TRUE;
+  return true;
 #else
   (void)detailed;
-  return FALSE;
+  return false;
 #endif
 }
 
@@ -758,7 +758,7 @@ bool wxDebugContext::PrintClasses(void)
 {
   {
     wxChar* appName = (wxChar*) wxT("application");
-    wxString appNameStr(wxT(""));
+    wxString appNameStr;
     if (wxTheApp)
     {
         appNameStr = wxTheApp->GetAppName();
@@ -801,11 +801,11 @@ bool wxDebugContext::PrintClasses(void)
     node = wxClassInfo::sm_classTable->Next();
     n ++;
   }
-  wxLogMessage(wxT(""));
+  wxLogMessage(wxEmptyString);
   wxLogMessage(wxT("There are %d classes derived from wxObject."), n);
-  wxLogMessage(wxT(""));
-  wxLogMessage(wxT(""));
-  return TRUE;
+  wxLogMessage(wxEmptyString);
+  wxLogMessage(wxEmptyString);
+  return true;
 }
 
 void wxDebugContext::SetCheckpoint(bool all)
@@ -867,13 +867,13 @@ void wxDebugContext::OutputDumpLine(const wxChar *szFormat, ...)
     int count;
     va_list argptr;
     va_start(argptr, szFormat);
-    buf[sizeof(buf)-1] = _T('\0');
+    buf[sizeof(buf)/sizeof(wxChar)-1] = _T('\0');
 
     // keep 3 bytes for a \r\n\0
-    count = wxVsnprintf(buf, sizeof(buf)-3, szFormat, argptr);
+    count = wxVsnprintf(buf, sizeof(buf)/sizeof(wxChar)-3, szFormat, argptr);
 
     if ( count < 0 )
-        count = sizeof(buf)-3;
+        count = sizeof(buf)/sizeof(wxChar)-3;
     buf[count]=_T('\r');
     buf[count+1]=_T('\n');
     buf[count+2]=_T('\0');
@@ -884,21 +884,21 @@ void wxDebugContext::OutputDumpLine(const wxChar *szFormat, ...)
 
 
 #if USE_THREADSAFE_MEMORY_ALLOCATION
-static bool memSectionOk = FALSE;
+static bool memSectionOk = false;
 
 class MemoryCriticalSection : public wxCriticalSection
 {
 public:
-	MemoryCriticalSection() {
-		memSectionOk = TRUE;
-	}
+    MemoryCriticalSection() {
+        memSectionOk = true;
+    }
 };
 
 class MemoryCriticalSectionLocker
 {
 public:
     inline MemoryCriticalSectionLocker(wxCriticalSection& critsect)
-	: m_critsect(critsect), m_locked(memSectionOk) { if(m_locked) m_critsect.Enter(); }
+    : m_critsect(critsect), m_locked(memSectionOk) { if(m_locked) m_critsect.Enter(); }
     inline ~MemoryCriticalSectionLocker() { if(m_locked) m_critsect.Leave(); }
 
 private:
@@ -907,17 +907,22 @@ private:
     MemoryCriticalSectionLocker& operator=(const MemoryCriticalSectionLocker&);
 
     wxCriticalSection& m_critsect;
-	bool	m_locked;
+    bool m_locked;
 };
 
-static MemoryCriticalSection memLocker;
+MemoryCriticalSection &GetMemLocker()
+{
+    static MemoryCriticalSection memLocker;
+    return memLocker;
+}
+
 #endif
 
 // TODO: store whether this is a vector or not.
 void * wxDebugAlloc(size_t size, wxChar * fileName, int lineNum, bool isObject, bool WXUNUSED(isVect) )
 {
 #if USE_THREADSAFE_MEMORY_ALLOCATION
-  MemoryCriticalSectionLocker lock(memLocker);
+  MemoryCriticalSectionLocker lock(GetMemLocker());
 #endif
 
   // If not in debugging allocation mode, do the normal thing
@@ -977,7 +982,7 @@ void * wxDebugAlloc(size_t size, wxChar * fileName, int lineNum, bool isObject, 
 void wxDebugFree(void * buf, bool WXUNUSED(isVect) )
 {
 #if USE_THREADSAFE_MEMORY_ALLOCATION
-  MemoryCriticalSectionLocker lock(memLocker);
+  MemoryCriticalSectionLocker lock(GetMemLocker());
 #endif
 
   if (!buf)
@@ -1111,7 +1116,7 @@ int wxDebugContextDumpDelayCounter::sm_count;
 
 void wxDebugContextDumpDelayCounter::DoDump()
 {
-    if (wxDebugContext::CountObjectsLeft(TRUE) > 0)
+    if (wxDebugContext::CountObjectsLeft(true) > 0)
     {
         wxDebugContext::OutputDumpLine(wxT("There were memory leaks.\n"));
         wxDebugContext::Dump();

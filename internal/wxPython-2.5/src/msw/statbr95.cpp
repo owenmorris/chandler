@@ -70,7 +70,7 @@ bool wxStatusBar95::Create(wxWindow *parent,
                            long style,
                            const wxString& name)
 {
-    wxCHECK_MSG( parent, FALSE, wxT("status bar must have a parent") );
+    wxCHECK_MSG( parent, false, wxT("status bar must have a parent") );
 
     SetName(name);
     SetWindowStyleFlag(style);
@@ -78,7 +78,7 @@ bool wxStatusBar95::Create(wxWindow *parent,
 
     parent->AddChild(this);
 
-    m_windowId = id == -1 ? NewControlId() : id;
+    m_windowId = id == wxID_ANY ? NewControlId() : id;
 
     DWORD wstyle = WS_CHILD | WS_VISIBLE;
 
@@ -111,15 +111,16 @@ bool wxStatusBar95::Create(wxWindow *parent,
     {
         wxLogSysError(_("Failed to create a status bar."));
 
-        return FALSE;
+        return false;
     }
 
     SetFieldsCount(1);
     SubclassWin(m_hWnd);
+    InheritAttributes();
 
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_MENUBAR));
 
-    return TRUE;
+    return true;
 }
 
 wxStatusBar95::~wxStatusBar95()
@@ -176,7 +177,30 @@ void wxStatusBar95::SetStatusText(const wxString& strText, int nField)
     wxCHECK_RET( (nField >= 0) && (nField < m_nFields),
                  _T("invalid statusbar field index") );
 
-    if ( !StatusBar_SetText(GetHwnd(), nField, strText) )
+    // Get field style, if any
+    int style;
+    if (m_statusStyles)
+    {
+        switch(m_statusStyles[nField])
+        {
+        case wxSB_RAISED:
+            style = SBT_POPOUT;
+            break;
+        case wxSB_FLAT:
+            style = SBT_NOBORDERS;
+            break;
+        case wxSB_NORMAL:
+        default:
+            style = 0;
+            break;
+        }
+    }
+    else
+        style = 0;
+
+    // Pass both field number and style. MSDN library doesn't mention
+    // that nField and style have to be 'ORed'
+    if ( !StatusBar_SetText(GetHwnd(), nField | style, strText) )
     {
         wxLogLastError(wxT("StatusBar_SetText"));
     }
@@ -223,7 +247,7 @@ void wxStatusBar95::SetMinHeight(int height)
 
 bool wxStatusBar95::GetFieldRect(int i, wxRect& rect) const
 {
-    wxCHECK_MSG( (i >= 0) && (i < m_nFields), FALSE,
+    wxCHECK_MSG( (i >= 0) && (i < m_nFields), false,
                  _T("invalid statusbar field index") );
 
     RECT r;
@@ -234,7 +258,7 @@ bool wxStatusBar95::GetFieldRect(int i, wxRect& rect) const
 
     wxCopyRECTToRect(r, rect);
 
-    return TRUE;
+    return true;
 }
 
 void wxStatusBar95::DoMoveWindow(int x, int y, int width, int height)
@@ -255,7 +279,7 @@ void wxStatusBar95::DoMoveWindow(int x, int y, int width, int height)
     // adjust fields widths to the new size
     SetFieldsWidth();
 
-    // we have to trigger wxSizeEvent if there are children window in status 
+    // we have to trigger wxSizeEvent if there are children window in status
     // bar because GetFieldRect returned incorrect (not updated) values up to
     // here, which almost certainly resulted in incorrectly redrawn statusbar
     if ( m_children.GetCount() > 0 )
@@ -263,6 +287,40 @@ void wxStatusBar95::DoMoveWindow(int x, int y, int width, int height)
         wxSizeEvent event(GetClientSize(), m_windowId);
         event.SetEventObject(this);
         GetEventHandler()->ProcessEvent(event);
+    }
+}
+
+void wxStatusBar95::SetStatusStyles(int n, const int styles[])
+{
+    wxStatusBarBase::SetStatusStyles(n, styles);
+
+    if (n != m_nFields)
+        return;
+
+    for (int i = 0; i < n; i++)
+    {
+        int style;
+        switch(styles[i])
+        {
+        case wxSB_RAISED:
+            style = SBT_POPOUT;
+            break;
+        case wxSB_FLAT:
+            style = SBT_NOBORDERS;
+            break;
+        case wxSB_NORMAL:
+        default:
+            style = 0;
+            break;
+        }
+        // The SB_SETTEXT message is both used to set the field's text as well as
+        // the fields' styles. MSDN library doesn't mention
+        // that nField and style have to be 'ORed'
+        wxString text = GetStatusText(i);
+        if (!StatusBar_SetText(GetHwnd(), style | i, text))
+        {
+            wxLogLastError(wxT("StatusBar_SetText"));
+        }
     }
 }
 

@@ -13,6 +13,9 @@
 #pragma implementation "button.h"
 #endif
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
 #ifdef __VMS
 #define XtDisplay XTDISPLAY
 #endif
@@ -30,20 +33,29 @@
 #pragma message enable nosimpint
 #endif
 
+#include "wx/stockitem.h"
 #include "wx/motif/private.h"
+#include "wx/sysopt.h"
 
 void wxButtonCallback (Widget w, XtPointer clientData, XtPointer ptr);
 
 IMPLEMENT_DYNAMIC_CLASS(wxButton, wxControl)
 
+#define MIN_WIDTH 78
+#define MIN_LARGE_HEIGHT 30
+
 // Button
 
-bool wxButton::Create(wxWindow *parent, wxWindowID id, const wxString& label,
+bool wxButton::Create(wxWindow *parent, wxWindowID id, const wxString& lbl,
                       const wxPoint& pos,
                       const wxSize& size, long style,
                       const wxValidator& validator,
                       const wxString& name)
 {
+    wxString label(lbl);
+    if (label.empty() && wxIsStockID(id))
+        label = wxGetStockLabel(id);
+    
     if( !CreateControl( parent, id, pos, size, style, validator, name ) )
         return false;
 
@@ -84,7 +96,7 @@ bool wxButton::Create(wxWindow *parent, wxWindowID id, const wxString& label,
 
     ChangeBackgroundColour();
 
-    return TRUE;
+    return true;
 }
 
 void wxButton::SetDefaultShadowThicknessAndResize()
@@ -141,15 +153,36 @@ void wxButton::SetDefault()
                    NULL);
 }
 
+static inline bool wxMotifLargeButtons()
+{
+    return wxSystemOptions::HasOption("motif.largebuttons")
+        && wxSystemOptions::GetOptionInt("motif.largebuttons") != 0;
+}
+
 /* static */
 wxSize wxButton::GetDefaultSize()
 {
     // TODO: check font size as in wxMSW ?  MB
     // Note: this is the button size (text + margin + shadow + defaultBorder)
-    return wxSize(78,30);
+    return wxSize( MIN_WIDTH, MIN_LARGE_HEIGHT );
 }
 
 wxSize wxButton::DoGetBestSize() const
+{
+    if( wxMotifLargeButtons() )
+        return OldGetBestSize();
+
+    wxSize best = wxControl::DoGetBestSize();
+
+    if( HasFlag( wxBU_EXACTFIT ) )
+        return best;
+    else if( best.x < MIN_WIDTH )
+        best.x = MIN_WIDTH;
+
+    return best;
+}
+
+wxSize wxButton::OldGetBestSize() const
 {
     Dimension xmargin, ymargin, highlight, shadow, defThickness;
 

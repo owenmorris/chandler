@@ -29,6 +29,7 @@
 #endif
 
 #ifndef WX_PRECOMP
+    #include "wx/image.h"
     #include "wx/window.h"
     #include "wx/dc.h"
     #include "wx/utils.h"
@@ -113,13 +114,17 @@ static const int MM_METRIC = 10;
    coordinates used.
  */
 
-// logical to device
-#define XLOG2DEV(x) (x)
-#define YLOG2DEV(y) (y)
-
-// device to logical
-#define XDEV2LOG(x) (x)
-#define YDEV2LOG(y) (y)
+#ifdef __WXWINCE__
+    #define XLOG2DEV(x) ((x-m_logicalOriginX)*m_signX+m_deviceOriginX)
+    #define YLOG2DEV(y) ((y-m_logicalOriginY)*m_signY+m_deviceOriginY)
+    #define XDEV2LOG(x) ((x-m_deviceOriginX)*m_signX+m_logicalOriginX)
+    #define YDEV2LOG(y) ((y-m_deviceOriginY)*m_signY+m_logicalOriginY)
+#else
+    #define XLOG2DEV(x) (x)
+    #define YLOG2DEV(y) (y)
+    #define XDEV2LOG(x) (x)
+    #define YDEV2LOG(y) (y)
+#endif
 
 // ---------------------------------------------------------------------------
 // private functions
@@ -184,6 +189,8 @@ public:
         m_modeOld = ::SetStretchBltMode(m_hdc, mode);
         if ( !m_modeOld )
             wxLogLastError(_T("SetStretchBltMode"));
+#else
+        wxUnusedVar(mode);
 #endif
     }
 
@@ -220,7 +227,7 @@ wxColourChanger::wxColourChanger(wxDC& dc) : m_dc(dc)
         m_colFgOld = ::GetTextColor(hdc);
         m_colBgOld = ::GetBkColor(hdc);
 
-        // note that Windows convention is opposite to wxWindows one, this is
+        // note that Windows convention is opposite to wxWidgets one, this is
         // why text colour becomes the background one and vice versa
         const wxColour& colFg = dc.GetTextForeground();
         if ( colFg.Ok() )
@@ -379,6 +386,24 @@ void wxDC::UpdateClipBox()
     m_clipY2 = (wxCoord) YDEV2LOG(rect.bottom);
 }
 
+void
+wxDC::DoGetClippingBox(wxCoord *x, wxCoord *y, wxCoord *w, wxCoord *h) const
+{
+    // check if we should try to retrieve the clipping region possibly not set
+    // by our SetClippingRegion() but preset by Windows:this can only happen
+    // when we're associated with an existing HDC usign SetHDC(), see there
+    if ( m_clipping && !m_clipX1 && !m_clipX2 )
+    {
+        wxDC *self = wxConstCast(this, wxDC);
+        self->UpdateClipBox();
+
+        if ( !m_clipX1 && !m_clipX2 )
+            self->m_clipping = false;
+    }
+
+    wxDCBase::DoGetClippingBox(x, y, w, h);
+}
+
 // common part of DoSetClippingRegion() and DoSetClippingRegionAsRegion()
 void wxDC::SetClippingHrgn(WXHRGN hrgn)
 {
@@ -389,7 +414,7 @@ void wxDC::SetClippingHrgn(WXHRGN hrgn)
     // note that we combine the new clipping region with the existing one: this
     // is compatible with what the other ports do and is the documented
     // behaviour now (starting with 2.3.3)
-#if defined(__WIN16__) || defined(__WXWINCE__)
+#if defined(__WXWINCE__)
     RECT rectClip;
     if ( !::GetClipBox(GetHdc(), &rectClip) )
         return;
@@ -405,14 +430,14 @@ void wxDC::SetClippingHrgn(WXHRGN hrgn)
 
     ::DeleteObject(hrgnClipOld);
     ::DeleteObject(hrgnDest);
-#else // Win32
+#else // !WinCE
     if ( ::ExtSelectClipRgn(GetHdc(), (HRGN)hrgn, RGN_AND) == ERROR )
     {
         wxLogLastError(_T("ExtSelectClipRgn"));
 
         return;
     }
-#endif // Win16/32
+#endif // WinCE/!WinCE
 
     m_clipping = true;
 
@@ -461,7 +486,7 @@ void wxDC::DestroyClippingRegion()
         ::DeleteObject(rgn);
     }
 
-    m_clipping = false;
+    wxDCBase::DestroyClippingRegion();
 }
 
 // ---------------------------------------------------------------------------
@@ -528,10 +553,10 @@ void wxDC::Clear()
     ::FillRect(GetHdc(), &rect, brush);
     ::DeleteObject(brush);
 
+#ifndef __WXWINCE__
     int width = DeviceToLogicalXRel(VIEWPORT_EXTENT)*m_signX,
         height = DeviceToLogicalYRel(VIEWPORT_EXTENT)*m_signY;
 
-#ifndef __WXWINCE__
     ::SetMapMode(GetHdc(), MM_ANISOTROPIC);
 
     ::SetViewportExtEx(GetHdc(), VIEWPORT_EXTENT, VIEWPORT_EXTENT, NULL);
@@ -544,6 +569,10 @@ void wxDC::Clear()
 bool wxDC::DoFloodFill(wxCoord x, wxCoord y, const wxColour& col, int style)
 {
 #ifdef __WXWINCE__
+    wxUnusedVar(x);
+    wxUnusedVar(y);
+    wxUnusedVar(col);
+    wxUnusedVar(style);
     return false;
 #else
 
@@ -699,8 +728,8 @@ void wxDC::DoDrawCheckMark(wxCoord x1, wxCoord y1,
 #else
     DrawFrameControl(GetHdc(), &rect, DFC_MENU, DFCS_MENUCHECK);
 #endif
-#else // Win16
-    // In WIN16, draw a cross
+#else // Symantec-MicroWin
+    // draw a cross
     HPEN blackPen = ::CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
     HPEN whiteBrush = (HPEN)::GetStockObject(WHITE_BRUSH);
     HPEN hPenOld = (HPEN)::SelectObject(GetHdc(), blackPen);
@@ -714,7 +743,7 @@ void wxDC::DoDrawCheckMark(wxCoord x1, wxCoord y1,
     ::SelectObject(GetHdc(), hPenOld);
     ::SelectObject(GetHdc(), hBrushOld);
     ::DeleteObject(blackPen);
-#endif // Win32/16
+#endif // Win32/Symantec-MicroWin
 
     CalcBoundingBox(x1, y1);
     CalcBoundingBox(x2, y2);
@@ -755,6 +784,8 @@ void wxDC::DoDrawPolygon(int n, wxPoint points[], wxCoord xoffset, wxCoord yoffs
         }
 #ifndef __WXWINCE__
         int prev = SetPolyFillMode(GetHdc(),fillStyle==wxODDEVEN_RULE?ALTERNATE:WINDING);
+#else
+        wxUnusedVar(fillStyle);
 #endif
         (void)Polygon(GetHdc(), cpoints, n);
 #ifndef __WXWINCE__
@@ -788,7 +819,7 @@ wxDC::DoDrawPolyPolygon(int n,
 {
 #ifdef __WXWINCE__
     wxDCBase::DoDrawPolyPolygon(n, count, points, xoffset, yoffset, fillStyle);
-#else    
+#else
     WXMICROWIN_CHECK_HDC
 
     wxColourChanger cc(*this); // needed for wxSTIPPLE_MASK_OPAQUE handling
@@ -809,11 +840,11 @@ wxDC::DoDrawPolyPolygon(int n,
         }
 #ifndef __WXWINCE__
         int prev = SetPolyFillMode(GetHdc(),fillStyle==wxODDEVEN_RULE?ALTERNATE:WINDING);
-#endif        
+#endif
         (void)PolyPolygon(GetHdc(), cpoints, count, n);
 #ifndef __WXWINCE__
         SetPolyFillMode(GetHdc(),prev);
-#endif        
+#endif
         delete[] cpoints;
     }
     else
@@ -823,11 +854,11 @@ wxDC::DoDrawPolyPolygon(int n,
 
 #ifndef __WXWINCE__
         int prev = SetPolyFillMode(GetHdc(),fillStyle==wxODDEVEN_RULE?ALTERNATE:WINDING);
-#endif        
+#endif
         (void)PolyPolygon(GetHdc(), (POINT*) points, count, n);
 #ifndef __WXWINCE__
         SetPolyFillMode(GetHdc(),prev);
-#endif        
+#endif
     }
 #endif
   // __WXWINCE__
@@ -1060,7 +1091,7 @@ void wxDC::DoDrawBitmap( const wxBitmap &bmp, wxCoord x, wxCoord y, bool useMask
         // use MaskBlt() with ROP which doesn't do anything to dst in the mask
         // points
         // On some systems, MaskBlt succeeds yet is much much slower
-        // than the wxWindows fall-back implementation. So we need
+        // than the wxWidgets fall-back implementation. So we need
         // to be able to switch this on and off at runtime.
         bool ok = false;
 #if wxUSE_SYSTEM_OPTIONS
@@ -1262,13 +1293,13 @@ void wxDC::DoDrawRotatedText(const wxString& text,
 
         // "upper left" and "upper right"
         CalcBoundingBox(x, y);
-        CalcBoundingBox(x + wxCoord(w*cos(rad)), y - wxCoord(h*sin(rad)));
+        CalcBoundingBox(x + wxCoord(w*cos(rad)), y - wxCoord(w*sin(rad)));
 
         // "bottom left" and "bottom right"
         x += (wxCoord)(h*sin(rad));
         y += (wxCoord)(h*cos(rad));
         CalcBoundingBox(x, y);
-        CalcBoundingBox(x + wxCoord(h*sin(rad)), y + wxCoord(h*cos(rad)));
+        CalcBoundingBox(x + wxCoord(w*cos(rad)), y - wxCoord(w*sin(rad)));
     }
 #endif
 }
@@ -1743,15 +1774,13 @@ void wxDC::SetUserScale(double x, double y)
 {
     WXMICROWIN_CHECK_HDC
 
-#ifndef __WXWINCE__
     if ( x == m_userScaleX && y == m_userScaleY )
         return;
 
     m_userScaleX = x;
     m_userScaleY = y;
 
-    SetMapMode(m_mappingMode);
-#endif
+    this->SetMapMode(m_mappingMode);
 }
 
 void wxDC::SetAxisOrientation(bool xLeftRight, bool yBottomUp)
@@ -1769,6 +1798,9 @@ void wxDC::SetAxisOrientation(bool xLeftRight, bool yBottomUp)
 
         SetMapMode(m_mappingMode);
     }
+#else
+    wxUnusedVar(xLeftRight);
+    wxUnusedVar(yBottomUp);
 #endif
 }
 
@@ -1776,13 +1808,13 @@ void wxDC::SetSystemScale(double x, double y)
 {
     WXMICROWIN_CHECK_HDC
 
-#ifndef __WXWINCE__
     if ( x == m_scaleX && y == m_scaleY )
         return;
 
     m_scaleX = x;
     m_scaleY = y;
 
+#ifndef __WXWINCE__
     SetMapMode(m_mappingMode);
 #endif
 }
@@ -1791,13 +1823,13 @@ void wxDC::SetLogicalOrigin(wxCoord x, wxCoord y)
 {
     WXMICROWIN_CHECK_HDC
 
-#ifndef __WXWINCE__
     if ( x == m_logicalOriginX && y == m_logicalOriginY )
         return;
 
     m_logicalOriginX = x;
     m_logicalOriginY = y;
 
+#ifndef __WXWINCE__
     ::SetWindowOrgEx(GetHdc(), (int)m_logicalOriginX, (int)m_logicalOriginY, NULL);
 #endif
 }
@@ -1806,13 +1838,13 @@ void wxDC::SetDeviceOrigin(wxCoord x, wxCoord y)
 {
     WXMICROWIN_CHECK_HDC
 
-#ifndef __WXWINCE__
     if ( x == m_deviceOriginX && y == m_deviceOriginY )
         return;
 
     m_deviceOriginX = x;
     m_deviceOriginY = y;
 
+#ifndef __WXWINCE__
     ::SetViewportOrgEx(GetHdc(), (int)m_deviceOriginX, (int)m_deviceOriginY, NULL);
 #endif
 }
@@ -1951,7 +1983,7 @@ bool wxDC::DoBlit(wxCoord xdest, wxCoord ydest,
         // of the mask which is also contrary to the Windows one)
 
         // On some systems, MaskBlt succeeds yet is much much slower
-        // than the wxWindows fall-back implementation. So we need
+        // than the wxWidgets fall-back implementation. So we need
         // to be able to switch this on and off at runtime.
 #if wxUSE_SYSTEM_OPTIONS
         if (wxSystemOptions::GetOptionInt(wxT("no-maskblt")) == 0)
@@ -2096,7 +2128,7 @@ bool wxDC::DoBlit(wxCoord xdest, wxCoord ydest,
                     // On Win9x this API fails most (all?) of the time, so
                     // logging it becomes quite distracting.  Since it falls
                     // back to the code below this is not really serious, so
-                    // don't log it.                     
+                    // don't log it.
                     //wxLogLastError(wxT("StretchDIBits"));
                 }
                 else
@@ -2206,7 +2238,7 @@ wxSize wxDC::GetPPI() const
     return wxSize(x, y);
 }
 
-// For use by wxWindows only, unless custom units are required.
+// For use by wxWidgets only, unless custom units are required.
 void wxDC::SetLogicalScale(double x, double y)
 {
     WXMICROWIN_CHECK_HDC

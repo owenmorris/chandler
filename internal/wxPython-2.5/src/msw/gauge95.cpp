@@ -78,7 +78,7 @@ wxBEGIN_FLAGS( wxGaugeStyle )
     wxFLAGS_MEMBER(wxBORDER_RAISED)
     wxFLAGS_MEMBER(wxBORDER_STATIC)
     wxFLAGS_MEMBER(wxBORDER_NONE)
-    
+
     // old style border flags
     wxFLAGS_MEMBER(wxSIMPLE_BORDER)
     wxFLAGS_MEMBER(wxSUNKEN_BORDER)
@@ -111,13 +111,13 @@ wxBEGIN_PROPERTIES_TABLE(wxGauge95)
     wxPROPERTY( Range , int , SetRange, GetRange, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
     wxPROPERTY( ShadowWidth , int , SetShadowWidth, GetShadowWidth, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
     wxPROPERTY( BezelFace , int , SetBezelFace, GetBezelFace, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-    wxPROPERTY_FLAGS( WindowStyle , wxGaugeStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
+    wxPROPERTY_FLAGS( WindowStyle , wxGaugeStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
 wxEND_PROPERTIES_TABLE()
 
 wxBEGIN_HANDLERS_TABLE(wxGauge95)
 wxEND_HANDLERS_TABLE()
 
-wxCONSTRUCTOR_6( wxGauge95 , wxWindow* , Parent , wxWindowID , Id , int , Range , wxPoint , Position , wxSize , Size , long , WindowStyle ) 
+wxCONSTRUCTOR_6( wxGauge95 , wxWindow* , Parent , wxWindowID , Id , int , Range , wxPoint , Position , wxSize , Size , long , WindowStyle )
 #else
 IMPLEMENT_DYNAMIC_CLASS(wxGauge95, wxControl)
 #endif
@@ -145,9 +145,6 @@ bool wxGauge95::Create(wxWindow *parent,
     if ( !MSWCreateControl(PROGRESS_CLASS, wxEmptyString, pos, size) )
         return false;
 
-    SetBackgroundColour(parent->GetBackgroundColour());
-    SetForegroundColour(parent->GetForegroundColour());
-
     SetRange(range);
 
     return true;
@@ -174,7 +171,10 @@ wxSize wxGauge95::DoGetBestSize() const
 {
     // VZ: no idea where does 28 come from, it was there before my changes and
     //     as nobody ever complained I guess we can leave it...
-    return wxSize(100, 28);
+    if (HasFlag(wxGA_VERTICAL))
+        return wxSize(28, 100);
+    else
+        return wxSize(100, 28);
 }
 
 // ----------------------------------------------------------------------------

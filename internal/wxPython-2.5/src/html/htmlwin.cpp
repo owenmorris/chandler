@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // RCS-ID:      $Id$
 // Copyright:   (c) 1999 Vaclav Slavik
-// Licence:     wxWindows Licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -36,10 +36,10 @@
 #include "wx/dataobj.h"
 #include "wx/timer.h"
 #include "wx/dcmemory.h"
+#include "wx/settings.h"
 
 #include "wx/arrimpl.cpp"
 #include "wx/listimpl.cpp"
-
 
 
 #if wxUSE_CLIPBOARD
@@ -158,7 +158,9 @@ void wxHtmlWindow::Init()
     m_tmpLastCell = NULL;
     m_tmpCanDrawLocks = 0;
     m_FS = new wxFileSystem();
+#if wxUSE_STATUSBAR
     m_RelatedStatusBar = -1;
+#endif // wxUSE_STATUSBAR
     m_RelatedFrame = NULL;
     m_TitleFormat = wxT("%s");
     m_OpenedPage = m_OpenedAnchor = m_OpenedPageTitle = wxEmptyString;
@@ -228,10 +230,12 @@ void wxHtmlWindow::SetRelatedFrame(wxFrame* frame, const wxString& format)
 
 
 
+#if wxUSE_STATUSBAR
 void wxHtmlWindow::SetRelatedStatusBar(int bar)
 {
     m_RelatedStatusBar = bar;
 }
+#endif // wxUSE_STATUSBAR
 
 
 
@@ -245,6 +249,22 @@ void wxHtmlWindow::SetFonts(wxString normal_face, wxString fixed_face, const int
     if (!op.IsEmpty()) LoadPage(op);
 }
 
+void wxHtmlWindow::NormalizeFontSizes(int size)
+{
+    int f_sizes[7];
+    if (size == -1)
+        size = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize();
+
+    f_sizes[0] = int(size * 0.6);
+    f_sizes[1] = int(size * 0.8);
+    f_sizes[2] = size;
+    f_sizes[3] = int(size * 1.2);
+    f_sizes[4] = int(size * 1.4);
+    f_sizes[5] = int(size * 1.6);
+    f_sizes[6] = int(size * 1.8);
+    
+    SetFonts(wxEmptyString, wxEmptyString, f_sizes);
+}
 
 
 bool wxHtmlWindow::SetPage(const wxString& source)
@@ -355,13 +375,15 @@ bool wxHtmlWindow::LoadPage(const wxString& location)
 
     else
     {
-        needs_refresh = TRUE;
+        needs_refresh = true;
+#if wxUSE_STATUSBAR
         // load&display it:
         if (m_RelatedStatusBar != -1)
         {
             m_RelatedFrame->SetStatusText(_("Connecting..."), m_RelatedStatusBar);
-            Refresh(FALSE);
+            Refresh(false);
         }
+#endif // wxUSE_STATUSBAR
 
         f = m_Parser->OpenURL(wxHTML_URL_PAGE, location);
 
@@ -377,7 +399,7 @@ bool wxHtmlWindow::LoadPage(const wxString& location)
         {
             wxLogError(_("Unable to open requested HTML document: %s"), location.c_str());
             m_tmpCanDrawLocks--;
-            return FALSE;
+            return false;
         }
 
         else
@@ -385,12 +407,14 @@ bool wxHtmlWindow::LoadPage(const wxString& location)
             wxList::compatibility_iterator node;
             wxString src = wxEmptyString;
 
+#if wxUSE_STATUSBAR
             if (m_RelatedStatusBar != -1)
             {
                 wxString msg = _("Loading : ") + location;
                 m_RelatedFrame->SetStatusText(msg, m_RelatedStatusBar);
-                Refresh(FALSE);
+                Refresh(false);
             }
+#endif // wxUSE_STATUSBAR
 
             node = m_Filters.GetFirst();
             while (node)
@@ -419,7 +443,10 @@ bool wxHtmlWindow::LoadPage(const wxString& location)
 
             delete f;
 
-            if (m_RelatedStatusBar != -1) m_RelatedFrame->SetStatusText(_("Done"), m_RelatedStatusBar);
+#if wxUSE_STATUSBAR
+            if (m_RelatedStatusBar != -1) 
+                m_RelatedFrame->SetStatusText(_("Done"), m_RelatedStatusBar);
+#endif // wxUSE_STATUSBAR
         }
     }
 
@@ -728,19 +755,19 @@ bool wxHtmlWindow::IsSelectionEnabled() const
 
 
 #if wxUSE_CLIPBOARD
-wxString wxHtmlWindow::SelectionToText()
+wxString wxHtmlWindow::DoSelectionToText(wxHtmlSelection *sel)
 {
-    if ( !m_selection )
+    if ( !sel )
         return wxEmptyString;
 
     wxClientDC dc(this);
 
-    const wxHtmlCell *end = m_selection->GetToCell();
+    const wxHtmlCell *end = sel->GetToCell();
     wxString text;
-    wxHtmlTerminalCellsInterator i(m_selection->GetFromCell(), end);
+    wxHtmlTerminalCellsInterator i(sel->GetFromCell(), end);
     if ( i )
     {
-        text << i->ConvertToText(m_selection);
+        text << i->ConvertToText(sel);
         ++i;
     }
     const wxHtmlCell *prev = *i;
@@ -748,11 +775,23 @@ wxString wxHtmlWindow::SelectionToText()
     {
         if ( prev->GetParent() != i->GetParent() )
             text << _T('\n');
-        text << i->ConvertToText(*i == end ? m_selection : NULL);
+        text << i->ConvertToText(*i == end ? sel : NULL);
         prev = *i;
         ++i;
     }
     return text;
+}
+
+wxString wxHtmlWindow::ToText()
+{
+    if (m_Cell)
+    {
+        wxHtmlSelection sel;
+        sel.Set(m_Cell->GetFirstTerminal(), m_Cell->GetLastTerminal());
+        return DoSelectionToText(&sel);
+    }
+    else
+        return wxEmptyString;
 }
 
 #endif // wxUSE_CLIPBOARD
@@ -1106,6 +1145,7 @@ void wxHtmlWindow::OnInternalIdle()
 
             if (lnk != m_tmpLastLink)
             {
+#if wxUSE_STATUSBAR
                 if (lnk == NULL)
                 {
                     if (m_RelatedStatusBar != -1)
@@ -1118,6 +1158,7 @@ void wxHtmlWindow::OnInternalIdle()
                         m_RelatedFrame->SetStatusText(lnk->GetHref(),
                                                       m_RelatedStatusBar);
                 }
+#endif // wxUSE_STATUSBAR
                 m_tmpLastLink = lnk;
             }
 

@@ -13,6 +13,7 @@
 #include "wx/utils.h"
 #include "wx/app.h"
 #include "wx/apptrait.h"
+#include "wx/display.h"
 
 #include <ctype.h>
 
@@ -22,6 +23,11 @@
 #include <stdarg.h>
 
 // Get size of display
+size_t wxDisplayBase::GetCount()
+{
+    return 1;
+}
+
 void wxDisplaySize(int *width, int *height)
 {
     // TODO
@@ -84,7 +90,7 @@ void wxBell()
 }
 
 #if 0
-// DFE: These aren't even implemented by wxGTK, and no wxWindows code calls
+// DFE: These aren't even implemented by wxGTK, and no wxWidgets code calls
 // them.  If someone needs them, then they'll get a link error
 
 // Consume all events until no more left

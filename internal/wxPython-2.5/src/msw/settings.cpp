@@ -87,7 +87,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxSystemSettingsModule, wxModule)
 
 bool wxSystemSettingsModule::OnInit()
 {
-    return TRUE;
+    return true;
 }
 
 void wxSystemSettingsModule::OnExit()
@@ -110,7 +110,7 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
     // is no invalid colour value we use hasCol as the real indicator of
     // whether colSys was initialized or not
     COLORREF colSys = 0;
-    bool hasCol = FALSE;
+    bool hasCol = false;
 
     // the default colours for the entries after BTNHIGHLIGHT
     static const COLORREF s_defaultSysColors[] =
@@ -141,14 +141,12 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
         // all Windows version, for the other ones we have to check
         bool useDefault;
 
-        // none of the is supported under Win16 anyhow
-#ifdef __WIN32__
         int verMaj, verMin;
         wxGetOsVersion(&verMaj, &verMin);
         if ( verMaj < 4 )
         {
             // NT 3.5
-            useDefault = TRUE;
+            useDefault = true;
         }
         else if ( verMaj == 4 )
         {
@@ -163,21 +161,18 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
         else // >= 5.1
         {
             // 5.1 is Windows XP
-            useDefault = FALSE;
- 			// Determine if we are using flat menus, only then allow wxSYS_COLOUR_MENUBAR
-			if ( index == wxSYS_COLOUR_MENUBAR )
-			{
-				BOOL isFlat ;
-				if ( SystemParametersInfo( SPI_GETFLATMENU , 0 ,&isFlat, 0 ) )
-				{
-					if ( !isFlat )
-						index = wxSYS_COLOUR_MENU ;
-				}
-			}
+            useDefault = false;
+            // Determine if we are using flat menus, only then allow wxSYS_COLOUR_MENUBAR
+            if ( index == wxSYS_COLOUR_MENUBAR )
+            {
+                BOOL isFlat ;
+                if ( SystemParametersInfo( SPI_GETFLATMENU , 0 ,&isFlat, 0 ) )
+                {
+                    if ( !isFlat )
+                        index = wxSYS_COLOUR_MENU ;
+                }
+            }
        }
-#else
-        useDefault = TRUE;
-#endif // __WIN32__
 
         if ( useDefault )
         {
@@ -197,7 +192,7 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
                               _T("forgot tp update the default colours array") );
 
                 colSys = s_defaultSysColors[n];
-                hasCol = TRUE;
+                hasCol = true;
             }
         }
     }
@@ -254,22 +249,24 @@ wxFont wxCreateFontFromStockObject(int index)
 
 wxFont wxSystemSettingsNative::GetFont(wxSystemFont index)
 {
-#ifndef __WXWINCE__
-    // this one is special: we don't get it from GetStockObject()
-    if ( index == wxSYS_ICONTITLE_FONT )
-    {
-        LOGFONT lf;
-        SystemParametersInfo(SPI_GETICONTITLELOGFONT, sizeof(lf), &lf, 0);
-        return wxCreateFontFromLogFont(&lf);
-    }
-#endif // __WXWINCE__
+#ifdef __WXWINCE__
+    // under CE only a single SYSTEM_FONT exists
+    index;
 
-    // wxWindow ctor calls GetSystemFont(wxSYS_DEFAULT_GUI_FONT) so we're
-    // called fairly often - this is why we cache this particular font
-    bool isDefaultRequested = index == wxSYS_DEFAULT_GUI_FONT;
-    if ( isDefaultRequested && gs_fontDefault )
+    if ( !gs_fontDefault )
     {
-        return *gs_fontDefault;
+        gs_fontDefault = new wxFont(wxCreateFontFromStockObject(SYSTEM_FONT));
+    }
+
+    return *gs_fontDefault;
+#else // !__WXWINCE__
+    // wxWindow ctor calls GetSystemFont(wxSYS_DEFAULT_GUI_FONT) so we're
+    // called fairly often -- this is why we cache this particular font
+    const bool isDefaultRequested = index == wxSYS_DEFAULT_GUI_FONT;
+    if ( isDefaultRequested )
+    {
+        if ( gs_fontDefault )
+            return *gs_fontDefault;
     }
 
     wxFont font = wxCreateFontFromStockObject(index);
@@ -281,6 +278,7 @@ wxFont wxSystemSettingsNative::GetFont(wxSystemFont index)
     }
 
     return font;
+#endif // __WXWINCE__/!__WXWINCE__
 }
 
 // ----------------------------------------------------------------------------
@@ -412,11 +410,68 @@ bool wxSystemSettingsNative::HasFeature(wxSystemFeature index)
     {
         case wxSYS_CAN_ICONIZE_FRAME:
         case wxSYS_CAN_DRAW_FRAME_DECORATIONS:
-            return TRUE;
+            return true;
 
         default:
             wxFAIL_MSG( _T("unknown system feature") );
 
-            return FALSE;
+            return false;
     }
 }
+
+// ----------------------------------------------------------------------------
+// function from wx/msw/wrapcctl.h: there is really no other place for it...
+// ----------------------------------------------------------------------------
+
+#if wxUSE_LISTCTRL || wxUSE_TREECTRL
+
+extern wxFont wxGetCCDefaultFont()
+{
+#ifndef __WXWINCE__
+    // under the systems enumerated below (anything released after Win98), the
+    // default font used for the common controls seems to be the desktop font
+    // which is also used for the icon titles and not the stock default GUI
+    // font
+    bool useIconFont;
+    int verMaj, verMin;
+    switch ( wxGetOsVersion(&verMaj, &verMin) )
+    {
+        case wxWIN95:
+            // 4.10 is Win98
+            useIconFont = verMin == 4 && verMin >= 10;
+            break;
+
+        case wxWINDOWS_NT:
+            // 5.0 is Win2k
+            useIconFont = verMaj >= 5;
+            break;
+
+        default:
+            useIconFont = false;
+    }
+
+    if ( useIconFont )
+    {
+        LOGFONT lf;
+        if ( ::SystemParametersInfo
+               (
+                    SPI_GETICONTITLELOGFONT,
+                    sizeof(lf),
+                    &lf,
+                    0
+               ) )
+        {
+            return wxFont(wxCreateFontFromLogFont(&lf));
+        }
+        else
+        {
+            wxLogLastError(_T("SystemParametersInfo(SPI_GETICONTITLELOGFONT"));
+        }
+    }
+#endif // __WXWINCE__
+
+    // fall back to the default font for the normal controls
+    return wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+}
+
+#endif // wxUSE_LISTCTRL || wxUSE_TREECTRL

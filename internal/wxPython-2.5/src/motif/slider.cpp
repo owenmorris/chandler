@@ -6,12 +6,19 @@
 // Created:     17/09/98
 // RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
-// Licence:   	wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "slider.h"
 #endif
+
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
+#include "wx/defs.h"
+
+#if wxUSE_SLIDER
 
 #include "wx/slider.h"
 #include "wx/utils.h"
@@ -103,12 +110,12 @@ bool wxSlider::Create(wxWindow *parent, wxWindowID id,
 
     XtAddCallback (sliderWidget, XmNdragCallback, (XtCallbackProc) wxSliderCallback, (XtPointer) this);
 
-    ChangeFont(FALSE);
+    ChangeFont(false);
     AttachWidget (parent, m_mainWidget, (WXWidget) NULL, pos.x, pos.y, size.x, size.y);
 
     ChangeBackgroundColour();
 
-    return TRUE;
+    return true;
 }
 
 wxSlider::~wxSlider()
@@ -239,3 +246,4 @@ void wxSliderCallback (Widget widget, XtPointer clientData,
     slider->GetEventHandler()->ProcessEvent(event2);
 }
 
+#endif // wxUSE_SLIDER

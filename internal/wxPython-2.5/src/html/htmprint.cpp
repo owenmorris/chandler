@@ -37,6 +37,7 @@
 #include "wx/wxhtml.h"
 #include "wx/wfstream.h"
 #include "wx/module.h"
+#include "wx/settings.h"
 
 
 //--------------------------------------------------------------------------------
@@ -98,6 +99,24 @@ void wxHtmlDCRenderer::SetFonts(wxString normal_face, wxString fixed_face,
 {
     m_Parser->SetFonts(normal_face, fixed_face, sizes);
     if (m_DC == NULL && m_Cells != NULL) m_Cells->Layout(m_Width);
+}
+
+
+void wxHtmlDCRenderer::NormalizeFontSizes(int size)
+{
+    int f_sizes[7];
+    if (size == -1)
+        size = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize();
+
+    f_sizes[0] = int(size * 0.6);
+    f_sizes[1] = int(size * 0.8);
+    f_sizes[2] = size;
+    f_sizes[3] = int(size * 1.2);
+    f_sizes[4] = int(size * 1.4);
+    f_sizes[5] = int(size * 1.6);
+    f_sizes[6] = int(size * 1.8);
+    
+    SetFonts(wxEmptyString, wxEmptyString, f_sizes);
 }
 
 
@@ -284,7 +303,12 @@ void wxHtmlPrintout::SetHtmlText(const wxString& html, const wxString &basepath,
 void wxHtmlPrintout::SetHtmlFile(const wxString& htmlfile)
 {
     wxFileSystem fs;
-    wxFSFile *ff = fs.OpenFile(htmlfile);
+    wxFSFile *ff;
+    
+    if (wxFileExists(htmlfile))
+        ff = fs.OpenFile(wxFileSystem::FileNameToURL(htmlfile));
+    else
+        ff = fs.OpenFile(htmlfile);
 
     if (ff == NULL)
     {
@@ -444,6 +468,24 @@ void wxHtmlPrintout::SetFonts(wxString normal_face, wxString fixed_face,
 {
     m_Renderer->SetFonts(normal_face, fixed_face, sizes);
     m_RendererHdr->SetFonts(normal_face, fixed_face, sizes);
+}
+
+
+void wxHtmlPrintout::NormalizeFontSizes(int size)
+{
+    int f_sizes[7];
+    if (size == -1)
+        size = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize();
+
+    f_sizes[0] = int(size * 0.6);
+    f_sizes[1] = int(size * 0.8);
+    f_sizes[2] = size;
+    f_sizes[3] = int(size * 1.2);
+    f_sizes[4] = int(size * 1.4);
+    f_sizes[5] = int(size * 1.6);
+    f_sizes[6] = int(size * 1.8);
+    
+    SetFonts(wxEmptyString, wxEmptyString, f_sizes);
 }
 
 
@@ -632,6 +674,23 @@ void wxHtmlEasyPrinting::SetFonts(wxString normal_face, wxString fixed_face,
     }
     else
         m_FontsSizes = NULL;
+}
+
+void wxHtmlEasyPrinting::NormalizeFontSizes(int size)
+{
+    int f_sizes[7];
+    if (size == -1)
+        size = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).GetPointSize();
+
+    f_sizes[0] = int(size * 0.6);
+    f_sizes[1] = int(size * 0.8);
+    f_sizes[2] = size;
+    f_sizes[3] = int(size * 1.2);
+    f_sizes[4] = int(size * 1.4);
+    f_sizes[5] = int(size * 1.6);
+    f_sizes[6] = int(size * 1.8);
+    
+    SetFonts(wxEmptyString, wxEmptyString, f_sizes);
 }
 
 

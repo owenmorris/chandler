@@ -173,7 +173,7 @@ void wxFrame::DoGetClientSize(
 
 //
 // Set the client size (i.e. leave the calculation of borders etc.
-// to wxWindows)
+// to wxWidgets)
 //
 void wxFrame::DoSetClientSize(
   int                               nWidth
@@ -369,7 +369,7 @@ void wxFrame::SetMenuBar(
         //
         // Can set a menubar several times.
         // TODO: how to prevent a memory leak if you have a currently-unattached
-        // menubar? wxWindows assumes that the frame will delete the menu (otherwise
+        // menubar? wxWidgets assumes that the frame will delete the menu (otherwise
         // there are problems for MDI).
         //
         if (pMenuBar->GetHMenu())
@@ -781,6 +781,10 @@ void wxFrame::IconizeChildFrames(
   bool                              bIconize
 )
 {
+  // FIXME: Generic MDI does not use Frames for the Childs, so this does _not_
+  //        work. Possibly, the right thing is simply to eliminate this
+  //        functions and all the calls to it from within this file.
+#if 0
     for (wxWindowList::Node* pNode = GetChildren().GetFirst();
          pNode;
          pNode = pNode->GetNext() )
@@ -812,6 +816,7 @@ void wxFrame::IconizeChildFrames(
                 pFrame->Iconize(bIconize);
         }
     }
+#endif
 } // end of wxFrame::IconizeChildFrames
 
 WXHICON wxFrame::GetDefaultIcon() const

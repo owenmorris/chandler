@@ -57,6 +57,21 @@ void wxNativeFontInfo::Init()
     description = NULL;
 }
 
+void
+wxNativeFontInfo::Init(const wxNativeFontInfo& info)
+{
+    if (info.description)
+        description = pango_font_description_copy(info.description);
+    else
+        description = NULL;
+}
+
+void wxNativeFontInfo::Free()
+{
+    if (description)
+        pango_font_description_free(description);
+}
+
 int wxNativeFontInfo::GetPointSize() const
 {
     return pango_font_description_get_size( description ) / PANGO_SCALE;
@@ -222,7 +237,17 @@ bool wxTestFontEncoding(const wxNativeEncodingInfo& info)
 bool wxGetNativeFontEncoding(wxFontEncoding encoding,
                              wxNativeEncodingInfo *info)
 {
-    return FALSE;
+    // we *must* return true for default encoding as otherwise wxFontMapper
+    // considers that we can't load any font and aborts with wxLogFatalError!
+    if ( encoding == wxFONTENCODING_SYSTEM )
+    {
+        info->facename.clear();
+        info->encoding = wxFONTENCODING_SYSTEM;
+    }
+
+    // pretend that we support everything, it's better than to always return
+    // false as the old code did
+    return true;
 }
 
 #else // GTK+ 1.x
@@ -563,13 +588,13 @@ bool wxNativeFontInfo::GetUnderlined() const
 
 wxString wxNativeFontInfo::GetFaceName() const
 {
-    // wxWindows facename probably more accurately corresponds to X family
+    // wxWidgets facename probably more accurately corresponds to X family
     return GetXFontComponent(wxXLFD_FAMILY);
 }
 
 wxFontFamily wxNativeFontInfo::GetFamily() const
 {
-    // and wxWindows family -- to X foundry, but we have to translate it to
+    // and wxWidgets family -- to X foundry, but we have to translate it to
     // wxFontFamily somehow...
     wxFAIL_MSG(_T("not implemented")); // GetXFontComponent(wxXLFD_FOUNDRY);
 
@@ -710,11 +735,12 @@ bool wxGetNativeFontEncoding(wxFontEncoding encoding,
             break;
 
         case wxFONTENCODING_GB2312:
-            info->xregistry = wxT("GB2312");   // or the otherway round? 
+            info->xregistry = wxT("GB2312");   // or the otherway round?
             info->xencoding = wxT("*");
             break;
 
         case wxFONTENCODING_KOI8:
+        case wxFONTENCODING_KOI8_U:
             info->xregistry = wxT("koi8");
 
             // we don't make distinction between koi8-r, koi8-u and koi8-ru (so far)

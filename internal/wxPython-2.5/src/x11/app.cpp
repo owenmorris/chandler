@@ -46,8 +46,8 @@
 
 extern wxList wxPendingDelete;
 
-wxHashTable *wxWidgetHashTable = NULL;
-wxHashTable *wxClientWidgetHashTable = NULL;
+wxWindowHash *wxWidgetHashTable = NULL;
+wxWindowHash *wxClientWidgetHashTable = NULL;
 
 static bool g_showIconic = FALSE;
 static wxSize g_initialSize = wxDefaultSize;
@@ -173,7 +173,7 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
         xdisplay = XOpenDisplay( displayName.ToAscii() );
     if (!xdisplay)
     {
-        wxLogError( _("wxWindows could not open display. Exiting.") );
+        wxLogError( _("wxWidgets could not open display. Exiting.") );
         return false;
     }
 
@@ -203,8 +203,8 @@ bool wxApp::Initialize(int& argc, wxChar **argv)
     wxFont::SetDefaultEncoding(wxLocale::GetSystemEncoding());
 #endif
 
-    wxWidgetHashTable = new wxHashTable(wxKEY_INTEGER);
-    wxClientWidgetHashTable = new wxHashTable(wxKEY_INTEGER);
+    wxWidgetHashTable = new wxWindowHash;
+    wxClientWidgetHashTable = new wxWindowHash;
 
     return true;
 }
@@ -446,16 +446,15 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
             if (event->update.utype == GR_UPDATE_SIZE)
 #endif
             {
-                if (win->IsTopLevel())
+                wxTopLevelWindow *tlw = wxDynamicCast(win, wxTopLevelWindow);
+                if ( tlw )
                 {
-                    wxTopLevelWindow *tlw = (wxTopLevelWindow*) win;
                     tlw->SetConfigureGeometry( XConfigureEventGetX(event), XConfigureEventGetY(event),
                         XConfigureEventGetWidth(event), XConfigureEventGetHeight(event) );
                 }
 
-                if (win->IsTopLevel() && win->IsShown())
+                if ( tlw && tlw->IsShown() )
                 {
-                    wxTopLevelWindowX11 *tlw = (wxTopLevelWindowX11 *) win;
                     tlw->SetNeedResizeInIdle();
                 }
                 else
@@ -467,7 +466,6 @@ bool wxApp::ProcessXEvent(WXEvent* _event)
                 }
             }
             return FALSE;
-            break;
         }
 #if !wxUSE_NANOX
         case PropertyNotify:

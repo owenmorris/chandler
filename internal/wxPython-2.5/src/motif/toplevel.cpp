@@ -21,6 +21,9 @@
     #pragma implementation "toplevel.h"
 #endif
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
 #include "wx/toplevel.h"
 #include "wx/app.h"
 
@@ -66,8 +69,14 @@ static void wxTLWEventHandler( Widget wid,
 
 void wxTopLevelWindowMotif::PreDestroy()
 {
-    if ( (GetWindowStyleFlag() & wxDIALOG_MODAL) != wxDIALOG_MODAL )
+#ifdef __VMS
+#pragma message disable codcauunr
+#endif
+   if ( (GetWindowStyleFlag() & wxDIALOG_MODAL) != wxDIALOG_MODAL )
         wxModelessWindows.DeleteObject(this);
+#ifdef __VMS
+#pragma message enable codcauunr
+#endif
 
     m_icons.m_icons.Empty();
 

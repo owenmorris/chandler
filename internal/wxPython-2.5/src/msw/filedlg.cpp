@@ -28,7 +28,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_FILEDLG && !wxUSE_SMARTPHONE
+#if wxUSE_FILEDLG && !defined(__SMARTPHONE__)
 
 #ifndef WX_PRECOMP
     #include "wx/utils.h"
@@ -53,9 +53,7 @@
 #include "wx/filename.h"
 #include "wx/tokenzr.h"
 
-#ifndef OFN_EXPLORER
-    #define OFN_EXPLORER 0x00080000
-#endif
+#include "wx/msw/missing.h"
 
 // ----------------------------------------------------------------------------
 // constants
@@ -71,11 +69,64 @@
 
 # define wxMAXEXT    5
 
+// ----------------------------------------------------------------------------
+// globals
+// ----------------------------------------------------------------------------
+
+// standard dialog size
+static wxRect gs_rectDialog(0, 0, 428, 266);
+
 // ============================================================================
 // implementation
 // ============================================================================
 
 IMPLEMENT_CLASS(wxFileDialog, wxFileDialogBase)
+
+// ----------------------------------------------------------------------------
+// hook function for moving the dialog
+// ----------------------------------------------------------------------------
+
+UINT APIENTRY
+wxFileDialogHookFunction(HWND      hDlg,
+                         UINT      iMsg,
+                         WPARAM    WXUNUSED(wParam),
+                         LPARAM    lParam)
+{
+    HWND   hwndDialog;
+    hwndDialog = ::GetParent( hDlg );
+    switch (iMsg)
+    {
+        case WM_DESTROY:
+            {
+                RECT dlgRect;
+                GetWindowRect( hwndDialog, & dlgRect );
+                gs_rectDialog.x = dlgRect.left;
+                gs_rectDialog.y = dlgRect.top;
+                gs_rectDialog.width = dlgRect.right - dlgRect.left;
+                gs_rectDialog.height = dlgRect.bottom - dlgRect.top;
+            }
+            break;
+
+        case WM_NOTIFY:
+            {
+                OFNOTIFY *   pNotifyCode;
+                pNotifyCode = (LPOFNOTIFY) lParam;
+                if (CDN_INITDONE == (pNotifyCode->hdr).code)
+                {
+                    SetWindowPos( hwndDialog, HWND_TOP,
+                                  gs_rectDialog.x,
+                                  gs_rectDialog.y,
+                                  gs_rectDialog.width,
+                                  gs_rectDialog.height,
+                                  SWP_NOZORDER|SWP_NOSIZE);
+                 }
+            }
+            break;
+    }
+
+    // do the default processing
+    return 0;
+}
 
 // ----------------------------------------------------------------------------
 // wxFileDialog
@@ -88,13 +139,22 @@ wxFileDialog::wxFileDialog(wxWindow *parent,
                            const wxString& wildCard,
                            long style,
                            const wxPoint& pos)
-             :wxFileDialogBase(parent, message, defaultDir, defaultFileName, wildCard, style, pos)
+            : wxFileDialogBase(parent, message, defaultDir, defaultFileName,
+                               wildCard, style, pos)
 
 {
     if ( ( m_dialogStyle & wxMULTIPLE ) && ( m_dialogStyle & wxSAVE ) )
         m_dialogStyle &= ~wxMULTIPLE;
-}
 
+    m_bMovedWindow = false;
+
+    // Must set to zero, otherwise the wx routines won't size the window
+    // the second time you call the file dialog, because it thinks it is
+    // already at the requested size.. (when centering)
+    gs_rectDialog.x =
+    gs_rectDialog.y = 0;
+
+}
 void wxFileDialog::GetPaths(wxArrayString& paths) const
 {
     paths.Empty();
@@ -126,6 +186,34 @@ void wxFileDialog::SetPath(const wxString& path)
         m_fileName << _T('.') << ext;
 }
 
+void wxFileDialog::DoGetPosition( int *x, int *y ) const
+{
+    *x = gs_rectDialog.x;
+    *y = gs_rectDialog.y;
+}
+
+
+void wxFileDialog::DoGetSize(int *width, int *height) const
+{
+    *width  = gs_rectDialog.width;
+    *height = gs_rectDialog.height;
+}
+
+void wxFileDialog::DoMoveWindow(int x, int y, int WXUNUSED(width), int WXUNUSED(height))
+{
+    m_bMovedWindow = true;
+
+    gs_rectDialog.x = x;
+    gs_rectDialog.y = y;
+
+    /*
+        The width and height can not be set by the programmer
+        its just not possible.  But the program can get the
+        size of the Dlg after it has been shown, in case they need
+        that data.
+    */
+}
+
 int wxFileDialog::ShowModal()
 {
     HWND hWnd = 0;
@@ -139,11 +227,36 @@ int wxFileDialog::ShowModal()
     *fileNameBuffer = wxT('\0');
     *titleBuffer    = wxT('\0');
 
+#if WXWIN_COMPATIBILITY_2_4
     long msw_flags = 0;
     if ( (m_dialogStyle & wxHIDE_READONLY) || (m_dialogStyle & wxSAVE) )
         msw_flags |= OFN_HIDEREADONLY;
+#else
+    long msw_flags = OFN_HIDEREADONLY;
+#endif
+
     if ( m_dialogStyle & wxFILE_MUST_EXIST )
         msw_flags |= OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+    /*
+        If the window has been moved the programmer is probably
+        trying to center or position it.  Thus we set the callback
+        or hook function so that we can actually adjust the position.
+        Without moving or centering the dlg, it will just stay
+        in the upper left of the frame, it does not center
+        automatically..  One additional note, when the hook is
+        enabled, the PLACES BAR in the dlg (shown on later versions
+        of windows (2000 and XP) will automatically be turned off
+        according to the MSDN docs.  This is normal.  If the
+        programmer needs the PLACES BAR (left side of dlg) they
+        just shouldn't move or center the dlg.
+    */
+    if (m_bMovedWindow) // we need these flags.
+    {
+        msw_flags |= OFN_EXPLORER|OFN_ENABLEHOOK;
+#ifndef __WXWINCE__
+        msw_flags |= OFN_ENABLESIZING;
+#endif
+    }
 
     if (m_dialogStyle & wxMULTIPLE )
     {
@@ -186,8 +299,8 @@ int wxFileDialog::ShowModal()
     // forward slashes) and also squeeze multiple consecutive slashes into one
     // as it doesn't like two backslashes in a row neither
 
-    wxString 	dir;
-    size_t 	i, len = m_dir.length();
+    wxString  dir;
+    size_t    i, len = m_dir.length();
     dir.reserve(len);
     for ( i = 0; i < len; i++ )
     {
@@ -211,7 +324,7 @@ int wxFileDialog::ShowModal()
                     if (i > 0)
                         i++;
                     else
-                        break;    
+                        break;
                 }
                 // fall through
 
@@ -224,38 +337,24 @@ int wxFileDialog::ShowModal()
     of.lpstrInitialDir   = dir.c_str();
 
     of.Flags             = msw_flags;
+    of.lpfnHook          = wxFileDialogHookFunction;
 
+    wxArrayString wildDescriptions, wildFilters;
 
-    //=== Like Alejandro Sierra's wildcard modification >>===================
-    /*
-       In wxFileSelector you can put, instead of a single wild_card,
-       pairs of strings separated by '|'.
-       The first string is a description, and the
-       second is the wild card. You can put any number of pairs.
+    size_t items = wxParseCommonDialogsFilter(m_wildCard, wildDescriptions, wildFilters);
 
-       eg.  "description1 (*.ex1)|*.ex1|description2 (*.ex2)|*.ex2"
+    wxASSERT_MSG( items > 0 , _T("empty wildcard list") );
 
-       If you put a single wild card, it works as before the modification.
-     */
-    //=======================================================================
-
-    wxString theFilter;
-    if ( wxStrlen(m_wildCard) == 0 )
-        theFilter = wxString(wxT("*.*"));
-    else
-        theFilter = m_wildCard ;
     wxString filterBuffer;
 
-    if ( !wxStrchr( theFilter, wxT('|') ) ) {    // only one filter ==> default text
-        filterBuffer.Printf(_("Files (%s)|%s"),
-                            theFilter.c_str(), theFilter.c_str());
+    for (i = 0; i < items ; i++)
+    {
+        filterBuffer += wildDescriptions[i];
+        filterBuffer += wxT("|");
+        filterBuffer += wildFilters[i];
+        filterBuffer += wxT("|");
     }
-    else {                                // more then one filter
-        filterBuffer = theFilter;
 
-    }
-
-    filterBuffer += wxT("|");
     // Replace | with \0
     for (i = 0; i < filterBuffer.Len(); i++ ) {
         if ( filterBuffer.GetChar(i) == wxT('|') ) {
@@ -263,7 +362,7 @@ int wxFileDialog::ShowModal()
         }
     }
 
-    of.lpstrFilter  = (LPTSTR)(const wxChar *)filterBuffer;
+    of.lpstrFilter  = (LPTSTR)filterBuffer.c_str();
     of.nFilterIndex = m_filterIndex + 1;
 
     //=== Setting defaultFileName >>=========================================
@@ -273,6 +372,30 @@ int wxFileDialog::ShowModal()
 
     of.lpstrFile = fileNameBuffer;  // holds returned filename
     of.nMaxFile  = wxMAXPATH;
+
+    // we must set the default extension because otherwise Windows would check
+    // for the existing of a wrong file with wxOVERWRITE_PROMPT (i.e. if the
+    // user types "foo" and the default extension is ".bar" we should force it
+    // to check for "foo.bar" existence and not "foo")
+    wxString defextBuffer; // we need it to be alive until GetSaveFileName()!
+    if (m_dialogStyle & wxSAVE)
+    {
+        const wxChar* extension = filterBuffer;
+        int maxFilter = (int)(of.nFilterIndex*2L) - 1;
+
+        for( int i = 0; i < maxFilter; i++ )           // get extension
+            extension = extension + wxStrlen( extension ) + 1;
+
+        // use dummy name a to avoid assert in AppendExtension
+        defextBuffer = AppendExtension(wxT("a"), extension);
+        if (defextBuffer.StartsWith(wxT("a.")))
+        {
+            defextBuffer.Mid(2);
+            of.lpstrDefExt = defextBuffer.c_str();
+        }
+    }
+
+     //== Execute FileDialog >>=================================================
 
     //== Execute FileDialog >>=================================================
 
@@ -348,7 +471,7 @@ int wxFileDialog::ShowModal()
 
             m_filterIndex = (int)of.nFilterIndex - 1;
 
-            if ( !of.nFileExtension || 
+            if ( !of.nFileExtension ||
                  (of.nFileExtension && fileNameBuffer[of.nFileExtension] == wxT('\0')) )
             {
                 // User has typed a filename without an extension:

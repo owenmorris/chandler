@@ -179,12 +179,7 @@ bool wxScrollBar::Create(wxWindow *parent, wxWindowID id,
 
     m_parent->DoAddChild( this );
 
-    PostCreation();
-    InheritAttributes();
-
-    SetBestSize(size);
-
-    Show( TRUE );
+    PostCreation(size);
 
     return TRUE;
 }
@@ -330,15 +325,16 @@ bool wxScrollBar::IsOwnGtkWindow( GdkWindow *window )
            );
 }
 
-void wxScrollBar::ApplyWidgetStyle()
-{
-    SetWidgetStyle();
-    gtk_widget_set_style( m_widget, m_widgetStyle );
-}
-
 wxSize wxScrollBar::DoGetBestSize() const
 {
     return wxControl::DoGetBestSize();
+}
+
+// static
+wxVisualAttributes
+wxScrollBar::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    return GetDefaultAttributesFromGTKWidget(gtk_vscrollbar_new);
 }
 
 #endif

@@ -62,7 +62,7 @@ wxBEGIN_FLAGS( wxSpinCtrlStyle )
     wxFLAGS_MEMBER(wxBORDER_RAISED)
     wxFLAGS_MEMBER(wxBORDER_STATIC)
     wxFLAGS_MEMBER(wxBORDER_NONE)
-    
+
     // old style border flags
     wxFLAGS_MEMBER(wxSIMPLE_BORDER)
     wxFLAGS_MEMBER(wxSUNKEN_BORDER)
@@ -93,24 +93,24 @@ IMPLEMENT_DYNAMIC_CLASS_XTI(wxSpinCtrl, wxControl,"wx/spinbut.h")
 wxBEGIN_PROPERTIES_TABLE(wxSpinCtrl)
     wxEVENT_RANGE_PROPERTY( Spin , wxEVT_SCROLL_TOP , wxEVT_SCROLL_ENDSCROLL , wxSpinEvent )
     wxEVENT_PROPERTY( Updated , wxEVT_COMMAND_SPINCTRL_UPDATED , wxCommandEvent )
-    wxEVENT_PROPERTY( TextUpdated , wxEVT_COMMAND_TEXT_UPDATED , wxCommandEvent ) 
+    wxEVENT_PROPERTY( TextUpdated , wxEVT_COMMAND_TEXT_UPDATED , wxCommandEvent )
     wxEVENT_PROPERTY( TextEnter , wxEVT_COMMAND_TEXT_ENTER , wxCommandEvent )
 
-    wxPROPERTY( ValueString , wxString , SetValue , GetValue , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) ;
-	wxPROPERTY( Value , int , SetValue, GetValue, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( Min , int , SetMin, GetMin, 0, 0 /*flags*/ , wxT("Helpstring") , wxT("group") )
-	wxPROPERTY( Max , int , SetMax, GetMax, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-    wxPROPERTY_FLAGS( WindowStyle , wxSpinCtrlStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
+    wxPROPERTY( ValueString , wxString , SetValue , GetValue , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) ;
+    wxPROPERTY( Value , int , SetValue, GetValue, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( Min , int , SetMin, GetMin, 0, 0 /*flags*/ , wxT("Helpstring") , wxT("group") )
+    wxPROPERTY( Max , int , SetMax, GetMax, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY_FLAGS( WindowStyle , wxSpinCtrlStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
 /*
-	TODO PROPERTIES
-		style wxSP_ARROW_KEYS
+    TODO PROPERTIES
+        style wxSP_ARROW_KEYS
 */
 wxEND_PROPERTIES_TABLE()
 
 wxBEGIN_HANDLERS_TABLE(wxSpinCtrl)
 wxEND_HANDLERS_TABLE()
 
-wxCONSTRUCTOR_6( wxSpinCtrl , wxWindow* , Parent , wxWindowID , Id , wxString , ValueString , wxPoint , Position , wxSize , Size , long , WindowStyle ) 
+wxCONSTRUCTOR_6( wxSpinCtrl , wxWindow* , Parent , wxWindowID , Id , wxString , ValueString , wxPoint , Position , wxSize , Size , long , WindowStyle )
 #else
 IMPLEMENT_DYNAMIC_CLASS(wxSpinCtrl, wxControl)
 #endif
@@ -120,7 +120,7 @@ BEGIN_EVENT_TABLE(wxSpinCtrl, wxSpinButton)
 
     EVT_SET_FOCUS(wxSpinCtrl::OnSetFocus)
 
-    EVT_SPIN(-1, wxSpinCtrl::OnSpinChange)
+    EVT_SPIN(wxID_ANY, wxSpinCtrl::OnSpinChange)
 END_EVENT_TABLE()
 
 #define GetBuddyHwnd()      (HWND)(m_hwndBuddy)
@@ -228,7 +228,7 @@ bool wxSpinCtrl::ProcessTextCommand(WXWORD cmd, WXWORD WXUNUSED(id))
     }
 
     // not processed
-    return FALSE;
+    return false;
 }
 
 void wxSpinCtrl::OnChar(wxKeyEvent& event)
@@ -296,7 +296,11 @@ bool wxSpinCtrl::Create(wxWindow *parent,
     style |= wxSP_VERTICAL;
 
     if ( (style & wxBORDER_MASK) == wxBORDER_DEFAULT )
+#ifdef __WXWINCE__
+        style |= wxBORDER_SIMPLE;
+#else
         style |= wxBORDER_SUNKEN;
+#endif
 
     SetWindowStyle(style);
 
@@ -348,14 +352,14 @@ bool wxSpinCtrl::Create(wxWindow *parent,
     {
         wxLogLastError(wxT("CreateWindow(buddy text window)"));
 
-        return FALSE;
+        return false;
     }
 
 
     // create the spin button
     if ( !wxSpinButton::Create(parent, id, posBtn, sizeBtn, style, name) )
     {
-        return FALSE;
+        return false;
     }
 
     SetRange(min, max);
@@ -366,21 +370,22 @@ bool wxSpinCtrl::Create(wxWindow *parent,
     m_wndProcBuddy = (WXFARPROC)wxSetWindowProc(GetBuddyHwnd(),
                                                 wxBuddyTextWndProc);
 
-    // should have the same font as the other controls
-    SetFont(GetParent()->GetFont());
+    // set up fonts and colours  (This is nomally done in MSWCreateControl)
+    InheritAttributes();
+    if (!m_hasFont)
+        SetFont(GetDefaultAttributes().font);
 
     // set the size of the text window - can do it only now, because we
     // couldn't call DoGetBestSize() before as font wasn't set
     if ( sizeText.y <= 0 )
     {
         int cx, cy;
-        wxGetCharSize(GetHWND(), &cx, &cy, &GetFont());
+        wxGetCharSize(GetHWND(), &cx, &cy, GetFont());
 
         sizeText.y = EDIT_HEIGHT_FROM_CHAR_HEIGHT(cy);
     }
 
-    DoMoveWindow(pos.x, pos.y,
-                 sizeText.x + sizeBtn.x + MARGIN_BETWEEN, sizeText.y);
+    SetBestSize(size);
 
     (void)::ShowWindow(GetBuddyHwnd(), SW_SHOW);
 
@@ -396,7 +401,7 @@ bool wxSpinCtrl::Create(wxWindow *parent,
     // initial wxEVT_COMMAND_TEXT_UPDATED message
     ms_allSpins.Add(this);
 
-    return TRUE;
+    return true;
 }
 
 wxSpinCtrl::~wxSpinCtrl()
@@ -437,7 +442,7 @@ int wxSpinCtrl::GetValue() const
 
 void wxSpinCtrl::SetSelection(long from, long to)
 {
-    // if from and to are both -1, it means (in wxWindows) that all text should
+    // if from and to are both -1, it means (in wxWidgets) that all text should
     // be selected - translate into Windows convention
     if ( (from == -1) && (to == -1) )
     {
@@ -456,37 +461,37 @@ bool wxSpinCtrl::SetFont(const wxFont& font)
     if ( !wxWindowBase::SetFont(font) )
     {
         // nothing to do
-        return FALSE;
+        return false;
     }
 
     WXHANDLE hFont = GetFont().GetResourceHandle();
     (void)::SendMessage(GetBuddyHwnd(), WM_SETFONT, (WPARAM)hFont, TRUE);
 
-    return TRUE;
+    return true;
 }
 
 bool wxSpinCtrl::Show(bool show)
 {
     if ( !wxControl::Show(show) )
     {
-        return FALSE;
+        return false;
     }
 
     ::ShowWindow(GetBuddyHwnd(), show ? SW_SHOW : SW_HIDE);
 
-    return TRUE;
+    return true;
 }
 
 bool wxSpinCtrl::Enable(bool enable)
 {
     if ( !wxControl::Enable(enable) )
     {
-        return FALSE;
+        return false;
     }
 
     ::EnableWindow(GetBuddyHwnd(), enable);
 
-    return TRUE;
+    return true;
 }
 
 void wxSpinCtrl::SetFocus()
@@ -522,14 +527,14 @@ wxSize wxSpinCtrl::DoGetBestSize() const
     sizeBtn.x += DEFAULT_ITEM_WIDTH + MARGIN_BETWEEN;
 
     int y;
-    wxGetCharSize(GetHWND(), NULL, &y, &GetFont());
+    wxGetCharSize(GetHWND(), NULL, &y, GetFont());
     y = EDIT_HEIGHT_FROM_CHAR_HEIGHT(y);
 
     // JACS: we should always use the height calculated
     // from above, because otherwise we'll get a spin control
     // that's too big. So never use the height calculated
     // from wxSpinButton::DoGetBestSize().
-    
+
     // if ( sizeBtn.y < y )
     {
         // make the text tall enough

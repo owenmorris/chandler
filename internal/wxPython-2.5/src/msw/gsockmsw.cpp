@@ -1,11 +1,18 @@
 /* -------------------------------------------------------------------------
  * Project: GSocket (Generic Socket)
- * Name:    gsockmsw.c
+ * Name:    gsockmsw.cpp
  * Author:  Guillermo Rodriguez Garcia <guille@iies.es>
  * Purpose: GSocket GUI-specific MSW code
  * CVSID:   $Id$
  * -------------------------------------------------------------------------
  */
+
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
+#ifdef __BORLANDC__
+    #pragma hdrstop
+#endif
 
 /*
  * TODO: for WinCE we need to replace WSAAsyncSelect
@@ -15,16 +22,12 @@
  * using select() and sends a message to the main thread.
  */
 
-/*
- * PLEASE don't put C++ comments here - this is a C source file.
- */
-
 /* including rasasync.h (included from windows.h itself included from
  * wx/setup.h and/or winsock.h results in this warning for
  * RPCNOTIFICATION_ROUTINE
  */
 #ifdef _MSC_VER
-#  pragma warning(disable:4115) /* named type definition in parentheses */
+#   pragma warning(disable:4115) /* named type definition in parentheses */
 #endif
 
 /* This needs to be before the wx/defs/h inclusion
@@ -32,7 +35,15 @@
  */
 
 #ifdef __WXWINCE__
-#include <windows.h>
+    /* windows.h results in tons of warnings at max warning level */
+#   ifdef _MSC_VER
+#       pragma warning(push, 1)
+#   endif
+#   include <windows.h>
+#   ifdef _MSC_VER
+#       pragma warning(pop)
+#       pragma warning(disable:4514)
+#   endif
 #endif
 
 #ifndef __GSOCKET_STANDALONE__
@@ -47,7 +58,7 @@
 #include "wx/msw/gsockmsw.h"
 #include "wx/gsocket.h"
 
-HINSTANCE wxGetInstance(void);
+extern "C" HINSTANCE wxGetInstance(void);
 #define INSTANCE wxGetInstance()
 
 #else
@@ -55,7 +66,7 @@ HINSTANCE wxGetInstance(void);
 #include "gsockmsw.h"
 #include "gsocket.h"
 
-/* If not using wxWindows, a global var called hInst must
+/* If not using wxWidgets, a global var called hInst must
  * be available and it must contain the app's instance
  * handle.
  */
@@ -86,7 +97,7 @@ HINSTANCE wxGetInstance(void);
 #define CLASSNAME  TEXT("_GSocket_Internal_Window_Class")
 
 /* implemented in utils.cpp */
-extern WXDLLIMPEXP_BASE HWND
+extern "C" WXDLLIMPEXP_BASE HWND
 wxCreateHiddenWindow(LPCTSTR *pclassname, LPCTSTR classname, WNDPROC wndproc);
 
 /* Maximum number of different GSocket objects at a given time.
@@ -99,6 +110,9 @@ wxCreateHiddenWindow(LPCTSTR *pclassname, LPCTSTR classname, WNDPROC wndproc);
 #error "MAXSOCKETS is too big!"
 #endif
 
+typedef int (PASCAL *WSAAsyncSelectFunc)(SOCKET,HWND,u_int,long);
+
+LRESULT CALLBACK _GSocket_Internal_WinProc(HWND, UINT, WPARAM, LPARAM);
 
 /* Global variables */
 
@@ -107,10 +121,15 @@ static HWND hWin;
 static CRITICAL_SECTION critical;
 static GSocket* socketList[MAXSOCKETS];
 static int firstAvailable;
+static WSAAsyncSelectFunc gs_WSAAsyncSelect = NULL;
+static HMODULE gs_wsock32dll = 0;
+
+bool GSocketGUIFunctionsTableConcrete::CanUseEventLoop()
+{   return true; }
 
 /* Global initializers */
 
-int _GSocket_GUI_Init(void)
+bool GSocketGUIFunctionsTableConcrete::OnInit()
 {
   static LPCTSTR pclassname = NULL;
   int i;
@@ -118,7 +137,7 @@ int _GSocket_GUI_Init(void)
   /* Create internal window for event notifications */
   hWin = wxCreateHiddenWindow(&pclassname, CLASSNAME, _GSocket_Internal_WinProc);
   if (!hWin)
-      return FALSE;
+      return false;
 
   /* Initialize socket list */
   InitializeCriticalSection(&critical);
@@ -129,14 +148,32 @@ int _GSocket_GUI_Init(void)
   }
   firstAvailable = 0;
 
-  return TRUE;
+  /* Load WSAAsyncSelect from wsock32.dll (we don't link against it
+     statically to avoid dependency on wsock32.dll for apps that don't use
+     sockets): */
+  gs_wsock32dll = LoadLibraryA("wsock32.dll");
+  if (!gs_wsock32dll)
+      return false;
+  gs_WSAAsyncSelect =(WSAAsyncSelectFunc)GetProcAddress(gs_wsock32dll,
+                                                        "WSAAsyncSelect");
+  if (!gs_WSAAsyncSelect)
+      return false;
+
+  return true;
 }
 
-void _GSocket_GUI_Cleanup(void)
+void GSocketGUIFunctionsTableConcrete::OnExit()
 {
   /* Destroy internal window */
   DestroyWindow(hWin);
   UnregisterClass(CLASSNAME, INSTANCE);
+
+  /* Unlock wsock32.dll */
+  if (gs_wsock32dll)
+  {
+      FreeLibrary(gs_wsock32dll);
+      gs_wsock32dll = 0;
+  }
 
   /* Delete critical section */
   DeleteCriticalSection(&critical);
@@ -144,7 +181,7 @@ void _GSocket_GUI_Cleanup(void)
 
 /* Per-socket GUI initialization / cleanup */
 
-int _GSocket_GUI_Init_Socket(GSocket *socket)
+bool GSocketGUIFunctionsTableConcrete::Init_Socket(GSocket *socket)
 {
   int i;
 
@@ -159,7 +196,7 @@ int _GSocket_GUI_Init_Socket(GSocket *socket)
     if (i == firstAvailable)    /* abort! */
     {
       LeaveCriticalSection(&critical);
-      return FALSE;
+      return false;
     }
   }
   socketList[i] = socket;
@@ -168,10 +205,10 @@ int _GSocket_GUI_Init_Socket(GSocket *socket)
 
   LeaveCriticalSection(&critical);
 
-  return TRUE;
+  return true;
 }
 
-void _GSocket_GUI_Destroy_Socket(GSocket *socket)
+void GSocketGUIFunctionsTableConcrete::Destroy_Socket(GSocket *socket)
 {
   /* Remove the socket from the list */
   EnterCriticalSection(&critical);
@@ -255,7 +292,7 @@ LRESULT CALLBACK _GSocket_Internal_WinProc(HWND hWnd,
  *  events for internal processing, but we will only notify users
  *  when an appropiate callback function has been installed.
  */
-void _GSocket_Enable_Events(GSocket *socket)
+void GSocketGUIFunctionsTableConcrete::Enable_Events(GSocket *socket)
 {
   assert (socket != NULL);
 
@@ -267,20 +304,20 @@ void _GSocket_Enable_Events(GSocket *socket)
     long lEvent = socket->m_server?
                   FD_ACCEPT : (FD_READ | FD_WRITE | FD_CONNECT | FD_CLOSE);
 
-    WSAAsyncSelect(socket->m_fd, hWin, socket->m_msgnumber, lEvent);
+    gs_WSAAsyncSelect(socket->m_fd, hWin, socket->m_msgnumber, lEvent);
   }
 }
 
 /* _GSocket_Disable_Events:
  *  Disable event notifications (when shutdowning the socket)
  */
-void _GSocket_Disable_Events(GSocket *socket)
+void GSocketGUIFunctionsTableConcrete::Disable_Events(GSocket *socket)
 {
   assert (socket != NULL);
 
   if (socket->m_fd != INVALID_SOCKET)
   {
-    WSAAsyncSelect(socket->m_fd, hWin, socket->m_msgnumber, 0);
+    gs_WSAAsyncSelect(socket->m_fd, hWin, socket->m_msgnumber, 0);
   }
 }
 

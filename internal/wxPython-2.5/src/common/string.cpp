@@ -407,6 +407,20 @@ bool wxStringBase::Alloc(size_t nLen)
   //else: we've already got enough
   return TRUE;
 }
+  
+wxStringBase::iterator wxStringBase::begin()
+{
+    if (length() > 0)
+        CopyBeforeWrite();
+    return m_pchData;
+}
+
+wxStringBase::iterator wxStringBase::end()
+{
+    if (length() > 0)
+        CopyBeforeWrite();
+    return m_pchData + length();
+}
 
 wxStringBase::iterator wxStringBase::erase(iterator it)
 {
@@ -948,12 +962,26 @@ int STRINGCLASS::compare(size_t nStart, size_t nLen,
 // from multibyte string
 wxString::wxString(const char *psz, wxMBConv& conv, size_t nLength)
 {
+    // if nLength != npos, then we have to make a NULL-terminated copy
+    // of first nLength bytes of psz first because the input buffer to MB2WC
+    // must always be NULL-terminated:
+    wxCharBuffer inBuf((const char *)NULL);
+    if (nLength != npos)
+    {
+        wxASSERT( psz != NULL );
+        wxCharBuffer tmp(nLength);
+        memcpy(tmp.data(), psz, nLength);
+        tmp.data()[nLength] = '\0';
+        inBuf = tmp;
+        psz = inBuf.data();
+    }
+    
     // first get the size of the buffer we need
     size_t nLen;
     if ( psz )
     {
         // calculate the needed size ourselves or use the provided one
-        nLen = nLength == npos ? conv.MB2WC(NULL, psz, 0) : nLength;
+        nLen = conv.MB2WC(NULL, psz, 0);
     }
     else
     {
@@ -970,7 +998,7 @@ wxString::wxString(const char *psz, wxMBConv& conv, size_t nLength)
         }
         else
         {
-            wxWCharBuffer buf(nLen + 1);
+            wxWCharBuffer buf(nLen);
             // MB2WC wants the buffer size, not the string length hence +1
             nLen = conv.MB2WC(buf.data(), psz, nLen + 1);
 
@@ -992,12 +1020,26 @@ wxString::wxString(const char *psz, wxMBConv& conv, size_t nLength)
 // from wide string
 wxString::wxString(const wchar_t *pwz, wxMBConv& conv, size_t nLength)
 {
+    // if nLength != npos, then we have to make a NULL-terminated copy
+    // of first nLength chars of psz first because the input buffer to WC2MB
+    // must always be NULL-terminated:
+    wxWCharBuffer inBuf((const wchar_t *)NULL);
+    if (nLength != npos)
+    {
+        wxASSERT( pwz != NULL );
+        wxWCharBuffer tmp(nLength);
+        memcpy(tmp.data(), pwz, nLength * sizeof(wchar_t));
+        tmp.data()[nLength] = '\0';
+        inBuf = tmp;
+        pwz = inBuf.data();
+    }
+    
     // first get the size of the buffer we need
     size_t nLen;
     if ( pwz )
     {
         // calculate the needed size ourselves or use the provided one
-        nLen = nLength == npos ? conv.WC2MB(NULL, pwz, 0) : nLength;
+        nLen = conv.WC2MB(NULL, pwz, 0);
     }
     else
     {
@@ -2180,6 +2222,30 @@ void wxArrayString::Insert(const wxString& str, size_t nIndex, size_t nInsert)
   }
   m_nCount += nInsert;
 }
+
+// range insert (STL 23.2.4.3)
+void
+wxArrayString::insert(iterator it, const_iterator first, const_iterator last)
+{
+    const int idx = it - begin();
+
+    // grow it once
+    Grow(last - first);
+
+    // reset "it" since it can change inside Grow()
+    it = begin() + idx;
+
+    while ( first != last )
+    {
+        it = insert(it, *first);
+
+        // insert returns an iterator to the last element inserted but we need
+        // insert the next after this one, that is before the next one
+        ++it;
+
+        ++first;
+    }
+} 
 
 // expand the array
 void wxArrayString::SetCount(size_t count)

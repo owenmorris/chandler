@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // RCS-ID:      $Id$
 // Copyright:   (c) 1999 Vaclav Slavik
-// Licence:     wxWindows Licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation
@@ -30,8 +30,11 @@
 
 FORCE_LINK_ME(m_layout)
 
-
-#include <stdlib.h> // bsearch()
+#ifdef __WXWINCE__
+    #include "wx/msw/wince/missing.h"       // for bsearch()
+#else
+    #include <stdlib.h>                     // bsearch()
+#endif
 
 //-----------------------------------------------------------------------------
 // wxHtmlPageBreakCell
@@ -292,9 +295,15 @@ TAG_HANDLER_BEGIN(TITLE, "TITLE")
             wxHtmlWindow *wfr = (wxHtmlWindow*)(m_WParser->GetWindow());
             if (wfr)
             {
-                const wxString& src = *m_WParser->GetSource();
-                wfr->OnSetTitle(src.Mid(tag.GetBeginPos(), 
-                                        tag.GetEndPos1()-tag.GetBeginPos()));
+                wxString title = m_WParser->GetSource()->Mid(
+                                        tag.GetBeginPos(), 
+                                        tag.GetEndPos1()-tag.GetBeginPos());
+#if !wxUSE_UNICODE
+                wxCSConv conv(m_WParser->GetInputEncoding());
+                title = wxString(title.wc_str(conv), wxConvLocal);
+#endif
+                title = m_WParser->GetEntitiesParser()->Parse(title);
+                wfr->OnSetTitle(title);
             }
         }
         return TRUE;

@@ -13,6 +13,9 @@
     #pragma implementation "app.h"
 #endif
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
 #ifdef __VMS
 #define XtParent XTPARENT
 #define XtDisplay XTDISPLAY
@@ -26,7 +29,6 @@
 #include "wx/intl.h"
 #include "wx/evtloop.h"
 #include "wx/hash.h"
-#include "wx/hashmap.h"
 
 #if wxUSE_THREADS
     #include "wx/thread.h"
@@ -36,6 +38,7 @@
 #pragma message disable nosimpint
 #endif
 #include <Xm/Xm.h>
+#include <Xm/Label.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xresource.h>
@@ -51,13 +54,15 @@
 struct wxPerDisplayData
 {
     wxPerDisplayData()
-        { m_visualInfo = NULL; m_topLevelWidget = NULL; }
+    {
+        m_visualInfo = NULL;
+        m_topLevelWidget = NULL;
+        m_topLevelRealizedWidget = NULL;
+    }
 
     wxXVisualInfo* m_visualInfo;
-    Widget         m_topLevelWidget;
+    Widget         m_topLevelWidget, m_topLevelRealizedWidget;
 };
-
-WX_DECLARE_VOIDPTR_HASH_MAP( wxPerDisplayData, wxPerDisplayDataMap );
 
 static void wxTLWidgetDestroyCallback(Widget w, XtPointer clientData,
                                       XtPointer ptr);
@@ -135,8 +140,9 @@ wxApp::~wxApp()
                                        end = m_perDisplayData->end();
          it != end; ++it )
     {
-        delete it->second.m_visualInfo;
-        XtDestroyWidget( it->second.m_topLevelWidget );
+        delete it->second->m_visualInfo;
+        XtDestroyWidget( it->second->m_topLevelWidget );
+        delete it->second;
     }
 
     delete m_perDisplayData;
@@ -201,7 +207,7 @@ bool wxApp::OnInitGui()
          // if you don't log to stderr, nothing will be shown...
         delete wxLog::SetActiveTarget(new wxLogStderr);
         wxString className(wxTheApp->GetClassName());
-        wxLogError(_("wxWindows could not open display for '%s': exiting."),
+        wxLogError(_("wxWidgets could not open display for '%s': exiting."),
                    className.c_str());
         exit(-1);
     }
@@ -241,17 +247,30 @@ WXColormap wxApp::GetMainColormap(WXDisplay* display)
     return (WXColormap) c;
 }
 
+static inline wxPerDisplayData& GetOrCreatePerDisplayData
+    ( wxPerDisplayDataMap& m, WXDisplay* display )
+{
+    wxPerDisplayDataMap::iterator it = m.find( display );
+    if( it != m.end() && it->second != NULL )
+        return *(it->second);
+
+    wxPerDisplayData* nData = new wxPerDisplayData();
+    m[display] = nData;
+
+    return *nData;
+}
+
 wxXVisualInfo* wxApp::GetVisualInfo( WXDisplay* display )
 {
-    wxPerDisplayDataMap::iterator it = m_perDisplayData->find( display );
-
-    if( it != m_perDisplayData->end() && it->second.m_visualInfo )
-        return it->second.m_visualInfo;
+    wxPerDisplayData& data = GetOrCreatePerDisplayData( *m_perDisplayData,
+                                                        display );
+    if( data.m_visualInfo )
+        return data.m_visualInfo;
 
     wxXVisualInfo* vi = new wxXVisualInfo;
     wxFillXVisualInfo( vi, (Display*)display );
 
-    (*m_perDisplayData)[display].m_visualInfo = vi;
+    data.m_visualInfo = vi;
 
     return vi;
 }
@@ -260,8 +279,12 @@ static void wxTLWidgetDestroyCallback(Widget w, XtPointer clientData,
                                       XtPointer ptr)
 {
     if( wxTheApp )
+    {
         wxTheApp->SetTopLevelWidget( (WXDisplay*)XtDisplay(w),
                                      (WXWidget)NULL );
+        wxTheApp->SetTopLevelRealizedWidget( (WXDisplay*)XtDisplay(w),
+                                             (WXWidget)NULL );
+    }
 }
 
 WXWidget wxCreateTopLevelWidget( WXDisplay* display )
@@ -271,8 +294,9 @@ WXWidget wxCreateTopLevelWidget( WXDisplay* display )
                                    applicationShellWidgetClass,
                                    (Display*)display,
                                    NULL, 0 );
-    XtSetMappedWhenManaged( tlw, False );
-    XtRealizeWidget( tlw );
+    XtVaSetValues( tlw,
+                   XmNoverrideRedirect, True,
+                   NULL );
 
     XtAddCallback( tlw, XmNdestroyCallback,
                    (XtCallbackProc)wxTLWidgetDestroyCallback,
@@ -281,13 +305,24 @@ WXWidget wxCreateTopLevelWidget( WXDisplay* display )
     return (WXWidget)tlw;
 }
 
+WXWidget wxCreateTopLevelRealizedWidget( WXDisplay* display )
+{
+    Widget rTlw = XtVaCreateWidget( "dummy_widget", xmLabelWidgetClass,
+                                    (Widget)wxTheApp->GetTopLevelWidget(),
+                                    NULL);
+    XtSetMappedWhenManaged( rTlw, False );
+    XtRealizeWidget( rTlw );
+
+    return (WXWidget)rTlw;
+}
+
 WXWidget wxApp::GetTopLevelWidget()
 {
     WXDisplay* display = wxGetDisplay();
-    wxPerDisplayDataMap::iterator it = m_perDisplayData->find( display );
-
-    if( it != m_perDisplayData->end() && it->second.m_topLevelWidget )
-        return (WXWidget)it->second.m_topLevelWidget;
+    wxPerDisplayData& data = GetOrCreatePerDisplayData( *m_perDisplayData,
+                                                        display );
+    if( data.m_topLevelWidget )
+        return (WXWidget)data.m_topLevelWidget;
 
     WXWidget tlw = wxCreateTopLevelWidget( display );
     SetTopLevelWidget( display, tlw );
@@ -295,9 +330,30 @@ WXWidget wxApp::GetTopLevelWidget()
     return tlw;
 }
 
+WXWidget wxApp::GetTopLevelRealizedWidget()
+{
+    WXDisplay* display = wxGetDisplay();
+    wxPerDisplayDataMap::iterator it = m_perDisplayData->find( display );
+
+    if( it != m_perDisplayData->end() && it->second->m_topLevelRealizedWidget )
+        return (WXWidget)it->second->m_topLevelRealizedWidget;
+
+    WXWidget rTlw = wxCreateTopLevelRealizedWidget( display );
+    SetTopLevelRealizedWidget( display, rTlw );
+
+    return rTlw;
+}
+
 void wxApp::SetTopLevelWidget(WXDisplay* display, WXWidget widget)
 {
-    (*m_perDisplayData)[display].m_topLevelWidget = (Widget)widget;
+    GetOrCreatePerDisplayData( *m_perDisplayData, display )
+        .m_topLevelWidget = (Widget)widget;
+}
+
+void wxApp::SetTopLevelRealizedWidget(WXDisplay* display, WXWidget widget)
+{
+    GetOrCreatePerDisplayData( *m_perDisplayData, display )
+        .m_topLevelRealizedWidget = (Widget)widget;
 }
 
 // Yield to other processes

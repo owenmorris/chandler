@@ -81,7 +81,7 @@ bool wxMemoryDC::CreateCompatible(
             m_ok = TRUE;
             m_bOwnsDC = TRUE;
             //
-            // Set the wxWindows color table
+            // Set the wxWidgets color table
             //
             ::GpiCreateLogColorTable( m_hPS
                                      ,0L

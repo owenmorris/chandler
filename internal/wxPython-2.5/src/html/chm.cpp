@@ -4,7 +4,7 @@
 // Author:      Markus Sinner
 // Copyright:   (c) 2003 Herd Software Development
 // CVS-ID:      $Id$
-// Licence:     wxWindows Licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
@@ -557,11 +557,11 @@ wxChmInputStream::CreateHHPStream()
     const char *tmp;
 
     // Try to open the #SYSTEM-File and create the HHP File out of it
-    // see http://bonedaddy.net/pabs3/chmspec/0.1/ch05s03.html#SYSTEM
-    if ( ! m_chm->Contains(_("/#SYSTEM")) )
+    // see http://bonedaddy.net/pabs3/chmspec/0.1.2/Internal.html#SYSTEM
+    if ( ! m_chm->Contains(_T("/#SYSTEM")) )
     {
 #ifdef DEBUG
-        wxLogDebug("Archive doesnt contain #SYSTEM file");
+        wxLogDebug(_("Archive doesnt contain #SYSTEM file"));
 #endif
         return;
     }

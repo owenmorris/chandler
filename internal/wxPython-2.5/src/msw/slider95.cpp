@@ -49,7 +49,7 @@ wxBEGIN_FLAGS( wxSliderStyle )
     wxFLAGS_MEMBER(wxBORDER_RAISED)
     wxFLAGS_MEMBER(wxBORDER_STATIC)
     wxFLAGS_MEMBER(wxBORDER_NONE)
-    
+
     // old style border flags
     wxFLAGS_MEMBER(wxSIMPLE_BORDER)
     wxFLAGS_MEMBER(wxSUNKEN_BORDER)
@@ -88,12 +88,12 @@ wxBEGIN_PROPERTIES_TABLE(wxSlider95)
     wxEVENT_PROPERTY( Updated , wxEVT_COMMAND_SLIDER_UPDATED , wxCommandEvent )
 
     wxPROPERTY( Value , int , SetValue, GetValue , 0, 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( Minimum , int , SetMin, GetMin, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( Maximum , int , SetMax, GetMax, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( PageSize , int , SetPageSize, GetLineSize, 1 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( LineSize , int , SetLineSize, GetLineSize, 1 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( ThumbLength , int , SetThumbLength, GetThumbLength, 1 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-    wxPROPERTY_FLAGS( WindowStyle , wxSliderStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
+    wxPROPERTY( Minimum , int , SetMin, GetMin, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( Maximum , int , SetMax, GetMax, 0 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( PageSize , int , SetPageSize, GetLineSize, 1 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( LineSize , int , SetLineSize, GetLineSize, 1 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( ThumbLength , int , SetThumbLength, GetThumbLength, 1 , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY_FLAGS( WindowStyle , wxSliderStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
 wxEND_PROPERTIES_TABLE()
 
 wxBEGIN_HANDLERS_TABLE(wxSlider95)
@@ -121,21 +121,19 @@ bool wxSlider95::Create(wxWindow *parent, wxWindowID id,
            int value, int minValue, int maxValue,
            const wxPoint& pos,
            const wxSize& size, long style,
-           const wxValidator& wxVALIDATOR_PARAM(validator),
+           const wxValidator& validator,
            const wxString& name)
 {
+    // default is no border
     if ( (style & wxBORDER_MASK) == wxBORDER_DEFAULT )
         style |= wxBORDER_NONE;
 
-    SetName(name);
-#if wxUSE_VALIDATORS
-    SetValidator(validator);
-#endif // wxUSE_VALIDATORS
+    if ( !CreateBase(parent, id, pos, size, style, validator, name) )
+        return false;
 
     if (parent) parent->AddChild(this);
 
-    SetBackgroundColour(parent->GetBackgroundColour()) ;
-    SetForegroundColour(parent->GetForegroundColour()) ;
+    InheritAttributes();
 
     m_staticValue = (WXHWND) NULL;;
     m_staticMin = (WXHWND) NULL;;
@@ -145,18 +143,7 @@ bool wxSlider95::Create(wxWindow *parent, wxWindowID id,
     m_windowStyle = style;
     m_tickFreq = 0;
 
-    if ( id == -1 )
-        m_windowId = (int)NewControlId();
-    else
-        m_windowId = id;
-
-    int x = pos.x;
-    int y = pos.y;
-    int width = size.x;
-    int height = size.y;
-
     long msStyle = 0;
-    long wstyle = 0;
 
     if ( m_windowStyle & wxSL_LABELS )
     {
@@ -178,9 +165,9 @@ bool wxSlider95::Create(wxWindow *parent, wxWindowID id,
         // Now create min static control
         wxString minLabel;
         minLabel.Printf(wxT("%d"), minValue);
-        wstyle = STATIC_FLAGS;
+        long wstyle = STATIC_FLAGS;
         if ( m_windowStyle & wxCLIP_SIBLINGS )
-            msStyle |= WS_CLIPSIBLINGS;
+            wstyle |= WS_CLIPSIBLINGS;
         m_staticMin = (WXHWND) CreateWindowEx
             (
                 0, wxT("STATIC"), minLabel,
@@ -192,7 +179,9 @@ bool wxSlider95::Create(wxWindow *parent, wxWindowID id,
 
     WXDWORD exStyle = 0;
 
-    msStyle = MSWGetStyle(GetWindowStyle(), & exStyle) ;    
+    msStyle = MSWGetStyle(GetWindowStyle(), & exStyle) ;
+
+    wxUnusedVar(msStyle);
 
     if (m_windowStyle & wxSL_VERTICAL)
         msStyle = TBS_VERT | WS_CHILD | WS_VISIBLE | WS_TABSTOP ;
@@ -241,17 +230,15 @@ bool wxSlider95::Create(wxWindow *parent, wxWindowID id,
 
     ::SetWindowText((HWND) m_hWnd, wxEmptyString);
 
-    SetFont(parent->GetFont());
-
     if ( m_windowStyle & wxSL_LABELS )
     {
         // Finally, create max value static item
         wxString maxLabel;
         maxLabel.Printf(wxT("%d"), maxValue);
-        wstyle = STATIC_FLAGS;
+        long wstyle = STATIC_FLAGS;
 
         if ( m_windowStyle & wxCLIP_SIBLINGS )
-            msStyle |= WS_CLIPSIBLINGS;
+            wstyle |= WS_CLIPSIBLINGS;
 
         m_staticMax = (WXHWND) CreateWindowEx
             (
@@ -281,10 +268,14 @@ bool wxSlider95::Create(wxWindow *parent, wxWindowID id,
         }
     }
 
-    SetSize(x, y, width, height);
+    SetSize(pos.x, pos.y, size.x, size.y);
     SetValue(value);
 
-    return TRUE;
+    // SetInitialBestSize is not called since we don't call MSWCreateControl
+    // for this control, so call SetBestSize here instead.
+    SetBestSize(size);
+
+    return true;
 }
 
 bool wxSlider95::MSWOnScroll(int WXUNUSED(orientation), WXWORD wParam,
@@ -331,14 +322,14 @@ bool wxSlider95::MSWOnScroll(int WXUNUSED(orientation), WXWORD wParam,
 
         default:
             // unknown scroll event?
-            return FALSE;
+            return false;
     }
 
     int newPos = (int) ::SendMessage((HWND) control, TBM_GETPOS, 0, 0);
     if ( (newPos < GetMin()) || (newPos > GetMax()) )
     {
         // out of range - but we did process it
-        return TRUE;
+        return true;
     }
 
     SetValue(newPos);
@@ -463,9 +454,9 @@ void wxSlider95::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 
     int currentX, currentY;
     GetPosition(&currentX, &currentY);
-    if (x == -1 && !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE))
+    if (x == wxDefaultCoord && !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE))
        x1 = currentX;
-    if (y == -1 && !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE))
+    if (y == wxDefaultCoord && !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE))
         y1 = currentY;
 
     AdjustForParentClientOrigin(x1, y1, sizeFlags);
@@ -479,7 +470,7 @@ void wxSlider95::DoSetSize(int x, int y, int width, int height, int sizeFlags)
     int cy;
     int cyf;
 
-    wxGetCharSize(GetHWND(), &cx, &cy, & this->GetFont());
+    wxGetCharSize(GetHWND(), &cx, &cy, this->GetFont());
 
     if ((m_windowStyle & wxSL_VERTICAL) != wxSL_VERTICAL)
     {
@@ -488,12 +479,12 @@ void wxSlider95::DoSetSize(int x, int y, int width, int height, int sizeFlags)
             int min_len = 0;
 
             ::GetWindowText((HWND) m_staticMin, buf, 300);
-            GetTextExtent(buf, &min_len, &cyf,NULL,NULL, & this->GetFont());
+            GetTextExtent(buf, &min_len, &cyf);
 
             int max_len = 0;
 
             ::GetWindowText((HWND) m_staticMax, buf, 300);
-            GetTextExtent(buf, &max_len, &cyf,NULL,NULL, & this->GetFont());
+            GetTextExtent(buf, &max_len, &cyf);
             if (m_staticValue)
             {
                 int new_width = (int)(wxMax(min_len, max_len));
@@ -511,7 +502,7 @@ void wxSlider95::DoSetSize(int x, int y, int width, int height, int sizeFlags)
                 x_offset += new_width + cx;
             }
 
-            MoveWindow((HWND) m_staticMin, x_offset, y_offset,
+            ::MoveWindow((HWND) m_staticMin, x_offset, y_offset,
                 (int) min_len, cy, TRUE);
             x_offset += (int)(min_len + cx);
 
@@ -531,7 +522,7 @@ void wxSlider95::DoSetSize(int x, int y, int width, int height, int sizeFlags)
                 slider_length, slider_height, TRUE);
             x_offset += slider_length + cx;
 
-            MoveWindow((HWND) m_staticMax, x_offset, y_offset,
+            ::MoveWindow((HWND) m_staticMax, x_offset, y_offset,
                 (int) max_len, cy, TRUE);
         }
         else
@@ -540,8 +531,8 @@ void wxSlider95::DoSetSize(int x, int y, int width, int height, int sizeFlags)
             // If we're prepared to use the existing size, then...
             if
             (
-                width == -1
-                && height == -1
+                width == wxDefaultCoord
+                && height == wxDefaultCoord
                 && ((sizeFlags & wxSIZE_AUTO) != wxSIZE_AUTO)
             )
             {
@@ -549,7 +540,7 @@ void wxSlider95::DoSetSize(int x, int y, int width, int height, int sizeFlags)
             }
 
             if ( w1 < 0 )
-                w1 = 200;
+                w1 = 100;
             if ( h1 < 0 )
                 h1 = 20;
 
@@ -562,11 +553,11 @@ void wxSlider95::DoSetSize(int x, int y, int width, int height, int sizeFlags)
         {
             int min_len;
             ::GetWindowText((HWND) m_staticMin, buf, 300);
-            GetTextExtent(buf, &min_len, &cyf,NULL,NULL, & this->GetFont());
+            GetTextExtent(buf, &min_len, &cyf);
 
             int max_len;
             ::GetWindowText((HWND) m_staticMax, buf, 300);
-            GetTextExtent(buf, &max_len, &cyf,NULL,NULL, & this->GetFont());
+            GetTextExtent(buf, &max_len, &cyf);
 
             if (m_staticValue)
             {
@@ -587,7 +578,7 @@ void wxSlider95::DoSetSize(int x, int y, int width, int height, int sizeFlags)
                 (int) min_len, cy, TRUE);
             y_offset += cy;
 
-            //  slider_length = (total height available) - (height used so far) 
+            //  slider_length = (total height available) - (height used so far)
             //                              - (height of max label) - (border)
             int slider_length = (int)(h1 - (y_offset-y) - cy - cy);
 
@@ -612,7 +603,7 @@ void wxSlider95::DoSetSize(int x, int y, int width, int height, int sizeFlags)
             // If we're prepared to use the existing size, then...
             if
             (
-                width == -1 && height == -1
+                width == wxDefaultCoord && height == wxDefaultCoord
                 && ((sizeFlags & wxSIZE_AUTO) != wxSIZE_AUTO)
             )
             {
@@ -622,12 +613,93 @@ void wxSlider95::DoSetSize(int x, int y, int width, int height, int sizeFlags)
             if ( w1 < 0 )
                 w1 = 20;
             if ( h1 < 0 )
-                h1 = 200;
+                h1 = 100;
 
             ::MoveWindow(GetHwnd(), x1, y1, w1, h1, TRUE);
         }
     }
 }
+
+
+// A reimplementaion of the mess above changed a bit to just determine the min
+// size needed.  It would certainly be nice to refactor this and DoSetSize
+// somehow.
+wxSize wxSlider95::DoGetBestSize() const
+{
+    wxSize rv;
+    wxChar buf[300];
+    int cx;
+    int cy;
+    int cyf;
+    int min_len = 0;
+    int max_len = 0;
+
+    wxGetCharSize(GetHWND(), &cx, &cy, this->GetFont());
+
+    if ( !HasFlag(wxSL_VERTICAL))
+    {
+        rv = wxSize(100, 20);  // default size for the slider itself
+
+        if (HasFlag(wxSL_LABELS))  // do we need to add more for the labels?
+        {
+            ::GetWindowText((HWND) m_staticMin, buf, 300);
+            GetTextExtent(buf, &min_len, &cyf);
+            rv.x += min_len + cx;
+
+            ::GetWindowText((HWND) m_staticMax, buf, 300);
+            GetTextExtent(buf, &max_len, &cyf);
+            rv.x += max_len + cx;
+
+            if (m_staticValue)
+            {
+                int new_width = (int)(wxMax(min_len, max_len));
+                int valueHeight = (int)cyf;
+
+#ifdef __WIN32__
+                // For some reason, under Win95, the text edit control has
+                // a lot of space before the first character
+                new_width += 3*cx;
+#endif
+                // The height needs to be a bit bigger under Win95 if
+                // using native 3D effects.
+                valueHeight = (int) (valueHeight * 1.5) ;
+
+                rv.x += new_width + cx;
+                rv.y = wxMax(valueHeight, rv.y);
+            }
+        }
+    }
+    else // ! wxSL_HORIZONTAL
+    {
+        rv = wxSize(20, 100);  // default size for the slider itself
+
+        if (HasFlag(wxSL_LABELS)) // do we need to add more for the labels?
+        {
+            ::GetWindowText((HWND) m_staticMin, buf, 300);
+            GetTextExtent(buf, &min_len, &cyf);
+            rv.y += cy;
+
+            ::GetWindowText((HWND) m_staticMax, buf, 300);
+            GetTextExtent(buf, &max_len, &cyf);
+            rv.y += cy;
+
+            if (m_staticValue)
+            {
+                int new_width = (int)(wxMax(min_len, max_len));
+                int valueHeight = (int)cyf;
+                new_width += cx;
+
+                // The height needs to be a bit bigger under Win95 if
+                // using native 3D effects.
+                valueHeight = (int) (valueHeight * 1.5) ;
+                rv.y += valueHeight;
+                rv.x = wxMax(new_width, rv.x);
+            }
+        }
+    }
+    return rv;
+}
+
 
 void wxSlider95::SetRange(int minValue, int maxValue)
 {
@@ -773,7 +845,7 @@ bool wxSlider95::Show(bool show)
     if(m_staticMax)
         ShowWindow((HWND) m_staticMax, (BOOL)cshow);
 
-    return TRUE;
+    return true;
 }
 
 #endif

@@ -243,29 +243,16 @@ bool wxRadioBox::Create( wxWindow *parent, wxWindowID id, const wxString& title,
 
     m_parent->DoAddChild( this );
 
-    PostCreation();
-    InheritAttributes();
-
-    ApplyWidgetStyle();
+    bool wasShown = IsShown();
+    if ( wasShown )
+        Hide(); // prevent PostCreation() from showing us
 
     SetLabel( title );
 
-    SetFont( parent->GetFont() );
+    PostCreation(size);
 
-    wxSize ls = LayoutItems();
-
-    GtkRequisition req;
-    req.width = 2;
-    req.height = 2;
-    (* GTK_WIDGET_CLASS( GTK_OBJECT_GET_CLASS(m_widget) )->size_request ) (m_widget, &req );
-    if (req.width > ls.x) ls.x = req.width;
-
-    wxSize newSize = size;
-    if (newSize.x == -1) newSize.x = ls.x;
-    if (newSize.y == -1) newSize.y = ls.y;
-    SetSize( newSize.x, newSize.y );
-
-    Show( TRUE );
+    if ( wasShown )
+        Show();
 
     return TRUE;
 }
@@ -285,25 +272,35 @@ void wxRadioBox::DoSetSize( int x, int y, int width, int height, int sizeFlags )
 {
     wxWindow::DoSetSize( x, y, width, height, sizeFlags );
 
-    LayoutItems();
+    LayoutItems(false);
 }
 
-wxSize wxRadioBox::LayoutItems()
+wxSize wxRadioBox::DoGetBestSize() const
 {
-    int x = 7;
-    int y = 15;
+    wxSize size = LayoutItems(true);
 
-    if ( m_majorDim == 0 )
-    {
-        // avoid dividing by 0 below
-        wxFAIL_MSG( wxT("dimension of radiobox should not be 0!") );
+    GtkRequisition req;
+    req.width = 2;
+    req.height = 2;
+    (* GTK_WIDGET_CLASS( GTK_OBJECT_GET_CLASS(m_widget) )->size_request ) (m_widget, &req );
+    if (req.width > size.x)
+        size.x = req.width;
 
-        m_majorDim = 1;
-    }
+    CacheBestSize(size);
+    return size;
+}
+
+wxSize wxRadioBox::LayoutItems(bool justCalc) const
+{
+    wxSize res( 0, 0 );
+
+    // avoid dividing by 0 below
+    wxCHECK_MSG( m_majorDim, res, wxT("dimension of radiobox should not be 0!") );
 
     int num_per_major = (m_boxes.GetCount() - 1) / m_majorDim +1;
 
-    wxSize res( 0, 0 );
+    int x = 7;
+    int y = 15;
 
     int num_of_cols = 0;
     int num_of_rows = 0;
@@ -342,7 +339,8 @@ wxSize wxRadioBox::LayoutItems()
                       
                 if (req.width > max_len) max_len = req.width;
 
-                gtk_pizza_move( GTK_PIZZA(m_parent->m_wxwindow), button, m_x+x, m_y+y );
+                if ( !justCalc )
+                    gtk_pizza_move( GTK_PIZZA(m_parent->m_wxwindow), button, m_x+x, m_y+y );
                 y += req.height;
 
                 node = node->GetNext();
@@ -356,7 +354,8 @@ wxSize wxRadioBox::LayoutItems()
             {
                 GtkWidget *button = GTK_WIDGET( node->GetData() );
 
-                gtk_pizza_resize( GTK_PIZZA(m_parent->m_wxwindow), button, max_len, lineheight );
+                if ( !justCalc )
+                    gtk_pizza_resize( GTK_PIZZA(m_parent->m_wxwindow), button, max_len, lineheight );
 
                 node = node->GetNext();
                 if (!node) break;
@@ -395,7 +394,8 @@ wxSize wxRadioBox::LayoutItems()
         {
             GtkWidget *button = GTK_WIDGET( node->GetData() );
 
-            gtk_pizza_set_size( GTK_PIZZA(m_parent->m_wxwindow), button, m_x+x, m_y+y, max, lineheight );
+            if ( !justCalc )
+                gtk_pizza_set_size( GTK_PIZZA(m_parent->m_wxwindow), button, m_x+x, m_y+y, max, lineheight );
             x += max;
 
             node = node->GetNext();
@@ -417,7 +417,7 @@ bool wxRadioBox::Show( bool show )
         return FALSE;
     }
 
-    if ((m_windowStyle & wxNO_BORDER) != 0)
+    if ( HasFlag(wxNO_BORDER) )
         gtk_widget_hide( m_widget );
 
     wxList::compatibility_iterator node = m_boxes.GetFirst();
@@ -682,19 +682,21 @@ void wxRadioBox::GtkEnableEvents()
     }
 }
 
-void wxRadioBox::ApplyWidgetStyle()
+void wxRadioBox::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    SetWidgetStyle();
+    gtk_widget_modify_style( m_widget, style );
 
-    gtk_widget_set_style( m_widget, m_widgetStyle );
+#ifdef __WXGTK20__
+    gtk_widget_modify_style(GTK_FRAME(m_widget)->label_widget, style);
+#endif
 
     wxList::compatibility_iterator node = m_boxes.GetFirst();
     while (node)
     {
         GtkWidget *widget = GTK_WIDGET( node->GetData() );
-        gtk_widget_set_style( widget, m_widgetStyle );
 
-        gtk_widget_set_style( BUTTON_CHILD(node->GetData()), m_widgetStyle );
+        gtk_widget_modify_style( widget, style );
+        gtk_widget_modify_style( BUTTON_CHILD(node->GetData()), style );
 
         node = node->GetNext();
     }
@@ -751,6 +753,20 @@ void wxRadioBox::OnInternalIdle()
             SetFocus();
         }
     }
+}
+
+// static
+wxVisualAttributes
+wxRadioBox::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    wxVisualAttributes attr;
+    // NB: we need toplevel window so that GTK+ can find the right style
+    GtkWidget *wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    GtkWidget* widget = gtk_radio_button_new_with_label(NULL, "");
+    gtk_container_add(GTK_CONTAINER(wnd), widget);
+    attr = GetDefaultAttributesFromGTKWidget(widget);
+    gtk_widget_destroy(wnd);
+    return attr;
 }
 
 #endif // wxUSE_RADIOBOX

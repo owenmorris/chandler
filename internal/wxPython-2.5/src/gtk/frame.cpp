@@ -150,7 +150,7 @@ static void gtk_toolbar_detached_callback( GtkWidget *WXUNUSED(widget), GtkWidge
 
 /* Callback for wxFrame. This very strange beast has to be used because
  * C++ has no virtual methods in a constructor. We have to emulate a
- * virtual function here as wxWindows requires different ways to insert
+ * virtual function here as wxWidgets requires different ways to insert
  * a child in container classes. */
 
 static void wxInsertChildInFrame( wxFrame* parent, wxWindow* child )
@@ -520,7 +520,20 @@ void wxFrame::OnInternalIdle()
     if (m_frameToolBar) m_frameToolBar->OnInternalIdle();
 #endif
 #if wxUSE_STATUSBAR
-    if (m_frameStatusBar) m_frameStatusBar->OnInternalIdle();
+    if (m_frameStatusBar)
+    {
+        m_frameStatusBar->OnInternalIdle();
+
+        // There may be controls in the status bar that
+        // need to be updated
+        for ( wxWindowList::compatibility_iterator node = m_frameStatusBar->GetChildren().GetFirst();
+          node;
+          node = node->GetNext() )
+        {
+            wxWindow *child = node->GetData();
+            child->OnInternalIdle();
+        }
+    }
 #endif
 }
 
@@ -581,7 +594,7 @@ void wxFrame::AttachMenuBar( wxMenuBar *menuBar )
                 GTK_SIGNAL_FUNC(gtk_menu_detached_callback), (gpointer)this );
         }
         
-        m_frameMenuBar->Show( TRUE );
+        gtk_widget_show( m_frameMenuBar->m_widget );
 
         UpdateMenuBarSize();
     }
@@ -673,6 +686,16 @@ wxStatusBar* wxFrame::CreateStatusBar(int number,
     GtkUpdateSize();
 
     return wxFrameBase::CreateStatusBar( number, style, id, name );
+}
+
+void wxFrame::SetStatusBar(wxStatusBar *statbar)
+{
+    bool hadStatBar = m_frameStatusBar != NULL;
+    
+    wxFrameBase::SetStatusBar(statbar);
+    
+    if (hadStatBar && !m_frameStatusBar) 
+        GtkUpdateSize();
 }
 
 void wxFrame::PositionStatusBar()

@@ -5,7 +5,7 @@
 // Modified by: VZ (resolutions enumeration/change support, DirectDraw, ...)
 // Created:     06/21/02
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -31,7 +31,9 @@
 #if wxUSE_DISPLAY
 
 #ifndef WX_PRECOMP
+   #include "wx/app.h"
    #include "wx/dynarray.h"
+   #include "wx/frame.h"
 #endif
 
 #include "wx/dynload.h"
@@ -214,11 +216,11 @@ wxDDEnumExCallback(GUID *pGuid,
     return true;
 }
 
-HRESULT WINAPI wxDDEnumModesCallback(LPDDSURFACEDESC lpDDSurfaceDesc,  
+HRESULT WINAPI wxDDEnumModesCallback(LPDDSURFACEDESC lpDDSurfaceDesc,
                                      LPVOID lpContext)
 {
     // we need at least the mode size
-    static const int FLAGS_REQUIRED = DDSD_HEIGHT | DDSD_WIDTH;
+    static const DWORD FLAGS_REQUIRED = DDSD_HEIGHT | DDSD_WIDTH;
     if ( (lpDDSurfaceDesc->dwFlags & FLAGS_REQUIRED) == FLAGS_REQUIRED )
     {
         wxArrayVideoModes * const modes = (wxArrayVideoModes *)lpContext;
@@ -240,12 +242,16 @@ HRESULT WINAPI wxDDEnumModesCallback(LPDDSURFACEDESC lpDDSurfaceDesc,
 // initialize gs_displays using DirectX functions
 static bool DoInitDirectX()
 {
+#if wxUSE_LOG
     // suppress the errors if ddraw.dll is not found
     wxLog::EnableLogging(false);
+#endif
 
     wxDynamicLibrary dllDX(_T("ddraw.dll"));
 
-    wxLog::EnableLogging(true);
+#if wxUSE_LOG
+    wxLog::EnableLogging();
+#endif
 
     if ( !dllDX.IsLoaded() )
         return false;
@@ -505,7 +511,11 @@ wxString wxDisplay::GetName() const
         wxZeroMemory(monInfo);
         monInfo.cbSize = sizeof(monInfo);
 
-        if ( !::GetMonitorInfo(dpyInfo.m_hmon, &monInfo) )
+        // NB: Cast from MONITORINFOEX* to MONITORINFO* is done because
+        //     Mingw headers - unlike the ones from Microsoft's Platform SDK -
+        //     don't derive the former from the latter in C++ mode and so
+        //     the pointer's type is not converted implicitly.
+        if ( !::GetMonitorInfo(dpyInfo.m_hmon, (LPMONITORINFO)&monInfo) )
         {
             wxLogLastError(_T("GetMonitorInfo"));
         }
@@ -648,7 +658,7 @@ bool wxDisplay::DoChangeModeDirectX(const wxVideoMode& mode)
         return false;
     }
 
-         
+
     return true;
 }
 

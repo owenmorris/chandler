@@ -19,7 +19,7 @@
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA) && !defined(__EMX__)
 // Some older compilers (such as EMX) cannot handle
-// #pragma interface/implementation correctly, iff 
+// #pragma interface/implementation correctly, iff
 // #pragma implementation is used in _two_ translation
 // units (as created by e.g. event.cpp compiled for
 // libwx_base and event.cpp compiled for libwx_gui_core).
@@ -106,8 +106,8 @@
 // ----------------------------------------------------------------------------
 
 #if WXWIN_COMPATIBILITY_2_2
-    const wxChar *wxInternalErrorStr = wxT("wxWindows Internal Error");
-    const wxChar *wxFatalErrorStr = wxT("wxWindows Fatal Error");
+    const wxChar *wxInternalErrorStr = wxT("wxWidgets Internal Error");
+    const wxChar *wxFatalErrorStr = wxT("wxWidgets Fatal Error");
 #endif // WXWIN_COMPATIBILITY_2_2
 
 // ============================================================================
@@ -264,6 +264,11 @@ wxString wxNow()
     date[24] = '\0';
     return wxString::FromAscii(date);
 #endif
+}
+
+void wxUsleep(unsigned long milliseconds)
+{
+    wxMilliSleep(milliseconds);
 }
 
 const wxChar *wxGetInstallPrefix()
@@ -500,7 +505,10 @@ static long wxDoExecuteWithCapture(const wxString& command,
         }
 
     }
-#endif // wxUSE_STREAMS
+#else
+    wxUnusedVar(output);
+    wxUnusedVar(error);
+#endif // wxUSE_STREAMS/!wxUSE_STREAMS
 
     delete process;
 
@@ -747,7 +755,14 @@ wxWindow* wxGenericFindWindowAtPoint(const wxPoint& pt)
 int wxMessageBox(const wxString& message, const wxString& caption, long style,
                  wxWindow *parent, int WXUNUSED(x), int WXUNUSED(y) )
 {
-    wxMessageDialog dialog(parent, message, caption, style);
+    long decorated_style = style;
+
+    if ( ( style & ( wxICON_EXCLAMATION | wxICON_HAND | wxICON_INFORMATION | wxICON_QUESTION ) ) == 0 )
+    {
+        decorated_style |= ( style & wxYES ) ? wxICON_QUESTION : wxICON_INFORMATION ;
+    }
+
+    wxMessageDialog dialog(parent, message, caption, decorated_style);
 
     int ans = dialog.ShowModal();
     switch ( ans )
@@ -773,10 +788,18 @@ int wxMessageBox(const wxString& message, const wxString& caption, long style,
 
 wxString wxGetTextFromUser(const wxString& message, const wxString& caption,
                         const wxString& defaultValue, wxWindow *parent,
-                        int x, int y, bool WXUNUSED(centre) )
+                        wxCoord x, wxCoord y, bool centre )
 {
     wxString str;
-    wxTextEntryDialog dialog(parent, message, caption, defaultValue, wxOK|wxCANCEL, wxPoint(x, y));
+    long style = wxTextEntryDialogStyle;
+
+    if (centre)
+        style |= wxCENTRE;
+    else
+        style &= ~wxCENTRE;
+
+    wxTextEntryDialog dialog(parent, message, caption, defaultValue, style, wxPoint(x, y));
+
     if (dialog.ShowModal() == wxID_OK)
     {
         str = dialog.GetValue();

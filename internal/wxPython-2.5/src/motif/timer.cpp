@@ -13,6 +13,9 @@
 #pragma implementation "timer.h"
 #endif
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
 #include "wx/timer.h"
 #include "wx/app.h"
 #include "wx/hashmap.h"
@@ -27,7 +30,7 @@
 
 #include "wx/motif/private.h"
 
-IMPLEMENT_ABSTRACT_CLASS(wxTimer, wxObject);
+IMPLEMENT_ABSTRACT_CLASS(wxTimer, wxEvtHandler);
 
 WX_DECLARE_VOIDPTR_HASH_MAP(wxTimer*, wxTimerHashMap);
 

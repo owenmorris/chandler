@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        glcanvas.cpp
-// Purpose:     wxGLCanvas, for using OpenGL with wxWindows
+// Purpose:     wxGLCanvas, for using OpenGL with wxWidgets
 //              Uses the GLX extension.
 // Author:      Julian Smart and Wolfram Gloger
 // Modified by:

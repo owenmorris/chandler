@@ -6,7 +6,7 @@
 // Created:     2003/07/19
 // RCS-ID:      $Id$
 // Copyright:   (c) 2003 David Elliott
-// Licence:     wxWindows licence
+// Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
@@ -159,7 +159,7 @@ WX_NSImage wxBitmap::GetNSImage(bool useMask) const
     {
         // Show before/after to prove that the bitmap itself is not changed
         // even though we just composited onto the NSImage
-        wxLogTrace(wxTRACE_COCOA,"Before: bpp=%d",[M_BITMAPDATA->m_cocoaNSBitmapImageRep bitsPerPixel]);
+        wxLogTrace(wxTRACE_COCOA,wxT("Before: bpp=%d"),[M_BITMAPDATA->m_cocoaNSBitmapImageRep bitsPerPixel]);
         NSImage *maskImage = [[NSImage alloc]
                 initWithSize:NSMakeSize(GetWidth(), GetHeight())];
         [maskImage addRepresentation: GetMask()->GetNSBitmapImageRep()];
@@ -167,7 +167,7 @@ WX_NSImage wxBitmap::GetNSImage(bool useMask) const
         [maskImage compositeToPoint:NSZeroPoint operation:NSCompositeDestinationIn];
         [nsimage unlockFocus];
         [maskImage release];
-        wxLogTrace(wxTRACE_COCOA,"After: bpp=%d",[M_BITMAPDATA->m_cocoaNSBitmapImageRep bitsPerPixel]);
+        wxLogTrace(wxTRACE_COCOA,wxT("After: bpp=%d"),[M_BITMAPDATA->m_cocoaNSBitmapImageRep bitsPerPixel]);
     }
     return nsimage;
 }
@@ -512,11 +512,11 @@ bool wxMask::Create(const wxBitmap& bitmap, int paletteIndex)
     return FALSE;
 }
 
-template <class PixelData>
+template <typename PixelData>
 static bool wxMask_CreateFromBitmapData(PixelData srcData, const wxColour& colour, unsigned char *dstData)
 {
     wxCHECK_MSG(dstData,false,wxT("Couldn't access mask data"));
-    class PixelData::Iterator p(srcData);
+    typename PixelData::Iterator p(srcData);
     const int nRows = srcData.GetHeight();
     const int nCols = srcData.GetWidth();
     // Total number of bytes per destination column
@@ -525,7 +525,7 @@ static bool wxMask_CreateFromBitmapData(PixelData srcData, const wxColour& colou
     const int width_aligned = nCols/8*8;
     for(int y=0; y<nRows; ++y)
     {
-        class PixelData::Iterator rowStart(p);
+        typename PixelData::Iterator rowStart(p);
         unsigned char *dstRow = dstData + y*dstRowLength;
         for(int x=0; x<width_aligned; x+=8)
         {

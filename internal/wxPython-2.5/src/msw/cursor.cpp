@@ -102,7 +102,7 @@ public:
     {
         gs_globalCursor = new wxCursor;
 
-        return TRUE;
+        return true;
     }
 
     virtual void OnExit()
@@ -278,7 +278,7 @@ wxCursor::wxCursor(const wxString& filename,
 // Cursors by stock number
 wxCursor::wxCursor(int idCursor)
 {
-    // all wxWindows standard cursors
+    // all wxWidgets standard cursors
     static const struct StdCursor
     {
         // is this a standard Windows cursor?

@@ -106,7 +106,6 @@ static void gtk_frame_size_callback( GtkWidget *WXUNUSED(widget), GtkAllocation*
 
         win->m_width = alloc->width;
         win->m_height = alloc->height;
-        win->m_queuedFullRedraw = TRUE;
         win->GtkUpdateSize();
     }
 }
@@ -265,7 +264,7 @@ static void gtk_window_draw_callback( GtkWidget *widget, GdkRectangle *rect, wxW
 
 /* Callback for wxTopLevelWindowGTK. This very strange beast has to be used because
  * C++ has no virtual methods in a constructor. We have to emulate a
- * virtual function here as wxWindows requires different ways to insert
+ * virtual function here as wxWidgets requires different ways to insert
  * a child in container classes. */
 
 static void wxInsertChildInTopLevelWindow( wxTopLevelWindowGTK* parent, wxWindow* child )
@@ -345,22 +344,33 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
 
     m_insertCallback = (wxInsertChildFunction) wxInsertChildInTopLevelWindow;
 
-    GtkWindowType win_type = GTK_WINDOW_TOPLEVEL;
-
-    if (style & wxFRAME_TOOL_WINDOW)
-        win_type = GTK_WINDOW_POPUP;
-
-    if (GetExtraStyle() & wxTOPLEVEL_EX_DIALOG)
+    // NB: m_widget may be !=NULL if it was created by derived class' Create,
+    //     e.g. in wxTaskBarIconAreaGTK
+    if (m_widget == NULL)
     {
-        // there is no more GTK_WINDOW_DIALOG in 2.0
-#ifdef __WXGTK20__
-        win_type = GTK_WINDOW_TOPLEVEL;
-#else
-        win_type = GTK_WINDOW_DIALOG;
-#endif
-    }
+        GtkWindowType win_type = GTK_WINDOW_TOPLEVEL;
+        if (style & wxFRAME_TOOL_WINDOW)
+            win_type = GTK_WINDOW_POPUP;
 
-    m_widget = gtk_window_new( win_type );
+        if (GetExtraStyle() & wxTOPLEVEL_EX_DIALOG)
+        {
+#ifdef __WXGTK20__
+            m_widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+            // Tell WM that this is a dialog window and make it center
+            // on parent by default (this is what GtkDialog ctor does):
+            gtk_window_set_type_hint(GTK_WINDOW(m_widget),
+                                     GDK_WINDOW_TYPE_HINT_DIALOG);
+            gtk_window_set_position(GTK_WINDOW(m_widget),
+                                    GTK_WIN_POS_CENTER_ON_PARENT);
+#else
+            m_widget = gtk_window_new(GTK_WINDOW_DIALOG);
+#endif
+        }
+        else
+        {
+            m_widget = gtk_window_new(win_type);
+        }
+    }
 
     if (m_parent && (((GTK_IS_WINDOW(m_parent->m_widget)) &&
 		      (GetExtraStyle() & wxTOPLEVEL_EX_DIALOG)) ||
@@ -368,6 +378,13 @@ bool wxTopLevelWindowGTK::Create( wxWindow *parent,
     {
         gtk_window_set_transient_for( GTK_WINDOW(m_widget), GTK_WINDOW(m_parent->m_widget) );
     }
+
+#if GTK_CHECK_VERSION(2,2,0)
+    if (style & wxFRAME_NO_TASKBAR)
+    {
+        gtk_window_set_skip_taskbar_hint(GTK_WINDOW(m_widget), TRUE);
+    }
+#endif
 
     if (!name.IsEmpty())
         gtk_window_set_wmclass( GTK_WINDOW(m_widget), wxGTK_CONV( name ), wxGTK_CONV( name ) );
@@ -866,21 +883,6 @@ void wxTopLevelWindowGTK::SetTitle( const wxString &title )
     gtk_window_set_title( GTK_WINDOW(m_widget), wxGTK_CONV( title ) );
 }
 
-void wxTopLevelWindowGTK::DoSetIcon( const wxIcon &icon )
-{
-    if ( !icon.Ok() )
-        return;
-
-    if (!m_widget->window)
-        return;
-
-    wxMask *mask = icon.GetMask();
-    GdkBitmap *bm = (GdkBitmap *) NULL;
-    if (mask) bm = mask->GetBitmap();
-
-    gdk_window_set_icon( m_widget->window, (GdkWindow *) NULL, icon.GetPixmap(), bm );
-}
-
 void wxTopLevelWindowGTK::SetIcon( const wxIcon &icon )
 {
     SetIcons( wxIconBundle( icon ) );
@@ -889,16 +891,41 @@ void wxTopLevelWindowGTK::SetIcon( const wxIcon &icon )
 void wxTopLevelWindowGTK::SetIcons( const wxIconBundle &icons )
 {
     wxASSERT_MSG( (m_widget != NULL), wxT("invalid frame") );
-    GdkWindow* window = m_widget->window;
 
     wxTopLevelWindowBase::SetIcons( icons );
 
-    DoSetIcon( icons.GetIcon( -1 ) );
-    if ( window )
+#ifdef __WXGTK20__
+    GList *list = NULL;
+    size_t max = icons.m_icons.GetCount();
+
+    for (size_t i = 0; i < max; i++)
     {
-        wxSetIconsX11( (WXDisplay*)GDK_WINDOW_XDISPLAY( window ),
-                       (WXWindow)GDK_WINDOW_XWINDOW( window ), icons );
+        if (icons.m_icons[i].Ok())
+        {
+            list = g_list_prepend(list, icons.m_icons[i].GetPixbuf());
+        }
     }
+    gtk_window_set_icon_list(GTK_WINDOW(m_widget), list);
+    g_list_free(list);
+    
+#else // !__WXGTK20__
+    GdkWindow* window = m_widget->window;
+    if (!window)
+        return;
+
+    wxIcon icon = icons.GetIcon(-1);
+    if (icon.Ok())
+    {
+        wxMask *mask = icon.GetMask();
+        GdkBitmap *bm = (GdkBitmap *) NULL;
+        if (mask) bm = mask->GetBitmap();
+
+        gdk_window_set_icon( m_widget->window, (GdkWindow *) NULL, icon.GetPixmap(), bm );
+    }
+
+    wxSetIconsX11( (WXDisplay*)GDK_WINDOW_XDISPLAY( window ),
+                   (WXWindow)GDK_WINDOW_XWINDOW( window ), icons );
+#endif // !__WXGTK20__
 }
 
 // ----------------------------------------------------------------------------
@@ -919,15 +946,22 @@ void wxTopLevelWindowGTK::Maximize(bool maximize)
 
 bool wxTopLevelWindowGTK::IsMaximized() const
 {
+#ifdef __WXGTK20__
+    if(!m_widget->window)
+        return false;
+
+    return gdk_window_get_state(m_widget->window) & GDK_WINDOW_STATE_MAXIMIZED;
+#else
   //    wxFAIL_MSG( _T("not implemented") );
 
     // This is an approximation
     return FALSE;
+#endif
 }
 
 void wxTopLevelWindowGTK::Restore()
 {
-#ifdef __GTK20__
+#ifdef __WXGTK20__
     // "Present" seems similar enough to "restore"
     gtk_window_present( GTK_WINDOW( m_widget ) );
 #else

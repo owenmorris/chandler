@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // RCS-ID:      $Id$
 // Copyright:   (c) 1999 Vaclav Slavik
-// Licence:     wxWindows Licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
@@ -94,7 +94,7 @@ wxHtmlCell::wxHtmlCell() : wxObject()
     m_Next = NULL;
     m_Parent = NULL;
     m_Width = m_Height = m_Descent = 0;
-    m_CanLiveOnPagebreak = TRUE;
+    m_CanLiveOnPagebreak = true;
     m_Link = NULL;
 }
 
@@ -139,10 +139,10 @@ bool wxHtmlCell::AdjustPagebreak(int *pagebreak, int* WXUNUSED(known_pagebreaks)
                 m_PosY < *pagebreak && m_PosY + m_Height > *pagebreak)
     {
         *pagebreak = m_PosY;
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 
@@ -260,7 +260,7 @@ wxHtmlWordCell::wxHtmlWordCell(const wxString& word, wxDC& dc) : wxHtmlCell()
 {
     m_Word = word;
     dc.GetTextExtent(m_Word, &m_Width, &m_Height, &m_Descent);
-    SetCanLiveOnPagebreak(FALSE);
+    SetCanLiveOnPagebreak(false);
     m_allowLinebreak = true;
 }
 
@@ -283,7 +283,7 @@ void wxHtmlWordCell::Split(wxDC& dc,
     wxPoint pt1 = (selFrom == wxDefaultPosition) ?
                    wxDefaultPosition : selFrom - GetAbsPos();
     wxPoint pt2 = (selTo == wxDefaultPosition) ?
-                   wxPoint(m_Width, -1) : selTo - GetAbsPos();
+                   wxPoint(m_Width, wxDefaultCoord) : selTo - GetAbsPos();
 
     wxCoord charW, charH;
     unsigned len = m_Word.length();
@@ -381,7 +381,7 @@ void wxHtmlWordCell::Draw(wxDC& dc, int x, int y,
 {
 #if 0 // useful for debugging
     dc.SetPen(*wxBLACK_PEN);
-    dc.DrawRectangle(x+m_PosX,y+m_PosY,m_Width,m_Height);
+    dc.DrawRectangle(x+m_PosX,y+m_PosY,m_Width /* VZ: +1? */ ,m_Height);
 #endif
 
     bool drawSelectionAfterCell = false;
@@ -535,8 +535,8 @@ wxHtmlContainerCell::wxHtmlContainerCell(wxHtmlContainerCell *parent) : wxHtmlCe
     m_AlignVer = wxHTML_ALIGN_BOTTOM;
     m_IndentLeft = m_IndentRight = m_IndentTop = m_IndentBottom = 0;
     m_WidthFloat = 100; m_WidthFloatUnits = wxHTML_UNITS_PERCENT;
-    m_UseBkColour = FALSE;
-    m_UseBorder = FALSE;
+    m_UseBkColour = false;
+    m_UseBorder = false;
     m_MinHeight = 0;
     m_MinHeightAlign = wxHTML_ALIGN_TOP;
     m_LastLayout = -1;
@@ -581,7 +581,7 @@ int wxHtmlContainerCell::GetIndent(int ind) const
 
 int wxHtmlContainerCell::GetIndentUnits(int ind) const
 {
-    bool p = FALSE;
+    bool p = false;
     if (ind & wxHTML_INDENT_LEFT) p = m_IndentLeft < 0;
     else if (ind & wxHTML_INDENT_RIGHT) p = m_IndentRight < 0;
     else if (ind & wxHTML_INDENT_TOP) p = m_IndentTop < 0;
@@ -600,13 +600,13 @@ bool wxHtmlContainerCell::AdjustPagebreak(int *pagebreak, int* known_pagebreaks,
     else
     {
         wxHtmlCell *c = GetFirstChild();
-        bool rt = FALSE;
+        bool rt = false;
         int pbrk = *pagebreak - m_PosY;
 
         while (c)
         {
             if (c->AdjustPagebreak(&pbrk, known_pagebreaks, number_of_pages))
-                rt = TRUE;
+                rt = true;
             c = c->GetNext();
         }
         if (rt)
@@ -637,14 +637,14 @@ void wxHtmlContainerCell::Layout(int w)
        return;
     }
 
-    wxHtmlCell *cell = m_Cells, *line = m_Cells;
+    wxHtmlCell *cell = m_Cells,
+               *line = m_Cells;
     wxHtmlCell *nextCell;
     long xpos = 0, ypos = m_IndentTop;
     int xdelta = 0, ybasicpos = 0, ydiff;
     int s_width, nextWordWidth, s_indent;
     int ysizeup = 0, ysizedown = 0;
     int MaxLineWidth = 0;
-    int xcnt = 0;
     int curLineWidth = 0;
     m_MaxTotalWidth = 0;
 
@@ -716,7 +716,6 @@ void wxHtmlContainerCell::Layout(int w)
             curLineWidth += cell->GetMaxTotalWidth();
 
         cell = cell->GetNext();
-        xcnt++;
             
         // compute length of the next word that would be added:
         nextWordWidth = 0;
@@ -755,29 +754,88 @@ void wxHtmlContainerCell::Layout(int w)
             ypos += ysizeup;
 
             if (m_AlignHor != wxHTML_ALIGN_JUSTIFY || cell == NULL)
+            {
                 while (line != cell)
                 {
                     line->SetPos(line->GetPosX() + xdelta,
                                    ypos + line->GetPosY());
                     line = line->GetNext();
                 }
-            else
+            }
+            else // align == justify
             {
-                int counter = 0;
-                int step = (s_width - xpos);
-                if (step < 0) step = 0;
-                xcnt--;
-                if (xcnt > 0) while (line != cell)
+                // we have to distribute the extra horz space between the cells
+                // on this line
+
+                // an added complication is that some cells have fixed size and
+                // shouldn't get any increment (it so happens that these cells
+                // also don't allow line break on them which provides with an
+                // easy way to test for this) -- and neither should the cells
+                // adjacent to them as this could result in a visible space
+                // between two cells separated by, e.g. font change, cell which
+                // is wrong
+
+                int step = s_width - xpos;
+                if ( step > 0 )
                 {
-                    line->SetPos(line->GetPosX() + s_indent +
-                                   (counter++ * step / xcnt),
-                                   ypos + line->GetPosY());
-                    line = line->GetNext();
+                    // first count the cells which will get extra space
+                    int total = 0;
+
+                    const wxHtmlCell *c;
+                    if ( line != cell )
+                    {
+                        for ( c = line->GetNext(); c != cell; c = c->GetNext() )
+                        {
+                            if ( c->IsLinebreakAllowed() )
+                            {
+                                total++;
+                            }
+                        }
+                    }
+
+                    // and now extra space to those cells which merit it
+                    if ( total )
+                    {
+                        // first cell on line is not moved:
+                        line->SetPos(line->GetPosX() + s_indent,
+                                     line->GetPosY() + ypos);
+                        
+                        line = line->GetNext();
+                        for ( int n = 0; line != cell; line = line->GetNext() )
+                        {
+                            if ( line->IsLinebreakAllowed() )
+                            {
+                                // offset the next cell relative to this one
+                                // thus increasing our size
+                                n++;
+                            }
+                            
+                            line->SetPos(line->GetPosX() + s_indent +
+                                           ((n * step) / total),
+                                           line->GetPosY() + ypos);
+                        }
+                    }
+                    else
+                    {
+                        // this will cause the code to enter "else branch" below:
+                        step = 0;
+                    }
+                }
+                // else branch:
+                if ( step <= 0 ) // no extra space to distribute
+                {
+                    // just set the indent properly
+                    while (line != cell)
+                    {
+                        line->SetPos(line->GetPosX() + s_indent,
+                                     line->GetPosY() + ypos);
+                        line = line->GetNext();
+                    }
                 }
             }
 
             ypos += ysizedown;
-            xpos = xcnt = 0;
+            xpos = 0;
             ysizeup = ysizedown = 0;
             line = cell;
         }

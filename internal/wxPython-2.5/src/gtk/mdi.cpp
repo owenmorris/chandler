@@ -16,7 +16,7 @@
 
 #include "wx/mdi.h"
 
-#if wxUSE_MDI_ARCHITECTURE
+#if wxUSE_MDI
 
 #include "wx/dialog.h"
 #include "wx/menu.h"
@@ -163,6 +163,16 @@ void wxMDIParentFrame::OnInternalIdle()
     {
         GtkNotebook *notebook = GTK_NOTEBOOK(m_clientWindow->m_widget);
         gtk_notebook_set_page( notebook, g_list_length( notebook->children ) - 1 );
+
+    /* need to set the menubar of the child */
+        wxMDIChildFrame *active_child_frame = GetActiveChild();
+        wxMenuBar *menu_bar = active_child_frame->m_menuBar;
+        menu_bar->m_width = m_width;
+        menu_bar->m_height = wxMENU_HEIGHT;
+        gtk_pizza_set_size( GTK_PIZZA(m_mainWidget),
+                            menu_bar->m_widget,
+                            0, 0, m_width, wxMENU_HEIGHT );
+        menu_bar->SetInvokingWindow(active_child_frame);
 
         m_justInserted = false;
         return;

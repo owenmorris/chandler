@@ -21,6 +21,8 @@
     #pragma implementation "frame.h"
 #endif
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
 
 #ifdef __VMS
 #define XtDisplay XTDISPLAY
@@ -353,11 +355,16 @@ void wxFrame::DoGetClientSize(int *x, int *y) const
             yy -= tbh;
     }
 #endif // wxUSE_TOOLBAR
-    *x = xx; *y = yy;
+
+//CE found a call here with NULL y pointer
+    if (x)
+        *x = xx; 
+    if (y)
+        *y = yy;
 }
 
 // Set the client size (i.e. leave the calculation of borders etc.
-// to wxWindows)
+// to wxWidgets)
 void wxFrame::DoSetClientSize(int width, int height)
 {
     // Calculate how large the new main window should be
@@ -423,8 +430,8 @@ void wxFrame::DoSetSize(int x, int y, int width, int height, int WXUNUSED(sizeFl
 
 bool wxFrame::Show( bool show )
 {
-    if( !wxTopLevelWindowMotif::Show( show ) )
-        return FALSE;
+    if( !wxWindowBase::Show( show ) )
+        return false;
 
     m_isShown = show;
 
@@ -435,15 +442,14 @@ bool wxFrame::Show( bool show )
     SetVisibleStatus(show);
     if (show)
     {
-        XtMapWidget (shell);
-        XRaiseWindow (XtDisplay(shell), XtWindow(shell));
+        XtPopup(shell, XtGrabNone);
     }
     else
     {
-        XtUnmapWidget(shell);
+        XtPopdown(shell);
     }
 
-    return TRUE;
+    return true;
 }
 
 void wxFrame::SetTitle(const wxString& title)

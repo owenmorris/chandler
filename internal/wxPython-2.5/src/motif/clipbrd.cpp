@@ -14,6 +14,9 @@
 #pragma implementation "clipbrd.h"
 #endif
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
 #ifdef __VMS
 #include "wx/vms_x_fix.h"
 #define XtWindow XTWINDOW
@@ -280,7 +283,7 @@ bool wxClipboard::AddData( wxDataObject *data )
     m_data.Append( data );
 
     Display* xdisplay = wxGlobalDisplay();
-    Widget xwidget = (Widget)wxTheApp->GetTopLevelWidget();
+    Widget xwidget = (Widget)wxTheApp->GetTopLevelRealizedWidget();
     Window xwindow = XtWindow( xwidget );
     wxXmString label( wxTheApp->GetAppName() );
     Time timestamp = XtLastTimestampProcessed( xdisplay );
@@ -330,7 +333,7 @@ void wxClipboard::Close()
 bool wxClipboard::IsSupported(const wxDataFormat& format)
 {
     Display* xdisplay = wxGlobalDisplay();
-    Window xwindow = XtWindow( (Widget)wxTheApp->GetTopLevelWidget() );
+    Window xwindow = XtWindow( (Widget)wxTheApp->GetTopLevelRealizedWidget() );
     bool isSupported = false;
     int retval, count;
     unsigned long  max_name_length;
@@ -390,7 +393,7 @@ bool wxClipboard::GetData( wxDataObject& data )
     wxCHECK_MSG( m_open, false, "clipboard not open" );
 
     Display* xdisplay = wxGlobalDisplay();
-    Window xwindow = XtWindow( (Widget)wxTheApp->GetTopLevelWidget() );
+    Window xwindow = XtWindow( (Widget)wxTheApp->GetTopLevelRealizedWidget() );
     Time timestamp = XtLastTimestampProcessed( xdisplay );
 
     wxDataFormat chosenFormat;

@@ -13,8 +13,17 @@
 #pragma implementation "checkbox.h"
 #endif
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
 #ifdef __VMS
 #define XtDisplay XTDISPLAY
+#define XmNtoggleMode 0
+#define XmTOGGLE_INDETERMINATE 1
+#define XmTOGGLE_BOOLEAN 2
+#define XmUNSET 3
+#define XmSET 4
+#define XmINDETERMINATE 5
 #endif
 
 #include "wx/defs.h"
@@ -62,6 +71,9 @@ bool wxCheckBox::Create(wxWindow *parent, wxWindowID id, const wxString& label,
         wxFont::GetFontTag(), m_font.GetFontType(XtDisplay(parentWidget)),
         XmNlabelString, text(),
         XmNrecomputeSize, False,
+        // XmNindicatorOn, XmINDICATOR_CHECK_BOX,
+        // XmNfillOnSelect, False,
+        XmNtoggleMode, Is3State() ? XmTOGGLE_INDETERMINATE : XmTOGGLE_BOOLEAN,
         NULL);
     
     XtAddCallback( (Widget)m_mainWidget,
@@ -79,20 +91,30 @@ bool wxCheckBox::Create(wxWindow *parent, wxWindowID id, const wxString& label,
 
 void wxCheckBox::SetValue(bool val)
 {
-    m_inSetValue = TRUE;
-    XmToggleButtonSetState ((Widget) m_mainWidget, (Boolean) val, TRUE);
-    m_inSetValue = FALSE;
+    if (val)
+    {
+        Set3StateValue(wxCHK_CHECKED);
+    }
+    else
+    {
+        Set3StateValue(wxCHK_UNCHECKED);
+    }
 }
 
 bool wxCheckBox::GetValue() const
 {
-    return (XmToggleButtonGetState ((Widget) m_mainWidget) != 0);
+    return (Get3StateValue() != 0);
 }
 
 void wxCheckBox::Command (wxCommandEvent & event)
 {
-    SetValue ((event.GetInt() != 0));
-    ProcessCommand (event);
+    int state = event.GetInt();
+    wxCHECK_RET( (state == wxCHK_UNCHECKED) || (state == wxCHK_CHECKED)
+        || (state == wxCHK_UNDETERMINED),
+        wxT("event.GetInt() returned an invalid checkbox state") );
+
+    Set3StateValue((wxCheckBoxState) state);
+    ProcessCommand(event);
 }
 
 void wxCheckBoxCallback (Widget WXUNUSED(w), XtPointer clientData,
@@ -103,10 +125,18 @@ void wxCheckBoxCallback (Widget WXUNUSED(w), XtPointer clientData,
     if (item->InSetValue())
         return;
 
-    wxCommandEvent event (item->m_evtType, item->GetId());
-    event.SetInt((int) item->GetValue ());
-    event.SetEventObject(item);
-    item->ProcessCommand (event);
+    wxCheckBoxState state = item->Get3StateValue();
+
+    if( !item->Is3rdStateAllowedForUser() && state == wxCHK_UNDETERMINED )
+    {
+        state = wxCHK_UNCHECKED;
+        item->Set3StateValue( state );
+    }
+
+    wxCommandEvent event( item->m_evtType, item->GetId() );
+    event.SetInt( (int)state );
+    event.SetEventObject( item );
+    item->ProcessCommand( event );
 }
 
 void wxCheckBox::ChangeBackgroundColour()
@@ -128,6 +158,45 @@ void wxCheckBox::ChangeBackgroundColour()
     XtVaSetValues ((Widget) m_mainWidget,
            XmNselectColor, selectPixel,
         NULL);
+}
+
+void wxCheckBox::DoSet3StateValue(wxCheckBoxState state)
+{
+    m_inSetValue = true;
+
+    unsigned char value;
+
+    switch (state)
+    {
+    case wxCHK_UNCHECKED: value = XmUNSET; break;
+    case wxCHK_CHECKED: value = XmSET; break;
+    case wxCHK_UNDETERMINED: value = XmINDETERMINATE; break;
+    }
+
+    XtVaSetValues( (Widget) m_mainWidget,
+                   XmNset, value,
+                   NULL );
+
+    m_inSetValue = false;
+}
+
+wxCheckBoxState wxCheckBox::DoGet3StateValue() const
+{
+    unsigned char value = 0;
+
+    XtVaGetValues( (Widget) m_mainWidget,
+                   XmNset, &value,
+                   NULL );
+
+    switch (value)
+    {
+    case XmUNSET: return wxCHK_UNCHECKED;
+    case XmSET: return wxCHK_CHECKED;
+    case XmINDETERMINATE: return wxCHK_UNDETERMINED;
+    }
+
+    // impossible...
+    return wxCHK_UNDETERMINED;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

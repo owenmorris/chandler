@@ -45,7 +45,7 @@
 const wxCoord MARGIN = 5;
 
 // ----------------------------------------------------------------------------
-// various wxWindows macros
+// various wxWidgets macros
 // ----------------------------------------------------------------------------
 
 IMPLEMENT_DYNAMIC_CLASS(wxListbook, wxControl)
@@ -117,7 +117,7 @@ wxListbook::Create(wxWindow *parent,
     m_line = new wxStaticLine
                  (
                     this,
-                    -1,
+                    wxID_ANY,
                     wxDefaultPosition,
                     wxDefaultSize,
                     IsVertical() ? wxLI_HORIZONTAL : wxLI_VERTICAL
@@ -357,10 +357,12 @@ int wxListbook::SetSelection(size_t n)
 
     if ( (int)n != m_selection )
     {
-        m_selection = n;
+        m_list->Select(n);
+        m_list->Focus(n);
 
-        m_list->Select(m_selection);
-        m_list->Focus(m_selection);
+        // change m_selection only now, otherwise OnListSelected() would ignore
+        // the selection change event
+        m_selection = n;
     }
 
     return selOld;
@@ -394,6 +396,7 @@ wxListbook::InsertPage(size_t n,
         page->Hide();
     }
 
+    InvalidateBestSize();
     return true;
 }
 
@@ -406,6 +409,13 @@ wxWindow *wxListbook::DoRemovePage(size_t page)
     }
 
     return win;
+}
+
+
+bool wxListbook::DeleteAllPages()
+{
+    m_list->DeleteAllItems();
+    return wxBookCtrl::DeleteAllPages();
 }
 
 // ----------------------------------------------------------------------------

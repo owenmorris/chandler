@@ -10,7 +10,7 @@
 // Parts of this source are based on the iff loading algorithm found
 // in xviff.c.  Permission by the original author, Thomas Meyer, and
 // by the author of xv, John Bradley for using the iff loading part
-// in wxWindows has been gratefully given.
+// in wxWidgets has been gratefully given.
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "imagiff.h"
@@ -247,7 +247,7 @@ bool wxIFFDecoder::CanRead()
 
 // ReadIFF:
 // Based on xv source code by Thomas Meyer
-// Permission for use in wxWindows has been gratefully given.
+// Permission for use in wxWidgets has been gratefully given.
 
 typedef unsigned char byte;
 #define IFFDEBUG 0

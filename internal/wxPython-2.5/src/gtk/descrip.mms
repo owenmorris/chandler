@@ -122,7 +122,7 @@ SOURCES =\
 	gauge.cpp,\
 	gdiobj.cpp,\
         glcanvas.cpp,\
-	gsockgtk.c,\
+	gsockgtk.cpp,\
         icon.cpp,\
 	listbox.cpp,\
 	main.cpp,\
@@ -162,8 +162,10 @@ all : $(SOURCES)
 	$(MMS)$(MMSQUALIFIERS) $(OBJECTS)
 .ifdef __WXUNIVERSAL__
 	library [--.lib]libwx_gtk_univ.olb $(OBJECTS)
+	library [--.lib]libwx_gtk_univ.olb [.CXX_REPOSITORY]*.obj
 .else
 	library [--.lib]libwx_gtk.olb $(OBJECTS)
+	library [--.lib]libwx_gtk.olb [.CXX_REPOSITORY]*.obj
 	$(MMS)$(MMSQUALIFIERS) $(OBJECTS0)
 	library [--.lib]libwx_gtk.olb $(OBJECTS0)
 .endif
@@ -196,7 +198,7 @@ frame.obj : frame.cpp
 gauge.obj : gauge.cpp
 gdiobj.obj : gdiobj.cpp
 glcanvas.obj : glcanvas.cpp
-gsockgtk.obj : gsockgtk.c
+gsockgtk.obj : gsockgtk.cpp
 icon.obj : icon.cpp
 listbox.obj : listbox.cpp
 main.obj : main.cpp

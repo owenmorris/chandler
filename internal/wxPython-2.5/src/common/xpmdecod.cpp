@@ -178,7 +178,10 @@ wxImage wxXPMDecoder::ReadFile(wxInputStream& stream)
             if ( (*q == '*') && (*(q + 1) == '/') )
                 break;
         }
-        strcpy(p, q + 2);
+        
+        // memmove allows overlaps (unlike strcpy):
+        size_t cpylen = strlen(q + 2) + 1;
+        memmove(p, q + 2, cpylen); 
     }
 
     /*
@@ -236,11 +239,7 @@ wxImage wxXPMDecoder::ReadFile(wxInputStream& stream)
      */
     wxImage img = ReadData(xpm_lines);
 
-#ifdef __WIN16__
-    delete[] (char**) xpm_lines;
-#else
     delete[] xpm_lines;
-#endif
 
     return img;
 }

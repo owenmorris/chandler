@@ -150,10 +150,7 @@ bool wxSpinButton::Create(wxWindow *parent,
 
     m_parent->DoAddChild( this );
 
-    PostCreation();
-    InheritAttributes();
-
-    Show( TRUE );
+    PostCreation(new_size);
 
     return TRUE;
 }
@@ -228,15 +225,20 @@ bool wxSpinButton::IsOwnGtkWindow( GdkWindow *window )
     return GTK_SPIN_BUTTON(m_widget)->panel == window;
 }
 
-void wxSpinButton::ApplyWidgetStyle()
-{
-    SetWidgetStyle();
-    gtk_widget_set_style( m_widget, m_widgetStyle );
-}
-
 wxSize wxSpinButton::DoGetBestSize() const
 {
-    return wxSize(15, 26);
+    wxSize best(15, 26); // FIXME
+    CacheBestSize(best);
+    return best;
+}
+
+// static
+wxVisualAttributes
+wxSpinButton::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    // TODO: overload to accept functions like gtk_spin_button_new?
+    // Until then use a similar type
+    return GetDefaultAttributesFromGTKWidget(gtk_button_new);
 }
 
 #endif

@@ -22,6 +22,9 @@
 // headers
 // ----------------------------------------------------------------------------
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
 #include "wx/defs.h"
 
 #include "wx/menu.h"
@@ -80,7 +83,7 @@ void wxMenu::Init()
 
     if ( !!m_title )
     {
-        Append(wxID_SEPARATOR, m_title) ;
+        Append(-3, m_title) ;
         AppendSeparator() ;
     }
 
@@ -119,7 +122,7 @@ wxMenuItem* wxMenu::DoAppend(wxMenuItem *pItem)
     if (m_menuWidget)
     {
         // this is a dynamic Append
-        pItem->CreateItem(m_menuWidget, m_menuBar, m_topLevelMenu);
+        pItem->CreateItem(m_menuWidget, GetMenuBar(), m_topLevelMenu);
     }
 
     if ( pItem->IsSubMenu() )
@@ -288,8 +291,6 @@ bool wxMenuBar::Append(wxMenu * menu, const wxString& title)
         wxCHECK_MSG( w, FALSE, wxT("failed to create menu") );
         menu->SetButtonWidget(w);
     }
-
-    //menu->SetMenuBar(this);
 
     m_titles.Add(title);
 
@@ -522,7 +523,6 @@ WXWidget wxMenu::CreateMenu (wxMenuBar * menuBar, WXWidget parent, wxMenu * topM
 
     m_menuWidget = (WXWidget) menu;
 
-    m_menuBar = menuBar;
     m_topLevelMenu = topMenu;
 
     for ( wxMenuItemList::compatibility_iterator node = GetMenuItems().GetFirst();
@@ -542,7 +542,7 @@ WXWidget wxMenu::CreateMenu (wxMenuBar * menuBar, WXWidget parent, wxMenu * topM
 }
 
 // Destroys the Motif implementation of the menu,
-// but maintains the wxWindows data structures so we can
+// but maintains the wxWidgets data structures so we can
 // do a CreateMenu again.
 void wxMenu::DestroyMenu (bool full)
 {

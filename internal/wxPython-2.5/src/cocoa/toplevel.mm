@@ -6,7 +6,7 @@
 // Created:     2002/11/27
 // RCS-ID:      $Id$
 // Copyright:   (c) 2002 David Elliott
-// Licence:     wxWindows licence
+// Licence:     wxWidgets licence
 ///////////////////////////////////////////////////////////////////////////////
 
 // ============================================================================
@@ -140,6 +140,8 @@ wxTopLevelWindowCocoa::~wxTopLevelWindowCocoa()
     wxASSERT(sm_cocoaDeactivateWindow!=this);
     wxAutoNSAutoreleasePool pool;
     DestroyChildren();
+    if(m_cocoaNSView)
+        SendDestroyEvent();
     SetNSWindow(NULL);
 }
 
@@ -274,7 +276,7 @@ bool wxTopLevelWindowCocoa::Show(bool show)
     wxAutoNSAutoreleasePool pool;
     if(show)
     {
-        // Send the window a size event because wxWindows apps expect it
+        // Send the window a size event because wxWidgets apps expect it
         // NOTE: This should really only be done the first time a window
         // is shown.  I doubt this will cause any problems though.
         wxSizeEvent event(GetSize(), GetId());
@@ -345,7 +347,7 @@ void wxTopLevelWindowCocoa::CocoaSetWxWindowSize(int width, int height)
 
 void wxTopLevelWindowCocoa::DoMoveWindow(int x, int y, int width, int height)
 {
-    wxLogTrace(wxTRACE_COCOA_TopLevelWindow_Size,"wxTopLevelWindow=%p::DoMoveWindow(%d,%d,%d,%d)",this,x,y,width,height);
+    wxLogTrace(wxTRACE_COCOA_TopLevelWindow_Size,wxT("wxTopLevelWindow=%p::DoMoveWindow(%d,%d,%d,%d)"),this,x,y,width,height);
 
     NSRect cocoaRect = NSMakeRect(x,y,width,height);
     [m_cocoaNSWindow setFrame: cocoaRect display:NO];
@@ -358,7 +360,7 @@ void wxTopLevelWindowCocoa::DoGetSize(int *w, int *h) const
         *w=(int)cocoaRect.size.width;
     if(h)
         *h=(int)cocoaRect.size.height;
-    wxLogTrace(wxTRACE_COCOA_TopLevelWindow_Size,"wxTopLevelWindow=%p::DoGetSize = (%d,%d)",this,(int)cocoaRect.size.width,(int)cocoaRect.size.height);
+    wxLogTrace(wxTRACE_COCOA_TopLevelWindow_Size,wxT("wxTopLevelWindow=%p::DoGetSize = (%d,%d)"),this,(int)cocoaRect.size.width,(int)cocoaRect.size.height);
 }
 
 void wxTopLevelWindowCocoa::DoGetPosition(int *x, int *y) const
@@ -368,6 +370,6 @@ void wxTopLevelWindowCocoa::DoGetPosition(int *x, int *y) const
         *x=(int)cocoaRect.origin.x;
     if(y)
         *y=(int)cocoaRect.origin.y;
-    wxLogTrace(wxTRACE_COCOA_TopLevelWindow_Size,"wxTopLevelWindow=%p::DoGetPosition = (%d,%d)",this,(int)cocoaRect.origin.x,(int)cocoaRect.origin.y);
+    wxLogTrace(wxTRACE_COCOA_TopLevelWindow_Size,wxT("wxTopLevelWindow=%p::DoGetPosition = (%d,%d)"),this,(int)cocoaRect.origin.x,(int)cocoaRect.origin.y);
 }
 

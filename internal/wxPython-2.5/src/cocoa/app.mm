@@ -6,7 +6,7 @@
 // Created:     2002/11/27
 // RCS-ID:      $Id$
 // Copyright:   (c) David Elliott
-// Licence:     wxWindows licence
+// Licence:     wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
@@ -34,6 +34,8 @@
 #import <Foundation/NSThread.h>
 #import <AppKit/NSEvent.h>
 #import <Foundation/NSString.h>
+#import <Foundation/NSNotification.h>
+#import <AppKit/NSCell.h>
 
 // ========================================================================
 // wxPoseAsInitializer
@@ -119,7 +121,7 @@ WX_IMPLEMENT_POSER(wxPoserNSApplication);
 @implementation wxNSApplicationDelegate : NSObject
 
 // NOTE: Terminate means that the event loop does NOT return and thus
-// cleanup code doesn't properly execute.  Furthermore, wxWindows has its
+// cleanup code doesn't properly execute.  Furthermore, wxWidgets has its
 // own exit on frame delete mechanism.
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)theApplication
 {
@@ -144,6 +146,11 @@ WX_IMPLEMENT_POSER(wxPoserNSApplication);
 - (void)applicationDidResignActive:(NSNotification *)notification
 {
     wxTheApp->CocoaDelegate_applicationDidResignActive();
+}
+
+- (void)controlTintChanged:(NSNotification *)notification
+{
+    wxLogDebug("TODO: send EVT_SYS_COLOUR_CHANGED as appropriate");
 }
 
 @end // implementation wxNSApplicationDelegate : NSObject
@@ -199,6 +206,8 @@ void wxApp::CleanUp()
     wxMenuBarManager::DestroyInstance();
 
     [m_cocoaApp setDelegate:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:m_cocoaAppDelegate
+        name:NSControlTintDidChangeNotification object:nil];
     [m_cocoaAppDelegate release];
     m_cocoaAppDelegate = NULL;
 
@@ -252,11 +261,13 @@ bool wxApp::OnInitGui()
     m_cocoaApp = [NSApplication sharedApplication];
     m_cocoaAppDelegate = [[wxNSApplicationDelegate alloc] init];
     [m_cocoaApp setDelegate:m_cocoaAppDelegate];
+    [[NSNotificationCenter defaultCenter] addObserver:m_cocoaAppDelegate
+        selector:@selector(controlTintChanged:)
+        name:NSControlTintDidChangeNotification object:nil];
 
     wxMenuBarManager::CreateInstance();
 
     wxDC::CocoaInitializeTextSystem();
-//    [ m_cocoaApp setDelegate:m_cocoaApp ];
     return TRUE;
 }
 
@@ -306,12 +317,16 @@ bool wxApp::Yield(bool onlyIfNeeded)
     s_inYield = true;
 
     // Run the event loop until it is out of events
-    while(NSEvent *event = [GetNSApplication()
-                nextEventMatchingMask:NSAnyEventMask
-                untilDate:[NSDate distantPast]
-                inMode:NSDefaultRunLoopMode
-                dequeue: YES])
+    while(1)
     {
+        wxAutoNSAutoreleasePool pool;
+        NSEvent *event = [GetNSApplication()
+                nextEventMatchingMask:NSAnyEventMask
+                untilDate:nil /* ==[NSDate distantPast] */
+                inMode:NSDefaultRunLoopMode
+                dequeue: YES];
+        if(!event)
+            break;
         [GetNSApplication() sendEvent: event];
     }
 

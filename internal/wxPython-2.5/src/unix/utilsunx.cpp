@@ -47,6 +47,7 @@
 #if defined( __MWERKS__ ) && defined(__MACH__)
 #define WXWIN_OS_DESCRIPTION "MacOS X"
 #define HAVE_NANOSLEEP
+#define HAVE_UNAME
 #endif
 
 // not only the statfs syscall is called differently depending on platform, but
@@ -148,12 +149,12 @@ void wxSleep(int nSecs)
     sleep(nSecs);
 }
 
-void wxUsleep(unsigned long milliseconds)
+void wxMicroSleep(unsigned long microseconds)
 {
 #if defined(HAVE_NANOSLEEP)
     timespec tmReq;
-    tmReq.tv_sec = (time_t)(milliseconds / 1000);
-    tmReq.tv_nsec = (milliseconds % 1000) * 1000 * 1000;
+    tmReq.tv_sec = (time_t)(microseconds / 1000000);
+    tmReq.tv_nsec = (microseconds % 1000000) * 1000;
 
     // we're not interested in remaining time nor in return value
     (void)nanosleep(&tmReq, (timespec *)NULL);
@@ -166,13 +167,18 @@ void wxUsleep(unsigned long milliseconds)
         #error "usleep() cannot be used in MT programs under Solaris."
     #endif // Sun
 
-    usleep(milliseconds * 1000); // usleep(3) wants microseconds
+    usleep(microseconds);
 #elif defined(HAVE_SLEEP)
     // under BeOS sleep() takes seconds (what about other platforms, if any?)
-    sleep(milliseconds * 1000);
+    sleep(microseconds * 1000000);
 #else // !sleep function
-    #error "usleep() or nanosleep() function required for wxUsleep"
+    #error "usleep() or nanosleep() function required for wxMicroSleep"
 #endif // sleep function
+}
+
+void wxMilliSleep(unsigned long milliseconds)
+{
+    wxMicroSleep(milliseconds*1000);
 }
 
 // ----------------------------------------------------------------------------
@@ -507,7 +513,9 @@ long wxExecute(wxChar **argv,
         // start an xterm executing it.
         if ( !(flags & wxEXEC_SYNC) )
         {
-            for ( int fd = 0; fd < FD_SETSIZE; fd++ )
+            // FD_SETSIZE is unsigned under BSD, signed under other platforms
+            // so we need a cast to avoid warnings on all platforms
+            for ( int fd = 0; fd < (int)FD_SETSIZE; fd++ )
             {
                 if ( fd == pipeIn[wxPipe::Read]
                         || fd == pipeOut[wxPipe::Write]
@@ -925,7 +933,7 @@ bool wxSetEnv(const wxString& variable, const wxChar *value)
         s << _T('=') << value;
 
     // transform to ANSI
-    const char *p = s.mb_str();
+    const wxWX2MBbuf p = s.mb_str();
 
     // the string will be free()d by libc
     char *buf = (char *)malloc(strlen(p) + 1);
@@ -933,7 +941,7 @@ bool wxSetEnv(const wxString& variable, const wxChar *value)
 
     return putenv(buf) == 0;
 #else // no way to set an env var
-    return FALSE;
+    return false;
 #endif
 }
 
@@ -1157,10 +1165,10 @@ int wxGUIAppTraits::WaitForChild(wxExecuteData& execData)
             }
 #endif // wxUSE_STREAMS
 
-            // don't consume 100% of the CPU while we're sitting this in this
+            // don't consume 100% of the CPU while we're sitting in this
             // loop
             if ( idle )
-                wxUsleep(1);
+                wxMilliSleep(1);
 
             // give GTK+ a chance to call GTK_EndProcessDetector here and
             // also repaint the GUI

@@ -40,6 +40,7 @@
     #include "wx/textctrl.h"
     #include "wx/listbox.h"
     #include "wx/toolbar.h"
+    #include "wx/statusbr.h"
 
     #ifdef __WXMSW__
         // for COLOR_* constants
@@ -299,7 +300,7 @@ public:
     virtual void DrawStatusField(wxDC& dc,
                                  const wxRect& rect,
                                  const wxString& label,
-                                 int flags = 0);
+                                 int flags = 0, int style = 0);
 
     // titlebars
     virtual void DrawFrameTitleBar(wxDC& dc,
@@ -442,7 +443,7 @@ protected:
     void DrawSunkenBorder(wxDC& dc, wxRect *rect);
 
     // draw the border used for scrollbar arrows
-    void DrawArrowBorder(wxDC& dc, wxRect *rect, bool isPressed = FALSE);
+    void DrawArrowBorder(wxDC& dc, wxRect *rect, bool isPressed = false);
 
     // public DrawArrow()s helper
     void DrawArrow(wxDC& dc, const wxRect& rect,
@@ -468,7 +469,7 @@ protected:
     void DrawLine(wxDC& dc,
                   wxCoord x1, wxCoord y1,
                   wxCoord x2, wxCoord y2,
-                  bool transpose = FALSE)
+                  bool transpose = false)
     {
         if ( transpose )
             dc.DrawLine(y1, x1, y2, x2);
@@ -1916,7 +1917,7 @@ wxRect wxWin32Renderer::GetBorderDimensions(wxBorder border) const
 
 bool wxWin32Renderer::AreScrollbarsInsideBorder() const
 {
-    return TRUE;
+    return true;
 }
 
 // ----------------------------------------------------------------------------
@@ -2283,7 +2284,7 @@ void wxWin32Renderer::DrawCheckItem(wxDC& dc,
     }
 
     dc.DrawBitmap(bmp, rect.x, rect.y + (rect.height - bmp.GetHeight()) / 2 - 1,
-                  TRUE /* use mask */);
+                  true /* use mask */);
 
     wxRect rectLabel = rect;
     int bmpWidth = bmp.GetWidth();
@@ -2364,7 +2365,7 @@ void wxWin32Renderer::DrawCheckOrRadioButton(wxDC& dc,
         rectLabel.SetRight(rect.GetRight());
     }
 
-    dc.DrawBitmap(bitmap, xBmp, yBmp, TRUE /* use mask */);
+    dc.DrawBitmap(bitmap, xBmp, yBmp, true /* use mask */);
 
     DoDrawLabel(
                 dc, label, rectLabel,
@@ -3224,7 +3225,7 @@ wxSize wxWin32Renderer::GetStatusBarBorders(wxCoord *borderBetweenFields) const
 void wxWin32Renderer::DrawStatusField(wxDC& dc,
                                       const wxRect& rect,
                                       const wxString& label,
-                                      int flags)
+                                      int flags, int style /*=0*/)
 {
     wxRect rectIn;
 
@@ -3240,9 +3241,15 @@ void wxWin32Renderer::DrawStatusField(wxDC& dc,
                 y2 = rect.GetBottom();
 
         // draw the upper left part of the rect normally
-        dc.SetPen(m_penDarkGrey);
-        dc.DrawLine(rect.GetLeft(), rect.GetTop(), rect.GetLeft(), y2);
-        dc.DrawLine(rect.GetLeft() + 1, rect.GetTop(), x2, rect.GetTop());
+        if (style != wxSB_FLAT)
+        {
+            if (style == wxSB_RAISED)
+                dc.SetPen(m_penHighlight);
+            else
+                dc.SetPen(m_penDarkGrey);
+            dc.DrawLine(rect.GetLeft(), rect.GetTop(), rect.GetLeft(), y2);
+            dc.DrawLine(rect.GetLeft() + 1, rect.GetTop(), x2, rect.GetTop());
+        }
 
         // draw the grey stripes of the grip
         size_t n;
@@ -3262,9 +3269,16 @@ void wxWin32Renderer::DrawStatusField(wxDC& dc,
         }
 
         // draw the remaining rect boundaries
-        ofs -= WIDTH_STATUSBAR_GRIP_BAND;
-        dc.DrawLine(x2, rect.GetTop(), x2, y2 - ofs + 1);
-        dc.DrawLine(rect.GetLeft(), y2, x2 - ofs + 1, y2);
+        if (style != wxSB_FLAT)
+        {
+            if (style == wxSB_RAISED)
+                dc.SetPen(m_penDarkGrey);
+            else
+                dc.SetPen(m_penHighlight);
+            ofs -= WIDTH_STATUSBAR_GRIP_BAND;
+            dc.DrawLine(x2, rect.GetTop(), x2, y2 - ofs + 1);
+            dc.DrawLine(rect.GetLeft(), y2, x2 - ofs + 1, y2);
+        }
 
         rectIn = rect;
         rectIn.Deflate(1);
@@ -3273,7 +3287,10 @@ void wxWin32Renderer::DrawStatusField(wxDC& dc,
     }
     else // normal pane
     {
-        DrawBorder(dc, wxBORDER_STATIC, rect, flags, &rectIn);
+        if (style == wxSB_RAISED)
+            DrawBorder(dc, wxBORDER_RAISED, rect, flags, &rectIn);
+        else if (style != wxSB_FLAT)
+            DrawBorder(dc, wxBORDER_STATIC, rect, flags, &rectIn);
     }
 
     rectIn.Deflate(STATBAR_BORDER_X, STATBAR_BORDER_Y);
@@ -3401,7 +3418,7 @@ void wxWin32Renderer::DrawArrow(wxDC& dc,
         x--;
 
     // draw it
-    dc.DrawBitmap(bmp, x, y, TRUE /* use mask */);
+    dc.DrawBitmap(bmp, x, y, true /* use mask */);
 }
 
 void wxWin32Renderer::DrawArrowButton(wxDC& dc,
@@ -3751,14 +3768,14 @@ void wxWin32Renderer::DrawFrameButton(wxDC& dc,
         DrawShadedRect(dc, &r, m_penBlack, m_penHighlight);
         DrawShadedRect(dc, &r, m_penDarkGrey, m_penLightGrey);
         DrawBackground(dc, wxSCHEME_COLOUR(m_scheme, CONTROL), r);
-        dc.DrawBitmap(m_bmpFrameButtons[idx], r.x+1, r.y+1, TRUE);
+        dc.DrawBitmap(m_bmpFrameButtons[idx], r.x+1, r.y+1, true);
     }
     else
     {
         DrawShadedRect(dc, &r, m_penHighlight, m_penBlack);
         DrawShadedRect(dc, &r, m_penLightGrey, m_penDarkGrey);
         DrawBackground(dc, wxSCHEME_COLOUR(m_scheme, CONTROL), r);
-        dc.DrawBitmap(m_bmpFrameButtons[idx], r.x, r.y, TRUE);
+        dc.DrawBitmap(m_bmpFrameButtons[idx], r.x, r.y, true);
     }
 }
 
@@ -4110,9 +4127,9 @@ void wxWin32Renderer::AdjustSize(wxSize *size, const wxWindow *window)
         // less than the standard one, but not when display not PDAs.
         if (wxSystemSettings::GetScreenType() > wxSYS_SCREEN_PDA)
         {
-        if ( !(window->GetWindowStyle() & wxBU_EXACTFIT) )
+            if ( !(window->GetWindowStyle() & wxBU_EXACTFIT) )
             {
-			wxSize szDef = wxButton::GetDefaultSize();
+                wxSize szDef = wxButton::GetDefaultSize();
                 if ( size->x < szDef.x )
                     size->x = szDef.x;
             }
@@ -4146,7 +4163,7 @@ bool wxWin32InputHandler::HandleKey(wxInputConsumer * WXUNUSED(control),
                                     const wxKeyEvent& WXUNUSED(event),
                                     bool WXUNUSED(pressed))
 {
-    return FALSE;
+    return false;
 }
 
 bool wxWin32InputHandler::HandleMouse(wxInputConsumer *control,
@@ -4162,11 +4179,11 @@ bool wxWin32InputHandler::HandleMouse(wxInputConsumer *control,
         {
             win->SetFocus();
 
-            return TRUE;
+            return true;
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -4178,7 +4195,7 @@ wxWin32ScrollBarInputHandler(wxWin32Renderer *renderer,
                              wxInputHandler *handler)
         : wxStdScrollBarInputHandler(renderer, handler)
 {
-    m_scrollPaused = FALSE;
+    m_scrollPaused = false;
     m_interval = 0;
 }
 
@@ -4187,7 +4204,7 @@ bool wxWin32ScrollBarInputHandler::OnScrollTimer(wxScrollBar *scrollbar,
 {
     // stop if went beyond the position of the original click (this can only
     // happen when we scroll by pages)
-    bool stop = FALSE;
+    bool stop = false;
     if ( action == wxACTION_SCROLL_PAGE_DOWN )
     {
         stop = m_renderer->HitTestScrollbar(scrollbar, m_ptStartScrolling)
@@ -4205,7 +4222,7 @@ bool wxWin32ScrollBarInputHandler::OnScrollTimer(wxScrollBar *scrollbar,
 
         scrollbar->Refresh();
 
-        return FALSE;
+        return false;
     }
 
     return wxStdScrollBarInputHandler::OnScrollTimer(scrollbar, action);
@@ -4238,12 +4255,12 @@ bool wxWin32ScrollBarInputHandler::HandleMouseMove(wxInputConsumer *control,
     // mouse move events normally - only do it while mouse is captured (i.e.
     // when we're dragging the thumb or pressing on something)
     if ( !m_winCapture )
-        return FALSE;
+        return false;
 
     if ( event.Entering() )
     {
         // we're not interested in this at all
-        return FALSE;
+        return false;
     }
 
     wxScrollBar *scrollbar = wxStaticCast(control->GetInputWindow(), wxScrollBar);
@@ -4255,20 +4272,20 @@ bool wxWin32ScrollBarInputHandler::HandleMouseMove(wxInputConsumer *control,
         if ( event.Leaving() )
         {
             // it surely didn't
-            return FALSE;
+            return false;
         }
 
         ht = m_renderer->HitTestScrollbar(scrollbar, event.GetPosition());
         if ( ht == m_htLast )
         {
             // yes it did, resume scrolling
-            m_scrollPaused = FALSE;
+            m_scrollPaused = false;
             if ( m_timerScroll )
             {
                 // we were scrolling by line/page, restart timer
                 m_timerScroll->Start(m_interval);
 
-                Press(scrollbar, TRUE);
+                Press(scrollbar, true);
             }
             else // we were dragging the thumb
             {
@@ -4276,7 +4293,7 @@ bool wxWin32ScrollBarInputHandler::HandleMouseMove(wxInputConsumer *control,
                 HandleThumbMove(scrollbar, m_eventLastDrag);
             }
 
-            return TRUE;
+            return true;
         }
     }
     else // normal case, scrolling hasn't been paused
@@ -4328,10 +4345,10 @@ bool wxWin32ScrollBarInputHandler::HandleMouseMove(wxInputConsumer *control,
                 // pause scrolling
                 m_interval = m_timerScroll->GetInterval();
                 m_timerScroll->Stop();
-                m_scrollPaused = TRUE;
+                m_scrollPaused = true;
 
                 // unpress the arrow
-                Press(scrollbar, FALSE);
+                Press(scrollbar, false);
             }
             else // we were dragging the thumb
             {
@@ -4344,7 +4361,7 @@ bool wxWin32ScrollBarInputHandler::HandleMouseMove(wxInputConsumer *control,
                 HandleThumbMove(scrollbar, m_eventStartDrag);
             }
 
-            return TRUE;
+            return true;
         }
     }
 
@@ -4381,15 +4398,15 @@ bool wxWin32CheckboxInputHandler::HandleKey(wxInputConsumer *control,
                 break;
         }
 
-        if ( !!action )
+        if ( !action.IsEmpty() )
         {
             control->PerformAction(action);
 
-            return TRUE;
+            return true;
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -4423,7 +4440,7 @@ bool wxWin32TextCtrlInputHandler::HandleKey(wxInputConsumer *control,
         {
             control->PerformAction(action);
 
-            return TRUE;
+            return true;
         }
     }
 
@@ -4438,7 +4455,7 @@ wxWin32StatusBarInputHandler::
 wxWin32StatusBarInputHandler(wxInputHandler *handler)
     : wxStdInputHandler(handler)
 {
-    m_isOnGrip = FALSE;
+    m_isOnGrip = false;
 }
 
 bool wxWin32StatusBarInputHandler::IsOnGrip(wxWindow *statbar,
@@ -4450,7 +4467,7 @@ bool wxWin32StatusBarInputHandler::IsOnGrip(wxWindow *statbar,
         wxTopLevelWindow *
             parentTLW = wxDynamicCast(statbar->GetParent(), wxTopLevelWindow);
 
-        wxCHECK_MSG( parentTLW, FALSE,
+        wxCHECK_MSG( parentTLW, false,
                      _T("the status bar should be a child of a TLW") );
 
         // a maximized window can't be resized anyhow
@@ -4468,7 +4485,7 @@ bool wxWin32StatusBarInputHandler::IsOnGrip(wxWindow *statbar,
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 bool wxWin32StatusBarInputHandler::HandleMouse(wxInputConsumer *consumer,
@@ -4491,7 +4508,7 @@ bool wxWin32StatusBarInputHandler::HandleMouse(wxInputConsumer *consumer,
 
                     statbar->SetCursor(m_cursorOld);
 
-                    return TRUE;
+                    return true;
                 }
             }
         }
@@ -4543,7 +4560,9 @@ private:
    
     wxWin32FrameInputHandler *m_inputHnd;
     wxTopLevelWindow         *m_wnd;
+#if wxUSE_ACCEL
     wxAcceleratorTable        m_oldAccelTable;
+#endif
 };
 
 wxWin32SystemMenuEvtHandler::wxWin32SystemMenuEvtHandler(
@@ -4560,6 +4579,7 @@ void wxWin32SystemMenuEvtHandler::Attach(wxInputConsumer *consumer)
     m_wnd = wxStaticCast(consumer->GetInputWindow(), wxTopLevelWindow);
     m_wnd->PushEventHandler(this);
     
+#if wxUSE_ACCEL
     // VS: This code relies on using generic implementation of 
     //     wxAcceleratorTable in wxUniv!
     wxAcceleratorTable table = *m_wnd->GetAcceleratorTable();
@@ -4567,13 +4587,16 @@ void wxWin32SystemMenuEvtHandler::Attach(wxInputConsumer *consumer)
     table.Add(wxAcceleratorEntry(wxACCEL_ALT, WXK_SPACE, wxID_SYSTEM_MENU));
     table.Add(wxAcceleratorEntry(wxACCEL_ALT, WXK_F4, wxID_CLOSE_FRAME));
     m_wnd->SetAcceleratorTable(table);
+#endif
 }
 
 void wxWin32SystemMenuEvtHandler::Detach()
 {
     if ( m_wnd )
     {
+#if wxUSE_ACCEL
         m_wnd->SetAcceleratorTable(m_oldAccelTable);
+#endif
         m_wnd->RemoveEventHandler(this); 
         m_wnd = NULL;
     }
@@ -4595,10 +4618,16 @@ void wxWin32SystemMenuEvtHandler::OnSystemMenu(wxCommandEvent &WXUNUSED(event))
     pt.x = -pt.x + border;
     pt.y = -pt.y + border + FRAME_TITLEBAR_HEIGHT;
 
+#if wxUSE_ACCEL
     wxAcceleratorTable table = *m_wnd->GetAcceleratorTable();
     m_wnd->SetAcceleratorTable(wxNullAcceleratorTable);
+#endif
+
     m_inputHnd->PopupSystemMenu(m_wnd, pt);
+
+#if wxUSE_ACCEL
     m_wnd->SetAcceleratorTable(table);
+#endif
 }
 
 void wxWin32SystemMenuEvtHandler::OnCloseFrame(wxCommandEvent &WXUNUSED(event))
@@ -4644,7 +4673,7 @@ bool wxWin32FrameInputHandler::HandleMouse(wxInputConsumer *consumer,
             tlw->PerformAction(wxACTION_TOPLEVEL_BUTTON_CLICK,
                                tlw->IsMaximized() ? wxTOPLEVEL_BUTTON_RESTORE
                                                   : wxTOPLEVEL_BUTTON_MAXIMIZE);
-            return TRUE;
+            return true;
         }
         else if ( tlw->GetWindowStyle() & wxSYSTEM_MENU )
         {
@@ -4654,7 +4683,7 @@ bool wxWin32FrameInputHandler::HandleMouse(wxInputConsumer *consumer,
                        hit == wxHT_TOPLEVEL_ICON)) )
             {
                 PopupSystemMenu(tlw, event.GetPosition());
-                return TRUE;
+                return true;
             }
         }
     }
@@ -4683,13 +4712,13 @@ void wxWin32FrameInputHandler::PopupSystemMenu(wxTopLevelWindow *window,
     {
         if ( window->IsMaximized() )
         {
-            menu->Enable(wxID_MAXIMIZE_FRAME, FALSE);
-            menu->Enable(wxID_MOVE_FRAME, FALSE);
+            menu->Enable(wxID_MAXIMIZE_FRAME, false);
+            menu->Enable(wxID_MOVE_FRAME, false);
             if ( window->GetWindowStyle() & wxRESIZE_BORDER )
-                menu->Enable(wxID_RESIZE_FRAME, FALSE);
+                menu->Enable(wxID_RESIZE_FRAME, false);
         }
         else
-            menu->Enable(wxID_RESTORE_FRAME, FALSE);
+            menu->Enable(wxID_RESTORE_FRAME, false);
     }
 
     window->PopupMenu(menu, pos);

@@ -6,7 +6,7 @@
 // Created:     21.06.2003 (extracted from msw/utils.cpp)
 // RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
-// License:     wxWindows license
+// License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 // ============================================================================
@@ -90,17 +90,17 @@ bool wxGetResource(const wxString& section, const wxString& entry, wxChar **valu
         int n = GetPrivateProfileString(section, entry, defunkt,
                                         buf, WXSIZEOF(buf), file);
         if (n == 0 || wxStrcmp(buf, defunkt) == 0)
-            return FALSE;
+            return false;
     }
     else
     {
         int n = GetProfileString(section, entry, defunkt, buf, WXSIZEOF(buf));
         if (n == 0 || wxStrcmp(buf, defunkt) == 0)
-            return FALSE;
+            return false;
     }
     if (*value) delete[] (*value);
     *value = wxStrcpy(new wxChar[wxStrlen(buf) + 1], buf);
-    return TRUE;
+    return true;
 }
 
 bool wxGetResource(const wxString& section, const wxString& entry, float *value, const wxString& file)
@@ -111,9 +111,9 @@ bool wxGetResource(const wxString& section, const wxString& entry, float *value,
     {
         *value = (float)wxStrtod(s, NULL);
         delete[] s;
-        return TRUE;
+        return true;
     }
-    else return FALSE;
+    else return false;
 }
 
 bool wxGetResource(const wxString& section, const wxString& entry, long *value, const wxString& file)
@@ -124,9 +124,9 @@ bool wxGetResource(const wxString& section, const wxString& entry, long *value, 
     {
         *value = wxStrtol(s, NULL, 10);
         delete[] s;
-        return TRUE;
+        return true;
     }
-    else return FALSE;
+    else return false;
 }
 
 bool wxGetResource(const wxString& section, const wxString& entry, int *value, const wxString& file)
@@ -137,9 +137,9 @@ bool wxGetResource(const wxString& section, const wxString& entry, int *value, c
     {
         *value = (int)wxStrtol(s, NULL, 10);
         delete[] s;
-        return TRUE;
+        return true;
     }
-    else return FALSE;
+    else return false;
 }
 #endif // wxUSE_RESOURCES
 
@@ -184,7 +184,7 @@ void wxEndBusyCursor()
     }
 }
 
-// TRUE if we're between the above two calls
+// true if we're between the above two calls
 bool wxIsBusy()
 {
   return gs_wxBusyCursorCount > 0;
@@ -194,7 +194,7 @@ bool wxIsBusy()
 // in long calculations.
 bool wxCheckForInterrupt(wxWindow *wnd)
 {
-    wxCHECK( wnd, FALSE );
+    wxCHECK( wnd, false );
 
     MSG msg;
     while ( ::PeekMessage(&msg, GetHwndOf(wnd), 0, 0, PM_REMOVE) )
@@ -203,7 +203,7 @@ bool wxCheckForInterrupt(wxWindow *wnd)
         ::DispatchMessage(&msg);
     }
 
-    return TRUE;
+    return true;
 }
 
 // MSW only: get user-defined resource from the .res file.
@@ -259,12 +259,12 @@ void wxGetMousePosition( int* x, int* y )
     if ( y ) *y = pt.y;
 };
 
-// Return TRUE if we have a colour display
+// Return true if we have a colour display
 bool wxColourDisplay()
 {
 #ifdef __WXMICROWIN__
     // MICROWIN_TODO
-    return TRUE;
+    return true;
 #else
     // this function is called from wxDC ctor so it is called a *lot* of times
     // hence we optimize it a bit but doign the check only once
@@ -334,7 +334,7 @@ void wxDisplaySizeMM(int *width, int *height)
 
 void wxClientDisplayRect(int *x, int *y, int *width, int *height)
 {
-#if defined(__WIN16__) || defined(__WXMICROWIN__)
+#if defined(__WXMICROWIN__)
     *x = 0; *y = 0;
     wxDisplaySize(width, height);
 #else
@@ -400,11 +400,7 @@ wxString WXDLLEXPORT wxGetWindowClass(WXHWND hWnd)
 
 WXWORD WXDLLEXPORT wxGetWindowId(WXHWND hWnd)
 {
-#ifndef __WIN32__
-    return (WXWORD)GetWindowWord((HWND)hWnd, GWW_ID);
-#else // Win32
     return (WXWORD)GetWindowLong((HWND)hWnd, GWL_ID);
-#endif // Win16/32
 }
 
 // ----------------------------------------------------------------------------

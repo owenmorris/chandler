@@ -1,7 +1,7 @@
 // Copyright 1998, Ben Goetter.  All rights reserved.
 
 /*
- patch holes in winsock 
+ patch holes in winsock
 
   WCE 2.0 lacks many of the 'database' winsock routines.
   Stub just enough them for ss.dll.
@@ -11,6 +11,17 @@
   getservbyname
 
 */
+
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
+    #pragma implementation "net.h"
+#endif
+
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
+#ifdef __BORLANDC__
+    #pragma hdrstop
+#endif
 
 #include "wx/msw/wrapwin.h"
 #include <tchar.h>
@@ -36,7 +47,7 @@ static struct protoent RgProtoEnt[] =
 // Ordered by most likely to be requested.
 // Assumes that a service available on different protocols
 // will use the same port number on each protocol.
-// Should that be no longer the case, 
+// Should that be no longer the case,
 // remove the fFoundOnce code from getservbyXxx fcns.
 
 // This table keeps port numbers in host byte order.

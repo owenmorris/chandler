@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     13/07/98
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -47,6 +47,10 @@
     #include "wx/dcclient.h"
 #endif //WX_PRECOMP
 
+#if defined(__WXMAC__) && wxUSE_SCROLLBAR
+    #include "wx/scrolbar.h"
+#endif
+
 #if wxUSE_CONSTRAINTS
     #include "wx/layout.h"
 #endif // wxUSE_CONSTRAINTS
@@ -72,6 +76,10 @@
 #if wxUSE_CARET
     #include "wx/caret.h"
 #endif // wxUSE_CARET
+
+#if wxUSE_SYSTEM_OPTIONS
+	#include "wx/sysopt.h"
+#endif
 
 // ----------------------------------------------------------------------------
 // static data
@@ -117,19 +125,18 @@ wxWindowBase::wxWindowBase()
 
     // no constraints on the minimal window size
     m_minWidth =
+    m_maxWidth = wxDefaultCoord;
     m_minHeight =
-	m_maxWidth =
-	m_maxHeight = -1;
+    m_maxHeight = wxDefaultCoord;
 
-#ifdef __WXMSW__
-    m_isShown = true;
-#else
-	// window is created enabled but it's not visible yet
-	m_isShown = false;
-#endif
-	m_isEnabled = true;
+    // invalidiated cache value
+    m_bestSizeCache = wxDefaultSize;
 
-	// the default event handler is just this window
+    // window are created enabled and visible by default
+    m_isShown =
+    m_isEnabled = true;
+
+    // the default event handler is just this window
     m_eventHandler = this;
 
 #if wxUSE_VALIDATORS
@@ -137,27 +144,20 @@ wxWindowBase::wxWindowBase()
     m_windowValidator = (wxValidator *) NULL;
 #endif // wxUSE_VALIDATORS
 
-    // use the system default colours
-    m_backgroundColour = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
-    m_foregroundColour = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
-
-    // don't set the font here for wxMSW as we don't call WM_SETFONT here and
-    // so the font is *not* really set - but calls to SetFont() later won't do
-    // anything because m_font appears to be already set!
-#ifndef __WXMSW__
-    m_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-#endif // __WXMSW__
-
-    // the colours/fonts are default for now
+    // the colours/fonts are default for now, so leave m_font,
+    // m_backgroundColour and m_foregroundColour uninitialized and set those
     m_hasBgCol =
     m_hasFgCol =
     m_hasFont = false;
-
-    m_isBeingDeleted = false;
+    m_inheritBgCol =
+    m_inheritFgCol =
+    m_inheritFont = false;
 
     // no style bits
     m_exStyle =
     m_windowStyle = 0;
+    
+    m_backgroundStyle = wxBG_STYLE_SYSTEM;
 
 #if wxUSE_CONSTRAINTS
     // no constraints whatsoever
@@ -190,16 +190,25 @@ wxWindowBase::wxWindowBase()
 #endif
 
     m_virtualSize = wxDefaultSize;
-    
-    m_minVirtualWidth =
-    m_minVirtualHeight =
-    m_maxVirtualWidth =
-    m_maxVirtualHeight = -1;
 
-    m_windowVariant = wxWINDOW_VARIANT_DEFAULT ;
+    m_minVirtualWidth =
+    m_maxVirtualWidth = wxDefaultCoord;
+    m_minVirtualHeight =
+    m_maxVirtualHeight = wxDefaultCoord;
+
+    m_windowVariant = wxWINDOW_VARIANT_NORMAL;
+#if wxUSE_SYSTEM_OPTIONS
+    if ( wxSystemOptions::HasOption(wxWINDOW_DEFAULT_VARIANT) )
+    {
+       m_windowVariant = (wxWindowVariant) wxSystemOptions::GetOptionInt( wxWINDOW_DEFAULT_VARIANT ) ;
+    }
+#endif
 
     // Whether we're using the current theme for this window (wxGTK only for now)
     m_themeEnabled = false;
+
+    // VZ: this one shouldn't exist...
+    m_isBeingDeleted = false;
 }
 
 // common part of window creation process
@@ -224,7 +233,7 @@ bool wxWindowBase::CreateBase(wxWindowBase *parent,
 
     // ids are limited to 16 bits under MSW so if you care about portability,
     // it's not a good idea to use ids out of this range (and negative ids are
-    // reserved for wxWindows own usage)
+    // reserved for wxWidgets own usage)
     wxASSERT_MSG( id == wxID_ANY || (id >= 0 && id < 32767),
                   _T("invalid id value") );
 
@@ -441,8 +450,8 @@ void wxWindowBase::Centre(int direction)
     int width, height;
     GetSize(&width, &height);
 
-    int xNew = -1,
-        yNew = -1;
+    int xNew = wxDefaultCoord,
+        yNew = wxDefaultCoord;
 
     if ( direction & wxHORIZONTAL )
         xNew = (widthParent - width)/2;
@@ -454,9 +463,8 @@ void wxWindowBase::Centre(int direction)
     yNew += posParent.y;
 
     // Base size of the visible dimensions of the display
-    // to take into account the taskbar
-    wxRect rect = wxGetClientDisplayRect();
-    wxSize size (rect.width,rect.height);
+    // to take into account the taskbar. And the Mac menu bar at top.
+    wxRect clientrect = wxGetClientDisplayRect();
 
     // NB: in wxMSW, negative position may not neccessary mean "out of screen",
     //     but it may mean that the window is placed on other than the main
@@ -464,21 +472,21 @@ void wxWindowBase::Centre(int direction)
     //     if the parent is at least partially present here.
     if (posParent.x + widthParent >= 0)  // if parent is (partially) on the main display
     {
-        if (xNew < 0)
-            xNew = 0;
-        else if (xNew+width > size.x)
-            xNew = size.x-width-1;
+        if (xNew < clientrect.GetLeft())
+            xNew = clientrect.GetLeft();
+        else if (xNew + width > clientrect.GetRight())
+            xNew = clientrect.GetRight() - width;
     }
     if (posParent.y + heightParent >= 0)  // if parent is (partially) on the main display
     {
-        if (yNew+height > size.y)
-            yNew = size.y-height-1;
+        if (yNew + height > clientrect.GetBottom())
+            yNew = clientrect.GetBottom() - height;
 
         // Make certain that the title bar is initially visible
         // always, even if this would push the bottom of the
-        // dialog of the visible area of the display
-        if (yNew < 0)
-            yNew = 0;
+        // dialog off the visible area of the display
+        if (yNew < clientrect.GetTop())
+            yNew = clientrect.GetTop();
     }
 
     // move the window to this position (keeping the old size but using
@@ -491,7 +499,7 @@ void wxWindowBase::Fit()
 {
     if ( GetChildren().GetCount() > 0 )
     {
-        SetClientSize(DoGetBestSize());
+        SetClientSize(GetBestSize());
     }
     //else: do nothing if we have no children
 }
@@ -504,6 +512,24 @@ void wxWindowBase::FitInside()
         SetVirtualSize( GetBestVirtualSize() );
     }
 }
+
+// On Mac, scrollbars are explicitly children.
+#ifdef __WXMAC__
+static bool wxHasRealChildren(const wxWindowBase* win)
+{
+    int realChildCount = 0;
+    
+    for ( wxWindowList::compatibility_iterator node = win->GetChildren().GetFirst();
+          node;
+          node = node->GetNext() )
+    {
+        wxWindow *win = node->GetData();
+        if ( !win->IsTopLevel() && win->IsShown() && !win->IsKindOf(CLASSINFO(wxScrollBar)))
+            realChildCount ++;
+    }
+    return (realChildCount > 0);
+}
+#endif
 
 // return the size best suited for the current window
 wxSize wxWindowBase::DoGetBestSize() const
@@ -549,9 +575,13 @@ wxSize wxWindowBase::DoGetBestSize() const
         return wxSize(maxX, maxY);
     }
 #endif // wxUSE_CONSTRAINTS
-    else if ( GetChildren().GetCount() > 0 )
+    else if ( !GetChildren().empty()
+#ifdef __WXMAC__
+              && wxHasRealChildren(this)
+#endif
+              )
     {
-        // our minimal acceptable size is such that all our windows fit inside
+        // our minimal acceptable size is such that all our visible child windows fit inside
         int maxX = 0,
             maxY = 0;
 
@@ -560,7 +590,7 @@ wxSize wxWindowBase::DoGetBestSize() const
               node = node->GetNext() )
         {
             wxWindow *win = node->GetData();
-            if ( win->IsTopLevel()
+            if ( win->IsTopLevel()  || ( ! win->IsShown() )
 #if wxUSE_STATUSBAR
                     || wxDynamicCast(win, wxStatusBar)
 #endif // wxUSE_STATUSBAR
@@ -577,9 +607,9 @@ wxSize wxWindowBase::DoGetBestSize() const
 
             // if the window hadn't been positioned yet, assume that it is in
             // the origin
-            if ( wx == -1 )
+            if ( wx == wxDefaultCoord )
                 wx = 0;
-            if ( wy == -1 )
+            if ( wy == wxDefaultCoord )
                 wy = 0;
 
             win->GetSize(&ww, &wh);
@@ -596,13 +626,46 @@ wxSize wxWindowBase::DoGetBestSize() const
 
         return wxSize(maxX, maxY);
     }
-    else
+    else // ! has children
     {
-        // for a generic window there is no natural best size - just use the
-        // current one
-        return GetSize();
+        // for a generic window there is no natural best size - just use either the
+        // minimum size if there is one, or the current size
+        if ( GetMinSize().IsFullySpecified() )
+            return GetMinSize();
+        else
+            return GetSize();
     }
 }
+
+
+wxSize wxWindowBase::GetBestFittingSize() const
+{
+    // merge the best size with the min size, giving priority to the min size
+    wxSize min = GetMinSize();
+    if (min.x == wxDefaultCoord || min.y == wxDefaultCoord)
+    {
+        wxSize best = GetBestSize();
+        if (min.x == wxDefaultCoord) min.x =  best.x;
+        if (min.y == wxDefaultCoord) min.y =  best.y;
+    }
+    return min;
+}
+
+
+void wxWindowBase::SetBestFittingSize(const wxSize& size)
+{
+    // Set the min size to the size passed in.  This will usually either be
+    // wxDefaultSize or the size passed to this window's ctor/Create function.
+    SetMinSize(size);
+
+    // Merge the size with the best size if needed
+    wxSize best = GetBestFittingSize();
+    
+    // If the current size doesn't match then change it
+    if (GetSize() != best)
+        SetSize(best);
+}
+
 
 // by default the origin is not shifted
 wxPoint wxWindowBase::GetClientAreaOrigin() const
@@ -617,8 +680,8 @@ void wxWindowBase::SetSizeHints(int minW, int minH,
 {
     // setting min width greater than max width leads to infinite loops under
     // X11 and generally doesn't make any sense, so don't allow it
-    wxCHECK_RET( (minW == -1 || maxW == -1 || minW <= maxW) &&
-                    (minH == -1 || maxH == -1 || minH <= maxH),
+    wxCHECK_RET( (minW == wxDefaultCoord || maxW == wxDefaultCoord || minW <= maxW) &&
+                    (minH == wxDefaultCoord || maxH == wxDefaultCoord || minH <= maxH),
                  _T("min width/height must be less than max width/height!") );
 
     m_minWidth = minW;
@@ -629,39 +692,47 @@ void wxWindowBase::SetSizeHints(int minW, int minH,
 
 void wxWindowBase::SetWindowVariant( wxWindowVariant variant )
 {
-    if ( m_windowVariant == variant )
-        return ;
-    
-    m_windowVariant = variant ; 
+    if ( m_windowVariant != variant )
+    {
+        m_windowVariant = variant;
 
-    DoSetWindowVariant( variant ) ;
-    return ;
+        DoSetWindowVariant(variant);
+    }
 }
 
 void wxWindowBase::DoSetWindowVariant( wxWindowVariant variant )
 {
-    wxFont font = wxSystemSettings::GetSystemFont( wxSYS_DEFAULT_GUI_FONT ) ;
-    int size = font.GetPointSize() ;
+    // adjust the font height to correspond to our new variant (notice that
+    // we're only called if something really changed)
+    wxFont font = GetFont();
+    int size = font.GetPointSize();
     switch ( variant )
     {
-        case wxWINDOW_VARIANT_NORMAL :
-            break ;
-        case wxWINDOW_VARIANT_SMALL :
-            font.SetPointSize( size * 3 / 4 ) ;
-            break ;
-        case wxWINDOW_VARIANT_MINI :
-            font.SetPointSize( size * 2 / 3 ) ;
-            break ;
-        case wxWINDOW_VARIANT_LARGE :
-            font.SetPointSize( size * 5 / 4 ) ;
-            break ;
-        case wxWINDOW_VARIANT_DEFAULT :
-            break ;
+        case wxWINDOW_VARIANT_NORMAL:
+            break;
+
+        case wxWINDOW_VARIANT_SMALL:
+            size *= 3;
+            size /= 4;
+            break;
+
+        case wxWINDOW_VARIANT_MINI:
+            size *= 2;
+            size /= 3;
+            break;
+
+        case wxWINDOW_VARIANT_LARGE:
+            size *= 5;
+            size /= 4;
+            break;
+
         default:
             wxFAIL_MSG(_T("unexpected window variant"));
-            break ;
+            break;
     }
-    SetFont( font ) ;  
+
+    font.SetPointSize(size);
+    SetFont(font);
 }
 
 void wxWindowBase::SetVirtualSizeHints( int minW, int minH,
@@ -675,13 +746,13 @@ void wxWindowBase::SetVirtualSizeHints( int minW, int minH,
 
 void wxWindowBase::DoSetVirtualSize( int x, int y )
 {
-    if ( m_minVirtualWidth != -1 && m_minVirtualWidth > x )
+    if ( m_minVirtualWidth != wxDefaultCoord && m_minVirtualWidth > x )
         x = m_minVirtualWidth;
-    if ( m_maxVirtualWidth != -1 && m_maxVirtualWidth < x )
+    if ( m_maxVirtualWidth != wxDefaultCoord && m_maxVirtualWidth < x )
         x = m_maxVirtualWidth;
-    if ( m_minVirtualHeight != -1 && m_minVirtualHeight > y )
+    if ( m_minVirtualHeight != wxDefaultCoord && m_minVirtualHeight > y )
         y = m_minVirtualHeight;
-    if ( m_maxVirtualHeight != -1 && m_maxVirtualHeight < y )
+    if ( m_maxVirtualHeight != wxDefaultCoord && m_maxVirtualHeight < y )
         y = m_maxVirtualHeight;
 
     m_virtualSize = wxSize(x, y);
@@ -872,30 +943,109 @@ bool wxWindowBase::RemoveEventHandler(wxEvtHandler *handler)
 }
 
 // ----------------------------------------------------------------------------
-// cursors, fonts &c
+// colours, fonts &c
 // ----------------------------------------------------------------------------
+
+void wxWindowBase::InheritAttributes()
+{
+    const wxWindowBase * const parent = GetParent();
+    if ( !parent )
+        return;
+
+    // we only inherit attributes which had been explicitly set for the parent
+    // which ensures that this only happens if the user really wants it and
+    // not by default which wouldn't make any sense in modern GUIs where the
+    // controls don't all use the same fonts (nor colours)
+    if ( parent->m_inheritFont && !m_hasFont )
+        SetFont(parent->GetFont());
+
+    // in addition, there is a possibility to explicitly forbid inheriting
+    // colours at each class level by overriding ShouldInheritColours()
+    if ( ShouldInheritColours() )
+    {
+        if ( parent->m_inheritFgCol && !m_hasFgCol )
+            SetForegroundColour(parent->GetForegroundColour());
+
+        if ( parent->m_inheritBgCol && !m_hasBgCol )
+            SetBackgroundColour(parent->GetBackgroundColour());
+    }
+}
+
+/* static */ wxVisualAttributes
+wxWindowBase::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    // it is important to return valid values for all attributes from here,
+    // GetXXX() below rely on this
+    wxVisualAttributes attrs;
+    attrs.font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    attrs.colFg = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+    attrs.colBg = wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE);
+
+    return attrs;
+}
+
+wxColour wxWindowBase::GetBackgroundColour() const
+{
+    if ( !m_backgroundColour.Ok() )
+    {
+        wxASSERT_MSG( !m_hasBgCol, _T("we have invalid explicit bg colour?") );
+
+        // get our default background colour
+        wxColour colBg = GetDefaultAttributes().colBg;
+
+        // we must return some valid colour to avoid redoing this every time
+        // and also to avoid surprizing the applications written for older
+        // wxWidgets versions where GetBackgroundColour() always returned
+        // something -- so give them something even if it doesn't make sense
+        // for this window (e.g. it has a themed background)
+        if ( !colBg.Ok() )
+            colBg = GetClassDefaultAttributes().colBg;
+
+        return colBg;
+    }
+    else
+        return m_backgroundColour;
+}
+
+wxColour wxWindowBase::GetForegroundColour() const
+{
+    // logic is the same as above
+    if ( !m_hasFgCol && !m_foregroundColour.Ok() )
+    {
+        wxASSERT_MSG( !m_hasFgCol, _T("we have invalid explicit fg colour?") );
+
+        wxColour colFg = GetDefaultAttributes().colFg;
+
+        if ( !colFg.Ok() )
+            colFg = GetClassDefaultAttributes().colFg;
+
+        return colFg;
+    }
+    else
+        return m_foregroundColour;
+}
 
 bool wxWindowBase::SetBackgroundColour( const wxColour &colour )
 {
-    if ( !colour.Ok() || (colour == m_backgroundColour) )
+    if ( colour == m_backgroundColour ) 
         return false;
 
+    m_hasBgCol = colour.Ok();
+    m_inheritBgCol = m_hasBgCol;
     m_backgroundColour = colour;
-
-    m_hasBgCol = true;
-
+    SetThemeEnabled( !m_hasBgCol && !m_foregroundColour.Ok() );
     return true;
 }
 
 bool wxWindowBase::SetForegroundColour( const wxColour &colour )
 {
-    if ( !colour.Ok() || (colour == m_foregroundColour) )
+    if (colour == m_foregroundColour )
         return false;
 
+    m_hasFgCol = colour.Ok();
+    m_inheritFgCol = m_hasFgCol;
     m_foregroundColour = colour;
-
-    m_hasFgCol = true;
-
+    SetThemeEnabled( !m_hasFgCol && !m_backgroundColour.Ok() );
     return true;
 }
 
@@ -914,20 +1064,36 @@ bool wxWindowBase::SetCursor(const wxCursor& cursor)
     return true;
 }
 
+wxFont wxWindowBase::GetFont() const
+{
+    // logic is the same as in GetBackgroundColour()
+    if ( !m_font.Ok() )
+    {
+        wxASSERT_MSG( !m_hasFont, _T("we have invalid explicit font?") );
+
+        wxFont font = GetDefaultAttributes().font;
+        if ( !font.Ok() )
+            font = GetClassDefaultAttributes().font;
+
+        return font;
+    }
+    else
+        return m_font;
+}
+
 bool wxWindowBase::SetFont(const wxFont& font)
 {
-    // don't try to set invalid font, always fall back to the default
-    const wxFont& fontOk = font.Ok() ? font : *wxSWISS_FONT;
-
-    if ( fontOk == m_font )
+    if ( font == m_font )
     {
         // no change
         return false;
     }
 
-    m_font = fontOk;
+    m_font = font;
+    m_hasFont = font.Ok();
+    m_inheritFont = m_hasFont;
 
-    m_hasFont = true;
+    InvalidateBestSize();
 
     return true;
 }
@@ -988,7 +1154,7 @@ void wxWindowBase::SetValidator(const wxValidator& validator)
     m_windowValidator = (wxValidator *)validator.Clone();
 
     if ( m_windowValidator )
-        m_windowValidator->SetWindow(this) ;
+        m_windowValidator->SetWindow(this);
 }
 #endif // wxUSE_VALIDATORS
 
@@ -1511,7 +1677,7 @@ void wxWindowBase::SetSizer(wxSizer *sizer, bool deleteOld)
 {
     if ( sizer == m_windowSizer)
         return;
-    
+
     if ( deleteOld )
         delete m_windowSizer;
 
@@ -1524,6 +1690,19 @@ void wxWindowBase::SetSizerAndFit(wxSizer *sizer, bool deleteOld)
 {
     SetSizer( sizer, deleteOld );
     sizer->SetSizeHints( (wxWindow*) this );
+}
+
+
+void wxWindowBase::SetContainingSizer(wxSizer* sizer)
+{
+    // adding a window to a sizer twice is going to result in fatal and
+    // hard to debug problems later because when deleting the second
+    // associated wxSizerItem we're going to dereference a dangling
+    // pointer; so try to detect this as early as possible
+    wxASSERT_MSG( !sizer || m_containingSizer != sizer,
+                  _T("Adding a window to the same sizer twice?") );
+
+    m_containingSizer = sizer;
 }
 
 #if wxUSE_CONSTRAINTS
@@ -1725,22 +1904,22 @@ void wxWindowBase::SetSizeConstraint(int x, int y, int w, int h)
     wxLayoutConstraints *constr = GetConstraints();
     if ( constr )
     {
-        if ( x != -1 )
+        if ( x != wxDefaultCoord )
         {
             constr->left.SetValue(x);
             constr->left.SetDone(true);
         }
-        if ( y != -1 )
+        if ( y != wxDefaultCoord )
         {
             constr->top.SetValue(y);
             constr->top.SetDone(true);
         }
-        if ( w != -1 )
+        if ( w != wxDefaultCoord )
         {
             constr->width.SetValue(w);
             constr->width.SetDone(true);
         }
-        if ( h != -1 )
+        if ( h != wxDefaultCoord )
         {
             constr->height.SetValue(h);
             constr->height.SetDone(true);
@@ -1753,12 +1932,12 @@ void wxWindowBase::MoveConstraint(int x, int y)
     wxLayoutConstraints *constr = GetConstraints();
     if ( constr )
     {
-        if ( x != -1 )
+        if ( x != wxDefaultCoord )
         {
             constr->left.SetValue(x);
             constr->left.SetDone(true);
         }
-        if ( y != -1 )
+        if ( y != wxDefaultCoord )
         {
             constr->top.SetValue(y);
             constr->top.SetDone(true);
@@ -1912,9 +2091,9 @@ wxPoint wxWindowBase::ConvertPixelsToDialog(const wxPoint& pt)
     int charHeight = GetCharHeight();
     wxPoint pt2(-1, -1);
     if (pt.x != -1)
-        pt2.x = (int) ((pt.x * 4) / charWidth) ;
+        pt2.x = (int) ((pt.x * 4) / charWidth);
     if (pt.y != -1)
-        pt2.y = (int) ((pt.y * 8) / charHeight) ;
+        pt2.y = (int) ((pt.y * 8) / charHeight);
 
     return pt2;
 }
@@ -1925,9 +2104,9 @@ wxPoint wxWindowBase::ConvertDialogToPixels(const wxPoint& pt)
     int charHeight = GetCharHeight();
     wxPoint pt2(-1, -1);
     if (pt.x != -1)
-        pt2.x = (int) ((pt.x * charWidth) / 4) ;
+        pt2.x = (int) ((pt.x * charWidth) / 4);
     if (pt.y != -1)
-        pt2.y = (int) ((pt.y * charHeight) / 8) ;
+        pt2.y = (int) ((pt.y * charHeight) / 8);
 
     return pt2;
 }
@@ -1953,6 +2132,8 @@ void wxWindowBase::OnSysColourChanged(wxSysColourChangedEvent& event)
 
         node = node->GetNext();
     }
+
+    Refresh();
 }
 
 // the default action is to populate dialog with data when it's created,
@@ -2006,7 +2187,7 @@ void wxWindowBase::OnMiddleClick( wxMouseEvent& event )
 
         wxMessageBox(wxString::Format(
                                       _T(
-                                        "       wxWindows Library (%s port)\nVersion %u.%u.%u%s, compiled at %s %s\n   Copyright (c) 1995-2002 wxWindows team"
+                                        "       wxWidgets Library (%s port)\nVersion %u.%u.%u%s, compiled at %s %s\n   Copyright (c) 1995-2002 wxWidgets team"
                                         ),
                                       port.c_str(),
                                       wxMAJOR_VERSION,
@@ -2020,7 +2201,7 @@ void wxWindowBase::OnMiddleClick( wxMouseEvent& event )
                                       __TDATE__,
                                       __TTIME__
                                      ),
-                     _T("wxWindows information"),
+                     _T("wxWidgets information"),
                      wxICON_INFORMATION | wxOK,
                      (wxWindow *)this);
     }
@@ -2240,6 +2421,53 @@ bool wxWindowBase::TryParent(wxEvent& event)
 }
 
 // ----------------------------------------------------------------------------
+// keyboard navigation
+// ----------------------------------------------------------------------------
+
+// Navigates in the specified direction.
+bool wxWindowBase::Navigate(int flags)
+{
+    wxNavigationKeyEvent eventNav;
+    eventNav.SetFlags(flags);
+    eventNav.SetEventObject(this);
+    if ( GetParent()->GetEventHandler()->ProcessEvent(eventNav) )
+    {
+        return true;
+    }
+    return false;
+}
+
+void wxWindowBase::DoMoveInTabOrder(wxWindow *win, MoveKind move)
+{
+    // check that we're not a top level window
+    wxCHECK_RET( GetParent(),
+                    _T("MoveBefore/AfterInTabOrder() don't work for TLWs!") );
+
+    // find the target window in the siblings list
+    wxWindowList& siblings = GetParent()->GetChildren();
+    wxWindowList::compatibility_iterator i = siblings.Find(win);
+    wxCHECK_RET( i, _T("MoveBefore/AfterInTabOrder(): win is not a sibling") );
+
+    // unfortunately, when wxUSE_STL == 1 DetachNode() is not implemented so we
+    // can't just move the node around
+    wxWindow *self = (wxWindow *)this;
+    siblings.DeleteObject(self);
+    if ( move == MoveAfter )
+    {
+        i = i->GetNext();
+    }
+
+    if ( i )
+    {
+        siblings.Insert(i, self);
+    }
+    else // MoveAfter and win was the last sibling
+    {
+        siblings.Append(self);
+    }
+}
+
+// ----------------------------------------------------------------------------
 // global functions
 // ----------------------------------------------------------------------------
 
@@ -2401,17 +2629,19 @@ wxAccStatus wxWindowAccessible::GetName(int childId, wxString* name)
 
     wxString title;
 
-    // If a child, leave wxWindows to call the function on the actual
+    // If a child, leave wxWidgets to call the function on the actual
     // child object.
     if (childId > 0)
         return wxACC_NOT_IMPLEMENTED;
 
     // This will eventually be replaced by specialised
-    // accessible classes, one for each kind of wxWindows
+    // accessible classes, one for each kind of wxWidgets
     // control or window.
+#if wxUSE_BUTTON
     if (GetWindow()->IsKindOf(CLASSINFO(wxButton)))
         title = ((wxButton*) GetWindow())->GetLabel();
     else
+#endif
         title = GetWindow()->GetName();
 
     if (!title.IsEmpty())
@@ -2562,7 +2792,7 @@ wxAccStatus wxWindowAccessible::GetRole(int childId, wxAccRole* role)
     if (!GetWindow())
         return wxACC_FAIL;
 
-    // If a child, leave wxWindows to call the function on the actual
+    // If a child, leave wxWidgets to call the function on the actual
     // child object.
     if (childId > 0)
         return wxACC_NOT_IMPLEMENTED;
@@ -2594,7 +2824,7 @@ wxAccStatus wxWindowAccessible::GetState(int childId, long* state)
     if (!GetWindow())
         return wxACC_FAIL;
 
-    // If a child, leave wxWindows to call the function on the actual
+    // If a child, leave wxWidgets to call the function on the actual
     // child object.
     if (childId > 0)
         return wxACC_NOT_IMPLEMENTED;

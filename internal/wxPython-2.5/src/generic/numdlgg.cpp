@@ -46,7 +46,7 @@
   #include "wx/statline.h"
 #endif
 
-#if !defined(__WIN16__) && wxUSE_SPINCTRL
+#if wxUSE_SPINCTRL
 #include "wx/spinctrl.h"
 #endif
 
@@ -81,9 +81,8 @@ wxNumberEntryDialog::wxNumberEntryDialog(wxWindow *parent,
                                          long min,
                                          long max,
                                          const wxPoint& pos)
-                   : wxDialog(parent, -1, caption,
-                              pos, wxDefaultSize,
-                              wxDEFAULT_DIALOG_STYLE | wxDIALOG_MODAL )
+                   : wxDialog(parent, wxID_ANY, caption,
+                              pos, wxDefaultSize)
 {
     m_value = value;
     m_max = max;
@@ -100,12 +99,12 @@ wxNumberEntryDialog::wxNumberEntryDialog(wxWindow *parent,
     wxBoxSizer *inputsizer = new wxBoxSizer( wxHORIZONTAL );
     // prompt if any
     if (!prompt.IsEmpty())
-        inputsizer->Add( new wxStaticText( this, -1, prompt ), 0, wxCENTER | wxLEFT, 10 );
+        inputsizer->Add( new wxStaticText( this, wxID_ANY, prompt ), 0, wxCENTER | wxLEFT, 10 );
     // spin ctrl
     wxString valStr;
     valStr.Printf(wxT("%ld"), m_value);
-    m_spinctrl = new wxSpinCtrl(this, -1, valStr, wxDefaultPosition, wxSize( 140, -1 ) );
-#if !defined(__WIN16__) && wxUSE_SPINCTRL
+    m_spinctrl = new wxSpinCtrl(this, wxID_ANY, valStr, wxDefaultPosition, wxSize( 140, wxDefaultCoord ) );
+#if wxUSE_SPINCTRL
     m_spinctrl->SetRange((int)m_min, (int)m_max);
 #endif
     inputsizer->Add( m_spinctrl, 1, wxCENTER | wxLEFT | wxRIGHT, 10 );
@@ -114,14 +113,14 @@ wxNumberEntryDialog::wxNumberEntryDialog(wxWindow *parent,
 
 #if wxUSE_STATLINE
     // 3) static line
-    topsizer->Add( new wxStaticLine( this, -1 ), 0, wxEXPAND | wxLEFT|wxRIGHT|wxTOP, 10 );
+    topsizer->Add( new wxStaticLine( this, wxID_ANY ), 0, wxEXPAND | wxLEFT|wxRIGHT|wxTOP, 10 );
 #endif
 
     // 4) buttons
     topsizer->Add( CreateButtonSizer( wxOK|wxCANCEL ), 0, wxCENTRE | wxALL, 10 );
 
     SetSizer( topsizer );
-    SetAutoLayout( TRUE );
+    SetAutoLayout( true );
 
     topsizer->SetSizeHints( this );
     topsizer->Fit( this );
@@ -177,7 +176,7 @@ long wxGetNumberFromUser(const wxString& msg,
                                value, min, max, pos);
     if (dialog.ShowModal() == wxID_OK)
     return dialog.GetValue();
-    
+
     return -1;
 }
 

@@ -43,80 +43,54 @@ wxFileDialogBase::wxFileDialogBase(wxWindow *parent,
                                    const wxString& wildCard,
                                    long style,
                                    const wxPoint& WXUNUSED(pos))
+                : m_message(message),
+                  m_dir(defaultDir),
+                  m_fileName(defaultFile),
+                  m_wildCard(wildCard)
 {
     m_parent = parent;
-    m_message = message;
-    m_dir = defaultDir;
-    m_fileName = defaultFile;
-    m_wildCard = wildCard;
     m_dialogStyle = style;
-    m_path = wxT("");
     m_filterIndex = 0;
 
-    if (m_wildCard.IsEmpty())
-        m_wildCard = wxFileSelectorDefaultWildcardStr;
-
-    // convert m_wildCard from "*.bar" to "Files (*.bar)|*.bar"
-    if ( m_wildCard.Find(wxT('|')) == wxNOT_FOUND )
+    if ( wildCard.empty() || wildCard == wxFileSelectorDefaultWildcardStr )
     {
-        m_wildCard.Printf(_("Files (%s)|%s"),
-                          m_wildCard.c_str(), m_wildCard.c_str());
+        m_wildCard = wxString::Format(_("All files (%s)|%s"),
+                                      wxFileSelectorDefaultWildcardStr,
+                                      wxFileSelectorDefaultWildcardStr);
+    }
+    else // have wild card
+    {
+        // convert m_wildCard from "*.bar" to "bar files (*.bar)|*.bar"
+        if ( m_wildCard.Find(wxT('|')) == wxNOT_FOUND )
+        {
+            wxString::size_type nDot = m_wildCard.find(_T("*."));
+            if ( nDot != wxString::npos )
+                nDot++;
+            else
+                nDot = 0;
+
+            m_wildCard = wxString::Format
+                         (
+                            _("%s files (%s)|%s"),
+                            wildCard.c_str() + nDot,
+                            wildCard.c_str(),
+                            wildCard.c_str()
+                         );
+        }
     }
 }
 
+#if WXWIN_COMPATIBILITY_2_4
 // Parses the filterStr, returning the number of filters.
 // Returns 0 if none or if there's a problem.
 // filterStr is in the form: "All files (*.*)|*.*|JPEG Files (*.jpeg)|*.jpg"
-
 int wxFileDialogBase::ParseWildcard(const wxString& filterStr,
                                     wxArrayString& descriptions,
                                     wxArrayString& filters)
 {
-    descriptions.Clear();
-    filters.Clear();
-
-    wxString str(filterStr);
-
-    wxString description, filter;
-    for ( int pos = 0; pos != wxNOT_FOUND; )
-    {
-        pos = str.Find(wxT('|'));
-        if ( pos == wxNOT_FOUND )
-        {
-            // if there are no '|'s at all in the string just take the entire
-            // string as filter
-            if ( filters.IsEmpty() )
-            {
-                descriptions.Add(filterStr);
-                filters.Add(filterStr);
-            }
-            else
-            {
-                wxFAIL_MSG( _T("missing '|' in the wildcard string!") );
-            }
-
-            break;
-        }
-
-        description = str.Left(pos);
-        str = str.Mid(pos + 1);
-        pos = str.Find(wxT('|'));
-        if ( pos == wxNOT_FOUND )
-        {
-            filter = str;
-        }
-        else
-        {
-            filter = str.Left(pos);
-            str = str.Mid(pos + 1);
-        }
-
-        descriptions.Add(description);
-        filters.Add(filter);
-    }
-
-    return filters.GetCount();
+    return ::wxParseCommonDialogsFilter(filterStr, descriptions, filters);
 }
+#endif // WXWIN_COMPATIBILITY_2_4
 
 wxString wxFileDialogBase::AppendExtension(const wxString &filePath,
                                            const wxString &extensionList)
@@ -201,7 +175,7 @@ wxString wxFileSelector(const wxChar *title,
 
         wxArrayString descriptions, filters;
         // don't care about errors, handled already by wxFileDialog
-        (void)wxFileDialogBase::ParseWildcard(filter2, descriptions, filters);
+        (void)wxParseCommonDialogsFilter(filter2, descriptions, filters);
         for (size_t n=0; n<filters.GetCount(); n++)
                 {
             if (filters[n].Contains(defaultExtension))

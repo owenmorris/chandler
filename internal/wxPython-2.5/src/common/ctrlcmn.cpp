@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     26.07.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -79,37 +79,14 @@ bool wxControlBase::CreateControl(wxWindowBase *parent,
     // even if it's possible to create controls without parents in some port,
     // it should surely be discouraged because it doesn't work at all under
     // Windows
-    wxCHECK_MSG( parent, FALSE, wxT("all controls must have parents") );
+    wxCHECK_MSG( parent, false, wxT("all controls must have parents") );
 
     if ( !CreateBase(parent, id, pos, size, style, validator, name) )
-        return FALSE;
+        return false;
 
     parent->AddChild(this);
 
-    return TRUE;
-}
-
-// inherit colour and font settings from the parent window
-void wxControlBase::InheritAttributes()
-{
-    if ( ShouldInheritColours() )
-    {
-        wxWindow *parent = GetParent();
-
-        wxCHECK_RET( parent, _T("a control without parent?") );
-
-        SetBackgroundColour(parent->GetBackgroundColour());
-        SetForegroundColour(parent->GetForegroundColour());
-    }
-
-#ifdef __WXPM__
-    //
-    // All OS/2 ctrls use the small font
-    //
-    SetFont(*wxSMALL_FONT);
-#else
-    SetFont(GetParent()->GetFont());
-#endif
+    return true;
 }
 
 void wxControlBase::Command(wxCommandEvent& event)
@@ -139,6 +116,19 @@ void wxControlBase::InitCommandEvent(wxCommandEvent& event) const
     }
 }
 
+
+void wxControlBase::SetLabel( const wxString &label )
+{
+    InvalidateBestSize();
+    wxWindow::SetLabel(label);
+}
+
+bool wxControlBase::SetFont(const wxFont& font)
+{
+    InvalidateBestSize();
+    return wxWindow::SetFont(font);
+}
+
 // ----------------------------------------------------------------------------
 // wxStaticBitmap
 // ----------------------------------------------------------------------------
@@ -150,14 +140,17 @@ wxStaticBitmapBase::~wxStaticBitmapBase()
     // this destructor is required for Darwin
 }
 
-wxSize wxStaticBitmapBase::DoGetBestClientSize() const
+wxSize wxStaticBitmapBase::DoGetBestSize() const
 {
+    wxSize best;
     wxBitmap bmp = GetBitmap();
     if ( bmp.Ok() )
-        return wxSize(bmp.GetWidth(), bmp.GetHeight());
-
-    // this is completely arbitrary
-    return wxSize(16, 16);
+        best = wxSize(bmp.GetWidth(), bmp.GetHeight());
+    else
+        // this is completely arbitrary
+        best = wxSize(16, 16);
+    CacheBestSize(best);
+    return best;
 }
 
 #endif // wxUSE_STATBMP

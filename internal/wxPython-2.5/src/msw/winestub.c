@@ -5,7 +5,7 @@
  * Created:     04/01/98
  * RCS-ID:      $Id$
  * Copyright:   (c) Robert Roebling
- * Licence:     wxWindows Licence
+ * Licence:     wxWidgets Licence
  *****************************************************************************/
 
 #include <string.h>
@@ -39,7 +39,7 @@ int main( int argc, char *argv [] )
   for (i = 2; i < argc; i++) strcat(strcat(lpszCmdParam, " "), argv[i]);
 
   return WinMain (hInstance,    /* hInstance */
-		  0,	        /* hPrevInstance */
-		  lpszCmdParam, /* lpszCmdParam */
-		  SW_NORMAL);   /* nCmdShow */
+          0,            /* hPrevInstance */
+          lpszCmdParam, /* lpszCmdParam */
+          SW_NORMAL);   /* nCmdShow */
 }

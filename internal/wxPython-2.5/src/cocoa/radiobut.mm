@@ -6,7 +6,7 @@
 // Created:     2003/03/16
 // RCS-ID:      $Id: 
 // Copyright:   (c) 2003 David Elliott
-// Licence:   	wxWindows license
+// Licence:   	wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
@@ -95,7 +95,7 @@ wxRadioButton::~wxRadioButton()
             m_radioSlaves.GetFirst();
         wxASSERT(slaveNode);
         wxASSERT(slaveNode->GetData() == this);
-        m_radioSlaves.DeleteNode(slaveNode);
+        m_radioSlaves.Erase(slaveNode);
     
         // Now find the new master
         wxRadioButton *newMaster = NULL;
@@ -111,7 +111,7 @@ wxRadioButton::~wxRadioButton()
             wxASSERT(radioButton->m_radioMaster == this);
             radioButton->m_radioMaster = newMaster;
             newMaster->m_radioSlaves.Append(radioButton);
-            m_radioSlaves.DeleteNode(slaveNode);
+            m_radioSlaves.Erase(slaveNode);
         }
     }
     else if(m_radioMaster)

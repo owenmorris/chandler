@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // RCS-ID:      $Id$
 // Copyright:   (c) 1999 Vaclav Slavik
-// Licence:     wxWindows Licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation
@@ -204,6 +204,7 @@ TAG_HANDLER_BEGIN(OLULLI, "OL,UL,LI")
 
     TAG_HANDLER_CONSTR(OLULLI)
     {
+        m_List = NULL;
         m_Numbering = 0;
     }
 

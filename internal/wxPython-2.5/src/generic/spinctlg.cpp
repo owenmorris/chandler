@@ -28,8 +28,10 @@
     #pragma hdrstop
 #endif
 
-#if !(defined(__WXMSW__) || defined(__WXGTK__) || defined(__WXPM__)) || \
-    defined(__WXMAC__) || defined(__WXUNIVERSAL__)
+// There are port-specific versions for MSW, GTK, OS/2 and Mac, so exclude the
+// contents of this file in those cases
+#if !(defined(__WXMSW__) || defined(__WXGTK__) || defined(__WXPM__) || \
+    defined(__WXMAC__)) || defined(__WXUNIVERSAL__)
 
 #ifndef WX_PRECOMP
     #include "wx/textctrl.h"
@@ -55,9 +57,12 @@ class wxSpinCtrlText : public wxTextCtrl
 {
 public:
     wxSpinCtrlText(wxSpinCtrl *spin, const wxString& value)
-        : wxTextCtrl(spin->GetParent(), -1, value)
+        : wxTextCtrl(spin->GetParent(), wxID_ANY, value)
     {
         m_spin = spin;
+
+        // remove the default minsize, the spinctrl will have one instead
+        SetSizeHints(wxDefaultCoord,wxDefaultCoord);
     }
 
 protected:
@@ -76,7 +81,7 @@ protected:
     {
         // Hand button down events to wxSpinCtrl. Doesn't work.
         if (event.GetEventType() == wxEVT_LEFT_DOWN && m_spin->ProcessEvent( event ))
-            return TRUE;
+            return true;
 
         return wxTextCtrl::ProcessEvent( event );
     }
@@ -88,7 +93,7 @@ private:
 };
 
 BEGIN_EVENT_TABLE(wxSpinCtrlText, wxTextCtrl)
-    EVT_TEXT(-1, wxSpinCtrlText::OnTextChange)
+    EVT_TEXT(wxID_ANY, wxSpinCtrlText::OnTextChange)
 END_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
@@ -104,6 +109,9 @@ public:
         m_spin = spin;
 
         SetWindowStyle(style | wxSP_VERTICAL);
+
+        // remove the default minsize, the spinctrl will have one instead
+        SetSizeHints(wxDefaultCoord,wxDefaultCoord);
     }
 
 protected:
@@ -127,7 +135,7 @@ private:
 };
 
 BEGIN_EVENT_TABLE(wxSpinCtrlButton, wxSpinButton)
-    EVT_SPIN(-1, wxSpinCtrlButton::OnSpinButton)
+    EVT_SPIN(wxID_ANY, wxSpinCtrlButton::OnSpinButton)
 END_EVENT_TABLE()
 
 IMPLEMENT_DYNAMIC_CLASS(wxSpinCtrl, wxControl)
@@ -149,7 +157,7 @@ void wxSpinCtrl::Init()
 bool wxSpinCtrl::Create(wxWindow *parent,
                         wxWindowID id,
                         const wxString& value,
-                        const wxPoint& pos,
+                        const wxPoint& WXUNUSED(pos),
                         const wxSize& size,
                         long style,
                         int min,
@@ -160,7 +168,7 @@ bool wxSpinCtrl::Create(wxWindow *parent,
     if ( !wxControl::Create(parent, id, wxDefaultPosition, wxDefaultSize, style,
                             wxDefaultValidator, name) )
     {
-        return FALSE;
+        return false;
     }
 
     // the string value overrides the numeric one (for backwards compatibility
@@ -174,46 +182,35 @@ bool wxSpinCtrl::Create(wxWindow *parent,
             initial = l;
     }
 
-    SetBackgroundColour(*wxRED);
     m_text = new wxSpinCtrlText(this, value);
     m_btn = new wxSpinCtrlButton(this, style);
 
     m_btn->SetRange(min, max);
     m_btn->SetValue(initial);
-#ifdef __WXMAC__
-    wxSize csize = size ;
-    if ( size.y == -1 ) {
-      csize.y = m_text->GetSize().y ;
-    }
-    DoSetSize(pos.x, pos.y, csize.x, csize.y);
-#else
-    wxSize best = GetBestSize();
-    if ( size.x != -1 ) best.x = size.x;
-    if ( size.y != -1 ) best.y = size.y;
-    DoSetSize(pos.x, pos.y, best.x, best.y);
-#endif
+    SetBestSize(size);
+
     // have to disable this window to avoid interfering it with message
     // processing to the text and the button... but pretend it is enabled to
-    // make IsEnabled() return TRUE
-    wxControl::Enable(FALSE); // don't use non virtual Disable() here!
-    m_isEnabled = TRUE;
+    // make IsEnabled() return true
+    wxControl::Enable(false); // don't use non virtual Disable() here!
+    m_isEnabled = true;
 
     // we don't even need to show this window itself - and not doing it avoids
     // that it overwrites the text control
-    wxControl::Show(FALSE);
-#ifndef __WXMAC__
-    m_isShown = TRUE;
-#endif
-    return TRUE;
+    wxControl::Show(false);
+    m_isShown = true;
+    return true;
 }
 
 wxSpinCtrl::~wxSpinCtrl()
 {
-    // delete the controls now, don't leave them alive even though they woudl
+    // delete the controls now, don't leave them alive even though they would
     // still be eventually deleted by our parent - but it will be too late, the
     // user code expects them to be gone now
     delete m_text;
+    m_text = NULL ;
     delete m_btn;
+    m_btn = NULL ;
 }
 
 // ----------------------------------------------------------------------------
@@ -237,11 +234,7 @@ void wxSpinCtrl::DoMoveWindow(int x, int y, int width, int height)
 
     wxCoord wText = width - sizeBtn.x;
     m_text->SetSize(x, y, wText, height);
-#ifdef __WXMAC__
-    m_btn->SetSize(x + wText + MARGIN, y, -1, -1);
-#else
-    m_btn->SetSize(x + wText + MARGIN, y, -1, height);
-#endif
+    m_btn->SetSize(x + wText + MARGIN, y, wxDefaultCoord, height);
 }
 
 // ----------------------------------------------------------------------------
@@ -251,18 +244,18 @@ void wxSpinCtrl::DoMoveWindow(int x, int y, int width, int height)
 bool wxSpinCtrl::Enable(bool enable)
 {
     if ( !wxControl::Enable(enable) )
-        return FALSE;
+        return false;
 
     m_btn->Enable(enable);
     m_text->Enable(enable);
 
-    return TRUE;
+    return true;
 }
 
 bool wxSpinCtrl::Show(bool show)
 {
     if ( !wxControl::Show(show) )
-        return FALSE;
+        return false;
 
     // under GTK Show() is called the first time before we are fully
     // constructed
@@ -272,7 +265,7 @@ bool wxSpinCtrl::Show(bool show)
         m_text->Show(show);
     }
 
-    return TRUE;
+    return true;
 }
 
 // ----------------------------------------------------------------------------
@@ -285,18 +278,18 @@ bool wxSpinCtrl::GetTextValue(int *val) const
     if ( !m_text->GetValue().ToLong(&l) )
     {
         // not a number at all
-        return FALSE;
+        return false;
     }
 
     if ( l < GetMin() || l > GetMax() )
     {
         // out of range
-        return FALSE;
+        return false;
     }
 
     *val = l;
 
-    return TRUE;
+    return true;
 }
 
 int wxSpinCtrl::GetValue() const

@@ -227,7 +227,7 @@ bool wxEventLoopImpl::SendIdleMessage()
 // wxEventLoop implementation
 // ============================================================================
 
-wxEventLoop *wxEventLoop::ms_activeLoop = NULL;
+wxEventLoop *wxEventLoopBase::ms_activeLoop = NULL;
 
 // ----------------------------------------------------------------------------
 // wxEventLoop running and exiting
@@ -236,11 +236,6 @@ wxEventLoop *wxEventLoop::ms_activeLoop = NULL;
 wxEventLoop::~wxEventLoop()
 {
     wxASSERT_MSG( !m_impl, _T("should have been deleted in Run()") );
-}
-
-bool wxEventLoop::IsRunning() const
-{
-    return m_impl != NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -296,7 +291,7 @@ int wxEventLoop::Run()
         while ( !Pending() && m_impl->SendIdleMessage() )
 	{
 	    wxTheApp->HandleSockets();
-	    wxUsleep(10);
+	    wxMilliSleep(10);
 	}
 
         wxTheApp->HandleSockets();
@@ -309,7 +304,7 @@ int wxEventLoop::Run()
 	    }
 	}
         else
-            wxUsleep(10);
+            wxMilliSleep(10);
     }
 
     return m_impl->GetExitCode();

@@ -55,11 +55,9 @@ bool wxGauge::Create( wxWindow *parent,
 
     m_parent->DoAddChild( this );
 
-    PostCreation();
+    PostCreation(size);
     SetBestSize(size);
     
-    Show( TRUE );
-
     return TRUE;
 }
 
@@ -74,7 +72,13 @@ void wxGauge::DoSetGauge()
 
 wxSize wxGauge::DoGetBestSize() const
 {
-    return wxSize(100, 28);
+    wxSize best;
+    if (HasFlag(wxGA_VERTICAL))
+        best = wxSize(28, 100);
+    else
+        best = wxSize(100, 28);
+    CacheBestSize(best);
+    return best;
 }
 
 void wxGauge::SetRange( int range )
@@ -105,10 +109,21 @@ int wxGauge::GetValue() const
     return m_gaugePos;
 }
 
-void wxGauge::ApplyWidgetStyle()
+wxVisualAttributes wxGauge::GetDefaultAttributes() const
 {
-    SetWidgetStyle();
-    gtk_widget_set_style( m_widget, m_widgetStyle );
+    // Visible gauge colours use a different colour state
+    return GetDefaultAttributesFromGTKWidget(m_widget,
+                                             UseGTKStyleBase(),
+                                             GTK_STATE_ACTIVE);
+
+}
+
+// static
+wxVisualAttributes
+wxGauge::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    return GetDefaultAttributesFromGTKWidget(gtk_progress_bar_new,
+                                             false, GTK_STATE_ACTIVE);
 }
 
 #endif // wxUSE_GAUGE

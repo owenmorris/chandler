@@ -171,7 +171,7 @@ public:
     {
         wxDateTimeHolidayAuthority::AddAuthority(new wxDateTimeWorkDays);
 
-        return TRUE;
+        return true;
     }
 
     virtual void OnExit()
@@ -275,8 +275,8 @@ wxDateTime::wxDateTime_t GetNumOfDaysInMonth(int year, wxDateTime::Month month)
 static int GetTimeZone()
 {
 #ifdef WX_GMTOFF_IN_TM
-    // set to TRUE when the timezone is set
-    static bool s_timezoneSet = FALSE;
+    // set to true when the timezone is set
+    static bool s_timezoneSet = false;
     static long gmtoffset = LONG_MAX; // invalid timezone
 
     // ensure that the timezone variable is set by calling localtime
@@ -288,7 +288,7 @@ static int GetTimeZone()
         struct tm *tm;
 
         tm = localtime(&t);
-        s_timezoneSet = TRUE;
+        s_timezoneSet = true;
 
         // note that GMT offset is the opposite of time zone and so to return
         // consistent results in both WX_GMTOFF_IN_TM and !WX_GMTOFF_IN_TM
@@ -500,7 +500,7 @@ static bool GetNumericToken(size_t len, const wxChar*& p, unsigned long *number)
             break;
     }
 
-    return !!s && s.ToULong(number);
+    return !s.IsEmpty() && s.ToULong(number);
 }
 
 // scans all alphabetic characters and returns the resulting string
@@ -691,7 +691,7 @@ bool wxDateTime::IsLeapYear(int year, wxDateTime::Calendar cal)
     {
         wxFAIL_MSG(_T("unknown calendar"));
 
-        return FALSE;
+        return false;
     }
 }
 
@@ -817,10 +817,12 @@ wxString wxDateTime::GetWeekDayName(wxDateTime::WeekDay wday,
 {
     wxCHECK_MSG( wday != Inv_WeekDay, _T(""), _T("invalid weekday") );
 
-    // take some arbitrary Sunday
+    // take some arbitrary Sunday (but notice that the day should be such that
+    // after adding wday to it below we still have a valid date, e.g. don't
+    // take 28 here!)
     tm tm;
     InitTm(tm);
-    tm.tm_mday = 28;
+    tm.tm_mday = 21;
     tm.tm_mon = Nov;
     tm.tm_year = 99;
 
@@ -1000,7 +1002,7 @@ wxDateTime wxDateTime::GetBeginDST(int year, Country country)
         dt += wxTimeSpan::Hours(1);
 
         // disable DST tests because it could result in an infinite recursion!
-        dt.MakeGMT(TRUE);
+        dt.MakeGMT(true);
     }
     else switch ( country )
     {
@@ -1101,7 +1103,7 @@ wxDateTime wxDateTime::GetEndDST(int year, Country country)
         dt += wxTimeSpan::Hours(1);
 
         // disable DST tests because it could result in an infinite recursion!
-        dt.MakeGMT(TRUE);
+        dt.MakeGMT(true);
     }
     else switch ( country )
     {
@@ -1286,6 +1288,17 @@ wxDateTime& wxDateTime::Set(double jdn)
     jdn -= EPOCH_JDN + 0.5;
 
     jdn *= MILLISECONDS_PER_DAY;
+
+    // JDNs always suppose an UTC date, so bring it back to local time zone
+    // (also see GetJulianDayNumber() implementation)
+    long tzDiff = GetTimeZone();
+    if ( IsDST() == 1 )
+    {
+        // FIXME: again, we suppose that DST is always one hour
+        tzDiff -= 3600;
+    }
+
+    jdn += tzDiff*1000; // tzDiff is in seconds
 
     m_time.Assign(jdn);
 
@@ -1633,26 +1646,63 @@ wxDateTime& wxDateTime::Add(const wxDateSpan& diff)
 // Weekday and monthday stuff
 // ----------------------------------------------------------------------------
 
-bool wxDateTime::SetToTheWeek(wxDateTime_t numWeek,
-                              WeekDay weekday,
-                              WeekFlags flags)
+// convert Sun, Mon, ..., Sat into 6, 0, ..., 5
+static inline int ConvertWeekDayToMondayBase(int wd)
+{
+    return wd == wxDateTime::Sun ? 6 : wd - 1;
+}
+
+/* static */
+wxDateTime
+wxDateTime::SetToWeekOfYear(int year, wxDateTime_t numWeek, WeekDay wd)
 {
     wxASSERT_MSG( numWeek > 0,
                   _T("invalid week number: weeks are counted from 1") );
 
-    int year = GetYear();
-
     // Jan 4 always lies in the 1st week of the year
-    Set(4, Jan, year);
-    SetToWeekDayInSameWeek(weekday, flags) += wxDateSpan::Weeks(numWeek - 1);
+    wxDateTime dt(4, Jan, year);
+    dt.SetToWeekDayInSameWeek(wd);
+    dt += wxDateSpan::Weeks(numWeek - 1);
 
+    return dt;
+}
+
+// use a separate function to avoid warnings about using deprecated
+// SetToTheWeek in GetWeek below
+static wxDateTime
+SetToTheWeek(int year,
+             wxDateTime::wxDateTime_t numWeek,
+             wxDateTime::WeekDay weekday,
+             wxDateTime::WeekFlags flags)
+{
+    // Jan 4 always lies in the 1st week of the year
+    wxDateTime dt(4, wxDateTime::Jan, year);
+    dt.SetToWeekDayInSameWeek(weekday, flags);
+    dt += wxDateSpan::Weeks(numWeek - 1);
+
+    return dt;
+}
+
+bool wxDateTime::SetToTheWeek(wxDateTime_t numWeek,
+                              WeekDay weekday,
+                              WeekFlags flags)
+{
+    int year = GetYear();
+    *this = ::SetToTheWeek(year, numWeek, weekday, flags);
     if ( GetYear() != year )
     {
         // oops... numWeek was too big
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
+}
+
+wxDateTime wxDateTime::GetWeek(wxDateTime_t numWeek,
+                               WeekDay weekday,
+                               WeekFlags flags) const
+{
+    return ::SetToTheWeek(GetYear(), numWeek, weekday, flags);
 }
 
 wxDateTime& wxDateTime::SetToLastMonthDay(Month month,
@@ -1757,9 +1807,9 @@ bool wxDateTime::SetToWeekDay(WeekDay weekday,
                               Month month,
                               int year)
 {
-    wxCHECK_MSG( weekday != Inv_WeekDay, FALSE, _T("invalid weekday") );
+    wxCHECK_MSG( weekday != Inv_WeekDay, false, _T("invalid weekday") );
 
-    // we don't check explicitly that -5 <= n <= 5 because we will return FALSE
+    // we don't check explicitly that -5 <= n <= 5 because we will return false
     // anyhow in such case - but may be should still give an assert for it?
 
     // take the current month/year if none specified
@@ -1811,49 +1861,84 @@ bool wxDateTime::SetToWeekDay(WeekDay weekday,
     {
         *this = dt;
 
-        return TRUE;
+        return true;
     }
     else
     {
         // no such day in this month
-        return FALSE;
+        return false;
     }
+}
+
+static inline
+wxDateTime::wxDateTime_t GetDayOfYearFromTm(const wxDateTime::Tm& tm)
+{
+    return gs_cumulatedDays[wxDateTime::IsLeapYear(tm.year)][tm.mon] + tm.mday;
 }
 
 wxDateTime::wxDateTime_t wxDateTime::GetDayOfYear(const TimeZone& tz) const
 {
-    Tm tm(GetTm(tz));
-
-    return gs_cumulatedDays[IsLeapYear(tm.year)][tm.mon] + tm.mday;
+    return GetDayOfYearFromTm(GetTm(tz));
 }
 
-wxDateTime::wxDateTime_t wxDateTime::GetWeekOfYear(wxDateTime::WeekFlags flags,
-                                                   const TimeZone& tz) const
+wxDateTime::wxDateTime_t
+wxDateTime::GetWeekOfYear(wxDateTime::WeekFlags flags, const TimeZone& tz) const
 {
     if ( flags == Default_First )
     {
         flags = GetCountry() == USA ? Sunday_First : Monday_First;
     }
 
-    wxDateTime_t nDayInYear = GetDayOfYear(tz);
-    wxDateTime_t week;
+    Tm tm(GetTm(tz));
+    wxDateTime_t nDayInYear = GetDayOfYearFromTm(tm);
 
-    WeekDay wd = GetWeekDay(tz);
+    int wdTarget = GetWeekDay(tz);
+    int wdYearStart = wxDateTime(1, Jan, GetYear()).GetWeekDay();
+    int week;
     if ( flags == Sunday_First )
     {
-        week = (nDayInYear - wd + 7) / 7;
+        // FIXME: First week is not calculated correctly.
+        week = (nDayInYear - wdTarget + 7) / 7;
+        if ( wdYearStart == Wed || wdYearStart == Thu )
+            week++;
     }
-    else
+    else // week starts with monday
     {
-        // have to shift the week days values
-        week = (nDayInYear - (wd - 1 + 7) % 7 + 7) / 7;
-    }
+        // adjust the weekdays to non-US style.
+        wdYearStart = ConvertWeekDayToMondayBase(wdYearStart);
+        wdTarget = ConvertWeekDayToMondayBase(wdTarget);
 
-    // FIXME some more elegant way??
-    WeekDay wdYearStart = wxDateTime(1, Jan, GetYear()).GetWeekDay();
-    if ( wdYearStart == Wed || wdYearStart == Thu )
-    {
-        week++;
+        // quoting from http://www.cl.cam.ac.uk/~mgk25/iso-time.html:
+        //
+        //      Week 01 of a year is per definition the first week that has the
+        //      Thursday in this year, which is equivalent to the week that
+        //      contains the fourth day of January. In other words, the first
+        //      week of a new year is the week that has the majority of its
+        //      days in the new year. Week 01 might also contain days from the
+        //      previous year and the week before week 01 of a year is the last
+        //      week (52 or 53) of the previous year even if it contains days
+        //      from the new year. A week starts with Monday (day 1) and ends
+        //      with Sunday (day 7).
+        //
+
+        // if Jan 1 is Thursday or less, it is in the first week of this year
+        if ( wdYearStart < 4 )
+        {
+            // count the number of entire weeks between Jan 1 and this date
+            week = (nDayInYear + wdYearStart + 6 - wdTarget)/7;
+
+            // be careful to check for overflow in the next year
+            if ( week == 53 && tm.mday - wdTarget > 28 )
+                    week = 1;
+        }
+        else // Jan 1 is in the last week of the previous year
+        {
+            // check if we happen to be at the last week of previous year:
+            if ( tm.mon == Jan && tm.mday < 8 - wdYearStart )
+                week = wxDateTime(31, Dec, GetYear()-1).GetWeekOfYear();
+            else
+                week = (nDayInYear + wdYearStart - 1 - wdTarget)/7;
+        }
     }
 
     return week;
@@ -1904,8 +1989,8 @@ wxDateTime& wxDateTime::SetToYearDay(wxDateTime::wxDateTime_t yday)
 
 double wxDateTime::GetJulianDayNumber() const
 {
-    // JDN are always expressed for the GMT dates
-    Tm tm(ToTimezone(GMT0).GetTm(GMT0));
+    // JDN are always expressed for the UTC dates
+    Tm tm(ToTimezone(UTC).GetTm(UTC));
 
     double result = GetTruncatedJDN(tm.mday, tm.mon, tm.year);
 
@@ -2074,17 +2159,17 @@ wxString wxDateTime::Format(const wxChar *format, const TimeZone& tz) const
                 fmt = _T("%02d");
         }
 
-        bool restart = TRUE;
+        bool restart = true;
         while ( restart )
         {
-            restart = FALSE;
+            restart = false;
 
             // start of the format specification
             switch ( *p )
             {
                 case _T('a'):       // a weekday name
                 case _T('A'):
-                    // second parameter should be TRUE for abbreviated names
+                    // second parameter should be true for abbreviated names
                     res += GetWeekDayName(tm.GetWeekDay(),
                                           *p == _T('a') ? Name_Abbr : Name_Full);
                     break;
@@ -2315,7 +2400,7 @@ wxString wxDateTime::Format(const wxChar *format, const TimeZone& tz) const
                         fmt.Prepend(_T('%'));
                         fmt.Append(_T('d'));
 
-                        restart = TRUE;
+                        restart = true;
 
                         break;
                     }
@@ -2648,17 +2733,17 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
     unsigned long num;
 
     // what fields have we found?
-    bool haveWDay = FALSE,
-         haveYDay = FALSE,
-         haveDay = FALSE,
-         haveMon = FALSE,
-         haveYear = FALSE,
-         haveHour = FALSE,
-         haveMin = FALSE,
-         haveSec = FALSE;
+    bool haveWDay = false,
+         haveYDay = false,
+         haveDay = false,
+         haveMon = false,
+         haveYear = false,
+         haveHour = false,
+         haveMin = false,
+         haveSec = false;
 
-    bool hourIsIn12hFormat = FALSE, // or in 24h one?
-         isPM = FALSE;              // AM by default
+    bool hourIsIn12hFormat = false, // or in 24h one?
+         isPM = false;              // AM by default
 
     // and the value of the items we have (init them to get rid of warnings)
     wxDateTime_t sec = 0,
@@ -2747,7 +2832,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                         return (wxChar *)NULL;
                     }
                 }
-                haveWDay = TRUE;
+                haveWDay = true;
                 break;
 
             case _T('b'):       // a month name
@@ -2761,7 +2846,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                         return (wxChar *)NULL;
                     }
                 }
-                haveMon = TRUE;
+                haveMon = true;
                 break;
 
             case _T('c'):       // locale default date and time  representation
@@ -2792,7 +2877,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                     Tm tm = dt.GetTm();
 
                     haveDay = haveMon = haveYear =
-                    haveHour = haveMin = haveSec = TRUE;
+                    haveHour = haveMin = haveSec = true;
 
                     hour = tm.hour;
                     min = tm.min;
@@ -2816,7 +2901,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
 
                 // we can't check whether the day range is correct yet, will
                 // do it later - assume ok for now
-                haveDay = TRUE;
+                haveDay = true;
                 mday = (wxDateTime_t)num;
                 break;
 
@@ -2827,7 +2912,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                     return (wxChar *)NULL;
                 }
 
-                haveHour = TRUE;
+                haveHour = true;
                 hour = (wxDateTime_t)num;
                 break;
 
@@ -2838,8 +2923,8 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                     return (wxChar *)NULL;
                 }
 
-                haveHour = TRUE;
-                hourIsIn12hFormat = TRUE;
+                haveHour = true;
+                hourIsIn12hFormat = true;
                 hour = (wxDateTime_t)(num % 12);        // 12 should be 0
                 break;
 
@@ -2850,7 +2935,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                     return (wxChar *)NULL;
                 }
 
-                haveYDay = TRUE;
+                haveYDay = true;
                 yday = (wxDateTime_t)num;
                 break;
 
@@ -2861,7 +2946,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                     return (wxChar *)NULL;
                 }
 
-                haveMon = TRUE;
+                haveMon = true;
                 mon = (Month)(num - 1);
                 break;
 
@@ -2872,7 +2957,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                     return (wxChar *)NULL;
                 }
 
-                haveMin = TRUE;
+                haveMin = true;
                 min = (wxDateTime_t)num;
                 break;
 
@@ -2885,7 +2970,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                         return (wxChar *)NULL;  // no am/pm strings defined
                     if ( token.CmpNoCase(pm) == 0 )
                     {
-                        isPM = TRUE;
+                        isPM = true;
                     }
                     else if ( token.CmpNoCase(am) != 0 )
                     {
@@ -2905,7 +2990,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                         return (wxChar *)NULL;
                     }
 
-                    haveHour = haveMin = haveSec = TRUE;
+                    haveHour = haveMin = haveSec = true;
 
                     Tm tm = dt.GetTm();
                     hour = tm.hour;
@@ -2924,7 +3009,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                         return (wxChar *)NULL;
                     }
 
-                    haveHour = haveMin = TRUE;
+                    haveHour = haveMin = true;
 
                     Tm tm = dt.GetTm();
                     hour = tm.hour;
@@ -2938,7 +3023,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                     return (wxChar *)NULL;
                 }
 
-                haveSec = TRUE;
+                haveSec = true;
                 sec = (wxDateTime_t)num;
                 break;
 
@@ -2952,7 +3037,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                         return (wxChar *)NULL;
                     }
 
-                    haveHour = haveMin = haveSec = TRUE;
+                    haveHour = haveMin = haveSec = true;
 
                     Tm tm = dt.GetTm();
                     hour = tm.hour;
@@ -2968,7 +3053,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                     return (wxChar *)NULL;
                 }
 
-                haveWDay = TRUE;
+                haveWDay = true;
                 wday = (WeekDay)num;
                 break;
 
@@ -2985,7 +3070,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                     {
                         input = result;
 
-                        haveDay = haveMon = haveYear = TRUE;
+                        haveDay = haveMon = haveYear = true;
 
                         year = 1900 + tm.tm_year;
                         mon = (Month)tm.tm_mon;
@@ -3029,7 +3114,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
 
                     Tm tm = dt.GetTm();
 
-                    haveDay = haveMon = haveYear = TRUE;
+                    haveDay = haveMon = haveYear = true;
 
                     year = tm.year;
                     mon = tm.mon;
@@ -3051,7 +3136,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                         return (wxChar *)NULL;
                     }
 
-                    haveHour = haveMin = haveSec = TRUE;
+                    haveHour = haveMin = haveSec = true;
 
                     hour = tm.tm_hour;
                     min = tm.tm_min;
@@ -3079,7 +3164,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                         return (wxChar *)NULL;
                     }
 
-                    haveHour = haveMin = haveSec = TRUE;
+                    haveHour = haveMin = haveSec = true;
 
                     Tm tm = dt.GetTm();
                     hour = tm.hour;
@@ -3098,7 +3183,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                     return (wxChar *)NULL;
                 }
 
-                haveYear = TRUE;
+                haveYear = true;
 
                 // TODO should have an option for roll over date instead of
                 //      hard coding it here
@@ -3112,7 +3197,7 @@ const wxChar *wxDateTime::ParseFormat(const wxChar *date,
                     return (wxChar *)NULL;
                 }
 
-                haveYear = TRUE;
+                haveYear = true;
                 year = (wxDateTime_t)num;
                 break;
 
@@ -3329,10 +3414,10 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
     // have the ability to back track.
 
     // what do we have?
-    bool haveDay = FALSE,       // the months day?
-         haveWDay = FALSE,      // the day of week?
-         haveMon = FALSE,       // the month?
-         haveYear = FALSE;      // the year?
+    bool haveDay = false,       // the months day?
+         haveWDay = false,      // the day of week?
+         haveMon = false,       // the month?
+         haveYear = false;      // the year?
 
     // and the value of the items we have (init them to get rid of warnings)
     WeekDay wday = Inv_WeekDay;
@@ -3356,21 +3441,21 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
         {
             // guess what this number is
 
-            bool isDay = FALSE,
-                 isMonth = FALSE,
-                 isYear = FALSE;
+            bool isDay = false,
+                 isMonth = false,
+                 isYear = false;
 
             if ( !haveMon && val > 0 && val <= 12 )
             {
                 // assume it is month
-                isMonth = TRUE;
+                isMonth = true;
             }
             else // not the month
             {
                 if ( haveDay )
                 {
                     // this can only be the year
-                    isYear = TRUE;
+                    isYear = true;
                 }
                 else // may be either day or year
                 {
@@ -3382,11 +3467,11 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
                     if ( (val == 0) || (val > (unsigned long)maxDays) )
                     {
                         // no
-                        isYear = TRUE;
+                        isYear = true;
                     }
                     else // yes, suppose it's the day
                     {
-                        isDay = TRUE;
+                        isDay = true;
                     }
                 }
             }
@@ -3396,7 +3481,7 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
                 if ( haveYear )
                     break;
 
-                haveYear = TRUE;
+                haveYear = true;
 
                 year = (wxDateTime_t)val;
             }
@@ -3405,13 +3490,13 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
                 if ( haveDay )
                     break;
 
-                haveDay = TRUE;
+                haveDay = true;
 
                 day = (wxDateTime_t)val;
             }
             else if ( isMonth )
             {
-                haveMon = TRUE;
+                haveMon = true;
 
                 mon = (Month)(val - 1);
             }
@@ -3431,7 +3516,7 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
                         // no need to check in month range as always < 12, but
                         // the days are counted from 1 unlike the months
                         day = (wxDateTime_t)mon + 1;
-                        haveDay = TRUE;
+                        haveDay = true;
                     }
                     else
                     {
@@ -3443,7 +3528,7 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
 
                 mon = mon2;
 
-                haveMon = TRUE;
+                haveMon = true;
             }
             else // not a valid month name
             {
@@ -3456,7 +3541,7 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
                         break;
                     }
 
-                    haveWDay = TRUE;
+                    haveWDay = true;
                 }
                 else // not a valid weekday name
                 {
@@ -3511,7 +3596,7 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
                         break;
                     }
 
-                    haveDay = TRUE;
+                    haveDay = true;
 
                     day = (wxDateTime_t)(n + 1);
                 }
@@ -3554,10 +3639,10 @@ const wxChar *wxDateTime::ParseDate(const wxChar *date)
                 {
                     day = year;
 
-                    haveMon = TRUE;
-                    haveYear = FALSE;
+                    haveMon = true;
+                    haveYear = false;
                 }
-                //else: no, can't exchange, leave haveMon == FALSE
+                //else: no, can't exchange, leave haveMon == false
             }
         }
 
@@ -3897,11 +3982,11 @@ bool wxDateTimeHolidayAuthority::IsHoliday(const wxDateTime& dt)
     {
         if ( ms_authorities[n]->DoIsHoliday(dt) )
         {
-            return TRUE;
+            return true;
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 /* static */

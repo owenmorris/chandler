@@ -31,7 +31,7 @@
 // Only use this for MS SmartPhone. Use standard file dialog
 // for Pocket PC.
 
-#if wxUSE_FILEDLG && wxUSE_SMARTPHONE
+#if wxUSE_FILEDLG && defined(__SMARTPHONE__)
 
 #ifndef WX_PRECOMP
     #include "wx/utils.h"
@@ -116,7 +116,7 @@ int wxFileDialog::ShowModal()
     wxWindow* parentWindow = GetParent();
     if (!parentWindow)
         parentWindow = wxTheApp->GetTopWindow();
-    
+
     wxString str = wxGetTextFromUser(m_message, _("File"), m_fileName, parentWindow);
     if (str)
     {
@@ -128,6 +128,11 @@ int wxFileDialog::ShowModal()
     {
         return wxID_CANCEL;
     }
+}
+
+void wxFileDialog::GetFilenames(wxArrayString& files) const
+{
+    files = m_fileNames;
 }
 
 #endif // wxUSE_FILEDLG

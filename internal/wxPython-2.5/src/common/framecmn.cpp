@@ -155,7 +155,7 @@ wxPoint wxFrameBase::GetClientAreaOrigin() const
 {
     wxPoint pt = wxTopLevelWindow::GetClientAreaOrigin();
 
-#if wxUSE_TOOLBAR && !defined(__WXUNIVERSAL__) && !defined(__WXWINCE__)
+#if wxUSE_TOOLBAR && !defined(__WXUNIVERSAL__)
     wxToolBar *toolbar = GetToolBar();
     if ( toolbar && toolbar->IsShown() )
     {
@@ -426,6 +426,9 @@ void wxFrameBase::DoGiveHelp(const wxString& text, bool show)
     }
 
     statbar->SetStatusText(help, m_statusBarPane);
+#else
+    wxUnusedVar(text);
+    wxUnusedVar(show);
 #endif // wxUSE_STATUSBAR
 }
 

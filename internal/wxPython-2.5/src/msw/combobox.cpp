@@ -65,7 +65,7 @@ wxBEGIN_FLAGS( wxComboBoxStyle )
     wxFLAGS_MEMBER(wxBORDER_RAISED)
     wxFLAGS_MEMBER(wxBORDER_STATIC)
     wxFLAGS_MEMBER(wxBORDER_NONE)
-    
+
     // old style border flags
     wxFLAGS_MEMBER(wxSIMPLE_BORDER)
     wxFLAGS_MEMBER(wxSUNKEN_BORDER)
@@ -94,15 +94,15 @@ wxEND_FLAGS( wxComboBoxStyle )
 IMPLEMENT_DYNAMIC_CLASS_XTI(wxComboBox, wxControl,"wx/combobox.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxComboBox)
-	wxEVENT_PROPERTY( Select , wxEVT_COMMAND_COMBOBOX_SELECTED , wxCommandEvent )
+    wxEVENT_PROPERTY( Select , wxEVT_COMMAND_COMBOBOX_SELECTED , wxCommandEvent )
     wxEVENT_PROPERTY( TextEnter , wxEVT_COMMAND_TEXT_ENTER , wxCommandEvent )
 
     // TODO DELEGATES
-	wxPROPERTY( Font , wxFont , SetFont , GetFont  , , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( Font , wxFont , SetFont , GetFont  , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
     wxPROPERTY_COLLECTION( Choices , wxArrayString , wxString , AppendString , GetStrings , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( Value ,wxString, SetValue, GetValue, , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( Selection ,int, SetSelection, GetSelection, , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-    wxPROPERTY_FLAGS( WindowStyle , wxComboBoxStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
+    wxPROPERTY( Value ,wxString, SetValue, GetValue, EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( Selection ,int, SetSelection, GetSelection, EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY_FLAGS( WindowStyle , wxComboBoxStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
 wxEND_PROPERTIES_TABLE()
 
 wxBEGIN_HANDLERS_TABLE(wxComboBox)
@@ -275,7 +275,7 @@ bool wxComboBox::MSWProcessEditMsg(WXUINT msg, WXWPARAM wParam, WXLPARAM lParam)
                 ProcessCommand(event);
             }
 
-            return HandleChar(wParam, lParam, TRUE /* isASCII */);
+            return HandleChar(wParam, lParam, true /* isASCII */);
 
         case WM_KEYDOWN:
             return HandleKeyDown(wParam, lParam);
@@ -290,7 +290,7 @@ bool wxComboBox::MSWProcessEditMsg(WXUINT msg, WXWPARAM wParam, WXLPARAM lParam)
             return HandleKillFocus((WXHWND)wParam);
     }
 
-    return FALSE;
+    return false;
 }
 
 bool wxComboBox::MSWCommand(WXUINT param, WXWORD WXUNUSED(id))
@@ -355,8 +355,8 @@ bool wxComboBox::MSWCommand(WXUINT param, WXWORD WXUNUSED(id))
     }
 
     // there is no return value for the CBN_ notifications, so always return
-    // FALSE from here to pass the message to DefWindowProc()
-    return FALSE;
+    // false from here to pass the message to DefWindowProc()
+    return false;
 }
 
 WXHWND wxComboBox::GetEditHWND() const
@@ -393,11 +393,11 @@ bool wxComboBox::Create(wxWindow *parent, wxWindowID id,
     // pretend that wxComboBox is hidden while it is positioned and resized and
     // show it only right before leaving this method because otherwise there is
     // some noticeable flicker while the control rearranges itself
-    m_isShown = FALSE;
+    m_isShown = false;
 
     if ( !CreateAndInit(parent, id, pos, size, n, choices, style,
                         validator, name) )
-        return FALSE;
+        return false;
 
     // we shouldn't call SetValue() for an empty string because this would
     // (correctly) result in an assert with a read only combobox and is useless
@@ -415,9 +415,9 @@ bool wxComboBox::Create(wxWindow *parent, wxWindowID id,
     }
 
     // and finally, show the control
-    Show(TRUE);
+    Show(true);
 
-    return TRUE;
+    return true;
 }
 
 bool wxComboBox::Create(wxWindow *parent, wxWindowID id,
@@ -573,7 +573,7 @@ void wxComboBox::SetSelection(long from, long to)
     long fromChar = from;
     long toChar = to;
     // if from and to are both -1, it means
-    // (in wxWindows) that all text should be selected.
+    // (in wxWidgets) that all text should be selected.
     // This translates into Windows convention
     if ((from == -1) && (to == -1))
     {
@@ -581,13 +581,7 @@ void wxComboBox::SetSelection(long from, long to)
       toChar = -1;
     }
 
-    if (
-#ifdef __WIN32__
-    SendMessage(hWnd, CB_SETEDITSEL, (WPARAM)0, (LPARAM)MAKELONG(fromChar, toChar))
-#else // Win16
-    SendMessage(hWnd, CB_SETEDITSEL, (WPARAM)fromChar, (LPARAM)toChar)
-#endif
-        == CB_ERR )
+    if ( SendMessage(hWnd, CB_SETEDITSEL, (WPARAM)0, (LPARAM)MAKELONG(fromChar, toChar)) == CB_ERR )
     {
         wxLogDebug(_T("CB_SETEDITSEL failed"));
     }

@@ -4,7 +4,7 @@
 // Author:      Vaclav Slavik
 // Copyright:   (c) 1999 Vaclav Slavik
 // CVS-ID:      $Id$
-// Licence:     wxWindows Licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 
@@ -26,7 +26,6 @@
     #include "wx/log.h"
 #endif
 
-#include "wx/hashmap.h"
 #include "wx/filesys.h"
 #include "wx/zipstrm.h"
 #include "wx/fs_zip.h"
@@ -37,9 +36,6 @@
 #else
 #include "unzip.h"
 #endif
-
-WX_DECLARE_HASH_MAP_WITH_DECL( long, long, wxIntegerHash, wxIntegerEqual,
-                               wxLongToLongHashMap, class WXDLLIMPEXP_BASE );
 
 //----------------------------------------------------------------------------
 // wxZipFSHandler

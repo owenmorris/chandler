@@ -13,6 +13,9 @@
 #pragma implementation "mdi.h"
 #endif
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
 #ifdef __VMS
 #define XtDisplay XTDISPLAY
 #define XtWindow XTWINDOW
@@ -488,7 +491,7 @@ void wxMDIChildFrame::OnLower()
 #endif
 
 // Set the client size (i.e. leave the calculation of borders etc.
-// to wxWindows)
+// to wxWidgets)
 void wxMDIChildFrame::DoSetClientSize(int width, int height)
 {
     wxWindow::DoSetClientSize(width, height);

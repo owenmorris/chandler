@@ -80,10 +80,10 @@ private:
     // if not empty, enum only the fonts in this family
     wxString m_family;
 
-    // if TRUE, enum only fixed fonts
+    // if true, enum only fixed fonts
     bool m_fixedOnly;
 
-    // if TRUE, we enumerate the encodings, not fonts
+    // if true, we enumerate the encodings, not fonts
     bool m_enumEncodings;
 
     // the list of charsets we already found while enumerating charsets
@@ -116,13 +116,13 @@ wxFontEnumeratorHelper::wxFontEnumeratorHelper(wxFontEnumerator *fontEnum)
 {
     m_fontEnum = fontEnum;
     m_charset = DEFAULT_CHARSET;
-    m_fixedOnly = FALSE;
-    m_enumEncodings = FALSE;
+    m_fixedOnly = false;
+    m_enumEncodings = false;
 }
 
 void wxFontEnumeratorHelper::SetFamily(const wxString& family)
 {
-    m_enumEncodings = TRUE;
+    m_enumEncodings = true;
     m_family = family;
 }
 
@@ -138,7 +138,7 @@ bool wxFontEnumeratorHelper::SetEncoding(wxFontEncoding encoding)
 #endif // wxUSE_FONTMAP
             {
                 // no such encodings at all
-                return FALSE;
+                return false;
             }
         }
 
@@ -146,7 +146,7 @@ bool wxFontEnumeratorHelper::SetEncoding(wxFontEncoding encoding)
         m_facename = info.facename;
     }
 
-    return TRUE;
+    return true;
 }
 
 #if defined(__GNUWIN32__) && !defined(__CYGWIN10__) && !wxCHECK_W32API_VERSION( 1, 1 ) && !wxUSE_NORLANDER_HEADERS
@@ -163,22 +163,14 @@ void wxFontEnumeratorHelper::DoEnumerate()
 #ifdef __WXWINCE__
     ::EnumFontFamilies(hDC, m_facename, (wxFONTENUMPROC)wxFontEnumeratorProc,
                          (LPARAM)this) ;
-#elif defined(__WIN32__)
+#else // __WIN32__
     LOGFONT lf;
     lf.lfCharSet = m_charset;
     wxStrncpy(lf.lfFaceName, m_facename, WXSIZEOF(lf.lfFaceName));
     lf.lfPitchAndFamily = 0;
     ::EnumFontFamiliesEx(hDC, &lf, (wxFONTENUMPROC)wxFontEnumeratorProc,
                          (LPARAM)this, 0 /* reserved */) ;
-#else // Win16
-    ::EnumFonts(hDC, (LPTSTR)NULL, (FONTENUMPROC)wxFontEnumeratorProc,
-    #ifdef STRICT
-               (LPARAM)
-    #else
-               (LPSTR)
-    #endif
-               this);
-#endif // Win32/16
+#endif // Win32/CE
 
     ::ReleaseDC(NULL, hDC);
 #endif
@@ -202,7 +194,7 @@ bool wxFontEnumeratorHelper::OnFont(const LPLOGFONT lf,
         else
         {
             // continue enumeration
-            return TRUE;
+            return true;
         }
     }
 
@@ -213,7 +205,7 @@ bool wxFontEnumeratorHelper::OnFont(const LPLOGFONT lf,
         if ( tm->tmPitchAndFamily & TMPF_FIXED_PITCH )
         {
             // not a fixed pitch font
-            return TRUE;
+            return true;
         }
     }
 
@@ -222,7 +214,7 @@ bool wxFontEnumeratorHelper::OnFont(const LPLOGFONT lf,
         // check that we have the right encoding
         if ( lf->lfCharSet != m_charset )
         {
-            return TRUE;
+            return true;
         }
     }
     else // enumerating fonts in all charsets
@@ -233,7 +225,7 @@ bool wxFontEnumeratorHelper::OnFont(const LPLOGFONT lf,
         if ( m_facenames.Index(lf->lfFaceName) != wxNOT_FOUND )
         {
             // continue enumeration
-            return TRUE;
+            return true;
         }
 
         wxConstCast(this, wxFontEnumeratorHelper)->
@@ -259,7 +251,7 @@ bool wxFontEnumerator::EnumerateFacenames(wxFontEncoding encoding,
     }
     // else: no such fonts, unknown encoding
 
-    return TRUE;
+    return true;
 }
 
 bool wxFontEnumerator::EnumerateEncodings(const wxString& family)
@@ -268,7 +260,7 @@ bool wxFontEnumerator::EnumerateEncodings(const wxString& family)
     fe.SetFamily(family);
     fe.DoEnumerate();
 
-    return TRUE;
+    return true;
 }
 
 // ----------------------------------------------------------------------------

@@ -108,7 +108,7 @@ bool wxControl::OS2CreateControl(
 	(void) OS2GetStyle(GetWindowStyle(), &dwExstyle);
     }
     //
-    // All controls should have these styles (wxWindows creates all controls
+    // All controls should have these styles (wxWidgets creates all controls
     // visible by default)
     //
     if (m_isShown )
@@ -161,9 +161,14 @@ bool wxControl::OS2CreateControl(
     SubclassWin(m_hWnd);
 
     //
-    // Controls use the same font and colours as their parent dialog by default
+    // Controls use the same colours as their parent dialog by default
     //
     InheritAttributes();
+    //
+    // All OS/2 ctrls use the small font
+    //
+    SetFont(*wxSMALL_FONT);
+
     SetXComp(0);
     SetYComp(0);
     SetSize( rPos.x
@@ -279,10 +284,10 @@ void wxFindMaxSize(
     if (nRight > pRect->xRight)
         pRect->xRight = nRight;
 
-    if (nTop < pRect->yTop)
+    if (nTop > pRect->yTop)
         pRect->yTop = nTop;
 
-    if (nBottom > pRect->yBottom)
+    if (nBottom < pRect->yBottom)
         pRect->yBottom = nBottom;
 } // end of wxFindMaxSize
 

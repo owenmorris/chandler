@@ -42,6 +42,7 @@
     #include "wx/slider.h"
     #include "wx/textctrl.h"
     #include "wx/toolbar.h"
+    #include "wx/statusbr.h"
 
     #include "wx/settings.h"
 #endif // WX_PRECOMP
@@ -228,7 +229,7 @@ public:
     virtual void DrawStatusField(wxDC& dc,
                                  const wxRect& rect,
                                  const wxString& label,
-                                 int flags = 0);
+                                 int flags = 0, int style = 0);
 
     virtual void DrawFrameTitleBar(wxDC& dc,
                                    const wxRect& rect,
@@ -533,7 +534,7 @@ protected:
         wxStdScrollBarInputHandler::Press(scrollbar, doIt);
     }
 
-    virtual bool IsAllowedButton(int WXUNUSED(button)) { return TRUE; }
+    virtual bool IsAllowedButton(int WXUNUSED(button)) { return true; }
 
     bool IsArrow() const
     {
@@ -1081,7 +1082,7 @@ wxRect wxGTKRenderer::GetBorderDimensions(wxBorder border) const
 bool wxGTKRenderer::AreScrollbarsInsideBorder() const
 {
     // no, the scrollbars are outside the border in GTK+
-    return FALSE;
+    return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -1404,13 +1405,13 @@ void wxGTKRenderer::DrawRadioBitmap(wxDC& dc,
     DrawUpZag(dc, x, xRight, yMid, y);
     DrawUpZag(dc, x + 1, xRight - 1, yMid, y + 1);
 
-    bool drawIt = TRUE;
+    bool drawIt = true;
     if ( flags & wxCONTROL_CHECKED )
         dc.SetPen(m_penBlack);
     else if ( flags & wxCONTROL_PRESSED )
         dc.SetPen(wxPen(wxSCHEME_COLOUR(m_scheme, CONTROL_PRESSED), 0, wxSOLID));
     else // unchecked and unpressed
-        drawIt = FALSE;
+        drawIt = false;
 
     if ( drawIt )
         DrawUpZag(dc, x + 2, xRight - 2, yMid, y + 2);
@@ -1423,14 +1424,14 @@ void wxGTKRenderer::DrawRadioBitmap(wxDC& dc,
     DrawDownZag(dc, x + 1, xRight - 1, yMid, yBottom - 1);
 
     if ( !(flags & wxCONTROL_CHECKED) )
-        drawIt = TRUE; // with the same pen
+        drawIt = true; // with the same pen
     else if ( flags & wxCONTROL_PRESSED )
     {
         dc.SetPen(wxPen(wxSCHEME_COLOUR(m_scheme, CONTROL_PRESSED), 0, wxSOLID));
-        drawIt = TRUE;
+        drawIt = true;
     }
     else // checked and unpressed
-        drawIt = FALSE;
+        drawIt = false;
 
     if ( drawIt )
         DrawDownZag(dc, x + 2, xRight - 2, yMid, yBottom - 2);
@@ -1481,14 +1482,14 @@ wxBitmap wxGTKRenderer::GetCheckBitmap(int flags)
 
         // normal unchecked
         dc.SelectObject(m_bitmapsCheckbox[0][1]);
-        DrawUncheckBitmap(dc, rect, FALSE);
+        DrawUncheckBitmap(dc, rect, false);
 
         // pressed checked
         m_bitmapsCheckbox[1][0] = m_bitmapsCheckbox[0][0];
 
         // pressed unchecked
         dc.SelectObject(m_bitmapsCheckbox[1][1]);
-        DrawUncheckBitmap(dc, rect, TRUE);
+        DrawUncheckBitmap(dc, rect, true);
     }
 
     int row = flags & wxCONTROL_PRESSED ? 1 : 0;
@@ -1587,7 +1588,7 @@ void wxGTKRenderer::DoDrawCheckOrRadioBitmap(wxDC& dc,
         rectLabel.SetRight(rect.GetRight());
     }
 
-    dc.DrawBitmap(bitmap, xBmp, yBmp, TRUE /* use mask */);
+    dc.DrawBitmap(bitmap, xBmp, yBmp, true /* use mask */);
 
     DrawLabel(dc, label, rectLabel, flags,
               wxALIGN_LEFT | wxALIGN_CENTRE_VERTICAL, indexAccel);
@@ -2236,7 +2237,7 @@ wxGTKRenderer::GetStatusBarBorders(wxCoord * WXUNUSED(borderBetweenFields)) cons
 void wxGTKRenderer::DrawStatusField(wxDC& WXUNUSED(dc),
                                     const wxRect& WXUNUSED(rect),
                                     const wxString& WXUNUSED(label),
-                                    int WXUNUSED(flags))
+                                    int WXUNUSED(flags), int WXUNUSED(style))
 {
 }
 
@@ -2822,7 +2823,7 @@ wxSize wxGTKRenderer::GetFrameMinSize(int WXUNUSED(flags)) const
 
 wxSize wxGTKRenderer::GetFrameIconSize() const
 {
-    return wxSize(-1, -1);
+    return wxSize(wxDefaultCoord, wxDefaultCoord);
 }
 
 int
@@ -4475,7 +4476,7 @@ bool wxGTKInputHandler::HandleKey(wxInputConsumer * WXUNUSED(control),
                                   const wxKeyEvent& WXUNUSED(event),
                                   bool WXUNUSED(pressed))
 {
-    return FALSE;
+    return false;
 }
 
 bool wxGTKInputHandler::HandleMouse(wxInputConsumer *control,
@@ -4486,10 +4487,10 @@ bool wxGTKInputHandler::HandleMouse(wxInputConsumer *control,
     {
         control->GetInputWindow()->SetFocus();
 
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 bool wxGTKInputHandler::HandleMouseMove(wxInputConsumer *control,
@@ -4497,18 +4498,18 @@ bool wxGTKInputHandler::HandleMouseMove(wxInputConsumer *control,
 {
     if ( event.Entering() )
     {
-        control->GetInputWindow()->SetCurrent(TRUE);
+        control->GetInputWindow()->SetCurrent(true);
     }
     else if ( event.Leaving() )
     {
-        control->GetInputWindow()->SetCurrent(FALSE);
+        control->GetInputWindow()->SetCurrent(false);
     }
     else
     {
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
 }
 
 // ----------------------------------------------------------------------------
@@ -4526,11 +4527,11 @@ bool wxGTKCheckboxInputHandler::HandleKey(wxInputConsumer *control,
         {
             control->PerformAction(wxACTION_CHECKBOX_TOGGLE);
 
-            return TRUE;
+            return true;
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -4620,7 +4621,7 @@ bool wxGTKTextCtrlInputHandler::HandleKey(wxInputConsumer *control,
         {
             control->PerformAction(action);
 
-            return TRUE;
+            return true;
         }
     }
 

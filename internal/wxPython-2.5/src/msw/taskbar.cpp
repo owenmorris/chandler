@@ -51,7 +51,7 @@ UINT   gs_msgTaskbar = 0;
 UINT   gs_msgRestartTaskbar = 0;
 
 #if WXWIN_COMPATIBILITY_2_4
-BEGIN_EVENT_TABLE(wxTaskBarIcon, wxEvtHandler)
+BEGIN_EVENT_TABLE(wxTaskBarIcon, wxTaskBarIconBase)
     EVT_TASKBAR_MOVE         (wxTaskBarIcon::_OnMouseMove)
     EVT_TASKBAR_LEFT_DOWN    (wxTaskBarIcon::_OnLButtonDown)
     EVT_TASKBAR_LEFT_UP      (wxTaskBarIcon::_OnLButtonUp)
@@ -81,11 +81,11 @@ class wxTaskBarIconWindow : public wxFrame
 {
 public:
     wxTaskBarIconWindow(wxTaskBarIcon *icon)
-        : wxFrame(NULL, -1, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0),
+        : wxFrame(NULL, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0),
           m_icon(icon)
     {
     }
-    
+
     WXLRESULT MSWWindowProc(WXUINT msg,
                             WXWPARAM wParam, WXLPARAM lParam)
     {
@@ -103,7 +103,7 @@ private:
     wxTaskBarIcon *m_icon;
 };
 
-    
+
 // ----------------------------------------------------------------------------
 // NotifyIconData: wrapper around NOTIFYICONDATA
 // ----------------------------------------------------------------------------
@@ -209,7 +209,7 @@ bool wxTaskBarIcon::PopupMenu(wxMenu *menu)
     wxGetMousePosition(&x, &y);
 
     m_win->Move(x, y);
-    
+
     m_win->PushEventHandler(this);
 
     menu->UpdateUI();
@@ -231,21 +231,28 @@ bool wxTaskBarIcon::PopupMenu(wxMenu *menu)
 
 #if WXWIN_COMPATIBILITY_2_4
 // Overridables
-void wxTaskBarIcon::OnMouseMove(wxEvent&)         {}
-void wxTaskBarIcon::OnLButtonDown(wxEvent&)       {}
-void wxTaskBarIcon::OnLButtonUp(wxEvent&)         {}
-void wxTaskBarIcon::OnRButtonDown(wxEvent&)       {}
-void wxTaskBarIcon::OnRButtonUp(wxEvent&)         {}
-void wxTaskBarIcon::OnLButtonDClick(wxEvent&)     {}
-void wxTaskBarIcon::OnRButtonDClick(wxEvent&)     {}
+void wxTaskBarIcon::OnMouseMove(wxEvent& e)         { e.Skip(); }
+void wxTaskBarIcon::OnLButtonDown(wxEvent& e)       { e.Skip(); }
+void wxTaskBarIcon::OnLButtonUp(wxEvent& e)         { e.Skip(); }
+void wxTaskBarIcon::OnRButtonDown(wxEvent& e)       { e.Skip(); }
+void wxTaskBarIcon::OnRButtonUp(wxEvent& e)         { e.Skip(); }
+void wxTaskBarIcon::OnLButtonDClick(wxEvent& e)     { e.Skip(); }
+void wxTaskBarIcon::OnRButtonDClick(wxEvent& e)     { e.Skip(); }
 
-void wxTaskBarIcon::_OnMouseMove(wxEvent& e)      { OnMouseMove(e);     }
-void wxTaskBarIcon::_OnLButtonDown(wxEvent& e)    { OnLButtonDown(e);   }
-void wxTaskBarIcon::_OnLButtonUp(wxEvent& e)      { OnLButtonUp(e);     }
-void wxTaskBarIcon::_OnRButtonDown(wxEvent& e)    { OnRButtonDown(e);   }
-void wxTaskBarIcon::_OnRButtonUp(wxEvent& e)      { OnRButtonUp(e);     }
-void wxTaskBarIcon::_OnLButtonDClick(wxEvent& e)  { OnLButtonDClick(e); }
-void wxTaskBarIcon::_OnRButtonDClick(wxEvent& e)  { OnRButtonDClick(e); }
+void wxTaskBarIcon::_OnMouseMove(wxTaskBarIconEvent& e)
+    { OnMouseMove(e);     }
+void wxTaskBarIcon::_OnLButtonDown(wxTaskBarIconEvent& e)
+    { OnLButtonDown(e);   }
+void wxTaskBarIcon::_OnLButtonUp(wxTaskBarIconEvent& e)
+    { OnLButtonUp(e);     }
+void wxTaskBarIcon::_OnRButtonDown(wxTaskBarIconEvent& e)
+    { OnRButtonDown(e);   }
+void wxTaskBarIcon::_OnRButtonUp(wxTaskBarIconEvent& e)
+    { OnRButtonUp(e);     }
+void wxTaskBarIcon::_OnLButtonDClick(wxTaskBarIconEvent& e)
+    { OnLButtonDClick(e); }
+void wxTaskBarIcon::_OnRButtonDClick(wxTaskBarIconEvent& e)
+    { OnRButtonDClick(e); }
 #endif
 
 void wxTaskBarIcon::RegisterWindowMessages()
@@ -253,7 +260,7 @@ void wxTaskBarIcon::RegisterWindowMessages()
     static bool s_registered = false;
 
     if ( !s_registered )
-    {   
+    {
         // Taskbar restart msg will be sent to us if the icon needs to be redrawn
         gs_msgRestartTaskbar = RegisterWindowMessage(wxT("TaskbarCreated"));
 

@@ -47,7 +47,7 @@ wxBEGIN_FLAGS( wxBitmapButtonStyle )
     wxFLAGS_MEMBER(wxBORDER_RAISED)
     wxFLAGS_MEMBER(wxBORDER_STATIC)
     wxFLAGS_MEMBER(wxBORDER_NONE)
-    
+
     // old style border flags
     wxFLAGS_MEMBER(wxSIMPLE_BORDER)
     wxFLAGS_MEMBER(wxSUNKEN_BORDER)
@@ -76,7 +76,7 @@ wxEND_FLAGS( wxBitmapButtonStyle )
 IMPLEMENT_DYNAMIC_CLASS_XTI(wxBitmapButton, wxButton,"wx/bmpbuttn.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxBitmapButton)
-    wxPROPERTY_FLAGS( WindowStyle , wxBitmapButtonStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
+    wxPROPERTY_FLAGS( WindowStyle , wxBitmapButtonStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , EMPTY_MACROVALUE, 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
 wxEND_PROPERTIES_TABLE()
 
 wxBEGIN_HANDLERS_TABLE(wxBitmapButton)
@@ -126,24 +126,10 @@ bool wxBitmapButton::Create(wxWindow *parent, wxWindowID id,
         m_marginY = wxDEFAULT_BUTTON_MARGIN;
     }
 
-    int x = pos.x;
-    int y = pos.y;
-    int width = size.x;
-    int height = size.y;
-
-    if (id == -1)
+    if (id == wxID_ANY)
         m_windowId = NewControlId();
     else
         m_windowId = id;
-
-    if ( bitmap.Ok() )
-    {
-        wxSize newSize = DoGetBestSize();
-        if ( width == -1 )
-            width = newSize.x;
-        if ( height == -1 )
-            height = newSize.y;
-    }
 
     long msStyle = WS_VISIBLE | WS_TABSTOP | WS_CHILD | BS_OWNERDRAW ;
 
@@ -176,9 +162,8 @@ bool wxBitmapButton::Create(wxWindow *parent, wxWindowID id,
     // Subclass again for purposes of dialog editing mode
     SubclassWin(m_hWnd);
 
-    SetFont(parent->GetFont());
-
-    SetSize(x, y, width, height);
+    SetPosition(pos);
+    SetBestSize(size);
 
     return true;
 }

@@ -126,23 +126,9 @@ bool wxSpinCtrl::Create(wxWindow *parent, wxWindowID id,
     
     m_parent->DoAddChild( this );
 
-    PostCreation();
-    InheritAttributes();
-
-    wxSize size_best( DoGetBestSize() );
-    wxSize new_size( size );
-    if (new_size.x == -1)
-        new_size.x = size_best.x;
-    if (new_size.y == -1)
-        new_size.y = size_best.y;
-    if (new_size.y > size_best.y)
-        new_size.y = size_best.y;
-    if ((new_size.x != size.x) || (new_size.y != size.y))
-        SetSize( new_size.x, new_size.y );
+    PostCreation(size);
 
     SetValue( value );
-
-    Show( TRUE );
 
     return TRUE;
 }
@@ -230,7 +216,7 @@ void wxSpinCtrl::SetValue( int value )
 
 void wxSpinCtrl::SetSelection(long from, long to)
 {
-    // translate from wxWindows conventions to GTK+ ones: (-1, -1) means the
+    // translate from wxWidgets conventions to GTK+ ones: (-1, -1) means the
     // entire range
     if ( from == -1 && to == -1 )
     {
@@ -312,16 +298,21 @@ bool wxSpinCtrl::IsOwnGtkWindow( GdkWindow *window )
     return FALSE;
 }
 
-void wxSpinCtrl::ApplyWidgetStyle()
-{
-    SetWidgetStyle();
-    gtk_widget_set_style( m_widget, m_widgetStyle );
-}
-
 wxSize wxSpinCtrl::DoGetBestSize() const
 {
     wxSize ret( wxControl::DoGetBestSize() );
-    return wxSize(95, ret.y);
+    wxSize best(95, ret.y);
+    CacheBestSize(best);
+    return best;
+}
+
+// static
+wxVisualAttributes
+wxSpinCtrl::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    // TODO: overload to accept functions like gtk_spin_button_new?
+    // Until then use a similar type
+    return GetDefaultAttributesFromGTKWidget(gtk_entry_new, true);
 }
 
 #endif

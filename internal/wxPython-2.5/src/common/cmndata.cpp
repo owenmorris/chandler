@@ -51,7 +51,7 @@
     #include <windowsx.h>
     #include "wx/msw/private.h"
 
-    #if defined(__WXWINCE__) && !wxUSE_SMARTPHONE
+    #ifndef __SMARTPHONE__
         #include <commdlg.h>
     #endif
 
@@ -88,12 +88,9 @@
 
 wxColourData::wxColourData()
 {
-    int i;
-    for (i = 0; i < 16; i++)
-        m_custColours[i].Set(255, 255, 255);
-
-    m_chooseFull = FALSE;
+    m_chooseFull = false;
     m_dataColour.Set(0,0,0);
+    // m_custColours are wxNullColours initially
 }
 
 wxColourData::wxColourData(const wxColourData& data)
@@ -108,16 +105,15 @@ wxColourData::~wxColourData()
 
 void wxColourData::SetCustomColour(int i, const wxColour& colour)
 {
-    if (i > 15 || i < 0)
-        return;
+    wxCHECK_RET( (i >= 0 && i < 16), _T("custom colour index out of range") );
 
     m_custColours[i] = colour;
 }
 
 wxColour wxColourData::GetCustomColour(int i)
 {
-    if (i > 15 || i < 0)
-        return wxColour(0,0,0);
+    wxCHECK_MSG( (i >= 0 && i < 16), wxColour(0,0,0),
+                 _T("custom colour index out of range") );
 
     return m_custColours[i];
 }
@@ -141,9 +137,9 @@ wxFontData::wxFontData()
     // Intialize colour to black.
     m_fontColour = wxNullColour;
 
-    m_showHelp = FALSE;
-    m_allowSymbols = TRUE;
-    m_enableEffects = TRUE;
+    m_showHelp = false;
+    m_allowSymbols = true;
+    m_enableEffects = true;
     m_minSize = 0;
     m_maxSize = 0;
 
@@ -177,11 +173,11 @@ wxPrintData::wxPrintData()
 #endif
     m_printOrientation = wxPORTRAIT;
     m_printNoCopies = 1;
-    m_printCollate = FALSE;
+    m_printCollate = false;
 
     // New, 24/3/99
     m_printerName = wxT("");
-    m_colour = TRUE;
+    m_colour = true;
     m_duplexMode = wxDUPLEX_SIMPLEX;
     m_printQuality = wxPRINT_QUALITY_HIGH;
     m_paperId = wxPAPER_A4;
@@ -390,10 +386,8 @@ void wxPrintData::ConvertToNative()
 
         //// Collation
 
-#ifndef __WIN16__
         devMode->dmCollate = (m_printCollate ? DMCOLLATE_TRUE : DMCOLLATE_FALSE);
         devMode->dmFields |= DM_COLLATE;
-#endif
 
         //// Number of copies
 
@@ -516,15 +510,13 @@ void wxPrintData::ConvertFromNative()
 
         //// Collation
 
-#ifndef __WIN16__
         if (devMode->dmFields & DM_COLLATE)
         {
             if (devMode->dmCollate == DMCOLLATE_TRUE)
-                m_printCollate = TRUE;
+                m_printCollate = true;
             else
-                m_printCollate = FALSE;
+                m_printCollate = false;
         }
-#endif
 
         //// Number of copies
 
@@ -545,12 +537,12 @@ void wxPrintData::ConvertFromNative()
         if (devMode->dmFields & DM_COLOR)
         {
             if (devMode->dmColor == DMCOLOR_COLOR)
-                m_colour = TRUE;
+                m_colour = true;
             else
-                m_colour = FALSE;
+                m_colour = false;
         }
         else
-            m_colour = TRUE;
+            m_colour = true;
 
         //// Paper size
 
@@ -740,7 +732,7 @@ bool wxPrintData::Ok() const
     ((wxPrintData*)this)->ConvertToNative();
     return (m_devMode != NULL) ;
 #else
-    return TRUE;
+    return true;
 #endif
 }
 
@@ -758,15 +750,15 @@ wxPrintDialogData::wxPrintDialogData()
     m_printMinPage = 0;
     m_printMaxPage = 0;
     m_printNoCopies = 1;
-    m_printAllPages = FALSE;
-    m_printCollate = FALSE;
-    m_printToFile = FALSE;
-    m_printSelection = FALSE;
-    m_printEnableSelection = FALSE;
-    m_printEnablePageNumbers = TRUE;
-    m_printEnablePrintToFile = TRUE;
-    m_printEnableHelp = FALSE;
-    m_printSetupDialog = FALSE;
+    m_printAllPages = false;
+    m_printCollate = false;
+    m_printToFile = false;
+    m_printSelection = false;
+    m_printEnableSelection = false;
+    m_printEnablePageNumbers = true;
+    m_printEnablePrintToFile = true;
+    m_printEnableHelp = false;
+    m_printSetupDialog = false;
 }
 
 wxPrintDialogData::wxPrintDialogData(const wxPrintDialogData& dialogData)
@@ -788,15 +780,15 @@ wxPrintDialogData::wxPrintDialogData(const wxPrintData& printData)
     m_printMinPage = 1;
     m_printMaxPage = 9999;
     m_printNoCopies = 1;
-    m_printAllPages = FALSE;
-    m_printCollate = FALSE;
-    m_printToFile = FALSE;
-    m_printSelection = FALSE;
-    m_printEnableSelection = FALSE;
-    m_printEnablePageNumbers = TRUE;
-    m_printEnablePrintToFile = TRUE;
-    m_printEnableHelp = FALSE;
-    m_printSetupDialog = FALSE;
+    m_printAllPages = false;
+    m_printCollate = false;
+    m_printToFile = false;
+    m_printSelection = false;
+    m_printEnableSelection = false;
+    m_printEnablePageNumbers = true;
+    m_printEnablePrintToFile = true;
+    m_printEnableHelp = false;
+    m_printSetupDialog = false;
 
     m_printData = printData;
 }
@@ -943,7 +935,7 @@ void wxPrintDialogData::ConvertFromNative()
     }
 
     // Now convert the DEVMODE object, passed down from the PRINTDLG object,
-    // into wxWindows form.
+    // into wxWidgets form.
     m_printData.ConvertFromNative();
 
     m_printFromPage = pd->nFromPage;
@@ -1052,13 +1044,13 @@ wxPageSetupDialogData::wxPageSetupDialogData()
     m_marginBottomRight = wxPoint(0, 0);
 
     // Flags
-    m_defaultMinMargins = FALSE;
-    m_enableMargins = TRUE;
-    m_enableOrientation = TRUE;
-    m_enablePaper = TRUE;
-    m_enablePrinter = TRUE;
-    m_enableHelp = FALSE;
-    m_getDefaultInfo = FALSE;
+    m_defaultMinMargins = false;
+    m_enableMargins = true;
+    m_enableOrientation = true;
+    m_enablePaper = true;
+    m_enablePrinter = true;
+    m_enableHelp = false;
+    m_getDefaultInfo = false;
 }
 
 wxPageSetupDialogData::wxPageSetupDialogData(const wxPageSetupDialogData& dialogData)
@@ -1082,13 +1074,13 @@ wxPageSetupDialogData::wxPageSetupDialogData(const wxPrintData& printData)
     m_marginBottomRight = wxPoint(0, 0);
 
     // Flags
-    m_defaultMinMargins = FALSE;
-    m_enableMargins = TRUE;
-    m_enableOrientation = TRUE;
-    m_enablePaper = TRUE;
-    m_enablePrinter = TRUE;
-    m_enableHelp = FALSE;
-    m_getDefaultInfo = FALSE;
+    m_defaultMinMargins = false;
+    m_enableMargins = true;
+    m_enableOrientation = true;
+    m_enablePaper = true;
+    m_enablePrinter = true;
+    m_enableHelp = false;
+    m_getDefaultInfo = false;
 
     m_printData = printData;
 

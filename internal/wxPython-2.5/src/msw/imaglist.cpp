@@ -85,15 +85,16 @@ bool wxImageList::Create(int width, int height, bool mask, int initial)
     UINT flags = 0;
 
     // set appropriate color depth
-    int dd = wxDisplayDepth();
 #ifdef __WXWINCE__
     flags |= ILC_COLOR;
 #else
-    if (dd <= 4)       flags |= ILC_COLOR;	// 16 color
-    else if (dd <= 8)  flags |= ILC_COLOR8;	// 256 color
-    else if (dd <= 16) flags |= ILC_COLOR16;	// 64k hi-color
-    else if (dd <= 24) flags |= ILC_COLOR24;	// 16m truecolor
-    else if (dd <= 32) flags |= ILC_COLOR32;	// 16m truecolor
+    int dd = wxDisplayDepth();
+
+    if (dd <= 4)       flags |= ILC_COLOR;   // 16 color
+    else if (dd <= 8)  flags |= ILC_COLOR8;  // 256 color
+    else if (dd <= 16) flags |= ILC_COLOR16; // 64k hi-color
+    else if (dd <= 24) flags |= ILC_COLOR24; // 16m truecolor
+    else if (dd <= 32) flags |= ILC_COLOR32; // 16m truecolor
 #endif
 
     if ( mask )
@@ -245,11 +246,11 @@ bool wxImageList::RemoveAll()
         (void)Remove(0);
     }
 
-    return TRUE;
+    return true;
 }
 
 // Draws the given image on a dc at the specified position.
-// If 'solidBackground' is TRUE, Draw sets the image list background
+// If 'solidBackground' is true, Draw sets the image list background
 // colour to the background colour of the wxDC, to speed up
 // drawing by eliminating masked drawing where possible.
 bool wxImageList::Draw(int index,
@@ -259,15 +260,15 @@ bool wxImageList::Draw(int index,
                        bool solidBackground)
 {
     HDC hDC = GetHdcOf(dc);
-    wxCHECK_MSG( hDC, FALSE, _T("invalid wxDC in wxImageList::Draw") );
+    wxCHECK_MSG( hDC, false, _T("invalid wxDC in wxImageList::Draw") );
 
     COLORREF clr = CLR_NONE;    // transparent by default
     if ( solidBackground )
     {
-        wxBrush *brush = & dc.GetBackground();
-        if ( brush && brush->Ok() )
+        const wxBrush& brush = dc.GetBackground();
+        if ( brush.Ok() )
         {
-            clr = wxColourToRGB(brush->GetColour());
+            clr = wxColourToRGB(brush.GetColour());
         }
     }
 
@@ -300,7 +301,7 @@ static HBITMAP GetMaskForImage(const wxBitmap& bitmap, const wxBitmap& mask)
 {
     HBITMAP hbmpMask;
     wxMask *pMask;
-    bool deleteMask = FALSE;
+    bool deleteMask = false;
 
     if ( mask.Ok() )
     {
@@ -321,13 +322,13 @@ static HBITMAP GetMaskForImage(const wxBitmap& bitmap, const wxBitmap& mask)
 
             pMask = new wxMask(bitmap, col);
 
-            deleteMask = TRUE;
+            deleteMask = true;
         }
 
         hbmpMask = (HBITMAP)pMask->GetMaskBitmap();
     }
 
-    // windows mask convention is opposite to the wxWindows one
+    // windows mask convention is opposite to the wxWidgets one
     HBITMAP hbmpMaskInv = wxInvertMask(hbmpMask);
 
     if ( deleteMask )

@@ -72,69 +72,14 @@ public:
         m_image = -1;
         m_page = (GtkNotebookPage *) NULL;
         m_box = (GtkWidget *) NULL;
-        m_labelStyle = (GtkStyle*) NULL;
     }
     
-    ~wxGtkNotebookPage()
-    {
-        if (m_labelStyle)
-            gtk_style_unref( m_labelStyle );
-    }
-    
-    bool SetFont(const wxFont& font);
-
     wxString           m_text;
     int                m_image;
     GtkNotebookPage   *m_page;
     GtkLabel          *m_label;
     GtkWidget         *m_box;     // in which the label and image are packed
-    GtkStyle          *m_labelStyle;
 };
-
-
-bool wxGtkNotebookPage::SetFont(const wxFont& font)
-{
-    if (!m_label)
-		return false;
-
-    if (m_labelStyle)
-    {
-        GtkStyle *remake = gtk_style_copy( m_labelStyle );
-
-#ifndef __WXGTK20__
-        remake->klass = m_labelStyle->klass;
-#endif
-
-        gtk_style_unref( m_labelStyle );
-        m_labelStyle = remake;
-    }
-    else
-    {
-        GtkStyle *def = gtk_rc_get_style( GTK_WIDGET(m_label) );
-
-        if (!def)
-            def = gtk_widget_get_default_style();
-
-        m_labelStyle = gtk_style_copy( def );
-
-        // FIXME: no more klass in 2.0
-#ifndef __WXGTK20__
-        m_labelStyle->klass = def->klass;
-#endif
-    }
-
-#ifdef __WXGTK20__
-	pango_font_description_free( m_labelStyle->font_desc );
-	m_labelStyle->font_desc = pango_font_description_copy( font.GetNativeFontInfo()->description );
-#else
-	gdk_font_unref( m_labelStyle->font );
-	m_labelStyle->font = gdk_font_ref( font.GetInternalFont( 1.0 ) );
-#endif
-
-    gtk_widget_set_style( GTK_WIDGET(m_label), m_labelStyle );
-
-	return true;
-}
 
 
 #include "wx/listimpl.cpp"
@@ -284,12 +229,19 @@ static gint gtk_notebook_key_press_callback( GtkWidget *widget, GdkEventKey *gdk
 
 static void wxInsertChildInNotebook( wxNotebook* parent, wxWindow* child )
 {
-    // Hack alert! We manually set the child window
-    // parent field so that GTK can query the 
-    // notebook's style and font. Without that, GetBestSize could return
-    // incorrect size, see bug #901694 for details
+    // Hack Alert! (Part I): This sets the notebook as the parent of the child
+    // widget, and takes care of some details such as updating the state and
+    // style of the child to reflect its new location.  We do this early
+    // because without it GetBestSize (which is used to set the initial size
+    // of controls if an explicit size is not given) will often report
+    // incorrect sizes since the widget's style context is not fully known.
+    // See bug #901694 for details
     // (http://sourceforge.net/tracker/?func=detail&aid=901694&group_id=9863&atid=109863)
-    child->m_widget->parent = parent->m_widget;
+    gtk_widget_set_parent(child->m_widget, parent->m_widget);
+
+    // NOTE: This should be considered a temporary workaround until we can
+    // work out the details and implement delaying the setting of the initial
+    // size of widgets until the size is really needed.
 }
 
 //-----------------------------------------------------------------------------
@@ -365,14 +317,10 @@ bool wxNotebook::Create(wxWindow *parent, wxWindowID id,
     gtk_signal_connect( GTK_OBJECT(m_widget), "key_press_event",
       GTK_SIGNAL_FUNC(gtk_notebook_key_press_callback), (gpointer)this );
 
-    PostCreation();
-
-    SetFont( parent->GetFont() );
+    PostCreation(size);
 
     gtk_signal_connect( GTK_OBJECT(m_widget), "realize",
                             GTK_SIGNAL_FUNC(gtk_notebook_realized_callback), (gpointer) this );
-
-    Show( TRUE );
 
     return TRUE;
 }
@@ -597,23 +545,18 @@ bool wxNotebook::DeleteAllPages()
 
     wxASSERT_MSG( GetPageCount() == 0, _T("all pages must have been deleted") );
 
+    InvalidateBestSize();
     return wxNotebookBase::DeleteAllPages();
 }
 
-bool wxNotebook::DeletePage( size_t page )
+wxNotebookPage *wxNotebook::DoRemovePage( size_t page )
 {
-    if ( m_selection == (int)m_pagesData.GetCount() - 1 )
+    if ( m_selection != -1 && (size_t)m_selection >= page )
     {
         // the index will become invalid after the page is deleted
         m_selection = -1;
     }
 
-    // it will call our DoRemovePage() to do the real work
-    return wxNotebookBase::DeletePage(page);
-}
-
-wxNotebookPage *wxNotebook::DoRemovePage( size_t page )
-{
     wxNotebookPage *client = wxNotebookBase::DoRemovePage(page);
     if ( !client )
         return NULL;
@@ -654,8 +597,11 @@ bool wxNotebook::InsertPage( size_t position,
     wxCHECK_MSG( position <= GetPageCount(), FALSE,
                  _T("invalid page index in wxNotebookPage::InsertPage()") );
 
-    // Hack alert part II! See above in InsertChildInNotebook
-    // callback why this has to be done.
+    // Hack Alert! (Part II): See above in wxInsertChildInNotebook callback
+    // why this has to be done.  NOTE: using gtk_widget_unparent here does not
+    // work as it seems to undo too much and will cause errors in the
+    // gtk_notebook_insert_page below, so instead just clear the parent by
+    // hand here.
     win->m_widget->parent = NULL;
 
     // don't receive switch page during addition
@@ -720,9 +666,16 @@ bool wxNotebook::InsertPage( size_t position,
     if (nb_page->m_text.IsEmpty()) nb_page->m_text = wxT("");
 
     nb_page->m_label = GTK_LABEL( gtk_label_new(wxGTK_CONV(nb_page->m_text)) );
-	nb_page->SetFont(GetFont());
     gtk_box_pack_end( GTK_BOX(nb_page->m_box), GTK_WIDGET(nb_page->m_label), FALSE, FALSE, m_padding );
 
+    /* apply current style */
+    GtkRcStyle *style = CreateWidgetStyle();
+    if ( style )
+    {
+        gtk_widget_modify_style(GTK_WIDGET(nb_page->m_label), style);
+        gtk_rc_style_unref(style);
+    }    
+    
     /* show the label */
     gtk_widget_show( GTK_WIDGET(nb_page->m_label) );
     if (select && (m_pagesData.GetCount() > 1))
@@ -739,6 +692,7 @@ bool wxNotebook::InsertPage( size_t position,
     gtk_signal_connect( GTK_OBJECT(m_widget), "switch_page",
       GTK_SIGNAL_FUNC(gtk_notebook_page_change_callback), (gpointer)this );
 
+    InvalidateBestSize();
     return TRUE;
 }
 
@@ -841,12 +795,12 @@ bool wxNotebook::DoPhase( int WXUNUSED(nPhase) )
 
 #endif
 
-void wxNotebook::ApplyWidgetStyle()
+void wxNotebook::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    // TODO, font for labels etc
-
-    SetWidgetStyle();
-    gtk_widget_set_style( m_widget, m_widgetStyle );
+    gtk_widget_modify_style(m_widget, style);
+    size_t cnt = m_pagesData.GetCount();
+    for (size_t i = 0; i < cnt; i++)
+        gtk_widget_modify_style(GTK_WIDGET(GetNotebookPage(i)->m_label), style);
 }
 
 bool wxNotebook::IsOwnGtkWindow( GdkWindow *window )
@@ -855,17 +809,11 @@ bool wxNotebook::IsOwnGtkWindow( GdkWindow *window )
             (NOTEBOOK_PANEL(m_widget) == window));
 }
 
-bool  wxNotebook::SetFont(const wxFont& font)
+// static
+wxVisualAttributes
+wxNotebook::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 {
-	bool rc=wxNotebookBase::SetFont(font);
-
-	if (rc)
-	{
-		size_t i;
-		for (i=0 ; i < m_pagesData.GetCount() ; i++)
-			GetNotebookPage(i)->SetFont(font);
-	}
-	return rc;
+    return GetDefaultAttributesFromGTKWidget(gtk_notebook_new);
 }
 
 //-----------------------------------------------------------------------------

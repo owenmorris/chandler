@@ -34,11 +34,6 @@
 
 #include "wx/msw/private.h"
 
-// Don't implement WinMain if we're building an MFC/wxWindows hybrid app.
-#if wxUSE_MFC && !defined(NOMAIN)
-    #define NOMAIN 1
-#endif
-
 #ifdef __BORLANDC__
     // BC++ has to be special: its run-time expects the DLL entry point to be
     // named DllEntryPoint instead of the (more) standard DllMain
@@ -61,7 +56,7 @@
 
 WXDLLEXPORT int wxEntry(HINSTANCE hInstance,
                         HINSTANCE WXUNUSED(hPrevInstance),
-                        char * WXUNUSED(pCmdLine),
+                        wxCmdLineArgType WXUNUSED(pCmdLine),
                         int nCmdShow)
 {
     // remember the parameters Windows gave us
@@ -107,7 +102,7 @@ extern "C"
 // ----------------------------------------------------------------------------
 
 // Note that WinMain is also defined in dummy.obj, which is linked to
-// an application that is using the DLL version of wxWindows.
+// an application that is using the DLL version of wxWidgets.
 
 #if defined(_WINDLL)
 
@@ -117,7 +112,7 @@ BOOL WINAPI
 DllMain(HANDLE hModule, DWORD fdwReason, LPVOID WXUNUSED(lpReserved))
 {
     // Only call wxEntry if the application itself is part of the DLL.
-    // If only the wxWindows library is in the DLL, then the
+    // If only the wxWidgets library is in the DLL, then the
     // initialisation will be called when the application implicitly
     // calls WinMain.
 #ifndef WXMAKINGDLL
@@ -131,8 +126,8 @@ DllMain(HANDLE hModule, DWORD fdwReason, LPVOID WXUNUSED(lpReserved))
             break;
     }
 #else
-	(void)hModule;
-	(void)fdwReason;
+    (void)hModule;
+    (void)fdwReason;
 #endif // !WXMAKINGDLL
 
     return TRUE;

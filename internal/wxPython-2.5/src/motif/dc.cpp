@@ -13,6 +13,9 @@
     #pragma implementation "dc.h"
 #endif
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
 #include "wx/dc.h"
 #include "wx/dcmemory.h"
 #include "wx/defs.h"
@@ -85,11 +88,6 @@ void wxDC::DoSetClippingRegion( wxCoord x, wxCoord y, wxCoord width, wxCoord hei
     m_clipY1 = y;
     m_clipX2 = x + width;
     m_clipY2 = y + height;
-}
-
-void wxDC::DestroyClippingRegion()
-{
-    m_clipping = FALSE;
 }
 
 void wxDC::DoGetSize( int* width, int* height ) const

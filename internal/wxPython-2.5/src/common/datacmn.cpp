@@ -1,11 +1,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Name:        common/datacmn.cpp
-// Purpose:     contains definitions of various global wxWindows variables
+// Purpose:     contains definitions of various global wxWidgets variables
 // Author:      Vadim Zeitlin
 // Modified by:
 // Created:     10.04.03 (from src/*/data.cpp files)
 // RCS-ID:      $Id$
-// Copyright:   (c) 1997-2002 wxWindows development team
+// Copyright:   (c) 1997-2002 wxWidgets development team
 // License:     wxWindows license
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -155,6 +155,6 @@ WXDLLEXPORT_DATA(const wxChar *) wxUserResourceStr = wxT("TEXT");
 #endif
 
 
-const wxSize wxDefaultSize(-1, -1);
-const wxPoint wxDefaultPosition(-1, -1);
+const wxSize wxDefaultSize(wxDefaultCoord, wxDefaultCoord);
+const wxPoint wxDefaultPosition(wxDefaultCoord, wxDefaultCoord);
 

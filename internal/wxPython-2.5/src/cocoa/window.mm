@@ -6,7 +6,7 @@
 // Created:     2002/12/26
 // RCS-ID:      $Id:
 // Copyright:   (c) 2002 David Elliott
-// Licence:   	wxWindows license
+// Licence:   	wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
@@ -22,6 +22,9 @@
 #import <AppKit/NSScrollView.h>
 #import <AppKit/NSColor.h>
 #import <AppKit/NSClipView.h>
+#import <Foundation/NSException.h>
+
+#include <objc/objc-runtime.h>
 
 // Turn this on to paint green over the dummy views for debugging
 #undef WXCOCOA_FILL_DUMMY_VIEW
@@ -147,6 +150,7 @@ bool wxWindowCocoaHider::Cocoa_drawRect(const NSRect& rect)
 wxWindowCocoaScroller::wxWindowCocoaScroller(wxWindow *owner)
 :   m_owner(owner)
 {
+    wxAutoNSAutoreleasePool pool;
     wxASSERT(owner);
     wxASSERT(owner->GetNSView());
     m_cocoaNSScrollView = [[NSScrollView alloc]
@@ -279,12 +283,14 @@ wxWindow::~wxWindow()
     wxAutoNSAutoreleasePool pool;
     DestroyChildren();
 
-    // Make sure our parent (in the wxWindows sense) is our superview
+    // Make sure our parent (in the wxWidgets sense) is our superview
     // before we go removing from it.
     if(m_parent && m_parent->GetNSView()==[GetNSViewForSuperview() superview])
         CocoaRemoveFromParent();
     delete m_cocoaHider;
     delete m_cocoaScroller;
+    if(m_cocoaNSView)
+        SendDestroyEvent();
     SetNSView(NULL);
 }
 
@@ -304,10 +310,6 @@ void wxWindowCocoa::CocoaRemoveFromParent(void)
 
 void wxWindowCocoa::SetNSView(WX_NSView cocoaNSView)
 {
-    // Assume setting the NSView to NULL means this wxWindow is being destroyed
-    if(m_cocoaNSView && !cocoaNSView)
-        SendDestroyEvent();
-
     bool need_debug = cocoaNSView || m_cocoaNSView;
     if(need_debug) wxLogTrace(wxTRACE_COCOA_RetainRelease,wxT("wxWindowCocoa=%p::SetNSView [m_cocoaNSView=%p retainCount]=%d"),this,m_cocoaNSView,[m_cocoaNSView retainCount]);
     DisassociateNSView(m_cocoaNSView);
@@ -345,8 +347,21 @@ bool wxWindowCocoa::Cocoa_drawRect(const NSRect &rect)
         wxLogDebug(wxT("Paint event recursion!"));
         return false;
     }
-    //FIXME: should probably turn that rect into the update region
     m_isInPaint = TRUE;
+
+    // Set m_updateRegion
+    const NSRect *rects = &rect; // The bounding box of the region
+    int countRects = 1;
+    // Try replacing the larger rectangle with a list of smaller ones:
+NS_DURING
+    // This only works on Panther
+//    [GetNSView() getRectsBeingDrawn:&rects count:&countRects];
+    // This compiles everywhere (and still only works on Panther)
+    objc_msgSend(GetNSView(),@selector(getRectsBeingDrawn:count:),&rects,&countRects);
+NS_HANDLER
+NS_ENDHANDLER
+    m_updateRegion = wxRegion(rects,countRects);
+
     wxPaintEvent event(m_windowId);
     event.SetEventObject(this);
     bool ret = GetEventHandler()->ProcessEvent(event);
@@ -545,7 +560,7 @@ bool wxWindow::Show(bool show)
 
 void wxWindowCocoa::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {
-    wxLogTrace(wxTRACE_COCOA_Window_Size,"wxWindow=%p::DoSetSizeWindow(%d,%d,%d,%d,Auto: %s%s)",this,x,y,width,height,(sizeFlags&wxSIZE_AUTO_WIDTH)?"W":".",sizeFlags&wxSIZE_AUTO_HEIGHT?"H":".");
+    wxLogTrace(wxTRACE_COCOA_Window_Size,wxT("wxWindow=%p::DoSetSizeWindow(%d,%d,%d,%d,Auto: %s%s)"),this,x,y,width,height,(sizeFlags&wxSIZE_AUTO_WIDTH)?"W":".",sizeFlags&wxSIZE_AUTO_HEIGHT?"H":".");
     int currentX, currentY;
     int currentW, currentH;
     DoGetPosition(&currentX, &currentY);
@@ -586,7 +601,7 @@ void wxWindowCocoa::DoSetSize(int x, int y, int width, int height, int sizeFlags
 void wxWindowCocoa::DoMoveWindow(int x, int y, int width, int height)
 {
     wxAutoNSAutoreleasePool pool;
-    wxLogTrace(wxTRACE_COCOA_Window_Size,"wxWindow=%p::DoMoveWindow(%d,%d,%d,%d)",this,x,y,width,height);
+    wxLogTrace(wxTRACE_COCOA_Window_Size,wxT("wxWindow=%p::DoMoveWindow(%d,%d,%d,%d)"),this,x,y,width,height);
 
     NSView *nsview = GetNSViewForSuperview();
     NSView *superview = [nsview superview];
@@ -614,7 +629,7 @@ void wxWindowCocoa::SetInitialFrameRect(const wxPoint& pos, const wxSize& size)
     frameRect.origin.y = parentRect.size.height-(pos.y+frameRect.size.height);
     // Tell Cocoa to change the margin between the bottom of the superview
     // and the bottom of the control.  Keeps the control pinned to the top
-    // of its superview so that its position in the wxWindows coordinate
+    // of its superview so that its position in the wxWidgets coordinate
     // system doesn't change.
     if(![superview isFlipped])
         [nsview setAutoresizingMask: NSViewMinYMargin];
@@ -631,7 +646,7 @@ void wxWindow::DoGetSize(int *w, int *h) const
         *w=(int)cocoaRect.size.width;
     if(h)
         *h=(int)cocoaRect.size.height;
-    wxLogTrace(wxTRACE_COCOA_Window_Size,"wxWindow=%p::DoGetSize = (%d,%d)",this,(int)cocoaRect.size.width,(int)cocoaRect.size.height);
+    wxLogTrace(wxTRACE_COCOA_Window_Size,wxT("wxWindow=%p::DoGetSize = (%d,%d)"),this,(int)cocoaRect.size.width,(int)cocoaRect.size.height);
 }
 
 void wxWindow::DoGetPosition(int *x, int *y) const
@@ -646,7 +661,7 @@ void wxWindow::DoGetPosition(int *x, int *y) const
         *x=(int)cocoaRect.origin.x;
     if(y)
         *y=(int)(parentRect.size.height-(cocoaRect.origin.y+cocoaRect.size.height));
-    wxLogTrace(wxTRACE_COCOA_Window_Size,"wxWindow=%p::DoGetPosition = (%d,%d)",this,(int)cocoaRect.origin.x,(int)cocoaRect.origin.y);
+    wxLogTrace(wxTRACE_COCOA_Window_Size,wxT("wxWindow=%p::DoGetPosition = (%d,%d)"),this,(int)cocoaRect.origin.x,(int)cocoaRect.origin.y);
 }
 
 WXWidget wxWindow::GetHandle() const

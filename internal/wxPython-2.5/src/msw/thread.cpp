@@ -526,7 +526,7 @@ void wxThreadInternal::SetPriority(unsigned int priority)
 {
     m_priority = priority;
 
-    // translate wxWindows priority to the Windows one
+    // translate wxWidgets priority to the Windows one
     int win_priority;
     if (m_priority <= 20)
         win_priority = THREAD_PRIORITY_LOWEST;
@@ -740,7 +740,7 @@ wxThreadInternal::WaitForTerminate(wxCriticalSection& cs,
                     //
                     // NB: we still must include QS_ALLINPUT even when waiting
                     //     in a secondary thread because if it had created some
-                    //     window somehow (possible not even using wxWindows)
+                    //     window somehow (possible not even using wxWidgets)
                     //     the system might dead lock then
                     if ( wxThread::IsMain() )
                     {
@@ -863,7 +863,7 @@ wxThread *wxThread::This()
 
 bool wxThread::IsMain()
 {
-    return ::GetCurrentThreadId() == gs_idMainThread;
+    return ::GetCurrentThreadId() == gs_idMainThread || gs_idMainThread == 0;
 }
 
 void wxThread::Yield()
@@ -893,7 +893,10 @@ unsigned long wxThread::GetCurrentId()
 
 bool wxThread::SetConcurrency(size_t level)
 {
-#ifndef __WXWINCE__
+#ifdef __WXWINCE__
+    wxUnusedVar(level);
+    return false;
+#else
     wxASSERT_MSG( IsMain(), _T("should only be called from the main thread") );
 
     // ok only for the default one
@@ -983,9 +986,9 @@ bool wxThread::SetConcurrency(size_t level)
 
         return false;
     }
-#endif // !__WXWINCE__
 
     return true;
+#endif // __WXWINCE__/!__WXWINCE__
 }
 
 // ctor and dtor

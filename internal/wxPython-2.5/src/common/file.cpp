@@ -145,7 +145,7 @@
     #define ACCESS(access)  , (access)
 #endif // Salford C
 
-// wxWindows
+// wxWidgets
 #ifndef WX_PRECOMP
     #include  "wx/string.h"
     #include  "wx/intl.h"
@@ -228,7 +228,7 @@ bool wxFile::Create(const wxChar *szFileName, bool bOverwrite, int accessMode)
     // otherwise we only create the new file and fail if it already exists
 #if defined(__WXMAC__) && !defined(__UNIX__) && !wxUSE_UNICODE
     // Dominic Mazzoni [dmazzoni+@cs.cmu.edu] reports that open is still broken on the mac, so we replace
-    // int fd = open(wxUnix2MacFilename( szFileName ), O_CREAT | (bOverwrite ? O_TRUNC : O_EXCL), access);
+    // int fd = open( szFileName , O_CREAT | (bOverwrite ? O_TRUNC : O_EXCL), access);
     int fd = creat( szFileName , accessMode);
 #else
 #ifdef __WXWINCE__
@@ -345,6 +345,13 @@ bool wxFile::Open(const wxChar *szFileName, OpenMode mode, int accessMode)
             break;
     }
 
+#ifdef __WINDOWS__
+    // only read/write bits for "all" are supported by this function under
+    // Windows, and VC++ 8 returns EINVAL if any other bits are used in
+    // accessMode, so clear them as they have at best no effect anyhow
+    accessMode &= wxS_IRUSR | wxS_IWUSR;
+#endif // __WINDOWS__
+
     int fd = wxOpen( szFileName, flags ACCESS(accessMode));
 #endif
     if ( fd == -1 )
@@ -414,10 +421,10 @@ size_t wxFile::Write(const void *pBuf, size_t nCount)
     wxCHECK( (pBuf != NULL) && IsOpened(), 0 );
 
 #ifdef __WXWINCE__
-    DWORD bytesRead = 0;
+    DWORD bytesWritten = 0;
     int iRc = 0;
-    if (WriteFile((HANDLE) m_fd, pBuf, (DWORD) nCount, & bytesRead, NULL))
-        iRc = bytesRead;
+    if (WriteFile((HANDLE) m_fd, pBuf, (DWORD) nCount, & bytesWritten, NULL))
+        iRc = bytesWritten;
     else
         iRc = -1;
 #elif defined(__MWERKS__)

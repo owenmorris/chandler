@@ -334,7 +334,7 @@ void wxComboBox::SetSelection(
 
     //
     // If from and to are both -1, it means
-    // (in wxWindows) that all text should be selected.
+    // (in wxWidgets) that all text should be selected.
     // This translates into Windows convention
     //
     if ((lFrom == -1L) && (lTo == -1L))
@@ -413,11 +413,6 @@ MRESULT EXPENTRY wxComboEditWndProc(
 , MPARAM                            lParam
 )
 {
-    HWND                            hWndCombo;
-    wxWindow*                       pWin = NULL;
-
-    hWndCombo = ::WinQueryWindow(hWnd, QW_PARENT);
-    pWin = (wxWindow*)wxFindWinFromHandle((WXHWND)hWndCombo);
     switch (uMessage)
     {
         //
@@ -426,9 +421,9 @@ MRESULT EXPENTRY wxComboEditWndProc(
         case WM_SETFOCUS:
         case WM_CHAR:
             {
-                wxComboBox*         pCombo = wxDynamicCast( pWin
-                                                           ,wxComboBox
-                                                          );
+                wxComboBox* pCombo = (wxComboBox *)::WinQueryWindowULong( hWnd
+                                                                         ,QWL_USER
+                                                                        );
 
                 if (pCombo->ProcessEditMsg( uMessage
                                            ,wParam

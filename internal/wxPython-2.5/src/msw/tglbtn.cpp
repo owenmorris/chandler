@@ -2,7 +2,8 @@
 // Name:        src/msw/tglbtn.cpp
 // Purpose:     Definition of the wxToggleButton class, which implements a
 //              toggle button under wxMSW.
-// Author:      John Norris, minor changes by Axel Schlueter
+// Author: John Norris, minor changes by Axel Schlueter
+// and William Gallafent.
 // Modified by:
 // Created:     08.02.01
 // RCS-ID:      $Id$
@@ -62,7 +63,7 @@ bool wxToggleButton::MSWCommand(WXUINT WXUNUSED(param), WXWORD WXUNUSED(id))
    event.SetInt(GetValue());
    event.SetEventObject(this);
    ProcessCommand(event);
-   return TRUE;
+   return true;
 }
 
 // Single check box item
@@ -73,67 +74,40 @@ bool wxToggleButton::Create(wxWindow *parent, wxWindowID id,
                             const wxValidator& validator,
                             const wxString& name)
 {
-    // default border for this control is none
-    if ( (style & wxBORDER_MASK) == wxBORDER_DEFAULT )
-    {
-        style |= wxBORDER_NONE;
-    }
-    
-   if (!CreateBase(parent, id, pos, size, style, validator, name))
-      return FALSE;
+    if ( !CreateControl(parent, id, pos, size, style, validator, name) )
+        return false;
 
-   parent->AddChild(this);
+    if ( !MSWCreateControl(wxT("BUTTON"), label, pos, size) )
+      return false;
 
-   m_backgroundColour = parent->GetBackgroundColour();
-   m_foregroundColour = parent->GetForegroundColour();
+    return true;
+}
+
+wxBorder wxToggleButton::GetDefaultBorder() const
+{
+    return wxBORDER_NONE;
+}
+
+WXDWORD wxToggleButton::MSWGetStyle(long style, WXDWORD *exstyle) const
+{
+    WXDWORD msStyle = wxControl::MSWGetStyle(style, exstyle);
 
 #ifndef BS_PUSHLIKE
 #define BS_PUSHLIKE 0x00001000L
 #endif
 
-   WXDWORD exStyle = 0;
-   long msStyle = MSWGetStyle(style, & exStyle) ;
+    msStyle |= BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP;
 
-   msStyle |= BS_AUTOCHECKBOX | BS_PUSHLIKE | WS_TABSTOP ;
-
-#ifdef __WIN32__
-   if(m_windowStyle & wxBU_LEFT)
+    if(style & wxBU_LEFT)
       msStyle |= BS_LEFT;
-   if(m_windowStyle & wxBU_RIGHT)
+    if(style & wxBU_RIGHT)
       msStyle |= BS_RIGHT;
-   if(m_windowStyle & wxBU_TOP)
+    if(style & wxBU_TOP)
       msStyle |= BS_TOP;
-   if(m_windowStyle & wxBU_BOTTOM)
+    if(style & wxBU_BOTTOM)
       msStyle |= BS_BOTTOM;
-#endif
 
-   m_hWnd = (WXHWND)CreateWindowEx(exStyle,
-                                   wxT("BUTTON"), label,
-                                   msStyle, 0, 0, 0, 0,
-                                   (HWND)parent->GetHWND(),
-                                   (HMENU)m_windowId,
-                                   wxGetInstance(), NULL);
-
-   if ( m_hWnd == 0 )
-   {
-        wxLogError(_T("Failed to create a toggle button"));
-
-        return FALSE;
-    }
-
-    // Subclass again for purposes of dialog editing mode
-    SubclassWin(m_hWnd);
-
-    SetFont(parent->GetFont());
-
-    SetSize(pos.x, pos.y, size.x, size.y);
-
-    return TRUE;
-}
-
-void wxToggleButton::SetLabel(const wxString& label)
-{
-    SetWindowText(GetHwnd(), label);
+    return msStyle;
 }
 
 wxSize wxToggleButton::DoGetBestSize() const
@@ -143,7 +117,7 @@ wxSize wxToggleButton::DoGetBestSize() const
    GetTextExtent(label, &wBtn, NULL);
 
    int wChar, hChar;
-   wxGetCharSize(GetHWND(), &wChar, &hChar, &GetFont());
+   wxGetCharSize(GetHWND(), &wChar, &hChar, GetFont());
 
    // add a margin - the button is wider than just its label
    wBtn += 3*wChar;
@@ -151,18 +125,22 @@ wxSize wxToggleButton::DoGetBestSize() const
    // the button height is proportional to the height of the font used
    int hBtn = BUTTON_HEIGHT_FROM_CHAR_HEIGHT(hChar);
 
+#if wxUSE_BUTTON
    wxSize sz = wxButton::GetDefaultSize();
    if (wBtn > sz.x)
        sz.x = wBtn;
    if (hBtn > sz.y)
        sz.y = hBtn;
+#else
+   wxSize sz(wBtn, hBtn);
+#endif
 
    return sz;
 }
 
 void wxToggleButton::SetValue(bool val)
 {
-   SendMessage(GetHwnd(), BM_SETCHECK, val, 0);
+   ::SendMessage(GetHwnd(), BM_SETCHECK, val, 0);
 }
 
 #ifndef BST_CHECKED
@@ -172,9 +150,9 @@ void wxToggleButton::SetValue(bool val)
 bool wxToggleButton::GetValue() const
 {
 #ifdef __WIN32__
-   return (SendMessage(GetHwnd(), BM_GETCHECK, 0, 0) == BST_CHECKED);
+   return (::SendMessage(GetHwnd(), BM_GETCHECK, 0, 0) == BST_CHECKED);
 #else
-   return ((0x001 & SendMessage(GetHwnd(), BM_GETCHECK, 0, 0)) == 0x001);
+   return ((0x001 & ::SendMessage(GetHwnd(), BM_GETCHECK, 0, 0)) == 0x001);
 #endif
 }
 

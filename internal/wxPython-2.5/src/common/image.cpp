@@ -796,7 +796,7 @@ void wxImage::SetAlpha(int x, int y, unsigned char alpha)
     M_IMGDATA->m_alpha[y*w + x] = alpha;
 }
 
-unsigned char wxImage::GetAlpha(int x, int y)
+unsigned char wxImage::GetAlpha(int x, int y) const
 {
     wxCHECK_MSG( Ok() && HasAlpha(), 0, wxT("invalid image or no alpha channel") );
 
@@ -817,7 +817,7 @@ void wxImage::SetAlpha( unsigned char *alpha )
         alpha = (unsigned char *)malloc(M_IMGDATA->m_width*M_IMGDATA->m_height);
     }
 
-    delete [] M_IMGDATA->m_alpha;
+    free(M_IMGDATA->m_alpha);
     M_IMGDATA->m_alpha = alpha;
 }
 
@@ -897,7 +897,7 @@ bool wxImage::SetMaskFromImage(const wxImage& mask,
     // check that the images are the same size
     if ( (M_IMGDATA->m_height != mask.GetHeight() ) || (M_IMGDATA->m_width != mask.GetWidth () ) )
     {
-        wxLogError( _("Image and Mask have different sizes") );
+        wxLogError( _("Image and mask have different sizes.") );
         return false;
     }
 
@@ -905,7 +905,7 @@ bool wxImage::SetMaskFromImage(const wxImage& mask,
     unsigned char r,g,b ;
     if (!FindFirstUnusedColour(&r, &g, &b))
     {
-        wxLogError( _("No Unused Color in image being masked") );
+        wxLogError( _("No unused colour in image being masked.") );
         return false ;
     }
 
@@ -932,6 +932,46 @@ bool wxImage::SetMaskFromImage(const wxImage& mask,
 
     SetMaskColour(r, g, b);
     SetMask(true);
+
+    return true;
+}
+    
+bool wxImage::ConvertAlphaToMask(unsigned char threshold)
+{
+    if (!HasAlpha())
+        return true;
+
+    unsigned char mr, mg, mb;
+    if (!FindFirstUnusedColour(&mr, &mg, &mb))
+    {
+        wxLogError( _("No unused colour in image being masked.") );
+        return false;
+    }
+
+    SetMask(true);
+    SetMaskColour(mr, mg, mb);
+
+    unsigned char *imgdata = GetData();
+    unsigned char *alphadata = GetAlpha();
+
+    int w = GetWidth();
+    int h = GetHeight();
+
+    for (int y = 0; y < h; y++)
+    {
+        for (int x = 0; x < w; x++, imgdata += 3, alphadata++)
+        {
+            if (*alphadata < threshold)
+            {
+                imgdata[0] = mr;
+                imgdata[1] = mg;
+                imgdata[2] = mb;
+            }
+        }
+    }
+
+    free(M_IMGDATA->m_alpha);
+    M_IMGDATA->m_alpha = NULL;
 
     return true;
 }
@@ -1496,7 +1536,7 @@ wxImageHistogram::FindFirstUnusedColour(unsigned char *r,
                 b2++;
                 if ( b2 >= 255 )
                 {
-                    wxLogError(_("GetUnusedColour:: No Unused Color in image ") );
+                    wxLogError(_("No unused colour in image.") );
                     return false;
                 }
             }

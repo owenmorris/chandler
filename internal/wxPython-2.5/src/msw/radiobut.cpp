@@ -59,7 +59,7 @@ wxBEGIN_FLAGS( wxRadioButtonStyle )
     wxFLAGS_MEMBER(wxBORDER_RAISED)
     wxFLAGS_MEMBER(wxBORDER_STATIC)
     wxFLAGS_MEMBER(wxBORDER_NONE)
-    
+
     // old style border flags
     wxFLAGS_MEMBER(wxSIMPLE_BORDER)
     wxFLAGS_MEMBER(wxSUNKEN_BORDER)
@@ -86,16 +86,16 @@ IMPLEMENT_DYNAMIC_CLASS_XTI(wxRadioButton, wxControl,"wx/radiobut.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxRadioButton)
     wxEVENT_PROPERTY( Click , wxEVT_COMMAND_RADIOBUTTON_SELECTED , wxCommandEvent )
-    wxPROPERTY( Font , wxFont , SetFont , GetFont  , , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( Font , wxFont , SetFont , GetFont  , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
     wxPROPERTY( Label,wxString, SetLabel, GetLabel, wxString(), 0 /*flags*/ , wxT("Helpstring") , wxT("group") )
-    wxPROPERTY( Value ,bool, SetValue, GetValue,, 0 /*flags*/ , wxT("Helpstring") , wxT("group") )
-    wxPROPERTY_FLAGS( WindowStyle , wxRadioButtonStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
+    wxPROPERTY( Value ,bool, SetValue, GetValue, EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group") )
+    wxPROPERTY_FLAGS( WindowStyle , wxRadioButtonStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
 wxEND_PROPERTIES_TABLE()
 
 wxBEGIN_HANDLERS_TABLE(wxRadioButton)
 wxEND_HANDLERS_TABLE()
 
-wxCONSTRUCTOR_6( wxRadioButton , wxWindow* , Parent , wxWindowID , Id , wxString , Label , wxPoint , Position , wxSize , Size , long , WindowStyle ) 
+wxCONSTRUCTOR_6( wxRadioButton , wxWindow* , Parent , wxWindowID , Id , wxString , Label , wxPoint , Position , wxSize , Size , long , WindowStyle )
 
 #else
 IMPLEMENT_DYNAMIC_CLASS(wxRadioButton, wxControl)
@@ -138,6 +138,8 @@ bool wxRadioButton::Create(wxWindow *parent,
 
     if ( HasFlag(wxCLIP_SIBLINGS) )
         msStyle |= WS_CLIPSIBLINGS;
+    if ( HasFlag(wxALIGN_RIGHT) )
+        msStyle |= BS_LEFTTEXT | BS_RIGHT;
 
     if ( !MSWCreateControl(_T("BUTTON"), msStyle, pos, size, label, 0) )
         return false;
@@ -158,9 +160,7 @@ bool wxRadioButton::Create(wxWindow *parent,
 
 void wxRadioButton::SetValue(bool value)
 {
-    // BST_CHECKED is defined as 1, BST_UNCHECKED as 0, so we can just pass
-    // value as is (we don't use BST_XXX here as they're not defined for Win16)
-    (void)::SendMessage(GetHwnd(), BM_SETCHECK, (WPARAM)value, 0L);
+    (void)::SendMessage(GetHwnd(), BM_SETCHECK, (value?BST_CHECKED:BST_UNCHECKED), 0L);
 
     m_isChecked = value;
 

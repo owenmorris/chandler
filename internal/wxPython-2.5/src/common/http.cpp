@@ -71,13 +71,22 @@ void wxHTTP::SetProxyMode(bool on)
   m_proxy_mode = on;
 }
 
-wxHTTP::wxHeaderIterator wxHTTP::FindHeader(const wxString& header) const
+wxHTTP::wxHeaderIterator wxHTTP::FindHeader(const wxString& header)
 {
-    // we can't convert between const_iterator to iterator otherwise...
-    wxStringToStringHashMap& headers = (wxStringToStringHashMap&)m_headers;
+    wxHeaderIterator it = m_headers.begin();
+    for ( wxHeaderIterator en = m_headers.end(); it != en; ++it )
+    {
+        if ( wxStricmp(it->first, header) == 0 )
+            break;
+    }
 
-    wxHeaderIterator it = headers.begin();
-    for ( wxHeaderIterator en = headers.end(); it != en; ++it )
+    return it;
+}
+
+wxHTTP::wxHeaderConstIterator wxHTTP::FindHeader(const wxString& header) const
+{
+    wxHeaderConstIterator it = m_headers.begin();
+    for ( wxHeaderConstIterator en = m_headers.end(); it != en; ++it )
     {
         if ( wxStricmp(it->first, header) == 0 )
             break;
@@ -102,7 +111,7 @@ void wxHTTP::SetHeader(const wxString& header, const wxString& h_data)
 
 wxString wxHTTP::GetHeader(const wxString& header) const
 {
-    wxHeaderIterator it = FindHeader(header);
+    wxHeaderConstIterator it = FindHeader(header);
 
     return it == m_headers.end() ? wxGetEmptyString() : it->second;
 }
@@ -209,6 +218,8 @@ bool wxHTTP::BuildRequest(const wxString& path, wxHTTP_Req req)
     break;
   case wxHTTP_POST:
     request = wxT("POST");
+    if ( GetHeader( wxT("Content-Length") ).IsNull() )
+      SetHeader( wxT("Content-Length"), wxString::Format( wxT("%lu"), (unsigned long)m_post_buf.Len() ) );
     break;
   default:
     return FALSE;
@@ -218,10 +229,14 @@ bool wxHTTP::BuildRequest(const wxString& path, wxHTTP_Req req)
 
   // If there is no User-Agent defined, define it.
   if (GetHeader(wxT("User-Agent")).IsNull())
-    SetHeader(wxT("User-Agent"), wxT("wxWindows 2.x"));
+    SetHeader(wxT("User-Agent"), wxT("wxWidgets 2.x"));
 
   SaveState();
-  SetFlags(wxSOCKET_NONE);
+#if wxUSE_THREADS
+  SetFlags( wxThread::IsMain() ? wxSOCKET_NONE : wxSOCKET_BLOCK );
+#else
+  SetFlags( wxSOCKET_NONE );
+#endif
   Notify(FALSE);
 
   wxString buf;
@@ -232,7 +247,7 @@ bool wxHTTP::BuildRequest(const wxString& path, wxHTTP_Req req)
   Write("\r\n", 2);
 
   if ( req == wxHTTP_POST ) {
-    Write(m_post_buf, m_post_buf.Len());
+    Write(m_post_buf.mbc_str(), m_post_buf.Len());
     m_post_buf = wxEmptyString;
   }
 

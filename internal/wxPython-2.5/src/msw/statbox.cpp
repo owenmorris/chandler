@@ -55,7 +55,7 @@ wxBEGIN_FLAGS( wxStaticBoxStyle )
     wxFLAGS_MEMBER(wxBORDER_RAISED)
     wxFLAGS_MEMBER(wxBORDER_STATIC)
     wxFLAGS_MEMBER(wxBORDER_NONE)
-    
+
     // old style border flags
     wxFLAGS_MEMBER(wxSIMPLE_BORDER)
     wxFLAGS_MEMBER(wxSUNKEN_BORDER)
@@ -79,18 +79,18 @@ wxEND_FLAGS( wxStaticBoxStyle )
 IMPLEMENT_DYNAMIC_CLASS_XTI(wxStaticBox, wxControl,"wx/statbox.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxStaticBox)
-	wxPROPERTY( Label,wxString, SetLabel, GetLabel, wxString() , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-    wxPROPERTY_FLAGS( WindowStyle , wxStaticBoxStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
+    wxPROPERTY( Label,wxString, SetLabel, GetLabel, wxString() , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY_FLAGS( WindowStyle , wxStaticBoxStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , EMPTY_MACROVALUE, 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
 /*
-	TODO PROPERTIES :
-		label
+    TODO PROPERTIES :
+        label
 */
 wxEND_PROPERTIES_TABLE()
 
 wxBEGIN_HANDLERS_TABLE(wxStaticBox)
 wxEND_HANDLERS_TABLE()
 
-wxCONSTRUCTOR_6( wxStaticBox , wxWindow* , Parent , wxWindowID , Id , wxString , Label , wxPoint , Position , wxSize , Size , long , WindowStyle ) 
+wxCONSTRUCTOR_6( wxStaticBox , wxWindow* , Parent , wxWindowID , Id , wxString , Label , wxPoint , Position , wxSize , Size , long , WindowStyle )
 #else
 IMPLEMENT_DYNAMIC_CLASS(wxStaticBox, wxControl)
 #endif
@@ -112,7 +112,7 @@ bool wxStaticBox::Create(wxWindow *parent,
                          const wxString& name)
 {
     if ( !CreateControl(parent, id, pos, size, style, wxDefaultValidator, name) )
-        return FALSE;
+        return false;
 
     // as wxStaticBox doesn't draw its own background, we make it transparent
     // to force redrawing its background which could have been overwritten by
@@ -121,7 +121,7 @@ bool wxStaticBox::Create(wxWindow *parent,
     // FIXME: I still think that it isn't the right solution because the static
     //        boxes shouldn't have to be transparent if the redrawing was done
     //        right elsewhere - who ever had to make them transparent in non
-    //        wxWindows programs, after all? But for now it does fix a serious
+    //        wxWidgets programs, after all? But for now it does fix a serious
     //        problem (try resizing the sizers test screen in the layout sample
     //        after removing WS_EX_TRANSPARENT bit) and so let's use it until
     //        we fix the real underlying problem
@@ -132,18 +132,18 @@ bool wxStaticBox::Create(wxWindow *parent,
         WS_EX_TRANSPARENT
 #endif
                            ) )
-        return FALSE;
+        return false;
 
     // to be transparent we should have the same colour as the parent as well
     SetBackgroundColour(GetParent()->GetBackgroundColour());
 
-    return TRUE;
+    return true;
 }
 
 wxSize wxStaticBox::DoGetBestSize() const
 {
     int cx, cy;
-    wxGetCharSize(GetHWND(), &cx, &cy, &GetFont());
+    wxGetCharSize(GetHWND(), &cx, &cy, GetFont());
 
     int wBox;
     GetTextExtent(wxGetWindowText(m_hWnd), &wBox, &cy);

@@ -75,8 +75,8 @@ static PAINTSTRUCT g_paintStruct;
 
 #ifdef __WXDEBUG__
     // a global variable which we check to verify that wxPaintDC are only
-    // created in resopnse to WM_PAINT message - doing this from elsewhere is a
-    // common programming error among wxWindows programmers and might lead to
+    // created in response to WM_PAINT message - doing this from elsewhere is a
+    // common programming error among wxWidgets programmers and might lead to
     // very subtle and difficult to debug refresh/repaint bugs.
     int g_isPainting = 0;
 #endif // __WXDEBUG__
@@ -156,7 +156,11 @@ void wxClientDC::InitDC()
 
     // in wxUniv build we must manually do some DC adjustments usually
     // performed by Windows for us
-#ifdef __WXUNIVERSAL__
+    //
+    // we also need to take the menu/toolbar manually into account under
+    // Windows CE because they're just another control there, not anything
+    // special as usually under Windows
+#if defined(__WXUNIVERSAL__) || defined(__WXWINCE__)
     wxPoint ptOrigin = m_canvas->GetClientAreaOrigin();
     if ( ptOrigin.x || ptOrigin.y )
     {
@@ -166,7 +170,7 @@ void wxClientDC::InitDC()
 
     // clip the DC to avoid overwriting the non client area
     SetClippingRegion(wxPoint(0, 0), m_canvas->GetClientSize());
-#endif // __WXUNIVERSAL__
+#endif // __WXUNIVERSAL__ || __WXWINCE__
 }
 
 wxClientDC::~wxClientDC()
@@ -232,7 +236,7 @@ wxPaintDC::wxPaintDC(wxWindow *canvas)
     else // not in cache, create a new one
     {
         m_hDC = (WXHDC)::BeginPaint(GetHwndOf(m_canvas), &g_paintStruct);
-	if (m_hDC)
+        if (m_hDC)
             ms_cache.Add(new wxPaintDCInfo(m_canvas, this));
     }
 
@@ -308,7 +312,7 @@ WXHDC wxPaintDC::FindDCInCache(wxWindow* win)
 /*
  * wxPaintDCEx
  */
- 
+
 // TODO: don't duplicate wxPaintDC code here!!
 
 wxPaintDCEx::wxPaintDCEx(wxWindow *canvas, WXHDC dc) : saveState(0)

@@ -128,7 +128,11 @@
 wxMenu *wxCurrentPopupMenu = NULL;
 #endif // wxUSE_MENUS_NATIVE
 
+#ifdef __WXWINCE__
+extern       wxChar *wxCanvasClassName;
+#else
 extern const wxChar *wxCanvasClassName;
+#endif
 
 // true if we had already created the std colour map, used by
 // wxGetStdColourMap() and wxWindow::OnSysColourChanged()           (FIXME-MT)
@@ -180,6 +184,8 @@ static inline void wxBringWindowToTop(HWND hwnd)
     }
 }
 
+#ifndef __WXWINCE__
+
 // ensure that all our parent windows have WS_EX_CONTROLPARENT style
 static void EnsureParentHasControlParentStyle(wxWindow *parent)
 {
@@ -196,7 +202,6 @@ static void EnsureParentHasControlParentStyle(wxWindow *parent)
        but if the parent doesn't have it, it wouldn't recurse inside it later
        on and so wouldn't have a chance of getting back to this window neither.
      */
-#ifndef __WXWINCE__
     while ( parent && !parent->IsTopLevel() )
     {
         LONG exStyle = ::GetWindowLong(GetHwndOf(parent), GWL_EXSTYLE);
@@ -209,8 +214,9 @@ static void EnsureParentHasControlParentStyle(wxWindow *parent)
 
         parent = parent->GetParent();
     }
-#endif // !__WXWINCE__
 }
+
+#endif // !__WXWINCE__
 
 // ---------------------------------------------------------------------------
 // event tables
@@ -258,7 +264,7 @@ wxBEGIN_FLAGS( wxWindowStyle )
     wxFLAGS_MEMBER(wxBORDER_RAISED)
     wxFLAGS_MEMBER(wxBORDER_STATIC)
     wxFLAGS_MEMBER(wxBORDER_NONE)
-    
+
     // old style border flags
     wxFLAGS_MEMBER(wxSIMPLE_BORDER)
     wxFLAGS_MEMBER(wxSUNKEN_BORDER)
@@ -280,16 +286,16 @@ wxBEGIN_FLAGS( wxWindowStyle )
 wxEND_FLAGS( wxWindowStyle )
 
 wxBEGIN_PROPERTIES_TABLE(wxWindow)
-	wxEVENT_PROPERTY( Close , wxEVT_CLOSE_WINDOW , wxCloseEvent)
-	wxEVENT_PROPERTY( Create , wxEVT_CREATE , wxWindowCreateEvent )
-	wxEVENT_PROPERTY( Destroy , wxEVT_DESTROY , wxWindowDestroyEvent )
+    wxEVENT_PROPERTY( Close , wxEVT_CLOSE_WINDOW , wxCloseEvent)
+    wxEVENT_PROPERTY( Create , wxEVT_CREATE , wxWindowCreateEvent )
+    wxEVENT_PROPERTY( Destroy , wxEVT_DESTROY , wxWindowDestroyEvent )
     // Always constructor Properties first
 
-    wxREADONLY_PROPERTY( Parent,wxWindow*, GetParent,  , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( Id,wxWindowID, SetId, GetId, -1, 0 /*flags*/ , wxT("Helpstring") , wxT("group") )
-	wxPROPERTY( Position,wxPoint, SetPosition , GetPosition, wxPoint(-1,-1) , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // pos
-	wxPROPERTY( Size,wxSize, SetSize, GetSize, wxSize(-1,-1) , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // size
-    wxPROPERTY( WindowStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
+    wxREADONLY_PROPERTY( Parent,wxWindow*, GetParent, EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( Id,wxWindowID, SetId, GetId, wxID_ANY, 0 /*flags*/ , wxT("Helpstring") , wxT("group") )
+    wxPROPERTY( Position,wxPoint, SetPosition , GetPosition, wxDefaultPosition , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // pos
+    wxPROPERTY( Size,wxSize, SetSize, GetSize, wxDefaultSize , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // size
+    wxPROPERTY( WindowStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
 
     // Then all relations of the object graph
 
@@ -297,23 +303,23 @@ wxBEGIN_PROPERTIES_TABLE(wxWindow)
 
    // and finally all other properties
 
-	wxPROPERTY( ExtraStyle , long , SetExtraStyle , GetExtraStyle , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // extstyle
-	wxPROPERTY( BackgroundColour , wxColour , SetBackgroundColour , GetBackgroundColour , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // bg
-	wxPROPERTY( ForegroundColour , wxColour , SetForegroundColour , GetForegroundColour , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // fg
-	wxPROPERTY( Enabled , bool , Enable , IsEnabled , wxxVariant((bool)true) , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( Shown , bool , Show , IsShown , wxxVariant((bool)true) , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( ExtraStyle , long , SetExtraStyle , GetExtraStyle , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // extstyle
+    wxPROPERTY( BackgroundColour , wxColour , SetBackgroundColour , GetBackgroundColour , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // bg
+    wxPROPERTY( ForegroundColour , wxColour , SetForegroundColour , GetForegroundColour , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // fg
+    wxPROPERTY( Enabled , bool , Enable , IsEnabled , wxxVariant((bool)true) , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( Shown , bool , Show , IsShown , wxxVariant((bool)true) , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
 #if 0
     // possible property candidates (not in xrc) or not valid in all subclasses
-	wxPROPERTY( Title,wxString, SetTitle, GetTitle, wxT("") )
-	wxPROPERTY( Font , wxFont , SetFont , GetWindowFont  , )
-	wxPROPERTY( Label,wxString, SetLabel, GetLabel, wxT("") )
-	// MaxHeight, Width , MinHeight , Width
-	// TODO switch label to control and title to toplevels
+    wxPROPERTY( Title,wxString, SetTitle, GetTitle, wxT("") )
+    wxPROPERTY( Font , wxFont , SetFont , GetWindowFont  , )
+    wxPROPERTY( Label,wxString, SetLabel, GetLabel, wxT("") )
+    // MaxHeight, Width , MinHeight , Width
+    // TODO switch label to control and title to toplevels
 
-	wxPROPERTY( ThemeEnabled , bool , SetThemeEnabled , GetThemeEnabled , )
-	//wxPROPERTY( Cursor , wxCursor , SetCursor , GetCursor , )
-	// wxPROPERTY( ToolTip , wxString , SetToolTip , GetToolTipText , )
-	wxPROPERTY( AutoLayout , bool , SetAutoLayout , GetAutoLayout , )
+    wxPROPERTY( ThemeEnabled , bool , SetThemeEnabled , GetThemeEnabled , )
+    //wxPROPERTY( Cursor , wxCursor , SetCursor , GetCursor , )
+    // wxPROPERTY( ToolTip , wxString , SetToolTip , GetToolTipText , )
+    wxPROPERTY( AutoLayout , bool , SetAutoLayout , GetAutoLayout , )
 
 
 
@@ -333,7 +339,9 @@ wxCONSTRUCTOR_DUMMY(wxWindow)
 BEGIN_EVENT_TABLE(wxWindowMSW, wxWindowBase)
     EVT_ERASE_BACKGROUND(wxWindowMSW::OnEraseBackground)
     EVT_SYS_COLOUR_CHANGED(wxWindowMSW::OnSysColourChanged)
+#ifdef __WXWINCE__
     EVT_INIT_DIALOG(wxWindowMSW::OnInitDialog)
+#endif
 END_EVENT_TABLE()
 
 // ===========================================================================
@@ -522,7 +530,12 @@ bool wxWindowMSW::Create(wxWindow *parent,
         msflags |= WS_VISIBLE;
     }
 
-    return MSWCreate(wxCanvasClassName, NULL, pos, size, msflags, exstyle);
+    if ( !MSWCreate(wxCanvasClassName, NULL, pos, size, msflags, exstyle) )
+        return false;
+
+    InheritAttributes();
+
+    return true;
 }
 
 // ---------------------------------------------------------------------------
@@ -902,11 +915,12 @@ void wxWindowMSW::ScrollWindow(int dx, int dy, const wxRect *prect)
     else
     {
         pr = NULL;
+
     }
 
 #ifdef __WXWINCE__
     // FIXME: is this the exact equivalent of the line below?
-    ::ScrollWindowEx(GetHwnd(), dx, dy, pr, pr, 0, 0, SW_ERASE|SW_INVALIDATE);
+    ::ScrollWindowEx(GetHwnd(), dx, dy, pr, pr, 0, 0, SW_SCROLLCHILDREN|SW_ERASE|SW_INVALIDATE);
 #else
     ::ScrollWindow(GetHwnd(), dx, dy, pr, pr);
 #endif
@@ -969,7 +983,7 @@ void wxWindowMSW::SubclassWin(WXHWND hWnd)
 
     // we don't need to subclass the window of our own class (in the Windows
     // sense of the word)
-	if ( !wxCheckWindowWndProc(hWnd, (WXFARPROC)wxWndProc) )
+    if ( !wxCheckWindowWndProc(hWnd, (WXFARPROC)wxWndProc) )
     {
         wxSetWindowProc(hwnd, wxWndProc);
     }
@@ -977,7 +991,7 @@ void wxWindowMSW::SubclassWin(WXHWND hWnd)
     {
         // don't bother restoring it neither: this also makes it easy to
         // implement IsOfStandardClass() method which returns true for the
-        // standard controls and false for the wxWindows own windows as it can
+        // standard controls and false for the wxWidgets own windows as it can
         // simply check m_oldWndProc
         m_oldWndProc = NULL;
     }
@@ -991,7 +1005,7 @@ void wxWindowMSW::UnsubclassWin()
     HWND hwnd = GetHwnd();
     if ( hwnd )
     {
-        m_hWnd = 0;
+        SetHWND(0);
 
         wxCHECK_RET( ::IsWindow(hwnd), wxT("invalid HWND in UnsubclassWin") );
 
@@ -1007,6 +1021,27 @@ void wxWindowMSW::UnsubclassWin()
     }
 }
 
+void wxWindowMSW::AssociateHandle(WXWidget handle) 
+{
+    if ( m_hWnd )
+    {
+      if ( !::DestroyWindow(GetHwnd()) )
+        wxLogLastError(wxT("DestroyWindow"));
+    }
+    
+    WXHWND wxhwnd = (WXHWND)handle;
+
+    SetHWND(wxhwnd);
+    SubclassWin(wxhwnd);
+}
+
+void wxWindowMSW::DissociateHandle()
+{ 
+    // this also calls SetHWND(0) for us
+    UnsubclassWin(); 
+}
+
+
 bool wxCheckWindowWndProc(WXHWND hWnd, WXFARPROC wndProc)
 {
     // Unicows note: the code below works, but only because WNDCLASS contains
@@ -1016,26 +1051,26 @@ bool wxCheckWindowWndProc(WXHWND hWnd, WXFARPROC wndProc)
     // Unicows_{Set,Get}WindowLong and Unicows_RegisterClass to our own
     // versions that keep track of fake<->real wnd proc mapping.
 
-	// On WinCE (at least), the wndproc comparison doesn't work,
-	// so have to use something like this.
+    // On WinCE (at least), the wndproc comparison doesn't work,
+    // so have to use something like this.
 #ifdef __WXWINCE__
-	extern const wxChar *wxCanvasClassName;
-	extern const wxChar *wxCanvasClassNameNR;
-	extern const wxChar *wxMDIFrameClassName;
-	extern const wxChar *wxMDIFrameClassNameNoRedraw;
-	extern const wxChar *wxMDIChildFrameClassName;
-	extern const wxChar *wxMDIChildFrameClassNameNoRedraw;
-	wxString str(wxGetWindowClass(hWnd));
-	if (str == wxCanvasClassName ||
-		str == wxCanvasClassNameNR ||
-		str == wxMDIFrameClassName ||
-		str == wxMDIFrameClassNameNoRedraw ||
-		str == wxMDIChildFrameClassName ||
-		str == wxMDIChildFrameClassNameNoRedraw ||
-		str == _T("wxTLWHiddenParent"))
-		return true; // Effectively means don't subclass
-	else
-		return false;
+    extern       wxChar *wxCanvasClassName;
+    extern       wxChar *wxCanvasClassNameNR;
+    extern const wxChar *wxMDIFrameClassName;
+    extern const wxChar *wxMDIFrameClassNameNoRedraw;
+    extern const wxChar *wxMDIChildFrameClassName;
+    extern const wxChar *wxMDIChildFrameClassNameNoRedraw;
+    wxString str(wxGetWindowClass(hWnd));
+    if (str == wxCanvasClassName ||
+        str == wxCanvasClassNameNR ||
+        str == wxMDIFrameClassName ||
+        str == wxMDIFrameClassNameNoRedraw ||
+        str == wxMDIChildFrameClassName ||
+        str == wxMDIChildFrameClassNameNoRedraw ||
+        str == _T("wxTLWHiddenParent"))
+        return true; // Effectively means don't subclass
+    else
+        return false;
 #else
     WNDCLASS cls;
     if ( !::GetClassInfo(wxGetInstance(), wxGetWindowClass(hWnd), &cls) )
@@ -1109,8 +1144,11 @@ void wxWindowMSW::SetWindowStyleFlag(long flags)
 
 WXDWORD wxWindowMSW::MSWGetStyle(long flags, WXDWORD *exstyle) const
 {
-    // translate the style
-    WXDWORD style = WS_CHILD | WS_VISIBLE;
+    // translate common wxWidgets styles to Windows ones
+
+    // most of windows are child ones, those which are not (such as
+    // wxTopLevelWindow) should remove WS_CHILD in their MSWGetStyle()
+    WXDWORD style = WS_CHILD;
 
     if ( flags & wxCLIP_CHILDREN )
         style |= WS_CLIPCHILDREN;
@@ -1366,6 +1404,8 @@ void wxWindowMSW::DragAcceptFiles(bool accept)
     HWND hWnd = GetHwnd();
     if ( hWnd )
         ::DragAcceptFiles(hWnd, (BOOL)accept);
+#else
+    wxUnusedVar(accept);
 #endif
 }
 
@@ -1491,7 +1531,7 @@ void wxWindowMSW::DoMoveWindow(int x, int y, int width, int height)
         width = 0;
     if (height < 0)
         height = 0;
-    if ( !::MoveWindow(GetHwnd(), x, y, width, height, TRUE) )
+    if ( !::MoveWindow(GetHwnd(), x, y, width, height, IsShown() /*Repaint?*/) )
     {
         wxLogLastError(wxT("MoveWindow"));
     }
@@ -1520,15 +1560,15 @@ void wxWindowMSW::DoSetSize(int x, int y, int width, int height, int sizeFlags)
         return;
     }
 
-    if ( x == -1 && !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE) )
+    if ( x == wxDefaultCoord && !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE) )
         x = currentX;
-    if ( y == -1 && !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE) )
+    if ( y == wxDefaultCoord && !(sizeFlags & wxSIZE_ALLOW_MINUS_ONE) )
         y = currentY;
 
     AdjustForParentClientOrigin(x, y, sizeFlags);
 
-    wxSize size(-1, -1);
-    if ( width == -1 )
+    wxSize size = wxDefaultSize;
+    if ( width == wxDefaultCoord )
     {
         if ( sizeFlags & wxSIZE_AUTO_WIDTH )
         {
@@ -1542,11 +1582,11 @@ void wxWindowMSW::DoSetSize(int x, int y, int width, int height, int sizeFlags)
         }
     }
 
-    if ( height == -1 )
+    if ( height == wxDefaultCoord )
     {
         if ( sizeFlags & wxSIZE_AUTO_HEIGHT )
         {
-            if ( size.x == -1 )
+            if ( size.x == wxDefaultCoord )
             {
                 size = DoGetBestSize();
             }
@@ -1584,8 +1624,8 @@ void wxWindowMSW::DoSetClientSize(int width, int height)
         ::GetClientRect(GetHwnd(), &rectClient);
 
         // if the size is already ok, stop here (rectClient.left = top = 0)
-        if ( (rectClient.right == width || width == -1) &&
-             (rectClient.bottom == height || height == -1) )
+        if ( (rectClient.right == width || width == wxDefaultCoord) &&
+             (rectClient.bottom == height || height == wxDefaultCoord) )
         {
             break;
         }
@@ -1653,31 +1693,22 @@ void wxWindowMSW::GetTextExtent(const wxString& string,
                              int *descent, int *externalLeading,
                              const wxFont *theFont) const
 {
-    const wxFont *fontToUse = theFont;
-    if ( !fontToUse )
-        fontToUse = &m_font;
+    wxASSERT_MSG( !theFont || theFont->Ok(),
+                    _T("invalid font in GetTextExtent()") );
 
-    HWND hWnd = GetHwnd();
-    HDC dc = ::GetDC(hWnd);
+    wxFont fontToUse;
+    if (theFont)
+        fontToUse = *theFont;
+    else
+        fontToUse = GetFont();
 
-    HFONT fnt = 0;
-    HFONT hfontOld = 0;
-    if ( fontToUse && fontToUse->Ok() )
-    {
-        fnt = (HFONT)((wxFont *)fontToUse)->GetResourceHandle(); // const_cast
-        if ( fnt )
-            hfontOld = (HFONT)SelectObject(dc,fnt);
-    }
+    WindowHDC hdc(GetHwnd());
+    SelectInHDC selectFont(hdc, GetHfontOf(fontToUse));
 
     SIZE sizeRect;
     TEXTMETRIC tm;
-    GetTextExtentPoint(dc, string, (int)string.Length(), &sizeRect);
-    GetTextMetrics(dc, &tm);
-
-    if ( fontToUse && fnt && hfontOld )
-        SelectObject(dc, hfontOld);
-
-    ReleaseDC(hWnd, dc);
+    GetTextExtentPoint(hdc, string, string.length(), &sizeRect);
+    GetTextMetrics(hdc, &tm);
 
     if ( x )
         *x = sizeRect.cx;
@@ -1727,6 +1758,12 @@ bool wxWindowMSW::DoPopupMenu(wxMenu *menu, int x, int y)
     menu->SetInvokingWindow(this);
     menu->UpdateUI();
 
+    if ( x == wxDefaultCoord && y == wxDefaultCoord )
+    {
+        wxPoint mouse = ScreenToClient(wxGetMousePosition());
+        x = mouse.x; y = mouse.y;
+    }
+
     HWND hWnd = GetHwnd();
     HMENU hMenu = GetHmenuOf(menu);
     POINT point;
@@ -1734,9 +1771,10 @@ bool wxWindowMSW::DoPopupMenu(wxMenu *menu, int x, int y)
     point.y = y;
     ::ClientToScreen(hWnd, &point);
     wxCurrentPopupMenu = menu;
+#if defined(__WXWINCE__)
     UINT flags = 0;
-#if !defined(__WXWINCE__)
-    flags = TPM_RIGHTBUTTON;
+#else
+    UINT flags = TPM_RIGHTBUTTON;
 #endif
     ::TrackPopupMenu(hMenu, flags, point.x, point.y, 0, hWnd, NULL);
 
@@ -1895,8 +1933,8 @@ bool wxWindowMSW::MSWProcessMessage(WXMSG* pMsg)
                                 return true;
                             }
                             else // no default button
-                            {
 #endif // wxUSE_BUTTON
+                            {
                                 // this is a quick and dirty test for a text
                                 // control
                                 if ( !(lDlgCode & DLGC_HASSETSEL) )
@@ -2132,7 +2170,7 @@ void wxWindowMSW::UnpackMenuSelect(WXWPARAM wParam, WXLPARAM lParam,
 }
 
 // ---------------------------------------------------------------------------
-// Main wxWindows window proc and the window proc for wxWindow
+// Main wxWidgets window proc and the window proc for wxWindow
 // ---------------------------------------------------------------------------
 
 // Hook for new window just as it's being created, when the window isn't yet
@@ -2336,9 +2374,11 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
 #ifndef __WXWINCE__
         case WM_PRINT:
             {
+#if wxUSE_LISTCTRL
                 // Don't call the wx handlers in this case
                 if ( wxIsKindOf(this, wxListCtrl) )
                     break;
+#endif
 
                 if ( lParam & PRF_ERASEBKGND )
                     HandleEraseBkgnd((WXHDC)(HDC)wParam);
@@ -2379,18 +2419,18 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
         case WM_MOUSELEAVE:
            {
             wxASSERT_MSG( !m_mouseInWindow, wxT("the mouse should be in a window to generate this event!") );
-           
+
             // only process this message if the mouse is not in the window,
-            // This can also check for children in composite windows. 
+            // This can also check for children in composite windows.
             // however, this may mean the the wxEVT_LEAVE_WINDOW is never sent
-            // if the mouse does not enter the window from it's child before 
+            // if the mouse does not enter the window from it's child before
             // leaving the scope of the window. ( perhaps this can be picked
             // up in the OnIdle code as before, for this special case )
             if ( /*IsComposite() && */ !IsMouseInWindow() )
             {
                 m_mouseInWindow = false;
 
-                // Unfortunately no mouse state is passed with a WM_MOUSE_LEAVE 
+                // Unfortunately no mouse state is passed with a WM_MOUSE_LEAVE
                 int state = 0;
                 if ( wxIsShiftDown() )
                     state |= MK_SHIFT;
@@ -2429,7 +2469,7 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
            break;
 #endif
  // __WXWINCE__
-           
+
 #if wxUSE_MOUSEWHEEL
         case WM_MOUSEWHEEL:
             processed = HandleMouseWheel(wParam, lParam);
@@ -2518,10 +2558,6 @@ WXLRESULT wxWindowMSW::MSWWindowProc(WXUINT message, WXWPARAM wParam, WXLPARAM l
                                             wParam);
             break;
 #endif // __WXMICROWIN__
-
-        case WM_SYSCOMMAND:
-            processed = HandleSysCommand(wParam, lParam);
-            break;
 
         case WM_COMMAND:
             {
@@ -2949,7 +2985,7 @@ wxWinHashTable *wxWinHandleHash = NULL;
 
 wxWindow *wxFindWinFromHandle(WXHWND hWnd)
 {
-    return wxWinHandleHash->Get((long)hWnd);
+    return (wxWindow*)wxWinHandleHash->Get((long)hWnd);
 }
 
 void wxAssociateWinWithHandle(HWND hWnd, wxWindowMSW *win)
@@ -2999,7 +3035,7 @@ bool wxWindowMSW::MSWGetCreateWindowCoords(const wxPoint& pos,
 
     bool nonDefault = false;
 
-    if ( pos.x == -1 )
+    if ( pos.x == wxDefaultCoord )
     {
         // if x is set to CW_USEDEFAULT, y parameter is ignored anyhow so we
         // can just as well set it to CW_USEDEFAULT as well
@@ -3012,7 +3048,7 @@ bool wxWindowMSW::MSWGetCreateWindowCoords(const wxPoint& pos,
         // neither because it is not handled as a special value by Windows then
         // and so we have to choose some default value for it
         x = pos.x;
-        y = pos.y == -1 ? DEFAULT_Y : pos.y;
+        y = pos.y == wxDefaultCoord ? DEFAULT_Y : pos.y;
 
         nonDefault = true;
     }
@@ -3020,7 +3056,7 @@ bool wxWindowMSW::MSWGetCreateWindowCoords(const wxPoint& pos,
     /*
       NB: there used to be some code here which set the initial size of the
           window to the client size of the parent if no explicit size was
-          specified. This was wrong because wxWindows programs often assume
+          specified. This was wrong because wxWidgets programs often assume
           that they get a WM_SIZE (EVT_SIZE) upon creation, however this broke
           it. To see why, you should understand that Windows sends WM_SIZE from
           inside ::CreateWindow() anyhow. However, ::CreateWindow() is called
@@ -3029,17 +3065,17 @@ bool wxWindowMSW::MSWGetCreateWindowCoords(const wxPoint& pos,
           event goes to some base class OnSize() instead). So the WM_SIZE we
           rely on is the one sent when the parent frame resizes its children
           but here is the problem: if the child already has just the right
-          size, nothing will happen as both wxWindows and Windows check for
+          size, nothing will happen as both wxWidgets and Windows check for
           this and ignore any attempts to change the window size to the size it
           already has - so no WM_SIZE would be sent.
      */
 
-    
+
     // we don't use CW_USEDEFAULT here for several reasons:
     //
     //  1. it results in huge frames on modern screens (1000*800 is not
     //     uncommon on my 1280*1024 screen) which is way too big for a half
-    //     empty frame of most of wxWindows samples for example)
+    //     empty frame of most of wxWidgets samples for example)
     //
     //  2. it is buggy for frames with wxFRAME_TOOL_WINDOW style for which
     //     the default is for whatever reason 8*8 which breaks client <->
@@ -3052,12 +3088,26 @@ bool wxWindowMSW::MSWGetCreateWindowCoords(const wxPoint& pos,
     //     level window in some smart way which we can't do, but we can
     //     guess a reasonably good size for a new window just as well
     //     ourselves
-    if ( size.x == -1 || size.y == -1)
+
+    // However, on PocketPC devices, we must use the default
+    // size if possible.
+#ifdef _WIN32_WCE
+    if (size.x == wxDefaultCoord)
+        w = CW_USEDEFAULT;
+    else
+        w = size.x;
+    if (size.y == wxDefaultCoord)
+        h = CW_USEDEFAULT;
+    else
+        h = size.y;
+#else
+    if ( size.x == wxDefaultCoord || size.y == wxDefaultCoord)
     {
         nonDefault = true;
     }
     w = WidthDefault(size.x);
     h = HeightDefault(size.y);
+#endif
 
     AdjustForParentClientOrigin(x, y);
 
@@ -3096,6 +3146,7 @@ bool wxWindowMSW::MSWCreate(const wxChar *wclass,
     // do create the window
     wxWindowCreationHook hook(this);
 
+    // VZ: anyonce cares to explain why is this done for CE?
 #ifdef __WXWINCE__
     if (extendedStyle == 0)
     {
@@ -3112,7 +3163,7 @@ bool wxWindowMSW::MSWCreate(const wxChar *wclass,
             );
     }
     else
-#endif
+#endif // __WXWINCE__
     {
         m_hWnd = (WXHWND)::CreateWindowEx
             (
@@ -3136,8 +3187,6 @@ bool wxWindowMSW::MSWCreate(const wxChar *wclass,
     }
 
     SubclassWin(m_hWnd);
-
-    SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
     return true;
 }
@@ -3288,6 +3337,8 @@ bool wxWindowMSW::MSWOnNotify(int WXUNUSED(idCtrl),
             return true;
         }
     }
+#else
+    wxUnusedVar(lParam);
 #endif // wxUSE_TOOLTIPS
 
     return false;
@@ -3302,7 +3353,7 @@ bool wxWindowMSW::MSWOnNotify(int WXUNUSED(idCtrl),
 bool wxWindowMSW::HandleQueryEndSession(long logOff, bool *mayEnd)
 {
 #ifndef __WXWINCE__
-    wxCloseEvent event(wxEVT_QUERY_END_SESSION, -1);
+    wxCloseEvent event(wxEVT_QUERY_END_SESSION, wxID_ANY);
     event.SetEventObject(wxTheApp);
     event.SetCanVeto(true);
     event.SetLoggingOff(logOff == (long)ENDSESSION_LOGOFF);
@@ -3333,7 +3384,7 @@ bool wxWindowMSW::HandleEndSession(bool endSession, long logOff)
     if ( (this != wxTheApp->GetTopWindow()) )
         return false;
 
-    wxCloseEvent event(wxEVT_END_SESSION, -1);
+    wxCloseEvent event(wxEVT_END_SESSION, wxID_ANY);
     event.SetEventObject(wxTheApp);
     event.SetCanVeto(false);
     event.SetLoggingOff( (logOff == (long)ENDSESSION_LOGOFF) );
@@ -3404,6 +3455,13 @@ bool wxWindowMSW::HandleActivate(int state,
 
 bool wxWindowMSW::HandleSetFocus(WXHWND hwnd)
 {
+    // Strangly enough, some controls get set focus events when they are being
+    // deleted, even if they already had focus before.
+    if ( m_isBeingDeleted )
+    {
+        return false;
+    }
+
     // notify the parent keeping track of focus for the kbd navigation
     // purposes that we got it
     wxChildFocusEvent eventFocus((wxWindow *)this);
@@ -3494,6 +3552,7 @@ bool wxWindowMSW::HandleInitDialog(WXHWND WXUNUSED(hWndFocus))
 bool wxWindowMSW::HandleDropFiles(WXWPARAM wParam)
 {
 #if defined (__WXMICROWIN__) || defined(__WXWINCE__)
+    wxUnusedVar(wParam);
     return false;
 #else // __WXMICROWIN__
     HDROP hFilesInfo = (HDROP) wParam;
@@ -3668,7 +3727,13 @@ wxWindowMSW::MSWOnDrawItem(int WXUNUSED_UNLESS_ODRAWN(id),
 #else // !wxUSE_OWNER_DRAWN
     // we may still have owner-drawn buttons internally because we have to make
     // them owner-drawn to support colour change
-    wxControl *item = wxDynamicCast(FindItem(id), wxButton);
+    wxControl *item =
+#                     if wxUSE_BUTTON
+                         wxDynamicCast(FindItem(id), wxButton)
+#                     else
+                         NULL
+#                     endif
+                    ;
 #endif // USE_OWNER_DRAWN
 
     if ( item )
@@ -3846,7 +3911,7 @@ bool wxWindowMSW::HandleQueryNewPalette()
     while (!win->HasCustomPalette() && win->GetParent()) win = win->GetParent();
     if (win->HasCustomPalette()) {
         /* realize the palette to see whether redrawing is needed */
-        HDC hdc = GetDC((HWND) GetHWND());
+        HDC hdc = ::GetDC((HWND) GetHWND());
         win->m_palette.SetHPALETTE( (WXHPALETTE)
              ::SelectPalette(hdc, (HPALETTE) win->m_palette.GetHPALETTE(), FALSE) );
 
@@ -3894,20 +3959,6 @@ void wxWindowMSW::OnSysColourChanged(wxSysColourChangedEvent& WXUNUSED(event))
         }
 
         node = node->GetNext();
-    }
-
-    // update the colours we use if they were not set explicitly by the user:
-    // this must be done or OnCtlColor() would continue to use the old colours
-    if ( !m_hasFgCol )
-    {
-        m_foregroundColour = wxSystemSettings::
-                                GetSystemColour(wxSYS_COLOUR_WINDOWTEXT);
-    }
-
-    if ( !m_hasBgCol )
-    {
-        m_backgroundColour = wxSystemSettings::
-                                GetSystemColour(wxSYS_COLOUR_BTNFACE);
     }
 }
 
@@ -3984,7 +4035,7 @@ extern wxCOLORMAP *wxGetStdColourMap()
 bool wxWindowMSW::HandlePaint()
 {
 //    if (GetExtraStyle() & wxWS_EX_THEMED_BACKGROUND)
-//        return FALSE;
+//        return false;
 
     HRGN hRegion = ::CreateRectRgn(0, 0, 0, 0); // Dummy call to get a handle
     if ( !hRegion )
@@ -4075,9 +4126,10 @@ void wxWindowMSW::OnEraseBackground(wxEraseEvent& event)
     RECT rect;
     ::GetClientRect(GetHwnd(), &rect);
 
-    COLORREF ref = PALETTERGB(m_backgroundColour.Red(),
-                              m_backgroundColour.Green(),
-                              m_backgroundColour.Blue());
+    wxColour backgroundColour( GetBackgroundColour());
+    COLORREF ref = PALETTERGB(backgroundColour.Red(),
+                              backgroundColour.Green(),
+                              backgroundColour.Blue());
     HBRUSH hBrush = ::CreateSolidBrush(ref);
     if ( !hBrush )
         wxLogLastError(wxT("CreateSolidBrush"));
@@ -4161,6 +4213,7 @@ bool wxWindowMSW::HandleSizing(wxRect& rect)
 bool wxWindowMSW::HandleGetMinMaxInfo(void *mmInfo)
 {
 #ifdef __WXWINCE__
+    wxUnusedVar(mmInfo);
     return false;
 #else
     MINMAXINFO *info = (MINMAXINFO *)mmInfo;
@@ -4172,25 +4225,25 @@ bool wxWindowMSW::HandleGetMinMaxInfo(void *mmInfo)
         maxWidth = GetMaxWidth(),
         maxHeight = GetMaxHeight();
 
-    if ( minWidth != -1 )
+    if ( minWidth != wxDefaultCoord )
     {
         info->ptMinTrackSize.x = minWidth;
         rc = true;
     }
 
-    if ( minHeight != -1 )
+    if ( minHeight != wxDefaultCoord )
     {
         info->ptMinTrackSize.y = minHeight;
         rc = true;
     }
 
-    if ( maxWidth != -1 )
+    if ( maxWidth != wxDefaultCoord )
     {
         info->ptMaxTrackSize.x = maxWidth;
         rc = true;
     }
 
-    if ( maxHeight != -1 )
+    if ( maxHeight != wxDefaultCoord )
     {
         info->ptMaxTrackSize.y = maxHeight;
         rc = true;
@@ -4264,23 +4317,6 @@ bool wxWindowMSW::HandleCommand(WXWORD id, WXWORD cmd, WXHWND control)
             return true;
     }
 #endif // wxUSE_SPINCTRL
-
-    return false;
-}
-
-bool wxWindowMSW::HandleSysCommand(WXWPARAM wParam, WXLPARAM WXUNUSED(lParam))
-{
-#ifndef __WXWINCE__
-    // 4 bits are reserved
-    switch ( wParam & 0xFFFFFFF0 )
-    {
-        case SC_MAXIMIZE:
-            return HandleMaximize();
-
-        case SC_MINIMIZE:
-            return HandleMinimize();
-    }
-#endif
 
     return false;
 }
@@ -4433,7 +4469,7 @@ bool wxWindowMSW::HandleMouseMove(int x, int y, WXUINT flags)
             trackinfo.hwndTrack = GetHwnd();
             //Use the commctrl.h _TrackMouseEvent, which will call the
             // appropriate TrackMouseEvent or emulate it ( win95 )
-            // else we need _WIN32_WINNT >= 0x0400 
+            // else we need _WIN32_WINNT >= 0x0400
             _TrackMouseEvent(&trackinfo);
 #endif
 #endif
@@ -4519,6 +4555,9 @@ wxKeyEvent wxWindowMSW::CreateKeyEvent(wxEventType evType,
 
     event.m_eventObject = (wxWindow *)this; // const_cast
     event.m_keyCode = id;
+#if wxUSE_UNICODE
+    event.m_uniChar = wParam;
+#endif
     event.m_rawCode = (wxUint32) wParam;
     event.m_rawFlags = (wxUint32) lParam;
 #ifndef __WXWINCE__
@@ -4701,6 +4740,9 @@ int wxWindowMSW::HandleMenuChar(int chAccel, WXLPARAM lParam)
             wxLogLastError(_T("GetMenuItemInfo"));
         }
     }
+#else
+    wxUnusedVar(chAccel);
+    wxUnusedVar(lParam);
 #endif
     return wxNOT_FOUND;
 }
@@ -4789,6 +4831,10 @@ bool wxWindowMSW::HandleJoystickEvent(WXUINT msg, int x, int y, WXUINT flags)
 
     return GetEventHandler()->ProcessEvent(event);
 #else
+    wxUnusedVar(msg);
+    wxUnusedVar(x);
+    wxUnusedVar(y);
+    wxUnusedVar(flags);
     return false;
 #endif
 }
@@ -4799,7 +4845,7 @@ bool wxWindowMSW::HandleJoystickEvent(WXUINT msg, int x, int y, WXUINT flags)
 
 bool wxWindowMSW::MSWOnScroll(int orientation, WXWORD wParam,
                               WXWORD pos, WXHWND control)
-{    
+{
     if ( control && control != m_hWnd ) // Prevent infinite recursion
     {
         wxWindow *child = wxFindWinFromHandle(control);
@@ -4877,22 +4923,20 @@ bool wxWindowMSW::MSWOnScroll(int orientation, WXWORD wParam,
 // global functions
 // ===========================================================================
 
-void wxGetCharSize(WXHWND wnd, int *x, int *y, const wxFont *the_font)
+void wxGetCharSize(WXHWND wnd, int *x, int *y, const wxFont& the_font)
 {
     TEXTMETRIC tm;
     HDC dc = ::GetDC((HWND) wnd);
-    HFONT fnt =0;
     HFONT was = 0;
-    if ( the_font )
-    {
-        //    the_font->UseResource();
-        //    the_font->RealizeResource();
-        fnt = (HFONT)((wxFont *)the_font)->GetResourceHandle(); // const_cast
-        if ( fnt )
-            was = (HFONT) SelectObject(dc,fnt);
-    }
+
+    //    the_font.UseResource();
+    //    the_font.RealizeResource();
+    HFONT fnt = (HFONT)the_font.GetResourceHandle(); // const_cast
+    if ( fnt )
+        was = (HFONT) SelectObject(dc,fnt);
+
     GetTextMetrics(dc, &tm);
-    if ( the_font && fnt && was )
+    if ( fnt && was )
     {
         SelectObject(dc,was);
     }
@@ -4903,8 +4947,7 @@ void wxGetCharSize(WXHWND wnd, int *x, int *y, const wxFont *the_font)
     if ( y )
         *y = tm.tmHeight + tm.tmExternalLeading;
 
-    //  if ( the_font )
-    //    the_font->ReleaseResource();
+    //   the_font.ReleaseResource();
 }
 
 // Returns 0 if was a normal ASCII value, not a special key. This indicates that
@@ -5023,8 +5066,10 @@ int wxCharCodeWXToMSW(int id, bool *isVirtual)
     case WXK_CLEAR:     keySym = VK_CLEAR; break;
     case WXK_SHIFT:     keySym = VK_SHIFT; break;
     case WXK_CONTROL:   keySym = VK_CONTROL; break;
+    case WXK_ALT:       keySym = VK_MENU; break;
     case WXK_MENU :     keySym = VK_MENU; break;
     case WXK_PAUSE:     keySym = VK_PAUSE; break;
+    case WXK_CAPITAL:   keySym = VK_CAPITAL; break;
     case WXK_PRIOR:     keySym = VK_PRIOR; break;
     case WXK_NEXT :     keySym = VK_NEXT; break;
     case WXK_END:       keySym = VK_END; break;
@@ -5094,12 +5139,24 @@ bool wxGetKeyState(wxKeyCode key)
 {
     bool bVirtual;
     int vkey = wxCharCodeWXToMSW(key, &bVirtual);
-    
-    //there aren't WXK_ macros for non-virtual key codes
-    if (bVirtual == false)
-        return false;
+    SHORT state;
 
-    return GetKeyState(vkey) < 0;
+    switch (key)
+    {
+    case WXK_NUMLOCK:
+    case WXK_CAPITAL:
+    case WXK_SCROLL:
+        // get the toggle state of the special key
+        state = GetKeyState(vkey);
+        break;
+
+    default:
+        // Get the current state of the physical key
+        state = GetAsyncKeyState(vkey);
+        break;
+    }
+    // if the most significant bit is set then the key is down
+    return ( state & 0x0001 ) != 0;
 }
 
 wxWindow *wxGetActiveWindow()
@@ -5228,7 +5285,7 @@ wxKeyboardHook(int nCode, WORD wParam, DWORD lParam)
             else
             {
                 handler = wxTheApp;
-                event.SetId(-1);
+                event.SetId(wxID_ANY);
             }
 
             if ( handler && handler->ProcessEvent(event) )
@@ -5780,6 +5837,8 @@ bool wxWindowMSW::UnregisterHotKey(int hotkeyId)
     return true;
 }
 
+#if wxUSE_ACCEL
+
 bool wxWindowMSW::HandleHotKey(WXWPARAM wParam, WXLPARAM lParam)
 {
     int hotkeyId = wParam;
@@ -5796,6 +5855,8 @@ bool wxWindowMSW::HandleHotKey(WXWPARAM wParam, WXLPARAM lParam)
     return GetEventHandler()->ProcessEvent(event);
 }
 
+#endif // wxUSE_ACCEL
+
 #endif // wxUSE_HOTKEY
 
 // Not tested under WinCE
@@ -5809,9 +5870,9 @@ bool wxWindowMSW::HandleHotKey(WXWPARAM wParam, WXLPARAM lParam)
 class wxIdleWakeUpModule : public wxModule
 {
 public:
-	virtual bool OnInit()
+    virtual bool OnInit()
     {
-		ms_hMsgHookProc = ::SetWindowsHookEx
+        ms_hMsgHookProc = ::SetWindowsHookEx
                             (
                              WH_GETMESSAGE,
                              &wxIdleWakeUpModule::MsgHookProc,
@@ -5827,26 +5888,26 @@ public:
         }
 
         return true;
-	}
+    }
 
-	virtual void OnExit()
+    virtual void OnExit()
     {
-		::UnhookWindowsHookEx(wxIdleWakeUpModule::ms_hMsgHookProc);
-	}
+        ::UnhookWindowsHookEx(wxIdleWakeUpModule::ms_hMsgHookProc);
+    }
 
-	static LRESULT CALLBACK MsgHookProc(int nCode, WPARAM wParam, LPARAM lParam)
+    static LRESULT CALLBACK MsgHookProc(int nCode, WPARAM wParam, LPARAM lParam)
     {
-		MSG *msg = (MSG*)lParam;
-		if ( msg->message == WM_NULL )
-		{
+        MSG *msg = (MSG*)lParam;
+        if ( msg->message == WM_NULL )
+        {
             wxTheApp->ProcessPendingEvents();
-		}
+        }
 
-		return CallNextHookEx(ms_hMsgHookProc, nCode, wParam, lParam);
-	};
+        return CallNextHookEx(ms_hMsgHookProc, nCode, wParam, lParam);
+    };
 
 private:
-	static HHOOK ms_hMsgHookProc;
+    static HHOOK ms_hMsgHookProc;
 
     DECLARE_DYNAMIC_CLASS(wxIdleWakeUpModule)
 };
@@ -5856,4 +5917,37 @@ HHOOK wxIdleWakeUpModule::ms_hMsgHookProc = 0;
 IMPLEMENT_DYNAMIC_CLASS(wxIdleWakeUpModule, wxModule)
 
 #endif // __WXWINCE__
-    
+
+#ifdef __WXWINCE__
+
+#if wxUSE_STATBOX
+static void wxAdjustZOrder(wxWindow* parent)
+{
+    if (parent->IsKindOf(CLASSINFO(wxStaticBox)))
+    {
+        // Set the z-order correctly
+        SetWindowPos((HWND) parent->GetHWND(), HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE|SWP_NOSIZE);
+    }
+
+    wxWindowList::compatibility_iterator current = parent->GetChildren().GetFirst();
+    while (current)
+    {
+        wxWindow *childWin = current->GetData();
+        wxAdjustZOrder(childWin);
+        current = current->GetNext();
+    }
+}
+#endif
+
+// We need to adjust the z-order of static boxes in WinCE, to
+// make 'contained' controls visible
+void wxWindowMSW::OnInitDialog( wxInitDialogEvent& event )
+{
+#if wxUSE_STATBOX
+    wxAdjustZOrder(this);
+#endif
+
+    event.Skip();
+}
+#endif
+

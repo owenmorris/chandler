@@ -180,7 +180,6 @@ static wxWindow*                    gpWinBeingCreated = NULL;
 BEGIN_EVENT_TABLE(wxWindowOS2, wxWindowBase)
     EVT_ERASE_BACKGROUND(wxWindowOS2::OnEraseBackground)
     EVT_SYS_COLOUR_CHANGED(wxWindowOS2::OnSysColourChanged)
-    EVT_INIT_DIALOG(wxWindowOS2::OnInitDialog)
     EVT_IDLE(wxWindowOS2::OnIdle)
     EVT_SET_FOCUS(wxWindowOS2::OnSetFocus)
 END_EVENT_TABLE()
@@ -1087,7 +1086,7 @@ WXDWORD wxWindowOS2::OS2GetStyle(
 } // end of wxWindowMSW::MSWGetStyle
 
 //
-// Make a Windows extended style from the given wxWindows window style
+// Make a Windows extended style from the given wxWidgets window style
 //
 WXDWORD wxWindowOS2::MakeExtendedStyle(
   long                              lStyle
@@ -1955,10 +1954,18 @@ bool wxWindowOS2::DoPopupMenu(
 
     pMenu->SetInvokingWindow(this);
     pMenu->UpdateUI();
-
-    DoClientToScreen( &nX
-                     ,&nY
-                    );
+    
+    if ( x == -1 && y == -1 )
+    {
+        wxPoint mouse = wxGetMousePosition();
+        nX = mouse.x; nY = mouse.y;
+    }
+    else
+    {
+        DoClientToScreen( &nX
+                         ,&nY
+                        );
+    }
     wxCurrentPopupMenu = pMenu;
 
     ::WinPopupMenu( hWndParent
@@ -2269,7 +2276,7 @@ void wxWindowOS2::UnpackMenuSelect(
 } // end of wxWindowOS2::UnpackMenuSelect
 
 // ---------------------------------------------------------------------------
-// Main wxWindows window proc and the window proc for wxWindow
+// Main wxWidgets window proc and the window proc for wxWindow
 // ---------------------------------------------------------------------------
 
 //
@@ -2754,7 +2761,7 @@ MRESULT wxWindowOS2::OS2WindowProc(
                             break;
                         }
                         //
-                        // Simulate a WM_COMMAND here, as wxWindows expects all control
+                        // Simulate a WM_COMMAND here, as wxWidgets expects all control
                         // button clicks to generate WM_COMMAND msgs, not WM_CONTROL
                         //
                         if (pWin->IsKindOf(CLASSINFO(wxRadioBox)))
@@ -2814,7 +2821,7 @@ MRESULT wxWindowOS2::OS2WindowProc(
                             break;
                         }
                         //
-                        // Simulate a WM_COMMAND here, as wxWindows expects all control
+                        // Simulate a WM_COMMAND here, as wxWidgets expects all control
                         // button clicks to generate WM_COMMAND msgs, not WM_CONTROL
                         //
                         if (pWin->IsKindOf(CLASSINFO(wxListBox)))
@@ -3386,7 +3393,7 @@ bool wxWindowOS2::OS2OnDrawItem(
                   );
         vDc.SetHPS(pMeasureStruct->hps);
         //
-        // Load the wxWindows Pallete and set to RGB mode
+        // Load the wxWidgets Pallete and set to RGB mode
         //
         if (!::GpiCreateLogColorTable( pMeasureStruct->hps
                                       ,0L
@@ -3962,7 +3969,7 @@ void wxWindowOS2::InitMouseEvent(
     int                                 nHeight;
     DoGetSize(0, &nHeight);
     rEvent.m_x           = nX;
-    // Convert to wxWindows standard coordinate system!
+    // Convert to wxWidgets standard coordinate system!
     rEvent.m_y           = nHeight - nY;
     rEvent.m_shiftDown   = ((uFlags & KC_SHIFT) != 0);
     rEvent.m_controlDown = ((uFlags & KC_CTRL) != 0);
@@ -4388,7 +4395,7 @@ void wxWindowOS2::MoveChildren(
 //
 //  Getting the Y position for a window, like a control, is a real
 //  pain.  There are three sitatuions we must deal with in determining
-//  the OS2 to wxWindows Y coordinate.
+//  the OS2 to wxWidgets Y coordinate.
 //
 //  1)  The controls are created in a dialog.
 //      This is the easiest since a dialog is created with its original
@@ -4900,7 +4907,7 @@ const char* wxGetMessageName(
         // Beginning of user defined messages
         case 0x1000: return "WM_USER";
 
-        // wxWindows user defined types
+        // wxWidgets user defined types
 
         // listview
         // case 0x1000 + 0: return "LVM_GETBKCOLOR";

@@ -288,7 +288,7 @@ bool wxScrolledWindow::Create(wxWindow *parent,
     GtkHConnectEvent();
 
     // these handlers block mouse events to any window during scrolling such as
-    // motion events and prevent GTK and wxWindows from fighting over where the
+    // motion events and prevent GTK and wxWidgets from fighting over where the
     // slider should be
 
     gtk_signal_connect( GTK_OBJECT(scrolledWindow->vscrollbar), "button_press_event",
@@ -453,7 +453,7 @@ wxWindow *wxScrolledWindow::GetTargetWindow() const
 
 // Override this function if you don't want to have wxScrolledWindow
 // automatically change the origin according to the scroll position.
-void wxScrolledWindow::PrepareDC(wxDC& dc)
+void wxScrolledWindow::DoPrepareDC(wxDC& dc)
 {
     dc.SetDeviceOrigin( -m_xScrollPosition * m_xScrollPixelsPerLine,
                         -m_yScrollPosition * m_yScrollPixelsPerLine );
@@ -562,7 +562,7 @@ void wxScrolledWindow::Scroll( int x_pos, int y_pos )
 
         m_targetWindow->ScrollWindow( (old_x-m_xScrollPosition)*m_xScrollPixelsPerLine, 0 );
 
-        // Just update the scrollbar, don't send any wxWindows event
+        // Just update the scrollbar, don't send any wxWidgets event
         GtkHDisconnectEvent();
         gtk_signal_emit_by_name( GTK_OBJECT(m_hAdjust), "value_changed" );
         GtkHConnectEvent();
@@ -581,7 +581,7 @@ void wxScrolledWindow::Scroll( int x_pos, int y_pos )
 
         m_targetWindow->ScrollWindow( 0, (old_y-m_yScrollPosition)*m_yScrollPixelsPerLine );
 
-        // Just update the scrollbar, don't send any wxWindows event
+        // Just update the scrollbar, don't send any wxWidgets event
         GtkVDisconnectEvent();
         gtk_signal_emit_by_name( GTK_OBJECT(m_vAdjust), "value_changed" );
         GtkVConnectEvent();
@@ -783,14 +783,14 @@ void wxScrolledWindow::SetScrollPos( int orient, int pos, bool refresh )
     {
         if (orient == wxHORIZONTAL)
         {
-            // Just update the scrollbar, don't send any wxWindows event
+            // Just update the scrollbar, don't send any wxWidgets event
             GtkHDisconnectEvent();
             gtk_signal_emit_by_name( GTK_OBJECT(m_hAdjust), "value_changed" );
             GtkHConnectEvent();
         }
         else
         {
-            // Just update the scrollbar, don't send any wxWindows event
+            // Just update the scrollbar, don't send any wxWidgets event
             GtkVDisconnectEvent();
             gtk_signal_emit_by_name( GTK_OBJECT(m_vAdjust), "value_changed" );
             GtkVConnectEvent();

@@ -425,6 +425,17 @@ wxTextOutputStream& wxTextOutputStream::operator<<(char c)
     return *this;
 }
 
+#if wxUSE_UNICODE && wxWCHAR_T_IS_REAL_TYPE
+
+wxTextOutputStream& wxTextOutputStream::operator<<(wchar_t wc)
+{
+    WriteString( wxString(&wc, m_conv, 1) );
+
+    return *this;
+}
+
+#endif // wxUSE_UNICODE
+
 wxTextOutputStream& wxTextOutputStream::operator<<(wxInt16 c)
 {
     wxString str;

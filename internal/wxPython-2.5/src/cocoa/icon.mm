@@ -6,7 +6,7 @@
 // Created:     2003/08/11
 // RCS-ID:      $Id$
 // Copyright:   (c) 2003 David Elliott
-// Licence:   	wxWindows licence
+// Licence:   	wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
@@ -14,6 +14,8 @@
     #include "wx/icon.h"
 #endif //WX_PRECOMP
 #include "wx/bitmap.h"
+
+#include "wx/cocoa/autorelease.h"
 
 #import <AppKit/NSImage.h>
 
@@ -64,6 +66,7 @@ wxIconRefData::wxIconRefData( const wxIconRefData& data)
 
 wxIconRefData::~wxIconRefData()
 {
+    wxAutoNSAutoreleasePool pool;
     [m_cocoaNSImage release];
     m_cocoaNSImage = NULL;
 }
@@ -122,7 +125,8 @@ void wxIcon::CopyFromBitmap(const wxBitmap& bitmap)
     m_refData = new wxIconRefData;
     M_ICONDATA->m_width = bitmap.GetWidth();
     M_ICONDATA->m_height = bitmap.GetHeight();
-    M_ICONDATA->m_cocoaNSImage = bitmap.GetNSImage(true);
+    wxAutoNSAutoreleasePool pool;
+    M_ICONDATA->m_cocoaNSImage = [bitmap.GetNSImage(true) retain];
     M_ICONDATA->m_ok = bitmap.Ok();
     M_ICONDATA->m_numColors = 0;
     M_ICONDATA->m_quality = 0;

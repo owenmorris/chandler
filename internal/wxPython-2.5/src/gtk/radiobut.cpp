@@ -128,19 +128,7 @@ bool wxRadioButton::Create( wxWindow *parent,
        
     m_parent->DoAddChild( this );
   
-    PostCreation();
-    InheritAttributes();
-
-    wxSize size_best( DoGetBestSize() );
-    wxSize new_size( size );
-    if (new_size.x == -1)
-        new_size.x = size_best.x;
-    if (new_size.y == -1)
-        new_size.y = size_best.y;
-    if ((new_size.x != size.x) || (new_size.y != size.y))
-        SetSize( new_size.x, new_size.y );
-        
-    Show( TRUE );
+    PostCreation(size);
 
     return TRUE;
 }
@@ -199,11 +187,10 @@ bool wxRadioButton::Enable( bool enable )
     return TRUE;
 }
 
-void wxRadioButton::ApplyWidgetStyle()
+void wxRadioButton::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    SetWidgetStyle();
-    gtk_widget_set_style( m_widget, m_widgetStyle );
-    gtk_widget_set_style( BUTTON_CHILD(m_widget), m_widgetStyle );
+    gtk_widget_modify_style(m_widget, style);
+    gtk_widget_modify_style(BUTTON_CHILD(m_widget), style);
 }
 
 bool wxRadioButton::IsOwnGtkWindow( GdkWindow *window )
@@ -244,5 +231,20 @@ wxSize wxRadioButton::DoGetBestSize() const
 {
     return wxControl::DoGetBestSize();
 }
+
+// static
+wxVisualAttributes
+wxRadioButton::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    wxVisualAttributes attr;
+    // NB: we need toplevel window so that GTK+ can find the right style
+    GtkWidget *wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    GtkWidget* widget = gtk_radio_button_new_with_label(NULL, "");
+    gtk_container_add(GTK_CONTAINER(wnd), widget);
+    attr = GetDefaultAttributesFromGTKWidget(widget);
+    gtk_widget_destroy(wnd);
+    return attr;
+}
+
 
 #endif

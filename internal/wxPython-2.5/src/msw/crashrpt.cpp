@@ -58,7 +58,7 @@
 
 #include "wx/datetime.h"
 
-#include "wx/dynload.h"
+#include "wx/dynlib.h"
 
 #include "wx/msw/crashrpt.h"
 
@@ -173,7 +173,7 @@ enum SymbolTag
 // ----------------------------------------------------------------------------
 
 // low level wxBusyCursor replacement: we use Win32 API directly here instead
-// of going through wxWindows calls as this could be dangerous
+// of going through wxWidgets calls as this could be dangerous
 class BusyCursor
 {
 public:
@@ -1188,7 +1188,7 @@ bool wxCrashReportImpl::Generate(
             SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_UNDNAME);
 
             // Initialize DbgHelp
-            if ( SymInitialize(GetCurrentProcess(), NULL, TRUE /* invade */) )
+            if ( ::SymInitialize(GetCurrentProcess(), NULL, TRUE /* invade */) )
             {
                 OutputStack(pCtx, flags);
 
@@ -1220,7 +1220,7 @@ bool wxCrashReportImpl::Generate(
 
 #else // !wxUSE_DBGHELP
     Output(_T("Support for crash report generation was not included ")
-           _T("in this wxWindows version."));
+           _T("in this wxWidgets version."));
 #endif // wxUSE_DBGHELP/!wxUSE_DBGHELP
 
     return false;

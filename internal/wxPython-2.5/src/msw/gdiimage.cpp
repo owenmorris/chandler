@@ -378,9 +378,9 @@ bool wxBMPFileHandler::LoadFile(wxBitmap *bitmap,
   WXHBITMAP hBitmap = (WXHBITMAP)wxLoadBMP(name);
   if(hBitmap) {
       bitmap->SetHBITMAP(hBitmap);
-      return TRUE;
+      return true;
   }
-    return FALSE;
+    return false;
 #endif
 }
 
@@ -396,7 +396,7 @@ bool wxBMPFileHandler::SaveFile(wxBitmap *bitmap,
 
     return dib.Save(name);
 #else
-    return FALSE;
+    return false;
 #endif
 }
 
@@ -585,7 +585,10 @@ bool wxICOResourceHandler::LoadIcon(wxIcon *icon,
 
 wxSize wxGetHiconSize(HICON hicon)
 {
-    wxSize size(32, 32);    // default
+    // default icon size on this hardware
+    // usually 32x32 but can be other (smaller) on pocket devices
+    wxSize size(::GetSystemMetrics(SM_CXICON), ::GetSystemMetrics(SM_CYICON));
+
 #ifndef __WXWINCE__
     if ( hicon && wxGetOsVersion() != wxWIN32S )
     {
@@ -611,6 +614,8 @@ wxSize wxGetHiconSize(HICON hicon)
                 ::DeleteObject(info.hbmColor);
         }
     }
+#else
+    wxUnusedVar(hicon);
 #endif
     return size;
 }
@@ -660,7 +665,7 @@ HBITMAP wxLoadBMP(const wxString& filename)
           pBmpInfo->bmiHeader.biSizeImage = nBitsSize;
 
           //HBITMAP hBitmap=SetBitmap((LPBITMAPINFO)pBmpInfo, pBits);
-            DWORD dwBitmapInfoSize = sizeof(BITMAPINFO) + nColors*sizeof(RGBQUAD);
+          //DWORD dwBitmapInfoSize = sizeof(BITMAPINFO) + nColors*sizeof(RGBQUAD);
 
             // Create a DC which will be used to get DIB, then create DIBsection
             HDC hDC = ::GetDC(NULL);

@@ -19,6 +19,8 @@
 #if wxUSE_CONTROLS
 
 #include "wx/control.h"
+#include "wx/fontutil.h"
+#include "wx/settings.h"
 
 #include <gtk/gtk.h>
 
@@ -64,6 +66,7 @@ void wxControl::SetLabel( const wxString &label )
         }
         m_label << *pc;
     }
+    InvalidateBestSize();    
 }
 
 wxString wxControl::GetLabel() const
@@ -83,8 +86,27 @@ wxSize wxControl::DoGetBestSize() const
     (* GTK_WIDGET_CLASS( GTK_OBJECT_GET_CLASS(m_widget) )->size_request )
         (m_widget, &req );
 
-    return wxSize(req.width, req.height);
+    wxSize best(req.width, req.height);
+    CacheBestSize(best);
+    return best;
 }
+
+
+void wxControl::PostCreation(const wxSize& size)
+{
+    wxWindow::PostCreation();
+
+    // NB: GetBestSize needs to know the style, otherwise it will assume
+    //     default font and if the user uses a different font, determined
+    //     best size will be different (typically, smaller) than the desired
+    //     size. This call ensure that a style is available at the time
+    //     GetBestSize is called.
+    gtk_widget_ensure_style(m_widget);
+    
+    ApplyWidgetStyle();
+    SetInitialBestSize(size);
+}
+
 
 #ifdef __WXGTK20__
 wxString wxControl::PrepareLabelMnemonics( const wxString &label ) const
@@ -129,6 +151,132 @@ wxString wxControl::PrepareLabelMnemonics( const wxString &label ) const
     return label2;
 }
 #endif
+
+
+wxVisualAttributes wxControl::GetDefaultAttributes() const
+{
+    return GetDefaultAttributesFromGTKWidget(m_widget,
+                                             UseGTKStyleBase());
+}
+
+
+#define SHIFT (8*(sizeof(short int)-sizeof(char)))
+
+// static
+wxVisualAttributes
+wxControl::GetDefaultAttributesFromGTKWidget(GtkWidget* widget,
+                                             bool useBase,
+                                             int state)
+{
+    GtkStyle* style;
+    wxVisualAttributes attr;
+
+    style = gtk_rc_get_style(widget);
+    if (!style)
+        style = gtk_widget_get_default_style();
+
+    if (!style)
+    {
+        return wxWindow::GetClassDefaultAttributes(wxWINDOW_VARIANT_NORMAL);
+    }
+
+    if (state == -1)
+        state = GTK_STATE_NORMAL;
+        
+    // get the style's colours
+    attr.colFg = wxColour(style->fg[state].red   >> SHIFT,
+                          style->fg[state].green >> SHIFT,
+                          style->fg[state].blue  >> SHIFT);
+    if (useBase)
+        attr.colBg = wxColour(style->base[state].red   >> SHIFT,
+                              style->base[state].green >> SHIFT,
+                              style->base[state].blue  >> SHIFT);
+    else
+        attr.colBg = wxColour(style->bg[state].red   >> SHIFT,
+                              style->bg[state].green >> SHIFT,
+                              style->bg[state].blue  >> SHIFT);
+
+    // get the style's font
+#ifdef __WXGTK20__
+    if ( !style->font_desc )
+        style = gtk_widget_get_default_style();  
+    if ( style && style->font_desc )
+    {  
+        wxNativeFontInfo info;  
+        info.description = pango_font_description_copy(style->font_desc);
+        attr.font = wxFont(info);  
+    }  
+    else  
+    {  
+        GtkSettings *settings = gtk_settings_get_default();
+        gchar *font_name = NULL;
+        g_object_get ( settings,
+                       "gtk-font-name", 
+                       &font_name,
+                       NULL);
+        if (!font_name)
+            attr.font = wxSystemSettings::GetFont( wxSYS_DEFAULT_GUI_FONT );
+        else
+            attr.font = wxFont(wxString::FromAscii(font_name));
+        g_free (font_name);
+    }  
+#else
+    // TODO: isn't there a way to get a standard gtk 1.2 font?
+    attr.font = wxFont( 12, wxSWISS, wxNORMAL, wxNORMAL );
+#endif
+    
+    return attr;
+}
+
+
+//static
+wxVisualAttributes
+wxControl::GetDefaultAttributesFromGTKWidget(GtkWidget* (*widget_new)(void),
+                                             bool useBase,
+                                             int state)
+{
+    wxVisualAttributes attr;
+    // NB: we need toplevel window so that GTK+ can find the right style
+    GtkWidget *wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    GtkWidget* widget = widget_new();
+    gtk_container_add(GTK_CONTAINER(wnd), widget);
+    attr = GetDefaultAttributesFromGTKWidget(widget, useBase, state);
+    gtk_widget_destroy(wnd);
+    return attr;
+}
+
+//static
+wxVisualAttributes
+wxControl::GetDefaultAttributesFromGTKWidget(GtkWidget* (*widget_new)(const gchar*),
+                                             bool useBase,
+                                             int state)
+{
+    wxVisualAttributes attr;
+    // NB: we need toplevel window so that GTK+ can find the right style
+    GtkWidget *wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    GtkWidget* widget = widget_new("");
+    gtk_container_add(GTK_CONTAINER(wnd), widget);
+    attr = GetDefaultAttributesFromGTKWidget(widget, useBase, state);
+    gtk_widget_destroy(wnd);
+    return attr;
+}
+
+
+//static
+wxVisualAttributes
+wxControl::GetDefaultAttributesFromGTKWidget(GtkWidget* (*widget_new)(GtkAdjustment*),
+                                             bool useBase,
+                                             int state)
+{
+    wxVisualAttributes attr;
+    // NB: we need toplevel window so that GTK+ can find the right style
+    GtkWidget *wnd = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    GtkWidget* widget = widget_new(NULL);
+    gtk_container_add(GTK_CONTAINER(wnd), widget);
+    attr = GetDefaultAttributesFromGTKWidget(widget, useBase, state);
+    gtk_widget_destroy(wnd);
+    return attr;
+}
 
 #endif // wxUSE_CONTROLS
 

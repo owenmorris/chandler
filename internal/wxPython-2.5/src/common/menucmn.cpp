@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     26.10.99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -310,11 +310,6 @@ void wxMenuBase::AddSubMenu(wxMenu *submenu)
 {
     wxCHECK_RET( submenu, _T("can't add a NULL submenu") );
 
-    if ( m_menuBar )
-    {
-        submenu->Attach(m_menuBar);
-    }
-
     submenu->SetParent((wxMenu *)this);
 }
 
@@ -390,6 +385,8 @@ wxMenuItem *wxMenuBase::DoRemove(wxMenuItem *item)
     if ( submenu )
     {
         submenu->SetParent((wxMenu *)NULL);
+        if ( submenu->IsAttached() )
+            submenu->Detach();
     }
 
     return item;
@@ -628,6 +625,13 @@ bool wxMenuBase::SendEvent(int id, int checked)
 // ----------------------------------------------------------------------------
 // wxMenu attaching/detaching to/from menu bar
 // ----------------------------------------------------------------------------
+
+wxMenuBar* wxMenuBase::GetMenuBar() const
+{
+    if(GetParent())
+        return GetParent()->GetMenuBar();
+    return m_menuBar;
+}
 
 void wxMenuBase::Attach(wxMenuBarBase *menubar)
 {

@@ -1,12 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Name:        src/msw/uxtheme.cpp
 // Purpose:     implements wxUxThemeEngine class: support for XP themes
-// Author:      
+// Author:
 // Modified by:
 // Created:     2003
 // RCS-ID:      $Id$
-// Copyright:   (c) 2003 wxWindows Dev-Team
-// License:     wxWindows license
+// Copyright:   (c) 2003 wxWidgets Dev-Team
+// License:     wxWindows licence
 ///////////////////////////////////////////////////////////////////////////////
 
 // ============================================================================
@@ -49,11 +49,11 @@
 class wxUxThemeModule : public wxModule
 {
 public:
-	virtual bool OnInit() { return true; }
-	virtual void OnExit()
-	{
-		if ( wxUxThemeEngine::ms_themeEngine )
-		{
+    virtual bool OnInit() { return true; }
+    virtual void OnExit()
+    {
+        if ( wxUxThemeEngine::ms_themeEngine )
+        {
             // this is probably not necessary right now but try to be careful
             // and avoid the problems which we might have if someone ever
             // decides to show a message box using the theme engine from
@@ -63,12 +63,12 @@ public:
             wxUxThemeEngine::ms_themeEngine = NULL;
             wxUxThemeEngine::ms_isThemeEngineAvailable = false;
 
-			delete themeEngine;
-		}
-	}
+            delete themeEngine;
+        }
+    }
 
 
-	DECLARE_DYNAMIC_CLASS(wxUxThemeModule)
+    DECLARE_DYNAMIC_CLASS(wxUxThemeModule)
 };
 
 IMPLEMENT_DYNAMIC_CLASS(wxUxThemeModule, wxModule)
@@ -114,7 +114,7 @@ bool wxUxThemeEngine::Initialize()
         // themes
         return false;
     }
-        
+
     // we're prepared to handle the errors
     wxLogNull noLog;
 

@@ -51,6 +51,7 @@ wxControlContainer::wxControlContainer(wxWindow *winParent)
     m_winLastFocused =
     m_winTmpDefault =
     m_winDefault = NULL;
+    m_inSetFocus = false;
 }
 
 bool wxControlContainer::AcceptsFocus() const
@@ -63,21 +64,21 @@ bool wxControlContainer::AcceptsFocus() const
         // at least one child will accept focus
         wxWindowList::compatibility_iterator node = m_winParent->GetChildren().GetFirst();
         if ( !node )
-            return TRUE;
+            return true;
 
 #ifdef __WXMAC__
         // wxMac has eventually the two scrollbars as children, they don't count
         // as real children in the algorithm mentioned above
         bool hasRealChildren = false ;
 #endif
-        
+
         while ( node )
         {
             wxWindow *child = node->GetData();
 
             if ( child->AcceptsFocus() )
             {
-                return TRUE;
+                return true;
             }
 
 #ifdef __WXMAC__
@@ -87,14 +88,14 @@ bool wxControlContainer::AcceptsFocus() const
 #endif
             node = node->GetNext();
         }
-        
+
 #ifdef __WXMAC__
         if ( !hasRealChildren )
-            return TRUE ;
+            return true ;
 #endif
     }
 
-    return FALSE;
+    return false;
 }
 
 void wxControlContainer::SetLastFocus(wxWindow *win)
@@ -307,7 +308,7 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
             }
             //else: the child manages its focus itself
 
-            event.Skip( FALSE );
+            event.Skip( false );
 
             return;
         }
@@ -341,6 +342,9 @@ bool wxControlContainer::DoSetFocus()
     wxLogTrace(_T("focus"), _T("SetFocus on wxPanel 0x%08lx."),
                (unsigned long)m_winParent->GetHandle());
 
+    if (m_inSetFocus)
+        return true;
+
     // when the panel gets the focus we move the focus to either the last
     // window that had the focus or the first one that can get it unless the
     // focus had been already set to some other child
@@ -351,7 +355,7 @@ bool wxControlContainer::DoSetFocus()
         if ( win == m_winParent )
         {
             // our child already has focus, don't take it away from it
-            return TRUE;
+            return true;
         }
 
         if ( win->IsTopLevel() )
@@ -364,7 +368,14 @@ bool wxControlContainer::DoSetFocus()
         win = win->GetParent();
     }
 
-    return SetFocusToChild();
+    // protect against infinite recursion:
+    m_inSetFocus = true;
+
+    bool ret = SetFocusToChild();
+
+    m_inSetFocus = false;
+
+    return ret;
 }
 
 void wxControlContainer::HandleOnFocus(wxFocusEvent& event)
@@ -390,8 +401,8 @@ bool wxControlContainer::SetFocusToChild()
 
 bool wxSetFocusToChild(wxWindow *win, wxWindow **childLastFocused)
 {
-    wxCHECK_MSG( win, FALSE, _T("wxSetFocusToChild(): invalid window") );
-    wxCHECK_MSG( childLastFocused, FALSE,
+    wxCHECK_MSG( win, false, _T("wxSetFocusToChild(): invalid window") );
+    wxCHECK_MSG( childLastFocused, false,
                  _T("wxSetFocusToChild(): NULL child poonter") );
 
     if ( *childLastFocused )
@@ -406,7 +417,7 @@ bool wxSetFocusToChild(wxWindow *win, wxWindow **childLastFocused)
             // not SetFocusFromKbd(): we're restoring focus back to the old
             // window and not setting it as the result of a kbd action
             (*childLastFocused)->SetFocus();
-            return TRUE;
+            return true;
         }
         else
         {
@@ -429,12 +440,12 @@ bool wxSetFocusToChild(wxWindow *win, wxWindow **childLastFocused)
 
             *childLastFocused = child;
             child->SetFocusFromKbd();
-            return TRUE;
+            return true;
         }
 
         node = node->GetNext();
     }
 
-    return FALSE;
+    return false;
 }
 

@@ -171,8 +171,7 @@ bool wxComboBox::Create( wxWindow *parent, wxWindowID id, const wxString& value,
 
     m_focusWidget = combo->entry;
 
-    PostCreation();
-    InheritAttributes();
+    PostCreation(size);
 
     ConnectWidget( combo->button );
 
@@ -189,24 +188,12 @@ bool wxComboBox::Create( wxWindow *parent, wxWindowID id, const wxString& value,
     gtk_signal_connect( GTK_OBJECT(combo->list), "select-child",
       GTK_SIGNAL_FUNC(gtk_combo_select_child_callback), (gpointer)this );
 
-    wxSize size_best( DoGetBestSize() );
-    wxSize new_size( size );
-    if (new_size.x == -1)
-        new_size.x = size_best.x;
-    if (new_size.y == -1)
-        new_size.y = size_best.y;
-    if (new_size.y > size_best.y)
-        new_size.y = size_best.y;
-    if ((new_size.x != size.x) || (new_size.y != size.y))
-    {
-        SetSize( new_size.x, new_size.y );
+    SetBestSize(size); // need this too because this is a wxControlWithItems
 
-        // This is required for tool bar support
-        gtk_widget_set_usize( m_widget, new_size.x, new_size.y );
-    }
-
-    Show( TRUE );
-
+    // This is required for tool bar support
+    wxSize setsize = GetSize();
+    gtk_widget_set_usize( m_widget, setsize.x, setsize.y );
+    
     return TRUE;
 }
 
@@ -251,8 +238,17 @@ int wxComboBox::DoAppend( const wxString &item )
     {
         gtk_widget_realize( list_item );
         gtk_widget_realize( GTK_BIN(list_item)->child );
+    }
 
-        if (m_widgetStyle) ApplyWidgetStyle();
+    // Apply current widget style to the new list_item
+    GtkRcStyle *style = CreateWidgetStyle();
+    if (style)
+    {
+        gtk_widget_modify_style( GTK_WIDGET( list_item ), style );
+        GtkBin *bin = GTK_BIN( list_item );
+        GtkWidget *label = GTK_WIDGET( bin->child );
+        gtk_widget_modify_style( label, style );
+        gtk_rc_style_unref( style );
     }
 
     gtk_widget_show( list_item );
@@ -297,8 +293,7 @@ int wxComboBox::DoInsert( const wxString &item, int pos )
         gtk_widget_realize( list_item );
         gtk_widget_realize( GTK_BIN(list_item)->child );
 
-        if (m_widgetStyle)
-            ApplyWidgetStyle();
+        ApplyWidgetStyle();
     }
 
     gtk_widget_show( list_item );
@@ -557,13 +552,14 @@ void wxComboBox::SetSelection( int n )
     EnableEvents();
 }
 
-void wxComboBox::SetStringSelection( const wxString &string )
+bool wxComboBox::SetStringSelection( const wxString &string )
 {
-    wxCHECK_RET( m_widget != NULL, wxT("invalid combobox") );
+    wxCHECK_MSG( m_widget != NULL, false, wxT("invalid combobox") );
 
     int res = FindString( string );
-    if (res == -1) return;
+    if (res == -1) return false;
     SetSelection( res );
+    return true;
 }
 
 wxString wxComboBox::GetValue() const
@@ -734,22 +730,20 @@ void wxComboBox::OnSize( wxSizeEvent &event )
 #endif // 0
 }
 
-void wxComboBox::ApplyWidgetStyle()
+void wxComboBox::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    SetWidgetStyle();
-
-//    gtk_widget_set_style( GTK_COMBO(m_widget)->button, m_widgetStyle );
-    gtk_widget_set_style( GTK_COMBO(m_widget)->entry, m_widgetStyle );
-    gtk_widget_set_style( GTK_COMBO(m_widget)->list, m_widgetStyle );
+//    gtk_widget_modify_style( GTK_COMBO(m_widget)->button, syle );
+    gtk_widget_modify_style( GTK_COMBO(m_widget)->entry, style );
+    gtk_widget_modify_style( GTK_COMBO(m_widget)->list, style );
 
     GtkList *list = GTK_LIST( GTK_COMBO(m_widget)->list );
     GList *child = list->children;
     while (child)
     {
-        gtk_widget_set_style( GTK_WIDGET(child->data), m_widgetStyle );
+        gtk_widget_modify_style( GTK_WIDGET(child->data), style );
 
         GtkBin *bin = GTK_BIN(child->data);
-        gtk_widget_set_style( bin->child, m_widgetStyle );
+        gtk_widget_modify_style( bin->child, style );
 
         child = child->next;
     }
@@ -779,7 +773,7 @@ wxSize wxComboBox::DoGetBestSize() const
         size_t count = GetCount();
         for ( size_t n = 0; n < count; n++ )
         {
-            GetTextExtent( GetString(n), &width, NULL, NULL, NULL, &m_font );
+            GetTextExtent( GetString(n), &width, NULL, NULL, NULL );
             if ( width > ret.x )
                 ret.x = width;
         }
@@ -788,7 +782,16 @@ wxSize wxComboBox::DoGetBestSize() const
     // empty combobox should have some reasonable default size too
     if ( ret.x < 100 )
         ret.x = 100;
+
+    CacheBestSize(ret);
     return ret;
+}
+
+// static
+wxVisualAttributes
+wxComboBox::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    return GetDefaultAttributesFromGTKWidget(gtk_combo_new, true);
 }
 
 #endif

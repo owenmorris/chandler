@@ -13,6 +13,9 @@
 #pragma implementation "cursor.h"
 #endif
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
 #include "wx/cursor.h"
 #include "wx/app.h"
 #include "wx/utils.h"
@@ -54,7 +57,7 @@ public:
     ~wxCursorRefData();
     
     wxXCursorList m_cursors;  // wxXCursor objects, one per display
-    wxStockCursor m_cursorId; // wxWindows standard cursor id
+    wxStockCursor m_cursorId; // wxWidgets standard cursor id
 };
 
 #define M_CURSORDATA ((wxCursorRefData *)m_refData)
@@ -295,7 +298,7 @@ bool wxCursor::Ok() const
 }
 
 // Motif-specific: create/get a cursor for the current display
-WXCursor wxCursor::GetXCursor(WXDisplay* display)
+WXCursor wxCursor::GetXCursor(WXDisplay* display) const
 {
     if (!M_CURSORDATA)
         return (WXCursor) 0;
@@ -330,7 +333,7 @@ WXCursor wxCursor::GetXCursor(WXDisplay* display)
 }
 
 // Make a cursor from standard id
-WXCursor wxCursor::MakeCursor(WXDisplay* display, wxStockCursor id)
+WXCursor wxCursor::MakeCursor(WXDisplay* display, wxStockCursor id) const
 {
     Display* dpy = (Display*) display;
     Cursor cursor = (Cursor) 0;

@@ -13,6 +13,9 @@
 #pragma implementation "dialog.h"
 #endif
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
 #ifdef __VMS
 #define XtDisplay XTDISPLAY
 #define XtWindow XTWINDOW
@@ -194,7 +197,10 @@ bool wxDialog::DoCreate( wxWindow* parent, wxWindowID id,
 
 void wxDialog::SetModal(bool flag)
 {
-    if ( flag )
+#ifdef __VMS
+#pragma message disable codcauunr
+#endif
+   if ( flag )
         m_windowStyle |= wxDIALOG_MODAL ;
     else
         if ( m_windowStyle & wxDIALOG_MODAL )
@@ -203,6 +209,9 @@ void wxDialog::SetModal(bool flag)
         wxModelessWindows.DeleteObject(this);
         if (!flag)
             wxModelessWindows.Append(this);
+#ifdef __VMS
+#pragma message enable codcauunr
+#endif
 }
 
 wxDialog::~wxDialog()
@@ -282,8 +291,8 @@ void wxDialog::SetTitle(const wxString& title)
 
 bool wxDialog::Show( bool show )
 {
-    if( !wxTopLevelWindowMotif::Show( show ) )
-        return FALSE;
+    if( !wxWindowBase::Show( show ) )
+        return false;
 
     m_isShown = show;
 

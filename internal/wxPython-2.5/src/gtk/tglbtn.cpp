@@ -79,13 +79,6 @@ bool wxToggleBitmapButton::Create(wxWindow *parent, wxWindowID id,
 
     if (m_bitmap.Ok())
     {
-        wxSize newSize = size;
-        int border = (style & wxNO_BORDER) ? 4 : 10;
-        if (newSize.x == -1)
-            newSize.x = m_bitmap.GetWidth()+border;
-        if (newSize.y == -1)
-            newSize.y = m_bitmap.GetHeight()+border;
-        SetSize( newSize.x, newSize.y );
         OnSetBitmap();
     }
 
@@ -95,10 +88,7 @@ bool wxToggleBitmapButton::Create(wxWindow *parent, wxWindowID id,
 
     m_parent->DoAddChild(this);
 
-    PostCreation();
-    InheritAttributes();
-
-    Show( TRUE );
+    PostCreation(size);
 
     return TRUE;
 }
@@ -133,6 +123,7 @@ void wxToggleBitmapButton::SetLabel(const wxBitmap& label)
     wxCHECK_RET(m_widget != NULL, wxT("invalid toggle button"));
 
     m_bitmap = label;
+    InvalidateBestSize();
     
     OnSetBitmap();
 }
@@ -169,11 +160,10 @@ bool wxToggleBitmapButton::Enable(bool enable /*=TRUE*/)
     return TRUE;
 }
 
-void wxToggleBitmapButton::ApplyWidgetStyle()
+void wxToggleBitmapButton::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    SetWidgetStyle();
-    gtk_widget_set_style(m_widget, m_widgetStyle);
-    gtk_widget_set_style(BUTTON_CHILD(m_widget), m_widgetStyle);
+    gtk_widget_modify_style(m_widget, style);
+    gtk_widget_modify_style(BUTTON_CHILD(m_widget), style);
 }
 
 bool wxToggleBitmapButton::IsOwnGtkWindow(GdkWindow *window)
@@ -203,20 +193,31 @@ void wxToggleBitmapButton::OnInternalIdle()
         UpdateWindowUI(wxUPDATE_UI_FROMIDLE);
 }
 
-// wxSize DoGetBestSize() const
+
 // Get the "best" size for this control.
 wxSize wxToggleBitmapButton::DoGetBestSize() const
 {
-    wxSize ret(wxControl::DoGetBestSize());
-   
-    if (!HasFlag(wxBU_EXACTFIT))
-    {
-        if (ret.x < 80) ret.x = 80;
-    }
+    wxSize best;
     
-
-   return ret;
+    if (m_bitmap.Ok())
+    {
+        int border = HasFlag(wxNO_BORDER) ? 4 : 10;
+        best.x = m_bitmap.GetWidth()+border;
+        best.y = m_bitmap.GetHeight()+border;
+    }
+    CacheBestSize(best);
+    return best;
 }
+
+
+// static
+wxVisualAttributes
+wxToggleBitmapButton::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    return GetDefaultAttributesFromGTKWidget(gtk_toggle_button_new);
+}
+
+
 // ------------------------------------------------------------------------
 // wxToggleButton
 // ------------------------------------------------------------------------
@@ -251,19 +252,7 @@ bool wxToggleButton::Create(wxWindow *parent, wxWindowID id,
 
    m_parent->DoAddChild(this);
 
-   PostCreation();
-   InheritAttributes();
-
-   wxSize size_best(DoGetBestSize());
-   wxSize new_size(size);
-   if (new_size.x == -1)
-      new_size.x = size_best.x;
-   if (new_size.y == -1)
-      new_size.y = size_best.y;
-   if ((new_size.x != size.x) || (new_size.y != size.y))
-      SetSize(new_size.x, new_size.y);
-
-   Show(TRUE);
+   PostCreation(size);
 
    return TRUE;
 }
@@ -312,11 +301,10 @@ bool wxToggleButton::Enable(bool enable /*=TRUE*/)
     return TRUE;
 }
 
-void wxToggleButton::ApplyWidgetStyle()
+void wxToggleButton::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    SetWidgetStyle();
-    gtk_widget_set_style(m_widget, m_widgetStyle);
-    gtk_widget_set_style(BUTTON_CHILD(m_widget), m_widgetStyle);
+    gtk_widget_modify_style(m_widget, style);
+    gtk_widget_modify_style(BUTTON_CHILD(m_widget), style);
 }
 
 bool wxToggleButton::IsOwnGtkWindow(GdkWindow *window)
@@ -346,7 +334,7 @@ void wxToggleButton::OnInternalIdle()
         UpdateWindowUI(wxUPDATE_UI_FROMIDLE);
 }
 
-// wxSize DoGetBestSize() const
+
 // Get the "best" size for this control.
 wxSize wxToggleButton::DoGetBestSize() const
 {
@@ -357,8 +345,15 @@ wxSize wxToggleButton::DoGetBestSize() const
         if (ret.x < 80) ret.x = 80;
     }
     
+    CacheBestSize(ret);
+    return ret;
+}
 
-   return ret;
+// static
+wxVisualAttributes
+wxToggleButton::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    return GetDefaultAttributesFromGTKWidget(gtk_toggle_button_new);
 }
 
 #endif // wxUSE_TOGGLEBTN

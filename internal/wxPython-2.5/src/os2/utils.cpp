@@ -45,7 +45,7 @@
 #include <netbios.h>
 #endif
 
-static const wxChar WX_SECTION[] = _T("wxWindows");
+static const wxChar WX_SECTION[] = _T("wxWidgets");
 static const wxChar eHOSTNAME[]  = _T("HostName");
 static const wxChar eUSERID[]    = _T("UserId");
 static const wxChar eUSERNAME[]  = _T("UserName");
@@ -260,11 +260,18 @@ bool wxSetEnv(const wxString& variable, const wxChar *value)
 #endif
 }
 
-void wxUsleep(
+void wxMilliSleep(
   unsigned long                     ulMilliseconds
 )
 {
     ::DosSleep(ulMilliseconds);
+}
+
+void wxMicroSleep(
+  unsigned long                     ulMicroseconds
+)
+{
+    ::DosSleep(ulMicroseconds/1000);
 }
 
 void wxSleep(

@@ -50,7 +50,7 @@ extern wxCursor   g_globalCursor;
 // private functions
 // ----------------------------------------------------------------------------
 
-// translate wxWindows toolbar style flags to GTK orientation and style
+// translate wxWidgets toolbar style flags to GTK orientation and style
 static void GetGtkStyle(long style,
                         GtkOrientation *orient, GtkToolbarStyle *gtkStyle)
 {
@@ -128,6 +128,25 @@ public:
         }
     }
 
+    void SetPixmap(const wxBitmap& bitmap)
+    {
+        if (bitmap.Ok())
+        {
+            GdkBitmap *mask = bitmap.GetMask() ? bitmap.GetMask()->GetBitmap()
+                                               : (GdkBitmap *)NULL;
+#ifdef __WXGTK20__
+            if (bitmap.HasPixbuf())
+                gtk_image_set_from_pixbuf(GTK_IMAGE(m_pixmap),
+                                          bitmap.GetPixbuf());
+            else
+                gtk_image_set_from_pixmap(GTK_IMAGE(m_pixmap),
+                                          bitmap.GetPixmap(), mask);
+#else
+            gtk_pixmap_set(GTK_PIXMAP(m_pixmap), bitmap.GetPixmap(), mask);
+#endif // !__WXGTK20__
+        }
+    }
+
     GtkWidget            *m_item;
     GtkWidget            *m_pixmap;
 
@@ -166,16 +185,7 @@ static void gtk_toolbar_callback( GtkWidget *WXUNUSED(widget),
     {
         tool->Toggle();
 
-        wxBitmap bitmap = tool->GetBitmap();
-        if ( bitmap.Ok() )
-        {
-            GtkPixmap *pixmap = GTK_PIXMAP( tool->m_pixmap );
-
-            GdkBitmap *mask = bitmap.GetMask() ? bitmap.GetMask()->GetBitmap()
-                                               : (GdkBitmap *)NULL;
-
-            gtk_pixmap_set( pixmap, bitmap.GetPixmap(), mask );
-        }
+        tool->SetPixmap(tool->GetBitmap());
 
         if ( tool->IsRadio() && !tool->IsToggled() )
         {
@@ -189,16 +199,7 @@ static void gtk_toolbar_callback( GtkWidget *WXUNUSED(widget),
         // revert back
         tool->Toggle();
 
-        wxBitmap bitmap = tool->GetBitmap();
-        if ( bitmap.Ok() )
-        {
-            GtkPixmap *pixmap = GTK_PIXMAP( tool->m_pixmap );
-
-            GdkBitmap *mask = bitmap.GetMask() ? bitmap.GetMask()->GetBitmap()
-                                               : (GdkBitmap *)NULL;
-
-            gtk_pixmap_set( pixmap, bitmap.GetPixmap(), mask );
-        }
+        tool->SetPixmap(tool->GetBitmap());
     }
 }
 
@@ -269,8 +270,6 @@ wxToolBarToolBase *wxToolBar::CreateTool(wxControl *control)
 
 void wxToolBar::Init()
 {
-    m_fg =
-    m_bg = (GdkColor *)NULL;
     m_toolbar = (GtkToolbar *)NULL;
     m_blockEvent = FALSE;
     m_defaultWidth = 32;
@@ -279,8 +278,6 @@ void wxToolBar::Init()
 
 wxToolBar::~wxToolBar()
 {
-    delete m_fg;
-    delete m_bg;
 }
 
 bool wxToolBar::Create( wxWindow *parent,
@@ -343,39 +340,9 @@ bool wxToolBar::Create( wxWindow *parent,
         gtk_toolbar_set_button_relief( GTK_TOOLBAR(m_toolbar), GTK_RELIEF_NONE );
 #endif
 
-
-    m_fg = new GdkColor;
-    m_fg->red = 0;
-    m_fg->green = 0;
-    m_fg->blue = 0;
-    wxColour fg(0,0,0);
-    fg.CalcPixel( gtk_widget_get_colormap( GTK_WIDGET(m_toolbar) ) );
-    m_fg->pixel = fg.GetPixel();
-
-    m_bg = new GdkColor;
-    m_bg->red = 65535;
-    m_bg->green = 65535;
-    m_bg->blue = 49980;
-    wxColour bg(255,255,196);
-    bg.CalcPixel( gtk_widget_get_colormap( GTK_WIDGET(m_toolbar) ) );
-    m_bg->pixel = bg.GetPixel();
-
-    gtk_tooltips_force_window( GTK_TOOLBAR(m_toolbar)->tooltips );
-
-    GtkStyle *g_style =
-        gtk_style_copy(
-                gtk_widget_get_style(
-                    GTK_TOOLBAR(m_toolbar)->tooltips->tip_window ) );
-
-    g_style->bg[GTK_STATE_NORMAL] = *m_bg;
-
-    gtk_widget_set_style( GTK_TOOLBAR(m_toolbar)->tooltips->tip_window, g_style );
-
     m_parent->DoAddChild( this );
 
-    PostCreation();
-
-    Show( TRUE );
+    PostCreation(size);
 
     return TRUE;
 }
@@ -427,14 +394,21 @@ bool wxToolBar::DoInsertTool(size_t pos, wxToolBarToolBase *toolBase)
 
             GtkWidget *tool_pixmap = (GtkWidget *)NULL;
 
+
+#ifdef __WXGTK20__
+            tool_pixmap = gtk_image_new();
+            tool->m_pixmap = tool_pixmap;
+            tool->SetPixmap(bitmap);
+#else
             GdkPixmap *pixmap = bitmap.GetPixmap();
 
             GdkBitmap *mask = (GdkBitmap *)NULL;
             if ( bitmap.GetMask() )
               mask = bitmap.GetMask()->GetBitmap();
-
+            
             tool_pixmap = gtk_pixmap_new( pixmap, mask );
             gtk_pixmap_set_build_insensitive( GTK_PIXMAP(tool_pixmap), TRUE );
+#endif
 
             gtk_misc_set_alignment( GTK_MISC(tool_pixmap), 0.5, 0.5 );
 
@@ -535,6 +509,7 @@ bool wxToolBar::DoInsertTool(size_t pos, wxToolBarToolBase *toolBase)
         (m_widget, &req );
     m_width = req.width + m_xMargin;
     m_height = req.height + 2*m_yMargin;
+    InvalidateBestSize();
 
     return TRUE;
 }
@@ -556,6 +531,7 @@ bool wxToolBar::DoDeleteTool(size_t WXUNUSED(pos), wxToolBarToolBase *toolBase)
         //case wxTOOL_STYLE_SEPARATOR: -- nothing to do
     }
 
+    InvalidateBestSize();
     return TRUE;
 }
 
@@ -580,16 +556,7 @@ void wxToolBar::DoToggleTool( wxToolBarToolBase *toolBase, bool toggle )
     GtkWidget *item = tool->m_item;
     if ( item && GTK_IS_TOGGLE_BUTTON(item) )
     {
-        wxBitmap bitmap = tool->GetBitmap();
-        if ( bitmap.Ok() )
-        {
-            GtkPixmap *pixmap = GTK_PIXMAP( tool->m_pixmap );
-
-            GdkBitmap *mask = bitmap.GetMask() ? bitmap.GetMask()->GetBitmap()
-                                               : (GdkBitmap *)NULL;
-
-            gtk_pixmap_set( pixmap, bitmap.GetPixmap(), mask );
-        }
+        tool->SetPixmap(tool->GetBitmap());
 
         m_blockEvent = TRUE;
 
@@ -703,6 +670,24 @@ void wxToolBar::OnInternalIdle()
 
     if (wxUpdateUIEvent::CanUpdate(this))
         UpdateWindowUI(wxUPDATE_UI_FROMIDLE);
+}
+
+
+// ----------------------------------------------------------------------------
+
+// static
+wxVisualAttributes
+wxToolBar::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+#ifdef __WXGTK20__
+    return GetDefaultAttributesFromGTKWidget(gtk_toolbar_new);
+#else
+    wxVisualAttributes attr;
+    GtkWidget* widget = gtk_toolbar_new(GTK_ORIENTATION_HORIZONTAL, GTK_TOOLBAR_BOTH);
+    attr = GetDefaultAttributesFromGTKWidget(widget);
+    gtk_widget_destroy(widget);
+    return attr;
+#endif
 }
 
 #endif // wxUSE_TOOLBAR_NATIVE

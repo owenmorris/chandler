@@ -60,7 +60,7 @@ public:
     {
         wxPluginLibrary::ms_classes = new wxDLImports;
         wxPluginManager::CreateManifest();
-        return TRUE;
+        return true;
     }
 
     virtual void OnExit()
@@ -120,13 +120,13 @@ bool wxPluginLibrary::UnrefLib()
     wxASSERT_MSG( m_objcount == 0,
                   _T("Library unloaded before all objects were destroyed") );
 
-    if ( --m_linkcount == 0 )
+    if ( m_linkcount == 0 || --m_linkcount == 0 )
     {
         delete this;
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 // ------------------------
@@ -148,6 +148,10 @@ void wxPluginLibrary::UpdateClasses()
 
 void wxPluginLibrary::RestoreClasses()
 {
+    // Check if there is a need to restore classes.
+    if (!ms_classes)
+        return;
+
     for(wxClassInfo *info = m_after; info != m_before; info = info->m_next)
     {
         ms_classes->erase(ms_classes->find(info->m_className));
@@ -222,7 +226,8 @@ void wxPluginLibrary::UnregisterModules()
     for ( it = m_wxmodules.begin(); it != m_wxmodules.end(); ++it )
         wxModule::UnregisterModule( *it );
 
-    WX_CLEAR_LIST(wxModuleList, m_wxmodules);
+    // NB: content of the list was deleted by UnregisterModule calls above:
+    m_wxmodules.clear();
 }
 
 
@@ -311,7 +316,7 @@ bool wxPluginManager::UnloadLibrary(const wxString& libname)
         wxLogDebug(_T("Attempt to unload library '%s' which is not loaded."),
                    libname.c_str());
 
-        return FALSE;
+        return false;
     }
 
     wxLogTrace(_T("dll"), _T("UnloadLibrary(%s)"), realname.c_str());
@@ -319,12 +324,12 @@ bool wxPluginManager::UnloadLibrary(const wxString& libname)
     if ( !entry->UnrefLib() )
     {
         // not really unloaded yet
-        return FALSE;
+        return false;
     }
 
     ms_manifest->erase(ms_manifest->find(realname));
 
-    return TRUE;
+    return true;
 }
 
 // ------------------------
@@ -415,7 +420,7 @@ wxDllLoader::GetSymbol(wxDllType dllHandle, const wxString &name, bool *success)
         wxFAIL_MSG( _T("Using a library not loaded with wxDllLoader?") );
 
         if ( success )
-            *success = FALSE;
+            *success = false;
 
         return NULL;
     }
@@ -457,7 +462,7 @@ wxLibrary::wxLibrary(wxDllType handle)
 
     // Some system may use a local heap for library.
     get_first = (t_get_first)GetSymbol(_T("wxGetClassFirst"));
-    // It is a wxWindows DLL.
+    // It is a wxWidgets DLL.
     if (get_first)
         PrepareClasses(get_first());
 }
@@ -546,7 +551,7 @@ wxLibrary *wxLibraries::LoadLibrary(const wxString& name)
 
     wxString libname = ConstructLibraryName(name);
 
-    bool success = FALSE;
+    bool success = false;
     wxDllType handle = wxDllLoader::LoadLibrary(libname, &success);
     if(success)
     {

@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     04/01/98
 // RCS-ID:      $Id$
-// Copyright:   (c) 1998-2002 wxWindows dev team
+// Copyright:   (c) 1998-2002 wxWidgets dev team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -113,12 +113,10 @@ struct wxExecuteData
 public:
     ~wxExecuteData()
     {
-#ifndef __WIN16__
         if ( !::CloseHandle(hProcess) )
         {
             wxLogLastError(wxT("CloseHandle(hProcess)"));
         }
-#endif
     }
 
     HWND       hWnd;          // window to send wxWM_PROC_TERMINATED to
@@ -126,7 +124,7 @@ public:
     DWORD      dwProcessId;   // pid of the process
     wxProcess *handler;
     DWORD      dwExitCode;    // the exit code of the process
-    bool       state;         // set to FALSE when the process finishes
+    bool       state;         // set to false when the process finishes
 };
 
 class wxExecuteModule : public wxModule
@@ -162,10 +160,10 @@ public:
     wxPipeInputStream(HANDLE hInput);
     virtual ~wxPipeInputStream();
 
-    // returns TRUE if the pipe is still opened
+    // returns true if the pipe is still opened
     bool IsOpened() const { return m_hInput != INVALID_HANDLE_VALUE; }
 
-    // returns TRUE if there is any data to be read from the pipe
+    // returns true if there is any data to be read from the pipe
     virtual bool CanRead() const;
 
 protected:
@@ -213,7 +211,7 @@ public:
     // default ctor doesn't do anything
     wxPipe() { m_handles[Read] = m_handles[Write] = INVALID_HANDLE_VALUE; }
 
-    // create the pipe, return TRUE if ok, FALSE on error
+    // create the pipe, return true if ok, false on error
     bool Create()
     {
         // default secutiry attributes
@@ -227,31 +225,22 @@ public:
         {
             wxLogSysError(_("Failed to create an anonymous pipe"));
 
-            return FALSE;
+            return false;
         }
 
-        return TRUE;
+        return true;
     }
 
-    // return TRUE if we were created successfully
+    // return true if we were created successfully
     bool IsOk() const { return m_handles[Read] != INVALID_HANDLE_VALUE; }
 
     // return the descriptor for one of the pipe ends
-    HANDLE operator[](Direction which) const
-    {
-        wxASSERT_MSG( which >= 0 && (size_t)which < WXSIZEOF(m_handles),
-                      _T("invalid pipe index") );
-
-        return m_handles[which];
-    }
+    HANDLE operator[](Direction which) const { return m_handles[which]; }
 
     // detach a descriptor, meaning that the pipe dtor won't close it, and
     // return it
     HANDLE Detach(Direction which)
     {
-        wxASSERT_MSG( which >= 0 && (size_t)which < WXSIZEOF(m_handles),
-                      _T("invalid pipe index") );
-
         HANDLE handle = m_handles[which];
         m_handles[which] = INVALID_HANDLE_VALUE;
 
@@ -373,7 +362,7 @@ wxPipeInputStream::~wxPipeInputStream()
 bool wxPipeInputStream::CanRead() const
 {
     if ( !IsOpened() )
-        return FALSE;
+        return false;
 
     DWORD nAvailable;
 
@@ -438,6 +427,21 @@ size_t wxPipeInputStream::OnSysRead(void *buffer, size_t len)
 wxPipeOutputStream::wxPipeOutputStream(HANDLE hOutput)
 {
     m_hOutput = hOutput;
+
+    // unblock the pipe to prevent deadlocks when we're writing to the pipe
+    // from which the child process can't read because it is writing in its own
+    // end of it
+    DWORD mode = PIPE_READMODE_BYTE | PIPE_NOWAIT;
+    if ( !::SetNamedPipeHandleState
+            (
+                m_hOutput,
+                &mode,
+                NULL,       // collection count (we don't set it)
+                NULL        // timeout (we don't set it neither)
+            ) )
+    {
+        wxLogLastError(_T("SetNamedPipeHandleState(PIPE_NOWAIT)"));
+    }
 }
 
 wxPipeOutputStream::~wxPipeOutputStream()
@@ -447,17 +451,29 @@ wxPipeOutputStream::~wxPipeOutputStream()
 
 size_t wxPipeOutputStream::OnSysWrite(const void *buffer, size_t len)
 {
-    DWORD bytesWritten;
-
     m_lasterror = wxSTREAM_NO_ERROR;
-    if ( !::WriteFile(m_hOutput, buffer, len, &bytesWritten, NULL) )
+
+    DWORD totalWritten = 0;
+    while ( len > 0 )
     {
-        m_lasterror = ::GetLastError() == ERROR_BROKEN_PIPE
-                            ? wxSTREAM_EOF
-                            : wxSTREAM_WRITE_ERROR;
+        DWORD chunkWritten;
+        if ( !::WriteFile(m_hOutput, buffer, len, &chunkWritten, NULL) )
+        {
+            m_lasterror = ::GetLastError() == ERROR_BROKEN_PIPE
+                                ? wxSTREAM_EOF
+                                : wxSTREAM_WRITE_ERROR;
+            break;
+        }
+
+        if ( !chunkWritten )
+            break;
+
+        buffer = (char *)buffer + chunkWritten;
+        totalWritten += chunkWritten;
+        len -= chunkWritten;
     }
 
-    return bytesWritten;
+    return totalWritten;
 }
 
 #endif // wxUSE_STREAMS
@@ -481,7 +497,7 @@ static bool wxExecuteDDE(const wxString& ddeServer,
                                                    ddeTopic);
     if ( !conn )
     {
-        ok = FALSE;
+        ok = false;
     }
     else // connected to DDE server
     {
@@ -513,7 +529,7 @@ static bool wxExecuteDDE(const wxString& ddeServer,
 
 long wxExecute(const wxString& cmd, int flags, wxProcess *handler)
 {
-    wxCHECK_MSG( !!cmd, 0, wxT("empty command in wxExecute") );
+    wxCHECK_MSG( !cmd.IsEmpty(), 0, wxT("empty command in wxExecute") );
 
 #if wxUSE_THREADS
     // for many reasons, the code below breaks down if it's called from another
@@ -846,7 +862,7 @@ long wxExecute(const wxString& cmd, int flags, wxProcess *handler)
             case WAIT_TIMEOUT:
                 wxLogDebug(_T("Timeout too small in WaitForInputIdle"));
 
-                ok = FALSE;
+                ok = false;
                 break;
 
             case 0:

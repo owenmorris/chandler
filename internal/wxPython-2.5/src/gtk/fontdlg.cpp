@@ -127,9 +127,9 @@ bool wxFontDialog::DoCreate(wxWindow *parent)
     wxString m_message( _("Choose font") );
     m_widget = gtk_font_selection_dialog_new( wxGTK_CONV( m_message ) );
 
-    int x = (gdk_screen_width () - 400) / 2;
-    int y = (gdk_screen_height () - 400) / 2;
-    gtk_widget_set_uposition( m_widget, x, y );
+    if (parent)
+        gtk_window_set_transient_for(GTK_WINDOW(m_widget),
+                                     GTK_WINDOW(parent->m_widget));
 
     GtkFontSelectionDialog *sel = GTK_FONT_SELECTION_DIALOG(m_widget);
 
@@ -152,7 +152,6 @@ bool wxFontDialog::DoCreate(wxWindow *parent)
     gtk_signal_connect( GTK_OBJECT(m_widget), "delete_event",
         GTK_SIGNAL_FUNC(gtk_fontdialog_delete_callback), (gpointer)this );
 
-#ifndef __WXGTK20__
     wxFont font = m_fontData.GetInitialFont();
     if( font.Ok() )
     {
@@ -160,14 +159,15 @@ bool wxFontDialog::DoCreate(wxWindow *parent)
 
         if ( info )
         {
+
+#ifdef __WXGTK20__
+            const wxString& fontname = info->ToString();
+#else
             const wxString& fontname = info->GetXFontName();
             if ( !fontname )
                 font.GetInternalFont();
-            gtk_font_selection_dialog_set_font_name
-            (
-                sel,
-                wxConvCurrent->cWX2MB(fontname)
-            );
+#endif
+            gtk_font_selection_dialog_set_font_name(sel, wxGTK_CONV(fontname));
         }
         else
         {
@@ -175,7 +175,6 @@ bool wxFontDialog::DoCreate(wxWindow *parent)
             wxFAIL_MSG(_T("font is ok but no native font info?"));
         }
     }
-#endif
 
     return TRUE;
 }

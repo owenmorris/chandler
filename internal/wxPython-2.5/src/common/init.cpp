@@ -181,6 +181,7 @@ static void ConvertArgsToUnicode(int argc, char **argv)
         gs_initData.argv[i] = wxStrdup(wxConvLocal.cMB2WX(argv[i]));
     }
 
+    gs_initData.argc = argc;
     gs_initData.argv[argc] = NULL;
 }
 
@@ -195,6 +196,7 @@ static void FreeConvertedArgs()
 
         delete [] gs_initData.argv;
         gs_initData.argv = NULL;
+        gs_initData.argc = 0;
     }
 }
 
@@ -317,19 +319,19 @@ static void DoCommonPreCleanup()
     // flush the logged messages if any and install a 'safer' log target: the
     // default one (wxLogGui) can't be used after the resources are freed just
     // below and the user supplied one might be even more unsafe (using any
-    // wxWindows GUI function is unsafe starting from now)
+    // wxWidgets GUI function is unsafe starting from now)
     wxLog::DontCreateOnDemand();
 
     // this will flush the old messages if any
     delete wxLog::SetActiveTarget(new wxLogStderr);
 #endif // wxUSE_LOG
-
-    wxModule::CleanUpModules();
 }
 
 // cleanup done after destroying wxTheApp
 static void DoCommonPostCleanup()
 {
+    wxModule::CleanUpModules();
+
     wxClassInfo::CleanUp();
 
     // we can't do this in wxApp itself because it doesn't know if argv had

@@ -404,16 +404,10 @@ bool wxListBox::Create( wxWindow *parent, wxWindowID id,
         DoAppend(choices[i]);
     }
 
-    // call it after appending the strings to the listbox, otherwise it doesn't
-    // work correctly
-    SetBestSize( size );
-
     m_parent->DoAddChild( this );
 
-    PostCreation();
-    InheritAttributes();
-
-    Show( TRUE );
+    PostCreation(size);
+    SetBestSize(size); // need this too because this is a wxControlWithItems
 
     return TRUE;
 }
@@ -444,6 +438,8 @@ void wxListBox::DoInsertItems(const wxArrayString& items, int pos)
     // in the listbox
     wxASSERT_MSG( m_clientList.GetCount() == (size_t)GetCount(),
                   wxT("bug in client data management") );
+
+    InvalidateBestSize();
 
     GList *children = m_list->children;
     int length = g_list_length(children);
@@ -501,6 +497,8 @@ void wxListBox::DoInsertItems(const wxArrayString& items, int pos)
 
 int wxListBox::DoAppend( const wxString& item )
 {
+    InvalidateBestSize();
+
     if (m_strings)
     {
         // need to determine the index
@@ -580,18 +578,20 @@ void wxListBox::GtkAddItem( const wxString &item, int pos )
         gtk_widget_realize( list_item );
         gtk_widget_realize( GTK_BIN(list_item)->child );
 
-        // Apply current widget style to the new list_item
-        if (m_widgetStyle)
-        {
-            gtk_widget_set_style( GTK_WIDGET( list_item ), m_widgetStyle );
-            GtkBin *bin = GTK_BIN( list_item );
-            GtkWidget *label = GTK_WIDGET( bin->child );
-            gtk_widget_set_style( label, m_widgetStyle );
-        }
-
 #if wxUSE_TOOLTIPS
         if (m_tooltip) m_tooltip->Apply( this );
 #endif
+    }
+
+    // Apply current widget style to the new list_item
+    GtkRcStyle *style = CreateWidgetStyle();
+    if (style)
+    {
+        gtk_widget_modify_style( GTK_WIDGET( list_item ), style );
+        GtkBin *bin = GTK_BIN( list_item );
+        GtkWidget *label = GTK_WIDGET( bin->child );
+        gtk_widget_modify_style( label, style );
+        gtk_rc_style_unref( style );
     }
 }
 
@@ -987,11 +987,9 @@ bool wxListBox::IsOwnGtkWindow( GdkWindow *window )
     return FALSE;
 }
 
-void wxListBox::ApplyWidgetStyle()
+void wxListBox::DoApplyWidgetStyle(GtkRcStyle *style)
 {
-    SetWidgetStyle();
-
-    if (m_backgroundColour.Ok())
+    if (m_hasBgCol && m_backgroundColour.Ok())
     {
         GdkWindow *window = GTK_WIDGET(m_list)->window;
         if ( window )
@@ -1005,11 +1003,11 @@ void wxListBox::ApplyWidgetStyle()
     GList *child = m_list->children;
     while (child)
     {
-        gtk_widget_set_style( GTK_WIDGET(child->data), m_widgetStyle );
+        gtk_widget_modify_style( GTK_WIDGET(child->data), style );
 
         GtkBin *bin = GTK_BIN( child->data );
         GtkWidget *label = GTK_WIDGET( bin->child );
-        gtk_widget_set_style( label, m_widgetStyle );
+        gtk_widget_modify_style( label, style );
 
         child = child->next;
     }
@@ -1082,7 +1080,9 @@ wxSize wxListBox::DoGetBestSize() const
     // make it too small neither
     lbHeight = (cy+4) * wxMin(wxMax(GetCount(), 3), 10);
 
-    return wxSize(lbWidth, lbHeight);
+    wxSize best(lbWidth, lbHeight);
+    CacheBestSize(best);        
+    return best;
 }
 
 void wxListBox::FixUpMouseEvent(GtkWidget *widget, wxCoord& x, wxCoord& y)
@@ -1091,6 +1091,14 @@ void wxListBox::FixUpMouseEvent(GtkWidget *widget, wxCoord& x, wxCoord& y)
     // translate them to the normal client coords
     x += widget->allocation.x;
     y += widget->allocation.y;
+}
+
+
+// static
+wxVisualAttributes
+wxListBox::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
+{
+    return GetDefaultAttributesFromGTKWidget(gtk_list_new, true);
 }
 
 #endif // wxUSE_LISTBOX

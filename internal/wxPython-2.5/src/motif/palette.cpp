@@ -20,7 +20,7 @@
 
 /* Wolfram Gloger <u7y22ab@sunmail.lrz-muenchen.de>
 I have implemented basic colormap support for the X11 versions of
-wxWindows, notably wxPalette::Create().  The way I did it is to
+wxWidgets, notably wxPalette::Create().  The way I did it is to
 allocate additional read-only color cells in the default colormap.  In
 general you will get arbitrary pixel values assigned to these new
 cells and therefore I added a method wxColourMap::TransferBitmap()
@@ -37,6 +37,9 @@ not the functionality that wxPalette::Create() aims to provide.
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
 #pragma implementation "palette.h"
 #endif
+
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
 
 #include "wx/palette.h"
 #include "wx/window.h"

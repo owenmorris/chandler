@@ -68,20 +68,16 @@ bool wxVListBox::Create(wxWindow *parent,
                         long style,
                         const wxString& name)
 {
-    style |= wxWANTS_CHARS;
+    style |= wxWANTS_CHARS | wxFULL_REPAINT_ON_RESIZE;
     if ( !wxVScrolledWindow::Create(parent, id, pos, size, style, name) )
         return false;
 
     if ( style & wxLB_MULTIPLE )
         m_selStore = new wxSelectionStore;
 
-    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOX));
-    SetForegroundColour(parent->GetForegroundColour());
-
-    // ensure that the font actually changes and is set.
-    SetFont(wxNullFont);
-    SetFont(parent->GetFont());
-
+    // make sure the native widget has the right colour since we do
+    // transparent drawing by default
+    SetBackgroundColour(GetBackgroundColour());
     m_colBgSel = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT);
 
     return true;
@@ -612,3 +608,16 @@ void wxVListBox::OnLeftDClick(wxMouseEvent& event)
     }
 }
 
+
+// ----------------------------------------------------------------------------
+// use the same default attributes as wxListBox
+// ----------------------------------------------------------------------------
+
+#include "wx/listbox.h"
+
+//static
+wxVisualAttributes
+wxVListBox::GetClassDefaultAttributes(wxWindowVariant variant)
+{
+    return wxListBox::GetClassDefaultAttributes(variant);
+}

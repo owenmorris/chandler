@@ -21,6 +21,9 @@
     #pragma implementation "window.h"
 #endif
 
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
 #ifdef __VMS
 #define XtDisplay XTDISPLAY
 #define XtWindow XTWINDOW
@@ -754,7 +757,9 @@ int wxWindow::GetScrollPos(int orient) const
 int wxWindow::GetScrollRange(int orient) const
 {
     Widget scrollBar = (Widget)GetScrollbar((wxOrientation)orient);
-    wxCHECK_MSG( scrollBar, 0, "no such scrollbar" );
+    // CE scintilla windows don't always have these scrollbars 
+    // and it tends to pile up a whole bunch of asserts
+    //wxCHECK_MSG( scrollBar, 0, "no such scrollbar" );
 
     int range = 0;
     if (scrollBar) 
@@ -765,10 +770,11 @@ int wxWindow::GetScrollRange(int orient) const
 int wxWindow::GetScrollThumb(int orient) const
 {
     Widget scrollBar = (Widget)GetScrollbar((wxOrientation)orient);
-    wxCHECK_MSG( scrollBar, 0, "no such scrollbar" );
+    //wxCHECK_MSG( scrollBar, 0, "no such scrollbar" );
 
-    int thumb;
-    XtVaGetValues(scrollBar, XmNsliderSize, &thumb, NULL);
+    int thumb = 0;
+    if (scrollBar)
+        XtVaGetValues(scrollBar, XmNsliderSize, &thumb, NULL);
     return thumb;
 }
 
@@ -1069,6 +1075,12 @@ void wxWindow::DoSetToolTip(wxToolTip * WXUNUSED(tooltip))
 
 bool wxWindow::DoPopupMenu(wxMenu *menu, int x, int y)
 {
+    if ( x == -1 && y == -1 )
+    {
+        wxPoint mouse = ScreenToClient(wxGetMousePosition());
+        x = mouse.x; y = mouse.y;
+    }
+
     Widget widget = (Widget) GetMainWidget();
 
     /* The menuId field seems to be usused, so we'll use it to
@@ -1590,7 +1602,7 @@ void wxWindow::DoPaint()
       // otherwise we don't know how many pixels have been scrolled. We might
       // solve this in the future by defining virtual wxWindow functions to get
       // the scroll position in pixels. Or, each kind of scrolled window has to
-      // implement backing stores itself, using generic wxWindows code.
+      // implement backing stores itself, using generic wxWidgets code.
       wxScrolledWindow* scrolledWindow = wxDynamicCast(this, wxScrolledWindow);
       if ( scrolledWindow )
       {
@@ -1758,7 +1770,7 @@ bool wxWindow::ProcessAccelerator(wxKeyEvent& event)
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// function which maintain the global hash table mapping Widgets to wxWindows
+// function which maintain the global hash table mapping Widgets to wxWidgets
 // ----------------------------------------------------------------------------
 
 bool wxAddWindowToTable(Widget w, wxWindow *win)
@@ -2327,7 +2339,7 @@ bool wxTranslateMouseEvent(wxMouseEvent& wxevent, wxWindow *win,
             int x2, y2;
             win->GetPosition(&x2, &y2);
 
-            // The button x/y must be translated to wxWindows
+            // The button x/y must be translated to wxWidgets
             // window space - the widget might be a label or button,
             // within a form.
             int dx = 0;

@@ -663,7 +663,7 @@ void wxTextCtrl::SetSelection(
     long                            lToChar = lTo;
 
     //
-    // If from and to are both -1, it means (in wxWindows) that all text should
+    // If from and to are both -1, it means (in wxWidgets) that all text should
     // be selected. Translate into Windows convention
     //
     if ((lFrom == -1L) && (lTo == -1L))

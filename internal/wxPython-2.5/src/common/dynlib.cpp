@@ -30,7 +30,7 @@
 #if wxUSE_DYNLIB_CLASS
 
 #if defined(__WINDOWS__)
-    #include "wx/msw/private.h"
+    #include "wx/msw/wrapwin.h"
 #endif
 
 #include "wx/dynlib.h"
@@ -75,13 +75,13 @@ void TranslateError(const char *path, int number)
     unsigned int index;
     static char *OFIErrorStrings[] =
     {
-	"%s(%d): Object Image Load Failure\n",
-	"%s(%d): Object Image Load Success\n",
-	"%s(%d): Not an recognisable object file\n",
-	"%s(%d): No valid architecture\n",
-	"%s(%d): Object image has an invalid format\n",
-	"%s(%d): Invalid access (permissions?)\n",
-	"%s(%d): Unknown error code from NSCreateObjectFileImageFromFile\n",
+        "%s(%d): Object Image Load Failure\n",
+        "%s(%d): Object Image Load Success\n",
+        "%s(%d): Not an recognisable object file\n",
+        "%s(%d): No valid architecture\n",
+        "%s(%d): Object image has an invalid format\n",
+        "%s(%d): Invalid access (permissions?)\n",
+        "%s(%d): Unknown error code from NSCreateObjectFileImageFromFile\n",
     };
 #define NUM_OFI_ERRORS (sizeof(OFIErrorStrings) / sizeof(OFIErrorStrings[0]))
 
@@ -106,13 +106,13 @@ void *dlopen(const char *path, int WXUNUSED(mode) /* mode is ignored */)
     dyld_result = NSCreateObjectFileImageFromFile(path, &ofile);
     if (dyld_result != NSObjectFileImageSuccess)
     {
-	TranslateError(path, dyld_result);
+        TranslateError(path, dyld_result);
     }
     else
     {
-	// NSLinkModule will cause the run to abort on any link error's
-	// not very friendly but the error recovery functionality is limited.
-	handle = NSLinkModule(ofile, path, NSLINKMODULE_OPTION_BINDNOW);
+        // NSLinkModule will cause the run to abort on any link error's
+        // not very friendly but the error recovery functionality is limited.
+        handle = NSLinkModule(ofile, path, NSLINKMODULE_OPTION_BINDNOW);
     }
 
     return handle;
@@ -127,16 +127,16 @@ int dlclose(void *handle)
 void *dlsym(void *handle, const char *symbol)
 {
     void *addr;
-    
+
     NSSymbol nsSymbol = NSLookupSymbolInModule( handle , symbol ) ;
 
-    if ( nsSymbol) 
+    if ( nsSymbol)
     {
-	    addr = NSAddressOfSymbol(nsSymbol);
+        addr = NSAddressOfSymbol(nsSymbol);
     }
-    else 
+    else
     {
-	    addr = NULL;
+        addr = NULL;
     }
     return addr;
 }
@@ -212,10 +212,9 @@ bool wxDynamicLibrary::Load(wxString libname, int flags)
                          &myMainAddr,
                          myErrName ) != noErr )
     {
-        p2cstr( myErrName );
         wxLogSysError( _("Failed to load shared library '%s' Error '%s'"),
                        libname.c_str(),
-                       (char*)myErrName );
+                       wxMacMakeStringFromPascal( myErrName ).c_str() );
         m_handle = 0;
     }
 
@@ -327,7 +326,7 @@ void *wxDynamicLibrary::GetSymbol(const wxString &name, bool *success) const
     wxCHECK_MSG( IsLoaded(), NULL,
                  _T("Can't load symbol from unloaded library") );
 
-    bool     failed = FALSE;
+    bool     failed = false;
     void    *symbol = 0;
 
     wxUnusedVar(symbol);
@@ -384,7 +383,7 @@ void *wxDynamicLibrary::GetSymbol(const wxString &name, bool *success) const
             wxLogError(wxT("%s"), err);
         }
 #else
-        failed = TRUE;
+        failed = true;
         wxLogSysError(_("Couldn't find symbol '%s' in a dynamic library"),
                       name.c_str());
 #endif
@@ -394,7 +393,7 @@ void *wxDynamicLibrary::GetSymbol(const wxString &name, bool *success) const
 
     return symbol;
 }
-    
+
 
 /*static*/
 wxString
@@ -441,7 +440,7 @@ wxString wxDynamicLibrary::CanonicalizePluginName(const wxString& name,
     {
         wxAppTraits *traits = wxAppConsole::GetInstance() ?
                               wxAppConsole::GetInstance()->GetTraits() : NULL;
-        wxASSERT_MSG( traits, 
+        wxASSERT_MSG( traits,
                _("can't query for GUI plugins name in console applications") );
         suffix = traits->GetToolkitInfo().shortName;
     }
@@ -490,7 +489,7 @@ wxString wxDynamicLibrary::CanonicalizePluginName(const wxString& name,
 
     return CanonicalizeName(name + suffix, wxDL_MODULE);
 }
-    
+
 /*static*/
 wxString wxDynamicLibrary::GetPluginsDirectory()
 {

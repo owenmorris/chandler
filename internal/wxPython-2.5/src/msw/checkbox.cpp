@@ -67,7 +67,7 @@ wxBEGIN_FLAGS( wxCheckBoxStyle )
     wxFLAGS_MEMBER(wxBORDER_RAISED)
     wxFLAGS_MEMBER(wxBORDER_STATIC)
     wxFLAGS_MEMBER(wxBORDER_NONE)
-    
+
     // old style border flags
     wxFLAGS_MEMBER(wxSIMPLE_BORDER)
     wxFLAGS_MEMBER(wxSUNKEN_BORDER)
@@ -91,18 +91,18 @@ wxEND_FLAGS( wxCheckBoxStyle )
 IMPLEMENT_DYNAMIC_CLASS_XTI(wxCheckBox, wxControl,"wx/checkbox.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxCheckBox)
-	wxEVENT_PROPERTY( Click , wxEVT_COMMAND_CHECKBOX_CLICKED , wxCommandEvent )
+    wxEVENT_PROPERTY( Click , wxEVT_COMMAND_CHECKBOX_CLICKED , wxCommandEvent )
 
-	wxPROPERTY( Font , wxFont , SetFont , GetFont  , , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( Label,wxString, SetLabel, GetLabel, wxString() , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( Value ,bool, SetValue, GetValue, , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-    wxPROPERTY_FLAGS( WindowStyle , wxCheckBoxStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
+    wxPROPERTY( Font , wxFont , SetFont , GetFont , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( Label,wxString, SetLabel, GetLabel, wxString() , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( Value ,bool, SetValue, GetValue, EMPTY_MACROVALUE, 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY_FLAGS( WindowStyle , wxCheckBoxStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , EMPTY_MACROVALUE, 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
 wxEND_PROPERTIES_TABLE()
 
 wxBEGIN_HANDLERS_TABLE(wxCheckBox)
 wxEND_HANDLERS_TABLE()
 
-wxCONSTRUCTOR_6( wxCheckBox , wxWindow* , Parent , wxWindowID , Id , wxString , Label , wxPoint , Position , wxSize , Size , long , WindowStyle ) 
+wxCONSTRUCTOR_6( wxCheckBox , wxWindow* , Parent , wxWindowID , Id , wxString , Label , wxPoint , Position , wxSize , Size , long , WindowStyle )
 #else
 IMPLEMENT_DYNAMIC_CLASS(wxCheckBox, wxControl)
 #endif
@@ -129,7 +129,7 @@ bool wxCheckBox::MSWCommand(WXUINT WXUNUSED(param), WXWORD WXUNUSED(id))
     event.SetEventObject(this);
     ProcessCommand(event);
 
-    return TRUE;
+    return true;
 }
 
 bool wxCheckBox::Create(wxWindow *parent,
@@ -141,7 +141,7 @@ bool wxCheckBox::Create(wxWindow *parent,
                         const wxString& name)
 {
     if ( !CreateControl(parent, id, pos, size, style, validator, name) )
-        return FALSE;
+        return false;
 
     long msStyle = WS_TABSTOP;
 
@@ -159,16 +159,12 @@ bool wxCheckBox::Create(wxWindow *parent,
 
     if ( style & wxALIGN_RIGHT )
     {
-        msStyle |= BS_LEFTTEXT;
+        msStyle |= BS_LEFTTEXT | BS_RIGHT;
     }
 
     return MSWCreateControl(wxT("BUTTON"), msStyle, pos, size, label, 0);
 }
 
-void wxCheckBox::SetLabel(const wxString& label)
-{
-    SetWindowText(GetHwnd(), label);
-}
 
 wxSize wxCheckBox::DoGetBestSize() const
 {
@@ -198,6 +194,9 @@ wxSize wxCheckBox::DoGetBestSize() const
         wCheckbox = s_checkSize;
         hCheckbox = s_checkSize;
     }
+#ifdef __WXWINCE__
+    hCheckbox += 1;
+#endif
 
     return wxSize(wCheckbox, hCheckbox);
 }

@@ -23,6 +23,7 @@
     #include "wx/scrolwin.h"
 #endif
 
+#include "wx/stockitem.h"
 #include "wx/os2/private.h"
 
 #define BUTTON_HEIGHT_FROM_CHAR_HEIGHT(cy) (11*EDIT_HEIGHT_FROM_CHAR_HEIGHT(cy)/10)
@@ -43,7 +44,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxButton, wxControl)
 bool wxButton::Create(
   wxWindow*                         pParent
 , wxWindowID                        vId
-, const wxString&                   rsLabel
+, const wxString&                   rsLbl
 , const wxPoint&                    rPos
 , const wxSize&                     rSize
 , long                              lStyle
@@ -51,6 +52,9 @@ bool wxButton::Create(
 , const wxString&                   rsName
 )
 {
+    wxString rsLabel(rsLbl);
+    if (rsLabel.empty() && wxIsStockID(vId))
+        rsLabel = wxGetStockLabel(vId);
 
     wxString                        sLabel = ::wxPMTextToLabel(rsLabel);
 
@@ -233,7 +237,7 @@ void wxButton::SetDefault()
     wxCHECK_RET( pParent, _T("button without parent?") );
 
     //
-    // Set this one as the default button both for wxWindows and Windows
+    // Set this one as the default button both for wxWidgets and Windows
     //
     wxWindow*                       pWinOldDefault = pParent->SetDefaultItem(this);
 

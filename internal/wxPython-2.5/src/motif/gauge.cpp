@@ -13,8 +13,16 @@
 #pragma implementation "gauge.h"
 #endif
 
-#ifdef __VMS__
+// For compilers that support precompilation, includes "wx.h".
+#include "wx/wxprec.h"
+
+#ifdef __VMS
 #include <wx/vms_x_fix.h>
+#undef XtDisplay
+#undef XtScreen
+#undef XtWindow
+#undef XtIsRealized
+#undef XtParent
 #endif
 
 # include "wx/gauge.h"
@@ -603,7 +611,7 @@ WidgetClass xmGaugeWidgetClass = (WidgetClass)&xmGaugeClassRec;
 void
 GaugePick(Widget WXUNUSED(w), XEvent *WXUNUSED(e), String *WXUNUSED(args), Cardinal  *WXUNUSED(num_args))
 {
-    /* Commented out for a read-only gauge in wxWindows */
+    /* Commented out for a read-only gauge in wxWidgets */
 #if 0
     XmGaugeWidget gw = (XmGaugeWidget)w;
 #define THIS gw->gauge
@@ -669,7 +677,7 @@ GaugePick(Widget WXUNUSED(w), XEvent *WXUNUSED(e), String *WXUNUSED(args), Cardi
 void
 GaugeDrag(Widget WXUNUSED(w), XEvent *WXUNUSED(e), String *WXUNUSED(args), Cardinal  *WXUNUSED(num_args))
 {
-    /* Commented out for a read-only gauge in wxWindows */
+    /* Commented out for a read-only gauge in wxWidgets */
 #if 0
     XmGaugeWidget gw = (XmGaugeWidget)w;
 #define THIS gw->gauge
@@ -738,7 +746,7 @@ GaugeDrag(Widget WXUNUSED(w), XEvent *WXUNUSED(e), String *WXUNUSED(args), Cardi
 void
 GaugeDrop(Widget WXUNUSED(w), XEvent *WXUNUSED(e), String *WXUNUSED(args), Cardinal  *WXUNUSED(num_args))
 {
-    /* Commented out for a read-only gauge in wxWindows */
+    /* Commented out for a read-only gauge in wxWidgets */
 #if 0
     XmGaugeWidget gw = (XmGaugeWidget)w;
 #define THIS gw->gauge

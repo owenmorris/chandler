@@ -184,9 +184,13 @@ void wxPrintout::GetPageInfo(int *minPage, int *maxPage, int *fromPage, int *toP
 * Preview canvas
 */
 
+// VZ: the current code doesn't refresh properly without
+//     wxFULL_REPAINT_ON_RESIZE, this must be fixed as otherwise we have
+//     really horrible flicker when resizing the preview frame, but without
+//     this style it simply doesn't work correctly at all...
 wxPreviewCanvas::wxPreviewCanvas(wxPrintPreviewBase *preview, wxWindow *parent,
                                  const wxPoint& pos, const wxSize& size, long style, const wxString& name):
-wxScrolledWindow(parent, -1, pos, size, style, name)
+wxScrolledWindow(parent, -1, pos, size, style | wxFULL_REPAINT_ON_RESIZE, name)
 {
     m_printPreview = preview;
 #ifdef __WXMAC__
@@ -434,8 +438,6 @@ void wxPreviewControlBar::CreateButtons()
 
     wxBoxSizer *item0 = new wxBoxSizer( wxHORIZONTAL );
 
-    int smallButtonWidth = 45;
-
     m_closeButton = new wxButton( this, wxID_PREVIEW_CLOSE, _("&Close"), wxDefaultPosition, wxDefaultSize, 0 );
     item0->Add( m_closeButton, 0, wxALIGN_CENTRE|wxALL, 5 );
 
@@ -447,25 +449,25 @@ void wxPreviewControlBar::CreateButtons()
 
     if (m_buttonFlags & wxPREVIEW_FIRST)
     {
-        m_firstPageButton = new wxButton( this, wxID_PREVIEW_FIRST, _("|<<"), wxDefaultPosition, wxSize(smallButtonWidth,-1), 0 );
+        m_firstPageButton = new wxButton( this, wxID_PREVIEW_FIRST, _("|<<"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT );
         item0->Add( m_firstPageButton, 0, wxALIGN_CENTRE|wxALL, 5 );
     }
 
     if (m_buttonFlags & wxPREVIEW_PREVIOUS)
     {
-        m_previousPageButton = new wxButton( this, wxID_PREVIEW_PREVIOUS, _("<<"), wxDefaultPosition, wxSize(smallButtonWidth,-1), 0 );
+        m_previousPageButton = new wxButton( this, wxID_PREVIEW_PREVIOUS, _("<<"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT );
         item0->Add( m_previousPageButton, 0, wxALIGN_CENTRE|wxRIGHT|wxTOP|wxBOTTOM, 5 );
     }
 
     if (m_buttonFlags & wxPREVIEW_NEXT)
     {
-        m_nextPageButton = new wxButton( this, wxID_PREVIEW_NEXT, _(">>"), wxDefaultPosition, wxSize(smallButtonWidth,-1), 0 );
+        m_nextPageButton = new wxButton( this, wxID_PREVIEW_NEXT, _(">>"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT );
         item0->Add( m_nextPageButton, 0, wxALIGN_CENTRE|wxRIGHT|wxTOP|wxBOTTOM, 5 );
     }
 
     if (m_buttonFlags & wxPREVIEW_LAST)
     {
-        m_lastPageButton = new wxButton( this, wxID_PREVIEW_LAST, _(">>|"), wxDefaultPosition, wxSize(smallButtonWidth,-1), 0 );
+        m_lastPageButton = new wxButton( this, wxID_PREVIEW_LAST, _(">>|"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT );
         item0->Add( m_lastPageButton, 0, wxALIGN_CENTRE|wxRIGHT|wxTOP|wxBOTTOM, 5 );
     }
 
@@ -496,23 +498,34 @@ void wxPreviewControlBar::CreateButtons()
 
 void wxPreviewControlBar::SetZoomControl(int zoom)
 {
-    wxChar buf[20];
-    wxSprintf( buf, wxT("%d%%"), zoom );
-
     if (m_zoomControl)
-        m_zoomControl->SetStringSelection(buf);
+    {
+        int n, count = m_zoomControl->GetCount();
+        long val;
+        for (n=0; n<count; n++)
+        {
+            if (m_zoomControl->GetString(n).BeforeFirst(wxT('%')).ToLong(&val) &&
+                (val >= long(zoom)))
+            {
+                m_zoomControl->SetSelection(n);
+                return;
+            }
+        }
+        
+        m_zoomControl->SetSelection(count-1);
+    }
 }
 
 int wxPreviewControlBar::GetZoomControl()
 {
-    wxChar buf[20];
-    if (m_zoomControl && (m_zoomControl->GetStringSelection() != wxT("")))
+    if (m_zoomControl && (m_zoomControl->GetStringSelection() != wxEmptyString))
     {
-        wxStrcpy(buf, m_zoomControl->GetStringSelection());
-        buf[wxStrlen(buf) - 1] = 0;
-        return (int)wxAtoi(buf);
+        long val;
+        if (m_zoomControl->GetStringSelection().BeforeFirst(wxT('%')).ToLong(&val))
+            return int(val);
     }
-    else return 0;
+    
+    return 0;
 }
 
 
@@ -531,6 +544,7 @@ wxFrame(parent, -1, title, pos, size, style, name)
     m_printPreview = preview;
     m_controlBar = NULL;
     m_previewCanvas = NULL;
+    m_windowDisabler = NULL;
 
     // Give the application icon
 #ifdef __WXMSW__
@@ -546,11 +560,8 @@ wxPreviewFrame::~wxPreviewFrame()
 
 void wxPreviewFrame::OnCloseWindow(wxCloseEvent& WXUNUSED(event))
 {
-    // MakeModal doesn't work on wxMac, especially when there
-    // are multiple top-level windows.
-#ifndef __WXMAC__
-    MakeModal(FALSE);
-#endif
+    if (m_windowDisabler)
+        delete m_windowDisabler;
 
     // Need to delete the printout and the print preview
     wxPrintout *printout = m_printPreview->GetPrintout();
@@ -585,11 +596,7 @@ void wxPreviewFrame::Initialize()
     SetAutoLayout( TRUE );
     SetSizer( item0 );
 
-    // MakeModal doesn't work on wxMac, especially when there
-    // are multiple top-level windows.
-#ifndef __WXMAC__
-    MakeModal(TRUE);
-#endif
+    m_windowDisabler = new wxWindowDisabler(this);
 
     Layout();
 

@@ -40,6 +40,9 @@
 
 #ifdef __WXMSW__
     #include "wx/msw/private.h"
+#endif
+
+#ifdef __WINDOWS__
     #include "wx/msw/missing.h"
 #endif
 
@@ -69,6 +72,7 @@
 
 #include "wx/encconv.h"
 #include "wx/fontmap.h"
+#include "wx/utils.h"
 
 #ifdef __WXMAC__
 #include <ATSUnicode.h>
@@ -177,9 +181,11 @@ const wxWCharBuffer wxMBConv::cMB2WC(const char *psz) const
         {
             // now do the actual conversion
             wxWCharBuffer buf(nLen);
-            MB2WC(buf.data(), psz, nLen + 1); // with the trailing NUL
-
-            return buf;
+            nLen = MB2WC(buf.data(), psz, nLen + 1); // with the trailing NULL
+            if ( nLen != (size_t)-1 )
+            {
+                return buf;
+            }
         }
     }
 
@@ -196,9 +202,11 @@ const wxCharBuffer wxMBConv::cWC2MB(const wchar_t *pwz) const
         if ( nLen != (size_t)-1 )
         {
             wxCharBuffer buf(nLen+3);       // space for a wxUint32 trailing zero
-            WC2MB(buf.data(), pwz, nLen + 4);
-
-            return buf;
+            nLen = WC2MB(buf.data(), pwz, nLen + 4);
+            if ( nLen != (size_t)-1 )
+            {
+                return buf;
+            }
         }
     }
 
@@ -951,7 +959,7 @@ wxMBConv_iconv::wxMBConv_iconv(const wxChar *name)
             {
                 ms_wcCharsetName = NULL;
 
-                // VS: we must not output an error here, since wxWindows will safely
+                // VS: we must not output an error here, since wxWidgets will safely
                 //     fall back to using wxEncodingConverter.
                 wxLogTrace(wxT("strconv"), wxT("Impossible to convert to/from charset '%s' with iconv, falling back to wxEncodingConverter."), name);
                 //wxLogError(
@@ -1113,8 +1121,10 @@ size_t wxMBConv_iconv::WC2MB(char *buf, const wchar_t *psz, size_t n) const
 #ifdef wxHAVE_WIN32_MB2WC
 
 // from utils.cpp
+#if wxUSE_FONTMAP 
 extern WXDLLIMPEXP_BASE long wxCharsetToCodepage(const wxChar *charset);
 extern WXDLLIMPEXP_BASE long wxEncodingToCodepage(wxFontEncoding encoding);
+#endif
 
 class wxMBConv_win32 : public wxMBConv
 {
@@ -1124,6 +1134,7 @@ public:
         m_CodePage = CP_ACP;
     }
 
+#if wxUSE_FONTMAP
     wxMBConv_win32(const wxChar* name)
     {
         m_CodePage = wxCharsetToCodepage(name);
@@ -1133,13 +1144,19 @@ public:
     {
         m_CodePage = wxEncodingToCodepage(encoding);
     }
+#endif
 
     size_t MB2WC(wchar_t *buf, const char *psz, size_t n) const
     {
+        // note that we have to use MB_ERR_INVALID_CHARS flag as it without it
+        // the behaviour is not compatible with the Unix version (using iconv)
+        // and break the library itself, e.g. wxTextInputStream::NextChar()
+        // wouldn't work if reading an incomplete MB char didn't result in an
+        // error
         const size_t len = ::MultiByteToWideChar
                              (
                                 m_CodePage,     // code page
-                                0,              // flags (none)
+                                MB_ERR_INVALID_CHARS, // flags: fall on error
                                 psz,            // input string
                                 -1,             // its length (NUL-terminated)
                                 buf,            // output string
@@ -1597,12 +1614,16 @@ wxMBConv *wxCSConv::DoCreate() const
 
 #ifdef wxHAVE_WIN32_MB2WC
     {
+#if wxUSE_FONTMAP
         wxMBConv_win32 *conv = m_name ? new wxMBConv_win32(m_name)
                                       : new wxMBConv_win32(m_encoding);
         if ( conv->IsOk() )
             return conv;
 
         delete conv;
+#else
+        return NULL;
+#endif
     }
 #endif // wxHAVE_WIN32_MB2WC
 #if defined(__WXMAC__) 
@@ -1769,6 +1790,8 @@ size_t wxCSConv::WC2MB(char *buf, const wchar_t *psz, size_t n) const
 
 #ifdef __WINDOWS__
     static wxMBConv_win32 wxConvLibcObj;
+#elif defined(__WXMAC__) && !defined(__MACH__)
+    static wxMBConv_mac wxConvLibcObj ;
 #else
     static wxMBConvLibc wxConvLibcObj;
 #endif

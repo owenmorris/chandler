@@ -325,6 +325,10 @@ SOURCE=.\common\bookctrl.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\common\buttoncmn.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\common\choiccmn.cpp
 # End Source File
 # Begin Source File
@@ -542,10 +546,6 @@ SOURCE=.\common\gifdecod.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\common\gzstream.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\common\hash.cpp
 # End Source File
 # Begin Source File
@@ -751,6 +751,10 @@ SOURCE=.\common\socket.cpp
 # Begin Source File
 
 SOURCE=.\common\statbar.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\common\stockitem.cpp
 # End Source File
 # Begin Source File
 
@@ -1292,13 +1296,11 @@ SOURCE=.\msw\glcanvas.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\msw\gsocket.c
-# SUBTRACT CPP /YX /Yc /Yu
+SOURCE=.\msw\gsocket.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\msw\gsockmsw.c
-# SUBTRACT CPP /YX /Yc /Yu
+SOURCE=.\msw\gsockmsw.cpp
 # End Source File
 # Begin Source File
 
@@ -2110,10 +2112,6 @@ SOURCE=..\include\wx\gsocket.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\include\wx\gzstream.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\include\wx\hash.h
 # End Source File
 # Begin Source File
@@ -2551,6 +2549,10 @@ SOURCE=..\include\wx\stattext.h
 # Begin Source File
 
 SOURCE=..\include\wx\statusbr.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\include\wx\stockitem.h
 # End Source File
 # Begin Source File
 

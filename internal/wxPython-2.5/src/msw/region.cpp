@@ -5,7 +5,7 @@
 // Modified by:
 // Created:   Fri Oct 24 10:46:34 MET 1997
 // RCS-ID:    $Id$
-// Copyright: (c) 1997-2002 wxWindows team
+// Copyright: (c) 1997-2002 wxWidgets team
 // Licence:   wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -123,6 +123,9 @@ wxRegion::wxRegion(const wxRect& rect)
 wxRegion::wxRegion(size_t n, const wxPoint *points, int fillStyle)
 {
 #if defined(__WXMICROWIN__) || defined(__WXWINCE__)
+    wxUnusedVar(n);
+    wxUnusedVar(points);
+    wxUnusedVar(fillStyle);
     m_refData = NULL;
     M_REGION = NULL;
 #else
@@ -163,12 +166,12 @@ void wxRegion::Clear()
 
 bool wxRegion::Offset(wxCoord x, wxCoord y)
 {
-    wxCHECK_MSG( M_REGION, FALSE, _T("invalid wxRegion") );
+    wxCHECK_MSG( M_REGION, false, _T("invalid wxRegion") );
 
     if ( !x && !y )
     {
         // nothing to do
-        return TRUE;
+        return true;
     }
 
     AllocExclusive();
@@ -177,10 +180,10 @@ bool wxRegion::Offset(wxCoord x, wxCoord y)
     {
         wxLogLastError(_T("OffsetRgn"));
 
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
 }
 
 // combine another region with this one
@@ -206,7 +209,7 @@ bool wxRegion::Combine(const wxRegion& rgn, wxRegionOp op)
             case wxRGN_AND:
             case wxRGN_DIFF:
                 // leave empty/invalid
-                return FALSE;
+                return false;
         }
     }
     else // we have a valid region
@@ -245,11 +248,11 @@ bool wxRegion::Combine(const wxRegion& rgn, wxRegionOp op)
         {
             wxLogLastError(_T("CombineRgn"));
 
-            return FALSE;
+            return false;
         }
     }
 
-    return TRUE;
+    return true;
 }
 
 // Combine rectangle (x, y, w, h) with this.
@@ -421,7 +424,6 @@ void wxRegionIterator::Reset(const wxRegion& region)
         m_numRects = 0;
     else
     {
-#if defined(__WIN32__)
         DWORD noBytes = ::GetRegionData(((wxRegionRefData*)region.m_refData)->m_region, 0, NULL);
         RGNDATA *rgnData = (RGNDATA*) new char[noBytes];
         ::GetRegionData(((wxRegionRefData*)region.m_refData)->m_region, noBytes, rgnData);
@@ -442,17 +444,6 @@ void wxRegionIterator::Reset(const wxRegion& region)
         m_numRects = header->nCount;
 
         delete[] (char*) rgnData;
-#else // Win16
-        RECT rect;
-        ::GetRgnBox(((wxRegionRefData*)region.m_refData)->m_region, &rect);
-        m_rects = new wxRect[1];
-        m_rects[0].x = rect.left;
-        m_rects[0].y = rect.top;
-        m_rects[0].width = rect.right - rect.left;
-        m_rects[0].height = rect.bottom - rect.top;
-
-        m_numRects = 1;
-#endif // Win32/16
     }
 }
 

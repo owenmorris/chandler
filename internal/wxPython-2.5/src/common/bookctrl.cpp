@@ -130,7 +130,9 @@ wxSize wxBookCtrl::DoGetBestSize() const
 
     // convert display area to window area, adding the size neccessary for the
     // tabs
-    return CalcSizeFromPage(bestSize);
+    wxSize best = CalcSizeFromPage(bestSize);
+    CacheBestSize(best);
+    return best;
 }
 
 // ----------------------------------------------------------------------------
@@ -149,6 +151,7 @@ wxBookCtrl::InsertPage(size_t nPage,
                  _T("invalid page index in wxBookCtrl::InsertPage()") );
 
     m_pages.Insert(page, nPage);
+    InvalidateBestSize();
 
     return true;
 }
@@ -171,6 +174,7 @@ wxWindow *wxBookCtrl::DoRemovePage(size_t nPage)
 
     wxWindow *pageRemoved = m_pages[nPage];
     m_pages.RemoveAt(nPage);
+    InvalidateBestSize();
 
     return pageRemoved;
 }

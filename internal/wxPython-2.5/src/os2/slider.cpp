@@ -23,6 +23,8 @@
 #include <wx/scrolwin.h>
 #endif
 
+#if wxUSE_SLIDER
+
 #include "wx/slider.h"
 #include "wx/os2/private.h"
 
@@ -460,7 +462,7 @@ bool wxSlider::Create(
                       ,(PVOID)&lColor
                      );
     SetValue(nValue);
-    return TRUE;
+    return true;
 } // end of wxSlider::Create
 
 void wxSlider::DoSetSize(
@@ -862,8 +864,10 @@ void wxSlider::GetSize(
         wxFindMaxSize( m_hStaticValue
                       ,&vRect
                      );
-    *pnWidth  = vRect.xRight - vRect.xLeft;
-    *pnHeight = vRect.yBottom - vRect.yTop;
+    if (pnWidth)
+        *pnWidth  = vRect.xRight - vRect.xLeft;
+    if (pnHeight)
+        *pnHeight = vRect.yTop - vRect.yBottom;
 } // end of wxSlider::GetSize
 
 int wxSlider::GetThumbLength() const
@@ -939,7 +943,7 @@ bool wxSlider::OS2OnScroll(
             break;
 
         default:
-            return FALSE;
+            return false;
     }
 
     int                             nPixelRange = SHORT1FROMMR(::WinSendMsg( GetHwnd()
@@ -968,7 +972,7 @@ bool wxSlider::OS2OnScroll(
         //
         // Out of range - but we did process it
         //
-        return TRUE;
+        return true;
     }
     SetValue(nNewPos);
 
@@ -1166,6 +1170,7 @@ bool wxSlider::Show(
         ::WinShowWindow((HWND)m_hStaticMin, bShow);
     if(m_hStaticMax)
         ::WinShowWindow((HWND)m_hStaticMax, bShow);
-    return TRUE;
+    return true;
 } // end of wxSlider::Show
 
+#endif // wxUSE_SLIDER

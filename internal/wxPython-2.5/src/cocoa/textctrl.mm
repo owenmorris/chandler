@@ -6,13 +6,14 @@
 // Created:     2003/03/16
 // RCS-ID:      $Id:
 // Copyright:   (c) 2003 David Elliott
-// Licence:   	wxWindows license
+// Licence:   	wxWidgets licence
 /////////////////////////////////////////////////////////////////////////////
 
 #include "wx/wxprec.h"
 #ifndef WX_PRECOMP
     #include "wx/app.h"
     #include "wx/textctrl.h"
+    #include "wx/log.h"
 #endif //WX_PRECOMP
 
 #include "wx/cocoa/string.h"
@@ -21,6 +22,9 @@
 
 #import <Foundation/NSString.h>
 #import <AppKit/NSTextField.h>
+#import <AppKit/NSCell.h>
+
+#include <math.h>
 
 IMPLEMENT_DYNAMIC_CLASS(wxTextCtrl, wxControl)
 BEGIN_EVENT_TABLE(wxTextCtrl, wxControl)
@@ -202,5 +206,18 @@ wxString wxTextCtrl::GetValue() const
 {
     wxAutoNSAutoreleasePool pool;
     return wxStringWithNSString([GetNSTextField() stringValue]);
+}
+
+wxSize wxTextCtrl::DoGetBestSize() const
+{
+    wxAutoNSAutoreleasePool pool;
+    wxASSERT(GetNSControl());
+    NSCell *cell = [GetNSControl() cell];
+    wxASSERT(cell);
+    NSSize cellSize = [cell cellSize];
+    wxSize size(100,(int)ceilf(cellSize.height));
+
+    wxLogTrace(wxTRACE_COCOA_Window_Size,wxT("wxTextCtrl=%p::DoGetBestSize()==(%d,%d)"),this,size.x,size.y);
+    return size;
 }
 

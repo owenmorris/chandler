@@ -5,7 +5,7 @@
 // Modified by:
 // Created:     05/25/99
 // RCS-ID:      $Id$
-// Copyright:   (c) wxWindows team
+// Copyright:   (c) wxWidgets team
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
@@ -32,7 +32,7 @@
 
 #include <math.h>
 
-// bool wxDCBase::sm_cacheing = FALSE;
+// bool wxDCBase::sm_cacheing = false;
 
 // ============================================================================
 // implementation
@@ -291,7 +291,7 @@ static bool wx_spline_add_point(double x, double y)
   point->x = (int) x;
   point->y = (int) y;
   wx_spline_point_list.Append((wxObject*)point);
-  return TRUE;
+  return true;
 }
 
 static void wx_spline_draw_point_array(wxDCBase *dc)
@@ -370,27 +370,76 @@ void wxDCBase::DoDrawSpline( wxList *points )
 // ----------------------------------------------------------------------------
 
 
-// Each element of the array will be the width of the string up to and
-// including the coresoponding character in text.  This is the generic
+// Each element of the widths array will be the width of the string up to and
+// including the coresponding character in text.  This is the generic
 // implementation, the port-specific classes should do this with native APIs
-// if available.
+// if available and if faster.  Note: pango_layout_index_to_pos is much slower
+// than calling GetTextExtent!!
+
+#define FWC_SIZE 256
+
+class FontWidthCache
+{
+public:
+    FontWidthCache() : m_scaleX(1), m_widths(NULL) { }
+    ~FontWidthCache() { delete []m_widths; }
+
+    void Reset()
+    {
+        if (!m_widths)
+            m_widths = new int[FWC_SIZE];
+
+        memset(m_widths, 0, sizeof(int)*FWC_SIZE);
+    }
+
+    wxFont m_font;
+    double m_scaleX;
+    int *m_widths;
+};
+
+static FontWidthCache s_fontWidthCache;
 
 bool wxDCBase::DoGetPartialTextExtents(const wxString& text, wxArrayInt& widths) const
 {
     int totalWidth = 0;
-    size_t i;
 
+    size_t i, len = text.Length();
     widths.Empty();
-    widths.Add(0, text.Length());
-    
+    widths.Add(0, len);
+    int w, h;
+
+    // reset the cache if font or horizontal scale have changed
+    if (!s_fontWidthCache.m_widths ||
+        (s_fontWidthCache.m_scaleX != m_scaleX) ||
+        (s_fontWidthCache.m_font != GetFont()))
+    {
+        s_fontWidthCache.Reset();
+        s_fontWidthCache.m_font = GetFont();
+        s_fontWidthCache.m_scaleX = m_scaleX;
+    }
+
     // Calculate the position of each character based on the widths of
     // the previous characters
-    for (i=0; i<text.Length(); i++) {
-        int w, h;
-        GetTextExtent(text[i], &w, &h);
+    for (i=0; i<len; i++)
+    {
+        const wxChar c = text[i];
+        unsigned int c_int = (unsigned int)c;
+
+        if ((c_int < FWC_SIZE) && (s_fontWidthCache.m_widths[c_int] != 0))
+        {
+            w = s_fontWidthCache.m_widths[c_int];
+        }
+        else
+        {
+            GetTextExtent(c, &w, &h);
+            if (c_int < FWC_SIZE)
+                s_fontWidthCache.m_widths[c_int] = w;
+        }
+
         totalWidth += w;
         widths[i] = totalWidth;
     }
+
     return true;
 }
 
@@ -522,7 +571,7 @@ void wxDCBase::DrawLabel(const wxString& text,
             width0 = width;
     if ( bitmap.Ok() )
     {
-        DrawBitmap(bitmap, x, y, TRUE /* use mask */);
+        DrawBitmap(bitmap, x, y, true /* use mask */);
 
         wxCoord offset = bitmap.GetWidth() + 4;
         x += offset;
@@ -623,7 +672,7 @@ void wxDCBase::DrawLabel(const wxString& text,
 }
 
 /*
-Notes for wxWindows DrawEllipticArcRot(...)
+Notes for wxWidgets DrawEllipticArcRot(...)
 
 wxDCBase::DrawEllipticArcRot(...) draws a rotated elliptic arc or an ellipse.
 It uses wxDCBase::CalculateEllipticPoints(...) and wxDCBase::Rotate(...),
@@ -634,19 +683,19 @@ DoDrawEllipticArcRot(...) is virtual, so it can be called from deeper
 methods like (WinCE) wxDC::DoDrawArc(...).
 
 CalculateEllipticPoints(...) fills a given list of wxPoints with some points
-of an elliptic arc. The algorithm is pixel-based: In every row (in flat 
+of an elliptic arc. The algorithm is pixel-based: In every row (in flat
 parts) or every column (in steep parts) only one pixel is calculated.
 Trigonometric calculation (sin, cos, tan, atan) is only done if the
-starting angle is not equal to the ending angle. The calculation of the 
+starting angle is not equal to the ending angle. The calculation of the
 pixels is done using simple arithmetic only and should perform not too
 bad even on devices without floating point processor. I didn't test this yet.
 
 Rotate(...) rotates a list of point pixel-based, you will see rounding errors.
-For instance: an ellipse rotated 180 degrees is drawn 
+For instance: an ellipse rotated 180 degrees is drawn
 slightly different from the original.
 
-The points are then moved to an array and used to draw a polyline and/or polygon 
-(with center added, the pie). 
+The points are then moved to an array and used to draw a polyline and/or polygon
+(with center added, the pie).
 The result looks quite similar to the native ellipse, only e few pixels differ.
 
 The performance on a desktop system (Athlon 1800, WinXP) is about 7 times
@@ -654,7 +703,7 @@ slower as DrawEllipse(...), which calls the native API.
 An rotated ellipse outside the clipping region takes nearly the same time,
 while an native ellipse outside takes nearly no time to draw.
 
-If you draw an arc with this new method, you will see the starting and ending angles 
+If you draw an arc with this new method, you will see the starting and ending angles
 are calculated properly.
 If you use DrawEllipticArc(...), you will see they are only correct for circles
 and not properly calculated for ellipses.
@@ -664,8 +713,8 @@ p.lenhard@t-online.de
 */
 
 #ifdef __WXWINCE__
-void wxDCBase::DoDrawEllipticArcRot( wxCoord x, wxCoord y, 
-                                     wxCoord w, wxCoord h, 
+void wxDCBase::DoDrawEllipticArcRot( wxCoord x, wxCoord y,
+                                     wxCoord w, wxCoord h,
                                      double sa, double ea, double angle )
 {
     wxList list;
@@ -680,7 +729,7 @@ void wxDCBase::DoDrawEllipticArcRot( wxCoord x, wxCoord y,
     int n = list.Number();
     wxPoint *points = new wxPoint[n];
     int i = 0;
-    wxNode* node = 0;    
+    wxNode* node = 0;
     for ( node = list.First(); node; node = node->Next(), i++ )
     {
         wxPoint *point = (wxPoint *)node->Data();
@@ -719,7 +768,7 @@ void wxDCBase::Rotate( wxList* points, double angle, wxPoint center )
         for ( wxNode* node = points->First(); node; node = node->Next() )
         {
             wxPoint* point = (wxPoint*)node->Data();
-    
+
             // transform coordinates, if necessary
             if( center.x ) point->x -= center.x;
             if( center.y ) point->y -= center.y;
@@ -736,9 +785,9 @@ void wxDCBase::Rotate( wxList* points, double angle, wxPoint center )
     }
 }
 
-void wxDCBase::CalculateEllipticPoints( wxList* points, 
-                                        wxCoord xStart, wxCoord yStart, 
-                                        wxCoord w, wxCoord h, 
+void wxDCBase::CalculateEllipticPoints( wxList* points,
+                                        wxCoord xStart, wxCoord yStart,
+                                        wxCoord w, wxCoord h,
                                         double sa, double ea )
 {
     double pi = 3.1415926535;
@@ -758,9 +807,9 @@ void wxDCBase::CalculateEllipticPoints( wxList* points,
     wxCoord b = h/2;
     // decrement 1 pixel if ellipse is smaller than 2*a, 2*b
     int decrX = 0;
-    if( 2*a == w ) decrX = 1; 
+    if( 2*a == w ) decrX = 1;
     int decrY = 0;
-    if( 2*b == h ) decrY = 1; 
+    if( 2*b == h ) decrY = 1;
     // center
     wxCoord xCenter = xStart + a;
     wxCoord yCenter = yStart + b;
@@ -784,7 +833,7 @@ void wxDCBase::CalculateEllipticPoints( wxList* points,
         ear = ea * pi / 180.0;
         // correct angle circle -> ellipse
         sar = atan( -a/(double)b * tan( sar ) );
-        if ( sq == 1 || sq == 2 ) sar += pi; 
+        if ( sq == 1 || sq == 2 ) sar += pi;
         ear = atan( -a/(double)b * tan( ear ) );
         if ( eq == 1 || eq == 2 ) ear += pi;
         // coordinates of points
@@ -823,7 +872,7 @@ void wxDCBase::CalculateEllipticPoints( wxList* points,
             y2 = y2-y-y+1;
             --y;
         }
-        // old y now to big: set point with old y, old x 
+        // old y now to big: set point with old y, old x
         if( bNewPoint && x>1)
         {
             int x1 = x - 1;
@@ -834,7 +883,7 @@ void wxDCBase::CalculateEllipticPoints( wxList* points,
             pointsarray[3].Append( (wxObject*) new wxPoint( xCenter + x1 - decrX, yCenter + y_old - decrY ) );
         } // set point
     } // calculate point
-    
+
     // Starting and/or ending points for the quadrants, first quadrant gets both.
     pointsarray[0].Insert( (wxObject*) new wxPoint( xCenter + a - decrX, yCenter ) );
     pointsarray[0].Append( (wxObject*) new wxPoint( xCenter, yCenter - b ) );
@@ -858,12 +907,12 @@ void wxDCBase::CalculateEllipticPoints( wxList* points,
             {
                 // once: go to starting point in start quadrant
                 if( !bStarted &&
-                    ( 
-                      ( (wxPoint*) node->Data() )->x < xsa+1 && q <= 1 
-                      ||  
+                    (
+                      ( (wxPoint*) node->Data() )->x < xsa+1 && q <= 1
+                      ||
                       ( (wxPoint*) node->Data() )->x > xsa-1 && q >= 2
                     )
-                  ) 
+                  )
                 {
                     bStarted = true;
                 }
@@ -873,8 +922,8 @@ void wxDCBase::CalculateEllipticPoints( wxList* points,
                 {
                     if( q != eq || bForceTurn
                         ||
-                        ( (wxPoint*) node->Data() )->x > xea+1 && q <= 1 
-                        ||  
+                        ( (wxPoint*) node->Data() )->x > xea+1 && q <= 1
+                        ||
                         ( (wxPoint*) node->Data() )->x < xea-1 && q >= 2
                       )
                     {
@@ -884,7 +933,7 @@ void wxDCBase::CalculateEllipticPoints( wxList* points,
                     }
                     else if( q == eq && !bForceTurn || ( (wxPoint*) node->Data() )->x == xea)
                     {
-                        bReady = true; 
+                        bReady = true;
                     }
                 }
             } // for node
@@ -903,8 +952,7 @@ void wxDCBase::CalculateEllipticPoints( wxList* points,
                 wxPoint *p = (wxPoint *)node->Data();
                 delete p;
             }
-        }            
-        
+        }
     }
     else
     {

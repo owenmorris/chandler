@@ -107,12 +107,6 @@
 static const wxChar WX_SECTION[] = wxT("wxWindows");
 static const wxChar eUSERNAME[]  = wxT("UserName");
 
-// these are only used under Win16
-#if !defined(__WIN32__) && !defined(__WXMICROWIN__)
-static const wxChar eHOSTNAME[]  = wxT("HostName");
-static const wxChar eUSERID[]    = wxT("UserId");
-#endif // !Win32
-
 // ============================================================================
 // implementation
 // ============================================================================
@@ -125,17 +119,17 @@ static const wxChar eUSERID[]    = wxT("UserId");
 bool wxGetHostName(wxChar *buf, int maxSize)
 {
 #if defined(__WXWINCE__)
-    return FALSE;
+    return false;
 #elif defined(__WIN32__) && !defined(__WXMICROWIN__)
     DWORD nSize = maxSize;
     if ( !::GetComputerName(buf, &nSize) )
     {
         wxLogLastError(wxT("GetComputerName"));
 
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
 #else
     wxChar *sysname;
     const wxChar *default_host = wxT("noname");
@@ -145,7 +139,7 @@ bool wxGetHostName(wxChar *buf, int maxSize)
     } else
         wxStrncpy(buf, sysname, maxSize - 1);
     buf[maxSize] = wxT('\0');
-    return *buf ? TRUE : FALSE;
+    return *buf ? true : false;
 #endif
 }
 
@@ -224,7 +218,7 @@ bool wxGetFullHostName(wxChar *buf, int maxSize)
             {
                 wxStrncpy(buf, host, maxSize);
 
-                return TRUE;
+                return true;
             }
         }
     }
@@ -237,8 +231,8 @@ bool wxGetFullHostName(wxChar *buf, int maxSize)
 bool wxGetUserId(wxChar *buf, int maxSize)
 {
 #if defined(__WXWINCE__)
-    return FALSE;
-#elif defined(__WIN32__) && !defined(__win32s__) && !defined(__WXMICROWIN__)
+    return false;
+#elif defined(__WIN32__) && !defined(__WXMICROWIN__)
     DWORD nSize = maxSize;
     if ( ::GetUserName(buf, &nSize) == 0 )
     {
@@ -247,12 +241,12 @@ bool wxGetUserId(wxChar *buf, int maxSize)
         if ( res == 0 )
         {
             // not found
-            return FALSE;
+            return false;
         }
     }
 
-    return TRUE;
-#else   // Win16 or Win32s
+    return true;
+#else   // __WXMICROWIN__
     wxChar *user;
     const wxChar *default_id = wxT("anonymous");
 
@@ -261,7 +255,7 @@ bool wxGetUserId(wxChar *buf, int maxSize)
     if (  (user = wxGetenv(wxT("USER"))) == NULL &&
             (user = wxGetenv(wxT("LOGNAME"))) == NULL )
     {
-        // Use wxWindows configuration data (comming soon)
+        // Use wxWidgets configuration data (comming soon)
         GetProfileString(WX_SECTION, eUSERID, default_id, buf, maxSize - 1);
     }
     else
@@ -269,7 +263,7 @@ bool wxGetUserId(wxChar *buf, int maxSize)
         wxStrncpy(buf, user, maxSize - 1);
     }
 
-    return *buf ? TRUE : FALSE;
+    return *buf ? true : false;
 #endif
 }
 
@@ -277,11 +271,11 @@ bool wxGetUserId(wxChar *buf, int maxSize)
 bool wxGetUserName(wxChar *buf, int maxSize)
 {
 #if defined(__WXWINCE__)
-    return FALSE;
+    return false;
 #elif defined(USE_NET_API)
     CHAR szUserName[256];
     if ( !wxGetUserId(szUserName, WXSIZEOF(szUserName)) )
-        return FALSE;
+        return false;
 
     // TODO how to get the domain name?
     CHAR *szDomain = "";
@@ -338,15 +332,15 @@ bool wxGetUserName(wxChar *buf, int maxSize)
     WideCharToMultiByte( CP_ACP, 0, ui2->usri2_full_name, -1,
             buf, maxSize, NULL, NULL );
 
-    return TRUE;
+    return true;
 
 error:
     wxLogError(wxT("Couldn't look up full user name."));
 
-    return FALSE;
+    return false;
 #else  // !USE_NET_API
     // Could use NIS, MS-Mail or other site specific programs
-    // Use wxWindows configuration data
+    // Use wxWidgets configuration data
     bool ok = GetProfileString(WX_SECTION, eUSERNAME, wxEmptyString, buf, maxSize - 1) != 0;
     if ( !ok )
     {
@@ -359,7 +353,7 @@ error:
     }
 #endif // Win32/16
 
-    return TRUE;
+    return true;
 }
 
 const wxChar* wxGetHomeDir(wxString *pstr)
@@ -469,32 +463,16 @@ bool wxDirExists(const wxString& dir)
 #elif defined(__WIN32__)
     DWORD attribs = GetFileAttributes(dir);
     return ((attribs != (DWORD)-1) && (attribs & FILE_ATTRIBUTE_DIRECTORY));
-#else // Win16
-    #ifdef __BORLANDC__
-        struct ffblk fileInfo;
-    #else
-        struct find_t fileInfo;
-    #endif
-    // In Borland findfirst has a different argument
-    // ordering from _dos_findfirst. But _dos_findfirst
-    // _should_ be ok in both MS and Borland... why not?
-    #ifdef __BORLANDC__
-        return (findfirst(dir, &fileInfo, _A_SUBDIR) == 0 &&
-               (fileInfo.ff_attrib & _A_SUBDIR) != 0);
-    #else
-        return (_dos_findfirst(dir, _A_SUBDIR, &fileInfo) == 0) &&
-               ((fileInfo.attrib & _A_SUBDIR) != 0);
-    #endif
-#endif // Win32/16
+#endif // Win32/__WXMICROWIN__
 }
 
 bool wxGetDiskSpace(const wxString& path, wxLongLong *pTotal, wxLongLong *pFree)
 {
 #ifdef __WXWINCE__
-    return FALSE;
+    return false;
 #else
     if ( path.empty() )
-        return FALSE;
+        return false;
 
 // old w32api don't have ULARGE_INTEGER
 #if defined(__WIN32__) && \
@@ -529,7 +507,7 @@ bool wxGetDiskSpace(const wxString& path, wxLongLong *pTotal, wxLongLong *pFree)
         {
             wxLogLastError(_T("GetDiskFreeSpaceEx"));
 
-            return FALSE;
+            return false;
         }
 
         // ULARGE_INTEGER is a union of a 64 bit value and a struct containing
@@ -572,7 +550,7 @@ bool wxGetDiskSpace(const wxString& path, wxLongLong *pTotal, wxLongLong *pFree)
         {
             wxLogLastError(_T("GetDiskFreeSpace"));
 
-            return FALSE;
+            return false;
         }
 
         wxLongLong lBytesPerCluster = lSectorsPerCluster;
@@ -591,7 +569,7 @@ bool wxGetDiskSpace(const wxString& path, wxLongLong *pTotal, wxLongLong *pFree)
         }
     }
 
-    return TRUE;
+    return true;
 #endif
     // __WXWINCE__
 }
@@ -603,25 +581,14 @@ bool wxGetDiskSpace(const wxString& path, wxLongLong *pTotal, wxLongLong *pFree)
 bool wxGetEnv(const wxString& var, wxString *value)
 {
 #ifdef __WXWINCE__
-    return FALSE;
-#elif defined(__WIN16__)
-    const wxChar* ret = wxGetenv(var);
-    if ( !ret )
-        return FALSE;
-
-    if ( value )
-    {
-        *value = ret;
-    }
-
-    return TRUE;
+    return false;
 #else // Win32
     // first get the size of the buffer
     DWORD dwRet = ::GetEnvironmentVariable(var, NULL, 0);
     if ( !dwRet )
     {
         // this means that there is no such variable
-        return FALSE;
+        return false;
     }
 
     if ( value )
@@ -630,8 +597,8 @@ bool wxGetEnv(const wxString& var, wxString *value)
                                        dwRet);
     }
 
-    return TRUE;
-#endif // Win16/32
+    return true;
+#endif // WinCE/32
 }
 
 bool wxSetEnv(const wxString& var, const wxChar *value)
@@ -643,12 +610,12 @@ bool wxSetEnv(const wxString& var, const wxChar *value)
     {
         wxLogLastError(_T("SetEnvironmentVariable"));
 
-        return FALSE;
+        return false;
     }
 
-    return TRUE;
+    return true;
 #else // no way to set env vars
-    return FALSE;
+    return false;
 #endif
 }
 
@@ -716,7 +683,7 @@ int wxKill(long pid, wxSignal sig, wxKillError *krc)
         return -1;
     }
 
-    bool ok = TRUE;
+    bool ok = true;
     switch ( sig )
     {
         case wxSIGKILL:
@@ -732,7 +699,7 @@ int wxKill(long pid, wxSignal sig, wxKillError *krc)
                     *krc = wxKILL_ERROR;
                 }
 
-                ok = FALSE;
+                ok = false;
             }
             break;
 
@@ -769,7 +736,7 @@ int wxKill(long pid, wxSignal sig, wxKillError *krc)
                     {
                         wxLogLastError(_T("EnumWindows"));
 
-                        ok = FALSE;
+                        ok = false;
                     }
                 }
                 else // no windows for this PID
@@ -779,7 +746,7 @@ int wxKill(long pid, wxSignal sig, wxKillError *krc)
                         *krc = wxKILL_ERROR;
                     }
 
-                    ok = FALSE;
+                    ok = false;
                 }
             }
     }
@@ -850,14 +817,15 @@ int wxKill(long pid, wxSignal sig, wxKillError *krc)
 // Execute a program in an Interactive Shell
 bool wxShell(const wxString& command)
 {
+    wxString cmd;
+
 #ifdef __WXWINCE__
-    return FALSE;
+    cmd = command;
 #else
     wxChar *shell = wxGetenv(wxT("COMSPEC"));
     if ( !shell )
         shell = (wxChar*) wxT("\\COMMAND.COM");
 
-    wxString cmd;
     if ( !command )
     {
         // just the shell
@@ -868,18 +836,18 @@ bool wxShell(const wxString& command)
         // pass the command to execute to the command processor
         cmd.Printf(wxT("%s /c %s"), shell, command.c_str());
     }
+#endif
 
     return wxExecute(cmd, wxEXEC_SYNC) == 0;
-#endif
 }
 
 // Shutdown or reboot the PC
 bool wxShutdown(wxShutdownFlags wFlags)
 {
 #ifdef __WXWINCE__
-    return FALSE;
+    return false;
 #elif defined(__WIN32__)
-    bool bOK = TRUE;
+    bool bOK = true;
 
     if ( wxGetOsVersion(NULL, NULL) == wxWINDOWS_NT ) // if is NT or 2K
     {
@@ -923,15 +891,13 @@ bool wxShutdown(wxShutdownFlags wFlags)
 
             default:
                 wxFAIL_MSG( _T("unknown wxShutdown() flag") );
-                return FALSE;
+                return false;
         }
 
         bOK = ::ExitWindowsEx(flags, 0) != 0;
     }
 
     return bOK;
-#else // Win16
-    return FALSE;
 #endif // Win32/16
 }
 
@@ -954,11 +920,7 @@ long wxGetFreeMemory()
 
 unsigned long wxGetProcessId()
 {
-#ifdef __WIN32__
     return ::GetCurrentProcessId();
-#else
-    return 0;
-#endif
 }
 
 // Emit a beeeeeep
@@ -969,7 +931,6 @@ void wxBell()
 
 wxString wxGetOsDescription()
 {
-#ifdef __WIN32__
     wxString str;
 
     OSVERSIONINFO info;
@@ -1012,9 +973,6 @@ wxString wxGetOsDescription()
     }
 
     return str;
-#else // Win16
-    return _("Windows 3.1");
-#endif // Win32/16
 }
 
 wxToolkitInfo& wxAppTraits::GetToolkitInfo()
@@ -1073,14 +1031,19 @@ wxToolkitInfo& wxAppTraits::GetToolkitInfo()
 // sleep functions
 // ----------------------------------------------------------------------------
 
-void wxUsleep(unsigned long milliseconds)
+void wxMilliSleep(unsigned long milliseconds)
 {
     ::Sleep(milliseconds);
 }
 
+void wxMicroSleep(unsigned long microseconds)
+{
+    wxMilliSleep(microseconds/1000);
+}
+
 void wxSleep(int nSecs)
 {
-    wxUsleep(1000*nSecs);
+    wxMilliSleep(1000*nSecs);
 }
 
 // ----------------------------------------------------------------------------
@@ -1185,7 +1148,7 @@ extern long wxCharsetToCodepage(const wxChar *name)
     if ( !name )
         return -1;
 
-    wxFontEncoding enc = wxFontMapper::Get()->CharsetToEncoding(name, FALSE);
+    wxFontEncoding enc = wxFontMapper::Get()->CharsetToEncoding(name, false);
     if ( enc == wxFONTENCODING_SYSTEM )
         return -1;
 
@@ -1240,7 +1203,7 @@ extern long wxCharsetToCodepage(const wxChar *name)
   Creates a hidden window with supplied window proc registering the class for
   it if necesssary (i.e. the first time only). Caller is responsible for
   destroying the window and unregistering the class (note that this must be
-  done because wxWindows may be used as a DLL and so may be loaded/unloaded
+  done because wxWidgets may be used as a DLL and so may be loaded/unloaded
   multiple times into/from the same process so we cna't rely on automatic
   Windows class unregistration).
 

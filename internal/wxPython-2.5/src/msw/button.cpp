@@ -40,6 +40,7 @@
     #include "wx/dcscreen.h"
 #endif
 
+#include "wx/stockitem.h"
 #include "wx/msw/private.h"
 
 // ----------------------------------------------------------------------------
@@ -59,7 +60,7 @@ wxBEGIN_FLAGS( wxButtonStyle )
     wxFLAGS_MEMBER(wxBORDER_RAISED)
     wxFLAGS_MEMBER(wxBORDER_STATIC)
     wxFLAGS_MEMBER(wxBORDER_NONE)
-    
+
     // old style border flags
     wxFLAGS_MEMBER(wxSIMPLE_BORDER)
     wxFLAGS_MEMBER(wxSUNKEN_BORDER)
@@ -88,12 +89,12 @@ wxEND_FLAGS( wxButtonStyle )
 IMPLEMENT_DYNAMIC_CLASS_XTI(wxButton, wxControl,"wx/button.h")
 
 wxBEGIN_PROPERTIES_TABLE(wxButton)
-	wxEVENT_PROPERTY( Click , wxEVT_COMMAND_BUTTON_CLICKED , wxCommandEvent)
+    wxEVENT_PROPERTY( Click , wxEVT_COMMAND_BUTTON_CLICKED , wxCommandEvent)
 
-	wxPROPERTY( Font , wxFont , SetFont , GetFont  , , 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
-	wxPROPERTY( Label, wxString , SetLabel, GetLabel, wxString(), 0 /*flags*/ , wxT("Helpstring") , wxT("group") )
+    wxPROPERTY( Font , wxFont , SetFont , GetFont  , EMPTY_MACROVALUE, 0 /*flags*/ , wxT("Helpstring") , wxT("group"))
+    wxPROPERTY( Label, wxString , SetLabel, GetLabel, wxString(), 0 /*flags*/ , wxT("Helpstring") , wxT("group") )
 
-    wxPROPERTY_FLAGS( WindowStyle , wxButtonStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
+    wxPROPERTY_FLAGS( WindowStyle , wxButtonStyle , long , SetWindowStyleFlag , GetWindowStyleFlag , EMPTY_MACROVALUE , 0 /*flags*/ , wxT("Helpstring") , wxT("group")) // style
 
 wxEND_PROPERTIES_TABLE()
 
@@ -121,15 +122,19 @@ IMPLEMENT_DYNAMIC_CLASS(wxButton, wxControl)
 
 bool wxButton::Create(wxWindow *parent,
                       wxWindowID id,
-                      const wxString& label,
+                      const wxString& lbl,
                       const wxPoint& pos,
                       const wxSize& size,
                       long style,
                       const wxValidator& validator,
                       const wxString& name)
 {
+    wxString label(lbl);
+    if (label.empty() && wxIsStockID(id))
+        label = wxGetStockLabel(id);
+    
     if ( !CreateControl(parent, id, pos, size, style, validator, name) )
-        return FALSE;
+        return false;
 
     WXDWORD exstyle;
     WXDWORD msStyle = MSWGetStyle(style, &exstyle);
@@ -203,7 +208,7 @@ wxSize wxButton::DoGetBestSize() const
     GetTextExtent(wxGetWindowText(GetHWND()), &wBtn, NULL);
 
     int wChar, hChar;
-    wxGetCharSize(GetHWND(), &wChar, &hChar, &GetFont());
+    wxGetCharSize(GetHWND(), &wChar, &hChar, GetFont());
 
     // add a margin -- the button is wider than just its label
     wBtn += 3*wChar;
@@ -285,7 +290,7 @@ wxSize wxButtonBase::GetDefaultSize()
    NB: all this is quite complicated by now and the worst is that normally
        it shouldn't be necessary at all as for the normal Windows programs
        DefWindowProc() and IsDialogMessage() take care of all this
-       automatically -- however in wxWindows programs this doesn't work for
+       automatically -- however in wxWidgets programs this doesn't work for
        nested hierarchies (i.e. a notebook inside a notebook) for unknown
        reason and so we have to reproduce all this code ourselves. It would be
        very nice if we could avoid doing it.
@@ -298,12 +303,12 @@ void wxButton::SetDefault()
 
     wxCHECK_RET( parent, _T("button without parent?") );
 
-    // set this one as the default button both for wxWindows ...
+    // set this one as the default button both for wxWidgets ...
     wxWindow *winOldDefault = parent->SetDefaultItem(this);
 
     // ... and Windows
-    SetDefaultStyle(wxDynamicCast(winOldDefault, wxButton), FALSE);
-    SetDefaultStyle(this, TRUE);
+    SetDefaultStyle(wxDynamicCast(winOldDefault, wxButton), false);
+    SetDefaultStyle(this, true);
 }
 
 // set this button as being currently default
@@ -316,8 +321,8 @@ void wxButton::SetTmpDefault()
     wxWindow *winOldDefault = parent->GetDefaultItem();
     parent->SetTmpDefaultItem(this);
 
-    SetDefaultStyle(wxDynamicCast(winOldDefault, wxButton), FALSE);
-    SetDefaultStyle(this, TRUE);
+    SetDefaultStyle(wxDynamicCast(winOldDefault, wxButton), false);
+    SetDefaultStyle(this, true);
 }
 
 // unset this button as currently default, it may still stay permanent default
@@ -331,8 +336,8 @@ void wxButton::UnsetTmpDefault()
 
     wxWindow *winOldDefault = parent->GetDefaultItem();
 
-    SetDefaultStyle(this, FALSE);
-    SetDefaultStyle(wxDynamicCast(winOldDefault, wxButton), TRUE);
+    SetDefaultStyle(this, false);
+    SetDefaultStyle(wxDynamicCast(winOldDefault, wxButton), true);
 }
 
 /* static */
@@ -413,12 +418,12 @@ void wxButton::Command(wxCommandEvent & event)
 
 bool wxButton::MSWCommand(WXUINT param, WXWORD WXUNUSED(id))
 {
-    bool processed = FALSE;
+    bool processed = false;
     switch ( param )
     {
         // NOTE: Apparently older versions (NT 4?) of the common controls send
         //       BN_DOUBLECLICKED but not a second BN_CLICKED for owner-drawn
-        //       buttons, so in order to send two EVET_BUTTON events we should
+        //       buttons, so in order to send two EVT_BUTTON events we should
         //       catch both types.  Currently (Feb 2003) up-to-date versions of
         //       win98, win2k and winXP all send two BN_CLICKED messages for
         //       all button types, so we don't catch BN_DOUBLECLICKED anymore
@@ -437,7 +442,7 @@ bool wxButton::MSWCommand(WXUINT param, WXWORD WXUNUSED(id))
 
 WXLRESULT wxButton::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
-    // when we receive focus, we want to temporary become the default button in
+    // when we receive focus, we want to temporarily become the default button in
     // our parent panel so that pressing "Enter" would activate us -- and when
     // losing it we should restore the previous default button as well
     if ( nMsg == WM_SETFOCUS )
@@ -510,14 +515,14 @@ bool wxButton::SetBackgroundColour(const wxColour &colour)
     if ( !wxControl::SetBackgroundColour(colour) )
     {
         // nothing to do
-        return FALSE;
+        return false;
     }
 
     MakeOwnerDrawn();
 
     Refresh();
 
-    return TRUE;
+    return true;
 }
 
 bool wxButton::SetForegroundColour(const wxColour &colour)
@@ -525,14 +530,14 @@ bool wxButton::SetForegroundColour(const wxColour &colour)
     if ( !wxControl::SetForegroundColour(colour) )
     {
         // nothing to do
-        return FALSE;
+        return false;
     }
 
     MakeOwnerDrawn();
 
     Refresh();
 
-    return TRUE;
+    return true;
 }
 
 /*
@@ -592,7 +597,7 @@ static void DrawButtonFrame(HDC hdc, const RECT& rectBtn,
         DrawRect(hdc, r);
 
         (void)SelectObject(hdc, hpenGrey);
-        InflateRect(&r, -1, -1);
+        ::InflateRect(&r, -1, -1);
 
         DrawRect(hdc, r);
     }
@@ -602,7 +607,7 @@ static void DrawButtonFrame(HDC hdc, const RECT& rectBtn,
         {
             DrawRect(hdc, r);
 
-            InflateRect(&r, -1, -1);
+            ::InflateRect(&r, -1, -1);
         }
 
         wxDrawLine(hdc, r.left, r.bottom, r.right, r.bottom);
@@ -685,7 +690,7 @@ bool wxButton::MSWOnDraw(WXDRAWITEMSTRUCT *wxdis)
 
     ::DeleteObject(hbrushBackground);
 
-    return TRUE;
+    return true;
 }
 
 #endif // __WIN32__
