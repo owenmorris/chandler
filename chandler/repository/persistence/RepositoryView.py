@@ -14,6 +14,8 @@ from repository.item.ItemHandler import ItemHandler, ItemsHandler
 from repository.item.ItemRef import ItemStub, DanglingRefError
 from repository.persistence.PackHandler import PackHandler
 
+timing = True
+if timing: import tools.timing
 
 class RepositoryView(object):
     """
@@ -340,6 +342,8 @@ class RepositoryView(object):
         @type parent: an item
         """
 
+        if timing: tools.timing.begin("Load pack")
+
         packs = self.getRoot('Packs')
         if not packs:
             packs = Item('Packs', self, None)
@@ -348,6 +352,8 @@ class RepositoryView(object):
         libxml2.SAXParseFile(handler, path, 0)
         if handler.errorOccurred():
             raise handler.saxError()
+
+        if timing: tools.timing.end("Load pack")
 
     def dir(self, item=None, path=None):
         """

@@ -50,6 +50,10 @@ def main():
         # Reraising the exception, so wing catches it.
         raise
 
+    # import tools.timing
+    # print "\nTiming results:\n"
+    # tools.timing.results()
+
 if __name__=="__main__":
     main()
 

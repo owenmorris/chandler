@@ -24,6 +24,8 @@ from repository.util.SAX import XMLGenerator
 from repository.util.Lob import Text, Binary
 from repository.util.Streams import ConcatenatedInputStream, NullInputStream
 
+timing = True
+if timing: import tools.timing
 
 class XMLRepositoryView(OnDemandRepositoryView):
 
@@ -156,6 +158,8 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
     def commit(self):
 
+        if timing: tools.timing.begin("Repository commit")
+
         repository = self.repository
         store = repository.store
         versions = store._versions
@@ -276,6 +280,8 @@ class XMLRepositoryView(OnDemandRepositoryView):
                              self, count, size,
                              datetime.now() - before)
         self.prune(10000)
+
+        if timing: tools.timing.end("Repository commit")
 
     def _saveItem(self, item, newVersion, store, ood):
 

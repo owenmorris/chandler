@@ -20,6 +20,9 @@ NS_ROOT = "http://osafoundation.org/parcels"
 CORE = "%s/core" % NS_ROOT
 CPIA = "%s/osaf/framework/blocks" % NS_ROOT
 
+timing = True
+if timing: import tools.timing
+
 class Manager(Item):
     """
     The Parcel Manager, responsible for loading items from XML files into
@@ -272,6 +275,8 @@ class Manager(Item):
         Also check files for XML correctness (mismatched tags, etc).
         """
 
+        if timing: tools.timing.begin("Scan XML for namespaces")
+
         class MappingHandler(xml.sax.ContentHandler):
             """ A SAX2 handler for parsing namespace information """
 
@@ -408,6 +413,7 @@ class Manager(Item):
              e.getLineNumber())
             raise
 
+        if timing: tools.timing.end("Scan XML for namespaces")
 
     def __walkParcels(self, rootParcel):
         """
@@ -555,6 +561,8 @@ class Manager(Item):
         global globalDepth
         globalDepth = 0
 
+        if timing: tools.timing.begin("Load parcels")
+
         try:
             print "Scanning parcels...",
             self.__scanParcels()
@@ -579,6 +587,8 @@ class Manager(Item):
         except Exception, e:
             self.__displayError()
             raise
+
+        if timing: tools.timing.end("Load parcels")
 
 
     def saveErrorState(self, message, file, line):
@@ -1123,6 +1133,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             raise self.saveErrorState("Kind doesn't exist: %s:%s" % \
              (uri, local))
 
+        if timing: tools.timing.begin("Creating items")
+
         try:
             if className:
                 # Use the given class to instantiate the item
@@ -1135,6 +1147,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             self.saveErrorState(str(e))
             raise
 
+        if timing: tools.timing.end("Creating items")
+
         if item is None:
             raise self.saveErrorState("Item not created")
 
@@ -1143,7 +1157,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
     def completeAssignments(self, item, assignments):
         """ Add all of the references in the list to the item """
 
+
         for assignment in assignments:
+
+            if timing: tools.timing.begin("Attribute assignments")
 
             attributeName = assignment["attrName"]
             line = assignment["line"]
@@ -1201,6 +1218,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 except:
                     raise self.saveErrorState("Couldn't add value to item ",
                      file, line)
+
+            if timing: tools.timing.end("Attribute assignments")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1340,37 +1359,41 @@ def __test():
     """
     If this module is run as a script, run some tests
     """
+    import time
+
     rep = __prepareRepo()
 
     parcelPath = [os.path.join(Globals.chandlerDirectory, "parcels")]
     manager = Manager.getManager(repository=rep, path=parcelPath)
     manager.loadParcels()
 
-    # PrintItem("//parcels/osaf/contentmodel/mail", rep, recursive=True)
 
-    # Get the "virtual" core parcel (//parcels/core)
-    core = manager.lookup(CORE)
-    print core.itsPath
-    print core.lookup("Kind").itsPath
-    print core.lookup("Parcel/file").itsPath
+    if False:
+        # Get the "virtual" core parcel (//parcels/core)
+        core = manager.lookup(CORE)
+        print core.itsPath
+        print core.lookup("Kind").itsPath
+        print core.lookup("Parcel/file").itsPath
 
-    # Get the "real" core (//Schema/Core)
-    item = manager.lookup(CORE, "")
-    print item.itsPath
+        # Get the "real" core (//Schema/Core)
+        item = manager.lookup(CORE, "")
+        print item.itsPath
 
-    item = manager.lookup(CORE, "Parcel")
-    print item.itsPath
+        item = manager.lookup(CORE, "Parcel")
+        print item.itsPath
 
-    item = manager.lookup(CORE, "Parcel/file")
-    print item.itsPath
+        item = manager.lookup(CORE, "Parcel/file")
+        print item.itsPath
 
-    item = manager.lookup(CPIA, "Block")
-    print item.itsPath
-
-    # PrintItem("//Schema/Core/Parcel", rep, recursive=True)
+        item = manager.lookup(CPIA, "Block")
+        print item.itsPath
 
     rep.commit()
     rep.close()
+
+    if timing: 
+        print "\nTiming results:"
+        tools.timing.results()
 
 if __name__ == "__main__":
     __test()

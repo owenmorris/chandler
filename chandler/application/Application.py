@@ -3,7 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import gettext, os, sys, threading
+import gettext, os, sys, threading, tools.timing
 from new import classobj
 import wx
 import Globals
@@ -122,6 +122,8 @@ class wxApplication (wx.App):
         """
           Main application initialization.
         """
+        tools.timing.begin("wxApplication OnInit")
+
         if __debug__:
             """
               Install a custom displayhook to keep Python from setting the global
@@ -316,6 +318,8 @@ class wxApplication (wx.App):
 
             self.mainFrame.Show()
 
+            tools.timing.end("wxApplication OnInit")
+
             return True                     #indicates we succeeded with initialization
         return False                        #or failed.
 
@@ -430,6 +434,7 @@ class wxApplication (wx.App):
         """
           Main application termination.
         """
+        print "Shutting down..."
         Globals.taskManager.stop()
         Globals.twistedReactorManager.stopReactor()
         """
