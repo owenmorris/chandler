@@ -518,7 +518,7 @@ def _findFiles(path, filename):
 
 def generateDocs(buildenv):
 
-    xslFiles =  ["Kinds", "Attributes", "Aliass", "Enumerations", "index", 
+    xslFiles =  ["Kinds", "Attributes", "Aliases", "Enumerations", "index", 
      "Types", "sentences"]
     fileList = _findFiles(".", "parcel.xml")
     indexList = [('index.html', 'Main Schema Documentation'),
