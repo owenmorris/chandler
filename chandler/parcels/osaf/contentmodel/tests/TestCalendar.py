@@ -36,7 +36,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
             self.assertEqual(event.transparency, "busy")
             self.assertEqual(event.getAttributeValue('transparency'), "busy")
 
-        def _verifyCalendarItems(calendar, location, recurrence, reminder):
+        def _verifyCalendarItems(calendar, location, recurrence):
             self.assertEqual(calendar.displayName, "simple calendar")
             self.assertEqual(calendar.getAttributeValue('displayName'),
                               "simple calendar")
@@ -56,15 +56,12 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
                          self.rep.find(Path(calendarPath, 'Location')))
         self.assertEqual(Calendar.CalendarParcel.getRecurrencePatternKind(),
                          self.rep.find(Path(calendarPath, 'RecurrencePattern')))
-        self.assertEqual(Calendar.CalendarParcel.getReminderKind(),
-                         self.rep.find(Path(calendarPath, 'Reminder')))
 
         # Construct a sample item
         calendarEventItem = Calendar.CalendarEvent("calendarEventItem")
         calendarItem = Calendar.Calendar("calendarItem")
         locationItem = Calendar.Location("locationItem")
         recurrenceItem = Calendar.RecurrencePattern("recurrenceItem")
-        reminderItem = Calendar.Reminder("reminderItem")
 
         # CalendarEvent properties
         calendarEventItem.displayName = "simple headline"
@@ -77,7 +74,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         calendarItem.displayName = "simple calendar"
         locationItem.displayName = "simple location"
         _verifyCalendarItems(calendarItem, locationItem,
-                             recurrenceItem, reminderItem)
+                             recurrenceItem)
 
         # Check cloud membership - event + location
 
@@ -100,11 +97,10 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         calendarItem = contentItemParent.getItemChild("calendarItem")
         locationItem = contentItemParent.getItemChild("locationItem")
         recurrenceItem = contentItemParent.getItemChild("recurrenceItem")
-        reminderItem = contentItemParent.getItemChild("reminderItem")
         
         _verifyCalendarEvent(calendarEventItem)
         _verifyCalendarItems(calendarItem, locationItem,
-                             recurrenceItem, reminderItem)
+                             recurrenceItem)
 
     def testTimeFields(self):
         """ Test time related fields and methods """
