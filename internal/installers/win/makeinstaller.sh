@@ -6,16 +6,17 @@
 # windows command shell
 #
 
-NSI_PATH="$1"
-NSI_FILE="$2"
+NSI_OPTION="$1"
+NSI_PATH="$2"
+NSI_FILE="$3"
 
 if [ -z "$NSI_FILE" ]; then
     echo
-    echo "usage: $0 <path to .nsi file> <.nsi file>"
+    echo "usage: $0 <snap_option> <path to .nsi file> <.nsi file>"
     echo
     exit 1
 fi
 
 cd $NSI_PATH
-makensis $NSI_FILE
+makensis $NSI_OPTION $NSI_FILE
 

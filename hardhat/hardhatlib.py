@@ -1563,15 +1563,16 @@ def makeInstaller(buildenv, directories, fileRoot):
         # TODO: added Linux (RPM) and OS X (dmg?) support
     if buildenv['os'] == 'win':
         nsisScriptPath = os.path.join(buildenv['root'], "internal", "installers", "win")
-        
+        scriptOption   = '/DSNAP_%s /DDISTRIB_DIR=%s' % (buildenv['version'].upper(), fileRoot)
+
         if sys.platform == 'cygwin':
           scriptName = os.path.join(nsisScriptPath, "makeinstaller.sh")
           executeCommand(buildenv, "HardHat", 
-             [scriptName, nsisScriptPath, "chandler.nsi", buildenv['root'], fileRoot],
+             [scriptName, scriptOption, nsisScriptPath, "chandler.nsi"],
             "Building Windows Installer")
         else:
             executeCommand(buildenv, "HardHat",
-                 [buildenv['makensis'], os.path.join(nsisScriptPath, "chandler.nsi")],
+                 [buildenv['makensis'], scriptOption, os.path.join(nsisScriptPath, "chandler.nsi")],
                 "Building Windows Installer")
 
         return nsisScriptPath
