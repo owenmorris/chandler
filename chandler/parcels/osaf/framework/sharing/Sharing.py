@@ -18,6 +18,9 @@ class Parcel(application.Parcel.Parcel):
         event = Globals.parcelManager.lookup(SHARING, 'sharingUpdateEvent')
         Globals.notificationManager.Subscribe([event], UUID(),
          self._sharingUpdateCallback)
+        event = Globals.parcelManager.lookup(SHARING, 'errorEvent')
+        Globals.notificationManager.Subscribe([event], UUID(),
+         self._errorCallback)
 
     def _sharingUpdateCallback(self, notification):
         # When we receive the event, display a dialog
@@ -26,6 +29,12 @@ class Parcel(application.Parcel.Parcel):
          Globals.wxApplication.mainFrame, "Sharing Invitation",
          "Subscribe to %s?" % url):
             subscribeToWebDavCollection(url)
+
+    def _errorCallback(self, notification):
+        # When we receive this event, display the error
+        error = notification.data['error']
+        application.dialogs.Util.showAlert( \
+         Globals.wxApplication.mainFrame, error)
 
 
 def subscribeToWebDavCollection(url):
@@ -44,13 +53,8 @@ def sendInvites(addresses, url):
         addresses. """
     for address in addresses:
         print address
-
-def announceSharingUrl(url):
-    """ Call this method to announce that an inbound sharing invitation has
-        arrived. """
-
-    event = Globals.parcelManager.lookup(SHARING, 'sharingUpdateEvent')
-    event.Post( { 'share' : url } )
+    # validate the addresses
+    # parcels.osaf.mail.sharing.<sendinvite>(address, url)
 
 def manualSubscribeToCollection():
     """ Display a dialog box prompting the user for a webdav url to 
@@ -83,3 +87,28 @@ def syncCollection(collection):
         osaf.framework.webdav.Dav.DAV(collection.sharedURL).get()
     else:
         print "Collection hasn't been shared yet"
+
+
+
+# Non-blocking methods that the mail thread can call to post events to the
+# main thread:
+
+def announceSharingUrl(url):
+    """ Call this method to announce that an inbound sharing invitation has
+        arrived. This method is non-blocking. """
+
+    def _announceSharingUrl(url):
+        event = Globals.parcelManager.lookup(SHARING, 'sharingUpdateEvent')
+        event.Post( { 'share' : url } )
+
+    Globals.wxApplication.PostAsyncEvent(_announceSharingUrl, url)
+
+def announceError(error):
+    """ Call this method to announce an error. This method is non-blocking. """
+
+    def _announceError(error):
+        event = Globals.parcelManager.lookup(SHARING, 'errorEvent')
+        event.Post( { 'error' : error } )
+
+    Globals.wxApplication.PostAsyncEvent(_announceError, error)
+
