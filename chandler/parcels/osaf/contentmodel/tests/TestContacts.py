@@ -21,6 +21,8 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
     def testContacts(self):
         """ Simple test for creating instances of contact related kinds """
 
+        self.loadParcel("OSAF/contentmodel/contacts")
+
         def _verifyContactName(name):
             self.assertEqual(name.firstName, 'Sylvia')
             self.assertEqual(name.getAttributeValue('firstName'),'Sylvia')
@@ -69,6 +71,10 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         _verifyContactName(contactNameItem)
 
     def testGeneratedContacts(self):
+
+        self.loadParcel("OSAF/contentmodel/contacts")
+        self.loadParcel("OSAF/contentmodel/mail")
+
         GenerateItems.GenerateContacts(100)
         self.rep.commit()
         

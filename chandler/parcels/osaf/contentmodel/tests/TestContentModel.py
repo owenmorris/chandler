@@ -9,7 +9,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-#import repository.persistence.XMLRepository as XMLRepository
 import repository.parcel.LoadParcels as LoadParcels
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 import OSAF.contentmodel.ContentModel as ContentModel
@@ -19,14 +18,24 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
         RepositoryTestCase.RepositoryTestCase.setUp(self)
 
-        # Load the parcels
         Globals.repository = self.rep
         self.parceldir = os.path.join(self.rootdir, 'Chandler', 'parcels')
-        LoadParcels.LoadParcels(self.parceldir, self.rep)
+
+    def loadParcel(self, relPath):
+        """
+        load only the parcel we need (and it's dependencies)
+        """
+        uri = "//parcels/%s" % relPath
+        uri = uri.replace(os.path.sep, "/")
+        parcelDir = os.path.join(self.rootdir, 'Chandler', 'parcels', relPath)
+        LoadParcels.LoadParcel(parcelDir, uri, self.parceldir, self.rep)
+        self.assert_(self.rep.find(uri))
 
 class ContentItemTest(ContentModelTestCase):
 
     def testContentItem(self):
+
+        self.loadParcel("OSAF/contentmodel")
 
         def checkGroupItemLink(group, contentItem):
             self.assertEqual(len(contentItem.groups), 1)

@@ -21,6 +21,8 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
     def testCalendar(self):
         """ Simple test for creating instances of calendar related kinds """
 
+        self.loadParcel("OSAF/contentmodel/calendar")
+
         def _verifyCalendarEvent(event):
             self.assertEqual(event.headline, "simple headline")
             self.assertEqual(event.getAttributeValue('headline'),
@@ -93,6 +95,8 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
     def testTimeFields(self):
         """ Test time related fields and methods """
         
+        self.loadParcel("OSAF/contentmodel/calendar")
+
         # Test getDuration
         firstItem = Calendar.CalendarEvent()
         firstItem.startTime = DateTime.DateTime(2003, 2, 1, 10)
@@ -115,6 +119,8 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
     def testDeleteItem(self):
         """ Test calendar event deletion """
         
+        self.loadParcel("OSAF/contentmodel/calendar")
+
         item = Calendar.CalendarEvent()
         path = item.getItemPath()
         item.delete()
@@ -124,6 +130,9 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         self.rep.commit()
 
     def testGeneratedEvents(self):
+
+        self.loadParcel("OSAF/contentmodel/calendar")
+
         GenerateItems.GenerateCalendarEvents(100, 100)
         self.rep.commit()
 
