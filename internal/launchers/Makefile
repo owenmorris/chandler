@@ -21,6 +21,7 @@ endif
 ifeq ($(OS),Darwin)
 
 LAUNCHER_FILES=
+LIB_FILES=
 
 build:
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
@@ -30,7 +31,8 @@ endif
 
 ifeq ($(OS),Cygwin)
 
-LAUNCHER_FILES="$(SNAP)/chandler.exe"
+LAUNCHER_FILES=$(SNAP)/chandler.exe
+LIB_FILES=$(SNAP)/bin/ms*dll
 
 ARCHIVE: $(LAUNCHERS)/win/
 
@@ -44,6 +46,7 @@ endif
 ifeq ($(OS),Linux)
 
 LAUNCHER_FILES=$(SNAP)/chandler $(SNAP)/chandler_bin
+LIB_FILES=
 
 ARCHIVE: $(LAUNCHERS)/linux/
 
@@ -58,7 +61,8 @@ endif
 #  common to all platforms
 
 MANIFEST=$(SNAP)/Run* \
-         $(LAUNCHER_FILES)
+         $(LAUNCHER_FILES) \
+         $(LIB_FILES)
 
 snap: 
 	cd $(BUILD_ROOT); \
