@@ -38,13 +38,22 @@ class AgentItem(Item):
         """ return a string with the address of the owner of this agent"""
         return self.agentOwner
                 
-    def GetResume(self):
+    def GetDescription(self):
         """ return a string with a description of the agent"""
-        return self.resume
+        return self.agentDescription
+    
+    def SetDescription(self, newDescription):
+        """ set a string with a description of the agent"""
+        self.agentDescription = newDescription
     
     def GetRepertoire(self):
+        """ return the repertoire, which contains possible conditions and actions"""
         return self.repertoire
 
+    def SetRepertoire(self, newRepertoire):
+        """ set the repertoire"""
+        self.repertoire = newRepertoire
+        
     # routines for notification management
     def GetActiveNotifications(self):
         """

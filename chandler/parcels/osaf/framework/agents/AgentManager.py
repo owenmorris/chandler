@@ -10,6 +10,7 @@ import xml.sax.handler
 from Agent import *
 from model.AgentItem import *
 from model.Instruction import *
+from model.Repertoire import *
 from model.Condition import *
 from model.Action import *
 
@@ -88,12 +89,12 @@ class AgentManager:
  
         parser.setContentHandler(handler)
         
-        try:
-            parser.parse(filePath)
-            item = handler.agentItem      
-        except:
-            print "failed to load agent", filePath
-            item = None
+        #try:
+        parser.parse(filePath)
+        item = handler.agentItem      
+        #except:
+            #print "failed to load agent", filePath
+            #item = None
             
         return item
     
@@ -162,11 +163,19 @@ class AgentManager:
  
     def Stop(self):
         """
-          The stop message is called before quitting to stop the threads associated with the agents
+          The stop method is called before quitting to stop the threads associated with the agents
         """
         for agent in self.agentMap.values():
             agent.Suspend()
             self.Unregister(agent)
+
+    def Restart(self):
+        """
+          Restart all the agents
+        """
+        for agent in self.agentMap.values():
+            self.Register(agent)
+            agent.Resume() 
             
 class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
     """
@@ -179,7 +188,7 @@ class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
         
         self.agentItem = None
         self.currentItem = None
-        self.lastInstruction = None
+        self.lastContainer = None
         self.buffer = ""
     
     def _GetOptionalAttribute(self, attributeName, attributeDict):
@@ -215,16 +224,23 @@ class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
             instructionFactory = InstructionFactory(repository) 
             self.currentItem = instructionFactory.NewItem()
             self.currentItem.setAttributeValue('enabled', enabledFlag)
-            self.lastInstruction = self.currentItem
+            self.lastContainer = self.currentItem
             
             self.agentItem.AddInstruction(self.currentItem)
+        
+        elif name == 'repertoire':
+            repertoireName = self._GetOptionalAttribute('name', attributes)
+            repertoireFactory = RepertoireFactory(repository) 
+            self.currentItem = repertoireFactory.NewItem(repertoireName)
+            self.lastContainer = self.currentItem
+            self.agentItem.SetRepertoire(self.currentItem)
             
         elif name == 'condition':
             conditionName = self._GetOptionalAttribute('name', attributes)
             conditionFactory = ConditionFactory(repository)
             self.currentItem = conditionFactory.NewItem(conditionName)
                         
-            self.lastInstruction.SetCondition(self.currentItem) 
+            self.lastContainer.AddCondition(self.currentItem) 
             
         elif name == 'action':
             actionName = self._GetOptionalAttribute('name', attributes)
@@ -233,9 +249,9 @@ class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
             
             if actionName != None:
                 self.currentItem.setAttributeValue('actionName', actionName)
-                
-            self.lastInstruction.AddAction(self.currentItem)                                                     
-   
+            
+            self.lastContainer.AddAction(self.currentItem)                                                     
+    
     def characters(self, data):
         self.buffer += data
                                 

@@ -134,7 +134,14 @@
     <cardinality>single</cardinality>
     <inverseAttribute itemref="agents:condition"/>
   </Attribute>
-  
+
+  <Attribute itemName="agents:conditionRepertoireOwner">
+    <displayName>Action Repertoire Backlink</displayName>
+    <type itemref="agents:Repertoire"/>
+    <cardinality>single</cardinality>
+    <inverseAttribute itemref="agents:possibleConditions"/>
+  </Attribute>
+
   <!-- Condition Item Definition -->
   
   <Kind itemName="agents:Condition">
@@ -192,12 +199,14 @@
     <displayName>Possible Actions</displayName>
     <type itemref="agents:Action"/>
     <cardinality>list</cardinality>
+    <inverseAttribute itemref="agents:actionRepertoireOwner"/>
   </Attribute>
   
   <Attribute itemName="agents:possibleConditions">
     <displayName>Possible Conditions</displayName>
     <type itemref="agents:Condition"/>
     <cardinality>list</cardinality>
+    <inverseAttribute itemref="agents:conditionRepertoireOwner"/>
   </Attribute>
   
   <Attribute itemName="agents:repertoireOwner">
@@ -235,8 +244,8 @@
     <cardinality>list</cardinality>
   </Attribute>
   
-  <Attribute itemName="agents:resume">
-    <displayName>Agent Resume</displayName>
+  <Attribute itemName="agents:agentDescription">
+    <displayName>Agent Description</displayName>
     <type itemref="types:String"/>
     <cardinality>single</cardinality>
   </Attribute>
@@ -280,7 +289,7 @@
     <attributes itemref="agents:agentName"/>
     <attributes itemref="agents:agentOwner"/>
     <attributes itemref="agents:roles"/>
-    <attributes itemref="agents:resume"/>
+    <attributes itemref="agents:agentDescription"/>
     <attributes itemref="agents:repertoire"/>
     <attributes itemref="agents:instructions"/>
     <attributes itemref="agents:sourceFile"/>

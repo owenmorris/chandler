@@ -31,3 +31,11 @@
     condition.  Three comparison modes are provides: equals, contains, and matches,
     where matches treats the string in the condtion as a regular expression.
     
+2003-09-04 Andy Hertzfeld <andy@differnet.com>
+
+    * implemented the Repertoire class, so agents can reference conditions and actions
+      that aren't currently used in instructions
+      
+    * added a repertoire with an action to the test agent
+
+    

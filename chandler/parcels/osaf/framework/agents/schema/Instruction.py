@@ -34,6 +34,11 @@ class Instruction(Item):
     def SetCondition(self, newCondition):
         self.condition = newCondition
     
+    # even though an instruction only has a single condition, support an AddCondition method
+    # so Instruction can share a common interface with Repertoire
+    def AddCondition(self, newCondition):
+        self.condition = newCondition
+        
     def GetActions(self):
         return self.actions
     

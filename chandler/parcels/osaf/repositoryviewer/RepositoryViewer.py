@@ -130,9 +130,9 @@ class wxRepositoryViewer(wxViewerParcel):
         """
 
         displayName = item.getItemDisplayName()
-            
-        if (item.hasAttributeValue('Kind')):
-            kind = item.Kind.getItemName()
+                
+        if item._kind != None:
+            kind = item._kind.getItemName()
         else:
             kind = 'Item'
         

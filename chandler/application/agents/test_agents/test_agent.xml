@@ -2,10 +2,18 @@
 
 <agent name="Test Agent">
    <attribute name="roles">watcher</attribute>
-   <attribute name="resume">This is our very first agent, who does random
+   <attribute name="agentDescription">This is our very first agent, who does random
        sorts of things in orfer to test the framework.
     </attribute>
 
+   <repertoire name="Test Agent Repertoire">
+      <action name="Post dialog">
+         <attribute name="actionType">dialog</attribute>
+         <attribute name="actionDescription">this action posts a dialog containing a message, based on a template</attribute>
+         <attribute name="actionValue">You received a message from [fromAddress] containing [body]</attribute>
+      </action>   
+   </repertoire>
+   
    <instruction enabled="True">
       <condition name="IM arrived">
          <attribute name="conditionDescription">This condition is invoked when an instant message arrives and filters on the fromAddress field</attribute>
@@ -21,4 +29,5 @@
          <attribute name="actionScript">print data['body']</attribute>
       </action>     
    </instruction> 
+
 </agent>
