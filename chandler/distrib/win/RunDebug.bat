@@ -2,5 +2,5 @@
 cd ..\Chandler
 set PATHBAK=%PATH%
 set PATH=..\debug\bin
-..\debug\bin\python Chandler.py
+..\debug\bin\python_d Chandler.py
 set PATH=%PATHBAK%
