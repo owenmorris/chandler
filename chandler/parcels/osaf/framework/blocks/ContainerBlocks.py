@@ -24,7 +24,7 @@ class BoxContainer(RectangularChild):
         if self.parentBlock: 
             panel = wxPanel(parentWindow, -1)
             panel.SetSizer(sizer)
-            self.getParentBlock(parentWindow).addToContainer(parent, panel, 
+            self.parentBlock.addToContainer(parent, panel, 
                                                              self.stretchFactor, 
                                                              self.Calculate_wxFlag(), 
                                                              self.Calculate_wxBorder())
@@ -53,11 +53,11 @@ class EmbeddedContainer(RectangularChild):
         sizer = wxBoxSizer(wxHORIZONTAL)
         panel = wxPanel(parentWindow, -1)
         panel.SetSizer(sizer)
-        self.getParentBlock(parentWindow).addToContainer(parent,
-                                                         panel,
-                                                         self.stretchFactor,
-                                                         self.Calculate_wxFlag(),
-                                                         self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent,
+                                        panel,
+                                        self.stretchFactor,
+                                        self.Calculate_wxFlag(),
+                                        self.Calculate_wxBorder())
         try:
             newChild = self.contentSpec.data[0]
         except IndexError:
@@ -170,8 +170,8 @@ class SplitWindow(RectangularChild):
                                     wxDefaultPosition,
                                     (self.size.width, self.size.height),
                                     style=self.Calculate_wxStyle(parentWindow))
-        self.getParentBlock(parentWindow).addToContainer(parent, splitWindow, self.stretchFactor, 
-                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, splitWindow, self.stretchFactor, 
+                                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         """
           Wire up onSize after __init__ has been called, otherwise it will
         call onSize
@@ -181,9 +181,9 @@ class SplitWindow(RectangularChild):
                 
     def Calculate_wxStyle (self, parentWindow):
         style = wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE
-        parent = self.getParentBlock(parentWindow)
+        parent = self.parentBlock
         while isinstance (parent, EmbeddedContainer):
-            parent = parent.getParentBlock(Globals.association[parent.getUUID()])
+            parent = parent.parentBlock
         if isinstance (parent, SplitWindow):
             style |= wxSP_3DSASH
         else:
@@ -251,7 +251,7 @@ class TabbedContainer(RectangularChild):
                                     wxDefaultPosition,
                                     (self.minimumSize.width, self.minimumSize.height),
                                      style = style)
-        self.getParentBlock(parentWindow).addToContainer(parent, tabbedContainer, self.stretchFactor, 
+        self.parentBlock.addToContainer(parent, tabbedContainer, self.stretchFactor, 
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return tabbedContainer, tabbedContainer, tabbedContainer
 

@@ -40,10 +40,10 @@ class BookmarksBar(RectangularChild):
         sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
         self.addBookmarks(panel, sizer)
         panel.SetSizerAndFit(sizer)
-        self.getParentBlock(parentWindow).addToContainer(parent, panel,
-                                                         self.stretchFactor,
-                                                         self.Calculate_wxFlag(),
-                                                         self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, panel,
+                                        self.stretchFactor,
+                                        self.Calculate_wxFlag(),
+                                        self.Calculate_wxBorder())
         self.showOrHideBookmarksBar(panel)
         return panel, None, None
     

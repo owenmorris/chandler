@@ -132,11 +132,6 @@ class ContainerChild(Block):
             self.handleChildren(window)
         return window, parent, parentWindow
                 
-    def getParentBlock(self, parentWindow):
-        if self.parentBlock:
-            return self.parentBlock
-        return Globals.repository.find (parentWindow.counterpartUUID)
-
     def addToContainer(self, parent, child, id, flag, border):
         pass
     

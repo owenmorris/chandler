@@ -45,8 +45,8 @@ class Button(RectangularChild):
             assert False, "unknown buttonKind"
 
         EVT_BUTTON(parentWindow, id, self.buttonPressed)
-        self.getParentBlock(parentWindow).addToContainer(parent, button, self.stretchFactor,
-                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, button, self.stretchFactor,
+                                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return button, None, None
 
     def buttonPressed(self, event):
@@ -64,8 +64,8 @@ class Choice(RectangularChild):
                               wxDefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
-        self.getParentBlock(parentWindow).addToContainer(parent, choice, self.stretchFactor, 
-                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, choice, self.stretchFactor, 
+                                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return choice, None, None
 
 
@@ -75,8 +75,8 @@ class ComboBox(RectangularChild):
                               wxDefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
-        self.getParentBlock(parentWindow).addToContainer(parent, comboBox, self.stretchFactor, 
-                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, comboBox, self.stretchFactor, 
+                                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return comboBox, None, None
 
 
@@ -120,11 +120,11 @@ class EditText(RectangularChild):
                                style=style, name=self._name)
 
         editText.SetFont(Font (self.characterStyle))
-        self.getParentBlock(parentWindow).addToContainer(parent,
-                                                         editText,
-                                                         self.stretchFactor, 
-                                                         self.Calculate_wxFlag(),
-                                                         self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent,
+                                        editText,
+                                        self.stretchFactor, 
+                                        self.Calculate_wxFlag(),
+                                        self.Calculate_wxBorder())
         return editText, None, None
 
 
@@ -143,12 +143,11 @@ class HTML(RectangularChild):
         if self.url:
             htmlWindow.LoadPage(self.url)
 
-        parentBlock = self.getParentBlock(parentWindow)
-        parentBlock.addToContainer(parent,
-                                   htmlWindow,
-                                   self.stretchFactor,
-                                   self.Calculate_wxFlag(),
-                                   self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent,
+                                        htmlWindow,
+                                        self.stretchFactor,
+                                        self.Calculate_wxFlag(),
+                                        self.Calculate_wxBorder())
         return htmlWindow, None, None
 
  
@@ -267,11 +266,11 @@ class List(RectangularChild):
         list = wxListBlock(parentWindow,
                            Block.getwxID(self),
                            style=self.Calculate_wxStyle())
-        self.getParentBlock(parentWindow).addToContainer(parent,
-                                                         list,
-                                                         self.stretchFactor,
-                                                         self.Calculate_wxFlag(),
-                                                         self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent,
+                                        list,
+                                        self.stretchFactor,
+                                        self.Calculate_wxFlag(),
+                                        self.Calculate_wxBorder())
         return list, None, None
 
     def Calculate_wxStyle (self):
@@ -296,8 +295,8 @@ class RadioBox(RectangularChild):
                               wxDefaultPosition, 
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices, self.itemsPerLine, dimension)
-        self.getParentBlock(parentWindow).addToContainer(parent, radioBox, self.stretchFactor, 
-                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, radioBox, self.stretchFactor, 
+                                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return radioBox, None, None
 
 
@@ -323,10 +322,10 @@ class StaticText(RectangularChild):
                                    style)
 
         staticText.SetFont(Font (self.characterStyle))
-        self.getParentBlock(parentWindow).addToContainer(parent, staticText,
-                                                         self.stretchFactor,
-                                                         self.Calculate_wxFlag(),
-                                                         self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, staticText,
+                                        self.stretchFactor,
+                                        self.Calculate_wxFlag(),
+                                        self.Calculate_wxBorder())
         return staticText, None, None
 
 
@@ -593,11 +592,11 @@ class Tree(RectangularChild):
                 tree = wxTree (parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
             else:
                 tree = wxTreeList (parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
-        self.getParentBlock(parentWindow).addToContainer(parent,
-                                                         tree,
-                                                         self.stretchFactor,
-                                                         self.Calculate_wxFlag(),
-                                                         self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent,
+                                        tree,
+                                        self.stretchFactor,
+                                        self.Calculate_wxFlag(),
+                                        self.Calculate_wxBorder())
         return tree, None, None
 
     def OnSelectionChangedEvent (self, notification):
@@ -648,13 +647,13 @@ class ItemDetail(RectangularChild):
                                   (self.minimumSize.width,
                                    self.minimumSize.height))
         
-        parentBlock = self.getParentBlock(parentWindow)
-        parentBlock.addToContainer(parent,
-                                   htmlWindow,
-                                   self.stretchFactor,
-                                   self.Calculate_wxFlag(),
-                                   self.Calculate_wxBorder())
-
+        
+        self.parentBlock.addToContainer(parent,
+                                        htmlWindow,
+                                        self.stretchFactor,
+                                        self.Calculate_wxFlag(),
+                                        self.Calculate_wxBorder())
+        
         return htmlWindow, None, None
 
     def getHTMLText(self, item):
