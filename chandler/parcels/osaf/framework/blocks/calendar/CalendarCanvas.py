@@ -80,27 +80,58 @@ class CalendarEventHandler(object):
         self.wxSynchronizeWidget()
 
 class CalendarBlock(CollectionCanvas.CollectionBlock):
+    """ Abstract block used as base Kind for Calendar related blocks.
+
+    This base class can be used for any block that displays a collection of
+    items based on a date range.
+
+    @ivar rangeStart: beginning of the currently displayed range (persistent)
+    @type rangeStart: mx.DateTime.DateTime
+    @ivar rangeIncrement: increment used to find the next or prev block of time
+    @type rangeIncrement: mx.DateTime.RelativeDateTime
+    """
+    
     def __init__(self, *arguments, **keywords):
         super(CalendarBlock, self).__init__(*arguments, **keywords)
 
     # Event handling
     
     def onSelectedDateChangedEvent(self, notification):
+        """
+        Sets the selected date range and synchronizes the widget.
+
+        @param notification: notification sent on selected date changed event
+        @type notification: osaf.framework.notifications.Notification
+        @param notification['start']: start of the newly selected date range
+        @type notification['start']: mx.DateTime.DateTime
+        """
         self.setRange(notification.data['start'])
         self.widget.wxSynchronizeWidget()
 
     def postDateChanged(self):
+        """
+        Convenience method for changing the selected date.
+        """
         event = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectedDateChanged')
         self.Post(event, {'start':self.rangeStart})
 
     # Managing the date range
 
     def setRange(self, date):
-        """ Sets the range to include the given date"""
+        """ Sets the range to include the given date.
+
+        @param date: date to include
+        @type date: mx.DateTime.DateTime
+        """
         self.rangeStart = date
 
     def isDateInRange(self, date):
-        """ Returns true if the given date appears on the calendar """
+        """ Does the given date currently appear on the calendar block?
+
+        @type date: mx.DateTime.DateTime
+        @return: True if the given date appears on the calendar
+        @rtype: Boolean
+        """
         begin = self.rangeStart
         end = begin + self.rangeIncrement
         return ((date >= begin) and (date < end))
@@ -116,6 +147,15 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
     # Get items from the collection
 
     def getItemsByDate(self, date):
+        """
+        Convenience method to look for the items in the block's contents
+        that appear on the given date. @@@ We may push this work down into
+        ItemCollections and/or Queries.
+
+        @type date: mx.DateTime.DateTime
+        @return: the items in this collection that appear on the given date
+        @rtype: list of Items
+        """
         # make this a generator?
         items = []
         nextDate = date + DateTime.RelativeDateTime(days=1)

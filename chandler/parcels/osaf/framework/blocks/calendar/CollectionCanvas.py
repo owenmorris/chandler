@@ -541,9 +541,9 @@ class wxCollectionCanvas(wx.ScrolledWindow,
 
 class CollectionBlock(Block.RectangularChild):
     """
-    @ivar selection: selected item
+    @ivar selection: selected item (persistent)
     @type selection: Item
-    @ivar widget: widget associated with this block
+    @ivar widget: widget associated with this block (not persistent)
     @type widget: wx.Window (usually wx.CollectionCanvas)
     """
     def __init__(self, *arguments, **keywords):
