@@ -539,14 +539,16 @@ class wxApplication (wx.App):
             the_view.mapChanges(mapChangesCallable, True)
     
             # grab the list of subscribed callbacks and notify them.
-            for i in self.repository._notifications: 
-                i(the_view, changes, "changeonly")
+            if changes:
+                for i in self.repository._notifications: 
+                    i(the_view, changes, "changeonly")
 
         focus = wx.Window_FindFocus()
-        if self.focus != focus or self.needsUpdateUI:
+        if self.focus != focus:
             self.focus = focus
             self.needsUpdateUI = True
-            updateOnIdle()
+
+        updateOnIdle()
 
         if self.needsUpdateUI:
             try:
