@@ -428,6 +428,8 @@ def generateDocs(buildenv):
     xslDir = os.path.join("distrib","transforms")
     targetDir = os.path.join("..",buildenv['version'],"docs")
     hardhatlib.copyFile(os.path.join(xslDir,"includes","schema.css"), targetDir)
+    hardhatlib.copyFile(os.path.join("distrib", "docs", "automatic-docs-help.html"), targetDir)
+    hardhatlib.copyFile(os.path.join("distrib", "docs", "repository-intro.html"), targetDir)
 
     args = [os.path.join(xslDir, "generateDocs.py"), targetDir, xslDir, "."]
     hardhatlib.executeScript(buildenv, args)
