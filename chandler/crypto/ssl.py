@@ -7,6 +7,7 @@ SSL/TLS-related functionality.
 
 import os
 from M2Crypto import SSL, util, EVP
+import application.Globals 
 
 class SSLVerificationError(Exception):
     pass
@@ -38,7 +39,7 @@ class ClientContextFactory:
         return getSSLContext(protocol=self.method, verify=self.verify)
 
 
-def getSSLContext(protocol='sslv23', verify=True, verifyCallback=None, certificateDir=None):
+def getSSLContext(protocol='sslv23', verify=True, verifyCallback=None):
     """
     Get an SSL context. You should use this method to get a context
     in Chandler rather than creating them directly.
@@ -50,8 +51,6 @@ def getSSLContext(protocol='sslv23', verify=True, verifyCallback=None, certifica
     @param verifyCallback: Function to call for certificate verification.
                            If nothing is specified, a default is used.
     @type verifyCallback:  Callback function
-    @param certificateDir: Location of the cacert.pem file
-    @type certificateDir:  str
     """
     ctx = SSL.Context(protocol)
 
@@ -75,8 +74,7 @@ def getSSLContext(protocol='sslv23', verify=True, verifyCallback=None, certifica
             if not os.path.exists(caCertFile):
                 caCertFile = None
         if caCertFile is None:
-            if certificateDir is not None:
-                caCertFile = os.path.join(certificateDir, 'cacert.pem')
+            caCertFile = os.path.join(application.Globals.options.profileDir, 'cacert.pem')
         if ctx.load_verify_locations(caCertFile) != 1:
             raise SSLContextError, "No CA certificate file"
 

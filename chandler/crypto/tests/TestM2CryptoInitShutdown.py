@@ -15,11 +15,12 @@ from crypto import Crypto
 
 class InitShutdown(unittest.TestCase):
     def setUp(self):
-        pathComponents = sys.modules['crypto'].__file__.split (os.sep)
-        assert len (pathComponents) > 3
-        chandlerDirectory = os.path.join(os.sep.join(pathComponents[0:-2]), 'crypto')
-        
-        Globals.crypto = Crypto.Crypto(chandlerDirectory)
+        pathComponents = sys.modules['application'].__file__.split(os.sep)
+        assert len(pathComponents) > 3
+    
+        chandlerDir = os.sep.join(pathComponents[0:-2])
+      
+        Globals.crypto = Crypto.Crypto(chandlerDir)
         Globals.crypto.init()        
 
     def tearDown(self):

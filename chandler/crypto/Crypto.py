@@ -13,10 +13,9 @@ class Crypto(object):
     """
     Crypto services.
     """
-    def __init__(self, certificateDir):
-        assert certificateDir != None
-        self._randpool = os.path.join(certificateDir, 'randpool.dat')
-        self.certificateDir = certificateDir
+    def __init__(self, profileDir):
+        assert profileDir != None
+        self._randpool = os.path.join(profileDir, 'randpool.dat')
 
     def init(self):
         """
