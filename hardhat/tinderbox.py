@@ -16,15 +16,15 @@ homeDir = os.environ['HOME']
 buildDir = os.path.join(homeDir, "tinderbuild")
 logFile = os.path.join(buildDir, "build.log")
 stopFile = os.path.join(buildDir, "stop")
-fromAddr = "builds@osafoundation.org"
+fromAddr = "builds"
 
 def main():
     global buildscriptFile
     
     parser = OptionParser(usage="%prog [options] buildName", version="%prog 1.2")
     parser.add_option("-t", "--toAddr", action="store", type="string", dest="toAddr",
-      default="buildreport@osafoundation.org", help="Where to mail script reports\n"
-      " [default] buildreport@osafoundation.org")
+      default="buildreport", help="Where to mail script reports\n"
+      " [default] buildreport (at) osafoundation.org")
     parser.add_option("-p", "--project", action="store", type="string", dest="project",
       default="chandler", help="Name of script to use (without .py extension)\n"
       "[default] chandler")
@@ -32,11 +32,8 @@ def main():
       default=os.path.join(os.environ['HOME'],"output"), help="Name of temp output directory\n"
       " [default] ~/output")
     parser.add_option("-a", "--alert", action="store", type="string", dest="alertAddr",
-      default="buildman@osafoundation.org", help="E-mail to notify on build errors \n"
-      " [default] buildman@osafoundation.org")
-#     parser.add_option("-D", "--distrib", action="store_true", dest="doDistrib",
-#       default=False, help="Shall distribution archives be prepared and uploaded?\n"
-#       " [default] False")
+      default="buildman", help="E-mail to notify on build errors \n"
+      " [default] buildman (at) osafoundation.org")
       
     (options, args) = parser.parse_args()
     if len(args) != 1:
@@ -196,6 +193,9 @@ def main():
 
 def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logContents):
     nowTime  = str(int(time.time()))
+    fromAddr += "@osafoundation.org"
+    if toAddr.find('@') == -1:
+        toAddr += "@osafoundation.org"
     msg      = ("From: %s\r\nTo: %s\r\n\r\n" % (fromAddr, toAddr))
     msg      = msg + "tinderbox: tree: " + treeName + "\n"
     msg      = msg + "tinderbox: buildname: " + buildName + "\n"
@@ -203,7 +203,7 @@ def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logConten
     msg      = msg + "tinderbox: timenow: " + nowTime + "\n"
     msg      = msg + "tinderbox: errorparser: unix\n"
     msg      = msg + "tinderbox: status: " + status + "\n"
-    msg      = msg + "tinderbox: administrator: builds@osafoundation.org\n"
+    msg      = msg + "tinderbox: administrator: builds" + "@osafoundation.org\n"
     msg      = msg + "tinderbox: END\n"
     if logContents:
         msg  = msg + logContents
