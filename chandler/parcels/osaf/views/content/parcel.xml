@@ -218,7 +218,7 @@
   </Table>
   
   <ChoiceContainer itsName="CalendarSummary">
-    <childrenBlocks itemref="view:LayoutSelector"/>
+    <childrenBlocks itemref="view:LayoutSelector1"/>
     <choices itemref="view:CalendarTable"/>
     <choices itemref="view:SummaryMonth"/>
     <choices itemref="view:SummaryWeek"/>
@@ -408,18 +408,18 @@
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
 
-  <!-- LayoutSelector -->
-  <Toolbar itemName="LayoutSelector">
-    <blockName>LayoutSelector</blockName>
-    <childrenBlocks itemref="view:ListViewButton"/>
-    <childrenBlocks itemref="view:MonthViewButton"/>
-    <childrenBlocks itemref="view:WeekViewButton"/>
-    <childrenBlocks itemref="view:DayViewButton"/>
+  <!-- LayoutSelector1 -->
+  <Toolbar itemName="LayoutSelector1">
+    <blockName>LayoutSelector1</blockName>
+    <childrenBlocks itemref="view:ListViewButton1"/>
+    <childrenBlocks itemref="view:MonthViewButton1"/>
+    <childrenBlocks itemref="view:WeekViewButton1"/>
+    <childrenBlocks itemref="view:DayViewButton1"/>
     <!-- Dynamic Children -->
-    <dynamicChildren itemref="view:ListViewButton"/>
-    <dynamicChildren itemref="view:MonthViewButton"/>
-    <dynamicChildren itemref="view:WeekViewButton"/>
-    <dynamicChildren itemref="view:DayViewButton"/>
+    <dynamicChildren itemref="view:ListViewButton1"/>
+    <dynamicChildren itemref="view:MonthViewButton1"/>
+    <dynamicChildren itemref="view:WeekViewButton1"/>
+    <dynamicChildren itemref="view:DayViewButton1"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
     <toolSize>16,16</toolSize>
@@ -537,10 +537,10 @@
   <!--
     ToolbarItems
   -->
-  <ToolbarItem itsName="ListViewButton">
-    <blockName>ListViewButton</blockName>
-    <location>LayoutSelector</location>
-    <dynamicParent itemref="view:LayoutSelector"/>
+  <ToolbarItem itsName="ListViewButton1">
+    <blockName>ListViewButton1</blockName>
+    <location>LayoutSelector1</location>
+    <dynamicParent itemref="view:LayoutSelector1"/>
     <title>List View</title>
     <bitmap>application/images/list.png</bitmap>
     <selectedBitmap></selectedBitmap>
@@ -549,10 +549,10 @@
     <event itemref="view:ButtonPressed"/>
   </ToolbarItem>
 
-  <ToolbarItem itsName="MonthViewButton">
-    <blockName>MonthViewButton</blockName>
-    <location>LayoutSelector</location>
-    <dynamicParent itemref="view:LayoutSelector"/>
+  <ToolbarItem itsName="MonthViewButton1">
+    <blockName>MonthViewButton1</blockName>
+    <location>LayoutSelector1</location>
+    <dynamicParent itemref="view:LayoutSelector1"/>
     <title>Month View</title>
     <bitmap>application/images/month.png</bitmap>
     <selectedBitmap></selectedBitmap>
@@ -561,10 +561,10 @@
     <event itemref="view:ButtonPressed"/>
   </ToolbarItem>
 
-  <ToolbarItem itsName="WeekViewButton">
-    <blockName>WeekViewButton</blockName>
-    <location>LayoutSelector</location>
-    <dynamicParent itemref="view:LayoutSelector"/>
+  <ToolbarItem itsName="WeekViewButton1">
+    <blockName>WeekViewButton1</blockName>
+    <location>LayoutSelector1</location>
+    <dynamicParent itemref="view:LayoutSelector1"/>
     <title>Week View</title>
     <bitmap>application/images/week.png</bitmap>
     <selectedBitmap></selectedBitmap>
@@ -573,10 +573,10 @@
     <event itemref="view:ButtonPressed"/>
   </ToolbarItem>
 
-  <ToolbarItem itsName="DayViewButton">
-    <blockName>DayViewButton</blockName>
-    <location>LayoutSelector</location>
-    <dynamicParent itemref="view:LayoutSelector"/>
+  <ToolbarItem itsName="DayViewButton1">
+    <blockName>DayViewButton1</blockName>
+    <location>LayoutSelector1</location>
+    <dynamicParent itemref="view:LayoutSelector1"/>
     <title>Day View</title>
     <bitmap>application/images/day.png</bitmap>
     <selectedBitmap></selectedBitmap>
