@@ -18,6 +18,7 @@ SUFFIX=
 endif
 
 
+
 BUILD=build_$(SNAP)
 
 .PHONY: wxWidgets wxPython
@@ -31,7 +32,7 @@ wxWidgets:
 	. $(BUILD_ROOT)/cygenv.sh; \
 	devenv.com build/msw/msw.sln /build $(Snap)
 	mkdir -p $(PREFIX)/$(SITE)/wx
-	install $(SRC)/lib/vc_dll/*251$(SUFFIX)_*_vc.dll $(PREFIX)/$(SITE)/wx
+	install $(SRC)/lib/vc_dll/*251$(SUFFIX)*_vc.dll $(PREFIX)/$(SITE)/wx
 
 wxPython:
 	cd $(SRC)/wxPython; \
