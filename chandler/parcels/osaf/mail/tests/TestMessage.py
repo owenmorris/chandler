@@ -86,8 +86,8 @@ This is the body"""
         m.dateSent = MXDateTime.mktime(emailUtils.parsedate(dateString))
         m.dateSentString = dateString
 
-        m.body = utils.strToText(m, "body", "This is the body")
-        m.rfc2822Message = utils.strToText(m, "rfc2822Message", self.__mail)
+        m.body = utils.strToText(m, "body", u"This is the body")
+        m.rfc2822Message = utils.dataToBinary(m, "rfc2822Message", self.__mail)
 
         self.__mailMessage = m
 
@@ -141,7 +141,7 @@ This is the body"""
         self.assertEquals(mOne.headers['Content-Transfer-Encoding'], mTwo.headers['Content-Transfer-Encoding'])
         self.assertEquals(mOne.headers['Mime-Version'], mTwo.headers['Mime-Version'])
         self.assertEquals(utils.textToStr(mOne.body), utils.textToStr(mTwo.body))
-        self.assertEquals(utils.textToStr(mOne.rfc2822Message), utils.textToStr(mTwo.rfc2822Message))
+        self.assertEquals(utils.binaryToData(mOne.rfc2822Message), utils.binaryToData(mTwo.rfc2822Message))
 
 
     def __compareMessageObjects(self, mOne, mTwo):
