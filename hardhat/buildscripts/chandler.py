@@ -35,9 +35,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     ret = Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
      buildVersion, clobber, log)
 
-    if not ret:
-        # the code hasn't changed
-        return False
+    if ret == "no_changes" or ret =="build_failed" or ret == "test_failed":
+        return ret
 
     # do release
     ret = Do(hardhatScript, "release", workingDir, outputDir, cvsVintage, 
