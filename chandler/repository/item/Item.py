@@ -241,7 +241,8 @@ class Item(object):
                 else:
                     assert isinstance(old, RefDict)
                     refDict = old
-                refDict.extend(value.values())
+                for item in value.itervalues():
+                    refDict.append(item)
                 value = refDict
             else:
                 companion = self.getAttributeAspect(name, 'companion',
