@@ -19,9 +19,9 @@ def MakeEvent():
     event = eventKind.newItem(None, Globals.repository)
     return event
 
-def repositoryCallback(uuid, notification, reason, **kwds):
+def repositoryCallback(changes, notification, **kwds):
     if notification == 'History':
-        eventPath = '//parcels/osaf/framework/item_' + reason
+        eventPath = '//parcels/osaf/framework/commit_history'
     else:
         return
 
@@ -30,7 +30,7 @@ def repositoryCallback(uuid, notification, reason, **kwds):
     from osaf.framework.notifications.Notification import Notification
     note = Notification(event)
     note.threadid = id(threading.currentThread())
-    d = { 'uuid' : uuid, 'keywords' : kwds }
+    d = { 'changes' changes: , 'keywords' : kwds }
     note.SetData(d)
 
     #print uuid, notification, reason, kwds
@@ -58,6 +58,10 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
         # set Globals.repository
         Globals.repository = self.rep
 
+        # Create and start the notification manager
+        from osaf.framework.notifications.NotificationManager import NotificationManager
+        Globals.notificationManager = NotificationManager()
+
         # Load the parcels
         #
         #self.parceldir = os.path.join(self.rootdir, 'chandler', 'parcels')
@@ -66,9 +70,6 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
         self._loadParcel("osaf/framework/notifications/schema")
         self._loadParcel("osaf/framework")
 
-        # Create and start the notification manager
-        from osaf.framework.notifications.NotificationManager import NotificationManager
-        Globals.notificationManager = NotificationManager()
 
     def test_Subscribe(self):
         """ tests Subscribe() """
@@ -111,24 +112,6 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
         nm.PrepareSubscribers()
         rep.commit()
         rep.addNotificationCallback(repositoryCallback)
-
-        def onItemChanged(note):
-            uuid = note.GetData()['uuid']
-            print 'Changed:', Globals.repository[uuid].itsPath
-        def onItemAdded(note):
-            uuid = note.GetData()['uuid']
-            print 'Added:', Globals.repository[uuid].itsPath
-        def onItemDeleted(note):
-            uuid = note.GetData()['uuid']
-            print 'Deleted:', uuid
-
-        # subscribe to changed, added, deleted events
-        e = rep.findPath('//parcels/osaf/framework/item_changed')
-        nm.Subscribe([e], 1, onItemChanged)
-        e = rep.findPath('//parcels/osaf/framework/item_added')
-        nm.Subscribe([e], 2, onItemAdded)
-        e = rep.findPath('//parcels/osaf/framework/item_deleted')
-        nm.Subscribe([e], 3, onItemDeleted)
 
         print 'adding event'
         e = MakeEvent()
