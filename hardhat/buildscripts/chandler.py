@@ -51,7 +51,7 @@ cvsModules = (
     'osaf/chandler/Chandler',
     'osaf/chandler/python',
     'osaf/chandler/egenix-mx',
-    'internal/wx',
+    'internal/wxPython-2.5',
     'osaf/chandler/jabber-py',
     'osaf/chandler/pychecker',
     'osaf/chandler/persistence',
@@ -59,14 +59,14 @@ cvsModules = (
     'osaf/chandler/SOAPpy',
     'osaf/chandler/epydoc',
     'osaf/chandler/openssl',
-    'osaf/chandler/m2crypto',    
+    'osaf/chandler/m2crypto',
 )
 
 # If any of these modules have changed, scrub everything before building
 scrubAllModules = {
     'osaf/chandler/python':1,
     'osaf/chandler/egenix-mx':1,
-    'internal/wx':1,
+    'internal/wxPython-2.5':1,
     'osaf/chandler/jabber-py':1,
     'osaf/chandler/pychecker':1,
     'osaf/chandler/persistence':1,
