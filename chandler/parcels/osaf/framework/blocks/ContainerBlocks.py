@@ -730,7 +730,8 @@ class Sidebar(TreeList):
                 node.AddChildNode (child[1], [child[0]], false)
         else:
             node.AddRootNode ([('Repository Viewer','parcels/OSAF/views/repositoryviewer/RepositoryBox'),
-                               ('Demo', 'parcels/OSAF/views/demo/TabBox')], 
+                               ('Demo', 'parcels/OSAF/views/demo/TabBox'), 
+                               ('Zaobao', 'parcels/OSAF/views/zaobao/ZaoBaoTab')], 
                               ['Views'], true)
             
     def OnSelectionChangedEvent (self, notification):
