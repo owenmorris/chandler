@@ -57,7 +57,7 @@ class Query(Item.Item):
         self._warm_init()
 
     def onItemCopy(self, original):
-        self.warm_init()
+        self._warm_init()
 
     def getQueryString(self):
         return self._queryString
