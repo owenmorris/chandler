@@ -181,6 +181,9 @@
             <label>Always Recreate Repository</label>
             <checkable>1</checkable>
         </object>
+        <object class="wxMenuItem" name="ShowDebuggerWindow">
+            <label>Show Debugger Window</label>
+        </object>
         <object class="wxMenuItem" name="DebugRoutine">
             <label>Call Debug Routine</label>
         </object>

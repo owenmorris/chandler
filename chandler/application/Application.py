@@ -7,6 +7,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, sys, stat, gettext, locale
 from wxPython.wx import *
 from wxPython.xrc import *
+from wx import py
 
 from application.Preferences import Preferences
 from application.SplashScreen import SplashScreen
@@ -320,6 +321,7 @@ class wxApplication (wxApp):
             ChandlerWindow.py and application.xrc.
             """
             EVT_MENU(self, XRCID ('CreateNewRepository'), self.OnCreateNewRepository)
+            EVT_MENU(self, XRCID("ShowDebuggerWindow"), self.ShowDebuggerWindow)
             EVT_MENU(self, XRCID("DebugRoutine"), self.DebugRoutine)
             EVT_MENU(self, XRCID("ImportItems"), self.OnImportItems)
             EVT_MENU(self, XRCID("ExportItems"), self.OnExportItems)
@@ -670,4 +672,9 @@ class wxApplication (wxApp):
         def DebugRoutine(self, event):
             i = 1
             pass
+
+        def ShowDebuggerWindow(self, event):
+            from DebuggerWindow import DebuggerWindow
+            winDebugger = DebuggerWindow(self)
+            winDebugger.Show(True)
     
