@@ -1,8 +1,8 @@
 <Parcel parcelName="pim:DocumentSchema"
-        xmlns="/Core"
-        xmlns:core="/Core"
-        xmlns:pim="/OSAF/PimSchema"
-	xmlns:doc="/OSAF/PimSchema/DocumentSchema">
+        xmlns="//Schema/Core"
+        xmlns:core="//Schema/Core"
+        xmlns:pim="//Parcels/OSAF/PimSchema"
+	xmlns:doc="//Parcels/OSAF/PimSchema/DocumentSchema">
 
   <displayName>Document Schema</displayName>
   <description>Document block schema for the 0.2 release</description>

@@ -1,8 +1,8 @@
 <Parcel parcelName="pim:EmailSchema"
-        xmlns="/Core"
-	xmlns:core="/Core"
-	xmlns:pim="/OSAF/PimSchema"
-	xmlns:email="/OSAF/PimSchema/EmailSchema">
+        xmlns="//Schema/Core"
+	xmlns:core="//Schema/Core"
+	xmlns:pim="//Parcels/OSAF/PimSchema"
+	xmlns:email="//Parcels/OSAF/PimSchema/EmailSchema">
 
   <displayName>Email</displayName>
   <version>0.3</version>

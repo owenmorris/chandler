@@ -1,9 +1,9 @@
 <Parcel parcelName="pim:CalendarSchema"
-        xmlns="/Core"
-        xmlns:core="/Core"
-	xmlns:pim="/OSAF/PimSchema"
-        xmlns:cal="/OSAF/PimSchema/CalendarSchema"
-        xmlns:contact="/OSAF/PimSchema/ContactSchema">
+        xmlns="//Schema/Core"
+        xmlns:core="//Schema/Core"
+	xmlns:pim="//Parcels/OSAF/PimSchema"
+        xmlns:cal="//Parcels/OSAF/PimSchema/CalendarSchema"
+        xmlns:contact="//Parcels/OSAF/PimSchema/ContactSchema">
 
   <displayName>Calendar Schema</displayName>
   <description>Calendar schema for the 0.3 release</description>

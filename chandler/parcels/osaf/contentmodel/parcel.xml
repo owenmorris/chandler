@@ -1,8 +1,8 @@
 <Parcel parcelName="base:PimSchema"
-        xmlns="/Core"
-        xmlns:core="/Core"
-        xmlns:base="/OSAF"
-        xmlns:common="/OSAF/PimSchema">
+        xmlns="//Schema/Core"
+        xmlns:core="//Schema/Core"
+        xmlns:base="//Parcels/OSAF"
+        xmlns:common="//Parcels/OSAF/PimSchema">
 
   <displayName>Pim Schema</displayName>
   <description>Pim schema for the 0.3 release</description>

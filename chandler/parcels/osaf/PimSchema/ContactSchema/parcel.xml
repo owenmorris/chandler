@@ -1,8 +1,8 @@
 <Parcel parcelName="pim:ContactSchema"
-        xmlns="/Core"
-        xmlns:core="/Core"
-        xmlns:pim="/OSAF/PimSchema"
-        xmlns:contact="/OSAF/PimSchema/ContactSchema">
+        xmlns="//Schema/Core"
+        xmlns:core="//Schema/Core"
+        xmlns:pim="//Parcels/OSAF/PimSchema"
+        xmlns:contact="//Parcels/OSAF/PimSchema/ContactSchema">
 
   <displayName>Contact Schema</displayName>
   <description>Contact schema for the 0.3 release</description>

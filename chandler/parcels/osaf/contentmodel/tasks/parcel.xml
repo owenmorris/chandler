@@ -1,8 +1,8 @@
 <Parcel parcelName="pim:TaskSchema"
-        xmlns="/Core"
-        xmlns:core="/Core"
-        xmlns:pim="/OSAF/PimSchema"
-        xmlns:task="/OSAF/PimSchema/TaskSchema">
+        xmlns="//Schema/Core"
+        xmlns:core="//Schema/Core"
+        xmlns:pim="//Parcels/OSAF/PimSchema"
+        xmlns:task="//Parcels/OSAF/PimSchema/TaskSchema">
 
   <displayName>Task</displayName>
   <version>0.3</version>
