@@ -1,27 +1,179 @@
 <html>
+
 <head>
 <title>The Busy Developer's Guide to the Chandler repository</title>
+</head>
+
 <body>
+
 <center>
 <h1>The Busy Developer's Guide to the Chandler repository</h1>
 Version 0.1
 </center>
-<p />
-This document is an introduction to the features of the Chandler
-repository.  It's not meant to be an exhaustive coverage of the entire
-API or all of the cool features.  Instead it is meant help you get up
-to speed so that you can do common repository tasks.
-<p />
-The Chandler repository stores Items.  In fact everything in the
-repository is an item.  This is an essential aspect of Chandler's
-data model.   Every item can have Attributes associated with it.
-Loosely speaking, you could think of items as objects and attributes
-as fields of the object.  But don't get too attached to that mental
-model.   Every item may be associated with a Kind.  A kind defines a 
-set of attributes that are associated with the item.
-Unless it has  a Kind, an item cannot have any Chandler
-attributes.  More about Kinds in a bit.
-<h2>Getting Started</h2>
+
+<p>
+This document is an introduction to the features of the Chandler repository. It's not meant to be an exhaustive coverage of the entire API or all of the cool features. Instead it is meant help you get up to speed so that you can do common repository tasks.
+</p>
+
+<h2>Chandler Data Model</h2>
+
+<p> Chandler's repository stores and retrieves persistent objects called
+"items"; these items are arranged in a hierarchy, and are addressable
+either by their unique identifier (UUID) or by their path within the
+hierarchy (e.g. //Schema/Core/Kind).  There are special items called
+"kinds" which play the role of "classes" in the object-oriented world.
+Items can be thought of as "instances" of kinds, and take on the
+characteristics described by their kind. For example, a kind determines
+what attributes an item has and what code implements an item's behavior.
+An attribute contains meta information including its name (how you
+refer to it in Python), cardinality (single or multi-valued) and type
+(what kind of value can be assigned). </p>
+
+<p>
+There are two ways to create items in the repository:  loading them in from
+XML files known as "parcels", or by using the repository API directly.
+</p>
+
+<h2>Parcel Loading</h2>
+<p> A parcel is a set of items (defined in an XML file) to be loaded
+into the repository and, optionally, code implementing custom behavior
+for those items.  When Chandler starts up, the Chandler/parcels
+directory is recursively searched for "parcel.xml" files which are
+then parsed by the parcel loader.  The items for a parcel are loaded
+into the repository path "//parcels", using a path determined by the
+parcel's location on disk.  For example, a parcel being loaded from
+<code>Chandler/parcels/OSAF/contentmodel/calendar/parcel.xml</code>
+will be stored in the repository at the path
+"//parcels/OSAF/contentmodel/calendar". </p>
+
+<h3>Defining Schema</h3>
+
+<p>Let's look at a simple parcel from the repository unit tests, <code>Chandler/repository/parcel/tests/testparcels/simple/parcel.xml</code>:</p>
+
+<pre>
+    &lt;xml version="1.0" encoding="iso-8859-1"?&gt;
+
+    &lt;Parcel itemName="simple"
+        xmlns="//Schema/Core"
+        xmlns:simple="//parcels/simple"&gt;
+
+        &lt;displayName&gt;Simple&lt;/displayName&gt;
+        &lt;description&gt;Simple Parcel Loader Test Schema&lt;/description&gt;
+        &lt;version&gt;0.1&lt;/version&gt;
+        &lt;author&gt;Open Source Applications Foundation&lt;/author&gt;
+
+        &lt;Kind itemName="TestKind"&gt;
+            &lt;displayName&gt;Test Kind&lt;/displayName&gt;
+            &lt;attributes itemref="simple:TestAttribute"/&gt;
+            &lt;displayAttribute itemref="simple:TestAttribute"/&gt;
+        &lt;/Kind&gt;
+
+        &lt;Kind itemName="SubKind"&gt;
+            &lt;superKinds itemref="simple:TestKind"/&gt;
+            &lt;displayName&gt;Subclass of Test Kind&lt;/displayName&gt;
+        &lt;/Kind&gt;
+
+        &lt;Attribute itemName="TestAttribute"&gt;
+            &lt;displayName&gt;Test Attribute&lt;/displayName&gt;
+            &lt;cardinality&gt;single&lt;/cardinality&gt;
+            &lt;type itemref="String"/&gt;
+        &lt;/Attribute&gt;
+
+    &lt;/Parcel&gt;
+</pre>
+
+As the parcel loader parses the XML, whenever it sees an element with
+the <code>itemName</code> attribute it creates an item in the repository.
+For a parcel file, the outermost element should be //Schema/Core/Parcel.
+When defining kinds and attributes, use elements of //Schema/Core/Kind and
+//Schema/Core/Attribute.  <i>Note:  we're currently overloading the
+meaning of our namespaces to use them as repository paths; this syntax
+is likely to change in the future.</i> The nesting arrangement of the
+items in a parcel file will be duplicated in the repository hierarchy.
+</p>
+
+<p> First the <code>&lt;Parcel&gt;</code> element:  its
+<code>itemName</code> attribute is used to name the item in the repository.
+By convention a parcel item's name needs to match the directory in which the
+parcel.xml file resides (in this case, "simple").  The parcel loader will
+create an item of kind "//Schema/Core/Parcel" in the repository, with a path
+of "//parcels/simple".
+</p>
+
+<p>When the parcel loader encounters an element that does not have
+an <code>itemName</code>, the element is instead used to assign a
+value to one of the parent element's attributes.  In the example, the
+parcel's <code>displayName</code> attribute is assigned the literal
+"Simple".  Another type of assignment is a reference; if an element
+has an <code>itemref</code>, then instead of a literal assignment, a
+reference to the specified item is assigned.  For example, within the
+"TestKind" item, a reference to the "TestAttribute" item (also defined
+in this file) is assigned to TestKind's "attributes" attribute.  </p>
+
+<p>The result of parsing this file will be:
+<ul>
+<li>A parcel item at //parcels/simple (with displayName="Simple")
+<li>A kind item at //parcels/simple/TestKind (with displayName = "Test Kind", attributes = //parcels/simple/TestAttribute, and displayAttribute = //parcels/simple/TestAttribute)
+<li>A kind item at //parcels/simple/SubKind (with displayName = "Subclass of Test Kind", superKinds = //parcels/simple/TestKind
+<li>An attribute item at //parcels/simple/TestAttribute (with displayName = "Test Attribute", cardinality = "single", and type = //Schema/Core/String)
+</ul>
+</p>
+
+<p>So what does this mean in terms of the data model? 
+<ol>
+<li>Our simple schema has defined two kinds (TestKind and SubKind) and an attribute (TestAttribute)
+<li>We have declared that instances of TestKind (items whose kind is TestKind) have an attribute named "TestAttribute" (by assigning to the "attributes" attribute)
+<li>We have declared that SubKind is a "subclass" of TestKind (by assigning to the "superKinds" attribute).  SubKind will inherit the characteristics of
+TestKind, including the list of allowed attributes.
+</ol>
+</p>
+
+<h3>Defining Data</h3>
+
+<p>Let's create some data based on this schema.  As of
+the 0.3 release, you need to put your data (non schema) items in a
+separate parcel file from your schema, so we've put this in
+<code>Chandler/repository/parcel/tests/testparcels/simple/data/parcel.xml</code>: </p>
+
+<pre>
+    &lt;xml version="1.0" encoding="iso-8859-1"?&gt;
+
+    &lt;Parcel itemName="data"
+            xmlns="//Schema/Core"
+            xmlns:simple="//parcels/simple"&gt;
+
+      &lt;simple:TestKind itemName="item1"&gt;
+          &lt;TestAttribute&gt;xyzzy&lt;/TestAttribute&gt;
+      &lt;/simple:TestKind&gt;
+
+      &lt;simple:SubKind itemName="item2"&gt;
+          &lt;TestAttribute&gt;plugh&lt;/TestAttribute&gt;
+      &lt;/simple:SubKind&gt;
+
+    &lt;/Parcel&gt;
+</pre>
+
+<p>
+When this parcel is loaded, three new items will be added to the repository:
+<ul>
+<li>A parcel item at //parcels/simple/data
+<li>A TestKind item at //parcels/simple/data/item1 (with TestAttribute="xyzzy")
+<li>A SubKind item at //parcels/simple/data/item2 (with TestAttribute="plugh")
+</ul>
+</p>
+
+<p>We were able to assign to the "TestAttribute" for item1 because we declared
+it was an attribute of TestKind.  Since the data model honors kind inheritence,
+all instances of SubKind also have the "TestAttribute" attribute, and therefore
+we could assign it to item2 as well.</p>
+
+<h2>Using the Repository API</h2>
+
+Now that we've covered how parcels can be used to populate the repository,
+let's interact with them via the repository API.
+
+<h3>Getting Started</h3>
+
 The first thing that we are going to need is a repository object that
 we can work with.  When you are working within Chandler, there is an
 application global, application.Globals.repository that is the
@@ -53,12 +205,6 @@ computer's fileystem.  As a convention, the repository's directory is named
 directory, using the XMLRepository constructor, which needs the path
 for the repository directory. 
 <p />
-Start a python session:
-<pre>
-cd osaf/chandler/Chandler
-../../hardhat/hardhat.py -i
->>>
-</pre>
 <code>
 rep = XMLRepository(os.path.join('.', '__repository__'))
 </code>
@@ -80,43 +226,129 @@ schemaPack = os.path.join('repository', 'packs', 'schema.pack')<br />
 rep.loadPack(schemaPack)<br />
 rep.commit()<br />
 </code>
-<h2>Working with Items</h2>
-<p />
-Before we talk about creating items. I'm going to show you an example
-of grabbing an item that's already stored in the Chandler
-repository.  In order to do that, we need a way to specify which item
-we are interested in retrieving.  One way of identifying items is via
-a path through the repository. You can think of a directory structure
-of items if you like.  
-<p />
-The repository has a method called <code>find</code> which can be used to
-retrieve an item using its path:
-<p />
+
+<h3>Loading Parcels</h3>
+
+<p>Next let's load some example parcels from the unit tests.
+Normally as part of the Chandler startup process, all parcels in
+osaf/chandler/Chandler/parcels are loaded automatically.  For this interactive session, however, we'll just explicitly load our data parcel instead:</p>
+
 <code>
-parcelKindItem = rep.find('//Schema/Core/Parcel')
+from repository.parcel.LoadParcels import LoadParcel<br />
+parcelRoot = os.path.join("repository","parcel","tests","testparcels")<br />
+parcelToLoad = os.path.join(parcelRoot, "simple", "data")<br />
+repoPath = "//parcels/simple/data"<br />
+LoadParcel(parcelToLoad, repoPath, parcelRoot, rep)<br />
 </code>
-<p />
-If you <code>print parcelKindItem</code>
-<p />
-You'll get something that looks like this:
-<p />
-<code>
-&lt;Kind: Parcel 01131924-4cb5-11d8-d2ac-000a959a114e&gt;
+
+<p><code>parcelToLoad</code> is the directory containing our data
+parcel.xml.  <code>repoPath</code> is the path within the repository we
+want to load our parcel. <code>parcelRoot</code> is the directory in which
+the parcel loader will search for parcels that our parcel depends on.  
+In this case, our data parcel depends on our schema parcel, and so the
+schema will be loaded as well.</p>
+
+<p>To see what's in the repository, we can print out part of its contents
+using <code>PrintItem( )</code>:</p>
+
+<code>from repository.parcel.Util import PrintItem
+<br />
+PrintItem("//parcels/simple", rep)<br/>
 </code>
-<p />
-Kind means that this is an Item whose python class name is <code>Kind</code>. 
-The name of the item is <code>Parcel</code>.  The last part is the item's UUID.
-Every Item in the repository has a unique identifier or UUID.  
-You can also use the <code>getUUID()</code> method to get an Item's UUID.  
+
+<p>You should get something like this, a description of //parcels/simple and
+all of it's children (recursive):</p>
+
+<pre>
+//parcels/simple
+    displayName: Simple Parcel &lt;type 'unicode'&gt;
+    description: Simple Parcel Loader Test Schema &lt;type 'unicode'&gt;
+    author: Open Source Applications Foundation &lt;type 'unicode'&gt;
+    createdOn: 2004-02-02 12:22:26.22 &lt;type 'DateTime'&gt;
+    version: 0.1 &lt;type 'unicode'&gt;
+    modifiedOn: 2004-02-02 12:22:26.22 &lt;type 'DateTime'&gt;
+    kind: //Schema/Core/Parcel
+
+  //parcels/simple/TestKind
+      displayName: Test Kind &lt;type 'unicode'&gt;
+      displayAttribute: TestAttribute &lt;type 'unicode'&gt;
+      kind: //Schema/Core/Kind
+      superKinds: (dict)
+          //Schema/Core/Item
+      items: (dict)
+          //parcels/simple/data/item1
+      subKinds: (dict)
+          //parcels/simple/SubKind
+      attributes:
+          //parcels/simple/TestAttribute
+          //Schema/Core/displayName (from //Schema/Core/Item)
+          //Schema/Core/description (from //Schema/Core/Item)
+          //Schema/Core/issues (from //Schema/Core/Item)
+          //Schema/Core/examples (from //Schema/Core/Item)
+          //Schema/Core/Item/kind (from //Schema/Core/Item)
+
+  //parcels/simple/SubKind
+      displayName: Subclass Test Kind &lt;type 'unicode'&gt;
+      superKinds: (dict)
+          //Schema/Core/Item
+          //parcels/simple/TestKind
+      items: (dict)
+          //parcels/simple/data/item2
+      kind: //Schema/Core/Kind
+
+  //parcels/simple/TestAttribute
+      cardinality: single &lt;type 'unicode'&gt;
+      displayName: Test Attribute &lt;type 'unicode'&gt;
+      type: //Schema/Core/String
+      kind: //Schema/Core/Attribute
+      kinds: (dict)
+          //parcels/simple/TestKind
+      inheritingKinds: (dict)
+          //parcels/simple/SubKind
+
+  //parcels/simple/data
+      createdOn: 2004-02-02 12:22:26.27 &lt;type 'DateTime'&gt;
+      modifiedOn: 2004-02-02 12:22:26.27 &lt;type 'DateTime'&gt;
+      kind: //Schema/Core/Parcel
+
+    //parcels/simple/data/item1
+        TestAttribute: xyzzy &lt;type 'unicode'&gt;
+        kind: //parcels/simple/TestKind
+
+    //parcels/simple/data/item2
+        TestAttribute: plugh &lt;type 'unicode'&gt;
+        kind: //parcels/simple/SubKind
+</pre>
+
+<h3>Working with Items</h3>
+
+<p>
+One way to retrieve an item from the repository is to ask for it by its
+path.  So to fetch item1:
+</p>
+
+<code>
+item1 = rep.find("//parcels/simple/data/item1")<br />
+</code>
+
+<p>If you <code>print item1</code></p>
+
+<p>You'll get something that looks like this:</p>
+
+<code>
+&lt;Item: item1 843636cc-55bd-11d8-f385-000a95bb2738&gt;
+</code>
+
+<p>This shows the item's kind (MORGEN: although shouldn't that kind be TestKind?), name, and UUID.  Every item in the repository has a unique identifier or UUID.  You can also use the <code>getUUID()</code> method to get an item's UUID.</p>
 <p />
 <code>
-uuid = parcelKindItem.getUUID()
+uuid = item1.getUUID()
 </code>
 <p />
 The <code>find</code> method can also find by using an Item's UUID.
 <p />
 <code>
-parcelKindItemByUUID = rep.find(uuid)
+item1 = rep.find(uuid)
 </code>
 <p />
 Note: at the moment, you should be careful when using UUID's to find
@@ -145,91 +377,116 @@ with it.  We've already seen that you can get the UUID using
 <td>get the displayable name for this item
 </td></tr>
 </table>
+<p>Note that in our example, <code>item1.getItemDisplayName()</code>
+will evaulate to "xyzzy".  Why?  In our schema we defined TestAttribute
+to be TestKind's "displayAttribute", therefore that attribute's value
+is returned by <code>getItemDisplayName()</code>.  If a item's kind
+does not have a displayAttribute, then the item's name will be returned
+instead.</p>
+
 <h3>Parents and children</h3>
-As the second entry hints, Items can be arranged in a parent/child hierarchy.  This can be useful for related groups of items.  When you create an item, you specify what its parent will be.  Items can have the repository as their parent.  So let's assume that I wanted to create a new parcel item.  To do this, I use the newItem method on the parcelItemKind, which is a Kind item:
-<p />
+<p> As you've seen in these examples, items can be arranged in a
+parent/child hierarchy.  This can be useful for related groups of items.
+When you create an item, you specify what its parent will be.  Items can
+have the repository as their parent.  So let's 
+add a new instance of TestKind.  To do this, we first need to retrieve
+the TestKind item:</p>
+
 <code>
-myParcel = parcelItemKind.newItem('myparcel', rep)
+testKind = rep.find("//parcels/simple/TestKind")<br />
 </code>
-<p />
-The first argument to the newItem() method is the name of the item, and the second argument is the parent of the item.  This item has the repository as its parent.
-<p />
+
+<p>Next we need to fetch the item that will be our new item's parent:</p>
+
+<code>
+data = rep.find("//parcels/simple/data")<br />
+</code>
+
+<p>Next we tell the kind to create a new item as a child of data:</p>
+
+<code>
+item3 = testKind.newItem("item3", data)<br />
+</code>
+<p>
+The first argument to the newItem() method is the name of the item, and the second argument is the parent of the item.  </p>
+
 You can test whether or not an item has any children
 <p />
-<code>print parcelKindItem.hasChildren()
+<code>print data.hasChildren()
 </code>
 <p />
 You can iterate through the children of an item
 <p />
 <code>
 <pre>
-for c in parcelKindItem:
-    print c
+for child in data:
+    print child
 </pre>
 </code>
 <p />
 You can test whether or not an item has a child with a particular name
 <p />
 <code>
-print parcelKindItem.hasChild("author")
+print data.hasChild("item3")
 </code>
 <p />
 You can get a child by providing its name  (2 ways, the first returning <code>None</code>
 if the child is not found, the other raising a <code>KeyError</code> exception instead)
 <p />
 <code>
-print parcelKindItem.getItemChild("author")<br />
+print data.getItemChild("item3")<br />
 <br />
-print parcelKindItem['author']
+print data['item3']
 </code>
 <p />
 
 You can rearrange the children of an item by using the <code>placeChild()</code> method.
 <p />
-<code>parcelKindItem.placeChild(parcelKindItem.getItemChild("author"), None)</code>
-<p />
-will make the 'author' child the first child of <code>parcelKindItem</code>.   The first argument is the child you want to move, the second argument is the child that you want to you want to place the first child after.  You supply <code>None</code> to place the child as the first child. 
-<p />
-To change an Item's parent you would use the <code>move()</code> method.  If I wanted to take the 'author' child and make it a child of the repository, the code would look like this:
+<code>data.placeChild(data.getItemChild("item3"), None)</code>
+<p> will make the 'item3' child the first child of <code>data</code>.
+The first argument is the child you want to move, the second argument
+is the child that you want to you want to place the first child after.
+You supply <code>None</code> to place the child as the first child.  </p>
+
+<p>
+To change an Item's parent you would use the <code>move()</code> method.  If I wanted to take 'item3' and make it a child of the repository, the code would look like this:
 <p />
 <code>
-authorChild = parcelKindItem['author']
-authorChild.move(rep)
+item3.move(rep)
 </code>
 <p />
-The first argument to move is the new root for the item being moved (authorChild in this case).  You can also specify where the item will be among the new root's children by specifying a 2nd and 3rd argument, which specify the children preceding and following the new item.
+The first argument to move is the new root for the item being moved (authorChild in this case).  You can also specify where the item will be among the new root's children by specifying a 2nd and 3rd argument, which specify the children preceding and following the new item. (MORGEN:  I discovered that once an item has been moved up to the top level, it can't be moved again.)
 <p />
 
 <h3>Attributes</h3>
 All of the data in Chandler items is stored as attributes.  Attributes are themselves items, albeit of a special type (the recursion has to stop somewhere).  The API for attributes has been designed to look as much like the Python API for working with attributes.
 
-If we look at the parcel we created, <code>myParcel</code> we can set its attribute values using the normal Python syntax:
+If we look at the item we created, <code>item3</code> we can set its attribute values using the normal Python syntax:
 <p />
 <code>
-myParcel.author = 'Ted'
+item3.TestAttribute = 'Testing'
 </code>
 <p />
-Sets the value of myParcel's attribute to Ted.  We can retrieve the value of the <code>author</code> attribute by executing
+Sets the value of item3's attribute to Testing.  We can retrieve the value of the <code>TestAttribute</code> attribute by executing
 <p />
 <code>
-myParcel.author
+item3.TestAttribute
 </code>
-<p />
-Where do attributes come from ?
-<p />
-In the Chandler data model, the Kind for an item determines what attributes are available.  In the case of the Kind for parcels, there are a number of attributes available.  To find out what attributes are available on a Kind, we can look at the <code>attributes</code> attribute of that Kind:
-<p />
-<code>
-<pre>
+<p> Where do attributes come from? In the Chandler data model, the kind
+for an item determines what attributes are available.  In the case
+of the kind for parcels, there are a number of attributes available.
+To find out what attributes are available on a kind, we can look at the
+<code>attributes</code> attribute of that kind: </p>
+
+<code><pre>
+parcelKindItem = rep.find("//Schema/Core/Parcel")
 for i in parcelKindItem.attributes:
     print i
-</pre>
-</code>
-<p />
+</pre></code>
+<p>
 Which will produce output that looks like this:
-<p />
-<code>
-<pre>
+</p>
+<code><pre>
 &lt;Attribute: author 0114bf18-4cb5-11d8-d2ac-000a959a114e&gt;
 &lt;Attribute: publisher 011593c0-4cb5-11d8-d2ac-000a959a114e&gt;
 &lt;Attribute: status 0116b7d2-4cb5-11d8-d2ac-000a959a114e&gt;
@@ -238,85 +495,94 @@ Which will produce output that looks like this:
 &lt;Attribute: version 0119e696-4cb5-11d8-d2ac-000a959a114e&gt;
 &lt;Attribute: createdOn 011ad7ea-4cb5-11d8-d2ac-000a959a114e&gt;
 &lt;Attribute: modifiedOn 011bc1be-4cb5-11d8-d2ac-000a959a114e&gt;
-</pre>
+</pre></code>
+
+<p> However, this list only includes attributes that were directly
+assigned to the //Schema/Core/Parcel kind -- this kind is a subkind of
+//Schema/Core/Item and therefore it inherits Item's attributes as well.
+To get the entire list of available attributes (including those inherited
+from superkinds), you need to traverse the kind's superKinds.  There is
+a utility method available for doing so:</p>
+
+<code>
+from repository.parcel.Util import GetAttributes<br />
+for i in GetAttributes(parcelKindItem): print i<br />
 </code>
-<p />
-This is list of the attributes that are available on Parcel items.
-<p />
-There are two kinds of attributes. Literal valued Attributes store
+
+<p>This generator will return a list of tuples of the form ( Attribute, Kind ) -- an Attribute and the Kind it is inherited from.</p>
+
+<p>
+There are two kinds of attributes. Literal valued attributes store
 literal values of various types, such as numbers (integers, longs,
-complex), strings, dates, and so forth.  Reference valued Attributes
-store bi-directional references to Chandler Items.  Attributes also
+complex), strings, dates, and so forth.  Reference valued attributes
+store bi-directional references to Chandler items.  Attributes also
 have a cardinality.  They can be single valued or multiple valued.
 Multiple valued attributes are treated as either lists, accessible by
 numeric index, or as dictionaries, accessible by keys.  Multivalued
 reference attributes are treated as lists. 
 
 The <code>Item.iterAttributes()</code> method will produce an iterator that will let you access all the attributes for an item:
-<code>
-<pre>
-for i in myParcel.iterAttributes():
+<code><pre>
+parcel = rep.find("//parcels/simple")
+for i in parcel.iterAttributes():
     print i
-</pre>
-</code>
+</pre></code>
+<p>
 The output looks like this:
-<p />
-<code>
-<pre>
-('createdOn', &lt;DateTime object for '2004-01-22 00:30:46.94' at 1767f38&gt;)
-('modifiedOn', &lt;DateTime object for '2004-01-22 00:30:46.94' at 1767f38&gt;)
-('kind', &lt;Kind: Parcel 01131924-4cb5-11d8-d2ac-000a959a114e&gt;)
-</pre>
-</code>
-You can also use set the keyword arguments <code>valuesOnly</code> or <code>referencesOnly</code> to <code>True</code> and <code>iterAttributes()</code> will only produce literal or reference attributes.
-<code>
-<pre>
-for i in parcelKindItem.iterAttributes(valuesOnly=True):
+</p>
+<code><pre>
+(u'displayName', u'Simple Parcel')
+(u'description', u'Simple Parcel Loader Test Schema')
+(u'author', u'Open Source Applications Foundation')
+('createdOn', &lt;DateTime object for '2004-02-02 13:34:02.80' at 24b9410&gt;)
+(u'version', u'0.1')
+('modifiedOn', &lt;DateTime object for '2004-02-02 13:34:02.80' at 24b9410&gt;)
+('kind', &lt;Kind: Parcel 760888e8-55c7-11d8-f88d-000a95bb2738&gt;)
+</pre></code>
+<p> You can also use set the keyword arguments <code>valuesOnly</code>
+or <code>referencesOnly</code> to <code>True</code> and
+<code>iterAttributes()</code> will only produce literal or reference
+attributes.  </p>
+
+<code><pre>
+for i in parcel.iterAttributes(valuesOnly=True):
     print i
-</pre>
-</code>
-produces
-<code>
-<pre>
-('createdOn', &lt;DateTime object for '2004-01-22 00:30:46.94' at 1767f38&gt;)
-('modifiedOn', &lt;DateTime object for '2004-01-22 00:30:46.94' at 1767f38&gt;)
-</pre>
-</code>
+</pre></code>
+produces:
+<code><pre>
+(u'displayName', u'Simple Parcel')
+(u'description', u'Simple Parcel Loader Test Schema')
+(u'author', u'Open Source Applications Foundation')
+('createdOn', &lt;DateTime object for '2004-02-02 13:34:02.80' at 24b9410&gt;)
+(u'version', u'0.1')
+('modifiedOn', &lt;DateTime object for '2004-02-02 13:34:02.80' at 24b9410&gt;)
+</pre></code>
 and
-<code>
-<pre>
-for i in parcelKindItem.iterAttributes(referencesOnly=True):
+<code><pre>
+for i in parcel.iterAttributes(referencesOnly=True):
     print i
-</pre>
-</code>
-produces
-<code>
-<pre>
-('kind', &lt;Kind: Parcel 01131924-4cb5-11d8-d2ac-000a959a114e&gt;)
-</pre>
-</code>
+</pre></code>
+produces:
+<code><pre>
+('kind', &lt;Kind: Parcel 760888e8-55c7-11d8-f88d-000a95bb2738&gt;)
+</pre></code>
 
-You can use python's list and dictionary operation on multivalued
-literal attributes.  Multivalued references attributes are a
-different story.  The repository provides an API on items that allows you to manipulate
-the values of muilti-valued reference attributes
-Let's try this with the <code>attributes</code> attribute of <code>parcelKindItem</code> which is a list valued reference attribute.
+<p> You can use python's list and dictionary operation on multivalued
+literal attributes.  Multivalued references attributes are a different
+story.  The repository provides an API on items that allows you to
+manipulate the values of muilti-valued reference attributes Let's try
+this with the <code>attributes</code> attribute of <code>parcelKindItem</code>
+which is a list valued reference attribute.  </p>
 
-First we need a UUID to use as the key, so for the sake of example, I'm going to cheat and grab the UUID  using the iterator.
-<code>
-<pre>
+<p> First we need a UUID to use as the key, so for the sake of example, I'm going to cheat and grab the UUID  using the iterator.
+<code><pre>
 as = parcelKindItem.attributes.itervalues()
 a = as.next()
 a = as.next()
-
 print a
-</pre>
-</code>
-<code>
-<pre>
-&lt;Attribute: publisher 011593c0-4cb5-11d8-d2ac-000a959a114e&gt;
-</pre>
-</code>
+
+&lt;Attribute: publisher 7609f124-55c7-11d8-f88d-000a95bb2738&gt;
+</pre></code>
 
 Now we'll use a's UUID as a key into the <code>attributes</code> attribute.
 <p />
@@ -327,7 +593,7 @@ print parcelKindItem.getValue('attributes', a.getUUID())
 Which produces the expected result:
 <p />
 <code>
-&lt;Attribute: publisher 011593c0-4cb5-11d8-d2ac-000a959a114e&gt;
+&lt;Attribute: publisher 7609f124-55c7-11d8-f88d-000a95bb2738&gt;
 </code>
 To add a new item to the list, all you would do is:
 <p />
@@ -342,28 +608,34 @@ parcelKindItem.removeValue('attributes',a.getUUID())
 </code>
 <p />
 You can also use Python operations like <code>del</code> to remove a value from a multi-valued attribute. The <code>append</code>, <code>insert</code>, <code>pop</code>, <code>remove</code>, <code>reverse</code>, <code>sort</code>, and <code>extend</code> operations are supported on list valued attributes, and the update operation is supported on dictionary valued attributes.
-<!--
-<h2>Kinds</h2>
-
-How much should this be discussed versus parcel XML?  This should probably be a second document.
-
-One of the interesting features of the data model is that you can add attributes to a Kind at any time (Q: what happens to existing instances?).   
--->
 
 
-<h2>Saving data</h2>
-The whole point of using the repository is that you want your data to become persistent.  When you create an item or update an item, that item becomes dirty.  You can uses the <code>Item.isDirty()</code> method to see if a particular item is dirty.   You use the <code>commit()</code> method on the repository to make your changed items persistent.  Your code would look something like this:
-<p />
-<code>
-rep.commit() 
-</code>
-<p />
-If the word 'commit' makes you think of transactions, that's fine.  The Chandler store is transactional, which means that you can atomically commit groups of changes.   It also means that transactions are used to manage concurrent access to the repository so that agents and other Python threads can access the repository safely.  An important thing for you to know is that it is possible for commits to fail.  This will happen when an item that you want to commit has been modified by someone else between the time that you read it and the time you tried to commit it.  When this happens the <code>commit</code> method will raise an exception.  At this point it is up to you redo the work in your transaction.
 
-<h2>What we didn't cover</h2>
-The major topic that we haven't covered here is how to define kinds, which is a topic large enough for an entire document on its own.
-In addition to Kinds, we didn't cover the details of attribute typing.   The Chandler data model allows you to constrain the types of literal attribute values and provides some functionality that includes Enumerations, Structs, Aliases, and Large object types.
+<h3>Saving data</h3>
+
+<p> The whole point of using the repository is that you want your data
+to become persistent.  When you create an item or update an item, that
+item becomes dirty.  You can uses the <code>Item.isDirty()</code> method
+to see if a particular item is dirty.   You use the <code>commit()</code>
+method on the repository to make your changed items persistent.  Your code
+would look something like this: </p>
+
+<code> rep.commit() </code>
+
+<p> If the word 'commit' makes you think of transactions, that's fine.
+The Chandler store is transactional, which means that you can atomically
+commit groups of changes.   It also means that transactions are used
+to manage concurrent access to the repository so that agents and other
+Python threads can access the repository safely.  An important thing for
+you to know is that it is possible for commits to fail.  This will happen
+when an item that you want to commit has been modified by someone else
+between the time that you read it and the time you tried to commit it.
+When this happens the <code>commit</code> method will raise an exception.
+At this point it is up to you redo the work in your transaction.  </p>
+
+
 <hr />
 Please send any comments to dev@osafoundation.org.
 </body>
 </html>
+
