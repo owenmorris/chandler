@@ -36,6 +36,10 @@ class RepoResource(resource.Resource):
                 result += RenderKindQuery(item)
                 result += "</div>"
 
+            elif mode == "search":
+                text = request.args.get('text', [None])[0]
+                result += RenderSearchResults(text)
+
             elif path != "//":
                 item = Globals.repository.findPath(path)
                 if item is None:
@@ -46,6 +50,8 @@ class RepoResource(resource.Resource):
                 result += RenderItem(item)
                 result += "</div>"
             else:
+                result += RenderSearchForm()
+                result += "<p>"
                 result += RenderRoots()
                 result += "<p>"
                 result += RenderKinds()
@@ -55,6 +61,36 @@ class RepoResource(resource.Resource):
             result = "<html>Caught an exception: %s<br> %s</html>" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
 
         return str(result)
+
+def RenderSearchForm():
+    result = ""
+    result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
+    result += "<tr class='toprow'>\n"
+    result += "<td><b>PyLucene Search:</b></td>\n"
+    result += "</tr>\n"
+
+    result += "<tr class='oddrow'>\n"
+    result += "<td>"
+    result += "<div class='tree'>"
+    result += "<form method=get action=/repo><input type=text name=text size=40><input type=hidden name=mode value=search>"
+    result += "</div>"
+    result += "</td></tr></table></form>\n"
+    return result
+
+def RenderSearchResults(text):
+    result = ""
+    result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
+    result += "<tr class='toprow'>\n"
+    result += "<td><b>PyLucene Search Results for <i>%s</i> :</b></td>\n" % text
+    result += "</tr>\n"
+    count = 0
+    for (item, attribute) in Globals.repository.searchItems(text):
+        result += oddEvenRow(count)
+        result += "<td><a href=%s>%s</a></td>" % (toLink(item.itsPath), item.getItemDisplayName())
+        result += "</tr>"
+        count += 1
+    result += "</table></form>\n"
+    return result
 
 def RenderRoots():
     result = ""
