@@ -1,0 +1,11 @@
+--- epydoc-2.1/epydoc/html.py	Fri Mar 19 11:03:18 2004
++++ epydoc-2.1-patched/epydoc/html.py	Wed May 26 16:09:52 2004
+@@ -2176,7 +2176,7 @@
+             if link_public: public.write(link)
+             else: public.write(anchor)
+         str = psum
+-        if (self._inheritance != 'grouped' and inherit):
++        if (self._inheritance != 'grouped' and inherited):
+             cls = puid.cls()
+             str += ('    <i>(Inherited from %s)</i>\n' %
+                     self._uid_to_href(cls, cls.shortname()))
