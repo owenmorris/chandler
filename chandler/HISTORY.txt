@@ -1,6 +1,13 @@
                             Chandler Release History
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Milestone 0.3.26 (CVS tag CHANDLER_0_3_26) 2004-10-05
+    * More unit tests, including an SMTP server for testing that will give
+      deliberately bad responses
+    * Performance improvement when syncing
+    * Updated the About Chandler page
+    * And numerous bugfixes and improvements.
+
 Milestone 0.3.25 (CVS tag CHANDLER_0_3_25) 2004-09-23
     * Upgraded to wxPython 2.5.2.9
     * Upgraded to PyLucene 0.6.1
