@@ -61,8 +61,8 @@ def main():
         mailtoAddr += defaultDomain
     if alertAddr.find('@') == -1:
         alertAddr += defaultDomain
-
-    prevStartInt = 0
+    skipRsync = options.skipRsync
+        
     curDir = os.path.abspath(os.getcwd())
     buildscriptFile = os.path.join("buildscripts", options.project + ".py")
 
