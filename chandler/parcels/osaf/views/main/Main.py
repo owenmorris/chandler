@@ -18,6 +18,7 @@ import osaf.framework.utils.imports.OutlookContacts as OutlookContacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 from repository.persistence.RepositoryError import VersionConflictError
 import repository.util.UUID as UUID
+import osaf.framework.webdav.Dav
 
 class MainView(View):
     """
@@ -58,7 +59,8 @@ class MainView(View):
          Globals.wxApplication.mainFrame, "Subscribe to Collection...",
          "Collection URL:", "http://webdav.osafoundation.org/")
         if url is not None:
-            print "I would be subscribing to %s here" % url
+            item = osaf.framework.webdav.Dav.DAV(url).get( )
+            Globals.repository.commit()
 
     def onEditAccountPreferencesEvent (self, notification):
         # Triggered from "File | Prefs | Accounts..."
