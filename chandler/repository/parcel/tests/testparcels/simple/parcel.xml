@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel describes="//parcels/simple"
+        itemName="simple"
+        xmlns="//Schema/Core"
+        xmlns:simple="//parcels/simple">
+
+  <displayName>Simple Parcel Loader Unit Test Schema</displayName>
+  <description>Foo</description>
+  <version>0.1</version>
+  <author>Open Source Applications Foundation</author>
+
+  <Attribute itemName="TestAttribute">
+    <displayName>Test Attribute</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Kind itemName="TestKind">
+    <displayName>Test Kind</displayName>
+    <attributes itemref="simple:TestAttribute"/>
+    <displayAttribute itemref="simple:TestAttribute"/>
+  </Kind>
+</Parcel>
