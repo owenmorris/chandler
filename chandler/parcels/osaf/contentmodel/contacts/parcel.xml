@@ -182,17 +182,74 @@
     <type itemref="String"/>
   </Attribute>
 
+  <Attribute itemName="webPages">
+    <displayName>Web Pages</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="jobTitle">
+    <displayName>Job Title</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="employer">
+    <displayName>Employer</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="photos">
+    <displayName>Photo URLs</displayName>
+    <issues>For now this is just a list of strings that can have URLs that point to photos. Eventually it would be nice if Chandler had a Kind called Photo, where Photo items could either have URLs that point to photos or have photo binaries stored in the repository.</issues>
+    <cardinality>list</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="spouse">
+    <displayName>Spouse</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="anniversary">
+    <displayName>Wedding Anniversary</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="RelativeDateTime"/>
+  </Attribute>
+
+  <Attribute itemName="children">
+    <displayName>Children</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="instantMessageAddresses">
+    <displayName>Instant Message Addresses</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
   <Kind itemName="ContactSection">
     <displayName>Contact Section</displayName>
     <description>A section of contact info. For example, my Contact for my mom might have sections like 'home', 'work', 'at studio', 'vermont house'.</description>
     <issues>We need a displayName attribute on ContactSection, to keep track of the name of the section, like 'home', 'work', 'at studio', 'vermont house'.</issues>
-    <issues>We also need attributes for basic vCard info, including 'Photo', 'Web Page', 'Timezone', 'Job Title', and 'Employer'. Optionally, we might also want other vCard attributes like 'Job Role', 'Latitude', 'Longitude', 'Mailer (a MIME X-Mailer value)', 'Business card logo', 'Agent or Assistant', 'Department', 'vCard Categories', 'vCard Note', 'Sound', 'UID', 'Public Key', and 'Source'.</issues>
-    <issues>We also probably want some other attributes in order to interoperate with Outlook, like 'Spouse', 'Anniversary', 'Children', 'IM Address', 'Language', 'Referred By', etc.</issues>
+    <issues>We also need attributes for basic vCard info, like 'Timezone'. Optionally, we might also want other vCard attributes like 'Job Role', 'Latitude', 'Longitude', 'Mailer (a MIME X-Mailer value)', 'Business card logo', 'Agent or Assistant', 'Department', 'vCard Categories', 'vCard Note', 'Sound', 'UID', 'Public Key', and 'Source'.</issues>
+    <issues>We also probably want some other attributes in order to interoperate with Outlook, like 'Language', 'Referred By', etc.</issues>
     <attributes itemref="contact:sectionOwner"/>
     <attributes itemref="contact:phoneNumbers"/>
     <attributes itemref="contact:emailAddresses"/>
     <attributes itemref="contact:streetAddresses"/>
     <attributes itemref="contact:jabberAddresses"/>
+    <attributes itemref="contact:webPages"/>
+    <attributes itemref="contact:jobTitle"/>
+    <attributes itemref="contact:employer"/>
+    <attributes itemref="contact:photos"/>
+    <attributes itemref="contact:spouse"/>
+    <attributes itemref="contact:anniversary"/>
+    <attributes itemref="contact:children"/>
+    <attributes itemref="contact:instantMessageAddresses"/>
     <classes key="python">OSAF.contentmodel.contacts.Contacts.ContactSection</classes>
   </Kind>
 
@@ -241,7 +298,10 @@
   <Kind itemName="ContactName">
     <displayName>Contact Name</displayName>
     <description>The name of a contact, like "Dr. Sara Anne Gibson", or "Denver Hospital".</description>
+    <description>See also: http://wiki.osafoundation.org/twiki/bin/view/Chandler/ContactSchemaNotes</description>
     <issues>In order to interoperate smoothly with vCard and Outlook and whatnot, we'll probabaly also want to have attributes for 'Initials', 'Prefixes', 'Suffixes', and maybe 'Display As'.</issues>
+    <issues>"Isn't this heavily U.S.-centric?  I realize the issue of names is a tricky one, but 'family name' and 'given name' seems a more international-friendly place to start." - Bruce D'Arcus</issues>
+    <issues>vCard has attributes named 'Family Name', 'Given Name', and 'Additional Name', rather than 'lastName', 'firstName', and 'middleName'</issues>
     <displayAttribute itemref="contact:sortName"/>
     <attributes itemref="contact:fullName"/>
     <attributes itemref="contact:sortName"/>
