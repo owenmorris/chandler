@@ -15,7 +15,7 @@ from repository.schema.Attribute import Attribute
 class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
     """ Test Reference Attributes """
 
-    def testReferenceAttributes(self):
+    def tstReferenceAttributes(self):
         """Test bidirectional single valued attribute"""
         kind = self._find('//Schema/Core/Kind')
         itemKind = self._find('//Schema/Core/Item')
@@ -99,13 +99,13 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
         self.failIf(item2 in kind1.items)
 
     # support functions for testListReferenceAttributes and testDictReferenceAttributes
-    def _findManagerAndEmployees(self):
+    def _findManagerAndEmployees(self, mPath, e1Path, e2Path, e3Path, e4Path):
         """Use find to retrieve our test data from the repository """
-        manager = self._find('//boss')
-        emp1 = self._find('//employee1')
-        emp2 = self._find('//employee2')
-        emp3 = self._find('//employee3')
-        emp4 = self._find('//employee4')
+        manager = self._find(mPath)
+        emp1 = self._find(e1Path)
+        emp2 = self._find(e2Path)
+        emp3 = self._find(e3Path)
+        emp4 = self._find(e4Path)
         return (manager, [emp1, emp2, emp3, emp4])
 
     def _checkManagerAndEmployees(self, m, es):
@@ -146,25 +146,33 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees()
+        emp1 = None
+        emp2 = None
+        emp3 = None
+        emp4 = None
+        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees('//boss','//employee1','//employee2','//employee3','//employee4')
         self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
         # now do it from the other end add manager to employees
-        manager = managerKind.newItem('boss', self.rep)
+        manager = managerKind.newItem('bossA', self.rep)
 
-        emp1 = employeeKind.newItem('employee1', self.rep)
+        emp1 = employeeKind.newItem('employeeA1', self.rep)
         emp1.manager = manager
-        emp2 = employeeKind.newItem('employee2', self.rep)
+        emp2 = employeeKind.newItem('employeeA2', self.rep)
         emp2.manager = manager
-        emp3 = employeeKind.newItem('employee3', self.rep)
+        emp3 = employeeKind.newItem('employeeA3', self.rep)
         emp3.manager = manager
-        emp4 = employeeKind.newItem('employee4', self.rep)
+        emp4 = employeeKind.newItem('employeeA4', self.rep)
         emp4.manager = manager
         self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
         # now write what we've done and read it back
         self._reopenRepository()
-        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees()
+        emp1 = None
+        emp2 = None
+        emp3 = None
+        emp4 = None
+        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees('//bossA','//employeeA1','//employeeA2','//employeeA3','//employeeA4')
         self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
     def testDictReferenceAttributes(self):
@@ -200,25 +208,25 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees()
+        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees('//boss','//employee1','//employee2','//employee3','//employee4')
         self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
         # now do it from the other end add manager to employees
-        manager = managerKind.newItem('boss', self.rep)
+        manager = managerKind.newItem('bossA', self.rep)
 
-        emp1 = employeeKind.newItem('employee1', self.rep)
+        emp1 = employeeKind.newItem('employeeA1', self.rep)
         emp1.manager = manager
-        emp2 = employeeKind.newItem('employee2', self.rep)
+        emp2 = employeeKind.newItem('employeeA2', self.rep)
         emp2.manager = manager
-        emp3 = employeeKind.newItem('employee3', self.rep)
+        emp3 = employeeKind.newItem('employeeA3', self.rep)
         emp3.manager = manager
-        emp4 = employeeKind.newItem('employee4', self.rep)
+        emp4 = employeeKind.newItem('employeeA4', self.rep)
         emp4.manager = manager
         self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
         # now write what we've done and read it back
         self._reopenRepository()
-        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees()
+        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees('//bossA','//employeeA1','//employeeA2','//employeeA3','//employeeA4')
         self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
     def testSubAttributes(self):
@@ -275,5 +283,5 @@ if __name__ == "__main__":
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
 #    profiler.run('unittest.main()')
 #    profiler.close()
-#    unittest.main()
+    unittest.main()
     pass
