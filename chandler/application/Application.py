@@ -419,9 +419,6 @@ class wxApplication (wxApp):
         """
             Exit the application
         """
-        application.Application.app.repository.commit(purge=True)
-        self.agentManager.Stop()
-        
         # FIXME:  This will not fully quit the app if a stdout window has been
         # opened by a print statement.  We should also close that stdout window.
         self.wxMainFrame.Close()

@@ -230,6 +230,7 @@ class wxChandlerWindow(wxFrame):
 
         app = application.Application.app
 
+        app.agentManager.Stop()
         app.repository.commit(purge=True)
         app.repository.close()
 
