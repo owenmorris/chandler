@@ -121,8 +121,8 @@ $(SRC)/Configure: apply
 expand: openssl-$(VERSION).tar.gz
 	tar xvzf openssl-$(VERSION).tar.gz
 
-apply: expand 
-	echo ok
+apply: expand patches-$(VERSION)
+	patch -Nup0 < patches-$(VERSION); echo ok
 
 clean:
 	rm -rf $(SRC)
