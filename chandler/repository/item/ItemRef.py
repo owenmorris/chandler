@@ -332,7 +332,7 @@ class RefArgs(object):
         
         value = other._references.get(self.otherName)
         
-        if value is None:
+        if value is None or value is NoneRef:
             if self.ref is not None:
                 self.ref.attach(item, self.attrName,
                                 other, self.otherName, self.otherCard)
