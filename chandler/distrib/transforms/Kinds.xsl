@@ -220,17 +220,19 @@
        <div class="sectionBox">
 		<h2>
             <xsl:apply-templates select = "." mode="getNameAnchor"/>
-            <xsl:text> - inherits from </xsl:text>
-            
-            <xsl:choose>
-            	<xsl:when test="core:superKinds">
-            	   <xsl:apply-templates select="core:superKinds" mode="derefHref"/>
-            	</xsl:when>
+            <xsl:if test = "@itemName != 'Item'">
+               <xsl:text> - inherits from </xsl:text>
+               
+               <xsl:choose>
+                  <xsl:when test="core:superKinds">
+                     <xsl:apply-templates select="core:superKinds" mode="derefHref"/>
+                  </xsl:when>
               
-            	<xsl:otherwise>
-                   <xsl:apply-templates select="$coreDoc//core:Kind[@itemName='Item']" mode="getHrefAnchor"/>
-            	</xsl:otherwise>
-            </xsl:choose>
+                  <xsl:otherwise>
+                     <xsl:apply-templates select="$coreDoc//core:Kind[@itemName='Item']" mode="getHrefAnchor"/>
+                  </xsl:otherwise>
+               </xsl:choose>
+            </xsl:if>
 		</h2>
 		<div class="detailBox">
 				<xsl:call-template name="displayAttribute" select="."/>
