@@ -133,7 +133,7 @@ class Block(Item):
                                                                self.subscribedBlocks [self.itsUUID],
                                                                Globals.mainView.dispatchEvent)
 
-                    self.addEventsToEventNameToItemUUID (subscribeAlwaysEnts)
+                    self.addEventsToEventNameToItemUUID (subscribeAlwaysEvents)
 
                 doFreeze = isinstance (widget, wx.Window)
                 if doFreeze:
