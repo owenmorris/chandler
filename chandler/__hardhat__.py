@@ -140,7 +140,7 @@ def distribute(buildenv):
 
             os.chdir(buildenv['root'])
             hardhatlib.compressDirectory(buildenv, "debug",
-             "Chandler_osx_dev_debug" + buildVersionShort)
+             "Chandler_osx_dev_debug_" + buildVersionShort)
 
         if buildenv['os'] == 'win':
 
