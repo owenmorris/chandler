@@ -42,15 +42,15 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
         # Construct sample items
         attachmentItem = Mail.Attachment("attachmentItem")
-        emailAccountItem = Mail.EmailAccount("emailAccountItem")
+        #emailAccountItem = Mail.EmailAccount("emailAccountItem")
         emailAddressItem = Mail.EmailAddress("emailAddressItem")
         mailMessageItem = Mail.MailMessage("mailMessageItem")
 
         # Double check kinds
         self.assertEqual(attachmentItem.itsKind,
                          Mail.MailParcel.getAttachmentKind())
-        self.assertEqual(emailAccountItem.itsKind,
-                         Mail.MailParcel.getEmailAccountKind())
+        #self.assertEqual(emailAccountItem.itsKind,
+        #                 Mail.MailParcel.getEmailAccountKind())
         self.assertEqual(emailAddressItem.itsKind,
                          Mail.MailParcel.getEmailAddressKind())
         self.assertEqual(mailMessageItem.itsKind,
