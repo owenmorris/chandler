@@ -142,8 +142,8 @@ Build Instructions for Chandler
 - Make sure you have Python installed on your system.
 - set your CVSROOT to :pserver:username@cvs.osafoundation.org:/usr/local/cvsrep
 - cvs login
-- cvs checkout hardhat  (to retrieve HardHat)
-- cvs checkout chandler-source  (to retreive Chandler and required modules)
+- cvs checkout chandler-source  (to retreive HardHat, Chandler and required 
+  modules)
 
 
 The following commands should be run from the osaf/chandler/Chandler directory 
