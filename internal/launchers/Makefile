@@ -38,7 +38,6 @@ build:
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
 	cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
 	cd $(LAUNCHERS)/win; \
-	. $(BUILD_ROOT)/cygenv.sh; \
 	make
 endif
 
