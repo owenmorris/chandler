@@ -71,6 +71,11 @@ chandlerDebug.exe
 src=chandler/debug/bin
 dest=debug/bin
 chandler.exe
+# and the launch scripts
+src=chandler/debug
+dest=debug
+RunChandler.bat
+RunPython.bat
 
 # Grab the overall README
 src=chandler/distrib

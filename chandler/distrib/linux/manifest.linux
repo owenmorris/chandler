@@ -109,6 +109,11 @@ chandler
 src=chandler/release/lib
 dest=release/lib
 chandler_bin
+# and the launch scripts (this is temporary until bug 1672 is fixed.)
+src=chandler/release
+dest=release
+RunChandler
+RunPython
 
 # Grab the overall README
 src=chandler/distrib

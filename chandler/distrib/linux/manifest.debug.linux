@@ -107,6 +107,11 @@ chandlerDebug
 src=chandler/debug/lib
 dest=debug/lib
 chandler_bin
+# and the launch scripts
+src=chandler/debug
+dest=debug
+RunChandler
+RunPython
 
 # Grab the overall README
 src=chandler/distrib
