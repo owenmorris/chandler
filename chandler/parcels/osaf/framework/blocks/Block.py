@@ -99,7 +99,7 @@ class ContainerChild(Block):
             """
               Currently not all wxWindows counterpart objects have a __del__
             funcation to removed themselves from the association when they
-            are deleted. Howver, they should. Bug #1177. For now I'll comment
+            are deleted. However, they should. Bug #1177. For now I'll comment
             out the assert and log the bugs
 
             assert not Globals.association.has_key(UUID)
