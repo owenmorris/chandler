@@ -39,7 +39,6 @@ lib
 src=chandler
 dest=Contents/Resources
 Chandler.py
-Globals.py
 version.py
 HISTORY.txt
 LICENSE.txt
