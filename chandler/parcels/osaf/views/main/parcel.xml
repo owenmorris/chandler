@@ -186,12 +186,20 @@
     <blockName>FileMenu</blockName>
     <title>&amp;File</title>
     <location>MenuBar</location>
-    <childrenBlocks itemref="doc:NewTabItem"/>
+    <childrenBlocks itemref="doc:NewItemMenu"/>
     <childrenBlocks itemref="doc:CloseTabItem"/>
     <childrenBlocks itemref="doc:FileSeparator1"/>
     <childrenBlocks itemref="doc:QuitItem"/>
   </Menu>
 
+  <Menu itsName="NewItemMenu">
+    <blockName>NewItemMenu</blockName>
+    <title>New</title>
+    <location>FileMenu</location>
+    <childrenBlocks itemref="doc:NewTabItem"/>
+    <childrenBlocks itemref="doc:NewItemCollectionItem"/>
+  </Menu>
+  
   <Menu itsName="EditMenu">
     <blockName>EditMenu</blockName>
     <title>&amp;Edit</title>
@@ -203,8 +211,6 @@
     <childrenBlocks itemref="doc:CopyItem"/>
     <childrenBlocks itemref="doc:PasteItem"/>
     <childrenBlocks itemref="doc:EditSeparator2"/>
-    <childrenBlocks itemref="doc:NewItemCollectionItem"/>
-    <childrenBlocks itemref="doc:EditSeparator3"/>
     <childrenBlocks itemref="doc:PreferencesItem"/>
   </Menu>
     
@@ -255,12 +261,21 @@
   <MenuItem itsName="NewTabItem">
     <blockName>NewTabItem</blockName>
     <title>New Tab</title>
-    <location>FileMenu</location>
-    <accel>N</accel>
+    <location>NewItemMenu</location>
+    <accel>T</accel>
     <helpString>Open a new blank tab</helpString>
     <event itemref="events:New"/>
   </MenuItem>
   
+  <MenuItem itsName="NewItemCollectionItem">
+    <blockName>NewItemCollectionItem</blockName>
+    <title>New Item Collection</title>
+    <location>NewItemMenu</location>
+    <accel>N</accel>
+    <helpString>Create a new Item Collection</helpString>
+    <event itemref="events:NewItemCollectionItem"/>
+  </MenuItem>
+
   <MenuItem itsName="CloseTabItem">
     <blockName>CloseTabItem</blockName>
     <title>Close Tab</title>
@@ -333,19 +348,6 @@
   
   <MenuItem itsName="EditSeparator2">
     <blockName>EditSeparator2</blockName>
-    <location>EditMenu</location>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-  
-  <MenuItem itsName="NewItemCollectionItem">
-    <blockName>NewItemCollectionItem</blockName>
-    <title>New ItemCollection</title>
-    <location>EditMenu</location>
-    <event itemref="events:NewItemCollectionItem"/>
-  </MenuItem>
-
-  <MenuItem itsName="EditSeparator3">
-    <blockName>EditSeparator3</blockName>
     <location>EditMenu</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
