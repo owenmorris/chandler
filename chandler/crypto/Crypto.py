@@ -17,6 +17,9 @@ class NoCertificate(SSLVerificationError):
 class WrongCertificate(SSLVerificationError):
     pass
 
+class WrongHost(SSLVerificationError):
+    pass
+
 class SSLContextError(Exception):
     pass
 
@@ -102,7 +105,18 @@ class Crypto(object):
                 raise WrongCertificate
 
         if host:
-            raise NotImplemented
+            # XXX The hostname in the certificate can contain
+            #     regexp, but not all software supports that (for example
+            #     IE6 does not). TODO for us as well...
+            
+            # XXX Check this extension first: subjectAltName=DNS:somehost
+            
+            # commonName
+            try:
+                if cert.get_subject().CN != host:
+                    raise WrongHost
+            except AttributeError:
+                raise WrongHost
 
     def _verifyCallback(ok, store):
         if not ok:

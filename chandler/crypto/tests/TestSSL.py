@@ -16,12 +16,14 @@ class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
     def testSSL(self):
         if not self.isOnline():
             return
+
+        site = 'www.verisign.com'
         
         ctx = Globals.crypto.getSSLContext(protocol='sslv3')
         conn = SSL.Connection(ctx)
-        self.assert_(conn.connect(('www.verisign.com', 443)) >= 0)
+        self.assert_(conn.connect((site, 443)) >= 0)
 
-        Globals.crypto.sslPostConnectionCheck(conn, 'FA5B0527BA98FC66276CA166BA22E44A73636C9')
+        Globals.crypto.sslPostConnectionCheck(conn, 'FA5B0527BA98FC66276CA166BA22E44A73636C9', host=site)
 
         conn.clear()
 
