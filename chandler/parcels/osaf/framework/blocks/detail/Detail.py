@@ -43,6 +43,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         the Item.  
           Notify container blocks before their children.
         """
+        self.finishSelectionChanges () # finish changes to previous selected item 
         super(DetailRoot, self).onSelectionChangedEvent(notification)
         item= self.selectedItem()
         assert item is notification.data['item'], "can't track selection in DetailRoot.onSelectionChangedEvent"
@@ -141,6 +142,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         """
           Send or Share the current item.
         """
+        self.finishSelectionChanges () # finish changes to previous selected item 
         item = self.selectedItem()
         # preflight the send/share request
         # mail items and collections need their recievers set up
@@ -183,6 +185,17 @@ class DetailRoot (ControlBlocks.SelectionContainer):
     def onNULLEventUpdateUI (self, notification):
         """ The NULL Event is always disabled """
         notification.data ['Enable'] = False
+
+    def finishSelectionChanges (self):
+        """ 
+          Need to finish any changes to the selected item
+        that are in progress.
+        """
+        focusBlock = self.getFocusBlock()
+        try:
+            focusBlock.saveTextValue (validate=True)
+        except AttributeError:
+            pass
 
 class DetailSynchronizer(object):
     """
@@ -505,20 +518,20 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
         # save the user's edits into item's attibute
         item = self.selectedItem()
         widget = self.widget
-        if item and widget:
+        if item is not None and widget:
             self.saveAttributeFromWidget(item, widget, validate=validate)
         
     def loadTextValue (self, item):
         # load the edit text from our attribute into the field
-        if not item:
+        if item is None:
             item = self.selectedItem()
-        if item:
+        if item is not None:
             widget = self.widget
             self.loadAttributeIntoWidget(item, widget)
     
     def onLoseFocus (self, event):
         # called when we get an event; to saves away the data and skips the event
-        self.saveTextValue(validate=True)
+        self.saveTextValue (validate=True)
         event.Skip()
         
     def onKeyPressed (self, event):
