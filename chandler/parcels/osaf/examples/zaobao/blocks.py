@@ -112,7 +112,6 @@ class wxZaoBaoItemDetail(wxItemDetail):
         Globals.notificationManager.PostNotification (notification)
 
     def On_wxSelectionChanged(self, item):
-        print item
         if item == Globals.repository.view:
             return
         if item:
