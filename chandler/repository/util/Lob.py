@@ -8,18 +8,20 @@ from repository.util.Streams import BZ2OutputStream, BZ2InputStream
 from repository.util.Streams import ZlibOutputStream, ZlibInputStream
 from repository.util.Streams import OutputStreamWriter, InputStreamReader
 from repository.util.Streams import BufferedOutputStream, BufferedInputStream
+from repository.util.Streams import HTMLReader
 
 
 class Lob(object):
 
-    def __init__(self, mimetype='text/plain'):
+    def __init__(self, mimetype='text/plain', indexed=False):
 
         super(Lob, self).__init__()
 
-        self.mimetype = mimetype
+        self.mimetype = mimetype.lower()
         self._compression = None
         self._data = ''
         self._append = False
+        self._indexed = indexed
 
     def getOutputStream(self, compression=None, append=False):
 
@@ -74,10 +76,8 @@ class Text(Lob):
 
     def __init__(self, encoding='utf-8', mimetype='text/plain', indexed=False):
 
-        super(Text, self).__init__(mimetype)
-        
+        super(Text, self).__init__(mimetype, indexed)
         self.encoding = encoding
-        self._indexed = indexed
         
     def getWriter(self, compression='bz2', append=False):
 
@@ -88,9 +88,33 @@ class Text(Lob):
 
         return InputStreamReader(self.getInputStream(), self.encoding)
 
+    def getPlainTextReader(self):
+
+        if self.mimetype in Text._readers:
+            return Text._readers[self.mimetype](self)
+
+        return NotImplementedError, "Converting mimetype '%s' to plain text" %(self.mimetype)
+
+    _readers = {
+        'text/html': lambda self: HTMLReader(self.getInputStream(),
+                                             self.encoding), 
+        'text/xhtml': lambda self: HTMLReader(self.getInputStream(),
+                                              self.encoding),
+        'text/plain': lambda self: self.getReader()
+    }
+
 
 class Binary(Lob):
 
-    def __init__(self, mimetype='application/binary'):
+    def __init__(self, mimetype='application/binary', indexed=False):
 
-        super(Binary, self).__init__(mimetype)
+        super(Binary, self).__init__(mimetype, indexed)
+
+    def getPlainTextReader(self):
+
+        if self.mimetype in Binary._readers:
+            return Binary._readers[self.mimetype](self)
+
+        return NotImplementedError, "Converting mimetype '%s' to plain text" %(self.mimetype)
+
+    _readers = {}

@@ -7,6 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from bz2 import BZ2Compressor, BZ2Decompressor
 from zlib import compressobj, decompressobj
 from cStringIO import StringIO
+from HTMLParser import HTMLParser
 
 
 class BZ2OutputStream(BZ2Compressor):
@@ -243,9 +244,13 @@ class InputStreamReader(object):
         self.inputStream = inputStream
         self.encoding = encoding
 
+    def _read(self, length):
+
+        return self.inputStream.read(length)
+
     def read(self, length = -1):
 
-        text = self.inputStream.read(length)
+        text = self._read(length)
         text = unicode(text, self.encoding)
 
         return text
@@ -279,3 +284,58 @@ class StringReader(object):
 
     def close(self):
         pass
+
+
+class HTMLReader(InputStreamReader):
+
+    def __init__(self, inputStream, encoding):
+
+        super(HTMLReader, self).__init__(inputStream, encoding)
+
+        class htmlParser(HTMLParser):
+
+            def __init__(self):
+
+                HTMLParser.__init__(self)
+
+                self.buffer = StringIO()
+                self.position = 0
+
+            def handle_data(self, data):
+
+                self.buffer.write(data)
+
+            def _read(self, length):
+
+                buffer = self.buffer
+                size = buffer.tell() - self.position
+
+                if length > 0 and size > length:
+                    buffer.seek(self.position)
+                    data = buffer.read(length)
+                    self.position += len(data)
+                    buffer.seek(0, 2)
+
+                elif size > 0:
+                    buffer.seek(self.position)
+                    data = buffer.read(size)
+                    self.position = 0
+                    buffer.seek(0)
+
+                else:
+                    data = ''
+
+                return data
+                
+        self.parser = htmlParser()
+
+    def _read(self, length):
+
+        while True:
+            data = super(HTMLReader, self)._read(length)
+            if len(data) > 0:
+                self.parser.feed(data)
+                data = self.parser._read(length)
+                if len(data) == 0:
+                    continue
+            return data

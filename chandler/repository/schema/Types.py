@@ -902,9 +902,10 @@ class Binary(Lob):
 
         return self.itsView._getLobType('binary')
 
-    def makeValue(self, data, mimetype='text/plain', compression=None):
+    def makeValue(self, data, mimetype='text/plain', compression=None,
+                  indexed=False):
 
-        binary = self.getImplementationType()(self.itsView, mimetype)
+        binary = self.getImplementationType()(self.itsView, mimetype, indexed)
         if data:
             out = binary.getOutputStream(compression)
             out.write(data)

@@ -532,7 +532,7 @@ class XMLText(Text, ItemValue):
 
             if self._indexed:
                 store._index.indexDocument(self._view._getIndexWriter(),
-                                           self.getReader(),
+                                           self.getPlainTextReader(),
                                            uuid,
                                            self._getItem().itsUUID,
                                            self._getAttribute(),
@@ -645,7 +645,16 @@ class XMLBinary(Binary, ItemValue):
                                                              self._version))
             out.write(self._data)
             out.close()
+            self._data = ''
 
+            if self._indexed:
+                store._index.indexDocument(self._view._getIndexWriter(),
+                                           self.getPlainTextReader(),
+                                           uuid,
+                                           self._getItem().itsUUID,
+                                           self._getAttribute(),
+                                           self.getVersion())
+            
             self._dirty = False
 
         attrs = {}
