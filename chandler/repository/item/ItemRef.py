@@ -211,6 +211,10 @@ class RefDict(object):
 
         return self._dict.has_key(key)
 
+    def __contains__(self, key):
+
+        return self._dict.__contains__(key)
+
     def keys(self):
 
         return self._dict.keys()
