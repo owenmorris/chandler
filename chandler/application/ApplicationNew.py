@@ -8,7 +8,6 @@ from wxPython.wx import *
 import Globals, ChandlerJabber
 import repository.schema.LoadParcels as LoadParcels
 import repository.schema.AutoItem as AutoItem
-import OSAF.framework.agents.AgentManager as AgentManager
 import application.agents.Notifications.NotificationManager as NotificationManager
 
 
@@ -20,6 +19,7 @@ wxEVT_MAIN_THREAD_CALLBACK = wxNewEventType()
 def EVT_MAIN_THREAD_CALLBACK(win, func):
     win.Connect(-1, -1, wxEVT_MAIN_THREAD_CALLBACK, func)
 
+
 class MainThreadCallbackEvent(wxPyEvent):
     def __init__(self, target, *args):
         wxPyEvent.__init__(self)
@@ -29,7 +29,6 @@ class MainThreadCallbackEvent(wxPyEvent):
         self.lock = threading.Lock()
 
 
-        
 class TestFrame(wxFrame):
     def __init__(self):
         wxFrame.__init__(self, None, -1, "TestPane", size=(640,480))
@@ -142,12 +141,6 @@ class wxApplicationNew (wxApp):
         # AutoItem needs to know the repository
         AutoItem.AutoItem.SetRepository (Globals.repository) 
 
-        # Create the notification manager.
-        Globals.notificationManager = NotificationManager.NotificationManager()
-
-        # Create the agent manager. Don't start it until later
-        Globals.agentManager = AgentManager.AgentManager()
-
         # Load Parcels
         parcelSearchPath = parcelDir
         if __debug__ and debugParcelDir:
@@ -160,6 +153,14 @@ class wxApplicationNew (wxApp):
                                 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
         
+        # Create the notification manager.
+        Globals.notificationManager = NotificationManager.NotificationManager()
+
+        # Create and start the agent manager.
+        from OSAF.framework.agents.AgentManager import AgentManager
+        Globals.agentManager = AgentManager()
+        Globals.agentManager.Startup()
+
         # initialize the non-persistent part of the NotificationManager
         Globals.notificationManager.PrepareSubscribers()
                 
@@ -168,8 +169,6 @@ class wxApplicationNew (wxApp):
         
         # Globals.jabberClient.Login()
 
-        # start the agent manager
-        Globals.agentManager.Startup()
         
         from OSAF.AppSchema.DocumentSchema.Block import Block
         
