@@ -56,7 +56,7 @@ Chandler.sh
 README.linux.txt
 
 # Grab the launcher programs
-src=Chandler/distrib/linux/launcher
+src=release
 dest=
 chandler
 dest=lib
