@@ -223,7 +223,8 @@ class MainView(View):
         """
         itemCollection = event.arguments ['item']
 
-        # Make sure we have all the accounts; returns False if the user cancels out and we don't.
+        # Make sure we have all the accounts; returns False if the user cancels
+        # out and we don't.
         if not Sharing.ensureAccountSetUp(self.itsView):
             return
         webdavAccount = Sharing.getWebDAVAccount(self.itsView)
@@ -233,14 +234,17 @@ class MainView(View):
 
         # show status
         self.setStatusMessage (_("Sharing collection %s") % itemCollection.displayName)
-                
+
         # Get or make a share for this item collection
         share = Sharing.getShare(itemCollection)
         isNewShare = share is None
         if isNewShare:
-            share = Sharing.newOutboundShare(self.itsView, itemCollection, account=webdavAccount)
-        
-        # Copy the invitee list into the share's list. As we go, collect the addresses we'll notify.
+            share = Sharing.newOutboundShare(self.itsView,
+                                             itemCollection,
+                                             account=webdavAccount)
+
+        # Copy the invitee list into the share's list. As we go, collect the 
+        # addresses we'll notify.
         if len (itemCollection.invitees) == 0:
             self.setStatusMessage (_("No invitees!"))
             return
@@ -265,26 +269,40 @@ class MainView(View):
         # Sync the collection with WebDAV
         self.setStatusMessage (_("accessing WebDAV server"))
         try:
-            if isNewShare:
+            if not share.exists():
                 share.create()
             share.put()
-        except:
+
+        except Sharing.SharingError, err:
+            self.setStatusMessage (_("Sharing failed."))
+
+            msg = "Couldn't share collection:\n%s" % err.message
+            application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                                        "Error", msg)
+
             # An error occurred during webdav; restore the collection's name
             itemCollection.displayName = originalName
-            raise
+
+            if isNewShare:
+                share.conduit.delete()
+                share.format.delete()
+                share.delete()
+
+            return
 
         # Send out sharing invites
         self.setStatusMessage (_("inviting %s") % ", ".join(inviteeStringsList))
-        MailSharing.sendInvitation(itemCollection.itsView.repository, share.conduit.getLocation(), 
-                                   itemCollection, inviteeList)
-        
+        MailSharing.sendInvitation(itemCollection.itsView.repository,
+                                   share.conduit.getLocation(), itemCollection,
+                                   inviteeList)
+
         # Done
         self.setStatusMessage (_("Sharing initiated."))
 
     def onStartProfilerEvent(self, event):
         Block.profileEvents = True
-            
-        
+
+
     def onStopProfilerEvent(self, event):
         Block.profileEvents = False
     # Test Methods
@@ -297,7 +315,7 @@ class MainView(View):
         if not isinstance (item, ItemCollection):
             item = None
         return item
-        
+
         return Block.findBlockByName ("Sidebar").selectedItemToView
 
     def _logChange(self, item, version, status, values, references):
