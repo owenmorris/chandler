@@ -249,11 +249,7 @@ class LinkedMap(dict):
 
     def keys(self):
 
-        keys = []
-        for key in self.iterkeys():
-            keys.append(key)
-
-        return keys
+        return [key for key in self.iterkeys()]
 
     def _keys(self):
 
@@ -261,19 +257,11 @@ class LinkedMap(dict):
 
     def values(self):
 
-        values = []
-        for item in self:
-            values.append(item)
-
-        return values
+        return [item for item in self]
 
     def _values(self):
 
-        values = []
-        for key in self._iterkeys():
-            values.append(self._get(key))
-
-        return values
+        return [self._get(key) for key in self._iterkeys()]
 
     def itervalues(self):
 
