@@ -1,0 +1,323 @@
+<html>
+
+<head>
+<link rel=StyleSheet href="osaf.css" type="text/css"/><title>The
+Chandler Query System</title>
+</head>
+
+<body>
+
+<center>
+<h1>The Chandler Query System</h1>
+</center>
+
+<h2>Overview</h2>
+The Chandler Repository provides a mechanism for performing queries over the contents of the repository.  These queries are declarative: you specify a set of conditions that you want Items to satisfy, and the query processor takes care retreiving the relevant items.  Queries are specified using strings, and the syntax of these strings is inspired by XQuery.
+<p />
+An unusual feature of the query system is the ability to have a query subscribe to changes in the repository.  When items are changed, the repository is able to notify the query of that change.  The query processor determines whether that change would cause the item to become part of the result of an existing query, or whether the change would cause the item to no longer be part of a query result set.
+<p/>
+Throughout this document we'll use the following terms:
+
+<dl>
+<dt>query</dt>
+<dd>A general term denoting a set of boolean conditions which in turn specify a set of Items.  Also a specific Python class that provides a programmer with an API for manipulating a query.</dd>
+
+<dt>query string</dt>
+<dd>A Python string that contains a textual representation of the query</dd>
+
+<dt>query result</dt>
+<dd>A set of Chandler Items that satisfy the boolean conditions for a query</dd>
+</dl>
+
+<h2>Python API</h2>
+
+The first thing that you'll need to know when working with queries is how to create them.  If you are working within the Chandler Parcel system, then you will be working with queries via parcel.xml when you deal with ItemCollections.  You will only need to know about the string syntax for queries, which is described in the next section.
+<p />
+
+To use a query, your code will look something like this
+
+<pre class="codebox">
+import repository.query.Query as Query
+
+q = Query.Query(Globals.repository, "for i in '//Schema/Core/Kind' where True")
+
+q.execute()
+
+for i in q:
+    print i
+</pre>
+
+The main query class is in repository.query.Query.  To instantiate this class, you supply an instance of a Chandler repository, and a query string.  The query string may be "".  This queries specifies all items of type <span class="path">//Schema/Core/Kind</span>.  You can update the value of the query string by changing the value of the attribute queryString:
+
+<pre class="codebox">q.queryString = "for i in '//Schema/Core/Kind' where True"</pre>
+
+
+
+<p />
+If your for query is iterating over Kinds, and you want to include items of a Kind's subkind, you should set the recursive attribute on the query object to True
+
+<pre class="codebox">q.recursive = True</pre>
+
+<p />
+If your query uses parameters, you should set the args attribute to a dict containing the arguments. The keys of the dict should be strings that begin with "$".
+
+This code shows how to pass reference collection as a parameter to a query.  You pass a tuple containing the UUID of the Chandler item that has a reference collection attribute and the name of the reference collection attribute (a string).
+<pre class="codebox">q.args["$name"] = (item.itsUUID, attributeName)</pre>
+
+This code shows how to pass an ordinary value -- this allows you to make comparisons to data in your python code (indicated by the variable name in this case). 
+<pre class="codebox">q.args["$0"] = [ name ]</pre>
+
+<p />
+
+
+<h2>Query String Syntax</h2>
+
+
+There are several kinds of queries. Simple queries are queries over sets of items. You can write a simple query using the for statement. Compound queries are queries composed from other queries.
+
+Keywords and required tokens in a query are shown in bold. The portions of the query that you supply are written in italics
+
+
+<h3>for queries</h3>
+
+The most basic query is a for query.  The syntax of a for query is:
+<p />
+<span class="codebox">
+for <em>var</em> in <em>set</em> where <em>boolean-condition</em>
+</span>
+<p />
+The result set of a for query is the set of items in <em>set</em> which satisfy the <em>boolean-condition</em>
+
+Here's what you need to supply for the various portions of a for query:
+<p />
+<em>var</em> is the iteration variable for the query.  For now, you should use 'i'. This constraint will be removed in the future.
+<p />
+<em>set</em> specifies a set of Items to apply the <em>boolean-condition</em> to.
+At the moment you can supply one of three possibilities for <em>set</em>:
+<ul>
+<li>repository paths for Kind names</li>
+These paths must enclosed in either "" or ''.
+
+<li>parameters</li>
+A parameter is a string which begins with $. You can pass a ref-collection as a parameter to do a query over a ref-collection.
+
+<li><span class="code">ftcontains(<em>lucene-query</em> , <em>attr-name1</em> , ... , <em>attr-namen</em>)</span></li>
+If you specify ftcontains, the source set is the result of a full text query using the Lucene query specfied by the string <em>lucene-query</em>.  This result contains a set of Items where the search text appears in any attribute whose name is listed in <em>attr-name1</em>, ..., <em>attr-namen</em>. The list of attributes names is optional (all attributes will be searched in this case).
+</ul>
+
+The <em>boolean-condition</em> is an expression which can refer to the iteration variable and parameter values. 
+<p />
+Here are the elements that you can use in the boolean condition.
+
+<p />
+The iteration variable for the query
+
+<p />
+The names of Chandler item attributes
+
+<p />
+Unary (prefix) operators
+<dl>
+<dt><span class="code">+ <em>expr</em></span></dt>
+<dd>Make numeric expression <em>expr</em> positive</dd>
+
+<dt><span class="code">- <em>expr</em></span></dt>
+<dd>Make numeric expression <em>expr</em> negative</dd>
+
+<dt><span class="code">not <em>expr</em></span></dt>
+<dd>Negate boolean expression <em>expr</em></dd>
+</dl>
+
+<p />
+Boolean operators:
+<dl>
+<dt><span class="code"><em>expr1</em> and <em>expr2</em></span></dt>
+<dd>Perform the logical and of <em>expr1</em> and <em>expr2</em></dd>
+
+<span class="code"><em>expr1</em> or <em>expr2</em></span></dt>
+<dd>Perform the logical or of <em>expr1</em> and <em>expr2</em></dd>
+
+<span class="code">not <em>expr</em></span></dt>
+<dd>Negate <em>expr</em></dd>
+</dl>
+<p />
+Relational operators:
+<dl>
+<dt><span class="code"><em>expr1</em> >= <em>expr2</em></span></dt>
+<dd>Return true if the numeric/date expression <em>expr1</em> is greater than or equal to the numeric expression <em>expr2</em></dd>
+
+<dt><span class="code"><em>expr1</em> <= <em>expr2</em></span></dt>
+<dd>Return true if the numeric/date expression <em>expr1</em> is less than or equal to the numeric expression <em>expr2</em></dd>
+
+<dt><span class="code"><em>expr1</em> > <em>expr2</em></span></dt>
+<dd>Return true if the numeric/date expression <em>expr1</em> is greater than the numeric expression <em>expr2</em></dd>
+
+<dt><span class="code"><em>expr1</em> < <em>expr2</em></span></dt>
+<dd>Return true if the numeric/date expression <em>expr1</em> is less than the numeric expression <em>expr2</em></dd>
+
+<dt><span class="code"><em>expr1</em> == <em>expr2</em></span></dt>
+<dd>Return true if <em>expr1</em> and <em>expr2</em> are equal according to the equality rules for their Kinds</dd>
+
+<dt><span class="code"><em>expr1</em> != <em>expr2</em></span></dt>
+<dd>Return true if <em>expr1</em> and <em>expr2</em> are not equal according to the equality rules for their Kinds</dd>
+</dl>
+
+<p />
+Arithmetic operators:
+<dl>
+<dt><span class="code"><em>expr1</em> + <em>expr2</em></span></dt>
+<dd>Add the numeric expressions <em>expr1</em> and <em>expr2</em></dd>
+
+<dt><span class="code"><em>expr1</em> - <em>expr2</em></span></dt>
+<dd>Subract the numeric expression <em>expr2</em> from the numeric expression <em>expr1</em></dd>
+
+<dt><span class="code"><em>expr1</em> * <em>expr2</em></span></dt>
+<dd>Multiply the numeric expression <em>expr1</em> by the numeric expression <em>expr2</em></dd>
+
+<dt><span class="code"><em>expr1</em> / <em>expr2</em></span></dt>
+<dd>Divide the numeric expression <em>expr1</em> by the numeric expression <em>expr2</em></dd>
+
+<dt><span class="code"><em>expr1</em> div <em>expr2</em></span></dt>
+<dd>Produce the result of integer dividing the numeric expression <em>expr1</em> by the numeric expression <em>expr2</em></dd>
+
+<dt><span class="code"><em>expr1</em> mod <em>expr2</em></span></dt>
+<dd>Produce the remainder of dividing the numeric expression <em>expr1</em> by the numeric expression <em>expr2</em></dd>
+</dl>
+<p />
+dates:
+<br />
+You can supply dates and times in eGenix mxDateTime ISO format like this: 
+<dt><span class="code">date(<em>ISO-date-string</em>)</span></dt>
+<dd>Construct a date instance that represents <em>ISO-date-string</em></dd>
+
+<p />
+functions: 
+<br />
+The set of available functions is fixed but easily extended
+<dl>
+<dt><span class="code">len(<em>expr</em>)</span></dt>
+<dd>Return the length of <em>expr</em>.  <em>expr</em> can be a string or a list Kind</dd>
+
+<dt><span class="code">contains(<em>string</em>, <em>substring</em>)</span></dt>
+<dd>Return true if <em>string</em> contains <em>substring</em></dd>
+
+<dt><span class="code">hasAttribute(<em>string</em>)</span></dt>
+<dd>A method on Chandler Items that returns True if the Item has an attribute named <em>string</em></dd>
+</dl>
+<h4>Example queries</h4>
+Here are some example query strings
+<p />
+The result of the query below is the set of all Contact items whose contactName child item' firstName attribute contains the letter 'a'.  It shows the use of a Kind name as the source.  In the where clause, we see the use of the iteration variable <em>i</em>, as well as the names of attributes (<em>contactName</em>, <em>firstName</em>).  This example also shows the use of the <em>contains</em> function.
+<pre class="codebox">for i in '//parcels/osaf/contentmodel/contacts/Contact' 
+    where contains(i.contactName.firstName,'a')</pre>
+
+This query illustrates the use of a parameter, <em>$1</em> as the source set.
+
+<pre class="codebox">for i in $1 where contains(i.itsName,"arc")</pre>
+
+This query demonstrates the use of a full text query for the source set.  The lucene query is <em>femme AND homme</em> which returns all items containing the text <em>femme</em> and the text <em>homme</em>.  Since we've provided an attribute argument to <em>ftcontains</em>, <em>synopsis</em>, the source set will be only those items whose <em>synopsis</em> attribute contains the text <em>femme</em> and the text <em>homme</em>.  The query's where clause shows the use of the <em>len</em> function to further limit the items that will be in the query result.
+
+<pre class="codebox">for i in ftcontains('femme AND homme','synopsis') where len(i.title) < 10</pre>
+
+This query shows that you can use parameters <em>$0</em> in the where clause as well, allowing you to use run time values from the python environment inside a query.
+
+<pre class="codebox">for i in "//Schema/Core/Kind" 
+    where contains(i.itsName,$0)</pre>
+
+Our final example shows how to use dates in a query.  Note the use of the <em>date</em> constructor to create a data literal which is then compared to the <em>startTime</em> attribute of <em>i</em> (<em>i</em> will be a <em>CalendarEvent</em>)
+<pre class="codebox">for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' 
+    where i.startTime > date('2004-09-31 12:34:56')</pre>
+
+
+<h3>Union Queries</h3>
+
+<dl>
+<dt><span class="code">union(<em>query1</em>,<em>query2</em>, <em>...</em> , <em>queryn</em>)</span></dt>
+<dd>Compute the union of queries 1..n and return that as the result.</dd>
+</dl>
+
+<h4>Example queries</h4>
+
+This query is composed of three for queries that show the same pattern.  They all use a Kind path as the source set, and use <em>True</em> as the where clause, to indicate all items of a particular kind.  The <em>union</em> operator simply creates the union of the three for queries.
+
+<pre class="codebox">
+union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True,
+      for i in "//parcels/osaf/contentmodel/Note" where True, 
+      for i in "//parcels/osaf/contentmodel/contacts/Contact" where True)
+</pre>
+
+<h3>Intersection Queries</h3>
+
+<dl>
+<dt><span class="code">intersect(<em>query1</em>,<em>query2</em>)</span></dt>
+<dd>Compute the intersection of query1 and query2 and return that as the result.</dd>
+</dl>
+<h4>Example queries</h4>
+This query computes the intersection of those Kind items whose name contains 'o' and those Kind items whose name contains 't'
+<pre class="codebox">
+intersect(for i in '//Schema/Core/Kind' where contains(i.itsName,'o'),
+          for i in '//Schema/Core/Kind' where contains(i.itsName,'t'))
+</pre>
+
+<h3>Difference Queries</h3>
+
+<dl>
+<dt><span class="code">difference(<em>query1</em>,<em>query2</em>)</span></dt>
+<dd>Compute the difference of query1 and query2 and return that as the result.</dd>
+
+<h4>Example queries</h4>
+
+The result of this query is those Kind items whose names contain 'o'  and do not contain 't'.
+
+<pre class="codebox">
+difference(for i in '//Schema/Core/Kind' where contains(i.itsName,'o'),
+           for i in '//Schema/Core/Kind' where contains(i.itsName,'t'))"
+</pre>
+
+<h2>Query Notification</h2>
+In Chandler 0.4, queries may subscribe to be notified of changes to items in the repository.  This works by calling the <em>subscribe</em> method on a Query object.  The arguments to <em>subscribe</em> are the UUID a Chandler item, and the name of a method on that item (this name is a string). 
+<dl>
+<dt><span class="code">q.subscribe(<em>itemUUID</em>, <em>methodName</em>)</span></dt>
+<dd>call <em>methodName</em> on the item whose UUID is <em>itemUUID</em> when changed items enter or leave the query result set.</dd>
+</dl>
+Every time items are committed to the respository, the query system will call all subscribed methods.  These methods might look like this:
+
+<pre class="codebox">
+def handle(self, action):
+    print action # simple action
+</pre>
+
+The <em>action</em> argument to the callback method is a string with one of two values.  If the changed object now satisfies the boolean condition of the query, then the value of <em>action</em> will be 'entered'.  If the changed object no longer satisfies the boolean condition of the query then the value of <em>action</em> will be exited.  (if the change to the item didn't affect its membership in the query result set, then handle wouldn't have been called).
+
+
+<h2>Future plans</h2>
+We are planning a number of improvements to the query system:
+<dl>
+<dt>Queries as items</dt>
+<dd>Currently queries are not Chandler items.  In a future release ofChandler, queries will be items.</dd>
+<dt>Query results as ref-collections</dt>
+<dd>Today the results of a query are a Python list, and do not persist.  In a future release of Chandler, query result sets will be persisted as reference collections</dd>
+<dt>Better notation for recursive queries</dt>
+<dd>In a future release of Chandler, you will be able to specify the recursivenesss of a kind query directly in the query string</dd>
+<dt>Performance enhancements</dt>
+<dd>There are a number of ways to improve the performance of queries in Chandler.   This work will be ongoing over the next several releases.</dd>
+</dl>
+
+<hr />
+We want to update and improve this document<p />
+
+Please send any comments to <a href=mailto:dev@osafoundation.org>dev@osafoundation.org.</a> 
+<hr>
+$Revision$<br>
+$Date$<br>
+$Author$<br>
+$Log$
+Revision 1.1  2004/10/12 20:08:20  twl
+Fix bug 2112 - 0.4 Query documentation update
+
+
+<br>
+
+</body>
+</html>
+
