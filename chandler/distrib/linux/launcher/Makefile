@@ -1,26 +1,20 @@
 # XXX The compiler you are using
 CC=	 	gcc
 
-# XXX Top of the build tree and source tree
-blddir=		../../../../python
-srcdir=		../../../../python
-
-# Python version
-VERSION=	2.3
-
 # Compiler flags
-INCLUDES=	-I$(srcdir)/Include -I$(blddir)
-CPPFLAGS=	$(INCLUDES)
 ifeq ($(DEBUG),1)
     CFLAGS=		-g -DDEBUGMODE=1
+    INCLUDES=	-I../../../../debug/include/python2.3
+    LIBPYTHON=	../../../../debug/lib/python2.3/config/libpython2.3.a
 else
+    INCLUDES=	-I../../../../release/include/python2.3
+    LIBPYTHON=	../../../../release/lib/python2.3/config/libpython2.3.a
     CFLAGS=		-O
 endif
+CPPFLAGS=	$(INCLUDES)
 
-# The Python library
-LIBPYTHON=	$(blddir)/libpython$(VERSION).a
 
-# XXX edit LIBS (in particular) to match $(blddir)/Modules/Makefile
+# XXX edit LIBS (in particular) to match Modules/Makefile
 LIBS=		-lnsl -ldl -lreadline -ltermcap -lieee -lpthread -lutil
 LDFLAGS=	-Xlinker -export-dynamic
 SYSLIBS=	-lm
