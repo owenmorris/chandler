@@ -14,7 +14,9 @@ SYSTEMS=persistence/db \
         zope \
         twisted \
         pychecker \
-        yapps
+        yapps \
+	vobject \
+	dateutil
 
 .PHONY: sources expand binaries $(SYSTEMS)
 
