@@ -169,6 +169,14 @@
             <initialValue type="Boolean" value="False" />
         </Attribute>
 
+        <Attribute itsName="useTLS">
+            <displayName value="Use TLS" />
+            <description value="Issue a STARTTLS Command" />
+            <type itemref="Boolean" />
+            <initialValue type="Boolean" value="False" />
+        </Attribute>
+
+
         <Attribute itsName="accounts">
             <displayName value="Accounts" />
             <description value="Which IMAP accounts use this SMTP account as their default" />
