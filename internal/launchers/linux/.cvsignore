@@ -1,3 +1,4 @@
 chandler
 chandler_bin
 *.o
+build_debug build_release
