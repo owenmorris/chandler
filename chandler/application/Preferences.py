@@ -6,13 +6,14 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF License"
 
-from wxPython.wx import *
-from application.persist import Persist
+from Persistence import Persistent, PersistentDict
 
-class Preferences (Persist.Persistent):
+class Preferences (Persistent):
     """
        Global Application preferences. """
     def __init__(self):
-        self.windowSize = {'width':389, 'height':310}     #Default window size
+        self.windowSize = PersistentDict.PersistentDict()
+        self.windowSize['width'] = 389
+        self.windowSize['height'] = 310
 
 

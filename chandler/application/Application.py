@@ -9,7 +9,7 @@ import os, sys, stat
 from wxPython.wx import *
 from wxPython.xrc import *
 from application.Preferences import Preferences
-from application.persist import Persist
+from Persistence import Persistent, PersistentDict
 import application.ChandlerWindow
 
 from ZODB import DB, FileStorage 
@@ -32,9 +32,16 @@ class Application(Persistent):
     def __init__(self):
         """
           Create instances of other objects that belong to the application.
+        Here are all the public attributes:
+
+        self.preferences               object containing all application preferences
+        self.mainFrame                 ChandlerWindow
+        self.URLTree                   tree of parcel views
+        self.version                   see __setstate__
         """
         self.preferences = Preferences()
         self.mainFrame = application.ChandlerWindow.ChandlerWindow()
+        self.URLTree = PersistentDict.PersistentDict ()
         self.version = 0
     
     def SynchronizeView(self):
@@ -166,5 +173,5 @@ class wxApplication (wxApp):
                os.path.exists (pathToPackage + os.sep + "__init__.py"):
                 module = __import__(directory, globals, locals, ['*'])
                 self.parcels.append (module.parcelClass)
-                module.parcelClass.Install()
+                module.parcelClass.Install ()
 
