@@ -13,6 +13,13 @@ src=release/bin
 dest=bin
 python
 
+# Grab the WX libs
+src=release
+recursive=no
+dest=
+glob=libwx*
+lib
+
 # Recursively grab python libraries
 src=release/lib
 dest=lib
@@ -36,9 +43,6 @@ python2.3/xml
 recursive=no
 python2.3
 
-# Grab the WX GTK library
-libwx_gtk-2.4.so
-libwx_gtk2-2.4.so
 
 # Grab the DB libraries
 dest=lib
@@ -48,15 +52,20 @@ libdb-4.2.so
 libdb_java-4.2.so
 src=release/lib
 libxerces-c.so.24
+libxerces-c.so.24.0
 libpathan.so.2
+libpathan.so.2.0.2
 libxml2.so.2
+libxml2.so.2.6.3
 src=release/dbxml/lib
 libdbxml-1.2.so
 
 # Grab the gcj 3.3 runtime libs
 src=${gcj}/../lib
 libgcj.so.4
+libgcj.so.4.0.0
 libstdc++.so.5
+libstdc++.so.5.0.5
 libgcc_s.so.1
 
 # Grab Chandler.py, and others

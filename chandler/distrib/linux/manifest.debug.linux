@@ -13,6 +13,13 @@ src=debug/bin
 dest=bin
 python_d
 
+# Grab the WX libs
+src=debug
+recursive=no
+dest=
+glob=libwx*
+lib
+
 # Recursively grab python libraries
 src=debug/lib
 dest=lib
@@ -36,10 +43,6 @@ python2.3/xml
 recursive=no
 python2.3
 
-# Grab the WX GTK library
-libwx_gtkd-2.4.so
-libwx_gtk2d-2.4.so
-
 # Grab the DB libraries
 dest=lib
 src=debug/db/lib
@@ -48,15 +51,20 @@ libdb-4.2.so
 libdb_java-4.2.so
 src=debug/lib
 libxerces-c.so.24
+libxerces-c.so.24.0
 libpathan.so.2
+libpathan.so.2.0.2
 libxml2.so.2
+libxml2.so.2.6.3
 src=debug/dbxml/lib
 libdbxml-1.2.so
 
 # Grab the gcj 3.3 runtime libs
 src=${gcj}/../lib
 libgcj.so.4
+libgcj.so.4.0.0
 libstdc++.so.5
+libstdc++.so.5.0.5
 libgcc_s.so.1
 
 # Grab Chandler.py, and others
