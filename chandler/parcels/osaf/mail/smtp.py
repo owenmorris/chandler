@@ -290,7 +290,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
             elif errorType == errors.SSL_ERROR:
                 deliveryError.errorCode = errors.SSL_CODE
 
-            elif errorType == errors.cONNECTION_REFUSED_ERROR:
+            elif errorType == errors.CONNECTION_REFUSED_ERROR:
                 deliveryError.errorCode = errors.CONNECTION_REFUSED_CODE
 
         elif errorType == errors.DNS_LOOKUP_ERROR:
