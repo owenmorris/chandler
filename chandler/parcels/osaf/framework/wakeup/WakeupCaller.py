@@ -35,11 +35,12 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
         reactor.suggestThreadPoolSize(size)
 
         for item in self.wakeupCallies.values():
-            if item.enabled:
-                if item.callOnStartup:
-                    reactor.callInThread(item.receiveWakeupCall)
+            if not item.enabled:
+                continue
 
-            #attach an errorback?
+            if item.callOnStartup:
+                reactor.callInThread(item.receiveWakeupCall)
+
             item.handle = reactor.callLater(item.delay.seconds, self.execInView, 
                                             self.__triggerEvent, item.itsUUID)
 
@@ -52,10 +53,13 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
 
     def __askForWakeupCall(self, item):
         if not item.enabled:
-            return 
+            return
 
         self.wakeupCallies[item.itsUUID] = item
-        #No startup
+
+        if item.callOnStartup:
+            reactor.callInThread(item.receiveWakeupCall)
+
         item.handle = reactor.callLater(item.delay.seconds, self.execInView,
                                         self.__triggerEvent, item.itsUUID)
 
@@ -85,7 +89,8 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
         reactor.callInThread(item.receiveWakeupCall)
 
         if item.repeat:
-            item.handle = reactor.callLater(item.delay.seconds, self.execInView, self.__triggerEvent, item.itsUUID)
+            item.handle = reactor.callLater(item.delay.seconds, self.execInView,
+                                            self.__triggerEvent, item.itsUUID)
 
         else:
             item.handle = None
@@ -102,14 +107,11 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
 
         for item in self.wakeupCallies.values():
             if item.handle is not None:
-                tem.handle.cancel()
+                item.handle.cancel()
 
             del self.wakeupCallies[item.itsUUID]
 
     def __populate(self):
         wakeupKind = Globals.repository.findPath('//parcels/osaf/framework/wakeup/WakeupCall')
         for wakeup in Query.KindQuery().run([wakeupKind]):
-            try:
-                self.wakeupCallies[wakeup.itsUUID] = wakeup
-            except AttributeError:
-                print "Error Dude"
+            self.wakeupCallies[wakeup.itsUUID] = wakeup
