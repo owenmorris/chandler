@@ -29,9 +29,9 @@
   </Kind>
 
   <items:Kind2 itemName="TestInstance1">
-    <super:RefAttribute itemref="items:TestInstance2"/>
-    <super:EnumAttribute>B</super:EnumAttribute>
-    <super:StringAttribute>XYZZY</super:StringAttribute>
+    <RefAttribute itemref="items:TestInstance2"/>
+    <EnumAttribute>B</EnumAttribute>
+    <StringAttribute>XYZZY</StringAttribute>
   </items:Kind2>
 
   <items:Kind2 itemName="TestInstance2" />
