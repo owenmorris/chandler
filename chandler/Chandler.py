@@ -62,7 +62,7 @@ def loadConfig(chandlerDirectory):
     Sets Globals.options and Globals.args
     """
                       # option name, (value, short cmd, long cmd, type flag, default, environment variable, help text)
-    _configItems = { 'parcelDir':  ('-p', '--parcelDir',  's', None,  'PARCELDIR',         'Location for private/user parcels'),
+    _configItems = { 'parcelPath':  ('-p', '--parcelPath',  's', None,  'PARCELPATH',         'Parcel search path'),
                      'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
                      'profileDir': ('-P', '--profileDir', 's', None,  'PROFILEDIR',        'location of the Chandler Repository'),
                      'profile':    ('',   '--prof',       'b', False, None, 'save profiling data'),

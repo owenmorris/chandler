@@ -157,17 +157,28 @@ class wxApplication (wx.App):
         to import parcels. Making sure we modify the path as early as possible
         in the initialization as possible minimizes the risk of bugs.
         """
-        parcelDir = os.path.join(Globals.chandlerDirectory,
-                                 self.PARCEL_IMPORT.replace ('.', os.sep))
-        sys.path.insert (1, parcelDir)
+        parcelPath = []
+        parcelPath.append(os.path.join(Globals.chandlerDirectory,
+                          self.PARCEL_IMPORT.replace ('.', os.sep)))
+
         """
-        If PARCELDIR env var is set, put that
-        directory into sys.path before any modules are imported.
+        If PARCELPATH env var is set, append those directories to the
+        list of places to look for parcels.
         """
-        debugParcelDir = Globals.options.parcelDir
-        if debugParcelDir and os.path.exists(debugParcelDir):
-            logger.info("Using PARCELDIR (%s)" % debugParcelDir)
-            sys.path.insert (2, debugParcelDir)
+        if Globals.options.parcelPath:
+            for directory in Globals.options.parcelPath.split(os.pathsep):
+                if os.path.isdir(directory):
+                    parcelPath.append(directory)
+                else:
+                    logger.warning("'%s' not a directory; skipping" % directory)
+
+        insertionPoint = 1
+        for directory in parcelPath:
+                sys.path.insert(insertionPoint, directory)
+                insertionPoint += 1
+
+        logger.info("Using PARCELPATH %s" % parcelPath)
+
         """
           Splash Screen.
 
@@ -250,12 +261,9 @@ class wxApplication (wx.App):
           Load Parcels
         """
         if splash: splash.updateGauge('parcels')
-        parcelSearchPath = [ parcelDir ]
-        if debugParcelDir:
-            parcelSearchPath.append( debugParcelDir )
         wx.Yield()
         application.Parcel.Manager.get(self.UIRepositoryView,
-                                       path=parcelSearchPath).loadParcels()
+                                       path=parcelPath).loadParcels()
 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
 
