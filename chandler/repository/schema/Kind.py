@@ -462,57 +462,35 @@ class Kind(Item):
 
     # end typeness of Kind as SingleRef
 
-    def getCloud(self, cloudAlias, **kwds):
+    def getClouds(self, cloudAlias=None):
         """
-        Get the cloud for this alias, inheriting it if necessary.
+        Get clouds for this kind, inheriting them if necessary.
 
-        @param cloudAlias: the alias the cloud reference is stored under in
-        the kind's C{clouds} ref collection.
-        @type cloudAlias: a string
-        @return: a L{Cloud<repository.schema.Cloud.Cloud>} instance, 
-        C{default} if specified, raises TypeError otherwise.
+        If there are no matching clouds, the matching clouds of the direct
+        superKinds are returned, recursively.
+
+        if C{cloudAlias} is not specified or C{None}, the first cloud of
+        each cloud list traversed is returned.
+
+        @return: a L{Cloud<repository.schema.Cloud.Cloud>} list, possibly empty
         """
 
+        results = []
         clouds = self.getAttributeValue('clouds', default=None,
                                         _attrDict=self._references)
 
-        if not clouds or not clouds.resolveAlias(cloudAlias):
+        if clouds is None or (cloudAlias is not None and
+                              clouds.resolveAlias(cloudAlias) is None):
             for superKind in self._getSuperKinds():
-                cloud = superKind.getCloud(cloudAlias, default=None)
-                if cloud is not None:
-                    return cloud
-        else:
-            return clouds.getByAlias(cloudAlias)
+                results.extend(superKind.getClouds(cloudAlias))
 
-        try:
-            return kwds['default']
-        except KeyError:
-            raise TypeError, 'No cloud aliased %s for kind %s' %(cloudAlias,
-                                                                 self.itsPath)
+        elif cloudAlias is not None:
+            results.append(clouds.getByAlias(cloudAlias))
 
-    def getClouds(self, **kwds):
-        """
-        Get the clouds for this kind, inheriting them if necessary.
+        elif len(clouds) > 0:
+            results.append(clouds.first())
 
-        @return: a L{Cloud<repository.schema.Cloud.Cloud>} ref collection or
-        C{default} if specified, raises TypeError otherwise.
-        """
-
-        clouds = self.getAttributeValue('clouds', default=None,
-                                        _attrDict=self._references)
-
-        if not clouds:
-            for superKind in self._getSuperKinds():
-                clouds = superKind.getClouds(default=None)
-                if clouds:
-                    return clouds
-        else:
-            return clouds
-
-        try:
-            return kwds['default']
-        except KeyError:
-            raise TypeError, 'No cloud for kind %s' % self.itsPath
+        return results
 
 
     NoneString = "__NONE__"

@@ -1322,9 +1322,10 @@ class Item(object):
             return copies[self._uuid]
 
         if cloudAlias is not None:
-            cloud = self._kind.getCloud(cloudAlias)
-            cloud.copyItems(self, name, parent, copies, cloudAlias)
-            return copies[self._uuid]
+            clouds = self._kind.getClouds(cloudAlias)
+            for cloud in clouds:
+                cloud.copyItems(self, name, parent, copies, cloudAlias)
+            return copies.get(self._uuid)
             
         cls = type(self)
         item = cls.__new__(cls)

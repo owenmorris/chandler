@@ -121,6 +121,25 @@ class PersistentCollection(object):
 
         return None
 
+    def _getItems(self, items=None):
+
+        if self._companion is not None:
+            for item in self._item.getAttributeValue(self._companion):
+                yield item
+        else:
+            if items is None:
+                items = {}
+            for value in self._itervalues():
+                if isinstance(value, SingleRef):
+                    value = self._restoreValue(value)
+                    if value is not None:
+                        if value not in items:
+                            items[value] = value
+                            yield value
+                elif isinstance(value, PersistentCollection):
+                    for v in value._getItems(items):
+                        yield v
+
 
 class PersistentList(list, PersistentCollection):
     'A persistence aware list, tracking changes into a dirty bit.'

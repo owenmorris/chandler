@@ -8,6 +8,7 @@ import libxml2, re
 
 from repository.item.Item import Item
 from repository.item.ItemRef import RefDict
+from repository.item.PersistentCollections import PersistentCollection
 from repository.remote.CloudFilter import CloudFilter, EndpointFilter
 from repository.remote.CloudFilter import RefHandler
 from repository.persistence.RepositoryError import NoSuchItemError
@@ -42,6 +43,13 @@ class Cloud(Item):
               The results of the cloud gathering operation are merged with
               the current one.
 
+            - C{byMethod}: the method named in the endpoint's C{method}
+              attribute is invoked on the item with the current C{items}, 
+              C{references} and C{cloudAlias} arguments. The method is
+              supposed to return a list of items to include into the cloud
+              and is supposed to fill the C{items} and C{references}
+              dictionaries as this method does.
+
         @param item: the entry point of the cloud.
         @type item: an C{Item} instance
         @param items: an optional dictionary keyed on the item UUIDs that
@@ -71,16 +79,31 @@ class Cloud(Item):
         else:
             results = []
 
+        def append(values, value):
+            if isinstance(value, Item):
+                values.append(value)
+            elif isinstance(value, PersistentCollection):
+                values.extend(value._getItems())
+            elif isinstance(value, RefDict):
+                values.extend(value)
+            else:
+                raise TypeError, type(value)
+
         for endpoint in self.endpoints:
             value = item
             for name in endpoint.attribute:
-                if isinstance(value, RefDict) or isinstance(value, list):
-                    value = [v.getAttributeValue(name, default=None,
-                                                 _attrDict=v._references)
-                             for v in value if v is not None]
+                if isinstance(value, PersistentCollection):
+                    values = []
+                    for v in value._getItems():
+                        append(values, v.getAttributeValue(name, default=None))
+                    value = values
+                elif isinstance(value, RefDict) or isinstance(value, list):
+                    values = []
+                    for v in value:
+                        append(values, v.getAttributeValue(name, default=None))
+                    value = values
                 else:
-                    value = value.getAttributeValue(name, default=None,
-                                                    _attrDict=value._references)
+                    value = value.getAttributeValue(name, default=None)
                     if value is None:
                         break
 
@@ -233,20 +256,31 @@ class Endpoint(Item):
             references[item._uuid] = item
 
         elif policy == 'byCloud':
+
+            def getItems(cloud):
+                results.extend(cloud.getItems(item, items, references,
+                                              cloudAlias))
+                               
             cloud = self.getAttributeValue('cloud', default=None,
                                            _attrDict=self._references)
-            if cloud is None:
+            if cloud is not None:
+                getItems(cloud)
+            else:
                 kind = item._kind
                 if cloudAlias is None:
                     cloudAlias = self.getAttributeValue('cloudAlias',
                                                         default=None,
                                                         _attrDict=self._values)
-                if cloudAlias is not None:
-                    cloud = kind.getCloud(cloudAlias)
-                else:
-                    cloud = kind.getClouds().first()
+                clouds = kind.getClouds(cloudAlias)
+                for cloud in clouds:
+                    getItems(cloud)
 
-            results.extend(cloud.getItems(item, items, references, cloudAlias))
+        elif policy == 'byMethod':
+            method = self.getAttributeValue('method', default=None,
+                                            _attrDict=self._values)
+            if method is not None:
+                results.extend(getattr(type(item), method)(items, references,
+                                                           cloudAlias))
 
         else:
             raise NotImplementedError, policy
