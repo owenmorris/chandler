@@ -33,6 +33,7 @@
 
 .inheritanceBox {
    float: left;
+   background-color:#C5CAEB;
 }
 
 .inheritanceBranch {
@@ -47,14 +48,13 @@
 
 
 .detailLabel {
-	padding-top:5px;
 	padding-right: 4px;
 	font-weight: bold;
 }
 
 .sentenceHeader {
 	padding-top:5px;
-	padding-left: 6px;
+
 	padding-right: 4px;
 	font-family: Verdana, Arial, Helvetica, sans-serif;
 }
@@ -64,6 +64,13 @@ margin-bottom: 10px;
 border-width: 1px;
 padding: 5px;
 border-style:solid;
+}
+
+.kindDetailBox {
+border-width: 1px;
+padding: 5px;
+border-style:solid;
+background-color:#FFFFFF;
 }
 
 .topDetailBox {
@@ -78,7 +85,7 @@ background-color:#C5CAEB;
 
 .detailBox {
 margin-top: 5px;
-background-color:#FFFFCC;
+background-color:#F0F0F0;
 margin-left:10px;
 margin-right:10px;
 }
@@ -89,6 +96,6 @@ margin:0px;
 }
 
 .sectionBox {
-	background-color:#F0F0F0;
+	background-color:#FFFFFF;
 }
 
