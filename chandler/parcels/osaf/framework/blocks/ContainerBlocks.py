@@ -507,6 +507,7 @@ class wxTreeList(wxTreeListCtrl):
     def __init__(self, *arguments, **keywords):
         wxTreeListCtrl.__init__ (self, *arguments, **keywords)
         EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnExpanding)
+        EVT_TREE_ITEM_COLLAPSING(self, self.GetId(), self.OnCollapsing)
         EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
         EVT_TREE_SEL_CHANGED(self, self.GetId(), self.OnItemActivated)
  
@@ -520,6 +521,9 @@ class wxTreeList(wxTreeListCtrl):
         notification = Notification(event, None, None)
         notification.SetData(arguments)
         Globals.notificationManager.PostNotification (notification)
+
+    def OnCollapsing(self, event):
+        self.DeleteChildren (event.GetItem())
 
     def OnColumnDrag(self, event):
         counterpart = Globals.repository.find (self.counterpartUUID)
