@@ -2,7 +2,6 @@
 include ../Makefile.inc
 
 VERSION=0.9.7d
-RELVER=$(VERSION)-1
 OPENSSL=$(BUILD_ROOT)/openssl
 SRC=$(OPENSSL)/openssl-$(VERSION)
 
@@ -112,7 +111,7 @@ snap:
 
 endif
 
-$(SRC): apply
+$(SRC)/Configure: expand
 
 expand: openssl-$(VERSION).tar.gz
 	tar xvzf openssl-$(VERSION).tar.gz
