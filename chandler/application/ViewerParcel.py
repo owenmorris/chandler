@@ -13,6 +13,7 @@ from wxPython.wx import *
 from wxPython.xrc import *
 from application.Parcel import Parcel
 from application.Application import app
+from persistence.list import PersistentList
 
 class ViewerParcel (Parcel):
     """
@@ -50,10 +51,14 @@ class ViewerParcel (Parcel):
             else:
                 instance = theClass.__new__ (theClass)
             instance.__init__()
-            app.model.URLTree.append ([instance, instance.displayName, []])
+            itemList = PersistentList()
+            itemList.append(instance)
+            itemList.append(instance.displayName)
+            itemList.append(PersistentList())
+            app.model.URLTree.append (itemList)
         
     Install = classmethod (Install)
-
+    
     def SynchronizeView (self):
         """
           If it isn't in the association we need to construct it and
@@ -111,7 +116,7 @@ class ViewerParcel (Parcel):
                                                           panel)
             panel.Activate()
             panel.Show ()
-
+    
 class wxViewerParcel(wxPanel):
     def __init__(self):
         """
