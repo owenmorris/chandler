@@ -151,32 +151,72 @@ class HTML(RectangularChild):
                                    self.Calculate_wxBorder())
         return htmlWindow, None, None
 
-    
+ 
+class ListDelegate:
+    """
+      Default delegate for Lists that use the block's contentSpec. Override
+    to customize your behavior.
+    """
+    def ElementText (self, index, column):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        result = counterpart.contentSpec.indexResult (item)
+        column = counterpart.columnHeadings[column]
+        try:
+            return str (result.getAttributeValue(column))
+        except AttributeError:
+            return ""
+
+    def ElementCount (self):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        return counterpart.contentSpec.getResultSize()
+
+
 class wxListBlock(wxListCtrl):
-    """
-      Under construction
-    """
     def __init__(self, *arguments, **keywords):
         wxListCtrl.__init__(self, *arguments, **keywords)
         EVT_LIST_ITEM_SELECTED(self, self.GetId(), self.On_wxSelectionChanged)
+        EVT_IDLE(self, self.OnIdle)
+        EVT_SIZE(self, self.OnSize)
+        self.scheduleUpdate = False
+        self.lastUpdateTime = 0
 
-    def AddListItem(self, row, labels, data):
-        self.InsertStringItem(row, labels.pop(0))
-        column = 1
-        for label in labels:
-            self.SetStringItem(row, column, label)
-            column += 1
-#        self.SetItemData(row, self.GetPyData(data))
+    def OnIdle(self, event):
+        """
+          Wait a second after a update is first scheduled before updating
+        and don't update more than once a second.
+        """
+        if self.scheduleUpdate:
+            if (time.time() - self.lastUpdateTime) > 1.0:
+                self.SynchronizeFramework()
+        else:
+            lastupdateTime = time.time()
+        event.Skip()
+
+    def OnSize(self, event):
+        size = event.GetSize()
+        widthMinusLastColumn = 0
+        assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
+        for column in range (self.GetColumnCount() - 1):
+            widthMinusLastColumn += self.GetColumnWidth (column)
+        lastColumnWidth = size.width - widthMinusLastColumn
+        if lastColumnWidth > 0:
+            self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
+        event.Skip()
 
     def On_wxSelectionChanged(self, event):
         counterpart = Globals.repository.find (self.counterpartUUID)
+        item = counterpart.contentSpec.indexResult (event.GetIndex())
         counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
-                          {'id':event.GetItem()})
-        
+                          {'item':item})
+
     def SynchronizeFramework(self):
         counterpart = Globals.repository.find (self.counterpartUUID)
-        mixinAClass (self, wxTree, counterpart.elementDelegate)
+        elementDelegate = counterpart.elementDelegate
+        if not elementDelegate:
+            elementDelegate = '//parcels/OSAF/framework/blocks/ControlBlocks/ListDelegate'
+        mixinAClass (self, elementDelegate)
 
+        self.Freeze()
         for index in xrange (self.GetColumnCount()):
             self.DeleteColumn(0)
 
@@ -185,13 +225,44 @@ class wxListBlock(wxListCtrl):
                               str(counterpart.columnHeadings[index]),
                               width = counterpart.columnWidths[index])
 
+        self.Thaw()
         self.DeleteAllItems()
-        counterpart.GetListData(self)
+        self.SetItemCount (self.ElementCount())
+        try:
+            subscription = self.subscriptionUUID
+        except AttributeError:
+            counterpart = Globals.repository.find (self.counterpartUUID)
+            try:
+                queryItem = counterpart.contentSpec
+            except AttributeError:
+                pass
+            else:
+                events = [Globals.repository.find('//parcels/OSAF/framework/item_changed'),
+                          Globals.repository.find('//parcels/OSAF/framework/item_added'),
+                          Globals.repository.find('//parcels/OSAF/framework/item_deleted')]
+                self.subscriptionUUID = UUID()
+                Globals.notificationManager.Subscribe (events,
+                                                       self.subscriptionUUID,
+                                                       queryItem.onItemChanges)
+                queryItem.resultsStale = True
+                
+        self.scheduleUpdate = False
+        self.lastUpdateTime = time.time()
+        
+    def __del__(self):
+        Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
+        del Globals.association [self.counterpartUUID]
+
+
+    def OnGetItemText (self, index, column):
+        """
+          OnGetItemText won't be called if it's in the delegate -- WxPython won't
+        call it if it's in a base class
+        """
+        return self.ElementText (index, column)
+
 
 class List(RectangularChild):
-    """
-      Under construction
-    """
     def renderOneBlock (self, parent, parentWindow):
         list = wxListBlock(parentWindow,
                            Block.getwxID(self),
@@ -207,7 +278,11 @@ class List(RectangularChild):
         style = wxLC_REPORT|wxLC_VIRTUAL|wxSUNKEN_BORDER|wxLC_EDIT_LABELS
         return style
 
-        
+    def NeedsUpdate(self):
+        wxWindow = Globals.association[self.getUUID()]
+        wxWndow.scheduleUpdate = True    
+
+
 class RadioBox(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
         if self.radioAlignEnum == "Across":
@@ -314,10 +389,14 @@ class wxTreeAndList:
 
     def OnIdle(self, event):
         """
-          Don't update screen more than once a second
+          Wait a second after a update is first scheduled before updating
+        and don't update more than once a second.
         """
-        if self.scheduleUpdate and (time.time() - self.lastUpdateTime) > 1.0:
-            self.SynchronizeFramework()
+        if self.scheduleUpdate:
+           if (time.time() - self.lastUpdateTime) > 0.5:
+                self.SynchronizeFramework()
+        else:
+            lastupdateTime = time.time()
         event.Skip()
 
     def OnSize(self, event):
@@ -453,11 +532,6 @@ class wxTreeAndList:
                       Globals.repository.find('//parcels/OSAF/framework/item_deleted')]
             counterpart = Globals.repository.find (self.counterpartUUID)
             self.subscriptionUUID = UUID()
-            """
-              Temporarily comment out event subscriptions. This cause gazillions of
-            crashes, which may be related to threads, race conditions, repository
-            interactions. We'll need some more time to track this down in detail.
-            """
             Globals.notificationManager.Subscribe (events,
                                                    self.subscriptionUUID,
                                                    self.NeedsUpdate)

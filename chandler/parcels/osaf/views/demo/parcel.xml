@@ -19,8 +19,7 @@
     Queries
   -->
   <Query itemName="myQuery">
-    <queryEnum>listOfItems</queryEnum>
-    <data></data>
+    <queryEnum>ListOfItems</queryEnum>
   </Query>
 
   <!--

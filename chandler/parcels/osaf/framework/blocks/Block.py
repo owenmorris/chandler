@@ -86,6 +86,15 @@ class Block(Item):
         return id
     getwxID = classmethod (getwxID)
 
+    def update (self):
+        try:
+            theWindow = Globals.association[self.getUUID()]
+        except KeyError:
+            pass
+        else:
+            if hasattr(theWindow, "scheduleUpdate"):
+                theWindow.scheduleUpdate = True
+
 
 class ContainerChild(Block):
     def render (self, parent, parentWindow):

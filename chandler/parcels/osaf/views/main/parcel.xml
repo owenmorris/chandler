@@ -22,13 +22,12 @@
     Queries
   -->
   <Query itemName="myQuery">
-    <queryEnum>listOfItems</queryEnum>
-    <data></data>
+    <queryEnum>ListOfItems</queryEnum>
   </Query>
 
   <Query itemName="mainViewerQuery">
-    <queryEnum>listOfItems</queryEnum>
-    <data>parcels/OSAF/views/main/AboutChandlerHTML</data>
+    <queryEnum>ListOfItems</queryEnum>
+    <data itemref="doc:AboutChandlerHTML"/>
   </Query>  
 
   <!--

@@ -6,6 +6,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import application.Globals as Globals
+
 import repository.parcel.Parcel as Parcel
 import repository.item.Item as Item
 
@@ -86,7 +88,7 @@ class CalendarEvent(ContentModel.ContentItem):
 
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
-            kind = CalendarParcel.getCalendarEventKind()
+            kind = Globals.repository.find ("//parcels/OSAF/contentmodel/calendar/CalendarEvent")
         ContentModel.ContentItem.__init__(self, name, parent, kind)
         self.startTime = DateTime.now()
         self.endTime = DateTime.now()

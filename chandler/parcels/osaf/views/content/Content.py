@@ -23,14 +23,14 @@ class ContentItemDetail(ControlBlocks.ItemDetail):
         HTMLText = "<html><body>"
         
         kind = item.kind
-        if kind is Calendar.CalendarParcel.getCalendarEventKind():
+        if kind is Globals.repository.find ("//parcels/OSAF/contentmodel/calendar/CalendarEvent"):
             HTMLText += "<b>Headline: </b> %s<br>" % item.getAbout()
             HTMLText += "<b>Attendees: </b> %s<br>" % item.getWho()
             HTMLText += "<b>Date: </b> %s<br>" % item.getDate()
             HTMLText += "<b>Duration: </b> %s<br>" % item.duration
-        elif kind is Notes.NotesParcel.getNoteKind():
+        elif kind is Globals.repository.find ("//parcels/OSAF/contentmodel/notes/Note"):
             HTMLText += "<b>Title: </b> %s<br>" % item.getAbout()
-        elif kind is Contacts.ContactsParcel.getContactKind():
+        elif kind is Globals.repository.find ("//parcels/OSAF/contentmodel/contacts/Contact"):
             HTMLText += "<b>First name: </b> %s<br>" % item.contactName.firstName
             HTMLText += "<b>Last name: </b> %s<br>" % item.contactName.lastName
             for phone in item.homeSection.phoneNumbers:
@@ -45,122 +45,65 @@ class ContentItemDetail(ControlBlocks.ItemDetail):
             HTMLText += "BOGUS ITEM"
                 
         HTMLText += "</body></html>"
-        
+        Contacts
         return HTMLText
 
-class QueryTreeDelegate:
 
-    def ElementParent(self, element):
-        rootKind = self.GetRootKind()
-        if element is rootKind:
-            return None
-        else:
-            return rootKind
-
-    def ElementChildren(self, element):
-        if element:
-            return self.GetQuery()
-        else:
-            return self.GetRootKind()
-
-    def ElementCellValues(self, element):
-        if element is self.GetRootKind():
-            return ["//"]
-        else:
-            return self.GetCellValues(element)
-
-    def ElementHasChildren(self, element):
-        return (element is self.GetRootKind())
-
-    def NeedsUpdate(self, notification):
-        # @@@ Need observable queries!
-        # the current simple strategy is to schedule an update if
-        # the item is of the kind we're interested in
-        item = Globals.repository.find(notification.data['uuid'])
-        if item.kind is self.GetRootKind():
-            self.scheduleUpdate = True
-            
-
-class MixedTreeDelegate(QueryTreeDelegate):
-
-    def GetRootKind(self):
-        return Calendar.CalendarParcel.getCalendarEventKind()
-    
-    def GetQuery(self):
-        calendarEventKind = Calendar.CalendarParcel.getCalendarEventKind()    
-        noteKind = Notes.NotesParcel.getNoteKind()
-        query = Query.KindQuery().run([calendarEventKind, noteKind])
-        return query
-    
-    def GetCellValues(self, element):
-        return [element.getWho(), element.getAbout(), element.getDate()]
-
-    def GetCellLabels(self, element):
-        whoAttribute = element.getAttributeValue('whoAttribute')
-        whoDisplay = element.getAttributeAspect(whoAttribute, 'displayName')
-
-        aboutAttribute = item.getAttributeValue('aboutAttribute')
-        aboutDisplay = item.getAttributeAspect(aboutAttribute, 'displayName')
-
-        dateAttribute = item.getAttributeValue('dateAttribute')
-        dateDisplay = item.getAttributeAspect(dateAttribute, 'displayName')
-
-        return ["Who (%s)" % whoDisplay,
-                "About (%s)" % aboutDisplay,
-                "Date (%s)" % str(dateDisplay)]
-
-    def NeedsUpdate(self, notification):
-        item = Globals.repository.find(notification.data['uuid'])
-        if (item.kind is Notes.NotesParcel.getNoteKind() or
-            item.kind is Calendar.CalendarParcel.getCalendarEventKind()):
-            self.scheduleUpdate = True
-    
-class CalendarTreeDelegate(QueryTreeDelegate):
-    
-    def GetRootKind(self):
-        return Calendar.CalendarParcel.getCalendarEventKind()
-    
-    def GetQuery(self):
-        calendarEventKind = Calendar.CalendarParcel.getCalendarEventKind()    
-        query = Query.KindQuery().run([calendarEventKind])
-        return query
-    
-    def GetCellValues(self, element):
-        return [element.getWho(), element.getAbout(), element.getDate()]
-
-class ContactTreeDelegate(QueryTreeDelegate):
-    
-    def GetRootKind(self):
-        return Contacts.ContactsParcel.getContactKind()
-    
-    def GetQuery(self):
-        contactKind = Contacts.ContactsParcel.getContactKind()    
-        query = Query.KindQuery().run([contactKind])
-        return query
-    
-    def GetCellValues(self, element):
-        for phone in element.homeSection.phoneNumbers: pass
-        for email in element.homeSection.emailAddresses: pass
-        values = [element.contactName.firstName,
-                  element.contactName.lastName,
-                  phone.phoneNumber, email.emailAddress]
-        return values
-    
-class NoteTreeDelegate(QueryTreeDelegate):
-    
-    def GetRootKind(self):
-        return Notes.NotesParcel.getNoteKind()
-    
-    def GetQuery(self):
-        noteKind = Notes.NotesParcel.getNoteKind()    
-        query = Query.KindQuery().run([noteKind])
-        return query
-    
-    def GetCellValues(self, element):
-        return [element.getAbout(), element.getDate()]
+class CalendarListDelegate (ControlBlocks.ListDelegate):
+    def ElementText (self, index, column):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        result = counterpart.contentSpec.indexResult (index) 
+        if column == 0:
+            return result.getWho()
+        elif column == 1:
+            return result.getAbout()
+        elif column == 2:
+            return result.getDate()
+        elif __debug__:
+            assert False, "Bad column"
+        return ""
 
 
-    
+class ContactListDelegate(ControlBlocks.ListDelegate):
+    def ElementText (self, index, column):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        result = counterpart.contentSpec.indexResult (index) 
+        if column == 0:
+            return result.contactName.firstName
+        elif column == 1:
+            return result.contactName.lastName
+        elif column == 2:
+            return result.homeSection.phoneNumbers.first().phoneNumber
+        elif column == 3:
+            return result.homeSection.emailAddresses.first().emailAddress
+        elif __debug__:
+            assert False, "Bad column"
+        return ""
 
-        
 
+class MixedListDelegate(ControlBlocks.ListDelegate):
+    def ElementText (self, index, column):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        result = counterpart.contentSpec.indexResult (index) 
+        if column == 0:
+            return result.getWho()
+        elif column == 1:
+            return result.getAbout()
+        elif column == 2:
+            return result.getDate()
+        elif __debug__:
+            assert False, "Bad column"
+        return ""
+
+
+class NoteListDelegate(ControlBlocks.ListDelegate):
+    def ElementText (self, index, column):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        result = counterpart.contentSpec.indexResult (index) 
+        if column == 0:
+            return result.getAbout()
+        elif column == 1:
+            return result.getDate()
+        elif __debug__:
+            assert False, "Bad column"
+        return ""

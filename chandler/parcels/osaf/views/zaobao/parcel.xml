@@ -43,8 +43,7 @@
 
   <!-- Queries -->
   <Query itemName="myQuery">
-    <queryEnum>listOfItems</queryEnum>
-    <data>//parcels/OSAF/views/zaobao/osaf.items</data>
+    <queryEnum>ListOfItems</queryEnum>
   </Query>
 
   <!-- Styles -->

@@ -51,14 +51,14 @@ def mixinAClass (self, myMixinClassImportPath):
             _classesByName = self.__class__._classesByName
 
         parts = myMixinClassImportPath.split (".")
-        assert len(parts) >= 2, "Delegate % isn't a module and class" % counterpart.elementDelegate
+        assert len(parts) >= 2, "Delegate %s isn't a module and class" % counterpart.elementDelegate
         delegateClassName = parts.pop ()
         newClassName = self.__class__.__name__ + '_' + delegateClassName
         try:
             theClass = _classesByName [newClassName]
         except KeyError:
             module = __import__ ('.'.join(parts), globals(), locals(), delegateClassName)
-            assert module.__dict__.get (delegateClassName), "Class % doesn't exist" % counterpart.elementDelegate
+            assert module.__dict__.get (delegateClassName), "Class %s doesn't exist" % myMixinClassImportPath
             theClass = classobj (str(newClassName),
                                  (self.__class__, module.__dict__[delegateClassName]),
                                  {})

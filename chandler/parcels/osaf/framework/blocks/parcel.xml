@@ -113,8 +113,8 @@
 
     <Enumeration itemName="queryEnumType">
       <values>ContainerSearch</values>
-      <values>listOfItems</values>
-      <values>kind</values>
+      <values>ListOfItems</values>
+      <values>Kind</values>
     </Enumeration>
 
     <Attribute itemName="queryEnum">
@@ -122,11 +122,24 @@
     </Attribute>
 
     <Attribute itemName="data">
-      <type itemref="String"/>
+      <type itemref="Item"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
+    <Attribute itemName="results">
+      <type itemref="Item"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
+    <Attribute itemName="resultsStale">
+      <type itemref="Boolean"/>
+      <defaultValue type="Boolean">True</defaultValue>
     </Attribute>
 
     <attributes itemref="docSchema:Query/queryEnum"/>
     <attributes itemref="docSchema:Query/data"/>
+    <attributes itemref="docSchema:Query/results"/>
+    <attributes itemref="docSchema:Query/resultsStale"/>
     <attributes itemref="docSchema:Query/usedInBlocks"/>
   </Kind>
 

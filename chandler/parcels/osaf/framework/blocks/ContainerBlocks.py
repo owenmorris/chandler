@@ -52,12 +52,15 @@ class EmbeddedContainer(RectangularChild):
                                                          self.stretchFactor,
                                                          self.Calculate_wxFlag(),
                                                          self.Calculate_wxBorder())
-        newChild = Globals.repository.find (self.contentSpec.data)
-        if newChild:
+        try:
+            newChild = self.contentSpec.data[0]
+        except IndexError:
+            return None, None, None
+        else:
             newChild.parentBlock = self
             self.RegisterEvents(newChild)
             return panel, sizer, panel
-        return None, None, None
+        
 
     def addToContainer (self, parent, child, weight, flag, border):
         parent.Add(child, int(weight), flag, border)
@@ -78,14 +81,14 @@ class EmbeddedContainer(RectangularChild):
                     return  # embedded container hasn't been rendered yet
                 embeddedSizer = embeddedPanel.GetSizer ()
 
-                oldChild = Globals.repository.find (self.contentSpec.data)
+                assert self.contentSpec.queryEnum  == "ListOfItems", "EmbeddedContainers must have a ListOfItems Query"
+                oldChild = self.contentSpec.data[0]
                 wxOldChild = Globals.association [oldChild.getUUID()]
                 self.UnregisterEvents(oldChild)
                 self.removeFromContainer (embeddedSizer, wxOldChild)
                 oldChild.parentBlock = None
             
-                newChild = node.item
-                self.contentSpec.data = str (newChild.getItemPath())
+                self.contentSpec.data = [newChild]
                 newChild.parentBlock = self
                 self.RegisterEvents(newChild)
                 newChild.render (embeddedSizer, embeddedPanel)

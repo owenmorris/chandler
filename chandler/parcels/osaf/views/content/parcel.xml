@@ -9,40 +9,43 @@
              itemName="content"
              xmlns="//parcels/OSAF/framework/blocks"
 	     xmlns:core="//Schema/Core"
+             xmlns:calendarModel="//parcels/OSAF/contentmodel/calendar"
+             xmlns:noteModel="//parcels/OSAF/contentmodel/notes"
+             xmlns:contactsModel="//parcels/OSAF/contentmodel/contacts"
 	     xmlns:view="//parcels/OSAF/views/content">
 
   <core:version>0.3</core:version>
 
   <!-- Queries -->
   <Query itemName="calendarQuery">
-    <queryEnum>kind</queryEnum>
-    <data>//parcels/OSAF/contentmodel/calendar/CalendarEvent</data>
+    <queryEnum>Kind</queryEnum>
+    <data itemref="calendarModel:CalendarEvent"/>
   </Query>
 
   <Query itemName="notesQuery">
-    <queryEnum>kind</queryEnum>
-    <data>//parcels/OSAF/contentmodel/notes/Note</data>
+    <queryEnum>Kind</queryEnum>
+    <data itemref="noteModel:Note"/>
   </Query>
 
   <Query itemName="contactQuery">
-    <queryEnum>kind</queryEnum>
-    <data>//parcels/OSAF/contentmodel/contacts/Contact</data>
+    <queryEnum>Kind</queryEnum>
+    <data itemref="contactsModel:Contact"/>
   </Query>
 
   <Query itemName="mixedQuery">
-    <queryEnum>kind</queryEnum>
-    <data>//parcels/OSAF/contentmodel/ContentItem</data>
+    <queryEnum>Kind</queryEnum>
+    <data itemref="calendarModel:CalendarEvent"/>
+    <data itemref="noteModel:Note"/>
   </Query>
 
   <!-- Styles -->
 
-  <!-- Calendar Tree -->
-  <Tree itemName="CalendarTree">
-    <elementDelegate>OSAF.views.content.Content.CalendarTreeDelegate</elementDelegate>
+  <!-- Calendar List -->
+  <List itemName="CalendarList">
+    <contentSpec itemref="view:calendarQuery"/>
 
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>False</useButtons>
+    <elementDelegate>OSAF.views.content.Content.CalendarListDelegate</elementDelegate>
+
     <columnHeadings>Participants</columnHeadings>
     <columnHeadings>Headline</columnHeadings>
     <columnHeadings>Start Time</columnHeadings>
@@ -56,15 +59,14 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </Tree>
+  </List>
 
-  <!-- Contact Tree -->
-  <Tree itemName="ContactTree">
-    <elementDelegate>OSAF.views.content.Content.ContactTreeDelegate</elementDelegate>
+  <!-- Contact List -->
+  <List itemName="ContactList">
+    <contentSpec itemref="view:contactQuery"/>
+
+    <elementDelegate>OSAF.views.content.Content.ContactListDelegate</elementDelegate>
     
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>False</useButtons>
     <columnHeadings>First Name</columnHeadings>
     <columnHeadings>Last Name</columnHeadings>
     <columnHeadings>Telephone</columnHeadings>
@@ -80,15 +82,14 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </Tree>
+  </List>
 
-  <!-- Note Tree -->
-  <Tree itemName="NoteTree">
-    <elementDelegate>OSAF.views.content.Content.NoteTreeDelegate</elementDelegate>
-            
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>False</useButtons>
+  <!-- Note List -->
+  <List itemName="NoteList">
+    <contentSpec itemref="view:notesQuery"/>
+
+    <elementDelegate>OSAF.views.content.Content.NoteListDelegate</elementDelegate>
+
     <columnHeadings>Description</columnHeadings>
     <columnHeadings>Created On</columnHeadings>
     <columnWidths>270</columnWidths>
@@ -100,15 +101,14 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </Tree>
+  </List>
 
-  <!-- Mixed Tree -->
-  <Tree itemName="MixedTree">
-    <elementDelegate>OSAF.views.content.Content.MixedTreeDelegate</elementDelegate>
+  <!-- Mixed List -->
+  <List itemName="MixedList">
+    <contentSpec itemref="view:mixedQuery"/>
 
-    <hideRoot>True</hideRoot>
-    <noLines>True</noLines>
-    <useButtons>False</useButtons>
+    <elementDelegate>OSAF.views.content.Content.MixedListDelegate</elementDelegate>
+
     <columnHeadings>Who (Participants)</columnHeadings>
     <columnHeadings>About (Headline)</columnHeadings>
     <columnHeadings>Date (Start Time)</columnHeadings>
@@ -122,7 +122,7 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </Tree>
+  </List>
 
   <ItemDetail itemName="ContentItemDetail"
               itemClass="OSAF.views.content.Content.ContentItemDetail">
@@ -167,9 +167,7 @@
 
   <!-- Calendar View -->
   <SplitWindow itemName="CalendarListView">
-    <contentSpec itemref="view:calendarQuery"/>
-
-    <childrenBlocks itemref="view:CalendarTree"/>
+    <childrenBlocks itemref="view:CalendarList"/>
     <childrenBlocks itemref="view:CalendarEventDetail"/>
 
     <open>True</open>
@@ -187,9 +185,7 @@
 
   <!-- Notes View -->
   <SplitWindow itemName="NoteListView">
-    <contentSpec itemref="view:notesQuery"/>
-
-    <childrenBlocks itemref="view:NoteTree"/>
+    <childrenBlocks itemref="view:NoteList"/>
     <childrenBlocks itemref="view:NoteDetail"/>
 
     <open>True</open>
@@ -207,9 +203,7 @@
 
   <!-- Contacts View -->
   <SplitWindow itemName="ContactListView">
-    <contentSpec itemref="view:contactQuery"/>
-
-    <childrenBlocks itemref="view:ContactTree"/>
+    <childrenBlocks itemref="view:ContactList"/>
     <childrenBlocks itemref="view:ContactDetail"/>
 
     <open>True</open>
@@ -227,9 +221,7 @@
 
   <!-- Mixed View -->
   <SplitWindow itemName="MixedListView">
-    <contentSpec itemref="view:mixedQuery"/>
-
-    <childrenBlocks itemref="view:MixedTree"/>
+    <childrenBlocks itemref="view:MixedList"/>
     <childrenBlocks itemref="view:ContentItemDetail"/>
 
     <open>True</open>
