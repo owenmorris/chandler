@@ -13,7 +13,15 @@ dependencies = (
                 'jabber-py',
                )
 if sys.platform != 'darwin':
-    dependencies.append('net/rap')
+    dependencies = (
+		    'python', 
+		    'wxpython',
+		    'distutils',
+		    'egenix-mx',
+		    'zodb',
+		    'jabber-py',
+		    'net/rap',
+		   )
 
 
 def build(buildenv):
