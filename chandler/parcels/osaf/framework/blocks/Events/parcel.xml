@@ -38,37 +38,37 @@ of a limitation of the XML format, which will be eliminated</description>
   </EventData>
 
   <BlockEvent itemName="Quit">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
     <methodName>OnQuitEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Undo">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
     <methodName>OnUndoEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Redo">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
     <methodName>OnRedoEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Cut">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
     <methodName>OnCutEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Copy">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
     <methodName>OnCopyEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Paste">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
     <methodName>OnPasteEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Preferences">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
     <methodName>OnPreferencesEvent</methodName>
   </BlockEvent>
 
@@ -114,32 +114,32 @@ of a limitation of the XML format, which will be eliminated</description>
 
   <!-- Test Events -->
   <BlockEvent itemName="GenerateContentItems">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
     <methodName>OnGenerateContentItems</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="ImportContacts">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
     <methodName>OnImportContacts</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="GenerateContacts">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
     <methodName>OnGenerateContacts</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="GenerateCalendarEvents">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
     <methodName>OnGenerateCalendarEvents</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="GenerateNotes">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
     <methodName>OnGenerateNotes</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="CheckRepository">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
     <methodName>OnCheckRepository</methodName>
   </BlockEvent>
 

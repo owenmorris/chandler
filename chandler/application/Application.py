@@ -279,17 +279,10 @@ class wxApplication (wx.App):
                                                        UUID(),
                                                        Globals.mainView.dispatchEvent)
 
+            Globals.mainView.onSetActiveView(mainView)
             mainView.render (self.mainFrame, self.mainFrame)
 
             self.mainFrame.Show()
-            """
-              Menus on the Mac were not appearing on startup (you needed to switch
-            to another app to get them to appear).  Adding this call to onSetFocus
-            is a temporary workaround for this bug (Bug#1204).  Once we are on top
-            of wxWindows 2.5 we should revisit whether or not this is still a 
-            problem and fix it properly if so.
-            """
-            Globals.mainView.onSetFocus()
             return True                     #indicates we succeeded with initialization
         return False                        #or failed.
 
@@ -350,7 +343,6 @@ class wxApplication (wx.App):
         focus = wx.Window_FindFocus()
         if self.focus != focus:
             self.focus = focus
-            Globals.mainView.onSetFocus()
         event.Skip()
 
     def OnExit(self):

@@ -18,5 +18,6 @@ notificationManager = None    # NotificationManager
 repository = None             # The repository
 mainView = None               # The main View
 wxApplication = None          # The wxWindows application object
+activeView = None             # The last view that was displayed
 
 

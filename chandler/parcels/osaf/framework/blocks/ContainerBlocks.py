@@ -65,6 +65,7 @@ class EmbeddedContainer(RectangularChild):
         else:
             newChild.parentBlock = self
             self.RegisterEvents(newChild)
+            Globals.mainView.onSetActiveView(newChild)
             return panel, sizer, panel
         
 
@@ -102,8 +103,10 @@ class EmbeddedContainer(RectangularChild):
             
                 self.contentSpec.data = [newChild]
                 newChild.parentBlock = self
-                self.RegisterEvents(newChild)
                 newChild.render (embeddedSizer, embeddedPanel)
+                self.RegisterEvents(newChild)
+                Globals.mainView.onSetActiveView(newChild)
+                
                 embeddedSizer.Layout()
 
     def RegisterEvents(self, block):

@@ -184,6 +184,7 @@
   <Attribute itemName="selection">
     <type itemref="SingleRef"/>
   </Attribute>
+
   <!--
     Block Events
   -->
@@ -194,7 +195,8 @@
 
     <Enumeration itemName="dispatchEnumType">
       <values>Broadcast</values>
-      <values>BubbleUp</values>
+      <values>FocusBubbleUp</values>
+      <values>ActiveViewBubbleUp</values>
       <values>SendToBlock</values>
     </Enumeration>
 
@@ -230,83 +232,10 @@
     <type itemref="docSchema:BlockEvent"/>
     <cardinality>list</cardinality>
   </Attribute>
-  
-  <!--
-    Currently broken because constructor for BlockEvent is not being
-    called - bug 1144
-  -->
-
-  <docSchema:BlockEvent itemName="Test__init__NotCalled">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnQuitEvent</methodName>
-  </docSchema:BlockEvent>
-
-  <!--
-    Constant Block Events
-      We keep track of the global constant events in a collection so
-    we can easily look them up to subscribe
-  -->
 
   <Kind itemName="EventData">
     <attributes itemref="docSchema:blockEvents"/>
   </Kind>
-
-  <!--
-    Currently broken because __init__ for BlockEvent isn't being
-    called - DJA
-  <docSchema:EventData itemName="GlobalEvents">
-    <blockEvents itemref="docSchema:Quit"/>
-    <blockEvents itemref="docSchema:Undo"/>
-    <blockEvents itemref="docSchema:Redo"/>
-    <blockEvents itemref="docSchema:Cut"/>
-    <blockEvents itemref="docSchema:Copy"/>
-    <blockEvents itemref="docSchema:Paste"/>
-    <blockEvents itemref="docSchema:Preferences"/>
-    <blockEvents itemref="docSchema:Right"/>
-    <blockEvents itemref="docSchema:Left"/>
-    <blockEvents itemref="docSchema:SelectionChanged"/>
-  </docSchema:EventData>
-
-  <docSchema:BlockEvent itemName="Quit">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnQuitEvent</methodName>
-  </docSchema:BlockEvent>
-
-  <docSchema:BlockEvent itemName="Undo">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnUndoEvent</methodName>
-  </docSchema:BlockEvent>
-
-  <docSchema:BlockEvent itemName="Redo">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnRedoEvent</methodName>
-  </docSchema:BlockEvent>
-
-  <docSchema:BlockEvent itemName="Cut">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnCutEvent</methodName>
-  </docSchema:BlockEvent>
-
-  <docSchema:BlockEvent itemName="Copy">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnCopyEvent</methodName>
-  </docSchema:BlockEvent>
-
-  <docSchema:BlockEvent itemName="Paste">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnPasteEvent</methodName>
-  </docSchema:BlockEvent>
-
-  <docSchema:BlockEvent itemName="Preferences">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnPreferencesEvent</methodName>
-  </docSchema:BlockEvent>
-
-  <docSchema:BlockEvent itemName="SelectionChanged">
-    <dispatchEnum>Broadcast</dispatchEnum>
-    <methodName>OnSelectionChangedEvent</methodName>
-  </docSchema:BlockEvent>
-  -->
 
   <!--
     Block
