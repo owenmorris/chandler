@@ -198,13 +198,6 @@ def distribute(buildenv):
             os.remove(buildenv['outputdir'] + os.sep + compFile1)
         os.rename(compFile1, buildenv['outputdir'] + os.sep + compFile1)
 
-        # write out the compressed image first - if the installer image doesn't
-        # get built for any reason, then the compressed version will be available
-        if buildenv['version'] == 'release':
-            _outputLine(buildenv['outputdir']+os.sep+"enduser", compFile1)
-        else:
-            _outputLine(buildenv['outputdir']+os.sep+"developer", compFile1)
-
         # The end-user installer
         if installTargetFile:
             installSource = os.path.join(buildenv['root'], installTargetFile)
@@ -220,6 +213,12 @@ def distribute(buildenv):
                     _outputLine(buildenv['outputdir'] + os.sep + "enduser", installTargetFile)
                 else:
                     _outputLine(buildenv['outputdir'] + os.sep + "developer", installTargetFile)
+
+        # write out the compressed image
+        if buildenv['version'] == 'release':
+            _outputLine(buildenv['outputdir']+os.sep+"enduser", compFile1)
+        else:
+            _outputLine(buildenv['outputdir']+os.sep+"developer", compFile1)
 
     # remove the distribution directory, since we have a tarball/zip
     if os.access(distDir, os.F_OK):
