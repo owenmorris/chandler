@@ -321,7 +321,6 @@ class JabberClient:
     def HandleViewRequest(self, requestJabberID):
         # get the dictionary containing the accessible views
         views = self.application.GetAccessibleViews(requestJabberID)
-        
         # encode the viewList
         viewStr = self.EncodePythonObject(views)		
                 
