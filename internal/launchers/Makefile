@@ -44,7 +44,7 @@ endif
 
 ifeq ($(OS),Linux)
 
-LAUNCHER_FILES="$(SNAP)/chandler $(SNAP)/chandler_bin"
+LAUNCHER_FILES=$(SNAP)/chandler $(SNAP)/chandler_bin
 
 ARCHIVE: $(LAUNCHERS)/linux/
 
