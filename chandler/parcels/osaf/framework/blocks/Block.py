@@ -291,7 +291,7 @@ class Block(Item):
                 if collection is not None:
                     untitledItemCollection = item.contents
                     
-                    for copy in untitledItemCollection.collectionOwner:
+                    for copy in untitledItemCollection.contentsOwner:
                         copy.contents = collection
 
             if operation == 'toggle':

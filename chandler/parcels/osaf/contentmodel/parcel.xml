@@ -462,11 +462,11 @@
         <includePolicy value="byCloud"/>
       </core:Endpoint>
       <endpoints itemref="ItemCollection/DefaultCloud/_results"/>
-      <core:Endpoint itsName="collectionOwner">
-        <attribute value="collectionOwner"/>
+      <core:Endpoint itsName="contentsOwner">
+        <attribute value="contentsOwner"/>
         <includePolicy value="byCloud"/>
       </core:Endpoint>
-      <endpoints itemref="ItemCollection/DefaultCloud/collectionOwner"/>
+      <endpoints itemref="ItemCollection/DefaultCloud/contentsOwner"/>
       <core:Endpoint itsName="sharer">
         <attribute value="sharer"/>
         <includePolicy value="byValue"/>
