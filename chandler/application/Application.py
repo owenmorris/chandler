@@ -674,7 +674,13 @@ class wxApplication (wxApp):
             pass
 
         def ShowDebuggerWindow(self, event):
-            from DebuggerWindow import DebuggerWindow
-            winDebugger = DebuggerWindow(self)
-            winDebugger.Show(True)
+            from wx import py
+            self.crustFrame = py.crust.CrustFrame()
+            self.crustFrame.SetSize((700,700))
+            self.crustFrame.Show(wx.TRUE)
+            self.crustFrame.shell.interp.locals['chandler'] = self
+            wx.EVT_CLOSE(self.crustFrame, self.onCloseDebuggerWindow)
+
+        def onCloseDebuggerWindow(self, event):
+            self.crustFrame.Destroy()
     
