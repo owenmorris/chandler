@@ -300,6 +300,7 @@
     <children itemref="doc:Demo"/>
     <children itemref="doc:CalendarView"/>
     <children itemref="doc:ContactsView"/>
+    <children itemref="doc:NotesView"/>
     <children itemref="doc:JunkView"/>
     <children itemref="doc:TrashView"/>
     <children itemref="doc:MonthView"/>
@@ -339,6 +340,11 @@
   <Node itsName="ContactsView">
     <displayName>Contacts</displayName>
     <item itemref="content:NewContactListView"/>
+  </Node>
+
+  <Node itsName="NotesView">
+    <displayName>Notes</displayName>
+    <item itemref="content:NoteListView"/>
   </Node>
 
   <Node itsName="JunkView">

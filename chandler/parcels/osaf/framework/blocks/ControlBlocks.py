@@ -359,8 +359,7 @@ class wxTableData(wx.grid.PyGridTableBase):
     def GetTypeName (self, row, column):
         return self.GetView().GetElementType (row, column)
 
-
-class wxTable(wx.grid.Grid):
+class wxTable(DropReceiveWidget, wx.grid.Grid):
     def __init__(self, *arguments, **keywords):
         """
           Giant hack. Calling event.GetEventObject in OnShow of application, while the
@@ -423,6 +422,10 @@ class wxTable(wx.grid.Grid):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             columnIndex = event.GetRowOrCol()
             self.blockItem.columnWidths [columnIndex] = self.GetColSize (columnIndex)
+
+    def AddItem(self, itemUUID):
+        item = Globals.repository.findUUID(itemUUID)
+        self.blockItem.contents.include(item)
 
     def OnWXSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:

@@ -204,6 +204,19 @@
     <columnWidths>170</columnWidths>
   </Table>
 
+  <!-- Notes List -->
+  <Table itsName="NotesList">
+    <contents itemref="view:notesItemCollection"/>
+
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
+
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
+  </Table>
+
   <!-- Junk List -->
   <Table itsName="JunkList">
     <contents itemref="view:junkItemCollection"/>

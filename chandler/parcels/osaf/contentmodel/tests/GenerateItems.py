@@ -54,7 +54,7 @@ TITLES = ["reading list", "restaurant recommendation", "vacation ideas",
 def GenerateNote():
     """ Generate one Note item """
     note = Notes.Note()
-    note.title = random.choice(TITLES)
+    note.displayName = random.choice(TITLES)
     delta = DateTime.DateTimeDelta(random.randint(0, 5),
                                    random.randint(0, 24))
     note.createdOn = DateTime.now() + delta

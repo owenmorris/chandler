@@ -24,12 +24,12 @@ class ContentItemDetail(ControlBlocks.ItemDetail):
         
         kind = item.itsKind
         if kind is Globals.repository.findPath("//parcels/osaf/contentmodel/calendar/CalendarEvent"):
-            HTMLText += "<b>Headline: </b> %s<br>" % item.getAbout()
-            HTMLText += "<b>Attendees: </b> %s<br>" % item.getWho()
-            HTMLText += "<b>Date: </b> %s<br>" % item.getDate()
+            HTMLText += "<b>Headline: </b> %s<br>" % item.about
+            HTMLText += "<b>Attendees: </b> %s<br>" % item.who
+            HTMLText += "<b>Date: </b> %s<br>" % item.date
             HTMLText += "<b>Duration: </b> %s<br>" % item.duration
         elif kind is Globals.repository.findPath("//parcels/osaf/contentmodel/notes/Note"):
-            HTMLText += "<b>Title: </b> %s<br>" % item.getAbout()
+            HTMLText += "<b>Title: </b> %s<br>" % item.about
         elif kind is Globals.repository.findPath("//parcels/osaf/contentmodel/contacts/Contact"):
             HTMLText += "<b>First name: </b> %s<br>" % item.contactName.firstName
             HTMLText += "<b>Last name: </b> %s<br>" % item.contactName.lastName
@@ -53,11 +53,11 @@ class CalendarListDelegate (ControlBlocks.ListDelegate):
     def GetElementValue (self, row, column):
         result = self.blockItem.contents [row]
         if column == 0:
-            return result.getWho()
+            return result.who
         elif column == 1:
-            return result.getAbout()
+            return result.about
         elif column == 2:
-            return result.getDate()
+            return result.date
         elif __debug__:
             assert False, "Bad column"
         return ""
@@ -95,11 +95,11 @@ class MixedListDelegate(ControlBlocks.ListDelegate):
     def GetElementValue (self, row, column):
         result = self.blockItem.contents [row]
         if column == 0:
-            return result.getWho()
+            return result.who
         elif column == 1:
-            return result.getAbout()
+            return result.about
         elif column == 2:
-            return result.getDate()
+            return result.date
         elif __debug__:
             assert False, "Bad column"
         return ""
@@ -109,9 +109,15 @@ class NoteListDelegate(ControlBlocks.ListDelegate):
     def GetElementValue (self, row, column):
         result = self.blockItem.contents [row]
         if column == 0:
-            return result.getAbout()
+            try:
+                return result.about
+            except AttributeError:
+                return ""
         elif column == 1:
-            return result.getDate()
+            try:
+                return result.date
+            except AttributeError:
+                return ""
         elif __debug__:
             assert False, "Bad column"
         return ""

@@ -287,6 +287,8 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
 
     def OnHover(self, x, y):
         currentTab = self.HitTest((x, y))[0]
+        if currentTab < 0:
+            return
         currentTime = time.time()
         if not hasattr(self, "hoverTab") or self.hoverTab != currentTab:
             self.hoverTab = currentTab            
