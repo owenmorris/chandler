@@ -1,5 +1,5 @@
 """
-Text storage unit tests
+Text blocked read of appended storage compression unit tests
 """
 
 __revision__  = "$Revision$"
@@ -9,74 +9,23 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
+from cStringIO import StringIO
+
 from repository.persistence.XMLRepository import XMLRepository
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 
 
-class TestText(RepositoryTestCase):
+class TestBZ2(RepositoryTestCase):
     """ Test Text storage """
 
     def setUp(self):
 
-        super(TestText, self).setUp()
+        super(TestBZ2, self).setUp()
 
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         self.rep.loadPack(cineguidePack)
         self.rep.commit()
-
-    def compressed(self, compression):
-        khepburn = self.rep.find('//CineGuide/KHepburn')
-        movie = khepburn.movies.first()
-        self.assert_(movie is not None)
-
-        largeText = os.path.join(self.testdir, 'data', 'world192.txt')
-
-        input = file(largeText, 'r')
-        writer = movie.synopsis.getWriter(compression=compression)
-
-        count = 0
-        while True:
-            data = input.read(1048576)
-            if len(data) > 0:
-                writer.write(data)
-                count += len(data)
-            else:
-                break
-
-        input.close()
-        writer.close()
-        movie.setDirty()
-        
-        self.rep.logger.info("%s compressed %d bytes to %d",
-                             compression, count, len(movie.synopsis._data))
-
-        self._reopenRepository()
-
-        khepburn = self.rep.find('//CineGuide/KHepburn')
-        movie = khepburn.movies.first()
-        self.assert_(movie is not None)
-
-        input = file(largeText, 'r')
-        reader = movie.synopsis.getReader()
-        data = input.read()
-        string = reader.read()
-        input.close()
-        reader.close()
-
-        self.assert_(data == string)
-
-    def testBZ2Compressed(self):
-
-        self.compressed('bz2')
-       
-    def testZlibCompressed(self):
-
-        self.compressed('zlib')
-        
-    def testUncompressed(self):
-
-        self.compressed(None)
 
     def appended(self, compression):
 
@@ -87,10 +36,11 @@ class TestText(RepositoryTestCase):
         largeText = os.path.join(self.testdir, 'data', 'world192.txt')
 
         input = file(largeText, 'r')
+        movie.synopsis._indexed = False
         writer = movie.synopsis.getWriter(compression=compression)
 
         while True:
-            data = input.read(548576)
+            data = input.read(54857)
             if len(data) > 0:
                 writer.write(data)
                 movie.setDirty()
@@ -112,8 +62,19 @@ class TestText(RepositoryTestCase):
 
         input = file(largeText, 'r')
         reader = movie.synopsis.getReader()
-        data = input.read()
-        string = reader.read()
+
+        buffer = StringIO()
+        while True:
+            data = reader.read(504)
+            if len(data) > 0:
+                buffer.write(data)
+            else:
+                break
+            
+        data = buffer.getvalue()
+        buffer.close()
+
+        string = input.read()
         input.close()
         reader.close()
 
@@ -126,10 +87,6 @@ class TestText(RepositoryTestCase):
     def testAppendZlib(self):
 
         self.appended('zlib')
-
-    def testAppend(self):
-
-        self.appended(None)
 
 
 if __name__ == "__main__":

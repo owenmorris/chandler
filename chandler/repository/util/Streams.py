@@ -79,15 +79,19 @@ class BufferedOutputStream(object):
         self.buffer.close()
 
 
-class BZ2InputStream(object):
+class CompressedInputStream(object):
 
     def __init__(self, inputStream):
 
-        super(BZ2InputStream, self).__init__()
+        super(CompressedInputStream, self).__init__()
 
-        self.bz2 = BZ2Decompressor()
+        self.decompressor = self._decompressor()
         self.inputStream = inputStream
         self.extra_data = ''
+
+    def _decompressor(self):
+
+        raise NotImplementedError, "CompressedInputStream._decompressor"
         
     def read(self, length = -1):
 
@@ -96,30 +100,32 @@ class BZ2InputStream(object):
             self.extra_data = ''
             
         else:
-            while True:
-                data = self.inputStream.read(length)
-                if len(data) == 0:
-                    return ''
+            data = ''
+            while len(data) == 0:
+                unused_data = ''
+                while len(data) == 0 and len(unused_data) == 0:
+                    data = self.inputStream.read(length)
+                    if len(data) == 0:
+                        return ''
 
-                data = self.bz2.decompress(data)
-                if len(data) > 0:
-                    break
+                    data = self.decompressor.decompress(data)
+                    unused_data = self.decompressor.unused_data
         
-            if len(self.bz2.unused_data) > 0:
-                buffer = StringIO()
-                buffer.write(data)
+                if len(unused_data) > 0:
+                    buffer = StringIO()
+                    buffer.write(data)
 
-                while len(self.bz2.unused_data) > 0:
-                    bz2 = BZ2Decompressor()
-                    buffer.write(bz2.decompress(self.bz2.unused_data))
-                    self.bz2 = bz2
+                    while len(unused_data) > 0:
+                        self.decompressor = self._decompressor()
+                        buffer.write(self.decompressor.decompress(unused_data))
+                        unused_data = self.decompressor.unused_data
 
-                data = buffer.getvalue()
-                buffer.close()
+                    data = buffer.getvalue()
+                    buffer.close()
 
-        if length > 0 and len(data) > length:
-            self.extra_data = data[length:]
-            data = data[0:length]
+            if length > 0 and len(data) > length:
+                self.extra_data = data[length:]
+                data = data[0:length]
 
         return data
 
@@ -128,53 +134,18 @@ class BZ2InputStream(object):
         self.inputStream.close()
 
 
-class ZlibInputStream(object):
+class BZ2InputStream(CompressedInputStream):
 
-    def __init__(self, inputStream):
+    def _decompressor(self):
 
-        super(ZlibInputStream, self).__init__()
+        return BZ2Decompressor()
 
-        self.zlib = decompressobj()
-        self.inputStream = inputStream
-        self.extra_data = ''
 
-    def read(self, length = -1):
+class ZlibInputStream(CompressedInputStream):
 
-        if len(self.extra_data) > 0:
-            data = self.extra_data
-            self.extra_data = ''
-            
-        else:
-            while True:
-                data = self.inputStream.read(length)
-                if len(data) == 0:
-                    return ''
-        
-                data = self.zlib.decompress(data)
-                if len(data) > 0:
-                    break
-        
-            if len(self.zlib.unused_data) > 0:
-                buffer = StringIO()
-                buffer.write(data)
+    def _decompressor(self):
 
-                while len(self.zlib.unused_data) > 0:
-                    zlib = decompressobj()
-                    buffer.write(zlib.decompress(self.zlib.unused_data))
-                    self.zlib = zlib
-
-                data = buffer.getvalue()
-                buffer.close()
-            
-        if length > 0 and len(data) > length:
-            self.extra_data = data[length:]
-            data = data[0:length]
-
-        return data
-
-    def close(self):
-
-        self.inputStream.close()
+        return decompressobj()
 
 
 class BufferedInputStream(object):
