@@ -3,7 +3,8 @@ include ../Makefile.inc
 
 VERSION=1.3.21
 RELVER=$(VERSION)-1
-SRC=$(BUILD_ROOT)/swig/SWIG-$(VERSION)
+SWIG=$(BUILD_ROOT)/swig
+SRC=$(SWIG)/SWIG-$(VERSION)
 
 ifeq ($(DEBUG),1)
 CONF_OPT=--enable-debug
@@ -29,14 +30,15 @@ swig: expand
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(SRC)/swig-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/SWIG-1.3.21/
+	tar -cvzf $(SWIG)/$(SNAP).tar.gz \
+		$(SNAP)/bin/swig.exe
 
 clean:
-	rm -f $(BUILD_ROOT)/$(SNAP)/SWIG-1.3.21
+	cd $(SRC); devenv.com build/msw/msw.sln /clean $(Snap)
+	cd $(SRC)/swig; rm -rf $(SRC)/swig/$(BUILD)
 
 expand:    swigwin-1.3.21.zip
-	unzip -q swigwin-1.3.21.zip SWIG-1.3.21/Lib/ SWIG-1.3.21/swig.exe -d $(BUILD_ROOT)/$(SNAP)/
+	unzip swigwin-1.3.21.zip swig-1.3.21\\swig.exe ../$(SNAP)/bin/
 
 else
 
@@ -58,7 +60,7 @@ swig:   $(SRC)/$(BUILD)/Makefile
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(SRC)/swig-$(SNAP)-$(RELVER).tar.gz \
+	tar -cvzf $(SWIG)/$(SNAP).tar.gz \
                   $(SNAP)/bin/swig \
                   $(SNAP)/share/aclocal/swig.m4 \
                   $(SNAP)/lib/swig1.3 
