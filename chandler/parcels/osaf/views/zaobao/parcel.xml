@@ -46,7 +46,9 @@
 
   <!-- The main ZaoBao view -->
 
-  <zb:ZaoBaoTree itemName="ZaoBaoTree">
+  <Tree itemName="ZaoBaoTree">
+    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoTreeDelegate</elementDelegate>
+    <rootPath itemref="zb:RSSChannel"/>
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
     <useButtons>True</useButtons>
@@ -61,7 +63,7 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </zb:ZaoBaoTree>
+  </Tree>
 
   <zb:ZaoBaoItemDetail itemName="ItemDetail">
     <url></url>
@@ -126,9 +128,9 @@
 
   <!-- Example single channel view -->
 
-  <zb:ZaoBaoList itemName="ChannelList">
-    <contentSpec itemref="doc:myQuery"/>
-
+  <Tree itemName="ChannelList">
+    <elementDelegate>OSAF.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
+    <rootPath itemref="doc:osaf"/>
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
     <useButtons>True</useButtons>
@@ -143,7 +145,7 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </zb:ZaoBaoList>
+  </Tree>
 
   <zb:ZaoBaoItemDetail itemName="ChannelItemDetail">
     <url></url>

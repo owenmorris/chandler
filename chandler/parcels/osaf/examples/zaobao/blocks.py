@@ -7,80 +7,93 @@ import OSAF.examples.zaobao.RSSData as RSSData
 
 import webbrowser # for opening external links
 
-class ZaoBaoList(Tree):
-    def _addChildNode(self, node, child, hasKids):
-        displayName = child.getAttributeValue('displayName',
-                                              default='<Untitled>')
-        date = child.getAttributeValue('date', default='')
+class ZaoBaoListDelegate:
+    def ElementParent(self, element):
+        if element.kind == RSSData.ZaoBaoParcel.getRSSChannelKind():
+            return None
+        return element.channel
+
+    def ElementChildren(self, element):
+        if element.kind == RSSData.ZaoBaoParcel.getRSSChannelKind():
+            return element.items
+        return None
+
+    def ElementCellValues(self, element):
+        if element.kind == RSSData.ZaoBaoParcel.getRSSChannelKind():
+            return ['','']
+        
+        displayName = element.getAttributeValue('displayName',
+                                                default='<Untitled>')
+        date = element.getAttributeValue('date', default='')
         if date != '':
             date = date.Format('%B %d, %Y    %I:%M %p')
-        names = [displayName, str(date)]
-        node.AddChildNode(child, names, hasKids)
 
-    def GetTreeData(self, node):
-        item = node.GetData()
+        return [displayName, str(date)]
 
-        # handle the root node case
-        if item == None:
-            node.AddRootNode(Globals.repository, ['//'], True)
-            return
+    def ElementHasChildren(self, element):
+        if element.kind == RSSData.ZaoBaoParcel.getRSSChannelKind():
+            return len(element.getAttributeValue('items', default=[])) != 0
+        return False
 
-        # add all the children to the list
-        repository = self.getRepository()
-        try:
-            cs = self.contentSpec.data.split('.')
-            channel = repository.find(str(cs[0]))
-            items = channel.getAttributeValue(str(cs[1]), default=[])
-        except:
-            print 'error getting items'
-            return
-
-        for item in items:
-            self._addChildNode(node, item, False)
-
-    def OnGoToURI(self, notification):
-        wxTreeWindow = Globals.association[self.getUUID()]
-        wxTreeWindow.GoToURI(notification.data['URI'])
+    def NeedsUpdate(self, notification):
+        return True
 
 
-class ZaoBaoTree(Tree):
-    def _addChildNode(self, node, child, hasKids):
-        displayName = child.getAttributeValue('displayName',
-                                              default='<Untitled>')
-        date = child.getAttributeValue('date', default='')
+class ZaoBaoTreeDelegate:
+    def ElementParent(self, element):
+        chanKind = RSSData.ZaoBaoParcel.getRSSChannelKind()
+        if element == chanKind:
+            return None
+        if element.kind == chanKind:
+            return chanKind
+        return element.channel
+
+    def ElementChildren(self, element):
+        chanKind = RSSData.ZaoBaoParcel.getRSSChannelKind()
+
+        if element == chanKind:
+            return KindQuery().run([chanKind])
+
+        if element.kind == chanKind:
+            return element.items
+
+        return None
+
+    def ElementCellValues(self, element):
+        if element == RSSData.ZaoBaoParcel.getRSSChannelKind():
+            return ['','']
+
+        displayName = element.getAttributeValue('displayName',
+                                                default='<Untitled>')
+        date = element.getAttributeValue('date', default='')
         if date != '':
             date = date.Format('%B %d, %Y    %I:%M %p')
-        names = [displayName, str(date)]
-        node.AddChildNode(child, names, hasKids)
 
-    def GetTreeData(self, node):
-        item = node.GetData()
-        if item:
-            chanKind = RSSData.ZaoBaoParcel.getRSSChannelKind()
+        return [displayName, str(date)]
 
-            if item.getUUID() == Globals.repository.getUUID():
-                for child in KindQuery().run([chanKind]):
-                    self._addChildNode(node, child, child.hasAttributeValue('items'))
+    def ElementHasChildren(self, element):
+        chanKind = RSSData.ZaoBaoParcel.getRSSChannelKind()
+        if element == chanKind:
+            return True
 
-            elif item.kind == chanKind:
-                for child in item.items:
-                    self._addChildNode(node, child, False)
+        if element.kind == chanKind:
+            return len(element.getAttributeValue('items', default=[])) != 0
 
-        else:
-            node.AddRootNode(Globals.repository, ['//'], True)
+        return False
 
-    def OnGoToURI(self, notification):
-        wxTreeWindow = Globals.association[self.getUUID()]
-        wxTreeWindow.GoToURI(notification.data['URI'])
+    def NeedsUpdate(self, notification):
+        return True
 
-    def OnEnterPressedEvent(self, notification):
-        url = notification.GetData()['text']
-        if len(url) < 5:
-            return
 
-        Globals.repository.commit()
-        chan = RSSData.NewChannelFromURL(url, True)
-        Globals.repository.commit()
+# XXX need to relocate this somewhere...
+def OnEnterPressedEvent(self, notification):
+    url = notification.GetData()['text']
+    if len(url) < 5:
+        return
+
+    Globals.repository.commit()
+    chan = RSSData.NewChannelFromURL(url, True)
+    Globals.repository.commit()
 
 
 class wxZaoBaoItemDetail(wxItemDetail):
@@ -99,6 +112,9 @@ class wxZaoBaoItemDetail(wxItemDetail):
         Globals.notificationManager.PostNotification (notification)
 
     def On_wxSelectionChanged(self, item):
+        print item
+        if item == Globals.repository.view:
+            return
         if item:
             displayName = item.getAttributeValue('displayName', default='<Untitled>')
 

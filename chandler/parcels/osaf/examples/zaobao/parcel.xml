@@ -166,18 +166,6 @@
 
 
   <!-- view related stuff -->
-
-
-  <Kind itemName="ZaoBaoList">
-    <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoList</classes>
-    <superKinds itemref="docSchema:Tree"/>
-  </Kind>  
-
-  <Kind itemName="ZaoBaoTree">
-    <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoTree</classes>
-    <superKinds itemref="docSchema:Tree"/>
-  </Kind>  
-
   <Kind itemName="ZaoBaoItemDetail">
     <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoItemDetail</classes>
     <superKinds itemref="docSchema:ItemDetail"/>
