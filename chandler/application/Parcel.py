@@ -569,6 +569,7 @@ class Manager(Item):
             self.log.info("...done")
             
             self.__parcelsWithData = []
+            self.__copyOperations = []
 
             if not namespaces and self.__parcelsToLoad:
                 namespaces = self.__parcelsToLoad
@@ -595,6 +596,24 @@ class Manager(Item):
                 self.log.info("...done")
 
             self.__parcelsWithData = None
+            
+            for (reference, copyName, item, attributeName) in self.__copyOperations:
+                # We may be reloading, so if the copy is already there,
+                # remove it and re-copy
+                existingCopy = item.findPath(copyName)
+                if existingCopy is not None:
+                    existingCopy.delete(recursive=True)
+        
+                # (either) Copy the item using cloud-copy:
+                copy = reference.copy(name=copyName, parent=item, 
+                 cloudAlias="default")
+        
+                # (or) Copy the item using attribute-copy:
+                # copy = reference.copy(name=copyName, parent=item)
+        
+                item.addValue(attributeName, copy)
+        
+            self.__copyOperations = None
             
             self.resetState()
             self.log.info("Starting parcels...")
@@ -635,7 +654,9 @@ class Manager(Item):
             
         return result
 
-
+    def addCopyOperation(self, reference, copyName, item, attributeName):
+        self.__copyOperations.append((reference, copyName, item, attributeName))
+        
     def resetState(self):
         self.currentXMLFile = None
         self.currentXMLLine = None
@@ -1286,20 +1307,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
                     # @@@ Special cases to resolve
                     if copyName:
-                        # We may be reloading, so if the copy is already there,
-                        # remove it and re-copy
-                        existingCopy = item.findPath(copyName)
-                        if existingCopy is not None:
-                            existingCopy.delete(recursive=True)
+                        self.manager.addCopyOperation(reference, copyName,
+                                                      item, attributeName)
 
-                        # (either) Copy the item using cloud-copy:
-                        copy = reference.copy(name=copyName, parent=item, 
-                         cloudAlias="default")
-
-                        # (or) Copy the item using attribute-copy:
-                        # copy = reference.copy(name=copyName, parent=item)
-
-                        item.addValue(attributeName, copy)
                     elif attributeName == 'inverseAttribute':
                         item.addValue('otherName', reference.itsName)
                     elif attributeName == 'displayAttribute':

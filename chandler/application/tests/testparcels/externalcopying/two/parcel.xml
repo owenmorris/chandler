@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel
+    itsName="two"
+    xmlns="http://osafoundation.org/parcels/core"
+    xmlns:one="http://testparcels.org/externalcopying/one"
+    xmlns:two="http://testparcels.org/externalcopying/two">
+
+    <Kind itsName="TestKindTwo">
+        <Attribute itsName="myBuddies">
+            <cardinality value="list"/>
+            <type itemref="one:TestKindOne" />
+            <inverseAttribute itemref="one:TestKindOne/myBuddies" />
+            <initialValue/>
+        </Attribute>
+    </Kind>
+
+    <two:TestKindTwo itsName="kindTwoInstance">
+        <myBuddies itemref="one:kindOneInstance" />
+    </two:TestKindTwo>
+    
+    <two:TestKindTwo itsName="otherKindTwoInstance">
+        <myBuddies itemref="one:kindOneInstance" copy="copiedKindOneInstance"/>
+    </two:TestKindTwo>
+
+</Parcel>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itsName="one"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:one="http://testparcels.org/externalcopying/one"
+        xmlns:two="http://testparcels.org/externalcopying/two">
+
+    <Kind itsName="TestKindOne">
+        <Attribute itsName="myBuddies">
+            <cardinality value="list"/>
+            <type itemref="two:TestKindTwo"/>
+            <inverseAttribute itemref="two:TestKindTwo/myBuddies"/>
+            <initialValue />
+        </Attribute>
+        <Cloud itsName="CloudOne">
+            <Endpoint itsName="myBuddies">
+                <includePolicy value="byCloud"/>
+                <cloudAlias value="default"/>
+                <attribute value="myBuddies"/>
+            </Endpoint>
+            <endpoints itemref="one:TestKindOne/CloudOne/myBuddies"/>
+        </Cloud>
+        <clouds alias="default" itemref="one:TestKindOne/CloudOne"/>
+    </Kind>
+
+    <one:TestKindOne itsName="kindOneInstance">
+        <displayName value="This should be set"/>
+        <myBuddies itemref="two:kindTwoInstance"/>
+    </one:TestKindOne>
+
+    <two:TestKindTwo itsName="kindTwoInstance">
+        <myBuddies itemref="one:kindOneInstance" copy="copiedInOne"/>
+    </two:TestKindTwo>
+
+
+</Parcel>
