@@ -8,7 +8,6 @@ from wxPython.wx import *
 import Globals, ChandlerJabber
 import repository.parcel.LoadParcels as LoadParcels
 import repository.schema.AutoItem as AutoItem
-import application.agents.Notifications.NotificationManager as NotificationManager
 
 
 """
@@ -153,17 +152,16 @@ class wxApplicationNew (wxApp):
                                 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
         
-        # Create the notification manager.
-        Globals.notificationManager = NotificationManager.NotificationManager()
+        # Create and start the notification manager.
+        from OSAF.framework.notifications.NotificationManager import NotificationManager
+        Globals.notificationManager = NotificationManager()
+        Globals.notificationManager.PrepareSubscribers()
 
         # Create and start the agent manager.
         from OSAF.framework.agents.AgentManager import AgentManager
         Globals.agentManager = AgentManager()
         Globals.agentManager.Startup()
 
-        # initialize the non-persistent part of the NotificationManager
-        Globals.notificationManager.PrepareSubscribers()
-                
         #allocate the Jabber client, logging in if possible
         # Globals.jabberClient = ChandlerJabber.JabberClient(self)
         
