@@ -65,6 +65,7 @@ def GenerateNote():
     delta = DateTime.DateTimeDelta(random.randint(0, 5),
                                    random.randint(0, 24))
     note.createdOn = DateTime.now() + delta
+    return note
 
 def GenerateNotes(count):
     """ Generate _count_ notes """

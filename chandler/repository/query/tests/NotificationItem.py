@@ -19,4 +19,3 @@ class NotificationItem(Item.Item):
         Stash the notification action for later retrieval
         """
         self.action = action
-        print "handle %s" % self.action

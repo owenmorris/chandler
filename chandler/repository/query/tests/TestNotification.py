@@ -28,6 +28,8 @@ class TestNotification(QueryTestCase.QueryTestCase):
         )
 
         GenerateItems.GenerateContacts(100)
+        contact = GenerateItems.GenerateContact()
+        contact.displayName = "Alexis"
 
         self.rep.commit()
 
@@ -72,6 +74,17 @@ class TestNotification(QueryTestCase.QueryTestCase):
         GenerateItems.GenerateNotes(20)
         GenerateItems.generateCalendarEventItems(20,5)
         GenerateItems.GenerateContacts(10)
+        # make sure there's at least one good data item
+        import osaf.contentmodel.calendar.Calendar as Calendar
+        import osaf.contentmodel.contacts.Contacts as Contacts
+        import osaf.contentmodel.Notes as Notes
+        event = GenerateItems.GenerateCalendarEvent(1)
+        event.displayName = "Meeting"
+        note = GenerateItems.GenerateNote()
+        note.displayName = "story idea"
+        contact = GenerateItems.GenerateContact()
+        contact.displayName = "Alexis"
+        
         self.rep.commit()
 
         queryString = 'union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where i.displayName == "Meeting", for i in "//parcels/osaf/contentmodel/Note" where contains(i.displayName,"idea"), for i in "//parcels/osaf/contentmodel/contacts/Contact" where contains(i.contactName.firstName,"i"))'
