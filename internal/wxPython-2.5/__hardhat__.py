@@ -3,8 +3,8 @@ import os, hardhatlib
 
 info = {
         'name':'wxWindows-2.5.1.5',
-        'root':'../osaf/chandler',
-        'path':'../../wxPythonSrc-2.5.1.5',
+        'root':'../../../osaf/chandler',
+        'path':'../../internal/wx/wxPython-2.5',
        }
 
 dependencies = (
