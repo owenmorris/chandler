@@ -21,14 +21,25 @@ def build(buildenv):
           '--force'],
          "Building and installing debug")
 
+
 def clean(buildenv):
+    # XXX Why doesn't 'setup.py clean' work?
+    
+    hardhatlib.rm_files('.', '_m2crypto.py')
+    hardhatlib.rm_files('SWIG', '_m2crypto.c')
 
-    version = buildenv['version']
+    if buildenv['version'] == 'release':
+        if os.path.exists("build_release"):
+            hardhatlib.rmdir_recursive("build_release")
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
+             info['name'], "Removed build_release directory")
 
-    if buildenv['os'] == 'osx' or buildenv['os'] == 'posix':
-        pass
-    elif buildenv['os'] == 'win':
-        pass
+    if buildenv['version'] == 'debug':
+        if os.path.exists("build_debug"):
+            hardhatlib.rmdir_recursive("build_debug")
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
+             info['name'], "Removed build_debug directory
+
 
 def run(buildenv):
     pass
