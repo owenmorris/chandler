@@ -208,7 +208,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         self.todayButton = CollectionCanvas.CanvasTextButton(self, today.Format("%b %d, %Y"),
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
-        self.monthButton = CollectionCanvas.CanvasTextButton(self, "",
+        self.monthButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %Y"),
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
 
@@ -532,7 +532,7 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
         self.todayButton = CollectionCanvas.CanvasTextButton(self, today.Format("%b %d, %Y"),
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
-        self.monthButton = CollectionCanvas.CanvasTextButton(self, "",
+        self.monthButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %Y"),
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
 
