@@ -371,7 +371,7 @@ def RenderItem(item, urlRoot):
         result += "</tr>\n"
 
         result += "<tr class='headingsrow'>\n"
-        result += "<td valign=top><b>Attribute</b>&nbsp;(*=inherited)</td>\n"
+        result += "<td valign=top><b>Attribute</b> (inherited from)</td>\n"
         result += "<td valign=top><b>Description / Issues</b></td>\n"
         result += "<td valign=top><b>Cardinality</b></td>\n"
         result += "<td valign=top><b>Type</b></td>\n"
@@ -381,23 +381,23 @@ def RenderItem(item, urlRoot):
         result += "</tr>\n"
         count = 0
         displayedAttrs = { }
-        for name, attr, k in item.iterAttributes():
+        for name, attr, kind in item.iterAttributes():
             if name is None: name = "Anonymous"
-            displayedAttrs[name] = attr
+            displayedAttrs[name] = (attr, kind)
         keys = displayedAttrs.keys()
         keys.sort(lambda x, y: cmp(string.lower(x), string.lower(y)))
         for key in keys:
-            attribute = displayedAttrs[key]
+            attribute, kind = displayedAttrs[key]
             result += oddEvenRow(count)
-            alias = ""
             other = attribute.getAttributeValue('otherName', default="")
             if other: other = " (inverse: '%s')" % other
             else: other = ""
-            if item.hasAttributeValue('attributes') and \
-             attribute in item.attributes: inherited = ""
-            else: inherited = "*&nbsp;"
-            result += "<td valign=top>%s<a href=%s>%s</a>%s%s</td>\n" % \
-             (inherited, toLink(urlRoot, attribute.itsPath), key, alias, other)
+            if kind is not item:
+                inherited = " (from <a href=%s>%s</a>)" % (toLink(urlRoot, kind.itsPath), kind.itsName)
+            else:
+                inherited = ""
+            result += "<td valign=top><a href=%s>%s</a>%s%s</td>\n" % \
+             (toLink(urlRoot, attribute.itsPath), key, inherited, other)
             result += "<td valign=top>%s" % \
              (attribute.getAttributeValue('description', default = "&nbsp;"))
             try:
