@@ -106,7 +106,6 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         self.accountUUID = account.itsUUID
         self.account = None
         self.downloadedStr = None
-        self.loginTried = False
 
 
     def getMail(self):
@@ -207,8 +206,8 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
             assert self.account is not None, "Account is None can not login client"
 
-            username = self.account.username
-            password = self.account.password
+            username = str(self.account.username)
+            password = str(self.account.password)
 
             self.proto.registerAuthenticator(imap4.CramMD5ClientAuthenticator(username))
             self.proto.registerAuthenticator(imap4.LOGINAuthenticator(username))
@@ -220,11 +219,12 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         finally:
            self.restorePreviousView()
 
-    #XXX: This needs be tested for failure conditions
     def loginClientInsecure(self, error, username, password):
-        if not self.loginTried:
-            self.loginTried = True
-            return self.proto.login(username, password)
+        if __debug__:
+            self.printCurrentView("loginClientInsecure")
+
+            return self.proto.login(username, password
+                          ).addCallback(self.__selectInbox)
 
 
     def __selectInbox(self, result):
