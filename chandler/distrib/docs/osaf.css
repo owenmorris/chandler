@@ -1,0 +1,9 @@
+body { background:#fff; color:#000; font-family:verdana; font-size:90%; margin:30px }
+.replace { font-family:courier; color:#d00 }
+.tag { font-family:courier; font-size:90% }
+.xml { border: thin solid #ddd; padding:4px; margin-left:25px; margin-right:25px; background:#eee }
+.code { border: thin solid #ddd; padding:4px; margin-left:25px; margin-right:25px; background:#ffa }
+.legend { border: thin dashed #777; padding:8px; margin-left:25px; margin-right:25px; padding-bottom:0px }
+.file { font-family:courier }
+.path { font-family:courier; font-weight:bold }
+.annotation { background:#ff0 }
