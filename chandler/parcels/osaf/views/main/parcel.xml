@@ -214,6 +214,50 @@
     <helpString></helpString>
   </MenuItem>
 
+  <MenuItem itemName="GenerateAllItem">
+    <title>Generate Content Items</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>TestMenu</menuLocation>
+    <itemLocation/>
+    <menuItemKind>Normal</menuItemKind>
+    <accel/>
+    <event itemref="events:GenerateContentItems"/>
+    <helpString>generates sample items: 5 contacts, 5 notes, 5 events</helpString>
+  </MenuItem>
+
+  <MenuItem itemName="GenerateContactItem">
+    <title>Generate Contacts</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>TestMenu</menuLocation>
+    <itemLocation/>
+    <menuItemKind>Normal</menuItemKind>
+    <accel/>
+    <event itemref="events:GenerateContacts"/>
+    <helpString>generates 10 sample contacts</helpString>
+  </MenuItem>
+
+  <MenuItem itemName="GenerateCalendarItem">
+    <title>Generate Calendar Events</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>TestMenu</menuLocation>
+    <itemLocation/>
+    <menuItemKind>Normal</menuItemKind>
+    <accel/>
+    <event itemref="events:GenerateCalendarEvents"/>
+    <helpString>generates 10 sample calendar events</helpString>
+  </MenuItem>
+
+  <MenuItem itemName="GenerateNoteItem">
+    <title>Generate Notes</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>TestMenu</menuLocation>
+    <itemLocation/>
+    <menuItemKind>Normal</menuItemKind>
+    <accel/>
+    <event itemref="events:GenerateNotes"/>
+    <helpString>Generate 10 notes</helpString>
+  </MenuItem>
+
   <!--
     Toolbars
   -->
@@ -428,6 +472,10 @@
     <childrenBlocks itemref="doc:ViewNavigationBarItem"/>
     <childrenBlocks itemref="doc:ViewStatusBarItem"/>
     <childrenBlocks itemref="doc:TestMenu"/>
+    <childrenBlocks itemref="doc:GenerateAllItem"/>
+    <childrenBlocks itemref="doc:GenerateContactItem"/>
+    <childrenBlocks itemref="doc:GenerateCalendarItem"/>
+    <childrenBlocks itemref="doc:GenerateNoteItem"/>
     
     <!-- Toolbar -->
     <childrenBlocks itemref="doc:NavigationBar"/>

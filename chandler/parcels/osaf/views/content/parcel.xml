@@ -35,33 +35,6 @@
   </Query>
 
   <!-- Styles -->
-  <!-- Events -->
-  <BlockEvent itemName="GenerateContentItemsEvent">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="view:MixedTree"/>
-    <methodName>OnGenerateContentItems</methodName>
-  </BlockEvent>
-
-  <!-- Menus -->
-  <Menu itemName="ContentMenu">
-    <title>Content Items</title>
-    <operation>InsertBefore</operation>
-    <menuLocation/>
-    <itemLocation/>
-    <helpString/>
-  </Menu>
-
-  <!-- Menu Items -->
-  <MenuItem itemName="GenerateContentMenuItem">
-    <title>Generate Content Items</title>
-    <operation>InsertBefore</operation>
-    <menuLocation>ContentMenu</menuLocation>
-    <itemLocation/>
-    <menuItemKind>Normal</menuItemKind>
-    <accel>G</accel>
-    <event itemref="view:GenerateContentItemsEvent"/>
-    <helpString>generates sample content items: notes, calendar events and contacts</helpString>
-  </MenuItem>
 
   <!-- Calendar Tree -->
   <Tree itemName="CalendarTree">
@@ -155,11 +128,7 @@
   <BoxContainer itemName="CalendarListView">
     <contentSpec itemref="view:calendarQuery"/>
 
-    <childrenBlocks itemref="view:ContentMenu"/>
-    <childrenBlocks itemref="view:GenerateContentMenuItem"/>
     <childrenBlocks itemref="view:CalendarTree"/>
-
-    <blockEvents itemref="view:GenerateContentItemsEvent"/>
 
     <open>True</open>
     <eventBoundary>True</eventBoundary>
@@ -177,11 +146,7 @@
   <BoxContainer itemName="NoteListView">
     <contentSpec itemref="view:notesQuery"/>
 
-    <childrenBlocks itemref="view:ContentMenu"/>
-    <childrenBlocks itemref="view:GenerateContentMenuItem"/>
     <childrenBlocks itemref="view:NoteTree"/>
-
-    <blockEvents itemref="view:GenerateContentItemsEvent"/>
 
     <open>True</open>
     <eventBoundary>True</eventBoundary>
@@ -199,11 +164,7 @@
   <BoxContainer itemName="ContactListView">
     <contentSpec itemref="view:contactQuery"/>
 
-    <childrenBlocks itemref="view:ContentMenu"/>
-    <childrenBlocks itemref="view:GenerateContentMenuItem"/>
     <childrenBlocks itemref="view:ContactTree"/>
-
-    <blockEvents itemref="view:GenerateContentItemsEvent"/>
 
     <open>True</open>
     <eventBoundary>True</eventBoundary>
@@ -221,11 +182,7 @@
   <BoxContainer itemName="MixedListView">
     <contentSpec itemref="view:mixedQuery"/>
 
-    <childrenBlocks itemref="view:ContentMenu"/>
-    <childrenBlocks itemref="view:GenerateContentMenuItem"/>
     <childrenBlocks itemref="view:MixedTree"/>
-
-    <blockEvents itemref="view:GenerateContentItemsEvent"/>
 
     <open>True</open>
     <eventBoundary>True</eventBoundary>

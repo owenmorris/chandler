@@ -27,7 +27,11 @@ of a limitation of the XML format, which will be eliminated</description>
     <blockEvents itemref="events:ViewNavigationBar"/>
     <blockEvents itemref="events:ViewStatusBar"/>    
     <blockEvents itemref="events:SelectionChanged"/>
-    <blockEvents itemref="events:EnterPressed"/>    
+    <blockEvents itemref="events:EnterPressed"/>
+    <blockEvents itemref="events:GenerateContentItems"/>
+    <blockEvents itemref="events:GenerateContacts"/>
+    <blockEvents itemref="events:GenerateNotes"/>
+    <blockEvents itemref="events:GenerateCalendarEvents"/>    
   </EventData>
 
   <BlockEvent itemName="Quit">
@@ -98,6 +102,27 @@ of a limitation of the XML format, which will be eliminated</description>
   <BlockEvent itemName="ToolPressed">
     <dispatchEnum>Broadcast</dispatchEnum>
     <methodName>OnToolPressedEvent</methodName>
+  </BlockEvent>
+
+  <!-- Test Events -->
+  <BlockEvent itemName="GenerateContentItems">
+    <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnGenerateContentItems</methodName>
+  </BlockEvent>
+
+  <BlockEvent itemName="GenerateContacts">
+    <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnGenerateContacts</methodName>
+  </BlockEvent>
+
+  <BlockEvent itemName="GenerateCalendarEvents">
+    <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnGenerateCalendarEvents</methodName>
+  </BlockEvent>
+
+  <BlockEvent itemName="GenerateNotes">
+    <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnGenerateNotes</methodName>
   </BlockEvent>
 
 </core:Parcel>

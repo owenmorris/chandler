@@ -2,7 +2,7 @@ import application.Globals as Globals
 import OSAF.contentmodel.calendar.Calendar as Calendar
 import OSAF.contentmodel.notes.Notes as Notes
 import OSAF.contentmodel.contacts.Contacts as Contacts
-import OSAF.contentmodel.tests.GenerateItems as GenerateItems
+
 import OSAF.framework.blocks.ContainerBlocks as ContainerBlocks
 import OSAF.framework.blocks.ControlBlocks as ControlBlocks
 import repository.item.Query as Query

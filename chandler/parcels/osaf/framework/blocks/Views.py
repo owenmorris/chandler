@@ -10,6 +10,7 @@ from OSAF.framework.notifications.Notification import Notification
 from wxPython.wx import *
 from wxPython.html import *
 
+import OSAF.contentmodel.tests.GenerateItems as GenerateItems
 
 class View(BoxContainer):
 
@@ -116,4 +117,22 @@ class View(BoxContainer):
     def OnPasteEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
 
+    # Test Methods
+
+    def OnGenerateContentItems(self, notification):
+        GenerateItems.GenerateCalendarEvents(5, 30)
+        GenerateItems.GenerateContacts(5)
+        Globals.repository.commit()
+
+    def OnGenerateCalendarEvents(self, notification):
+        GenerateItems.GenerateCalendarEvents(10, 30)
+        Globals.repository.commit()
+
+    def OnGenerateContacts(self, notification):
+        GenerateItems.GenerateContacts(10)
+        Globals.repository.commit()
+
+    def OnGenerateNotes(self, notification):
+        GenerateItems.GenerateNotes(10)
+        Globals.repository.commit()
 
