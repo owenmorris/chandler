@@ -91,7 +91,7 @@ def manualSubscribeToCollection():
 
     url = application.dialogs.Util.promptUser( \
      Globals.wxApplication.mainFrame, "Subscribe to Collection...",
-     "Collection URL:", "http://code-bear.com/dav/test_item_collection")
+     "Collection URL:", "")
     if url is not None:
         subscribeToWebDavCollection(url)
 
