@@ -119,7 +119,7 @@ class SMTPTestServer(basic.LineReceiver):
             return
 
         if INVALID_SERVER_RESPONSE:
-            self.sendLine("The SMTP Server is sending you a invalid RFC response")
+            self.sendLine("The SMTP Server is sending you an invalid RFC response")
             return
 
         if self.in_data:
