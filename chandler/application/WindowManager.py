@@ -14,8 +14,7 @@ __license__ = "OSAF"
 from wxPython.wx import *
 from wxPython.xrc import *
 
-from persist.Persist import Persistent
-from persist.Persist import Storage
+from persist.Persist import Storage, Persistent
 from persist.Persist import List as PList
 
 from application.XmlReader import XmlReader

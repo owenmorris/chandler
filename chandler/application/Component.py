@@ -70,8 +70,12 @@ class Component:
 
         OriginalUriList
             Returns a list of all of the available uri's.
-        """
+    """
     
+    def Install(theClass):
+        pass
+    Install = classmethod (Install)
+
     def Load(self, parent, frame, interface, resourceInfo):
         """Called when the component is first loaded.  This is a chance
         to allocate any data structures and do the necessary setup."""
