@@ -8,6 +8,7 @@ from osaf.framework.blocks.Views import View
 from osaf.framework.notifications.Notification import Notification
 import wx
 import os
+import application.Application
 from application.SplashScreen import SplashScreen
 from application.Parcel import Manager as ParcelManager
 from osaf.mail.IMAPMailTask import IMAPDownloader
@@ -39,6 +40,20 @@ class MainView(View):
  
     def onPreferencesEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
+
+    def onEditMailAccountEvent (self, notification):
+        if application.Application.promptForItemValues(
+         Globals.wxApplication.mainFrame,
+         "IMAP Account",
+         Globals.repository.findPath('//parcels/osaf/mail/IMAPAccount One'),
+         [
+           { "attr":"serverName", "label":"IMAP Server" },
+           { "attr":"accountName", "label":"Username" },
+           { "attr":"password", "label":"Password", "password":True },
+         ]
+        ):
+            Globals.repository.commit()
+
 
     def onGetNewMailEvent (self, notification):
         accountList = [Globals.repository.findPath('//parcels/osaf/mail/IMAPAccount One')]

@@ -237,6 +237,7 @@
     <childrenBlocks itemref="doc:GenerateCalendarItem"/>
     <childrenBlocks itemref="doc:GenerateNoteItem"/>
     <childrenBlocks itemref="doc:ImportContactItem"/>
+    <childrenBlocks itemref="doc:EditMailAccountItem"/>
     <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
@@ -427,6 +428,14 @@
     <location>TestMenu</location>
     <event itemref="events:ImportContacts"/>
     <helpString>import Contacts from contacts.csv</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="EditMailAccountItem">
+    <blockName>EditMailAccountItem</blockName>
+    <title>Edit Mail Account</title>
+    <location>TestMenu</location>
+    <event itemref="events:EditMailAccount"/>
+    <helpString>Edit email account settings</helpString>
   </MenuItem>
 
   <MenuItem itsName="GetNewMailItem">
