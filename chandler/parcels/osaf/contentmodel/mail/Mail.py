@@ -12,11 +12,40 @@ import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.Notes as Notes
 import application.Globals as Globals
 
+from repository.util.Path import Path
+
+
 class MailParcel(application.Parcel.Parcel):
 
     def startupParcel(self):
         super(MailParcel, self).startupParcel()
+
+        repository = self.itsView
+        itemKind = repository.findPath('//Schema/Core/Item')
+        contentitemsPath = ContentModel.ContentModel.contentitemsPath
+        
+        def makeContainer(parent, name, child):
+            if child is None:
+                return itemKind.newItem(name, parent)
+            else:
+                return child
+        
+        repository.walk(Path(contentitemsPath, 'inboundMailItems'),
+                        makeContainer)
+        repository.walk(Path(contentitemsPath, 'outboundMailItems'),
+                        makeContainer)
+            
         self._setUUIDs()
+
+    def getMailItemParent(cls, inbound=False):
+
+        parent = ContentModel.ContentModel.getContentItemParent()
+        if inbound:
+            return parent['inboundMailItems']
+        else:
+            return parent['outboundMailItems']
+
+    getMailItemParent = classmethod(getMailItemParent)
 
     def onItemLoad(self):
         super(MailParcel, self).onItemLoad()
@@ -188,7 +217,7 @@ class MailParcel(application.Parcel.Parcel):
 class AccountBase(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getAccountBaseKind()
         super (AccountBase, self).__init__(name, parent, kind)
@@ -196,7 +225,7 @@ class AccountBase(Item.Item):
 class SMTPAccount(AccountBase):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getSMTPAccountKind()
         super (SMTPAccount, self).__init__(name, parent, kind)
@@ -206,7 +235,7 @@ class SMTPAccount(AccountBase):
 class IMAPAccount(AccountBase):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getIMAPAccountKind()
         super (IMAPAccount, self).__init__(name, parent, kind)
@@ -217,7 +246,7 @@ class IMAPAccount(AccountBase):
 class MailDeliveryError(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMailDeliveryErrorKind()
         super (MailDeliveryError, self).__init__(name, parent, kind)
@@ -229,7 +258,7 @@ class MailDeliveryError(Item.Item):
 class MailDeliveryBase(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMailDeliveryBaseKind()
         super (MailDeliveryBase, self).__init__(name, parent, kind)
@@ -238,7 +267,7 @@ class MailDeliveryBase(Item.Item):
 class SMTPDelivery(MailDeliveryBase):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getSMTPDeliveryKind()
         super (SMTPDelivery, self).__init__(name, parent, kind)
@@ -263,7 +292,7 @@ class SMTPDelivery(MailDeliveryBase):
 class IMAPDelivery(MailDeliveryBase):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getIMAPDeliveryKind()
         super (IMAPDelivery, self).__init__(name, parent, kind)
@@ -273,7 +302,7 @@ class IMAPDelivery(MailDeliveryBase):
 class MIMEBase(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMIMEBaseKind()
         super (MIMEBase, self).__init__(name, parent, kind)
@@ -281,7 +310,7 @@ class MIMEBase(Item.Item):
 class MIMENote(Notes.Note, MIMEBase):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMIMENoteKind()
         super (MIMENote, self).__init__(name, parent, kind)
@@ -289,7 +318,7 @@ class MIMENote(Notes.Note, MIMEBase):
 class MIMEContainer(MIMEBase):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMIMEContainerKind()
         super (MIMEContainer, self).__init__(name, parent, kind)
@@ -301,7 +330,7 @@ class MailMessageMixin(MIMEContainer):
     """
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMailMessageMixinKind()
         super (MailMessageMixin, self).__init__(name, parent, kind)
@@ -377,7 +406,7 @@ class MailMessage(Notes.Note, MailMessageMixin):
 class MIMEBinary(MIMENote):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMIMEBinaryKind()
         super (MIMEBinary, self).__init__(name, parent, kind)
@@ -385,7 +414,7 @@ class MIMEBinary(MIMENote):
 class MIMEText(MIMENote):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMIMETextKind()
         super (MIMEText, self).__init__(name, parent, kind)
@@ -394,7 +423,7 @@ class MIMEText(MIMENote):
 class MIMESecurity(MIMEContainer):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getMIMESecurityKind()
         super (MIMESecurity, self).__init__(name, parent, kind)
@@ -402,10 +431,7 @@ class MIMESecurity(MIMEContainer):
 class EmailAddress(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
+            parent = MailParcel.getMailItemParent()
         if not kind:
             kind = MailParcel.getEmailAddressKind()
         super (EmailAddress, self).__init__(name, parent, kind)
-
-
-

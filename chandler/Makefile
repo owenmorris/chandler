@@ -64,7 +64,5 @@ checkout:
 install: $(ARCHIVES) $(notdir $(ARCHIVES))
 
 clean:
-	rm -rf $(SNAP); \
-	rm -f chandler.log; \
-	rm -rf __repository__ ; \
-	rm -f randpool.dat
+	rm -rf $(SNAP) __repository__
+	rm -f chandler.log randpool.dat

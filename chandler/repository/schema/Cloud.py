@@ -405,6 +405,10 @@ class Endpoint(Item):
                 value = value.getAttributeValue(name, default=None)
                 if value is None:
                     break
+                if not (isinstance(value, Item) or
+                        isinstance(value, RefDict) or
+                        isinstance(value, PersistentCollection)):
+                    raise TypeError, type(value)
 
         if value is None:
             return []

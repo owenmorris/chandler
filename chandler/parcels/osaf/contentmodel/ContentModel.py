@@ -7,6 +7,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from application.Parcel import Parcel
+from repository.util.Path import Path
 import repository.item.Item as Item
 import repository.item.Query as Query
 import repository.persistence.XMLRepositoryView as XMLRepositoryView
@@ -23,6 +24,7 @@ class ContentModel(Parcel):
     groupKindID = None
     noteKindID = None
     conversationKindID = None
+    contentitemsPath = Path('//userdata/contentitems')
 
     # The parcel knows the UUID for the parent, once the parcel is loaded
     contentItemParentID = None
@@ -39,19 +41,22 @@ class ContentModel(Parcel):
     def onItemLoad(self):
         super(ContentModel, self).onItemLoad()
         repository = self.itsView
-        parent = repository.findPath('//userdata/contentitems')
+        parent = repository.find(ContentModel.contentitemsPath)
         self._setUUIDs(parent)
 
     def startupParcel(self):
         super(ContentModel, self).startupParcel()
+
         repository = self.itsView
-        parent = repository.findPath('//userdata/contentitems')
-        if not parent:
-            itemKind = repository.findPath('//Schema/Core/Item')
-            userdata = repository.getRoot('userdata')
-            if not userdata:
-                userdata = itemKind.newItem('userdata', repository)
-            parent = itemKind.newItem('contentitems', userdata)
+        itemKind = repository.findPath('//Schema/Core/Item')
+
+        def makeContainer(parent, name, child):
+            if child is None:
+                return itemKind.newItem(name, parent)
+            else:
+                return child
+        
+        parent = repository.walk(ContentModel.contentitemsPath, makeContainer)
         self._setUUIDs(parent)
 
     def getContentItemParent(cls):
