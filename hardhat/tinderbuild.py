@@ -99,6 +99,7 @@ def main():
             status = "success"
             newDir = os.path.join(outputDir, buildVersion)
             os.rename(os.path.join(buildDir, "output"), newDir)
+            log.write("Calling CreateIndex with " + newDir)
             CreateIndex(newDir)
             RotateDirectories(outputDir)
 
