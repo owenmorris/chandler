@@ -18,6 +18,9 @@ from application.repository.Namespace import chandler
 
 from application.repository.Item import Item
 from application.repository.Event import Event
+from application.repository.Contact import Contact
+from application.repository.ContactMethod import ContactMethod
+from application.repository.ContactName import ContactName
 
 from mx import DateTime
 
@@ -30,10 +33,23 @@ event.endTime = DateTime.now()
 event.headline = 'Games night'
 repository.AddThing(event)
 
+print "Duration: " + str(event.duration)
+
+contact = Contact('Person')
+contactName = ContactName(contact)
+contact.SetAttribute(chandler.contactName, contactName)
+repository.AddThing(contact)
+
 repository.Commit()
 repository.PrintTriples()
 
-print "Duration: " + str(event.duration)
+contactName.SetAttribute(chandler.firstname, "Sally")
+lastName = contactName.GetAttribute(chandler.lastname)
+
+print "Last Name: " + str(lastName)
+
+contact.PrintTriples()
+contactName.PrintTriples()
 
 
 

@@ -20,6 +20,8 @@ from persistence.list import PersistentList
 
 from application.repository.Namespace import chandler
 
+from mx import DateTime
+
 class Thing(PersistentDict):
     def __init__(self, dict=None):
         PersistentDict.__init__(self, dict)
@@ -72,6 +74,9 @@ class Thing(PersistentDict):
             
         self[uri] = value
         
+    def HasAttribute(self, uri):
+        return self.has_key(uri)
+        
     def GetAttributeTemplate(self, uri):
         """ Returns an AttributeTemplate for this uri, if we can find one.
         If this Thing has a type, we ask the KindOfItem
@@ -108,6 +113,16 @@ class Thing(PersistentDict):
         """
         self[chandler.uri] = uri
         
+    def GetAkoUri(self):
+        """ Convenience method to get the uri of the KindOfThing
+            associated with this 'Thing'. Returns None if there is
+            no KindOfThing associated.
+        """
+        ako = self.GetAko()
+        if (ako != None):
+            return ako.GetUri()
+        return None
+        
         
     # For debugging purposes, be able to print a 'thing' as a list of
     # triples. From this exercise, one could imagine how one would
@@ -129,4 +144,17 @@ class Thing(PersistentDict):
             print (self.GetUri(), key, value.GetUri())
         else:
             print (self.GetUri(), key, value)
+            
+    def GetUniqueId(self):
+        """ @@@ Scaffolding hack, really the repository will take
+        care of generating universally unique ids. We just need 
+        something for now for item uris.
+        """
+        now = DateTime.now()
+        name = (str(now.absdate) + '.' + 
+                str(now.abstime) + '.' +
+                str(id(self)))
+        return chandler.prefix + name
+
+
         

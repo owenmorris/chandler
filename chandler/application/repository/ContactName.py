@@ -25,48 +25,55 @@ _attributes = [{ chandler.uri : chandler.fullname,
                  chandler.range : str,
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },
-               
-               { chandler.uri : chandler.firstname,
-                 chandler.range : str,
-                 chandler.cardinality : 1,
-                 chandler.required : False,
-                 chandler.default : None },
-                        
-               { chandler.uri : chandler.middlename,
-                 chandler.range : str,
-                 chandler.cardinality : 1,
-                 chandler.required : False,
-                 chandler.default : None },
-               
-               { chandler.uri : chandler.lastname,
-                 chandler.range : str,
-                 chandler.cardinality : 1,
-                 chandler.required : False,
-                 chandler.default : None },
-                       
-               { chandler.uri : chandler.nickname,
-                 chandler.range : str,
-                 chandler.cardinality : 1,
-                 chandler.required : False,
-                 chandler.default : None },
-                        
-               { chandler.uri : chandler.honorific,
-                 chandler.range : str,
-                 chandler.cardinality : 1,
-                 chandler.required : False,
-                 chandler.default : None },
-                        
-               { chandler.uri : chandler.suffix,
-                 chandler.range : str,
-                 chandler.cardinality : 1,
-                 chandler.required : False,
                  chandler.default : None }
                ]
+
+_personAttributes = [ { chandler.uri : chandler.firstname,
+                        chandler.range : str,
+                        chandler.cardinality : 1,
+                        chandler.required : False,
+                        chandler.default : None },
+                      
+                      { chandler.uri : chandler.middlename,
+                        chandler.range : str,
+                        chandler.cardinality : 1,
+                        chandler.required : False,
+                        chandler.default : None },
+                      
+                      { chandler.uri : chandler.lastname,
+                        chandler.range : str,
+                        chandler.cardinality : 1,
+                        chandler.required : False,
+                        chandler.default : None },
+                      
+                      { chandler.uri : chandler.nickname,
+                        chandler.range : str,
+                        chandler.cardinality : 1,
+                        chandler.required : False,
+                        chandler.default : None },
+                      
+                      { chandler.uri : chandler.honorific,
+                        chandler.range : str,
+                        chandler.cardinality : 1,
+                        chandler.required : False,
+                        chandler.default : None },
+                      
+                      { chandler.uri : chandler.suffix,
+                        chandler.range : str,
+                        chandler.cardinality : 1,
+                        chandler.required : False,
+                        chandler.default : None }
+                      ]
+
 
 class AkoContactNameFactory(AkoThingFactory):
     def __init__(self):
         AkoThingFactory.__init__(self, chandler.ContactName, _attributes)
+        
+# @@@ Need to mark as a subclass
+class AkoPersonNameFactory(AkoThingFactory):
+    def __init__(self):
+        AkoThingFactory.__init__(self, chandler.PersonName, _personAttributes)
 
 class ContactName(Thing):
     """ContactName"""
@@ -78,12 +85,20 @@ class ContactName(Thing):
     # generic Thing call, looking at meta-data for the
     # attribute if it is there.
     
-    def __init__(self, contactItem):
+    def __init__(self, contact):
         Thing.__init__(self)
-        self.SetAko(AkoContactNameFactory().GetAko())
 
-        self.contactItem = contactItem
- 
+        if contact.contactType == 'Person':
+            self.SetAko(AkoPersonNameFactory().GetAko())
+        else:
+            self.SetAko(AkoContactNameFactory().GetAko())
+            
+        self.SetUri(self.GetUniqueId())
+        
+    def IsPersonName(self):
+        ako = self.GetAko()
+        return (ako.GetUri() == chandler.PersonName)
+
     def SetAttribute(self, uri, value):
         Thing.SetAttribute(self, uri, value)
         if (uri == chandler.fullname):
@@ -97,7 +112,7 @@ class ContactName(Thing):
     
     # return an abbreviated version of the name
     def GetShortName(self):
-        if self.contactItem.contactType == 'Person':
+        if self.IsPersonName():
             firstName = self.get(chandler.firstname)
             lastName = self.get(chandler.lastname)
             if lastName == None:
@@ -109,7 +124,7 @@ class ContactName(Thing):
     # a name part was changed, so recompute the full name
     # FIXME: this needs be internationalized eventually
     def CalcFullName(self):
-         if self.contactItem.contactType == 'Person':
+         if self.IsPersonName():
             if self.get(chandler.lastname) == None:
                 self[chandler.fullname] = self.get(chandler.firstname)
                 return
@@ -123,7 +138,7 @@ class ContactName(Thing):
     
     # the full name was set, so parse it into the constituent parts if appropriate
     def ParseFullName(self):
-       if self.contactItem.contactType == 'Person': 
+       if self.IsPersonName(): 
            nameList = self[chandler.fullname].split(' ')
            self[chandler.firstname] = nameList[0]
            partCount = len(nameList)
@@ -140,7 +155,7 @@ class ContactName(Thing):
     # calculate the sort name from the parts
     # FIXME: this must be internationalized eventually
     def CalcSortName(self):
-        if self.contactItem.contactType == 'Person':  
+        if self.IsPersonName():
             if self.get(chandler.lastname) == None:
                 self[chandler.sortname] = self.get(chandler.firstname)
             else: 

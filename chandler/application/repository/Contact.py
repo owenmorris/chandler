@@ -1,4 +1,4 @@
-"""ContactItem, the base class for contacts
+"""Contact, the base class for contacts
 """
 
 __revision__ = "$Revision$"
@@ -12,6 +12,7 @@ from application.repository.Namespace import chandler
 
 from application.repository.Item import Item
 from application.repository.ContactName import ContactName
+from application.repository.ContactMethod import ContactMethod
 
 _attributes = [{ chandler.uri : chandler.contactType,
                  chandler.range : str,
@@ -26,19 +27,13 @@ _attributes = [{ chandler.uri : chandler.contactType,
                  chandler.default : None },
 
                 { chandler.uri : chandler.contactMethod,
-                 chandler.range : ContactName,
+                 chandler.range : ContactMethod,
                  chandler.cardinality : None,
                  chandler.required : False,
                  chandler.default : None },              
                
                { chandler.uri : chandler.photoURL,
                  chandler.range : str,
-                 chandler.cardinality : 1,
-                 chandler.required : False,
-                 chandler.default : None },
-
-               { chandler.uri : chandler.contactFormat,
-                 chandler.range : ContactFormat,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.default : None },
@@ -50,13 +45,13 @@ _attributes = [{ chandler.uri : chandler.contactType,
                  chandler.default : None },
                
                { chandler.uri : chandler.companyName,
-                 chandler.range : ContactName,
+                 chandler.range : str,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.default : None },
 
                 { chandler.uri : chandler.jobTitle,
-                 chandler.range : ContactName,
+                 chandler.range : str,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.default : None },              
@@ -68,7 +63,7 @@ _attributes = [{ chandler.uri : chandler.contactType,
                  chandler.default : None },
 
                { chandler.uri : chandler.relationship,
-                 chandler.range : ContactFormat,
+                 chandler.range : str,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.default : None },
@@ -80,13 +75,13 @@ _attributes = [{ chandler.uri : chandler.contactType,
                  chandler.default : None },
                
                { chandler.uri : chandler.birthday,
-                 chandler.range : ContactName,
+                 chandler.range : str,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.default : None },
 
                 { chandler.uri : chandler.gender,
-                 chandler.range : ContactName,
+                 chandler.range : str,
                  chandler.cardinality : None,
                  chandler.required : False,
                  chandler.default : None },              
@@ -98,7 +93,7 @@ _attributes = [{ chandler.uri : chandler.contactType,
                  chandler.default : None },
 
                { chandler.uri : chandler.reputation,
-                 chandler.range : ContactFormat,
+                 chandler.range : str,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.default : None },
@@ -110,15 +105,15 @@ _attributes = [{ chandler.uri : chandler.contactType,
                  chandler.default : None }
                ]
 
-class AkoContactItemFactory(AkoThingFactory):
+class AkoContactFactory(AkoThingFactory):
     def __init__(self):
-        AkoThingFactory.__init__(self, chandler.ContactItem, _attributes)
+        AkoThingFactory.__init__(self, chandler.Contact, _attributes)
 
-class ContactItem(Item):
+class Contact(Item):
 
     def __init__(self, contactType):
         Item.__init__(self)
-        self.SetAko(AkoContactItemFactory().GetAko())
+        self.SetAko(AkoContactFactory().GetAko())
         self.SetContactType(contactType)
 
     def GetContactType(self):
@@ -137,8 +132,9 @@ class ContactItem(Item):
 
     photoURL = property(GetPhotoURL, SetPhotoURL)
 
+    # @@@ Fixme!
     def AddAddress(self, addressType, addressLocation, attributes):
-        newItem = ContactMethodItem(addressType, addressLocation, attributes)
+        newItem = ContactMethod(addressType, addressLocation, attributes)
         self.contactMethods.append(newItem)
         self.SetContact
     

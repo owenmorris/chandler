@@ -21,13 +21,25 @@ _attributes = [{ chandler.uri : dc.identifier,
                  chandler.required : False,
                  chandler.default : None },
                
-               { chandler.uri : dc.subject,
+               { chandler.uri : chandler.remoteAddress,
                  chandler.range : str,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.default : None },
                
                { chandler.uri : chandler.project,
+                 chandler.range : str,
+                 chandler.cardinality : None,
+                 chandler.required : False,
+                 chandler.default : None },
+               
+               { chandler.uri : chandler.status,
+                 chandler.range : str,
+                 chandler.cardinality : 1,
+                 chandler.required : False,
+                 chandler.default : None },
+               
+               { chandler.uri : chandler.topic,
                  chandler.range : str,
                  chandler.cardinality : None,
                  chandler.required : False,
@@ -56,19 +68,22 @@ class Item(Thing):
         self.SetAko(AkoItemFactory().GetAko())
         self.SetUri(self.GetUniqueId())
         
-    def GetUniqueId(self):
-        """ @@@ Scaffolding hack, really the repository will take
-        care of generating universally unique ids. We just need 
-        something for now for item uris.
-        """
-        now = DateTime.now()
-        name = (str(now.absdate) + '.' + 
-                str(now.abstime))
-        return chandler.prefix + name
-
     # Convenience methods make chandler attributes accessible
     # via python object attributes
 
+    def IsRemote(self):
+        # @@@ Perhaps do some sort of validation
+        remoteAddress = self.get(chandler.remoteAddress, None)
+        return (remoteAddress != None)
+    
+    def GetRemoteAddress(self):
+        return GetAttribute(chandler.remoteAddress)
+    
+    def SetRemoteAddress(self, address):
+        SetAttribute(chandler.remoteAddress, address)
+        
+    remoteAddress = property(GetRemoteAddress, SetRemoteAddress)
+    
     def GetProjects(self):
         return GetAttribute(chandler.project)
     

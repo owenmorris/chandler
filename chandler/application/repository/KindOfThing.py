@@ -70,3 +70,4 @@ class KindOfThing(Thing):
     def GetAllAttributeTemplates(self):
         templateList = self[chandler.template]
         return templateList
+    
