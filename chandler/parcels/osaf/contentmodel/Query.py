@@ -10,66 +10,24 @@ class Query (Item):
     def __init__ (self, *args, **kwds):
         super(Query, self).__init__ (*args, **kwds)
         self.data = []
-        self.results = []
 
         self.onItemLoad()
 
     def onItemLoad(self):
         events = [Globals.repository.findPath('//parcels/osaf/framework/commit_history')]
-        Globals.notificationManager.Subscribe(events, id(self), self.onCommit)
+        Globals.notificationManager.Subscribe(events, self.itsUUID, self.onCommit)
+
+        self.__refresh()
 
     def onItemUnload(self):
-        Globals.notificationManager.Unsubscribe(id(self))
+        Globals.notificationManager.Unsubscribe(self.itsUUID)
 
     def __iter__(self):
-        return self.iterateResults()
-
-    def __nonzero__(self):
-        return True
-    
-    def __len__(self):
-        if self.resultsStale:
-            self.refreshResults()
-        return len (self.results)
-    
-    def refreshResults (self):
-        if self.queryEnum == "Kind":
-            self.results = []
-            for item in self.iterateResults():
-                self.results.append (item)
-        self.resultsStale = False
-
-    def iterateResults (self):
-        if self.queryEnum == "Kind":
-            return RepositoryQuery.KindQuery().run(self.data)
-        
-        elif __debug__:
-            assert False, "Bad QueryEnum"
-
-    def __getitem__ (self, index):
-        if self.resultsStale:
-            self.refreshResults()
-        return self.results [index]
- 
-    def index (self, item):
-        if self.resultsStale:
-            self.refreshResults()
-        """
-          Apparent repository bug: comment in the following instruction and watch it fail -- DJA
-        return self.results.index (item)
-        """
-        index = 0
-        for object in self.iterateResults():
-            if object == item:
-                return index
-            index = index + 1
-        assert (False)
+        results = self.results
+        for item in results:
+            yield item
 
     def onCommit(self, notification):
-        if self.queryEnum != "Kind":
-            assert False, "Bad QueryEnum"
-            return
-
         # array of (uuid, reason, kwds) tuples
         changes = notification.data['changes']
 
@@ -77,9 +35,25 @@ class Query (Item):
         for uuid,reason,kwds in changes:
             item = repository.findUUID(uuid)
             if item:
-                for kind in self.data:
-                    if item.itsKind == kind:
-                        # just mark the whole thing dirty, post query changed notification and return
-                        self.resultsStale = True
-                        repository.findPath('//parcels/osaf/framework/query_changed').Post( {'query' : self.itsUUID} )
+                # why doesn't 'if item in self.results' work here?
+                for i in self.results:
+                    if i == item:
+                        self.__refresh()
                         return
+
+                for kind in self.data:
+                    if item.isItemOf(kind):
+                        self.__refresh()
+                        return
+
+    def __refresh(self):
+        self.results = []
+
+        for item in RepositoryQuery.KindQuery().run(self.data):
+            self.results.append(item)
+
+        self.__dirty()
+
+    def __dirty(self):
+        # post query changed notification and return
+        self.getRepositoryView().findPath('//parcels/osaf/framework/query_changed').Post( {'query' : self.itsUUID} )

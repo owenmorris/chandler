@@ -500,7 +500,10 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         self.blockItem.contents.resultsStale = True
         self.Reset()
         if self.blockItem.selection:
-            self.GoToItem (self.blockItem.selection)
+            try:
+                self.GoToItem (self.blockItem.selection)
+            except ValueError: # item no longer in 
+                self.blockItem.selection = None
 
     def GoToItem(self, item):
         row = self.blockItem.contents.index (item)

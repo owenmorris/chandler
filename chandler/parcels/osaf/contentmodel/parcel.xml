@@ -299,20 +299,16 @@
     <core:cardinality>list</core:cardinality>
   </core:Attribute>
 
+  <core:Attribute itsName="queryOwner">
+    <core:type itemref="ItemCollection"/>
+    <core:cardinality>list</core:cardinality>
+    <core:inverseAttribute itemref="rule"/>
+  </core:Attribute>
+
   <core:Attribute itsName="results">
     <core:type itemref="core:Item"/>
     <core:cardinality>list</core:cardinality>
-  </core:Attribute>
-
-  <core:Attribute itsName="resultsStale">
-    <core:type itemref="core:Boolean"/>
-    <core:defaultValue type="core:Boolean">True</core:defaultValue>
-  </core:Attribute>
-
-  <core:Attribute itsName="queryOwner">
-    <core:type itemref="core:Item"/>
-    <core:cardinality>list</core:cardinality>
-    <core:inverseAttribute itemref="rule"/>
+    <initialValue/>
   </core:Attribute>
 
   <core:Kind itsName="Query">
@@ -324,7 +320,6 @@
     <core:attributes itemref="queryEnum"/>
     <core:attributes itemref="data"/>
     <core:attributes itemref="results"/>
-    <core:attributes itemref="resultsStale"/>
   </core:Kind>
 
   <!-- Item Collection stuff -->
