@@ -8,6 +8,7 @@ import repository.query.parser.QueryParser as QueryParser
 import tools.timing
 import sets
 import mx.DateTime.ISO
+from repository.util.UUID import UUID
 
 import logging
 log = logging.getLogger("RepoQuery")
@@ -168,8 +169,17 @@ class Query(object):
                 return ('kind', kind)
             if name.startswith('$'): # variable argument
                 itemUUID, attribute = self.args[name]
-                item = self.__rep.find (itemUUID)
-                return ('arg',item.getAttributeValue(attribute))
+                if isinstance (itemUUID, UUID):
+                    item = self.__rep.find (itemUUID)                
+                    if attribute is None:
+                        return ('arg', item)
+                    else:
+                        return ('arg',item.getAttributeValue(attribute))
+                else:
+                    if attribute is None:
+                        return('arg', itemUUID)
+                    else:
+                        return ('arg',item.getAttr(attribute))
             assert False, "lookup_source couldn't handle %s" % name
 
         def compile_predicate(ast):

@@ -39,7 +39,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
     def testVariableQuery(self):
         """ Test query where source is specified in a variable """
         k = self.rep.findPath('//Schema/Core/Kind')
-        results = self._executeQuery('for i in $1 where contains(i.itsName,"arc")', [k])
+        results = self._executeQuery('for i in $1 where contains(i.itsName,"arc")', {"$1": ([k], None)})
         self._checkQuery(lambda i: not 'arc' in i.itsName, results)
 
     def testNotFunctionKindQuery(self):
@@ -126,11 +126,10 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         """ Test a query over ref collections """
         import repository.query.Query as Query
         kind = self.rep.findPath('//Schema/Core/Kind')
-        refcol = kind.attributes
 
         queryString = u"for i in $0 where contains(i.itsName,'ttributes')"
         q = Query.Query(self.rep, queryString)
-        q.args = [ refcol ]
+        q.args ["$0"] = (kind.itsUUID, "attributes")
         q.execute()
 
         self._checkQuery(lambda i: not 'ttributes' in i.itsName, q)
