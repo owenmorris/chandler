@@ -21,7 +21,9 @@
     <isShown>True</isShown>
     <size>0,0</size>
     <minimumSize>0,0</minimumSize>
+    <!-- This is no longer an attribute of BoxContainer
     <blockEvents itemref="views:GetQuoteEvent"/>
+    -->
 
     <blocks:BoxContainer itsName="layout">
       <childrenBlocks itemref="views:StockQuoteView/GetQuoteButton"/>

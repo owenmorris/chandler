@@ -19,8 +19,7 @@ class AllParcelsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         """
         self.loadParcels()
 
-        application.Parcel.PrintItem("//Schema", self.rep)
-        application.Parcel.PrintItem("//parcels", self.rep)
+        self.assert_( self.rep.check(), "Repository check failed -- see chandler.log" )
 
 if __name__ == "__main__":
     unittest.main()
