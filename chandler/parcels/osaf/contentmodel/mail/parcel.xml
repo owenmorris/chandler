@@ -589,13 +589,6 @@
             <cloudAlias value="default" />
           </Endpoint>
           <endpoints ref="mail:MailMessageMixin/Cloud/mimeParts"/>
-
-          <Endpoint itsName="deliveryExtension">
-            <attribute value="deliveryExtension"/>
-            <includePolicy value="byValue"/>
-          </Endpoint>
-          <endpoints ref="mail:MailMessageMixin/Cloud/deliveryExtension"/>
-
         </Cloud>
         <clouds alias="default" ref="mail:MailMessageMixin/Cloud"/>
 
