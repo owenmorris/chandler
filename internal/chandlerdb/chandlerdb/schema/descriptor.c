@@ -13,7 +13,8 @@ enum {
     REDIRECT = 0x0004,
     DICTMASK = 0x0007,
     REQUIRED = 0x0008,
-    SIMPLE   = 0x0010
+    SIMPLE   = 0x0010,
+    SINGLE   = 0x0020
 };
 
 typedef struct {
@@ -30,12 +31,14 @@ static PyObject *t_descriptor_new(PyTypeObject *type,
 static int t_descriptor_init(t_descriptor *self,
                              PyObject *args, PyObject *kwds);
 static PyObject *t_descriptor___get__(t_descriptor *self, PyObject *args);
+static PyObject *t_descriptor___set__(t_descriptor *self, PyObject *args);
 static PyObject *countAccess(PyObject *self, t_item *item);
 
 static long _lastAccess = 0L;
 static PyObject *PyExc_StaleItemError;
 static PyObject *_getRef_NAME;
 static PyObject *getAttributeValue_NAME;
+static PyObject *setAttributeValue_NAME;
 
 
 static PyMemberDef t_descriptor_members[] = {
@@ -49,6 +52,8 @@ static PyMemberDef t_descriptor_members[] = {
 static PyMethodDef t_descriptor_methods[] = {
     { "__get__", (PyCFunction) t_descriptor___get__, METH_VARARGS,
       "descriptor __get__ method" },
+    { "__set__", (PyCFunction) t_descriptor___set__, METH_VARARGS,
+      "descriptor __set__ method" },
     { NULL, NULL, 0, NULL }
 };
 
@@ -137,9 +142,9 @@ static int t_descriptor_init(t_descriptor *self,
     return 0;
 }
 
-static PyObject *get_attrdict(PyObject *obj, PyObject *flags)
+static PyObject *get_attrdict(PyObject *obj, int flags)
 {
-    switch (PyInt_AS_LONG(flags) & DICTMASK) {
+    switch (flags & DICTMASK) {
       case VALUE:
         return ((t_item *) obj)->values;
       case REF:
@@ -180,14 +185,14 @@ static PyObject *t_descriptor___get__(t_descriptor *self, PyObject *args)
             if (tuple != NULL)
             {
                 PyObject *attrID = PyTuple_GET_ITEM(tuple, 0);
-                PyObject *flags = PyTuple_GET_ITEM(tuple, 1);
+                int flags = PyInt_AS_LONG(PyTuple_GET_ITEM(tuple, 1));
                 PyObject *attrDict = get_attrdict(obj, flags);
                 PyObject *value;
                 int found = 0;
 
                 if (attrDict != Py_None)
                 {
-                    if (PyInt_AS_LONG(flags) & SIMPLE)
+                    if (flags & SIMPLE)
                     {
                         value = PyDict_GetItem(attrDict, self->name);
                         if (value != NULL)
@@ -196,7 +201,7 @@ static PyObject *t_descriptor___get__(t_descriptor *self, PyObject *args)
                             found = 1;
                         }
                     }
-                    else if (PyInt_AS_LONG(flags) & REF &&
+                    else if (flags & REF &&
                              PyDict_Contains(attrDict, self->name))
                     {
                         value = PyObject_CallMethodObjArgs(attrDict, _getRef_NAME, self->name, Py_None, attrID, NULL);
@@ -225,6 +230,63 @@ static PyObject *t_descriptor___get__(t_descriptor *self, PyObject *args)
                 Py_INCREF(value);
 
             return value;
+        }
+    }
+}
+
+static PyObject *t_descriptor___set__(t_descriptor *self, PyObject *args)
+{
+    PyObject *obj, *value;
+
+    if (!PyArg_ParseTuple(args, "OO", &obj, &value))
+        return NULL;
+    
+    if (obj == Py_None)
+    {
+        PyErr_SetObject(PyExc_AttributeError, self->name);
+        return NULL;
+    }
+    else if (((t_item *) obj)->status & STALE)
+    {
+        PyErr_SetObject(PyExc_StaleItemError, obj);
+        return NULL;
+    }
+    else
+    {
+        PyObject *kind = ((t_item *) obj)->kind;
+
+        if (kind != Py_None)
+        {
+            PyObject *uuid = ((t_item *) kind)->uuid;
+            PyObject *tuple = PyDict_GetItem(self->attrs, uuid);
+
+            if (tuple != NULL)
+            {
+                PyObject *attrID = PyTuple_GET_ITEM(tuple, 0);
+                int flags = PyInt_AS_LONG(PyTuple_GET_ITEM(tuple, 1));
+                PyObject *attrDict = get_attrdict(obj, flags);
+
+                if (attrDict != Py_None && flags & SIMPLE)
+                {
+                    PyObject *oldValue = PyDict_GetItem(attrDict, self->name);
+
+                    if (oldValue && !PyObject_Compare(value, oldValue))
+                        Py_RETURN_NONE;
+                }
+
+                PyObject_CallMethodObjArgs(obj, setAttributeValue_NAME, self->name, value, attrDict, attrID, Py_True, Py_False, NULL);
+
+                Py_RETURN_NONE;
+            }
+        }
+
+        {
+            PyObject *dict = PyObject_GetAttrString(obj, "__dict__");
+
+            PyDict_SetItem(dict, self->name, value);
+            Py_DECREF(dict);
+
+            Py_RETURN_NONE;
         }
     }
 }
@@ -262,6 +324,7 @@ void initdescriptor(void)
             PyDict_SetItemString_Int(dict, "REDIRECT", REDIRECT);
             PyDict_SetItemString_Int(dict, "REQUIRED", REQUIRED);
             PyDict_SetItemString_Int(dict, "SIMPLE", SIMPLE);
+            PyDict_SetItemString_Int(dict, "SINGLE", SINGLE);
 
             m = PyImport_ImportModule("chandlerdb.item.ItemError");
             PyExc_StaleItemError = PyObject_GetAttrString(m, "StaleItemError");
@@ -269,6 +332,7 @@ void initdescriptor(void)
 
             _getRef_NAME = PyString_FromString("_getRef");
             getAttributeValue_NAME = PyString_FromString("getAttributeValue");
+            setAttributeValue_NAME = PyString_FromString("setAttributeValue");
         }
     }
 }
