@@ -17,17 +17,8 @@ ifeq ($(OS),Linux)
 PLATFORM='linux-pentium'
 endif
 
-REAL_OS=unknown
 
-ifeq ($(OS),Cygwin)
-  REAL_OS=WINNT
-endif
-
-ifeq ($(OS),WINNT)
-  REAL_OS=WINNT
-endif
-
-ifeq ($(REAL_OS),WINNT)
+ifeq '$(OS)' 'Cygwin'
 # Build using Visual C++ compiler
 
 ifeq ($(DEBUG),1)
@@ -68,7 +59,7 @@ snap:
 			   $(SNAP)/bin/ssleay32.dll \
 			   $(SNAP)/bin/libeay32.dll
 
-endif
+else
 
 ifeq ($(OS),Darwin)
 
@@ -125,6 +116,6 @@ apply: expand patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 
 clean:
-	rm -rf $(SRC)
+	rm -rf $(SRC)/$(BUILD)
 
 build: openssl
