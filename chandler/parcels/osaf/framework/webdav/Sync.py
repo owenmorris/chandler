@@ -42,7 +42,7 @@ def syncItem(dav, item):
     print '-- serverChanges %s' % (serverChanges)
     if serverChanges:
         print '   |-- our etag  %s' % (etag)
-        print '   `-- svr etag  %s' % (dav.etag)
+        print '   `-- svr etag  %s' % (davETag)
 
     if needsPut:
         dav.putResource(item.itsKind.itsName, 'text/plain')
@@ -65,7 +65,7 @@ def syncItem(dav, item):
         # Note: some servers *cough*xythos*cough* change the etag when you
         # do a PROPPATCH
         item.etag = dav.etag
-        item.lastModified = dav.lastModified
+        #item.lastModified = dav.lastModified
         item.sharedVersion = item._version
 
 
@@ -246,15 +246,18 @@ def syncFromServer(item, davItem):
         for i in serverCollectionResults:
             if i not in item:
                 item.add(i)
+                print 'adding %s to collection %s' % (i, item)
         for i in item:
             if i not in serverCollectionResults:
                 item.remove(i)
+                print 'removing %s from collection %s' % (i, item)
+
     #
     # End refactor
     #
 
     item.etag = davItem.etag
-    item.lastModified = davItem.lastModified
+    #item.lastModified = davItem.lastModified
     item.sharedVersion = item._version # XXX should we commit first?
 
 
