@@ -3,7 +3,7 @@ import davlib
 from repository.item.Item import Item
 from repository.util.URL import URL
 
-from M2Crypto import SSL
+from M2Crypto import SSL, httpslib
 
 import Sync
 
@@ -162,7 +162,7 @@ class DAVConnection(davlib.DAV):
         davlib.DAV.__init__(self, host, port)
         self.setauth(acct.username, acct.password)
 
-class SSLDAV(M2Crypto.httpslib.HTTPSConnection, davlib.DAV, object):
+class SSLDAV(httpslib.HTTPSConnection, davlib.DAV, object):
     """
     SSL-enabled DAV. See M2Crypto.httpslib.HTTPSConnection for SSL-specific
     information.
