@@ -1005,6 +1005,14 @@ class CloudXMLFormat(ImportExportFormat):
             'kind' : '//parcels/osaf/framework/webserver/servlets/photos/Photo',
             'fingerprint' : (),
         },
+        'RSSChannel' : {
+            'kind' : '//parcels/osaf/examples/zaobao/RSSChannel',
+            'fingerprint' : (),
+        },
+        'RSSItem' : {
+            'kind' : '//parcels/osaf/examples/zaobao/RSSItem',
+            'fingerprint' : (),
+        },
         'Share' : {
             'kind' : '//parcels/osaf/framework/sharing/Share',
             'fingerprint' : (),
@@ -1054,7 +1062,7 @@ class CloudXMLFormat(ImportExportFormat):
 
         for (attrName, endpoint) in attributes.iteritems():
 
-            if not item.hasAttributeValue(attrName):
+            if not hasattr(item, attrName):
                 continue
 
             result += indent * depth
@@ -1247,6 +1255,7 @@ class CloudXMLFormat(ImportExportFormat):
 
             otherName = item.getAttributeAspect(attrName, 'otherName')
             cardinality = item.getAttributeAspect(attrName, 'cardinality')
+            type = item.getAttributeAspect(attrName, 'type')
 
             if otherName: # it's a bidiref
 
@@ -1273,17 +1282,15 @@ class CloudXMLFormat(ImportExportFormat):
             else: # it's a literal (could be SingleRef though)
 
                 if cardinality == 'single':
-                    attrItem = item.itsKind.getAttribute(attrName)
-                    value = attrItem.type.makeValue(attrNode.content)
+                    value = type.makeValue(attrNode.content)
                     item.setAttributeValue(attrName, value)
 
                 elif cardinality == 'list':
-                    attrItem = item.itsKind.getAttribute(attrName)
                     values = []
                     valueNode = attrNode.children
                     while valueNode:
                         if valueNode.type == "element":
-                            value = attrItem.type.makeValue(valueNode.content)
+                            value = type.makeValue(valueNode.content)
                             values.append(value)
                         valueNode = valueNode.next
                     item.setAttributeValue(attrName, values)
@@ -1701,3 +1708,19 @@ def checkForActiveShares(view):
         if share.active and not share.hidden:
             return True
     return False
+
+def manualSubscribeToCollection(view):
+    url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame,
+                                              "Subscribe to share",
+                                              "Enter the share's URL", "")
+    if not url:
+        return
+
+    share = newInboundShare(view, url)
+    share.get()
+    collection = share.contents
+    mainView = Globals.views[0]
+    mainView.postEventByName ("AddToSidebarWithoutCopying", {'items':[collection]})
+    view.commit()
+    mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
+    mainView.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':collection})

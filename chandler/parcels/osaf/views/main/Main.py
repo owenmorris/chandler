@@ -449,7 +449,7 @@ class MainView(View):
 
     def onSharingSubscribeToCollectionEvent(self, event):
         # Triggered from "Tests | Subscribe to collection..."
-        Sharing.manualSubscribeToCollection()
+        Sharing.manualSubscribeToCollection(self.itsView)
 
     def onShowColumnEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
