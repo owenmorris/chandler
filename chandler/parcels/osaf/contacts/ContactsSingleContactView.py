@@ -104,7 +104,7 @@ class ContactContentView(wxPanel):
             self.contentView = ContactsSingleContactView(self, self.contactsView, self.indexView, self.contact)
             self.AdjustSize(self.contentView)
             self.container.Add(self.contentView, 1, wxEXPAND)
-            
+
         self.SetSizerAndFit(self.container)
         self.Layout()
 
@@ -186,6 +186,8 @@ class ContactsSingleContactView(wxScrolledWindow):
            self.container.Add(-1, 24)
            emptyMessage.SetFont(wxFont(14, wxSWISS, wxNORMAL, wxNORMAL, false, "Arial"))
            self.container.Add(emptyMessage, 1, wxEXPAND | wxTOP, 24)
+           self.SetSizerAndFit(self.container)
+           self.Layout()
            return
        
         self.namePlate = ContactNamePlate(self, self.contact, self, self.indexView, self.contactsView.images)
