@@ -51,11 +51,11 @@ openssl: $(SRC)/$(BUILD)/ms/$(DOMASM)
 	cp -fr ../inc32/openssl $(PREFIX)/Include;\
 	echo 'Installation done.'
 
+# snap target can be empty on Windows because we will install the OpenSSL
+# DLLs during M2Crypto build, as we'll be copying the DLLs into site-packages
+# to make sure Chandler will find our DLLs and not anything in Windows
+# system directories.
 snap: 
-	cd $(BUILD_ROOT); \
-	tar -cvzf $(OPENSSL)/$(SNAP).tar.gz \
-			   $(SNAP)/bin/ssleay32.dll \
-			   $(SNAP)/bin/libeay32.dll
 
 else
 

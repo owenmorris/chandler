@@ -16,7 +16,9 @@ build: $(PYTHON)
 		build_ext --library-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/lib` \
 			--include-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/include` \
 		build --build-base=$(BUILD) $(DIST_OPT) \
-		install --force
+		install --force; \
+	cp -f $(BUILD_ROOT)/$(SNAP)/bin/libeay32.dll $(BUILD_ROOT)/$(MANIFEST); \
+	cp -f $(BUILD_ROOT)/$(SNAP)/bin/ssleay32.dll $(BUILD_ROOT)/$(MANIFEST)
 
 else
 
