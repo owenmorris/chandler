@@ -13,6 +13,8 @@ from repository.parcel.ParcelLoader import ParcelLoader
 from repository.parcel.Parcel import Parcel
 from repository.persistence.Repository import RepositoryError
 
+from repository.item.Query import KindQuery
+
 def LoadDependency(repository, uri, searchPath):
     # Easy success if we find the parcel
     parcel = repository.find(uri)
@@ -40,12 +42,24 @@ def SearchFile(filePath, searchPath):
             return os.path.abspath(candidate)
     raise IOError, "File not found %s" % filePath
 
-def WalkParcels(parcel):
-    yield parcel
-    for part in parcel:
-        if isinstance(part, Parcel):
-            for subparcel in WalkParcels(part):
-                yield subparcel
+def WalkParcels(rootParcel):
+    repo = rootParcel.getRepository()
+    rootParcelPath = tuple(rootParcel.itsPath)
+    rootParcelPathLen = len(rootParcelPath)
+
+    parcels = {}
+
+    parcelKind = repo.find("//Schema/Core/Parcel")
+    for parcel in KindQuery().run([parcelKind]):
+        p = tuple(parcel.itsPath)
+        if p[:rootParcelPathLen] == rootParcelPath:
+            parcels[p] = parcel
+
+    parcelPaths = parcels.keys()
+    parcelPaths.sort()
+    for inPathOrder in parcelPaths:
+        #print inPathOrder
+        yield parcels[inPathOrder]
 
 def LoadParcels(searchPath, repository):
     """
