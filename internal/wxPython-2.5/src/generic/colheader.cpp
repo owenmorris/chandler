@@ -1673,10 +1673,10 @@ OSStatus				errStatus;
 	// render the bitmap, should one be present
 	if (bHasIcon)
 	{
-	wxRect		iconBoundsR;
+	wxRect		subItemBoundsR;
 
-		GetBitmapItemBounds( boundsR, m_TextJust, &iconBoundsR );
-		dc->DrawBitmap( *m_BitmapRef, iconBoundsR.x, iconBoundsR.y, false );
+		GetBitmapItemBounds( boundsR, m_TextJust, &subItemBoundsR );
+		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
 	}
 
 	// restore the clip region
@@ -1686,6 +1686,9 @@ OSStatus				errStatus;
 	return (long)errStatus;
 #else
 
+wxRect				localBoundsR, subItemBoundsR;
+wxPoint				labelTextSize;
+long					originX, insetX;
 bool					bHasIcon;
 
 	if ((parentW == NULL) || (dc == NULL))
@@ -1694,17 +1697,11 @@ bool					bHasIcon;
 	// determine bitmap rendering condition
 	bHasIcon = ((dc != NULL) && HasValidBitmapRef( m_BitmapRef ));
 
-	// draw column header background
-	{
-	wxRect			localBoundsR;
-	wxPoint			labelTextSize;
-	long				originX, insetX;
-
-		// leverage native (GTK) wxRenderer
-		localBoundsR = *boundsR;
-		localBoundsR.y = 0;
-		wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
-	}
+	// draw column header background:
+	// leverage native (GTK) wxRenderer
+	localBoundsR = *boundsR;
+	localBoundsR.y = 0;
+	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
 
 	// draw text label, with justification
 	insetX = 4;
@@ -1739,10 +1736,8 @@ bool					bHasIcon;
 	if (m_BSelected && m_BSortEnabled)
 	{
 #if defined(__WXGTK__)
-	wxRect		arrowBoundsR;
-
-		GTKGetSortArrowBounds( &localBoundsR, &arrowBoundsR );
-		GTKDrawSortArrow( dc, &arrowBoundsR, m_BSortAscending );
+		GTKGetSortArrowBounds( &localBoundsR, &subItemBoundsR );
+		GTKDrawSortArrow( dc, &subItemBoundsR, m_BSortAscending );
 #else
 		// FIXME: what about non-(Mac,MSW,GTK) platforms?
 #endif
@@ -1751,10 +1746,8 @@ bool					bHasIcon;
 	// render the bitmap, should one be present
 	if (bHasIcon)
 	{
-	wxRect		iconBoundsR;
-
-		GetBitmapItemBounds( boundsR, m_TextJust, &iconBoundsR );
-		dc->DrawBitmap( *m_BitmapRef, iconBoundsR.x, iconBoundsR.y, false );
+		GetBitmapItemBounds( boundsR, m_TextJust, &subItemBoundsR );
+		dc->DrawBitmap( *m_BitmapRef, subItemBoundsR.x, subItemBoundsR.y, false );
 	}
 
 	return 0;
