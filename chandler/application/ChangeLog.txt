@@ -4,3 +4,6 @@
 
     * You can now set WXREDIRECT=0 if you don't want WX to redirect stdout
       to a popup windows
+
+2003-04-10 Jed Burgess <jed@osafoundation.org>
+    * Fixed bug where right clicking in the sideBar caused a crash.
