@@ -85,6 +85,13 @@
     <core:Attribute itsName="lastModified">
       <core:type itemref="core:String"/>
     </core:Attribute>
+    <core:Attribute itsName="sharedURL">
+      <core:type itemref="core:URL"/>
+    </core:Attribute>
+    <core:Attribute itsName="sharedVersion">
+      <core:type itemref="core:Long"/>
+      <core:initialValue type="core:Long">-1</core:initialValue>
+    </core:Attribute>
 
 
     <core:classes key="python">osaf.contentmodel.ContentModel.ContentItem</core:classes>
