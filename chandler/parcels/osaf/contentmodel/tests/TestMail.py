@@ -146,7 +146,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
         smtpDeliveryItem.deliveryType = "SMTP"
         smtpDeliveryItem.state = "DRAFT"
         imapDeliveryItem.deliveryType = "IMAP"
-        imapDeliveryItem.uid = "0"
+        imapDeliveryItem.uid = 0
         mimeBaseItem.mimeType = "SGML"
         mimeBinaryItem.mimeType = "APPLICATION"
         mimeTextItem.mimeType = "PLAIN"
