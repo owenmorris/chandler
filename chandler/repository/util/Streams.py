@@ -266,7 +266,7 @@ class StringReader(object):
 
         text = self.unicodeText
         if text is None:
-            return None
+            return ''
         
         if length == -1 or length >= len(text):
             self.unicodeText = None
