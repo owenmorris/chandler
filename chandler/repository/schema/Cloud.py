@@ -332,6 +332,18 @@ class Cloud(Item):
             for other in endpoint.iterValues(item):
                 yield other
 
+    def traceItem(self, item, trace):
+
+        found = True
+        while found:
+            found = False
+            for (other, endpoint), others in trace.iteritems():
+                if item in others:
+                    yield (item, other, '.'.join(endpoint.attribute))
+                    item = other
+                    found = True
+                    break
+
 
 class Endpoint(Item):
 
