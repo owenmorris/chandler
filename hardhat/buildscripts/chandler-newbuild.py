@@ -148,6 +148,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
     log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
     log.write("Done with CVS\n")
+    mainModuleDir = os.path.join(modeDir, mainModule)
 
     if not changesAtAll:
         return "no_changes"
