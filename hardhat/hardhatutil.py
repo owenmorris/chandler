@@ -135,3 +135,9 @@ def import_code(code, name):
     return module
 # end import_code()
 
+def RemovePunctuation(str):
+    s = str.replace("-", "")
+    s = s.replace(" ", "")
+    s = s.replace(":", "")
+    return s
+

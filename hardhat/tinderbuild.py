@@ -57,10 +57,8 @@ def main():
 
         nowString = time.strftime("%Y-%m-%d %H:%M:%S")
         print nowString
-        buildId = nowString.replace("-", "")
-        buildId = buildId.replace(" ", "")
-        buildId = buildId.replace(":", "")
-        print buildId
+        buildVersion = hardhatutil.RemovePunctuation(nowString)
+        print buildVersion
 
 
 
@@ -79,7 +77,7 @@ def main():
              treeName, None)
 
             mod.Start(hardhatFile, buildDir, "-D '"+ nowString + "'", 
-             buildId, 0, log)
+             buildVersion, 0, log)
 
         except Exception, e:
             print e

@@ -25,13 +25,13 @@ def usage():
     print "python hardhat.py [OPTION]..."
     print "Hardhat builds an application and its dependencies."
     print ""
-    print "-a MODULE   remove runtime directory for MODULE"
-    print "-b MODULE   build module MODULE"
-    print "-B MODULE   build MODULE and its dependencies"
-    print "-c MODULE   clean module MODULE"
-    print "-C MODULE   clean MODULE and its dependencies"
+    print "-a          remove runtime directory for MODULE"
+    print "-b          build module MODULE"
+    print "-B          build MODULE and its dependencies"
+    print "-c          clean module MODULE"
+    print "-C          clean MODULE and its dependencies"
     print "-d          use debug version"
-    print "-D          create a distribution"
+    print "-D VERSION  create a distribution, using VERSION as the version string"
     # print "-e          show environment variables in hardhat.log (on by default)"
     print "-h          display this help"
     print "-i          inspect system (not implemented)"
@@ -40,9 +40,9 @@ def usage():
     # print "-s          spawn an interactive shell"
     print "-s          scrub MODULE (remove all local files not in CVS)"
     print "-S          scrub MODULE and its dependencies"
-    print "-t MODULE   test module MODULE"
+    print "-t          test module MODULE"
     # print "-v          verbose"
-    print "-x MODULE   execute MODULE"
+    print "-x          execute MODULE"
 
 # Earlier versions of Python don't define these, so let's include them here:
 True = 1
@@ -78,7 +78,7 @@ if string.find(projectRoot, ' ') >= 0:
 
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "abBcCdDehilnrsStvx")
+    opts, args = getopt.getopt(sys.argv[1:], "abBcCdD:ehilnrsStvx")
 except getopt.GetoptError:
     usage()
     sys.exit(1)
@@ -164,7 +164,12 @@ try:
             buildenv['version'] = 'debug'
 
         if opt == "-D":
-            hardhatlib.distribute(buildenv, curmodulepath)
+            buildVersionArg = arg
+            # on Windows, args with spaces in them get split in two, so
+            # there's a chance this arg will have it's spaces encoded into
+            # pipe characters -- replace them with spaces again:
+            buildVersionArg = buildVersionArg.replace("|", " ")
+            hardhatlib.distribute(buildenv, curmodulepath, buildVersionArg)
 
         if opt == "-e":
             buildenv['showenv'] = 1

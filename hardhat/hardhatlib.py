@@ -512,7 +512,7 @@ def removeRuntimeDir(buildenv, module_name):
 # end removeRuntimeDir()
 
 
-def distribute(buildenv, module_name):
+def distribute(buildenv, module_name, buildVersion):
     """
     Execute the distribute() method for the given module.  Current working 
     directory is set to that of the subproject before execution.
@@ -530,6 +530,7 @@ def distribute(buildenv, module_name):
     module = module_from_file(buildenv, module_path, module_name)
     os.chdir(module_name)
 
+    buildenv["buildVersion"] = buildVersion
     module.distribute(buildenv)
     log(buildenv, HARDHAT_MESSAGE, module_name, "Distribution complete")
 # end distribute()

@@ -4,7 +4,7 @@ import os, hardhatutil
 
 treeName = "Chandler"
 
-def Start(hardhatScript, workingDir, cvsVintage, buildId, clobber, log):
+def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
     # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
@@ -15,10 +15,10 @@ def Start(hardhatScript, workingDir, cvsVintage, buildId, clobber, log):
 
 
     # do debug
-    Do(hardhatScript, "debug", workingDir, cvsVintage, buildId, clobber, log)
+    Do(hardhatScript, "debug", workingDir, cvsVintage, buildVersion, clobber, log)
 
     # do release
-    Do(hardhatScript, "release", workingDir, cvsVintage, buildId, clobber, log)
+    Do(hardhatScript, "release", workingDir, cvsVintage, buildVersion, clobber, log)
 
 
 
@@ -67,10 +67,14 @@ mainModule = 'osaf/chandler/Chandler'
 logPath = 'osaf/chandler/hardhat.log'
 
 
-def Do(hardhatScript, mode, workingDir, cvsVintage, buildId, clobber, log):
+def Do(hardhatScript, mode, workingDir, cvsVintage, buildVersion, clobber, log):
 
     print "Do " + mode
     log.write("Do " + mode + "\n")
+    log.write("Build Version " + buildVersion + "\n")
+    buildVersionEscaped = "\'" + buildVersion + "\'"
+    buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
+    print buildVersion, buildVersionEscaped
 
     path = os.environ.get('PATH', os.environ.get('path'))
     print "Path =", path
@@ -81,6 +85,15 @@ def Do(hardhatScript, mode, workingDir, cvsVintage, buildId, clobber, log):
     print "HardHat = ", hardhatScript
 
     modeDir = os.path.join(workingDir, mode)
+
+    if os.name == 'nt':
+        osName = 'win'
+    elif os.name == 'posix':
+        osName = 'linux'
+        if sys.platform == 'darwin':
+            osName = 'osx'
+        if sys.platform == 'cygwin':
+            osName = 'win'
 
     if clobber:
         if os.path.exists(modeDir):
@@ -164,12 +177,12 @@ def Do(hardhatScript, mode, workingDir, cvsVintage, buildId, clobber, log):
             print "Building debug"
             log.write("building debug" + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-dB"])
+             [hardhatScript, "-dB", "-D", buildVersionEscaped])
         if mode == "release":
             print "Building release"
             log.write("building release" + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-rBD"])
+             [hardhatScript, "-rB", "-D", buildVersionEscaped])
     except Exception, e:
         print "a build error"
         log.write("error during build" + "\n")
@@ -219,3 +232,5 @@ def CopyLog(file, fd):
         fd.write(line)
         line = input.readline()
     input.close()
+
+

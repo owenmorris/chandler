@@ -14,7 +14,6 @@ def usage():
     print ""
     print "-b BUILDVER    string to put into the buildversion encoded in app"
     print "-d DATE        date to use for CVS checkout"
-    print "-i RELEASE-ID  what string to encode into filenames for release"
     print "-m MAILTO      who to email when build is finished"
     print "-p PROJECT     name of project, must have a buildscript"
     print "-t TAG         tag to use for CVS checkout"
@@ -23,21 +22,20 @@ def usage():
 def main():
 
     nowString = time.strftime("%Y-%m-%d %H:%M:%S")
-    nowShort = RemovePunctuation(nowString)
+    nowShort = hardhatutil.RemovePunctuation(nowString)
     # nowString is the current time, in a CVS-compatible format
     print nowString
     # nowShort is nowString without punctuation or whitespace
     print nowShort
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "b:d:i:m:p:t:")
+        opts, args = getopt.getopt(sys.argv[1:], "b:d:m:p:t:")
     except getopt.GetoptError:
         usage()
         sys.exit(1)
 
     buildVersionArg = None
     cvsDateArg = None
-    releaseIdArg = None
     toAddrArg = None
     projectArg = None
     cvsTagArg = None
@@ -49,9 +47,6 @@ def main():
 
         if opt == "-d":
             cvsDateArg = arg
-
-        if opt == "-i":
-            releaseIdArg = arg
 
         if opt == "-m":
             toAddrArg = arg
@@ -70,33 +65,25 @@ def main():
     project = "chandler"
     toAddr  = "morgen@osafoundation.org"
     buildVersion = nowString
-    releaseId = nowShort
 
     # default is "-D now", but override with date; override that with tag
     cvsVintage = "-D '" + nowString + "'"
     if cvsDateArg:
         cvsVintage = "-D " + cvsDateArg
         buildVersion = cvsDateArg
-        releaseId = RemovePunctuation(buildVersion)
     if cvsTagArg:
         cvsVintage = "-R " + cvsTagArg
         buildVersion = cvsTagArg
-        releaseId = RemovePunctuation(buildVersion)
     if buildVersionArg:
         buildVersion = buildVersionArg
-        releaseId = RemovePunctuation(buildVersion)
-    if releaseIdArg:
-        releaseId = releaseIdArg
 
     print "nowString", nowString
     print "nowShort", nowShort
     print "cvsVintage", cvsVintage
     print "buildVersion", buildVersion
-    print "releaseId", releaseId
 
     # cvsVintage is what is used to do a checkout
     # buildVersion is encoded into the application's internal version
-    # releaseId is encoded into the distribution filenames
 
     whereAmI = os.path.dirname(os.path.abspath(hardhatutil.__file__))
     hardhatFile = os.path.join(whereAmI, "hardhat.py")
@@ -166,11 +153,5 @@ def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logConten
     server = smtplib.SMTP('mail.osafoundation.org')
     server.sendmail(fromAddr, toAddr, msg)
     server.quit()
-
-def RemovePunctuation(str):
-    s = str.replace("-", "")
-    s = s.replace(" ", "")
-    s = s.replace(":", "")
-    return s
 
 main()
