@@ -169,6 +169,7 @@ class ContentItem(Item.Item):
         if not kind:
             kind = ContentModel.getContentItemKind()
         super (ContentItem, self).__init__(name, parent, kind)
+        self.createdOn = DateTime.now ()
 
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for

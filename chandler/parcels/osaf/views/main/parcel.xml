@@ -1346,4 +1346,15 @@
     <border>10.0, 10.0, 10.0, 10.0</border>
   </View>
 
+    <contentModel:Note itsName="WelcomeNote">
+        <displayName value="Welcome to Chandler 0.4"/>
+        <body value="Welcome to Chandler 0.4 &#x0a; &#x0a;To get started, be sure to set up your e-mail and WebDAV account settings under the File | Preferences | Accounts menu.  [More introduction/instructions could be added here.  This Note is defined at the bottom of parcels/osaf/views/main/parcel.xml] &#x0a; &#x0a; -- OSAF"/>
+        <creator itemref="doc:OsafEmailAddress"/>
+    </contentModel:Note>
+
+    <mail:EmailAddress itsName="OsafEmailAddress">
+        <fullName value="The OSAF Team"/>
+        <emailAddress value="dev@osafoundation.org"/>
+    </mail:EmailAddress>
+
 </core:Parcel>
