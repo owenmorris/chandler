@@ -80,7 +80,7 @@ clean:
 
 endif
 
-apply: patches
+apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 
 expand: libxml2-$(VERSION).tar.gz
