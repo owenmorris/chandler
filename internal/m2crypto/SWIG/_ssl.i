@@ -55,7 +55,9 @@
 %name(ssl_set_accept_state) extern void SSL_set_accept_state(SSL *);
 %name(ssl_set_connect_state) extern void SSL_set_connect_state(SSL *);
 %name(ssl_set_shutdown) extern void SSL_set_shutdown(SSL *, int);
+%name(ssl_get_shutdown) extern int SSL_get_shutdown(SSL *);
 %name(ssl_shutdown) extern int SSL_shutdown(SSL *);
+%name(ssl_clear) extern int SSL_clear(SSL *);
 %name(ssl_do_handshake) extern int SSL_do_handshake(SSL *);
 %name(ssl_renegotiate) extern int SSL_renegotiate(SSL *);
 %name(ssl_pending) extern int SSL_pending(SSL *);

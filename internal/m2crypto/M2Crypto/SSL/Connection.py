@@ -1,6 +1,10 @@
 """M2Crypto.SSL.Connection
 
-Copyright (c) 1999-2002 Ng Pheng Siong. All rights reserved."""
+Copyright (c) 1999-2002 Ng Pheng Siong. All rights reserved.
+
+Portions created by Open Source Applications Foundation (OSAF) are
+Copyright (C) 2004 OSAF. All Rights Reserved.
+"""
 
 RCS_id='$Id$'
 
@@ -41,8 +45,19 @@ class Connection:
     def close(self):
         m2.ssl_shutdown(self.ssl)
 
+    def clear(self):
+        """
+        If there were errors in this connection, call clear() rather
+        than close() to end it, so that bad sessions will be cleared
+        from cache.
+        """
+        return m2.ssl_clear(self.ssl)
+
     def set_shutdown(self, mode):
         m2.ssl_set_shutdown1(self.ssl, mode)
+
+    def get_shutdown(self):
+        return m2.ssl_get_shutdown(self.ssl)
 
     def bind(self, addr):
         self.socket.bind(addr)
