@@ -10,7 +10,7 @@ import unittest, sys, os, gettext
 
 gettext.install('Chandler')
 
-sys.path.append(os.environ['OSAFROOT'] + "\\Chandler")
+# sys.path.append(os.environ['OSAFROOT'] + "\\Chandler")
 
 from application.repository.Repository import Repository
 from application.repository.Thing import Thing
