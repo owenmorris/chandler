@@ -6,7 +6,6 @@ info = {
        }
 
 dependencies = (
-                'persistence/db',
                 'python',
                 'persistence/xerces-c',
                 'persistence/pathan',
