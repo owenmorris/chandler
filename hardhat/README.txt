@@ -6,7 +6,6 @@ __license__	= "GPL -- see LICENSE.txt"
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 HardHat README.txt
-Morgen Sagen
 
 HardHat is the Chandler project build tool, consisting of a set
 of Python scripts which orchestrate the building of all the modules
