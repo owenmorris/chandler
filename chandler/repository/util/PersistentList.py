@@ -18,11 +18,6 @@ class PersistentList(list):
         if args:
             self.extend(args)
 
-    def newList(self, *args):
-        "Return a new PersistentList, owned by the this one's item."
-        
-        return PersistentList(self._item, *args)
-
     def _setItem(self, item):
 
         if self._item is not None and self._item is not item:
