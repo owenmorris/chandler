@@ -9,7 +9,9 @@
 
 <core:Parcel itemName="TestAgents"
              xmlns:core="//Schema/Core"
-             xmlns="//Parcels/OSAF/AppSchema/AgentSchema"
+             xmlns:foo="//Parcels/OSAF/framework"
+             xmlns:bar="//Parcels/OSAF/framework/agents"
+             xmlns="//Parcels/OSAF/framework/agents/schema"
              xmlns:test="//Parcels/OSAF/AppSchema/AgentSchema/TestAgents">
 
   <core:displayName>Agent tests</core:displayName>
@@ -134,7 +136,7 @@
     <actionScript>print data['body']</actionScript>
   </Action>  
 
-  <Action itemName="PostDialog" itemClass="application.agents.model.DialogAction.DialogAction">
+  <Action itemName="PostDialog" itemClass="OSAF.framework.agents.schema.DialogAction.DialogAction">
     <core:description>this action posts a dialog containing a message, based on a template</core:description>
     <actionValue>You received a message from [fromAddress]:\n    [body]</actionValue>
     <confirmFlag/>
@@ -162,7 +164,7 @@
     <conditionValue>occupation,Dentist</conditionValue>
   </Condition>
       
-  <Action itemName="PostDentistDialog" itemClass="application.agents.model.DialogAction.DialogAction">
+  <Action itemName="PostDentistDialog" itemClass="OSAF.framework.agents.schema.DialogAction.DialogAction">
     <core:description>this action posts a dialog containing a message, based on a template</core:description>
     <actionValue>You have new dentist in your contacts. Do you want to send it to your Family?</actionValue>
   </Action>
