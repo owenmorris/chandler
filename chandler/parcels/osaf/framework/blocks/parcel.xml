@@ -470,6 +470,18 @@
     
     <attributes itemref="docSchema:DynamicContainer/collectionSpecifier"/>
     <attributes itemref="docSchema:DynamicContainer/dynamicChildren"/>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="dynamicChildren">
+            <attribute value="dynamicChildren"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
+        </Endpoint>
+        <endpoints ref="docSchema:DynamicContainer/DefaultCloud/dynamicChildren"/>
+    </Cloud>
+    <!-- Link this cloud with the Block kind -->
+    <clouds alias="default" ref="docSchema:DynamicContainer/DefaultCloud"/>
+
   </Kind>
   
   <!--
