@@ -691,20 +691,21 @@ class RefDict(LinkedMap):
                     load=True):
 
         loading = self._getRepository().isLoading()
-        if not loading:
-            self._changeRef(key)
-
         if loading and previousKey is None and nextKey is None:
             ref = self._loadRef(key)
             if ref is not None:
                 previousKey, nextKey, alias = ref
         
         old = super(RefDict, self).get(key, None, load)
+        if not loading:
+            self._changeRef(key)
+
         if old is not None:
             item = self._getItem()
             if type(value) is ItemRef:
-                old.detach(item, self._name,
-                           old.other(item), self._otherName)
+                if value is not old:
+                    old.detach(item, self._name,
+                               old.other(item), self._otherName)
             else:
                 if value is not old.other(item):
                     self._getRepository().logger.warning('Warning: reattaching %s for %s on %s',
