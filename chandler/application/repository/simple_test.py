@@ -6,7 +6,9 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-import unittest, sys, os
+import unittest, sys, os, gettext
+
+gettext.install('Chandler')
 
 sys.path.append(os.environ['OSAFROOT'] + "\\Chandler")
 

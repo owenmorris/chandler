@@ -43,7 +43,6 @@ class Repository:
         assert(isinstance(thing, Thing.Thing))
         self.thingList.append(thing)
         transaction.get_transaction().commit()
-        print "Added a thing: " + thing.GetUri()
 
     def DeleteThing(self, thing):
         """ Delete the 'thing' from the repository

@@ -122,6 +122,11 @@ class Thing(PersistentDict):
         if (ako != None):
             return ako.GetUri()
         return None
+    
+    def GetAllAttributes(self):
+        """ Returns a list of uris for the attributes of this 'Thing' instance.
+        """
+        return self.keys()
         
         
     # For debugging purposes, be able to print a 'thing' as a list of

@@ -20,6 +20,23 @@ from application.repository.AttributeTemplate import AttributeTemplate
 from application.repository.Namespace import chandler
 from application.repository.Repository import Repository
 
+# @@@ Temporarily placed here
+class ThingFactory:
+    """ A factory class to create instances of 'Thing', based on a dictionary.
+        Subclasses of this factory class need to override 'CreateThing' to
+        use the constructor of the appropriate class.
+    """
+    def CreateThing(self, dict):
+        return Thing(dict)
+
+    def GetThing(self, uri, dict):
+        repository = Repository()
+        thing = repository.FindThing(self.uri)
+        if (thing is None):
+            thing = self.CreateThing(dict)
+            repository.AddThing(thing)
+        return thing
+
 class AkoThingFactory:
     def __init__(self, uri, templateDict):
         self.uri = uri

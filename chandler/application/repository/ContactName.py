@@ -16,53 +16,76 @@ from application.repository.Namespace import chandler
 # to that when the infrastructure is ready.
 
 _attributes = [{ chandler.uri : chandler.fullname,
-                 chandler.range : str,
+                 chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },
+                 chandler.displayName : _('Full Name'),
+                 chandler.default : '' },
                
                { chandler.uri : chandler.sortname,
-                 chandler.range : str,
+                 chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None }
+                 chandler.displayName : _('Sort Name'),
+                 chandler.default : '' }
                ]
 
-_personAttributes = [ { chandler.uri : chandler.firstname,
-                        chandler.range : str,
+# @@@ Hack, need to implement subclassing
+_personAttributes = [ { chandler.uri : chandler.fullname,
+                        chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
-                        chandler.default : None },
+                        chandler.displayName : _('Full Name'),
+                        chandler.default : '' },
+                      
+                      { chandler.uri : chandler.sortname,
+                        chandler.range : 'string',
+                        chandler.cardinality : 1,
+                        chandler.required : False,
+                        chandler.displayName : _('Sort Name'),
+                        chandler.default : '' }, 
+                      
+                      { chandler.uri : chandler.firstname,
+                        chandler.range : 'string',
+                        chandler.cardinality : 1,
+                        chandler.required : False,
+                        chandler.displayName : _('First Name'),
+                        chandler.default : '' },
                       
                       { chandler.uri : chandler.middlename,
-                        chandler.range : str,
+                        chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
-                        chandler.default : None },
+                        chandler.displayName : _('Middle Name'),
+                        chandler.default : '' },
                       
                       { chandler.uri : chandler.lastname,
-                        chandler.range : str,
+                        chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
-                        chandler.default : None },
+                        chandler.displayName : _('Last Name'),
+                        chandler.default : '' },
                       
                       { chandler.uri : chandler.nickname,
-                        chandler.range : str,
+                        chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
-                        chandler.default : None },
+                        chandler.displayName : _('Nickname'),
+                        chandler.default : '' },
                       
                       { chandler.uri : chandler.honorific,
-                        chandler.range : str,
+                        chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
-                        chandler.default : None },
+                        chandler.displayName : _('Honorific'),
+                        chandler.default : '' },
                       
                       { chandler.uri : chandler.suffix,
-                        chandler.range : str,
+                        chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
-                        chandler.default : None }
+                        chandler.displayName : _('Suffix'),
+                        chandler.default : '' }
                       ]
 
 
@@ -108,8 +131,8 @@ class ContactName(Thing):
         self.CalcSortName()
         
     def GetFullName(self):
-        return self.GetAttribute(self, chandler.fullname)
-    
+        return self.GetAttribute(chandler.fullname)
+        
     # return an abbreviated version of the name
     def GetShortName(self):
         if self.IsPersonName():

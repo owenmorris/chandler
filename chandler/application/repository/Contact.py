@@ -14,95 +14,138 @@ from application.repository.Item import Item
 from application.repository.ContactName import ContactName
 from application.repository.ContactMethod import ContactMethod
 
+# We're likely to handle ENUMs differently, but a simple strategy for now
+_relationshipChoices = [_('friend'), _('coworker'), _('associate'), 
+                        _('husband'), _('wife'), _('mother'), 
+                        _('father'), _('son'), _('daughter'), 
+                        _('aunt'), _('uncle'), _('brother'), _('sister')]
+_genderChoices = [_('male'), _('female'), _('unknown')]
+_sharingChoices = [_('private'), _('public')]
+_reputationChoices = [_('trustworthy'), _('reliable'), _('honest'), 
+                      _('secure'), _('unknown')]
+
 _attributes = [{ chandler.uri : chandler.contactType,
-                 chandler.range : str,
+                 chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },
+                 chandler.displayName : _('Contact Type'),
+                 chandler.default : '' },
                
                { chandler.uri : chandler.contactName,
                  chandler.range : ContactName,
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },
+                 chandler.displayName : _('Contact Name'),
+                 chandler.default : '' },
 
-                { chandler.uri : chandler.contactMethod,
+               { chandler.uri : chandler.contactMethod,
                  chandler.range : ContactMethod,
                  chandler.cardinality : None,
                  chandler.required : False,
-                 chandler.default : None },              
+                 chandler.displayName : _('Contact Method'),
+                 chandler.default : [] },           
                
                { chandler.uri : chandler.photoURL,
-                 chandler.range : str,
+                 chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },
+                 chandler.displayName : _('Photo URL'),
+                 chandler.default : '' },
 
                { chandler.uri : chandler.group,
-                 chandler.range : str,
+                 chandler.range : 'string',
                  chandler.cardinality : None,
                  chandler.required : False,
-                 chandler.default : None },
+                 chandler.displayName : _('Group'),
+                 chandler.default : [] },
+               
+               # Lists of uris, for attribute formatting
+               
+               { chandler.uri : chandler.headerAttribute,
+                 chandler.range : 'string',
+                 chandler.cardinality : None,
+                 chandler.required : False,
+                 chandler.displayName : _('Header Attribute'),
+                 chandler.default : [] },
+               
+               { chandler.uri : chandler.bodyAttribute,
+                 chandler.range : 'string',
+                 chandler.cardinality : None,
+                 chandler.required : False,
+                 chandler.displayName : _('Body Attribute'),
+                 chandler.default : [] },
+               
+               # The laundry list of contact attributes...
                
                { chandler.uri : chandler.companyName,
-                 chandler.range : str,
+                 chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },
+                 chandler.displayName : _('Company'),
+                 chandler.default : _('company name') },
 
-                { chandler.uri : chandler.jobTitle,
-                 chandler.range : str,
+               { chandler.uri : chandler.jobTitle,
+                 chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },              
+                 chandler.displayName : _('Title'),
+                 chandler.default : _('job title') },              
                
                { chandler.uri : chandler.occupation,
-                 chandler.range : str,
+                 chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },
+                 chandler.displayName : _('Occupation'),
+                 chandler.default : _('occupation') },
 
                { chandler.uri : chandler.relationship,
-                 chandler.range : str,
+                 chandler.range : _relationshipChoices,
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },
+                 chandler.displayName : _('Relationship'),
+                 chandler.default : _('relationship') },
 
                { chandler.uri : chandler.age,
-                 chandler.range : str,
+                 chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },
+                 chandler.displayName : _('Age'),
+                 chandler.default : _('age') },
                
                { chandler.uri : chandler.birthday,
-                 chandler.range : str,
+                 chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },
+                 chandler.displayName : _('Birthday'),
+                 chandler.default : _('birthday') },
 
-                { chandler.uri : chandler.gender,
-                 chandler.range : str,
+               { chandler.uri : chandler.gender,
+                 chandler.range : _genderChoices,
                  chandler.cardinality : None,
                  chandler.required : False,
-                 chandler.default : None },              
-               
+                 chandler.displayName : _('Gender'),
+                 chandler.default : _('gender') },
+                                      
                { chandler.uri : chandler.sharing,
-                 chandler.range : str,
+                 chandler.range : _sharingChoices,
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },
+                 chandler.displayName : _('Sharing Policy'),
+                 chandler.default : _('private') },
 
                { chandler.uri : chandler.reputation,
-                 chandler.range : str,
+                 chandler.range : _reputationChoices,
                  chandler.cardinality : 1,
                  chandler.required : False,
-                 chandler.default : None },
+                 chandler.displayName : _('Reputation'),
+                 chandler.default : _('unknown') },
 
                { chandler.uri : chandler.interests,
-                 chandler.range : str,
+                 chandler.range : 'string',
                  chandler.cardinality : None,
                  chandler.required : False,
-                 chandler.default : None }
+                 chandler.displayName : _('Interests'),
+                 chandler.default : [] }
                ]
 
 class AkoContactFactory(AkoThingFactory):
@@ -115,6 +158,11 @@ class Contact(Item):
         Item.__init__(self)
         self.SetAko(AkoContactFactory().GetAko())
         self.SetContactType(contactType)
+        self.SetGroups([])
+        self.SetContactMethods([])
+        self.SetHeaderAttributes([])
+        self.SetBodyAttributes([])
+        self.SetContactName(ContactName(self))
 
     def GetContactType(self):
         return self.GetAttribute(chandler.contactType)
@@ -131,12 +179,131 @@ class Contact(Item):
         self.SetAttribute(chandler.photoURL, photoURL)
 
     photoURL = property(GetPhotoURL, SetPhotoURL)
+    
+    def GetContactMethods(self):
+        return self.GetAttribute(chandler.contactMethod)
+    
+    def SetContactMethods(self, value):
+        self.SetAttribute(chandler.contactMethod, value)
+        
+    contactMethod = property(GetContactMethods)
+    
+    # Convenience methods for groups
+    
+    def GetGroups(self):
+        return self.GetAttribute(chandler.group)
+    
+    def SetGroups(self, groupList):
+        self.SetAttribute(chandler.group, groupList)
+    
+    groups = property(GetGroups)
+    
+    def HasGroup(self, group):
+        return (self.groups.count(group) != 0)
+    
+    def AddGroup(self, group):
+        if (self.groups.count(group) == 0):
+            self.groups.append(group)
 
+    def RemoveGroup(self, groupToRemove):
+        try:
+            index = self.groups.index(groupToRemove)
+            del self.groups[index]
+        except:
+            pass
+        #@@@ perhaps don't swallow this silently
+        
+    def HasContactMethod(self, contactType, contactValue):
+        """ Return true if the contact has a specific contact method
+        """
+        for contactMethod in self.GetContactMethods():
+            if contactMethod.GetContactMethod() == contactType:
+                for attributeUri in contactMethod.GetAllAttributes():
+                    if (contactMethod.GetAttribute(attributeUri) == contactValue):
+                        return true
+        return false
+    
+    # Convenience methods for accessing a contact's name fields
+    
+    # @@@ ? Take the shortcut, dont' do validation
+    def GetContactName(self):
+        return self[chandler.contactName]
+    
+    def SetContactName(self, value):
+        self.SetAttribute(chandler.contactName, value)
+        
+    name = property(GetContactName, SetContactName)
+    
+    def GetNameAttribute(self, attribute):
+        return self.name.GetAttribute(attribute)
+        
+    def SetNameAttribute(self, attribute, value):
+        self.name.SetAttribute(attribute, value)
+        
+    def GetFullName(self):
+        return self.name.GetAttribute(chandler.fullname)
+    
+    def GetSortName(self):
+        return self.name.GetAttribute(chandler.sortname)
+    
+    def GetShortName(self):
+        return self.name.GetShortName()
+    
+    def SetFullName(self, value):
+        self.name.SetAttribute(chandler.fullname, value)
+
+    # header and body attribute managerment routines
+    def GetHeaderAttributes(self):
+        return self.GetAttribute(chandler.headerAttribute)
+ 
+    def SetHeaderAttributes(self, attributes):
+         self.SetAttribute(chandler.headerAttribute, attributes)
+        
+    def HasHeaderAttribute(self, attribute):
+        headerAttributes = self.GetHeaderAttributes()
+        return len(headerAttributes) > 0
+        
+    def AddHeaderAttribute(self, attribute):
+        headerAttributes = self.GetHeaderAttributes()
+        if (headerAttributes.count(attribute) == 0):
+            headerAttributes.append(attribute)
+        
+    def RemoveHeaderAttribute(self, attribute):
+        try:
+            headerAttributes = self.GetHeaderAttributes()
+            index = headerAttributes.index(attribute)
+            del headerAttributes[index]
+        except:
+           pass
+        
+    def GetBodyAttributes(self):
+        return self.GetAttribute(chandler.bodyAttribute)
+    
+    def SetBodyAttributes(self, attributes):
+        self.SetAttribute(chandler.bodyAttribute, attributes)
+    
+    def HasBodyAttribute(self, attribute):
+        bodyAttributes = self.GetBodyAttributes()
+        return len(bodyAttributes) > 0
+        
+    def AddBodyAttribute(self, attribute):
+        bodyAttributes = self.GetBodyAttributes()
+        if (bodyAttributes.count(attribute) == 0):
+            bodyAttributes.append(attribute)
+        
+    def RemoveBodyAttribute(self, attribute):
+       try:
+           bodyAttributes = self.GetBodyAttributes()
+           index = bodyAttributes.index(attribute)
+           del bodyAttributes[index]
+       except:
+           pass
+         
     # @@@ Fixme!
-    def AddAddress(self, addressType, addressLocation, attributes):
-        newItem = ContactMethod(addressType, addressLocation, attributes)
-        self.contactMethods.append(newItem)
-        self.SetContact
+    # def AddAddress(self, addressType, addressLocation, attributes):
+    #    newItem = ContactMethod(addressType, addressLocation, attributes)
+    #    self.contactMethods.append(newItem)
+    #    self.SetContact
     
 
 
