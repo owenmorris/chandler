@@ -1508,27 +1508,26 @@ class ValueSet(object):
             assignment.
         """
         for (attrName, value, key) in self.getAssignments():
-            # First, see if this is a ref collection, since we handle those
-            # differently; to remove an item from a ref collection, we use
-            # removeItem( ) which takes an item parameter -- therefore we
-            # first need to findUUID() the item.
-            attr = self.item.getAttributeValue(attrName)
-            if isinstance(attr,
-             repository.persistence.XMLRepositoryView.XMLRefDict):
-                # value is a UUID -- let's load the associated item and then
-                # remove it from this collection
-                otherItem = self.item.findUUID(value)
-                attr.removeItem(otherItem)
-                print "Reload: item %s, unassigning %s = '%s'" % \
-                 (self.item.itsPath, attrName, otherItem.itsPath)
-                continue
-
             card = self.item.getAttributeAspect(attrName, "cardinality")
             if card == "dict":
                 print "Reload: item %s, unassigning %s[%s] = '%s'" % \
                  (self.item.itsPath, attrName, key, value)
                 self.item.removeValue(attrName, key)
             elif card == "list":
+                # First, see if this is a ref collection, since we handle those
+                # differently; to remove an item from a ref collection, we use
+                # removeItem( ) which takes an item parameter -- therefore we
+                # first need to findUUID() the item.
+                if self.item.getAttributeAspect(attrName, "otherName"):
+                    attr = self.item.getAttributeValue(attrName)
+                    # value is a UUID -- let's load the associated item and then
+                    # remove it from this collection
+                    otherItem = self.item.findUUID(value)
+                    attr.removeItem(otherItem)
+                    print "Reload: item %s, unassigning %s = '%s'" % \
+                     (self.item.itsPath, attrName, otherItem.itsPath)
+                    continue
+
                 # For list and single cardinality attributes, unassigning
                 # requires matching "value" to the item's attribute value.
                 # For itemrefs, we need to instead match the UUID; that's
