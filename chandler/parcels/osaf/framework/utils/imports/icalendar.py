@@ -55,8 +55,8 @@ END:VCALENDAR"""
 
 
 #Uncomment to run doctests
-cal = vobject.readComponents(StringIO.StringIO(icaltest)).next()
-pacific = cal.vtimezone[0].tzinfo
+#cal = vobject.readComponents(StringIO.StringIO(icaltest)).next()
+#pacific = cal.vtimezone[0].tzinfo
 
 localtime = dateutil.tz.tzlocal()
 utc = dateutil.tz.tzutc()
@@ -76,7 +76,7 @@ def convertToMX(dt, tz=None):
     
     """
     if not tz: tz = localtime
-    if dt.tzinfo: dt = dt.astimezone(tz)
+    if getattr(dt, 'tzinfo', None): dt = dt.astimezone(tz)
     return DateTime.mktime(dt.timetuple())
     
 def convertToUTC(dt, tz = None):
@@ -115,15 +115,18 @@ def importICalendar(cal, rep, parent=None):
     in parsing rrules that are unicode.
     
     """
+    textkind = rep.findPath("//Schema/Core/Text")
     for event in cal.vevent:
         #vevent's should really have a calculated duration in vobject
+        #Note that the only functional difference between dtend and duration
+        #is when duration crosses daylight savings time, that corner case
+        #fails with the naive calculation below.
         if not getattr(event, 'dtstart', None):
             continue #we don't know what to do with events without dtstarts
         if getattr(event, 'dtend', None):
             duration = event.dtend[0].value - event.dtstart[0].value
         elif getattr(event, 'duration', None):
-            #duration hasn't quite been wired up yet in vobject
-            continue
+            duration = event.duration[0].value
         else: duration = None
         #lets not go crazy with large recurrence sets
         for dt in itertools.islice(event.rruleset, 10):
@@ -131,13 +134,10 @@ def importICalendar(cal, rep, parent=None):
             newevent.startTime = convertToMX(dt)
             if duration:
                 newevent.endTime = convertToMX(dt + duration)
-                
-            # writing to body doesn't seem to work this way.
-            #test = getattr(event, 'description', [])
-            #if len(test) > 0:
-            #    writer = newevent.body.getWriter()
-            #    writer.write(test[0].value)
-            #    writer.close()
+
+            test = getattr(event, 'description', [])
+            if len(test) > 0:
+                newevent.body = textkind.makeValue(test[0].value)
             test = getattr(event, 'summary', [])
             if len(test) > 0:
                 newevent.displayName = test[0].value
