@@ -1559,8 +1559,7 @@ def compressDirectory(buildenv, directories, fileRoot):
 
 def makeInstaller(buildenv, directories, fileRoot):
     """This assumes that directory is an immediate child of the current dir"""
-        # currently only windows is processed
-        # TODO: added Linux (RPM) and OS X (dmg?) support
+        # TODO: OS X (dmg?) support
     if buildenv['os'] == 'win':
         nsisScriptPath = os.path.join(buildenv['root'], "internal", "installers", "win")
         scriptOption   = '/DSNAP_%s /DDISTRIB_DIR=%s' % (buildenv['version'].upper(), fileRoot)
@@ -1569,13 +1568,31 @@ def makeInstaller(buildenv, directories, fileRoot):
           scriptName = os.path.join(nsisScriptPath, "makeinstaller.sh")
           executeCommand(buildenv, "HardHat", 
              [scriptName, scriptOption, nsisScriptPath, "chandler.nsi"],
-            "Building Windows Installer")
+             "Building Windows Installer")
         else:
             executeCommand(buildenv, "HardHat",
                  [buildenv['makensis'], scriptOption, os.path.join(nsisScriptPath, "chandler.nsi")],
-                "Building Windows Installer")
+                 "Building Windows Installer")
 
-        return nsisScriptPath
+        installTargetFile = '%s.exe' % fileRoot
+        installTarget     = os.path.join(buildenv['root'], installTargetFile)
+
+        if os.path.exists(installTarget):
+            os.remove(installTarget)
+
+        os.rename(os.path.join(nsisScriptPath, 'Setup.exe'), installTarget)
+
+    elif buildenv['os'] == 'posix':
+        specPath   = os.path.join(buildenv['root'], "internal", "installers", "rpm")
+        scriptName = os.path.join(specPath, "makeinstaller.sh")
+
+        executeCommand(buildenv, "HardHat",
+             [scriptName, specPath, os.path.join(specPath, "chandler.spec"), buildenv['root'], fileRoot],
+             "Building Linux (RPM) Installer")
+
+        installTargetFile = '%s.i386.rpm' % fileRoot
+        
+    return installTargetFile
 
 def convertLineEndings(srcdir):
     """Convert all .txt files in the distribution root to DOS style line endings"""
