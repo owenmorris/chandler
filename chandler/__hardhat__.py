@@ -46,3 +46,19 @@ def run(buildenv):
         hardhatlib.log(buildenv, hardhatlib.HARDHAT_ERROR, info['name'], 
          "Chandler exited with code = " + str(exit_code))
         raise hardhatlib.HardHatError
+
+def removeRuntimeDir(buildenv):
+
+    path = ""
+
+    if buildenv['version'] == 'debug':
+        path = buildenv['root'] + os.sep + 'debug' 
+
+    if buildenv['version'] == 'release':
+        path = buildenv['root'] + os.sep + 'release' 
+
+
+    if path:
+        hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'],
+         "Removing: " + path)
+        hardhatlib.rmdir_recursive(path)
