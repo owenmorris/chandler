@@ -73,18 +73,6 @@ class Kind(Item):
             except KeyError:
                 classes[cls] = set((uuid,))
 
-            if self._values.get('defaultKind', False):
-                try:
-                    uuid = cls.__dict__['_defaultKind']
-                except KeyError:
-                    cls._defaultKind = self._uuid
-                else:
-                    if uuid != self._uuid:
-                        if self.find(uuid) is not None:
-                            raise SchemaError, ("Cannot set class %s.%s _defaultKind attribute to %s's UUID, it is already set to %s", self.itsPath, cls.__module__, cls.__name__, uuid)
-                        else:
-                            cls._defaultKind = self._uuid
-
             self.monitorSchema = True
             self._setupDescriptors(cls)
 

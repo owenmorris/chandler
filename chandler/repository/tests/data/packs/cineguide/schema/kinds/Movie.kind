@@ -19,7 +19,6 @@
   </ref>
 
   <attribute name="displayAttribute">title</attribute>
-  <attribute name="defaultKind">True</attribute>
 
   <attribute name="classes">
     <value name="python">repository.tests.classes.Movie.Movie</value>

@@ -15,7 +15,7 @@
          -     notFoundAttributes, inheritedAttributes,
          -     superKinds, subKinds, attributes, classes, 
          -     displayAttribute, clouds, otherNames, mixins,
-	 -     defaultKind, defaultParent
+	 -     defaultParent
         -->
     </ref>
 
@@ -224,22 +224,6 @@
     <ref name="type" otherName="typeFor" 
          type="path" otherCard="list">/Core/UUID</ref>
     <attribute name="cardinality">list</attribute>
-  </item>
-
-  <item withSchema="True">
-    <name>defaultKind</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-    <class module="repository.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Core/Kind</parent>
-
-    <ref name="kinds" otherName="attributes"
-         cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
-    </ref>
-
-    <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Core/Boolean</ref>
-    <attribute name="cardinality">single</attribute>
   </item>
 
   <item withSchema="True">

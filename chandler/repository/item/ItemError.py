@@ -46,6 +46,20 @@ class ChildNameError(ValueError, ItemError):
         return self.__doc__ %(self.getItem().itsPath, self.args[1])
 
 
+class AnonymousRootError(ValueError, ItemError):
+    'repository root %s may not be anonymous'
+    
+    def __str__(self):
+        return self.__doc__ %(self.getItem()._repr_())
+
+
+class NoParentError(ValueError, ItemError):
+    'While creating %s, parent is None'
+    
+    def __str__(self):
+        return self.__doc__ %(self.getItem()._repr_())
+
+
 class OwnedValueError(ValueError, ItemError):
     "Value %s is already owned by item %s on attribute '%s'"
 
@@ -183,14 +197,6 @@ class SchemaError(TypeError, ItemError):
     def __str__(self):
         return self.args[0] % self.args[1:]
 
-
-class NoSuchDefaultKindError(SchemaError):
-    'While creating %s, defaultKind %s specified on class %s.%s was not found'
-
-    def __str__(self):
-        cls = self.args[1]
-        return self.__doc__ %(self.str(self.getItem()),
-                              cls._defaultKind, cls.__module__, cls.__name__)
 
 class NoSuchDefaultParentError(SchemaError):
     'While creating %s, defaultParent %s, specified on kind %s, was not found'
