@@ -6,23 +6,26 @@ from OSAF.framework.notifications.Notification import Notification
 from OSAF.examples.zaobao.RSSData import ZaoBaoParcel
 
 class ZaoBaoTreeList(TreeList):
+    def _addChildNode(self, node, child, hasKids):
+        displayName = child.getAttributeValue('displayName',
+                                              default='<Untitled>')
+        date = child.getAttributeValue('date', default='')
+
+        names = [displayName, str(date)]
+        node.AddChildNode(child, names, hasKids)
+
     def GetTreeData(self, node):
         item = node.GetData()
         if item:
-            itemKind = ZaoBaoParcel.getRSSItemKind()
             chanKind = ZaoBaoParcel.getRSSChannelKind()
 
             if item == Globals.repository:
                 for child in KindQuery().run([chanKind]):
-                    names = [child.getItemDisplayName(),
-                             str(child.getAttributeValue('date', default=''))]
-                    node.AddChildNode(child, names, True)
+                    self._addChildNode(node, child, child.hasAttributeValue('items'))
 
-            elif item.kind == ZaoBaoParcel.getRSSChannelKind():
+            elif item.kind == chanKind:
                 for child in item.items:
-                    names = [child.getItemDisplayName(),
-                             str(child.getAttributeValue('date', default=''))]
-                    node.AddChildNode(child, names, False)
+                    self._addChildNode(node, child, False)
 
         else:
             node.AddRootNode(Globals.repository, ['//'], True)
@@ -64,7 +67,7 @@ class wxZaoBaoItemView(wxItemView):
 
     def On_wxSelectionChanged(self, item):
         if item:
-            displayName = item.getItemDisplayName()
+            displayName = item.getAttributeValue('displayName', default='<Untitled>')
 
             # make the html
             HTMLText = '<html><body>\n\n'

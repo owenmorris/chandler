@@ -55,7 +55,7 @@ class UpdateAction(Action):
         repository.commit()
         #print 'Updated feeds'
 
-        #Globals.application.PostAsyncEvent(MainThreadCommit)
+        Globals.application.PostAsyncEvent(MainThreadCommit)
 
     def __getFeeds(self):
 
