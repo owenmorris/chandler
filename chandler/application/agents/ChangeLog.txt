@@ -58,10 +58,15 @@
      * added a 'confirmFlag' to actions; if set, it asks the user's permission via
        a dialog before executing the action.
        
-     *  added an action permission request string, to specify the text for the
-        permission request
-     
-     *  made deferredActions check the confirmFlag and put up a permissions
-        dialog, if necessary
+     * added an action permission request string, to specify the text for the
+       permission request
+    
+     * made deferredActions check the confirmFlag and put up a permissions
+       dialog, if necessary
+       
+     * added GetHandledStatus and SetHandledStatus methods in the notification
+       manager to provide a simple mechanism for the system and other actions to know
+       when a notificaiton has been handled.
+       
         
     

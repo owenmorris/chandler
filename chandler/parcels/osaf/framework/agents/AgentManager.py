@@ -29,7 +29,8 @@ class AgentManager:
         
         self.agentMap = {}
         self.activeAgents = {}
-
+        self.notificationHandledStatus = {}
+        
         self._LoadAgents()
         self._CheckForNewAgents()
         
@@ -176,7 +177,19 @@ class AgentManager:
         for agent in self.agentMap.values():
             self.Register(agent)
             agent.Resume() 
-            
+
+    # the following routines maintain the 'handled' state associated with a notification
+    # we will probably have a more elaborate model for action status soon, but this
+    # simple scheme suffices for the original implementation
+    
+    def GetHandledStatus(self, notification):
+        if self.notificationHandledStatus.has_key(notification):
+            return self.notificationHandledStatus[notification]
+        return False
+    
+    def SetHandledStatus(self, notification, newStatus):
+        self.notificationHandledStatus[notification] = newStatus
+        
 class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
     """
       Here's the xml parser class that receives the agent definition file as an XML SAX stream,
