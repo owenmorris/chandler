@@ -9,18 +9,18 @@ import webbrowser
 from wxPython.wx import *
 from wxPython.html import *
 
-class SplashScreen(wxFrame):
+class SplashScreen(wxDialog):
     """
       This class implements an HTML informational screen presented to the user. 
     Common uses are for splash screens or 'About' pages.
     The page can be dismissed either by clicking on it or by a timer.
     """
-    def __init__(self, title="", pageLocation="", useTimer=true, timerLength=10000):
+    def __init__(self, parent, title="", pageLocation="", useTimer=true, timerLength=10000):
         """
           Sets up the splash screen and starts its timer.
         """
-        wxFrame.__init__(self, None, -1, title, 
-                         style=wxSTAY_ON_TOP|\
+        wxDialog.__init__(self, parent, -1, title, 
+                         style=wxFRAME_FLOAT_ON_PARENT|\
                          wxDEFAULT_FRAME_STYLE)
         panel = HTMLPanel(self, pageLocation, size=(700, -1))
         internalRep = panel.GetInternalRepresentation()
@@ -43,6 +43,7 @@ class SplashScreen(wxFrame):
         """
         if self.timer != None:
             self.timer.Stop()
+        self.EndModal(true)
         self.Destroy()
         
 class HTMLPanel(wxHtmlWindow):
