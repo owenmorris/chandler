@@ -8,6 +8,8 @@ include $(BUILD_ROOT)/Makefile.inc
 PYTHON=$(BUILD_ROOT)/python
 SRC=$(PYTHON)/Python-$(VERSION)
 
+BUILD=build_$(SNAP)
+
 ifeq ($(DEBUG),1)
 
 SUFFIX=_d
@@ -29,17 +31,49 @@ BINDIR=$(PREFIX)/bin
 $(SRC)/PCbuild/pcbuild.sln:
 	(cd win32; tar -cf - *.sln *.vcproj) | (cd $(SRC)/PCbuild; tar -xf -)
 
-bzip2-$(BZIP2VERSION)/libbz2.lib:
-	cd bzip2-$(BZIP2VERSION); MAKEFLAGS=; \
-        nmake -nologo -f makefile.msc
 
-zlib-$(ZLIBVERSION)/zlib.lib:
-	cd zlib-$(ZLIBVERSION); MAKEFLAGS=; \
-        nmake -nologo -f win32/makefile.msc
+ifeq ($(DEBUG),1)
+MKBZIP2MF=sed -e "s/ -MD -Ox / -MDd -Zi /" makefile.msc > $(BUILD)/makefile$(SUFFIX).msc
+MKZLIBMF=sed -e "s/ -MD -O2 / -MDd -Zi /" win32/makefile.msc > $(BUILD)/win32/makefile$(SUFFIX).msc
+else
+MKBZIP2MF=echo ok
+MKZLIBMF=echo ok
+endif
+
+
+bzip2-$(BZIP2VERSION)/$(BUILD)/makefile$(SUFFIX).msc:
+	cd bzip2-$(BZIP2VERSION)/; \
+	mkdir $(BUILD); \
+	cp *.* words1 $(BUILD)/; \
+	$(MKBZIP2MF)
+
+bzip2-$(BZIP2VERSION)/libbz2$(SUFFIX).lib: bzip2-$(BZIP2VERSION)/$(BUILD)/makefile$(SUFFIX).msc
+	cd bzip2-$(BZIP2VERSION)/$(BUILD); \
+	MAKEFLAGS=; \
+        nmake -nologo -f makefile$(SUFFIX).msc; \
+	cp libbz2.lib ../libbz2$(SUFFIX).lib
+
+bzip2: bzip2-$(BZIP2VERSION)/libbz2$(SUFFIX).lib
+
+
+zlib-$(ZLIBVERSION)/$(BUILD)/win32/makefile$(SUFFIX).msc:
+	cd zlib-$(ZLIBVERSION)/; \
+	mkdir $(BUILD); \
+	cp -r *.c *.h win32 $(BUILD)/; \
+	$(MKZLIBMF)
+
+zlib-$(ZLIBVERSION)/zlib$(SUFFIX).lib: zlib-$(ZLIBVERSION)/$(BUILD)/win32/makefile$(SUFFIX).msc
+	cd zlib-$(ZLIBVERSION)/$(BUILD); \
+	MAKEFLAGS=; \
+	nmake -nologo -f win32/makefile$(SUFFIX).msc; \
+	cp zlib.lib ../zlib$(SUFFIX).lib
+
+zlib: zlib-$(ZLIBVERSION)/zlib$(SUFFIX).lib
+
 
 build: apply compile install
 
-compile: $(SRC)/PCbuild/pcbuild.sln bzip2-$(BZIP2VERSION)/libbz2.lib zlib-$(ZLIBVERSION)/zlib.lib
+compile: $(SRC)/PCbuild/pcbuild.sln bzip2 zlib
 	cd $(SRC)/PCbuild; \
         devenv.com pcbuild.sln /build $(Snap)
 
@@ -74,10 +108,10 @@ apply: patches
 	patch -Nup0 < patches; echo ok
 
 clean:
-	cd $(SRC)/PCbuild; devenv.com pcbuild.sln /clean $(Snap)
+	rm -fr bzip2-$(BZIP2VERSION)/$(BUILD) bzip2-$(BZIP2VERSION)/libbz2$(SUFFIX).lib
+	rm -fr zlib-$(ZLIBVERSION)/$(BUILD) zlib-$(ZLIBVERSION)/zlib$(SUFFIX).lib
+	cd $(SRC)/PCbuild; devenv.com pcbuild.sln /clean $(Snap) || true
 	rm -f $(SRC)/PCbuild/pcbuild.sln
-	-cd bzip2-$(BZIP2VERSION); MAKEFLAGS=; nmake -f Makefile.msc clean
-	-cd zlib-$(ZLIBVERSION); MAKEFLAGS=; nmake -f win32/Makefile.msc clean
 
 snap: 
 	cd $(BUILD_ROOT); \
@@ -88,8 +122,6 @@ snap:
             --exclude test
 
 else
-
-BUILD=build_$(SNAP)
 
 ifeq ($(OS),Darwin)
 

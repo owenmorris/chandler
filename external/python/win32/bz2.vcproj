@@ -37,7 +37,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="..\..\bzip2-1.0.2\libbz2.lib"
+				AdditionalDependencies="..\..\bzip2-1.0.2\libbz2_d.lib"
 				OutputFile="./bz2_d.pyd"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
