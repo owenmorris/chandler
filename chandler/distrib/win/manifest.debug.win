@@ -40,6 +40,11 @@ HISTORY.txt
 LICENSE.txt
 Chandler-project.wpr
 
+# Grab crypto stuff
+glob=*.py
+recursive=yes
+crypto
+
 # Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes
 glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack
