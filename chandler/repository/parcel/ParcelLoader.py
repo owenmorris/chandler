@@ -127,7 +127,9 @@ class ItemHandler(xml.sax.ContentHandler):
             element = 'Dictionary'
             self.currentKey = attrs.getValue((None, 'key'))
             if attrs.has_key((None, 'type')):
-                self.currentType = attrs.getValue((None, 'type'))
+                # Store the full path to the type item
+                self.currentType = "%s/%s" % self.getNamespaceName(
+                 attrs.getValue((None, 'type')))
             else:
                 self.currentType = None
             self.currentValue = ''
@@ -136,7 +138,9 @@ class ItemHandler(xml.sax.ContentHandler):
             # Otherwise, assume its a literal attribute
             element = 'Attribute'
             if attrs.has_key((None, 'type')):
-                self.currentType = attrs.getValue((None, 'type'))
+                # Store the full path to the type item
+                self.currentType = "%s/%s" % self.getNamespaceName(
+                 attrs.getValue((None, 'type')))
             else:
                 self.currentType = None
             self.currentValue = ''
@@ -154,28 +158,21 @@ class ItemHandler(xml.sax.ContentHandler):
         if element == 'Reference':
             (namespace, name) = self.getNamespaceName(self.currentValue)
             self.currentReferences.append((self._DELAYED_REFERENCE, local,
-             namespace, name, self.locator.getLineNumber()))
+             namespace, name, None, self.locator.getLineNumber()))
             
-        # We have an attribute, append to the current item
+        # If we have a literal attribute, but delay assignment until the 
+        # end of the document because superKinds are not yet linked up and 
+        # therefore attribute assignments could fail.
         elif element == 'Attribute':
-            
-            # if this Attribute has not yet been linked up to the Kind
-            # delay this operation until the end of the document
-            kindItem = self.currentItem.kind
-            attributeItem = kindItem.getAttribute(local)
-            if attributeItem:
-                value = self.makeValue(uri, local)
-                self.currentItem.addValue(local, value)
-            else:
-                (namespace, name) = self.getNamespaceName(self.currentValue)
-                self.currentReferences.append((self._DELAYED_LITERAL, local,
-                 namespace, name, self.locator.getLineNumber()))
+            self.currentReferences.append((self._DELAYED_LITERAL, local,
+             self.currentType, self.currentValue, None, self.locator.getLineNumber()))
                 
         # We have a dictionary, similar to attribute, but we have a key
         elif element == 'Dictionary':
 
-            value = self.makeValue(uri, local)
-            self.currentItem.setValue(local, value, self.currentKey)
+            self.currentReferences.append((self._DELAYED_LITERAL, local,
+             self.currentType, self.currentValue, self.currentKey, self.locator.getLineNumber()))
+
             
         # We have an item, add the collected attributes to the list
         elif element == 'Item':
@@ -210,28 +207,28 @@ class ItemHandler(xml.sax.ContentHandler):
 
         self.mapping[prefix] = None
 
-    def makeValue(self, uri, local):
+
+    def makeValue(self, item, attributeName, attributeTypePath, value):
         """ Creates a value from a string, based on the type
             of the attribute.
         """
-        if self.currentType:
-            (namespace, name) = self.getNamespaceName(self.currentType)
-            type = self.findItem(namespace, name,
-                                 self.locator.getLineNumber())
-            value = type.makeValue(self.currentValue)
+        if attributeTypePath:
+            attributeType = self.repository.find(attributeTypePath)
+            value = attributeType.makeValue(value)
         else:
-            assert self.currentItem, \
+            assert item, \
                    "No parent item at %s:%s" % (self.locator.getSystemId(),
                                                 self.locator.getLineNumber())
 
-            kindItem = self.currentItem.kind
-            attributeItem = kindItem.getAttribute(local)
+            kindItem = item.kind
+            attributeItem = kindItem.getAttribute(attributeName)
 
             assert attributeItem, \
                    "No Attribute at %s:%s" % (self.locator.getSystemId(),
                                               self.locator.getLineNumber())
         
-            value = attributeItem.type.makeValue(self.currentValue)
+            value = attributeItem.type.makeValue(value)
+
         return value
 
     def findItem(self, namespace, name, line):
@@ -333,7 +330,7 @@ class ItemHandler(xml.sax.ContentHandler):
     def addReferences(self, item, attributes):
         """ Add all of the references in the list to the item """
 
-        for (type, attributeName, namespace, name, line) in attributes:
+        for (type, attributeName, namespace, name, key, line) in attributes:
 
             if type == self._DELAYED_REFERENCE:
                 reference = self.findItem(namespace, name, line)
@@ -350,11 +347,16 @@ class ItemHandler(xml.sax.ContentHandler):
                     item.addValue(attributeName, reference)
 
             elif type == self._DELAYED_LITERAL:
-                kindItem = item.kind
-                attributeItem = kindItem.getAttribute(attributeName)
 
-                assert attributeItem, \
-                 "attributeItem could not be found for %s" % attributeName
+                # In the case of a literal, "namespace" specifies the path
+                # of the type item, and "name" contains the value.  If "key"
+                # is not None then use is as a dict key.
 
-                value = attributeItem.type.makeValue(name)
-                item.addValue(attributeName, value)
+                attributeTypePath = namespace
+
+                value = self.makeValue(item, attributeName, attributeTypePath,
+                 name)
+                if key:
+                    item.setValue(attributeName, value, key)
+                else:
+                    item.addValue(attributeName, value)

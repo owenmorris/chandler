@@ -46,7 +46,7 @@ def PrintItem(uri, rep, level=0):
             for i in range(level+2):
                 print " ",
 
-            print "%s:" % name
+            print "%s: (list)" % name
             for j in value:
                 for k in range(level+4):
                     print " ",
@@ -56,7 +56,7 @@ def PrintItem(uri, rep, level=0):
             for i in range(level+2):
                 print " ",
 
-            print "%s:" % name
+            print "%s: (dict)" % name
             for key in value.keys():
                 for k in range(level+4):
                     print " ",
@@ -67,7 +67,7 @@ def PrintItem(uri, rep, level=0):
             for i in range(level+2):
                 print " ",
 
-            print "%s:" % name
+            print "%s: (dict)" % name
             for j in value:
                 for k in range(level+4):
                     print " ",

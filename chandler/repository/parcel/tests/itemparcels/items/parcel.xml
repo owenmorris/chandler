@@ -8,46 +8,13 @@
 <Parcel describes="//parcels/items"
         itemName="items"
         xmlns="//Schema/Core"
-        xmlns:items="//parcels/items">
+        xmlns:items="//parcels/items"
+        xmlns:super="//parcels/super">
 
   <displayName>Items</displayName>
   <description>Items Parcel Loader Test Schema</description>
   <version>0.1</version>
   <author>Open Source Applications Foundation</author>
-
-  <Enumeration itemName="TestEnumType">
-    <values>A</values>
-    <values>B</values>
-    <values>C</values>
-  </Enumeration>
-
-  <Attribute itemName="EnumAttribute">
-    <displayName>Enum Attribute</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="items:TestEnumType"/>
-    <inverseAttribute itemref="items:EnumAttributeInverse"/>
-  </Attribute>
-
-  <Attribute itemName="EnumAttributeInverse">
-    <displayName>Enum Attribute Inverse</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="items:TestKind"/>
-    <inverseAttribute itemref="items:EnumAttribute"/>
-  </Attribute>
-
-  <Attribute itemName="RefAttribute">
-    <displayName>Ref Attribute</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="items:TestKind"/>
-    <inverseAttribute itemref="items:RefAttributeInverse"/>
-  </Attribute>
-
-  <Attribute itemName="RefAttributeInverse">
-    <displayName>Ref Attribute Inverse</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="items:TestKind"/>
-    <inverseAttribute itemref="items:RefAttribute"/>
-  </Attribute>
 
   <Attribute itemName="StringAttribute">
     <displayName>String Attribute</displayName>
@@ -55,18 +22,18 @@
     <type itemref="String"/>
   </Attribute>
 
-  <Kind itemName="TestKind">
-    <displayName>Test Kind</displayName>
-    <attributes itemref="items:RefAttribute"/>
+  <Kind itemName="Kind2">
+    <displayName>Test Kind 2</displayName>
     <attributes itemref="items:StringAttribute"/>
-    <attributes itemref="items:EnumAttribute"/>
+    <superKinds itemref="super:Kind1"/>
   </Kind>
 
-  <items:TestKind itemName="TestInstance1">
-    <items:RefAttribute itemref="items:TestInstance2"/>
-    <items:StringAttribute>XYZZY</items:StringAttribute>
-    <items:EnumAttribute>B</items:EnumAttribute>
-  </items:TestKind>
+  <items:Kind2 itemName="TestInstance1">
+    <super:RefAttribute itemref="items:TestInstance2"/>
+    <super:EnumAttribute>B</super:EnumAttribute>
+    <super:StringAttribute>XYZZY</super:StringAttribute>
+  </items:Kind2>
 
-  <items:TestKind itemName="TestInstance2" />
+  <items:Kind2 itemName="TestInstance2" />
+
 </Parcel>
