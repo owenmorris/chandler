@@ -64,8 +64,16 @@ def main():
         sys.exit(1)
 
     # defaults:
-    project = "chandler"
-    toAddr  = "morgen@osafoundation.org"
+    if projectArg is None:
+        project = "chandler"
+    else:
+        project = projectArg
+        
+    if toAddrArg is None:
+        toAddr  = "morgen@osafoundation.org"
+    else:
+        toAddr  = toAddrArg
+        
     buildVersion = nowString
 
     # default is "-D now", but override with date; override that with tag
@@ -95,6 +103,9 @@ def main():
     logFile = os.path.join(buildDir, "build.log")
     buildscriptFile = os.path.join("buildscripts", project + ".py")
     fromAddr = "builds@osafoundation.org"
+    print "Mail to ", toAddr
+    print "Build dir", buildDir
+    print "Build file ", buildscriptFile
 
     curDir = os.path.abspath(os.getcwd())
 
