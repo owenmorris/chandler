@@ -426,25 +426,20 @@ def _createVersionFile(buildenv):
 
 def _transformFilesXslt(buildenv, transformFile, srcDir, destDir, outFile, 
  fileList):
-    """ Run the list of files through an XSLT transform
-    """
+    """ Run the list of files through an XSLT transform """
     hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
      "Running XSLT processor using " + transformFile)
 
     if buildenv['version'] == 'debug':
         python = buildenv['python_d']
-        sitePkg = buildenv['pythonlibdir_d'] + os.sep + "site-packages"
     if buildenv['version'] == 'release':
         python = buildenv['python']
-        sitePkg = buildenv['pythonlibdir'] + os.sep + "site-packages"
-
+    sitePkg = os.path.join(buildenv['root'], buildenv['version'], 'bin')
+    
     if buildenv['os'] == 'win':
-        if buildenv['version'] == 'debug':
-            xsltScript = os.path.join(sitePkg,"Ft","Share","Bin","4xslt_d.exe")
-        else:
-            xsltScript = os.path.join(sitePkg,"Ft","Share","Bin","4xslt.exe")
+        xsltScript = os.path.join(sitePkg,"xsltproc.exe")
     else:
-        xsltScript = os.path.join(sitePkg, "Ft", "Share", "Bin", "4xslt")
+        xsltScript = os.path.join(sitePkg,"xsltproc")
 
 
     if not os.path.exists(destDir):
@@ -459,18 +454,10 @@ def _transformFilesXslt(buildenv, transformFile, srcDir, destDir, outFile,
         except Exception, e:
             pass
         if os.path.exists(srcFile):
-            if buildenv['os'] == 'win':
-                hardhatlib.executeCommand( buildenv, info['name'], 
+            hardhatlib.executeCommandNoCapture( buildenv, info['name'], 
                  [xsltScript, 
-                 "--outfile="+destFile,
-                 srcFile, transformFile 
-                 ], 
-                 "XSLT: " + file )
-            else: 
-                hardhatlib.executeCommand( buildenv, info['name'], 
-                 [python, xsltScript, 
-                 "--outfile="+destFile,
-                 srcFile, transformFile 
+                 "--output", destFile,
+                 transformFile, srcFile 
                  ], 
                  "XSLT: " + file )
 
