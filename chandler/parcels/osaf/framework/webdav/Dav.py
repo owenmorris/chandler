@@ -79,8 +79,8 @@ class DAV(object):
 
         return self.url
 
-    def sync(self):
-        raise NotImplementedError
+    def sync(self, item):
+        return Import.sync(item)
 
 
 class DAVConnection(davlib.DAV):

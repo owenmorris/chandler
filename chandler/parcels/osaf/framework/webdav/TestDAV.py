@@ -22,13 +22,11 @@ class TestDAV(TestContentModel.ContentModelTestCase):
         self.loadParcel("http://osafoundation.org/parcels/osaf/framework/webdav")
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/calendar")
 
-        # return early for now so that these tests are not run by default
-        return
-
         """ item exporting """
         testItem = GenerateItems.GenerateCalendarEvent(100)
         url = 'http://code-bear.com/dav/' + testItem.itsUUID.str16()
         a = DAV(url)
+        a.put(testItem)
         a.put(testItem)
         print url
 

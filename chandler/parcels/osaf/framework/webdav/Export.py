@@ -27,19 +27,34 @@ def putItem(dav, item):
     # instead of this, we should figure out a way to know if the item has changed since its last
     # etag.. maybe watch for commits?  if it has, then we should see if the thing on the server
     # has changed.. if-match? and then try again.  we gotta get rid of this hack....
-    if hasattr(item, 'davified'):
+    #
+    # first check and see if item.hasAttributeValue('etag').  if not then put
+    # the item without thinking.
+    # if it does have an etag, then we need to see if the local Item has changed
+    # since they last time we pushed it to the server.  If it hasn't changed,
+    # then just return.  If it has changed, then we need to sync our copy with
+    # the server prior to pushing things back up to the server
+    if item.sharedVersion == item._version:
+        # this isn't quite right...
+        # we really still need to check the etag before returning here,
+        # but this will allow us to at least put new changes if we have
+        # them locally...  see the comment just below about the etag
         return
-    item.davified = True
 
     url = unicode(dav.url)
 
     # need to put an If-Match header here with the item's etag if it exists
     extraHeaders = {}
 
-    etag = item.getAttributeValue('etag', default=None)
-    if etag:
-        extraHeaders['If-Match'] = etag
+    # XXX not quite right. need to only do this if we have an etag, the etag on
+    # the server is the same, AND the version has changed
+    # 
+    #etag = item.getAttributeValue('etag', default=None)
+    #if etag:
+    #    extraHeaders['If-Match'] = etag
     r = dav.newConnection().put(url, item.itsKind.itsName, 'text/plain', None, extraHeaders)
+
+    print r.read()
 
     # now we need to see if this request failed due to the etags being different
     
@@ -48,6 +63,7 @@ def putItem(dav, item):
     # set them here, even though we have to set them again later
     item.etag = r.getheader('ETag', default='')
     item.lastModified = r.getheader('Last-Modified', default='')
+    item.sharedVersion = item._version
 
     # ew...
     sharing = Globals.repository.findPath('//parcels/osaf/framework/GlobalShare') 
@@ -78,7 +94,7 @@ def putItem(dav, item):
 
                     data = data + '<itemref>' + unicode(durl) + '</itemref>'
                 else:
-                    # add literal list stuff here
+                    # XXX TODO add literal list stuff here
                     pass
             data = data + ']]></osaf:%s>' % (name)
         else:
@@ -110,6 +126,8 @@ def putItem(dav, item):
     r = dav.newConnection().head(url)
     item.etag = r.getheader('ETag', default='')
     item.lastModified = r.getheader('Last-Modified', default='')
+
+    item.sharedVersion = item._version
 
     return url
     #print propstring

@@ -48,11 +48,25 @@ def getItem(dav):
     else:
         print oldEtag, di.etag
 
-    newItem.etag = di.etag
-    newItem.lastModified = di.lastModified
+    sync(newItem, di)
+
+    return newItem
+
+def sync(item, di=None):
+    if not di:
+        # fetch the item
+        di = DAVItem.DAVItem(item.sharedURL)
+
+    if item.sharedVersion == item._version:
+        print 'same version', item.sharedVersion
+        return False
+
+    item.etag = di.etag
+    item.lastModified = di.lastModified
+
 
     # XXX hack...
-    sharing.itemMap[origUUID] = newItem.itsUUID
+    sharing.itemMap[origUUID] = item.itsUUID
 
     for (name, attr) in kind.iterAttributes(True):
 
@@ -70,17 +84,16 @@ def getItem(dav):
             if attr.cardinality == 'list':
                 for node in nodes:
                     otherItem = DAV(node.content).get()
-                    newItem.addValue(name, otherItem)
+                    item.addValue(name, otherItem)
             elif attr.cardinality == 'single':
                 node = nodes[0]
                 otherItem = DAV(node.content).get()
-                newItem.setAttributeValue(name, otherItem)
+                item.setAttributeValue(name, otherItem)
             else:
                 raise Exception
 
         else:
-            #newItem.setAttributeValue(name, value)
             print 'Got.....: ', value
-            newItem.setAttributeValue(name, attr.type.makeValue(value))
+            item.setAttributeValue(name, attr.type.makeValue(value))
 
-    return newItem
+    item.sharedVersion = item._version
