@@ -27,4 +27,6 @@ class SideBar(wxNotebook):
         self.AddPage(pan2, "Other")
         
     def PopulateSideBar(self, components):
+        """This initially populates the tree control of the sidebar by querying
+        each of the components as to what it should display."""
         self.navPanel.PopulateTree(components)

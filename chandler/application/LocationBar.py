@@ -31,25 +31,29 @@ class LocationBar:
         EVT_TOOL(self.parent, XRCID("home"), self.GoHome)
         
     def AddLocationHistory(self, component, viewName):
-        self.future = []
-        tuple = (component, viewName)
-        self.history.append(tuple)
+        """Add the given view to the toolbar's history list.  Adding a view to
+        the history will clear the future list (used by the Next button).  The
+        view that has been most recently added to history will be the one used
+        by the Prev button."""
+#        self.future = []
+#        tuple = (component, viewName)
+#        self.history.append(tuple)
+        pass
 
     def GoPrev(self, event):
-#        if self.history.count() < 1: return
+#        if len(self.history) < 1: return
 #        newLocation = self.history.pop()
 #        self.future.append(newLocation)
-#        self.parent.SelectComponent(newLocation[0], newLocation[1])
-         pass
+#        self.parent.SelectComponent(newLocation[0], newLocation[1], false)
+        pass
 
     def GoNext(self, event):
-#        if self.future.count() < 1: return
+#        if len(self.future) < 1: return
 #        newLocation = self.future.pop()
-#        self.
-#        newLocation = self.history.pop()
-#        self
+#        self.history.append(newLocation)
+#        self.parent.SelectComponent(newLocation[0], newLocation[1], false)
         pass
-    
+
     def DoStop(self, event):
         pass
     
