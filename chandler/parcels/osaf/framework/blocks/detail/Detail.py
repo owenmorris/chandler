@@ -111,11 +111,20 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
                 notifySelf = syncMethod(block, item) or notifySelf
             return notifySelf
 
+        needsLayout = False
         children = self.childrenBlocks
         for child in children:
             child.isShown = item is not None
-            reNotifyInside(child, item)
+            needsLayout = reNotifyInside(child, item) or needsLayout
         wx.GetApp().needsUpdateUI = True
+        if needsLayout:
+            try:
+                sizer = self.widget.GetSizer()
+            except AttributeError:
+                pass
+            else:
+                if sizer:
+                    sizer.Layout()
 
     if __debug__:
         def dumpShownHierarchy (self, methodName=''):
