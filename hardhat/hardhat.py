@@ -220,6 +220,18 @@ except hardhatlib.HardHatExternalCommandError:
     print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
     sys.exit(1)
 
+except hardhatlib.HardHatUnitTestError:
+    print 
+    print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+    print "                The following unit test(s) failed:"
+    print
+    for testFile in buildenv['failed_tests']:
+        print testFile
+    print
+    print "          Please view the file 'hardhat.log' for details."
+    print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+    sys.exit(1)
+
 except hardhatlib.HardHatMissingFileError, e:
     print 
     print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"

@@ -561,6 +561,7 @@ def recursiveTest(buildenv, path):
             "-v"], "Testing " + fullTestFilePath, HARDHAT_NO_RAISE_ON_ERROR)
             if exit_code != 0:
                 buildenv['test_failures'] = buildenv['test_failures'] + 1
+                buildenv['failed_tests'].append(fullTestFilePath)
 
     os.chdir(path)
     for name in os.listdir(path):
@@ -578,6 +579,7 @@ def test(buildenv, module_name):
 
     os.chdir(buildenv['root'])
     buildenv['test_failures'] = 0
+    buildenv['failed_tests'] = []
     recursiveTest(buildenv, module_name)
     failures = buildenv['test_failures']
 
@@ -585,6 +587,7 @@ def test(buildenv, module_name):
         log(buildenv, HARDHAT_MESSAGE, 'Tests', "All tests successful")
     else:
         log(buildenv, HARDHAT_ERROR, 'Tests', "%d test(s) failed" % failures)
+        raise HardHatUnitTestError
 
 # end test()
 
@@ -1329,6 +1332,10 @@ class HardHatExternalCommandError(HardHatError):
 
 class HardHatRegistryError(HardHatError):
     """ Exception thrown when we can't read the windows registry """
+    pass
+
+class HardHatUnitTestError(HardHatError):
+    """ Exception thrown when at least one unit test fails """
     pass
 
 class HardHatMissingFileError(HardHatError):
