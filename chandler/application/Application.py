@@ -139,6 +139,25 @@ class wxApplication (wxApp):
 	In the future we may replace ZODB with another database that provides 
 	similar functionality
 	"""
+
+	def __init__(self):
+	    """
+	    Overriding the __init__() method for wxApp so that we can check
+	    to see if the user wants stdio redirected to a window or left 
+	    to the console.  Setting WXREDIRECT=0 will tell wxApp to let
+	    stdio go to the console; setting WXREDIRECT=1 will redirect to 
+	    a popup window; not setting WXREDIRECT at all will let wxApp
+	    decide what to do.
+	    """
+	    if os.environ.has_key('WXREDIRECT'):
+		if os.environ['WXREDIRECT'] != '0':
+		    redirect = True
+		else:
+		    redirect = False
+		wxApp.__init__(self, redirect)
+	    else:
+		wxApp.__init__(self)
+
 	def OnInit(self):       
 		"""Main application initialization. Open the persistent object
 			store, lookup of the application's persitent model counterpart, or
