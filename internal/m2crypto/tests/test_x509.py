@@ -25,8 +25,8 @@ class X509TestCase(unittest.TestCase):
         name=x.get_subject()
         name.C = "UK"
         name.CN = "OpenSSL Group"
-        ext1 = X509.X509_Extension('subjectAltName', 'DNS:foobar.example.com')
-        ext2 = X509.X509_Extension('nsComment', 'Hello there')
+        ext1 = X509.new_extension('subjectAltName', 'DNS:foobar.example.com')
+        ext2 = X509.new_extension('nsComment', 'Hello there')
         extstack = X509.X509_Extension_Stack()
         extstack.push(ext1)
         extstack.push(ext2)
@@ -64,8 +64,8 @@ class X509TestCase(unittest.TestCase):
         days = 30
         m2.x509_gmtime_adj(notAfter, 60*60*24*days)
         cert.add_ext(
-            X509.X509_Extension('subjectAltName', 'DNS:foobar.example.com'))
-        ext = X509.X509_Extension('nsComment', 'M2Crypto generated certificate')
+            X509.new_extension('subjectAltName', 'DNS:foobar.example.com'))
+        ext = X509.new_extension('nsComment', 'M2Crypto generated certificate')
         ext.set_critical(0)
         cert.add_ext(ext)
         cert.sign(pk, 'sha1')
