@@ -467,6 +467,14 @@ class wxTableData(wx.grid.PyGridTableBase):
         
 
 class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
+    
+    """ 
+    the borders of the column headers are not being counted towards the width
+    of a column, so need to remember to add the left/right borders when doing
+    certain column width calculations
+    """
+    _colBorderSize = wx.SystemSettings_GetMetric(wx.SYS_BORDER_X) * 2
+    
     def __init__(self, *arguments, **keywords):
         """
           Giant hack. Calling event.GetEventObject in OnShow of application, while the
@@ -487,13 +495,6 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.EnableDragCell(True)
         self.DisableDragRowSize()
         self.SetDefaultCellBackgroundColour(wx.WHITE)
-        """
-          Big fat hack. Since the grid is a scrolled window we set a border equal to the size
-        of the scrollbar so the scroll bars won't show. Instead we should consider modifying
-        grid adding a new style for not showing scrollbars.  Bug #2375
-        """
-        self.SetMargins(0-wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
-                        0-wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y))
         """
           Don't draw cursor outline on selected cells
         """
@@ -563,26 +564,24 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
 
     def OnSize(self, event):
         if not wx.GetApp().ignoreSynchronizeWidget:
-            size = event.GetSize()
+            
+            size = self.GetClientSize()
             widthMinusLastColumn = 0
 
             assert self.GetNumberCols() > 0, "We're assuming that there is at least one column"
             lastColumnIndex = self.GetNumberCols() - 1
             for column in xrange (lastColumnIndex):
-                widthMinusLastColumn += self.GetColSize (column)
+                widthMinusLastColumn += self.GetColSize (column) + self._colBorderSize
             lastColumnWidth = size.width - widthMinusLastColumn
-            """
-              Big fat hack. Since the grid is a scrolled window we set a border equal to the size
-            of the scrollbar so the scroll bars won't show. Instead we should consider modifying
-            grid adding a new style for not showing scrollbars.  Bug #2375
-            """
-            lastColumnWidth = lastColumnWidth - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
             # @@@ This does not work properly and needs to be looked at
             # Removing it for the single column case because it causes the
             # sidebar to grow indefinitely
-            if lastColumnWidth > 0:
+            
+            # account for border of the last column
+            lastColumnWidth -= self._colBorderSize
+            if lastColumnWidth > 0 and lastColumnIndex > 0:
                 self.SetColSize (lastColumnIndex, lastColumnWidth)
-                self.ForceRefresh()
+            
         event.Skip()
 
     def OnColumnDrag(self, event):
@@ -636,19 +635,16 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         # update all column widths but the last one
         widthMinusLastColumn = 0
         for columnIndex in xrange (newColumns - 1):
-            widthMinusLastColumn += self.blockItem.columnWidths[columnIndex]
+            widthMinusLastColumn += self.blockItem.columnWidths[columnIndex] + self._colBorderSize
             self.SetColSize (columnIndex, self.blockItem.columnWidths [columnIndex])
 
         # update the last column to fill the rest of the widget
-        remaining = self.GetSize().width - widthMinusLastColumn
-        """
-          Big fat hack. Since the grid is a scrolled window we set a border equal to the size
-        of the scrollbar so the scroll bars won't show. Instead we should consider modifying
-        grid adding a new style for not showing scrollbars.  Bug #2375
-        """
-        remaining = remaining - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        remaining = self.GetClientSize().width - widthMinusLastColumn
+        
+        # account for the border at the end
+        remaining -= self._colBorderSize
         if remaining > 0:
-            self.SetColSize(newColumns - 1, remaining)
+            self.SetColSize(newColumns - 1, remaining )
         
         self.ClearSelection()
         firstSelectedRow = None
