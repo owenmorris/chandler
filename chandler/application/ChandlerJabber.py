@@ -266,7 +266,7 @@ class JabberClient:
         
     # handle responses to requests for accessible views
     def HandleViewResponse(self, fromAddress, responseBody):
-        newViews = self.DecodePythonObject(reponseBody)
+        newViews = self.DecodePythonObject(responseBody)
         self.SetAccessibleViews(fromAddress, newViews)
                         
     # handle an incoming message
