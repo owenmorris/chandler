@@ -3,7 +3,7 @@
 
 __revision__  = "$Revision$"
 __date__      = "$Date$"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from application.Parcel import Parcel
@@ -127,8 +127,6 @@ class ContentItem(ChandlerItem):
     add or remove capabilities.
     """
 
-    SUPPORT_RESTAMPING = False # True means unstamping should save attributes for restamping
-
     def StampKind (self, operation, mixinKind):
         """
           Stamp ourself into the new kind defined by the
@@ -141,8 +139,7 @@ class ContentItem(ChandlerItem):
         * Move the attributes from the Mixin.
         """
         newKind = self._findStampedKind (operation, mixinKind)
-        addedKinds, removedKinds = self._addedOrRemovedKinds (newKind, operation, mixinKind)
-        self._stampPreProcess (removedKinds) # save away kinds being removed
+        addedKinds = self._addedKinds (newKind, operation, mixinKind)
         if newKind is not None:
             self.itsKind = newKind
         else:
@@ -150,98 +147,28 @@ class ContentItem(ChandlerItem):
         self._stampPostProcess (addedKinds) # initialize attributes of added kinds
         
         # make sure the respository knows about the item's new Kind
+        #  to trigger updates in the UI.
         # @@@BJS: I'm pretty sure this isn't necessary, so I'm commenting it out to speed things up.
         # Globals.repository.commit ()
 
-    def _stampPreProcess (self, removedKinds):
-        """
-          Pre-process an Item for Stamping.  If we are unstamping an item,
-        then we save away a mixin containing a copy of the attributes
-        for the portion(s) being unstamped.
-        """
-        if self.SUPPORT_RESTAMPING:
-            # values associated with removed kinds are saved for later restamping
-            for removedKind in removedKinds:
-                # Create a mixin to capture the attributes
-                removedMixinClass = removedKind.getItemClass()
-                try:
-                    removedMixin = removedMixinClass()
-                except:
-                    pass
-                else:
-                    self._copyAttributeValues (sourceItem = self, 
-                                               destItem = removedMixin, 
-                                               template=removedMixin)
-                    try:
-                        previousStamps = self.previousStamps
-                    except AttributeError:
-                        previousStamps = []
-                        self.previousStamps = previousStamps
-                    # Save the mixin in the Item's previousStamps attribute
-                    self.previousStamps.append (removedMixin)
-
     def _stampPostProcess (self, addedKinds):
         """
-          Post-process an Item for Stamping.  If we are stamping an item,
-        we want to initialize the new attributes appropriately.  If this
-        item was previously stamped, we saved away the attribute values
-        in an instance of the mixin.  Otherwise we initialize 
-        the mixin attributes explicitly in the newly stamped item.
+          Post-process an Item for Stamping.  If we have added a kind (or kinds),
+        we want to initialize the new attributes appropriately, by calling
+        the _initMixin method explicitly on the newly stamped item.
         """
         # check if we're restamping and get or create the mixin
         for addedKind in addedKinds:
-            previousMixin = self._previousStamp (addedKind)
-            if previousMixin is None:
-                # ask the mixin to init its attributes.
-                mixinClass = addedKind.getItemClass ()
-                try:
-                    mixinInitMethod = getattr (mixinClass, '_initMixin')
-                except AttributeError:
-                    pass
-                else:
-                    # call the unbound method with our expanded self to init those attributes
-                    mixinInitMethod (self)
-            else:
-                # copy the attributes into our expanded item
-                self._copyAttributeValues (sourceItem = previousMixin,
-                                           destItem = self,
-                                           template=previousMixin)
-
-    def _previousStamp (self, stampedKind):
-        """
-          Return a mixin used for stamping previously on this item.
-        Matches stampedKind with the previous stamp's kind.
-        """
-        try:
-            previousMixins = self.previousStamps
-        except AttributeError:
-            return None
-        else:
-            for aMixin in previousMixins:
-                if aMixin.itsKind is stampedKind:
-                    previousMixins.remove (aMixin)
-                    return aMixin
-        return None
-
-    def _copyAttributeValues (self, sourceItem, destItem, template):
-        """
-          Copy the attributes from the sourceItem to the destItem.  The attributes
-        to be copied are determined by the template - all attributes of the template
-        are copied.
-        """
-        attrIter = template.itsKind.iterAttributes()
-        while True:
+            # ask the mixin to init its attributes.
+            mixinClass = addedKind.getItemClass ()
             try:
-                name, value, k = attrIter.next()
-            except StopIteration:
-                break
-            if not template.hasAttributeAspect (name, 'redirectTo'):
-                try:
-                    value = sourceItem.getAttributeValue (name)
-                except AttributeError:
-                    pass
-                else:
-                    destItem.setAttributeValue (name, value)
+                # get the init method associated with the mixin class added
+                mixinInitMethod = getattr (mixinClass, '_initMixin')
+            except AttributeError:
+                pass
+            else:
+                # call the unbound method with our expanded self to init those attributes
+                mixinInitMethod (self)
 
     """
       STAMPING TARGET-KIND DETERMINATION
@@ -369,42 +296,31 @@ class ContentItem(ChandlerItem):
         # ReKind with the Mixin Kind on-the-fly
         return None
 
-    def _addedOrRemovedKinds (self, newKind, operation, mixinKind):
+    def _addedKinds (self, newKind, operation, mixinKind):
         """
-        Return the list of kinds added or removed by the stamping.
+        Return the list of kinds added by the stamping.
         @param newKind: the kind to be used when stamped, or None if unknown
         @type newKind: C{Kind}
         @param operation: wheather adding or removing the kind
         @type operation: C{String}
         @param mixinKind: the kind being added or removed
         @type mixinKind: C{Kind}
-        @return: a C{Tuple} containing ([addedKinds], [removedKinds])
+        @return: a C{List} of kinds added
         """
         if newKind is None:
             if operation == 'add':
-                return ([mixinKind], [])
+                return [mixinKind]
             else:
                 assert operation == 'remove', "invalid Stamp operation in ContentItem._addedOrRemovedKinds: "+operation
-                return ([], [mixinKind])
+                return []
         newSignature = _SuperKindSignature (newKind)
-        oldKind = self.itsKind
         oldSignature = _SuperKindSignature (self.itsKind)
         addedKinds = []
-        removedKinds = []
         if len (oldSignature) < len (newSignature):
-            # put an alias to the longer list into longList
-            longList = newSignature
-            shortList = oldSignature
-            kinds = addedKinds
-        else:
-            assert len (oldSignature) > len (newSignature)
-            longList = oldSignature
-            shortList = newSignature
-            kinds = removedKinds
-        for aKind in longList:
-            if not aKind in shortList:
-                kinds.append (aKind)
-        return (addedKinds, removedKinds)
+            for aKind in newSignature:
+                if not aKind in oldSignature:
+                    addedKinds.append (aKind)
+        return addedKinds
 
     """
     ACCESSORS
