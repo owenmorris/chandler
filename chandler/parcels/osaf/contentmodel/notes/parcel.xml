@@ -31,6 +31,15 @@
     <type itemref="String"/>
   </Attribute>
 
+  <Attribute itemName="attachedToItems">
+    <displayName>Attached to Items</displayName>
+    <description>List of items this "note" is attached to.</description>
+    <issues>This attribute belongs on Note, not Content Item.</issues>
+    <cardinality>single</cardinality>
+    <type itemref="content:ContentItem"/>
+    <otherName>attachedNotes</otherName>
+  </Attribute>
+
   <Kind itemName="Note">
     <displayName>Note</displayName>
     <issues>The attribute 'attachedToItems' is currently on ContentItem, although it really belongs here on Note.</issues>
@@ -38,6 +47,7 @@
     <displayAttribute itemref="notes:title"/>
     <attributes itemref="notes:title"/>
     <attributes itemref="notes:body"/>
+    <attributes itemref="notes:attachedToItems"/>
   </Kind>
 
   <!-- Bookmark -->

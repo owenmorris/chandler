@@ -64,16 +64,7 @@
     <core:issues>Type should be "Note"</core:issues>
     <core:cardinality>list</core:cardinality>
     <core:type itemref="ContentItem"/>
-    <core:inverseAttribute itemref="attachedToItems"/>
-  </core:Attribute>
-
-  <core:Attribute itemName="attachedToItems">
-    <core:displayName>Attached to Items</core:displayName>
-    <core:description>List of items this "note" is attached to.</core:description>
-    <core:issues>This attribute belongs on Note, not Content Item.</core:issues>
-    <core:cardinality>single</core:cardinality>
-    <core:type itemref="ContentItem"/>
-    <core:inverseAttribute itemref="attachedNotes"/>
+    <core:otherName>attachedToItems</core:otherName>
   </core:Attribute>
 
   <core:Attribute itemName="fyiLinks">
@@ -95,18 +86,11 @@
   <core:Attribute itemName="creator">
     <core:displayName>Created By</core:displayName>
     <core:description>Link to the user who created the item.</core:description>
-    <core:issues>The type should be Contact, but we have a circular dependency problem to fix. Perhaps this attribute definition should live in the contacts parcel, and modify the ContentItem kind?</core:issues>
+    <core:issues>The type should be Contact, but we have a circular dependency problem to fix. </core:issues>
+    <core:issues>Perhaps this attribute definition should live in the contacts parcel, and modify the ContentItem kind?</core:issues>
     <core:cardinality>single</core:cardinality>
     <core:type itemref="ContentItem"/>
-    <core:inverseAttribute itemref="itemsCreated"/>
-  </core:Attribute>
-
-  <core:Attribute itemName="itemsCreated">
-    <core:displayName>Items Created</core:displayName>
-    <core:description>List of content items created by this user.</core:description>
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="ContentItem"/>
-    <core:inverseAttribute itemref="creator"/>
+    <core:otherName>itemsCreated</core:otherName>
   </core:Attribute>
 
   <core:Kind itemName="ContentItem">
@@ -115,21 +99,16 @@
     <core:examples>a Contact -- 'Terry Smith'</core:examples>
     <core:examples>a Task -- 'mail 1040 to IRS'</core:examples>
     <core:description>Content Item is the abstract super-kind for things like Contacts, Calendar Events, Tasks, Mail Messages, and Notes. Content Items are user-level items, which a user might file, categorize, share, and delete.</core:description>
-    <core:issues>"itemsCreated" should really be an attribute of something like "User" or "Contact", rather than here on "ContentItem". I think maybe Katie put it here to avoid some circular dependency problem. - Brian</core:issues>
-    <core:issues>"attachedToItems" should really be an attribute of "Note", rather than here on "ContentItem". I think maybe Katie put it here to avoid some circular dependency problem. - Brian</core:issues>
     <core:attributes itemref="projects"/>
     <core:attributes itemref="groups"/>
     <core:attributes itemref="creator"/>
-    <core:attributes itemref="itemsCreated"/>
     <core:attributes itemref="parcel:createdOn"/>
     <core:attributes itemref="parcel:modifiedOn"/>
     <core:attributes itemref="fyiLinks"/>
     <core:attributes itemref="fyiLinkedToItems"/>
     <core:attributes itemref="attachedNotes"/>
-    <core:attributes itemref="attachedToItems"/>
     <core:classes key="python">OSAF.contentmodel.ContentModel.ContentItem</core:classes>
   </core:Kind>
-
 
 <!-- Project -->
   <core:Attribute itemName="parentProject">

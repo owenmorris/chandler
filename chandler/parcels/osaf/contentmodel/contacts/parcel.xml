@@ -90,10 +90,27 @@
     <type itemref="Boolean"/>
   </Attribute>
 
+  <!-- Attributes that might belong in other parcels -->
+
+  <Attribute itemName="itemsCreated">
+    <displayName>Items Created</displayName>
+    <description>List of content items created by this user.</description>
+    <cardinality>list</cardinality>
+    <type itemref="content:ContentItem"/>
+    <otherName>creator</otherName>
+  </Attribute>
+
+  <Attribute itemName="pastEmailAddresses">
+    <displayName>Past Email Addresses</displayName>
+    <issues>type should be EmailAddress, circularity problem</issues>
+    <cardinality>list</cardinality>
+    <type itemref="content:ContentItem"/>
+    <otherName>onceBelongedTo</otherName>
+  </Attribute>
+
   <Kind itemName="Contact">
     <displayName>Contact</displayName>
     <description>An entry in an address book. Typically represents either a person or a company.</description>
-    <issues>The 'itemsCreated' attribute is currently up on ContentItem, where really it belongs here on Contact.</issues>
     <issues>We should also have attributes for 'Participates in Events' and 'Old Email Addresses'. And we might want to keep track of lots of sharing information like 'Permissions I've given them', 'Items of mine they've subscribed to', 'Items of theirs I've subscribed to', etc.</issues>
     <superKinds itemref="content:ContentItem"/>
     <displayAttribute itemref="contact:contactName"/>
@@ -104,6 +121,7 @@
     <attributes itemref="contact:birthday"/>
     <attributes itemref="contact:gender"/>
     <attributes itemref="contact:isCompany"/>
+    <attributes itemref="contact:itemsCreated"/>
     <classes key="python">OSAF.contentmodel.contacts.Contacts.Contact</classes>
   </Kind>
 

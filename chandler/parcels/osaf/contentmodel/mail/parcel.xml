@@ -123,12 +123,20 @@
     <type itemref="String"/>
   </Attribute>
 
+  <Attribute itemName="onceBelongedTo">
+    <displayName>Once Belonged To</displayName>
+    <issues>type should be Contact</issues>
+    <cardinality>single</cardinality>
+    <type itemref="content:ContentItem"/>
+    <otherName>pastEmailAddresses</otherName>
+  </Attribute>
+
   <!-- Attributes that might belong in other parcels -->  
 
   <Attribute itemName="emailAddressOwner">
     <displayName>Email Address Owner</displayName>
     <description>The Contact that this address is </description>
-    <issues>only one owner</issues>
+    <issues>only one owner -- single cardinality implies that two contacts cannot have the same email address</issues>
     <issues>@@@ should be type ContactSection</issues>
     <cardinality>single</cardinality>
     <type itemref="Item"/>
