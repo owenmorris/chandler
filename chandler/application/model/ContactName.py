@@ -51,6 +51,9 @@ class ContactName(RdfObject):
         
         self.CalcSortName()
 
+    def GetFullName(self):
+        return self.GetNamePart('fullname')
+    
     # return an abbreviated version of the name
     def GetShortName(self):
         if self.contactItem.contactType == 'Person':
