@@ -1119,7 +1119,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             try:
                 value = attributeItem.type.makeValue(value)
             except Exception, e:
-                exception = \
+                explanation = \
                  "'%s' for item '%s', attribute '%s', value '%s'" % \
                  ( e, item.itsPath, attributeName, value )
                 self.saveExplanation(explanation)
