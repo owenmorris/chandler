@@ -23,13 +23,25 @@ kind of collection and one kind of event.
 Change Events
 =============
 
-There is only one type of change event for sets: ``models.SetChanged``.  The
-sender is the set that was changed, and its event instances have ``added``
-and ``removed`` attributes that are lists of the objects added or removed from
-the set::
+There is are two types of change event for sets: ``models.Validation``, and
+``models.SetChanged``.  Both types use similar event instances, with the
+``sender`` being the set that was changed, and the ``added`` and ``removed``
+attributes being iterables containing the objects added or removed from the
+set::
 
-    >>> models.SetChanged(None,[1,2],[3,4])
-    <Change for None: removed=[1, 2], added=[3, 4]>
+    >>> models.Validation(models.Set(),[1,2],[3,4])
+    <Change for Set([]): removed=[1, 2], added=[3, 4]>
+
+    >>> models.SetChanged(models.Set(),[1,2],[3,4])
+    <Change for Set([]): removed=[1, 2], added=[3, 4]>
+
+The only practical difference between the two kinds of events is that
+subscribers to ``model.Validation`` events will receive the event before
+subscribers to ``model.SetChanged``.  However, the same ``Validation`` instance
+is also sent to ``SetChanged`` subscribers, if none of the ``Validation``
+subscribers raised an error.  This arrangement allows ``Validation`` listeners
+to reject a change (by raising an error) before any dependent changes are made
+by the ``SetChanged`` subscribers.
 
 For demonstration purposes, we'll use this function to print change events as
 they happen::
@@ -57,8 +69,20 @@ We can now subscribe to change events on our set::
     >>> models.SetChanged.getReceivers(s)
     set([<weakref at ...; to 'function' at ... (printEvent)>])
 
-Since there is only one kind of event that sets produce, they have a simpler
-convenience API for managing subscriptions::
+Sets also have a simple convenience API for managing subscriptions to their
+``Validation`` and ``SetChanged``:: events
+
+    >>> s.addValidator(printEvent)
+    >>> models.Validation.getReceivers(s)
+    set([<weakref at ...; to 'function' at ... (printEvent)>])
+    >>> s.getValidators()
+    set([<weakref at ...; to 'function' at ... (printEvent)>])
+
+    >>> s.removeValidator(printEvent)
+    >>> s.getValidators()
+    set([])
+    >>> models.Validation.getReceivers(s)
+    set([])
 
     >>> s.unsubscribe(printEvent)
     >>> models.SetChanged.getReceivers(s)
@@ -83,7 +107,7 @@ The ``.add()`` method adds a new member::
     >>> s
     Set([1, 2])
 
-But adding the same object (as determined by ``==``) more than once has
+Adding the same object (as determined by ``==``) more than once has
 no effect::
 
     >>> s.add(1)
@@ -209,8 +233,8 @@ in which case the set will be both empty and immutable::
     TypeError: Null set cannot be changed
 
 
-Rollback
-========
+Validation and Rollback
+=======================
 
 If an event handler raises an exception during a change to a set, the change
 is rolled back, and the set attempts to issue a change event that reverses the
@@ -222,13 +246,15 @@ have no more than a certain number of items.  For example::
     >>> s = models.Set()
 
     >>> def rejectMultiple(event):
+    ...     print event
     ...     if len(event.sender)>1:
     ...         raise ValueError("Too many items added", event.added)
 
     >>> s.subscribe(printEvent)
-    >>> s.subscribe(rejectMultiple)
+    >>> s.addValidator(rejectMultiple)
 
-    >>> s.add(1)
+    >>> s.add(1)    # event printed by both printEvent and rejectMultiple
+    <Change for Set([1]): removed=[], added=[1]>
     <Change for Set([1]): removed=[], added=[1]>
 
     >>> s.add(2)
@@ -247,8 +273,29 @@ so let's try that again with the error trapped so we can see the events::
     ... except ValueError:
     ...     pass
     <Change for Set([1, 2]): removed=[], added=[2]>
+
+So there's the validation event that tried to add ``2``.  However, since an
+error was raised before validation was complete, there was no ``SetChanged``
+event sent, and so it wasn't reversed.  Let's move ``rejectMultiple`` so it
+only listens to ``SetChanged`` events, so we can see a rollback taking place::
+
+    >>> s.removeValidator(rejectMultiple)
+    >>> s.subscribe(rejectMultiple)
+    >>> s.unsubscribe(printEvent)
+   
+    >>> try:
+    ...     s.add(2)
+    ... except ValueError:
+    ...     pass
+    <Change for Set([1, 2]): removed=[], added=[2]>
     <Change for Set([1]): removed=[2], added=[]>
 
 As you can see, an event is first generated for the add attempt, and then a
 second event for the rollback.
+
+Notice, by the way, that rollback events are only generated if no validator
+rejected the change.  This means that validators should *not* change system
+state, because if they do it will not be rolled back.  Change listeners on the
+other hand, are free to make changes, but should avoid raising exceptions, in
+order to ensure that all change listeners receive the event.
 

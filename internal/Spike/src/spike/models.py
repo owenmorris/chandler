@@ -2,7 +2,7 @@
 
 from events import Event
 
-__all__ = ['Set', 'SetChanged']
+__all__ = ['Set', 'SetChanged', 'Validation']
 
 
 class Set(object):
@@ -38,6 +38,18 @@ class Set(object):
         """Shortcut for ``SetChanged.getReceivers(set)``"""
         return SetChanged.getReceivers(self)
 
+    def addValidator(self,validator,hold=False):
+        """Shortcut for ``Validation.subscribe(set,validator,hold)``"""
+        Validation.subscribe(self,validator,hold)
+
+    def removeValidator(self,validator):
+        """Shortcut for ``Validation.unsubscribe(set,validator)``"""
+        Validation.unsubscribe(self,validator)
+
+    def getValidators(self):
+        """Shortcut for ``Validation.getReceivers(set)``"""
+        return Validation.getReceivers(self)
+
     def replace(self,remove=(),add=()):
         """Remove items in ``remove``, add items in ``add``, generate events"""
         data = self.data
@@ -68,12 +80,16 @@ class Set(object):
                         added.append(ob)
 
         if removed or added:
+            evt = None
             try:
-                SetChanged(self,removed,added)
+                evt = Validation(self,removed,added)
+                SetChanged.send(evt)    # forward event to change subscribers
             except:
                 map(data.remove,added)
                 map(data.append,removed)
-                SetChanged(self,added,removed)
+                if evt is not None:
+                    # we sent a change event, so send a rollback
+                    SetChanged(self,added,removed)
                 raise
 
     def _typeName(self,t):
@@ -81,7 +97,7 @@ class Set(object):
             return '/'.join([typ.__name__ for typ in t]) or '()'
         else:
             return t.__name__
-            
+
     def __repr__(self):
         r = "Set(%r)" % self.data
         if self.type is not object:
@@ -101,11 +117,19 @@ class SetChanged(Event):
     __slots__ = 'added','removed'
 
     def __init__(self,sender,removed,added,**kw):
-        self.added = added
         self.removed = removed
+        self.added = added
         super(SetChanged,self).__init__(sender,**kw)
 
     def __repr__(self):
         return "<Change for %r: removed=%r, added=%r>" % (
             self.sender, self.removed, self.added
         )
+
+
+class Validation(SetChanged):
+    """Validate a just-made change"""
+    __slots__ = ()
+
+
+
