@@ -250,17 +250,10 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         # Called when an itemCollection gets new sharees,
         #  because the Notify button should then be enabled.
         # Also called after stamping.
-        
-        # @@@BJS: stripped-down for trees of blocks; used to be:
-        ## @@@DLD - devise a block-dependency-event scheme.        
-        #item= self.selectedItem()
-        #self.synchronizeDetailView(item)
-        #
-        # After moving DetailRoot into the event boundary in the
-        # trees of blocks, we need to call synchronizeWidget on
-        # the TrunkParentBlock since stamping may change the tree
-        # of blocks displayed in the detail view event boundary -- DJA
-        self.parentBlock.synchronizeWidget()
+        # 
+        # Just tell our parent block's widget to resync; this'll force
+        # our tree of blocks to be rerendered.
+        self.parentBlock.widget.wxSynchronizeWidget(rerenderHint=True)
 
     def finishSelectionChanges (self):
         """ 
