@@ -12,9 +12,6 @@ import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
 
 class MailParcel(Parcel.Parcel):
-    def __init__(self, name, parent, kind):
-        Parcel.Parcel.__init__(self, name, parent, kind)
-
     def startupParcel(self):
         Parcel.Parcel.startupParcel(self)
         self._setUUIDs()
@@ -69,7 +66,7 @@ class MailMessage(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = MailParcel.getMailMessageKind()
-        ContentModel.ContentItem.__init__(self, name, parent, kind)
+        super (MailMessage, self).__init__(name, parent, kind)
 
         self.whoAttribute = "replyAddress"
         self.aboutAttribute = "subject"
@@ -81,7 +78,7 @@ class Attachment(Item.Item):
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = MailParcel.getAttachmentKind()
-        Item.Item.__init__(self, name, parent, kind)
+        super (Attachment, self).__init__(name, parent, kind)
 
 class EmailAccount(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -89,7 +86,7 @@ class EmailAccount(Item.Item):
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = MailParcel.getEmailAccountKind()
-        Item.Item.__init__(self, name, parent, kind)
+        super (EmailAccount, self).__init__(name, parent, kind)
 
 class EmailAddress(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -97,7 +94,7 @@ class EmailAddress(Item.Item):
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = MailParcel.getEmailAddressKind()
-        Item.Item.__init__(self, name, parent, kind)
+        super (EmailAddress, self).__init__(name, parent, kind)
 
 
 

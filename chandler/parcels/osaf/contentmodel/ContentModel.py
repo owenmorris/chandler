@@ -21,9 +21,6 @@ class ContentModel(Parcel.Parcel):
     # The parcel knows the UUID for the parent, once the parcel is loaded
     contentItemParentID = None
     
-    def __init__(self, name, parent, kind):
-        Parcel.Parcel.__init__(self, name, parent, kind)
-
     def _setUUIDs(self, parent):
         ContentModel.contentItemParentID = parent.itsUUID
         ContentModel.contentItemKindID = self['ContentItem'].itsUUID
@@ -78,7 +75,7 @@ class ContentItem(Item.Item):
             parent = ContentModel.getContentItemParent()
         if not kind:
             kind = ContentModel.getContentItemKind()
-        Item.Item.__init__(self, name, parent, kind)
+        super (ContentItem, self).__init__(name, parent, kind)
 
     def getWho(self):
         """Returns a string representation of the whoAttribute"""
@@ -126,7 +123,7 @@ class Project(Item.Item):
             parent = ContentModel.getContentItemParent()
         if not kind:
             kind = ContentModel.getProjectKind()
-        Item.Item.__init__(self, name, parent, kind)
+        super (Project, self).__init__(name, parent, kind)
 
 class Group(ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
@@ -134,6 +131,6 @@ class Group(ContentItem):
             parent = ContentModel.getContentItemParent()
         if not kind:
             kind = ContentModel.getGroupKind()
-        ContentItem.__init__(self, name, parent, kind)
-    
+        super (Group, self).__init__(name, parent, kind)
+
     

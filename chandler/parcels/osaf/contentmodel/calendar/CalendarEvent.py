@@ -17,7 +17,7 @@ class CalendarEvent(Item.Item):
             parent = ContentModel.ContentItemParent
         if not kind:
             kind = CalendarEventKind
-        Item.Item.__init__(self, name, parent, kind)
+        super (CalendarEvent, self).__init__(name, parent, kind)
         self.startTime = DateTime.now()
         self.endTime = DateTime.now()
 

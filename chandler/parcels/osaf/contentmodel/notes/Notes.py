@@ -12,9 +12,6 @@ import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
 
 class NotesParcel(Parcel.Parcel):
-    def __init__(self, name, parent, kind):
-        Parcel.Parcel.__init__(self, name, parent, kind)
-
     def startupParcel(self):
         Parcel.Parcel.startupParcel(self)
         self._setUUIDs()
@@ -49,7 +46,7 @@ class Note(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = NotesParcel.getNoteKind()
-        ContentModel.ContentItem.__init__(self, name, parent, kind)
+        super (Note, self).__init__(name, parent, kind)
 
         self.aboutAttribute = "title"
 
@@ -57,7 +54,7 @@ class Conversation(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = NotesParcel.getConversationKind()
-        ContentModel.ContentItem.__init__(self, name, parent, kind)
+        super (Conversation, self).__init__(name, parent, kind)
 
 
 

@@ -13,9 +13,6 @@ import application.Globals as Globals
 import mx.DateTime as DateTime
 
 class ContactsParcel(Parcel.Parcel):
-    def __init__(self, name, parent, kind):
-        Parcel.Parcel.__init__(self, name, parent, kind)
-
     def onItemLoad(self):
         super(ContactsParcel, self).onItemLoad()
         self._setUUIDs()
@@ -80,7 +77,7 @@ class Contact(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = ContactsParcel.getContactKind()
-        ContentModel.ContentItem.__init__(self, name, parent, kind)
+        super (Contact, self).__init__(name, parent, kind)
 
 class ContactSection(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -88,7 +85,7 @@ class ContactSection(Item.Item):
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = ContactsParcel.getContactSectionKind()
-        Item.Item.__init__(self, name, parent, kind)
+        super (ContactSection, self).__init__(name, parent, kind)
 
 class ContactName(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -96,7 +93,7 @@ class ContactName(Item.Item):
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = ContactsParcel.getContactNameKind()
-        Item.Item.__init__(self, name, parent, kind)
+        super (ContactName, self).__init__(name, parent, kind)
 
 class StreetAddress(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -104,7 +101,7 @@ class StreetAddress(Item.Item):
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = ContactsParcel.getStreetAddressKind()
-        Item.Item.__init__(self, name, parent, kind)
+        super (StreetAddress, self).__init__(name, parent, kind)
 
 class PhoneNumber(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -112,6 +109,6 @@ class PhoneNumber(Item.Item):
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = ContactsParcel.getPhoneNumberKind()
-        Item.Item.__init__(self, name, parent, kind)
+        super (PhoneNumber, self).__init__(name, parent, kind)
 
 

@@ -10,6 +10,5 @@ from repository.item.Item import Item
 from mx import DateTime
 
 class Location(Item):
-    def __init__(self, name, parent, kind):
-        Item.__init__(self, name, parent, kind)
+    pass
         

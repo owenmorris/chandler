@@ -19,9 +19,6 @@ import mx.DateTime as DateTime
 
 class CalendarParcel(Parcel.Parcel):
 
-    def __init__(self, name, parent, kind):
-        Parcel.Parcel.__init__(self, name, parent, kind)
-
     def _setUUIDs(self):
         calendarEventKind = self['CalendarEvent']
         CalendarParcel.calendarEventKindID = calendarEventKind.itsUUID
@@ -89,7 +86,7 @@ class CalendarEvent(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = Globals.repository.findPath("//parcels/osaf/contentmodel/calendar/CalendarEvent")
-        ContentModel.ContentItem.__init__(self, name, parent, kind)
+        super (CalendarEvent, self).__init__(name, parent, kind)
         self.startTime = DateTime.now()
         self.endTime = DateTime.now()
         self.participants = []
@@ -134,8 +131,8 @@ class Location(Item.Item):
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = CalendarParcel.getLocationKind()
-        Item.Item.__init__(self, name, parent, kind)
-        
+        super (Location, self).__init__(name, parent, kind)
+
 
 class Calendar(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -143,7 +140,7 @@ class Calendar(Item.Item):
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = CalendarParcel.getCalendarKind()
-        Item.Item.__init__(self, name, parent, kind)
+        super (Calendar, self).__init__(name, parent, kind)
 
 class RecurrencePattern(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -151,7 +148,7 @@ class RecurrencePattern(Item.Item):
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = CalendarParcel.getRecurrencePatternKind()
-        Item.Item.__init__(self, name, parent, kind)
+        super (RecurrencePattern, self).__init__(name, parent, kind)
 
 class Reminder(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -159,4 +156,4 @@ class Reminder(Item.Item):
             parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = CalendarParcel.getReminderKind()
-        Item.Item.__init__(self, name, parent, kind)
+        super (Reminder, self).__init__(name, parent, kind)
