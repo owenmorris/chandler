@@ -225,6 +225,7 @@
     <childrenBlocks itemref="doc:GenerateCalendarItem"/>
     <childrenBlocks itemref="doc:GenerateNoteItem"/>
     <childrenBlocks itemref="doc:ImportContactItem"/>
+    <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
     <childrenBlocks itemref="doc:ReloadParcelsItem"/>
