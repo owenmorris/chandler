@@ -54,7 +54,7 @@
       
       <Attribute itsName="location">
         <issues>We might want to think about having Location be just a 'String', rather than a reference to a 'Location' item.</issues>
-        <displayName>Location</displayName>
+        <displayName>location</displayName>
         <type itemref="cal:Location"/>
         <inverseAttribute itemref="cal:Location/eventsAtLocation"/>
       </Attribute>

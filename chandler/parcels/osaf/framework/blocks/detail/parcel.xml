@@ -128,8 +128,8 @@
   <!-- Mail -->
   <doc:DetailTrunkSubtree itsName="MailSubtree">
     <key itemref="mail:MailMessage"/>
-    <rootBlocks itemref="doc:ToMailArea"/>
     <rootBlocks itemref="doc:FromArea"/>
+    <rootBlocks itemref="doc:ToMailArea"/>
     <rootBlocks itemref="doc:AcceptShareButton"/>
     <rootBlocks itemref="doc:AttachmentArea"/>
   </doc:DetailTrunkSubtree>
@@ -234,7 +234,7 @@
     <childrenBlocks itemref="doc:FromString"/>
     <childrenBlocks itemref="doc:FromEditField"/>
     <!-- Attributes -->
-    <position>0.3</position>
+    <position>0.1</position>
     <selectedItemsAttribute>whoFrom</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
@@ -359,7 +359,7 @@
     <childrenBlocks itemref="doc:ToString"/>
     <childrenBlocks itemref="doc:ToMailEditField"/>
     <!-- Attributes -->
-    <position>0.1</position>
+    <position>0.2</position>
     <selectedItemsAttribute>who</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
@@ -390,7 +390,7 @@
     <childrenBlocks itemref="doc:ParticipantsString"/>
     <childrenBlocks itemref="doc:ParticipantsTextField"/>
     <!-- Attributes -->
-    <position>0.2</position>
+    <position>0.3</position>
     <selectedItemsAttribute>who</selectedItemsAttribute>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
@@ -620,7 +620,9 @@
     <childrenBlocks itemref="doc:CalendarLocation"/>
     <childrenBlocks itemref="doc:CalendarStartTime"/>
     <childrenBlocks itemref="doc:CalendarDuration"/>
-    <childrenBlocks itemref="doc:CalendarAllDayAndReminder"/>
+    <childrenBlocks itemref="doc:CalendarAllDayArea"/>
+    <childrenBlocks itemref="doc:CalendarReminderArea"/>
+    <childrenBlocks itemref="doc:CalendarTransparencyArea"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <stretchFactor>0.0</stretchFactor>
@@ -643,50 +645,57 @@
     <viewAttribute value="location"/>
   </AEBlock>
 
-  <ContentItemDetail itsName="CalendarAllDayAndReminder"
+  <ContentItemDetail itsName="CalendarAllDayArea"
                        itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
-    <blockName value="CalendarAllDayAndReminder"/>
+    <blockName value="CalendarAllDayArea"/>
+    <childrenBlocks itemref="doc:CalDetailsAllDayLabel"/>
     <childrenBlocks itemref="doc:EditAllDay"/>
-    <childrenBlocks itemref="doc:CalDetailsLeftSpacer"/>
-    <childrenBlocks itemref="doc:CalDetailsReminderLabel"/>
-    <childrenBlocks itemref="doc:EditReminder"/>
-    <childrenBlocks itemref="doc:CalDetailsRightSpacer"/>
-    <childrenBlocks itemref="doc:CalDetailsTransparencyLabel"/>
-    <childrenBlocks itemref="doc:EditTransparency"/>
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
   </ContentItemDetail>
+  
+  <StaticText itsName="CalDetailsAllDayLabel">
+    <blockName value="CalDetailsAllDayLabel"/>
+    <title>all day</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
+  </StaticText>
 
   <CheckBox itsName="EditAllDay"
             itemClass="osaf.framework.blocks.detail.Detail.AllDayCheckBox">
     <blockName value="EditAllDay"/>
     <!-- Attributes -->
-    <title>all day</title>
-    <size>70,24</size>
-    <minimumSize>70,24</minimumSize>
-    <border>0.0, 10.0, 0.0, 0.0</border>
+    <title></title>
+    <size>30,24</size>
+    <minimumSize>30,24</minimumSize>
+    <!--<border>0.0, 10.0, 0.0, 0.0</border>-->
     <event itemref="doc:ToggleAllDay"/>
     <alignmentEnum>alignMiddleLeft</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </CheckBox>
 
-  <StaticText itsName="CalDetailsLeftSpacer">
-    <blockName value="CalDetailsLeftSpacer"/>
-    <title></title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>1.0</stretchFactor>
-    <minimumSize>10, 24</minimumSize>
-  </StaticText>
+  <ContentItemDetail itsName="CalendarReminderArea"
+                       itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+    <blockName value="CalendarAllDayAndReminder"/>
+    <childrenBlocks itemref="doc:CalDetailsReminderLabel"/>
+    <childrenBlocks itemref="doc:EditReminder"/>
+    <!-- Attributes -->
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>300, 24</minimumSize>
+  </ContentItemDetail>
 
   <StaticText itsName="CalDetailsReminderLabel">
     <blockName value="CalDetailsReminderLabel"/>
-    <title>alarm:</title>
+    <title>alarm</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>50, 24</minimumSize>
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
 
   <Choice itsName="EditReminder"
@@ -704,22 +713,24 @@
     <stretchFactor>0.0</stretchFactor>
   </Choice>
 
-  <StaticText itsName="CalDetailsRightSpacer">
-    <blockName value="CalDetailsRightSpacer"/>
-    <title></title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>1.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
-  </StaticText>
+  <ContentItemDetail itsName="CalendarTransparencyArea"
+                       itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+    <blockName value="CalendarAllDayAndReminder"/>
+    <childrenBlocks itemref="doc:CalDetailsTransparencyLabel"/>
+    <childrenBlocks itemref="doc:EditTransparency"/>
+    <!-- Attributes -->
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>300, 24</minimumSize>
+  </ContentItemDetail>
 
   <StaticText itsName="CalDetailsTransparencyLabel">
     <blockName value="CalDetailsTransparencyLabel"/>
-    <title>status:</title>
+    <title>status</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
 
   <Choice itsName="EditTransparency"
