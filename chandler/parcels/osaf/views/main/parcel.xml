@@ -43,25 +43,73 @@
 
   <BlockEvent itsName="GoBack">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>goBack</methodName>
+    <methodName>navbarBack</methodName>
     <dispatchToBlock itemref="doc:NavigationBar"/>
   </BlockEvent>
 
   <BlockEvent itsName="GoForward">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>goForward</methodName>
+    <methodName>navbarForward</methodName>
     <dispatchToBlock itemref="doc:NavigationBar"/>
   </BlockEvent>
 
-  <BlockEvent itsName="RefreshView">
+  <BlockEvent itemName="Sync">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>refreshView</methodName>
+    <methodName>navbarSync</methodName>
     <dispatchToBlock itemref="doc:NavigationBar"/>
   </BlockEvent>
 
-  <BlockEvent itsName="GoToURL">
+  <BlockEvent itemName="New">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>gotoURL</methodName>
+    <methodName>navbarNew</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
+  <BlockEvent itemName="Reply">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>navbarReply</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
+  <BlockEvent itemName="Discuss">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>navbarDiscuss</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
+  <BlockEvent itemName="Forward">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>navbarForward</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
+  <BlockEvent itemName="Delete">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>navbarDelete</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
+  <BlockEvent itemName="Junk">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>navbarJunk</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
+  <BlockEvent itemName="Fonts">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>navbarFonts</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
+  <BlockEvent itemName="Print">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>navbarPrint</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
+  </BlockEvent>
+
+  <BlockEvent itemName="Search">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>navbarSearch</methodName>
     <dispatchToBlock itemref="doc:NavigationBar"/>
   </BlockEvent>
 
@@ -264,75 +312,195 @@
   <!--
     Toolbars
   -->
-  <NavigationBar itsName="NavigationBar">
+  <Toolbar itemName="NavigationBar"
+           itemClass="osaf.framework.blocks.NavigationBlocks.NavigationBar">
     <!-- Dynamic Children -->
-    <dynamicChildren itemref="doc:BackButton"/>
+    <dynamicChildren itemref="doc:GoBackButton"/>
+    <dynamicChildren itemref="doc:GoForwardButton"/>
+    <dynamicChildren itemref="doc:Spacer1"/>
+    <dynamicChildren itemref="doc:SyncButton"/>
+    <dynamicChildren itemref="doc:NewButton"/>
+    <dynamicChildren itemref="doc:ReplyButton"/>
+    <dynamicChildren itemref="doc:DiscussButton"/>
     <dynamicChildren itemref="doc:ForwardButton"/>
-    <dynamicChildren itemref="doc:Spacer"/>
-    <dynamicChildren itemref="doc:URLBox"/>
-    <dynamicChildren itemref="doc:RefreshButton"/>
+    <dynamicChildren itemref="doc:Spacer2"/>
+    <dynamicChildren itemref="doc:DeleteButton"/>
+    <dynamicChildren itemref="doc:JunkButton"/>
+    <dynamicChildren itemref="doc:Spacer3"/>
+    <dynamicChildren itemref="doc:FontsButton"/>
+    <dynamicChildren itemref="doc:PrintButton"/>
+    <dynamicChildren itemref="doc:Spacer4"/>
+    <dynamicChildren itemref="doc:SearchBox"/>
     
     <!-- Attributes -->
-    <toolSize>13,13</toolSize>
+    <toolSize>24,24</toolSize>
     <buttonsLabeled>True</buttonsLabeled>
     <subscribeWhenVisibleEvents itemref="doc:GoBack"/>
     <subscribeWhenVisibleEvents itemref="doc:GoForward"/>
-    <subscribeWhenVisibleEvents itemref="doc:RefreshView"/>
-    <subscribeWhenVisibleEvents itemref="doc:GoToURL"/>
+    <subscribeWhenVisibleEvents itemref="doc:Sync"/>
+    <subscribeWhenVisibleEvents itemref="doc:New"/>
+    <subscribeWhenVisibleEvents itemref="doc:Reply"/>
+    <subscribeWhenVisibleEvents itemref="doc:Discuss"/>
+    <subscribeWhenVisibleEvents itemref="doc:Forward"/>
+    <subscribeWhenVisibleEvents itemref="doc:Delete"/>
+    <subscribeWhenVisibleEvents itemref="doc:Junk"/>
+    <subscribeWhenVisibleEvents itemref="doc:Fonts"/>
+    <subscribeWhenVisibleEvents itemref="doc:Print"/>
+    <subscribeWhenVisibleEvents itemref="doc:Search"/>
     <stretchFactor>0</stretchFactor>
-  </NavigationBar>
+  </Toolbar>
 
   <!--
     ToolbarItems
   -->
-  <ToolbarItem itsName="BackButton">
+  <ToolbarItem itsName="GoBackButton">
     <!-- Attributes -->
     <location>NavigationBar</location>
     <title>Back</title>
-    <bitmap>application/images/back.png</bitmap>
-    <selectedBitmap></selectedBitmap>
+    <bitmap>application/images/backarrow.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Go to the previous view</helpString>
-    <label>Back</label>
     <event itemref="doc:GoBack"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="GoForwardButton">
+    <!-- Attributes -->
+    <location>NavigationBar</location>
+    <title>Forward</title>
+    <bitmap>application/images/forwardarrow.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Go to the next view</helpString>
+    <event itemref="doc:GoForward"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="SyncButton">
+    <!-- Attributes -->
+    <location>NavigationBar</location>
+    <title>Sync</title>
+    <label>Sync</label>
+    <bitmap>application/images/sync.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Synchronize this Item other Chandler users</helpString>
+    <event itemref="doc:Sync"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="Spacer1">
+    <!-- Attributes -->
+    <location>NavigationBar</location>
+    <toolbarItemKind>Separator</toolbarItemKind>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="Spacer2">
+    <!-- Attributes -->
+    <location>NavigationBar</location>
+    <toolbarItemKind>Separator</toolbarItemKind>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="Spacer3">
+    <!-- Attributes -->
+    <location>NavigationBar</location>
+    <toolbarItemKind>Separator</toolbarItemKind>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="Spacer4">
+    <!-- Attributes -->
+    <location>NavigationBar</location>
+    <toolbarItemKind>Separator</toolbarItemKind>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="NewButton">
+    <!-- Attributes -->
+    <location>NavigationBar</location>
+    <title>New</title>
+    <label>New</label>
+    <bitmap>application/images/new.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Create a new Item</helpString>
+    <event itemref="doc:New"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="ReplyButton">
+    <!-- Attributes -->
+    <location>NavigationBar</location>
+    <title>Reply</title>
+    <bitmap>application/images/replyto.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Send a reply</helpString>
+    <event itemref="doc:Reply"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="DiscussButton">
+    <!-- Attributes -->
+    <location>NavigationBar</location>
+    <title>Discuss</title>
+    <label>Discuss</label>
+    <bitmap>application/images/discuss.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Discuss this Item with other Chandler users</helpString>
+    <event itemref="doc:Discuss"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="ForwardButton">
     <!-- Attributes -->
     <location>NavigationBar</location>
     <title>Forward</title>
-    <bitmap>application/images/forward.png</bitmap>
-    <selectedBitmap></selectedBitmap>
+    <bitmap>application/images/forwardto.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Go to the next view</helpString>
-    <label>Forward</label>
-    <event itemref="doc:GoForward"/>
+    <helpString>Forward this Item to other users</helpString>
+    <event itemref="doc:Forward"/>
   </ToolbarItem>
 
-  <ToolbarItem itsName="RefreshButton">
+  <ToolbarItem itsName="DeleteButton">
     <!-- Attributes -->
     <location>NavigationBar</location>
-    <title>Forward</title>
-    <bitmap>application/images/refresh.png</bitmap>
-    <selectedBitmap></selectedBitmap>
+    <title>Delete</title>
+    <label>Delete</label>
+    <bitmap>application/images/delete.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Refresh the current view</helpString>
-    <event itemref="doc:RefreshView"/>
+    <helpString>Delete this Item</helpString>
+    <event itemref="doc:Delete"/>
   </ToolbarItem>
 
-  <ToolbarItem itsName="Spacer">
+  <ToolbarItem itsName="JunkButton">
     <!-- Attributes -->
     <location>NavigationBar</location>
-    <toolbarItemKind>Separator</toolbarItemKind>
+    <title>Junk</title>
+    <label>Junk</label>
+    <bitmap>application/images/junk.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Mark this Item as Junk mail</helpString>
+    <event itemref="doc:Junk"/>
   </ToolbarItem>
 
-  <ToolbarItem itsName="URLBox">
+  <ToolbarItem itsName="FontsButton">
     <!-- Attributes -->
     <location>NavigationBar</location>
-    <title>URLBox</title>
+    <title>Fonts</title>
+    <label>Fonts</label>
+    <bitmap>application/images/fonts.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Bring up the Fonts dialog</helpString>
+    <event itemref="doc:Fonts"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="PrintButton">
+    <!-- Attributes -->
+    <location>NavigationBar</location>
+    <title>Print</title>
+    <label>Print</label>
+    <bitmap>application/images/print.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Print this Item</helpString>
+    <event itemref="doc:Print"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="SearchBox">
+    <!-- Attributes -->
+    <location>NavigationBar</location>
+    <title>SearchBox</title>
     <toolbarItemKind>Text</toolbarItemKind>
-    <helpString></helpString>
-    <event itemref="doc:GoToURL"/>
+    <helpString>Enter text to search for</helpString>
+    <event itemref="doc:Search"/>
   </ToolbarItem>
 
   <!--
@@ -501,11 +669,22 @@
     <childrenBlocks itemref="doc:MainSplitter"/>
     
     <!-- NavigationBar ToolbarItems -->
-    <childrenBlocks itemref="doc:BackButton"/>
+    <childrenBlocks itemref="doc:GoBackButton"/>
+    <childrenBlocks itemref="doc:GoForwardButton"/>
+    <childrenBlocks itemref="doc:Spacer1"/>
+    <childrenBlocks itemref="doc:SyncButton"/>
+    <childrenBlocks itemref="doc:NewButton"/>
+    <childrenBlocks itemref="doc:ReplyButton"/>
+    <childrenBlocks itemref="doc:DiscussButton"/>
     <childrenBlocks itemref="doc:ForwardButton"/>
-    <childrenBlocks itemref="doc:Spacer"/>
-    <childrenBlocks itemref="doc:URLBox"/>
-    <childrenBlocks itemref="doc:RefreshButton"/>
+    <childrenBlocks itemref="doc:Spacer2"/>
+    <childrenBlocks itemref="doc:DeleteButton"/>
+    <childrenBlocks itemref="doc:JunkButton"/>
+    <childrenBlocks itemref="doc:Spacer3"/>
+    <childrenBlocks itemref="doc:FontsButton"/>
+    <childrenBlocks itemref="doc:PrintButton"/>
+    <childrenBlocks itemref="doc:Spacer4"/>
+    <childrenBlocks itemref="doc:SearchBox"/>
     
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

@@ -832,6 +832,11 @@
       <type itemref="docSchema:SizeType"/>
     </Attribute>
     
+    <Attribute itsName="separatorWidth">
+      <type itemref="Integer"/>
+      <defaultValue type="Integer">5</defaultValue>
+    </Attribute>
+    
     <Attribute itsName="buttons3D">
       <type itemref="Boolean"/>
       <defaultValue type="Boolean">False</defaultValue>
@@ -845,6 +850,7 @@
     <attributes itemref="docSchema:Toolbar/buttons3D"/>
     <attributes itemref="docSchema:Toolbar/buttonsLabeled"/>
     <attributes itemref="docSchema:Toolbar/toolSize"/>
+    <attributes itemref="docSchema:Toolbar/separatorWidth"/>
     <attributes itemref="docSchema:colorStyle"/>
   </Kind>
 
@@ -862,6 +868,7 @@
     
     <Attribute itsName="selectedBitmap">
       <type itemref="String"/>
+      <defaultValue type="String"/>
     </Attribute>
     
     <Enumeration itsName="toolbarItemKindEnumType">
@@ -922,14 +929,6 @@
 
     <attributes itemref="docSchema:colorStyle"/>    
   </Kind>    
-
-  <!--
-    NavigationBar
-  -->
-  <Kind itsName="NavigationBar">
-    <classes key="python">osaf.framework.blocks.NavigationBlocks.NavigationBar</classes>
-    <superKinds itemref="docSchema:Toolbar"/>
-  </Kind>  
 
   <!--
     BookmarksBar

@@ -472,6 +472,7 @@ class wxToolbar(wx.ToolBar):
         
     def wxSynchronizeWidget(self):
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
+        self.SetToolSeparation(self.blockItem.separatorWidth)
         self.blockItem.synchronizeColor()
         
         # check if anything has changed in this toolbar
@@ -511,6 +512,8 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
         style = wx.TB_HORIZONTAL
         if self.buttons3D:
             style |= wx.TB_3DBUTTONS
+        else:
+            style |= wx.TB_FLAT
         if self.buttonsLabeled:
             style |= wx.TB_TEXT
         return style
@@ -543,15 +546,8 @@ class ToolbarItem(Block.Block, DynamicChild):
             #  call the block.event method
             wxToolbar.Bind (wx.EVT_TOOL, Globals.wxApplication.OnCommand, id=id)            
         elif self.toolbarItemKind == 'Separator':
-            # hack - if the title looks like a number, then add that many spearators.
-            numSeps = 1
-            if self.hasAttributeValue("title"):
-                numSeps = int(self.title)
-                if numSeps < 1:
-                    numSeps = 1
-            for i in range(0, numSeps):
-                wxToolbar.AddSeparator()
-            numItems = numSeps
+            wxToolbar.AddSeparator()
+            numItems = 1
         elif self.toolbarItemKind == 'Check':
             numItems = 0
         elif self.toolbarItemKind == 'Radio':

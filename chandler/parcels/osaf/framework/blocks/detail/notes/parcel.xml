@@ -86,6 +86,7 @@
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
     <toolSize>16,16</toolSize>
+    <separatorWidth>50</separatorWidth>
     <subscribeWhenVisibleEvents itemref="doc:DummyEvent"/>
   </detail:MarkupBar>
 

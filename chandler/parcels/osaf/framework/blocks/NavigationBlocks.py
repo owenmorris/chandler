@@ -66,34 +66,14 @@ class BookmarksBar(RectangularChild):
 class NavigationBar(DynamicContainerBlocks.Toolbar):
     """
       Under construction
-      DLDTBD - rework this class.  Use OnInit instead of instantiateWidget?
     """
-    def instantiateWidget(self):
-        navigationBar = super(NavigationBar, self).instantiateWidget()
-        
-        self.history = []
-        self.future = []
-        return navigationBar
-
-    # DLDTBD  remove this method, use onInit instead of instantiateWidget.
-    def synchronizeWidget(self):
-        super(NavigationBar, self).synchronizeWidget()
-        self.showOrHideNavigationBar()
-        
-    def gotoURL(self, event):
-        urlBox = Globals.repository.findPath('//parcels/osaf/views/main/URLBox')
-        url = urlBox.widget.GetValue()
+    def ensureHistory(self):
         try:
-            item = Node.GetItemFromPath(url, '//parcels/osaf/views/main/URLRoot')
-        except BadURL:
-            dialog = wx.MessageDialog(None, 'The url "' + str(url) + '" does not exist', 
-                                     'Chandler',
-                                     style=wx.OK|wx.CENTRE)
-            dialog.ShowModal()
-        else:
-            self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                       {'item':item})
-        
+            history = self.history
+        except AttributeError:
+            self.history = []
+            self.future = []
+
     def onViewNavigationBarEvent(self, notification):
         self.isShown = not self.isShown
         self.showOrHideNavigationBar()
@@ -108,7 +88,8 @@ class NavigationBar(DynamicContainerBlocks.Toolbar):
     def onViewNavigationBarEventUpdateUI(self, notification):
         notification.data['Check'] = self.isShown
 
-    def goBack(self, event):
+    def navbarBack(self, event):
+        self.ensureHistory()
         if len(self.history) > 1:
             currentLocation = self.history.pop()
             self.future.append(currentLocation)
@@ -120,7 +101,8 @@ class NavigationBar(DynamicContainerBlocks.Toolbar):
             self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':self.history[-1]})
     
-    def goForward(self, event):
+    def navbarForward(self, event):
+        self.ensureHistory()
         if len(self.future) > 0:
             newLocation = self.future.pop()
             self.history.append(newLocation)
@@ -132,8 +114,40 @@ class NavigationBar(DynamicContainerBlocks.Toolbar):
             self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':newLocation})
 
-    def refreshView(self, event):
-        # Handler for Refresh View tool bar button
+    def navbarSync(self, event):
+        # Handler for Sync tool bar button
+        pass
+    
+    def navbarNew(self, event):
+        # placeholder for a nav bar button
+        pass
+    
+    def navbarReply(self, event):
+        # placeholder for a nav bar button
+        pass
+    
+    def navbarDiscuss(self, event):
+        # placeholder for a nav bar button
+        pass
+    
+    def navbarForward(self, event):
+        # placeholder for a nav bar button
+        pass
+    
+    def navbarDelete(self, event):
+        # placeholder for a nav bar button
+        pass
+    
+    def navbarJunk(self, event):
+        # placeholder for a nav bar button
+        pass
+    
+    def navbarFonts(self, event):
+        # placeholder for a nav bar button
+        pass
+    
+    def navbarSearch(self, event):
+        # placeholder for the Search Text Widget in the nav bar
         pass
     
     def onSelectionChangedEvent (self, notification):
@@ -143,6 +157,7 @@ class NavigationBar(DynamicContainerBlocks.Toolbar):
         except AttributeError:
             return
 
+        self.ensureHistory()
         if len(self.history) == 0 or self.history[-1] != item:
             self.history.append(item)
         urlBox = Globals.repository.findPath('//parcels/osaf/views/main/URLBox')
