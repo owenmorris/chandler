@@ -43,7 +43,7 @@ class UpdateAction(Action):
 
     def __getFeeds(self):
         repository = self.getRepository()
-        feedKind = repository.find(BASE_PATH + '/RSSFeed')
+        chanKind = repository.find(BASE_PATH + '/RSSChannel')
 
         feeds = []
         parent = repository.find(BASE_PATH)
@@ -52,7 +52,7 @@ class UpdateAction(Action):
             urlhash = str(hash(url))
             item = repository.find(BASE_PATH + '/' + urlhash)
             if not item:
-                item = feedKind.newItem(urlhash, parent)
+                item = chanKind.newItem(urlhash, parent)
                 item.link = url
             feeds.append(item)
 

@@ -20,7 +20,7 @@ def SetAttribute(self, data, attr, nattr=None, encoding=None):
             value = unicode(value, encoding)
         self.setAttributeValue(nattr, value)
 
-def SetAttributes(self, data, attributes, encoding):
+def SetAttributes(self, data, attributes, encoding=None):
     if type(attributes) == types.DictType:
         for attr, nattr in attributes.items():
             SetAttribute(self, data, attr, nattr=nattr, encoding=encoding)
@@ -28,10 +28,20 @@ def SetAttributes(self, data, attributes, encoding):
         for attr in attributes:
             SetAttribute(self, data, attr, encoding=encoding)
 
-class RSSFeed(Item):
-    def Update(self, data):
-        chanKind = self.getRepository().find(BASE_PATH + '/RSSChannel')
 
+class RSSChannel(Item):
+    def __getParent(self):
+        repository = self.getRepository()
+        parent = repository.find('//userdata/contentitems')
+        if parent:
+            return parent
+        itemKind = repository.find('//Schema/Core/Item')
+        userdata = repository.find('//userdata')
+        if not userdata:
+            userdata = itemKind.newItem('userdata', repository)
+        return itemKind.newItem('contentitems', userdata)
+
+    def Update(self, data):
         # get the encoding
         encoding = data.get('encoding', 'latin_1')
 
@@ -41,29 +51,29 @@ class RSSFeed(Item):
         # set lastModified
         modified = data.get('modified')
         if modified:
-            lastModified = mx.DateTime.mktime(modified)
-            self.setAttributeValue('lastModified', lastModified)
+            self.lastModified = mx.DateTime.mktime(modified)
 
-        # update the feed's channel
-        if not self.hasAttributeValue('channel'):
-            self.channel = chanKind.newItem(None, self)
-        self.channel.Update(data['channel'], data['items'], encoding)
+        self._DoChannel(data['channel'], encoding)
+        self._DoItems(data['items'], encoding)
 
-
-class RSSChannel(Item):
-    def Update(self, data, items, encoding):
+    def _DoChannel(self, data, encoding):
         # fill in the item
         attrs = {'title':'displayName'}
         SetAttributes(self, data, attrs, encoding)
 
-        attrs = ['description', 'creator', 'link', 'category', 'language', 'date']
+        attrs = ['link', 'description', 'copyright', 'creator', 'category', 'language']
         SetAttributes(self, data, attrs, encoding)
 
+        date = data.get('date')
+        if date:
+            self.date = mx.DateTime.DateTimeFrom(date)
+
+    def _DoItems(self, items, encoding):
         # make children
         itemKind = self.getRepository().find(RSSITEM_KIND_PATH)
         for itemData in items:
-            #print 'new item'
-            item = itemKind.newItem(None, self)
+            print 'new item'
+            item = itemKind.newItem(None, self.__getParent())
             item.Update(itemData, encoding)
             self.addValue('items', item)
 
@@ -73,5 +83,9 @@ class RSSItem(Item):
         attrs = {'title':'displayName'}
         SetAttributes(self, data, attrs, encoding)
 
-        attrs = ['description', 'creator', 'link', 'category', 'date']
+        attrs = ['description', 'creator', 'link', 'category']
         SetAttributes(self, data, attrs, encoding)
+
+        date = data.get('date')
+        if date:
+            self.date = mx.DateTime.DateTimeFrom(date)
