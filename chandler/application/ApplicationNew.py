@@ -8,7 +8,7 @@ from wxPython.wx import *
 import Globals, ChandlerJabber
 import repository.schema.LoadParcels as LoadParcels
 import repository.schema.AutoItem as AutoItem
-import application.agents.AgentManager as AgentManager
+import OSAF.framework.agents.AgentManager as AgentManager
 import application.agents.Notifications.NotificationManager as NotificationManager
 
 
