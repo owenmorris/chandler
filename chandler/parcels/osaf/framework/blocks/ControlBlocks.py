@@ -703,6 +703,10 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
         value = self.delegate.GetControlValue (self.control)
         if value == self.initialValue:
             changed = False
+        # @@@ For now we do not want to allow users to blank out fields.  This should eventually be
+        #  replaced by proper editor validation.
+        elif value.strip() == '':
+            changed = False
         else:
             changed = True
             grid.SetElementValue (row, column, value)
