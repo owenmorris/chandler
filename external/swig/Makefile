@@ -20,7 +20,7 @@ swig: $(SRC)/SWIG13.sln
 	tar -C $(SRC) -cf - SWIG.exe Lib | tar -C $(PREFIX)/bin/swig -xvf -
 
 clean:
-	cd $(SRC); devenv.com SWIG13.sln /clean Release
+	cd $(SRC); devenv.com SWIG13.sln /clean Release; echo ok
 
 else
 
