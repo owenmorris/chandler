@@ -104,7 +104,12 @@ class Block(Item):
                   After the blocks are wired up give the window a chance
                 to synchronize itself to any persistent state.
                 """
-                self.synchronizeWidget()
+                oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
+                Globals.wxApplication.ignoreSynchronizeWidget = False
+                try:
+                    self.synchronizeWidget()
+                finally:
+                    Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
     def onCollectionChanged (self, notification):
         """
