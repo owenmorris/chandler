@@ -199,15 +199,10 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         self.finishSelectionChanges () # finish changes to previous selected item 
         item = self.selectedItem()
 
-        if not Sharing.isMailSetUp(self.itsView):
-            if Util.okCancel(wx.GetApp().mainFrame,
-             "Account information required",
-             "Please set up your accounts."):
-                if not AccountPreferences.ShowAccountPreferencesDialog( \
-                 wx.GetApp().mainFrame, view=self.itsView):
-                    return
-            else:
-                return
+        # Make sure we have all the accounts; returns False if the user cancels
+        # out and we don't.
+        if not Sharing.ensureAccountSetUp(self.itsView):
+            return
 
         # preflight the send/share request
         # mail items and collections need their recievers set up

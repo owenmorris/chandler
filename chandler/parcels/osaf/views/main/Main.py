@@ -431,17 +431,10 @@ class MainView(View):
     def onGetNewMailEvent (self, event):
         # Triggered from "Test | Get Mail" menu
 
-        if not Sharing.isMailSetUp(self.itsView):
-            if application.dialogs.Util.okCancel( \
-             wx.GetApp().mainFrame,
-             "Account information required",
-             "Please set up your accounts."):
-                if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
-                 wx.GetApp().mainFrame, view=self.itsView):
-                    return
-            else:
-                return
-
+        # Make sure we have all the accounts; returns False if the user cancels
+        # out and we don't.
+        if not Sharing.ensureAccountSetUp(self.itsView):
+            return
 
         view = self.itsView
         view.commit()
@@ -643,16 +636,10 @@ class MainView(View):
         # find all the shared collections and sync them.
         self.onSyncWebDAVEvent (event)
 
-        if not Sharing.isMailSetUp(self.itsView):
-            if application.dialogs.Util.okCancel( \
-             wx.GetApp().mainFrame,
-             "Account information required",
-             "Please set up your accounts."):
-                if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
-                 wx.GetApp().mainFrame, view=self.itsView):
-                    return
-            else:
-                return
+        # Make sure we have all the accounts; returns False if the user cancels
+        # out and we don't.
+        if not Sharing.ensureAccountSetUp(self.itsView):
+            return
 
         # synch mail
         self.setStatusMessage (_("Getting new Mail"))

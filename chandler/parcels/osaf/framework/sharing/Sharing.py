@@ -1602,7 +1602,7 @@ def ensureAccountSetUp(view):
         if DAVReady and IMAPReady and SMTPReady:
             return True
 
-        msg = "The following account(s) need to be set up before you can share a collection:\n\n"
+        msg = "The following account(s) need to be set up:\n\n"
         if not DAVReady:
             msg += " - WebDAV (collection publishing)\n"
         if not IMAPReady:
