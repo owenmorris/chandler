@@ -13,16 +13,6 @@ dependencies = (
                 'PyXML'
                )
 
-if os.name == 'nt':
-    dependencies = (
-		    'Python-2.2.2', 
-		    'wxWindows',
-		    'distutils',
-		    'egenix-mx-base-2.0.4',
-		    'ZODB4',
-		    'PyXML'
-		   )
-
 
 def build(buildenv):
     hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
