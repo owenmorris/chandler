@@ -13,13 +13,18 @@ build: $(PYTHON)
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(M2CRYPTO)/m2crypto-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/m2crypto*
+                  $(SNAP)/$(SITE)/M2Crypto
 
 upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
 	scp m2crypto-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 
+install:
+	cd $(BUILD_ROOT)/..; \
+	tar -zxvf $(M2CRYPTO)/m2crypto-$(SNAP)-$(RELVER).tar.gz
 
 clean:
 	rm -rf $(BUILD)
+	rm -f _m2crypto.py
+	rm -f SWIG/_m2crypto.c
 
 
