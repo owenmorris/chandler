@@ -100,4 +100,4 @@ class StringAttributeEditor (AttributeEditor):
 
 class DefaultAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
-        return "%s doesn't have a render" % item.getAttributeAspect (attributeName, 'type').itsName
+        return "%s doesn't have a renderer" % item.getAttributeAspect (attributeName, 'type').itsName
