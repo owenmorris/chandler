@@ -1425,7 +1425,11 @@ def newInboundShare(view, url):
         shareName = path.strip("/").split("/")[-1]
         conduit = WebDAVConduit(view=view, shareName=shareName,
                                 account=account)
-        format = CloudXMLFormat(view=view)
+        if url.endswith(".ics"):
+            import ICalendar
+            format = ICalendar.ICalendarFormat(view=view)
+        else:
+            format = CloudXMLFormat(view=view)
         share = Share(view=view, conduit=conduit, format=format)
         share.hidden = False
     return share

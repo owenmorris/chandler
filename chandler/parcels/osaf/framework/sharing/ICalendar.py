@@ -132,6 +132,12 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         input = StringIO.StringIO(text)
         calendar = vobject.readComponents(input, validate=True).next()
 
+        try:
+            calName = calendar.contents[u'x-wr-calname'][0].value
+        except:
+            calName = "Imported Calendar"
+        item.displayName = calName
+
         countNew = 0
         countUpdated = 0
         eventKind = self.itsView.findPath(self.__calendarEventPath)
