@@ -559,19 +559,36 @@ class Item(object):
         """
 
         if _attrDict is None:
-            if self._values.has_key(name):
+            if name in self._values:
                 _attrDict = self._values
-            elif self._references.has_key(name):
+            elif name in self._references:
                 _attrDict = self._references
             else:
+                redirect = self.getAttributeAspect(name, 'redirectTo',
+                                                   default=None,
+                                                   _attrID=_attrID)
+                if redirect is not None:
+                    item = self
+                    names = redirect.split('.')
+                    for i in xrange(len(names) - 1):
+                        item = item.getAttributeValue(names[i])
+
+                    return item.removeAttributeValue(names[-1])
+                
                 raise NoLocalValueForAttributeError, (self, name)
 
         if _attrDict is self._values:
-            del _attrDict[name]
+            try:
+                del _attrDict[name]
+            except KeyError:
+                raise NoLocalValueForAttributeError, (self, name)
             self.setDirty(Item.VDIRTY, name, _attrDict, True)
         else:
-            _attrDict._removeValue(name, _attrDict._getRef(name),
-                                   self._kind.getOtherName(name))
+            try:
+                value = _attrDict._getRef(name)
+            except KeyError:
+                raise NoLocalValueForAttributeError, (self, name)
+            _attrDict._removeValue(name, value, self._kind.getOtherName(name))
 
     def hasChild(self, name, load=True):
         """

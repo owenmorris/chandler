@@ -135,8 +135,7 @@ class DBRepository(OnDemandRepository):
         elif os.name == 'posix':
             from commands import getstatusoutput
 
-            status, name = getstatusoutput('uname')
-            if status == 0 and name == 'Linux':
+            if getstatusoutput('uname') == (0, 'Linux'):
                 env.set_cachesize(0, 0x4000000, 1)
 
         return env

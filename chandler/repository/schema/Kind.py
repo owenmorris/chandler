@@ -111,7 +111,7 @@ class Kind(Item):
                                                     _attrDict=self._references,
                                                     default=[])
             elif sync == 'superKinds':
-                attributes = set([a._uuid for n, a, k in self.iterAttributes()])
+                attributes = set(a._uuid for n, a, k in self.iterAttributes())
             else:
                 raise AssertionError, sync
             
