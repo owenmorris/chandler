@@ -33,22 +33,22 @@ adminAddr = "builds"
 defaultDomain = "@osafoundation.org"
 
 def main():
-    global buildscriptFile
+    global buildscriptFile, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain
     
     parser = OptionParser(usage="%prog [options] buildName", version="%prog 1.2")
     parser.add_option("-t", "--toAddr", action="store", type="string", dest="toAddr",
       default=mailtoAddr, help="Where to mail script reports\n"
       " [default] " + mailtoAddr + defaultDomain)
     parser.add_option("-p", "--project", action="store", type="string", dest="project",
-      default="chandler", help="Name of script to use (without .py extension)\n"
-      "[default] chandler")
+      default="newchandler", help="Name of script to use (without .py extension)\n"
+      "[default] newchandler")
     parser.add_option("-o", "--output", action="store", type="string", dest="outputDir",
       default=os.path.join(os.environ['HOME'],"output"), help="Name of temp output directory\n"
       " [default] ~/output")
     parser.add_option("-a", "--alert", action="store", type="string", dest="alertAddr",
       default=alertAddr, help="E-mail to notify on build errors \n"
       " [default] " + alertAddr + defaultDomain)
-      
+
     (options, args) = parser.parse_args()
     if len(args) != 1:
         parser.print_help()
