@@ -73,7 +73,11 @@ ifeq ($(OS),Darwin)
 
 openssl:   $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); \
-	$(MAKE) -f Makefile.ssl; $(MAKE) -f Makefile.ssl install 
+	$(MAKE) -f Makefile.ssl; \
+	if [ ! -d $(PREFIX)/lib ]; then \
+		mkdir -p $(PREFIX)/lib; \
+	fi; \
+	$(MAKE) -f Makefile.ssl install 
 
 $(SRC)/$(BUILD)/Makefile: $(SRC)/Configure
 	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
@@ -96,7 +100,11 @@ else
 
 openssl:   $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); \
-	$(MAKE) -f Makefile.ssl; $(MAKE) -f Makefile.ssl install 
+	$(MAKE) -f Makefile.ssl; \
+	if [ ! -d $(PREFIX)/lib ]; then \
+		mkdir -p $(PREFIX)/lib; \
+	fi; \
+	$(MAKE) -f Makefile.ssl install
 
 $(SRC)/$(BUILD)/Makefile: $(SRC)/Configure
 	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
@@ -111,12 +119,14 @@ snap:
 
 endif
 
-$(SRC)/Configure: expand
+$(SRC)/Configure: apply
 
 expand: openssl-$(VERSION).tar.gz
 	tar xvzf openssl-$(VERSION).tar.gz
 
-apply: echo ok
+apply: expand patches-$(VERSION)
+	patch -Nup0 < patches-$(VERSION); echo ok
+
 
 clean:
 	rm -rf $(SRC)
