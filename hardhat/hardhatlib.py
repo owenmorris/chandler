@@ -1400,17 +1400,17 @@ def buildDebug(buildenv):
     except Exception, e:
         print e
 
-def compressDirectory(buildenv, directory, fileRoot):
+def compressDirectory(buildenv, directories, fileRoot):
     """This assumes that directory is an immediate child of the current dir"""
     if buildenv['os'] == 'win':
         executeCommand(buildenv, "HardHat",
-         [buildenv['zip'], "-r", fileRoot + ".zip", directory],
-        "Zipping up " + os.path.abspath(directory) + " to " + fileRoot + ".zip")
+         [buildenv['zip'], "-r", fileRoot + ".zip"] + directories,
+        "Zipping up to " + fileRoot + ".zip")
         return fileRoot + ".zip"
     else:
         executeCommand(buildenv, "HardHat",
-         [buildenv['tar'], "cvf", fileRoot+".tar", directory],
-        "Tarring " + os.path.abspath(directory) + " as " + fileRoot + ".tar")
+         [buildenv['tar'], "cvf", fileRoot+".tar"] + directories,
+        "Tarring to " + fileRoot + ".tar")
         executeCommand(buildenv, "HardHat", 
          [buildenv['gzip'], "-f", fileRoot+".tar"],
         "Running gzip on " + fileRoot + ".tar")
