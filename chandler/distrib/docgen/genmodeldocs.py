@@ -5,7 +5,7 @@
 
 import os, sys, logging, string, errno, getopt, shutil, time
 import application.Globals as Globals
-import application.Util
+import Util
 import repository
 
 from application.Parcel import Parcel
@@ -29,7 +29,7 @@ def main():
             urlRoot = arg
 
     dir = os.environ['CHANDLERHOME']
-    repo = application.Util.setup(dir, destroy=True)
+    repo = Util.setup(dir, destroy=True)
 
     outputDirectory = os.path.join(dir, 'docs', 'model')
     conf = {
