@@ -4,7 +4,7 @@
 
 # run this from the ~/tinderbuild/chandler directory
 
-import hardhatutil, time, os, sys, md5, sha
+import hardhatlib, hardhatutil, time, os, sys, md5, sha
 
 # args:  buildName, outputDir
 
@@ -22,6 +22,9 @@ workingDir = os.path.join(homeDir,"tinderbuild","chandler")
 def main():
     global outputDir
     
+    path = os.environ.get('PATH', os.environ.get('path'))
+    rsyncProgram = hardhatutil.findInPath(path, "rsync")
+    # print "rsync =", rsyncProgram
     outputDir = os.path.abspath(outputDir)
     if not os.path.exists(outputDir):
         os.mkdir(outputDir)
@@ -35,23 +38,25 @@ def main():
     os.chdir(workingDir)
     for releaseMode in ('debug', 'release'):
 
+        print "Creating " + releaseMode + " distribution archive"
         outputList = hardhatutil.executeCommandReturnOutput(
          [hardhatFile, "-o", outputDir, distCmd[releaseMode], 
          buildVersionEscaped])
-        dumpOutputList(outputList)
+        hardhatutil.dumpOutputList(outputList)
 
-        newDir = os.path.join(outputDir, buildVersion)
-        os.rename(os.path.join(buildDir, "output"), newDir)
-        print "Calling CreateIndex with " + newDir + "\n"
-        if os.path.exists(outputDir+os.sep+"index.html"):
-            os.remove(outputDir+os.sep+"index.html")
-        if os.path.exists(outputDir+os.sep+"time.js"):
-            os.remove(outputDir+os.sep+"time.js")
-        for x in ["enduser", "developer"]:
-            if os.path.exists(outputDir+os.sep+x+".html"):
-                os.remove(outputDir+os.sep+x+".html")
-        RotateDirectories(outputDir)
-        CreateIndex(outputDir, buildVersion, nowString, buildName)
+    newDir = os.path.join(outputDir, buildVersion)
+    os.rename(os.path.join(buildDir, "output"), newDir)
+    hardhatlib.copyFiles(outputDir, newDir, "*.tar.gz")
+    print "Calling CreateIndex with " + newDir + "\n"
+    if os.path.exists(outputDir+os.sep+"index.html"):
+        os.remove(outputDir+os.sep+"index.html")
+    if os.path.exists(outputDir+os.sep+"time.js"):
+        os.remove(outputDir+os.sep+"time.js")
+    for x in ["enduser"]:      # was  ["enduser", "developer"]:
+        if os.path.exists(outputDir+os.sep+x+".html"):
+            os.remove(outputDir+os.sep+x+".html")
+    RotateDirectories(outputDir)
+    CreateIndex(outputDir, buildVersion, nowString, buildName)
     
     buildNameNoSpaces = buildName.replace(" ", "")
     print "Rsyncing..."
@@ -60,12 +65,20 @@ def main():
      outputDir + os.sep, 
      "192.168.101.46:continuous/" + buildNameNoSpaces])
 
+def RotateDirectories(dir):
+    """Removes all but the 3 newest subdirectories from the given directory;
+    assumes the directories are named with timestamps (numbers) because it 
+    uses normal sorting to determine the order."""
+
+    dirs = os.listdir(dir)
+    dirs.sort()
+    for subdir in dirs[:-3]:
+        hardhatutil.rmdirRecursive(os.path.join(dir, subdir))
+
 
 _descriptions = {
     'enduser' : ["End-Users' distribution", "If you just want to use Chandler, this distribution contains everything you need -- just download, unpack, run."],
     'developer' : ["Developers' distribution", "If you're a developer and want to run Chandler in debugging mode, this distribution contains debug versions of the binaries.  Assertions are active, the __debug__ global is set to True, and memory leaks are listed upon exit.  You can also use this distribution to develop your own parcels (See <a href=http://wiki.osafoundation.org/bin/view/Main/ParcelLoading>Parcel Loading</a> for details on loading your own parcels)."],
-    'release' : ["Pre-built release directory", "If you are using CVS to check out Chandler you can either build everything yourself or you can download this pre-compiled 'release' directory.  Download, unpack, and place the contained 'release' directory next to your 'Chandler' directory."],
-    'debug' : ["Pre-built debug directory", "If you are using CVS to check out Chandler you can either build everything yourself or you can download this pre-compiled 'debug' directory.  Download, unpack, and place the contained 'debug' directory next to your 'Chandler' directory."],
 }
 
 def MD5sum(filename):
@@ -95,15 +108,15 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
     fileOut = file(outputDir+os.sep+"index.html", "w")
     fileOut.write("<html><head><META HTTP-EQUIV=Pragma CONTENT=no-cache><link rel=Stylesheet href=http://www.osafoundation.org/css/OSAF.css type=text/css charset=iso-8859-1></head><body topmargin=0 leftmargin=0 marginwith=0 marginheight=0><img src=http://www.osafoundation.org/images/OSAFLogo.gif><table border=0><tr><td width=19>&nbsp;</td><td width=550>\n")
     fileOut.write("<h2>Chandler Build: " + nowString + " PDT (machine: " + buildName +")</h2>\n")
-    for x in ["enduser", "developer"]:
-        actual = _readFile(buildDir+os.sep+newDirName+os.sep+x)
+    for x in ["enduser"]:      # was  ["enduser", "developer"]:
+        actual = _readFile(outputDir+os.sep+x)
         fileOut.write("<p><a href="+x+".html> "+ _descriptions[x][0] +"</a>: " + _descriptions[x][1] +"</p>\n")
         fileOut2 = file(outputDir+os.sep+x+".html", "w")
         fileOut2.write("<html><head><META HTTP-EQUIV=Pragma CONTENT=no-cache><link rel=Stylesheet href=http://www.osafoundation.org/css/OSAF.css type=text/css charset=iso-8859-1></head><body topmargin=0 leftmargin=0 marginwith=0 marginheight=0><img src=http://www.osafoundation.org/images/OSAFLogo.gif><table border=0><tr><td width=19>&nbsp;</td><td width=550>\n")
         fileOut2.write("<h2>Chandler Build: " + nowString + " PDT (machine: " + buildName +")</h2>\n")
         fileOut2.write("<p>Download <a href="+newDirName+"/"+actual+"> "+ _descriptions[x][0] +"</a>: <br>")
-        fileOut2.write(" MD5 checksum: " + MD5sum(buildDir+os.sep+newDirName+os.sep+actual) + "<br>")
-        fileOut2.write(" SHA checksum: " + SHAsum(buildDir+os.sep+newDirName+os.sep+actual) + "<br>")
+        fileOut2.write(" MD5 checksum: " + MD5sum(outputDir+os.sep+newDirName+os.sep+actual) + "<br>")
+        fileOut2.write(" SHA checksum: " + SHAsum(outputDir+os.sep+newDirName+os.sep+actual) + "<br>")
         fileOut2.write("<p> " + _descriptions[x][1] +"</p>\n")
         fileOut2.write("</td></tr></table></body></html>\n")
         fileOut2.close()
