@@ -142,6 +142,9 @@ class wxColumnarViewer(wxPanel):
         self.headView.UpdateSize()
         self.timeView.UpdateSize()
         self.footView.UpdateSize()
+
+        #@@@ For Bug#421 on the mac
+        self.Refresh()
         
     def UpdateDisplay(self):
         """ Update the display. Before doing a refresh, update bounds.

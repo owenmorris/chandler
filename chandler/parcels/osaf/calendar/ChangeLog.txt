@@ -4,6 +4,7 @@
 
    * Fixes for Bug#789 (call Destroy or use wxMessageBox for dialogs)
    * Re-entered fix for Bug#425
+   * Mostly fixed Bug#421 on the mac: ends up drawn correctly on resize.
 
 2003-07-10 john@osafoundation.org
 
