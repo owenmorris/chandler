@@ -1,0 +1,36 @@
+From: some@body
+To: some@else
+Date: Mon, 22 Mar 1994 13:34:51 +0000
+Subject: a forwarded piece of email
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	      boundary="---- main boundary ----"
+
+------ main boundary ----
+
+Introductory text about the message
+
+------ main boundary ----
+Content-Type: message/rfc822
+
+From: an-outlook-user-again
+Date: Fri, 26 Mar 1993 10:07:13 -0500
+Subject: my different opinion
+MIME-Version: 1.0
+Content-Type: multipart/alternative; 
+              boundary="---- message03boundary ----"
+
+------ message03boundary ----
+Content-Type: text/html
+
+<p>... a <HTML> body goes here ...</p>
+
+------ message03boundary ----
+Content-Type: text/plain
+
+... while this is a plain version of the same ...
+
+------ message03boundary ------
+
+------ main boundary ------
+

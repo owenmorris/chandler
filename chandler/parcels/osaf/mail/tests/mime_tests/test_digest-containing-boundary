@@ -1,0 +1,58 @@
+From: Moderator-Address
+To: Recipient-List
+Date: Mon, 22 Mar 1994 13:34:51 +0000
+Subject: Internet Digest, volume 42
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	      boundary="---- main boundary ----"
+
+------ main boundary ----
+
+  ...Introductory text or table of contents...
+
+------ main boundary ----
+Content-Type: multipart/digest;
+	      boundary="---- next message ----"
+
+------ next message ----
+
+From: someone-else
+Date: Fri, 26 Mar 1993 11:13:32 +0200
+Subject: my opinion
+
+  ...body goes here ...
+
+------ next message ----
+
+From: someone-else-again
+Date: Sat, 27 Mar 1993 12:43:13 +1000
+Subject: my opinion about the outer boundary tags
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	      boundary="---- internal boundary ----"
+
+  ... this is the prologue ...
+
+------ internal boundary ----
+Content-Type: text/plain
+
+This is some perfectly boring text, which happens to include the
+strings ------ main boundary ---- and ------ main boundary ------,
+as well ------ next message ------ and ------ next message ----.
+
+A compliant MIME parser should, at this point, be only looking for
+the dashdashdash internal boundary dashdashdashdash
+
+------ internal boundary ----
+Content-Type: text/plain
+
+Bing Tiddle Bong. 
+
+------ internal boundary ------
+
+And this is the epilogue
+
+------ next message ------
+
+------ main boundary ------
+
