@@ -112,7 +112,7 @@ class wxEditText(wx.TextCtrl):
     def OnEnterPressed(self, event):
         self.blockItem.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/EnterPressed'),
                              {'text':self.GetValue()})
-
+        event.Skip()
 
 class EditText(RectangularChild):
     def instantiateWidget(self):
