@@ -49,7 +49,25 @@ class TLSProtocolWrapper(ProtocolWrapper):
             if factory.wrappedFactory.startTLS:
                 self.startTLS()
 
+    def __del__(self):
+        self.clear()
+
+    def clear(self):
+        if self.tlsStarted:
+            if self.sslBio:
+                m2.bio_free_all(self.sslBio)
+            self.sslBio = None
+            self.internalBio = None
+            self.networkBio = None
+        self.data = ''
+        self.encrypted = ''
+        # We can reuse self.ctx and it will be deleted automatically
+        # when this instance dies
+        
     def startTLS(self):
+        if self.tlsStarted:
+            raise Exception, 'TLS already started'
+        
         self.internalBio = m2.bio_new(m2.bio_s_bio())
         m2.bio_set_write_buf_size(self.internalBio, 0)
         self.networkBio = m2.bio_new(m2.bio_s_bio())
@@ -66,9 +84,10 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
         # Need this for writes that are larger than BIO pair buffers
         mode = m2.ssl_get_mode(self.ssl)
-        m2.ssl_set_mode(self.ssl, mode|m2.SSL_MODE_ENABLE_PARTIAL_WRITE|m2.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER)
-
-        # XXX Our client breaks connection with server prematurely when server sends more data than can fit in BIO pair buffers
+        m2.ssl_set_mode(self.ssl,
+                        mode |
+                        m2.SSL_MODE_ENABLE_PARTIAL_WRITE |
+                        m2.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER)
 
         self.tlsStarted = True
 
@@ -78,6 +97,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
         ProtocolWrapper.makeConnection(self, transport)
 
     def _encrypt(self, data=''):
+        # XXX mirror image of _decrypt - refactor
         self.data += data
         encryptedData = ''
         g = m2.bio_ctrl_get_write_guarantee(self.sslBio)
@@ -101,6 +121,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
         return encryptedData
 
     def _decrypt(self, data=''):
+        # XXX mirror image of _encrypt - refactor
         self.encrypted += data
         decryptedData = ''
         g = m2.bio_ctrl_get_write_guarantee(self.networkBio)
@@ -171,6 +192,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
         if debug:
             print 'MyProtocolWrapper.dataReceived'
         if not self.tlsStarted:
+            # XXX STARTTLS support
             ProtocolWrapper.dataReceived(self, data)
             return
 
@@ -184,9 +206,6 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
             decryptedData = self._decrypt()
 
-            if debug:
-                print 'middle:', len(encryptedData), len(self.data), m2.bio_ctrl_pending(self.networkBio), len(decryptedData), len(self.encrypted)
-
             encryptedData = self._encrypt()
             ProtocolWrapper.write(self, encryptedData)
 
@@ -195,11 +214,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
     def connectionLost(self, reason):
         if debug:
             print 'MyProtocolWrapper.connectionLost'
-        if self.sslBio:
-            m2.bio_free_all(self.sslBio)
-        self.sslBio = None
-        self.internalBio = None
-        self.networkBio = None
+        self.clear()
 
         ProtocolWrapper.connectionLost(self, reason)
 
