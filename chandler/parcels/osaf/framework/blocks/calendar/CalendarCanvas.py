@@ -21,7 +21,19 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
     Base class for calendar items. Covers:
     - editor position & size
     - text wrapping
+    - conflict management
     """
+    
+    def __init__(self, *args, **keywords):
+        super(CalendarCanvasItem, self).__init__(*args, **keywords)
+        self._parentConflicts = []
+        # the rating of conflicts - i.e. how far to indent this
+        self._conflictDepth = 0
+                
+        # the total depth of all conflicts - i.e. the maximum simultaneous 
+        # conflicts with this item, including this one
+        self._totalConflictDepth = 1
+        
     def GetEditorPosition(self):
         """
         This returns a location to show the editor. By default it is the same
@@ -97,6 +109,44 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
             if width <= maxWidth:
                 dc.DrawText(smallWord, x, y)
                 return
+                
+    def AddConflict(self, child):
+        # we might want to keep track of the inverse conflict as well,
+        # for conflict bars
+        child._parentConflicts.append(self)
+        
+    def FindFirstGapInSequence(self, seq):
+        """
+        Look for the first gap in a sequence - for instance
+         0,2,3: choose 1
+         1,2,3: choose 0
+         0,1,2: choose 3        
+        """
+        for index, value in enumerate(seq):
+            if index != value:
+                return index
+                
+        # didn't find any gaps, so just put it one higher
+        return index+1
+        
+    def CalculateConflictDepth(self):
+        if not self._parentConflicts:
+            return 0
+        
+        # We'll find out the depth of all our parents, and then
+        # see if there's an empty gap we can fill
+        # this relies on parentDepths being sorted, which 
+        # is true because the conflicts are added in 
+        # the same order as the they appear in the calendar
+        parentDepths = [parent._conflictDepth for parent in self._parentConflicts]
+        self._conflictDepth = self.FindGapInSequence(parentDepths)
+        return self._conflictDepth
+        
+    def GetIndentLevel(self):
+        # this isn't right. but its a start
+        # it should be some wierd combination of 
+        # maximum indent level of all children + 1
+        return self._conflictDepth
         
 
 class ColumnarCanvasItem(CalendarCanvasItem):
@@ -107,8 +157,13 @@ class ColumnarCanvasItem(CalendarCanvasItem):
     def __init__(self, item, calendarCanvas, *arguments, **keywords):
         super(ColumnarCanvasItem, self).__init__(None, item)
         
-        
-        self._boundsRects = list(self.GenerateBoundsRects(calendarCanvas))
+        # this is really annoying that we need to keep a reference back to 
+        # the calendar canvas in every single ColumnarCanvasItem, but we
+        # need it for drawing hints.. is there a better way?
+        self._calendarCanvas = calendarCanvas
+
+    def UpdateDrawingRects(self):
+        self._boundsRects = list(self.GenerateBoundsRects(self._calendarCanvas))
         self._bounds = self._boundsRects[0]
 
         r = self._boundsRects[-1]
@@ -183,33 +238,42 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             boundsStartTime = max(item.startTime, absDayStart)
             boundsEndTime = min(item.endTime, absDayEnd)
             
-            yield self.MakeRectForRange(calendarCanvas, boundsStartTime, boundsEndTime)
+            try:
+                yield self.MakeRectForRange(calendarCanvas, boundsStartTime, boundsEndTime)
+            except ValueError:
+                pass
         
     def MakeRectForRange(self, calendarCanvas, startTime, endTime):
         """
         Turn a datetime range into a rectangle that can be drawn on the screen
         """
-        
         startPosition = calendarCanvas.getPositionFromDateTime(startTime)
         
-        # need to factor this one out, but I'll wait until we've
-        # worked out a means to split the canvas item into multiple rectangles
+        # ultimately, I'm not sure that we should be asking the calendarCanvas
+        # directly for dayWidth and hourHeight, we probably need some system 
+        # instead similar to getPositionFromDateTime where we pass in a duration
         duration = (endTime - startTime).hours
         (cellWidth, cellHeight) = (calendarCanvas.dayWidth, int(duration * calendarCanvas.hourHeight))
+        
+        # Now handle indentation based on conflicts -
+        # we really need a way to proportionally size
+        # items, so that the right side of the rectangle
+        # shrinks as well
+        startPosition.x += self.GetIndentLevel() * 5
+        cellWidth -= self.GetIndentLevel() * 5
         return wx.Rect(startPosition.x, startPosition.y, cellWidth, cellHeight)
 
-    def Draw(self, dc, brushContainer):
+    def Draw(self, dc, boundingRect, brushContainer):
         item = self._item
 
         time = item.startTime
 
         # Draw one event - an event consists of one or more bounds
-        rectCount = len(self._boundsRects)
-        rectIndex = 0
+        lastRect = len(self._boundsRects) - 1
         radius = 10
         diameter = radius * 2
-        oldLogicalFunction = dc.GetLogicalFunction()
-        for itemRect in self._boundsRects:
+                       
+        for rectIndex, itemRect in enumerate(self._boundsRects):        
             
             dc.SetPen(brushContainer.selectionPen)
             dc.DrawRectangleRect(itemRect)
@@ -220,7 +284,7 @@ class ColumnarCanvasItem(CalendarCanvasItem):
             hasTopRightRounded = hasBottomRightRounded = False
             if rectIndex == 0:
                 hasTopRightRounded = True
-            if rectIndex == rectCount - 1:
+            if rectIndex == lastRect:
                 hasBottomRightRounded = True
 
             # For now, we'll manually erase each corner, and then draw an arc
@@ -284,8 +348,6 @@ class ColumnarCanvasItem(CalendarCanvasItem):
                 
                 dc.SetFont(brushContainer.smallFont)
                 self.DrawWrappedText(dc, item.displayName, textRect)
-
-            rectIndex += 1
 
 class HeaderCanvasItem(CalendarCanvasItem):
     def Draw(self, dc, brushContainer):
@@ -978,41 +1040,74 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
 
         if self.parent.blockItem.dayMode:
             startDay = self.parent.blockItem.selectedDate
-            days = 1
+            endDay = startDay + DateTime.RelativeDateTime(days = 1)
         else:
             startDay = self.parent.blockItem.rangeStart
-            days = 7
+            endDay = startDay + self.parent.blockItem.rangeIncrement
         
         # Set up fonts and brushes for drawing the events
         dc.SetTextForeground(wx.BLACK)
         dc.SetBrush(wx.WHITE_BRUSH)
 
-        selectedBox = None
-        endDay = startDay + DateTime.RelativeDateTime(days = days)
-        
         # we sort the items so that when drawn, the later events are drawn last
         # so that we get proper stacking
         visibleItems = list(self.parent.blockItem.getItemsInRange(startDay, endDay))
         visibleItems.sort(self.sortByStartTime)
+                
+        boundingRect = wx.Rect(self.xOffset, 0, self.size.width, self.size.height)
+        
+        # First generate a sorted list of ColumnarCanvasItems
         for item in visibleItems:
                                                
             canvasItem = ColumnarCanvasItem(item, self)
             self.canvasItemList.append(canvasItem)
-            
+
             if self._currentDragBox and self._currentDragBox.GetItem() == item:
                 self._currentDragBox = canvasItem                
-                
+
+        # now generate conflict info
+        self.CheckConflicts()
+        
+        selectedBox = None        
+        # finally, draw the items
+        for canvasItem in self.canvasItemList:    
+
+            # drawing rects should be updated to reflect conflicts
+            canvasItem.UpdateDrawingRects()
+            
             # save the selected box to be drawn last
-            if self.parent.blockItem.selection is item:
+            if self.parent.blockItem.selection is canvasItem.GetItem():
                 selectedBox = canvasItem
             else:
-                canvasItem.Draw(dc, self)
+                canvasItem.Draw(dc, boundingRect, self)
             
         # now draw the current item on top of everything else
         if selectedBox:
             dc.SetBrush(self.selectionBrush)
-            selectedBox.Draw(dc, self)
+            selectedBox.Draw(dc, boundingRect, self)
             
+
+    def CheckConflicts(self):
+        for itemIndex, canvasItem in enumerate(self.canvasItemList):
+            # since these are sorted, we only have to check the items 
+            # that come after the current one
+            for innerItem in self.canvasItemList[itemIndex+1:]:
+                # we know we're done when we stop hitting conflicts
+                # 
+                # have a guarantee that innerItem.startTime >= item.endTime
+                # Since item.endTime < item.startTime, we know we're
+                # done
+                if innerItem.GetItem().startTime >= canvasItem.GetItem().endTime: break
+                
+                # item and innerItem MUST conflict now
+                canvasItem.AddConflict(innerItem)
+            
+            # we've now found all conflicts for item, do we need to calculate
+            # depth or anything?
+            # first theory: leaf children have a maximum conflict depth?
+            canvasItem.CalculateConflictDepth()
+
+
             
     # handle mouse related actions: move, resize, create, select
 
@@ -1163,9 +1258,15 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
     def getPositionFromDateTime(self, datetime):
         if self.parent.blockItem.dayMode:
             startDay = self.parent.blockItem.selectedDate
+            endDay = startDay + DateTime.RelativeDateTime(days=1)
         else:
             startDay = self.parent.blockItem.rangeStart
+            endDay = startDay + self.parent.blockItem.rangeIncrement
         
+        if datetime < startDay or \
+           datetime > endDay:
+            raise ValueError, "Must be visible on the calendar"
+            
         delta = datetime - startDay
         x = (self.dayWidth * delta.day) + self.xOffset
         y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
