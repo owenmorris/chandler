@@ -4,7 +4,13 @@
  */
 
 #include <db.h>
+
+#ifdef _MSC_VER
+#include <winsock2.h>
+#include <malloc.h>
+#else
 #include <arpa/inet.h>
+#endif
 
 #include <Python.h>
 #include "structmember.h"
@@ -43,14 +49,14 @@ typedef struct {
 } DBTxnObject;
 
 typedef enum {
-    VT_UNKNOWN,
-    VT_NONE,
-    VT_BOOL,
-    VT_UUID,
-    VT_STRING,
-    VT_UNICODE,
-    VT_INT,
-    VT_LONG
+    vt_UNKNOWN,
+    vt_NONE,
+    vt_BOOL,
+    vt_UUID,
+    vt_STRING,
+    vt_UNICODE,
+    vt_INT,
+    vt_LONG
 } valueType;
 
 static void t_container_dealloc(t_container *self);
@@ -186,64 +192,64 @@ static int _size_valueType(PyObject *value, valueType *vt)
 {
     if (value == Py_None)
     {
-        *vt = VT_NONE;
+        *vt = vt_NONE;
         return 1;
     }
 
     if (value == Py_True || value == Py_False)
     {
-        *vt = VT_BOOL;
+        *vt = vt_BOOL;
         return 1;
     }
 
     if (PyUUID_Check(value))
     {
-        *vt = VT_UUID;
+        *vt = vt_UUID;
         return 17;
     }
 
     if (PyString_CheckExact(value))
     {
-        *vt = VT_STRING;
+        *vt = vt_STRING;
         return PyString_GET_SIZE(value) + 3;
     }
 
     if (PyUnicode_CheckExact(value))
     {
-        *vt = VT_UNICODE;
+        *vt = vt_UNICODE;
         return (PyUnicode_GET_DATA_SIZE(value) * 5) / 4 + 3;
     }
 
     if (PyInt_CheckExact(value))
     {
-        *vt = VT_INT;
+        *vt = vt_INT;
         return 5;
     }
 
     if (PyLong_CheckExact(value))
     {
-        *vt = VT_LONG;
+        *vt = vt_LONG;
         return 5;
     }
 
-    *vt = VT_UNKNOWN;
+    *vt = vt_UNKNOWN;
     return 0;
 }
 
 static int _writeValue(char *buffer, PyObject *value, valueType vt)
 {
-    if (vt == VT_UNKNOWN)
+    if (vt == vt_UNKNOWN)
         _size_valueType(value, &vt);
 
     switch (vt) {
-      case VT_UNKNOWN:
+      case vt_UNKNOWN:
         break;
-      case VT_NONE:
+      case vt_NONE:
       {
           buffer[0] = '\0';
           return 1;
       }
-      case VT_BOOL:
+      case vt_BOOL:
       {
           if (value == Py_True)
           {
@@ -256,13 +262,13 @@ static int _writeValue(char *buffer, PyObject *value, valueType vt)
               return 1;
           }
       }
-      case VT_UUID:
+      case vt_UUID:
       {
           buffer[0] = '\3';
           memcpy(buffer + 1, PyString_AS_STRING(((t_uuid *) value)->uuid), 16);
           return 17;
       }
-      case VT_STRING:
+      case vt_STRING:
       {
           int len = PyString_GET_SIZE(value);
 
@@ -272,7 +278,7 @@ static int _writeValue(char *buffer, PyObject *value, valueType vt)
 
           return len + 3;
       }
-      case VT_UNICODE:
+      case vt_UNICODE:
       {
           PyObject *str = PyUnicode_AsUTF8String(value);
           int len = PyString_GET_SIZE(str);
@@ -284,14 +290,14 @@ static int _writeValue(char *buffer, PyObject *value, valueType vt)
 
           return len + 3;
       }
-      case VT_INT:
+      case vt_INT:
       {
           buffer[0] = '\4';
           *((int *) (buffer + 1)) = htonl(PyInt_AS_LONG(value));
 
           return 5;
       }
-      case VT_LONG:
+      case vt_LONG:
       {
           buffer[0] = '\4';
           *((int *) (buffer + 1)) = htonl(PyInt_AsLong(value));

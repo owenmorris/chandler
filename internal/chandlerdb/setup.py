@@ -9,7 +9,7 @@ from distutils.core import setup, Extension
 
 def main():
 
-    DB = os.environ['DB']
+    PREFIX = os.environ['PREFIX']
     
     extensions = []
     modules = ['chandlerdb.__init__',
@@ -34,11 +34,19 @@ def main():
     extensions.append(Extension('chandlerdb.item.item',
                                 sources=['chandlerdb/item/item.c']))
 
-    extensions.append(Extension('chandlerdb.persistence.container',
-                                sources=['chandlerdb/persistence/container.c'],
-                                library_dirs=[os.path.join(DB, 'lib')],
-                                include_dirs=[os.path.join(DB, 'include')],
-                                libraries=['db-4.3']))
+    if os.name == 'nt':
+        ext = Extension('chandlerdb.persistence.container',
+                        sources=['chandlerdb/persistence/container.c'],
+                        include_dirs=[os.path.join(PREFIX, 'include', 'db')],
+                        library_dirs=[os.path.join(PREFIX, 'lib')],
+                        libraries=['libdb43', 'ws2_32'])
+    else:
+        ext = Extension('chandlerdb.persistence.container',
+                        sources=['chandlerdb/persistence/container.c'],
+                        library_dirs=[os.path.join(PREFIX, 'db', 'lib')],
+                        include_dirs=[os.path.join(PREFIX, 'db', 'include')],
+                        libraries=['db-4.3'])
+    extensions.append(ext)
 
     if os.name in ('nt','posix'):
         modules.append('chandlerdb.util.lock')

@@ -10,14 +10,16 @@ MANIFEST=$(SNAP)/$(SITE)/chandlerdb
 
 ifeq ($(OS),Cygwin)
 _swig=`cygpath -aw $(SWIG)`
+_prefix=`cygpath -aw $(PREFIX)`
 else
 _swig=$(SWIG)
+_prefix=$(PREFIX)
 endif
 
 
 build:
 	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) \
-        DB=$(PREFIX)/db \
+        PREFIX=$(_prefix) \
         $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            build_ext --swig-opts="-c++ -modern" \
                                      --swig=$(_swig) \
