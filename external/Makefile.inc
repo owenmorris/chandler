@@ -97,11 +97,11 @@ ifeq ($(OS),Cygwin)
 
 compiler=$(BUILD_ROOT)/mingw-3.1
 
-$(compiler): mingw-3.1.zip
+$(compiler): $(BUILD_ROOT)/mingw-3.1.zip
 	cd $(BUILD_ROOT); \
 	unzip mingw-3.1.zip
 
-mingw-3.1.zip:
+$(BUILD_ROOT)/mingw-3.1.zip:
 	cd $(BUILD_ROOT); \
 	curl -O $(COMPILERS)/windows/mingw-3.1.zip
 
@@ -111,7 +111,7 @@ ifeq ($(OS),Darwin)
 
 compiler=$(BUILD_ROOT)/gcc-3.4
 
-$(compiler): gcc-3.4-20040407.tar.bz2
+$(compiler): $(BUILD_ROOT)/gcc-3.4-20040407.tar.bz2
 	cd $(BUILD_ROOT); \
 	bunzip2 -c gcc-3.4-20040407.tar.bz2 | tar -xvf -
 
