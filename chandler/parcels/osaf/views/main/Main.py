@@ -102,9 +102,9 @@ class MainView(View):
 
         # Tell the sidebar we want to go to the All or contacts box
         if newItem.isItemOf (Contacts.ContactsParcel.getContactKind ()):
-            itemName = 'ContactTableView'
+            itemName = 'ContactsView'
         else:
-            itemName = 'AllTableView'
+            itemName = 'AllView'
         self.Post(requestSelectSidebarItem, {'itemName':itemName})
 
         # Tell the ActiveView to select our new item
