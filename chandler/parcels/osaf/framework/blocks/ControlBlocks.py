@@ -618,19 +618,18 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             else:
                 for row in xrange (range[0], range[1] + 1):
                     self.DeselectRow (row)
+        self.EndBatch() 
+
+        #Update all displayed values
+        message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
+        self.ProcessTableMessage (message) 
+        self.ForceRefresh () 
         try:
             row = self.blockItem.contents.index (self.blockItem.selectedItemToView)
         except ValueError:
             pass
         else:
             self.MakeCellVisible (row, 0)
-        self.EndBatch() 
-
-        #Update all displayed values
-        message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
-        self.ProcessTableMessage (message) 
-
-        self.ForceRefresh () 
 
     def GoToItem(self, item):
         if item:
@@ -640,7 +639,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
                 item = None
         if item:
             self.blockItem.selection.append ([row, row, True])
-            self.blockItem.selectedItemToView = row
+            self.blockItem.selectedItemToView = item
             self.SelectBlock (row, 0, row, self.GetColumnCount() - 1)
             self.MakeCellVisible (row, 0)
         else:
@@ -810,6 +809,7 @@ class Table (RectangularChild):
                 self.widget.ClearSelection()
             else:
                 self.widget.SelectBlock (row, 0, row, self.widget.GetColumnCount() - 1)
+                self.widget.MakeCellVisible (row, 0)
             self.PostASelectionChangedEvent (item)
 
     def onDeleteEvent (self, notification):
