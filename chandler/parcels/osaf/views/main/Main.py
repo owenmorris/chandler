@@ -456,6 +456,10 @@ class MainView(View):
         # Triggered from "Tests | Subscribe to collection..."
         Sharing.manualSubscribeToCollection(self.itsView)
 
+    def onSharingImportDemoCalendarEvent(self, event):
+        # Triggered from "Tests | Import demo calendar..."
+        Sharing.loadDemoCalendar(self.itsView)
+
     def onSharingSubscribeToICalendarEvent(self, event):
 
         # Triggered from "Tests | Subscribe to ICalendar..."

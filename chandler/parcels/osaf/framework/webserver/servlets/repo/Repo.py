@@ -585,7 +585,7 @@ def RenderItem(repoView, item):
         result += "<td valign=top><b>Cardinality</b></td>\n"
         result += "<td valign=top><b>Type</b></td>\n"
         result += "<td valign=top><b>Initial&nbsp;Value</b></td>\n"
-        result += "<td valign=top><b>Required?</b></td>\n"
+        # result += "<td valign=top><b>Required?</b></td>\n"
         result += "<td valign=top><b>RedirectTo</b></td>\n"
         result += "</tr>\n"
         count = 0
@@ -630,8 +630,10 @@ def RenderItem(repoView, item):
                 result += "<td valign=top>%s</td>\n" % (attribute.initialValue)
             else:
                 result += "<td valign=top>N/A</td>\n"
-            if attribute.required: result += "<td valign=top>Yes</td>\n"
-            else: result += "<td valign=top>No</td>\n"
+
+            # if attribute.required: result += "<td valign=top>Yes</td>\n"
+            # else: result += "<td valign=top>No</td>\n"
+
             redirectTo = attribute.getAttributeValue('redirectTo',
              default="&nbsp;")
             result += "<td valign=top>%s</td>\n" % redirectTo

@@ -115,8 +115,6 @@ class ContentItem(Item.Item):
         except AttributeError:
             pass
 
-        self.importance = 'normal'
-
         # default the displayName to 'untitled'
         self.displayName = _('untitled')
 

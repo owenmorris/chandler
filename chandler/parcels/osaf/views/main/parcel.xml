@@ -359,9 +359,15 @@
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
-  
+
   <BlockEvent itsName="SharingSubscribeToCollection">
     <blockName>SharingSubscribeToCollection</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+
+  <BlockEvent itsName="SharingImportDemoCalendar">
+    <blockName>SharingImportDemoCalendar</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
@@ -497,6 +503,7 @@
     <childrenBlocks itemref="doc:EditCollectionRuleItem"/>
     <childrenBlocks itemref="doc:SharingSubscribeToICalendarItem"/>
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
+    <childrenBlocks itemref="doc:SharingImportDemoCalendarItem"/>
     <childrenBlocks itemref="doc:ShareCollectionItem"/>
     <childrenBlocks itemref="doc:SyncCollectionItem"/>
     <childrenBlocks itemref="doc:ShareToolItem"/>
@@ -1091,6 +1098,13 @@
     <title>Subscribe to Collection...</title>
     <event itemref="doc:SharingSubscribeToCollection"/>
     <helpString>Subscribe to a published item collection</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="SharingImportDemoCalendarItem">
+    <blockName>SharingImportDemoCalendarItem</blockName>
+    <title>Import demo calendar</title>
+    <event itemref="doc:SharingImportDemoCalendar"/>
+    <helpString>Import a demo iCalendar file from osafoundation.org</helpString>
   </MenuItem>
 
   <MenuItem itsName="SharingSubscribeToICalendarItem">
