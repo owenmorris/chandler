@@ -203,7 +203,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         
         self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/backarrow.png")
         self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/forwardarrow.png")
-        self.todayButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %d, %Y"),
+        self.todayButton = CollectionCanvas.CanvasTextButton(self, today.Format("%b %d, %Y"),
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
         self.monthButton = CollectionCanvas.CanvasTextButton(self, " September 8888 ",
@@ -513,7 +513,7 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
         
         self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/backarrow.png")
         self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/forwardarrow.png")
-        self.todayButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %d, %Y"),
+        self.todayButton = CollectionCanvas.CanvasTextButton(self, today.Format("%b %d, %Y"),
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
         self.monthButton = CollectionCanvas.CanvasTextButton(self, " September 8888 ",
