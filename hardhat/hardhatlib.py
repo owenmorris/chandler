@@ -551,37 +551,30 @@ def recursiveTest(buildenv, path):
         python = buildenv['python']
         libdir = buildenv['pythonlibdir']
 
-    if os.path.isdir("tests"):
-        fullTestPath = os.path.join(path, "tests")
-        os.chdir(fullTestPath) 
-        testFiles = glob.glob('Test*.py')
-        for testFile in testFiles:
-            fullTestFilePath = os.path.join(fullTestPath, testFile)
-            exit_code = executeCommand( buildenv, testFile, [python, testFile,
-            "-v"], "Testing " + fullTestFilePath, HARDHAT_NO_RAISE_ON_ERROR)
-            if exit_code != 0:
-                buildenv['test_failures'] = buildenv['test_failures'] + 1
-                buildenv['failed_tests'].append(fullTestFilePath)
-                log(buildenv, HARDHAT_ERROR, 'Tests', "Failed: %s" % fullTestFilePath)
-
-    os.chdir(path)
+    testFiles = glob.glob('Test*.py')
+    for testFile in testFiles:
+        fullTestFilePath = os.path.join(path, testFile)
+        exit_code = executeCommand( buildenv, testFile, [python, testFile,
+        "-v"], "Testing " + fullTestFilePath, HARDHAT_NO_RAISE_ON_ERROR)
+        if exit_code != 0:
+            buildenv['test_failures'] = buildenv['test_failures'] + 1
+            buildenv['failed_tests'].append(fullTestFilePath)
+            log(buildenv, HARDHAT_ERROR, 'Tests', "Failed: %s" % fullTestFilePath)
     for name in os.listdir(path):
         full_name = os.path.join(path, name)
         if os.path.isdir(full_name):
             recursiveTest(buildenv, full_name)
 
 
-def test(buildenv, module_name):
+def test(buildenv, dir):
     """
-    This needs to be fleshed out a bit more, but it will invoke all tests
-    under the folder "module_name" that live in any folder called "tests"
-    and that has a file named "Test*.py"
+    Given a directory, recursively find all files named "Test*.py" and run
+    them as unit tests.
     """
 
-    os.chdir(buildenv['root'])
     buildenv['test_failures'] = 0
     buildenv['failed_tests'] = []
-    recursiveTest(buildenv, module_name)
+    recursiveTest(buildenv, dir)
     failures = buildenv['test_failures']
 
     if failures == 0:

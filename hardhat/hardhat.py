@@ -61,6 +61,9 @@ for opt, arg in opts:
         usage()
         sys.exit(0)
 
+# Store our current directory
+curdir = os.path.abspath(".")
+
 # Find a __hardhat__.py file:
 hardHatFile = hardhatlib.findHardHatFile(".")
 if hardHatFile:
@@ -199,7 +202,7 @@ try:
             hardhatlib.scrubDependencies(buildenv, curmodulepath)
 
         if opt == "-t":
-            hardhatlib.test(buildenv, curmodulepath)
+            hardhatlib.test(buildenv, curdir)
 
         if opt == "-v":
             buildenv['verbosity'] = buildenv['verbosity'] + 1
