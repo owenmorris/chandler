@@ -1217,6 +1217,7 @@
     <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopying"/>
     <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopyingOrCommiting"/>
     <eventsForNamedDispatch itemref="doc:AddToSidebarWithoutCopyingAndSelectFirst"/>
+    <eventsForNamedDispatch itemref="doc:ApplicationBarEvent"/>
 
     <orientationEnum>Vertical</orientationEnum>
     <size>1024,720</size>

@@ -43,6 +43,20 @@ class Sidebar (ControlBlocks.Table):
         return wxSidebar (self.parentBlock.widget, Block.Block.getWidgetID(self))    
 
     def onKindParameterizedEvent (self, event):
+        # @@@ Temporary hack until we have persistence in the toolbar.
+        # Whenever you get an event to select a kind of filter make sure that
+        # the toolbar click state is in sync with the desired filter
+        toolbar = Block.Block.findBlockByName('ApplicationBar')
+        for childBlock in toolbar.dynamicChildren:
+            try:
+                childBlock.event
+            except AttributeError:
+                pass
+            else:
+                if childBlock.event == event:
+                    if not childBlock.widget.IsToggled():
+                        toolbar.widget.ToggleTool(childBlock.toolID, True)
+                
         self.filterKind = event.kindParameter
         self.postEventByName("SelectItemBroadcast", {'item':self.selectedItemToView})
 

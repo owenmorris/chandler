@@ -21,6 +21,8 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
         self.Bind(wx.minical.EVT_MINI_CALENDAR_SEL_CHANGED,
                   self.OnWXSelectItem)
+        self.Bind(wx.minical.EVT_MINI_CALENDAR_DOUBLECLICKED, 
+                  self.OnWXDoubleClick)
 
     def wxSynchronizeWidget(self):
         self.SetWindowStyle(wx.minical.CAL_SUNDAY_FIRST |
@@ -31,6 +33,17 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         pass
         
     def OnWXSelectItem(self, event):
+        self.blockItem.postEventByName ('SelectedDateChanged',
+                                        {'start': self.getSelectedDate()})
+
+    def OnWXDoubleClick(self, event):
+        # Tell the sidebar we want to go to the All collection
+        self.blockItem.postEventByName ('RequestSelectSidebarItem', {'itemName':u"All"})
+
+        # Select the calendar filter
+        self.blockItem.postEventByName ('ApplicationBarEvent', {})
+                                          
+        # Set the calendar to the clicked day
         self.blockItem.postEventByName ('SelectedDateChanged',
                                         {'start': self.getSelectedDate()})
 
