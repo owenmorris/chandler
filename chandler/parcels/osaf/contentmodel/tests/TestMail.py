@@ -178,8 +178,9 @@ class MailTest(TestContentModel.ContentModelTestCase):
         self._reopenRepository()
 
         contentItemParent = self.rep.findPath("//userdata/contentitems")
+        outbound = contentItemParent.getItemChild("outboundMailItems")
 
-        mailMessageItem = contentItemParent.getItemChild("mailMessageItem")
+        mailMessageItem = outbound.getItemChild("mailMessageItem")
 
         #Test cloud membership
         cloud = self.manager.lookup("http://osafoundation.org/parcels/osaf/contentmodel/mail",
