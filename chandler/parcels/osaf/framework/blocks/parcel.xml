@@ -1325,7 +1325,7 @@
   
     <issues value="We'd like to use itemrefs as keys, so reference tracking &amp; cleanup would work"/>
     <Attribute itsName="keyUUIDToTrunkUUID">
-      <type itemref="UUID"/>
+      <type itemref="docSchema:Block"/>
       <cardinality>dict</cardinality>
       <initialValue/>
     </Attribute>

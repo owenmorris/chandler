@@ -105,17 +105,12 @@ class TrunkDelegate(Item):
         """
         trunk = None
         if not keyItem is None:
-            # @@@ For now, we actually use the UUID of the item as the key.
-            # It's be much better to use the item itself, but the repository doesn't
-            # support this yet.
             keyUUID = keyItem.itsUUID
             try:
-                trunkUUID = self.keyUUIDToTrunkUUID[keyUUID]
+                trunk = self.keyUUIDToTrunkUUID[keyUUID]
             except KeyError:
                 trunk = self._makeTrunkForCacheKey(keyItem)
-                self.keyUUIDToTrunkUUID[keyUUID] = trunk.itsUUID
-            else:
-                trunk = self.findUUID(trunkUUID)
+                self.keyUUIDToTrunkUUID[keyUUID] = trunk
         return trunk
 
     def _mapItemToCacheKeyItem(self, item):
