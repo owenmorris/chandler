@@ -2,7 +2,8 @@
 
 __all__ = [
    'Entity', 'Role', 'Relationship', 'One', 'Many', 'NullSet', 'LoadEvent',
-   'Activator', 'RelationshipClass', 'ActiveDescriptor',
+   'Enumeration', 'Activator', 'RelationshipClass', 'EnumerationClass',
+   'ActiveDescriptor',
 ]
 
 from models import Set
@@ -85,13 +86,15 @@ class Role(ActiveDescriptor):
 
     types = ()
     isReference = False
-    name = owner = _inverse = None
+    name = owner = _inverse = _loadMap = None
+    cardinality = "Role"
 
     def __init__(self,types=(),**kw):
         self.addTypes(types)
         self._loadMap = {}
         for k,v in kw.items():
             setattr(self,k,v)
+        self.setDoc()   # default the doc string
 
     def __setInverse(self,inverse):
         if self._inverse is not inverse:    # No-op if no change
@@ -101,7 +104,7 @@ class Role(ActiveDescriptor):
             try:
                 inverse.inverse = self
             except:
-                self._inverse = None    # roll back the change
+                self._setattr('_inverse',None)  # roll back the change
                 raise
             if self.owner is not None and issubclass(self.owner,Entity):
                 inverse.addTypes(self.owner)
@@ -122,7 +125,7 @@ class Role(ActiveDescriptor):
             raise TypeError("Multiple value types not allowed in one role")
         if refs:
             self.isReference = True
-        self.types += types
+        self._setattr('types',self.types + types)
 
     def activateInClass(self,cls,name):
         """Role was defined/used in class `cls` under name `name`"""
@@ -210,6 +213,58 @@ class Role(ActiveDescriptor):
             return load_role, (self.owner, self.name)
         return object.__reduce_ex__(self,proto)
 
+    def __getDoc(self):
+        return self.__dict__.get('doc')
+
+    def __setDoc(self,val):
+        self.__dict__['doc'] = val
+        self.setDoc()
+
+    doc = property(__getDoc,__setDoc)
+
+    def __getDisplayName(self):
+        return self.__dict__.get('displayName')
+
+    def __setDisplayName(self,val):
+        self.__dict__['displayName'] = val
+        self.setDoc()
+
+    displayName = property(__getDisplayName,__setDisplayName)
+
+    def setDoc(self):
+        doc = self.doc
+        name = self.displayName
+        if not name:
+            name = self.docInfo()
+        else:
+            name = "%s -- %s" % (name,self.docInfo())
+        if not doc:
+            doc = name
+        else:
+            doc = "%s\n\n%s" % (name,doc)
+        self._setattr('__doc__',doc)
+
+    def docInfo(self):
+        return ("%s(%s)" %
+            (self.cardinality,
+                '/'.join([typ.__name__ for typ in self.types]) or '()'
+            )
+        )
+
+    def _setattr(self,attr,value):
+        """Private routine allowing bypass of normal setattr constraints"""
+        super(Role,self).__setattr__(attr,value)
+        
+    def __setattr__(self,attr,value):
+        if not hasattr(type(self),attr):
+            raise TypeError("%r is not a public attribute of %r objects"
+                % (attr,type(self).__name__))
+        old = self.__dict__.get(attr)
+        if old is not None and old<>value:
+            raise TypeError(
+                "Role objects are immutable; can't change %r once set" % attr
+            )
+        self._setattr(attr,value)
 
 NOT_GIVEN = object()
 
@@ -217,6 +272,7 @@ class One(Role):
     """Single-valued role attribute"""
 
     default = compute = NOT_GIVEN
+    cardinality = "One"
 
     def newSet(self,ob):
         """Return new default linkset for ``ob``
@@ -255,6 +311,8 @@ class One(Role):
 
 class Many(Role):
     """Multi-valued role attribute"""
+
+    cardinality = "Many"
 
     def __get__(self,ob,typ):
         if ob is None:
@@ -308,6 +366,71 @@ class RelationshipClass(Activator):
 class Relationship:
     """Subclass this to create a relationship between two roles"""
     __metaclass__ = RelationshipClass
+
+
+class EnumerationClass(Activator):
+    """Metaclass for enumerations"""
+
+    def __init__(cls,name,bases,cdict):
+        super(EnumerationClass,cls).__init__(name,bases,cdict)
+        try:
+            Enumeration
+        except NameError:
+            return  # Enumeration isn't defined yet, so nothing to verify
+
+        if bases<>(Enumeration,):
+            raise TypeError("Enumerations cannot be subclassed")
+
+        d = {}
+        for k,v in cls.iteritems():
+            if v in d:
+                v = unicode(v)
+                raise TypeError(
+                    "Duplicate definitions: %s=enum(%r) and %s=enum(%r)"
+                    % (d[v],v,k,v)
+                )
+            d[v] = k
+
+    def __iter__(cls):
+        for k,v in cls.iteritems():
+            yield v
+
+    def iteritems(cls):
+        """Yield names and values of all enums in this class"""
+        for k in dir(cls):
+            v = getattr(cls,k)
+            if isinstance(v,Enumeration):
+                yield k,v
+
+
+class Enumeration(unicode):
+    """Base class for value types with a fixed set of possible values"""
+
+    __metaclass__ = EnumerationClass
+
+    def __new__(self,*args,**kw):
+        raise TypeError("Enumeration instances cannot be created directly")
+
+    @property
+    def name(self):
+        cls = self.__class__
+        for k,v in cls.iteritems():
+            if v==self:
+                return k
+        raise AssertionError("Invalid instance",unicode(self))
+
+    def __repr__(self):
+        return ".".join([self.__class__.__name__,self.name])
+
+
+class enum(ActiveDescriptor):
+    """schema.enum(displayName) -- define an enumeration value"""
+
+    def __init__(self,displayName):
+        self.displayName = displayName
+
+    def activateInClass(self,cls,name):
+        setattr(cls,name,unicode.__new__(cls,self.displayName))
 
 
 class LoaderWrapper(ActiveDescriptor):

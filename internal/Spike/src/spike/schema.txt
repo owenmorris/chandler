@@ -566,6 +566,39 @@ All role objects have at least the following attributes and methods:
         >>> Kind.superkinds.types
         (<class 'Kind'>,)
 
+``displayName`` and ``doc``
+    The name and description of this role, if any.  They will be used to
+    collectively form a ``__doc__`` string, so that ``help()`` is informative
+    for entity types::
+
+        >>> Kind.subkinds.doc = "Sub-kinds of this kind"
+        >>> Kind.superkinds.doc = "Super-kinds of this kind"
+        >>> Kind.name.doc = "This kind's name"
+        >>> Kind.name.displayName = "Kind Name"
+
+        >>> help(Kind)  # doctest: +NORMALIZE_WHITESPACE
+        Help on class Kind ...
+        ...
+        class Kind(spike.schema.Entity)
+         | ...
+         |  Data and other attributes defined here:
+         |
+         |  name = <Role name of <class 'Kind'>>
+         |      Kind Name -- One(str)
+         |      
+         |      This kind's name
+         |  
+         |  subkinds = <Role subkinds of <class 'Kind'>>
+         |      Many(Kind)
+         |      
+         |      Sub-kinds of this kind
+         |  
+         |  superkinds = <Role superkinds of <class 'Kind'>>
+         |      Many(Kind)
+         |      
+         |      Super-kinds of this kind
+         |  ...
+
 
 ``of(ob)``
     Return the linkset for this role and `ob`.  If the role has an ``inverse``,
@@ -670,6 +703,22 @@ access is to immediately replace the calculated value with a new value::
         >>> class Dummy(schema.Entity): pass
         >>> print CalcDemo.alias.getLoader(Dummy())
         <function dummyLoader at ...>
+
+To avoid silent definition errors, ``Role`` classes will not allow setting
+attributes that are not defined by their class::
+
+    >>> r = schema.Role(foo="bar")
+    Traceback (most recent call last):
+    ...
+    TypeError: 'foo' is not a public attribute of 'Role' objects
+
+And, to avoid unintentional alterations, Role attributes can be set only once::
+
+    >>> Kind.superkinds.doc = "testing"
+    Traceback (most recent call last):
+      ...
+    TypeError: Role objects are immutable; can't change 'doc' once set
+
 
 
 Creating Role Subclasses
@@ -790,9 +839,9 @@ After all receivers have had a chance to affect the linkset, the role's
     Set([Test], type=Kind)
 
 
---------------------------
-Entities and Relationships
---------------------------
+-----------
+Other Types
+-----------
 
 Standalone Relationships
 ========================
@@ -841,6 +890,82 @@ relationship instead::
     Traceback (most recent call last):
     ...
     TypeError: Relationships cannot be subclassed
+
+
+Enumerations
+============
+
+An enumeration is a value type with a fixed set of values, defined using
+the ``schema.Enumeration`` base class, and the ``schema.enum()`` descriptor::
+
+    >>> class Importance(schema.Enumeration):
+    ...     important = schema.enum("Important")
+    ...     normal = schema.enum("Normal")
+    ...     fyi = schema.enum("FYI")
+
+You cannot create enumeration instances directly::
+
+    >>> Importance("x")
+    Traceback (most recent call last):
+    ...
+    TypeError: Enumeration instances cannot be created directly
+
+Instead, you must access instances via the class' attributes::
+
+    >>> Importance.normal
+    Importance.normal
+
+    >>> getattr(Importance,'normal')
+    Importance.normal
+
+Instances hash and compare equal to the string (or unicode) values assigned in
+the class definition, and when converted to a string or unicode, they use that
+same value::
+
+    >>> print Importance.important
+    Important
+
+    >>> unicode(Importance.important)
+    u'Important'
+
+    >>> str(Importance.important)
+    'Important'
+
+    >>> Importance.important == "Important"
+    True
+
+    >>> hash(Importance.important) == hash("Important")
+    True
+
+Note, however, that this means each enumeration value's display name must be
+unique within that enumeration type, and enumeration subclasses are not
+allowed::
+
+    >>> class BadEnum(schema.Enumeration):
+    ...     foo = schema.enum("Spam")
+    ...     bar = schema.enum("Spam")
+    Traceback (most recent call last):
+      ...
+      File "<doctest schema.txt[...]>", line 1, in ?
+        class BadEnum(schema.Enumeration):
+      ...
+    TypeError: Duplicate definitions: bar=enum(u'Spam') and foo=enum(u'Spam')
+
+    >>> class MoreImportant(Importance):
+    ...     super_urgent = schema.enum("Emergency!!!")
+    Traceback (most recent call last):
+    ...
+      File "<doctest schema.txt[...]>", line 1, in ?
+        class MoreImportant(Importance):
+    ...
+    TypeError: Enumerations cannot be subclassed
+
+Finally, note that enumeration types are iterable, and they yield their
+instances when iterated over, so that you can use this information
+programmatically::
+
+    >>> sorted(Importance)
+    [Importance.fyi, Importance.important, Importance.normal]
 
 
 ---------
@@ -966,7 +1091,7 @@ activated in a class, so any normal pickling restrictions will apply::
 
     >>> schema.Role().__reduce_ex__()   # doctest: +NORMALIZE_WHITESPACE
     (<...>, (<class '...schema.Role'>, <type 'object'>, None),
-    {'types': (), '_loadMap': {}})
+    {'__doc__': 'Role(())', 'types': (), '_loadMap': {}})
 
 
 Type Flattening
@@ -1013,9 +1138,6 @@ To Do
 Roles
 
 * Role knows its requiredness, and other metadata (policies?)
-
-* Role.__setattr__ doesn't allow setting unless current value is None/unset, or
-  new value equals old value  (addType should bypass using __set__)
 
 
 Entity Classes
