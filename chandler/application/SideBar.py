@@ -101,6 +101,11 @@ class SideBar(Persistent):
           Selects the proper uri when we have navigated to a different one
         via some tool other than the sideBar.
         """
+        
+        # if the uri is remote, don't do this
+        if app.wxMainFrame.IsRemoteUri():
+            return
+        
         wxWindow = app.association[id(self)]
         self.ignoreChangeSelect = true
         # FIXME:  If the user types a valid uri of an item that has never been

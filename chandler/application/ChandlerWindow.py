@@ -76,6 +76,8 @@ class wxChandlerWindow(wxFrame):
         self.this = value.this
         self._setOORInfo (self)
         
+        self.isRemote = false
+        
     def OnActivate(self, event):
         """
            The Application keeps a copy of the last persistent window openn
@@ -244,7 +246,10 @@ class wxChandlerWindow(wxFrame):
             localuri = string.join(fields[1:], '/')
         
         return (parcelname, remoteaddress, localuri)
-            
+
+    def IsRemoteUri(self):
+        return self.isRemote
+    
     def GoToUri(self, uri, doAddToHistory = true):
         """
           Navigates to the specified uri.  Steps for this include:
@@ -273,6 +278,8 @@ class wxChandlerWindow(wxFrame):
             parcel = application.Application.app.model.URLTree.UriExists(parcelname)
             if parcel == None:
                 return false
+        
+        self.isRemote = remoteaddress != None
             
         self.sideBar.model.SelectUri(localuri)
         if doAddToHistory:
