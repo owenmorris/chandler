@@ -1047,22 +1047,21 @@
       <type itemref="docSchema:ViewContainer/tabPositionEnumType"/>
       <initialValue type="docSchema:ViewContainer/tabPositionEnumType">Top</initialValue>
     </Attribute>
-    
+
     <Attribute itsName="hasTabs">
       <type itemref="Boolean"/>
       <initialValue type="Boolean">False</initialValue>
     </Attribute>
 
-    <Attribute itsName="views">
-      <type itemref="Item"/>
-      <cardinality>list</cardinality>
-      <inverseAttribute itemref="docSchema:Block/viewContainer"/>
+    <Attribute itsName="selectionIndex">
+      <type itemref="Integer"/>
+      <initialValue type="Integer">0</initialValue>
     </Attribute>
 
-    <Attribute itsName="columnWidths">
-      <type itemref="Integer"/>
-      <required>True</required>
-      <initialValue type="Integer">0</initialValue>
+    <Attribute itsName="views">
+      <type itemref="docSchema:Block"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="docSchema:Block/viewContainer"/>
     </Attribute>
 
     <Cloud itsName="DefaultCloud">

@@ -169,6 +169,7 @@
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
     <items itemref="repository:RepositoryView"/>
+    <items itemref="repository:CPIAView"/>
     <items itemref="content:mixedItemCollection"/>
     <items itemref="content:notesItemCollection"/>
     <items itemref="content:contactItemCollection"/>
@@ -241,13 +242,21 @@
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:notesItemCollection"/>
   </ModifyContentsEvent>
-  
+
   <ModifyContentsEvent itsName="AddRepositoryView">
     <blockName>AddRepositoryView</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="repository:RepositoryView"/>
+  </ModifyContentsEvent>
+  
+  <ModifyContentsEvent itsName="AddCPIAView">
+    <blockName>AddCPIAView</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="repository:CPIAView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddTasksView">
@@ -1149,6 +1158,7 @@
     <childrenBlocks itemref="doc:AddZaoBaoChannelViewItem"/>
     <childrenBlocks itemref="doc:AddDemoViewItem"/>
     <childrenBlocks itemref="doc:AddRepositoryViewItem"/>
+    <childrenBlocks itemref="doc:AddCPIAViewItem"/>
     <childrenBlocks itemref="doc:AddMixedViewItem"/>
     <childrenBlocks itemref="doc:TestSeparator2"/>
     <childrenBlocks itemref="doc:AddNotesViewItem"/>
@@ -1192,10 +1202,17 @@
   </MenuItem>
 
   <MenuItem itsName="AddRepositoryViewItem">
-    <blockName>ButtonsMenuItem</blockName>
+    <blockName>AddRepositoryViewItem</blockName>
     <title>Add Repository Viewer</title>
     <event itemref="doc:AddRepositoryView"/>
     <helpString>Adds the repository viewer to the sidebar</helpString>
+  </MenuItem>
+  
+  <MenuItem itsName="AddCPIAViewItem">
+    <blockName>AddCPIAViewItem</blockName>
+    <title>Add CPIA Viewer</title>
+    <event itemref="doc:AddCPIAView"/>
+    <helpString>Adds the CPIA viewer to the sidebar</helpString>
   </MenuItem>
   
   <MenuItem itsName="AddMixedViewItem">

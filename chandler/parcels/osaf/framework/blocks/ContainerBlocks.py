@@ -148,7 +148,6 @@ class ScrolledContainer(BoxContainer):
 
 
 class wxSplitterWindow(wx.SplitterWindow):
-
     def __init__(self, *arguments, **keywords):
         super (wxSplitterWindow, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED,
@@ -286,8 +285,34 @@ class SplitterWindow(RectangularChild):
                 
 
 class wxTabbedViewContainer(DropReceiveWidget, wx.Notebook):
+    def __init__(self, *arguments, **keywords):
+        super (wxTabbedViewContainer, self).__init__ (*arguments, **keywords)
+        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnPageChanging, id=self.GetId())
+
+    def OnPageChanging(self, event):
+        newIndex = event.GetSelection()
+        oldIndex = self.blockItem.selectionIndex
+        if newIndex != oldIndex:
+            self.blockItem.selectionIndex = newIndex
+            self.wxSynchronizeWidget()
+
     def wxSynchronizeWidget(self):
-        pass
+        self.Freeze()
+        self.DeleteAllPages()
+        oldView = self.blockItem.childrenBlocks.first()
+        if not oldView is None:
+            oldView.unRender()
+
+        selectionIndex = 0
+        for view in self.blockItem.views:
+            if selectionIndex == self.blockItem.selectionIndex:
+                self.blockItem.childrenBlocks = [view]
+                view.render()
+                window = view.widget
+            else:
+                window = wx.Panel (self, -1)
+            self.AddPage (window, view.getItemDisplayName(), False)
+            selectionIndex = selectionIndex + 1
 
     def CalculateWXStyle(theClass, block):
         return {
@@ -295,12 +320,12 @@ class wxTabbedViewContainer(DropReceiveWidget, wx.Notebook):
             'Bottom': wx.NB_BOTTOM, 
             'Left': wx.NB_LEFT,
             'Right': wx.NB_RIGHT,
-        } [block.tabPositionEnumEnum]
+        } [block.tabPositionEnum]
     CalculateWXStyle = classmethod(CalculateWXStyle)
-    
+
+
 class wxViewContainer (wxBoxContainer):
     pass
-
 
 class ViewContainer(BoxContainer):
     def instantiateWidget (self):
@@ -332,10 +357,17 @@ class ViewContainer(BoxContainer):
     
     def onChoiceEvent (self, event):
         choice = event.choice
+        selectionIndex = 0
         for view in self.views:
             if view.getItemDisplayName() == choice:
-                self.postEventByName('SelectItemBroadcast', {'item':view})
+                if self.hasTabs:
+                    self.selectionIndex = selectionIndex
+                    self.widget.SetSelection (selectionIndex)
+                else:
+                    self.postEventByName('SelectItemBroadcast', {'item':view})
                 break
+            selectionIndex = selectionIndex + 1
+
 
 class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
     def __init__(self, *arguments, **keywords):

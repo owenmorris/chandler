@@ -24,17 +24,16 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
 
     def GetElementValues(self, element):
         cellValues = [element.itsName or '(anonymous)']
-        if True or element != wx.GetApp().UIRepositoryView:
-            try:
-                cellValues.append (str (element.getItemDisplayName()))
-            except AttributeError:
-                cellValues.append ('')
-            try:
-                cellValues.append (element.itsKind.itsName)
-            except AttributeError:
-                cellValues.append ('')
-            cellValues.append (str (element.itsUUID))
-            cellValues.append (str (element.itsPath))
+        try:
+            cellValues.append (str (element.getItemDisplayName()))
+        except AttributeError:
+            cellValues.append (' ')
+        try:
+            cellValues.append (element.itsKind.itsName)
+        except AttributeError:
+            cellValues.append (' ')
+        cellValues.append (str (element.itsUUID))
+        cellValues.append (str (element.itsPath))
         return cellValues
 
     def ElementHasChildren(self, element):
@@ -42,29 +41,6 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
             return True
         else:
             return element.hasChildren()
-
-    def NeedsUpdate(self, notification):
-        """
-          We need to update the display when any container has
-        a child that has been changed. When items are are added
-        or modified we can ask for their parent. However, when
-        they are deleted we can't access them, so the repository
-        sends us their parent.
-        """
-        try:
-            parentUUID = notification.data['parent']
-        except KeyError:
-            item = wx.GetApp().UIRepositoryView.repository.find (notification.data['uuid'])
-
-            try:
-                parent = item.itsParent
-            except AttributeError:
-                return
-
-            parentUUID = parent.itsUUID
-
-        if self.blockItem.openedContainers.has_key (parentUUID):
-            self.scheduleUpdate = True
 
 
 class RepositoryItemDetail(ControlBlocks.ItemDetail):
@@ -146,3 +122,40 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
             HTMLText = "<html><body><h5></h5></body></html>"
 
         return HTMLText
+
+
+class CPIADelegate (ControlBlocks.ListDelegate):
+    """ Used by the tree in the repository view
+    """
+    
+    def GetElementParent(self, element):
+        return element.parentBlock
+
+    def GetElementChildren(self, element):
+        if element:
+            return element.childrenBlocks
+        else:
+            return self.blockItem.findPath('//userdata/MainViewRoot')
+
+    def GetElementValues(self, element):
+        try:
+            blockName = element.blockName
+        except AttributeError:
+            blockName = 'None'
+        cellValues = [blockName]
+
+        try:
+            cellValues.append (element.itsKind.itsName)
+        except AttributeError:
+            cellValues.append (' ')
+
+        try:
+            cellValues.append (str (element.getItemDisplayName()))
+        except AttributeError:
+            cellValues.append (' ')
+        cellValues.append (str (element.itsUUID))
+        cellValues.append (str (element.itsPath))
+        return cellValues
+
+    def ElementHasChildren(self, element):
+        return len (element.childrenBlocks) > 0

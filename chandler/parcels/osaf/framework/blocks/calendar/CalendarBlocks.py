@@ -578,6 +578,9 @@ class wxMiniCalendar(wx.minical.wxMiniCalendar):
         self.SetWindowStyle(wx.minical.wxCAL_SUNDAY_FIRST |
                             wx.minical.wxCAL_SHOW_SURROUNDING_WEEKS)
 
+    def Destroy(self):
+        pass
+        
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
                                         {'start': self.getSelectedDate()})

@@ -309,7 +309,7 @@ class Block(Item):
                     operation = 'remove'
             method = getattr (type(self.contents), operation)
             method (self.contents, item)
-        
+
         if event.copyItems:
             userdata = self.findPath('//userdata')
 
@@ -322,6 +322,7 @@ class Block(Item):
         else:
             for item in items:
                 modifyContents (item)
+        self.itsView.commit()
 
     def synchronizeWidget (self):
         """

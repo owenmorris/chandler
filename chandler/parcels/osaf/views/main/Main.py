@@ -422,10 +422,13 @@ class MainView(View):
         repository.mapChanges(self._logChange)
 
     def onReloadParcelsEvent(self, event):
-        # Test menu item
+        theApp = wx.GetApp()
+        theApp.UnRenderMainView ()
+
         ParcelManager.getManager(self.itsView).loadParcels()
-        wx.GetApp().UnRenderMainView ()
-        wx.GetApp().RenderMainView ()
+
+        theApp.LoadMainViewRoot (delete=True)
+        theApp.RenderMainView ()
 
     def onResendSharingInvitationsEvent (self, event):
         """

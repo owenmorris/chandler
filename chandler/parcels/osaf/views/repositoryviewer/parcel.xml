@@ -56,4 +56,44 @@
     <splitPercentage>0.4</splitPercentage>
   </SplitterWindow>
   
+  <Tree itsName="CPIATree">
+    <!-- Attributes -->
+    <elementDelegate>osaf.views.repositoryviewer.Repository.CPIADelegate</elementDelegate>
+
+    <hideRoot>False</hideRoot>
+    <noLines>False</noLines>
+    <columnHeadings>Block Name</columnHeadings>
+    <columnHeadings>Kind</columnHeadings>
+    <columnHeadings>Display Name</columnHeadings>
+    <columnHeadings>UUID</columnHeadings>
+    <columnHeadings>Path</columnHeadings>    
+    <columnWidths>160</columnWidths>
+    <columnWidths>110</columnWidths>
+    <columnWidths>70</columnWidths>
+    <columnWidths>245</columnWidths>
+    <columnWidths>155</columnWidths>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+  </Tree>
+ 
+  <ItemDetail itsName="CPIAItemDetail"
+              itemClass="osaf.views.repositoryviewer.Repository.RepositoryItemDetail">
+    <!-- Attributes -->
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+  </ItemDetail>
+
+  <SplitterWindow itsName="CPIAView">
+    <displayName>CPIA Viewer</displayName>
+
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:CPIATree"/>
+    <childrenBlocks itemref="doc:CPIAItemDetail"/>
+
+    <!-- Attributes -->
+    <eventBoundary>True</eventBoundary>
+    <splitPercentage>0.4</splitPercentage>
+  </SplitterWindow>
+  
 </core:Parcel>
