@@ -133,8 +133,9 @@ class PersistentCollection(object):
                 if isinstance(value, SingleRef):
                     value = self._restoreValue(value)
                     if value is not None:
-                        if value not in items:
-                            items[value] = value
+                        uuid = value._uuid
+                        if uuid not in items:
+                            items[uuid] = value
                             yield value
                 elif isinstance(value, PersistentCollection):
                     for v in value._getItems(items):
