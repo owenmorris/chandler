@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.10"
 	Name="dbxml"
 	SccProjectName=""
 	SccLocalPath="">
@@ -66,7 +66,13 @@
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
 				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
@@ -125,9 +131,17 @@
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
 				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	<References>
+	</References>
 	<Files>
 		<File
 			RelativePath="..\src\dbxml\Buffer.cpp">
@@ -142,6 +156,9 @@
 			RelativePath="..\src\dbxml\Database.cpp">
 		</File>
 		<File
+			RelativePath="..\src\dbxml\db_rdbt.c">
+		</File>
+		<File
 			RelativePath="..\src\dbxml\Document.cpp">
 		</File>
 		<File
@@ -154,10 +171,10 @@
 			RelativePath="..\src\dbxml\IDS.cpp">
 		</File>
 		<File
-			RelativePath="..\src\dbxml\IndexSpecification.cpp">
+			RelativePath="..\src\dbxml\Indexer.cpp">
 		</File>
 		<File
-			RelativePath="..\src\dbxml\Indexer.cpp">
+			RelativePath="..\src\dbxml\IndexSpecification.cpp">
 		</File>
 		<File
 			RelativePath="..\src\dbxml\Key.cpp">
@@ -202,28 +219,16 @@
 			RelativePath="..\src\dbxml\TransactedContainer.cpp">
 		</File>
 		<File
-			RelativePath="..\src\dbxml\UTF8.cpp">
+			RelativePath="..\src\dbxml\UpdateContext.cpp">
 		</File>
 		<File
-			RelativePath="..\src\dbxml\UpdateContext.cpp">
+			RelativePath="..\src\dbxml\UTF8.cpp">
 		</File>
 		<File
 			RelativePath="..\src\dbxml\Value.cpp">
 		</File>
 		<File
 			RelativePath="..\src\dbxml\VariableBindings.cpp">
-		</File>
-		<File
-			RelativePath="..\src\dbxml\XPathLexer.cpp">
-		</File>
-		<File
-			RelativePath="..\src\dbxml\XPathParser.cpp">
-		</File>
-		<File
-			RelativePath="..\src\dbxml\XPathProjectionTreeParser.cpp">
-		</File>
-		<File
-			RelativePath="..\src\dbxml\XPathSelectionTreeParser.cpp">
 		</File>
 		<File
 			RelativePath="..\src\dbxml\XmlContainer.cpp">
@@ -259,7 +264,16 @@
 			RelativePath="..\src\dbxml\XmlValue.cpp">
 		</File>
 		<File
-			RelativePath="..\src\dbxml\db_rdbt.c">
+			RelativePath="..\src\dbxml\XPathLexer.cpp">
+		</File>
+		<File
+			RelativePath="..\src\dbxml\XPathParser.cpp">
+		</File>
+		<File
+			RelativePath="..\src\dbxml\XPathProjectionTreeParser.cpp">
+		</File>
+		<File
+			RelativePath="..\src\dbxml\XPathSelectionTreeParser.cpp">
 		</File>
 	</Files>
 	<Globals>

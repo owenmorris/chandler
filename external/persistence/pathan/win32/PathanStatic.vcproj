@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.10"
 	Name="PathanStatic"
 	SccProjectName=""
 	SccLocalPath="">
@@ -54,6 +54,12 @@
 				Culture="2057"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
@@ -100,8 +106,16 @@
 				Culture="2057"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -161,6 +175,12 @@
 					RelativePath="..\..\src\DOMutils\DOMNodeCompare.cpp">
 				</File>
 				<File
+					RelativePath="..\..\src\DOMutils\v2NSUtils.cpp">
+				</File>
+				<File
+					RelativePath="..\..\src\DOMutils\v2Utils.cpp">
+				</File>
+				<File
 					RelativePath="..\..\src\DOMutils\XMLChBuilder.cpp">
 				</File>
 				<File
@@ -168,12 +188,6 @@
 				</File>
 				<File
 					RelativePath="..\..\src\DOMutils\XMLChStringHash.cpp">
-				</File>
-				<File
-					RelativePath="..\..\src\DOMutils\v2NSUtils.cpp">
-				</File>
-				<File
-					RelativePath="..\..\src\DOMutils\v2Utils.cpp">
 				</File>
 			</Filter>
 			<Filter
@@ -453,13 +467,13 @@
 					RelativePath="..\..\src\interface\XPathExpressionImpl.cpp">
 				</File>
 				<File
+					RelativePath="..\..\src\interface\XPathNamespaceImpl.cpp">
+				</File>
+				<File
 					RelativePath="..\..\src\interface\XPathNSResolver.cpp">
 				</File>
 				<File
 					RelativePath="..\..\src\interface\XPathNSResolverImpl.cpp">
-				</File>
-				<File
-					RelativePath="..\..\src\interface\XPathNamespaceImpl.cpp">
 				</File>
 				<File
 					RelativePath="..\..\src\interface\XPathResult.cpp">
@@ -488,6 +502,9 @@
 				RelativePath="..\..\src\navigation\ChildAxis.hpp">
 			</File>
 			<File
+				RelativePath="..\..\src\config\win32\config.h">
+			</File>
+			<File
 				RelativePath="..\..\src\context\Context.hpp">
 			</File>
 			<File
@@ -495,18 +512,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\testharness\CppUnitException.h">
-			</File>
-			<File
-				RelativePath="..\..\src\DOMutils\DOMNameHash.hpp">
-			</File>
-			<File
-				RelativePath="..\..\src\DOMutils\DOMNodeCompare.hpp">
-			</File>
-			<File
-				RelativePath="..\..\src\patches\Xerces1_7_0\src\dom\DOM_Document.hpp">
-			</File>
-			<File
-				RelativePath="..\..\src\exceptions\DSLException.hpp">
 			</File>
 			<File
 				RelativePath="..\..\src\dataItem\DataItem.hpp">
@@ -543,6 +548,21 @@
 			</File>
 			<File
 				RelativePath="..\..\src\navigation\DescendantOrSelfAxis.hpp">
+			</File>
+			<File
+				RelativePath="..\..\src\patches\Xerces1_7_0\src\dom\DOM_Document.hpp">
+			</File>
+			<File
+				RelativePath="..\..\src\DOMutils\DOMNameHash.hpp">
+			</File>
+			<File
+				RelativePath="..\..\src\DOMutils\DOMNodeCompare.hpp">
+			</File>
+			<File
+				RelativePath="..\..\src\exceptions\DSLException.hpp">
+			</File>
+			<File
+				RelativePath="..\..\src\testharness\estring.h">
 			</File>
 			<File
 				RelativePath="..\..\src\lexer\FlexLexer.hpp">
@@ -710,10 +730,10 @@
 				RelativePath="..\..\src\navigation\NamespaceAxis.hpp">
 			</File>
 			<File
-				RelativePath="..\..\src\navigation\NavStep.hpp">
+				RelativePath="..\..\src\exceptions\NavigationException.hpp">
 			</File>
 			<File
-				RelativePath="..\..\src\exceptions\NavigationException.hpp">
+				RelativePath="..\..\src\navigation\NavStep.hpp">
 			</File>
 			<File
 				RelativePath="..\..\src\exceptions\NodeListException.hpp">
@@ -758,6 +778,12 @@
 				RelativePath="..\..\src\navigation\SelfAxis.hpp">
 			</File>
 			<File
+				RelativePath="..\..\src\DOMutils\v2NSUtils.hpp">
+			</File>
+			<File
+				RelativePath="..\..\src\DOMutils\v2Utils.hpp">
+			</File>
+			<File
 				RelativePath="..\..\src\simpleVariables\VarHashEntry.hpp">
 			</File>
 			<File
@@ -794,10 +820,10 @@
 				RelativePath="..\..\src\exceptions\XPathLexerException.hpp">
 			</File>
 			<File
-				RelativePath="..\..\src\interface\XPathNSResolverImpl.hpp">
+				RelativePath="..\..\src\interface\XPathNamespaceImpl.hpp">
 			</File>
 			<File
-				RelativePath="..\..\src\interface\XPathNamespaceImpl.hpp">
+				RelativePath="..\..\src\interface\XPathNSResolverImpl.hpp">
 			</File>
 			<File
 				RelativePath="..\..\src\exceptions\XPathParseException.hpp">
@@ -810,18 +836,6 @@
 			</File>
 			<File
 				RelativePath="..\..\src\interface\XPathResultImpl.hpp">
-			</File>
-			<File
-				RelativePath="..\..\src\config\win32\config.h">
-			</File>
-			<File
-				RelativePath="..\..\src\testharness\estring.h">
-			</File>
-			<File
-				RelativePath="..\..\src\DOMutils\v2NSUtils.hpp">
-			</File>
-			<File
-				RelativePath="..\..\src\DOMutils\v2Utils.hpp">
 			</File>
 		</Filter>
 	</Files>

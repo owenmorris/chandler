@@ -16,13 +16,13 @@ ifeq ($(OS),Cygwin)
 
 $(SRC)/Win32Projects/Pathan/Pathan.sln:
 	(cd win32; tar cf - *.sln *.vcproj) | \
-        (cd $(SRC)/Win32Projects/Pathan; tar xvf -)
+        (cd $(SRC)/Win32Projects/Pathan; tar xf -)
 
 compile: $(SRC)/Win32Projects/Pathan/Pathan.sln
 	cd $(SRC); \
         export XERCESCROOT=`cygpath -aw $(XERCESC)`; \
 	devenv.com Win32Projects/Pathan/Pathan.sln \
-                   /project 'PathanDll' /build $(Snap)
+                   /project PathanDll /build $(Snap)
 
 install:
 	mkdir -p $(PREFIX)/include/pathan
@@ -39,7 +39,8 @@ clean:
 	cd $(SRC); \
         export XERCESCROOT=`cygpath -aw $(XERCESC)`; \
 	devenv.com Win32Projects/Pathan/Pathan.sln \
-                   /project 'PathanDll' /clean $(Snap)
+                   /project PathanDll /clean $(Snap)
+	rm -f $(SRC)/Win32Projects/Pathan/Pathan.sln
 
 snap: 
 	cd $(BUILD_ROOT); \

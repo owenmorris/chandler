@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.10"
 	Name="antlr"
 	SccProjectName=""
 	SccLocalPath="">
@@ -54,6 +54,12 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
@@ -99,8 +105,16 @@
 				Culture="1033"/>
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"
@@ -251,16 +265,19 @@
 				RelativePath="..\lib\antlr\lib\cpp\antlr\CommonToken.hpp">
 			</File>
 			<File
-				RelativePath="..\lib\antlr\lib\cpp\antlr\IOException.hpp">
+				RelativePath="..\lib\antlr\lib\cpp\antlr\config.hpp">
 			</File>
 			<File
 				RelativePath="..\lib\antlr\lib\cpp\antlr\InputBuffer.hpp">
 			</File>
 			<File
-				RelativePath="..\lib\antlr\lib\cpp\antlr\LLkParser.hpp">
+				RelativePath="..\lib\antlr\lib\cpp\antlr\IOException.hpp">
 			</File>
 			<File
 				RelativePath="..\lib\antlr\lib\cpp\antlr\LexerSharedInputState.hpp">
+			</File>
+			<File
+				RelativePath="..\lib\antlr\lib\cpp\antlr\LLkParser.hpp">
 			</File>
 			<File
 				RelativePath="..\lib\antlr\lib\cpp\antlr\MismatchedCharException.hpp">
@@ -327,9 +344,6 @@
 			</File>
 			<File
 				RelativePath="..\lib\antlr\lib\cpp\antlr\TreeParserSharedInputState.hpp">
-			</File>
-			<File
-				RelativePath="..\lib\antlr\lib\cpp\antlr\config.hpp">
 			</File>
 		</Filter>
 	</Files>

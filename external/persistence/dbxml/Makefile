@@ -22,7 +22,7 @@ ifeq ($(OS),Cygwin)
 BUILD=build_win32
 
 $(SRC)/$(BUILD)/Berkeley_DB_XML.sln:
-	(cd win32; tar cf - *.sln *.vcproj) | (cd $(SRC)/$(BUILD); tar xvf -)
+	(cd win32; tar cf - *.sln *.vcproj) | (cd $(SRC)/$(BUILD); tar xf -)
 
 apply: patches
 	patch -Nup0 < patches; echo ok
@@ -51,6 +51,7 @@ clean:
 	cd $(SRC)/$(BUILD); \
         devenv.com Berkeley_DB_XML.sln /project dbxml /clean $(Snap)
 	cd $(SRC)/src/python; rm -rf $(BUILD)
+	rm -f $(SRC)/$(BUILD)/Berkeley_DB.sln
 
 snap:
 	cd $(BUILD_ROOT); \

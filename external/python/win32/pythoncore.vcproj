@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding = "Windows-1252"?>
+<?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.00"
+	Version="7.10"
 	Name="pythoncore"
 	SccProjectName="pythoncore"
 	SccLocalPath="..">
@@ -69,7 +69,13 @@
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
 				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
@@ -132,9 +138,17 @@
 			<Tool
 				Name="VCWebServiceProxyGeneratorTool"/>
 			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
 				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
+	<References>
+	</References>
 	<Files>
 		<File
 			RelativePath="..\Modules\_codecsmodule.c">
@@ -179,12 +193,6 @@
 			RelativePath="..\Objects\bufferobject.c">
 		</File>
 		<File
-			RelativePath="..\Modules\cPickle.c">
-		</File>
-		<File
-			RelativePath="..\Modules\cStringIO.c">
-		</File>
-		<File
 			RelativePath="..\Objects\cellobject.c">
 		</File>
 		<File
@@ -210,6 +218,12 @@
 		</File>
 		<File
 			RelativePath="..\PC\config.c">
+		</File>
+		<File
+			RelativePath="..\Modules\cPickle.c">
+		</File>
+		<File
+			RelativePath="..\Modules\cStringIO.c">
 		</File>
 		<File
 			RelativePath="..\Objects\descrobject.c">

@@ -74,8 +74,7 @@ apply: patches
 	patch -Nup0 < patches; echo ok
 
 clean:
-	cd $(SRC)/PCbuild; \
-        devenv.com pcbuild.sln /clean $(Snap)
+	cd $(SRC)/PCbuild; devenv.com pcbuild.sln /clean $(Snap)
 	rm -f $(SRC)/PCbuild/pcbuild.sln
 	-cd bzip2-$(BZIP2VERSION); MAKEFLAGS=; nmake -f Makefile.msc clean
 	-cd zlib-$(ZLIBVERSION); MAKEFLAGS=; nmake -f win32/Makefile.msc clean

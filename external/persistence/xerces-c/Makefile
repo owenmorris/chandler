@@ -13,7 +13,11 @@ endif
 
 ifeq ($(OS),Cygwin)
 
-compile:
+sln:
+	(cd win32; tar -cf - *.sln `find . -name '*.vcproj' -print`) | \
+        (cd $(SRC)/Projects/Win32/VC7/xerces-all; tar -xf -)
+
+compile: sln
 	cd $(SRC); \
         export XERCESCROOT=$(SRC); \
 	devenv.com Projects/Win32/VC7/xerces-all/xerces-all.sln \

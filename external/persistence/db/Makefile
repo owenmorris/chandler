@@ -29,8 +29,8 @@ install:
 
 clean:
 	cd $(SRC)/$(BUILD); \
-        devenv.com Berkeley_DB.sln /project build_all /clean $(Snap); \
-        rm Berkeley_DB.sln
+        devenv.com Berkeley_DB.sln /project build_all /clean $(Snap)
+	rm -f $(SRC)/$(BUILD)/Berkeley_DB.sln
 
 snap: 
 	cd $(BUILD_ROOT); \
