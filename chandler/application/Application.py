@@ -303,7 +303,7 @@ class wxApplication (wxApp):
         self.repository.commit()
 
         # Create the notification manager
-        from OSAF.framework.notifications.NotificationManager import NotificationManager
+        from application.agents.Notifications.NotificationManager import NotificationManager
 
         Globals.notificationManager = NotificationManager()
         Globals.notificationManager.PrepareSubscribers()
