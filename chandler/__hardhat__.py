@@ -14,6 +14,7 @@ dependencies = (
                 'persistence/libxml2',
                 'persistence/libxslt',
                 'persistence/PyLucene',
+                'pyxml',
                 'egenix-mx',
                 'jabber-py',
                 'SOAPpy',
