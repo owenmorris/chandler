@@ -41,10 +41,7 @@ wxPython:
                            install \
                            FINAL=$(FINAL) HYBRID=0
 
-snap: 
-	cd $(BUILD_ROOT); \
-        tar -cvzf $(SRC)/wxPython-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/wx
+MANIFEST=$(SNAP)/$(SITE)/wx
 
 clean:
 	cd $(SRC); devenv.com build/msw/msw.sln /clean $(Snap)
@@ -73,14 +70,11 @@ wxPython:
                            WX_CONFIG=$(PREFIX)/bin/wx-config \
                            build $(DIST_OPT) install FINAL=$(FINAL)
 
-snap: 
-	cd $(BUILD_ROOT); \
-        tar -cvzf $(SRC)/wxPython-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/wx \
-                  $(SNAP)/$(SITE)/wxPython \
-	          $(SNAP)/lib/libwx_mac* \
-	          $(SNAP)/lib/libwx_base_carbon* \
-	          $(SNAP)/share/locale
+MANIFEST=$(SNAP)/$(SITE)/wx \
+         $(SNAP)/$(SITE)/wxPython \
+ 	 $(SNAP)/lib/libwx_mac* \
+	 $(SNAP)/lib/libwx_base_carbon* \
+	 $(SNAP)/share/locale
 
 else
 
@@ -105,14 +99,11 @@ wxPython:
                            WXPORT=gtk2 UNICODE=1 \
                            build $(DIST_OPT) install FINAL=$(FINAL)
 
-snap: 
-	cd $(BUILD_ROOT); \
-        tar -cvzf $(SRC)/wxPython-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/wx \
-                  $(SNAP)/$(SITE)/wxPython \
-	          $(SNAP)/lib/libwx_base* \
-	          $(SNAP)/lib/libwx_gtk2* \
-	          $(SNAP)/share/locale
+MANIFEST=$(SNAP)/$(SITE)/wx \
+         $(SNAP)/$(SITE)/wxPython \
+	 $(SNAP)/lib/libwx_base* \
+	 $(SNAP)/lib/libwx_gtk2* \
+	 $(SNAP)/share/locale
 
 endif
 
@@ -139,3 +130,11 @@ build: wxWidgets wxPython
 
 upload: wxPython-$(SNAP)-$(RELVER).tar.gz
 	scp wxPython-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+
+snap: 
+	cd $(BUILD_ROOT); \
+	tar -cvzf $(SRC)/wxPython-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+
+install:
+	cd $(BUILD_ROOT); \
+	tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/.. -xvf -
