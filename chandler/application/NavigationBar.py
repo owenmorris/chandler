@@ -107,8 +107,8 @@ class wxNavigationBar(wxToolBar):
         text box to the current url."""
         if not hasattr(self, 'urlBox'):
             self.urlBox = self.FindWindowByName('urlBox')
-        oldurl = self.model.history[-1]
-        newurl = self.urlBox.GetValue()
+        oldURL = self.model.history[-1]
+        newURL = self.urlBox.GetValue()
         
         if not app.wxMainFrame.GoToURL(newURL):
             print "Failed to navigate to " + newURL
