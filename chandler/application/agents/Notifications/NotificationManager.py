@@ -32,6 +32,8 @@ class NotificationManager:
     BLOCKING = 1
     NONBLOCKING = 0
     
+    SYSTEM_CLIENT = 1
+    
     """
     Enumerated error codes
     """

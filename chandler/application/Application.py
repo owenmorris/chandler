@@ -12,6 +12,8 @@ from application.Preferences import Preferences
 from application.SplashScreen import SplashScreen
 from application.URLTree import URLTree
 
+from application.agents.Notifications.NotificationManager import NotificationManager
+
 from persistence import Persistent 
 from persistence.list import PersistentList
 
@@ -137,6 +139,7 @@ class wxApplication (wxApp):
     self.dbroot                   ZODB root object tree
     self.wxMainFrame              active wxChandlerWindow
     self.locale                   locale used for internationalization
+    self.notificationManager      notification manager object
     self.jabberClient             state of jabber client including presence dictionary
     self.repository               the model.persistence.FileRepository instance
     
@@ -177,6 +180,7 @@ class wxApplication (wxApp):
         
         self.jabberClient = None
         self.presenceWindow = None
+        self.notificationManager = NotificationManager()
 
         self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
 

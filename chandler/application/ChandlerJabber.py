@@ -20,6 +20,8 @@ import base64
 
 import xmlstream
 from jabber import *
+from application.agents.Notifications.NotificationManager import NotificationManager
+from application.agents.Notifications.Notification import Notification
 
 import application.Application
 
@@ -64,8 +66,9 @@ class JabberClient:
         # this is used to give a one-time call to the roster after we log in
         self.rosterNotified = false
         
+        self.DeclareNotifications()
         self.ReadAccountFromPreferences()
- 
+         
     # reset the presence state
     def ResetState(self):
         self.presenceStateMap = {}
@@ -91,7 +94,7 @@ class JabberClient:
     def IsConnected(self):
         return self.connection != None
 
-    def IsPresent(self, jabberID):		
+    def IsPresent(self, jabberID):
         presenceState = self.GetPresenceState(jabberID)
         if presenceState == None:
             return false
@@ -115,7 +118,25 @@ class JabberClient:
         self.password = self.application.model.preferences.GetPreferenceValue('chandler/identity/jabberpassword')
         self.name = self.application.model.preferences.GetPreferenceValue('chandler/identity/username')
         self.email = self.application.model.preferences.GetPreferenceValue('chandler/identity/emailaddress')
-                                        
+
+    # define the notifications that we post
+    def DeclareNotifications(self):
+        # presence subscription request
+        description = _("Someone has requested a subscription to your presence.")
+        self.application.notificationManager.DeclareNotification('chandler/im/presence-request', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+
+        # presence changed
+        description = _("Someone's presence state has changed.")
+        self.application.notificationManager.DeclareNotification('chandler/im/presence-changed', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+
+        # instant message arrived
+        description = _("You have received a new instant message.")
+        self.application.notificationManager.DeclareNotification('chandler/im/instant-message-arrived', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        
+        # instant message sent
+        description = _("You have sent a new instant message.")
+        self.application.notificationManager.DeclareNotification('chandler/im/instant-message-sent', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+                                                
     # login to the Jabber server
     def Login(self):
         if self.loggedIn or not self.HasLoginInfo():
@@ -136,14 +157,14 @@ class JabberClient:
         self.connection.jabberclient = self
         self.ResetState()
         
-        if not self.IsRegistered():     
+        if not self.IsRegistered():
             if not self.Register():
                 self.Logout()
                 message = "Couldn't register %s as %s" % (self.name, self.jabberID)
                 wxMessageBox(message)
                 return
         
-        if self.connection.auth(username, self.password, 'Chandler'):	            
+        if self.connection.auth(username, self.password, 'Chandler'):
             self.connection.setPresenceHandler(presenceCallback)
             self.connection.setMessageHandler(messageCallback)
             self.connection.setIqHandler(iqCallback)
@@ -151,15 +172,14 @@ class JabberClient:
     
             self.roster = self.connection.requestRoster()
             self.connection.sendInitPresence()
-            self.loggedIn = TRUE		
+            self.loggedIn = TRUE
 
-            # arrange to get called periodically while we're looged in
+            # arrange to get called periodically while we're logged in
             self.timer = JabberTimer(self)
             self.timer.Start(400)    
         
             # request the roster to gather initial presence state
             self.roster = self.connection.requestRoster()
-            #self.NotifyPresenceChanged(None)
         else:
             wxMessageBox(_("There is an authentication problem. We can't log into the jabber server.  Perhaps your password is incorrect."))
             self.Logout()
@@ -196,7 +216,7 @@ class JabberClient:
     # dump the roster, mainly for debugging
     def DumpRoster(self):
         print "resources ", self.resourceMap
-        
+
         roster = self.connection.requestRoster()
         ids = roster.getJIDs()
         for id in ids:
@@ -232,15 +252,15 @@ class JabberClient:
              if chandlerOnly:
                 if not self.IsChandlerClient(id):
                     continue
-                   
+
              if self.IsPresent(id):
-                 activeIDs.append(id)		
+                 activeIDs.append(id)
              else:
                  inactiveIDs.append(id)
-        
+
         for id in inactiveIDs:
             activeIDs.append(id)
-            
+
         return activeIDs
 
     # GetCompleteID takes a possibly partial jabber id and returns
@@ -248,7 +268,7 @@ class JabberClient:
     def GetCompleteID(self, jabberID):
         if self.roster == None:
             return jabberID
-        
+
         realIDs = self.roster.getJIDs()
         searchID = str(jabberID).lower()
         for realID in realIDs:
@@ -291,7 +311,7 @@ class JabberClient:
     def GetAccessibleViews(self, jabberID):
         strippedID = jabberID.getStripped()
         if self.accessibleViews.has_key(strippedID):
-            return self.accessibleViews[strippedID]	
+            return self.accessibleViews[strippedID]
 
         if not self.IsPresent(jabberID):
             return None
@@ -322,9 +342,9 @@ class JabberClient:
         # get the dictionary containing the accessible views
         views = self.application.GetAccessibleViews(requestJabberID)
         # encode the viewList
-        viewStr = self.EncodePythonObject(views)		
+        viewStr = self.EncodePythonObject(views)
                 
-        # send it back to the requestor		
+        # send it back to the requestor
         self.SendViewResponse(viewStr, requestJabberID, 'chandler:response-views')
         self.openPeers[requestJabberID] = 1
         
@@ -366,7 +386,7 @@ class JabberClient:
         toAddress = messageElement.getTo()
         subject = messageElement.getSubject()
         
-        xRequest = messageElement.getX()		
+        xRequest = messageElement.getX()
         if xRequest != None:
             if xRequest == 'chandler:request-objects':
                 # the url is in the subject
@@ -385,10 +405,10 @@ class JabberClient:
                 return
             elif xRequest == 'chandler:request-views':
                 self.HandleViewRequest(fromAddress)
-                return	
+                return
             elif xRequest == 'chandler:response-views':
                 self.HandleViewResponse(fromAddress, body)
-                return	
+                return
         
         # it's a mainstream instant message (not one of our structured ones).
         if self.rosterParcel != None:
@@ -503,7 +523,7 @@ class JabberClient:
          
     # encode a Python object into a text string, using cPickle and base64 encoding
     def EncodePythonObject(self, objectToEncode):
-        viewStr = cPickle.dumps(objectToEncode)		
+        viewStr = cPickle.dumps(objectToEncode)
         viewStr = base64.encodestring(viewStr)
         return viewStr
     
@@ -512,7 +532,7 @@ class JabberClient:
         mappedObjectStr = objectStr.encode('ascii')
         mappedObjectStr = self.FixExtraBlanks(mappedObjectStr)
         mappedObjectStr = base64.decodestring(mappedObjectStr)
-        return cPickle.loads(mappedObjectStr)	
+        return cPickle.loads(mappedObjectStr)
     
     # put up a dialog to confirm the subscription request.  If this is called reentrantly,
     # ignore subsequent requests
@@ -539,8 +559,12 @@ class JabberClient:
         self.confirmDialog = None
         
                         
-    # notify the presence panel that presence has changed   
+    # post a notification that the presence state has changed
     def NotifyPresenceChanged(self, who):
+        presenceChangedNotification = Notification("chandler/im/presence-changed","whoType", None)
+        presenceChangedNotification.SetData(who)
+        self.application.notificationManager.PostNotification(presenceChangedNotification)
+        
         app = application.Application.app
         if app.presenceWindow != None:
             app.presenceWindow.PresenceChanged(who)
@@ -597,7 +621,7 @@ class JabberClient:
             wxMessageBox(message)
             return
            
-        # first, add or remove the new item to the roster	
+        # first, add or remove the new item to the roster
         rosterIQ = Iq(type='set')
         query = rosterIQ.setQuery('jabber:iq:roster')
         item = query.insertTag('item')
@@ -609,7 +633,7 @@ class JabberClient:
             item.putAttr('subscription', 'remove')
         self.connection.send(rosterIQ)
             
-        # then send a presence subscription/unsubscribe request	
+        # then send a presence subscription/unsubscribe request
         if subscribeFlag:
             subscribeType = 'subscribe'
         else:
@@ -664,5 +688,5 @@ class JabberTimer(wxTimer):
                 self.jabberClient.rosterNotified = true
            
             # process Jabber events
-            self.jabberClient.connection.process(0)			
+            self.jabberClient.connection.process(0)
         
