@@ -378,13 +378,10 @@
     <redirectTo>dateReceived</redirectTo>
   </Attribute>  
 
-  <Kind itsName="MailMessage">
-    <displayName>Mail Message</displayName>
-    <description>A Mail Message represents any sort of email message, sent or received.</description>
-    <issues>We need another attribute. A boolean attribute to indicate whether this message was an incoming message or outgoing message. (I suspect that we won't want to derive whether something was in or out.  If we base it on headers, the headers could potentially be forged. -Ducky)</issues>
-    <issues>We probably don't want to have both 'hasBeenRead' and 'status'.</issues>
-    <superKinds itemref="content:Note"/>
-    <displayAttribute itemref="mail:subject"/>
+  <Kind itsName="MailMessageAspect">
+    <displayName>Mail Message Aspect</displayName>
+    <description>This is the set of Message-specific attributes.</description>
+    <description>This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated</description>
     <attributes itemref="mail:subject"/>
     <attributes itemref="mail:sentTo"/>
     <attributes itemref="mail:toAddress"/>
@@ -413,6 +410,16 @@
     <attributes itemref="mail:who"/>
     <attributes itemref="mail:about"/>
     <attributes itemref="mail:date"/>
+  </Kind>
+
+  <Kind itsName="MailMessage">
+    <displayName>Mail Message</displayName>
+    <description>A Mail Message represents any sort of email message, sent or received.</description>
+    <issues>We need another attribute. A boolean attribute to indicate whether this message was an incoming message or outgoing message. (I suspect that we won't want to derive whether something was in or out.  If we base it on headers, the headers could potentially be forged. -Ducky)</issues>
+    <issues>We probably don't want to have both 'hasBeenRead' and 'status'.</issues>
+    <superKinds itemref="content:Note"/>
+    <superKinds itemref="mail:MailMessageAspect"/>
+    <displayAttribute itemref="mail:subject"/>
     <classes key="python">osaf.contentmodel.mail.Mail.MailMessage</classes>
   </Kind>
 

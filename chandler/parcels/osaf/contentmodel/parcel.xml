@@ -10,6 +10,9 @@
              itsName="contentmodel"
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
+             xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
+             xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
+             xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
              xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:events="http://osafoundation.org/parcels/osaf/framework/notifications/schema"
              xmlns="http://osafoundation.org/parcels/osaf/contentmodel"
@@ -169,7 +172,69 @@
     <core:attributes itemref="timestamp"/>
     <core:attributes itemref="containedInConversation"/>
   </core:Kind>
-  
+
+<!-- Stamped Kinds -->
+
+  <core:Attribute itsName="dueByDate">
+    <core:displayName>Due by Date</core:displayName>
+    <core:description>The date when a Task Event is due.</core:description>
+    <core:type itemref="core:DateTime"/>
+  </core:Attribute>
+
+  <core:Attribute itsName="dueByRecurrence">
+    <core:displayName>Due by Recurrence</core:displayName>
+    <core:description>Recurrence information for a Task Event.</core:description>
+    <cardinality>list</cardinality>
+    <type itemref="calendar:RecurrencePattern"/>
+  </core:Attribute>
+
+  <core:Attribute itsName="dueByTickler">
+    <core:displayName>Due by Tickler</core:displayName>
+    <core:description>The reminder information for a Task Event.</core:description>
+    <cardinality>list</cardinality>
+    <type itemref="calendar:Reminder"/>
+  </core:Attribute>
+
+  <core:Kind itsName="TaskEventExtraAspect">
+    <core:displayName>Task Event Extra Aspect</core:displayName>
+    <core:description>The attributes specific to an item that is both </core:description>
+    <core:description>a task and an event.  This is additional 'due by' information. </core:description>
+    <attributes itemref="dueByDate"/>
+    <attributes itemref="dueByRecurrence"/>
+    <attributes itemref="dueByTickler"/>
+  </core:Kind>
+
+  <core:Kind itsName="MailedTask">
+    <core:description>A Task stamped as a Mail, or vica versa</core:description>
+    <core:superKinds itemref="Note"/>
+    <core:superKinds itemref="mail:MailMessageAspect"/>
+    <core:superKinds itemref="tasks:TaskAspect"/>
+  </core:Kind>
+
+  <core:Kind itsName="MailedEvent">
+    <core:description>An Event stamped as a Mail, or vica versa</core:description>
+    <core:superKinds itemref="Note"/>
+    <core:superKinds itemref="mail:MailMessageAspect"/>
+    <core:superKinds itemref="calendar:CalendarEventAspect"/>
+  </core:Kind>
+
+  <core:Kind itsName="EventTask">
+    <core:description>A Task stamped as an Event, or vica versa</core:description>
+    <core:superKinds itemref="Note"/>
+    <core:superKinds itemref="calendar:CalendarEventAspect"/>
+    <core:superKinds itemref="tasks:TaskAspect"/>
+    <core:superKinds itemref="TaskEventExtraAspect"/>
+  </core:Kind>
+
+  <core:Kind itsName="MailedEventTask">
+    <core:description>A Task stamped as an Event stamped as Mail, in any sequence</core:description>
+    <core:superKinds itemref="Note"/>
+    <core:superKinds itemref="mail:MailMessageAspect"/>
+    <core:superKinds itemref="calendar:CalendarEventAspect"/>
+    <core:superKinds itemref="tasks:TaskAspect"/>
+    <core:superKinds itemref="TaskEventExtraAspect"/>
+  </core:Kind>
+
 <!-- Project -->
 
   <core:Attribute itsName="parentProject">

@@ -100,16 +100,15 @@
     <redirectTo>dueDate</redirectTo>
   </Attribute>  
 
-  <Kind itsName="Task">
-    <displayName>Task</displayName>
-    <issues>Do we want to support the idea of tasks having sub-tasks? If so, then we need to add attributes for 'superTask' and 'subTasks'.</issues>
-    <issues>Task should maybe have a 'Timezone' attribute.</issues>
-    <superKinds itemref="content:Note"/>
+  <Kind itsName="TaskAspect">
+    <displayName>Task Aspect</displayName>
+    <description>This is the set of Task-specific attributes.</description>
+    <description>This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated</description>
 
     <attributes itemref="cal:recurrence"/>
     <attributes itemref="cal:reminders"/>
 
-    <!-- task -->
+    <!-- task-specific attributes -->
     <attributes itemref="tasks:requestor"/>
     <attributes itemref="tasks:requestee"/>
     <attributes itemref="tasks:dependsOn"/>
@@ -120,9 +119,18 @@
     <attributes itemref="tasks:who"/>
     <attributes itemref="tasks:about"/>
     <attributes itemref="tasks:date"/>
+    
+  </Kind>
 
+  <Kind itsName="Task">
+    <displayName>Task</displayName>
+    <issues>Do we want to support the idea of tasks having sub-tasks? If so, then we need to add attributes for 'superTask' and 'subTasks'.</issues>
+    <issues>Task should maybe have a 'Timezone' attribute.</issues>
+    <superKinds itemref="content:Note"/>
+    <superKinds itemref="tasks:TaskAspect"/>
+    
     <classes key="python">osaf.contentmodel.tasks.Task.Task</classes>
-
+    
   </Kind>
 
 </Parcel>
