@@ -38,7 +38,7 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 34
+    VERSION = 35
     """
       PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced

@@ -141,6 +141,7 @@ class wxChandlerWindow(wxFrame):
         EVT_CLOSE(self, self.OnClose)
         EVT_ACTIVATE(self, self.OnActivate)
         EVT_SPLITTER_SASH_POS_CHANGED(self, XRCID('SplitterWindow'), self.OnSplitterSashChanged)
+        EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)
 
     if __debug__:
         def HasDebugMenu(self):
@@ -306,3 +307,12 @@ class wxChandlerWindow(wxFrame):
             self.navigationBar.model.AddURLToHistory(url)
         self.navigationBar.model.SynchronizeView()
         return parcel.GoToURL(remoteaddress, localurl)
+
+    def OnEraseBackground (self, event):
+        """
+          Override OnEraseBackground to avoid erasing background. Instead
+        implement OnDrawBackground to draw/erase the background. This
+        design alternative will eliminate flicker
+        """
+        pass
+

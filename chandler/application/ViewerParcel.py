@@ -54,7 +54,39 @@ class ViewerParcel (Parcel):
             app.model.URLTree.AddURL(instance, instance.displayName)
         
     Install = classmethod (Install)
-    
+
+    def __init__(self):
+        """
+          modulePath is the path to the module, which must exist.
+        """
+        Parcel.__init__(self)
+        module = sys.modules[self.__class__.__module__]
+        self.modulename = os.path.basename (module.__file__)
+        self.modulename = os.path.splitext (self.modulename)[0]
+        self.modulePath = os.sep.join(module.__name__.split("."))  + ".xrc"
+        assert (os.path.exists (self.modulePath))
+        """
+          Go dig the module name out of the XRC, which requires FindResource.
+        """
+        assert hasattr (app.applicationResources, 'FindResource')
+        resources = wxXmlResource(self.modulePath)
+        parcelMenuResourceXRC = resources.FindResource ('ViewerParcelMenu',
+                                                             'wxMenu')
+        assert parcelMenuResourceXRC != None
+        
+        self.displayName = ''
+        node = parcelMenuResourceXRC.GetChildren()
+        while node != None:
+            if node.GetName() == 'label':
+                self.displayName = node.GetChildren().GetContent()
+                break
+            node = menuNode.GetNext()
+        """
+          Make sure we find a label
+        """
+        assert self.displayName != ''
+
+
     def SynchronizeView (self):
         """
           If it isn't in the association we need to construct it and
@@ -62,12 +94,6 @@ class ViewerParcel (Parcel):
         """
         container = app.wxMainFrame.FindWindowByName("ViewerParcel_container")
         if not app.association.has_key(id(self)):
-            module = sys.modules[self.__class__.__module__]
-            modulename = os.path.basename (module.__file__)
-            modulename = os.path.splitext (modulename)[0]
-            path = os.sep.join(module.__name__.split("."))
-            path = path + ".xrc"
-
             """
               ViewerParcels must have a resource file with the same name as 
             the module with an .xrc extension. We'll freeze the 
@@ -75,10 +101,10 @@ class ViewerParcel (Parcel):
             owned by app.wxMainFrame and would otherwise cause it to be 
             temporarily displayed on the screen.
             """
-            assert (os.path.exists (path))
-            resources = wxXmlResource(path)
+            resources = wxXmlResource(self.modulePath)
+            assert (resources)
             app.wxMainFrame.Freeze ()
-            panel = resources.LoadObject(app.wxMainFrame, modulename, "wxPanel")
+            panel = resources.LoadObject(app.wxMainFrame, self.modulename, "wxPanel")
             panel.Show (FALSE)
             app.wxMainFrame.Thaw ()
             assert (panel != None)
@@ -230,12 +256,6 @@ class wxViewerParcel(wxPanel):
         """
         app.wxMainFrame.activeParcel = None
     
-    def GetMenuName(self):
-        """
-          Override to customize your parcel menu name.
-        """
-        return (self.model.displayName)
-
     def UpdateParcelMenus(self):
         """
           Updates menus to reflect parcel menu items other than the viewerParcelMenu.
@@ -289,100 +309,99 @@ class wxViewerParcel(wxPanel):
 
         mainFrameId = id(app.model.mainFrame)
         """
-          While we are running a version of wxPython that doesn't have FindResource, we won't
-          include code to update parcel menu items.
+          We require that there's a mainFrame and that wxWindows exposes FindResource.
         """
-        if app.association.has_key(mainFrameId) and hasattr (app.applicationResources, 'FindResource'):
-            mainFrame = app.association[mainFrameId]
-            menuBar = mainFrame.GetMenuBar()
-            
-            mainMenuResourceXRC = app.applicationResources.FindResource ('MainMenuBar',
-                                                                         'wxMenuBar')
-            assert mainMenuResourceXRC != None
-            
-            mainMenuBar = None
-            """
-              Search sequentially through each of the top level menus looking for
-            matching parcel menus
-            """
-            menuNode = mainMenuResourceXRC.GetChildren()
-            while menuNode != None:
-                assert menuNode.GetName() == 'object'
-                name = menuNode.GetPropVal ('name', '')
-                menuNodeChild = menuNode.GetChildren()
-                label = ''
-                while menuNodeChild != None:
-                    if menuNodeChild.GetName() == 'label':
-                        label = menuNodeChild.GetChildren().GetContent()
-                        break
-                    menuNodeChild = menuNodeChild.GetNext()
+        assert app.association.has_key(mainFrameId) and hasattr (app.applicationResources, 'FindResource')
+        mainFrame = app.association[mainFrameId]
+        menuBar = mainFrame.GetMenuBar()
+        
+        mainMenuResourceXRC = app.applicationResources.FindResource ('MainMenuBar',
+                                                                     'wxMenuBar')
+        assert mainMenuResourceXRC != None
+        
+        mainMenuBar = None
+        """
+          Search sequentially through each of the top level menus looking for
+        matching parcel menus
+        """
+        menuNode = mainMenuResourceXRC.GetChildren()
+        while menuNode != None:
+            assert menuNode.GetName() == 'object'
+            name = menuNode.GetPropVal ('name', '')
+            menuNodeChild = menuNode.GetChildren()
+            label = ''
+            while menuNodeChild != None:
+                if menuNodeChild.GetName() == 'label':
+                    label = menuNodeChild.GetChildren().GetContent()
+                    break
+                menuNodeChild = menuNodeChild.GetNext()
 
-                menuBarIndex = menuBar.FindMenu (_(label))
-                if menuBarIndex != wxNOT_FOUND:
-                    """
-                      Found an application menu that matches an actual menu
-                    """
-                    if mainMenuBar == None:
-                        mainMenuBar = app.applicationResources.LoadMenuBar ("MainMenuBar")
+            menuBarIndex = menuBar.FindMenu (_(label))
+            if menuBarIndex != wxNOT_FOUND:
+                """
+                  Found an application menu that matches an actual menu
+                """
+                if mainMenuBar == None:
+                    mainMenuBar = app.applicationResources.LoadMenuBar ("MainMenuBar")
 
-                    menuIndex = mainMenuBar.FindMenu (_(label))
-                    assert menuIndex != wxNOT_FOUND
-                    """
-                      menu is the application menu that needs to have parcel menuitems
-                      added to it
-                    """
-                    menu = menuBar.GetMenu(menuBarIndex)
-                    source = mainMenuBar.GetMenu(menuIndex)
-                    """
-                      Delete all the items in the menu, then copy all the source
-                    items over to the menu. We do this instead of just replacing
-                    the menu with the source menu, because replacing the help menu
-                    on Macintosh fails (since it's owned by the system and can't
-                    be deleted). Also avoiding the replace eliminates flicker that
-                    is seen in the menubar as it's replaced.
-                    """
-                    for menuItem in menu.GetMenuItems():
-                        menu.DestroyItem(menuItem)
+                menuIndex = mainMenuBar.FindMenu (_(label))
+                assert menuIndex != wxNOT_FOUND
+                """
+                  menu is the application menu that needs to have parcel menuitems
+                  added to it
+                """
+                menu = menuBar.GetMenu(menuBarIndex)
+                source = mainMenuBar.GetMenu(menuIndex)
+                """
+                  Delete all the items in the menu, then copy all the source
+                items over to the menu. We do this instead of just replacing
+                the menu with the source menu, because replacing the help menu
+                on Macintosh fails (since it's owned by the system and can't
+                be deleted). Also avoiding the replace eliminates flicker that
+                is seen in the menubar as it's replaced.
+                """
+                for menuItem in menu.GetMenuItems():
+                    menu.DestroyItem(menuItem)
+                
+                for menuItem in source.GetMenuItems():
+                    menu.AppendItem(source.RemoveItem(menuItem))
                     
-                    for menuItem in source.GetMenuItems():
-                        menu.AppendItem(source.RemoveItem(menuItem))
-                        
-                    ignoreErrors = wxLogNull ()
-                    parcelMenuResourceXRC = self.resources.FindResource (name, 'wxMenu')
-                    del ignoreErrors
+                ignoreErrors = wxLogNull ()
+                parcelMenuResourceXRC = self.resources.FindResource (name, 'wxMenu')
+                del ignoreErrors
 
-                    if parcelMenuResourceXRC != None:
-                        """
-                          Found an parcel menu that matches an actual menu
-                        """
-                        parcelMenu = self.resources.LoadMenu (name)
-                        assert parcelMenu != None
-                        parcelMenuItems = parcelMenu.GetMenuItems()
+                if parcelMenuResourceXRC != None:
+                    """
+                      Found an parcel menu that matches an actual menu
+                    """
+                    parcelMenu = self.resources.LoadMenu (name)
+                    assert parcelMenu != None
+                    parcelMenuItems = parcelMenu.GetMenuItems()
 
-                        menuItemNode = parcelMenuResourceXRC.GetChildren()
-                        menuItemIndex = 0
-                        """
-                          Scan through the parcel's menu inserting items where indicated
-                        """
-                        while menuItemNode != None:
-                            if menuItemNode.GetName() == 'object':
-                                menuItemNodeChild = menuItemNode.GetChildren()
-                                insertAtIndex = menu.GetMenuItemCount()
-                                while menuItemNodeChild != None:
-                                    if menuItemNodeChild.GetName() == 'insertBefore':
-                                        insertAtName = menuItemNodeChild.GetChildren().GetContent()
-                                        index = FindNameReturnIndex (menu, insertAtName)
-                                        if index != wxNOT_FOUND:
-                                            insertAtIndex = index
-                                        break
-                                    menuItemNodeChild = menuItemNodeChild.GetNext()
-                                
-                                menu.InsertItem (insertAtIndex, parcelMenuItems [menuItemIndex])
-                                menuItemIndex += 1
-                            menuItemNode = menuItemNode.GetNext()
-                    
-                menuNode = menuNode.GetNext()
-            mainMenuBar.Destroy()
+                    menuItemNode = parcelMenuResourceXRC.GetChildren()
+                    menuItemIndex = 0
+                    """
+                      Scan through the parcel's menu inserting items where indicated
+                    """
+                    while menuItemNode != None:
+                        if menuItemNode.GetName() == 'object':
+                            menuItemNodeChild = menuItemNode.GetChildren()
+                            insertAtIndex = menu.GetMenuItemCount()
+                            while menuItemNodeChild != None:
+                                if menuItemNodeChild.GetName() == 'insertBefore':
+                                    insertAtName = menuItemNodeChild.GetChildren().GetContent()
+                                    index = FindNameReturnIndex (menu, insertAtName)
+                                    if index != wxNOT_FOUND:
+                                        insertAtIndex = index
+                                    break
+                                menuItemNodeChild = menuItemNodeChild.GetNext()
+                            
+                            menu.InsertItem (insertAtIndex, parcelMenuItems [menuItemIndex])
+                            menuItemIndex += 1
+                        menuItemNode = menuItemNode.GetNext()
+                
+            menuNode = menuNode.GetNext()
+        mainMenuBar.Destroy()
 
     def ReplaceViewParcelMenu(self):
         """
@@ -409,11 +428,11 @@ class wxViewerParcel(wxPanel):
                 if noParcelMenu:
                     menuBar.Insert (menuIndex,
                                     viewerParcelMenu, 
-                                    self.GetMenuName())
+                                    self.model.displayName)
                 else:
                     oldMenu = menuBar.Replace (menuIndex,
                                                viewerParcelMenu, 
-                                               self.GetMenuName())
+                                               self.model.displayName)
                     oldMenu.Destroy()
             else:
                 if not noParcelMenu:
