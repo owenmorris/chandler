@@ -79,6 +79,11 @@ def eventsToVObject(items, cal=None):
             vevent.add('description').value = event.body.getReader().read()
         except AttributeError:
             pass
+        try:
+            vevent.add('valarm').add('trigger').value = \
+              convertToUTC(event.reminderTime) - convertToUTC(event.startTime)
+        except AttributeError:
+            pass
     return cal
 
 class ICalendarFormat(Sharing.ImportExportFormat):
@@ -153,12 +158,11 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             except AttributeError:
                 description = None
 
-            # Commented out because VALARM won't work until vobject is updated
-            #try:
-            #    # FIXME assumes DURATION, not DATE-TIME
-            #    reminderDelta = test[0].trigger[0].value
-            #except AttributeError:
-            #    reminderDelta = None
+            try:
+                # FIXME assumes DURATION, not DATE-TIME
+                reminderDelta = event.valarm[0].trigger[0].value
+            except AttributeError:
+                reminderDelta = None
 
             # RFC2445 allows VEVENTs without DTSTART, but it's hard to guess
             # what that would mean, so we won't catch an exception if there's no
@@ -209,9 +213,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                 if description is not None:
                     eventItem.body = textKind.makeValue(description)
                     
-                # Commented out because VALARM won't work until vobject is updated
-                #if reminderTime is not None:
-                #    eventItem.reminderTime = convertToMX(dt + reminderDelta)
+                if reminderDelta is not None:
+                    eventItem.reminderTime = convertToMX(dt + reminderDelta)
 
                 item.add(eventItem)
                 first = False
@@ -232,5 +235,10 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         
         cal = eventsToVObject(events)
         return cal.serialize()
-        
-        
+
+
+class CalDAVFormat(ICalendarFormat):
+    """Treat multiple events as different resources."""
+    
+    def fileStyle(self):
+        return self.STYLE_DIRECTORY

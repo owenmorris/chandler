@@ -9,6 +9,7 @@ import dateutil.tz
 import StringIO
 import itertools
 import osaf.contentmodel.calendar.Calendar as Calendar
+from osaf.framework.sharing.ICalendar import eventsToVObject
 from repository.item.Query import KindQuery
 
 if not Globals.chandlerDirectory: Globals.chandlerDirectory = '.'
@@ -134,41 +135,11 @@ def importICalendar(cal, rep, parent=None):
             test = getattr(event, 'dtstamp', [])
             if len(test) > 0:
                 newevent.createdOn = convertToMX(test[0].value)
+            test = getattr(event, 'valarm', [])
+            if len(test) > 0:
+                #assume DURATION, not DATE-TIME
+                newevent.reminderTime = convertToMX(dt + test[0].trigger[0].value)
     return True
-
-def eventsToVObject(items, cal=None):
-    """Iterate through items, add to cal, create a new vcalendar if needed.
-
-    Chandler doesn't do recurrence yet, so for now we don't worry
-    about timezones.
-
-    """
-    if cal is None:
-        cal = vobject.iCalendar()
-    for event in items:
-        vevent = cal.add('vevent')
-        vevent.add('uid').value = unicode(event.itsUUID)
-        try:
-            vevent.add('summary').value = event.displayName
-        except AttributeError:
-            pass
-        try:
-            vevent.add('dtstart').value = convertToUTC(event.startTime)
-        except AttributeError:
-            pass
-        try:
-            vevent.add('dtend').value = convertToUTC(event.endTime)
-        except AttributeError:
-            pass
-        try:
-            vevent.add('dtstamp').value = convertToUTC(event.createdOn)
-        except AttributeError:
-            pass
-        try:
-            vevent.add('description').value = event.body.getReader().read()
-        except AttributeError:
-            pass
-    return cal
 
 def importFile(filename, rep):
     success = True
