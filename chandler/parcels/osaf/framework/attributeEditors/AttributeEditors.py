@@ -7,6 +7,8 @@ import application.Globals as Globals
 import os
 import wx
 import mx.DateTime as DateTime
+import osaf.contentmodel.tasks.Task as Task
+import osaf.contentmodel.calendar.Calendar as Calendar
 
 
 class AttributeEditor (object):
@@ -137,6 +139,41 @@ class ContactNameAttributeEditor (StringAttributeEditor):
         return value
 
 
+class StampAttributeEditor (StringAttributeEditor):
+    def Draw (self, dc, rect, item, attributeName, isSelected):
+        imageName = self.GetAttributeValue(item, attributeName)
+        if imageName != '':
+            image = Globals.wxApplication.GetImage(imageName)
+            if image:
+                offscreenBuffer = wx.MemoryDC()
+                offscreenBuffer.SelectObject (image)
+                dc.SetBackgroundMode (wx.SOLID)
+     
+                dc.DrawRectangleRect(rect)
+                width, height = image.GetWidth(), image.GetHeight()
+                if width > rect.width - 2:
+                    width = rect.width - 2
+                if height > rect.height - 2:
+                    height = rect.height - 2
+                    
+                dc.Blit ((rect.x + 1, rect.y + 1),
+                         (width, height), 
+                         offscreenBuffer,
+                         (0, 0),
+                         wx.COPY,
+                         True)
+        else:
+            super (StampAttributeEditor, self).Draw(dc, rect, item, attributeName, isSelected)
+    
+    def GetAttributeValue (self, item, attributeName):
+        if isinstance(item, Calendar.CalendarEventMixin):
+            return 'smKindFilterEvent'
+        elif isinstance(item, Task.TaskMixin):
+            return 'smKindFilterTask'
+        else:
+            return ''
+
+        
 class DefaultAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         return "%s doesn't have a renderer" % item.getAttributeAspect (attributeName, 'type').itsName

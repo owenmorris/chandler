@@ -30,6 +30,7 @@
     <editorString key="EmailAddress" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
     <editorString key="ContactName" value="osaf.framework.attributeEditors.AttributeEditors.ContactNameAttributeEditor"/>
     <editorString key="Contact" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
+    <editorString key="Stamp" value="osaf.framework.attributeEditors.AttributeEditors.StampAttributeEditor"/>
     <editorString key="_default" value="osaf.framework.attributeEditors.AttributeEditors.DefaultAttributeEditor"/>
   </doc:AttributeEditorsKind>
 

@@ -99,15 +99,23 @@
   <Table itsName="MixedTable">
     <contents itemref="view:mixedItemCollection"/>
 
+    <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
+    <columnData>Stamp</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
+    
+    <columnTypes>kind</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
 
-    <columnWidths>270</columnWidths>
+    <columnWidths>20</columnWidths>
+    <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
   </Table>
@@ -123,19 +131,23 @@
   <Table itsName="AllTable">
     <contents itemref="view:allItemCollection"/>
 
+    <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
+    <columnData>Stamp</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
     
+    <columnTypes>kind</columnTypes>
     <columnTypes>attribute</columnTypes>
     <columnTypes>attribute</columnTypes>
     <columnTypes>attribute</columnTypes>
 
-    <columnWidths>270</columnWidths>
+    <columnWidths>20</columnWidths>
+    <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
   </Table>
@@ -150,15 +162,23 @@
   <Table itsName="InTable">
     <contents itemref="view:inItemCollection"/>
 
+    <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
+    <columnData>Stamp</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
+    
+    <columnTypes>kind</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
 
-    <columnWidths>270</columnWidths>
+    <columnWidths>20</columnWidths>
+    <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
   </Table>
@@ -173,15 +193,23 @@
   <Table itsName="OutTable">
     <contents itemref="view:outItemCollection"/>
 
+    <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
+    <columnData>Stamp</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
+    
+    <columnTypes>kind</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
 
-    <columnWidths>270</columnWidths>
+    <columnWidths>20</columnWidths>
+    <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
   </Table>
@@ -199,15 +227,23 @@
   <Table itsName="CalendarTable">
     <contents itemref="view:calendarItemCollection"/>
 
+    <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
+    <columnData>Stamp</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
+    
+    <columnTypes>kind</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
 
-    <columnWidths>270</columnWidths>
+    <columnWidths>20</columnWidths>
+    <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
   </Table>
@@ -216,15 +252,23 @@
   <Table itsName="ContactTable">
     <contents itemref="view:contactItemCollection"/>
 
+    <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
+    <columnData>Stamp</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
+    
+    <columnTypes>kind</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
 
-    <columnWidths>270</columnWidths>
+    <columnWidths>20</columnWidths>
+    <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
   </Table>
@@ -233,15 +277,23 @@
   <Table itsName="NoteTable">
     <contents itemref="view:notesItemCollection"/>
 
+    <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
+    <columnData>Stamp</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
+    
+    <columnTypes>kind</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
 
-    <columnWidths>270</columnWidths>
+    <columnWidths>20</columnWidths>
+    <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
   </Table>
@@ -250,15 +302,23 @@
   <Table itsName="TaskTable">
     <contents itemref="view:taskItemCollection"/>
 
+    <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
+    <columnData>Stamp</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
+    
+    <columnTypes>kind</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
 
-    <columnWidths>270</columnWidths>
+    <columnWidths>20</columnWidths>
+    <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
   </Table>
@@ -267,15 +327,23 @@
   <Table itsName="MailTable">
     <contents itemref="view:mailItemCollection"/>
 
+    <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
+    <columnData>Stamp</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
+    
+    <columnTypes>kind</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
 
-    <columnWidths>270</columnWidths>
+    <columnWidths>20</columnWidths>
+    <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
   </Table>
@@ -291,15 +359,23 @@
   <Table itsName="UntitledTable">
     <contents itemref="view:untitledItemCollection"/>
 
+    <columnHeadings></columnHeadings>
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
+    <columnData>Stamp</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
+    
+    <columnTypes>kind</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
 
-    <columnWidths>270</columnWidths>
+    <columnWidths>20</columnWidths>
+    <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
   </Table>

@@ -248,7 +248,48 @@ class AttributeDelegate (ListDelegate):
             heading = self.blockItem.columnHeadings [column]
         return heading
     
+class SummaryTableDelegate (AttributeDelegate):
+    def GetElementType (self, row, column):
+        """
+          An apparent bug in wxWidgets occurs when there are no items in a table,
+        the Table asks for the type of cell 0,0
+        """
+        try:
+            item = self.blockItem.contents [row]
+        except IndexError:
+            type = "_default"
+        else:
+            columnType = self.blockItem.columnTypes [column]
+            if columnType == 'kind':
+                type = self.blockItem.columnData [column]
+            else:
+                type = super (SummaryTableDelegate, self).GetElementType(row, column)
+        return type
+    
+    def GetElementValue (self, row, column):
+        columnType = self.blockItem.columnTypes[column]
+        if columnType == 'kind':
+            return self.blockItem.contents[row], None
+        else:
+            return super(SummaryTableDelegate, self).GetElementValue(row, column)
+        
+    def SetElementValue (self, row, column, value):
+        columnType = self.blockItem.columnTypes[column]
+        if columnType == 'kind':
+            # @@@ Not yet implemented.  You cannot set the kind value of an
+            # item in the summary table yet.
+            pass
+        else:
+            super(SummaryTableDelegate, self).SetElementValue(row, column)
 
+    def GetColumnHeading (self, column, item):
+        columnType = self.blockItem.columnTypes[column]
+        if columnType == 'kind':
+            return self.blockItem.columnHeadings [column]
+        else:
+            return super(SummaryTableDelegate, self).GetColumnHeading(column, item)
+
+    
 class wxList (DraggableWidget, wx.ListCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxList, self).__init__ (*arguments, **keywords)
@@ -436,7 +477,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
     def OnInit (self):
         elementDelegate = self.blockItem.elementDelegate
         if not elementDelegate:
-            elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate'
+            elementDelegate = 'osaf.framework.blocks.ControlBlocks.SummaryTableDelegate'
         mixinAClass (self, elementDelegate)
         """
           wxTableData handles the callbacks to display the elements of the
