@@ -17,6 +17,7 @@ import repository.item.Query as ItemQuery
 import chandlerdb.util.UUID as UUID
 import email.Utils as Utils
 import re as re
+import repository.item.ItemError as ItemError
 
 from repository.util.Path import Path
 
@@ -88,27 +89,31 @@ class MailParcel(application.Parcel.Parcel):
         """Get the default IMAP Account"""
         imapAccount = Current.Current.get(view, "IMAPAccount")
 
-        assert imapAccount is not None, "No IMAP Account found"
+        if imapAccount is None:
+            return (None, None)
 
-        if imapAccount is not None and hasattr(imapAccount, 'replyToAddress'):
+        if hasattr(imapAccount, 'replyToAddress'):
             replyToAddress = imapAccount.replyToAddress
 
-        assert replyToAddress is not None, "No replyToAddress found for IMAP Account"
+        if replyToAddress is None:
+            return (None, None)
+
         if UUID is not None:
             assert isinstance(UUID.UUID), "The UUID argument must be of type UUID.UUID"
             smtpAccount = view.findUUID(UUID)
 
         else:
             """Get the default SMTP Account"""
+            try:
+                smtpAccount = imapAccount.defaultSMTPAccount
 
-            smtpAccount = imapAccount.defaultSMTPAccount
-
-        assert smtpAccount is not None, "No SMTP Account found"
-
+            except ItemError.NoValueForAttributeError:
+                pass
 
         return(smtpAccount, replyToAddress)
 
     getSMTPAccount = classmethod(getSMTPAccount)
+
 
     def getIMAPAccount(cls, view, UUID=None):
         """
@@ -133,8 +138,6 @@ class MailParcel(application.Parcel.Parcel):
 
         else:
             account = Current.Current.get(view, "IMAPAccount")
-
-        assert account is not None, "No IMAP Account exists in Repository"
 
         return account
 
@@ -368,7 +371,8 @@ class MailMessageMixin(MIMEContainer):
         except AttributeError:
             pass
 
-        self.outgoingMessage() # default to outgoing message
+        #self.outgoingMessage() # default to outgoing message
+        self.isOutbound = True
 
     def getAnyAbout(self):
         """
@@ -750,7 +754,13 @@ class EmailAddress(ContentModel.ContentItem):
         The "me" EmailAddress is whichever entry is the current IMAP default
         address.
         """
-        return MailParcel.getIMAPAccount(view).replyToAddress
+
+        account = MailParcel.getIMAPAccount(view)
+
+        if account is not None:
+            return account.replyToAddress
+
+        return None
 
     getCurrentMeEmailAddress = classmethod(getCurrentMeEmailAddress)
 

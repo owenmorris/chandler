@@ -1620,7 +1620,8 @@ def ensureAccountSetUp(view):
         if not IMAPReady:
             account = Mail.MailParcel.getIMAPAccount(view)
         elif not SMTPReady:
-            account = Mail.MailParcel.getIMAPAccount(view).defaultSMTPAccount
+            """ Returns the defaultSMTPAccount or None"""
+            account = Mail.MailParcel.getSMTPAccount(view)
 
         response = \
           application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(
