@@ -416,7 +416,7 @@ class Item(object):
             return value.get(key, default)
 
         if isinstance(value, list):
-            if len(value) < key:
+            if key < len(value):
                 return value[key]
             else:
                 return default
