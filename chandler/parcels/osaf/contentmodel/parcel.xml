@@ -85,7 +85,7 @@
   <core:Attribute itsName="itemCollectionResults">
     <core:type itemref="ItemCollection"/>
     <core:cardinality>list</core:cardinality>
-    <core:inverseAttribute itemref="ItemCollection/_exclusions"/>
+    <core:inverseAttribute itemref="ItemCollection/_results"/>
   </core:Attribute>
 
   <core:Kind itsName="ContentItem">
@@ -413,6 +413,11 @@
       <initialValue type="core:Boolean" value="True"/>
     </core:Attribute>
 
+    <core:Attribute itsName="indexName">
+      <core:type itemref="core:String"/>
+      <core:initialValue type="core:String">__adhoc__</core:initialValue>
+    </core:Attribute>
+
     <core:Attribute itsName="collectionOwner">
       <core:type itemref="blocks:Block"/>
       <core:cardinality>list</core:cardinality>
@@ -427,6 +432,7 @@
     <core:attributes itemref="ItemCollection/collectionOwner"/>
     <core:attributes itemref="ItemCollection/queryStringStale"/>
     <core:attributes itemref="ItemCollection/resultsStale"/>
+    <core:attributes itemref="ItemCollection/indexName"/>
 
     <!-- redirections -->
     <core:Attribute itsName="who"> 	 
