@@ -363,6 +363,32 @@ class wxApplication (wxApp):
 				accessibleViews.append(view)
 				
 		return accessibleViews
+
+	def GetViewObjects(self, url):
+		"""
+		  request a list of objects from the view specified by a url.
+		  Figure out the appropriate parcel, and let it do the work
+		"""
+		urlPieces = url.split('/')
+		parcel = application.Application.app.model.URLTree.UriExists(urlPieces[0])
+		if parcel != None:
+			return parcel.GetViewObjects(url)
+		
+		# FIXME: should return an error here
+		return []
+	
+	def AddObjectsToView(self, url, objectList):
+		"""
+		  add the passed in objects to the view specified by the url.
+		  Figure out the appropriate parcel, and let it do the work
+		"""
+		urlPieces = url.split('/')
+		parcel = application.Application.app.model.URLTree.UriExists(urlPieces[0])
+		if parcel != None:
+			parcel.AddObjectsToView(url, objectList)
+		else:
+			# FIXME: should return an error here
+			pass
 	
 	# handler for the Show/Hide Presence Window command
 	def TogglePresenceWindow(self, event):

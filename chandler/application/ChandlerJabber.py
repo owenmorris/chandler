@@ -251,7 +251,7 @@ class JabberClient:
         viewStr = string.replace(viewStr, ' ', '--b--')
         
         # send it back to the requestor		
-        self.application.jabberClient.SendShimmerResponse(viewStr, requestJabberID, 'chandler:response-views')
+        self.SendViewResponse(viewStr, requestJabberID, 'chandler:response-views')
         self.openPeers[requestJabberID] = 1
         
     def FixExtraBlanks(self, str):
@@ -259,7 +259,13 @@ class JabberClient:
         result = xmlstream.XMLunescape(result)
         result = string.replace(result, '--b--', ' ')
         return result
-    
+
+    # send a response to a view request back to the initiator
+    def SendViewResponse(self, responseStr, responseAddress, requestType):
+        responseMessage = Message(responseAddress, responseStr)
+        responseMessage.setX(requestType)
+        self.connection.send(responseMessage)
+        
     # handle responses to requests for accessible views
     def HandleViewResponse(self, fromAddress, responseBody):
         mappedResponse = responseBody.encode('ascii')
@@ -278,17 +284,20 @@ class JabberClient:
         
         xRequest = messageElement.getX()		
         if xRequest != None:
-            if xRequest == 'chandler:shimmer-request':
-                self.application.repository.ReceivedRequest(body, fromAddress)
+            if xRequest == 'chandler:request-objects':
+                # the url is in the subject
+                self.HandleObjectRequest(fromAddress, subject)
                 return
-            elif xRequest == 'chandler:shimmer-response':
-                self.application.repository.ReceivedShimmerResponse(body)
+            elif xRequest == 'chandler:receive-objects':
+                # the url is in the subject
+                self.HandleObjectResponse(fromAddress, subject, body, false)
                 return
-            elif xRequest == 'chandler:chandler-response':
-                self.application.repository.ReceivedChandlerResponse(body, fromAddress, FALSE)
+            elif xRequest == 'chandler:receive-objects-done':
+                # the url is in the subject
+                self.HandleObjectResponse(fromAddress, subject, body, true)
                 return
-            elif xRequest == 'chandler:chandler-response-done':
-                self.application.repository.ReceivedChandlerResponse(body, fromAddress, TRUE)
+            elif xRequest == 'chandler:receive-error':
+                self.HandleErrorResponse(fromAddress, body)
                 return
             elif xRequest == 'chandler:request-views':
                 self.HandleViewRequest(fromAddress)
@@ -297,7 +306,7 @@ class JabberClient:
                 self.HandleViewResponse(fromAddress, body)
                 return	
         
-        # it's a main stream instant message (not one of our structured ones.
+        # it's a mainstream instant message (not one of our structured ones).
         # FIXME: eventually, invoke our instant messaging client
         message = _("Message from ") + str(fromAddress) + _(" about ") + str(subject) + ". Cant handle yet..."
         wxMessageBox(message)
@@ -330,23 +339,41 @@ class JabberClient:
         fromAddress = iqElement.getFrom()
         query = iqElement.getQuery()
         error = iqElement.getError()
-                    
+ 
+    # initiate a request of objects from a remote view
+    def RequestRemoteObjects(self, jabberID, url):
+        pass
+    
+    # send a message requesting a list of views that are accessible to this client
     def RequestAccessibleViews(self, jabberID):
         requestMessage = Message(jabberID, 'Requesting accessible views')
         requestMessage.setX('chandler:request-views')
         requestMessage.setSubject('Requesting accessible views')
         self.connection.send(requestMessage)
-        
-    def SendShimmerRequest(self, xmlQuery, jabberID):
-        requestMessage = Message(jabberID, xmlQuery)
-        requestMessage.setX('chandler:shimmer-request')				
-        self.connection.send(requestMessage)
-        
-    def SendShimmerResponse(self, responseStr, senderID, responseType):
-        responseMessage = Message(senderID, responseStr)
-        responseMessage.setX(responseType)				
-        self.connection.send(responseMessage)
-        
+ 
+    # handle receiving a request for objects from a url 
+    def HandleObjectRequest(self, fromAddress, url):
+        pass
+    
+    # handle receiving a reponse to an object request.  The lastFlag
+    # is true when it's the last response to the request, and the url
+    # is the view that should display the objects, which is typically
+    # the one that initiated the request
+    def HandleObjectResponse(self, fromAddress, url, body, lastFlag):
+        pass
+    
+    # handle receiving notification of an error to an object request
+    def HandleErrorResponse(self, fromAddress, body):
+        pass
+    
+    # encode an objectlist into a text string, using cPickle and base64 encoding
+    def EncodeObjectList(self, objectList):
+        return ''
+    
+    # decode an objectlist from a text string, using base65 and cPickle
+    def DecodeObjectList(self, objectList):
+        return []
+    
     # put up a dialog to confirm the subscription request
     def ConfirmSubscription(self, subscriptionType, who):
         message = '%s wishes to %s to your presence information.  Do you approve?' % (who, subscriptionType)

@@ -128,6 +128,23 @@ class ViewerParcel (Parcel):
            this to make their views public or otherwise accessible
         """
         return []
+ 
+    def GetViewObjects(self, url):
+        """
+           return a list of objects from the view specified by the url
+           return the empty list here in the base class; packages override
+           this to do the work.  Eventually, when we've developed the
+           real query mechanism, there work can be done here
+        """
+        return []
+    
+    def AddObjectsToView(self, url, objectList):
+        """
+          add the objects in the passed-in list to the view.
+          We don't do anything here in the base class; parcels
+          override this so they can manage their own objectlist.
+        """
+        pass
     
 class wxViewerParcel(wxPanel):
     def __init__(self):
