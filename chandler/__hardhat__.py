@@ -62,17 +62,14 @@ def build(buildenv):
 
     # Build UUID Extension and install it
     os.chdir(os.path.join("model","util","ext"))
-    if buildenv['version'] == 'debug':
-        python = buildenv['python_d']
-        hardhatlib.executeCommand( buildenv, info['name'],
-         [python, "setup.py", "build", "--debug"], "Building UUID Extension" )
     if buildenv['version'] == 'release':
-        python = buildenv['python']
-        hardhatlib.executeCommand( buildenv, info['name'],
-         [python, "setup.py", "build"], "Building UUID Extension" )
-    hardhatlib.executeCommand( buildenv, info['name'],
-     [python, "setup.py", "install", "--force", "--skip-build"], 
-     "Installing UUID Extension" )
+        hardhatlib.executeCommand(buildenv, info['name'],
+         [buildenv['python'], 'setup.py', 'build', '--build-base=build_release', 'install'],
+         "Building and installing UUIDext release")
+    if buildenv['version'] == 'debug':
+        hardhatlib.executeCommand(buildenv, info['name'],
+         [buildenv['python_d'], 'setup.py', 'build', '--build-base=build_debug', '--debug', 'install', '--force'],
+         "Building and installing UUIDext debug")
     os.chdir("../../..")
 
 
