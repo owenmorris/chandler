@@ -75,14 +75,14 @@
 
     <object class="wxMenuBar" name="MainMenuBar">
         <object class="wxMenu" name="FileMenu">
-            <label>File</label>
+            <label>&amp;File</label>
             <object class="wxMenuItem" name="Quit">
                 <label>Quit</label>
                 <accel>Ctrl+Q</accel>
             </object>
         </object>
         <object class="wxMenu" name="EditMenu">
-            <label>Edit</label>
+            <label>&amp;Edit</label>
             <object class="wxMenuItem" name="Undo">
                 <label>Undo</label>
                 <accel>Ctrl+Z</accel>
@@ -115,7 +115,7 @@
             </object>
         </object>
         <object class="wxMenu" name="ViewMenu">
-            <label>View</label>
+            <label>&amp;View</label>
             <object class="wxMenuItem" name="ShowNavigationBar">
                 <label>Navigation Bar</label>
                 <checkable>1</checkable>
@@ -134,7 +134,7 @@
             </object>
         </object>
         <object class="wxMenu" name="HelpMenu">
-            <label>Help</label>
+            <label>&amp;Help</label>
             <object class="wxMenuItem" name="Help">
                 <label>Chandler Help</label>
             </object>
