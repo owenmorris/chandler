@@ -437,10 +437,13 @@ class IndexContainer(FileContainer):
 
     def getIndexWriter(self):
 
-        return IndexWriter(DbDirectory(self.store.txn,
-                                       self._db, self.store._blocks._db,
-                                       self._flags),
-                           StandardAnalyzer(), False)
+        writer = IndexWriter(DbDirectory(self.store.txn,
+                                         self._db, self.store._blocks._db,
+                                         self._flags),
+                             StandardAnalyzer(), False)
+        writer.setUseCompoundFile(False)
+
+        return writer
 
     def indexDocument(self, indexWriter, reader,
                       uuid, owner, attribute, version):

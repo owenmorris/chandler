@@ -70,7 +70,7 @@ class RepositoryView(object):
 
         return False
 
-    def _createRefDict(self, item, name, otherName, persist, readOnly):
+    def _createRefDict(self, item, name, otherName, persist, readOnly, uuid):
 
         raise NotImplementedError, "%s._createRefDict" %(type(self))
     
@@ -99,7 +99,11 @@ class RepositoryView(object):
         
         self.repository.store.attachView(self)
 
-    def setDirty(self, dirty, attribute):
+    def _setChildren(self, children):
+
+        self._roots = children
+
+    def setDirty(self, dirty):
 
         if dirty:
             self._status |= RepositoryView.CDIRTY
@@ -740,6 +744,54 @@ class RepositoryView(object):
     def getRepositoryView(self):
 
         return self
+
+    def mapChanges(self, callable):
+        """
+        Invoke a callable for every item changed in this view.
+
+        For each item that was changed in this view since it last committed
+        a callable is invoked with the following arguments:
+
+            - the item
+
+            - the item's current version
+
+            - the item's current status bits
+
+            - a list of changed literal attribute names
+
+            - a list of changed references attribute names
+        """
+
+        raise NotImplementedError, "%s.mapChanges" %(type(self))
+    
+    def mapHistory(self, callable, fromVersion=0, toVersion=0):
+        """
+        Invoke a callable for every committed item change in other views.
+
+        For each item in this view that was changed and committed in other
+        a callable is invoked with the following arguments:
+
+            - the item as it is in this view
+
+            - the item's committed version for the change
+
+            - the item's committed status bits for the change
+
+            - a list of changed literal attribute names
+
+            - a list of changed references attribute names
+
+        @param fromVersion: the version to start iterating changes from, the
+        current version by default.
+        @type fromVersion: integer
+        @param fromVersion: the version to continue iterating changes to, the
+        latest committed version by default.
+        @type fromVersion: integer
+        """
+
+        raise NotImplementedError, "%s.mapHistory" %(type(self))
+        
 
     itsUUID = property(__getUUID)
     itsName = property(__getName)

@@ -68,7 +68,7 @@ class Item(object):
         if kind is not None:
             kind.getInitialValues(self, self._values, self._references)
 
-        self.setDirty(Item.NDIRTY, None)
+        self.setDirty(Item.NDIRTY)
 
     def _fillItem(self, name, parent, kind, **kwds):
 
@@ -127,6 +127,8 @@ class Item(object):
             status = ' (deleted)'
         elif self._status & Item.STALE:
             status = ' (stale)'
+        elif self._status & Item.NEW:
+            status = ' (new)'
         else:
             status = ''
 
@@ -639,7 +641,7 @@ class Item(object):
                 raise TypeError, (type(value), value)
 
         if dirty is not None:
-            self.setDirty(dirty, name)
+            self.setDirty(dirty, name, _attrDict, True)
 
     def hasChild(self, name, load=True):
         """
@@ -1329,7 +1331,7 @@ class Item(object):
 
         return self._status & Item.DIRTY
 
-    def setDirty(self, dirty, attribute, attrDict=None):
+    def setDirty(self, dirty, attribute=None, attrDict=None, noMonitors=False):
         """
         Mark this item to get committed with the current transaction.
 
@@ -1356,11 +1358,12 @@ class Item(object):
 
         if dirty:
 
-            if attrDict is not None:
+            if dirty & Item.VRDIRTY:
                 assert attribute is not None
                 assert attrDict is not None
                 attrDict._setDirty(attribute)
-                self._invokeMonitors(attribute, attrDict)
+                if not noMonitors:                
+                    self._invokeMonitors(attribute, attrDict)
                 
             self._lastAccess = Item._countAccess()
             if self._status & Item.DIRTY == 0:
@@ -1468,7 +1471,7 @@ class Item(object):
         item._values._copy(self._values, copyPolicy, copyFn)
         item._references._copy(self._references, copyPolicy, copyFn)
         item._status &= ~Item.NODIRTY
-        item.setDirty(Item.DIRTY, None)
+        item.setDirty(Item.NDIRTY)
         
         if hasattr(cls, 'onItemCopy'):
             item.onItemCopy(self)
@@ -1499,7 +1502,7 @@ class Item(object):
             if not recursive and self.hasChildren():
                 raise ValueError, 'item %s has children, delete must be recursive' %(self)
 
-            self.setDirty(Item.DIRTY, None)
+            self.setDirty(Item.NDIRTY)
             self._status |= Item.DELETING
             others = []
 
@@ -1645,7 +1648,7 @@ class Item(object):
     def __setKind(self, kind):
 
         if kind is not self._kind:
-            self.setDirty(Item.DIRTY, None)
+            self.setDirty(Item.NDIRTY)
 
             if self._kind is not None:
                 if kind is None:
@@ -1847,7 +1850,7 @@ class Item(object):
             self._name = name
             children.setAlias(self._uuid, name)
 
-            self.setDirty(Item.NDIRTY, None)
+            self.setDirty(Item.NDIRTY)
                 
     def move(self, newParent, previous=None, next=None):
         """
@@ -1878,7 +1881,7 @@ class Item(object):
             oldView = parent.getRepositoryView()
             parent._removeItem(self)
             self._setParent(newParent, previous, next, oldView)
-            self.setDirty(Item.NDIRTY, None)
+            self.setDirty(Item.NDIRTY)
 
     def _isRepository(self):
         return False
@@ -1916,6 +1919,10 @@ class Item(object):
     def _removeItem(self, item):
 
         del self._children[item._uuid]
+
+    def _setChildren(self, children):
+
+        self._children = children
 
     def getItemChild(self, name, load=True):
         """
@@ -2321,7 +2328,7 @@ class Item(object):
             persist = self.getAttributeAspect(name, 'persist', default=True)
 
         return self.getRepositoryView()._createRefDict(self, name, otherName,
-                                                       persist, False)
+                                                       persist, False, None)
 
     def _countAccess(cls):
 
@@ -2454,19 +2461,23 @@ class Children(LinkedMap):
     def __init__(self, item):
 
         super(Children, self).__init__()
-        self._item = item
+
+        self._item = None
+        self._setItem(item)
 
     def _setItem(self, item):
 
-        assert item._uuid == self._item._uuid
-        self._item = item
+        if self._item is not None:
+            assert item._uuid == self._item._uuid
 
-        for link in self._itervalues():
-            link._value._parent = item
+            for link in self._itervalues():
+                link._value._parent = item
+
+        self._item = item
         
     def linkChanged(self, link, key):
 
-        self._item.setDirty(Item.CDIRTY, None)
+        self._item.setDirty(Item.CDIRTY)
 
     def _unloadChild(self, child):
 

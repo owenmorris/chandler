@@ -115,20 +115,13 @@ class ItemHandler(ContentHandler):
                     self.repository.logger.warning("Warning, 'dict' cardinality for reference attribute %s on %s is deprecated, use 'list' instead", name, self.name or self.uuid)
 
                 otherName = self.getOtherName(name, attribute, attrs)
+                if 'uuid' in attrs:
+                    uuid = UUID(attrs['uuid'])
+                else:
+                    uuid = None
                 refDict = self.repository._createRefDict(None, name, otherName,
-                                                         True, readOnly)
+                                                         True, readOnly, uuid)
                 
-                if attrs.has_key('first'):
-                    firstKey = self.makeValue(attrs.get('firstType', 'str'),
-                                              attrs['first'])
-                    refDict._firstKey = firstKey
-                if attrs.has_key('last'):
-                    lastKey = self.makeValue(attrs.get('lastType', 'str'),
-                                             attrs['last'])
-                    refDict._lastKey = lastKey
-                if attrs.has_key('count'):
-                    refDict._count = int(attrs['count'])
-
                 self.collections.append(refDict)
 
     def itemStart(self, itemHandler, attrs):
@@ -308,14 +301,6 @@ class ItemHandler(ContentHandler):
             self.references[attrs['name']] = value
             if value._indexes and self.afterLoadHooks is not None:
                 self.afterLoadHooks.append(value._restoreIndexes)
-
-    def dbEnd(self, itemHandler, attrs):
-            
-        if not self.collections:
-            raise ValueError, self.tagAttrs[-1]['name']
-
-        refDict = self.collections[-1]
-        refDict._prepareBuffers(self.uuid, UUID(self.data))
 
     def indexEnd(self, itemHandler, attrs):
 

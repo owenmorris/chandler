@@ -78,9 +78,11 @@ class Values(dict):
     def _setFlag(self, key, flag):
 
         try:
-            self._flags[key] = self._flags.get(key, 0) | flag
+            self._flags[key] |= flag
         except AttributeError:
             self._flags = { key: flag }
+        except KeyError:
+            self._flags[key] = flag
 
     def _clearFlag(self, key, flag):
 
@@ -113,6 +115,10 @@ class Values(dict):
     def _isMonitored(self, key):
 
         return self._getFlags(key) & Values.MONITORED != 0
+
+    def _isDirty(self, key):
+
+        return self._getFlags(key) & Values.DIRTY != 0
 
     def _setTransient(self, key):
 

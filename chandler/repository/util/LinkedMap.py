@@ -22,6 +22,12 @@ class LinkedMap(dict):
         def __repr__(self):
 
             return "<link: %s>" %(self._value.__repr__())
+
+        def _copy(self, target):
+
+            target._previousKey = self._previousKey
+            target._nextKey = self._nextKey
+            target._alias = self._alias
         
         def _setNext(self, nextKey, key, linkedMap):
 
@@ -68,6 +74,21 @@ class LinkedMap(dict):
         finally:
             if buffer is not None:
                 buffer.close()
+
+    def _copy(self, target):
+
+        super(LinkedMap, target).clear()
+        
+        for key, link in super(LinkedMap, self).iteritems():
+            targetLink = target._makeLink(link._value)
+            link._copy(targetLink)
+            target._insert(key, targetLink)
+
+        target._firstKey = self._firstKey
+        target._lastKey = self._lastKey
+        
+        if self._aliases is not None:
+            target._aliases = self._aliases.copy()
 
     def linkChanged(self, link, key):
         pass

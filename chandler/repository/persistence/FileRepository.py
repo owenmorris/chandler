@@ -52,12 +52,12 @@ class FileRepository(Repository):
 
 class FileRepositoryView(RepositoryView):
 
-    def _createRefDict(self, item, name, otherName, persist):
+    def _createRefDict(self, item, name, otherName, persist, readOnly, uuid):
 
         if persist:
-            return FileRefDict(item, name, otherName)
+            return FileRefDict(item, name, otherName, readOnly)
         else:
-            return TransientRefDict(item, name, otherName)
+            return TransientRefDict(item, name, otherName, readOnly)
     
     def _load(self):
         'Load items from the directory the repository was initialized with.'
@@ -196,4 +196,6 @@ class FileRepositoryView(RepositoryView):
 
 
 class FileRefDict(RefDict):
-    pass
+
+    def _load(self, key):
+        return False

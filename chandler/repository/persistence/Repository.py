@@ -422,6 +422,14 @@ class Repository(object):
         except ValueError:
             return None
 
+    def mapChanges(self, callable):
+
+        self.view.mapChanges(callable)
+
+    def mapHistory(self, callable, fromVersion=0, toVersion=0):
+
+        self.view.mapHistory(callable, fromVersion, toVersion)
+
     def isDebug(self):
 
         return self.logger.getEffectiveLevel() <= logging.DEBUG

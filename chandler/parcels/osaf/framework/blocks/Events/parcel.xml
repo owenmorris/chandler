@@ -43,6 +43,8 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:GenerateNotes"/>
     <subscribeAlwaysEvents itemref="events:GenerateCalendarEventItems"/>    
     <subscribeAlwaysEvents itemref="events:CheckRepository"/>
+    <subscribeAlwaysEvents itemref="events:ShowViewChanges"/>
+    <subscribeAlwaysEvents itemref="events:ShowRepositoryHistory"/>
     <subscribeAlwaysEvents itemref="events:ShowPyCrust"/>
     <subscribeAlwaysEvents itemref="events:ReloadParcels"/>
     <subscribeAlwaysEvents itemref="events:CommitRepository"/>
@@ -160,6 +162,14 @@ of a limitation of the XML format, which will be eliminated</description>
   </BlockEvent>
 
   <BlockEvent itsName="CheckRepository">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="ShowViewChanges">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="ShowRepositoryHistory">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 

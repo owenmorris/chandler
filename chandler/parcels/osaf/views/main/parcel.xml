@@ -293,6 +293,8 @@
     <childrenBlocks itemref="doc:ResendSharingInvitations"/>
     <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
+    <childrenBlocks itemref="doc:ShowViewChanges"/>
+    <childrenBlocks itemref="doc:ShowRepositoryHistory"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
     <childrenBlocks itemref="doc:ReloadParcelsItem"/>
     <childrenBlocks itemref="doc:CommitRepositoryItem"/>
@@ -806,6 +808,20 @@
     <title>Check Repository</title>
     <event itemref="events:CheckRepository"/>
     <helpString>run check() on the current view</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="ShowViewChanges">
+    <blockName>ShowViewChanges</blockName>
+    <title>Show View Changes</title>
+    <event itemref="events:ShowViewChanges"/>
+    <helpString>show the items changed in the current view</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="ShowRepositoryHistory">
+    <blockName>ShowRepositoryHistory</blockName>
+    <title>Show Repository History</title>
+    <event itemref="events:ShowRepositoryHistory"/>
+    <helpString>show the items that were changed and committed in other views since the current view's last commit</helpString>
   </MenuItem>
 
   <MenuItem itsName="ShowPyCrustItem">

@@ -103,14 +103,15 @@ class ItemRef(object):
 
     def detach(self, item, name, other, otherName):
 
-        old = other.getAttributeValue(otherName, _attrDict=other._references)
+        _attrDict = other._references
+        old = other.getAttributeValue(otherName, _attrDict=_attrDict)
         
         if isinstance(old, RefDict):
             old._removeRef(item._uuid)
-            old._item.setDirty(item.RDIRTY, otherName)
+            other.setDirty(item.RDIRTY, otherName, _attrDict, True)
         else:
             other._removeRef(otherName)
-            other.setDirty(item.VDIRTY, otherName)
+            other.setDirty(item.VDIRTY, otherName, _attrDict, True)
 
     def reattach(self, item, name, old, new, otherName, setDirty=True):
 
@@ -118,7 +119,7 @@ class ItemRef(object):
             self.detach(item, name, old, otherName)
             self.attach(item, name, new, otherName)
             if setDirty:
-                item.setDirty(item.VDIRTY, name, item._values)
+                item.setDirty(item.VDIRTY, name, item._references)
 
     def _unload(self, item):
 
@@ -494,8 +495,9 @@ class RefDict(LinkedMap):
         
         self._name = name
         self._otherName = otherName
-        self._setItem(item)
-        self._count = 0
+        self._item = None
+        if item is not None:
+            self._setItem(item)
         self._readOnly = readOnly
         self._indexes = None
         self._flags = RefDict.SETDIRTY
@@ -524,10 +526,7 @@ class RefDict(LinkedMap):
 
         if self._getFlag(RefDict.SETDIRTY):
             item = self._item
-            if noMonitors:
-                item.setDirty(item.RDIRTY, self._name)
-            else:
-                item.setDirty(item.RDIRTY, self._name, item._references)
+            item.setDirty(item.RDIRTY, self._name, item._references, noMonitors)
 
     def _copy(self, references, item, copyItem, name, policy, copyFn):
 
@@ -551,6 +550,9 @@ class RefDict(LinkedMap):
 
     def _setItem(self, item):
 
+        if self._item is not None and self._item is not item:
+            raise ValueError, 'Item is already set'
+        
         self._item = item
 
     def _getItem(self):
@@ -564,10 +566,6 @@ class RefDict(LinkedMap):
     def _isTransient(self):
 
         return False
-
-    def __len__(self):
-
-        return self._count
 
     def __repr__(self):
 
@@ -767,15 +765,12 @@ class RefDict(LinkedMap):
                     load=True):
 
         loading = self._getRepository().isLoading()
-        if loading:
-            if previousKey is None and nextKey is None:
-                ref = self._loadRef(key)
-                if ref is not None:
-                    previousKey, nextKey, alias = ref
         
         old = super(RefDict, self).get(key, None, load)
         if not loading:
-            self._changeRef(key, None)
+            if old is not None:
+                self.linkChanged(self._get(key), key)
+            self._setDirty(noMonitors=False)
 
         if old is not None:
             item = self._getItem()
@@ -791,7 +786,7 @@ class RefDict(LinkedMap):
                                                          self._name)
                     old.reattach(item, self._name,
                                  old.other(item), value, self._otherName)
-                return old
+                return None   # no value was set, only reattached
 
         if type(value) is not ItemRef:
             value = ItemRef(self._getItem(), self._name,
@@ -801,7 +796,6 @@ class RefDict(LinkedMap):
                                                 previousKey, nextKey, alias)
 
         if not loading:
-            self._count += 1
             if self._indexes:
                 for index in self._indexes.itervalues():
                     index.insertKey(key, link._previousKey)
@@ -851,13 +845,6 @@ class RefDict(LinkedMap):
 
         self._removeRef(key, True)
 
-    def _changeRef(self, key, alias=None, noMonitors=False):
-
-        if self._readOnly:
-            raise AttributeError, 'Value for %s on %s is read-only' %(self._name, self._item.itsPath)
-
-        self._setDirty(noMonitors)
-
     def _removeRef(self, key, _detach=False):
 
         if self._readOnly:
@@ -872,10 +859,7 @@ class RefDict(LinkedMap):
             value.detach(self._item, self._name,
                          value.other(self._item), self._otherName)
 
-        link = super(RefDict, self).__delitem__(key)
-        self._count -= 1
-
-        return link
+        return super(RefDict, self).__delitem__(key)
 
     def _load(self, key):
 
@@ -906,14 +890,13 @@ class RefDict(LinkedMap):
         for link in self._itervalues():
             link._value._unload(item)
 
-    def _loadRef(self, key):
-
-        return None
-
     def linkChanged(self, link, key):
 
+        if self._readOnly:
+            raise AttributeError, 'Value for %s on %s is read-only' %(self._name, self._item.itsPath)
+
         if key is not None:
-            self._changeRef(key, noMonitors=True)
+            self._setDirty(noMonitors=True)
 
     def _getRef(self, key, load=True):
 
@@ -1049,10 +1032,6 @@ class RefDict(LinkedMap):
         if withSchema:
             attrs['cardinality'] = 'list'
             attrs['otherName'] = item._kind.getOtherName(name)
-
-        addAttr(attrs, 'first', self._firstKey)
-        addAttr(attrs, 'last', self._lastKey)
-        attrs['count'] = str(self._count)
 
         generator.startElement('ref', attrs)
         self._xmlValues(generator, version, mode)
@@ -1293,9 +1272,6 @@ class TransientRefDict(RefDict):
     def linkChanged(self, link, key):
         pass
     
-    def _changeRef(self, key, alias=None, noMonitors=False):
-        pass
-
     def check(self, item, name):
         return True
 

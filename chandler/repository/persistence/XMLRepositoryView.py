@@ -20,6 +20,7 @@ from repository.persistence.Repository import Repository
 from repository.persistence.Repository import RepositoryNotifications
 from repository.persistence.XMLLob import XMLText, XMLBinary
 from repository.persistence.XMLRefDict import XMLRefDict, XMLChildren
+from repository.persistence.DBContainer import HashTuple
 from repository.util.SAX import XMLGenerator
 
 timing = False
@@ -61,7 +62,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 del self._deletedRegistry[item.itsUUID]
                 item._status &= ~Item.DELETED
             else:
-                item.setDirty(0, None)
+                item.setDirty(0)
                 item._unloadItem()
 
         for item in self._log:
@@ -73,7 +74,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
         del self._log[:]
         if self.isDirty():
             self._roots._clearDirties()
-            self.setDirty(0, None)
+            self.setDirty(0)
 
         self.prune(10000)
 
@@ -105,10 +106,10 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         return results
 
-    def _createRefDict(self, item, name, otherName, persist, readOnly):
+    def _createRefDict(self, item, name, otherName, persist, readOnly, uuid):
 
         if persist:
-            return XMLRefDict(self, item, name, otherName, readOnly)
+            return XMLRefDict(self, item, name, otherName, readOnly, uuid)
         else:
             return TransientRefDict(item, name, otherName, readOnly)
 
@@ -261,12 +262,12 @@ class XMLRepositoryView(OnDemandRepositoryView):
                     for item in self._log:
                         item._version = newVersion
                         item.setDirty(0, None)
-                        item._status &= ~(Item.NEW | Item.SAVED)
+                        item._status &= ~(Item.NEW | Item.MERGED | Item.SAVED)
                     del self._log[:]
 
                     if self.isDirty():
                         self._roots._clearDirties()
-                        self.setDirty(0, None)
+                        self.setDirty(0)
 
                 after = datetime.now()
 
@@ -329,10 +330,54 @@ class XMLRepositoryView(OnDemandRepositoryView):
                     
         return len(xml)
 
+    def mapChanges(self, callable):
+
+        for item in self._log:
+            if item.isDeleted():
+                callable(item, item._version, item._status, [], [])
+            elif item.isNew():
+                callable(item, item._version, item._status,
+                         item._values.keys(),
+                         item._references.keys())
+            else:
+                callable(item, item._version, item._status,
+                         item._values._getDirties(), 
+                         item._references._getDirties())
+    
+    def mapHistory(self, callable, fromVersion=0, toVersion=0):
+
+        history = self.repository.store._history
+        
+        if fromVersion == 0:
+            fromVersion = self._version
+        if toVersion == 0:
+            toVersion = history.getVersion()
+
+        def call(uuid, version, docId, status, parentId, dirties):
+            item = self.find(uuid)
+            if item is not None:
+                values = []
+                references = []
+                if item._kind is not None:
+                    for name, attr in item._kind.iterAttributes():
+                        if name in dirties:
+                            if item._kind.getOtherName(name) is not None:
+                                references.append(name)
+                            else:
+                                values.append(name)
+                callable(item, version, status, values, references)
+
+        history.apply(call, fromVersion, toVersion)
+
     def _mergeItems(self, history, oldVersion, toVersion,
                     histNotifications, unloads):
 
         merges = {}
+
+        def union(l0, l1):
+            for i in l1:
+                if not i in l0:
+                    l0.append(i)
 
         def check(uuid, version, docId, status, parentId, dirties):
             item = self.find(uuid, False)
@@ -341,9 +386,11 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 if item.isDirty():
                     oldDirty = status & Item.DIRTY
                     if uuid in merges:
-                        merges[uuid] = (merges[uuid][0] | oldDirty, parentId)
+                        od, p, d = merges[uuid]
+                        merges[uuid] = (od | oldDirty, parentId,
+                                        union(d, dirties))
                     else:
-                        merges[uuid] = (oldDirty, parentId)
+                        merges[uuid] = (oldDirty, parentId, list(dirties))
                 else:
                     if item._version < toVersion:
                         unloads[uuid] = item
@@ -355,21 +402,56 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         history.apply(check, oldVersion, toVersion)
 
-        for uuid, (oldDirty, parentId) in merges.iteritems():
+        try:
+            for uuid, (oldDirty, parentId, dirties) in merges.iteritems():
             
-            item = self.find(uuid, False)
-            newDirty = item.getDirty()
+                item = self.find(uuid, False)
+                newDirty = item.getDirty()
 
-            if newDirty & oldDirty & Item.NDIRTY:
-                self._mergeNDIRTY(item, parentId, oldVersion, toVersion)
-                oldDirty &= ~Item.NDIRTY
+                if newDirty & oldDirty & Item.NDIRTY:
+                    self._mergeNDIRTY(item, parentId, oldVersion, toVersion)
+                    oldDirty &= ~Item.NDIRTY
+                    item._status |= Item.MERGED
 
-            if newDirty & oldDirty & Item.CDIRTY:
-                item._children._mergeChanges(oldVersion, toVersion)
-                oldDirty &= ~Item.CDIRTY
+                if newDirty & oldDirty & Item.CDIRTY:
+                    item._children._mergeChanges(oldVersion, toVersion)
+                    oldDirty &= ~Item.CDIRTY
+                    item._status |= Item.MERGED
 
-            if newDirty and oldDirty:
-                raise VersionConflictError, (item, newDirty, oldDirty)
+#                if newDirty & oldDirty & Item.RDIRTY:
+#                    dirties = HashTuple(dirties)
+#                    for name in item._references._getDirties():
+#                        if name in dirties:
+#                            raise VersionConflictError, (item,
+#                                                         newDirty, oldDirty)
+#                    oldDirty &= ~Item.RDIRTY
+#                    item._status |= Item.MERGED
+
+                if newDirty and oldDirty:
+                    raise VersionConflictError, (item, newDirty, oldDirty)
+
+        except VersionConflictError:
+            for uuid in merges.iterkeys():
+
+                item = self.find(uuid, False)
+                status = item._status
+
+                if status & Item.MERGED:
+                    if status & Item.CDIRTY:
+                        item._children._revertMerge()
+                    item._status &= ~Item.MERGED
+
+            raise
+
+        else:
+            for uuid in merges.iterkeys():
+
+                item = self.find(uuid, False)
+                status = item._status
+
+                if status & Item.MERGED:
+                    if status & Item.CDIRTY:
+                        item._children._commitMerge()
 
     def _mergeNDIRTY(self, item, parentId, oldVersion, toVersion):
 

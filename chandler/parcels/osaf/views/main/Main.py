@@ -18,6 +18,7 @@ import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.framework.utils.imports.OutlookContacts as OutlookContacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 from repository.persistence.RepositoryError import VersionConflictError
+from repository.item.Item import Item
 import repository.util.UUID as UUID
 import osaf.framework.sharing.Sharing as Sharing
 import repository.query.Query as Query
@@ -148,6 +149,23 @@ class MainView(View):
             errorMessage = _('Check completed with errors')
             repository.logger.info (errorMessage)
             self.setStatusMessage (errorMessage)
+
+    def _logChange(self, item, version, status, values, references):
+        logger = item.itsView.logger
+        logger.info("%s %d 0x%0.4x\n  values: %s\n  refs: %s",
+                    Item.__repr__(item), version, status, values, references)
+
+    def onShowViewChangesEvent(self, notification):
+        # triggered from "Test | Show View Changes" Menu
+        repository = Globals.repository
+        repository.logger.info("Items changed in %s:", repository.view)
+        Globals.repository.mapChanges(self._logChange)
+
+    def onShowRepositoryHistoryEvent(self, notification):
+        # triggered from "Test | Show Repository History" Menu
+        repository = Globals.repository
+        repository.logger.info("Items changed in %s since last commit:", repository.view)
+        repository.mapHistory(self._logChange)
 
     def onShowPyCrustEvent(self, notification):
         # Test menu item

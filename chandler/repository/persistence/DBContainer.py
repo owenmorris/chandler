@@ -159,6 +159,9 @@ class RefContainer(DBContainer):
         if code == '\2':
             return (1, None)
 
+        if code == '\3':
+            return (5, unpack('>l', value[offset:offset+4])[0])
+
         raise ValueError, code
 
     def _writeValue(self, buffer, value):
@@ -180,6 +183,10 @@ class RefContainer(DBContainer):
 
         elif value is None:
             buffer.write('\2')
+
+        elif isinstance(value, int) or isinstance(value, long):
+            buffer.write('\3')
+            buffer.write(pack('>l', value))
 
         else:
             raise NotImplementedError, "value: %s, type: %s" %(value,
@@ -427,13 +434,6 @@ class HistContainer(DBContainer):
     # has to run within the commit transaction or it may deadlock
     def apply(self, fn, oldVersion, newVersion):
 
-        class hashTuple(tuple):
-            def __contains__(self, name):
-                if isinstance(name, unicode):
-                    name = name.encode('utf-8')
-                hash = UUIDext.hash(name)
-                return super(hashTuple, self).__contains__(hash)
-
         try:
             cursor = self.cursor()
 
@@ -458,13 +458,13 @@ class HistContainer(DBContainer):
                     if status & Item.DELETED:
                         docId, parentId = unpack('>l16s', value)
                         parentId = UUID(parentId)
-                        dirties = ()
+                        dirties = HashTuple()
                     else:
                         docId, parentId = unpack('>l16s', value[0:20])
                         parentId = UUID(parentId)
                         value = value[20:]
                         dirties = unpack('>%dl' %(len(value) >> 2), value)
-                        dirties = hashTuple(dirties)
+                        dirties = HashTuple(dirties)
 
                     fn(UUID(uuid), version, docId, status, parentId, dirties)
 
@@ -884,3 +884,14 @@ class IndexesContainer(DBContainer):
                     cursor.close()
                 if txnStarted:
                     self.store.abortTransaction()
+
+
+class HashTuple(tuple):
+
+    def __contains__(self, name):
+
+        if isinstance(name, unicode):
+            name = name.encode('utf-8')
+            hash = UUIDext.hash(name)
+
+        return super(HashTuple, self).__contains__(hash)
