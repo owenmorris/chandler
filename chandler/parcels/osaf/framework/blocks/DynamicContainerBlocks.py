@@ -506,6 +506,9 @@ class wxToolbar(wx.ToolBar):
         self.toolItems = 0
         
     def wxSynchronizeWidget(self):
+        if self.blockItem.isShown != self.IsShown():
+            self.Show (self.blockItem.isShown)
+            
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
         self.SetToolSeparation(self.blockItem.separatorWidth)
         self.blockItem.synchronizeColor()
@@ -558,7 +561,8 @@ class Toolbar(Block.RectangularChild, DynamicContainer):
         # if there's a color style defined, syncronize the color
         if self.hasAttributeValue("colorStyle"):
             self.colorStyle.synchronizeColor(self)
-        
+
+            
 class ToolbarItem(Block.Block, DynamicChild):
     """
       Under construction

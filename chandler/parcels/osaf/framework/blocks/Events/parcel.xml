@@ -29,7 +29,6 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:Paste"/>
     <subscribeAlwaysEvents itemref="events:Preferences"/>
     <subscribeAlwaysEvents itemref="events:GetNewMail"/>
-    <subscribeAlwaysEvents itemref="events:ViewNavigationBar"/>
     <subscribeAlwaysEvents itemref="events:SelectionChanged"/>
     <subscribeAlwaysEvents itemref="events:EnterPressed"/>
     <subscribeAlwaysEvents itemref="events:GenerateContentItems"/>
@@ -48,6 +47,14 @@ of a limitation of the XML format, which will be eliminated</description>
   <BlockEvent itsName="New">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
+
+  <ModifyContentsEvent itsName="NewItemCollectionItem">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="content:UntitledView"/>
+    <copyItems>True</copyItems>
+  </ModifyContentsEvent>
 
   <BlockEvent itsName="Close">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
@@ -81,20 +88,8 @@ of a limitation of the XML format, which will be eliminated</description>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <ModifyContentsEvent itsName="NewItemCollectionItem">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:Sidebar"/>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:UntitledView"/>
-    <copyItems>True</copyItems>
-  </ModifyContentsEvent>
-
   <BlockEvent itsName="GetNewMail">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="ViewNavigationBar">
-    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="SelectionChanged">

@@ -23,20 +23,6 @@ class NavigationBar(DynamicContainerBlocks.Toolbar):
             self.history = []
             self.future = []
 
-    def onViewNavigationBarEvent(self, notification):
-        self.isShown = not self.isShown
-        self.showOrHideNavigationBar()
-        
-    def showOrHideNavigationBar(self):
-        frame = Globals.wxApplication.mainFrame
-        navigationBar = self.widget
-        if navigationBar.IsShown() != self.isShown:
-            navigationBar.Show(self.isShown)
-            frame.Layout()
-        
-    def onViewNavigationBarEventUpdateUI(self, notification):
-        notification.data['Check'] = self.isShown
-
     def navbarGoBack(self, event):
         self.ensureHistory()
         if len(self.history) > 1:

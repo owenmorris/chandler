@@ -688,6 +688,12 @@ class StatusBar(Block):
         frame.SetStatusBar (widget)
         return widget
 
+    def onShowHideEvent(self, notification):
+        self.isShown = not self.isShown
+        self.synchronizeWidget()
+        Globals.wxApplication.mainFrame.Layout()
+
+
 """
   To use the TreeAndList you must provide a delegate to perform access
 to the data that is displayed. 

@@ -27,7 +27,13 @@
   <BlockEvent itsName="ShowHideSidebar">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onShowHideEvent</methodName>
-    <dispatchToBlock itemref="doc:Sidebar"/>
+    <dispatchToBlock itemref="doc:SidebarBoxContainer"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="ShowHideNavigationBar">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onShowHideEvent</methodName>
+    <dispatchToBlock itemref="doc:NavigationBar"/>
   </BlockEvent>
 
   <BlockEvent itsName="ShowHideStatusBar">
@@ -372,7 +378,7 @@
     <title>View Navigation Bar</title>
     <location>ViewMenu</location>
     <menuItemKind>Check</menuItemKind>
-    <event itemref="events:ViewNavigationBar"/>
+    <event itemref="doc:ShowHideNavigationBar"/>
   </MenuItem>
 
   <MenuItem itsName="ViewStatusBarItem">
@@ -862,6 +868,7 @@
     
     <!-- Block Events -->
     <subscribeWhenVisibleEvents itemref="doc:ShowHideSidebar"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShowHideNavigationBar"/>
     <subscribeWhenVisibleEvents itemref="doc:ShowHideStatusBar"/>
     <subscribeWhenVisibleEvents itemref="doc:AddAllAdditionalViews"/>
     <subscribeWhenVisibleEvents itemref="doc:AddDemoView"/>
