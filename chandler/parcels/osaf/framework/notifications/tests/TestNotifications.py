@@ -85,8 +85,7 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
 
         nm.Subscribe([event], 'thisShouldBeAnUUID', dummyCallback)
 
-        notification = Notification(event, None, None)
-        nm.PostNotification(notification)
+        event.Post(None)
 
         # this will break when notifications are done async
         self.assert_(self.callbackCalled)
