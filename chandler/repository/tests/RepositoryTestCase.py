@@ -13,7 +13,7 @@ from repository.persistence.XMLRepository import XMLRepository
 
 class RepositoryTestCase(TestCase):
 
-    def setUp(self, ramdb=False):
+    def setUp(self, ramdb=True):
         self.ramdb = ramdb
         self.rootdir = os.environ['CHANDLERHOME']
         self.testdir = os.path.join(self.rootdir, 'chandler', 'repository',

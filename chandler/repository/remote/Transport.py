@@ -71,6 +71,12 @@ class Transport(object):
 
         raise TypeError, '%s: unsupported signature char' %(c)
 
+    def parseDoc(self, doc, handler):
+
+        createPushParser(handler, doc, len(doc), "item").parseChunk('', 0, 1)
+        if handler.errorOccurred():
+            raise handler.saxError()
+        
     def getVersionInfo(self):
 
         return self.call('getVersionInfo', 'tui')
@@ -106,12 +112,6 @@ class SOAPTransport(Transport):
     def close(self):
         pass
 
-    def parseDoc(self, doc, handler):
-
-        createPushParser(handler, doc, len(doc), "item").parseChunk('', 0, 1)
-        if handler.errorOccurred():
-            raise handler.saxError()
-        
     def getDocUUID(self, doc):
 
         index = doc.index('uuid=') + 6
@@ -149,6 +149,13 @@ class JabberTransport(Transport, jabber.Client):
 
         self.disconnect()
 
+    def decode(self, returnType, offset, value):
+
+        if value is not None and returnType[offset] == 'x':
+            value = value.encode('utf-8').replace('@', '\n')
+
+        return Transport.decode(self, returnType, offset, value)
+    
     def _call(self, method, *args):
 
         return self._call_('call', method, *args)
@@ -168,6 +175,7 @@ class JabberTransport(Transport, jabber.Client):
             raise ValueError, self.lastErr
 
         xml = response.getQueryPayload()
+
         if xml.name == 'value':
             return "".join(xml.data)
         if xml.name == 'values':
@@ -178,21 +186,6 @@ class JabberTransport(Transport, jabber.Client):
             raise RemoteError, "".join(xml.data)
 
         return xml
-
-    def parseDoc(self, doc, handler):
-
-        def apply(node):
-
-            handler.startElement(node.name, node.attrs)
-            for kid in node.kids:
-                apply(kid)
-            for data in node.data:
-                handler.characters(data)
-            handler.endElement(node.name)
-            
-        handler.startDocument()
-        apply(doc)
-        handler.endDocument()
 
     def getDocUUID(self, doc):
 

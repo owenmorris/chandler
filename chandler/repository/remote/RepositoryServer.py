@@ -146,12 +146,13 @@ class JabberRepositoryServer(RepositoryServer, jabber.Client):
         
         c = signature[0]
 
-        if c == 'd':
-            return value
         if c == 'i':
             return "<value>%s</value>" %(value)
         if c == 't':
             return "<values>%s</values>" %("".join(['<value><![CDATA[%s]]></value>' %(v) for v in value]))
+
+        if c == 'x':
+            value = value.replace('\n', '@')
 
         return "<value><![CDATA[%s]]></value>" %(value)
 

@@ -44,9 +44,16 @@ class UUID(object):
     def __repr__(self):
 
         try:
-            return UUIDext.toString(self._uuid)
-        except AttributeError:
+            return '<UUID: %s>' % UUIDext.toString(self._uuid)
+        except Exception:
             return super(UUID, self).__repr__()
+
+    def __str__(self):
+
+        try:
+            return UUIDext.toString(self._uuid)
+        except Exception:
+            return super(UUID, self).__str__()
 
     def __hash__(self):
 
