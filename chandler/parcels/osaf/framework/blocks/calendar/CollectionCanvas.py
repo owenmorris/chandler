@@ -351,7 +351,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
     def DrawClippedText(self, dc, word, x, y, maxWidth):
         # keep shortening the word until it fits
         for i in xrange(len(word), 0, -1):
-            smallWord = word[0:i] + "..."
+            smallWord = word[0:i] # + "..."
             width, height = dc.GetTextExtent(smallWord)
             if width <= maxWidth:
                 dc.DrawText(smallWord, x, y)
