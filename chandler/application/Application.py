@@ -185,7 +185,6 @@ class wxApplication (wxApp):
         """
           Open the repository.
         -create argument forces a new repository.
-        -recover argument runs recovery when opening after a crash.
         Load the Repository after the path has been altered, but before
         the parcels are loaded. 
         """
@@ -196,16 +195,15 @@ class wxApplication (wxApp):
         if '-create' in sys.argv:
             Globals.repository.create()
         else:
-            Globals.repository.open(create=True, recover='-recover' in sys.argv)
+            Globals.repository.open(create=True, recover=True)
 
-        if not Globals.repository.find('//Schema'):
+        if not Globals.repository.find('//Packs/Schema'):
             """
               Bootstrap an empty repository by loading only the stuff that
             can't be loaded in a data parcel.
             """
             Globals.repository.loadPack(os.path.join(Globals.chandlerDirectory,
-                                                     "repository",
-                                                     "packs",
+                                                     "repository", "packs",
                                                      "schema.pack"))
 
         # Load Parcels

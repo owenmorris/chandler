@@ -96,7 +96,8 @@ class XMLRepository(OnDemandRepository):
                     self._env.open(self.dbHome,
                                    DB_RECOVER | DB_CREATE | self.OPEN_FLAGS, 0)
                     after = datetime.now()
-                    print 'opened db with recovery in %s' %(after - before)
+                    self.logger.info('opened db with recovery in %s',
+                                     after - before)
                 else:
                     self._env.open(self.dbHome, self.OPEN_FLAGS, 0)
 
