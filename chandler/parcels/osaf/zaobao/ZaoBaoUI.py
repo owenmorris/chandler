@@ -294,7 +294,7 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
             data = self.getCurrentRSSChannel()
             if data:
                 webbrowser.open(data.getSiteLink())
-                data.setHasNewItems(0)
+                data.setHasNewItems(False)
     
     def onRightDown(self, event):
         """record x,y coordinate of right click to show right click menu later"""
@@ -313,7 +313,7 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
             data = self.getCurrentRSSChannel()
             if data:
                 webbrowser.open(data.getSiteLink())
-                data.setHasNewItems(0)
+                data.setHasNewItems(False)
     
     def deleteIndex(self, index):
         """Deletes the RSS feed represented by the index or row num"""
@@ -484,4 +484,4 @@ class wxZaoBaoItemView(wxHtmlWindow):
     
     def OnLinkClicked(self, linkinfo):
         webbrowser.open(linkinfo.GetHref())
-        if (self.data): self.data.setHasNewItems(0)
+        if (self.data): self.data.setHasNewItems(False)

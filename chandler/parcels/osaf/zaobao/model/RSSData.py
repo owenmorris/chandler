@@ -180,7 +180,7 @@ class RSSChannel(Item):
     def hasNewItems(self):
         return self.isUnread
     
-    def setHasNewItems(self, hasItems, doSave=1):
+    def setHasNewItems(self, hasItems, doSave=True):
        changed = self.isUnread != hasItems
        if changed:
            self.setAttributeValue('isUnread',hasItems)
@@ -237,7 +237,7 @@ class RSSChannel(Item):
             return date.localtime().tuple()
         else: return None
         
-    def update(self, doSave=1):
+    def update(self, doSave=True):
         def diffItems(oldItems, newItems):
             """"Returns a list of items that are in newItems but not in oldItems.
             newItems and oldItems are both lists.
@@ -258,7 +258,7 @@ class RSSChannel(Item):
                 item.delete()
             self.updateChannel(newData)
             self.updateItems(newItems)
-            self.setHasNewItems(1,doSave)
+            self.setHasNewItems(True,doSave)
             if doSave: app.repository.commit()
             return 1
         return None
