@@ -130,22 +130,22 @@ class wxChandlerWindow(wxFrame):
         EVT_ACTIVATE(self, self.OnActivate)
 
     def OnMove(self, event):
-        self.model.size['x'] = event.GetPosition().x
-        self.model.size['y'] = event.GetPosition().y
         """
           Calling Skip causes wxWindows to continue processing the event, which
         will cause the parent class to get a crack at the event.
         """
         event.Skip()
+        self.model.size['x'] = self.GetPosition().x
+        self.model.size['y'] = self.GetPosition().y
 
     def OnSize(self, event):
-        self.model.size['width'] = event.GetSize().x
-        self.model.size['height'] = event.GetSize().y
         """
           Calling Skip causes wxWindows to continue processing the event, which
         will cause the parent class to get a crack at the event.
         """
         event.Skip()
+        self.model.size['width'] = self.GetSize().x
+        self.model.size['height'] = self.GetSize().y
 
     def OnClose(self, event):
         """
@@ -162,15 +162,15 @@ class wxChandlerWindow(wxFrame):
         monitors and various error conditions, like changing monitor size and
         windows off the screen.
         """
-        screenSize = wxDisplaySize ()
+        screenSize = wxClientDisplayRect ()
         """
           If the window isn't on the screen, set it to the default size and
         position.
         """
-        if self.model.size['x'] < 0 or \
-           self.model.size['y'] < 0 or \
-           self.model.size['x'] + self.model.size['width'] > screenSize[0] or \
-           self.model.size['y'] + self.model.size['height'] > screenSize[1]:
+        if self.model.size['x'] < screenSize[0] or \
+           self.model.size['y'] < screenSize[1] or \
+           self.model.size['x'] + self.model.size['width'] > screenSize[2] or \
+           self.model.size['y'] + self.model.size['height'] > screenSize[3]:
             preferences = application.Application.app.model.preferences
             self.SetSize ((preferences.windowSize['width'],
                           preferences.windowSize['height']))
