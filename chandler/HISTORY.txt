@@ -2,6 +2,28 @@
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Milestone 5 (CVS tag CHANDLER_M_05) 2003-08-12
+
+    * CHANDLERDIR environment variable is set when executing external commands
+
+    * Parcels directory is put in sys.path when running unit tests
+
+    * Made the notification manager be persisent.  This means registrations,
+      subscriptions and declarations persist between program launches, but the
+      actual queued notifications do not.
+
+    * Added Location to calendar model
+
+    * Changed names of calendar model attributes
+
+    * Basic unit test for calendar data parcel, works with framework
+
+    * Berkeley DB, DBXML, Pathan, and Xerces-c added to build
+
+    * Python2.3 integrated
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Milestone 4 (CVS tag CHANDLER_M_04) 2003-07-31
 
     * Parcels can now get loaded from an external directory using the PARCELDIR
