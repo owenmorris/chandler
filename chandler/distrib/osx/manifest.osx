@@ -32,6 +32,12 @@ libwx_mac-2.4.0.dylib
 libwx_mac-2.4.0.r
 libwx_mac-2.4.0.rsrc
 
+# Grab DB libraries
+src=release/db/lib
+libdb-4.1.dylib
+src=release/lib
+libxerces-c.23.dylib
+
 # Grab Chandler.py, version.py and LICENSE.txt
 src=Chandler
 dest=Contents/Resources
