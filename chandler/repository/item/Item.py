@@ -1274,7 +1274,7 @@ class Item(object):
 
         return False
 
-    def copy(self, name=None, parent=None, copies=None):
+    def copy(self, name=None, parent=None, copies=None, copyPolicy=None):
         """
         Copy this item.
 
@@ -1288,6 +1288,12 @@ class Item(object):
         @param parent: the parent of the item's copy, the original's parent
         by default
         @type parent: an item
+        @param copies: an optional dictionary keyed on the original item
+        UUIDs that contains all the copies made during the copy
+        @type copies: dict
+        @param copyPolicy: an optional copyPolicy to override the reference
+        attributes copy policies with.
+        @type copyPolicy: a string
         """
 
         if copies is None:
@@ -1305,8 +1311,8 @@ class Item(object):
         item._values = Values(item)
         item._references = References(item)
 
-        item._values._copy(self._values, copies)
-        item._references._copy(self._references, copies)
+        item._values._copy(self._values, copies, copyPolicy)
+        item._references._copy(self._references, copies, copyPolicy)
 
         return item
 

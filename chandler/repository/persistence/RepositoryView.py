@@ -883,7 +883,7 @@ class OnDemandRepositoryView(RepositoryView):
         if len(registry) > size * 1.1:
             heap = [ (item._lastAccess, item._uuid)
                      for item in registry.itervalues()
-                     if not item._status & item.PINNED ]
+                     if not item._status & (item.PINNED | item.DIRTY) ]
             heapq.heapify(heap)
             count = len(heap) - int(size * 0.9)
             self.logger.info('pruning %d items', count)

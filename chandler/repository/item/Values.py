@@ -22,7 +22,7 @@ class Values(dict):
 
         self._item = item
 
-    def _copy(self, orig, copies):
+    def _copy(self, orig, copies, copyPolicy):
 
         item = self._item
 
@@ -138,12 +138,12 @@ class References(Values):
 
         self._item = item
 
-    def _copy(self, orig, copies):
+    def _copy(self, orig, copies, copyPolicy):
 
         item = self._item
         
         for name, value in orig.iteritems():
-            policy = item.getAttributeAspect(name, 'copyPolicy')
+            policy = copyPolicy or item.getAttributeAspect(name, 'copyPolicy')
             if policy == 'copy' or policy == 'cascade':
                 value._copy(self, orig._item, item, name, policy, copies)
 

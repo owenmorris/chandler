@@ -548,10 +548,11 @@ class RefDict(LinkedMap):
         L{resolveAlias} method instead.
         """
 
+        load = not self._item.isNew()
         if isinstance(obj, ItemPackage.Item.Item):
-            return self.has_key(obj._refName(self._name))
+            return self.has_key(obj._refName(self._name), load)
 
-        return self.has_key(obj)
+        return self.has_key(obj, load)
 
     def extend(self, valueList):
         """
@@ -763,6 +764,7 @@ class RefDict(LinkedMap):
 
     def _getRef(self, key, load=True):
 
+        load = load and not self._item.isNew()
         return super(RefDict, self).__getitem__(key, load)
 
     def get(self, key, default=None, load=True):
@@ -782,6 +784,7 @@ class RefDict(LinkedMap):
         @return: an C{Item} instance or C{default}
         """
 
+        load = load and not self._item.isNew()
         value = super(RefDict, self).get(key, default, load)
         if value is not default:
             return value.other(self._item)
@@ -809,19 +812,22 @@ class RefDict(LinkedMap):
             key = self._aliases.get(alias)
             
         if key is None and load:
-            key = self.resolveAlias(alias)
+            key = self.resolveAlias(alias, load)
 
         if key is None:
             return default
             
-        return self[key]
+        return self.get(key, load)
 
-    def resolveAlias(self, alias):
+    def resolveAlias(self, alias, load=True):
         """
         Resolve the alias to its corresponding reference key.
 
         @param alias: the alias to resolve.
         @type alias: a string
+        @param load: if the reference exists but hasn't been loaded yet,
+        this method will return C{None} if this parameter is C{False}.
+        @type load: boolean
         @return: a L{UUID<repository.util.UUID.UUID>} or C{None} if the
         alias does not exist.
         """

@@ -425,14 +425,15 @@ class XMLRefDict(RefDict):
 
         self._getRefs().eraseRef(self._key, key)
 
-    def resolveAlias(self, alias):
+    def resolveAlias(self, alias, load=True):
 
+        load = load and not self._item.isNew()
         key = None
         
         if self._aliases:
             key = self._aliases.get(alias)
 
-        if key is None:
+        if load and key is None:
             view = self.view
             key = view.repository.store.readName(view.version, self._uuid,
                                                  alias)
