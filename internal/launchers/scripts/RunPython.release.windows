@@ -5,5 +5,6 @@ if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
 echo CHANDLERHOME is %CHANDLERHOME%
 echo CHANDLERBIN is %CHANDLERBIN%
 path %CHANDLERBIN%\release\bin
+set PYTHONPATH=%CHANDLERHOME%;%CHANDLERHOME%\parcels
 "%CHANDLERBIN%\release\bin\python.exe" -O %*
 endlocal

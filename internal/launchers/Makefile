@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.4-1
+RELVER=0.4-2
 LAUNCHERS=$(INTERNAL)/launchers
 
 BUILD=build_$(SNAP)
