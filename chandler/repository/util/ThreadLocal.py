@@ -9,9 +9,11 @@ import threading
 
 
 class ThreadLocal(object):
-    """A class using thread local storage for its attributes.
+    """
+    A class using thread local storage for its attributes.
 
-    All attributes on this class have thread local values."""
+    All attributes on this class have thread local values.
+    """
     
     __slots__ = ()
     

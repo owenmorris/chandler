@@ -14,7 +14,7 @@ from bsddb.db import DB_DIRTY_READ, DB_LOCK_WRITE
 from dbxml import XmlDocument, XmlValue
 
 from repository.item.Item import Item, ItemValue
-from repository.item.ItemRef import RefDict, TransientRefDict
+from repository.item.ItemRef import RefDict, TransientRefDict, Values
 from repository.persistence.Repository import Repository, RepositoryError
 from repository.persistence.Repository import VersionConflictError
 from repository.persistence.Repository import OnDemandRepositoryView
@@ -59,6 +59,8 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         del self._log[:]
         self._notRoots.clear()
+
+        self.prune(10000)
 
     def queryItems(self, query, load=True):
 
@@ -155,7 +157,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         env = repository._env
 
         self._notifications.clear()
-
+        histNotifications = None
+        
         before = datetime.now()
         count = len(self._log)
         size = 0L
@@ -165,6 +168,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         while True:
             try:
                 txnStarted = self._startTransaction()
+                unloads = {}
 
                 newVersion = versions.getVersion()
                 if count > 0:
@@ -188,7 +192,37 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 
                     for item in self._log:
                         size += self._saveItem(item, newVersion,
-                                               data, versions, history)
+                                               data, versions, history, ood)
+
+                if newVersion > self.version:
+                    histNotifications = RepositoryNotifications(repository)
+                    
+                    def unload(uuid, version, docId, status, parent):
+
+                        if status & Item.DELETED:
+                            histNotifications.history(uuid, 'deleted',
+                                                      parent=parent)
+                        elif status & Item.NEW:
+                            histNotifications.history(uuid, 'added')
+                        else:
+                            histNotifications.history(uuid, 'changed')
+
+                        item = self._registry.get(uuid)
+                        if (item is not None and
+                            not item._status & Item.SAVED and
+                            item._version < newVersion):
+                            unloads[item._uuid] = item
+
+                    history.apply(unload, self.version, newVersion)
+            
+                if txnStarted:
+                    self._commitTransaction()
+
+                if lock:
+                    env.lock_put(lock)
+                    lock = None
+
+                break
 
             except DBLockDeadlockError:
                 self.logger.info('restarting commit aborted by deadlock')
@@ -210,93 +244,81 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
                 raise
 
-            else:
-                if self._log:
-                    for item in self._log:
-                        item._setSaved(newVersion)
-                    del self._log[:]
+        if self._log:
+            for item in self._log:
+                if not item._status & Item.MERGED:
+                    item._version = newVersion
+                item._status &= ~(Item.NEW | Item.DIRTY |
+                                  Item.MERGED | Item.SAVED)
+            del self._log[:]
 
-                self.logger.debug('refreshing view from version %d to %d',
-                                  self.version, newVersion)
+        if newVersion > self.version:
+            self.logger.debug('refreshing view from version %d to %d',
+                              self.version, newVersion)
+            self.version = newVersion
+            for item in unloads.itervalues():
+                self.logger.debug('unloading version %d of %s',
+                                  item._version, item)
+                item._unloadItem()
+                    
+        self._notRoots.clear()
 
-                if newVersion > self.version:
-                    try:
-                        oldVersion = self.version
-                        self.version = newVersion
-                        notifications = RepositoryNotifications(repository)
-                        
-                        def unload(uuid, version, docId, status, parent):
+        if histNotifications is not None:
+            histNotifications.dispatchHistory()
+        self._notifications.dispatchChanges()
 
-                            if status & Item.DELETED:
-                                notifications.history(uuid, 'deleted',
-                                                      parent=parent)
-                            elif status & Item.NEW:
-                                notifications.history(uuid, 'added')
-                            else:
-                                notifications.history(uuid, 'changed')
+        if count > 0:
+            self.logger.info('%s committed %d items (%ld bytes) in %s',
+                             self, count, size,
+                             datetime.now() - before)
+        self.prune(10000)
 
-                            item = self._registry.get(uuid)
-                            if item is not None and item._version < newVersion:
-                                if self.isDebug():
-                                    self.logger.debug('unloading version %d of %s',
-                                                      item._version,
-                                                      item.getItemPath())
-                                item._unloadItem()
-                            
-                        history.apply(unload, oldVersion, newVersion)
-                        notifications.dispatchHistory()
-                        
-                    except:
-                        if txnStarted:
-                            self._abortTransaction()
-                        raise
-            
-                if txnStarted:
-                    self._commitTransaction()
-
-                if lock:
-                    env.lock_put(lock)
-                    lock = None
-
-                self._notRoots.clear()
-                self._notifications.dispatchChanges()
-
-                if count > 0:
-                    self.logger.info('%s committed %d items (%ld bytes) in %s',
-                                     self, count, size,
-                                     datetime.now() - before)
-                
-                return
-
-    def _saveItem(self, item, newVersion, data, versions, history):
+    def _saveItem(self, item, newVersion, data, versions, history, ood):
 
         uuid = item._uuid
         isNew = item.isNew()
         isDeleted = item.isDeleted()
+        isDebug = self.isDebug()
         
         if isDeleted:
             del self._deletedRegistry[uuid]
             if isNew:
                 return 0
 
-        if self.isDebug():
+        if isDebug:
             self.logger.debug('saving version %d of %s',
                               newVersion, item.getItemPath())
 
+        if uuid in ood:
+            docId, oldDirty, newDirty = ood[uuid]
+            mergeWith = (data.getDocument(docId).getContent(),
+                         oldDirty, newDirty)
+            if isDebug:
+                self.logger.debug('merging %s (%0.4x:%0.4x) with newest version',
+                                  item.getItemPath(), oldDirty, newDirty)
+        else:
+            mergeWith = None
+            
         out = cStringIO.StringIO()
         generator = XMLGenerator(out, 'utf-8')
         generator.startDocument()
-        item._saveItem(generator, newVersion)
+        item._saveItem(generator, newVersion, mergeWith)
         generator.endDocument()
         content = out.getvalue()
         out.close()
+
         size = len(content)
 
         doc = XmlDocument()
         doc.setContent(content)
         if isDeleted:
             doc.setMetaData('', '', 'deleted', XmlValue('True'))
-        docId = data.putDocument(doc)
+
+        try:
+            docId = data.putDocument(doc)
+        except:
+            self.logger.exception("putDocument failed, xml is: %s", content)
+            raise
 
         if isDeleted:
             parent=item.getItemParent().getUUID()
@@ -320,15 +342,19 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         def check(uuid, version, docId, status, parentId):
             item = items.get(uuid)
             if item is not None:
-                if item.getDirty() & status:
+                newDirty = item.getDirty()
+                oldDirty = status & item.DIRTY
+                if newDirty & oldDirty:
                     raise VersionConflictError, item
+                else:
+                    if (newDirty == item.VDIRTY or oldDirty == item.VDIRTY or
+                        newDirty == item.RDIRTY or oldDirty == item.RDIRTY or
+                        newDirty == item.VRDIRTY or oldDirty == item.VRDIRTY):
+                        items[uuid] = (docId, oldDirty, newDirty)
+                    else:
+                        raise NotImplementedError, 'Item %s may be mergeable but this particular merge (0x%x:0x%x) is not implemented yet' %(item.getItemPath(), newDirty, oldDirty)    
 
         history.apply(check, oldVersion, newVersion)
-
-        for item in items.itervalues():
-            self.logger.info('Item %s is out of date but is mergeable',
-                             item.getItemPath())
-        raise NotImplementedError, 'item merging not yet implemented'
 
 
 class XMLRepositoryClientView(XMLRepositoryView):

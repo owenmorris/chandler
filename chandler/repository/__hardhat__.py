@@ -37,7 +37,7 @@ def build(buildenv):
                           '-o api -v -n chandlerdb',
                           '--inheritance listed',
                           '--no-private',
-                          'item', 'schema')
+                          'item', 'schema', 'util')
 
 
 def clean(buildenv):

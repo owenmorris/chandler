@@ -6,39 +6,24 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 class Path(object):
-    '''A path to an item in a repository.
+    """
+    A path to an item in a repository.
 
-    A path can be absolute to a repository in which case it starts with //.
-    A path can be absolute to a repository root in which case it start with /.
-    A path is relative to an item when it doesn't begin with '/' and is used in
-    conjunction with an item, as in an item's find method.'''
+    A path can be absolute to a repository; it then starts with C{//}.
+    A path can be absolute to a repository root; it then starts with C{/}.
+    A path can be relative to an item when it doesn't start with C{/}.
+    """
     
     def __init__(self, *args):
-        '''Construct a path.
+        """
+        Construct a path.
 
-        Any number of arguments are combined to for a list of names, a path.
-        Individual Arguments are split along '/' characters allowing for paths
-        to be constructed from path strings.
-        Ending '/' are stripped.
-        A path can be used as an iterator over its constituent names.'''
+        See L{set} method for more details on path construction.
+        A path can be used as an iterator over its constituent names.
+        """
         
         super(Path, self).__init__()
-        
-        self._names = []
-
-        for arg in args:
-            if arg.startswith('//'):
-                self._names.append('//')
-                arg = arg[2:]
-            elif arg[0] == '/':
-                self._names.append('/')
-                arg = arg[1:]
-
-            if arg.endswith('/'):
-                arg = arg[:-1]
-
-            if not arg == '':
-                self._names.extend(arg.split('/'))
+        self.set(*args)
 
     def __repr__(self):
 
@@ -70,24 +55,77 @@ class Path(object):
         return self._names.__iter__()
 
     def set(self, *args):
+        """
+        Any number of arguments are combined to form a list of names, a path.
+        Individual Arguments are split along C{/} characters allowing for paths
+        to be constructed from path strings.
+        Ending C{/} characters are stripped.
+        """
+        
+        self._names = []
+        for arg in args:
+            if isinstance(arg, Path):
+                self._names.extend(arg._names)
+                continue
+            
+            if arg.startswith('//'):
+                self._names.append('//')
+                arg = arg[2:]
+            elif arg[0] == '/':
+                self._names.append('/')
+                arg = arg[1:]
 
-        self._names[:] = args
+            if arg.endswith('/'):
+                arg = arg[:-1]
+
+            if not arg == '':
+                self._names.extend(arg.split('/'))
 
     def append(self, name):
-        'Extend this path appending name it.'
+        """
+        Add a name to this path.
+
+        C{name} should be a string without C{/} characters.
+
+        @param name: the name to add
+        @type name: a string
+        """
         
         self._names.append(name)
 
     def extend(self, path):
-        'Concatenate two paths. Leading '/' are not stripped.'
+        """
+        Concatenate two paths.
+
+        This path is augmented with C{path}'s names.
+        Leading '/' are not stripped.
+
+        @param path: the path to extend this path with
+        @type path: a C{Path} instance
+        """
 
         self._names.extend(path._names)
 
-    def pop(self, i=-1):
+    def pop(self, index=-1):
+        """
+        Remove a name from this path.
 
-        return self._names.pop(i)
+        @param index: the optional index of the name to rename to remove; by
+        default, the last name is removed.
+        @type index: integer
+        @return: the name removed
+        """
+
+        return self._names.pop(index)
 
     def normalize(self):
+        """
+        Create a normalized path from this path.
+
+        Redundant C{..} and C{.} names are removed.
+
+        @return: a new path instance
+        """
 
         names = []
         for name in self._names:

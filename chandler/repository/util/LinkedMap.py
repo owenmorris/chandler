@@ -132,6 +132,8 @@ class LinkedMap(dict):
 
         if self.has_key(key):
             current = self._get(key)
+            if current._previousKey == afterKey:
+                return
             if current._previousKey is not None:
                 previous = self._get(current._previousKey)
             else:
@@ -201,9 +203,10 @@ class LinkedMap(dict):
     def get(self, key, default=None, load=True):
 
         link = super(LinkedMap, self).get(key, default)
+
         if link is default and load and self._load(key):
             link = super(LinkedMap, self).get(key, default)
-            
+        
         if link is not default:
             return link._value
 

@@ -70,7 +70,6 @@ class DBContainer(object):
         self.store.repository.logger.info('detected deadlock: %d', n)
         
 
-
 class RefContainer(DBContainer):
 
     def loadRef(self, version, key, cursorKey):
@@ -88,41 +87,47 @@ class RefContainer(DBContainer):
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
-                    self._logDL(1)
-                    continue
+                    if txnStarted:
+                        self._logDL(1)
+                        continue
+                    else:
+                        raise
 
-                while value is not None and value[0].startswith(cursorKey):
-                    refVer = ~unpack('>l', value[0][48:52])[0]
+                try:
+                    while value is not None and value[0].startswith(cursorKey):
+                        refVer = ~unpack('>l', value[0][48:52])[0]
                 
-                    if refVer <= version:
-                        value = value[1]
-                        offset = 0
+                        if refVer <= version:
+                            value = value[1]
+                            offset = 0
 
-                        len, uuid = self._readValue(value, offset)
-                        offset += len
+                            len, uuid = self._readValue(value, offset)
+                            offset += len
                     
-                        if uuid is None:
-                            return None
+                            if uuid is None:
+                                return None
+
+                            else:
+                                len, previous = self._readValue(value, offset)
+                                offset += len
+
+                                len, next = self._readValue(value, offset)
+                                offset += len
+
+                                len, alias = self._readValue(value, offset)
+                                offset += len
+
+                                return (key, uuid, previous, next, alias)
 
                         else:
-                            len, previous = self._readValue(value, offset)
-                            offset += len
+                            value = cursor.next()
 
-                            len, next = self._readValue(value, offset)
-                            offset += len
-
-                            len, alias = self._readValue(value, offset)
-                            offset += len
-
-                            return (key, uuid, previous, next, alias)
-
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(2)
+                        continue
                     else:
-                        while True:
-                            try:
-                                value = cursor.next()
-                                break
-                            except DBLockDeadlockError:
-                                self._logDL(2)
+                        raise
 
                 return None
 
@@ -190,74 +195,95 @@ class VerContainer(DBContainer):
 
     def getDocVersion(self, uuid, version=0):
 
-        cursor = None
-        txnStarted = False
-        try:
-            txnStarted = self.store._startTransaction()
-            cursor = self.cursor()
-                
+        while True:
+            txnStarted = False
+            cursor = None
+
             try:
-                key = uuid._uuid
-                value = cursor.set_range(key, flags=DB_DIRTY_READ)
-            except DBNotFoundError:
-                return None
-
-            while True:
-                if value[0].startswith(key):
-                    docVersion = ~unpack('>l', value[0][16:20])[0]
-                    if version == 0 or docVersion <= version:
-                        return docVersion
-                else:
+                txnStarted = self.store._startTransaction()
+                cursor = self.cursor()
+                
+                try:
+                    key = uuid._uuid
+                    value = cursor.set_range(key, flags=DB_DIRTY_READ)
+                except DBNotFoundError:
                     return None
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(6)
+                        continue
+                    else:
+                        raise
 
-                while True:
-                    try:
+                try:
+                    while True:
+                        if value[0].startswith(key):
+                            docVersion = ~unpack('>l', value[0][16:20])[0]
+                            if version == 0 or docVersion <= version:
+                                return docVersion
+                        else:
+                            return None
+
                         value = cursor.next()
-                        break
-                    except DBLockDeadlockError:
-                        self._logDL(4)
 
-        finally:
-            if cursor:
-                cursor.close()
-            if txnStarted:
-                self.store._abortTransaction()
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(4)
+                        continue
+                    else:
+                        raise
+
+            finally:
+                if cursor:
+                    cursor.close()
+                if txnStarted:
+                    self.store._abortTransaction()
 
     def getDocId(self, uuid, version):
 
-        cursor = None
-        txnStarted = False
-        try:
-            txnStarted = self.store._startTransaction()
-            cursor = self.cursor()
+        while True:
+            txnStarted = False
+            cursor = None
 
             try:
-                key = uuid._uuid
-                value = cursor.set_range(key, flags=DB_DIRTY_READ)
-            except DBNotFoundError:
+                txnStarted = self.store._startTransaction()
+                cursor = self.cursor()
+
+                try:
+                    key = uuid._uuid
+                    value = cursor.set_range(key, flags=DB_DIRTY_READ)
+                except DBNotFoundError:
+                    return None
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(7)
+                        continue
+                    else:
+                        raise
+
+                try:
+                    while value is not None and value[0].startswith(key):
+                        docVersion = ~unpack('>l', value[0][16:20])[0]
+
+                        if docVersion <= version:
+                            return unpack('>l', value[1])[0]
+                        
+                        value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(5)
+                        continue
+                    else:
+                        raise
+                        
                 return None
 
-            else:
-                while value is not None and value[0].startswith(key):
-                    docVersion = ~unpack('>l', value[0][16:20])[0]
-
-                    if docVersion <= version:
-                        return unpack('>l', value[1])[0]
-                        
-                    while True:
-                        try:
-                            value = cursor.next()
-                            break
-                        except DBLockDeadlockError:
-                            self._logDL(5)
-                        
-                return None
-
-        finally:
-            if cursor:
-                cursor.close()
-            if txnStarted:
-                self.store._abortTransaction()
+            finally:
+                if cursor:
+                    cursor.close()
+                if txnStarted:
+                    self.store._abortTransaction()
 
     def deleteVersion(self, uuid):
 
@@ -278,15 +304,15 @@ class HistContainer(DBContainer):
     # has to run within the commit transaction
     def apply(self, fn, oldVersion, newVersion):
 
-        cursor = self.cursor()
-
         try:
-            value = cursor.set_range(pack('>l', oldVersion + 1),
-                                     flags=DB_DIRTY_READ)
-        except DBNotFoundError:
-            return
+            cursor = self.cursor()
 
-        try:
+            try:
+                value = cursor.set_range(pack('>l', oldVersion + 1),
+                                         flags=DB_DIRTY_READ)
+            except DBNotFoundError:
+                return
+
             while value is not None:
                 version, uuid = unpack('>l16s', value[0])
                 if version > newVersion:
@@ -301,12 +327,7 @@ class HistContainer(DBContainer):
 
                 fn(UUID(uuid), version, docId, status, parentId)
 
-                while True:
-                    try:
-                        value = cursor.next()
-                        break
-                    except DBLockDeadlockError:
-                        self._logDL(3)
-                        
+                value = cursor.next()
+
         finally:
             cursor.close()

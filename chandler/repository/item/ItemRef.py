@@ -87,7 +87,7 @@ class ItemRef(object):
         else:
             other._removeRef(otherName)
 
-        other.setDirty(attribute=otherName)
+        other.setDirty(attribute=otherName, dirty=item.RDIRTY)
 
     def reattach(self, item, name, old, new, otherName):
 
@@ -96,10 +96,14 @@ class ItemRef(object):
 
     def _unload(self, item):
 
-        if item is self.getItem():
-            self._item = UUIDStub(self.getOther(), item)
-        elif item is self.getOther():
-            self._other = UUIDStub(self.getItem(), item)
+        # using direct compares instead of accessors to avoid re-loading
+        
+        if item is self._item:
+            if self._other._isItem():
+                self._item = UUIDStub(self._other, item)
+        elif item is self._other:
+            if self._item._isItem():
+                self._other = UUIDStub(self._item, item)
         else:
             raise ValueError, "%s doesn't reference %s" %(self, item)
 
@@ -121,13 +125,16 @@ class ItemRef(object):
             other = self.other(item)
         except DanglingRefError, e:
             logger.error('DanglingRefError: %s', e)
+            return False
         except ValueError, e:
             logger.error('ValueError: %s', e)
+            return False
         else:
             if other.isStale():
                 logger.error('Found stale item %s at %s of kind %s',
                              other, other.getItemPath(),
                              other._kind.getItemPath())
+                return False
             else:
                 otherName = item.getAttributeAspect(name, 'otherName',
                                                     default=None)
@@ -137,8 +144,9 @@ class ItemRef(object):
                 if otherOtherName != name:
                     logger.error("otherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s",
                                  item._kind.getItemPath(), name, otherName,
-                                 other._item._kind.getItemPath(), otherName,
+                                 other._kind.getItemPath(), otherName,
                                  otherOtherName)
+                    return False
 
         return True
 
@@ -258,6 +266,10 @@ class ItemStub(Stub):
 
         return other
 
+    def _isItem(self):
+
+        return False
+
 
 class UUIDStub(Stub):
 
@@ -279,6 +291,10 @@ class UUIDStub(Stub):
             raise DanglingRefError, '%s <-> %s' %(self.item, self.uuid)
 
         return other
+    
+    def _isItem(self):
+
+        return False
     
 
 class RefArgs(object):
@@ -658,7 +674,7 @@ class RefDict(LinkedMap):
 
     def _changeRef(self, key):
 
-        self._item.setDirty(attribute=self._name)
+        self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
 
     def _getRef(self, key, load=True):
 
@@ -785,14 +801,17 @@ class RefDict(LinkedMap):
             except DanglingRefError, e:
                 logger.error('DanglingRefError on %s.%s: %s',
                              self._item.getItemPath(), self._name, e)
+                return False
             except KeyError, e:
                 logger.error('KeyError on %s.%s: %s',
                              self._item.getItemPath(), self._name, e)
+                return False
             else:
                 if other.isStale():
                     logger.error('Found stale item %s at %s of kind %s',
                                  other, other.getItemPath(),
                                  other._kind.getItemPath())
+                    return False
                 else:
                     name = other.getAttributeAspect(self._otherName, 'otherName', default=None)
                     if name != self._name:
@@ -801,6 +820,7 @@ class RefDict(LinkedMap):
                                      self._otherName, name,
                                      self._item._kind.getItemPath(),
                                      self._name, self._otherName)
+                        return False
                         
             l -= 1
             key = self.nextKey(key)
@@ -808,6 +828,7 @@ class RefDict(LinkedMap):
         if l != 0:
             logger.error("Iterator on %s.%s doesn't match length (%d left for %d total)",
                          self._item.getItemPath(), self._name, l, len(self))
+            return False
 
         return True
 

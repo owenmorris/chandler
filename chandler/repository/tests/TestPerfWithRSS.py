@@ -10,6 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os, os.path, sys, unittest
 
 from bsddb.db import DBNoSuchFileError
+from repository.util.Path import Path
 from repository.item.Query import KindQuery
 from repository.persistence.XMLRepository import XMLRepository
 import repository.parcel.LoadParcels as LoadParcels
@@ -21,7 +22,7 @@ sys.path.append(os.path.join(_chandlerDir,'Chandler','parcels','OSAF','examples'
 import feedparser
 
 # get all the RSS files in RSS_HOME (repository/tests/data/rssfeeds)
-# You can obtain the files from http://aloha.osafoundation.org/~twl/rssfeeds.tar.gz
+# You can obtain the files from http://aloha.osafoundation.org/~twl/RSSdata/rssfeeds.syndic8.tar.bz2
 RSS_HOME=os.path.join(_chandlerDir,'Chandler','repository','tests','data','rssfeeds/')
 if os.path.exists(RSS_HOME):
     _rssfiles = os.listdir(RSS_HOME)
@@ -29,9 +30,9 @@ else:
     _rssfiles = []
 
 # make them file URL's
-_defaultBlogs = [ "file://"+RSS_HOME+f for f in _rssfiles ]
+_defaultBlogs = [ "%s%s%s" %("file://", RSS_HOME, f) for f in _rssfiles ]
 
-BASE_PATH = '//parcels/OSAF/examples/zaobao'
+BASE_PATH = Path('//parcels/OSAF/examples/zaobao')
 
 class TestPerfWithRSS(unittest.TestCase):
     """ Simple performance tests """
@@ -59,19 +60,23 @@ class TestPerfWithRSS(unittest.TestCase):
         repository = self.rep
 
         itemCount = 0
+        feedCount = 0
         feeds = self.__getFeeds()
 
         if feeds == []:
-            self.rep.logger.info("got 0 feeds")
+            self.rep.logger.info("got no feeds")
             print "If you haven't installed the feed data, you can retreive it from"
             print "http://aloha.osafoundation.org/~twl"
             print "select a tarball, download it, and unpack it in repository/tests/data"
             print "The data will be in a new directory called rssfeeds"
             print "You can now run the tests"
         else:
-            self.rep.logger.info('got %d feeds' %(len(feeds)))
+            self.rep.logger.info('committing %d feeds', len(feeds))
+            self.rep.commit()
+            self.rep.logger.info('committed %d feeds', len(feeds))
 
-        for feed in feeds[:]:
+        for feed in feeds:
+            feed = self.rep.find(feed)
             self.rep.logger.debug(feed.url)
             etag = feed.getAttributeValue('etag', default=None)
             lastModified = feed.getAttributeValue('lastModified', default=None)
@@ -82,44 +87,48 @@ class TestPerfWithRSS(unittest.TestCase):
             try:
                 data = feedparser.parse(feed.url, etag, modified)
                 itemCount += len(data['items'])
+                feedCount += 1
                 feed.Update(data)
                 if commitInsideLoop:
+                    self.rep.logger.info('%0.5d committing %s, %0.6d',
+                                         feedCount, feed.url, itemCount)
                     repository.commit()
-            except Exception, e:
-                self.rep.logger.error("%s in %s" % (e,feed.url))
+            except Exception:
+                self.rep.logger.exception('While processing %s', feed.url)
+                self.rep.cancel()
 
         try:
 #            profiler = hotshot.Profile('/tmp/TestPerfWithRss.stressTest.hotshot')
 #            profiler.runcall(repository.commit)
 #            profiler.close()
             repository.commit()
-        except Exception, e:
-            print e
-            self.rep.logger.error("Final commit:")
+        except Exception:
+            self.rep.logger.exception("Final commit:")
             self.fail()
-        self.rep.logger.info("Processed %d items" % itemCount)
+
+        self.rep.logger.info('Processed %d items', itemCount)
         self.assert_(True)
         
     def __getFeeds(self):
         """Return a list of channel items"""
         repository = self.rep
-        chanKind = repository.find(BASE_PATH + '/RSSChannel')
+        chanKind = repository.find(Path(BASE_PATH, 'RSSChannel'))
 
         feeds = []
         parent = repository.find(BASE_PATH)
 
         for url in _defaultBlogs:
             urlhash = str(hash(url))
-            item = repository.find(BASE_PATH + '/' + urlhash)
+            item = repository.find(Path(BASE_PATH, urlhash))
             if not item:
                 item = chanKind.newItem(urlhash, parent)
                 item.url = url
-            feeds.append(item)
+            feeds.append(item.getUUID())
 
         return feeds
 
-    def testCommitAtEnd(self):
-        self._stressTest()
+#    def testCommitAtEnd(self):
+#        self._stressTest()
 
     def testCommitInsideLoop(self):
         self._stressTest(True)
@@ -129,13 +138,13 @@ class TestPerfWithRSS(unittest.TestCase):
         for i in items:
             assert(i.getItemName() is not None)
 
-    def testReadBackRSS(self):
-        self._stressTest()
-        self.rep.close()
-        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
-        self.rep.open()
-        RSSItem = self.rep.find('//parcels/OSAF/examples/zaobao/RSSItem')
-        self._readItems(RSSItem.kind)
+#    def testReadBackRSS(self):
+#        self._stressTest()
+#        self.rep.close()
+#        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
+#        self.rep.open()
+#        RSSItem = self.rep.find('//parcels/OSAF/examples/zaobao/RSSItem')
+#        self._readItems(RSSItem.kind)
 #        profiler = hotshot.Profile('/tmp/TestPerfWithRss.readBack.hotshot')
 #        profiler.runcall(TestPerfWithRSS._readItems, self, RSSItem.kind)
 #        profiler.close()

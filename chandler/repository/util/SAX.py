@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from libxml2mod import xmlEncodeSpecialChars as escape
-from libxml2 import SAXCallback
+from libxml2 import SAXCallback, createPushParser
 
 
 class ContentHandler(SAXCallback):
@@ -22,6 +22,10 @@ class XMLGenerator(object):
 
         self.out = out
         self.encoding = encoding
+
+    def write(self, data):
+
+        self.out.write(data)
 
     def startDocument(self):
 
@@ -68,3 +72,76 @@ class XMLGenerator(object):
         self.out.write('<![CDATA[')
         self.out.write(data)
         self.out.write(']]>')
+
+
+class XMLFilter(ContentHandler):
+
+    def __init__(self, generator, *tags):
+
+        self.generator = generator
+        self.tags = tags
+        self.foundTag = 0
+        self.cdata = False
+
+    def output(self):
+
+        raise NotImplementedError, 'XMLFilter.output'
+
+    def parse(self, xml):
+
+        createPushParser(self, xml, len(xml), 'filter').parseChunk('', 0, 1)
+        
+    def endDocument(self):
+
+        if self.cdata:
+            self.generator.write(']]>')
+            self.cdata = False
+
+    def startElement(self, tag, attrs):
+
+        if self.cdata:
+            self.generator.write(']]>')
+            self.cdata = False
+
+        if tag in self.tags:
+            self.foundTag += 1
+        if self.output():
+            self.generator.startElement(tag, attrs)
+
+    def endElement(self, tag):
+
+        if self.output():
+            if self.cdata:
+                self.generator.write(']]>')
+                self.cdata = False
+            self.generator.endElement(tag)
+        if tag in self.tags:
+            self.foundTag -= 1
+
+    def characters(self, data):
+
+        if self.output():
+            self.generator.characters(data)
+
+    def cdataBlock(self, data):
+        
+        if self.output():
+            if not self.cdata:
+                self.generator.write('<![CDATA[')
+                self.cdata = True
+            self.generator.write(data)
+
+class XMLOffFilter(XMLFilter):
+
+    def output(self):
+        return not self.foundTag
+
+class XMLOnFilter(XMLFilter):
+
+    def output(self):
+        return self.foundTag
+
+class XMLThruFilter(XMLFilter):
+
+    def output(self):
+        return True

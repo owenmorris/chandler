@@ -189,6 +189,8 @@ class ConcatenatedInputStream(object):
             else:
                 self._done.append(self._streams.pop(0))
 
+        return ''
+
     def close(self):
 
         for stream in self._streams:

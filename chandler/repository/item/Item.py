@@ -18,6 +18,7 @@ from repository.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 from repository.util.SAX import XMLGenerator
+from repository.util.SAX import XMLOffFilter, XMLOnFilter, XMLThruFilter
 
 
 class Item(object):
@@ -47,6 +48,7 @@ class Item(object):
 
         self._status = Item.NEW
         self._version = 0L
+        self._access = 0L
         self._uuid = UUID()
 
         self._values = Values(self)
@@ -67,6 +69,7 @@ class Item(object):
         self._root = None
         self._status = 0
         self._version = kwds['version']
+        self._access = 0L
 
         kwds['values']._setItem(self)
         self._values = kwds['values']
@@ -97,6 +100,8 @@ class Item(object):
           - C{optional status} is displayed when the item is stale or deleted
           - C{name} is the item's name
           - C{uuid} is the item's UUID
+
+        @return: a string representation of an item.
         """
 
         if self._status & Item.RAW:
@@ -117,6 +122,7 @@ class Item(object):
         This method is called by python when looking up a Chandler attribute.
         @param name: the name of the attribute being accessed.
         @type name: a string
+        @return: an attribute value
         """
 
         return self.getAttributeValue(name)
@@ -129,15 +135,16 @@ class Item(object):
         python attribute and dispatches to the relevant methods.
         @param name: the name of the attribute being set.
         @type name: a string
-        @param value: the value being set.
+        @param value: the value being set
         @type value: anything
+        @return: the value actually set.
         """
 
         if name[0] != '_':
-            if self._values.has_key(name):
+            if name in self._values:
                 return self.setAttributeValue(name, value,
                                               _attrDict=self._values)
-            elif self._references.has_key(name):
+            elif name in self._references:
                 return self.setAttributeValue(name, value,
                                               _attrDict=self._references)
             elif self._kind is not None and self._kind.hasAttribute(name):
@@ -153,11 +160,12 @@ class Item(object):
         python attribute and dispatches to the relevant methods.
         @param name: the name of the attribute being cleared.
         @type name: a string
+        @return: C{None}
         """
 
-        if self._values.has_key(name):
+        if name in self._values:
             self.removeAttributeValue(name, _attrDict=self._values)
-        elif self._references.has_key(name):
+        elif name in self._references:
             self.removeAttributeValue(name, _attrDict=self._references)
         else:
             super(Item, self).__delattr__(name)
@@ -180,12 +188,13 @@ class Item(object):
         """
         Tell whether an attribute as value set for the aspect.
 
-        See the L{getAttributeAspect <getAttributeAspect>} method for
-        more information on attribute aspects.
+        See the L{getAttributeAspect} method for more information on
+        attribute aspects.
         @param name: the name of the attribute being queried
         @type name: a string
         @param aspect: the name of the aspect being queried
         @type aspect: a string
+        @return: C{True} or C{False}
         """
 
         if self._kind is not None:
@@ -264,6 +273,7 @@ class Item(object):
         @param kwds: optional keywords of which only C{default} is
         supported and used to return a default value for an aspect that has
         no set value for this attribute.
+        @return: a value
         """
 
         if self._kind is not None:
@@ -281,12 +291,13 @@ class Item(object):
         assignment syntax is unnecessary.
         @param name: the name of the attribute.
         @type name: a string.
-        @param value: the value to set.
-        @type value: any type as specified by the attribute's C{type} aspect.
+        @param value: the value being set
+        @type value: anything compatible with the attribute's type
+        @return: the value actually set.
         """
 
         self.setDirty(attribute=name)
-
+        
         isItem = isinstance(value, Item)
         isRef = not isItem and (isinstance(value, ItemRef) or
                                 isinstance(value, RefDict))
@@ -390,18 +401,42 @@ class Item(object):
         return value
 
     def getAttributeValue(self, name, _attrDict=None, **kwds):
-        """Return the named Chandler attribute value.
+        """
+        Return a Chandler attribute value.
 
-        If the attribute is not set then attempt to inherit a value if the
-        attribute's inheritFrom aspect is set, attempt to return the value
-        of the optional 'default' keyword passed to this method, attempt to
-        return the value of its defaultValue aspect if set, or finally raise 
-        AttributeError. 
-        Calling this method is only required when there is a name ambiguity
-        between a python and a Chandler attribute, a situation best avoided."""
+        Unless the optional keywords described below are used, calling this
+        method instead of using regular python attribute access syntax is
+        not necessary as python calls this method, via
+        L{__getattr__} when a non Chandler attribute of this name is not
+        found.
+
+        If the attribute has no value set then the following attempts are
+        made at infering one (in this order):
+            1. If the attribute has an C{initialValue} aspect set (see
+               L{getAttributeAspect} for more information on attribute
+               aspects) then this value is set for the attribute and
+               returned.
+            2. If the attribute has an C{inheritFrom} aspect set then the
+               value inherited along C{inheritFrom} is the value returned.
+            3. If the C{default} keyword is passed to this method then its
+               value is returned.
+            4. If the attribute has a C{defaultValue} aspect set then it is
+               returned. If this default value is a collection then it is
+               read-only.
+            5. And finally, if all of the above failed, an C{AttributeError}
+               is raised.
+
+        @param name: the name of the attribute
+        @type name: a string
+        @param kwds: an optional C{default} key/value pair
+        @type kwds: the value for the C{default} keyword can be of any type
+        @return: a value
+        """
 
         if self._status & Item.STALE:
             raise ValueError, "item is stale: %s" %(self)
+
+        self._access = Item._countAccess()
 
         try:
             if (_attrDict is self._values or
@@ -447,7 +482,17 @@ class Item(object):
                                                            name)
 
     def removeAttributeValue(self, name, _attrDict=None):
-        "Remove a Chandler attribute's value."
+        """
+        Remove a value for a Chandler attribute.
+
+        Calling this method instead of using python's C{del} operator is not
+        necessary as python calls this method, via
+        L{__delattr__}.
+
+        @param name: the name of the attribute
+        @type name: a string
+        @return: C{None}
+        """
 
         self.setDirty(attribute=name)
 
@@ -473,6 +518,19 @@ class Item(object):
                 raise ValueError, value
 
     def hasChild(self, name, load=True):
+        """
+        Tell whether this item has a child of that name.
+
+        By setting the optional C{load} argument to C{False}, this method
+        can be restricted to only check among the currently loaded children
+        of this item.
+
+        @param name: the name of the child to verify
+        @type name: a string
+        @param load: whether to check only among loaded children
+        @type load: a boolean, C{True} by default
+        @return: C{True} or C{False}
+        """
 
         return ('_children' in self.__dict__ and
                 not ('_notChildren' in self.__dict__ and
@@ -480,14 +538,28 @@ class Item(object):
                 self._children.has_key(name, load))
 
     def hasChildren(self):
+        """
+        Tell whether this item has any children.
+
+        @return: C{True} or C{False}
+        """
 
         return (self.__dict__.has_key('_children') and
                 self._children._firstKey is not None)
 
     def placeChild(self, child, after):
-        """Place a child after another one in this item's children collection.
+        """
+        Place a child after another one in this item's children collection.
 
-        To place a children in first position, pass None for after."""
+        To place a child in first position, pass C{None} for C{after}.
+        See also L{move} to change this item's parent.
+
+        @param child: the child item to place
+        @type child: an item
+        @param after: the sibling of C{child} to precede it
+        @type after: an item
+        @return: C{None}
+        """
 
         if not (child.getItemParent() is self):
             raise ValueError, '%s not a child of %s' %(child, self)
@@ -503,7 +575,15 @@ class Item(object):
         self._children.place(key, afterKey)
 
     def dir(self, recursive=True):
-        'Print out a listing of each child under this item, recursively.'
+        """
+        Print out a listing of each child under this item.
+
+        By default, this method recurses down children of this item.
+
+        @param recursive: whether to recurse down the children or not
+        @type recursive: a boolean, C{True} by default
+        @return: C{None}
+        """
         
         for child in self:
             print child.getItemPath()
@@ -511,7 +591,20 @@ class Item(object):
                 child.dir(True)
 
     def iterChildren(self, load=True):
+        """
+        Return a python generator used to iterate over the children of this
+        item.
 
+        This method is invoked by python's L{__iter__}, usually
+        from a C{for} loop construct. Optionally, this method can be used to
+        iterate over only the currently loaded children of this item.
+
+        @param load: C{True}, the default, to iterate over all the children
+        of this item. C{False} to iterate over only its currently loaded
+        children items.
+        @type load: boolean
+        """
+        
         if self._status & Item.STALE:
             raise ValueError, "item is stale: %s" %(self)
 
@@ -525,10 +618,17 @@ class Item(object):
                 yield child
 
     def iterAttributes(self, valuesOnly=False, referencesOnly=False):
-        """Get a generator of (name, value) tuples for attributes of this item.
+        """
+        Return a generator of C{(name, value)} tuples for iterating over
+        Chandler attribute values of this item. 
 
-        By setting valuesOnly to True, no item references are returned.
-        By setting referencesOnly to True, only references are returned."""
+        @param valuesOnly: if C{True}, iterate over literal values
+        only. C{False} by default.
+        @type valuesOnly: boolean
+        @param referencesOnly: if C{True}, iterate over item reference
+        values only. C{False} by default.
+        @type referencesOnly: boolean
+        """
 
         if not referencesOnly:
             for attr in self._values.iteritems():
@@ -542,6 +642,23 @@ class Item(object):
                     yield ref
 
     def check(self, recursive=False):
+        """
+        Run consistency checks on this item.
+
+        Currently, this method verifies that:
+            - each literal attribute value is of a type compatible with its
+              C{type} aspect (see L{getAttributeAspect}).
+            - each attribute value is a of a cardinality compatible with its
+              C{cardinality} aspect.
+            - each reference attribute value's endpoints are compatible with
+              each other, that is their C{otherName} aspects match the
+              other's name.
+
+        @param recursive: if C{True}, check this item and its children
+        recursively. If C{False}, the default, check only this item.
+        @return: C{True} if no errors were found, C{False} otherwise. Errors
+        are logged in the Chandler execution log.
+        """
 
         logger = self.getRepository().logger
         result = True
@@ -599,13 +716,28 @@ class Item(object):
         return result
         
     def getValue(self, attribute, key, default=None, _attrDict=None):
-        'Get a value from a multi-valued attribute.'
+        """
+        Return a value from a Chandler collection attribute.
 
-        if _attrDict is None:
-            value = (self._values.get(attribute, Item.Nil) or
-                     self._references.get(attribute, Item.Nil))
-        else:
-            value = _attrDict.get(attribute, Item.Nil)
+        The collection is obtained using
+        L{getAttributeValue} and the return value is extracted by using the
+        C{key} argument. If the collection does not exist or there is no
+        value for C{key}, C{default} is returned, C{None} by default. Unless
+        this defaulting behavior is needed, there is no reason to use this
+        method instead of the regular python syntax for accessing instance
+        attributes and collection elements.
+
+        @param attribute: the name of the attribute
+        @type attribute: a string
+        @param key: the key into the collection
+        @type key: integer for lists, anything for dictionaries
+        @param default: an optional C{default} value, C{None} by default
+        @type default: anything
+        @return: a value
+        """
+
+        value = self.getAttributeValue(attribute, default=Item.Nil,
+                                       _attrDict=_attrDict)
             
         if value is Item.Nil:
             return default
@@ -622,13 +754,25 @@ class Item(object):
         raise TypeError, "%s is not multi-valued" %(attribute)
 
     def setValue(self, attribute, value, key=None, alias=None, _attrDict=None):
-        """Set a value for a multi-valued attribute, for an optional key.
+        """
+        Set a value into a Chandler collection attribute.
 
-        When the cardinality of the attribute is 'list' and its type is a
-        literals, key must be an integer.
-        When the cardinality of the attribute is 'list' and its values are
-        references, key may be an integer or the refName of the item value
-        to set."""
+            - If the attribute doesn't yet have a value, the proper
+              collection is created for it.
+            - If the collection is a list and C{key} is an integer out of the
+              list's range, an exception is raised.
+            - If the attribute is not a collection attribute, the value is
+              simply set.
+        
+        @param attribute: the name of the attribute
+        @type attribute: a string
+        @param key: the key into the collection, not used when the
+        collection is a collection of item references
+        @type key: integer for lists, anything for dictionaries
+        @param value: the value to set
+        @type value: anything compatible with the attribute's type
+        @return: the collection that was changed or created
+        """
 
         self.setDirty(attribute=attribute)
 
@@ -686,7 +830,23 @@ class Item(object):
         return attrValue
 
     def addValue(self, attribute, value, key=None, alias=None, _attrDict=None):
-        "Add a value for a multi-valued attribute for a given optional key."
+        """
+        Add a value to a Chandler collection attribute.
+
+            - If the attribute doesn't yet have a value, the proper
+              collection is created for it.
+            - If the collection is a list, C{key} is not used.
+            - If the attribute is not a collection attribute, the value is
+              simply set.
+        
+        @param attribute: the name of the attribute
+        @type attribute: a string
+        @param key: the key into the collection, not used with lists
+        @type key: anything
+        @param value: the value to set
+        @type value: anything compatible with the attribute's type
+        @return: the collection that was changed or created
+        """
 
         if _attrDict is None:
             if self._values.has_key(attribute):
@@ -708,7 +868,7 @@ class Item(object):
                 attrValue = self.setAttributeValue(attribute, attrValue)
 
         if attrValue is Item.Nil:
-            self.setValue(attribute, value, key, alias, _attrDict)
+            return self.setValue(attribute, value, key, alias, _attrDict)
 
         else:
             self.setDirty(attribute=attribute)
@@ -722,19 +882,28 @@ class Item(object):
             elif isinstance(attrValue, list):
                 attrValue.append(value)
             else:
-                self.setAttributeValue(attribute, value, _attrDict)
+                return self.setAttributeValue(attribute, value, _attrDict)
 
-    def hasKey(self, attribute, key):
-        """Tell where a multi-valued attribute has a value for a given key.
+            return attrValue
 
-        When the cardinality of the attribute is 'list' and its type is a
-        literal, key must be an integer.
-        When the cardinality of the attribute is 'list' and its values are
-        references, key must be an integer or the refName of the item value
-        to remove."""
+    def hasKey(self, attribute, key, _attrDict=None):
+        """
+        Tell if a Chandler collection attribute has a value for a given key.
 
-        value = (self._values.get(attribute, Item.Nil) or
-                 self._references.get(attribute, Item.Nil))
+        The collection is obtained using L{getAttributeValue}.
+
+        If the collection is a list of literals, C{key} must be an
+        integer and C{True} is returned if it is in range.
+
+        @param attribute: the name of the attribute
+        @type attribute: a string
+        @param key: the key into the collection, not used with lists
+        @type key: anything
+        @return: C{True} or C{False}
+        """
+
+        value = self.getAttributeValue(attribute, default=Item.Nil,
+                                       _attrDict=_attrDict)
 
         if value is not Item.Nil:
             if isinstance(value, dict):
@@ -747,19 +916,22 @@ class Item(object):
         return False
 
     def hasValue(self, attribute, value, _attrDict=None):
-        """Tell whether an attribute contains a given value.
+        """
+        Tell if a Chandler collection attribute has a given value.
 
-        If the attribute is multi-valued the value argument is checked for
-        appartenance in the attribute's value collection.
-        If the attribute is single-valued the value argument is checked for
-        equality with the attribute's value."""
+        The collection is obtained using L{getAttributeValue}.
+        If the attribute is not a collection, C{True} is returned if
+        C{value} is the same as attribute's value.
 
-        if _attrDict is not None:
-            attrValue = _attrDict.get(attribute, Item.Nil)
-        else:
-            attrValue = (self._values.get(attribute, Item.Nil) or
-                         self._references.get(attribute, Item.Nil))
+        @param attribute: the name of the attribute
+        @type attribute: a string
+        @param value: the value looked for
+        @type value: anything
+        @return: C{True} or C{False}
+        """
 
+        attrValue = self.getAttributeValue(attribute, default=Item.Nil,
+                                           _attrDict=_attrDict)
         if attrValue is Item.Nil:
             return False
 
@@ -776,16 +948,21 @@ class Item(object):
 
         return False
 
-    def removeValue(self, attribute, key=None, value=None, _attrDict=None):
-        """Remove the value from a multi-valued attribute for a given key.
+    def removeValue(self, attribute, key=None, _attrDict=None):
+        """
+        Remove a value from a Chandler collection attribute, for a given key.
 
-        When the cardinality of the attribute is 'list' and its type is a
-        literal, key must be an integer and value None.
-        When the cardinality of the attribute is 'dict' and its type is a
-        literal, key must be an existing key and value is ignored.
-        When the cardinality of the attribute is 'list' and its
-        values are references, key is ignored and value must be the
-        referenced item to remove from the collection."""
+        This method only operates on collections actually owned by this
+        attribute, not on collections inherited or otherwise defaulted via
+        L{getAttributeValue}.
+
+        If there is no value for the provided key, C{KeyError} is raised.
+
+        @param attribute: the name of the attribute
+        @type attribute: a string
+        @param key: the key into the collection
+        @type key: integer for lists, anything for dictionaries
+        """
 
         if _attrDict is None:
             if self._values.has_key(attribute):
@@ -810,7 +987,13 @@ class Item(object):
         del self._references[name]
 
     def hasAttributeValue(self, name, _attrDict=None):
-        'Check for existence of a value for a given Chandler attribute.'
+        """
+        Tell if a Chandler attribute has a locally defined value.
+
+        @param name: the name of the attribute
+        @type name: a string
+        @return: C{True} or C{False}
+        """
 
         if _attrDict is None:
             return name in self._values or name in self._references
@@ -829,18 +1012,51 @@ class Item(object):
             self._status &= ~Item.ATTACHING
 
     def isDeleting(self):
+        """
+        Tell whether this item is in the process of being deleted.
 
+        @return: C{True} or C{False}
+        """
+        
         return (self._status & Item.DELETING) != 0
     
     def isNew(self):
+        """
+        Tell whether this item is new.
+
+        A new item is defined as an item that was before committed to the
+        repository.
+        
+        @return: C{True} or C{False}
+        """
 
         return (self._status & Item.NEW) != 0
     
     def isDeleted(self):
+        """
+        Tell whether this item is deleted.
+
+        @return: C{True} or C{False}
+        """
 
         return (self._status & Item.DELETED) != 0
     
     def isStale(self):
+        """
+        Tell whether this item pointer is out of date.
+
+        A stale item pointer is defined as an item pointer that is no longer
+        valid. When an item is unloaded, the item pointer is marked
+        stale. The item pointer can be refreshed by reloading the item via the
+        L{find} method, passing it the item's C{uuid} obtained with the
+        L{getUUID} method.
+        
+        Stale items are encountered when item pointers are kept across
+        transaction boundaries. It is recommended to keep the item's
+        C{uuid} instead.
+
+        @return: C{True} or C{False}
+        """
 
         return (self._status & Item.STALE) != 0
     
@@ -849,23 +1065,51 @@ class Item(object):
         self._status |= Item.STALE
 
     def isDirty(self):
+        """
+        Tell whether this item was changed and needs to be committed.
 
+        @return: C{True} or C{False}
+        """
+        
         return (self._status & Item.DIRTY) != 0
 
     def getDirty(self):
+        """
+        Return the dirty flags currently set on this item.
+
+        @return: an integer
+        """
 
         return self._status & Item.DIRTY
 
     def setDirty(self, dirty=None, attribute=None):
-        """Set a dirty bit on the item so that it gets persisted.
+        """
+        Mark this item to get committed with the current transaction.
 
-        Returns True if the dirty bit was changed from unset to set.
-        Returns False otherwise."""
+        Returns C{True} if the dirty bit was changed from unset to set.
+        Returns C{False} otherwise.
+
+        If C{attribute} is used and denotes a transient attribute (whose
+        C{persist} aspect is C{False}), then this method has no effect and
+        returns C{False}.
+
+        @param dirty: one of L{Item.VDIRTY <VDIRTY>},
+        L{Item.RDIRTY <RDIRTY>}, L{Item.CDIRTY <CDIRTY>},
+        L{Item.SDIRTY, <SDIRTY>} or a bitwise or'ed combination, defaults to
+        C{Item.VDIRTY}.
+        @type dirty: an integer
+        @param attribute: the name of the attribute that was changed,
+        optional, defaults to C{None} which means that no attribute was
+        changed
+        @type attribute: a string
+        @return: C{True} or C{False}
+        """
 
         if dirty is None:
-            dirty = Item.ADIRTY
+            dirty = Item.VDIRTY
 
         if dirty:
+            self._access = Item._countAccess()
             if self._status & Item.DIRTY == 0:
                 repository = self.getRepository()
                 if repository is not None and not repository.isLoading():
@@ -885,21 +1129,21 @@ class Item(object):
 
         return False
 
-    def _setSaved(self, version):
-
-        self._version = version
-        self._status &= ~Item.NEW
-        self.setDirty(0)
-
     def delete(self, recursive=False):
-        """Delete this item and detach all its item references.
+        """
+        Delete this item.
 
-        If this item has children, they are recursively deleted first if
-        'recursive' is True.
-        If this item has references to other items and the references delete
-        policy is 'cascade' then these other items are deleted last.
-        A deleted item is no longer reachable through the repository or other
-        items. It is an error to access deleted items."""
+        If this item has references to other items and the C{deletePolicy}
+        aspect of the attributes containing them is C{cascade} then these
+        other items are deleted too.
+
+        It is an error to delete an item with children unless C{recursive}
+        is set to C{True}.
+
+        @param recursive: C{True} to recursively delete this item's children
+        too, C{False} otherwise (the default).
+        @type recursive: boolean
+        """
 
         if not self._status & (Item.DELETED | Item.DELETING):
 
@@ -942,21 +1186,30 @@ class Item(object):
                     other.delete()
         
     def getItemName(self):
-        '''Return this item's name.
+        """
+        Return this item's name.
 
         The item name is used to lookup an item in its parent container and
         construct the item's path in the repository.
-        To rename an item use Item.rename().'''
+        To rename an item use L{rename}.
+
+        The name of an item must be unique among all its siblings.
+        """
 
         return self._name
 
     def getItemDisplayName(self):
-        """Return this item's display name.
+        """
+        Return this item's display name.
 
-        By definition, the display name is, in order of precedence, the
-        value of the 'displayName' attribute, the value of the attribute
-        named by the item's Kind 'displayAttribute' attribute or the item's
-        intrinsic name."""
+        By definition, the display name is, in order of precedence:
+            - the value of the C{displayName} attribute
+            - the value of the attribute named by the item's kind
+              C{displayAttribute} attribute
+            - or the item's intrinsic name (see L{getItemName}).
+
+        @return: a string
+        """
 
         if self.hasAttributeValue('displayName'):
             return self.displayName
@@ -970,12 +1223,18 @@ class Item(object):
         return self._name
 
     def _refName(self, name):
-        'deprecated'
         
         return self._uuid
 
     def refCount(self):
-        'Return the total ref count for counted references on this item.'
+        """
+        Return the number of counted references to this item.
+
+        A reference is counted if the C{countPolicy} aspect of the attribute
+        containing it is C{count}.
+
+        @return: an integer
+        """
 
         count = 0
 
@@ -989,12 +1248,29 @@ class Item(object):
         return count
 
     def getUUID(self):
-        'Return the Universally Unique ID for this item.'
+        """
+        Return the Universally Unique ID for this item.
+
+        The UUID for an item is generated when the item is first created and
+        never changes. This UUID is valid for the life of the item.
+
+        The UUID is a 128 bit number intended to be unique in the entire
+        universe and is implemented as specified in the IETF's U{UUID draft <www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt>} spec.
+        """
         
         return self._uuid
 
     def getItemPath(self, path=None):
-        'Return the path to this item relative to its repository.'
+        """
+        Return the path to this item relative to its repository.
+
+        A path is a C{/} separated sequence of item names.
+
+        @param path: use this path instead of allocating a new Path object
+        for the result
+        @type path: a Path instance
+        @return: a Path instance
+        """
 
         if path is None:
             path = Path()
@@ -1005,9 +1281,15 @@ class Item(object):
         return path
 
     def getRoot(self):
-        """Return this item's repository root.
+        """
+        Return this item's repository root.
 
-        All single-slash rooted paths are expressed relative to this root."""
+        A repository root is a direct child of the repository.
+        All single-slash rooted paths are expressed relative to this root
+        when used with this item.
+        
+        @return: an item
+        """
 
         if self._root.isStale():
             self._root = self.getRepository()[self._root._uuid]
@@ -1039,9 +1321,13 @@ class Item(object):
                 child._setRoot(root)
 
     def getItemParent(self):
-        """Return this item's container parent.
+        """
+        Return this item's parent.
 
-        To change the parent, use Item.move()."""
+        To change the parent, use L{move}.
+
+        @return: an item
+        """
 
         if self._parent.isStale():
             self._parent = self.getRepository()[self._parent._uuid]
@@ -1060,9 +1346,12 @@ class Item(object):
             self._references['kind'] = ref
 
     def getRepository(self):
-        """Return this item's repository.
+        """
+        Return this item's repository view.
 
-        The item's repository is defined as the item root's parent."""
+        The item's repository view is defined as the item's root's parent.
+        @return: a repository view
+        """
 
         if self._root is None:
             return None
@@ -1070,16 +1359,43 @@ class Item(object):
             return self._root._parent
 
     def rename(self, name):
-        'Rename this item.'
+        """
+        Rename this item.
+
+        The name of an item needs to be unique among its siblings.
+        If C{name} is C{None}, the base64 representation of the item's
+        C{UUID} is used instead.
+
+        @param name: the new name for the item or C{None}
+        @type name: a string
+        """
 
         parent = self.getItemParent()
         link = parent._children._get(self._name)
         parent._removeItem(self)
-        self._name = name
+        self._name = name or self._uuid.str64()
         parent._addItem(self, link._previousKey, link._nextKey)
 
     def move(self, newParent, previous=None, next=None):
-        'Move this item under another container or make it a root.'
+        """
+        Move this item under another container.
+
+        The item's name needs to be unique among its siblings.
+        To make the item into a repository root, use the repository as
+        container.
+
+        Use C{previous} or {next} to place the item among its siblings.
+        By default, the item is added last into the sibling collection.
+        See also L{placeChild} to place the item without changing its
+        parent.
+
+        @param newParent: the container to move the item to
+        @type newParent: an item or the repository
+        @param previous: the optional item to place this item after
+        @type previous: an item
+        @param next: the optional item to place this item before
+        @type next: an item
+        """
 
         if newParent is None:
             raise ValueError, 'newParent cannot be None'
@@ -1087,7 +1403,7 @@ class Item(object):
         parent = self.getItemParent()
         if parent is not newParent:
             parent._removeItem(self)
-            self._setParent(newParent)
+            self._setParent(newParent, previous, next)
 
     def _isRepository(self):
         return False
@@ -1139,7 +1455,19 @@ class Item(object):
             self._notChildren = { name: name }
 
     def getItemChild(self, name, load=True):
-        'Return the child as named or None if not found.'
+        """
+        Return the named child or C{None} if not found.
+
+        The regular python C{[]} syntax may be used on the item to get
+        children from it except that when the child is not found,
+        C{KeyError} is raised.
+
+        @param name: the name of the child sought
+        @type name: a string
+        @param load: load the item if not currently loaded
+        @type load: boolean
+        @return: an item
+        """
 
         if self._status & Item.STALE:
             raise ValueError, "item is stale: %s" %(self)
@@ -1171,11 +1499,25 @@ class Item(object):
         raise TypeError, key
 
     def isRemote(self):
-        'By default, an item is not remote.'
+        """
+        Tell whether this item is a remote item.
+
+        @return: C{False}
+        """
 
         return False
 
     def isItemOf(self, kind):
+        """
+        Tell whether this item is of a certain kind.
+
+        Like python's C{isinstance} function, this method tells whether an
+        item is of kind C{kind} or of a subkind thereof.
+
+        @param kind: a kind
+        @type kind: an item of kind C{Kind}
+        @return: boolean
+        """
 
         if self._kind is kind:
             return True
@@ -1186,13 +1528,31 @@ class Item(object):
         return False
 
     def walk(self, path, callable, _index=0, **kwds):
-        """Walk a path and invoke a callable along the way.
+        """
+        Walk a path and invoke a callable along the way.
 
-        The callable's arguments should be (parent, childName, child, **kwds).
-        The callable's child argument is None if the path didn't
-        correspond to an existing item.
+        The callable's arguments need to be defined as C{parent},
+        C{childName}, C{child} and C{**kwds}.
+        The callable is passed C{None} for the C{child} argument if C{path}
+        doesn't correspond to an existing item.
         The callable's return value is used to recursively continue walking
-        unless this return values is None."""
+        when it is not C{None}.
+
+        For example: L{find} calls this method when passed a path with the
+        callable being the simple lambda body:
+
+            - C{lambda parent, name, child, **kwds: child}
+
+        A C{load} keyword can be used to prevent loading of items by setting
+        it to C{False}. Items are loaded as needed by default.
+
+        @param path: an item path
+        @type path: a C{Path} instance or a string representing a path
+        @param callable: a function, method, or lambda body
+        @type callable: a python callable
+        @param kwds: optional keywords passed to the callable
+        @return: the item the walk finished on or C{None}
+        """
 
         if _index == 0 and not isinstance(path, Path):
             path = Path(path)
@@ -1229,11 +1589,22 @@ class Item(object):
         return None
 
     def find(self, spec, _index=0, load=True):
-        """Find an item as specified or return None if not found.
-        
-        Spec can be a Path, a UUID or a string in which case it gets coerced
-        into one of the former. If spec is a path, the search is done relative
-        to the item unless the path is absolute."""
+        """
+        Find an item.
+
+        An item can be found by a path determined by its name and container
+        or by a uuid generated for it at creation time. If C{spec} is a
+        relative path, it is evaluated relative to C{self}.
+
+        This method returns C{None} if the item is not found or if it is
+        found but not yet loaded and C{load} was set to C{False}.
+
+        @param spec: a path or UUID
+        @type spec: Path, UUID or a string representation thereof
+        @param load: load the item if it not yet loaded, C{True} by default
+        @type load: boolean
+        @return: an item or C{None} if not found
+        """
 
         if isinstance(spec, Path):
             return self.walk(spec, lambda parent, name, child, **kwds: child,
@@ -1254,7 +1625,14 @@ class Item(object):
         return None
 
     def toXML(self):
+        """
+        Generate an XML representation of this item.
 
+        This method is not a general purpose serialization method for items
+        but it can be used for debugging.
+
+        @return: an XML string
+        """
         out = None
         
         try:
@@ -1271,14 +1649,71 @@ class Item(object):
             if out is not None:
                 out.close()
 
-    def _saveItem(self, generator, version):
+    def _saveItem(self, generator, version, mergeWith=None):
 
-        self._xmlItem(generator,
-                      withSchema = (self._status & Item.SCHEMA) != 0,
-                      version = version, mode = 'save')
+        withSchema = (self._status & Item.SCHEMA) != 0
+
+        if mergeWith is None:
+            self._xmlItem(generator, withSchema, version, 'save')
+            self._status |= Item.SAVED
+
+        else:
+            oldDoc, oldDirty, newDirty = mergeWith
+            if oldDirty & newDirty:
+                raise ValueError, "merges overlap (%0.4x:%0.4x)" %(oldDirty,
+                                                                   newDirty)
+            def mergeNewOld(*attributes):
+                class merger(XMLOffFilter):
+                    def startElement(_self, tag, attrs):
+                        if tag == 'item':
+                            attrs['version'] = str(version)
+                        XMLOffFilter.startElement(_self, tag, attrs)
+                    def endElement(_self, tag):
+                        if tag == 'item':
+                            self._xmlAttrs(generator, withSchema,
+                                           version, 'save')
+                        XMLOffFilter.endElement(_self, tag)
+
+                merger(generator, *attributes).parse(oldDoc)
+                self._status |= Item.MERGED
+
+            def mergeOldNew(dirty, *attributes):
+                class merger(XMLThruFilter):
+                    def endElement(_self, tag):
+                        if tag == 'item':
+                            XMLOnFilter(generator, *attributes).parse(oldDoc)
+                        XMLThruFilter.endElement(_self, tag)
+
+                out = cStringIO.StringIO()
+                xml = XMLGenerator(out, 'utf-8')
+                xml.startDocument()
+                self._xmlItem(xml, withSchema, version, 'save',
+                              Item.DIRTY & ~dirty)
+                xml.endDocument()
+                newDoc = out.getvalue()
+                out.close()
+
+                merger(generator).parse(newDoc)
+                self._status |= Item.MERGED
+                
+            if newDirty == Item.VDIRTY:
+                mergeNewOld('attribute')
+            elif newDirty == Item.RDIRTY:
+                mergeNewOld('ref')
+            elif newDirty == Item.VRDIRTY:
+                mergeNewOld('attribute', 'ref')
+            elif oldDirty == Item.VDIRTY:
+                mergeOldNew(Item.VDIRTY, 'attribute')
+            elif oldDirty == Item.RDIRTY:
+                mergeOldNew(Item.RDIRTY, 'ref')
+            elif oldDirty == Item.VRDIRTY:
+                mergeOldNew(Item.VRDIRTY, 'attribute', 'ref')
+            else:
+                raise NotImplementedError, "merge %0.4x:%0.4x" %(oldDirty,
+                                                                 newDirty)
 
     def _xmlItem(self, generator, withSchema=False, version=None,
-                 mode='serialize'):
+                 mode='serialize', save=None):
 
         def xmlTag(tag, attrs, value, generator):
 
@@ -1287,6 +1722,8 @@ class Item(object):
             generator.endElement(tag)
 
         isDeleted = self.isDeleted()
+        if save is None:
+            save = Item.DIRTY
 
         attrs = { 'uuid': self._uuid.str64() }
         if withSchema:
@@ -1330,8 +1767,10 @@ class Item(object):
         xmlTag('container', attrs, parentID, generator)
 
         if not isDeleted:
-            self._xmlAttrs(generator, withSchema, version, mode)
-            self._xmlRefs(generator, withSchema, version, mode)
+            if save & Item.VDIRTY:
+                self._xmlAttrs(generator, withSchema, version, mode)
+            if save & Item.RDIRTY:
+                self._xmlRefs(generator, withSchema, version, mode)
 
         generator.endElement('item')
 
@@ -1354,8 +1793,10 @@ class Item(object):
             if self.hasAttributeValue('kind'):
                 del self.kind
 
-            self._values._unload()
-            self._references._unload()
+            if self._values:
+                self._values._unload()
+            if self._references:
+                self._references._unload()
             repository._unregisterItem(self)
 
             self._parent._unloadChild(self._name)
@@ -1419,6 +1860,13 @@ class Item(object):
         return self.getRepository().createRefDict(self, name,
                                                   otherName, persist)
 
+    def _countAccess(cls):
+
+        cls.__access__ += 1
+        return cls.__access__
+
+    _countAccess = classmethod(_countAccess)
+
     def __new__(cls, *args, **kwds):
 
         item = object.__new__(cls, *args, **kwds)
@@ -1431,18 +1879,26 @@ class Item(object):
     class nil(object):
         def __nonzero__(self):
             return False
-    Nil       = nil()
+    Nil        = nil()
     
-    DELETED   = 0x0001
-    ADIRTY    = 0x0002
-    DELETING  = 0x0004
-    RAW       = 0x0008
-    ATTACHING = 0x0010
-    SCHEMA    = 0x0020
-    NEW       = 0x0040
-    STALE     = 0x0080
-    HDIRTY    = 0x0100
-    DIRTY     = ADIRTY | HDIRTY
+    DELETED    = 0x0001
+    VDIRTY     = 0x0002           # literal value(s) changed
+    DELETING   = 0x0004
+    RAW        = 0x0008
+    ATTACHING  = 0x0010
+    SCHEMA     = 0x0020
+    NEW        = 0x0040
+    STALE      = 0x0080
+    SDIRTY     = 0x0100           # name of sibling(s) changed
+    CDIRTY     = 0x0200           # parent or first/last child changed
+    RDIRTY     = 0x0400           # ref or ref collection value changed
+    MERGED     = 0x0800
+    SAVED      = 0x1000
+
+    VRDIRTY    = VDIRTY | RDIRTY
+    DIRTY      = VDIRTY | SDIRTY | CDIRTY | RDIRTY
+
+    __access__ = 0L
 
 
 class Children(LinkedMap):
@@ -1461,9 +1917,9 @@ class Children(LinkedMap):
     def linkChanged(self, link, key):
 
         if key is None:
-            self._item.setDirty(dirty=Item.HDIRTY)
+            self._item.setDirty(dirty=Item.CDIRTY)
         else:
-            link._value.setDirty(dirty=Item.HDIRTY)
+            link._value.setDirty(dirty=Item.SDIRTY)
     
     def __repr__(self):
 
@@ -1498,7 +1954,7 @@ class Children(LinkedMap):
 
 
 class ItemValue(object):
-    'A superclass for values that can be set on only one item attribute'
+    'A superclass for values that are owned by an item.'
     
     def __init__(self):
 
@@ -1530,4 +1986,5 @@ class ItemValue(object):
         if not self._dirty:
             self._dirty = True
             if self._item is not None:
-                self._item.setDirty()
+                self._item.setDirty(attribute=self._attribute,
+                                    dirty=Item.VDIRTY)

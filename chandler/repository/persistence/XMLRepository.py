@@ -182,7 +182,7 @@ class XMLContainer(object):
 
             # None -> not found, 0 -> deleted
             if docId: 
-                return self._xml.getDocument(store.txn, docId, DB_DIRTY_READ)
+                return self.getDocument(docId)
 
         finally:
             if txnStarted:
@@ -313,6 +313,10 @@ class XMLContainer(object):
     def deleteDocument(self, doc):
 
         self._xml.deleteDocument(self.store.txn, doc, self.store.updateCtx)
+
+    def getDocument(self, docId):
+
+        return self._xml.getDocument(self.store.txn, docId, DB_DIRTY_READ)
 
     def putDocument(self, doc):
 

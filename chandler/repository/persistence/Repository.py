@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import sys, os, os.path, threading, logging
+import sys, os, os.path, threading, logging, heapq
 import libxml2
 
 from repository.util.UUID import UUID
@@ -71,6 +71,7 @@ class Repository(object):
             self.logger.setLevel(logging.DEBUG)
         else:
             self.logger.setLevel(logging.INFO)
+
         if '-stderr' in sys.argv or not self.logger.root.handlers:
             if not self.logger.handlers:
                 self.logger.addHandler(logging.StreamHandler())
@@ -85,6 +86,9 @@ class Repository(object):
     
     def close(self, purge=False):
         pass
+
+    def prune(self, size):
+        self.view.prune(size)
 
     def closeView(self, purge=False):
         self.view.close()
@@ -253,10 +257,13 @@ class RepositoryView(object):
         self._roots.clear()
         self._deletedRegistry.clear()
         self._childrenRegistry.clear()
-
         self._status &= ~RepositoryView.OPEN
 
         self.repository.store.detachView(self)
+
+    def prune(self, size):
+
+        pass
 
     def isOpen(self):
 
@@ -802,6 +809,19 @@ class OnDemandRepositoryView(RepositoryView):
 
         return None
 
+    def prune(self, size):
+
+        registry = self._registry
+
+        if len(registry) > size * 1.1:
+            heap = [(item._access, item._uuid)
+                    for item in registry.itervalues()
+                    if not item._status & item.SCHEMA]
+            heapq.heapify(heap)
+            count = len(heap) - int(size * 0.9)
+            self.logger.info('pruning %d items', count)
+            for i in xrange(count):
+                registry[heapq.heappop(heap)[1]]._unloadItem()
 
 
 class RepositoryNotifications(dict):
