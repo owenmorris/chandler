@@ -122,8 +122,6 @@ def main():
         SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, 
          logContents)
 
-        time.sleep(30)
-
         if os.path.exists(stopFile):
             go = 0
 
