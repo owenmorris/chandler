@@ -281,6 +281,7 @@
   <!-- FromAndToArea -->
   <ContentItemDetail itsName="FromAndToArea">
     <childrenBlocks itemref="doc:FromArea"/>
+    <childrenBlocks itemref="doc:ContactFullNameArea"/>
     <childrenBlocks itemref="doc:ToArea"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
@@ -310,6 +311,33 @@
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>True</readOnly>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <minimumSize>80, 24</minimumSize>
+  </EditText>
+
+  <ContentItemDetail itsName="ContactFullNameArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.ContactFullNameBlock">
+    <childrenBlocks itemref="doc:ContactFullNameString"/>
+    <childrenBlocks itemref="doc:ContactFullNameEditField"/>
+    <!-- Attributes -->
+    <selectedItemsAttribute>contactName</selectedItemsAttribute>
+    <orientationEnum>Horizontal</orientationEnum>
+  </ContentItemDetail>
+
+  <StaticText itsName="ContactFullNameString">
+    <title>Full Name: </title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Left</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>80, 24</minimumSize>
+  </StaticText>
+  
+  <EditText itsName="ContactFullNameEditField"
+            itemClass="osaf.framework.blocks.detail.Detail.ContactFullNameEditField">
+    <characterStyle itemref="doc:TextStyle"/>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <textStyleEnum>PlainText</textStyleEnum>
+    <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>80, 24</minimumSize>
   </EditText>
@@ -367,7 +395,10 @@
   <ContentItemDetail itsName="CoreArea">
     <childrenBlocks itemref="doc:KindLabel"/>
     <childrenBlocks itemref="doc:HeadlineArea"/>
+    <childrenBlocks itemref="doc:EmailAddressArea"/>
     <childrenBlocks itemref="doc:DateTime"/>
+    <childrenBlocks itemref="doc:CalendarStartTime"/>
+    <childrenBlocks itemref="doc:CalendarEndTime"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <stretchFactor>2</stretchFactor>
@@ -389,7 +420,7 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>about</selectedItemsAttribute>
-    <minimumSize>380, 24</minimumSize>
+    <minimumSize>380, 40</minimumSize>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
@@ -399,11 +430,42 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>80, 40</minimumSize>
   </StaticText>
   
   <EditText itsName="EditHeadline"
             itemClass="osaf.framework.blocks.detail.Detail.EditRedirectAttribute">
+    <characterStyle itemref="doc:TextStyle"/>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <textStyleEnum>PlainText</textStyleEnum>
+    <readOnly>False</readOnly>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>380, 40</minimumSize>
+  </EditText>
+
+  <ContentItemDetail itsName="EmailAddressArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.EmailAddressBlock">
+    <childrenBlocks itemref="doc:StaticEmailAddress"/>
+    <childrenBlocks itemref="doc:EditEmailAddress"/>
+    <!-- Attributes -->
+    <orientationEnum>Horizontal</orientationEnum>
+    <selectedItemsAttribute>homeSection</selectedItemsAttribute>
+    <minimumSize>380, 24</minimumSize>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+ 
+  <StaticText itsName="StaticEmailAddress"
+              itemClass="osaf.framework.blocks.detail.Detail.StaticEmailAddressAttribute">
+    <title>home email address</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Center</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>180, 24</minimumSize>
+  </StaticText>
+  
+  <EditText itsName="EditEmailAddress"
+            itemClass="osaf.framework.blocks.detail.Detail.EditEmailAddressAttribute">
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -422,6 +484,68 @@
     <minimumSize>80, 24</minimumSize>
   </StaticText>
   
+  <ContentItemDetail itsName="CalendarStartTime"
+                     itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
+    <childrenBlocks itemref="doc:StaticCalendarStartTime"/>
+    <childrenBlocks itemref="doc:EditCalendarStartTime"/>
+    <!-- Attributes -->
+    <orientationEnum>Horizontal</orientationEnum>
+    <selectedItemsAttribute>startTime</selectedItemsAttribute>
+    <minimumSize>380, 24</minimumSize>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+ 
+  <StaticText itsName="StaticCalendarStartTime"
+              itemClass="osaf.framework.blocks.detail.Detail.StaticCalendarRedirectAttribute">
+    <title>Start Time</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Center</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>80, 24</minimumSize>
+  </StaticText>
+  
+  <EditText itsName="EditCalendarStartTime"
+            itemClass="osaf.framework.blocks.detail.Detail.EditCalendarRedirectTimeAttribute">
+    <characterStyle itemref="doc:TextStyle"/>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <textStyleEnum>PlainText</textStyleEnum>
+    <readOnly>False</readOnly>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>380, 30</minimumSize>
+  </EditText>
+
+  <ContentItemDetail itsName="CalendarEndTime"
+                     itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
+    <childrenBlocks itemref="doc:StaticCalendarEndTime"/>
+    <childrenBlocks itemref="doc:EditCalendarEndTime"/>
+    <!-- Attributes -->
+    <orientationEnum>Horizontal</orientationEnum>
+    <selectedItemsAttribute>endTime</selectedItemsAttribute>
+    <minimumSize>380, 24</minimumSize>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+ 
+  <StaticText itsName="StaticCalendarEndTime"
+              itemClass="osaf.framework.blocks.detail.Detail.StaticCalendarRedirectAttribute">
+    <title>End Time</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Center</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>80, 24</minimumSize>
+  </StaticText>
+  
+  <EditText itsName="EditCalendarEndTime"
+            itemClass="osaf.framework.blocks.detail.Detail.EditCalendarRedirectTimeAttribute">
+    <characterStyle itemref="doc:TextStyle"/>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <textStyleEnum>PlainText</textStyleEnum>
+    <readOnly>False</readOnly>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>380, 30</minimumSize>
+  </EditText>
+
   <!-- NotesArea -->
   <EditText itsName="NotesArea"
                    itemClass="osaf.framework.blocks.detail.Detail.NoteBody">
@@ -439,7 +563,7 @@
           itemClass="osaf.framework.blocks.detail.Detail.SendShareButton">
 
     <!-- Attributes -->
-    <title>Send</title>
+    <title>xxxxx</title>
     <buttonKind>Text</buttonKind>
 
     <size>60,30</size>

@@ -471,7 +471,12 @@ class ContentItem(Item.Item):
         else:
             whoString = str (whoContacts)
             if isinstance(whoContacts, Contacts.ContactName):
-                whoString = whoContacts.firstName + ' ' + whoContacts.lastName
+                names = []
+                if len (whoContacts.firstName):
+                    names.append (whoContacts.firstName)
+                if len (whoContacts.lastName):
+                    names.append (whoContacts.lastName)
+                whoString = ' '.join(names)
         return whoString
 
     def ItemWhoFromString (self):

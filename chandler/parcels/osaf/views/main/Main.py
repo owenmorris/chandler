@@ -14,6 +14,7 @@ import osaf.contentmodel.mail.Mail as Mail
 from application.SplashScreen import SplashScreen
 from application.Parcel import Manager as ParcelManager
 from osaf.mail.imap import IMAPDownloader
+import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.framework.utils.imports.OutlookContacts as OutlookContacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 from repository.persistence.RepositoryError import VersionConflictError
@@ -141,6 +142,9 @@ class MainView(View):
         # Tell the sidebar we want to go to the 'All' box
         args = {}
         args['itemName'] = 'AllTableView'
+        contactKind = Contacts.ContactsParcel.getContactKind ()
+        if newItem.isItemOf (contactKind):
+            args['itemName'] = 'ContactTableView'
         self.Post(requestSelectSidebarItem, args)
 
         # Tell the ActiveView to select our new item

@@ -589,7 +589,7 @@ class EmailAddress(Item.Item):
                     if message.emailAddressesAreEqual(candidate.emailAddress, address):
                         # found an existing address!
                         addresses.append (candidate)
-                elif address == candidate.fullName:
+                elif address != '' and address == candidate.fullName:
                     # full name match
                     addresses.append (candidate)
 

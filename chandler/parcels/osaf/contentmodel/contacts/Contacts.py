@@ -79,6 +79,21 @@ class Contact(ContentModel.ContentItem):
             kind = ContactsParcel.getContactKind()
         super (Contact, self).__init__(name, parent, kind)
 
+    def InitOutgoingAttributes (self):
+        """ Init any attributes on ourself that are appropriate for
+        a new outgoing item.
+        """
+        try:
+            super(Contact, self).InitOutgoingAttributes ()
+        except AttributeError:
+            pass
+
+        self.contactName = ContactName()
+        self.contactName.firstName = ''
+        self.contactName.lastName = ''
+        self.homeSection = ContactSection()
+        self.workSection = ContactSection()
+
 class ContactSection(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:

@@ -14,7 +14,9 @@ import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
+import osaf.contentmodel.contacts.Contacts as Contacts
 import repository.item.Query as Query
+import time as DateTime
 import wx
 
 """
@@ -147,7 +149,10 @@ class DetailSynchronizer(object):
 
     def synchronizeItemDetail (self, item):
         # if there is an item, we should show ourself, else hide
-        shouldShow = self.shouldShow (item)
+        if item is None:
+            shouldShow = False
+        else:
+            shouldShow = self.shouldShow (item)
         return self.show(shouldShow)
     
     def shouldShow (self, item):
@@ -177,6 +182,34 @@ class DetailSynchronizer(object):
             shouldAllowEdits = not Sharing.isShared (item)
             self.widget.SetEditable (shouldAllowEdits)
 
+    def parseEmailAddresses(self, item, addressesString):
+        """
+          Parse the email addresses in addressesString and return
+        a tuple with: (the processed string, a list of EmailAddress
+        items created/found for those addresses).
+        """
+
+        # get the user's address strings into a list
+        addresses = addressesString.split(',')
+
+        # build a list of all processed addresses, and all valid addresses
+        validAddresses = []
+        processedAddresses = []
+
+        # convert the text addresses into EmailAddresses
+        for address in addresses:
+            whoAddress = item.getEmailAddress (address)
+            if whoAddress is None:
+                processedAddresses.append (address + '?')
+            else:
+                processedAddresses.append (str (whoAddress))
+                validAddresses.append (whoAddress)
+
+        # prepare the processed addresses return value
+        processedResultString = ', '.join (processedAddresses)
+
+        return (processedResultString, validAddresses)
+
 class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
     def staticTextLabelValue (self, item):
         """ Override to provide the value of the static text label """
@@ -201,6 +234,11 @@ class DateTimeBlock (StaticTextLabel):
     Date and Time associated with the Content Item
     Currently this is static text, but soon it will need to be editable
     """
+    def shouldShow (self, item):
+        # only shown for non-CalendarEventMixn kinds
+        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        return not item.isItemOf (calendarMixinKind)
+
     def staticTextLabelValue (self, item):
         """
           return the item's date.
@@ -225,23 +263,46 @@ class StaticRedirectAttribute (StaticTextLabel):
     """
       Static Text that displays the name of the selected item's Attribute
     """
+    def shouldShow (self, item):
+        contactKind = Contacts.ContactsParcel.getContactKind ()
+        if item is None or item.isItemOf (contactKind):
+            return False
+        return True
+
     def staticTextLabelValue (self, item):
         redirectName = self.whichAttribute ()
-        redirectAttr = item.getAttributeAspect(redirectName, 'redirectTo')
+        try:
+            redirectAttr = item.getAttributeAspect(redirectName, 'redirectTo')
+        except AttributeError:
+            redirectAttr = redirectName
         if redirectAttr is None:
-            redirectAttr = '  '
-        else:
+            redirectAttr = redirectName
+        if len (redirectAttr) > 0:
             redirectAttr = ' ' + redirectAttr + ': '
         return redirectAttr
 
 class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
     def synchronizeItemDetail(self, item):
         whichAttr = self.selectedItemsAttribute
-        if item is None:
+        contactKind = Contacts.ContactsParcel.getContactKind ()
+        if item is None or item.isItemOf (contactKind):
             self.isShown = False
         else:
             self.isShown = item.itsKind.hasAttribute(whichAttr)
         self.synchronizeWidget()
+
+    def shouldShow (self, item):
+        contactKind = Contacts.ContactsParcel.getContactKind ()
+        if item is None or item.isItemOf (contactKind):
+            return False
+        return True
+
+class EmailAddressBlock (DetailSynchronizer, LabeledTextAttributeBlock):
+    def shouldShow (self, item):
+        # if the item is a Contact, we should show ourself
+        contactKind = Contacts.ContactsParcel.getContactKind ()
+        shouldShow = item.isItemOf (contactKind)
+        return shouldShow
 
 class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     """   
@@ -250,8 +311,6 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     the individual ToolbarItems synchronizeItemDetail.
     """
     def shouldShow (self, item):
-        if item is None:
-            return False
         # if the item is a collection, we should not show ourself
         shouldShow = not isinstance (item, ItemCollection.ItemCollection)
         return shouldShow
@@ -390,8 +449,6 @@ class NoteBody (EditTextAttribute):
     Body attribute of a ContentItem, e.g. a Note
     """
     def shouldShow (self, item):
-        if item is None:
-            return False
         # need to show even if there is no value, so we test
         # the kind to see if it knows about the attribute.
         knowsBody = item.itsKind.hasAttribute("body")
@@ -418,24 +475,11 @@ class ToEditField (EditTextAttribute):
     def saveAttributeFromWidget(self, item, widget):  
         toFieldString = widget.GetValue()
 
-        # get the user's address strings into a list
-        addresses = toFieldString.split(',')
-
-        # build a list of all processed addresses, and all valid addresses
-        validAddresses = []
-        processedAddresses = []
-
-        # convert the text addresses into EmailAddresses
-        for address in addresses:
-            whoAddress = item.getEmailAddress (address)
-            if whoAddress is None:
-                processedAddresses.append (address + '?')
-            else:
-                processedAddresses.append (str (whoAddress))
-                validAddresses.append (whoAddress)
-
         # remember the old value for nice change detection
         oldWhoString = item.ItemWhoString ()
+
+        # parse the addresses and get/create/validate
+        processedAddresses, validAddresses = self.parseEmailAddresses (item, toFieldString)
 
         # reassign the list to the attribute
         try:
@@ -453,7 +497,7 @@ class ToEditField (EditTextAttribute):
                 self.resynchronizeDetailView ()
 
         # redisplay the processed addresses in the widget
-        widget.SetValue (', '.join (processedAddresses))
+        widget.SetValue (processedAddresses)
 
     def loadAttributeIntoWidget (self, item, widget):
         whoString = item.ItemWhoString ()
@@ -461,6 +505,12 @@ class ToEditField (EditTextAttribute):
 
         # also update editability based on shared collection status
         self.nonEditableIfSharedCollection (item)
+
+    def shouldShow (self, item):
+        contactKind = Contacts.ContactsParcel.getContactKind ()
+        if item is None or item.isItemOf (contactKind):
+            return False
+        return True
 
 class FromEditField (EditTextAttribute):
     """Edit field containing the sender's contact"""
@@ -511,8 +561,6 @@ class EditRedirectAttribute (EditTextAttribute):
 
 class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
     def shouldShow (self, item):
-        if item is None:
-            return False
         # if the item is a MailMessageMixin, we should show ourself
         shouldShow = item.isItemOf(Mail.MailParcel.getMailMessageMixinKind())
         # if the item is a collection, we should show ourself
@@ -521,7 +569,7 @@ class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
 
     def synchronizeItemDetail (self, item):
         # if the button should be visible, enable/disable
-        if self.shouldShow (item):
+        if item is not None and self.shouldShow (item):
             if isinstance (item, ItemCollection.ItemCollection):
                 # collection: label should read "Notify"
                 label = "Notify"
@@ -554,5 +602,174 @@ class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
             self.widget.SetLabel (label)
         return super (SendShareButton, self).synchronizeItemDetail (item)
 
+"""
+Classes to support Contact details
+"""
+
+class ContactFullNameBlock (DetailSynchronizer, LabeledTextAttributeBlock):
+    def shouldShow (self, item):
+        # if the item is a Contact, we should show ourself
+        contactKind = Contacts.ContactsParcel.getContactKind ()
+        shouldShow = item.isItemOf (contactKind)
+        return shouldShow
+
+class ContactFullNameEditField (EditRedirectAttribute):
+    """
+    An attribute-based edit field for contactName:fullName
+    The actual value is stored in an contactName object.
+    """
+    def saveAttributeFromWidget(self, item, widget):
+        contactName = item.getAttributeValue (self.whichAttribute())
+        widgetString = widget.GetValue()
+        contactName.setAttributeValue('fullName', widgetString)
+        names = widgetString.split (' ')
+        if len (names) > 0:
+            contactName.firstName = names[0]
+        if len (names) > 1:
+            contactName.lastName = names[-1]
+        # put the fullName into any emailAddress objects connected to this item.
+        try:
+            item.homeSection.fullName = widgetString
+            item.homeSection.emailAddress.fullName = widgetString
+        except AttributeError:
+            pass
+        try:
+            item.workSection.fullName = widgetString
+            item.workSection.emailAddress.fullName = widgetString
+        except AttributeError:
+            pass
+
+
+    def loadAttributeIntoWidget(self, item, widget):
+        value = ''
+        try:
+            contactName = item.getAttributeValue (self.whichAttribute())
+            value = contactName.getAttributeValue ('emailAddress')
+        except AttributeError:
+            pass
+        if value == '':
+            value = item.ItemWhoString ()
+        widget.SetValue(value)
+
+    def shouldShow (self, item):
+        # if the item is a Contact, we should show ourself
+        contactKind = Contacts.ContactsParcel.getContactKind ()
+        shouldShow = item.isItemOf (contactKind)
+        return shouldShow
+
+class StaticEmailAddressAttribute (StaticRedirectAttribute):
+    """
+      Static Text that displays the name of the selected item's Attribute.
+    Customized for EmailAddresses
+    """
+    def staticTextLabelValue (self, item):
+        redirectName = self.whichAttribute ()
+        if 'home' in redirectName:
+            label = 'home email address'
+        elif 'work' in redirectName:
+            label = 'work email address'
+        if len (label) > 0:
+            label = ' ' + label + ': '
+        return label
+
+    def shouldShow (self, item):
+        # if the item is a Contact, we should show ourself
+        contactKind = Contacts.ContactsParcel.getContactKind ()
+        shouldShow = item.isItemOf (contactKind)
+        return shouldShow
+
+class EditEmailAddressAttribute (EditRedirectAttribute):
+    """
+    An attribute-based edit field for email addresses
+    The actual value is stored in an emailaddress 'section' object
+    for home or work.
+    """
+    def shouldShow (self, item):
+        # if the item is a Contact, we should show ourself
+        contactKind = Contacts.ContactsParcel.getContactKind ()
+        shouldShow = item.isItemOf (contactKind)
+        return shouldShow
+
+    def saveAttributeFromWidget(self, item, widget):
+        section = item.getAttributeValue (self.whichAttribute())
+        widgetString = widget.GetValue()
+        processedAddresses, validAddresses = self.parseEmailAddresses (item, widgetString)
+        section.setAttributeValue('emailAddresses', validAddresses)
+        for address in validAddresses:
+            address.fullName = section.fullName
+        widget.SetValue (processedAddresses)
+
+    def loadAttributeIntoWidget(self, item, widget):
+        value = ''
+        try:
+            section = item.getAttributeValue (self.whichAttribute())
+            value = section.getAttributeValue ('emailAddresses')
+        except AttributeError:
+            value = {}
+        # convert the email address list to a nice string.
+        whoNames = []
+        for whom in value.values():
+            whoNames.append (str (whom))
+        whoString = ', '.join(whoNames)
+        widget.SetValue(whoString)
+
+"""
+Classes to support CalendarEvent details
+"""
+class StaticCalendarRedirectAttribute (StaticRedirectAttribute):
+    def shouldShow (self, item):
+        # only shown for CalendarEventMixn kinds
+        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        return item.isItemOf (calendarMixinKind)
+
+class EditCalendarRedirectTimeAttribute (EditRedirectAttribute):
+    """
+    An attribute-based edit field for Time Values
+    Our parent block knows which attribute we edit.
+    """
+    timeFormat = '%Y-%m-%d %H:%M %p'
+    def shouldShow (self, item):
+        # only shown for CalendarEventMixn kinds
+        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        return item.isItemOf (calendarMixinKind)
+
+    def saveAttributeFromWidget(self, item, widget):
+        """"
+          Update the attribute from the user edited string in the widget.
+        """
+        dateString = widget.GetValue().strip('?')
+        try:
+            # convert to Date/Time
+            tupleDate = DateTime.strptime (dateString, self.timeFormat)
+        except: 
+            pass
+        else:
+            theDate = DateTime.mktime (tupleDate)
+        try:
+            # save the new Date/Time
+            item.setAttributeValue(self.whichAttribute(), theDate)
+        except:
+            # DLDTBD figure out reasonable exceptions to catch during conversion
+            dateString = dateString + '?'
+        else:
+            tupleTime = DateTime.localtime (theDate)
+            dateString = DateTime.strftime (self.timeFormat, tupleTime)
+
+        # redisplay the processed Date/Time in the widget
+        widget.SetValue(dateString)
+
+
+    def loadAttributeIntoWidget(self, item, widget):
+        """"
+          Update the widget display based on the value in the attribute.
+        """
+        try:
+            dateTime = item.getAttributeValue(self.whichAttribute())
+        except AttributeError:
+            value = ''
+        else:
+            tupleTime = DateTime.localtime (dateTime)
+            value = DateTime.strftime (self.timeFormat, tupleTime)
+        widget.SetValue (value)
 
 
