@@ -6,11 +6,10 @@ info = {
        }
 
 dependencies = (
-                'python',
+                'wxpython/wxPython',
                 'persistence/xerces-c',
                 'persistence/pathan',
                 'persistence/dbxml',
-                'wxpython',
                 'egenix-mx',
                 'zodb',
                 'jabber-py',
