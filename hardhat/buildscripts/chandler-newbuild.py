@@ -23,6 +23,10 @@ logPath = 'hardhat.log'
 
 def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
+    # find path to buildscripts
+    hardhatDir = os.dirname(hardhatScript)
+    log.write( "Directory of build script is " + hardhatDir + "\n" )
+
     # make sure workingDir is absolute, remove it, and create it
     workingDir = os.path.abspath(workingDir)
     if not os.path.exists(workingDir):
@@ -102,6 +106,48 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         # Find out if the initialization was ever done
         try:
             intModuleDir = os.path.join(releaseModeDir, "internal")
+            version = getVersion(os.path.join(extModuleDir, "Makefile"))
+            sourceTarball = os.path.join(extModuleDir, "sources-" + version + ".tar")
+            log.write("Checking for source tarball " + sourceTarball + "\n")
+            if not os.path.exists(sourceTarball) :
+                # Now need to do the setup for external - "expand" and "make"
+                os.chdir(extModuleDir)
+                log.write("Environment variables: \n")
+                log.write("GCJ_HOME = " + os.environ['GCJ_HOME'] + "\n")
+                os.environ["BUILD_ROOT"] = extModuleDir
+                log.write("BUILD_ROOT = " + os.environ['BUILD_ROOT'] + "\n")
+                os.environ["DEBUG"] = dbgStr
+                log.write("DEBUG = " + os.environ['DEBUG'] + "\n")
+
+                print "Building " + releaseMode
+                log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+                log.write("Expanding external sources\n")
+              #  outputList = hardhatutil.executeCommandReturnOutput(
+              #   [buildenv['make'], "expand" ])
+              #  hardhatutil.dumpOutputList(outputList, log)
+              #  outputList = hardhatutil.executeCommandReturnOutput(
+              #   [buildenv['make'], dbgStr ])
+              #  hardhatutil.dumpOutputList(outputList, log)
+              #  log.write("Making external (debug) binaries\n")
+              #  outputList = hardhatutil.executeCommandReturnOutput(
+              #   [buildenv['make'], dbgStr, "binaries" ])
+                initFile = os.path.join(hardhatDir, 'init.sh')
+                log.write("Running init script from " + initFile + "\n")
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 [initFile] )
+                hardhatutil.dumpOutputList(outputList, log)
+
+                os.chdir(intModuleDir)
+                log.write("Making internal (debug) programs\n")
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 [buildenv['make'], dbgStr ])
+                hardhatutil.dumpOutputList(outputList, log)
+                log.write("Making internal (debug) binaries\n")
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 [buildenv['make'], dbgStr, "binaries" ])
+                hardhatutil.dumpOutputList(outputList, log)
+                ret = "no_changes" 
+
             os.chdir(intModuleDir)
             log.write("Making internal (debug) programs\n")
             outputList = hardhatutil.executeCommandReturnOutput(
