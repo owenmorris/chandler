@@ -1,22 +1,60 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<item withSchema="True">
-  <name>Namespace</name>
-  <kind type="path">//Schema/Model/Kinds/Kind</kind>
-  <class module="model.schema.Kind">Kind</class>
+<items>
 
-  <ref name="attributes" otherName="kinds" cardinality="list" otherCard="list">
-    <ref type="path">/Model/Attributes/imports</ref>
-    <ref type="path">/Model/Attributes/importedBy</ref>
-  </ref>
+  <item withSchema="True">
+    <name>Namespace</name>
+    <kind type="path">//Schema/Model/Kinds/Kind</kind>
+    <class module="model.schema.Kind">Kind</class>
 
-  <ref name="superKinds" cardinality="list"
-       otherName="subKinds" otherCard="list">
-    <ref type="path">/Model/Kinds/Item</ref>
-  </ref>
+    <ref name="attributes" otherName="kinds" cardinality="list" 
+         otherCard="list">
 
-  <attribute name="classes" cardinality="dict" 
-             type="model.schema.Types.Class">
-    <value name="python">model.schema.Namespace.Namespace</value>
-  </attribute>
-</item>
+      <!-- 
+         - plus local attributes below:
+         -     imports, importedBy
+        -->
+    </ref>
+
+    <ref name="superKinds" cardinality="list"
+         otherName="subKinds" otherCard="list">
+      <ref type="path">/Model/Kinds/Item</ref>
+    </ref>
+
+    <attribute name="classes" cardinality="dict" 
+               type="model.schema.Types.Class">
+      <value name="python">model.schema.Namespace.Namespace</value>
+    </attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>imports</name>
+    <kind type="path">//Schema/Model/Kinds/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Kinds/Namespace</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">importedBy</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>importedBy</name>
+    <kind type="path">//Schema/Model/Kinds/Attribute</kind>
+    <class module="model.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Model/Kinds/Namespace</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">imports</attribute>
+  </item>
+
+</items>

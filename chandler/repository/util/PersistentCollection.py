@@ -6,7 +6,10 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 class PersistentCollection(object):
-    'A persistence aware collection, tracking changes into a dirty bit.'
+    '''A persistence aware collection, tracking changes into a dirty bit.
+
+    This class is abstract and is to be used together with a concrete
+    collection class such as list or dict.'''
 
     def __init__(self, item):
 
