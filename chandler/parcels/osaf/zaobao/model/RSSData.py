@@ -9,20 +9,51 @@ import exceptions
 import threading
 import mx.DateTime
 import time
+import os
 
 #Chandler modules
 from model.item.Item import Item
+from model.schema import Kind
 from application.Application import app
 from application.agents.Notifications.NotificationManager import NotificationManager
 from application.agents.Notifications.Notification import Notification
 
 # ZaoBao modules
 from OSAF.zaobao import feedparser
-from OSAF.zaobao.Observable import Observable1
 
 FEED_CHANGED_NOTIFICATION = 'zaobao/feedsChanged'
-
 rssDict = None
+_defaultBlogs = (
+    "http://blogs.osafoundation.org/news/index.rdf",
+    "http://blogs.osafoundation.org/zaobao/index.rdf",
+    "http://blogs.osafoundation.org/mitch/index.rdf",
+    "http://blogs.osafoundation.org/chao/index.rdf",
+    "http://blogs.osafoundation.org/pieter/index.rdf",
+    "http://blogs.osafoundation.org/blogotomy/index.rdf",
+    "http://lessig.org/blog/index.xml",
+    "http://diveintomark.org/xml/rss.xml"
+    )
+
+def OnInit(loader):
+    if not app.repository.find('//ZaoBao'):
+        zaobaoPath = os.path.join(app.chandlerDirectory, 'parcels',
+                                  'OSAF', 'zaobao', 'model',
+                                  'zaobao.xml')
+        loader.load(zaobaoPath)
+        Item("Items",app.repository.find('//ZaoBao'),None)
+        notificationManager = app.model.notificationManager
+        notificationManager.DeclareNotification(FEED_CHANGED_NOTIFICATION,
+                                                NotificationManager.SYSTEM_CLIENT,
+                                                'unknown','')
+        #threading.Thread(target=_loadInitialFeeds).start()
+        _loadInitialFeeds()
+        
+def _loadInitialFeeds():
+    global rssDict
+    rssDict = {}
+    for rssURL in _defaultBlogs:
+        item = getNewRSSChannel(rssURL)
+  
 def loadLocalObjects():
     global rssDict
     if not rssDict:
@@ -31,28 +62,8 @@ def loadLocalObjects():
         if items:
             for item in items:
                 if isinstance(item,RSSChannel):
-                    item._v_observers = []
                     rssDict[id(item)] = item
     return rssDict
-    #if len(rssDict) == 0: #@@@ fixme should change test to a virgin repository flag
-        #defaultRSSFeeds = (
-            #"http://blogs.osafoundation.org/zaobao/index.rdf",
-            #"http://blogs.osafoundation.org/mitch/index.rdf",
-            #"http://blogs.osafoundation.org/pieter/index.rdf",
-            #"http://blogs.osafoundation.org/chao/index.rdf",
-            #"http://blogs.osafoundation.org/devnews/index.rdf",
-            #"http://blogs.osafoundation.org/blogotomy/index.rdf",
-            #"http://toyblog.typepad.com/lemon/index.rdf",       
-            #"http://www.joelonsoftware.com/rss.xml",
-            #"http://www.scripting.com/rss.xml",
-            #"http://lessig.org/blog/index.xml",
-            #"http://werbach.com/blog/rss.xml",
-            #"http://partners.userland.com/nytRss/technology.xml",
-            #)
-        #for rssURL in defaultRSSFeeds:
-            #item = getNewRSSChannel(rssURL)
-            #rssDict[id(item)] = item
-    #return rssDict
  
 def getNewRSSChannel(rssURL, isLocal=1):
     newChannel = RSSChannelFactory(app.repository).newItem(rssURL)
@@ -67,11 +78,8 @@ def updateRSSFeeds():
     threading.Thread(target=_updateRSSFeedsLoop).start()
     
 def _updateRSSFeeds():
-    global rssDict
-    #while 1:
     needUpdate = False
     for anRSSChannel in rssDict.values():
-        print 'update channel ' + anRSSChannel.getTitle()
         if anRSSChannel.update(0):
             needUpdate = True
     if needUpdate:
@@ -93,6 +101,8 @@ class RSSChannelFactory:
             raise RSSChannelException, 'No RSS Data could be retrieved from specified URL: ' + rssURL
         item = RSSChannel(None,self._container,self._kind)
         item.initAttributes(parseData, rssURL)
+        global rssDict
+        rssDict[id(item)] = item
         return item
     
 class RSSChannelException(exceptions.Exception):
@@ -190,7 +200,7 @@ class RSSChannel(Item):
         return self.items.values()
     
     def getModifiedDate(self):
-        return self.lastModified
+        return self.getAttributeValue('lastModified',default=None)
     
     def setModifiedDate(self, parseData):
         try:
@@ -201,7 +211,7 @@ class RSSChannel(Item):
             if modifiedDate and len(modifiedDate) > 5:
                 lastModified = apply(mx.DateTime.DateTime,modifiedDate[0:3]) #@@@ FIXME, need to store the whole date
             else:
-                lastModified = None
+                self.removeAttributeValue('lastModified')
         self.setAttributeValue('lastModified',lastModified)
         
     def getModifiedDateString(self):
@@ -233,6 +243,8 @@ class RSSChannel(Item):
         
         if (len(newItems) > 0 and 
             len(diffItems(self.items, newItems)) > 0):
+            for item in self.items:
+                item.delete()
             self.updateChannel(newData)
             self.updateItems(newItems)
             self.setHasNewItems(1,doSave)
@@ -242,7 +254,7 @@ class RSSChannel(Item):
     
 class RSSItemFactory:
     def __init__(self,rep):
-        self._container = rep.find('//ZaoBao')
+        self._container = rep.find('//ZaoBao/Items')
         self._kind = rep.find('//Schema/RSSSchema/RSSItem')
         
     def newItem(self, itemData):
@@ -259,8 +271,7 @@ class RSSItem(Item):
         self.setAttributeValue('category',itemData.get('category',''))
         try:
             date = itemData['date']
-            lastModified = mx.DateTime.DateTimeFrom(date)
+            self.setAttributeValue('lastModified',mx.DateTime.DateTimeFrom(date))
         except KeyError:
-            lastModified = None
-        self.setAttributeValue('lastModified',lastModified)
+            self.removeAttributeValue('lastModified')
         

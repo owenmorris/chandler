@@ -199,7 +199,14 @@ def getFeedsFromSyndic8(uri):
     except:
         pass
     return feeds
-    
+
+_progressBarMessages = [_("Searching for RSS feed on page"),
+                        _("Searching for RSS feed on page"),
+                        _("Searching for RSS links on page"),
+                        _("Looking harder for XML-type RSS feeds..."),
+                        _("Searching on other servers for RSS feed"),
+                        _("Trying harder.."),
+                        _("Found it!")]
 def getFeeds(uri,progressDlg):
     fulluri = makeFullURI(uri)
     data = _gatekeeper.get(fulluri)
@@ -209,28 +216,28 @@ def getFeeds(uri,progressDlg):
     # nope, it's a page, try LINK tags first
     _debuglog('looking for LINK tags')
     feeds = getLinks(data, fulluri)
-    if not progressDlg.Update(1, "starting search"): return 'cancelled'
+    if not progressDlg.Update(1, _progressBarMessages[0]): return 'cancelled'
     _debuglog('found %s feeds through LINK tags' % len(feeds))
-    if not progressDlg.Update(2, "searched for LILNK tags"): return 'cancelled'
+    if not progressDlg.Update(2, _progressBarMessages[1]): return 'cancelled'
     feeds = filter(isFeed, feeds)
     if not feeds:
         # no LINK tags, look for regular <A> links that point to feeds
         _debuglog('no LINK tags, looking at A tags')
-        if not progressDlg.Update(3, "searched for A tags"): return 'cancelled'
+        if not progressDlg.Update(3, _progressBarMessages[2]): return 'cancelled'
         links = getALinks(data, fulluri)
         locallinks = getLocalLinks(links, fulluri)
         # look for obvious feed links on the same server
         feeds = filter(isFeed, filter(isFeedLink, locallinks))
         if not feeds:
             # look harder for feed links on the same server
-            if not progressDlg.Update(4, "looking harder for XML related links"): return 'cancelled'
+            if not progressDlg.Update(4, _progressBarMessages[3]): return 'cancelled'
             feeds = filter(isFeed, filter(isXMLRelatedLink, locallinks))
         if not feeds:
             # look for obvious feed links on another server
-            if not progressDlg.Update(5, "looking at other servers"): return 'cancelled'
+            if not progressDlg.Update(5, _progressBarMessages[4]): return 'cancelled'
             feeds = filter(isFeed, filter(isFeedLink, links))
         if not feeds:
-            if not progressDlg.Update(6, "looking harder at other servers"): return 'cancelled'
+            if not progressDlg.Update(6, _progressBarMessages[5]): return 'cancelled'
             # look harder for feed links on another server
             feeds = filter(isFeed, filter(isXMLRelatedLink, links))
     #if not feeds:

@@ -21,14 +21,12 @@ class ZaoBaoViewer (ViewerParcel):
         ViewerParcel.__init__ (self)
         self.lastSelectedKey = None
         self.hasPermission = 1
-        self.RunFirstTime()
 
     def GetNotificationList(self):
         return [RSSData.FEED_CHANGED_NOTIFICATION]
    
     def ReceiveNotification(self, notification):
         if notification.GetName() == RSSData.FEED_CHANGED_NOTIFICATION:
-            print "zaobao viewer received notification"
             myWxViewer = app.association[id(self)]
             channel = notification.GetData()
             myWxViewer.RSSIndexView.update(channel,
@@ -67,10 +65,6 @@ class ZaoBaoViewer (ViewerParcel):
         if viewer: viewer.GoToURL(remoteAddress, url)
         return true
 
-    def RunFirstTime(self):
-        #print 'running first time'
-        return None
-                    
         
 class wxZaoBaoViewer(wxViewerParcel):
     def OnInit(self):
@@ -85,10 +79,10 @@ class wxZaoBaoViewer(wxViewerParcel):
         self.titleText = wxStaticText(self, -1, self.model.displayName)
         self.titleText.SetFont(self.titleFont)
         self.urlTextArea = wxTextCtrl(self, -1, "",style=wxTE_PROCESS_ENTER)
-        self.addURLButton = wxButton(self, -1, _("Add"))
+        self.addURLButton = wxButton(self, 10, "Add")
         self.addURLButton.SetSize((45, -1))
         self.addURLButton.SetToolTipString(_("Add me"))
-        self.addURLButton.SetDefault()
+        #self.addURLButton.SetDefault()
         self.RSSIndexView = wxZaoBaoIndexView(self.twoPane, -1, 
                                               style=wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL)
         self.RSSItemView = wxZaoBaoItemView(self.twoPane, -1,path=self.model.path + os.sep)
@@ -113,21 +107,17 @@ class wxZaoBaoViewer(wxViewerParcel):
         self.RSSIndexView.register(self)
         self.RSSIndexView.updateRSSFeeds()
         
-    def getFeeds(self,rssURL):
-        max = 9
-        progressDlg = wxProgressDialog("Searching the Internet...",
-                                       "Looking for feed: " + rssURL,
-                                       max,
-                                       NULL,
-                                       wxPD_CAN_ABORT|wxPD_APP_MODAL)
-        feeds = rssfinder.getFeeds(rssURL,progressDlg)
-        progressDlg.Destroy()
-        return feeds
-    
     def onAddRssUrl(self, event):
         rssURL = self.urlTextArea.GetLineText(0)
         try:
-            possibleFeeds = self.getFeeds(rssURL)
+            progressDlg = wxProgressDialog("Searching the Internet...",
+                                           "Looking for feed: " + rssURL,
+                                           8,
+                                           NULL,
+                                           wxPD_CAN_ABORT|wxPD_APP_MODAL)
+            possibleFeeds = rssfinder.getFeeds(rssURL,progressDlg)
+            progressDlg.Destroy()
+            progressDlg = None
             if possibleFeeds == "cancelled": return
             noOfPossibleFeeds = len(possibleFeeds)
             possibleFeeds = [feed 
@@ -136,9 +126,9 @@ class wxZaoBaoViewer(wxViewerParcel):
             noOfFeeds = len(possibleFeeds)
             if noOfFeeds == 0:
                 if noOfPossibleFeeds > 0:
-                    wxMessageBox(rssURL + " is already subscribed")
+                    wxMessageBox(rssURL + _(" is already subscribed"))
                 else:
-                    wxMessageBox("Could not find any channels for " + rssURL)
+                    wxMessageBox(_("Could not find any channels for ") + rssURL)
             else:
                 if noOfFeeds > 1:
                     dlg = wxMultipleChannelsDialog(possibleFeeds,self, -1,"")
@@ -153,8 +143,10 @@ class wxZaoBaoViewer(wxViewerParcel):
                     else:
                         self.RSSIndexView.addRSS(anRSSData)
                 self.RSSIndexView.selectKey(id(anRSSData))
+                self.RSSIndexView.SetFocus()
         except IOError, e:
-            wxMessageBox(e.args[0])
+            if progressDlg: progressDlg.Destroy()
+            wxMessageBox(_("Could not load URL: ") + rssURL)
         
     #def onAddRssUrl(self, event):
         #"""Add RSS URL typed into text input area, checking first if

@@ -168,7 +168,7 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
                 self.SetStringItem(i,col,colInfo['stringFunc'](data))
         self.SetItemData(i,id(data))
         self.setReadStatus(i,data.hasNewItems())
-        self.rssDict[id(data)] = data
+        #self.rssDict[id(data)] = data
      
     def loadObjects(self, remoteAddress, url):
         rssDict = self.rssDict = {}
@@ -463,9 +463,8 @@ class wxZaoBaoItemView(wxHtmlWindow):
 
     def SetData(self, data):
         """Set the RSSChannel that this content view should represent"""
-        if self.data != data:
-            self.data = data
-            self.SetPage(self.getNewItemsHTML())
+        self.data = data
+        self.SetPage(self.getNewItemsHTML())
         
     def __init__(self,parent,id,path=''):
         wxHtmlWindow.__init__(self,parent,id)
