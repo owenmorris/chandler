@@ -23,7 +23,7 @@ logPath = 'hardhat.log'
 separator = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 releaseModes = ('debug', 'release')
 
-def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, skipTests=False):
+def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, skipTests=False, upload=False):
 
     global buildenv, changes
 

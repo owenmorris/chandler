@@ -25,7 +25,7 @@ cvsModules = (
     'external', 'internal', 'chandler',
 )
 
-def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, skipTests=False):
+def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, skipTests=False, upload=False):
 
     global buildenv, changes
 
@@ -143,9 +143,10 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
                 if ret != 'success':
                     break
 
+        if upload and (changes in ('-changes', '-first-run')) and ret == 'success':
+            doUploadToStaging(releaseMode, workingDir, cvsVintage, log)
+
     return ret + changes 
-
-
 
 def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log):
 
@@ -247,6 +248,55 @@ def changesInCVS(workingDir, cvsVintage, log):
     log.write(separator)
     log.write("Done with CVS\n")
     return changesDict
+
+
+def doUploadToStaging(buildmode, workingDir, cvsVintage, log):
+    print "doUploadToStaging..."
+    
+    import re
+    m = re.compile("-D'(\d{4})\-(\d\d)\-(\d\d) (\d\d):(\d\d):(\d\d)'").match(cvsVintage)
+    if not m:
+        print "upload error"
+        log.write("***Error during upload - could not get timestamp***\n")
+        return
+    timestamp = "%s%s%s%s%s%s" % (m.group(1), m.group(2), m.group(3), m.group(4), m.group(5), m.group(6))
+        
+    if buildmode == "debug":
+        dbgStr = "DEBUG=1"
+    else:
+        dbgStr = ""
+
+    buildRoot =  os.path.join(workingDir, 'external')
+    print 'Setting BUILD_ROOT=', buildRoot
+    log.write('Setting BUILD_ROOT=' + buildRoot + '\n')
+    os.putenv('BUILD_ROOT', buildRoot)
+    os.chdir(buildRoot)
+    uploadDir = os.path.join(buildRoot, timestamp)
+    os.mkdir(uploadDir)
+
+    try:
+        upload = ' uploadworld UPLOAD=' + uploadDir
+        print "Doing make " + dbgStr + upload
+        log.write("Doing make " + dbgStr + upload)
+
+        outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], dbgStr, upload])
+        hardhatutil.dumpOutputList(outputList, log)
+
+        log.write(separator)
+
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
+        print "upload error"
+        log.write("***Error during upload***\n")
+        log.write(separator)
+        log.write("Build log:" + "\n")
+        hardhatutil.dumpOutputList(e.outputList, log)
+        log.write(separator)
+    except Exception, e:
+        print "upload error"
+        log.write("***Error during upload***\n")
+        log.write(separator)        
+        log.write("No build log!\n")
+        log.write(separator)
 
 
 def doBuild(buildmode, workingDir, log, cvsChanges, clean='clean'):

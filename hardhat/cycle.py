@@ -16,7 +16,7 @@ def main():
     parser = OptionParser(usage="%prog [options] buildName", version="%prog 1.0")
     parser.add_option("-t", "--toAddr", action="store", type="string", dest="toAddr",
       default="buildreport", help="Where to mail script reports\n"
-      " [default] buildreport (at) osafoundation.org")
+      " [default] buildreport (at) OSAF")
     parser.add_option("-p", "--project", action="store", type="string", dest="project",
       default="newchandler", help="Name of script to use (without .py extension)\n"
       "[default] newchandler")
@@ -25,13 +25,19 @@ def main():
       " [default] ~/output")
     parser.add_option("-a", "--alert", action="store", type="string", dest="alertAddr",
       default="buildman", help="E-mail to notify on build errors \n"
-      " [default] buildman (at) osafoundation.org")
+      " [default] buildman (at) OSAF")
     parser.add_option("-r", "--rsyncServer", action="store", type="string", dest="rsyncServer",
       default=defaultRsyncServer, help="Net address of server where builds get uploaded \n"
       " [default] " + defaultRsyncServer)
-    parser.add_option("-s", "--script", action="store", dest="doScript",
+    parser.add_option("-s", "--skipRSync", action="store_true", dest="skipRsync",
+      default=False, help="Skip rsync step\n"
+      " [default] False")
+    parser.add_option("-c", "--script", action="store", dest="doScript",
       default="tinderbox.py", help="Script to run for the build\n"
       " [default] tinderbox.py")
+    parser.add_option("-u", "--uploadStaging", action="store_true", dest="uploadStaging",
+      default=False, help="Upload tarballs to staging area \n"
+      " [default] False")
       
     (options, args) = parser.parse_args()
     if len(args) != 1:
@@ -45,6 +51,14 @@ def main():
         mailtoAddr += "@" + defaultDomain
     if alertAddr.find('@') == -1:
         alertAddr += "@" + defaultDomain
+    if options.skipRsync:
+        skipRsyncOp = "-s"
+    else:
+        skipRsyncOp = ""
+    if options.uploadStaging:
+        uploadStagingOp = "-u"
+    else:
+        uploadStagingOp = ""
 
     curDir = os.path.abspath(os.getcwd())
 
@@ -83,6 +97,8 @@ def main():
              "-a", alertAddr, 
              "-t", mailtoAddr,
              "-r", options.rsyncServer,
+             skipRsyncOp,
+             uploadStagingOp,
              "-p", options.project, args[0] ])
             hardhatutil.dumpOutputList(outputList)
         except:
