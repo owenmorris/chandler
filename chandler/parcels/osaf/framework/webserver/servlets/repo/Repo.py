@@ -8,7 +8,8 @@ from repository.item.Item import Item
 from repository.schema.Kind import Kind
 from repository.schema.Types import Type
 from repository.schema.TypeHandler import TypeHandler
-from repository.persistence.DBLob import DBLob
+from repository.util.Lob import Lob
+from repository.util.URL import URL
 from repository.schema.Attribute import Attribute
 from repository.schema.Cloud import Cloud, Endpoint
 from repository.item.RefCollections import RefList
@@ -584,7 +585,7 @@ def RenderItem(item):
             result += "</td></tr>\n"
             count += 1
 
-        elif isinstance(value, DBLob):
+        elif isinstance(value, Lob):
             result += oddEvenRow(count)
             result += "<td valign=top>"
             result += "%s" % name
@@ -616,6 +617,19 @@ def RenderItem(item):
                  target.getItemDisplayName())
             else:
                 result += " None"
+            result += "</td></tr>\n"
+            count += 1
+
+        elif isinstance(value, URL):
+
+            result += oddEvenRow(count)
+            result += "<td valign=top>"
+            result += "%s" % name
+            result += "</td><td valign=top>"
+            theType = TypeHandler.typeHandler(Globals.repository.view, value)
+            typeName = theType.getImplementationType().__name__
+            result += "<b>(%s)</b> " % typeName
+            result += ' <a href="%s">%s</a><br>' %(value, value)
             result += "</td></tr>\n"
             count += 1
 

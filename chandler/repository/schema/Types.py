@@ -548,7 +548,7 @@ class URL(Type):
         if data[offset] == '\0':
             return offset+1, None
         
-        offset, string = itemReader.readString(offset, data)
+        offset, string = itemReader.readString(offset+1, data)
         return offset, repository.util.URL.URL(string)
 
 

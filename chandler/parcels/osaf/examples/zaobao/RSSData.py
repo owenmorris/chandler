@@ -7,7 +7,6 @@ import application
 import application.Globals as Globals
 from osaf.contentmodel.ContentModel import ContentItem
 import mx.DateTime
-import types
 import feedparser
 
 
@@ -16,13 +15,16 @@ def SetAttribute(self, data, attr, nattr=None):
         nattr = attr
     value = data.get(attr)
     if value:
+        type = self.getAttributeAspect(nattr, 'type', default=None)
+        if type is not None:
+            value = type.makeValue(value)
         self.setAttributeValue(nattr, value)
 
 def SetAttributes(self, data, attributes):
-    if type(attributes) == types.DictType:
-        for attr, nattr in attributes.items():
+    if isinstance(attributes, dict):
+        for attr, nattr in attributes.iteritems():
             SetAttribute(self, data, attr, nattr=nattr)
-    elif type(attributes) == types.ListType:
+    elif isinstance(attributes, list):
         for attr in attributes:
             SetAttribute(self, data, attr)
 
