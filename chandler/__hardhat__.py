@@ -1,5 +1,6 @@
 import os, hardhatlib, hardhatutil, errno, sys
 
+bogus()
 
 info = {
         'name':'Chandler',
