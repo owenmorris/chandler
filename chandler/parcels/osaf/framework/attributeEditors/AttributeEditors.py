@@ -39,7 +39,7 @@ class AttributeEditor (object):
                 
         instance = FindAndCacheEditor (theClass, type)
         if not instance:
-            instance = FindAndCacheEditor ("_default")
+            instance = FindAndCacheEditor (theClass, "_default")
         return instance
 
     GetAttributeEditor = classmethod (GetAttributeEditor)
@@ -151,8 +151,7 @@ class ContactNameAttributeEditor (StringAttributeEditor):
             value = contactName.firstName + ' ' + contactName.lastName
         return value
 
-
-class StampAttributeEditor (StringAttributeEditor):
+class IconAttributeEditor (StringAttributeEditor):
     def Draw (self, dc, rect, item, attributeName, isSelected):
         imageName = self.GetAttributeValue(item, attributeName)
         if imageName != '':
@@ -176,8 +175,22 @@ class StampAttributeEditor (StringAttributeEditor):
                          wx.COPY,
                          True)
         else:
-            super (StampAttributeEditor, self).Draw(dc, rect, item, attributeName, isSelected)
-    
+            super (IconAttributeEditor, self).Draw(dc, rect, item, attributeName, isSelected)
+
+class EnumAttributeEditor (IconAttributeEditor):
+    """
+    An attribute editor for enumerated types to be represented as icons. 
+    Uses the attribute name, an underscore, and the value name as the image filename.
+    (An alternative might be to use the enum type name instead of the attribute name...)
+    """
+    def GetAttributeValue (self, item, attributeName):
+        try:
+            value = "%s_%s" % (attributeName, item.getAttributeValue(attributeName))
+        except AttributeEditor:
+            value = ''
+        return value;
+
+class StampAttributeEditor (IconAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         if isinstance(item, Task.TaskMixin):
             return 'taskStamp'
@@ -186,7 +199,6 @@ class StampAttributeEditor (StringAttributeEditor):
         else:
             return ''
 
-        
 class DefaultAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         return "%s doesn't have a renderer" % item.getAttributeAspect (attributeName, 'type').itsName

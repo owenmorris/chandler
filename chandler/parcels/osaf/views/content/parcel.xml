@@ -87,15 +87,10 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnData>Stamp</columnData>
+    <columnData>itsKind</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
-    
-    <columnTypes>kind</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
 
     <columnWidths>20</columnWidths>
     <columnWidths>250</columnWidths>
@@ -122,16 +117,11 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnData>Stamp</columnData>
+    <columnData>itsKind</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
     
-    <columnTypes>kind</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-
     <columnWidths>20</columnWidths>
     <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
@@ -173,16 +163,11 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnData>Stamp</columnData>
+    <columnData>itsKind</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
     
-    <columnTypes>kind</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-
     <columnWidths>20</columnWidths>
     <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
@@ -224,16 +209,11 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnData>Stamp</columnData>
+    <columnData>itsKind</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
     
-    <columnTypes>kind</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-
     <columnWidths>20</columnWidths>
     <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
@@ -275,16 +255,11 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnData>Stamp</columnData>
+    <columnData>itsKind</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
     
-    <columnTypes>kind</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-
     <columnWidths>20</columnWidths>
     <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
@@ -317,16 +292,11 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnData>Stamp</columnData>
+    <columnData>itsKind</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
     
-    <columnTypes>kind</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-
     <columnWidths>20</columnWidths>
     <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
@@ -342,16 +312,11 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnData>Stamp</columnData>
+    <columnData>itsKind</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
     
-    <columnTypes>kind</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-
     <columnWidths>20</columnWidths>
     <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
@@ -367,16 +332,11 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnData>Stamp</columnData>
+    <columnData>itsKind</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
     
-    <columnTypes>kind</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-
     <columnWidths>20</columnWidths>
     <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
@@ -392,16 +352,11 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnData>Stamp</columnData>
+    <columnData>itsKind</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
     
-    <columnTypes>kind</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-
     <columnWidths>20</columnWidths>
     <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>
@@ -426,16 +381,11 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnData>Stamp</columnData>
+    <columnData>itsKind</columnData>
     <columnData>who</columnData>
     <columnData>about</columnData>
     <columnData>date</columnData>
     
-    <columnTypes>kind</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-    <columnTypes>attribute</columnTypes>
-
     <columnWidths>20</columnWidths>
     <columnWidths>250</columnWidths>
     <columnWidths>150</columnWidths>

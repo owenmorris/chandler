@@ -51,6 +51,20 @@
     <core:initialValue type="ImportanceEnum">normal</core:initialValue>
   </core:Attribute>
 
+  <core:Enumeration itsName="SharingStatusEnum">
+    <core:displayName>Sharing Status</core:displayName>
+    <core:values>unshared</core:values>
+    <core:values>pending</core:values>
+    <core:values>uploaded</core:values>
+    <core:values>downloaded</core:values>
+    <core:values>error</core:values>
+  </core:Enumeration>
+
+  <core:Attribute itsName="sharingStatus">
+    <core:type itemref="SharingStatusEnum"/>
+    <core:initialValue type="SharingStatusEnum">unshared</core:initialValue>
+  </core:Attribute>
+
   <core:Enumeration itsName="ContextEnum">
     <core:displayName>Context Enum</core:displayName>
     <core:values>home</core:values>
@@ -106,6 +120,8 @@
     <core:Attribute itsName="lastModified">
       <core:type itemref="core:String"/>
     </core:Attribute>
+    
+    <core:attributes itemref="sharingStatus"/>
     <core:Attribute itsName="sharedURL">
       <core:type itemref="core:URL"/>
     </core:Attribute>

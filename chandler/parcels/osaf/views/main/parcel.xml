@@ -1328,7 +1328,6 @@
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <columnHeadings></columnHeadings>
     <columnData>displayName</columnData>
-    <columnTypes>attribute</columnTypes>
     <columnWidths>150</columnWidths>
     <hideColumnHeadings>True</hideColumnHeadings>
     <contextMenu itemref="doc:sidebarContextMenu"/>

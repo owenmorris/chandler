@@ -10,6 +10,7 @@ from Block import *
 from ContainerBlocks import *
 from DragAndDrop import DraggableWidget as DraggableWidget
 from Styles import Font
+from repository.item.ItemError import NoSuchAttributeError
 import wx
 import wx.html
 import wx.gizmos
@@ -235,40 +236,46 @@ class AttributeDelegate (ListDelegate):
         except IndexError:
             type = "_default"
         else:
-            if self.blockItem.columnTypes [column] == 'kind':
-                type = self.blockItem.columnData [column]
-            else:
-                attributeName = self.blockItem.columnData [column]
+            attributeName = self.blockItem.columnData [column]
+            try:
                 type = item.getAttributeAspect (attributeName, 'type').itsName
+            except NoSuchAttributeError:
+                # We special-case the non-Chandler attributes we want to use (_after_ trying the
+                # Chandler attribute, to avoid a hit on Chandler-attribute performance). If we
+                # want to add other itsKind-like non-Chandler attributes, we'd att more tests here.
+                if attributeName == 'itsKind':
+                    type = 'Kind'
+                else:
+                    raise
         return type
 
     def GetElementValue (self, row, column):
-        if self.blockItem.columnTypes[column] == 'kind':
-            attributeName = None
-        else:
-            attributeName = self.blockItem.columnData [column]
-        return self.blockItem.contents [row], attributeName
-
+        return self.blockItem.contents [row], self.blockItem.columnData [column]
+    
     def SetElementValue (self, row, column, value):
-        assert self.blockItem.columnTypes[column] != 'kind', "You cannot set the kind value of an item"
-        if self.blockItem.columnTypes[column] != 'kind':
-            item = self.blockItem.contents [row]
-            attributeName = self.blockItem.columnData [column]
-            item.setAttributeValue (attributeName, value)
+        item = self.blockItem.contents [row]
+        attributeName = self.blockItem.columnData [column]
+        assert item.itsKind.hasAttribute (attributeName), "You cannot set a non-Chandler attribute value of an item (like itsKind)"
+        item.setAttributeValue (attributeName, value)
 
     def GetColumnHeading (self, column, item):
-        if self.blockItem.columnTypes[column] != 'kind' and item is not None:
-            attributeName = self.blockItem.columnData [column]
-            attribute = item.itsKind.getAttribute (attributeName)
-            heading = attribute.getItemDisplayName()
-            redirect = item.getAttributeAspect(attributeName, 'redirectTo')
-            if redirect is not None:
-                names = redirect.split('.')
-                for name in names [:-1]:
-                    item = item.getAttributeValue (name)
-                actual = item.itsKind.getAttribute (names[-1]).getItemDisplayName()
-                heading = "%s (%s)" % (heading, actual)
-            self.blockItem.columnHeadings [column] = heading
+        attributeName = self.blockItem.columnData [column]
+        if item is not None:
+            try:
+                attribute = item.itsKind.getAttribute (attributeName)
+            except NoSuchAttributeError:
+                # We don't need to redirect non-Chandler attributes (eg, itsKind).
+                heading = self.blockItem.columnHeadings[column]
+            else:
+                heading = attribute.getItemDisplayName()
+                redirect = item.getAttributeAspect(attributeName, 'redirectTo')
+                if redirect is not None:
+                    names = redirect.split('.')
+                    for name in names [:-1]:
+                        item = item.getAttributeValue (name)
+                    actual = item.itsKind.getAttribute (names[-1]).getItemDisplayName()
+                    heading = "%s (%s)" % (heading, actual)
+                self.blockItem.columnHeadings [column] = heading
         else:
             heading = self.blockItem.columnHeadings [column]
         return heading
