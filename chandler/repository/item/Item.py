@@ -419,22 +419,41 @@ class Item(object):
 
             return True
 
+        def checkCardinality(name, value, cardType, attrCard):
+
+            if not isinstance(value, cardType):
+                logger.error('Value %s of type %s in attribute %s on %s is not an instance of type %s which is required for cardinality %s', value, type(value), name, self.getItemPath(), cardType, attrCard)
+
+                return False
+
+            return True
+
         for key, value in self._values.iteritems():
             attrType = self.getAttributeAspect(key, 'type', default=None)
             if attrType is not None:
                 attrCard = self.getAttributeAspect(key, 'cardinality',
                                                    default='single')
                 if attrCard == 'single':
-                    result = result and checkValue(key, value, attrType)
+                    check = checkValue(key, value, attrType)
+                    result = result and check
                 elif attrCard == 'list':
-                    for v in value:
-                        result = result and checkValue(key, v, attrType)
+                    check = checkCardinality(key, value, list, 'list')
+                    result = result and check
+                    if check:
+                        for v in value:
+                            check = checkValue(key, v, attrType)
+                            result = result and check
                 elif attrCard == 'dict':
-                    for v in value.itervalues():
-                        result = result and checkValue(key, v, attrType)
+                    check = checkCardinality(key, value, dict, 'dict')
+                    result = result and check
+                    if check:
+                        for v in value.itervalues():
+                            check = checkValue(key, v, attrType)
+                            result = result and check
         
         for key, value in self._references.iteritems():
-            result = result and value.check(self, key)
+            check = value.check(self, key)
+            result = result and check
 
         return result
         
