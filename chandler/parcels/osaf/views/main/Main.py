@@ -367,15 +367,9 @@ class MainView(View):
                 # create the zaobao channel
                 channel = osaf.examples.zaobao.RSSData.NewChannelFromURL(view=self.itsView, url=url, update=True)
                 
-                # hook up a new collection for the sidebar
-                collKind = self.itsView.findPath("//parcels/osaf/contentmodel/ItemCollection")
-                sidebarCollection = collKind.newItem(None, None)
-                sidebarCollection.displayName = channel.displayName
-                channel.addCollection(sidebarCollection)
-                
                 # now post the new collection to the sidebar
                 mainView = Globals.views[0]
-                mainView.postEventByName ('AddToSidebarWithoutCopying', {'items': [sidebarCollection]})
+                mainView.postEventByName ('AddToSidebarWithoutCopying', {'items': [channel.items]})
                 self.itsView.commit()
             except:
                 application.dialogs.Util.ok(wx.GetApp().mainFrame, "New Channel Error", 

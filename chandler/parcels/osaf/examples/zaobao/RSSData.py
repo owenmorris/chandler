@@ -41,7 +41,7 @@ def NewChannelFromURL(view, url, update = True):
 
     channel = RSSChannel(view=view)
     channel.url = url
-
+    
     if update:
         try:
             channel.Update(data)
@@ -57,7 +57,8 @@ class RSSChannel(ItemCollection):
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super(RSSChannel, self).__init__(name, parent, kind, view)
-        self.items = []
+        self.items = ItemCollection(view=view)
+        
 
     def Update(self, data=None):
         etag = self.getAttributeValue('etag', default=None)
@@ -79,36 +80,27 @@ class RSSChannel(ItemCollection):
 
         # if the feed is bad, raise the sax exception
         try:
-            if data['bozo'] == 1:
-                raise data['bozo_exception']
+            if data.bozo and (data.bozo_exception != feedparser.CharacterEncodingOverride):
+                raise data.bozo_exception
         except KeyError:
             return
 
         self._DoChannel(data['channel'])
         self._DoItems(data['items'])
-
-    def addCollection(self, collection):
-        """
-            Add a new collection, and update it with the list of all known items to date
-        """
-        for rssItem in self.items:
-            collection.add(rssItem)
-            
-        self.itemCollections.append(collection)
             
     def addRSSItem(self, rssItem):
         """
             Add a single item, and add it to any listening collections
         """
-        self.addValue('items', rssItem)
-        for collection in self.itemCollections:
-            collection.add(rssItem)
+        rssItem.channel = self
+        self.items.add(rssItem)
         
 
     def _DoChannel(self, data):
         # fill in the item
         attrs = {'title':'displayName'}
         SetAttributes(self, data, attrs)
+        self.items.displayName = self.displayName
 
         attrs = ['link', 'description', 'copyright', 'category', 'language']
         # @@@MOR attrs = ['link', 'description', 'copyright', 'creator', 'category', 'language']

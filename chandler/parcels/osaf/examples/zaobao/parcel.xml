@@ -103,18 +103,10 @@
   
     <Attribute itsName="items">
       <displayName>Items</displayName>
-      <cardinality>list</cardinality>
-      <type itemref="doc:RSSItem"/>
-      <inverseAttribute itemref="doc:RSSItem/channel"/>
+      <cardinality>single</cardinality>
+      <type itemref="content:ItemCollection"/>
     </Attribute>
     
-    <Attribute itsName="itemCollections">
-        <displayName>Item Collections</displayName>
-        <cardinality>list</cardinality>
-        <type itemref="content:ItemCollection"/>
-        <initialValue/>
-    </Attribute>
-
     <!-- Actual attribute uses -->
     
     <!-- RSSChannel attributes -->
@@ -126,7 +118,6 @@
 
     <attributes itemref="doc:RSSChannel/isUnread"/>
     <attributes itemref="doc:RSSChannel/items"/>
-    <attributes itemref="doc:RSSChannel/itemCollections"/>
 
     <!-- These attributes are shared between RSSChannel and RSSItem -->
     <attributes itemref="doc:link"/>
@@ -189,7 +180,6 @@
       <displayName>Channel</displayName>
       <cardinality>single</cardinality>
       <type itemref="doc:RSSChannel"/>
-      <inverseAttribute itemref="doc:RSSChannel/items"/>
     </Attribute>
 
     <Attribute itsName="content">
