@@ -188,7 +188,7 @@ class DBItemWriter(ItemWriter):
         elif attrCard == 'dict':
             self.writeDict(buffer, item, value, withSchema, attrType)
 
-        self.store._values.saveValue(self.valueBuffer, item._uuid, version,
+        self.store._values.saveValue(self.store.txn, item._uuid, version,
                                      uAttr, uValue, buffer.getvalue())
 
     def _unchangedValue(self, item, name):
@@ -281,7 +281,7 @@ class DBItemWriter(ItemWriter):
             else:
                 buffer.write('\0\0')
 
-        self.store._values.saveValue(self.valueBuffer, item._uuid, version,
+        self.store._values.saveValue(self.store.txn, item._uuid, version,
                                      attribute._uuid, uValue, buffer.getvalue())
 
     TYPED    = 0x01

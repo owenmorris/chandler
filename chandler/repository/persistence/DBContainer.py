@@ -8,9 +8,10 @@ import cStringIO, threading
 
 from struct import pack, unpack
 
+from chandlerdb.util.uuid import UUID, _hash
+from chandlerdb.persistence.container import CValueContainer, CRefContainer
 from repository.item.Access import ACL, ACE
 from repository.item.Item import Item
-from chandlerdb.util.uuid import UUID, _hash
 from repository.persistence.Repository import Repository
 from repository.persistence.RepositoryError import RepositoryFormatError
 
@@ -22,8 +23,6 @@ from bsddb.db import DBNotFoundError, DBLockDeadlockError
 class DBContainer(object):
 
     def __init__(self, store, name, txn, **kwds):
-
-        super(DBContainer, self).__init__()
 
         self.store = store
         self._filename = name
@@ -49,6 +48,8 @@ class DBContainer(object):
                           dbtype = DB_BTREE,
                           flags = DB_THREAD | self._flags,
                           txn = txn)
+
+        super(DBContainer, self).__init__(self._db)
 
     def openIndex(self, name, dbname, txn, keyMethod, **kwds):
 
@@ -92,12 +93,12 @@ class DBContainer(object):
 
     def put(self, key, value):
 
-        self._db.put(key, value, txn=self.store.txn)
+        self._db.put(key, value, self.store.txn)
 
     def delete(self, key):
 
         try:
-            self._db.delete(key, txn=self.store.txn)
+            self._db.delete(key, self.store.txn)
         except DBNotFoundError:
             pass
 
@@ -105,7 +106,7 @@ class DBContainer(object):
 
         while True:
             try:
-                return self._db.get(key, txn=self.store.txn, flags=self._flags)
+                return self._db.get(key, None, self.store.txn, self._flags)
             except DBLockDeadlockError:
                 self._logDL(24)
                 if self.store.txn is not None:
@@ -125,7 +126,7 @@ class DBContainer(object):
         except KeyError:
             pass
             
-        cursor = db.cursor(txn=self.store.txn, flags=self._flags)
+        cursor = db.cursor(self.store.txn, self._flags)
         self._threaded.cursors[db] = cursor
 
         return cursor
@@ -244,7 +245,7 @@ class DBContainer(object):
                                                                type(value))
 
 
-class RefContainer(DBContainer):
+class RefContainer(DBContainer, CRefContainer):
         
     def __init__(self, store, name, txn, **kwds):
 
@@ -279,16 +280,6 @@ class RefContainer(DBContainer):
 
         return buffer.getvalue()
 
-    def saveRef(self, keyBuffer, buffer, version, key, previous, next, alias):
-
-        buffer.truncate(0)
-        buffer.seek(0)
-
-        self._writeUUID(buffer, previous)
-        self._writeUUID(buffer, next)
-        self._writeValue(buffer, alias)
-        self.put(self._packKey(keyBuffer, key, version), buffer.getvalue())
-
     def _historyKey(self, key, value):
 
         # uItem, uCol, uRef, ~version -> uCol, version, uRef
@@ -310,7 +301,7 @@ class RefContainer(DBContainer):
                 try:
                     value = cursor.set_range(pack('>16sl', uuid._uuid,
                                                   oldVersion + 1),
-                                             flags=self._flags)
+                                             self._flags)
                 except DBNotFoundError:
                     return
                 except DBLockDeadlockError:
@@ -389,7 +380,7 @@ class RefContainer(DBContainer):
                 cursor = self.openCursor()
 
                 try:
-                    value = cursor.set_range(cursorKey, flags=self._flags)
+                    value = cursor.set_range(cursorKey, self._flags)
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
@@ -431,7 +422,7 @@ class RefContainer(DBContainer):
             key = item._uuid._uuid
 
             try:
-                value = cursor.set_range(key, flags=self._flags)
+                value = cursor.set_range(key, self._flags)
                 while value is not None and value[0].startswith(key):
                     cursor.delete()
                     value = cursor.next()
@@ -478,7 +469,7 @@ class NamesContainer(DBContainer):
                 cursor = self.openCursor()
                 
                 try:
-                    value = cursor.set_range(cursorKey, flags=self._flags)
+                    value = cursor.set_range(cursorKey, self._flags)
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
@@ -529,7 +520,7 @@ class NamesContainer(DBContainer):
                 cursor = self.openCursor()
                 
                 try:
-                    value = cursor.set_range(cursorKey, flags=self._flags)
+                    value = cursor.set_range(cursorKey, self._flags)
                 except DBNotFoundError:
                     return results
                 except DBLockDeadlockError:
@@ -606,7 +597,7 @@ class ACLContainer(DBContainer):
                 cursor = self.openCursor()
                 
                 try:
-                    value = cursor.set_range(cursorKey, flags=self._flags)
+                    value = cursor.set_range(cursorKey, self._flags)
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
@@ -702,7 +693,7 @@ class IndexesContainer(DBContainer):
                 cursor = self.openCursor()
 
                 try:
-                    value = cursor.set_range(cursorKey, flags=self._flags)
+                    value = cursor.set_range(cursorKey, self._flags)
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
@@ -866,7 +857,7 @@ class ItemContainer(DBContainer):
                 cursor = self.openCursor()
 
                 try:
-                    value = cursor.set_range(key, flags=self._flags)
+                    value = cursor.set_range(key, self._flags)
                 except DBNotFoundError:
                     return None, None
                 except DBLockDeadlockError:
@@ -970,8 +961,7 @@ class ItemContainer(DBContainer):
                 cursor = self.openCursor(self._index)
 
                 try:
-                    value = cursor.set_range(uuid._uuid,
-                                             flags=self._flags)
+                    value = cursor.set_range(uuid._uuid, self._flags)
                 except DBNotFoundError:
                     return
                 except DBLockDeadlockError:
@@ -1025,7 +1015,7 @@ class ItemContainer(DBContainer):
 
                 try:
                     value = cursor.set_range(pack('>l', oldVersion + 1),
-                                             flags=self._flags)
+                                             self._flags)
                 except DBNotFoundError:
                     return
                 except DBLockDeadlockError:
@@ -1070,7 +1060,7 @@ class ItemContainer(DBContainer):
                 store.abortTransaction(txnStatus)
 
 
-class ValueContainer(DBContainer):
+class ValueContainer(DBContainer, CValueContainer):
 
     FORMAT_VERSION = 0x00050000
 
@@ -1100,18 +1090,6 @@ class ValueContainer(DBContainer):
 
         # uValue -> uAttr, uValue
         return pack('>16s16s', value[0:16], key)
-
-    def saveValue(self, buffer, uItem, version, uAttr, uValue, value):
-
-        buffer.truncate(0)
-        buffer.seek(0)
-
-        buffer.write(uAttr._uuid)
-        buffer.write(uItem._uuid)
-        buffer.write(pack('>l', ~version))
-        buffer.write(value)
-
-        self.put(uValue._uuid, buffer.getvalue())
 
     def loadValue(self, uValue):
 

@@ -122,8 +122,9 @@ class PersistentRefs(object):
         if key is None:
             raise ValueError, 'key is None'
 
-        self._getRefs().saveRef(self._key, self._value, version, key,
-                                previous, next, alias)
+        store = self.view.repository.store
+        store._refs.saveRef(store.txn, self._key.getvalue(), version, key,
+                            previous, next, alias)
 
     def _deleteRef(self, key, version):
 
@@ -349,7 +350,11 @@ class DBRefList(RefList, PersistentRefs):
         self._copy_(target)
         self._item._references[self._name] = target
 
-        PersistentRefs._mergeChanges(target, oldVersion, toVersion)
+        try:
+            sd = self._setFlag(RefList.SETDIRTY, False)
+            PersistentRefs._mergeChanges(target, oldVersion, toVersion)
+        finally:
+            self._setFlag(RefList.SETDIRTY, sd)
 
 
 class DBNumericIndex(NumericIndex):
