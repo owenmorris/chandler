@@ -19,6 +19,7 @@
              xmlns:calendarModel="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
              xmlns:contacts="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
              xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
+             xmlns:zaobao="http://osafoundation.org/parcels/osaf/examples/zaobao/blocks"
              >
 
   <core:version>0.3</core:version>
@@ -88,13 +89,6 @@
     <commitAfterDispatch>True</commitAfterDispatch>
   </ModifyContentsEvent>
 
-  <BlockEvent itsName="NewZaoBaoChannelEvent">
-    <blockName>NewZaoBaoChannel</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>MainView</dispatchToBlockName>
-    <commitAfterDispatch>True</commitAfterDispatch>
-  </BlockEvent>
-  
   <KindParameterizedEvent itsName="NewMailMessage">
     <blockName>NewMailMessage</blockName>
     <kindParameter itemref="mail:MailMessage"/>
@@ -458,7 +452,7 @@
     <childrenBlocks itemref="doc:NewEventItem"/>
     <childrenBlocks itemref="doc:NewSeparator1"/>
     <childrenBlocks itemref="doc:NewContactItem"/>
-    <childrenBlocks itemref="doc:NewZaoBaoChannel"/>
+    <childrenBlocks itemref="zaobao:NewZaoBaoChannel"/>
   </Menu>
   
   <MenuItem itsName="NewNoteItem">
@@ -509,12 +503,6 @@
     <title>New Collection</title>
     <helpString>Create a new Collection</helpString>
     <event itemref="doc:NewItemCollection"/>
-  </MenuItem>
-
-  <MenuItem itsName="NewZaoBaoChannel">
-    <blockName>NewZaoBaoChannelItem</blockName>
-    <title>New ZaoBao Channel</title>
-    <event itemref="doc:NewZaoBaoChannelEvent"/>
   </MenuItem>
 
   <MenuItem itsName="PrintPreviewItem">
