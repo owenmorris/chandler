@@ -391,6 +391,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         finally:
             Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
+        self.SetColLabelAlignment(wx.ALIGN_LEFT, wx.ALIGN_CENTRE)
         self.SetRowLabelSize(0)
         self.AutoSizeRows()
         self.EnableGridLines(False)
