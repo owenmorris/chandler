@@ -1,33 +1,31 @@
 
 from model.item.Item import Item
 from model.item.ItemRef import RefDict
+from MetaKind import MetaKind
 
 
 class AttrDef(Item):
 
-    def __init__(self, name, parent, kind, **_kwds):
-
-        super(AttrDef, self).__init__(name, parent, kind, **_kwds)
-
-        otherName = self._otherName('AttrDefs')
-        self.setAttribute(otherName, RefDict(self, otherName))
+    kind = MetaKind({ 'Required': { 'Required': False,
+                                    'Cardinality': 'single',
+                                    'Default': False },
+                      'Cardinality': { 'Required': False,
+                                       'Cardinality': 'single',
+                                       'Default': 'single' },
+                      'Type': { 'Required': False,
+                                'Cardinality': 'single',
+                                'OtherName': 'TypeFor' },
+                      'Default': { 'Required': False,
+                                   'Cardinality': 'single' },
+                      'OtherName': { 'Required': False,
+                                     'Cardinality': 'single' },
+                      'Kinds': { 'Required': False,
+                                 'Cardinality': 'dict',
+                                 'OtherName': 'AttrDefs' } })
 
     def refName(self, name):
 
-        return self._name
+        if name == 'AttrDefs':
+            return self._name
 
-    def getType(self):
-
-        return self.Type
-
-    def isRequired(self):
-
-        return self.Required
-
-    def isSingle(self):
-
-        return self.Cardinality == 'single'
-
-    def getDefault(self):
-
-        return self.Default
+        return super(AttrDef, self).refName(name)

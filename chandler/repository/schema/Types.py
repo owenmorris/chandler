@@ -1,16 +1,14 @@
 
 from model.item.Item import Item
 from model.item.ItemRef import RefDict
+from MetaKind import MetaKind
 
 
 class Type(Item):
 
-    def __init__(self, name, parent, kind, **_kwds):
-
-        super(Type, self).__init__(name, parent, kind, **_kwds)
-
-        otherName = self._otherName('Type')
-        self.setAttribute(otherName, RefDict(self, otherName))
+    kind = MetaKind({ 'TypeFor': { 'Required': False,
+                                   'Cardinality': 'dict',
+                                   'OtherName': 'Type' } })
 
     def serialize(self, value):
 
@@ -59,6 +57,18 @@ class Bool(Type):
 
     def unserialize(self, data):
         return data != 'False'
+
+
+class UUID(Type):
+
+    def unserialize(self, data):
+        return model.util.UUID(data)
+
+
+class Path(Type):
+
+    def unserialize(self, data):
+        return model.util.Path(data)
 
 
 class Enum(Type):

@@ -42,6 +42,11 @@ class ItemRef(object):
                 if isinstance(old, RefDict):
                     old[item.refName(name)] = self
                     return
+            elif other.getAttrAspect(name, 'Cardinality', 'single') == 'dict':
+                old = RefDict(other, name)
+                other._attributes[name] = old
+                old[item.refName(name)] = self
+                return
             
             other.setAttribute(name, self)
 
@@ -121,3 +126,15 @@ class RefDict(dict):
     def _removeRef(self, key):
 
         super(RefDict, self).__delitem__(key)
+
+    def _getRef(self, key):
+
+        return super(RefDict, self).get(key)
+
+    def get(self, key, default=None):
+
+        value = super(RefDict, self).get(key, default)
+        if value is not default:
+            value = value.other(self._item)
+
+        return value

@@ -120,20 +120,29 @@ class Repository(object):
     def load(self):
         'Load items from the directory the repository was initialized with.'
         
-        cover = Repository.stub(self)
-
         if os.path.isdir(self._dir):
             contents = file(os.path.join(self._dir, 'contents.lst'), 'r')
             
-            for uuid in contents.readlines():
-                self._loadItem(os.path.join(self._dir, uuid[:-1] + '.item'),
-                               cover)
+            for dir in contents.readlines():
+                self._loadRoot(dir[:-1])
 
-            for item in self:
-                if hasattr(item, '_parentRef'):
-                    item.move(self.find(item._parentRef))
-                    del item._parentRef
+    def _loadRoot(self, dir):
 
+        cover = Repository.stub(self)
+
+        contents = file(os.path.join(self._dir, dir, 'contents.lst'), 'r')
+        for uuid in contents.readlines():
+            self._loadItem(os.path.join(self._dir, dir, uuid[:-1] + '.item'),
+                           cover)
+        contents.close()
+        
+        for item in cover:
+            if hasattr(item, '_parentRef'):
+                item.move(self.find(item._parentRef))
+                del item._parentRef
+
+        cover._resolveKinds()
+        
     def _loadItem(self, path, cover, parent=None):
 
         handler = ItemHandler(cover, parent or self)
@@ -141,21 +150,24 @@ class Repository(object):
 
         return handler.item
 
-    def loadPack(self, path, parent=None):
+    def loadPack(self, path, parent=None, verbose=False):
         'Load items from the pack definition file at path.'
 
         cover = Repository.stub(self)
-        xml.sax.parse(path, PackHandler(os.path.dirname(path), parent, cover))
+        xml.sax.parse(path, PackHandler(os.path.dirname(path), parent, cover,
+                                        verbose))
 
     def purge(self):
-        'Purge the repository directory of all item files that do not correspond to currently existing items in the repository.'
+        'Purge the repository directory tree of all item files that do not correspond to currently existing items in the repository.'
         
         if os.path.exists(self._dir):
-            for item in os.listdir(self._dir):
-                if item.endswith('.item'):
-                    uuid = UUID(item[:-5])
-                    if not self._registry.has_key(uuid):
-                        os.remove(os.path.join(self._dir, item))
+            def purge(arg, path, names):
+                for item in names:
+                    if item.endswith('.item'):
+                        uuid = UUID(item[:-5])
+                        if not self._registry.has_key(uuid):
+                            os.remove(os.path.join(path, item))
+            os.path.walk(self._dir, purge, None)
 
     def dir(self, item=None, path=None):
         'Print out a listing of each item in the repository or under item.'
@@ -183,25 +195,43 @@ class Repository(object):
         elif not os.path.isdir(self._dir):
             raise ValueError, self._dir + " exists but is not a directory"
 
-        for item in self:
-            filename = str(item.getUUID()) + '.item'
-            out = file(os.path.join(self._dir, filename), 'w')
-            generator = xml.sax.saxutils.XMLGenerator(out, encoding)
-
-            generator.startDocument()
-            item.save(generator)
-            generator.endDocument()
-
-            out.write('\n')
-            out.close()
-
         contents = file(os.path.join(self._dir, 'contents.lst'), 'w')
+        
+        for root in self._roots.iteritems():
+            dir = os.path.join(self._dir, root[0])
 
-        for uuid in self._registry.iterkeys():
-            contents.write(str(uuid))
+            if not os.path.exists(dir):
+                os.mkdir(dir)
+            elif not os.path.isdir(dir):
+                raise ValueError, dir + " exists but is not a directory"
+
+            rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
+            root[1].save(self, contents=rootContents, encoding=encoding)
+            rootContents.close()
+
+            contents.write(root[0])
             contents.write('\n')
-            
+
         contents.close()
+
+    def saveItem(self, item, **args):
+
+        uuid = str(item.getUUID())
+        filename = os.path.join(self._dir, item.getRoot().getName(),
+                                uuid + '.item')
+        out = file(filename, 'w')
+        generator = xml.sax.saxutils.XMLGenerator(out, args.get('encoding',
+                                                                'iso-8859-1'))
+
+        generator.startDocument()
+        item.toXML(generator)
+        generator.endDocument()
+
+        args['contents'].write(uuid)
+        args['contents'].write('\n')
+
+        out.write('\n')
+        out.close()
 
 
     class stub(object):
@@ -209,6 +239,11 @@ class Repository(object):
         def __init__(self, repository):
             super(Repository.stub, self).__init__()
             self.repository = repository
+            self.registry = []
+            self.kindRefs = []
+
+        def __iter__(self):
+            return self.registry.__iter__()
 
         def _addItem(self, item):
             return item
@@ -217,6 +252,7 @@ class Repository(object):
             pass
 
         def _registerItem(self, item):
+            self.registry.append(item)
             self.repository._registerItem(item)
 
         def _unregisterItem(self, item):
@@ -225,6 +261,13 @@ class Repository(object):
         def _loadItem(self, path, parent):
             return self.repository._loadItem(path, self, parent)
 
+        def _resolveKinds(self):
+
+            for item in self.kindRefs:
+                ref = item._kindRef
+                del item._kindRef
+                item._kind = item.find(ref)
+
         def find(self, spec):
             return self.repository.find(spec)
 
@@ -232,16 +275,21 @@ class Repository(object):
 class PackHandler(xml.sax.ContentHandler):
     'A SAX ContentHandler implementation responsible for loading packs.'
 
-    def __init__(self, cwd, parent, cover):
+    def __init__(self, cwd, parent, cover, verbose):
 
         self.cwd = [ cwd ]
         self.parent = [ parent ]
         self.cover = cover
+        self.verbose = verbose
 
     def startDocument(self):
 
         self.tagMethods = []
         self.tagAttrs = []
+
+    def endDocument(self):
+
+        self.cover._resolveKinds()
         
     def startElement(self, tag, attrs):
 
@@ -287,9 +335,8 @@ class PackHandler(xml.sax.ContentHandler):
         elif attrs.has_key('uuid'):
             parent = self.cover.find(UUID(attrs['uuid']))
         elif attrs.has_key('file'):
-            parent = self.cover._loadItem(os.path.join(self.cwd[-1],
-                                                       attrs['file']),
-                                          self.parent[-1])
+            parent = self.loadItem(os.path.join(self.cwd[-1], attrs['file']),
+                                   self.parent[-1])
         self.parent.append(parent)
 
         if attrs.has_key('cwd'):
@@ -311,8 +358,15 @@ class PackHandler(xml.sax.ContentHandler):
 
             for file in os.listdir(self.cwd[-1]):
                 if exp.match(file):
-                    self.cover._loadItem(os.path.join(self.cwd[-1], file),
-                                                      self.parent[-1])
+                    self.loadItem(os.path.join(self.cwd[-1], file),
+                                  self.parent[-1])
         else:
             self.cover._loadItem(os.path.join(self.cwd[-1], attrs['file']),
                                  self.parent[-1])
+
+    def loadItem(self, file, parent):
+
+        if self.verbose:
+            print file
+            
+        return self.cover._loadItem(file, parent)

@@ -4,12 +4,15 @@
 
   <parent file="Schema.root">
 
-    <parent file="Types.container" cwd="types">
-      <item files="*.type" />
-    </parent>
-
     <parent file="Model.domain" cwd="model">
-      <item files="*.attr" />
+      <parent file="Types.container" cwd="types">
+        <item files="*.type" />
+      </parent>
+
+      <parent file="Attributes.container" cwd="attributes">
+        <item files="*.attr" />
+      </parent>
+
       <item files="*.kind" />
     </parent>
 

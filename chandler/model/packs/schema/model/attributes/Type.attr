@@ -2,8 +2,10 @@
 
 <item>
     <name>Type</name>
+    <kind type="path">//Schema/Model/AttrDef</kind>
     <class module="model.schema.AttrDef">AttrDef</class>
 
-    <attribute name="Cardinality">single</attribute>
     <attribute name="Required" type="bool">False</attribute>
+    <attribute name="Cardinality">single</attribute>
+    <attribute name="OtherName" type="bool">TypeFor</attribute>
 </item>

@@ -36,7 +36,8 @@ class Item(object):
         self._name = name
         self._root = None
         self._parent = parent
-
+        self._kind = kind
+        
         self._setRoot(parent._addItem(self))
 
     def __repr__(self):
@@ -67,10 +68,24 @@ class Item(object):
 
     def _otherName(self, name):
 
-        if name.endswith('__for'):
-            return name[:-5]
-        else:
-            return name + '__for'
+        otherName = self.getAttrAspect(name, 'OtherName')
+
+        if otherName is None:
+            if name.endswith('__for'):
+                otherName = name[:-5]
+            else:
+                otherName = name + '__for'
+
+        return otherName
+
+    def getAttrAspect(self, name, aspect, default=None):
+
+        if self._kind is not None:
+            attrDef = self._kind.getAttrDef(name)
+            if attrDef is not None:
+                return getattr(attrDef, aspect, default)
+
+        return default
 
     def setAttribute(self, name, value=None):
         '''Create and/or set a Chandler attribute.
@@ -198,6 +213,11 @@ class Item(object):
 
         return self._parent
 
+    def getKind(self):
+        '''Return this item's kind.'''
+
+        return getattr(self, '_kind', None)
+
     def getRepository(self):
         '''Return this item's repository.
 
@@ -241,8 +261,12 @@ class Item(object):
 
         return self._parent.find(spec, _index)
 
-    def save(self, generator):
-        'Generate the XML for the saving this item.'
+    def save(self, repository, **args):
+
+        repository.saveItem(self, **args)
+
+    def toXML(self, generator):
+        'Generate the XML representation for this item.'
 
         generator.startElement('item', { 'uuid': str(self._uuid) })
 
@@ -250,6 +274,12 @@ class Item(object):
         generator.startElement('name', {})
         generator.characters(self._name)
         generator.endElement('name')
+
+        if self._kind is not None:
+            generator.characters('\n    ')
+            generator.startElement('kind', { 'type': 'uuid' })
+            generator.characters(str(self._kind.getUUID()))
+            generator.endElement('kind')
 
         if self._root is not self:
             generator.characters('\n    ')
@@ -263,12 +293,12 @@ class Item(object):
         generator.endElement('class')
 
         for attr in self._attributes.iteritems():
-            self._saveValue(attr[0], attr[1], 'attribute', '\n    ', generator)
+            self._xmlValue(attr[0], attr[1], 'attribute', '\n    ', generator)
 
         generator.characters('\n')
         generator.endElement('item')
 
-    def _saveValue(self, name, value, tag, indent, generator):
+    def _xmlValue(self, name, value, tag, indent, generator):
 
         def _typeName(value):
 
@@ -282,8 +312,8 @@ class Item(object):
                 return type(value).__name__
             
         if isinstance(value, ItemRef):
-            self._saveValue(name, value.other(self).getUUID(), 'ref', indent,
-                            generator)
+            self._xmlValue(name, value.other(self).getUUID(), 'ref', indent,
+                           generator)
         else:
             attrs = {}
 
@@ -301,12 +331,12 @@ class Item(object):
             if isinstance(value, dict):
                 i = indent + '    '
                 for val in value.iteritems():
-                    self._saveValue(val[0], val[1], 'value', i, generator)
+                    self._xmlValue(val[0], val[1], 'value', i, generator)
                 generator.characters(indent)
             elif isinstance(value, list):
                 i = indent + '    '
                 for val in value:
-                    self._saveValue(None, val, 'value', i, generator)
+                    self._xmlValue(None, val, 'value', i, generator)
                 generator.characters(indent)
             else:
                 generator.characters(str(value))
@@ -329,6 +359,7 @@ class ItemHandler(xml.sax.ContentHandler):
         self.attributes = {}
         self.refs = []
         self.collections = []
+        self.kind = None
         
     def startElement(self, tag, attrs):
 
@@ -354,7 +385,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def itemTag(self, attrs):
 
-        self.item = item = self.cls(self.name, self.repository, None,
+        self.item = item = self.cls(self.name, self.repository, self.kind,
                                     _uuid = UUID(attrs.get('uuid')),
                                     _attributes = self.attributes)
 
@@ -366,6 +397,10 @@ class ItemHandler(xml.sax.ContentHandler):
             item._parentRef = self.parentRef
         elif self.parent is not None:
             item.move(self.parent)
+
+        if hasattr(self, 'kindRef'):
+            item._kindRef = self.kindRef
+            self.repository.kindRefs.append(item)
 
         for ref in self.refs:
             other = item.find(ref[1])
@@ -380,13 +415,15 @@ class ItemHandler(xml.sax.ContentHandler):
                 valueDict._item = item
                 
             if other is not None:
-                value = other._attributes[otherName]
-                if isinstance(value, ItemRef):
+                value = other._attributes.get(otherName)
+                if value is None:
+                    value = ItemRef(item, other, otherName)
+                elif isinstance(value, ItemRef):
                     value._other = item
                 elif isinstance(value, RefDict):
                     refName = item.refName(ref[0])
                     if value.has_key(refName):
-                        value = value[refName]
+                        value = value._getRef(refName)
                         value._other = item
                     else:
                         value = ItemRef(item, other, otherName)
@@ -395,10 +432,23 @@ class ItemHandler(xml.sax.ContentHandler):
 
             valueDict[ref[0]] = value
 
+    def kindTag(self, attrs):
+
+        if attrs['type'] == 'uuid':
+            kindRef = UUID(self.data)
+        else:
+            kindRef = Path(self.data)
+
+        self.kind = self.repository.find(kindRef)
+        if self.kind is None:
+            self.kindRef = kindRef
+
     def classTag(self, attrs):
 
         self.cls = getattr(__import__(attrs['module'], {}, {}, self.data),
                            self.data)
+        if self.kind is None:
+            self.kind = getattr(self.cls, 'kind', None)
 
     def nameTag(self, attrs):
 

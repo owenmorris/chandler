@@ -107,3 +107,10 @@ class Container(Item):
                 return self.find(UUID(spec))
 
         return None
+
+    def save(self, repository, **args):
+
+        super(Container, self).save(repository, **args)
+
+        for child in self:
+            child.save(repository, **args)

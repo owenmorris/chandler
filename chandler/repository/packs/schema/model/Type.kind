@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <name>Type</name>
+    <kind type="path">//Schema/Model/Kind</kind>
+    <class module="model.schema.Kind">Kind</class>
+
+    <attribute name="AttrDefs" type="refs">
+        <ref name="TypeFor" type="path">//Schema/Model/Attributes/TypeFor</ref>
+    </attribute>
+</item>

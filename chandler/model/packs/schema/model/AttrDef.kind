@@ -2,12 +2,15 @@
 
 <item>
     <name>AttrDef</name>
+    <kind type="path">//Schema/Model/Kind</kind>
     <class module="model.schema.Kind">Kind</class>
 
     <attribute name="AttrDefs" type="refs">
-        <ref name="Required" type="path">//Schema/Model/Required</ref>
-        <ref name="Cardinality" type="path">//Schema/Model/Cardinality</ref>
-        <ref name="Type" type="path">//Schema/Model/Type</ref>
-        <ref name="Default" type="path">//Schema/Model/Default</ref>
+        <ref name="Required" type="path">//Schema/Model/Attributes/Required</ref>
+        <ref name="Cardinality" type="path">//Schema/Model/Attributes/Cardinality</ref>
+        <ref name="Type" type="path">//Schema/Model/Attributes/Type</ref>
+        <ref name="Default" type="path">//Schema/Model/Attributes/Default</ref>
+        <ref name="OtherName" type="path">//Schema/Model/Attributes/OtherName</ref>
+        <ref name="Kinds" type="path">//Schema/Model/Attributes/Kinds</ref>
     </attribute>
 </item>
