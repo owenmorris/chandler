@@ -10,8 +10,8 @@
         xmlns="//Schema/Core"
         xmlns:simple="//parcels/simple">
 
-  <displayName>Simple Parcel Loader Unit Test Schema</displayName>
-  <description>Foo</description>
+  <displayName>Simple</displayName>
+  <description>Simple Parcel Loader Test Schema</description>
   <version>0.1</version>
   <author>Open Source Applications Foundation</author>
 
@@ -25,5 +25,10 @@
     <displayName>Test Kind</displayName>
     <attributes itemref="simple:TestAttribute"/>
     <displayAttribute itemref="simple:TestAttribute"/>
+  </Kind>
+
+  <Kind itemName="SubKind">
+    <superKinds itemref="simple:TestKind"/>
+    <displayName>Subclass Test Kind</displayName>
   </Kind>
 </Parcel>
