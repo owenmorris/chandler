@@ -254,11 +254,10 @@ class Query(Item.Item):
         Return a generator of the query results
         """
         if self.__resultsAreStale():
-            try:
+            if self._resultSet:
                 self._resultSet.clear()
-            except:
-                self._resultSet = []
-            self.stale = False
+            if self.stale:
+                self.stale = False
             for i in self._logical_plan.execute():
                 self._resultSet.append(i)
                 yield i
@@ -271,11 +270,10 @@ class Query(Item.Item):
         Return a reference collection of the query results
         """
         if self.__resultsAreStale():
-            try:
+            if self._resultSet:
                 self._resultSet.clear()
-            except:
-                self._resultSet = []
-            self.stale = False
+            if self.stale:
+                self.stale = False
             for i in self._logical_plan.execute():
                 self._resultSet.append(i)
             return self._resultSet
@@ -287,11 +285,10 @@ class Query(Item.Item):
     def __resultsAreStale(self):
         self._ensureQueryIsCurrent()
         if self.queryString == "":
-            try:
+            if self._resultSet:
                 self._resultSet.clear()
-            except AttributeError:
-                self._resultSet = []
-            self.stale = False
+            if self.stale:
+                self.stale = False
         return self.stale
 
     def __analyze(self, ast):
