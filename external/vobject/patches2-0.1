@@ -11,3 +11,15 @@ Index: parsing.py
                    "exrule"          : parseRecur,
                    "rdate"           : deUnicode(parseRdate),
                    "rrule"           : parseRecur,
+Index: vobject.py
+===================================================================
+--- vobject-0.1/vobject/vobject.py	(revision 70)
++++ vobject-0.1/vobject/vobject.py	(working copy)
+@@ -316,6 +316,7 @@
+             except (KeyError, AttributeError):
+                 obj = ContentLine(objOrName, [], '') 
+         self.contents.setdefault(obj.name.lower(), []).append(obj)
++        return obj
+ 
+     def getChildren(self):
+         for objList in self.contents.values():
