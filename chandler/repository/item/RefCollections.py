@@ -317,7 +317,7 @@ class RefList(LinkedMap):
             if old is not None:
                 self.linkChanged(self._get(key), key)
             else:
-                self._setDirty()
+                self._setDirty(noMonitors=kwds.get('noMonitors', False))
 
         link = super(RefList, self).__setitem__(key, other,
                                                 kwds.get('previous'),

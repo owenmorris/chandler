@@ -286,8 +286,9 @@ class RefContainer(DBContainer):
 
     def _historyKey(self, key, value):
 
-        # uItem, uCol, uRef, ~version -> uItem, version, uCol, uRef
-        return pack('>16sl32s', key, ~unpack('>l', key[48:52])[0], key[16:48])
+        # uItem, uCol, uRef, ~version -> uCol, version, uItem, uRef
+        return pack('>16sl16s16s', key[16:32], ~unpack('>l', key[48:52])[0],
+                    key[0:16], key[32:48])
 
     def applyHistory(self, fn, uuid, oldVersion, newVersion):
 
@@ -316,9 +317,9 @@ class RefContainer(DBContainer):
 
                 try:
                     while value is not None:
-                        uItem, version, uCol, uRef = unpack('>16sl16s16s',
+                        uCol, version, uItem, uRef = unpack('>16sl16s16s',
                                                             value[0])
-                        if version > newVersion or uItem != uuid._uuid:
+                        if version > newVersion or uCol != uuid._uuid:
                             break
 
                         fn(version, (UUID(uCol), UUID(uRef)),

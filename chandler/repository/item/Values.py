@@ -345,7 +345,8 @@ class References(Values):
         if other is not None:
             other._references._setRef(otherName, self._item, name,
                                       cardinality=kwds.get('otherCard'),
-                                      alias=kwds.get('otherAlias'))
+                                      alias=kwds.get('otherAlias'),
+                                      noMonitors=kwds.get('noMonitors', False))
 
     def _addValue(self, name, other, otherName, **kwds):
 
@@ -371,7 +372,8 @@ class References(Values):
         else:
             self[name] = other
             if not item.itsView.isLoading():
-                item.setDirty(item.VDIRTY, name, self)
+                item.setDirty(item.VDIRTY, name, self,
+                              kwds.get('noMonitors', False))
 
     def _getRef(self, name, other=None):
 
@@ -629,23 +631,34 @@ class References(Values):
         except AttributeError:
             dirties = None
 
-        # catch-up on ref collections (dirties only covers those for now)
-        if dirties is not None:
-            for key in self.iterkeys():
-                if key in dirties:
-                    self[key]._commitMerge()
+        for key, value in self.iteritems():
+            if dirties is not None and key in dirties:
+                value._clear_()
+            else:
+                try:
+                    if value is not None and value._isRefList():
+                        del value._original
+                except AttributeError:
+                    pass
 
     def _revertMerge(self):
 
         try:
-            self._item._references = self._original
+            self._item._references = references = self._original
         except AttributeError:
-            pass
+            references = self
 
         try:
             del self._dirties
         except AttributeError:
             pass
+
+        for key, value in references.iteritems():
+            try:
+                if value is not None and value._isRefList():
+                    references[key] = value._original
+            except AttributeError:
+                pass
 
     def _checkRef(self, logger, name, other):
 

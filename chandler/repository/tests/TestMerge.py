@@ -17,20 +17,46 @@ from repository.util.Path import Path
 class TestMerge(RepositoryTestCase):
     """ Test item merging """
 
+    itemPath = Path('//Schema/Core/Item')
+    kindPath = Path('//Schema/Core/Kind')
+    attributePath = Path('//Schema/Core/Attribute')
+    cPath = Path('//kinds/c')
+    
     def setUp(self):
 
         super(TestMerge, self).setUp()
 
-        self.itemPath = Path('//Schema/Core/Item')
+        item = self.rep.find(TestMerge.itemPath)
+        kind = self.rep.find(TestMerge.kindPath)
+        attribute = self.rep.find(TestMerge.attributePath)
 
-        kind = self.rep.find(self.itemPath)
-        kind.newItem('p', self.rep)
+        kinds = item.newItem('kinds', self.rep)
+        item.newItem('cm', self.rep)
+        item.newItem('co', self.rep)
+
+        p = kind.newItem('p', kinds)
+        p.addValue('superKinds', item)
+        c = kind.newItem('c', kinds)
+        c.addValue('superKinds', item)
+
+        ap = attribute.newItem('ap', p)
+        ap.otherName = 'ac'
+        ap.cardinality = 'list'
+        p.addValue('attributes', ap)
+
+        ac = attribute.newItem('ac', c)
+        ac.otherName = 'ap'
+        ac.cardinality = 'single'
+        c.addValue('attributes', ac)
+
+        p.newItem('p', self.rep)
+
         self.rep.commit()
         
     def merge(self, o, m):
 
         pm = self.rep['p']
-        km = self.rep.findPath('//Schema/Core/Item')
+        km = self.rep.find(TestMerge.cPath)
         am = []
 
         oc = [c.itsName for c in pm.iterChildren()]
@@ -39,7 +65,7 @@ class TestMerge(RepositoryTestCase):
         main = self.rep.setCurrentView(view)
 
         po = self.rep['p']
-        ko = self.rep.findPath('//Schema/Core/Item')
+        ko = self.rep.find(TestMerge.cPath)
         ao = []
         for i in xrange(o):
             ao.append(ko.newItem('ao_%02d' %(i), po))
@@ -73,10 +99,64 @@ class TestMerge(RepositoryTestCase):
 
         self.assert_(c.lastKey() == am[m - 1].itsUUID)
  
+    def mergeRefs(self, o, m):
+
+        pm = self.rep['p']
+        cm = self.rep['cm']
+        km = self.rep.find(TestMerge.cPath)
+        am = []
+
+        oc = [c.itsName for c in pm.ap]
+        
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        po = self.rep['p']
+        co = self.rep['co']
+        ko = self.rep.find(TestMerge.cPath)
+        ao = []
+        for i in xrange(o):
+            c = ko.newItem('ao_%02d' %(i), co)
+            c.ac = po
+            po.ap.dir()
+            ao.append(c)
+        view.commit()
+
+        view = self.rep.setCurrentView(main)
+        for i in xrange(m):
+            c = km.newItem('am_%02d' %(i), cm)
+            c.ac = pm
+            pm.ap.dir()
+            am.append(c)
+        main.commit()
+
+        ic = [c.itsName for c in pm.ap]
+        uc = oc[:]
+        uc.extend([c.itsName for c in ao])
+        uc.extend([c.itsName for c in am])
+        self.assert_(ic == uc)
+
+        c = pm.ap
+
+        for i in xrange(o - 1):
+            self.assert_(c.nextKey(ao[i].itsUUID) == ao[i + 1].itsUUID)
+        for i in xrange(1, o):
+            self.assert_(c.previousKey(ao[i].itsUUID) == ao[i - 1].itsUUID)
+
+        self.assert_(c.nextKey(ao[o - 1].itsUUID) == am[0].itsUUID)
+        self.assert_(c.previousKey(am[0].itsUUID) == ao[o - 1].itsUUID)
+
+        for i in xrange(m - 1):
+            self.assert_(c.nextKey(am[i].itsUUID) == am[i + 1].itsUUID)
+        for i in xrange(1, m):
+            self.assert_(c.previousKey(am[i].itsUUID) == am[i - 1].itsUUID)
+
+        self.assert_(c.lastKey() == am[m - 1].itsUUID)
+ 
     def rename(self, o_name, m_name):
 
         pm = self.rep['p']
-        km = self.rep.findPath('//Schema/Core/Item')
+        km = self.rep.find(TestMerge.cPath)
 
         cm = km.newItem('child', pm)
         self.rep.commit()
@@ -96,7 +176,7 @@ class TestMerge(RepositoryTestCase):
     def move(self, o_name, m_name):
 
         pm = self.rep['p']
-        km = self.rep.findPath('//Schema/Core/Item')
+        km = self.rep.find(TestMerge.cPath)
 
         cm = km.newItem('child', pm)
         km.newItem(m_name, self.rep)
@@ -118,17 +198,17 @@ class TestMerge(RepositoryTestCase):
         main.commit()
 
     def test1Merge1(self):
-        self.rep.find(self.itemPath).newItem('c0', self.rep['p'])
+        self.rep.find(TestMerge.cPath).newItem('c0', self.rep['p'])
         self.rep.commit()
         self.merge(1, 1)
 
     def test1Merge2(self):
-        self.rep.find(self.itemPath).newItem('c0', self.rep['p'])
+        self.rep.find(TestMerge.cPath).newItem('c0', self.rep['p'])
         self.rep.commit()
         self.merge(2, 2)
 
     def test1MergeN(self):
-        self.rep.find(self.itemPath).newItem('c0', self.rep['p'])
+        self.rep.find(TestMerge.cPath).newItem('c0', self.rep['p'])
         self.rep.commit()
         self.merge(5, 8)
 
@@ -167,13 +247,13 @@ class TestMerge(RepositoryTestCase):
         view = self.rep.createView('view')
         main = self.rep.setCurrentView(view)
         po = self.rep['p']
-        ko = self.rep.findPath('//Schema/Core/Item')
+        ko = self.rep.find(TestMerge.cPath)
         ko.newItem('foo', po)
         view.commit()
         
         view = self.rep.setCurrentView(main)
         pm = self.rep['p']
-        km = self.rep.findPath('//Schema/Core/Item')
+        km = self.rep.find(TestMerge.cPath)
         km.newItem('foo', pm)
 
         try:
@@ -186,7 +266,7 @@ class TestMerge(RepositoryTestCase):
 
     def testRenameDifferentSameName(self):
         pm = self.rep['p']
-        km = self.rep.findPath('//Schema/Core/Item')
+        km = self.rep.find(TestMerge.cPath)
         km.newItem('foo', pm)
         km.newItem('bar', pm)
         self.rep.commit()
@@ -211,7 +291,7 @@ class TestMerge(RepositoryTestCase):
 
     def testMoveFirst(self):
         pm = self.rep['p']
-        km = self.rep.findPath('//Schema/Core/Item')
+        km = self.rep.find(TestMerge.cPath)
         km.newItem('foo', pm)
         km.newItem('bar', pm)
         km.newItem('i1', pm)
@@ -236,7 +316,7 @@ class TestMerge(RepositoryTestCase):
     def testChange1Remove1(self):
 
         pm = self.rep['p']
-        km = self.rep.findPath('//Schema/Core/Item')
+        km = self.rep.find(TestMerge.cPath)
         km.newItem('q', self.rep)
         km.newItem('foo', pm)
         km.newItem('bar', pm)
@@ -267,7 +347,7 @@ class TestMerge(RepositoryTestCase):
     def testRemove1Change1(self):
 
         pm = self.rep['p']
-        km = self.rep.findPath('//Schema/Core/Item')
+        km = self.rep.find(TestMerge.cPath)
         km.newItem('q', self.rep)
         km.newItem('foo', pm)
         km.newItem('bar', pm)
@@ -298,7 +378,7 @@ class TestMerge(RepositoryTestCase):
     def testRemove1ChangeOther(self):
 
         pm = self.rep['p']
-        km = self.rep.findPath('//Schema/Core/Item')
+        km = self.rep.find(TestMerge.cPath)
         km.newItem('q', self.rep)
         km.newItem('foo', pm)
         km.newItem('bar', pm)
@@ -343,33 +423,33 @@ class TestMerge(RepositoryTestCase):
         m.writers.clear()
         main.commit()
 
-    def testMergeOverlapRefCollections(self):
-
-        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
-                                     'cineguide.pack')
-        self.rep.loadPack(cineguidePack)
-        self.rep.commit()
-
-        view = self.rep.createView('view')
-        main = self.rep.setCurrentView(view)
-
-        k = view.findPath('//CineGuide/KHepburn')
-        m = k.movies.first()
-        m.actors.clear()
-        view.commit()
-        
-        view = self.rep.setCurrentView(main)
-        k = main.findPath('//CineGuide/KHepburn')
-        m = k.movies.first()
-        m.actors.clear()
-
-        try:
-            main.commit()
-        except MergeError, e:
-            #print e
-            self.assert_(e.getReasonCode() == MergeError.BUG)
-        else:
-            self.assert_(False)
+#    def testMergeOverlapRefCollections(self):
+#
+#        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+#                                     'cineguide.pack')
+#        self.rep.loadPack(cineguidePack)
+#        self.rep.commit()
+#
+#        view = self.rep.createView('view')
+#        main = self.rep.setCurrentView(view)
+#
+#        k = view.findPath('//CineGuide/KHepburn')
+#        m = k.movies.first()
+#        m.actors.clear()
+#        view.commit()
+#
+#        view = self.rep.setCurrentView(main)
+#        k = main.findPath('//CineGuide/KHepburn')
+#        m = k.movies.first()
+#        m.actors.clear()
+#
+#        try:
+#            main.commit()
+#        except MergeError, e:
+#            #print e
+#            self.assert_(e.getReasonCode() == MergeError.BUG)
+#        else:
+#            self.assert_(False)
 
     def testMergeNoOverlapRV(self):
 
@@ -474,6 +554,15 @@ class TestMerge(RepositoryTestCase):
 #        main.commit(mergeFn)
 #
 #        self.assertEquals(m.title, 'changed title in main')
+
+#    def testRefs1Merge1(self):
+#
+#        p = self.rep['p']
+#        cm = self.rep['cm']
+#        c0 = self.rep.find(TestMerge.cPath).newItem('c0', cm)
+#        c0.ac = p
+#        self.rep.commit()
+#        self.mergeRefs(1, 1)
 
 
 

@@ -405,7 +405,7 @@ class LinkedMap(dict):
 
     def itervalues(self):
 
-        for link in self.iterkeys():
+        for key in self.iterkeys():
             yield self[key]
 
     def _itervalues(self):

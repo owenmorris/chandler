@@ -49,7 +49,7 @@ class RefArgs(object):
                 raise DanglingRefError, (item, self.name, self.ref)
 
         item._references._setValue(self.name, other, self.otherName,
-                                   **self.kwds)
+                                   noMonitors=True, **self.kwds)
 
     def _setRef(self):
 
@@ -59,7 +59,7 @@ class RefArgs(object):
             other = self.other
             
         self.item._references._setRef(self.name, other, self.otherName,
-                                      **self.kwds)
+                                      noMonitors=True, **self.kwds)
 
 
 class ValueHandler(ContentHandler):

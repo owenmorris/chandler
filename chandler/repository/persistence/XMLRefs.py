@@ -36,10 +36,6 @@ class PersistentRefs(object):
         self._value = None
         self._count = 0
         
-    def _makeLink(self, value):
-
-        return PersistentRefs.link(value)
-
     def __len__(self):
 
         return self._count
@@ -193,7 +189,7 @@ class PersistentRefs(object):
                         self.place(child, previousKey)
                     else:
                         moves[previousKey] = child
-                        
+
         self._getRefs().applyHistory(merge, self.uuid, oldVersion, toVersion)
 
         for previousKey, child in moves.iteritems():
@@ -208,6 +204,10 @@ class XMLRefList(RefList, PersistentRefs):
 
         PersistentRefs.__init__(self, view)
         RefList.__init__(self, item, name, otherName, readOnly, new)
+
+    def _makeLink(self, value):
+
+        return PersistentRefs.link(value)
 
     def _getRepository(self):
 
@@ -319,11 +319,6 @@ class XMLRefList(RefList, PersistentRefs):
             for name, index in self._indexes.iteritems():
                 index._clearDirties()
 
-    def _commitMerge(self):
-
-        self._clear_()
-        PersistentRefs._setItem(self, self._item)
-
     def _createIndex(self, indexType, **kwds):
 
         if indexType == 'numeric':
@@ -331,13 +326,26 @@ class XMLRefList(RefList, PersistentRefs):
 
         return super(XMLRefList, self)._createIndex(indexType, **kwds)
 
+    def _copy_(self, target):
+
+        RefList._copy_(self, target)
+        PersistentRefs._copy_(self, target)
+
+    def _clear_(self):
+
+        RefList._clear_(self)
+        PersistentRefs._setItem(self, self._item)
+
     def _mergeChanges(self, oldVersion, toVersion):
 
         raise MergeError, ('ref collections', self._item, 'merging ref collections is not yet implemented, overlapping attribute: %s' %(self._name), MergeError.BUG)
 
 #        target = self.view._createRefList(self._item, self._name,
 #                                          self._otherName, True, False, False,
-#                                          self._uuid)
+#                                          self.uuid)
+#
+#        target._original = self
+#
 #        self._copy_(target)
 #        self._item._references[self._name] = target
 #
@@ -489,6 +497,10 @@ class XMLChildren(Children, PersistentRefs):
         PersistentRefs.__init__(self, view)
         Children.__init__(self, item, new)
 
+    def _makeLink(self, value):
+
+        return PersistentRefs.link(value)
+
     def __len__(self):
 
         return PersistentRefs.__len__(self)
@@ -600,7 +612,11 @@ class XMLChildren(Children, PersistentRefs):
 
         Children._copy_(self, target)
         PersistentRefs._copy_(self, target)
-        target._original = self
+
+    def _clear_(self):
+
+        Children._clear_(self)
+        PersistentRefs._setItem(self, self._item)
 
     def _commitMerge(self):
 
@@ -619,6 +635,7 @@ class XMLChildren(Children, PersistentRefs):
     def _mergeChanges(self, oldVersion, toVersion):
 
         target = self.view._createChildren(self._item, False)
+        target._original = self
         self._copy_(target)
         self._item._setChildren(target)
 

@@ -2288,8 +2288,7 @@ class Item(object):
             self._children._commitMerge()
         if status & Item.VMERGED:
             self._values._commitMerge()
-            self._references._commitMerge()
-        if status & Item.RMERGED:
+        if status & (Item.RMERGED | Item.VMERGED):
             self._references._commitMerge()
 
     def _revertMerge(self):
