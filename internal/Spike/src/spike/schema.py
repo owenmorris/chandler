@@ -2,7 +2,7 @@
 
 __all__ = [
    'Entity', 'Role', 'Relationship', 'One', 'Many', 'NullSet', 'LoadEvent',
-   'RoleActivator', 'RelationshipClass'
+   'Activator', 'RelationshipClass', 'ActiveDescriptor',
 ]
 
 from models import Set
@@ -38,12 +38,12 @@ class LoadEvent(Event):
             subscribe = val.subscribe
             for rcv in ls.getReceivers(): subscribe(rcv,True)
         d[self.role] = val
-        
+
     linkset = property(
         lambda self: self.sender.__dict__[self.role], __setLinkset,
         doc = """Linkset to be used for the given sender and role"""
     )
-       
+
     def __init__(self,sender,role,linkset):
         super(LoadEvent,self).__init__(sender,role=role,linkset=linkset)
 
@@ -72,7 +72,15 @@ def iterTypes(typ):
     raise TypeError("%r is not a type or sequence of types" % (typ,))
 
 
-class Role(object):
+class ActiveDescriptor(object):
+    """Abstract base for descriptors needing activation by Entity classes"""
+
+    def activateInClass(self,cls,name):
+        """Redefine in subclasses to do useful things with `cls` & `name`"""
+        raise NotImplementedError
+
+
+class Role(ActiveDescriptor):
     """The definition of one end of a relationship type"""
 
     types = ()
@@ -81,6 +89,7 @@ class Role(object):
 
     def __init__(self,types=(),**kw):
         self.addTypes(types)
+        self._loadMap = {}
         for k,v in kw.items():
             setattr(self,k,v)
 
@@ -125,17 +134,40 @@ class Role(object):
 
     def of(self,ob):
         """Return linkset for `ob` and this role"""
-        if self.inverse is not None and not isinstance(ob,self.inverse.types):
-            return NullSet
         try:
             d = ob.__dict__
         except AttributeError:
+            return self.load(ob)
+        else:
+            try:
+                return d[self]
+            except KeyError:
+                return self.load(ob)
+
+    def load(self,ob):
+        """Load linkset for `ob`, using registered loader or LoadEvent"""
+
+        loadfunc = self.getLoader(ob)
+        if loadfunc is not None:
+
+            linkset = self.newSet(ob)
+            newlinks = loadfunc(ob,linkset)
+
+            if newlinks is not None and newlinks is not linkset:
+                if hasattr(ob,'__dict__'):
+                    ob.__dict__[self] = newlinks
+                return newlinks
+
+        elif self.inverse and not isinstance(ob,self.inverse.types):
             return NullSet
-        try:
-            return d[self]
-        except KeyError:           
-            LoadEvent(ob,self,self.newSet(ob))
-            return d[self]
+        else:
+            linkset = self.newSet(ob)
+
+        if hasattr(ob,'__dict__'):
+            return LoadEvent(ob,self,linkset).linkset
+        else:
+            return NullSet
+
 
     def newSet(self,ob):
         """Return new default linkset for ``ob``"""
@@ -150,6 +182,23 @@ class Role(object):
                 s.subscribe(maintainInverse, hold=True)
             return s
         raise TypeError("No types defined for " + repr(self))
+
+    def setLoader(self,cls,loadfunc):
+        if cls in self._loadMap:
+            raise KeyError("A loader is already installed in %s for %s"
+                % (self,cls)
+            )
+        self._loadMap[cls] = loadfunc
+
+    def loader(self,func):
+        """Decorator to declare a method as a loader for this attribute"""
+        return LoaderWrapper(self,func)
+
+    def getLoader(self,ob):
+        lm = self._loadMap
+        for cls in ob.__class__.__mro__:
+            if cls in lm:
+                return lm[cls]
 
     def __repr__(self):
         if self.name and self.owner:
@@ -219,26 +268,26 @@ class Many(Role):
         self.of(ob).reset()
 
 
-class RoleActivator(type):
+class Activator(type):
     """Metaclass that activates contained roles"""
 
     def __init__(cls,name,bases,cdict):
         for name,ob in cdict.items():
-            if isinstance(ob,Role):
+            if isinstance(ob,ActiveDescriptor):
                 ob.activateInClass(cls,name)
 
 
 class Entity(object):
     """Required base class for all entity types"""
 
-    __metaclass__ = RoleActivator
+    __metaclass__ = Activator
 
     def __init__(self,**kw):
         for k,v in kw.items():
             setattr(self,k,v)
 
 
-class RelationshipClass(RoleActivator):
+class RelationshipClass(Activator):
     """Metaclass for relationships"""
 
     def __init__(cls,name,bases,cdict):
@@ -260,4 +309,17 @@ class Relationship:
     """Subclass this to create a relationship between two roles"""
     __metaclass__ = RelationshipClass
 
+
+class LoaderWrapper(ActiveDescriptor):
+    """Registration wrapper for loader methods declared ``@aRole.loader``"""
+
+    def __init__(self,role,func):
+        self.role = role
+        self.func = func
+
+    def __repr__(self):
+        return "<Loader wrapping %s for %s>" % (self.func,self.role)
+
+    def activateInClass(self,cls,name):
+        self.role.setLoader(cls,self.func)
 

@@ -118,9 +118,41 @@ membership changes::
 
     >>> Joe.age = 40    # no event, because we're not really changing anything
 
+
+You can also define default values, custom initialization strategies, or
+access "foreign" attributes using the ``@loader`` decorator::
+
+    >>> class CalcDemo(schema.Entity):
+    ...     @Person.age.loader
+    ...     def __calcAge(self,linkset):
+    ...         """implements Person.age.of(aCalcDemo)"""
+    ...         print "calculating age"
+    ...         linkset.add(42)
+    ...
+    ...     alias = schema.One(int)
+    ...     @alias.loader
+    ...     def __calcAlias(self,linkset):
+    ...         """implements CalcDemo.alias.of(aCalcDemo)"""
+    ...         print "aliasing 'alias' to Person.age"
+    ...         return Person.age.of(self)
+
+    >>> demo = CalcDemo()
+    >>> list(Person.age.of(demo))
+    calculating age
+    [42]
+
+    >>> demo.alias
+    aliasing 'alias' to Person.age
+    42
+
+    >>> demo.alias = 19     # demo is now aliased to age, so setting sets both
+    >>> list(Person.age.of(demo))
+    [19]
+
+
 Finally, the system issues "load events" whenever an attribute is initialized,
-so that a persistence framework can lazily load attribute values or monitor
-attributes for changes::
+so that a persistence framework or "undo" facility can lazily load attribute
+values or monitor attributes for changes::
 
     >>> schema.LoadEvent.subscribe(Bob, printIt)
     >>> Bob.age = 68
@@ -568,6 +600,78 @@ All role objects have at least the following attributes and methods:
     changing the attributes from which it derived.
 
 
+``@loader`` (Method decorator)
+    Decorating a method as ``@someRole.loader`` designates that method as a
+    loader that will be called when attempting to access ``someRole.of(ob)``
+    if ``ob`` is an instance of the class the method is defined in.  The
+    decorated method may modify the supplied linkset, or replace it by
+    returning a new one::
+
+        >>> class CalcDemo(schema.Entity):
+        ...     @Person.age.loader
+        ...     def __calcAge(self,linkset):
+        ...         """implements Person.age.of(aCalcDemo)"""
+        ...         print "calculating age"
+        ...         linkset.add(42)
+        ...
+        ...     alias = schema.One(int)
+        ...     @alias.loader
+        ...     def __calcAlias(self,linkset):
+        ...         """implements CalcDemo.alias.of(aCalcDemo)"""
+        ...         print "aliasing 'alias' to Person.age"
+        ...         return Person.age.of(self)
+
+        >>> demo = CalcDemo()
+        >>> list(Person.age.of(demo))
+        calculating age
+        [42]
+
+        >>> demo.alias
+        aliasing 'alias' to Person.age
+        42
+
+        >>> demo.alias = 19     # demo is now aliased to age, so setting sets both
+        >>> list(Person.age.of(demo))
+        [19]
+
+The calculation is always performed on the first access, even if the first
+access is to immediately replace the calculated value with a new value::
+
+    >>> demo = CalcDemo()
+    >>> demo.alias = 19
+    aliasing 'alias' to Person.age
+    calculating age
+    >>> demo.alias
+    19
+
+
+``setLoader(cls,loadfunc)``
+    Set the loader for class `cls` to `loadfunc`.  If a loader already exists
+    for the class, a ``KeyError`` is raised.  When attempting to access the
+    role ``of(ob)`` when ``isinstance(ob,cls)``, `loadfunc` will be called with
+    the target object and a default linkset.  It can then modify the linkset
+    or return a replacement linkset.
+
+
+``getLoader(ob)``
+    Return the most-specific loader registered with ``setLoader()`` for
+    ``ob.__class__`` or a base class thereof.  If no loader was registered for
+    any base class of the object's class, return None::
+
+        >>> print CalcDemo.alias.getLoader(schema.Entity())
+        None
+
+        >>> def dummyLoader(ob,linkset): print ob, linkset
+        >>> CalcDemo.alias.setLoader(schema.Entity, dummyLoader)
+
+        >>> print CalcDemo.alias.getLoader(schema.Entity())
+        <function dummyLoader at ...>
+
+        >>> class Dummy(schema.Entity): pass
+        >>> print CalcDemo.alias.getLoader(Dummy())
+        <function dummyLoader at ...>
+
+
 Creating Role Subclasses
 ========================
 
@@ -772,22 +876,21 @@ Activating an already-activated role has no effect on its name or owner::
     >>> role.owner is Owner
     True
 
-And placing an instance of a role subclass in either a relationship or entity
-subclass automatically activates the role::
+And placing an instance of a ``schema.ActiveDescriptor`` subclass in either a
+relationship or entity subclass automatically activates it::
 
-    >>> class MockRole(schema.Role):
+    >>> class MockAttr(schema.ActiveDescriptor):
     ...     def activateInClass(self,cls,name):
     ...         print "activated %r in %r" % (name,cls)
 
     >>> class TestEntity(schema.Entity):
-    ...     aRole = MockRole()
+    ...     aRole = MockAttr()
     activated 'aRole' in <class 'TestEntity'>
 
     >>> class TestRel(schema.Relationship):
-    ...     aRole = MockRole()
-    ...     invRole = MockRole()
-    activated 'aRole' in <class 'TestRel'>
-    activated 'invRole' in <class 'TestRel'>
+    ...     test = MockAttr()
+    ...     x = schema.Role(); y = schema.Role()
+    activated 'test' in <class 'TestRel'>
 
 When a role with an ``inverse`` is activated in an entity class, the entity
 class is automatically added to the types of the inverse role::
@@ -805,6 +908,24 @@ class is automatically added to the types of the inverse role::
     >>> role2.activateInClass(E2,"role2")
     >>> role1.types
     (<class 'E2'>,)
+
+
+Loader Decoration
+=================
+
+The ``loader`` decorator works by returning an ``ActiveDescriptor`` subclass
+instance that calls back to ``setLoader()`` when activated::
+
+    >>> def dummyLoader(ob,linkset): print ob, linkset
+    >>> loader = CalcDemo.alias.loader(dummyLoader)
+
+    >>> loader      # doctest: +NORMALIZE_WHITESPACE
+    <Loader wrapping <function dummyLoader at ...>
+    for <Role alias of <class 'CalcDemo'>>>
+
+    >>> loader.activateInClass(object,'dummy')
+    >>> CalcDemo.alias.getLoader(object())
+    <function dummyLoader at ...>
 
 
 Role Pickling
@@ -843,8 +964,9 @@ So, arbitrary roles can still be pickled, at least in principle.  Roles just
 delegate to Python's built-in ``__reduce_ex__`` if the role has not been
 activated in a class, so any normal pickling restrictions will apply::
 
-    >>> schema.Role().__reduce_ex__()
-    (<...>, (<class '...schema.Role'>, <type 'object'>, None), {'types': ()})
+    >>> schema.Role().__reduce_ex__()   # doctest: +NORMALIZE_WHITESPACE
+    (<...>, (<class '...schema.Role'>, <type 'object'>, None),
+    {'types': (), '_loadMap': {}})
 
 
 Type Flattening
