@@ -35,10 +35,14 @@ class Parcel(application.Parcel.Parcel):
          collectionName, url)
         collection = collectionFromSharedUrl(url)
         if collection is not None:
+            # @@@ For 0.4 we will silently eat re-invites
+            pass
+            """
             application.dialogs.Util.ok( \
              Globals.wxApplication.mainFrame, "Sharing Invitation",
              "Received an invite for an already subscribed collection:\n" \
              "%s\n%s" % (collection.displayName, url))
+            """
         else:
             if application.dialogs.Util.yesNo( \
              Globals.wxApplication.mainFrame, "Sharing Invitation",
