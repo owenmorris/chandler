@@ -70,7 +70,7 @@ def build(buildenv):
 
 
     # Build UUID Extension and install it
-    os.chdir(os.path.join("model","util","ext"))
+    os.chdir(os.path.join("repository","util","ext"))
     if buildenv['version'] == 'release':
         hardhatlib.executeCommand(buildenv, info['name'],
          [buildenv['python'], 'setup.py', 'build', '--build-base=build_release', 'install'],
@@ -192,7 +192,7 @@ def clean(buildenv):
 
 
     # Clean UUID Extension
-    os.chdir(os.path.join("model","util","ext"))
+    os.chdir(os.path.join("repository","util","ext"))
     if buildenv['version'] == 'release':
         hardhatlib.executeCommand(buildenv, info['name'],
          [buildenv['python'], 'setup.py', 'clean', 
