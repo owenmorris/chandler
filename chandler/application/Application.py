@@ -70,7 +70,8 @@ class Application(AutoItem):
         self.notificationManager notification manager
         self.splashCount         how many times the splash screen has been shown
         self.version             used for schema evolution
-         """
+        """
+        self.SetRepository (app.repository)  #AutoItem needs to know the repository
         super (Application, self).__init__ (**args)
         self.newAttribute ('preferences', Preferences ())
         self.newAttribute ('mainFrame', ChandlerWindow ())

@@ -3,11 +3,12 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Application
 from repository.item.Item import Item
 from repository.schema.AutoKind import AutoKind
 from repository.util.ThreadLocal import ThreadLocal
 from repository.util.UUID import UUID
+
+repository=None
 
 class AutoItem (Item, AutoKind):
     def __init__(self, name = None, parent = None, kind = None):
@@ -17,12 +18,22 @@ class AutoItem (Item, AutoKind):
             parent = self.__class__.threadLocal.itemBag
         super (AutoItem, self).__init__ (name, parent, kind)
 
+    def SetRepository (theClass, theRepository):
+        """
+          We need to set the repository only once.
+        """
+        global repository
+        assert not repository
+        repository = theRepository
+    SetRepository = classmethod (SetRepository)
+
     def GetKind (theClass):
         """
           The class method that is used to lookup the repository kind
         or create one if it doesn't exist.
           Store references to Items in thread local storage.
         """
+        assert repository  #remember to call SetRepository before using AutoItem
         if not hasattr (theClass, 'threaded'):
             theClass.threadLocal = ThreadLocal()
 
@@ -30,10 +41,9 @@ class AutoItem (Item, AutoKind):
             kind = theClass.threadLocal.kind
         except AttributeError:
             firstBaseClass = theClass.__bases__[0]
-            app = application.Application.app
             if firstBaseClass is Item:
                 superKind = None
-                kindKind = app.repository.find('//Schema/Core/Kind')
+                kindKind = repository.find('//Schema/Core/Kind')
             else:
                 superKind = firstBaseClass.GetKind ()
                 kindKind = superKind.kind
@@ -42,13 +52,13 @@ class AutoItem (Item, AutoKind):
             the path contains containers.
             """
             modulePath = theClass.__module__.replace ('.', '/')
-            parent = app.repository.walk ('//Schema/parcels/' + modulePath,
-                                          lambda parent, childName, child, **kwds:
-                                              child or Item(childName, parent, None))
+            parent = repository.walk ('//Schema/parcels/' + modulePath,
+                                      lambda parent, childName, child, **kwds:
+                                      child or Item(childName, parent, None))
             theClass.threadLocal.itemBag = \
-                app.repository.walk ('//parcels/' + modulePath,
-                                     lambda parent, childName, child, **kwds:
-                                     child or Item(childName, parent, None))
+                repository.walk ('//parcels/' + modulePath,
+                                 lambda parent, childName, child, **kwds:
+                                 child or Item(childName, parent, None))
 
             name = theClass.__name__
             kind = parent.getItemChild(name)
