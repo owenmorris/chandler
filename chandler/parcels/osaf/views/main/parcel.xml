@@ -552,6 +552,7 @@
   <MenuItem itsName="SelectAllItem">
     <blockName>SelectAllItem</blockName>
     <title>Select all</title>
+    <accel>Ctrl+A</accel>
     <event itemref="events:NULL"/>
     <helpString value="Select all"/>
   </MenuItem>
