@@ -24,8 +24,8 @@ expand: epydoc-$(VERSION).tar.gz
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(EPYDOC)/$(SNAP).tar.gz \
-                  $(SNAP)/$(SITE)/epydoc
+        tar -cvzf $(EPYDOC)/$(SNAP).tar.gz $(SNAP)/$(SITE)/epydoc \
+            --exclude test
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)

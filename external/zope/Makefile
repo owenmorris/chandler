@@ -20,8 +20,9 @@ expand: ZopeInterface-$(VERSION).tgz
 
 snap: 
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(ZOPE)/$(SNAP).tar.gz \
-			  $(SNAP)/$(SITE)/zope 
+	tar -cvzf $(ZOPE)/$(SNAP).tar.gz $(SNAP)/$(SITE)/zope \
+            --exclude tests \
+            --exclude testing
 
 clean:
 	rm -rf  $(SRC)/$(BUILD)

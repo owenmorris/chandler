@@ -84,7 +84,8 @@ snap:
         tar -cvzf $(PYTHON)/$(SNAP).tar.gz \
                   $(SNAP)/bin/python*.* $(SNAP)/bin/libs \
                   $(SNAP)/bin/DLLs $(SNAP)/bin/Include $(SNAP)/bin/Lib \
-            -X $(PYTHON)/xcludes
+            --exclude site-packages \
+            --exclude test
 
 else
 
@@ -106,7 +107,8 @@ snap:
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYTHON)/$(SNAP).tar.gz \
                   $(SNAP)/Library/Frameworks/Python.framework \
-            -X $(PYTHON)/xcludes
+            --exclude site-packages \
+            --exclude test
 
 expand: Python-$(VERSION).tgz
 	tar xvzf Python-$(VERSION).tgz
@@ -131,7 +133,8 @@ snap:
                   $(SNAP)/bin/idle $(SNAP)/bin/python* \
                   $(SNAP)/lib/python* \
                   $(SNAP)/include/python* \
-            -X $(PYTHON)/xcludes
+            --exclude site-packages \
+            --exclude test
 
 expand: Python-$(VERSION).tgz
 	tar xvzf Python-$(VERSION).tgz

@@ -25,8 +25,8 @@ expand: Twisted-$(VERSION).tar.gz
 
 snap: 
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(TWISTED)/$(SNAP).tar.gz \
-			  $(SNAP)/$(SITE)/twisted 
+	tar -cvzf $(TWISTED)/$(SNAP).tar.gz $(SNAP)/$(SITE)/twisted \
+            --exclude test
 
 clean:
 	rm -rf  $(SRC)/$(BUILD)
