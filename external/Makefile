@@ -1,5 +1,5 @@
 
-VERSION=0.3-5
+VERSION=0.3-6
 
 include Makefile.inc
 
@@ -12,6 +12,7 @@ SYSTEMS=persistence/db \
         persistence/dbxml \
         persistence/libxml2 \
         persistence/libxslt \
+	openssl \
         pyxml \
         egenix-mx \
         jabber-py \
