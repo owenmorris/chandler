@@ -22,6 +22,7 @@ import osaf.contentmodel.mail.Mail as Mail
 import chandlerdb.util.UUID as UUID
 import application.Globals as Globals
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
+import M2Crypto.SSL as SSL
 
 #Chandler Mail Service imports
 import constants as constants
@@ -404,6 +405,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
                                           sslContext, heloFallback, authRequired, account.useSSL)
 
         factory.protocol = ChandlerESMTPSender
+        factory.sslChecker = SSL.Checker.Checker()
         wrappingFactory = policies.WrappingFactory(factory)
         wrappingFactory.protocol = wrapper.TLSProtocolWrapper
 

@@ -24,6 +24,7 @@ import repository.item.Query as Query
 import osaf.contentmodel.mail.Mail as Mail
 import application.Globals as Globals
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
+import M2Crypto.SSL as SSL
 
 #Chandler Mail Service imports
 import message as message
@@ -177,6 +178,7 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
         self.wrappingFactory.protocol = wrapper.TLSProtocolWrapper
         self.factory.startTLS = self.account.useSSL
         self.factory.getContext = lambda : Globals.crypto.getSSLContext()
+        self.factory.sslChecker = SSL.Checker.Checker()
         reactor.connectTCP(self.account.host, self.account.port, self.wrappingFactory)
 
     def catchErrors(self, err):
