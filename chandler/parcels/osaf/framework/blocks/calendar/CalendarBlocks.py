@@ -275,8 +275,7 @@ class CalendarBlock(Block.RectangularChild):
 
     def onSelectedDateChangedEvent(self, notification):
         self.updateRange(notification.data['start'])
-        self.widget.displayItems()
-        self.widget.Refresh()
+        self.widget.renderDateChanged()
 
     def postDateChanged(self):
         self.Post(Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectedDateChanged'),
