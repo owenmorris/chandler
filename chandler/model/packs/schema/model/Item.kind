@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<item uuid="70acd404-b3c8-11d7-a72a-000393db837c">
+<item uuid="70acd404-b3c8-11d7-a72a-000393db837c" withSchema="True">
   <name>Item</name>
   <kind type="path">//Schema/Model/Kind</kind>
   <class module="model.schema.Kind">ItemKind</class>

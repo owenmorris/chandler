@@ -30,8 +30,8 @@ class PackHandler(xml.sax.ContentHandler):
 
     def endDocument(self):
 
-        self.repository.resolveRefs(True)
-        
+        self.repository._resolveStubs()
+
     def startElement(self, tag, attrs):
 
         self.data = ''
@@ -110,9 +110,6 @@ class PackHandler(xml.sax.ContentHandler):
 
         if attrs.has_key('cwd'):
             self.cwd.pop()
-
-        if len(self.parent) == 1:
-            self.repository.resolveRefs()
 
         if attrs.has_key('call'):
             getattr(type(item), attrs['call'])(item)

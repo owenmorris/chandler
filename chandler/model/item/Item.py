@@ -52,12 +52,12 @@ class Item(object):
 
         if parent is not None:
             self._parent = parent
-            self._setRoot(parent._addItem(self), _kwds.get('_loading', False))
+            self._setRoot(parent._addItem(self))
         else:
             self._parent = None
 
         self._kind = None
-        self._setKind(kind, loading=_kwds.get('_loading', False))
+        self._setKind(kind)
 
     def __iter__(self):
 
@@ -141,6 +141,8 @@ class Item(object):
         exist or when there is an ambiguity between a python and a Chandler
         attribute, a situation best avoided."""
 
+        self.setDirty()
+
         isItem = isinstance(value, Item)
         isRef = not isItem and (isinstance(value, ItemRef) or
                                 isinstance(value, RefDict))
@@ -161,9 +163,10 @@ class Item(object):
                     old.reattach(_attrDict, self, name,
                                  old.other(self), value, self._otherName(name))
                     return
-                else:
-                    if old != None:
-                        old.clear()
+                elif isinstance(old, RefDict):
+                    old.clear()
+                elif old is not None:
+                    raise ValueError, old
 
         elif (isItem or isRef) and _attrDict is self._attributes:
             del _attrDict[name]
@@ -238,6 +241,8 @@ class Item(object):
     def removeAttribute(self, name, _attrDict=None):
         'Remove a Chandler attribute.'
 
+        self.setDirty()
+
         if _attrDict is None:
             if self._attributes.has_key(name):
                 _attrDict = self._attributes
@@ -255,6 +260,8 @@ class Item(object):
                              value.other(self), self._otherName(name))
             elif isinstance(value, RefDict):
                 value.clear()
+            else:
+                raise ValueError, value
 
     def attributes(self, attributesOnly=False, referencesOnly=False):
         '''Get a generator of (name, value) tuples for attributes of this item.
@@ -273,6 +280,16 @@ class Item(object):
                 else:
                     yield ref
 
+    def check(self):
+
+        for ref in self.attributes(referencesOnly=True):
+            if ref[0].endswith('__for'):
+                print 'Warning: Undefined endpoint for %s.%s' %(self.getPath(),
+                                                                ref[0])
+            if isinstance(ref[1], RefDict):
+                for other in ref[1]:
+                    pass
+        
     def getValue(self, attribute, key, default=None, _attrDict=None):
         'Get a value from a multi-valued attribute.'
 
@@ -465,11 +482,15 @@ class Item(object):
 
         return (self._status & Item.DIRTY) != 0
 
-    def setDirty(self):
+    def setDirty(self, dirty=True):
 
-        if self._status & Item.DIRTY == 0:
-            self.getRepository().addTransaction(self)
-            self._status |= Item.DIRTY
+        if dirty:
+            if self._status & Item.DIRTY == 0:
+                repository = self.getRepository()
+                if repository is not None and repository.addTransaction(self):
+                    self._status |= Item.DIRTY
+        else:
+            self._status &= ~Item.DIRTY
 
     def delete(self):
         """Delete this item and disconnect all its item references.
@@ -545,7 +566,7 @@ class Item(object):
                     count += self._references[name]._refCount()
 
         return count
-        
+
     def getUUID(self):
         'Return the Universally Unique ID for this item.'
         
@@ -569,7 +590,7 @@ class Item(object):
         
         return self._root
 
-    def _setRoot(self, root, loading=False):
+    def _setRoot(self, root):
 
         oldRepository = self.getRepository()
         self._root = root
@@ -586,11 +607,10 @@ class Item(object):
             if newRepository is not None:
                 newRepository._registerItem(self)
 
-                if not loading:
-                    self.setDirty()
+                self.setDirty()
 
         for child in self:
-            child._setRoot(root, loading)
+            child._setRoot(root)
 
     def getParent(self):
         """Return this item's container parent.
@@ -599,7 +619,7 @@ class Item(object):
 
         return self._parent
 
-    def _setKind(self, kind, loading=False):
+    def _setKind(self, kind):
 
         if self._kind is not None:
             self._kind.detach('Items', self)
@@ -608,14 +628,13 @@ class Item(object):
 
         if self._kind is not None:
             ref = ItemRef(self._references, self, 'Kind',
-                          self._kind, 'Items', 'dict',
-                          loading)
-            self._references.__setitem__('Kind', ref, loading)
+                          self._kind, 'Items', 'dict')
+            self._references['Kind'] = ref
 
     def getRepository(self):
-        '''Return this item's repository.
+        """Return this item's repository.
 
-        The item's repository is defined as the item root's parent.'''
+        The item's repository is defined as the item root's parent."""
 
         if self._root is None:
             return None
@@ -629,12 +648,12 @@ class Item(object):
         self._name = name
         self._parent._addItem(self)
 
-    def move(self, parent, loading=False):
+    def move(self, parent):
         'Move this item under another container or make it a root.'
 
         if self._parent is not parent:
             self._parent._removeItem(self)
-            self._setRoot(parent._addItem(self), loading)
+            self._setRoot(parent._addItem(self))
             self._parent = parent
     
     def _addItem(self, item):
@@ -658,7 +677,7 @@ class Item(object):
 
         del self._children[item.getName()]
 
-    def getChild(self, name):
+    def getChild(self, name, load=True):
         'Return the child as named or None if not found.'
 
         if self.__dict__.has_key('_children'):
@@ -675,12 +694,12 @@ class Item(object):
     def IsRemote(self):
         return self.isRemote()
 
-    def find(self, spec, _index=0):
-        '''Find an item as specified or return None if not found.
+    def find(self, spec, _index=0, load=True):
+        """Find an item as specified or return None if not found.
         
         Spec can be a Path, a UUID or a string in which case it gets coerced
         into one of the former. If spec is a path, the search is done relative
-        to the item unless the path is absolute.'''
+        to the item unless the path is absolute."""
 
         if isinstance(spec, Path):
             l = len(spec)
@@ -690,65 +709,78 @@ class Item(object):
 
             if _index == 0:
                 if spec[0] == '//':
-                    return self.getRepository().find(spec, 1)
+                    return self.getRepository().find(spec, 1, load)
 
                 elif spec[0] == '/':
                     if self._root is self:
-                        return self.find(spec, 1)
+                        return self.find(spec, 1, load)
                     else:
-                        return self._root.find(spec, 1)
+                        return self._root.find(spec, 1, load)
 
             if spec[_index] == '.':
                 if _index == l - 1:
                     return self
-                return self.find(spec, _index + 1)
+                return self.find(spec, _index + 1, load)
 
             if spec[_index] == '..':
                 if _index == l - 1:
                     return self._parent
-                return self._parent.find(spec, _index + 1)
+                return self._parent.find(spec, _index + 1, load)
 
-            child = self.getChild(spec[_index])
+            child = self.getChild(spec[_index], load)
             if child is not None:
                 if _index == l - 1:
                     return child
-                return child.find(spec, _index + 1)
+                return child.find(spec, _index + 1, load)
 
         elif isinstance(spec, UUID):
-            return self.getRepository().find(spec)
+            return self.getRepository().find(spec, 0, load)
 
         elif isinstance(spec, str) or isinstance(spec, unicode):
             if (spec[0] != '/' and
                 (len(spec) == 36 and spec[8] == '-' or len(spec) == 22)):
-                return self.find(UUID(spec))
+                return self.find(UUID(spec), 0, load)
 
-            return self.find(Path(spec))
+            return self.find(Path(spec), 0, load)
 
         return None
 
     def _saveItem(self, generator, withSchema=False):
 
+        def xmlTag(tag, attrs, value, generator):
+
+            generator.startElement(tag, attrs)
+            generator.characters(value)
+            generator.endElement(tag)
+
         kind = self._kind
-        generator.startElement('item', { 'uuid': self._uuid.str64() })
+        attrs = { 'uuid': self._uuid.str64() }
+        if withSchema:
+            attrs['withSchema'] = 'True'
+        generator.startElement('item', attrs)
 
-        self._xmlTag('name', {}, self._name, generator)
+        xmlTag('name', {}, self._name, generator)
 
-        if not withSchema and kind is not None:
-            self._xmlTag('kind', { 'type': 'uuid' },
-                         kind.getUUID().str64(), generator)
+        if kind is not None:
+            xmlTag('kind', { 'type': 'uuid' },
+                   kind.getUUID().str64(), generator)
 
         if withSchema or kind is None or kind.Class is not type(self):
-            self._xmlTag('class', { 'module': self.__module__ },
-                         type(self).__name__, generator)
+            xmlTag('class', { 'module': self.__module__ },
+                   type(self).__name__, generator)
 
         if self._root is not self:
-            self._xmlTag('parent', { 'type': 'uuid' },
-                         self._parent.getUUID().str64(), generator)
+            xmlTag('parent', { 'type': 'uuid' },
+                   self._parent.getUUID().str64(), generator)
 
         self._saveAttrs(generator, withSchema)
         self._saveRefs(generator, withSchema)
 
         generator.endElement('item')
+
+    def _loadItem(self):
+
+        return self
 
     def _saveAttrs(self, generator, withSchema):
 
@@ -764,12 +796,6 @@ class Item(object):
         for attr in self._references.iteritems():
             if self.getAttrAspect(attr[0], 'Persist', True):
                 attr[1]._saveValue(attr[0], self, generator, withSchema)
-
-    def _xmlTag(self, tag, attrs, value, generator):
-
-        generator.startElement(tag, attrs)
-        generator.characters(value)
-        generator.endElement(tag)
 
     def _xmlValue(self, name, value, tag, attrType, attrCard,
                   generator, withSchema):
@@ -849,19 +875,21 @@ class ItemHandler(xml.sax.ContentHandler):
     
     typeHandlers = {}
     
-    def __init__(self, repository, parent, afterLoadHooks, loading):
+    def __init__(self, repository, parent, afterLoadHooks):
 
         self.repository = repository
         self.parent = parent
         self.afterLoadHooks = afterLoadHooks
-        self.loading = loading
-
+        self.item = None
+        
     def startDocument(self):
 
         self.tagAttrs = []
         self.tags = []
         self.delegates = []
         self.fields = None
+
+        assert not self.item
         
     def startElement(self, tag, attrs):
 
@@ -951,7 +979,9 @@ class ItemHandler(xml.sax.ContentHandler):
         self.name = None
         self.kind = None
         self.cls = None
+        self.kindRef = None
         self.parentRef = None
+        self.withSchema = attrs.get('withSchema', 'False') == 'True'
                 
     def itemEnd(self, itemHandler, attrs):
 
@@ -959,34 +989,63 @@ class ItemHandler(xml.sax.ContentHandler):
                self.kind and getattr(self.kind, 'Class', Item) or
                Item)
 
-        if self.parentRef is not None:
-            parent = self.repository.find(self.parentRef)
-        else:
-            parent = self.parent
-
-        self.item = item = cls(self.name, parent, self.kind,
+        self.item = item = cls(self.name, self.parent, self.kind,
                                _uuid = UUID(attrs.get('uuid')),
                                _attributes = self.attributes,
                                _references = self.references,
-                               _afterLoadHooks = self.afterLoadHooks,
-                               _loading=self.loading)
+                               _afterLoadHooks = self.afterLoadHooks)
 
-        if parent is None:
-            self.repository._addOrphan(self.parentRef, item)
+        self.repository._registerItem(item)
 
         for refArgs in self.refs:
-            refArgs.attach(item, self.repository, self.loading)
+            refArgs.attach(item, self.repository)
 
     def kindEnd(self, itemHandler, attrs):
 
         if attrs['type'] == 'uuid':
-            kindRef = UUID(self.data)
+            self.kindRef = UUID(self.data)
         else:
-            kindRef = Path(self.data)
+            self.kindRef = Path(self.data)
 
-        self.kind = self.repository.find(kindRef)
+        self.kind = self.repository.find(self.kindRef)
         if self.kind is None:
-            raise ValueError, "Kind %s not found" %(str(kindRef))
+            if self.withSchema:
+                if self.afterLoadHooks is not None:
+                    self.afterLoadHooks.append(self._setKind)
+            else:
+                raise ValueError, "Kind %s not found" %(self.kindRef)
+
+    def _setKind(self):
+
+        if self.item._kind is None:
+            self.kind = self.repository.find(self.kindRef)
+            if self.kind is None:
+                raise ValueError, 'Kind %s not found' %(self.kindRef)
+            else:
+                self.item._setKind(self.kind)
+
+    def parentEnd(self, itemHandler, attrs):
+
+        if attrs['type'] == 'uuid':
+            self.parentRef = UUID(self.data)
+        else:
+            self.parentRef = Path(self.data)
+
+        self.parent = self.repository.find(self.parentRef)
+        if self.parent is None:
+            if self.afterLoadHooks is not None:
+                self.afterLoadHooks.append(self._move)
+            else:
+                raise ValueError, "Parent %s not found" %(self.parentRef)
+
+    def _move(self):
+
+        if self.item._parent is None:
+            self.parent = self.repository.find(self.parentRef)
+            if self.parent is None:
+                raise ValueError, 'Parent %s not found' %(self.parentRef)
+            else:
+                self.item.move(self.parent)
 
     def classEnd(self, itemHandler, attrs):
 
@@ -995,13 +1054,6 @@ class ItemHandler(xml.sax.ContentHandler):
     def nameEnd(self, itemHandler, attrs):
 
         self.name = self.data
-
-    def parentEnd(self, itemHandler, attrs):
-
-        if attrs['type'] == 'uuid':
-            self.parentRef = UUID(self.data)
-        else:
-            self.parentRef = Path(self.data)
 
     def attributeEnd(self, itemHandler, attrs, **kwds):
 
@@ -1056,6 +1108,9 @@ class ItemHandler(xml.sax.ContentHandler):
             self.references[attrs['name']] = value
 
     def dbEnd(self, itemHandler, attrs):
+            
+        if not self.collections:
+            raise ValueError, self.tagAttrs[-1]['name']
 
         refDict = self.collections[-1]
         refDict._prepareKey(UUID(self.tagAttrs[-2]['uuid']), UUID(self.data))
@@ -1119,7 +1174,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def getAttrDef(self, name):
 
-        if self.kind is not None:
+        if self.withSchema is False and self.kind is not None:
             return self.kind.getAttrDef(name)
         else:
             return None

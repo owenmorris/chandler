@@ -4,17 +4,17 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import os
 import xml.sax, xml.sax.saxutils
 import cStringIO
 
 from model.util.UUID import UUID
-from model.item.Item import ItemHandler
-from model.item.ItemRef import ItemRef
-from model.item.ItemRef import RefDict
+from model.item.Item import Item, ItemHandler
+from model.item.ItemRef import ItemRef, ItemStub, RefDict
 from model.persistence.Repository import Repository
 
-from bsddb.db import DBEnv, DB, DB_CREATE, DB_TRUNCATE, DB_INIT_MPOOL, DB_BTREE
-from bsddb.db import DBNoSuchFileError
+from bsddb.db import DBEnv, DB, DB_CREATE, DB_TRUNCATE, DB_FORCE, DB_INIT_MPOOL, DB_BTREE
+from bsddb.db import DBNoSuchFileError, DBNotFoundError
 from dbxml import XmlContainer, XmlDocument, XmlValue
 from dbxml import XmlQueryContext, XmlUpdateContext
 
@@ -33,25 +33,33 @@ class XMLRepository(Repository):
     def __init__(self, dbHome):
         'Construct an XMLRepository giving it a DBXML container pathname'
         
-        super(XMLRepository, self).__init__()
+        super(XMLRepository, self).__init__(dbHome)
 
-        self.dbHome = dbHome
         self._env = None
         self._ctx = XmlQueryContext()
         self._transaction = {}
         
     def create(self):
 
-        if self._env is None:
+        if not self.isOpen():
             super(XMLRepository, self).create()
-            self._env = DBEnv()
             self._create()
+            self._status |= Repository.OPEN
 
     def _create(self):
 
+        if not os.path.exists(self.dbHome):
+            os.makedirs(self.dbHome)
+        elif not os.path.isdir(self.dbHome):
+            raise ValueError, "%s exists but is not a directory" %(self.dbHome)
+
+        self._env = DBEnv()
+        self._env.remove(self.dbHome, DB_FORCE)
+        
+        self._env = DBEnv()
         self._env.open(self.dbHome, DB_CREATE | DB_INIT_MPOOL, 0)
         self._refs = XMLRepository.refContainer(self._env, "__refs__",
-                                                    True)
+                                                True)
         self._schema = XMLRepository.xmlContainer(self._env, "__schema__",
                                                   True)
         self._data = XMLRepository.xmlContainer(self._env, "__data__",
@@ -59,7 +67,7 @@ class XMLRepository(Repository):
 
     def open(self, verbose=False, create=False):
 
-        if self._env is None:
+        if not self.isOpen():
             super(XMLRepository, self).open()
             self._env = DBEnv()
 
@@ -77,20 +85,18 @@ class XMLRepository(Repository):
                 else:
                     raise
 
+            self._status |= Repository.OPEN
             self._load(verbose=verbose)
 
     def close(self, purge=False, verbose=False):
 
-        if self._env is not None:
+        if self.isOpen():
             self._refs.close()
             self._data.close()
             self._schema.close()
             self._env.close()
             self._env = None
-
-    def isOpen(self):
-
-        return self._env is not None
+            self._status &= ~Repository.OPEN
 
     def _load(self, verbose=False):
 
@@ -103,15 +109,21 @@ class XMLRepository(Repository):
 
             for value in container.query("/item"):
                 self._loadItemString(value.asDocument().getContent(),
-                                     verbose=verbose, afterLoadHooks=hooks,
-                                     loading=True)
+                                     verbose=verbose, afterLoadHooks=hooks)
 
-            self.resolveOrphans()
             for hook in hooks:
                 hook()
 
-        load(self._schema)
-        load(self._data)
+        try:
+            self._status |= Repository.LOADING
+            load(self._schema)
+            load(self._data)
+        finally:
+            self._status &= ~Repository.LOADING
+
+    def _loadItem(self, uuid):
+
+        return None
 
     def purge(self):
         pass
@@ -139,11 +151,12 @@ class XMLRepository(Repository):
         log = self._transaction.get(root.getName(), None)
         if log is not None:
             for item in log:
-                self.saveItem(item, container = container,
-                              withSchema = withSchema, verbose = verbose)
+                self._saveItem(item, container = container,
+                               withSchema = withSchema, verbose = verbose)
+                item.setDirty(False)
             del log[:]
 
-    def saveItem(self, item, **args):
+    def _saveItem(self, item, **args):
 
         container = args['container']
         for oldDoc in container.find(item.getUUID()):
@@ -189,12 +202,16 @@ class XMLRepository(Repository):
         if not self.isOpen():
             raise DBError, 'Repository is not open'
 
-        name = item.getRoot().getName()
-        if self._transaction.has_key(name):
-            self._transaction[name].append(item)
-        else:
-            self._transaction[name] = [ item ]
-    
+        if not self.isLoading():
+            name = item.getRoot().getName()
+            if self._transaction.has_key(name):
+                self._transaction[name].append(item)
+            else:
+                self._transaction[name] = [ item ]
+
+            return True
+        
+        return False
 
     class xmlContainer(object):
 
@@ -207,10 +224,15 @@ class XMLRepository(Repository):
             if create:
                 if self._xml.exists(None):
                     self._xml.remove(None)
+                    self._xml = XmlContainer(env, name)
 
                 self._xml.open(None, DB_CREATE)
                 self._xml.addIndex(None, "", "item",
                                    "edge-attribute-equality-string")
+                self._xml.addIndex(None, "", "kind",
+                                   "edge-element-equality-string")
+                self._xml.addIndex(None, "", "parent",
+                                   "edge-element-equality-string")
             else:
                 self._xml.open(None, 0)
 
@@ -253,6 +275,9 @@ class XMLRepository(Repository):
             self._db = DB(env)
 
             if create:
+                if os.path.exists(os.path.join(env.db_home, name)):
+                    self._db.remove(name, None)
+                    self._db = DB(env)
                 self._db.open(name, None, DB_BTREE, DB_CREATE | DB_TRUNCATE)
             else:
                 self._db.open(name, None, DB_BTREE)
@@ -266,9 +291,12 @@ class XMLRepository(Repository):
 
             self._db.put(key, value)
 
-        def delete(self, key, value):
+        def delete(self, key):
 
-            self._db.delete(key, value)
+            try:
+                self._db.delete(key)
+            except DBNotFoundError:
+                pass
 
         def get(self, key):
 
@@ -305,13 +333,21 @@ class XMLRefDict(RefDict):
 
     def _detach(self, itemRef, item, name, other, otherName):
 
-        if other is not None:
-            self._log.append((1, other.refName(name), other.getUUID()))
+        if not self._repository.isLoading():
+            if isinstance(other, Item):
+                self._log.append((1, other.refName(name), other.getUUID()))
+            else:
+                assert isinstance(other, ItemStub), other
+        else:
+            print 'Warning, detach while load'
 
     def _attach(self, itemRef, item, name, other, otherName):
 
-        if other is not None:
-            self._log.append((0, other.refName(name), other.getUUID()))
+        if not self._repository.isLoading():
+            if isinstance(other, Item):
+                self._log.append((0, other.refName(name), other.getUUID()))
+            else:
+                assert isinstance(other, ItemStub), other
         
     def _writeRef(self, key, uuid):
 
@@ -339,7 +375,7 @@ class XMLRefDict(RefDict):
             self._buffer.write('\1')
             self._buffer.write(key)
 
-        self._repository._refs.delete(self._buffer.getvalue(), uuid._uuid)
+        self._repository._refs.delete(self._buffer.getvalue())
 
     def _dbRefs(self):
 
@@ -348,7 +384,11 @@ class XMLRefDict(RefDict):
 
         cursor = self._repository._refs.cursor()
 
-        val = cursor.set_range(key)
+        try:
+            val = cursor.set_range(key)
+        except DBNotFoundError:
+            val = None
+            
         while val is not None and val[0].startswith(key):
             if val[0][32] == '\0':
                 k = UUID(val[0][33:])

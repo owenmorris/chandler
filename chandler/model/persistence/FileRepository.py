@@ -20,71 +20,66 @@ class FileRepository(Repository):
     item files in a given directory. It can then load them back to restore
     the same exact item hierarchy."""
 
-    def __init__(self, dir):
-        'Construct a FileRepository giving it a directory pathname'
-        
-        super(FileRepository, self).__init__()
-        self._dir = dir
-        self._isOpen = False
-
     def create(self):
 
-        if not self._isOpen:
+        if not self.isOpen():
             super(FileRepository, self).create()
-            self._isOpen = True
+            self._status |= Repository.OPEN
 
     def open(self, verbose=False, create=False):
 
-        if not self._isOpen:
+        if not self.isOpen():
             super(FileRepository, self).open()
             self._load(verbose=verbose)
-            self._isOpen = True
+            self._status |= Repository.OPEN
 
     def close(self):
 
-        if self._isOpen:
-            self._isOpen = False
-
-    def isOpen(self):
-
-        return self._isOpen
+        if self.isOpen():
+            self._status &= ~Repository.OPEN
 
     def _load(self, verbose=False):
         'Load items from the directory the repository was initialized with.'
-        
-        if os.path.isdir(self._dir):
-            contents = file(os.path.join(self._dir, 'contents.lst'), 'r')
+
+        try:
+            self._status |= Repository.LOADING
+            if os.path.isdir(self.dbHome):
+                contents = file(os.path.join(self.dbHome, 'contents.lst'), 'r')
             
-            for dir in contents.readlines():
-                self._loadRoot(dir[:-1], verbose=verbose)
+                for dir in contents.readlines():
+                    self._loadRoot(dir[:-1], verbose=verbose)
+        finally:
+            self._status &= ~Repository.LOADING
 
     def _loadRoot(self, dir, verbose=False):
 
         hooks = []
 
-        contents = file(os.path.join(self._dir, dir, 'contents.lst'), 'r')
+        contents = file(os.path.join(self.dbHome, dir, 'contents.lst'), 'r')
         for uuid in contents.readlines():
-            self._loadItemFile(os.path.join(self._dir, dir,
+            self._loadItemFile(os.path.join(self.dbHome, dir,
                                             uuid[:-1] + '.item'),
-                               verbose=verbose, afterLoadHooks=hooks,
-                               loading=True)
+                               verbose=verbose, afterLoadHooks=hooks)
         contents.close()
 
-        self.resolveOrphans()
         for hook in hooks:
             hook()
+
+    def _loadItem(self, uuid):
+
+        return None
 
     def purge(self):
         'Purge the repository directory tree of all item files that do not correspond to currently existing items in the repository.'
         
-        if os.path.exists(self._dir):
+        if os.path.exists(self.dbHome):
             def purge(arg, path, names):
                 for item in names:
                     if item.endswith('.item'):
                         uuid = UUID(item[:-5])
                         if not self._registry.has_key(uuid):
                             os.remove(os.path.join(path, item))
-            os.path.walk(self._dir, purge, None)
+            os.path.walk(self.dbHome, purge, None)
 
     def commit(self, purge=False, verbose=False):
         '''Save all items into the directory this repository was created with.
@@ -92,12 +87,12 @@ class FileRepository(Repository):
         After save is complete a contents.lst file contains the UUIDs of all
         items that were saved to their own uuid.item file.'''
 
-        if not os.path.exists(self._dir):
-            os.mkdir(self._dir)
-        elif not os.path.isdir(self._dir):
-            raise ValueError, "%s exists but is not a directory" %(self._dir)
+        if not os.path.exists(self.dbHome):
+            os.mkdir(self.dbHome)
+        elif not os.path.isdir(self.dbHome):
+            raise ValueError, "%s exists but is not a directory" %(self.dbHome)
 
-        contents = file(os.path.join(self._dir, 'contents.lst'), 'w')
+        contents = file(os.path.join(self.dbHome, 'contents.lst'), 'w')
         hasSchema = self._roots.has_key('Schema')
 
         if hasSchema:
@@ -119,14 +114,20 @@ class FileRepository(Repository):
 
     def _saveRoot(self, root, withSchema=False, verbose=False):
 
-        def commit(item, repository, **args):
+        def commit(item, repository, contents, **args):
 
-            repository.saveItem(item, **args)
+            if item.isDirty():
+                repository._saveItem(item, **args)
+                item.setDirty(False)
+
+            contents.write(item.getUUID().str16())
+            contents.write('\n')
+                
             for child in item:
-                commit(child, repository, **args)
+                commit(child, repository, contents, **args)
 
         name = root.getName()
-        dir = os.path.join(self._dir, name)
+        dir = os.path.join(self.dbHome, name)
 
         if not os.path.exists(dir):
             os.mkdir(dir)
@@ -134,17 +135,17 @@ class FileRepository(Repository):
             raise ValueError, "%s exists but is not a directory" %(dir)
 
         rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
-        commit(root, self, contents = rootContents, withSchema = withSchema,
-               verbose = verbose)
+        commit(root, self, rootContents,
+               withSchema = withSchema, verbose = verbose)
         rootContents.close()
 
-    def saveItem(self, item, **args):
+    def _saveItem(self, item, **args):
 
         if args.get('verbose'):
             print item.getPath()
             
-        uuid = str(item.getUUID())
-        filename = os.path.join(self._dir, item.getRoot().getName(),
+        uuid = item.getUUID().str16()
+        filename = os.path.join(self.dbHome, item.getRoot().getName(),
                                 uuid + '.item')
         out = file(filename, 'w')
         generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
@@ -152,9 +153,6 @@ class FileRepository(Repository):
         generator.startDocument()
         item._saveItem(generator, args.get('withSchema', False))
         generator.endDocument()
-
-        args['contents'].write(uuid)
-        args['contents'].write('\n')
 
         out.write('\n')
         out.close()
@@ -164,7 +162,8 @@ class FileRepository(Repository):
         return FileRefDict(item, name, otherName, ordered)
     
     def addTransaction(self, item):
-        pass
+
+        return not self.isLoading()
     
 
 class FileRefDict(RefDict):

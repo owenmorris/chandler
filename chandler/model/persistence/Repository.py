@@ -10,8 +10,8 @@ import os
 
 from model.util.UUID import UUID
 from model.util.Path import Path
-from model.item.Item import Item
-from model.item.Item import ItemHandler
+from model.item.Item import Item, ItemHandler
+from model.item.ItemRef import ItemStub, DanglingRefError
 from model.persistence.PackHandler import PackHandler
 
 
@@ -20,6 +20,13 @@ class Repository(object):
 
     The repository has direct access to its roots by name and to all its
     items by UUID. It can be used as an iterator over all its items."""
+
+    def __init__(self, dbHome):
+
+        super(Repository, self).__init__()
+
+        self.dbHome = dbHome
+        self._status = 0
 
     def create(self):
 
@@ -33,14 +40,11 @@ class Repository(object):
 
         self._roots = {}
         self._registry = {}
-        self._unresolvedRefs = []
-        self._orphans = []
+        self._stubs = []
+        self._status = 0
         
     def close(self, purge=False, verbose=False):
         raise NotImplementedError, "Repository.close"
-
-    def isOpen(self):
-        raise NotImplementedError, "Repository.isOpen"
 
     def commit(self, purge=False, verbose=False):
         raise NotImplementedError, "Repository.commit"
@@ -51,6 +55,14 @@ class Repository(object):
     def addTransaction(self, item):
         raise NotImplementedError, "Repository.addTransaction"
     
+    def isOpen(self):
+
+        return (self._status & Repository.OPEN) != 0
+
+    def isLoading(self):
+
+        return (self._status & Repository.LOADING) != 0
+
     def __iter__(self):
 
         return self._registry.itervalues()
@@ -81,10 +93,15 @@ class Repository(object):
 
         del self._registry[item.getUUID()]
 
-    def _addOrphan(self, parentRef, item):
+    def _loadItem(self, uuid):
+        raise NotImplementedError, "Repository._loadItem"
 
-        self._registerItem(item)
-        self._orphans.append((parentRef, item))
+    def _saveItem(self, item, **args):
+        raise NotImplementedError, "Repository._saveItem"
+
+    def _addStub(self, stub):
+
+        self._stubs.append(stub)
 
     def getPath(self, path):
         'Return the path of the repository relative to its item, always //.'
@@ -93,7 +110,7 @@ class Repository(object):
 
         return path
 
-    def getRoot(self, name):
+    def getRoot(self, name, load=True):
         'Return the root as named or None if not found.'
         
         return self._roots.get(name)
@@ -103,7 +120,7 @@ class Repository(object):
 
         return self._roots.values()
 
-    def find(self, spec, _index=0):
+    def find(self, spec, _index=0, load=True):
         '''Find an item as specified or return None if not found.
         
         Spec can be a Path, a UUID or a string in which case it gets coerced
@@ -122,11 +139,11 @@ class Repository(object):
             if _index >= l:
                 return None
 
-            root = self._roots.get(spec[_index])
+            root = self.getRoot(spec[_index], load)
             if root is not None:
                 if _index == l - 1:
                     return root
-                return root.find(spec, _index + 1)
+                return root.find(spec, _index + 1, load)
 
             return None
 
@@ -134,14 +151,15 @@ class Repository(object):
             try:
                 return self._registry[spec]
             except KeyError:
-                return None
+                if load:
+                    return self._loadItem(spec)
 
         elif isinstance(spec, str) or isinstance(spec, unicode):
             if (spec[0] != '/' and
                 (len(spec) == 36 and spec[8] == '-' or len(spec) == 22)):
-                return self.find(UUID(spec))
+                return self.find(UUID(spec), 0, load)
             else:
-                return self.find(Path(spec))
+                return self.find(Path(spec), 0, load)
 
         return None
 
@@ -167,60 +185,40 @@ class Repository(object):
             for child in item:
                 self.dir(child, path)
             path.pop()
-        
-    def _appendRef(self, item, name, other, otherName, otherCard, itemRef,
-                   refDict):
 
-        self._unresolvedRefs.append((item, name, other, otherName, otherCard,
-                                     itemRef, refDict))
-
-    def resolveRefs(self, verbose=True):
+    def _resolveStubs(self, verbose=True):
 
         i = 0
-        for ref in self._unresolvedRefs[:]:
-            if ref[5]._other is None:
-                other = ref[0].find(ref[2])
-                if other is None:
+        for ref in self._stubs[:]:
+            if isinstance(ref._other, ItemStub):
+                try:
+                    other = ref.getOther()
+                except DanglingRefError:
                     if verbose:
-                        print "%s -> %s is missing" %(ref[0], ref[2])
+                        print "%s -> %s is missing" %(ref, ref._other)
                     i += 1
                     continue
 
-                ref[5].attach(ref[6], ref[0], ref[1], other, ref[3], ref[4])
-                    
-            self._unresolvedRefs.pop(i)
-
-    def resolveOrphans(self):
-
-        orphans = []
-        for orphan in self._orphans:
-            parent = self.find(orphan[0])
-            if parent is None:
-                print 'Warning: parent not found:', orphan[0]
-                orphans.append(orphan)
-            else:
-                orphan[1].move(parent, loading=True)
-
-        self._orphans = orphans
-
+            self._stubs.pop(i)
+        
     def _loadItemFile(self, path, parent=None, verbose=False,
-                      afterLoadHooks=None, loading=False):
+                      afterLoadHooks=None):
 
         if verbose:
             print path
             
-        handler = ItemHandler(self, parent or self, afterLoadHooks, loading)
+        handler = ItemHandler(self, parent or self, afterLoadHooks)
         xml.sax.parse(path, handler)
 
         return handler.item
 
     def _loadItemString(self, string, parent=None, verbose=False,
-                        afterLoadHooks=None, loading=False):
+                        afterLoadHooks=None):
 
         if verbose:
             print string[51:73]
             
-        handler = ItemHandler(self, parent or self, afterLoadHooks, loading)
+        handler = ItemHandler(self, parent or self, afterLoadHooks)
         xml.sax.parseString(string, handler)
 
         return handler.item
@@ -228,5 +226,11 @@ class Repository(object):
     def purge(self):
         raise NotImplementedError, "Repository.purge"
 
-    def saveItem(self, item, **args):
-        raise NotImplementedError, "Repository.saveItem"
+    def check(self):
+
+        for item in self:
+            item.check()
+
+
+    OPEN    = 0x1
+    LOADING = 0x2

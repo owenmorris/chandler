@@ -12,11 +12,10 @@ from model.util.Path import Path
 class ItemRef(object):
     'A wrapper around a bi-directional link between two items.'
     
-    def __init__(self, refDict, item, name, other, otherName,
-                 otherCard=None, loading=False):
+    def __init__(self, refDict, item, name, other, otherName, otherCard=None):
 
         super(ItemRef, self).__init__()
-        self.attach(refDict, item, name, other, otherName, otherCard, loading)
+        self.attach(refDict, item, name, other, otherName, otherCard)
 
     def __repr__(self):
 
@@ -37,31 +36,33 @@ class ItemRef(object):
     def getOther(self):
         'Return the opposite item this link was established from.'
 
-        return self._other
+        other = self._other._loadItem()
 
-    def attach(self, refDict, item, name, other, otherName,
-               otherCard=None, loading=False):
+        if other is not None:
+            self._other = other
+            return other
 
-        self._attach(item, name, other, otherName, otherCard, loading)
-        if not loading:
-            refDict._attach(self, item, name, other, otherName)
+        raise DanglingRefError, '%s <-> %s' %(self._item, self._other)
 
-    def _attach(self, item, name, other, otherName, otherCard=None,
-                loading=False):
+    def attach(self, refDict, item, name, other, otherName, otherCard=None):
 
-        if item is None:
-            raise ValueError, 'Originating endpoint is None'
+        self._attach(item, name, other, otherName, otherCard)
+        refDict._attach(self, item, name, other, otherName)
+
+    def _attach(self, item, name, other, otherName, otherCard=None):
+
+        assert item is not None, 'item is None'
+        assert other is not None, 'other is None'
 
         self._item = item
         self._other = other
 
-        if other is not None:
+        if isinstance(other, model.item.Item.Item):
             if other.hasAttribute(otherName):
                 old = other.getAttribute(otherName)
                 if isinstance(old, RefDict):
-                    old.__setitem__(item.refName(otherName), self, loading)
-                    if not loading:
-                        old._attach(self, other, otherName, item, name)
+                    old[item.refName(otherName)] = self
+                    old._attach(self, other, otherName, item, name)
                     return
             else:
                 if otherCard is None:
@@ -70,39 +71,43 @@ class ItemRef(object):
                 if otherCard == 'dict':
                     old = other._refDict(otherName, name)
                     other._references[otherName] = old
-                    old.__setitem__(item.refName(otherName), self, loading)
-                    if not loading:
-                        old._attach(self, other, otherName, item, name)
+                    old[item.refName(otherName)] = self
+                    old._attach(self, other, otherName, item, name)
                     return
                 elif otherCard == 'list':
                     old = other._refDict(otherName, name, True)
                     other._references[otherName] = old
-                    old.__setitem__(item.refName(otherName), self, loading)
-                    if not loading:
-                        old._attach(self, other, otherName, item, name)
+                    old[item.refName(otherName)] = self
+                    old._attach(self, other, otherName, item, name)
                     return
             
             other.setAttribute(otherName, self, _attrDict=other._references)
 
     def detach(self, refDict, item, name, other, otherName):
 
-        self._detach(item, name, other, otherName)
-        refDict._detach(self, item, name, other, otherName)
+        (item, name, other, otherName) = self._endpoints(item, name,
+                                                         other, otherName)
+
+        if isinstance(other, model.item.Item.Item):
+            self._detach(item, name, other, otherName)
+            refDict._detach(self, item, name, other, otherName)
         
     def _detach(self, item, name, other, otherName):
 
-        if other is not None:
-            old = other.getAttribute(otherName, _attrDict=other._references)
-            if isinstance(old, RefDict):
-                old._removeRef(item.refName(otherName))
-            else:
-                other._removeRef(otherName)
+        old = other.getAttribute(otherName, _attrDict=other._references)
+        if isinstance(old, RefDict):
+            old._removeRef(item.refName(otherName))
+        else:
+            other._removeRef(otherName)
 
-    def reattach(self, refDict, item, name, old, new, otherName,
-                 loading=False):
+    def reattach(self, refDict, item, name, old, new, otherName):
 
-        self.detach(item, refDict, name, old, otherName)
-        self.attach(item, refDict, name, new, otherName, loading=loading)
+        (item, name, other, otherName) = self._endpoints(item, name,
+                                                         other, otherName)
+
+        if isinstance(other, model.item.Item.Item):
+            self.detach(item, refDict, name, old, otherName)
+            self.attach(item, refDict, name, new, otherName)
 
     def other(self, item):
         'Return the other end of the ref relative to item.'
@@ -113,6 +118,19 @@ class ItemRef(object):
             return self.getItem()
         else:
             raise ValueError, "%s doesn't reference %s" %(self, item)
+
+    def _endpoints(self, item, name, other, otherName):
+
+        if self._item is item:
+            if self._other is other:
+                return (item, name, other, otherName)
+            return (item, name, None, otherName)
+        elif self._other is item:
+            if self._item is other:
+                return (other, otherName, item, name)
+            return (other, otherName, None, name)
+
+        return (None, name, None, otherName)
 
     def _refCount(self):
 
@@ -130,9 +148,6 @@ class ItemRef(object):
             raise ValueError, "%s not supported here" %(type(value))
 
         other = self.other(item)
-        if other is None:
-            raise ValueError, "dangling ref at %s.%s" %(item.getPath(), name)
-
         attrs = { 'type': 'uuid' }
 
         if isinstance(name, UUID):
@@ -155,77 +170,104 @@ class ItemRef(object):
         generator.endElement('ref')
 
 
+class ItemStub(object):
+    
+    def __init__(self, item, args):
+
+        super(ItemStub, self).__init__()
+
+        self.item = item
+        self.args = args
+
+    def _loadItem(self):
+
+        other = self.item.find(self.args.spec)
+        if other is not None:
+            self.args._attach(self.item, other)
+
+        return other
+    
+
 class RefArgs(object):
     'A wrapper around arguments necessary to make and store an ItemRef'
     
-    def __init__(self, attrName, refName, other, otherName, otherCard,
+    def __init__(self, attrName, refName, spec, otherName, otherCard,
                  valueDict):
 
         super(RefArgs, self).__init__()
         
         self.attrName = attrName
         self.refName = refName
-        self.other = other
+        self.spec = spec
         self.otherName = otherName
         self.valueDict = valueDict
         self.otherCard = otherCard
+        self.ref = None
+        
+    def attach(self, item, repository):
 
-    def attach(self, item, repository, loading=False):
-
-        if isinstance(self.other, UUID):
-            other = repository.find(self.other)
+        if isinstance(self.spec, UUID):
+            other = repository.find(self.spec, load=False)
         else:
-            other = item.find(self.other)
+            other = item.find(self.spec, load=False)
             
         if self.refName is None:
             if other is None:
-                raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(self.other, self.other, item.getPath())
+                raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(self.spec, self.spec, item.getPath())
             else:
                 self.refName = other.refName(self.attrName)
 
         if other is not None:
-            value = other._references.get(self.otherName)
-
-            if value is None:
-                ref = ItemRef(self.valueDict, item, self.attrName,
-                              other, self.otherName, self.otherCard,
-                              loading)
-                self.valueDict.__setitem__(self.refName, ref, loading)
-
-            elif isinstance(value, ItemRef):
-                if value._other is None:
-                    value._other = item
-                    self.valueDict[self.refName] = value
-                    if not loading:
-                        self.valueDict._attach(value, other, self.otherName,
-                                               item, self.attrName)
-
-            elif isinstance(value, RefDict):
-                otherRefName = item.refName(self.otherName)
-                if value.has_key(otherRefName):
-                    value = value._getRef(otherRefName)
-                    if value._other is None:
-                        value._other = item
-                        self.valueDict.__setitem__(self.refName, value,
-                                                   loading)
-                        if not loading:
-                            self.valueDict._attach(value, other,
-                                                   self.otherName,
-                                                   item, self.attrName)
-                else:
-                    ref = ItemRef(self.valueDict, item, self.attrName,
-                                  other, self.otherName, self.otherCard,
-                                  loading)
-                    self.valueDict.__setitem__(self.refName, ref, loading)
+            self._attach(item, other)
 
         else:
-            value = ItemRef(self.valueDict, item, self.attrName,
-                            other, self.otherName, self.otherCard, loading)
-            self.valueDict.__setitem__(self.refName, value, loading)
-            repository._appendRef(item, self.attrName,
-                                  self.other, self.otherName,
-                                  self.otherCard, value, self.valueDict)
+            self.ref = ItemRef(self.valueDict, item, self.attrName,
+                               ItemStub(item, self), self.otherName,
+                               self.otherCard)
+            repository._addStub(self.ref)
+            self.valueDict[self.refName] = self.ref
+
+    def _attach(self, item, other):
         
+        value = other._references.get(self.otherName)
+        
+        if value is None:
+            if self.ref is not None:
+                self.ref.attach(self.valueDict, item, self.attrName,
+                                other, self.otherName, self.otherCard)
+            else:
+                self.ref = ItemRef(self.valueDict, item, self.attrName,
+                                   other, self.otherName, self.otherCard)
+                self.valueDict[self.refName] = self.ref
+
+        elif isinstance(value, ItemRef):
+            if isinstance(value._other, ItemStub):
+                value._other = item
+                self.valueDict[self.refName] = value
+                self.valueDict._attach(value, other, self.otherName,
+                                       item, self.attrName)
+
+        elif isinstance(value, RefDict):
+            otherRefName = item.refName(self.otherName)
+            if value.has_key(otherRefName):
+                value = value._getRef(otherRefName)
+                if isinstance(value._other, ItemStub):
+                    value._other = item
+                    self.valueDict[self.refName] = value
+                    self.valueDict._attach(value, other, self.otherName,
+                                           item, self.attrName)
+            else:
+                if self.ref is not None:
+                    self.ref.attach(self.valueDict, item, self.attrName,
+                                    other, self.otherName, self.otherCard)
+                else:
+                    self.ref = ItemRef(self.valueDict, item, self.attrName,
+                                       other, self.otherName, self.otherCard)
+                    self.valueDict[self.refName] = self.ref
+
+        else:
+            raise ValueError, value
+
 
 class Attributes(dict):
 
@@ -242,16 +284,16 @@ class Attributes(dict):
 
         return self._item
 
-    def __setitem__(self, key, value, loading=False):
+    def __setitem__(self, key, value):
 
-        if not loading and self._item is not None:
+        if self._item is not None:
             self._item.setDirty()
 
         super(Attributes, self).__setitem__(key, value)
 
-    def __delitem__(self, key, loading=False):
+    def __delitem__(self, key):
 
-        if not loading and self._item is not None:
+        if self._item is not None:
             self._item.setDirty()
 
         super(Attributes, self).__delitem__(key)
@@ -357,7 +399,7 @@ class RefDict(References):
             
         return ref.other(self._getItem())
 
-    def __setitem__(self, key, value, loading=False):
+    def __setitem__(self, key, value):
 
         if self._keyList is not None and isinstance(key, int):
             key = self._keyList[key]
@@ -371,18 +413,17 @@ class RefDict(References):
                            old.other(item), self._otherName)
             else:
                 old.reattach(self, item, self._name,
-                             old.other(item), value, self._otherName,
-                             loading)
+                             old.other(item), value, self._otherName)
                 return
 
         if not isinstance(value, ItemRef):
             value = ItemRef(self, self._getItem(), self._name,
-                            value, self._otherName, loading=loading)
+                            value, self._otherName)
             
         if self._keyList is not None and not super(RefDict, self).has_key(key):
             self._keyList.append(key)
             
-        super(RefDict, self).__setitem__(key, value, loading)
+        super(RefDict, self).__setitem__(key, value)
 
     def __delitem__(self, key):
 
@@ -390,19 +431,19 @@ class RefDict(References):
             if isinstance(key, int):
                 key = self._keyList.pop(key)
             else:
-                index = self._keyList.index(key)
-                del self._keyList[index]
-                
+                self._keyList.pop(self._keyList.index(key))
+
         value = self._getRef(key)
         item = self._getItem()
         value.detach(self, item, self._name,
                      value.other(item), self._otherName)
-        self._removeRef(key)
+
+        super(RefDict, self).__delitem__(key)
 
     def _removeRef(self, key):
 
-        if self._keyList is not None and isinstance(key, int):
-            key = self._keyList.pop(key)
+        if self._keyList is not None:
+            self._keyList.pop(self._keyList.index(key))
 
         super(RefDict, self).__delitem__(key)
 
@@ -519,3 +560,6 @@ class RefDict(References):
 
         return super(RefDict, self).items()
     
+
+class DanglingRefError(ValueError):
+    pass

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<item>
+<item withSchema="True">
   <name>Enum</name>
   <kind type="path">//Schema/Model/Kind</kind>
 

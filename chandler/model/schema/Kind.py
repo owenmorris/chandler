@@ -15,7 +15,7 @@ class Kind(Item):
         super(Kind, self).__init__(name, parent, kind, **_kwds)
 
         # recursion avoidance
-        self._attributes.__setitem__('NotFoundAttrDefs', [], True)
+        self._attributes['NotFoundAttrDefs'] = []
 
     def newItem(self, name, parent):
         '''Create an item of this kind.
@@ -76,8 +76,7 @@ class KindKind(Kind):
 
     def __init__(self, name, parent, kind, **_kwds):
 
-        super(KindKind, self).__init__(name, parent, kind, **_kwds)
-        self._kind = self
+        super(KindKind, self).__init__(name, parent, self, **_kwds)
 
 
 class ItemKind(Kind):
@@ -100,10 +99,7 @@ class SchemaRoot(Item):
 
         def apply(item):
 
-            if item._kind is None and item.hasAttribute('Kind'):
-                item._kind = item.Kind
-            if item._attributes.get('NotFoundAttrDefs', []):
-                del item._attributes['NotFoundAttrDefs'][:]
+            assert not item._attributes.get('NotFoundAttrDefs', []), item
 
             for child in item:
                 apply(child)
