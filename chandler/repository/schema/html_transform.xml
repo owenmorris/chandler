@@ -2,7 +2,7 @@
      xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
      xmlns:chan="http://osafoundation.org/2003/08/CoreSchema">
    <xsl:output method="html" encoding="ISO-8859-1"/>
-   <xsl:key name="attr" match="chan:AttributeDefinition" use="@id"/>
+   <xsl:key name="attr" match="chan:Attribute" use="@id"/>
    
    <!-- note on namespaces: since the source format uses namespaces,
 ALL LocationPaths must use a prefix here
@@ -16,16 +16,16 @@ ALL LocationPaths must use a prefix here
        </head>
        <body>
          <h1>Chandler Schema Documentation</h1>
-         <xsl:apply-templates select="chan:Kind"/>
+         <xsl:apply-templates select="chan:kind"/>
        </body>
      </html>
    </xsl:template>
    
    <!-- match once here for each Kind -->
-   <xsl:template match="chan:Kind">
-     <h2 class="kind"><a name="{translate(chan:label, ' ',
-'_')}"><xsl:value-of select="chan:label"/></a></h2>
-     <p class="kinddesc"><xsl:value-of select="chan:comment"/></p>
+   <xsl:template match="chan:kind">
+     <h2 class="kind"><a name="{translate(chan:displayName, ' ',
+'_')}"><xsl:value-of select="chan:displayName"/></a></h2>
+     <p class="kinddesc"><xsl:value-of select="chan:description"/></p>
      <table border="1">
        <tr>
          <th>Attribute</th>
@@ -34,9 +34,9 @@ ALL LocationPaths must use a prefix here
        <xsl:for-each select="chan:attribute">
          <tr>
            <td><xsl:value-of select="key('attr',
-@itemref)/chan:label"/></td>
+@itemref)/chan:displayName"/></td>
            <td><xsl:value-of select="key('attr',
-@itemref)/chan:comment"/></td>
+@itemref)/chan:description"/></td>
          </tr>
        </xsl:for-each>
      </table>
