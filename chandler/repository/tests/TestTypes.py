@@ -15,7 +15,7 @@ import repository.item.PersistentCollections
 
 from repository.schema.Attribute import Attribute
 from repository.util.Path import Path
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 from repository.util.SingleRef import SingleRef
 from mx.DateTime import DateTime, DateTimeDelta, ISO, RelativeDateTime
 

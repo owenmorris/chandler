@@ -10,7 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest, os
 
 from repository.tests.RepositoryTestCase import RepositoryTestCase
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 
 class TestText(RepositoryTestCase):
     """ Test Text storage """

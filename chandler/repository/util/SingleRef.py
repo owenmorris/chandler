@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 class SingleRef(object):
     """
-    Wraps a L{UUID<chandlerdb.util.UUID.UUID>} to form a uni-directional
+    Wraps a L{UUID<chandlerdb.util.uuid.UUID>} to form a uni-directional
     reference to an item.
 
     Direct use of this type is not necessary since setting an item as a value

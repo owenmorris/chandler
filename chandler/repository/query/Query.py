@@ -9,7 +9,7 @@ import repository.item.Item as Item
 import tools.timing
 import sets
 import mx.DateTime.ISO
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 import repository.item.Monitors as Monitors
 
 import logging
@@ -548,7 +548,7 @@ class ForPlan(LogicalPlan):
             
         self.plan = (self.collection, compile(self.closure,'<string>','eval'))
         if len(self.__item._sameViewSubscribeCallbacks) > 0:
-            Monitors.Monitors.attach(self.__item, 'monitorCallback', 'kind', 'schema')
+            Monitors.Monitors.attach(self.__item, 'monitorCallback', 'schema', 'kind')
             for a in self.affectedAttributes:
                 Monitors.Monitors.attach(self.__item, 'monitorCallback', 'set', a)
 

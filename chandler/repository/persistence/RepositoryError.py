@@ -11,10 +11,14 @@ import threading
 class RepositoryError(ValueError):
     "All repository related exceptions go here"
 
-class ExclusiveOpenDeniedError(RepositoryError):
+
+class RepositoryLockNotGrantedError:
     pass
 
-class RepositoryOpenDeniedError(RepositoryError):
+class ExclusiveOpenDeniedError(RepositoryLockNotGrantedError):
+    pass
+
+class RepositoryOpenDeniedError(RepositoryLockNotGrantedError):
     pass
 
 

@@ -5,7 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application.Globals as Globals
 import osaf.contentmodel.ContentModel as ContentModel
 import repository.query.Query as Query
-from repository.item.ItemError import NoSuchIndexError
+from chandlerdb.item.ItemError import NoSuchIndexError
 
 class ItemCollection(ContentModel.ContentItem, Query.Query):
     myKindID = None

@@ -4,11 +4,11 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
+from chandlerdb.item.ItemError import *
 from repository.util.Path import Path
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.RefCollections import RefList
-from repository.item.ItemError import *
 from repository.util.SingleRef import SingleRef
 
 
@@ -197,7 +197,7 @@ class Values(dict):
                 continue
             
             if kind is not None:
-                attribute = kind.getAttribute(name)
+                attribute = kind.getAttribute(name, False, item)
                 persist = attribute.getAspect('persist', default=True)
             else:
                 attribute = None
@@ -227,7 +227,7 @@ class Values(dict):
 
         for key, value in self.iteritems():
             if kind is not None:
-                attribute = kind.getAttribute(key)
+                attribute = kind.getAttribute(key, False, item)
             else:
                 attribute = None
 
@@ -310,7 +310,7 @@ class Values(dict):
 
         for key, value in self.iteritems():
             try:
-                attribute = item._kind.getAttribute(key)
+                attribute = item._kind.getAttribute(key, False, item)
             except AttributeError:
                 logger.error('Item %s has a value for attribute %s but its kind %s has no definition for this attribute', item.itsPath, key, item._kind.itsPath)
                 result = False
@@ -398,39 +398,39 @@ class References(Values):
                 item.setDirty(item.VDIRTY, name, self,
                               kwds.get('noMonitors', False))
 
-    def _getRef(self, name, other=None):
+    def _getRef(self, name, other=None, attrID=None):
 
         value = self.get(name, self)
+        item = self._item
 
         if other is None:
             if value is self:
                 raise KeyError, name
-            if value is None:
+            if value is None or value._isItem() or value._isRefList():
                 return value
             if value._isUUID():
-                other = self._item.find(value)
+                other = item.find(value)
                 if other is None:
-                    raise DanglingRefError, (self._item, name, value)
+                    raise DanglingRefError, (item, name, value)
                 self[name] = other
-                if self._item.itsKind is None:
-                    raise AssertionError, '%s: no kind' %(self._item.itsPath)
-                other._references._getRef(self._item.itsKind.getOtherName(name),
-                                          self._item)
+                kind = item.itsKind
+                if kind is not None:  # kind may be None during bootstrap
+                    other._references._getRef(kind.getOtherName(name, attrID,
+                                                                item), item)
                 return other
-            if value._isRefList() or value._isItem():
-                return value
+
             raise TypeError, '%s, type: %s' %(value, type(value))
 
         if value is other:
             if value._isUUID():
-                other = self._item.find(value)
+                other = item.find(value)
                 if other is None:
-                    raise DanglingRefError, (self._item, name, value)
-            self[name] = other
+                    raise DanglingRefError, (item, name, value)
+                self[name] = other
             return other
 
         if value is self or value is None:
-            raise BadRefError, (self._item, name, value, other)
+            raise BadRefError, (item, name, value, other)
 
         if value == other._uuid:
             self[name] = other
@@ -439,7 +439,7 @@ class References(Values):
         if value._isRefList() and other in value:
             return other
 
-        raise BadRefError, (self._item, name, value, other)
+        raise BadRefError, (item, name, value, other)
     
     def _removeValue(self, name, other, otherName):
 
@@ -624,7 +624,7 @@ class References(Values):
                 continue
             
             if kind is not None:
-                attribute = kind.getAttribute(name)
+                attribute = kind.getAttribute(name, False, item)
                 persist = attribute.getAspect('persist', default=True)
             else:
                 attribute = None
@@ -653,7 +653,7 @@ class References(Values):
         kind = item._kind
 
         for name, value in self.iteritems():
-            attribute = kind.getAttribute(name)
+            attribute = kind.getAttribute(name, False, item)
             if attribute.getAspect('persist', default=True):
                 flags = self._getFlags(name) & Values.SAVEMASK
                 attrs = { 'id': attribute.itsUUID.str64() }
@@ -698,15 +698,14 @@ class References(Values):
             dirties = None
 
         for key, value in self.iteritems():
-            if dirties is not None and key in dirties:
-                if value is not None and value._isRefList():
+            if value is not None and value._isRefList():
+                if dirties is not None and key in dirties:
                     value._clear_()
-            else:
-                try:
-                    if value is not None and value._isRefList():
+                else:
+                    try:
                         del value._original
-                except AttributeError:
-                    pass
+                    except AttributeError:
+                        pass
 
     def _revertMerge(self):
 

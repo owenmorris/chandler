@@ -12,7 +12,7 @@ import urlparse
 import logging
 import application.Globals as Globals
 import crypto.ssl as ssl
-import chandlerdb.util.UUID
+import chandlerdb.util.uuid
 
 logger = logging.getLogger('WebDAV')
 logger.setLevel(logging.INFO)
@@ -328,7 +328,7 @@ def checkAccess(host, port=80, useSSL=False, username=None, password=None,
     urlToTest = None
     while tries > 0:
         # Random string to use for trying a put
-        uuid = chandlerdb.util.UUID.UUID()
+        uuid = chandlerdb.util.uuid.UUID()
         url = "%s://%s%s%s%s.tmp" % (scheme, host, portString, path, uuid)
         response = client.propfind(url, depth=0)
         body = response.read()

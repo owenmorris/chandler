@@ -7,10 +7,11 @@ import gettext, os, sys, threading, time
 from new import classobj
 import wx
 import Globals
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 import application.Parcel
 from repository.persistence.DBRepository import DBRepository
-from repository.persistence.RepositoryError import VersionConflictError
+from repository.persistence.RepositoryError \
+     import VersionConflictError, MergeError
 from crypto import Crypto
 import logging as logging
 
@@ -586,7 +587,15 @@ class wxApplication (wx.App):
             self.focus = focus
             self.needsUpdateUI = True
 
-        updateOnIdle()
+        try:
+            updateOnIdle()
+        except MergeError, e:
+            if e.getReasonCode() == MergeError.BUG:
+                logger.warning("Changes cancelled due to merge error: %s", e)
+                self.repository.view.cancel()
+                self.needsUpdateUI = True
+            else:
+                raise
 
         if self.needsUpdateUI:
             try:

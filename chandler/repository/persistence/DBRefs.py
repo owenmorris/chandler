@@ -10,13 +10,15 @@ from repository.item.Item import Item, Children
 from repository.item.RefCollections import RefList
 from repository.item.Indexes import NumericIndex
 from repository.persistence.RepositoryError import MergeError, ItemViewError
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 from repository.util.LinkedMap import LinkedMap
 
 
 class PersistentRefs(object):
 
     class link(LinkedMap.link):
+
+        __slots__ = ()
 
         def getValue(self, linkedMap):
 

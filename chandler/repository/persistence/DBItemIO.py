@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from struct import pack, unpack
 from cStringIO import StringIO
 
-from chandlerdb.util.UUID import UUID, _uuid
+from chandlerdb.util.uuid import UUID, _hash
 from repository.item.Item import Item
 from repository.item.Values import Values, References, ItemValue
 from repository.item.ItemIO import ItemWriter, ItemReader
@@ -194,7 +194,7 @@ class DBItemWriter(ItemWriter):
     def _unchangedValue(self, item, name):
 
         try:
-            self.values.append((name, self.oldValues[_uuid.hash(name)]))
+            self.values.append((name, self.oldValues[_hash(name)]))
         except KeyError:
             raise AssertionError, "unchanged value for '%s' not found" %(name)
 
@@ -268,7 +268,8 @@ class DBItemWriter(ItemWriter):
             buffer.write(chr(flags))
             buffer.write(value.uuid._uuid)
             if withSchema:
-                self.writeSymbol(buffer, item._kind.getOtherName(name))
+                self.writeSymbol(buffer,
+                                 item._kind.getOtherName(name, attribute._uuid))
             value._saveValues(version)
             if value._indexes:
                 buffer.write(pack('>H', len(value._indexes)))
@@ -548,7 +549,7 @@ class DBItemReader(ItemReader):
             if withSchema:
                 offset, otherName = self.readSymbol(offset, data)
             else:
-                otherName = kind.getOtherName(name)
+                otherName = kind.getOtherName(name, attribute._uuid)
             value = view._createRefList(None, name, otherName,
                                         True, False, False, uuid)
             count, = unpack('>H', data[offset:offset+2])

@@ -12,7 +12,7 @@ from PyLucene import DbDirectory, IndexWriter, StandardAnalyzer
 from PyLucene import IndexSearcher, QueryParser
 from PyLucene import Document, Field
 
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 from repository.persistence.DBContainer import DBContainer
 from repository.persistence.RepositoryError import RepositoryError
 

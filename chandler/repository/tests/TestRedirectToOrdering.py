@@ -127,18 +127,17 @@ class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
             aTask = taskKind.newItem('aTask', self.rep)
 
         redirectTo = aTask.getAttributeAspect('who', 'redirectTo')
-        print "who points to " + aTask.getAttributeAspect('who', 'redirectTo')
-        self.assert_(redirectTo == 'creator')
+        print "who points to", aTask.getAttributeAspect('who', 'redirectTo')
+        self.assert_(redirectTo == 'creator', redirectTo)
 
         # place the last superKind first
         taskKind.superKinds.placeItem(taskKind.superKinds.last(), None)
-
         # flush kind caches after re-arranging superKinds
-        taskKind.flushCaches()
+        taskKind.flushCaches('superKinds')
 
         redirectTo = aTask.getAttributeAspect('who', 'redirectTo')
-        print "who points to " + aTask.getAttributeAspect('who', 'redirectTo')
-        self.assert_(redirectTo == 'participant')
+        print "who points to", aTask.getAttributeAspect('who', 'redirectTo')
+        self.assert_(redirectTo == 'participant', redirectTo)
         
                   
 if __name__ == "__main__":

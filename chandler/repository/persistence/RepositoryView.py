@@ -8,7 +8,7 @@ import logging, heapq, sys, gc
 
 from threading import currentThread, Thread
 
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 from repository.util.Path import Path
 from repository.util.ThreadSemaphore import ThreadSemaphore
 from repository.persistence.RepositoryError \
@@ -291,7 +291,7 @@ class RepositoryView(object):
 
         @param spec: a path or UUID
         @type spec: L{Path<repository.util.Path.Path>} or
-                    L{UUID<chandlerdb.util.UUID.UUID>} 
+                    L{UUID<chandlerdb.util.uuid.UUID>} 
         @param load: load the item if it not yet loaded, C{True} by default
         @type load: boolean
         @return: an item or C{None} if not found
@@ -346,7 +346,7 @@ class RepositoryView(object):
         See L{find} for more information.
 
         @param uuid: a UUID
-        @type uuid: L{UUID<chandlerdb.util.UUID.UUID>} or a uuid string
+        @type uuid: L{UUID<chandlerdb.util.uuid.UUID>} or a uuid string
         @param load: load the item if it not yet loaded, C{True} by default
         @type load: boolean
         @return: an item or C{None} if not found
@@ -376,7 +376,7 @@ class RepositoryView(object):
         None)} and the ACL for an attribute value on an item is stored with
         C{(item.itsUUID, attributeName)}.
 
-        @param uuid: a L{UUID<chandlerdb.util.UUID.UUID>} instance
+        @param uuid: a L{UUID<chandlerdb.util.uuid.UUID>} instance
         @param name: a string or C{None}
         @return: an L{ACL<repository.item.Access.ACL>} instance or C{None}
         """
@@ -797,6 +797,7 @@ class RepositoryView(object):
     REFCOUNTED = 0x0002
     LOADING    = 0x0004
     COMMITTING = 0x0008
+    FDIRTY     = 0x0010
     
     # flags from Item
     # CDIRTY   = 0x0200
@@ -807,6 +808,7 @@ class RepositoryView(object):
 
     def removeNotificationCallback(self, fn):
         return self.repository.removeNotificationCallback(fn)
+
 
 class OnDemandRepositoryView(RepositoryView):
 

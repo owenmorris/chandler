@@ -2,7 +2,7 @@ import Sharing
 import application.Parcel
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.calendar.Calendar as Calendar
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 import StringIO
 import vobject
 import logging

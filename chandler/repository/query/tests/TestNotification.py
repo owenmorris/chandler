@@ -8,7 +8,6 @@ import os, unittest
 import repository.query.tests.QueryTestCase as QueryTestCase
 import repository.query.Query as Query
 import repository.item.Item as Item
-import chandlerdb.util.UUID as UUID
 
 import NotificationItem
 

@@ -10,7 +10,7 @@ from datetime import datetime
 from struct import pack
 
 from chandlerdb.util import lock
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 from repository.item.Item import Item
 from repository.util.SAX import XMLGenerator
 from repository.persistence.Repository import Repository

@@ -14,10 +14,10 @@ import osaf.current.Current as Current
 import application.Globals as Globals
 import repository.query.Query as Query
 import repository.item.Query as ItemQuery
-import chandlerdb.util.UUID as UUID
+import chandlerdb.util.uuid as UUID
 import email.Utils as Utils
 import re as re
-import repository.item.ItemError as ItemError
+import chandlerdb.item.ItemError as ItemError
 
 from repository.util.Path import Path
 

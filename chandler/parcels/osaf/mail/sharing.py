@@ -13,7 +13,7 @@ import mx.DateTime as DateTime
 #Chandler imports
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.ItemCollection as ItemCollection
-import repository.item.ItemError as ItemError
+import chandlerdb.item.ItemError as ItemError
 
 #Chandler Mail Service imports
 import smtp as smtp

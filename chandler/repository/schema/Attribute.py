@@ -19,8 +19,7 @@ class Attribute(Item):
 
         super(Attribute, self)._fillItem(name, parent, kind, **kwds)
         
-        refList = self._refList('inheritingKinds',
-                                'inheritedAttributes', False)
+        refList = self._refList('inheritingKinds', 'inheritedAttributes', False)
         self._references['inheritingKinds'] = refList
 
         self._status |= Item.SCHEMA | Item.PINNED
@@ -37,14 +36,13 @@ class Attribute(Item):
             return self._references._getRef(name)
 
         if 'superAttribute' in self._references:
-            superAttribute = self.getAttributeValue('superAttribute')
-            return superAttribute.getAspect(name, **kwds)
+            return self.superAttribute.getAspect(name, **kwds)
 
         if 'default' in kwds:
             return kwds['default']
 
         if self._kind is not None:
-            aspectAttr = self._kind.getAttribute(name)
+            aspectAttr = self._kind.getAttribute(name, False, self)
             return aspectAttr.getAttributeValue('defaultValue', default=None)
         
         return None

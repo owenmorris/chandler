@@ -6,8 +6,6 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from repository.item.ItemError import ChildNameError
-
 import osaf.contentmodel.ContentModel as ContentModel
 import mx.DateTime as DateTime
 import repository.query.Query as Query
@@ -56,16 +54,12 @@ class Contact(ContentModel.ContentItem):
         parent = ContentModel.ContentModel.getContentItemParent(view)
         me = parent.getItemChild("me")
         if me is None:
-            try:
-                me = Contact(name="me", parent=parent)
-                me.displayName = "Me"
-                me.contactName = ContactName(parent=me)
-                me.contactName.firstName = "Chandler"
-                me.contactName.lastName = "User"
-            except ChildNameError:
-                # If "me" already exists, that means we're actually
-                # in the process of creating it.
-                return None
+            me = Contact(name="me", parent=parent)
+            me.displayName = "Me"
+            me.contactName = ContactName(parent=me)
+            me.contactName.firstName = "Chandler"
+            me.contactName.lastName = "User"
+
         cls.meContactID = me.itsUUID
 
         return me

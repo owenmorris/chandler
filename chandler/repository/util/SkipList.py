@@ -22,6 +22,8 @@ class SkipList(object):
 
     class node(object):
 
+        __slots__ = ('_levels')
+
         def __init__(self, level, skipList):
 
             self._levels = []
@@ -56,6 +58,8 @@ class SkipList(object):
             self.getPoint(level).prevKey = prevKey
 
     class point(object):
+
+        __slots__ = ('prevKey', 'nextKey', 'dist')
 
         def __init__(self, dist, skipList):
 

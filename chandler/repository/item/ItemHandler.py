@@ -10,9 +10,9 @@ from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
 from repository.item.Values import Values, References, ItemValue
 from repository.persistence.RepositoryError import NoSuchItemError
-from repository.item.ItemError import *
+from chandlerdb.item.ItemError import *
 
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 from repository.util.Path import Path
 from repository.util.ClassLoader import ClassLoader
 from repository.util.SAX import ContentHandler
@@ -282,27 +282,29 @@ class ValueHandler(ContentHandler, TypeHandler):
 
     def getTypeName(self, attribute, attrs, default):
 
+        name = None
+
         if attrs.has_key('typeid'):
             try:
-                return self.repository[UUID(attrs['typeid'])].handlerName()
+                name = self.repository[UUID(attrs['typeid'])].handlerName()
             except KeyError:
                 raise TypeError, "Type %s not found" %(attrs['typeid'])
 
-        if attrs.has_key('typepath'):
+        elif attrs.has_key('typepath'):
             typeItem = self.repository.find(Path(attrs['typepath']))
             if typeItem is None:
                 raise TypeError, "Type %s not found" %(attrs['typepath'])
-            return typeItem.handlerName()
+            name = typeItem.handlerName()
 
-        if attrs.has_key('type'):
-            return attrs['type']
+        elif attrs.has_key('type'):
+            name = attrs['type']
 
-        if attribute is not None:
+        elif attribute is not None:
             attrType = attribute.getAspect('type', default=None)
             if attrType is not None:
-                return attrType.handlerName()
+                name = attrType.handlerName()
 
-        return default
+        return name or default
 
     def _setupTypeDelegate(self, attrs):
 
@@ -702,7 +704,7 @@ class ItemHandler(ValueHandler):
         otherName = attrs.get('otherName')
 
         if otherName is None and attribute is not None:
-            otherName = self.kind.getOtherName(name, default=None)
+            otherName = self.kind.getOtherName(name, None, None, None)
 
         if otherName is None:
             raise TypeError, 'Undefined other endpoint for %s.%s of kind %s' %(self.name or self.uuid, name, self.kind.itsPath)

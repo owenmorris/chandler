@@ -12,7 +12,7 @@ import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.current.Current as Current
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 import application.dialogs.PublishCollection
 from repository.item.Query import KindQuery
 from repository.util.Lob import Lob

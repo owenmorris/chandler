@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import logging, threading, PyLucene
 
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 from repository.item.Item import Item
 from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryView import OnDemandRepositoryView

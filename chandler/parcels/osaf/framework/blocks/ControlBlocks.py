@@ -9,7 +9,7 @@ from Block import *
 from ContainerBlocks import *
 from DragAndDrop import DraggableWidget as DraggableWidget
 from Styles import Font
-from repository.item.ItemError import NoSuchAttributeError
+from chandlerdb.item.ItemError import NoSuchAttributeError
 import wx
 import wx.html
 import wx.gizmos

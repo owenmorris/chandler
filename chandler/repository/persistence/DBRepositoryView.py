@@ -11,12 +11,12 @@ from bsddb.db import DBLockDeadlockError
 
 from repository.item.Item import Item
 from repository.item.RefCollections import TransientRefList
-from repository.persistence.RepositoryError import RepositoryError, MergeError
-from repository.persistence.RepositoryError import VersionConflictError
-from repository.persistence.RepositoryView import RepositoryView
-from repository.persistence.RepositoryView import OnDemandRepositoryView
-from repository.persistence.Repository import Repository
-from repository.persistence.Repository import RepositoryNotifications
+from repository.persistence.RepositoryError \
+     import RepositoryError, MergeError, VersionConflictError
+from repository.persistence.RepositoryView \
+     import RepositoryView, OnDemandRepositoryView
+from repository.persistence.Repository \
+     import Repository, RepositoryNotifications
 from repository.persistence.DBLob import DBLob
 from repository.persistence.DBRefs import DBRefList, DBChildren
 from repository.persistence.DBContainer import HashTuple
@@ -42,12 +42,6 @@ class DBRepositoryView(OnDemandRepositoryView):
             return True
         
         return False
-
-    def _newItems(self):
-
-        for item in self._log:
-            if item.isNew():
-                yield item
 
     def dirlog(self):
 
@@ -334,6 +328,12 @@ class DBRepositoryView(OnDemandRepositoryView):
         return itemWriter.writeItem(item, newVersion)
 
     def mapChanges(self, callable, freshOnly=False):
+
+        if freshOnly:
+            if self._status & RepositoryView.FDIRTY:
+                self._status &= ~RepositoryView.FDIRTY
+            else:
+                return
 
         for item in self._log:
             status = item._status

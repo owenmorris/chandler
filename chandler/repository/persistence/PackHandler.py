@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, re
 
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 from repository.util.Path import Path
 from repository.util.SAX import ContentHandler
 from repository.item.Item import Item

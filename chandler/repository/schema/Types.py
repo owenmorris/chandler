@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import mx.DateTime
 
-import chandlerdb.util.UUID
+import chandlerdb.util.uuid
 import repository.util.Path
 import repository.util.SingleRef
 import repository.util.URL
@@ -101,6 +101,9 @@ class Type(Item):
 
     def isAlias(self):
         return False
+
+    def isSimple(self):
+        return True
 
     def typeXML(self, value, generator, withSchema):
         generator.characters(self.makeString(value))
@@ -348,7 +351,7 @@ class UUID(Type):
         if data == Type.NoneString:
             return None
 
-        return chandlerdb.util.UUID.UUID(data)
+        return chandlerdb.util.uuid.UUID(data)
 
     def makeString(self, value):
 
@@ -359,7 +362,7 @@ class UUID(Type):
     
     def recognizes(self, value):
 
-        return value is None or type(value) is chandlerdb.util.UUID.UUID
+        return value is None or type(value) is chandlerdb.util.uuid.UUID
 
     def eval(self, value):
 
@@ -389,7 +392,7 @@ class UUID(Type):
         if data[offset] == '\0':
             return offset+1, None
         
-        return offset+17, chandlerdb.util.UUID.UUID(data[offset+1:offset+17])
+        return offset+17, chandlerdb.util.uuid.UUID(data[offset+1:offset+17])
 
 
 class SingleRef(Type):
@@ -403,7 +406,7 @@ class SingleRef(Type):
         if data == Type.NoneString:
             return None
         
-        uuid = chandlerdb.util.UUID.UUID(data)
+        uuid = chandlerdb.util.uuid.UUID(data)
         return repository.util.SingleRef.SingleRef(uuid)
 
     def makeString(self, value):
@@ -447,8 +450,12 @@ class SingleRef(Type):
         if data[offset] == '\0':
             return offset+1, None
         
-        uuid = chandlerdb.util.UUID.UUID(data[offset+1:offset+17])
+        uuid = chandlerdb.util.uuid.UUID(data[offset+1:offset+17])
         return offset+17, repository.util.SingleRef.SingleRef(uuid)
+
+    def isSimple(self):
+
+        return False
 
 
 class Path(Type):
@@ -704,7 +711,7 @@ class Struct(Type):
         name = attrs['name']
 
         if attrs.has_key('typeid'):
-            typeHandler = itemHandler.repository[chandlerdb.util.UUID.UUID(attrs['typeid'])]
+            typeHandler = itemHandler.repository[chandlerdb.util.uuid.UUID(attrs['typeid'])]
             value = typeHandler.makeValue(itemHandler.data)
         elif attrs.has_key('type'):
             value = itemHandler.makeValue(attrs['type'], itemHandler.data)

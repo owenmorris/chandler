@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import sys, re, xmlrpclib, jabber
 
 from SOAPpy import SOAPProxy
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 
 
 class RemoteError(ValueError):

@@ -17,6 +17,16 @@ class Alias(Type):
     def isAlias(self):
         return True
 
+    def isSimple(self):
+
+        if 'types' in self._references:
+            for t in self._references['types']:
+                if not t.isSimple():
+                    return False
+            return True
+
+        return False
+
     def type(self, value):
 
         if 'types' in self._references:

@@ -47,12 +47,11 @@ class KindQuery(Query):
     def run(self, kinds):
 
         if kinds:
-            view = kinds[0].itsView
             matches = set()
             changedItems = set()
 
-            for item in view._log:
-                if item._status & Item.NDIRTY:
+            for item in kinds[0].itsView._log:
+                if item._isNDirty():
                     changedItems.add(item)
 
             for item in self._run(kinds, changedItems):

@@ -3,7 +3,7 @@ import os, sys, hardhatlib
 
 info = {
         'name': 'repository',
-        'root': '../..',
+        'root': '..',
        }
 
 dependencies = ()

@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.remote.ItemFilter import ItemFilter
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 from repository.util.SAX import ContentHandler, XMLOffFilter
 from repository.persistence.RepositoryError import NoSuchItemError
 

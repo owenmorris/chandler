@@ -1,5 +1,5 @@
 
-# Copyright (c) 2004 Open Source Applications Foundation
+# Copyright (c) 2005 Open Source Applications Foundation
 # License: http://osafoundation.org/Chandler_0.1_license_terms.htm
 #
 # This Makefile requires cygwin on Windows
@@ -19,7 +19,7 @@ endif
 
 # these get installed into release or debug
 BIN_ARCHIVES=../Launchers-$(SNAP)-0.4-9.tar.gz \
-             ../chandlerdb-$(SNAP)-0.4-3.tar.gz \
+             ../chandlerdb-$(SNAP)-0.5-1.tar.gz \
              ../db-$(SNAP)-4.3.27-1.tar.gz \
              ../egenix-mx-base-$(SNAP)-2.1.0-3.tar.gz \
              ../epydoc-$(SNAP)-2.1-2.tar.gz \

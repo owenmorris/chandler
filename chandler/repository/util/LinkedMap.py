@@ -11,6 +11,8 @@ class LinkedMap(dict):
 
     class link(object):
 
+        __slots__ = ('_previousKey', '_nextKey', '_value', '_alias')
+
         def __init__(self, value):
 
             super(LinkedMap.link, self).__init__()

@@ -5,11 +5,11 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 from repository.item.Indexes import NumericIndex, AttributeIndex, CompareIndex
-from repository.item.ItemError import *
+from chandlerdb.item.ItemError import *
 
 
 class RefList(LinkedMap):
@@ -37,7 +37,6 @@ class RefList(LinkedMap):
             self._setItem(item)
         self._indexes = None
 
-        self._flags |= RefList.SETDIRTY
         if readOnly:
             self._flags |= RefList.READONLY
         
@@ -96,6 +95,10 @@ class RefList(LinkedMap):
             raise AssertionError, 'Item is already set'
         
         self._item = item
+        if item is not None:
+            self._flags |= RefList.SETDIRTY
+        else:
+            self._flags &= ~RefList.SETDIRTY
 
     def _getRepository(self):
 
@@ -497,7 +500,7 @@ class RefList(LinkedMap):
         To get an item through its alias, use L{getByAlias} instead.
 
         @param key: the UUID of the item referenced.
-        @type key: L{UUID<chandlerdb.util.UUID.UUID>}
+        @type key: L{UUID<chandlerdb.util.uuid.UUID>}
         @param default: the default value to return if there is no reference
         for C{key} in this ref collection, C{None} by default.
         @type default: anything
@@ -676,7 +679,7 @@ class RefList(LinkedMap):
         attrs['name'] = name
         if withSchema:
             attrs['cardinality'] = 'list'
-            attrs['otherName'] = item._kind.getOtherName(name)
+            attrs['otherName'] = item._kind.getOtherName(name, None, item)
 
         generator.startElement('ref', attrs)
         self._xmlValues(generator, version)

@@ -6,15 +6,18 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from new import classobj
 
+from chandlerdb.util.uuid import UUID, _combine
+from chandlerdb.schema.descriptor import CDescriptor
+from chandlerdb.item.ItemError import NoSuchAttributeError, SchemaError
+
 from repository.item.Item import Item
 from repository.item.Values import ItemValue, Values, References
 from repository.item.PersistentCollections import PersistentCollection
-from repository.item.ItemError import NoSuchAttributeError, SchemaError
 from repository.persistence.RepositoryError import RecursiveLoadItemError
 from repository.util.Path import Path
-from chandlerdb.util.UUID import UUID, _uuid
 from repository.util.SingleRef import SingleRef
 from repository.item.Monitors import Monitors, Monitor
+
 
 class Kind(Item):
 
@@ -101,10 +104,14 @@ class Kind(Item):
                 raise AssertionError, sync
             
             for name, descriptor in descriptors.items():
-                attr = descriptor.getAttribute(self)
-                if not (attr is None or attr[0] in attributes):
-                    if descriptor.unregisterAttribute(self):
-                        delattr(cls, name)
+                try:
+                    attrId, flags = descriptor.getAttribute(self)
+                except KeyError:
+                    pass
+                else:
+                    if attrId not in attributes:
+                        if descriptor.unregisterAttribute(self):
+                            delattr(cls, name)
 
         for name, attribute, k in self.iterAttributes():
             descriptor = cls.__dict__.get(name, None)
@@ -164,7 +171,7 @@ class Kind(Item):
         is the repository.
         @type parent: an item or the item's repository view
         @param uuid: The uuid for the item.
-        @type uuid: L{UUID<chandlerdb.util.UUID.UUID>}
+        @type uuid: L{UUID<chandlerdb.util.uuid.UUID>}
         @param cls: an optional python class to instantiate the item with,
         defaults to the class set on this kind.
         @type cls: a python new style class, that is, a type instance
@@ -218,13 +225,13 @@ class Kind(Item):
 
         superClasses = []
         
-        hash = _uuid.combine(0, self._uuid._hash)
+        hash = _combine(0, self._uuid._hash)
         for superKind in self.getAttributeValue('superKinds',
                                                 _attrDict=self._references):
             c = superKind.getItemClass()
             if c is not Item and c not in superClasses:
                 superClasses.append(c)
-                hash = _uuid.combine(hash, superKind._uuid._hash)
+                hash = _combine(hash, superKind._uuid._hash)
 
         count = len(superClasses)
 
@@ -290,8 +297,11 @@ class Kind(Item):
                 result = False
         else:
             for name, descriptor in descriptors.iteritems():
-                attr = descriptor.getAttribute(self)
-                if attr is not None:
+                try:
+                    attrId, flags = descriptor.getAttribute(self)
+                except KeyError:
+                    pass
+                else:
                     clsDescriptor = cls.__dict__.get(name, None)
                     if clsDescriptor is not descriptor:
                         self.itsView.logger.warn("Descriptor for attribute '%s', %s, on class %s doesn't match descriptor on Kind %s, %s", name, clsDescriptor, cls, self.itsPath, descriptor)
@@ -301,7 +311,7 @@ class Kind(Item):
                         self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to an attribute on Kind %s", name, cls, self.itsPath)
                         result = False
                     else:
-                        if attr[0] != attribute._uuid:
+                        if attrId != attribute._uuid:
                             self.itsView.logger.warn("Descriptor for attribute '%s' on class %s doesn't correspond to the attribute of the same name on Kind %s", name, cls, self.itsPath)
                             result = False
 
@@ -319,7 +329,7 @@ class Kind(Item):
 
         return None
 
-    def getAttribute(self, name, noError=False):
+    def getAttribute(self, name, noError=False, item=None):
         """
         Get an attribute definition item.
 
@@ -332,6 +342,19 @@ class Kind(Item):
         @return: an L{Attribute<repository.schema.Attribute.Attribute>} item
         instance
         """
+
+        if item is not None:
+            try:
+                descriptor = Kind._descriptors[type(item)][name]
+            except KeyError:
+                pass
+            else:
+                try:
+                    attrId, flags = descriptor.getAttribute(self)
+                except KeyError:
+                    pass
+                else:
+                    return self.itsView.find(attrId)
 
         refs = self._references
         child = self.getItemChild(name)
@@ -366,17 +389,24 @@ class Kind(Item):
         else:
             return self._inheritAttribute(name) is not None
 
-    def getOtherName(self, name, **kwds):
+    def getOtherName(self, name, _attrID=None, item=None, default=0):
 
-        otherName = self.getAttributeValue('otherNames', default={},
-                                           _attrDict=self._values).get(name)
+        if 'otherNames' in self._values:
+            try:
+                return self._values['otherNames'][name]
+            except KeyError:
+                pass
 
+        if _attrID is not None:
+            attribute = self.find(_attrID)
+        else:
+            attribute = self.getAttribute(name, False, item)
+
+        otherName = attribute._values.get('otherName', None)
         if otherName is None:
-            otherName = self.getAttribute(name).getAspect('otherName')
-            if otherName is None:
-                if 'default' in kwds:
-                    return kwds['default']
-                raise TypeError, 'Undefined otherName for attribute %s on kind %s' %(name, self.itsPath)
+            if default != 0:
+                return default
+            raise TypeError, 'Undefined otherName for attribute %s on kind %s' %(name, self.itsPath)
 
         return otherName
 
@@ -487,9 +517,9 @@ class Kind(Item):
             else:
                 duplicates[superKind._uuid] = superKind
                 
-        hash = _uuid.combine(0, self._uuid._hash)
+        hash = _combine(0, self._uuid._hash)
         for superKind in superKinds:
-            hash = _uuid.combine(hash, superKind._uuid._hash)
+            hash = _combine(hash, superKind._uuid._hash)
         if hash < 0:
             hash = ~hash
         name = "mixin_%08x" %(hash)
@@ -579,7 +609,7 @@ class Kind(Item):
                     item.setDirty(Item.RDIRTY, name,
                                   attrDict=references, noMonitors=True)
 
-    def flushCaches(self):
+    def flushCaches(self, reason):
         """
         Flush the caches setup on this Kind and its subKinds.
 
@@ -609,7 +639,14 @@ class Kind(Item):
         for subKind in self.getAttributeValue('subKinds',
                                               _attrDict=self._references,
                                               default=[]):
-            subKind.flushCaches()
+            subKind.flushCaches(reason)
+
+        if reason is not None:
+            logger = self.itsView.logger
+            for cls in Kind._kinds.get(self._uuid, []):
+                logger.warning('Change in %s caused syncing of attribute descriptors on class %s.%s for Kind %s', reason, cls.__module__, cls.__name__, self.itsPath)
+                self._setupDescriptors(cls, reason)
+            
 
 
     # begin typeness of Kind as SingleRef
@@ -681,6 +718,10 @@ class Kind(Item):
     
         return False
 
+    def isSimple(self):
+
+        return False
+
     # end typeness of Kind as SingleRef
 
     def getClouds(self, cloudAlias):
@@ -714,26 +755,30 @@ class Kind(Item):
     _descriptors = {}
     
 
-class Descriptor(object):
-
-    def __init__(self, name):
-
-        self.name = name
-        self.attrs = {}
+class Descriptor(CDescriptor):
 
     def registerAttribute(self, kind, attribute):
 
         values = attribute._values
         
         if 'otherName' in values:
-            flags = Descriptor.REF
+            flags = CDescriptor.REF
+            if values.get('cardinality', 'single') in ('list', 'dict'):
+                flags |= CDescriptor.SIMPLE
+                
         elif 'redirectTo' in values:
-            flags = Descriptor.REDIRECT
+            flags = CDescriptor.REDIRECT
+
         else:
-            flags = Descriptor.VALUE
+            flags = CDescriptor.VALUE
+            type = attribute.getAttributeValue('type',
+                                               _attrDict=attribute._references,
+                                               default=None)
+            if type is not None and type.isSimple():
+                flags |= CDescriptor.SIMPLE
 
         if values.get('required', False):
-            flags |= Descriptor.REQUIRED
+            flags |= CDescriptor.REQUIRED
 
         self.attrs[kind._uuid] = (attribute._uuid, flags)
 
@@ -744,7 +789,7 @@ class Descriptor(object):
 
     def getAttribute(self, kind):
 
-        return self.attrs.get(kind._uuid, None)
+        return self.attrs[kind._uuid]
 
     def isValueRequired(self, item):
 
@@ -755,7 +800,7 @@ class Descriptor(object):
         else:
             attrDict = self.getAttrDict(item, flags)
             return attrDict, (attrDict is not None and
-                              flags & Descriptor.REQUIRED != 0)
+                              flags & CDescriptor.REQUIRED != 0)
 
     def getName(self):
 
@@ -763,37 +808,15 @@ class Descriptor(object):
 
     def getAttrDict(self, obj, flags):
 
-        if flags & Descriptor.VALUE:
+        if flags & CDescriptor.VALUE:
             return obj._values
-        elif flags & Descriptor.REF:
+        elif flags & CDescriptor.REF:
             return obj._references
-        elif flags & Descriptor.REDIRECT:
+        elif flags & CDescriptor.REDIRECT:
             return None
 
         raise AssertionError, (self.name, flags)
 
-    def __get__(self, obj, owner):
-
-        if obj is None:
-            raise AttributeError, self.name
-
-        kind = obj._kind
-        if kind is not None:
-            try:
-                attrID, flags = self.attrs[kind._uuid]
-                attrDict = self.getAttrDict(obj, flags)
-            except KeyError:
-                pass
-            else:
-                return obj.getAttributeValue(self.name,
-                                             _attrDict=attrDict,
-                                             _attrID=attrID)
-
-        try:
-            return obj.__dict__[self.name]
-        except KeyError:
-            raise AttributeError, self.name
-            
     def __set__(self, obj, value):
 
         if obj is None:
@@ -834,11 +857,6 @@ class Descriptor(object):
             del obj.__dict__[self.name]
         except KeyError:
             raise AttributeError, self.name
-
-    VALUE    = 0x0001
-    REF      = 0x0002
-    REDIRECT = 0x0004
-    REQUIRED = 0x0008
     
 
 class SchemaMonitor(Monitor):
@@ -846,8 +864,4 @@ class SchemaMonitor(Monitor):
     def schemaChange(self, op, kind, attrName):
 
         if isinstance(kind, Kind) and kind.monitorSchema:
-            kind.flushCaches()
-            logger = kind.itsView.logger
-            for cls in Kind._kinds.get(kind._uuid, []):
-                logger.warning('Change in %s caused syncing of attribute descriptors on class %s.%s for Kind %s', attrName, cls.__module__, cls.__name__, kind.itsPath)
-                kind._setupDescriptors(cls, attrName)
+            kind.flushCaches(attrName)

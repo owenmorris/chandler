@@ -6,27 +6,23 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import cStringIO
 
+from chandlerdb.util.uuid import UUID
+from chandlerdb.schema.descriptor import _countAccess
+from chandlerdb.item.item import CItem
+from chandlerdb.item.ItemError import *
+
 from repository.item.RefCollections import RefList
 from repository.item.Values import Values, References, ItemValue
 from repository.item.Access import ACL
 from repository.item.PersistentCollections \
      import PersistentCollection, PersistentList, PersistentDict
-from repository.item.ItemError import *
 
 from repository.util.SingleRef import SingleRef
-from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
 
 
-__access__ = 0L
-
-def _countAccess():
-    global __access__; __access__ += 1
-    return __access__
-    
-
-class Item(object):
+class Item(CItem):
     'The root class for all items.'
     
     def __init__(self, name, parent, kind):
@@ -49,14 +45,10 @@ class Item(object):
         @type kind: an item
         """
 
-        # This needs to be the top of the inheritance diamond, hence we're
-        # not calling super() here.
+        super(Item, self).__init__()
 
         cls = type(self)
-        
-        self.__dict__.update({ '_status': Item.NEW,
-                               '_version': 0L,
-                               '_lastAccess': 0L,
+        self.__dict__.update({ '_version': 0L,
                                '_uuid': UUID(),
                                '_values': Values(self),
                                '_references': References(self),
@@ -89,12 +81,11 @@ class Item(object):
 
     def _fillItem(self, name, parent, kind, **kwds):
 
+        self._status = kwds.get('status', 0)
         self.__dict__.update({ '_uuid': kwds['uuid'],
                                '_name': name or None,
                                '_kind': kind,
-                               '_status': kwds.get('status', 0),
                                '_version': kwds['version'],
-                               '_lastAccess': 0L,
                                '_values': kwds.get('values'),
                                '_references': kwds.get('references') })
 
@@ -133,14 +124,16 @@ class Item(object):
         @return: a string representation of an item.
         """
 
-        if self._status & Item.RAW:
+        _status = self._status
+        
+        if _status & Item.RAW:
             return super(Item, self).__repr__()
 
-        if self._status & Item.DELETED:
+        if _status & Item.DELETED:
             status = ' (deleted)'
-        elif self._status & Item.STALE:
+        elif _status & Item.STALE:
             status = ' (stale)'
-        elif self._status & Item.NEW:
+        elif _status & Item.NEW:
             status = ' (new)'
         else:
             status = ''
@@ -167,7 +160,7 @@ class Item(object):
         """
 
         if self._kind is not None:
-            attribute = self._kind.getAttribute(name, True)
+            attribute = self._kind.getAttribute(name, True, self)
             if attribute is not None:
                 return attribute.hasAspect(aspect)
 
@@ -274,7 +267,7 @@ class Item(object):
                 attribute = self.find(_attrID)
             else:
                 noError = kwds.get('noError', False)
-                attribute = self._kind.getAttribute(name, noError=noError)
+                attribute = self._kind.getAttribute(name, noError, self)
 
             if attribute is not None:
                 if aspect != 'redirectTo':
@@ -319,7 +312,8 @@ class Item(object):
             elif self._references.has_key(name):
                 _attrDict = self._references
             else:
-                otherName = self._kind.getOtherName(name, default=Item.Nil)
+                otherName = self._kind.getOtherName(name, _attrID, self,
+                                                    Item.Nil)
                 if otherName is not Item.Nil:
                      _attrDict = self._references
                 else:
@@ -362,7 +356,7 @@ class Item(object):
                 dirty = Item.VDIRTY
             else:
                 if otherName is None:
-                    otherName = self._kind.getOtherName(name)
+                    otherName = self._kind.getOtherName(name, _attrID, self)
                 self._references._setValue(name, value, otherName)
                 setDirty = False
 
@@ -459,10 +453,10 @@ class Item(object):
         @return: a value
         """
 
-        if self._status & Item.STALE:
+        if self.isStale():
             raise StaleItemError, self
 
-        self._lastAccess = _countAccess()
+        _countAccess(self)
 
         try:
             if (_attrDict is self._values or
@@ -483,7 +477,7 @@ class Item(object):
             if _attrID is not None:
                 attribute = self.find(_attrID)
             else:
-                attribute = self._kind.getAttribute(name)
+                attribute = self._kind.getAttribute(name, False, self)
 
             inherit = attribute.getAspect('inheritFrom', default=None)
             if inherit is not None:
@@ -562,7 +556,10 @@ class Item(object):
                 value = _attrDict._getRef(name)
             except KeyError:
                 raise NoLocalValueForAttributeError, (self, name)
-            _attrDict._removeValue(name, value, self._kind.getOtherName(name))
+            otherName = self._kind.getOtherName(name, _attrID, self)
+            _attrDict._removeValue(name, value, otherName)
+
+        Item._monitorsClass.invoke('remove', self, name)
 
     def hasChild(self, name, load=True):
         """
@@ -651,7 +648,7 @@ class Item(object):
         @type load: boolean
         """
         
-        if self._status & Item.STALE:
+        if self.isStale():
             raise StaleItemError, self
 
         if not load:
@@ -824,11 +821,11 @@ class Item(object):
         """
 
         if _attrDict is None:
-            if self._values.has_key(attribute):
+            if attribute in self._values:
                 _attrDict = self._values
-            elif self._references.has_key(attribute):
+            elif attribute in self._references:
                 _attrDict = self._references
-            elif self._kind.getOtherName(attribute, default=None):
+            elif self._kind.getOtherName(attribute, None, self, None):
                 _attrDict = self._references
             else:
                 redirect = self.getAttributeAspect(attribute, 'redirectTo',
@@ -923,11 +920,11 @@ class Item(object):
         """
 
         if _attrDict is None:
-            if self._values.has_key(attribute):
+            if attribute in self._values:
                 _attrDict = self._values
-            elif self._references.has_key(attribute):
+            elif attribute in self._references:
                 _attrDict = self._references
-            elif self._kind.getOtherName(attribute, default=None):
+            elif self._kind.getOtherName(attribute, None, self, None):
                 _attrDict = self._references
             else:
                 redirect = self.getAttributeAspect(attribute, 'redirectTo',
@@ -1062,11 +1059,11 @@ class Item(object):
         """
 
         if _attrDict is None:
-            if self._values.has_key(attribute):
+            if attribute in self._values:
                 _attrDict = self._values
-            elif self._references.has_key(attribute):
+            elif attribute in self._references:
                 _attrDict = self._references
-            elif self._kind.getOtherName(attribute, default=None):
+            elif self._kind.getOtherName(attribute, None, self, None):
                 _attrDict = self._references
             else:
                 redirect = self.getAttributeAspect(attribute, 'redirectTo',
@@ -1132,81 +1129,9 @@ class Item(object):
         else:
             return _attrDict._isDirty(name)
 
-    def _isAttaching(self):
-
-        return (self._status & Item.ATTACHING) != 0
-
-    def _setAttaching(self, attaching=True):
-
-        if attaching:
-            self._status |= Item.ATTACHING
-        else:
-            self._status &= ~Item.ATTACHING
-
-    def isDeleting(self):
-        """
-        Tell whether this item is in the process of being deleted.
-
-        @return: C{True} or C{False}
-        """
-        
-        return (self._status & Item.DELETING) != 0
-    
-    def isNew(self):
-        """
-        Tell whether this item is new.
-
-        A new item is defined as an item that was before committed to the
-        repository.
-        
-        @return: C{True} or C{False}
-        """
-
-        return (self._status & Item.NEW) != 0
-    
-    def isDeleted(self):
-        """
-        Tell whether this item is deleted.
-
-        @return: C{True} or C{False}
-        """
-
-        return (self._status & Item.DELETED) != 0
-    
-    def isStale(self):
-        """
-        Tell whether this item pointer is out of date.
-
-        A stale item pointer is defined as an item pointer that is no longer
-        valid. When an item is unloaded, the item pointer is marked
-        stale. The item pointer can be refreshed by reloading the item via the
-        L{find} method, passing it the item's C{uuid} obtained via the
-        L{itsUUID} property.
-        
-        Stale items are encountered when item pointers are kept across
-        transaction boundaries. It is recommended to keep the item's
-        C{uuid} instead.
-
-        @return: C{True} or C{False}
-        """
-
-        return (self._status & Item.STALE) != 0
-    
     def _setStale(self):
 
         self._status |= Item.STALE
-
-    def isPinned(self):
-        """
-        Tell whether this item is pinned.
-
-        A pinned item is not freed from memory or marked stale, until it
-        is un-pinned or deleted.
-        
-        @return: C{True} or C{False}
-        """
-
-        return (self._status & Item.PINNED) != 0
 
     def setPinned(self, pinned=True):
         """
@@ -1220,24 +1145,6 @@ class Item(object):
             self._status |= Item.PINNED
         else:
             self._status &= ~Item.PINNED
-
-    def isDirty(self):
-        """
-        Tell whether this item was changed and needs to be committed.
-
-        @return: C{True} or C{False}
-        """
-        
-        return (self._status & Item.DIRTY) != 0
-
-    def getDirty(self):
-        """
-        Return the dirty flags currently set on this item.
-
-        @return: an integer
-        """
-
-        return self._status & Item.DIRTY
 
     def setDirty(self, dirty, attribute=None, attrDict=None, noMonitors=False):
         """
@@ -1273,11 +1180,13 @@ class Item(object):
                 if not noMonitors:
                     Item._monitorsClass.invoke('set', self, attribute)
                 
-            self._lastAccess = _countAccess()
+            _countAccess(self)
             dirty |= Item.FDIRTY
 
-            if self._status & Item.DIRTY == 0:
-                view = self.getRepositoryView()
+            view = self.getRepositoryView()
+            view._status |= view.FDIRTY
+            
+            if not self.isDirty():
                 if view is not None and not view.isLoading():
                     if attribute is not None:
                         if not self.getAttributeAspect(attribute, 'persist',
@@ -1287,7 +1196,7 @@ class Item(object):
                     if view._logItem(self):
                         self._status |= dirty
                         return True
-                    elif self._status & Item.NEW:
+                    elif self.isNew():
                         view.logger.error('logging of new item %s failed', self.itsPath)
             else:
                 self._status |= dirty
@@ -1452,7 +1361,7 @@ class Item(object):
             
         elif not self._status & (Item.DELETED | Item.DELETING):
 
-            if self._status & Item.STALE:
+            if self.isStale():
                 raise StaleItemError, self
 
             if not recursive and self.hasChildren():
@@ -1557,7 +1466,7 @@ class Item(object):
 
         count = 0
 
-        if not (self._status & Item.STALE):
+        if not self.isStale():
             for name in self._references.iterkeys():
                 if counted:
                     policy = self.getAttributeAspect(name, 'countPolicy',
@@ -1573,7 +1482,7 @@ class Item(object):
 
         count = 0
 
-        if not (self._status & Item.STALE):
+        if not self.isStale():
             count += self._values._refCount()
             count += self._references._refCount()
             if self._children is not None:
@@ -1636,7 +1545,7 @@ class Item(object):
     def __getKind(self):
 
         kind = self._kind
-        if kind is not None and kind._status & Item.STALE:
+        if kind is not None and kind.isStale():
             kind = self.getRepositoryView()[kind._uuid]
             self._kind = kind
                 
@@ -1655,7 +1564,7 @@ class Item(object):
                 else:
                     def removeOrphans(attrDict):
                         for name in attrDict.keys():
-                            curAttr = self._kind.getAttribute(name)
+                            curAttr = self._kind.getAttribute(name, False, self)
                             try:
                                 newAttr = kind.getAttribute(name)
                             except AttributeError:
@@ -1677,7 +1586,7 @@ class Item(object):
                 kind._setupClass(self.__class__)
                 kind.getInitialValues(self, self._values, self._references)
 
-            Item._monitorsClass.invoke('kind', self, 'schema')
+            Item._monitorsClass.invoke('schema', self, 'kind')
 
     def mixinKinds(self, *kinds):
         """
@@ -1819,10 +1728,10 @@ class Item(object):
         @return: a repository view
         """
 
-        if self._root is None:
-            return None
-        else:
+        try:
             return self._root._parent
+        except AttributeError:
+            return None
 
     def rename(self, name):
         """
@@ -1884,21 +1793,6 @@ class Item(object):
             self._setParent(newParent, previous, next, oldView)
             self.setDirty(Item.NDIRTY)
 
-    def _isRepository(self):
-        return False
-
-    def _isView(self):
-        return False
-
-    def _isItem(self):
-        return True
-
-    def _isRefList(self):
-        return False
-
-    def _isUUID(self):
-        return False
-
     def _setParent(self, parent, previous=None, next=None, oldView=None):
 
         if parent is not None:
@@ -1955,7 +1849,7 @@ class Item(object):
         @return: an item
         """
 
-        if self._status & Item.STALE:
+        if self.isStale():
             raise StaleItemError, self
 
         child = None
@@ -1966,13 +1860,10 @@ class Item(object):
 
     def __getitem__(self, key):
 
-        if isinstance(key, str) or isinstance(key, unicode):
-            child = self.getItemChild(key)
-            if child is not None:
-                return child
-            raise KeyError, key
-
-        raise TypeError, key
+        child = self.getItemChild(key)
+        if child is not None:
+            return child
+        raise KeyError, key
 
     def isRemote(self):
         """
@@ -2036,7 +1927,7 @@ class Item(object):
 
         attrName = kwds.get('attribute', None)
         if attrName is not None:
-            attr = self._kind.getAttribute(attrName)
+            attr = self._kind.getAttribute(attrName, False, self)
         else:
             attr = None
         
@@ -2061,10 +1952,10 @@ class Item(object):
 
         if path[_index] == '..':
             if attr is not None:
-                otherName = self._kind.getOtherName(attrName)
+                otherName = self._kind.getOtherName(attrName, None, self)
                 parent = self.getAttributeValue(otherName,
                                                 _attrDict=self._references)
-                otherAttr = self._kind.getAttribute(otherName)
+                otherAttr = self._kind.getAttribute(otherName, False, self)
                 if otherAttr.cardinality == 'list':
                     parent = parent.first()
             else:
@@ -2115,7 +2006,7 @@ class Item(object):
 
         @param spec: a path or UUID
         @type spec: L{Path<repository.util.Path.Path>} or
-                    L{UUID<chandlerdb.util.UUID.UUID>} 
+                    L{UUID<chandlerdb.util.uuid.UUID>} 
         @param attribute: the attribute for the ref-collections to search
         @type attribute: a string
         @param load: load the item if it not yet loaded, C{True} by default
@@ -2130,7 +2021,7 @@ class Item(object):
             return self.walk(spec, lambda parent, name, child, **kwds: child,
                              attribute=attribute, load=load)
 
-        raise TypeError, '%s is not Path or UUID' %(type(spec))
+        raise TypeError, '%s, %s is not Path or UUID' %(spec, type(spec))
 
     def findPath(self, path, attribute=None, load=True):
         """
@@ -2162,7 +2053,7 @@ class Item(object):
         See L{find} for more information.
 
         @param uuid: a UUID
-        @type uuid: L{UUID<chandlerdb.util.UUID.UUID>} or a uuid string
+        @type uuid: L{UUID<chandlerdb.util.uuid.UUID>} or a uuid string
         @param load: load the item if it not yet loaded, C{True} by default
         @type load: boolean
         @return: an item or C{None} if not found
@@ -2177,7 +2068,7 @@ class Item(object):
 
     def _unloadItem(self, reloadable):
 
-        if self._status & Item.DIRTY:
+        if self.isDirty():
             raise DirtyItemError, self
 
         view = self.getRepositoryView()
@@ -2185,7 +2076,7 @@ class Item(object):
         if hasattr(type(self), 'onItemUnload'):
             self.onItemUnload(view)
 
-        if not self._status & Item.STALE:
+        if not self.isStale():
 
             if self._values:
                 self._values._unload()
@@ -2215,7 +2106,7 @@ class Item(object):
     def _refList(self, name, otherName=None, persist=None):
 
         if otherName is None:
-            otherName = self._kind.getOtherName(name)
+            otherName = self._kind.getOtherName(name, None, self)
         if persist is None:
             persist = self.getAttributeAspect(name, 'persist', default=True)
 
@@ -2250,9 +2141,8 @@ class Item(object):
 
     def __new__(cls, *args, **kwds):
 
-        item = object.__new__(cls, *args, **kwds)
-        item.__dict__.update({ '_status': Item.RAW,
-                               '_parent': None,
+        item = CItem.__new__(cls, *args, **kwds)
+        item.__dict__.update({ '_parent': None,
                                '_children': None,
                                '_root': None,
                                '_acls': None })
@@ -2266,35 +2156,6 @@ class Item(object):
             return False
     Nil        = nil()
     
-    DELETED    = 0x00000001
-    VDIRTY     = 0x00000002           # literal or ref changed
-    DELETING   = 0x00000004
-    RAW        = 0x00000008
-    ATTACHING  = 0x00000010
-    SCHEMA     = 0x00000020
-    NEW        = 0x00000040
-    STALE      = 0x00000080
-    NDIRTY     = 0x00000100           # parent or name changed
-    CDIRTY     = 0x00000200           # children list changed
-    RDIRTY     = 0x00000400           # ref collection changed
-    CORESCHEMA = 0x00000800           # core schema item
-    CONTAINER  = 0x00001000           # has children
-    ADIRTY     = 0x00002000           # acl(s) changed
-    PINNED     = 0x00004000           # auto-refresh, don't stale
-    NODIRTY    = 0x00008000           # turn off dirtying
-    FDIRTY     = 0x00010000           # fresh dirty since last mapChange call
-    VMERGED    = 0x00020000
-    RMERGED    = 0x00040000
-    NMERGED    = 0x00080000
-    CMERGED    = 0x00100000
-
-    VRDIRTY    = VDIRTY | RDIRTY
-    DIRTY      = VDIRTY | RDIRTY | NDIRTY | CDIRTY
-    MERGED     = VMERGED | RMERGED | NMERGED | CMERGED
-    SAVEMASK   = (DIRTY | ADIRTY |
-                  NEW | DELETED |
-                  SCHEMA | CORESCHEMA | CONTAINER)
-
     itsName = property(fget = __getName,
                        fset = rename,
                        doc =

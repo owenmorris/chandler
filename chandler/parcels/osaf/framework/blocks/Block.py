@@ -5,7 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from repository.item.Item import Item
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 import wx
 import logging
 import hotshot

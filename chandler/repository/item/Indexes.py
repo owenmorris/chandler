@@ -86,6 +86,8 @@ class NumericIndex(Index, SkipList):
 
     class node(SkipList.node):
 
+        __slots__ = ('_entryValue')
+
         def __init__(self, level, skipList):
 
             super(NumericIndex.node, self).__init__(level, skipList)

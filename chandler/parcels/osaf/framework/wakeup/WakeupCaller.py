@@ -4,7 +4,7 @@ import repository.item.Query as Query
 import repository.util.ClassLoader as ClassLoader
 import twisted.internet.reactor as reactor
 import logging as logging
-import chandlerdb.util.UUID as UUID
+import chandlerdb.util.uuid as UUID
 
 class WakeupCall(object):
     def receiveWakeupCall(self, wakeupCallItem):

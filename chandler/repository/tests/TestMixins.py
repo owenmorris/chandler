@@ -66,11 +66,11 @@ class MixinTest(RepositoryTestCase):
         attribute = actor.getAttribute('movies').itsKind
         self.assert_(kh.isItemOf(actor))
 
-        Monitors.attach(m1, 'kindChanged', 'kind', 'schema')
+        Monitors.attach(m1, 'kindChanged', 'schema', 'kind')
         m1.monitorAttribute = None
         mixin = kh.mixinKinds(('add', movie), ('add', attribute))
 
-        self.assert_(m1.monitorAttribute == 'schema')
+        self.assert_(m1.monitorAttribute == 'kind')
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ from repository.persistence.DBRepository import DBRepository, XMLStore
 from repository.persistence.DBRepositoryView import DBRepositoryView
 from repository.remote.Transport import SOAPTransport, JabberTransport
 from repository.remote.RemoteFilter import RemoteFilter
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.uuid import UUID
 
 
 class RemoteRepository(DBRepository):

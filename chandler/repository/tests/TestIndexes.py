@@ -75,6 +75,67 @@ class TestIndexes(RepositoryTestCase):
             self.assert_(movies.getByIndex('n', i - 1).itsUUID == mi.itsUUID)
             self.assert_(movies.getByIndex('n', i).itsUUID == mj.itsUUID)
         
+    def _remove(self):
+
+        movies = self.rep.find(self.kh).movies
+
+        keys = movies.keys()
+        values = movies.values()
+        n = len(keys)
+
+        for m in xrange(0, n / 2):
+            i = random.randint(0, n - 1)
+            print 'random remove:', i
+
+            movie = movies.getByIndex('n', i)
+            movies.remove(movie)
+            del values[i]
+        
+            for i in xrange(0, n - 1):
+                self.assert_(values[i] is movies.getByIndex('n', i))
+            n -= 1
+
+    def _add(self):
+
+        movies = self.rep.find(self.kh).movies
+
+        keys = movies.keys()
+        values = movies.values()
+        n = len(keys)
+
+        kind = values[0].itsKind
+        parent = values[0].itsParent
+        count = random.randint(0, n / 2)
+
+        for m in xrange(0, count):
+            title = "movie%d" %(n+m)
+            movie = kind.newItem(title, parent)
+            movies.append(movie)
+        
+            for i in xrange(0, n - 1):
+                self.assert_(values[i] is movies.getByIndex('n', i))
+            for i in xrange(n, n + m):
+                self.assert_(movies.getByIndex('n', i)._name == "movie%d" %(i),
+                             movies.getByIndex('n', i)._name)
+
+    def testAdd(self):
+
+        self._add()
+
+    def testRemove(self):
+
+        self._add()
+
+    def testAddRemove(self):
+
+        self._add()
+        self._remove()
+
+    def testRemoveAdd(self):
+
+        self._remove()
+        self._add()
+
 
 if __name__ == "__main__":
 #    import hotshot

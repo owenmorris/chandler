@@ -19,7 +19,7 @@ import logging as logging
 
 #Chandler imports
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
-import chandlerdb.util.UUID as UUID
+import chandlerdb.util.uuid as UUID
 import repository.item.Query as Query
 import osaf.contentmodel.mail.Mail as Mail
 import application.Globals as Globals

@@ -19,7 +19,7 @@ import logging as logging
 #Chandler imports
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
 import osaf.contentmodel.mail.Mail as Mail
-import chandlerdb.util.UUID as UUID
+import chandlerdb.util.uuid as UUID
 import application.Globals as Globals
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 import M2Crypto.SSL as SSL

@@ -10,7 +10,7 @@ from struct import pack, unpack
 
 from repository.item.Access import ACL, ACE
 from repository.item.Item import Item
-from chandlerdb.util.UUID import UUID, _uuid
+from chandlerdb.util.uuid import UUID, _hash
 from repository.persistence.Repository import Repository
 from repository.persistence.RepositoryError import RepositoryFormatError
 
@@ -455,7 +455,7 @@ class NamesContainer(DBContainer):
         if uuid is None:
             uuid = key
 
-        self.put(pack('>16sll', key._uuid, _uuid.hash(name), ~version),
+        self.put(pack('>16sll', key._uuid, _hash(name), ~version),
                  uuid._uuid)
 
     def readName(self, version, key, name):
@@ -466,7 +466,7 @@ class NamesContainer(DBContainer):
         if isinstance(name, unicode):
             name = name.encode('utf-8')
 
-        cursorKey = pack('>16sl', key._uuid, _uuid.hash(name))
+        cursorKey = pack('>16sl', key._uuid, _hash(name))
         store = self.store
         
         while True:
@@ -576,7 +576,7 @@ class ACLContainer(DBContainer):
         else:
             if isinstance(name, unicode):
                 name = name.encode('utf-8')
-            key = pack('>16sll', key._uuid, _uuid.hash(name), ~version)
+            key = pack('>16sll', key._uuid, _hash(name), ~version)
 
         if acl is None:    # deleted acl
             value = pack('>l', 0)
@@ -593,7 +593,7 @@ class ACLContainer(DBContainer):
         else:
             if isinstance(name, unicode):
                 name = name.encode('utf-8')
-            cursorKey = pack('>16sl', key._uuid, _uuid.hash(name))
+            cursorKey = pack('>16sl', key._uuid, _hash(name))
 
         store = self.store
         
@@ -811,7 +811,7 @@ class ItemContainer(DBContainer):
         def writeName(name):
             if isinstance(name, unicode):
                 name = name.encode('utf-8')
-            buffer.write(pack('>l', _uuid.hash(name)))
+            buffer.write(pack('>l', _hash(name)))
             
         for name, uValue in values:
             writeName(name)
@@ -928,7 +928,7 @@ class ItemContainer(DBContainer):
 
             if isinstance(name, unicode):
                 name = name.encode('utf-8')
-            hash = _uuid.hash(name)
+            hash = _hash(name)
 
             vCount, dCount = unpack('>ll', item[-8:])
             pos = -(dCount + 2) * 4 - vCount * 20
@@ -1167,8 +1167,8 @@ class HashTuple(tuple):
         if isinstance(name, unicode):
             name = name.encode('utf-8')
 
-        return super(HashTuple, self).__contains__(_uuid.hash(name))
+        return super(HashTuple, self).__contains__(_hash(name))
 
     def hash(self, name):
 
-        return _uuid.hash(name)
+        return _hash(name)

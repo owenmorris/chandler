@@ -34,7 +34,7 @@
 
     <ref name="type" type="path">//Schema/Core/String</ref>
     <attribute name="cardinality">single</attribute>
-    <attribute name="initialValue" type="str"/>
+    <attribute name="initialValue"/>
   </item>
 
   <item>
