@@ -1,0 +1,98 @@
+
+Environments
+------------
+
+ - Linux, gcc 3.3.x with gcj (only tested on Red Hat 8 so far)
+
+ - OS X, 10.3.x, dev tools gcc + 3.4 build for gcj
+   An archive of gcc 3.4 built for OS X 10.3.x may be downloaded from:
+     http://downloads.osafoundation.org/compilers/osx/gcc-3.4-20040107.tar.bz2 
+
+ - Win2k/XP, MSVC 7.1, MinGW 3.1 with gcj 3.3.1, 
+   The Cygwin environment with bash, make, cvs, tar, uname and, install is
+   REQUIRED on Windows.
+   An archive of MinGW 3.1 binaries with gcj 3.3.1 may be downloaded from:
+     http://downloads.osafoundation.org/compilers/windows/mingw-3.1.zip
+
+Be ready to provide lots of disk space, especially on Windows (~ 1 gb).
+
+Getting build sources with CVS
+------------------------------
+
+   - cvs -d :pserver:<cvslogin>@cvs.osafoundation.org:/usr/local/cvsrep co external
+
+Set two vital environment variables:
+------------------------------------
+  - cd external
+  - export BUILD_ROOT=`pwd`
+  - export GCJ_HOME='path to gcj installation'
+
+For example, if the path to gcj is /usr/local/gcc-3.3.2/bin/gcj, the
+GCJ_HOME variable should be set to /usr/local/gcc-3.3.2
+
+On windows, the GCJ_HOME path needs to be cygwin style. For example, if the
+path to gcj is d:\mingw-3.1\bin\gcj.exe, the GCJ_HOME variable needs to be
+set to /cygdrive/d/mingw-3.1
+
+Verify that the environment is correct
+--------------------------------------
+
+  - make env
+
+Getting the third party library source archives
+-----------------------------------------------
+
+  - make expand
+
+This downloads the current version of sources.tar (~50Mb) and expands it
+into the source tree checked out from CVS.
+
+Building all third party systems
+--------------------------------
+
+  - make                     (for release binaries)
+  - make DEBUG=1             (for debug binaries)
+
+Building the binary archives for Chandler
+-----------------------------------------
+After the third party systems were successfully built:
+
+  - make binaries            (for release binaries)
+  - make DEBUG=1 binaries    (for debug binaries)
+
+This creates release-$(VERSION).tar.gz or debug-$(VERSION).tar.gz
+
+Installing the binary archive into a Chandler tree for running
+--------------------------------------------------------------
+
+ - cd osaf/chandler
+ - tar xvzf release-0.3-1.tar.gz
+ - cd Chandler
+ - ../../hardhat/hardhat.py -b               (installs RunRelease, RunPython)
+ - cd repository
+ - ../../../hardhat/hardhat.py -b            (installs UUIDext)
+ - cd ..
+ - ../release/bin/RunRelease -stderr -create (run Chandler, new repository)
+
+Top Makefile targets
+--------------------
+Use DEBUG=1 for debug versions
+Most subsystems depend on at least one other. Be sure to preserve the order
+in which they're built (listed in the SYSTEMS Makefile variable).
+
+ - default, all: build all subsystems
+ - binaries: create release or debug binaries for upload
+ - expand: download sources and expand them into the source tree
+ - clean: clean all subsystems
+
+Common Makefile targets in subsystem Makefiles
+----------------------------------------------
+Use DEBUG=1 for debug versions
+
+ - default, all: build the subsystem
+ - clean: clean the subsystem
+ - snap: make a binary archive called release.tar.gz or debug.tar.gz of
+         this subsystem only. This archive can be installed on top of a
+         Chandler install for testing/debugging.
+ - apply: apply the patches. Not all subsystems have patches. This target
+          is invoked during the build process.
