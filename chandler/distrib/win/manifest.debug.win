@@ -8,14 +8,17 @@
 # recursive: set to yes or no
 # glob: set to a comma-separated list of glob patterns
 
-# Grab the python.exe and certain dll's from debug/bin
-src=debug
+# Grab certain dll's from debug/bin
+src=debug/bin
 dest=
-recursive=no
-bin/python_d.exe
-glob=wx*.dll,ms*.dll,python*.dll
-bin
-
+PathanD.dll
+libdb41d.dll
+libdbxml11d.dll
+msvcr70d.dll
+msvcrtd.dll
+python23_d.dll
+wxmsw24d.dll
+xerces-c_2_3_0D.dll
 
 # Grab all py, pyc, etc. from debug/bin/DLLs and debug/bin/Lib
 src=debug/bin
@@ -24,13 +27,6 @@ glob=*.py,*.pyc,*.pyo,*.pyd,*.so,*.dll
 recursive=yes
 DLLs
 Lib
-
-# # Grab wx libs from debug/lib
-# src=debug
-# dest=
-# recursive=no
-# glob=*
-# lib
 
 
 # Grab Chandler.py, version.py and LICENSE.txt
@@ -55,8 +51,8 @@ locale
 # Grab the launcher and README
 src=Chandler/distrib/win
 README.win.txt
-src=Chandler/distrib/win/debug
-Chandler.bat
+src=Chandler/distrib/win/launcher/winlaunch/Debug
+chandler.exe
 
 # Grab the overall README
 src=Chandler/distrib
