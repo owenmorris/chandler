@@ -67,6 +67,9 @@ upload:
 		$(MAKE) -C $$system DEBUG=$(DEBUG) upload; \
 	done
 
+uploadworld: upload
+	make -C ../internal DEBUG=$(DEBUG) upload
+
 install:
 	@for system in $(SYSTEMS); \
 	do \
