@@ -216,7 +216,7 @@ def dumpOutputList(outputList, fd = None):
 
 def NeedsUpdate(outputList):
     for line in outputList:
-        if line.find("IDE Scripts") != -1:
+        if line.find("IDE scripts") != -1:
             # this hack is for skipping some Mac-specific files that
             # under Windows always appear to be needing an update
             continue
