@@ -59,13 +59,7 @@ class XMLRepository(OnDemandRepository):
         elif not os.path.isdir(self.dbHome):
             raise ValueError, "%s exists but is not a directory" %(self.dbHome)
         else:
-            def purge(arg, path, names):
-                for f in names:
-                    if f.startswith('__') or f.startswith('log.'):
-                        f = os.path.join(path, f)
-                        if not os.path.isdir(f):
-                            os.remove(f)
-            os.path.walk(self.dbHome, purge, None)
+            self.delete()
         
         self._env = DBEnv()
         if self._notxn:
@@ -74,6 +68,16 @@ class XMLRepository(OnDemandRepository):
             self._env.open(self.dbHome, DB_CREATE | self.OPEN_FLAGS, 0)
 
         self._openDb(True)
+
+    def delete(self):
+
+        def purge(arg, path, names):
+            for f in names:
+                if f.startswith('__') or f.startswith('log.'):
+                    f = os.path.join(path, f)
+                    if not os.path.isdir(f):
+                        os.remove(f)
+        os.path.walk(self.dbHome, purge, None)
 
     def open(self, verbose=False, create=False, notxn=False):
 

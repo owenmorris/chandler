@@ -40,7 +40,11 @@ class Repository(object):
     def open(self, verbose=False, create=False):
 
         self._init(verbose)
+
+    def delete(self):
         
+        raise NotImplementedError, "Repository.delete"
+
     def _init(self, verbose):
 
         self._status = 0
