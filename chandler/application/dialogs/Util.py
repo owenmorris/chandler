@@ -3,6 +3,8 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import os
+import application.Globals
 import wx
 
 # A helper method and class for allowing the user to modify an item's attributes
@@ -261,3 +263,27 @@ class yesNoDialog(wx.Dialog):
         self.SetSizer(sizer)
         self.SetAutoLayout(True)
         sizer.Fit(self)
+
+
+# A simple alert dialog
+
+def showAlert(parent, message):
+        xrcFile = os.path.join(application.Globals.chandlerDirectory,
+         'application', 'dialogs', 'Alert_wdr.xrc')
+        resources = wx.xrc.XmlResource(xrcFile)
+        frame = alertDialog(parent, resources, message=message)
+        frame.ShowModal()
+        frame.Destroy()
+
+class alertDialog(wx.Dialog):
+    def __init__(self, parent, resources, message=""):
+        pre = wx.PreDialog()
+        self.resources = resources
+        resources.LoadOnDialog(pre, parent, 'Alert')
+        self.this = pre.this
+        text = wx.xrc.XRCCTRL(self, "ID_TEXT")
+        text.SetLabel(message)
+        wx.EVT_BUTTON( self, wx.xrc.XRCID( "ID_OK" ), self.OnOk )
+
+    def OnOk(self, evt):
+        self.EndModal(True)
