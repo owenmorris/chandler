@@ -590,12 +590,11 @@ def recursiveTest(buildenv, path):
     for name in os.listdir(path):
         full_name = os.path.join(path, name)
         if os.path.isdir(full_name):
-            recursiveTest(buildenv, full_name)
             # Do not recurse into debug or release dirs since they
             # should not contain any of our tests.
-            #if (full_name.rfind(chandler_debug) < 0) and \
-            #   (full_name.rfind(chandler_release) < 0):
-            #    recursiveTest(buildenv, full_name)
+            if (full_name.rfind(chandler_debug) < 0) and \
+               (full_name.rfind(chandler_release) < 0):
+                recursiveTest(buildenv, full_name)
 
 def test(buildenv, dir, *modules):
     """
