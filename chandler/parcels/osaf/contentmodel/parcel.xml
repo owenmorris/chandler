@@ -88,6 +88,9 @@
     <core:Attribute itsName="sharedURL">
       <core:type itemref="core:URL"/>
     </core:Attribute>
+    <core:Attribute itsName="sharedUUID">
+      <core:type itemref="core:UUID"/>
+    </core:Attribute>
     <core:Attribute itsName="sharedVersion">
       <core:type itemref="core:Long"/>
       <core:initialValue type="core:Long">-1</core:initialValue>
