@@ -7,6 +7,7 @@
 
 <Parcel describes="//parcels/OSAF/contentmodel/notes"
         itemName="notes"
+	itemClass="OSAF.contentmodel.notes.Notes.NotesParcel"
         xmlns="//Schema/Core"
         xmlns:content="//parcels/OSAF/contentmodel"
         xmlns:notes="//parcels/OSAF/contentmodel/notes">
