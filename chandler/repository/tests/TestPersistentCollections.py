@@ -90,12 +90,8 @@ class PersistentCollectionsTest(AttributeTestCase.AttributeTestCase):
             emp = employeeKind.newItem(e, self.rep)
             emps[str(emp.itsUUID)] = emp
 
-        for k, v in emps.items():
-            print k,v
         manager.employees = []
         manager.employees.update(emps)
-        for k, v in manager.employees.items():
-            print k,v
         self._checkManagerAndEmployeesDict(manager, emps)
         
         self._reopenRepository()
