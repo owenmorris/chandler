@@ -80,7 +80,6 @@ def executeCommandReturnOutputRetry(args):
 
 
 def executeCommandReturnOutput(args):
-
     args[0] = escapeSpaces(args[0])
     args = map(escapeBackslashes, args)
 
@@ -98,7 +97,7 @@ def executeCommandReturnOutput(args):
     exitCode = output.close()
 
     if exitCode != None:
-        raise ExternalCommandError, exitCode
+        raise ExternalCommandErrorWithOutputList, [exitCode, outputList]
 
     return outputList
 
@@ -124,6 +123,15 @@ class ExternalCommandError(Exception):
         self.args = args
 
 
+class ExternalCommandErrorWithOutputList(ExternalCommandError):
+    def __init__(self,args=None):
+        if args:
+            self.args = args[0]
+            self.outputList = args[1]
+        else:
+            self.args = args
+            self.outputList = []
+                                                    
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Module import functions
 
