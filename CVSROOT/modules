@@ -34,3 +34,7 @@ chandler-source -a \
     osaf/chandler/egenix-mx-base-2.0.4 \
     osaf/chandler/hardhat \
     osaf/chandler/wxWindows-2.4
+
+dbxml-module -a \
+    osaf/chandler/dbxml \
+    osaf/chandler/bsddb3
