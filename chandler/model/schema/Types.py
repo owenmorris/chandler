@@ -23,6 +23,12 @@ class Type(Item):
     def handlerName(cls):
         return "%s.%s" %(cls.__module__, cls.__name__)
 
+    def recognizes(self, value):
+        raise NotImplementedError, "Type.recognizes()"
+
+    def isAlias(self):
+        return False
+
     def typeXML(self, value, generator):
 
         fields = self.fields
@@ -68,16 +74,33 @@ class Type(Item):
 class String(Type):
 
     def makeValue(cls, data):
-        return str(data)
+        return unicode(data)
+
+    def makeString(cls, value):
+        return unicode(value)
+
+    def recognizes(self, value):
+        return type(value) is unicode or type(value) is str
 
     def unserialize(self, data):
         return String.makeValue(data)
 
     makeValue = classmethod(makeValue)
+    makeString = classmethod(makeString)
 
 
-class Symbol(String):
-    pass
+class Symbol(Type):
+
+    def makeValue(cls, data):
+        return str(data)
+
+    def unserialize(self, data):
+        return Symbol.makeValue(data)
+
+    def recognizes(self, value):
+        return type(value) is str
+
+    makeValue = classmethod(makeValue)
 
 
 class Integer(Type):
@@ -87,6 +110,9 @@ class Integer(Type):
 
     def unserialize(self, data):
         return Integer.makeValue(data)
+
+    def recognizes(self, value):
+        return type(value) is int
 
     makeValue = classmethod(makeValue)
 
@@ -99,6 +125,9 @@ class Long(Type):
     def unserialize(self, data):
         return Long.makeValue(data)
 
+    def recognizes(self, value):
+        return type(value) is long or type(value) is int
+
     makeValue = classmethod(makeValue)
 
 
@@ -109,6 +138,10 @@ class Float(Type):
 
     def unserialize(self, data):
         return Float.makeValue(data)
+
+    def recognizes(self, value):
+        return (type(value) is float or
+                type(value) is long or type(value) is int)
 
     makeValue = classmethod(makeValue)
 
@@ -121,6 +154,9 @@ class Complex(Type):
     def unserialize(self, data):
         return Complex.makeValue(data)
 
+    def recognizes(self, value):
+        return type(value) is complex
+
     makeValue = classmethod(makeValue)
 
 
@@ -131,6 +167,9 @@ class Boolean(Type):
 
     def unserialize(self, data):
         return Boolean.makeValue(data)
+
+    def recognizes(self, value):
+        return type(value) is bool
 
     makeValue = classmethod(makeValue)
 
@@ -143,6 +182,9 @@ class UUID(Type):
     def unserialize(self, data):
         return UUID.makeValue(data)
 
+    def recognizes(self, value):
+        return type(value) is UUID
+
     makeValue = classmethod(makeValue)
 
 
@@ -153,6 +195,9 @@ class Path(Type):
 
     def unserialize(self, data):
         return Path.makeValue(data)
+
+    def recognizes(self, value):
+        return type(value) is Path
 
     makeValue = classmethod(makeValue)
 
@@ -168,6 +213,9 @@ class Class(Type):
     def unserialize(self, data):
         return Class.makeValue(data)
         
+    def recognizes(self, value):
+        return type(value) is type
+
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
 
@@ -179,6 +227,13 @@ class Enumeration(Type):
 
     def makeString(cls, value):
         return value
+
+    def recognizes(self, value):
+
+        try:
+            return self.Values.index(value) >= 0
+        except ValueError:
+            return False
 
     def typeXML(self, value, generator):
 
@@ -208,6 +263,9 @@ class DateTime(Type):
     def makeString(cls, value):
         return mx.DateTime.ISO.str(value)
 
+    def recognizes(self, value):
+        return type(value) is DateTime.implementationType
+
     def unserialize(self, data):
         return DateTime.makeValue(data)
 
@@ -228,6 +286,7 @@ class DateTime(Type):
 
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
+    implementationType = type(mx.DateTime.now())
 
 
 class DateTimeDelta(Type):
@@ -239,6 +298,9 @@ class DateTimeDelta(Type):
         
     def unserialize(self, data):
         return DateTimeDelta.makeValue(data)
+
+    def recognizes(self, value):
+        return type(value) is DateTimeDelta.implementationType
 
     def _fieldXML(self, value, field, generator):
 
@@ -261,7 +323,8 @@ class DateTimeDelta(Type):
                                              seconds=flds.get('second', 0.0))
 
     makeValue = classmethod(makeValue)
-
+    implementationType = type(mx.DateTime.DateTimeDelta(0))
+    
 
 class RelativeDateTime(Type):
 
@@ -273,6 +336,9 @@ class RelativeDateTime(Type):
 
     def makeValue(cls, data):
         return mx.DateTime.RelativeDateTimeFrom(str(data))
+
+    def recognizes(self, value):
+        return type(value) is RelativeDateTime.implementationType
 
     def unserialize(self, data):
         return RelativeDateTime.makeValue(data)
@@ -308,6 +374,7 @@ class RelativeDateTime(Type):
                                             weeks=flds.get('weeks', 0))
 
     makeValue = classmethod(makeValue)
+    implementationType = type(mx.DateTime.RelativeDateTime())
 
 
 class Collection(Type):
@@ -331,6 +398,9 @@ class Collection(Type):
 
 class Dictionary(Collection):
 
+    def recognizes(self, value):
+        return type(value) is dict
+
     def typeXML(self, value, generator):
 
         generator.startElement('values', {})
@@ -346,6 +416,9 @@ class Dictionary(Collection):
 
 class List(Collection):
 
+    def recognizes(self, value):
+        return type(value) is list
+
     def typeXML(self, value, generator):
 
         generator.startElement('values', {})
@@ -360,6 +433,6 @@ class List(Collection):
     
 
 ItemHandler.typeHandlers[type] = Class
-ItemHandler.typeHandlers[type(mx.DateTime.now())] = DateTime
-ItemHandler.typeHandlers[type(mx.DateTime.DateTimeDelta(0))] = DateTimeDelta
-ItemHandler.typeHandlers[type(mx.DateTime.RelativeDateTime())] = RelativeDateTime
+ItemHandler.typeHandlers[DateTime.implementationType] = DateTime
+ItemHandler.typeHandlers[DateTimeDelta.implementationType] = DateTimeDelta
+ItemHandler.typeHandlers[RelativeDateTime.implementationType] = RelativeDateTime

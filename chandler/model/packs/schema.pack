@@ -13,9 +13,11 @@
       <item file="Taxon.kind" />
       <item file="Type.kind" />
       <item file="Enumeration.kind" />
+      <item file="Alias.kind" />
 
       <item file="Types.container" cwd="types">
         <item files="*.type" />
+        <item files="*.alias" />
       </item>
 
       <item file="Attributes.container" cwd="attributes">

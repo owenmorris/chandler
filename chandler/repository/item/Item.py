@@ -78,7 +78,7 @@ class Item(object):
     def __getattr__(self, name):
 
         if self._status & Item.DELETED:
-            raise ValueError, "item is deleted: %s" %(str(self))
+            raise ValueError, "item is deleted: %s" %(self)
 
         return self.getAttributeValue(name)
 
@@ -1222,8 +1222,14 @@ class ItemHandler(xml.sax.ContentHandler):
             return None
 
     def setupTypeDelegate(self, attrs):
+
+        if attrs.has_key('typeid'):
+            attrType = self.repository.find(UUID(attrs['typeid']))
+            if attrType is None:
+                raise TypeError, "Alias used before being defined"
+            self.delegates.append(attrType)
         
-        if self.attributes[-1]:
+        elif self.attributes[-1]:
             attrType = self.attributes[-1].getAspect('type')
             if attrType is not None:
                 self.delegates.append(attrType)
@@ -1316,7 +1322,16 @@ class ItemHandler(xml.sax.ContentHandler):
                 attrs['name'] = name
 
         if attrCard == 'single':
-            if not isinstance(value, str) and not isinstance(value, unicode):
+            if attrType is not None and attrType.isAlias():
+                valueType = attrType.type(value)
+                if valueType:
+                    if withSchema:
+                        attrs['type'] = valueType.handlerName()
+                    else:
+                        attrs['typeid'] = valueType.getUUID().str64()
+                else:
+                    attrs['type'] = cls.typeName(value)
+            elif not isinstance(value, str) and not isinstance(value, unicode):
                 if attrType is None:
                     attrs['type'] = cls.typeName(value)
                 elif withSchema:

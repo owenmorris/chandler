@@ -5,5 +5,5 @@
   <kind type="path">//Schema/Model/Attribute</kind>
 
   <attribute name="cardinality">list</attribute>
-  <attribute name="otherName">aliases</attribute>
+  <attribute name="otherName">aliasedBy</attribute>
 </item>

@@ -5,6 +5,9 @@
   <item path="//Schema">
     <item file="Collections.container" cwd="schema">
       <item files="*.kind" />
+      <item file="Types.container" cwd="types">
+        <item files="*.alias" />
+      </item>
       <item file="Attributes.container" cwd="attributes">
         <item files="*.attr" />
       </item>
