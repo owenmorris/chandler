@@ -79,16 +79,40 @@ class EmbeddedContainer(RectangularChild):
 
                 oldChild = Globals.repository.find (self.contentSpec.data)
                 wxOldChild = Globals.association [oldChild.getUUID()]
+                self.UnregisterEvents(oldChild)
                 self.removeFromContainer (embeddedSizer, wxOldChild)
                 oldChild.parentBlock = None
             
                 newChild = node.item
                 self.contentSpec.data = str (newChild.getItemPath())
                 newChild.parentBlock = self
+                self.RegisterEvents(newChild)
                 newChild.render (embeddedSizer, embeddedPanel)
                 embeddedSizer.Layout()
         
 
+    def RegisterEvents(self, block):
+        try:
+            events = block.blockEvents
+        except AttributeError:
+            return
+        self.currentId = UUID()
+        Globals.notificationManager.Subscribe(events, 
+                                              self.currentId, 
+                                              Globals.mainView.dispatchEvent)
+ 
+    def UnregisterEvents(self, oldBlock):
+        try:
+            events = oldBlock.blockEvents
+        except AttributeError:
+            return
+        try:
+            id = self.currentId
+        except AttributeError:
+            return # If we haven't registered yet
+        Globals.notificationManager.Unsubscribe(id)
+ 
+        
 class wxSplitWindow(wxSplitterWindow):
 
     def __init__(self, *arguments, **keywords):
@@ -119,12 +143,11 @@ class wxSplitWindow(wxSplitterWindow):
 
 class SplitWindow(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
-        style = wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE
         splitWindow = wxSplitWindow(parentWindow,
                                     Block.getwxID(self), 
                                     wxDefaultPosition,
                                     (self.size.width, self.size.height),
-                                    style=style)
+                                    style=self.Calculate_wxStyle(parentWindow))
         self.getParentBlock(parentWindow).addToContainer(parent, splitWindow, self.stretchFactor, 
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         """
@@ -134,6 +157,17 @@ class SplitWindow(RectangularChild):
         EVT_SIZE(splitWindow, splitWindow.OnSize)
         return splitWindow, splitWindow, splitWindow
                 
+    def Calculate_wxStyle (self, parentWindow):
+        style = wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE
+        parent = self.getParentBlock(parentWindow)
+        while isinstance (parent, EmbeddedContainer):
+            parent = parent.getParentBlock(Globals.association[parent.getUUID()])
+        if isinstance (parent, SplitWindow):
+            style |= wxSP_3DSASH
+        else:
+            style |= wxSP_3D
+        return style
+
     def addToContainer(self, parent, child, weight, flag, border):
         if not hasattr(self, 'childrenToAdd'):
             self.childrenToAdd = []

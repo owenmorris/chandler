@@ -333,6 +333,7 @@
     <attributes itemref="docSchema:Block/styles"/>
     <attributes itemref="docSchema:Block/open"/>
     <attributes itemref="docSchema:Block/eventBoundary"/>
+    <attributes itemref="docSchema:blockEvents"/>    
   </Kind>
   
   <!--
@@ -341,8 +342,6 @@
   <Kind itemName="View">
     <classes key="python">OSAF.framework.blocks.Views.View</classes>
     <superKinds itemref="docSchema:BoxContainer"/>
-
-    <attributes itemref="docSchema:blockEvents"/>
   </Kind>
 
   <!--

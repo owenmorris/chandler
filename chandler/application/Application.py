@@ -222,12 +222,6 @@ class wxApplication (wxApp):
                                                        UUID(),
                                                        Globals.mainView.dispatchEvent)
 
-            # @@@ KCP Hack to register the event
-            events = [Globals.repository.find("//parcels/OSAF/views/content/GenerateContentItemsEvent")]
-            Globals.notificationManager.Subscribe(events,
-                                                  UUID(),
-                                                  Globals.mainView.dispatchEvent) 
-
             mainView.render (self.mainFrame, self.mainFrame)
 
             self.mainFrame.Show()
