@@ -96,7 +96,6 @@ class RepositoryView(object):
         self._roots = self._createChildren(self, False)
         self._registry = {}
         self._deletedRegistry = {}
-        self._childrenRegistry = {}
         self._instanceRegistry = {}
         self._status = RepositoryView.OPEN
 
@@ -141,7 +140,6 @@ class RepositoryView(object):
         self._registry.clear()
         self._roots = None
         self._deletedRegistry.clear()
-        self._childrenRegistry.clear()
         self._instanceRegistry.clear()
         self._status &= ~(RepositoryView.OPEN | Item.CDIRTY)
 
@@ -610,10 +608,6 @@ class RepositoryView(object):
         
         self._registry[uuid] = item
 
-    def _registerChildren(self, uuid, children):
-
-        self._childrenRegistry[uuid] = children
-
     def _unregisterItem(self, item, reloadable):
 
         uuid = item.itsUUID
@@ -868,20 +862,6 @@ class OnDemandRepositoryView(RepositoryView):
 
             item = self._loadItemDoc(doc, self.repository.store,
                                      self, self._hooks)
-
-            uuid = item._uuid
-            if uuid in self._childrenRegistry:
-                if item._children is not None:
-                    first = item._children._firstKey
-                    last = item._children._lastKey
-                else:
-                    first = last = None
-                children = self._childrenRegistry[uuid]
-                del self._childrenRegistry[uuid]
-                item._children = children
-                children._firstKey = first
-                children._lastKey = last
-                children._setItem(item)
 
             if self.isDebug():
                 self.logger.debug("loaded version %d of %s",

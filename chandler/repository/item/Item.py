@@ -2250,9 +2250,9 @@ class Item(object):
 
             self._parent._unloadChild(self)
             if self._children is not None:
-                if not reloadable:
-                    self._children._item = None
-                repository._registerChildren(self._uuid, self._children)
+                self._children._clear_()
+                self._children._item = None
+                self._children = None
 
             repository._unregisterItem(self, reloadable)
 
@@ -2265,7 +2265,8 @@ class Item(object):
 
     def _unloadChild(self, child):
 
-        self._children._unloadChild(child)
+        if self._children is not None:
+            self._children._unloadChild(child)
 
     def _refList(self, name, otherName=None, persist=None):
 
