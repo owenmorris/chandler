@@ -520,10 +520,11 @@ class Manager(Item):
         Print out the error information that was tucked away in lastError
         """
 
-        print
+        print "\n=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
         print "Error during parcel loading..."
+        print
         if self.lastError:
-            print "   Exception '%s'" % self.lastError["message"]
+            print "   %s" % self.lastError["message"]
             print "   File %s" % self.lastError["file"]
             print "   Line %d" % self.lastError["line"]
             self.log.error("Exception '%s' loading %s:%s" % \
@@ -532,7 +533,7 @@ class Manager(Item):
         else:
             print "  [state of the error wasn't captured]"
             self.log.error("An error occurred but state wasn't captured")
-        print
+        print "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n"
 
 
     def loadParcels(self, namespaces=None):
@@ -703,12 +704,12 @@ class ParcelItemHandler(xml.sax.ContentHandler):
     _DELAYED_REFERENCE = 0
     _DELAYED_LITERAL   = 1
 
-    def saveErrorState(self, message):
-        return self.manager.saveErrorState(
-         message,
-         self.locator.getSystemId(),
-         self.locator.getLineNumber()
-        )
+    def saveErrorState(self, message, file=None, line=None):
+        if not file:
+            file = self.locator.getSystemId()
+        if not line:
+            line = self.locator.getLineNumber()
+        return self.manager.saveErrorState(message, file, line)
 
     def setDocumentLocator(self, locator):
         """SAX2 callback to set the locator, useful for error handling"""
@@ -808,6 +809,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 (typeNamespace, typeName) = self.getNamespaceName(
                  attrs.getValue((None, 'type')))
                 typeItem = self.manager.lookup(typeNamespace, typeName)
+                if not typeItem:
+                    raise self.saveErrorState("Type doesn't exist: "\
+                     "%s:%s" % (typeNamespace, typeName))
                 self.currentType = str(typeItem.itsPath) # TODO, perhaps
                 # instead of converting to string and back, just store item
                 # reference ?
@@ -826,6 +830,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 (typeNamespace, typeName) = self.getNamespaceName(
                  attrs.getValue((None, 'type')))
                 typeItem = self.manager.lookup(typeNamespace, typeName)
+                if not typeItem:
+                    raise self.saveErrorState("Type doesn't exist: "\
+                     "%s:%s" % (typeNamespace, typeName))
                 self.currentType = str(typeItem.itsPath) # TODO, perhaps
                 # instead of converting to string and back, just store item
                 # reference ?
@@ -954,10 +961,14 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         """
         if attributeTypePath:
             attributeType = self.repository.findPath(attributeTypePath)
+            if not attributeType:
+                raise self.saveErrorState("Attribute type doesn't exist '%s'" \
+                 % attributeTypePath, None, line)
             value = attributeType.makeValue(value)
         else:
             if not item:
-                raise self.saveErrorState("No parent item")
+                raise self.saveErrorState("Neither attribute type or item " \
+                 "specified", None, line)
 
             kindItem = item.itsKind
             attributeItem = kindItem.getAttribute(attributeName)
@@ -965,14 +976,14 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             if not attributeItem:
                 raise self.saveErrorState( \
                  "Kind %s does not have the attribute '%s'" % \
-                 (kindItem.itsPath, attributeName) )
+                 (kindItem.itsPath, attributeName), None, line )
 
             try:
                 value = attributeItem.type.makeValue(value)
-            except ImportError, e:
+            except Exception, e:
                 self.saveErrorState( \
-                 "'%s' for item '%s', attribute '%s'" % \
-                 ( e, item.itsPath, attributeName ) )
+                 "'%s' for item '%s', attribute '%s', value '%s'" % \
+                 ( e, item.itsPath, attributeName, value ), None, line )
                 raise
 
         return value
@@ -990,9 +1001,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         if not item:
             self.depCallback(namespace)
             item = self.manager.lookup(namespace, name)
-
-        if not item:
-            raise self.saveErrorState("No item %s:%s" % (namespace, name))
 
         return item
 
@@ -1048,6 +1056,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         kind = self.findItem(uri, local,
                              self.locator.getLineNumber())
 
+        if not kind:
+            raise self.saveErrorState("Kind doesn't exist: %s:%s" % \
+             (uri, local))
+
         try:
             if className:
                 # Use the given class to instantiate the item
@@ -1071,10 +1083,18 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         for (type, attributeName, namespace, name, key, line) in attributes:
 
             if type == self._DELAYED_REFERENCE:
+
+                # TODO: make sure that the kind does indeed have this
+                # attribute (this is checked when it's a literal attribute,
+                # but not checked when it's a reference)
+
                 if namespace == CORE and name == "None":
                     reference = None
                 else:
                     reference = self.findItem(namespace, name, line)
+                    if not reference:
+                        raise self.saveErrorState("Referenced item doesn't " \
+                         "exist: %s:%s" % (namespace, name), None, line)
 
                 # @@@ Special cases to resolve
                 if attributeName == 'inverseAttribute':
@@ -1095,12 +1115,17 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
                 attributeTypePath = namespace
 
-                value = self.makeValue(item, attributeName, attributeTypePath,
-                 name, line)
-                if key:
-                    item.setValue(attributeName, value, key)
-                else:
-                    item.addValue(attributeName, value)
+                value = self.makeValue(item, attributeName, 
+                 attributeTypePath, name, line)
+
+                try:
+                    if key:
+                        item.setValue(attributeName, value, key)
+                    else:
+                        item.addValue(attributeName, value)
+                except:
+                    raise self.saveErrorState("Couldn't add value to item ",
+                     None, line)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
