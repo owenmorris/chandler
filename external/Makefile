@@ -47,6 +47,7 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
 
 sources:
 	tar -cvf sources-$(VERSION).tar $(SOURCES)
+	$(MD5) sources-$(VERSION).tar > sources-$(VERSION).tar.md5
 
 sources-$(VERSION).tar:
 	$(CURL) http://builds.o11n.org/external/sources-$(VERSION).tar
