@@ -10,9 +10,13 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest, os
 
 from bsddb.db import DBNoSuchFileError
-from repository.persistence.XMLRepository import XMLRepository
-from repository.schema.DomainSchemaLoader import DomainSchemaLoader
 from repository.item.Item import Item
+from repository.item.ItemRef import RefDict
+from repository.schema.Attribute import Attribute
+from repository.schema.Kind import ItemKind
+from repository.schema.Kind import Kind
+from repository.persistence.XMLRepository import XMLRepository
+import repository.schema.Types
 
 class ItemsTest(unittest.TestCase):
     """ Test Items """
@@ -23,65 +27,126 @@ class ItemsTest(unittest.TestCase):
         self.rep = XMLRepository('ItemsUnitTest-Repository')
         self.rep.create()
         self.rep.loadPack(schemaPack)
-        self.loader = DomainSchemaLoader(self.rep)
 
-    def testCreateItem(self):
+    def testItemParentChild(self):
+        # Test find()
         kind = self.rep.find('//Schema/Core/Kind')
         self.assert_(kind is not None)
+
+        # Test getItemDisplayName
+        self.assertEquals(kind.getItemDisplayName(), 'Kind')
+
+        # Test getItemPath()
         self.assertEquals(repr(kind.getItemPath()),'//Schema/Core/Kind')
 
+        # Test simple item construction
         item = Item('test', self.rep, kind)
-        self.rep.commit()
-#        self.rep.close()
-#        self.rep.open()
-        i = self.rep.getRoots()
         self.assert_(item is not None)
-        self.assertEqual(i[0], item)
+        self.assert_(item.isItemOf(kind))
+        self.failIf(item.isRemote())
+        self.failIf(item.hasChildren())
+        self.assertEquals(item.getItemDisplayName(),'test')
+        self.assertEquals(str(item.getItemPath()),'//test')
+        self.assertEquals(item.refCount(), 0)
+        self.assert_(item.isNew())
+        self.assert_(item.isDirty())
+        self.failIf(item.isDeleted())
+        self.failIf(item.isStale())
+#TODO repo equality        self.assertEquals(self.rep, item.getRepository())
+#TODO test toXML        print item.toXML()
 
-#        print i[0]
-#        print item
-#        print item.getItemPath()
+        # Test to see that item became a respository root
+        self.rep.commit()
+        roots = self.rep.getRoots()
+        self.assertEqual(roots[0], item)
+        self.failIf(item.isDirty())
 
-        kind = self.rep.find('//Schema/Core/Kind')
-#        print kind
-        self.assert_(not item.hasChildren())
-
+        # Test placing children
         child1 = Item('child1', item, kind)
-        item.placeChild(child1, None)
-        child2 = Item('child2', item, kind)
-        item.placeChild(child2, child1)
-
+        self.assertEquals(child1.getItemDisplayName(),'child1')
+        self.assertEquals(str(child1.getItemPath()),'//test/child1')
         self.assert_(item.hasChildren())
+        self.assert_(item.hasChild('child1'))
+        item.placeChild(child1, None)
+        self.assert_(item.hasChild('child1'))
+        self.failIf(item.isNew())
+        self.assert_(item.isDirty())
+
+        child2 = Item('child2', item, kind)
+        self.assertEquals(child2.getItemDisplayName(),'child2')
+        self.assertEquals(str(child2.getItemPath()),'//test/child2')
+        self.assert_(item.hasChildren())
+        self.assert_(item.hasChild('child2'))
+        item.placeChild(child2, child1)
+        self.assert_(item.hasChild('child2'))
+        self.failIf(item.isNew())
+        self.assert_(item.isDirty())
+
         self.assertEqual(item.getItemChild('child1'), child1)
         self.assertEqual(item.getItemChild('child2'), child2)
         self.assertEqual(child1.getItemParent(), item)
         self.assertEqual(child2.getItemParent(), item)
 
+        # Test iterating over child items
         iter = item.iterChildren()
         self.assertEqual(item.getItemChild('child1'), iter.next())
         self.assertEqual(item.getItemChild('child2'), iter.next())
 #TODO        self.failUnlessRaises(StopIteration, iter.next())
 
+        # Test item renaming, getItemName
         child3 = Item('busted', item, kind)
-        self.assertEqual(child3.getItemName(), "busted")
+        self.assertEqual(child3.getItemName(), 'busted')
+        child3.rename('busted')
+        self.assertEqual(child3.getItemName(), 'busted')
+        child3.rename('child3')
+        self.assertEqual(child3.getItemName(), 'child3')
 
-        child3.rename("child3")
-        self.assertEqual(child3.getItemName(), "child3")
-
+        # Test that placing affects iteration order
         item.placeChild(child3, child1)
         iter = item.iterChildren()
         iter.next()
         self.assertEqual(child3, iter.next())
+        self.assertEqual(str(child3.getItemPath()),'//test/child3')
+        self.assertEqual(child3.getRoot(),roots[0])
 
+        # Test item movement to same parent
         oldParent = child3.getItemParent()
         child3.move(child3.getItemParent())
         self.assertEqual(oldParent,child3.getItemParent())
-
+        self.assertEqual(str(child3.getItemPath()),'//test/child3')
+        self.assertEqual(child3.getRoot(),roots[0])
+        
+        # Test item movement to leaf item
         child3.move(child2)
         self.assertEqual(child2,child3.getItemParent())
+        self.assertEqual(str(child3.getItemPath()),'//test/child2/child3')
+        self.assertEqual(child3.getRoot(),roots[0])
 
+        # Test item movement to root
         child3.move(self.rep)
-        print self.rep.getRoots()
+        self.assert_(child3 in self.rep.getRoots())
+        self.assertEqual(str(child3.getItemPath()),'//child3')
+        self.assertEqual(child3.getRoot(), self.rep.getRoots()[1])
+        
+
+    def testAttributeIteration(self):
+        kind = self.rep.find('//Schema/Core/Kind')
+        self.assert_(kind is not None)
+
+        # Test iterating over literal attributes
+        literalAttributeNames = ['notFoundAttributes', 'classes'] 
+        for i in kind.iterAttributes(valuesOnly=True):
+            self.failUnless(i[0] in literalAttributeNames)
+
+        # Test hasAttributeValue
+        for i in literalAttributeNames:
+            self.failUnless(kind.hasAttributeValue(i))
+
+        # Test iterating over reference attributes
+        referenceAttributeNames = ['superKinds','attributes','kind','inheritedAttributes','items']
+        for i in kind.iterAttributes(referencesOnly=True):
+            self.failUnless(i[0] in referenceAttributeNames)
+            self.failUnless(issubclass(type(i[1]),RefDict) or type(i[1] == Kind)) #TODO is the Kind check right?
 
     def tearDown(self):
         self.rep.close()
@@ -89,4 +154,8 @@ class ItemsTest(unittest.TestCase):
         pass
 
 if __name__ == "__main__":
+#    import hotshot
+#    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
+#    profiler.run('unittest.main()')
+#    profiler.close()
     unittest.main()
