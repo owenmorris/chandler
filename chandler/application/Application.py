@@ -291,8 +291,7 @@ class wxApplication (wx.App):
                                        size=(mainView.size.width, mainView.size.height),
                                        style=wx.DEFAULT_FRAME_STYLE)
             Globals.mainView = mainView
-            mainView.lastDynamicBlock = False
-
+            
             GlobalEvents = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
             """
               Subscribe to some global events.
@@ -302,22 +301,7 @@ class wxApplication (wx.App):
                                                    Globals.mainView.dispatchEvent)
             Block.addEventsToEventNameToItemUUID (GlobalEvents.subscribeAlwaysEvents)
 
-            Globals.mainView.onSetActiveView(mainView)
-
-            self.ignoreSynchronizeWidget = False
-            mainView.render()
-
-            """
-              We have to wire up the block mainView, it's widget and sizer to a new
-            sizer that we add to the mainFrame.
-            """
-            sizer = wx.BoxSizer (wx.HORIZONTAL)
-            self.mainFrame.SetSizer (sizer)
-            from osaf.framework.blocks.Block import wxRectangularChild
-            sizer.Add (mainView.widget,
-                       mainView.stretchFactor, 
-                       wxRectangularChild.CalculateWXFlag(mainView), 
-                       wxRectangularChild.CalculateWXBorder(mainView))
+            self.RenderMainView ()
 
             Globals.repository.commit()
             self.mainFrame.Show()
@@ -335,6 +319,50 @@ class wxApplication (wx.App):
             return True                     #indicates we succeeded with initialization
         return False                        #or failed.
 
+    def RenderMainView (self):
+        mainView = Globals.mainView
+        mainView.lastDynamicBlock = False
+        mainView.onSetActiveView(mainView)
+
+        self.ignoreSynchronizeWidget = False
+        mainView.render()
+
+        """
+          We have to wire up the block mainView, it's widget and sizer to a new
+        sizer that we add to the mainFrame.
+        """
+        sizer = wx.BoxSizer (wx.HORIZONTAL)
+        self.mainFrame.SetSizer (sizer)
+        from osaf.framework.blocks.Block import wxRectangularChild
+        sizer.Add (mainView.widget,
+                   mainView.stretchFactor, 
+                   wxRectangularChild.CalculateWXFlag(mainView), 
+                   wxRectangularChild.CalculateWXBorder(mainView))
+        self.mainFrame.Layout()
+
+    def UnRenderMainView (self):
+        def destroyChildrenWidgets (block):
+            for child in block.childrenBlocks:
+                destroyChildrenWidgets (child)
+                if hasattr (child, 'widget'):
+                    try:
+                        member = getattr (type(child.widget), 'DestroyChildren')
+                    except AttributeError:
+                        pass
+                    else:
+                        member (child.widget)
+
+        mainView = Globals.mainView
+        self.mainFrame
+
+        destroyChildrenWidgets (mainView)
+
+        oldSizer = self.mainFrame.GetSizer()
+        oldSizer.DeleteWindows()
+        self.mainFrame.SetSizer (None)
+        statusBar = self.mainFrame.GetStatusBar()
+        self.mainFrame.SetStatusBar (None)
+        statusBar.Destroy()
 
     def GetImage (self, name):
         return wx.Image("application/images/" + name + ".png", wx.BITMAP_TYPE_PNG).ConvertToBitmap()

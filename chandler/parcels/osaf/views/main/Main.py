@@ -342,7 +342,8 @@ class MainView(View):
         # Test menu item
         ParcelManager.getManager().loadParcels()
         # @@@DLD figure out why rerender fails on the new wxWidgets
-        # self.rerender ()
+        Globals.wxApplication.UnRenderMainView ()
+        Globals.wxApplication.RenderMainView ()
 
     def onResendSharingInvitationsEvent (self, notification):
         """
