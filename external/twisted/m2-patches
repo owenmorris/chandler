@@ -279,8 +279,8 @@ Index: twisted/internet/abstract.py
 +                l = -1
 +                while l < 0:
 +                    l = self.writeSomeData(data)
-+                    if l < 0:
-+                        print '***retrying write - FIXME!***'
++                    #if l < 0:
++                    #    print '***retrying write - FIXME!***'
                  if l == len(data):
                      # all data was sent, our work here is done
                      return
