@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<resource version="2.4.0.0">
+
+    <object class="wxPanel" subclass="parcels.OSAF.timeclock.TimeclockView.wxTimeclockView" name="TimeclockView">    
+        <style>wxNO_FULL_REPAINT_ON_RESIZE</style>
+        <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+            <object class="sizeritem">
+                <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+                    <object class="sizeritem">
+                        <object class="wxStaticText" name="TitleBar">
+                            <font>
+                                <size>18</size>
+                                <family>swiss</family>
+                            </font>
+                            <label>Timeclock</label>
+                        </object>
+                    </object>
+                </object>
+                <object class="wxStaticText" name="ID_TEXT">
+                    <flag>wxALIGN_CENTRE|wxALL</flag>
+                    <border>5</border>
+                    <label>This parcel is a demo showing how easy it is to add functionality to Chandler.</label>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALIGN_CENTRE|wxALL</flag>
+                <border>5</border>
+                <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTRE|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxButton" name="StartClockButton">
+                            <label>Start Clock</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTRE|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxButton" name="StopClockButton">
+                            <label>Stop Clock</label>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALIGN_CENTRE|wxALL</flag>
+                <border>5</border>
+                <object class="wxRadioBox" name="CustomerBox">
+                    <style>wxRA_SPECIFY_COLS</style>
+                    <label>Customer:</label>
+                    <dimension>1</dimension>
+                    <selection>0</selection>
+                    <content>
+                        <item>Floss Recycling Incorporated</item>
+                        <item>Northside Cowbell Foundry Corp.</item>
+                        <item>Cuneiform Designs, Ltd.</item>
+                    </content>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALIGN_CENTRE|wxALL</flag>
+                <border>5</border>
+                <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTRE|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxButton" name="SeeBillableHoursButton">
+                            <label>See Billable Hours</label>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALIGN_CENTRE|wxALL</flag>
+                <border>5</border>
+                <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTRE|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxButton" name="SeeBillableAmountButton">
+                            <label>See Billable Amount</label>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALIGN_CENTRE|wxALL</flag>
+                <border>5</border>
+                <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTRE|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxButton" name="ChangeRateButton">
+                            <label>Change Rate</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTRE|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxTextCtrl" name="ChangeRateText">
+                            <style>wxTE_PROCESS_ENTER</style>
+                            <size>100,-1</size>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTRE|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxStaticText" name="CurrencyPerHourLabel">
+                            <flag>wxALIGN_CENTRE|wxALL</flag>
+                            <border>5</border>
+                            <label>dollars/hr</label>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <object class="sizeritem">
+                <flag>wxALIGN_CENTRE|wxALL</flag>
+                <border>5</border>
+                <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTRE|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxStaticText" name="ElapsedTimeClockText">
+                            <flag>wxALIGN_CENTRE|wxALL</flag>
+                            <border>5</border>
+                            <label></label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxALIGN_CENTRE|wxALL</flag>
+                        <border>5</border>
+                        <object class="wxStaticText" name="ForCustomerText">
+                            <flag>wxALIGN_CENTRE|wxALL</flag>
+                            <border>5</border>
+                            <label></label>
+                        </object>
+                    </object>
+                </object>
+            </object>
+        </object>
+    </object>
+    <object class="wxMenu" name="ViewerParcelMenu">
+        <label>Timeclock</label>
+        <object class="wxMenu" name="CurrencySubMenu">
+            <label>Switch Currency Label To...</label>
+            <object class="wxMenuItem" name="SwitchToEurosMenuItem">
+                <label>euros</label>
+            </object>
+            <object class="wxMenuItem" name="SwitchToPoundsMenuItem">
+                <label>Pounds</label>
+            </object>
+            <object class="wxMenuItem" name="SwitchToPesosMenuItem">
+                <label>Pesos</label>
+            </object>
+            <object class="wxMenuItem" name="SwitchToMarksMenuItem">
+                <label>Marks</label>
+            </object>
+            <object class="wxMenuItem" name="SwitchToFrancsMenuItem">
+                <label>francs</label>
+            </object>
+            <object class="wxMenuItem" name="SwitchToYenMenuItem">
+                <label>Yen</label>
+            </object>
+            <object class="wxMenuItem" name="SwitchToBhatMenuItem">
+                <label>Bhat</label>
+            </object>
+            <object class="wxMenuItem" name="SwitchToRinggitMenuItem">
+                <label>Ringgit</label>
+            </object>
+            <object class="wxMenuItem" name="SwitchToDollarsMenuItem">
+                <label>Dollars</label>
+            </object>
+        </object>
+        <object class="wxMenuItem" name="SeeBillableHoursMenu">
+            <label>See Billable Hours</label>
+        </object>
+        <object class="wxMenuItem" name="SeeBillableAmountMenu">
+            <label>See Billable Amount</label>
+        </object>
+    </object>
+    <object class="wxMenu" name="HelpMenu">
+        <label>Help</label>
+        <object class="wxMenuItem" name="AboutTimeclockMenuItem">
+            <label>About Timeclock...</label>
+            <insertBefore>About Chandler...</insertBefore>
+        </object>
+    </object>
+
+
+</resource>
