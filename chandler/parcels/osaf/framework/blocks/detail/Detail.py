@@ -303,9 +303,9 @@ class StaticRedirectAttribute (StaticTextLabel):
     """
     # map internal attribute names into nicer display strings
     # DLDTBD - display mapping should come out of the repository
-    displayMapping = {"displayName":_("title"),
-                      "fromAddress":_("from"),
-                      "toAddress":_("to"),
+    displayMapping = {"displayName": "title",
+                      "fromAddress": "from",
+                      "toAddress": "to",
                       }
                       
     def shouldShow (self, item):
