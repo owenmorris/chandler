@@ -1,7 +1,7 @@
 __revision__  = "$Revision$"
 __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
-__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+__license__   = "http://osafoundation.orgdler_0.1_license_terms.htm"
 
 #python / mx imports
 import email as email
@@ -10,6 +10,7 @@ import email.Message as Message
 import email.Utils as emailUtils
 import mx.DateTime as DateTime
 import logging as logging
+import mimetypes
 
 #Chandler imports
 import osaf.contentmodel.mail.Mail as Mail
@@ -26,14 +27,27 @@ Notes:
    TO DO:
       Clean up what is decoded and what is does not need to be decoded
       Need to decode values with in params ie. filename
-   Yes: 
-   1. Email Address name
-   2. Subject
 
-   That's it
-   No: 
-   Received headers
-   Content-Type or Content-Disposition ect
+Attachment Notes:
+-----------------------
+First Pass:
+
+Walk through parts:
+
+   1. if part is an attachment determine correct type
+      and add to mimeContainer of root email for all parts no matter how deep
+
+   2. If part is text append to body (To do messages want to preserve levels of body text)
+
+   3. If Part is text/* and not plain need th content-transfer-encoding and decode 
+      as appropriate (should be handled by decode=1)
+
+   4. If is message continue to walk for either attachments or tex
+
+   To Do:
+   ------
+   1. Look in to what happens when parsing errors occur and how to handle
+
 """
 
 def decodeHeader(header, charset=constants.DEFAULT_CHARSET):
@@ -93,7 +107,7 @@ def populateStaticHeaders(messageObject):
        messageObject['Content-Transfer-Encoding'] = "7bit"
 
 
-def populateParam(messageObject, param, var, type='String'):
+def populateHeader(messageObject, param, var, type='String'):
     #XXX: Need to document method
 
     if type == 'String':
@@ -104,10 +118,24 @@ def populateParam(messageObject, param, var, type='String'):
         if var is not None and utils.hasValue(var.emailAddress):
             messageObject[param] = Mail.EmailAddress.format(var)
 
+def populateHeaders(mailMessage, messageObject):
+    keys = mailMessage.headers.keys()
+
+    for key in keys:
+        messageObject[key] = mailMessage.headers[key]
+
+
+def populateChandlerHeaders(mailMessage, messageObject):
+    keys = mailMessage.chandlerHeaders.keys()
+
+    for key in keys:
+        messageObject[key] = mailMessage.chandlerHeaders[key]
+
+
 def populateEmailAddresses(mailMessage, messageObject):
     #XXX: Need to document
-    populateParam(messageObject, 'From', mailMessage.fromAddress, 'EmailAddress')
-    populateParam(messageObject, 'Reply-To', mailMessage.replyToAddress, 'EmailAddress')
+    populateHeader(messageObject, 'From', mailMessage.fromAddress, 'EmailAddress')
+    populateHeader(messageObject, 'Reply-To', mailMessage.replyToAddress, 'EmailAddress')
 
     populateEmailAddressList(mailMessage.toAddress, messageObject, 'To')
     populateEmailAddressList(mailMessage.ccAddress, messageObject, 'Cc')
@@ -138,7 +166,7 @@ def messageTextToKind(messageText):
 
     return messageObjectToKind(email.message_from_string(messageText), messageText)
 
-def messageObjectToKind(messageObject, messageText=None, root=True):
+def messageObjectToKind(messageObject, messageText=None):
     """
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
@@ -148,17 +176,17 @@ def messageObjectToKind(messageObject, messageText=None, root=True):
     @return: C{Mail.MailMessage}
     """
 
-    assert isinstance(messageObject, Message.Message), "messageObject must be a Python email.Message.Message instance"
+    assert isinstance(messageObject, Message.Message), \
+           "messageObject must be a Python email.Message.Message instance"
 
     m = Mail.MailMessage()
 
+    # Save the original message text in a text blob
     if messageText is None:
         messageText = messageObject.as_string()
 
-    # Save the original message text in a text blob
-    #XXX: Only save this if it is the root element
-    if root:
-        m.rfc2822Message = utils.strToText(m, "rfc2822Message", messageText)
+    #XXX: Save in a compressed format with a mime-type and perhaps a charset
+    m.rfc2822Message = utils.strToText(m, "rfc2822Message", messageText)
 
     if messageObject.is_multipart():
         mimeParts = messageObject.get_payload()
@@ -177,8 +205,7 @@ def messageObjectToKind(messageObject, messageText=None, root=True):
 
     else:
         # Note: while grabbing the body, strip all CR
-        m.body = utils.strToText(m, "body",
-         messageObject.get_payload().replace("\r", ""))
+        m.body = utils.strToText(m, "body", messageObject.get_payload().replace("\r", ""))
 
     __parseHeaders(m, messageObject)
 
@@ -195,7 +222,8 @@ def kindToMessageObject(mailMessage):
     @return: C{Message.Message}
     """
 
-    assert isinstance(mailMessage, Mail.MailMessageMixin), "mailMessage must be an instance of Kind Mail.MailMessage"
+    assert isinstance(mailMessage, Mail.MailMessageMixin), \
+           "mailMessage must be an instance of Kind Mail.MailMessage"
 
     messageObject = Message.Message()
 
@@ -208,23 +236,13 @@ def kindToMessageObject(mailMessage):
         mailMessage.dateSent = DateTime.now()
         mailMessage.dateSentString = utils.dateTimeToRFC2882Date(mailMessage.dateSent)
 
-    populateParam(messageObject, 'Message-ID', mailMessage.messageId)
-    populateParam(messageObject, 'Date', mailMessage.dateSentString)
-
+    populateHeader(messageObject, 'Message-ID', mailMessage.messageId)
+    populateHeader(messageObject, 'Date', mailMessage.dateSentString)
     populateEmailAddresses(mailMessage, messageObject)
     populateStaticHeaders(messageObject)
-
-    keys = mailMessage.headers.keys()
-
-    for key in keys:
-        messageObject[key] = mailMessage.headers[key]
-
-    keys = mailMessage.chandlerHeaders.keys()
-
-    for key in keys:
-        messageObject[key] = mailMessage.chandlerHeaders[key]
-
-    populateParam(messageObject, 'Subject', mailMessage.subject)
+    populateChandlerHeaders(mailMessage, messageObject)
+    populateHeaders(mailMessage, messageObject)
+    populateHeader(messageObject, 'Subject', mailMessage.subject)
 
     try:
         payload = mailMessage.body
@@ -251,12 +269,13 @@ def kindToMessageText(mailMessage, saveMessage=True):
     @return: C{str}
     """
 
-    assert isinstance(mailMessage, Mail.MailMessageMixin), "mailMessage must be an instance of Kind Mail.MailMessage"
+    assert isinstance(mailMessage, Mail.MailMessageMixin), \
+    "mailMessage must be an instance of Kind Mail.MailMessage"
+
     messageObject = kindToMessageObject(mailMessage)
+    messageText   = messageObject.as_string()
 
-    messageText = messageObject.as_string()
-
-    #XXX: Want to compress this and store as a binary type of lob
+    #XXX: Want to compress this and store as well as set the mime type and charset
     if saveMessage:
         mailMessage.rfc2882Message = utils.strToText(mailMessage, "rfc2822Message", messageText)
 
@@ -291,13 +310,14 @@ def __parseHeaders(m, messageObject):
         m.dateSentString = ""
 
     __assignToKind(m, messageObject, 'Subject', 'String', 'subject')
-    # Do not decode the message ID as it requires no i18n processing
-    __assignToKind(m, messageObject, 'Message-ID', 'String', 'messageId', False)
     __assignToKind(m, messageObject, 'From', 'EmailAddress', 'fromAddress')
     __assignToKind(m, messageObject, 'Reply-To', 'EmailAddress', 'replyToAddress')
     __assignToKind(m.toAddress, messageObject, 'To', 'EmailAddressList')
     __assignToKind(m.ccAddress, messageObject, 'Cc', 'EmailAddressList')
     __assignToKind(m.bccAddress, messageObject, 'Bcc', 'EmailAddressList')
+
+    # Do not decode the message ID as it requires no i18n processing
+    __assignToKind(m, messageObject, 'Message-ID', 'String', 'messageId', False)
 
     m.chandlerHeaders = {}
     m.headers = {}
@@ -326,7 +346,7 @@ def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
         return
 
     if decode:
-        __decodeHeader(messageObject, key)
+        messageObject.replace_header(key, decodeHeader(messageObject[key]))
 
     if type == "String":
         setattr(kindVar, attr, messageObject[key])
@@ -373,41 +393,119 @@ def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
 
     del messageObject[key]
 
-def __decodeHeader(messageObject, key):
-    messageObject.replace_header(key, decodeHeader(messageObject[key]))
 
-def __parseMessage(parentMIMEContainer):
+def __parseMessage(parentMIMEContainer, payload, body, level, messageText=None):
     """
-        need the parent container passed
-        with. The container can be a rfc822 message
-        or multipart container (alternative unlikely, multipart/report)
+        ToDo:
+        -----
+        1. Create a MailMessage Item
+        2. If Root create an RFC822message Text Lob else add the MailMessage to the ParentContainer
+        3. parse all headers
+        2. Walk through if multipart
+           a. if alternative or parallel then pass to parseMultipart will create
+              a subcontainer and add the items
 
+           Else:
+             a. If root put payload Text in body else append the text to the body
+
+
+        Notes:
+        1, In the message itself is a multipart
+        2. Body will be either passed along to sub type or
+           if then message contains no payload will be 
+           added to by this method
+
+        Subtypes:
+           message/delivery-status: Treat as text and add to the body
+           message/disposition-notification-to: treat as text and add to body
+           message/external-body: either ignore and log or add payload to body
+           message/http: ignore
+           message/partial: ignore
+           message/rfc822: parse subparts get the subject and some headers and append to the message
+                           body
     """
 
-def __parseMultipart(parentMIMEContainer):
+def __parseMultipart(parentMIMEContainer, payload, body, level):
     """
-        Disregard any multipart container
-        that is not required (alternative)
-
-        Need the parent which will be the
-        message that the multipart c
+        Subtypes:
+           multipart/alternative: find the text part and append to body or take first part
+                                  and add to attachement list
+           multipart/byteranges: ignore and log don't parse sub-parts
+           multipart/digest: treat like a mixed type and parse subtypes which will be rfc-messages
+           multipart/form-data: ignore and log  don't parse sub-parts
+           multipart/mixed: ignore but parse sub-parts
+           multipart/parallel: ignore but parse sub-parts treat like mixed for now
+           multipart/related: ignore and log  don't parse sub-parts
+           multipart/signed: ignore and log don't parse sub-parts
+           multipart/encrypted: ignore and log don't parse sub-partsa
+           multipart/report: treat like a mixed type and parse subtypes can be rfc-messages, text,
+                             and or rfc-headers
     """
 
-def __parseApplication():
+
+def __parseApplication(parentMIMEContainer, mimePart, num):
     """
         Handles unkown types
     """
+    if mimePart.get_content_subtype() == "applefile":
+        if __debug__:
+            logging.warn("__parseApplication found type applefile ignoring")
+        return
 
-def __parseVideo():
-    pass
+    app = Mail.MIMEBinary()
+    app.mimeDesc = "APPLICATION"
+    __parseMIMEPart(app, mimePart, num)
 
-def __parseImage():
-    pass
-
-def __parseText():
-    pass
-
-def __parseAudio():
-    pass
+    parentMIMEContainer.append(app)
 
 
+def __parseVideo(parentMIMEContainer, payload):
+    vid = Mail.MIMEBinary()
+    vid.mimeDesc = "VIDEO"
+
+def __parseImage(parentMIMEContainer, payload):
+    img = Mail.MIMEBinary()
+    img.mimeDesc = "IMAGE"
+
+def __parseAudio(parentMIMEContainer, payload):
+    img = Mail.MIMEBinary()
+    img.mimeDesc = "AUDIO"
+
+def __parseText(parentMIMEContainer, payload, body, level):
+    """
+        Subtypes:
+           text/enriched: treat as an attachment for now later add converted to text/plain
+           text/html: treat as an attachment for now later add converted to text/plain
+           text/plain: add to body
+           text/rfc-headers: add to body as text/plain
+           text/richtext: treat as an attachment for now later add converted to text/plain
+           text/sgml: treat as an attachment for now later add converted to text/plain
+    """
+
+def __parseMIMEPart(mimeItem, mimePart, num):
+    body = mimePart.get_payload(decode=1)
+
+    mimeItem.filesize = len(body)
+    mimeItem.filename = __getFileName(mimePart, num)
+
+    #XXX: Need to account for charsets, and mime-type setting of body
+    mimeItem.body     = utils.strToText(mimeItem, "body", body)
+    mimeItem.mimeType = mimePart.get_content_type()
+
+
+def __getFileName(mimePart, num):
+    """
+        This should handle all Unicode decoding of filename as well
+    """
+    filename = mimePart.get_filename()
+
+    if filename:
+        return filename
+
+    """No Filename need to create an arbitrary name"""
+    ext = mimetypes.guess_extension(mimePart.get_type())
+
+    if not ext:
+       ext = '.bin'
+
+    return 'MIMEBinary-%s%s' % (num, ext)

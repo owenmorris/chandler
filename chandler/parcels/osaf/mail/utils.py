@@ -115,7 +115,10 @@ def isString(var):
     return False
 
 def strToText(contentItem, attribute, string, indexText=False):
-    """Converts a C{str} to C{Text}"""
+    """Converts a C{str} to C{Text}
+       Notes:
+          This should be a unicode string that a charset can be set on
+    """
     if not isString(string):
         return None
 

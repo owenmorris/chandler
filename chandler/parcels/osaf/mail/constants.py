@@ -8,8 +8,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 #python / mx imports
 import version
 
-
-
 #XXX: This will go away with internationalization
 DEFAULT_CHARSET = "ascii"
 
@@ -20,7 +18,6 @@ ATTACHMENT_BODY_WARNING = "\tThe body of this message consists of Multiple Mime 
 """MIME TYPE SPECS"""
 
 MIME_TEXT_PLAIN = "text/plain"
-MIME_APPLEFILE = "application/applefile"
 
 MIME_TEXT = ["plain", "html", "enriched", "sgml", "richtext", "rfc-headers"]
 MIME_BINARY = ["image", "application", "audio", "video"]
