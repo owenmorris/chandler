@@ -54,6 +54,8 @@ class RepositoryView(object):
         The repository gets the current view from the current thread. This
         method should be used to select this view as the current one for the
         current thread.
+
+        @return: the view that was current for the thread before this call.
         """
 
         return self.repository.setCurrentView(self)

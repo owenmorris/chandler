@@ -207,8 +207,8 @@ class Repository(object):
         Set the current view for the current thread.
 
         @param view: a repository view
-        @type view: a L{RepositoryView
-        <repository.persistence.RepositoryView.RepositoryView>} instance
+        @type view: a L{RepositoryView<repository.persistence.RepositoryView.RepositoryView>} instance
+        @return: the view that was current for the thread before this call.
         """
 
         if view is not None and view.repository is not self:
