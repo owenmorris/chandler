@@ -19,7 +19,7 @@ def MakeEvent():
     event = eventKind.newItem(None, Globals.repository)
     return event
 
-def repositoryCallback(changes, notification, **kwds):
+def repositoryCallback(view, changes, notification, **kwds):
     if notification == 'History':
         eventPath = '//parcels/osaf/framework/commit_history'
     else:

@@ -14,7 +14,7 @@ log.setLevel(logging.INFO)
 
 import time
 
-class Query:
+class Query(object):
 
     def __init__(self, repo, queryString = None):
         """
@@ -74,7 +74,7 @@ class Query:
         """
         self.__rep.removeNotificationCallback(self.queryCallback)
     
-    def queryCallback(self, changes, notification, **kwds):
+    def queryCallback(self, view, changes, notification, **kwds):
         """
         queryCallback implements the callback used by L{Repository.addNotificationCallback<repository.persistence.Repository.Repository.addNotificationCallback>}
 
@@ -95,7 +95,7 @@ class Query:
             self.execute()
         changed = False
         for uuid, reason, kwds in changes:
-            i = self.__rep.findUUID(uuid)
+            i = view.findUUID(uuid)
             #@@@ there's a big problem with this if there are paths through multiple items -- we're going to need something fairly sophisticated here.
             if i is not None:
 #                log.debug("RepoQuery.queryCallback %s:%s" % (i, i.itsKind))
@@ -113,7 +113,7 @@ class Query:
                     break #@@@ this means we stop after 1 item (like old code) efficient, but wrong
         if changed:
             log.debug("RepoQuery.queryCallback: %s %s query result" % (uuid, action))
-            self.__rep.findPath('//parcels/osaf/framework/query_changed').Post( {'query' : i.itsUUID, 'action': action} )
+            view.findPath('//parcels/osaf/framework/query_changed').Post( {'query' : i.itsUUID, 'action': action} )
         log.debug("queryCallback: %s:%f" % (self.queryString, time.time()-start))
 
     def __iter__(self):

@@ -510,11 +510,6 @@ class Store(object):
 
 class RepositoryNotifications(dict):
 
-    def __init__(self, repository):
-
-        super(RepositoryNotifications, self).__init__()
-        self.repository = repository
-
     def changed(self, uuid, reason, **kwds):
 
         value = self.get(uuid, Item.Nil)
@@ -528,15 +523,15 @@ class RepositoryNotifications(dict):
 
         self[uuid] = (reason, kwds)
     
-    def dispatchHistory(self):
+    def dispatchHistory(self, view):
 
-        callbacks = self.repository._notifications
+        callbacks = view.repository._notifications
         if callbacks:
             changes = []
             for uuid, (reason, kwds) in self.iteritems():
                 changes.append( (uuid, reason, kwds) )
             for callback in callbacks:
-                callback(changes, 'History')
+                callback(view, changes, 'History')
 
         self.clear()
 

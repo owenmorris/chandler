@@ -22,7 +22,7 @@ import tools.timing
 wxEVT_MAIN_THREAD_CALLBACK = wx.NewEventType()
 EVT_MAIN_THREAD_CALLBACK = wx.PyEventBinder(wxEVT_MAIN_THREAD_CALLBACK, 0)
 
-def repositoryCallback(changes, notification, **kwds):
+def repositoryCallback(view, changes, notification, **kwds):
     # Postpone import to avoid circular imports
     from osaf.framework.notifications.Notification import Notification
 
@@ -30,8 +30,7 @@ def repositoryCallback(changes, notification, **kwds):
         return
 
     eventPath = '//parcels/osaf/framework/commit_history'
-
-    event = Globals.repository.findPath(eventPath)
+    event = view.findPath(eventPath)
 
     note = Notification(event)
     note.threadid = id(threading.currentThread())

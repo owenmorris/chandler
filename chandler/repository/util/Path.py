@@ -64,22 +64,23 @@ class Path(object):
         
         self._names = []
         for arg in args:
+
             if isinstance(arg, Path):
                 self._names.extend(arg._names)
-                continue
-            
-            if arg.startswith('//'):
-                self._names.append('//')
-                arg = arg[2:]
-            elif arg[0] == '/':
-                self._names.append('/')
-                arg = arg[1:]
 
-            if arg.endswith('/'):
-                arg = arg[:-1]
+            elif arg:
+                if arg.startswith('//'):
+                    self._names.append('//')
+                    arg = arg[2:]
+                elif arg[0] == '/':
+                    self._names.append('/')
+                    arg = arg[1:]
 
-            if not arg == '':
-                self._names.extend(arg.split('/'))
+                if arg.endswith('/'):
+                    arg = arg[:-1]
+
+                if arg:
+                    self._names.extend(arg.split('/'))
 
     def append(self, name):
         """

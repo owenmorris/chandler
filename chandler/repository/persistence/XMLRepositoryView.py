@@ -31,7 +31,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
         super(XMLRepositoryView, self).openView()
 
         self._log = []
-        self._notifications = RepositoryNotifications(self.repository)
+        self._notifications = RepositoryNotifications()
         self._indexWriter = None
 
     def _logItem(self, item):
@@ -195,7 +195,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                         size += self._saveItem(item, newVersion, store, ood)
 
                 if newVersion > self.version:
-                    histNotifications = RepositoryNotifications(repository)
+                    histNotifications = RepositoryNotifications()
                     
                     def unload(uuid, version, docId, status, parent):
 
@@ -214,7 +214,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                             unloads[item._uuid] = item
 
                     history.apply(unload, self.version, newVersion)
-            
+                    
                 if txnStarted:
                     self._commitTransaction()
 
@@ -272,7 +272,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         if histNotifications is not None:
             count = len(histNotifications)
-            histNotifications.dispatchHistory()
+            histNotifications.dispatchHistory(self)
             delta = datetime.now() - after
             if delta.seconds > 1:
                 self.logger.warning('%s %d notifications ran in %s',
