@@ -1,4 +1,4 @@
-import os, hardhatlib, hardhatutil, errno, sys
+import os, hardhatlib, hardhatutil, errno, sys, time
 
 
 info = {
@@ -514,12 +514,13 @@ def _findFiles(path, filename):
             fileList = fileList + _findFiles(full_name, filename)
     return fileList
 
-
 def generateDocs(buildenv):
 
+    xslFiles =  ["Kinds", "Attributes", "Aliass", "Enumerations", "index", 
+     "Types"]
     fileList = _findFiles(".", "parcel.xml")
 
-    for xsl in ["Kinds", "Attributes", "Aliass", "Enumerations", "index", "Types"]:
+    for xsl in xslFiles:
         _transformFilesXslt(buildenv, 
          os.path.join("distrib","transforms",xsl+".xsl"),
          os.path.join("."),
@@ -527,3 +528,19 @@ def generateDocs(buildenv):
          xsl+".html",
          fileList
         )
+
+    indexFile = file(os.path.join("..",buildenv['version'],"docs","index.html"),
+     'w+')
+    indexFile.write("<html><head><title>Chandler Schema Documents</title></head>")
+    indexFile.write("<body><h1>Schema Documentation</h1>")
+    indexFile.write("<h3>Generated %s</h3>" % time.strftime("%m/%d %I:%M%p"))
+    indexFile.write("<ul>")
+    for xmlFile in fileList:
+        (head, tail) = os.path.split(xmlFile[2:])
+        indexFile.write("<li>")
+        indexFile.write("<a href=%s/index.html>%s</a> " % (head, head))
+        indexFile.write("\n")
+    indexFile.write("</ul>")
+    indexFile.write("</body>")
+    indexFile.write("</html>")
+    indexFile.close()
