@@ -204,6 +204,15 @@ class StringAttributeEditor (BaseAttributeEditor):
                     value = ', '.join([part.getItemDisplayName() for part in value])
         return value
 
+    def SetAttributeValue (self, item, attributeName, valueString):
+        try:
+            cardinality = item.getAttributeAspect (attributeName, "cardinality")
+        except AttributeError:
+            pass
+        else:
+            if  cardinality == "single":
+                setattr (item, attributeName, valueString)
+
 class DateTimeAttributeEditor (StringAttributeEditor):
     def GetAttributeValue (self, item, attributeName):
         try:
