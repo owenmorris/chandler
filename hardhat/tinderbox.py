@@ -23,6 +23,7 @@ alertAddr = "buildman"
 adminAddr = "builds"
 defaultDomain = "@osafoundation.org"
 defaultRsyncServer = "192.168.101.46"      #  IP of current server
+skipRsync = False
 
 def main():
     global buildscriptFile, fromAddr, mailtoAddr, alertAddr, adminAddr, defaultDomain, defaultRsyncServer
@@ -43,6 +44,9 @@ def main():
     parser.add_option("-r", "--rsyncServer", action="store", type="string", dest="rsyncServer",
       default=defaultRsyncServer, help="Net address of server where builds get uploaded \n"
       " [default] " + defaultRsyncServer)
+    parser.add_option("-s", "--skipRSync", action="store_true", dest="skipRsync",
+      default=skipRsync, help="Skip rsync step \n"
+      " [default] False")
 
     (options, args) = parser.parse_args()
     if len(args) != 1:
@@ -167,12 +171,16 @@ def main():
             CreateIndex(outputDir, buildVersion, nowString, buildName)
 
             buildNameNoSpaces = buildName.replace(" ", "")
-            print "Rsyncing..."
-            outputList = hardhatutil.executeCommandReturnOutputRetry(
-             [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
-             outputDir + os.sep, 
-             options.rsyncServer + ":continuous/" + buildNameNoSpaces])
-            hardhatutil.dumpOutputList(outputList, log)
+            
+            if skipRsync:
+                print "skipping rsync"
+            else:
+                print "Rsyncing..."
+                outputList = hardhatutil.executeCommandReturnOutputRetry(
+                 [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
+                 outputDir + os.sep, 
+                 options.rsyncServer + ":continuous/" + buildNameNoSpaces])
+                hardhatutil.dumpOutputList(outputList, log)
 
         elif ret == "build_failed":
             print "The build failed"
