@@ -120,6 +120,11 @@ def main():
                 log.write("Calling CreateIndex with " + newDir + "\n")
                 if os.path.exists(outputDir+os.sep+"index.html"):
                     os.remove(outputDir+os.sep+"index.html")
+                if os.path.exists(outputDir+os.sep+"time.js"):
+                    os.remove(outputDir+os.sep+"time.js")
+                for x in ["enduser", "developer", "release", "debug"]:
+                    if os.path.exists(outputDir+os.sep+x+".html"):
+                        os.remove(outputDir+os.sep+x+".html")
                 RotateDirectories(outputDir)
                 CreateIndex(outputDir, buildVersion, nowString, buildName)
 
