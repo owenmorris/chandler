@@ -314,6 +314,11 @@ class wxApplication (wx.App):
             Globals.taskManager = TaskManager()
             Globals.taskManager.start()
 
+
+            from osaf.framework.wakeup.WakeupCaller import WakeupCaller
+            Globals.wakeupCaller = WakeupCaller()
+            Globals.wakeupCaller.startup()
+
             tools.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
             return True                     #indicates we succeeded with initialization
@@ -490,6 +495,7 @@ class wxApplication (wx.App):
         """
 
         Globals.taskManager.stop()
+        Globals.wakeupCaller.shutdown()
         self.__twistedReactorManager.stopReactor()
         """
           Since Chandler doesn't have a save command and commits typically happen
