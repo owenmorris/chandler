@@ -1,5 +1,11 @@
 
+__revision__  = "$Revision$"
+__date__      = "$Date$"
+__copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
+__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+
 import UUIDext
+
 
 class UUID(object):
     '''Implementation of UUID spec at http://www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt.
