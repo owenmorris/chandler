@@ -36,6 +36,7 @@ Release 0.3 (CVS tag CHANDLER_0_3) 2004-2-24
 
     * Fix loads of bugs for the 0.3 release
 
+    * Added Zaobao CPIA views for various RSS feeds
 
 Milestone 13 (CVS tag CHANDLER_M_13) 2004-1-21
 
