@@ -313,10 +313,22 @@ class wxCollectionCanvas(wx.ScrolledWindow,
             else: # end the drag
                 self._isResizingItem = False
                 self.OnEndResizeItem()
+                self.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
                 self._dragStart = None
                 self.ReleaseMouse()
                 
         else: # not dragging an item or rezising
+
+            # Show the resize cursor if we're over a resize area,
+            # otherwise restore the cursor
+            hoverResize = False
+            for box in self.canvasItemList:
+                if box.isHitResize(unscrolledPosition):
+                    hoverResize = True
+            if hoverResize:
+                self.SetCursor(wx.StockCursor(wx.CURSOR_SIZENS))
+            else:
+                self.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
 
             # create an item on double click
             if event.LeftDClick():
@@ -352,6 +364,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                         if resize: # start resizing
                             self._isResizingItem = True
                             self.OnBeginResizeItem()
+                            self.SetCursor(wx.StockCursor(wx.CURSOR_SIZENS))
                             self.CaptureMouse()
 
                         else: # start dragging
@@ -365,6 +378,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                             self._dragBox = itemBox
                             self._isResizingItem = True
                             self.OnBeginResizeItem()
+                            self.SetCursor(wx.StockCursor(wx.CURSOR_SIZENS))
                             self.CaptureMouse()
                         else: # clear out the drag info, avoid creating more items
                             self._dragStart = None
