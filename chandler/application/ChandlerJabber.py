@@ -583,6 +583,18 @@ class JabberClient:
             wxMessageBox('No Jabber ID. Please enter a jabber ID before subscribing!')
             return
         
+        # make sure we're not already in the requested state
+        isSubscribed = self.IsSubscribed(jabberID)
+        if isSubscribed and subscribeFlag:
+            message = _("Sorry, but you are already subscribed to %s!") % (jabberID)
+            wxMessageBox(message)
+            return
+        
+        if not isSubscribed and not subscribeFlag:
+            message = _("Sorry, but you are not yet subscribed to %s!") % (jabberID)
+            wxMessageBox(message)
+            return
+           
         # first, add or remove the new item to the roster	
         rosterIQ = Iq(type='set')
         query = rosterIQ.setQuery('jabber:iq:roster')
