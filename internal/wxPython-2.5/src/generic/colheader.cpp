@@ -41,7 +41,7 @@
 	#include "wx/settings.h"
 	#include "wx/listbox.h"
 	#include "wx/dcclient.h"
-//	#include "wx/brush.h"
+	#include "wx/bitmap.h"
 #endif // WX_PRECOMP
 
 #include "wx/renderer.h"
@@ -182,14 +182,19 @@ bool wxColumnHeader::Create(
 	const wxString		&name )
 {
 wxString		localName;
+wxSize		actualSize;
 bool			bResultV;
 
-	// NB: the CreateControl call crashed on MacOS...
+	actualSize = CalculateDefaultSize();
+	if (size.x > 0)
+		actualSize.x = size.x;
+
+	// NB: the CreateControl call crashes on MacOS
 #if defined(__WXMSW__)
 	localName = _T(WC_HEADER);
 	bResultV =
 		CreateControl(
-			parent, id, pos, size,
+			parent, id, pos, actualSize,
 			style, wxDefaultValidator, localName );
 
 	if (bResultV)
@@ -197,14 +202,14 @@ bool			bResultV;
 	WXDWORD		msStyle, exstyle;
 
 		msStyle = MSWGetStyle( style, &exstyle );
-		bResultV = MSWCreateControl( localName, msStyle, pos, size, wxEmptyString, exstyle );
+		bResultV = MSWCreateControl( localName, msStyle, pos, actualSize, wxEmptyString, exstyle );
 	}
 
 #else
 	localName = name;
 	bResultV =
 		wxControl::Create(
-			parent, id, pos, size,
+			parent, id, pos, actualSize,
 			style, wxDefaultValidator, localName );
 #endif
 
@@ -218,7 +223,7 @@ bool			bResultV;
 
 		// we need to set the position as well because the main control position is not
 		// the same as the one specified in pos if we have the controls above it
-		SetBestSize( size );
+		SetBestSize( actualSize );
 		SetPosition( pos );
 #endif
 	}
@@ -316,15 +321,30 @@ int		yDiff;
 	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
 }
 
-// NB: is this implementation necessary ??
-//
 // virtual
 wxSize wxColumnHeader::DoGetBestSize( void ) const
 {
-wxCoord		width, height;
+wxSize	bestSize;
+
+	bestSize = CalculateDefaultSize();
+	CacheBestSize( bestSize );
+
+	return bestSize;
+}
+
+wxSize wxColumnHeader::CalculateDefaultSize( void ) const
+{
+wxWindow	*parentW;
+wxSize		bestSize;
 
 	// best width is parent's width; height is fixed by native drawing routines
-	GetParent()->GetClientSize( &width, &height );
+	parentW = GetParent();
+	if (parentW != NULL)
+		parentW->GetClientSize( &(bestSize.x), &(bestSize.y) );
+	else
+		// FIXME: ugly
+		bestSize.x = 0;
+	bestSize.y = 20;
 
 #if defined(__WXMSW__)
 	{
@@ -335,12 +355,12 @@ wxCoord		width, height;
 
 		targetViewRef = GetHwnd();
 		boundsR.left = boundsR.top = 0;
-		boundsR.right = width;
-		boundsR.bottom = height;
+		boundsR.right = bestSize.x;
+		boundsR.bottom = bestSize.y;
 		hdl.prc = &boundsR;
 		hdl.pwpos = &wp;
 		if (Header_Layout( targetViewRef, (LPARAM)&hdl ) != 0)
-			height = wp.cy;
+			bestSize.y = wp.cy;
 	}
 
 #elif defined(__WXMAC__)
@@ -349,27 +369,20 @@ wxCoord		width, height;
 	OSStatus		errStatus;
 
 		errStatus = GetThemeMetric( kThemeMetricListHeaderHeight, &standardHeight );
-		height = standardHeight;
+		bestSize.y = standardHeight;
 	}
-
-#else
-	height = 20;
 #endif
 
 #if 0
 	if (! HasFlag( wxBORDER_NONE ))
 	{
 		// the border would clip the last line otherwise
-		height += 6;
-		width += 4;
+		bestSize.x += 4;
+		bestSize.y += 6;
 	}
 #endif
 
-wxSize	best( width, height );
-
-	CacheBestSize( best );
-
-	return best;
+	return bestSize;
 }
 
 // virtual
@@ -632,6 +645,10 @@ void wxColumnHeader::DeleteItem(
 			else
 				DisposeItemList();
 
+			// if this item was selected, then there is a selection no longer
+			if (m_ItemSelected == itemIndex)
+				m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
+
 			// NB: AppendItem doesn't do this
 			SetViewDirty();
 		}
@@ -813,7 +830,7 @@ bool					bResultV;
 	}
 	else
 	{
-//		imageRef.Init();
+//		imageRef.SetOK( false );
 	}
 }
 
@@ -822,11 +839,13 @@ void wxColumnHeader::SetImageRef(
 	wxBitmap			&imageRef )
 {
 wxColumnHeaderItem		*itemRef;
+wxRect					boundsR;
 
 	itemRef = GetItemRef( itemIndex );
 	if (itemRef != NULL)
 	{
-		itemRef->SetImageRef( imageRef, &m_NativeBoundsR );
+		GetItemBounds( itemIndex, &boundsR );
+		itemRef->SetImageRef( imageRef, &boundsR );
 		RefreshItem( itemIndex );
 	}
 }
@@ -1289,7 +1308,6 @@ wxColumnHeaderItem::wxColumnHeaderItem()
 	m_FontID( 0 )
 	, m_TextJust( 0 )
 	, m_ImageRef( NULL )
-	, m_ImageID( -1 )
 	, m_OriginX( 0 )
 	, m_ExtentX( 0 )
 	, m_BEnabled( FALSE )
@@ -1305,7 +1323,6 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 	m_FontID( 0 )
 	, m_TextJust( 0 )
 	, m_ImageRef( NULL )
-	, m_ImageID( -1 )
 	, m_OriginX( 0 )
 	, m_ExtentX( 0 )
 	, m_BEnabled( FALSE )
@@ -1330,7 +1347,6 @@ void wxColumnHeaderItem::GetItemData(
 		return;
 
 	info->m_FontID = m_FontID;
-	info->m_ImageID = m_ImageID;
 	info->m_TextJust = m_TextJust;
 	info->m_OriginX = m_OriginX;
 	info->m_ExtentX = m_ExtentX;
@@ -1342,11 +1358,8 @@ void wxColumnHeaderItem::GetItemData(
 	GetLabelText( info->m_LabelTextRef );
 
 	if (info->m_ImageRef != m_ImageRef)
-	{
 		if (info->m_ImageRef != NULL)
-			;
-		//GetImageRef( info->m_ImageRef );
-	}
+			GetImageRef( *(info->m_ImageRef) );
 }
 
 void wxColumnHeaderItem::SetItemData(
@@ -1356,7 +1369,6 @@ void wxColumnHeaderItem::SetItemData(
 		return;
 
 	m_FontID = info->m_FontID;
-	m_ImageID = info->m_ImageID;
 	m_TextJust = info->m_TextJust;
 	m_OriginX = info->m_OriginX;
 	m_ExtentX = info->m_ExtentX;
@@ -1376,7 +1388,7 @@ void wxColumnHeaderItem::GetImageRef(
 	if (m_ImageRef != NULL)
 		imageRef = *m_ImageRef;
 //	else
-//		imageRef.Init();
+//		imageRef.SetOK( false );
 }
 
 void wxColumnHeaderItem::SetImageRef(
@@ -1394,6 +1406,10 @@ wxRect			targetBoundsR;
 
 		m_ImageRef->SetWidth( targetBoundsR.width );
 		m_ImageRef->SetHeight( targetBoundsR.height );
+	}
+	else
+	{
+		// wxLogDebug( _T("wxColumnHeaderItem::SetImageRef failed") );
 	}
 }
 
@@ -1615,28 +1631,6 @@ OSStatus				errStatus;
 		dc->DrawBitmap( *m_ImageRef, iconBoundsR.x, iconBoundsR.y, false );
 	}
 
-#if 0
-	// FIXME: need implementation
-	// TODO: can label text and a bitmap (icon) be shown simultaneously?
-	if (m_ImageID != (-1))
-	{
-//	IconSuiteRef	iconRef;
-//		errStatus = GetIconSuite( &iconRef, (SInt16)mIconRef, kSelectorSmall32Bit );
-
-	IconAlignmentType	icAlign;
-	IconTransformType	icTransform;
-
-		switch (nativeTextJust)
-		{
-		case teJustLeft:	icAlign = kAlignCenterLeft;			break;
-		case teJustRight:	icAlign = kAlignCenterRight;		break;
-		default:			icAlign = kAlignHorizontalCenter;	break;
-		}
-		icTransform = kTransformNone;
-		errStatus = (long)PlotIconID( &qdBoundsR, icAlign, icTransform, (SInt16)mImageID );
-	}
-#endif
-
 	// restore the clip region
 	SetClip( savedClipRgn );
 	DisposeRgn( savedClipRgn );
@@ -1648,44 +1642,16 @@ OSStatus				errStatus;
 		return (-1L);
 
 	// draw column header background
-#if 1
-wxRect			localBoundsR;
-wxPoint			labelTextSize;
-long				originX, insetX;
+	{
+	wxRect			localBoundsR;
+	wxPoint			labelTextSize;
+	long				originX, insetX;
 
-	// leverage native (GTK) wxRenderer
-	localBoundsR = *boundsR;
-	localBoundsR.y = 0;
-	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
-
-#else
-
-	// unused - copied from generic wxRenderer
-const int			kCorner = 1;
-const wxCoord		x = boundsR->x;
-const wxCoord		y = boundsR->y;
-const wxCoord		w = boundsR->width;
-const wxCoord		h = boundsR->height;
-
-	dc->SetBrush( *wxTRANSPARENT_BRUSH );
-
-	// (outer) right and bottom
-	dc->SetPen( *wxBLACK_PEN );
-	dc->DrawLine( x + w + 1 - kCorner, y, x + w, y + h );
-	dc->DrawRectangle( x, y+h, w+1, 1 );
-
-	// (inner) right and bottom
-	dc->SetPen( wxPen( *wxDARK_GREY, 1, wxSOLID ) );
-	dc->DrawLine( x + w - kCorner, y, x + w - 1, y + h );
-	dc->DrawRectangle( x + 1, y + h - 1, w - 2, 1 );
-
-	// (outer) top and left
-	dc->SetBrush( wxBrush( wxSystemSettings::GetColour( wxSYS_COLOUR_HIGHLIGHT ), wxSOLID ) );
-	dc->DrawRectangle( x, y, w + 1 - kCorner, 1 );
-	dc->DrawRectangle( x, y, 1, h );
-	dc->DrawLine( x, y + h - 1, x + 1, y + h - 1 );
-	dc->DrawLine( x + w - 1, y, x + w - 1, y + 1 );
-#endif
+		// leverage native (GTK) wxRenderer
+		localBoundsR = *boundsR;
+		localBoundsR.y = 0;
+		wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
+	}
 
 	// draw text label, with justification
 	insetX = 4;
@@ -1725,7 +1691,6 @@ const wxCoord		h = boundsR->height;
 #else
 		// FIXME: what about non-(Mac,MSW,GTK) platforms?
 #endif
-
 	}
 
 	// render the bitmap, should one be present
@@ -1907,15 +1872,16 @@ int		sizeX, sizeY, insetX;
 		sizeY = 12;
 		insetX = 8;
 
-		targetBoundsR->x = itemBoundsR->x + insetX;
-		targetBoundsR->y = itemBoundsR->y + (itemBoundsR->height - sizeY) / 2;
+		targetBoundsR->x = itemBoundsR->x;
+		targetBoundsR->y = (itemBoundsR->height - sizeY) / 2;
+//		targetBoundsR->y = itemBoundsR->y + (itemBoundsR->height - sizeY) / 2;
 		targetBoundsR->width = sizeX;
 		targetBoundsR->height = sizeY;
 
 		switch (targetJustification)
 		{
 		case wxCOLUMNHEADER_JUST_Right:
-			targetBoundsR->x += (itemBoundsR->width - sizeX) - (2 * insetX);
+			targetBoundsR->x += (itemBoundsR->width - sizeX) - insetX;
 			break;
 
 		case wxCOLUMNHEADER_JUST_Center:
@@ -1924,6 +1890,7 @@ int		sizeX, sizeY, insetX;
 
 		case wxCOLUMNHEADER_JUST_Left:
 		default:
+			targetBoundsR->x += insetX;
 			break;
 		}
 	}

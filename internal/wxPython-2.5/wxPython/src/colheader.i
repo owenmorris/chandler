@@ -97,6 +97,7 @@ public:
     virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
     virtual wxSize DoGetBestSize( void ) const;
 
+    wxSize CalculateDefaultSize( void ) const;
     void ResizeToFit( void );
     long GetTotalUIExtent( void );
 

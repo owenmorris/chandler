@@ -116,7 +116,6 @@ public:
 	unsigned long			m_FontID;
 	long					m_TextJust;
 	wxBitmap				*m_ImageRef;
-	long					m_ImageID;
 	long					m_OriginX;
 	long					m_ExtentX;
 	bool					m_BEnabled;
@@ -156,14 +155,15 @@ public:
 	virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
 	virtual wxSize DoGetBestSize( void ) const;
 
+	wxSize CalculateDefaultSize( void ) const;
 	void ResizeToFit( void );
 	long GetTotalUIExtent( void );
 
 	void SetUnicodeFlag(
 		bool				bSetFlag );
 
-	// returns one of wxCOLUMNHEADER_HITTEST_XXX constants and fills either date or wd
-	// with the corresponding value (none for NOWHERE, or a non-negative value for a column header item)
+	// returns a non-negative value for a column header item
+	// or wxCOLUMNHEADER_HITTEST_NOWHERE for no item
 	wxColumnHeaderHitTestResult HitTest(
 		const wxPoint		&locationPt );
 
