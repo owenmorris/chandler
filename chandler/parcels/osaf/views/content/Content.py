@@ -49,20 +49,6 @@ class ContentItemDetail(ControlBlocks.ItemDetail):
         return HTMLText
 
 
-class CalendarListDelegate (ControlBlocks.ListDelegate):
-    def GetElementValue (self, row, column):
-        result = self.blockItem.contents [row]
-        if column == 0:
-            return result.who
-        elif column == 1:
-            return result.about
-        elif column == 2:
-            return result.date
-        elif __debug__:
-            assert False, "Bad column"
-        return ""
-
-
 class ContactListDelegate(ControlBlocks.ListDelegate):
     def valOrEmpty(self, element, attrList):
         if len(attrList)==0:

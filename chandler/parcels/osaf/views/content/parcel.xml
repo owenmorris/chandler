@@ -76,18 +76,16 @@
   </contentModel:NamedCollection>
 
   <!-- Calendar List -->
-  <List itsName="CalendarList">
+  <Table itsName="CalendarList">
     <contents itemref="view:calendarItemCollection"/>
 
-    <elementDelegate>osaf.views.content.Content.CalendarListDelegate</elementDelegate>
-
-    <columnData>Participants</columnData>
-    <columnData>Headline</columnData>
-    <columnData>Start Time</columnData>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
-  </List>
+  </Table>
 
   <!-- Contact List -->
   <List itsName="ContactList">

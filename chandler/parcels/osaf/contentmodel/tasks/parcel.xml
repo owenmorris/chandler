@@ -88,6 +88,17 @@
     <type itemref="DateTime"/>
   </Attribute>
 
+  <Attribute itsName="who">
+    <redirectTo>requestor</redirectTo>
+  </Attribute>
+
+  <Attribute itsName="about">
+    <redirectTo>displayName</redirectTo>
+  </Attribute>
+
+  <Attribute itsName="date">
+    <redirectTo>dueDate</redirectTo>
+  </Attribute>  
 
   <Kind itsName="Task">
     <displayName>Task</displayName>
@@ -106,6 +117,9 @@
     <attributes itemref="tasks:taskStatus"/>
     <attributes itemref="tasks:dueDate"/>
     <attributes itemref="mail:stronglyLinkedMail"/>
+    <attributes itemref="tasks:who"/>
+    <attributes itemref="tasks:about"/>
+    <attributes itemref="tasks:date"/>
 
     <classes key="python">osaf.contentmodel.tasks.Task.Task</classes>
 

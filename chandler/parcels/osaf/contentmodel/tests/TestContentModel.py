@@ -66,10 +66,6 @@ class ContentItemTest(ContentModelTestCase):
         self.assertEqual(repr(genericGroup.itsPath),
                          '//userdata/contentitems/genericGroup')
 
-        self.assertEqual(genericContentItem.whoAttribute, 'creator')
-        self.assertEqual(genericContentItem.dateAttribute, 'createdOn')
-        self.assertEqual(genericContentItem.aboutAttribute, 'displayName')
-
         # Set and test simple attributes
         genericContentItem.displayName = "Test Content Item"
         genericContentItem.context = "work"
@@ -80,12 +76,6 @@ class ContentItemTest(ContentModelTestCase):
         self.assertEqual(genericContentItem.body, "Notes appear in the body")
         self.assertEqual(genericContentItem.getItemDisplayName(), "Test Content Item")
 
-        # Test the about/who/date calculated attributes
-        self.assertEqual(genericContentItem.getAbout(), "Test Content Item")
-        self.assertEqual(genericContentItem.getWho(), ' ')
-        self.assertEqual(genericContentItem.getDate(), ' ')
-        # Hmm.. someday we should make sure Who and Date always have values.
-        
         genericProject.name = "Test Project"
         genericGroup.name = "Test Group"
 

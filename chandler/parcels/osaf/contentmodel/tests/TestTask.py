@@ -18,8 +18,6 @@ import mx.DateTime as DateTime
 
 from repository.util.Path import Path
 
-""" LMDTODO Add tests for getAbout, getDisplay?, whoAttribute """
-
 class TaskTest(TestContentModel.ContentModelTestCase):
     """ Test Task """
 
@@ -33,9 +31,7 @@ class TaskTest(TestContentModel.ContentModelTestCase):
 
             self.assertEqual(task.importance, 'important')
             self.assertEqual(task.getAttributeValue('importance'), 'important')
-            self.assertEqual(task.getAbout(), "test headline")
-            self.assertEqual(task.getWho(), ' ')
-            self.assertEqual(task.getDate(), ' ')
+            self.assertEqual(task.about, "test headline")
         
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/tasks")
 

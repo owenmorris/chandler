@@ -25,9 +25,7 @@ class Headline(ControlBlocks.StaticText):
         """
           Display the item in the wxWidget.
         """
-        item = notification.data['item']
-        widget = self.widget
-        widget.SetLabel(item.getAbout())
+        self.widget.SetLabel (notification.data ['item'].about)
         
 class DateTimeBlock(ControlBlocks.StaticText):
     """
@@ -138,11 +136,10 @@ class ToEditField(EditTextAttribute):
         # DLDTBD - need to parse the string and lookup the contacts
         #  because it's really the contacts that are stored in the "who" attribute!
         if toFieldString:
-            item.setAttributeValue(item.whoAttribute, toFieldString)
+            item.who = toFieldString
        
     def loadAttributeIntoWidget(self, item, widget):
-        toFieldString = item.getWho()
-        widget.SetValue(toFieldString)
+        widget.SetValue(item.who)
 
 class FromEditField(EditTextAttribute):
     """Edit field containing the sender's contact"""
