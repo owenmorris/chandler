@@ -1,0 +1,222 @@
+""" Support SAX2 Parsing of DomainSchema XML format for repository.
+
+    @@@ Known Issues
+    + Assumes all elements are in the appropriate namespace, should ignore
+      elements from other namespaces.
+    + Does not support forward references. If an item is referenced,
+      assumes it already exists in the repository. An item will exist
+      in the repository as soon as it is defined.
+    + Does not handle default values for our attributes
+    + Many datatypes are interpreted as strings, not dealing with
+      int or float types.
+    + Doesn't deal with DTDs or XSDs.
+
+"""
+
+__revision__  = "$Revision$"
+__date__      = "$Date$"
+__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+
+import xml.sax
+import xml.sax.handler
+
+from model.schema.Kind import Kind
+from model.schema.AttrDef import AttrDef
+from model.schema import Types
+
+from model.item.Item import Item
+
+# XML format tag is the key, Repository expected kind is the value
+
+ITEM_TAGS = {'Kind' : 'Kind',
+             'AttributeDefinition' : 'AttrDef',
+             'Alias': 'Alias',
+             'Type' : 'Type'}
+
+
+# XML format tag is the key, Repository expected attribute is the value
+
+ATTRIBUTE_TEXT_TAGS = {'label': 'DisplayName',
+                       'comment': 'comment',
+                       'example': 'example',
+                       'issue' : 'issue',
+                       'version' : 'version',
+                       'default' : 'Default',
+                       'derivation' : 'derivation',
+                       'cardinality': 'Cardinality',
+                       'relationshipType': 'relationshipType',
+                       'pythonClass' : 'Class'}
+
+ATTRIBUTE_REF_TAGS = {'superKind' : 'SuperKind',
+                      'superAttribute': 'SuperAttrDef',
+                      'attribute': 'AttrDefs',
+                      'type': 'Type',
+                      'displayAttribute':'displayAttribute',
+                      'equivalentKind':'equivalentKind',
+                      'equivalentAttribute':'equivalentAttribute',
+                      'inverseAttribute':'OtherName',
+                      'aliasFor':'aliasFor'}
+
+ATTRIBUTE_BOOL_TAGS = {'hidden' : 'hidden',
+                       'abstract' : 'abstract',
+                       'unidirectional' : 'unidirectional',
+                       'required' : 'Required'}
+
+class DomainSchemaLoader(object):
+    """ Load items defined in the schema file into the repository,
+        using a SAX2 parser.
+    """
+
+    def __init__(self, repository):
+        self.repository = repository
+        parser = xml.sax.make_parser()
+        parser.setFeature(xml.sax.handler.feature_namespaces, 1)
+        parser.setContentHandler(DomainSchemaHandler(self.repository))
+        
+    def load(self, file, parent=None):
+        parser.parse(file)
+
+class DomainSchemaHandler(xml.sax.ContentHandler):
+    """A SAX ContentHandler responsible for loading DomainSchemas.
+    """
+
+    def __init__(self, repository, verbose=False):
+
+        self.repository = repository
+        self.verbose = verbose
+
+    def startDocument(self):
+
+        # Keep a stack of tags, to know where we are during processing
+        self.tags = []
+
+        # Keep track of the prefix/path mappings, to be used when
+        # creating references to other items.
+        self.mapping = {}
+
+        self.parent = self.repository.find("//Schema")
+
+    def endDocument(self):
+        pass
+    
+    def characters(self, content):
+
+        # Look up the current tag, to know the context
+        currentTag = self.tags[-1]
+
+        # Add the text as the value of the current attribute
+        if currentTag in ATTRIBUTE_TEXT_TAGS:
+            self.currentAttributes[currentTag] = content
+
+    def startElementNS(self, (uri, local), qname, attrs):
+
+        # Add the tag to our stack
+        self.tags.append(local)
+
+        # Create the domainSchema item now
+        if local == 'DomainSchema':
+            self.schemaAttributes = {}
+            self.currentAttributes = self.schemaAttributes
+            
+            idString = attrs.getValue((None, 'id'))
+            self.domainSchema = self.createDomainSchema(idString)
+
+        # Create the item
+        if local in ITEM_TAGS:
+            self.currentAttributes = {}
+            idString = attrs.getValue((None, 'id'))
+            if local == 'Kind':
+                self.currentItem = self.createKind(idString)
+            elif local == 'AttributeDefinition':
+                self.currentItem = self.createAttributeDefinition(idString)
+
+        # Add an attribute to the current item
+        elif local in ATTRIBUTE_REF_TAGS:
+            self.currentAttributes[local] = attrs.getValue((None, 'itemref'))
+        elif local in ATTRIBUTE_BOOL_TAGS:
+            self.currentAttributes[local] = True
+
+        # Create a mapping from a prefix to the repository path
+        if local == 'containmentPath':
+            prefix = attrs.getValue((None, 'prefix'))
+            path = attrs.getValue((None, 'path'))
+            self.mapping[prefix] = path
+
+    def endElementNS(self, (uri, local), qname):
+
+        # Create the item in the repository
+        if local in ITEM_TAGS:
+            self.addAttributes(self.currentItem, self.currentAttributes)
+            self.currentAttributes = self.schemaAttributes
+            self.currentItem = None
+
+        if local == 'DomainSchema':
+            self.addAttributes(self.domainSchema, self.currentAttributes)
+
+        # Remove the tag from the stack
+        self.tags.pop()
+
+    def findItem(self, reference):
+        """Given a reference with a namespace prefix,
+           find the item in the repository. Look up the prefix
+           using the mapping defined by the containmentPath tag.
+        """
+        [prefix, local] = reference.split(':')
+        path = self.mapping[prefix] + local
+        item = self.repository.find(path)
+        return item
+
+    def createDomainSchema(self, idString):
+        """Create a DomainSchema with the given id."""
+        [prefix, name] = idString.split(':')
+        kind = self.repository.find('//Schema/Model/Item')
+        item = Item(name, self.parent, kind)
+        return item
+
+    def createKind(self, idString):
+        """Create a Kind item with the given id."""
+        [prefix, name] = idString.split(':')
+        kind = self.repository.find('//Schema/Model/Kind')
+        item = Kind(name, self.domainSchema, kind)
+        return item
+
+    def createAttributeDefinition(self, idString):
+        """Create an AttributeDefinition item with the given id."""
+        [prefix, name] = idString.split(':')
+        kind = self.repository.find('//Schema/Model/AttrDef')
+        item = AttrDef(name, self.domainSchema, kind)
+        return item
+
+    def createAlias(self, idString):
+        """Create an Alias item with the given id."""
+        # @@@ not yet implemented
+        pass
+
+    def createType(self, idString):
+        """Create a Type item with the given id."""
+        # @@@ not yet implemented
+        pass
+
+    def addAttributes(self, item, attributeDictionary):
+        """Add the attributes in attributeDictionary to the given item.
+        """
+        for key in attributeDictionary.keys():
+
+            # For references, find the item to set the attribute
+            if key in ATTRIBUTE_REF_TAGS:
+                ref = self.findItem(attributeDictionary[key])
+                # Special case for 'attribute', our only multivalued attribute
+                if key == 'attribute':
+                    item.attach(ATTRIBUTE_REF_TAGS[key], ref)
+                else:
+                    item.setAttribute(ATTRIBUTE_REF_TAGS[key], ref)
+                    
+            # For booleans or text, look up the value in the dictionary
+            elif key in ATTRIBUTE_TEXT_TAGS:
+                value = attributeDictionary[key]
+                item.setAttribute(ATTRIBUTE_TEXT_TAGS[key], value)
+            elif key in ATTRIBUTE_BOOL_TAGS:
+                value = attributeDictionary[key]
+                item.setAttribute(ATTRIBUTE_BOOL_TAGS[key], value)
+
