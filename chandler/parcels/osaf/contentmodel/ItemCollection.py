@@ -250,7 +250,7 @@ class ItemCollection(ContentModel.ContentItem):
                 args ["$1"] = (self.itsUUID, "_exclusions")
             if len (self._filterKinds) != 0:
                 for kindPath in self._filterKinds:
-                    rule = "intersect (" + rule + ", for i in '" + kindPath + "' where True)"
+                    rule = "intersect (" + rule + ", for i inevery '" + kindPath + "' where True)"
         return (rule, args)
 
     def shareSend (self):
