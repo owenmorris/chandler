@@ -51,12 +51,15 @@ sources:
 sources-$(VERSION).tar:
 	curl -O http://builds.o11n.org/external/sources-$(VERSION).tar
 
-expand: env sources-$(VERSION).tar
+sources-$(VERSION)-expanded: sources-$(VERSION).tar
 	tar xvf sources-$(VERSION).tar
 	for system in $(SYSTEMS); \
 	do \
 	    $(MAKE) -C $$system expand; \
 	done
+	touch sources-$(VERSION)-expanded
+
+expand: env sources-$(VERSION)-expanded
 
 binaries:
 	rm -f $(SNAP)-$(VERSION).tar $(SNAP)-$(VERSION).tar.gz
@@ -79,7 +82,7 @@ $(SNAP)-$(VERSION).tar.gz: binaries
 $(SYSTEMS):
 	$(MAKE) -C $@ DEBUG=$(DEBUG)
 
-all: env $(SYSTEMS)
+all: env sources-$(VERSION)-expanded $(SYSTEMS)
 
 clean: env
 	@for system in $(SYSTEMS); \
@@ -88,7 +91,7 @@ clean: env
 	done
 
 realclean:
-	rm -rf release debug
+	rm -rf release debug sources-$(VERSION)-expanded
 	@for system in $(SYSTEMS); \
 	do \
 	    echo making _realclean in $$system; \
@@ -106,9 +109,3 @@ checkout:
 	rm -f cvsco.log;\
 	cvs co chandler-all 2>&1 | tee -a cvsco.log; \
 	echo 'Do |grep "^C " ../cvsco.log| to check for potential conflicts'
-
-build:
-	@for system in $(SYSTEMS); \
-	do \
-		$(MAKE) -C $$system DEBUG=$(DEBUG); \
-	done
