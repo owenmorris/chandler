@@ -143,15 +143,15 @@ endif
 
 ifeq ($(OS),Darwin)
 
-compiler=$(BUILD_ROOT)/gcc-3.4
+compiler=$(BUILD_ROOT)/gcc-3.4.1
 
-$(compiler): $(BUILD_ROOT)/gcc-3.4-20040407.tar.bz2
+$(compiler): $(BUILD_ROOT)/gcc-3.4.1.tar.bz2
 	cd $(BUILD_ROOT); \
-	bunzip2 -c gcc-3.4-20040407.tar.bz2 | tar -xvf -
+	bunzip2 -c gcc-3.4.1.tar.bz2 | tar -xvf -
 
-$(BUILD_ROOT)/gcc-3.4-20040407.tar.bz2:
+$(BUILD_ROOT)/gcc-3.4.1.tar.bz2:
 	cd $(BUILD_ROOT); \
-	curl -O $(COMPILERS)/osx/gcc-3.4-20040407.tar.bz2
+	curl -O $(COMPILERS)/osx/gcc-3.4.1.tar.bz2
 
 endif
 
