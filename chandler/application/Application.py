@@ -167,9 +167,6 @@ class wxApplication (wxApp):
                                                      "packs",
                                                      "schema.pack"))
 
-        # AutoItem needs to know the repository
-        AutoItem.AutoItem.SetRepository (Globals.repository) 
-
         # Load Parcels
         parcelSearchPath = parcelDir
         if __debug__ and debugParcelDir:
@@ -198,12 +195,6 @@ class wxApplication (wxApp):
         EVT_UPDATE_UI(self, -1, self.OnCommand)
         self.focus = None
         EVT_IDLE(self, self.OnIdle)
-
-        #allocate the Jabber client, logging in if possible
-        #import ChandlerJabber
-        # Globals.jabberClient = ChandlerJabber.JabberClient(self)
-        
-        # Globals.jabberClient.Login()
 
         from OSAF.framework.blocks.Views import View
         
@@ -236,9 +227,9 @@ class wxApplication (wxApp):
                                                        Globals.mainView.dispatchEvent)
 
             # @@@ KCP Hack to register the event
-            viewBlock = Globals.repository.find("//parcels/OSAF/views/content/MixedListView")
-            Globals.notificationManager.Subscribe(viewBlock.blockEvents,
-                                                  viewBlock.getUUID(),
+            events = [Globals.repository.find("//parcels/OSAF/views/content/GenerateContentItemsEvent")]
+            Globals.notificationManager.Subscribe(events,
+                                                  UUID(),
                                                   Globals.mainView.dispatchEvent) 
 
             mainView.render (self.mainFrame, self.mainFrame)

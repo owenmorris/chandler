@@ -37,8 +37,8 @@
   <!-- Styles -->
   <!-- Events -->
   <BlockEvent itemName="GenerateContentItemsEvent">
-    <dispatchEnum>Broadcast</dispatchEnum>
-    <!--dispatchToBlock itemref="view:ContentTreeList"/-->
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="view:MixedTreeList"/>
     <methodName>OnGenerateContentItems</methodName>
   </BlockEvent>
 
