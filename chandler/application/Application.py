@@ -10,7 +10,7 @@ import Globals
 from repository.util.UUID import UUID
 import repository.parcel.LoadParcels as LoadParcels
 from repository.persistence.XMLRepository import XMLRepository
-
+from crypto import Crypto
 
 """
   Event used to post callbacks on the UI thread
@@ -186,6 +186,10 @@ class wxApplication (wx.App):
                 if path and os.path.exists(path):
                     debugParcelDir = path
                     sys.path.insert (2, debugParcelDir)
+
+        Globals.crypto = Crypto.Crypto()
+        Globals.crypto.init()
+        
         """
           Open the repository.
         -create argument forces a new repository.
@@ -423,6 +427,8 @@ class wxApplication (wx.App):
         """
         Globals.repository.commit()
         Globals.repository.close()
+
+        Globals.crypto.shutdown()
 
     def OnMainThreadCallbackEvent(self, event):
         """
