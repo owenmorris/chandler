@@ -61,8 +61,13 @@ class CanvasPrintout(wx.Printout):
     def OnPrintPage(self, page):
         dc = self.GetDC()
 
-        width, height = self.canvas.GetVirtualSize()
-
+        try:
+            self.canvas.columnCanvas
+        except AttributeError:
+            width, height = self.canvas.GetVirtualSize()
+        else:
+            width, height = self.canvas.columnCanvas.GetVirtualSize()
+            
         maxX = width
         maxY = height
 
@@ -86,7 +91,6 @@ class CanvasPrintout(wx.Printout):
         actualScale = min(scaleX, scaleY)
 
         # Calculate the position on the DC for centering the graphic
-        width, height = self.canvas.GetVirtualSize()
         posX = (w - (width * actualScale)) / 2.0
         posY = (h - (height * actualScale)) / 2.0
 
