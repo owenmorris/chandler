@@ -22,6 +22,8 @@ class UUID(object):
             self._uuid = UUIDext.make()
         else:
             self._uuid = UUIDext.make(uuid)
+            if not self._uuid:
+                raise ValueError, "Generating UUID from '%s' failed" %(uuid)
             
     def __repr__(self):
 

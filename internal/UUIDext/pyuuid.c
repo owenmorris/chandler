@@ -12,11 +12,13 @@ static PyObject *make(PyObject *self, PyObject *args)
     PyArg_ParseTuple(args, "|s#", &text, &len);
     switch (len) {
       case 0:
-        generate_uuid(uuid);
+        if (generate_uuid(uuid))
+            return Py_BuildValue("");
         break;
       case 22:
       case 36:
-        make_uuid(uuid, text, len);
+        if (make_uuid(uuid, text, len))
+            return Py_BuildValue("");
         break;
       default:
         return Py_BuildValue("");

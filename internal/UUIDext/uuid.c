@@ -355,7 +355,7 @@ static void get_random_bytes(unsigned char *buf, size_t buf_len)
     }
 }
 
-void generate_uuid(unsigned char *uuid)
+int generate_uuid(unsigned char *uuid)
 {
     static unsigned char node_id[6];
     static unsigned short clock_seq;
@@ -436,6 +436,8 @@ void generate_uuid(unsigned char *uuid)
 
     uuid[6] = 0x10 | (uuid[6] & 0x0f);
     uuid[8] |= 0x80;
+
+    return 0;
 }
 
 static int c16Value(char c)
@@ -452,8 +454,8 @@ static int c16Value(char c)
     return -1;
 }
 
-static void read16Bytes(char *text, int from,
-                        unsigned char *uuid, int to, int length)
+static int read16Bytes(char *text, int from,
+                       unsigned char *uuid, int to, int length)
 {
     int i = 0;
 
@@ -461,8 +463,13 @@ static void read16Bytes(char *text, int from,
         int c1 = c16Value(text[from++]);
         int c2 = c16Value(text[from++]);
 
+        if (c1 < 0 || c2 < 0)
+            return -1;
+
         uuid[to++] = (unsigned char) ((c1 << 4) + c2);
     }
+
+    return 0;
 }
 
 static int c64Value(char c)
@@ -485,32 +492,46 @@ static int c64Value(char c)
     return -1;
 }
 
-static void read64Bytes(char *text, int from, unsigned char *uuid, int to)
+static int read64Bytes(char *text, int from, unsigned char *uuid, int to)
 {
     unsigned __int64 l = 0L;
     int i = 0;
 
-    while (i++ < 11)
-        l = (l << 6) + c64Value(text[from++]);
+    while (i++ < 11) {
+        int c64 = c64Value(text[from++]);
+
+        if (c64 < 0)
+            return -1;
+
+        l = (l << 6) + c64;
+    }
 
     for (i = 8; i > 0; l >>= 8)
         uuid[to + --i] = (unsigned char) (l & 0xff);
+
+    return 0;
 }
 
-void make_uuid(unsigned char *uuid, char *text, int len)
+int make_uuid(unsigned char *uuid, char *text, int len)
 {
     switch (len) {
       case 22:
-        read64Bytes(text, 0, uuid, 0);
-        read64Bytes(text, 11, uuid, 8);
-        return;
+        if (read64Bytes(text, 0, uuid, 0) ||
+            read64Bytes(text, 11, uuid, 8))
+            return -1;
+        return 0;
+
       case 36:
-        read16Bytes(text, 0, uuid, 0, 4);
-        read16Bytes(text, 9, uuid, 4, 2);
-        read16Bytes(text, 14, uuid, 6, 2);
-        read16Bytes(text, 19, uuid, 8, 2);
-        read16Bytes(text, 24, uuid, 10, 6);
-        return;
+        if (read16Bytes(text, 0, uuid, 0, 4) ||
+            read16Bytes(text, 9, uuid, 4, 2) ||
+            read16Bytes(text, 14, uuid, 6, 2) ||
+            read16Bytes(text, 19, uuid, 8, 2) ||
+            read16Bytes(text, 24, uuid, 10, 6))
+            return -1;
+        return 0;
+
+      default:
+        return -1;
     }
 }
 
