@@ -600,6 +600,11 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             self.blockItem.columnWidths [columnIndex] = self.GetColSize (columnIndex)
 
     def OnItemDrag(self, event):
+
+        # To fix bug 2159, tell the grid to release the mouse now because the
+        # grid object may get destroyed before it has a chance to later on:
+        self.GetGridWindow().ReleaseMouse()
+
         self.SetDragData (self.blockItem.contents [event.GetRow()].itsUUID)
 
     def AddItem(self, itemUUID):
