@@ -2,6 +2,41 @@
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Release 0.3 (CVS tag CHANDLER_0_3) 2004-2-24
+
+    * Full transition to CPIA architecture (in Chandler.py and Application.py)
+
+    * Removed all the old viewer parcel code
+
+    * Added a splash screen
+
+    * Added an "About Chandler" view
+
+    * Added content views, which display data from the content model (calendar
+      events, notes, contacts)
+
+    * Created test menu, added options to generate data from the content model
+      (calendar events, notes, contacts)
+
+    * Assorted bug fixes to clean up for the release
+
+    * TreeList implements delayed loading and unloads items no longer viewed
+
+    * Remember state of repository tree when Chandler quits
+
+    * Rewrote sidebar block to use Block events and implemented URL space for
+      views.
+
+    * Rewrote the Block event code in the main Chandler view.
+
+    * Unifiy TreeList, TreeView and implement a new delegate mechanism
+
+    * Hook up notifications so that changes items in the repository viewer
+      reflect in the view
+
+    * Fix loads of bugs for the 0.3 release
+
+
 Milestone 13 (CVS tag CHANDLER_M_13) 2004-1-21
 
     Content Model:
