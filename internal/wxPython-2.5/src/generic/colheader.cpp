@@ -392,14 +392,20 @@ void wxColumnHeader::DoSetSize(
 void wxColumnHeader::OnPaint(
 	wxPaintEvent		&event )
 {
-#if !defined(__WXMSW__)
 	Draw();
-#else
-	event.Skip();
-//	::DefWindowProc( GetHwnd(), WM_PAINT, 0, 0 );
-//	wxControl::MSWWindowProc( WM_PAINT, 0, 0 );
-//	wxWindow::OnPaint( event );
+
+#if 0 && defined(__WXMSW__)
+	// NB: moved all drawing code into (where else?) ::Draw
+
+	// these work...
+//	event.Skip();
+//	wxWindowMSW::MSWDefWindowProc( WM_PAINT, 0, 0 );
+
+	// ...and these fail to work.
 //	wxControl::OnPaint( event );
+//	wxWindow::OnPaint( event );
+//	wxControl::MSWWindowProc( WM_PAINT, 0, 0 );
+//	::DefWindowProc( GetHwnd(), WM_PAINT, 0, 0 );
 #endif
 }
 
@@ -710,6 +716,32 @@ bool					bResultV;
 	return bResultV;
 }
 
+void wxColumnHeader::GetItemBounds(
+	long			itemIndex,
+	wxRect		*boundsR )
+{
+wxColumnHeaderItem		*itemRef;
+
+	if (boundsR == NULL)
+		return;
+
+	itemRef = GetItemRef( itemIndex );
+	if (itemRef != NULL)
+	{
+		boundsR->x = itemRef->m_OriginX;
+		boundsR->y = m_NativeBoundsR.y;
+		boundsR->width = itemRef->m_ExtentX;
+		boundsR->height = m_NativeBoundsR.height;
+	}
+	else
+	{
+		boundsR->x =
+		boundsR->y =
+		boundsR->width =
+		boundsR->height = 0;
+	}
+}
+
 wxColumnHeaderItem * wxColumnHeader::GetItemRef(
 	long			itemIndex )
 {
@@ -908,9 +940,25 @@ long		errStatus;
 	errStatus = 0;
 
 #if defined(__WXMSW__)
-	// no drawing needed for MSW
+	// render native control window
+	wxWindowMSW::MSWDefWindowProc( WM_PAINT, 0, 0 );
+
+	// add selection indicator - no Win32 native mechanism exists
+	if (m_ItemSelected >= 0)
+	{
+	wxColumnHeaderItem		*itemRef;
+
+		itemRef = GetItemRef( m_ItemSelected );
+		if (itemRef != NULL)
+		{
+		wxClientDC		dc( this );
+
+			itemRef->MSWRenderSelection( &dc, &m_NativeBoundsR );
+		}
+	}
+
 #elif defined(__WXMAC__)
-	// no DC needed for Mac (yet)
+	// no DC needed for Mac rendering (yet)
 	for (long i=0; i<m_ItemCount; i++)
 		errStatus |= m_ItemList[i]->DrawItem( this, NULL, &m_NativeBoundsR );
 #else
@@ -1404,10 +1452,10 @@ OSStatus				errStatus;
 //	qdBoundsR.left = boundsR->x + m_OriginX;
 //	qdBoundsR.top = boundsR->y;
 	qdBoundsR.left = m_OriginX;
-	qdBoundsR.top = 0;
 	qdBoundsR.right = qdBoundsR.left + m_ExtentX + 1;
 	if (qdBoundsR.right > boundsR->width)
 		qdBoundsR.right = boundsR->width;
+	qdBoundsR.top = 0;
 	qdBoundsR.bottom = qdBoundsR.top + boundsR->height;
 
 	// a broken, dead attempt to tinge the background
@@ -1442,9 +1490,9 @@ OSStatus				errStatus;
 //	errStatus = RestoreTheme( origCol, newCol );
 
 	// exclude button adornment areas from further drawing consideration
-	qdBoundsR.left += 4;
-	qdBoundsR.right -= 16;
 	qdBoundsR.top += 1;
+	qdBoundsR.left += 4;
+	qdBoundsR.right -= (m_BSortEnabled ? 16 : 4);
 
 	nativeTextJust = ConvertJustification( m_TextJust, TRUE );
 
@@ -1462,7 +1510,7 @@ OSStatus				errStatus;
 			errStatus =
 				(OSStatus)DrawThemeTextBox(
 					cfLabelText, m_FontID, drawInfo.state, true,
-					&qdBoundsR, m_TextJust, NULL );
+					&qdBoundsR, nativeTextJust, NULL );
 
 			CFRelease( cfLabelText );
 		}
@@ -1587,6 +1635,77 @@ const wxCoord		h = boundsR->height;
 #pragma mark -
 #endif
 
+#if defined(__WXMSW__)
+void wxColumnHeaderItem::MSWRenderSelection(
+	wxClientDC			*dc,
+	const wxRect			*boundsR )
+{
+RECT			gdiBoundsR;
+HDC			targetHDC;
+//HPEN		targetPen, prevPen;
+HBRUSH		targetBrush;
+COLORREF		targetColor;
+
+	if ((dc == NULL) || (boundsR == NULL))
+		return;
+
+	// compute the sub-item bounds rect
+	gdiBoundsR.left = m_OriginX;
+	gdiBoundsR.right = gdiBoundsR.left + m_ExtentX + 1;
+	gdiBoundsR.top = boundsR->y;
+	gdiBoundsR.bottom = gdiBoundsR.top + boundsR->height;
+
+	// now...frame it
+	targetHDC =  GetHdcOf( *dc );
+
+	//targetPen = CreatePen( PS_SOLID, 2, 0 );
+	//prevPen = ::SelectObject( targetPen );
+	targetColor = ::GetBkColor( targetHDC );
+	targetBrush = ::CreateSolidBrush( targetColor );
+	::FrameRect( targetHDC, &gdiBoundsR, targetBrush );
+	::DeleteObject( targetBrush );
+	//::DeleteObject( targetPen );
+	// (void)::SelectObject( prevPen );
+}
+#endif
+
+#if defined(__WXMAC__)
+// static
+void wxColumnHeaderItem::MacDrawThemeBackgroundNoArrows(
+	const void				*boundsR )
+{
+ThemeButtonDrawInfo	drawInfo;
+Rect				qdBoundsR;
+RgnHandle			savedClipRgn;
+OSStatus			errStatus;
+bool				bSelected;
+
+	if ((boundsR == NULL) || EmptyRect( (const Rect*)boundsR ))
+		return;
+
+	bSelected = true;
+	qdBoundsR = *(const Rect*)boundsR;
+
+	drawInfo.state = (bSelected ? kThemeStateActive: kThemeStateInactive);
+	drawInfo.value = (SInt32)bSelected;	// zero draws w/o theme background shading
+	drawInfo.adornment = kThemeAdornmentNone;
+
+	savedClipRgn = NewRgn();
+	GetClip( savedClipRgn );
+	ClipRect( &qdBoundsR );
+
+	qdBoundsR.right += 25;
+	errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
+
+	// NB: draw the right-side one-pixel border
+	// qdBoundsR.left = qdBoundsR.right - 25;
+	// errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
+
+	SetClip( savedClipRgn );
+	DisposeRgn( savedClipRgn );
+}
+#endif
+
 #if defined(__WXGTK__)
 // static
 void wxColumnHeaderItem::GTKGetSortArrowBounds(
@@ -1649,43 +1768,6 @@ wxPoint		triPt[3];
 	}
 
 	dc->DrawPolygon( 3, triPt, boundsR->x, boundsR->y );
-}
-#endif
-
-#if defined(__WXMAC__)
-// static
-void wxColumnHeaderItem::MacDrawThemeBackgroundNoArrows(
-	const void				*boundsR )
-{
-ThemeButtonDrawInfo	drawInfo;
-Rect				qdBoundsR;
-RgnHandle			savedClipRgn;
-OSStatus			errStatus;
-bool				bSelected;
-
-	if ((boundsR == NULL) || EmptyRect( (const Rect*)boundsR ))
-		return;
-
-	bSelected = true;
-	qdBoundsR = *(const Rect*)boundsR;
-
-	drawInfo.state = (bSelected ? kThemeStateActive: kThemeStateInactive);
-	drawInfo.value = (SInt32)bSelected;	// zero draws w/o theme background shading
-	drawInfo.adornment = kThemeAdornmentNone;
-
-	savedClipRgn = NewRgn();
-	GetClip( savedClipRgn );
-	ClipRect( &qdBoundsR );
-
-	qdBoundsR.right += 25;
-	errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
-
-	// NB: draw the right-side one-pixel border
-	// qdBoundsR.left = qdBoundsR.right - 25;
-	// errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
-
-	SetClip( savedClipRgn );
-	DisposeRgn( savedClipRgn );
 }
 #endif
 

@@ -87,9 +87,15 @@ public:
 		const void			*boundsR );
 #endif
 
+#if defined(__WXMSW__)
+	void MSWRenderSelection(
+		wxClientDC		*dc,
+		const wxRect		*boundsR );
+#endif
+
 	static long ConvertJustification(
-		long			sourceEnum,
-		bool			bToNative );
+		long				sourceEnum,
+		bool				bToNative );
 
 public:
 	wxString				m_LabelTextRef;
@@ -134,7 +140,7 @@ public:
 	// returns one of wxCOLUMNHEADER_HITTEST_XXX constants and fills either date or wd
 	// with the corresponding value (none for NOWHERE, or a non-negative value for a column header item)
 	wxColumnHeaderHitTestResult HitTest(
-		const wxPoint	&locationPt );
+		const wxPoint		&locationPt );
 
 	long GetSelectedItemIndex( void );
 	void SetSelectedItemIndex(
@@ -213,6 +219,9 @@ protected:
 		const wxColumnHeaderItem		*info );
 	wxColumnHeaderItem * GetItemRef(
 		long			itemIndex );
+	void GetItemBounds(
+		long			itemIndex,
+		wxRect		*boundsR );
 	void RefreshItem(
 		long			itemIndex );
 
