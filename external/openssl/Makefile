@@ -67,7 +67,7 @@ openssl:   $(SRC)/$(BUILD)/Makefile
 	mkdir -p $(PREFIX)/lib; \
 	$(MAKE) -f Makefile.ssl install 
 
-$(SRC)/$(BUILD)/Makefile: $(SRC)/Configure
+$(SRC)/$(BUILD)/Makefile: apply $(SRC)/Configure
 	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
 	cp -r crypto ssl apps certs tools util doc include $(BUILD)/;cd $(BUILD);\
 	perl ../Configure -shared --openssldir=$(PREFIX) $(CONF_OPT) $(PLATFORM)
