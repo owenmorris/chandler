@@ -1,5 +1,5 @@
 
-VERSION=0.9.2
+VERSION=0.9.3-136
 RELVER=$(VERSION)-1
 PYLUCENE=$(BUILD_ROOT)/PyLucene
 SRC=$(PYLUCENE)/PyLucene-$(VERSION)
@@ -14,6 +14,7 @@ ifeq ($(OS),Cygwin)
 ifeq ($(DEBUG),1)
 SUFFIX=d
 _SUFFIX=_d
+PYDBG=-DPy_TRACE_REFS
 else
 SUFFIX=
 _SUFFIX=
@@ -92,6 +93,7 @@ build: expand apply
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             SWIG=$(SWIG) \
             GCJ_HOME=$(GCJ_HOME) \
+            PYDBG=$(PYDBG) \
             CC=$(PYLUCENE_CC) \
             CXX=$(PYLUCENE_CXX) \
             JCC=$(PYLUCENE_JCC) \
@@ -103,6 +105,7 @@ build: expand apply
             PREFIX_DB=$(PREFIX_DB) \
             BUILD_DB=build_$(SNAP) \
             PYTHON_VER=$(PYTHON_VER) \
+            VERSION=$(VERSION) \
             all install
 
 clean:

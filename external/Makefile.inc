@@ -34,7 +34,7 @@ ifeq ($(CURL),)
 CURL=curl -O $(CHANDLER_CURL_OPTIONS)
 endif
 
-PYTHON_VER=2.3
+PYTHON_VER=2.4
 
 ifeq ($(OS),Cygwin)
 PYTHON:=$(PREFIX)/bin/$(PYTHON).exe
@@ -70,7 +70,7 @@ ifeq ($(OS),Darwin)
 GCJ_HOME=$(compiler)
 endif
 ifeq ($(OS),Linux)
-GCJ_HOME=/usr
+GCJ_HOME=$(compiler)
 endif
 endif
 
@@ -121,7 +121,7 @@ ifeq ($(OS),Cygwin)
 	@if [ ! -f $(GCJ_HOME)/bin/gcj.exe ]; then \
             echo GCJ_HOME is incorrect; \
             echo it needs to be set to the absolute gcc with gcj installation path; \
-            echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/mingw-3.1-3.4.1; \
+            echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/mingw-3.1-3.4.2; \
             false; \
         else \
             $(GCJ_HOME)/bin/gcj.exe --v; \
@@ -142,7 +142,7 @@ else
 	@if [ ! -f $(GCJ_HOME)/bin/gcj ]; then \
             echo GCJ_HOME is incorrect; \
             echo it needs to be set to the absolute gcc with gcj installation path; \
-            echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/gcc-3.4; \
+            echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/gcc-3.4.2; \
             false; \
         else \
             $(GCJ_HOME)/bin/gcj --v; \
@@ -156,7 +156,7 @@ COMPILERS=http://downloads.osafoundation.org/compilers
 
 ifeq ($(OS),Cygwin)
 
-MINGW_VERSION=3.1-3.4.1
+MINGW_VERSION=3.1-3.4.2
 
 compiler=$(BUILD_ROOT)/mingw-$(MINGW_VERSION)
 
@@ -169,35 +169,45 @@ $(BUILD_ROOT)/mingw-$(MINGW_VERSION).tar.gz:
 	$(CURL) -O $(COMPILERS)/windows/mingw-$(MINGW_VERSION).tar.gz
 	$(CURL) -O $(COMPILERS)/windows/mingw-$(MINGW_VERSION).tar.gz.md5
 
-#	$(MD5CHECK) mingw-3.1.$(MINGW_VERSION).tar.gz.md5
+#	$(MD5CHECK) mingw-$(MINGW_VERSION).tar.gz.md5
 
 endif
 
 ifeq ($(OS),Darwin)
 
-compiler=$(BUILD_ROOT)/gcc-3.4.1
+GCC_VERSION=3.4.3
 
-$(compiler): $(BUILD_ROOT)/gcc-3.4.1.tar.bz2
+compiler=$(BUILD_ROOT)/gcc-$(GCC_VERSION)
+
+$(compiler): $(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz
 	cd $(BUILD_ROOT); \
-	bunzip2 -c gcc-3.4.1.tar.bz2 | tar -xvf -
+	tar xvzf gcc-$(GCC_VERSION).tar.gz
 
-$(BUILD_ROOT)/gcc-3.4.1.tar.bz2:
+$(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz:
 	cd $(BUILD_ROOT); \
-	$(CURL) $(COMPILERS)/osx/gcc-3.4.1.tar.bz2
-	$(CURL) $(COMPILERS)/osx/gcc-3.4.1.tar.bz2.md5
+	$(CURL) $(COMPILERS)/osx/gcc-$(GCC_VERSION).tar.gz
+	$(CURL) $(COMPILERS)/osx/gcc-$(GCC_VERSION).tar.gz.md5
 
-#	$(MD5CHECK) gcc-3.4.1.tar.bz2.md5
+#	$(MD5CHECK) gcc-$(GCC_VERSION).tar.gz.md5
 
 endif
 
 ifeq ($(OS),Linux)
 
-.PHONY: compiler
+GCC_VERSION=3.4.3
 
-compiler=compiler
+compiler=$(BUILD_ROOT)/gcc-$(GCC_VERSION)/install
 
-$(compiler):
-	@echo you need to install a gcc 3.4.x distribution for your Linux distribution that includes gcj and set GCJ_HOME to point at its installation directory
+$(compiler): $(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz
+	cd $(BUILD_ROOT); \
+	tar xvzf gcc-$(GCC_VERSION).tar.gz
+
+$(BUILD_ROOT)/gcc-$(GCC_VERSION).tar.gz:
+	cd $(BUILD_ROOT); \
+	$(CURL) $(COMPILERS)/linux/gcc-$(GCC_VERSION).tar.gz
+	$(CURL) $(COMPILERS)/linux/gcc-$(GCC_VERSION).tar.gz.md5
+
+#	$(MD5CHECK) gcc-$(GCC_VERSION).tar.gz.md5
 
 endif
 
