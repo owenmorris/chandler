@@ -1,4 +1,4 @@
-__version__ = "$Revision$"
+Allowed = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
@@ -32,27 +32,6 @@ logger.setLevel(logging.INFO)
 SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
 EVENTS = "http://osafoundation.org/parcels/osaf/framework/blocks/Events"
 CONTENT = "http://osafoundation.org/parcels/osaf/contentmodel"
-
-class Parcel(application.Parcel.Parcel):
-
-    def _errorCallback(self, error):
-        # When we receive this event, display the error
-        logger.info("_errorCallback: [%s]" % error)
-        application.dialogs.Util.ok( \
-         wx.GetApp().mainFrame, "Error", error)
-
-# Non-blocking methods that the mail thread can use to call methods on the
-# main thread:
-
-def announceError(view, error):
-    """ Call this method to announce an error. This method is non-blocking. """
-    logger.info("announceError() received an error from mail: [%s]" % error)
-
-    sharingParcel = \
-     view.findPath("//parcels/osaf/framework/sharing")
-    wx.GetApp().CallItemMethodAsync( sharingParcel,
-     '_errorCallback', error)
-
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -130,6 +109,7 @@ class OneTimeShare(Share):
     def get(self):
         super(OneTimeShare, self).get()
         self.remove()
+
 
 
 class ShareConduit(ContentModel.ChandlerItem):
@@ -245,7 +225,7 @@ class ShareConduit(ContentModel.ChandlerItem):
         logger.info("Starting GET of %s" % (location))
 
         if not self.exists():
-            raise NotFound(message="%s does not exist" % location)
+           raise NotFound(message="%s does not exist" % location)
 
         retrievedItems = []
         self.resourceList = self._getResourceList(location)
@@ -334,32 +314,6 @@ class ShareConduit(ContentModel.ChandlerItem):
         """ Must implement """
         pass
 
-    def connect(self):
-        pass
-
-    def disconnect(self):
-        pass
-
-    def exists(self):
-        pass
-
-    def create(self):
-        """ Create the share on the server. """
-        pass
-
-    def destroy(self):
-        """ Remove the share from the server. """
-        pass
-
-    def open(self):
-        """ Open the share for access. """
-        pass
-
-    def close(self):
-        """ Close the share. """
-        pass
-
-
     # Manifest mangement routines
     # The manifest keeps track of the state of shared items at the time of
     # last sync.  It is a dictionary keyed on "path" (not repo path, but
@@ -379,6 +333,7 @@ class ShareConduit(ContentModel.ChandlerItem):
          'data' : data,
          'version' : version,
         }
+
 
     def __removeFromManifest(self, path):
         del self.manifest[path]
@@ -438,6 +393,31 @@ class ShareConduit(ContentModel.ChandlerItem):
                 if item is not None:
                     value['version'] = item.getVersion()
 
+
+    def connect(self):
+        pass
+
+    def disconnect(self):
+        pass
+
+    def exists(self):
+        pass
+
+    def create(self):
+        """ Create the share on the server. """
+        pass
+
+    def destroy(self):
+        """ Remove the share from the server. """
+        pass
+
+    def open(self):
+        """ Open the share for access. """
+        pass
+
+    def close(self):
+        """ Close the share. """
+        pass
 
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -625,7 +605,7 @@ class WebDAVConduit(ShareConduit):
                     self.account.path.strip("/"), self.account.username,
                     self.account.password, self.account.useSSL)
 
-    def __getClient(self):
+    def _getClient(self):
         if self.client is None:
             logger.info("...creating new client")
             (host, port, sharePath, username, password, useSSL) = self.__getSettings()
@@ -702,14 +682,14 @@ class WebDAVConduit(ShareConduit):
         super(WebDAVConduit, self).exists()
 
         try:
-            resp = self.__getClient().head(self.getLocation())
+            resp = self._getClient().head(self.getLocation())
             resp.read()
         except WebDAV.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
 
         if resp.status == httplib.UNAUTHORIZED:
-            message = "Not authorized to PUT %s" % url
-            raise NotAuthorized(message=message)
+            message = "Not authorized to PUT %s" % self.getLocation()
+            raise NotAllowed(message=message)
 
         if resp.status == httplib.NOT_FOUND:
             return False
@@ -724,7 +704,7 @@ class WebDAVConduit(ShareConduit):
         if style == ImportExportFormat.STYLE_DIRECTORY:
             url = self.getLocation()
             try:
-                resp = self.__getClient().mkcol(url)
+                resp = self._getClient().mkcol(url)
                 resp.read() # Always need to read each response
             except WebDAV.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
@@ -737,7 +717,7 @@ class WebDAVConduit(ShareConduit):
             if resp.status == httplib.UNAUTHORIZED:
                 # not authorized
                 message = "Not authorized to create collection %s" % url
-                raise NotAuthorized(message=message)
+                raise NotAllowed(message=message)
 
             if resp.status == httplib.CONFLICT:
                 # this happens if you try to create a collection within a
@@ -769,7 +749,7 @@ class WebDAVConduit(ShareConduit):
             return None
 
         try:
-            resp = self.__getClient().put(url, text)
+            resp = self._getClient().put(url, text)
             resp.read() # Always need to read each response
         except WebDAV.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
@@ -778,7 +758,7 @@ class WebDAVConduit(ShareConduit):
 
         if resp.status == httplib.UNAUTHORIZED:
             message = "Not authorized to PUT %s" % url
-            raise NotAuthorized(message=message)
+            raise NotAllowed(message=message)
 
         if resp.status == httplib.FORBIDDEN or resp.status == httplib.CONFLICT:
             # seen if trying to PUT to a nonexistent collection (@@@MOR verify)
@@ -790,7 +770,7 @@ class WebDAVConduit(ShareConduit):
             # mod_dav doesn't give us back an etag upon PUT
 
             try:
-                resp = self.__getClient().head(url)
+                resp = self._getClient().head(url)
                 resp.read() # Always need to read each response
             except WebDAV.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
@@ -817,17 +797,18 @@ class WebDAVConduit(ShareConduit):
         logger.info("...removing from server: %s" % itemURL)
 
         try:
-            resp = self.__getClient().delete(itemURL)
+            resp = self._getClient().delete(itemURL)
             deleteResp = resp.read()
         except WebDAV.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
 
-    def _getItem(self, itemPath, into=None): # must implement
+    def _getItem(self, itemPath, into=None):
         itemURL = self.__URLFromPath(itemPath)
 
         try:
-            resp = self.__getClient().get(itemURL)
+            resp = self._getClient().get(itemURL)
             text = resp.read()
+
         except WebDAV.ConnectionError, err:
             raise CouldNotConnect(message=err.message)
 
@@ -837,12 +818,13 @@ class WebDAVConduit(ShareConduit):
 
         if resp.status == httplib.UNAUTHORIZED:
             message = "Not authorized to get %s" % url
-            raise NotAuthorized(message=message)
+            raise NotAllowed(message=message)
 
         etag = resp.getheader('ETag', None)
         etag = self.__cleanEtag(etag)
         item = self.share.format.importProcess(text, item=into)
         return (item, etag)
+
 
     def _getResourceList(self, location): # must implement
         """ Return information (etags) about all resources within a collection
@@ -854,7 +836,7 @@ class WebDAVConduit(ShareConduit):
         if style == ImportExportFormat.STYLE_DIRECTORY:
 
             try:
-                resources = self.__getClient().ls(location + "/")
+                resources = self._getClient().ls(location + "/")
 
             except WebDAV.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
@@ -876,7 +858,7 @@ class WebDAVConduit(ShareConduit):
         elif style == ImportExportFormat.STYLE_SINGLE:
 
             try:
-                resp = self.__getClient().head(location)
+                resp = self._getClient().head(location)
                 resp.read() # Always need to read each response
             except WebDAV.ConnectionError, err:
                 raise CouldNotConnect(message=err.message)
@@ -887,7 +869,7 @@ class WebDAVConduit(ShareConduit):
 
             if resp.status == httplib.UNAUTHORIZED:
                 message = "Not authorized to get %s" % url
-                raise NotAuthorized(message=message)
+                raise NotAllowed(message=message)
 
             etag = resp.getheader('ETag', None)
             etag = self.__cleanEtag(etag)
@@ -898,7 +880,7 @@ class WebDAVConduit(ShareConduit):
 
     def connect(self):
         self.__releaseClient()
-        self.__getClient()
+        self._getClient()
 
     def disconnect(self):
         self.__releaseClient()
@@ -920,6 +902,50 @@ class WebDAVConduit(ShareConduit):
         for item in self.share.contents:
             print item.getItemDisplayName(), item.itsUUID, item.getVersion(), item.getVersion(True)
         print " - - - - - - - - - "
+
+class SimpleHTTPConduit(WebDAVConduit):
+    myKindID = None
+    myKindPath = "//parcels/osaf/framework/sharing/SimpleHTTPConduit"
+
+    def get(self):
+        self.connect()
+
+        location = self.getLocation()
+        logger.info("Starting GET of %s" % (location))
+        extraHeaders = { }
+        if self.lastModified:
+            extraHeaders['If-Modified-Since'] = self.lastModified
+            logger.info("...last modified: %s" % self.lastModified)
+
+        try:
+            resp = self._getClient().get(location, extraHeaders=extraHeaders)
+            text = resp.read()
+
+            if resp.status == httplib.NOT_MODIFIED:
+                # The remote resource is as we saw it before
+                logger.info("...not modified")
+                return
+
+        except WebDAV.ConnectionError, err:
+            raise CouldNotConnect(message=err.message)
+
+        if resp.status == httplib.NOT_FOUND:
+            message = "Not found: %s" % location
+            raise NotFound(message=message)
+
+        if resp.status == httplib.UNAUTHORIZED:
+            message = "Not authorized to get %s" % location
+            raise NotAllowed(message=message)
+
+        logger.info("...received; processing...")
+        self.share.format.importProcess(text, item=self.share)
+
+        lastModified = resp.getheader('Last-Modified', None)
+        self.lastModified = lastModified
+        logger.info("...imported, new last modified: %s" % lastModified)
+
+    def put(self, skipItems=None):
+        logger.info("'put( )' not support in SimpleHTTPConduit")
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -1311,7 +1337,7 @@ def newInboundShare(view, url):
     @return: A Share item, or None if no WebDAV account could be found.
     """
 
-    (useSSL, host, port, path, query, fragment) = __spliturl(url)
+    (useSSL, host, port, path, query, fragment) = splitUrl(url)
 
     parent = view.findPath("//userdata")
 
@@ -1394,7 +1420,7 @@ def findMatchingWebDAVAccount(view, url):
 
     webDAVAccountKind = view.findPath("//parcels/osaf/framework/sharing/WebDAVAccount")
 
-    (useSSL, host, port, path, query, fragment) = __spliturl(url)
+    (useSSL, host, port, path, query, fragment) = splitUrl(url)
 
     # Get the parent directory of the given path:
     # '/dev1/foo/bar' becomes ['dev1', 'foo']
@@ -1430,20 +1456,21 @@ def findMatchingShare(view, url):
     # matching share; go through all conduits this account points to and look
     # for shareNames that match
 
-    (useSSL, host, port, path, query, fragment) = __spliturl(url)
+    (useSSL, host, port, path, query, fragment) = splitUrl(url)
 
     # '/dev1/foo/bar' becomes 'bar'
     shareName = path.strip("/").split("/")[-1]
 
-    for conduit in account.conduits:
-        if conduit.shareName == shareName:
-            if conduit.share.hidden == False:
-                return conduit.share
+    if hasattr(account, 'conduits'):
+        for conduit in account.conduits:
+            if conduit.shareName == shareName:
+                if conduit.share.hidden == False:
+                    return conduit.share
 
     return None
 
 
-def __spliturl(url):
+def splitUrl(url):
     (scheme, host, path, query, fragment) = urlparse.urlsplit(url)
 
     if scheme == 'https':
@@ -1668,10 +1695,10 @@ def manualSubscribeToCollection(view):
 
     collection = share.contents
     mainView = Globals.views[0]
-    mainView.postEventByName ("AddToSidebarWithoutCopying", {'items':[collection]})
+    mainView.postEventByName("AddToSidebarWithoutCopying", {'items':[collection]})
     view.commit()
     mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
-    mainView.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':collection})
+    mainView.postEventByName('SelectItemBroadcastInsideActiveView', {'item':collection})
 
 def manualPublishCollection(view, collection):
     share = getShare(collection)

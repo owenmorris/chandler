@@ -10,7 +10,6 @@
     xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
     xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
     xmlns:share="http://osafoundation.org/parcels/osaf/framework/sharing"
-    itemClass="osaf.framework.sharing.Sharing.Parcel"
     >
 
     <displayName value="Sharing Parcel" />
@@ -196,6 +195,18 @@
 
         <Attribute itsName="password">
             <type itemref="String"/>
+        </Attribute>
+
+    </Kind>
+
+    <Kind itsName="SimpleHTTPConduit">
+        <superKinds itemref="share:WebDAVConduit"/>
+        <displayName value="Simple HTTP Share Conduit Kind"/>
+        <classes key="python" value="osaf.framework.sharing.Sharing.SimpleHTTPConduit"/>
+
+        <Attribute itsName="lastModified">
+            <type itemref="String"/>
+            <initialValue type="String" value="" />
         </Attribute>
 
     </Kind>

@@ -35,7 +35,7 @@ class Client(object):
         self.conn = None
         self.retries = retries
 
-    def connect(self):
+    def connect(self, host=None, port=None):
         logger.debug("Opening connection")
 
         if self.useSSL:
@@ -45,7 +45,11 @@ class Client(object):
                                             self.port,
                                             ssl_context=self.ctx)
         else:
-            self.conn = httplib.HTTPConnection(self.host, self.port)
+            if host and port:
+                # We've been redirected
+                self.conn = httplib.HTTPConnection(host, port)
+            else:
+                self.conn = httplib.HTTPConnection(self.host, self.port)
 
         self.conn.debuglevel = 0
         try:
@@ -62,6 +66,11 @@ class Client(object):
             message = "Socket error: %s" % \
                       (" ".join(map(lambda x : str(x), err.args)))
             raise ConnectionError(message=message)
+
+    def disconnect(self):
+        if self.conn:
+            self.conn.close()
+            self.conn = None
 
     def mkcol(self, url, extraHeaders={ }):
         return self._request('MKCOL', url, extraHeaders=extraHeaders)
@@ -165,6 +174,8 @@ class Client(object):
     def _request(self, method, url, body=None, extraHeaders={ }):
         logger.debug("_request: %s %s" % (method, url))
 
+        closeWhenFinished = False
+
         if self.conn is None:
             self.connect()
 
@@ -217,14 +228,26 @@ class Client(object):
                 # bad things can happen:
                 old = urlparse.urlsplit(url)
                 new = urlparse.urlsplit(newurl)
-                if old[0] == new[0] and old[1] == new[1]:
+                if method in ('GET', 'HEAD') or (old[0] == new[0] and old[1] == new[1]):
                     url = newurl
+                    closeWhenFinished = True
                     logger.debug("Redirecting to: %s" % url)
+
+                    # Examine the redirected URL for new host and port
+                    host = new[1]
+                    port = self.port
+                    if host.find(':') != -1:
+                        (host, port) = host.split(':')
+                        port = int(port)
+                    self.connect(host=host, port=port)
                     continue
                 else:
                     logger.debug("Illegal redirect: %s to %s" % (url, newurl))
                     message = "Illegal redirect: %s to %s" % (url, newurl)
                     raise IllegalRedirect(message=message)
+
+            if closeWhenFinished:
+                self.conn = None
 
             return response
 

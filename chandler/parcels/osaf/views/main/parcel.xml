@@ -366,6 +366,12 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
+  <BlockEvent itsName="SharingSubscribeToICalendar">
+    <blockName>SharingSubscribeToICalendar</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+
   <BlockEvent itsName="EditCollectionRule">
     <blockName>EditCollectionRule</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -489,6 +495,7 @@
     <childrenBlocks itemref="doc:GenerateCalendarItem"/>
     <childrenBlocks itemref="doc:GenerateNoteItem"/>
     <childrenBlocks itemref="doc:EditCollectionRuleItem"/>
+    <childrenBlocks itemref="doc:SharingSubscribeToICalendarItem"/>
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:ShareCollectionItem"/>
     <childrenBlocks itemref="doc:SyncCollectionItem"/>
@@ -1084,6 +1091,13 @@
     <title>Subscribe to Collection...</title>
     <event itemref="doc:SharingSubscribeToCollection"/>
     <helpString>Subscribe to a published item collection</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="SharingSubscribeToICalendarItem">
+    <blockName>SharingSubscribeToICalendarItem</blockName>
+    <title>Subscribe to remote iCalendar... (experimental dialog)</title>
+    <event itemref="doc:SharingSubscribeToICalendar"/>
+    <helpString>Subscribe to a remote iCalendar (.ics) file</helpString>
   </MenuItem>
 
   <MenuItem itsName="EditCollectionRuleItem">

@@ -466,6 +466,16 @@ class MainView(View):
         # Triggered from "Tests | Subscribe to collection..."
         Sharing.manualSubscribeToCollection(self.itsView)
 
+    def onSharingSubscribeToICalendarEvent(self, event):
+
+        # Triggered from "Tests | Subscribe to ICalendar..."
+        import osaf.framework.sharing.ICalendarSubscribeDialog
+
+        # @@@MOR Handy during development:
+        reload(osaf.framework.sharing.ICalendarSubscribeDialog)
+
+        osaf.framework.sharing.ICalendarSubscribeDialog.Show(wx.GetApp().mainFrame, self.itsView)
+
     def onEditCollectionRuleEvent(self, event):
         # Triggered from "Tests | Edit collection rule..."
         collection = self.getSidebarSelectedCollection ()
