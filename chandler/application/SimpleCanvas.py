@@ -303,7 +303,6 @@ class wxSimpleCanvas (wxScrolledWindow):
     def __del__(self):
         for item in self.zOrderedDrawableObjects:
             item.Destroy()
-        wxScrolledWindow.__del__(self)
 
     def OnInit (self, dropTargetDataObject):
         """

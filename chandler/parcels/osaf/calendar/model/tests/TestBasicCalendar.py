@@ -3,7 +3,7 @@
 
 import unittest, os
 
-from model.persistence.FileRepository import FileRepository
+from model.persistence.XMLRepository import XMLRepository
 from model.schema.DomainSchemaLoader import DomainSchemaLoader
 
 from OSAF.calendar.model.CalendarEvent import CalendarEvent
@@ -24,12 +24,9 @@ class SimpleTest(unittest.TestCase):
         
         rootdir = os.environ['CHANDLERDIR']
         schemaPack = os.path.join(rootdir, 'model', 'packs', 'schema.pack')
-        #calendarPack = os.path.join(rootdir, 'parcels', 'OSAF',
-        #                            'calendar', 'model', 'calendar.pack')
-        self.rep = FileRepository('test2')
+        self.rep = XMLRepository('test')
         self.rep.create()
         self.rep.loadPack(schemaPack)
-        #self.rep.loadPack(calendarPack)
         calendarPath = os.path.join(rootdir, 'parcels', 'OSAF',
                                     'calendar', 'model', 'calendar.xml')
         self.loader = DomainSchemaLoader(self.rep)
@@ -102,8 +99,17 @@ class SimpleTest(unittest.TestCase):
         generator = CalendarTest(self.rep)
         generator.generateEvents(100, 100)
 
+    def testDeleteItem(self):
+        item = self.factory.NewItem()
+        path = item.getItemPath()
+        item.delete()
+        del item
+        itemShouldBeGone = self.rep.find(path)
+        self.assertEqual(itemShouldBeGone, None)
+
     def tearDown(self):
         # Note: to use for diagnosis if a test fails
+        self.rep.commit()
         self.rep.close()
 
 if __name__ == "__main__":

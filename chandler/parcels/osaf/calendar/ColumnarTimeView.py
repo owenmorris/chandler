@@ -134,6 +134,7 @@ class wxColumnarTimeView(wxColumnarSubView):
         objectToRemove = self.FindSelectedObject()
         if objectToRemove:
             self.DeleteItem(objectToRemove)
+            objectToRemove.Destroy()
             del objectToRemove
         
             app.repository.commit()
