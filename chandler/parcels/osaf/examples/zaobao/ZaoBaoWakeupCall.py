@@ -12,10 +12,10 @@ import logging
 from xml.sax import SAXParseException
 
 class WakeupCall(WakeupCaller.WakeupCall):
-    def receiveWakeupCall(self):
-        repository = self.itsView
+    def receiveWakeupCall(self, wakeupCallItem):
+        view = Globals.repository.view
 
-        repository.refresh()
+        Globals.repository.view.refresh()
 
         chanKind = ZaoBaoParcel.getRSSChannelKind()
 
@@ -37,4 +37,4 @@ class WakeupCall(WakeupCaller.WakeupCall):
                 #print e
                 logging.exception('zaobao failed to parse %s' % item.url)
 
-        repository.commit()
+        Globals.repository.view.commit()

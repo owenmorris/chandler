@@ -137,7 +137,8 @@
     <classes key="python">osaf.examples.zaobao.RSSData.RSSItem</classes>
   </Kind>
 
-  <wakeupCall:WakeupCall itsName="ZaoBao" itemClass="osaf.examples.zaobao.ZaoBaoWakeupCall.WakeupCall">
+  <wakeupCall:WakeupCall itsName="ZaoBao">
+  <wakeupCallClass>osaf.examples.zaobao.ZaoBaoWakeupCall.WakeupCall</wakeupCallClass>
         <callOnStartup>True</callOnStartup>
         <enabled>True</enabled>
         <repeat>True</repeat>
