@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <item withSchema="True">
-  <name>Bool</name>
+  <name>Boolean</name>
   <kind type="path">//Schema/Model/Type</kind>
-  <class module="model.schema.Types">Bool</class>
+  <class module="model.schema.Types">Boolean</class>
 </item>

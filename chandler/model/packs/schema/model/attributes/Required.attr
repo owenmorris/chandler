@@ -5,7 +5,7 @@
   <kind type="path">//Schema/Model/Attribute</kind>
 
   <ref name="type" otherName="typeFor" 
-       type="path" otherCard="dict">/Model/Types/Bool</ref>
+       type="path" otherCard="dict">/Model/Types/Boolean</ref>
 
   <attribute name="cardinality">single</attribute>
   <attribute name="defaultValue" type="bool">False</attribute>

@@ -124,13 +124,13 @@ class Complex(Type):
     makeValue = classmethod(makeValue)
 
 
-class Bool(Type):
+class Boolean(Type):
 
     def makeValue(cls, data):
         return data != 'False'
 
     def unserialize(self, data):
-        return Bool.makeValue(data)
+        return Boolean.makeValue(data)
 
     makeValue = classmethod(makeValue)
 

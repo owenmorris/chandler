@@ -67,7 +67,7 @@ NAME_REF_TAGS = ['inverseAttribute', 'displayAttribute']
 
 BOOTSTRAP_IGNORE = ['DaylightSavingTimezone', 'FixedTimezone', 'EnumKind', 'Item']
 
-BOOTSTRAP = {'Boolean' : '//Schema/Model/Types/Bool',
+BOOTSTRAP = {'Boolean' : '//Schema/Model/Types/Boolean',
              'Number' : '//Schema/Model/Types/Integer',
              'SimpleString' : '//Schema/Model/Types/String',
              'PolyglotText' : '//Schema/Model/Types/String',
