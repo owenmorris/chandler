@@ -8,3 +8,8 @@
     * The PyCrust interactive shell is now included; to bring it up, enable
       the debug menu via Shift-Control-Alt-D and select Show Debugger Window.
     * The zlib extension is now included on all three platforms.
+
+2003-11-03 Morgen Sagen <morgen@osafoundation.org>
+    * hardhat -g runs all files named parcel.xml through two xsl transforms
+      in the distrib/transforms directory, and places the output in the
+      debug/ or release/docs directory.
