@@ -970,6 +970,11 @@
       <initialValue type="Float">0.5</initialValue>
     </Attribute>
     
+    <Attribute itsName="allowResize">
+      <type itemref="Boolean"/>
+      <initialValue type="Boolean">True</initialValue>
+    </Attribute>
+    
     <attributes itemref="docSchema:orientationEnum"/>
   </Kind>  
 

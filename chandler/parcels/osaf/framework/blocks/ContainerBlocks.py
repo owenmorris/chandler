@@ -176,6 +176,9 @@ class wxSplitterWindow(wx.SplitterWindow):
         self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED,
                   self.OnSplitChanged,
                   id=self.GetId())
+        self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGING,
+                  self.OnSplitChanging,
+                  id=self.GetId())
         self.Bind(wx.EVT_SIZE, self.OnSize)
         """
           Setting minimum pane size prevents unsplitting a window by double-clicking
@@ -194,6 +197,11 @@ class wxSplitterWindow(wx.SplitterWindow):
             else:
                 distance = self.blockItem.size.width
             self.SetSashPosition (int (distance * self.blockItem.splitPercentage + 0.5))
+        event.Skip()
+
+    def OnSplitChanging(self, event):
+        if not self.blockItem.allowResize:
+            event.SetSashPosition(-1)
         event.Skip()
 
     def OnSplitChanged(self, event):

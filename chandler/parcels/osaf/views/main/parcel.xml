@@ -1449,6 +1449,7 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <splitPercentage>0.2</splitPercentage>
+    <allowResize>False</allowResize>
   </SplitterWindow>
   
   <SplitterWindow itsName="SidebarDetailViewTemplate">
@@ -1652,6 +1653,7 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <splitPercentage>0.2</splitPercentage>
+    <allowResize>False</allowResize>
   </SplitterWindow>
   
   <TabbedContainer itsName="TabbedView2"
