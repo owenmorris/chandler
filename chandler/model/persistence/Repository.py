@@ -41,6 +41,9 @@ class Repository(object):
 
     def isOpen(self):
         raise NotImplementedError, "Repository.isOpen"
+
+    def save(self, purge=False, verbose=False):
+        raise NotImplementedError, "Repository.save"
     
     def createRefDict(self, item, name, otherName, ordered=False):
         raise NotImplementedError, "Repository.createRefDict"

@@ -66,7 +66,6 @@ class XMLRepository(Repository):
     def close(self, purge=False, verbose=False):
 
         if self._env is not None:
-            self._save(purge=purge, verbose=verbose)
             self._refs.close()
             self._data.close()
             self._schema.close()
@@ -99,26 +98,12 @@ class XMLRepository(Repository):
         load(self._data)
 
     def purge(self):
+        pass
 
-        def purge(container):
-
-            for value in container.query("/item"):
-                doc = value.asDocument()
-                for u in doc.queryWithXPath("/item/@uuid"):
-                    uuid = UUID(u.asString())
-                    if not self._registry.has_key(uuid):
-                        container.deleteDocument(doc)
-
-        purge(self._schema)
-        purge(self._data)
-
-    def _save(self, purge=False, verbose=False):
+    def save(self, purge=False, verbose=False):
 
         if not self.isOpen():
             raise DBError, "Repository is not open"
-
-        if purge:
-            self.purge()
 
         hasSchema = self._roots.has_key('Schema')
 

@@ -40,10 +40,9 @@ class FileRepository(Repository):
             self._load(verbose=verbose)
             self._isOpen = True
 
-    def close(self, purge=False, verbose=False):
+    def close(self):
 
         if self._isOpen:
-            self._save(purge=purge, verbose=verbose)
             self._isOpen = False
 
     def isOpen(self):
@@ -87,7 +86,7 @@ class FileRepository(Repository):
                             os.remove(os.path.join(path, item))
             os.path.walk(self._dir, purge, None)
 
-    def _save(self, purge=False, verbose=False):
+    def save(self, purge=False, verbose=False):
         '''Save all items into the directory this repository was created with.
 
         After save is complete a contents.lst file contains the UUIDs of all
