@@ -4,16 +4,17 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
+from osaf.framework.blocks.ControlBlocks import ListDelegate
 
 
-class SideBarDelegate:
-    def ElementParent(self, element):
+class SideBarDelegate (ListDelegate):
+    def GetElementParent(self, element):
         return element.parent
 
-    def ElementChildren(self, element):
+    def GetElementChildren(self, element):
         return element.children
 
-    def ElementCellValues(self, element):
+    def GetElementValues(self, element):
         return [element.getItemDisplayName()]
 
     def ElementHasChildren(self, element):

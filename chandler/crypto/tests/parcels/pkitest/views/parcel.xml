@@ -202,11 +202,11 @@
 
       <hideRoot>False</hideRoot>
       <noLines>False</noLines>
-      <columnHeadings>Item Name</columnHeadings>
-      <columnHeadings>Display Name</columnHeadings>
-      <columnHeadings>Kind</columnHeadings>
-      <columnHeadings>UUID</columnHeadings>
-      <columnHeadings>Path</columnHeadings>    
+      <columnData>Item Name</columnData>
+      <columnData>Display Name</columnData>
+      <columnData>Kind</columnData>
+      <columnData>UUID</columnData>
+      <columnData>Path</columnData>    
       <columnWidths>160</columnWidths>
       <columnWidths>110</columnWidths>
       <columnWidths>70</columnWidths>

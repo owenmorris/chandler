@@ -80,9 +80,9 @@
 
     <elementDelegate>osaf.views.content.Content.CalendarListDelegate</elementDelegate>
 
-    <columnHeadings>Participants</columnHeadings>
-    <columnHeadings>Headline</columnHeadings>
-    <columnHeadings>Start Time</columnHeadings>
+    <columnData>Participants</columnData>
+    <columnData>Headline</columnData>
+    <columnData>Start Time</columnData>
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
@@ -94,10 +94,10 @@
 
     <elementDelegate>osaf.views.content.Content.ContactListDelegate</elementDelegate>
     
-    <columnHeadings>First Name</columnHeadings>
-    <columnHeadings>Last Name</columnHeadings>
-    <columnHeadings>Telephone</columnHeadings>
-    <columnHeadings>Address</columnHeadings>
+    <columnData>First Name</columnData>
+    <columnData>Last Name</columnData>
+    <columnData>Telephone</columnData>
+    <columnData>Address</columnData>
     <columnWidths>140</columnWidths>
     <columnWidths>140</columnWidths>
     <columnWidths>130</columnWidths>
@@ -110,8 +110,8 @@
 
     <elementDelegate>osaf.views.content.Content.NoteListDelegate</elementDelegate>
 
-    <columnHeadings>Description</columnHeadings>
-    <columnHeadings>Created On</columnHeadings>
+    <columnData>Description</columnData>
+    <columnData>Created On</columnData>
     <columnWidths>270</columnWidths>
     <columnWidths>170</columnWidths>
   </List>
@@ -138,9 +138,9 @@
   <Table itsName="MixedList">
     <contents itemref="view:mixedItemCollection"/>
 
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -151,9 +151,9 @@
   <Table itsName="InList">
     <contents itemref="view:inItemCollection"/>
 
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -164,9 +164,9 @@
   <Table itsName="OutList">
     <contents itemref="view:outItemCollection"/>
 
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -177,9 +177,9 @@
   <Table itsName="NewCalendarList">
     <contents itemref="view:calendarItemCollection"/>
 
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -190,9 +190,9 @@
   <Table itsName="NewContactList">
     <contents itemref="view:contactItemCollection"/>
 
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -203,9 +203,9 @@
   <Table itsName="JunkList">
     <contents itemref="view:junkItemCollection"/>
 
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -216,9 +216,9 @@
   <Table itsName="TrashList">
     <contents itemref="view:trashItemCollection"/>
 
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>

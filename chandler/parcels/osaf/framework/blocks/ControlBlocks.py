@@ -188,21 +188,56 @@ class ListDelegate (object):
       Default delegate for Lists that use the block's contents. Override
     to customize your behavior.
     """
+    def GetColumnCount (self):
+        return len (self.blockItem.columnData)
+
+    def GetElementCount (self):
+        return len (self.blockItem.contents)
+
+    def GetElementType (self, row, column):
+        return "string"
+
+    def GetColumnHeading (self, column, item):
+        return self.blockItem.columnData [column]
+
+
+class AttributeDelegate (ListDelegate):
     def GetElementValue (self, row, column):
-        result = self.blockItem.contents[item]
-        name = self.blockItem.columnHeadings[column]
+        item = self.blockItem.contents [row]
+        attributeName = self.blockItem.columnData [column]
         try:
-            return str (result.getAttributeValue(name))
+            value = item.getAttributeValue (attributeName)
         except AttributeError:
-            return ""
+            value = ""
+        else:
+            # @@@ getAttributeAspect of a indirectAttribute returns
+            # the aspect of the indirectAttribute rather than the 
+            # attribute itself.  This code should be changed once
+            # that is fixed.            
+#            if item.getAttributeAspect (attributeName, "cardinality") == "list":
+                compoundValue = value
+                value = ""
+                try:
+                    for part in compoundValue:
+                        if value:
+                            value = value + ", "
+                        value = value + part.getItemDisplayName()
+                except:
+                    return compoundValue
+        return value
 
     def SetElementValue (self, row, column, value):
-        result = self.blockItem.contents[item]
-        column = self.blockItem.columnHeadings[column]
-        result.setAttributeValue(column, value)
+        item = self.blockItem.contents[row]
+        attributeName = self.blockItem.columnData [column]
+        item.setAttributeValue (attributeName, value)
 
-    def ElementCount (self):
-        return len(self.blockItem.contents)
+    def GetColumnHeading (self, column, item):
+        heading = ""
+        if item:
+            attributeName = self.blockItem.columnData [column]
+            attribute = item.itsKind.getAttribute (attributeName)
+            heading = attribute.getItemDisplayName()
+        return heading
 
 
 class wxList (DraggableWidget, wx.ListCtrl):
@@ -215,7 +250,7 @@ class wxList (DraggableWidget, wx.ListCtrl):
     def OnInit (self):
         elementDelegate = self.blockItem.elementDelegate
         if not elementDelegate:
-            elementDelegate = 'osaf.framework.blocks.ControlBlocks.ListDelegate'
+            elementDelegate = 'osaf.framework.blocks.ControlBlocks.AttributeDelegate'
         mixinAClass (self, elementDelegate)
         
     def OnSize(self, event):
@@ -246,12 +281,12 @@ class wxList (DraggableWidget, wx.ListCtrl):
         self.blockItem.contents.resultsStale = True
         self.Freeze()
         self.ClearAll()
-        for index in xrange (len(self.blockItem.columnHeadings)):
-            self.InsertColumn(index,
-                              str(self.blockItem.columnHeadings[index]),
-                              width = self.blockItem.columnWidths[index])
+        self.SetItemCount (self.GetElementCount())
+        for columnIndex in xrange (self.GetColumnCount()):
+            self.InsertColumn (columnIndex,
+                               self.GetColumnHeading (columnIndex, self.blockItem.selection),
+                               width = self.blockItem.columnWidths [columnIndex])
 
-        self.SetItemCount (self.ElementCount())
         self.Thaw()
 
         if self.blockItem.selection:
@@ -296,16 +331,21 @@ class wxTableData(wx.grid.PyGridTableBase):
         GetNumberCols before wiring up the view instance variable
         """
         if self.GetView():
-            return self.GetView().ElementCount()
+            return self.GetView().GetElementCount()
         return 1
 
     def GetNumberCols (self):
         if self.GetView():
-            return len (self.GetView().blockItem.columnHeadings)
+            return self.GetView().GetColumnCount()
         return 1
 
     def GetColLabelValue (self, column):
-        return self.GetView().GetColumnHeading (column)
+        grid = self.GetView()
+        if grid.GetElementCount():
+            item = grid.blockItem.contents [grid.GetGridCursorRow()]
+        else:
+            item = None
+        return grid.GetColumnHeading (column, item)
 
     def IsEmptyCell (self, row, column): 
         return False 
@@ -318,45 +358,6 @@ class wxTableData(wx.grid.PyGridTableBase):
 
     def GetTypeName (self, row, column):
         return self.GetView().GetElementType (row, column)
-
-
-class AttributeDelegate (ListDelegate):
-    def GetElementValue (self, row, column):
-        item = self.blockItem.contents [row]
-        attributeName = self.blockItem.columnHeadings [column]
-        try:
-            value = item.getAttributeValue (attributeName)
-        except AttributeError:
-            value = ""
-        else:
-            # @@@ getAttributeAspect of a indirectAttribute returns
-            # the aspect of the indirectAttribute rather than the 
-            # attribute itself.  This code should be changed once
-            # that is fixed.            
-#            if item.getAttributeAspect (attributeName, "cardinality") == "list":
-                compoundValue = value
-                value = ""
-                try:
-                    for part in compoundValue:
-                        if value:
-                            value = value + ", "
-                        value = value + part.getItemDisplayName()
-                except:
-                    return compoundValue
-        return value
-
-    def GetElementType (self, row, column):
-        return "string"
-
-    def GetColumnHeading (self, column):
-        heading = ""
-        if len(self.blockItem.contents):
-            row = self.GetGridCursorCol()
-            item = self.blockItem.contents [row]
-            attributeName = self.blockItem.columnHeadings [column]
-            attribute = item.itsKind.getAttribute (attributeName)
-            heading = attribute.getItemDisplayName()
-        return heading
 
 
 class wxTable(wx.grid.Grid):
@@ -374,6 +375,7 @@ class wxTable(wx.grid.Grid):
             Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
         self.SetRowLabelSize(0)
+        self.AutoSizeRows()
 
         self.SetDefaultRenderer (ImageRenderer())
         self.RegisterDataType ("image", ImageRenderer(), None);
@@ -427,9 +429,17 @@ class wxTable(wx.grid.Grid):
             item = self.blockItem.contents [event.GetRow()]
             if self.blockItem.selection != item:
                 self.blockItem.selection = item
+
+                # Redraw headers
+                gridTable = self.GetTable()
+                self.BeginBatch()
+                for columnIndex in xrange (gridTable.GetNumberCols()):
+                    self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
+                self.EndBatch() 
+
             self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                                                               {'item':item})
-            self.blockItem.selectedColumn = self.blockItem.columnHeadings [event.GetCol()]
+            self.blockItem.selectedColumn = self.blockItem.columnData [event.GetCol()]
         event.Skip()
 
     def Reset(self): 
@@ -484,7 +494,7 @@ class wxTable(wx.grid.Grid):
             pass
         else:
             for columnIndex in xrange (self.GetTable().GetNumberCols()):
-                if self.blockItem.columnHeadings [columnIndex] == selectedColumn:
+                if self.blockItem.columnData [columnIndex] == selectedColumn:
                     cursorColumn = columnIndex
                     break
 
@@ -708,6 +718,25 @@ class ToolbarItem(Block):
         return tool
 
 
+"""
+  To use the TreeAndList you must provide a delegate to perform access
+to the data that is displayed. 
+  You might be able to subclass ListDelegate and implement the following methods:
+
+class TreeAndListDelegate (ListDelegate):
+
+    def GetElementParent(self, element):
+
+    def GetElementChildren(self, element):
+
+    def GetElementValues(self, element):
+
+    def ElementHasChildren(self, element):
+        
+    Optionally override GetColumnCount and GetColumnHeading
+"""
+
+
 class wxTreeAndList(DraggableWidget):
     def __init__(self, *arguments, **keywords):
         super (wxTreeAndList, self).__init__ (*arguments, **keywords)
@@ -748,8 +777,8 @@ class wxTreeAndList(DraggableWidget):
         if not child.IsOk():
             
             parentUUID = self.GetItemData(parentId).GetData()
-            for child in self.ElementChildren (Globals.repository [parentUUID]):
-                cellValues = self.ElementCellValues (child)
+            for child in self.GetElementChildren (Globals.repository [parentUUID]):
+                cellValues = self.GetElementValues (child)
                 childNodeId = self.AppendItem (parentId,
                                                cellValues.pop(0),
                                                -1,
@@ -813,25 +842,25 @@ class wxTreeAndList(DraggableWidget):
                     child = self.GetNextSibling (child)
 
         try:
-            self.blockItem.columnHeadings
+            self.blockItem.columnWidths
         except AttributeError:
-            pass # A wx.TreeCtrl won't use columnHeadings
+            pass # A wx.TreeCtrl won't use columnWidths
         else:
             for index in xrange(self.GetColumnCount()):
                 self.RemoveColumn (0)
     
             info = wx.gizmos.TreeListColumnInfo()
-            for index in xrange (len(self.blockItem.columnHeadings)):
-                info.SetText (self.blockItem.columnHeadings[index])
-                info.SetWidth (self.blockItem.columnWidths[index])
+            for index in xrange (self.GetColumnCount()):
+                info.SetText (self.GetColumnHeading (index, None))
+                info.SetWidth (self.blockItem.columnWidths [index])
                 self.AddColumnInfo (info)
 
         self.DeleteAllItems()
 
         root = self.blockItem.rootPath
         if not root:
-            root = self.ElementChildren (None)
-        cellValues = self.ElementCellValues (root)
+            root = self.GetElementChildren (None)
+        cellValues = self.GetElementValues (root)
         rootNodeId = self.AddRoot (cellValues.pop(0),
                                    -1,
                                    -1,
@@ -851,7 +880,7 @@ class wxTreeAndList(DraggableWidget):
         
     def GoToItem(self, item):
         def ExpandTreeToItem (self, item):
-            parent = self.ElementParent (item)
+            parent = self.GetElementParent (item)
             if parent:
                 id = ExpandTreeToItem (self, parent)
                 self.LoadChildren(id)
@@ -905,7 +934,7 @@ class Tree(RectangularChild):
 
     def instantiateWidget(self):
         try:
-            self.columnHeadings
+            self.columnWidths
         except AttributeError:
             tree = wxTree (self.parentBlock.widget, Block.getWidgetID(self), 
                            style=wxTreeAndList.CalculateWXStyle(self))

@@ -92,7 +92,7 @@
     <defaultValue type="docSchema:orientationEnumType">Horizontal</defaultValue>
   </Attribute>
 
-  <Attribute itsName="columnHeadings">
+  <Attribute itsName="columnData">
     <type itemref="String"/>
     <cardinality>list</cardinality>
   </Attribute>
@@ -595,8 +595,9 @@
     <classes key="python">osaf.framework.blocks.ControlBlocks.List</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <attributes itemref="docSchema:columnHeadings"/>
+    <attributes itemref="docSchema:columnData"/>
     <attributes itemref="docSchema:columnWidths"/>
+
     <attributes itemref="docSchema:elementDelegate"/>
     <attributes itemref="docSchema:selection"/>
   </Kind>  
@@ -613,7 +614,7 @@
       <defaultValue itemref="None"/>
     </Attribute>
     
-    <attributes itemref="docSchema:columnHeadings"/>
+    <attributes itemref="docSchema:columnData"/>
     <attributes itemref="docSchema:columnWidths"/>
 
     <attributes itemref="docSchema:elementDelegate"/>
@@ -652,8 +653,9 @@
       <type itemref="Item"/>
     </Attribute>
 
-    <attributes itemref="docSchema:columnHeadings"/>
+    <attributes itemref="docSchema:columnData"/>
     <attributes itemref="docSchema:columnWidths"/>
+
     <attributes itemref="docSchema:elementDelegate"/>
     <attributes itemref="docSchema:Tree/hideRoot"/>
     <attributes itemref="docSchema:Tree/noLines"/>

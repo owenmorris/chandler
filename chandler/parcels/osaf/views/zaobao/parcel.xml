@@ -61,9 +61,9 @@
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoTreeDelegate</elementDelegate>
     <rootPath itemref="zb:RSSChannel"/>
 
-    <columnHeadings>Subject</columnHeadings>
+    <columnData>Subject</columnData>
     <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
+    <columnData>Date</columnData>
     <columnWidths>150</columnWidths>
 
     <size>600,200</size>
@@ -121,9 +121,9 @@
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:osaf"/>
 
-    <columnHeadings>Subject</columnHeadings>
+    <columnData>Subject</columnData>
     <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
+    <columnData>Date</columnData>
     <columnWidths>150</columnWidths>
 
     <size>600,200</size>
@@ -151,9 +151,9 @@
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:chandlerwiki"/>
 
-    <columnHeadings>Subject</columnHeadings>
+    <columnData>Subject</columnData>
     <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
+    <columnData>Date</columnData>
     <columnWidths>150</columnWidths>
 
     <size>600,200</size>
@@ -180,9 +180,9 @@
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:junglewiki"/>
 
-    <columnHeadings>Subject</columnHeadings>
+    <columnData>Subject</columnData>
     <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
+    <columnData>Date</columnData>
     <columnWidths>150</columnWidths>
 
     <size>600,200</size>
@@ -210,9 +210,9 @@
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:ted"/>
 
-    <columnHeadings>Subject</columnHeadings>
+    <columnData>Subject</columnData>
     <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
+    <columnData>Date</columnData>
     <columnWidths>150</columnWidths>
 
     <size>600,200</size>
@@ -240,9 +240,9 @@
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:zaobao"/>
 
-    <columnHeadings>Subject</columnHeadings>
+    <columnData>Subject</columnData>
     <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
+    <columnData>Date</columnData>
     <columnWidths>150</columnWidths>
 
     <size>600,200</size>
@@ -271,9 +271,9 @@
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:chao"/>
 
-    <columnHeadings>Subject</columnHeadings>
+    <columnData>Subject</columnData>
     <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
+    <columnData>Date</columnData>
     <columnWidths>150</columnWidths>
 
     <size>600,200</size>
@@ -302,9 +302,9 @@
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:lessig"/>
 
-    <columnHeadings>Subject</columnHeadings>
+    <columnData>Subject</columnData>
     <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
+    <columnData>Date</columnData>
     <columnWidths>150</columnWidths>
 
     <size>600,200</size>
@@ -333,9 +333,9 @@
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:diveintomark"/>
 
-    <columnHeadings>Subject</columnHeadings>
+    <columnData>Subject</columnData>
     <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
+    <columnData>Date</columnData>
     <columnWidths>150</columnWidths>
 
     <size>600,200</size>

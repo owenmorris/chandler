@@ -8,11 +8,11 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from repository.item.Query import KindQuery
-from osaf.framework.blocks.ControlBlocks import Tree, ItemDetail
+from osaf.framework.blocks.ControlBlocks import Tree, ItemDetail, ListDelegate
 import osaf.examples.zaobao.RSSData as RSSData
 
-# GetElementCellValues is shared between both classes
-def GetElementCellValues(element):
+# GetZaoBaoElementValues is shared between both classes
+def GetZaoBaoElementValues(element):
     if element == RSSData.ZaoBaoParcel.getRSSChannelKind():
         return ['','']
 
@@ -26,19 +26,19 @@ def GetElementCellValues(element):
 
     return [displayName, str(date)]
 
-class ZaoBaoListDelegate:
-    def ElementParent(self, element):
+class ZaoBaoListDelegate (ListDelegate):
+    def GetElementParent(self, element):
         if element.itsKind is RSSData.ZaoBaoParcel.getRSSChannelKind():
             return None
         return element.channel
 
-    def ElementChildren(self, element):
+    def GetElementChildren(self, element):
         if element.itsKind is RSSData.ZaoBaoParcel.getRSSChannelKind():
             return element.items
         return None
 
-    def ElementCellValues(self, element):
-        return GetElementCellValues(element)
+    def GetElementValues(self, element):
+        return GetZaoBaoElementValues(element)
 
     def ElementHasChildren(self, element):
         if element.itsKind is RSSData.ZaoBaoParcel.getRSSChannelKind():
@@ -51,8 +51,8 @@ class ZaoBaoListDelegate:
         if chanUUID == changedUUID:
             self.scheduleUpdate = True
 
-class ZaoBaoTreeDelegate:
-    def ElementParent(self, element):
+class ZaoBaoTreeDelegate (ListDelegate):
+    def GetElementParent(self, element):
         chanKind = RSSData.ZaoBaoParcel.getRSSChannelKind()
         if element == chanKind:
             return None
@@ -60,7 +60,7 @@ class ZaoBaoTreeDelegate:
             return chanKind
         return element.channel
 
-    def ElementChildren(self, element):
+    def GetElementChildren(self, element):
         chanKind = RSSData.ZaoBaoParcel.getRSSChannelKind()
 
         if element == chanKind:
@@ -71,8 +71,8 @@ class ZaoBaoTreeDelegate:
 
         return None
 
-    def ElementCellValues(self, element):
-        return GetElementCellValues(element)
+    def GetElementValues(self, element):
+        return GetZaoBaoElementValues(element)
 
     def ElementHasChildren(self, element):
         chanKind = RSSData.ZaoBaoParcel.getRSSChannelKind()

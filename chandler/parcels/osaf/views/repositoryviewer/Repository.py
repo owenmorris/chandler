@@ -9,20 +9,20 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application.Globals as Globals
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 
-class RepositoryDelegate:
+class RepositoryDelegate (ControlBlocks.ListDelegate):
     """ Used by the tree in the repository view
     """
     
-    def ElementParent(self, element):
+    def GetElementParent(self, element):
         return element.itsParent
 
-    def ElementChildren(self, element):
+    def GetElementChildren(self, element):
         if element:
             return element
         else:
             return Globals.repository.view
 
-    def ElementCellValues(self, element):
+    def GetElementValues(self, element):
         cellValues = [element.itsName]
         if True or element != Globals.repository.view:
             try:
