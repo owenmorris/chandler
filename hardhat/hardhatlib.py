@@ -52,17 +52,21 @@ def init(root):
     buildenv['os'] = 'unknown'
     if os.name == 'nt':
 	buildenv['os'] = 'win'
+	buildenv['oslabel'] = 'win'
 	buildenv['path'] = os.environ['path']
     elif os.name == 'posix':
 	buildenv['os'] = 'posix'
+	buildenv['oslabel'] = 'linux'
 	buildenv['path'] = os.environ['PATH']
 	if sys.platform == 'darwin':
 	    # It turns out that Mac OS X happens to have os.name of 'posix'
 	    # but the steps to build things under OS X is different enough
 	    # to warrant its own 'os' value:
 	    buildenv['os'] = 'osx'
+	    buildenv['oslabel'] = 'osx'
 	if sys.platform == 'cygwin':
 	    buildenv['os'] = 'win'
+	    buildenv['oslabel'] = 'win'
 	    buildenv['path'] = os.environ['PATH']
 
     else: 
@@ -84,6 +88,10 @@ def init(root):
 	buildenv['scp'] = os.environ['SCP']
     if os.environ.has_key('TAR'):
 	buildenv['tar'] = os.environ['TAR']
+    if os.environ.has_key('GZIPEXE'):
+	buildenv['gzip'] = os.environ['GZIPEXE']
+    if os.environ.has_key('ZIP'):
+	buildenv['zip'] = os.environ['ZIP']
     
     # set OS-specific variables
     if buildenv['os'] == 'win':
@@ -1044,52 +1052,148 @@ def cvsClean(buildenv, dirs):
 
 # workdir is /home/builder/nightly
 def buildComplete(buildenv, releaseId, cvsModule, module):
-    if os.environ.has_key('CVS') and os.environ.has_key('SCP') and os.environ.has_key('TAR'):
+    if os.environ.has_key('CVS') and os.environ.has_key('SCP') and os.environ.has_key('TAR') and os.environ.has_key('GZIPEXE'):
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
 	 "Paths to tools found, proceeding")
     else:
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Paths to tools need to be set in the following environment variables:  CVS, SCP, TAR")
+	 "Paths to tools need to be set in the following environment variables:  CVS, SCP, TAR, GZIPEXE")
 	raise HardHatError
 
 
-    buildGetSource(buildenv, releaseId, cvsModule)
+    # buildPrepareSource(buildenv, releaseId, cvsModule)
+    # buildRelease(buildenv, releaseId, module)
+    buildPrepareSource(buildenv, releaseId, cvsModule, False)
+    buildDebug(buildenv, releaseId, module)
 
-def buildGetSource(buildenv, releaseId, cvsModule):
+def buildPrepareSource(buildenv, releaseId, cvsModule, doCheckout=True):
 
     os.chdir(buildenv['osafroot'])
 
     if os.path.exists("osaf"):
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Removing existing osaf under", buildenv['osafroot'])
+	 "Removing existing osaf under " + buildenv['osafroot'])
 	rmdir_recursive("osaf")
 
     if os.path.exists("latest.tar"):
 	executeCommand(buildenv, "HardHat", 
-	 [buildenv['tar'], "xf", "latest.tar"], 
+	 [buildenv['tar'], "xvf", "latest.tar"], 
 	"Untarring previous source")
 
-    executeCommand(buildenv, "HardHat", 
-     [buildenv['cvs'], "checkout", cvsModule], 
-    "Checking out", cvsModule, "from CVS")
+    if doCheckout:
+	executeCommand(buildenv, "HardHat", 
+	 [buildenv['cvs'], "checkout", cvsModule], 
+	"Checking out " + cvsModule + " from CVS")
 
-    executeCommand(buildenv, "HardHat", 
-     [buildenv['tar'], "cf", "latest-temp.tar"], 
-    "Tarring current source")
+	executeCommand(buildenv, "HardHat", 
+	 [buildenv['tar'], "cvf", "latest-temp.tar", "osaf"], 
+	"Tarring current source")
 
-    log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-     "Renaming latest-temp.tar latest.tar")
-    os.rename("latest-temp.tar", "latest.tar")
+	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+	 "Renaming latest-temp.tar latest.tar")
+	os.rename("latest-temp.tar", "latest.tar")
+    else:
+	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+	 "Skipping checkout")
 
     log(buildenv, HARDHAT_MESSAGE, "HardHat", 
      "Latest source code prepared")
 
 
-def buildRelease(buildenv, releaseId, workDir):
-    return
+def buildRelease(buildenv, releaseId, module):
+    tarballName = module + "_" + buildenv['oslabel'] + "_dev_release_" + \
+     releaseId + ".tar"
+    distName = module + "_" + buildenv['oslabel'] + "_" + releaseId
+    distTarballName = module + "_" + buildenv['oslabel'] + "_" + \
+     releaseId + ".tar"
 
-def buildDebug(buildenv, releaseId, workDir):
-    return
+    try:
+	buildenv['version'] = 'release'
+	buildDependencies(buildenv, module)
+	os.chdir(buildenv['root'])
+	
+	executeCommand(buildenv, "HardHat", 
+	 [buildenv['tar'], "cvf", tarballName, "release"],
+	"Tarring developers' release")
+	executeCommand(buildenv, "HardHat", 
+	 [buildenv['gzip'], "-f", tarballName],
+	"Running gzip on " + tarballName)
+	
+	distribute(buildenv, module)
+	os.chdir(buildenv['root'])
+	if os.path.isdir(distName):
+	    rmdir_recursive(distName)
+	os.rename("distrib", distName)
+	executeCommand(buildenv, "HardHat", 
+	 [buildenv['tar'], "cvf", distTarballName, distName],
+	"Tarring end-user distribution")
+	executeCommand(buildenv, "HardHat", 
+	 [buildenv['gzip'], "-f", distTarballName],
+	"Running gzip on " + distTarballName)
+
+	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+	 "Copying tarballs")
+
+	releasesDir = buildenv['osafroot'] + os.sep + "releases"
+	releaseDir = releasesDir + os.sep + releaseId
+
+	if not os.path.exists(releasesDir):
+	    os.mkdir(releasesDir)
+	if not os.path.exists(releaseDir):
+	    os.mkdir(releaseDir)
+	if os.path.exists(releaseDir + os.sep + tarballName + ".gz"):
+	    os.remove(releaseDir + os.sep + tarballName + ".gz")
+	os.rename(tarballName+".gz", releaseDir+os.sep+tarballName+".gz")
+	if os.path.exists(releaseDir + os.sep + distTarballName + ".gz"):
+	    os.remove(releaseDir + os.sep + distTarballName + ".gz")
+	os.rename(distTarballName+".gz", 
+	 releaseDir+os.sep+distTarballName+".gz")
+
+	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+	 "Release tarballs are in " + releaseDir)
+
+    except Exception, e:
+	print e
+	
+def buildDebug(buildenv, releaseId, module):
+    tarballName = module + "_" + buildenv['oslabel'] + "_dev_debug_" + \
+     releaseId + ".tar"
+
+    try:
+	buildenv['version'] = 'debug'
+	buildDependencies(buildenv, module)
+	os.chdir(buildenv['root'])
+	
+	executeCommand(buildenv, "HardHat", 
+	 [buildenv['tar'], "cvf", tarballName, "debug"],
+	"Tarring developers' debug")
+	executeCommand(buildenv, "HardHat", 
+	 [buildenv['gzip'], "-f", tarballName],
+	"Running gzip on " + tarballName)
+	
+	os.chdir(buildenv['root'])
+
+	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+	 "Copying tarball")
+
+	releasesDir = buildenv['osafroot'] + os.sep + "releases"
+	releaseDir = releasesDir + os.sep + releaseId
+
+	if not os.path.exists(releasesDir):
+	    os.mkdir(releasesDir)
+	if not os.path.exists(releaseDir):
+	    os.mkdir(releaseDir)
+	if os.path.exists(releaseDir + os.sep + tarballName + ".gz"):
+	    os.remove(releaseDir + os.sep + tarballName + ".gz")
+	os.rename(tarballName+".gz", releaseDir+os.sep+tarballName+".gz")
+
+	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+	 "Debug tarballs are in " + releaseDir)
+
+    except Exception, e:
+	print e
+	
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Exception Classes
