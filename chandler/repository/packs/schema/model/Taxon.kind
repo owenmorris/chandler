@@ -4,8 +4,13 @@
   <name>Taxon</name>
   <kind type="path">//Schema/Model/Kind</kind>
 
-  <ref name="SuperKinds" cardinality="list"
-       otherName="SubKinds" otherCard="dict">
+  <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
+    <ref name="displayName" type="path">/Model/Attributes/displayName</ref>
+    <ref name="description" type="path">/Model/Attributes/description</ref>
+  </ref>
+
+  <ref name="superKinds" cardinality="list"
+       otherName="subKinds" otherCard="dict">
     <ref name="70acd404-b3c8-11d7-a72a-000393db837c" nameType="uuid"
          type="path">/Model/Item</ref>
   </ref>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item withSchema="True">
-  <name>SubKinds</name>
+  <name>subKinds</name>
   <kind type="path">//Schema/Model/Attribute</kind>
 
-  <attribute name="Cardinality">dict</attribute>
-  <attribute name="OtherName">SuperKinds</attribute>
+  <attribute name="cardinality">dict</attribute>
+  <attribute name="otherName">superKinds</attribute>
 </item>

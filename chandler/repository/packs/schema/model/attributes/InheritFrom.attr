@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item withSchema="True">
-  <name>InheritFrom</name>
+  <name>inheritFrom</name>
   <kind type="path">//Schema/Model/Attribute</kind>
 
-  <ref name="Type" otherName="TypeFor" 
+  <ref name="type" otherName="typeFor" 
        type="path" otherCard="dict">/Model/Types/String</ref>
 
-  <attribute name="Cardinality">single</attribute>
+  <attribute name="cardinality">single</attribute>
 </item>

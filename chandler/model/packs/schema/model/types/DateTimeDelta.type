@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
+
 <item withSchema="True">
   <name>DateTimeDelta</name>
   <kind type="path">//Schema/Model/Type</kind>
   <class module="model.schema.Types">DateTimeDelta</class>
 
-  <attribute name="Fields" cardinality="list">
+  <attribute name="fields" cardinality="list">
     <value>day</value>
     <value>hour</value>
     <value>minute</value>

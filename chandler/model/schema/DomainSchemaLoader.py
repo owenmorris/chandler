@@ -9,7 +9,7 @@
     + Doesn't deal with DTDs or XSDs.
     + Only treats 'attribute' as a multivalued attribute, treats it as a
       special case
-    + Treats OtherName/inverseAttribute as a special case
+    + Treats otherName/inverseAttribute as a special case
 
 """
 
@@ -36,24 +36,24 @@ ITEM_TAGS = {'Kind' : 'Kind',
 
 # XML format tag is the key, Repository expected attribute is the value
 
-ATTRIBUTE_TEXT_TAGS = {'displayName': 'DisplayName',
+ATTRIBUTE_TEXT_TAGS = {'displayName': 'displayName',
                        'description': 'description',
                        'version' : 'version',
-                       'defaultValue' : 'DefaultValue',
-                       'cardinality': 'Cardinality',
+                       'defaultValue' : 'defaultValue',
+                       'cardinality': 'cardinality',
                        'relationshipType': 'relationshipType'}
 
 ATTRIBUTES_TEXT_TAGS = {'examples': 'examples',
                         'issues' : 'issues'}
 
-ATTRIBUTE_REF_TAGS = {'superAttribute': 'SuperAttribute',
-                      'type': 'Type',
-                      'inverseAttribute':'OtherName',
-                      'displayAttribute':'DisplayAttribute',
-                      'inheritFrom' : 'InheritFrom'}
+ATTRIBUTE_REF_TAGS = {'superAttribute': 'superAttribute',
+                      'type': 'type',
+                      'inverseAttribute':'otherName',
+                      'displayAttribute':'displayAttribute',
+                      'inheritFrom' : 'inheritFrom'}
 
-ATTRIBUTES_REF_TAGS = {'superKinds' : 'SuperKinds',
-                       'attributes': 'Attributes',
+ATTRIBUTES_REF_TAGS = {'superKinds' : 'superKinds',
+                       'attributes': 'attributes',
                        'equivalentKinds':'equivalentKinds',
                        'equivalentAttributes':'equivalentAttributes',
                        'aliasFor':'aliasFor'}
@@ -61,7 +61,7 @@ ATTRIBUTES_REF_TAGS = {'superKinds' : 'SuperKinds',
 ATTRIBUTE_BOOL_TAGS = {'hidden' : 'hidden',
                        'abstract' : 'abstract',
                        'unidirectional' : 'unidirectional',
-                       'required' : 'Required'}
+                       'required' : 'required'}
 
 class DomainSchemaLoader(object):
     """ Load items defined in the schema file into the repository,
@@ -233,9 +233,9 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
             # Store class mapping in a dictionary
             if key == 'classes':
                 value = attributeDictionary[key]
-                item.setValue('Classes', value, 'python')
+                item.setValue('classes', value, 'python')
 
-            # Special case for 'OtherName'
+            # Special case for 'otherName'
             elif key == 'inverseAttribute':
                 ref = self.findItem(attributeDictionary[key])
                 item.setAttributeValue(ATTRIBUTE_REF_TAGS[key],

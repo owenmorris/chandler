@@ -4,6 +4,6 @@
     <name>Died</name>
     <kind type="path">//Schema/Model/Attribute</kind>
 
-    <ref name="Type" type="path">//Schema/Model/Types/RelativeDateTime</ref>
-    <attribute name="Cardinality">single</attribute>
+    <ref name="type" type="path">//Schema/Model/Types/RelativeDateTime</ref>
+    <attribute name="cardinality">single</attribute>
 </item>

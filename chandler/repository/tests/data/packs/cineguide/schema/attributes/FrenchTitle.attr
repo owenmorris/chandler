@@ -4,8 +4,8 @@
     <name>FrenchTitle</name>
     <kind type="path">//Schema/Model/Attribute</kind>
 
-    <ref name="Type" type="path">//Schema/Model/Types/String</ref>
-    <attribute name="Cardinality">single</attribute>
-    <attribute name="Required">True</attribute>
-    <attribute name="InheritFrom">Title</attribute>
+    <ref name="type" type="path">//Schema/Model/Types/String</ref>
+    <attribute name="cardinality">single</attribute>
+    <attribute name="required">True</attribute>
+    <attribute name="inheritFrom">Title</attribute>
 </item>

@@ -3,7 +3,7 @@
   <name>Cardinality</name>
   <kind type="path">//Schema/Model/Enumeration</kind>
 
-  <attribute name="Values" cardinality="list">
+  <attribute name="values" cardinality="list">
     <value>single</value>
     <value>list</value>
     <value>dict</value>

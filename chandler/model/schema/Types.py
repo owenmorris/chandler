@@ -25,7 +25,7 @@ class Type(Item):
 
     def typeXML(self, value, generator):
 
-        fields = self.Fields
+        fields = self.fields
         if fields:
             generator.startElement('fields', {})
             for field in fields:

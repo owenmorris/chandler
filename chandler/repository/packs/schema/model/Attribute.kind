@@ -4,26 +4,24 @@
   <name>Attribute</name>
   <kind type="path">//Schema/Model/Kind</kind>
 
-  <ref name="Attributes" otherName="Kinds" cardinality="dict" otherCard="dict">
-    <ref name="Required" type="path">/Model/Attributes/Required</ref>
-    <ref name="Persist" type="path">/Model/Attributes/Persist</ref>
-    <ref name="Cardinality" type="path">/Model/Attributes/Cardinality</ref>
-    <ref name="Type" type="path">/Model/Attributes/Type</ref>
-    <ref name="DefaultValue" type="path">/Model/Attributes/DefaultValue</ref>
-    <ref name="InheritFrom" type="path">/Model/Attributes/InheritFrom</ref>
-    <ref name="OtherName" type="path">/Model/Attributes/OtherName</ref>
-    <ref name="DeletePolicy" type="path">/Model/Attributes/DeletePolicy</ref>
-    <ref name="CopyPolicy" type="path">/Model/Attributes/CopyPolicy</ref>
-    <ref name="CountPolicy" type="path">/Model/Attributes/CountPolicy</ref>
-    <ref name="DisplayName" type="path">/Model/Attributes/DisplayName</ref>
-    <ref name="InheritingKinds" type="path">/Model/Attributes/InheritingKinds</ref>
-    <ref name="Kinds" type="path">/Model/Attributes/Kinds</ref>
-    <ref name="SuperAttribute" type="path">/Model/Attributes/SuperAttribute</ref>
-    <ref name="SubAttributes" type="path">/Model/Attributes/SubAttributes</ref>
-    <ref name="Description" type="path">/Model/Attributes/Description</ref>
+  <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
+    <ref name="required" type="path">/Model/Attributes/required</ref>
+    <ref name="persist" type="path">/Model/Attributes/persist</ref>
+    <ref name="cardinality" type="path">/Model/Attributes/cardinality</ref>
+    <ref name="type" type="path">/Model/Attributes/type</ref>
+    <ref name="defaultValue" type="path">/Model/Attributes/defaultValue</ref>
+    <ref name="inheritFrom" type="path">/Model/Attributes/inheritFrom</ref>
+    <ref name="otherName" type="path">/Model/Attributes/otherName</ref>
+    <ref name="deletePolicy" type="path">/Model/Attributes/deletePolicy</ref>
+    <ref name="copyPolicy" type="path">/Model/Attributes/copyPolicy</ref>
+    <ref name="countPolicy" type="path">/Model/Attributes/countPolicy</ref>
+    <ref name="inheritingKinds" type="path">/Model/Attributes/inheritingKinds</ref>
+    <ref name="kinds" type="path">/Model/Attributes/kinds</ref>
+    <ref name="superAttribute" type="path">/Model/Attributes/superAttribute</ref>
+    <ref name="subAttributes" type="path">/Model/Attributes/subAttributes</ref>
   </ref>
 
-  <attribute name="Classes" cardinality="dict" 
+  <attribute name="classes" cardinality="dict" 
              type="model.schema.Types.Class">
     <value name="python">model.schema.Attribute.Attribute</value>
   </attribute>

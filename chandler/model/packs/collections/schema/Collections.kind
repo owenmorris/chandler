@@ -4,12 +4,12 @@
   <name>Collections</name>
   <kind type="path">//Schema/Model/Kind</kind>
 
-  <ref name="Attributes">
+  <ref name="attributes">
     <ref name="Dictionary" type="path">/Collections/Attributes/Dictionary</ref>
     <ref name="List" type="path">/Collections/Attributes/List</ref>
   </ref>
 
-  <ref name="SuperKinds">
+  <ref name="superKinds">
     <ref type="path">/Model/Item</ref>
   </ref>
 

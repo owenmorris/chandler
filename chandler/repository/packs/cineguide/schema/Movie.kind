@@ -4,7 +4,7 @@
   <name>Movie</name>
   <kind type="path">//Schema/Model/Kind</kind>
 
-  <ref name="Attributes">
+  <ref name="attributes">
     <ref name="Director" type="path">/CineGuide/Attributes/Director</ref>
     <ref name="Title" type="path">/CineGuide/Attributes/Title</ref>
     <ref name="FrenchTitle" type="path">/CineGuide/Attributes/FrenchTitle</ref>
@@ -12,9 +12,9 @@
     <ref name="Actors" type="path">/CineGuide/Attributes/Actors</ref>
   </ref>
 
-  <attribute name="DisplayAttribute">Title</attribute>
+  <attribute name="displayAttribute">Title</attribute>
 
-  <ref name="SuperKinds">
+  <ref name="superKinds">
     <ref type="path">/Model/Item</ref>
   </ref>
 

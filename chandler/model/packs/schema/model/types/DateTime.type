@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
+
 <item withSchema="True">
   <name>DateTime</name>
   <kind type="path">//Schema/Model/Type</kind>
   <class module="model.schema.Types">DateTime</class>
 
-  <attribute name="Fields" cardinality="list">
+  <attribute name="fields" cardinality="list">
     <value>year</value>
     <value>month</value>
     <value>day</value>

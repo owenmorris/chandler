@@ -81,7 +81,7 @@ class wxRepositoryViewer(wxViewerParcel):
         htmlString = htmlString + "<li><b>Path:</b> %s" % item.getItemPath()
         htmlString = htmlString + "<li><b>UUID:</b> %s" % item.getUUID()
         htmlString = htmlString + "</ul><h5>Attributes</h5><ul>"
-        for attribute in item.attributes():
+        for attribute in item.iterAttributes():
             key = attribute[0]
 
             if isinstance(attribute[1], dict):
@@ -128,10 +128,8 @@ class wxRepositoryViewer(wxViewerParcel):
     def LoadItem(self, item, node):
         """Populates the tree's table with details of this particular item.
         """
-        if (item.hasAttributeValue('DisplayName')):
-            displayName = item.DisplayName
-        else:
-            displayName = item.getItemName()
+
+        displayName = item.getItemDisplayName()
             
         if (item.hasAttributeValue('Kind')):
             kind = item.Kind.getItemName()

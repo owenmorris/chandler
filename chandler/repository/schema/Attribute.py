@@ -13,7 +13,7 @@ class Attribute(Item):
 
     def refName(self, name):
 
-        if name == 'Attributes' or name == 'InheritedAttributes':
+        if name == 'attributes' or name == 'inheritedAttributes':
             return self._name
 
         return super(Attribute, self).refName(name)
@@ -27,8 +27,8 @@ class Attribute(Item):
         if self.hasAttributeValue(name):
             return self.getAttributeValue(name)
 
-        if self.hasAttributeValue('SuperAttribute'):
-            return self.getAttributeValue('SuperAttribute').getAspect(name,
+        if self.hasAttributeValue('superAttribute'):
+            return self.getAttributeValue('superAttribute').getAspect(name,
                                                                       default)
 
         return default
@@ -36,5 +36,5 @@ class Attribute(Item):
     def _saveRefs(self, generator, withSchema):
 
         for attr in self._references.items():
-            if self.getAttributeAspect(attr[0], 'Persist', True):
+            if self.getAttributeAspect(attr[0], 'persist', True):
                 attr[1]._saveValue(attr[0], self, generator, withSchema)

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item withSchema="True">
-  <name>InheritedAttributes</name>
+  <name>inheritedAttributes</name>
   <kind type="path">//Schema/Model/Attribute</kind>
 
-  <attribute name="Cardinality">dict</attribute>
-  <attribute name="Persist" type="bool">False</attribute>
-  <attribute name="OtherName">InheritingKinds</attribute>
+  <attribute name="cardinality">dict</attribute>
+  <attribute name="persist" type="bool">False</attribute>
+  <attribute name="otherName">inheritingKinds</attribute>
 </item>

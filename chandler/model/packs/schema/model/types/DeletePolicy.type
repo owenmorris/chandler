@@ -3,7 +3,7 @@
   <name>DeletePolicy</name>
   <kind type="path">//Schema/Model/Enumeration</kind>
 
-  <attribute name="Values" cardinality="list">
+  <attribute name="values" cardinality="list">
     <value>remove</value>
     <value>cascade</value>
   </attribute>

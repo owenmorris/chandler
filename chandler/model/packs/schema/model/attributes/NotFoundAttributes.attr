@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item withSchema="True">
-  <name>NotFoundAttributes</name>
+  <name>notFoundAttributes</name>
   <kind type="path">//Schema/Model/Attribute</kind>
 
-  <ref name="Type" otherName="TypeFor" 
+  <ref name="type" otherName="typeFor" 
        type="path" otherCard="dict">/Model/Types/Symbol</ref>
 
-  <attribute name="Cardinality">list</attribute>
-  <attribute name="Persist" type="bool">False</attribute>
+  <attribute name="cardinality">list</attribute>
+  <attribute name="persist" type="bool">False</attribute>
 </item>

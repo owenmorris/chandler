@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item withSchema="True">
-  <name>DefaultValue</name>
+  <name>defaultValue</name>
   <kind type="path">//Schema/Model/Attribute</kind>
 
-  <attribute name="Cardinality">single</attribute>
+  <attribute name="cardinality">single</attribute>
 </item>

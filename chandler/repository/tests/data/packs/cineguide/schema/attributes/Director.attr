@@ -4,7 +4,7 @@
     <name>Director</name>
     <kind type="path">//Schema/Model/Attribute</kind>
 
-    <attribute name="Cardinality">single</attribute>
-    <attribute name="Required">True</attribute>
-    <attribute name="OtherName">Directed</attribute>
+    <attribute name="cardinality">single</attribute>
+    <attribute name="required">True</attribute>
+    <attribute name="otherName">Directed</attribute>
 </item>

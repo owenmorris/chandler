@@ -62,7 +62,7 @@ class ItemRef(object):
             else:
                 if otherCard is None:
                     otherCard = other.getAttributeAspect(otherName,
-                                                         'Cardinality',
+                                                         'cardinality',
                                                          'single')
                 if otherCard == 'dict':
                     old = other._refDict(otherName, name)
@@ -146,7 +146,7 @@ class ItemRef(object):
             otherName = item._otherName(name)
             attrs['otherName'] = otherName
             attrs['otherCard'] = other.getAttributeAspect(otherName,
-                                                          'Cardinality',
+                                                          'cardinality',
                                                           'single')
 
         generator.startElement('ref', attrs)
@@ -638,7 +638,7 @@ class RefDict(References):
             attrs = { 'name': name }
             if withSchema:
                 otherName = item._otherName(name)
-                otherCard = other.getAttributeAspect(otherName, 'Cardinality',
+                otherCard = other.getAttributeAspect(otherName, 'cardinality',
                                                      'single')
                 attrs['cardinality'] = self._getCard()
                 attrs['otherName'] = otherName

@@ -4,30 +4,28 @@
   <name>Kind</name>
   <class module="model.schema.Kind">KindKind</class>
 
-  <ref name="Kind" otherName="Items" 
+  <ref name="kind" otherName="items" 
        type="path" otherCard="dict">/Model/Kind</ref>
 
-  <ref name="Attributes" otherName="Kinds" cardinality="dict" otherCard="dict">
-    <ref name="SuperKinds" type="path">/Model/Attributes/SuperKinds</ref>
-    <ref name="SubKinds" type="path">/Model/Attributes/SubKinds</ref>
-    <ref name="Items" type="path">/Model/Attributes/Items</ref>
-    <ref name="Attributes" type="path">/Model/Attributes/Attributes</ref>
-    <ref name="InheritedAttributes" type="path">/Model/Attributes/InheritedAttributes</ref>
-    <ref name="NotFoundAttributes" type="path">/Model/Attributes/NotFoundAttributes</ref>
-    <ref name="Classes" type="path">/Model/Attributes/Classes</ref>
-    <ref name="TypeFor" type="path">/Model/Attributes/TypeFor</ref>
-    <ref name="DisplayName" type="path">/Model/Attributes/DisplayName</ref>
-    <ref name="DisplayAttribute" type="path">/Model/Attributes/DisplayAttribute</ref>
-    <ref name="Description" type="path">/Model/Attributes/Description</ref>
+  <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
+    <ref name="superKinds" type="path">/Model/Attributes/superKinds</ref>
+    <ref name="subKinds" type="path">/Model/Attributes/subKinds</ref>
+    <ref name="items" type="path">/Model/Attributes/items</ref>
+    <ref name="attributes" type="path">/Model/Attributes/attributes</ref>
+    <ref name="inheritedAttributes" type="path">/Model/Attributes/inheritedAttributes</ref>
+    <ref name="notFoundAttributes" type="path">/Model/Attributes/notFoundAttributes</ref>
+    <ref name="classes" type="path">/Model/Attributes/classes</ref>
+    <ref name="typeFor" type="path">/Model/Attributes/typeFor</ref>
+    <ref name="displayAttribute" type="path">/Model/Attributes/displayAttribute</ref>
   </ref>
 
-  <ref name="SuperKinds" cardinality="list"
-       otherName="SubKinds" otherCard="dict">
+  <ref name="superKinds" cardinality="list"
+       otherName="subKinds" otherCard="dict">
     <ref name="9a3ec754-db42-11d7-a8ad-000393db837c" nameType="uuid"
          type="path">/Model/Taxon</ref>
   </ref>
 
-  <attribute name="Classes" cardinality="dict" 
+  <attribute name="classes" cardinality="dict" 
              type="model.schema.Types.Class">
     <value name="python">model.schema.Kind.Kind</value>
   </attribute>

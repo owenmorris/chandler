@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item withSchema="True">
-  <name>SubAttributes</name>
+  <name>subAttributes</name>
   <kind type="path">//Schema/Model/Attribute</kind>
 
-  <ref name="Type" otherName="TypeFor" 
+  <ref name="type" otherName="typeFor" 
        type="path" otherCard="dict">/Model/Attribute</ref>
 
-  <attribute name="Cardinality">dict</attribute>
-  <attribute name="OtherName">SuperAttribute</attribute>
+  <attribute name="cardinality">dict</attribute>
+  <attribute name="otherName">superAttribute</attribute>
 </item>

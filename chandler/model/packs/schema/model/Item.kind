@@ -5,11 +5,11 @@
   <kind type="path">//Schema/Model/Kind</kind>
   <class module="model.schema.Kind">ItemKind</class>
 
-  <ref name="Attributes" otherName="Kinds" cardinality="dict" otherCard="dict">
-    <ref name="Kind" type="path">/Model/Attributes/Kind</ref>
+  <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
+    <ref name="kind" type="path">/Model/Attributes/kind</ref>
   </ref>
 
-  <attribute name="Classes" cardinality="dict" 
+  <attribute name="classes" cardinality="dict" 
              type="model.schema.Types.Class">
     <value name="python">model.item.Item.Item</value>
   </attribute>

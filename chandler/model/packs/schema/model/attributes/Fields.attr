@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item withSchema="True">
-  <name>Fields</name>
+  <name>fields</name>
   <kind type="path">//Schema/Model/Attribute</kind>
 
-  <ref name="Type" otherName="TypeFor" 
+  <ref name="type" otherName="typeFor" 
        type="path" otherCard="dict">/Model/Types/Symbol</ref>
 
-  <attribute name="Cardinality">list</attribute>
-  <attribute name="DefaultValue" type="NoneType">None</attribute>
+  <attribute name="cardinality">list</attribute>
+  <attribute name="defaultValue" type="NoneType">None</attribute>
 </item>

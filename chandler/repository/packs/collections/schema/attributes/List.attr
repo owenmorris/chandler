@@ -4,6 +4,6 @@
     <name>List</name>
     <kind type="path">//Schema/Model/Attribute</kind>
 
-    <attribute name="Cardinality">single</attribute>
-    <ref name="Type" type="path">/Model/Types/List</ref>
+    <attribute name="cardinality">single</attribute>
+    <ref name="type" type="path">/Model/Types/List</ref>
 </item>

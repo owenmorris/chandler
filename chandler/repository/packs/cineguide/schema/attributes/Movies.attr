@@ -4,6 +4,6 @@
     <name>Movies</name>
     <kind type="path">//Schema/Model/Attribute</kind>
 
-    <attribute name="Cardinality">list</attribute>
-    <attribute name="OtherName">Actors</attribute>
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">Actors</attribute>
 </item>

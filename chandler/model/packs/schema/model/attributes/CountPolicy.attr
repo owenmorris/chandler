@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item withSchema="True">
-  <name>CountPolicy</name>
+  <name>countPolicy</name>
   <kind type="path">//Schema/Model/Attribute</kind>
 
-  <ref name="Type" otherName="TypeFor" 
+  <ref name="type" otherName="typeFor" 
        type="path" otherCard="dict">/Model/Types/CountPolicy</ref>
 
-  <attribute name="Cardinality">single</attribute>
-  <attribute name="DefaultValue">none</attribute>
+  <attribute name="cardinality">single</attribute>
+  <attribute name="defaultValue">none</attribute>
 </item>

@@ -4,13 +4,13 @@
   <name>Alias</name>
   <kind type="path">//Schema/Model/Kind</kind>
 
-  <ref name="Attributes" otherName="Kinds" cardinality="dict" otherCard="dict">
-    <ref name="TypeFor" type="path">/Model/Attributes/TypeFor</ref>
-    <ref name="Types" type="path">/Model/Attributes/Types</ref>
-    <ref name="AliasedBy" type="path">/Model/Attributes/AliasedBy</ref>
+  <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
+    <ref name="typeFor" type="path">/Model/Attributes/typeFor</ref>
+    <ref name="types" type="path">/Model/Attributes/types</ref>
+    <ref name="aliasedBy" type="path">/Model/Attributes/aliasedBy</ref>
   </ref>
 
-  <attribute name="Classes" cardinality="dict" 
+  <attribute name="classes" cardinality="dict" 
              type="model.schema.Types.Class">
     <value name="python">model.schema.Alias.Alias</value>
   </attribute>
