@@ -13,15 +13,14 @@ src=release
 dest=bin
 glob=*
 recursive=yes
-Applications
-Frameworks
+Library/Frameworks/Python.framework/Versions/2.3
 
 src=release/lib
 dest=lib
-libwx_mac-2.5.dylib.0.0.0
-libwx_mac-2.5.r
-libwx_mac-2.5.rsrc
-wx/include/mac-2.5/wx/setup.h
+libwx_mac-2.4.0.0.0.dylib
+libwx_mac-2.4.0.r
+libwx_mac-2.4.0.rsrc
+wx/include/mac-2.4/wx/setup.h
 
 # Grab Chandler.py
 src=Chandler
