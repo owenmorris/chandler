@@ -69,10 +69,10 @@ class PersistentCollection(object):
             value = value._copy(self._item, self._attribute, self._companion)
         elif isinstance(value, list):
             value = PersistentList(self._item, self._attribute,
-                                   self._companion, *value)
+                                   self._companion, value)
         elif isinstance(value, dict):
             value = PersistentDict(self._item, self._attribute,
-                                   self._companion, **value)
+                                   self._companion, value)
         elif isinstance(value, repository.item.Item.Item):
             value = SingleRef(value._uuid)
         elif isinstance(value, repository.item.Values.ItemValue):
@@ -82,7 +82,7 @@ class PersistentCollection(object):
 
     def _restoreValue(self, value):
 
-        if isinstance(value, SingleRef):
+        if self._item is not None and isinstance(value, SingleRef):
             uuid = value.itsUUID
             if self._companion is None:
                 return self._item.find(uuid)
@@ -102,17 +102,17 @@ class PersistentCollection(object):
 class PersistentList(list, PersistentCollection):
     'A persistence aware list, tracking changes into a dirty bit.'
 
-    def __init__(self, item, attribute, companion, *args):
+    def __init__(self, item, attribute, companion, initialValues=None):
 
         list.__init__(self)
         PersistentCollection.__init__(self, item, attribute, companion)
 
-        if args:
-            self.extend(args)
+        if initialValues is not None:
+            self.extend(initialValues)
 
     def _copy(self, item, attribute, companion):
 
-        return type(self)(item, attribute, companion, *self)
+        return type(self)(item, attribute, companion, self)
 
     def __setitem__(self, index, value):
 
@@ -192,11 +192,12 @@ class PersistentList(list, PersistentCollection):
 
     def extend(self, value):
 
+        values = []
         for v in value:
             self._storeValue(v)
-        value = [self._prepareValue(v) for v in value]
+            values.append(self._prepareValue(v))
         self._setDirty()
-        super(PersistentList, self).extend(value)
+        super(PersistentList, self).extend(values)
 
     def __getitem__(self, key):
 
@@ -229,17 +230,17 @@ class PersistentList(list, PersistentCollection):
 class PersistentDict(dict, PersistentCollection):
     'A persistence aware dict, tracking changes into a dirty bit.'
 
-    def __init__(self, item, attribute, companion, **kwds):
+    def __init__(self, item, attribute, companion, initialValues=None):
 
         dict.__init__(self)
         PersistentCollection.__init__(self, item, attribute, companion)
 
-        if kwds:
-            self.update(kwds)
+        if initialValues is not None:
+            self.update(initialValues)
 
     def _copy(self, item, attribute, companion):
 
-        return type(self)(item, attribute, companion, **self)
+        return type(self)(item, attribute, companion, self)
 
     def __delitem__(self, key):
 
@@ -260,12 +261,12 @@ class PersistentDict(dict, PersistentCollection):
 
     def update(self, value):
 
-        self._storeValue(value)
-        dictionary = {}
+        values = {}
         for k, v in value.iteritems():
-            dictionary[k] = self._prepareValue(v)
+            self._storeValue(v)
+            values[k] = self._prepareValue(v)
         self._setDirty()
-        super(PersistentDict, self).update(dictionary)
+        super(PersistentDict, self).update(values)
 
     def setdefault(self, key, value=None):
 

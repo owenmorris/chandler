@@ -406,7 +406,7 @@ class Item(object):
             else:
                 companion = self.getAttributeAspect(name, 'companion',
                                                     default=None)
-                value = PersistentList(self, name, companion, *value)
+                value = PersistentList(self, name, companion, value)
                 self._values[name] = value
 
         elif isinstance(value, dict):
@@ -421,7 +421,7 @@ class Item(object):
             else:
                 companion = self.getAttributeAspect(name, 'companion',
                                                     default=None)
-                value = PersistentDict(self, name, companion, **value)
+                value = PersistentDict(self, name, companion, value)
                 self._values[name] = value
             
         elif isinstance(value, ItemValue):
@@ -892,8 +892,8 @@ class Item(object):
                 else:
                     companion = self.getAttributeAspect(attribute, 'companion',
                                                         default=None)
-                    attrValue = PersistentList(self, attribute, companion,
-                                               value)
+                    attrValue = PersistentList(self, attribute, companion)
+                    attrValue.append(value)
                     _attrDict[attribute] = attrValue
                     return attrValue
 
