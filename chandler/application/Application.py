@@ -363,12 +363,12 @@ class wxApplication (wx.App):
             except AttributeError:
                 pass
             else:
-                if hasattr (block, 'subscribeWhenVisibleEvents') and (widget.IsShown() != event.GetShow()):
+                if block.hasAttributeValue ('subscribeWhenVisibleEvents') and (widget.IsShown() != event.GetShow()):
                     """
                       The state of the new GetShow flag should be the opposite of whether or
                     not we have a subscribeWhenVisibleEventsUUID attribute
                     """
-                    assert event.GetShow() ^ hasattr (widget, 'subscribeWhenVisibleEventsUUID')
+                    assert event.GetShow() ^ widget.hasAttributeValue ('subscribeWhenVisibleEventsUUID')
     
                     if event.GetShow():
                         widget.subscribeWhenVisibleEventsUUID = UUID()

@@ -59,18 +59,18 @@ class Block(Item):
                   For those blocks with contents, we need to subscribe to notice changes
                 to items in the contents.
                 """
-                if hasattr (self, 'contents'):
+                if self.hasAttributeValue ('contents'):
                     self.contents.subscribeWidgetToChanges (widget)
                 """
                   For those blocks with subscribeWhenVisibleEvents or subscribeAlwaysEvents,
                 we need to subscribe to them.
                 """
-                if  hasattr (self, 'subscribeWhenVisibleEvents') and widget.IsShown():
+                if  self.hasAttributeValue ('subscribeWhenVisibleEvents') and widget.IsShown():
                     widget.subscribeWhenVisibleEventsUUID = UUID()
                     Globals.notificationManager.Subscribe (self.subscribeWhenVisibleEvents,
                                                            widget.subscribeWhenVisibleEventsUUID,
                                                            Globals.mainView.dispatchEvent)
-                if hasattr (self, 'subscribeAlwaysEvents') and not subscribedBlocks.has_key (block.itsUUID):
+                if self.hasAttributeValue ('subscribeAlwaysEvents') and not subscribedBlocks.has_key (block.itsUUID):
                     subscribedBlocks [block.itsUUID] = UUID()
                     Globals.notificationManager.Subscribe (events,
                                                            subscribedBlocks [block.itsUUID],
@@ -95,7 +95,7 @@ class Block(Item):
           Called just before a widget is destroyed. It is the opposite of
         instantiateWidget.
         """
-        if hasattr (self, 'contents'):
+        if self.hasAttributeValue ('contents'):
             self.contents.unSubscribeWidgetToChanges (self.widget)
 
         if hasattr (self.widget, 'subscribeWhenVisibleEventsUUID'):
