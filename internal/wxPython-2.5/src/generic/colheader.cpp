@@ -84,8 +84,9 @@ wxBEGIN_FLAGS( wxColumnHeaderStyle )
 	wxFLAGS_MEMBER(wxTAB_TRAVERSAL)
 	wxFLAGS_MEMBER(wxCLIP_CHILDREN)
 	wxFLAGS_MEMBER(wxTRANSPARENT_WINDOW)
+	wxFLAGS_MEMBER(wxWANTS_CHARS)
 	wxFLAGS_MEMBER(wxFULL_REPAINT_ON_RESIZE)
-	wxFLAGS_MEMBER(wxALWAYS_SHOW_SB )
+	wxFLAGS_MEMBER(wxALWAYS_SHOW_SB)
 wxEND_FLAGS( wxColumnHeaderStyle )
 
 IMPLEMENT_DYNAMIC_CLASS_XTI(wxColumnHeader, wxControl, "wx/colheader.h")
@@ -180,16 +181,27 @@ wxString		localName;
 bool			bResultV;
 
 #if defined(__WXMSW__)
-	localName = _T(WC_HEADER);
+ 	localName = _T(WC_HEADER);
+	bResultV =
+		wxControl::CreateControl(
+			parent, id, pos, size,
+			style, wxDefaultValidator, localName );
+
+	if (bResultV)
+	{
+	WXDWORD		msStyle, exstyle;
+
+		msStyle = MSWGetStyle( style, &exstyle );
+		bResultV = MSWCreateControl( localName, msStyle, pos, size, _T(""), exstyle );
+	}
+
 #else
 	localName = name;
-#endif
-
 	bResultV =
 		wxControl::Create(
 			parent, id, pos, size,
-			style | wxCLIP_CHILDREN,
-			wxDefaultValidator, localName );
+			style, wxDefaultValidator, localName );
+#endif
 
 	if (bResultV)
 	{
@@ -238,7 +250,7 @@ bool		bResultV;
 bool wxColumnHeader::Show(
 	bool		bShow )
 {
-bool	bResultV;
+bool		bResultV;
 
 	bResultV = wxControl::Show( bShow );
 
@@ -277,6 +289,7 @@ bool		bResultV;
 
 // NB: is this implementation necessary ??
 //
+// virtual
 wxSize wxColumnHeader::DoGetBestSize( void ) const
 {
 wxCoord		width = 200;
@@ -298,6 +311,7 @@ wxSize	best( width, height );
 	return best;
 }
 
+// virtual
 void wxColumnHeader::DoSetSize(
 	int		x,
 	int		y,
@@ -314,6 +328,7 @@ void wxColumnHeader::DoSetSize(
 	RecalculateItemExtents();
 }
 
+// virtual
 void wxColumnHeader::DoMoveWindow(
 	int		x,
 	int		y,
@@ -330,6 +345,7 @@ int		yDiff;
 	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
 }
 
+// virtual
 void wxColumnHeader::DoGetPosition(
 	int		*x,
 	int		*y ) const
@@ -337,6 +353,7 @@ void wxColumnHeader::DoGetPosition(
 	wxControl::DoGetPosition( x, y );
 }
 
+// virtual
 void wxColumnHeader::DoGetSize(
 	int		*width,
 	int		*height ) const
@@ -348,10 +365,18 @@ void wxColumnHeader::DoGetSize(
 // drawing
 // ----------------------------------------------------------------------------
 
+// virtual
 void wxColumnHeader::OnPaint(
 	wxPaintEvent		& WXUNUSED(event) )
 {
+#if !defined(__WXMSW__)
 	Draw();
+#else
+	::DefWindowProc( GetHwnd(), WM_PAINT, 0, 0 );
+//	wxControl::MSWWindowProc( WM_PAINT, 0, 0 );
+//	wxWindow::OnPaint( event );
+//	wxControl::OnPaint( event );
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -367,8 +392,10 @@ void wxColumnHeader::OnDoubleClick(
 	}
 	else
 	{
+		OnClick( event );
+
 		// NB: unused for the present
-		GenerateEvent( wxEVT_COLUMNHEADER_DOUBLECLICKED );
+		//GenerateEvent( wxEVT_COLUMNHEADER_DOUBLECLICKED );
 	}
 }
 
@@ -660,7 +687,7 @@ wxPoint wxColumnHeader::GetUIExtent(
 	long			itemIndex )
 {
 wxColumnHeaderItem		*itemRef;
-wxPoint				extentPt;
+wxPoint					extentPt;
 long					originX, extentX;
 bool					bResultV;
 
@@ -739,7 +766,7 @@ wxColumnHeaderHitTestResult		resultV;
 
 #if defined(__WXMSW__)
 RECT		boundsR;
-HWND	targetViewRef;
+HWND		targetViewRef;
 long		itemCount, i;
 
 	targetViewRef = GetHwnd();
@@ -833,8 +860,11 @@ WXDWORD wxColumnHeader::MSWGetStyle(
 {
 WXDWORD		msStyle;
 
+	style = (style & ~wxBORDER_MASK) | wxBORDER_NONE;
+
 	msStyle = wxControl::MSWGetStyle( style, exstyle );
 	msStyle |= HDS_BUTTONS | HDS_FLAT | HDS_HORZ;
+	msStyle |= WS_CLIPSIBLINGS;
 
 	return msStyle;
 }
@@ -855,9 +885,11 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
+		//wxLogDebug( _T("Win32ItemInsert - GetHwnd failed (NULL)") );
 		return (-1L);
 	}
+
+//	wxLogDebug( _T("Win32ItemInsert - item text [%s]"), (const TCHAR*)titleText );
 
 	ZeroMemory( &itemData, sizeof(itemData) );
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
@@ -872,6 +904,9 @@ long		resultV;
 	resultV = (long)Header_InsertItem( targetViewRef, (int)iInsertAfter, &itemData );
 //	resultV = (long)SendMessage( mViewRef, bUseUnicode ? HDM_INSERTITEMW : HDM_INSERTITEMA, (WPARAM)iInsertAfter, (LPARAM)&itemData );
 
+	if (resultV < 0)
+		wxLogDebug( _T("Win32ItemInsert - SendMessage failed") );
+
 	return resultV;
 }
 
@@ -884,11 +919,14 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
+		//wxLogDebug( _T("Win32ItemDelete - GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
 	resultV = (long)Header_DeleteItem( targetViewRef, itemIndex );
+
+	if (resultV == 0)
+		wxLogDebug( _T("Win32ItemDelete - SendMessage failed") );
 
 	return resultV;
 }
@@ -908,7 +946,7 @@ long					resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
+		//wxLogDebug( _T("Win32ItemRefresh - GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -930,6 +968,9 @@ long					resultV;
 	resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
 //	resultV = (long)SendMessage( mViewRef, itemRef->m_BTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
 
+	if (resultV == 0)
+		wxLogDebug( _T("Win32ItemRefresh - SendMessage failed") );
+
 	return resultV;
 }
 
@@ -945,7 +986,7 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		//wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
+		//wxLogDebug( _T("Win32ItemSelect - GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -959,6 +1000,9 @@ long		resultV;
 
 	resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
 //	resultV = (long)SendMessage( mViewRef, itemRef->mBTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
+
+	if (resultV == 0)
+		wxLogDebug( _T("Win32ItemSelect - SendMessage failed") );
 
 	return resultV;
 }
