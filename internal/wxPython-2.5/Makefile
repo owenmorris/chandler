@@ -46,6 +46,10 @@ clean:
 	rm -rf $(SRC)/wxPython/$(BUILD)
 	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/msw.sln /clean $(Snap)
 
+cleanmanifest:
+	cd $(BUILD_ROOT); \
+	find $(MANIFEST) -name "*.pyc" | xargs rm -f
+
 else
 
 ifeq ($(OS),Darwin)
@@ -74,6 +78,11 @@ MANIFEST=$(SNAP)/$(SITE)/wx \
 	 $(SNAP)/lib/libwx* \
 	 $(SNAP)/share/locale
 
+cleanmanifest:
+	cd $(BUILD_ROOT); \
+	find $(SNAP)/$(SITE)/wx -name "*.pyc" | xargs rm -f; \
+	find $(SNAP)/$(SITE)/wxPython -name "*.pyc" | xargs rm -f
+
 else
 
 $(SRC)/$(BUILD)/Makefile:
@@ -101,6 +110,11 @@ MANIFEST=$(SNAP)/$(SITE)/wx \
          $(SNAP)/$(SITE)/wxPython \
 	 $(SNAP)/lib/libwx* \
 	 $(SNAP)/share/locale
+
+cleanmanifest:
+	cd $(BUILD_ROOT); \
+	find $(SNAP)/$(SITE)/wx -name "*.pyc" | xargs rm -f; \
+	find $(SNAP)/$(SITE)/wxPython -name "*.pyc" | xargs rm -f
 
 endif
 
@@ -132,7 +146,7 @@ upload: wxPython-$(SNAP)-$(RELVER).tar.gz
 	scp wxPython-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 	scp wxPython-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
-snap: 
+snap: cleanmanifest
 	cd $(BUILD_ROOT); \
 	tar -cvzf $(SRC)/wxPython-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 	$(MD5) wxPython-$(SNAP)-$(RELVER).tar.gz > wxPython-$(SNAP)-$(RELVER).tar.gz.md5

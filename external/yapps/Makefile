@@ -27,6 +27,7 @@ expand: yapps$(VERSION)-expanded
 
 snap: 
 	cd $(BUILD_ROOT); \
+	find $(SNAP)/$(SITE)/yapps -name "*.pyc" | xargs rm -f; \
 	tar -cvzf $(YAPPS)/yapps-$(SNAP)-$(RELVER).tar.gz \
 		$(SNAP)/$(SITE)/yapps; \
 	$(MD5) $(YAPPS)/yapps-$(SNAP)-$(RELVER).tar.gz > $(YAPPS)/yapps-$(SNAP)-$(RELVER).tar.gz.md5

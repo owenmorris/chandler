@@ -32,8 +32,8 @@ expand: jabberpy$(VERSION)-expanded
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(JABBERPY)/jabberpy-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/jabber.py* \
-                  $(SNAP)/$(SITE)/xmlstream.py*; \
+                  $(SNAP)/$(SITE)/jabber.py \
+                  $(SNAP)/$(SITE)/xmlstream.py; \
 	$(MD5) $(JABBERPY)/jabberpy-$(SNAP)-$(RELVER).tar.gz > $(JABBERPY)/jabberpy-$(SNAP)-$(RELVER).tar.gz.md5
 
 install: jabberpy-$(SNAP)-$(RELVER).tar.gz

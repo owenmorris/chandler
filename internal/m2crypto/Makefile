@@ -34,6 +34,7 @@ endif
 
 snap: 
 	cd $(BUILD_ROOT); \
+	find $(MANIFEST) -name "*.pyc" | xargs rm -f; \
 	tar -cvzf $(M2CRYPTO)/m2crypto-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 	$(MD5) m2crypto-$(SNAP)-$(RELVER).tar.gz > m2crypto-$(SNAP)-$(RELVER).tar.gz.md5
 

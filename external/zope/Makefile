@@ -30,6 +30,7 @@ expand: ZopeInterface-$(VERSION)-expanded
 
 snap: 
 	cd $(BUILD_ROOT); \
+	find $(SNAP)/$(SITE)/zope -name "*.pyc" | xargs rm -f; \
 	tar -cvzf $(ZOPE)/zopeinterface-$(SNAP)-$(RELVER).tar.gz \
 		$(SNAP)/$(SITE)/zope \
 		--exclude tests \

@@ -31,6 +31,7 @@ expand: egenix-mx-base-$(VERSION)-expanded
 
 snap: 
 	cd $(BUILD_ROOT); \
+	find $(SNAP)/$(SITE)/mx -name "*.pyc" | xargs rm -f; \
         tar -cvzf $(EGENIX)/egenix-mx-base-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/mx \
             --exclude Examples; \

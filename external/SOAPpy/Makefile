@@ -31,6 +31,7 @@ expand: SOAPpy-$(VERSION)-expanded
 
 snap: 
 	cd $(BUILD_ROOT); \
+	find $(SNAP)/$(SITE)/SOAPpy -name "*.pyc" | xargs rm -f; \
         tar -cvzf $(SOAPPY)/soappy-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/SOAPpy; \
 	$(MD5) $(SOAPPY)/soappy-$(SNAP)-$(RELVER).tar.gz > $(SOAPPY)/soappy-$(SNAP)-$(RELVER).tar.gz.md5

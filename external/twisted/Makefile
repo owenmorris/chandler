@@ -43,6 +43,7 @@ expand: Twisted-$(VERSION)-expanded
 
 snap: 
 	cd $(BUILD_ROOT); \
+	find $(SNAP)/$(SITE)/twisted -name "*.pyc" | xargs rm -f; \
 	tar -cvzf $(TWISTED)/twisted-$(SNAP)-$(RELVER).tar.gz \
 		$(SNAP)/$(SITE)/twisted \
 		--exclude test; \
