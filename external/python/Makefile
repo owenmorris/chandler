@@ -66,7 +66,9 @@ build: bzip2-$(BZIP2VERSION)/libbz2.a apply
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYTHON)/$(SNAP).tar.gz \
-                  $(SNAP)/bin/idle $(SNAP)/bin/python* $(SNAP)/lib/python* \
+                  $(SNAP)/bin/idle $(SNAP)/bin/python* \
+                  $(SNAP)/lib/python* \
+                  $(SNAP)/include/python* \
             -X $(PYTHON)/xcludes
 
 expand: Python-$(VERSION).tgz
