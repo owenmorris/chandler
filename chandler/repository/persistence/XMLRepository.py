@@ -170,13 +170,9 @@ class XMLContainer(object):
             
         if kwds.get('create', False):
             self._xml.open(txn, DB_CREATE | DB_DIRTY_READ | DB_THREAD)
-            self._xml.addIndex(txn, "", "uuid",
-                               "node-attribute-equality-string")
             self._xml.addIndex(txn, "", "kind",
                                "node-element-equality-string")
             self._xml.addIndex(txn, "", "container",
-                               "node-element-equality-string")
-            self._xml.addIndex(txn, "", "name",
                                "node-element-equality-string")
             self._xml.addIndex(txn, "", "id",
                                "node-attribute-equality-string")

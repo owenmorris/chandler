@@ -26,7 +26,6 @@ class PersistentCollection(object):
 
         super(PersistentCollection, self).__init__()
 
-        self._dirty = False
         self._readOnly = False
         self.__setItem(item, attribute, companion)
 
@@ -61,8 +60,7 @@ class PersistentCollection(object):
         if self._readOnly:
             raise ReadOnlyError, 'collection is read-only'
 
-        if not self._dirty and self._item:
-            self._dirty = True
+        if self._item:
             self._item.setDirty()
 
     def _prepareValue(self, value):

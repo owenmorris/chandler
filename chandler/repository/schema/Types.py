@@ -75,7 +75,7 @@ class Type(Item):
         return None
 
     def makeValue(self, data):
-        raise NotImplementedError, "Type.makeValue()"
+        raise NotImplementedError, "%s.makeValue()" %(type(self))
 
     def makeString(self, value):
         return str(value)
@@ -325,7 +325,8 @@ class SingleRef(Type):
     def recognizes(self, value):
 
         return (value is None or
-                type(value) is repository.util.SingleRef.SingleRef)
+                type(value) is repository.util.SingleRef.SingleRef or
+                isinstance(value, Item))
 
     def eval(self, value):
 
