@@ -177,6 +177,16 @@ class Item(object):
         return otherName
 
     def hasAttributeAspect(self, name, aspect):
+        """
+        Tell whether an attribute as value set for the aspect.
+
+        See the L{getAttributeAspect <getAttributeAspect>} method for
+        more information on attribute aspects.
+        @param name: the name of the attribute being queried
+        @type name: a string
+        @param aspect: the name of the aspect being queried
+        @type aspect: a string
+        """
 
         if self._kind is not None:
             attribute = self._kind.getAttribute(name)
@@ -186,6 +196,75 @@ class Item(object):
         return False
 
     def getAttributeAspect(self, name, aspect, **kwds):
+        """
+        Return the value for an attribute aspect.
+
+        An attribute aspect is one of an attribute's many attributes
+        described in the list below. All aspects are optional.
+
+            - C{required}: C{True} if the attribute is required to have a
+              value, C{False} otherwise, the default. This aspects takes a
+              boolean value.
+            - C{persist}: C{True}, the default, if the attribute's value is
+              persisted when the owning item is saved; C{False}
+              otherwise. This aspect takes a boolean value.
+            - C{cardinality}: C{single}, the default if the attribute is
+              to have one single value, C{list} or C{dict}, if the attribute
+              is to have a list or dictionary of values. This aspect takes a
+              string value.
+            - C{type}: a reference to the type item describing the type(s) of
+              value(s) this attribute can store. By default, if this aspect
+              is not set, an attribute can store value(s) of any type. This
+              aspect takes an item of kind C{Type} as value.
+            - C{defaultValue}: the value to return when there is no value
+              set for this attribute. This default value is owned by the
+              attribute item and is a read-only when it is a collection. By
+              default, an attribute has no default value. See
+              C{initialValue} and C{inheritFrom} below. This aspect takes
+              any type of value.
+            - C{initialValue}: similar to C{defaultValue} but the initial
+              value is set as the value of the attribute the first time it is
+              returned. A copy of the initial value is set when it is a
+              collection. This aspect takes any type of value.
+            - C{inheritFrom}: one or several attribute names chained
+              together by periods naming attributes to inherit a value
+              from. When several names are used, all but the last name are
+              expected to name attributes containing a reference to the next
+              item to inherit from by applying the next name. This aspect
+              takes a string value.
+            - C{otherName}: for bi-directional reference attributes, this
+              aspect names the attribute used to attach the other endpoint
+              on the other item, ie the referenced item. This is the aspect
+              that determines whether the attribute stored bi-directional
+              references to items. This aspect takes a string value.
+            - C{companion}: for mixed collection attributes, this aspect
+              names the attribute used to store the bi-directional
+              references to the items stored in the mixed collection. By
+              default, if the companion aspect is not set, the entire
+              repository is considered. This aspect takes a string value.
+            - C{deletePolicy}: when an item is deleted this policy defines
+              what happens to items that are referenced by this
+              attribute. Possible C{deletePolicy} values are:
+                - C{remove}, the default
+                - C{cascade}, which causes the referenced item(s) to get
+                  deleted as well. See C{countPolicy} below.
+              This aspect takes a string value.
+            - C{countPolicy}: when an attribute's C{deletePolicy} is
+              C{cascade} this aspect can be used to modify the delete
+              behaviour to only delete the referenced item if its reference
+              count is 0. The reference count of an item is defined by the
+              total number of references it holds in attributes where the
+              C{countPolicy} is set to C{count}. By default, an attribute's
+              C{countPolicy} is C{none}. This aspect takes a string value.
+
+        @param name: the name of the attribute being queried
+        @type name: a string
+        @param aspect: the name of the aspect being queried
+        @type aspect: a string
+        @param kwds: optional keywords of which only C{default} is
+        supported and used to return a default value for an aspect that has
+        no set value for this attribute.
+        """
 
         if self._kind is not None:
             attribute = self._kind.getAttribute(name)
@@ -195,11 +274,16 @@ class Item(object):
         return kwds.get('default', None)
 
     def setAttributeValue(self, name, value=None, _attrDict=None):
-        """Create and/or set a Chandler attribute.
+        """
+        Set a value on a Chandler attribute.
 
-        This method is only required when the Chandler attribute doesn't yet
-        exist or when there is an ambiguity between a python and a Chandler
-        attribute, a situation best avoided."""
+        Calling this method instead of using the regular python attribute
+        assignment syntax is unnecessary.
+        @param name: the name of the attribute.
+        @type name: a string.
+        @param value: the value to set.
+        @type value: any type as specified by the attribute's C{type} aspect.
+        """
 
         self.setDirty(attribute=name)
 
