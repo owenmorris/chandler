@@ -22,4 +22,14 @@
         <port value="80"/>
     </share:WebDAVAccount>
 
+    <share:WebDAVAccount itsName="VenueWebDAVAccount">
+        <displayName value="Venue WebDAV Account"/>
+        <host value="webdav.venuecom.com"/>
+        <path value="/calendar/OSAFdot5/calendars"/>
+        <username value="OSAFdot5"/>
+        <password value="demo"/>
+        <useSSL value="False"/>
+        <port value="80"/>
+    </share:WebDAVAccount>
+
 </Parcel>
