@@ -647,7 +647,7 @@ class ReminderTimer(Timer):
         # @@@BJS Eventually, the query should be able to do the hasAttribute filtering for us;
         # for now, that doesn't seem to work so we're doing it here.
         # Should be: timesAndReminders = [ (item.reminderTime, item) for item in self.contents.getResults().values() ]
-        timesAndReminders = [ (item.reminderTime, item) for item in self.contents.getResults().values() if item.hasAttributeValue("reminderTime")]
+        timesAndReminders = [ (item.reminderTime, item) for item in self.contents.getResults().values() if item.hasLocalAttributeValue("reminderTime")]
         if len(timesAndReminders) == 0:
             return []
         timesAndReminders.sort()

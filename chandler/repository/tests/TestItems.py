@@ -177,9 +177,9 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         for i in kind.iterAttributeValues(valuesOnly=True):
             self.failUnless(i[0] in literalAttributeNames)
 
-        # Test hasAttributeValue
+        # Test hasLocalAttributeValue
         for i in literalAttributeNames:
-            self.failUnless(kind.hasAttributeValue(i))
+            self.failUnless(kind.hasLocalAttributeValue(i))
 
         # Test iterating over reference attributes
         referenceAttributeNames = ['superKinds', 'attributes', 'clouds',

@@ -126,8 +126,8 @@ class CalendarEventMixin(ContentModel.ChandlerItem):
     def GetDuration(self):
         """Returns an mxDateTimeDelta, None if no startTime or endTime"""
         
-        if (self.hasAttributeValue("startTime") and
-            self.hasAttributeValue("endTime")):
+        if (self.hasLocalAttributeValue("startTime") and
+            self.hasLocalAttributeValue("endTime")):
             return self.endTime - self.startTime
         else:
             return None

@@ -392,7 +392,7 @@ def RenderKindQuery(repoView, item):
 
 def RenderBlock(repoView, block):
 
-    if block.hasAttributeValue('blockName'):
+    if block.hasLocalAttributeValue('blockName'):
         name = block.blockName
     else:
         name = "[no block name]"
@@ -568,7 +568,7 @@ def RenderItem(repoView, item):
                  (toLink(attrType.itsPath), attrType.itsName)
             else:
                 result += "<td valign=top>N/A</td>\n"
-            if attribute.hasAttributeValue('initialValue'):
+            if attribute.hasLocalAttributeValue('initialValue'):
                 result += "<td valign=top>%s</td>\n" % (attribute.initialValue)
             else:
                 result += "<td valign=top>N/A</td>\n"

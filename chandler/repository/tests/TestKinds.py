@@ -126,7 +126,7 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(item.getAttributeAspect('k1a1', 'cardinality') == 'list')
 
         item.itsKind = self.kind1
-        self.assert_(not item.hasAttributeValue('k2a2'))
+        self.assert_(not item.hasLocalAttributeValue('k2a2'))
         self.assert_(item.getAttributeAspect('k1a1', 'cardinality') == 'list')
 
 

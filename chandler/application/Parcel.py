@@ -1096,7 +1096,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         if isItemAKind:
             # Assign superKind of //Schema/Core/Item if none assigned
-            if not item.hasAttributeValue("superKinds") or \
+            if not item.hasLocalAttributeValue("superKinds") or \
              (len(item.superKinds) == 0):
                 item.addValue("superKinds",
                  self.repository.findUUID(self.manager.itemUUID))

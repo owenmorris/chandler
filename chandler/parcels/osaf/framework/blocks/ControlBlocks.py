@@ -1236,7 +1236,7 @@ class ContentItemDetail(BoxContainer):
         
     def synchronizeColor (self):
         # if there's a color style defined, syncronize the color
-        if self.hasAttributeValue("colorStyle"):
+        if self.hasLocalAttributeValue("colorStyle"):
             self.colorStyle.synchronizeColor(self)
            
 class wxPyTimer(wx.PyTimer):

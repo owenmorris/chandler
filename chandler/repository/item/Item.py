@@ -1104,9 +1104,10 @@ class Item(object):
         else:
             raise KeyError, 'No value for attribute %s' %(attribute)
 
-    def hasAttributeValue(self, name, _attrDict=None):
+    def hasLocalAttributeValue(self, name, _attrDict=None):
         """
-        Tell if a Chandler attribute has a locally defined value.
+        Tell if a Chandler attribute has a locally defined value, that is, a
+        value stored on an attribute named C{name} on this item.
 
         @param name: the name of the attribute
         @type name: a string
@@ -1515,13 +1516,13 @@ class Item(object):
         @return: a string
         """
 
-        if self.hasAttributeValue('displayName'):
+        if 'displayName' in self._values:
             return self.displayName
 
         if self._kind is not None:
-            if self._kind.hasAttributeValue('displayAttribute'):
+            if 'displayAttribute' in self._kind._values:
                 displayAttribute = self._kind.displayAttribute
-                if self.hasAttributeValue(displayAttribute):
+                if self.hasLocalAttributeValue(displayAttribute):
                     return self.getAttributeValue(displayAttribute)
                 
         return self._name or '{%s}' %(self._uuid.str64())

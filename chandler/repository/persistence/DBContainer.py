@@ -102,7 +102,13 @@ class DBContainer(object):
 
     def get(self, key):
 
-        return self._db.get(key, txn=self.store.txn, flags=self._flags)
+        while True:
+            try:
+                return self._db.get(key, txn=self.store.txn, flags=self._flags)
+            except DBLockDeadlockError:
+                self._logDL(24)
+                if self.store.txn is not None:
+                    raise
 
     def openCursor(self, db=None):
 

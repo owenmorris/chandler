@@ -24,7 +24,7 @@ class RefCollectionDictionary(Item):
     def __init__(self, *args, **kwds):
         super(RefCollectionDictionary, self).__init__(*args, **kwds)
         # ensure that the collectionSpecifier exists
-        if not self.hasAttributeValue(self.getCollectionSpecifier()):
+        if not self.hasLocalAttributeValue(self.getCollectionSpecifier()):
             self.setAttributeValue(self.getCollectionSpecifier(), [])
         
     def itemNameAccessor(self, item):
@@ -774,7 +774,7 @@ class Toolbar (Block.RectangularChild, DynamicContainer):
     
     def synchronizeColor (self):
         # if there's a color style defined, synchronize the color
-        if self.hasAttributeValue("colorStyle"):
+        if self.hasLocalAttributeValue("colorStyle"):
             self.colorStyle.synchronizeColor(self)
 
             

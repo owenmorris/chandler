@@ -147,8 +147,8 @@ def test():
   ['for', 'i', 'z', ['and', ['<', ['path', ['i', 'price'], None], '10'], ['==', ['path', ['i', 'color'], None], '"green"']], False]
   >>> print parse('for_stmt', 'for i in z where len(z.messages) > 1000')
   ['for', 'i', 'z', ['>', ['fn', 'len', [['path', ['z', 'messages'], None]]], '1000'], False]
-  >>> print parse('for_stmt', 'for i in "//Schema/Core/Kind" where i.hasAttributeValue("itsName")')
-  ['for', 'i', '"//Schema/Core/Kind"', ['method', ['path', ['i', 'hasAttributeValue'], None], ['"itsName"']], False]
+  >>> print parse('for_stmt', 'for i in "//Schema/Core/Kind" where i.hasLocalAttributeValue("itsName")')
+  ['for', 'i', '"//Schema/Core/Kind"', ['method', ['path', ['i', 'hasLocalAttributeValue'], None], ['"itsName"']], False]
   >>> print parse('for_stmt', u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.importance == 'fyi'")
   ['for', u'i', u"'//parcels/osaf/contentmodel/calendar/CalendarEvent'", [u'==', ['path', [u'i', u'importance'], None], u"'fyi'"], False]
   >>> print parse('for_stmt', u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.startTime > date('2004-08-01') and i.startTime < date('2004-08-01')")

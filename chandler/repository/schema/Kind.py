@@ -327,8 +327,8 @@ class Kind(Item):
             return child._uuid
 
         references = self._references
-        if self.hasAttributeValue('attributes', _attrDict=references):
-            return self.getAttributeValue('attributes', _attrDict=references).resolveAlias(name)
+        if 'attributes' in references:
+            return references['attributes'].resolveAlias(name)
 
         return None
 

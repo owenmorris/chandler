@@ -157,7 +157,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                 allDay = item.allDay
             except AttributeError:
                 allDay = False
-            if (item.hasAttributeValue('startTime') and
+            if (item.hasLocalAttributeValue('startTime') and
                 allDay and
                 (item.startTime >= date) and
                 (item.startTime < nextDate)):
@@ -182,8 +182,8 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                 allDay = item.allDay
             except AttributeError:
                 allDay = False
-            if (item.hasAttributeValue('startTime') and
-                item.hasAttributeValue('endTime') and
+            if (item.hasLocalAttributeValue('startTime') and
+                item.hasLocalAttributeValue('endTime') and
                 (not allDay) and
                 (item.startTime >= date) and
                 (item.startTime < nextDate)):
@@ -748,9 +748,9 @@ class WeekBlock(CalendarBlock):
         super(WeekBlock, self).__init__ (*arguments, **keywords)
 
     def initAttributes(self):
-        if not self.hasAttributeValue('rangeStart'):
+        if not self.hasLocalAttributeValue('rangeStart'):
             self.setRange(DateTime.today())
-        if not self.hasAttributeValue('rangeIncrement'):
+        if not self.hasLocalAttributeValue('rangeIncrement'):
             self.rangeIncrement = DateTime.RelativeDateTime(days=self.daysPerView)
             
     def instantiateWidget(self):

@@ -141,7 +141,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         firstItem.SetReminderDelta(DateTime.DateTimeDeltaFrom(minutes=30))
         self.assertEqual(firstItem.reminderTime, DateTime.DateTime(2003, 3, 4, 12, 15))
         firstItem.SetReminderDelta(None)
-        self.failIf(firstItem.hasAttributeValue('reminderTime'))
+        self.failIf(firstItem.hasLocalAttributeValue('reminderTime'))
 
         # Test allDay
         firstItem.allDay = True

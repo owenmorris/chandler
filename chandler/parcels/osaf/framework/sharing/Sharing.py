@@ -434,8 +434,8 @@ class FileSystemConduit(ShareConduit):
         self.shareName = self.shareName.strip("/")
 
     def getLocation(self): # must implement
-        if self.hasAttributeValue("sharePath") and \
-         self.hasAttributeValue("shareName"):
+        if self.hasLocalAttributeValue("sharePath") and \
+         self.hasLocalAttributeValue("shareName"):
             return os.path.join(self.sharePath, self.shareName)
         raise Misconfigured()
 
@@ -1249,7 +1249,7 @@ class CloudXMLFormat(ImportExportFormat):
 
             attrNode = self.__getNode(node, attrName)
             if attrNode is None:
-                if item.hasAttributeValue(attrName):
+                if item.hasLocalAttributeValue(attrName):
                     item.removeAttributeValue(attrName)
                 continue
 

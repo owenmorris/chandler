@@ -81,7 +81,7 @@ class AliasTest(RepositoryTestCase.RepositoryTestCase):
 #            print a
 #            a1 =  self.kind.getAttribute(a[0])
 #            print a1
-#            if a1.hasAttributeValue('types'):
+#            if a1.hasLocalAttributeValue('types'):
 #                print a1.types
 
 

@@ -27,7 +27,7 @@ class Attribute(Item):
 
     def hasAspect(self, name):
 
-        return self.hasAttributeValue(name)
+        return self.hasLocalAttributeValue(name)
 
     def getAspect(self, name, **kwds):
 

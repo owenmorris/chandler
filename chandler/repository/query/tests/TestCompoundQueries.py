@@ -13,13 +13,13 @@ class TestCompoundQueries(QueryTestCase.QueryTestCase):
         """ Test a difference query """
         results = self._compileQuery('testDifferenceQuery',"difference(for i in '//Schema/Core/Kind' where contains(i.itsName,'o'),for i in '//Schema/Core/Kind' where contains(i.itsName,'t'))")
         #@@@ TODO better result check
-#        self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
+#        self._checkQuery(lambda i: not i.hasLocalAttributeValue("superKinds"), results)
 
     def testIntersectQuery(self):
         """ Test an intersection query """
         results = self._compileQuery('testIntersectionQuery',"intersect(for i in '//Schema/Core/Kind' where contains(i.itsName,'o'),for i in '//Schema/Core/Kind' where contains(i.itsName,'t'))")
         #@@@ TODO better result check
-#        self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
+#        self._checkQuery(lambda i: not i.hasLocalAttributeValue("superKinds"), results)
 
     def testUnionQuery(self):
         """ Test a union query """

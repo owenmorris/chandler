@@ -293,7 +293,7 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         # opted for clarity.)
         decoratedSubtreeList = [] # each entry will be (position, path, subtreechild)
         for subtree in self._getSubtrees():
-            if keyItem.isKindOf(subtree.key) and subtree.hasAttributeValue('rootBlocks'):
+            if keyItem.isKindOf(subtree.key) and subtree.hasLocalAttributeValue('rootBlocks'):
                 for block in subtree.rootBlocks:
                     entryTobeSorted = (block.getAttributeValue('position', default=sys.maxint), 
                                        block.itsPath,
@@ -703,7 +703,7 @@ class NoteBody (EditTextAttribute):
         
     def loadAttributeIntoWidget (self, item, widget):  
         attributeName = GetRedirectAttribute(item, 'body');
-        if item.hasAttributeValue(attributeName):
+        if item.hasLocalAttributeValue(attributeName):
             # get the character string out of the Text LOB
             noteBody = item.ItemBodyString ()
             widget.SetValue(noteBody)

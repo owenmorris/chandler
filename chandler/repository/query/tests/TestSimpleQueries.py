@@ -86,8 +86,8 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
 
     def testMethodCallQuery(self):
         """  """
-        results = self._compileQuery('testMethodCallQuery','for i in "//Schema/Core/Kind" where i.hasAttributeValue("superKinds")')
-        self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
+        results = self._compileQuery('testMethodCallQuery','for i in "//Schema/Core/Kind" where i.hasLocalAttributeValue("superKinds")')
+        self._checkQuery(lambda i: not i.hasLocalAttributeValue("superKinds"), results)
 
     def testItemTraversalQuery(self):
         """ Test a multiple item path traversal in the query predicate """

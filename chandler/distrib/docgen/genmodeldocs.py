@@ -421,7 +421,7 @@ def RenderItem(item, urlRoot):
                  (toLink(urlRoot, attrType.itsPath), attrType.itsName)
             else:
                 result += "<td valign=top>N/A</td>\n"
-            if attribute.hasAttributeValue('initialValue'):
+            if attribute.hasLocalAttributeValue('initialValue'):
                 result += "<td valign=top>%s</td>\n" % (attribute.initialValue)
             else:
                 result += "<td valign=top>N/A</td>\n"

@@ -421,8 +421,8 @@ class ForPlan(LogicalPlan):
                     # stop at literal attributes
                     if type(attr) == str or type(attr) == unicode:
                         break
-                    if attr.hasAttributeValue('otherName'):
-                        if attr.hasAttributeValue(attr.otherName):
+                    if attr.hasLocalAttributeValue('otherName'):
+                        if attr.hasLocalAttributeValue(attr.otherName):
                             #@@@ need to handle list cardinality!
                             current = attr.getAttributeValue(attr.otherName).first()
                         else:
