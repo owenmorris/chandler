@@ -228,7 +228,7 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
 #if !defined(__WIN16__)
 		// take advantage of WinXP native window double-buffering
 		if ((wxApp::GetComCtl32Version() > 400) && (GetParent() == NULL))
-			*exStyle += 0x02000000;	// WS_EX_COMPOSITED
+			*exflags += 0x02000000;	// WS_EX_COMPOSITED
 
         if ( !(GetExtraStyle() & wxTOPLEVEL_EX_DIALOG) )
         {
