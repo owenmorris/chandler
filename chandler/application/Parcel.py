@@ -17,7 +17,7 @@ from repository.schema.Kind import Kind
 from repository.util.ClassLoader import ClassLoader
 from repository.util.Path import Path
 from repository.item.RefCollections import RefList
-
+import repository.item.Values
 
 NS_ROOT = "http://osafoundation.org/parcels"
 CORE = "%s/core" % NS_ROOT
@@ -1562,6 +1562,26 @@ class ValueSet(object):
                         print "Reload: item %s, unassigning %s = '%s'" % \
                          (self.item.itsPath, attrName, value)
 
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+def NewItem(view, name, parent, kind, uuid):
+    """ Create an item of a given UUID """
+
+    cls = kind.getItemClass()
+    values = repository.item.Values.Values(None)
+    refs = repository.item.Values.References(None)
+    item = cls.__new__(cls)
+    item._fillItem(name, parent, kind, uuid=uuid, version=0L, values=values,
+     references=refs)
+    view._registerItem(item)
+    values._setItem(item)
+    refs._setItem(item)
+    item._status |= Item.NEW
+    kind.getInitialValues(item, item._values, item._references)
+    if hasattr(cls, 'onItemLoad'):
+        item.onItemLoad(view)
+    return item
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

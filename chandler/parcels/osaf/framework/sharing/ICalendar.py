@@ -1,7 +1,8 @@
 import Sharing
+import application.Parcel
 import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.calendar.Calendar as Calendar
-import chandlerdb
+from chandlerdb.util.UUID import UUID
 import StringIO
 import vobject
 import logging
@@ -42,9 +43,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             print "Only a share or an item collection can be passed in"
             #@@@MOR Raise something
 
-        if not item.hasAttributeValue("externalUUID"):
-            item.externalUUID = str(chandlerdb.util.UUID.UUID())
-
         # @@@MOR Total hack
         newtext = []
         for c in text:
@@ -58,16 +56,18 @@ class ICalendarFormat(Sharing.ImportExportFormat):
 
         countNew = 0
         countUpdated = 0
+        eventKind = self.itsView.findPath(self.__calendarEventPath)
 
         for event in calendar.vevent:
-
             # See if we have a corresponding item already, or create one
-            externalUUID = event.uid[0].value
-            eventItem = self._findByExternalUUID(self.__calendarEventPath,
-             externalUUID)
+            uuid = UUID(event.uid[0].value[:36]) # @@@MOR, stripping "-RID"
+            eventItem = self.itsView.findUUID(uuid)
             if eventItem is None:
-                eventItem = Calendar.CalendarEvent()
-                eventItem.externalUUID = externalUUID
+                # @@@MOR This needs to use the new defaultParent framework
+                # to determine the parent
+                eventItem = application.Parcel.NewItem(self.itsView,
+                 None, self.itsView.findPath("//userdata"),
+                 eventKind, uuid)
                 countNew += 1
             else:
                 countUpdated += 1

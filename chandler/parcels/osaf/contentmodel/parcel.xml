@@ -42,10 +42,6 @@
     <Kind itsName="ChandlerItem">
         <superKinds itemref="Item"/>
         <classes key="python">osaf.contentmodel.ContentModel.ChandlerItem</classes>
-        <Attribute itsName="externalUUID">
-            <type itemref="String"/>
-        </Attribute>
-
         <Attribute itsName="itemCollectionInclusions">
             <type itemref="cm:ItemCollection"/>
             <cardinality>list</cardinality>
@@ -78,10 +74,6 @@
 
         <!-- Sharing Cloud -->
         <Cloud itsName="SharingCloud">
-          <Endpoint itsName="externalUUID">
-            <attribute value="externalUUID"/>
-          </Endpoint>
-          <endpoints itemref="cm:ChandlerItem/SharingCloud/externalUUID"/>
           <Endpoint itsName="displayName">
             <attribute value="displayName"/>
           </Endpoint>

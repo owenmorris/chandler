@@ -300,14 +300,12 @@ class ShareConduit(ContentModel.ChandlerItem):
         if skipItems and item in skipItems:
             skip = True
         if not skip:
-            if not item.hasAttributeValue("externalUUID"):
-                item.externalUUID = str(chandlerdb.util.UUID.UUID())
             externalItemExists = self.__externalItemExists(item)
             itemVersion = item.getVersion()
             prevVersion = self.__lookupVersion(item)
             if itemVersion > prevVersion or not externalItemExists:
                 logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
-                 (item.getItemDisplayName(), item.externalUUID, itemVersion,
+                 (item.getItemDisplayName(), item.itsUUID, itemVersion,
                  prevVersion, externalItemExists))
                 data = self._putItem(item)
                 self.__addToManifest(item, data, itemVersion)
@@ -521,7 +519,6 @@ class ShareConduit(ContentModel.ChandlerItem):
         path = self._getItemPath(item)
         self.manifest[path] = {
          'uuid' : item.itsUUID,
-         'extuuid' : item.externalUUID,
          'data' : data,
          'version' : version,
         }
@@ -614,7 +611,7 @@ class FileSystemConduit(ShareConduit):
             if isinstance(item, Share):
                 fileName = self.SHAREFILE
             else:
-                fileName = "%s.xml" % item.externalUUID
+                fileName = "%s.xml" % item.itsUUID
             return os.path.join(self.getLocation(), fileName)
 
         elif style == ImportExportFormat.STYLE_SINGLE:
@@ -772,7 +769,7 @@ class WebDAVConduit(ShareConduit):
                 return "/%s/%s/share.xml" % (self.sharePath, self.shareName)
             else:
                 return "/%s/%s/%s.%s" % (self.sharePath, self.shareName,
-                 item.externalUUID, extension)
+                 item.itsUUID, extension)
 
         elif style == ImportExportFormat.STYLE_SINGLE:
             return "/%s/%s" % (self.sharePath, self.shareName)
@@ -893,11 +890,7 @@ class WebDAVConduit(ShareConduit):
         print
         print "In contents:"
         for item in self.share.contents:
-            try:
-                extUUID = item.externalUUID
-            except:
-                extUUID = "(no extUUID)"
-            print item.getItemDisplayName(), extUUID, item.getVersion(), item.getVersion(True)
+            print item.getItemDisplayName(), item.itsUUID, item.getVersion(), item.getVersion(True)
         print " - - - - - - - - - "
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
@@ -934,19 +927,6 @@ class ImportExportFormat(ContentModel.ChandlerItem):
     def fileStyle(self):
         """ Should return 'single' or 'directory' """
         pass
-
-    def _findByExternalUUID(self, kindPath, externalUUID):
-        kindPath = "//Schema/Core/Item"
-        query = Query.Query(self.itsView.repository,
-         "for i in '%s' where i.externalUUID == '%s'" % \
-          (kindPath, externalUUID))
-        query.execute()
-        results = []
-        for i in query:
-            results.append(i)
-        if len(results):
-            return results[0]
-        return None
 
 
 class CloudXMLFormat(ImportExportFormat):
@@ -1063,14 +1043,12 @@ class CloudXMLFormat(ImportExportFormat):
         indent = "   "
 
         # print "export cloud for %s (%s)" % (item, item.itsKind)
-        if not item.hasAttributeValue("externalUUID"):
-            item.externalUUID = str(chandlerdb.util.UUID.UUID())
 
         # Collect the set of attributes that are used in this format
         attributes = self.__collectAttributes(item)
 
         result = indent * depth
-        result += "<%s>\n" % item.itsKind.itsName
+        result += "<%s uuid='%s'>\n" % (item.itsKind.itsName, item.itsUUID)
 
         depth += 1
 
@@ -1218,13 +1196,12 @@ class CloudXMLFormat(ImportExportFormat):
 
         if item is None:
 
-            # see if we have a matching item, first by examining externalUUID...
-            uuidNode = self.__getNode(node, "externalUUID")
-            if uuidNode is not None:
-                externalUUID = uuidNode.content
-                item = self._findByExternalUUID(kindPath, externalUUID)
-                # if item is not None:
-                #     print "UUID search found", item
+            uuidNode = node.hasProp('uuid')
+            if uuidNode:
+                uuid = UUID(uuidNode.content)
+                item = self.itsView.findUUID(uuid)
+            else:
+                uuid = None
 
             if self.useFingerprintSearch and item is None:
                 # then look for items matching the "fingerprint"...
@@ -1242,9 +1219,15 @@ class CloudXMLFormat(ImportExportFormat):
                     print "Fingerprint match found", item
 
         if item is None:
-            # both types of searches failed, so create an item...
+            # item searches turned up empty, so create an item...
             # print "Creating item of kind", kind.itsPath, kind.getItemClass()
-            item = kind.newItem(None, None)
+            if uuid:
+                # @@@MOR This needs to use the new defaultParent framework
+                # to determine the parent
+                item = application.Parcel.NewItem(self.itsView, None,
+                 self.itsView.findPath("//userdata"), kind, uuid)
+            else:
+                item = kind.newItem(None, None)
             # print "created item", item.itsPath, item.itsKind
         else:
             # there is a chance that the incoming kind is different than the
@@ -1294,6 +1277,7 @@ class CloudXMLFormat(ImportExportFormat):
                     item.setAttributeValue(attrName, value)
 
                 elif cardinality == 'list':
+                    attrItem = item.itsKind.getAttribute(attrName)
                     values = []
                     valueNode = attrNode.children
                     while valueNode:
