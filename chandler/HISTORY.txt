@@ -3,10 +3,41 @@
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 Milestone 0.3.16 (CVS tag CHANDLER_0_3_16) 2004-05-18
-    * Adoption of wxWidgets 2.5
+    * Upgraded to wxWidgets 2.5.
     * Adoption of new build structure, isolating external/internal library 
       dependencies from pure Python code.
-    * Additional changes to follow
+    * Unified Tree TreeList and List blocks to be almost completely data 
+      driven.
+    * Tree, ListTree and List now use a small delegate to abstract the display
+      of their contents. The default List delegate uses a query to specify the
+      list of items to display.
+    * Queries now know when items change so they can notify blocks when to
+      redisplay.
+    * First implementation of the summary block.
+    * We're beginning to refactor blocks to more clearly separate the model
+      (block) from the view (widget). When you change the model (block), you
+      can now call SynchronizeWidget on the block to cause the changes to be
+      reflected in the widget. SplitWindow now implements SynchronizeWidget.
+      We use this to show or hide panes of a splitWindow. 
+    * Implemented import functionality for contacts exported by Outlook as
+      comma separated variable files.
+    * Added initial calendar blocks, migrated code from old 0.1 release.
+    * Implemented first pass on repository notification support.
+    * Fixed deleted items coming back.
+    * Prepared LuceneDB code and submitted it to the Apache Lucene project.
+    * Implemented PythonReader, a java reader reading from python.
+    * Integrated PyLucene text indexing with Text Lob object.
+    * Added ItemValue, a second superclass for item owned values.
+    * Integrated full text search into Repository code.
+    * Added epydoc based repository API generation to Chandler build.
+    * Added view attach/detach APIs for view/thread specific initializations.
+    * Added 'check repository' menu item to Chandler 'test' menu.
+    * Added repository cache pruning.
+    * Added Cloud support.
+    * Remote access is revived, items are transfered over as clouds.
+    * Added notions of versionId and remote version to repositories.
+    * Repository now able to run in diskless mode with -ramdb.
+    * Added types needed by access control.
 
 Release 0.3 (CVS tag CHANDLER_0_3) 2004-2-24
 
