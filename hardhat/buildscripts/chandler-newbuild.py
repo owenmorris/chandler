@@ -44,7 +44,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         extModuleDir = os.path.join(releaseModeDir, "external")
         intModuleDir = os.path.join(releaseModeDir, "internal")
         version = getVersion(os.path.join(extModuleDir, "Makefile"))
-        if not os.path.exists (extModuleDir, "sources-" + version + ".tar.gz"):
+        if not os.path.exists (os.path.join(extModuleDir, "sources-" + version + ".tar.gz")):
             print "checking out external"
             log.write("Checking out: external with " + cvsVintage + "\n")
             outputList = hardhatutil.executeCommandReturnOutputRetry(
@@ -407,7 +407,7 @@ def getVersion(fileToRead):
                 version = m.group(1)
                 input.close()
                 return version
-            
+
         line = input.readline()
     input.close()
     return 'No Version'
