@@ -171,8 +171,29 @@ class ItemHandler(xml.sax.ContentHandler):
         # therefore attribute assignments could fail.
         elif element == 'Attribute':
             if isSchemaItem:
-                value = self.makeValue(currentItem, elementLocal, self.currentType, self.currentValue, self.locator.getLineNumber())
-                currentItem.addValue(elementLocal, value)
+                if elementLocal == "defaultValue" or \
+                   elementLocal == "initialValue":
+                    # The type and cardinality of the default value we're going
+                    # to make should be that of the attribute so that the
+                    # parcel author doesn't have to re-specify the type here.
+                    # However, the attribute's type may not have been hooked up
+                    # yet, so for now we need the type specified in the
+                    # initialValue/defaultValue element. 
+                    # TODO:  Delay this addValue until after we've had a chance
+                    # to hook up the attribute's type.
+                    if currentItem.cardinality == "single":
+                        value = self.makeValue(currentItem, elementLocal, self.currentType, self.currentValue, self.locator.getLineNumber())
+                        currentItem.addValue(elementLocal, value)
+                    else:
+                        # Cardinality is list
+                        # For the moment ignore any value/type and set to empty
+                        # list.
+                        # TODO: support assignment of a non-empty list to
+                        # initialValue?
+                        currentItem.addValue(elementLocal, [])
+                else:
+                    value = self.makeValue(currentItem, elementLocal, self.currentType, self.currentValue, self.locator.getLineNumber())
+                    currentItem.addValue(elementLocal, value)
             else: # Delay
                 self.currentReferences.append((self._DELAYED_LITERAL, local,
                  self.currentType, self.currentValue, None, self.locator.getLineNumber()))

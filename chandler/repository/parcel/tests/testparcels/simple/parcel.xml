@@ -17,6 +17,7 @@
   <Kind itemName="TestKind">
     <displayName>Test Kind</displayName>
     <attributes itemref="simple:TestAttribute"/>
+    <attributes itemref="simple:ListAttribute"/>
     <displayAttribute itemref="simple:TestAttribute"/>
   </Kind>
 
@@ -29,6 +30,14 @@
     <displayName>Test Attribute</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
+    <initialValue type="String">XYZZY</initialValue>
+  </Attribute>
+
+  <Attribute itemName="ListAttribute">
+    <displayName>List Attribute</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="String"/>
+    <initialValue/>
   </Attribute>
 
 </Parcel>

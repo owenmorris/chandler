@@ -67,5 +67,12 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.assert_(subKind.superKinds.has_key(testKind.itsUUID))
         self.assert_(testKind.subKinds.has_key(subKind.itsUUID))
 
+        # Ensure that an empty defaultValue for a list attribute gets
+        # sets properly
+        item3 = self.rep.findPath("//parcels/simple/data/item3")
+        item3.ListAttribute.append("foo")
+        self.assert_(item3.TestAttribute == "XYZZY")
+
+
 if __name__ == "__main__":
     unittest.main()

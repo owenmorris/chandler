@@ -17,4 +17,6 @@
     <TestAttribute>plugh</TestAttribute>
   </simple:SubKind>
 
+  <simple:TestKind itemName="item3"/>
+
 </Parcel>
