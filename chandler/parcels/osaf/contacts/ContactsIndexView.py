@@ -113,9 +113,12 @@ class ContactsIndexView(wxPanel):
             self.contactsView.DeleteContact(contact)
 
         self.contactsView.ContactsChanged()
-        self.currentView.SetSelectedIndex(selectedIndex)
-
-        return true
+        if count > 1:
+            self.currentView.SetSelectedIndex(selectedIndex)
+        else:
+            self.contactsView.contentView.SetContact(None)
+            
+        return True
     
     # Resort the contacts and update everything
     # FIXME: do this incrementally, by removing and reinserting the contact that changed

@@ -443,7 +443,7 @@ class JabberClient:
         
         # invoke a dialog to confirm the subscription request if necessary
         if type == 'subscribe' or type == 'unsubscribe':
-            self.ConfirmSubscription(type, who)
+            self.ReceivedSubscriptionRequest(type, who)
         else:
             self.NotifyPresenceChanged(who)
             
@@ -545,7 +545,31 @@ class JabberClient:
         mappedObjectStr = self.FixExtraBlanks(mappedObjectStr)
         mappedObjectStr = base64.decodestring(mappedObjectStr)
         return cPickle.loads(mappedObjectStr)
+
+    # ReceivedSubscriptionRequest fires off a notification to give agents a chance to process the request.
+    # If no agent handles it, put up a dialog to ask the user.
+    def ReceivedSubscriptionRequest(self, subscriptionType, who):     
+        subRequestNotification = Notification("chandler/im/presence-request", "", None)
+        data = {}
+        data['who'] = who
+        data['subscriptionType'] = subscriptionType
+        subRequestNotification.SetData(data)
+        self.application.model.notificationManager.PostNotification(subRequestNotification)
+       
+        # set up a timer to test if the notification was handled, and put up a dialog if it wasn't
+        timer = SubscriptionRequestTimer(self, subscriptionType, who, subRequestNotification)
+        timer.Start(3000)
+ 
+    # utility to accept a subscription request
+    def AcceptSubscriptionRequest(self, who):
+        self.connection.send(Presence(to=who, type='subscribed'))
+        self.connection.send(Presence(to=who, type='subscribe'))
     
+   # utility to decline a subscription request
+    def DeclineSubscriptionRequest(self, who):
+        self.connection.send(Presence(to=who, type='unsubscribed'))
+        self.connection.send(Presence(to=who, type='unsubscribe'))
+       
     # put up a dialog to confirm the subscription request.  If this is called reentrantly,
     # ignore subsequent requests
     def ConfirmSubscription(self, subscriptionType, who):
@@ -683,7 +707,28 @@ class JabberClient:
                 return localurl
             
         return url
-    
+
+# here's a one-shot timer to handle subscription requests - put up a dialog if noone handled it
+class SubscriptionRequestTimer(wxTimer):
+    def __init__(self, jabberClient, subscriptionType, who, notification):
+        self.jabberClient = jabberClient
+        self.who = who
+        self.subscriptionType = subscriptionType
+        self.notification = notification
+        
+        wxTimer.__init__(self)
+        
+    def Notify(self):   
+        # ask the agent manager if the notification was handled
+        agentManager = self.jabberClient.application.agentManager
+        if agentManager.GetHandledStatus(self.notification):
+            agentManager.DeleteHandledStatus(self.notification)
+        else:
+            # if it wasn't handled, put up the dialog
+            self.jabberClient.ConfirmSubscription(self.subscriptionType, self.who)
+ 
+        self.Stop()
+
 # here's a subclass of timer to periodically drive the event mechanism
 class JabberTimer(wxTimer):
     def __init__(self, jabberClient):

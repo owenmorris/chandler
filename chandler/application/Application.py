@@ -337,10 +337,7 @@ class wxApplication (wxApp):
                                           'model', 'schema',
                                           'CoreSchema.xml')
             # loader.load(coreSchemaPath)
-                    
-        # initialize the agent manager
-        self.agentManager = AgentManager(self)
-            
+                                
         """ Load the parcels """
         self.LoadParcelsInDirectory(parcelDir)
 
@@ -374,7 +371,7 @@ class wxApplication (wxApp):
         initialize the non-persistent part of the NotificationManager
         """
         self.model.notificationManager.PrepareSubscribers()
-        
+                
         """
           allocate the Jabber client, logging in if possible
         """
@@ -383,6 +380,9 @@ class wxApplication (wxApp):
         self.InCommand = false          #used by OnCommand
         self.jabberClient.Login()
 
+        # initialize the agent manager
+        self.agentManager = AgentManager(self)
+        
         self.OpenStartingURL()
         
         return true                     #indicates we succeeded with initialization

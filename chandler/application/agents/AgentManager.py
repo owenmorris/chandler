@@ -34,6 +34,8 @@ class AgentManager:
         self._LoadAgents()
         self._CheckForNewAgents()
         
+        self.debugMode = False
+        
     def _LoadAgents(self):
         """
           Iterate through the agentItem in the repository and create their dynamic counterparts
@@ -140,8 +142,9 @@ class AgentManager:
             # register with the notification manager and subscribe to notifications
             clientID = agent.GetClientID()
             notificationManager = self.application.model.notificationManager
-            notificationManager.Register(clientID)
-           
+            if not notificationManager.IsRegistered(clientID):
+                notificationManager.Register(clientID)
+            
             # subscribe to notifications
             notifications = agent.model.GetActiveNotifications()
             for notification in notifications:    
@@ -179,17 +182,23 @@ class AgentManager:
             agent.Resume() 
 
     # the following routines maintain the 'handled' state associated with a notification
-    # we will probably have a more elaborate model for action status soon, but this
-    # simple scheme suffices for the original implementation
+    # we will probably have a more elaborate model for coordinating actions between agents
+    # soon, but this simple scheme suffices for the original implementation
     
     def GetHandledStatus(self, notification):
-        if self.notificationHandledStatus.has_key(notification):
-            return self.notificationHandledStatus[notification]
+        id = notification.GetID()
+        if self.notificationHandledStatus.has_key(id):
+            return self.notificationHandledStatus[id]
         return False
     
-    def SetHandledStatus(self, notification, newStatus):
-        self.notificationHandledStatus[notification] = newStatus
+    def SetHandledStatus(self, notification, newStatus):      
+        self.notificationHandledStatus[notification.GetID()] = newStatus
         
+    def DeleteHandledStatus(self, notification):
+        id = notification.GetID()        
+        if self.notificationHandledStatus.has_key(id):
+            del self.notificationHandledStatus[id]
+            
 class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
     """
       Here's the xml parser class that receives the agent definition file as an XML SAX stream,

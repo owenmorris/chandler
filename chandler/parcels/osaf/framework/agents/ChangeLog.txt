@@ -78,4 +78,15 @@
        
      * made sure the test agent works when it has more than one instruction
      
-    
+2003-09-08 Andy Hertzfeld <andy@differnet.com>
+
+     * added a 'presence approval agent' that can automatically approve presence
+       subscription requests based on a pattern matching the requestor's jabber ID.
+       
+     * made the Jabber subsystem emit a notification for a presence subscription
+       request, and made it check the 'handled' boolean after a delay to see if
+       anyone handled it; if not, it puts up the dialog like it used to
+       
+    * initialized the agent manager toward the end of the initialization process;
+      it was being initialized before the notification manager.
+      

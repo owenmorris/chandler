@@ -79,6 +79,13 @@ class NotificationManager(Persistent):
         except ValueError:
             # FIXME: should throw a 'NotRegistered' exception here?
             pass
+    
+    def IsRegistered(self, clientID):
+        try:
+            index = self.subscriberList.index(clientID)
+            return True
+        except ValueError:
+            return False
         
     # called when the app is started up to add queues for all the persistent subscribers
     def PrepareSubscribers(self):

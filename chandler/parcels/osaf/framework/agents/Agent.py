@@ -106,32 +106,32 @@ class Agent:
             if action.IsCompleted():
                 del self.activeActions[action]
  
-    def MakeTask(self, action, actionData):
+    def MakeTask(self, action, notification):
         """
            run the passed-in action asynchronously by making a task object to manage it
            FIXME:  not yet implemented
         """
         pass
     
-    def LaunchNewActions(self, newActions, actionData):
+    def LaunchNewActions(self, newActions, notification):
         """
           launch the actions in the passed-in list
         """ 
         result = None
         for action in newActions:
             if action.IsAsynchronous():
-                self.MakeTask(action, actionData)
+                self.MakeTask(action, notification)
             else:
                 confirmFlag = action.NeedsConfirmation()
                 if action.UseWxThread() or confirmFlag:
-                    actionProxy = DeferredAction(action, self, confirmFlag, actionData)
+                    actionProxy = DeferredAction(action, self, confirmFlag, notification)
                     self.agentManager.application.deferredActions.append(actionProxy)
                     
                     # call wxWakeUpIdle to give a chance for idle handlers to process the deferred action
                     wxWakeUpIdle()
                     
                 else:
-                    result = action.Execute(self, actionData)
+                    result = action.Execute(self, notification)
                 
     def UpdateStatus(self):
         """
@@ -188,15 +188,10 @@ class Agent:
     def ExecuteInstructions(self, instructions, notification):
         """
           here is the interpreter loop that executes a list of instructions
-        """
-        if notification != None:
-            notificationData = notification.data
-        else:
-            notificationData = None
-        
+        """        
         for instruction in instructions:
             newActions = instruction.GetNewActions(notification)
-            self.LaunchNewActions(newActions, notificationData)
+            self.LaunchNewActions(newActions, notification)
             
     # here is the agent's main loop, which fetches notifications and evaluates conditions
     def Mainloop(self):
@@ -235,8 +230,8 @@ class Agent:
         """
           sub-classes can override idle to do house-keeping, etc
         """
-        #print "looping in agent", self.GetName()
-        pass
+        if self.agentManager.debugMode:
+            print "looping in agent", self.GetName()
     
     def Suspend(self):
         """

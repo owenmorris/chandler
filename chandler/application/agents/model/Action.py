@@ -40,7 +40,7 @@ class Action(Item):
             return self.asyncFlag
         
         return False
-    
+        
     def UseWxThread(self):
         """
            by default, actions run on the agent's thread, but they can be deferred to run synchronously
@@ -64,7 +64,7 @@ class Action(Item):
     def GetName(self):
         return self.GetItemName()
     
-    def Execute(self, agent, data):
+    def Execute(self, agent, notification):
         '''
           perform an action according to the action type.
           FIXME:  right now we run the scripts in the current context, so they can access the parameters.
@@ -73,7 +73,8 @@ class Action(Item):
         result = None
         script = self.actionScript
         actionType = self.actionType
-                
+        data = notification.GetData()
+        
         # set up an optional value to be used by the script
         if self.hasAttributeValue('actionValue'):
             actionValue = self.actionValue
@@ -88,7 +89,9 @@ class Action(Item):
             elif actionType == 'expression':
                 result = eval(script)
             elif actionType == 'inline':
+                print "about to run ", script
                 exec script
+                print "back from running"
             else:
                 # FIXME: should probably throw an exception here
                 print "unknown action type", agent.GetName(), self.GetName(), self.actionType
@@ -112,11 +115,11 @@ The DeferredAction class is a simple wrapper for an action that allows an action
 passing any parameters.
 """
 class DeferredAction:
-    def __init__(self, action, agent, needConfirm, actionData):
+    def __init__(self, action, agent, needConfirm, notification):
         self.action = action
         self.agent = agent
         self.needConfirm = needConfirm
-        self.actionData = actionData
+        self.notification = notification
     
     def _GetPermissionMessage(self):
         if self.action.hasAttributeValue('actionPermissionRequest'):
@@ -140,6 +143,6 @@ class DeferredAction:
                 return False
             
              
-        result = self.action.Execute(self.agent, self.actionData)
+        result = self.action.Execute(self.agent, self.notification)
         
         

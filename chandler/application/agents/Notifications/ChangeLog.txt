@@ -40,3 +40,8 @@
 
     * made _postNotification call wxWakeUpIdle so we can use idle events to poll for
       notifications, whilw still allowing the main loop to sleep most of the time
+
+ 2003-09-08 Andy Hertzfeld <andy@differnet.com>
+ 
+    * added an IsRegistered call to avoid registering twice
+ 

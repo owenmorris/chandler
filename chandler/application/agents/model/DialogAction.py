@@ -30,14 +30,14 @@ class DialogAction(Action):
             
         return result
     
-    def Execute(self, agent, data):
+    def Execute(self, agent, notification):
         """
            Use wxWindows to display a dialog, with text derived from a template specified by the action,
            and data from the data parameter.   The data parameter is a dictionary associating values with keys
         """
       
         template = self.actionValue
-        message = self._SubstituteAttributes(template, data)
+        message = self._SubstituteAttributes(template, notification.GetData())
         
         if self.actionType == 'confirmdialog':
             application = agent.agentManager.application
