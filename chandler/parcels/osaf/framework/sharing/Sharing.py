@@ -35,20 +35,22 @@ class Parcel(application.Parcel.Parcel):
          collectionName, url)
         collection = collectionFromSharedUrl(url)
         if collection is not None:
-            application.dialogs.Util.showAlert( \
-             Globals.wxApplication.mainFrame,
-             "Received an invite for an already subscribed collection:\n"
+            application.dialogs.Util.ok( \
+             Globals.wxApplication.mainFrame, "Sharing Invitation",
+             "Received an invite for an already subscribed collection:\n" \
              "%s\n%s" % (collection.displayName, url))
         else:
-            if application.dialogs.Util.promptYesNo( \
+            if application.dialogs.Util.yesNo( \
              Globals.wxApplication.mainFrame, "Sharing Invitation",
-             "%s\nhas invited you to subscribe to '%s'\nWould you like to accept the invitation?" % (fromAddress, collectionName) ):
+             "%s\nhas invited you to subscribe to '%s'\n" \
+             "Would you like to accept the invitation?" \
+             % (fromAddress, collectionName) ):
                 subscribeToWebDavCollection(url)
 
     def _errorCallback(self, notification):
         # When we receive this event, display the error
         error = notification.data['error']
-        application.dialogs.Util.showAlert( \
+        application.dialogs.Util.ok( \
          Globals.wxApplication.mainFrame, error)
 
 
@@ -60,7 +62,7 @@ def subscribeToWebDavCollection(url):
 
     # See if we are already subscribed to the collection
     if collection is not None:
-        application.dialogs.Util.showAlert( \
+        application.dialogs.Util.ok( \
          Globals.wxApplication.mainFrame,
          "Already subscribed to collection '%s':\n"
          "%s" % (collection.displayName, url))

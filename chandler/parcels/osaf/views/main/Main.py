@@ -345,7 +345,8 @@ class MainView(View):
         """
         Globals.wxApplication.mainFrame.GetStatusBar().blockItem.setStatusMessage (statusMessage, progressPercentage)
         if alert:
-            application.dialogs.Util.showAlert(Globals.wxApplication.mainFrame, statusMessage)
+            application.dialogs.Util.ok(Globals.wxApplication.mainFrame,
+             "", statusMessage)
             self.setStatusMessage ('')
 
     def SharingInvitees (self, itemCollection):
