@@ -33,10 +33,13 @@
 %name(x509_get_pubkey) extern EVP_PKEY *X509_get_pubkey(X509 *);
 %name(x509_set_pubkey) extern int X509_set_pubkey(X509 *, EVP_PKEY *);
 %name(x509_get_issuer_name) extern X509_NAME *X509_get_issuer_name(X509 *);
+%name(x509_set_issuer_name) extern int X509_set_issuer_name(X509 *, X509_NAME *);
 %name(x509_get_subject_name) extern X509_NAME *X509_get_subject_name(X509 *);
+%name(x509_set_subject_name) extern int X509_set_subject_name(X509 *, X509_NAME *);
 
 %name(x509_get_verify_error) extern const char *X509_verify_cert_error_string(long);
 
+%name(x509_req_get_pubkey) extern EVP_PKEY *X509_REQ_get_pubkey(X509_REQ *);
 %name(x509_req_set_pubkey) extern int X509_REQ_set_pubkey(X509_REQ *, EVP_PKEY *);
 
 %name(i2d_x509) extern int i2d_X509_bio(BIO *, X509 *);
@@ -175,6 +178,11 @@ int x509_name_set_by_nid(X509_NAME *name, int nid, PyObject *obj) {
     return X509_NAME_add_entry_by_NID(name, nid, MBSTRING_ASC, PyString_AsString(obj), -1, -1, 0);
 }
 
+/* XXX I could not find the declaration of X509_NAME_new so just guessing */
+X509_NAME *x509_name_new() {
+    return X509_NAME_new();
+}
+
 /* sk_X509_new_null() is a macro returning "STACK_OF(X509) *". */
 STACK *sk_x509_new_null(void) {
     return (STACK *)sk_X509_new_null();
@@ -233,6 +241,11 @@ int x509_req_set_version(X509_REQ *x, long version) {
 
 int x509_req_sign(X509_REQ *x, EVP_PKEY *pkey, EVP_MD *md) {
     return X509_REQ_sign(x, pkey, md);
+}
+
+/* X509_REQ_verify could be a define */
+int x509_req_verify(X509_REQ *x, EVP_PKEY *pkey) {
+    return X509_REQ_verify(x, pkey);
 }
 %}
 

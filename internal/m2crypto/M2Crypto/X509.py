@@ -48,9 +48,12 @@ class X509_Name:
            'Email' : m2.NID_pkcs9_emailAddress,
            'emailAddress': m2.NID_pkcs9_emailAddress}
 
-    def __init__(self, x509_name, _pyfree=0):
-        assert m2.x509_name_type_check(x509_name), "'x509_name' type error" 
-        self.x509_name = x509_name
+    def __init__(self, x509_name=None, _pyfree=0):
+        if x509_name is not None:
+            assert m2.x509_name_type_check(x509_name), "'x509_name' type error"
+            self.x509_name = x509_name
+        else:
+            self.x509_name = m2.x509_name_new()
         self._pyfree = _pyfree
 
     def __del__(self):
@@ -165,9 +168,33 @@ class X509:
         assert m2.x509_type_check(self.x509), "'x509' type error"
         return X509_Name(m2.x509_get_issuer_name(self.x509))
 
+    def set_issuer(self, name):
+        """
+        Set issuer name.
+
+        @type name:     X509_Name
+        @param name:    subjectName field.
+        @rtype:         XXX
+        @return:        XXX
+        """
+        assert m2.x509_type_check(self.x509), "'x509' type error"
+        return m2.x509_set_issuer_name(self.x509, name.x509_name)
+
     def get_subject(self):
         assert m2.x509_type_check(self.x509), "'x509' type error"
         return X509_Name(m2.x509_get_subject_name(self.x509))
+
+    def set_subject(self, name):
+        """
+        Set subject name.
+
+        @type name:     X509_Name
+        @param name:    subjectName field.
+        @rtype:         XXX
+        @return:        XXX
+        """
+        assert m2.x509_type_check(self.x509), "'x509' type error"
+        return m2.x509_set_subject_name(self.x509, name.x509_name)
 
     def sign(self, pkey, md):
         """
@@ -288,6 +315,15 @@ class Request:
         bio=BIO.openfile(filename, 'wb')
         return m2.x509_req_write_pem(bio.bio_ptr(), self.req)
 
+    def get_pubkey(self):
+        """
+        Get the public key for the request.
+
+        @rtype:      EVP_PKEY
+        @return:     Public key from the request.
+        """
+        return m2.x509_req_get_pubkey(self.req)
+
     def set_pubkey(self, pkey):
         """
         Set the public key for the request.
@@ -302,13 +338,24 @@ class Request:
     def get_subject(self):
         return X509_Name(m2.x509_req_get_subject_name(self.req))
 
+    def set_subject(self, name):
+        """
+        Set subject name.
+
+        @type name:     X509_Name
+        @param name:    subjectName field.
+        @rtype:         XXX
+        @return:        XXX
+        """
+        return m2.x509_req_set_subject_name(self.req, name.x509_name)
+
     def set_version(self, version):
         """
         Set version.
 
-        @type version:  an integer
+        @type version:  integer
         @param version: Version number.
-        @rtype:         an integer
+        @rtype:         integer
         @return:        Returns 0 on failure.
         """
         return m2.x509_req_set_version(self.req, version)
