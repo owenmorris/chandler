@@ -23,7 +23,7 @@ class BasicRepositoryTest(unittest.TestCase):
             self.assert_(True)
 
     def setUp(self):
-        self.rootdir = os.environ['CHANDLERDIR']
+        self.rootdir = os.environ['CHANDLERHOME']
         self.testdir = os.path.join(self.rootdir, 'chandler', 'repository',
                                     'tests')
         self.rep = XMLRepository(os.path.join(self.testdir,'__repository__'))
@@ -51,7 +51,7 @@ TODO is there more pack testing we need to do?
         """
         self.rep.create()
         self.assert_(self.rep.check())
-        schemaPack = os.path.join(self.rootdir, 'repository',
+        schemaPack = os.path.join(self.rootdir, 'chandler', 'repository',
                                   'packs', 'schema.pack')
         self.rep.loadPack(schemaPack)
         self.assert_(self.rep.check())
