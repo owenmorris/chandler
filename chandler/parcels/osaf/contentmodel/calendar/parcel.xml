@@ -24,6 +24,7 @@
   <author>Open Source Applications Foundation</author>
 
   <Kind itsName="CalendarEventMixin">
+    <superKinds itemref="content:ChandlerItem"/>
     <displayName>Calendar Event Mixin Kind</displayName>
     <description>This is the set of CalendarEvent-specific attributes. This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated</description>
     <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEventMixin</classes>
@@ -158,6 +159,10 @@
         <attribute value="endTime"/>
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/SharingCloud/endTime"/>
+      <Endpoint itsName="location">
+        <attribute value="location"/>
+      </Endpoint>
+      <endpoints itemref="cal:CalendarEventMixin/SharingCloud/location"/>
       <Endpoint itsName="organizer">
         <attribute value="organizer"/>
         <includePolicy value="byCloud"/>
@@ -185,7 +190,7 @@
   </Kind>
 
   <Kind itsName="Location">
-    <superKinds itemref="Item"/>
+    <superKinds itemref="content:ChandlerItem"/>
     <displayName>Location</displayName>
     <issues>Location may not be calendar specific</issues>
     <displayAttribute itemref="displayName"/>
@@ -201,7 +206,7 @@
   </Kind>
 
   <Kind itsName="Calendar">
-    <superKinds itemref="Item"/>
+    <superKinds itemref="content:ChandlerItem"/>
     <displayName>Calendar</displayName>
     <issues>Calendar should have an attribute that points to all the Calendar Events.</issues>
     <issues>Calendar should maybe have a 'Timezone' attribute.</issues>
@@ -210,7 +215,7 @@
   </Kind>
 
   <Kind itsName="RecurrencePattern">
-    <superKinds itemref="Item"/>
+    <superKinds itemref="content:ChandlerItem"/>
     <issues>Recurrence Pattern is still a placeholder, and  might be general enough to live with PimSchema.</issues>
     <issues>Recurrence Pattern should have an attribute that points to a Calendar Event.</issues>
     <displayName>Recurrence Pattern</displayName>

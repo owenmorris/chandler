@@ -465,7 +465,7 @@ class MIMESecurity(MIMEContainer):
 
         super(MIMESecurity, self).__init__(name, parent, kind)
 
-class EmailAddress(ContentModel.ChandlerItem):
+class EmailAddress(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/EmailAddress"
 

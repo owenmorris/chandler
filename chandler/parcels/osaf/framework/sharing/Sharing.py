@@ -1079,12 +1079,20 @@ class CloudXMLFormat(ImportExportFormat):
                 'lastName'
             ),
         },
+        'EmailAddress' : {
+            'kind' : '//parcels/osaf/contentmodel/mail/EmailAddress',
+            'fingerprint' : (),
+        },
         'EventTask' : {
             'kind' : '//parcels/osaf/contentmodel/EventTask',
             'fingerprint' : (),
         },
         'ItemCollection' : {
             'kind' : '//parcels/osaf/contentmodel/ItemCollection',
+            'fingerprint' : (),
+        },
+        'Location' : {
+            'kind' : '//parcels/osaf/contentmodel/calendar/Location',
             'fingerprint' : (),
         },
         'MailedEvent' : {

@@ -38,7 +38,7 @@
 
         <Attribute itsName="share">
             <type itemref="share:Share"/>
-            <inverseAttribute itemref="share:Share/conduit"/>
+            <inverseAttribute itemref="share:Share/format"/>
             <cardinality value="single"/>
         </Attribute>
 

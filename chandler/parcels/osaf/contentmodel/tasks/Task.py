@@ -113,7 +113,7 @@ class TaskMixin(ContentModel.ChandlerItem):
             pass
         return super (TaskMixin, self).getAnyWhoFrom ()
 
-class TaskEventExtraMixin(ContentModel.ChandlerItem):
+class TaskEventExtraMixin(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/tasks/TaskEventExtraMixin"
 

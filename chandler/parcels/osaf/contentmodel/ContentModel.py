@@ -579,7 +579,7 @@ class Project(ChandlerItem):
         super (Project, self).__init__(name, parent, kind)
 
 class Group(ChandlerItem):
-    myKindPath = "//parcels/osaf/contentmodel/Project"
+    myKindPath = "//parcels/osaf/contentmodel/Group"
     myKindID = None
 
     def __init__(self, name=None, parent=None, kind=None):

@@ -68,6 +68,10 @@
             <attribute value="externalUUID"/>
           </Endpoint>
           <endpoints itemref="cm:ChandlerItem/SharingCloud/externalUUID"/>
+          <Endpoint itsName="displayName">
+            <attribute value="displayName"/>
+          </Endpoint>
+          <endpoints itemref="cm:ChandlerItem/SharingCloud/displayName"/>
         </Cloud>
         <clouds alias="sharing" itemref="cm:ChandlerItem/SharingCloud"/>
     </Kind>
@@ -210,10 +214,6 @@
             <attribute value="createdOn"/>
           </Endpoint>
           <endpoints itemref="cm:ContentItem/SharingCloud/createdOn"/>
-          <Endpoint itsName="displayName">
-            <attribute value="displayName"/>
-          </Endpoint>
-          <endpoints itemref="cm:ContentItem/SharingCloud/displayName"/>
           <!--
           <Endpoint itsName="creator">
             <attribute value="creator"/>
@@ -257,7 +257,6 @@
   <Kind itsName="Note">
     <displayName>Note</displayName>
     <superKinds itemref="cm:ContentItem"/>
-    <superKinds itemref="cm:ProcessingItem"/>
     <classes key="python">osaf.contentmodel.Notes.Note</classes>
 
     <!-- redirections -->
@@ -313,6 +312,7 @@
 
   <Kind itsName="Project">
     <classes key="python">osaf.contentmodel.ContentModel.Project</classes>
+    <superKinds itemref="cm:ChandlerItem"/>
     <displayName>Project</displayName>
     <examples>my "Housewarming Party" project</examples>
     <examples>my department's "Move to new building" project</examples>
@@ -342,7 +342,7 @@
     <description>See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject</description>
     <issues>We still need to work out some issues about how "playlists"/"item collections" are modeled.</issues>
     <issues>We need to find a name for these things.</issues>
-    <superKinds itemref="cm:ContentItem"/>
+    <superKinds itemref="cm:ChandlerItem"/>
     <classes key="python">osaf.contentmodel.ContentModel.Group</classes>
   </Kind>
 

@@ -26,6 +26,7 @@
     <description>This is the set of Task-specific attributes.</description>
     <description>This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated</description>
     <classes key="python">osaf.contentmodel.tasks.Task.TaskMixin</classes>
+    <superKinds itemref="content:ChandlerItem"/>
 
       <Attribute itsName="requestor">
         <displayName>Requestor</displayName>
@@ -134,6 +135,7 @@
     <description>The attributes specific to an item that is both </description>
     <description>a task and an event.  This is additional 'due by' information. </description>
     <classes key="python">osaf.contentmodel.tasks.Task.TaskEventExtraMixin</classes>
+    <superKinds itemref="content:ChandlerItem"/>
 
     <Attribute itsName="dueByDate">
       <displayName>Due by Date</displayName>
