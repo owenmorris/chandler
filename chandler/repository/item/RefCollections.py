@@ -883,6 +883,10 @@ class RefList(LinkedMap):
                 logger.error("Iterator on %s caused DanglingRefError: %s",
                              self, str(e))
                 return False
+            except BadRefError, e:
+                logger.error("Iterator on %s caused BadRefError: %s",
+                             self, str(e))
+                return False
             l -= 1
             prevKey = key
             key = self.nextKey(key)

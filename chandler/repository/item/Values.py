@@ -374,6 +374,11 @@ class References(Values):
             if value is not None and value._isItem():
                 value._references._removeRef(otherName, self._item)
 
+        if other is not None and otherName in other._references:
+            value = other._references._getRef(otherName)
+            if value is not None and value._isItem():
+                value._references._removeRef(name, other)
+
         self._setRef(name, other, otherName, **kwds)
         if other is not None:
             other._references._setRef(otherName, self._item, name,
@@ -414,7 +419,7 @@ class References(Values):
 
         if other is None:
             if value is self:
-                raise KeyError
+                raise KeyError, name
             if value is None:
                 return value
             if value._isUUID():
@@ -556,11 +561,10 @@ class References(Values):
         item = self._item
         for name, value in orig.iteritems():
             policy = copyPolicy or item.getAttributeAspect(name, 'copyPolicy')
-            if value is not None:
-                if value._isRefList():
-                    value._copy(item, name, policy, copyFn)
-                else:
-                    orig._copyRef(item, name, value, policy, copyFn)
+            if value is not None and value._isRefList():
+                value._copy(item, name, policy, copyFn)
+            else:
+                orig._copyRef(item, name, value, policy, copyFn)
 
     def _unload(self):
 
@@ -775,8 +779,14 @@ class References(Values):
             otherOther = other._references._getRef(otherName)
             if not (otherOther is self._item or
                     otherOther._isRefList() and self._item in otherOther):
-                logger.error("%s.%s doesn't reference %s.%s",
-                             other.itsPath, otherName, self._item.itsPath, name)
+                if otherOther._isRefList():
+                    logger.error("%s doesn't contain a reference to %s, yet %s.%s references %s",
+                                 otherOther, other._repr_(), other._repr_(),
+                                 otherName, self._item._repr_())
+                else:
+                    logger.error("%s.%s doesn't reference %s.%s but %s",
+                                 other._repr_(), otherName, self._item._repr_(),
+                                 name, otherOther)
                 return False
 
         return True

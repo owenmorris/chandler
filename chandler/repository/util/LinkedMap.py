@@ -159,12 +159,12 @@ class LinkedMap(dict):
                 if previousKey is not None and previousKey != key:
                     self._get(previousKey)._setNext(key, previousKey, self)
 
+            super(LinkedMap, self).__setitem__(key, link)
+
             if previousKey is None or previousKey != key:
                 link._setPrevious(previousKey, key, self)
             if nextKey is None or nextKey != key:
                 link._setNext(nextKey, key, self)
-
-            super(LinkedMap, self).__setitem__(key, link)
 
         if alias:
             link._alias = alias

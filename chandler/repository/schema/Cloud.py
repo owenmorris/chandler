@@ -140,18 +140,16 @@ class Cloud(Item):
             if other is None:
                 return None
             uuid = other._uuid
+            if uuid in copies:
+                return copies[uuid]
             if uuid in items:
-                if uuid in copies:
-                    return copies[uuid]
-                else:
-                    other = other.copy(None, parent, copies, 'remove',
-                                       None, copyOther)
-                    results.append(other)
-                    return other
-            elif uuid in references:
+                other = other.copy(None, parent, copies, 'remove',
+                                   None, copyOther)
+                results.append(other)
                 return other
-            else:
-                return Item.Nil
+            if uuid in references:
+                return other
+            return Item.Nil
 
         copy = item.copy(name, parent, copies, 'remove', None, copyOther)
         results.insert(0, copy)
