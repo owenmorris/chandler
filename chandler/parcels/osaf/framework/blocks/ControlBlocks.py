@@ -1439,8 +1439,7 @@ class wxAEBlock(wxBoxContainer):
         if self.control is None:
             return
         # @@@DLD create EndEdit method on AE to delete the control?
-        self.control.Show(False) #@@@DLD should Destroy() the control, but that crashes!
-        #self.DestroyChildren()
+        wx.CallAfter(self.control.Destroy) # destroy this control next idle.
         self.control = None
 
     def setItemAttributeValue(self, value):
