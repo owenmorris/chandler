@@ -198,7 +198,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
             return
 
         # preflight the send/share request
-        # mail items and collections need their recievers set up
+        # mail items and collections need their sender and recievers set up
         message = None
         if isinstance (item, ItemCollection.ItemCollection):
             try:
@@ -208,12 +208,15 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
             if len (whoTo) == 0:
                 message = _('Please specify who to share this collection with in the "to" field.')
         elif isinstance (item, Mail.MailMessageMixin):
+            if item.ItemWhoFromString() == '':
+                item.whoFrom = item.getCurrentMeEmailAddress()
             try:
                 whoTo = item.toAddress
             except AttributeError:
                 whoTo = []
             if len (whoTo) == 0:
                 message = _('Please specify who to send this message to in the "to" field.')
+                
         if message:
             Util.ok(wx.GetApp().mainFrame,
              _("No Receivers"), message)

@@ -112,7 +112,7 @@ class BaseAttributeEditor (IAttributeEditor):
         self.isShared = isShared
 
     def ReadOnly (self, (item, attribute)):
-        return not str(item.itsPath).startswith('//userdata')
+        return False # @@@BJS for now, don't. Was: not str(item.itsPath).startswith('//userdata')
 
     def Draw (self, dc, rect, item, attributeName, isSelected):
         """ You must override Draw. """
@@ -468,11 +468,11 @@ class LocationAttributeEditor (LabeledAttributeEditor):
         try:
             value = getattr (item, attributeName)
         except:
-            valueString = self._GetAttributeLabel (item, attributeName)
-            self.isLabelValue = True
+            valueString = "" # @@@BJS: for now, don't hint. was: self._GetAttributeLabel (item, attributeName)
+            # self.isLabelValue = True
         else:
             valueString = str (value)
-        self.showingTheLabel = self._IsAttributeLabel (item, attributeName) # remember if we're showing the label value
+        self.showingTheLabel = False # @@@ BJS: was self._IsAttributeLabel (item, attributeName) # remember if we're showing the label value
         return valueString
 
     import osaf.contentmodel.calendar.Calendar as Calendar

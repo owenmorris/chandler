@@ -630,7 +630,10 @@
   </ContentItemDetail>
   
   <PresentationStyle itsName="LocationPresentation">
-    <label>InPlace</label>
+    <label>OnLeft</label>
+    <labelWidth>70</labelWidth>
+    <labelBorder>5</labelBorder>
+    <labelDisplayName>duration</labelDisplayName>
   </PresentationStyle>
 
   <AEBlock itsName="CalendarLocation"
