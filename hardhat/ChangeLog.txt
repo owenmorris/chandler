@@ -28,4 +28,5 @@
 
             cd osaf/chandler/wxpython/wxPython/demo
             hardhat.py demo.py
-        
+
+    * Added the -l <scripts> option which "lints" the scripts using PyChecker

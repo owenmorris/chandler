@@ -716,16 +716,20 @@ def findHardHatFile(dir):
 
 
 def lint(buildenv, args):
+    """ Run PyChecker against the scripts passed in as args """
 
     if buildenv['version'] == 'debug':
         python = buildenv['python_d']
+        sitePackages = os.path.join(buildenv['pythonlibdir_d'], "site-packages")
 
     if buildenv['version'] == 'release':
         python = buildenv['python']
+        sitePackages = os.path.join(buildenv['pythonlibdir'], "site-packages")
 
-    script = args[0]
+    checkerFile = os.path.join(sitePackages, "pychecker", "checker.py")
+
     executeCommandNoCapture( buildenv, "HardHat",
-     [python, script], "Running" )
+     [python, checkerFile] + args, "Running PyChecker" )
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
