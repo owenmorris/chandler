@@ -17,6 +17,8 @@ from application.ViewerParcel import wxViewerParcel
 
 from application.Application import app
 from model.util.Path import Path
+import os
+from application.SplashScreen import SplashScreen
 
 class RepositoryViewer(ViewerParcel):
     def __init__(self):
@@ -39,6 +41,8 @@ class wxRepositoryViewer(wxViewerParcel):
         self.splitter = wxSplitterWindow(self, -1,
                                          style=wxNO_FULL_REPAINT_ON_RESIZE)
 
+        # Set up the help page
+        EVT_MENU(self, XRCID('AboutRepositoryViewer'), self.OnAboutRepositoryViewer)
         # Set up tree control
         self.treeCtrl = wxTreeListCtrl(self.splitter)
         self.treeCtrl.AddColumn(_('Item Name'))
@@ -142,3 +146,9 @@ class wxRepositoryViewer(wxViewerParcel):
         self.treeCtrl.SetItemText(node, str(item.getItemPath()), 4)
         
         
+    def OnAboutRepositoryViewer(self, event):
+        pageLocation = self.model.path + os.sep + "AboutRepositoryViewer.html"
+        infoPage = SplashScreen(self, _("About Repository Viewer"), pageLocation, 
+                                False, False)
+        infoPage.Show(True)
+

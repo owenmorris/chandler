@@ -12,4 +12,13 @@
     <label>Repository Viewer</label>
   </object>
 
+  <object class="wxMenu" name="HelpMenu">
+      <label>Help</label>
+      <object class="wxMenuItem" name="AboutRepositoryViewer">
+          <label>About Repository Viewer...</label>
+          <insertBefore>About Chandler...</insertBefore>
+      </object>
+  </object>
+
+
 </resource>

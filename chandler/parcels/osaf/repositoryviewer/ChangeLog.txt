@@ -1,3 +1,6 @@
+2003-09-11 Kaitlin Duck Sherwood <ducky@osafoundation.org>
+   * Added an "About" page
+
 2003-08-28 Katie Capps Parlante <capps@osafoundation.org>
    * Added code to list elements in a list or set in the html detail view
 
