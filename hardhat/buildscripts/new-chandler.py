@@ -25,8 +25,9 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     global ret
 
     # find path to buildscripts
-    thisScriptDir = buildenv['hardhatroot'] + os.sep + "buildscripts"
-    print "Build scripts dir is " + thisScriptDir + "\n"
+#    thisScriptDir = buildenv['hardhatroot'] + os.sep + "buildscripts"
+    thisScriptDir = "/home/markie/hardhat/buildscripts"
+    print "Build scripts dir is (WARNING *** - HARDCODED!) " + thisScriptDir + "\n"
 
     # initialize return value
     ret = "no_changes" 
