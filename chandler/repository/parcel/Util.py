@@ -24,7 +24,7 @@ def PrintItem(uri, rep, recursive=False, level=0):
         print "Error: %s was not found" % uri
         return
 
-    if item.hasAttributeValue("kind"):
+    if item.itsKind:
         print "%s (Kind: %s)" % (uri, item.itsKind.itsPath )
     else:
         print "%s" % (uri)
