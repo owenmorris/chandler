@@ -6,8 +6,15 @@
 
   <Kind itsName="WakeupCall">
     <superKinds itemref="Item" />
-
     <displayName>Wakeup Call</displayName>
+
+    <Attribute itsName="wakeupCallClass">
+      <displayName value="The WakeupCall Sub-Class" />
+      <description value="The osaf.framework.wakeup.WakupCaller.WakeupCall sub-class full path and name" />
+      <type itemref="Class"/>
+      <initialValue type="Class" value="osaf.framework.wakeup.WakeupCaller.WakeupCall" />
+    </Attribute>
+
     <Attribute itsName="callOnStartup">
       <displayName>Call on Start Time</displayName>
       <type itemref="Boolean"/>
