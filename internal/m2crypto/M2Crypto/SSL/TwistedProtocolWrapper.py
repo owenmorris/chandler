@@ -43,8 +43,10 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
         self.data = '' # Clear text to encrypt and send
         self.encrypted = '' # Encrypted data we need to decrypt and pass on
-        self.tlsStarted = False # SSL/TLS mode or pass through
-        self.checked = False # Post connection check done or not
+        self.tlsStarted = 0 # SSL/TLS mode or pass through
+        self.checked = 0 # Post connection check done or not
+        self.isClient = 1
+        self.helloDone = 0 # True when hello has been sent
         
         if hasattr(factory.wrappedFactory, 'getContext'):
             ctx = factory.wrappedFactory.getContext()
@@ -77,8 +79,10 @@ class TLSProtocolWrapper(ProtocolWrapper):
             self.networkBio = None
         self.data = ''
         self.encrypted = ''
-        self.tlsStarted = False
-        self.checked = False        
+        self.tlsStarted = 0
+        self.checked = 0
+        self.isClient = 1
+        self.helloDone = 0
         # We can reuse self.ctx and it will be deleted automatically
         # when this instance dies
         
@@ -89,6 +93,9 @@ class TLSProtocolWrapper(ProtocolWrapper):
         """
         if self.tlsStarted:
             raise Exception, 'TLS already started'
+
+        if debug:
+            print 'MyProtocolWrapper.startTLS'
 
         self.ctx = ctx
 
@@ -104,8 +111,10 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
         if client:
             m2.ssl_set_connect_state(self.ssl)
+            self.isClient = 1
         else:
             m2.ssl_set_accept_state(self.ssl)
+            self.isClient = 0
             
         m2.ssl_set_bio(self.ssl, self.internalBio, self.internalBio)
         m2.bio_set_ssl(self.sslBio, self.ssl, 1)
@@ -117,7 +126,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
                         m2.SSL_MODE_ENABLE_PARTIAL_WRITE |
                         m2.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER)
 
-        self.tlsStarted = True
+        self.tlsStarted = 1
 
     def makeConnection(self, transport):
         if debug:
@@ -134,6 +143,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
         try:
             encryptedData = self._encrypt(data)
             ProtocolWrapper.write(self, encryptedData)
+            self.helloDone = 1
         except M2Crypto.BIO.BIOError, e:
             # See http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
             # for the error codes returned by SSL_get_verify_result.
@@ -174,6 +184,8 @@ class TLSProtocolWrapper(ProtocolWrapper):
         if debug:
             print 'MyProtocolWrapper.connectionMade'
         ProtocolWrapper.connectionMade(self)
+        if self.tlsStarted and self.isClient and not self.helloDone:
+            self._clientHello()
 
     def dataReceived(self, data):
         if debug:
@@ -220,13 +232,29 @@ class TLSProtocolWrapper(ProtocolWrapper):
                 x509 = None
             if not self.postConnectionCheck(x509):
                 raise Checker.SSLVerificationError, 'post connection check'
-            self.checked = True
+            self.checked = 1
 
-    def _encrypt(self, data=''):
+    def _clientHello(self):
+        if debug:
+            print 'MyProtocolWrapper._clientHello'
+        
+        try:
+            # We rely on OpenSSL implicitly starting with client hello
+            # when we haven't yet established an SSL connection
+            encryptedData = self._encrypt(clientHello=1)
+            ProtocolWrapper.write(self, encryptedData)
+            self.helloDone = 1
+        except M2Crypto.BIO.BIOError, e:
+            # See http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
+            # for the error codes returned by SSL_get_verify_result.
+            e.args = (m2.ssl_get_verify_result(self.ssl), e.args[0])
+            raise e
+
+    def _encrypt(self, data='', clientHello=0):
         # XXX near mirror image of _decrypt - refactor
         self.data += data
         g = m2.bio_ctrl_get_write_guarantee(self.sslBio)
-        if g > 0 and self.data != '':
+        if g > 0 and self.data != '' or clientHello:
             r = m2.bio_write(self.sslBio, self.data)
             if r <= 0:
                 assert(m2.bio_should_retry(self.sslBio))
@@ -245,6 +273,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
                     assert(m2.bio_should_retry(self.networkBio))
             else:
                 break
+
         return encryptedData
 
     def _decrypt(self, data=''):
@@ -269,4 +298,5 @@ class TLSProtocolWrapper(ProtocolWrapper):
                     assert(m2.bio_should_retry(self.sslBio))
             else:
                 break
+
         return decryptedData
