@@ -6,10 +6,10 @@ Unit test for SSL context, connection and related security checks.
 """
 
 import unittest
-import application.Globals as Globals
-from crypto import Crypto
+import crypto.ssl
 import TestM2CryptoInitShutdown
 from M2Crypto import SSL
+import socket
 
 # XXX This should not inherit from InitShutdown because that makes us
 #     run it's tests too
@@ -21,16 +21,22 @@ class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
 
         site = 'www.verisign.com'
         
-        ctx = Globals.crypto.getSSLContext(protocol='sslv3')
+        ctx = crypto.ssl.getSSLContext(protocol='sslv3')
         conn = SSL.Connection(ctx)
 
-        # XXX Wrap this in try/except, we should not care about network
-        #     errors. Possible errors (check that they are ok):
+        # We wrap the connect() in try/except and filter some common
+        # network errors that are not SSL-related.
+        #
+        # XXX Potential candidates to filter (need to check if ok):
         #     - SSLError: (54, 'Connection reset by peer')
-        #     - gaierror: (7, 'No address associated with nodename')
-        self.assert_(conn.connect((site, 443)) >= 0)
+        try:
+            self.assert_(conn.connect((site, 443)) >= 0)
+        except socket.gaierror, e:
+            if e.args[0] == 7: #'No address associated with nodename'
+                return
+            raise
 
-        Globals.crypto.sslPostConnectionCheck(conn, '0FA5B0527BA98FC66276CA166BA22E44A73636C9', host=site)
+        crypto.ssl.postConnectionCheck(conn, '0FA5B0527BA98FC66276CA166BA22E44A73636C9', hostCheck=True)
 
         conn.clear()
 
