@@ -397,7 +397,11 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         self.EnableGridLines(False)
         self.SetMargins(0-wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
                         0-wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y))
-        self.SetCellHighlightPenWidth(0)
+        """
+          Don't draw cursor outline on selected cells
+        """
+        self.SetCellHighlightPenWidth (0)
+        self.SetCellHighlightROPenWidth (0)
 
         self.SetDefaultRenderer (GridCellAttributeRenderer("_default"))
         self.RegisterDataType ("String",
