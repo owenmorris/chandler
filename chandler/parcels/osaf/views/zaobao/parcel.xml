@@ -21,11 +21,11 @@
     <zb:url>http://www.osafoundation.org/rss/2.0/</zb:url>
   </zb:RSSChannel>
   <zb:RSSChannel itemName="ted">
-    <displayName>Loading... </displayName>
+    <displayName>Loading... Ted Leung on the air</displayName>
     <zb:url>http://www.sauria.com/blog?flav=rss</zb:url>
   </zb:RSSChannel>
   <zb:RSSChannel itemName="zaobao">
-    <displayName>Loading... Ted Leung on the air</displayName>
+    <displayName>Loading... ZaoBao news</displayName>
     <zb:url>http://blogs.osafoundation.org/zaobao/index.rdf</zb:url>
   </zb:RSSChannel>
   <zb:RSSChannel itemName="chao">
@@ -40,6 +40,7 @@
     <displayName>Loading... dive in to mark</displayName>
     <zb:url>http://diveintomark.org/xml/rss.xml</zb:url>
   </zb:RSSChannel>
+
 
   <!-- Queries -->
   <Query itemName="myQuery">
