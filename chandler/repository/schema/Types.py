@@ -259,7 +259,13 @@ class Boolean(Type):
         return 'bool'
     
     def makeValue(self, data):
-        return data != 'False'
+
+        if data in ('True', 'true'):
+            return True
+        elif data in ('False', 'false'):
+            return False
+        else:
+            raise ValueError, "'%s' is not 'T|true' or 'F|false'" %(data)
 
 
 class UUID(Type):
