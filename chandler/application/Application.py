@@ -306,15 +306,6 @@ class wxApplication (wx.App):
             Globals.repository.commit()
             self.mainFrame.Show()
 
-            """
-              It is important to commit before the task manager starts
-              for some reason that nobody can remember.
-            """
-            from osaf.framework.tasks.TaskManager import TaskManager
-            Globals.taskManager = TaskManager()
-            Globals.taskManager.start()
-
-
             from osaf.framework.wakeup.WakeupCaller import WakeupCaller
             Globals.wakeupCaller = WakeupCaller()
             Globals.wakeupCaller.startup()
@@ -494,7 +485,6 @@ class wxApplication (wx.App):
           Main application termination.
         """
 
-        Globals.taskManager.stop()
         Globals.wakeupCaller.shutdown()
         self.__twistedReactorManager.stopReactor()
         """
