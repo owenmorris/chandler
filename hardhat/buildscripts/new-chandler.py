@@ -33,16 +33,9 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
     # make sure workingDir is absolute, remove it, and create it
     workingDir = os.path.abspath(workingDir)
-    print "Check for working dir..."
-    if not os.path.exists(workingDir):
-        print "working dir does not exist, create it."
-        os.mkdir(workingDir)
-        os.chdir(workingDir)
+    print "Check for output dir... (indicates first time through"
+    if not os.path.exists(os.path.join(workingDir), "output"):
 
-        # remove outputDir and create it
-        outputDir = os.path.join(workingDir, "output")
-        if os.path.exists(outputDir):
-            hardhatutil.rmdirRecursive(outputDir)
         os.mkdir(outputDir)
         # Initialize external (hardly ever changes)
         print "Initializing external modules ..."
