@@ -32,10 +32,11 @@ glob=*
 lib
 
 
-# Grab Chandler.py
+# Grab Chandler.py and LICENSE.txt
 src=Chandler
 dest=
 Chandler.py
+LICENSE.txt
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes

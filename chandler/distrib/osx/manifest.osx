@@ -22,10 +22,11 @@ libwx_mac-2.4.0.r
 libwx_mac-2.4.0.rsrc
 wx/include/mac-2.4/wx/setup.h
 
-# Grab Chandler.py
+# Grab Chandler.py and LICENSE.txt
 src=Chandler
 dest=
 Chandler.py
+LICENSE.txt
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes
