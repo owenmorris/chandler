@@ -973,14 +973,14 @@
     <blockName>ChandlerSkinMenuItem</blockName>
     <title>Chandler</title>
     <event itemref="doc:ChooseChandlerMainView"/>
-    <helpString>Switch to skin with horizontal splitter</helpString>
+    <helpString>Switch to Chandler</helpString>
   </MenuItem>
 
   <MenuItem itsName="CPIATestSkinMenuItem">
     <blockName>CPIATestSkinMenuItem</blockName>
     <title>CPIA Test</title>
     <event itemref="doc:ChooseCPIATestMainView"/>
-    <helpString>Switch to skin with vertical splitter</helpString>
+    <helpString>Switch to CPIA test</helpString>
   </MenuItem>
 
   <ChoiceEvent itsName="ChooseChandlerMainView">
