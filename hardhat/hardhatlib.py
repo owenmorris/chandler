@@ -782,11 +782,15 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
     else:
         showenv = "no"
 
-    # spawnl wants the name of the file we're executing twice -- the first
-    # one is the full path, the second is just the filename; in this case
-    # we're launching the same python we're running now; 
-    args[:0] = [sys.executable, os.path.basename(sys.executable), wrapper, 
-     logfile, showenv]
+    # spawnl wants the name of the file we're executing twice -- however,
+    # on windows the second one can't have spaces in it, so we just pass
+    # in the basename()
+    if buildenv['os'] == 'win' and sys.platform != 'cygwin':
+        args[:0] = [sys.executable, os.path.basename(sys.executable), wrapper, 
+         logfile, showenv]
+    else:
+        args[:0] = [sys.executable, sys.executable, wrapper, 
+         logfile, showenv]
     args = map(escapeBackslashes, args)
 
     if not os.path.exists(args[0]):
@@ -840,7 +844,10 @@ def executeCommandNoCapture(buildenv, name, args, message, flags=0):
 
     # spawnl wants the name of the file we're executing twice -- the first
     # one is the full path, the second is just the filename
-    args[1:0] = [ os.path.basename(args[0]) ]
+    if buildenv['os'] == 'win' and sys.platform != 'cygwin':
+        args[:0] = [ os.path.basename(args[0]) ]
+    else:
+        args[:0] = [ args[0] ]
     args = map(escapeBackslashes, args)
 
     # all args need to be quoted
