@@ -426,7 +426,7 @@ class wxSummary(wx.grid.Grid):
         self.SetSize ((h, w)) 
         self.ForceRefresh () 
 
-    def wxSynchronizeFramework(self):
+    def wxSynchronizeWidget(self):
         block = Globals.repository.find (self.blockUUID)
         queryItem = block.contentSpec
         queryItem.resultsStale = True
@@ -437,7 +437,7 @@ class wxSummary(wx.grid.Grid):
 
         table = self.GetTable()
         if not table:
-            """
+            """GetNumberCols
               wxSummaryTable handles the callbacks to display the elements of the
             table. Setting the second argument to True cause the table to be deleted
             when the grid is deleted.
