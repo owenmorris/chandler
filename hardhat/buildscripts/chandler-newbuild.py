@@ -105,21 +105,26 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                 outputList = hardhatutil.executeCommandReturnOutput(
                  [buildenv['make'], dbgStr, "binaries" ])
                 hardhatutil.dumpOutputList(outputList, log)
+                ret = "no_changes" 
 
         except Exception, e:
             print "an initialization error"
             log.write("***Error during initialization***" + "\n")
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             CopyLog(os.path.join(releaseModeDir, logPath), log)
+            ret = "init_failed"
+            
+        finally:
             if releaseMode == "debug":
                 # OK to do release dir
                 continue
-            else 
-                return "init_failed"
+            elif ret ==  "init_failed":
+                return ret
 
     # do debug
-    ret = Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
-     buildVersion, clobber, log)
+    if ret == "no_changes":
+        ret = Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
+         buildVersion, clobber, log)
 
     if ret == "no_changes" or ret =="build_failed" or ret == "test_failed":
         modeDir = os.path.join(workingDir, "debug")
