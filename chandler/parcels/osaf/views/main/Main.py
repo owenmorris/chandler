@@ -6,7 +6,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application.Globals as Globals
 from OSAF.framework.blocks.Views import View
 from OSAF.framework.notifications.Notification import Notification
-from wxPython.wx import *
+import wx
 
 import OSAF.framework.utils.imports.OutlookContacts as OutlookContacts
 import OSAF.contentmodel.tests.GenerateItems as GenerateItems

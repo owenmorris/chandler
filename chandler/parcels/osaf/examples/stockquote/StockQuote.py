@@ -30,6 +30,6 @@ class StockQuoteView(BoxContainer):
         symbol = wxSymbolText.GetValue()
         valueLabel = Globals.repository.find('//parcels/OSAF/examples/stockquote/views/StockQuoteView/ValueLabel')
         wxValueLabel = Globals.association[valueLabel.itsUUID]
-        wxValueLabel.Clear()#Allow user to notice change
+        wxValueLabel.SetLabel('')#Allow user to notice change
         wxValueLabel.SetLabel('$' + str(self.proxy.getQuote( symbol )))
 
