@@ -383,7 +383,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         if __debug__:
             self.printCurrentView("_processSharingRequests")
 
-       #sharing.receivedInvitation(urls)
+        sharing.receivedInvitation(urls)
 
     def __getLastUID(self):
         return self.account.messageDownloadSequence

@@ -35,13 +35,13 @@ def receivedInvitation(url):
 
     if isinstance(url, list):
        for u in url:
-          if not isinstance(u, str):
-             raise SharingException("URL List contains a value that is not a String")
+           if not isinstance(u, str):
+               raise SharingException("URL List contains a value that is not a String")
 
-             chandlerSharing.announceSharingUrl(u)
+           chandlerSharing.Sharing.announceSharingUrl(u)
 
     elif isinstance(url, str):
-        chandlerSharing.announceSharingUrl(url)
+        chandlerSharing.Sharing.announceSharingUrl(url)
 
     else:
         raise SharingException("URL must be a list of Strings or a String")
