@@ -175,10 +175,10 @@ def mergeList(item, attrName, nodes, nodesAreItemRefs):
                 item.addValue(attrName, i)
                 log.info('%sAdding %s to list %s' % (OFFSET(), i, item))
         # XXX this should work but has some issues.. fixme!
-        for i in list:
-            if i not in serverList:
-                item.removeValue(attrName, i)
-                log.info('%sremoving %s from list %s' % (OFFSET(), i, item))
+        #for i in list:
+        #    if i not in serverList:
+        #        item.removeValue(attrName, i)
+        #        log.info('%sremoving %s from list %s' % (OFFSET(), i, item))
 
     except Exception, e:
         log.exception(e)
