@@ -30,7 +30,7 @@ wxWidgets:
         export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
 	devenv.com build/msw/msw.sln /build $(Snap)
 	mkdir -p $(PREFIX)/$(SITE)/wx
-	install $(SRC)/lib/vc_dll/*251*_vc$(SUFFIX).dll $(PREFIX)/$(SITE)/wx
+	install $(SRC)/lib/vc_dll/*251$(SUFFIX)_*_vc.dll $(PREFIX)/$(SITE)/wx
 
 wxPython:
 	cd $(SRC)/wxPython; \
