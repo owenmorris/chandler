@@ -178,10 +178,6 @@
             <label>Export Repository to File...</label>
         </object>
         <object class="separator"/>
-        <object class="wxMenuItem" name="CreateNewRepository">
-            <label>Always Recreate Repository</label>
-            <checkable>1</checkable>
-        </object>
         <object class="wxMenuItem" name="ShowDebuggerWindow">
             <label>Show Debugger Window</label>
         </object>

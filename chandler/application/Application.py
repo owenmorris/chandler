@@ -44,7 +44,7 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 43
+    VERSION = 44
     """
       PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -109,16 +109,9 @@ class Application(Persistent):
         to call the base class, since it initializes the objects data
         """
         Persistent.__setstate__(self, dict)
-        if __debug__:
-            createNewRepository = hasattr (self, 'CreateNewRepository')
-        else:
-            createNewRepository = 0
-        if self.version != Application.VERSION or createNewRepository:
+        if self.version != Application.VERSION:
             self.__dict__.clear  ()
             self.__init__ ()
-            if __debug__ and createNewRepository:
-                self.CreateNewRepository = 1
-                
                 
 class wxApplication (wxApp):
     """
@@ -358,7 +351,6 @@ class wxApplication (wxApp):
             OnTest1 and OnTest2. To see how all this works check out
             ChandlerWindow.py and application.xrc.
             """
-            EVT_MENU(self, XRCID ('CreateNewRepository'), self.OnCreateNewRepository)
             EVT_MENU(self, XRCID("ShowDebuggerWindow"), self.ShowDebuggerWindow)
             EVT_MENU(self, XRCID("DebugRoutine"), self.DebugRoutine)
             EVT_MENU(self, XRCID("ImportItems"), self.OnImportItems)
@@ -386,16 +378,6 @@ class wxApplication (wxApp):
         self.OpenStartingURL()
         
         return true                     #indicates we succeeded with initialization
-
-    if __debug__:
-        def OnCreateNewRepository (self, event):
-            if (hasattr (self.model, 'CreateNewRepository')):
-                del self.model.CreateNewRepository
-            else:
-                self.model.CreateNewRepository = true
-            menuBar = self.wxMainFrame.GetMenuBar ()
-            menuBar.Check (XRCID ('CreateNewRepository'),
-                            hasattr (self.model, 'CreateNewRepository'))
 
     def OpenStartingURL(self):
         """
