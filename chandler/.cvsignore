@@ -12,5 +12,6 @@ _CHANDLER_.index
 _CHANDLER_
 __database__
 Chandler-project.wpu
+Chandler-project-debug.wpu
 *.pyc
 *.pyo
