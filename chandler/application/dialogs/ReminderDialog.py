@@ -82,8 +82,9 @@ class ReminderDialog(wx.Dialog):
         self.UpdateControlEnabling()
     
     def UpdateControlEnabling(self):
-        haveSelection = len(list(self.getListItems(True))) > 0
-        haveAnyItems = self.reminderControls['list'].GetItemCount() > 0
+        listCtrl = self.reminderControls['list']
+        haveSelection = listCtrl.GetSelectedItemCount() > 0
+        haveAnyItems = listCtrl.GetItemCount() > 0
         self.reminderControls['snooze'].Enable(haveSelection)
         self.reminderControls['dismiss'].Enable(haveSelection)
         self.reminderControls['dismissAll'].Enable(haveAnyItems)
@@ -183,6 +184,6 @@ class ReminderDialog(wx.Dialog):
         """ Provide iteration over ListCtrl items """
         listCtrl = self.reminderControls['list']
         for index in range(listCtrl.GetItemCount()):
-            if not selectedOnly or (listCtrl.GetItem(index).m_state & wx.LIST_STATE_SELECTED):
+            if not selectedOnly or listCtrl.GetItemState(index, wx.LIST_STATE_SELECTED):
                 yield self.remindersInList[index]
        

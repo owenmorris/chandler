@@ -223,7 +223,10 @@ class MainView(View):
         self.setStatusMessage (_("Sharing collection %s") % itemCollection.displayName)
                 
         # Get or make a share for this item collection
-        share = Sharing.getShare(itemCollection) or Sharing.newOutboundShare(self.itsView, itemCollection, account=webdavAccount)
+        share = Sharing.getShare(itemCollection)
+        isNewShare = share is None
+        if isNewShare:
+            share = Sharing.newOutboundShare(self.itsView, itemCollection, account=webdavAccount)
         
         # Copy the invitee list into the share's list. As we go, collect the addresses we'll notify.
         if len (itemCollection.invitees) == 0:
@@ -247,7 +250,8 @@ class MainView(View):
         # Sync the collection with WebDAV
         self.setStatusMessage (_("accessing WebDAV server"))
         try:
-            share.create()
+            if isNewShare:
+                share.create()
             share.put()
         except:
             # An error occurred during webdav; restore the collection's name
@@ -260,6 +264,7 @@ class MainView(View):
                                    itemCollection.displayName, inviteeStringsList)
         
         # Forget the invitees, now that we've successfully invited them
+        # @@@ BJS: Move this to the success callback
         itemCollection.invitees = []
 
         # Done
