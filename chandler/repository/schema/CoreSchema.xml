@@ -152,7 +152,7 @@
     <inverseAttribute itemref="core:instanceItems"/>
   </Attribute>
 
-  <Attribute itemName="core:instanceItems" bootstrap="True">
+  <Attribute itemName="core:instanceItems">
     <displayName>items</displayName>
     <description>The items that are instances of this Kind.</description>
     <cardinality>set</cardinality>
@@ -304,7 +304,7 @@
     <displayName>same item as</displayName>
     <description>If two items conceptually represent the same thing, we can use this attribute to make a note of that.  For example, in my address book I might accidentally create two different 'Contacts' for Amy Merkle.  I don't want to delete either of them, because other Items reference them, but I do want to Chandler to understand they're really should be the same Item.  See also the RDF/OWL notion of 'owl:sameIndividualAs'.</description>
     <inverseAttribute itemref="core:sameItemAs"/>
-    <superAttribute itemref="core:equivalent"/>
+    <superAttribute itemref="core:equivalentTo"/>
   </Attribute>
 
   <Attribute itemName="core:suppliedIn">
@@ -575,7 +575,7 @@
     <description>Similar to the RDF/OWL property 'owl:equivalentClass'.</description>
     <type itemref="core:Kind"/>
     <inverseAttribute itemref="core:equivalentKinds"/>
-    <superAttribute itemref="core:equivalent"/>
+    <superAttribute itemref="core:equivalentTo"/>
   </Attribute>
 
   <Attribute itemName="core:kindDefinedInDomainSchema">
@@ -720,7 +720,7 @@
     <description>Similar to the RDF/OWL property 'owl:equivalentProperty'.</description>
     <type itemref="core:Attribute"/>
     <inverseAttribute itemref="core:equivalentAttributes"/>
-    <superAttribute itemref="core:equivalent"/>
+    <superAttribute itemref="core:equivalentTo"/>
   </Attribute>
 
   <Attribute itemName="core:required" bootstrap="True">
@@ -792,7 +792,7 @@
     <description>Is this a transitive relationship?  A relationship 'foo' is transitive when ((A.foo = B, and B.foo = C) means that (A.foo = C)). For example, the 'subclass' relationship is transitive.  If A is a subclass of B, and B is a subclass of C, then A is a subclass C.  Similar to the RDF/OWL property 'owl:TransitiveProperty'.</description>
     <cardinality>single</cardinality>
     <type itemref="core:Boolean"/>
-    <inheritFrom>core:referencePolicy.core:transitive</inheritFrom>
+    <inheritFrom>referencePolicy.transitive</inheritFrom>
   </Attribute>
 
   <Attribute itemName="core:symmetric">
@@ -800,7 +800,7 @@
     <description>Is this a symmetric relationship?  A relationship 'foo' is symmetric when ((A.foo = B) means that (B.foo = A)). For example, the 'spouse' relationship is symmetric.  If A is the spouse of B, then B is the spouse of A.  Similar to the RDF/OWL property 'owl:SymmetricProperty'.</description>
     <cardinality>single</cardinality>
     <type itemref="core:Boolean"/>
-    <inheritFrom>core:referencePolicy.core:symmetric</inheritFrom>
+    <inheritFrom>referencePolicy.symmetric</inheritFrom>
   </Attribute>
 
   <Attribute itemName="core:copyPolicy" bootstrap="True">
@@ -808,7 +808,7 @@
     <description>If A has a reference to B, and vice-versa, what do we do when A is copied?  Do we copy B also (deep copy), or do we just set the new copy of A to point to the old version of B (shallow copy)?</description>
     <cardinality>single</cardinality>
     <type itemref="core:CopyPolicyEnum"/>
-    <inheritFrom>core:referencePolicy.core:copyPolicy</inheritFrom>
+    <inheritFrom>referencePolicy.copyPolicy</inheritFrom>
   </Attribute>
 
   <Attribute itemName="core:deletePolicy" bootstrap="True">
@@ -816,7 +816,7 @@
     <description>If A has a reference to B, and vice-versa, what do we do when A is deleted?  Do we delete B also, or do we just remove B's reference to A, or do we delete B only if nobody else now references B?</description>
     <cardinality>single</cardinality>
     <type itemref="core:DeletePolicyEnum"/>
-    <inheritFrom>core:referencePolicy.core:deletePolicy</inheritFrom>
+    <inheritFrom>referencePolicy.deletePolicy</inheritFrom>
   </Attribute>
 
   <Attribute itemName="core:referencePolicy">
@@ -835,7 +835,7 @@
     <type itemref="core:AttributeChain"/>
   </Attribute>
 
-  <Attribute itemName="core:inheritFrom">
+  <Attribute itemName="core:inheritFrom" bootstrap="True">
     <displayName>inherit from</displayName>
     <description>Another attribute that this attribute inherits its value from.</description>
     <issues>Brian suggests changing the name to "inheritValuesFrom"</issues>
@@ -1124,34 +1124,6 @@
     <attributes itemref="core:restrictionInfo"/>
   </Kind>
 
-<!-- Derivation Rule ... not in current plans
-  <Attribute itemName="core:derivedAttribute">
-    <displayName>derived attribute</displayName>
-    <description>Which attribute does this derivation rule apply to?</description>
-    <cardinality>single</cardinality>
-    <type itemref="core:DerivationRule"/>
-    <inverseAttribute itemref="core:derivation"/>
-    <referencePolicy>ownedBy</referencePolicy>
-  </Attribute>
-  
-  <Attribute itemName="core:formula">
-    <displayName>formula</displayName>
-    <description>What is the actual derivation rule?</description>
-    <issues>(@@@ -- not clear how to represent this.</issues>
-    <cardinality>single</cardinality>
-    <required/>
-    <type itemref="core:SimpleString"/>
-  </Attribute>
-
-  <Kind itemName="auto:DerivationRule">
-    <displayName>Derivation Rule</displayName>
-    <superKinds itemref="core:Item"/>
-    <displayAttribute itemref="core:formula"/>
-    <attributes itemref="core:derivedAttribute"/>
-    <attributes itemref="core:formula"/>
-  </Kind>
--->
- 
 <!-- Note -->
   <Attribute itemName="core:noteAppliesTo">
     <displayName>item</displayName>

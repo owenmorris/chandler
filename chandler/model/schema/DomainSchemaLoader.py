@@ -41,6 +41,7 @@ ATTRIBUTE_TEXT_TAGS = {'displayName': 'displayName',
                        'version' : 'version',
                        'defaultValue' : 'defaultValue',
                        'cardinality': 'cardinality',
+                       'inheritFrom':'inheritFrom',
                        'referencePolicy': 'referencePolicy'}
 
 ATTRIBUTES_TEXT_TAGS = {'examples': 'examples',
@@ -49,8 +50,7 @@ ATTRIBUTES_TEXT_TAGS = {'examples': 'examples',
 ATTRIBUTE_REF_TAGS = {'superAttribute': 'superAttribute',
                       'type': 'type',
                       'inverseAttribute':'otherName',
-                      'displayAttribute':'displayAttribute',
-                      'inheritFrom' : 'inheritFrom'}
+                      'displayAttribute':'displayAttribute'}
 
 ATTRIBUTES_REF_TAGS = {'superKinds' : 'superKinds',
                        'attributes': 'attributes',
@@ -72,9 +72,12 @@ BOOTSTRAP = {'Boolean' : '//Schema/Model/Types/Boolean',
              'SimpleString' : '//Schema/Model/Types/String',
              'PolyglotText' : '//Schema/Model/Types/String',
              'RigidDatetime' : '//Schema/Model/Types/DateTime',
-             'RelationshipTypeEnum' : '//Schema/Model/Types/String',
+             'ReferencePolicyEnum' : '//Schema/Model/Types/String',
              'RepositoryContainmentPath' : '//Schema/Model/Types/String',
-             'Anything' : '//Schema/Model/Types/String'}
+             'Anything' : '//Schema/Model/Types/String',
+             'AnyString' : '//Schema/Model/Types/String',
+             'UnicodeString' : '//Schema/Model/Types/String',
+             'AttributeOrAttributeChain' : '//Schema/Model/Types/String'}
 
 class DomainSchemaLoader(object):
     """ Load items defined in the schema file into the repository,

@@ -301,7 +301,7 @@ class wxApplication (wxApp):
             from OSAF.zaobao.model import RSSData
             RSSData.OnInit(loader)
         except ImportError,e: 
-            pass
+            print "Warning: ZaoBao ImportError: " + e
         
         # Load the contacts parcel
         if not self.repository.find('//Contacts'):
@@ -336,7 +336,7 @@ class wxApplication (wxApp):
             coreSchemaPath = os.path.join(self.chandlerDirectory,
                                           'model', 'schema',
                                           'CoreSchema.xml')
-            # loader.load(coreSchemaPath)
+            loader.load(coreSchemaPath)
                                 
         """ Load the parcels """
         self.LoadParcelsInDirectory(parcelDir)
