@@ -1,1 +1,1 @@
-build = "foo"
+build = "custom build"
