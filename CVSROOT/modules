@@ -24,23 +24,24 @@
 # character to interpose another module into the current module.  This
 # can be useful for creating a module that consists of many directories
 # spread out over the entire source repository.
-chandler-source -a \
-    osaf/chandler/Chandler \
-    osaf/chandler/PyXML \
-    osaf/chandler/Python-2.2.2 \
-    osaf/chandler/WingIDE \
-    osaf/chandler/zodb \
-    osaf/chandler/distutils \
-    osaf/chandler/egenix-mx-base-2.0.4 \
-    osaf/chandler/hardhat \
-    osaf/chandler/jabber-py \
-    osaf/chandler/wxWindows-2.4
+
+# chandler-source -a \
+#     osaf/chandler/Chandler \
+#     osaf/chandler/PyXML \
+#     osaf/chandler/Python-2.2.2 \
+#     osaf/chandler/WingIDE \
+#     osaf/chandler/zodb \
+#     osaf/chandler/distutils \
+#     osaf/chandler/egenix-mx-base-2.0.4 \
+#     osaf/chandler/hardhat \
+#     osaf/chandler/jabber-py \
+#     osaf/chandler/wxWindows-2.4
 
 dbxml-module -a \
     osaf/chandler/dbxml \
     osaf/chandler/bsddb3
 
-morgen -a \
+chandler-source -a \
     osaf/chandler/Chandler \
     osaf/chandler/python \
     osaf/chandler/zodb \
