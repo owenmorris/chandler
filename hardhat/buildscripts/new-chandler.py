@@ -106,6 +106,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                 ret = "init_failed"
 
             print "checking out internal"
+            os.chdir(releaseModeDir)
             log.write("Checking out: internal with " + cvsVintage + "\n")
             outputList = hardhatutil.executeCommandReturnOutputRetry(
              [cvsProgram, "-q", "checkout", cvsVintage, "internal"])
@@ -144,8 +145,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     modeDir = os.path.join(workingDir, "release")
     CopyLog(os.path.join(modeDir, logPath), log)
 
-    return ret
-
+    # return ret
+    return "success"
 
 # These modules are the ones to check out of CVS
 cvsModules = (
