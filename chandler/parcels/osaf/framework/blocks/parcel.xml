@@ -1111,7 +1111,7 @@
  
   <Kind itsName="SelectionContainer">
     <classes key="python">osaf.framework.blocks.ContainerBlocks.SelectionContainer</classes>
-    <superKinds itemref="docSchema:ScrolledContainer"/>
+    <superKinds itemref="docSchema:BoxContainer"/>
 
     <attributes itemref="docSchema:selection"/>
   </Kind>    

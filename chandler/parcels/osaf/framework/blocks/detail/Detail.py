@@ -294,12 +294,20 @@ class KindLabel (StaticTextLabel):
             kindName = item.itsKind.displayName
         except AttributeError:
             kindName = item.itsKind.itsName
+        kindName = '  (' + kindName +')'
         return kindName
         
 class StaticRedirectAttribute (StaticTextLabel):
     """
       Static Text that displays the name of the selected item's Attribute
     """
+    # map internal attribute names into nicer display strings
+    # DLDTBD - display mapping should come out of the repository
+    displayMapping = {"displayName":_("title"),
+                      "fromAddress":_("from"),
+                      "toAddress":_("to"),
+                      }
+                      
     def shouldShow (self, item):
         contactKind = Contacts.ContactsParcel.getContactKind ()
         if item is None or item.isItemOf (contactKind):
@@ -314,8 +322,13 @@ class StaticRedirectAttribute (StaticTextLabel):
             redirectAttr = redirectName
         if redirectAttr is None:
             redirectAttr = redirectName
+        # lookup better names for display of some attributes
+        try:
+            redirectAttr = self.displayMapping[redirectAttr]
+        except KeyError:
+            pass
         if len (redirectAttr) > 0:
-            redirectAttr = ' ' + redirectAttr + ': '
+            redirectAttr = ' ' + redirectAttr + ' '
         return redirectAttr
 
 class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
@@ -718,7 +731,7 @@ class StaticEmailAddressAttribute (StaticRedirectAttribute):
         elif 'work' in redirectName:
             label = 'work email address'
         if len (label) > 0:
-            label = ' ' + label + ': '
+            label = label + ' '
         return label
 
     def shouldShow (self, item):
@@ -779,7 +792,7 @@ class StaticTimeAttribute (StaticTextLabel):
         return shouldShow
 
     def staticTextLabelValue (self, item):
-        timeLabel = self.title + _(': ')
+        timeLabel = self.title + _(' ')
         return timeLabel
 
 
@@ -845,7 +858,7 @@ class StaticDurationAttribute (StaticTextLabel):
         return item.isItemOf (calendarMixinKind)
 
     def staticTextLabelValue (self, item):
-        durationLabel = self.title + _(': ')
+        durationLabel = self.title + _(' ')
         return durationLabel
 
 class EditDurationAttribute (EditRedirectAttribute):

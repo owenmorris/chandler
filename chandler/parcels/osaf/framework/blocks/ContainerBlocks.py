@@ -214,7 +214,7 @@ class ScrolledContainer(BoxContainer):
         return widget
     
   
-class SelectionContainer(ScrolledContainer):
+class SelectionContainer(BoxContainer):
     """
     SelectionContainer
     Keeps track of the current selected item

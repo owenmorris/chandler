@@ -91,7 +91,7 @@
     <childrenBlocks itemref="doc:MarkupBar"/>
     <childrenBlocks itemref="doc:FromAndToArea"/>
     <childrenBlocks itemref="doc:ContactFullNameArea"/>
-    <childrenBlocks itemref="doc:CoreIndent"/>
+    <childrenBlocks itemref="doc:CoreArea"/>
     <childrenBlocks itemref="doc:NotesArea"/>
     <childrenBlocks itemref="doc:SendShareButton"/>
     <!-- Attributes -->
@@ -106,21 +106,9 @@
            itemClass="osaf.framework.blocks.detail.Detail.MarkupBar">
     <blockName>MarkupBar</blockName>
     <!-- Children Blocks-->
-    <childrenBlocks itemref="doc:TriageButton"/>
     <childrenBlocks itemref="doc:MailMessageButton"/>
     <childrenBlocks itemref="doc:TaskStamp"/>
     <childrenBlocks itemref="doc:CalendarStamp"/>
-    <childrenBlocks itemref="doc:Spacer1"/>
-    <childrenBlocks itemref="doc:NeedsReplyButton"/>
-    <childrenBlocks itemref="doc:Spacer2"/>
-    <childrenBlocks itemref="doc:OutboxFlag"/>
-    <childrenBlocks itemref="doc:RepliedFlag"/>
-    <childrenBlocks itemref="doc:ForwardedFlag"/>
-    <childrenBlocks itemref="doc:RedirectedFlag"/>
-    <childrenBlocks itemref="doc:DraftFlag"/>
-    <childrenBlocks itemref="doc:QueuedFlag"/>
-    <childrenBlocks itemref="doc:Spacer3"/>
-    <childrenBlocks itemref="doc:PrivateButton"/>
     <!-- Attributes -->
     <colorStyle itemref="doc:GrayBackground3"/>
     <toolSize>24,24</toolSize>
@@ -131,24 +119,14 @@
   <!--
     ToolbarItems
   -->
-  <ToolbarItem itsName="TriageButton">
-    <blockName>TriageButton</blockName>
-    <title>Triage</title>
-    <bitmap>application/images/triage.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Decide when to do...</helpString>
-    <event itemref="doc:NULL"/>
-  </ToolbarItem>
-
   <ToolbarItem itsName="MailMessageButton"
                itemClass="osaf.framework.blocks.detail.Detail.MailMessageButton">
     <blockName>MailMessageButton</blockName>
-    <title>Sharing</title>
+    <title>Message</title>
     <bitmap>application/images/markup_message.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
-    <helpString>Enable sharing</helpString>
+    <helpString>Send as message</helpString>
     <event itemref="doc:ButtonPressed"/>
   </ToolbarItem>
 
@@ -172,94 +150,6 @@
     <toggle>True</toggle>
     <helpString>Put onto the Calendar</helpString>
     <event itemref="doc:ButtonPressed"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="Spacer1">
-    <blockName>Spacer1</blockName>
-    <toolbarItemKind>Separator</toolbarItemKind>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="NeedsReplyButton">
-    <blockName>NeedsReplyButton</blockName>
-    <title>Needs reply</title>
-    <bitmap>application/images/reply.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <toggle>True</toggle>
-    <helpString>Needs a reply</helpString>
-    <event itemref="doc:NULL"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="Spacer2">
-    <blockName>Spacer2</blockName>
-    <toolbarItemKind>Separator</toolbarItemKind>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="OutboxFlag">
-    <blockName>OutboxFlag</blockName>
-    <title>Outbox</title>
-    <bitmap>application/images/outbox.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>In the Out box</helpString>
-    <event itemref="doc:NULL"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="RepliedFlag">
-    <blockName>RepliedFlag</blockName>
-    <title>Replied</title>
-    <bitmap>application/images/replied.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>A reply has been sent</helpString>
-    <event itemref="doc:NULL"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="ForwardedFlag">
-    <blockName>ForwardedFlag</blockName>
-    <title>Forwarded</title>
-    <bitmap>application/images/forwarded.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Has been forwarded</helpString>
-    <event itemref="doc:NULL"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="RedirectedFlag">
-    <blockName>RedirectedFlag</blockName>
-    <title>Redirected</title>
-    <bitmap>application/images/redirected.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Message has been redirected</helpString>
-    <event itemref="doc:NULL"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="DraftFlag">
-    <blockName>DraftFlag</blockName>
-    <title>Draft</title>
-    <bitmap>application/images/draft.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Message saved as a draft</helpString>
-    <event itemref="doc:NULL"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="QueuedFlag">
-    <blockName>QueuedFlag</blockName>
-    <title>Queued</title>
-    <bitmap>application/images/queued.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Message has been queued</helpString>
-    <event itemref="doc:NULL"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="Spacer3">
-    <blockName>Spacer3</blockName>
-    <toolbarItemKind>Separator</toolbarItemKind>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="PrivateButton">
-    <blockName>PrivateButton</blockName>
-    <title>Private</title>
-    <bitmap>application/images/private.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Make item Private</helpString>
-    <event itemref="doc:NULL"/>
   </ToolbarItem>
 
   <!-- FromAndToArea -->
@@ -286,20 +176,20 @@
     <blockName value="FromString"/>
     <title>From: </title>
     <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Left</textAlignmentEnum>    
+    <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>180, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="FromEditField1"
             itemClass="osaf.framework.blocks.detail.Detail.FromEditField">
     <blockName value="FromEditField1"/>
     <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>MultiLine</lineStyleEnum>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>True</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>180, 24</minimumSize>
   </EditText>
 
   <ContentItemDetail itsName="ContactFullNameArea"
@@ -316,9 +206,9 @@
     <blockName value="ContactFullNameString"/>
     <title>Full Name: </title>
     <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Left</textAlignmentEnum>    
+    <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>180, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="ContactFullNameEditField"
@@ -345,72 +235,37 @@
   <StaticText itsName="ToString"
               itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
     <blockName value="ToString"/>
-    <title>To: </title>
+    <title>To </title>
     <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Left</textAlignmentEnum>    
+    <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>180, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="ToEditField1"
             itemClass="osaf.framework.blocks.detail.Detail.ToEditField">
     <blockName value="ToEditField1"/>
     <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>MultiLine</lineStyleEnum>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>-1, 24</minimumSize>
   </EditText>
 
-  <!-- CoreIndent -->
-  <ContentItemDetail itsName="CoreIndent">
-    <blockName value="DetailRootTemplate"/>
-    <childrenBlocks itemref="doc:Indent"/>
-    <childrenBlocks itemref="doc:CoreArea"/>
-    <childrenBlocks itemref="doc:Indent2"/>
-    <!-- Attributes -->
-    <stretchFactor>2</stretchFactor>
-  </ContentItemDetail>
- 
-  <ContentItemDetail itsName="Indent">
-    <!-- Attributes -->
-    <blockName value="Indent"/>
-    <size>80,80</size>
-    <stretchFactor>0</stretchFactor>
-  </ContentItemDetail>
- 
-  <ContentItemDetail itsName="Indent2">
-    <!-- Attributes -->
-    <blockName value="Indent2"/>
-    <size>80,80</size>
-    <stretchFactor>0</stretchFactor>
-  </ContentItemDetail>
- 
   <!-- CoreArea -->
   <ContentItemDetail itsName="CoreArea">
     <blockName value="CoreArea"/>
-    <childrenBlocks itemref="doc:KindLabel"/>
     <childrenBlocks itemref="doc:HeadlineArea"/>
     <childrenBlocks itemref="doc:EmailAddressArea"/>
-    <childrenBlocks itemref="doc:DateTime"/>
+    <childrenBlocks itemref="doc:DateKindArea"/>
     <childrenBlocks itemref="doc:CalendarStartTime"/>
     <childrenBlocks itemref="doc:CalendarDuration"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <stretchFactor>2</stretchFactor>
   </ContentItemDetail>
- 
-  <StaticText itsName="KindLabel"
-              itemClass="osaf.framework.blocks.detail.Detail.KindLabel">
-    <blockName value="KindLabel"/>
-    <title>Kind</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 24</minimumSize>
-  </StaticText>
-  
+
   <ContentItemDetail itsName="HeadlineArea"
                      itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
     <blockName value="HeadlineArea"/>
@@ -428,7 +283,7 @@
     <blockName value="StaticHeadline"/>
     <title>Subject</title>
     <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
+    <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 40</minimumSize>
   </StaticText>
@@ -441,7 +296,6 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
     <minimumSize>380, 40</minimumSize>
   </EditText>
 
@@ -479,12 +333,32 @@
     <minimumSize>280, 24</minimumSize>
   </EditText>
 
+  <ContentItemDetail itsName="DateKindArea">
+    <blockName value="DateKindArea"/>
+    <childrenBlocks itemref="doc:DateTime"/>
+    <childrenBlocks itemref="doc:KindLabel"/>
+    <!-- Attributes -->
+    <orientationEnum>Horizontal</orientationEnum>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>280, 24</minimumSize>
+  </ContentItemDetail>
+
   <StaticText itsName="DateTime"
               itemClass="osaf.framework.blocks.detail.Detail.DateTimeBlock">
     <blockName value="DateTime"/>
     <title>Date/Time</title>
-    <characterStyle itemref="doc:TextStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>80, 24</minimumSize>
+  </StaticText>
+  
+  <StaticText itsName="KindLabel"
+              itemClass="osaf.framework.blocks.detail.Detail.KindLabel">
+    <blockName value="KindLabel"/>
+    <title>Kind</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 24</minimumSize>
   </StaticText>
@@ -504,11 +378,11 @@
   <StaticText itsName="StaticCalendarStartTime"
               itemClass="osaf.framework.blocks.detail.Detail.StaticTimeAttribute">
     <blockName value="StaticCalendarStartTime"/>
-    <title>Start Time</title>
+    <title>start time</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>180, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="EditCalendarStartTime"
@@ -519,7 +393,6 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
     <minimumSize>380, 30</minimumSize>
   </EditText>
 
@@ -537,11 +410,11 @@
   <StaticText itsName="StaticCalendarDuration"
               itemClass="osaf.framework.blocks.detail.Detail.StaticDurationAttribute">
     <blockName value="StaticCalendarDuration"/>
-    <title>Duration</title>
+    <title>duration</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 24</minimumSize>
+    <minimumSize>180, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="EditCalendarDuration"
@@ -552,7 +425,6 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
     <minimumSize>380, 30</minimumSize>
   </EditText>
 
@@ -582,7 +454,7 @@
     <minimumSize>60,30</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <event itemref="doc:SendShareItem"/>
-    <alignmentEnum>alignCenter</alignmentEnum>
+    <alignmentEnum>alignMiddleRight</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </Button>
 
