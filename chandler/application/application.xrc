@@ -129,6 +129,11 @@
                 <accel>Del</accel>
             </object>
             <object class="separator"/>
+            <object class="wxMenuItem" name="ToggleBuildMode">
+                <label>Build Mode</label>
+                <accel>Ctrl+B</accel>
+            </object>
+            <object class="separator"/>
             <object class="wxMenuItem" name="Preferences">
                 <label>Preferences...</label>
             </object>

@@ -43,6 +43,7 @@ class ChandlerWindow(Persistent):
         self.showActionsBar = false
         self.showSideBar = true
         self.showStatusBar = true
+        self.buildMode = False
 
     def SynchronizeView(self):
         """
@@ -160,6 +161,9 @@ class wxChandlerWindow(wxFrame):
         EVT_MENU(self, XRCID("ShowActionsBar"), self.OnShowActionsBar)
         EVT_MENU(self, XRCID("ShowSideBar"), self.OnShowSideBar)
         EVT_MENU(self, XRCID("ShowStatusBar"), self.OnShowStatusBar)        
+        EVT_MENU(self, XRCID("ToggleBuildMode"), self.OnToggleBuildMode)        
+        EVT_UPDATE_UI(self, XRCID("ToggleBuildMode"), 
+                      self.UpdateToggleBuildMode)
         EVT_SPLITTER_SASH_POS_CHANGED(self, XRCID('SplitterWindow'), 
                                       self.OnSplitterSashChanged)
         EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)
@@ -255,6 +259,16 @@ class wxChandlerWindow(wxFrame):
         self.menuBar.Check(XRCID("ShowSideBar"), self.model.showSideBar)
         self.menuBar.Check(XRCID("ShowStatusBar"), self.model.showStatusBar)
         event.Skip()
+            
+    def UpdateToggleBuildMode(self, event):
+        """
+          This method is called when the ToggleBuildMode menu is displayed.
+        It sets the menu string.
+        """
+        if self.model.buildMode:
+            event.SetText (_('Exit Build Mode'))
+        else:
+            event.SetText (_('Enter Build Mode'))
             
     def OnShowNavigationBar(self, event):
         """
@@ -379,6 +393,13 @@ class wxChandlerWindow(wxFrame):
             statusBar.Show(self.model.showStatusBar)
             self.Layout()
         
+    def OnToggleBuildMode(self, event):
+        """
+          Called when the 'BuildMode' menu item is selected.  It
+        toggles the display state of the StatusBar.
+        """
+        self.model.buildMode = not self.model.buildMode
+
     def OnSplitterSashChanged(self, event):
         self.model.sashSize = event.GetSashPosition ()
 

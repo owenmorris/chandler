@@ -14,6 +14,85 @@ from application.Parcel import Parcel
 from application.Application import app
 from persistence.list import PersistentList
 
+wxEVT_POST_PAINT = wxNewEventType()
+def EVT_POST_PAINT(win, func):
+    win.Connect(-1, -1, wxEVT_POST_PAINT, func)
+
+class PostPaintEvent(wxPyEvent):
+    def __init__(self):
+        wxPyEvent.__init__(self)
+        self.SetEventType(wxEVT_POST_PAINT)
+
+class WindowProxy (wxEvtHandler):
+    def __init__ (self, sizerItem):
+        wxEvtHandler.__init__ (self)
+        self.sizerItem = sizerItem
+        if isinstance(self.sizerItem, wxSizerItemPtr) and self.sizerItem.IsWindow():
+            window = self.sizerItem.GetWindow()
+            window.PushEventHandler (self)
+            EVT_LEFT_DOWN (self, self.OnLeftDown)
+            EVT_LEFT_UP (self, self.OnLeftUp)
+            EVT_MOTION (self, self.OnMotion)
+            EVT_PAINT (self, self.OnPaint)
+            EVT_POST_PAINT (self, self.OnPostPaint)
+        self.children = []
+    
+    def __del__ (self):
+        if isinstance(self.sizerItem, wxSizerItemPtr) and self.sizerItem.IsWindow():
+            self.sizerItem.GetWindow().PopEventHandler()
+        
+    def CreateWindowProxies (self):
+        if self.sizerItem:
+            for child in self.sizerItem.GetChildren ():
+                if child.IsSizer():
+                    windowProxy = WindowProxy (child.GetSizer())
+                    windowProxy.CreateWindowProxies()
+                    self.children.append (windowProxy)
+                else:
+                    self.children.append (WindowProxy (child))
+        
+    def DeleteChildren (self):
+        for child in self.children:
+            if isinstance(child.sizerItem, wxSizerPtr):
+                child.DeleteChildren()
+            del child
+        
+    def OnLeftDown (self, event):
+        self.sizerItem.GetWindow().CaptureMouse()
+        pass
+
+    def OnLeftUp(self, event):
+        window = self.sizerItem.GetWindow()
+        if window.HasCapture():
+            window.ReleaseMouse()
+
+    def OnMotion(self, event):
+        if event.Dragging() and event.LeftIsDown():
+            window = self.sizerItem.GetWindow()
+            point = event.GetPosition()
+            if point.x < 4:
+                point.x = 4
+            if point.y < 4:
+                point.y = 4
+            self.sizerItem.SetInitSize(point.x, point.y)
+            app.wxMainFrame.activeParcel.proxyWindows.sizerItem.Layout()
+            #self.sizerItem.GetWindow().GetContainingSizer().Layout()
+            pass
+
+    def OnPaint (self, event):
+        event.Skip()
+        wxPostEvent (self, PostPaintEvent())
+        pass
+
+    def OnPostPaint (self, event):
+        window = self.sizerItem.GetWindow()
+        dc = wxWindowDC(window)
+        dc.SetBrush (wxTRANSPARENT_BRUSH)
+        dc.SetPen (wxPen(wxRED, 1, wxSOLID))
+        size = window.GetSize()
+        dc.DrawRectangle(0, 0, size.width, size.height)
+        pass
+
 class ViewerParcel (Parcel):
     """
       The ViewerParcel set's up the following data for the parcel's use:
@@ -38,11 +117,11 @@ class ViewerParcel (Parcel):
           Currently we install by appending to the end of the list
         """
         urlList = app.model.URLTree.GetURLChildren('')
-        found = false
+        found = False
         for url in urlList:
             parcel = app.model.URLTree.URLExists(url)
             if parcel.__module__ == theClass.__module__:
-                found = true
+                found = True
                 break
         
         if not found:
@@ -294,19 +373,7 @@ class wxViewerParcel(wxPanel):
                 parcelDictionary['data'] = {}
                 self.data = parcelDictionary['data']
                 self.OnInitData()
-
-        # Only bind erase background on Windows for flicker reasons
-        if wxPlatform == '__WXMSW__':
-            EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)
-
-    def OnEraseBackground (self, event):
-        """
-          Override OnEraseBackground to avoid erasing background. Instead
-        implement OnDrawBackground to draw/erase the background. This
-        design alternative will eliminate flicker
-        """
-        pass
-
+  
     def Activate(self):
         """
           Override to do tasks that need to happen just before your parcel is
@@ -316,6 +383,9 @@ class wxViewerParcel(wxPanel):
         self.UpdateParcelMenus()
         self.UpdateActionsBar()
         app.wxMainFrame.activeParcel = self
+        if app.wxMainFrame.model.buildMode:
+            self.proxyWindows = WindowProxy (self.GetSizer())
+            self.proxyWindows.CreateWindowProxies()
     
         self.model._SubscribeToNotifications(True)
         
@@ -324,6 +394,9 @@ class wxViewerParcel(wxPanel):
           Override to do tasks that need to happen just before your parcel is
         replaced with another.
         """
+        if hasattr (self, 'proxyWindow'):
+            self.proxyWindows.DeleteChildren()
+            del self.proxyWindows
         self.model._SubscribeToNotifications(False)
         app.wxMainFrame.activeParcel = None
          
