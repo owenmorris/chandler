@@ -27,7 +27,6 @@
 *.bz2   -k 'b' -m 'COPY'
 *.dll   -k 'b' -m 'COPY'
 *.doc   -k 'b' -m 'COPY'
-*.dsp   -k 'b' -m 'COPY'
 *.exe   -k 'b' -m 'COPY'
 *.gif   -k 'b' -m 'COPY'
 *.gz    -k 'b' -m 'COPY'
