@@ -36,7 +36,7 @@
 
 ; Wizard pages
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "..\..\..\${DISTRIB_DIR}\LICENSE.txt"
+;;;!insertmacro MUI_PAGE_LICENSE "..\..\..\${DISTRIB_DIR}\LICENSE.txt"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 
