@@ -153,34 +153,34 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     if not changesAtAll:
         return "no_changes"
 
-    if needToScrubAll:
-        os.chdir(mainModuleDir)
-        print "Scrubbing all"
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("Scrubbing all modules" + "\n")
-        try:
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-nS"])
-        except Exception, e:
-            log.write("***Error during scrub***" + "\n")
-            CopyLog(os.path.join(modeDir, logPath), log)
-            raise e
-
-        libraryDir = os.path.join(modeDir, "osaf", "chandler", mode)
-        if os.path.exists(libraryDir):
-            hardhatutil.rmdirRecursive(libraryDir)
-    else:
-        os.chdir(mainModuleDir)
-        print "scrubbing only Chandler"
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("Scrubbing only Chandler" + "\n")
-        try:
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-ns"])
-        except Exception, e:
-            log.write("***Error during scrub***" + "\n")
-            CopyLog(os.path.join(modeDir, logPath), log)
-            raise e
+#     if needToScrubAll:
+#         os.chdir(mainModuleDir)
+#         print "Scrubbing all"
+#         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+#         log.write("Scrubbing all modules" + "\n")
+#         try:
+#             outputList = hardhatutil.executeCommandReturnOutput(
+#              [hardhatScript, "-nS"])
+#         except Exception, e:
+#             log.write("***Error during scrub***" + "\n")
+#             CopyLog(os.path.join(modeDir, logPath), log)
+#             raise e
+# 
+#         libraryDir = os.path.join(modeDir, "osaf", "chandler", mode)
+#         if os.path.exists(libraryDir):
+#             hardhatutil.rmdirRecursive(libraryDir)
+#     else:
+#         os.chdir(mainModuleDir)
+#         print "scrubbing only Chandler"
+#         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+#         log.write("Scrubbing only Chandler" + "\n")
+#         try:
+#             outputList = hardhatutil.executeCommandReturnOutput(
+#              [hardhatScript, "-ns"])
+#         except Exception, e:
+#             log.write("***Error during scrub***" + "\n")
+#             CopyLog(os.path.join(modeDir, logPath), log)
+#             raise e
 
     os.chdir(mainModuleDir)
 
