@@ -37,7 +37,7 @@ class NavigationBar(DynamicContainerBlocks.Toolbar):
     def onViewNavigationBarEventUpdateUI(self, notification):
         notification.data['Check'] = self.isShown
 
-    def navbarBack(self, event):
+    def navbarGoBack(self, event):
         self.ensureHistory()
         if len(self.history) > 1:
             currentLocation = self.history.pop()
@@ -50,7 +50,10 @@ class NavigationBar(DynamicContainerBlocks.Toolbar):
             self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':self.history[-1]})
     
-    def navbarForward(self, event):
+    def navbarGoBackUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def navbarGoForward(self, event):
         self.ensureHistory()
         if len(self.future) > 0:
             newLocation = self.future.pop()
@@ -63,42 +66,79 @@ class NavigationBar(DynamicContainerBlocks.Toolbar):
             self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':newLocation})
 
-    def navbarSync(self, event):
+    def navbarGoForwardUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def navbarSync(self, notification):
         # Handler for Sync tool bar button
         pass
     
-    def navbarNew(self, event):
+    def navbarSyncUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def navbarNew(self, notification):
         # placeholder for a nav bar button
         pass
     
-    def navbarReply(self, event):
+    def navbarNewUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def navbarReply(self, notification):
         # placeholder for a nav bar button
         pass
     
-    def navbarDiscuss(self, event):
+    def navbarReplyUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def navbarDiscuss(self, notification):
         # placeholder for a nav bar button
         pass
     
-    def navbarForward(self, event):
+    def navbarDiscussUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def navbarForward(self, notification):
         # placeholder for a nav bar button
         pass
     
-    def navbarDelete(self, event):
+    def navbarForwardUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def navbarDelete(self, notification):
         # placeholder for a nav bar button
         pass
     
-    def navbarJunk(self, event):
+    def navbarDeleteUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def navbarJunk(self, notification):
         # placeholder for a nav bar button
         pass
     
-    def navbarFonts(self, event):
+    def navbarJunkUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def navbarFonts(self, notification):
         # placeholder for a nav bar button
         pass
     
-    def navbarSearch(self, event):
+    def navbarFontsUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def navbarSearch(self, notification):
         # placeholder for the Search Text Widget in the nav bar
         pass
     
+    def navbarSearchUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def navbarPrint(self, notification):
+        # placeholder for a nav bar button
+        pass
+    
+    def navbarPrintUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
     def onSelectionChangedEvent (self, notification):
         item = notification.data['item']
         try:

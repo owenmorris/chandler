@@ -489,11 +489,6 @@
       <initialValue type="String"></initialValue>
     </Attribute>
     
-    <Attribute itsName="disabled">
-      <type itemref="Boolean"/>
-      <initialValue type="Boolean">False</initialValue>
-    </Attribute>
-    
     <attributes itemref="docSchema:DynamicChild/dynamicParent"/>
     <attributes itemref="docSchema:DynamicChild/title"/>
     <attributes itemref="docSchema:DynamicChild/operation"/>

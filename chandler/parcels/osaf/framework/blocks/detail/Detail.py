@@ -10,6 +10,7 @@ import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 import repository.persistence.XMLRepositoryView as XMLRepositoryView
 import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.Notes as Notes
@@ -201,6 +202,9 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
             #self.parentBlock.Notify("EnableSharing")
             pass
     
+    def onToolPressStubUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
     def selectedItem (self):
         # return the ContentItem being viewed
         return self.parentBlock.selectedItem()
@@ -223,6 +227,14 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
             while block.eventBoundary == False:
                 block = block.parentBlock
             block.parentBlock.synchronizeWidget()
+
+    def onButtonPressedUpdateUI (self, notification):
+        item = self.selectedItem()
+        # DLDTBD - fix the line below to False when the block copy problem is fixed.
+        enable = True
+        if item is not None:
+            enable = item.itsKind.isKindOf(ContentModel.getNoteKind())            
+        notification.data ['Enable'] = enable
 
 class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
     """

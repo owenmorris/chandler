@@ -123,7 +123,6 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Decide when to do...</helpString>
     <event itemref="doc:DummyEvent"/>
-    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="Triage">
@@ -135,7 +134,6 @@
     <helpString>Mark Item to be done now or later, etc</helpString>
     <prototype itemref="doc:TriageChoice"/>
     <event itemref="doc:DummyEvent"/>
-    <disabled>True</disabled>
   </ToolbarItem>
   
   <!-- prototype for the above ToolbarItem -->
@@ -203,7 +201,6 @@
     <toggle>True</toggle>
     <helpString>Needs a reply</helpString>
     <event itemref="doc:DummyEvent"/>
-    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer2">
@@ -223,7 +220,6 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>In the Out box</helpString>
     <event itemref="doc:DummyEvent"/>
-    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="RepliedFlag">
@@ -235,7 +231,6 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>A reply has been sent</helpString>
     <event itemref="doc:DummyEvent"/>
-    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="ForwardedFlag">
@@ -247,7 +242,6 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Has been forwarded</helpString>
     <event itemref="doc:DummyEvent"/>
-    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="RedirectedFlag">
@@ -259,7 +253,6 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Message has been redirected</helpString>
     <event itemref="doc:DummyEvent"/>
-    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="DraftFlag">
@@ -271,7 +264,6 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Message saved as a draft</helpString>
     <event itemref="doc:DummyEvent"/>
-    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="QueuedFlag">
@@ -283,7 +275,6 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Message has been queued</helpString>
     <event itemref="doc:DummyEvent"/>
-    <disabled>True</disabled>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer3">
@@ -303,7 +294,6 @@
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Make item Private</helpString>
     <event itemref="doc:DummyEvent"/>
-    <disabled>True</disabled>
   </ToolbarItem>
 
   <!-- FromAndToArea -->
