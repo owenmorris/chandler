@@ -28,7 +28,7 @@
   </Action>
 
   <Instruction itemName="DoStuff">
-    <enabled/>
+    <enabled>True</enabled>
     <condition itemref="test:MrMenusChanged"/>
     <actions itemref="test:PrintSelection"/>
   </Instruction>
@@ -45,12 +45,12 @@
     <actionScript>print 'everyone is available'</actionScript>
   </Action>
 
-  <Condition itemName="AvailableCondition" itemClass="application.agents.test_agents.AvailableCondition.AvailableCondition">
+  <Condition itemName="AvailableCondition" itemClass="application.agents.test_agents.JabberAgent.AvailableCondition">
     <core:description>looks to see if people are available</core:description>
   </Condition>
 
   <Instruction itemName="TestSchedule">
-    <enabled/>
+    <enabled>True</enabled>
     <schedule itemref="test:MySchedule"/>
     <condition itemref="test:AvailableCondition"/>
     <actions itemref="test:PrintFoo"/>
@@ -79,7 +79,7 @@
     <actionScript>print data['who']</actionScript>
   </Action>  
   <Instruction itemName="PresenceChanged">
-    <enabled/>
+    <enabled>True</enabled>
     <condition itemref="test:PresenceChangedNotification"/>
     <actions itemref="test:PrintWho"/>
   </Instruction>
@@ -89,17 +89,17 @@
     <conditionNotification>chandler/im/presence-request</conditionNotification>
   </Condition>
 
-  <Action itemName="ApproveIfOnWhitelist" itemClass="application.agents.test_agents.ApproveAction.ApproveAction">
+  <Action itemName="ApproveIfOnWhitelist" itemClass="application.agents.test_agents.JabberAgent.ApproveAction">
     <core:description>Checks the whitelist and approves if you are in it</core:description>
   </Action>
 
-  <Action itemName="ApproveIfUserOK" itemClass="application.agents.test_agents.ApproveAction2.ApproveAction2">
+  <Action itemName="ApproveIfUserOK" itemClass="application.agents.test_agents.JabberAgent.ApproveAction2">
     <core:description>print selection</core:description>
     <confirmFlag/>
   </Action>
 
   <Instruction itemName="ApprovePresence">
-    <enabled/>
+    <enabled>True</enabled>
     <condition itemref="test:PresenceRequestNotification"/>
     <actions itemref="test:ApproveIfOnWhitelist"/>
     <actions itemref="test:ApproveIfUserOK"/>
@@ -149,7 +149,7 @@
   </Repertoire>
 
   <Instruction itemName="ProcessIM">
-    <enabled/>
+    <enabled>True</enabled>
     <condition itemref="test:IMArrived"/>
     <actions itemref="test:PrintMessageBody"/>
   </Instruction>
@@ -174,7 +174,7 @@
   </Action>
 
   <Instruction itemName="ContactsOccupationChanged">
-    <enabled/>
+    <enabled>True</enabled>
     <condition itemref="test:OccupationChanged"/>
     <actions itemref="test:TestMethod"/>
     <actions itemref="test:PostDentistDialog"/>
