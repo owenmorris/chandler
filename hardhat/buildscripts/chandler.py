@@ -195,9 +195,10 @@ def dumpOutputList(outputList, fd = None):
             fd.write(line)
     print
 
+
 def NeedsUpdate(outputList):
     for line in outputList:
-        if line.find("IDE Scripts"):
+        if line.find("IDE Scripts") != -1:
             # this hack is for skipping some Mac-specific files that
             # under Windows always appear to be needing an update
             continue
@@ -209,6 +210,7 @@ def NeedsUpdate(outputList):
             return 1
         if line[0] == "R":
             return 1
+    return 0
 
 def CopyLog(file, fd):
     input = open(file, "r")
