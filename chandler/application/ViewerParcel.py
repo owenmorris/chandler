@@ -177,13 +177,14 @@ class wxViewerParcel(wxPanel):
         del ignoreErrors
         if (viewerParcelMenu != None):
             mainFrameId = id(app.model.mainFrame)
-            mainFrame = app.association[mainFrameId]
-            if not mainFrame.model.isClosing:
+            if app.association.has_key(mainFrameId):
+                mainFrame = app.association[mainFrameId]
                 menuBar = mainFrame.GetMenuBar ()
                 index = menuBar.FindMenu (_('View'))
                 assert (index != wxNOT_FOUND)
                 if menuBar.FindMenu(_('Help')) == (index + 1):
-                    menuBar.Insert (index + 1, viewerParcelMenu, 
+                    menuBar.Insert (index + 1,
+                                    viewerParcelMenu, 
                                     self.GetMenuName())
                 else:
                     oldMenu = menuBar.Replace (index + 1, viewerParcelMenu, 
@@ -199,8 +200,8 @@ class wxViewerParcel(wxPanel):
         del ignoreErrors
         if (viewerParcelMenu != None):
             mainFrameId = id(app.model.mainFrame)
-            mainFrame = app.association[mainFrameId]
-            if not mainFrame.model.isClosing:
+            if not app.association.has_key(mainFrameId):
+                mainFrame = app.association[mainFrameId]
                 menuBar = mainFrame.GetMenuBar ()
                 index = menuBar.FindMenu (_('View'))
                 assert (index != wxNOT_FOUND)

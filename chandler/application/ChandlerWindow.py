@@ -34,7 +34,6 @@ class ChandlerWindow(Persistent):
         self.size['y'] = -1
         self.size['width'] = -1
         self.size['height'] = -1
-        self.isClosing = false
         
     def SynchronizeView(self):
         """
@@ -42,7 +41,6 @@ class ChandlerWindow(Persistent):
         synchronize themselves to match their peristent model counterpart.
         """
         app = application.Application.app
-        self.isClosing = false
         if not app.association.has_key(id(self)):
             wxWindow = app.applicationResources.LoadFrame (None, "ChandlerWindow")
             assert (wxWindow != None)
@@ -98,6 +96,7 @@ class wxChandlerWindow(wxFrame):
         self.SetMenuBar (self.menuBar)
         
         self.sideBar = self.FindWindowByName("SideBar")
+        assert (self.sideBar != None)
 
         if __debug__:
             """
@@ -114,7 +113,6 @@ class wxChandlerWindow(wxFrame):
         EVT_SIZE(self, self.OnSize)
         EVT_CLOSE(self, self.OnClose)
         EVT_ACTIVATE(self, self.OnActivate)
-        EVT_WINDOW_DESTROY (self, self.OnDestroy)
 
     if __debug__:
         def OnToggleDebugMenu(self, event):
@@ -154,11 +152,8 @@ class wxChandlerWindow(wxFrame):
         """
           Closing the last window causes the application to quit.
         """
-        self.model.isClosing = true
-        self.Destroy()
-        
-    def OnDestroy(self, event):
         del application.Application.app.association[id(self.model)]
+        self.Destroy()
         
     def MoveOntoScreen(self):
         """
