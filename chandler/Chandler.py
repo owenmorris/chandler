@@ -14,7 +14,7 @@ if __debug__ and '-wing' in sys.argv:
     import wingdbstub
 import logging
 from wxPython.wx import *
-from application.Application import wxApplicationNew
+from application.Application import wxApplication
 
 def main():
 
@@ -34,7 +34,7 @@ def main():
         resolutions on some old computers. See wxApp.SetUseBestVisual
         """
         exceptionMessage = "while trying to start."
-        application = wxApplicationNew(redirect=False, useBestVisual=True)
+        application = wxApplication(redirect=False, useBestVisual=True)
 
         exceptionMessage = "and had to shut down."
         application.MainLoop()

@@ -855,11 +855,17 @@
       <cardinality>list</cardinality>
     </Attribute>
 
+    <Attribute itemName="openedContainers">
+      <type itemref="Boolean"/>
+      <cardinality>dict</cardinality>
+    </Attribute>
+
     <attributes itemref="docSchema:TreeList/hideRoot"/>
     <attributes itemref="docSchema:TreeList/noLines"/>
     <attributes itemref="docSchema:TreeList/useButtons"/>    
     <attributes itemref="docSchema:TreeList/columnHeadings"/>
     <attributes itemref="docSchema:TreeList/columnWidths"/>
+    <attributes itemref="docSchema:TreeList/openedContainers"/>
   </Kind>  
 
   <!--

@@ -56,6 +56,14 @@ class ContainerChild(Block):
             assert not Globals.association.has_key(UUID)
             Globals.association[UUID] = window
             window.counterpartUUID = UUID
+            """
+              After the blocks are wired up, give the window a chance
+            to synchronize itself to any persistent state.
+            """
+            try:
+                window.SynchronizeFramework()
+            except AttributeError:
+                pass
             for child in self.childrenBlocks:
                 child.render (parent, parentWindow)
             self.handleChildren(window)
@@ -256,9 +264,6 @@ class ComboBox(RectangularChild):
 
     
 class EditText(RectangularChild):
-    def __init__(self, *arguments, **keywords):
-        super (EditText, self).__init__ (*arguments, **keywords)
-
     def renderOneBlock(self, parent, parentWindow):
         style = 0
         if self.textAlignmentEnum == "Left":
@@ -569,15 +574,37 @@ class wxTreeList(wxTreeListCtrl):
           Load the items in the tree only when they are visible.
         """
         counterpart = Globals.repository.find (self.counterpartUUID)
-        counterpart.GetTreeData(TreeNode (event.GetItem(), self))
+        id = event.GetItem()
+        counterpart.GetTreeData(TreeNode (id, self))
+        """
+          if the data passed in has a UUID we'll keep track of the
+        state of the opened tree
+        """
+        try:
+            counterpart.openedContainers [self.GetPyData(id).getUUID()] = True
+        except AttributeError:
+            pass
 
     def OnCollapsing(self, event):
-        self.DeleteChildren (event.GetItem())
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        id = event.GetItem()
+        self.DeleteChildren (id)
+        """
+          if the data passed in has a UUID we'll keep track of the
+        state of the opened tree
+        """
+        try:
+            del counterpart.openedContainers [self.GetPyData(id).getUUID()]
+        except AttributeError:
+            pass
 
     def OnColumnDrag(self, event):
         counterpart = Globals.repository.find (self.counterpartUUID)
         columnIndex = event.GetColumn()
-        counterpart.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
+        try:
+            counterpart.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
+        except AttributeError:
+            pass
 
     def OnItemActivated(self, event):
         arguments = {'node':TreeNode (event.GetItem(), self),
@@ -586,31 +613,53 @@ class wxTreeList(wxTreeListCtrl):
         notification = Notification(event, None, None)
         notification.SetData(arguments)
         Globals.notificationManager.PostNotification (notification)
-        
+
+    def SynchronizeFramework(self):
+        def ExpandContainer (self, openedContainers, id):
+            item = self.GetPyData(id)
+            try:
+                expand = openedContainers [item.getUUID()]
+            except:
+                return
+
+            self.Expand (id)
+            child, cookie = self.GetFirstChild (id, 0)
+            while child.IsOk():
+                ExpandContainer (self, openedContainers, child)
+                child = self.GetNextSibling (child)
+
+        counterpart = Globals.repository.find (self.counterpartUUID)
+
+        for index in range (self.GetColumnCount()):
+            self.RemoveColumn (index)
+
+        info = wxTreeListColumnInfo()
+        for index in range (len(counterpart.columnHeadings)):
+            info.SetText (counterpart.columnHeadings[index])
+            info.SetWidth (counterpart.columnWidths[index])
+            self.AddColumnInfo (info)
+
+        self.DeleteAllItems()
+        counterpart.GetTreeData(TreeNode (None, self))
+
+        ExpandContainer (self, counterpart.openedContainers, self.GetRootItem ())
+
         
 class TreeList(RectangularChild):
+    def __init__(self, *arguments, **keywords):
+        super (TreeList, self).__init__ (*arguments, **keywords)
+        self.openedContainers = {}
+
     def renderOneBlock(self, parent, parentWindow, nativeWindow=None):
         if nativeWindow:
             treeList = nativeWindow
         else:
             treeList = wxTreeList(parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
-        info = wxTreeListColumnInfo()
-        for x in range(len(self.columnHeadings)):
-            info.SetText(self.columnHeadings[x])
-            info.SetWidth(self.columnWidths[x])
-            treeList.AddColumnInfo(info)
         self.getParentBlock(parentWindow).addToContainer(parent,
                                                          treeList,
                                                          1,
                                                          self.Calculate_wxFlag(),
                                                          self.Calculate_wxBorder())
-        """
-           Normally render, who calls us assigns our UUID to the counterpartUUID, however
-           GetTreeData need it before we return, so we'll assign it here -- DJA
-        """
-        treeList.counterpartUUID = self.getUUID()
-
-        self.GetTreeData(TreeNode (None, treeList))
         return treeList, None, None
 
     def Calculate_wxStyle (self):

@@ -68,7 +68,7 @@ class MainFrame(wxFrame):
         counterpart.setDirty()   # Temporary repository hack -- DJA
 
 
-class wxApplicationNew (wxApp):
+class wxApplication (wxApp):
     """
       PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
