@@ -45,6 +45,11 @@
         <type itemref="Boolean"/>
       </Attribute>
       
+      <Attribute itsName="anyTime">
+        <displayName>Any-Time</displayName>
+        <type itemref="Boolean"/>
+      </Attribute>
+      
       <Attribute itsName="location">
         <issues>We might want to think about having Location be just a 'String', rather than a reference to a 'Location' item.</issues>
         <displayName>Location</displayName>
@@ -85,9 +90,9 @@
           <displayName>Time Transparency</displayName>
           <issues>The iCalendar values for Time Transparency are slightly different. We should consider making our values match the iCalendar ones, or be a superset of them.  Mitch suggested that a 'cancelled' value would be a useful extension.</issues>
           <issues>It'd be nice to not maintain the transparency choices separately from the enum values</issues>
-          <values>fyi</values>
           <values>confirmed</values>
           <values>tentative</values>
+          <values>fyi</values>
         </Enumeration>
         
         <type itemref="cal:CalendarEventMixin/transparency/TimeTransparencyEnum"/>
@@ -167,6 +172,10 @@
         <attribute value="allDay"/>
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/SharingCloud/allDay"/>
+      <Endpoint itsName="anyTime">
+        <attribute value="anyTime"/>
+      </Endpoint>
+      <endpoints itemref="cal:CalendarEventMixin/SharingCloud/anyTime"/>
       <Endpoint itsName="location">
         <attribute value="location"/>
       </Endpoint>

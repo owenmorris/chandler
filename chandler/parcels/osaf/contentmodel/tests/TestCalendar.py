@@ -36,8 +36,14 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
             self.assertEqual(event.importance, 'fyi')
             self.assertEqual(event.getAttributeValue('importance'), 'fyi')
 
-            self.assertEqual(event.transparency, "fyi")
-            self.assertEqual(event.getAttributeValue('transparency'), "fyi")
+            self.assertEqual(event.transparency, "confirmed")
+            self.assertEqual(event.getAttributeValue('transparency'), "confirmed")
+            
+            self.assertEqual(event.allDay, False)
+            self.assertEqual(event.getAttributeValue('allDay'), False)
+            
+            self.assertEqual(event.anyTime, False)
+            self.assertEqual(event.getAttributeValue('anyTime'), False)
 
         def _verifyCalendarItems(calendar, location, recurrence):
             self.assertEqual(calendar.displayName, "simple calendar")
@@ -69,7 +75,9 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         # CalendarEvent properties
         calendarEventItem.displayName = "simple headline"
         calendarEventItem.importance = "fyi"
-        calendarEventItem.transparency = "fyi"
+        calendarEventItem.transparency = "confirmed"
+        calendarEventItem.allDay = False
+        calendarEventItem.anyTime = False
         _verifyCalendarEvent(calendarEventItem)
         calendarEventItem.location = locationItem
 
@@ -135,6 +143,17 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         firstItem.SetReminderDelta(None)
         self.failIf(firstItem.hasAttributeValue('reminderTime'))
 
+        # Test allDay
+        firstItem.allDay = True
+        self.assertEqual(firstItem.allDay, True)
+        firstItem.allDay = False
+        self.assertEqual(firstItem.allDay, False)
+
+        # Test anyTime
+        firstItem.anyTime = True
+        self.assertEqual(firstItem.anyTime, True)
+        firstItem.anyTime = False
+        self.assertEqual(firstItem.anyTime, False)
 
     def testDeleteItem(self):
 

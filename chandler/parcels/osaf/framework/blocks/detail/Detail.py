@@ -430,41 +430,6 @@ class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
             labelChanged = self.synchronizeLabel(self.staticTextLabelValue(item))
             hasChanged = hasChanged or labelChanged
         return hasChanged
-
-class DateTimeBlock (StaticTextLabel):
-    """
-    Date and Time associated with the Content Item
-    Currently this is static text, but soon it will need to be editable
-    """
-    def shouldShow (self, item):
-        # only shown for *non-*CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
-        return not item.isItemOf (calendarMixinKind)
-
-    def staticTextLabelValue (self, item):
-        """
-          return the item's date.
-        """
-        try:
-            theDate = item.date # get the redirected date attribute
-        except AttributeError:
-            theDate = "No date specified"
-        else:
-            theDate = str(theDate)
-        return theDate
-
-class KindLabel (StaticTextLabel):
-    """Shows the Kind of the Item as static text"""
-    def staticTextLabelValue (self, item):
-        """
-          Display the item's Kind in the wxWidget.
-        """
-        try:
-            kindName = item.itsKind.displayName
-        except AttributeError:
-            kindName = item.itsKind.itsName
-        kindName = '(' + kindName +')'
-        return kindName
         
 class StaticRedirectAttribute (StaticTextLabel):
     """
@@ -945,10 +910,17 @@ class EditTimeAttribute (EditRedirectAttribute):
     An attribute-based edit field for Time Values
     Our parent block knows which attribute we edit.
     """
-    timeFormat = '%Y-%m-%d %I:%M %p'
+    # (@@@BJS ... though we also modify allDay and anyTime ourselves)
 
+    dateTimeFormat = '%Y-%m-%d %I:%M %p'
+    dateFormat = '%Y-%m-%d'
+    dateTimeFormatHint = 'yyyy-mm-dd HH:MM'
+    dateFormatHint = 'yyyy-mm-dd'
+    
     def parseDateTime (self, dateString):
         theDate = None
+        dateOnly = False
+
         # work around a problem when using hour of 12
         # @@@DLD Check if this date parsing bug is fixed yet - due in version 2.1
         if DateTime.__version__ < '2.1':
@@ -960,13 +932,20 @@ class EditTimeAttribute (EditRedirectAttribute):
                 dateString = dateString[:twelveLocation]\
                              + '00:' + dateString[twelveLocation+3:]
         try:
-            # convert to Date/Time
+            # convert to Date/Time. This quietly accepts input with and without times.
             theDate = DateTime.Parser.DateTimeFromString (dateString)
         except ValueError: 
             pass
         except DateTime.RangeError:
             pass
-        return theDate
+        else:
+            # Try to discern whether the user specified a time
+            # @@@ BJS: For now, we have a time if the returned value's time isn't midnight,
+            # _and_ there's a colon in the string.
+            dateOnly = (theDate == (theDate + DateTime.RelativeDateTime(hour=0, minute=0, second=0))) \
+                     and (dateString.find(':') == -1)
+
+        return (theDate, dateOnly)
 
     def saveAttributeFromWidget(self, item, widget, validate):
         """"
@@ -974,15 +953,18 @@ class EditTimeAttribute (EditRedirectAttribute):
         """
         if validate:
             dateString = widget.GetValue().strip('?')
-            theDate = self.parseDateTime (dateString)
+            (theDate, dateOnly) = self.parseDateTime (dateString)
             try:
                 # save the new Date/Time into the startTime attribute
                 item.ChangeStart (theDate)
+                item.anyTime = dateOnly and not item.allDay
             except:
                 # @@@DLD figure out reasonable exceptions to catch during conversion
                 dateString = dateString + '?'
             else:
-                dateString = theDate.strftime (self.timeFormat)
+                format = (item.allDay or item.anyTime) and self.dateFormat or self.dateTimeFormat
+                dateString = theDate.strftime (format)
+                
     
             # redisplay the processed Date/Time in the widget
             widget.SetValue(dateString)
@@ -995,78 +977,15 @@ class EditTimeAttribute (EditRedirectAttribute):
         try:
             dateTime = item.getAttributeValue(self.whichAttribute())
         except AttributeError:
-            value = 'yyyy-mm-dd HH:MM'
+            value = item.allDay and self.dateFormatHint or self.dateTimeFormatHint
         else:
-            value = dateTime.strftime (self.timeFormat)
+            format = (item.allDay or item.anyTime) and self.dateFormat or self.dateTimeFormat
+            value = dateTime.strftime (format)
         widget.SetValue (value)
 
-class EditDurationAttribute (EditRedirectAttribute):
-    """
-    An attribute-based edit field for Duration Values
-    Our parent block knows which attribute we edit.
-    """
-    durationFormatShort = '%H:%M'
-    durationFormatLong = '%d:%H:%M:%S'
-    zeroDays = DateTime.DateTimeDelta (0)
-    hundredDays = DateTime.DateTimeDelta (100)
+class EditDurationAttribute (DetailSynchronizedAttributeEditorBlock):
     def shouldShow (self, item):
-        # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
-        return item.isItemOf (calendarMixinKind)
-
-    def saveAttributeFromWidget(self, item, widget, validate):
-        """"
-          Update the attribute from the user edited string in the widget.
-        """
-        if validate:
-            durationString = widget.GetValue().strip('?')
-            try:
-                # convert to Date/Time
-                theDuration = DateTime.Parser.DateTimeDeltaFromString (durationString)
-            except ValueError: 
-                pass
-    
-            # if we got a value different from the default
-            if self.hundredDays > theDuration > self.zeroDays:
-                # save the new duration
-                item.duration = theDuration
-    
-            # get the newly formatted string
-            durationString = self.formattedDuration (theDuration, durationString)
-    
-            # redisplay the processed Date/Time in the widget
-            widget.SetValue(durationString)
-    
-
-    def loadAttributeIntoWidget(self, item, widget):
-        """"
-          Update the widget display based on the value in the attribute.
-        """
-        try:
-            theDuration = item.duration
-        except AttributeError:
-            value = '?'
-        else:
-            if theDuration is not None:
-                value = self.formattedDuration (theDuration, '')
-            else:
-                value = 'hh:mm'
-        widget.SetValue (value)
-
-    def formattedDuration (self, aDuration, originalString):
-        """
-          Return a string containing the formatted duration.
-        """
-        # if we got a value different from the default
-        if self.hundredDays > aDuration > self.zeroDays:
-            if aDuration.day == 0 and aDuration.second == 0:
-                format = self.durationFormatShort
-            else:
-                format = self.durationFormatLong
-            return aDuration.strftime (format)
-        else:
-            # show that we didn't understand the input
-            return originalString + '?'
+        return not item.allDay
 
 class AllDayCheckBox (DetailSynchronizer, ControlBlocks.CheckBox):
     """
@@ -1075,20 +994,14 @@ class AllDayCheckBox (DetailSynchronizer, ControlBlocks.CheckBox):
     def synchronizeItemDetail (self, item):
         hasChanged = super(AllDayCheckBox, self).synchronizeItemDetail(item)
         if item is not None and self.isShown:
-            try:
-                allDay = item.allDay
-            except AttributeError:
-                allDay = False
-            self.widget.SetValue(allDay)
+            self.widget.SetValue(item.allDay)
         return hasChanged
     
     def onToggleAllDayEvent (self, event):
         item = self.selectedItem()
         if item is not None:
-            if self.widget.GetValue() == wx.CHK_CHECKED:
-                item.allDay = True
-            else:
-                del item.allDay
+            item.allDay = self.widget.GetValue() == wx.CHK_CHECKED
+            self.resynchronizeDetailView()
 
 class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
     """
