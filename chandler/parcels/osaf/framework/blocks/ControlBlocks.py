@@ -431,7 +431,9 @@ def TreeFactory(parent):
             except AttributeError:
                 pass # A wxTreeCtrl won't use columnHeadings
             else:
-                for index in range (self.GetColumnCount()):
+                columnIndexes = range(self.GetColumnCount())
+                columnIndexes.reverse()
+                for index in columnIndexes:
                     self.RemoveColumn (index)
         
                 info = wxTreeListColumnInfo()
