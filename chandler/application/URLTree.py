@@ -40,11 +40,19 @@ class URLTree(Persistent):
                 return true
         return false
 
-    # return a list of all the parcels currently installed in the tree
     def GetParcelList(self):
+        """
+          return a list of all the parcels currently installed in
+          the tree.  Since a single parcel can be responsible for
+          multiple top-level links, make sure we only add it to
+          the list once.
+        """
         parcels = []
         for entry in self.tree[0].children:
-            parcels.append(entry.parcel)
+            try:
+                index = parcels.index(entry.parcel)
+            except ValueError:
+                parcels.append(entry.parcel)
         return parcels
     
     def UriExists(self, uri):
