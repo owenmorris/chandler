@@ -182,7 +182,8 @@ class wxColumnarTimeView(wxColumnarSubView):
                 eventObject = ColumnarItem(self, item)
                 self.zOrderedDrawableObjects.append(eventObject)
 
-    # receive remote objects by adding them to the list, and redrawing when we receive the last one
+    # receive remote objects by adding them to the list, and
+    # redrawing when we receive the last one
     def AddObjectsToView(self, url, objectList, lastFlag):
         for item in objectList:
             eventObject = ColumnarItem(self, item)

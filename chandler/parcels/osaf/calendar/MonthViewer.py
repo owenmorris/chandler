@@ -105,9 +105,9 @@ class wxMonthViewer(wxSimpleCanvas):
         
         if remoteAddress != None:
             if app.jabberClient.RequestRemoteObjects(remoteAddress, 'Calendar'):
-                self.remoteLoadInProgress = true
+                self.remoteLoadInProgress = True
             else:
-                self.remoteLoadInProgress = false
+                self.remoteLoadInProgress = False
                 message = _("Sorry, but %s is not present!") % (remoteAddress)
                 wxMessageBox(message)
 
@@ -135,7 +135,7 @@ class wxMonthViewer(wxSimpleCanvas):
         event.Skip()
 
     def OnCalendarDate(self, event):
-        # self._loadEvents()
+        self._loadEvents()
         self.Refresh()
         event.Skip()
         

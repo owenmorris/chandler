@@ -73,9 +73,9 @@ class CalendarViewer(ViewerParcel):
         return eventList
     
     # handle errors - just pass it down the the wxViewer
-    # @@@ no error handling yet
     def HandleErrorResponse(self, jabberID, url, errorMessage):
-        pass
+        viewer = app.association[id(self)]
+        viewer.HandleErrorResponse(jabberID, url, errorMessage)
     
    # there's no real views yet, so for now we just rememeber remoteAddress
     def GoToURL(self, remoteAddress, url):
@@ -207,17 +207,21 @@ class wxCalendarViewer(wxViewerParcel):
             titleStr = titleStr + ' ' + remoteText
         self.calendarTitle.SetLabel(titleStr)
 
-    # update current view is called when the current view changes, to update the
-    # title and current view contents
+    # update current view is called when the current view changes,
+    # to update the title and current view contents
     def UpdateCurrentView(self):
         self.UpdateTitle()
         self.currentView.model.UpdateItems()
         self._UpdateMenus()
     
-    # UpdateFromRepository is called to tell the calendar that new objects have been added
-    # to the repository.  Just pass it down to the wxView
+    # UpdateFromRepository is called to tell the calendar that new objects
+    # have been added to the repository.  Just pass it down to the wxView
     def UpdateFromRepository(self):
         self.UpdateCurrentView()
+
+    # handle sharing errors - put up a message
+    def HandleErrorResponse(self, jabberID, url, errorMessage):
+        wxMessageBox(errorMessage)
         
     def getViewTypeSizer(self):
         # @@@ Find a cleaner way to find the sizer
