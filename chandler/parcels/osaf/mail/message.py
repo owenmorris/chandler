@@ -276,8 +276,13 @@ def kindToMessageObject(mailMessage):
     for (key, val) in mailMessage.additionalHeaders:
         messageObject[key] = val
 
-    if mailMessage.body is not None:
-        messageObject.set_payload(textToStr(mailMessage.body))
+    try:
+        payload = mailMessage.body
+    except AttributeError:
+        payloadStr = ""
+    else:
+        payloadStr = textToStr(payload)
+    messageObject.set_payload(payloadStr)
 
     __populateParam(messageObject, 'From', mailMessage.fromAddress, 'EmailAddress')
     __populateParam(messageObject, 'Reply-To', mailMessage.replyToAddress, 'EmailAddress')
