@@ -6,9 +6,9 @@ __license__ = "OSAF"
 
 
 from wxPython.wx import *
-from application.SplashScreen import SplashScreen
 from application.ViewerParcel import *
 from application.Application import app
+from application.SplashScreen import SplashScreen
 
 class MrMenus(ViewerParcel):
 
