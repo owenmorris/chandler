@@ -231,10 +231,6 @@ class wxSplitWindow(wx.SplitterWindow):
                     assert (result)
                     oldWindow1.Destroy()
         self.Thaw()
-        if self.GetParent().GetSizer():
-            self.GetParent().GetSizer().Layout()
-        else:
-            pass # @@@ FIXME: We cannot assume that a SplitterWindow lives in a window with a sizer
         
     def __del__(self):
         del Globals.association [self.counterpartUUID]

@@ -38,6 +38,10 @@ class TabbedView(ControlBlocks.TabbedContainer):
 
                 newChild.parentBlock = self
                 newChild.render(tabbedContainer, tabbedContainer)
+                
+                wxNewChild = Globals.association [newChild.itsUUID]
+                wxNewChild.SetSize (tabbedContainer.GetClientSize())
+                
                 self.RegisterEvents(newChild)
                 Globals.mainView.onSetActiveView(newChild)
 
