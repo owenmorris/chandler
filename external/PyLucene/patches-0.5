@@ -9,3 +9,16 @@
  endif
  
  STORE_SRCS=`find store-$(LUCENE_VER) -name '*.java' -print`
+--- PyLucene-0.5/Makefile	2004-07-03 18:14:54.440244800 -0700
++++ PyLucene-0.5-patched/Makefile	2004-07-03 18:26:26.946019200 -0700
+@@ -86,6 +86,10 @@
+ OS=Cygwin
+ endif
+ 
++ifeq ($(findstring WINNT,$(OS)),WINNT)
++OS=Cygwin
++endif
++
+ ifeq ($(DEBUG),1)
+ COMP_OPT=DEBUG=1
+ SUFFIX=d
