@@ -12,3 +12,4 @@ LockDir=/var/lock/cvs
 # Set `LogHistory' to `all' or `TOFEWGCMAR' to log all transactions to the
 # history file, or a subset as needed (ie `TMAR' logs all write operations)
 #LogHistory=TOFEWGCMAR
+LogHistory=TMAR
