@@ -532,10 +532,10 @@ class RepositoryView(object):
 
     def __iter__(self):
         """
-        See L{iterRoots}
+        (deprecated) Use L{iterRoots} instead.
         """
 
-        return self.iterRoots()
+        raise DeprecationWarning, 'Use RepositoryView.iterRoots() instead'
     
     def iterChildren(self):
         """

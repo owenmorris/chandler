@@ -418,6 +418,35 @@ class TestMerge(RepositoryTestCase):
 
         self.assert_(m.title == 'changed title')
         self.assert_(len(m.writers) == 0)
+        self.assert_(main.check(), 'main check failed')
+
+    def testMergeNoOverlapVRSingle(self):
+
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        self.rep.loadPack(cineguidePack)
+        self.rep.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        m2 = view.findPath('//CineGuide/m2')
+        m4 = view.findPath('//CineGuide/m4')
+        m2.next = m4
+        view.commit()
+        self.assert_(view.check(), 'view check failed')
+        
+        view = self.rep.setCurrentView(main)
+        m2 = main.findPath('//CineGuide/m2')
+        m2.title = 'changed title'
+        main.commit()
+
+        m2 = main.findPath('//CineGuide/m2')
+        m4 = main.findPath('//CineGuide/m4')
+        self.assert_(m2.title == 'changed title')
+        self.assert_(m2.next is m4)
+        self.assert_(m4.previous is m2)
+        self.assert_(main.check(), 'main check failed')
 
 
 if __name__ == "__main__":

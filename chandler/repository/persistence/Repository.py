@@ -264,10 +264,10 @@ class Repository(object):
 
     def __iter__(self):
         """
-        Iterate over the roots of this repository using the current view.
+        (deprecated) Use L{iterRoots} instead.
         """
 
-        return self.view.__iter__()
+        raise DeprecationWarning, 'Use Repository.iterRoots() instead'
 
     def iterRoots(self, load=True):
         """

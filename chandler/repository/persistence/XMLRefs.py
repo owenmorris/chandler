@@ -210,21 +210,10 @@ class XMLRefList(RefList, PersistentRefs):
         RefList._setItem(self, item)
         PersistentRefs._setItem(self, item)
 
-    def __setitem__(self, key, value,
-                    previousKey=None, nextKey=None, alias=None,
-                    load=True, direct=True):
+    def _setRef(self, other, **kwds):
 
         loading = self.view.isLoading()
-        if loading and previousKey is None and nextKey is None:
-            ref = self._loadRef(key)
-            if ref is not None:
-                previousKey, nextKey, refAlias = ref
-                if alias is not None:
-                    assert alias == refAlias
-
-        value = super(XMLRefList, self).__setitem__(key, value,
-                                                    previousKey, nextKey, alias,
-                                                    load, direct)
+        super(XMLRefList, self)._setRef(other, **kwds)
 
         if not loading:
             self._count += 1

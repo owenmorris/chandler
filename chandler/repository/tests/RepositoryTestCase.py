@@ -39,11 +39,12 @@ class RepositoryTestCase(TestCase):
         self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
 
         if os.path.exists(preloadedRepositoryPath):
-            self.ramdb =  False
-            self.rep.open(ramdb=False, fromPath=preloadedRepositoryPath)
+            self.ramdb = False
+            self.rep.open(ramdb=False, fromPath=preloadedRepositoryPath,
+                          stderr=True)
             self.rep.logger.info('Using preloaded repository')
         else:
-            self.rep.create(ramdb=self.ramdb)
+            self.rep.create(ramdb=self.ramdb, stderr=True)
 
             self.rep.loadPack(self.schemaPack)
             self.rep.loadPack(self.chandlerPack)

@@ -1088,11 +1088,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                  self.repository.findUUID(self.manager.itemUUID))
 
             # Hook up any local attributes to this kind
-            if item.hasChildren():
-                for child in item:
-                    if child.itsKind.itsUUID == self.manager.attrUUID:
-                        # child is an attribute
-                        item.addValue("attributes", child)
+            for child in item.iterChildren():
+                if child.itsKind.itsUUID == self.manager.attrUUID:
+                    # child is an attribute
+                    item.addValue("attributes", child)
 
     def makeValue(self, item, attributeName, attributeTypePath, value):
         """ Creates a value from a string, based on the type

@@ -27,6 +27,7 @@
   </item>
 
   <item>
+    <name>m2</name>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Morning Glory</attribute>
@@ -47,6 +48,7 @@
   </item>
 
   <item>
+    <name>m3</name>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Little Women</attribute>
@@ -54,6 +56,8 @@
     <attribute name="released">1933-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/GCukor</ref>
+    <ref name="previous" type="path">//CineGuide/m2</ref>
+
     <ref name="writers">
       <ref type="path">//CineGuide/LMAlcott</ref>
       <ref type="path">//CineGuide/SYMason</ref>
@@ -69,6 +73,7 @@
   </item>
 
   <item>
+    <name>m4</name>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Spitfire</attribute>
@@ -90,6 +95,7 @@
   </item>
 
   <item>
+    <name>m5</name>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Alice Adams</attribute>

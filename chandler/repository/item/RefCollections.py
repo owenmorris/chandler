@@ -305,26 +305,15 @@ class RefList(LinkedMap):
 
         return self._getRef(key)
 
+    def _getRef(self, key, load=True):
+
+        load = load and not self._item.isNew()
+        return super(RefList, self).__getitem__(key, load)
+
     def _setRef(self, other, **kwds):
 
+        key = other._uuid
         load = kwds.get('load', True)
-        self.__setitem__(other._uuid, other,
-                         previousKey=kwds.get('previous'),
-                         nextKey=kwds.get('next'),
-                         alias=kwds.get('alias'),
-                         load=load,
-                         direct=False)
-
-        if not load:
-            other._references._getRef(self._otherName, self._item)
-
-    def __setitem__(self, key, value,
-                    previousKey=None, nextKey=None, alias=None,
-                    load=True, direct=True):
-
-        if direct:
-            raise AssertionError, '%s: direct set not supported' %(self)
-
         loading = self._getRepository().isLoading()
         
         old = super(RefList, self).get(key, None, load)
@@ -334,15 +323,24 @@ class RefList(LinkedMap):
             else:
                 self._setDirty()
 
-        link = super(RefList, self).__setitem__(key, value,
-                                                previousKey, nextKey, alias)
+        link = super(RefList, self).__setitem__(key, other,
+                                                kwds.get('previous'),
+                                                kwds.get('next'),
+                                                kwds.get('alias'))
 
         if not loading:
             if self._indexes:
                 for index in self._indexes.itervalues():
                     index.insertKey(key, link._previousKey)
 
-        return value
+        if not load:
+            other._references._getRef(self._otherName, self._item)
+
+        return other
+
+    def __setitem__(self, key, value):
+
+        raise AssertionError, '%s: direct set not supported, use append' %(self)
 
     def placeItem(self, item, after, *indexNames):
         """
@@ -502,11 +500,6 @@ class RefList(LinkedMap):
 
         if key is not None:
             self._setDirty(noMonitors=True)
-
-    def _getRef(self, key, load=True):
-
-        load = load and not self._item.isNew()
-        return super(RefList, self).__getitem__(key, load)
 
     def get(self, key, default=None, load=True):
         """

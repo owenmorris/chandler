@@ -85,10 +85,10 @@ class Item(object):
 
     def __iter__(self):
         """
-        Iterate over the children of this item.
+        (deprecated) Use L{iterChildren} instead.
         """
 
-        return self.iterChildren()
+        raise DeprecationWarning, 'Use Item.iterChildren() instead'
 
     def _repr_(self):
 

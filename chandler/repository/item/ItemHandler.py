@@ -760,6 +760,9 @@ class ItemsHandler(ContentHandler):
             if self.itemHandler is not None:
                 try:
                     self.itemHandler.startElement(tag, attrs)
+                    if self.itemHandler.exception is not None:
+                        self.exception = self.itemHandler.exception
+                        return
                 except Exception:
                     self.saveException()
                     return
@@ -775,6 +778,9 @@ class ItemsHandler(ContentHandler):
             if self.itemHandler is not None:
                 try:
                     self.itemHandler.endElement(tag)
+                    if self.itemHandler.exception is not None:
+                        self.exception = self.itemHandler.exception
+                        return
                 except Exception:
                     self.saveException()
                     return
@@ -851,6 +857,7 @@ class MergeHandler(ItemHandler):
             elif origRef._isItem() and origRef._uuid == uuid:
                 itemRef = origRef
             else:
+                origItem._references._unloadValue(name, origRef, otherName)
                 itemRef = uuid
 
             self.references[name] = itemRef

@@ -598,7 +598,7 @@ class StringReader(object):
     def __init__(self, unicodeText):
 
         super(StringReader, self).__init__()
-        self.unicodeText = unicodeText
+        self.unicodeText = unicode(unicodeText)
 
     def read(self, length = -1):
 

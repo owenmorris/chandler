@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, os.path, re, libxml2, cStringIO
+import os, os.path, libxml2, cStringIO
 
 from datetime import datetime
 from threading import currentThread
@@ -326,8 +326,6 @@ class XMLContainer(object):
         index = xml.index('version=', xml.index('version=') + 9) + 9
 
         return long(xml[index:xml.index('"', index)])
-
-    nameExp = re.compile("<name>(.*)</name>")
     
 
 class XMLStore(Store):

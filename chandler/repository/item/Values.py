@@ -317,9 +317,10 @@ class References(Values):
 
     def _setValue(self, name, other, otherName, **kwds):
 
-        value = self.get(name)
-        if value is not None and value._isItem():
-            value._references._removeRef(otherName, self._item)
+        if name in self:
+            value = self._getRef(name)
+            if value is not None and value._isItem():
+                value._references._removeRef(otherName, self._item)
 
         self._setRef(name, other, otherName, **kwds)
         if other is not None:
