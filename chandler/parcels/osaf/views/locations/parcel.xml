@@ -14,7 +14,7 @@
              xmlns:repository="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
              xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
              xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
-             xmlns:zaobao="http://osafoundation.org/parcels/osaf/views/zaobao">
+             >
 
   <core:version>0.3</core:version>
 

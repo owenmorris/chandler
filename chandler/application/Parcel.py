@@ -486,6 +486,7 @@ class Manager(Item):
 
         # Look for the parcel's namespace in the parcel descriptors
         if not self._ns2parcel.has_key(namespace):
+            self.saveExplanation("Undefined namespace (%s)" % namespace)
             raise NamespaceUndefinedException, namespace
         pDesc = self._ns2parcel[namespace]
         repoPath = pDesc["path"]
@@ -905,6 +906,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 self.currentCopyName = attrs.getValue((None, 'copy'))
             else:
                 self.currentCopyName = None
+            if attrs.has_key((None, 'alias')):
+                self.currentAliasName = attrs.getValue((None, 'alias'))
+            else:
+                self.currentAliasName = None
 
         elif attrs.has_key((None, 'ref')):
             # If it has a ref, assume its a reference attribute
@@ -914,6 +919,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 self.currentCopyName = attrs.getValue((None, 'copy'))
             else:
                 self.currentCopyName = None
+            if attrs.has_key((None, 'alias')):
+                self.currentAliasName = attrs.getValue((None, 'alias'))
+            else:
+                self.currentAliasName = None
 
         elif attrs.has_key((None, 'key')):
             # If it has a key, assume its a dictionary of literals
@@ -1020,6 +1029,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 assignment["namespace"] = namespace
                 assignment["name"] = name
                 assignment["copyName"] = self.currentCopyName
+                assignment["aliasName"] = self.currentAliasName
 
             elif element == 'UuidOf':
                 (namespace, name) = self.getNamespaceName(self.currentValue)
@@ -1229,6 +1239,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 namespace = assignment["namespace"]
                 name = assignment["name"]
                 copyName = assignment["copyName"]
+                aliasName = assignment["aliasName"]
 
                 # TODO: make sure that the kind does indeed have this
                 # attribute (this is checked when it's a literal attribute,
@@ -1268,7 +1279,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                         if existingCopy is not None:
                             existingCopy.delete(recursive=True)
                         # Copy the item
-                        copy = reference.copy(copyName, item)
+                        # print "Copying:", reference.itsKind.itsPath, reference.itsPath
+                        # copies = reference.itsKind.getCloud("default").copyItems(reference, name=copyName, parent=item)
+                        # copy = reference.copy(name=copyName, parent=item, cloudAlias="default")
+                        copy = reference.copy(name=copyName, parent=item)
                         item.addValue(attributeName, copy)
                     elif attributeName == 'inverseAttribute':
                         item.addValue('otherName', reference.itsName)
@@ -1278,7 +1292,11 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                         item.addValue('attributes', reference,
                                       alias=reference.itsName)
                     else:
-                        item.addValue(attributeName, reference)
+                        if aliasName:
+                            item.addValue(attributeName, reference,
+                             alias=aliasName)
+                        else:
+                            item.addValue(attributeName, reference)
 
                     if reloading:
                         print "Reload: item %s, assigning %s = %s" % \

@@ -41,10 +41,9 @@
             <initialValue type="String" value=""/>
         </Attribute>
         <Cloud itsName="Cloud">
-            <kind itemref="me:Widget"/>
             <Endpoint itsName="childWidgets">
                 <attribute value="childWidgets"/>
-                <cloud itemref="me:Widget/Cloud"/>
+                <cloudAlias value="default"/>
                 <includePolicy value="byCloud"/>
             </Endpoint>
             <Endpoint itsName="sprockets">
@@ -54,6 +53,7 @@
             <endpoints itemref="me:Widget/Cloud/childWidgets"/>
             <endpoints itemref="me:Widget/Cloud/sprockets"/>
         </Cloud>
+        <clouds alias="default" itemref="me:Widget/Cloud"/>
     </Kind>
 
     <Kind itsName="Sprocket">

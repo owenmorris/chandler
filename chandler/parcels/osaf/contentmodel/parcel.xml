@@ -366,6 +366,26 @@
     <core:attributes itemref="queryEnum"/>
     <core:attributes itemref="data"/>
     <core:attributes itemref="results"/>
+
+    <core:Cloud itsName="DefaultCloud">
+        <core:Endpoint itsName="queryOwner">
+            <attribute value="queryOwner"/>
+            <includePolicy value="byRef"/>  <!-- @@@ is this right?  -->
+        </core:Endpoint>
+        <endpoints ref="Query/DefaultCloud/queryOwner"/>
+        <core:Endpoint itsName="data">
+            <attribute value="data"/>
+            <includePolicy value="byRef"/>  <!-- @@@ is this right?  -->
+        </core:Endpoint>
+        <endpoints ref="Query/DefaultCloud/data"/>
+        <core:Endpoint itsName="results">
+            <attribute value="results"/>
+            <includePolicy value="byRef"/>  <!-- @@@ is this right?  -->
+        </core:Endpoint>
+        <endpoints ref="Query/DefaultCloud/results"/>
+    </core:Cloud>
+    <clouds alias="default" ref="Query/DefaultCloud"/>
+
   </core:Kind>
 
   <!-- Item Collection stuff -->
@@ -408,6 +428,16 @@
     <core:superKinds itemref="core:Item"/>
     <core:displayName>Item Collection</core:displayName>
     <core:attributes itemref="collectionOwner"/>
+
+    <core:Cloud itsName="DefaultCloud">
+        <core:Endpoint itsName="collectionOwner">
+            <attribute value="collectionOwner"/>
+            <includePolicy value="byRef"/>  <!-- @@@ Correct? -->
+        </core:Endpoint>
+        <endpoints ref="ItemCollection/DefaultCloud/collectionOwner"/>
+    </core:Cloud>
+    <clouds alias="default" ref="ItemCollection/DefaultCloud"/>
+
   </core:Kind>
 
   <core:Kind itsName="NamedCollection">
@@ -417,6 +447,19 @@
     <core:attributes itemref="inclusions"/>
     <core:attributes itemref="exclusions"/>
     <core:classes key="python">osaf.contentmodel.ItemCollection.NamedCollection</core:classes>
+
+    <core:Cloud itsName="DefaultCloud">
+        <core:Endpoint itsName="rule">
+            <attribute value="rule"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
+        </core:Endpoint>
+        <endpoints ref="NamedCollection/DefaultCloud/rule"/>
+        <!-- I don't think we need endpoints for inclusions and exclusions
+             since they just store UUIDs.  -->
+    </core:Cloud>
+    <clouds alias="default" ref="NamedCollection/DefaultCloud"/>
+
   </core:Kind>
 
   <core:Kind itsName="AdHocCollection">
@@ -425,6 +468,10 @@
     <core:attributes itemref="inclusions"/>
     <core:attributes itemref="exclusions"/>
     <core:classes key="python">osaf.contentmodel.ItemCollection.AdHocCollection</core:classes>
+
+    <!-- This kind doesn't need to define a cloud because it will inherit it
+         from ItemCollection.
+    -->
   </core:Kind>
 
   <core:Kind itsName="EphemeralCollection">
@@ -432,6 +479,19 @@
     <core:displayName>Ephemeral Collection</core:displayName>
     <core:attributes itemref="rule"/>
     <core:classes key="python">osaf.contentmodel.ItemCollection.EphemeralCollection</core:classes>
+
+    <core:Cloud itsName="DefaultCloud">
+        <core:Endpoint itsName="rule">
+            <attribute value="rule"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
+        </core:Endpoint>
+        <endpoints ref="EphemeralCollection/DefaultCloud/rule"/>
+        <!-- I don't think we need endpoints for inclusions and exclusions
+             since they just store UUIDs.  -->
+    </core:Cloud>
+    <clouds alias="default" ref="EphemeralCollection/DefaultCloud"/>
+
   </core:Kind>
 
 

@@ -7,7 +7,7 @@
   <attribute name="values" cardinality="list">
     <value>byValue</value>
     <value>byCloud</value>
-    <value>byReference</value>
+    <value>byRef</value>
     <value>none</value>
   </attribute>
 </item>

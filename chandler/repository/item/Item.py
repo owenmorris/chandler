@@ -524,8 +524,8 @@ class Item(object):
         elif 'default' in kwds:
             return kwds['default']
 
-        raise AttributeError, "%s has no value for '%s'" %(self.itsPath,
-                                                           name)
+        raise AttributeError, "%s (Kind: %s) has no value for '%s'" % \
+         (self.itsPath, self.itsKind.itsPath, name)
 
     def removeAttributeValue(self, name, _attrDict=None):
         """

@@ -329,6 +329,35 @@
     <attributes itemref="docSchema:Block/eventBoundary"/>
     <attributes itemref="docSchema:subscribeWhenVisibleEvents"/>    
     <attributes itemref="docSchema:subscribeAlwaysEvents"/>    
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="contents">
+            <!-- This attribute's type is contentModel:ItemCollection -->
+            <attribute value="contents"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
+        </Endpoint>
+        <endpoints ref="docSchema:Block/DefaultCloud/contents"/>
+        <Endpoint itsName="childrenBlocks">
+            <attribute value="childrenBlocks"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
+        </Endpoint>
+        <endpoints ref="docSchema:Block/DefaultCloud/childrenBlocks"/>
+        <Endpoint itsName="subscribeWhenVisibleEvents">
+            <attribute value="subscribeWhenVisibleEvents"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints ref="docSchema:Block/DefaultCloud/subscribeWhenVisibleEvents"/>
+        <Endpoint itsName="subscribeAlwaysEvents">
+            <attribute value="subscribeAlwaysEvents"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints ref="docSchema:Block/DefaultCloud/subscribeAlwaysEvents"/>
+    </Cloud>
+    <!-- Link this cloud with the Block kind -->
+    <clouds alias="default" ref="docSchema:Block/DefaultCloud"/>
+
   </Kind>
   
   <!--
@@ -581,6 +610,14 @@
     <attributes itemref="docSchema:characterStyle"/>    
     <attributes itemref="docSchema:event"/>
     <attributes itemref="docSchema:Button/rightClicked"/>
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="characterStyle">
+            <attribute value="characterStyle"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints ref="docSchema:Button/DefaultCloud/characterStyle"/>
+    </Cloud>
+    <clouds alias="default" ref="docSchema:Button/DefaultCloud"/>
   </Kind>
   
   <!--
@@ -677,6 +714,14 @@
     <attributes itemref="docSchema:EditText/textStyleEnum"/>
     <attributes itemref="docSchema:EditText/readOnly"/>
     <attributes itemref="docSchema:characterStyle"/>
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="characterStyle">
+            <attribute value="characterStyle"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints ref="docSchema:EditText/DefaultCloud/characterStyle"/>
+    </Cloud>
+    <clouds alias="default" ref="docSchema:EditText/DefaultCloud"/>
   </Kind>
 
   <!--
@@ -845,6 +890,14 @@
     <attributes itemref="docSchema:textAlignmentEnum"/>
     <attributes itemref="docSchema:StaticText/title"/>
     <attributes itemref="docSchema:characterStyle"/>
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="characterStyle">
+            <attribute value="characterStyle"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints ref="docSchema:StaticText/DefaultCloud/characterStyle"/>
+    </Cloud>
+    <clouds alias="default" ref="docSchema:StaticText/DefaultCloud"/>
   </Kind>
 
   <!--
@@ -914,6 +967,15 @@
     <attributes itemref="docSchema:Toolbar/toolSize"/>
     <attributes itemref="docSchema:Toolbar/separatorWidth"/>
     <attributes itemref="docSchema:colorStyle"/>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="colorStyle">
+            <attribute value="colorStyle"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints ref="docSchema:Toolbar/DefaultCloud/colorStyle"/>
+    </Cloud>
+    <clouds alias="default" ref="docSchema:Toolbar/DefaultCloud"/>
   </Kind>
 
   <!--
@@ -969,6 +1031,17 @@
     <attributes itemref="docSchema:ToolbarItem/toolbarItemKind"/>
     <attributes itemref="docSchema:ToolbarItem/label"/>
     <attributes itemref="docSchema:event"/>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="prototype">
+            <attribute value="prototype"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints ref="docSchema:ToolbarItem/DefaultCloud/prototype"/>
+    </Cloud>
+    <!-- Link this cloud with the ToolbarItem kind -->
+    <clouds alias="default" ref="docSchema:ToolbarItem/DefaultCloud"/>
+
   </Kind>
   
   <!-- Item Detail Block  -->
