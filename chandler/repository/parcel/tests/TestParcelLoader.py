@@ -8,7 +8,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import ParcelLoaderTestCase, os, sys, unittest
 
-import repository.parcel.LoadParcels as LoadParcels
+from repository.parcel.LoadParcels import LoadParcels
+from repository.item.Item import Item
 
 class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
@@ -20,7 +21,7 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         parcelDir = os.path.join(self.testdir, 'testparcels')
         sys.path.insert(1, parcelDir)
-        LoadParcels.LoadParcels(parcelDir, self.rep)
+        LoadParcels(parcelDir, self.rep)
         self.rep.commit()
 
         # Ensure the simple Parcel was created with the right Kind and attrs
@@ -63,10 +64,6 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         # Ensure testKind and subKind have the correct inheritence links
         self.assert_(subKind.superKinds.has_key(testKind.getUUID()))
         self.assert_(testKind.subKinds.has_key(subKind.getUUID()))
-
-        # for i in subKind.iterAttributes():
-        # for i in subKind.inheritedAttributes.keys():
-        #     print i
 
 if __name__ == "__main__":
     unittest.main()
