@@ -1664,6 +1664,7 @@
     <childrenBlocks itemref="doc:MiniCalendar"/>
     <orientationEnum>Vertical</orientationEnum>
     <stretchFactor>0</stretchFactor>
+    <border>0,0,0,4.0</border>    
   </BoxContainer>
 
   <Sidebar itsName="Sidebar">
