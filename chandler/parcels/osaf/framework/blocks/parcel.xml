@@ -120,6 +120,7 @@
     
   <Attribute itsName="selection">
     <type itemref="SingleRef"/>
+    <initialValue itemref="None"/>
   </Attribute>
 
   <!--

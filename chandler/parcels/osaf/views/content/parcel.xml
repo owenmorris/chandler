@@ -841,7 +841,7 @@
     <contents itemref="view:mixedItemCollection"/>
 
     <childrenBlocks itemref="view:MixedList"/>
-    <childrenBlocks itemref="detail:DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>

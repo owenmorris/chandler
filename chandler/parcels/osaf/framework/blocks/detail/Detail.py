@@ -73,6 +73,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
                 if notifyParent:
                     block.synchronizeWidget()
             return notifyParent
+
         children = self.childrenBlocks
         for child in children:
             child.isShown = item is not None

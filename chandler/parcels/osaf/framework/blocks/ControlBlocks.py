@@ -505,31 +505,28 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
     def wxSynchronizeWidget(self):
         self.blockItem.contents.resultsStale = True
         self.Reset()
-        if self.blockItem.selection:
-            try:
-                self.GoToItem (self.blockItem.selection)
-            except ValueError: # item no longer in 
-                self.blockItem.selection = None
+        selection = self.blockItem.selection
+        self.GoToItem (self.blockItem.selection)
 
     def GoToItem(self, item):
-        try:
-            row = self.blockItem.contents.index (item)
-        except ValueError:
-            self.ClearSelection()
-        else:
-            cursorColumn = 0
+        if item:
             try:
-                selectedColumn = self.blockItem.selectedColumn
-            except AttributeError:
-                pass
-            else:
-                for columnIndex in xrange (self.GetTable().GetNumberCols()):
-                    if self.blockItem.columnAttributeNames [columnIndex] == selectedColumn:
-                        cursorColumn = columnIndex
-                        break
-    
+                row = self.blockItem.contents.index (item)
+            except ValueError:
+                item = None
+        if item:
+            cursorColumn = 0
+            selectedColumn = self.blockItem.selectedColumn
+            for columnIndex in xrange (self.GetTable().GetNumberCols()):
+                if self.blockItem.columnAttributeNames [columnIndex] == selectedColumn:
+                    cursorColumn = columnIndex
+                    break
             self.SelectRow (row)
             self.SetGridCursor (row, cursorColumn)
+        else:
+            self.ClearSelection()
+            self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                                 {'item':item})
 
 
 class AttributeRenderer (wx.grid.PyGridCellRenderer):
