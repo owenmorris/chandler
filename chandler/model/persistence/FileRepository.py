@@ -41,12 +41,13 @@ class FileRepository(Repository):
 
         contents = file(os.path.join(self._dir, dir, 'contents.lst'), 'r')
         for uuid in contents.readlines():
-            self._loadItem(os.path.join(self._dir, dir, uuid[:-1] + '.item'),
-                           cover, verbose=verbose, afterLoadHooks=hooks)
+            self._loadItemFile(os.path.join(self._dir, dir,
+                                            uuid[:-1] + '.item'),
+                               cover, verbose=verbose, afterLoadHooks=hooks)
         contents.close()
         
         for item in cover:
-            if hasattr(item, '_parentRef'):
+            if item.__dict__.has_key('_parentRef'):
                 item.move(self.find(item._parentRef))
                 del item._parentRef
 

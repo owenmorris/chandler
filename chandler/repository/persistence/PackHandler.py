@@ -119,4 +119,4 @@ class PackHandler(xml.sax.ContentHandler):
         if self.verbose:
             print file
             
-        return self.repository._loadItem(file, parent)
+        return self.repository._loadItemFile(file, parent)

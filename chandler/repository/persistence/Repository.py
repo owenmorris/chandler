@@ -171,17 +171,25 @@ class Repository(object):
     def load(self, verbose=False):
         raise NotImplementedError, "Repository.load"
 
-    def _loadRoot(self, dir, verbose=False):
-        raise NotImplementedError, "Repository._loadRoot"
-
-    def _loadItem(self, path, cover,
-                  parent=None, verbose=False, afterLoadHooks=None):
+    def _loadItemFile(self, path, cover,
+                      parent=None, verbose=False, afterLoadHooks=None):
 
         if verbose:
             print path
             
         handler = ItemHandler(cover, parent or self, afterLoadHooks)
         xml.sax.parse(path, handler)
+
+        return handler.item
+
+    def _loadItemString(self, string, cover,
+                        parent=None, verbose=False, afterLoadHooks=None):
+
+        if verbose:
+            print string
+            
+        handler = ItemHandler(cover, parent or self, afterLoadHooks)
+        xml.sax.parseString(string, handler)
 
         return handler.item
 
@@ -222,8 +230,8 @@ class Repository(object):
         def _unregisterItem(self, item):
             pass
 
-        def _loadItem(self, path, parent):
-            return self.repository._loadItem(path, self, parent)
+        def _loadItemFile(self, path, parent):
+            return self.repository._loadItemFile(path, self, parent)
 
         def _appendRef(self, item, name, other, otherName, otherCard, itemRef):
             self.repository._appendRef(item, name, other, otherName, otherCard,

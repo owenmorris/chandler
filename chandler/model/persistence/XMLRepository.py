@@ -61,15 +61,32 @@ class XMLRepository(Repository):
         if not self.isOpen():
             raise DBError, "Repository is not open"
 
-        raise NotImplementedError, "XMLRepository.load()"
+        def load(container):
+
+            cover = Repository.stub(self)
+            hooks = []
+
+            for value in container.query("/item"):
+                self._loadItemString(value.asDocument().getContent(), cover,
+                                     verbose=verbose, afterLoadHooks=hooks)
+            for item in cover:
+                if item.__dict__.has_key('_parentRef'):
+                    item.move(self.find(item._parentRef))
+                    del item._parentRef
+
+            for hook in hooks:
+                hook()
+
+        load(self._schema)
+        load(self._data)
 
     def purge(self):
 
         def purge(container):
 
-            for value in container.query("//item"):
+            for value in container.query("/item"):
                 doc = value.asDocument()
-                for u in doc.queryWithXPath("//item/@uuid"):
+                for u in doc.queryWithXPath("/item/@uuid"):
                     uuid = UUID(u.asString())
                     if not self._registry.has_key(uuid):
                         container.deleteDocument(doc)
@@ -149,7 +166,7 @@ class XMLRepository(Repository):
         def find(self, uuid):
 
             self._ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
-            for value in self._xml.queryWithXPath(None, "//item/@uuid=$uuid",
+            for value in self._xml.queryWithXPath(None, "/item[@uuid=$uuid]",
                                                   self._ctx):
                 yield value.asDocument()
 
