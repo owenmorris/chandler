@@ -148,6 +148,8 @@ class wxApplication (wxApp):
 		self.parcels=[]
 		self.storage=None
 		self.model=None
+		
+		self.jabberClient = None
 		self.presenceWindow = None
 		
 		global app

@@ -153,7 +153,7 @@ class PresencePanel(wxScrolledWindow):
             EVT_LEFT_DOWN(textWidget, self.ShowPreferencesDialog)
             container.Add(textWidget, 0, wxEXPAND | wxALIGN_CENTRE | wxALL, 12)
         else:
-            buddyList = self.jabberClient.GetRosterIDs(false)
+            buddyList = self.jabberClient.GetRosterIDs(true)
         
             for jabberID in buddyList:
                 presenceEntry = self.RenderPresenceEntry(jabberID)                

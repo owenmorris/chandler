@@ -160,7 +160,7 @@ class wxSideBar(wxTreeCtrl):
         EVT_TREE_SEL_CHANGED(self, self.GetId(), self.OnSelChanged)
         EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnItemExpanding)
         EVT_TREE_ITEM_COLLAPSING(self, self.GetId(), self.OnItemCollapsing)
-        
+                
     def OnSelChanged(self, event):
         """
           Whenever the selection changes in the sidebar we must update the

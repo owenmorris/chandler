@@ -58,10 +58,22 @@ class JabberClient:
         self.nameMap = {}
         self.accessibleViews = {}
         self.openPeers = {}
-                
+ 
+        self.rosterParcel = None
+        self.FindRosterParcel()
+                               
         self.ReadAccountFromPreferences()
         self.Login()
 
+    # set up the reference to the roster parcel by iterating through the
+    # parcel list
+    def FindRosterParcel(self):
+        parcelList = self.application.model.URLTree.GetParcelList()
+        for parcel in parcelList:
+            if parcel.displayName == 'Roster':
+                self.rosterParcel = parcel
+                return
+            
     def HasLoginInfo(self):
         self.ReadAccountFromPreferences()
         if self.jabberID == None or len(self.jabberID) < 3:
@@ -182,11 +194,12 @@ class JabberClient:
 
     def IsChandlerClient(self, jabberId):
         basicID = jabberId.getStripped()
-        if not self.resourceMap.has_key(basicID):
+        state = self.GetPresenceState(basicID)
+        
+        if state == None:
             return false
         
-        resource = self.resourceMap[basicID]
-        return string.find(resource, 'Chandler') >= 0
+        return string.find(state.resource, 'Chandler') >= 0
     
     # return a list of all the jabber_ids in the roster, with the
     # active ones first.
@@ -463,7 +476,9 @@ class JabberClient:
         app = application.Application.app
         if app.presenceWindow != None:
             app.presenceWindow.PresenceChanged(who)
-        
+        if self.rosterParcel != None:
+            self.rosterParcel.PresenceChanged(who)
+            
     # register the user
     def Register(self):
         self.connection.requestRegInfo()
