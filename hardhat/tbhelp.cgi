@@ -87,6 +87,7 @@ def availableBinaryTarballsForPlatform(platform):
     archiveDirs = glob.glob('[0-9]*')
     archiveDirs.sort()
     for archive in archiveDirs:
+        os.chdir(stagingRootDir + '/' + platform)
 
         if debug:
             print archive
