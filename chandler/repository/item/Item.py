@@ -1469,9 +1469,9 @@ class Item(object):
                 policy = self.getAttributeAspect(name, 'deletePolicy',
                                                  default='remove')
                 if policy == 'cascade':
-                    value = self._references[name]
+                    value = self._references._getRef(name)
                     if value is not None:
-                        if isinstance(value, RefList):
+                        if value._isRefList():
                             others.extend([other for other in value])
                         else:
                             others.append(value)

@@ -480,7 +480,8 @@ class RefList(LinkedMap):
         otherName = self._otherName
         
         for link in self._values():
-            references._unloadValue(name, link.getValue(self), otherName)
+            # accessing _value directly to prevent reloading
+            references._unloadValue(name, link._value, otherName)
 
     def linkChanged(self, link, key):
 
@@ -875,8 +876,13 @@ class RefList(LinkedMap):
         key = self.firstKey()
         prevKey = None
         while key:
-            other = self._getRef(key)
-            result = result and refs._checkRef(logger, name, other)
+            try:
+                other = self._getRef(key)
+                result = result and refs._checkRef(logger, name, other)
+            except DanglingRefError, e:
+                logger.error("Iterator on %s caused DanglingRefError: %s",
+                             self, str(e))
+                return False
             l -= 1
             prevKey = key
             key = self.nextKey(key)

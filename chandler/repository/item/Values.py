@@ -90,6 +90,10 @@ class Values(dict):
     def _unload(self):
 
         super(Values, self).clear()
+        try:
+            self._flags.clear()
+        except AttributeError:
+            pass
 
     def _setFlag(self, key, flag):
 
@@ -714,17 +718,18 @@ class References(Values):
     def _revertMerge(self):
 
         try:
-            self.update(self._original)
+            original = self._original
+            self.update(original)
             del self._original
         except AttributeError:
-            pass
+            original = self
 
         try:
             del self._dirties
         except AttributeError:
             pass
 
-        for key, value in self.iteritems():
+        for key, value in original.iteritems():
             try:
                 if value is not None and value._isRefList():
                     self[key] = value._original

@@ -367,13 +367,8 @@ class TestMerge(RepositoryTestCase):
 
         pm.placeChild(pm['i1'], None)
 
-        try:
-            main.commit()
-        except MergeError, e:
-            #print e
-            self.assert_(e.getReasonCode() == MergeError.MOVE)
-        else:
-            self.assert_(False)
+        main.commit()
+        self.assert_(main['q'].getItemChild('i1') != None)
 
     def testRemove1ChangeOther(self):
 

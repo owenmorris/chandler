@@ -165,9 +165,35 @@ class DBRepositoryView(OnDemandRepositoryView):
         
         if newVersion > self._version:
             histNotifications = RepositoryNotifications()
+
             unloads = {}
-            self._mergeItems(self._version, newVersion,
-                             histNotifications, unloads, mergeFn)
+            also = set()
+            _log = self._log
+
+            try:
+                self._log = []
+                try:
+                    self._mergeItems(self._version, newVersion,
+                                     histNotifications, unloads, also, mergeFn)
+                except:
+                    for item in self._log:
+                        item.setDirty(0)
+                        item._unloadItem(True)
+                    raise
+                else:
+                    # unload items unchanged until changed by merging
+                    for item in self._log:
+                        item.setDirty(0)
+                        unloads[item._uuid] = item
+            finally:
+                self._log = _log
+
+            # unload items changed only in the other view whose older version
+            # got loaded as a side-effect of merging
+            for uuid in also:
+                item = self.find(uuid, False)
+                if item is not None:
+                    unloads[uuid] = item
                     
             self.logger.debug('refreshing view from version %d to %d',
                               self._version, newVersion)
@@ -356,8 +382,8 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         store._items.applyHistory(call, fromVersion, toVersion)
 
-    def _mergeItems(self, oldVersion, toVersion, histNotifications, unloads,
-                    mergeFn):
+    def _mergeItems(self, oldVersion, toVersion, histNotifications,
+                    unloads, also, mergeFn):
 
         merges = {}
 
@@ -382,6 +408,8 @@ class DBRepositoryView(OnDemandRepositoryView):
 
                 elif item._version < version:
                     unloads[uuid] = item
+            else:
+                also.add(uuid)
                     
             if status & Item.DELETED:
                 histNotifications.history(uuid, 'deleted', parent=parent)
@@ -397,34 +425,34 @@ class DBRepositoryView(OnDemandRepositoryView):
                 newDirty = item.getDirty()
 
                 if newDirty & oldDirty & Item.NDIRTY:
+                    item._status |= Item.NMERGED
                     self._mergeNDIRTY(item, parent, oldVersion, toVersion)
                     oldDirty &= ~Item.NDIRTY
-                    item._status |= Item.NMERGED
 
                 if newDirty & oldDirty & Item.CDIRTY:
+                    item._status |= Item.CMERGED
                     item._children._mergeChanges(oldVersion, toVersion)
                     oldDirty &= ~Item.CDIRTY
-                    item._status |= Item.CMERGED
 
                 if newDirty & oldDirty & Item.RDIRTY:
+                    item._status |= Item.RMERGED
                     self._mergeRDIRTY(item, dirties, oldVersion, toVersion)
                     oldDirty &= ~Item.RDIRTY
-                    item._status |= Item.RMERGED
 
                 if newDirty & oldDirty & Item.VDIRTY:
+                    item._status |= Item.VMERGED
                     self._mergeVDIRTY(item, toVersion, dirties, mergeFn)
                     oldDirty &= ~Item.VDIRTY
-                    item._status |= Item.VMERGED
 
                 if newDirty & oldDirty == 0:
                     if oldDirty & Item.VDIRTY:
+                        item._status |= Item.VMERGED
                         self._mergeVDIRTY(item, toVersion, dirties, mergeFn)
                         oldDirty &= ~Item.VDIRTY
-                        item._status |= Item.VMERGED
                     if oldDirty & Item.RDIRTY:
+                        item._status |= Item.RMERGED
                         self._mergeRDIRTY(item, dirties, oldVersion, toVersion)
                         oldDirty &= ~Item.RDIRTY
-                        item._status |= Item.RMERGED
 
                 if newDirty and oldDirty:
                     raise VersionConflictError, (item, newDirty, oldDirty)

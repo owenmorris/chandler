@@ -72,12 +72,14 @@ class PersistentRefs(object):
     def _unloadRef(self, item):
 
         key = item._uuid
+
         if self.has_key(key, load=False):
             link = self._get(key, load=False)
             if link is not None:
                 if link._alias is not None:
                     del self._aliases[link._alias]
-                if key in self._changedRefs:
+                op, alias = self._changedRefs.get(key, (-1, link._alias))
+                if op == 0:
                     link.setValue(self, key)
                 else:
                     self._remove(key)                   
@@ -155,9 +157,7 @@ class PersistentRefs(object):
 
                 elif ref is None:           # removed item
                     op, oldAlias = self._changedRefs.get(item, (-1, None))
-                    if op == 0:
-                        self._e_1_remove(item)
-                    elif self.has_key(item):
+                    if item in self:
                         del self[item]
 
                 else:
