@@ -17,7 +17,7 @@ python
 src=release/lib
 dest=lib
 recursive=yes
-glob=*.py,*.pyc,*.pyc,*.pyd,*.so
+glob=*.py,*.pyc,*.pyo,*.pyd,*.so
 python2.2/lib-old
 python2.2/lib-tk
 python2.2/site-packages

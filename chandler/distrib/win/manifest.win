@@ -19,7 +19,7 @@ bin
 # Grab all py, pyc, etc. from release/bin/DLLs and release/bin/Lib
 src=release/bin
 dest=bin
-glob=*.py,*.pyc,*.pyc,*.pyd,*.so
+glob=*.py,*.pyc,*.pyo,*.pyd,*.so
 recursive=yes
 DLLs
 Lib
