@@ -11,6 +11,9 @@ __license__ = "OSAF"
 
 from application.persist import Persist
 
+from RdfRestriction import RdfRestriction
+from RdfNamespace import chandler
+
 from InformationItem import InformationItem
 from Address import Address
         

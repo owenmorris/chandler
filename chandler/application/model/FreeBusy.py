@@ -16,6 +16,8 @@ from application.persist import Persist
 from RdfObject import RdfObject
 from RdfRestriction import RdfRestriction
 
+from RdfNamespace import chandler
+
 class FreeBusy(RdfObject):
     """FreeBusy"""
 

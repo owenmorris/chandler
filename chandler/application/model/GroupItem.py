@@ -15,6 +15,7 @@ from application.persist import Persist
 
 from RdfObject import RdfObject
 from RdfRestriction import RdfRestriction
+from RdfNamespace import chandler
 
 from EntityItem import EntityItem
 
