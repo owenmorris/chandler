@@ -865,7 +865,6 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         width = itemRect.width - (3 + 10)
         height = 15
         timeRect = wx.Rect(x, y, width, height)
-        print "y starts at " + str(y)
         
         # only draw time if there is room
         te = dc.GetFullTextExtent(timeString, self.smallBoldFont)        
@@ -877,7 +876,6 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         textRect = wx.Rect(x, y, width, itemRect.height - (y - itemRect.y))
 
         dc.SetFont(self.smallFont)
-        print "   drawing text at " + str(y) + " with " + str(textRect.height) + " to spare"
         self.DrawWrappedText(dc, item.displayName, textRect)
 
 
