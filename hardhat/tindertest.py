@@ -50,7 +50,7 @@ def main():
       default="chandler", help="Name of script to use (without .py extension)\n"
       "[default] chandler")
     parser.add_option("-o", "--output", action="store", type="string", dest="outputDir",
-      default="~/output", help="Name of temp output directory\n"
+      default=os.path.join(os.environ['HOME'],"output"), help="Name of temp output directory\n"
       " [default] ~/output")
     parser.add_option("-D", "--distrib", action="store_true", dest="doDistrib",
       default=False, help="Shall distribution archives be prepared and uploaded?\n"
