@@ -72,14 +72,15 @@
 <!-- translateURI returns the given string, unless it's a special URI
      like core
 -->
-	<xsl:template match="*|@*|text()" mode="translateURI">
+	<xsl:template name="translateURI">
+	   <xsl:param name="uri" />
 	   <xsl:choose>
-	   	<xsl:when test="string(.)=$constants.coreURI">
+	   	<xsl:when test="string($uri)=$constants.coreURI">
 	   	   <xsl:value-of select="$constants.corePath" />
 	   	</xsl:when>
 	     
 	   	<xsl:otherwise>
-	   	   <xsl:value-of select="string(.)" />
+	   	   <xsl:value-of select="string($uri)" />
 	   	</xsl:otherwise>
 	   </xsl:choose>
 	</xsl:template>
@@ -90,7 +91,9 @@
 	<xsl:template match="@itemref" mode="getURIFromQName">
 	   <xsl:variable name="prefix" select="substring-before(.,':')"/>
 	   <xsl:variable name="uri" select="../namespace::*[local-name()=$prefix]"/>
-	   <xsl:apply-templates mode="translateURI" select="$uri"/>
+	   <xsl:call-template name="translateURI">
+	      <xsl:with-param name="uri" select="$uri"/>
+	   </xsl:call-template>
 	</xsl:template>
 
 	
@@ -205,10 +208,14 @@
             <xsl:variable name="relpath">
                <xsl:call-template name="createRelativePath">
                   <xsl:with-param name="src">
-                     <xsl:apply-templates mode="translateURI" select="$root/core:Parcel/@describes" />
+                     <xsl:call-template name="translateURI">
+                        <xsl:with-param name="uri" select="$root/core:Parcel/@describes"/>
+                     </xsl:call-template>
                   </xsl:with-param>
                   <xsl:with-param name="target">
-                     <xsl:apply-templates mode="translateURI" select="/core:Parcel/@describes" />
+                     <xsl:call-template name="translateURI">
+                        <xsl:with-param name="uri" select="/core:Parcel/@describes"/>
+                     </xsl:call-template>
                   </xsl:with-param>
                </xsl:call-template>
             </xsl:variable>
