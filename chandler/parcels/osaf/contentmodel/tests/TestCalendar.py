@@ -71,12 +71,20 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         calendarEventItem.importance = "fyi"
         calendarEventItem.transparency = "busy"
         _verifyCalendarEvent(calendarEventItem)
+        calendarEventItem.location = locationItem
 
         # Calendar properties
         calendarItem.displayName = "simple calendar"
         locationItem.displayName = "simple location"
         _verifyCalendarItems(calendarItem, locationItem,
                              recurrenceItem, reminderItem)
+
+        # Check cloud membership - event + location
+        cloud = self.manager.lookup("http://osafoundation.org/parcels/osaf/contentmodel/calendar",
+           "CalendarEventMixin/Cloud")
+
+        items = cloud.getItems(calendarEventItem)
+        self.assertEqual(len(items), 2)
 
         # Re-examine items
         self._reopenRepository()

@@ -72,11 +72,12 @@ class MailTest(TestContentModel.ContentModelTestCase):
         mailMessageItem = contentItemParent.getItemChild("mailMessageItem")
         _verifyMailMessage(mailMessageItem)
 
+        #Test cloud membership -- email + attachment = 2
         cloud = self.manager.lookup("http://osafoundation.org/parcels/osaf/contentmodel/mail",
            "MailMessageMixin/Cloud")
 
-#        items = cloud.getItems(mailMessageItem)
-#        self.assertEqual(len(items), 1)
+        items = cloud.getItems(mailMessageItem)
+        self.assertEqual(len(items), 2)   
 
 
 if __name__ == "__main__":
