@@ -2,7 +2,7 @@
 
 <pack name="CineGuide" cwd="cineguide">
 
-  <item path="//Schema">
+  <item path="//Schema" afterLoadHooks="True">
     <item file="CineGuide.domain" cwd="schema">
       <item file="Types.namespace" cwd="types">
         <item files="*.type" />
