@@ -328,8 +328,11 @@ class Query(object):
             items = source[1]
 
         for i in items:
-            if eval(self._predicate):
-                yield i
+            try:
+                if eval(self._predicate):
+                    yield i
+            except AttributeError:
+                pass
 
     def __execute_union(self, plans):
         """

@@ -205,6 +205,12 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         results = self._executeQuery(u"for i in ftcontains('femme AND homme','synopsis') where len(i.title) < 10")
         self._checkQuery(lambda i: not (checkLob(i.synopsis,"femme") and checkLob(i.synopsis,"homme") and len(i.title) < 10), results)
 
+    def testBug1815(self):
+        """ Test that missing attributes don't blow up the query [Bug 1815] """
+        results = self._executeQuery('for i in "//Schema/Core/Kind" where contains(i.itsNme,"arc")')
+        self._checkQuery(lambda i: not "arc" in i.itsNme, results)
+
+
 if __name__ == "__main__":
 #    import hotshot
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
