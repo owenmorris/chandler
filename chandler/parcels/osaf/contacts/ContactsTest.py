@@ -93,11 +93,11 @@ class ContactsTest:
         
         phoneNumber = self.GeneratePhoneNumber()
         contactMethod = contact.AddAddress("phone", "Work Phone")
-        contactMethod.setAttribute('phonenumber', phoneNumber)
+        contactMethod.setAttributeValue('phonenumber', phoneNumber)
         
         emailAddress = self.GenerateEmailAddress(firstName)
         contactMethod = contact.AddAddress("email", "Main Email")
-        contactMethod.setAttribute('emailaddress', emailAddress)
+        contactMethod.setAttributeValue('emailaddress', emailAddress)
          
         # display the sharing policy; FIXME: disabled
         #contact.SetBodyAttributes([chandler.sharing])

@@ -26,8 +26,8 @@ class ContactFormatFactory:
     def NewItem(self):
         item = ContactFormat(None, self._container, self._kind)
         
-        item.setAttribute('headerAttributes', '')
-        item.setAttribute('bodyAttributes', '')
+        item.setAttributeValue('headerAttributes', '')
+        item.setAttributeValue('bodyAttributes', '')
         
         return item
 
@@ -36,7 +36,7 @@ class ContactFormat(Item):
         super(ContactFormat, self).__init__(name, parent, kind, **_kwds)
         
     def GetHeaderAttributes(self):
-        attributeStr = self.getAttribute('headerAttributes')
+        attributeStr = self.getAttributeValue('headerAttributes')
         if attributeStr == None or len(attributeStr) == 0:
             return []
         
@@ -46,7 +46,7 @@ class ContactFormat(Item):
         attributeStr = ''
         for attribute in headerAttributes:
             attributeStr += attribute + ','
-        self.setAttribute('headerAttributes', attributeStr[0:-1])
+        self.setAttributeValue('headerAttributes', attributeStr[0:-1])
         
     def HasHeaderAttribute(self, attribute):
         try:
@@ -62,7 +62,7 @@ class ContactFormat(Item):
             self.SetHeaderAttributes(list)
         
     def GetBodyAttributes(self):
-        attributeStr = self.getAttribute('bodyAttributes')
+        attributeStr = self.getAttributeValue('bodyAttributes')
         if attributeStr == None or len(attributeStr) == 0:
             return []
         
@@ -72,7 +72,7 @@ class ContactFormat(Item):
         attributeStr = ''
         for attribute in bodyAttributes:
             attributeStr += attribute + ','
-        self.setAttribute('bodyAttributes', attributeStr[0:-1])
+        self.setAttributeValue('bodyAttributes', attributeStr[0:-1])
     
     def HasBodyAttribute(self, attribute):
         try:

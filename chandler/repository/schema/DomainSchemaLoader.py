@@ -235,18 +235,19 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
                 # Special case for 'OtherName'
                 elif key == 'inverseAttribute':
                     ref = self.findItem(attributeDictionary[key])
-                    item.setAttribute(ATTRIBUTE_REF_TAGS[key], ref.getName())
+                    item.setAttributeValue(ATTRIBUTE_REF_TAGS[key],
+                                           ref.getName())
                                         
                 else:
                     ref = self.findItem(attributeDictionary[key])
-                    item.setAttribute(ATTRIBUTE_REF_TAGS[key], ref)
+                    item.setAttributeValue(ATTRIBUTE_REF_TAGS[key], ref)
                     
             # For booleans or text, look up the value in the dictionary
             elif key in ATTRIBUTE_TEXT_TAGS:
                 value = attributeDictionary[key]
-                item.setAttribute(ATTRIBUTE_TEXT_TAGS[key], value)
+                item.setAttributeValue(ATTRIBUTE_TEXT_TAGS[key], value)
             elif key in ATTRIBUTE_BOOL_TAGS:
                 value = attributeDictionary[key]
-                item.setAttribute(ATTRIBUTE_BOOL_TAGS[key], value)
+                item.setAttributeValue(ATTRIBUTE_BOOL_TAGS[key], value)
 
 

@@ -20,15 +20,16 @@ class Attribute(Item):
 
     def hasAspect(self, name):
 
-        return self.hasAttribute(name)
+        return self.hasAttributeValue(name)
 
     def getAspect(self, name, default=None):
 
-        if self.hasAttribute(name):
-            return self.getAttribute(name)
+        if self.hasAttributeValue(name):
+            return self.getAttributeValue(name)
 
-        if self.hasAttribute('SuperAttribute'):
-            return self.getAttribute('SuperAttribute').getAspect(name, default)
+        if self.hasAttributeValue('SuperAttribute'):
+            return self.getAttributeValue('SuperAttribute').getAspect(name,
+                                                                      default)
 
         return default
 

@@ -28,8 +28,8 @@ class ContactName(Item):
         super(ContactName, self).__init__(name, parent, kind, **_kwds)
  
     def GetNamePart(self, partName):
-        if self.hasAttribute(partName):
-            return self.getAttribute(partName)        
+        if self.hasAttributeValue(partName):
+            return self.getAttributeValue(partName)        
         return None
  
     def IsNameAttribute(self, attributeName):
@@ -44,7 +44,7 @@ class ContactName(Item):
              return False
         
     def SetNamePart(self, partName, nameValue):
-        self.setAttribute(partName, nameValue)
+        self.setAttributeValue(partName, nameValue)
         if partName == 'fullname':
             self.ParseFullName()    
         else:
@@ -78,7 +78,7 @@ class ContactName(Item):
                 else:
                     fullname = self.firstname + ' ' + self.lastname
                     
-            self.setAttribute('fullname', fullname)
+            self.setAttributeValue('fullname', fullname)
             
         
     # the full name was set, so parse it into the constituent parts if appropriate
@@ -108,5 +108,5 @@ class ContactName(Item):
         else:
             sortname = self.GetNamePart('fullname')
             
-        self.setAttribute('sortname', sortname)
+        self.setAttributeValue('sortname', sortname)
          

@@ -275,7 +275,7 @@ class wxColumnarTimeView(wxColumnarSubView):
         else:
             newItem = CalendarEventFactory(app.repository).NewItem()
             newItem.duration = item.duration
-            newItem.setAttribute("headline", item.headline)
+            newItem.setAttributeValue("headline", item.headline)
             newItem.ChangeStart(newTime)
             
             item = newItem
@@ -297,7 +297,7 @@ class wxColumnarTimeView(wxColumnarSubView):
         
         newItem = CalendarEventFactory(app.repository).NewItem()
         
-        newItem.setAttribute("headline", "")
+        newItem.setAttributeValue("headline", "")
         self.Freeze()
         newEventObject = ColumnarItem(self, newItem)
         newEventObject.SizeDrag(dragRect, startDrag, endDrag)

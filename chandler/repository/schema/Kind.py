@@ -15,7 +15,7 @@ class Kind(Item):
         super(Kind, self).__init__(name, parent, kind, **_kwds)
 
         # recursion avoidance
-        self._attributes['NotFoundAttributes'] = []
+        self._values['NotFoundAttributes'] = []
 
     def newItem(self, name, parent):
         '''Create an item of this kind.
@@ -23,20 +23,21 @@ class Kind(Item):
         The class instantiated is taken from the Kind's Class attribute if it
         is set. The Item class is used otherwise.'''
         
-        return self.getAttribute('Class')(name, parent, self)
+        return self.getAttributeValue('Class')(name, parent, self)
         
-    def getAttrDef(self, name):
+    def getAttribute(self, name):
 
-        attrDef = self.getValue('Attributes', name, _attrDict=self._references)
-        if attrDef is None:
-            attrDef = self.getValue('InheritedAttributes', name,
-                                    _attrDict=self._references)
-            if attrDef is None:
-                return self.inheritAttrDef(name)
+        attribute = self.getValue('Attributes', name,
+                                  _attrDict=self._references)
+        if attribute is None:
+            attribute = self.getValue('InheritedAttributes', name,
+                                      _attrDict=self._references)
+            if attribute is None:
+                return self.inheritAttribute(name)
 
-        return attrDef
+        return attribute
 
-    def inheritAttrDef(self, name):
+    def inheritAttribute(self, name):
 
         if self.hasValue('NotFoundAttributes', name):
             return None
@@ -46,10 +47,10 @@ class Kind(Item):
             cache = True
             for inheritingKind in inheritingKinds:
                 if inheritingKind is not None:
-                    attrDef = inheritingKind.getAttrDef(name)
-                    if attrDef is not None:
-                        self.attach('InheritedAttributes', attrDef)
-                        return attrDef
+                    attribute = inheritingKind.getAttribute(name)
+                    if attribute is not None:
+                        self.attach('InheritedAttributes', attribute)
+                        return attribute
                 else:
                     cache = False
                     
@@ -60,7 +61,7 @@ class Kind(Item):
 
     def _getInheritingKinds(self):
 
-        if self.hasAttribute('SuperKinds'):
+        if self.hasAttributeValue('SuperKinds'):
             return self.SuperKinds
 
         return self._kind._getInheritingKinds()
@@ -100,7 +101,7 @@ class SchemaRoot(Item):
 
         def apply(item):
 
-            assert not item._attributes.get('NotFoundAttributes', []), item
+            assert not item._values.get('NotFoundAttributes', []), item
 
             for child in item:
                 apply(child)

@@ -16,9 +16,9 @@ class CalendarEventFactory:
         
     def NewItem(self, headline=""):
         item = CalendarEvent(None, self._container, self._kind)
-        item.setAttribute("startTime", DateTime.now())
-        item.setAttribute("endTime", DateTime.now())
-        item.setAttribute("headline", headline)
+        item.setAttributeValue("startTime", DateTime.now())
+        item.setAttributeValue("endTime", DateTime.now())
+        item.setAttributeValue("headline", headline)
 
         return item
 
@@ -29,8 +29,8 @@ class CalendarEvent(Item):
     def GetDuration(self):
         """Returns an mxDateTimeDelta, None if no startTime or endTime"""
         
-        if (self.hasAttribute("startTime") and
-            self.hasAttribute("endTime")):
+        if (self.hasAttributeValue("startTime") and
+            self.hasAttributeValue("endTime")):
             return self.endTime - self.startTime
         else:
             return None

@@ -33,7 +33,7 @@ class SimpleTest(unittest.TestCase):
     def testEventBasics(self):
         """Test basic features of CalendarEvent class"""
         item = self.factory.NewItem()
-        item.setAttribute("CalendarHeadline", "Test Event")
+        item.setAttributeValue("CalendarHeadline", "Test Event")
         self.assertEqual(item.CalendarHeadline, "Test Event")
         self.assertEqual(item.IsRemote(), False)
 

@@ -68,7 +68,7 @@ class PackHandler(xml.sax.ContentHandler):
             self.name = attrs['name']
 
             packs = self.repository.find('Packs')
-            Item(self.name, packs, None).setAttribute('File', self.path)
+            Item(self.name, packs, None).setAttributeValue('File', self.path)
 
     def cwdStart(self, attrs):
 

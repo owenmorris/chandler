@@ -128,12 +128,12 @@ class wxRepositoryViewer(wxViewerParcel):
     def LoadItem(self, item, node):
         """Populates the tree's table with details of this particular item.
         """
-        if (item.hasAttribute('DisplayName')):
+        if (item.hasAttributeValue('DisplayName')):
             displayName = item.DisplayName
         else:
             displayName = item.getName()
             
-        if (item.hasAttribute('Kind')):
+        if (item.hasAttributeValue('Kind')):
             kind = item.Kind.getName()
         else:
             kind = 'Item'

@@ -53,8 +53,8 @@ class ItemRef(object):
         self._other = other
 
         if type(other) is not ItemStub:
-            if other.hasAttribute(otherName):
-                old = other.getAttribute(otherName)
+            if other.hasAttributeValue(otherName):
+                old = other.getAttributeValue(otherName)
                 if isinstance(old, RefDict):
                     refName = item.refName(otherName)
                     old[refName] = self
@@ -76,11 +76,12 @@ class ItemRef(object):
                     old[refName] = self
                     return
             
-            other.setAttribute(otherName, self, _attrDict=other._references)
+            other.setAttributeValue(otherName, self,
+                                    _attrDict=other._references)
 
     def detach(self, item, name, other, otherName):
 
-        old = other.getAttribute(otherName, _attrDict=other._references)
+        old = other.getAttributeValue(otherName, _attrDict=other._references)
         if isinstance(old, RefDict):
             old._removeRef(item.refName(otherName))
         else:
@@ -259,11 +260,11 @@ class RefArgs(object):
             raise ValueError, value
 
 
-class Attributes(dict):
+class Values(dict):
 
     def __init__(self, item):
 
-        super(Attributes, self).__init__()
+        super(Values, self).__init__()
         self._setItem(item)
 
     def _setItem(self, item):
@@ -279,17 +280,17 @@ class Attributes(dict):
         if self._item is not None:
             self._item.setDirty()
 
-        return super(Attributes, self).__setitem__(key, value)
+        return super(Values, self).__setitem__(key, value)
 
     def __delitem__(self, key):
 
         if self._item is not None:
             self._item.setDirty()
 
-        super(Attributes, self).__delitem__(key)
+        super(Values, self).__delitem__(key)
 
 
-class References(Attributes):
+class References(Values):
 
     def _setItem(self, item):
 

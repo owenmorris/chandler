@@ -16,7 +16,7 @@ class CalendarFactory:
         
     def NewItem(self, name=""):
         item = Location(None, self._container, self._kind)
-        item.setAttribute("name", name)
+        item.setAttributeValue("name", name)
 
         return item
 

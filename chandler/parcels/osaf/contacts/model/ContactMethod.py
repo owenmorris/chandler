@@ -24,7 +24,7 @@ class ContactMethodFactory:
             kind = "//Schema/ContactsSchema/ContactMethod"
         
         item = ContactMethod(None, self._container, self.repository.find(kind))
-        item.setAttribute('methodType', addressType)
+        item.setAttributeValue('methodType', addressType)
         
         return item
 
@@ -34,43 +34,43 @@ class ContactMethod(Item):
  
     # methods to get and set all of the attributes
     def GetMethodType(self):
-        return self.getAttribute('methodType')
+        return self.getAttributeValue('methodType')
     
     def SetMethodType(self, methodType):
-        self.setAttribute('methodType', methodType)
+        self.setAttributeValue('methodType', methodType)
     
     def GetMethodDescription(self):
-        return self.getAttribute('methodDescription')
+        return self.getAttributeValue('methodDescription')
  
     def SetMethodDescription(self, methodDescription):    
-        self.setAttribute('methodDescription', methodDescription)
+        self.setAttributeValue('methodDescription', methodDescription)
         
     def GetMethodValue(self):
         return self.methodValue
     
     def SetMethodValue(self, methodValue):
-        self.setAttribute('methodValue', methodValue)
+        self.setAttributeValue('methodValue', methodValue)
     
     def GetMethodComment(self):
         try:
-            return self.getAttribute('methodComment')
+            return self.getAttributeValue('methodComment')
         except:
             return None
         
     def SetMethodComment(self, methodComment):
-        self.setAttribute('methodComment', methodComment)
+        self.setAttributeValue('methodComment', methodComment)
 
     def HasComment(self):
         return self.methodComment != None
     
     def GetAttribute(self, attributeName):
         try:
-            return self.getAttribute(attributeName)
+            return self.getAttributeValue(attributeName)
         except:
             return ''
         
     def SetAttribute(self, attributeName, attributeValue):
-        self.setAttribute(attributeName, attributeValue)
+        self.setAttributeValue(attributeName, attributeValue)
         
     # change the type of the address item, setting up the passed-in attributes
     # we actually need to change the class of the object here

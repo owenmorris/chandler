@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import xml.sax
 
 from ItemRef import ItemRef, RefArgs
-from ItemRef import Attributes, References, RefDict
+from ItemRef import Values, References, RefDict
 
 from model.util.UUID import UUID
 from model.util.Path import Path
@@ -24,8 +24,9 @@ class Item(object):
         Kind can be None for schema-less operation.
         Items have two sets of attributes: the regular implementation python
         attributes and the Chandler attributes. The latter are kept in a
-        separate dictionary and need to be added first with Item.setAttribute()
-        before they can be accessed or set with the '.' operator.
+        separate dictionary and need to be added first with
+        Item.setAttributeValue() before they can be accessed or set with the
+        '.' operator.
         When an item is persisted only the Chandler attributes are saved.'''
         
         super(Item, self).__init__()
@@ -33,12 +34,12 @@ class Item(object):
         self._status = 0
         self._uuid = _kwds.get('_uuid') or UUID()
 
-        attributes = _kwds.get('_attributes')
-        if attributes is not None:
-            attributes._setItem(self)
-            self._attributes = attributes
+        values = _kwds.get('_values')
+        if values is not None:
+            values._setItem(self)
+            self._values = values
         else:
-            self._attributes = Attributes(self)
+            self._values = Values(self)
 
         references = _kwds.get('_references')
         if references is not None:
@@ -79,26 +80,26 @@ class Item(object):
         if self._status & Item.DELETED:
             raise ValueError, "item is deleted: %s" %(str(self))
 
-        return self.getAttribute(name)
+        return self.getAttributeValue(name)
 
     def __setattr__(self, name, value):
 
         if name[0] != '_':
-            if self._attributes.has_key(name):
-                return self.setAttribute(name, value,
-                                         _attrDict=self._attributes)
+            if self._values.has_key(name):
+                return self.setAttributeValue(name, value,
+                                              _attrDict=self._values)
             elif self._references.has_key(name):
-                return self.setAttribute(name, value,
-                                         _attrDict=self._references)
+                return self.setAttributeValue(name, value,
+                                              _attrDict=self._references)
 
         return super(Item, self).__setattr__(name, value)
 
     def __delattr__(self, name):
 
-        if self._attributes.has_key(name):
-            self.removeAttribute(name, _attrDict=self._attributes)
+        if self._values.has_key(name):
+            self.removeAttributeValue(name, _attrDict=self._values)
         elif self._references.has_key(name):
-            self.removeAttribute(name, _attrDict=self._references)
+            self.removeAttributeValue(name, _attrDict=self._references)
         else:
             super(Item, self).__delattr__(name)
 
@@ -113,22 +114,22 @@ class Item(object):
     def hasAttributeAspect(self, name, aspect):
 
         if self._kind is not None:
-            attrDef = self._kind.getAttrDef(name)
-            if attrDef is not None:
-                return attrDef.hasAspect(aspect)
+            attribute = self._kind.getAttribute(name)
+            if attribute is not None:
+                return attribute.hasAspect(aspect)
 
         return False
 
     def getAttributeAspect(self, name, aspect, default=None):
 
         if self._kind is not None:
-            attrDef = self._kind.getAttrDef(name)
-            if attrDef is not None:
-                return attrDef.getAspect(aspect, default)
+            attribute = self._kind.getAttribute(name)
+            if attribute is not None:
+                return attribute.getAspect(aspect, default)
 
         return default
 
-    def setAttribute(self, name, value=None, _attrDict=None):
+    def setAttributeValue(self, name, value=None, _attrDict=None):
         """Create and/or set a Chandler attribute.
 
         This method is only required when the Chandler attribute doesn't yet
@@ -142,8 +143,8 @@ class Item(object):
                                 isinstance(value, RefDict))
 
         if _attrDict is None:
-            if self._attributes.has_key(name):
-                _attrDict = self._attributes
+            if self._values.has_key(name):
+                _attrDict = self._values
             elif self._references.has_key(name):
                 _attrDict = self._references
 
@@ -162,7 +163,7 @@ class Item(object):
                 elif old is not None:
                     raise ValueError, old
 
-        elif (isItem or isRef) and _attrDict is self._attributes:
+        elif (isItem or isRef) and _attrDict is self._values:
             del _attrDict[name]
 
         if isItem:
@@ -183,11 +184,11 @@ class Item(object):
             self._references[name] = value
 
         else:
-            self._attributes[name] = value
+            self._values[name] = value
 
         return value
 
-    def getAttribute(self, name, _attrDict=None, **kwds):
+    def getAttributeValue(self, name, _attrDict=None, **kwds):
         """Return the named Chandler attribute value.
 
         If the attribute is not set then attempt to inherit a value if the
@@ -199,9 +200,9 @@ class Item(object):
         between a python and a Chandler attribute, a situation best avoided."""
 
         try:
-            if (_attrDict is self._attributes or
-                _attrDict is None and self._attributes.has_key(name)):
-                return self._attributes[name]
+            if (_attrDict is self._values or
+                _attrDict is None and self._values.has_key(name)):
+                return self._values[name]
 
             elif (_attrDict is self._references or
                   _attrDict is None and self._references.has_key(name)):
@@ -217,7 +218,7 @@ class Item(object):
         if inherit is not None:
             value = self
             for attr in inherit.split('.'):
-                value = value.getAttribute(attr)
+                value = value.getAttributeValue(attr)
 
             return value
 
@@ -229,18 +230,18 @@ class Item(object):
 
         raise AttributeError, name
 
-    def removeAttribute(self, name, _attrDict=None):
+    def removeAttributeValue(self, name, _attrDict=None):
         'Remove a Chandler attribute.'
 
         self.setDirty()
 
         if _attrDict is None:
-            if self._attributes.has_key(name):
-                _attrDict = self._attributes
+            if self._values.has_key(name):
+                _attrDict = self._values
             elif self._references.has_key(name):
                 _attrDict = self._references
 
-        if _attrDict is self._attributes:
+        if _attrDict is self._values:
             del _attrDict[name]
         elif _attrDict is self._references:
             value = _attrDict[name]
@@ -254,17 +255,17 @@ class Item(object):
             else:
                 raise ValueError, value
 
-    def attributes(self, attributesOnly=False, referencesOnly=False):
+    def attributes(self, valuesOnly=False, referencesOnly=False):
         '''Get a generator of (name, value) tuples for attributes of this item.
 
-        By setting attributesOnly to True, no item references are returned.
+        By setting valuesOnly to True, no item references are returned.
         By setting referencesOnly to True, only references are returned.'''
 
         if not referencesOnly:
-            for attr in self._attributes.iteritems():
+            for attr in self._values.iteritems():
                 yield attr
 
-        if not attributesOnly:
+        if not valuesOnly:
             for ref in self._references.iteritems():
                 if isinstance(ref[1], ItemRef):
                     yield (ref[0], ref[1].other(self))
@@ -292,7 +293,7 @@ class Item(object):
         'Get a value from a multi-valued attribute.'
 
         if _attrDict is None:
-            value = (self._attributes.get(attribute, None) or
+            value = (self._values.get(attribute, None) or
                      self._references.get(attribute, None))
         else:
             value = _attrDict.get(attribute, None)
@@ -326,7 +327,7 @@ class Item(object):
             if isinstance(value, Item):
                 _attrDict = self._references
             else:
-                _attrDict = self._attributes
+                _attrDict = self._values
 
         attrValue = _attrDict.get(attribute, None)
             
@@ -363,7 +364,7 @@ class Item(object):
             if isinstance(value, Item):
                 _attrDict = self._references
             else:
-                _attrDict = self._attributes
+                _attrDict = self._values
                 
         attrValue = _attrDict.get(attribute, None)
 
@@ -389,7 +390,7 @@ class Item(object):
         references, key must be an integer or the refName of the item value
         to remove."""
 
-        value = (self._attributes.get(attribute, None) or
+        value = (self._values.get(attribute, None) or
                  self._references.get(attribute, None))
 
         if isinstance(value, dict):
@@ -404,7 +405,7 @@ class Item(object):
     def hasValue(self, attribute, value):
         'Tell whether a multi-valued attribute has a given value.'
 
-        attrValue = (self._attributes.get(attribute, None) or
+        attrValue = (self._values.get(attribute, None) or
                      self._references.get(attribute, None))
 
         if isinstance(attrValue, RefDict) or isinstance(attrValue, list):
@@ -434,7 +435,7 @@ class Item(object):
         if _attrDict is not None:
             value = _attrDict.get(attribute, None)
         else:
-            value = (self._attributes.get(attribute, None) or
+            value = (self._values.get(attribute, None) or
                      self._references.get(attribute, None))
 
         card = self.getAttributeAspect(attribute, 'Cardinality', 'single')
@@ -463,11 +464,11 @@ class Item(object):
 
         del self._references[name]
 
-    def hasAttribute(self, name, _attrDict=None):
+    def hasAttributeValue(self, name, _attrDict=None):
         'Check for existence of a Chandler attribute.'
 
         if _attrDict is None:
-            return (self._attributes.has_key(name) or
+            return (self._values.has_key(name) or
                     self._references.has_key(name))
         else:
             return _attrDict.has_key(name)
@@ -510,7 +511,7 @@ class Item(object):
                 for item in self._children.values():
                     item.delete()
 
-            self._attributes.clear()
+            self._values.clear()
 
             for name in self._references.keys():
                 policy = self.getAttributeAspect(name, 'DeletePolicy', 'remove')
@@ -522,7 +523,7 @@ class Item(object):
                         elif isinstance(value, RefDict):
                             others.extend(value.others())
                     
-                self.removeAttribute(name, _attrDict=self._references)
+                self.removeAttributeValue(name, _attrDict=self._references)
 
             self._parent._removeItem(self)
             self._setRoot(None)
@@ -781,7 +782,7 @@ class Item(object):
 
     def _saveAttrs(self, generator, withSchema):
 
-        for attr in self._attributes.iteritems():
+        for attr in self._values.iteritems():
             if self.getAttributeAspect(attr[0], 'Persist', True):
                 attrType = self.getAttributeAspect(attr[0], 'Type')
                 attrCard = self.getAttributeAspect(attr[0], 'Cardinality',
@@ -939,11 +940,11 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def attributeStart(self, itemHandler, attrs):
 
-        attrDef = self.getAttrDef(attrs['name'])
-        self.attrDefs.append(attrDef)
+        attribute = self.getAttribute(attrs['name'])
+        self.attributes.append(attribute)
 
-        cardinality = self.getCardinality(attrDef, attrs)
-        typeName = self.getTypeName(attrDef, attrs)
+        cardinality = self.getCardinality(attribute, attrs)
+        typeName = self.getTypeName(attribute, attrs)
         
         if cardinality == 'dict' or typeName == 'dict':
             self.collections.append({})
@@ -956,13 +957,13 @@ class ItemHandler(xml.sax.ContentHandler):
 
         if self.tags[-1] == 'item':
             name = attrs['name']
-            attrDef = self.getAttrDef(name)
-            self.attrDefs.append(attrDef)
+            attribute = self.getAttribute(name)
+            self.attributes.append(attribute)
 
-            cardinality = self.getCardinality(attrDef, attrs)
+            cardinality = self.getCardinality(attribute, attrs)
 
             if cardinality != 'single':
-                otherName = self.getOtherName(name, attrDef, attrs)
+                otherName = self.getOtherName(name, attribute, attrs)
                 ordered = cardinality == 'list'
                 refDict = self.repository.createRefDict(None, name, otherName,
                                                         ordered)
@@ -970,11 +971,11 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def itemStart(self, itemHandler, attrs):
 
-        self.attributes = Attributes(None)
+        self.values = Values(None)
         self.references = References(None)
         self.refs = []
         self.collections = []
-        self.attrDefs = []
+        self.attributes = []
         self.name = None
         self.kind = None
         self.cls = None
@@ -989,11 +990,11 @@ class ItemHandler(xml.sax.ContentHandler):
             if self.kind is None:
                 cls = Item
             else:
-                cls = self.kind.getAttribute('Classes')['python']
+                cls = self.kind.getAttributeValue('Classes')['python']
 
         self.item = item = cls(self.name, self.parent, self.kind,
                                _uuid = UUID(attrs.get('uuid')),
-                               _attributes = self.attributes,
+                               _values = self.values,
                                _references = self.references,
                                _afterLoadHooks = self.afterLoadHooks)
 
@@ -1062,9 +1063,9 @@ class ItemHandler(xml.sax.ContentHandler):
         if kwds.has_key('value'):
             value = kwds['value']
         else:
-            attrDef = self.attrDefs.pop()
-            cardinality = self.getCardinality(attrDef, attrs)
-            typeName = self.getTypeName(attrDef, attrs)
+            attribute = self.attributes.pop()
+            cardinality = self.getCardinality(attribute, attrs)
+            typeName = self.getTypeName(attribute, attrs)
 
             if cardinality == 'dict' or typeName == 'dict':
                 value = self.collections.pop()
@@ -1073,13 +1074,13 @@ class ItemHandler(xml.sax.ContentHandler):
             else:
                 value = self.makeValue(typeName, self.data)
             
-        self.attributes[attrs['name']] = value
+        self.values[attrs['name']] = value
 
     def refEnd(self, itemHandler, attrs):
 
         if self.tags[-1] == 'item':
-            attrDef = self.attrDefs.pop()
-            cardinality = self.getCardinality(attrDef, attrs)
+            attribute = self.attributes.pop()
+            cardinality = self.getCardinality(attribute, attrs)
             otherCard = attrs.get('otherCard', None)
         else:
             cardinality = 'single'
@@ -1104,7 +1105,7 @@ class ItemHandler(xml.sax.ContentHandler):
                                          previous, next))
             else:
                 name = attrs['name']
-                otherName = self.getOtherName(name, self.getAttrDef(name),
+                otherName = self.getOtherName(name, self.getAttribute(name),
                                               attrs)
                 self.refs.append(RefArgs(name, name, ref, otherName, otherCard,
                                          self.references))
@@ -1144,7 +1145,7 @@ class ItemHandler(xml.sax.ContentHandler):
         else:
             typeName = attrs.get('type', None)
             if typeName is None:
-                typeName = self.getTypeName(self.attrDefs[-1],
+                typeName = self.getTypeName(self.attributes[-1],
                                             self.tagAttrs[-1])
 
             value = self.makeValue(typeName, self.data)
@@ -1157,24 +1158,24 @@ class ItemHandler(xml.sax.ContentHandler):
             name = self.makeValue(attrs.get('nameType', 'str'), name)
             self.collections[-1][name] = value
 
-    def getCardinality(self, attrDef, attrs):
+    def getCardinality(self, attribute, attrs):
 
         cardinality = attrs.get('cardinality')
 
         if cardinality is None:
-            if attrDef is None:
+            if attribute is None:
                 cardinality = 'single'
             else:
-                cardinality = attrDef.getAspect('Cardinality', 'single')
+                cardinality = attribute.getAspect('Cardinality', 'single')
 
         return cardinality
 
-    def getTypeName(self, attrDef, attrs):
+    def getTypeName(self, attribute, attrs):
 
         attrType = attrs.get('type')
 
-        if attrType is None and attrDef is not None:
-            attrType = attrDef.getAspect('Type', None)
+        if attrType is None and attribute is not None:
+            attrType = attribute.getAspect('Type', None)
             if attrType is not None:
                 return type(attrType).__name__
 
@@ -1187,29 +1188,29 @@ class ItemHandler(xml.sax.ContentHandler):
         else:
             return None
 
-    def getOtherName(self, name, attrDef, attrs):
+    def getOtherName(self, name, attribute, attrs):
 
         otherName = attrs.get('otherName')
 
-        if otherName is None and attrDef is not None:
-            otherName = attrDef.getAspect('OtherName')
+        if otherName is None and attribute is not None:
+            otherName = attribute.getAspect('OtherName')
 
         if otherName is None:
             raise TypeError, 'Undefined other endpoint for %s' %(name)
 
         return otherName
 
-    def getAttrDef(self, name):
+    def getAttribute(self, name):
 
         if self.withSchema is False and self.kind is not None:
-            return self.kind.getAttrDef(name)
+            return self.kind.getAttribute(name)
         else:
             return None
 
     def setupTypeDelegate(self, attrs):
         
-        if self.attrDefs[-1]:
-            attrType = self.attrDefs[-1].getAspect('Type')
+        if self.attributes[-1]:
+            attrType = self.attributes[-1].getAspect('Type')
             if attrType is not None:
                 self.delegates.append(attrType)
 

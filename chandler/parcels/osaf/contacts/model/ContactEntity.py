@@ -25,15 +25,15 @@ class ContactEntityFactory:
         
     def NewItem(self, contactType='Person'):
         item = ContactEntity(None, self._container, self._kind)
-        item.setAttribute('contactType', contactType)
+        item.setAttributeValue('contactType', contactType)
                 
         nameFactory = ContactNameFactory(self.repository)
         name = nameFactory.NewItem()
-        item.setAttribute('contactName', name)
+        item.setAttributeValue('contactName', name)
         
         formatFactory = ContactFormatFactory(self.repository)
         format = formatFactory.NewItem()
-        item.setAttribute('contactFormat', format)
+        item.setAttributeValue('contactFormat', format)
               
         return item
 
@@ -43,45 +43,45 @@ class ContactEntity(Item):
         
     # methods for various properties
     def GetName(self):
-        return self.getAttribute('contactName')
+        return self.getAttributeValue('contactName')
     
     def SetName(self, name):
-        self.setAttribute('contactName', name)
+        self.setAttributeValue('contactName', name)
 
     def GetContactType(self):
-        return self.getAttribute('contactType')
+        return self.getAttributeValue('contactType')
     
     def SetContactType(self, newType):
-        self.setAttribute('contactType', newType)
+        self.setAttributeValue('contactType', newType)
    
     def GetContactMethods(self):
         try:
-            refDict = self.getAttribute('contactMethods')
+            refDict = self.getAttributeValue('contactMethods')
             return refDict.values()
         except AttributeError:
             return []
     
     def SetContactMethods(self, contactMethod):
-        self.setAttribute('contactMethods', contactMethod)
+        self.setAttributeValue('contactMethods', contactMethod)
         
     def GetPhotoURL(self):
         try:
-            return self.getAttribute('contactPhotoURL')
+            return self.getAttributeValue('contactPhotoURL')
         except AttributeError:
             return None
     
     def SetPhotoURL(self, photoURL):
-        self.setAttribute('contactPhotoURL', photoURL)
+        self.setAttributeValue('contactPhotoURL', photoURL)
 
     def GetContactFormat(self):
-         return self.getAttribute('contactFormat')
+         return self.getAttributeValue('contactFormat')
     
     def SetContactFormat(self, format):
-        self.setAttribute('contactFormat', format)
+        self.setAttributeValue('contactFormat', format)
         
     def GetGroups(self):
         try:
-            return self.getAttribute('contactGroups')
+            return self.getAttributeValue('contactGroups')
         except AttributeError:
              return []
     
@@ -192,7 +192,7 @@ class ContactEntity(Item):
             return self.GetContactType()
         
         try:
-            attributeValue = self.getAttribute(attributeKey)
+            attributeValue = self.getAttributeValue(attributeKey)
         except:
             attributeValue = None
             
@@ -207,7 +207,7 @@ class ContactEntity(Item):
         if self.name.IsNameAttribute(attributeKey):
             self.SetNamePart(attributeKey, attributeValue)
         else:
-            self.setAttribute(attributeKey, attributeValue)
+            self.setAttributeValue(attributeKey, attributeValue)
                         
     def GetNamePart(self, partName):
         return self.name.GetNamePart(partName)
