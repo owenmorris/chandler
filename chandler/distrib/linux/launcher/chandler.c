@@ -155,7 +155,7 @@ main(int argc, char **argv)
             exit(-1);
         case 0:
             /* printf("I'm the child\n"); */
-            retVal = execl(exePath, PROG_BIN, 0);
+            retVal = execl(exePath, PROG_BIN, argv);
         default:
             died = wait(&status);
             /* printf("Parent, status=%d, died=%d\n", status, died); */
