@@ -1,4 +1,5 @@
 __repository__
+cacert.pem
 Chandler-project.wpu
 Chandler-project-debug.wpu
 *.pyc
