@@ -275,5 +275,4 @@ if __name__ == "__main__":
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
 #    profiler.run('unittest.main()')
 #    profiler.close()
-    pass # skipping this test for the moment
-    # unittest.main()
+     unittest.main()
