@@ -102,7 +102,7 @@ class TestPanel( wx.Panel ):
             if (self.stepSize == (-1)):
                 self.stepDir = 1
         self.stepSize = self.stepSize + self.stepDir
-        self.ch1.DoSetSize( 20, 40, curWidth + 40 * self.stepSize, 20, 0 )
+        self.ch1.DoSetSize( 190, 40, curWidth + 40 * self.stepSize, 20, 0 )
         self.l0.SetLabel( "resized (%d)" %(self.ch1.GetId()) )
 
     def OnTestEnableCheckBox( self, event ):
