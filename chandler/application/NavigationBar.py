@@ -7,7 +7,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from wxPython.wx import *
 from wxPython.xrc import *
 from application.Application import app
-from model.schema.AutoItem import AutoItem
+from repository.schema.AutoItem import AutoItem
 
 class NavigationBar(AutoItem):
     """

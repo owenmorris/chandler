@@ -1,7 +1,7 @@
 #!bin/env python
 
-from model.persistence.FileRepository import FileRepository
-from model.item.Item import Item
+from repository.persistence.FileRepository import FileRepository
+from repository.item.Item import Item
 from OSAF.calendar.model.CalendarEvent import CalendarEvent
 from OSAF.calendar.model.CalendarEvent import CalendarEventFactory
 from mx import DateTime

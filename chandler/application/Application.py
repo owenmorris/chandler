@@ -13,14 +13,14 @@ import ChandlerJabber
 import PresencePanel
 
 from application.agents.Notifications.NotificationManager import NotificationManager
-from model.schema.AutoItem import AutoItem
+from repository.schema.AutoItem import AutoItem
 from application.agents.AgentManager import AgentManager
 from application.ChandlerWindow import ChandlerWindow
 from application.Preferences import Preferences
 from application.SplashScreen import SplashScreen
 from application.URLTree import URLTree
 
-import model.schema.LoadParcels as LoadParcels
+import repository.schema.LoadParcels as LoadParcels
 
 """
   The application module makes available the following global data to
@@ -139,7 +139,7 @@ class wxApplication (wxApp):
     self.wxMainFrame              active wxChandlerWindow
     self.locale                   locale used for internationalization
     self.jabberClient             state of jabber client including presence dictionary
-    self.repository               the model.persistence.Repository instance
+    self.repository               the repository instance
     self.argv                     the command line arguments of the process
         """
 
@@ -248,10 +248,10 @@ class wxApplication (wxApp):
         """
         repositoryPath = os.path.join(self.chandlerDirectory, "__repository__")
         if '-file' in self.argv:
-            theClass = loadClass('model.persistence.FileRepository',
+            theClass = loadClass('repository.persistence.FileRepository',
                                  'FileRepository')
         else:
-            theClass = loadClass('model.persistence.XMLRepository',
+            theClass = loadClass('repository.persistence.XMLRepository',
                                  'XMLRepository')
         self.repository = theClass(repositoryPath)
 
@@ -269,7 +269,7 @@ class wxApplication (wxApp):
               can't be loaded in a data parcel.
             """
             self.repository.loadPack(os.path.join(self.chandlerDirectory,
-                                                  "model",
+                                                  "repository",
                                                   "packs",
                                                   "schema.pack"))
 
@@ -286,7 +286,7 @@ class wxApplication (wxApp):
         # Load individual data parcels
         # @@@ This should not be hardcoded, but part of a larger
         #     parcel loading framework.
-        from model.schema.DomainSchemaLoader import DomainSchemaLoader
+        from repository.schema.DomainSchemaLoader import DomainSchemaLoader
         loader = DomainSchemaLoader(self.repository)
 
         # Load the document parcel

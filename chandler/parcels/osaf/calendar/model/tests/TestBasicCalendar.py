@@ -3,8 +3,8 @@
 
 import unittest, os
 
-from model.persistence.XMLRepository import XMLRepository
-from model.schema.DomainSchemaLoader import DomainSchemaLoader
+from repository.persistence.XMLRepository import XMLRepository
+from repository.schema.DomainSchemaLoader import DomainSchemaLoader
 
 from OSAF.calendar.model.CalendarEvent import CalendarEvent
 from OSAF.calendar.model.CalendarEvent import CalendarEventFactory

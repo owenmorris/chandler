@@ -1,5 +1,5 @@
 
-from model.item.Item import Item
+from repository.item.Item import Item
 
 class Block(Item):
 

@@ -3,7 +3,7 @@
 
 import unittest
 
-from model.persistence.FileRepository import FileRepository
+from repository.persistence.FileRepository import FileRepository
 
 from OSAF.calendar.model.CalendarEvent import CalendarEvent
 from OSAF.calendar.model.CalendarEvent import CalendarEventFactory

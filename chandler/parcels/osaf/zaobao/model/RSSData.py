@@ -12,8 +12,8 @@ import time
 import os
 
 #Chandler modules
-from model.item.Item import Item
-from model.schema import Kind
+from repository.item.Item import Item
+from repository.schema import Kind
 from application.Application import app
 from application.agents.Notifications.NotificationManager import NotificationManager
 from application.agents.Notifications.Notification import Notification

@@ -9,7 +9,7 @@ import time
 
 from wxPython.wx import *
 
-from model.item.Item import Item
+from repository.item.Item import Item
 
 class Timer:
     def __init__(self):

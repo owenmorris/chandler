@@ -16,7 +16,7 @@ however, because Application imports ChandlerWindow (the mutually recursive
 import problem), app isn't defined yet. Further attempt postpone the include
 of ChandlerWindow after app is setup lead to hairballs
 """
-from model.schema.AutoItem import AutoItem
+from repository.schema.AutoItem import AutoItem
 
 import version
 

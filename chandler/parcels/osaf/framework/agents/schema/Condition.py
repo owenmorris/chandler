@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import re
-from model.item.Item import Item
+from repository.item.Item import Item
 
 """
 The Condition Class is a persistent object that's a kind of action.  Conditions are periodically evaluated,

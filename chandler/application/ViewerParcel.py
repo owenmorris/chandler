@@ -12,7 +12,7 @@ from wxPython.wx import *
 from wxPython.xrc import *
 from application.ParcelV2 import ParcelV2
 from application.Application import app
-from model.schema.AutoItem import AutoItem
+from repository.schema.AutoItem import AutoItem
 
 wxEVT_POST_PAINT = wxNewEventType()
 def EVT_POST_PAINT(win, func):

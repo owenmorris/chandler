@@ -20,7 +20,7 @@ import thread
 
 from wxPython.wx import wxWakeUpIdle
 
-from model.schema.AutoItem import AutoItem
+from repository.schema.AutoItem import AutoItem
 import application.Application
 
 DuplicateClient = "Duplicate Client"

@@ -15,8 +15,8 @@ from wxPython.html import *
 from application.ViewerParcel import *
 
 from application.Application import app
-from model.util.Path import Path
-from model.item.Item import Item
+from repository.util.Path import Path
+from repository.item.Item import Item
 import os
 from application.SplashScreen import SplashScreen
 

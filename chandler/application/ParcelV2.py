@@ -3,7 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from model.schema.AutoItem import AutoItem
+from repository.schema.AutoItem import AutoItem
 
 class ParcelV2 (AutoItem):
     """
