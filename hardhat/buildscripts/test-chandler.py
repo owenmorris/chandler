@@ -139,6 +139,7 @@ def DoTests (hardhatScript, modeDir, mode, log):
         log.write("***Error during tests*** " + e.str() + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Tests log:" + "\n")
+        hardhatutil.dumpOutputList(outputList, log)
         if os.path.exists(os.path.join(modeDir, logPath)) :
             CopyLog(os.path.join(modeDir, logPath), log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
