@@ -468,14 +468,15 @@ class wxTableData(wx.grid.PyGridTableBase):
 
 class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
     
-    """ 
-    the borders of the column headers are not being counted towards the width
-    of a column, so need to remember to add the left/right borders when doing
-    certain column width calculations
-    """
-    _colBorderSize = wx.SystemSettings_GetMetric(wx.SYS_BORDER_X) * 2
-    
     def __init__(self, *arguments, **keywords):
+        
+        """ 
+        the borders of the column headers are not being counted towards the width
+        of a column, so need to remember to add the left/right borders when doing
+        certain column width calculations
+        """
+        _colBorderSize = wx.SystemSettings_GetMetric(wx.SYS_BORDER_X) * 2
+    
         """
           Giant hack. Calling event.GetEventObject in OnShow of application, while the
         object is being created cause the object to get the wrong type because of a
