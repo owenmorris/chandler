@@ -33,38 +33,14 @@ chandler-app -a \
     osaf/chandler/Chandler
 
 chandler-system -a \
-    osaf/hardhat \
-    osaf/chandler/Chandler \
-    osaf/chandler/python \
-    osaf/chandler/persistence \
-    osaf/chandler/pyxml \
     osaf/chandler/4suite \
-    osaf/chandler/zodb \
-    osaf/chandler/egenix-mx \
-    osaf/chandler/wxpython \
-    osaf/chandler/jabber-py
-
-chandler-small -a \
-    osaf/hardhat \
     osaf/chandler/Chandler \
-    osaf/chandler/python \
-    osaf/chandler/persistence \
-    osaf/chandler/pyxml \
-    osaf/chandler/4suite \
-    osaf/chandler/zodb \
     osaf/chandler/egenix-mx \
-    osaf/chandler/wxpython \
-    osaf/chandler/pychecker \
-    osaf/chandler/jabber-py
-
-# Obsolete:
-chandler-source -a \
-    osaf/hardhat \
-    osaf/chandler/Chandler \
-    osaf/chandler/python \
-    osaf/chandler/zodb \
-    osaf/chandler/egenix-mx \
-    osaf/chandler/wxpython \
     osaf/chandler/jabber-py \
-    osaf/chandler/pychecker
-
+    osaf/chandler/persistence \
+    osaf/chandler/pychecker \
+    osaf/chandler/python \
+    osaf/chandler/pyxml \
+    osaf/chandler/wxpython \
+    osaf/chandler/zodb \
+    osaf/hardhat
