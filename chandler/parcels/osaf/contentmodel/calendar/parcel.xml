@@ -84,7 +84,7 @@
     <displayName>Participant in Events</displayName>
     <description>A list of events that include this email address as one of the invitees.</description>
     <cardinality>list</cardinality>
-    <type itemref="cal:CalendarEvent"/>
+    <type itemref="cal:CalendarEventMixin"/>
     <inverseAttribute itemref="cal:participants"/>
   </Attribute>
 

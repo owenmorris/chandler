@@ -96,6 +96,13 @@ class CalendarEventMixin(Item.Item):
     We only instantiate these Items when we "unstamp" an
     Item, to save the attributes for later "restamping".
     """
+    def __init__ (self, name=None, parent=None, kind=None):
+        if not parent:
+            parent = ContentModel.ContentModel.getContentItemParent()
+        if not kind:
+            kind = CalendarParcel.getCalendarEventMixinKind()
+        super (CalendarEventMixin, self).__init__(name, parent, kind)
+
     def InitOutgoingAttributes (self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
@@ -105,17 +112,62 @@ class CalendarEventMixin(Item.Item):
         except AttributeError:
             pass
 
-        # default the requestor to "me"
-        self.organizer = self.getCurrentMeEmailAddress ()
+        CalendarEventMixin._initMixin (self) # call our init, not the method of a subclass
 
+        # New item initialization
+        self.displayName = "New Event"
+
+    def _initMixin (self):
+        """ 
+          Init only the attributes specific to this mixin.
+        Called when stamping adds these attributes, and from __init__ above.
+        """
         # start at the nearest half hour, duration of an hour
         now = DateTime.now()
         self.startTime = DateTime.DateTime(now.year, now.month, now.day,
                                            now.hour, int(now.minute/30) * 30)
         self.duration = DateTime.DateTimeDelta(0, 1)
 
+        # default the requestor to an existing value, or "me"
+        try:
+            self.organizer = self.getAnyWhoFrom ()
+        except AttributeError:
+            self.organizer = self.getCurrentMeEmailAddress ()
+
         # give a starting display name
-        self.displayName = "New Event"
+        try:
+            self.displayName = self.getAnyAbout ()
+        except AttributeError:
+            pass
+
+        # set participants to any existing "who"
+        try:
+            # need to shallow copy the list
+            self.participants = self.copyValue (self.getAnyWho ())
+        except AttributeError:
+            pass # no participants yet
+
+    def getAnyWho (self):
+        """
+        Get any non-empty definition for the "who" attribute.
+        """
+        try:
+            return self.participants
+        except AttributeError:
+            pass
+        return super (CalendarEventMixin, self).getAnyWho ()
+    
+    def getAnyWhoFrom (self):
+        """
+        Get any non-empty definition for the "whoFrom" attribute.
+        """
+        try:
+            organizer = self.organizer
+        except AttributeError:
+            organizer = None
+        if organizer is not None:
+            return organizer
+        return super (CalendarEventMixin, self).getAnyWhoFrom ()
 
     def GetDuration(self):
         """Returns an mxDateTimeDelta, None if no startTime or endTime"""
@@ -148,10 +200,10 @@ class CalendarEventMixin(Item.Item):
         self.endTime = self.startTime + duration
 
 
-
 class CalendarEvent(CalendarEventMixin, Notes.Note):
-
     def __init__(self, name=None, parent=None, kind=None):
+        if not parent:
+            parent = ContentModel.ContentModel.getContentItemParent()
         if not kind:
             kind = Globals.repository.findPath("//parcels/osaf/contentmodel/calendar/CalendarEvent")
         super (CalendarEvent, self).__init__(name, parent, kind)

@@ -28,6 +28,29 @@ class Note(ContentModel.ContentItem):
 
         self.processingStatus = 'processing'
 
+    def getAnyAbout (self):
+        """
+        Get any non-empty definition for the "about" attribute.
+        """
+        return self.displayName
+    
+    def getAnyDate (self):
+        """
+        Get any non-empty definition for the "date" attribute.
+        """
+        return self.createdOn
+    
+    def getAnyWho (self):
+        """
+        Get any non-empty definition for the "who" attribute.
+        """
+        raise AttributeError
+    
+    def getAnyWhoFrom (self):
+        """
+        Get any non-empty definition for the "whoFrom" attribute.
+        """
+        return self.creator
     
 class Conversation(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):

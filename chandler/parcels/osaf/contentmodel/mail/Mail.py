@@ -359,6 +359,7 @@ class MailMessageMixin(MIMEContainer):
             kind = MailParcel.getMailMessageMixinKind()
         super (MailMessageMixin, self).__init__(name, parent, kind)
 
+        # @@@DLD remove this line, it's being done in _initMixin
         self.mimeType = "MESSAGE"
 
     def InitOutgoingAttributes(self):
@@ -369,13 +370,76 @@ class MailMessageMixin(MIMEContainer):
             super(MailMessageMixin, self).InitOutgoingAttributes ()
         except AttributeError:
             pass
+        MailMessageMixin._initMixin (self) # call our init, not the method of a subclass
 
-        self.outgoingMessage()
+    def _initMixin (self):
+        """ 
+          Init only the attributes specific to this mixin.
+        Called when stamping adds these attributes, and from __init__ above.
+        """
+        self.mimeType = "MESSAGE"
+
+        # default the fromAddress to any super class "whoFrom" definition
+        try:
+            self.fromAddress = self.getAnyWhoFrom ()
+        except AttributeError:
+            pass # no from address
+
+        # default the toAddress to any super class "who" definition
+        try:
+            # need to shallow copy the list
+            self.toAddress = self.copyValue (self.getAnyWho ())
+        except AttributeError:
+            pass
+
+        # default the subject to any super class "about" definition
+        try:
+            self.subject = self.getAnyAbout ()
+        except AttributeError:
+            pass
+
+        self.outgoingMessage() # default to outgoing message
+
+    def getAnyAbout (self):
+        """
+        Get any non-empty definition for the "about" attribute.
+        """
+        try:
+            subject = self.subject
+            # don't bother returning our default: an empty string 
+            if subject:
+                return subject
+        except AttributeError:
+            pass
+        return super (MailMessageMixin, self).getAnyAbout ()
+    
+    def getAnyWho (self):
+        """
+        Get any non-empty definition for the "who" attribute.
+        """
+        try:
+            return self.toAddress
+        except AttributeError:
+            pass
+        return super (MailMessageMixin, self).getAnyWho ()
+    
+    def getAnyWhoFrom (self):
+        """
+        Get any non-empty definition for the "whoFrom" attribute.
+        """
+        try:
+            return self.fromAddress
+        except AttributeError:
+            pass
+        return super (MailMessageMixin, self).getAnyWhoFrom ()
 
     def defaultSMTPAccount (self):
         import osaf.mail.smtp as smtp
 
-        account, replyAddress = smtp.getSMTPAccount ()
+        try:
+            account, replyAddress = smtp.getSMTPAccount ()
+        except:
+            account = None
         return account
 
     def outgoingMessage(self, type="SMTP", account=None):
@@ -392,8 +456,6 @@ class MailMessageMixin(MIMEContainer):
         self.deliveryExtension = SMTPDelivery()
         self.isOutbound = True
         self.parentAccount = account
-        self.fromAddress = self.getCurrentMeEmailAddress ()
-
 
     def incomingMessage(self, type="IMAP", account=None):
         if type != "IMAP":
@@ -539,6 +601,10 @@ class EmailAddress(Item.Item):
         """
         import osaf.mail.message as message # avoid circularity
 
+        # @@@DLD remove when we better sort out creation of "me" address w/o an account setup
+        if nameOrAddressString is None:
+            nameOrAddressString = ''
+
         # strip the address string of whitespace and question marks
         address = nameOrAddressString.strip ().strip ('?')
 
@@ -652,7 +718,7 @@ class EmailAddress(Item.Item):
     
         try:
             account = imap.getIMAPAccount ()
-        except imap.IMAPException:
+        except (imap.IMAPException, TypeError):
             return None
         try:
             address = account.emailAddress

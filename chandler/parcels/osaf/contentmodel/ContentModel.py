@@ -12,6 +12,7 @@ import repository.item.Item as Item
 import repository.item.Query as Query
 import repository.persistence.XMLRepositoryView as XMLRepositoryView
 import mx.DateTime as DateTime
+import repository.item.ItemRef as ItemRef
 import logging
 
 import application.Globals as Globals
@@ -95,73 +96,6 @@ class ContentModel(Parcel):
     
     getConversationKind = classmethod(getConversationKind)
 
-class SuperKindSignature(list):
-    """
-    A list of unique superkinds, used as a signature to identify 
-    the structure of a Kind for stamping.
-    The signature is the list of twig node superkinds of the Kind.
-    Using a tree analogy, a twig is the part farthest from the leaf
-    that has no braching.
-    Specifically, a twig node in the SuperKind hierarchy is a node 
-    that has at most one superkind, and whose superkind has at
-    most one superkind, all they way up.
-    The twig superkinds list makes the best signature for two reasons:
-       1) it bypasses all the branching, allowing (A, (B,C)) to match 
-            ((A, B), C)
-       2) it uses the most specialized form when there is no branching,
-            thus if D has superKind B, and B has no superKinds,
-            D is more specialized, so we want to use it.
-    """
-    def __init__(self, aKind, *args, **kwds):
-        """
-        construct with a single Kind
-        """
-        super(SuperKindSignature, self).__init__(*args, **kwds)
-        onTwig = self.appendTwigSuperkinds(aKind)
-        if onTwig:
-            assert len(self) == 0, "Error building superKind Signature"
-            self.append(aKind)
-
-    def appendTwigSuperkinds(self, aKind):
-        """
-        called with a kind, appends all the twig superkinds
-        and returns True iff there's been no branching within
-        this twig
-        """
-        supers = aKind.getAttributeValue('superKinds', default = [])
-        numSupers = len(supers)
-        onTwig = True
-        for kind in supers:
-            onTwig = self.appendTwigSuperkinds(kind)
-            if onTwig and numSupers > 1:
-                self.appendUnique(kind)
-        return numSupers < 2 and onTwig
-
-    def appendUnique(self, item):
-        if not item in self:
-            self.append(item)
-
-    def extend(self, sequence):
-        for item in sequence:
-            self.appendUnique(item)
-    
-    def properSubsetOf(self, sequence):
-        """
-        return True if self is a proper subset of sequence
-        meaning all items in self are in sequence
-        """
-        for item in self:
-            if not item in sequence:
-                return False
-        return True
-
-    def __str__(self):
-        readable = []
-        for item in self:
-            readable.append(item.itsName)
-        theList = ', '.join(readable)
-        return '['+theList+']'
-            
 class ContentItem(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
@@ -169,6 +103,8 @@ class ContentItem(Item.Item):
         if not kind:
             kind = ContentModel.getContentItemKind()
         super (ContentItem, self).__init__(name, parent, kind)
+
+        # @@@DLD remove this line, since it's done in InitOutgoingAttributes
         self.createdOn = DateTime.now ()
 
     def InitOutgoingAttributes (self):
@@ -185,7 +121,19 @@ class ContentItem(Item.Item):
         me = self.getCurrentMeEmailAddress ()
         self.creator = me
 
-    def StampKind(self, operation, mixinKind):
+        # default the displayName to 'untitled'
+        self.displayName = _('untitled')
+
+    """
+    STAMPING SUPPORT
+    
+    Allow changing an Item's class and kind to dynamically
+    add or remove capabilities.
+    """
+
+    SUPPORT_RESTAMPING = False # True means unstamping should save attributes for restamping
+
+    def StampKind (self, operation, mixinKind):
         """
           Stamp ourself into the new kind defined by the
         Mixin Kind passed in mixinKind.
@@ -196,17 +144,156 @@ class ContentItem(Item.Item):
         * Stamp ourself to the new Kind.
         * Move the attributes from the Mixin.
         """
-        futureKind = self.FindStampedKind(operation, mixinKind)
-        dataCarryOver = self.StampPreProcess(futureKind)
-        if futureKind is not None:
-            self.itsKind = futureKind
+        newKind = self._findStampedKind (operation, mixinKind)
+        addedKinds, removedKinds = self._addedOrRemovedKinds (newKind, operation, mixinKind)
+        self._stampPreProcess (removedKinds) # save away kinds being removed
+        if newKind is not None:
+            self.itsKind = newKind
         else:
-            self.mixinKinds((operation, mixinKind))
+            self.mixinKinds ((operation, mixinKind)) # create a class on-the-fly
+        self._stampPostProcess (addedKinds) # initialize attributes of added kinds
         # make sure the respository knows about the item's new Kind
-        self.StampPostProcess(futureKind, dataCarryOver)
-        Globals.repository.commit()
+        Globals.repository.commit ()
 
-    def CandidateStampedKinds(self):
+    def _stampPreProcess (self, removedKinds):
+        """
+          Pre-process an Item for Stamping.  If we are unstamping an item,
+        then we save away a mixin containing a copy of the attributes
+        for the portion(s) being unstamped.
+        """
+        if self.SUPPORT_RESTAMPING:
+            # values associated with removed kinds are saved for later restamping
+            for removedKind in removedKinds:
+                # Create a mixin to capture the attributes
+                removedMixinClass = removedKind.getItemClass()
+                try:
+                    removedMixin = removedMixinClass()
+                except:
+                    pass
+                else:
+                    self._copyAttributeValues (sourceItem = self, 
+                                               destItem = removedMixin, 
+                                               template=removedMixin)
+                    try:
+                        previousStamps = self.previousStamps
+                    except AttributeError:
+                        previousStamps = []
+                        self.previousStamps = previousStamps
+                    # Save the mixin in the Item's previousStamps attribute
+                    self.previousStamps.append (removedMixin)
+
+    def _stampPostProcess (self, addedKinds):
+        """
+          Post-process an Item for Stamping.  If we are stamping an item,
+        we want to initialize the new attributes appropriately.  If this
+        item was previously stamped, we saved away the attribute values
+        in an instance of the mixin.  Otherwise we initialize 
+        the mixin attributes explicitly in the newly stamped item.
+        """
+        # check if we're restamping and get or create the mixin
+        for addedKind in addedKinds:
+            previousMixin = self._previousStamp (addedKind)
+            if previousMixin is None:
+                # ask the mixin to init its attributes.
+                mixinClass = addedKind.getItemClass ()
+                try:
+                    mixinInitMethod = getattr (mixinClass, '_initMixin')
+                except AttributeError:
+                    pass
+                else:
+                    # call the unbound method with our expanded self to init those attributes
+                    mixinInitMethod (self)
+            else:
+                # copy the attributes into our expanded item
+                self._copyAttributeValues (sourceItem = previousMixin, 
+                                           destItem = self, 
+                                           template=previousMixin)
+    
+    def _previousStamp (self, stampedKind):
+        """
+          Return a mixin used for stamping previously on this item.
+        Matches stampedKind with the previous stamp's kind.
+        """
+        try:
+            previousMixins = self.previousStamps
+        except AttributeError:
+            return None
+        else:
+            for aMixin in previousMixins:
+                if aMixin.itsKind is stampedKind:
+                    previousMixins.remove (aMixin)
+                    return aMixin
+        return None
+
+    def _copyAttributeValues (self, sourceItem, destItem, template):
+        """
+          Copy the attributes from the sourceItem to the destItem.  The attributes
+        to be copied are determined by the template - all attributes of the template
+        are copied.
+        """
+        attrIter = template.itsKind.iterAttributes()
+        while True:
+            try:
+                name, value = attrIter.next()
+            except StopIteration:
+                break
+            if not template.hasAttributeAspect (name, 'redirectTo'):
+                try:
+                    value = sourceItem.getAttributeValue (name)
+                except AttributeError:
+                    pass
+                else:
+                    destItem.setAttributeValue (name, self.copyValue (value))
+
+    def copyValue (self, value):
+        # don't need to clone single items
+        # @@@DLD - find out if there's a better way to copy an attribute value
+        if not isinstance (value, ItemRef.RefDict):
+            return value
+
+        # check the first item to see if it has an alias
+        try:
+            alias = value.getAlias(value[0])
+        except:
+            hasAlias = False
+        else:
+            hasAlias = alias is not None
+
+
+        # create the clone
+        if hasAlias:
+            clone = {}
+        else:
+            clone = []
+
+        # copy each item, using alias if available
+        for item in value:
+            if hasAlias:
+                alias = value.getAlias(item)
+                clone[alias] = item
+            else:
+                clone.append(item)
+        
+        return clone
+
+    """
+      STAMPING TARGET-KIND DETERMINATION
+
+    This section of code is responsible for selecting an appropriate futureKind
+    to use when stamping.  If no futureKind can be determined, the stamping
+    can still take place building the python class on-the-fly.  But selecting
+    a preexisting Kind solves a few esoteric problems for us:
+        1) Unifies class ordering.  We'd like a task item stamped as mail to be
+            the same as a mail item stamped as a task.  The class order is
+            important because we have multiple definitions of the redirectTo 
+            attributes.
+        2) Implements our "synergy mixin" requirement.  When an item is both
+            a task and an event it gains an additional set of attributes
+            due to synergy between the two kinds.  This represents an
+            additional mixin that needs to be added (or removed).
+    """
+
+    def _candidateStampedKinds (self):
         """
         return the list of candidate kinds for stamping
         right now, we consider only ContentItems.
@@ -220,7 +307,7 @@ class ContentItem(Item.Item):
                 contentItemKinds.append (aKind)
         return contentItemKinds
 
-    def ComputeTargetKindSignature(self, operation, stampKind):
+    def _computeTargetKindSignature (self, operation, stampKind):
         """
         Compute the Kind Signature for stamping.
         Takes the operation, the kind of self, the stampKind,
@@ -234,8 +321,8 @@ class ContentItem(Item.Item):
            extra kinds are allowed beyond what's in the target.
         """
         myKind = self.itsKind
-        soughtSignature = SuperKindSignature(myKind)
-        stampSignature = SuperKindSignature(stampKind)
+        soughtSignature = _SuperKindSignature (myKind)
+        stampSignature = _SuperKindSignature (stampKind)
         if operation == 'add':
             for stampSuperKind in stampSignature:
                 if stampSuperKind in soughtSignature:
@@ -259,7 +346,7 @@ class ContentItem(Item.Item):
             extrasAllowed = -1
         return (soughtSignature, extrasAllowed)
 
-    def FindStampedKind(self, operation, stampKind):
+    def _findStampedKind (self, operation, stampKind):
         """
            Return the new Kind that results from self being
         stamped with the Mixin Kind specified.
@@ -271,15 +358,15 @@ class ContentItem(Item.Item):
         @type mixinKind: C{Kind} of the Mixin
         @return: a C{Kind}
         """
-        signature = self.ComputeTargetKindSignature(operation, stampKind)
+        signature = self._computeTargetKindSignature(operation, stampKind)
         if signature is None:
             return None
         soughtSignature, extrasAllowed = signature
         exactMatches = []
         closeMatches = []
-        candidates = self.CandidateStampedKinds()
+        candidates = self._candidateStampedKinds()
         for candidate in candidates:
-            candidateSignature = SuperKindSignature(candidate)
+            candidateSignature = _SuperKindSignature(candidate)
             extras = len(candidateSignature) - len(soughtSignature)
             if extras != 0 and (extras - extrasAllowed) != 0:
                 continue
@@ -313,141 +400,48 @@ class ContentItem(Item.Item):
         # ReKind with the Mixin Kind on-the-fly
         return None
 
-
-    def AddedRemovedKinds(self, futureKind):
+    def _addedOrRemovedKinds (self, newKind, operation, mixinKind):
         """
-        UNDER CONSTRUCTION
         Return the list of kinds added or removed by the stamping.
+        @param newKind: the kind to be used when stamped, or None if unknown
+        @type newKind: C{Kind}
+        @param operation: wheather adding or removing the kind
+        @type operation: C{String}
+        @param mixinKind: the kind being added or removed
+        @type mixinKind: C{Kind}
+        @return: a C{Tuple} containing ([addedKinds], [removedKinds])
         """
-        futureKinds = futureKind.getAttributeValue('superKinds', default = [])
-        myKind = self.itsKind
-        myKinds = myKind.getAttributeValue('superKinds', default = [])
+        if newKind is None:
+            if operation == 'add':
+                return ([mixinKind], [])
+            else:
+                assert operation == 'remove', "invalid Stamp operation in ContentItem._addedOrRemovedKinds: "+operation
+                return ([], [mixinKind])
+        newSignature = _SuperKindSignature (newKind)
+        oldKind = self.itsKind
+        oldSignature = _SuperKindSignature (self.itsKind)
         addedKinds = []
         removedKinds = []
-        if len(myKinds) < len(futureKinds):
-            longList = futureKinds
-            shortList = myKinds
+        if len (oldSignature) < len (newSignature):
+            # put an alias to the longer list into longList
+            longList = newSignature
+            shortList = oldSignature
             kinds = addedKinds
         else:
-            assert len(myKinds) > len(futureKinds)
-            longList = myKinds
-            shortList = futureKinds
+            assert len (oldSignature) > len (newSignature)
+            longList = oldSignature
+            shortList = newSignature
             kinds = removedKinds
         for aKind in longList:
             if not aKind in shortList:
-                kinds.append(aKind)
+                kinds.append (aKind)
         return (addedKinds, removedKinds)
         
-    def MixinPreProcess(self, futureKind):
-        """
-        UNDER CONSTRUCTION
-        In the future this will save and restore bags of attributes
-        during the stamping/unstamping operation.
-        """
-        addedKinds, removedKinds = self.AddedRemovedKinds(futureKind)
-        addedMixins = []
-        removedMixins = []
-        # DLDTBD - flesh out mixin re-stamp data saving
-        return (addedMixins, removedMixins)
+    """
+    ACCESSORS
 
-    def ValuePreProcess(self, futureKind):
-        # Return a set of data to be carried over to the newly stamped Item
-        # under the simple scheme, we just copy the redirected attributes
-        carryOver = {}
-        attrIter = self.itsKind.iterAttributes()
-        while True:
-            try:
-                name, value = attrIter.next()
-            except StopIteration:
-                break
-            if self.hasAttributeAspect(name, 'redirectTo'):
-                try:
-                    value = self.getAttributeValue(name)
-                    # collections need to deep copy their attribute value
-                    # otherwise there will be two references to the collection,
-                    #  which will go away when the first reference goes away.
-                    value = self.CloneCollectionValue(name, value)
-                    oldRedirect = self.getAttributeAspect(name, 'redirectTo')
-                    carryOver[name] = (value, oldRedirect)
-                except AttributeError:
-                    carryOver[name] = None
-        return carryOver
-
-    def StampPreProcess(self, futureKind):
-        """
-          Pre-process an Item for Stamping, and return data needed
-        after the stamping takes place.
-        In the future we will add a call to MixinPreProcess to 
-        save and restore bags of attributes for restamping.
-        """
-        return self.ValuePreProcess(futureKind)
-
-    def StampPostProcess(self, newKind, carryOver):
-        """
-          Post-process an Item for Stamping, and process data 
-        prepared during StampPreProcess.
-        On the future we will add a call to MixinPostProcess to
-        finish saving and restoring bags of attributes for restamping.
-        """
-
-        """
-        simple implementation - copy the redirected attributes,
-        so the new notion of 'who' has the same value as the old one.
-        """
-        for key, value in carryOver.items():
-            if value is not None:
-                value, redirect = value
-                # if the redirect has changed, set the value to the new attribute
-                if self.hasAttributeAspect(key, 'redirectTo'):
-                    newRedirect = self.getAttributeAspect(key, 'redirectTo')
-                    if redirect != newRedirect:
-                        try:
-                            self.setAttributeValue(key, value)
-                        except AttributeError:
-                            pass
-                        except ValueError:
-                            pass
-    
-    def CloneCollectionValue(self, key, value):
-        """
-        If the value is some kind of collection, we need to make a shallow copy
-        so the collection isn't destroyed when the reference in the other attribute
-        is destroyed.
-        
-        @param key: the name of the indirect attribute.
-        @type name: a string.
-        @param value: the value, already set, in the attribute
-        @type value: anything compatible with the attribute's type
-        
-        I made this a separate method for easy overloading.
-        """
-        # don't need to clone single items
-        if self.getAttributeAspect(key, 'cardinality') == 'single':
-            return value
-
-        # check the first item to see if it has an alias
-        try:
-            alias = value.getAlias(value[0])
-            hasAlias = alias is not None
-        except:
-            hasAlias = False
-
-        # create the clone
-        if hasAlias:
-            clone = {}
-        else:
-            clone = []
-
-        # copy each item, using alias if available
-        for item in value:
-            if hasAlias:
-                alias = value.getAlias(item)
-                clone[alias] = item
-            else:
-                clone.append(item)
-        
-        return clone
-
+    Accessors for Content Item attributes
+    """
     def ItemWhoString (self):
         import osaf.contentmodel.contacts.Contacts as Contacts
         """
@@ -535,6 +529,76 @@ class ContentItem(Item.Item):
         Globals.mainView.setStatusMessage (message, *args)
     setStatusMessage = classmethod (setStatusMessage)
 
+"""
+STAMPING SUPPORT CLASSES
+"""
+class _SuperKindSignature(list):
+    """
+    A list of unique superkinds, used as a signature to identify 
+    the structure of a Kind for stamping.
+    The signature is the list of twig node superkinds of the Kind.
+    Using a tree analogy, a twig is the part farthest from the leaf
+    that has no braching.
+    Specifically, a twig node in the SuperKind hierarchy is a node 
+    that has at most one superkind, and whose superkind has at
+    most one superkind, all they way up.
+    The twig superkinds list makes the best signature for two reasons:
+       1) it bypasses all the branching, allowing (A, (B,C)) to match 
+            ((A, B), C)
+       2) it uses the most specialized form when there is no branching,
+            thus if D has superKind B, and B has no superKinds,
+            D is more specialized, so we want to use it.
+    """
+    def __init__(self, aKind, *args, **kwds):
+        """
+        construct with a single Kind
+        """
+        super(_SuperKindSignature, self).__init__(*args, **kwds)
+        onTwig = self.appendTwigSuperkinds(aKind)
+        if onTwig:
+            assert len(self) == 0, "Error building superKind Signature"
+            self.append(aKind)
+
+    def appendTwigSuperkinds(self, aKind):
+        """
+        called with a kind, appends all the twig superkinds
+        and returns True iff there's been no branching within
+        this twig
+        """
+        supers = aKind.getAttributeValue('superKinds', default = [])
+        numSupers = len(supers)
+        onTwig = True
+        for kind in supers:
+            onTwig = self.appendTwigSuperkinds(kind)
+            if onTwig and numSupers > 1:
+                self.appendUnique(kind)
+        return numSupers < 2 and onTwig
+
+    def appendUnique(self, item):
+        if not item in self:
+            self.append(item)
+
+    def extend(self, sequence):
+        for item in sequence:
+            self.appendUnique(item)
+    
+    def properSubsetOf(self, sequence):
+        """
+        return True if self is a proper subset of sequence
+        meaning all items in self are in sequence
+        """
+        for item in self:
+            if not item in sequence:
+                return False
+        return True
+
+    def __str__(self):
+        readable = []
+        for item in self:
+            readable.append(item.itsName)
+        theList = ', '.join(readable)
+        return '['+theList+']'
+            
 class Project(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:

@@ -23,6 +23,7 @@ from repository.util.Path import Path
 
 verbose = False
 compareWhos = True
+compareDates = False # date shouldn't automatically carry over
 testFailureCases = True
 
 class SavedAttrs:
@@ -59,7 +60,9 @@ class StampingTest(TestContentModel.ContentModelTestCase):
     def assertAttributes(self, item):
         itemAttrs = self.savedAttrs[item.itsName]
         self.assertEqual(item.about, itemAttrs.about)
-        self.assertEqual(item.date, itemAttrs.date)
+        # compare the dates
+        if compareDates:
+            self.assertEqual(item.date, itemAttrs.date)
         # compare the whos
         if compareWhos:
             self.assertEqual(len(item.who), len(itemAttrs.who))
@@ -76,12 +79,11 @@ class StampingTest(TestContentModel.ContentModelTestCase):
     def traverseStampSquence(self, item, sequence):
         for operation, stampKind in sequence:
             if verbose:
-                message = "stamping %s with %s %s" % \
+                message = "stamping %s: %s %s" % \
                         (item.itsKind.itsName, 
                          operation,
                          stampKind.itsName)
-                print message
-                logging.warning(message)
+                logging.info(message)
             item.StampKind(operation, stampKind)
             self.assertAttributes(item)
             if operation == 'add':

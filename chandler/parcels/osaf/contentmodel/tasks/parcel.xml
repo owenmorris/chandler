@@ -154,6 +154,36 @@
       
   </Kind>
 
+  <Kind itsName="TaskEventExtraMixin">
+    <displayName>Task Event Extra Mixin Kind</displayName>
+    <description>The attributes specific to an item that is both </description>
+    <description>a task and an event.  This is additional 'due by' information. </description>
+    <classes key="python">osaf.contentmodel.tasks.Task.TaskEventExtraMixin</classes>
+
+    <Attribute itsName="dueByDate">
+      <displayName>Due by Date</displayName>
+      <description>The date when a Task Event is due.</description>
+      <type itemref="DateTime"/>
+    </Attribute>
+
+    <Attribute itsName="dueByRecurrence">
+      <displayName>Due by Recurrence</displayName>
+      <description>Recurrence information for a Task Event.</description>
+      <cardinality>list</cardinality>
+      <type itemref="cal:RecurrencePattern"/>
+    </Attribute>
+
+    <Attribute itsName="dueByTickler">
+      <displayName>Due by Tickler</displayName>
+      <description>The reminder information for a Task Event.</description>
+      <cardinality>list</cardinality>
+      <type itemref="cal:Reminder"/>
+    </Attribute>
+
+  </Kind>
+
+  <!-- TASK -->
+
   <Kind itsName="Task">
     <displayName>Task</displayName>
     <issues>Do we want to support the idea of tasks having sub-tasks? If so, then we need to add attributes for 'superTask' and 'subTasks'.</issues>
