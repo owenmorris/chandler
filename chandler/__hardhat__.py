@@ -11,6 +11,7 @@ dependencies = (
                 'distutils',
                 'persistence/xerces-c',
                 'persistence/pathan',
+                'persistence/dbxml',
                 'wxpython',
                 'egenix-mx',
                 'zodb',
