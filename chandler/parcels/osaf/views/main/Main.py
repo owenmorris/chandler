@@ -311,6 +311,13 @@ class MainView(View):
         changed to the entire summary view's collection.
         The "Collection | Share collection " menu item
         """
+        if not self.webDAVAccountIsSetup():
+            # The user hasn't set up webdav, so let's bring up the accounts
+            # dialog, with the webdav account selected
+            webdavAccount = Globals.repository.findPath('//parcels/osaf/framework/sharing/WebDAVAccount')
+            application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(Globals.wxApplication.mainFrame, account=webdavAccount)
+            return
+
         # lookup the Request Select Event
         rootPath = '//parcels/osaf/framework/blocks/Events/'
         requestSelectItem = Globals.repository.findPath \
@@ -330,13 +337,13 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
         accountOK = self.webDAVAccountIsSetup ()
         if accountOK and collection is not None:
-            notification.data['Enable'] = True
+            # notification.data['Enable'] = True
             if Sharing.isShared (collection):
                 menuTitle = _('Manage collection "%s"') % collection.displayName
             else:
                 menuTitle = _('Share collection "%s"') % collection.displayName
         else:
-            notification.data['Enable'] = False
+            # notification.data['Enable'] = False
             menuTitle = _('Share a collection')
         notification.data ['Text'] = menuTitle
 

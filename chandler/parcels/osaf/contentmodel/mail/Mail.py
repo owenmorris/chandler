@@ -411,18 +411,11 @@ class MailMessageMixin(MIMEContainer):
         self.isInbound = True
         self.parentAccount = account
 
-class MailMessage(MailMessageMixin, Notes.Note):
-    # DLDTBD - fix MI ordering issue
-    def __init__(self, name=None, parent=None, kind=None):
-        if not kind:
-            kind = MailParcel.getMailMessageKind()
-        super (MailMessage, self).__init__(name, parent, kind)
-
     def shareSend (self):
         """
           Share this item, or Send if it's an Email
         We assume we want to send this MailMessage here.
-        DLDTBD - move to MailMessageMixin
+        
         """
         # put a "committing" message into the status bar
         self.setStatusMessage ('Committing changes...')
@@ -439,6 +432,13 @@ class MailMessage(MailMessageMixin, Notes.Note):
         # Now send the mail
         import osaf.mail.smtp as smtp
         smtp.SMTPSender(account, self).sendMail()
+
+class MailMessage(MailMessageMixin, Notes.Note):
+    
+    def __init__(self, name=None, parent=None, kind=None):
+        if not kind:
+            kind = MailParcel.getMailMessageKind()
+        super (MailMessage, self).__init__(name, parent, kind)
 
 class MIMEBinary(MIMENote):
     def __init__(self, name=None, parent=None, kind=None):

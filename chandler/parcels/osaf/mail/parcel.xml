@@ -7,7 +7,7 @@
              xmlns:task="http://osafoundation.org/parcels/osaf/framework/tasks">
 
   <content:IMAPAccount itsName="IMAPAccountOne">
-    <displayName>IMAP Server Account One</displayName>
+    <displayName>IMAP</displayName>
     <host>code-bear.com</host>
     <username>osafuser</username>
     <password>chandler</password>
@@ -25,7 +25,7 @@
 
 
   <content:SMTPAccount itsName="SMTPAccountOne">
-    <displayName>SMTP Server Account One</displayName>
+    <displayName>SMTP</displayName>
     <host>code-bear.com</host>
     <username>osafuser</username>
     <password>chandler</password>

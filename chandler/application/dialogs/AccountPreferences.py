@@ -139,7 +139,8 @@ PANELS = {
 class AccountPreferencesDialog(wx.Dialog):
 
     def __init__(self, parent, title, size=wx.DefaultSize,
-         pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, resources=None):
+         pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, resources=None,
+         account=None):
 
         wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
 
@@ -172,20 +173,23 @@ class AccountPreferencesDialog(wx.Dialog):
         wx.EVT_LISTBOX( self, wx.xrc.XRCID( "ACCOUNTS_LIST" ),
          self.OnAccountSel )
 
-        self.__PopulateAccountsList()
+        self.__PopulateAccountsList(account)
 
-    def __PopulateAccountsList(self):
+    def __PopulateAccountsList(self, account):
         """ Find all AccountBase items and put them in the list; also build
             up a data structure with the applicable attribute values we'll
-            be editing. """
+            be editing. If account is passed in, show its details. """
 
         # Make sure we're sync'ed with any changes other threads have made
         repo.refresh()
 
+        accountIndex = 0 # which account to select first
         accountKind = pm.lookup(MAIL_MODEL, "AccountBase")
         webDavAccountKind = pm.lookup(WEBDAV_MODEL, "WebDAVAccount")
         i = 0
         for item in KindQuery().run([accountKind, webDavAccountKind]):
+            if account == item:
+                accountIndex = i
             values = { }
             for (field, desc) in \
              PANELS[item.accountType]['fields'].iteritems():
@@ -195,8 +199,8 @@ class AccountPreferencesDialog(wx.Dialog):
             i += 1
 
         if i > 0:
-            self.accountsList.SetSelection(0)
-            self.__SwapDetailPane(0)
+            self.accountsList.SetSelection(accountIndex)
+            self.__SwapDetailPane(accountIndex)
 
 
     def __ApplyChanges(self):
@@ -281,12 +285,12 @@ class AccountPreferencesDialog(wx.Dialog):
         sel = evt.GetSelection()
         self.__SwapDetailPane(sel)
 
-def ShowAccountPreferencesDialog(parent):
+def ShowAccountPreferencesDialog(parent, account=None):
         xrcFile = os.path.join(application.Globals.chandlerDirectory,
          'application', 'dialogs', 'AccountPreferences_wdr.xrc')
         resources = wx.xrc.XmlResource(xrcFile)
         win = AccountPreferencesDialog(parent, "Account Preferences",
-         resources=resources)
+         resources=resources, account=account)
         win.CenterOnScreen()
         val = win.ShowModal()
         win.Destroy()
