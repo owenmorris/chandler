@@ -1,0 +1,148 @@
+=========================
+Repository Code Generator
+=========================
+
+Spike's repository code generator is used to generate Python code from
+repository metadata.  It serves two purposes:
+
+1. Ensure that all constructs contained in the current Chandler schemas
+   can be represented using the Spike API.
+
+2. Assist in the translation of existing Chandler content types to use the
+   Spike API.
+
+Before we can do anything useful, we'll need to set up a Chandler repository
+instance::
+
+    >>> import os, repository
+    >>> packdir = os.path.join(os.path.dirname(repository.__file__),'packs')
+    >>> from repository.persistence.DBRepository import DBRepository
+    >>> rep = DBRepository('__repository__')
+    >>> rep.create(ramdb=True)
+
+And then load in the repository schema and Chandler base schema::
+
+    >>> rep.loadPack(os.path.join(packdir,'schema.pack'))
+    >>> rep.loadPack(os.path.join(packdir,'chandler.pack'))
+
+So that we can find items in the repository and inspect them::
+
+    >>> ItemKind = rep.findPath('//Schema/Core/Item')
+    >>> list(ItemKind.superKinds)
+    []
+    >>> [attr.itsName for attr in ItemKind.attributes]
+    ['displayName', 'monitors', 'queries', 'issues', 'examples', 'description']
+    >>> ItemKind.itsName
+    'Item'
+    >>> ItemKind.itsKind.itsName
+    'Kind'
+
+
+------------------------
+Using the Code Generator
+------------------------
+
+Spike's code generation functions are in the ``spike.codegen`` module::
+
+    >>> from spike import codegen
+
+For our examples, we'll need a few schema attributes to test::
+
+    >>> displayName = rep.findPath('//Schema/Core/displayName')
+    >>> examples = rep.findPath('//Schema/Core/examples')
+    >>> values = rep.findPath('//Schema/Core/Enumeration/values')
+    >>> classes = rep.findPath('//Schema/Core/Kind/classes')
+    >>> kindOf = rep.findPath('//Schema/Core/Kind/kindOf')
+
+
+Attribute Generation
+====================
+
+Attributes are generated as indented assignment statements, creating Spike
+schema descriptors.
+
+(These descriptors don't actually work yet, because we're first designing the
+API by creating this code generator.  The existing Chandler schema contents
+effectively form a test for the code generator, forcing us to design a dummy
+API that will support all the features used in the current Chandler schemas.)
+
+Depending on the cardinality, we'll use different kinds of descriptors.
+Attributes with ``single`` cardinality use ``schema.Attribute``:
+
+    >>> codegen.generateAttribute(displayName)
+        displayName = schema.Attribute(String)
+
+attributes with ``list`` cardinality use ``schema.Collection``:
+
+    >>> codegen.generateAttribute(examples)
+        examples = schema.Collection(String)
+
+and attributes with ``dict`` cardinality use ``schema.Mapping``:
+
+    >>> codegen.generateAttribute(classes)
+        classes = schema.Mapping(Class)
+
+If an attribute is required, we include the ``required`` keyword::
+
+    >>> codegen.generateAttribute(values)
+        values = schema.Collection(Symbol, required=True)
+
+And if it doesn't have a type declared, we use ``object`` as the default::
+
+    >>> codegen.generateAttribute(kindOf)
+        kindOf = schema.Collection(object)
+
+
+To-Do
+-----
+
+* description -> docstring
+
+* initial value
+
+* policies (should they be individual attrs or collection of policy enums?)
+
+* root, roots, subAttributes, superAttributes, persist, inheritFrom
+  (why do these exist?)
+
+* inverse relationship (otherName?)
+
+* Handle name-based references to classes (because 2-way links need cycles)
+
+
+
+Class Generation
+================
+
+Classes are generated as a ``class`` statement, followed by the attributes
+defined for the kind::
+
+    >>> codegen.generateClass(rep.findPath('//Schema/Core/Item'))
+    class Item:
+        displayName = schema.Attribute(String)
+        monitors = schema.Attribute(object)
+        queries = schema.Collection(object)
+        issues = schema.Collection(String)
+        examples = schema.Collection(String)
+        description = schema.Attribute(String)
+
+If the kind has superkinds, they are listed as base classes, and the class
+body only contains non-inherited attributes::
+
+    >>> codegen.generateClass(rep.findPath('//Schema/Core/Taxon'))
+    class Taxon(Item):
+        aliasedBy = schema.Collection(object)
+        typeFor = schema.Collection(object)
+
+
+To-Do
+-----
+
+* Docstrings (does anything actually have a description?)
+
+* Enumeration types
+
+* Other types
+
+* Modules and packages
+
