@@ -20,7 +20,7 @@ apply: patches-$(VERSION)
 
 build: expand apply applysmtp applyimap4
 	cd $(SRC); \
-	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
 Twisted-$(VERSION).tar.gz:
