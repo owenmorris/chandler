@@ -892,6 +892,5 @@ class HashTuple(tuple):
 
         if isinstance(name, unicode):
             name = name.encode('utf-8')
-            hash = UUIDext.hash(name)
 
-        return super(HashTuple, self).__contains__(hash)
+        return super(HashTuple, self).__contains__(UUIDext.hash(name))
