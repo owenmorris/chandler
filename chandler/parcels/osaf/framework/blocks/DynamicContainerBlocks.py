@@ -608,10 +608,13 @@ class wxToolbar (wx.ToolBar):
 class Toolbar (Block.RectangularChild, DynamicContainer):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
+        heightGutter = 2
+        if self.buttonsLabeled:
+            heightGutter += 22
         return wxToolbar(self.parentBlock.widget, 
                          Block.Block.getWidgetID(self),
                          wx.DefaultPosition,
-                         (300, self.toolSize.height+2),
+                         (300, self.toolSize.height+heightGutter),
                          style=self.calculate_wxStyle())
 
     def calculate_wxStyle (self):
