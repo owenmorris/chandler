@@ -3,13 +3,13 @@
 
 __author__       = "Mike Taylor <bear@code-bear.com>"
 __contributors__ = []
-__copyright__    = "Copyright (c) 2004 Mike Taylor"
+__copyright__    = "Copyright (c) 2004,2005 Mike Taylor"
 __license__      = "BSD"
 __version__      = "1.0"
 __svn__          = "$Id$"
 
 
-import sys, os, string, datetime
+import sys, os, string, datetime, time
 import tarfile
 import ConfigParser, optparse
 
@@ -104,7 +104,7 @@ class perf:
     perfs = os.listdir(self._options['tbox_data'])
 
     if self.verbose:
-      print 'Loading %d perf data files from %s' % (len(perfs), self._options['tbox_data'])
+      print 'Scanning %d files from %s' % (len(perfs), self._options['tbox_data'])
   
     for perf in perfs:
       if os.path.splitext(perf)[1] == '.perf':
@@ -265,8 +265,9 @@ class perf:
     indexpage  = []
     detailpage = []
 
-    indexpage.append('<p>From %s-%s-%s to %s-%s-%s</p>\n' % (startdate[:4], startdate[4:6], startdate[6:8], 
+    indexpage.append('<p>From %s-%s-%s to %s-%s-%s<br/>\n' % (startdate[:4], startdate[4:6], startdate[6:8], 
                                                              enddate[:4], enddate[4:6], enddate[6:8]))
+    indexpage.append(time.strftime('<small>Generated %d %b %Y at %H%M %Z</small></p>', time.localtime()))
 
     for testkey in tests.keys():
       if testkey <> 'totals:':
