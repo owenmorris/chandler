@@ -1,6 +1,20 @@
                             Chandler Release History
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Milestone 0.4.01 (CVS tag CHANDLER_0_4_01) 2004-10-05
+    * Removed StockQuote example parcel
+    * Added IMAP and SMTP test servers
+    * Made CPIA application-independent
+    * Allowed overriding user account preferences info from a parcel
+    * Added Kind-specific Detail Views
+    * Toolbars reworked, including new toolbar button to switch between tabs
+    * Improvements to BlockDemo
+    * Numerous improvements to documentation to go along with 0.4 release
+    * Added API for creating safe SSL contexts
+    * Removed unused code
+    * Upgraded to PyLucene 0.8.2-6
+    * And an enormous number of bugs fixed
+
 Milestone 0.3.26 (CVS tag CHANDLER_0_3_26) 2004-10-05
     * More unit tests, including an SMTP server for testing that will give
       deliberately bad responses
