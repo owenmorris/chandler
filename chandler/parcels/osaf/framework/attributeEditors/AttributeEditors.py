@@ -9,7 +9,7 @@ import wx
 import mx.DateTime as DateTime
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
-import repository.schema.Types as Types
+import repository.item.ItemHandler as ItemHandler
 
 class AttributeEditor (object):
 
@@ -142,6 +142,9 @@ class DateTimeAttributeEditor (StringAttributeEditor):
 
 class RepositoryAttributeEditor (StringAttributeEditor):
     """ Uses Repository Type conversion to provide String representation. """
+    def ReadOnly (self, (item, attribute)):
+        return False # not read-only allows editing the attribute
+
     def GetAttributeValue (self, item, attributeName):
         # attempt to access as a Chandler attribute first
         try:
@@ -164,11 +167,16 @@ class RepositoryAttributeEditor (StringAttributeEditor):
             attrType = item.getAttributeAspect (attributeName, "type")
         except:
             # attempt access as a plain Python attribute
-            # should work for properties, if it parses the string
-            setattr (item, attributeName, valueString)
-        else:
-            value = attrType.makeValue (valueString)
-            setattr (item, attributeName, value)
+            try:
+                value = getattr (item, attributeName)
+            except AttributeEditor:
+                # attribute currently has no value, can't figure out the type
+                setattr (item, attributeName, valueString) # hope that a string will work
+            # ask the repository for the type associated with this value
+            attrType = ItemHandler.ItemHandler.typeHandler (item.itsView, value)
+        # now we can convert the string to the right type
+        value = attrType.makeValue (valueString)
+        setattr (item, attributeName, value)
 
 class DateTimeDeltaAttributeEditor (StringAttributeEditor):
     """ Knows that the data Type is DateTimeDelta. """
