@@ -131,6 +131,8 @@ class VisualStudio:
     def __init__ (self):
         # Find the newest version of Visual Studio that's installed
         self.version = 0
+        self.Found = False
+        
         for base in HKEYS:
             d = read_keys(base, r"Software\Microsoft\VisualStudio")
             if d:
@@ -149,15 +151,14 @@ class VisualStudio:
                     except KeyError:
                         pass
 
-        if not self.version:
-            print "Couldn't find an installed version of Visual Studio. Exiting."
-            sys.exit(1)
-
-        if self.version >= 7:
-            self._root = r"Software\Microsoft\VisualStudio"
-            self._macros = MacroExpander(self.version)
-        else:
-            self._root = r"Software\Microsoft\Devstudio"
+        if self.version:
+            self.Found = True
+            
+            if self.version >= 7:
+                self._root = r"Software\Microsoft\VisualStudio"
+                self._macros = MacroExpander(self.version)
+            else:
+                self._root = r"Software\Microsoft\Devstudio"
 
     def get_msvc_paths(self, path):
         """Get a list of devstudio directories (include, lib or path).

@@ -1,6 +1,6 @@
 __version__     = "$Revision$"
 __date__        = "$Date$"
-__copyright__   = "Copyright (c) 2003 Open Source Applications Foundation"
+__copyright__   = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__     = "GPL -- see LICENSE.txt"
 
 
@@ -133,53 +133,54 @@ def init(buildenv):
     # set OS-specific variables
     if buildenv['os'] == 'win':
 
-        buildenv['python'] = os.path.join(CHANDLERBIN,
-                                          'release', 'bin', 'python.exe')
-        buildenv['python_d'] = os.path.join(CHANDLERBIN,
-                                            'debug', 'bin', 'python_d.exe')
+        buildenv['python']   = os.path.join(CHANDLERBIN, 'release', 'bin', 'python.exe')
+        buildenv['python_d'] = os.path.join(CHANDLERBIN, 'debug',   'bin', 'python_d.exe')
+        buildenv['swig']     = os.path.join(CHANDLERBIN, 'release', 'bin', 'swig.exe')
+        buildenv['swig_d']   = os.path.join(CHANDLERBIN, 'debug',   'bin', 'swig.exe')
+
+        buildenv['makensis'] = findInPath(buildenv['path'], "makensis.exe")
 
         import os_win
         
         vs = os_win.VisualStudio();
-        buildenv['compilerVersion'] = vs.version
         
-        # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for devenv.exe...")
-        devenv_file = vs.find_exe( "devenv.exe")
-        if( devenv_file ):
-            # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + devenv_file)
-            buildenv['compiler'] = devenv_file
+        buildenv['compilerVersion'] = vs.version
+
+        if vs.Found:
+            # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for devenv.exe...")
+            devenv_file = vs.find_exe( "devenv.exe")
+            if( devenv_file ):
+                # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + devenv_file)
+                buildenv['compiler'] = devenv_file
+            else:
+                log(buildenv, HARDHAT_ERROR, "HardHat", "Can't find devenv.exe")
+                log_dump(buildenv)
+                raise HardHatMissingCompilerError
+
+            # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for nmake.exe...")
+            nmake_file = vs.find_exe( "nmake.exe")
+            if( nmake_file ):
+                # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + nmake_file)
+                buildenv['nmake'] = nmake_file
+            else:
+                log(buildenv, HARDHAT_ERROR, "HardHat", "Can't find nmake.exe")
+                log_dump(buildenv)
+                raise HardHatMissingCompilerError
+            include_path = vs.get_msvc_paths('include')
+            include_path = string.join( include_path, ";")
+            # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Include: " + include_path)
+            os.putenv('INCLUDE', include_path)
+            lib_path = vs.get_msvc_paths('library')
+            lib_path = string.join( lib_path, ";")
+            # log(buildenv, HARDHAT_MESSAGE, "HardHat", "lib: " + lib_path)
+            os.putenv('LIB', lib_path)
+
+            cl_dir = os.path.dirname(nmake_file)
+            buildenv['path'] = cl_dir + os.pathsep + buildenv['path']
+            devenv_dir = os.path.dirname(devenv_file)
+            buildenv['path'] = devenv_dir + os.pathsep + buildenv['path']
         else:
-            log(buildenv, HARDHAT_ERROR, "HardHat", "Can't find devenv.exe")
-            log_dump(buildenv)
-            raise HardHatMissingCompilerError
-
-        # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for nmake.exe...")
-        nmake_file = vs.find_exe( "nmake.exe")
-        if( nmake_file ):
-            # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + nmake_file)
-            buildenv['nmake'] = nmake_file
-        else:
-            log(buildenv, HARDHAT_ERROR, "HardHat", "Can't find nmake.exe")
-            log_dump(buildenv)
-            raise HardHatMissingCompilerError
-        include_path = vs.get_msvc_paths('include')
-        include_path = string.join( include_path, ";")
-        # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Include: " + include_path)
-        os.putenv('INCLUDE', include_path)
-        lib_path = vs.get_msvc_paths('library')
-        lib_path = string.join( lib_path, ";")
-        # log(buildenv, HARDHAT_MESSAGE, "HardHat", "lib: " + lib_path)
-        os.putenv('LIB', lib_path)
-
-        cl_dir = os.path.dirname(nmake_file)
-        buildenv['path'] = cl_dir + os.pathsep + buildenv['path']
-        devenv_dir = os.path.dirname(devenv_file)
-        buildenv['path'] = devenv_dir + os.pathsep + buildenv['path']
-
-        buildenv['swig'] = os.path.join(CHANDLERBIN,
-                                        'release', 'bin', 'swig.exe')
-        buildenv['swig_d'] = os.path.join(CHANDLERBIN,
-                                          'debug', 'bin', 'swig.exe')
+            log(buildenv, HARDHAT_MESSAGE, "HardHat", "Could not locate Visual Studio")
 
     if buildenv['os'] == 'posix':
 
@@ -1555,6 +1556,25 @@ def compressDirectory(buildenv, directories, fileRoot):
          [buildenv['gzip'], "-f", fileRoot+".tar"],
         "Running gzip on " + fileRoot + ".tar")
         return fileRoot + ".tar.gz"
+
+def makeInstaller(buildenv, directories, fileRoot):
+    """This assumes that directory is an immediate child of the current dir"""
+        # currently only windows is processed
+        # TODO: added Linux (RPM) and OS X (dmg?) support
+    if buildenv['os'] == 'win':
+        nsisScriptPath = os.path.join(buildenv['root'], "internal", "installers", "win")
+        
+        if sys.platform == 'cygwin':
+          scriptName = os.path.join(nsisScriptPath, "makeinstaller.sh")
+          executeCommand(buildenv, "HardHat", 
+             [scriptName, nsisScriptPath, "chandler.nsi", buildenv['root'], fileRoot],
+            "Building Windows Installer")
+        else:
+            executeCommand(buildenv, "HardHat",
+                 [buildenv['makensis'], os.path.join(nsisScriptPath, "chandler.nsi")],
+                "Building Windows Installer")
+
+        return nsisScriptPath
 
 def convertLineEndings(srcdir):
     """Convert all .txt files in the distribution root to DOS style line endings"""

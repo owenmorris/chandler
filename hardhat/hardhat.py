@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 __version__     = "$Revision$"
 __date__        = "$Date$"
-__copyright__   = "Copyright (c) 2003 Open Source Applications Foundation"
+__copyright__   = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__     = "GPL -- see LICENSE.txt"
 
 """
