@@ -267,19 +267,15 @@
   <Menu itsName="ItemMenu">
     <blockName>ItemMenu</blockName>
     <title>&amp;Item</title>
-    <childrenBlocks itemref="doc:StampAsMenu"/>
-    <childrenBlocks itemref="doc:ItemSeparator1"/>
-    <childrenBlocks itemref="doc:MarkAsMenu"/>
-    <childrenBlocks itemref="doc:ItemSeparator2"/>
-    <childrenBlocks itemref="doc:MoveToMenu"/>
-    <childrenBlocks itemref="doc:AddToMenu"/>
+    <childrenBlocks itemref="doc:StampMessageItem"/>
+    <childrenBlocks itemref="doc:StampTaskItem"/>
+    <childrenBlocks itemref="doc:StampEventItem"/>
   </Menu>
   
   <Menu itsName="CollectionMenu">
     <blockName>CollectionMenu</blockName>
     <title>&amp;Collection</title>
     <childrenBlocks itemref="doc:ShareOrManageItem"/>
-    <childrenBlocks itemref="doc:ChangeCollectionTypeMenu"/>
     <childrenBlocks itemref="doc:RenameItem"/>
   </Menu>
   
@@ -945,153 +941,25 @@
     <helpString>About Chandler...</helpString>
   </MenuItem>
 
-  <Menu itsName="StampAsMenu">
-    <blockName>StampAsMenu</blockName>
-    <title>Stamp as</title>
-    <helpString>Stamp this Item with an additional Kind</helpString>
-    <childrenBlocks itemref="doc:StampMessageItem"/>
-    <childrenBlocks itemref="doc:StampTaskItem"/>
-    <childrenBlocks itemref="doc:StampEventItem"/>
-  </Menu>
-
   <MenuItem itsName="StampMessageItem">
     <blockName>StampMessageItem</blockName>
-    <title>Message</title>
+    <title>Send as Message</title>
     <event itemref="events:NULL"/>
     <helpString>Stamp with Message attributes</helpString>
   </MenuItem>
 
   <MenuItem itsName="StampTaskItem">
     <blockName>StampTaskItem</blockName>
-    <title>Task</title>
+    <title>Put on Taskpad</title>
     <event itemref="events:NULL"/>
     <helpString>Stamp with Task attributes</helpString>
   </MenuItem>
 
   <MenuItem itsName="StampEventItem">
     <blockName>StampEventItem</blockName>
-    <title>Event</title>
+    <title>Put on Calendar</title>
     <event itemref="events:NULL"/>
     <helpString>Stamp with Calendar Event attributes</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="ItemSeparator1">
-    <blockName>ItemSeparator1</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-
-  <Menu itsName="MarkAsMenu">
-    <blockName>MarkAsMenu</blockName>
-    <title>Mark as</title>
-    <helpString>Mark this Item with an attribute</helpString>
-    <childrenBlocks itemref="doc:MarkJunkItem"/>
-    <childrenBlocks itemref="doc:MarkReadItem"/>
-    <childrenBlocks itemref="doc:MarkNeedsReplyItem"/>
-    <childrenBlocks itemref="doc:MarkImportantItem"/>
-    <childrenBlocks itemref="doc:MarkNormalItem"/>
-    <childrenBlocks itemref="doc:MarkFYIItem"/>
-  </Menu>
-
-  <MenuItem itsName="ItemSeparator2">
-    <blockName>ItemSeparator2</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-
-  <MenuItem itsName="MarkJunkItem">
-    <blockName>MarkJunkItem</blockName>
-    <title>Junk</title>
-    <event itemref="events:NULL"/>
-    <helpString>Mark as Junk or Not Junk</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="MarkReadItem">
-    <blockName>MarkReadItem</blockName>
-    <title>Unread</title>
-    <event itemref="events:NULL"/>
-    <helpString>Mark as Unread or Read</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="MarkNeedsReplyItem">
-    <blockName>MarkNeedsReplyItem</blockName>
-    <title>Needs reply</title>
-    <event itemref="events:NULL"/>
-    <helpString>Mark as needing a reply</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="MarkImportantItem">
-    <blockName>MarkImportantItem</blockName>
-    <title>Important</title>
-    <event itemref="events:NULL"/>
-    <helpString>Mark as Important</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="MarkNormalItem">
-    <blockName>MarkNormalItem</blockName>
-    <title>Normal</title>
-    <event itemref="events:NULL"/>
-    <helpString>Mark as Normal priority</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="MarkFYIItem">
-    <blockName>MarkFYIItem</blockName>
-    <title>FYI</title>
-    <event itemref="events:NULL"/>
-    <helpString>Mark as Informational priority</helpString>
-  </MenuItem>
-
-  <Menu itsName="MoveToMenu">
-    <blockName>MoveToMenu</blockName>
-    <title>Move to</title>
-    <helpString>Move to a collection</helpString>
-  </Menu>
-
-  <Menu itsName="AddToMenu">
-    <blockName>AddToMenu</blockName>
-    <title>Add to</title>
-    <helpString>Add to a collection</helpString>
-  </Menu>
-
-  <Menu itsName="ChangeCollectionTypeMenu">
-    <blockName>ChangeCollectionTypeMenu</blockName>
-    <title>Change collection type to</title>
-    <helpString>Change a collection type</helpString>
-    <childrenBlocks itemref="doc:CollGenericItem"/>
-    <childrenBlocks itemref="doc:CollMailboxItem"/>
-    <childrenBlocks itemref="doc:CollCalendarItem"/>
-    <childrenBlocks itemref="doc:CollProjectItem"/>
-  </Menu>
-
-  <MenuItem itsName="CollGenericItem">
-    <blockName>CollGenericItem</blockName>
-    <title>Generic</title>
-    <event itemref="events:NULL"/>
-    <helpString>Make a collection Generic</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="CollMailboxItem">
-    <blockName>CollMailboxItem</blockName>
-    <title>Mailbox</title>
-    <event itemref="events:NULL"/>
-    <helpString>Make this collection a Mailbox</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="CollCalendarItem">
-    <blockName>CollCalendarItem</blockName>
-    <title>Calendar</title>
-    <event itemref="events:NULL"/>
-    <helpString>Make this collection a Calendar</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="CollProjectItem">
-    <blockName>CollProjectItem</blockName>
-    <title>Project</title>
-    <event itemref="events:NULL"/>
-    <helpString>Make this collection a Project</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="CollectionSeparator1">
-    <blockName>CollectionSeparator1</blockName>
-    <menuItemKind>Separator</menuItemKind>
   </MenuItem>
 
   <MenuItem itsName="RenameItem">
