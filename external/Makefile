@@ -79,3 +79,6 @@ clean: env
 
 upload:	$(SNAP)-$(VERSION).tar.gz
 	scp $(SNAP)-$(VERSION).tar.gz $(UPLOAD)
+
+install: $(SNAP)-$(VERSION).tar.gz
+	tar -C .. -xvzf $(SNAP)-$(VERSION).tar.gz

@@ -40,39 +40,30 @@ build: sources apply
                               VERSION=$(VERSION) \
                               all install
 
-snap: 
-	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/PyLucene.py \
-                  $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
-                  $(SNAP)/bin/libdb_java42$(SUFFIX).dll
+MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
+         $(SNAP)/$(SITE)/_PyLucene$(_SUFFIX).pyd \
+         $(SNAP)/bin/libdb_java42$(SUFFIX).dll
 
 else
 
 ifeq ($(OS),Darwin)
 
-snap: 
-	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/PyLucene.py \
-                  $(SNAP)/$(SITE)/_PyLucene.so \
-                  $(SNAP)/db/lib/libdb_java-4.2.jnilib \
-                  $(SNAP)/db/lib/libdb_java-4.2.la \
-                  $(SNAP)/lib/libgcc_s.1.0.dylib \
-                  $(SNAP)/lib/libgcj.5.dylib \
-                  $(SNAP)/lib/libstdc++.6.dylib
+MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
+         $(SNAP)/$(SITE)/_PyLucene.so \
+         $(SNAP)/db/lib/libdb_java-4.2.jnilib \
+         $(SNAP)/db/lib/libdb_java-4.2.la \
+         $(SNAP)/lib/libgcc_s.1.0.dylib \
+         $(SNAP)/lib/libgcj.5.dylib \
+         $(SNAP)/lib/libstdc++.6.dylib
 
 else
 
-snap: 
-	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/PyLucene.py \
-                  $(SNAP)/$(SITE)/_PyLucene.so \
-                  $(SNAP)/db/lib/libdb_java-4.2.so \
-                  $(SNAP)/lib/libgcc_s.so.1 \
-                  $(SNAP)/lib/libgcj.so.4 \
-                  $(SNAP)/lib/libstdc++.so.5
+MANIFEST=$(SNAP)/$(SITE)/PyLucene.py \
+         $(SNAP)/$(SITE)/_PyLucene.so \
+         $(SNAP)/db/lib/libdb_java-4.2.so \
+         $(SNAP)/lib/libgcc_s.so.1 \
+         $(SNAP)/lib/libgcj.so.4 \
+         $(SNAP)/lib/libstdc++.so.5
 
 endif
 
@@ -99,3 +90,11 @@ clean:
 
 upload: PyLucene-$(SNAP)-$(RELVER).tar.gz
 	scp PyLucene-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+
+snap: 
+	cd $(BUILD_ROOT); \
+        tar -cvzf $(PYLUCENE)/PyLucene-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+
+install:
+	cd $(BUILD_ROOT); \
+        tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/.. -xvf -

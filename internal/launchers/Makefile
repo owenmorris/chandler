@@ -57,10 +57,16 @@ endif
 
 #  common to all platforms
 
+MANIFEST=$(SNAP)/Run* \
+         $(LAUNCHER_FILES)
+
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(LAUNCHERS)/Launchers-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/Run* $(LAUNCHER_FILES)
+        tar -cvzf $(LAUNCHERS)/Launchers-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+
+install:
+	cd $(BUILD_ROOT); \
+        tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/.. -xvf -
 
 clean:
 	rm -rf $(BUILD)
