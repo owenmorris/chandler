@@ -63,6 +63,12 @@
     <dispatchToBlock itemref="doc:Tabs"/>
   </BlockEvent>
 
+  <BlockEvent itsName="CycleTabs">
+    <eventName>CycleTabs</eventName>
+    <methodName>onCycleTabsEvent</methodName>
+    <dispatchToBlock itemref="doc:BlockDemoToolbarButton"/>
+  </BlockEvent>
+
   <!--
     Menus
   -->
@@ -165,6 +171,22 @@
     <title>Clear</title>
   </MenuItem>
 
+  
+  <!-- Toolbar Item, to add to the global toolbar -->
+  <ToolbarItem itsName="BlockDemoToolbarButton"
+               itemClass="osaf.views.demo.Demo.DemoToolbarItem">
+    <blockName>BlockDemoToolbarButton</blockName>
+    <location>NavigationBar</location>
+    <title>Cycle Tabs</title>
+    <bitmap>application/images/forwardto.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Go to the next tab in block demo</helpString>
+    <event itemref="doc:CycleTabs"/>
+    <!-- ToolbarItems must use subscribeAlways because they are not true wx widgets -->
+    <!--  but we'll only get the event when pressed, which will only happen when visible. -->
+    <subscribeAlwaysEvents itemref="doc:CycleTabs"/>
+  </ToolbarItem>
+ 
   <!--
     Layout blocks
   -->
@@ -418,6 +440,9 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <childrenBlocks itemref="doc:DeleteRedoItem"/>
     <childrenBlocks itemref="doc:InsertPasteSpecialMenu"/>
     <childrenBlocks itemref="doc:InsertClearItem"/>
+
+    <!-- Toolbar button to test Dynamic Containers -->
+    <childrenBlocks itemref="doc:BlockDemoToolbarButton"/>
 
     <!-- Layout children -->
     <childrenBlocks itemref="doc:Tabs"/>
