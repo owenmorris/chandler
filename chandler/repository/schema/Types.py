@@ -11,6 +11,8 @@ import repository.util.Path
 import repository.util.SingleRef
 import repository.util.URL
 
+from new import classobj
+
 from repository.item.Item import Item
 from repository.item.ItemHandler import ItemHandler
 from repository.item.ItemRef import RefDict
@@ -442,6 +444,9 @@ class Class(Type):
 
     def getImplementationType(self):
         return type
+
+    def recognizes(self, value):
+        return type(value) in (type, classobj)
 
     def handlerName(self):
         return 'class'
