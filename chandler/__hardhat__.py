@@ -8,6 +8,7 @@ dependencies = (
                 'Python-2.2.2', 
                 'wxWindows-2.4',
                 'distutils',
+                'PyXML',
                 'egenix-mx-base-2.0.4',
                 'zodb',
                )
