@@ -228,7 +228,8 @@ class Client(object):
                 # bad things can happen:
                 old = urlparse.urlsplit(url)
                 new = urlparse.urlsplit(newurl)
-                if method in ('GET', 'HEAD') or (old[0] == new[0] and old[1] == new[1]):
+                if method in ('GET', 'HEAD', 'OPTIONS') or \
+                  (old[0] == new[0] and old[1] == new[1]):
                     url = newurl
                     closeWhenFinished = True
                     logger.debug("Redirecting to: %s" % url)
