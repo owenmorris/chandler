@@ -86,50 +86,46 @@ def CreateIndex(buildName):
     """Generates a <buildName>_index.html page from the hint files that hardhat creates
     which contain the actual distro filenames"""
 
-    fileOut = file(buildName+"_index.html", "w")
-    fileOut.write("<html><head><META HTTP-EQUIV=Pragma CONTENT=no-cache>\n")
-    fileOut.write("<link rel=Stylesheet href=http://builds.osafoundation.org/tinderbox/OSAF.css type=text/css charset=iso-8859-1>\n")
-    fileOut.write("<title>Downloads for Chandler Build: " + buildName + "</title>\n")
-    fileOut.write("</head><body topmargin=0 leftmargin=0 marginwith=0 marginheight=0><img src=http://builds.osafoundation.org/tinderbox/OSAFLogo.gif>\n")
-    fileOut.write("<table border=0><tr><td width=450>\n")
-    fileOut.write("<h2>Chandler Build: " + buildName + "</h2>\n")
-    fileOut.write("</td></tr>\n<tr><td><hr></td></tr>\n")
+    html =  '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">\n'
+    html += '<html><head>\n'
+    html += '<link rel="Stylesheet" href="http://builds.osafoundation.org/tinderbox/OSAF.css" type="text/css" charset="iso-8859-1">\n'
+    html += '<title>Downloads for Chandler Build: ' + buildName + '</title>\n'
+    html += '</head><body<img src="http://builds.osafoundation.org/tinderbox/OSAFLogo.gif" alt="[OSAF Logo]">\n'
+    html += '<h2>Chandler Build: ' + buildName + '</h2>\n'
     files = os.listdir(os.path.join("/home/builder/snapshots", buildName))
     for thisFile in files:
         fileName = os.path.join("/home/builder/snapshots", buildName,thisFile)
         urlPath = os.path.join("/chandler/snapshots", buildName,thisFile)
         if fileName.find("_src_") > 0:
             print "Generating data for ", thisFile
-            fileOut.write("<tr><td>\n")
-            fileOut.write("<h3><a href=http://builds.osafoundation.org" + urlPath + ">" + thisFile + "</a></h3>\n</td></tr>\n")
-            fileOut.write("<tr><td>\n")
-            fileOut.write(" MD5 checksum: " + hardhatutil.MD5sum(fileName) +\
-                          "<br>")
-            fileOut.write(" SHA checksum: " + hardhatutil.SHAsum(fileName) +\
-                          "<br>")
-            fileOut.write("</td></tr>\n<tr><td><hr></td></tr>\n")
+            html += '<strong style="font-size: larger;">'
+            html += '<a href="http://builds.osafoundation.org' + urlPath + '">' + thisFile + '</a>'
+            html += ' (' + hardhatutil.fileSize(fileName) + ')</strong>\n'
+            html += '<p>Source code.</p>'
+            html += ' MD5 checksum: ' + hardhatutil.MD5sum(fileName) + '<br>'
+            html += ' SHA checksum: ' + hardhatutil.SHAsum(fileName) + '<br>'
+            html += '\n<hr>\n'
         elif fileName.find("Chan") > 0:
             print "Generating data for ", thisFile
-            fileOut.write("<tr><td>\n")
-            fileOut.write("<h3><a href=http://builds.osafoundation.org" + urlPath + ">" + thisFile + "</a></h3>\n</td></tr>\n")
-            fileOut.write("<tr><td>\n")
-            fileOut.write("<tr><td>\n")
+            html += '<strong style="font-size: larger;">'            
+            html += '<a href="http://builds.osafoundation.org' + urlPath + '">' + thisFile + '</a>'
+            html += ' (' + hardhatutil.fileSize(fileName) + ')</strong>\n'
             if fileName.find("_debug_") > 0:
-                fileOut.write( _descriptions['developer'][1])
+                html += '<p>' + _descriptions['developer'][1] + '</p>'
             else:
-                fileOut.write( _descriptions['enduser'][1])
-            fileOut.write("<tr><td>\n")
-            fileOut.write(" MD5 checksum: " + hardhatutil.MD5sum(fileName) +\
-                          "<br>")
-            fileOut.write(" SHA checksum: " + hardhatutil.SHAsum(fileName) +\
-                          "<br>")
-            fileOut.write("</td></tr>\n<tr><td><hr></td></tr>\n")
+                html += '<p>' + _descriptions['enduser'][1] + '</p>'
+            html += ' MD5 checksum: ' + hardhatutil.MD5sum(fileName) + '<br>'
+            html += ' SHA checksum: ' + hardhatutil.SHAsum(fileName) + '<br>'
+            html += '\n<hr>\n'
         else:
             print "skipping ", thisFile
 
-
-    fileOut.write("</table></body></html>\n")
+    html += '</body></html>\n'
+    
+    fileOut = file(buildName+"_index.html", "w")    
+    fileOut.write(html)
     fileOut.close()
+
     shutil.move(fileOut.name, os.path.join("snapshots", buildName, fileOut.name))
 
 main()
