@@ -1,0 +1,103 @@
+#!/usr/bin/python -u
+#
+# Setup script for libxml2 and libxslt if found
+#
+import sys, os
+from distutils.core import setup, Extension
+
+# Below ROOT, we expect to find include, include/libxml2, lib and bin.
+# On *nix, it is not needed (but should not harm), 
+# on Windows, it is set by configure.js.
+ROOT = os.path.join('..', 'win32', '@prefix@')
+
+# In order to not link against both debug and non-debug versions of msvcrt
+EXTRALINKARGS = []
+# debug = "--debug" in sys.argv or "-g" in sys.argv
+# if debug and os.name == "nt":
+#     EXTRALINKARGS.append("/NODEFAULTLIB:MSVCRT")
+
+# Thread-enabled libxml2
+with_threads = True
+
+def missing(file):
+    if os.access(file, os.R_OK) == 0:
+        return 1
+    return 0
+
+# those are examined to find 
+# - libxml/tree.h
+includes = [ os.path.abspath('..'), os.path.abspath('../../../libxml2/libxml2-2.6.3/win32/@prefix@/include') ];
+
+
+# those are added in the linker search path for libraries
+libdirs = [ os.path.abspath(os.path.join(ROOT, 'lib')), os.path.abspath('../../../libxml2/libxml2-2.6.3/win32/@prefix@/lib') ]
+
+
+xslt_files = ["libxslt-api.xml", "libxslt-python-api.xml",
+              "libxslt.c", "libxsl.py", "libxslt_wrap.h",
+              "generator.py"]
+
+with_xslt=0
+if missing("libxslt-py.c") or missing("libxslt.py"):
+    if missing("generator.py") or missing("../doc/libxslt-api.xml"):
+        print "libxslt stub generator not found, libxslt not built"
+    else:
+        try:
+            import generator
+        except:
+            print "failed to generate stubs for libxslt, aborting ..."
+            print sys.exc_type, sys.exc_value
+        else:
+            head = open("libxsl.py", "r")
+            generated = open("libxsltclass.py", "r")
+            result = open("libxslt.py", "w")
+            for line in head.readlines():
+                result.write(line)
+            for line in generated.readlines():
+                result.write(line)
+            head.close()
+            generated.close()
+            result.close()
+            with_xslt=1
+else:
+    with_xslt=1
+
+
+macros  = []
+if with_threads:
+    macros.append(('_REENTRANT','1'))
+
+if with_xslt == 1:
+    modules = [ 'libxslt' ]
+    c_files = [ 'libxslt-py.c', 'libxslt.c', 'types.c' ]
+    libs    = [ 'libxslt_a', 'libexslt_a', 'libxml2_a' ]
+
+
+extens=[Extension('libxsltmod', c_files, include_dirs=includes,
+                            library_dirs=libdirs, 
+                            libraries=libs, define_macros=macros)]
+
+if missing("MANIFEST"):
+
+    manifest = open("MANIFEST", "w")
+    manifest.write("setup.py\n")
+    if with_xslt == 1:
+        for file in xslt_files:
+            manifest.write(file + "\n")
+    manifest.close()
+
+setup (name = "libxslt-python",
+       # On *nix, the version number is created from setup.py.in
+       # On windows, it is set by configure.js
+       version = "@LIBXSLT_VERSION_NUMBER@",
+       description = "libxslt package",
+       author = "Daniel Veillard",
+       author_email = "veillard@redhat.com",
+       url = "http://xmlsoft.org/python.html",
+       py_modules=modules,
+       ext_modules=extens,
+       ext_package=None,
+       data_files=[])
+
+sys.exit(0)
+

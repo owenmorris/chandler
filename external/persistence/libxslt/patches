@@ -11,24 +11,6 @@
      else
  	if test -x "$with_python"
  	then
---- libxslt-1.1.2/win32/Makefile.msvc	Sun Dec 21 03:01:27 2003
-+++ libxslt-1.1.2-patched/win32/Makefile.msvc	Wed Jan 28 17:09:52 2004
-@@ -66,11 +66,11 @@
- 
- # Optimisation and debug symbols.
- !if "$(DEBUG)" == "1"
--CFLAGS = $(CFLAGS) /D "_DEBUG" /Od /Z7
--LDFLAGS = $(LDFLAGS) /DEBUG
-+CFLAGS = $(CFLAGS) /D "_DEBUG" /Od /Z7 /I..\..\libxml2\win32\debug\include
-+LDFLAGS = $(LDFLAGS) /DEBUG /LIBPATH:..\..\libxml2\win32\debug\lib
- !else
--CFLAGS = $(CFLAGS) /D "NDEBUG" /O2 
--LDFLAGS = $(LDFLAGS) /OPT:NOWIN98
-+CFLAGS = $(CFLAGS) /D "NDEBUG" /O2 /I..\..\libxml2\win32\release\include
-+LDFLAGS = $(LDFLAGS) /OPT:NOWIN98 /LIBPATH:..\..\libxml2\win32\release\lib
- !endif
- 
- # Libxslt object files.
 --- libxslt-1.1.2/win32/configure.js	Sun Dec 21 03:01:27 2003
 +++ libxslt-1.1.2-patched/win32/configure.js	Mon Jan 26 17:29:20 2004
 @@ -9,6 +9,7 @@
@@ -132,3 +114,21 @@
  
  
  DIST_SUBDIRS = libxslt libexslt xsltproc python doc tests
+--- libxslt-1.1.2/win32/Makefile.msvc	2003-12-21 03:01:27.000000000 -0800
++++ libxslt-1.1.2-patched/win32/Makefile.msvc	2004-03-18 17:39:19.194859200 -0800
+@@ -66,11 +66,11 @@
+ 
+ # Optimisation and debug symbols.
+ !if "$(DEBUG)" == "1"
+-CFLAGS = $(CFLAGS) /D "_DEBUG" /Od /Z7
+-LDFLAGS = $(LDFLAGS) /DEBUG
++CFLAGS = $(CFLAGS) /D "_DEBUG" /Od /Z7 /I..\..\..\libxml2\libxml2-2.6.3\win32\debug\include
++LDFLAGS = $(LDFLAGS) /DEBUG /LIBPATH:..\..\..\libxml2\libxml2-2.6.3\win32\debug\lib
+ !else
+-CFLAGS = $(CFLAGS) /D "NDEBUG" /O2 
+-LDFLAGS = $(LDFLAGS) /OPT:NOWIN98
++CFLAGS = $(CFLAGS) /D "NDEBUG" /O2 /I..\..\..\libxml2\libxml2-2.6.3\win32\release\include
++LDFLAGS = $(LDFLAGS) /OPT:NOWIN98 /LIBPATH:..\..\..\libxml2\libxml2-2.6.3\win32\release\lib
+ !endif
+ 
+ # Libxslt object files.

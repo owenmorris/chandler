@@ -30,7 +30,7 @@ $(SRC)/$(BUILD)/config.msvc: apply
 
 compile: $(SRC)/$(BUILD)/config.msvc
 	cd $(SRC)/win32; MAKEFLAGS=; \
-	nmake -nologo -f Makefile.msvc BUILD_VERSION=$(SNAP) install
+	nmake -nologo -f Makefile.msvc BUILD_VERSION=$(SNAP) all install
 
 py:
 	cd $(SRC)/python; \
