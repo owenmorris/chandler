@@ -1,0 +1,190 @@
+Index: serializing.py
+===================================================================
+--- vobject-0.1/vobject/serializing.py	(revision 70)
++++ vobject-0.1/vobject/serializing.py	(working copy)
+@@ -67,6 +67,28 @@
+ def integerToString(num):
+     return str(num)
+ 
++def timedeltaToString(delta):
++    """Convert timedelta to an rfc2445 DURATION."""
++    if delta.days == 0: sign = 1
++    else: sign = delta.days / abs(delta.days)
++    delta = abs(delta)
++    days = delta.days
++    hours = delta.seconds / 3600
++    minutes = (delta.seconds % 3600) / 60
++    seconds = delta.seconds % 60
++    out = ''
++    if sign == -1: out = '-'
++    out += 'P'
++    if days: out += str(days) + 'D'
++    if hours or minutes or seconds: out += 'T'
++    elif not days: #Deal with zero duration
++        out += '0S'
++    if hours: out += str(hours) + 'H'
++    if minutes: out += str(minutes) + 'M'
++    if seconds: out += str(seconds) + 'S'
++    return out
++    
++
+ def durationsToString(durationsInTimeDelta):
+     days = durationsInTimeDelta.days
+     secs = durationsInTimeDelta.seconds
+Index: icalendar.py
+===================================================================
+--- vobject-0.1/vobject/icalendar.py	(revision 70)
++++ vobject-0.1/vobject/icalendar.py	(working copy)
+@@ -101,7 +101,7 @@
+     def prettyPrint(self, level, tabwidth):
+         pre = ' ' * level * tabwidth
+         print pre, self.name
+-        print pre, "TZID: " + self.tzid[0]
++        print pre, "TZID:", self.tzid[0]
+         print
+ 
+ 
+@@ -211,7 +211,7 @@
+         for name in DATENAMES + RULENAMES:
+             addfunc=getattr(self.rruleset, name)
+             parsefunc=parsing.headerToParser[name]
+-            self.contents[name]=[]
++            #self.contents[name]=[]
+             for line in component.contents.get(name, ()):
+                 if name in DATENAMES:
+                     valueParam = line.params.get("VALUE", ["DATE-TIME"])[0]
+@@ -365,6 +365,7 @@
+     transformToNative = classmethod(transformToNative)
+     transformFromNative = classmethod(transformFromNative)
+     generateImplicitParameters = classmethod(generateImplicitParameters)
++
+     
+ class DateTimeBehavior(behavior.Behavior):
+     """Parent Behavior for ContentLines containing one DATE-TIME."""
+@@ -867,6 +868,36 @@
+     validate = classmethod(validate)
+ registry.registerBehavior(VAlarm)
+ 
++class Duration(behavior.Behavior):
++    """Behavior for Duration ContentLines.  Transform to datetime.timedelta."""
++    name = 'DURATION'
++    hasNative = True
++
++    def transformToNative(cls, obj):
++        """Turn obj.value into a datetime.timedelta."""
++        if obj.isNative: return obj
++        obj.isNative = True
++        obj.value=str(obj.value)
++        deltalist=parsing.stringToDurations(obj.value)
++        #When can DURATION have multiple durations?  For now:
++        if len(deltalist) == 1:
++            obj.value = deltalist[0]
++            return obj
++        else:
++            raise VObjectError("DURATION must have a single duration string.")
++
++    def transformFromNative(cls, obj):
++        """Replace the datetime.timedelta in obj.value with an RFC2445 string.
++        """
++        if not obj.isNative: return obj
++        obj.isNative = False
++        obj.value = serializing.timedeltaToString(obj.value)
++        return obj
++    
++    transformToNative = classmethod(transformToNative)
++    transformFromNative = classmethod(transformFromNative)
++registry.registerBehavior(Duration)
++
+ class Trigger(behavior.Behavior):
+     """DATE-TIME or DURATION"""
+     name='TRIGGER'
+@@ -878,6 +909,7 @@
+     pass#TODO
+ 
+ 
++
+ #------------------------ Registration of common classes -----------------------
+ 
+ dateTimeList = ['LAST-MODIFIED', 'CREATED', 'COMPLETED', 'DTSTAMP']
+@@ -899,4 +931,4 @@
+ #------------------- Testing and running functions -----------------------------
+ if __name__ == '__main__':
+     import tests
+-    tests._test()
+\ No newline at end of file
++    tests._test()
+Index: parsing.py
+===================================================================
+--- vobject-0.1/vobject/parsing.py	(revision 70)
++++ vobject-0.1/vobject/parsing.py	(working copy)
+@@ -189,7 +189,7 @@
+         hour      = int(hour)
+         minute    = int(minute)
+         sec       = int(sec)
+-        return Duration(sign, datetime.timedelta(weeks=week, days=day, hours=hour, minutes=minute, seconds=sec))
++        return sign * datetime.timedelta(weeks=week, days=day, hours=hour, minutes=minute, seconds=sec)
+ 
+     def error(msg):
+         if strict:
+@@ -369,7 +369,7 @@
+     return stringToUTCOffset(contentline.value)
+ 
+ def parseRecur (contentline, dtstart=None):
+-    return rrule.rrulestr(contentline.value, dtstart=dtstart)
++    return rrule.rrulestr(str(contentline.value), dtstart=dtstart)
+ 
+ def isDurationCorrupt(text):
+     tCount = 0
+Index: vobject.py
+===================================================================
+--- vobject-0.1/vobject/vobject.py	(revision 70)
++++ vobject-0.1/vobject/vobject.py	(working copy)
+@@ -5,6 +5,7 @@
+ import StringIO
+ import string
+ import exceptions
++import codecs
+ 
+ #------------------------------------ Logging ----------------------------------
+ logger = logging.getLogger('vobject')
+@@ -217,13 +218,12 @@
+ 
+     def prettyPrint(self, level = 0, tabwidth=3):
+         pre = ' ' * level * tabwidth
+-        print pre, self.name
++        print pre, self.name + ":", self.value 
+         if self.params:
+             lineKeys= self.params.keys()
+             print pre, "params for ", self.name +':'
+             for aKey in lineKeys:
+                 print pre + ' ' * tabwidth, aKey, self.params[aKey]
+-        print
+ 
+ class Component(VBase):
+     """A complex property that can contain multiple ContentLines.
+@@ -365,6 +365,7 @@
+         if isinstance(self, Component):
+             for line in self.getChildren():
+                 line.prettyPrint(level + 1, tabwidth)
++        print
+ 
+ class VObjectError(Exception):
+     def __init__(self, message):
+@@ -697,7 +698,16 @@
+     def push(vObj): stack.append(vObj)
+     def pop(): return stack.pop()
+ 
+-
++    #decode as UTF-8 unless we're already a unicode stream
++    pos=stream.tell()
++    if type(stream.read(1)) == str:
++        stream.seek(pos)
++        stream = codecs.EncodedFile(stream, 'UTF-8')
++        logger.info('decoding utf-8')
++    else:
++        stream.seek(pos)
++        logger.info('not decoding, got unicode')
++        
+     for line in getLogicalLines(stream):
+         vline = textLineToContentLine(line)
+         if vline.name == "VERSION": topVobj().setBehaviorFromVersionLine(vline)
