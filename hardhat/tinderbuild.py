@@ -71,11 +71,8 @@ def main():
         prevStartInt = startInt
 
         nowString = time.strftime("%Y-%m-%d %H:%M:%S")
-        print nowString
         buildVersion = hardhatutil.RemovePunctuation(nowString)
-        print buildVersion
-
-
+        print "Starting:", nowString, buildVersion
 
         log = open(logFile, "w")
         log.write("Start: " + nowString + "\n")
