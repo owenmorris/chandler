@@ -1064,9 +1064,11 @@ def buildComplete(buildenv, releaseId, cvsModule, module):
 	raise HardHatError
 
 
+    """
     buildPrepareSource(buildenv, releaseId, cvsModule, True)
     buildRelease(buildenv, releaseId, module)
     buildPrepareSource(buildenv, releaseId, cvsModule, False)
+    """
     buildDebug(buildenv, releaseId, module)
 
 def buildPrepareSource(buildenv, releaseId, cvsModule, doCheckout=True):
@@ -1117,6 +1119,7 @@ def buildRelease(buildenv, releaseId, module):
 	buildenv['version'] = 'release'
 	history = {}
 	buildDependencies(buildenv, module, history)
+	os.chdir(buildenv['root'])
 	
 	compressedFile = compressDirectory(buildenv, "release", 
 	 compressedFileRoot)
@@ -1164,7 +1167,9 @@ def buildDebug(buildenv, releaseId, module):
 	buildenv['version'] = 'debug'
 	history = {}
 	buildDependencies(buildenv, module, history)
+	os.chdir(buildenv['root'])
 	
+	print "I'm in", os.getcwd()
 	compressedFile = compressDirectory(buildenv, "debug", 
 	 compressedFileRoot)
 	
@@ -1193,12 +1198,12 @@ def compressDirectory(buildenv, directory, fileRoot):
     if buildenv['os'] == 'win':
 	executeCommand(buildenv, "HardHat", 
 	 [buildenv['zip'], "-r", fileRoot + ".zip", directory],
-	"Zipping up " + directory + " to " + fileRoot + ".zip")
+	"Zipping up " + os.path.abspath(directory) + " to " + fileRoot + ".zip")
 	return fileRoot + ".zip"
     else:
 	executeCommand(buildenv, "HardHat", 
 	 [buildenv['tar'], "cvf", fileRoot+".tar", directory],
-	"Tarring " + directory + " as " + fileRoot + ".tar")
+	"Tarring " + os.path.abspath(directory) + " as " + fileRoot + ".tar")
 	executeCommand(buildenv, "HardHat", 
 	 [buildenv['gzip'], "-f", fileRoot+".tar"],
 	"Running gzip on " + fileRoot + ".tar")
