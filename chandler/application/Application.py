@@ -289,27 +289,6 @@ class wxApplication (wxApp):
         from model.schema.DomainSchemaLoader import DomainSchemaLoader
         loader = DomainSchemaLoader(self.repository)
 
-        # Load the ZaoBao data model **DJA**
-        #try:
-            #from OSAF.zaobao.model import RSSData
-            #RSSData.OnInit(loader)
-        #except ImportError,e: 
-            #print "Warning: ZaoBao ImportError: " + e
-        
-        # Load the contacts parcel
-        if not self.repository.find('//Contacts'):
-            contactsPath = os.path.join(self.chandlerDirectory, 'parcels',
-                                    'OSAF', 'contacts', 'model',
-                                    'contacts.xml')
-            loader.load(contactsPath)
-
-        # Load the calendar parcel
-        if not self.repository.find('//Calendar'):
-            calendarPath = os.path.join(self.chandlerDirectory, 'parcels',
-                                        'OSAF', 'calendar', 'model',
-                                        'calendar.xml')
-            loader.load(calendarPath)
-
         # Load the document parcel
         if not self.repository.find('//Document'):
             documentPath = os.path.join(self.chandlerDirectory, 'parcels',
@@ -324,11 +303,11 @@ class wxApplication (wxApp):
                                     'agents.xml')
             loader.load(agentsPath)
 
-        # @@@ New parcel loading -- not tested on all platforms
+        # Parcel loading
         LoadParcels.LoadParcels(parcelDir, self.repository)
         self.repository.commit()
                                 
-        #""" Load the parcels """
+        #""" Load the old parcels, will go away """
         self.LoadParcelsV2InDirectory(parcelDir)
 
         #""" Load the debugging parcels """
