@@ -22,13 +22,11 @@ sys.path.append(os.path.join(_chandlerDir,'parcels','OSAF','examples','zaobao'))
 import feedparser
 import posix
 
-
-RSS_HOME = _chandlerDir + '/repository/tests/data/rssfeeds/'
+RSS_HOME=os.path.join(_chandlerDir,'repository','tests','data','rssfeeds/')
 
 _rssfiles = posix.listdir(RSS_HOME)
 
 _defaultBlogs = [ "file://"+RSS_HOME+f for f in _rssfiles ]
-print "Going to try: ",len(_defaultBlogs)," blogs"
 
 BASE_PATH = '//parcels/OSAF/examples/zaobao'
 
@@ -48,6 +46,7 @@ class TestPerfWithRSS(unittest.TestCase):
         LoadParcels.LoadParcels(parcelDir, self.rep)
         
         self.rep.commit()
+        self.rep.logger.info("Going to try: ",len(_defaultBlogs)," blogs")
 
     def test(self):
         repository = self.rep
@@ -62,11 +61,18 @@ class TestPerfWithRSS(unittest.TestCase):
                 modified = None
             try:
                 data = feedparser.parse(feed.url, etag, modified)
+                self.rep.logger.info(feed.url)
+#                print data
                 feed.Update(data)
+                repository.commit()
             except Exception, e:
-                print feed.url,":",e
+                self.rep.logger.error(feed.url,":",e)
 
-        repository.commit()
+        try:
+            repository.commit()
+        except Exception, e:
+            self.rep.logger.error("Final commit:",e)
+    
 #        for f in feeds:
 #            print f
 #            for a in f.iterAttributes():
