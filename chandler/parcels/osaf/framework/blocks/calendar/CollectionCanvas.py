@@ -324,8 +324,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         for line in lines:
             x = rect.x
             wrap = 0
-            words = line.split(' ')
-            for word in words:
+            for word in line.split():
                 width, height = dc.GetTextExtent(word)
 
                 # first see if we want to jump to the next line

@@ -581,35 +581,41 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
             if self._currentDragBox and self._currentDragBox.item == item:
                 self._currentDragBox = canvasItem
 
-            # draw selection rectangle, if any
-            if (self.parent.blockItem.selection is item):
-                dc.SetBrush(self.selectionBrush)
-                dc.SetPen(self.selectionPen)
-                dc.DrawRectangleRect(itemRect)
-
-            # draw little rectangle to the left of the item
-            if (item.transparency == "confirmed"):
-                pen = wx.Pen(wx.BLACK, 3)
-            elif (item.transparency == "fyi"):
-                pen = wx.Pen(wx.LIGHT_GREY, 3)
-            elif (item.transparency == "tentative"):
-                pen = wx.Pen(wx.BLACK, 3, wx.DOT)
-
-            pen.SetCap(wx.CAP_BUTT)
-            dc.SetPen(pen)
-            dc.DrawLine(itemRect.x + 2, itemRect.y + 3,
-                        itemRect.x + 2, itemRect.y + itemRect.height - 3)
-
-            # Shift text
-            itemRect.x = itemRect.x + 6
-            itemRect.width = itemRect.width - 6
-            self.DrawWrappedText(dc, item.displayName, itemRect)
-
+            self.DrawCanvasItem(canvasItem, dc)
+            
             y += h
             
         if (y > self.fullHeight):
             self.fullHeight = y
-
+            
+    def DrawCanvasItem(self, canvasItem, dc):
+        item = canvasItem.item
+        itemRect = canvasItem.bounds
+                
+        # draw selection rectangle, if any
+        if (self.parent.blockItem.selection is item):
+            dc.SetBrush(self.selectionBrush)
+            dc.SetPen(self.selectionPen)
+            dc.DrawRectangleRect(itemRect)
+        
+        # draw little rectangle to the left of the item
+        if (item.transparency == "confirmed"):
+            pen = wx.Pen(wx.BLACK, 3)
+        elif (item.transparency == "fyi"):
+            pen = wx.Pen(wx.LIGHT_GREY, 3)
+        elif (item.transparency == "tentative"):
+            pen = wx.Pen(wx.BLACK, 3, wx.DOT)
+        
+        pen.SetCap(wx.CAP_BUTT)
+        dc.SetPen(pen)
+        dc.DrawLine(itemRect.x + 2, itemRect.y + 3,
+                    itemRect.x + 2, itemRect.y + itemRect.height - 3)
+        
+        # Shift text
+        itemRect.x = itemRect.x + 6
+        itemRect.width = itemRect.width - 6
+        self.DrawWrappedText(dc, item.displayName, itemRect)
+        
     def OnCreateItem(self, unscrolledPosition, createOnDrag):
         if not createOnDrag:
             view = self.parent.blockItem.itsView
@@ -854,19 +860,24 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         # Shift text
         timeString = time.Format('%I:%M %p').lower()
 
-        timeRect = wx.Rect(itemRect.x + 3 + 5,
-                           itemRect.y + 3,
-                           itemRect.width - (3 + 10),
-                           15)
+        x = itemRect.x + 3 + 5
+        y = itemRect.y + 3
+        width = itemRect.width - (3 + 10)
+        height = 15
+        timeRect = wx.Rect(x, y, width, height)
+        print "y starts at " + str(y)
         
-        dc.SetFont(self.smallBoldFont)
-        y = self.DrawWrappedText(dc, timeString, timeRect)
+        # only draw time if there is room
+        te = dc.GetFullTextExtent(timeString, self.smallBoldFont)        
+        (timeWidth, timeHeight) = te[0], te[1]
+        if (timeHeight < itemRect.height/3):
+            dc.SetFont(self.smallBoldFont)
+            y = self.DrawWrappedText(dc, timeString, timeRect)
         
-        textRect = wx.Rect(itemRect.x + 3 + 5, y,
-                           itemRect.width - (3 + 10),
-                           itemRect.height - (y - itemRect.y))
+        textRect = wx.Rect(x, y, width, itemRect.height - (y - itemRect.y))
 
         dc.SetFont(self.smallFont)
+        print "   drawing text at " + str(y) + " with " + str(textRect.height) + " to spare"
         self.DrawWrappedText(dc, item.displayName, textRect)
 
 
