@@ -122,23 +122,6 @@
 
         </Attribute>
 
-        <Attribute itsName="sharingStatus">
-
-            <Enumeration itsName="SharingStatusEnum">
-                <displayName>Sharing Status</displayName>
-                <values>unshared</values>
-                <values>pending</values>
-                <values>uploaded</values>
-                <values>downloaded</values>
-                <values>error</values>
-            </Enumeration>
-
-            <type itemref="cm:ContentItem/sharingStatus/SharingStatusEnum"/>
-            <initialValue type="cm:ContentItem/sharingStatus/SharingStatusEnum">unshared</initialValue>
-
-        </Attribute>
-
-
         <Attribute itsName="modifiedOn">
             <displayName>Last Modified On</displayName>
             <description>DateTime this item was last modified</description>
@@ -159,50 +142,13 @@
             <inverseAttribute itemref="contact:Contact/itemsLastModified"/>
         </Attribute>
 
-        <Attribute itsName="etag">
-            <type itemref="String"/>
-        </Attribute>
-
         <Attribute itsName="lastModified">
             <type itemref="String"/>
-        </Attribute>
-
-        <Attribute itsName="sharedURL">
-            <type itemref="URL"/>
-        </Attribute>
-
-        <Attribute itsName="sharedUUID">
-            <type itemref="UUID"/>
-        </Attribute>
-
-        <Attribute itsName="sharedVersion">
-            <type itemref="Long"/>
-            <initialValue type="Long">-1</initialValue>
         </Attribute>
 
         <Attribute itsName="isPrivate">
             <type itemref="Boolean"/>
             <initialValue type="Boolean">False</initialValue>
-        </Attribute>
-
-        <!-- @@@ will go away -->
-        <Attribute itsName="sharer">
-            <description value="The person who initially published this item" />
-            <issues value="This will soon be removed, replaced by Share kind's attributes" />
-            <type itemref="contact:Contact" />
-            <cardinality value="single" />
-            <initialValue itemref="None" />
-            <inverseAttribute itemref="contact:Contact/sharerOf" />
-        </Attribute>
-
-        <!-- @@@ will go away -->
-        <Attribute itsName="sharees">
-            <description value="The people who were invited to share in this item" />
-            <issues value="This will soon be removed, replaced by Share kind's attributes" />
-            <type itemref="contact:Contact" />
-            <cardinality value="list" />
-            <initialValue />
-            <inverseAttribute itemref="contact:Contact/shareeOf" />
         </Attribute>
 
         <Attribute itsName="previousStamps">
@@ -419,16 +365,10 @@
       <type itemref="share:Share"/>
       <cardinality value="list" />
       <inverseAttribute itemref="share:Share/contents"/>
+      <initialValue />
     </Attribute>
 
     <!-- redirections -->
-    <Attribute itsName="who">
-      <redirectTo>sharees</redirectTo>
-    </Attribute>
-
-    <Attribute itsName="whoFrom">
-      <redirectTo>sharer</redirectTo>
-    </Attribute>
 
     <Attribute itsName="about">
       <redirectTo>displayName</redirectTo>
@@ -461,16 +401,6 @@
         <includePolicy value="byCloud"/>
       </Endpoint>
       <endpoints itemref="cm:ItemCollection/DefaultCloud/contentsOwner"/>
-      <Endpoint itsName="sharer">
-        <attribute value="sharer"/>
-        <includePolicy value="byValue"/>
-      </Endpoint>
-      <endpoints itemref="cm:ItemCollection/DefaultCloud/sharer"/>
-      <Endpoint itsName="sharees">
-        <attribute value="sharees"/>
-        <includePolicy value="byValue"/>
-      </Endpoint>
-      <endpoints itemref="cm:ItemCollection/DefaultCloud/sharees"/>
     </Cloud>
     <clouds alias="default" itemref="cm:ItemCollection/DefaultCloud"/>
 

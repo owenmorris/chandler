@@ -729,25 +729,6 @@
             <initialValue />
         </Attribute>
 
-        <Attribute itsName="sharerOf">
-            <displayName value="Sharer of" />
-            <description value="The set of items this email address is the sharer of" />
-            <issues value="This feels dirty having this attribute here, but once we support Contacts (or however we model people), this attribute will move out of EmailAddress.  Right now we have no other way to identify people." />
-            <cardinality value="list" />
-            <type itemref="content:ContentItem" />
-            <inverseAttribute itemref="content:ContentItem/sharer" />
-            <initialValue />
-        </Attribute>
-
-        <Attribute itsName="shareeOf">
-            <displayName value="Sharee of" />
-            <description value="The set of items this email address is a sharee of" />
-            <issues value="This feels dirty having this attribute here, but once we support Contacts (or however we model people), this attribute will move out of EmailAddress.  Right now we have no other way to identify people." />
-            <cardinality value="list" />
-            <type itemref="content:ContentItem" />
-            <inverseAttribute itemref="content:ContentItem/sharees" />
-            <initialValue />
-        </Attribute>
 
         <Cloud itsName="SharingCloud">
           <Endpoint itsName="emailAddress">

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itsName="accounts"
+    xmlns="http://osafoundation.org/parcels/core"
+    xmlns:share="http://osafoundation.org/parcels/osaf/framework/sharing"
+    >
+
+    <share:WebDAVAccount itsName="WebDAVAccount">
+        <displayName value="WebDAV Account"/>
+    </share:WebDAVAccount>
+
+</Parcel>

@@ -8,8 +8,8 @@ import application.dialogs.Util
 
 # Used to lookup the mail model parcel:
 MAIL_MODEL = "http://osafoundation.org/parcels/osaf/contentmodel/mail"
-# Used to lookup the webdav parcel:
-WEBDAV_MODEL = "http://osafoundation.org/parcels/osaf/framework/webdav"
+# Used to lookup the sharing parcel:
+SHARING_MODEL = "http://osafoundation.org/parcels/osaf/framework/sharing"
 
 # Special handlers referenced in the PANELS dictionary below:
 
@@ -231,7 +231,7 @@ class AccountPreferencesDialog(wx.Dialog):
         accountIndex = 0 # which account to select first
         imapAccountKind = application.Globals.parcelManager.lookup(MAIL_MODEL, "IMAPAccount")
         smtpAccountKind = application.Globals.parcelManager.lookup(MAIL_MODEL, "SMTPAccount")
-        webDavAccountKind = application.Globals.parcelManager.lookup(WEBDAV_MODEL, "WebDAVAccount")
+        webDavAccountKind = application.Globals.parcelManager.lookup(SHARING_MODEL, "WebDAVAccount")
 
         accounts = []
 

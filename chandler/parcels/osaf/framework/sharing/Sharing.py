@@ -5,7 +5,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 import application.Parcel
-import osaf.framework.webdav.Dav
 import osaf.mail.message
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.ContentModel as ContentModel
@@ -30,33 +29,8 @@ logger.setLevel(logging.INFO)
 SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
 EVENTS = "http://osafoundation.org/parcels/osaf/framework/blocks/Events"
 CONTENT = "http://osafoundation.org/parcels/osaf/contentmodel"
-WEBDAV_MODEL = "http://osafoundation.org/parcels/osaf/framework/webdav"
 
 class Parcel(application.Parcel.Parcel):
-
-    def _sharingUpdateCallback(self, url, collectionName, fromAddress):
-        # When we receive the event, display a dialog
-        logger.info("_sharingUpdateCallback: [%s][%s][%s]" % \
-         (url, collectionName, fromAddress))
-        collection = collectionFromSharedUrl(url)
-        if collection is not None:
-            # @@@MOR For 0.4 we will silently eat re-invites
-            pass
-            """
-            application.dialogs.Util.ok( \
-             wx.GetApp().mainFrame, "Sharing Invitation",
-             "Received an invite for an already subscribed collection:\n" \
-             "%s\n%s" % (collection.displayName, url))
-            """
-        else:
-            if application.dialogs.Util.yesNo( \
-             wx.GetApp().mainFrame, "Sharing Invitation",
-             "%s\nhas invited you to subscribe to\n'%s'\n\n" \
-             "Would you like to accept the invitation?" \
-             % (fromAddress, collectionName) ):
-                wx.Yield() # @@@MOR Give the UI a chance to redraw before
-                           # long operation
-                subscribeToWebDavCollection(url)
 
     def _errorCallback(self, error):
         # When we receive this event, display the error
@@ -64,149 +38,8 @@ class Parcel(application.Parcel.Parcel):
         application.dialogs.Util.ok( \
          wx.GetApp().mainFrame, "Error", error)
 
-
-def subscribeToWebDavCollection(url):
-    """ Given a URL, tell the webdav subsystem to fetch the collection it
-        points to, then add the collection to the sidebar. """
-
-    collection = collectionFromSharedUrl(url)
-
-    # See if we are already subscribed to the collection
-    if collection is not None:
-        application.dialogs.Util.ok( \
-         wx.GetApp().mainFrame,
-         "Already subscribed",
-         "Already subscribed to collection '%s':\n"
-         "%s" % (collection.displayName, url))
-        return
-
-    # Fetch the collection
-    try:
-        collection = osaf.framework.webdav.Dav.DAV(url).get( )
-    except Exception, e:
-        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-         "WebDAV Error",
-         "Couldn't get collection from:\n%s\n\nException %s: %s" % \
-         (url, repr(e), str(e)))
-        raise
-
-    mainView = Globals.view[0]
-    mainView.postEventByName ("AddToSidebarWithoutCopying", {'items':[collection]})
-    mainView.itsView.commit()
-    # ...and selecting that view in the sidebar
-    mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
-    mainView.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':collection})
-
-
-
-def manualSubscribeToCollection():
-    """ Display a dialog box prompting the user for a webdav url to 
-        subscribe to.  """
-    # @@@MOR Obsolete, or for dev purposes only
-
-    url = application.dialogs.Util.promptUser( \
-     wx.GetApp().mainFrame, "Subscribe to Collection...",
-     "Collection URL:", "")
-    if url is not None:
-        subscribeToWebDavCollection(url)
-
-def manualPublishCollection(collection):
-    application.dialogs.PublishCollection.ShowPublishCollectionsDialog( \
-     wx.GetApp().mainFrame, collection)
-
-def syncCollection(collection):
-    if isShared(collection):
-        print "Synchronizing", collection.sharedURL
-
-        wx.Yield() # @@@MOR Give the UI a chance to redraw before
-                   # long operation
-
-        try:
-            osaf.framework.webdav.Dav.DAV(collection.sharedURL).get()
-        except Exception, e:
-            application.dialogs.Util.ok(wx.GetApp().mainFrame,
-             "WebDAV Error",
-             "Couldn't sync collection '%s'\nto %s\n\nException %s: %s" % \
-             (collection.displayName, collection.sharedURL, repr(e), str(e)))
-            raise
-
-def putCollection(collection, url):
-    """ Putting a collection on the webdav server for the first time. """
-
-    wx.Yield() # @@@MOR Give the UI a chance to redraw before
-               # long operation
-
-    try:
-        osaf.framework.webdav.Dav.DAV(url).put(collection)
-    except Exception, e:
-        application.dialogs.Util.ok(wx.GetApp().mainFrame,
-         "WebDAV Error",
-         "Couldn't publish collection '%s'\nto %s\n\nException %s: %s" % \
-         (collection.displayName, url, repr(e), str(e)))
-        collection.sharedURL = None # consider it not shared
-        raise
-
-def isShared(collection):
-    # @@@MOR Temporary hack until there is a better way to test for isShared
-    return collection.hasAttributeValue('sharedURL') and (collection.sharedURL
-     is not None)
-
-def collectionFromSharedUrl(url):
-    kind = Globals.parcelManager.lookup(CONTENT, "ItemCollection")
-    for item in KindQuery().run([kind]):
-        if isShared(item):
-            if str(item.sharedURL) == (url):
-                return item
-    return None
-
-def getWebDavPath():
-    acct = getWebDavAccount()
-    if acct and acct.host:
-        return "http://%s/%s" % (acct.host, acct.path)
-    else:
-        return None
-
-def getWebDavAccount():
-    webDavAccountKind = application.Globals.parcelManager.lookup(WEBDAV_MODEL,
-     "WebDAVAccount")
-
-    account = None
-    for item in KindQuery().run([webDavAccountKind]):
-        account = item
-        if item.isDefault:
-            break
-    return account
-
-    return Globals.parcelManager.lookup(SHARING, 'WebDAVAccount')
-
-def isMailSetUp(view):
-
-    # Find imap account, and make sure email address is valid
-    imap = Mail.MailParcel.getIMAPAccount(view)
-    if not imap.emailAddress:
-        return False
-
-    # Find smtp account, and make sure server field is set
-    smtp = imap.defaultSMTPAccount
-    if not smtp.host:
-        return False
-
-    return True
-
 # Non-blocking methods that the mail thread can use to call methods on the
 # main thread:
-
-def announceSharingInvitation(view, url, collectionName, fromAddress):
-    """ Call this method to announce that an inbound sharing invitation has
-        arrived. This method is non-blocking. """
-    logger.info("announceSharingInvitation() received an invitation from " \
-    "mail: [%s][%s][%s]" % (url, collectionName, fromAddress))
-
-    sharingParcel = \
-     view.findPath("//parcels/osaf/framework/sharing")
-    wx.GetApp().CallItemMethodAsync( sharingParcel,
-     '_sharingUpdateCallback', url, collectionName, fromAddress)
-    logger.info("invite, just after CallItemMethodAsync")
 
 def announceError(view, error):
     """ Call this method to announce an error. This method is non-blocking. """
@@ -217,9 +50,8 @@ def announceError(view, error):
     wx.GetApp().CallItemMethodAsync( sharingParcel,
      '_errorCallback', error)
 
+
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
-# New sharing code follows.  It will most likely be split out into separate
-# modules at some point.
 
 class Share(ContentModel.ChandlerItem):
     myKindID = None
@@ -275,12 +107,9 @@ class ShareConduit(ContentModel.ChandlerItem):
 
     """ Transfers items in and out. """
 
-    def __init__(self, name=None, parent=None, kind=None, view=None,
-                 sharePath=None, shareName=None):
+    def __init__(self, name=None, parent=None, kind=None, view=None):
         super(ShareConduit, self).__init__(name, parent, kind, view)
 
-        self.sharePath = sharePath
-        self.shareName = shareName
         self.__clearManifest()
 
     def setShare(self, share):
@@ -574,8 +403,13 @@ class FileSystemConduit(ShareConduit):
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
                  sharePath=None, shareName=None):
-        super(FileSystemConduit, self).__init__(name, parent, kind, view,
-                                                sharePath, shareName)
+        super(FileSystemConduit, self).__init__(name, parent, kind, view)
+
+        self.sharePath = sharePath
+        self.shareName = shareName
+
+        if not self.shareName:
+            self.shareName = str(UUID())
 
         # @@@MOR What sort of processing should we do on sharePath for this
         # filesystem conduit?
@@ -703,22 +537,27 @@ class WebDAVConduit(ShareConduit):
     myKindPath = "//parcels/osaf/framework/sharing/WebDAVConduit"
 
     def __init__(self, name=None, parent=None, kind=None, view=None,
-                 sharePath=None, shareName=None,
-                 host=None, port=80, username="", password=""):
-        super(WebDAVConduit, self).__init__(name, parent, kind, view,
-                                            sharePath, shareName)
+                 shareName=None, account=None, host=None, port=80,
+                 sharePath=None, username="", password="", useSSL=False):
+        super(WebDAVConduit, self).__init__(name, parent, kind, view)
 
-        self.host = host
-        self.port = port
-        self.username = username
-        self.password = password
+        # Use account, if provided.  Otherwise use host, port, username,
+        # password and useSSL parameters instead.
+        self.account = account
+        if account is None:
+            self.host = host
+            self.port = port
+            self.sharePath = sharePath
+            self.username = username
+            self.password = password
+            self.useSSL = useSSL
 
-        # Process sharePath and shareName (making sure they have no
-        # leading or trailing slashes)
-        self.sharePath = self.sharePath.strip("/")
-
-        # @@@MOR Probably should remove any slashes, or warn if there are any?
-        self.shareName = self.shareName.strip("/")
+        if not shareName:
+            self.shareName = str(UUID())
+        else:
+            # @@@MOR Probably should remove any slashes, or warn if there are
+            # any?
+            self.shareName = shareName.strip("/")
 
         self.onItemLoad()
 
@@ -726,21 +565,37 @@ class WebDAVConduit(ShareConduit):
         # view is ignored
         self.client = None
 
+    def __getSettings(self):
+        if self.account is None:
+            return (self.host, self.port, self.sharePath.strip("/"),
+                    self.username, self.password, self.useSSL)
+        else:
+            return (self.account.host, self.account.port,
+                    self.account.path.strip("/"), self.account.username,
+                    self.account.password, self.useSSL)
+
     def __getClient(self):
         if self.client is None:
             logger.info("...creating new client")
-            self.client = WebDAV.Client(self.host, port=self.port,
-             username=self.username, password=self.password, useSSL=False)
+            (host, port, sharePath, username, password, useSSL) = self.__getSettings()
+            self.client = WebDAV.Client(host, port=port, username=username,
+                                        password=password, useSSL=useSSL)
         return self.client
 
     def getLocation(self):  # must implement
         """ Return the url of the share """
         # @@@MOR need to handle https
-        if self.port == 80:
-            url = "http://%s" % self.host
+
+        (host, port, sharePath, username, password, useSSL) = self.__getSettings()
+        scheme = "http"
+        if useSSL:
+            scheme = "https"
+
+        if port == 80:
+            url = "%s://%s" % (scheme, host)
         else:
-            url = "http://%s:%d" % (self.host, self.port)
-        url = urlparse.urljoin(url, self.sharePath + "/")
+            url = "%s://%s:%d" % (scheme, host, port)
+        url = urlparse.urljoin(url, sharePath + "/")
         url = urlparse.urljoin(url, self.shareName)
         return url
 
@@ -748,17 +603,18 @@ class WebDAVConduit(ShareConduit):
         """ Return the path (not the full url) of an item given its external
         UUID """
 
+        (host, port, sharePath, username, password, useSSL) = self.__getSettings()
         extension = self.share.format.extension(item)
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
             if isinstance(item, Share):
-                return "/%s/%s/share.xml" % (self.sharePath, self.shareName)
+                return "/%s/%s/share.xml" % (sharePath, self.shareName)
             else:
-                return "/%s/%s/%s.%s" % (self.sharePath, self.shareName,
+                return "/%s/%s/%s.%s" % (sharePath, self.shareName,
                  item.itsUUID, extension)
 
         elif style == ImportExportFormat.STYLE_SINGLE:
-            return "/%s/%s" % (self.sharePath, self.shareName)
+            return "/%s/%s" % (sharePath, self.shareName)
 
         else:
             print "Error" #@@@MOR Raise something
@@ -770,10 +626,12 @@ class WebDAVConduit(ShareConduit):
 
     def __URLFromPath(self, path):
         # @@@MOR need to handle https
-        if self.port == 80:
-            url = "http://%s%s" % (self.host, path)
+
+        (host, port, sharePath, username, password, useSSL) = self.__getSettings()
+        if port == 80:
+            url = "http://%s%s" % (host, path)
         else:
-            url = "http://%s:%s%s" % (self.host, self.port, path)
+            url = "http://%s:%s%s" % (host, port, path)
         return url
 
     def exists(self):
@@ -1323,3 +1181,248 @@ class MixedFormat(ImportExportFormat):
         pass
     """
     pass
+
+# = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+# Sharing helper methods
+
+def newOutboundShare(view, collection, account=None):
+    """ Create a new Share item for a collection this client is publishing.
+
+    If account is provided, it will be used; otherwise, the default WebDAV
+    account will be used.  If there is no default account, None will be
+    returned.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @param collection: The ItemCollection that will be shared
+    @type collection: ItemCollection
+    @param account: The WebDAV Account item to use
+    @type account: An item of kind WebDAVAccount
+    @return: A Share item, or None if no WebDAV account could be found.
+    """
+
+    if account is None:
+        # Find the default WebDAV account
+        account = getWebDAVAccount(view)
+        if account is None:
+            return None
+
+    conduit = WebDAVConduit(account=account)
+    format = CloudXMLFormat()
+    share = Share(conduit=conduit, format=format, contents=collection)
+    share.displayName = collections.displayName
+    share.hidden = False # indicates that the DetailView should show this share
+    return share
+
+
+def newInboundShare(view, url):
+    """ Create a new Share item for a URL this client is subscribing to.
+
+    Finds a WebDAV account which matches this URL; if none match then
+    prompt the user for username/password for that URL.  If either of
+    these result in finding/creating an account, then create a Share item
+    and return it.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @param url: The url which points to a collection to import
+    @type url: String
+    @return: A Share item, or None if no WebDAV account could be found.
+    """
+
+    account = findMatchingWebDAVAccount(view, url)
+    if account is None:
+        # @@@MOR must prompt user for account information (?)
+        # then create an account
+
+        # For now, just:
+        return None
+
+    share = None
+    if account is not None:
+        conduit = WebDAVConduit(account=account)
+        format = CloudXMLFormat()
+        share = Share(conduit=conduit, format=format)
+        share.hidden = False
+    return share
+
+
+def getWebDAVAccount(view):
+    """ Return the current default WebDAV account item.
+
+    The default account is that which has its' isDefault set to True.  In the
+    case there are multiple accounts which has this set (this shouldn't happen
+    normally), the first of those returned by the kindquery will be returned.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @return: An account item, or None if no WebDAV account could be found.
+    """
+
+    webDAVAccountKind = view.findPath("//parcels/osaf/framework/sharing/WebDAVAccount")
+
+    account = None
+    for item in KindQuery().run([webDAVAccountKind]):
+        account = item
+        if item.isDefault:
+            break
+
+    return account
+
+
+def findMatchingWebDAVAccount(view, url):
+    """ Find a WebDAV account which corresponds to a URL.
+
+    The url being passed in is for a collection -- it will include the
+    collection name in the url.  We need to find a webdav account who
+    has been set up to operate on the parent directory of this collection.
+    For example, if the url is http://pilikia.osafoundation.org/dev1/foo/
+    we need to find an account whose schema+host+port match and whose path
+    is /dev1
+
+    Note: this logic assumes only one account will match; you aren't
+    currently allowed to have to multiple webdav accounts pointing to the
+    same scheme+host+port+path combination.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @param url: The url which points to a collection
+    @type url: String
+    @return: An account item, or None if no WebDAV account could be found.
+    """
+
+    webDAVAccountKind = view.findPath("//parcels/osaf/framework/sharing/WebDAVAccount")
+
+    (useSSL, host, path, query, fragment) = __spliturl(url)
+
+    # Get the parent directory of the given path:
+    # '/dev1/foo/bar' becomes ['dev1', 'foo']
+    path = path.strip('/').split('/')[:-1]
+    # ['dev1', 'foo'] becomes "dev1/foo"
+    path = "/".join(path)
+
+    for account in KindQuery().run([webDAVAccountKind]):
+        # Does this account's url info match?
+        if account.useSSL == useSSL and account.host == host and account.port == port and account.path == path:
+            return account
+
+    return None
+
+
+def findMatchingShare(view, url):
+    """ Find a Share which corresponds to a URL.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @param url: A url pointing at a WebDAV Collection
+    @type url: String
+    @return: A Share item, or None
+    """
+
+    account = findMatchingWebDAVAccount(view, url)
+    if account is None:
+        return None
+
+    # If we found a matching account, that means *potentially* there is a
+    # matching share; go through all conduits this account points to and look
+    # for shareNames that match
+
+    (useSSL, host, path, query, fragment) = __spliturl(url)
+
+    # '/dev1/foo/bar' becomes 'bar'
+    shareName = path.strip("/").split("/")[-1:]
+
+    for conduits in account.conduits:
+        if conduit.shareName == shareName:
+            if conduit.share.hidden == False:
+                return conduit.share
+
+    return None
+
+
+def __spliturl(url):
+    (scheme, host, path, query, fragment) = urlparse.urlsplit(url)
+
+    if scheme == 'https':
+        port = 443
+        useSSL = True
+    else:
+        port = 80
+        useSSL = False
+
+    if host.find(':') != -1:
+        (host, port) = host.split(':')
+
+    return (useSSL, host, port, path, query, fragment)
+
+
+def isShared(collection):
+    """ Return whether an ItemCollection has a Share item associated with it.
+
+    @param collection: an ItemCollection
+    @type collection: ItemCollection
+    @return: True if collection does have a Share associated with it; False
+        otherwise.
+    """
+
+    # See if any non-hidden shares are associated with the collection.
+    # A "hidden" share is one that was not requested by the DetailView,
+    # This is to support shares that don't participate in the whole
+    # invitation process (such as transient import/export shares, or shares
+    # for publishing an .ics file to a webdav server).
+
+    for share in collection.shares:
+        if share.hidden == False:
+            return True
+    return False
+
+
+def getShare(collection):
+    """ Return the Share item (if any) associated with an ItemCollection.
+
+    @param collection: an ItemCollection
+    @type collection: ItemCollection
+    @return: A Share item, or None
+    """
+
+    # Return the first "non-hidden" share for this collection -- see isShared()
+    # method for further details.
+
+    for share in collection.shares:
+        if share.hidden == False:
+            return share
+    return None
+
+
+def isMailSetUp(view):
+    """ See if IMAP/SMTP accounts have at least the minimum setup needed for
+        sharing (IMAP needs email address, SMTP needs host).
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @return: True if accounts are set up; False otherwise.
+    """
+
+    # Find imap account, and make sure email address is valid
+    imap = Mail.MailParcel.getIMAPAccount(view)
+    if not imap.emailAddress:
+        return False
+
+    # Find smtp account, and make sure server field is set
+    smtp = imap.defaultSMTPAccount
+    if not smtp.host:
+        return False
+
+    return True
+
+
+def isWebDAVSetUp(view):
+    """ See if WebDAV is set up.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @return: True if accounts are set up; False otherwise.
+    """
+
+    account = getWebDAVAccount(view)
+    return account is not None

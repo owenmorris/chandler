@@ -12,6 +12,7 @@ import urlparse
 import logging
 import application.Globals as Globals
 import M2Crypto.httpslib as httpslib
+import chandlerdb.util.UUID
 
 logger = logging.getLogger('WebDAV')
 logger.setLevel(logging.DEBUG)
@@ -67,6 +68,9 @@ class Client(object):
 
     def head(self, url, extraHeaders={ }):
         return self._request('HEAD', url, extraHeaders=extraHeaders)
+
+    def options(self, url, extraHeaders={ }):
+        return self._request('OPTIONS', url, extraHeaders=extraHeaders)
 
     def delete(self, url, extraHeaders={ }):
         return self._request('DELETE', url, extraHeaders=extraHeaders)
@@ -212,3 +216,76 @@ class NotFound(WebDAVException):
 
 class NotAuthorized(WebDAVException):
     pass
+
+
+# ----------------------------------------------------------------------------
+
+
+NO_ACCESS  = 0
+READ_ONLY  = 1
+READ_WRITE = 2
+
+def checkAccess(host, port=80, useSSL=False, username=None, password=None,
+                path=None):
+
+    client = Client(host, port, username, password, useSSL)
+
+    # Make sure path begins/ends with /
+    path = path.strip("/")
+    if path == "":
+        path = "/"
+    else:
+        path = "/" + path + "/"
+
+    portString = ""
+    if useSSL:
+        scheme = "https"
+        if port != 443:
+            portString = ":%d" % port
+    else:
+        scheme = "http"
+        if port != 80:
+            portString = ":%d" % port
+
+    url = "%s://%s%s%s" % (scheme, host, portString, path)
+    response = client.propfind(url, depth=0)
+    body = response.read()
+    status = response.status
+    # print "PROPFIND:", url, status
+    if status < 200 or status >= 300: # failed to read
+        return (NO_ACCESS, status)
+
+    tries = 10
+    urlToTest = None
+    while tries > 0:
+        # Random string to use for trying a put
+        uuid = chandlerdb.util.UUID.UUID()
+        url = "%s://%s%s%s%s.tmp" % (scheme, host, portString, path, uuid)
+        response = client.propfind(url, depth=0)
+        body = response.read()
+        status = response.status
+        # print "PROPFIND:", url, status
+        if status == httplib.NOT_FOUND:
+            urlToTest = url
+            break
+        tries -= 1
+
+    if urlToTest is None:
+        return -1
+
+    response = client.put(urlToTest, "Write access test")
+    body = response.read()
+    status = response.status
+    # print "PUT:", url, status
+    if status >= 200 and status < 300: # successful put
+        writeSuccess = True
+        # remove it
+        response = client.delete(urlToTest)
+        body = response.read()
+        status = response.status
+        # print "DELETE:", url, status
+        deleteSuccess = status >= 200 and status < 300 # successful delete
+        # @@@MOR If we can't delete after the put, what does that mean?
+        return (READ_WRITE, None)
+    else:
+        return (READ_ONLY, status)

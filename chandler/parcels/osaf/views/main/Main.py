@@ -498,8 +498,11 @@ class MainView(View):
         if not self.webDAVAccountIsSetup():
             # The user hasn't set up webdav, so let's bring up the accounts
             # dialog, with the webdav account selected
-            webdavAccount = self.findPath('//parcels/osaf/framework/sharing/WebDAVAccount')
+            """ @@@MOR: This needs to change...
+            webdavAccount = self.findPath('//parcels/osaf/framework/sharing/accounts/WebDAVAccount')
             application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, account=webdavAccount)
+            """
+
             return
 
         # Tell the ActiveView to select the collection
@@ -622,7 +625,7 @@ class MainView(View):
         if Sharing.isShared (itemCollection):
             url = str (itemCollection.sharedURL)
         else:
-            path = Sharing.getWebDavPath()
+            path = Sharing.getWebDAVPath()
             if path:
                 url = "%s/%s" % (path, itemCollection.itsUUID)
             else:
@@ -655,7 +658,7 @@ class MainView(View):
 
     def webDAVAccountIsSetup (self):
         # return True iff the webDAV account is set up
-        return Sharing.getWebDavPath() != None
+        return Sharing.isWebDAVSetUp(self.itsView)
         
 class ReminderTimer(Timer):
     def synchronizeWidget (self):

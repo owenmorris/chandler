@@ -8,13 +8,11 @@
 <Parcel itsName="framework"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:app="http://osafoundation.org/parcels/osaf/framework"
-        xmlns:webdav="http://osafoundation.org/parcels/osaf/framework/webdav">
+        >
 
   <displayName>Application Schema</displayName>
   <description>Schemas used by the Chandler Application</description>
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
-
-  <webdav:Sharing itsName="GlobalShare"/>
 
 </Parcel>

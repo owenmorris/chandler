@@ -233,7 +233,7 @@ class ShareEditorDialog(wx.Dialog):
             # self.textShareName.Disable()
         else:
             self.textTitle.SetValue("Enter a descriptive title")
-            account = Sharing.getWebDavAccount()
+            account = Sharing.getWebDAVAccount(self.view)
             if account is not None:
                 self.textServer.SetValue(account.host)
                 self.textUsername.SetValue(account.username)
@@ -284,6 +284,8 @@ class ShareEditorDialog(wx.Dialog):
         if self.share is None:
             conduit = Sharing.WebDAVConduit(
              host=server,
+             port=80,
+             useSSL=False,
              sharePath=sharePath,
              shareName=shareName,
              username=username,
