@@ -289,6 +289,13 @@ class RepositoryAttributeEditor (StringAttributeEditor):
         value = attrType.makeValue (valueString)
         setattr (item, attributeName, value)
 
+class myTextCtrl(wx.TextCtrl):
+    def Destroy(self):
+        # @@@ Hack until we switch to wx 2.5.4: don't destroy if we're already destroyed
+        # (in which case we're a PyDeadObject)
+        if isinstance(self, wx.TextCtrl):
+            super(myTextCtrl, self).Destroy()
+
 class LabeledAttributeEditor (StringAttributeEditor):
     """ Attribute Editor that shows a Label for the attribute in addition to the value. """
     def __init__(self, isShared, presentationStyle=None):
@@ -450,7 +457,7 @@ class LabeledAttributeEditor (StringAttributeEditor):
             controlPosition = (self.editOffset, -1)
             
         # create the edit control
-        control = wx.TextCtrl (parent, id, '', controlPosition)
+        control = myTextCtrl (parent, id, '', controlPosition)
         
         # get size hints based on the parent
         control.SetSizeHints(minW=controlSize[0], minH=controlSize[1])
