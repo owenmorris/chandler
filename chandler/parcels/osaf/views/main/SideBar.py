@@ -129,8 +129,8 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                     """
                     key = ItemCollection.ItemCollection (view=self.itsView)
                     key._rule = item._rule
-                    key._inclusions = item._inclusions
-                    key._exclusions = item._exclusions
+                    key.inclusions = item.inclusions
+                    key.exclusions = item.exclusions
                     key.displayName = item.displayName + u" filtered by " + filterKind.displayName
                     key.addFilterKind (filterKind)
                     self.itemTupleKeyToCacheKey [tupleKey] = key
@@ -139,6 +139,11 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
     def _makeTrunkForCacheKey(self, keyItem):
         if isinstance (keyItem, ItemCollection.ItemCollection):
             sidebar = Block.Block.findBlockByName ("Sidebar")
+            """ 
+              This test is a temporary place holder for a better, more complicated solution to the problem.
+            Bryan argued that the better solution shouldn't be implmented until we decide the UI is final
+            since he thinks the UI will likely change
+            """
             if (sidebar.filterKind is self.findPath ("//parcels/osaf/contentmodel/calendar/CalendarEventMixin") and
                 keyItem.displayName != u"In filtered by Calendar Event Mixin Kind" and
                 keyItem.displayName != u"Out filtered by Calendar Event Mixin Kind"):

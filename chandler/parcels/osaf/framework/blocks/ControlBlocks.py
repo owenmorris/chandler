@@ -703,7 +703,6 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
 
     def DeleteSelection (self):
-        self.blockItem.contents.beginUpdate()
         topLeftList = self.GetSelectionBlockTopLeft()
         bottomRightList = self.GetSelectionBlockBottomRight()
         """
@@ -732,7 +731,6 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.blockItem.selection = []
         self.blockItem.selectedItemToView = None
         self.blockItem.itsView.commit()
-        self.blockItem.contents.endUpdate()
         
         # now select the "next" item
         totalItems = len(contents)

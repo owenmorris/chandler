@@ -13,9 +13,9 @@
     <namespace value="http://testparcels.org/uuidof" />
 
     <cm:ItemCollection itsName="myColl">
-        <_inclusions itemref="me:item0"/>
-        <_inclusions itemref="me:item1"/>
-        <_inclusions itemref="me:item2"/>
+        <inclusions itemref="me:item0"/>
+        <inclusions itemref="me:item1"/>
+        <inclusions itemref="me:item2"/>
     </cm:ItemCollection>
 
     <cm:ContentItem itsName="item0" />

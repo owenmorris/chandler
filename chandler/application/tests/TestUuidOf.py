@@ -27,7 +27,7 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         for i in range(3):
             item = self.manager.lookup("http://testparcels.org/uuidof", 
              "item%d" % i)
-            self.assert_(item.itsUUID in myColl._inclusions)
+            self.assert_(item.itsUUID in myColl.inclusions)
 
 if __name__ == "__main__":
     unittest.main()

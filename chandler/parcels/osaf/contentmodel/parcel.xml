@@ -108,19 +108,13 @@
         <Attribute itsName="itemCollectionInclusions">
             <type itemref="cm:ItemCollection"/>
             <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:ItemCollection/_inclusions"/>
+            <inverseAttribute itemref="cm:ItemCollection/inclusions"/>
         </Attribute>
 
         <Attribute itsName="itemCollectionExclusions">
             <type itemref="cm:ItemCollection"/>
             <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:ItemCollection/_exclusions"/>
-        </Attribute>
-
-        <Attribute itsName="itemCollectionResults">
-            <type itemref="cm:ItemCollection"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:ItemCollection/_results"/>
+            <inverseAttribute itemref="cm:ItemCollection/exclusions"/>
         </Attribute>
 
         <Attribute itsName="contentsOwner">
@@ -286,6 +280,7 @@
   <Kind itsName="ItemCollection">
     <classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</classes>
     <superKinds itemref="cm:ContentItem"/>
+    <superKinds itemref="Query"/>
 
     <displayName>Item Collection</displayName>
 
@@ -294,39 +289,27 @@
       <initialValue type="String"></initialValue>
     </Attribute>
 
-    <Attribute itsName="_inclusions">
+    <Attribute itsName="inclusions">
       <type itemref="Item"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="cm:ContentItem/itemCollectionInclusions"/>
       <initialValue/>
     </Attribute>
 
-    <Attribute itsName="_exclusions">
+    <Attribute itsName="exclusions">
       <type itemref="Item"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="cm:ContentItem/itemCollectionExclusions"/>
       <initialValue/>
     </Attribute>
 
-    <Attribute itsName="_filterKinds">
+    <Attribute itsName="kindFilter">
       <type itemref="String"/>
       <cardinality>list</cardinality>
       <initialValue/>
     </Attribute>
 
-    <Attribute itsName="_results">
-      <type itemref="Item"/>
-      <cardinality>list</cardinality>
-      <inverseAttribute itemref="cm:ContentItem/itemCollectionResults"/>
-      <initialValue/>
-    </Attribute>
-
-    <Attribute itsName="queryStringStale">
-      <type itemref="Boolean"/>
-      <initialValue type="Boolean" value="True"/>
-    </Attribute>
-
-    <Attribute itsName="resultsStale">
+    <Attribute itsName="ruleIsStale">
       <type itemref="Boolean"/>
       <initialValue type="Boolean" value="True"/>
     </Attribute>
@@ -363,30 +346,24 @@
 
     <!-- Default Cloud -->
     <Cloud itsName="DefaultCloud">
-      <Endpoint itsName="_inclusions">
-        <attribute value="_inclusions"/>
+      <Endpoint itsName="inclusions">
+        <attribute value="inclusions"/>
         <includePolicy value="byCloud"/>
         <cloudAlias value="default"/>
       </Endpoint>
-      <endpoints itemref="cm:ItemCollection/DefaultCloud/_inclusions"/>
-      <Endpoint itsName="_exclusions">
-        <attribute value="_exclusions"/>
+      <endpoints itemref="cm:ItemCollection/DefaultCloud/inclusions"/>
+      <Endpoint itsName="exclusions">
+        <attribute value="exclusions"/>
         <includePolicy value="byCloud"/>
         <cloudAlias value="default"/>
       </Endpoint>
-      <endpoints itemref="cm:ItemCollection/DefaultCloud/_exclusions"/>
-      <Endpoint itsName="_filterKinds">
-        <attribute value="_filterKinds"/>
+      <endpoints itemref="cm:ItemCollection/DefaultCloud/exclusions"/>
+      <Endpoint itsName="kindFilter">
+        <attribute value="kindFilter"/>
         <includePolicy value="byCloud"/>
         <cloudAlias value="default"/>
       </Endpoint>
-      <endpoints itemref="cm:ItemCollection/DefaultCloud/_filterKinds"/>
-      <Endpoint itsName="_results">
-        <attribute value="_results"/>
-        <includePolicy value="byCloud"/>
-        <cloudAlias value="default"/>
-      </Endpoint>
-      <endpoints itemref="cm:ItemCollection/DefaultCloud/_results"/>
+      <endpoints itemref="cm:ItemCollection/DefaultCloud/kindFilter"/>
       <Endpoint itsName="contentsOwner">
         <attribute value="contentsOwner"/>
         <includePolicy value="byCloud"/>

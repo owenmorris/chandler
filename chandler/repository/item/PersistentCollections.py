@@ -81,8 +81,12 @@ class PersistentCollection(object):
         from repository.item.Values import ItemValue
         
         if isinstance(value, PersistentCollection):
+            def copyValue(x, other, z):
+                if other is None:
+                    return Item.Nil
+                return other
             value = value._copy(self._item, self._attribute, self._companion,
-                                'copy', lambda x, other, z: other or Item.Nil)
+                                'copy', copyValue)
         elif isinstance(value, list):
             persistentValue = PersistentList(self._item, self._attribute,
                                              self._companion)

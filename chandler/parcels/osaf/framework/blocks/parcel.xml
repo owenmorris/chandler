@@ -382,7 +382,6 @@
     <attributes itemref="docSchema:eventsForNamedDispatch"/>
     <attributes itemref="contentModel:ContentItem/itemCollectionInclusions"/>
     <attributes itemref="contentModel:ContentItem/itemCollectionExclusions"/>
-    <attributes itemref="contentModel:ContentItem/itemCollectionResults"/>
 
     <Attribute itsName="parentTrunkSubtrees"><!-- reference to parent tree of blocks -->
       <type itemref="docSchema:TrunkSubtree"/>
