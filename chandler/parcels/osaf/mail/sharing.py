@@ -56,9 +56,10 @@ def sendInvitation(url, collectionName, sendToList):
 
 def NotifyUIAsync (message, logger=logging.info, **keys):
     logger (message)
-    Globals.wxApplication.CallItemMethodAsync (Globals.mainView,
-                                               'setStatusMessage',
-                                               message, **keys)
+    if Globals.wxApplication is not None: # test framework has no wxApplication
+        Globals.wxApplication.CallItemMethodAsync (Globals.mainView,
+                                                   'setStatusMessage',
+                                                   message, **keys)
 
 class SharingConstants(object):
     SHARING_HEADER  = "Sharing-URL"
