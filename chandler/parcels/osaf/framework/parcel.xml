@@ -19,6 +19,7 @@
 
   <events:Event itsName="commit_history"/>
   <events:Event itsName="query_changed"/>
+  <events:Event itsName="rule_changed"/>
 
   <webdav:Sharing itsName="GlobalShare"/>
 

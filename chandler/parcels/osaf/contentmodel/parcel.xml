@@ -333,9 +333,8 @@
   </core:Attribute>
 
   <core:Attribute itsName="data">
-    <core:type itemref="core:Item"/>
-    <core:cardinality>list</core:cardinality>
-    <copyPolicy value="cascade"/>
+    <core:type itemref="core:String"/>
+<!--    <copyPolicy value="cascade"/> -->
   </core:Attribute>
 
   <core:Attribute itsName="queryOwner">

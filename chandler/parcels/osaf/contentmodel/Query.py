@@ -1,59 +1,94 @@
-import time
 import application.Globals as Globals
-from repository.item.Item import Item
-import repository.item.Query as RepositoryQuery
-from repository.util.UUID import UUID
-import wx
+import repository.item.Item as Item
+import repository.query.Query as RepositoryQuery
 
-class Query (Item):
+import logging
+log = logging.getLogger("ContentQuery")
+log.setLevel(logging.INFO)
+
+class Query(Item.Item):
 
     def __init__ (self, *args, **kwds):
         super(Query, self).__init__ (*args, **kwds)
-        self.data = []
-
+        log.debug("ContentQuery<%s>.__init__: %s" % (self.itsUUID, self))
+        self.__changed = False # transient
+        self.__query = RepositoryQuery.Query(Globals.repository) # transient
+        self.__query.subscribe()
         self.onItemLoad()
 
     def onItemLoad(self):
-        events = [Globals.repository.findPath('//parcels/osaf/framework/commit_history')]
-        Globals.notificationManager.Subscribe(events, self.itsUUID, self.onCommit)
+        events = [Globals.repository.findPath('//parcels/osaf/framework/query_changed')]
+        Globals.notificationManager.Subscribe(events, self.itsUUID, self.onQueryChange)
 
+        log.debug("ContentQuery<%s>.onItemLoad: %s" % (self.itsUUID, self))
         self.__refresh()
 
     def onItemUnload(self):
         Globals.notificationManager.Unsubscribe(self.itsUUID)
 
+    def _fillItem(self, name, parent, kind, **kwds):
+        """
+        Override of Item._fillItem
+        
+        @@@ this is a workaround for the fact the onItemLoad processing is done in a
+        single pass at the end, not as items are loaded.
+        """
+        super(Query, self)._fillItem(name, parent, kind, **kwds)
+        # populate transients
+        self.__changed = True # cause initial reload
+        self.__query = RepositoryQuery.Query(Globals.repository)
+        self.__query.subscribe()
+        if self.hasAttributeValue('data'):
+            self.__query.queryString = self.data
+        
+    def setAttributeValue(self, name, value=None, setAliases=False,
+                          _attrDict=None, setDirty=True):
+        """
+        Override of Item.setAttributeValue
+        
+        @@@ any time the 'data' attribute is updated we need to set the changed flag
+        """
+        super(Query, self).setAttributeValue(name ,value, setAliases, _attrDict, setDirty)
+        if name == 'data':
+            log.debug("ContentQuery<%s>.setAttribute: setting 'data' to %s" % (self.itsUUID, value))
+            self.__query.queryString = value
+            #self.__changed = True  @@@ should be able to do this but need some fixes in repo Query
+            # so for now do refresh
+            self.__refresh()
+
     def __iter__(self):
-        results = self.results
-        for item in results:
-            yield item
+        """
+        Return a generator for the cached query results
+        
+        The cached results are refreshed if necessary
+        """
+        log.debug("ContentQuery<%s>.__iter__: %s" % (self.itsUUID, self.results))
+        if self.__changed:
+            self.__refresh()
+        for i in self.results:
+            yield i
 
-    def onCommit(self, notification):
-        # array of (uuid, reason, kwds) tuples
-        changes = notification.data['changes']
-
-        repository = self.getRepositoryView()
-        for uuid,reason,kwds in changes:
-            item = repository.findUUID(uuid)
-            if item:
-                # why doesn't 'if item in self.results' work here?
-                for i in self.results:
-                    if i == item:
-                        self.__refresh()
-                        return
-
-                for kind in self.data:
-                    if item.isItemOf(kind):
-                        self.__refresh()
-                        return
+    def onQueryChange(self, notification):
+        """
+        The notification callback handler for the repository level query's change notifications
+        """
+        log.debug("ContentQuery<%s>.onQueryChange: %s:%s" % (self.itsUUID, notification.data['query'], notification.data['action']))
+        self.__changed = True
+        self.__dirty()
 
     def __refresh(self):
-        self.results = []
+        """
+        Refresh the cached query results by executing the repository query
+        """
+        self.__query.execute()
+        #@@@ due to generator wackiness (bad interactions with persistent list), force the query generatro to give up the whole thing
+        self.results = [ i for i in self.__query ]
 
-        for item in RepositoryQuery.KindQuery(recursive = not self.exactKind).run(self.data):
-            self.results.append(item)
-
+        log.debug("ContentQuery<%s>.__refresh: results = %s" % (self.itsUUID, self.results))
+        self.__changed = False
         self.__dirty()
 
     def __dirty(self):
         # post query changed notification and return
-        self.getRepositoryView().findPath('//parcels/osaf/framework/query_changed').Post( {'query' : self.itsUUID} )
+        log.debug("ContentQuery<%s>.__dirty:" % self.itsUUID)
+        self.getRepositoryView().findPath('//parcels/osaf/framework/rule_changed').Post( {'query' : self.itsUUID} )

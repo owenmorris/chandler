@@ -24,7 +24,7 @@
 
   <!-- Queries -->
   <contentModel:Query itsName="calendarQuery">
-     <data itemref="calendarModel:CalendarEventMixin"/>
+    <data value="for i in '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="calendarItemCollection">
@@ -33,7 +33,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="notesQuery">
-    <data itemref="contentModel:Note"/>
+    <data value="for i in '//parcels/osaf/contentmodel/Note' where True"/>
     <exactKind>True</exactKind>
   </contentModel:Query>
 
@@ -43,7 +43,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="taskQuery">
-    <data itemref="taskModel:TaskMixin"/>
+    <data value="for i in '//parcels/osaf/contentmodel/tasks/TaskMixin' where True"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="taskItemCollection">
@@ -52,7 +52,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="mailQuery">
-    <data itemref="mailModel:MailMessageMixin"/>
+    <data value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where True"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="mailItemCollection">
@@ -61,7 +61,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="contactQuery">
-    <data itemref="contactsModel:Contact"/>
+    <data value="for i in '//parcels/osaf/contentmodel/contacts/Contact' where True"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="contactItemCollection">
@@ -70,8 +70,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="mixedQuery">
-    <data itemref="contentModel:Note"/>
-    <data itemref="contactsModel:Contact"/>
+    <data value="union(for i in '//parcels/osaf/contentmodel/Note' where True, for i in '//parcels/osaf/contentmodel/contacts/Contact' where True)"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="mixedItemCollection">
@@ -93,7 +92,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="inQuery">
-    <data itemref="mailModel:MailMessageMixin"/>
+    <data value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where True"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="inItemCollection">
@@ -102,7 +101,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="outQuery">
-    <data itemref="mailModel:MailMessageMixin"/>
+    <data value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where True"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="outItemCollection">

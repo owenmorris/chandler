@@ -11,6 +11,10 @@ import application.Globals as Globals
  * think about implementing the full Set API
 """
 
+import logging
+log = logging.getLogger("ItemCollection")
+log.setLevel(logging.INFO)
+
 class ItemCollection(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
@@ -23,8 +27,9 @@ class ItemCollection(Item.Item):
         self.onItemLoad()
 
     def onItemLoad(self):
+        log.debug("ItemCollection<%s>.onItemLoad:" % (self.itsUUID))
         # subscribe to query_changed notifications incase our query changes
-        events = [Globals.repository.findPath('//parcels/osaf/framework/query_changed')]
+        events = [Globals.repository.findPath('//parcels/osaf/framework/rule_changed')]
         Globals.notificationManager.Subscribe(events, self.itsUUID, self._queryChangedCallback)
 
         # refresh the result cache
@@ -34,9 +39,11 @@ class ItemCollection(Item.Item):
         Globals.notificationManager.Unsubscribe(self.itsUUID)
 
     def _queryChangedCallback(self, notification):
+        log.debug("ItemCollection<%s>._queryCallback:" % self.itsUUID)
         # if the query that changed is ours, we must refresh our result cache
         if self.rule:
             if notification.data['query'] == self.rule.itsUUID:
+                log.debug("ItemCollection<%s>._queryCallback for %s" % (self.itsUUID, self.rule.itsUUID))
                 self.__refresh()
 
 
@@ -129,7 +136,9 @@ class ItemCollection(Item.Item):
         if not rule:
             rule = []
 
+        log.debug("ItemCollection<%s>.__refresh: %s" % (self.itsUUID, self.rule))
         for item in rule:
+            log.debug("ItemCollection<%s>.__refresh: i = %s" % (self.itsUUID, item))
             uuid = item.itsUUID
             if uuid not in exclusions:
                 results.append(uuid)
@@ -140,7 +149,7 @@ class ItemCollection(Item.Item):
                     results.append(uuid)
 
         self.results = results
-
+        log.debug("ItemCollection.__refresh: loaded %d items" % len(results))
         self.__dirty()
 
     def __dirty(self):
