@@ -529,7 +529,7 @@
   </PresentationStyle>
 
   <AEBlock itsName="CalendarDuration"
-           itemClass="osaf.framework.blocks.detail.Detail.AEBlockForCalendar">
+           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
     <blockName value="AECalendarDuration"/>
     <characterStyle itemref="doc:LabelStyle"/>
     <readOnly>False</readOnly>
@@ -557,7 +557,7 @@
   </PresentationStyle>
 
   <AEBlock itsName="CalendarLocation"
-           itemClass="osaf.framework.blocks.detail.Detail.AEBlockForCalendar">
+           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
     <blockName value="AECalendarLocation"/>
     <characterStyle itemref="doc:LabelStyle"/>
     <readOnly>False</readOnly>
@@ -650,11 +650,10 @@
   <Choice itsName="EditTransparency"
             itemClass="osaf.framework.blocks.detail.Detail.EditTransparency">
     <blockName value="EditReminder"/>
-    <issues>It'd be nice to not maintain the transparency choices separately from the enum values</issues>
-    <choices>Busy</choices>
-    <choices>Free</choices>
+    <issues>It'd be nice to not maintain the transparency choices separately from the enum values; currently, the choices must match the enum's items and ordering.</issues>
+    <choices>FYI</choices>
+    <choices>Confirmed</choices>
     <choices>Tentative</choices>
-    <choices>Cancelled</choices>
     <event itemref="doc:TransparencyChanged"/>
     <minimumSize>100, 24</minimumSize>
     <stretchFactor>0.0</stretchFactor>

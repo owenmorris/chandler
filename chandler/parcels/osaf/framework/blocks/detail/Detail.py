@@ -501,6 +501,9 @@ class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
 class DetailSynchronizedLabeledTextAttributeBlock (DetailSynchronizer, LabeledTextAttributeBlock):
     pass
 
+class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.AEBlock):
+    pass
+
 def ItemCollectionOrMailMessageMixin (item):
     # if the item is a MailMessageMixin, or an ItemCollection,
     # then return True
@@ -990,42 +993,6 @@ class EditTimeAttribute (EditRedirectAttribute):
             value = dateTime.strftime (self.timeFormat)
         widget.SetValue (value)
 
-class AEBlockForCalendar (DetailSynchronizer, ControlBlocks.AEBlock):
-    """
-    Example usage of an AEBlock, used for the duration edit field.
-    Only shows itself for a Calendar Event.
-    @@@DLD - clean up!  We shouldn't even need this class.
-    We need a shouldShow method so we don't try to show ourselves for
-       items that don't have our attribute.
-    We need a synchronizeWidget method in order to show/hide ourself
-       before the default synchronizeWidget gets called, which does
-       all the Attribute Editor work.
-    We need synchronizeItemDetail to get control when the user
-       clicks on a different item in the summary view, because
-       the Detail View doesn't use synchronizeWidget - it uses
-       synchronizeItemDetail instead.
-    """
-    def synchronizeWidget (self):
-        # only shown for CalendarEventMixin kinds
-        item = self.selectedItem ()
-        if item is None:
-            self.isShown = False
-        else:
-            self.isShown = self.shouldShow (item)
-        super (AEBlockForCalendar, self).synchronizeWidget ()
-
-    def synchronizeItemDetail (self, item):
-        wasShown = self.isShown
-        self.synchronizeWidget()
-        super(AEBlockForCalendar, self).synchronizeItemDetail(item)
-        relayoutParent = self.isShown != wasShown
-        return relayoutParent
-
-    def shouldShow (self, item):
-        # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
-        return item.isItemOf (calendarMixinKind)
-
 class EditDurationAttribute (EditRedirectAttribute):
     """
     An attribute-based edit field for Duration Values
@@ -1157,17 +1124,17 @@ class EditTransparency (DetailSynchronizer, ControlBlocks.Choice):
         hasChanged = super(EditTransparency, self).synchronizeItemDetail(item)
         if item is not None and self.isShown:
             try:
-                transparencyChoice = item.transparency.capitalize()
+                choiceIndex = item.getAttributeAspect('transparency', 'type').values.index(item.transparency)
             except AttributeError:
-                transparencyChoice= "busy"
-            choiceIndex = self.widget.FindString(transparencyChoice)
+                choiceIndex = 0
             self.widget.Select(choiceIndex)
         return hasChanged
 
     def onTransparencyChangedEvent (self, event):
         item = self.selectedItem()
         if item is not None:
-            transparencyChoice = self.widget.GetStringSelection()
-            item.transparency = transparencyChoice.lower()
+            choiceIndex = self.widget.GetSelection()
+            item.transparency = item.getAttributeAspect('transparency', 'type').values[choiceIndex]
+
 
 

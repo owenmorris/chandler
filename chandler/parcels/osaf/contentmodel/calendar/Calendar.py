@@ -74,6 +74,8 @@ class CalendarEventMixin(ContentModel.ChandlerItem):
         except AttributeError:
             pass
 
+        self.transparency = 'fyi'
+        
         """ @@@ Commenting out this block
 
         participants can only accept Contact items.  At some point

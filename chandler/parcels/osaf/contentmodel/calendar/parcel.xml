@@ -40,8 +40,8 @@
         <type itemref="DateTime"/>
       </Attribute>
 
-      <Attribute itsName="anyTime">
-        <displayName>AnyTime</displayName>
+      <Attribute itsName="allDay">
+        <displayName>All-Day</displayName>
         <type itemref="Boolean"/>
       </Attribute>
       
@@ -81,16 +81,15 @@
       <Attribute itsName="transparency">
         <displayName>Time Transparency</displayName>
 
-          <Enumeration itsName="TimeTransparencyEnum">
-            <displayName>Time Transparency</displayName>
-            <issues>The iCalendar values for Time Transparency are slightly different. We should consider making our values match the iCalendar ones, or be a superset of them.  Mitch suggested that a 'cancelled' value would be a useful extension.</issues>
-            <issues>It'd be nice to not maintain the transparency choices separately from the enum values</issues>
-            <values>busy</values>
-            <values>free</values>
-            <values>tentative</values>
-            <values>cancelled</values>
-          </Enumeration>
-
+        <Enumeration itsName="TimeTransparencyEnum">
+          <displayName>Time Transparency</displayName>
+          <issues>The iCalendar values for Time Transparency are slightly different. We should consider making our values match the iCalendar ones, or be a superset of them.  Mitch suggested that a 'cancelled' value would be a useful extension.</issues>
+          <issues>It'd be nice to not maintain the transparency choices separately from the enum values</issues>
+          <values>fyi</values>
+          <values>confirmed</values>
+          <values>tentative</values>
+        </Enumeration>
+        
         <type itemref="cal:CalendarEventMixin/transparency/TimeTransparencyEnum"/>
       </Attribute>
 
