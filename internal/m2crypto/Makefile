@@ -23,7 +23,7 @@ build:
 else
 
 build:
-	$(PYTHON) setup.py \
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
           build_ext --swig=$(SWIG) \
                     --library-dirs=$(BUILD_ROOT)/$(SNAP)/lib \
                     --include-dirs=$(BUILD_ROOT)/$(SNAP)/include \

@@ -16,7 +16,7 @@ endif
 
 
 build:
-	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            build_ext --swig-opts="-c++ -modern" \
                                      --swig=$(_swig) \
                            install --force

@@ -28,7 +28,7 @@
 
 ; Wizard pages
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_LICENSE "Chandler\LICENSE.txt"
+!insertmacro MUI_PAGE_LICENSE "..\..\..\Chandler\LICENSE.txt"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 
@@ -72,19 +72,21 @@ FunctionEnd
 
 Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
-  File "Chandler\*.*"
+  File "..\..\..\Chandler\*.*"
   
     ; this could be handled completely by the above line
     ; if the /r option was used - I kept them as individual
     ; items to better document what sub-folders are included
+    ; NOTE: any File entry added here also needs to be added 
+    ;       to the uninstall section below
     
-  File /r "Chandler\application"
-  File /r "Chandler\crypto"
-  File /r "Chandler\release"
-  File /r "Chandler\locale"
-  File /r "Chandler\parcels"
-  File /r "Chandler\repository"
-  File /r "Chandler\tools"
+  File /r "..\..\..\Chandler\application"
+  File /r "..\..\..\Chandler\crypto"
+  File /r "..\..\..\Chandler\release"
+  File /r "..\..\..\Chandler\locale"
+  File /r "..\..\..\Chandler\parcels"
+  File /r "..\..\..\Chandler\repository"
+  File /r "..\..\..\Chandler\tools"
 
   CreateDirectory "$SMPROGRAMS\Chandler"
   CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\chandler.exe"
