@@ -152,14 +152,26 @@ def distribute(buildenv):
 
     if buildenv['version'] == 'debug':
 
-        compFile = None
-
         if buildenv['os'] == 'posix':
 
+            distName = 'Chandler_linux_debug_' + buildVersionShort
+            distDir = buildenv['root'] + os.sep + distName
+            buildenv['distdir'] = distDir
+            if os.access(distDir, os.F_OK):
+                hardhatlib.rmdir_recursive(distDir)
+            os.mkdir(distDir)
+
+            manifestFile = "distrib/linux/manifest.debug.linux"
+            hardhatlib.handleManifest(buildenv, manifestFile)
             os.chdir(buildenv['root'])
-            compFile = hardhatlib.compressDirectory(buildenv, 
-             ["debug", "Chandler"], 
+            compFile1 = hardhatlib.compressDirectory(buildenv, [distName],
+             distName)
+
+            os.chdir(buildenv['root'])
+            compFile2 = hardhatlib.compressDirectory(buildenv, 
+             ["debug","Chandler"],
              "Chandler_linux_dev_debug_" + buildVersionShort)
+            os.chdir(buildenv['root'])
 
         if buildenv['os'] == 'osx':
 
@@ -221,17 +233,12 @@ def distribute(buildenv):
         if buildenv['outputdir']:
             if not os.path.exists(buildenv['outputdir']):
                 os.mkdir(buildenv['outputdir'])
-            if compFile: # this hack is temporary, for Milestone 4
-                if os.path.exists(buildenv['outputdir']+os.sep+compFile):
-                    os.remove(buildenv['outputdir']+os.sep+compFile)
-                    os.rename(compFile, buildenv['outputdir']+os.sep+compFile)
-            else:
-                if os.path.exists(buildenv['outputdir']+os.sep+compFile1):
-                    os.remove(buildenv['outputdir']+os.sep+compFile1)
-                    os.rename(compFile1, buildenv['outputdir']+os.sep+compFile1)
-                if os.path.exists(buildenv['outputdir']+os.sep+compFile2):
-                    os.remove(buildenv['outputdir']+os.sep+compFile2)
-                    os.rename(compFile2, buildenv['outputdir']+os.sep+compFile2)
+            if os.path.exists(buildenv['outputdir']+os.sep+compFile1):
+                os.remove(buildenv['outputdir']+os.sep+compFile1)
+                os.rename(compFile1, buildenv['outputdir']+os.sep+compFile1)
+            if os.path.exists(buildenv['outputdir']+os.sep+compFile2):
+                os.remove(buildenv['outputdir']+os.sep+compFile2)
+                os.rename(compFile2, buildenv['outputdir']+os.sep+compFile2)
 
 
     if buildenv['version'] == 'release':

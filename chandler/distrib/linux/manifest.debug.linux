@@ -58,7 +58,7 @@ Chandler.sh
 README.linux.txt
 
 # Grab the launcher programs
-src=release
+src=debug
 dest=
 chandler
 dest=lib
