@@ -220,12 +220,6 @@ class MainView(View):
         if collection is not None:
             osaf.framework.sharing.Sharing.manualPublishCollection(collection)
 
-    def onSyncCollectionEvent (self, notification):
-        # Triggered from "Test | Sync collection..."
-        collection = self.getSidebarSelectedCollection ()
-        if collection is not None:
-            osaf.framework.sharing.Sharing.syncCollection(collection)
-
     def onShareCollectionEventUpdateUI (self, notification):
         """
         Update the menu to reflect the selected collection name
@@ -237,5 +231,27 @@ class MainView(View):
                     % collection.displayName
         else:
             menuTitle = 'Share a collection'
+        notification.data ['Text'] = menuTitle
+
+    def onSyncCollectionEvent (self, notification):
+        # Triggered from "Test | Sync collection..."
+        collection = self.getSidebarSelectedCollection ()
+        if collection is not None:
+            osaf.framework.sharing.Sharing.syncCollection(collection)
+
+    def onSyncCollectionEventUpdateUI (self, notification):
+        """
+        Update the menu to reflect the selected collection name
+        """
+        collection = self.getSidebarSelectedCollection ()
+        if collection is not None and collection.hasAttributeValue('sharedURL'):
+            notification.data ['Enable'] = True
+        else:
+            notification.data ['Enable'] = False
+        if collection:
+            menuTitle = 'Sync collection "%s"' \
+                    % collection.displayName
+        else:
+            menuTitle = 'Sync a collection'
         notification.data ['Text'] = menuTitle
 
