@@ -118,14 +118,16 @@ try:
             hardhatlib.build(buildenv, arg)
 
         if opt == "-B":
-            hardhatlib.buildDependencies(buildenv, arg)
+	    history = {}
+            hardhatlib.buildDependencies(buildenv, arg, history)
 
         if opt == "-c":
             if hardhatlib.clean(buildenv, arg) == hardhatlib.HARDHAT_ERROR:
                 print "Error, exiting"
 
         if opt == "-C":
-            if hardhatlib.cleanDependencies(buildenv, arg) == \
+	    history = {}
+            if hardhatlib.cleanDependencies(buildenv, arg, history) == \
              hardhatlib.HARDHAT_ERROR:
                 print "Error, exiting"
 
@@ -154,7 +156,8 @@ try:
             hardhatlib.scrub(buildenv, arg)
 
         if opt == "-S":
-            hardhatlib.scrubDependencies(buildenv, arg)
+	    history = {}
+            hardhatlib.scrubDependencies(buildenv, arg, history)
 
         if opt == "-t":
             hardhatlib.test(buildenv, arg)

@@ -291,7 +291,7 @@ def clean(buildenv, module_name):
 # end clean()
 
 
-def cleanDependencies(buildenv, module_name, history=None):
+def cleanDependencies(buildenv, module_name, history):
     """
     Based on the list of dependencies in the module's __hardhat_.py file, 
     call each one's clean(), and then call module's clean().
@@ -303,9 +303,6 @@ def cleanDependencies(buildenv, module_name, history=None):
     Returns:
         nothing
     """
-
-    if not history:
-	history = {}
 
     module_path = buildenv['root'] + os.sep + module_name + os.sep + \
      "__hardhat__.py"
@@ -345,7 +342,7 @@ def build(buildenv, module_name):
 # end build()
 
     
-def buildDependencies(buildenv, module_name, history=None):
+def buildDependencies(buildenv, module_name, history):
     """
     Based on the list of dependencies in the module's __hardhat_.py file, 
     call each one's build(), and then call module's build().
@@ -357,9 +354,6 @@ def buildDependencies(buildenv, module_name, history=None):
     Returns:
         nothing
     """
-
-    if not history:
-	history = {}
 
     module_path = buildenv['root'] + os.sep + module_name + os.sep + \
      "__hardhat__.py"
@@ -411,9 +405,7 @@ def scrubDependencies(buildenv, module_name):
     cvsClean(buildenv, dirsToScrub)
 # end scrubDependencies()
 
-def getDependencies(buildenv, module_name, history=None):
-    if not history:
-	history = {}
+def getDependencies(buildenv, module_name, history):
     module_path = buildenv['root'] + os.sep + module_name + os.sep + \
      "__hardhat__.py"
     module = module_from_file(buildenv, module_path, module_name)
@@ -1123,7 +1115,8 @@ def buildRelease(buildenv, releaseId, module):
 	if os.path.exists("release"):
 	    rmdir_recursive("release")
 	buildenv['version'] = 'release'
-	buildDependencies(buildenv, module)
+	history = {}
+	buildDependencies(buildenv, module, history)
 	
 	compressedFile = compressDirectory(buildenv, "release", 
 	 compressedFileRoot)
@@ -1169,7 +1162,8 @@ def buildDebug(buildenv, releaseId, module):
 	if os.path.exists("debug"):
 	    rmdir_recursive("debug")
 	buildenv['version'] = 'debug'
-	buildDependencies(buildenv, module)
+	history = {}
+	buildDependencies(buildenv, module, history)
 	
 	compressedFile = compressDirectory(buildenv, "debug", 
 	 compressedFileRoot)
