@@ -477,7 +477,7 @@ class MailMessageMixin(MIMEContainer):
         MailMessageMixin._initMixin(self) # call our init, not the method of a subclass
 
     def _initMixin(self):
-        """ 
+        """
           Init only the attributes specific to this mixin.
         Called when stamping adds these attributes, and from __init__ above.
         """
@@ -485,7 +485,13 @@ class MailMessageMixin(MIMEContainer):
 
         # default the fromAddress to any super class "whoFrom" definition
         try:
-            self.fromAddress = self.getAnyWhoFrom()
+            whoFrom = self.getAnyWhoFrom()
+
+            # I only want an EmailAddress
+            if not isinstance(whoFrom, EmailAddress):
+                whoFrom = EmailAddress.getCurrentMeEmailAddress()
+
+            self.fromAddress = whoFrom
         except AttributeError:
             pass # no from address
 

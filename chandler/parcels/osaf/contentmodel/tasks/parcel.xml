@@ -23,107 +23,84 @@
   <author>Open Source Applications Foundation</author>
 
 
-  <!-- Task attributes -->
-
-  <Attribute itsName="requestor">
-    <displayName>Requestor</displayName>
-    <issues>Type could be Contact, EmailAddress or String</issues>
-    <issues>Think about using the icalendar terminology</issues>
-    <type itemref="content:ContentItem"/>
-    <inverseAttribute itemref="tasks:requestedTasks"/>
-  </Attribute>
-
-  <Attribute itsName="requestedTasks">
-    <displayName>Requested Tasks</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="tasks:Task"/>
-    <inverseAttribute itemref="tasks:requestor"/>
-  </Attribute>
-
-  <Attribute itsName="requestee">
-    <displayName>Requestee</displayName>
-    <issues>Type could be Contact, EmailAddress or String</issues>
-    <issues>Think about using the icalendar terminology</issues>
-    <cardinality>list</cardinality>
-    <type itemref="content:ContentItem"/>
-    <inverseAttribute itemref="tasks:taskRequests"/>
-  </Attribute>
-
-  <Attribute itsName="taskRequests">
-    <displayName>Task Requests</displayName>
-    <description>List of tasks requested for the contact</description>
-    <cardinality>list</cardinality>
-    <type itemref="cal:CalendarEvent"/>
-    <inverseAttribute itemref="tasks:requestee"/>
-  </Attribute>
-
-  <Attribute itsName="dependsOn">
-    <displayName>Depends On</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="tasks:Task"/>
-    <inverseAttribute itemref="tasks:preventsProgressOn"/>
-  </Attribute>
-
-  <Attribute itsName="preventsProgressOn">
-    <displayName>Blocks</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="tasks:Task"/>
-    <inverseAttribute itemref="tasks:dependsOn"/>
-  </Attribute>
-
-  <Attribute itsName="taskStatus">
-    <displayName>Task Status</displayName>
-    <type itemref="tasks:TaskStatusEnum"/>
-  </Attribute>
-
-  <Enumeration itsName="TaskStatusEnum">
-    <displayName>Task Status</displayName>
-    <values>todo</values>
-    <values>blocked</values>
-    <values>done</values>
-    <values>deferred</values>
-  </Enumeration>
-
-  <Attribute itsName="dueDate">
-    <displayName>Due date</displayName>
-    <type itemref="DateTime"/>
-  </Attribute>
-
   <Kind itsName="TaskMixin">
     <displayName>Task Mixin Kind</displayName>
     <description>This is the set of Task-specific attributes.</description>
     <description>This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated</description>
+    <classes key="python">osaf.contentmodel.tasks.Task.TaskMixin</classes>
 
-    <attributes itemref="cal:recurrence"/>
-    <attributes itemref="cal:reminderTime"/>
+      <Attribute itsName="requestor">
+        <displayName>Requestor</displayName>
+        <issues>Type could be Contact, EmailAddress or String</issues>
+        <issues>Think about using the icalendar terminology</issues>
+        <type itemref="contact:Contact"/>
+        <inverseAttribute itemref="contact:Contact/requestedTasks"/>
+      </Attribute>
 
-    <!-- task-specific attributes -->
-    <attributes itemref="tasks:requestor"/>
-    <attributes itemref="tasks:requestee"/>
-    <attributes itemref="tasks:dependsOn"/>
-    <attributes itemref="tasks:preventsProgressOn"/>
-    <attributes itemref="tasks:taskStatus"/>
-    <attributes itemref="tasks:dueDate"/>
-    
+      <Attribute itsName="requestee">
+        <displayName>Requestee</displayName>
+        <issues>Type could be Contact, EmailAddress or String</issues>
+        <issues>Think about using the icalendar terminology</issues>
+        <cardinality>list</cardinality>
+        <type itemref="content:ContentItem"/>
+        <inverseAttribute itemref="contact:Contact/taskRequests"/>
+      </Attribute>
+
+      <Attribute itsName="dependsOn">
+        <displayName>Depends On</displayName>
+        <cardinality>list</cardinality>
+        <type itemref="tasks:Task"/>
+        <inverseAttribute itemref="tasks:TaskMixin/preventsProgressOn"/>
+      </Attribute>
+
+      <Attribute itsName="preventsProgressOn">
+        <displayName>Blocks</displayName>
+        <cardinality>list</cardinality>
+        <type itemref="tasks:Task"/>
+        <inverseAttribute itemref="tasks:TaskMixin/dependsOn"/>
+      </Attribute>
+
+      <Attribute itsName="taskStatus">
+        <displayName>Task Status</displayName>
+
+          <Enumeration itsName="TaskStatusEnum">
+            <displayName>Task Status</displayName>
+            <values>todo</values>
+            <values>blocked</values>
+            <values>done</values>
+            <values>deferred</values>
+          </Enumeration>
+
+        <type itemref="tasks:TaskMixin/taskStatus/TaskStatusEnum"/>
+      </Attribute>
+
+      <Attribute itsName="dueDate">
+        <displayName>Due date</displayName>
+        <type itemref="DateTime"/>
+      </Attribute>
+
+    <!-- external attributes -->
+    <attributes itemref="cal:CalendarEventMixin/recurrence"/>
+    <attributes itemref="cal:CalendarEventMixin/reminderTime"/>
+
     <!-- redirections -->
     <Attribute itsName="who">
       <redirectTo>requestee</redirectTo>
     </Attribute>
-  
+
     <Attribute itsName="whoFrom">
       <redirectTo>requestor</redirectTo>
     </Attribute>
-  
+
     <Attribute itsName="about">
       <redirectTo>displayName</redirectTo>
     </Attribute>
-  
+
     <Attribute itsName="date">
       <redirectTo>dueDate</redirectTo>
-    </Attribute>  
+    </Attribute>
 
-    <classes key="python">osaf.contentmodel.tasks.Task.TaskMixin</classes>
-      
+
     <Cloud itsName="Cloud">
       <Endpoint itsName="requestor">
         <attribute value="requestor"/>
@@ -151,7 +128,7 @@
 
     </Cloud>
     <clouds alias="default" itemref="tasks:TaskMixin/Cloud"/>
-      
+
   </Kind>
 
   <Kind itsName="TaskEventExtraMixin">
@@ -190,7 +167,7 @@
     <superKinds itemref="tasks:TaskMixin"/>
     <superKinds itemref="content:Note"/>
     <classes key="python">osaf.contentmodel.tasks.Task.Task</classes>
-    
+
   </Kind>
 
 </Parcel>

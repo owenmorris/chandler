@@ -6,480 +6,402 @@
 <!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/osaf/contentmodel"
-             itsName="contentmodel"
-             xmlns:core="http://osafoundation.org/parcels/core"
-             xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
-             xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
-             xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
-             xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-             xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
-             xmlns="http://osafoundation.org/parcels/osaf/contentmodel"
-             itemClass="osaf.contentmodel.ContentModel.ContentModel">
+<Parcel itsName="contentmodel"
+    itemClass="osaf.contentmodel.ContentModel.ContentModel"
+    xmlns="http://osafoundation.org/parcels/core"
+    xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
+    xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
+    xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
+    xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
+    xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
+    xmlns:events="http://osafoundation.org/parcels/osaf/framework/notifications/schema"
+    xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
+    >
 
-  <core:displayName>Chandler Content Model</core:displayName>
-  <core:description>Content Model for the 0.3 release</core:description>
-  <core:version>0.3</core:version>
-  <core:author>Open Source Applications Foundation</core:author>
+    <displayName>Chandler Content Model</displayName>
+    <description>Content Model for the 0.5 release</description>
+    <version>0.5</version>
+    <author>Open Source Applications Foundation</author>
 
-<!-- Content Item -->
-  
-  <core:Attribute itsName="body">
-    <core:displayName>Body</core:displayName>
-    <core:type itemref="core:Text"/>
-    <core:description>All Content Items may have a body to contain notes.  It's not decided yet whether
-        this body would instead contain the payload for resource items such as presentations or 
-        spreadsheets -- resource items haven't been nailed down yet -- but the payload may be different
-        from the notes because payload needs to know MIME type, etc.</core:description>
-  </core:Attribute>
+    <!-- Content Item -->
 
-  <core:Enumeration itsName="ImportanceEnum">
-    <core:displayName>Importance Enum</core:displayName>
-    <core:values>important</core:values>
-    <core:values>normal</core:values>
-    <core:values>fyi</core:values>
-  </core:Enumeration>
+    <Kind itsName="ContentItem">
+        <superKinds itemref="Item"/>
+        <classes key="python">osaf.contentmodel.ContentModel.ContentItem</classes>
+        <displayName>Default Content Item Display Name</displayName>
+        <examples>an Calendar Event -- 'Lunch with Tug'</examples>
+        <examples>a Contact -- 'Terry Smith'</examples>
+        <examples>a Task -- 'mail 1040 to IRS'</examples>
+        <description>Content Item is the abstract super-kind for things like Contacts, Calendar Events, Tasks, Mail Messages, and Notes. Content Items are user-level items, which a user might file, categorize, share, and delete.</description>
+        <Attribute itsName="body">
+            <displayName>Body</displayName>
+            <type itemref="Text"/>
+            <description>All Content Items may have a body to contain notes.  It's not decided yet whether this body would instead contain the payload for resource items such as presentations or spreadsheets -- resource items haven't been nailed down yet -- but the payload may be different from the notes because payload needs to know MIME type, etc.</description>
+        </Attribute>
 
-  <core:Attribute itsName="importance">
-    <core:displayName>Importance</core:displayName>
-    <core:description>Most items are of normal importance (no value need be show), 
-      however some things may be flagged either highly important or merely 'fyi'.</core:description>
-    <core:description>This attribute is also used in the mail schema, so we shouldn't make any changes here that would break e-mail interoperability features.</core:description>
-    <core:cardinality>single</core:cardinality>
-    <core:type itemref="ImportanceEnum"/>
-    <core:initialValue type="ImportanceEnum">normal</core:initialValue>
-  </core:Attribute>
+        <Attribute itsName="importance">
+            <displayName>Importance</displayName>
+            <description>Most items are of normal importance (no value need be show), however some things may be flagged either highly important or merely 'fyi'. This attribute is also used in the mail schema, so we shouldn't make any changes here that would break e-mail interoperability features.</description>
 
-  <core:Enumeration itsName="SharingStatusEnum">
-    <core:displayName>Sharing Status</core:displayName>
-    <core:values>unshared</core:values>
-    <core:values>pending</core:values>
-    <core:values>uploaded</core:values>
-    <core:values>downloaded</core:values>
-    <core:values>error</core:values>
-  </core:Enumeration>
+            <Enumeration itsName="ImportanceEnum">
+                <displayName>Importance Enum</displayName>
+                <values>important</values>
+                <values>normal</values>
+                <values>fyi</values>
+            </Enumeration>
 
-  <core:Attribute itsName="sharingStatus">
-    <core:type itemref="SharingStatusEnum"/>
-    <core:initialValue type="SharingStatusEnum">unshared</core:initialValue>
-  </core:Attribute>
+            <type itemref="cm:ContentItem/importance/ImportanceEnum"/>
+            <initialValue type="cm:ContentItem/importance/ImportanceEnum">normal</initialValue>
 
-  <core:Enumeration itsName="ContextEnum">
-    <core:displayName>Context Enum</core:displayName>
-    <core:values>home</core:values>
-    <core:values>work</core:values>
-  </core:Enumeration>
+        </Attribute>
 
-  <core:Attribute itsName="context">
-    <core:displayName>Context</core:displayName>
-    <core:description>Context can be home, work, or another value provided by the user</core:description>
-    <core:cardinality>single</core:cardinality>
-    <core:type itemref="ContextEnum"/>
-  </core:Attribute>
+        <Attribute itsName="sharingStatus">
 
-  <core:Attribute itsName="itemCollectionInclusions">
-    <core:type itemref="ItemCollection"/>
-    <core:cardinality>list</core:cardinality>
-    <core:inverseAttribute itemref="ItemCollection/_inclusions"/>
-  </core:Attribute>
+            <Enumeration itsName="SharingStatusEnum">
+                <displayName>Sharing Status</displayName>
+                <values>unshared</values>
+                <values>pending</values>
+                <values>uploaded</values>
+                <values>downloaded</values>
+                <values>error</values>
+            </Enumeration>
 
-  <core:Attribute itsName="itemCollectionExclusions">
-    <core:type itemref="ItemCollection"/>
-    <core:cardinality>list</core:cardinality>
-    <core:inverseAttribute itemref="ItemCollection/_exclusions"/>
-  </core:Attribute>
+            <type itemref="cm:ContentItem/sharingStatus/SharingStatusEnum"/>
+            <initialValue type="cm:ContentItem/sharingStatus/SharingStatusEnum">unshared</initialValue>
 
-  <core:Attribute itsName="itemCollectionResults">
-    <core:type itemref="ItemCollection"/>
-    <core:cardinality>list</core:cardinality>
-    <core:inverseAttribute itemref="ItemCollection/_results"/>
-  </core:Attribute>
+        </Attribute>
 
-  <core:Attribute itsName="contentsOwner">
-    <core:type itemref="blocks:Block"/>
-    <core:cardinality>list</core:cardinality>
-    <core:inverseAttribute itemref="blocks:Block/contents"/>
-  </core:Attribute>
+        <Attribute itsName="itemCollectionInclusions">
+            <type itemref="cm:ItemCollection"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="cm:ItemCollection/_inclusions"/>
+        </Attribute>
 
-  <core:Kind itsName="ContentItem">
-    <core:superKinds itemref="core:Item"/>
-    <core:displayName>Default Content Item Display Name</core:displayName>
-    <core:examples>an Calendar Event -- 'Lunch with Tug'</core:examples>
-    <core:examples>a Contact -- 'Terry Smith'</core:examples>
-    <core:examples>a Task -- 'mail 1040 to IRS'</core:examples>
-    <core:description>Content Item is the abstract super-kind for things like Contacts, Calendar Events, Tasks, Mail Messages, and Notes. Content Items are user-level items, which a user might file, categorize, share, and delete.</core:description>
-    <core:attributes itemref="body"/>
-    <core:attributes itemref="importance"/>
-    <core:attributes itemref="context"/>
-    <core:attributes itemref="contact:creator"/>
-    <core:attributes itemref="core:Parcel/createdOn"/>
-    <core:attributes itemref="core:Parcel/modifiedOn"/>
-    <core:attributes itemref="conversations"/>
-    <core:attributes itemref="itemCollectionInclusions"/>
-    <core:attributes itemref="itemCollectionExclusions"/>
-    <core:attributes itemref="itemCollectionResults"/>
-    <core:attributes itemref="contentsOwner"/>
+        <Attribute itsName="itemCollectionExclusions">
+            <type itemref="cm:ItemCollection"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="cm:ItemCollection/_exclusions"/>
+        </Attribute>
 
-    <core:Attribute itsName="etag">
-      <core:type itemref="core:String"/>
-    </core:Attribute>
-    <core:Attribute itsName="lastModified">
-      <core:type itemref="core:String"/>
-    </core:Attribute>
-    
-    <core:attributes itemref="sharingStatus"/>
-    <core:Attribute itsName="sharedURL">
-      <core:type itemref="core:URL"/>
-    </core:Attribute>
-    <core:Attribute itsName="sharedUUID">
-      <core:type itemref="core:UUID"/>
-    </core:Attribute>
-    <core:Attribute itsName="sharedVersion">
-      <core:type itemref="core:Long"/>
-      <core:initialValue type="core:Long">-1</core:initialValue>
-    </core:Attribute>
-    <core:Attribute itsName="isPrivate">
-      <core:type itemref="core:Boolean"/>
-      <core:initialValue type="core:Boolean">False</core:initialValue>
-    </core:Attribute>
+        <Attribute itsName="itemCollectionResults">
+            <type itemref="cm:ItemCollection"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="cm:ItemCollection/_results"/>
+        </Attribute>
 
-    <core:Attribute itsName="sharer">
-      <description value="The person who initially published this item" />
-      <issues value="Eventually this will point to a Contact or equivalent" />
-      <type itemref="mail:EmailAddress" />
-      <cardinality value="single" />
-      <initialValue itemref="core:None" />
-      <inverseAttribute itemref="mail:EmailAddress/sharerOf" />
-    </core:Attribute>
+        <Attribute itsName="contentsOwner">
+            <type itemref="blocks:Block"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="blocks:Block/contents"/>
+        </Attribute>
 
-    <core:Attribute itsName="sharees">
-      <description value="The people who were invited to share in this item" />
-      <issues value="Eventually this will point to a Contact or equivalent" />
-      <type itemref="mail:EmailAddress" />
-      <cardinality value="list" />
-      <initialValue />
-      <inverseAttribute itemref="mail:EmailAddress/shareeOf" />
-    </core:Attribute>
+        <Attribute itsName="createdOn">
+            <displayName>Created On</displayName>
+            <description>DateTime this item was created</description>
+            <type itemref="DateTime"/>
+        </Attribute>
 
-    <core:Attribute itsName="previousStamps">
-      <description value="A list of mixin items that were used as stamps on this item previously." />
-      <core:type itemref="core:Item"/>
-      <cardinality value="list" />
-    </core:Attribute>
+        <Attribute itsName="modifiedOn">
+            <displayName>Last Modified On</displayName>
+            <description>DateTime this item was last modified</description>
+            <type itemref="DateTime"/>
+        </Attribute>
 
-    <core:classes key="python">osaf.contentmodel.ContentModel.ContentItem</core:classes>
-  </core:Kind>
+        <Attribute itsName="creator">
+            <displayName>Created By</displayName>
+            <description>Link to the contact who created the item.</description>
+            <type itemref="contact:Contact"/>
+            <inverseAttribute itemref="contact:Contact/itemsCreated"/>
+        </Attribute>
+
+        <Attribute itsName="lastModifiedBy">
+            <displayName>Last Modified By</displayName>
+            <description>Link to the contact who last modified the item.</description>
+            <type itemref="contact:Contact"/>
+            <inverseAttribute itemref="contact:Contact/itemsLastModified"/>
+        </Attribute>
+
+        <Attribute itsName="etag">
+            <type itemref="String"/>
+        </Attribute>
+
+        <Attribute itsName="lastModified">
+            <type itemref="String"/>
+        </Attribute>
+
+        <Attribute itsName="sharedURL">
+            <type itemref="URL"/>
+        </Attribute>
+
+        <Attribute itsName="sharedUUID">
+            <type itemref="UUID"/>
+        </Attribute>
+
+        <Attribute itsName="sharedVersion">
+            <type itemref="Long"/>
+            <initialValue type="Long">-1</initialValue>
+        </Attribute>
+
+        <Attribute itsName="isPrivate">
+            <type itemref="Boolean"/>
+            <initialValue type="Boolean">False</initialValue>
+        </Attribute>
+
+        <Attribute itsName="sharer">
+            <description value="The person who initially published this item" />
+            <issues value="Eventually this will point to a Contact or equivalent" />
+            <type itemref="contact:Contact" />
+            <cardinality value="single" />
+            <initialValue itemref="None" />
+            <inverseAttribute itemref="contact:Contact/sharerOf" />
+        </Attribute>
+
+        <Attribute itsName="sharees">
+            <description value="The people who were invited to share in this item" />
+            <issues value="Eventually this will point to a Contact or equivalent" />
+            <type itemref="contact:Contact" />
+            <cardinality value="list" />
+            <initialValue />
+            <inverseAttribute itemref="contact:Contact/shareeOf" />
+        </Attribute>
+
+        <Attribute itsName="previousStamps">
+            <description value="A list of mixin items that were used as stamps on this item previously." />
+            <type itemref="Item"/>
+            <cardinality value="list" />
+        </Attribute>
+
+  </Kind>
 
   <!-- Processing Item -->
-  <core:Enumeration itsName="processingStatusEnum">
-    <core:displayName>Processing Status Enum</core:displayName>
-    <core:values>processing</core:values>
-    <core:values>deferred</core:values>
-    <core:values>done</core:values>
-    <core:values>junk</core:values>
-    <core:values>trash</core:values>
-  </core:Enumeration>
 
-  <core:Attribute itsName="processingStatus">
-    <core:type itemref="processingStatusEnum"/>
-    <core:initialValue type="processingStatusEnum">processing</core:initialValue>
-  </core:Attribute>
+  <Kind itsName="ProcessingItem">
+    <displayName>Processing Item</displayName>
+    <description>Mixin kind to give an item Processing Status.</description>
+    <issues>This could be just an attribute of Note, but we need to wrap it with a mixinKind to give Note a unique mixinKind signature for FindStampedKind(), or else we can't distinguish it from other plain ContentItems.</issues>
 
-  <core:Kind itsName="ProcessingItem">
-    <core:displayName>Processing Item</core:displayName>
-    <core:description>Mixin kind to give an item Processing Status.</core:description>
-    <core:issues>This could be just an attribute of Note, but we</core:issues>
-    <core:issues> need to wrap it with a mixinKind to give Note a unique</core:issues>
-    <core:issues> mixinKind signature for FindStampedKind(), or</core:issues>
-    <core:issues> else we can't distinguish it from other plain ContentItems.</core:issues>
-    <attributes itemref="processingStatus"/>
-  </core:Kind>
+      <Attribute itsName="processingStatus">
+
+          <Enumeration itsName="processingStatusEnum">
+              <displayName>Processing Status Enum</displayName>
+              <values>processing</values>
+              <values>deferred</values>
+              <values>done</values>
+              <values>junk</values>
+              <values>trash</values>
+          </Enumeration>
+
+          <type itemref="cm:ProcessingItem/processingStatus/processingStatusEnum"/>
+          <initialValue type="cm:ProcessingItem/processingStatus/processingStatusEnum">processing</initialValue>
+
+      </Attribute>
+
+  </Kind>
 
   <!-- Note -->
 
-  <core:Kind itsName="Note">
-    <core:displayName>Note</core:displayName>
-    <core:superKinds itemref="ContentItem"/>
-    <core:superKinds itemref="ProcessingItem"/>
-    <core:classes key="python">osaf.contentmodel.Notes.Note</core:classes>
-    
+  <Kind itsName="Note">
+    <displayName>Note</displayName>
+    <superKinds itemref="cm:ContentItem"/>
+    <superKinds itemref="cm:ProcessingItem"/>
+    <classes key="python">osaf.contentmodel.Notes.Note</classes>
+
     <!-- redirections -->
-    <core:Attribute itsName="who">
+    <Attribute itsName="who">
       <redirectTo>creator</redirectTo>
-    </core:Attribute>
-  
-    <core:Attribute itsName="about">
+    </Attribute>
+
+    <Attribute itsName="about">
       <redirectTo>displayName</redirectTo>
-    </core:Attribute>
-  
-    <core:Attribute itsName="date">
+    </Attribute>
+
+    <Attribute itsName="date">
       <redirectTo>createdOn</redirectTo>
-    </core:Attribute>
-  </core:Kind>
-  
-  <!-- Conversation -->
+    </Attribute>
+  </Kind>
 
-  <core:Attribute itsName="conversations">
-    <core:displayName>Conversations</core:displayName>
-    <core:description>Conversations about this content item.</core:description>
-    <core:issues>deletePolicy should be cascade</core:issues>
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="Conversation"/>
-    <core:inverseAttribute itemref="subjectItem"/>
-  </core:Attribute>
-
-  <core:Attribute itsName="subjectItem">
-    <core:displayName>Subject Item</core:displayName>
-    <core:description>If this Conversation is a free-standing independent item, 
-        then this attribute will be empty. If this Conversation is contained in 
-        some other item, then this attribute will point to that item.</core:description>
-    <core:required>False</core:required>
-    <core:type itemref="ContentItem"/>
-    <core:inverseAttribute itemref="conversations"/>
-  </core:Attribute>
-
-  <core:Attribute itsName="conversationLines">
-    <core:displayName>Conversation Lines</core:displayName>
-    <core:description>The list of lines of dialog in this conversation.</core:description>
-    <core:issues>deletePolicy should be cascade</core:issues>
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="ConversationLine"/>
-    <core:inverseAttribute itemref="containedInConversation"/>
-  </core:Attribute>
-
-  <core:Kind itsName="Conversation">
-    <core:displayName>Conversation</core:displayName>
-    <core:superKinds itemref="ContentItem"/>
-    <core:attributes itemref="subjectItem"/>
-    <core:attributes itemref="conversationLines"/>
-    <core:classes key="python">osaf.contentmodel.Notes.Conversation</core:classes>
-  </core:Kind>
-  
-  <core:Attribute itsName="line">
-    <core:displayName>Line</core:displayName>
-    <core:description>A line of text in a conversation, such as "okay, let's meet at 5:00".</core:description>
-    <core:type itemref="core:String"/>
-  </core:Attribute>
-
-  <core:Attribute itsName="timestamp">
-    <core:displayName>Timestamp</core:displayName>
-    <core:type itemref="core:DateTime"/>
-  </core:Attribute>
-
-  <core:Attribute itsName="containedInConversation">
-    <core:displayName>Contained in Conversation</core:displayName>
-    <core:description>The Conversation that this line is a part of.</core:description>
-    <core:required>True</core:required>
-    <core:type itemref="Conversation"/>
-    <core:inverseAttribute itemref="conversationLines"/>
-  </core:Attribute>
-
-  <core:Kind itsName="ConversationLine">
-    <core:superKinds itemref="core:Item"/>
-    <core:displayName>Conversation Line</core:displayName>
-    <core:issues>Perhaps for performance reasons we should implement 'ConversationLine' 
-        as a struct rather than a first-class Kind.</core:issues>
-    <core:attributes itemref="line"/>
-    <core:attributes itemref="timestamp"/>
-    <core:attributes itemref="containedInConversation"/>
-  </core:Kind>
 
 <!-- Stamped Kinds -->
 
-  <core:Kind itsName="MailedTask">
-    <core:displayName>Mailed Task</core:displayName>
-    <core:description>A Task stamped as a Mail, or vica versa</core:description>
-    <core:superKinds itemref="tasks:TaskMixin"/>
-    <core:superKinds itemref="mail:MailMessage"/>
-  </core:Kind>
+  <Kind itsName="MailedTask">
+    <displayName>Mailed Task</displayName>
+    <description>A Task stamped as a Mail, or vica versa</description>
+    <superKinds itemref="tasks:TaskMixin"/>
+    <superKinds itemref="mail:MailMessage"/>
+  </Kind>
 
-  <core:Kind itsName="MailedEvent">
-    <core:displayName>Mailed Event</core:displayName>
-    <core:description>An Event stamped as a Mail, or vica versa</core:description>
-    <core:superKinds itemref="calendar:CalendarEventMixin"/>
-    <core:superKinds itemref="mail:MailMessage"/>
-  </core:Kind>
+  <Kind itsName="MailedEvent">
+    <displayName>Mailed Event</displayName>
+    <description>An Event stamped as a Mail, or vica versa</description>
+    <superKinds itemref="calendar:CalendarEventMixin"/>
+    <superKinds itemref="mail:MailMessage"/>
+  </Kind>
 
-  <core:Kind itsName="EventTask">
-    <core:displayName>Event Task</core:displayName>
-    <core:description>A Task stamped as an Event, or vica versa</core:description>
-    <core:superKinds itemref="tasks:TaskMixin"/>
-    <core:superKinds itemref="tasks:TaskEventExtraMixin"/>
-    <core:superKinds itemref="calendar:CalendarEvent"/>
-  </core:Kind>
+  <Kind itsName="EventTask">
+    <displayName>Event Task</displayName>
+    <description>A Task stamped as an Event, or vica versa</description>
+    <superKinds itemref="tasks:TaskMixin"/>
+    <superKinds itemref="tasks:TaskEventExtraMixin"/>
+    <superKinds itemref="calendar:CalendarEvent"/>
+  </Kind>
 
-  <core:Kind itsName="MailedEventTask">
-    <core:displayName>Mailed Event Task</core:displayName>
-    <core:description>A Task stamped as an Event stamped as Mail, in any sequence</core:description>
-    <core:superKinds itemref="tasks:TaskMixin"/>
-    <core:superKinds itemref="tasks:TaskEventExtraMixin"/>
-    <core:superKinds itemref="calendar:CalendarEventMixin"/>
-    <core:superKinds itemref="mail:MailMessage"/>
-  </core:Kind>
+  <Kind itsName="MailedEventTask">
+    <displayName>Mailed Event Task</displayName>
+    <description>A Task stamped as an Event stamped as Mail, in any sequence</description>
+    <superKinds itemref="tasks:TaskMixin"/>
+    <superKinds itemref="tasks:TaskEventExtraMixin"/>
+    <superKinds itemref="calendar:CalendarEventMixin"/>
+    <superKinds itemref="mail:MailMessage"/>
+  </Kind>
 
 <!-- Project -->
 
-  <core:Attribute itsName="parentProject">
-    <core:displayName>Parent Project</core:displayName>
-    <core:description>Projects can be organized into hierarchies. Each project can have one parent.</core:description>
-    <core:cardinality>single</core:cardinality>
-    <core:type itemref="Project"/>
-    <core:inverseAttribute itemref="subProjects"/>
-  </core:Attribute>
 
-  <core:Attribute itsName="subProjects">
-    <core:displayName>Sub Projects</core:displayName>
-    <core:description>Projects can be organized into hierarchies. Each project can have many sub-projects.</core:description>
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="Project"/>
-    <core:inverseAttribute itemref="parentProject"/>
-  </core:Attribute>
+  <Kind itsName="Project">
+    <classes key="python">osaf.contentmodel.ContentModel.Project</classes>
+    <displayName>Project</displayName>
+    <examples>my "Housewarming Party" project</examples>
+    <examples>my department's "Move to new building" project</examples>
+    <examples>my company's "Open Seattle Store" project</examples>
+    <description>Users can create projects to help organize their work. Users can take content items (like tasks and mail messages) and assign them to different projects.</description>
 
-  <core:Kind itsName="Project">
-    <core:superKinds itemref="core:Item"/>
-    <core:displayName>Project</core:displayName>
-    <core:examples>my "Housewarming Party" project</core:examples>
-    <core:examples>my department's "Move to new building" project</core:examples>
-    <core:examples>my company's "Open Seattle Store" project</core:examples>
-    <core:description>Users can create projects to help organize their work. Users can take content items (like tasks and mail messages) and assign them to different projects.</core:description>
-    <core:displayAttribute itemref="core:displayName"/>
-    <core:attributes itemref="core:displayName"/>
-    <core:attributes itemref="parentProject"/>
-    <core:attributes itemref="subProjects"/>
-    <core:classes key="python">osaf.contentmodel.ContentModel.Project</core:classes>
-  </core:Kind>
+      <Attribute itsName="parentProject">
+        <displayName>Parent Project</displayName>
+        <description>Projects can be organized into hierarchies. Each project can have one parent.</description>
+        <cardinality>single</cardinality>
+        <type itemref="cm:Project"/>
+        <inverseAttribute itemref="cm:Project/subProjects"/>
+      </Attribute>
+
+      <Attribute itsName="subProjects">
+        <displayName>Sub Projects</displayName>
+        <description>Projects can be organized into hierarchies. Each project can have many sub-projects.</description>
+        <cardinality>list</cardinality>
+        <type itemref="cm:Project"/>
+        <inverseAttribute itemref="cm:Project/parentProject"/>
+      </Attribute>
+  </Kind>
 
 <!-- Group -->
-  <core:Kind itsName="Group">
-    <core:displayName>"Playlist"/"Item Collection"</core:displayName>
-    <core:description>See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject</core:description>
-    <core:issues>We still need to work out some issues about how "playlists"/"item collections" are modeled.</core:issues>
-    <core:issues>We need to find a name for these things.</core:issues>
-    <core:superKinds itemref="ContentItem"/>
-    <core:displayAttribute itemref="core:displayName"/>
-    <core:attributes itemref="core:displayName"/>
-    <core:classes key="python">osaf.contentmodel.ContentModel.Group</core:classes>
-  </core:Kind>
+  <Kind itsName="Group">
+    <displayName>"Playlist"/"Item Collection"</displayName>
+    <description>See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject</description>
+    <issues>We still need to work out some issues about how "playlists"/"item collections" are modeled.</issues>
+    <issues>We need to find a name for these things.</issues>
+    <superKinds itemref="cm:ContentItem"/>
+    <classes key="python">osaf.contentmodel.ContentModel.Group</classes>
+  </Kind>
 
 
   <!-- ItemCollection -->
 
-  <core:Kind itsName="ItemCollection">
-    <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
-    <core:superKinds itemref="ContentItem"/>
+  <Kind itsName="ItemCollection">
+    <classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</classes>
+    <superKinds itemref="cm:ContentItem"/>
 
-    <core:displayName>Item Collection</core:displayName>
+    <displayName>Item Collection</displayName>
 
-    <core:Attribute itsName="_rule">
-      <core:type itemref="core:String"/>
-      <core:initialValue type="core:String"></core:initialValue>
-    </core:Attribute>
+    <Attribute itsName="_rule">
+      <type itemref="String"/>
+      <initialValue type="String"></initialValue>
+    </Attribute>
 
-    <core:Attribute itsName="_inclusions">
-      <core:type itemref="core:Item"/>
-      <core:cardinality>list</core:cardinality>
-      <core:inverseAttribute itemref="itemCollectionInclusions"/>
+    <Attribute itsName="_inclusions">
+      <type itemref="Item"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="cm:ContentItem/itemCollectionInclusions"/>
       <initialValue/>
-    </core:Attribute>
+    </Attribute>
 
-    <core:Attribute itsName="_exclusions">
-      <type itemref="core:Item"/>
-      <core:cardinality>list</core:cardinality>
-      <core:inverseAttribute itemref="itemCollectionExclusions"/>
+    <Attribute itsName="_exclusions">
+      <type itemref="Item"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="cm:ContentItem/itemCollectionExclusions"/>
       <initialValue/>
-    </core:Attribute>
+    </Attribute>
 
-    <core:Attribute itsName="_filterKinds">
-      <type itemref="core:String"/>
-      <core:cardinality>list</core:cardinality>
+    <Attribute itsName="_filterKinds">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
       <initialValue/>
-    </core:Attribute>
+    </Attribute>
 
-    <core:Attribute itsName="_results">
-      <type itemref="core:Item"/>
-      <core:cardinality>list</core:cardinality>
-      <core:inverseAttribute itemref="itemCollectionResults"/>
+    <Attribute itsName="_results">
+      <type itemref="Item"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="cm:ContentItem/itemCollectionResults"/>
       <initialValue/>
-    </core:Attribute>
+    </Attribute>
 
-    <core:Attribute itsName="queryStringStale">
-      <core:type itemref="core:Boolean"/>
-      <initialValue type="core:Boolean" value="True"/>
-    </core:Attribute>
+    <Attribute itsName="queryStringStale">
+      <type itemref="Boolean"/>
+      <initialValue type="Boolean" value="True"/>
+    </Attribute>
 
-    <core:Attribute itsName="resultsStale">
-      <core:type itemref="core:Boolean"/>
-      <initialValue type="core:Boolean" value="True"/>
-    </core:Attribute>
+    <Attribute itsName="resultsStale">
+      <type itemref="Boolean"/>
+      <initialValue type="Boolean" value="True"/>
+    </Attribute>
 
-    <core:Attribute itsName="indexName">
-      <core:type itemref="core:String"/>
-      <core:initialValue type="core:String">__adhoc__</core:initialValue>
-    </core:Attribute>
+    <Attribute itsName="indexName">
+      <type itemref="String"/>
+      <initialValue type="String">__adhoc__</initialValue>
+    </Attribute>
 
-    <core:attributes itemref="ItemCollection/_rule"/>
-    <core:attributes itemref="ItemCollection/_inclusions"/>
-    <core:attributes itemref="ItemCollection/_exclusions"/>
-    <core:attributes itemref="ItemCollection/_filterKinds"/>
-    <core:attributes itemref="ItemCollection/_results"/>
-    <core:attributes itemref="ItemCollection/queryStringStale"/>
-    <core:attributes itemref="ItemCollection/resultsStale"/>
-    <core:attributes itemref="ItemCollection/indexName"/>
 
     <!-- redirections -->
-    <core:Attribute itsName="who">
+    <Attribute itsName="who">
       <redirectTo>sharees</redirectTo>
-    </core:Attribute>
-    
-    <core:Attribute itsName="whoFrom">
+    </Attribute>
+
+    <Attribute itsName="whoFrom">
       <redirectTo>sharer</redirectTo>
-    </core:Attribute>
-    
-    <core:Attribute itsName="about">
+    </Attribute>
+
+    <Attribute itsName="about">
       <redirectTo>displayName</redirectTo>
-    </core:Attribute>
-    
+    </Attribute>
+
     <!-- Default Cloud -->
-    <core:Cloud itsName="DefaultCloud">
-      <core:Endpoint itsName="_inclusions">
+    <Cloud itsName="DefaultCloud">
+      <Endpoint itsName="_inclusions">
         <attribute value="_inclusions"/>
         <includePolicy value="byCloud"/>
-      </core:Endpoint>
-      <endpoints itemref="ItemCollection/DefaultCloud/_inclusions"/>
-      <core:Endpoint itsName="_exclusions">
+      </Endpoint>
+      <endpoints itemref="cm:ItemCollection/DefaultCloud/_inclusions"/>
+      <Endpoint itsName="_exclusions">
         <attribute value="_exclusions"/>
         <includePolicy value="byCloud"/>
-      </core:Endpoint>
-      <endpoints itemref="ItemCollection/DefaultCloud/_exclusions"/>
-      <core:Endpoint itsName="_filterKinds">
+      </Endpoint>
+      <endpoints itemref="cm:ItemCollection/DefaultCloud/_exclusions"/>
+      <Endpoint itsName="_filterKinds">
         <attribute value="_filterKinds"/>
         <includePolicy value="byCloud"/>
-      </core:Endpoint>
-      <endpoints itemref="ItemCollection/DefaultCloud/_filterKinds"/>
-      <core:Endpoint itsName="_results">
+      </Endpoint>
+      <endpoints itemref="cm:ItemCollection/DefaultCloud/_filterKinds"/>
+      <Endpoint itsName="_results">
         <attribute value="_results"/>
         <includePolicy value="byCloud"/>
-      </core:Endpoint>
-      <endpoints itemref="ItemCollection/DefaultCloud/_results"/>
-      <core:Endpoint itsName="contentsOwner">
+      </Endpoint>
+      <endpoints itemref="cm:ItemCollection/DefaultCloud/_results"/>
+      <Endpoint itsName="contentsOwner">
         <attribute value="contentsOwner"/>
         <includePolicy value="byCloud"/>
-      </core:Endpoint>
-      <endpoints itemref="ItemCollection/DefaultCloud/contentsOwner"/>
-      <core:Endpoint itsName="sharer">
+      </Endpoint>
+      <endpoints itemref="cm:ItemCollection/DefaultCloud/contentsOwner"/>
+      <Endpoint itsName="sharer">
         <attribute value="sharer"/>
         <includePolicy value="byValue"/>
-      </core:Endpoint>
-      <endpoints itemref="ItemCollection/DefaultCloud/sharer"/>
-      <core:Endpoint itsName="sharees">
+      </Endpoint>
+      <endpoints itemref="cm:ItemCollection/DefaultCloud/sharer"/>
+      <Endpoint itsName="sharees">
         <attribute value="sharees"/>
         <includePolicy value="byValue"/>
-      </core:Endpoint>
-      <endpoints itemref="ItemCollection/DefaultCloud/sharees"/>
-    </core:Cloud>
-    <clouds alias="default" itemref="ItemCollection/DefaultCloud"/>
+      </Endpoint>
+      <endpoints itemref="cm:ItemCollection/DefaultCloud/sharees"/>
+    </Cloud>
+    <clouds alias="default" itemref="cm:ItemCollection/DefaultCloud"/>
 
-  </core:Kind>
+  </Kind>
 
-
-</core:Parcel>
+</Parcel>

@@ -28,9 +28,9 @@
     <editorString key="DateTime" value="osaf.framework.attributeEditors.AttributeEditors.DateTimeAttributeEditor"/>
     <editorString key="DateTimeDelta" value="osaf.framework.attributeEditors.AttributeEditors.DateTimeDeltaAttributeEditor"/>
     <editorString key="ContentItem" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
-    <editorString key="EmailAddress" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
+    <editorString key="EmailAddress" value="osaf.framework.attributeEditors.AttributeEditors.EmailAddressAttributeEditor"/>
     <editorString key="ContactName" value="osaf.framework.attributeEditors.AttributeEditors.ContactNameAttributeEditor"/>
-    <editorString key="Contact" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
+    <editorString key="Contact" value="osaf.framework.attributeEditors.AttributeEditors.ContactAttributeEditor"/>
     <editorString key="Kind" value="osaf.framework.attributeEditors.AttributeEditors.StampAttributeEditor"/>
     <editorString key="SharingStatusEnum" value="osaf.framework.attributeEditors.AttributeEditors.EnumAttributeEditor"/>
     <editorString key="_default" value="osaf.framework.attributeEditors.AttributeEditors.DefaultAttributeEditor"/>

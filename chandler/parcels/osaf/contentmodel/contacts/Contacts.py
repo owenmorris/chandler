@@ -24,18 +24,9 @@ class ContactsParcel(application.Parcel.Parcel):
     def _setUUIDs(self):
         contactKind = self['Contact']
         ContactsParcel.contactKindID = contactKind.itsUUID
-        
-        contactSectionKind = self['ContactSection']
-        ContactsParcel.contactSectionKindID = contactSectionKind.itsUUID
 
         contactNameKind = self['ContactName']
         ContactsParcel.contactNameKindID = contactNameKind.itsUUID
-        
-        streetAddressKind = self['StreetAddress']
-        ContactsParcel.streetAddressKindID = streetAddressKind.itsUUID
-        
-        phoneNumberKind = self['PhoneNumber']
-        ContactsParcel.phoneNumberKindID = phoneNumberKind.itsUUID
 
     def getContactKind(cls):
         assert cls.contactKindID, "Contacts parcel not yet loaded"
@@ -43,35 +34,14 @@ class ContactsParcel(application.Parcel.Parcel):
 
     getContactKind = classmethod(getContactKind)
 
-    def getContactSectionKind(cls):
-        assert cls.contactSectionKindID, "Contacts parcel not yet loaded"
-        return Globals.repository[cls.contactSectionKindID]
-
-    getContactSectionKind = classmethod(getContactSectionKind)
-
     def getContactNameKind(cls):
         assert cls.contactNameKindID, "Contacts parcel not yet loaded"
         return Globals.repository[cls.contactNameKindID]
 
     getContactNameKind = classmethod(getContactNameKind)
 
-    def getStreetAddressKind(cls):
-        assert cls.streetAddressKindID, "Contacts parcel not yet loaded"
-        return Globals.repository[cls.streetAddressKindID]
-
-    getStreetAddressKind = classmethod(getStreetAddressKind)
-
-    def getPhoneNumberKind(cls):
-        assert cls.phoneNumberKindID, "Contacts parcel not yet loaded"
-        return Globals.repository[cls.phoneNumberKindID]
-
-    getPhoneNumberKind = classmethod(getPhoneNumberKind)
-
     contactKindID = None
-    contactSectionKindID = None
     contactNameKindID = None
-    streetAddressKindID = None
-    phoneNumberKindID = None
 
 class Contact(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
@@ -91,16 +61,31 @@ class Contact(ContentModel.ContentItem):
         self.contactName = ContactName()
         self.contactName.firstName = ''
         self.contactName.lastName = ''
-        self.homeSection = ContactSection()
-        self.workSection = ContactSection()
 
-class ContactSection(Item.Item):
-    def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
-        if not kind:
-            kind = ContactsParcel.getContactSectionKind()
-        super (ContactSection, self).__init__(name, parent, kind)
+    def getCurrentMeContact(cls):
+        """ Lookup the current "me" Contact """
+
+        # For now, just hardcode a contact to use:
+        return \
+         Globals.repository.findPath("//parcels/osaf/views/main/MeContact")
+
+    getCurrentMeContact = classmethod(getCurrentMeContact)
+
+    def __str__(self):
+        """ User readable string version of this address. """
+
+        if self.isStale():
+            return super(Contact, self).__str__()
+            # Stale items shouldn't go through the code below
+
+        try:
+            if self.contactName is not None:
+                value = self.contactName.firstName + ' ' + \
+                 self.contactName.lastName
+        except:
+            value = self.getItemDisplayName()
+
+        return value
 
 class ContactName(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -109,21 +94,3 @@ class ContactName(Item.Item):
         if not kind:
             kind = ContactsParcel.getContactNameKind()
         super (ContactName, self).__init__(name, parent, kind)
-
-class StreetAddress(Item.Item):
-    def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
-        if not kind:
-            kind = ContactsParcel.getStreetAddressKind()
-        super (StreetAddress, self).__init__(name, parent, kind)
-
-class PhoneNumber(Item.Item):
-    def __init__(self, name=None, parent=None, kind=None):
-        if not parent:
-            parent = ContentModel.ContentModel.getContentItemParent()
-        if not kind:
-            kind = ContactsParcel.getPhoneNumberKind()
-        super (PhoneNumber, self).__init__(name, parent, kind)
-
-

@@ -13,6 +13,7 @@ import repository.query.Query as Query
 
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.Notes as Notes
+import osaf.contentmodel.contacts.Contacts as Contacts
 
 import mx.DateTime as DateTime
 
@@ -118,11 +119,18 @@ class CalendarEventMixin(Item.Item):
                                            now.hour, int(now.minute/30) * 30)
         self.duration = DateTime.DateTimeDelta(0, 1)
 
-        # default the requestor to an existing value, or "me"
+        # default the organizer to an existing value, or "me"
         try:
-            self.organizer = self.getAnyWhoFrom ()
+            whoFrom = self.getAnyWhoFrom ()
+
+            # I only want a Contact
+            if not isinstance(whoFrom, Contacts.Contact):
+                whoFrom = self.getCurrentMeContact()
+
+            self.organizer = whoFrom
+
         except AttributeError:
-            self.organizer = self.getCurrentMeEmailAddress ()
+            self.organizer = self.getCurrentMeContact()
 
         # give a starting display name
         try:
@@ -130,12 +138,20 @@ class CalendarEventMixin(Item.Item):
         except AttributeError:
             pass
 
+        """ @@@ Commenting out this block
+
+        participants can only accept Contact items.  At some point
+        this code will need inspect the results of getAnyWho() and
+        create Contact items for any EmailAddresses in the list
+
         # set participants to any existing "who"
         try:
-            # need to shallow copy the list
+            need to shallow copy the list
             self.participants = self.getAnyWho ()
         except AttributeError:
             pass # no participants yet
+
+        @@@ End block comment """
 
     def getAnyWho (self):
         """

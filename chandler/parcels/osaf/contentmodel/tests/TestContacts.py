@@ -25,7 +25,6 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         """ Simple test for creating instances of contact related kinds """
 
         self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/contacts")
-
         def _verifyContactName(name):
             self.assertEqual(name.firstName, 'Sylvia')
             self.assertEqual(name.getAttributeValue('firstName'),'Sylvia')
@@ -37,33 +36,18 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
 
         self.assertEqual(Contacts.ContactsParcel.getContactKind(),
                          self.rep.find(Path(contactsPath, 'Contact')))
-        self.assertEqual(Contacts.ContactsParcel.getContactSectionKind(),
-                         self.rep.find(Path(contactsPath, 'ContactSection')))
         self.assertEqual(Contacts.ContactsParcel.getContactNameKind(),
                          self.rep.find(Path(contactsPath, 'ContactName')))
-        self.assertEqual(Contacts.ContactsParcel.getStreetAddressKind(),
-                         self.rep.find(Path(contactsPath, 'StreetAddress')))
-        self.assertEqual(Contacts.ContactsParcel.getPhoneNumberKind(),
-                         self.rep.find(Path(contactsPath, 'PhoneNumber')))
 
         # Construct sample items
         contactItem = Contacts.Contact("contactItem")
-        contactSectionItem = Contacts.ContactSection("contactSectionItem")
         contactNameItem = Contacts.ContactName("contactNameItem")
-        streetAddressItem = Contacts.StreetAddress("streetAddressItem")
-        phoneNumberItem = Contacts.PhoneNumber("phoneNumberItem")
 
         # Double check kinds
         self.assertEqual(contactItem.itsKind,
                          Contacts.ContactsParcel.getContactKind())
-        self.assertEqual(contactSectionItem.itsKind,
-                         Contacts.ContactsParcel.getContactSectionKind())
         self.assertEqual(contactNameItem.itsKind,
                          Contacts.ContactsParcel.getContactNameKind())
-        self.assertEqual(streetAddressItem.itsKind,
-                         Contacts.ContactsParcel.getStreetAddressKind())
-        self.assertEqual(phoneNumberItem.itsKind,
-                         Contacts.ContactsParcel.getPhoneNumberKind())
 
         # Literal properties
         contactNameItem.firstName = "Sylvia"
@@ -74,10 +58,10 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         self._reopenRepository()
 
         contentItemParent = self.rep.findPath("//userdata/contentitems")
-        
+
         contactNameItem = contentItemParent.getItemChild("contactNameItem")
         _verifyContactName(contactNameItem)
-
+        
     def testGeneratedContacts(self):
 
         self.loadParcels(["http://osafoundation.org/parcels/osaf/contentmodel/contacts", "http://osafoundation.org/parcels/osaf/contentmodel/mail"])

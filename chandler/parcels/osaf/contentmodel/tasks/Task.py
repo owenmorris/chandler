@@ -12,6 +12,7 @@ import repository.item.Item as Item
 import mx.DateTime as DateTime
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.Notes as Notes
+import osaf.contentmodel.contacts.Contacts as Contacts
 import application.Globals as Globals
 
 
@@ -95,16 +96,30 @@ class TaskMixin(Item.Item):
 
         # default the requestor to any super class "whoFrom" definition
         try:
-            self.requestor = self.getAnyWhoFrom ()
+            whoFrom = self.getAnyWhoFrom ()
+
+            # I only want a Contact
+            if not isinstance(whoFrom, Contacts.Contact):
+                whoFrom = self.getCurrentMeContact()
+
+            self.requestor = whoFrom
         except AttributeError:
             pass
 
+        """ @@@ Commenting out this block
+        requestee can only accept Contact items.  At some point
+        this code will need inspect the results of getAnyWho() and
+        create Contact items for any EmailAddresses in the list
+
         # default the requestee to any super class "who" definition
         try:
-            # shallow copy the list
+            shallow copy the list
             self.requestee = self.getAnyWho ()
+
         except AttributeError:
             pass
+
+        @@@ End block comment """
 
     def getAnyDate (self):
         """

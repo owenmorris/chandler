@@ -5,444 +5,142 @@
 <!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/osaf/contentmodel/contacts"
-        itsName="contacts"
-        itemClass="osaf.contentmodel.contacts.Contacts.ContactsParcel"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
-        xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-        xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
-        xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
-        xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks">
+<Parcel itsName="contacts"
+    itemClass="osaf.contentmodel.contacts.Contacts.ContactsParcel"
+    xmlns="http://osafoundation.org/parcels/core"
+    xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
+    xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
+    xmlns:task="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
+    xmlns:cal="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
+    >
 
-  <displayName>Contact Content Model</displayName>
-  <description>Contact schema for the 0.3 release</description>
-  <version>0.3</version>
-  <author>Open Source Applications Foundation</author>
+    <displayName>Contact Content Model</displayName>
+    <description>Contact schema for the 0.5 release</description>
+    <version>0.5</version>
+    <author>Open Source Applications Foundation</author>
 
-  <Attribute itsName="contactName">
-    <displayName>Contact Name</displayName>
-    <description>A reference to an item that represents the name of this contact.</description>
-    <type itemref="contact:ContactName"/>
-    <inverseAttribute itemref="contact:contactNameOwner"/>
-  </Attribute>
+    <!-- Contact -->
 
-  <Attribute itsName="contactNameOwner">
-    <displayName>Contact</displayName>
-    <description>The contact item that this name is part of.</description>
-    <type itemref="contact:Contact"/>
-    <inverseAttribute itemref="contact:contactName"/>
-  </Attribute>
+    <Kind itsName="Contact">
+        <superKinds itemref="cm:ContentItem"/>
+        <classes key="python">osaf.contentmodel.contacts.Contacts.Contact</classes>
+        <displayName>Contact</displayName>
+        <description>An entry in an address book. Typically represents either a person or a company.</description>
 
-  <Attribute itsName="sections">
-    <displayName>Sections</displayName>
-    <description>A list of sections of contact info. For example, my Contact for my mom might have sections like 'home', 'work', 'at studio', 'vermont house'.</description>
-    <cardinality>list</cardinality>
-    <type itemref="contact:ContactSection"/>
-    <inverseAttribute itemref="contact:sectionOwner"/>
-  </Attribute>
+        <issues>We might want to keep track of lots of sharing information like 'Permissions I've given them', 'Items of mine they've subscribed to', 'Items of theirs I've subscribed to', etc.</issues>
 
-  <Attribute itsName="sectionOwner">
-    <displayName>Owner of Section</displayName>
-    <description>A reference to the contact that this section is a part of.</description>
-    <type itemref="contact:Contact"/>
-    <inverseAttribute itemref="contact:sections"/>
-  </Attribute>
+        <displayAttribute itemref="contact:Contact/emailAddress"/>
 
-  <Attribute itsName="homeSectionFor">
-    <displayName>Home Section For</displayName>
-    <description>A reference to the contact if this is the contact's home section.</description>
-    <type itemref="contact:Contact"/>
-    <inverseAttribute itemref="contact:homeSection"/>
-  </Attribute>
+        <Attribute itsName="contactName">
+            <type itemref="contact:ContactName" />
+            <inverseAttribute itemref="contact:ContactName/contact"/>
+            <initialValue itemref="None"/>
+        </Attribute>
 
-  <Attribute itsName="workSectionFor">
-    <displayName>Work Section For</displayName>
-    <description>A reference to the contact if this is the contact's work section.</description>
-    <type itemref="contact:Contact"/>
-    <inverseAttribute itemref="contact:workSection"/>
-  </Attribute>
+        <Attribute itsName="emailAddress">
+            <displayName>Email Address</displayName>
+            <type itemref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
 
+        <Attribute itsName="itemsCreated">
+            <displayName>Items Created</displayName>
+            <description>List of content items created by this user.</description>
+            <cardinality>list</cardinality>
+            <type itemref="cm:ContentItem"/>
+            <inverseAttribute itemref="cm:ContentItem/creator"/>
+        </Attribute>
 
-  <Attribute itsName="workSection">
-    <displayName>Work Section</displayName>
-    <description>A section of the contact for keeping track of work phone, work address, etc.</description>
-    <type itemref="contact:ContactSection"/>
-    <inverseAttribute itemref="contact:workSectionFor"/>
-  </Attribute>
+        <Attribute itsName="itemsLastModified">
+            <displayName>Items Last Modified</displayName>
+            <description>List of content items last modified by this user.</description>
+            <cardinality>list</cardinality>
+            <type itemref="cm:ContentItem"/>
+            <inverseAttribute itemref="cm:ContentItem/lastModifiedBy"/>
+        </Attribute>
 
-  <Attribute itsName="homeSection">
-    <displayName>Home Section</displayName>
-    <description>A section of the contact for keeping track of home phone, home address, etc.</description>
-    <type itemref="contact:ContactSection"/>
-    <inverseAttribute itemref="contact:homeSectionFor"/>
-  </Attribute>
+        <Attribute itsName="requestedTasks">
+            <displayName>Requested Tasks</displayName>
+            <description>List of tasks requested by this user.</description>
+            <cardinality>list</cardinality>
+            <type itemref="task:TaskMixin"/>
+            <inverseAttribute itemref="task:TaskMixin/requestor"/>
+        </Attribute>
 
-  <Attribute itsName="birthday">
-    <displayName>Birthday</displayName>
-    <description>Date of birth, like 'July 19, 1971', or 'July 19', or 'July 1971'.</description>
-    <type itemref="RelativeDateTime"/>
-  </Attribute>
+        <Attribute itsName="taskRequests">
+            <displayName>Task Requests</displayName>
+            <description>List of tasks requested for this user.</description>
+            <cardinality>list</cardinality>
+            <type itemref="task:TaskMixin"/>
+            <inverseAttribute itemref="task:TaskMixin/requestee"/>
+        </Attribute>
 
-  <Enumeration itsName="GenderEnum">
-    <values>Unknown</values>
-    <values>Female</values>
-    <values>Male</values>
-  </Enumeration>
+        <Attribute itsName="organizedEvents">
+            <displayName>Organized Events</displayName>
+            <description>List of events this user has organized.</description>
+            <cardinality>list</cardinality>
+            <type itemref="cal:CalendarEventMixin"/>
+            <inverseAttribute itemref="cal:CalendarEventMixin/organizer"/>
+        </Attribute>
 
-  <Attribute itsName="gender">
-    <displayName>Gender</displayName>
-    <description>Gender could be 'Female', 'Male', 'Unknown'.</description>
-    <type itemref="contact:GenderEnum"/>
-  </Attribute>
+        <Attribute itsName="participatingEvents">
+            <displayName>Participating Events</displayName>
+            <description>List of events this user is a participant.</description>
+            <cardinality>list</cardinality>
+            <type itemref="cal:CalendarEventMixin"/>
+            <inverseAttribute itemref="cal:CalendarEventMixin/participants"/>
+        </Attribute>
 
-  <Attribute itsName="isCompany">
-    <displayName>Business?</displayName>
-    <description>Is this a company?</description>
-    <type itemref="Boolean"/>
-  </Attribute>
+        <Attribute itsName="sharerOf">
+            <displayName>Sharer Of</displayName>
+            <description>List of content items shared by this user.</description>
+            <cardinality>list</cardinality>
+            <type itemref="cm:ContentItem"/>
+            <inverseAttribute itemref="cm:ContentItem/sharer"/>
+        </Attribute>
 
-  <Attribute itsName="creator">
-    <displayName>Created By</displayName>
-    <description>Link to the user who created the item.</description>
-    <type itemref="contact:Contact"/>
-    <inverseAttribute itemref="contact:itemsCreated"/>
-  </Attribute>
+        <Attribute itsName="shareeOf">
+            <displayName>Sharee Of</displayName>
+            <description>List of content items for which this user is a sharee.</description>
+            <cardinality>list</cardinality>
+            <type itemref="cm:ContentItem"/>
+            <inverseAttribute itemref="cm:ContentItem/sharees"/>
+        </Attribute>
 
-  <Attribute itsName="itemsCreated">
-    <displayName>Items Created</displayName>
-    <description>List of content items created by this user.</description>
-    <cardinality>list</cardinality>
-    <type itemref="content:ContentItem"/>
-    <inverseAttribute itemref="contact:creator"/>
-  </Attribute>
+        <!-- redirections -->
 
-  <Attribute itsName="onceBelongedTo">
-    <displayName>Once Belonged To</displayName>
-    <description>We keep some old email addresses on file, just so we can still associate old email messages with the contacts who sent them.  If this email address is being kept for that reason, then this attribute will point to the contact that the email address used to belong to.</description>
-    <type itemref="contact:Contact"/>
-    <inverseAttribute itemref="contact:pastEmailAddresses"/>
-  </Attribute>
+        <Attribute itsName="who">
+            <redirectTo>contactName</redirectTo>
+        </Attribute>
 
-  <Attribute itsName="pastEmailAddresses">
-    <displayName>Past Email Addresses</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="mail:EmailAddress"/>
-    <inverseAttribute itemref="contact:onceBelongedTo"/>
-  </Attribute>
+        <Attribute itsName="about">
+            <redirectTo>displayName</redirectTo>
+        </Attribute>
 
-  <Kind itsName="Contact">
-    <displayName>Contact</displayName>
-    <description>An entry in an address book. Typically represents either a person or a company.</description>
-    <issues>We might want to keep track of lots of sharing information like 'Permissions I've given them', 'Items of mine they've subscribed to', 'Items of theirs I've subscribed to', etc.</issues>
-    <superKinds itemref="content:ContentItem"/>
-    <displayAttribute itemref="contact:contactName"/>
-    <attributes itemref="contact:contactName"/>
-    <attributes itemref="contact:homeSection"/>
-    <attributes itemref="contact:workSection"/>
-    <attributes itemref="contact:sections"/>
-    <attributes itemref="contact:birthday"/>
-    <attributes itemref="contact:gender"/>
-    <attributes itemref="contact:isCompany"/>
-    <attributes itemref="contact:itemsCreated"/>
-    <attributes itemref="contact:pastEmailAddresses"/>
-    <attributes itemref="calendar:participatingIn"/>
-    <attributes itemref="tasks:requestedTasks"/>
-    <attributes itemref="tasks:taskRequests"/>
-    <!-- redirections -->
-    <Attribute itsName="who">
-      <redirectTo>contactName</redirectTo>
-    </Attribute>
-  
-    <Attribute itsName="about">
-      <redirectTo>displayName</redirectTo>
-    </Attribute>
-  
-    <Attribute itsName="date">
-      <redirectTo>createdOn</redirectTo>
-    </Attribute>
-    <classes key="python">osaf.contentmodel.contacts.Contacts.Contact</classes>
-  </Kind>
+        <Attribute itsName="date">
+            <redirectTo>createdOn</redirectTo>
+        </Attribute>
 
-  <!-- Contact Section -->
+    </Kind>
 
-  <Attribute itsName="phoneNumbers">
-    <displayName>Phone Numbers</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="contact:PhoneNumber"/>
-    <inverseAttribute itemref="contact:phoneNumberOwner"/>
-  </Attribute>
+    <Kind itsName="ContactName">
+        <description value="A very simple (and incomplete) representation of a person's name" />
 
-  <Attribute itsName="emailAddresses">
-    <displayName>Email Addresses</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="mail:EmailAddress"/>
-    <inverseAttribute itemref="contact:emailAddressOwner"/>
-  </Attribute>
+        <Attribute itsName="firstName">
+            <type itemref="String" />
+            <initialValue type="String" value=""/>
+        </Attribute>
 
-  <Attribute itsName="emailAddressOwner">
-    <displayName>Email Address Owner</displayName>
-    <description>The Contact that this address is</description>
-    <issues>only one owner -- single cardinality implies that two contacts cannot have the same email address</issues>
-    <type itemref="contact:ContactSection"/>
-    <inverseAttribute itemref="contact:emailAddresses"/>
-  </Attribute>
+        <Attribute itsName="lastName">
+            <type itemref="String" />
+            <initialValue type="String" value=""/>
+        </Attribute>
 
-  <Attribute itsName="streetAddresses">
-    <displayName>Street Addresses</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="contact:StreetAddress"/>
-    <inverseAttribute itemref="contact:streetAddressOwner"/>
-  </Attribute>
+        <Attribute itsName="contact">
+            <type itemref="contact:Contact"/>
+            <inverseAttribute itemref="contact:Contact/contactName"/>
+        </Attribute>
 
-  <Attribute itsName="jabberAddresses">
-    <displayName>Jabber Addresses</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="webPages">
-    <displayName>Web Pages</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="jobTitle">
-    <displayName>Job Title</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="employer">
-    <displayName>Employer</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="photos">
-    <displayName>Photo URLs</displayName>
-    <issues>For now this is just a list of strings that can have URLs that point to photos. Eventually it would be nice if Chandler had a Kind called Photo, where Photo items could either have URLs that point to photos or have photo binaries stored in the repository.</issues>
-    <cardinality>list</cardinality>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="spouse">
-    <displayName>Spouse</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="anniversary">
-    <displayName>Wedding Anniversary</displayName>
-    <type itemref="RelativeDateTime"/>
-  </Attribute>
-
-  <Attribute itsName="children">
-    <displayName>Children</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="instantMessageAddresses">
-    <displayName>Instant Message Addresses</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Kind itsName="ContactSection">
-    <superKinds itemref="Item"/>
-    <displayName>Contact Section</displayName>
-    <description>A section of contact info. For example, my Contact for my mom might have sections like 'home', 'work', 'at studio', 'vermont house'.</description>
-    <issues>We need a displayName attribute on ContactSection, to keep track of the name of the section, like 'home', 'work', 'at studio', 'vermont house'.</issues>
-    <issues>We also need attributes for basic vCard info, like 'Timezone'. Optionally, we might also want other vCard attributes like 'Job Role', 'Latitude', 'Longitude', 'Mailer (a MIME X-Mailer value)', 'Business card logo', 'Agent or Assistant', 'Department', 'vCard Categories', 'vCard Note', 'Sound', 'UID', 'Public Key', and 'Source'.</issues>
-    <issues>We also probably want some other attributes in order to interoperate with Outlook, like 'Language', 'Referred By', etc.</issues>
-    <attributes itemref="contact:sectionOwner"/>
-    <attributes itemref="contact:homeSectionFor"/>
-    <attributes itemref="contact:workSectionFor"/>
-    <attributes itemref="contact:phoneNumbers"/>
-    <attributes itemref="contact:emailAddresses"/>
-    <attributes itemref="contact:streetAddresses"/>
-    <attributes itemref="contact:jabberAddresses"/>
-    <attributes itemref="contact:webPages"/>
-    <attributes itemref="contact:jobTitle"/>
-    <attributes itemref="contact:employer"/>
-    <attributes itemref="contact:photos"/>
-    <attributes itemref="contact:spouse"/>
-    <attributes itemref="contact:anniversary"/>
-    <attributes itemref="contact:children"/>
-    <attributes itemref="contact:instantMessageAddresses"/>
-    <classes key="python">osaf.contentmodel.contacts.Contacts.ContactSection</classes>
-  </Kind>
-
-  <!-- Attributes used in ContactName -->
-
-  <Attribute itsName="fullName">
-    <displayName>Full Name</displayName>
-    <description>The complete name of this person, like "Dr. Sara Anne Gibson". We probably want this attribute to be derived from other attributes like firstName and lastName.</description>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="sortName">
-    <displayName>Sort Name</displayName>
-    <description>The name we should use sorting, like "Sara", or "Gibson".</description>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="firstName">
-    <displayName>First Name</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="middleName">
-    <displayName>Middle Name</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="lastName">
-    <displayName>Last Name</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="nickname">
-    <displayName>Nickname</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <!-- ContactName Item Definition -->
-
-  <Kind itsName="ContactName">
-    <superKinds itemref="Item"/>
-    <displayName>Contact Name</displayName>
-    <description>The name of a contact, like "Dr. Sara Anne Gibson", or "Denver Hospital".</description>
-    <description>See also: http://wiki.osafoundation.org/twiki/bin/view/Chandler/ContactSchemaNotes</description>
-    <issues>In order to interoperate smoothly with vCard and Outlook and whatnot, we'll probabaly also want to have attributes for 'Initials', 'Prefixes', 'Suffixes', and maybe 'Display As'.</issues>
-    <issues>"Isn't this heavily U.S.-centric?  I realize the issue of names is a tricky one, but 'family name' and 'given name' seems a more international-friendly place to start." - Bruce D'Arcus</issues>
-    <issues>vCard has attributes named 'Family Name', 'Given Name', and 'Additional Name', rather than 'lastName', 'firstName', and 'middleName'</issues>
-    <displayAttribute itemref="contact:sortName"/>
-    <attributes itemref="contact:fullName"/>
-    <attributes itemref="contact:sortName"/>
-    <attributes itemref="contact:firstName"/>
-    <attributes itemref="contact:middleName"/>
-    <attributes itemref="contact:lastName"/>
-    <attributes itemref="contact:nickname"/>
-    <attributes itemref="contact:contactNameOwner"/>
-    <!-- attributes itemref="contact:prefixes"/-->
-    <!-- attributes itemref="contact:suffixes"/-->
-    <!-- attributes itemref="contact:initials"/-->
-    <classes key="python">osaf.contentmodel.contacts.Contacts.ContactName</classes>
-  </Kind>
-
-  <!-- Street Address -->
-  <Attribute itsName="fullAddress">
-    <displayName>Full Address</displayName>
-    <description>The value for fullAddress should be derived. It should be a concatenation of the values of the other attributes like streetAddress and locality.</description>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="postOfficeBox">
-    <displayName>PO Box</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="extendedAddress">
-    <displayName>Extended Address</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="streetAddress">
-    <displayName>Street Address</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="locality">
-    <displayName>Locality</displayName>
-    <description>Usually a city.</description>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="region">
-    <displayName>Region</displayName>
-    <description>Usually a state or province.</description>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="postalCode">
-    <displayName>Postal Code</displayName>
-    <description>A United States zipcode, or in general a Postal Code.</description>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="countryName">
-    <displayName>Country Name</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="streetAddressOwner">
-    <displayName>Owner of Address</displayName>
-    <description>The ContactSection that this StreetAddress belongs to.</description>
-    <type itemref="contact:ContactSection"/>
-    <inverseAttribute itemref="contact:streetAddresses"/>
-  </Attribute>
-
-  <Kind itsName="StreetAddress">
-    <superKinds itemref="Item"/>
-    <displayName>Street Address</displayName>
-    <examples>543 Howard St. 5th Floor, San Francisco, CA 94105</examples>
-    <displayAttribute itemref="contact:fullAddress"/>
-    <attributes itemref="contact:fullAddress"/>
-    <attributes itemref="contact:postOfficeBox"/>
-    <attributes itemref="contact:extendedAddress"/>
-    <attributes itemref="contact:streetAddress"/>
-    <attributes itemref="contact:locality"/>
-    <attributes itemref="contact:region"/>
-    <attributes itemref="contact:postalCode"/>
-    <attributes itemref="contact:countryName"/>
-    <attributes itemref="contact:streetAddressOwner"/>
-    <classes key="python">osaf.contentmodel.contacts.Contacts.StreetAddress</classes>
-  </Kind>
-
-  <!-- Phone Number -->
-
-  <Enumeration itsName="PhoneTypeEnum">
-    <values>msg</values>
-    <values>pref</values>
-    <values>voice</values>
-    <values>fax</values>
-    <values>cell</values>
-    <values>video</values>
-    <values>pager</values>
-    <values>bbs</values>
-    <values>modem</values>
-    <values>car</values>
-    <values>isdn</values>
-    <values>pcs</values>
-    <values>voice</values>
-  </Enumeration>
-
-  <Attribute itsName="phoneNumber">
-    <displayName>Phone Number</displayName>
-    <type itemref="String"/>
-  </Attribute>
-
-  <Attribute itsName="phoneType">
-    <displayName>Phone Type</displayName>
-    <description>One or more vCard types.</description>
-    <cardinality>list</cardinality>
-    <type itemref="contact:PhoneTypeEnum"/>
-  </Attribute>
-
-  <Attribute itsName="phoneNumberOwner">
-    <displayName>Owner of Phone Number</displayName>
-    <description>The ContactSection that this phone number is part of.</description>
-    <type itemref="contact:ContactSection"/>
-    <inverseAttribute itemref="contact:phoneNumbers"/>
-  </Attribute>
-
-  <Kind itsName="PhoneNumber">
-    <superKinds itemref="Item"/>
-    <displayName>Phone Number</displayName>
-    <displayAttribute itemref="contact:phoneNumber"/>
-    <attributes itemref="contact:phoneNumber"/>
-    <attributes itemref="contact:phoneType"/>
-    <attributes itemref="contact:phoneNumberOwner"/>
-    <classes key="python">osaf.contentmodel.contacts.Contacts.PhoneNumber</classes>
-  </Kind>
+    </Kind>
 
 </Parcel>

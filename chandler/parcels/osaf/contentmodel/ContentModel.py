@@ -24,12 +24,11 @@ class ContentModel(Parcel):
     projectKindID = None
     groupKindID = None
     noteKindID = None
-    conversationKindID = None
     contentitemsPath = Path('//userdata/contentitems')
 
     # The parcel knows the UUID for the parent, once the parcel is loaded
     contentItemParentID = None
-    
+
     def _setUUIDs(self, parent):
         ContentModel.contentItemParentID = parent.itsUUID
 
@@ -37,7 +36,6 @@ class ContentModel(Parcel):
         ContentModel.projectKindID = self['Project'].itsUUID
         ContentModel.groupKindID = self['Group'].itsUUID
         ContentModel.noteKindID = self['Note'].itsUUID
-        ContentModel.conversationKindID = self['Conversation'].itsUUID
 
     def onItemLoad(self):
         super(ContentModel, self).onItemLoad()
@@ -56,7 +54,7 @@ class ContentModel(Parcel):
                 return itemKind.newItem(name, parent)
             else:
                 return child
-        
+
         parent = repository.walk(ContentModel.contentitemsPath, makeContainer)
         self._setUUIDs(parent)
 
@@ -77,24 +75,18 @@ class ContentModel(Parcel):
         return Globals.repository[cls.projectKindID]
 
     getProjectKind = classmethod(getProjectKind)
-    
+
     def getGroupKind(cls):
         assert cls.groupKindID, "ContentModel parcel not yet loaded"
         return Globals.repository[cls.groupKindID]
 
     getGroupKind = classmethod(getGroupKind)
-    
+
     def getNoteKind(cls):
         assert cls.noteKindID, "ContentModel parcel not yet loaded"
         return Globals.repository[cls.noteKindID]
-    
+
     getNoteKind = classmethod(getNoteKind)
-    
-    def getConversationKind(cls):
-        assert cls.conversationKindID, "ContentModel parcel not yet loaded"
-        return Globals.repository[cls.conversationKindID]
-    
-    getConversationKind = classmethod(getConversationKind)
 
 class ContentItem(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -115,7 +107,7 @@ class ContentItem(Item.Item):
 
         self.importance = 'normal'
         self.createdOn = DateTime.now ()
-        me = self.getCurrentMeEmailAddress ()
+        me = self.getCurrentMeContact ()
         self.creator = me
 
         # default the displayName to 'untitled'
@@ -123,7 +115,7 @@ class ContentItem(Item.Item):
 
     """
     STAMPING SUPPORT
-    
+
     Allow changing an Item's class and kind to dynamically
     add or remove capabilities.
     """
@@ -202,10 +194,10 @@ class ContentItem(Item.Item):
                     mixinInitMethod (self)
             else:
                 # copy the attributes into our expanded item
-                self._copyAttributeValues (sourceItem = previousMixin, 
-                                           destItem = self, 
+                self._copyAttributeValues (sourceItem = previousMixin,
+                                           destItem = self,
                                            template=previousMixin)
-    
+
     def _previousStamp (self, stampedKind):
         """
           Return a mixin used for stamping previously on this item.
@@ -402,7 +394,7 @@ class ContentItem(Item.Item):
             if not aKind in shortList:
                 kinds.append (aKind)
         return (addedKinds, removedKinds)
-        
+
     """
     ACCESSORS
 
@@ -492,6 +484,13 @@ class ContentItem(Item.Item):
         import mail.Mail as Mail
         return Mail.EmailAddress.getCurrentMeEmailAddress ()
 
+    def getCurrentMeContact(self):
+        """
+          Lookup the current "me" Contact.
+        """
+        import contacts.Contacts
+        return contacts.Contacts.Contact.getCurrentMeContact()
+
     def setStatusMessage (cls, message, *args):
         Globals.mainView.setStatusMessage (message, *args)
     setStatusMessage = classmethod (setStatusMessage)
@@ -548,7 +547,7 @@ class _SuperKindSignature(list):
     def extend(self, sequence):
         for item in sequence:
             self.appendUnique(item)
-    
+
     def properSubsetOf(self, sequence):
         """
         return True if self is a proper subset of sequence
@@ -565,7 +564,7 @@ class _SuperKindSignature(list):
             readable.append(item.itsName)
         theList = ', '.join(readable)
         return '['+theList+']'
-            
+
 class Project(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
@@ -581,5 +580,3 @@ class Group(ContentItem):
         if not kind:
             kind = ContentModel.getGroupKind()
         super (Group, self).__init__(name, parent, kind)
-    
-

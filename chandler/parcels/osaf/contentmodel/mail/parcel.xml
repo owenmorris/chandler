@@ -792,16 +792,6 @@
             <initialValue />
         </Attribute>
 
-
-        <!-- Additional external attributes -->
-
-        <attributes itemref="contact:onceBelongedTo"/>
-        <attributes itemref="contact:emailAddressOwner"/>
-        <attributes itemref="contact:itemsCreated"/>
-        <attributes itemref="calendar:participatingIn"/>
-        <attributes itemref="tasks:requestedTasks"/>
-        <attributes itemref="tasks:taskRequests"/>
-
     </Kind>
 
 </Parcel>

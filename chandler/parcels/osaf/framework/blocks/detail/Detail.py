@@ -720,7 +720,10 @@ class FromEditField (EditTextAttribute):
             # system startup before the user account is setup.
             if item.itsKind.hasAttribute ('whoFrom'):
                 try:
-                    item.whoFrom = item.getCurrentMeEmailAddress ()
+                    if isinstance(item, Mail.MailMessageMixin):
+                        item.whoFrom = item.getCurrentMeEmailAddress()
+                    else:
+                        item.whoFrom = item.getCurrentMeContact()
                 except AttributeError:
                     pass
 

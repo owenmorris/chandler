@@ -299,7 +299,7 @@
 
     <Attribute itsName="contents">
       <type itemref="contentModel:ContentItem"/>
-      <inverseAttribute itemref="contentModel:contentsOwner"/>
+      <inverseAttribute itemref="contentModel:ContentItem/contentsOwner"/>
     </Attribute>
 
     <Attribute itsName="whichAttribute">
@@ -341,11 +341,11 @@
       <type itemref="docSchema:ContextMenu"/>
     </Attribute>
 
-    <attributes itemref="docSchema:blockName"/>    
-    <attributes itemref="docSchema:eventsForNamedDispatch"/>    
-    <attributes itemref="contentModel:itemCollectionInclusions"/>
-    <attributes itemref="contentModel:itemCollectionExclusions"/>
-    <attributes itemref="contentModel:itemCollectionResults"/>
+    <attributes itemref="docSchema:blockName"/>
+    <attributes itemref="docSchema:eventsForNamedDispatch"/>
+    <attributes itemref="contentModel:ContentItem/itemCollectionInclusions"/>
+    <attributes itemref="contentModel:ContentItem/itemCollectionExclusions"/>
+    <attributes itemref="contentModel:ContentItem/itemCollectionResults"/>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="contents">

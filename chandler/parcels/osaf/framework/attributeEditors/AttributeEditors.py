@@ -231,6 +231,40 @@ class ContactNameAttributeEditor (StringAttributeEditor):
             value = contactName.firstName + ' ' + contactName.lastName
         return value
 
+class ContactAttributeEditor (StringAttributeEditor):
+    def GetAttributeValue (self, item, attributeName):
+
+        def computeName(contact):
+            return contact.contactName.firstName + ' ' + \
+             contact.contactName.lastName
+
+        try:
+            contacts = item.getAttributeValue (attributeName)
+        except AttributeError:
+            value = ""
+        else:
+            cardinality = item.getAttributeAspect(attributeName, "cardinality")
+            if cardinality == "list":
+                value = ', '.join([computeName(contact) for contact in contacts])
+            else:
+                value = computeName(contacts)
+        return value
+
+class EmailAddressAttributeEditor (StringAttributeEditor):
+    def GetAttributeValue (self, item, attributeName):
+        try:
+            addresses = item.getAttributeValue (attributeName)
+        except AttributeError:
+            value = ""
+        else:
+            cardinality = item.getAttributeAspect(attributeName, "cardinality")
+            if cardinality == "list":
+                # build a string of comma-separated email addresses
+                value = ', '.join(map(lambda x: x.emailAddress, addresses))
+            else:
+                value = addresses.emailAddress
+        return value
+
 class IconAttributeEditor (StringAttributeEditor):
     def Draw (self, dc, rect, item, attributeName, isSelected):
         imageName = self.GetAttributeValue(item, attributeName)

@@ -164,23 +164,12 @@ def GenerateContactName():
     name.lastName = random.choice(LASTNAMES)
     return name
 
-def GenerateContactSection(name):
-    section = Contacts.ContactSection()
-    section.phoneNumbers = GeneratePhoneNumbers()
-    section.emailAddresses = GenerateEmailAddresses(name)
-    return section
 
 def GenerateContact():
     contact = Contacts.Contact()
     contact.contactName = GenerateContactName()
-    contact.homeSection = GenerateContactSection(contact.contactName)
-    contact.workSection = GenerateContactSection(contact.contactName)
     return contact
 
 def GenerateContacts(count):
     for index in range(count):
         GenerateContact()
-        
-
-    
-    

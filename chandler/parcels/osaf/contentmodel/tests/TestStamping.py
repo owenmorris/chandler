@@ -22,7 +22,7 @@ import logging
 from repository.util.Path import Path
 
 verbose = False
-compareWhos = True
+compareWhos = False
 compareDates = False # date shouldn't automatically carry over
 testFailureCases = True
 
