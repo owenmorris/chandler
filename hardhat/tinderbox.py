@@ -111,9 +111,6 @@ def main():
         log = open(logFile, "r")
         logContents = log.read()
         log.close()
-        log = open(HHlogFile, "r")
-        logContents += log.read()
-        log.close()
         SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", 
          treeName, logContents)
         SendMail(fromAddr, mailtoAddr, startTime, buildName, status, 
@@ -129,9 +126,6 @@ def main():
 
         log = open(logFile, "r")
         logContents = log.read()
-        log.close()
-        log = open(HHlogFile, "r")
-        logContents += log.read()
         log.close()
         SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", 
          treeName, logContents)
