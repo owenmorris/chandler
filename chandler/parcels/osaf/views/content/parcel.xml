@@ -28,8 +28,8 @@
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="calendarItemCollection">
-     <displayName>Calendar</displayName>
-   <rule itemref="view:calendarQuery"/>
+    <displayName>Calendar</displayName>
+    <rule itemref="view:calendarQuery"/>
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="notesQuery">
@@ -449,7 +449,7 @@
     <contents itemref="view:notesItemCollection"/>
 
     <childrenBlocks itemref="view:NoteTable"/>
-    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -461,7 +461,7 @@
     <contents itemref="view:taskItemCollection"/>
 
     <childrenBlocks itemref="view:TaskTable"/>
-    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -473,7 +473,7 @@
     <contents itemref="view:mailItemCollection"/>
 
     <childrenBlocks itemref="view:MailTable"/>
-    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -485,7 +485,7 @@
     <contents itemref="view:mixedItemCollection"/>
 
     <childrenBlocks itemref="view:MixedList"/>
-    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -496,7 +496,7 @@
     <contents itemref="view:allItemCollection"/>
 
     <childrenBlocks itemref="view:AllSummary"/>
-    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -508,7 +508,7 @@
     <contents itemref="view:inItemCollection"/>
 
     <childrenBlocks itemref="view:InSummary"/>
-    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -520,7 +520,7 @@
     <contents itemref="view:outItemCollection"/>
 
     <childrenBlocks itemref="view:OutSummary"/>
-    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -532,7 +532,7 @@
     <contents itemref="view:calendarItemCollection"/>
 
     <childrenBlocks itemref="view:CalendarSummary"/>
-    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -577,7 +577,7 @@
     <contents itemref="view:untitledItemCollection"/>
 
     <childrenBlocks itemref="view:UntitledSummary"/>
-    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>

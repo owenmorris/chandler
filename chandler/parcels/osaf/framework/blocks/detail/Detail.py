@@ -85,7 +85,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         super(DetailRoot, self).synchronizeWidget ()
         
     def onDestroyWidget (self):
-        # Hack - DLDTBD - remove
+        # Hack - DLDTBD - remove when wxWidgets issue is resolved.
         # set ourself to be shown, to work around Windows DetailView garbage problem.
         def showReentrant (block):
             block.isShown = True
@@ -101,6 +101,22 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         print "Email Subject is %s" % item.ItemAboutString ()
         print "Email To field is %s" % item.ItemWhoString ()
         print "Email Body is %s" % item.ItemBodyString ()
+
+    """
+    This is a copy of the global NULL event
+    We need to have a copy here, because of limitations
+    in our XLM parsing and template copy mechanism.
+    It's a long story.  
+    Some day we should remove this
+    code and use the global event in Main instead.
+    """
+    def onNULLEvent (self, notification):
+        """ The NULL Event handler """
+        pass
+
+    def onNULLEventUpdateUI (self, notification):
+        """ The NULL Event is always disabled """
+        notification.data ['Enable'] = False
 
 class DetailSynchronizer(object):
     """
@@ -223,15 +239,6 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     Doesn't need to synchronizeItemDetail, because
     the individual ToolbarItems synchronizeItemDetail.
     """
-    def onToolPressStub (self, notification):
-        tool = notification.data['sender']
-        if tool.itsName == 'SharingButton':
-            #self.parentBlock.Notify("EnableSharing")
-            pass
-    
-    def onToolPressStubUpdateUI (self, notification):
-        notification.data ['Enable'] = False
-
     def selectedItem (self):
         # return the ContentItem being viewed
         return self.parentBlock.selectedItem()

@@ -2,7 +2,7 @@
 
 <!-- $Revision$ -->
 <!-- $Date$ -->
-<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/framework/blocks/detail"
@@ -13,6 +13,13 @@
              xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
              xmlns:doc="http://osafoundation.org/parcels/osaf/framework/blocks/detail">
+
+  <!--   
+       Warning - Adding this line to the includes above causes trouble!
+       The problem probably has something to do with defining a template
+       and including it in the same set of XML files.
+             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
+  -->
 
   <core:version>0.3</core:version>
   
@@ -45,22 +52,24 @@
     Events
   -->
   
-  <BlockEvent itemName="DummyEvent">
+  <BlockEvent itsName="NULL">
+    <description>The NULL event, used when no event is needed. </description>
+    <examples>An unimplemented MenuItem</examples>
+    <methodName>onNULLEvent</methodName>
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onToolPressStub</methodName>
-    <dispatchToBlock itemref="doc:MarkupBar1"/>
+    <dispatchToBlock itemref="doc:DetailRootTemplate"/>
   </BlockEvent>
 
   <BlockEvent itemName="ButtonPressed">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onButtonPressed</methodName>
-    <dispatchToBlock itemref="doc:MarkupBar1"/>
+    <dispatchToBlock itemref="doc:MarkupBar"/>
   </BlockEvent>
 
   <BlockEvent itemName="SendMailMessage">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onSendMailMessageEvent</methodName>
-    <dispatchToBlock itemref="doc:DetailRoot"/>
+    <dispatchToBlock itemref="doc:DetailRootTemplate"/>
   </BlockEvent>
 
   <!--
@@ -68,15 +77,16 @@
   -->
   
   <!-- Root -->
-  <SelectionContainer itemName="DetailRoot"
+  <SelectionContainer itemName="DetailRootTemplate"
                      itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
     <childrenBlocks itemref="doc:DetailTrunk"/>
     <subscribeWhenVisibleEvents itemref="doc:SendMailMessage"/>
+    <subscribeWhenVisibleEvents itemref="doc:NULL"/>
   </SelectionContainer>
 
   <ContentItemDetail itemName="DetailTrunk">
     <!-- child blocks -->
-    <childrenBlocks itemref="doc:MarkupBar1"/>
+    <childrenBlocks itemref="doc:MarkupBar"/>
     <childrenBlocks itemref="doc:FromAndToArea"/>
     <childrenBlocks itemref="doc:CoreIndent"/>
     <childrenBlocks itemref="doc:NotesArea"/>
@@ -89,9 +99,9 @@
   </ContentItemDetail>
 
   <!-- MarkupBar -->
-  <Toolbar itemName="MarkupBar1"
+  <Toolbar itemName="MarkupBar"
            itemClass="osaf.framework.blocks.detail.Detail.MarkupBar">
-    <blockName>MarkupBar1</blockName>
+    <blockName>MarkupBar</blockName>
     <!-- Children Blocks-->
     <childrenBlocks itemref="doc:TriageButton"/>
     <childrenBlocks itemref="doc:Triage"/>
@@ -113,7 +123,6 @@
     <colorStyle itemref="doc:GrayBackground3"/>
     <toolSize>16,16</toolSize>
     <separatorWidth>50</separatorWidth>
-    <subscribeWhenVisibleEvents itemref="doc:DummyEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:ButtonPressed"/>
   </Toolbar>
 
@@ -122,25 +131,21 @@
   -->
   <ToolbarItem itsName="TriageButton">
     <blockName>TriageButton</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Triage</title>
     <bitmap>application/images/triage.png</bitmap>
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Decide when to do...</helpString>
-    <event itemref="doc:DummyEvent"/>
+    <event itemref="doc:NULL"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="Triage">
     <blockName>Triage</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Triage</title>
     <toolbarItemKind>Choice</toolbarItemKind>
     <helpString>Mark Item to be done now or later, etc</helpString>
     <prototype itemref="doc:TriageChoice"/>
-    <event itemref="doc:DummyEvent"/>
+    <event itemref="doc:NULL"/>
   </ToolbarItem>
   
   <!-- prototype for the above ToolbarItem -->
@@ -155,8 +160,6 @@
   <ToolbarItem itsName="SharingButton"
                itemClass="osaf.framework.blocks.detail.Detail.SharingButton">
     <blockName>SharingButton</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Sharing</title>
     <bitmap>application/images/sharing.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
@@ -168,8 +171,6 @@
   <ToolbarItem itsName="TaskStamp"
                itemClass="osaf.framework.blocks.detail.Detail.TaskStamp">
     <blockName>TaskStamp</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Task</title>
     <bitmap>application/images/task.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
@@ -181,8 +182,6 @@
   <ToolbarItem itsName="CalendarStamp"
                itemClass="osaf.framework.blocks.detail.Detail.CalendarStamp">
     <blockName>CalendarStamp</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Calendar</title>
     <bitmap>application/images/calendar.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
@@ -193,114 +192,90 @@
 
   <ToolbarItem itsName="Spacer1">
     <blockName>Spacer1</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itsName="NeedsReplyButton">
     <blockName>NeedsReplyButton</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Needs reply</title>
     <bitmap>application/images/reply.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Needs a reply</helpString>
-    <event itemref="doc:DummyEvent"/>
+    <event itemref="doc:NULL"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer2">
     <blockName>Spacer2</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <toolbarItemKind>Separator</toolbarItemKind>
-    <title>4</title>
   </ToolbarItem>
 
   <ToolbarItem itsName="OutboxFlag">
     <blockName>OutboxFlag</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Outbox</title>
     <bitmap>application/images/outbox.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>In the Out box</helpString>
-    <event itemref="doc:DummyEvent"/>
+    <event itemref="doc:NULL"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="RepliedFlag">
     <blockName>RepliedFlag</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Replied</title>
     <bitmap>application/images/replied.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>A reply has been sent</helpString>
-    <event itemref="doc:DummyEvent"/>
+    <event itemref="doc:NULL"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="ForwardedFlag">
     <blockName>ForwardedFlag</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Forwarded</title>
     <bitmap>application/images/forwarded.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Has been forwarded</helpString>
-    <event itemref="doc:DummyEvent"/>
+    <event itemref="doc:NULL"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="RedirectedFlag">
     <blockName>RedirectedFlag</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Redirected</title>
     <bitmap>application/images/redirected.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Message has been redirected</helpString>
-    <event itemref="doc:DummyEvent"/>
+    <event itemref="doc:NULL"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="DraftFlag">
     <blockName>DraftFlag</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Draft</title>
     <bitmap>application/images/draft.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Message saved as a draft</helpString>
-    <event itemref="doc:DummyEvent"/>
+    <event itemref="doc:NULL"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="QueuedFlag">
     <blockName>QueuedFlag</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Queued</title>
     <bitmap>application/images/queued.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Message has been queued</helpString>
-    <event itemref="doc:DummyEvent"/>
+    <event itemref="doc:NULL"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer3">
     <blockName>Spacer3</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <toolbarItemKind>Separator</toolbarItemKind>
-    <title>4</title>
   </ToolbarItem>
 
   <ToolbarItem itsName="PrivateButton">
     <blockName>PrivateButton</blockName>
-    <location>MarkupBar1</location>
-    <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Private</title>
     <bitmap>application/images/private.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Make item Private</helpString>
-    <event itemref="doc:DummyEvent"/>
+    <event itemref="doc:NULL"/>
   </ToolbarItem>
 
   <!-- FromAndToArea -->
