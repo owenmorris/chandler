@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- An example set of agents -->
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<core:Parcel itemName="TestAgents"
+             xmlns:core="//Schema/Core"
+             xmlns="//Parcels/OSAF/AppSchema/AgentSchema"
+             xmlns:test="//Parcels/OSAF/AppSchema/AgentSchema/TestAgents">
+
+  <core:displayName>Agent tests</core:displayName>
+  <core:description>Sample agents</core:description>
+  <core:version>0.3</core:version>
+
+  <Repertoire itemName="TestAgentRepertoire">
+    <core:displayName>Test Agent Repertoire</core:displayName>
+  </Repertoire>
+
+  <Instruction itemName="SubscriptionRequest">
+    <enabled/>
+    <condition itemref="test:PresenceSubscriptionRequest"/>
+    <actions itemref="test:ApproveSubscriptionRequest"/>
+  </Instruction>
+
+  <Condition itemName="PresenceSubscriptionRequest">
+    <conditionDescription>match the presence subscription request with a pre-approved list</conditionDescription>
+    <conditionNotification>chandler/im/presence-request</conditionNotification>
+    <conditionFilterMode>matches</conditionFilterMode>
+    <conditionAttribute>who</conditionAttribute>
+    <conditionValue>.*osafoundation.*</conditionValue>
+  </Condition>
+
+  <Action itemName="ApproveSubscriptionRequest">
+    <actionType>inline</actionType>
+    <actionDescription>this action approves a subscription request</actionDescription>
+    <actionScript>agent.agentManager.application.jabberClient.AcceptSubscriptionRequest(data['who']); agent.agentManager.setHandledStatus(notification, True)</actionScript>
+  </Action>
+
+  <AgentItem itemName="PresenceSubscription">
+    <role>approval</role>
+    <agentDescription>The agent automatically approves presence subscription requests when the sender meets various criterion.</agentDescription>
+    <instructions itemref="test:SubscriptionRequest"/>
+    <repertoire itemref="test:TestAgentRepertoire"/>
+  </AgentItem>
+
+</core:Parcel>
