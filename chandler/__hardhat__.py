@@ -233,8 +233,8 @@ def _outputLine(path, text):
 
 def _createVersionFile(buildenv):
     majorVersion   = '0'
-    minorVersion   = '4'
-    releaseVersion = '8'
+    minorVersion   = '5'
+    releaseVersion = '1'
     versionFile    = 'version.py'
     if os.path.exists(versionFile):
         os.remove(versionFile)

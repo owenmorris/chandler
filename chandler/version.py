@@ -1,2 +1,2 @@
-build = "custom build"
-release = ".5"
+build = "development trunk"
+release = "0.5-1"
