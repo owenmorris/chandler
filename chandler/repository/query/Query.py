@@ -190,6 +190,11 @@ class Query:
             elif ast[0] == 'path': # path expression
                 #@@@ do iteration variable checks
                 return '.'.join(ast[1])
+            elif ast[0] == 'method':
+                path = ast[1]
+                args = ast[2]
+                #@@@ check method name against approved list
+                return  '.'.join(path[1])+"("+','.join(args)+")"
             elif type(ast) == str or type(ast) == unicode: # string constant or iteration variable or parameter ($1)
                 #@@@ check that ast != iteration variable, or parameter
                 return ast
@@ -210,12 +215,12 @@ class Query:
             iter_source = ast[1]
             predicate = ast[2]
 
-            self.__rep.logger.debug("analyze_for: var = %s, source = %s, predicate = %s" % (iter_var, iter_source, predicate))
+            log.debug("analyze_for: var = %s, source = %s, predicate = %s" % (iter_var, iter_source, predicate))
 
             collection = lookup_source(iter_source)
             closure = compile_predicate(predicate)
 
-            self.__rep.logger.debug("analyze_for: collection = %s, closure = %s" % (collection, closure))
+            log.debug("analyze_for: collection = %s, closure = %s" % (collection, closure))
             
             return ('for', (collection, compile(closure,'<string>','eval')))
 
@@ -228,7 +233,7 @@ class Query:
             queries = [ self.__analyze(i) for i in ast[0] ]
             return ('union', queries)
 
-        self.__rep.logger.debug("__analyze %s" % ast)
+        log.debug("__analyze %s" % ast)
         op = ast[0]
 
         if op == 'for':
@@ -267,7 +272,7 @@ class Query:
         @param: queries
         @type param: list (queries to union)
         """
-        self.__rep.logger.debug("__execute_union: plan=%s" % plans)
+        log.debug("__execute_union: plan=%s" % plans)
         
         #@@@ DANGER - hack for self._kind - fix with notification upgrade
         self._kind = None
