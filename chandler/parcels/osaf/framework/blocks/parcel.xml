@@ -871,7 +871,7 @@
     </Attribute>
 
     <Attribute itemName="selection">
-      <type itemref="Item"/>
+      <type itemref="SingleRef"/>
     </Attribute>
 
     <Attribute itemName="rootPath">
