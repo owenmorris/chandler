@@ -1,0 +1,280 @@
+                            Chandler Release History
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Milestone 3 (CVS tag CHANDLER_M_03) 2003-07-15
+
+    * Added the ability for parcels to add their version of the ActionsBar
+      to ChandlerWindow.
+
+    * Changed Repository parcel to use wxTreeListCtrl
+
+    * Improperly formatted remote url's no longer cause an exeption within
+      Chandler.  Parcels with xrc that doesn't have <label> as the first
+      item in their menus will no longer cause an exception within
+      Chandler.2003-04-13
+
+    * Fixes for Bug#789 (call Destroy or use wxMessageBox for dialogs)
+
+    * Re-entered fix for Bug#425
+
+    * Mostly fixed Bug#421 on the mac: ends up drawn correctly on resize.
+
+    * OSAF parcels were moved from parcels directory to parcels/OSAF.
+
+    * HardHat changes:
+        * nightly.py has been superceded by singlebuild.py (which is used
+          for making releases
+        * tinderbuild.py now keeps the last 3 builds around so that people
+          can get the latest bits
+        * hardhat.py can now be run from any directory as long as a parent
+          directory contains a __hardhat__.py file (HardHat will now
+          recursively check parent directories until a __hardhat__.py file
+          is found).  This makes it easier to run scripts, for example, to
+          run the wxPython demo:
+            cd osaf/chandler/wxpython/wxPython/demo; hardhat.py demo.py
+        * Added the -l <scripts> option which "lints" the scripts using
+          PyChecker
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Milesone 2 (CVS tag CHANDLER_M_02) 2003-07-01
+
+    * Added the current version number to the status bar.
+
+    * Hooked up the View menu items to show/hide the SideBar, NavigationBar,
+      ActionsBar, and StatusBar.
+
+   * Added very simple TableViewer (using wxGrid).
+
+   * Refactored out observer-observable-notify pattern. Use view hierarchy for
+     sizing, created a new wxCommandEvent for date changes. Fixed sizing bug
+     in the process, Bug#421.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+Milesone 1 (CVS tag CHANDLER_M_01) 2003-06-17
+    
+    * You can now set WXREDIRECT=0 if you don't want WX to redirect stdout
+      to a popup windows
+
+    * Fixed bug where right clicking in the sideBar caused a crash.
+
+    * Made it so that entering addresses in the uriBox is no longer
+      case sensitive.
+
+    * Added a InstalledParcelsViewer parcel to handle the root url.
+
+    * Added event resize. Clicking on the bottom region of an event will allow
+      resize. We still need to fiddle with in-place editing to get this right,
+      but allows resize for now. Bug#378
+ 
+    * Also fixed a bug in the code for adding a remote item to the calendar --
+      just a trivial copy-paste typo.
+
+    * Migrated to the new data model, found in application.repository
+
+    * Bug#416 In ColumnarView, made the header smaller and the footer of size 0.
+      Given that we are not using these areas, make them small until we can
+      use them effectively. Also removed the sunken borders for month and
+      columnar viewers.
+
+    * Bug#418 Selection is indicated with a black border, not by color.
+      Clearly not the final answer, at least make selection vs. overlay clear.
+
+    * Bug#414 Snap to grid for events in columnar view. When creating or 
+      moving an event in place in the ColumnarView, start and end times stick
+      to a half hour boundary. Also added a line boundary for the half hour.
+
+    * added a template editor to allow the user to change the
+      attributes and contact methods associated with a template
+      
+    * added a "new template and "delete template" command to
+      the template editor, which enables the creation and
+      destruction of templates
+      
+    * added support for enumerated types with multiple values,
+      using a pop-up menu with checkbox items
+      
+    * removed the phone number formatting, since it wasn't
+      international, and we don't have the infrastructure to
+      pursue that yet
+      
+    * allowed deleting multiple contacts at once using multiple
+      selection
+      
+    * added a disclosure triange to the control bar title, and
+      made opening it display the current query, which is
+      hard-wired for now.
+      
+    * made it display multiple contacts in the content view using
+      folder tabs when you select multiple items in the list view
+      
+    * added an optional comment field to contact methods, and 
+      a menu item to add or edit comments
+      
+    * converted to use the RDF model stuff plus lots of major
+      restructuring to support that
+      
+    * added a free-form note item
+    
+    * fixed lots of bugs from the RDF conversion
+    
+    * got rid of the contact dictionary (internal structure) to
+      pave the way for adding query infrastructure
+      
+    * added "Company" template that sorts differently
+    
+    * made companies show up in autocomplete of company field
+
+    * made the "goto website" command actually work"
+
+    * added menu command for setting contact photo
+
+    * added sharing mode selector, exposed along with the query
+
+    * restructured viewer to support multiple views with queries, permissions, 
+      etc
+
+    * added support for multiple views
+
+    * added two more default views for testing
+
+    * added views to the bottom of the contacts menu
+
+    * added ability to switch between views
+
+    * enabled and disabled items in the contacts menu properly
+    
+    Preference Dialog and machinery:
+    
+    * augmented preference class to support general persistent preferences via 
+      Get/SetPreference Value
+    * added preferencesMetaData.xml file to define types and labels for 
+      preferences
+    * added modular preference dialog, with section selector list on left and 
+      fields on right
+    * added Identity section to capture identity and jabber id of user
+    * added Debug section with Debug menu checkbox just to have a second section
+    * added architecture for parcels to add preferences, but not fully 
+      implemented yet
+    * polished Identity entry usability, so you can fill everything out without 
+      needing to click
+    * made it automatically log in to the jabber server after filling out 
+      preferences
+    
+    Remote Browsing:
+    
+    * rewrote core Jabber routines that were written for vista using Chandler 
+      conventions
+    * added ChandlerWindow:ParseURL to url dispatching and passed a remote 
+      address to GoToUri
+    * added EncodePythonObject and DecodePythonObject using base64 to escape 
+      whitespace
+    * added view discovery send and receive via Jabber respecting view 
+      permissions
+    * added object transfer send and receive via Jabber respecting view and 
+      item permission
+    * added object transfer error handling
+    * added presence panel to show presence and remote views as an outline in 
+      a window
+    * added "roster" parcel and made it maintain presence and remote view 
+      links in sidebar
+    * used name of contact rather than JabberID whenever possible
+    * made roster parcels support multiple views when you click on name in 
+      sidebar
+    * gave parcels ability to redirect URLs addressed to them to other parcels
+    * used that to implement remote browsing by clicking on views in the sidebar
+    * added persistent message transcripts to roster package
+    * gave roster parcel the ability to send and receive Jabber instant messages
+    * easy way to copy remote objects to local if you try to edit them
+    * made it discover views and update presence after logging in
+    * made sidebar and presence panel automatically update as things change
+    * made the "Compose IM" menu command when clicking on an IM address 
+      actually work, enabled when present
+ 
+    Contacts features and bug fixing:
+    
+    * added contact view links to the sidebar
+    * fixed bizarre Linux bug Ducky found where typing would be entered 
+      backwards
+    * fixed Linux not getting the proper font in the name field and others
+    * fix columns and titles auto-sizing in list view on Linux
+
+   * Migrated the contacts parcel to the new data model, found in
+     application.repository. 
+      * application.model.LocalRepository => application.repository.Repository
+      * application.model.ContactEntityItem => application.repository.Contact
+      * application.model.ContactMethodItem => 
+        application.repository.ContactMethod
+      * application.model.Namespace => application.repository.Namespace
+   * Modified attribute names to use namespaces: "sharing" => chandler.sharing
+   * Modified ContactModel's attribute dictionary to use the new model.
+   * In general, removed the "name/fullname" convention. Instead of 
+     SetNamePart(), call SetNameAttribute().
+    
+   * Changed the repository viewer to work better with the new data model.
+     Creates a tree:
+        <python class of thing>   :    <thing uri>
+           <attribute uri>        :    <attribute value>
+     If <attribute value> is a thing, will recursively add a subtree.
+     If <attribute value> is a dict or a list, will add subtree.
+
+   Timeclock parcel:
+
+       * Known problems: 
+          * not using ZODB/persistence yet
+          * can't add/remove customers dynamically
+          * can't change rate dynamically
+          * don't see time elapsing
+
+       * Made hierarchical menu for currencies
+
+       * Added an "About Timeclock" page.
+       * Added the ability to change billing rates dynamically.
+       * The current customer's billing rate is now visible. 
+       * Stripped out a lot of unused (okay, unimplemented) stuff, e.g. 
+         AddCustomer
+
+       * Jed showed me how to persist the customer list in TimeclockView
+       * Redid some comments
+       * Moved "About Timeclock..." page to the Help menu, just to show how
+       * Added two somewhat gratuitous menu items to the parcel menu so that
+         there would be more than just the multi-level currency menu
+
+       * Use customers from the Contacts list
+       * Make start time not reset when leaving and re-entering the parcel
+
+       * the second level of a multi-level menu doesn't pop up at all
+       * wxTextCtrl boxes only show the last digit the first time
+         they are shown.
+
+       * Removed spurious import of Application's "app"
+       * Changed clock start time to live properly in the model instead of
+         the View.
+
+    ZaoBao Parcel
+       * Known problems:
+          * Not using ZODB/RDF persistence yet
+          * Background threads are not working well
+          * Using '*' instead of unicode bullets for unread RSS feeds
+          * Suffers from Bug#240 just as Contacts does
+          * Not updating status bar
+          * Right-click menu not working
+          * Reload button not working
+          * RSS feeds do not update in background
+       * Made RSSData a subclass of InformationItem
+       * RSS feed now uses ZODB for persistence
+       * Still need more work to make it a real RDF object
+       * Bug#240 seems to be fixed
+       * Changed my implementation of Observable to Observable1 to reduce 
+         confusion with Application.model's Observable
+       * Decoupled observers from RSSData at parcel Deactivation
+       * Remembers RSS feed selection at deactivation and selects last feed 
+         at activation
+       * Fixed Bug#383
+       * Added comments
+       * Refactored code so that list of RSS feeds are no longer a module 
+         variable of RSSData.  This allows sharing of views, whereby each 
+         view has its own list of RSS feeds
+       * Support Andy's Viewer Parcel sharing framework
