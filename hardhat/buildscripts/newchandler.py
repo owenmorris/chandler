@@ -164,6 +164,7 @@ def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion
     except Exception, e:
         print "a testing error"
         doCopyLog("***Error during tests***", workingDir, logPath, log)
+        forceBuildNextCycle(log, workingDir)
         return "test_failed"
     else:
         doCopyLog("Tests successful", workingDir, logPath, log)
@@ -238,7 +239,7 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log):
     return changesAtAll
 
 
-def doInstall(buildmode, workingDir, log):
+def doInstall(buildmode, workingDir, log, cleanFirst=False):
     # for our purposes, we do not really do a build
     # we will update chandler from CVS, and grab new tarballs when they appear
     if buildmode == "debug":
@@ -246,14 +247,19 @@ def doInstall(buildmode, workingDir, log):
     else:
         dbgStr = ""
 
+    if cleanFirst:
+        clean = " clean "
+    else:
+        clean = " "
+
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
-    print "Doing make " + dbgStr + " clean install\n"
-    log.write("Doing make " + dbgStr + " clean install\n")
+    print "Doing make " + dbgStr + clean + "install\n"
+    log.write("Doing make " + dbgStr + clean + "install\n")
 
     try:
         outputList = hardhatutil.executeCommandReturnOutput(
-          [buildenv['make'], dbgStr, "clean", "install" ])
+          [buildenv['make'], dbgStr, clean, "install" ])
         hardhatutil.dumpOutputList(outputList, log)
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "build error"
