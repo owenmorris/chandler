@@ -149,6 +149,11 @@ PANELS = {
                 "attr" : "useSSL",
                 "type" : "boolean",
             },
+            "WEBDAV_DEFAULT" : {
+                "attr" : "isDefault",
+                "type" : "boolean",
+                "exclusive" : True,
+            },
         },
         "id" : "WebDAVPanel",
     },
@@ -202,6 +207,7 @@ class AccountPreferencesDialog(wx.Dialog):
         # data is a list of dictionaries of the form:
         # 'item' => item.itsUUID
         # 'values' => a dict mapping field names to attribute values
+        # 'type' => accountType
         # The order of the data list needs to be the same order as what's in
         # the accounts list widget.
         self.data = [ ]
@@ -249,12 +255,8 @@ class AccountPreferencesDialog(wx.Dialog):
                 break
         accounts.append(smtpAccount)
 
-        webdavAccount = None
-        for item in KindQuery().run([webDavAccountKind]):
-            webdavAccount = item
-            if item.isDefault:
-                break
-        accounts.append(webdavAccount)
+        for webdavAccount in KindQuery().run([webDavAccountKind]):
+            accounts.append(webdavAccount)
 
         i = 0
         for item in accounts:
@@ -271,7 +273,8 @@ class AccountPreferencesDialog(wx.Dialog):
                     except KeyError:
                         setting = DEFAULTS[desc['type']]
                 values[field] = setting
-            self.data.append( { "item" : item.itsUUID, "values" : values } )
+            self.data.append( { "item" : item.itsUUID, "values" : values,
+                                "type" : item.accountType } )
             self.accountsList.Append(item.displayName)
             i += 1
 
@@ -349,10 +352,19 @@ class AccountPreferencesDialog(wx.Dialog):
         self.outerSizer.Fit(self)
 
         # When a text field receives focus, call the handler.
+        # When an exclusive radio button is clicked, call another handler.
         for field in PANELS[self.currentPanelType]['fields'].keys():
+
             control = wx.xrc.XRCCTRL(self.currentPanel, field)
+
             if isinstance(control, wx.TextCtrl):
                 wx.EVT_SET_FOCUS(control, self.OnFocusGained)
+
+            elif isinstance(control, wx.RadioButton):
+                fieldInfo = PANELS[self.currentPanelType]['fields'][field]
+                if fieldInfo.get('exclusive', False):
+                    wx.EVT_RADIOBUTTON(control, control.GetId(),
+                                       self.OnExclusiveRadioButton)
 
 
 
@@ -399,6 +411,27 @@ class AccountPreferencesDialog(wx.Dialog):
         """ Select entire text field contents when focus is gained. """
         control = evt.GetEventObject()
         wx.CallAfter(control.SetSelection, -1, -1)
+
+    def OnExclusiveRadioButton(self, evt):
+        """ When an exclusive attribute (like isDefault) is set on one account,
+            set that attribute to False on all other accounts of the same kind.
+        """
+        control = evt.GetEventObject()
+
+        # Determine current panel
+        # Scan through fields, seeing if this control corresponds to one
+        # If marked as exclusive, set all other accounts of this type to False
+        panel = PANELS[self.currentPanelType]
+        for (field, fieldInfo) in panel['fields'].iteritems():
+            if wx.xrc.XmlResource.GetXRCID(field) == control.GetId():
+                if fieldInfo.get('exclusive', False):
+                    index = 0
+                    for accountData in self.data:
+                        if accountData['type'] == self.currentPanelType:
+                            if index != self.currentIndex:
+                                accountData['values'][field] = False
+                        index += 1
+                    break
 
 
 def ShowAccountPreferencesDialog(parent, account=None, view=None):
