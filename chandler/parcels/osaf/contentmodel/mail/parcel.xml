@@ -92,6 +92,13 @@
                 <values value="SMTP" />
             </Enumeration>
         </Attribute>
+
+        <Attribute itsName="isActive">
+            <displayName value="Is active" />
+            <description value="Whether or not an account should be used for sending or fetching email" />
+            <type itemref="Boolean" />
+            <initialValue type="Boolean" value="True" />
+        </Attribute>
     </Kind>
 
     <Kind itsName="IMAPAccount">

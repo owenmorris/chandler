@@ -85,23 +85,26 @@ class MailParcel(application.Parcel.Parcel):
         imapAccount = None
         replyToAddress = None
 
+        """Get the default IMAP Account"""
+        imapAccount = Current.Current.get(view, "IMAPAccount")
+
+        assert imapAccount is not None, "No IMAP Account found"
+
+        if imapAccount is not None and hasattr(imapAccount, 'replyToAddress'):
+            replyToAddress = imapAccount.replyToAddress
+
+        assert replyToAddress is not None, "No replyToAddress found for IMAP Account"
         if UUID is not None:
             assert isinstance(UUID.UUID), "The UUID argument must be of type UUID.UUID"
             smtpAccount = view.findUUID(UUID)
 
         else:
             """Get the default SMTP Account"""
-            smtpAccount = Current.Current.get(view, "SMTPAccount")
+
+            smtpAccount = imapAccount.defaultSMTPAccount
 
         assert smtpAccount is not None, "No SMTP Account found"
 
-        """Get the default IMAP Account"""
-        imapAccount = Current.Current.get(view, "IMAPAccount")
-        assert imapAccount is not None, "No IMAP Account found"
-        if imapAccount is not None and hasattr(imapAccount, 'replyToAddress'):
-            replyToAddress = imapAccount.replyToAddress
-
-        assert replyToAddress is not None, "No replyToAddress found for IMAP Account"
 
         return(smtpAccount, replyToAddress)
 
@@ -136,6 +139,15 @@ class MailParcel(application.Parcel.Parcel):
         return account
 
     getIMAPAccount = classmethod(getIMAPAccount)
+
+
+    def getActiveIMAPAccounts(cls, view):
+        kind = "//parcels/osaf/contentmodel/mail/IMAPAccount"
+        for item in ItemQuery.KindQuery().run([view.findPath(kind)]):
+            if item.isActive and item.host and item.username:
+                yield item
+
+    getActiveIMAPAccounts = classmethod(getActiveIMAPAccounts)
 
 
 class AccountBase(ContentModel.ChandlerItem):

@@ -21,24 +21,25 @@ SHARING_MODEL = "http://osafoundation.org/parcels/osaf/framework/sharing"
 def IMAPSaveHandler(item, fields, values):
     newAddressString = values['IMAP_EMAIL_ADDRESS']
     newFullName = values['IMAP_FULL_NAME']
+    newUsername = values['IMAP_USERNAME']
+    newServer = values['IMAP_SERVER']
 
-    # If there isn't already an emailAddress set up, just reuse the empty
-    # default EmailAddress item.  Otherwise, possibly fetch a new EmailAddress
-    # item.
+    # If either the host or username changes, we need to set this account item
+    # to inactive and create a new one.
+    if (item.host and item.host != newServer) or (item.username and item.username != newUsername):
+        item.isActive = False
+        item = Mail.IMAPAccount(view=item.itsView)
+
 
     item.replyToAddress = Mail.EmailAddress.getEmailAddress(item.itsView,
                                                             newAddressString,
                                                             newFullName)
-    # process as normal:
-    for (field, desc) in fields.iteritems():
-        if desc['type'] == 'currentPointer':
-            if values[field]:
-                Current.Current.set(item.itsView, desc['pointer'], item)
-        else:
-            try:
-                item.setAttributeValue(desc['attr'], values[field])
-            except:
-                pass
+
+    return item # Returning a non-None item tells the caller to continue
+                # processing this item.
+                # Returning None would tell the caller that processing this 
+                # item is complete.
+
 
 
 # Used to map form fields to item attributes:
@@ -84,6 +85,11 @@ PANELS = {
                 "pointer" : "IMAPAccount",
                 "exclusive" : True,
             },
+            "IMAP_SMTP" : {
+                "type" : "itemRef",
+                "attr" : "defaultSMTPAccount",
+                "kind" : "//parcels/osaf/contentmodel/mail/SMTPAccount",
+            },
         },
         "id" : "IMAPPanel",
         "saveHandler" : IMAPSaveHandler,
@@ -120,11 +126,6 @@ PANELS = {
             "SMTP_PASSWORD" : {
                 "attr" : "password",
                 "type" : "string",
-            },
-            "SMTP_DEFAULT" : {
-                "type" : "currentPointer",
-                "pointer" : "SMTPAccount",
-                "exclusive" : True,
             },
         },
         "id" : "SMTPPanel",
@@ -280,7 +281,7 @@ class AccountPreferencesDialog(wx.Dialog):
         accounts = []
 
         for item in KindQuery().run([imapAccountKind]):
-            if hasattr(item, 'displayName'):
+            if item.isActive and hasattr(item, 'displayName'):
                 accounts.append(item)
 
         for item in KindQuery().run([smtpAccountKind]):
@@ -305,6 +306,13 @@ class AccountPreferencesDialog(wx.Dialog):
                     # pointer name.
                     setting = Current.Current.isCurrent(self.view,
                                                         desc['pointer'], item)
+
+                elif desc['type'] == 'itemRef':
+                    try:
+                        setting = item.getAttributeValue(desc['attr']).itsUUID
+                    except:
+                        setting = None
+
                 else:
                     try:
                         setting = item.getAttributeValue(desc['attr'])
@@ -346,9 +354,11 @@ class AccountPreferencesDialog(wx.Dialog):
 
             values = account['values']
             panel = PANELS[account['type']]
+
             if panel.has_key("saveHandler"):
-                panel["saveHandler"](item, panel['fields'], values)
-            else:
+                item = panel["saveHandler"](item, panel['fields'], values)
+
+            if item is not None:
                 for (field, desc) in panel['fields'].iteritems():
 
                     if desc['type'] == 'currentPointer':
@@ -356,8 +366,17 @@ class AccountPreferencesDialog(wx.Dialog):
                         if values[field]:
                             Current.Current.set(self.view, desc['pointer'],
                                                 item)
+
+                    elif desc['type'] == 'itemRef':
+                        if values[field]:
+                            item.setAttributeValue(desc['attr'],
+                                             self.view.findUUID(values[field]))
+
                     else:
-                        item.setAttributeValue(desc['attr'], values[field])
+                        try:
+                            item.setAttributeValue(desc['attr'], values[field])
+                        except:
+                            pass
 
     def __ApplyDeletions(self):
         for data in self.deletions:
@@ -468,6 +487,9 @@ class AccountPreferencesDialog(wx.Dialog):
                 val = (control.GetValue() == True)
             elif valueType == "currentPointer":
                 val = (control.GetValue() == True)
+            elif valueType == "itemRef":
+                index = control.GetSelection()
+                val = control.GetClientData(index)
             elif valueType == "integer":
                 val = int(control.GetValue().strip())
             data[field] = val
@@ -493,6 +515,26 @@ class AccountPreferencesDialog(wx.Dialog):
                         hidden.SetValue(True)
                 except:
                     pass
+            elif valueType == "itemRef":
+                items = []
+                count = 0
+                index = -1
+                uuid = data[field]
+                kind = PANELS[panelType]['fields'][field]['kind']
+                for item in KindQuery().run([self.view.findPath(kind)]):
+                    if item.isActive:
+                        items.append(item)
+                        if item.itsUUID == uuid:
+                            index = count
+                        count += 1
+
+                control.Clear()
+                for item in items:
+                    newIndex = control.Append(item.displayName)
+                    control.SetClientData(newIndex, item.itsUUID)
+                if index != -1:
+                    control.SetSelection(index)
+
             elif valueType == "integer":
                 control.SetValue(str(data[field]))
 
@@ -523,6 +565,10 @@ class AccountPreferencesDialog(wx.Dialog):
 
             if desc['type'] == 'currentPointer':
                 setting = False
+
+            elif desc['type'] == 'itemRef':
+                setting = None
+
             else:
                 try:
                     setting = desc['default']

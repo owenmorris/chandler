@@ -398,7 +398,7 @@ class MainView(View):
              "Account information required",
              "Please set up your accounts."):
                 if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
-                 wx.GetApp().mainFrame):
+                 wx.GetApp().mainFrame, view=self.itsView):
                     return
             else:
                 return
@@ -419,16 +419,16 @@ class MainView(View):
              "Account information required",
              "Please set up your accounts."):
                 if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
-                 wx.GetApp().mainFrame):
+                 wx.GetApp().mainFrame, view=self.itsView):
                     return
             else:
                 return
 
-        account = Mail.MailParcel.getIMAPAccount(self.itsView)
 
         view = self.itsView
         view.commit()
-        osaf.mail.imap.IMAPDownloader(view.repository, account).getMail()
+        for account in Mail.MailParcel.getActiveIMAPAccounts(self.itsView):
+            osaf.mail.imap.IMAPDownloader(view.repository, account).getMail()
         view.refresh()
 
     def onLogRepositoryHistoryEvent(self, event):
@@ -609,7 +609,7 @@ class MainView(View):
              "Account information required",
              "Please set up your accounts."):
                 if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
-                 wx.GetApp().mainFrame):
+                 wx.GetApp().mainFrame, view=self.itsView):
                     return
             else:
                 return
