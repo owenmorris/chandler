@@ -227,8 +227,11 @@ class wxApplication (wxApp):
         wxPython object associated with each persistent object.
         """
         self.association={id(self.model) : self}
-        
-        self.LoadParcels()
+        """
+          Load the parcels which are contained in the PARCEL_IMPORT directory.
+        """
+        self.LoadParcelsInDirectory (Application.PARCEL_IMPORT.replace ('.', os.sep))
+
         self.model.SynchronizeView()
         EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
         EVT_MENU(self, XRCID ("About"), self.OnAbout)
@@ -325,56 +328,74 @@ class wxApplication (wxApp):
             dialog.SavePreferences()
             self.HandleSystemPreferences()
 
-    def LoadParcels(self):
+    def LoadParcelsInDirectory (self, directory):
         """
-          Load the parcels and call the class method to install them. Packages
-        are defined by directories that contain __init__.py (or __init__.pyc).
-        __init__.py must define assign the parcel's class name to parcelClass. 
-        For example "parcelClass = CalendarView.CalendarView", where the first 
-        string before the dot is the file, (CalendarView.py) and the second 
-        string is the class e.g. CalendarView. See calendar/__init__.py for an 
-        example.
-        """
-        self.parcels={}
-        """
-          We've got to have a parcel directory..
-        """
-        importDirectory = Application.PARCEL_IMPORT
-        importDirectory.replace ('.', os.sep)
-        
-        parcelDirectory = self.chandlerDirectory + os.sep + importDirectory
-        assert (os.path.exists (parcelDirectory))
+          Load the parcels and call the class method to install them. Parcels
+        are Python Packages and are defined by directories that contain
+        __init__.py (or __init__.pyc). __init__.py must assign the parcel's
+        class name to parcelClass. For example:
+            
+            parcelClass = "CalendarFile.CalendarClass"
 
-        for directory in os.listdir(parcelDirectory):
-            pathToPackage = parcelDirectory + os.sep + directory
-            if os.path.isdir(pathToPackage) and \
-               (os.path.exists(pathToPackage + os.sep + "__init__.py") or \
-                os.path.exists(pathToPackage + os.sep + "__init__.pyc")):
-                directory = Application.PARCEL_IMPORT + '.' + directory
-                """
-                  Import the parcel, which should define parcelClass
-                """
-                module = __import__(directory, globals, locals, ['*'])
-                assert (hasattr (module, 'parcelClass'))
+        CalendarFile is the python file (without the .py extension) that
+        contains the class CalendarClass contained in the file which is
+        the parcel class.
+
+        For examples, look in the parcel directory.
+        """
+        path = self.chandlerDirectory + os.sep + directory
+        assert (os.path.exists (path) and os.path.isdir(path))
+
+        if (os.path.exists(path + os.sep + "__init__.py") or \
+            os.path.exists(path + os.sep + "__init__.pyc")):
+            importArgument = directory.replace (os.sep, '.')
+            """
+              Import the parcel, which should define parcelClass.
+              
+              If you get an error like "Import can't find module,
+            or can't find name in module: No module named XYZ.XYZ
+            on the following statement, you probably forgot to
+            add a __init__.py file in some directory of the
+            importArgument -- Currently, each directory must have
+            an __init__.py
+            """
+            module = __import__(importArgument, globals(), locals(), [])
+            importArgumentStrings = importArgument.split('.')
+            del importArgumentStrings[0]
+            for element in importArgumentStrings:
+                if hasattr (module, element):
+                    module = module.__dict__[element]
+                else:
+                    module = None
+                    break
+            if hasattr (module, 'parcelClass'):
                 """
                   Import the parcel's class and append it to our global list
                 of parcels and install it.
                 """
-                parcelClassStrings = module.parcelClass.split ('.')
-                directory += '.' + parcelClassStrings[0]
-                module = __import__(directory, globals, locals, ['*'])
+                parcelFile, parcelClass = module.parcelClass.split('.')
+                moduleClass = __import__(importArgument + '.' + parcelFile,
+                                         globals(),
+                                         locals(),
+                                         parcelClass)
                 """
-                  Check to mark sure the class in parcelClass exists.
+                  Check to make sure the class in parcelClass exists.
                 """
-                assert (hasattr (module, parcelClassStrings[1]))
-                theClass = module.__dict__[parcelClassStrings[1]]
+                assert (hasattr (moduleClass, parcelClass))
+                theClass = moduleClass.__dict__[parcelClass]
                 """
                   parcels is a dictionary that is indexed by class. For viewer
                 parcels, we add a data dictionary when one is first loaded.
                 """
                 self.parcels[id(theClass)] = {}
-                theClass.path = pathToPackage
+                theClass.path = path
                 theClass.Install ()
+        """
+          Recurse through all the subdirectories for more parcels.
+        """
+        for pathComponent in os.listdir(path):
+            if os.path.isdir(path + os.sep + pathComponent):
+                self.LoadParcelsInDirectory (directory + os.sep + pathComponent)
 
     def OnCommand(self, event):
         """
