@@ -32,11 +32,13 @@ The 0.1 version of Chandler is available under the GNU General Public License,
 version 2, as described in
 	LICENSE.txt
 
+An electronic version of the GNU GPL can be found at
+	http://www.fsf.org/licenses/
+
 We expect that subsequent versions of Chandler will also be
 available under one or more additional licenses. For more detail on our
 licensing plans, see the Chandler Licensing Plan at
     http://osafoundation.org/Chandler_licensing_plan_4-2003.htm
-
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -47,12 +49,6 @@ This program is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
 FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with
-this program; if not, write to the Free Software Foundation, Inc., 59 Temple
-Place, Suite 330, Boston, MA 02111-1307 USA
-
-An electronic version of the GNU GPL can be found at
-	http://www.fsf.org/licenses/
 
 --------------------------------------------------------------------------------
 
