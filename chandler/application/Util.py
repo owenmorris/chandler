@@ -8,7 +8,7 @@ application.Util is a module for setting up various parts of the Chandler
 framework
 """
 
-import os
+import os, sys
 import application.Globals as Globals
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -67,9 +67,25 @@ def parcels():
     Load all parcels under the 'parcels' directory
     """
 
+    parcelDir = os.path.join(Globals.chandlerDirectory, "parcels")
+    parcelSearchPath = [ parcelDir ]
+    sys.path.insert(1, parcelDir)
+
+    """
+    If PARCELDIR env var is set, put that
+    directory into sys.path before any modules are imported.
+    """
+    debugParcelDir = None
+    if os.environ.has_key('PARCELDIR'):
+        path = os.environ['PARCELDIR']
+        if path and os.path.exists(path):
+            print "Using PARCELDIR environment variable (%s)" % path
+            debugParcelDir = path
+            sys.path.insert (2, debugParcelDir)
+            parcelSearchPath.append( debugParcelDir )
+
     from application.Parcel import Manager
-    parcelPath = [os.path.join(Globals.chandlerDirectory, "parcels")]
-    manager = Manager.getManager(path=parcelPath)
+    manager = Manager.getManager(path=parcelSearchPath)
     manager.loadParcels()
 
 def setup(directory, destroy=False):
