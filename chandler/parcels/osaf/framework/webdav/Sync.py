@@ -96,12 +96,17 @@ def syncToServer(dav, item):
     kind = item.itsKind
 
     # build a giant property string and then do a PROPPATCH
+
+    # we don't ever want to actually change the UUID value on the server
+    # so if we already have one here use it
+    uuid = item.getAttributeValue('sharedUUID', default=item.itsUUID)
     props = makePropString('kind', '//core', kind.itsPath) + \
-            makePropString('uuid', '//core', item.itsUUID.str16())
+            makePropString('uuid', '//core', uuid)
 
     for (name, value) in item.iterAttributeValues():
         # don't export these local attributes
-        if name in [u'etag', u'lastModified', u'sharedVersion', u'sharedURL']:
+        if name in [u'etag', u'lastModified', u'sharedVersion',
+                    u'sharedURL', u'sharedUUID']:
             continue
 
         # the attribute's namespace is its path...
@@ -134,7 +139,7 @@ def syncToServer(dav, item):
                 except AttributeError:
                     durl = defaultURL
                     print 'Cant export %s -- Not a ContentItem' % (str(value))
-                    
+
                 props += makePropString(name, namespace, '<itemref>%s</itemref>' % (unicode(durl)))
                     
             else:
@@ -283,6 +288,7 @@ def getItem(dav):
         kind = davItem.itsKind
         newItem = kind.newItem(None, repository.findPath('//userdata/contentitems'))
         newItem.sharedURL = dav.url
+        newItem.sharedUUID = origUUID
         # set the version to avoid sync thinking there are local changes
         newItem.sharedVersion = newItem._version
         # set a bogus etag so it doesn't try to put
