@@ -18,6 +18,7 @@ __revision__ = "$Id$"
 
 import sys, os, string
 from types import *
+import hardhatlib
 
 _can_read_reg = 0
 try:
@@ -44,11 +45,8 @@ except ImportError:
         RegError = win32api.error
 
     except ImportError:
-        log.info("Warning: Can't read registry to find the "
-                 "necessary compiler setting\n"
-                 "Make sure that Python modules _winreg, "
-                 "win32api or win32con are installed.")
-        pass
+
+        raise hardhatlib.HardHatRegistryError
 
 if _can_read_reg:
     HKEY_CLASSES_ROOT = hkey_mod.HKEY_CLASSES_ROOT

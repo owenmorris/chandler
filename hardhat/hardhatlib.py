@@ -89,7 +89,7 @@ def init(root):
     
     # set OS-specific variables
     if buildenv['os'] == 'win':
-        import os_win
+	import os_win
         # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for devenv.exe...")
         devenv_file = os_win.find_exe( "devenv.exe", "7.0")
         if( devenv_file ):
@@ -1239,6 +1239,10 @@ class HardHatUnknownPlatformError(HardHatError):
 
 class HardHatExternalCommandError(HardHatError):
     """ Exception thrown when an external command returns non-zero exit code """
+    pass
+
+class HardHatRegistryError(HardHatError):
+    """ Exception thrown when we can't read the windows registry """
     pass
 
 class HardHatMissingFileError(HardHatError):

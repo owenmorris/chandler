@@ -97,6 +97,16 @@ except hardhatlib.HardHatUnknownPlatformError:
     print "Unsupported platform, '" + os.name + "'.  Exiting."
     sys.exit(1)
 
+except hardhatlib.HardHatRegistryError:
+    print
+    print "Sorry, I am not able to read the windows registry to find" 
+    print "the necessary VisualStudio complier settings.  Most likely you"
+    print "are running the Cygwin python, which will hopefully be supported"
+    print "soon.  Please download a windows version of python from:\n"
+    print "http://www.python.org/download/"
+    print
+    sys.exit(1)
+
 except Exception, e:
     print "Could not initialize hardhat environment.  Exiting."
     print "Exception:", e

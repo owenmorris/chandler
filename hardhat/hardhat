@@ -93,6 +93,7 @@ else:
 
 # Initialize hardhatlib
 import hardhatlib
+
 # Here is a trick to figure out what directory hardhat lives in, even if
 # we were called found by the user's PATH
 whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
@@ -105,6 +106,16 @@ except hardhatlib.HardHatMissingCompilerError:
 
 except hardhatlib.HardHatUnknownPlatformError:
     print "Unsupported platform, '" + os.name + "'.  Exiting."
+    sys.exit(1)
+
+except hardhatlib.HardHatRegistryError:
+    print
+    print "Sorry, I am not able to read the windows registry to find" 
+    print "the necessary VisualStudio complier settings.  Most likely you"
+    print "are running the Cygwin python, which will hopefully be supported"
+    print "soon.  Please download a windows version of python from:\n"
+    print "http://www.python.org/download/"
+    print
     sys.exit(1)
 
 except Exception, e:
