@@ -135,13 +135,19 @@ class VisualStudio:
             d = read_keys(base, r"Software\Microsoft\VisualStudio")
             if d:
                 for value in d:
+                    key = (r"Software\Microsoft\VisualStudio\%s" % (value))
+                    d2 = read_values(base, key)
                     try:
-                        number = float (value)
-                    except ValueError:
+                        if d2["installdir"]:
+                            try:
+                                number = float (value)
+                            except ValueError:
+                                pass
+                            else:
+                                if number > self.version:
+                                    self.version = number
+                    except KeyError:
                         pass
-                    else:
-                       if number > self.version:
-                           self.version = number
 
         if not self.version:
             print "Couldn't find an installed version of Visual Studio. Exiting."
