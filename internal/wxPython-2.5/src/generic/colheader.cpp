@@ -378,7 +378,7 @@ long		itemIndex;
 		}
 
 		// unknown message - unhandled - fall through
-		wxLogDebug( _T("unknown hittest code") );
+		//wxLogDebug( _T("wxColumnHeader::OnClick - unknown hittest code") );
 
 	case wxCOLUMNHEADER_HITTEST_NoPart:
 		event.Skip();
@@ -733,7 +733,7 @@ long		itemCount, i;
 	HWND	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
+		//wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return resultV;
 	}
 
@@ -829,7 +829,7 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
+		//wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -858,7 +858,7 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
+		//wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -882,7 +882,7 @@ long					resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
+		//wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -919,7 +919,7 @@ long		resultV;
 	targetViewRef = GetHwnd();
 	if (targetViewRef == NULL)
 	{
-		wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
+		//wxLogDebug( _T("targetViewRef = GetHwnd failed (NULL)") );
 		return (-1L);
 	}
 
@@ -1225,7 +1225,7 @@ OSStatus				errStatus;
 	// is this item beyond the right edge?
 	if (m_OriginX >= m_NativeBoundsR.width)
 	{
-		wxLogDebug( _T("wxColumnHeaderItem::DrawSelf - bailout!") );
+		//wxLogDebug( _T("wxColumnHeaderItem::DrawSelf - bailout!") );
 		return (-1L);
 	}
 
