@@ -20,6 +20,7 @@ logger.setLevel(logging.INFO)
 #@@@Temporary testing tool written by Morgen -- DJA
 import tools.timing
 
+SCHEMA_VERSION = "1"
 
 """
   Event used to post callbacks on the UI thread
@@ -262,8 +263,21 @@ class wxApplication (wx.App):
         """
         if splash: splash.updateGauge('parcels')
         wx.Yield()
+
+        # Fetch the top-level parcel item to check schema version info
+        parcelRoot = self.repository.findPath("//parcels")
+        if parcelRoot is not None:
+            if (not hasattr(parcelRoot, 'version') or
+                parcelRoot.version != SCHEMA_VERSION):
+                logger.info("Schema version of repository doesn't match app")
+                raise SchemaMismatchError, path
+
         application.Parcel.Manager.get(self.UIRepositoryView,
                                        path=parcelPath).loadParcels()
+
+        # Record the current schema version into the repository
+        parcelRoot = self.repository.findPath("//parcels")
+        parcelRoot.version = SCHEMA_VERSION
 
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
 
@@ -799,3 +813,8 @@ class StartupSplash(wx.Frame):
         wx.Yield()
         time.sleep(.25) #give the user a chance to see the gauge reach 100%
         wx.Frame.Destroy(self)
+
+class SchemaMismatchError(Exception):
+    """ The schema version in the repository doesn't match the application. """
+    def __init__(self, path):
+        self.path = path

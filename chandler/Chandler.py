@@ -6,6 +6,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import sys, os, shutil
 import application.Globals
 from repository.persistence.RepositoryError import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
+from application.Application import SchemaMismatchError
 
 def locateProfileDir(chandlerDirectory):
     """
@@ -178,6 +179,20 @@ def main():
                       "repository open."
             logging.exception(message)
             dialog = wx.MessageDialog(None, message, "Chandler", wx.OK | wx.ICON_INFORMATION)
+            dialog.ShowModal()
+            dialog.Destroy()
+
+        except SchemaMismatchError, e:
+            message = \
+            "Your repository was created by an older version of Chandler.\n"\
+            "In the future we will support migrating data between versions,\n"\
+            "but until then if you get this dialog you need to create a\n"\
+            "new repository either via the '--create' command line option\n"\
+            "or by manually removing your repository directory, located at:\n"\
+            "\n%s" % e.path
+
+            logging.exception(message)
+            dialog = wx.MessageDialog(None, message, "Cannot open repository", wx.OK | wx.ICON_INFORMATION)
             dialog.ShowModal()
             dialog.Destroy()
 
