@@ -2,6 +2,141 @@
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Milestone 7 (CVS tag CHANDLER_M_07) 2003-09-09
+
+    Debugging:
+
+    * Chandler's customized Python interpreter is debuggable with WingIDE
+      if you install our debug modules from
+      http://downloads.osafoundation.org/wing/
+
+    * The PyCrust interactive shell is now included; to bring it up, enable
+      the debug menu via Shift-Control-Alt-D and select Show Debugger Window.
+
+    Launchers:
+
+    * Fixed a bug where linux launcher would segfault if no LD_LIBRARY_PATH.
+
+    * Windows launcher overrides PYTHONHOME and PYTHONPATH variables to
+      ensure we are picking up the intended Python extensions.
+
+    * Python no longer checks the Windows registry for module paths so that 
+      we don't accidentally pick up the wrong version of wxWindows, for
+      example.
+
+    Agent Framework:
+
+    * First big check-in of agent framework
+
+    * Added model directory with Chandler schema for Agent persistent data, 
+      agents.xml
+
+    * Added model classes AgentItem, Action, Condition, Instruction, Repertoire
+
+    * Added Agent and AgentManager classes
+
+    * Restructured the main loop to dispatch instructions faster, by 
+      maintaining a hash table that associates instructions with notifications,
+      so it only has to dispatch to the relevant instructions
+
+    * Made instructions only have one condition, instead of a list of conditions
+
+    * Made _postNotification call wxWakeUpIdle so we can use idle events to 
+      poll for notifications, whilw still allowing the main loop to sleep 
+      most of the time
+
+    * Added an IsRegistered call to avoid registering twice
+
+    * Made Conditions no longer inherit from Action, we will do polled 
+      conditions some other way
+
+    * Added text filtering to conditions, so they can select a data attribute
+      from the notification and only trigger if it matches a string in the
+      condition.  Three comparison modes are provides: equals, contains, and 
+      matches, where matches treats the string in the condtion as a regular 
+      expression.
+
+    * Implemented the Repertoire class, so agents can reference conditions and 
+      actions that aren't currently used in instructions
+
+    * Added a repertoire with an action to the test agent
+
+    * Added ability to load subclasses of Agents and Actions, by adding a 
+      "class" attribute to their domain schema definition
+
+    * Added a DeferredAction class, and the ability to run actions synchronously
+      with wxWindows, by adding an app.defereredActions list, and invoking
+      deferred actions in the ViewerParcel idle handler
+
+    * Implemented a DialogAction subclass, that displays a dialog with a message
+      derived from a  template string and the data passed from an action
+
+    * Used DialogAction to make the test agent display a dialog with the
+      instant message body if it meets the condition
+
+    * Added a 'confirmFlag' to actions; if set, it asks the user's permission 
+      via a dialog before executing the action.
+
+    * Added an action permission request string, to specify the text for the
+      permission request
+
+    * Made deferredActions check the confirmFlag and put up a permissions
+      dialog, if necessary
+
+    * Added GetHandledStatus and SetHandledStatus methods in the notification
+      manager to provide a simple mechanism for the system and other actions 
+      to know when a notificaiton has been handled.
+
+    * Added a listequals comparison mode that compares a list of 
+      attribute/value pairs, and requires them all to be true for the 
+      condition to fire
+
+    * Used contact changed notifications and listequals comparison to add an 
+      instruction to the test agent that puts up a dialog if the occupation is 
+      set to 'Dentist'
+
+    * Made sure the test agent works when it has more than one instruction
+
+    * Added a 'presence approval agent' that can automatically approve presence
+      subscription requests based on a pattern matching the requestor's jabber 
+      ID.
+
+    * Made the Jabber subsystem emit a notification for a presence subscription
+      request, and made it check the 'handled' boolean after a delay to see if
+      anyone handled it; if not, it puts up the dialog like it used to
+
+    * Initialized the agent manager toward the end of the initialization
+      process; it was being initialized before the notification manager.
+
+    * Passed the actual notification object to actions instead of just the data
+
+    Calendar:
+
+    * Added participant to calendar model
+
+    * Changed table view to use wxListCtrl instead of wxGrid
+
+    * Added Generate Events feature (menu item, unit test)
+
+    * Added displayAttribute to calendar kinds
+
+    * Added code to list elements in a list or set in the html detail view
+
+    ZaoBao:
+
+    * Support for new data model and data framework
+
+    * Added new feature: RSS auto discovery. Thanks to Mark Pilgrim's 
+      rssfinder.py code and Stuart Lange for informing me about auto discovery
+
+    Misc:
+
+    * Added XSLT transformation of schema files via the "-g" flag
+
+    * The zlib extension is now included on all three platforms.
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Milestone 6 (CVS tag CHANDLER_M_06) 2003-08-26
 
     * XML repository is included; to enable it, pass the -xml command line
