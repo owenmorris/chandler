@@ -63,7 +63,7 @@ BUILD=build_$(SNAP)
 
 $(SRC)/$(BUILD)/Makefile: apply
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
-	../configure --prefix=$(PREFIX) \
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) ../configure --prefix=$(PREFIX) \
                      --srcdir=$(SRC) \
                      --with-python=$(WP) \
                      --with-pic \
@@ -74,7 +74,7 @@ compile: $(SRC)/$(BUILD)/Makefile
 
 py:
 	cd $(SRC)/python; \
-	$(PYTHON) setup.py build --build-base=build_$(SNAP) $(DIST_OPT) \
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py build --build-base=build_$(SNAP) $(DIST_OPT) \
                               install --force
 
 build: expand compile py
