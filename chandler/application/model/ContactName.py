@@ -29,6 +29,7 @@ class ContactName(RdfObject):
     rdfs[chandler.firstname] = RdfRestriction(int, 1)
     rdfs[chandler.middlename] = RdfRestriction(str, 1)
     rdfs[chandler.lastname] = RdfRestriction(str, 1)
+    rdfs[chandler.nickname] = RdfRestriction(str, 1)
     rdfs[chandler.honorific] = RdfRestriction(str, 1)
     rdfs[chandler.suffix] = RdfRestriction(str, 1)
     
