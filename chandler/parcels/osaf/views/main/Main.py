@@ -141,6 +141,12 @@ class MainView(View):
 
     # Test Methods
 
+    def onGenerateContentItemsEvent(self, notification): 
+        GenerateItems.GenerateNotes(2) 
+        GenerateItems.generateCalendarEventItems(2, 30) 
+        GenerateItems.GenerateContacts(2) 
+        Globals.repository.commit() 
+
     def onGenerateCalendarEventItemsEvent(self, notification):
         GenerateItems.generateCalendarEventItems(10, 30)
         Globals.repository.commit()
@@ -183,4 +189,44 @@ class MainView(View):
         splash = SplashScreen(None, _("About Chandler"), 
                               pageLocation, False, False)
         splash.Show(True)
+
+    def getSidebarSelectedCollection (self):
+        """
+          Return the sidebar's selected item collection.
+
+          The sidebar is a table, whose contents is a collection.
+        The selection is a table (one of the splitters), 
+        whose contents is a collection.
+        """
+        sidebarPath = '//parcels/osaf/views/main/Sidebar'
+        sidebar = Globals.repository.findPath (sidebarPath)
+        selectedBlock = sidebar.selection
+        assert selectedBlock, "No selected block in the Sidebar"
+        try:
+            selectionContents = selectedBlock.contents
+        except AttributeError:
+            selectionContents = None
+        return selectionContents
+
+    def onShareCollectionEvent (self, notification):
+        """
+        Stub for Lisa - Share the collection selected
+        in the sidebar.
+        """
+        collection = self.getSidebarSelectedCollection ()
+        if collection:
+            print 'Share collection "%s"' % collection.displayName
+
+    def onShareCollectionEventUpdateUI (self, notification):
+        """
+        Update the menu to reflect the selected collection name
+        """
+        collection = self.getSidebarSelectedCollection ()
+        notification.data ['Enable'] = collection is not None
+        if collection:
+            menuTitle = 'Share collection "%s"' \
+                    % collection.displayName
+        else:
+            menuTitle = 'Share a collection'
+        notification.data ['Text'] = menuTitle
 

@@ -147,6 +147,11 @@
     <dispatchToBlock itemref="doc:NavigationBar"/>
   </BlockEvent>
 
+  <BlockEvent itsName="ShareCollection">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+  
   <ModifyContentsEvent itsName="AddAllAdditionalViews">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
@@ -315,6 +320,7 @@
     <childrenBlocks itemref="doc:GenerateNoteItem"/>
     <childrenBlocks itemref="doc:ImportContactItem"/>
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
+    <childrenBlocks itemref="doc:ShareCollectionItem"/>
     <childrenBlocks itemref="doc:EditMailAccountItem"/>
     <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
@@ -826,6 +832,13 @@
     <helpString>import Contacts from contacts.csv</helpString>
   </MenuItem>
 
+  <MenuItem itsName="ShareCollectionItem">
+    <blockName>ShareCollectionItem</blockName>
+    <title>Share collection</title>
+    <event itemref="doc:ShareCollection"/>
+    <helpString>Enable sharing a collection</helpString>
+  </MenuItem>
+
   <MenuItem itsName="SharingSubscribeToCollectionItem">
     <blockName>SharingSubscribeToCollection</blockName>
     <title>Subscribe to Collection...</title>
@@ -1027,7 +1040,7 @@
   </Menu>
 
   <MenuItem itsName="ItemSeparator2">
-    <blockName>ItemSeparator1</blockName>
+    <blockName>ItemSeparator2</blockName>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
 
@@ -1479,6 +1492,7 @@
     <subscribeWhenVisibleEvents itemref="doc:NewCalendarEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:NewNote"/>
     <subscribeWhenVisibleEvents itemref="doc:NewContact"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShareCollection"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
