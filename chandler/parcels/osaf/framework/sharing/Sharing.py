@@ -151,6 +151,8 @@ class ShareConduit(ContentModel.ChandlerItem):
     def put(self, skipItems=None):
         """ Transfer entire 'contents', transformed, to server. """
 
+        self.connect()
+
         location = self.getLocation()
         logger.info("Starting PUT of %s" % (location))
 
@@ -176,6 +178,8 @@ class ShareConduit(ContentModel.ChandlerItem):
             self._putItem(self.share)
 
         self.itsView.commit()
+
+        self.disconnect()
 
         logger.info("Finished PUT of %s" % (location))
 
@@ -204,11 +208,13 @@ class ShareConduit(ContentModel.ChandlerItem):
 
     def get(self):
 
+        self.connect()
+
         location = self.getLocation()
         logger.info("Starting GET of %s" % (location))
 
         if not self.exists():
-            raise NotFound()
+            raise NotFound(message="%s does not exist" % location)
 
         retrievedItems = []
         self.resourceList = self._getResourceList(location)
@@ -253,6 +259,8 @@ class ShareConduit(ContentModel.ChandlerItem):
 
         logger.info("Finished GET of %s" % location)
 
+        self.disconnect()
+
         return retrievedItems
 
     # Methods that subclasses *must* implement:
@@ -292,6 +300,12 @@ class ShareConduit(ContentModel.ChandlerItem):
 
     def _getItem(self, itemPath, into=None):
         """ Must implement """
+        pass
+
+    def connect(self):
+        pass
+
+    def disconnect(self):
         pass
 
     def exists(self):
@@ -500,7 +514,7 @@ class FileSystemConduit(ShareConduit):
             raise AlreadyExists()
 
         if self.sharePath is None or not os.path.isdir(self.sharePath):
-            raise NotFound()
+            raise Misconfigured(message="Share path is not set, or path doesn't exist")
 
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
@@ -511,10 +525,10 @@ class FileSystemConduit(ShareConduit):
     def destroy(self):
         super(FileSystemConduit, self).destroy()
 
-        if not self.exists():
-            raise NotFound()
-
         path = self.getLocation()
+
+        if not self.exists():
+            raise NotFound(message="%s does not exist" % path)
 
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
@@ -528,8 +542,10 @@ class FileSystemConduit(ShareConduit):
     def open(self):
         super(FileSystemConduit, self).open()
 
+        path = self.getLocation()
+
         if not self.exists():
-            raise NotFound()
+            raise NotFound(message="%s does not exist" % path)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -582,6 +598,9 @@ class WebDAVConduit(ShareConduit):
             self.client = WebDAV.Client(host, port=port, username=username,
                                         password=password, useSSL=useSSL)
         return self.client
+
+    def __releaseClient(self):
+        self.client = None
 
     def getLocation(self):  # must implement
         """ Return the url of the share """
@@ -840,6 +859,13 @@ class WebDAVConduit(ShareConduit):
             resourceList[path] = { 'data' : etag }
 
         return resourceList
+
+    def connect(self):
+        self.__releaseClient()
+        self.__getClient()
+
+    def disconnect(self):
+        self.__releaseClient()
 
 
     def _dumpState(self):
@@ -1650,11 +1676,15 @@ def ensureAccountSetUp(view):
 
 
 def syncShare(share):
-    """ @@@MOR In progress
+
     try:
         share.sync()
-    except WebDAV.ConnectionError, err:
-    """
+    except SharingError, err:
+        msg = "Error syncing the '%s' collection\n" % share.contents.getItemDisplayName()
+        msg += "using the '%s' account:\n\n" % share.conduit.account.getItemDisplayName()
+        msg += err.message
+        application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                                    "Synchronization Error", msg)
 
 
 def syncAll(view):
@@ -1667,7 +1697,7 @@ def syncAll(view):
     shareKind = view.findPath("//parcels/osaf/framework/sharing/Share")
     for share in KindQuery().run([shareKind]):
         if share.active:
-            share.sync()
+            syncShare(share)
 
 
 def checkForActiveShares(view):
