@@ -13,22 +13,34 @@
 
   <Kind itemName="Block">
     <superKinds itemref="Item"/>
-    <attributes itemref="coll:parentBlock"/>
-    <attributes itemref="coll:childrenBlocks"/>
-  </Kind>
 
-  <Attribute itemName="parentBlock">
-     <type itemref="coll:Block"/>
-     <cardinality>single</cardinality>
-     <inverseAttribute itemref="coll:childrenBlocks"/>
-     <initialValue itemref="None"/>
-   </Attribute>
+      <Attribute itemName="parentBlock">
+         <type itemref="coll:Block"/>
+         <cardinality>single</cardinality>
+         <inverseAttribute itemref="coll:Block/childrenBlocks"/>
+         <initialValue itemref="None"/>
+       </Attribute>
 
-   <Attribute itemName="childrenBlocks">
-     <type itemref="coll:Block"/>
-     <cardinality>list</cardinality>
-     <inverseAttribute itemref="coll:parentBlock"/>
-     <initialValue/>
-   </Attribute>
+       <Attribute itemName="childrenBlocks">
+         <type itemref="coll:Block"/>
+         <cardinality>list</cardinality>
+         <inverseAttribute itemref="coll:Block/parentBlock"/>
+         <initialValue/>
+       </Attribute>
+
+       <Attribute itemName="foo">
+         <type itemref="coll:Block"/>
+         <cardinality>dict</cardinality>
+         <inverseAttribute itemref="coll:Block/oof"/>
+         <initialValue/>
+       </Attribute>
+
+       <Attribute itemName="oof">
+         <type itemref="coll:Block"/>
+         <cardinality>dict</cardinality>
+         <inverseAttribute itemref="coll:Block/foo"/>
+         <initialValue/>
+       </Attribute>
+   </Kind>
 
 </Parcel>

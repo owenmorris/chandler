@@ -28,9 +28,11 @@ class CollectionsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         child1.parentBlock = parent
         child2.parentBlock = parent
 
-        if False:   # Set this to true to see an exception
-            for child in parent.childrenBlocks:
-                print child, child.parentBlock
+        for child in parent.childrenBlocks:
+            self.assertEqual(child.parentBlock, parent)
+
+        self.assertEqual(child1, parent.getValue('foo', alias='one'))
+        self.assertEqual(child2, parent.getValue('foo', alias='two'))
 
 if __name__ == "__main__":
     unittest.main()

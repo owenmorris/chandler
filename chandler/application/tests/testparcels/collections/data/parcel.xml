@@ -7,11 +7,14 @@
 
 <Parcel itemName="data"
         xmlns="http://osafoundation.org/parcels/core"
-        xmlns:coll="http://testparcels.org/collections" >
+        xmlns:coll="http://testparcels.org/collections"
+        xmlns:data="http://testparcels.org/collections/data" >
 
   <namespace value="http://testparcels.org/collections/data" />
 
   <coll:Block itemName="parent">
+    <foo alias="one" ref="data:child1" />
+    <foo alias="two" ref="data:child2" />
   </coll:Block>
 
   <coll:Block itemName="child1">
