@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.12
+RELVER=0.12-1
 M2CRYPTO=$(INTERNAL)/m2crypto
 
 MANIFEST=$(SNAP)/$(SITE)/M2Crypto
