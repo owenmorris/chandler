@@ -499,7 +499,14 @@ class DetailSynchronizedLabeledTextAttributeBlock (DetailSynchronizer, LabeledTe
     pass
 
 class DetailSynchronizedAttributeEditorBlock (DetailSynchronizer, ControlBlocks.AEBlock):
-    pass
+    
+    # temporary fix until AEBlocks update themselves automatically
+    def synchronizeItemDetail(self, item):
+        super(DetailSynchronizedAttributeEditorBlock, self).synchronizeItemDetail(item)
+        
+        # tell the AE block to update itself
+        if self.isShown:
+            self.synchronizeWidget()
 
 def ItemCollectionOrMailMessageMixin (item):
     # if the item is a MailMessageMixin, or an ItemCollection,
