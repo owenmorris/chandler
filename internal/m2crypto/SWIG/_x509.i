@@ -127,7 +127,8 @@ ASN1_UTCTIME *x509_get_not_after(X509 *x) {
     return X509_get_notAfter(x);
 }
 
-ASN1_TIME *x509_gmtime_adj(ASN1_TIME *s, long adj) {
+/* XXX The first parameter is really ASN1_TIME, does it matter? */
+ASN1_TIME *x509_gmtime_adj(ASN1_UTCTIME *s, long adj) {
     return X509_gmtime_adj(s, adj);
 }
 

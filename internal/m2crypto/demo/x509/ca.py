@@ -35,17 +35,11 @@ cert.set_version(2)
 # XXX Set subjectName
 # XXX Set issuerName
 cert.set_pubkey(pkey)
-# XXX Set notBefore
-# XXX Set notAfter
-
-# This does not work, gmtime_adj not recognized
-#print m2.x509_get_not_before(cert.x509)
-#print cert.get_not_before()
-#print m2.gmtime_adj
-#print "notBefore adj: ", m2.gmtime_adj(m2.x509_get_not_before(cert.x509), 0)
-#days = 30
-#print "notAfter adj: ", m2.gmtime_adj(m2.x509_get_not_after(cert.x509),
-#                                      60*60*24*days)
+notBefore = m2.x509_get_not_before(cert.x509)
+notAfter  = m2.x509_get_not_after(cert.x509)
+m2.x509_gmtime_adj(notBefore, 0)
+days = 30
+m2.x509_gmtime_adj(notAfter, 60*60*24*days)
 
 # XXX extensions
 
