@@ -4,12 +4,14 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.item.Item import Item
+from repository.item.Query import KindQuery
 from OSAF.framework.agents.schema.Action import Action
+from OSAF.examples.zaobao.RSSData import ZaoBaoParcel,RSSChannel
 
 import feedparser
 
 _defaultBlogs = [ "http://www.pavlov.net/blog/rss10.rdf", \
-                  "http://blogs.osafoundation.org/news/index.rdf", \
+                  "http://www.osafoundation.org/rss/2.0/", \
                   "http://blogs.osafoundation.org/devnews/index.rdf", \
                   "http://blogs.osafoundation.org/zaobao/index.rdf", \
                   "http://blogs.osafoundation.org/mitch/index.rdf", \
@@ -18,11 +20,8 @@ _defaultBlogs = [ "http://www.pavlov.net/blog/rss10.rdf", \
                   "http://blogs.osafoundation.org/blogotomy/index.rdf", \
                   "http://lessig.org/blog/index.xml", \
                   "http://diveintomark.org/xml/rss.xml",
-                  "http://slashdot.org/index.rss",
                   "http://www.scripting.com/rss.xml",
                   "http://xml.newsisfree.com/feeds/15/2315.xml"]
-
-BASE_PATH = '//parcels/OSAF/examples/zaobao'
 
 class UpdateAction(Action):
     def Execute(self, agent, notification):
@@ -42,18 +41,19 @@ class UpdateAction(Action):
         #print 'Updated feeds'
 
     def __getFeeds(self):
-        repository = self.getRepository()
-        chanKind = repository.find(BASE_PATH + '/RSSChannel')
+
+        chanKind = ZaoBaoParcel.getRSSChannelKind()
 
         feeds = []
-        parent = repository.find(BASE_PATH)
 
-        for url in _defaultBlogs:
-            urlhash = str(hash(url))
-            item = repository.find(BASE_PATH + '/' + urlhash)
-            if not item:
-                item = chanKind.newItem(urlhash, parent)
-                item.url = url
+        for item in KindQuery().run([chanKind]):
             feeds.append(item)
+
+        # auto generate some feeds if there aren't any in the repository
+        if len(feeds) == 0:
+            for url in _defaultBlogs:
+                item = RSSChannel()
+                item.url = url
+                feeds.append(item)
 
         return feeds

@@ -3,13 +3,49 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import application.Globals as Globals
 from repository.item.Item import Item
 from repository.util.Path import Path
+from repository.parcel.Parcel import Parcel
+from OSAF.contentmodel.ContentModel import ContentItem
 import mx.DateTime
 import types
 
-BASE_PATH = '//parcels/OSAF/examples/zaobao'
-RSSITEM_KIND_PATH = BASE_PATH + '/RSSItem'
+##
+# ZaoBaoParcel
+##
+class ZaoBaoParcel(Parcel):
+    def __init__(self, name, parent, kind):
+        Parcel.__init__(self, name, parent, kind)
+
+    def _setUUIDs(self):
+        ZaoBaoParcel.RSSChannelKindID = self.find('RSSChannel').getUUID()
+        ZaoBaoParcel.RSSItemKindID = self.find('RSSItem').getUUID()
+
+    def onItemLoad(self):
+        super(ZaoBaoParcel, self).onItemLoad()
+        self._setUUIDs()
+
+    def startupParcel(self):
+        super(ZaoBaoParcel, self).startupParcel()
+        self._setUUIDs()
+
+    def getRSSChannelKind(cls):
+        assert cls.RSSChannelKindID, "ZaoBaoParcel not yet loaded"
+        return Globals.repository[cls.RSSChannelKindID]
+
+    getRSSChannelKind = classmethod(getRSSChannelKind)
+
+    def getRSSItemKind(cls):
+        assert cls.RSSItemKindID, "ZaoBaoParcel not yet loaded"
+        return Globals.repository[cls.RSSItemKindID]
+
+    getRSSItemKind = classmethod(getRSSItemKind)
+    
+    # The parcel knows the UUIDs for the Kinds, once the parcel is loaded
+    RSSChannelKindID = None
+    RSSItemKindID = None
+
 
 def SetAttribute(self, data, attr, nattr=None, encoding=None):
     if not nattr:
@@ -29,17 +65,14 @@ def SetAttributes(self, data, attributes, encoding=None):
             SetAttribute(self, data, attr, encoding=encoding)
 
 
-class RSSChannel(Item):
-    def __getItemsParent(self):
-        repository = self.getRepository()
-        parent = repository.find('//userdata/contentitems')
-        if parent:
-            return parent
-        itemKind = repository.find('//Schema/Core/Item')
-        userdata = repository.find('//userdata')
-        if not userdata:
-            userdata = itemKind.newItem('userdata', repository)
-        return itemKind.newItem('contentitems', userdata)
+##
+# RSSChannel
+##
+class RSSChannel(ContentItem):
+    def __init__(self, name=None, parent=None, kind=None):
+        if not kind:
+            kind = ZaoBaoParcel.getRSSChannelKind()
+        super(RSSChannel, self).__init__(name, parent, kind)
 
     def Update(self, data):
         # get the encoding
@@ -70,14 +103,22 @@ class RSSChannel(Item):
 
     def _DoItems(self, items, encoding):
         # make children
-        itemKind = self.getRepository().find(RSSITEM_KIND_PATH)
         for itemData in items:
             #print 'new item'
-            item = itemKind.newItem(None, self.__getItemsParent())
+            item = RSSItem()
             item.Update(itemData, encoding)
             self.addValue('items', item)
 
-class RSSItem(Item):
+
+##
+# RSSItem
+##
+class RSSItem(ContentItem):
+    def __init__(self, name=None, parent=None, kind=None):
+        if not kind:
+            kind = ZaoBaoParcel.getRSSItemKind()
+        super(RSSItem, self).__init__(name, parent, kind)
+
     def Update(self, data, encoding):
         # fill in the item
         attrs = {'title':'displayName'}

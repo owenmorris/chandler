@@ -2,11 +2,13 @@
 
 <Parcel describes="//parcels/OSAF/examples/zaobao"
         itemName="zaobao"
+        itemClass="OSAF.examples.zaobao.RSSData.ZaoBaoParcel"
         xmlns="//Schema/Core"
         xmlns:zaobao="//parcels/OSAF/examples/zaobao"
         xmlns:foo="//parcels/OSAF/framework"
         xmlns:bar="//parcels/OSAF/framework/agents"
-        xmlns:agent="//parcels/OSAF/framework/agents/schema">
+        xmlns:agent="//parcels/OSAF/framework/agents/schema"
+        xmlns:content="//parcels/OSAF/contentmodel">
 
   <displayName>ZaoBao RSS Schema</displayName>
   <description>RSS schema for ZaoBao parcel for 0.2 release</description>
@@ -102,7 +104,7 @@
     <attributes itemref="zaobao:RSSChannel/isUnread"/>
     <attributes itemref="zaobao:RSSChannel/items"/>
 
-    <superKinds itemref="Item"/>
+    <superKinds itemref="content:ContentItem"/>
     <classes key="python">OSAF.examples.zaobao.RSSData.RSSChannel</classes>
   </Kind>  
 
@@ -125,7 +127,7 @@
     <attributes itemref="zaobao:date"/>
 
     <attributes itemref="zaobao:RSSItem/channel"/>
-    <superKinds itemref="Item"/>
+    <superKinds itemref="content:ContentItem"/>
     <classes key="python">OSAF.examples.zaobao.RSSData.RSSItem</classes>
   </Kind>
 
