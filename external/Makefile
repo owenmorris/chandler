@@ -57,8 +57,9 @@ binaries: env
 	@for system in $(SYSTEMS); \
 	do \
 	    echo appending $$system; \
-	    gunzip -c $$system/$(SNAP).tar.gz > _tmp.tar; \
-            tar -Af $(SNAP)-$(VERSION).tar _tmp.tar; \
+	    cp $$system/$(SNAP).tar.gz _tmp.tar.gz; \
+	    gunzip -f _tmp.tar.gz; \
+        tar -Af $(SNAP)-$(VERSION).tar _tmp.tar; \
 	    rm _tmp.tar; \
 	done
 	gzip $(SNAP)-$(VERSION).tar
