@@ -1675,7 +1675,6 @@
     <contents itemref="doc:allItemCollection"/>
     <blockName>CalendarSummaryView</blockName>
     <daysPerView>7</daysPerView>
-    <eventBoundary>True</eventBoundary>
   </calendar:CanvasWeek>
 
   <TrunkParentBlock itsName="CalendarDetailTPB">
