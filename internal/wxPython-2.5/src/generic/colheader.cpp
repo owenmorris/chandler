@@ -1753,7 +1753,7 @@ OSStatus				errStatus;
 
 		cfLabelText =
 			(bUseUnicode
-			? CFStringCreateWithCString( NULL, (const char*)(m_LabelTextRef.mb_str()), kCFStringEncodingUnicode )
+			? CFStringCreateWithBytes( NULL, (const UInt8*)(m_LabelTextRef.mb_str()), m_LabelTextRef.length() * sizeof(UniChar), kCFStringEncodingUnicode, false )
 			: CFStringCreateWithCString( NULL, (const char*)(m_LabelTextRef.c_str()), kCFStringEncodingMacRoman ));
 
 		if (cfLabelText != NULL)
