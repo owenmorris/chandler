@@ -14,7 +14,6 @@ from M2Crypto import RSA, X509, EVP, m2, Rand, Err
 
 # XXX Do I actually need more keys?
 # XXX Check return values from functions
-# XXX Serial number
 
 def generateRSAKey():
     return RSA.gen_key(2048, m2.RSA_F4)
@@ -26,7 +25,8 @@ def makePKey(key):
     
 def makeRequest(pkey):
     req = X509.Request()
-    req.set_version(0)# Seems to default to 0, but we can now set it as well
+    # Seems to default to 0, but we can now set it as well, so just API test
+    req.set_version(req.get_version())
     req.set_pubkey(pkey)
     req.set_pubkey(EVP.PKey(req.get_pubkey()))# Just a test of the API
     name = X509.X509_Name()
@@ -49,6 +49,9 @@ def makeCert(req, caPkey):
     # if you were sure. Now we just create the certificate blindly based
     # on the request.
     cert = X509.X509()
+    # We know we are making CA cert now...
+    # Serial defaults to 0.
+    cert.set_serial_number(1)
     cert.set_version(2)
     cert.set_subject(sub)
     issuer = X509.X509_Name()
@@ -67,12 +70,10 @@ def makeCert(req, caPkey):
     return cert
 
 def ca():
-    Rand.load_file('../randpool.dat', -1)
     key = generateRSAKey()
     pkey = makePKey(key)
     req = makeRequest(pkey)
     cert = makeCert(req, pkey)
-    Rand.save_file('../randpool.dat')
     return (cert, pkey)
 
 if __name__ == '__main__':

@@ -49,6 +49,8 @@ def makeCert(req, caCert, caPKey):
     # on the request.
     cert = X509.X509()
     cert.set_version(2)
+    cert.set_serial_number(caCert.get_serial_number()+1)
+    print '***Serial: ', cert.get_serial_number()
     cert.set_subject(sub)
     issuer = caCert.get_subject()
     cert.set_issuer(issuer)
@@ -63,12 +65,12 @@ def makeCert(req, caCert, caPKey):
     return cert
 
 if __name__ == '__main__':
-    (caCert, caPKey) = ca.ca()
     Rand.load_file('../randpool.dat', -1)
     key = generateRSAKey()
     pkey = makePKey(key)
     req = makeRequest(pkey)
     print req.as_text()
+    (caCert, caPKey) = ca.ca()
     cert = makeCert(req, caCert, caPKey)
     print cert.as_text()
     Rand.save_file('../randpool.dat')

@@ -30,6 +30,7 @@
 %name(x509_crl_print) extern int X509_CRL_print(BIO *, X509_CRL *);
 
 %name(x509_get_serial_number) extern ASN1_INTEGER *X509_get_serialNumber(X509 *);
+%name(x509_set_serial_number) extern int X509_set_serialNumber(X509 *, ASN1_INTEGER *);
 %name(x509_get_pubkey) extern EVP_PKEY *X509_get_pubkey(X509 *);
 %name(x509_set_pubkey) extern int X509_set_pubkey(X509 *, EVP_PKEY *);
 %name(x509_get_issuer_name) extern X509_NAME *X509_get_issuer_name(X509 *);
@@ -233,6 +234,10 @@ X509_NAME *x509_req_get_subject_name(X509_REQ *x) {
 
 int x509_req_set_subject_name(X509_REQ *x, X509_NAME *name) {
     return X509_REQ_set_subject_name(x, name);
+}
+
+long x509_req_get_version(X509_REQ *x) {
+    return X509_REQ_get_version(x);
 }
 
 int x509_req_set_version(X509_REQ *x, long version) {

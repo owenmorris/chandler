@@ -127,9 +127,9 @@ class X509:
         """
         Set version.
 
-        @type version:  an integer
+        @type version:  integer
         @param version: Version number.
-        @rtype:         an integer
+        @rtype:         integer
         @return:        Returns 0 on failure.
         """
         assert m2.x509_type_check(self.x509), "'x509' type error"    
@@ -140,6 +140,27 @@ class X509:
         asn1_integer = m2.x509_get_serial_number(self.x509)
         return m2.asn1_integer_get(asn1_integer)
 
+    def set_serial_number(self, serial):
+        """
+        Set serial number. Every certificate must have a serial number.
+        A CA must issue unique serial numbers for all the certificates that
+        it issues.
+
+        @type serial:   integer
+        @param serial:  Serial number.
+        @rtype:         XXX
+        @return:        XXX
+        """
+        assert m2.x509_type_check(self.x509), "'x509' type error"
+        # This "magically" changes serial since asn1_integer is C pointer
+        # to x509's internal serial number.
+        asn1_integer = m2.x509_get_serial_number(self.x509)
+        return m2.asn1_integer_set(asn1_integer, serial)
+        # XXX Or should I do this?
+        #asn1_integer = m2.asn1_integer_new()
+        #m2.asn1_integer_set(asn1_integer, serial)
+        #return m2.x509_set_serial_number(self.x509, asn1_integer)
+
     def get_not_before(self):
         assert m2.x509_type_check(self.x509), "'x509' type error"
         return ASN1.ASN1_UTCTIME(m2.x509_get_not_before(self.x509))
@@ -147,6 +168,8 @@ class X509:
     def get_not_after(self):
         assert m2.x509_type_check(self.x509), "'x509' type error"
         return ASN1.ASN1_UTCTIME(m2.x509_get_not_after(self.x509))
+
+    # XXX We should have method(s) here to set and adjust notBefore/After.
 
     def get_pubkey(self):
         assert m2.x509_type_check(self.x509), "'x509' type error"
@@ -348,6 +371,15 @@ class Request:
         @return:        XXX
         """
         return m2.x509_req_set_subject_name(self.req, name.x509_name)
+
+    def get_version(self):
+        """
+        Get version.
+
+        @rtype:         integer
+        @return:        Returns version.
+        """
+        return m2.x509_req_get_version(self.req)
 
     def set_version(self, version):
         """
