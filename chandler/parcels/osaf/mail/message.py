@@ -261,10 +261,10 @@ def kindToMessageObject(mailMessage):
     #XXX: To do figure out in relpy to / recieved  / references logic
     messageObject = Message.Message()
 
-    if hasValue(mailMessage.messageId):
-       __populateParam(messageObject, 'Message-ID', mailMessage.messageId)
-    else:
-        messageObject['Message-ID'] = createMessageID()
+    if not hasValue(mailMessage.messageId):
+        mailMessage.messageId = createMessageID()
+
+    __populateParam(messageObject, 'Message-ID', mailMessage.messageId)
 
     messageObject['User-Agent'] = common.CHANDLER_USERAGENT
 
