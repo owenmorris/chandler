@@ -778,6 +778,22 @@ def lint(buildenv, args):
      [python, checkerFile] + args, "Running PyChecker" )
 
 
+def mirrorDirSymlinks(src, dest):
+    """ Recreate the directory structure of src under dest, with symlinks
+        pointing to the files in src.  src and dest must be absolute.  """
+
+    if not os.path.exists(dest):
+        os.mkdir(dest)
+
+    for name in os.listdir(src):
+        fullName = os.path.join(src, name)
+        if os.path.isdir(fullName):
+            mirrorDirSymlinks(fullName, os.path.join(dest, name))
+        if os.path.isfile(fullName):
+            if not os.path.exists(os.path.join(dest, name)):
+                os.symlink(fullName, os.path.join(dest, name))
+
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # External program control functions
 
