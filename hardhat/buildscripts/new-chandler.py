@@ -28,34 +28,36 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     thisScriptDir = os.path.join("/home/markie/hardhat", "buildscripts")
     print "Build scripts dir is " + thisScriptDir + "\n"
 
+    # initialize return value
+    ret = "no_changes" 
+
     # make sure workingDir is absolute, remove it, and create it
     workingDir = os.path.abspath(workingDir)
     if not os.path.exists(workingDir):
         os.mkdir(workingDir)
-    os.chdir(workingDir)
+        os.chdir(workingDir)
 
-    # remove outputDir and create it
-    outputDir = os.path.join(workingDir, "output")
-    if os.path.exists(outputDir):
-        hardhatutil.rmdirRecursive(outputDir)
-    os.mkdir(outputDir)
-    # Initialize external (hardly ever changes)
-    print "Initializing external modules ..."
-    log.write("- - - - external - - - - - - -\n")
-    # not needed here?    moduleData["external"] = {}
-    
-    # Do external setup for both debug and release here
-    for releaseMode in ('debug', 'release'):
-        releaseModeDir = os.path.join(workingDir, releaseMode)
-        if releaseMode == "debug":
-            dbgStr = "DEBUG=1"
-        else:
-            dbgStr = ""
+        # remove outputDir and create it
+        outputDir = os.path.join(workingDir, "output")
+        if os.path.exists(outputDir):
+            hardhatutil.rmdirRecursive(outputDir)
+        os.mkdir(outputDir)
+        # Initialize external (hardly ever changes)
+        print "Initializing external modules ..."
+        log.write("- - - - external - - - - - - -\n")
+        # not needed here?    moduleData["external"] = {}
+        
+        # Do external setup for both debug and release here
+        for releaseMode in ('debug', 'release'):
+            releaseModeDir = os.path.join(workingDir, releaseMode)
+            if releaseMode == "debug":
+                dbgStr = "DEBUG=1"
+            else:
+                dbgStr = ""
 
-        ret = "no_changes" 
-        extModuleDir = os.path.join(releaseModeDir, "external")
-        intModuleDir = os.path.join(releaseModeDir, "internal")
-        if not os.path.exists(releaseModeDir):
+            ret = "no_changes" 
+            extModuleDir = os.path.join(releaseModeDir, "external")
+            intModuleDir = os.path.join(releaseModeDir, "internal")
             os.mkdir(releaseModeDir)
             os.chdir(releaseModeDir)
             print "checking out external"
@@ -63,45 +65,40 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             outputList = hardhatutil.executeCommandReturnOutputRetry(
              [cvsProgram, "-q", "checkout", cvsVintage, "external"])
             hardhatutil.dumpOutputList(outputList, log)
+    
+            # Now need to do the setup for external - "expand" and "make"
+            os.chdir(extModuleDir)
+            log.write("Environment variables: \n")
+            log.write("GCJ_HOME = " + os.environ['GCJ_HOME'] + "\n")
+            os.environ["BUILD_ROOT"] = extModuleDir
+            log.write("BUILD_ROOT = " + os.environ['BUILD_ROOT'] + "\n")
+            os.environ["DEBUG"] = dbgStr
+            log.write("DEBUG = " + os.environ['DEBUG'] + "\n")
 
-            version = getVersion(os.path.join(extModuleDir, "Makefile"))
-            sourceTarball = os.path.join(extModuleDir, "sources-" + version + ".tar")
-            log.write("Checking for source tarball " + sourceTarball + "\n")
-            if not os.path.exists(sourceTarball) :
-                # Now need to do the setup for external - "expand" and "make"
-                os.chdir(extModuleDir)
-                log.write("Environment variables: \n")
-                log.write("GCJ_HOME = " + os.environ['GCJ_HOME'] + "\n")
-                os.environ["BUILD_ROOT"] = extModuleDir
-                log.write("BUILD_ROOT = " + os.environ['BUILD_ROOT'] + "\n")
-                os.environ["DEBUG"] = dbgStr
-                log.write("DEBUG = " + os.environ['DEBUG'] + "\n")
+            print "Building " + releaseMode
+            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+            log.write("Expanding external sources\n")
+            try: 
+              #  outputList = hardhatutil.executeCommandReturnOutput(
+              #   [buildenv['make'], "expand" ])
+              #  hardhatutil.dumpOutputList(outputList, log)
+              #  outputList = hardhatutil.executeCommandReturnOutput(
+              #   [buildenv['make'], dbgStr ])
+              #  hardhatutil.dumpOutputList(outputList, log)
+              #  log.write("Making external (debug) binaries\n")
+              #  outputList = hardhatutil.executeCommandReturnOutput(
+              #   [buildenv['make'], dbgStr, "binaries" ])
+                initFile = os.path.join(thisScriptDir, 'init.sh')
+                log.write("Running init script from " + initFile + "\n")
+                outputList = hardhatutil.executeCommandReturnOutput(
+                 [initFile] )
+                hardhatutil.dumpOutputList(outputList, log)
 
-                print "Building " + releaseMode
+            except Exception, e:
+                print "an initialization error"
+                log.write("***Error during initialization*** " + e.str() + "\n")
                 log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-                log.write("Expanding external sources\n")
-                try: 
-                  #  outputList = hardhatutil.executeCommandReturnOutput(
-                  #   [buildenv['make'], "expand" ])
-                  #  hardhatutil.dumpOutputList(outputList, log)
-                  #  outputList = hardhatutil.executeCommandReturnOutput(
-                  #   [buildenv['make'], dbgStr ])
-                  #  hardhatutil.dumpOutputList(outputList, log)
-                  #  log.write("Making external (debug) binaries\n")
-                  #  outputList = hardhatutil.executeCommandReturnOutput(
-                  #   [buildenv['make'], dbgStr, "binaries" ])
-                    initFile = os.path.join(thisScriptDir, 'init.sh')
-                    log.write("Running init script from " + initFile + "\n")
-                    outputList = hardhatutil.executeCommandReturnOutput(
-                     [initFile] )
-                    hardhatutil.dumpOutputList(outputList, log)
-
-                except Exception, e:
-                    print "an initialization error"
-                    log.write("***Error during initialization*** " + e.str() + "\n")
-                    log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-                    ret = "init_failed"
-
+                ret = "init_failed"
 
             print "checking out internal"
             log.write("Checking out: internal with " + cvsVintage + "\n")
