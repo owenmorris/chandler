@@ -514,7 +514,6 @@ class LocationAttributeEditor (LabeledAttributeEditor):
                 p = view.findPath('//Queries')
                 k = view.findPath('//Schema/Core/Query')
                 locQuery = Query.Query (queryName, p, k, queryString)
-                print "AE:controlValue", controlValue
                 locQuery.args["$0"] = ( controlValue, )
     
             # build a list of matches here
