@@ -22,9 +22,19 @@ import logging as logging
 class MailDownloadAction(Action.Action): 
 
     def Execute(self, task):
+        """
+        This method creates a C{IMAPDownloader} instance for each 
+        C{EmailAccountKind} of type IMAP4 gotten via a:a
 
         accountKind = Mail.MailParcel.getEmailAccountKind()
-        printed = False 
+
+        @param task: The task object passed to the action
+        @type task: C{osaf.framework.tasks.Task.Task}
+        @return: C{None}
+        """
+
+        accountKind = Mail.MailParcel.getEmailAccountKind()
+        printed = False
 
         for account in Query.KindQuery().run([accountKind]):
             if account.accountType != 'IMAP4':
@@ -45,11 +55,22 @@ class MailDownloadAction(Action.Action):
 class ChandlerIMAP4Client(imap4.IMAP4Client):
 
     def serverGreeting(self, caps):
+        """
+        This method overides C{imap4.IMAP4Client}.
+
+        It creates a C{defer.Deferred} and adds its factory callback and errorback
+        methods to the C{defer.Deferred}.
+
+        @param caps: The list of server CAPABILITIES
+        @type caps: dict
+        @return C{None}
+        """
 
         self.serverCapabilities =  self.__disableTLS(caps)
 
-        d = defer.Deferred().addCallback(self.factory.callback, self
-                           ).addErrback(self.factory.errback)
+        d = defer.Deferred()
+        d.addCallback(self.factory.callback, self)
+        d.addErrback(self.factory.errback)
 
         d.callback(True)
 
@@ -73,6 +94,19 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
     protocol = ChandlerIMAP4Client
 
     def __init__(self, callback, errback):
+        """
+        A C{protocol.ClientFactory} that creates C{ChandlerIMAP4Client} instances
+        and stores the callback and errback to be used by the C{ChandlerIMAP4Client} instances
+
+        @param callback: A method name to call when a C{ChandlerIMAP4Client} connects
+                        to a IMAP Server
+        @type callback: string
+        @param errback: A method name to call if an error is thrown in the C{ChandlerIMAPClient}
+                        C{defer.Deferred} callback chain
+        @type errback: string
+        @return: C{None}
+        """
+
         self.callback = callback
         self.errback = errback
 
@@ -89,6 +123,15 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
 class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
     def __init__(self, accountUUID, viewName):
+        """
+        Creates a C{IMAPDownload} instance
+        @param accountUUID: The C{UUID} of the C{EmailAccountKind} to utilize to download an store mail
+        @type accountUUID: C{UUID}
+        @param viewName: The name to assign as the key for the view
+        @type name: a string
+        @return: C{None}
+        """
+
         super(IMAPDownloader, self).__init__(Globals.repository, viewName)
 
         self.proto = None
@@ -98,23 +141,37 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
 
     def getMail(self):
+        """
+        This method retrieves all mail in an IMAP Server INBOX that has a
+        UID (RFC3501) greater than the UID of the last message downloaded.
+
+        If this is the first time downloading mail, all mail in the INBOX will
+        be downloaded. On the next check only mail greater than the last UID
+        will be downloaded.
+
+        This method is executed in the current thread and calls C{reactor.callFromThread}
+        to utilize a C{imap4.IMAP4Client} via the C{TwistedReactorManager} to connect to an
+        IMAP Server.
+
+        @return: C{None}
+
+        """
         if __debug__:
             self.printCurrentView("getMail")
 
         reactor.callFromThread(self.__getMail)
 
     def __getMail(self):
-        """If in the thread of execution and not the Twisted Reactor 
-           thread one must manually reset the view to the previous view.
-           Other classes using that thread will assume one view per thread 
-           and will try repository operations on the wrong view"""
+
         self.setViewCurrent()
 
         try:
             if __debug__: 
                 self.printCurrentView("__getMail")
 
-            self.account = self.getAccount()
+            self.account = self.__getAccount()
+            assert self.account is not None, "Account is None"
+
             self.account.setPinned()
 
             serverName = self.account.serverName
@@ -130,7 +187,16 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         reactor.connectTCP(serverName, serverPort, factory)
  
     def printAccount(self):
+        """
+        Utility method that prints out C{EmailAccountKind} information for debugging
+        purposes
+        @return: C{None}
+        """
+
         self.printCurrentView("printAccount")
+
+        if self.account is None:
+            return
 
         str  = "\nHost: %s\n" % self.account.serverName
         str += "Port: %d\n" % self.account.serverPort
@@ -140,9 +206,24 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         self.log.info(str)
 
     def catchErrors(self, result):
+        """
+        This method captures all errors thrown while in the Twisted Reactor Thread.
+        @return: C{None}
+        """
+
         self.log.error("Twisted Error %s" % result)
 
     def loginClient(self, result, proto):
+        """
+        This method is a Twisted C{defer.Deferred} callback that logs in to an IMAP Server
+        based on the account information stored in a C{EmailAccountKind}.
+
+        @param result: A Twisted callback result 
+        @type result: Could be anything
+        @param proto: The C{ChandlerIMAP4Client} protocol instance
+        @type proto: C{ChandlerIMAP4Client}
+        @return: C{None}
+        """
 
         self.setViewCurrent()
 
@@ -155,21 +236,23 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
             """ Login using plain text login """
 
+            assert self.account is not None, "Account is None can not login client"
+
             return self.proto.login(str(self.account.accountName), 
-                                    str(self.account.password)).addCallback(self.selectInbox)
+                                    str(self.account.password)).addCallback(self.__selectInbox)
         finally:
            self.restorePreviousView()
 
 
-    def selectInbox(self, result):
+    def __selectInbox(self, result):
         if __debug__:
             self.printCurrentView("selectInbox ***Could be wrong view***")
 
-        self.printInfo("Checking Inbox for new mail messages")
+        self.__printInfo("Checking Inbox for new mail messages")
 
-        return self.proto.select("INBOX").addCallback(self.checkForNewMessages)
+        return self.proto.select("INBOX").addCallback(self.__checkForNewMessages)
 
-    def checkForNewMessages(self, msgs):
+    def __checkForNewMessages(self, msgs):
 
         self.setViewCurrent()
 
@@ -182,23 +265,23 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
             if exists != 0:
                 """ Fetch everything newer than the last UID we saw. """
 
-                if self.getLastUID() == 0:
+                if self.__getLastUID() == 0:
                     msgSet = imap4.MessageSet(1, None)
                 else: 
-                    msgSet = imap4.MessageSet(self.getLastUID(), None)
+                    msgSet = imap4.MessageSet(self.__getLastUID(), None)
 
                 d = self.proto.fetchUID(msgSet, uid=True) 
-                d.addCallback(self.getMessagesFromUIDS)
+                d.addCallback(self.__getMessagesFromUIDS)
 
                 return d
 
-            self.printInfo("No messages present to download")
+            self.__printInfo("No messages present to download")
 
         finally:
             self.restorePreviousView()
 
 
-    def getMessagesFromUIDS(self, msgs):
+    def __getMessagesFromUIDS(self, msgs):
 
         self.setViewCurrent()
 
@@ -210,22 +293,22 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
             low = min(v)
             high = max(v)
 
-            if high <= self.getLastUID():
-                self.printInfo("No new messages found")
+            if high <= self.__getLastUID():
+                self.__printInfo("No new messages found")
 
             else:
-                if self.getLastUID() == 0:
+                if self.__getLastUID() == 0:
                     msgSet = imap4.MessageSet(low, high)
                 else:
-                    msgSet = imap4.MessageSet(max(low, self.getLastUID() + 1), high)
+                    msgSet = imap4.MessageSet(max(low, self.__getLastUID() + 1), high)
 
                 d = self.proto.fetchMessage(msgSet, uid=True)
-                d.addCallback(self.fetchMessages).addCallback(self.disconnect)
+                d.addCallback(self.__fetchMessages).addCallback(self.__disconnect)
 
         finally:
             self.restorePreviousView()
 
-    def disconnect(self, result = None):
+    def __disconnect(self, result = None):
 
         if __debug__:
             self.printCurrentView("disconnect")
@@ -233,10 +316,12 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         self.proto.close()
         self.proto.transport.loseConnection()
 
-    def fetchMessages(self, msgs):
+    def __fetchMessages(self, msgs):
 
         if __debug__:
             self.printCurrentView("fetchMessages")
+
+        assert self.account is not None, "Can not fetchMessages Email Account is None"
 
         self.setViewCurrent()
 
@@ -254,8 +339,8 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
                 uid = long(msgs[msg]['UID'])
 
-                if uid > self.getLastUID():
-                    self.setLastUID(uid)
+                if uid > self.__getLastUID():
+                    self.__setLastUID(uid)
                     totalDownloaded += 1
 
             self.downloadedStr = "%d messages downloaded to Chandler" % (totalDownloaded)
@@ -263,26 +348,34 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         finally:
             self.restorePreviousView()
 
-        """Commit the view in a Twisted thread to prevent blocking""" 
+        """Commit the view in a thread to prevent blocking""" 
         self.commitView(True)
 
 
     def _viewCommitSuccess(self):
+        """
+        Overides C{RepositoryView.AbstractRepositoryViewManager}. 
+        It posts a commit event to the GUI thread, unpins the C{EmailAccountKind} from 
+        memory, and writes commit info to the logger
+        @return: C{None}
+        """
+
         Globals.wxApplication.PostAsyncEvent(Globals.repository.commit)
 
-        self.printInfo(self.downloadedStr)
+        self.__printInfo(self.downloadedStr)
         self.downloadedStr = None
 
         self.account.setPinned(False)
+        self.account = None
 
 
-    def getLastUID(self):
+    def __getLastUID(self):
         return self.account.messageDownloadSequence
 
-    def setLastUID(self, uid):
+    def __setLastUID(self, uid):
         self.account.messageDownloadSequence = uid
 
-    def getAccount(self):
+    def __getAccount(self):
 
         accountKind = Mail.MailParcel.getEmailAccountKind()
         account = accountKind.findUUID(self.accountUUID)
@@ -292,7 +385,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
         return account
 
-    def printInfo(self, info):
+    def __printInfo(self, info):
 
         if self.account.serverPort != 143:
             str = "[Server: %s:%d User: %s] %s" % (self.account.serverName,
@@ -307,6 +400,14 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
 
 def format_addr(addr):
+    """
+    This method formats an email address
+
+    @param addr: The email address to format
+    @type addr: list
+    @return: C{string}
+    """
+
     str = addr[0]
     if str != '':
         str = str + ' '
@@ -315,14 +416,23 @@ def format_addr(addr):
 
 
 def make_message(data):
+    """
+    This method converts a email message string to
+    a Chandler C{Mail.MailMessage} object
+
+    @param data: A string representation of a mail message
+    @type data: string
+    @return: C{Mail.MailMessage}
+    """
+
     msg = email.message_from_string(data)
 
     m = Mail.MailMessage()
-    
+
     if m is None:
         print "MailMessage was NULL"
         return None
-    
+
     m.dateSent = DateTime.mktime(Utils.parsedate(msg['Date']))
     m.subject = msg['Subject']
 
