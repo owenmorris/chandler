@@ -176,7 +176,7 @@
     <!-- Attributes -->
     <textAlignmentEnum>Left</textAlignmentEnum>
     <characterStyle itemref="doc:TextStyle"/>
-    <title>The demo view demonstrates the new CPIA functionality and availble blocks.  It is used as an example for</title>
+    <title>The demo view demonstrates the new CPIA functionality and some of the available blocks.  It is used as an example for</title>
 
     <open>True</open>
     <size>600,200</size>
