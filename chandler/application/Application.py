@@ -186,7 +186,7 @@ class wxApplication (wxApp):
         Globals.notificationManager.PrepareSubscribers()
 
         # Set it up so that repository changes generate notifications
-        #Globals.repository.addNotificationCallback(repositoryCallback)
+        Globals.repository.addNotificationCallback(repositoryCallback)
 
         # Create and start the agent manager.
         from OSAF.framework.agents.AgentManager import AgentManager
