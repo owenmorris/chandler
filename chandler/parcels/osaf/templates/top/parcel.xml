@@ -10,7 +10,7 @@
              xmlns:core="//Schema/Core"
              xmlns="//parcels/OSAF/framework/blocks"
              xmlns:doc="//parcels/OSAF/templates/top"
-             xmlns:events="//parcels/OSAF/framework/blocks/events">
+             xmlns:events="//parcels/OSAF/framework/blocks/Events">
 
   <core:version>0.3</core:version>
 
@@ -214,7 +214,7 @@
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
-    <characterStyle itemref="doc:TextStyle"/>readOnly
+    <characterStyle itemref="doc:TextStyle"/>
   </EditText>
   
   <Menu itemName="RightMenu">
@@ -283,7 +283,7 @@
 
   <BoxContainer itemName="ContentBox">
     <content-spec itemref="doc:myQuery"/>
-    <childrenBlocks itemref="doc:LeftBox"/>
+    <childrenBlocks itemref="doc:TreeList"/>
     <childrenBlocks itemref="doc:RightBox"/>
     <open>True</open>
 
