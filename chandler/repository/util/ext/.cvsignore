@@ -1,1 +1,4 @@
-build Makefile *.pyc
+build
+Makefile
+*.pyc
+*.pyo
