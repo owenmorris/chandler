@@ -62,13 +62,11 @@ src=chandler/release/dbxml/lib
 dest=release/dbxml/lib
 libdbxml-1.2.so
 
-# Grab the gcj 3.4.1 runtime libs
-src=$(GCJ_HOME)/lib
+# Grab the gcj 3.4.x runtime libs
+src=chandler/release/lib
 dest=release/lib
 libgcj.so.5
-libgcj.so.5.0.0
 libstdc++.so.6
-libstdc++.so.6.0.1
 libgcc_s.so.1
 
 # Grab Chandler.py, and others
