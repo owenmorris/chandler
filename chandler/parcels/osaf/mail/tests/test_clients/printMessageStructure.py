@@ -129,7 +129,7 @@ def parse(m, mes, counter, level=1):
             return
 
         if multipart:
-            trace(level, "message is %s" % contype)
+            trace(level, "%s" % contype)
 
             for part in payload:
                 parse(part, mes, counter, level+1)
