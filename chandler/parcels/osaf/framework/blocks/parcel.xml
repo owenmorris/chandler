@@ -549,12 +549,7 @@
       <type itemref="String"/>
     </Attribute>
     
-    <Attribute itemName="pageLoaded">
-      <type itemref="docSchema:BlockEvent"/>
-    </Attribute>
-
     <attributes itemref="docSchema:HTML/url"/>
-    <attributes itemref="docSchema:HTML/pageLoaded"/>
   </Kind>    
   
   <!--
