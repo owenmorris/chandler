@@ -203,6 +203,7 @@
     <attributes itemref="dueByDate"/>
     <attributes itemref="dueByRecurrence"/>
     <attributes itemref="dueByTickler"/>
+    <core:classes key="python">osaf.contentmodel.StampedItem.TaskEventExtraAspect</core:classes>
   </core:Kind>
 
   <core:Kind itsName="MailedTask">
@@ -210,6 +211,7 @@
     <core:superKinds itemref="ContentItem"/>
     <core:superKinds itemref="mail:MailMessageAspect"/>
     <core:superKinds itemref="tasks:TaskAspect"/>
+    <core:classes key="python">osaf.contentmodel.StampedItem.MailedTask</core:classes>
   </core:Kind>
 
   <core:Kind itsName="MailedEvent">
@@ -217,6 +219,7 @@
     <core:superKinds itemref="ContentItem"/>
     <core:superKinds itemref="mail:MailMessageAspect"/>
     <core:superKinds itemref="calendar:CalendarEventAspect"/>
+    <core:classes key="python">osaf.contentmodel.StampedItem.MailedEvent</core:classes>
   </core:Kind>
 
   <core:Kind itsName="EventTask">
@@ -225,6 +228,7 @@
     <core:superKinds itemref="calendar:CalendarEventAspect"/>
     <core:superKinds itemref="tasks:TaskAspect"/>
     <core:superKinds itemref="TaskEventExtraAspect"/>
+    <core:classes key="python">osaf.contentmodel.StampedItem.EventTask</core:classes>
   </core:Kind>
 
   <core:Kind itsName="MailedEventTask">
@@ -234,6 +238,7 @@
     <core:superKinds itemref="calendar:CalendarEventAspect"/>
     <core:superKinds itemref="tasks:TaskAspect"/>
     <core:superKinds itemref="TaskEventExtraAspect"/>
+    <core:classes key="python">osaf.contentmodel.StampedItem.MailedEventTask</core:classes>
   </core:Kind>
 
 <!-- Project -->

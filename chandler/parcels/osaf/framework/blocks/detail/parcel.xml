@@ -67,8 +67,7 @@
     <childrenBlocks itemref="doc:DetailTrunk"/>
   </ContentItemDetail>
 
-  <ContentItemDetail itemName="DetailTrunk"
-                     itemClass="osaf.framework.blocks.detail.Detail.DetailTrunk">
+  <ContentItemDetail itemName="DetailTrunk">
     <!-- child blocks -->
     <childrenBlocks itemref="doc:MarkupBar1"/>
     <childrenBlocks itemref="doc:FromAndToArea"/>

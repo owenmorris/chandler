@@ -995,3 +995,7 @@ class ContentItemDetail(SelectionContainer):
         if self.hasAttributeValue("colorStyle"):
             self.colorStyle.synchronizeColor(self)
            
+    def selectedItem(self):
+        # delegate to our parent, until we get to a SelectionContainer
+        return self.parentBlock.selectedItem()
+

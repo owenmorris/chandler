@@ -24,7 +24,7 @@ Classes for the ContentItem Detail View
 class DetailParcel (application.Parcel.Parcel):
     pass
 
-class DetailRoot (ControlBlocks.ContentItemDetail):
+class DetailRoot (ControlBlocks.SelectionContainer):
     """
       Root of the Detail View.
     """
@@ -74,15 +74,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         item= self.selectedItem()
         self.synchronizeDetailView(item)
         
-class DetailTrunk(ControlBlocks.ContentItemDetail):
-    """
-      First Child of the Detail Root.
-    """
-    def selectedItem (self):
-        # return the ContentItem being viewed
-        return self.parentBlock.selectedItem()
-
-class DetailSyncronizer(object):
+class DetailSynchronizer(object):
     """
       Mixin class that handles synchronizeWidget and
     the SelectionChanged event by calling synchronizeItemDetail.
@@ -90,7 +82,7 @@ class DetailSyncronizer(object):
     synchronizeItemDetail.
     """
     def selectedItem (self):
-        # return the ContentItem being viewed
+        # delegate to our parent until we get outside our event boundary
         return self.parentBlock.selectedItem()
 
     def relayoutParents (self):
@@ -108,7 +100,7 @@ class DetailSyncronizer(object):
         # override this method to draw your block's detail portion of this Item.
         raise NotImplementedError, "%s.synchronizeItemDetail()" % (type(self))
     
-class StaticTextLabel(DetailSyncronizer, ControlBlocks.StaticText):
+class StaticTextLabel(DetailSynchronizer, ControlBlocks.StaticText):
     def synchronizeItemNone(self):
         self.widget.SetLabel ('')  
     
@@ -160,7 +152,7 @@ class FromString (StaticTextAttribute):
     def whichAttribute(self):
         return 'whoFrom'
 
-class MarkupBar (DetailSyncronizer, DynamicContainerBlocks.Toolbar):
+class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     """   
       Markup Toolbar, for quick control over Items.
     Doesn't need to synchronizeItemDetail, because
@@ -195,7 +187,7 @@ class MarkupBar (DetailSyncronizer, DynamicContainerBlocks.Toolbar):
             # DLDTBD - notify the world that the item has a new kind.
             self.relayoutParents()        
 
-class DetailStampButton (DetailSyncronizer, DynamicContainerBlocks.ToolbarItem):
+class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
     """
       Common base class for the stamping buttons in the Markup Bar
     """
@@ -249,7 +241,7 @@ class TaskStamp (DetailStampButton):
     def stampAspectKind(self):
         return Task.TaskParcel.getTaskAspectKind()
         
-class FromAndToArea (DetailSyncronizer, ControlBlocks.ContentItemDetail):
+class FromAndToArea (DetailSynchronizer, ControlBlocks.ContentItemDetail):
     def synchronizeItemDetail (self, item):
         # if the item's not a Note, then we should show ourself
         shouldShow = not isinstance (item, Notes.Note)
@@ -275,7 +267,7 @@ class FromAndToArea (DetailSyncronizer, ControlBlocks.ContentItemDetail):
                 self.isShown = False
             self.relayoutParents()
         
-class EditTextAttribute (DetailSyncronizer, ControlBlocks.EditText):
+class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     """
     EditText field connected to some attribute of a ContentItem
     Override LoadAttributeIntoWidget, SaveAttributeFromWidget in subclasses
