@@ -353,11 +353,21 @@ def doBuild(buildmode, workingDir, log, cvsChanges, clean='realclean'):
             log.write("cd " + moduleDir + "\n")
             os.chdir(moduleDir)
 
-            print "Doing make " + dbgStr + " " + clean + " all binaries install\n"
-            log.write("Doing make " + dbgStr + " " + clean + " all binaries install\n")
+            buildCmds = ' all binaries install'
+                
+            print "Doing make " + dbgStr + " " + clean + buildCmds + "\n"
+            log.write("Doing make " + dbgStr + " " + clean + buildCmds + "\n")
 
-            outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], dbgStr, clean, "all binaries install" ])
+            outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], dbgStr, clean, buildCmds ])
             hardhatutil.dumpOutputList(outputList, log)
+
+            if module == 'internal':
+                # This hack is needed because on OSX, CVS fails in
+                # internal/wxPython-2.5/wxPython when build_debug
+                # directory exists and there is a sticky tag (like date).
+                # This is bug 2297.
+                outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], dbgStr, 'clean' ])
+                hardhatutil.dumpOutputList(outputList, log)
 
             log.write(separator)
     except hardhatutil.ExternalCommandErrorWithOutputList, e:
