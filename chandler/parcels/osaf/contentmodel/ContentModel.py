@@ -202,11 +202,16 @@ class ContentItem(Item.Item):
     def CandidateStampedKinds(self):
         """
         return the list of candidate kinds for stamping
-        right now, we consider all kinds
+        right now, we consider only ContentItems.
         """
         kindKind = Globals.repository.findPath('//Schema/Core/Kind')
         allKinds = Query.KindQuery().run([kindKind])
-        return allKinds
+        contentItemKinds = []
+        contentItemKind = ContentModel.getContentItemKind ()
+        for aKind in allKinds:
+            if aKind.isKindOf (contentItemKind):
+                contentItemKinds.append (aKind)
+        return contentItemKinds
 
     def ComputeTargetKindSignature(self, operation, stampKind):
         """
