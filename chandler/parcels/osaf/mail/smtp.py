@@ -107,11 +107,58 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
         self.__getKinds()
 
+        #XXX: make sure that we need this could just check if outbound already
         self.mailMessage.outgoingMessage(account=self.account)
 
         """Clear out any previous DeliveryErrors from a previous attempt"""
         for item in self.mailMessage.deliveryExtension.deliveryErrors:
             item.delete()
+
+        """Get the sender's Email Address will either be the Reply-To or From field"""
+        sender = self.__getSender()
+
+
+        """Make sure that the Mail Message has a sender"""
+        if sender is None:
+            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, \
+                              "A From Address is required to send an SMTP Mail Message.")
+            return
+
+
+        """Make sure the sender's Email Address is valid"""
+        if not Mail.EmailAddress.isValidEmailAddress(sender.emailAddress):
+            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, \
+                              "%s is not a valid From Address." % \
+                              Mail.EmailAddress.format(sender))
+            return
+
+        """Make sure there is at least one Email Address to send the message to"""
+        if len(self.mailMessage.toAddress) == 0:
+            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, \
+                              "A To Address is required to send an SMTP Mail Message.")
+            return
+
+        errs = []
+        #XXX: Clean up verbage and of course move to external file when i18n in place
+        errStr = "%s Address %s is not a valid Email Address."
+
+        """Make sure that each Recipients Email Address is valid"""
+        for toAddress in self.mailMessage.toAddress:
+            if not Mail.EmailAddress.isValidEmailAddress(toAddress.emailAddress):
+                errs.append(errStr % ("To", Mail.EmailAddress.format(toAddress)))
+
+        for ccAddress in self.mailMessage.ccAddress:
+            if not Mail.EmailAddress.isValidEmailAddress(ccAddress.emailAddress):
+                errs.append(errStr % ("Cc", Mail.EmailAddress.format(ccAddress)))
+
+        for bccAddress in self.mailMessage.bccAddress:
+            if not Mail.EmailAddress.isValidEmailAddress(bccAddress.emailAddress):
+                errs.append(errStr % ("Bcc", Mail.EmailAddress.format(bccAddress)))
+
+        if len(errs) > 0:
+            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, \
+                              "\n".join(errs))
+            return
 
         messageText = message.kindToMessageText(self.mailMessage)
 
@@ -119,19 +166,9 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         d.addCallback(self.execInViewThenCommitInThreadDeferred, self.__mailSuccessCheck)
         d.addErrback(self.execInViewThenCommitInThreadDeferred,  self.__mailFailure)
 
-        to_addrs = self.__getRcptTo()
-        from_addr = self.__getMailFrom()
+        SMTPSender.sendMailMessage(sender.emailAddress, self.__getRcptTo(), \
+                                     messageText, d, self.account)
 
-        """Perform error checking to make sure To, From have values"""
-        if len(to_addrs) == 0:
-            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, "To Address")
-            return
-
-        if from_addr is None or len(from_addr.strip()) == 0:
-            reactor.callLater(0, self.execInViewThenCommitInThread, self.__fatalError, "From Address")
-            return
-
-        SMTPSender.sendMailMessage(from_addr, to_addrs, messageText, d, self.account)
 
     def __mailSuccessCheck(self, result):
         """Twisted smtp.py will call the deferred callback (this method) if
@@ -335,7 +372,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         if __debug__:
             self.printCurrentView("__fatalError")
 
-        e = errors.SMTPException("A %s is required to send an SMTP Mail Message." % str)
+        e = errors.SMTPException(str)
         self.__recordError(e)
         self.mailMessage.deliveryExtension.sendFailed()
 
@@ -360,13 +397,13 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         assert self.account is not None, "No Account for UUID: %s" % self.accountUUID
         assert self.mailMessage is not None, "No MailMessage for UUID: %s" % self.mailMessageUUID
 
-    def __getMailFrom(self):
+    def __getSender(self):
         #XXX: Will want to refine how this look is done when mail preferences are in place
         if self.mailMessage.replyToAddress is not None:
-            return self.mailMessage.replyToAddress.emailAddress
+            return self.mailMessage.replyToAddress
 
         elif self.mailMessage.fromAddress is not None:
-            return self.mailMessage.fromAddress.emailAddress
+            return self.mailMessage.fromAddress
 
         return None
 
