@@ -205,7 +205,7 @@ class wxApplication (wx.App):
                  'create': True,
                  'recover': True,
                  'exclusive': '-exclusive' in sys.argv,
-                 'refcounted': '-refcounted' in sys.argv }
+                 'refcounted': True}
 
         if '-repo' in sys.argv:
             for i in range(0, len(sys.argv)):
