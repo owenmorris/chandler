@@ -28,7 +28,7 @@ class Application(Persistent):
     wxApplication (see below). Notice that we derive it from Perisistent
     so that it is automatically saved across successive application executions
     """
-    VERSION = 1
+    VERSION = 2
     """
        PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -98,6 +98,7 @@ class wxApplication (wxApp):
     self.db                        ZODB high level database (object cache)
     self.connection                connection to ZODB
     self.dbroot                    ZODB root object tree
+    self.homeDirectory             path to a folder in the user's home directory
 
     In the future we may replace ZODB with another database that provides similar
     functionality
@@ -151,6 +152,10 @@ class wxApplication (wxApp):
         self.model.SynchronizeView()
         EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
         
+        self.homeDirectory = wxGetHomeDir() + os.sep + ".Chandler";
+        if not os.path.exists (self.homeDirectory):
+            os.makedirs (self.homeDirectory)
+        
         if __debug__:
             """
                In the debugging version we have a debug menu with a couple
@@ -165,11 +170,24 @@ class wxApplication (wxApp):
 
     if __debug__:
         def OnTest1 (self, event):
-            if len (self.model.URLTree):
-                self.model.URLTree[0].synchronizeView ()
+            for parcel in self.model.URLTree:
+                """
+                  Each parcel must have an attribute which is the displayName.
+                """
+                assert (hasattr (parcel, 'displayName'))
+                if parcel.displayName == 'Calendar':
+                    parcel.synchronizeView ()
+                    return
         
         def OnTest2 (self, event):
-            pass
+            for parcel in self.model.URLTree:
+                """
+                  Each parcel must have an attribute which is the displayName.
+                """
+                assert (hasattr (parcel, 'displayName'))
+                if parcel.displayName == 'Contacts':
+                    parcel.synchronizeView ()
+                    return
         
     def OnQuit(self, event):
         """
@@ -219,5 +237,6 @@ class wxApplication (wxApp):
                 assert (hasattr (module, parcelClassStrings[1]))
                 theClass = module.__dict__[parcelClassStrings[1]]
                 self.parcels.append (theClass)
+                theClass.path = pathToPackage
                 theClass.Install ()
 

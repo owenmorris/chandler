@@ -150,10 +150,10 @@
     <object class="wxMenu" name="DebugMenu">
         <label>Debug</label>
         <object class="wxMenuItem" name="Test1">
-            <label>Test1</label>
+            <label>Calendar</label>
         </object>
         <object class="wxMenuItem" name="Test2">
-            <label>Test2</label>
+            <label>Contacts</label>
         </object>
     </object>
 

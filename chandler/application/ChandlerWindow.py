@@ -49,44 +49,6 @@ class ChandlerWindow(Persistent):
         
         wxWindow.MoveOntoScreen()
 
-    """
-      The following code is under construction.
-    """
-    #def MenuNewEvent(self):
-        #"""Called when the new window menu item has been selected.  Tells the
-        #window manager to create a new window."""
-        #self._windowManager.NewWindow()
-        
-    #def MenuQuitEvent(self):
-        #"""Called when the quit menu item has been selected.  Tells the
-        #window manager to quit the application by closing all open 
-        #windows."""
-        #self._windowManager.QuitApp()
-
-    #def OnClose(self, event):
-        #"""Called whenever this window is to be closed.  First, we remove
-        #ourself from the list of open windows, then we send a close message
-        #to the wxChandlerWindow so that the wx objects can be cleaned."""
-        #self._windowManager.RemoveWindow(self)
-        #self._wxWindow.OnClose()
-        #self._wxWindow = None
-        
-    #def OnQuit(self):
-        #"""Called whenever the app is quiting.  We send a close message to 
-        #the wxChandlerWindow so that the wx objects can be cleaned up and
-        #we erase our reference to it, since the wx layer will not be 
-        #persisted."""
-        #self._wxWindow.OnClose()
-        #self._wxWindow = None
-        
-    #def GoToUri(self, uri, doAddToHistory = true):
-        #"""Navigates this window to the supplied uri.  If doAddToHistory
-        #is true, then we add the uri to the history list (we won't want
-        #to add it if GoToUri is a result of the back button having been
-        #pressed)."""
-        #self._wxWindow.GoToUri(uri, doAddToHistory)
-
-
 class wxChandlerWindow(wxFrame):
 
     def __init__(self):
@@ -127,13 +89,14 @@ class wxChandlerWindow(wxFrame):
         if __debug__:
             """
               In the debugging version, we add a command key combination that
-            toggles a debug menu.
+            toggles a debug menu. We currently default to having it on.
             """
             toggleDebugMenuId = wxNewId()
             aTable = wxAcceleratorTable([(wxACCEL_CTRL | wxACCEL_SHIFT | wxACCEL_ALT,
                                           ord('D'), toggleDebugMenuId)])
             self.SetAcceleratorTable(aTable)
-            EVT_MENU (self, toggleDebugMenuId, self.OnTest);
+            EVT_MENU (self, toggleDebugMenuId, self.OnToggleDebugMenu);
+            self.OnToggleDebugMenu (wxMenuEvent())
 
         EVT_MOVE(self, self.OnMove)
         EVT_SIZE(self, self.OnSize)
@@ -141,7 +104,7 @@ class wxChandlerWindow(wxFrame):
         EVT_ACTIVATE(self, self.OnActivate)
 
     if __debug__:
-        def OnTest(self, event):
+        def OnToggleDebugMenu(self, event):
             menuBar = self.GetMenuBar ()
             index = menuBar.FindMenu ('Debug')
             if index == wxNOT_FOUND:
@@ -209,110 +172,3 @@ class wxChandlerWindow(wxFrame):
         self.model.size['width'] = rect.GetWidth()
         self.model.size['height'] = rect.GetHeight()
             
-    """
-      The following code is under construction.
-    """
-    #def __OrderComponents(self, components):
-        #"""Takes the dictionary of components and gives them some ordering as
-        #to how they should be displayed both in the sidebar and in the menu.
-        #Right now, it is just makes sure that the Calendar comes first."""
-        #orderedList = []
-        ## This is only to make it so that the Calendar displays first while it
-        ## is the only real component we have.  Once we actually have real
-        ## components alongside the Calendar, we can remove this.
-        #if components.has_key('Calendar'):
-            #orderedList.append(components['Calendar'])
-        #for key in components.keys():
-            #if key != 'Calendar':
-                #orderedList.append(components[key])
-        #return orderedList
- 
-    #def GoToUri(self, uri, doAddToHistory = true):
-        #"""Select the view (indicated by the uri) from the proper
-        #component.  This method first retrieves the proper view, then replaces
-        #the current view within the display panel of the window with this new
-        #view.  It also updates the menubar (if the component being selected is
-        #different from the current one - since it will have it's own menu) and
-        #selects the proper item in the sidebar."""
-        #uriFields = uri.split("/")
-        #componentName = uriFields[1]
-        #component = self.__componentRoots[componentName]
-        #if doAddToHistory:
-            #self._locationBar.AddLocationHistory(uri)
-        #self._locationBar.SetUri(uri) #displays the uri in the location bar
-        #newView = component.GetViewFromUri(uri)
-        #self.__ChangeActiveView(newView, component)
-        ## Make sure that the proper item is selected in the sidebar
-        #self._sideBar.navPanel.SelectItem(uri)
-        
-    #def __ChangeActiveView(self, newView, component):
-        #"""Changes the window to display the supplied view.  First determines
-        #if the view simply needs to be updated (if we are navigating to the
-        #same view that is being displayed) and if so refreshes the view.  If 
-        #not, it adds changes self._displayPanel to be the proper view."""
-        #self._currentComponent = component
-        #if newView != self._displayPanel:
-            #self._bodyPanelSizer.Remove(self._displayPanel)
-            #self._displayPanel.Hide()
-            #self._displayPanel = newView
-            #self._bodyPanelSizer.Add(self._displayPanel, 1, wxEXPAND)
-            #self._displayPanel.Show()
-            #self._bodyPanelSizer.Layout()
-            #self._menuBar.SelectComponent(component.data["ComponentName"])] = 
-        #else:
-            #self._displayPanel.Hide()
-            #self._displayPanel.Show()
-            #self._bodyPanelSizer.Layout()
-        
-    #def MenuNewEvent(self):
-        #"""Called when a new menu event has been generated.  We notify the
-        #data layer that the event has been generated."""
-        #self._windowData.MenuNewEvent()
-        
-    #def MenuQuitEvent(self):
-        #"""Called when a quit menu event has been generated.  We notify the
-        #data layer that the event has been generated."""
-        #self._windowData.MenuQuitEvent()
-        
-    #def ShowLocationBar(self, doShow):
-        #"""Show or hide the location toolbar.  This will only have an effect
-        #if doShow does not match the current state of the location toolbar."""
-        #if self._locationBar.locationBar.IsShown() != doShow: 
-            #self._locationBar.locationBar.Show(doShow)
-            #self.Layout()
-        
-    #def ShowActionsBar(self, doShow):
-        #"""Show or hide the actions toolbar.  This will only have an effect
-        #if doShow does not match the current state of the actions toolbar."""
-        #if self._actionsBar.IsShown() != doShow: 
-            #self._actionsBar.actionsBar.Show(doShow)
-            #if doShow:
-                #self._actionsBarSizer.Remove(self._bodyPanel)  
-                #self._actionsBarSizer.Add(self._actionsBar, 0, wxEXPAND)
-                #self._actionsBarSizer.Add(self._bodyPanel, 1, wxEXPAND)
-            #else:
-                #self._actionsBarSizer.Remove(self._actionsBar)
-            #self._actionsBarSizer.Layout()
-            #self.Layout()
- 
-    #def ShowSideBar(self, doShow):
-        #"""Show or hide the sidebar.  This will only have an effect if
-        #doShow does not match the current state of the sidebar."""
-        #if self._sideBar.IsShown() != doShow: 
-            #self._sideBar.Show(doShow)
-            #if doShow:
-                #self._bodyPanelSizer.Remove(self._displayPanel)
-                #self._bodyPanelSizer.Add(self._sideBar, 0, wxEXPAND)
-                #self._bodyPanelSizer.Add(self._displayPanel, 1, wxEXPAND)
-            #else:
-                #self._bodyPanelSizer.Remove(self._sideBar)
-            #self._bodyPanelSizer.Layout()
-            #self.Layout()
-    
-    #def ShowStatus(self, doShow):
-        #"""Show or hide the statusbar.  This will only have an effect if 
-        #doShow does not match the current state of the statusbar."""
-        #statusBar = self.GetStatusBar()
-        #if statusBar.IsShown() != doShow: 
-            #statusBar.Show(doShow)
-            #self.Layout()

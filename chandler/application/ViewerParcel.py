@@ -9,6 +9,7 @@ parcel viewer.
 """
 
 import new, types, exceptions, sys, os
+from wxPython.wx import *
 from wxPython.xrc import *
 from application.Parcel import Parcel
 from application.Application import app
@@ -24,10 +25,13 @@ class ViewerParcel (Parcel):
         below.
           Currently we install by appending to the end of the list
         """
-        module = theClass.__module__
-        try:
-            index = app.model.URLTree.index (module)
-        except ValueError:
+        found = false
+        for parcel in app.model.URLTree:
+            if parcel.__module__ == theClass.__module__:
+                found = true
+                break
+            
+        if not found:
             if type (theClass) == types.ClassType:
                 instance = new.instance (theClass, {})
             else:
@@ -40,8 +44,9 @@ class ViewerParcel (Parcel):
     def synchronizeView (self):
         if not app.association.has_key(id(self)):
             module = sys.modules[self.__class__.__module__]
-            path = os.path.dirname (module.__file__)
-            path += os.sep + "parcel.xrc"
+            basename = os.path.basename (module.__file__)
+            basename = os.path.splitext (basename)[0]
+            path = self.path + os.sep + basename + ".xrc"
             """
               ViewerParcels must have a resource file named parcel.xrc
             """
