@@ -5,28 +5,52 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//parcels/items"
+<Parcel describes="//parcels/items"
         itemName="items"
-        xmlns:core ="//Schema/Core"
-        xmlns="//parcels/items">
+        xmlns="//Schema/Core"
+        xmlns:items="//parcels/items">
 
-  <core:displayName>Items</core:displayName>
-  <core:description>Items Parcel Loader Test Schema</core:description>
-  <core:version>0.1</core:version>
-  <core:author>Open Source Applications Foundation</core:author>
+  <displayName>Items</displayName>
+  <description>Items Parcel Loader Test Schema</description>
+  <version>0.1</version>
+  <author>Open Source Applications Foundation</author>
 
-  <core:Attribute itemName="TestAttribute">
-    <core:displayName>Test Attribute</core:displayName>
-    <core:cardinality>single</core:cardinality>
-    <core:type itemref="core:String"/>
-  </core:Attribute>
+  <Enumeration itemName="TestEnumType">
+    <values>A</values>
+    <values>B</values>
+    <values>C</values>
+  </Enumeration>
 
-  <core:Kind itemName="TestKind">
-    <core:displayName>Test Kind</core:displayName>
-    <core:attributes itemref="TestAttribute"/>
-    <core:displayAttribute itemref="TestAttribute"/>
-  </core:Kind>
+  <Attribute itemName="EnumAttribute">
+    <displayName>Enum Attribute</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="items:TestEnumType"/>
+  </Attribute>
 
-  <TestKind itemName="TestInstance" />
+  <Attribute itemName="RefAttribute">
+    <displayName>Ref Attribute</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="items:TestKind"/>
+  </Attribute>
 
-</core:Parcel>
+  <Attribute itemName="StringAttribute">
+    <displayName>String Attribute</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Kind itemName="TestKind">
+    <displayName>Test Kind</displayName>
+    <attributes itemref="items:RefAttribute"/>
+    <attributes itemref="items:StringAttribute"/>
+    <attributes itemref="items:EnumAttribute"/>
+  </Kind>
+
+  <items:TestKind itemName="TestInstance1">
+    <items:RefAttribute itemref="items:TestInstance2"/>
+    <items:StringAttribute>XYZZY</items:StringAttribute>
+    <items:EnumAttribute>B</items:EnumAttribute>
+  </items:TestKind>
+
+  <items:TestKind itemName="TestInstance2" />
+</Parcel>

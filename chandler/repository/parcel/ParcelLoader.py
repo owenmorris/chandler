@@ -51,6 +51,8 @@ class ItemHandler(xml.sax.ContentHandler):
     """ A SAX2 ContentHandler responsible for loading items into a
         repository namespace.
     """
+    _DELAYED_REFERENCE = 0
+    _DELAYED_LITERAL   = 1
 
     def __init__(self, repository, callback, callbackArg):
         self.repository = repository
@@ -142,7 +144,6 @@ class ItemHandler(xml.sax.ContentHandler):
         self.tags.append((uri, local, element,
                           self.currentItem, self.currentReferences))
 
-
     def endElementNS(self, (uri, local), qname):
         """SAX2 callback for the end of a tag"""
         
@@ -151,15 +152,23 @@ class ItemHandler(xml.sax.ContentHandler):
         # If we have a reference, delay loading
         if element == 'Reference':
             (namespace, name) = self.getNamespaceName(self.currentValue)
-            
-            self.currentReferences.append((local, namespace, name,
-                                           self.locator.getLineNumber()))
+            self.currentReferences.append((self._DELAYED_REFERENCE, local,
+             namespace, name, self.locator.getLineNumber()))
             
         # We have an attribute, append to the current item
         elif element == 'Attribute':
-
-            value = self.makeValue(uri, local)
-            self.currentItem.addValue(local, value)
+            
+            # if this Attribute has not yet been linked up to the Kind
+            # delay this operation until the end of the document
+            kindItem = self.currentItem.kind
+            attributeItem = kindItem.getAttribute(local)
+            if attributeItem:
+                value = self.makeValue(uri, local)
+                self.currentItem.addValue(local, value)
+            else:
+                (namespace, name) = self.getNamespaceName(self.currentValue)
+                self.currentReferences.append((self._DELAYED_LITERAL, local,
+                 namespace, name, self.locator.getLineNumber()))
                 
         # We have a dictionary, similar to attribute, but we have a key
         elif element == 'Dictionary':
@@ -312,19 +321,28 @@ class ItemHandler(xml.sax.ContentHandler):
     def addReferences(self, item, attributes):
         """ Add all of the references in the list to the item """
 
-        for (attributeName, namespace, name, line) in attributes:
-            reference = self.findItem(namespace, name, line)
-            
-            # @@@ Special cases to resolve
-            if attributeName == 'inverseAttribute':
-                item.addValue('otherName', reference.getItemName())
-            elif attributeName == 'displayAttribute':
-                item.addValue('displayAttribute', reference.getItemName())
-            elif attributeName == 'attributes':
-                item.addValue('attributes', reference,
-                              alias=reference.getItemName())
-            else:
-                item.addValue(attributeName, reference)
+        for (type, attributeName, namespace, name, line) in attributes:
 
-        
-        
+            if type == self._DELAYED_REFERENCE:
+                reference = self.findItem(namespace, name, line)
+
+                # @@@ Special cases to resolve
+                if attributeName == 'inverseAttribute':
+                    item.addValue('otherName', reference.getItemName())
+                elif attributeName == 'displayAttribute':
+                    item.addValue('displayAttribute', reference.getItemName())
+                elif attributeName == 'attributes':
+                    item.addValue('attributes', reference,
+                                  alias=reference.getItemName())
+                else:
+                    item.addValue(attributeName, reference)
+
+            elif type == self._DELAYED_LITERAL:
+                kindItem = item.kind
+                attributeItem = kindItem.getAttribute(attributeName)
+
+                assert attributeItem, \
+                 "attributeItem could not be found for %s" % attributeName
+
+                value = attributeItem.type.makeValue(name)
+                item.addValue(attributeName, value)

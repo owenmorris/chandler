@@ -23,39 +23,28 @@ class ItemsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         LoadParcels(parcelDir, self.rep)
         self.rep.commit()
 
-        def _check(path):
-            # Ensure the Parcel was created
-            parcel = self.rep.find("//parcels/%s" % path)
-            self.assertEqual(parcel.kind,
-             self.rep.find("//Schema/Core/Parcel"))
+        path = "items"
 
-            # Ensure testAttribute was created with the right Kind and attrs
-            testAttribute = self.rep.find("//parcels/%s/TestAttribute" % path)
-            self.assertEqual(testAttribute.kind,
-             self.rep.find("//Schema/Core/Attribute"))
-            self.assertEqual(testAttribute.type, 
-             self.rep.find("//Schema/Core/String"))
+        # Ensure the Parcel was created
+        parcel = self.rep.find("//parcels/%s" % path)
+        self.assertEqual(parcel.kind,
+         self.rep.find("//Schema/Core/Parcel"))
 
-            # Ensure testKind was created with the right Kind and attrs
-            testKind = self.rep.find("//parcels/%s/TestKind" % path)
-            self.assertEqual(testKind.kind,
-             self.rep.find("//Schema/Core/Kind"))
+        # Ensure testInstances were created
+        testInstance1 = self.rep.find("//parcels/%s/TestInstance1" % path)
+        self.assertEqual(testInstance1.kind,
+         self.rep.find("//parcels/%s/TestKind" % path))
 
-            # Ensure testAttribute is an attribute of testKind (and vice-versa)
-            self.assert_(testKind.attributes.has_key(testAttribute.getUUID()))
-            self.assert_(testAttribute.kinds.has_key(testKind.getUUID()))
+        testInstance2 = self.rep.find("//parcels/%s/TestInstance2" % path)
+        self.assertEqual(testInstance2.kind,
+         self.rep.find("//parcels/%s/TestKind" % path))
 
-            # Ensure testInstance was created
-            testInstance = self.rep.find("//parcels/%s/TestInstance" % path)
-            self.assertEqual(testInstance.kind,
-             self.rep.find("//parcels/%s/TestKind" % path))
+        # print testInstance1.toXML()
+        # print testInstance2.toXML()
 
-
-        # There are two versions of this test parcel:
-        # "//parcels/items" uses //parcels/items as the default namespace
-        # "//parcels/core" uses //Schema/Core as the default namespace
-        _check("items")
-        _check("core")
+        self.assertEqual(testInstance1.RefAttribute, testInstance2)
+        self.assertEqual(testInstance1.StringAttribute, "XYZZY")
+        self.assertEqual(testInstance1.EnumAttribute, "B")
 
 if __name__ == "__main__":
     unittest.main()
