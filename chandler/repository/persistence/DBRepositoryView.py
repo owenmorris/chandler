@@ -493,8 +493,10 @@ class DBRepositoryView(OnDemandRepositoryView):
         merged = []
         for name in item._references._getDirties():
             if name in dirties:
-                item._references[name]._mergeChanges(oldVersion, toVersion)
-                merged.append(dirties.hash(name))
+                value = item._references.get(name, None)
+                if value is not None and value._isRefList():
+                    value._mergeChanges(oldVersion, toVersion)
+                    merged.append(dirties.hash(name))
         if merged:
             dirties = HashTuple(filter(lambda hash: hash not in merged,
                                        dirties))
