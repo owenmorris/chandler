@@ -33,3 +33,11 @@ class ViewerParcel (Parcel):
         
     Install = classmethod (Install)
 
+    def synchronizeView (self):
+        pass
+    
+        #name1  = wxTextCtrl(wxWindow, -1, '', wxPoint(50, 10), wxSize(100, -1))
+        #app.applicationResources.AttachUnknownControl ("ViewerParcel", name1)
+
+        #name2  = wxTextCtrl(wxWindow, -1, '', wxPoint(50, 10), wxSize(100, -1))
+        #app.applicationResources.AttachUnknownControl ("ViewerParcel", name2)

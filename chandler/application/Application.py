@@ -151,8 +151,27 @@ class wxApplication (wxApp):
         self.LoadParcels()
         self.model.SynchronizeView()
         EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
+        
+        if __debug__:
+            """
+               In the debugging version we have a debug menu with a couple
+            commands that are useful for testing code. Currently they call
+            OnTest1 and OnTest2. To see how all this works check out
+            ChandlerWindow.py and application.xrc.
+            """
+            EVT_MENU(self, XRCID ('Test1'), self.OnTest1)
+            EVT_MENU(self, XRCID ('Test2'), self.OnTest2)
+
         return true  #indicates we succeeded with initialization
 
+    if __debug__:
+        def OnTest1 (self, event):
+            
+            pass
+        
+        def OnTest2 (self, event):
+            pass
+        
     def OnQuit(self, event):
         """
           Exit the application
@@ -187,7 +206,7 @@ class wxApplication (wxApp):
                   Import the parcel, which should define parcelClass
                 """
                 module = __import__(directory, globals, locals, ['*'])
-                assert (module.__dict__.has_key ('parcelClass'))
+                assert (hasattr (module, 'parcelClass'))
                 """
                   Import the parcel's class and append it to our global list
                 of parcels and install it.
@@ -198,7 +217,7 @@ class wxApplication (wxApp):
                 """
                   Check to mark sure the class in parcelClass exists.
                 """
-                assert (module.__dict__.has_key (parcelClassStrings[1]))
+                assert (hasattr (module, parcelClassStrings[1]))
                 theClass = module.__dict__[parcelClassStrings[1]]
                 self.parcels.append (theClass)
                 theClass.Install ()

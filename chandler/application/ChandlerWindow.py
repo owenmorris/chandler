@@ -123,11 +123,34 @@ class wxChandlerWindow(wxFrame):
         applicationResources = application.Application.app.applicationResources
         self.menuBar = applicationResources.LoadMenuBar ("MainMenuBar")
         self.SetMenuBar (self.menuBar)
+        
+        if __debug__:
+            """
+              In the debugging version, we add a command key combination that
+            toggles a debug menu.
+            """
+            toggleDebugMenuId = wxNewId()
+            aTable = wxAcceleratorTable([(wxACCEL_CTRL | wxACCEL_SHIFT | wxACCEL_ALT,
+                                          ord('D'), toggleDebugMenuId)])
+            self.SetAcceleratorTable(aTable)
+            EVT_MENU (self, toggleDebugMenuId, self.OnTest);
 
         EVT_MOVE(self, self.OnMove)
         EVT_SIZE(self, self.OnSize)
         EVT_CLOSE(self, self.OnClose)
         EVT_ACTIVATE(self, self.OnActivate)
+
+    if __debug__:
+        def OnTest(self, event):
+            menuBar = self.GetMenuBar ()
+            index = menuBar.FindMenu ('Debug')
+            if index == wxNOT_FOUND:
+                applicationResources = application.Application.app.applicationResources
+                debugMenu = applicationResources.LoadMenu ('DebugMenu')
+                menuBar.Append (debugMenu, 'Debug')
+            else:
+                oldMenu = menuBar.Remove (index)
+                del oldMenu
 
     def OnMove(self, event):
         """

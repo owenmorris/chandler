@@ -71,11 +71,11 @@ class wxSideBar(wxTreeCtrl):
         what the function would have done.
         """
         EVT_WINDOW_DESTROY (self, self.OnDestroy)
-        self.Connect(-1, -1, wxEVT_DESTROY, self.OnDestroy)
 
     def OnDestroy(self, event):
         """
           Remove from the association when the sidebar is destroyed.
         """
         del app.association[id(self.model)]
-        
+    
+     
