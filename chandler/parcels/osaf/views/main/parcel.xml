@@ -1053,7 +1053,6 @@
     <childrenBlocks itemref="doc:KindFilterMessage"/>
     <childrenBlocks itemref="doc:KindFilterEvent"/>
     <childrenBlocks itemref="doc:KindFilterTask"/>
-    <childrenBlocks itemref="doc:KindFilterNotes"/>
     
     <!-- Attributes -->
     <toolSize>21,20</toolSize>
@@ -1123,22 +1122,6 @@
 
   <KindParameterizedEvent itsName="KindFilterTaskEvent">
     <kindParameter itemref="tasks:Task"/>
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onKindParameterizedEvent</methodName>
-    <dispatchToBlock itemref="doc:Sidebar"/>
-  </KindParameterizedEvent>
-
-  <ToolbarItem itsName="KindFilterNotes">
-    <blockName>KindFilterNotes</blockName>
-    <title>Notes</title>
-    <bitmap>application/images/KindFilterNotes.png</bitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <event itemref="doc:KindFilterNotesEvent"/>
-    <helpString></helpString>
-  </ToolbarItem>
-
-  <KindParameterizedEvent itsName="KindFilterNotesEvent">
-    <kindParameter itemref="contentModel:Note"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
@@ -1323,7 +1306,6 @@
     <subscribeWhenVisibleEvents itemref="doc:KindFilterEventEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:KindFilterMessageEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:KindFilterTaskEvent"/>
-    <subscribeWhenVisibleEvents itemref="doc:KindFilterNotesEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:NewCalendarEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:NewContact"/>
     <subscribeWhenVisibleEvents itemref="doc:NewMailMessage"/>
