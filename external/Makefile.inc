@@ -37,6 +37,18 @@ PLATFORM=linux
 endif
 endif
 
+ifeq ($(GCJ_HOME),)
+ifeq ($(OS),Cygwin)
+GCJ_HOME=$(compiler)
+endif
+ifeq ($(OS),Darwin)
+GCJ_HOME=$(compiler)/install
+endif
+ifeq ($(OS),Linux)
+GCJ_HOME=/usr
+endif
+endif
+
 UPLOAD=builder@builds.osafoundation.org:/www/docs/external/$(PLATFORM)
 
 .PHONY: default all build compile install clean env
@@ -55,23 +67,55 @@ else
             false; \
         fi
 endif
-ifeq ($(GCJ_HOME),)
-	@echo GCJ_HOME is not set && false
-else
 	@echo GCJ_HOME is $(GCJ_HOME)
 ifeq ($(OS),Cygwin)
 	@if [ ! -f $(GCJ_HOME)/bin/gcj.exe ]; then \
             echo GCJ_HOME is incorrect; \
-            echo it needs to be set to the absolute gcc installation path; \
+            echo it needs to be set to the absolute gcc with gcj installation path; \
+            echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/mingw-3.1; \
             false; \
         fi
 else
 	@if [ ! -f $(GCJ_HOME)/bin/gcj ]; then \
             echo GCJ_HOME is incorrect; \
-            echo it needs to be set to the absolute gcc installation path; \
+            echo it needs to be set to the absolute gcc with gcj installation path; \
+            echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/gcc-3.4; \
             false; \
         fi
 endif
-endif
 
 all: build
+
+
+COMPILERS=http://downloads.osafoundation.org/compilers
+
+ifeq ($(OS),Cygwin)
+
+compiler=$(BUILD_ROOT)/mingw-3.1
+
+$(compiler): mingw-3.1.zip
+	cd $(BUILD_ROOT); \
+	gunzip mingw-3.1.zip
+
+mingw-3.1.zip:
+	cd $(BUILD_ROOT); \
+	curl -O $(COMPILERS)/windows/mingw-3.1.zip
+
+endif
+
+ifeq ($(OS),Darwin)
+
+compiler=$(BUILD_ROOT)/gcc-3.4
+
+$(compiler): gcc-3.4-20040407.tar.bz2
+	cd $(BUILD_ROOT); \
+	bunzip2 -c gcc-3.4-20040407.tar.bz2 | tar -xvf -
+
+$(BUILD_ROOT)/gcc-3.4-20040407.tar.bz2:
+	cd $(BUILD_ROOT); \
+	curl -O $(COMPILERS)/osx/gcc-3.4-20040407.tar.bz2
+
+endif
+
+compilers: $(compiler)
+

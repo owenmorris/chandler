@@ -75,20 +75,5 @@ clean: env
 	    $(MAKE) -C $$system -k DEBUG=$(DEBUG) clean; \
 	done
 
-
-HOST=http://downloads.osafoundation.org/compilers
-
-ifeq ($(OS),Cygwin)
-compilers: mingw-3.1.zip
-mingw-3.1.zip:
-	curl -O $(HOST)/windows/mingw-3.1.zip
-endif
-
-ifeq ($(OS),Darwin)
-compilers: gcc-3.4-20040407.tar.bz2
-gcc-3.4-20040407.tar.bz2:
-	curl -O $(HOST)/osx/gcc-3.4-20040407.tar.bz2
-endif
-
 upload:	$(SNAP)-$(VERSION).tar.gz
 	scp $(SNAP)-$(VERSION).tar.gz $(UPLOAD)
