@@ -240,6 +240,8 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         self.fixed = True
 
     def OnInit(self):
+        self.editor = wxInPlaceEditor(self, -1)
+
         # Setup the navigation buttons
         today = DateTime.today()
         
@@ -479,6 +481,15 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
                                                item.startTime.minute))
             self.Refresh()
 
+    def GrabFocusHack(self):
+        self.editor.Hide()
+
+    def OnEditItem(self, box):
+        position = box.bounds.GetPosition()
+        size = box.bounds.GetSize()
+
+        self.editor.SetItem(box.getItem(), position, size)
+
     def getDateTimeFromPosition(self, position):
         startDay = self.parent.blockItem.rangeStart
         # @@@ hack hack bug fix (Bug#1831)
@@ -503,6 +514,8 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
         self.Refresh()
 
     def OnInit(self):
+        self.editor = wxInPlaceEditor(self, -1) 
+        
         # @@@ rationalize drawing calculations...
         self.SetVirtualSize((self.GetVirtualSize().width, 40*24))
         self.SetScrollRate(0, 10)
@@ -530,7 +543,7 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
         
         # Paint the entire background
         dc.SetBrush(wx.WHITE_BRUSH)
-        dc.DrawRectangle(0, 0, self.size.width, self.size.height)
+        dc.DrawRectangle(0, 0, self.size.width, self.size.height + 10)
 
         # Set text properties for legend
         dc.SetTextForeground(wx.Colour(153, 153, 153))
@@ -663,6 +676,18 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
 
     # handle mouse related actions: move, resize, create, select
 
+    def GrabFocusHack(self):
+        self.editor.Hide()
+
+    def OnEditItem(self, box):
+        position = self.CalcScrolledPosition(box.bounds.GetPosition())
+        size = box.bounds.GetSize()
+
+        textPos = wx.Point(position.x + 8, position.y + 15)
+        textSize = wx.Size(size.width - 13, size.height - 20)
+
+        self.editor.SetItem(box.getItem(), textPos, textSize)
+
     def OnSelectItem(self, item):
         self.parent.blockItem.selection = item
         self.parent.blockItem.postSelectItemBroadcast()
@@ -749,6 +774,7 @@ class WeekBlock(CalendarBlock):
 
     def initAttributes(self):
         if not self.hasLocalAttributeValue('rangeStart'):
+            self.dayMode = False
             self.setRange(DateTime.today())
         if not self.hasLocalAttributeValue('rangeIncrement'):
             self.rangeIncrement = DateTime.RelativeDateTime(days=self.daysPerView)
@@ -770,8 +796,54 @@ class WeekBlock(CalendarBlock):
         else:
             # otherwise, stick with the given date
             self.rangeStart = date
-        self.dayMode = False
-        self.selectedDate = self.rangeStart
+            
+        if self.dayMode:
+            self.selectedDate = date
+        else:
+            self.selectedDate = self.rangeStart
+
+class wxInPlaceEditor(wx.TextCtrl):
+    def __init__(self, *arguments, **keywords):
+        super(wxInPlaceEditor, self).__init__(style=wx.TE_PROCESS_ENTER | wx.NO_BORDER,
+                                              *arguments, **keywords)
+        
+        self.item = None
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnTextEnter)
+        self.Bind(wx.EVT_KILL_FOCUS, self.OnTextEnter)
+        self.Hide()
+
+        #self.editor.Bind(wx.EVT_CHAR, self.OnChar)
+        parent = self.GetParent()
+        parent.Bind(wx.EVT_SIZE, self.OnSize)
+
+    def OnTextEnter(self, event):
+        if self.item != None:
+            self.item.displayName = self.GetValue()
+        self.Hide()
+        event.Skip()
+
+    def OnChar(self, event):
+        if (event.KeyCode() == wx.WXK_RETURN):
+            if self.item != None:
+                self.item.displayName = self.GetValue()
+            self.Hide()
+        event.Skip()
+
+    def SetItem(self, item, position, size):
+        self.item = item
+        self.SetValue(item.displayName)
+
+        self.SetSize(size)
+        self.Move(position)
+
+        self.SetInsertionPointEnd()
+        self.SetSelection(-1, -1)
+        self.Show()
+        self.SetFocus()
+
+    def OnSize(self, event):
+        self.Hide()
+        event.Skip()
 
 class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
     def __init__(self, *arguments, **keywords):
@@ -831,7 +903,7 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
 
         # Draw the background
         dc.SetBrush(wx.WHITE_BRUSH)
-        dc.DrawRectangle(0, 0, self.size.width, self.size.height)
+        dc.DrawRectangle(0, 0, self.size.width, self.size.height + 10)
         
         # Set up pen for drawing the grid
         dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
@@ -982,6 +1054,8 @@ class MonthBlock(CalendarBlock):
                    DateTime.RelativeDateTime(days=-6,
                                              weekday=(DateTime.Sunday, 0))
         return startDay
+
+
 
     
 

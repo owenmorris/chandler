@@ -294,7 +294,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         middleRect = rect.width / 2
         middleText = textExtent[0] / 2
         dc.DrawText(text, rect.x + middleRect - middleText, rect.y)
-        
+
     # Mouse movement
 
     def OnMouseEvent(self, event):
@@ -304,6 +304,14 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         2. Dragging/moving an item
         3. Resizing an item
         """
+
+        # @@@ wxPanels don't ever get the focus if they have a child window.
+        # This causes us problems as we are using controls as in-place editors.
+        # The current hack is to notice when the panel might want to grab
+        # focus from the control, and hide the control. Entertaining better
+        # solutions...
+        if event.ButtonDown():
+            self.GrabFocusHack()
 
         position = event.GetPosition()
         unscrolledPosition = self.CalcUnscrolledPosition(position)
@@ -349,7 +357,14 @@ class wxCollectionCanvas(wx.ScrolledWindow,
 
             # create an item on double click
             if event.LeftDClick():
-                self.OnCreateItem(unscrolledPosition, False)
+                hitBox = None
+                for box in self.canvasItemList:
+                    if box.isHit(unscrolledPosition):
+                        hitBox = box
+                if hitBox:
+                    self.OnEditItem(hitBox)
+                else:
+                    self.OnCreateItem(unscrolledPosition, False)
 
             # handle selection if mouse down event, set up drag
             elif event.LeftDown():
@@ -358,12 +373,6 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                     if box.isHit(unscrolledPosition):
                         hitBox = box
 
-                if hoverResize and not hitBox:
-                    print "error condition, methinks"
-                    print unscrolledPosition
-                    for box in self.canvasItemList:
-                        print box.bounds, box._resizeTopBounds, box._resizeLowBounds
-                    
                 if hitBox:
                     self.OnSelectItem(hitBox.getItem())
                     self._dragBox = hitBox
@@ -407,6 +416,8 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                             self._dragStart = None
                             self._dragBox = None
                         
+    def GrabFocusHack(self):
+        pass
 
     def OnCreateItem(self, position, createOnDrag):
         """ Creates a new item on the canvas.
@@ -465,6 +476,11 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         """ Called when the mouse moves during a drag.
         
         Subclasses can define to handle dragging
+        """
+        pass
+
+    def OnEditItem(self, hitBox):
+        """
         """
         pass
             
