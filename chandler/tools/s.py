@@ -150,6 +150,11 @@ def lp(uri=None):
     else:
         application.Parcel.Manager.getManager().loadParcels([uri])
 
+import osaf.contentmodel.ContentModel as cm
+import osaf.contentmodel.calendar.Calendar as cal
+import osaf.contentmodel.contacts.Contacts as con
+import mx.DateTime as dt
+
 print """
 Shortcuts loaded:
 r = repository
@@ -160,5 +165,10 @@ pm = parcel manager
 pp(item) = pretty printer (application.Parcel.PrintItem)
 find(path) = repository.findPath(path)
 lp(uri) = load a parcel, given its uri; if uri is None, load all parcels
+
+Modules loaded:
+cm = osaf.contentmodel.ContentModel
+cal = osaf.contentmodel.calendar.Calendar
+con = osaf.contentmodel.contacts.Contacts
 
 Have fun"""
