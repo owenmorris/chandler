@@ -126,8 +126,9 @@ class Block(Item):
                 Globals.mainView.lastDynamicBlock = True
             else:
                 # destroy a widget
-                child.widget.Destroy ()
-                child.render ()
+                if hasattr(child, 'widget'):
+                    child.widget.Destroy ()
+                    child.render ()
         self.synchronizeWidget ()
 
     def onCollectionChanged (self, action):

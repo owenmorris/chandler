@@ -173,7 +173,8 @@ class MainView(View):
     def onReloadParcelsEvent(self, notification):
         # Test menu item
         ParcelManager.getManager().loadParcels()
-        self.rerender ()
+        # @@@DLD figure out why rerender fails on the new wxWidgets
+        # self.rerender ()
 
     def onCommitRepositoryEvent(self, notification):
         # Test menu item
