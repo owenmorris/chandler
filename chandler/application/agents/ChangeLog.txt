@@ -91,4 +91,9 @@
       it was being initialized before the notification manager.
       
     * passed the actual notification object to actions instead of just the data
-    
+ 
+ 2003-09-20 Andy Hertzfeld <andy@differnet.com>
+ 
+    * added new actionType called "classMethod" where it invokes a method of a specified class
+      off a specified module.
+      

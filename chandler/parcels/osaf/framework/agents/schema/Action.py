@@ -5,6 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os
 import os.path
+import sys
 
 from wxPython.wx import *
 
@@ -60,7 +61,16 @@ class Action(Item):
     
     def GetName(self):
         return self.GetItemName()
-    
+
+    def _ImportClasses(self, importPaths):
+        '''
+          utility routine to load a list of imported modules and classes
+        '''
+        importList = importPaths.split(',')
+        for moduleName in importList:
+            className = moduleName.split('.')[-1]      
+            __import__(moduleName, {}, {}, className)
+        
     def Execute(self, agent, notification):
         '''
           perform an action according to the action type.
@@ -77,7 +87,11 @@ class Action(Item):
             actionValue = self.actionValue
         else:
             actionValue = None
-                
+        
+        # load list of imported classes if necessary
+        if self.hasAttributeValue('actionImports'):
+            self._ImportClasses(self.actionImports)
+        
         # execute the script according to the action type
         try:
             if actionType == 'script': 
@@ -87,6 +101,12 @@ class Action(Item):
                 result = eval(script)
             elif actionType == 'inline':
                 exec script
+            elif actionType == 'classmethod':
+                (moduleName, className, methodName) = script.split(':')
+                classObject = getattr(__import__(moduleName, {}, {}, className), className)
+                methodObject = getattr(classObject, methodName)
+                instance = classObject()
+                result = methodObject(instance)
             else:
                 # FIXME: should probably throw an exception here
                 print "unknown action type", agent.GetName(), self.GetName(), self.actionType

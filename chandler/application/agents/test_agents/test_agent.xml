@@ -44,7 +44,14 @@
          <attribute name="actionType">confirmdialog</attribute>
          <attribute name="actionDescription">this action posts a dialog containing a message, based on a template</attribute>
          <attribute name="actionValue">You have new dentist in your contacts. Do you want to send it to your Family?</attribute>
+      </action>
+      
+      <action name="Test method">
+         <attribute name="actionType">classmethod</attribute>
+         <attribute name="actionDescription">this action testings actions invoking methods in arbitrary classes</attribute>
+         <attribute name="actionScript">application.agents.test_agents.testActionClass:testActionClass:foo</attribute>
       </action>   
+
    </instruction> 
 
    <instruction enabled="True">
