@@ -21,7 +21,11 @@ class ItemRef(object):
         self.attach(item, name, other, otherName,
                     otherCard, otherPersist, otherAlias)
 
-    def _copy(self, references, item, copyItem, name, policy, copies):
+    def _copy(self, references, item, copyItem, name,
+              policy, copyPolicy, copies):
+
+        # policy: actual copy policy, ie, copyPolicy or aspect value
+        # copyPolicy: optional overriding copy policy to be passed on
 
         if policy == 'copy':
             references[name] = ItemRef(copyItem, name, self.other(item),
@@ -36,7 +40,7 @@ class ItemRef(object):
                     otherParent = other.itsParent
                 else:
                     otherParent = copyItem.itsParent
-                copyOther = other.copy(None, otherParent, copies)
+                copyOther = other.copy(None, otherParent, copies, copyPolicy)
 
             if not name in references:
                 references[name] = ItemRef(copyItem, name, copyOther,
@@ -220,7 +224,8 @@ class _noneRef(ItemRef):
     def __repr__(self):
         return '<NoneRef>'
 
-    def _copy(self, references, item, copyItem, name, policy, copies):
+    def _copy(self, references, item, copyItem, name,
+              policy, copyPolicy, copies):
         return self
 
     def attach(self, item, name, other, otherName,
@@ -480,16 +485,24 @@ class RefDict(LinkedMap):
         
         super(RefDict, self).__init__()
 
-    def _copy(self, references, item, copyItem, name, policy, copies):
+    def _copy(self, references, item, copyItem, name,
+              policy, copyPolicy, copies):
 
-        refDict = copyItem._refDict(name)
-        references[name] = refDict
-        
+        # policy: actual copy policy, ie, copyPolicy or aspect value
+        # copyPolicy: optional overriding copy policy to be passed on
+
+        try:
+            refDict = references[name]
+        except KeyError:
+            refDict = copyItem._refDict(name)
+            references[name] = refDict
+
         if policy == 'copy':
             for key in self.iterkeys():
                 link = self._get(key)
                 other = link._value.other(item)
-                refDict.append(other, link._alias)
+                if not other in refDict:
+                    refDict.append(other, link._alias)
 
         elif policy == 'cascade':
             for key in self.iterkeys():
@@ -502,7 +515,8 @@ class RefDict(LinkedMap):
                         otherParent = other.itsParent
                     else:
                         otherParent = copyItem.itsParent
-                    copyOther = other.copy(None, otherParent, copies)
+                    copyOther = other.copy(None, otherParent, copies,
+                                           copyPolicy)
 
                 if not copyOther in refDict:
                     refDict.append(copyOther, link._alias)

@@ -336,7 +336,8 @@ class Kind(Item):
         for name, value in self._initialValues.iteritems():
             if name not in values:
                 if isinstance(value, PersistentCollection):
-                    value = value._copy(item, name, value._companion)
+                    value = value._copy(item, name, value._companion,
+                                        {}, 'copy')
                 elif isinstance(value, ItemValue):
                     value = value._copy(item, name)
 

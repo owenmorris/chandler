@@ -513,7 +513,7 @@ class Item(object):
                     value = value.getAttributeValue(attr)
                 return value
 
-        if kwds.has_key('default'):
+        if 'default' in kwds:
             return kwds['default']
 
         if attribute is not None:
@@ -1306,12 +1306,10 @@ class Item(object):
         cls = type(self)
         item = cls.__new__(cls)
         item._fillItem(name, parent or self.itsParent, self._kind,
-                       uuid = UUID(), version = self._version)
+                       uuid = UUID(), version = self._version,
+                       values = Values(item), references = References(item))
         item._status |= Item.NEW
         copies[self._uuid] = item
-
-        item._values = Values(item)
-        item._references = References(item)
 
         item._values._copy(self._values, copies, copyPolicy)
         item._references._copy(self._references, copies, copyPolicy)

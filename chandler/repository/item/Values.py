@@ -5,6 +5,7 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.item.PersistentCollections import PersistentCollection
+from repository.util.SingleRef import SingleRef
 
 
 class Values(dict):
@@ -27,13 +28,40 @@ class Values(dict):
         item = self._item
 
         for name, value in orig.iteritems():
+
             if isinstance(value, PersistentCollection):
-                value = value._copy(item, name, value._companion)
+                self[name] = value._copy(item, name, value._companion,
+                                         copies, copyPolicy)
+
             elif isinstance(value, ItemValue):
                 value = value._copy(item, name)
                 value._setItem(item, name)
+                self[name] = value
 
-            self[name] = value
+            elif isinstance(value, SingleRef):
+                policy = (copyPolicy or
+                          item.getAttributeAspect(name, 'copyPolicy',
+                                                  default='copy'))
+                if policy == 'copy':
+                    self[name] = value
+
+                elif policy == 'cascade':
+                    uuid = value.itsUUID
+                    value = copies.get(uuid, None)
+
+                    if value is None:
+                        value = item.find(uuid)
+
+                        if orig._item.itsParent is item.itsParent:
+                            valueParent = value.itsParent
+                        else:
+                            valueParent = item.itsParent
+                        value = value.copy(None, valueParent, copies,
+                                           copyPolicy)
+                        
+                    self[name] = SingleRef(value.itsUUID)
+            else:
+                self[name] = value
 
     def __setitem__(self, key, value):
 
@@ -163,11 +191,11 @@ class References(Values):
     def _copy(self, orig, copies, copyPolicy):
 
         item = self._item
-        
         for name, value in orig.iteritems():
             policy = copyPolicy or item.getAttributeAspect(name, 'copyPolicy')
             if policy == 'copy' or policy == 'cascade':
-                value._copy(self, orig._item, item, name, policy, copies)
+                value._copy(self, orig._item, item, name,
+                            policy, copyPolicy, copies)
 
     def __setitem__(self, key, value, *args):
 

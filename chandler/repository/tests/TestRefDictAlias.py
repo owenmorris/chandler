@@ -8,7 +8,6 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import RepositoryTestCase, os, unittest
-from repository.persistence.XMLRefDict import XMLRefDict
 
 from repository.schema.Attribute import Attribute
 from repository.util.Path import Path
@@ -32,17 +31,13 @@ class RefDictionaryAliasTest(RepositoryTestCase.RepositoryTestCase):
         blocksAttribute.cardinality = cardinality
         blocksAttribute.otherName = 'blockParent'
         blockKind.addValue('attributes',
-                          blocksAttribute, alias='blocks')
+                           blocksAttribute, alias='blocks')
         blockParentAttribute = Attribute('blockParent', blockKind, attrKind)
         blockParentAttribute.cardinality = 'single'
         blockParentAttribute.otherName = 'blocks'
         blockKind.addValue('attributes',
                            blockParentAttribute, alias='blockParent')
         return blockKind
-
-    def NewXMLRefDict(self, view, item, name, otherName, readOnly):
-        # Create an XMLRefDict to initialize the attribute.
-        return XMLRefDict(view, item, name, otherName, readOnly)
 
     def reloadRepositoryItems (self, itemList):
         # remember the set of items given, reload the repository,
@@ -67,7 +62,7 @@ class RefDictionaryAliasTest(RepositoryTestCase.RepositoryTestCase):
         eggsBlock = blockKind.newItem('eggs', self.rep)
         
         # link them up using alias
-        aBlock.blocks = self.NewXMLRefDict(self.rep.view, aBlock, 'blocks', 'blockParent', False)
+        aBlock.blocks = []
         aBlock.blocks.append(eggsBlock, alias='eggs')
         self.assert_(aBlock.blocks.getByAlias('eggs') is eggsBlock)
         self.assert_(aBlock is eggsBlock.blockParent)

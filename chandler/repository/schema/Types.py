@@ -71,7 +71,14 @@ class Type(Item):
                 typeHandlers[implementationType] = [ self._uuid ]
 
     def getImplementationType(self):
-        return self.implementationTypes['python']
+
+        implementationTypes = self.getAttributeValue('implementationTypes',
+                                                     _attrDict=self._values,
+                                                     default=None)
+        if implementationTypes is not None:
+            return self.implementationTypes['python']
+
+        return None
 
     def handlerName(self):
         return None

@@ -34,12 +34,15 @@ class Attribute(Item):
             superAttribute = self.getAttributeValue('superAttribute')
             return superAttribute.getAspect(name, **kwds)
 
+        if 'default' in kwds:
+            return kwds['default']
+
         if self._kind is not None:
             aspectAttr = self._kind.getAttribute(name)
             if aspectAttr.hasAttributeValue('defaultValue'):
                 return aspectAttr.getAttributeValue('defaultValue')
         
-        return kwds.get('default', None)
+        return None
 
     def _walk(self, path, callable, **kwds):
 
