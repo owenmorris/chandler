@@ -125,8 +125,52 @@ class EditText(RectangularChild):
 
         editText.SetFont(Font (self.characterStyle))
         return editText
+    
+    """
+    Edit Menu enabling and handling
+    """
+    def OnUndoEventUpdateUI (self, notification):
+        canUndo = self.widget.CanUndo()
+        notification.data ['Enable'] = canUndo
+        if canUndo:
+            notification.data ['Text'] = 'Undo Command\tCtrl+Z'
+        else:
+            notification.data ['Text'] = "Can't Undo\tCtrl+Z"            
 
+    def OnUndoEvent (self, notification):
+        self.widget.Undo()
+        self.OnDataChanged()
 
+    def OnRedoEventUpdateUI (self, notification):
+        notification.data ['Enable'] = self.widget.CanRedo()
+
+    def OnRedoEvent (self, notification):
+        self.widget.Redo()
+        self.OnDataChanged()
+
+    def OnCutEventUpdateUI (self, notification):
+        notification.data ['Enable'] = self.widget.CanCut()
+
+    def OnCutEvent (self, notification):
+        self.widget.Cut()
+        self.OnDataChanged()
+
+    def OnCopyEventUpdateUI (self, notification):
+        notification.data ['Enable'] = self.widget.CanCopy()
+
+    def OnCopyEvent (self, notification):
+        self.widget.Copy()
+
+    def OnPasteEventUpdateUI (self, notification):
+        notification.data ['Enable'] = self.widget.CanPaste()
+
+    def OnPasteEvent (self, notification):
+        self.widget.Paste()
+        self.OnDataChanged()
+    
+    def OnDataChanged (self):
+        # override in subclass for notification when edit operations have taken place
+        pass
 
 class wxHTML(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):

@@ -19,7 +19,7 @@ class MainView(View):
         Globals.wxApplication.mainFrame.Close ()
         
     def OnUndoEventUpdateUI (self, notification):
-        notification.data ['Text'] = 'Undo Command\tCtrl+Z'
+        notification.data ['Text'] = "Can't Undo\tCtrl+Z"            
         notification.data ['Enable'] = False
 
     def OnRedoEventUpdateUI (self, notification):

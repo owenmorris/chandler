@@ -86,7 +86,11 @@ class EditTextAttribute(ControlBlocks.EditText):
         """
         item = notification.data['item']
         self.synchronizeWidget(item)    # make sure we use the new item    
-        
+
+    def OnDataChanged (self):
+        # Notification that an edit operation has taken place
+        self.SaveTextValue()
+
     def synchronizeWidget (self, item=None):
         # optional second parameter is the new item to synchronize to
         # lets us avoid a race condition getting the new item from the parent block
