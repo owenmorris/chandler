@@ -5,7 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, logging, sys, traceback, threading
 import application, repository, wx
-from osaf.examples.zaobao.RSSData import RSSChannel, NewChannelFromURL
+from osaf.examples.zaobao.RSSData import RSSChannel
 from twisted.web import resource
 
 logger = logging.getLogger('Inbound')
@@ -27,7 +27,8 @@ class InboundParcel(application.Parcel.Parcel):
             try:
                 url = url.strip()
                 logger.info("Adding channel from file: %s" % url)
-                newChannel = NewChannelFromURL(view, url, update=False)
+                newChannel = RSSChannel(view=view)
+                newChannel.url = url
             except Exception, e:
                 logger.exception(e)
 
