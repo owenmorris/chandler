@@ -9,7 +9,7 @@ BIN_ARCHIVES=../$(SNAP)-0.3-14.tar.gz \
              ../wxPython-$(SNAP)-2.5-4.tar.gz \
              ../UUIDext-$(SNAP)-0.3-2.tar.gz \
              ../m2crypto-$(SNAP)-0.12-1.tar.gz \
-             ../Launchers-$(SNAP)-0.3-6.tar.gz
+             ../Launchers-$(SNAP)-0.3-7.tar.gz
 
 # these get installed into chandler
 HOME_ARCHIVES=../QueryParser-$(SNAP)-0.1-2.tar.gz
@@ -82,5 +82,5 @@ checkout:
 install: $(ARCHIVES) $(notdir $(ARCHIVES))
 
 clean:
-	rm -rf $(SNAP) __repository__
+	rm -rf $(CHANDLERBIN)/$(SNAP) __repository__
 	rm -f chandler.log randpool.dat
