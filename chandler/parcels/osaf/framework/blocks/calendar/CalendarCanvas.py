@@ -60,7 +60,82 @@ class ColumnarCanvasItem(CollectionCanvas.CanvasItem):
         if self._resizeLowBounds.Inside(point):
             return self.RESIZE_MODE_END
         return None
+        
+    def Draw(self, dc, brushContainer):
+        item = self.item
+        itemRect = self.bounds
+        time = item.startTime
 
+        # Draw one event
+        headline = time.Format('%I:%M %p ') + item.displayName
+
+        dc.SetPen(brushContainer.selectionPen)
+        dc.DrawRoundedRectangleRect(itemRect, radius=10)
+
+        if (item.transparency == "confirmed"):
+            pen = wx.Pen(wx.BLACK, 3)
+        elif (item.transparency == "fyi"):
+            pen = wx.Pen(wx.LIGHT_GREY, 3)
+        elif (item.transparency == "tentative"):
+            pen = wx.Pen(wx.BLACK, 3, wx.DOT)
+
+        pen.SetCap(wx.CAP_BUTT)
+        dc.SetPen(pen)
+        dc.DrawLine(itemRect.x + 2, itemRect.y + 7,
+                    itemRect.x + 2, itemRect.y + itemRect.height - 7)
+
+        # Shift text
+        timeString = time.Format('%I:%M %p').lower()
+
+        x = itemRect.x + 3 + 5
+        y = itemRect.y + 3
+        width = itemRect.width - (3 + 10)
+        height = 15
+        timeRect = wx.Rect(x, y, width, height)
+        
+        # only draw time if there is room
+        te = dc.GetFullTextExtent(timeString, brushContainer.smallBoldFont)        
+        (timeWidth, timeHeight) = te[0], te[1]
+        if (timeHeight < itemRect.height/3):
+            dc.SetFont(brushContainer.smallBoldFont)
+            y = brushContainer.DrawWrappedText(dc, timeString, timeRect)
+        
+        textRect = wx.Rect(x, y, width, itemRect.height - (y - itemRect.y))
+
+        dc.SetFont(brushContainer.smallFont)
+        brushContainer.DrawWrappedText(dc, item.displayName, textRect)
+        
+
+class HeaderCanvasItem(CollectionCanvas.CanvasItem):
+    def Draw(self, dc, isSelected, brushContainer):
+        item = self.item
+        itemRect = self.bounds
+                
+        # draw selection rectangle, if any
+        if (isSelected):
+            dc.SetBrush(brushContainer.selectionBrush)
+            dc.SetPen(brushContainer.selectionPen)
+            dc.DrawRectangleRect(itemRect)
+        
+        # draw little rectangle to the left of the item
+        if (item.transparency == "confirmed"):
+            pen = wx.Pen(wx.BLACK, 3)
+        elif (item.transparency == "fyi"):
+            pen = wx.Pen(wx.LIGHT_GREY, 3)
+        elif (item.transparency == "tentative"):
+            pen = wx.Pen(wx.BLACK, 3, wx.DOT)
+        
+        pen.SetCap(wx.CAP_BUTT)
+        dc.SetPen(pen)
+        dc.DrawLine(itemRect.x + 2, itemRect.y + 3,
+                    itemRect.x + 2, itemRect.y + itemRect.height - 3)
+        
+        # Shift text
+        itemRect.x = itemRect.x + 6
+        itemRect.width = itemRect.width - 6
+        # @@@ hack, this should be abstracted somehow
+        brushContainer.DrawWrappedText(dc, item.displayName, itemRect)
+    
 
 class CalendarEventHandler(object):
 
@@ -484,48 +559,20 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         for item in self.parent.blockItem.getDayItemsByDate(date):
             itemRect = wx.Rect(x, y, w, h)
             
-            canvasItem = CollectionCanvas.CanvasItem(itemRect, item)
+            canvasItem = HeaderCanvasItem(itemRect, item)
             self.canvasItemList.append(canvasItem)
             
             # keep track of the current drag/resize box
             if self._currentDragBox and self._currentDragBox.item == item:
                 self._currentDragBox = canvasItem
 
-            self.DrawCanvasItem(canvasItem, dc)
+            canvasItem.Draw(dc, self.parent.blockItem.selection is item, self)
             
             y += h
             
         if (y > self.fullHeight):
             self.fullHeight = y
-            
-    def DrawCanvasItem(self, canvasItem, dc):
-        item = canvasItem.item
-        itemRect = canvasItem.bounds
-                
-        # draw selection rectangle, if any
-        if (self.parent.blockItem.selection is item):
-            dc.SetBrush(self.selectionBrush)
-            dc.SetPen(self.selectionPen)
-            dc.DrawRectangleRect(itemRect)
-        
-        # draw little rectangle to the left of the item
-        if (item.transparency == "confirmed"):
-            pen = wx.Pen(wx.BLACK, 3)
-        elif (item.transparency == "fyi"):
-            pen = wx.Pen(wx.LIGHT_GREY, 3)
-        elif (item.transparency == "tentative"):
-            pen = wx.Pen(wx.BLACK, 3, wx.DOT)
-        
-        pen.SetCap(wx.CAP_BUTT)
-        dc.SetPen(pen)
-        dc.DrawLine(itemRect.x + 2, itemRect.y + 3,
-                    itemRect.x + 2, itemRect.y + itemRect.height - 3)
-        
-        # Shift text
-        itemRect.x = itemRect.x + 6
-        itemRect.width = itemRect.width - 6
-        self.DrawWrappedText(dc, item.displayName, itemRect)
-        
+                    
     def OnCreateItem(self, unscrolledPosition, createOnDrag):
         if not createOnDrag:
             view = self.parent.blockItem.itsView
@@ -766,58 +813,13 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
             if self.parent.blockItem.selection is item:
                 selectedBox = canvasItem
             else:
-                self.DrawCanvasItem(canvasItem, dc)
+                canvasItem.Draw(dc, self)
             
         # now draw the current item on top of everything else
         if selectedBox:
             dc.SetBrush(self.selectionBrush)
-            self.DrawCanvasItem(selectedBox, dc)
+            selectedBox.Draw(dc, self)
             
-    def DrawCanvasItem(self, canvasItem, dc):
-        item = canvasItem.item
-        itemRect = canvasItem.bounds
-        time = item.startTime
-
-        # Draw one event
-        headline = time.Format('%I:%M %p ') + item.displayName
-
-        dc.SetPen(self.selectionPen)
-        dc.DrawRoundedRectangleRect(itemRect, radius=10)
-
-        if (item.transparency == "confirmed"):
-            pen = wx.Pen(wx.BLACK, 3)
-        elif (item.transparency == "fyi"):
-            pen = wx.Pen(wx.LIGHT_GREY, 3)
-        elif (item.transparency == "tentative"):
-            pen = wx.Pen(wx.BLACK, 3, wx.DOT)
-
-        pen.SetCap(wx.CAP_BUTT)
-        dc.SetPen(pen)
-        dc.DrawLine(itemRect.x + 2, itemRect.y + 7,
-                    itemRect.x + 2, itemRect.y + itemRect.height - 7)
-
-        # Shift text
-        timeString = time.Format('%I:%M %p').lower()
-
-        x = itemRect.x + 3 + 5
-        y = itemRect.y + 3
-        width = itemRect.width - (3 + 10)
-        height = 15
-        timeRect = wx.Rect(x, y, width, height)
-        
-        # only draw time if there is room
-        te = dc.GetFullTextExtent(timeString, self.smallBoldFont)        
-        (timeWidth, timeHeight) = te[0], te[1]
-        if (timeHeight < itemRect.height/3):
-            dc.SetFont(self.smallBoldFont)
-            y = self.DrawWrappedText(dc, timeString, timeRect)
-        
-        textRect = wx.Rect(x, y, width, itemRect.height - (y - itemRect.y))
-
-        dc.SetFont(self.smallFont)
-        self.DrawWrappedText(dc, item.displayName, textRect)
-
-
     # handle mouse related actions: move, resize, create, select
 
     def OnEditItem(self, box):
