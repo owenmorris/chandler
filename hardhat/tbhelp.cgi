@@ -72,6 +72,11 @@ debug = False
 rootDir = '/www/docs/external'
 stagingRootDir = rootDir + '/staging'
 destRootDir = rootDir
+
+rootUrl = '/external'
+stagingRootUrl = rootUrl + '/staging'
+destRootUrl = rootUrl
+
 lockFile = destRootDir + '/windows/lock'
 
 haveLock = False
@@ -159,6 +164,9 @@ def buildFrontPage():
     
     print '<title>Copy external/internal tarballs</title></head><body>'
     print '<h1>Copy external/internal tarballs</h1>'
+
+    print '<p>Staging:     [<a href="%s">Windows</a>] [<a href="%s">Mac OS X</a>] [<a href="%s">Linux</a>]</p>' % (stagingRootUrl + '/windows', stagingRootUrl + '/macosx', stagingRootUrl + '/linux')
+    print '<p>Destination: [<a href="%s">Windows</a>] [<a href="%s">Mac OS X</a>] [<a href="%s">Linux</a>]</p>' % (destRootUrl + '/windows', destRootUrl + '/macosx', destRootUrl + '/linux')
 
     if not available:
         print '<p>No tarballs available to copy.</p>'
