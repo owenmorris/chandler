@@ -6,7 +6,9 @@ info = {
        }
 
 dependencies = (
-                'wxpython/wxPython',
+                'python',
+                'epydoc',
+                '../../internal/wx/wxPython-2.5',
                 'persistence/xerces-c',
                 'persistence/pathan',
                 'persistence/dbxml',
