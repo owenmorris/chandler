@@ -11,17 +11,25 @@ def main():
 
     extensions = []
     modules = ['chandlerdb.__init__',
-               'chandlerdb.util.__init__']
+               'chandlerdb.util.__init__',
+               'chandlerdb.schema.__init__',
+               'chandlerdb.item.__init__',
+               'chandlerdb.item.ItemError']
 
-    extensions.append(Extension('chandlerdb.util._uuid',
+    extensions.append(Extension('chandlerdb.util.uuid',
                                 sources=['chandlerdb/util/uuid.c',
                                          'chandlerdb/util/pyuuid.c']))
-    modules.append('chandlerdb.util.UUID')
 
     extensions.append(Extension('chandlerdb.util._rijndael',
                                 sources=['rijndael-2.4/rijndael.cpp',
                                          'chandlerdb/util/rijndael.i'],
                                 include_dirs=['rijndael-2.4']))
+
+    extensions.append(Extension('chandlerdb.schema.descriptor',
+                                sources=['chandlerdb/schema/descriptor.c']))
+
+    extensions.append(Extension('chandlerdb.item.item',
+                                sources=['chandlerdb/item/item.c']))
 
     if os.name in ('nt','posix'):
         modules.append('chandlerdb.util.lock')
