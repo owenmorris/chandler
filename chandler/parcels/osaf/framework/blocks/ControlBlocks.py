@@ -80,7 +80,24 @@ class ComboBox(RectangularChild):
                             (self.minimumSize.width, self.minimumSize.height),
                             self.choices)
 
+    
+class ContextMenu(RectangularChild):
+    def displayContextMenu(self, parentWindow, position, data):
+        menu = wx.Menu()
+        for child in self.childrenBlocks:
+            child.addItem(menu, data)
+        parentWindow.PopupMenu(menu, position)
+        menu.Destroy()
+        
 
+class ContextMenuItem(RectangularChild):
+    def addItem(self, wxContextMenu, data):
+        id = Block.getWidgetID(self)
+        self.data = data
+        wxContextMenu.Append(id, self.title)
+        wxContextMenu.Bind(wx.EVT_MENU, Globals.wxApplication.OnCommand, id=id)
+
+    
 class wxEditText(wx.TextCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxEditText, self).__init__ (*arguments, **keywords)
@@ -473,6 +490,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnWXSelectionChanged)
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
+        self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
 
     def OnInit (self):
         elementDelegate = self.blockItem.elementDelegate
@@ -549,6 +567,10 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
             self.blockItem.PostASelectionChangedEvent (item)
             self.blockItem.selectedColumn = self.blockItem.columnData [event.GetCol()]
         event.Skip()
+        
+    def OnRightClick(self, event):
+        self.blockItem.DisplayContextMenu(event.GetPosition(),
+                                          self.blockItem.contents [event.GetRow()])
 
     def Reset(self): 
         """

@@ -20,6 +20,7 @@ of a limitation of the XML format, which will be eliminated</description>
   <EventList itsName="GlobalEvents">
     <subscribeAlwaysEvents itemref="events:NULL"/>
     <subscribeAlwaysEvents itemref="events:New"/>
+    <subscribeAlwaysEvents itemref="events:Open"/>
     <subscribeAlwaysEvents itemref="events:NewItemCollectionItem"/>
     <subscribeAlwaysEvents itemref="events:Close"/>
     <subscribeAlwaysEvents itemref="events:Quit"/>
@@ -60,6 +61,10 @@ of a limitation of the XML format, which will be eliminated</description>
   </BlockEvent>
 
   <BlockEvent itsName="New">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="Open">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 

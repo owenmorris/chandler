@@ -1254,6 +1254,21 @@
     <_inclusions itemref="content:OutTableView"/>
     <_inclusions itemref="content:CalendarTableView"/>
   </contentModel:ItemCollection>
+  
+  <ContextMenu itsName="sidebarContextMenu">
+    <childrenBlocks itemref="doc:OpenTabContextItem"/>
+    <childrenBlocks itemref="doc:CloseTabContextItem"/>
+  </ContextMenu>
+  
+  <ContextMenuItem itsName="OpenTabContextItem">
+    <title>Open in New Tab</title>
+    <event itemref="events:Open"/>
+  </ContextMenuItem>
+
+  <ContextMenuItem itsName="CloseTabContextItem">
+    <title>Close Tab</title>
+    <event itemref="events:Close"/>
+  </ContextMenuItem>
 
   <Table itsName="Sidebar"
          itemClass="osaf.views.main.SideBar.Sidebar">
@@ -1264,6 +1279,7 @@
     <columnData>displayName</columnData>
     <columnWidths>150</columnWidths>
     <hideColumnHeadings>True</hideColumnHeadings>
+    <contextMenu itemref="doc:sidebarContextMenu"/>
   </Table>
  
   <SplitterWindow itsName="MainSplitter">

@@ -341,12 +341,22 @@ class wxRectangularChild (wx.Panel):
         return flag
     CalculateWXFlag = classmethod(CalculateWXFlag)
     
+
 class RectangularChild(ContainerChild):
     def PostASelectionChangedEvent (self, item):
         self.Post (Globals.repository.findPath (
             '//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                    {'item':item})
-    
+
+    def DisplayContextMenu(self, position, data):
+        try:
+            self.contextMenu
+        except:
+            return
+        else:
+            self.contextMenu.displayContextMenu(self.widget, position, data)
+                
+        
 class BlockEvent(Event):
 
     def includePolicyMethod(self, items, references, cloudAlias):

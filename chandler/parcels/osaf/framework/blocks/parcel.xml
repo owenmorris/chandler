@@ -345,6 +345,10 @@
     <Attribute itsName="blockName">
       <type itemref="String"/>
     </Attribute>
+    
+    <Attribute itsName="contextMenu">
+      <type itemref="docSchema:ContextMenu"/>
+    </Attribute>
 
     <attributes itemref="docSchema:Block/blockName"/>
     <attributes itemref="docSchema:Block/contents"/>
@@ -353,6 +357,7 @@
     <attributes itemref="docSchema:Block/styles"/>
     <attributes itemref="docSchema:Block/isShown"/>
     <attributes itemref="docSchema:Block/eventBoundary"/>
+    <attributes itemref="docSchema:Block/contextMenu"/>
     <attributes itemref="docSchema:subscribeWhenVisibleEvents"/>    
     <attributes itemref="docSchema:subscribeAlwaysEvents"/>    
     <attributes itemref="contentModel:itemCollectionInclusions"/>
@@ -730,6 +735,25 @@
     <attributes itemref="docSchema:ComboBox/itemSelected"/>    
   </Kind>
 
+  <!--
+    ContextMenu
+  -->
+  <Kind itsName="ContextMenu">
+    <classes key="python">osaf.framework.blocks.ControlBlocks.ContextMenu</classes>
+    <superKinds itemref="docSchema:RectangularChild"/>
+  </Kind>
+  
+  <Kind itsName="ContextMenuItem">
+    <classes key="python">osaf.framework.blocks.ControlBlocks.ContextMenuItem</classes>
+    <superKinds itemref="docSchema:RectangularChild"/>
+
+    <Attribute itsName="title">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <attributes itemref="docSchema:ContextMenuItem/title"/>
+    <attributes itemref="docSchema:event"/>
+  </Kind>
   <!--
     EditText
   -->

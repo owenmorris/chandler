@@ -50,17 +50,53 @@ class TabbedView(ContainerBlocks.TabbedContainer):
                    {'item':newItem})
 
     def onCloseEvent (self, notification):
-        "Close the current tab"
-        selection = self.widget.GetSelection()
-        page = self.widget.GetPage(selection)
-        if selection == (self.widget.GetPageCount() - 1):
-            self.widget.selectedTab = selection - 1
+        """
+          Will either close the current tab (if not data is present
+        in the sender) or will close the tab specified by data.
+        """
+        try:
+            item = notification.data['sender'].data
+        except AttributeError:
+            pageIndex = self.widget.GetSelection()
         else:
-            self.widget.selectedTab = selection
+            for tabIndex in range (self.widget.GetPageCount()):
+                tabName = self.widget.GetPageText(tabIndex)
+                if tabName == self._getBlockName(item):
+                    found = True
+                    pageIndex = tabIndex
+            if not found:
+                # Tab isn't actually open
+                return
+        if pageIndex == self.widget.GetSelection():
+            if pageIndex == (self.widget.GetPageCount() - 1):
+                self.widget.selectedTab = pageIndex - 1
+            else:
+                self.widget.selectedTab = pageIndex
+        elif pageIndex < self.widget.GetSelection():
+            self.widget.selectedTab = self.widget.GetSelection() - 1
+        page = self.widget.GetPage(pageIndex)
         page.blockItem.parentBlock = None
         self.synchronizeWidget()
         self.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                    {'item':self.widget.GetPage(self.widget.selectedTab).blockItem})
+
+    def onOpenEvent (self, notification):
+        "Opens the chosen item in a new tab"
+        item = notification.data['sender'].data
+        found = False
+        for tabIndex in range (self.widget.GetPageCount()):
+            tabName = self.widget.GetPageText (tabIndex)
+            if tabName == self._getBlockName(item):
+                found = True
+                self.widget.SetSelection(tabIndex)
+        if not found:
+            self.widget.selectedTab = self.widget.GetPageCount()
+            item.parentBlock = self
+            item.render()
+            item.widget.SetSize (self.widget.GetClientSize())
+            self.synchronizeWidget()
+            self.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                       {'item':item})
         
     def onCloseEventUpdateUI(self, notification):
         notification.data['Enable'] = (self.widget.GetPageCount() > 1)
