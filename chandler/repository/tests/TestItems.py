@@ -14,9 +14,10 @@ from repository.item.ItemRef import RefDict
 from repository.schema.Kind import Kind
 
 class ItemsTest(RepositoryTestCase.RepositoryTestCase):
-    """ Test Items """
+    """ Test Items (attributes are tested by other tests)"""
 
     def testItemParentChild(self):
+        """Test basic attribute functionality, focusing on parent-child relationships"""
         # Test find()
         kind = self.rep.find('//Schema/Core/Kind')
         self.assert_(kind is not None)
@@ -41,7 +42,9 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.failIf(item.isDeleted())
         self.failIf(item.isStale())
 #TODO repo equality        self.assertEquals(self.rep, item.getRepository())
-#TODO test toXML        print item.toXML()
+#TODO test toXML
+        xml = item.toXML()
+        self.assert_(xml is not None)
 
         # Test to see that item became a respository root
         self.rep.commit()
@@ -142,6 +145,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
 
     def testAttributeIteration(self):
+        """Test iteration over attributes"""
         kind = self.rep.find('//Schema/Core/Kind')
         self.assert_(kind is not None)
 

@@ -17,6 +17,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
     """ Test Literal Attributes """
 
     def testLiteralAttributes(self):
+        """Test basic features of literal attributes"""
         kind = self.rep.find('//Schema/Core/Kind')
         itemKind = self.rep.find('//Schema/Core/Item')
         self.assert_(itemKind is not None)
@@ -56,6 +57,38 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(kind.classes['python'] is not None)
 
     def testListMultis(self):
+        """Test list valued literal attributes """
+
+        def verifyItem(i):
+            """verify that a list valued literal attribute has the right values"""
+            # verify list length
+            self.assertEquals(len(i.strings),4)
+    
+            # test to see that there is a key at every position
+            self.assert_(i.hasKey('strings',0))
+            self.assert_(i.hasKey('strings',1))
+            self.assert_(i.hasKey('strings',2))
+            self.assert_(i.hasKey('strings',3))
+                                         
+            # test to see that every value is in the attribute
+            self.assert_(i.hasValue('strings','Goofy'))
+            self.assert_(i.hasValue('strings','Donald'))
+            self.assert_(i.hasValue('strings','Minnie'))
+            self.assert_(i.hasValue('strings','Mickey'))
+    
+            # verify list contents using getValue() method
+            self.assertEquals(i.getValue('strings',0),'Mickey')
+            self.assertEquals(i.getValue('strings',1),'Minnie')
+            self.assertEquals(i.getValue('strings',2),'Donald')
+            self.assertEquals(i.getValue('strings',3),'Goofy')
+    
+            # verify list contents using python list notation
+            self.assertEquals(i.strings[0],'Mickey')
+            self.assertEquals(i.strings[1],'Minnie')
+            self.assertEquals(i.strings[2],'Donald')
+            self.assertEquals(i.strings[3],'Goofy')
+            
+        
         kind = self.rep.find('//Schema/Core/Kind')                
         itemKind = self.rep.find('//Schema/Core/Item')            
         myKind = kind.newItem('listKind', self.rep)
@@ -74,63 +107,12 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
         item.addValue('strings','Minnie')                         
         item.addValue('strings','Donald')                         
         item.addValue('strings','Goofy')                          
-        # verify list length
-        self.assertEquals(len(item.strings),4)
-
-        # test to see that there is a key at every position
-        self.assert_(item.hasKey('strings',0))
-        self.assert_(item.hasKey('strings',1))
-        self.assert_(item.hasKey('strings',2))
-        self.assert_(item.hasKey('strings',3))
-                                     
-        # test to see that every value is in the attribute
-        self.assert_(item.hasValue('strings','Goofy'))
-        self.assert_(item.hasValue('strings','Donald'))
-        self.assert_(item.hasValue('strings','Minnie'))
-        self.assert_(item.hasValue('strings','Mickey'))
-
-        # verify list contents using getValue() method
-        self.assertEquals(item.getValue('strings',0),'Mickey')
-        self.assertEquals(item.getValue('strings',1),'Minnie')
-        self.assertEquals(item.getValue('strings',2),'Donald')
-        self.assertEquals(item.getValue('strings',3),'Goofy')
-
-        # verify list contents using python list notation
-        self.assertEquals(item.strings[0],'Mickey')
-        self.assertEquals(item.strings[1],'Minnie')
-        self.assertEquals(item.strings[2],'Donald')
-        self.assertEquals(item.strings[3],'Goofy')
-
+        verifyItem(item)
+        
         # now write what we've done and read it back
         self._reopenRepository()
         item = self.rep.find('//item')
-        # verify list length
-        self.assertEquals(len(item.strings),4)
-
-        # test to see that there is a key at every position
-        self.assert_(item.hasKey('strings',0))
-        self.assert_(item.hasKey('strings',1))
-        self.assert_(item.hasKey('strings',2))
-        self.assert_(item.hasKey('strings',3))
-                                     
-        # test to see that every value is in the attribute
-        self.assert_(item.hasValue('strings','Goofy'))
-        self.assert_(item.hasValue('strings','Donald'))
-        self.assert_(item.hasValue('strings','Minnie'))
-        self.assert_(item.hasValue('strings','Mickey'))
-
-        # verify list contents using getValue() method
-        self.assertEquals(item.getValue('strings',0),'Mickey')
-        self.assertEquals(item.getValue('strings',1),'Minnie')
-        self.assertEquals(item.getValue('strings',2),'Donald')
-        self.assertEquals(item.getValue('strings',3),'Goofy')
-
-        # verify list contents using python list notation
-        self.assertEquals(item.strings[0],'Mickey')
-        self.assertEquals(item.strings[1],'Minnie')
-        self.assertEquals(item.strings[2],'Donald')
-        self.assertEquals(item.strings[3],'Goofy')
-
+        verifyItem(item)
 
         #test removeValue by removing values and checking
         #that value is removed and length has decreased
@@ -157,6 +139,37 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
         self.assertEquals(len(item.strings),0)
 
     def testDictMultis(self):
+        """Test dictionary valued literal attributes"""
+
+        def verifyItem(i):
+            """ verify that a dictionayr value literal attribute contains the right data"""
+            self.assertEquals(len(i.strings),4)
+    
+            # test to see that all keys were inserted
+            self.assert_(i.hasKey('strings','Mickey'))
+            self.assert_(i.hasKey('strings','Minnie'))
+            self.assert_(i.hasKey('strings','Donald'))
+            self.assert_(i.hasKey('strings','Goofy'))
+                                         
+            # test to see that every value is in the attribute
+            self.assert_(i.hasValue('strings','Mouse'))
+            self.assert_(i.hasValue('strings','Mouse'))
+            self.assert_(i.hasValue('strings','Duck'))
+            self.assert_(i.hasValue('strings','Dog'))
+    
+            # verify dict contents using getValue() method
+            self.assertEquals(i.getValue('strings','Mickey'),'Mouse')
+            self.assertEquals(i.getValue('strings','Minnie'),'Mouse')
+            self.assertEquals(i.getValue('strings','Donald'),'Duck')
+            self.assertEquals(i.getValue('strings','Goofy'), 'Dog')
+    
+            # verify dict contents using python dict notation
+            self.assertEquals(i.strings['Mickey'],'Mouse')
+            self.assertEquals(i.strings['Minnie'],'Mouse')
+            self.assertEquals(i.strings['Donald'],'Duck')
+            self.assertEquals(i.strings['Goofy'], 'Dog')
+
+        
         kind = self.rep.find('//Schema/Core/Kind')                
         itemKind = self.rep.find('//Schema/Core/Item')            
         myKind = kind.newItem('dictKind', self.rep)
@@ -173,62 +186,12 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
         item.addValue('strings','Mouse','Minnie')                         
         item.addValue('strings','Duck','Donald')                         
         item.addValue('strings','Dog','Goofy')                          
-        self.assertEquals(len(item.strings),4)
-
-        # test to see that all keys were inserted
-        self.assert_(item.hasKey('strings','Mickey'))
-        self.assert_(item.hasKey('strings','Minnie'))
-        self.assert_(item.hasKey('strings','Donald'))
-        self.assert_(item.hasKey('strings','Goofy'))
-                                     
-        # test to see that every value is in the attribute
-        self.assert_(item.hasValue('strings','Mouse'))
-        self.assert_(item.hasValue('strings','Mouse'))
-        self.assert_(item.hasValue('strings','Duck'))
-        self.assert_(item.hasValue('strings','Dog'))
-
-        # verify dict contents using getValue() method
-        self.assertEquals(item.getValue('strings','Mickey'),'Mouse')
-        self.assertEquals(item.getValue('strings','Minnie'),'Mouse')
-        self.assertEquals(item.getValue('strings','Donald'),'Duck')
-        self.assertEquals(item.getValue('strings','Goofy'), 'Dog')
-
-        # verify dict contents using python dict notation
-        self.assertEquals(item.strings['Mickey'],'Mouse')
-        self.assertEquals(item.strings['Minnie'],'Mouse')
-        self.assertEquals(item.strings['Donald'],'Duck')
-        self.assertEquals(item.strings['Goofy'], 'Dog')
-
+        verifyItem(item)
+        
         # now write what we've done and read it back
         self._reopenRepository()
         item = self.rep.find('//item')
-
-        self.assertEquals(len(item.strings),4)
-
-        # test to see that all keys were inserted
-        self.assert_(item.hasKey('strings','Mickey'))
-        self.assert_(item.hasKey('strings','Minnie'))
-        self.assert_(item.hasKey('strings','Donald'))
-        self.assert_(item.hasKey('strings','Goofy'))
-                                     
-        # test to see that every value is in the attribute
-        self.assert_(item.hasValue('strings','Mouse'))
-        self.assert_(item.hasValue('strings','Mouse'))
-        self.assert_(item.hasValue('strings','Duck'))
-        self.assert_(item.hasValue('strings','Dog'))
-
-        # verify dict contents using getValue() method
-        self.assertEquals(item.getValue('strings','Mickey'),'Mouse')
-        self.assertEquals(item.getValue('strings','Minnie'),'Mouse')
-        self.assertEquals(item.getValue('strings','Donald'),'Duck')
-        self.assertEquals(item.getValue('strings','Goofy'), 'Dog')
-
-        # verify dict contents using python dict notation
-        self.assertEquals(item.strings['Mickey'],'Mouse')
-        self.assertEquals(item.strings['Minnie'],'Mouse')
-        self.assertEquals(item.strings['Donald'],'Duck')
-        self.assertEquals(item.strings['Goofy'], 'Dog')
-
+        verifyItem(item)
 
         #test removeValue by removing values and checking
         #that value is removed and length has decrease

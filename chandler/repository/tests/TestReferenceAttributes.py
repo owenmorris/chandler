@@ -16,6 +16,7 @@ class ReferenceAttributesTest(RepositoryTestCase.RepositoryTestCase):
     """ Test Reference Attributes """
 
     def testReferenceAttributes(self):
+        """Test bidirectional single valued attrribute"""
         kind = self.rep.find('//Schema/Core/Kind')
         itemKind = self.rep.find('//Schema/Core/Item')
         self.assert_(itemKind is not None)
@@ -89,7 +90,24 @@ class ReferenceAttributesTest(RepositoryTestCase.RepositoryTestCase):
         self.assertEquals(len(item1.items),1)
         self.failIf(item3 in item1.items)
 
+    # support functions for testListReferenceAttributes and testDictReferenceAttributes
+    def _findManagerAndEmployees(self):
+        """Use find to retrieve our test data from the repository """
+        manager = self.rep.find('//boss')
+        emp1 = self.rep.find('//employee1')
+        emp2 = self.rep.find('//employee2')
+        emp3 = self.rep.find('//employee3')
+        emp4 = self.rep.find('//employee4')
+        return (manager, [emp1, emp2, emp3, emp4])
+
+    def _checkManagerAndEmployees(self, m, es):
+        """Make sure a list of employees has the same manager"""
+        for i in es:
+            self.assertEquals(i.manager, m)
+            self.assert_(m.hasValue('employees', i))
+
     def testListReferenceAttributes(self):
+        """Test list valued bidirectional references"""
         kind = self.rep.find('//Schema/Core/Kind')
         itemKind = self.rep.find('//Schema/Core/Item')
         attrKind = itemKind.getAttribute('kind').kind
@@ -125,36 +143,16 @@ class ReferenceAttributesTest(RepositoryTestCase.RepositoryTestCase):
         emp2 = employeeKind.newItem('employee2', self.rep)
         emp3 = employeeKind.newItem('employee3', self.rep)
         emp4 = employeeKind.newItem('employee4', self.rep)
-
         manager.setValue('employees', emp1)
-        self.assertEquals(emp1.manager, manager)
-        self.assert_(manager.hasValue('employees',emp1))
         manager.addValue('employees', emp2)
-        self.assertEquals(emp2.manager, manager)
-        self.assert_(manager.hasValue('employees',emp2))
         manager.addValue('employees', emp3)
-        self.assertEquals(emp3.manager, manager)
-        self.assert_(manager.hasValue('employees',emp3))
         manager.addValue('employees', emp4)
-        self.assertEquals(emp4.manager, manager)
-        self.assert_(manager.hasValue('employees',emp4))
+        self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
         # now write what we've done and read it back
         self._reopenRepository()
-        manager = self.rep.find('//boss')
-        emp1 = self.rep.find('//employee1')
-        emp2 = self.rep.find('//employee2')
-        emp3 = self.rep.find('//employee3')
-        emp4 = self.rep.find('//employee4')
-        self.assertEquals(emp1.manager, manager)
-        self.assert_(manager.hasValue('employees',emp1))
-        self.assertEquals(emp2.manager, manager)
-        self.assert_(manager.hasValue('employees',emp2))
-        self.assertEquals(emp3.manager, manager)
-        self.assert_(manager.hasValue('employees',emp3))
-        self.assertEquals(emp4.manager, manager)
-        self.assert_(manager.hasValue('employees',emp4))
-        
+        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees()
+        self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
         # now do it from the other end add manager to employees
         manager = managerKind.newItem('boss', self.rep)
@@ -167,33 +165,15 @@ class ReferenceAttributesTest(RepositoryTestCase.RepositoryTestCase):
         emp3.manager = manager
         emp4 = employeeKind.newItem('employee4', self.rep)
         emp4.manager = manager
-
-        self.assertEquals(emp1.manager, manager)
-        self.assert_(manager.hasValue('employees',emp1))
-        self.assertEquals(emp2.manager, manager)
-        self.assert_(manager.hasValue('employees',emp2))
-        self.assertEquals(emp3.manager, manager)
-        self.assert_(manager.hasValue('employees',emp3))
-        self.assertEquals(emp4.manager, manager)
-        self.assert_(manager.hasValue('employees',emp4))
+        self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
         # now write what we've done and read it back
         self._reopenRepository()
-        manager = self.rep.find('//boss')
-        emp1 = self.rep.find('//employee1')
-        emp2 = self.rep.find('//employee2')
-        emp3 = self.rep.find('//employee3')
-        emp4 = self.rep.find('//employee4')
-        self.assertEquals(emp1.manager, manager)
-        self.assert_(manager.hasValue('employees',emp1))
-        self.assertEquals(emp2.manager, manager)
-        self.assert_(manager.hasValue('employees',emp2))
-        self.assertEquals(emp3.manager, manager)
-        self.assert_(manager.hasValue('employees',emp3))
-        self.assertEquals(emp4.manager, manager)
-        self.assert_(manager.hasValue('employees',emp4))
+        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees()
+        self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
     def testDictReferenceAttributes(self):
+        """Test dictionary valued bidirectional references"""
         kind = self.rep.find('//Schema/Core/Kind')
         itemKind = self.rep.find('//Schema/Core/Item')
         attrKind = itemKind.getAttribute('kind').kind
@@ -231,33 +211,15 @@ class ReferenceAttributesTest(RepositoryTestCase.RepositoryTestCase):
         emp4 = employeeKind.newItem('employee4', self.rep)
 
         manager.setValue('employees', emp1)
-        self.assertEquals(emp1.manager, manager)
-        self.assert_(manager.hasValue('employees',emp1))
         manager.addValue('employees', emp2)
-        self.assertEquals(emp2.manager, manager)
-        self.assert_(manager.hasValue('employees',emp2))
         manager.addValue('employees', emp3)
-        self.assertEquals(emp3.manager, manager)
-        self.assert_(manager.hasValue('employees',emp3))
         manager.addValue('employees', emp4)
-        self.assertEquals(emp4.manager, manager)
-        self.assert_(manager.hasValue('employees',emp4))
+        self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
         # now write what we've done and read it back
         self._reopenRepository()
-        manager = self.rep.find('//boss')
-        emp1 = self.rep.find('//employee1')
-        emp2 = self.rep.find('//employee2')
-        emp3 = self.rep.find('//employee3')
-        emp4 = self.rep.find('//employee4')
-        self.assertEquals(emp1.manager, manager)
-        self.assert_(manager.hasValue('employees',emp1))
-        self.assertEquals(emp2.manager, manager)
-        self.assert_(manager.hasValue('employees',emp2))
-        self.assertEquals(emp3.manager, manager)
-        self.assert_(manager.hasValue('employees',emp3))
-        self.assertEquals(emp4.manager, manager)
-        self.assert_(manager.hasValue('employees',emp4))
+        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees()
+        self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
         # now do it from the other end add manager to employees
         manager = managerKind.newItem('boss', self.rep)
@@ -270,34 +232,15 @@ class ReferenceAttributesTest(RepositoryTestCase.RepositoryTestCase):
         emp3.manager = manager
         emp4 = employeeKind.newItem('employee4', self.rep)
         emp4.manager = manager
-
-        self.assertEquals(emp1.manager, manager)
-        self.assert_(manager.hasValue('employees',emp1))
-        self.assertEquals(emp2.manager, manager)
-        self.assert_(manager.hasValue('employees',emp2))
-        self.assertEquals(emp3.manager, manager)
-        self.assert_(manager.hasValue('employees',emp3))
-        self.assertEquals(emp4.manager, manager)
-        self.assert_(manager.hasValue('employees',emp4))
+        self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
         # now write what we've done and read it back
         self._reopenRepository()
-        manager = self.rep.find('//boss')
-        emp1 = self.rep.find('//employee1')
-        emp2 = self.rep.find('//employee2')
-        emp3 = self.rep.find('//employee3')
-        emp4 = self.rep.find('//employee4')
-        self.assertEquals(emp1.manager, manager)
-        self.assert_(manager.hasValue('employees',emp1))
-        self.assertEquals(emp2.manager, manager)
-        self.assert_(manager.hasValue('employees',emp2))
-        self.assertEquals(emp3.manager, manager)
-        self.assert_(manager.hasValue('employees',emp3))
-        self.assertEquals(emp4.manager, manager)
-        self.assert_(manager.hasValue('employees',emp4))
-
+        (manager, [emp1, emp2, emp3, emp4]) = self._findManagerAndEmployees()
+        self._checkManagerAndEmployees(manager, [ emp1, emp2, emp3, emp4 ])
 
     def testSubAttributes(self):
+        """Test attributes which have sub attributes (subAttributes and superAttribute attributes)"""
         itemKind = self.rep.find('//Schema/Core/Item')
         self.assert_(itemKind is not None)
 
