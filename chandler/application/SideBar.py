@@ -24,6 +24,8 @@ class SideBar(Persistent):
         """
         self.sideBarURLTree = PersistentDict()
         self.ignoreChangeSelect = false
+        self.ignoreExpand = false
+        self.ignoreCollapse = false
         application.Application.app.model.URLTree.RegisterSideBar(self)
                 
     def SynchronizeView(self):
@@ -68,7 +70,8 @@ class SideBar(Persistent):
                 wxWindow.uriDictMap[uri] = itemId
                 wxWindow.SetItemHasChildren(itemId, hasChildren)
                 sideBarLevel[name] = URLTreeEntry(parcel, false, 
-                                                  {}, false)
+                                                  PersistentDict(),
+                                                  false)
             else:
                 if wasEmpty:
                     itemId = wxWindow.AppendItem(parentItem, name)
@@ -79,8 +82,13 @@ class SideBar(Persistent):
                 if sideBarLevel[name].isOpen:
                     self.__UpdateURLTree(sideBarLevel[name].children, 
                                          uri + '/', itemId, wasEmpty)
-#                    if wasEmpty:
-#                        wxWindow.Expand(itemId)
+                    self.ignoreExpand = true
+                    wxWindow.Expand(itemId)
+                    self.ignoreExpand = false
+                else:
+                    self.ignoreCollapse = true
+                    wxWindow.Collapse(itemId)
+                    self.ignoreCollapse = false
             sideBarLevel[name].isMarked = true
         # Now we clean up items that exist in the dict, but not 
         # in the app's URLTree
@@ -118,7 +126,60 @@ class SideBar(Persistent):
         except:
             pass
         self.ignoreChangeSelect = false
-                
+
+    def ExpandUri(self, uri):
+        """
+          Expands the item representing the given uri.  Will also expand 
+        any ancestors of the item representing the supplied uri.  Returns 
+        true if the expansion was successful, false otherwise.
+        """
+        wxWindow = app.association[id(self)]
+        item = wxWindow.GetItemFromUri(uri)
+        if item != None:
+            wxWindow.Expand(item)
+            return true
+        return false
+
+    def CollapseUri(self, uri):
+        """
+          Collapses the item representing the given uri.  Returns true if
+        the collapse was successful, false otherwise.
+        """
+        wxWindow = app.association[id(self)]
+        item = wxWindow.GetItemFromUri(uri)
+        if item != None:
+            wxWindow.Collapse(item)
+            return true
+        return false
+    
+    def SetUriColor(self, uri, color):
+        """
+          Changes the color of the item representing the uri.  Will also
+        expand any ancestors of the item representing the supplied uri.        
+        Returns true if the color was successfully set, false otherwise.
+        """
+        wxWindow = app.association[id(self)]
+        item = wxWindow.GetItemFromUri(uri)
+        if item != None:
+            wxWindow.SetItemTextColour(item, color)
+            return true
+        return false
+
+    def SetUriBold(self, uri, isBold=true):
+        """
+          Sets whether or not the item representing the uri should be bold.
+        Will also expand any ancestors of the item representing the supplied
+        uri.  Returns true if the bold state of the item was successfully set,
+        false otherwise.
+        """
+        wxWindow = app.association[id(self)]
+        item = wxWindow.GetItemFromUri(uri)
+        if item != None:
+            wxWindow.SetItemBold(item, isBold)
+            return true
+        return false
+        
+        
 class URLTreeEntry:
     """
       URLTreeEntry is just a container class for items inserted into the
@@ -194,9 +255,11 @@ class wxSideBar(wxTreeCtrl):
     def OnItemExpanding(self, event):
         """
           Whenever a disclosure box is expanded, we mark it as such in the
-        model's dict and call SynchronizeView so we can either get the new\
+        model's dict and call SynchronizeView so we can either get the new
         items that are now visible (from the app) or just display them.
         """
+        if self.model.ignoreExpand:
+            return
         item = event.GetItem()
         uri = self.BuildUriFromItem(item)
         fields = uri.split('/')
@@ -220,6 +283,23 @@ class wxSideBar(wxTreeCtrl):
             return dict[fields[0]]
         return self.__GetSideBarURLTreeEntry(fields[1:], 
                                              dict[fields[0]].children)
+        
+    def GetItemFromUri(self, uri):
+        if not self.uriDictMap.has_key(uri):
+            urlTree = app.model.URLTree
+            if urlTree.UriExists(uri):
+                fields = uri.split('/')
+                self.__DoExpandUri(fields, self.model.sideBarURLTree)
+            else:
+                return None
+        return self.uriDictMap[uri]
+
+    def __DoExpandUri(self, fields, dict):
+        if not dict[fields[0]].isOpen:
+            dict[fields[0]].isOpen = true
+            self.model.SynchronizeView()
+        if len(fields) > 1:
+            self.__DoExpandUri(fields[1:], dict[fields[0]].children)
         
     def OnDestroy(self, event):
         """
