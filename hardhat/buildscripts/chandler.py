@@ -177,12 +177,12 @@ def Do(hardhatScript, mode, workingDir, cvsVintage, buildVersion, clobber, log):
             print "Building debug"
             log.write("building debug" + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-dB", "-D", buildVersionEscaped])
+             [hardhatScript, "-dBt", "-D", buildVersionEscaped])
         if mode == "release":
             print "Building release"
             log.write("building release" + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-rB", "-D", buildVersionEscaped])
+             [hardhatScript, "-rBt", "-D", buildVersionEscaped])
     except Exception, e:
         print "a build error"
         log.write("error during build" + "\n")
@@ -195,12 +195,6 @@ def Do(hardhatScript, mode, workingDir, cvsVintage, buildVersion, clobber, log):
         log.write("build log:" + "\n")
         CopyLog(os.path.join(modeDir, logPath), log)
         log.write("end of log" + "\n")
-
-    # need to get exit codes from hardhat calls
-
-    # test
-
-    # distribute, copy to output dir
 
 
 def dumpOutputList(outputList, fd = None):

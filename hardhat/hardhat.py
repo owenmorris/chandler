@@ -4,8 +4,6 @@ __date__        = "$Date$"
 __copyright__   = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__     = "GPL -- see LICENSE.txt"
 
-# TESTING CVS NOTIFICATION
-
 """
 HardHat:  OSAF Build Environment
 
@@ -58,7 +56,7 @@ if os.path.isfile("__hardhat__.py"):
     if curmodule.info.has_key('path'):
         curmodulepath = curmodule.info['path']
     else:
-        # determine our path relative to project root:    
+        # determine our path relative to project root:
         curdir = os.path.abspath(".")
         relpath = curdir[len(projectRoot)+1:]
         curmodulepath = relpath
@@ -133,7 +131,7 @@ except Exception, e:
     traceback.print_exc()
     raise e
     sys.exit(1)
-    
+
 hardhatlib.log_rotate(buildenv)
 
 
