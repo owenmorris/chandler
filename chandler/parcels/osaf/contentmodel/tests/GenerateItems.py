@@ -47,13 +47,17 @@ def GenerateCalendarEvents(count, days):
     for index in range(count):
         GenerateCalendarEvent(days)
 
-TITLES = ["Reading list", "Restaurant recommendation", "Vacation ideas",
-          "Grocery list", "Gift ideas"]
+TITLES = ["reading list", "restaurant recommendation", "vacation ideas",
+          "grocery list", "gift ideas", "life goals", "fantastic recipe",
+          "garden plans", "funny joke", "story idea", "poem"]
 
 def GenerateNote():
     """ Generate one Note item """
     note = Notes.Note()
     note.title = random.choice(TITLES)
+    delta = DateTime.DateTimeDelta(random.randint(0, 5),
+                                   random.randint(0, 24))
+    note.createdOn = DateTime.now() + delta
 
 def GenerateNotes(count):
     """ Generate _count_ notes """
@@ -127,9 +131,9 @@ def GenerateContactSection(name):
 
 def GenerateContact():
     contact = Contacts.Contact()
-    contact.name = GenerateContactName()
-    contact.homeSection = GenerateContactSection(contact.name)
-    contact.workSection = GenerateContactSection(contact.name)
+    contact.contactName = GenerateContactName()
+    contact.homeSection = GenerateContactSection(contact.contactName)
+    contact.workSection = GenerateContactSection(contact.contactName)
 
 def GenerateContacts(count):
     for index in range(count):

@@ -239,6 +239,12 @@ class wxApplication (wxApp):
                                                    Globals.mainView.getUUID(),
                                                    Globals.mainView.dispatchEvent)
 
+            # @@@ KCP Hack to register the event
+            viewBlock = Globals.repository.find("//parcels/OSAF/views/content/MixedListView")
+            Globals.notificationManager.Subscribe(viewBlock.blockEvents,
+                                                  viewBlock.getUUID(),
+                                                  Globals.mainView.dispatchEvent) 
+
             mainView.render (self.mainFrame, self.mainFrame)
 
             self.mainFrame.Show()

@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2004 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<core:Parcel describes="//parcels/OSAF/views/content"
+             itemName="content"
+             xmlns="//parcels/OSAF/framework/blocks"
+	     xmlns:core="//Schema/Core"
+	     xmlns:view="//parcels/OSAF/views/content">
+
+  <core:version>0.3</core:version>
+
+  <!-- Queries -->
+  <Query itemName="calendarQuery">
+    <queryEnum>kind</queryEnum>
+    <data>//parcels/OSAF/contentmodel/calendar/CalendarEvent</data>
+  </Query>
+
+  <Query itemName="notesQuery">
+    <queryEnum>kind</queryEnum>
+    <data>//parcels/OSAF/contentmodel/notes/Note</data>
+  </Query>
+
+  <Query itemName="contactQuery">
+    <queryEnum>kind</queryEnum>
+    <data>//parcels/OSAF/contentmodel/contacts/Contact</data>
+  </Query>
+
+  <Query itemName="mixedQuery">
+    <queryEnum>kind</queryEnum>
+    <data>//parcels/OSAF/contentmodel/ContentItem</data>
+  </Query>
+
+  <!-- Styles -->
+  <!-- Events -->
+  <BlockEvent itemName="GenerateContentItemsEvent">
+    <dispatchEnum>Broadcast</dispatchEnum>
+    <!--dispatchToBlock itemref="view:ContentTreeList"/-->
+    <methodName>OnGenerateContentItems</methodName>
+  </BlockEvent>
+
+  <!-- Menus -->
+  <Menu itemName="ContentMenu">
+    <title>Content Items</title>
+    <operation>InsertBefore</operation>
+    <menuLocation/>
+    <itemLocation/>
+    <helpString/>
+  </Menu>
+
+  <!-- Menu Items -->
+  <MenuItem itemName="GenerateContentMenuItem">
+    <title>Generate Content Items</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>ContentMenu</menuLocation>
+    <itemLocation/>
+    <menuItemKind>Normal</menuItemKind>
+    <accel>G</accel>
+    <event itemref="view:GenerateContentItemsEvent"/>
+    <helpString>generates sample content items: notes, calendar events and contacts</helpString>
+  </MenuItem>
+
+  <!-- Calendar Tree List -->
+  <TreeList itemName="CalendarTreeList"
+            itemClass="OSAF.framework.blocks.Content.CalendarTreeList">
+    <hideRoot>True</hideRoot>
+    <noLines>True</noLines>
+    <useButtons>False</useButtons>
+    <columnHeadings>Participants</columnHeadings>
+    <columnHeadings>Headline</columnHeadings>
+    <columnHeadings>Start Time</columnHeadings>
+    <columnWidths>135</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </TreeList>
+
+  <!-- Contact Tree List -->
+  <TreeList itemName="ContactTreeList"
+            itemClass="OSAF.framework.blocks.Content.ContactTreeList">
+    <hideRoot>True</hideRoot>
+    <noLines>True</noLines>
+    <useButtons>False</useButtons>
+    <columnHeadings>First Name</columnHeadings>
+    <columnHeadings>Last Name</columnHeadings>
+    <columnHeadings>Telephone</columnHeadings>
+    <columnHeadings>Address</columnHeadings>
+    <columnWidths>135</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </TreeList>
+
+  <!-- Note Tree List -->
+  <TreeList itemName="NoteTreeList"
+            itemClass="OSAF.framework.blocks.Content.NoteTreeList">
+    <hideRoot>True</hideRoot>
+    <noLines>True</noLines>
+    <useButtons>False</useButtons>
+    <columnHeadings>Description</columnHeadings>
+    <columnHeadings>Created On</columnHeadings>
+    <columnWidths>135</columnWidths>
+    <columnWidths>80</columnWidths>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </TreeList>
+
+  <!-- Mixed Tree List -->
+  <TreeList itemName="MixedTreeList"
+            itemClass="OSAF.framework.blocks.Content.MixedTreeList">
+    <hideRoot>True</hideRoot>
+    <noLines>True</noLines>
+    <useButtons>False</useButtons>
+    <columnHeadings>Who (Participants)</columnHeadings>
+    <columnHeadings>About (Headline)</columnHeadings>
+    <columnHeadings>Date (Start Time)</columnHeadings>
+    <columnWidths>135</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+
+    <open>True</open>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </TreeList>
+
+  <!-- Calendar View -->
+  <BoxContainer itemName="CalendarListView">
+    <contentSpec itemref="view:calendarQuery"/>
+
+    <childrenBlocks itemref="view:ContentMenu"/>
+    <childrenBlocks itemref="view:GenerateContentMenuItem"/>
+    <childrenBlocks itemref="view:CalendarTreeList"/>
+
+    <blockEvents itemref="view:GenerateContentItemsEvent"/>
+
+    <open>True</open>
+    <eventBoundary>True</eventBoundary>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
+
+  <!-- Notes View -->
+  <BoxContainer itemName="NoteListView">
+    <contentSpec itemref="view:notesQuery"/>
+
+    <childrenBlocks itemref="view:ContentMenu"/>
+    <childrenBlocks itemref="view:GenerateContentMenuItem"/>
+    <childrenBlocks itemref="view:NoteTreeList"/>
+
+    <blockEvents itemref="view:GenerateContentItemsEvent"/>
+
+    <open>True</open>
+    <eventBoundary>True</eventBoundary>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
+
+  <!-- Contacts View -->
+  <BoxContainer itemName="ContactListView">
+    <contentSpec itemref="view:contactQuery"/>
+
+    <childrenBlocks itemref="view:ContentMenu"/>
+    <childrenBlocks itemref="view:GenerateContentMenuItem"/>
+    <childrenBlocks itemref="view:ContactTreeList"/>
+
+    <blockEvents itemref="view:GenerateContentItemsEvent"/>
+
+    <open>True</open>
+    <eventBoundary>True</eventBoundary>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
+
+  <!-- Mixed View -->
+  <BoxContainer itemName="MixedListView">
+    <contentSpec itemref="view:mixedQuery"/>
+
+    <childrenBlocks itemref="view:ContentMenu"/>
+    <childrenBlocks itemref="view:GenerateContentMenuItem"/>
+    <childrenBlocks itemref="view:MixedTreeList"/>
+
+    <blockEvents itemref="view:GenerateContentItemsEvent"/>
+
+    <open>True</open>
+    <eventBoundary>True</eventBoundary>
+
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
+
+
+</core:Parcel>

@@ -101,6 +101,7 @@
     <Enumeration itemName="queryEnumType">
       <values>ContainerSearch</values>
       <values>listOfItems</values>
+      <values>kind</values>
     </Enumeration>
 
     <Attribute itemName="queryEnum">

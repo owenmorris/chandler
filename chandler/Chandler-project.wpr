@@ -425,5 +425,5 @@ file_list = ['../release/bin/Lib/site-packages/wxPython/xrc.py',
              'repository/util/ext/uuid.h',
              'version.py']
 file_type = 'shared'
-main_debug_file = 'ChandlerNew.py'
+main_debug_file = 'Chandler.py'
 version = '1.0'
