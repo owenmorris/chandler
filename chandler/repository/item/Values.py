@@ -92,7 +92,7 @@ class Values(dict):
         
         item = self._item
         kind = item._kind
-        repository = item.getRepository()
+        repository = item.itsView
 
         for key, value in self.iteritems():
             if kind is not None:

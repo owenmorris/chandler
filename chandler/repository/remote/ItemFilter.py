@@ -61,7 +61,7 @@ class ItemFilter(XMLOffFilter):
 
     def textEnd(self, attrs):
 
-        value = self.repository.getLobType('text')(self.repository)
+        value = self.repository._getLobType('text')(self.repository)
         value.load(self.data, attrs)
         generator = self.generator
         

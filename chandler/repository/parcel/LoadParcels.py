@@ -11,7 +11,7 @@ import mx.DateTime as DateTime
 
 from repository.parcel.ParcelLoader import ParcelLoader
 from repository.parcel.Parcel import Parcel
-from repository.persistence.Repository import RepositoryError
+from repository.persistence.RepositoryError import RepositoryError
 
 from repository.item.Query import KindQuery
 
@@ -43,7 +43,7 @@ def SearchFile(filePath, searchPath):
     raise IOError, "File not found %s" % filePath
 
 def WalkParcels(rootParcel):
-    repo = rootParcel.getRepository()
+    repo = rootParcel.itsView
     rootParcelPath = tuple(rootParcel.itsPath)
     rootParcelPathLen = len(rootParcelPath)
 

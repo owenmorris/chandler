@@ -40,3 +40,33 @@ class Attribute(Item):
                 return aspectAttr.getAttributeValue('defaultValue')
         
         return kwds.get('default', None)
+
+    def _walk(self, path, callable, **kwds):
+
+        l = len(path)
+        
+        if path[0] == '//':
+            if l == 1:
+                return self
+            roots = self.getAttributeValue('roots', default=Item.Nil,
+                                           _attrDict=self._values)
+            if roots is Item.Nil:
+                root = None
+            else:
+                root = roots.get(path[1], None)
+            index = 1
+
+        elif path[0] == '/':
+            root = self.getAttributeValue('root', default=None,
+                                          _attrDict=self._values)
+            index = 0
+
+        root = callable(self, path[index], root, **kwds)
+
+        if root is not None:
+            index += 1
+            if index == l:
+                return root
+            return root.walk(path, callable, index, **kwds)
+
+        return None

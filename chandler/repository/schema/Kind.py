@@ -59,8 +59,7 @@ class Kind(Item):
         
         if not self.getAttributeValue('superKinds', default=None,
                                       _attrDict = self._references):
-            self.getRepository().logger.warn('No superKinds for %s',
-                                             self.itsPath)
+            self.itsView.logger.warn('No superKinds for %s', self.itsPath)
             result = False
 
         return result
@@ -180,8 +179,7 @@ class Kind(Item):
         superKinds = self.getAttributeValue('superKinds', default=None,
                                             _attrDict=self._references)
         if not superKinds:
-            self.getRepository().logger.warn('No superKinds for %s',
-                                             self.itsPath)
+            self.itsView.logger.warn('No superKinds for %s', self.itsPath)
             return [ self._kind.itsParent['Item'] ]
 
         return superKinds
@@ -302,7 +300,7 @@ class Kind(Item):
             return True
 
         if isinstance(value, SingleRef):
-            return self.getRepository()[value.itsUUID].isItemOf(self)
+            return self.itsView[value.itsUUID].isItemOf(self)
 
         if isinstance(value, Item):
             return value.isItemOf(self)

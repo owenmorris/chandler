@@ -29,13 +29,13 @@ class ContentModel(Parcel.Parcel):
 
     def onItemLoad(self):
         super(ContentModel, self).onItemLoad()
-        repository = self.getRepository()
+        repository = self.itsView
         parent = repository.findPath('//userdata/contentitems')
         self._setUUIDs(parent)
 
     def startupParcel(self):
         Parcel.Parcel.startupParcel(self)
-        repository = self.getRepository()
+        repository = self.itsView
         parent = repository.findPath('//userdata/contentitems')
         if not parent:
             itemKind = repository.findPath('//Schema/Core/Item')

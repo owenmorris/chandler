@@ -14,8 +14,9 @@ from repository.item.Item import Item
 from repository.util.UUID import UUID
 from repository.util.ThreadLocal import ThreadLocal
 from repository.util.SAX import XMLGenerator
-from repository.persistence.Repository import Repository, RepositoryError
+from repository.persistence.Repository import Repository
 from repository.persistence.Repository import OnDemandRepository, Store
+from repository.persistence.RepositoryError import RepositoryError
 from repository.persistence.XMLRepositoryView import XMLRepositoryView
 from repository.persistence.DBContainer import DBContainer, RefContainer
 from repository.persistence.DBContainer import VerContainer, HistContainer
@@ -133,9 +134,9 @@ class XMLRepository(OnDemandRepository):
 
             self._status |= self.OPEN
 
-    def close(self, purge=False):
+    def close(self):
 
-        super(XMLRepository, self).close(purge)
+        super(XMLRepository, self).close()
 
         if self.isOpen():
             self.store.close()
@@ -143,9 +144,9 @@ class XMLRepository(OnDemandRepository):
             self._env = None
             self._status &= ~self.OPEN
 
-    def _createView(self):
+    def createView(self, name=None):
 
-        return XMLRepositoryView(self)
+        return XMLRepositoryView(self, name)
 
 
     OPEN_FLAGS = DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN | DB_THREAD
@@ -171,8 +172,6 @@ class XMLContainer(object):
         if kwds.get('create', False):
             self._xml.open(txn, DB_CREATE | DB_DIRTY_READ | DB_THREAD)
             self._xml.addIndex(txn, "", "kind",
-                               "node-element-equality-string")
-            self._xml.addIndex(txn, "", "container",
                                "node-element-equality-string")
             self._xml.addIndex(txn, "", "id",
                                "node-attribute-equality-string")
@@ -210,51 +209,6 @@ class XMLContainer(object):
             return None
 
         return self.loadItem(version, uuid)
-
-    def loadRoots(self, version):
-
-        ctx = XmlQueryContext()
-        ctx.setReturnType(XmlQueryContext.ResultDocuments)
-        ctx.setEvaluationType(XmlQueryContext.Lazy)
-        ctx.setVariableValue("uuid", XmlValue(Repository.itsUUID.str64()))
-        ctx.setVariableValue("version", XmlValue(float(version)))
-        roots = {}
-        store = self.store
-        view = store.repository.view
-        txnStarted = False
-
-        try:
-            txnStarted = store.startTransaction()
-            if self.version in ('1.2.0', '1.2.1'):
-                for value in self._xml.queryWithXPath(store.txn,
-                                                      "/item[container=$uuid and number(@version)<=$version]",
-                                                      ctx, DB_DIRTY_READ):
-                    doc = value.asDocument()
-                    xml = doc.getContent()
-                    match = self.nameExp.match(xml, xml.index("<name>"))
-                    name = match.group(1)
-
-                    if not name in view._roots:
-                        ver = self.getDocVersion(doc)
-                        if not name in roots or ver > roots[name][0]:
-                            roots[name] = (ver, doc)
-            else:
-                raise ValueError, "dbxml %s not supported" %(self.version)
-
-        finally:
-            if txnStarted:
-                store.abortTransaction()
-
-        value = XmlValue()
-        for name, (ver, doc) in roots.iteritems():
-            if (doc.getMetaData('', 'deleted', value) and
-                value.asString() == 'True'):
-                continue
-            uuid = self.getDocUUID(doc)
-            if store._versions.getDocVersion(uuid, version) != ver:
-                continue
-            if not name in view._roots:
-                view._loadDoc(doc)
 
     def queryItems(self, version, query):
 
@@ -407,10 +361,6 @@ class XMLStore(Store):
 
         return self._data.loadChild(version, uuid, name)
 
-    def loadRoots(self, version):
-
-        self._data.loadRoots(version)
-
     def loadRef(self, version, uItem, uuid, key):
 
         buffer = self._refs.prepareKey(uItem, uuid)
@@ -444,6 +394,10 @@ class XMLStore(Store):
     def readName(self, version, key, name):
 
         return self._names.readName(version, key, name)
+
+    def readNames(self, version, key):
+
+        return self._names.readNames(version, key)
 
     def writeName(self, version, key, name, uuid):
 

@@ -9,7 +9,7 @@ from libxml2 import createPushParser
 from repository.remote.ItemFilter import ItemFilter
 from repository.util.UUID import UUID
 from repository.util.SAX import ContentHandler, XMLOffFilter
-from repository.persistence.Repository import NoSuchItemError
+from repository.persistence.RepositoryError import NoSuchItemError
 
 
 class CloudFilter(ItemFilter):
@@ -148,7 +148,7 @@ class RefHandler(ContentHandler):
 
         ContentHandler.__init__(self)
 
-        self.repository = endpoint.getRepository()
+        self.repository = endpoint.itsView
         self.name = name
         self.uuid = uuid
         self.version = version

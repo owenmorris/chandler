@@ -37,7 +37,7 @@ class PKITestViewParcel(Parcel):
 
         # Make sure our view is in the sidebar
         Parcel.startupParcel(self)
-        rep = self.getRepository()
+        rep = self.itsView
         urlRoot = rep.findPath("//parcels/osaf/views/main/URLRoot")
         pkiNode = rep.findPath("//parcels/pkitest/views/PKITestViewNode")
         if urlRoot and pkiNode:

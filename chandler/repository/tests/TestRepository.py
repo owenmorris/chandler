@@ -9,6 +9,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import RepositoryTestCase, os, unittest
 
+from repository.util.Path import Path
 from bsddb.db import DBNoSuchFileError
 
 class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
@@ -49,7 +50,7 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
             print path
             print x.itsName
 
-        self.rep.walk('//Schema/Core/Parcel', callme)
+        self.rep.walk(Path('//Schema/Core/Parcel'), callme)
 #TODO what's a resonable test here?
         pass
 

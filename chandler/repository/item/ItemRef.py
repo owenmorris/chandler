@@ -123,7 +123,7 @@ class ItemRef(object):
 
     def check(self, item, name):
 
-        logger = item.getRepository().logger
+        logger = item.itsView.logger
         
         try:
             other = self.other(item)
@@ -473,7 +473,7 @@ class RefDict(LinkedMap):
 
     def _getRepository(self):
 
-        return self._item.getRepository()
+        return self._item.itsView
 
     def _isTransient(self):
 
@@ -626,17 +626,17 @@ class RefDict(LinkedMap):
 
     def _load(self, key):
 
-        repository = self._item.getRepository()
+        repository = self._item.itsView
         loading = None
         
         try:
-            loading = repository.setLoading()
+            loading = repository._setLoading()
             ref = self._loadRef(key)
             if ref is not None:
                 args = RefArgs(self._name, ref[0], ref[1],
                                self._otherName, None, self,
                                ref[2], ref[3], ref[4])
-                value = args.attach(self._item, self._item.getRepository())
+                value = args.attach(self._item, repository)
                 if value is not None:
                     self.__setitem__(args.refName, value, args.previous,
                                      args.next, args.alias, False)
@@ -644,7 +644,7 @@ class RefDict(LinkedMap):
                 return True
         finally:
             if loading is not None:
-                repository.setLoading(loading)
+                repository._setLoading(loading)
 
         return False
 
@@ -674,7 +674,7 @@ class RefDict(LinkedMap):
 
         return default
 
-    def getByAlias(self, alias, load=True):
+    def getByAlias(self, alias, default=None, load=True):
         'Get the item referenced through the alias.'
 
         key = None
@@ -686,7 +686,7 @@ class RefDict(LinkedMap):
             key = self.resolveAlias(alias)
 
         if key is None:
-            raise KeyError, alias
+            return default
             
         return self[key]
 

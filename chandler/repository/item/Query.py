@@ -43,12 +43,12 @@ class KindQuery(Query):
     def run(self, kinds):
 
         for kind in kinds:
-            for item in kind.getRepository()._newItems():
+            for item in kind.itsView._newItems():
                 if item.itsKind is kind:
                     yield item
 
             query = "/item[kind='%s']" %(kind.itsUUID.str64())
-            for item in kind.getRepository().queryItems(query):
+            for item in kind.itsView.queryItems(query):
                 yield item
 
             if self.recursive:

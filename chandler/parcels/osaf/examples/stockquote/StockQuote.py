@@ -14,7 +14,7 @@ class StockQuoteViewParcel(Parcel):
     def startupParcel(self):
         # Make sure our view is in the sidebar
         Parcel.startupParcel(self)
-        rep = self.getRepository()
+        rep = self.itsView
         urlRoot = rep.findPath("//parcels/osaf/views/main/URLRoot")
         sqNode = rep.findPath("//parcels/osaf/examples/stockquote/views/StockQuoteViewNode")
         if urlRoot and sqNode:

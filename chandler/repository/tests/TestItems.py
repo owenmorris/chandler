@@ -41,7 +41,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(item.isDirty())
         self.failIf(item.isDeleted())
         self.failIf(item.isStale())
-        self.assertEquals(self.rep.view, item.getRepository())
+        self.assertEquals(self.rep.view, item.itsView)
 
 #TODO test toXML
         xml = item.toXML()

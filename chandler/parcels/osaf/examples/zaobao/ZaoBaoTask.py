@@ -20,7 +20,7 @@ def MainThreadCommit():
 
 class UpdateAction(Action):
     def Execute(self, task):
-        repository = self.getRepository()
+        repository = self.itsView
 
         repository.commit()
         #print 'Updating feeds...'

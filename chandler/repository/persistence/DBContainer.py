@@ -496,6 +496,59 @@ class NamesContainer(DBContainer):
                 if txnStarted:
                     self.store.abortTransaction()
 
+    def readNames(self, version, key):
+
+        results = []
+        cursorKey = key._uuid
+            
+        while True:
+            txnStarted = False
+            cursor = None
+
+            try:
+                txnStarted = self.store.startTransaction()
+                cursor = self.cursor()
+                
+                try:
+                    value = cursor.set_range(cursorKey, flags=self._flags)
+                except DBNotFoundError:
+                    return results
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(12)
+                        continue
+                    else:
+                        raise
+
+                currentHash = None
+                
+                try:
+                    while value is not None and value[0].startswith(cursorKey):
+                        nameHash, nameVer = unpack('>ll', value[0][-8:])
+                
+                        if nameHash != currentHash and ~nameVer <= version:
+                            currentHash = nameHash
+
+                            if value[1] != value[0][0:16]:    # !deleted name
+                                results.append(UUID(value[1]))
+
+                        value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(13)
+                        continue
+                    else:
+                        raise
+
+                return results
+
+            finally:
+                if cursor:
+                    cursor.close()
+                if txnStarted:
+                    self.store.abortTransaction()
+
 
 class ACLContainer(DBContainer):
 

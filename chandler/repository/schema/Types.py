@@ -27,7 +27,7 @@ class TypeKind(Kind):
 
         super(TypeKind, self)._fillItem(name, parent, kind, **kwds)
 
-        typeHandlers = ItemHandler.typeHandlers[self.getRepository()]
+        typeHandlers = ItemHandler.typeHandlers[self.itsView]
         typeHandlers[None] = self._uuid
 
     def findTypes(self, value):
@@ -62,7 +62,7 @@ class Type(Item):
     def _registerTypeHandler(self, implementationType):
         
         if implementationType is not None:
-            typeHandlers = ItemHandler.typeHandlers[self.getRepository()]
+            typeHandlers = ItemHandler.typeHandlers[self.itsView]
             if implementationType in typeHandlers:
                 typeHandlers[implementationType].append(self._uuid)
             else:
@@ -287,7 +287,7 @@ class UUID(Type):
 
     def eval(self, value):
 
-        return self.getRepository()[value]
+        return self.itsView[value]
 
     def _compareTypes(self, other):
 
@@ -330,7 +330,7 @@ class SingleRef(Type):
 
     def eval(self, value):
 
-        return self.getRepository()[value.itsUUID]
+        return self.itsView[value.itsUUID]
 
     def _compareTypes(self, other):
 
@@ -488,7 +488,7 @@ class Struct(Type):
                                         default={})
 
         if fields:
-            repository = self.getRepository()
+            repository = self.itsView
             generator.startElement('fields', {})
             for fieldName, field in fields.iteritems():
                 self._fieldXML(repository, value, fieldName, field, generator)
@@ -766,7 +766,7 @@ class Dictionary(Collection):
 
     def typeXML(self, value, generator, withSchema):
 
-        repository = self.getRepository()
+        repository = self.itsView
 
         generator.startElement('values', {})
         for key, val in value._iteritems():
@@ -810,7 +810,7 @@ class List(Collection):
 
     def typeXML(self, value, generator, withSchema):
 
-        repository = self.getRepository()
+        repository = self.itsView
 
         generator.startElement('values', {})
         for val in value._itervalues():
@@ -852,7 +852,7 @@ class Lob(Type):
     def startValue(self, itemHandler):
 
         itemHandler.tagCounts.append(0)
-        itemHandler.value = self.getImplementationType()(self.getRepository())
+        itemHandler.value = self.getImplementationType()(self.itsView)
 
     def isValueReady(self, itemHandler):
 
@@ -863,13 +863,13 @@ class Text(Lob):
 
     def getImplementationType(self):
 
-        return self.getRepository().getLobType('text')
+        return self.itsView._getLobType('text')
 
     def makeValue(self, data,
                   encoding='utf-8', mimetype='text/plain', compression='bz2',
                   indexed=False):
 
-        text = self.getImplementationType()(self.getRepository(),
+        text = self.getImplementationType()(self.itsView,
                                             encoding, mimetype, indexed)
         if data:
             writer = text.getWriter(compression)
@@ -900,11 +900,11 @@ class Binary(Lob):
 
     def getImplementationType(self):
 
-        return self.getRepository().getLobType('binary')
+        return self.itsView._getLobType('binary')
 
     def makeValue(self, data, mimetype='text/plain', compression=None):
 
-        binary = self.getImplementationType()(self.getRepository(), mimetype)
+        binary = self.getImplementationType()(self.itsView, mimetype)
         if data:
             out = binary.getOutputStream(compression)
             out.write(data)

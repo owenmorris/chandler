@@ -382,7 +382,7 @@ class wxApplication (wx.App):
         need to add a final commit when the application quits to save data the
         state of the user's world, e.g. window location and size.
         """
-        Globals.repository.commit(purge=True)
+        Globals.repository.commit()
         Globals.repository.close()
 
     def OnMainThreadCallbackEvent(self, event):

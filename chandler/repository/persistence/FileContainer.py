@@ -14,7 +14,7 @@ from PyLucene import Document, Field
 
 from repository.util.UUID import UUID
 from repository.persistence.DBContainer import DBContainer
-from repository.persistence.Repository import RepositoryError
+from repository.persistence.RepositoryError import RepositoryError
 
 
 class FileContainer(DBContainer):

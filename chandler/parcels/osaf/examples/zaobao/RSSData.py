@@ -28,7 +28,7 @@ class ZaoBaoParcel(Parcel):
         super(ZaoBaoParcel, self).onItemLoad()
 
         # @@@ hackery to avoid threading conflicts
-        repository = self.getRepository()
+        repository = self.itsView
         parent = repository.findPath('//userdata/zaobaoitems')
         
         self._setUUIDs(parent)
@@ -38,7 +38,7 @@ class ZaoBaoParcel(Parcel):
 
         # @@@ hackery to avoid threading conflicts
         # Create a separate parent for RSSItems
-        repository = self.getRepository()
+        repository = self.itsView
         parent = repository.findPath('//userdata/zaobaoitems')
         if not parent:
             itemKind = repository.findPath('//Schema/Core/Item')

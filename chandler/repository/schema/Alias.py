@@ -25,7 +25,7 @@ class Alias(Type):
                 if t.recognizes(value):
                     return t
         else:
-            return ItemHandler.typeHandler(self.getRepository(), value)
+            return ItemHandler.typeHandler(self.itsView, value)
 
         return None
         

@@ -14,9 +14,10 @@ from bsddb.db import DBLockDeadlockError, DBNotFoundError
 from repository.item.Item import Item
 from repository.item.Values import Values, ItemValue
 from repository.item.ItemRef import RefDict, TransientRefDict
-from repository.persistence.Repository import Repository, RepositoryError
-from repository.persistence.Repository import VersionConflictError
-from repository.persistence.Repository import OnDemandRepositoryView
+from repository.persistence.RepositoryError import RepositoryError
+from repository.persistence.RepositoryError import VersionConflictError
+from repository.persistence.RepositoryView import OnDemandRepositoryView
+from repository.persistence.Repository import Repository
 from repository.persistence.Repository import RepositoryNotifications
 from repository.util.UUID import UUID
 from repository.util.SAX import XMLGenerator
@@ -26,17 +27,17 @@ from repository.util.Streams import ConcatenatedInputStream, NullInputStream
 
 class XMLRepositoryView(OnDemandRepositoryView):
 
-    def __init__(self, repository):
+    def openView(self):
 
-        super(XMLRepositoryView, self).__init__(repository)
+        super(XMLRepositoryView, self).openView()
 
         self._log = []
-        self._notifications = RepositoryNotifications(repository)
+        self._notifications = RepositoryNotifications(self.repository)
         self._indexWriter = None
+
+    def _logItem(self, item):
         
-    def logItem(self, item):
-        
-        if super(XMLRepositoryView, self).logItem(item):
+        if super(XMLRepositoryView, self)._logItem(item):
             self._log.append(item)
             return True
         
@@ -62,6 +63,12 @@ class XMLRepositoryView(OnDemandRepositoryView):
             else:
                 item.setDirty(0)
                 item._unloadItem()
+
+        for item in self._log():
+            if not item.isNew():
+                self.logger.debug('reloading version %d of %s',
+                                  self.version, item)
+                self._loadItem(item._uuid, instance=item)
 
         del self._log[:]
         self._notRoots.clear()
@@ -96,14 +103,14 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         return results
 
-    def createRefDict(self, item, name, otherName, persist, readOnly):
+    def _createRefDict(self, item, name, otherName, persist, readOnly):
 
         if persist:
             return XMLRefDict(self, item, name, otherName, readOnly)
         else:
             return TransientRefDict(item, name, otherName, readOnly)
 
-    def getLobType(self, mode):
+    def _getLobType(self, mode):
 
         if mode == 'text':
             return XMLText

@@ -452,7 +452,7 @@ class Item(object):
                 _attrDict is None and name in self._values):
                 value = self._values[name]
                 if isinstance(value, SingleRef):
-                    value = self.getRepository().find(value.itsUUID)
+                    value = self.getRepositoryView().find(value.itsUUID)
                 return value
 
             elif (_attrDict is self._references or
@@ -665,7 +665,7 @@ class Item(object):
         are logged in the Chandler execution log.
         """
 
-        logger = self.getRepository().logger
+        logger = self.getRepositoryView().logger
         result = True
 
         def checkValue(name, value, attrType):
@@ -1082,8 +1082,8 @@ class Item(object):
         """
         Tell whether this item is pinned.
 
-        A pinned item is never freed from memory nor marked stale, unless it
-        is deleted with L{delete}.
+        A pinned item is not freed from memory or marked stale, until it
+        is un-pinned or deleted.
         
         @return: C{True} or C{False}
         """
@@ -1094,8 +1094,8 @@ class Item(object):
         """
         Pin or Un-pin this item.
 
-        A pinned item is never freed from memory nor marked stale unless it
-        is deleted with L{delete}.
+        A pinned item is not freed from memory or marked stale until it
+        is un-pinned or deleted with L{delete}.
         """
 
         if pinned:
@@ -1150,13 +1150,13 @@ class Item(object):
         if dirty:
             self._lastAccess = Item._countAccess()
             if self._status & Item.DIRTY == 0:
-                repository = self.getRepository()
+                repository = self.getRepositoryView()
                 if repository is not None and not repository.isLoading():
                     if attribute is not None:
                         if self.getAttributeAspect(attribute, 'persist',
                                                    default=True) == False:
                             return False
-                    if repository.logItem(self):
+                    if repository._logItem(self):
                         self._status |= dirty
                         return True
                     elif self._status & Item.NEW:
@@ -1325,7 +1325,7 @@ class Item(object):
     def _getRoot(self):
 
         if self._root.isStale():
-            self._root = self.getRepository()[self._root._uuid]
+            self._root = self.getRepositoryView()[self._root._uuid]
             
         return self._root
 
@@ -1333,9 +1333,9 @@ class Item(object):
 
         if root is not self._root:
 
-            oldRepository = self.getRepository()
+            oldRepository = self.getRepositoryView()
             self._root = root
-            newRepository = self.getRepository()
+            newRepository = self.getRepositoryView()
 
             if oldRepository is not newRepository:
 
@@ -1356,7 +1356,7 @@ class Item(object):
     def __getParent(self):
 
         if self._parent.isStale():
-            self._parent = self.getRepository()[self._parent._uuid]
+            self._parent = self.getRepositoryView()[self._parent._uuid]
             
         return self._parent
 
@@ -1364,7 +1364,7 @@ class Item(object):
 
         kind = self._kind
         if kind is not None and kind._status & Item.STALE:
-            kind = self.getRepository()[kind._uuid]
+            kind = self.getRepositoryView()[kind._uuid]
             self._kind = kind
                 
         return kind
@@ -1423,11 +1423,11 @@ class Item(object):
             acl = Item.Nil
 
         if acl is Item.Nil:
-            acl = self.getRepository().getACL(self._uuid, name, self._version)
+            acl = self.getRepositoryView().getACL(self._uuid, name, self._version)
 
         return acl
 
-    def getRepository(self):
+    def getRepositoryView(self):
         """
         Return this item's repository view.
 
@@ -1525,7 +1525,7 @@ class Item(object):
         
         if self.__dict__.has_key('_children'):
 
-            loading = self.getRepository().isLoading()
+            loading = self.getRepositoryView().isLoading()
             current = self.getItemChild(name, not loading)
                 
             if current is not None:
@@ -1576,7 +1576,7 @@ class Item(object):
         if load and child is None:
             hasNot = '_notChildren' in self.__dict__
             if not (hasNot and name in self._notChildren):
-                child = self.getRepository()._loadChild(self, name)
+                child = self.getRepositoryView()._loadChild(self, name)
                 if child is None:
                     if not hasNot:
                         self._notChildren = { name: name }
@@ -1644,26 +1644,38 @@ class Item(object):
         it to C{False}. Items are loaded as needed by default.
 
         @param path: an item path
-        @type path: a C{Path} instance or a string representing a path
+        @type path: a L{Path<repository.util.Path.Path>} instance
         @param callable: a function, method, or lambda body
         @type callable: a python callable
         @param kwds: optional keywords passed to the callable
         @return: the item the walk finished on or C{None}
         """
 
-        if _index == 0 and not isinstance(path, Path):
-            path = Path(path)
-
         l = len(path)
         if l == 0 or _index >= l:
             return None
 
+        attrName = kwds.get('attribute', None)
+        if attrName is not None:
+            attr = self._kind.getAttribute(attrName)
+            if attr is None:
+                raise TypeError, 'Attribute %s not found for item %s of kind %s' %(attrName, self.itsPath, self._kind.itsPath)
+        else:
+            attr = None
+        
         if _index == 0:
             if path[0] == '//':
-                return self.getRepository().walk(path, callable, 1, **kwds)
+                if attr is not None:
+                    return attr._walk(path, callable, **kwds)
+                else:
+                    return self.getRepositoryView().walk(path, callable, 1,
+                                                         **kwds)
 
             elif path[0] == '/':
-                return self.itsRoot.walk(path, callable, 1, **kwds)
+                if attr is not None:
+                    return attr._walk(path, callable, **kwds)
+                else:
+                    return self.itsRoot.walk(path, callable, 1, **kwds)
 
         if path[_index] == '.':
             if _index == l - 1:
@@ -1671,11 +1683,31 @@ class Item(object):
             return self.walk(path, callable, _index + 1, **kwds)
 
         if path[_index] == '..':
-            if _index == l - 1:
-                return self.itsParent
-            return self.itsParent.walk(path, callable, _index + 1, **kwds)
+            if attr is not None:
+                otherName = attr.otherName
+                parent = self.getAttributeValue(otherName,
+                                                _attrDict=self._references)
+                otherAttr = self._kind.getAttribute(attr.otherName)
+                if otherAttr.cardinality == 'list':
+                    parent = parent.first()
+            else:
+                parent = self.itsParent
 
-        child = self.getItemChild(path[_index], kwds.get('load', True))
+            if _index == l - 1:
+                return parent
+            
+            return parent.walk(path, callable, _index + 1, **kwds)
+
+        if attr is not None:
+            children = self.getAttributeValue(attrName,
+                                              _attrDict=self._references,
+                                              default=None)
+            if children is not None:
+                child = children.getByAlias(path[_index], default=None,
+                                            load=kwds.get('load', True))
+        else:
+            child = self.getItemChild(path[_index], kwds.get('load', True))
+            
         child = callable(self, path[_index], child, **kwds)
         if child is not None:
             if _index == l - 1:
@@ -1684,7 +1716,7 @@ class Item(object):
 
         return None
 
-    def find(self, spec, load=True):
+    def find(self, spec, attribute=None, load=True):
         """
         Find an item.
 
@@ -1701,28 +1733,32 @@ class Item(object):
         @param spec: a path or UUID
         @type spec: L{Path<repository.util.Path.Path>} or
                     L{UUID<repository.util.UUID.UUID>} 
+        @param attribute: the attribute for the ref-collections to search
+        @type attribute: a string
         @param load: load the item if it not yet loaded, C{True} by default
         @type load: boolean
         @return: an item or C{None} if not found
         """
 
         if isinstance(spec, UUID):
-            return self.getRepository().find(spec, load)
+            return self.getRepositoryView().find(spec, load)
 
         if isinstance(spec, Path):
             return self.walk(spec, lambda parent, name, child, **kwds: child,
-                             load=load)
+                             attribute=attribute, load=load)
 
         raise TypeError, '%s is not Path or UUID' %(type(spec))
 
-    def findPath(self, path, load=True):
+    def findPath(self, path, attribute=None, load=True):
         """
         Find an item by path.
 
         See L{find} for more information.
 
         @param path: a path
-        @type path: L{Path<repository.util.Path.Path>} or a path string.
+        @type path: L{Path<repository.util.Path.Path>} or a path string
+        @param attribute: the attribute for the ref-collections to search
+        @type attribute: a string
         @param load: load the item if it not yet loaded, C{True} by default
         @type load: boolean
         @return: an item or C{None} if not found
@@ -1734,7 +1770,7 @@ class Item(object):
             raise TypeError, '%s is not Path or string' %(type(path))
 
         return self.walk(path, lambda parent, name, child, **kwds: child,
-                         load=load)
+                         attribute=attribute, load=load)
 
     def findUUID(self, uuid, load=True):
         """
@@ -1743,7 +1779,7 @@ class Item(object):
         See L{find} for more information.
 
         @param uuid: a UUID
-        @type uuid: L{UUID<repository.util.UUID.UUID>} or a uuid string.
+        @type uuid: L{UUID<repository.util.UUID.UUID>} or a uuid string
         @param load: load the item if it not yet loaded, C{True} by default
         @type load: boolean
         @return: an item or C{None} if not found
@@ -1754,7 +1790,7 @@ class Item(object):
         elif not isinstance(uuid, UUID):
             raise TypeError, '%s is not UUID or string' %(type(uuid))
 
-        return self.getRepository().find(uuid, load)
+        return self.getRepositoryView().find(uuid, load)
 
     def toXML(self):
         """
@@ -1920,7 +1956,7 @@ class Item(object):
             self.onItemUnload()
 
         if not self._status & Item.STALE:
-            repository = self.getRepository()
+            repository = self.getRepositoryView()
 
             self._status |= Item.DIRTY
 
@@ -1947,8 +1983,8 @@ class Item(object):
         if persist is None:
             persist = self.getAttributeAspect(name, 'persist', default=True)
 
-        return self.getRepository().createRefDict(self, name, otherName,
-                                                  persist, False)
+        return self.getRepositoryView()._createRefDict(self, name, otherName,
+                                                       persist, False)
 
     def _countAccess(cls):
 
@@ -2050,6 +2086,13 @@ class Item(object):
                        to this root when used with this item.
                        """)
 
+    itsView = property(fget = getRepositoryView,
+                       doc =
+                       """
+                       Return this item's repository view.
+                       See L{getRepositoryView} for more information.
+                       """)
+
     itsKind = property(fget = __getKind,
                        doc = 
                        """
@@ -2103,7 +2146,8 @@ class Children(LinkedMap):
 
     def _load(self, key):
 
-        if self._item.getRepository()._loadChild(self._item, key) is not None:
+        if self._item.getRepositoryView()._loadChild(self._item,
+                                                     key) is not None:
             return True
 
         return False

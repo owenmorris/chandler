@@ -223,5 +223,6 @@ def generateDocs(buildenv):
                           '--no-private',
                           'parcels/osaf/framework/notifications',
                           'repository/item',
+                          'repository/persistence',
                           'repository/util',
                           'repository/schema')

@@ -54,7 +54,7 @@ class AgentManager:
             return
 
         self.agentIndex.append(agentItem)
-        agentItem.getRepository().commit()
+        agentItem.itsView.commit()
 
         agentID = agentItem.itsUUID
         self.agentMap[agentID] = Agent.Agent(agentID)
@@ -65,7 +65,7 @@ class AgentManager:
             raise KeyError, 'Agent Not Registered'
 
         self.agentIndex.removeValue('items', agentItem)
-        agentItem.getRepository().commit()
+        agentItem.itsView.commit()
 
         agentID = agentItem.itsUUID
         del self.agentMap[agentID]

@@ -10,7 +10,7 @@ from repository.item.Item import Item
 from repository.item.ItemRef import RefDict
 from repository.remote.CloudFilter import CloudFilter, EndpointFilter
 from repository.remote.CloudFilter import RefHandler
-from repository.persistence.Repository import NoSuchItemError
+from repository.persistence.RepositoryError import NoSuchItemError
 
 
 class Cloud(Item):
@@ -67,7 +67,7 @@ class Cloud(Item):
             uuids = {}
             
         if not uuid in uuids:
-            store = self.getRepository().store
+            store = self.itsView.store
 
             uuids[uuid] = uuid
             if xml is None:
@@ -113,7 +113,7 @@ class Endpoint(Item):
                 policy = self.includePolicy
 
                 if policy == 'byValue':
-                    filter = EndpointFilter(self, self.getRepository().store,
+                    filter = EndpointFilter(self, self.itsView.store,
                                             uuid, version, generator)
                     filter.parse(xml)
                     uuids[uuid] = uuid
@@ -123,7 +123,7 @@ class Endpoint(Item):
                                                    _attrDict=self._references)
                     if cloud is None:
                         match = self.kindExp.match(xml, xml.index("<kind "))
-                        kind = self.getRepository()[UUID(match.group(1))]
+                        kind = self.itsView[UUID(match.group(1))]
                         cloud = kind.getClouds()
                         if not cloud:
                             raise TypeError, 'No cloud for %s' %(kind.itsPath)
@@ -139,7 +139,7 @@ class Endpoint(Item):
             handler.parse(xml)
 
             if handler.values is not None:
-                store = self.getRepository().repository.store
+                store = self.itsView.store
                 for uuid in handler.values:
                     doc = store.loadItem(version, uuid)
                     if doc is None:

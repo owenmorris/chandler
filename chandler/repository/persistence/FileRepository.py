@@ -10,17 +10,22 @@ from datetime import datetime
 
 from repository.util.UUID import UUID
 from repository.util.SAX import XMLGenerator
-from repository.persistence.Repository import Repository, RepositoryError
-from repository.persistence.Repository import RepositoryView
+from repository.persistence.Repository import Repository
+from repository.persistence.RepositoryError import RepositoryError
+from repository.persistence.RepositoryView import RepositoryView
 from repository.item.ItemRef import RefDict, TransientRefDict
 
 
 class FileRepository(Repository):
-    """A basic one-shot XML files based repository.
+    """
+    A basic one-shot XML files based repository.
 
     This simple repository implementation saves all items in separate XML
     item files in a given directory. It can then load them back to restore
-    the same exact item hierarchy."""
+    the same exact item hierarchy.
+
+    This is a debugging feature.
+    """
 
     def create(self):
 
@@ -40,20 +45,14 @@ class FileRepository(Repository):
         if self.isOpen():
             self._status &= ~self.OPEN
 
-    def commit(self, purge=False):
+    def createView(self, name=None):
 
-        super(FileRepository, self).commit(purge)
-        if purge:
-            self.view.purge()
-
-    def _createView(self):
-
-        return FileRepositoryView(self)
+        return FileRepositoryView(self, name)
 
 
 class FileRepositoryView(RepositoryView):
 
-    def createRefDict(self, item, name, otherName, persist):
+    def _createRefDict(self, item, name, otherName, persist):
 
         if persist:
             return FileRefDict(item, name, otherName)
@@ -67,7 +66,7 @@ class FileRepositoryView(RepositoryView):
         dbHome = self.repository.dbHome
         
         try:
-            loading = self.setLoading()
+            loading = self._setLoading()
             if os.path.isdir(dbHome):
                 contents = file(os.path.join(dbHome, 'contents.lst'), 'r')
             
@@ -75,7 +74,7 @@ class FileRepositoryView(RepositoryView):
                     self._loadItems(dir[:-1])
         finally:
             if loading is not None:
-                self.setLoading(loading)
+                self._setLoading(loading)
 
     def _loadItems(self, dir):
 
@@ -93,9 +92,6 @@ class FileRepositoryView(RepositoryView):
             hook()
 
     def _loadItem(self, uuid):
-        return None
-
-    def _loadRoot(self, name):
         return None
 
     def _loadChild(self, parent, name):

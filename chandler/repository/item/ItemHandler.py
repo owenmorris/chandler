@@ -118,8 +118,8 @@ class ItemHandler(ContentHandler):
                                                    name, self.name)
 
                 otherName = self.getOtherName(name, attribute, attrs)
-                refDict = self.repository.createRefDict(None, name, otherName,
-                                                        True, readOnly)
+                refDict = self.repository._createRefDict(None, name, otherName,
+                                                         True, readOnly)
                 
                 if attrs.has_key('first'):
                     firstKey = self.makeValue(attrs.get('firstType', 'str'),
