@@ -231,9 +231,11 @@ class wxApplication (wxApp):
             events = []
             for event in GlobalEvents.blockEvents:
                 events.append (event)
-            for event in mainView.blockEvents:
-                events.append (event)
-
+            try:
+                for event in mainView.blockEvents:
+                    events.append (event)
+            except AttributeError:            
+                pass
             Globals.notificationManager.Subscribe (events,
                                                    Globals.mainView.getUUID(),
                                                    Globals.mainView.dispatchEvent)
