@@ -1,4 +1,3 @@
-__author__ = "John Anderson"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
@@ -213,7 +212,7 @@ class wxApplication (wxApp):
             """
             EVT_MENU(self, XRCID ('CreateNewRepository'), 
                      self.OnCreateNewRepository)
-
+            
         EVT_MENU(self, -1, self.OnCommand)
         EVT_UPDATE_UI(self, -1, self.OnCommand)
 
@@ -277,7 +276,7 @@ class wxApplication (wxApp):
         result = dialog.ShowModal()
         if result == wxID_OK:
             dialog.SavePreferences()
-            self.LoginIfNecessary()
+            self.HandleSystemPreferences()
             
     def LoadParcels(self):       
         """
@@ -341,9 +340,22 @@ class wxApplication (wxApp):
         # This gives a chance for the app to respond to the events as well
         event.Skip()
 
-    # LoginIfNecessary is called after the preferences have changed
-    # to login to the jabber server if necessary
+    # HandleSystemPreferences is called after the preferences
+    # changed to handle changing the state for varous
+    # system preferences
+    def HandleSystemPreferences(self):
+        self.LoginIfNecessary()
+        if __debug__:
+            self.SetupDebugMenu()
+        
+    # LoginIfNecessary logs in to the jabber server if necessary
     def LoginIfNecessary(self):
        if not self.jabberClient.IsConnected():
            self.jabberClient.ReadAccountFromPreferences()
            self.jabberClient.Login()
+
+    # make the visibility of the debug menu correspond to the
+    # preference
+    def SetupDebugMenu(self):
+        debugFlag = self.model.preferences.GetPreferenceValue('chandler/debugging/debugmenu')
+        self.wxMainFrame.ShowOrHideDebugMenu(debugFlag)

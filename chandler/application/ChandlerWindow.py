@@ -1,3 +1,4 @@
+
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
@@ -120,27 +121,47 @@ class wxChandlerWindow(wxFrame):
             self.SetAcceleratorTable(aTable)
             EVT_MENU (self, toggleDebugMenuId, self.OnToggleDebugMenu)
 
+            # turn on the debug menu if necessary
+            debugFlag = application.Application.app.model.preferences.GetPreferenceValue('chandler/debugging/debugmenu')
+            if debugFlag == None:
+                debugFlag = 0
+            self.ShowOrHideDebugMenu(debugFlag)
+        
         EVT_MOVE(self, self.OnMove)
         EVT_SIZE(self, self.OnSize)
         EVT_CLOSE(self, self.OnClose)
         EVT_ACTIVATE(self, self.OnActivate)
 
     if __debug__:
-        def OnToggleDebugMenu(self, event):
-            menuBar = self.GetMenuBar ()
+        def HasDebugMenu(self):
+            menuBar = self.GetMenuBar()
+            index = menuBar.FindMenu(_('Debug'))
+            return index != wxNOT_FOUND
+        
+        def ShowOrHideDebugMenu(self, showFlag):
+            hasMenu = self.HasDebugMenu()
+            if hasMenu == showFlag:
+                return
             
-            index = menuBar.FindMenu (_('Debug'))
-            if index == wxNOT_FOUND:
+            menuBar = self.GetMenuBar()  
+            if hasMenu:
+                index = menuBar.FindMenu(_('Debug'))
+                oldMenu = menuBar.Remove(index)
+                del oldMenu
+            else:
                 applicationResources = application.Application.app.applicationResources
-                debugMenu = applicationResources.LoadMenu ('DebugMenu')
-                menuBar.Append (debugMenu, _('Debug'))
-                menuBar.Check (XRCID ('CreateNewRepository'),
+                debugMenu = applicationResources.LoadMenu('DebugMenu')
+                menuBar.Append(debugMenu, _('Debug'))
+                menuBar.Check(XRCID('CreateNewRepository'),
                                hasattr (application.Application.app.model,
                                         'CreateNewRepository'))
-            else:
-                oldMenu = menuBar.Remove (index)
-                del oldMenu
 
+        def OnToggleDebugMenu(self, event):
+            hasMenu = self.HasDebugMenu()
+            self.ShowOrHideDebugMenu(not hasMenu)
+            preferences = application.Application.app.model.preferences
+            preferences.SetPreferenceValue('chandler/debugging/debugmenu', not hasMenu)
+            
     def OnMove(self, event):
         """
           Calling Skip causes wxWindows to continue processing the event, which
