@@ -40,7 +40,7 @@ if [ -d "$RPM_PATH/BUILD" ]; then
     chmod -R a+r $RPM_PATH/BUILD/OSAF/usr/local/Chandler/
     cd $SPEC_PATH
     echo "Calling rpm -ba $SPEC_FILE"
-    rpm -ba $SPEC_FILE
+    rpmbuild -ba $SPEC_FILE
     echo "Moving $RPM_PATH/RPMS/i386/Chandler-$SPEC_VERSION.i386.rpm to $DISTRIB_PATH/$DISTRIB_FILE.i386.rpm"
     mv $RPM_PATH/RPMS/i386/Chandler-$SPEC_VERSION.i386.rpm $DISTRIB_PATH/$DISTRIB_FILE.i386.rpm
     echo "Clearing build tree"
