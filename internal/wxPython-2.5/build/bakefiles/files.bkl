@@ -2159,6 +2159,7 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 <set var="ADVANCED_CMN_SRC" hints="files">
     src/generic/calctrl.cpp
     src/generic/minical.cpp
+    src/generic/colheader.cpp
     src/generic/grid.cpp
     src/generic/gridctrl.cpp
     src/generic/gridsel.cpp
@@ -2173,9 +2174,11 @@ IMPORTANT: please read docs/tech/tn0016.txt before modifying this file!
 <set var="ADVANCED_CMN_HDR" hints="files">
     wx/calctrl.h
     wx/minical.h
+    wx/colheader.h
     wx/dcbuffer.h
     wx/generic/calctrl.h
     wx/generic/minical.h
+    wx/generic/colheader.h
     wx/generic/grid.h
     wx/generic/gridctrl.h
     wx/generic/gridsel.h

@@ -844,6 +844,7 @@ ADVDLL_CXXFLAGS = $(__advdll_PCH_INC) -D__WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p) \
 ADVDLL_OBJECTS =  \
 	advdll_calctrl.o \
 	advdll_minical.o \
+	advdll_colheader.o \
 	advdll_grid.o \
 	advdll_gridctrl.o \
 	advdll_gridsel.o \
@@ -865,6 +866,7 @@ ADVLIB_CXXFLAGS = $(__advlib_PCH_INC) -D__WX$(TOOLKIT)__ $(__WXUNIV_DEFINE_p) \
 ADVLIB_OBJECTS =  \
 	advlib_calctrl.o \
 	advlib_minical.o \
+	advlib_colheader.o \
 	advlib_grid.o \
 	advlib_gridctrl.o \
 	advlib_gridsel.o \
@@ -2253,9 +2255,11 @@ COND_USE_GUI_1_ALL_GUI_HEADERS =  \
 	$(GUI_CORE_HEADERS) \
 	wx/calctrl.h \
 	wx/minical.h \
+	wx/colheader.h \
 	wx/dcbuffer.h \
 	wx/generic/calctrl.h \
 	wx/generic/minical.h \
+	wx/generic/colheader.h \
 	wx/generic/grid.h \
 	wx/generic/gridctrl.h \
 	wx/generic/gridsel.h \
@@ -2462,6 +2466,7 @@ COND_USE_GUI_1___MONOLIB_GUI_SRC_OBJECTS =  \
 	$(__CORE_SRC_OBJECTS) \
 	monodll_calctrl.o \
 	monodll_minical.o \
+	monodll_colheader.o \
 	monodll_grid.o \
 	monodll_gridctrl.o \
 	monodll_gridsel.o \
@@ -3399,6 +3404,7 @@ COND_USE_GUI_1___MONOLIB_GUI_SRC_OBJECTS_1 =  \
 	$(__CORE_SRC_OBJECTS_1) \
 	monolib_calctrl.o \
 	monolib_minical.o \
+	monolib_colheader.o \
 	monolib_grid.o \
 	monolib_gridctrl.o \
 	monolib_gridsel.o \
@@ -8741,6 +8747,9 @@ monodll_calctrl.o: $(srcdir)/src/generic/calctrl.cpp $(MONODLL_ODEP)
 monodll_minical.o: $(srcdir)/src/generic/minical.cpp $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $<
 
+monodll_colheader.o: $(srcdir)/src/generic/colheader.cpp $(MONODLL_ODEP)
+	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $<
+
 monodll_grid.o: $(srcdir)/src/generic/grid.cpp $(MONODLL_ODEP)
 	$(CXXC) -c -o $@ $(MONODLL_CXXFLAGS) $<
 
@@ -11902,6 +11911,9 @@ monolib_calctrl.o: $(srcdir)/src/generic/calctrl.cpp $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $<
 
 monolib_minical.o: $(srcdir)/src/generic/minical.cpp $(MONOLIB_ODEP)
+	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $<
+
+monolib_colheader.o: $(srcdir)/src/generic/colheader.cpp $(MONOLIB_ODEP)
 	$(CXXC) -c -o $@ $(MONOLIB_CXXFLAGS) $<
 
 monolib_grid.o: $(srcdir)/src/generic/grid.cpp $(MONOLIB_ODEP)
@@ -20402,6 +20414,9 @@ advdll_calctrl.o: $(srcdir)/src/generic/calctrl.cpp $(ADVDLL_ODEP)
 advdll_minical.o: $(srcdir)/src/generic/minical.cpp $(ADVDLL_ODEP)
 	$(CXXC) -c -o $@ $(ADVDLL_CXXFLAGS) $<
 
+advdll_colheader.o: $(srcdir)/src/generic/colheader.cpp $(ADVDLL_ODEP)
+	$(CXXC) -c -o $@ $(ADVDLL_CXXFLAGS) $<
+
 advdll_grid.o: $(srcdir)/src/generic/grid.cpp $(ADVDLL_ODEP)
 	$(CXXC) -c -o $@ $(ADVDLL_CXXFLAGS) $<
 
@@ -20520,6 +20535,9 @@ advlib_calctrl.o: $(srcdir)/src/generic/calctrl.cpp $(ADVLIB_ODEP)
 	$(CXXC) -c -o $@ $(ADVLIB_CXXFLAGS) $<
 
 advlib_minical.o: $(srcdir)/src/generic/minical.cpp $(ADVLIB_ODEP)
+	$(CXXC) -c -o $@ $(ADVLIB_CXXFLAGS) $<
+
+advlib_colheader.o: $(srcdir)/src/generic/colheader.cpp $(ADVLIB_ODEP)
 	$(CXXC) -c -o $@ $(ADVLIB_CXXFLAGS) $<
 
 advlib_grid.o: $(srcdir)/src/generic/grid.cpp $(ADVLIB_ODEP)
