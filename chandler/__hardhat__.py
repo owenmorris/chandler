@@ -67,13 +67,19 @@ def distribute(buildenv):
     if buildenv['os'] == 'posix':
 
         if buildenv['version'] == 'release':
-            manifestFile = "manifest.linux"
+            manifestFile = "distrib/linux/manifest.linux"
+            handleManifest(buildenv, manifestFile)
+
+    if buildenv['os'] == 'osx':
+
+        if buildenv['version'] == 'release':
+            manifestFile = "distrib/osx/manifest.osx"
             handleManifest(buildenv, manifestFile)
 
     if buildenv['os'] == 'win':
 
         if buildenv['version'] == 'release':
-            manifestFile = "manifest.win"
+            manifestFile = "distrib" + os.sep + "win" + os.sep + "manifest.win"
             handleManifest(buildenv, manifestFile)
 
 

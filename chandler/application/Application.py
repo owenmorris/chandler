@@ -122,8 +122,7 @@ class wxApplication (wxApp):
         wxInitAllImageHandlers()
         
         self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
-        resourceFile = self.chandlerDirectory +\
-                       os.sep + "application" +\
+        resourceFile = "application" +\
                        os.sep + "application.xrc"
 
         #Check for the file's existance in debugging code
