@@ -3,3 +3,8 @@
 2003-08-04 Morgen Sagen <morgen@osafoundation.org>
    * The build now generates a debugging version of the "end-user" distro 
      that parcel developers can use.
+
+2003-09-08 Morgen Sagen <morgen@osafoundation.org>
+    * The PyCrust interactive shell is now included; to bring it up, enable
+      the debug menu via Shift-Control-Alt-D and select Show Debugger Window.
+    * The zlib extension is now included on all three platforms.

@@ -40,3 +40,10 @@
  
     * CHANDLERDIR environment variable is set when executing external commands
     * parcels directory is put in sys.path when running unit tests
+
+2003-09-08 Morgen Sagen
+
+    * Added XSLT transformation of schema files via the "-g" flag
+    * Chandler's customized Python interpreter is debuggable with WingIDE
+      if you install our debug modules from 
+      http://downloads.osafoundation.org/wing/
