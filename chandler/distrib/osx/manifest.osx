@@ -17,7 +17,7 @@ Library/Frameworks/Python.framework/Versions/2.3
 
 src=release/lib
 dest=lib
-libwx_mac-2.4.0.0.0.dylib
+libwx_mac-2.4.0.dylib
 libwx_mac-2.4.0.r
 libwx_mac-2.4.0.rsrc
 wx/include/mac-2.4/wx/setup.h
