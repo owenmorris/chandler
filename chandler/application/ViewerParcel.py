@@ -120,6 +120,11 @@ class ViewerParcel (Parcel):
         """
         self.SynchronizeView()
         return true
+
+    # by default, no views are remotely accessible.  Real parcels override this to
+    # make their views public or otherwise accessible
+    def GetAccessibleViews(self, who):
+        return []
     
 class wxViewerParcel(wxPanel):
     def __init__(self):

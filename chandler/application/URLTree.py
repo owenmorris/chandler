@@ -43,6 +43,13 @@ class URLTree(Persistent):
                 return true
         return false
 
+    # return a list of all the parcels currently installed in the tree
+    def GetParcelList(self):
+        parcels = []
+        for entry in self.tree[0].children:
+            parcels.append(entry.parcel)
+        return parcels
+    
     def UriExists(self, uri):
         """
           If the uri exists, then this returns the parcel associated

@@ -353,9 +353,16 @@ class wxApplication (wxApp):
 	# return a list of views accessible to the user represented by
 	# the passed in jabberID by looping through all the parcels
 	# and asking them
-	# FIXME: this is a stub for now, just return a static set
 	def GetAccessibleViews(self, jabberID):
-		return ['Calendar', 'Contacts', 'Contacts/Coworkers']
+		parcels = self.model.URLTree.GetParcelList()
+		accessibleViews = []
+		
+		for parcel in parcels:
+			parcelViews = parcel.GetAccessibleViews(jabberID)
+			for view in parcelViews:
+				accessibleViews.append(view)
+				
+		return accessibleViews
 	
 	# handler for the Show/Hide Presence Window command
 	def TogglePresenceWindow(self, event):
