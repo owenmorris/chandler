@@ -2,7 +2,7 @@
 
 <item>
   <name>Actor</name>
-  <kind type="path">//Schema/Model/Kind</kind>
+  <kind type="path">//Schema/Core/Kind</kind>
 
   <ref name="attributes">
     <ref alias="name" type="path">/CineGuide/Attributes/name</ref>
@@ -12,7 +12,7 @@
   </ref>
 
   <ref name="superKinds">
-    <ref type="path">/Model/Item</ref>
+    <ref type="path">/Core/Item</ref>
   </ref>
 
 </item>

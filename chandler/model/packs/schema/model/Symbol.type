@@ -2,6 +2,6 @@
 
 <item withSchema="True">
   <name>Symbol</name>
-  <kind type="path">//Schema/Model/Type</kind>
+  <kind type="path">//Schema/Core/Type</kind>
   <class module="model.schema.Types">Symbol</class>
 </item>

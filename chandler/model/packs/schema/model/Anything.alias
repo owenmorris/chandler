@@ -2,6 +2,6 @@
 
 <item withSchema="True">
   <name>Anything</name>
-  <kind type="path">//Schema/Model/Alias</kind>
+  <kind type="path">//Schema/Core/Alias</kind>
   <class module="model.schema.Alias">Alias</class>
 </item>

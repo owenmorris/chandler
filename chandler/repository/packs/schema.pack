@@ -3,7 +3,7 @@
 <pack name="Schema" cwd="schema">
 
   <item file="Schema.root" afterLoadHooks="True">
-    <item file="Model.domain" cwd="model">
+    <item file="Core.domain" cwd="model">
 
       <item files="*.type" />
       <item files="*.alias" />

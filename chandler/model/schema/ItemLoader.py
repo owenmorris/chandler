@@ -186,7 +186,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def createParcel(self, uri, local, nameString):
         # @@@ Ick!
-        parcelKind = self.repository.find("//Schema/Model/Item")
+        parcelKind = self.repository.find("//Schema/Core/Item")
         schema = self.repository.find("//Schema")
         parcels = self.repository.find("//Parcels")
         schemaItem = parcelKind.newItem(name, schema)

@@ -12,7 +12,7 @@
   <version>0.1</version>
 
   <itemPathMapping prefix="types"
-                   path="//Schema/Model/"/>
+                   path="//Schema/Core/"/>
   <itemPathMapping prefix="agents"
                    path="//Schema/AgentsSchema/"/>
 

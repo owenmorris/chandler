@@ -4,7 +4,7 @@
 
   <item withSchema="True">
     <name>Item</name>
-    <kind type="path">//Schema/Model/Kind</kind>
+    <kind type="path">//Schema/Core/Kind</kind>
     <class module="model.schema.Kind">ItemKind</class>
 
     <ref name="attributes" otherName="kinds" cardinality="list" 
@@ -24,9 +24,9 @@
 
   <item withSchema="True">
     <name>kind</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Item</parent>
+    <parent type="path">//Schema/Core/Item</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">

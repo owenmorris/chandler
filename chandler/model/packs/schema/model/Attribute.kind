@@ -4,7 +4,7 @@
 
   <item withSchema="True">
     <name>Attribute</name>
-    <kind type="path">//Schema/Model/Kind</kind>
+    <kind type="path">//Schema/Core/Kind</kind>
     <class module="model.schema.Kind">Kind</class>
 
     <ref name="attributes" otherName="kinds" cardinality="list" 
@@ -20,7 +20,7 @@
 
     <ref name="superKinds" cardinality="list"
          otherName="subKinds" otherCard="list">
-      <ref type="path">/Model/Item</ref>
+      <ref type="path">/Core/Item</ref>
     </ref>
 
     <attribute name="classes" cardinality="dict" 
@@ -31,9 +31,9 @@
 
   <item withSchema="True">
     <name>required</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -41,7 +41,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/Boolean</ref>
+         type="path" otherCard="list">/Core/Boolean</ref>
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue" type="bool">False</attribute>
@@ -49,9 +49,9 @@
 
   <item withSchema="True">
     <name>persist</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -59,7 +59,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/Boolean</ref>
+         type="path" otherCard="list">/Core/Boolean</ref>
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue" type="bool">True</attribute>
@@ -67,9 +67,9 @@
 
   <item withSchema="True">
     <name>cardinality</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -77,7 +77,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor"
-         type="path" otherCard="list">/Model/Cardinality</ref>
+         type="path" otherCard="list">/Core/Cardinality</ref>
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue">single</attribute>
@@ -85,9 +85,9 @@
 
   <item withSchema="True">
     <name>type</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -100,9 +100,9 @@
 
   <item withSchema="True">
     <name>defaultValue</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -110,16 +110,16 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/Anything</ref>
+         type="path" otherCard="list">/Core/Anything</ref>
 
     <attribute name="cardinality">single</attribute>
   </item>
 
   <item withSchema="True">
     <name>inheritFrom</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -127,16 +127,16 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/String</ref>
+         type="path" otherCard="list">/Core/String</ref>
 
     <attribute name="cardinality">single</attribute>
   </item>
 
   <item withSchema="True">
     <name>otherName</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -144,16 +144,16 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/Symbol</ref>
+         type="path" otherCard="list">/Core/Symbol</ref>
 
     <attribute name="cardinality">single</attribute>
   </item>
 
   <item withSchema="True">
     <name>deletePolicy</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -161,7 +161,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/DeletePolicy</ref>
+         type="path" otherCard="list">/Core/DeletePolicy</ref>
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue">remove</attribute>
@@ -169,9 +169,9 @@
 
   <item withSchema="True">
     <name>copyPolicy</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -179,7 +179,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/CopyPolicy</ref>
+         type="path" otherCard="list">/Core/CopyPolicy</ref>
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue">remove</attribute>
@@ -187,9 +187,9 @@
 
   <item withSchema="True">
     <name>countPolicy</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -197,7 +197,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/CountPolicy</ref>
+         type="path" otherCard="list">/Core/CountPolicy</ref>
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue">none</attribute>
@@ -205,9 +205,9 @@
 
   <item withSchema="True">
     <name>inheritingKinds</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -221,9 +221,9 @@
 
   <item withSchema="True">
     <name>kinds</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -236,9 +236,9 @@
 
   <item withSchema="True">
     <name>superAttribute</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -246,7 +246,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/Attribute</ref>
+         type="path" otherCard="list">/Core/Attribute</ref>
 
     <attribute name="cardinality">single</attribute>
     <attribute name="otherName">subAttributes</attribute>
@@ -254,9 +254,9 @@
 
   <item withSchema="True">
     <name>subAttributes</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Attribute</parent>
+    <parent type="path">//Schema/Core/Attribute</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -264,7 +264,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/Attribute</ref>
+         type="path" otherCard="list">/Core/Attribute</ref>
 
     <attribute name="cardinality">list</attribute>
     <attribute name="otherName">superAttribute</attribute>

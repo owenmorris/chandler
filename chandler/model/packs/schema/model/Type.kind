@@ -4,7 +4,7 @@
 
   <item withSchema="True">
     <name>Type</name>
-    <kind type="path">//Schema/Model/Kind</kind>
+    <kind type="path">//Schema/Core/Kind</kind>
     <class module="model.schema.Kind">Kind</class>
 
     <ref name="attributes" otherName="kinds" cardinality="list" 
@@ -23,15 +23,15 @@
 
     <ref name="superKinds" cardinality="list"
          otherName="subKinds" otherCard="list">
-      <ref type="path">/Model/Taxon</ref>
+      <ref type="path">/Core/Taxon</ref>
     </ref>
   </item>
 
   <item withSchema="True">
     <name>fields</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Type</parent>
+    <parent type="path">//Schema/Core/Type</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -39,7 +39,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/Symbol</ref>
+         type="path" otherCard="list">/Core/Symbol</ref>
 
     <attribute name="cardinality">list</attribute>
     <attribute name="defaultValue" type="NoneType">None</attribute>

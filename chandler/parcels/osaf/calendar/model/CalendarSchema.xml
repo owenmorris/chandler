@@ -4,31 +4,31 @@
 
 <item>
   <name>startTime</name>
-  <kind type="path">//Schema/Model/AttrDef</kind>
+  <kind type="path">//Schema/Core/AttrDef</kind>
 
-  <ref name="Type" type="path">//Schema/Model/Types/DateTime</ref>  
+  <ref name="Type" type="path">//Schema/Core/Types/DateTime</ref>  
   <attribute name="Cardinality">single</attribute>
 </item>
 
 <item>
   <name>endTime</name>
-  <kind type="path">//Schema/Model/AttrDef</kind>
+  <kind type="path">//Schema/Core/AttrDef</kind>
 
-  <ref name="Type" type="path">//Schema/Model/Types/DateTime</ref>  
+  <ref name="Type" type="path">//Schema/Core/Types/DateTime</ref>  
   <attribute name="Cardinality">single</attribute>
 </item>
 
 <item>
   <name>headline</name>
-  <kind type="path">//Schema/Model/AttrDef</kind>
+  <kind type="path">//Schema/Core/AttrDef</kind>
 
-  <ref name="Type" type="path">//Schema/Model/Types/String</ref>  
+  <ref name="Type" type="path">//Schema/Core/Types/String</ref>  
   <attribute name="Cardinality">single</attribute>
 </item>
 
 <item>
   <name>location</name>
-  <kind type="path">//Schema/Model/AttrDef</kind>
+  <kind type="path">//Schema/Core/AttrDef</kind>
 
   <attribute name="Cardinality">single</attribute>
   <attribute name="OtherName">usedAsLocation</attribute>
@@ -36,7 +36,7 @@
 
 <item>
   <name>usedAsLocation</name>
-  <kind type="path">//Schema/Model/AttrDef</kind>
+  <kind type="path">//Schema/Core/AttrDef</kind>
   
   <attribute name="Cardinality">single</attribute>
   <attribute name="OtherName">location</attribute>
@@ -44,22 +44,22 @@
 
 <item>
   <name>name</name>
-  <kind type="path">//Schema/Model/AttrDef</kind>
+  <kind type="path">//Schema/Core/AttrDef</kind>
   
-  <ref name="Type" type="path">//Schema/Model/Types/String</ref>
+  <ref name="Type" type="path">//Schema/Core/Types/String</ref>
   <attribute name="Cardinality">single</attribute>
 </item>
 
 <item>
   <name>Location</name>
-  <kind type="path">//Schema/Model/Kind</kind>
+  <kind type="path">//Schema/Core/Kind</kind>
   
   <ref name="AttrDefs">
     <ref name="name" type="path">//Schema/CalendarSchema/name</ref>
   </ref>
 
   <ref name="SuperKinds">
-    <ref type="path">//Schema/Model/Item</ref>
+    <ref type="path">//Schema/Core/Item</ref>
   </ref>
 
   <attribute name="Classes">
@@ -70,7 +70,7 @@
 
 <item>
   <name>CalendarEvent</name>
-  <kind type="path">//Schema/Model/Kind</kind>
+  <kind type="path">//Schema/Core/Kind</kind>
 
   <ref name="AttrDefs">
     <ref name="headline" type="path">//Schema/CalendarSchema/headline</ref>
@@ -80,7 +80,7 @@
   </ref>
 
   <ref name="SuperKinds">
-    <ref type="path">//Schema/Model/Item</ref>
+    <ref type="path">//Schema/Core/Item</ref>
   </ref>
 
   <attribute name="Classes">

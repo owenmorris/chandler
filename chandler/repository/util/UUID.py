@@ -8,11 +8,13 @@ import UUIDext
 
 
 class UUID(object):
-    '''Implementation of UUID spec at http://www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt.
+    """Implementation of UUID spec at http://www.ics.uci.edu/pub/ietf/webdav/uuid-guid/draft-leach-uuids-guids-01.txt.
 
     A UUID is intended to be globally unique in the entire universe.
     It is a 128 bit number.
-    UUID objects can be used as dictionary keys and are comparable.'''
+    UUID objects can be used as dictionary keys and are comparable."""
+
+    __slots__ = "_uuid"
     
     def __init__(self, uuid=None):
 
@@ -24,7 +26,7 @@ class UUID(object):
             self._uuid = UUIDext.make(uuid)
             if not self._uuid:
                 raise ValueError, "Generating UUID from '%s' failed" %(uuid)
-            
+
     def __repr__(self):
 
         try:
@@ -35,6 +37,14 @@ class UUID(object):
     def __hash__(self):
 
         return UUIDext.hash(self._uuid)
+
+    def __getstate__(self):
+
+        return self._uuid
+
+    def __setstate__(self, state):
+
+        self._uuid = state
     
     def __eq__(self, other):
 

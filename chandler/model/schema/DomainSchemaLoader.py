@@ -72,17 +72,17 @@ BOOTSTRAP_IGNORE = ['DaylightSavingTimezone',
                     'ReferencePolicy',
                     'HeavyweightEnumeration']
 
-BOOTSTRAP = {'Boolean' : '//Schema/Model/Boolean',
-             'Number' : '//Schema/Model/Integer',
-             'SimpleString' : '//Schema/Model/String',
-             'PolyglotText' : '//Schema/Model/String',
-             'RigidDatetime' : '//Schema/Model/DateTime',
-             'ReferencePolicyEnum' : '//Schema/Model/String',
-             'RepositoryContainmentPath' : '//Schema/Model/String',
-             'Anything' : '//Schema/Model/String',
-             'AnyString' : '//Schema/Model/String',
-             'UnicodeString' : '//Schema/Model/String',
-             'AttributeOrAttributeChain' : '//Schema/Model/String'}
+BOOTSTRAP = {'Boolean' : '//Schema/Core/Boolean',
+             'Number' : '//Schema/Core/Integer',
+             'SimpleString' : '//Schema/Core/String',
+             'PolyglotText' : '//Schema/Core/String',
+             'RigidDatetime' : '//Schema/Core/DateTime',
+             'ReferencePolicyEnum' : '//Schema/Core/String',
+             'RepositoryContainmentPath' : '//Schema/Core/String',
+             'Anything' : '//Schema/Core/String',
+             'AnyString' : '//Schema/Core/String',
+             'UnicodeString' : '//Schema/Core/String',
+             'AttributeOrAttributeChain' : '//Schema/Core/String'}
 
 class DomainSchemaLoader(object):
     """ Load items defined in the schema file into the repository,
@@ -168,11 +168,11 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
             bootstrap = attrs.get((None, 'bootstrap'), "False")
             if bootstrap == 'True':
                 if local == 'Attribute':
-                    BOOTSTRAP[name] = '//Schema/Model/' + name
+                    BOOTSTRAP[name] = '//Schema/Core/' + name
                 elif local == 'Kind':
-                    BOOTSTRAP[name] = '//Schema/Model/' + name
+                    BOOTSTRAP[name] = '//Schema/Core/' + name
                 elif local == 'Type' or local == 'Alias':
-                    BOOTSTRAP[name] = '//Schema/Model/' + name
+                    BOOTSTRAP[name] = '//Schema/Core/' + name
                 if self.verbose:
                     print "Already loaded boostrap: %s" % idString
 
@@ -247,7 +247,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
     def createDomainSchema(self, idString, rootName):
         """Create a DomainSchema with the given id."""
         [prefix, name] = idString.split(':')
-        itemKind = self.repository.find('//Schema/Model/Item')
+        itemKind = self.repository.find('//Schema/Core/Item')
 
         self.domainSchemaName = name
 
@@ -263,8 +263,8 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
     def createKind(self, prefix, name):
         """Create a Kind item with the given id."""
-        kind = self.repository.find('//Schema/Model/Kind')
-        itemKind = self.repository.find('//Schema/Model/Item')
+        kind = self.repository.find('//Schema/Core/Kind')
+        itemKind = self.repository.find('//Schema/Core/Item')
         
         if self.verbose:
             print "Creating Kind: (%s, %s)" % (self.domainSchema.getItemPath(),
@@ -277,7 +277,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
     def createAttribute(self, prefix, name):
         """Create an Attribute item with the given id."""
-        kind = self.repository.find('//Schema/Model/Attribute')
+        kind = self.repository.find('//Schema/Core/Attribute')
         if self.verbose:
             print "Creating Attribute: (%s, %s)" % (self.domainSchema.getItemPath(),
                                                     name)
@@ -287,7 +287,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
     def createItem(self, prefix, name):
         """Create a generic item, for types, aliases, etc."""
-        kind = self.repository.find('//Schema/Model/Item')
+        kind = self.repository.find('//Schema/Core/Item')
         item = Item(name, self.domainSchema, kind)
         return item
 

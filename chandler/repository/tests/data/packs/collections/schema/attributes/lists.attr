@@ -2,7 +2,7 @@
 
 <item>
     <name>lists</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
 
     <attribute name="cardinality">list</attribute>
 </item>

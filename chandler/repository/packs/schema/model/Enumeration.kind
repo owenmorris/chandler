@@ -4,7 +4,7 @@
 
   <item withSchema="True">
     <name>Enumeration</name>
-    <kind type="path">//Schema/Model/Kind</kind>
+    <kind type="path">//Schema/Core/Kind</kind>
     <class module="model.schema.Kind">Kind</class>
 
     <ref name="attributes" otherName="kinds" cardinality="list"
@@ -18,7 +18,7 @@
 
     <ref name="superKinds" cardinality="list"
          otherName="subKinds" otherCard="list">
-      <ref type="path">//Schema/Model/Type</ref>
+      <ref type="path">//Schema/Core/Type</ref>
     </ref>
 
     <attribute name="classes" cardinality="dict" 
@@ -29,9 +29,9 @@
 
   <item withSchema="True">
     <name>values</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
+    <kind type="path">//Schema/Core/Attribute</kind>
     <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Enumeration</parent>
+    <parent type="path">//Schema/Core/Enumeration</parent>
 
     <ref name="kinds" otherName="attributes"
          cardinality="list" otherCard="list">
@@ -39,7 +39,7 @@
     </ref>
 
     <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/Symbol</ref>
+         type="path" otherCard="list">/Core/Symbol</ref>
 
     <attribute name="cardinality">list</attribute>
     <attribute name="required" type="bool">True</attribute>

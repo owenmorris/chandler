@@ -8,7 +8,7 @@
 <!-- the 'itemPathMapping' elements may be temporary -->
 <!-- they might get replaced once we figure out parcel loading -->
 <!-- right now, they're very handy for the xslt transform to our 'pack & item xml' formats -->
-  <itemPathMapping prefix="core" path="//Schema/Model/Proposed/"/>
+  <itemPathMapping prefix="core" path="//Schema/Core/Proposed/"/>
 
   <displayName>Core</displayName>
   <version>0</version>
