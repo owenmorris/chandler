@@ -18,7 +18,6 @@ dependencies = (
                 'jabber-py',
                 'SOAPpy',
                 'pychecker',
-                '4suite',
                 'Chandler/repository'
                )
 
