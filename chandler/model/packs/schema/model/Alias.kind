@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item withSchema="True">
+  <name>Alias</name>
+  <kind type="path">//Schema/Model/Kind</kind>
+
+  <ref name="Attributes" otherName="Kinds" cardinality="dict" otherCard="dict">
+    <ref name="TypeFor" type="path">/Model/Attributes/TypeFor</ref>
+    <ref name="Types" type="path">/Model/Attributes/Types</ref>
+    <ref name="AliasedBy" type="path">/Model/Attributes/AliasedBy</ref>
+  </ref>
+
+  <attribute name="Classes" cardinality="dict" 
+             type="model.schema.Types.Class">
+    <value name="python">model.schema.Alias.Alias</value>
+  </attribute>
+</item>

@@ -37,6 +37,17 @@ class Kind(Item):
 
         return attribute
 
+    def hasAttribute(self, name):
+
+        if self.hasValue('Attributes', name, _attrDict=self._references):
+            return True
+        
+        if self.hasValue('InheritedAttributes', name,
+                         _attrDict=self._references):
+            return True
+        
+        return self.inheritAttribute(name) is not None
+
     def inheritAttribute(self, name):
 
         if self.hasValue('NotFoundAttributes', name):

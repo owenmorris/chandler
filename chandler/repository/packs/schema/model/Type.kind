@@ -6,6 +6,7 @@
 
   <ref name="Attributes" otherName="Kinds" cardinality="dict" otherCard="dict">
     <ref name="TypeFor" type="path">/Model/Attributes/TypeFor</ref>
+    <ref name="AliasedBy" type="path">/Model/Attributes/AliasedBy</ref>
     <ref name="Fields" type="path">/Model/Attributes/Fields</ref>
     <ref name="Description" type="path">/Model/Attributes/Description</ref>
   </ref>
