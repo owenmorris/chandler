@@ -452,15 +452,15 @@
   
   <MenuItem itsName="SyncIMAPItem">
     <blockName>SyncIMAPItem</blockName>
-    <title>IMAP</title>
-    <helpString>Sync IMAP</helpString>
+    <title>Mail</title>
+    <helpString>Sync Mail</helpString>
     <event itemref="events:GetNewMail"/>
   </MenuItem>
   
   <MenuItem itsName="SyncWebDAVItem">
     <blockName>SyncWebDAVItem</blockName>
-    <title>WebDAV</title>
-    <helpString>Sync WebDAV</helpString>
+    <title>Shares</title>
+    <helpString>Sync Shares</helpString>
     <event itemref="doc:SyncWebDAV"/>
   </MenuItem>
   
