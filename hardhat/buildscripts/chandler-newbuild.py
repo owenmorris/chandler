@@ -72,9 +72,9 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                 # Now need to do the setup for external - "expand" and "make"
                 os.chdir(extModuleDir)
                 log.write("Environment variables: \n")
-                log.write("GCJ_HOME = " + os.getenv['GCJ_HOME'] + "\n")
+                log.write("GCJ_HOME = " + os.environ['GCJ_HOME'] + "\n")
                 os.putenv("BUILD_ROOT", extModuleDir)
-                log.write("BUILD_ROOT = " + os.getenv['BUILD_ROOT'] + "\n")
+                log.write("BUILD_ROOT = " + os.environ['BUILD_ROOT'] + "\n")
                 
                 print "Building " + relStr
                 log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
