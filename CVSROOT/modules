@@ -51,4 +51,20 @@ chandler-system -a \
 
 external external
 
+chandler-new -a \
+    osaf/chandler/Chandler \
+    osaf/chandler/egenix-mx \
+    osaf/chandler/jabber-py \
+    osaf/chandler/persistence \
+    osaf/chandler/pychecker \
+    osaf/chandler/python \
+    osaf/chandler/epydoc \
+    osaf/chandler/pyxml \
+    osaf/chandler/SOAPpy \
+    osaf/chandler/openssl \
+    osaf/chandler/m2crypto \
+    osaf/chandler/pyegads \
+    internal/ \
+    osaf/hardhat
+	
 0.3 osaf/chandler/Chandler/distrib/docs
