@@ -1,9 +1,9 @@
 #!/bin/sh
 #		Install Chandler
 #
-#		version 0.3 of 3/23/2004
+#		version 0.3.3 of 4/28/2004
 
-VERSION=0.3-1
+VERSION=0.3-3
 
 me=`echo "$0" | sed -e 's,.*/,,'`
 
@@ -21,58 +21,56 @@ help="
 Try \`$me --help' for more information."
 
 case $# in
- 0) echo "Build debug or release: -d or -r" >&2
+ 0) echo "$me --debug | --release | -d | -r  ?" >&2
     exit 1;;
  1) ;;
  *) echo "$me: too many arguments$help" >&2
     exit 1;;
 esac
 
-	if ! test -d osaf; then
-		echo "Getting Chandler source"
-		echo "(type anonymous after the following prompt)"
-		cvs -d :pserver:anonymous@cvs.osafoundation.org:/usr/local/cvsrep login
-		cvs -d :pserver:anonymous@cvs.osafoundation.org:/usr/local/cvsrep co chandler-app
+    echo "Install and startup Chandler developer distribution"
+    
+	if ! test -d chandler; then
+		echo "Getting Chandler from cvs"
+		if test -f ~/.cvspass; then
+			echo -c
+		else
+    		echo "(type anonymous after the following prompt)"
+            cvs -d :pserver:anonymous@cvs.osafoundation.org:/usr/local/cvsrep login
+		fi
+		cvs -d :pserver:anonymous@cvs.osafoundation.org:/usr/local/cvsrep -q co chandler hardhat Makefile
 	else
 		echo "Source already checked out"
 	fi
 
 	case $1 in
     --debug | --de* | -d )
-      if test -d osaf/chandler/debug; then
-        echo "Debug build exists; archiving it"
-        mv osaf/chandler/debug/ debug-`date +%Y%m%d-%H%M`
-      fi
-	  if ! test -f debug-$VERSION.tar.gz; then 
-		echo "Getting debug tarball"
-		curl -O http://builds.o11n.org/external/macosx/debug-$VERSION.tar.gz
-	  fi
-		echo "Expanding tarball"
-		tar -C osaf/chandler/ -xzf debug-$VERSION.tar.gz
-		dashd="-d"
+		if test -d debug; then
+			echo "Previous debug build exists; archiving it"
+			mv debug/ debug-`date +%Y%m%d-%H%M`
+		fi
+		bigD="DEBUG=1"
+		smallD="-d"
+		releaseDir="debug"
 	;;
     --release | --re* | -r )
-      if test -d osaf/chandler/release; then
-        echo "Release build exists; archiving it"
-        mv osaf/chandler/release/ release-`date +%Y%m%d-%H%M`
-      fi
-	  if ! test -f release-$VERSION.tar.gz; then 
-		echo "Getting release tarball"
-		curl -O http://builds.o11n.org/external/macosx/release-$VERSION.tar.gz
-	  fi
-		echo "Expanding tarball"
-		tar -C osaf/chandler/ -xzf release-$VERSION.tar.gz
-		dashd=
+		if test -d release; then
+			echo "Previous release build exists; archiving it"
+			mv release/ release-`date +%Y%m%d-%H%M`
+		fi
+		bigD=""
+		smallD=""
+		releaseDir="release"
 	;;
     --help | --h* | -h )
        echo "$usage"; exit 0 ;;
 	esac
-	
+
+	echo "Installing chandler"
+	make $bigD install
 	echo "Finalizing Installation"
-	cd osaf/chandler/Chandler/repository
-	../../../hardhat/hardhat.py $dashd -b
-	cd ..
-	../../hardhat/hardhat.py $dashd -b
-	echo "Ready to run - type cd osaf/chandler/Chandler"
-	echo "   then"
-	echo "               type ../../hardhat/hardhat.py $dashd -x"	
+	cd chandler
+	../hardhat/hardhat.py $smallD -b
+	
+	echo "Starting up ..."
+	../$releaseDir/RunRelease -stderr -create
