@@ -54,11 +54,10 @@ def receivedInvitation(url, collectionName, fromAddress):
 def sendInvitation(url, collectionName, sendToList):
     SMTPInvitationSender(url, collectionName, sendToList).sendInvitation()
 
-def NotifyUIAsync (message, logger=logging.info, **keys):
-    logger (message)
+def NotifyUIAsync(message, **keys):
     if Globals.wxApplication is not None: # test framework has no wxApplication
-        Globals.wxApplication.CallItemMethodAsync (Globals.mainView,
-                                                   'setStatusMessage',
+        Globals.wxApplication.CallItemMethodAsync(Globals.mainView,
+                                                  'setStatusMessage',
                                                    message, **keys)
 
 class SharingConstants(object):
@@ -95,10 +94,10 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
         self.collectionName = collectionName
         self.sendToList = sendToList
         self.accountUUID = None
+        self.factory = None
 
         if account is not None:
             self.accountUUID = account.itsUUID
-
 
     def sendInvitation(self):
         if __debug__:
@@ -143,14 +142,16 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
         finally:
             self.restorePreviousView()
 
-        factory = smtp.ChandlerESMTPSenderFactory(username, password, self.from_addr, self.sendToList, msg, d,
-                                                  self.log, retries, sslContext, heloFallback, authRequired, useSSL, useSSL)
+        self.factory = smtp.ChandlerESMTPSenderFactory(username, password, self.from_addr, self.sendToList, msg, d,
+                                                       retries, sslContext, heloFallback, authRequired, useSSL, useSSL)
 
-        reactor.connectTCP(host, port, factory)
+        reactor.connectTCP(host, port, self.factory)
 
     def __invitationSuccessCheck(self, result):
         if __debug__:
             self.printCurrentView("__invitationSuccessCheck")
+
+        self.factory.done = True
 
         if result[0] == len(result[1]):
             addrs = []
@@ -165,13 +166,20 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
             errorText = []
             for recipient in result[1]:
                 email, code, str = recipient
-                e = "Failed to send invitation | (%s: %s) | %s | %s | %s |" % (self.collectionName, self.url,
+
+                """If the recipient was accepted skip"""
+                if code == smtp.SMTPConstants.SUCCESS:
+                    continue
+
+                e = "Failed to send invitation | (%s: %s) | %s | %s | %s |" % (self.collectionName, 
+                                                                               self.url, 
                                                                                email, code, str)
                 errorText.append(e)
 
-            self.log.error('\n'.join(e))
-            NotifyUIAsync (_('Errors occurred sending invitations.  See the log file for more information.'),
-                           alert=True)
+            err = '\n'.join(errorText)
+
+            self.log.error(err)
+            NotifyUIAsync(_(err), alert=True)
 
         self.__cleanup()
 
@@ -179,9 +187,17 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
         if __debug__:
             self.printCurrentView("__invitationFailure")
 
-        e = "Failed to send invitation | (%s: %s) | %s |" % (self.collectionName, self.url, result.value)
+        self.factory.done = True
+
+        try:
+            desc = result.value.resp
+        except:
+            desc = result.value
+
+        e = "Failed to send invitation | (%s: %s) | %s |" % (self.collectionName, self.url,
+                                                             desc)
         self.log.error(e)
-        NotifyUIAsync (e, alert=True)
+        NotifyUIAsync(e, alert=True)
         self.__cleanup()
 
     def __cleanup(self):
