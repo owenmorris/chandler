@@ -550,6 +550,9 @@ class DateTimeDelta(Struct):
     def makeValue(self, data):
         return mx.DateTime.DateTimeDeltaFrom(str(data))
         
+    def makeString(self, value):
+        return str(value)
+
     def recognizes(self, value):
         return type(value) is self.getImplementationType()
 
@@ -590,6 +593,9 @@ class RelativeDateTime(Struct):
 
     def makeValue(self, data):
         return mx.DateTime.RelativeDateTimeFrom(str(data))
+
+    def makeString(self, value):
+        return str(value)
 
     def recognizes(self, value):
         return type(value) is self.getImplementationType()
