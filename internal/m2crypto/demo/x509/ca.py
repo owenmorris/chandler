@@ -37,6 +37,9 @@ def makeRequest(pkey):
     extstack = X509.X509_Extension_Stack()
     extstack.push(ext1)
     extstack.push(ext2)
+
+    assert(extstack[1].get_name() == 'nsComment')
+    
     req.add_extensions(extstack)
     req.sign(pkey, 'sha1')
     return req
@@ -76,6 +79,11 @@ def makeCert(req, caPkey):
     ext.set_critical(0)# Defaults to non-critical, but we can also set it
     cert.add_ext(ext)
     cert.sign(caPkey, 'sha1')
+
+    assert(cert.get_ext('subjectAltName').get_name() == 'subjectAltName')
+    assert(cert.get_ext_at(0).get_name() == 'subjectAltName')
+    assert(cert.get_ext_at(0).get_value() == 'DNS:foobar.example.com')
+    
     return cert
 
 def ca():
