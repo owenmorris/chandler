@@ -122,6 +122,14 @@ class ViewerParcel (Parcel):
         self.SynchronizeView()
         return true
 
+    def RedirectURI(self, uri):
+        """
+          give the parcel a chance to redirect the uri to another parcel.
+          By default, we don't do any mapping, but parcels can override
+          this if they want to.
+        """
+        return uri
+    
     def GetAccessibleViews(self, who):
         """
            By default, no views are remotely accessible.  Real parcels override

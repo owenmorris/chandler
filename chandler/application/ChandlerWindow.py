@@ -262,6 +262,18 @@ class wxChandlerWindow(wxFrame):
         if parcel == None:
             return false
         
+        """
+          give the parcel a chance to redirect the url to another parcel.  This allows
+          the roster to offer links to other parcels, for example
+        """
+        mappedURI = parcel.RedirectURI(uri)
+        if mappedURI != uri:
+            uri = mappedURI
+            parcelname, remoteaddress, localuri = self.ParseUri(uri)
+            parcel = application.Application.app.model.URLTree.UriExists(parcelname)
+            if parcel == None:
+                return false
+            
         self.sideBar.model.SelectUri(localuri)
         if doAddToHistory:
             self.navigationBar.model.AddUriToHistory(uri)
