@@ -67,7 +67,6 @@ $(SRC)/$(BUILD)/Makefile: apply
                      --srcdir=$(SRC) \
                      --with-python=$(WP) \
                      --with-pic \
-                     --without-pattern \
                      $(CONF_DBG)
 
 compile: $(SRC)/$(BUILD)/Makefile
