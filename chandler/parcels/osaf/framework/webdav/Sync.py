@@ -87,6 +87,34 @@ def merge(dav, item, davItem, hasLocalChanges):
     syncFromServer(item, davItem)
 
 
+def mergeList(item, attrName, nodes, nodesAreItemRefs):
+    from Dav import DAV, NotFound
+    list = item.getAttributeValue(attrName, default=[])
+
+    serverList = []
+    for node in nodes:
+        if nodesAreItemRefs:
+            try:
+                value = DAV(node.content).get()
+            except NotFound:
+                value = None
+        else:
+            value = node.content
+
+        if value:
+            serverList.append(value)
+
+    log.debug('Merging List: %s in %s' % (attrName, str(item)))
+    # for now, just sync with whatever the server gave us
+    for i in serverList:
+        if i not in list:
+            item.addValue(attrName, i)
+            log.debug('adding %s to list %s' % (i, item))
+    for i in list:
+        if i not in serverList:
+            item.removeValue(attrName, i)
+            log.debug('removing %s from list %s' % (i, item))
+
 
 
 def makePropString(name, namespace, value):
@@ -127,11 +155,10 @@ def syncToServer(dav, item):
             listData = ''
             for i in value:
                 if isinstance(i, Item):
-                    defaultURL = dav.url.join(i.itsUUID.str16())
                     try:
-                        durl = i.getAttributeValue('sharedURL')
+                        durl = i.sharedURL
                     except AttributeError:
-                        durl = defaultURL
+                        durl = dav.url.join(i.itsUUID.str16())
                     listData += '<itemref>' + unicode(durl) + '</itemref>'
                 else:
                     #XXX fix this (Value is a PersistentList here??)
@@ -141,11 +168,10 @@ def syncToServer(dav, item):
 
         elif acard == 'single':
             if isinstance(value, Item):
-                defaultURL = dav.url.join(value.itsUUID.str16())
                 try:
-                    durl = value.getAttributeValue('sharedURL')
+                    durl = value.sharedURL
                 except AttributeError:
-                    durl = defaultURL
+                    durl = dav.url.join(value.itsUUID.str16())
                     log.debug('Cant export %s -- Not a ContentItem' % (str(value)))
 
                 props += makePropString(name, namespace, '<itemref>%s</itemref>' % (unicode(durl)))
@@ -176,7 +202,7 @@ def syncToServer(dav, item):
     # End refactor
     #
 
-    r = dav.newConnection().setprops2(url, props)
+    r = dav.setProps(props)
     #print url, r.status, r.reason
     #print r.read()
     
@@ -207,7 +233,7 @@ def syncFromServer(item, davItem):
         if not value:
             continue
 
-        log.info('Getting:', name, '(' + attr.type.itsName + ')')
+        log.info('Getting: %s (%s)' % (name, attr.type.itsName))
 
         # see if its an ItemRef or not
         if isinstance(attr.type, Kind):
@@ -216,7 +242,10 @@ def syncFromServer(item, davItem):
             nodes = nodesFromXml(value)
 
             if attr.cardinality == 'list':
-                setfunc = item.addValue
+                # replaced by mergeList + continue
+                #setfunc = item.addValue
+                mergeList(item, name, nodes, True)
+                continue
             elif attr.cardinality == 'single':
                 setfunc = item.setAttributeValue
             elif attr.cardinality == 'dict':
@@ -234,11 +263,13 @@ def syncFromServer(item, davItem):
         else:
             if attr.cardinality == 'list':
                 nodes = nodesFromXml(value)
-                for node in nodes:
-                    item.addValue(name, node.content)
-                    log.info('Got.....: ', value)
+                # mergeList replaces this code
+                #for node in nodes:
+                #    item.addValue(name, node.content)
+                #    log.info('Got.....: ', value)
+                mergeList(item, name, nodes, False)
             elif attr.cardinality == 'single':
-                log.info('Got.....: ', value)
+                log.info('Got.....: %s' % (value))
                 item.setAttributeValue(name, attr.type.makeValue(value))
 
 
@@ -325,3 +356,4 @@ def getItem(dav):
     dav.sync(newItem)
 
     return newItem
+

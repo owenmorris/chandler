@@ -46,8 +46,8 @@ class DAV(object):
         """
         return DAVConnection(self.url)
 
-    def putResource(self, body, mimetype='text/plain/'):
-        return self.newConnection().put(unicode(self.url), body, mimetype, None)
+    def putResource(self, body, type='text/plain'):
+        return self.newConnection().put(unicode(self.url), body, type, None)
         # return status.. or maybe just throw an exception if the put failed
 
     def deleteResource(self):

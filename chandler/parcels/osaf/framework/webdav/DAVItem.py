@@ -89,6 +89,8 @@ class DAVItem(object):
         return self._getAttribute(attrname, attrns)
 
     def _getAttribute(self, attr, attrns):
+        # this would be a lot faster if we only allocated a single
+        # xpathContext per-DAVItem
         ctxt = self.doc.xpathNewContext()
         ctxt.xpathRegisterNs('D', 'DAV:')
         ctxt.xpathRegisterNs('O', attrns)
