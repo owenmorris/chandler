@@ -35,16 +35,16 @@ class PasswordTest(TestCase):
         try:
             p = Password.Password(pw)
             raise Exception, 'should not be able to use non strings as password'
-        except AssertionError:
+        except TypeError:
             pass
 
         p = Password.Password()
         try:
             p.set(pw)
             raise Exception, 'should not be able to use non strings as password'
-        except AssertionError:
+        except TypeError:
             pass
-        
+
         
 if __name__ == "__main__":
     unittest.main()

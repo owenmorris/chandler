@@ -5,39 +5,42 @@ Smart password classes.
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 _license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-class Password:
+class Password(object):
     """
     Password storage. Call clear() as soon as possible
     to remove the sensitive information from memory.
     """
     def __init__(self, password=None):
         """Create the password, either empty or initializing it with value."""
-        if password:
-            assert isinstance(password, str)
-            self.__pw = list(password)
+        if password is not None:
+            if not isinstance(password, str):
+                raise TypeError, 'password must be string'
+            self._pw = list(password)
         else:
-            self.__pw = []
+            self._pw = []
 
     def __del__(self):
-        if hasattr(self, '__pw'):
+        if hasattr(self, '_pw'):
             self.clear()
 
     def clear(self):
         """Clear the password."""
-        # XXX Is there any point in doing this in Python?
-        for x in self.__pw:
+        # XXX There probably isn't much point in doing this in Python,
+        # XXX might want to do this in C instead.
+        for x in self._pw:
             x = '0'
-        self.__pw = []
+        self._pw = []
         
     def set(self, password):
         """Set the password."""
-        assert isinstance(password, str)
+        if not isinstance(password, str):
+            raise TypeError, 'password must be string'
         self.clear()
-        self.__pw = list(password)
+        self._pw = list(password)
 
     def __str__(self):
         """Get the password (as str)."""
-        return ''.join(self.__pw)
+        return ''.join(self._pw)
 
 
 class PasswordExpiredException(Exception): pass
@@ -55,6 +58,8 @@ class TimeExpiringPassword(Password):
         self._hasExpired = False
 
     # XXX Need to implement actual timer that will cause auto clear
+    # look how twisted does this, and our notification mgr
+    # python cookbook might also have something
 
     def _resetTimer(self):
         raise NotImplementedError
@@ -66,7 +71,6 @@ class TimeExpiringPassword(Password):
         
     def set(self, password, expire=600):
         """Set the password."""
-        # XXX should I do instead?: assert expire > 0
         if expire <= 0:
             raise ValueError, 'expire value must be positive'
         super(TimeExpiringPassword, self).set(password)
@@ -81,7 +85,6 @@ class TimeExpiringPassword(Password):
         return super(TimeExpiringPassword, self).__str__()
 
     
-#XXX Stupid name, any better ideas?
 class AskUserAsNeededPassword(TimeExpiringPassword):
     """
     This password class will prompt the user to re-enter the password
