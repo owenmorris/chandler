@@ -54,11 +54,19 @@ class wxSimpleDrawableObject (wxEvtHandler):
         self.bounds.SetTop (y)
         self.canvas.RefreshScrolledRect (self.bounds);
 
+    def SetSize (self, width, height):
+        self.canvas.RefreshScrolledRect (self.bounds);
+        self.bounds.SetWidth (width)
+        self.bounds.SetHeight (height)
+        self.canvas.RefreshScrolledRect (self.bounds);
+
     def OnMouseEvent (self, event):
-        event.Skip()
         x, y = event.GetPositionTuple()
         if event.ButtonDown() and self.DragHitTest (x, y):
             self.DoDrag(x, y)
+            return true
+        event.Skip()
+        return false
     
     def SetBounds (self, bounds):
         self.canvas.RefreshScrolledRect (self.bounds);
@@ -169,16 +177,23 @@ class wxSimpleDrawableObject (wxEvtHandler):
     
 class wxSimpleCanvas (wxScrolledWindow):
 
-    def __init__(self, parent, dropTargetDataObject):
+    def __init__ (self, *_args, **_kwargs):
+        wxScrolledWindow.__init__ (self, *_args, **_kwargs)
+
+    def OnInit (self, dropTargetDataObject):
+        """
+          We have an extra OnInit in addition to the __init__, which you must
+        remember to call. This is necessary because of how wxSimpleCanvases are
+        stored in XRC, but treated like wxScrolledWindows
+        """
         self.autoCreateDistance = 0
-        wxScrolledWindow.__init__( self, parent, -1, style=wxSUNKEN_BORDER)
         self.zOrderedDrawableObjects = []
         self.internalDnDItem = None
         EVT_PAINT (self, self.OnPaint)
         EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)
         EVT_MOUSE_EVENTS (self, self.OnMouseEvent)
         self.SetDropTarget (wxCanvasDropTarget (self, dropTargetDataObject))
-
+        
     def RefreshScrolledRect (self, rect):
         position = rect.GetPosition()
         x, y = self.CalcScrolledPosition (position.x, position.y)
@@ -342,7 +357,8 @@ class wxSimpleCanvas (wxScrolledWindow):
                                                             wxPoint (x, y))
 
             elif event.ButtonUp():
-                del self.dragCreateDrawableObject
+                if hasattr (self, 'dragCreateDrawableObject'):
+                    del self.dragCreateDrawableObject
                 self.ReleaseMouse()
                 return true
         return false
