@@ -19,6 +19,7 @@ of a limitation of the XML format, which will be eliminated</description>
 
   <EventList itsName="GlobalEvents">
     <subscribeAlwaysEvents itemref="events:New"/>
+    <subscribeAlwaysEvents itemref="events:NewItemCollectionItem"/>
     <subscribeAlwaysEvents itemref="events:Close"/>
     <subscribeAlwaysEvents itemref="events:Quit"/>
     <subscribeAlwaysEvents itemref="events:Undo"/>
@@ -27,7 +28,6 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:Copy"/>
     <subscribeAlwaysEvents itemref="events:Paste"/>
     <subscribeAlwaysEvents itemref="events:Preferences"/>
-    <subscribeAlwaysEvents itemref="events:NewItemCollectionItem"/>
     <subscribeAlwaysEvents itemref="events:GetNewMail"/>
     <subscribeAlwaysEvents itemref="events:ViewNavigationBar"/>
     <subscribeAlwaysEvents itemref="events:SelectionChanged"/>
