@@ -57,7 +57,7 @@ def main():
         startTime = str(startInt)
 
         if( (startInt - (5 * 60)) < prevStartInt):
-            print "Sleeping 5 minutes"
+            print "Sleeping 5 minutes (" + buildName + ")"
             time.sleep(5 * 60)
 
         prevStartInt = startInt
