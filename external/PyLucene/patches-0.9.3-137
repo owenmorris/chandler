@@ -1,5 +1,5 @@
---- PyLucene-0.9.3-136/Makefile	Sat Dec 11 18:59:22 2004
-+++ PyLucene-0.9.3-136-patched/Makefile	Mon Dec 13 12:02:45 2004
+--- PyLucene-0.9.3-137/Makefile	Sat Dec 11 18:59:22 2004
++++ PyLucene-0.9.3-137-patched/Makefile	Mon Dec 13 12:02:45 2004
 @@ -245,17 +245,17 @@
  PYLUCENE_CP:=$(PYLUCENE_CP):$(DB)/java/src
  
