@@ -13,6 +13,7 @@ src=release/bin
 dest=
 libdb41.dll
 libdbxml11.dll
+msvcp70.dll
 msvcr70.dll
 Pathan.dll
 python23.dll
