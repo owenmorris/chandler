@@ -159,7 +159,7 @@ class JabberClient:
         
             # request the roster to gather initial presence state
             self.roster = self.connection.requestRoster()
-            self.NotifyPresenceChanged(None)
+            #self.NotifyPresenceChanged(None)
         else:
             wxMessageBox(_("There is an authentication problem. We can't log into the jabber server.  Perhaps your password is incorrect."))
             self.Logout()
