@@ -267,7 +267,12 @@ class ACL(object):
     Access Control List (ACL) consists of one of more ACEs. ACL defines all
     the access control definitions for a single resource.
     """
-    def __init__(self, acl=[]):
+    def __init__(self, acl=None):
+        """
+        @param acl: A list of ACE objects
+        """
+        if acl is None:
+            acl = []
         self.acl = acl
 
     def add(self, ace):
