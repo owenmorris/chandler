@@ -727,6 +727,30 @@ def executeScript(buildenv, args):
     executeCommandNoCapture( buildenv, "HardHat",
      [python] + args, "Running" )
 
+
+def epydoc(buildenv, *args):
+
+    if buildenv['version'] == 'debug':
+        python = buildenv['python_d']
+    elif buildenv['version'] == 'release':
+        python = buildenv['python']
+
+    command = [ python, '-c', 'from epydoc.cli import cli\ncli()' ]
+    command.extend(args)
+    print command
+
+    exit_code = os.spawnv(os.P_WAIT, python, command)
+
+    if exit_code == 0:
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", "OK")
+    else:
+        log(buildenv, HARDHAT_ERROR, "HardHat",
+            "Command exited with code = " + str(exit_code) )
+        raise HardHatExternalCommandError
+    
+    return exit_code
+    
+
 def findHardHatFile(dir):
     """ Look for __hardhat__.py in directory "dir", and if it's not there,
         keep searching up the directory hierarchy; return the first directory

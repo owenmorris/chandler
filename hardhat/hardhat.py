@@ -33,6 +33,7 @@ def usage():
     print "-g          generate documentation (via XSLT transform)"
     print "-h          display this help"
     print "-i          interactive python session"
+    print "-j          invoke epydoc on arguments"
     print "-l FILE(S)  lint Python file(s) using PyChecker"
     print "-n          non-interactive (won't prompt during scrubbing)"
     print "-o DIR      output directory used when creating a distribution (-D)"
@@ -50,7 +51,7 @@ False = 0
 
 # Check the command line
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "bBcCdD:eghilno:rsStvx")
+    opts, args = getopt.getopt(sys.argv[1:], "bBcCdD:eghij:lno:rsStvx")
 except getopt.GetoptError:
     usage()
     sys.exit(1)
@@ -89,7 +90,7 @@ if hardHatFile:
     print "HardHat log:  ", os.path.join(projectRoot, "hardhat.log")
     print
 else:
-    print "Whoops, coudln't find a __hardhat__.py file."
+    print "Whoops, couldn't find a __hardhat__.py file."
     sys.exit(1)
 
 if string.find(projectRoot, ' ') >= 0:
@@ -181,6 +182,9 @@ try:
                 py = buildenv['python_d']
             hardhatlib.executeCommandNoCapture(buildenv, "Interactive",
              [py], "Interactive session")
+
+        if opt == "-j":
+            hardhatlib.epydoc(buildenv, arg, *args)
 
         if opt == "-l":
             args_used = True  # we're going to be using the leftover args
