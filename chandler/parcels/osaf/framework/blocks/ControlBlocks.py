@@ -611,14 +611,14 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
                 widthMinusLastColumn += self.GetColSize (column)
             lastColumnWidth = size.width - widthMinusLastColumn
             """
-              Big fat hack. Since the grid is a scrolled window we set a border equal to the size
-            of the scrollbar so the scroll bars won't show. Instead we should consider modifying
-            grid adding a new style for not showing scrollbars.  Bug #2375
+              This is a temporary fix to get around an apparent bug in grids.  We only want to adjust
+            for scrollbars if they are present.  The -2 is a hack, without which the sidebar will grow
+            indefinitely when resizing the window.
             """
-            lastColumnWidth = lastColumnWidth - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
-            # @@@ This does not work properly and needs to be looked at
-            # Removing it for the single column case because it causes the
-            # sidebar to grow indefinitely
+            if (self.GetSize() == self.GetVirtualSize()):
+                lastColumnWidth = lastColumnWidth - 2
+            else:
+                lastColumnWidth = lastColumnWidth - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
             if lastColumnWidth > 0:
                 self.SetColSize (lastColumnIndex, lastColumnWidth)
                 self.ForceRefresh()
@@ -685,12 +685,9 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
 
         # update the last column to fill the rest of the widget
         remaining = self.GetSize().width - widthMinusLastColumn
-        """
-          Big fat hack. Since the grid is a scrolled window we set a border equal to the size
-        of the scrollbar so the scroll bars won't show. Instead we should consider modifying
-        grid adding a new style for not showing scrollbars.  Bug #2375
-        """
-        remaining = remaining - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
+        # Adjust for scrollbar if it is present
+        if (self.GetSize() != self.GetVirtualSize()):
+            remaining = remaining - wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
         if remaining > 0:
             self.SetColSize(newColumns - 1, remaining)
         
