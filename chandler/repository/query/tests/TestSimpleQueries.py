@@ -182,7 +182,10 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         startDateString = "%d-%d-%d" % (year,month,1)
         startDate = mx.DateTime.ISO.ParseDate(startDateString)
         startDateString = startDate.date
-        endDateString = "%d-%d-%d" % (year,month+1,1)
+        if month == 12:
+            month1 = 1
+            year1 = year+1
+        endDateString = "%d-%d-%d" % (year1,month1,1)
         endDate = mx.DateTime.ISO.ParseDate(endDateString) -1
         endDateString = endDate.date
         
