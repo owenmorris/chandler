@@ -39,30 +39,31 @@ class Button(RectangularChild):
         except AttributeError:
             id = 0
 
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
         if self.buttonKind == "Text":
-            button = wxButton(parentWindow, id, self.title,
+            button = wxButton(parentWidget, id, self.title,
                               wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Image":
             image = wx.Image(self.icon, 
                              wx.BITMAP_TYPE_PNG)
             bitmap = image.ConvertToBitmap()
-            button = wxBitmapButton(parentWindow, id, bitmap,
+            button = wxBitmapButton(parentWidget, id, bitmap,
                                     wx.DefaultPosition,
                                     (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Toggle":
             if wx.Platform == '__WXMAC__': # @@@ Toggle buttons are not supported under OSX
-                button = wxButton(parentWindow, id, self.title,
+                button = wxButton(parentWidget, id, self.title,
                                   wx.DefaultPosition,
                                   (self.minimumSize.width, self.minimumSize.height))
             else:
-                button = wxToggleButton(parentWindow, id, self.title,
+                button = wxToggleButton(parentWidget, id, self.title,
                                         wx.DefaultPosition,
                                         (self.minimumSize.width, self.minimumSize.height))
         elif __debug__:
             assert False, "unknown buttonKind"
 
-        parentWindow.Bind(wx.EVT_BUTTON, self.buttonPressed, id=id)
+        parentWidget.Bind(wx.EVT_BUTTON, self.buttonPressed, id=id)
         return button, None, None
 
     def buttonPressed(self, event):
@@ -93,7 +94,8 @@ class wxComboBox(wx.ComboBox):
 
 class ComboBox(RectangularChild):
     def instantiateWidget(self, parent, parentWindow):
-        comboBox = wxComboBox(parentWindow, -1, self.selection, 
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        comboBox = wxComboBox(parentWidget, -1, self.selection, 
                               wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
@@ -135,7 +137,8 @@ class EditText(RectangularChild):
         if self.readOnly:
             style |= wx.TE_READONLY
 
-        editText = wxEditText (parentWindow,
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        editText = wxEditText (parentWidget,
                                -1,
                                "",
                                wx.DefaultPosition,
@@ -157,11 +160,11 @@ class wxHTML(wx.html.HtmlWindow):
 
 class HTML(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
-        htmlWindow = wxHTML(parentWindow,
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        htmlWindow = wxHTML(parentWidget,
                             Block.getWidgetID(self),
                             wx.DefaultPosition,
-                            (self.minimumSize.width,
-                             self.minimumSize.height))
+                            (self.minimumSize.width, self.minimumSize.height))
         if self.url:
             htmlWindow.LoadPage(self.url)
         return htmlWindow, None, None
@@ -295,7 +298,8 @@ class List(RectangularChild):
         self.selection = None
 
     def instantiateWidget (self, parent, parentWindow):
-        list = wxList (parentWindow,
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        list = wxList (parentWidget,
                        Block.getWidgetID(self),
                        style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
         return list, None, None
@@ -485,7 +489,8 @@ class Summary(RectangularChild):
         self.selection = None
 
     def instantiateWidget (self, parent, parentWindow):
-        list = wxSummary(parentWindow, Block.getWidgetID(self))
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        list = wxSummary (parentWidget, Block.getWidgetID(self))
         return list, None, None
 
     def NeedsUpdate(self):
@@ -514,7 +519,8 @@ class RadioBox(RectangularChild):
         elif __debug__:
             assert False, "unknown radioAlignEnum"
                                     
-        radioBox = wxRadioBox(parentWindow, -1, self.title,
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        radioBox = wxRadioBox(parentWidget, -1, self.title,
                               wx.DefaultPosition, 
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices, self.itemsPerLine, dimension)
@@ -534,7 +540,8 @@ class StaticText(RectangularChild):
         elif self.textAlignmentEnum == "Right":
             style = wx.ALIGN_RIGHT
 
-        staticText = wxStaticText (parentWindow,
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        staticText = wxStaticText (parentWidget,
                                    -1,
                                    self.title,
                                    wx.DefaultPosition,
@@ -560,8 +567,7 @@ class StatusBar(Block):
     def instantiateWidget (self, parent, parentWindow):
         frame = Globals.wxApplication.mainFrame
         assert frame.GetStatusBar() == None
-        widget = wxStatusBar (frame,
-                              Block.getWidgetID(self))
+        widget = wxStatusBar (frame, Block.getWidgetID(self))
         frame.SetStatusBar (widget)
         return widget, None, None
 
@@ -575,13 +581,14 @@ class ToolbarItem(Block):
         tool = None
         wxToolbar = Globals.wxApplication.mainFrame.GetToolBar()
         toolbar = Globals.repository.find(wxToolbar.blockUUID)
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
         id = Block.getWidgetID(self)
         if self.toolbarItemKind == 'Button':
             bitmap = wx.Image (self.bitmap, 
                                wx.BITMAP_TYPE_PNG).ConvertToBitmap()
             tool = wxToolbar.AddSimpleTool (id, bitmap, 
                                             self.title, self.statusMessage)
-            parentWindow.Bind(wx.EVT_TOOL, toolbar.toolPressed, id=id)
+            parentWidget.Bind(wx.EVT_TOOL, toolbar.toolPressed, id=id)
         elif self.toolbarItemKind == 'Separator':
             wxToolbar.AddSeparator()
         elif self.toolbarItemKind == 'Check':
@@ -822,16 +829,14 @@ class Tree(RectangularChild):
         self.rootPath = None
         self.selection = None
 
-    def instantiateWidget(self, parent, parentWindow, nativeWindow=None):
-        if nativeWindow:
-            tree = nativeWindow
+    def instantiateWidget(self, parent, parentWindow):
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        try:
+            self.columnHeadings
+        except AttributeError:
+            tree = wxTree (parentWindow, Block.getWidgetID(self), style = self.Calculate_wxStyle())
         else:
-            try:
-                self.columnHeadings
-            except AttributeError:
-                tree = wxTree (parentWindow, Block.getWidgetID(self), style = self.Calculate_wxStyle())
-            else:
-                tree = wxTreeList (parentWindow, Block.getWidgetID(self), style = self.Calculate_wxStyle())
+            tree = wxTreeList (parentWindow, Block.getWidgetID(self), style = self.Calculate_wxStyle())
         return tree, None, None
 
     def OnSelectionChangedEvent (self, notification):
@@ -882,7 +887,8 @@ class ItemDetail(RectangularChild):
         self.selection = None
 
     def instantiateWidget (self, parent, parentWindow):
-        htmlWindow = wxItemDetail(parentWindow,
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        htmlWindow = wxItemDetail(parentWidget,
                                   Block.getWidgetID(self),
                                   wx.DefaultPosition,
                                   (self.minimumSize.width,

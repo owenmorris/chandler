@@ -57,7 +57,8 @@ class BoxContainer (RectangularChild):
 class EmbeddedContainer(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        panel = wx.Panel(parentWindow, -1)
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        panel = wx.Panel(parentWidget, -1)
         panel.SetSizer(sizer)
         try:
             newChild = self.contentSpec.data[0]
@@ -224,14 +225,15 @@ class wxSplitterWindow(wx.SplitterWindow):
  
 class SplitterWindow(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
-        splitterWindow = wxSplitterWindow(parentWindow,
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        splitterWindow = wxSplitterWindow(parentWidget,
                                           Block.getWidgetID(self), 
                                           wx.DefaultPosition,
                                           (self.size.width, self.size.height),
-                                          style=self.Calculate_wxStyle(parentWindow))
+                                          style=self.Calculate_wxStyle())
         return splitterWindow, splitterWindow, splitterWindow
                 
-    def Calculate_wxStyle (self, parentWindow):
+    def Calculate_wxStyle (self):
         style = wx.SP_LIVE_UPDATE
         parent = self.parentBlock
         while isinstance (parent, EmbeddedContainer):
@@ -312,7 +314,8 @@ class wxTabbedContainer(wx.Notebook):
 
 class TabbedContainer(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
-        tabbedContainer = wxTabbedContainer(parentWindow, 
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        tabbedContainer = wxTabbedContainer(parentWidget, 
                                             Block.getWidgetID(self),
                                             wx.DefaultPosition,
                                             (self.size.width, self.size.height),
