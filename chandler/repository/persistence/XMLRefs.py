@@ -9,7 +9,7 @@ from cStringIO import StringIO
 from repository.item.Item import Item, Children
 from repository.item.RefCollections import RefList
 from repository.item.Indexes import NumericIndex
-from repository.persistence.RepositoryError import MergeError
+from repository.persistence.RepositoryError import MergeError, ItemViewError
 from chandlerdb.util.UUID import UUID
 from repository.util.LinkedMap import LinkedMap
 
@@ -80,7 +80,7 @@ class PersistentRefs(object):
 
         view = self.view
         if view is not view.repository.view:
-            raise RepositoryError, 'current thread is not owning thread'
+            raise ItemViewError, (self._item, view.repository.view)
 
         if self._isRemoved(key):
             return None

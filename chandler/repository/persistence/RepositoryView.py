@@ -11,7 +11,7 @@ from threading import currentThread, Thread
 from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.ThreadSemaphore import ThreadSemaphore
-from repository.persistence.RepositoryError import RepositoryError, VersionConflictError
+from repository.persistence.RepositoryError import RepositoryError, VersionConflictError, ViewError
 from repository.item.Item import Item
 from repository.item.ItemHandler import ItemHandler, ItemsHandler
 from repository.persistence.PackHandler import PackHandler
@@ -200,7 +200,7 @@ class RepositoryView(object):
     def _setLoading(self, loading, runHooks=False):
 
         if self.repository.view is not self:
-            raise RepositoryError, "In thread %s the current view is %s, not %s" %(currentThread(), self.repository.view, self)
+            raise ViewError, (self, self.repository.view)
 
         status = (self._status & RepositoryView.LOADING != 0)
 

@@ -5,6 +5,8 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
+import threading
+
 
 class RepositoryError(ValueError):
     "All repository related exceptions go here"
@@ -61,3 +63,25 @@ class MergeError(VersionConflictError):
                   MOVE: 'MOVE',
                   NAME: 'NAME',
                   VALUE: 'VALUE' }
+
+
+class ViewError(RepositoryError):
+    "View '%s' is not the view, '%s', set for the current thread '%s'"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0].name,
+                              self.args[1].name,
+                              threading.currentThread().getName())
+
+
+class ItemViewError(ViewError):
+    "View '%s', set for the current thread, '%s', is not the view of the instance of %s used, '%s'."
+
+    def __str__(self):
+        return self.__doc__ %(self.args[1].name,
+                              threading.currentThread().getName(),
+                              self.getItem()._repr_(),
+                              self.getItem().itsView.name)
+
+    def getItem(self):
+        return self.args[0]
