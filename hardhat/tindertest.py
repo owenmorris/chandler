@@ -53,7 +53,7 @@ def main():
     rsyncProgram = hardhatutil.findInPath(path, "rsync")
     print "rsync =", rsyncProgram
 
-    go = 1
+    clobber = go = 1
 
     if os.path.exists(stopFile):
         os.remove(stopFile)
@@ -98,7 +98,7 @@ def main():
              treeName, None)
 
             ret = mod.Start(hardhatFile, buildDir, "-D'"+ nowString + "'", 
-             buildVersion, 0, log)
+             buildVersion, clobber, log)
 
         except TinderbuildError, e:
             print e
@@ -163,6 +163,8 @@ def main():
 
         SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, 
          logContents)
+
+        clobber = 0
 
         if os.path.exists(stopFile):
             go = 0

@@ -23,6 +23,8 @@ logPath = 'hardhat.log'
 
 def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
+    global buildenv
+
     try:
         buildenv = hardhatlib.defaults
         buildenv['root'] = workingDir
@@ -57,11 +59,14 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     # make sure workingDir is absolute, remove it if it exists, and create it
     workingDir = os.path.abspath(workingDir)
     chanDir = os.path.join(workingDir, mainModule)
-    if os.path.exists(workingDir):
-        if os.path.exists(chanDir):
-            hardhatutil.rmdirRecursive(chanDir)
-    else:
-        os.mkdir(workingDir)
+    # test if we've been thruough the loop at least once
+    if clobber == 1:
+        if os.path.exists(workingDir):
+            if os.path.exists(chanDir):
+                hardhatutil.rmdirRecursive(chanDir)
+        else:
+            os.mkdir(workingDir)
+            
     os.chdir(workingDir)
 
     # remove outputDir and create it
@@ -76,6 +81,12 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     outputList = hardhatutil.executeCommandReturnOutputRetry(
      [cvsProgram, "-q", "checkout", cvsVintage, "chandler"])
     hardhatutil.dumpOutputList(outputList, log)
+
+    # hack for linux until we fix things    
+    if buildenv['os'] == 'posix':
+        if not os.path.exists("Chandler"):
+            os.symlink(chanDir, "Chandler")
+
     os.chdir(chanDir)
 
     for releaseMode in ('debug', 'release'):
@@ -83,8 +94,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         doInstall(releaseMode, workingDir, log)
 
     # do tests
-        ret = Do(hardhatScript, releaseMode, workingDir, outputDir, cvsVintage, 
-         buildVersion, clobber, log)
+        ret = doTests(hardhatScript, chanDir, workingDir, releaseMode, log)
 
         CopyLog(os.path.join(workingDir, logPath), log)
 
@@ -111,11 +121,11 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
     testDir = os.path.join(workingDir, "chandler")
     print "Do " + mode
-    log.write("Performing " + mode + " build, version " + buildVersion + "\n")
+    log.write("Performing " + mode + " install, version " + buildVersion + "\n")
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
     
-    if changesInCVS(testDir, log):
+    if changesInCVS(testDir, workingDir, cvsVintage, log):
         log.write("Changes in CVS, do a " + mode + " install\n")
         doInstall(mode, workingDir, log)
 #     elif changesInModules(mode):
@@ -123,13 +133,13 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 #         getChangedModules(mode)
 #         doBuild(mode)
     else:
-        log.write("No changes< " + mode + " build skipped\n")
+        log.write("No changes, " + mode + " install skipped\n")
 
-    doTests(testDir, workingDir, mode)
+    doTests(hardhatScript, testDir, workingDir, mode, log)
 
     return "success"  # end of Do( )
 
-def doTests(testDir, workingDir, mode):
+def doTests(hardhatScript, testDir, workingDir, mode, log):
 
     os.chdir(testDir)
 
@@ -151,6 +161,7 @@ def doTests(testDir, workingDir, mode):
         log.write("***Error during tests*** " + e.str() + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Tests log:" + "\n")
+        hardhatutil.dumpOutputList(outputList, log)
         if os.path.exists(os.path.join(workingDir, logPath)) :
             CopyLog(os.path.join(workingDir, logPath), log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
@@ -171,7 +182,7 @@ def changesInModules(mode):
     sourceURL = "http://builds.osafoundation.org/external" + environ['os']
     return false
 
-def changesInCVS(moduleDir, log):
+def changesInCVS(moduleDir, workingDir, cvsVintage, log):
 
     changesAtAll = False
     print "Examining CVS"
@@ -221,8 +232,8 @@ def doInstall(buildmode, workingDir, log):
 
     moduleDir = os.path.join(workingDir, mainModule)
     os.chdir(moduleDir)
-    print "Doing make " + dbgStr + "install\n"
-    log.write("Doing make " + dbgStr + "install\n")
+    print "Doing make " + dbgStr + " install\n"
+    log.write("Doing make " + dbgStr + " install\n")
 
     outputList = hardhatutil.executeCommandReturnOutput(
      [buildenv['make'], dbgStr, "install" ])
