@@ -221,6 +221,15 @@
     </Attribute>
 
     <attributes itemref="docSchema:blockName"/>    
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="destinationBlockReference">
+            <attribute value="destinationBlockReference"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:BlockEvent/DefaultCloud/destinationBlockReference"/>
+    </Cloud>
   </Kind>
 
   <Kind itsName="ChoiceEvent">
@@ -543,7 +552,8 @@
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="event">
             <attribute value="event"/>
-            <includePolicy value="byRef"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:MenuItem/DefaultCloud/event"/>
     </Cloud>
@@ -609,7 +619,8 @@
         <endpoints itemref="docSchema:Button/DefaultCloud/characterStyle"/>
         <Endpoint itsName="event">
             <attribute value="event"/>
-            <includePolicy value="byRef"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:Button/DefaultCloud/event"/>
     </Cloud>
@@ -632,7 +643,8 @@
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="event">
             <attribute value="event"/>
-            <includePolicy value="byRef"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:Choice/DefaultCloud/event"/>
     </Cloud>
@@ -654,7 +666,8 @@
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="event">
             <attribute value="event"/>
-            <includePolicy value="byRef"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:CheckBox/DefaultCloud/event"/>
     </Cloud>
@@ -716,7 +729,8 @@
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="event">
             <attribute value="event"/>
-            <includePolicy value="byRef"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:ContextMenuItem/DefaultCloud/event"/>
     </Cloud>
@@ -899,7 +913,8 @@
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="event">
             <attribute value="event"/>
-            <includePolicy value="byRef"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:RadioBox/DefaultCloud/event"/>
     </Cloud>
@@ -1074,7 +1089,8 @@
         <endpoints itemref="docSchema:ToolbarItem/DefaultCloud/prototype"/>
         <Endpoint itsName="event">
             <attribute value="event"/>
-            <includePolicy value="byRef"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:ToolbarItem/DefaultCloud/event"/>
     </Cloud>
