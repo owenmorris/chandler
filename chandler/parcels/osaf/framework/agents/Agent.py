@@ -199,11 +199,10 @@ class Agent:
         
         while self.isRunning:
             self.RemoveCompletedActions()
-            
             # loop, fetching notifications and handing them off to the appropriate instructions
-            notificationManager = self.agentManager.application.model.notificationManager
+            notificationManager = self.agentManager.notificationManager
             notification = notificationManager.GetNextNotification(clientID)
-
+ 
             while notification != None:
                 # get instructions associated with the notification
                 instructions = self.GetInstructions(notification.name)
@@ -217,12 +216,13 @@ class Agent:
             # run status handlers and update the status dictionary
             if self.UpdateStatus():
                 self.StatusChanged()
-            
+
             self.Idle()
             
-            # sleep for an average time of one second.  Perhaps the average time should be
-            # adjustable per agent
-            time.sleep(2.0 * random.random())
+            # sleep for a minimum of one second, and and average of 1.5 seconds
+            # FIXME:  Perhaps the average time should be adjustable per agent
+            extraSleep = random.random()
+            time.sleep(1.0 + extraSleep)
             
     # methods concerning the agent's execution state
     
@@ -243,9 +243,10 @@ class Agent:
     def Resume(self):
         """
            resume execution of the agent
-           FIXME: not yet implemented
         """
-        pass
+        if not self.isRunning:
+            self.isRunning = True
+            thread.start_new(self.Mainloop, ())
         
     def IsSuspended(self):
         """

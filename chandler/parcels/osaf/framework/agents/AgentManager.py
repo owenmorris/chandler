@@ -26,16 +26,17 @@ class AgentManager:
            initialize data structures then load the agents
         """     
         self.application = application
-        
+        self.notificationManager = application.model.notificationManager
+
+        self.debugMode = False
+
         self.agentMap = {}
         self.activeAgents = {}
         self.notificationHandledStatus = {}
         
         self._LoadAgents()
         self._CheckForNewAgents()
-        
-        self.debugMode = False
-        
+                
     def _LoadAgents(self):
         """
           Iterate through the agentItem in the repository and create their dynamic counterparts
@@ -141,14 +142,13 @@ class AgentManager:
          
             # register with the notification manager and subscribe to notifications
             clientID = agent.GetClientID()
-            notificationManager = self.application.model.notificationManager
-            if not notificationManager.IsRegistered(clientID):
-                notificationManager.Register(clientID)
+            if not self.notificationManager.IsRegistered(clientID):
+                self.notificationManager.Register(clientID)
             
             # subscribe to notifications
             notifications = agent.model.GetActiveNotifications()
             for notification in notifications:    
-                  notificationManager.Subscribe(notification, clientID)
+                  self.notificationManager.Subscribe(notification, clientID)
               
     def Unregister(self, agent):
         """
@@ -157,11 +157,10 @@ class AgentManager:
         if self.IsRegistered(agent):           
             # unsubscribe to notifications
             clientID = agent.GetClientID()
-            notificationManager = self.application.model.notificationManager
             
             notifications = agent.model.GetActiveNotifications()
             for notification in notifications:    
-                  notificationManager.Unsubscribe(notification, clientID)
+                  self.notificationManager.Unsubscribe(notification, clientID)
             
             del self.agentMap[agent.model]
  
