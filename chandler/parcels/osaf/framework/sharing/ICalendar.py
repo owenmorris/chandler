@@ -114,6 +114,20 @@ class ICalendarFormat(Sharing.ImportExportFormat):
     def extension(self, item):
         return "ics"
 
+    def findUID(self, uid):
+        view = self.itsView
+        queryString='union(for i in "%s" where i.uid == $0, \
+                           for i in "%s" where i.uid == $0)' % \
+                           (self.__calendarEventPath, self.__taskPath)
+        p = view.findPath('//Queries')
+        k = view.findPath('//Schema/Core/Query')
+        q = Query.Query(None, p, k, queryString)
+        # See if we have a corresponding item already, or create one
+        q.args["$0"] = ( uid, )
+        for match in q:
+            return match
+        return None
+
     def importProcess(self, text, extension=None, item=None):
         # the item parameter is so that a share item can be passed in for us
         # to populate.
@@ -123,10 +137,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         # 'contents':
 
         view = self.itsView
-        queryString='for i in "%s" where i.uid == $0' % self.__calendarEventPath
-        p = view.findPath('//Queries')
-        k = view.findPath('//Schema/Core/Query')
-        q = Query.Query(None, p, k, queryString)
         
         newItemParent = self.findPath("//userdata")
         eventKind = self.itsView.findPath(self.__calendarEventPath)
@@ -169,11 +179,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             elif vtype == u'VTODO':
                 logger.debug("got VTODO")
                 pickKind = taskKind
-            # See if we have a corresponding item already, or create one
-            q.args["$0"] = ( event.uid[0].value, )
-            uidMatchItem = None #uidMatchItem -> the first item in q, or None
-            for uidMatchItem in q:
-                break
 
             # For now we'll expand recurrence sets, first find attributes that
             # will be constant across the recurrence set.
@@ -224,22 +229,26 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             # common, something has to be done to avoid infinite loops.
             # We'll arbitrarily limit ourselves to MAXRECUR recurrences.
 
+            # See if we have a corresponding item already
+            uidMatchItem = self.findUID(event.uid[0].value)
             first = True
+            
             for dt in itertools.islice(event.rruleset, MAXRECUR):
-                # Hack to deal with recurrence set having a single UID but
-                # needing to become multiple items with distinct UUIDs.  For the
-                # first item, use the right UUID (and the matching Item if it
-                # exists), for later items, create a new uuid.
-                if first and uidMatchItem is not None:
-                    logger.debug("matched UUID")
+                if uidMatchItem is not None:
+                    logger.debug("matched UID")
                     eventItem = uidMatchItem
+                    uidMatchItem = None
                     countUpdated += 1
                 else:
                     # @@@MOR This needs to use the new defaultParent framework
                     # to determine the parent
                     eventItem = pickKind.newItem(None, newItemParent)
                     countNew += 1
-                    eventItem.uid = event.uid[0].value 
+                    if first:
+                        eventItem.uid = event.uid[0].value
+                        first = False
+                    else:
+                        eventItem.uid = unicode(eventItem.itsUUID)
                     
                 logger.debug("eventItem is %s" % str(eventItem))
                               
@@ -261,7 +270,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     eventItem.reminderTime = convertToMX(dt + reminderDelta)
 
                 item.add(eventItem)
-                first = False
                 logger.debug("Imported %s %s" % (eventItem.displayName,
                  eventItem.startTime))
                  

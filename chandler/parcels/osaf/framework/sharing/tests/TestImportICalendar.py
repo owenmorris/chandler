@@ -13,9 +13,8 @@ import application.Parcel as Parcel
 import osaf.framework.sharing.Sharing as Sharing
 import osaf.framework.sharing.ICalendar as ICalendar
 import osaf.contentmodel.ItemCollection as ItemCollection
-import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.contacts.Contacts as Contacts
+import repository.query.Query as Query
 
 class ICalendarTestCase(unittest.TestCase):
 
@@ -80,7 +79,7 @@ class ICalendarTestCase(unittest.TestCase):
 
         # @@@ Put some checking of the imported items here
         
-        event=self.repo.findUUID('BED962E5-6042-11D9-BE74-000A95BB2738')
+        event=format.findUID('BED962E5-6042-11D9-BE74-000A95BB2738')
         self.assert_(event.displayName == u'3 hour event',
          "SUMMARY of first VEVENT not imported correctly, displayName is %s"
          % event.displayName)
