@@ -62,7 +62,7 @@ class MainView(View):
 
     def onEditMailAccountEvent (self, notification):
         account = \
-         Globals.repository.findPath('//parcels/osaf/mail/IMAPAccount One')
+         Globals.repository.findPath('//parcels/osaf/mail/IMAPAccountOne')
         if application.Application.promptForItemValues(
          Globals.wxApplication.mainFrame,
          "IMAP Account",
@@ -107,7 +107,7 @@ class MainView(View):
 
 
     def onGetNewMailEvent (self, notification):
-        accountList = [Globals.repository.findPath('//parcels/osaf/mail/IMAPAccount One')]
+        accountList = [Globals.repository.findPath('//parcels/osaf/mail/IMAPAccountOne')]
         account = accountList[0]
         IMAPDownloader (account).getMail()
 
