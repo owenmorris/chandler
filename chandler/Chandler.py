@@ -70,6 +70,7 @@ def loadConfig(chandlerDirectory):
                      'ramdb':      ('-d', '--ramdb',      'b', False, None, ''),
                      'exclusive':  ('-x', '--exclusive',  'b', False, None, 'open repository exclusive'),
                      'repo':       ('-r', '--repo',       's', None,  None, 'repository to copy during startup'),
+                     'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
                      'nocatch':    ('-n', '--nocatch',    'b', False, None, ''),
                      'wing':       ('-w', '--wing',       'b', False, None, ''),
                      'komodo':     ('-k', '--komodo',     'b', False, None, ''),

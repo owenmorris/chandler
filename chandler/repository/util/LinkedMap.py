@@ -339,7 +339,10 @@ class LinkedMap(dict):
                     pass
 
             link._alias = alias
-            self._aliases[alias] = key
+            if self._aliases is None:
+                self._aliases = {alias: key}
+            else:
+                self._aliases[alias] = key
 
     def firstKey(self):
         "Return the first key of this mapping."

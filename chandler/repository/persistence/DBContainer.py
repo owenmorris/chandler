@@ -1127,7 +1127,7 @@ class ValueContainer(DBContainer):
         if value is None:
             return None
 
-        versionId, version, format = unpack('>16sLL', value)
+        versionId, version, format = unpack('>16sll', value)
 
         return UUID(versionId), version, format
         
@@ -1140,7 +1140,7 @@ class ValueContainer(DBContainer):
         if value is None:
             return None
 
-        return unpack('>L', value[16:20])[0]
+        return unpack('>l', value[16:20])[0]
         
     def setVersion(self, version, uuid=None):
         
@@ -1152,12 +1152,12 @@ class ValueContainer(DBContainer):
         else:
             versionId, format = UUID(), ValueContainer.FORMAT_VERSION
 
-        self.put(uuid._uuid, pack('>16sLL', versionId._uuid, version, format))
+        self.put(uuid._uuid, pack('>16sll', versionId._uuid, version, format))
 
     def setVersionId(self, versionId, uuid):
 
         versionId, version, format = self.getVersionInfo(uuid)
-        self.put(uuid._uuid, pack('>16sLL', versionId._uuid, version, format))
+        self.put(uuid._uuid, pack('>16sll', versionId._uuid, version, format))
 
 
 class HashTuple(tuple):

@@ -74,12 +74,12 @@ class Item(object):
         if kind is not None:
             kind._setupClass(cls)
 
-        if parent._isRepository():
+        if not parent._isItem():
             if kind is not None:
                 parent = kind.getAttributeValue('defaultParent', default=parent)
                 if parent is None:
                     raise NoSuchDefaultParentError, (self, kind)
-            if name is None and parent._isRepository():
+            if name is None and not parent._isItem():
                 raise ValueError, 'repository root cannot be anonymous'
 
         self._setParent(parent)

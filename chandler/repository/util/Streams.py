@@ -541,16 +541,18 @@ class NullInputStream(object):
 
 class OutputStreamWriter(object):
 
-    def __init__(self, outputStream, encoding):
+    def __init__(self, outputStream, encoding, replace=False):
 
         super(OutputStreamWriter, self).__init__()
+
         self.outputStream = outputStream
         self.encoding = encoding or 'utf-8'
+        self.errorHandler = replace and 'replace' or 'strict'
 
     def write(self, text):
 
         if isinstance(text, unicode):
-            text = text.encode(self.encoding)
+            text = text.encode(self.encoding, self.errorHandler)
 
         self.outputStream.write(text)
 
@@ -565,11 +567,13 @@ class OutputStreamWriter(object):
 
 class InputStreamReader(object):
 
-    def __init__(self, inputStream, encoding):
+    def __init__(self, inputStream, encoding, replace=False):
 
         super(InputStreamReader, self).__init__()
+
         self.inputStream = inputStream
         self.encoding = encoding or 'utf-8'
+        self.errorHandler = replace and 'replace' or 'strict'
 
     def _read(self, length):
 
@@ -578,7 +582,7 @@ class InputStreamReader(object):
     def read(self, length=-1):
 
         text = self._read(length)
-        text = unicode(text, self.encoding)
+        text = unicode(text, self.encoding, self.errorHandler)
 
         return text
 
@@ -589,10 +593,15 @@ class InputStreamReader(object):
 
 class StringReader(object):
 
-    def __init__(self, unicodeText):
+    def __init__(self, text, encoding=None, replace=False):
 
         super(StringReader, self).__init__()
-        self.unicodeText = unicode(unicodeText)
+
+        if not isinstance(text, unicode):
+            self.unicodeText = unicode(text, encoding or 'utf-8',
+                                       replace and 'replace' or 'strict')
+        else:
+            self.unicodeText = text
 
     def read(self, length=-1):
 
@@ -615,9 +624,9 @@ class StringReader(object):
 
 class HTMLReader(InputStreamReader):
 
-    def __init__(self, inputStream, encoding):
+    def __init__(self, inputStream, encoding, replace=False):
 
-        super(HTMLReader, self).__init__(inputStream, encoding)
+        super(HTMLReader, self).__init__(inputStream, encoding, replace)
 
         class htmlParser(HTMLParser):
 

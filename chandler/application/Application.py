@@ -207,12 +207,13 @@ class wxApplication (wx.App):
             path = os.sep.join([Globals.options.profileDir, '__repository__'])
         else:
             path = '__repository__'
-        
-        kwds = { 'stderr': Globals.options.stderr,
-                 'ramdb': Globals.options.ramdb,
+
+        options = Globals.options
+        kwds = { 'stderr': options.stderr,
+                 'ramdb': options.ramdb,
                  'create': True,
-                 'recover': True,
-                 'exclusive': Globals.options.exclusive,
+                 'recover': options.recover,
+                 'exclusive': options.exclusive,
                  'refcounted': True }
                  
         if Globals.options.repo:

@@ -1006,6 +1006,10 @@ class Dictionary(Collection):
                                   generator, withSchema)
         generator.endElement('values')
 
+    def makeString(self, value):
+
+        return ",".join(["%s:%s" %(k, v) for k, v in value.iteritems()])
+
     def makeValue(self, data):
         """
         Make a dict of string key/value pairs from comma separated pairs.
@@ -1022,9 +1026,18 @@ class Dictionary(Collection):
 
         return result
 
-    def makeString(self, value):
+    def makeCollection(self, values):
 
-        return ",".join(["%s:%s" %(k, v) for k, v in value.iteritems()])
+        result = {}
+
+        count = len(values)
+        if count % 2:
+            raise ValueError, 'keys/values list is not of even length'
+
+        for i in xrange(0, count, 2):
+            result[values[i]] = values[i + 1]
+
+        return result
 
     def _empty(self):
 
@@ -1060,6 +1073,10 @@ class List(Collection):
                                   generator, withSchema)
         generator.endElement('values')
 
+    def makeString(self, value):
+
+        return ",".join([str(v) for v in value])
+
     def makeValue(self, data):
         """
         Make a list of strings from comma separated strings.
@@ -1073,9 +1090,9 @@ class List(Collection):
         else:
             return []
 
-    def makeString(self, value):
+    def makeCollection(self, values):
 
-        return ",".join([str(v) for v in value])
+        return list(values)
 
     def _empty(self):
 
@@ -1115,6 +1132,10 @@ class Tuple(Collection):
                                   generator, withSchema)
         generator.endElement('values')
 
+    def makeString(self, value):
+
+        return ",".join([str(v) for v in value])
+
     def makeValue(self, data):
         """
         Make a tuple of strings from comma separated strings.
@@ -1128,9 +1149,9 @@ class Tuple(Collection):
         else:
             return ()
 
-    def makeString(self, value):
+    def makeCollection(self, values):
 
-        return ",".join([str(v) for v in value])
+        return tuple(values)
 
     def _empty(self):
 
@@ -1171,7 +1192,7 @@ class Lob(Type):
 
     def makeValue(self, data,
                   encoding=None, mimetype='text/plain', compression='bz2',
-                  encryption=None, key=None, indexed=False):
+                  encryption=None, key=None, indexed=False, replace=False):
 
         if data and not encoding and type(data) is unicode:
             encoding = 'utf-8'
@@ -1181,7 +1202,7 @@ class Lob(Type):
 
         if data:
             if encoding:
-                out = lob.getWriter(compression, encryption, key)
+                out = lob.getWriter(compression, encryption, key, replace)
             else:
                 out = lob.getOutputStream(compression, encryption, key)
             out.write(data)

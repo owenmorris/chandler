@@ -29,12 +29,15 @@ from repository.persistence.DBItemIO import DBItemReader
 from repository.remote.CloudFilter import CloudFilter
 
 from bsddb.db import DBEnv, DB, DBError
-from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD
+from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD, DB_REGION_INIT
 from bsddb.db import DB_LOCK_WRITE
 from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL, DB_PRIVATE, DB_LOCK_MINLOCKS
-from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_TXN
+from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_LOG, DB_INIT_TXN
 from bsddb.db import DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError
 from bsddb.db import DBLockDeadlockError
+
+# missing from python interface at the moment
+DB_DSYNC_LOG = 0x00008000
 
 
 class DBRepository(OnDemandRepository):
@@ -48,16 +51,42 @@ class DBRepository(OnDemandRepository):
         """
         
         super(DBRepository, self).__init__(dbHome)
+
         self._openLock = None
+        self._openFile = None
+        if dbHome is not None:
+            self._openDir = os.path.join(self.dbHome, '__open')
+        else:
+            self._openDir = None
         self._exclusiveLock = None
         self._env = None
-        
+
+    def _touchOpenFile(self):
+
+        if self._openFile is None:
+            self._openFile = os.path.join(self._openDir, UUID().str64())
+
+        if not os.path.exists(self._openDir):
+            os.mkdir(self._openDir)
+            
+        file(self._openFile, "w+").close()
+
+    def _clearOpenDir(self):
+
+        if os.path.exists(self._openDir):
+            for name in os.listdir(self._openDir):
+                path = os.path.join(self._openDir, name)
+                if not os.path.isdir(path):
+                    os.remove(path)
+            
     def create(self, **kwds):
 
         if not self.isOpen():
             super(DBRepository, self).create(**kwds)
             self._create(**kwds)
             self._status |= self.OPEN
+            if not kwds.get('ramdb', False):
+                self._touchOpenFile()
 
     def _create(self, **kwds):
 
@@ -75,7 +104,7 @@ class DBRepository(OnDemandRepository):
 
         if kwds.get('ramdb', False):
             flags = DB_INIT_MPOOL | DB_PRIVATE | DB_THREAD
-            self._env = self._createEnv()
+            self._env = self._createEnv(True, kwds)
             self._env.open(self.dbHome, DB_CREATE | flags, 0)
             
         else:
@@ -87,7 +116,7 @@ class DBRepository(OnDemandRepository):
                 self.delete()
 
             self._lockOpen()
-            self._env = self._createEnv()
+            self._env = self._createEnv(True, kwds)
             self._env.open(self.dbHome, DB_CREATE | self.OPEN_FLAGS, 0)
 
         self.store = self._createStore()
@@ -118,38 +147,65 @@ class DBRepository(OnDemandRepository):
             lock.close(self._openLock)
             self._openLock = None
 
-    def _createEnv(self):
+    def _createEnv(self, create, kwds):
 
         env = DBEnv()
-        env.set_lk_detect(DB_LOCK_MINLOCKS)
-        env.set_lk_max_locks(32767)
-        env.set_lk_max_objects(32767)
 
-        #
-        # create a 64Mb cache on Windows and Linux
-        #
+        ramdb = kwds.get('ramdb', False)
+        locks = 32767
+        cache = 0x4000000
+        logbs = 0x2000000
+        
+        if create and not ramdb:
+            db_config = file(os.path.join(self.dbHome, 'DB_CONFIG'), 'w+b')
+
+        if create or ramdb:
+            env.set_lk_detect(DB_LOCK_MINLOCKS)
+            env.set_lk_max_locks(locks)
+            env.set_lk_max_objects(locks)
+        if create and not ramdb:
+            db_config.write("set_lk_detect DB_LOCK_MINLOCKS\n")
+            db_config.write("set_lk_max_locks %d\n" %(locks))
+            db_config.write("set_lk_max_objects %d\n" %(locks))
 
         if os.name == 'nt':
-            env.set_cachesize(0, 0x4000000, 1)
+            if create or ramdb:
+                env.set_cachesize(0, cache, 1)
+            if create and not ramdb:
+                db_config.write("set_cachesize 0 %d 1\n" %(cache))
 
         elif os.name == 'posix':
             from commands import getstatusoutput
 
-            if getstatusoutput('uname') == (0, 'Linux'):
-                env.set_cachesize(0, 0x4000000, 1)
+            status, osname = getstatusoutput('uname')
+            if status == 0:
+
+                if osname == 'Linux':
+                    if create or ramdb:
+                        env.set_cachesize(0, cache, 1)
+                    if create and not ramdb:
+                        db_config.write("set_cachesize 0 %d 1\n" %(cache))
+
+                elif osname == 'Darwin':
+                    if create or ramdb:
+                        env.set_flags(DB_DSYNC_LOG, 1)
+                    if create and not ramdb:
+                        db_config.write("set_flags DB_DSYNC_LOG\n")
+
+        if create and not ramdb:
+            db_config.close()
 
         return env
 
     def delete(self):
 
-        def purge(arg, path, names):
-            for f in names:
-                if f.startswith('__') or f.startswith('log.'):
-                    f = os.path.join(path, f)
-                    if not os.path.isdir(f):
-                        os.remove(f)
-                        
-        os.path.walk(self.dbHome, purge, None)
+        for name in os.listdir(self.dbHome):
+            if name.startswith('__') or name.startswith('log.'):
+                path = os.path.join(self.dbHome, name)
+                if not os.path.isdir(path):
+                    os.remove(path)
+
+        self._clearOpenDir()
 
     def open(self, **kwds):
 
@@ -165,15 +221,21 @@ class DBRepository(OnDemandRepository):
                 import shutil
                 for f in os.listdir(fromPath):
                     if f.startswith('__') or f.startswith('log.'):
-                        shutil.copy2(os.path.join(fromPath,f), self.dbHome)
+                        path = os.path.join(fromPath, f)
+                        if not os.path.isdir(path):
+                            shutil.copy2(path, self.dbHome)
 
             super(DBRepository, self).open(**kwds)
 
             self._lockOpen()
-            self._env = self._createEnv()
+            self._env = self._createEnv(False, kwds)
 
             recover = kwds.get('recover', False)
             exclusive = kwds.get('exclusive', False)
+
+            if not recover:
+                if os.path.exists(self._openDir) and os.listdir(self._openDir):
+                    recover = True
 
             try:
                 if recover or exclusive:
@@ -196,8 +258,12 @@ class DBRepository(OnDemandRepository):
                             after = datetime.now()
                             self.logger.info('opened db with recovery in %s',
                                              after - before)
+                            self._clearOpenDir()
                         else:
+                            before = datetime.now()
                             self._env.open(self.dbHome, self.OPEN_FLAGS, 0)
+                            after = datetime.now()
+                            self.logger.info('opened db in %s', after - before)
 
                     finally:
                         if locked:
@@ -206,7 +272,10 @@ class DBRepository(OnDemandRepository):
                             else:
                                 lock.lock(fd, lock.LOCK_UN | lock.LOCK_SH)
                 else:
+                    before = datetime.now()
                     self._env.open(self.dbHome, self.OPEN_FLAGS, 0)
+                    after = datetime.now()
+                    self.logger.info('opened db in %s', after - before)
 
                 self.store = self._createStore()
                 kwds['create'] = False
@@ -216,10 +285,13 @@ class DBRepository(OnDemandRepository):
                 kwds['create'] = recover
                 if kwds.get('create', False):
                     self._create(**kwds)
+                elif not os.path.exists(self.dbHome):
+                    self._create(**kwds)
                 else:
                     raise
 
             self._status |= self.OPEN
+            self._touchOpenFile()
 
     def close(self):
 
@@ -231,6 +303,9 @@ class DBRepository(OnDemandRepository):
             self._env = None
             self._lockClose()
             self._status &= ~self.OPEN
+            if self._openFile is not None:
+                os.remove(self._openFile)
+                self._openFile = None
 
     def createView(self, name=None):
 

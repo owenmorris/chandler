@@ -92,29 +92,28 @@ class Lob(object):
         return self._data
 
     def getWriter(self, compression='bz2', encryption=None, key=None,
-                  append=False):
+                  append=False, replace=False):
 
         return OutputStreamWriter(self.getOutputStream(compression, encryption,
                                                        key, append),
-                                  self.encoding)
+                                  self.encoding, replace)
 
-    def getReader(self, key=None):
+    def getReader(self, key=None, replace=False):
 
-        return InputStreamReader(self.getInputStream(key), self.encoding)
+        return InputStreamReader(self.getInputStream(key),
+                                 self.encoding, replace)
 
-    def getPlainTextReader(self, key=None):
+    def getPlainTextReader(self, key=None, replace=False):
 
         if self.mimetype in Lob._readers:
-            return Lob._readers[self.mimetype](self, key)
+            return Lob._readers[self.mimetype](self, key, replace)
 
         return NotImplementedError, "Converting mimetype '%s' to plain text" %(self.mimetype)
 
     _readers = {
-        'text/html': lambda self, key: HTMLReader(self.getInputStream(key),
-                                                  self.encoding), 
-        'text/xhtml': lambda self, key: HTMLReader(self.getInputStream(key),
-                                                   self.encoding),
-        'text/plain': lambda self, key: self.getReader(key),
+        'text/html': lambda self, key, replace: HTMLReader(self.getInputStream(key), self.encoding, replace), 
+        'text/xhtml': lambda self, key, replace: HTMLReader(self.getInputStream(key), self.encoding, replace),
+        'text/plain': lambda self, key, replace: self.getReader(key, replace),
 
-        'text/vnd.osaf-stream64': lambda self, key: InputStreamReader(Base64InputStream(self.getInputStream(key)), self.encoding)
+        'text/vnd.osaf-stream64': lambda self, key, replace: InputStreamReader(Base64InputStream(self.getInputStream(key)), self.encoding, replace)
     }
