@@ -164,3 +164,8 @@ td.block
     margin: 0px;
 }
 
+td.rssitem
+{
+    font-size: 13px;
+    line-height: 150%;
+}

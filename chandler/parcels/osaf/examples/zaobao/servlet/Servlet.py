@@ -136,13 +136,12 @@ def RenderChannelList(repoView, theItem):
 
     result += "</table></td>"
 
-    result += "<td valign=top width=100%>"
-    # result += "<table width=300 border=0 cellpadding=4 cellspacing=0>"
+    result += "<td valign=top width=100% class=rssitem>"
 
     if theItem is not None:
         item = theItem
         result += "<span class=header><a href=%s>%s</a></span></br>" % (item.link, item.displayName)
-        result += "%s</br>" % item.date
+        result += "<b>%s</b> | %s</br>" % (item.channel.displayName, item.date.localtime().strftime('%A, %B %d @ %I:%M %p'))
 
         try:
             uStr = item.content.getReader().read()
