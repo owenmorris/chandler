@@ -2,7 +2,7 @@
 
 if [ "$CHANDLERHOME" = "" ]
 then
-    export CHANDLERHOME=`pwd`
+    CHANDLERHOME=`pwd`
 fi
 
 if [ -d $CHANDLERHOME -a -f $CHANDLERHOME/debug/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python ]

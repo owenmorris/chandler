@@ -562,10 +562,8 @@ def runTest(buildenv, testFile, fullPath):
 
     if buildenv['version'] == 'debug':
         python = buildenv['python_d']
-        pythonPath = buildenv['pythonlibdir_d'] + os.sep + '..' + os.sep + '..'
     elif buildenv['version'] == 'release':
         python = buildenv['python']
-        pythonPath = buildenv['pythonlibdir'] + os.sep + '..' + os.sep + '..'
 
     exit_code = executeCommand(buildenv, testFile, [ python, testFile, '-v' ],
                                "Testing %s" %(fullPath),
