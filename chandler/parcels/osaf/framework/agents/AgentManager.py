@@ -225,8 +225,8 @@ class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
             
             if conditionName != None:
                 self.currentItem.setAttributeValue('actionName', conditionName)
-                
-            self.lastInstruction.AddCondition(self.currentItem) 
+            
+            self.lastInstruction.SetCondition(self.currentItem) 
             
         elif name == 'action':
             actionName = self._GetOptionalAttribute('name', attributes)

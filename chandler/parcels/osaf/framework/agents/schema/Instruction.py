@@ -24,13 +24,16 @@ class Instruction(Item):
 
     def __init__(self, name, parent, kind, **_kwds):
         super(Instruction, self).__init__(name, parent, kind, **_kwds)
-     
-    def AddCondition(self, newCondition):
-        self.attach('conditions', newCondition)
-        
-    def RemoveCondition(self, conditionToRemove):
-        self.detach('conditions', conditionToRemove)
-        
+    
+    def IsEnabled(self):
+        return self.enabled
+    
+    def SetCondition(self, newCondition):
+        self.condition = newCondition
+    
+    def GetActions(self):
+        return self.actions
+    
     def AddAction(self, newAction):
         self.attach('actions', newAction)
         
@@ -40,33 +43,27 @@ class Instruction(Item):
     def GetNotifications(self):
         """
           return a list of notifications associated with this instructions by
-          iterating through the conditions.
+          asking the condition.
         """
         notifications = []
-        if self.enabled:
-            for condition in self.conditions:
-                notifications += condition.GetNotifications()
+        if self.enabled and self.condition != None:
+            notifications = self.condition.GetNotifications()
                 
         return notifications
     
-    def GetNewActions(self, notificationList):
+    def GetNewActions(self, notification):
         """
-          key routine to evaluate an instructions conditions, and return
-          a list of actions to be executed if it passes the conditions,
-          as well as data derived from the condition to pass to the actions
+          key routine to evaluate an instructions condition, and return
+          a list of actions to be executed if the condition is satisfied
         """
         actionsToLaunch = []
-        conditionData = None
+        if not self.enabled:
+            return actionsToLaunch
         
-        # FIXME:  for now, we assume all the conditions are in 'OR' mode: if any are true, the instruction
-        # will fire.  This will soon change
-        for condition in self.conditions:
-            (conditionResult, conditionData) = condition.DetermineCondition(notificationList)
-            if conditionResult:
-                for action in self.actions:
-                    actionsToLaunch.append(action)
-                break
-            
-        return (actionsToLaunch, conditionData)
+        if self.condition.IsSatisfied(notification):
+            for action in self.actions:
+                actionsToLaunch.append(action)
+                        
+        return actionsToLaunch
     
    

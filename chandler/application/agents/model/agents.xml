@@ -105,7 +105,7 @@
     <displayName>Instruction Backlink</displayName>
     <type itemref="agents:Instruction"/>
     <cardinality>single</cardinality>
-    <inverseAttribute itemref="agents:conditions"/>
+    <inverseAttribute itemref="agents:condition"/>
   </Attribute>
   
   <!-- Condition Item Definition -->
@@ -128,10 +128,10 @@
     <cardinality>single</cardinality>
   </Attribute>
   
-  <Attribute itemName="agents:conditions">
-    <displayName>Instruction Conditions</displayName>
+  <Attribute itemName="agents:condition">
+    <displayName>Instruction Condition</displayName>
     <type itemref="agents:Condition"/>
-    <cardinality>list</cardinality>
+    <cardinality>single</cardinality>
     <inverseAttribute itemref="agents:conditionOwner"/>
   </Attribute>
   
@@ -153,7 +153,7 @@
   <Kind itemName="agents:Instruction">
     <displayName>Instruction</displayName>
     <attributes itemref="agents:enabled"/>
-    <attributes itemref="agents:conditions"/>
+    <attributes itemref="agents:condition"/>
     <attributes itemref="agents:actions"/>
     <attributes itemref="agents:instructionOwner"/>
     <classes key="python">application.agents.model.Instruction.Instruction</classes>

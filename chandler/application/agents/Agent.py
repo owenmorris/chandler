@@ -7,7 +7,7 @@ import xml.sax, xml.sax.saxutils
 import os.path
 import thread
 import time
-import os
+import random
 
 class Agent:
 
@@ -21,6 +21,9 @@ class Agent:
         # initialize dynamic state
         self.status = {}       
         self.activeActions = {}
+        self.instructionMap = {}
+        
+        self._BuildInstructionMap()
         
         # launch the agent's main loop thread
         self.isRunning = True
@@ -90,25 +93,7 @@ class Agent:
           Set the status associated with the passed-in attribute
         """
         self.status[attribute] = value
- 
-    # here are some utilities called from the agent's main loop
-    def FetchNotifications(self):
-        """
-          return a list of pending notifications from the notification manager
-        """
-        notifications = []
-        clientID = self.GetClientID()
-        moreToDo = True
-        
-        while moreToDo:
-            notification = self.agentManager.application.model.notificationManager.GetNextNotification(clientID)
-            if notification != None:
-                notifications.append(notification)
-            else:
-                moreToDo = False
-                
-        return notifications
-    
+     
     def RemoveCompletedActions(self):
         """
            remove any actions that are completed from the queue
@@ -127,7 +112,7 @@ class Agent:
     def LaunchNewActions(self, newActions, actionData):
         """
           launch the actions in the passed-in list
-        """        
+        """       
         for action in newActions:
             if action.IsAsynchronous():
                 self.MakeTask(action, actionData)
@@ -150,26 +135,85 @@ class Agent:
          issue a 'status changed' notification for this agent
         """
         pass
+ 
+     # routines that deal with instructions
      
+    def GetInstructions(self, notificationName):
+        """
+          return a list of active instructions associated with the passed-in notification
+          if the notification name is 'all', return all the instructions
+        """      
+        instructions = []
+        if notificationName == 'all':
+            matchingInstructions = self.model.instructions
+        else:
+            matchingInstructions = self.instructionMap[notificationName]
+             
+        for instruction in matchingInstructions:
+            if instruction.IsEnabled():
+                instructions.append(instruction)
+                
+        return instructions
+     
+    def _BuildInstructionMap(self):
+        """
+           loop through the instructions to build a hash table, mapping notification types
+           to a list of instructions that use the notification. 
+        """
+        self.instructionMap = {}
+        self.instructionMap['polled'] = []
+        
+        for instruction in self.model.instructions:
+            notifications = instruction.GetNotifications()
+            for notification in notifications:
+                if self.instructionMap.has_key(notification):
+                    self.instructionMap[notification].append(instruction)
+                else:
+                    self.instructionMap[notification] = [instruction]
+         
+    def ExecuteInstructions(self, instructions, notification):
+        """
+          here is the interpreter loop that executes a list of instructions
+        """
+        if notification != None:
+            notificationData = notification.data
+        else:
+            notificationData = None
+        
+        for instruction in instructions:
+            newActions = instruction.GetNewActions(notification)
+            self.LaunchNewActions(newActions, notificationData)
+            
     # here is the agent's main loop, which fetches notifications and evaluates conditions
     def Mainloop(self):
+        clientID = self.GetClientID()
+        
         while self.isRunning:
-            notifications = self.FetchNotifications()
             self.RemoveCompletedActions()
-             # give each enabled instruction a chance to specify some actions
-            for instruction in self.model.instructions:
-                if instruction.enabled:
-                    (newActions, actionData) = instruction.GetNewActions(notifications)             
-                    if len(newActions) > 0:
-                        self.LaunchNewActions(newActions, actionData)
+            
+            # loop, fetching notifications and handing them off to the appropriate instructions
+            notificationManager = self.agentManager.application.model.notificationManager
+            notification = notificationManager.GetNextNotification(clientID)
+
+            while notification != None:
+                # get instructions associated with the notification
+                instructions = self.GetInstructions(notification.name)
+                self.ExecuteInstructions(instructions, notification)
+                notification = notificationManager.GetNextNotification(clientID)
+
+            # now execute instructions that aren't dependent on notifications
+            instructions = self.GetInstructions('polled')
+            self.ExecuteInstructions(instructions, None)
             
             # run status handlers and update the status dictionary
             if self.UpdateStatus():
                 self.StatusChanged()
             
             self.Idle()
-            # FIXME: randomize sleep time so all the agents don't wake up at once
-            time.sleep(1.5)
+            
+            # sleep for an average time of one second.  Perhaps the average time should be
+            # adjustable per agent
+            time.sleep(2.0 * random.random())
             
     # methods concerning the agent's execution state
     

@@ -38,23 +38,25 @@ class Condition(Action):
                 
         return resultList
          
-    def DetermineCondition(self, notificationList):
+    def IsSatisfied(self, notification):
         """
-           this is the key routine that evaluates a condition based on it's type.
+           this is the key routine that evaluates a condition based on it's type,
+           returning True if the condition is satisifed
            For now, we only handle notification type conditions, but that will change soon
         """        
         notificationData = None
         
         if self.conditionType == 'notification':
-            conditionList = self.conditionNotification.split(',')  
-            for notification in notificationList:
-                try:
-                    notificationName = notification.GetName()
-                    index = conditionList.index(notificationName)
-                    return (True, notification.data)
-                except ValueError:
-                    pass
+            # we know that the condition fired, but check to make sure it's in our list
+            # as a redundancy check
+            notificationList = self.GetNotifications()
+   
+            try:
+                index = notificationList.index(notification.GetName())
+                return True
+            except ValueError:
+                pass
                     
-        return (False, None)
+        return False
     
     
