@@ -141,6 +141,8 @@
   <!-- ZaoBao Task Definition -->
 
 
+  <!-- Turning off zaobao
+
   <task:Task itsName="ZaoBaoTask">
     <displayName>ZaoBao Scheduled Task</displayName>
 
@@ -159,6 +161,7 @@
 
   </task:Task>
 
+  -->
 
   <!-- view related stuff -->
   <Kind itsName="ZaoBaoItemDetail">
