@@ -241,10 +241,23 @@ class wxApplication (wxApp):
           It's necessary to add the "parcels" directory to sys.path in order
           to import parcels.
         """
-        systemParcelDir = os.path.join(self.chandlerDirectory,
-         Application.PARCEL_IMPORT.replace ('.', os.sep))
-        sys.path.insert(0,systemParcelDir)
+        parcelDir = os.path.join(self.chandlerDirectory,
+                                 Application.PARCEL_IMPORT.replace ('.', os.sep))
+        sys.path.insert (1, parcelDir)
 
+        if __debug__:
+            """
+            In the debugging version, if PARCELDIR env var is set, put that
+            directory into sys.path because zodb might be loading objects
+            based on modules in that directory.  This must be done prior to
+            loading the system parcels
+            """
+            debugParcelDir = None
+            if os.environ.has_key('PARCELDIR'):
+                path = os.environ['PARCELDIR']
+                if path and os.path.exists(path):
+                    debugParcelDir = path
+                    sys.path.insert (2, debugParcelDir)
 
         """
         Load the Repository after the path has been altered, but before
@@ -261,28 +274,12 @@ class wxApplication (wxApp):
                                                   "OSAF", "calendar", "model", 
                                                   "calendar.pack"))
 
+        """ Load the parcels """
+        self.LoadParcelsInDirectory(parcelDir)
 
-        loadExternalParcels = False
-        if __debug__:
-            """
-            In the debugging version, if PARCELDIR env var is set, put that
-            directory into sys.path because zodb might be loading objects
-            based on modules in that directory.  This must be done prior to
-            loading the system parcels
-            """
-            if os.environ.has_key('PARCELDIR'):
-                parcelDir = os.environ['PARCELDIR']
-                if parcelDir and os.path.exists(parcelDir):
-                    loadExternalParcels = True
-                    sys.path.insert(0,parcelDir)
-
-        """ Load the system parcels """
-        self.LoadParcelsInDirectory(systemParcelDir)
-
-        """ Load the (optional) external parcels """
-        if loadExternalParcels:
-            self.LoadParcelsInDirectory(parcelDir)
-
+        """ Load the debugging parcels """
+        if __debug__ and debugParcelDir:
+            self.LoadParcelsInDirectory(debugParcelDir)
 
         self.model.SynchronizeView()
         EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
