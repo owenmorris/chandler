@@ -10,6 +10,8 @@ from repository.item.ItemError import ChildNameError
 
 import osaf.contentmodel.ContentModel as ContentModel
 import mx.DateTime as DateTime
+import repository.query.Query as Query
+from repository.item.Query import KindQuery
 
 class Contact(ContentModel.ContentItem):
 
@@ -74,6 +76,39 @@ class Contact(ContentModel.ContentItem):
     meContactID = None
 
 
+    def getContactForEmailAddress(cls, view, address):
+        """ Given an email address string, find (or create) a matching contact.
+
+        @param view: The repository view object
+        @type view: L{repository.persistence.RepositoryView}
+        @param address: An email address to use for looking up a contact
+        @type address: string
+        @return: A Contact
+        """
+
+        """ @@@MOR, convert this section to use Query; I tried briefly but
+        wasn't successful, and it's just using KindQuery right now:
+
+        query = Query.Query(view, parent=view.findPath("//userdata"), queryString="") # @@@MOR Move this to a singleton
+
+        queryString = "for i in '//parcels/osaf/contentmodel/contacts/Contact' where i.emailAddress == $0"
+        query.args = { 0 : address }
+        query.execute()
+        for item in query:
+        """
+
+        for item in KindQuery().run([view.findPath("//parcels/osaf/contentmodel/contacts/Contact")]):
+            if item.emailAddress == address:
+                return item # Just return the first match
+
+        # Need to create a new Contact
+        contact = Contact(view=view)
+        contact.emailAddress = address
+        contact.contactName = None
+        return contact
+
+    getContactForEmailAddress = classmethod(getContactForEmailAddress)
+
     def __str__(self):
         """ User readable string version of this address. """
 
@@ -81,12 +116,7 @@ class Contact(ContentModel.ContentItem):
             return super(Contact, self).__str__()
             # Stale items shouldn't go through the code below
 
-        try:
-            if self.contactName is not None:
-                value = self.contactName.firstName + ' ' + \
-                 self.contactName.lastName
-        except:
-            value = self.getItemDisplayName()
+        value = self.getItemDisplayName()
 
         return value
 
