@@ -127,15 +127,14 @@ class MainView(View):
         except IndexError:
             pass
         else:
-            for item in activeView.childrenBlocks:
-                for canvas in item.childrenBlocks:
-                    if isinstance(canvas, CollectionCanvas.CollectionBlock):
-                        printObject = Printing.Printing(wx.GetApp().mainFrame, canvas.widget)
-                        if isPreview:
-                            printObject.OnPrintPreview()
-                        else:
-                            printObject.OnPrint()
-                        return
+            for canvas in activeView.childrenBlocks:
+                if isinstance(canvas, CollectionCanvas.CollectionBlock):
+                    printObject = Printing.Printing(wx.GetApp().mainFrame, canvas.widget)
+                    if isPreview:
+                        printObject.OnPrintPreview()
+                    else:
+                        printObject.OnPrint()
+                    return
         message = "Printing is currently only supported when viewing week/month/day view of the calendar."
         dialog = wx.MessageDialog(None, message, 'Chandler', wx.OK | wx.ICON_INFORMATION)
         dialog.ShowModal()
