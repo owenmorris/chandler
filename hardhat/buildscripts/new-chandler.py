@@ -33,8 +33,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
     # make sure workingDir is absolute, remove it, and create it
     workingDir = os.path.abspath(workingDir)
-    print "Check for output dir... (indicates first time through"
-    if not os.path.exists(os.path.join(workingDir), "output"):
+    print "Check for output dir... (indicates first time through)"
+    if not os.path.exists(outputDir):
 
         os.mkdir(outputDir)
         # Initialize external (hardly ever changes)
