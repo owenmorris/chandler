@@ -21,7 +21,7 @@
   </Attribute>
 
   <Attribute itemName="fontSize">
-    <type itemref="Integer"/>
+    <type itemref="Float"/>
   </Attribute>
 
   <Attribute itemName="fontStyle">
@@ -292,7 +292,6 @@
     <attributes itemref="docSchema:MenuItem/helpString"/>
   </Kind>
 
-
   <!--
     TreeList
   -->
@@ -300,11 +299,18 @@
     <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.TreeList</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
-    <Attribute itemName="numColumns">
-      <type itemref="Integer"/>
+    <Attribute itemName="columnHeadings">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
     </Attribute>
-    
-    <attributes itemref="docSchema:TreeList/numColumns"/>
+
+    <Attribute itemName="columnWidths">
+      <type itemref="Integer"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
+    <attributes itemref="docSchema:TreeList/columnHeadings"/>
+    <attributes itemref="docSchema:TreeList/columnWidths"/>
   </Kind>  
   
   <!--

@@ -75,7 +75,7 @@
   
   <CharacterStyle itemName="HeaderStyle">
     <font>Swiss</font>
-    <fontSize>12</fontSize>
+    <fontSize>12.0</fontSize>
     <fontStyle>Normal</fontStyle>
     <fontWeight>Bold</fontWeight>
     <underlined>False</underlined>
@@ -88,14 +88,26 @@
     <minimumSize>100,20</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
     <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
+    <stretchFactor>0.0</stretchFactor>
     <alignment>Left</alignment>
     <characterStyle itemref="doc:HeaderStyle"/>
     <title>Repository Viewer</title>
   </StaticText>
   
   <TreeList itemName="TreeList">
-    <numColumns>4</numColumns>
+    <columnHeadings>Item Name</columnHeadings>
+    <columnHeadings>Display Name</columnHeadings>
+    <columnHeadings>Kind</columnHeadings>
+    <columnHeadings>UUID</columnHeadings>
+    <columnHeadings></columnHeadings>
+    <columnHeadings>URL</columnHeadings>
+    
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>120</columnWidths>
+    <columnWidths>10</columnWidths>
+    <columnWidths>120</columnWidths>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>

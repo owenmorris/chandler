@@ -105,10 +105,11 @@ class StaticText(ContainerChild):
             weight = wxNORMAL
         elif self.characterStyle.fontWeight == "Light":
             weight = wxLIGHT
-        font = wxFont(self.characterStyle.fontSize, family, style, weight,
+        font = wxFont(int(self.characterStyle.fontSize), family, style, weight,
                       self.characterStyle.underlined)
         staticText.SetFont(font)
-        parent.Add(staticText, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        parent.Add(staticText, int(self.stretchFactor), 
+                   self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return None, None
         
      
@@ -147,6 +148,12 @@ class MenuItem(ContainerChild):
 class TreeList(ContainerChild):
     def RenderOneBlock(self, parent, parentWindow):
         treeList = wxTreeListCtrl(parentWindow)
+        info = wxTreeListColumnInfo()
+        for x in range(len(self.columnHeadings)):
+            info.SetText(self.columnHeadings[x])
+            info.SetWidth(self.columnWidths[x])
+            treeList.AddColumnInfo(info)
+        
         parent.Add(treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return None, None
     
