@@ -79,7 +79,7 @@ class Cloud(Item):
         else:
             results = []
 
-        for alias, endpoint in self.iterEndpoints(cloudAlias):
+        for alias, endpoint, cloud in self.iterEndpoints(cloudAlias):
             for other in endpoint.iterValues(item):
                 if other is not None and other._uuid not in items:
                     results.extend(endpoint.getItems(other, items, references,
@@ -161,7 +161,7 @@ class Cloud(Item):
     def getAttributeEndpoints(self, attrName, index=0, cloudAlias=None):
 
         endpoints = []
-        for endpoint in self.iterEndpoints(cloudAlias):
+        for alias, endpoint, cloud in self.iterEndpoints(cloudAlias):
             names = endpoint.attribute
             if index < len(names) and names[index] == attrName:
                 endpoints.append(endpoint)
@@ -202,16 +202,17 @@ class Cloud(Item):
         endpoints = self.getAttributeValue('endpoints', default=None)
         if endpoints is not None:
             for endpoint in endpoints:
-                yield (endpoints.getAlias(endpoint), endpoint)
+                yield (endpoints.getAlias(endpoint), endpoint, self)
 
         if cloudAlias is not None:
             for superKind in self.kind._getSuperKinds():
                 for cloud in superKind.getClouds(cloudAlias):
-                    for alias, endpoint in cloud.iterEndpoints(cloudAlias):
+                    for alias, endpoint, inCloud in \
+                     cloud.iterEndpoints(cloudAlias):
                         if (alias is None or
                             endpoints is None or
                             endpoints.resolveAlias(alias) is None):
-                            yield (alias, endpoint)
+                            yield (alias, endpoint, inCloud)
 
     def getEndpoints(self, alias, cloudAlias=None):
         """
