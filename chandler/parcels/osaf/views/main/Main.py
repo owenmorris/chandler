@@ -1,6 +1,6 @@
 __version__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
@@ -150,12 +150,6 @@ class MainView(View):
 
     # Test Methods
 
-    def onGenerateContentItemsEvent(self, notification):
-        GenerateItems.GenerateNotes(2)
-        GenerateItems.generateCalendarEventItems(2, 30)
-        GenerateItems.GenerateContacts(2)
-        Globals.repository.commit()
-
     def onGenerateCalendarEventItemsEvent(self, notification):
         GenerateItems.generateCalendarEventItems(10, 30)
         Globals.repository.commit()
@@ -182,6 +176,8 @@ class MainView(View):
 
     def onShowPyCrustEvent(self, notification):
         Globals.wxApplication.ShowDebuggerWindow()
+
+    def onGenerateQueryParserEvent(self, notification):
 
     def onReloadParcelsEvent(self, notification):
         ParcelManager.getManager().loadParcels()
