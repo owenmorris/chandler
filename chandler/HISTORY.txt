@@ -2,23 +2,23 @@
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Milestone 0.3.17 (CVS tag CHANDLER_0_3_17) 2004-06-01
+    * Added Principal kind and type
+    * Added ACL and ACE types
+    * Added URL type to data model and core schema
+    * Remote access over Jabber is working again
+    * Implemented ACL store
+    * Added ACL access APIs to Item, with epydoc
+    * PyLucene Makefile.dev conditionally compiles with or without DbDirectory
+    * PyLucene conditionally compiles DbDirectory on Linux, Windows and OS X
+    * Added IndexReader, Term, TermEnum, TermDocs and TermPositions to PyLucene
+    * Added patch for delete methods on IndexReader
+    * Fixed bug where html pages weren't being found when run from Wing.
+    * Updated TabbedContainers to use SynchronizeWidget.
+    * Fixed the splash screen to not be system modal on Windows.
+    * Disabled Close Tab menu item when only one tab is visible.
+    * Fixed bug with tabs being unregistered in the background.
+    * Added drag and drop framework. 
     * Addition of swig to our build environment
-    * Begin addition of openssl/m2crypto libs]
-    * Many chandler improvements
-    * Additional changes to follow
-
-
-Milestone 0.3.17 (CVS tag CHANDLER_0_3_17) 2004-06-01
-   * Added Principal kind and type
-   * Added ACL and ACE types
-   * Added URL type to data model and core schema
-   * Remote access over Jabber is working again
-   * Implemented ACL store
-   * Added ACL access APIs to Item, with epydoc
-   * PyLucene Makefile.dev conditionally compiles with or without DbDirectory
-   * PyLucene conditionally compiles DbDirectory on Linux, Windows and OS X
-   * Added IndexReader, Term, TermEnum, TermDocs and TermPositions to PyLucene
-   * Added patch for delete methods on IndexReader
 
 Milestone 0.3.16 (CVS tag CHANDLER_0_3_16) 2004-05-18
     * Upgraded to wxWidgets 2.5.
