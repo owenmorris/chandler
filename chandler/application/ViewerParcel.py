@@ -82,13 +82,8 @@ class ViewerParcel (Parcel):
             assert (panel != None)
             
             app.association[id(self)] = panel
-            """
-              Set up model and resources for the convience of the parcel.
-            OnInit gives the parcel a chance to wire up their events.
-            """
-            panel.model = self
-            panel.resources = resources
-            panel.OnInit ()
+            panel.setup(self, resources)
+
         else:
             panel = app.association[id(self)]
         """
@@ -126,4 +121,12 @@ class wxViewerParcel(wxPanel):
         self.this = value.this
         self._setOORInfo(self)
 
+    def setup(self, model, resources):
+        """
+          Set up model and resources for the convience of the parcel.
+        OnInit gives the parcel a chance to wire up their events.
+        """
+        self.model = model
+        self.resources = resources
+        self.OnInit()
 
