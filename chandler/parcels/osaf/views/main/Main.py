@@ -106,12 +106,8 @@ class MainView(View):
         newItem.InitOutgoingAttributes ()
         self.RepositoryCommitWithStatus ()
 
-        # Tell the sidebar we want to go to the All or contacts box
-        if newItem.isItemOf (Contacts.Contact.getKind (self.itsView)):
-            itemName = 'ContactsView'
-        else:
-            itemName = 'AllView'
-        self.postEventByName ('RequestSelectSidebarItem', {'itemName':itemName})
+        # Tell the sidebar we want to go to the All collection
+        self.postEventByName ('RequestSelectSidebarItem', {'itemName':u"All"})
 
         # Tell the ActiveView to select our new item
         self.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':newItem})

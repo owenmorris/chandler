@@ -43,13 +43,12 @@ class Sidebar (ControlBlocks.Table):
             # find the item by name
             itemName = event.arguments['itemName']
             for item in self.contents:
-                if item.itsName == itemName:
-                    event.arguments['item'] = item
+                if item.displayName == itemName:
                     break
             else:
                 return
 
-        self.onSelectItemEvent (event)
+        self.postEventByName("SelectItemBroadcast", {'item':item})
 
 
 class SidebarTrunkDelegate(Trunk.TrunkDelegate):
