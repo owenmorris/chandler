@@ -1,7 +1,7 @@
 include ../Makefile.inc
 
-VERSION=0.1
-RELVER=$(VERSION)-4
+VERSION=0.1.1
+RELVER=$(VERSION)-1
 VOBJECT=$(BUILD_ROOT)/vobject
 MANIFEST=$(SNAP)/$(SITE)/vobject
 BUILD=build_$(SNAP)
@@ -23,7 +23,7 @@ apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
 	patch -Nup0 < patches2-$(VERSION); echo ok
 
-build: expand apply
+build: expand
 	cd $(SRC); \
 	$(PYTHON) setup.py \
           build --build-base=$(BUILD) $(DIST_OPT) \
