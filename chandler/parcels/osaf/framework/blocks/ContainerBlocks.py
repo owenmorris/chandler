@@ -272,7 +272,7 @@ class wxEditText(wxTextCtrl):
             
 class EditText(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
-        style = wxTE_PROCESS_ENTER
+        style = 0
         if self.textAlignmentEnum == "Left":
             style |= wxTE_LEFT
         elif self.textAlignmentEnum == "Center":
@@ -282,6 +282,8 @@ class EditText(RectangularChild):
 
         if self.lineStyleEnum == "MultiLine":
             style |= wxTE_MULTILINE
+        else:
+            style |= wxTE_PROCESS_ENTER
 
         if self.textStyleEnum == "RichText":
             style |= wxTE_RICH2
