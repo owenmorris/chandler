@@ -161,6 +161,8 @@ class wxColumnarTimeView(wxColumnarSubView):
            for every Event item.
         """
         # @@@ check this one, clears the canvas of objects
+        for item in self.zOrderedDrawableObjects:
+            item.Destroy()
         self.zOrderedDrawableObjects[0:] = []
 
         remoteAddress = self.model.columnarView.calendarView.remoteAddress
