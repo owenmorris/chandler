@@ -108,7 +108,7 @@
           <div class="indentTitle">Attributes</div>
 	   </xsl:if>
 	   <xsl:variable name = "attribute" select="func:deref(@itemref)"/>
-		<div class="detailBox">
+		<div class="attributeBox">
 
 <xsl:choose>
 	<xsl:when test="$attribute">
