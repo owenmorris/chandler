@@ -81,13 +81,6 @@
     <type itemref="task:Task"/>
   </Attribute>
 
-  <Attribute itemName="priority">
-    <displayName>priority</displayName>
-    <description>...add description here...</description>
-    <cardinality>single</cardinality>
-    <type itemref="task:PriorityLevel"/>
-  </Attribute>
-
   <Attribute itemName="status">
     <displayName>status</displayName>
     <description>...add description here...</description>
@@ -158,7 +151,7 @@
     <attributes itemref="task:requiredResources"/>
     <attributes itemref="task:dependencies"/>
     <attributes itemref="task:dependentTasks"/>
-    <attributes itemref="task:priority"/>
+    <attributes itemref="pim:priority"/>
     <attributes itemref="task:status"/>
     <attributes itemref="task:workLocation"/>
     <attributes itemref="task:dueDate"/>
@@ -305,12 +298,6 @@
     <attributes itemref="task:name"/>
     <attributes itemref="task:subTypes"/>
     <attributes itemref="task:superType"/>
-  </Kind>
-
-<!-- Priority Level -->
-  <Kind itemName="PriorityLevel">
-    <displayName>Priority Level</displayName>
-    <superKinds itemref="Item"/>
   </Kind>
 
 </Parcel>

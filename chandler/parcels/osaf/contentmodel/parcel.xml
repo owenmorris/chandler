@@ -24,6 +24,19 @@
     <core:type itemref="core:String"/>
   </core:Attribute>
 
+  <core:Enumeration itemName="PriorityLevel">
+    <core:values>high</core:values>
+    <core:values>medium</core:values>
+    <core:values>low</core:values>
+  </core:Enumeration>
+
+  <core:Attribute itemName="priority">
+    <core:displayName>priority</core:displayName>
+    <core:description>...add description here...</core:description>
+    <core:cardinality>single</core:cardinality>
+    <core:type itemref="PriorityLevel"/>
+  </core:Attribute>
+
 <!-- Content Item -->
   <core:Attribute itemName="projects">
     <core:displayName>projects</core:displayName>

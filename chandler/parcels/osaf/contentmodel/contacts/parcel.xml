@@ -111,7 +111,15 @@
     <displayName>phone numbers</displayName>
     <cardinality>list</cardinality>
     <type itemref="mail:EmailAddress"/>
-    <inverseAttribute itemref="mail:emailAddressOwner"/>
+    <inverseAttribute itemref="contact:emailAddressOwner"/>
+  </Attribute>
+
+  <Attribute itemName="emailAddressOwner">
+    <displayName>email address owner</displayName>
+    <issues>only one owner</issues>
+    <cardinality>single</cardinality>
+    <type itemref="contact:ContactSection"/>
+    <inverseAttribute itemref="contact:emailAddresses"/>
   </Attribute>
 -->
 
