@@ -385,7 +385,6 @@ class wxApplication (wxApp):
         self.repository.commit(purge=True)
         self.repository.close()
         del self.applicationResources
-        logging.shutdown()
 
     def OpenStartingURL(self):
         """

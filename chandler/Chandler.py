@@ -18,24 +18,41 @@ from application.Application import wxApplication
 def main():
 
     """
-    The details of unhandled exceptions are now handled by the logger.
-    wxApplication is responsible for configuring the logger with the
-    appropriate handlers.
-
+    The details of unhandled exceptions are now handled by the logger,
+    and logged to a file: chandler.log
+    
     We are currently reraising the exception, so that wing can notice
     in the default exception handler.
     """
 
-    logging.basicConfig()
+    handler = logging.FileHandler('chandler.log')
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    handler.setFormatter(formatter)
+    root = logging.getLogger()
+    root.addHandler(handler)
 
     try:
         application = wxApplication(sys.argv)
-        application.MainLoop()
-        application.OnTerminate()
     except:
-        logging.exception("Unhandled exception in Chandler")
+        logging.exception("Unhandled exception during initialization")
+        ShowExceptionDialog("Chandler", "Chandler encountered an unexpected problem while trying to start.")
+        raise
+
+    try:
+        application.MainLoop()
+    except:
+        logging.exception("Unhandled exception during main loop")
         ShowExceptionDialog("Chandler", "Chandler encountered an unexpected problem and had to shut down.")
         raise
+
+    try:
+        application.OnTerminate()
+    except:
+        logging.exception("Unhandled exception on termination")
+        ShowExceptionDialog("Chandler", "Chandler encountered an unexpected problem while trying to shut down.")
+        raise
+
+    logging.shutdown()
 
         
 def ShowExceptionDialog(title, message):
