@@ -10,29 +10,13 @@
 
 <Parcel itemName="AgentSchema"
         xmlns="//Schema/Core"
-        xmlns:agents="//Parcels/OSAF/AppSchema/AgentSchema">
+        xmlns:agents="//Parcels/OSAF/AppSchema/AgentSchema"
+        xmlns:blah="//Parcels/OSAF/AppSchema/utils"
+        xmlns:indexes="//Parcels/OSAF/AppSchema/utils/indexer">
 
   <displayName>Agents Schema</displayName>
   <description>Agents schema for the 0.2 release</description>
   <version>0.2</version>
-
-  <!-- Kind: AgentManager -->
-
-  <Kind itemName="AgentManager">
-    <displayName>AgentManager</displayName>
-    <description>Holds a list of all AgentItems in the repository</description>
-
-    <Attribute itemName="items">
-      <displayName>List of all Agents</displayName>
-      <type itemref="agents:AgentItem"/>
-      <cardinality>list</cardinality>
-      <inverseAttribute itemref="agents:AgentItem/agentOwner"/>
-    </Attribute>
-
-    <attributes itemref="agents:AgentManager/items"/>
-    <superKinds itemref="Item"/>
-  </Kind>
-
 
   <!-- Kind: Action -->
 
@@ -345,13 +329,6 @@
   <Kind itemName="AgentItem">
     <displayName>The Agent</displayName>
 
-    <Attribute itemName="agentOwner">
-      <displayName>Agent Owner</displayName>
-      <type itemref="String"/>
-      <cardinality>single</cardinality>
-      <inverseAttribute itemref="agents:AgentManager/items"/>
-    </Attribute>
-
     <Attribute itemName="roles">
       <displayName>Agent Roles</displayName>
       <type itemref="String"/>
@@ -396,7 +373,7 @@
       <cardinality>dict</cardinality>
     </Attribute>
 
-    <attributes itemref="agents:AgentItem/agentOwner"/>
+    <attributes itemref="indexes:indexedBy"/>
     <attributes itemref="agents:AgentItem/roles"/>
     <attributes itemref="agents:AgentItem/repertoire"/>
     <attributes itemref="agents:AgentItem/instructions"/>
