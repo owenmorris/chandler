@@ -21,6 +21,14 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
         Globals.repository = self.rep
         self.parceldir = os.path.join(self.rootdir, 'chandler', 'parcels')
 
+        # Create and start the notification manager -- this is needed for
+        # ItemCollections
+        from osaf.framework.notifications.NotificationManager import NotificationManager
+        Globals.notificationManager = NotificationManager()
+
+        self.loadParcel("osaf/framework/notifications/schema")
+        self.loadParcel("osaf/framework")
+
     def loadParcel(self, relPath):
         """
         load only the parcel we need (and it's dependencies)
