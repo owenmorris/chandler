@@ -91,10 +91,16 @@ class PreferencesDialog(wxDialog):
         self.container = wxBoxSizer(wxVERTICAL)
         self.RenderWidgets()
         self.AddButtons()
-
+        
         self.SetSizerAndFit(self.container)
         self.SetAutoLayout(true)
-
+        
+        EVT_ACTIVATE(self, self.OnActivate)
+    
+    # select the first field when activated
+    def OnActivate(self, event):
+        self.SelectFirstField()
+        
     # sort function to sort sections by their order parameter
     def SortBySectionOrder(self, firstSection, secondSection):
         return cmp(self.sectionOrder[firstSection], self.sectionOrder[secondSection])
@@ -166,7 +172,10 @@ class PreferencesDialog(wxDialog):
                 labelValue = '        '
                 widget = wxCheckBox(self.formContainer, -1,   '' + element.label, wxDefaultPosition, wxDefaultSize, wxNO_BORDER)
             else:
-                widget = wxTextCtrl(self.formContainer, -1)
+                widget = wxTextCtrl(self.formContainer, -1, style=wxTE_PROCESS_TAB | wxTE_PROCESS_ENTER)
+                index = len(self.fieldList)
+                handler = TextFieldHandler(self, index)
+                EVT_CHAR(widget, handler.OnKeystroke)
 
             label = wxStaticText(self.formContainer, -1, labelValue)
 
@@ -179,7 +188,8 @@ class PreferencesDialog(wxDialog):
 
         self.formContainer.SetSizerAndFit(self.gridSizer)
         self.RestorePreferences()
-    
+        self.SelectFirstField()
+        
     def ResetForm(self):
         self.gridSizer = wxFlexGridSizer(cols=2, vgap=4, hgap=4)
         self.gridSizer.AddGrowableCol(1)
@@ -189,6 +199,15 @@ class PreferencesDialog(wxDialog):
         self.formContainer.DestroyChildren()
         self.ResetForm()
 
+    # SelectFirstField is called after rendering the form to set the focus to the first field in the list
+    def SelectFirstField(self):
+        for entry in self.fieldList:
+            key, field, type = entry
+            if type != 'boolean':
+                field.SetFocus()
+                field.SetSelection(-1, -1)
+                return
+        
     # add the command buttons
     def AddButtons(self):
         hBox = wxBoxSizer(wxHORIZONTAL)
@@ -227,5 +246,26 @@ class PreferencesDialog(wxDialog):
         self.ClearForm()
         self.RenderSelectedForm()
         self.Layout()
+
+# here's a utility class to handle tabbing between fields
+class TextFieldHandler:
+    def __init__(self, dialog, index):
+        self.dialog = dialog
+        self.index = index
         
+    def OnKeystroke(self, event):
+        keycode = event.GetKeyCode()
+        # handle return and tab by bumping to the next field
+        if keycode == 13 or keycode == 9:
+           newIndex = self.index + 1
+           if newIndex >= len(self.dialog.fieldList):
+               newIndex = 0
+           key, field, type = self.dialog.fieldList[newIndex]
+           field.SetFocus()
+           field.SetSelection(-1, -1)
+       
+        else:
+            event.Skip()
+
+       
     
