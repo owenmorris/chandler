@@ -70,8 +70,7 @@ class LiteralAttributesTest(unittest.TestCase):
     def testListMultis(self):
         kind = self.rep.find('//Schema/Core/Kind')                
         itemKind = self.rep.find('//Schema/Core/Item')            
-        # get an instance of ItemKind to add an attribute to
-        myKind = ItemKind('testKind', self.rep, kind)             
+        myKind = kind.newItem('listKind', self.rep)
                                                                   
         # create an attribute with cardinality list and add to the kind
         attrKind = itemKind.getAttribute('kind').kind             
@@ -102,14 +101,11 @@ class LiteralAttributesTest(unittest.TestCase):
         self.assert_(item.hasValue('strings','Minnie'))
         self.assert_(item.hasValue('strings','Mickey'))
 
-        #TODO getValue tests here
         # verify list contents using getValue() method
-        #self.assertEquals(item.getValue('strings',0),'Mickey')
-        #self.assertEquals(item.getValue('strings',1),'Minnie')
-        #self.assertEquals(item.getValue('strings',2),'Donald')
-        #self.assertEquals(item.getValue('strings',3),'Goofy')
-        for i in range(4):                                        
-            print i," ",item.getValue('strings',i),item.strings[i]
+        self.assertEquals(item.getValue('strings',0),'Mickey')
+        self.assertEquals(item.getValue('strings',1),'Minnie')
+        self.assertEquals(item.getValue('strings',2),'Donald')
+        self.assertEquals(item.getValue('strings',3),'Goofy')
 
         # verify list contents using python list notation
         self.assertEquals(item.strings[0],'Mickey')
@@ -135,8 +131,7 @@ class LiteralAttributesTest(unittest.TestCase):
     def testDictMultis(self):
         kind = self.rep.find('//Schema/Core/Kind')                
         itemKind = self.rep.find('//Schema/Core/Item')            
-        # get an instance of ItemKind to add an attribute to
-        myKind = ItemKind('testKind', self.rep, kind)             
+        myKind = kind.newItem('dictKind', self.rep)
                                                                   
         # create an attribute with cardinality dict and add to the kind
         attrKind = itemKind.getAttribute('kind').kind             
