@@ -1259,7 +1259,7 @@ def compressDirectory(buildenv, directories, fileRoot):
         return fileRoot + ".zip"
     else:
         executeCommand(buildenv, "HardHat",
-         [buildenv['tar'], "cvf", fileRoot+".tar"] + directories,
+         [buildenv['tar'], "cf", fileRoot+".tar"] + directories,
         "Tarring to " + fileRoot + ".tar")
         executeCommand(buildenv, "HardHat", 
          [buildenv['gzip'], "-f", fileRoot+".tar"],
