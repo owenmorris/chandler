@@ -2,20 +2,114 @@
 
 <Parcel itemName="DocumentSchema"
         xmlns="//Schema/Core"
-        xmlns:core="//Schema/Core"
         xmlns:app="//Parcels/OSAF/AppSchema"
         xmlns:doc="//Parcels/OSAF/AppSchema/DocumentSchema">
 
   <description>Schema for blocks that make up CPIA documents </description>
   <version>0.1</version>
+  
+  <!-- global attributes for CPIA documents -->
+  <Attribute itemName="name">
+    <type itemref="String"/>
+  </Attribute>
 
+  <Attribute itemName="font">
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="size">
+    <type itemref="Float"/>
+  </Attribute>
+
+  <Attribute itemName="style">
+    <type itemref="String"/>
+  </Attribute>
+
+  <!--
+    Chandler Query
+  -->
+  <Kind itemName="Query">
+    <classes key="python">OSAF.AppSchema.DocumentSchema.Query.Query</classes>
+
+    <Enumeration itemName="QueryType">
+      <values>ContainerSearch</values>
+      <values>listOfItems</values>
+    </Enumeration>
+
+    <Attribute itemName="queryEnum">
+      <type itemref="doc:Query/QueryType"/>
+    </Attribute>
+
+    <Attribute itemName="data">
+      <type itemref="String"/>
+    </Attribute>
+
+    <attributes itemref="doc:Query/queryEnum"/>
+    <attributes itemref="doc:Query/data"/>
+  </Kind>
+
+  <!--
+    Named styles
+  -->
+  <Kind itemName="Style">
+    <classes key="python">OSAF.AppSchema.DocumentSchema.Style.Style</classes>
+
+    <Attribute itemName="usedInBlocks">
+      <type itemref="doc:Block"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="doc:Block/styles"/>
+    </Attribute>
+
+    <attributes itemref="doc:name"/>
+    <attributes itemref="doc:Style/usedInBlocks"/>
+  </Kind>
+
+  <Kind itemName="CharacterStyle">
+    <classes key="python">OSAF.AppSchema.DocumentSchema.CharacterStyle.CharacterStyle</classes>
+    <superKinds itemref="doc:Style"/>
+
+    <attributes itemref="doc:font"/>
+    <attributes itemref="doc:size"/>
+    <attributes itemref="doc:style"/>
+  </Kind>
+
+  <!--
+    Blocks
+  -->
   <Kind itemName="Block">
     <classes key="python">OSAF.AppSchema.DocumentSchema.Block.Block</classes>
 
-    <Attribute itemName="Name">
-      <type itemref="core:String"/>
+    <Attribute itemName="content-spec">
+      <type itemref="doc:Query"/>
     </Attribute>
 
+    <Attribute itemName="parentBlock">
+      <type itemref="doc:Block"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="doc:Block/childrenBlocks"/>
+    </Attribute>
+  
+    <Attribute itemName="childrenBlocks">
+      <type itemref="doc:Block"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="doc:Block/parentBlock"/>
+    </Attribute>
+
+    <Attribute itemName="styles">
+      <type itemref="doc:Style"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="doc:Style/usedInBlocks"/>
+    </Attribute>
+
+    <Attribute itemName="open">
+      <type itemref="Boolean"/>
+    </Attribute>
+
+    <attributes itemref="doc:name"/>
+    <attributes itemref="doc:Block/content-spec"/>
+    <attributes itemref="doc:Block/childrenBlocks"/>
+    <attributes itemref="doc:Block/parentBlock"/>
+    <attributes itemref="doc:Block/styles"/>
   </Kind>
 
 </Parcel>
