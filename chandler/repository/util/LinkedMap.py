@@ -51,8 +51,10 @@ class LinkedMap(dict):
 
     def __repr__(self):
 
-        buffer = cStringIO.StringIO()
+        buffer = None
+        
         try:
+            buffer = cStringIO.StringIO()
             buffer.write('{')
             for key, value in self.iteritems():
                 buffer.write(key.__repr__())
@@ -62,8 +64,10 @@ class LinkedMap(dict):
                     buffer.write(', ')
             buffer.write('}')
             return buffer.getvalue()
+
         finally:
-            buffer.close()
+            if buffer is not None:
+                buffer.close()
 
     def linkChanged(self, link, key):
         pass

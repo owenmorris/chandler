@@ -113,6 +113,8 @@ class XMLRepository(OnDemandRepository):
 
     def _openDb(self, create):
 
+        txn = None
+        
         try:
             if self._notxn:
                 txn = None
@@ -124,7 +126,7 @@ class XMLRepository(OnDemandRepository):
             self._store = XMLRepository.xmlContainer(self._env, "__data__",
                                                      txn, create)
         finally:
-            if txn:
+            if txn is not None:
                 txn.commit()
 
     def close(self, purge=False):
@@ -392,6 +394,8 @@ class XMLRepository(OnDemandRepository):
 
         def deleteItem(self, item):
 
+            cursor = None
+            
             try:
                 cursor = self._db.cursor(txn=self._txn)
                 key = item.getUUID()._uuid
@@ -405,7 +409,8 @@ class XMLRepository(OnDemandRepository):
                     pass
 
             finally:
-                cursor.close()
+                if cursor is not None:
+                    cursor.close()
 
 
 class XMLRefDict(RefDict):

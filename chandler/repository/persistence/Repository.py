@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, os.path, xml.sax
+import os, os.path, xml.sax, threading
 
 from model.util.UUID import UUID
 from model.util.Path import Path
@@ -30,6 +30,7 @@ class Repository(object):
 
         self.dbHome = dbHome
         self._status = 0
+        self._thread = threading.currentThread()
 
     def create(self, verbose=False):
 
@@ -70,6 +71,9 @@ class Repository(object):
 
     def setLoading(self, loading=True):
 
+        if self._thread is not threading.currentThread():
+            raise RepositoryError, 'current thread is not owning thread'
+        
         status = (self._status & Repository.LOADING != 0)
 
         if loading:
@@ -402,6 +406,8 @@ class OnDemandRepository(Repository):
 
         # when crossing the schema boundary, reset loading status so that
         # hooks get called before resuming regular loading
+
+        hooks = None
         
         try:
             hooks = self._hooks

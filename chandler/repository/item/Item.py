@@ -875,6 +875,8 @@ class Item(object):
 
     def toXML(self):
 
+        out = None
+        
         try:
             out = cStringIO.StringIO()
             generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
@@ -884,8 +886,10 @@ class Item(object):
             generator.endDocument()
 
             return out.getvalue()
+
         finally:
-            out.close()
+            if out is not None:
+                out.close()
 
     def _saveItem(self, generator):
 
@@ -1030,8 +1034,10 @@ class Children(LinkedMap):
     
     def __repr__(self):
 
-        buffer = cStringIO.StringIO()
+        buffer = None
+
         try:
+            buffer = cStringIO.StringIO()
             buffer.write('{(currenly loaded) ')
             first = True
             for key, value in self._iteritems():
@@ -1045,8 +1051,10 @@ class Children(LinkedMap):
             buffer.write('}')
 
             return buffer.getvalue()
+
         finally:
-            buffer.close()
+            if buffer is not None:
+                buffer.close()
 
     def _load(self, key):
 

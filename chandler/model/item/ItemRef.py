@@ -476,7 +476,8 @@ class RefDict(LinkedMap):
     def _load(self, key):
 
         repository = self._item.getRepository()
-
+        loading = None
+        
         try:
             loading = repository.setLoading()
             ref = self._loadRef(key)
@@ -488,7 +489,8 @@ class RefDict(LinkedMap):
                 
                 return True
         finally:
-            repository.setLoading(loading)
+            if loading is not None:
+                repository.setLoading(loading)
 
         return False
 

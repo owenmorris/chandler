@@ -42,15 +42,18 @@ class FileRepository(Repository):
     def _load(self):
         'Load items from the directory the repository was initialized with.'
 
+        loading = None
+        
         try:
-            self._status |= self.LOADING
+            loading = self.setLoading()
             if os.path.isdir(self.dbHome):
                 contents = file(os.path.join(self.dbHome, 'contents.lst'), 'r')
             
                 for dir in contents.readlines():
                     self._loadItems(dir[:-1])
         finally:
-            self._status &= ~self.LOADING
+            if loading is not None:
+                self.setLoading(loading)
 
     def _loadItems(self, dir):
 
