@@ -72,7 +72,7 @@ class wxZaoBaoViewer(wxViewerParcel):
                                 wxNORMAL, false, "Arial")
 
         #create splitter window
-        self.twoPane = wxSplitterWindow(self, -1)
+        self.twoPane = wxSplitterWindow(self, -1,style=wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE)
         self.twoPane.SetMinimumPaneSize(100) # prevent unsplitting
 
         #create main UI elements
