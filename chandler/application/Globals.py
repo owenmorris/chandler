@@ -13,7 +13,6 @@ Don't add to the globals without reviewing the addition.
 from repository.util.Path import Path
 
 
-taskManager = None            # TaskManager
 chandlerDirectory = None      # Directory containing chandler executable
 notificationManager = None    # NotificationManager
 parcelManager = None          # parcelManager
@@ -22,3 +21,4 @@ mainView = None               # The main View
 wxApplication = None          # The wxWindows application object
 activeView = None             # The last view that was displayed
 crypto = None                 # Cryptographic services
+wakeupCaller = None           # WakeupCaller Service
