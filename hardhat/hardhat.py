@@ -184,7 +184,7 @@ try:
              [py], "Interactive session")
 
         if opt == "-j":
-            hardhatlib.epydoc(buildenv, arg, *args)
+            hardhatlib.epydoc(buildenv, None, None, arg, *args)
 
         if opt == "-l":
             args_used = True  # we're going to be using the leftover args

@@ -18,7 +18,7 @@ to a structured log, and alert hardhatlib of problems via Exceptions.
 
 """
 
-import os, sys, glob, errno, string, shutil, fileinput, re
+import os, sys, glob, errno, string, shutil, fileinput, re, popen2
 
 
 # Earlier versions of Python don't define these, so let's include them here:
@@ -728,24 +728,40 @@ def executeScript(buildenv, args):
      [python] + args, "Running" )
 
 
-def epydoc(buildenv, *args):
+def epydoc(buildenv, name, message, *args):
 
     if buildenv['version'] == 'debug':
         python = buildenv['python_d']
     elif buildenv['version'] == 'release':
         python = buildenv['python']
 
-    command = [ python, '-c', 'from epydoc.cli import cli\ncli()' ]
+    command = [ python, '-c', '"from epydoc.cli import cli\ncli()"' ]
     command.extend(args)
-    print command
 
-    exit_code = os.spawnv(os.P_WAIT, python, command)
+    if name is None:   # normal -j command line use, not from __hardhat__.py
+        buildlog = sys.stdout
+    else:
+        buildlog = file(buildenv['logfile'], 'a+', 0)
+        log(buildenv, HARDHAT_MESSAGE, name, message)
 
+    print >> buildlog, command
+    process = popen2.Popen4(' '.join(command), True)
+
+    while True:
+        output = process.fromchild.read(128)
+        if len(output) == 0:
+            break
+        print >> buildlog, output,
+
+    exit_code = process.wait()
+    if name is not None:
+        buildlog.close()
+    
     if exit_code == 0:
         log(buildenv, HARDHAT_MESSAGE, "HardHat", "OK")
     else:
         log(buildenv, HARDHAT_ERROR, "HardHat",
-            "Command exited with code = " + str(exit_code) )
+            "Command exited with code = %s" %(exit_code))
         raise HardHatExternalCommandError
     
     return exit_code
