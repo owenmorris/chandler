@@ -46,7 +46,7 @@ class AnonymousTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         
         itemChildren = [child for child in item.iterChildren()]
         
-        self.assert_(len(itemChildren) == 1)
+        self.assert_(len(itemChildren) == 2)
         
         self.assert_(itemChildren[0].itsKind == item.itsKind)
 
