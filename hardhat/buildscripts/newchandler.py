@@ -80,7 +80,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
     for releaseMode in ('debug', 'release'):
 
-        doInstall(releaseMode, log)
+        doInstall(releaseMode, workingDir, log)
 
     # do tests
         ret = Do(hardhatScript, releaseMode, workingDir, outputDir, cvsVintage, 
@@ -117,7 +117,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     
     if changesInCVS(testDir, log):
         log.write("Changes in CVS, do a " + mode + " install\n")
-        doInstall(mode, log)
+        doInstall(mode, workingDir, log)
 #     elif changesInModules(mode):
 #         log.write("Changes in module tarballs, updating modules\n")
 #         getChangedModules(mode)
@@ -209,7 +209,7 @@ def getChangedModules(tarballModules):
 # dummy for now
     return false
 
-def doInstall(buildmode, log):
+def doInstall(buildmode, workingDir, log):
 # for our purposes, we do not really do a build
 # we will update chandler from CVS, and grab new tarballs when they appear
     if buildmode == "debug":
