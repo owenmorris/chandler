@@ -9,6 +9,7 @@ from wxPython.wx import *
 from wxPython.xrc import *
 
 import string
+import logging
 
 import application.Application
 """Ideally we'd prefer to do a "from application.Application import app", 
@@ -237,6 +238,8 @@ class wxChandlerWindow(wxFrame):
         del app.association[id(self.model)]
         if self.activeParcel:
             self.activeParcel.Deactivate()
+
+        logging.shutdown()
 
         del app.wxMainFrame
         self.Destroy()
