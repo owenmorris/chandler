@@ -565,11 +565,85 @@ class TestMerge(RepositoryTestCase):
         self.assert_(m4.previous is m2)
         self.assert_(main.check(), 'main check failed')
 
-#    def testMergeOverlapV(self):
+    def testMergeOverlapV(self):
+
+        def mergeFn(code, item, attribute, value):
+            return item.getAttributeValue(attribute)
+
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        self.rep.loadPack(cineguidePack)
+        self.rep.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.title = 'changed title in view'
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.title = 'changed title in main'
+        main.commit(mergeFn)
+
+        self.assertEquals(m.title, 'changed title in main')
+
+    def testMergeOverlapVSame(self):
+
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        self.rep.loadPack(cineguidePack)
+        self.rep.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.title = 'changed title'
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.title = 'changed title'
+        main.commit()
+
+        self.assertEquals(m.title, 'changed title')
+
+    def testMergeOverlapRSame(self):
+
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        self.rep.loadPack(cineguidePack)
+        self.rep.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m1.director = m2.director
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m1 = k.movies.first()
+        m2 = k.movies.next(m1)
+        m1.director = m2.director
+        main.commit()
+
+        self.assertEquals(m1.director, m2.director)
+        self.assert_(main.check(), 'main view did not check out')
+
+#    def testMergeOverlapR(self):
 #
 #        def mergeFn(code, item, attribute, value):
-#            print 'mergeFn'
-#            return True, item.getAttributeValue(attribute)
+#            return item.getAttributeValue(attribute)
 #
 #        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
 #                                     'cineguide.pack')
@@ -580,17 +654,21 @@ class TestMerge(RepositoryTestCase):
 #        main = self.rep.setCurrentView(view)
 #
 #        k = view.findPath('//CineGuide/KHepburn')
-#        m = k.movies.first()
-#        m.title = 'changed title in view'
+#        m1 = k.movies.first()
+#        m2 = k.movies.next(m1)
+#        m1.director = m2.director
 #        view.commit()
 #        
 #        view = self.rep.setCurrentView(main)
 #        k = main.findPath('//CineGuide/KHepburn')
-#        m = k.movies.first()
-#        m.title = 'changed title in main'
+#        m1 = k.movies.first()
+#        m2 = k.movies.next(m1)
+#        m3 = k.movies.next(m2)
+#        m4 = k.movies.next(m3)
+#        m1.director = m4.director
 #        main.commit(mergeFn)
 #
-#        self.assertEquals(m.title, 'changed title in main')
+#        self.assertEquals(m1.director, m2.director)
 
     def makeC0(self):
 

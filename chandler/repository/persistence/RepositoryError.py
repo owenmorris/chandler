@@ -57,12 +57,14 @@ class MergeError(VersionConflictError):
     MOVE   = 2
     NAME   = 3
     VALUE  = 4
+    REF    = 5
     
     codeNames = { BUG: 'BUG',
                   RENAME: 'RENAME',
                   MOVE: 'MOVE',
                   NAME: 'NAME',
-                  VALUE: 'VALUE' }
+                  VALUE: 'VALUE',
+                  REF: 'REF' }
 
 
 class ViewError(RepositoryError):

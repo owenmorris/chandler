@@ -505,20 +505,10 @@ class DBRepositoryView(OnDemandRepositoryView):
     def _mergeVDIRTY(self, item, toVersion, dirties, mergeFn):
 
         dirties = HashTuple(dirties)
-        overlaps = []
-        values = item._values
-        references = item._references
-        overlaps.extend([name for name in values._getDirties()
-                         if name in dirties])
-        overlaps.extend([name for name in references._getDirties()
-                         if name in dirties and
-                         not references._isRefList(name)])
-        if overlaps:
-            self._e_2_overlap(item, overlaps[0])
-
         store = self.repository.store
         args = store._items.loadItem(toVersion, item._uuid)
-        DBItemMergeReader(store, item, dirties, *args).readItem(self, [])
+        DBItemMergeReader(store, item, dirties, mergeFn, *args).readItem(self,
+                                                                         [])
 
     def _i_merged(self, item):
 
@@ -531,11 +521,3 @@ class DBRepositoryView(OnDemandRepositoryView):
     def _e_2_rename(self, item, name):
 
         raise MergeError, ('rename', item, 'item %s renamed to %s and %s' %(item._uuid, item._name, name), MergeError.RENAME)
-
-    def _e_2_overlap(self, item, name):
-        
-        raise MergeError, ('values', item, 'merging values is not yet implemented, overlapping attribute: %s' %(name), MergeError.BUG)
-
-    def _e_2v_overlap(self, item, name):
-        
-        raise MergeError, ('values', item, "literal value attribute '%s' changed in both views" %(name), MergeError.VALUE)

@@ -15,6 +15,7 @@ from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList, PersistentDict
 from repository.schema.TypeHandler import TypeHandler
 from repository.persistence.RepositoryError import LoadError, LoadValueError
+from repository.persistence.RepositoryError import MergeError
 
 
 class DBItemWriter(ItemWriter):
@@ -601,12 +602,13 @@ class DBItemReader(ItemReader):
 
 class DBItemMergeReader(DBItemReader):
 
-    def __init__(self, store, item, dirties, *args):
+    def __init__(self, store, item, dirties, mergeFn, *args):
 
         super(DBItemMergeReader, self).__init__(store, item._uuid, *args)
 
         self.item = item
         self.dirties = dirties
+        self.mergeFn = mergeFn
 
     def readItem(self, view, afterLoadHooks):
 
@@ -621,13 +623,21 @@ class DBItemMergeReader(DBItemReader):
     def _value(self, offset, data, kind, withSchema, attribute, view, name,
                afterLoadHooks):
 
+        value = Item.Nil
         if name in self.dirties:
-            return super(DBItemMergeReader, self)._value(offset, data, kind,
-                                                         withSchema, attribute,
-                                                         view, name,
-                                                         afterLoadHooks)
+            offset, value = super(DBItemMergeReader, self)._value(offset, data, kind, withSchema, attribute, view, name, afterLoadHooks)
+            originalValues = self.item._values
+            if originalValues._isDirty(name):
+                originalValue = originalValues.get(name, Item.Nil)
+                if value == originalValue:
+                    value = Item.Nil
+                elif self.mergeFn is not None:
+                    value = self.mergeFn(MergeError.VALUE,
+                                         self.item, name, value)
+                else:
+                    self._e_1_overlap(MergeError.VALUE, self.item, name)
 
-        return offset, Item.Nil
+        return offset, value
     
     def _ref(self, offset, data, kind, withSchema, attribute, view, name,
              afterLoadHooks):
@@ -649,15 +659,39 @@ class DBItemMergeReader(DBItemReader):
             raise LoadValueError, (self.name or self.uItem, name,
                                    "invalid cardinality: 0x%x" %(flags))
 
-        otherName = kind.getOtherName(name)
         origItem = self.item
         origRef = origItem._references.get(name, None)
+
+        if self.item._references._isDirty(name):
+            if origRef is not None:
+                if origRef._isUUID():
+                    if origRef == itemRef:
+                        return offset, Item.Nil
+                    origRef = origItem._references._getRef(name, origRef)
+
+                elif origRef._uuid == itemRef:
+                    return offset, Item.Nil
+
+                self._e_2_overlap(MergeError.REF, self.item, name)
+
+            elif itemRef is None:
+                return offset, Item.Nil
 
         if origRef is not None:
             if not (origRef._isItem() and origRef._uuid == itemRef or
                     origRef._isUUID() and origRef == itemRef):
                 if origRef._isUUID():
                     origRef = origItem._references._getRef(name, origRef)
-                origItem._references._unloadValue(name, origRef, otherName)
+                origItem._references._unloadValue(name, origRef,
+                                                  kind.getOtherName(name))
 
         return offset, itemRef
+
+    def _e_1_overlap(self, code, item, name):
+        
+        raise MergeError, ('values', item, 'merging values failed because no mergeFn callback was passed to refresh(), overlapping attribute: %s' %(name), code)
+
+    def _e_2_overlap(self, code, item, name):
+
+        raise MergeError, ('values', item, 'merging refs is not yet implement\
+ed, overlapping attribute: %s' %(name), MergeError.BUG)
