@@ -179,11 +179,7 @@ class wxApplication (wxApp):
         self.presenceWindow = None
 
         self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
-        self.repository = FileRepository(os.path.join(self.chandlerDirectory,
-         "__database__"))
-        self.repository.loadPack(os.path.join(self.chandlerDirectory, "model",
-         "packs", "schema.pack"))
-        
+
         self.initInProgress = true
         
         global app
@@ -243,6 +239,23 @@ class wxApplication (wxApp):
         systemParcelDir = os.path.join(self.chandlerDirectory,
          Application.PARCEL_IMPORT.replace ('.', os.sep))
         sys.path.insert(0,systemParcelDir)
+
+
+        """
+        Load the Repository after the path has ben altered, but before
+        the parcels are loaded. Only load packs if they have not yet been loaded.
+        """
+        self.repository = FileRepository(os.path.join(self.chandlerDirectory,
+         "__database__"))
+        self.repository.load()
+        if not self.repository.find('//Schema'):
+            self.repository.loadPack(os.path.join(self.chandlerDirectory, "model",
+                                                  "packs", "schema.pack"))
+        if not self.repository.find('//Calendar'):
+            self.repository.loadPack(os.path.join(self.chandlerDirectory, "parcels", 
+                                                  "OSAF", "calendar", "model", 
+                                                  "calendar.pack"))
+
         self.LoadParcelsInDirectory(systemParcelDir)
 
         if __debug__:
