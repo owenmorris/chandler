@@ -1,0 +1,13 @@
+Index: parsing.py
+===================================================================
+--- vobject-0.1/vobject/parsing.py	(revision 70)
++++ vobject-0.1/vobject/parsing.py	(working copy)
+@@ -538,7 +538,7 @@
+                   "related-to"      : parseText,
+                   "url"             : parseURI,
+                   "uid"             : parseText,
+-                  "exdate"          : deUnicode(parseDtstart),
++                  "exdate"          : deUnicode(parseRdate),
+                   "exrule"          : parseRecur,
+                   "rdate"           : deUnicode(parseRdate),
+                   "rrule"           : parseRecur,

@@ -1,7 +1,7 @@
 include ../Makefile.inc
 
 VERSION=0.1
-RELVER=$(VERSION)-2
+RELVER=$(VERSION)-3
 VOBJECT=$(BUILD_ROOT)/vobject
 MANIFEST=$(SNAP)/$(SITE)/vobject
 BUILD=build_$(SNAP)
@@ -21,6 +21,7 @@ expand: $(SRC)-expanded
 
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION); echo ok
+	patch -Nup0 < patches2-$(VERSION); echo ok
 
 build: expand apply
 	cd $(SRC); \
