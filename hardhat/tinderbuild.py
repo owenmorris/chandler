@@ -133,7 +133,7 @@ def main():
             else:
                 print "There were no changes"
                 log.write("There were no changes in CVS\n")
-                status = "success"
+                status = "not_running"
 
         log.write( "End = " + time.strftime("%Y-%m-%d %H:%M:%S") + "\n")
 
