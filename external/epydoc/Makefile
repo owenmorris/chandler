@@ -8,7 +8,10 @@ include $(BUILD_ROOT)/Makefile.inc
 BUILD=build_$(SNAP)
 
 
-build:
+apply: patches
+	patch -Nup0 < patches; echo ok
+
+build: apply
 	cd $(SRC); \
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
