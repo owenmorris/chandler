@@ -3,8 +3,8 @@ import re as re
 from string import *
 import email.Utils as Utils
 
-validEmailAddresses   = ["morgen@o11.org", "John Test <john@test.com>", "bill+73@home.test.com", "fred&barney@example.com"]
-invalidEmailAddresses = ["e@a.c", "brian", "brian@localhost", "", "*", "69@@teset.com"]
+validEmailAddresses   = ["morgen@o11.org", "John Test <john@test.com>", "bill+73@home.test.com", "fred&barney@example.com", "matt@[127.0.0.1]"]
+invalidEmailAddresses = ["e@a.c", "", "ted.jone#!(@notreal.com", "", "*", "69@@teset.com"]
 
 def main():
     print "\nTesting Valid Email Addresses:"
