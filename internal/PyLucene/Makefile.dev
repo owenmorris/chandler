@@ -36,19 +36,23 @@ PYTHON_INC = $(PYTHON)/include/python2.3
 PYTHON_SITE = $(PYTHON)/lib/python2.3/site-packages
 
 LUCENE_SRCS = `find $(LUCENE)/src/java -name '*.java' -print`
+
+OBJS = $(BINDIR)/lucene.o $(BINDIR)/reader.java.o $(BINDIR)/reader.cpp.o
+LIBS = $(BINDIR)/_PyLucene.so
+
+$(BINDIR):
+	mkdir -p $(BINDIR)/classes
+
+ifdef DB
+
 DB_SRCS = `find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java'`
 STORE_SRCS = `find store -name '*.java' -print`
-
-OBJS = $(BINDIR)/store.o $(BINDIR)/db_const.o $(BINDIR)/db.o $(BINDIR)/lucene.o $(BINDIR)/reader.java.o $(BINDIR)/reader.cpp.o
-
-
-$(BINDIR)/lucene.o:
-	if [ ! -d $(BINDIR) ]; then mkdir -p $(BINDIR)/classes; fi
-	$(JCC) -C -d $(CLASSES) $(LUCENE_SRCS)
-	$(JCC) $(CCFLAGS) -c -o $(BINDIR)/lucene.o $(LUCENE_SRCS)
+OBJS := $(BINDIR)/store.o $(BINDIR)/db_const.o $(BINDIR)/db.o $(OBJS)
+LIBS := $(BINDIR)/libdb_java-4.2.jnilib $(LIBS)
+SWIGOPT = -D_WITH_DB_DIRECTORY=1
+DBOPT = -I/usr/local/BerkeleyDB.4.2/include
 
 $(BINDIR)/db_const.o:
-	if [ ! -d $(BINDIR) ]; then mkdir -p $(BINDIR)/classes; fi
 	$(JCC) -C -d $(CLASSES) $(DB)/java/src/com/sleepycat/db/$(mode)/DbConstants.java
 	$(JCC) -fjni $(CCFLAGS) -c -o $(BINDIR)/db_const.o $(DB)/java/src/com/sleepycat/db/$(mode)/DbConstants.java
 
@@ -56,12 +60,25 @@ $(BINDIR)/db.o: $(BINDIR)/db_const.o
 	$(JCC) -C -d $(CLASSES) --classpath=$(CLASSES) $(DB_SRCS)
 	$(JCC) -fjni $(CCFLAGS) -c -o $(BINDIR)/db.o --classpath=$(CLASSES) $(DB_SRCS)
 
+# with gcc 3.4-20040407, libdb_java segfaults when compiled with -O2
+
 $(BINDIR)/libdb_java-4.2.jnilib:
 	$(CC) -shared -bundle -o $(BINDIR)/libdb_java-4.2.jnilib -O $(LDFLAGS) -I$(DB) -I$(GCJ_HOME)/include -I$(DB)/build_$(mode) -I/usr/local/BerkeleyDB.4.2/include $(DB)/libdb_java/db_java_wrap.c ../../external/$(mode)/db/lib/libdb-4.2.dylib
 
 $(BINDIR)/store.o: $(BINDIR)/db.o $(BINDIR)/lucene.o
 	$(JCC) -C -d $(CLASSES) --classpath=$(CLASSES) $(STORE_SRCS)
 	$(JCC) -fjni $(CCFLAGS) -c -o $(BINDIR)/store.o --classpath=$(CLASSES) $(STORE_SRCS)
+
+else
+
+SWIGOPT = 
+DBOPT =
+
+endif
+
+$(BINDIR)/lucene.o:
+	$(JCC) -C -d $(CLASSES) $(LUCENE_SRCS)
+	$(JCC) $(CCFLAGS) -c -o $(BINDIR)/lucene.o $(LUCENE_SRCS)
 
 $(BINDIR)/reader.java.o: java/org/osafoundation/io/PythonReader.java
 	$(JCC) -C -d $(CLASSES) java/org/osafoundation/io/PythonReader.java
@@ -71,12 +88,16 @@ $(BINDIR)/reader.cpp.o: $(CLASSES)/org/osafoundation/io/PythonReader.h cpp/Pytho
 	$(JCC) -I$(PYTHON_INC) -I$(GCJ_HOME)/include -I$(CLASSES) $(CCFLAGS) -c -o $(BINDIR)/reader.cpp.o cpp/PythonReader.cpp
 
 $(CLASSES)/org/osafoundation/io/PythonReader.h:
+ifdef DB
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.DbEnv
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.Db
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.DbTxn
+endif
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.store.Directory
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.store.FSDirectory
+ifdef DB
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.store.db.DbDirectory
+endif
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.analysis.Analyzer
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.analysis.standard.StandardAnalyzer
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.document.Field
@@ -89,20 +110,22 @@ $(CLASSES)/org/osafoundation/io/PythonReader.h:
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.queryParser.QueryParser
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.osafoundation.io.PythonReader
 
-PyLucene_wrap.cxx: PyLucene.i $(BINDIR)/reader.java.o
-	swig -modern -I$(BINDIR)/classes -c++ -python PyLucene.i
+PyLucene_wrap.cxx: $(BINDIR)/reader.cpp.o PyLucene.i
+	swig -modern $(SWIGOPT) -I$(BINDIR)/classes -c++ -python PyLucene.i
 
 $(BINDIR)/_PyLucene.so: $(OBJS) PyLucene_wrap.cxx
-	$(CXX) -dynamic -bundle -o $(BINDIR)/_PyLucene.so $(CCFLAGS) -I$(CLASSES) -I$(PYTHON_INC) -I/usr/local/BerkeleyDB.4.2/include -I$(GCJ_HOME)/include PyLucene_wrap.cxx $(BINDIR)/db_const.o $(BINDIR)/db.o $(BINDIR)/store.o $(BINDIR)/lucene.o $(BINDIR)/reader.java.o $(BINDIR)/reader.cpp.o -lgcj -liconv -flat_namespace -multiply_defined suppress -undefined warning
+	$(CXX) -dynamic -bundle -o $(BINDIR)/_PyLucene.so $(CCFLAGS) $(SWIGOPT) $(DBOPT) -I$(CLASSES) -I$(PYTHON_INC) -I$(GCJ_HOME)/include PyLucene_wrap.cxx $(OBJS) -lgcj -liconv -flat_namespace -multiply_defined suppress -undefined warning
 
-all: $(BINDIR)/_PyLucene.so $(BINDIR)/libdb_java-4.2.jnilib PyLucene_wrap.cxx
+all: $(BINDIR) $(LIBS)
 	echo build of $(BINDIR)/_PyLucene.so complete
 
-install: $(BINDIR)/_PyLucene.so $(BINDIR)/libdb_java-4.2.jnilib
+install: $(BINDIR) $(LIBS)
 	install PyLucene.py $(PYTHON_SITE)
 	install $(BINDIR)/_PyLucene.so $(PYTHON_SITE)
+ifdef DB
 	install $(BINDIR)/libdb_java-4.2.jnilib /usr/local/BerkeleyDB.4.2/lib
 	install libdb_java-4.2.la.osx /usr/local/BerkeleyDB.4.2/lib/libdb_java-4.2.la
+endif
 	install $(GCJ_HOME)/lib/libgcj.5.dylib $(RELDIR)/lib
 	install $(GCJ_HOME)/lib/libstdc++.6.dylib $(RELDIR)/lib
 	install $(GCJ_HOME)/lib/libgcc_s.1.0.dylib $(RELDIR)/lib

@@ -23,13 +23,19 @@ for fn in dir(_PyLucene):
 #include <java/io/PrintWriter.h>
 #include <java/io/Reader.h>
 
+#ifdef _WITH_DB_DIRECTORY
 #include "com/sleepycat/db/DbEnv.h"
 #include "com/sleepycat/db/Db.h"
 #include "com/sleepycat/db/DbTxn.h"
+#endif
 
 #include "org/apache/lucene/store/Directory.h"
 #include "org/apache/lucene/store/FSDirectory.h"
+
+#ifdef _WITH_DB_DIRECTORY
 #include "org/apache/lucene/store/db/DbDirectory.h"
+#endif
+
 #include "org/apache/lucene/analysis/Analyzer.h"
 #include "org/apache/lucene/analysis/standard/StandardAnalyzer.h"
 #include "org/apache/lucene/document/Field.h"
@@ -41,6 +47,8 @@ for fn in dir(_PyLucene):
 #include "org/apache/lucene/search/Hits.h"
 #include "org/apache/lucene/search/IndexSearcher.h"
 #include "org/osafoundation/io/PythonReader.h"
+
+#ifdef _WITH_DB_DIRECTORY
 
 #include <db.h>
 
@@ -63,6 +71,9 @@ typedef struct {
 typedef ::com::sleepycat::db::DbEnv *jdbenv;
 typedef ::com::sleepycat::db::Db *jdb;
 typedef ::com::sleepycat::db::DbTxn *jdbtxn;
+
+#endif
+
 typedef ::java::io::Reader *jreader;
 
 
@@ -136,6 +147,26 @@ void *attachCurrentThread(PyObject *pyThread)
     }
 }
 
+%typemap(in) jboolean {
+
+    $1 = PyObject_IsTrue($input);
+}
+
+%typemap(in) jreader {
+
+    if ($input == Py_None)
+        $1 = NULL;
+    else
+    {
+        jlong ptr;
+
+        *(PyObject **) &ptr = (PyObject *) $input;
+        $1 = new org::osafoundation::io::PythonReader(ptr);
+    }
+}
+
+#ifdef _WITH_DB_DIRECTORY
+
 %typemap(in) jdbenv {
 
     if ($input == Py_None)
@@ -175,23 +206,7 @@ void *attachCurrentThread(PyObject *pyThread)
     }
 }
 
-%typemap(in) jboolean {
-
-    $1 = PyObject_IsTrue($input);
-}
-
-%typemap(in) jreader {
-
-    if ($input == Py_None)
-        $1 = NULL;
-    else
-    {
-        jlong ptr;
-
-        *(PyObject **) &ptr = (PyObject *) $input;
-        $1 = new org::osafoundation::io::PythonReader(ptr);
-    }
-}
+#endif
 
 typedef int jint;
 typedef float jfloat;
@@ -251,12 +266,14 @@ namespace org {
                     static FSDirectory *getDirectory(jstring, jboolean);
                 };
 %makedefault;
+#ifdef _WITH_DB_DIRECTORY
                 namespace db {
                     class DbDirectory : public Directory {
                     public:
                         DbDirectory(jdbtxn, jdb, jdb, jint);
                     };
                 }
+#endif
             }
             namespace analysis {
                 class Analyzer : public ::java::lang::Object {

@@ -745,13 +745,19 @@ static swig_type_info *swig_types[22];
 #include <java/io/PrintWriter.h>
 #include <java/io/Reader.h>
 
+#ifdef _WITH_DB_DIRECTORY
 #include "com/sleepycat/db/DbEnv.h"
 #include "com/sleepycat/db/Db.h"
 #include "com/sleepycat/db/DbTxn.h"
+#endif
 
 #include "org/apache/lucene/store/Directory.h"
 #include "org/apache/lucene/store/FSDirectory.h"
+
+#ifdef _WITH_DB_DIRECTORY
 #include "org/apache/lucene/store/db/DbDirectory.h"
+#endif
+
 #include "org/apache/lucene/analysis/Analyzer.h"
 #include "org/apache/lucene/analysis/standard/StandardAnalyzer.h"
 #include "org/apache/lucene/document/Field.h"
@@ -763,6 +769,8 @@ static swig_type_info *swig_types[22];
 #include "org/apache/lucene/search/Hits.h"
 #include "org/apache/lucene/search/IndexSearcher.h"
 #include "org/osafoundation/io/PythonReader.h"
+
+#ifdef _WITH_DB_DIRECTORY
 
 #include <db.h>
 
@@ -785,6 +793,9 @@ typedef struct {
 typedef ::com::sleepycat::db::DbEnv *jdbenv;
 typedef ::com::sleepycat::db::Db *jdb;
 typedef ::com::sleepycat::db::DbTxn *jdbtxn;
+
+#endif
+
 typedef ::java::io::Reader *jreader;
 
 
