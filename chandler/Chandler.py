@@ -33,24 +33,27 @@ def locateProfileDir(chandlerDirectory):
             if dataDir is None or not os.path.isdir(dataDir):
                 dataDir = os.path.expanduser('~')
                 
-            profileDir = os.path.join(dataDir, 'Chandler')
+            profileDir = os.path.join(dataDir, 'Open Source Application Foundation', 'Chandler')
         elif sys.platform == 'darwin':
             dataDir    = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support')
-            profileDir = os.path.join(dataDir, 'Chandler')
+            profileDir = os.path.join(dataDir, 'Open Source Application Foundation', 'Chandler')
         else:
             dataDir    = os.path.expanduser('~')
-            profileDir = os.path.join(dataDir, '.chandler')          
+            profileDir = os.path.join(dataDir, '.chandler')
 
         if not os.path.isdir(profileDir):
               # if not found, then figure out where to create one
             if os.path.isdir(dataDir):
-                os.mkdir(profileDir, 0700)
+                try:
+                    os.makedirs(profileDir, 0700)
+                except:
+                    profileDir = chandlerDirectory
             else:
                 profileDir = chandlerDirectory
   
         application.Globals.options.profileDir = profileDir
 
-        print 'Using profile directory: %s' % profileDir
+    print 'Using profile directory: %s' % application.Globals.options.profileDir
 
 def loadConfig(chandlerDirectory):
     """
