@@ -2,7 +2,17 @@
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-Release 0.2 (CVS tag CHANDLER_0_7) 2003-09-23
+Milestone 9 (CVS tag CHANDLER_M_09) 2003-11-11
+
+    * Hardhat -g runs all files named parcel.xml through two xsl transforms
+      in the distrib/transforms directory, and places the output in the
+      debug/ or release/docs directory.
+
+    * Added on demand loading of items within the RepositoryViewer.  The
+      items viewed in the RepositoryViewer are not loaded until their
+      parent is expanded.
+
+    * Moved RepositoryViewer off of zodb.
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
