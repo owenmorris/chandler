@@ -43,7 +43,7 @@ class Query(Item.Item):
         self._callbacks = {}
         self.monitorCallbacks = {}
         try:
-            if self._resultSet is not []:
+            if self._resultSet:
                 self._compile()
                 self._queryStringIsStale = False
                 self.stale = False
