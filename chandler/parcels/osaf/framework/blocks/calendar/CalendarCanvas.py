@@ -154,11 +154,15 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         nextDate = date + DateTime.RelativeDateTime(days=1)
         for item in self.contents:
             try:
+                anyTime = item.anyTime
+            except AttributeError:
+                anyTime = False
+            try:
                 allDay = item.allDay
             except AttributeError:
                 allDay = False
             if (item.hasLocalAttributeValue('startTime') and
-                allDay and
+                (allDay or anyTime) and
                 (item.startTime >= date) and
                 (item.startTime < nextDate)):
                 items.append(item)
@@ -179,12 +183,16 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         nextDate = date + DateTime.RelativeDateTime(days=1)
         for item in self.contents:
             try:
+                anyTime = item.anyTime
+            except AttributeError:
+                anyTime = False
+            try:
                 allDay = item.allDay
             except AttributeError:
                 allDay = False
             if (item.hasLocalAttributeValue('startTime') and
                 item.hasLocalAttributeValue('endTime') and
-                (not allDay) and
+                (not allDay and not anyTime) and
                 (item.startTime >= date) and
                 (item.startTime < nextDate)):
                 items.append(item)
