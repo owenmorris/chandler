@@ -80,7 +80,7 @@ class Block(Item):
 
             if widget:
                 Globals.wxApplication.needsUpdateUI = True
-                assert self.itsView.isRefCounted(), "not refcounting doesn't make sense"
+                assert self.itsView.isRefCounted(), "respoitory must be opened with refcounted=True"
                 self.widget = widget
                 widget.blockItem = self
                 """
@@ -214,7 +214,7 @@ class Block(Item):
             delattr (self.widget, 'subscribeWhenVisibleEventsUUID')
 
         delattr (self, 'widget')
-        assert self.itsView.isRefCounted(), "not refcounting doesn't make sense"
+        assert self.itsView.isRefCounted(), "respoitory must be opened with refcounted=True"
             
         Globals.wxApplication.needsUpdateUI = True
 
