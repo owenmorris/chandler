@@ -27,6 +27,9 @@ snap:
 clean:
 	rm -f $(SRC)/QueryParser.py $(MANIFEST)
 
+realclean: clean
+	rm -f QueryParser-debug-*.tar.gz QueryParser-release-*.tar.gz
+
 install:
 	tar -cf - $(MANIFEST) | tar -C $(CHANDLERHOME) -xvf -
 

@@ -48,4 +48,6 @@ clean:
 	rm -f _m2crypto.py
 	rm -f SWIG/_m2crypto.c
 
-
+realclean: clean
+	rm -fr build_debug build_release
+	rm -f m2crypto-debug-*.tar.gz m2crypto-release-*.tar.gz

@@ -128,6 +128,9 @@ endif
 
 build: wxWidgets wxPython
 
+realclean: clean
+	rm -f wxPython-debug-*.tar.gz wxPython-release-*.tar.gz
+
 upload: wxPython-$(SNAP)-$(RELVER).tar.gz
 	scp wxPython-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 

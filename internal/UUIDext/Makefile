@@ -16,6 +16,10 @@ build:
 clean:
 	rm -rf $(BUILD)
 
+realclean: 
+	rm -fr build_debug build_release
+	rm -f UUIDext-debug-*.tar.gz UUIDext-release-*.tar.gz
+
 upload: UUIDext-$(SNAP)-$(RELVER).tar.gz
 	scp UUIDext-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 

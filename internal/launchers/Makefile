@@ -18,6 +18,10 @@ ifeq ($(OS),Darwin)
 LAUNCHER_FILES=
 LIB_FILES=
 
+# Nothing to be done for clean
+clean:
+
+
 build:
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
 	cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
@@ -36,6 +40,9 @@ LIB_FILES=$(SNAP)/bin/ms*dll
 
 ARCHIVE: $(LAUNCHERS)/win/
 
+clean:
+	$(MAKE) -C win -k DEBUG=$(DEBUG) clean
+
 build:
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
 	cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
@@ -53,6 +60,9 @@ endif
 LIB_FILES=
 
 ARCHIVE: $(LAUNCHERS)/linux/
+
+clean:
+	$(MAKE) -C linux -k DEBUG=$(DEBUG) clean
 
 build:
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
@@ -76,8 +86,8 @@ install:
 	cd $(BUILD_ROOT); \
         tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
 
-clean:
-	rm -rf $(BUILD)
+realclean: clean
+	rm -f Launchers-debug-*.tar.gz Launchers-release-*.tar.gz
 
 upload: Launchers-$(SNAP)-$(RELVER).tar.gz
 	scp Launchers-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
