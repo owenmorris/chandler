@@ -161,7 +161,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.MailMessageButton">
     <blockName>MailMessageButton</blockName>
     <title>Sharing</title>
-    <bitmap>application/images/markup_send_as_message.gif</bitmap>
+    <bitmap>application/images/markup_message.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Enable sharing</helpString>
