@@ -10,6 +10,7 @@ from Node import Node
 from Styles import Font
 from repository.util.UUID import UUID
 import wx
+import time
 
 
 class wxBoxContainer (wxRectangularChild):
@@ -276,10 +277,23 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
 
     def AddItem(self, itemUUID):
         node = Globals.repository.findUUID(itemUUID)
-        newItem = node.item
-        if isinstance(newItem, Block):
-            self.blockItem.ChangeCurrentTab(node)
-                  
+        try:
+            newItem = node.item
+        except AttributeError:
+            pass
+        else:
+            if isinstance(newItem, Block):
+                self.blockItem.ChangeCurrentTab(node)
+
+    def OnHover(self, x, y):
+        currentTab = self.HitTest((x, y))[0]
+        currentTime = time.time()
+        if not hasattr(self, "hoverTab") or self.hoverTab != currentTab:
+            self.hoverTab = currentTab            
+            self.dropTarget.enterTime = currentTime
+        elif (currentTime - self.dropTarget.enterTime) > 1:
+            self.SetSelection(currentTab)
+            
     def wxSynchronizeWidget(self):
         from osaf.framework.notifications.NotificationManager import NotSubscribed as NotSubscribed
         assert(len(self.blockItem.childrenBlocks) >= 1), "Tabbed containers cannot be empty"

@@ -5,6 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
 import application.Globals as Globals
+import time
 
 class DraggableWidget (object):
     def SetDragData(self, itemUUID):
@@ -27,8 +28,8 @@ class DraggableWidget (object):
 class DropReceiveWidget (object):
     def __init__(self, *arguments, **keywords):
         super (DropReceiveWidget, self).__init__ (*arguments, **keywords)
-        dropTarget = DropTarget(self)
-        self.SetDropTarget(dropTarget)
+        self.dropTarget = DropTarget(self)
+        self.SetDropTarget(self.dropTarget)
         
     def OnRequestDrop(self, x, y):
         """
@@ -43,7 +44,14 @@ class DropReceiveWidget (object):
         """
         pass
     
-    
+    def OnHover(self, x, y):
+        """
+          Override this to perform an action when a drag action is
+        hovering over the widget.
+        """
+        pass
+
+            
 class DropTarget(wx.DropTarget):
     def __init__(self, window):
         super (DropTarget, self).__init__ ()
@@ -61,3 +69,11 @@ class DropTarget(wx.DropTarget):
             self.window.AddItem(itemUUID)
         return d
     
+    def OnDragOver(self, x, y, d):
+        self.window.OnHover(x, y)
+        return d
+        
+    def OnEnter(self, x, y, d):
+        self.enterTime = time.time()
+        return d
+
