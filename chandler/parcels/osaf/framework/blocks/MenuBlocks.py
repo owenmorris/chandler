@@ -1,6 +1,11 @@
+__version__ = "$Revision$"
+__date__ = "$Date$"
+__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+
 import application.Globals as Globals
 from Block import Block
-from wxPython.wx import *
+import wx
 
 class MenuEntry(Block):
 
@@ -84,7 +89,7 @@ class MenuEntry(Block):
         if frame:
             menuBar = frame.GetMenuBar()
             if not menuBar:
-                menuBar = wxMenuBar()
+                menuBar = wx.MenuBar()
                 frame.SetMenuBar(menuBar)
             """
               The actual work of setting the menus is done by installMenu
@@ -128,14 +133,14 @@ class MenuEntry(Block):
           Returns a list of wxMenuItems in wxMenuObject, which can
         be either a menu or menubar
         """
-        if isinstance (wxMenuObject, wxMenuBarPtr):
+        if isinstance (wxMenuObject, wx.MenuBar):
             menuList = []
             for index in xrange (wxMenuObject.GetMenuCount()):
                 menuList.append (wxMenuObject.GetMenu (index))
         else:
-            if isinstance (wxMenuObject, wxMenuItemPtr):
+            if isinstance (wxMenuObject, wx.MenuItem):
                 wxMenuObject = wxMenuObject.GetSubMenu()
-            assert isinstance (wxMenuObject, wxMenuPtr)
+            assert isinstance (wxMenuObject, wx.Menu)
             menuList = wxMenuObject.GetMenuItems()
 
         return menuList
@@ -145,13 +150,13 @@ class MenuEntry(Block):
         """
           Deletes an item from a wxMenuObject, where wxMenuObject can
         be either a menu or menubar. Unfortunately, wxWindows requires
-        that you pass the oldItem whenever wxMenuObject is a wxMenu.
+        that you pass the oldItem whenever wxMenuObject is a wx.Menu.
         """
-        if isinstance (wxMenuObject, wxMenuPtr):
+        if isinstance (wxMenuObject, wx.Menu):
             wxMenuObject.DestroyItem (oldItem)
             pass
         else:
-            assert isinstance (wxMenuObject, wxMenuBarPtr)
+            assert isinstance (wxMenuObject, wx.MenuBar)
             oldMenu = wxMenuObject.Remove (index)
             oldMenu.Destroy()
     deleteItem = classmethod (deleteItem)
@@ -161,15 +166,15 @@ class MenuEntry(Block):
           Gets the title of the item at index in wxMenuObject, where
         wxMenuObject can be either a menu or menubar. Unfortunately,
         wxWindows requires that you pass the oldItem whenever
-        wxMenuObject is a wxMenu.
+        wxMenuObject is a wx.Menu.
         """
         title = None
         if item:
-            if isinstance (wxMenuObject, wxMenuPtr):
+            if isinstance (wxMenuObject, wx.Menu):
                 id = item.GetId()
                 title = wxMenuObject.GetLabel (id)
             else:
-                assert isinstance (wxMenuObject, wxMenuBarPtr)
+                assert isinstance (wxMenuObject, wx.MenuBar)
                 title = wxMenuObject.GetLabelTop (index)
             return title
     getItemTitle = classmethod (getItemTitle)
@@ -178,10 +183,10 @@ class MenuEntry(Block):
         """
           Sets an item in wxMenuObject, which can be either a menu or
         menubar with a new item. Unfortunately, wxWindows requires that
-        you pass the oldItem whenever wxMenuObject is a wxMenu and
+        you pass the oldItem whenever wxMenuObject is a wx.Menu and
         you're replacing the item.
         """
-        if isinstance (wxMenuObject, wxMenuBarPtr):
+        if isinstance (wxMenuObject, wx.MenuBar):
             itemsInMenu = wxMenuObject.GetMenuCount()
             assert (index <= itemsInMenu)
             if index < itemsInMenu:
@@ -192,15 +197,15 @@ class MenuEntry(Block):
                 success = wxMenuObject.Append (newItem, self.title)
                 assert success
         else:
-            if isinstance (wxMenuObject, wxMenuItemPtr):
+            if isinstance (wxMenuObject, wx.MenuItem):
                 wxMenuObject = wxMenuObject.GetSubMenu()
-            assert isinstance (wxMenuObject, wxMenuPtr)
+            assert isinstance (wxMenuObject, wx.Menu)
 
             itemsInMenu = wxMenuObject.GetMenuItemCount()
             assert (index <= itemsInMenu)
             if index < itemsInMenu:
                 self.deleteItem (wxMenuObject, index, oldItem)
-            if isinstance (newItem, wxMenuItemPtr):
+            if isinstance (newItem, wx.MenuItem):
                 success = wxMenuObject.InsertItem (index, newItem)
                 assert success
             else:
@@ -210,8 +215,8 @@ class MenuEntry(Block):
 class MenuItem (MenuEntry):
     def renderMenuEntry(self, wxMenuObject, index, oldItem):
         if self.menuItemKind == "Separator":
-            id = wxID_SEPARATOR
-            kind = wxITEM_SEPARATOR
+            id = wx.ID_SEPARATOR
+            kind = wx.ITEM_SEPARATOR
         else:
             """
               Menu items must have an event, otherwise they can't cause any action,
@@ -220,11 +225,11 @@ class MenuItem (MenuEntry):
             assert self.hasAttributeValue('event')
             id = Block.getwxID(self)
             if self.menuItemKind == "Normal":
-                kind = wxITEM_NORMAL
+                kind = wx.ITEM_NORMAL
             elif self.menuItemKind == "Check":
-                kind = wxITEM_CHECK
+                kind = wx.ITEM_CHECK
             elif self.menuItemKind == "Radio":
-                kind = wxITEM_RADIO
+                kind = wx.ITEM_RADIO
             else:
                 assert (False)        
         if oldItem == None or oldItem.GetId() != id or oldItem.GetKind() != kind:
@@ -232,13 +237,13 @@ class MenuItem (MenuEntry):
             if len(self.accel) > 0:
                 title = title + "\tCtrl+" + self.accel
 
-            if isinstance (wxMenuObject, wxMenuPtr):
-                newItem = wxMenuItem (wxMenuObject, id, title, self.helpString, kind)
+            if isinstance (wxMenuObject, wx.Menu):
+                newItem = wx.MenuItem (wxMenuObject, id, title, self.helpString, kind)
             else:
-                assert isinstance (wxMenuObject, wxMenuItemPtr)
+                assert isinstance (wxMenuObject, wx.MenuItem)
                 submenu = wxMenuObject.GetSubMenu()
                 assert submenu
-                newItem = wxMenuItem (None, id, title, self.helpString, kind, submenu)
+                newItem = wx.MenuItem (None, id, title, self.helpString, kind, submenu)
             return newItem
         return oldItem
 
@@ -247,7 +252,7 @@ class Menu(MenuEntry):
     def renderMenuEntry(self, wxMenuObject, index, oldItem):
         title = self.getItemTitle (wxMenuObject, index, oldItem)
         if title != self.title:
-            return wxMenu()
+            return wx.Menu()
         return oldItem
 
         

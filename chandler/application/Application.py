@@ -5,20 +5,18 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import gettext, os, sys, threading
 from new import classobj
-from wxPython.wx import *
+import wx
 import Globals
 from repository.util.UUID import UUID
 import repository.parcel.LoadParcels as LoadParcels
 from repository.persistence.XMLRepository import XMLRepository
 
+
 """
   Event used to post callbacks on the UI thread
 """
-wxEVT_MAIN_THREAD_CALLBACK = wxNewEventType()
-
-def EVT_MAIN_THREAD_CALLBACK(win, func):
-    win.Connect(-1, -1, wxEVT_MAIN_THREAD_CALLBACK, func)
-
+wxEVT_MAIN_THREAD_CALLBACK = wx.NewEventType()
+EVT_MAIN_THREAD_CALLBACK = wx.PyEventBinder(wxEVT_MAIN_THREAD_CALLBACK, 0)
 
 def repositoryCallback(uuid, notification, reason, **kwds):
     if notification == 'History':
@@ -67,20 +65,20 @@ def mixinAClass (self, myMixinClassImportPath):
         self.__class__ = theClass
 
 
-class MainThreadCallbackEvent(wxPyEvent):
+class MainThreadCallbackEvent(wx.PyEvent):
     def __init__(self, target, *args):
-        wxPyEvent.__init__(self)
+        wx.PyEvent.__init__(self)
         self.SetEventType(wxEVT_MAIN_THREAD_CALLBACK)
         self.target = target
         self.args = args
         self.lock = threading.Lock()
 
 
-class MainFrame(wxFrame):
+class MainFrame(wx.Frame):
     def __init__(self, *arguments, **keywords):
-        wxFrame.__init__ (self, *arguments, **keywords)
-        self.SetBackgroundColour (wxSystemSettings_GetSystemColour(wxSYS_COLOUR_3DFACE))
-        EVT_CLOSE(self, self.OnClose)
+        wx.Frame.__init__ (self, *arguments, **keywords)
+        self.SetBackgroundColour (wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DFACE))
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
     def OnClose(self, event):
         """
@@ -88,7 +86,7 @@ class MainFrame(wxFrame):
         application the mainFrame windows doesn't get destroyed, so
         we'll remove the handler
         """
-        EVT_IDLE(Globals.wxApplication, None)
+        Globals.wxApplication.Bind(wx.EVT_IDLE, None)
         """
           When we quit, as each wxWidget window is torn down our handlers that
         track changes to the selection are called, and we don't want to count
@@ -113,7 +111,7 @@ class MainFrame(wxFrame):
             counterpart.setDirty()   # Temporary repository hack -- DJA
 
 
-class wxApplication (wxApp):
+class wxApplication (wx.App):
     """
       PARCEL_IMPORT defines the import directory containing parcels
     relative to chandlerDirectory where os separators are replaced
@@ -142,32 +140,32 @@ class wxApplication (wxApp):
         Globals.wxApplication = self
         self.insideSynchronizeFramework = False
 
-        wxInitAllImageHandlers()
+        wx.InitAllImageHandlers()
         """
           Splash Screen
         """
         splashFile = os.path.join(Globals.chandlerDirectory, 
                                   "application", "images", "splash.png")
-        splashBitmap = wxImage(splashFile, wxBITMAP_TYPE_PNG).ConvertToBitmap()
-        splash = wxSplashScreen(splashBitmap, 
-                                wxSPLASH_CENTRE_ON_SCREEN|wxSPLASH_TIMEOUT, 
-                                6000, None, -1, wxDefaultPosition, wxDefaultSize,
-                                wxSIMPLE_BORDER|wxFRAME_NO_TASKBAR|wxSTAY_ON_TOP)
+        splashBitmap = wx.Image(splashFile, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        splash = wx.SplashScreen(splashBitmap, 
+                                wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT, 
+                                6000, None, -1, wx.DefaultPosition, wx.DefaultSize,
+                                wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR|wx.STAY_ON_TOP)
         splash.Show()
         """
           Setup internationalization
-        To experiment with a different locale, try 'fr' and wxLANGUAGE_FRENCH
+        To experiment with a different locale, try 'fr' and wx.LANGUAGE_FRENCH
         """
         os.environ['LANGUAGE'] = 'en'
-        self.locale = wxLocale(wxLANGUAGE_ENGLISH)
+#        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
         """
-          @@@ Sets the python locale, used by wxCalendarCtrl and mxDateTime
+          @@@ Sets the python locale, used by wx.CalendarCtrl and mxDateTime
         for month and weekday names. When running on Linux, 'en' is not
         understood as a locale, nor is 'fr'. On Windows, you can try 'fr'.
         locale.setlocale(locale.LC_ALL, 'en')
         """
-        wxLocale_AddCatalogLookupPathPrefix('locale')
-        self.locale.AddCatalog('Chandler.mo')
+#        wx.Locale_AddCatalogLookupPathPrefix('locale')
+#        self.locale.AddCatalog('Chandler.mo')
         gettext.install('Chandler', os.path.join (Globals.chandlerDirectory, 'locale'))
         """
           Load the parcels which are contained in the PARCEL_IMPORT directory.
@@ -242,10 +240,10 @@ class wxApplication (wxApp):
         Globals.agentManager = AgentManager()
         Globals.agentManager.Startup()
 
-        EVT_MENU(self, -1, self.OnCommand)
-        EVT_UPDATE_UI(self, -1, self.OnCommand)
+        self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
+        self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
         self.focus = None
-        EVT_IDLE(self, self.OnIdle)
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
 
         from OSAF.framework.blocks.Views import View
         """
@@ -259,11 +257,11 @@ class wxApplication (wxApp):
                                        -1,
                                        "Chandler",
                                        size=(mainView.size.width, mainView.size.height),
-                                       style=wxDEFAULT_FRAME_STYLE|wxNO_FULL_REPAINT_ON_RESIZE)
+                                       style=wx.DEFAULT_FRAME_STYLE)
             Globals.mainView = mainView
             self.menuParent = None
             self.mainFrame.counterpartUUID = mainView.itsUUID
-            EVT_SIZE(self.mainFrame, self.mainFrame.OnSize)
+            self.mainFrame.Bind(wx.EVT_SIZE, self.mainFrame.OnSize)
 
             GlobalEvents = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GlobalEvents')
             """
@@ -309,7 +307,7 @@ class wxApplication (wxApp):
             block = Block.wxIDToObject (wxID)
 
             args = {}
-            if event.GetEventType() == wxEVT_UPDATE_UI:
+            if event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]:
                 args['UpdateUI'] = True
 
             try:
@@ -320,11 +318,11 @@ class wxApplication (wxApp):
                 then we'd better have a block event for it, otherwise
                 we can't post the event.
                 """
-                assert event.GetEventType() == wxEVT_UPDATE_UI
+                assert event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
                 pass
             else:
                 block.Post (blockEvent, args)
-                if event.GetEventType() == wxEVT_UPDATE_UI:
+                if event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]:
                     try:
                         event.Check (args ['Check'])
                     except KeyError:
@@ -349,7 +347,7 @@ class wxApplication (wxApp):
         every change to the focus. It's difficult to preprocess every event
         so we check for focus changes in OnIdle
         """
-        focus = wxWindow_FindFocus()
+        focus = wx.Window_FindFocus()
         if self.focus != focus:
             self.focus = focus
             Globals.mainView.onSetFocus()
@@ -383,17 +381,17 @@ class wxApplication (wxApp):
         """
         evt = MainThreadCallbackEvent(callback, *args)
         evt.lock.acquire()
-        wxPostEvent(self, evt)
+        wx.PostEvent(self, evt)
         return evt.lock
 
     if __debug__:
         def ShowDebuggerWindow(self, event):
-            from wx import py
-            self.crustFrame = py.crust.CrustFrame()
+            import wx.py
+            self.crustFrame = wx.py.crust.CrustFrame()
             self.crustFrame.SetSize((700,700))
-            self.crustFrame.Show(wx.TRUE)
+            self.crustFrame.Show(True)
             self.crustFrame.shell.interp.locals['chandler'] = self
-            wx.EVT_CLOSE(self.crustFrame, self.onCloseDebuggerWindow)
+            self.crustFrame.Bind(wx.EVT_CLOSE, self.OnCloseDebuggerWindow)
 
         def onCloseDebuggerWindow(self, event):
             self.crustFrame.Destroy()

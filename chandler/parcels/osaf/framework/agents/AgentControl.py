@@ -4,12 +4,12 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-from wxPython.wx import *
+import wx
 import os
 
 __all__ = ['wxAgentControl']
 
-class wxAgentControl(wxPyControl):
+class wxAgentControl(wx.PyControl):
     """ The widget associated with agents """
 
     def __getAgentItem(self):
@@ -18,9 +18,9 @@ class wxAgentControl(wxPyControl):
     agent = property(__getAgentItem)
 
     def __init__(self, agentID):
-        wxPyControl.__init__(self, self._GetToolBar(),
-                             -1, wxDefaultPosition, wxSize(32,32),
-                             wxNO_BORDER, wxDefaultValidator, 'wxAgentControl')
+        wx.PyControl.__init__(self, self._GetToolBar(),
+                             -1, wx.DefaultPosition, wx.Size(32,32),
+                             wx.NO_BORDER, wx.DefaultValidator, 'wxAgentControl')
 
         self.agentID = agentID
         self.image = AgentImage()
@@ -28,12 +28,12 @@ class wxAgentControl(wxPyControl):
 
         self.SetToolTipString(self.agent.GetName())
 
-        EVT_PAINT(self, self._OnPaint)
-        EVT_MOUSE_EVENTS(self, self._OnMouseEvent)
+        self.Bind(wx.EVT_PAINT, self._OnPaint)
+        self.Bind(wx.EVT_MOUSE_EVENTS, self._OnMouseEvent)
 
         # start a timer to redraw us every so often
-        #self.timer = wxTimer(self, 1)
-        #EVT_TIMER(self, 1, self._OnTimer)
+        #self.timer = wx.Timer(self, 1)
+        #self.Bind(wx.EVT_TIME, self._OnTimer, id=1)
         #self.timer.Start(1000)
 
     def AddToToolBar(self):
@@ -52,7 +52,7 @@ class wxAgentControl(wxPyControl):
         # XXX This should paint an image based on the current status
         # of the agent
         (width, height) = self.GetClientSizeTuple()
-        dc = wxPaintDC(self)
+        dc = wx.PaintDC(self)
         dc.BeginDrawing()
         dc.Clear()
         self.image.Draw(dc, self.status)
@@ -68,6 +68,7 @@ class wxAgentControl(wxPyControl):
         return False
 
     def _GetToolBar(self):
+        # @@@ 25Issue - we no longer use wxMainFrame
         return Globals.wxApplication.wxMainFrame.navigationBar
 
     def _GetStatus(self):
@@ -87,7 +88,7 @@ class AgentImageLoader:
     def LoadImage(self, path):
         if self.imageCache.has_key(path):
             return self.imageCache[path]
-        self.imageCache[path] = wxImage(path)
+        self.imageCache[path] = wx.Image(path)
         return self.imageCache[path]
 
 _imageLoader = AgentImageLoader()
@@ -106,10 +107,10 @@ class AgentImage:
 
         shapes = ['headshape', 'hat', 'eyes']
         for i in shapes:
-            bitmap = wxBitmapFromImage(self.images[i])
-            dc.DrawBitmap(bitmap, 0, 0, True)
+            bitmap = wx.BitmapFromImage(self.images[i])
+            dc.DrawBitmap(bitmap, (0, 0), True)
 
 #        bitmap = wxBitmapFromImage(self.images[status])
-#        dc.DrawBitmap(bitmap, 0, 0, True)
+#        dc.DrawBitmap(bitmap, (0, 0), True)
 
 

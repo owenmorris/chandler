@@ -8,21 +8,21 @@ from Block import *
 from Node import Node
 from Styles import Font
 from repository.util.UUID import UUID
-from wxPython.wx import *
+import wx
 
 
 class BoxContainer(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         if self.orientationEnum == 'Horizontal':
-            orientation = wxHORIZONTAL
+            orientation = wx.HORIZONTAL
         else:
-            orientation = wxVERTICAL
+            orientation = wx.VERTICAL
 
-        sizer = wxBoxSizer(orientation)
+        sizer = wx.BoxSizer(orientation)
         sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
 
         if self.parentBlock: 
-            panel = wxPanel(parentWindow, -1)
+            panel = wx.Panel(parentWindow, -1)
             panel.SetSizer(sizer)
             self.parentBlock.addToContainer(parent, panel, 
                                                              self.stretchFactor, 
@@ -50,8 +50,8 @@ class BoxContainer(RectangularChild):
 
 class EmbeddedContainer(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
-        sizer = wxBoxSizer(wxHORIZONTAL)
-        panel = wxPanel(parentWindow, -1)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        panel = wx.Panel(parentWindow, -1)
         panel.SetSizer(sizer)
         self.parentBlock.addToContainer(parent,
                                         panel,
@@ -128,11 +128,13 @@ class EmbeddedContainer(RectangularChild):
         Globals.notificationManager.Unsubscribe(id)
  
         
-class wxSplitWindow(wxSplitterWindow):
+class wxSplitWindow(wx.SplitterWindow):
 
     def __init__(self, *arguments, **keywords):
-        wxSplitterWindow.__init__ (self, *arguments, **keywords)
-        EVT_SPLITTER_SASH_POS_CHANGED(self, self.GetId(), self.OnSplitChanged)
+        wx.SplitterWindow.__init__ (self, *arguments, **keywords)
+        self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED, 
+                  self.OnSplitChanged, 
+                  id=self.GetId())
         """
           Setting minimum pane size prevents unsplitting a window by double-clicking
         """
@@ -144,16 +146,16 @@ class wxSplitWindow(wxSplitterWindow):
             width, height = self.GetSizeTuple()
             position = float (event.GetSashPosition())
             splitMode = self.GetSplitMode()
-            if splitMode == wxSPLIT_HORIZONTAL:
+            if splitMode == wx.SPLIT_HORIZONTAL:
                 counterpart.splitPercentage = position / height
-            elif splitMode == wxSPLIT_VERTICAL:
+            elif splitMode == wx.SPLIT_VERTICAL:
                 counterpart.splitPercentage = position / width
 
     def OnSize(self, event):
         if not Globals.wxApplication.insideSynchronizeFramework:
             """
-              Calling Skip causes wxWindows to continue processing the event, which
-            will cause the parent class to get a crack at the event.
+              Calling Skip causes wxWindows to continue processing the event, 
+            which will cause the parent class to get a crack at the event.
             """
             event.Skip()
             counterpart = Globals.repository.find (self.counterpartUUID)
@@ -169,27 +171,29 @@ class SplitWindow(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         splitWindow = wxSplitWindow(parentWindow,
                                     Block.getwxID(self), 
-                                    wxDefaultPosition,
+                                    wx.DefaultPosition,
                                     (self.size.width, self.size.height),
                                     style=self.Calculate_wxStyle(parentWindow))
-        self.parentBlock.addToContainer(parent, splitWindow, self.stretchFactor, 
-                                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.parentBlock.addToContainer(parent, splitWindow, 
+                                        self.stretchFactor, 
+                                        self.Calculate_wxFlag(), 
+                                        self.Calculate_wxBorder())
         """
           Wire up onSize after __init__ has been called, otherwise it will
         call onSize
         """
-        EVT_SIZE(splitWindow, splitWindow.OnSize)
+        splitWindow.Bind(wx.EVT_SIZE, splitWindow.OnSize)
         return splitWindow, splitWindow, splitWindow
                 
     def Calculate_wxStyle (self, parentWindow):
-        style = wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE
+        style = wx.SP_LIVE_UPDATE
         parent = self.parentBlock
         while isinstance (parent, EmbeddedContainer):
             parent = parent.parentBlock
         if isinstance (parent, SplitWindow):
-            style |= wxSP_3DSASH
+            style |= wx.SP_3DSASH
         else:
-            style |= wxSP_3D
+            style |= wx.SP_3D
         return style
 
     def addToContainer(self, parent, child, weight, flag, border, append=True):
@@ -241,16 +245,16 @@ class TabbedContainer(RectangularChild):
         if self.tabPosEnum == "Top":
             style = 0
         elif self.tabPosEnum == "Bottom":
-            style = wxNB_BOTTOM
+            style = wx.NB_BOTTOM
         elif self.tabPosEnum == "Left":
-            style = wxNB_LEFT
+            style = wx.NB_LEFT
         elif self.tabPosEnum == "Right":
-            style = wxNB_RIGHT
+            style = wx.NB_RIGHT
         elif __debug__:
             assert (False)
 
-        tabbedContainer = wxNotebook(parentWindow, id, 
-                                    wxDefaultPosition,
+        tabbedContainer = wx.Notebook(parentWindow, id, 
+                                    wx.DefaultPosition,
                                     (self.minimumSize.width, self.minimumSize.height),
                                      style = style)
         self.parentBlock.addToContainer(parent, tabbedContainer, self.stretchFactor, 
@@ -285,7 +289,7 @@ class TabbedContainer(RectangularChild):
 
 class Toolbar(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
-        toolbar = Globals.wxApplication.mainFrame.CreateToolBar(wxTB_HORIZONTAL)
+        toolbar = Globals.wxApplication.mainFrame.CreateToolBar(wx.TB_HORIZONTAL)
         toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
         return toolbar, None, None
 

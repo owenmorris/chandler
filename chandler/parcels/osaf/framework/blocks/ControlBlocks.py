@@ -10,9 +10,9 @@ from Block import *
 from ContainerBlocks import *
 from Styles import Font
 from repository.util.UUID import UUID
-from wxPython.wx import *
-from wxPython.gizmos import *
-from wxPython.html import *
+import wx
+import wx.html
+import wx.gizmos
 import webbrowser # for opening external links
 
 class Button(RectangularChild):
@@ -23,28 +23,28 @@ class Button(RectangularChild):
             id = 0
 
         if self.buttonKind == "Text":
-            button = wxButton(parentWindow, id, self.title,
-                              wxDefaultPosition,
+            button = wx.Button(parentWindow, id, self.title,
+                              wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Image":
-            image = wxImage(self.icon, wxBITMAP_TYPE_PNG)
+            image = wx.Image(self.icon, wx.BITMAP_TYPE_PNG)
             bitmap = image.ConvertToBitmap()
-            button = wxBitmapButton(parentWindow, id, bitmap,
-                              wxDefaultPosition,
+            button = wx.BitmapButton(parentWindow, id, bitmap,
+                              wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Toggle":
-            if wxPlatform == '__WXMAC__': # @@@ Toggle buttons are not supported under OSX
-                button = wxButton(parentWindow, id, self.title,
-                                  wxDefaultPosition,
+            if wx.Platform == '__WXMAC__': # @@@ Toggle buttons are not supported under OSX
+                button = wx.Button(parentWindow, id, self.title,
+                                  wx.DefaultPosition,
                                   (self.minimumSize.width, self.minimumSize.height))
             else:
-                button = wxToggleButton(parentWindow, id, self.title,
-                                        wxDefaultPosition,
+                button = wx.ToggleButton(parentWindow, id, self.title,
+                                        wx.DefaultPosition,
                                         (self.minimumSize.width, self.minimumSize.height))
         elif __debug__:
             assert False, "unknown buttonKind"
 
-        EVT_BUTTON(parentWindow, id, self.buttonPressed)
+        parentWindow.Bind(wx.EVT_BUTTON, self.buttonPressed, id=id)
         self.parentBlock.addToContainer(parent, button, self.stretchFactor,
                                         self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return button, None, None
@@ -60,8 +60,8 @@ class Button(RectangularChild):
                               
 class Choice(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
-        choice = wxChoice(parentWindow, -1, 
-                              wxDefaultPosition,
+        choice = wx.Choice(parentWindow, -1, 
+                              wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
         self.parentBlock.addToContainer(parent, choice, self.stretchFactor, 
@@ -71,8 +71,8 @@ class Choice(RectangularChild):
 
 class ComboBox(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
-        comboBox = wxComboBox(parentWindow, -1, self.selection, 
-                              wxDefaultPosition,
+        comboBox = wx.ComboBox(parentWindow, -1, self.selection, 
+                              wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
         self.parentBlock.addToContainer(parent, comboBox, self.stretchFactor, 
@@ -80,10 +80,10 @@ class ComboBox(RectangularChild):
         return comboBox, None, None
 
 
-class wxEditText(wxTextCtrl):
+class wxEditText(wx.TextCtrl):
     def __init__(self, *arguments, **keywords):
-        wxTextCtrl.__init__ (self, *arguments, **keywords)
-        EVT_TEXT_ENTER(self, self.GetId(), self.OnEnterPressed)
+        wx.TextCtrl.__init__ (self, *arguments, **keywords)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnEnterPressed, id=self.GetId())
 
     def OnEnterPressed(self, event):
         counterpart = Globals.repository.find (self.counterpartUUID)
@@ -95,27 +95,27 @@ class EditText(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
         style = 0
         if self.textAlignmentEnum == "Left":
-            style |= wxTE_LEFT
+            style |= wx.TE_LEFT
         elif self.textAlignmentEnum == "Center":
-            style |= wxTE_CENTRE
+            style |= wx.TE_CENTRE
         elif self.textAlignmentEnum == "Right":
-            style |= wxTE_RIGHT
+            style |= wx.TE_RIGHT
 
         if self.lineStyleEnum == "MultiLine":
-            style |= wxTE_MULTILINE
+            style |= wx.TE_MULTILINE
         else:
-            style |= wxTE_PROCESS_ENTER
+            style |= wx.TE_PROCESS_ENTER
 
         if self.textStyleEnum == "RichText":
-            style |= wxTE_RICH2
+            style |= wx.TE_RICH2
 
         if self.readOnly:
-            style |= wxTE_READONLY
+            style |= wx.TE_READONLY
 
         editText = wxEditText (parentWindow,
                                -1,
                                "",
-                               wxDefaultPosition,
+                               wx.DefaultPosition,
                                (self.minimumSize.width, self.minimumSize.height),
                                style=style, name=self._name)
 
@@ -129,7 +129,7 @@ class EditText(RectangularChild):
 
 
 
-class wxHTML(wxHtmlWindow):
+class wxHTML(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):
         webbrowser.open(link.GetHref())
     
@@ -137,7 +137,7 @@ class HTML(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         htmlWindow = wxHTML(parentWindow,
                             Block.getwxID(self),
-                            wxDefaultPosition,
+                            wx.DefaultPosition,
                             (self.minimumSize.width,
                              self.minimumSize.height))
         if self.url:
@@ -170,12 +170,12 @@ class ListDelegate:
         return counterpart.contentSpec.len()
 
 
-class wxListBlock(wxListCtrl):
+class wxListBlock(wx.ListCtrl):
     def __init__(self, *arguments, **keywords):
-        wxListCtrl.__init__(self, *arguments, **keywords)
-        EVT_LIST_ITEM_SELECTED(self, self.GetId(), self.On_wxSelectionChanged)
-        EVT_IDLE(self, self.OnIdle)
-        EVT_SIZE(self, self.OnSize)
+        wx.ListCtrl.__init__(self, *arguments, **keywords)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.On_wxSelectionChanged, id=self.GetId())
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
         self.scheduleUpdate = False
         self.lastUpdateTime = 0
 
@@ -285,7 +285,7 @@ class List(RectangularChild):
         return list, None, None
 
     def Calculate_wxStyle (self):
-        style = wxLC_REPORT|wxLC_VIRTUAL|wxSUNKEN_BORDER|wxLC_EDIT_LABELS
+        style = wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS
         return style
 
     def NeedsUpdate(self):
@@ -303,14 +303,14 @@ class List(RectangularChild):
 class RadioBox(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
         if self.radioAlignEnum == "Across":
-            dimension = wxRA_SPECIFY_COLS
+            dimension = wx.RA_SPECIFY_COLS
         elif self.radioAlignEnum == "Down":
-            dimension = wxRA_SPECIFY_ROWS
+            dimension = wx.RA_SPECIFY_ROWS
         elif __debug__:
             assert False, "unknown radioAlignEnum"
                                     
-        radioBox = wxRadioBox(parentWindow, -1, self.title,
-                              wxDefaultPosition, 
+        radioBox = wx.RadioBox(parentWindow, -1, self.title,
+                              wx.DefaultPosition, 
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices, self.itemsPerLine, dimension)
         self.parentBlock.addToContainer(parent, radioBox, self.stretchFactor, 
@@ -326,16 +326,16 @@ class ScrolledWindow(RectangularChild):
 class StaticText(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         if self.textAlignmentEnum == "Left":
-            style = wxALIGN_LEFT
+            style = wx.ALIGN_LEFT
         elif self.textAlignmentEnum == "Center":
-            style = wxALIGN_CENTRE
+            style = wx.ALIGN_CENTRE
         elif self.textAlignmentEnum == "Right":
-            style = wxALIGN_RIGHT
+            style = wx.ALIGN_RIGHT
 
-        staticText = wxStaticText (parentWindow,
+        staticText = wx.StaticText (parentWindow,
                                    -1,
                                    self.title,
-                                   wxDefaultPosition,
+                                   wx.DefaultPosition,
                                    (self.minimumSize.width, self.minimumSize.height),
                                    style)
 
@@ -367,10 +367,10 @@ class ToolbarItem(RectangularChild):
         toolbar = Globals.repository.find(wxToolbar.counterpartUUID)
         id = Block.getwxID(self)
         if self.toolbarItemKind == 'Button':
-            bitmap = wxImage (self.bitmap, wxBITMAP_TYPE_PNG).ConvertToBitmap()
+            bitmap = wx.Image (self.bitmap, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
             tool = wxToolbar.AddSimpleTool (id, bitmap, 
                                             self.title, self.statusMessage)
-            EVT_TOOL(parentWindow, id, toolbar.toolPressed)
+            parentWindow.Bind(wx.EVT_TOOL, toolbar.toolPressed, id=id)
         elif self.toolbarItemKind == 'Separator':
             wxToolbar.AddSeparator()
         elif self.toolbarItemKind == 'Check':
@@ -378,13 +378,13 @@ class ToolbarItem(RectangularChild):
         elif self.toolbarItemKind == 'Radio':
             pass
         elif self.toolbarItemKind == 'Text':
-            tool = wxTextCtrl (wxToolbar, id, "", 
-                               wxDefaultPosition, 
-                               wxSize(300,-1), 
-                               wxTE_PROCESS_ENTER)
+            tool = wx.TextCtrl (wxToolbar, id, "", 
+                               wx.DefaultPosition, 
+                               wx.Size(300,-1), 
+                               wx.TE_PROCESS_ENTER)
             tool.SetName(self.title)
             wxToolbar.AddControl (tool)
-            EVT_TEXT_ENTER(tool, id, toolbar.toolEnterPressed)
+            tool.Bind(wx.EVT_TEXT_ENTER, toolbar.toolEnterPressed, id=id)
         elif __debug__:
             assert False, "unknown toolbarItemKind"
 
@@ -395,12 +395,12 @@ class ToolbarItem(RectangularChild):
 
 class wxTreeAndList:
     def __init__(self, *arguments, **keywords):
-        EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnExpanding)
-        EVT_TREE_ITEM_COLLAPSING(self, self.GetId(), self.OnCollapsing)
-        EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
-        EVT_TREE_SEL_CHANGED(self, self.GetId(), self.On_wxSelectionChanged)
-        EVT_IDLE(self, self.OnIdle)
-        EVT_SIZE(self, self.OnSize)
+        self.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnExpanding, id=self.GetId())
+        self.Bind(wx.EVT_TREE_ITEM_COLLAPSING, self.OnCollapsing, id=self.GetId())
+        self.Bind(wx.EVT_LIST_COL_END_DRAG, self.OnColumnDrag, id=self.GetId())
+        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.On_wxSelectionChanged, id=self.GetId())
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
         self.scheduleUpdate = False
         self.lastUpdateTime = 0
 
@@ -420,7 +420,7 @@ class wxTreeAndList:
     def OnSize(self, event):
         if not Globals.wxApplication.insideSynchronizeFramework:
             size = event.GetSize()
-            if isinstance (self, wxTreeListCtrl):
+            if isinstance (self, wx.gizmos.TreeListCtrl):
                 widthMinusLastColumn = 0
                 assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
                 for column in range (self.GetColumnCount() - 1):
@@ -429,7 +429,7 @@ class wxTreeAndList:
                 if lastColumnWidth > 0:
                     self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
             else:
-                assert isinstance (self, wxTreeCtrl), "We're assuming the only other choice is a wxTree"
+                assert isinstance (self, wx.TreeCtrl), "We're assuming the only other choice is a wx.Tree"
                 self.SetSize (size)
             event.Skip()
 
@@ -440,19 +440,19 @@ class wxTreeAndList:
         """
           Load the items in the tree only when they are visible.
         """
-        child, cookie = self.GetFirstChild (parentId, 0)
+        child, cookie = self.GetFirstChild (parentId)
         if not child.IsOk():
             
             counterpart = Globals.repository.find (self.counterpartUUID)
     
-            parentUUID = self.GetPyData (parentId)
+            parentUUID = self.GetItemData(parentId).GetData()
             for child in self.ElementChildren (Globals.repository [parentUUID]):
                 cellValues = self.ElementCellValues (child)
                 childNodeId = self.AppendItem (parentId,
                                                cellValues.pop(0),
                                                -1,
                                                -1,
-                                               wxTreeItemData (child.itsUUID))
+                                               wx.TreeItemData (child.itsUUID))
                 index = 1
                 for value in cellValues:
                     self.SetItemText (childNodeId, value, index)
@@ -469,7 +469,7 @@ class wxTreeAndList:
         state of the opened tree
         """
         try:
-            del counterpart.openedContainers [self.GetPyData(id)]
+            del counterpart.openedContainers [self.GetItemData(id).GetData()]
         except AttributeError:
             pass
         self.CollapseAndReset (id)
@@ -487,7 +487,7 @@ class wxTreeAndList:
         if not Globals.wxApplication.insideSynchronizeFramework:
             counterpart = Globals.repository.find (self.counterpartUUID)
     
-            itemUUID = self.GetPyData(self.GetSelection())
+            itemUUID = self.GetItemData(self.GetSelection()).GetData()
             selection = Globals.repository.find (itemUUID)
             if counterpart.selection != selection:
                 counterpart.selection = selection
@@ -498,14 +498,15 @@ class wxTreeAndList:
     def wxSynchronizeFramework(self):
         def ExpandContainer (self, openedContainers, id):
             try:
-                expand = openedContainers [self.GetPyData(id)]
+                expand = openedContainers [self.GetItemData(id).GetData()]
             except KeyError:
                 return
 
             self.LoadChildren(id)
+
             if self.IsVisible(id):
                 self.Expand(id)
-            child, cookie = self.GetFirstChild (id, 0)
+            child, cookie = self.GetFirstChild (id)
             while child.IsOk():
                 ExpandContainer (self, openedContainers, child)
                 child = self.GetNextSibling (child)
@@ -516,12 +517,12 @@ class wxTreeAndList:
         try:
             counterpart.columnHeadings
         except AttributeError:
-            pass # A wxTreeCtrl won't use columnHeadings
+            pass # A wx.TreeCtrl won't use columnHeadings
         else:
             for index in xrange(self.GetColumnCount()):
                 self.RemoveColumn (0)
     
-            info = wxTreeListColumnInfo()
+            info = wx.gizmos.TreeListColumnInfo()
             for index in range (len(counterpart.columnHeadings)):
                 info.SetText (counterpart.columnHeadings[index])
                 info.SetWidth (counterpart.columnWidths[index])
@@ -536,7 +537,7 @@ class wxTreeAndList:
         rootNodeId = self.AddRoot (cellValues.pop(0),
                                    -1,
                                    -1,
-                                   wxTreeItemData (root.itsUUID))
+                                   wx.TreeItemData (root.itsUUID))        
         self.SetItemHasChildren (rootNodeId, self.ElementHasChildren (root))
         self.LoadChildren(rootNodeId)
         ExpandContainer (self, counterpart.openedContainers, self.GetRootItem ())
@@ -571,11 +572,11 @@ class wxTreeAndList:
                 id = ExpandTreeToItem (self, parent)
                 self.LoadChildren(id)
                 if self.IsVisible(id):
-                    self.Expand(id)
+                    self.Expand (id)
                 itemUUID = item.itsUUID
-                child, cookie = self.GetFirstChild (id, 0)
+                child, cookie = self.GetFirstChild (id)
                 while child.IsOk():
-                    if self.GetPyData(child) == itemUUID:
+                    if self.GetItemData(child).GetData() == itemUUID:
                         return child
                     child = self.GetNextSibling (child)
                 assert False, "Didn't find the item in the tree"
@@ -588,15 +589,15 @@ class wxTreeAndList:
         self.ScrollTo (id)
 
  
-class wxTree(wxTreeCtrl, wxTreeAndList):
+class wxTree(wx.TreeCtrl, wxTreeAndList):
     def __init__(self, *arguments, **keywords):
-        wxTreeCtrl.__init__ (self, *arguments, **keywords)
+        wx.TreeCtrl.__init__ (self, *arguments, **keywords)
         wxTreeAndList.__init__ (self, *arguments, **keywords)
     
 
-class wxTreeList(wxTreeListCtrl, wxTreeAndList):
+class wxTreeList(wx.gizmos.TreeListCtrl, wxTreeAndList):
     def __init__(self, *arguments, **keywords):
-        wxTreeListCtrl.__init__ (self, *arguments, **keywords)
+        wx.gizmos.TreeListCtrl.__init__ (self, *arguments, **keywords)
         wxTreeAndList.__init__ (self, *arguments, **keywords)
     
 
@@ -629,19 +630,19 @@ class Tree(RectangularChild):
         wxCounterpart.GoToItem (notification.GetData()['item'])
 
     def Calculate_wxStyle (self):
-        style = wxTR_DEFAULT_STYLE|wxNO_BORDER
+        style = wx.TR_DEFAULT_STYLE|wx.NO_BORDER
         if self.hideRoot:
-            style |= wxTR_HIDE_ROOT
+            style |= wx.TR_HIDE_ROOT
         if self.noLines:
-            style |= wxTR_NO_LINES
+            style |= wx.TR_NO_LINES
         if self.useButtons:
-            style |= wxTR_HAS_BUTTONS
+            style |= wx.TR_HAS_BUTTONS
         else:
-            style |= wxTR_NO_BUTTONS
+            style |= wx.TR_NO_BUTTONS
         return style
 
 
-class wxItemDetail(wxHtmlWindow):
+class wxItemDetail(wx.html.HtmlWindow):
     def OnLinkClicked(self, wx_linkinfo):
         """
           Clicking on an item changes the selection (post notification).
@@ -671,7 +672,7 @@ class ItemDetail(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         htmlWindow = wxItemDetail(parentWindow,
                                   Block.getwxID(self),
-                                  wxDefaultPosition,
+                                  wx.DefaultPosition,
                                   (self.minimumSize.width,
                                    self.minimumSize.height))
         

@@ -3,13 +3,13 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-
 import os
 import webbrowser
-from wxPython.wx import *
-from wxPython.html import *
+import wx
+import wx.html
 
-class SplashScreen(wxDialog):
+
+class SplashScreen(wx.Dialog):
     """
       This class implements an HTML informational screen presented to the user. 
     Common uses are for splash screens or 'About' pages.
@@ -21,10 +21,10 @@ class SplashScreen(wxDialog):
           Sets up the splash screen and starts its timer.
         """
         if isModal:
-            style= wxFRAME_FLOAT_ON_PARENT|wxDEFAULT_FRAME_STYLE
+            style= wx.FRAME_FLOAT_ON_PARENT|wx.DEFAULT_FRAME_STYLE
         else:
-            style = wxDEFAULT_FRAME_STYLE
-        wxDialog.__init__(self, parent, -1, title, style=style)
+            style = wx.DEFAULT_FRAME_STYLE
+        wx.Dialog.__init__(self, parent, -1, title, style=style)
         defaultWindowWidth = 700
         maxWindowHeight = 600
         self.isModal = isModal
@@ -45,7 +45,7 @@ class SplashScreen(wxDialog):
         else:
             self.timer = None
             
-        EVT_CLOSE(self, self.OnCloseWindow)
+        self.Bind(wx.EVT_CLOSE, self.OnCloseWindow)
         
     def OnCloseWindow(self, event):
         """
@@ -58,16 +58,16 @@ class SplashScreen(wxDialog):
         else:
             self.Destroy()
         
-class HTMLPanel(wxHtmlWindow):
+class HTMLPanel(wx.html.HtmlWindow):
     """
       Displays the html message.
     """
     def __init__(self, parent, pageLocation, size):
         """
-          Sets up the wxHtmlWindow and loads the proper page to be displayed.
+          Sets up the wx.html.HtmlWindow and loads the proper page to be displayed.
         """
-        wxHtmlWindow.__init__(self, parent, size=size,
-                              style=wxHW_SCROLLBAR_AUTO)
+        wx.html.HtmlWindow.__init__(self, parent, size=size,
+                              style=wx.HW_SCROLLBAR_AUTO)
         self.parent = parent
         self.LoadPage(pageLocation)
         
@@ -78,7 +78,7 @@ class HTMLPanel(wxHtmlWindow):
         splash screen.
         """
         self.linked = false
-        wxHtmlWindow.base_OnCellClicked(self, cell, x, y, event)
+        wx.html.HtmlWindow.base_OnCellClicked(self, cell, x, y, event)
         if not self.linked:
             self.parent.Close()
         
@@ -90,7 +90,7 @@ class HTMLPanel(wxHtmlWindow):
         self.linked = true
         webbrowser.open(link.GetHref())
     
-class SplashTimer(wxTimer):
+class SplashTimer(wx.Timer):
     """
       A timer that keeps track of how long the splash screen has been 
     displayed.
@@ -99,7 +99,7 @@ class SplashTimer(wxTimer):
         """
           Sets up the timer.
         """
-        wxTimer.__init__(self)
+        wx.Timer.__init__(self)
         self.window = window
         
     def Notify(self):

@@ -9,18 +9,18 @@ from ContainerBlocks import *
 from ControlBlocks import *
 from Node import *
 from repository.util.UUID import UUID
-from wxPython.wx import *
+import wx
 
 
-class wxBookmark(wxStaticText):
+class wxBookmark(wx.StaticText):
     """
       Under construction
     """
     def __init__(self, parent, text, onClickMethod, userData, id=-1):
-        wxStaticText.__init__(self, parent, id, text)
+        wx.StaticText.__init__(self, parent, id, text)
         self.onClickMethod = onClickMethod
         self.userData = userData
-        EVT_LEFT_DOWN(self, self.onClick)
+        self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
         
     def onClick(self, event):
         self.onClickMethod(self.userData)
@@ -35,8 +35,8 @@ class BookmarksBar(RectangularChild):
         self.bookmarksPath = None
 
     def renderOneBlock(self, parent, parentWindow):
-        panel = wxPanel(parentWindow, -1)
-        sizer = wxBoxSizer(wxHORIZONTAL)
+        panel = wx.Panel(parentWindow, -1)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
         self.addBookmarks(panel, sizer)
         panel.SetSizerAndFit(sizer)
@@ -52,10 +52,10 @@ class BookmarksBar(RectangularChild):
             self.addBookmark(parent, sizer, child.getItemDisplayName(), child.GetPath())
         
     def addBookmark(self, parent, sizer, title, path):
-        sizer.Add(10, 0, 0, wxEXPAND)
+        sizer.Add((10, 0), 0, wx.EXPAND)
         bookmark = wxBookmark(parent, title, self.bookmarkPressed, path)
         sizer.Add(bookmark, 0)
-        sizer.Add(10, 0, 0, wxEXPAND)
+        sizer.Add((10, 0), 0, wx.EXPAND)
         
     def bookmarkPressed(self, text):
         item = Node.GetItemFromPath(text, '//parcels/OSAF/views/main/URLRoot')
@@ -114,9 +114,9 @@ class NavigationBar(Toolbar):
         try:
             item = Node.GetItemFromPath(url, '//parcels/OSAF/views/main/URLRoot')
         except BadURL:
-            dialog = wxMessageDialog(None, 'The url "' + str(url) + '" does not exist', 
+            dialog = wx.MessageDialog(None, 'The url "' + str(url) + '" does not exist', 
                                      'Chandler',
-                                     style=wxOK|wxCENTRE)
+                                     style=wx.OK|wx.CENTRE)
             dialog.ShowModal()
         else:
             self.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),

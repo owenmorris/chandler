@@ -1,5 +1,11 @@
+__version__ = "$Revision$"
+__date__ = "$Date$"
+__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+
 from repository.item.Item import Item
-from wxPython.wx import *
+import wx
+
 
 class Style(Item):
 
@@ -13,20 +19,20 @@ class CharacterStyle(Style):
         super (CharacterStyle, self).__init__ ( *arguments, **keywords)
 
         
-class Font(wxFont):
+class Font(wx.Font):
     def __init__(self, characterStyle):
-        family = wxDEFAULT
+        family = wx.DEFAULT
         size = 12
-        style = wxNORMAL
-        underline = FALSE
-        weight = wxNORMAL
+        style = wx.NORMAL
+        underline = False
+        weight = wx.NORMAL
         if characterStyle:
             if characterStyle.fontFamily == "SerifFont":
-                family = wxROMAN
+                family = wx.ROMAN
             elif characterStyle.fontFamily == "SanSerifFont":
-                family = wxSWISS
+                family = wx.SWISS
             elif characterStyle.fontFamily == "FixedPitchFont":
-                family = wxMODERN
+                family = wx.MODERN
     
             assert (size > 0)
             size = int (characterStyle.fontSize + 0.5) #round to integer
@@ -34,15 +40,15 @@ class Font(wxFont):
             for theStyle in characterStyle.fontStyle.split():
                 lowerStyle = theStyle.lower()
                 if lowerStyle == "bold":
-                    weight = wxBOLD
+                    weight = wx.BOLD
                 elif lowerStyle == "light":
-                    weight = wxLIGHT
+                    weight = wx.LIGHT
                 elif lowerStyle == "italic":
-                    style = wxITALIC
+                    style = wx.ITALIC
                 elif lowerStyle == "underline":
-                    underline = TRUE
+                    underline = True
                 
-        wxFont.__init__ (self,
+        wx.Font.__init__ (self,
                          size,
                          family,
                          style,

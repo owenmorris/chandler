@@ -13,7 +13,7 @@ if __debug__ and '-wing' in sys.argv:
     """
     import wingdbstub
 import logging
-from wxPython.wx import *
+import wx
 from application.Application import wxApplication
 
 def main():
@@ -42,7 +42,8 @@ def main():
     except Exception, e:
         message = "Chandler encountered an unexpected problem %s" % exceptionMessage
         logging.exception(message)
-        dialog = wxMessageDialog(None, message, "Chandler", wxOK | wxICON_INFORMATION)
+        # @@@ 25Issue - Cannot create wxItems if the app failed to initialize
+        dialog = wx.MessageDialog(None, message, "Chandler", wx.OK | wx.ICON_INFORMATION)
         dialog.ShowModal()
         dialog.Destroy()
         

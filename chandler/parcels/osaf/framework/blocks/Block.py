@@ -1,7 +1,12 @@
+__version__ = "$Revision$"
+__date__ = "$Date$"
+__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+
 import application.Globals as Globals
 from repository.item.Item import Item
 from OSAF.framework.notifications.schema.Event import Event
-from wxPython.wx import *
+import wx
 import logging
 
 
@@ -38,10 +43,10 @@ class Block(Item):
           You should usually override renderOneBlock in your Block subclass
         to create a platform specific counterpart for the block. The three
         objects returned are:
-         - The platform specific counterpart created, e.g. wxPanel
+         - The platform specific counterpart created, e.g. wx.Panel
          - The platform specific counterpart for the Block's parent block
          - The platform specific parent of the counterpart created, e.g.
-           wxPanel's platform specific parent.
+           wx.Panel's platform specific parent.
           We need to occasionally return all these arguments because our
         blocks containers are included in our hierarchy of Blocks, where as
         wxWindows sizers are not included in their hiearchy of windows.
@@ -171,27 +176,27 @@ class ContainerChild(Block):
 class RectangularChild(ContainerChild):
     def Calculate_wxFlag (self):
         if self.alignmentEnum == 'grow':
-            flag = wxGROW
+            flag = wx.GROW
         elif self.alignmentEnum == 'growConstrainAspectRatio':
-            flag = wxSHAPED
+            flag = wx.SHAPED
         elif self.alignmentEnum == 'alignCenter':
-            flag = wxALIGN_CENTER
+            flag = wx.ALIGN_CENTER
         elif self.alignmentEnum == 'alignTopCenter':
-            flag = wxALIGN_TOP
+            flag = wx.ALIGN_TOP
         elif self.alignmentEnum == 'alignMiddleLeft':
-            flag = wxALIGN_LEFT
+            flag = wx.ALIGN_LEFT
         elif self.alignmentEnum == 'alignBottomCenter':
-            flag = wxALIGN_BOTTOM
+            flag = wx.ALIGN_BOTTOM
         elif self.alignmentEnum == 'alignMiddleRight':
-            flag = wxALIGN_RIGHT
+            flag = wx.ALIGN_RIGHT
         elif self.alignmentEnum == 'alignTopLeft':
-            flag = wxALIGN_TOP | wxALIGN_LEFT
+            flag = wx.ALIGN_TOP | wx.ALIGN_LEFT
         elif self.alignmentEnum == 'alignTopRight':
-            flag = wxALIGN_TOP | wxALIGN_RIGHT
+            flag = wx.ALIGN_TOP | wx.ALIGN_RIGHT
         elif self.alignmentEnum == 'alignBottomLeft':
-            flag = wxALIGN_BOTTOM | wxALIGN_LEFT
+            flag = wx.ALIGN_BOTTOM | wx.ALIGN_LEFT
         elif self.alignmentEnum == 'alignBottomRight':
-            flag = wxALIGN_BOTTOM | wxALIGN_RIGHT
+            flag = wx.ALIGN_BOTTOM | wx.ALIGN_RIGHT
         return flag
 
     def Calculate_wxBorder (self):

@@ -7,7 +7,7 @@ import application.Globals as Globals
 from ContainerBlocks import *
 from MenuBlocks import MenuEntry
 from OSAF.framework.notifications.Notification import Notification
-from wxPython.wx import *
+import wx
 
 class View(BoxContainer):
     def dispatchEvent (self, notification):
@@ -83,7 +83,7 @@ class View(BoxContainer):
             assert (False)
 
     def getFocusBlock (self):
-        focusWindow = wxWindow_FindFocus()
+        focusWindow = wx.Window_FindFocus()
         while (focusWindow):
             try:
                 UUID = focusWindow.counterpartUUID
