@@ -444,9 +444,9 @@ class XMLClientRefDict(XMLRefDict):
 
 class XMLText(Text):
 
-    def __init__(self, **kwds):
+    def __init__(self, *args, **kwds):
 
-        super(XMLText, self).__init__(**kwds)
+        super(XMLText, self).__init__(*args, **kwds)
         self._uuid = None
         self._view = None
         self._version = 0
@@ -510,9 +510,9 @@ class XMLText(Text):
 
 class XMLBinary(Binary):
 
-    def __init__(self, **kwds):
+    def __init__(self, *args, **kwds):
 
-        super(XMLBinary, self).__init__(**kwds)
+        super(XMLBinary, self).__init__(*args, **kwds)
         self._uuid = None
         self._view = None
         self._version = 0
@@ -526,7 +526,7 @@ class XMLBinary(Binary):
 
         if self._dirty:
             self._version += 1
-            view.repository.store._text.put(self._makeKey(), self._data)
+            view.repository.store._binary.put(self._makeKey(), self._data)
 
         attrs = {}
         attrs['version'] = str(self._version)

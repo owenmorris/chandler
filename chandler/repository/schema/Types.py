@@ -763,6 +763,8 @@ class Text(Lob):
             writer = text.getWriter(compression)
             writer.write(data)
             writer.close()
+
+        return text
     
     def textStart(self, itemHandler, attrs):
 
@@ -796,13 +798,15 @@ class Binary(Lob):
 
         return self.getRepository().getLobType('binary')
 
-    def makeValue(self, data, mimeType='text/plain', compression=None):
+    def makeValue(self, data, mimetype='text/plain', compression=None):
 
-        binary = self.getImplementationType()(mimetype)
+        binary = self.getImplementationType()(mimetype=mimetype)
         if data:
             out = binary.getOutputStream(compression)
             writer.write(data)
             writer.close()
+
+        return binary
     
     def binaryStart(self, itemHandler, attrs):
 

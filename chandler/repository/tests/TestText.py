@@ -11,7 +11,7 @@ import unittest, os
 
 from repository.persistence.XMLRepository import XMLRepository
 
-class TextTest(unittest.TestCase):
+class TestText(unittest.TestCase):
     """ Test Text storage """
 
     def setUp(self):

@@ -90,4 +90,4 @@ class Binary(Lob):
 
     def __init__(self, mimetype='text/plain'):
 
-        super(Binary, self).__init__(mimeType)
+        super(Binary, self).__init__(mimetype)
