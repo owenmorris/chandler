@@ -5,463 +5,721 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/osaf/contentmodel/mail"
-        itsName="mail"
-        itemClass="osaf.contentmodel.mail.Mail.MailParcel"
-        xmlns="http://osafoundation.org/parcels/core"
-        xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
-        xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
-        xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
-        xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-        xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks">
+<Parcel itsName="mail"
+    itemClass="osaf.contentmodel.mail.Mail.MailParcel"
+    xmlns="http://osafoundation.org/parcels/core"
+    xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
+    xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
+    xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
+    xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
+    xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks">
 
-  <displayName>Mail Content Model</displayName>
-  <description>Content Model for the Mail Messages, Email Accounts, and other things related to email/</description>
-  <version>0.3</version>
-  <author>Open Source Applications Foundation</author>
+    <displayName>Mail Content Model</displayName>
+    <description>Content Model for the Mail Messages, Email Accounts, and other things related to email</description>
+    <version>0.3</version>
+    <author>Open Source Applications Foundation</author>
 
-<!-- Attachment -->
-  <Kind itsName="Attachment">
-    <superKinds itemref="Item"/>
-    <displayName>Attachment</displayName>
-    <examples>'Budget.doc'</examples>
-    <examples>'funny.jpg'</examples>
-    <description>
-      An Attachment represents an e-mail attachment.
-    </description>
-    <issues>see http://lists.osafoundation.org/pipermail/design/2003-April/002400.html</issues>
-    <issues>I'd argue for calling Attachments either MIMEElement or MessagePart.  In a multipart/mixed 
-        message (essentially any message with an attachment), there sort of isn't a body.  The part that 
-        is looks like an RFC822 body is simply the text "This is a MIME-encapsulated message."  What is 
-        *presented to the user as the body* is usually the first displayable part or the first text 
-        part. -Ducky</issues>
-    <issues>From the schema, it isn't clear if the body and attachments have been converted into 
-        Chandler Items or if they are unmolested text.  (Ditto for From, Date, and the headers.)  
-        To do spam control right you have to keep around the exact, original, unmolested text 
-        of the message.  Anti-spam programs find useful information in the strangest places -- for example, there's one program commonly used by spammers that has a distrinctive set of delimiters between message parts. You also can't run it through the spam filter, decide you're done, munge it, and throw away the original because the Bayesian classifiers need to have the original message to retrain on if the user decides that the classifier got it wrong.  So somewhere, you have to keep around the original. -Ducky</issues>
-    <classes key="python">osaf.contentmodel.mail.Mail.Attachment</classes>
-  </Kind>
 
-<!-- Email Account -->
-  <Attribute itsName="serverName">
-    <displayName>Server DNS Name</displayName>
-    <type itemref="String"/>
-  </Attribute>
-  
-  <Attribute itsName="serverPort">
-    <displayName>Server Port</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="Integer"/>
-    <initialValue type="Integer">143</initialValue>
-  </Attribute>
+    <Kind itsName="AccountBase">
+        <superKinds ref="Item" />
+        <displayName value="Account base kind" />
+        <description value="The base kind for various account kinds, such as IMAP, SMTP, WebDav" />
 
-  <Attribute itsName="accountName">
-    <displayName>Account Name</displayName>
-    <description>My user name on this server.</description>
-    <issues>This should always be a single-line string that displays in a one-line text field rather than a scrolling text box.</issues>
-    <type itemref="String"/>
-  </Attribute>
+        <Attribute itsName="username">
+            <displayName value="Username" />
+            <description value="The account login name" />
+            <type ref="String" />
+            <initialValue ref="None" />
+        </Attribute>
 
-  <Attribute itsName="accountType">
-    <displayName>Account Type</displayName>
-    <description>POP, IMAP, etc.</description>
-    <type itemref="String"/>
-  </Attribute>
-  
-  <Attribute itsName="messageDownloadSequence">
-    <displayName>Message Download Sequence</displayName>
-    <description>The uid or number of the last message downloaded</description>
-    <cardinality>single</cardinality>
-    <type itemref="Long"/>
-    <initialValue type="Long">0</initialValue>
-  </Attribute>
+        <Attribute itsName="password">
+            <displayName value="Password" />
+            <description value="This could either be a password or some other sort of authentication info. We can use it for whatever is needed for this account type." />
+            <issues value="This should not be a simple string. We need some solution for encrypting it." />
+            <type ref="String" />
+            <initialValue ref="None" />
+        </Attribute>
 
-  <Attribute itsName="password">
-    <displayName>Password</displayName>
-    <description>This could either be a password or some other sort of authentication info. We can use it for whatever is needed for this account type.</description>
-    <issues>This should not be a simple string. We need some solution for encrypting it.</issues>
-    <type itemref="String"/>
-  </Attribute>
+        <Attribute itsName="host">
+            <displayName value="Host" />
+            <description value="The hostname of the account" />
+            <type ref="String" />
+            <initialValue ref="None" />
+        </Attribute>
 
-  <Attribute itsName="downloadedMail">
-    <displayName>Downloaded Mail</displayName>
-    <description>Mail messages that have been sent to this account, and retrieved by Chandler.</description>
-    <cardinality>list</cardinality>
-    <type itemref="mail:MailMessage"/>
-    <inverseAttribute itemref="mail:downloadAccount"/>
-    <initialValue/>
-  </Attribute>
+        <Attribute itsName="port">
+            <displayName value="Port" />
+            <description value="The non-SSL port number to use" />
+            <type ref="Integer" />
+            <initialValue ref="None" />
+        </Attribute>
 
-  <Attribute itsName="returnAddress">
-    <displayName>Return Address</displayName>
-    <description>The Email Address to use as the return address for mail sent from this account.</description>
-    <type itemref="mail:EmailAddress"/>
-    <inverseAttribute itemref="mail:returnAddressInverse"/>
-  </Attribute>
+        <Attribute itsName="portSSL">
+            <displayName value="Port SSL" />
+            <description value="The SSL port number to use" />
+            <type ref="Integer" />
+            <initialValue ref="None" />
+        </Attribute>
 
-  <Attribute itsName="returnAddressInverse">
-    <displayName>Used as Return Address by Email Account</displayName>
-    <description>A list of Email Accounts that use this Email Address as the return address for mail sent from the account.</description>
-    <cardinality>list</cardinality>
-    <type itemref="mail:EmailAccount"/>
-    <inverseAttribute itemref="mail:returnAddress"/>
-  </Attribute>
+        <Attribute itsName="useSSL">
+            <displayName value="use SSL" />
+            <description value="Whether or not to use SSL" />
+            <type ref="Boolean" />
+            <initialValue type="Boolean" value="False" />
+        </Attribute>
 
-  <Attribute itsName="pollingFrequency">
-    <displayName>Polling Frequency</displayName>
-    <description>Some description of frequency, like 'never', or 'every 5 minutes'</description>
-    <issues>This shouldn't really be of type String. Maybe RelativeDateTime, or some new data type?</issues>
-    <type itemref="String"/>
-  </Attribute>
+        <Attribute itsName="pollingFrequency">
+            <displayName value="Polling frequency" />
+            <description value="Frequency in seconds" />
+            <type ref="Integer" />
+            <initialValue type="Integer" value="300" />
+        </Attribute>
 
-  <Kind itsName="EmailAccount">
-    <superKinds itemref="Item"/>
-    <displayName>Email Account</displayName>
-    <examples>My work account on the company IMAP server at mail.BigCompany.com</examples>
-    <examples>My home account on my ISP's POP server.</examples>
-    <description>An Email Account item is used to keep track of the info Chandler needs in order to retrieve your mail from a mail server.</description>
-    <issues>We might also want some more attributes, to keep track of things like 'port number', 'use SSL (boolean)', 'check for messages at startup (boolean)', </issues>
-    <displayAttribute itemref="mail:accountName"/>
-    <attributes itemref="mail:serverName"/>
-    <attributes itemref="mail:serverPort"/>
-    <attributes itemref="mail:accountName"/>
-    <attributes itemref="mail:accountType"/>
-    <attributes itemref="mail:password"/>
-    <attributes itemref="mail:downloadedMail"/>
-    <attributes itemref="mail:returnAddress"/>
-    <attributes itemref="mail:messageDownloadSequence"/>
-    <attributes itemref="mail:pollingFrequency"/>
-    <classes key="python">osaf.contentmodel.mail.Mail.EmailAccount</classes>
-  </Kind>
+    </Kind>
 
-<!-- Email Address -->
-  <Attribute itsName="emailAddress">
-    <displayName>Email Address</displayName>
-    <examples>"abe@osafoundation.org"</examples>
-    <examples>"Abe Lincoln {abe@osafoundation.org}" (except with angle brackets instead of '{' and '}')</examples>
-    <description>An RFC 822 email address.</description>
-    <type itemref="String"/>
-  </Attribute>
+    <Kind itsName="IMAPAccount">
+        <superKinds ref="mail:AccountBase" />
+        <displayName value="IMAP Account" />
+        <description value="An IMAP Account" />
 
-  <Attribute itsName="vcardType">
-    <displayName>vCard type</displayName>
-    <description>Typical vCard types are values like 'internet', 'x400', and 'pref'. Chandler will use this attribute when doing import/export of Contact records in vCard format.</description>
-    <type itemref="String"/>
-  </Attribute>
+        <Attribute itsName="port">
+            <displayName value="Port" />
+            <description value="The non-SSL port number to use" />
+            <type ref="Integer" />
+            <initialValue type="Integer" value="143" />
+            <issues value="In order to get a custom initialValue for this attribute for an IMAPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase" />
+        </Attribute>
 
-  <Kind itsName="EmailAddress"> 
-    <superKinds itemref="Item"/>
-    <displayName>Email Address</displayName>
-    <examples>"abe@osafoundation.org"</examples>
-    <description>An item that represents a simple email address, plus all the info we might want to associate with it, like lists of message to and from this address.</description>
-    <issues>Someday we might want to have other attributes.  One example might be an 'is operational' flag that tells whether this address is still in service, or whether mail to this has been bouncing lately. Another example might be a 'superceded by' attribute, which would point to another Email Address item.</issues>
-    <issues>Depending on how we end up using the 'emailAddress' attribute, we might want to break it into two attributes, one for the "Abe Lincoln" part, and one for the "abe@osafoundation.org" part. Alternatively, we might want to use one of Andi's compound types, with two fields.</issues>
-    <displayAttribute itemref="mail:emailAddress"/>
-    <attributes itemref="mail:emailAddress"/>
-    <attributes itemref="mail:vcardType"/>
-    <attributes itemref="contact:onceBelongedTo"/>
-    <attributes itemref="contact:emailAddressOwner"/>
-    <attributes itemref="mail:returnAddressInverse"/>
-    <attributes itemref="mail:sentToInverse"/>
-    <attributes itemref="mail:replyAddressInverse"/>
-    <attributes itemref="calendar:participatingIn"/>
-    <attributes itemref="tasks:requestedTasks"/>
-    <attributes itemref="tasks:taskRequests"/>
-    <classes key="python">osaf.contentmodel.mail.Mail.EmailAddress</classes>
-  </Kind>
+        <Attribute itsName="portSSL">
+            <displayName value="Port SSL" />
+            <description value="The SSL port number to use" />
+            <type ref="Integer" />
+            <initialValue type="Integer" value="993" />
+            <issues value="In order to get a custom initialValue for this attribute for an IMAPAccount, I defined a 'duplicate' attribute, also named 'portSSL', which normally would have been inherited from AccountBase" />
+        </Attribute>
 
-<!-- Email Message -->
-  <Attribute itsName="subject">
-    <displayName>Subject</displayName>
-    <description>The subject line of an email message.</description>
-    <type itemref="String"/>
-  </Attribute>
+        <Attribute itsName="messageDownloadSequence">
+            <displayName value="Message Download Sequence" />
+            <type ref="Long" />
+            <initialValue type="Long" value="0" />
+        </Attribute>
 
-  <Attribute itsName="sentTo">
-    <displayName>Sent To</displayName>
-    <description>...add description here...</description>
-    <cardinality>list</cardinality>
-    <type itemref="mail:EmailAddress"/>
-    <inverseAttribute itemref="mail:sentToInverse"/>
-  </Attribute>
+        <Attribute itsName="downloadedMail">
+            <displayName value="Downloaded Mail" />
+            <description value="All messages that have been downloaded from this account" />
+            <cardinality value="list" />
+            <type ref="mail:MailMessageMixin" />
+            <inverseAttribute ref="mail:MailMessageMixin/parentAccount" />
+            <initialValue />
+        </Attribute>
 
-  <Attribute itsName="sentToInverse">
-    <displayName>Messages sent to this address</displayName>
-    <description>A list of messages that have this address in their header</description>
-    <cardinality>list</cardinality>
-    <type itemref="mail:MailMessage"/>
-    <inverseAttribute itemref="mail:sentTo"/>
-  </Attribute>
+        <Attribute itsName="defaultSmtpAccount">
+            <displayName value="Default SMTP Account" />
+            <description value="Which SMTP account to use for sending mail from this account" />
+            <type ref="mail:SMTPAccount" />
+            <inverseAttribute ref="mail:SMTPAccount/accounts" />
+            <initialValue ref="None" />
+        </Attribute>
 
-  <Attribute itsName="toAddress">
-    <displayName>to: Address</displayName>
-    <description>...add description here...</description>
-    <cardinality>list</cardinality>
-    <type itemref="mail:EmailAddress"/>
-    <superAttribute itemref="mail:sentTo"/>
-  </Attribute>
+    </Kind>
 
-  <Attribute itsName="ccAddress">
-    <displayName>cc: Address</displayName>
-    <description>...add description here...</description>
-    <cardinality>list</cardinality>
-    <type itemref="mail:EmailAddress"/>
-    <superAttribute itemref="mail:sentTo"/>
-  </Attribute>
+    <Kind itsName="SMTPAccount">
+        <superKinds ref="mail:AccountBase" />
+        <displayName value="SMTP Account" />
+        <description value="An SMTP Account" />
 
-  <Attribute itsName="bccAddress">
-    <displayName>bcc: Address</displayName>
-    <description>...add description here...</description>
-    <cardinality>list</cardinality>
-    <type itemref="mail:EmailAddress"/>
-    <superAttribute itemref="mail:sentTo"/>
-  </Attribute>
+        <Attribute itsName="port">
+            <displayName value="Port" />
+            <description value="The non-SSL port number to use" />
+            <type ref="Integer" />
+            <initialValue type="Integer" value="25" />
+            <issues value="In order to get a custom initialValue for this attribute for an SMTPAccount, I defined a 'duplicate' attribute, also named 'port', which normally would have been inherited from AccountBase" />
+        </Attribute>
 
-  <Attribute itsName="replyAddress">
-    <displayName>Reply Address</displayName>
-    <description>The Email address listed as the reply to address in the header of this message.</description>
-    <type itemref="mail:EmailAddress"/>
-    <inverseAttribute itemref="mail:replyAddressInverse"/>
-  </Attribute>
+        <Attribute itsName="portSSL">
+            <displayName value="Port SSL" />
+            <description value="The SSL port number to use" />
+            <type ref="Integer" />
+            <initialValue type="Integer" value="465" />
+            <issues value="In order to get a custom initialValue for this attribute for an SMTPAccount, I defined a 'duplicate' attribute, also named 'portSSL', which normally would have been inherited from AccountBase" />
+        </Attribute>
 
-  <Attribute itsName="replyAddressInverse">
-    <displayName>Used as Reply Address In</displayName>
-    <description>A list of mail messages that give this email address as a reply address.</description>
-    <cardinality>list</cardinality>
-    <type itemref="mail:MailMessage"/>
-    <inverseAttribute itemref="mail:replyAddress"/>
-  </Attribute>
+        <Attribute itsName="useAuth">
+            <displayName value="Use Authentication" />
+            <description value="Whether or not to use authentication when sending mail" />
+            <type ref="Boolean" />
+            <initialValue type="Boolean" value="False" />
+        </Attribute>
 
-  <Attribute itsName="dateSent">
-    <displayName>Date Sent</displayName>
-    <description>...add description here...</description>
-    <issues>Is dateSent the unmolested Date string as it arrives (which the RFC says can have one of three formats, and which has a fourth incorrect but reasonably common format) or is it converted into a Chandler DateTime (or whatever) Item? - Ducky</issues>
-    <type itemref="DateTime"/>
-  </Attribute>
+        <Attribute itsName="numRetries">
+            <displayName value="Number of Retries" />
+            <description value="How many times to retry before giving up" />
+            <type ref="Integer" />
+            <initialValue type="Integer" value="3" />
+        </Attribute>
 
-  <Attribute itsName="dateReceived">
-    <displayName>Date Received</displayName>
-    <description>...add description here...</description>
-    <type itemref="DateTime"/>
-  </Attribute>
+        <Attribute itsName="fullName">
+            <displayName value="Full Name" />
+            <description value="A first and last name which will get included in the From: header of outgoing mail" />
+            <type ref="String" />
+            <initialValue ref="None" />
+        </Attribute>
 
-  <Attribute itsName="deliveryReceiptRequested">
-    <displayName>Delivery Receipt Requested</displayName>
-    <description>...add description here...</description>
-    <type itemref="Boolean"/>
-  </Attribute>
+        <Attribute itsName="replyToAddress">
+            <displayName value="Reply-To Address" />
+            <type ref="mail:EmailAddress" />
+            <initialValue ref="None" />
+            <inverseAttribute ref="mail:EmailAddress/accounts" />
+        </Attribute>
 
-  <Attribute itsName="readReceiptRequested">
-    <displayName>Read Receipt Requested</displayName>
-    <description>...add description here...</description>
-    <type itemref="Boolean"/>
-  </Attribute>
+        <Attribute itsName="accounts">
+            <displayName value="Accounts" />
+            <description value="Which IMAP accounts use this SMTP account as their default" />
+            <type ref="mail:IMAPAccount" />
+            <inverseAttribute ref="mail:IMAPAccount/defaultSmtpAccount" />
+            <cardinality value="list" />
+            <initialValue />
+        </Attribute>
 
-  <Attribute itsName="messageHeader">
-    <displayName>Message Header</displayName>
-    <description>...add description here...</description>
-    <type itemref="String"/>
-  </Attribute>
+    </Kind>
 
-  <Attribute itsName="messageBody">
-    <displayName>Message Body</displayName>
-    <description>a MIME-body, complete with content-type, content-encoding, character encoding, 
-        etc.</description>
-    <issues>Ducky says: There are a whole bunch of things that need to be specified for the body 
-        (or attachment) of a message, including content-type (jpg, html, text, word), 
-        content-encoding (7-bit or 8-bit ASCII?), character encoding (Shift-JIS, Big 5?), length, 
-        etc. What you might want to do is declare an as-yet-unspecified MIME-body that holds all 
-        of the information and the body of the message part (body or attachment).</issues>
-    <type itemref="Text"/>
-  </Attribute>
+    <Kind itsName="MailDeliveryBase">
+        <superKinds ref="Item" />
+        <displayName value="Mail Delivery base kind" />
+        <description value="Parent kind for delivery-specific attributes of a MailMessage" />
 
-  <Attribute itsName="relatedMessages">
-    <displayName>Related Messages</displayName>
-    <description>This 'relatedMessages' attribute is the super-attribute of attributes like 'forwardedIn' and 'repliedToIn'.</description>
-    <issues>This should have itself as an inverseAttribute.</issues>
-    <cardinality>list</cardinality>
-    <type itemref="mail:MailMessage"/>
-  </Attribute>
+        <Attribute itsName="deliveryType">
+            <displayName value="Delivery Type" />
+            <description value="One of POP, IMAP, or SMTP" />
+            <type ref="mail:MailDeliveryBase/deliveryType/deliveryTypeEnum" />
 
-  <Attribute itsName="forwardedIn">
-    <displayName>Forwarded In</displayName>
-    <description>a list of other Email Messages that contain forwarded copies of this message</description>
-    <cardinality>list</cardinality>
-    <type itemref="mail:MailMessage"/>
-    <superAttribute itemref="mail:relatedMessages"/>
-  </Attribute>
+            <Enumeration itsName="deliveryTypeEnum">
+                <values value="POP" />
+                <values value="IMAP" />
+                <values value="SMTP" />
+            </Enumeration>
 
-  <Attribute itsName="repliedToIn">
-    <displayName>Replied To In</displayName>
-    <description>a list of other Email Messages that are replies to this message</description>
-    <cardinality>list</cardinality>
-    <type itemref="mail:MailMessage"/>
-    <superAttribute itemref="mail:relatedMessages"/>
-  </Attribute>
+        </Attribute>
 
-  <Attribute itsName="inReplyTo">
-    <displayName>In Reply To</displayName>
-    <description>the Email Message that this message is a reply to</description>
-    <type itemref="mail:MailMessage"/>
-    <superAttribute itemref="mail:relatedMessages"/>
-  </Attribute>
+        <Attribute itsName="mailMessage">
+            <displayName value="Message" />
+            <description value="Message which this delivery item refers to" />
+            <type ref="mail:MailMessageMixin" />
+            <initialValue ref="None" />
+            <inverseAttribute ref="mail:MailMessageMixin/deliveryExtension" />
+        </Attribute>
 
-  <Attribute itsName="attachments">
-    <displayName>Attachments</displayName>
-    <description>...add description here...</description>
-    <issues>This should have as an inverseAttribute an 'attachedTo' attribute on the 'Attachment'.</issues>
-    <cardinality>list</cardinality>
-    <type itemref="mail:Attachment"/>
-  </Attribute>
+    </Kind>
 
-  <Attribute itsName="characterEncoding">
-    <displayName>Character Encoding</displayName>
-    <description>...add description here...</description>
-    <type itemref="String"/>
-  </Attribute>
+    <Kind itsName="SMTPDelivery">
+        <superKinds ref="mail:MailDeliveryBase" />
+        <displayName value="SMTP Delivery" />
+        <description value="Tracks the status of an outgoing message" />
+        <issues value="Currently the parcel loader can't set a default value for the state attribute" />
 
-  <Attribute itsName="hasBeenRead">
-    <displayName>Has Been Read</displayName>
-    <description>...add description here...</description>
-    <issues>I suspect that has-been-read is probably a subset of Status.  It traditionally is. -Ducky</issues>
-    <type itemref="Boolean"/>
-  </Attribute>
+        <Attribute itsName="history">
+            <displayName value="History" />
+            <type ref="mail:SMTPDelivery/history/historyEnum" />
+            <cardinality value="list" />
+            <initialValue />
 
-  <Attribute itsName="downloadAccount">
-    <displayName>Download Account</displayName>
-    <description>used when sending the reply, to make the reply be 'from' the right account</description>
-    <type itemref="mail:EmailAccount"/>
-    <inverseAttribute itemref="mail:downloadedMail"/>
-  </Attribute>
+            <Enumeration itsName="historyEnum">
+                <values value="QUEUED" />
+                <values value="FAILED" />
+                <values value="SENT" />
+            </Enumeration>
 
-  <Attribute itsName="serverStatus">
-    <displayName>Server Status</displayName>
-    <description>The server status can be either 'on server' or 'deleted from server'.</description>
-    <type itemref="String"/>
-  </Attribute>
+        </Attribute>
 
-  <Attribute itsName="deliveryStatus">
-    <displayName>Delivery Status</displayName>
-    <description>The delivery status can be 'queued', 'sent', or 'unsent'.</description>
-    <type itemref="String"/>
-  </Attribute>
+        <Attribute itsName="tries">
+            <displayName value="Number of tries" />
+            <description value="How many times we have tried to send it" />
+            <type ref="Integer" />
+            <initialValue type="Integer" value="0" />
+        </Attribute>
 
-  <Attribute itsName="spamScore">
-    <displayName>Spam Score</displayName>
-    <type itemref="Integer"/>
-  </Attribute>
+        <Attribute itsName="state">
+            <displayName value="State" />
+            <description value="The current state of the message" />
+            <issues value="We don't appear to be able to set an initialValue for an attribute whose enumeration is defined in the same file (a deficiency in the parcel loader)" />
+            <type ref="mail:SMTPDelivery/state/stateEnum" />
 
-  <Kind itsName="MailMessageMixin">
-    <displayName>Mail Message Mixin Kind</displayName>
-    <description>This is the set of Message-specific attributes.</description>
-    <description>This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated</description>
-    <attributes itemref="mail:subject"/>
-    <attributes itemref="mail:sentTo"/>
-    <attributes itemref="mail:toAddress"/>
-    <attributes itemref="mail:ccAddress"/>
-    <attributes itemref="mail:bccAddress"/>
-    <attributes itemref="mail:replyAddress"/>
-    <attributes itemref="mail:dateSent"/>
-    <attributes itemref="mail:dateReceived"/>
-    <attributes itemref="mail:deliveryReceiptRequested"/>
-    <attributes itemref="mail:readReceiptRequested"/>
-    <attributes itemref="mail:messageHeader"/>
-    <attributes itemref="mail:messageBody"/>
-    <attributes itemref="mail:relatedMessages"/>
-    <attributes itemref="mail:forwardedIn"/>
-    <attributes itemref="mail:repliedToIn"/>
-    <attributes itemref="mail:inReplyTo"/>
-    <attributes itemref="mail:attachments"/>
-    <attributes itemref="mail:characterEncoding"/>
-    <attributes itemref="mail:hasBeenRead"/>
-    <attributes itemref="mail:downloadAccount"/>
-    <attributes itemref="mail:serverStatus"/>
-    <attributes itemref="mail:deliveryStatus"/>
-    <attributes itemref="mail:spamScore"/>
+            <Enumeration itsName="stateEnum">
+                <values value="DRAFT" />
+                <values value="QUEUED" />
+                <values value="SENT" />
+                <values value="FAILED" />
+            </Enumeration>
 
-    <!-- redirections -->
-    <Attribute itsName="who">
-      <redirectTo>toAddress</redirectTo>
-    </Attribute>
-    
-    <Attribute itsName="whoFrom">
-      <redirectTo>replyAddress</redirectTo>
-    </Attribute>
-    
-    <Attribute itsName="about">
-      <redirectTo>subject</redirectTo>
-    </Attribute>
-    
-    <Attribute itsName="date">
-      <redirectTo>dateReceived</redirectTo>
-    </Attribute>  
-    
-    <classes key="python">osaf.contentmodel.mail.Mail.MailMessageMixin</classes>
-      
-    <Cloud itsName="Cloud">
-      <Endpoint itsName="sentTo">
-        <attribute value="sentTo"/>
-        <includePolicy value="byValue"/>
-      </Endpoint>
-      <endpoints itemref="mail:MailMessageMixin/Cloud/sentTo"/>
+        </Attribute>
 
-      <Endpoint itsName="toAddress">
-        <attribute value="toAddress"/>
-        <includePolicy value="byValue"/>
-      </Endpoint>
-      <endpoints itemref="mail:MailMessageMixin/Cloud/toAddress"/>
+    </Kind>
 
-      <Endpoint itsName="ccAddress">
-        <attribute value="ccAddress"/>
-        <includePolicy value="byValue"/>
-      </Endpoint>
-      <endpoints itemref="mail:MailMessageMixin/Cloud/ccAddress"/>
+    <Kind itsName="IMAPDelivery">
+        <superKinds ref="mail:MailDeliveryBase" />
+        <displayName value="IMAP Delivery" />
+        <description value="Tracks the state of an inbound message" />
 
-      <Endpoint itsName="bccAddress">
-        <attribute value="bccAddress"/>
-        <includePolicy value="byValue"/>
-      </Endpoint>
-      <endpoints itemref="mail:MailMessageMixin/Cloud/bccAddress"/>
+        <Attribute itsName="folder">
+            <displayName value="Folder" />
+            <type ref="String" />
+            <initialValue ref="None" />
+        </Attribute>
 
-      <Endpoint itsName="replyAddress">
-        <attribute value="replyAddress"/>
-        <includePolicy value="byValue"/>
-      </Endpoint>
-      <endpoints itemref="mail:MailMessageMixin/Cloud/replyAddress"/>
+        <Attribute itsName="uid">
+            <displayName value="IMAP UID" />
+            <description value="The unique IMAP ID for the message" />
+            <type ref="String" />
+            <initialValue ref="None" />
+        </Attribute>
 
-      <Endpoint itsName="attachments">
-        <attribute value="attachments"/>
-        <includePolicy value="byValue"/>
-      </Endpoint>
-      <endpoints itemref="mail:MailMessageMixin/Cloud/attachments"/>
+        <Attribute itsName="namespace">
+            <displayName value="Namespace" />
+            <description value="The namespace of the message" />
+            <type ref="String" />
+            <initialValue ref="None" />
+        </Attribute>
 
-      <Endpoint itsName="downloadAccount">
-        <attribute value="downloadAccount"/>
-        <includePolicy value="byValue"/>
-      </Endpoint>
-      <endpoints itemref="mail:MailMessageMixin/Cloud/downloadAccount"/>
+        <Attribute itsName="flags">
+            <displayName value="Flags" />
+            <cardinality value="list" />
+            <type ref="String" />
+            <initialValue />
+        </Attribute>
 
-    </Cloud>
-    <clouds alias="default" itemref="mail:MailMessageMixin/Cloud"/>
+    </Kind>
 
-    <issues>Once we have attributes and a cloud defined for Attachment, we need to include
-    attachments by cloud, and not by value.</issues>
-      
-    <issues>Really not sure what to do with the "downloadAccount" attribute and
-        how it should be included in the cloud.  For now it's by value.</issues>
-      
-      
-  </Kind>
+    <Kind itsName="MIMEBase">
+        <superKinds ref="Item" />
+        <displayName value="MIME Base Kind" />
+        <description value="Super kind for MailMessage and the various MIME kinds" />
 
-  <Kind itsName="MailMessage">
-    <displayName>Mail Message</displayName>
-    <description>A Mail Message represents any sort of email message, sent or received.</description>
-    <issues>We need another attribute. A boolean attribute to indicate whether this message was an incoming message or outgoing message. (I suspect that we won't want to derive whether something was in or out.  If we base it on headers, the headers could potentially be forged. -Ducky)</issues>
-    <issues>We probably don't want to have both 'hasBeenRead' and 'status'.</issues>
-    <superKinds itemref="mail:MailMessageMixin"/>
-    <superKinds itemref="content:Note"/>
-    <displayAttribute itemref="mail:subject"/>
-    <classes key="python">osaf.contentmodel.mail.Mail.MailMessage</classes>
-  </Kind>
+        <Attribute itsName="additionalHeaders">
+            <description value="Catch-all for headers not belonging to one of the other attributes" />
+            <cardinality value="list" />
+            <type ref="String" />
+            <initialValue />
+        </Attribute>
+
+        <Attribute itsName="contentType">
+            <description value="Content-Type: header" />
+            <type ref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
+
+        <Attribute itsName="contentLength">
+            <description value="Content-Length: header" />
+            <type ref="String" />
+            <initialValue type="String" value="0" />
+        </Attribute>
+
+        <Attribute itsName="contentTransferEncoding">
+            <description value="Content-Transfer-Encoding: header" />
+            <type ref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
+
+        <Attribute itsName="contentDescription">
+            <description value="Content-Description: header" />
+            <type ref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
+
+        <Attribute itsName="contentId">
+            <description value="Content-Id: header" />
+            <type ref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
+
+        <Attribute itsName="contentDisposition">
+            <description value="Content-Disposition: header" />
+            <type ref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
+
+        <Attribute itsName="mimeType">
+            <type ref="mail:MIMEBase/mimeType/mimeTypeEnum" />
+
+            <Enumeration itsName="mimeTypeEnum">
+                <values value="MESSAGE" />
+                <values value="AUDIO" />
+                <values value="APPLICATION" />
+                <values value="IMAGE" />
+                <values value="VIDEO" />
+                <values value="PLAIN" />
+                <values value="HTML" />
+                <values value="ENRICHED" />
+                <values value="RICHTEXT" />
+                <values value="SGML" />
+                <values value="RFCHEADERS" />
+                <values value="ALTERNATIVE" />
+                <values value="PARALLEL" />
+                <values value="RELATED" />
+                <values value="REPORT" />
+                <values value="PARTIAL" />
+                <values value="DIGEST" />
+                <values value="SIGNED" />
+                <values value="ENCRYPTED" />
+            </Enumeration>
+
+        </Attribute>
+
+        <Attribute itsName="mimeContainer">
+            <type ref="mail:MIMEContainer" />
+            <initialValue ref="None" />
+            <inverseAttribute ref="mail:MIMEContainer/mimeParts" />
+        </Attribute>
+
+    </Kind>
+
+    <Kind itsName="MIMENote">
+        <superKinds ref="mail:MIMEBase" />
+        <superKinds ref="content:Note" />
+        <displayName value="MIME Note" />
+        <description value="MIMEBase and Note, rolled into one" />
+    </Kind>
+
+    <Kind itsName="MailMessage">
+        <superKinds ref="mail:MailMessageMixin" />
+        <superKinds ref="content:Note" />
+        <displayName value="Mail Message" />
+        <description value="MailMessageMixin, and Note, all rolled up into one" />
+    </Kind>
+
+    <Kind itsName="MailMessageMixin">
+        <superKinds ref="mail:MIMEContainer" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.MailMessageMixin" />
+        <displayName value="Mail Message Mixin" />
+        <description value="Used to mixin mail message attributes into a content item" />
+        <issues value="Once we have attributes and a cloud defined for Attachment, we need to include attachments by cloud, and not by value." />
+        <issues value="Really not sure what to do with the 'downloadAccount' attribute and how it should be included in the cloud.  For now it's by value." />
+
+        <Attribute itsName="deliveryExtension">
+            <type ref="mail:MailDeliveryBase" />
+            <initialValue ref="None" />
+            <inverseAttribute ref="mail:MailDeliveryBase/mailMessage" />
+        </Attribute>
+
+        <Attribute itsName="isOutBound">
+            <type ref="Boolean" />
+            <initialValue type="Boolean" value="False" />
+        </Attribute>
+
+        <Attribute itsName="isInBound">
+            <type ref="Boolean" />
+            <initialValue type="Boolean" value="False" />
+        </Attribute>
+
+        <Attribute itsName="parentAccount">
+            <type ref="mail:AccountBase" />
+            <initialValue ref="None" />
+            <inverseAttribute ref="mail:IMAPAccount/downloadedMail" />
+        </Attribute>
+
+        <Attribute itsName="spamScore">
+            <type ref="Float" />
+            <initialValue type="Float" value="0" />
+        </Attribute>
+
+        <Attribute itsName="rfc2822Message">
+            <type ref="Text" />
+            <!--
+            <initialValue type="Text" value="" />
+            -->
+        </Attribute>
+
+        <Attribute itsName="dateSentString">
+            <type ref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
+
+        <Attribute itsName="dateSent">
+            <type ref="DateTime" />
+        </Attribute>
+
+        <Attribute itsName="dateReceived">
+            <type ref="DateTime" />
+        </Attribute>
+
+        <Attribute itsName="messageId">
+            <type ref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
+
+        <Attribute itsName="references">
+            <type ref="String" />
+            <cardinality value="list" />
+            <initialValue />
+        </Attribute>
+
+        <Attribute itsName="received">
+            <type ref="String" />
+            <cardinality value="list" />
+            <initialValue />
+        </Attribute>
+
+        <Attribute itsName="returnPath">
+            <type ref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
+
+        <Attribute itsName="toAddress">
+            <type ref="mail:EmailAddress" />
+            <cardinality value="list" />
+            <initialValue />
+            <inverseAttribute ref="mail:EmailAddress/messagesTo" />
+        </Attribute>
+
+        <Attribute itsName="fromAddress">
+            <type ref="mail:EmailAddress" />
+            <initialValue ref="None"/>
+            <inverseAttribute ref="mail:EmailAddress/messagesFrom" />
+        </Attribute>
+
+        <Attribute itsName="replyToAddress">
+            <type ref="mail:EmailAddress" />
+            <initialValue ref="None"/>
+            <inverseAttribute ref="mail:EmailAddress/messagesReplyTo" />
+        </Attribute>
+
+        <Attribute itsName="bccAddress">
+            <type ref="mail:EmailAddress" />
+            <cardinality value="list" />
+            <initialValue />
+            <inverseAttribute ref="mail:EmailAddress/messagesBcc" />
+        </Attribute>
+
+        <Attribute itsName="ccAddress">
+            <type ref="mail:EmailAddress" />
+            <cardinality value="list" />
+            <initialValue />
+            <inverseAttribute ref="mail:EmailAddress/messagesCc" />
+        </Attribute>
+
+        <Attribute itsName="subject">
+            <type ref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
+
+        <Attribute itsName="chandlerHeaders">
+            <type ref="String" />
+            <cardinality value="list" />
+            <initialValue />
+        </Attribute>
+
+        <Attribute itsName="mimeVersion">
+            <type ref="String" />
+            <initialValue type="String" value="1.0" />
+        </Attribute>
+
+        <!-- redirections -->
+        <Attribute itsName="who">
+            <description value="Redirector to 'toAddress'" />
+            <redirectTo value="toAddress" />
+        </Attribute>
+
+        <Attribute itsName="whoFrom">
+            <description value="Redirector to 'fromAddress'" />
+            <redirectTo value="fromAddress" />
+        </Attribute>
+
+        <Attribute itsName="about">
+            <description value="Redirector to 'subject'" />
+            <redirectTo value="subject" />
+        </Attribute>
+
+        <Attribute itsName="date">
+            <description value="Redirector to 'dateReceived'" />
+            <redirectTo value="dateReceived" />
+        </Attribute>
+
+        <Cloud itsName="Cloud">
+
+          <Endpoint itsName="fromAddress">
+            <attribute value="fromAddress"/>
+            <includePolicy value="byValue"/>
+          </Endpoint>
+          <endpoints ref="mail:MailMessageMixin/Cloud/fromAddress"/>
+
+          <Endpoint itsName="toAddress">
+            <attribute value="toAddress"/>
+            <includePolicy value="byValue"/>
+          </Endpoint>
+          <endpoints ref="mail:MailMessageMixin/Cloud/toAddress"/>
+
+          <Endpoint itsName="ccAddress">
+            <attribute value="ccAddress"/>
+            <includePolicy value="byValue"/>
+          </Endpoint>
+          <endpoints ref="mail:MailMessageMixin/Cloud/ccAddress"/>
+
+          <Endpoint itsName="bccAddress">
+            <attribute value="bccAddress"/>
+            <includePolicy value="byValue"/>
+          </Endpoint>
+          <endpoints ref="mail:MailMessageMixin/Cloud/bccAddress"/>
+
+          <Endpoint itsName="replyToAddress">
+            <attribute value="replyToAddress"/>
+            <includePolicy value="byValue"/>
+          </Endpoint>
+          <endpoints ref="mail:MailMessageMixin/Cloud/replyToAddress"/>
+
+          <Endpoint itsName="mimeParts">
+            <attribute value="mimeParts" />
+            <includePolicy value="byCloud" />
+            <cloudAlias value="default" />
+          </Endpoint>
+          <endpoints ref="mail:MailMessageMixin/Cloud/mimeParts"/>
+
+          <Endpoint itsName="deliveryExtension">
+            <attribute value="deliveryExtension"/>
+            <includePolicy value="byValue"/>
+          </Endpoint>
+          <endpoints ref="mail:MailMessageMixin/Cloud/deliveryExtension"/>
+
+        </Cloud>
+        <clouds alias="default" ref="mail:MailMessageMixin/Cloud"/>
+
+    </Kind>
+
+    <Kind itsName="MIMEBinary">
+        <superKinds ref="mail:MIMENote" />
+        <displayName value="MIME Binary Kind" />
+
+        <Attribute itsName="filename">
+            <displayName value="File name" />
+            <type ref="String" />
+            <initialValue ref="None" />
+        </Attribute>
+
+    </Kind>
+
+    <Kind itsName="MIMEText">
+        <superKinds ref="mail:MIMENote" />
+        <displayName value="MIME Text Kind" />
+
+        <Attribute itsName="charset">
+            <displayName value="Character set" />
+            <type ref="String" />
+            <initialValue ref="None" />
+        </Attribute>
+
+    </Kind>
+
+    <Kind itsName="MIMEContainer">
+        <superKinds ref="mail:MIMEBase" />
+        <displayName value="MIME Container Kind" />
+
+        <Attribute itsName="hasMimeParts">
+            <initialValue type="Boolean" value="False" />
+        </Attribute>
+
+        <Attribute itsName="mimeParts">
+            <displayName value="MIME Parts" />
+            <cardinality value="list" />
+            <type ref="mail:MIMEBase" />
+            <initialValue />
+            <inverseAttribute ref="mail:MIMEBase/mimeContainer" />
+        </Attribute>
+
+    </Kind>
+
+    <Kind itsName="MIMESecurity">
+        <superKinds ref="mail:MIMEBase" />
+        <displayName value="MIME Security Kind" />
+    </Kind>
+
+
+    <Kind itsName="EmailAddress">
+        <superKinds ref="Item" />
+        <displayName value="Email Address Kind" />
+        <classes key="python" value="osaf.contentmodel.mail.Mail.EmailAddress" />
+        <examples value="abe@osafoundation.org" />
+        <description value="An item that represents a simple email address, plus all the info we might want to associate with it, like lists of message to and from this address." />
+        <issues value="Someday we might want to have other attributes.  One example might be an 'is operational' flag that tells whether this address is still in service, or whether mail to this has been bouncing lately. Another example might be a 'superceded by' attribute, which would point to another Email Address item." />
+        <issues value="Depending on how we end up using the 'emailAddress' attribute, we might want to break it into two attributes, one for the 'Abe Lincoln' part, and one for the 'abe@osafoundation.org' part. Alternatively, we might want to use one of Andi's compound types, with two fields." />
+        <displayAttribute ref="mail:EmailAddress/emailAddress"/>
+
+        <Attribute itsName="emailAddress">
+            <displayName value="Email Address" />
+            <examples>"abe@osafoundation.org"</examples>
+            <examples>"Abe Lincoln {abe@osafoundation.org}" (except with angle brackets instead of '{' and '}')</examples>
+            <description value="An RFC 822 email address." />
+            <type ref="String" />
+            <initialValue ref="None" />
+        </Attribute>
+
+        <Attribute itsName="vcardType">
+            <displayName value="vCard type" />
+            <description>Typical vCard types are values like 'internet', 'x400', and 'pref'. Chandler will use this attribute when doing import/export of Contact records in vCard format.</description>
+            <type ref="String"/>
+            <initialValue type="String" value="" />
+        </Attribute>
+
+        <Attribute itsName="accounts">
+            <displayName value="Used as Return Address by Email Account" />
+            <description value="A list of Email Accounts that use this Email Address as the reply address for mail sent from the account." />
+            <cardinality value="list" />
+            <type ref="mail:SMTPAccount" />
+            <initialValue />
+            <inverseAttribute ref="mail:SMTPAccount/replyToAddress" />
+        </Attribute>
+
+        <Attribute itsName="messagesBcc">
+            <displayName value="Messages Bcc" />
+            <description value="A list of messages with their Bcc: header referring to this address" />
+            <cardinality value="list" />
+            <type ref="mail:MailMessageMixin" />
+            <inverseAttribute ref="mail:MailMessageMixin/bccAddress" />
+            <initialValue />
+        </Attribute>
+
+        <Attribute itsName="messagesCc">
+            <displayName value="Messages cc" />
+            <description value="A list of messages with their cc: header referring to this address" />
+            <cardinality value="list" />
+            <type ref="mail:MailMessageMixin" />
+            <inverseAttribute ref="mail:MailMessageMixin/ccAddress" />
+            <initialValue />
+        </Attribute>
+
+        <Attribute itsName="messagesFrom">
+            <displayName value="Messages From" />
+            <description value="A list of messages with their From: header referring to this address" />
+            <cardinality value="list" />
+            <type ref="mail:MailMessageMixin" />
+            <inverseAttribute ref="mail:MailMessageMixin/fromAddress" />
+            <initialValue />
+        </Attribute>
+
+        <Attribute itsName="messagesReplyTo">
+            <displayName value="Messages Reply To" />
+            <description value="A list of messages with their Reply-To: header referring to this address" />
+            <cardinality value="list" />
+            <type ref="mail:MailMessageMixin" />
+            <inverseAttribute ref="mail:MailMessageMixin/replyToAddress" />
+            <initialValue />
+        </Attribute>
+
+        <Attribute itsName="messagesTo">
+            <displayName value="Messages To" />
+            <description value="A list of messages with their To: header referring to this address" />
+            <cardinality value="list" />
+            <type ref="mail:MailMessageMixin" />
+            <inverseAttribute ref="mail:MailMessageMixin/toAddress" />
+            <initialValue />
+        </Attribute>
+
+
+        <!-- Additional external attributes -->
+
+        <attributes ref="contact:onceBelongedTo"/>
+        <attributes ref="contact:emailAddressOwner"/>
+        <attributes ref="calendar:participatingIn"/>
+        <attributes ref="tasks:requestedTasks"/>
+        <attributes ref="tasks:taskRequests"/>
+
+    </Kind>
 
 </Parcel>

@@ -217,4 +217,5 @@ This is the body"""
         self.__mailMessage = None
 
 if __name__ == "__main__":
-   unittest.main()
+   # unittest.main()
+   pass
