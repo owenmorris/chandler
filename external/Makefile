@@ -1,5 +1,5 @@
 
-VERSION=0.3-3
+VERSION=0.3-4
 
 include Makefile.inc
 
@@ -21,7 +21,7 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
         python/Python-2.3.3.tgz \
         python/bzip2-1.0.2.tar.gz \
         python/zlib-1.2.1.tar.gz \
-        epydoc/epydoc-2.0.tar.gz \
+        epydoc/epydoc-2.1.tar.gz \
         persistence/xerces-c/xerces-c-src2_4_0.tar.gz \
         persistence/pathan/libpathan-1.2-2-src.tar.gz \
         persistence/dbxml/dbxml-1.2.1.tar.gz \

@@ -1,5 +1,5 @@
 
-VERSION=2.0
+VERSION=2.1
 EPYDOC=$(BUILD_ROOT)/epydoc
 SRC=$(EPYDOC)/epydoc-$(VERSION)
 
