@@ -33,7 +33,6 @@ dest=
 Chandler.py
 version.py
 LICENSE.txt
-Chandler-project.wpr
 
 # Grab crypto stuff
 glob=*.py,*.pem
@@ -66,6 +65,7 @@ chandler.exe
 src=chandler/release/bin
 dest=release/bin
 chandler.exe
+chandler.exe.manifest
 
 # Grab the overall README
 src=chandler/distrib
