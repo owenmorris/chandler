@@ -33,8 +33,6 @@
 	#include "wx/settings.h"
 	#include "wx/brush.h"
 	#include "wx/listbox.h"
-//	#include "wx/stattext.h"
-//	#include "wx/textctrl.h"
 #endif // WX_PRECOMP
 
 //#if wxUSE_COLUMNHEADER
@@ -180,10 +178,11 @@ bool wxColumnHeader::Create(
 wxString		localName;
 bool			bResultV;
 
+	// NB: the CreateControl call crashed on MacOS...
 #if defined(__WXMSW__)
- 	localName = _T(WC_HEADER);
+	localName = _T(WC_HEADER);
 	bResultV =
-		wxControl::CreateControl(
+		CreateControl(
 			parent, id, pos, size,
 			style, wxDefaultValidator, localName );
 
@@ -192,7 +191,7 @@ bool			bResultV;
 	WXDWORD		msStyle, exstyle;
 
 		msStyle = MSWGetStyle( style, &exstyle );
-		bResultV = MSWCreateControl( localName, msStyle, pos, size, _T(""), exstyle );
+		bResultV = MSWCreateControl( localName, msStyle, pos, size, wxEmptyString, exstyle );
 	}
 
 #else
@@ -223,6 +222,7 @@ bool			bResultV;
 	wxControl::DoGetSize( &(m_NativeBoundsR.width), &(m_NativeBoundsR.height) );
 
 #if 0
+	// for debugging
 	if (m_NativeBoundsR.x < 0)
 		m_NativeBoundsR.x = 0;
 	if (m_NativeBoundsR.y < 0)
@@ -1085,8 +1085,8 @@ void wxColumnHeaderEvent::Init( void )
 }
 
 wxColumnHeaderEvent::wxColumnHeaderEvent(
-	wxColumnHeader *col,
-	wxEventType type )
+	wxColumnHeader	*col,
+	wxEventType		type )
 	:
 	wxCommandEvent( type, col->GetId() )
 {
