@@ -1,14 +1,14 @@
-# XXX The compiler you are using
+
 CC=	 	gcc
 
 # Compiler flags
 ifeq ($(DEBUG),1)
     CFLAGS=		-g -DDEBUGMODE=1
-    INCLUDES=	-I../../../../debug/include/python2.3
-    LIBPYTHON=	../../../../debug/lib/python2.3/config/libpython2.3.a
+    INCLUDES=	-I$(CHANDLER_ROOT)/debug/include/python2.3
+    LIBPYTHON=	$(CHANDLER_ROOT)/debug/lib/python2.3/config/libpython2.3.a
 else
-    INCLUDES=	-I../../../../release/include/python2.3
-    LIBPYTHON=	../../../../release/lib/python2.3/config/libpython2.3.a
+    INCLUDES=	-I$(CHANDLER_ROOT)/release/include/python2.3
+    LIBPYTHON=	$(CHANDLER_ROOT)/release/lib/python2.3/config/libpython2.3.a
     CFLAGS=		-O
 endif
 CPPFLAGS=	$(INCLUDES)

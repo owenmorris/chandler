@@ -24,23 +24,32 @@ def build(buildenv):
     # Build the linux launcher program
     if buildenv['os'] == 'posix':
         os.chdir("distrib/linux/launcher")
+        version = buildenv['version']
+        buildDir = "build_"+version
+        if not os.path.exists(buildDir):
+            os.mkdir(buildDir)
+            if not os.path.exists(os.path.join(buildDir, "Makefile")):
+                os.symlink("../Makefile", os.path.join(buildDir, "Makefile"))
+        os.chdir(buildDir)
         if buildenv['version'] == 'release':
             hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['make']],
+             [buildenv['make'], 
+             "CHANDLER_ROOT="+buildenv['root'], 
+             "VPATH=.." ],
              "Making launcher programs")
-            hardhatlib.copyFile("chandler_bin", buildenv['root'] + \
-             os.sep + "release")
-            hardhatlib.copyFile("chandler", buildenv['root'] + \
-             os.sep + "release")
-        if buildenv['version'] == 'debug':
+        else:
             hardhatlib.executeCommand( buildenv, info['name'],
-             [buildenv['make'], "DEBUG=1"],
+             [buildenv['make'], 
+             "DEBUG=1", 
+             "CHANDLER_ROOT="+buildenv['root'], 
+             "VPATH=.." ],
              "Making launcher programs")
-            hardhatlib.copyFile("chandler_bin", buildenv['root'] + \
-             os.sep + "debug")
-            hardhatlib.copyFile("chandler", buildenv['root'] + \
-             os.sep + "debug")
-        os.chdir("../../..")
+        hardhatlib.copyFile("chandler_bin", buildenv['root'] + \
+         os.sep + version)
+        hardhatlib.copyFile("chandler", buildenv['root'] + \
+         os.sep + version)
+
+        os.chdir("../../../..")
 
 
     # Build the windows launcher program
