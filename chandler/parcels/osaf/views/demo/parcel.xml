@@ -10,6 +10,7 @@
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:doc="http://osafoundation.org/parcels/osaf/views/demo"
              xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
+             xmlns:contentView="http://osafoundation.org/parcels/osaf/views/content"
              xmlns:main="http://osafoundation.org/parcels/osaf/views/main">
 
   <core:version>0.3</core:version>
@@ -52,6 +53,12 @@
     <choice>HTML</choice>
   </ChoiceEvent>
 
+  <ChoiceEvent itsName="ChooseAttributeEditorsTab">
+    <destinationBlockReference itemref="doc:Tabs"/>
+    <methodName>onChoiceEvent</methodName>
+    <choice>AttributeEditors</choice>
+  </ChoiceEvent>
+
   <BlockEvent itsName="ReloadText">
     <blockName>ReloadText</blockName>
     <destinationBlockReference itemref="doc:Tabs"/>
@@ -84,6 +91,7 @@
     <childrenBlocks itemref="doc:ButtonsMenuItem"/>
     <childrenBlocks itemref="doc:ControlsMenuItem"/>
     <childrenBlocks itemref="doc:HTMLMenuItem"/>
+    <childrenBlocks itemref="doc:AttributeEditorsMenuItem"/>
   </Menu>
 
   <!--
@@ -119,6 +127,14 @@
     <title>HTML Tab</title>
     <menuItemKind>Radio</menuItemKind>
     <event itemref="doc:ChooseHTMLTab"/>
+    <helpString></helpString>
+  </MenuItem>
+
+  <MenuItem itsName="AttributeEditorsMenuItem">
+    <blockName>AttributeEditorsMenuItem</blockName>
+    <title>Atteibute Editors Tab</title>
+    <menuItemKind>Radio</menuItemKind>
+    <event itemref="doc:ChooseAttributeEditorsTab"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -394,6 +410,47 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <minimumSize>200,100</minimumSize>
   </BoxContainer>
 
+  <!--
+  Attribute Editor Example content, organized top-down
+  -->
+  <BoxContainer itsName="AttributeEditorsTab">
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:AttributeEditorsSummaryTable"/>
+    <!-- Attributes -->
+    <orientationEnum>Vertical</orientationEnum>
+    <displayName>Attribute Editors</displayName>
+    <size>200,100</size>
+    <minimumSize>200,100</minimumSize>
+  </BoxContainer>
+
+  <!-- Attribute Editors Table -->
+  <Table itsName="AttributeEditorsSummaryTable">
+    <contents itemref="contentView:allItemCollection"/>
+
+    <columnHeadings></columnHeadings>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+    <columnHeadings>location</columnHeadings>
+    <columnHeadings>duration</columnHeadings>
+
+    <columnData>itsKind</columnData>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
+    <columnData>location</columnData>
+    <columnData>duration</columnData>
+    
+    <columnWidths>20</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+    <columnWidths>80</columnWidths>
+  </Table>
+
+
+  <!-- BLOCK DEMO TABS -->
   <TabbedContainer itsName="Tabs"
                    itemClass="osaf.views.demo.Demo.DemoTabs">
     <!-- Layout children -->
@@ -401,6 +458,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <childrenBlocks itemref="doc:ButtonsTab"/>
     <childrenBlocks itemref="doc:ControlsTab"/>
     <childrenBlocks itemref="doc:HTMLTab"/>
+    <childrenBlocks itemref="doc:AttributeEditorsTab"/>
 
     <!-- Attributes -->
     <tabPosEnum>Top</tabPosEnum>
@@ -409,6 +467,7 @@ Click through the tabs to view the kinds of blocks that Chandler supports.
     <minimumSize>400,100</minimumSize>
   </TabbedContainer>
   
+  <!-- BLOCK DEMO MAIN VIEW -->
   <BoxContainer itsName="BlockDemoView">
     <displayName>Block Demo</displayName>
 

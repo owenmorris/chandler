@@ -347,9 +347,6 @@ _wxFlagMappings = {
 }
 
 class wxRectangularChild (ShownSynchronizer, wx.Panel):
-    def __init__(self, *arguments, **keywords):
-        super (wxRectangularChild, self).__init__ (*arguments, **keywords)
-
     def CalculateWXBorder(self, block):
         border = 0
         spacerRequired = False

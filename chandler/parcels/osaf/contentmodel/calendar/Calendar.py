@@ -3,7 +3,7 @@
 
 __revision__  = "$Revision$"
 __date__      = "$Date$"
-__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
@@ -89,6 +89,20 @@ class CalendarEventMixin(ContentModel.ChandlerItem):
 
         @@@ End block comment """
 
+    """
+    These "getAny" methods are used for Mixin attribute initialization.
+    After stamping, we'd like to initialize attributes, like participants,
+    with the "who" value defined by the rest of the classes in the item.
+    But we can't just access the "who" attribute, because we've already
+    stamped the item with our mixin and have applied our "who" attribute
+    definition.  So getAnyXXX gets any significant defined value in any
+    of the "who" attributes so we can initialize our own attribute
+    appropriately. See initMixin above for an example usage.
+
+    It's unclear if we really need this mechanism in the long run, because
+    we may end up with one "to" field instead of separate "participants",
+    "requestees", etc.
+    """
     def getAnyWho (self):
         """
         Get any non-empty definition for the "who" attribute.

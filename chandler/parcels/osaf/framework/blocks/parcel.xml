@@ -132,12 +132,6 @@
   <Kind itsName="Style">
     <classes key="python">osaf.framework.blocks.Styles.Style</classes>
     <superKinds itemref="Item"/>
-    
-    <Attribute itsName="usedInBlocks">
-      <type itemref="docSchema:Block"/>
-      <cardinality>list</cardinality>
-      <inverseAttribute itemref="docSchema:Block/styles"/>
-    </Attribute>
   </Kind>
 
   <Kind itsName="CharacterStyle">
@@ -301,7 +295,7 @@
       <inverseAttribute itemref="contentModel:ChandlerItem/contentsOwner"/>
     </Attribute>
 
-    <Attribute itsName="whichAttribute">
+    <Attribute itsName="viewAttribute">
       <type itemref="String"/>
     </Attribute>
 
@@ -316,13 +310,6 @@
       <type itemref="docSchema:Block"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="docSchema:Block/parentBlock"/>
-      <initialValue />
-    </Attribute>
-
-    <Attribute itsName="styles">
-      <type itemref="docSchema:Style"/>
-      <cardinality>list</cardinality>
-      <inverseAttribute itemref="docSchema:Style/usedInBlocks"/>
       <initialValue />
     </Attribute>
 
@@ -768,6 +755,7 @@
 
     <Attribute itsName="textStyleEnum">
       <type itemref="docSchema:EditText/textStyleEnumType"/>
+      <initialValue type="docSchema:EditText/textStyleEnumType" value="PlainText"/>
     </Attribute>
 
     <Attribute itsName="readOnly">
@@ -1220,48 +1208,112 @@
     </Attribute>
   </Kind>
 
-  <!-- View Style Kind -->
-  <Kind itsName="ViewStyleKind">
-    <displayName value="View Style"/>
-    <description>Name/Value pairs that describe the style of view to present</description>
-    <description> when rendering or editing a value in this context.</description>
-    
-    <Attribute itsName="styleHints">
-      <type itemref="String"/>
-      <cardinality>dict</cardinality>
+  <!-- Presentation Style Kind, used by Attribute Editor blocks -->
+  <Kind itsName="PresentationStyle">
+    <displayName itsValue="Presentation Style"/>
+
+    <Enumeration itsName="LabelEnum">
+      <values>OnLeft</values>
+      <values>InPlace</values>
+    </Enumeration>
+
+    <Enumeration itsName="FormEnum">
+      <values>Text</values>
+      <values>Graphic</values>
+    </Enumeration>
+
+    <Attribute itsName="label">
+      <description>If you want the block to show a label, tell the AE where to put it</description>
+      <type itemref="docSchema:PresentationStyle/LabelEnum"/>
     </Attribute>
+    <Attribute itsName="labelWidth">
+      <description>OnLeft label needs a width to use for the label portion</description>
+      <type itemref="Integer"/>
+      <initialValue type="Integer" value="0"/>
+    </Attribute>
+    <Attribute itsName="labelBorder">
+      <description>Border to use between the label and left or right edge</description>
+      <type itemref="Integer"/>
+      <initialValue type="Integer" value="0"/>
+    </Attribute>
+    <Attribute itsName="labelTextAlignmentEnum">
+      <description>Text alignment enum for the label</description>
+      <type itemref="docSchema:textAlignmentEnumType"/>
+      <initialValue type="docSchema:textAlignmentEnumType" value="Right"/>
+    </Attribute>
+    <Attribute itsName="labelDisplayName">
+      <description>Localized display name to use for the label</description>
+      <type itemref="String"/>
+    </Attribute>
+    <Attribute itsName="form">
+      <description>Overall selector for text form versus graphic form</description>
+      <issues>Currently unused</issues>
+      <type itemref="docSchema:PresentationStyle/FormEnum"/>
+    </Attribute>
+    
+    <Cloud itsName="DefaultCloud">
+      <Endpoint itsName="label">
+          <attribute value="label"/>
+          <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/label"/>
+      <Endpoint itsName="labelWidth">
+          <attribute value="labelWidth"/>
+          <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/labelWidth"/>
+      <Endpoint itsName="labelBorder">
+          <attribute value="labelBorder"/>
+          <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/labelBorder"/>
+      <Endpoint itsName="labelTextAlignmentEnum">
+          <attribute value="labelTextAlignmentEnum"/>
+          <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/labelTextAlignmentEnum"/>
+      <Endpoint itsName="labelDisplayName">
+          <attribute value="labelDisplayName"/>
+          <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/labelDisplayName"/>
+      <Endpoint itsName="form">
+          <attribute value="form"/>
+          <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="docSchema:PresentationStyle/DefaultCloud/form"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:PresentationStyle/DefaultCloud"/>
+
   </Kind>
 
   <!-- Attribute Editor Block Kind -->
   <Kind itsName="AEBlock">
     <displayName value="Attribute Editor Block Kind"/>
     <description>Block that instantiates an appropriate Attribute Editor.</description>
-    <superKinds itemref="docSchema:BoxContainer"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
     <classes key="python">osaf.framework.blocks.ControlBlocks.AEBlock</classes>
     
-    <Attribute itsName="viewStyle">
-      <type itemref="docSchema:ViewStyleKind"/>
+    <Attribute itsName="presentationStyle">
+      <type itemref="docSchema:PresentationStyle"/>
     </Attribute>
 
-    <Attribute itsName="viewAttribute">
-      <type itemref="String"/>
-    </Attribute>
-
-    <Attribute itsName="viewItem">
-      <type itemref="Item"/>
-    </Attribute>
-
-    <!-- @@@DLD figure out a way to get attributes like these into the viewStyle -->
-    <!--    otherwise we'll need to keep adding attributes to AEBlock for each new AE. -->
-
-    <!-- attributes of Static Text -->
-    <attributes itemref="docSchema:textAlignmentEnum"/>
     <attributes itemref="docSchema:characterStyle"/>
-
-    <!-- attributes of Edit Text -->
-    <attributes itemref="docSchema:EditText/lineStyleEnum"/>
-    <attributes itemref="docSchema:EditText/textStyleEnum"/>
     <attributes itemref="docSchema:EditText/readOnly"/>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="characterStyle">
+            <attribute value="characterStyle"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:AEBlock/DefaultCloud/characterStyle"/>
+        <Endpoint itsName="presentationStyle">
+            <attribute value="presentationStyle"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:AEBlock/DefaultCloud/presentationStyle"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:AEBlock/DefaultCloud"/>
 
   </Kind>
   

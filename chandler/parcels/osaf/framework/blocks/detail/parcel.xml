@@ -252,8 +252,7 @@
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
 
-  <StaticText itsName="FromString"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticToFromText">
+  <StaticText itsName="FromString">
     <blockName value="FromString"/>
     <title>from</title>
     <characterStyle itemref="doc:LabelStyle"/>
@@ -268,7 +267,6 @@
     <blockName value="FromEditField"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>True</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>100, 24</minimumSize>
@@ -300,7 +298,6 @@
     <blockName value="ContactFullNameEditField"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>300, 24</minimumSize>
@@ -317,8 +314,7 @@
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
-  <StaticText itsName="ToString"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticToFromText">
+  <StaticText itsName="ToString">
     <blockName value="ToString"/>
     <title>to</title>
     <characterStyle itemref="doc:LabelStyle"/>
@@ -333,7 +329,6 @@
     <blockName value="ToMailEditField"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>100, 24</minimumSize>
@@ -350,8 +345,7 @@
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
-  <StaticText itsName="ToString2"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticToFromText">
+  <StaticText itsName="ToString2">
     <blockName value="ToString2"/>
     <title>to</title>
     <characterStyle itemref="doc:LabelStyle"/>
@@ -366,7 +360,6 @@
     <blockName value="ToCollectionEditField"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>100, 24</minimumSize>
@@ -406,6 +399,23 @@
     <minimumSize>300, 24</minimumSize>
   </EditText>
 
+  <PresentationStyle itsName="HeadlinePresentation">
+    <label>InPlace</label>
+  </PresentationStyle>
+
+  <!-- Headline area done as an AE Block -->
+  <AEBlock itsName="HeadlineBlock">
+    <blockName value="HeadlineBlock"/>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <position>0.5</position>
+    <readOnly>False</readOnly>
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>300, 24</minimumSize>
+    <border>0, 5, 0, 0</border>
+    <presentationStyle itemref="doc:HeadlinePresentation"/>
+    <viewAttribute value="about"/>
+  </AEBlock>
+
   <ContentItemDetail itsName="EmailAddressArea"
                      itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
     <blockName value="EmailAddressArea"/>
@@ -434,7 +444,6 @@
     <blockName value="EditEmailAddress"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>300, 24</minimumSize>
@@ -492,8 +501,7 @@
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
-  <StaticText itsName="StaticCalendarStartTime"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticTimeAttribute">
+  <StaticText itsName="StaticCalendarStartTime">
     <blockName value="StaticCalendarStartTime"/>
     <title>start time</title>
     <characterStyle itemref="doc:LabelStyle"/>
@@ -508,57 +516,30 @@
     <blockName value="EditCalendarStartTime"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>300, 24</minimumSize>
   </EditText>
 
-  <ContentItemDetail itsName="CalendarDuration"
-                     itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
-    <blockName value="CalendarDuration"/>
-    <childrenBlocks itemref="doc:StaticCalendarDuration"/>
-    <childrenBlocks itemref="doc:AECalendarDuration"/>
-    <!-- Attributes -->
-    <minimumSize>300, 24</minimumSize>
-    <stretchFactor>0.0</stretchFactor>
-  </ContentItemDetail>
- 
-  <StaticText itsName="StaticCalendarDuration"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticDurationAttribute">
-    <blockName value="StaticCalendarDuration"/>
-    <title>duration</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
-  </StaticText>
-  
-  <EditText itsName="EditCalendarDuration"
-            itemClass="osaf.framework.blocks.detail.Detail.EditDurationAttribute">
-    <blockName value="EditCalendarDuration"/>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
-    <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>300, 24</minimumSize>
-  </EditText>
+  <PresentationStyle itsName="DurationPresentation">
+    <label>OnLeft</label>
+    <labelWidth>70</labelWidth>
+    <labelBorder>5</labelBorder>
+    <labelDisplayName>Duration</labelDisplayName>
+  </PresentationStyle>
 
-  <AEBlock itsName="AECalendarDuration"
-           itemClass="osaf.framework.blocks.detail.Detail.AECalendarDuration">
+  <AEBlock itsName="CalendarDuration"
+           itemClass="osaf.framework.blocks.detail.Detail.AEBlockForCalendar">
     <blockName value="AECalendarDuration"/>
     <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Left</textAlignmentEnum>    
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
+    <border>0, 5, 0, 0</border>
+    <presentationStyle itemref="doc:DurationPresentation"/>
     <viewAttribute value="duration"/>
   </AEBlock>
-  
+
   <ContentItemDetail itsName="CalendarDetails">
     <blockName value="CalendarDetails"/>
     <childrenBlocks itemref="doc:CalendarLocation"/>
@@ -571,37 +552,21 @@
     <position>0.8</position>
   </ContentItemDetail>
   
-  <ContentItemDetail itsName="CalendarLocation"
-                       itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
-    <blockName value="CalendarLocation"/>
-    <childrenBlocks itemref="doc:StaticCalendarLocation"/>
-    <childrenBlocks itemref="doc:EditCalendarLocation"/>
-    <!-- Attributes -->
-    <minimumSize>300, 24</minimumSize>
-    <stretchFactor>0.0</stretchFactor>
-  </ContentItemDetail>
- 
-  <StaticText itsName="StaticCalendarLocation"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticLocationAttribute">
-    <blockName value="StaticCalendarLocation"/>
-    <title>location</title>
+  <PresentationStyle itsName="LocationPresentation">
+    <label>InPlace</label>
+  </PresentationStyle>
+
+  <AEBlock itsName="CalendarLocation"
+           itemClass="osaf.framework.blocks.detail.Detail.AEBlockForCalendar">
+    <blockName value="AECalendarLocation"/>
     <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
-  </StaticText>
-  
-  <EditText itsName="EditCalendarLocation"
-            itemClass="osaf.framework.blocks.detail.Detail.EditLocationAttribute">
-    <blockName value="EditCalendarLocation"/>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
-  </EditText>
+    <border>0, 5, 0, 0</border>
+    <presentationStyle itemref="doc:LocationPresentation"/>
+    <viewAttribute value="location"/>
+  </AEBlock>
 
   <ContentItemDetail itsName="CalendarAllDayAndReminder"
                        itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">

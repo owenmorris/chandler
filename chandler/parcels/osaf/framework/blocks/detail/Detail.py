@@ -325,7 +325,8 @@ class DetailSynchronizer(object):
 
     def selectedItem (self):
         # return the selected item
-        return self.detailRoot().selectedItem()
+        rootBlock = self.detailRoot()
+        return rootBlock.selectedItem()
 
     def resynchronizeDetailView (self):
         # resynchronize the whole detail view.
@@ -395,8 +396,8 @@ class DetailSynchronizer(object):
 
 class StaticTextLabel (DetailSynchronizer, ControlBlocks.StaticText):
     def staticTextLabelValue (self, item):
-        """ Override to provide the value of the static text label """
-        raise NotImplementedError, "%s.staticTextLabelValue()" % (type(self))
+        theLabel = self.title
+        return theLabel
 
     def synchronizeLabel (self, value):
         label = self.widget.GetLabel ()
@@ -468,8 +469,6 @@ class StaticRedirectAttribute (StaticTextLabel):
         # lookup better names for display of some attributes
         if item.hasAttributeAspect (redirectAttr, 'displayName'):
             redirectAttr = item.getAttributeAspect (redirectAttr, 'displayName')
-        if len (redirectAttr) > 0:
-            redirectAttr = redirectAttr + _(' ')
         return redirectAttr
 
 class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
@@ -498,11 +497,6 @@ def ItemCollectionOrMailMessageMixin (item):
     isCollection = isinstance (item, ItemCollection.ItemCollection)
     isOneOrOther = isCollection or item.isItemOf (mailKind)
     return isOneOrOther
-
-class StaticToFromText (StaticTextLabel):
-    def staticTextLabelValue (self, item):
-        label = self.title + _(' ')
-        return label
 
 class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     """
@@ -631,8 +625,11 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     def saveTextValue (self, validate=False):
         # save the user's edits into item's attibute
         item = self.selectedItem()
-        widget = self.widget
-        if item is not None and widget:
+        try:
+            widget = self.widget
+        except AttributeError:
+            widget = None
+        if item is not None and widget is not None:
             self.saveAttributeFromWidget(item, widget, validate=validate)
         
     def loadTextValue (self, item):
@@ -865,7 +862,7 @@ class StaticEmailAddressAttribute (StaticRedirectAttribute):
     Customized for EmailAddresses
     """
     def staticTextLabelValue (self, item):
-        label = self.title + _(' ')
+        label = self.title
         return label
 
 class EditEmailAddressAttribute (EditRedirectAttribute):
@@ -912,12 +909,6 @@ class CalendarEventBlock (DetailSynchronizer, LabeledTextAttributeBlock):
         relayoutParent = super(CalendarEventBlock, self).synchronizeItemDetail(item)
         self.synchronizeWidget()
         return relayoutParent
-
-class StaticTimeAttribute (StaticTextLabel):
-    def staticTextLabelValue (self, item):
-        timeLabel = self.title + _(' ')
-        return timeLabel
-
 
 class EditTimeAttribute (EditRedirectAttribute):
     """
@@ -979,15 +970,7 @@ class EditTimeAttribute (EditRedirectAttribute):
             value = dateTime.strftime (self.timeFormat)
         widget.SetValue (value)
 
-class StaticDurationAttribute (StaticTextLabel):
-    """
-      Static Text that displays the name of the selected item's Attribute
-    """
-    def staticTextLabelValue (self, item):
-        durationLabel = self.title + _(' ')
-        return durationLabel
-
-class AECalendarDuration (DetailSynchronizer, ControlBlocks.AEBlock):
+class AEBlockForCalendar (DetailSynchronizer, ControlBlocks.AEBlock):
     """
     Example usage of an AEBlock, used for the duration edit field.
     Only shows itself for a Calendar Event.
@@ -1009,12 +992,12 @@ class AECalendarDuration (DetailSynchronizer, ControlBlocks.AEBlock):
             self.isShown = False
         else:
             self.isShown = self.shouldShow (item)
-        super (AECalendarDuration, self).synchronizeWidget ()
+        super (AEBlockForCalendar, self).synchronizeWidget ()
 
     def synchronizeItemDetail (self, item):
         wasShown = self.isShown
         self.synchronizeWidget()
-        super(AECalendarDuration, self).synchronizeItemDetail(item)
+        super(AEBlockForCalendar, self).synchronizeItemDetail(item)
         relayoutParent = self.isShown != wasShown
         return relayoutParent
 
@@ -1090,55 +1073,6 @@ class EditDurationAttribute (EditRedirectAttribute):
         else:
             # show that we didn't understand the input
             return originalString + '?'
-
-class StaticLocationAttribute (StaticTextLabel):
-    """
-      Static Text that displays the name of the selected item's Attribute
-    """
-    def shouldShow (self, item):
-        # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
-        return item.isItemOf (calendarMixinKind)
-
-    def staticTextLabelValue (self, item):
-        durationLabel = self.title + _(' ')
-        return durationLabel
-
-class EditLocationAttribute (EditRedirectAttribute):
-    """
-    An edit field for Location Values
-    """
-    def shouldShow (self, item):
-        # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
-        return item.isItemOf (calendarMixinKind)
-
-    def saveAttributeFromWidget(self, item, widget, validate):
-        """"
-          Update the attribute from the user edited string in the widget.
-        """
-        if validate:
-            locationName = widget.GetValue()
-            if locationName:
-                item.location = Calendar.Location.getLocation(locationName)
-            else:
-                item.location = None;
-    
-
-    def loadAttributeIntoWidget(self, item, widget):
-        """"
-          Update the widget display based on the value in the attribute.
-        """
-        try:
-            theLocation = item.location
-        except AttributeError:
-            value = ''
-        else:
-            if theLocation is not None:
-                value = str(theLocation)
-            else:
-                value = ''
-        widget.SetValue (value)
 
 class AllDayCheckBox (DetailSynchronizer, ControlBlocks.CheckBox):
     """
