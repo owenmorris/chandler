@@ -337,6 +337,8 @@ class wxApplication (wxApp):
                                           'model', 'schema',
                                           'CoreSchema.xml')
             loader.load(coreSchemaPath)
+
+        self.repository.commit()
                                 
         """ Load the parcels """
         self.LoadParcelsInDirectory(parcelDir)
