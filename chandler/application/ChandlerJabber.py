@@ -177,7 +177,11 @@ class JabberClient:
 
     # get the name associated with a jabberID and cache it
     def GetNameFromID(self, jabberID):
-        key = str(jabberID)
+        if isinstance(jabberID, str):
+            key = jabberID
+        else:
+            key = str(jabberID.getStripped())
+        
         if self.nameMap.has_key(key):
             return self.nameMap[key]
  
