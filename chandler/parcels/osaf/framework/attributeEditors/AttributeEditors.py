@@ -234,6 +234,11 @@ class DateTimeAttributeEditor (StringAttributeEditor):
                 value = itemDate.Format('%b %d, %Y')
         return value
 
+    def ReadOnly (self, (item, attribute)):
+        # @@@MOR Temporarily disable editing of DateTime.  This AE needs some
+        # more robust parsing of the date/time info the user enters.
+        return True
+
 class RepositoryAttributeEditor (StringAttributeEditor):
     """ Uses Repository Type conversion to provide String representation. """
     def ReadOnly (self, (item, attribute)):
