@@ -296,6 +296,13 @@ class wxApplication (wxApp):
         #     parcel loading framework.
         loader = DomainSchemaLoader(self.repository)
 
+        # Load the ZaoBao data model
+        try:
+            from OSAF.zaobao.model import RSSData
+            RSSData.OnInit(loader)
+        except ImportError,e: 
+            pass
+        
         # Load the contacts parcel
         if not self.repository.find('//Contacts'):
             contactsPath = os.path.join(self.chandlerDirectory, 'parcels',
