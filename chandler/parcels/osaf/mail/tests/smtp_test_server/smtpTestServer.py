@@ -105,7 +105,6 @@ class SMTPTestServer(basic.LineReceiver):
         self.sendLine(CONNECTION_MADE)
 
     def lineReceived(self, line):
-        print "got line"
         """Error Conditions"""
         if TIMEOUT_RESPONSE:
             """Do not respond to clients request"""
