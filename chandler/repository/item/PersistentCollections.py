@@ -67,7 +67,9 @@ class PersistentCollection(object):
 
     def _prepareValue(self, value):
 
-        if isinstance(value, list):
+        if isinstance(value, PersistentCollection):
+            value = value._copy(self._item, self._attribute, self._companion)
+        elif isinstance(value, list):
             value = PersistentList(self._item, self._attribute,
                                    self._companion, *value)
         elif isinstance(value, dict):

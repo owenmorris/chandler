@@ -4,7 +4,6 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from repository.item.Access import Permission, AccessDeniedError
 from repository.item.PersistentCollections import PersistentCollection
 
 
@@ -15,17 +14,9 @@ class Values(dict):
         super(Values, self).__init__()
         self._setItem(item)
 
-    def __getitem__(self, key):
+    def _getItem(self):
 
-        if self._getAccess(Permission.READ):
-            return super(Values, self).__getitem__(key)
-
-        raise AccessDeniedError, "%s.%s: 0x%x" %(self._item.itsPath, key,
-                                                 Permission.READ)
-
-    def _getAccess(self, permission):
-
-        return True
+        return self._item
 
     def _setItem(self, item):
 
@@ -44,33 +35,19 @@ class Values(dict):
 
         return values
 
-    def _getItem(self):
-
-        return self._item
-
     def __setitem__(self, key, value):
 
-        if self._getAccess(Permission.WRITE):
-            if self._item is not None:
-                self._item.setDirty(attribute=key)
+        if self._item is not None:
+            self._item.setDirty(attribute=key)
 
-            super(Values, self).__setitem__(key, value)
-
-        else:
-            raise AccessDeniedError, "%s.%s: 0x%x" %(self._item.itsPath, key,
-                                                     Permission.WRITE)
+        return super(Values, self).__setitem__(key, value)
 
     def __delitem__(self, key):
 
-        if self._getAccess(Permission.REMOVE):
-            if self._item is not None:
-                self._item.setDirty(attribute=key)
+        if self._item is not None:
+            self._item.setDirty(attribute=key)
 
-            super(Values, self).__delitem__(key)
-
-        else:
-            raise AccessDeniedError, "%s.%s: 0x%x" %(self._item.itsPath, key,
-                                                     Permission.REMOVE)
+        return super(Values, self).__delitem__(key)
 
     def _unload(self):
 

@@ -48,7 +48,7 @@ class Item(object):
 
         self._status = Item.NEW
         self._version = 0L
-        self._access = 0L
+        self._lastAccess = 0L
         self._uuid = UUID()
 
         self._values = Values(self)
@@ -71,7 +71,7 @@ class Item(object):
         self._root = None
         self._status = 0
         self._version = kwds['version']
-        self._access = 0L
+        self._lastAccess = 0L
 
         values = kwds.get('values')
         if values is not None:
@@ -445,7 +445,7 @@ class Item(object):
         if self._status & Item.STALE:
             raise ValueError, "item is stale: %s" %(self)
 
-        self._access = Item._countAccess()
+        self._lastAccess = Item._countAccess()
 
         try:
             if (_attrDict is self._values or
@@ -1123,7 +1123,7 @@ class Item(object):
             dirty = Item.VDIRTY
 
         if dirty:
-            self._access = Item._countAccess()
+            self._lastAccess = Item._countAccess()
             if self._status & Item.DIRTY == 0:
                 repository = self.getRepository()
                 if repository is not None and not repository.isLoading():
@@ -1343,6 +1343,18 @@ class Item(object):
             self._kind = kind
                 
         return kind
+
+    def __getACLs(self):
+
+        if '_acls' in self.__dict__:
+            return self._acls
+
+        return None
+
+    def __setACLs(self, acls):
+
+        self._acls = acls
+        self.setDirty(Item.ADIRTY)
 
     def getRepository(self):
         """
@@ -1780,6 +1792,8 @@ class Item(object):
         xmlTag('container', attrs, parentID, generator)
 
         if not isDeleted:
+            if save & Item.ADIRTY:
+                self._xmlAccess(generator, mode)
             if save & Item.VDIRTY:
                 self._xmlAttrs(generator, withSchema, version, mode)
             if save & Item.RDIRTY:
@@ -1861,6 +1875,15 @@ class Item(object):
                 value._xmlValue(key, self, generator, withSchema, version,
                                 mode)
 
+    def _xmlAccess(self, generator, mode):
+
+        acls = self.__dict__.get('_acls', None)
+        if acls:
+            generator.startElement('access', None)
+            for key, acl in acls.iteritems():
+                acl._xmlValue(key, generator, mode)
+            generator.endElement('access')
+
     def _refDict(self, name, otherName=None, persist=None):
 
         if otherName is None:
@@ -1905,9 +1928,10 @@ class Item(object):
     RDIRTY     = 0x0400           # ref or ref collection value changed
     MERGED     = 0x0800
     SAVED      = 0x1000
+    ADIRTY     = 0x2000           # acl(s) changed
 
     VRDIRTY    = VDIRTY | RDIRTY
-    DIRTY      = VDIRTY | SDIRTY | CDIRTY | RDIRTY
+    DIRTY      = VDIRTY | SDIRTY | CDIRTY | RDIRTY | ADIRTY
 
     __access__ = 0L
 
@@ -1974,6 +1998,16 @@ class Item(object):
                        """
                        Return this item's kind.
                        """)
+
+    itsAccess = property(fget = __getACLs,
+                         fset = __setACLs,
+                         doc =
+                         """
+                         Return this item's access control lists.
+
+                         If this item has no access control lists,
+                         C{None} is returned.
+                         """)
 
 
 class Children(LinkedMap):

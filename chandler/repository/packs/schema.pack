@@ -21,6 +21,7 @@
       <item file="Parcel.kind" />
       <item file="Cloud.kind" />
       <item file="Endpoint.kind" />
+      <item file="Principal.kind" />
 
       <item file="Clouds.namespace" cwd="clouds">
         <item file="Kind.cloud" />

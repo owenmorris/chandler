@@ -567,10 +567,12 @@ class RefDict(LinkedMap):
         return value
 
     def placeItem(self, item, after):
-        """Place an item in this collection after another one.
+        """
+        Place an item in this collection after another one.
 
         Both items must already belong to the collection. To place an item
-        first,  pass None for 'after'."""
+        first,  pass None for 'after'.
+        """
         
         key = item._refName(self._name)
         if after is not None:

@@ -5,9 +5,11 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import mx.DateTime
+
 import repository.util.UUID
 import repository.util.Path
 import repository.util.SingleRef
+import repository.util.URL
 
 from repository.item.Item import Item
 from repository.item.ItemHandler import ItemHandler
@@ -383,6 +385,35 @@ class Path(Type):
             return 1
 
         return 0
+
+
+class URL(Type):
+
+    def handlerName(self):
+
+        return 'url'
+
+    def makeValue(self, data):
+
+        if data == Type.NoneString:
+            return None
+
+        return repository.util.URL.URL(data)
+
+    def makeString(self, value):
+
+        if value is None:
+            return Type.NoneString
+        
+        return str(value)
+    
+    def recognizes(self, value):
+
+        return value is None or type(value) is repository.util.URL.URL
+
+    def _compareTypes(self, other):
+
+        return -1
 
 
 class NoneType(Type):

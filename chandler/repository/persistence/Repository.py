@@ -844,7 +844,7 @@ class OnDemandRepositoryView(RepositoryView):
         registry = self._registry
 
         if len(registry) > size * 1.1:
-            heap = [(item._access, item._uuid)
+            heap = [(item._lastAccess, item._uuid)
                     for item in registry.itervalues()
                     if not item._status & item.SCHEMA]
             heapq.heapify(heap)
