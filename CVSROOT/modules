@@ -47,4 +47,4 @@ chandler-system -a \
     osaf/chandler/zodb \
     osaf/hardhat
 
-docs osaf/chandler/Chandler/distrib/docs
+0.3 osaf/chandler/Chandler/distrib/docs
