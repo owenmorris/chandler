@@ -1302,8 +1302,12 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                             item.addValue(attributeName, reference)
 
                     if reloading:
+                        if reference is None:
+                            displayPath = "None"
+                        else:
+                            displayPath = reference.itsPath
                         print "Reload: item %s, assigning %s = %s" % \
-                         (item.itsPath, attributeName, reference.itsPath)
+                         (item.itsPath, attributeName, displayPath)
 
                 # Record this assignment in the new set of assignments
                 new.addAssignment(assignmentTuple)
