@@ -71,6 +71,10 @@ class RepositoryItemDetail(ControlBlocks.ItemDetail):
             """
             Formats the a reference attribute to be clickable, etcetera
             """
+
+            if reference == None:
+                return "(None)"
+
             url = reference.getItemPath()
             if reference.hasAttributeValue('kind'):
                 kind = reference.kind.getItemName()
