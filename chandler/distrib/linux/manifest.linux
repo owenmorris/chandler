@@ -1,7 +1,19 @@
+# manifest.linux
+#
+# Variables maintain their value until changed, so be aware of the order of
+# things...
+# 
+# src: set this to be relative to buildenv['root']
+# dest: set this to be relative to buildenv['distdir']
+# recursive: set to yes or no
+# glob: set to a comma-separated list of glob patterns
+
+# Grab the python executable
 src=release/bin
 dest=bin
 python
 
+# Recursively grab python libraries
 src=release/lib
 dest=lib
 recursive=yes
@@ -17,24 +29,30 @@ python2.2/xml
 python2.2/curses
 python2.2/plat-linux2
 python2.2/lib-dynload
-python2.2/foo
 
+# Grab files from the lib/python2.2 directory
 recursive=no
 python2.2
 
+# Grab the GTK library
 libwx_gtk-2.5.so
 
+# Grab Chandler.py
 src=Chandler
 dest=
+Chandler.py
+
+# Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes
 glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg
 application
 parcels
-Chandler.py
 
+# Grab the launcher and linux README
 src=Chandler/distrib/linux
 Chandler.sh
 README.linux
 
+# Grab the overall README
 src=Chandler/distrib
 README
