@@ -27,6 +27,7 @@ python2.3/hotshot
 python2.3/lib-dynload
 python2.3/lib-old
 python2.3/lib-tk
+python2.3/logging
 python2.3/plat-linux2
 python2.3/site-packages
 python2.3/xml
