@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-__version__ 	= "$Revision$"
-__date__ 	= "$Date$"
-__copyright__ 	= "Copyright (c) 2003 Open Source Applications Foundation"
-__license__	= "GPL -- see LICENSE.txt"
+__version__     = "$Revision$"
+__date__        = "$Date$"
+__copyright__   = "Copyright (c) 2003 Open Source Applications Foundation"
+__license__     = "GPL -- see LICENSE.txt"
 
 
 """
@@ -52,16 +52,16 @@ False = 0
 if os.path.isfile("__hardhat__.py"):
     curmodule = hardhatlib.module_from_file(None, "__hardhat__.py", "curmodule")
     if not curmodule.info.has_key('root'):
-	print "no value for 'root' in __hardhat__.py; please add one"
-	sys.exit(1)
+        print "no value for 'root' in __hardhat__.py; please add one"
+        sys.exit(1)
     projectRoot = os.path.abspath(curmodule.info['root'])
     if curmodule.info.has_key('path'):
-	curmodulepath = curmodule.info['path']
+        curmodulepath = curmodule.info['path']
     else:
-	# determine our path relative to project root:    
-	curdir = os.path.abspath(".")
-	relpath = curdir[len(projectRoot)+1:]
-	curmodulepath = relpath
+        # determine our path relative to project root:    
+        curdir = os.path.abspath(".")
+        relpath = curdir[len(projectRoot)+1:]
+        curmodulepath = relpath
 
     print "Project path: ", projectRoot
     print "Module path:  ", curmodulepath
@@ -99,8 +99,8 @@ for opt, arg in opts:
         sys.exit(0)
 
     if opt == "-h":
-	usage()
-	sys.exit(0)
+        usage()
+        sys.exit(0)
 
 
 try:
@@ -147,7 +147,7 @@ try:
             hardhatlib.build(buildenv, curmodulepath)
 
         if opt == "-B":
-	    history = {}
+            history = {}
             hardhatlib.buildDependencies(buildenv, curmodulepath, history)
 
         if opt == "-c":
@@ -155,7 +155,7 @@ try:
                 print "Error, exiting"
 
         if opt == "-C":
-	    history = {}
+            history = {}
             if hardhatlib.cleanDependencies(buildenv, curmodulepath, history) == \
              hardhatlib.HARDHAT_ERROR:
                 print "Error, exiting"
@@ -197,7 +197,7 @@ try:
             hardhatlib.run(buildenv, curmodulepath)
 
     if len(args) > 0:
-	hardhatlib.executeScript(buildenv, args)
+        hardhatlib.executeScript(buildenv, args)
 
 except hardhatlib.HardHatExternalCommandError:
     print 

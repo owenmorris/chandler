@@ -1,8 +1,8 @@
 #!/usr/bin/python
-__version__ 	= "$Revision$"
-__date__ 	= "$Date$"
-__copyright__ 	= "Copyright (c) 2003 Open Source Applications Foundation"
-__license__	= "GPL -- see LICENSE.txt"
+__version__     = "$Revision$"
+__date__        = "$Date$"
+__copyright__   = "Copyright (c) 2003 Open Source Applications Foundation"
+__license__     = "GPL -- see LICENSE.txt"
 
 
 import sys, os, os.path
@@ -54,11 +54,11 @@ def executeCommand(logfile, showenv, args):
     output.write("\n")
 
     if showenv == "yes":
-	output.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - env -\n")
-	env = os.environ.keys()
-	env.sort()
-	for e in env:
-	    output.write("- " + e + "=" + os.environ[e] + "\n")
+        output.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - env -\n")
+        env = os.environ.keys()
+        env.sort()
+        for e in env:
+            output.write("- " + e + "=" + os.environ[e] + "\n")
 
     output.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - start -\n")
 

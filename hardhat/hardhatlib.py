@@ -1,7 +1,7 @@
-__version__ 	= "$Revision$"
-__date__ 	= "$Date$"
-__copyright__ 	= "Copyright (c) 2003 Open Source Applications Foundation"
-__license__	= "GPL -- see LICENSE.txt"
+__version__     = "$Revision$"
+__date__        = "$Date$"
+__copyright__   = "Copyright (c) 2003 Open Source Applications Foundation"
+__license__     = "GPL -- see LICENSE.txt"
 
 
 """
@@ -28,11 +28,11 @@ False = 0
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 defaults = {
-    'verbosity'		: 1,
-    'showenv'		: 1,
-    'version'		: 'release',
-    'showlog'		: False,
-    'interactive'	: True,
+    'verbosity'         : 1,
+    'showenv'           : 1,
+    'version'           : 'release',
+    'showlog'           : False,
+    'interactive'       : True,
 }
  
 def init(buildenv):
@@ -61,44 +61,44 @@ def init(buildenv):
         raise HardHatBuildEnvError, "Missing 'hardhatroot'"
 
     for key in defaults.keys():
-	if not buildenv.has_key(key):
-	    buildenv[key] = defaults[key]
+        if not buildenv.has_key(key):
+            buildenv[key] = defaults[key]
 
     if not buildenv.has_key('logfile'):
-	buildenv['logfile'] = os.path.join(buildenv['root'], "hardhat.log")
+        buildenv['logfile'] = os.path.join(buildenv['root'], "hardhat.log")
 
     # normalize what python thinks the OS is to a string that we like:
     buildenv['os'] = 'unknown'
     if os.name == 'nt':
-	buildenv['os'] = 'win'
-	buildenv['oslabel'] = 'win'
-	buildenv['root_dos'] = buildenv['root']
-	buildenv['path'] = os.environ['path']
+        buildenv['os'] = 'win'
+        buildenv['oslabel'] = 'win'
+        buildenv['root_dos'] = buildenv['root']
+        buildenv['path'] = os.environ['path']
     elif os.name == 'posix':
-	buildenv['os'] = 'posix'
-	buildenv['oslabel'] = 'linux'
-	buildenv['path'] = os.environ['PATH']
-	if sys.platform == 'darwin':
-	    # It turns out that Mac OS X happens to have os.name of 'posix'
-	    # but the steps to build things under OS X is different enough
-	    # to warrant its own 'os' value:
-	    buildenv['os'] = 'osx'
-	    buildenv['oslabel'] = 'osx'
-	if sys.platform == 'cygwin':
-	    buildenv['os'] = 'win'
-	    buildenv['oslabel'] = 'win'
-	    buildenv['path'] = os.environ['PATH']
-	    try:
-		cygpath = os.popen("/bin/cygpath -w " + buildenv['root'], "r")
-		buildenv['root_dos'] = cygpath.readline()
-		buildenv['root_dos'] = buildenv['root_dos'][:-1]
-		cygpath.close()
-	    except Exception, e:
-		print e
-		print "Unable to call 'cygpath' to determine DOS-equivalent for project path."
-		print "Either make sure that 'cygpath' is in your PATH or run the Windows version"
-		print "of Python from http://python.org/, rather than the Cygwin Python"
-		raise HardHatError
+        buildenv['os'] = 'posix'
+        buildenv['oslabel'] = 'linux'
+        buildenv['path'] = os.environ['PATH']
+        if sys.platform == 'darwin':
+            # It turns out that Mac OS X happens to have os.name of 'posix'
+            # but the steps to build things under OS X is different enough
+            # to warrant its own 'os' value:
+            buildenv['os'] = 'osx'
+            buildenv['oslabel'] = 'osx'
+        if sys.platform == 'cygwin':
+            buildenv['os'] = 'win'
+            buildenv['oslabel'] = 'win'
+            buildenv['path'] = os.environ['PATH']
+            try:
+                cygpath = os.popen("/bin/cygpath -w " + buildenv['root'], "r")
+                buildenv['root_dos'] = cygpath.readline()
+                buildenv['root_dos'] = buildenv['root_dos'][:-1]
+                cygpath.close()
+            except Exception, e:
+                print e
+                print "Unable to call 'cygpath' to determine DOS-equivalent for project path."
+                print "Either make sure that 'cygpath' is in your PATH or run the Windows version"
+                print "of Python from http://python.org/, rather than the Cygwin Python"
+                raise HardHatError
 
     else: 
         raise HardHatUnknownPlatformError
@@ -120,7 +120,7 @@ def init(buildenv):
     
     # set OS-specific variables
     if buildenv['os'] == 'win':
-	import os_win
+        import os_win
         # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for devenv.exe...")
         devenv_file = os_win.find_exe( "devenv.exe", "7.0")
         if( devenv_file ):
@@ -147,11 +147,11 @@ def init(buildenv):
         include_path = os_win.get_msvc_paths('include', '7.0')
         include_path = string.join( include_path, ";")
         # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Include: " + include_path)
-	os.putenv('INCLUDE', include_path)
+        os.putenv('INCLUDE', include_path)
         lib_path = os_win.get_msvc_paths('lib', '7.0')
         lib_path = string.join( lib_path, ";")
         # log(buildenv, HARDHAT_MESSAGE, "HardHat", "lib: " + lib_path)
-	os.putenv('LIB', lib_path)
+        os.putenv('LIB', lib_path)
 
         cl_dir = os.path.dirname(nmake_file)
         buildenv['path'] = cl_dir + os.pathsep + buildenv['path']
@@ -164,42 +164,42 @@ def init(buildenv):
          'bin' + os.sep + 'swig.exe'
 
     if buildenv['os'] == 'posix':
-	buildenv['swig'] = buildenv['root'] + os.sep + 'release' + os.sep + \
-	 'bin' + os.sep + 'swig'
-	buildenv['swig_d'] = buildenv['root'] + os.sep + 'debug' + os.sep + \
-	 'bin' + os.sep + 'swig'
+        buildenv['swig'] = buildenv['root'] + os.sep + 'release' + os.sep + \
+         'bin' + os.sep + 'swig'
+        buildenv['swig_d'] = buildenv['root'] + os.sep + 'debug' + os.sep + \
+         'bin' + os.sep + 'swig'
 
 
     if buildenv['os'] == 'osx':
-	buildenv['swig'] = buildenv['root'] + os.sep + 'release' + os.sep + \
-	 'bin' + os.sep + 'swig'
-	buildenv['swig_d'] = buildenv['root'] + os.sep + 'debug' + os.sep + \
-	 'bin' + os.sep + 'swig'
+        buildenv['swig'] = buildenv['root'] + os.sep + 'release' + os.sep + \
+         'bin' + os.sep + 'swig'
+        buildenv['swig_d'] = buildenv['root'] + os.sep + 'debug' + os.sep + \
+         'bin' + os.sep + 'swig'
 
-	buildenv['python'] = os.path.join(buildenv['root'], 'release', 
-	 'Library', 'Frameworks', 'Python.framework', 'Versions', 'Current', 
-	 'Resources', 'Python.app', 'Contents', 'MacOS', 'python')
+        buildenv['python'] = os.path.join(buildenv['root'], 'release', 
+         'Library', 'Frameworks', 'Python.framework', 'Versions', 'Current', 
+         'Resources', 'Python.app', 'Contents', 'MacOS', 'python')
 
-	buildenv['python_d'] = os.path.join(buildenv['root'], 'debug', 
-	 'Library', 'Frameworks', 'Python.framework', 'Versions', 'Current', 
-	 'Resources', 'Python.app', 'Contents', 'MacOS', 'python')
+        buildenv['python_d'] = os.path.join(buildenv['root'], 'debug', 
+         'Library', 'Frameworks', 'Python.framework', 'Versions', 'Current', 
+         'Resources', 'Python.app', 'Contents', 'MacOS', 'python')
 
     # Determine the Python lib directory (the parent of site-packages)
     if buildenv['os'] == 'posix':
-	lib_dir_release = buildenv['root'] + os.sep + 'release' + os.sep + \
-	 'lib' + os.sep + 'python2.3'
-	lib_dir_debug = buildenv['root'] + os.sep + 'debug' + os.sep + \
-	 'lib' + os.sep + 'python2.3'
+        lib_dir_release = buildenv['root'] + os.sep + 'release' + os.sep + \
+         'lib' + os.sep + 'python2.3'
+        lib_dir_debug = buildenv['root'] + os.sep + 'debug' + os.sep + \
+         'lib' + os.sep + 'python2.3'
     if buildenv['os'] == 'win':
-	lib_dir_release = buildenv['root'] + os.sep + 'release' + os.sep + \
-	 'bin' + os.sep + 'Lib'
-	lib_dir_debug = buildenv['root'] + os.sep + 'debug' + os.sep + \
-	 'bin' + os.sep + 'Lib'
+        lib_dir_release = buildenv['root'] + os.sep + 'release' + os.sep + \
+         'bin' + os.sep + 'Lib'
+        lib_dir_debug = buildenv['root'] + os.sep + 'debug' + os.sep + \
+         'bin' + os.sep + 'Lib'
     if buildenv['os'] == 'osx':
-	lib_dir_release = buildenv['root'] + os.sep + 'release' + os.sep + \
-	 'Library/Frameworks/Python.framework/Versions/Current/lib/python2.3'
-	lib_dir_debug = buildenv['root'] + os.sep + 'debug' + os.sep + \
-	 'Library/Frameworks/Python.framework/Versions/Current/lib/python2.3'
+        lib_dir_release = buildenv['root'] + os.sep + 'release' + os.sep + \
+         'Library/Frameworks/Python.framework/Versions/Current/lib/python2.3'
+        lib_dir_debug = buildenv['root'] + os.sep + 'debug' + os.sep + \
+         'Library/Frameworks/Python.framework/Versions/Current/lib/python2.3'
 
     buildenv['pythonlibdir'] = lib_dir_release
     buildenv['pythonlibdir_d'] = lib_dir_debug
@@ -288,13 +288,13 @@ def log_rotate(buildenv):
     """
     logfiles = [buildenv['logfile']]
     for i in range(1,6):
-	logfiles.append(buildenv['logfile'] + "." + str(i))
+        logfiles.append(buildenv['logfile'] + "." + str(i))
     for i in range(len(logfiles)-1,-1,-1):
-	if os.path.isfile(logfiles[i]):
-	    if( i == 5 ):
-		os.remove(logfiles[i])
-	    else:
-		os.rename(logfiles[i], logfiles[i+1])
+        if os.path.isfile(logfiles[i]):
+            if( i == 5 ):
+                os.remove(logfiles[i])
+            else:
+                os.rename(logfiles[i], logfiles[i+1])
 
 
             
@@ -434,7 +434,7 @@ def scrubDependencies(buildenv, module_name):
     getDependencies(buildenv, module_name, dependencies)
     dirsToScrub = []
     for dep in dependencies.keys():
-	dirsToScrub.append(buildenv['root'] + os.sep + dep)
+        dirsToScrub.append(buildenv['root'] + os.sep + dep)
     cvsClean(buildenv, dirsToScrub)
 # end scrubDependencies()
 
@@ -537,28 +537,28 @@ def recursiveTest(buildenv, path):
     os.chdir(path)
 
     if buildenv['version'] == 'debug':
-	python = buildenv['python_d']
-	libdir = buildenv['pythonlibdir_d']
+        python = buildenv['python_d']
+        libdir = buildenv['pythonlibdir_d']
     if buildenv['version'] == 'release':
-	python = buildenv['python']
-	libdir = buildenv['pythonlibdir']
+        python = buildenv['python']
+        libdir = buildenv['pythonlibdir']
 
     if os.path.isdir("tests"):
-	fullTestPath = os.path.join(path, "tests")
-	os.chdir(fullTestPath) 
-	testFiles = glob.glob('Test*.py')
-	for testFile in testFiles:
-	    fullTestFilePath = os.path.join(fullTestPath, testFile)
-	    exit_code = executeCommand( buildenv, testFile, [python, testFile,
-	    "-v"], "Testing " + fullTestFilePath, HARDHAT_NO_RAISE_ON_ERROR)
-	    if exit_code != 0:
-		buildenv['test_failures'] = buildenv['test_failures'] + 1
+        fullTestPath = os.path.join(path, "tests")
+        os.chdir(fullTestPath) 
+        testFiles = glob.glob('Test*.py')
+        for testFile in testFiles:
+            fullTestFilePath = os.path.join(fullTestPath, testFile)
+            exit_code = executeCommand( buildenv, testFile, [python, testFile,
+            "-v"], "Testing " + fullTestFilePath, HARDHAT_NO_RAISE_ON_ERROR)
+            if exit_code != 0:
+                buildenv['test_failures'] = buildenv['test_failures'] + 1
 
     os.chdir(path)
     for name in os.listdir(path):
-	full_name = os.path.join(path, name)
-	if os.path.isdir(full_name):
-	    recursiveTest(buildenv, full_name)
+        full_name = os.path.join(path, name)
+        if os.path.isdir(full_name):
+            recursiveTest(buildenv, full_name)
 
 
 def test(buildenv, module_name):
@@ -578,9 +578,9 @@ def test(buildenv, module_name):
     failures = buildenv['test_failures']
 
     if failures == 0:
-	log(buildenv, HARDHAT_MESSAGE, 'Tests', "All tests successful")
+        log(buildenv, HARDHAT_MESSAGE, 'Tests', "All tests successful")
     else:
-	log(buildenv, HARDHAT_ERROR, 'Tests', "%d test(s) failed" % failures)
+        log(buildenv, HARDHAT_ERROR, 'Tests', "%d test(s) failed" % failures)
 
 # end test()
 
@@ -603,7 +603,7 @@ def module_from_file(buildenv, module_path, module_name):
 
 
     if os.access(module_path, os.R_OK):
-	module_file = open(module_path)
+        module_file = open(module_path)
 
         # Here's a cool bug I had to workaround:  if module_name has a "." in
         # it, bad things happen down the road (exceptions get created within
@@ -613,12 +613,12 @@ def module_from_file(buildenv, module_path, module_name):
         # "_"
         module_name = module_name.replace(".", "_")
 
-	module = import_code(module_file, module_name)
+        module = import_code(module_file, module_name)
         return module
     else:
-	if buildenv:
-	    log(buildenv, HARDHAT_ERROR, 'hardhat', module_path + \
-	     "doesn't exist")
+        if buildenv:
+            log(buildenv, HARDHAT_ERROR, 'hardhat', module_path + \
+             "doesn't exist")
         raise HardHatMissingFileError, "Missing " + module_path
 # end module_from_file()
 
@@ -654,20 +654,20 @@ def rmdir_recursive(dir):
     """
 
     if os.path.islink(dir):
-	os.remove(dir)
-	return
+        os.remove(dir)
+        return
 
     for name in os.listdir(dir):
         full_name = os.path.join(dir, name)
         # on Windows, if we don't have write permission we can't remove
         # the file/directory either, so turn that on
-	if os.name == 'nt':
-	    if not os.access(full_name, os.W_OK):
-		os.chmod(full_name, 0600)
+        if os.name == 'nt':
+            if not os.access(full_name, os.W_OK):
+                os.chmod(full_name, 0600)
         if os.path.isdir(full_name):
             rmdir_recursive(full_name)
         else:
-	    # print "removing file", full_name
+            # print "removing file", full_name
             os.remove(full_name)
     os.rmdir(dir)
 # rmdir_recurisve()
@@ -695,73 +695,73 @@ def setupEnvironment(buildenv):
 
     if buildenv['version'] == 'debug':
         path = buildenv['root'] + os.sep + 'debug' + os.sep + 'bin' + \
-	 os.pathsep + buildenv['path']
-	os.putenv('BUILDMODE', 'debug')
+         os.pathsep + buildenv['path']
+        os.putenv('BUILDMODE', 'debug')
 
     if buildenv['version'] == 'release':
         path = buildenv['root'] + os.sep + 'release' + os.sep + 'bin' + \
-	 os.pathsep + buildenv['path']
-	os.putenv('BUILDMODE', 'release')
+         os.pathsep + buildenv['path']
+        os.putenv('BUILDMODE', 'release')
 
 
     # log(buildenv, HARDHAT_MESSAGE, 'hardhat', "Setting path to " + path)
     # os.putenv('path', path)
     if sys.platform == 'cygwin':
-	# Even though we're under cygwin, we're going to be launching 
+        # Even though we're under cygwin, we're going to be launching 
         # external programs that expect PATH to be in DOS format, so
         # convert it
-	try:
-	    cygpath = os.popen("/bin/cygpath -wp \"" + path + "\"", "r")
-	    path = cygpath.readline()
-	    path = path[:-1]
-	    cygpath.close()
-	except Exception, e:
-	    print e
-	    print "Unable to call 'cygpath' to determine DOS-equivalent for PATH"
-	    print "Either make sure that 'cygpath' is in your PATH or run the Windows version"
-	    print "of Python from http://python.org/, rather than the Cygwin Python"
-	    raise HardHatError
+        try:
+            cygpath = os.popen("/bin/cygpath -wp \"" + path + "\"", "r")
+            path = cygpath.readline()
+            path = path[:-1]
+            cygpath.close()
+        except Exception, e:
+            print e
+            print "Unable to call 'cygpath' to determine DOS-equivalent for PATH"
+            print "Either make sure that 'cygpath' is in your PATH or run the Windows version"
+            print "of Python from http://python.org/, rather than the Cygwin Python"
+            raise HardHatError
 
     os.putenv('PATH', path)
 
     if buildenv['os'] == 'posix':
-	ld_library_path = os.environ.get('LD_LIBRARY_PATH', '')
-	if buildenv['version'] == 'debug':
-	    additional_path = buildenv['root'] + os.sep + 'debug' + os.sep + \
-	     'lib'
-	    additional_path_rel = buildenv['root'] + os.sep + 'release' + \
-	     os.sep + 'lib'
-	    additional_path = additional_path + os.pathsep + additional_path_rel
-	else:
-	    additional_path = buildenv['root'] + os.sep + 'release' + os.sep + \
-	     'lib'
-	ld_library_path = additional_path + os.pathsep + ld_library_path
-	os.putenv('LD_LIBRARY_PATH', ld_library_path)
+        ld_library_path = os.environ.get('LD_LIBRARY_PATH', '')
+        if buildenv['version'] == 'debug':
+            additional_path = buildenv['root'] + os.sep + 'debug' + os.sep + \
+             'lib'
+            additional_path_rel = buildenv['root'] + os.sep + 'release' + \
+             os.sep + 'lib'
+            additional_path = additional_path + os.pathsep + additional_path_rel
+        else:
+            additional_path = buildenv['root'] + os.sep + 'release' + os.sep + \
+             'lib'
+        ld_library_path = additional_path + os.pathsep + ld_library_path
+        os.putenv('LD_LIBRARY_PATH', ld_library_path)
 
     if buildenv['os'] == 'osx':
-	dyld_library_path = os.environ.get('DYLD_LIBRARY_PATH', '')
-	if buildenv['version'] == 'debug':
-	    additional_path = buildenv['root'] + os.sep + 'debug' + os.sep + \
-	     'lib'
-	    additional_path_rel = buildenv['root'] + os.sep + 'release' + \
-	     os.sep + 'lib'
-	    additional_path = additional_path + os.pathsep + additional_path_rel
-	else:
-	    additional_path = buildenv['root'] + os.sep + 'release' + os.sep + \
-	     'lib'
-	dyld_library_path = additional_path + os.pathsep + dyld_library_path
-	os.putenv('DYLD_LIBRARY_PATH', dyld_library_path)
+        dyld_library_path = os.environ.get('DYLD_LIBRARY_PATH', '')
+        if buildenv['version'] == 'debug':
+            additional_path = buildenv['root'] + os.sep + 'debug' + os.sep + \
+             'lib'
+            additional_path_rel = buildenv['root'] + os.sep + 'release' + \
+             os.sep + 'lib'
+            additional_path = additional_path + os.pathsep + additional_path_rel
+        else:
+            additional_path = buildenv['root'] + os.sep + 'release' + os.sep + \
+             'lib'
+        dyld_library_path = additional_path + os.pathsep + dyld_library_path
+        os.putenv('DYLD_LIBRARY_PATH', dyld_library_path)
 
-	dyld_framework_path = os.environ.get('DYLD_FRAMEWORK_PATH', '')
-	if buildenv['version'] == 'debug':
-	    additional_path = os.path.join( buildenv['root'], 'debug', 'Library',
-	     'Frameworks')
-	else:
-	    additional_path = os.path.join( buildenv['root'], 'release', 
-	     'Library', 'Frameworks')
-	dyld_framework_path = additional_path + os.pathsep + dyld_framework_path
-	os.putenv('DYLD_FRAMEWORK_PATH', dyld_framework_path)
-	
+        dyld_framework_path = os.environ.get('DYLD_FRAMEWORK_PATH', '')
+        if buildenv['version'] == 'debug':
+            additional_path = os.path.join( buildenv['root'], 'debug', 'Library',
+             'Frameworks')
+        else:
+            additional_path = os.path.join( buildenv['root'], 'release', 
+             'Library', 'Frameworks')
+        dyld_framework_path = additional_path + os.pathsep + dyld_framework_path
+        os.putenv('DYLD_FRAMEWORK_PATH', dyld_framework_path)
+        
 def quoteString(str):
     return "\'" + str + "\'"
 
@@ -790,9 +790,9 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
     logfile = buildenv['logfile']
 
     if buildenv['showenv']:
-	showenv = "yes"
+        showenv = "yes"
     else:
-	showenv = "no"
+        showenv = "no"
 
     # spawnl wants the name of the file we're executing twice; in this case
     # we're launching the same python we're running now; 
@@ -831,11 +831,11 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
        
 
     if exit_code == 0:
-	log(buildenv, HARDHAT_MESSAGE, name, "OK")
+        log(buildenv, HARDHAT_MESSAGE, name, "OK")
     else:
-	log(buildenv, HARDHAT_ERROR, name, "Exit code = " + str(exit_code) )
-	if not (flags & HARDHAT_NO_RAISE_ON_ERROR):
-	    raise HardHatExternalCommandError
+        log(buildenv, HARDHAT_ERROR, name, "Exit code = " + str(exit_code) )
+        if not (flags & HARDHAT_NO_RAISE_ON_ERROR):
+            raise HardHatExternalCommandError
     
     return exit_code
 
@@ -866,11 +866,11 @@ def executeCommandNoCapture(buildenv, name, args, message, flags=0):
     print "\nExecution complete - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 
     if exit_code == 0:
-	log(buildenv, HARDHAT_MESSAGE, name, "OK")
+        log(buildenv, HARDHAT_MESSAGE, name, "OK")
     else:
-	log(buildenv, HARDHAT_ERROR, name, "Command exited with code = " + str(exit_code) )
-	if not (flags & HARDHAT_NO_RAISE_ON_ERROR):
-	    raise HardHatExternalCommandError
+        log(buildenv, HARDHAT_ERROR, name, "Command exited with code = " + str(exit_code) )
+        if not (flags & HARDHAT_NO_RAISE_ON_ERROR):
+            raise HardHatExternalCommandError
     
     return exit_code
 
@@ -909,9 +909,9 @@ def executeShell(buildenv):
     print "\nBack from interactive shell"
 
     if exit_code == 0:
-	log(buildenv, HARDHAT_MESSAGE, name, "OK")
+        log(buildenv, HARDHAT_MESSAGE, name, "OK")
     else:
-	log(buildenv, HARDHAT_ERROR, name, "Exit code = " + str(exit_code) )
+        log(buildenv, HARDHAT_ERROR, name, "Exit code = " + str(exit_code) )
     
     return exit_code
 
@@ -946,65 +946,65 @@ def handleManifest(buildenv, filename):
     destdir = buildenv['distdir']
 
     for line in fileinput.input(filename):
-	line = line.strip()
-	if len(line) == 0:
-	    continue
-	if line[0:1] == "#":
-	    continue
+        line = line.strip()
+        if len(line) == 0:
+            continue
+        if line[0:1] == "#":
+            continue
 
-	if line.find("=") != -1:
-	    (name,value) = line.split("=")
-	    params[name] = value
-	    if name == "src":
-		srcdir = os.path.join(buildenv['root'],value)
-		log(buildenv, HARDHAT_MESSAGE, "HardHat", "src=" + srcdir)
-	    if name == "dest":
-		destdir = os.path.join(buildenv['distdir'],value)
-		log(buildenv, HARDHAT_MESSAGE, "HardHat", "dest=" + destdir)
-	    if name == "glob":
-		params['glob'] = value.split(",")
-		log(buildenv, HARDHAT_MESSAGE, "HardHat", "pattern=" + value)
-	    if name == "recursive":
-		if value == "yes":
-		    params["recursive"] = True
-		else:
-		    params["recursive"] = False
-		log(buildenv, HARDHAT_MESSAGE, "HardHat", "recursive=" + value)
+        if line.find("=") != -1:
+            (name,value) = line.split("=")
+            params[name] = value
+            if name == "src":
+                srcdir = os.path.join(buildenv['root'],value)
+                log(buildenv, HARDHAT_MESSAGE, "HardHat", "src=" + srcdir)
+            if name == "dest":
+                destdir = os.path.join(buildenv['distdir'],value)
+                log(buildenv, HARDHAT_MESSAGE, "HardHat", "dest=" + destdir)
+            if name == "glob":
+                params['glob'] = value.split(",")
+                log(buildenv, HARDHAT_MESSAGE, "HardHat", "pattern=" + value)
+            if name == "recursive":
+                if value == "yes":
+                    params["recursive"] = True
+                else:
+                    params["recursive"] = False
+                log(buildenv, HARDHAT_MESSAGE, "HardHat", "recursive=" + value)
 
-	else:
-	    abspath = os.path.join(srcdir,line)
-	    if os.path.isdir(abspath):
-		log(buildenv, HARDHAT_MESSAGE, "HardHat", abspath)
-		copyto = os.path.join(buildenv['distdir'], params["dest"], line)
-		_copyTree(abspath, copyto, params["recursive"], params["glob"])
-	    else:
-		if os.path.exists(abspath):
-		    log(buildenv, HARDHAT_MESSAGE, "HardHat", abspath)
-		    copyto = os.path.join(buildenv['distdir'], params["dest"],
-		     line)
-		    createpath = os.path.dirname(copyto)
-		    _mkdirs(createpath)
-		    shutil.copy(abspath, copyto)
-		else:
-		    log(buildenv, HARDHAT_WARNING, "HardHat", "File missing: " 
-		     + abspath)
-		    continue
+        else:
+            abspath = os.path.join(srcdir,line)
+            if os.path.isdir(abspath):
+                log(buildenv, HARDHAT_MESSAGE, "HardHat", abspath)
+                copyto = os.path.join(buildenv['distdir'], params["dest"], line)
+                _copyTree(abspath, copyto, params["recursive"], params["glob"])
+            else:
+                if os.path.exists(abspath):
+                    log(buildenv, HARDHAT_MESSAGE, "HardHat", abspath)
+                    copyto = os.path.join(buildenv['distdir'], params["dest"],
+                     line)
+                    createpath = os.path.dirname(copyto)
+                    _mkdirs(createpath)
+                    shutil.copy(abspath, copyto)
+                else:
+                    log(buildenv, HARDHAT_WARNING, "HardHat", "File missing: " 
+                     + abspath)
+                    continue
 
 def _copyTree(srcdir, destdir, recursive, patterns):
     os.chdir(srcdir)
     for pattern in patterns:
-	matches = glob.glob(pattern)
-	for match in matches:
-	    if os.path.isfile(match):
-		if not os.path.exists(destdir):
-		    _mkdirs(destdir)
-		shutil.copy(match, destdir)
+        matches = glob.glob(pattern)
+        for match in matches:
+            if os.path.isfile(match):
+                if not os.path.exists(destdir):
+                    _mkdirs(destdir)
+                shutil.copy(match, destdir)
     if recursive:
-	for name in os.listdir(srcdir):
-	    full_name = os.path.join(srcdir, name)
-	    if os.path.isdir(full_name):
-		_copyTree(full_name, os.path.join(destdir, name), True, 
-		 patterns)
+        for name in os.listdir(srcdir):
+            full_name = os.path.join(srcdir, name)
+            if os.path.isdir(full_name):
+                _copyTree(full_name, os.path.join(destdir, name), True, 
+                 patterns)
 
 def _mkdirs(newdir, mode=0777):
     try: 
@@ -1021,12 +1021,12 @@ def copyFile(srcfile, destdir):
 
 def copyFiles(srcdir, destdir, patterns):
     for pattern in patterns:
-	matches = glob.glob(os.path.join(srcdir,pattern))
-	for match in matches:
-	    if os.path.isfile(match):
-		if not os.path.exists(destdir):
-		    _mkdirs(destdir)
-		shutil.copy(match, destdir)
+        matches = glob.glob(os.path.join(srcdir,pattern))
+        for match in matches:
+            if os.path.isfile(match):
+                if not os.path.exists(destdir):
+                    _mkdirs(destdir)
+                shutil.copy(match, destdir)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # CVS-cleaning methods
@@ -1041,98 +1041,98 @@ def cvsFindRemovables(dir):
     cvsEntriesLogFile = os.path.join(dir, "CVS", "Entries.log")
     if(os.path.isfile(cvsEntriesFile)):
 
-	"""
+        """
         According to http://www.cvshome.org/docs/manual/cvs_2.html#IDX42
-	you will find an Entries file inside CVS/ and possibly an Entries.log
-	file.  Files/dirs listed in Entries are considered to be under CVS
-	control, and are added to our cvsFiles dict.
-	Next, if Entries.log exists, all lines beginning with "A " are
-	treated as if they were read from Entries.  All lines beginning with
-	"R " have been removed from CVS, so lines from the Entries.log file
-	modify the cvsFiles dict accordingly.  
-	Once we have the list of CVS files, each local file is compared
-	to that list and those not under CVS control are added to the
-	removeables list.
-	"""
+        you will find an Entries file inside CVS/ and possibly an Entries.log
+        file.  Files/dirs listed in Entries are considered to be under CVS
+        control, and are added to our cvsFiles dict.
+        Next, if Entries.log exists, all lines beginning with "A " are
+        treated as if they were read from Entries.  All lines beginning with
+        "R " have been removed from CVS, so lines from the Entries.log file
+        modify the cvsFiles dict accordingly.  
+        Once we have the list of CVS files, each local file is compared
+        to that list and those not under CVS control are added to the
+        removeables list.
+        """
 
-	cvsFiles = {}
-	for line in fileinput.input(cvsEntriesFile):
-	    line = line.strip()
-	    fields = line.split("/")
-	    if len(fields) > 1 and fields[1]:
-		cvsFiles[fields[1]] = 1 # this one is in CVS
+        cvsFiles = {}
+        for line in fileinput.input(cvsEntriesFile):
+            line = line.strip()
+            fields = line.split("/")
+            if len(fields) > 1 and fields[1]:
+                cvsFiles[fields[1]] = 1 # this one is in CVS
 
-	if(os.path.isfile(cvsEntriesLogFile)):
-	    for line in fileinput.input(cvsEntriesLogFile):
-		line = line.strip()
-		if line[0] == "A" and line[1] == " ":
-		    # Consider this as if it were in "Entries"
-		    line = line[2:]
-		    fields = line.split("/")
-		    if len(fields) > 1 and fields[1]:
-			cvsFiles[fields[1]] = 1 # this one is in CVS
-		else:
-		    if line[0] == "R" and line[1] == " ":
-			# Consider this as if it were not in "Entries"
-			line = line[2:]
-			fields = line.split("/")
-			if len(fields) > 1 and fields[1]:
-			    cvsFiles[fields[1]] = 0 # not in CVS
+        if(os.path.isfile(cvsEntriesLogFile)):
+            for line in fileinput.input(cvsEntriesLogFile):
+                line = line.strip()
+                if line[0] == "A" and line[1] == " ":
+                    # Consider this as if it were in "Entries"
+                    line = line[2:]
+                    fields = line.split("/")
+                    if len(fields) > 1 and fields[1]:
+                        cvsFiles[fields[1]] = 1 # this one is in CVS
+                else:
+                    if line[0] == "R" and line[1] == " ":
+                        # Consider this as if it were not in "Entries"
+                        line = line[2:]
+                        fields = line.split("/")
+                        if len(fields) > 1 and fields[1]:
+                            cvsFiles[fields[1]] = 0 # not in CVS
 
-	for file in os.listdir(dir):
-	    if file != "CVS": # always skip "CVS" directory
-		absFile = os.path.join(dir,file)
-		if not cvsFiles.has_key(file) or not cvsFiles[file]:
-		    # not in cvs, so add to removeables
-		    removables.append(absFile)
-		else:
-		    # if in CVS, see if a directory and recurse
-		    if os.path.isdir(absFile):
-			childremovables = cvsFindRemovables(absFile)
-			removables += childremovables
+        for file in os.listdir(dir):
+            if file != "CVS": # always skip "CVS" directory
+                absFile = os.path.join(dir,file)
+                if not cvsFiles.has_key(file) or not cvsFiles[file]:
+                    # not in cvs, so add to removeables
+                    removables.append(absFile)
+                else:
+                    # if in CVS, see if a directory and recurse
+                    if os.path.isdir(absFile):
+                        childremovables = cvsFindRemovables(absFile)
+                        removables += childremovables
     else:
-	print "Did not find CVS/Entries file in", dir
+        print "Did not find CVS/Entries file in", dir
 
     return removables
 
 def cvsClean(buildenv, dirs):
     allRemovables = []
     for dir in dirs:
-	dir = os.path.abspath(dir)
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", "Examining " + dir + "...")
-	removables = cvsFindRemovables(dir)
-	allRemovables += removables
+        dir = os.path.abspath(dir)
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", "Examining " + dir + "...")
+        removables = cvsFindRemovables(dir)
+        allRemovables += removables
     allRemovables.sort()
     if len(allRemovables) == 0:
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", "No local files to remove")
-	return
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", "No local files to remove")
+        return
 
     if buildenv['interactive']:
-	print
-	print "The following files and directories are not in CVS:"
-	print
-	for removable in allRemovables:
-	    print removable
-	print
-	yn = raw_input("Would you like to remove these files?  y/n: ")
+        print
+        print "The following files and directories are not in CVS:"
+        print
+        for removable in allRemovables:
+            print removable
+        print
+        yn = raw_input("Would you like to remove these files?  y/n: ")
     else:
-	yn = "y"
+        yn = "y"
 
     if yn == "y" or yn == "Y":
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", "Removing files...")
-	for removable in allRemovables:
-	    log(buildenv, HARDHAT_MESSAGE, "HardHat", removable)
-	    if os.path.isdir(removable):
-		rmdir_recursive(removable)
-	    elif os.path.isfile(removable) or os.path.islink(removable):
-		os.remove(removable)
-	    elif not os.path.exists(removable):
-		log(buildenv, HARDHAT_WARNING, "HardHat", "Tried to remove "+\
-		 removable +" but it doesn't exist")
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", "Removing files...")
+        for removable in allRemovables:
+            log(buildenv, HARDHAT_MESSAGE, "HardHat", removable)
+            if os.path.isdir(removable):
+                rmdir_recursive(removable)
+            elif os.path.isfile(removable) or os.path.islink(removable):
+                os.remove(removable)
+            elif not os.path.exists(removable):
+                log(buildenv, HARDHAT_WARNING, "HardHat", "Tried to remove "+\
+                 removable +" but it doesn't exist")
 
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", "Files removed")
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", "Files removed")
     else:
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", "Not removing files")
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", "Not removing files")
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1152,13 +1152,13 @@ def buildComplete(buildenv):
      buildenv['tar'] and \
      (buildenv['os'] == 'win' and buildenv['zip'] or \
      buildenv['os'] != 'win' and buildenv['gzip'] ):
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "All required tools found, proceeding")
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+         "All required tools found, proceeding")
     else:
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Coudln't find all necessary tools in your path \
-	  (cvs, scp, tar, zip, gzip)")
-	raise HardHatError
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+         "Coudln't find all necessary tools in your path \
+          (cvs, scp, tar, zip, gzip)")
+        raise HardHatError
 
 
     buildPrepareSource(buildenv, True)
@@ -1177,38 +1177,38 @@ def buildPrepareSource(buildenv, doCheckout=True):
     os.chdir(buildenv['workroot'])
 
     if os.path.exists("osaf"):
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Removing existing osaf under " + buildenv['workroot'])
-	rmdir_recursive("osaf")
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+         "Removing existing osaf under " + buildenv['workroot'])
+        rmdir_recursive("osaf")
 
     if os.path.exists("latest.tar"):
-	executeCommand(buildenv, "HardHat", 
-	 [buildenv['tar'], "xvf", "latest.tar"], 
-	"Untarring previous source")
+        executeCommand(buildenv, "HardHat", 
+         [buildenv['tar'], "xvf", "latest.tar"], 
+        "Untarring previous source")
 
     if doCheckout:
-	if revision:
-	    executeCommand(buildenv, "HardHat", 
-	     [buildenv['cvs'], "checkout", "-r", revision, cvsModule], 
-	    "Checking out " + cvsModule + " using tag " + revision)
-	else:
-	    executeCommand(buildenv, "HardHat", 
-	     [buildenv['cvs'], "checkout", "-A", cvsModule], 
-	    "Checking out " + cvsModule + " from HEAD")
+        if revision:
+            executeCommand(buildenv, "HardHat", 
+             [buildenv['cvs'], "checkout", "-r", revision, cvsModule], 
+            "Checking out " + cvsModule + " using tag " + revision)
+        else:
+            executeCommand(buildenv, "HardHat", 
+             [buildenv['cvs'], "checkout", "-A", cvsModule], 
+            "Checking out " + cvsModule + " from HEAD")
 
-	executeCommand(buildenv, "HardHat", 
-	 [buildenv['tar'], "cvf", "latest-temp.tar", "osaf"], 
-	"Tarring current source to " + "latest-temp.tar")
+        executeCommand(buildenv, "HardHat", 
+         [buildenv['tar'], "cvf", "latest-temp.tar", "osaf"], 
+        "Tarring current source to " + "latest-temp.tar")
 
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Renaming latest-temp.tar to latest.tar")
-	if os.path.exists("latest.tar"):
-	    os.remove("latest.tar")
-	os.rename("latest-temp.tar", "latest.tar")
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+         "Renaming latest-temp.tar to latest.tar")
+        if os.path.exists("latest.tar"):
+            os.remove("latest.tar")
+        os.rename("latest-temp.tar", "latest.tar")
 
     else:
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Skipping checkout")
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+         "Skipping checkout")
 
     log(buildenv, HARDHAT_MESSAGE, "HardHat", 
      "Latest source code prepared")
@@ -1225,49 +1225,49 @@ def buildRelease(buildenv):
      releaseId
 
     try:
-	os.chdir(buildenv['root'])
-	if os.path.exists("release"):
-	    rmdir_recursive("release")
-	buildenv['version'] = 'release'
-	history = {}
-	buildDependencies(buildenv, module, history)
-	os.chdir(buildenv['root'])
-	
-	compressedFile = compressDirectory(buildenv, "release", 
-	 compressedFileRoot)
-	
-	distribute(buildenv, module)
-	os.chdir(buildenv['root'])
-	if os.path.isdir(distName):
-	    rmdir_recursive(distName)
-	os.rename("distrib", distName)
+        os.chdir(buildenv['root'])
+        if os.path.exists("release"):
+            rmdir_recursive("release")
+        buildenv['version'] = 'release'
+        history = {}
+        buildDependencies(buildenv, module, history)
+        os.chdir(buildenv['root'])
+        
+        compressedFile = compressDirectory(buildenv, "release", 
+         compressedFileRoot)
+        
+        distribute(buildenv, module)
+        os.chdir(buildenv['root'])
+        if os.path.isdir(distName):
+            rmdir_recursive(distName)
+        os.rename("distrib", distName)
 
-	distCompressedFile = compressDirectory(buildenv, distName, 
-	 distCompressedFileRoot)
+        distCompressedFile = compressDirectory(buildenv, distName, 
+         distCompressedFileRoot)
 
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Copying tarballs")
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+         "Copying tarballs")
 
-	releasesDir = buildenv['workroot'] + os.sep + "releases"
-	releaseDir = releasesDir + os.sep + releaseId
+        releasesDir = buildenv['workroot'] + os.sep + "releases"
+        releaseDir = releasesDir + os.sep + releaseId
 
-	if not os.path.exists(releasesDir):
-	    os.mkdir(releasesDir)
-	if not os.path.exists(releaseDir):
-	    os.mkdir(releaseDir)
-	if os.path.exists(releaseDir + os.sep + compressedFile):
-	    os.remove(releaseDir + os.sep + compressedFile)
-	os.rename(compressedFile, releaseDir+os.sep+compressedFile)
-	if os.path.exists(releaseDir + os.sep + distCompressedFile):
-	    os.remove(releaseDir + os.sep + distCompressedFile)
-	os.rename(distCompressedFile, releaseDir+os.sep+distCompressedFile)
+        if not os.path.exists(releasesDir):
+            os.mkdir(releasesDir)
+        if not os.path.exists(releaseDir):
+            os.mkdir(releaseDir)
+        if os.path.exists(releaseDir + os.sep + compressedFile):
+            os.remove(releaseDir + os.sep + compressedFile)
+        os.rename(compressedFile, releaseDir+os.sep+compressedFile)
+        if os.path.exists(releaseDir + os.sep + distCompressedFile):
+            os.remove(releaseDir + os.sep + distCompressedFile)
+        os.rename(distCompressedFile, releaseDir+os.sep+distCompressedFile)
 
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Release tarballs are in " + releaseDir)
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+         "Release tarballs are in " + releaseDir)
 
     except Exception, e:
-	print e
-	
+        print e
+        
 def buildDebug(buildenv):
     releaseId = buildenv['releaseId']
     module = buildenv['module']
@@ -1276,69 +1276,69 @@ def buildDebug(buildenv):
      "_dev_debug_" + releaseId 
 
     try:
-	os.chdir(buildenv['root'])
-	if os.path.exists("debug"):
-	    rmdir_recursive("debug")
-	buildenv['version'] = 'debug'
-	history = {}
-	buildDependencies(buildenv, module, history)
-	os.chdir(buildenv['root'])
-	
-	compressedFile = compressDirectory(buildenv, "debug", 
-	 compressedFileRoot)
-	
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Copying tarball")
+        os.chdir(buildenv['root'])
+        if os.path.exists("debug"):
+            rmdir_recursive("debug")
+        buildenv['version'] = 'debug'
+        history = {}
+        buildDependencies(buildenv, module, history)
+        os.chdir(buildenv['root'])
+        
+        compressedFile = compressDirectory(buildenv, "debug", 
+         compressedFileRoot)
+        
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+         "Copying tarball")
 
-	releasesDir = buildenv['workroot'] + os.sep + "releases"
-	releaseDir = releasesDir + os.sep + releaseId
+        releasesDir = buildenv['workroot'] + os.sep + "releases"
+        releaseDir = releasesDir + os.sep + releaseId
 
-	if not os.path.exists(releasesDir):
-	    os.mkdir(releasesDir)
-	if not os.path.exists(releaseDir):
-	    os.mkdir(releaseDir)
-	if os.path.exists(releaseDir + os.sep + compressedFile):
-	    os.remove(releaseDir + os.sep + compressedFile)
-	os.rename(compressedFile, releaseDir+os.sep+compressedFile)
+        if not os.path.exists(releasesDir):
+            os.mkdir(releasesDir)
+        if not os.path.exists(releaseDir):
+            os.mkdir(releaseDir)
+        if os.path.exists(releaseDir + os.sep + compressedFile):
+            os.remove(releaseDir + os.sep + compressedFile)
+        os.rename(compressedFile, releaseDir+os.sep+compressedFile)
 
-	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-	 "Debug tarballs are in " + releaseDir)
+        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+         "Debug tarballs are in " + releaseDir)
 
     except Exception, e:
-	print e
-	
+        print e
+        
 def compressDirectory(buildenv, directory, fileRoot):
     """This assumes that directory is an immediate child of the current dir"""
     if buildenv['os'] == 'win':
-	executeCommand(buildenv, "HardHat", 
-	 [buildenv['zip'], "-r", fileRoot + ".zip", directory],
-	"Zipping up " + os.path.abspath(directory) + " to " + fileRoot + ".zip")
-	return fileRoot + ".zip"
+        executeCommand(buildenv, "HardHat", 
+         [buildenv['zip'], "-r", fileRoot + ".zip", directory],
+        "Zipping up " + os.path.abspath(directory) + " to " + fileRoot + ".zip")
+        return fileRoot + ".zip"
     else:
-	executeCommand(buildenv, "HardHat", 
-	 [buildenv['tar'], "cvf", fileRoot+".tar", directory],
-	"Tarring " + os.path.abspath(directory) + " as " + fileRoot + ".tar")
-	executeCommand(buildenv, "HardHat", 
-	 [buildenv['gzip'], "-f", fileRoot+".tar"],
-	"Running gzip on " + fileRoot + ".tar")
-	return fileRoot + ".tar.gz"
+        executeCommand(buildenv, "HardHat", 
+         [buildenv['tar'], "cvf", fileRoot+".tar", directory],
+        "Tarring " + os.path.abspath(directory) + " as " + fileRoot + ".tar")
+        executeCommand(buildenv, "HardHat", 
+         [buildenv['gzip'], "-f", fileRoot+".tar"],
+        "Running gzip on " + fileRoot + ".tar")
+        return fileRoot + ".tar.gz"
 
 
 def findInPath(path,fileName):
     dirs = path.split(os.pathsep)
     for dir in dirs:
-	if os.path.isfile(os.path.join(dir, fileName)):
-	    return os.path.join(dir, fileName)
-	if os.name == 'nt' or sys.platform == 'cygwin':
-	    if os.path.isfile(os.path.join(dir, fileName + ".exe")):
-		return os.path.join(dir, fileName + ".exe")
+        if os.path.isfile(os.path.join(dir, fileName)):
+            return os.path.join(dir, fileName)
+        if os.name == 'nt' or sys.platform == 'cygwin':
+            if os.path.isfile(os.path.join(dir, fileName + ".exe")):
+                return os.path.join(dir, fileName + ".exe")
     return None
 
 def toCygwinPath(path):
     if path[1:3] == ":\\":
-	path = path[0] + path[2:]
-	path = "/cygdrive/" + path
-	path = string.join(string.split(path, "\\"), "/")
+        path = path[0] + path[2:]
+        path = "/cygdrive/" + path
+        path = string.join(string.split(path, "\\"), "/")
     return path
 
 def toDosPath(path):

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-__version__ 	= "$Revision$"
-__date__ 	= "$Date$"
-__copyright__ 	= "Copyright (c) 2003 Open Source Applications Foundation"
-__license__	= "GPL -- see LICENSE.txt"
+__version__     = "$Revision$"
+__date__        = "$Date$"
+__copyright__   = "Copyright (c) 2003 Open Source Applications Foundation"
+__license__     = "GPL -- see LICENSE.txt"
 
 
 """
@@ -21,11 +21,11 @@ def usage():
     print "-c CVS-MODULE   which cvs module to checkout"
     print "-h              display this help message"
     print "-i RELEASE-ID   what to call this release"
-    print "-m MODULE  	   module to build (path relative to project path)"
-    print "-p PROJECT  	   project path (relative to workdir)"
-    print "-r TAG 	   which cvs revision tag to use (default is HEAD)"
+    print "-m MODULE       module to build (path relative to project path)"
+    print "-p PROJECT      project path (relative to workdir)"
+    print "-r TAG          which cvs revision tag to use (default is HEAD)"
     print "-s              skip the building of the binaries"
-    print "-w DIR   	   work directory (top level where source gets checked out)"
+    print "-w DIR          work directory (top level where source gets checked out)"
 
 # Earlier versions of Python don't define these, so let's include them here:
 True = 1
@@ -52,41 +52,41 @@ except getopt.GetoptError:
 for opt, arg in opts:
 
     if opt == "-c":
-	cvsModule = arg
+        cvsModule = arg
 
     if opt == "-h":
-	usage()
-	sys.exit(0)
+        usage()
+        sys.exit(0)
 
     if opt == "-i":
-	releaseId = arg
+        releaseId = arg
 
     if opt == "-m":
-	module = arg
+        module = arg
 
     if opt == "-p":
-	project = arg
+        project = arg
 
     if opt == "-r":
-	revision = arg
+        revision = arg
 
     if opt == "-s":
-	skipBinaries = True
+        skipBinaries = True
 
     if opt == "-w":
-	workRoot = arg
+        workRoot = arg
 
 
 if workRoot:
     if not os.path.isdir(workRoot):
-	print "Error,", workRoot, "is not a directory"
-	sys.exit(1)
+        print "Error,", workRoot, "is not a directory"
+        sys.exit(1)
 
 if workRoot:
     workRoot = os.path.abspath(workRoot)
     if string.find(workRoot, ' ') >= 0:
-	print "ERROR: -w WORKDIR ("+workRoot+") cannot contain a space.  Exiting."
-	sys.exit(1)
+        print "ERROR: -w WORKDIR ("+workRoot+") cannot contain a space.  Exiting."
+        sys.exit(1)
     print "Working directory:", workRoot
 else:
     print "No Work directory provided; please set via -w"

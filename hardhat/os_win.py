@@ -1,7 +1,7 @@
-__version__ 	= "$Revision$"
-__date__ 	= "$Date$"
-__copyright__ 	= "Copyright (c) 2003 Open Source Applications Foundation"
-__license__	= "GPL -- see LICENSE.txt"
+__version__     = "$Revision$"
+__date__        = "$Date$"
+__copyright__   = "Copyright (c) 2003 Open Source Applications Foundation"
+__license__     = "GPL -- see LICENSE.txt"
 
 """distutils.msvccompiler
 
@@ -52,21 +52,21 @@ except ImportError:
         RegError = win32api.error
 
     except ImportError:
-	try:
-	    import cygwinreg
-	    RegOpenKeyEx = cygwinreg.RegOpenKeyEx
-	    RegEnumKey = cygwinreg.RegEnumKey
-	    RegEnumValue = cygwinreg.RegEnumValue
-	    RegError = cygwinreg.RegError
-	    hkey_mod = cygwinreg
-	    if cygwinreg.checkForRegistry():
-		_can_read_reg = 1
-		_use_cygwin_mode = 1
-	    else:
-		raise hardhatlib.HardHatRegistryError
+        try:
+            import cygwinreg
+            RegOpenKeyEx = cygwinreg.RegOpenKeyEx
+            RegEnumKey = cygwinreg.RegEnumKey
+            RegEnumValue = cygwinreg.RegEnumValue
+            RegError = cygwinreg.RegError
+            hkey_mod = cygwinreg
+            if cygwinreg.checkForRegistry():
+                _can_read_reg = 1
+                _use_cygwin_mode = 1
+            else:
+                raise hardhatlib.HardHatRegistryError
 
-	except:
-	    raise hardhatlib.HardHatRegistryError
+        except:
+            raise hardhatlib.HardHatRegistryError
 
 
 if _can_read_reg:
@@ -137,11 +137,11 @@ def read_key (base, key, lowerCaseKeys):
     while 1:
         try:
             (name, value, type) = RegEnumValue(handle, i)
-	    if _use_cygwin_mode:
-		name = string.strip(name)
-		value = string.strip(value)
-		name = remove_unprintable(name)
-		value = remove_unprintable(value)
+            if _use_cygwin_mode:
+                name = string.strip(name)
+                value = string.strip(value)
+                name = remove_unprintable(name)
+                value = remove_unprintable(value)
             if lowerCaseKeys:
                 name = name.lower()
             dict[convert_mbcs(name)] = convert_mbcs(value)
@@ -155,8 +155,8 @@ def read_key (base, key, lowerCaseKeys):
 def remove_unprintable(str):
     new = []
     for c in str:
-	if c in string.printable:
-	    new.append(c)
+        if c in string.printable:
+            new.append(c)
     return string.join(new, "")
 
 
@@ -260,9 +260,9 @@ def get_msvc_paths (path, version='6.0', platform='x86'):
 
 def cygwin_path_convert(path):
     if path[1:3] == ":\\":
-	path = path[0] + path[2:]
-	path = "/cygdrive/" + path
-	path = string.join(string.split(path, "\\"), "/")
+        path = path[0] + path[2:]
+        path = "/cygdrive/" + path
+        path = string.join(string.split(path, "\\"), "/")
     return path
 
 def find_exe (exe, version_number):
@@ -274,10 +274,10 @@ def find_exe (exe, version_number):
     """
 
     for p in get_msvc_paths ('path', version_number):
-	if _use_cygwin_mode:
-	    fn = os.path.join (p, exe)
-	    fn = cygwin_path_convert(fn)
-	else:
+        if _use_cygwin_mode:
+            fn = os.path.join (p, exe)
+            fn = cygwin_path_convert(fn)
+        else:
             fn = os.path.join (os.path.abspath(p), exe)
         if os.path.isfile(fn):
             return fn
