@@ -93,9 +93,9 @@
     <columnData>date</columnData>
 
     <columnWidths>20</columnWidths>
-    <columnWidths>250</columnWidths>
-    <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
   </Table>
 
   <!-- All Summary View -->
@@ -123,9 +123,9 @@
     <columnData>date</columnData>
     
     <columnWidths>20</columnWidths>
-    <columnWidths>250</columnWidths>
-    <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
   </Table>
 
   <!-- AllMonth -->
@@ -169,9 +169,9 @@
     <columnData>date</columnData>
     
     <columnWidths>20</columnWidths>
-    <columnWidths>250</columnWidths>
-    <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
   </Table>
 
   <!-- InMonth -->
@@ -215,9 +215,9 @@
     <columnData>date</columnData>
     
     <columnWidths>20</columnWidths>
-    <columnWidths>250</columnWidths>
-    <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
   </Table>
   
   <!-- OutMonth -->
@@ -261,9 +261,9 @@
     <columnData>date</columnData>
     
     <columnWidths>20</columnWidths>
-    <columnWidths>250</columnWidths>
-    <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
   </Table>
 
   <!-- Month -->
@@ -298,9 +298,9 @@
     <columnData>date</columnData>
     
     <columnWidths>20</columnWidths>
-    <columnWidths>250</columnWidths>
-    <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
   </Table>
 
   <!-- Notes Table -->
@@ -318,9 +318,9 @@
     <columnData>date</columnData>
     
     <columnWidths>20</columnWidths>
-    <columnWidths>250</columnWidths>
-    <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
   </Table>
 
   <!-- Tasks Table -->
@@ -338,9 +338,9 @@
     <columnData>date</columnData>
     
     <columnWidths>20</columnWidths>
-    <columnWidths>250</columnWidths>
-    <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
   </Table>
 
   <!-- Mail Table -->
@@ -358,9 +358,9 @@
     <columnData>date</columnData>
     
     <columnWidths>20</columnWidths>
-    <columnWidths>250</columnWidths>
-    <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
   </Table>
 
   <LayoutChooser itsName="UntitledSummary">
@@ -387,9 +387,9 @@
     <columnData>date</columnData>
     
     <columnWidths>20</columnWidths>
-    <columnWidths>250</columnWidths>
-    <columnWidths>150</columnWidths>
-    <columnWidths>170</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
   </Table>
 
   <!-- UntitledMonth -->
@@ -418,7 +418,8 @@
 
     <eventBoundary>True</eventBoundary>
     <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.4</splitPercentage>
+    <splitPercentage>0.5</splitPercentage>
+    <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
   <!-- Tasks View -->
@@ -430,7 +431,8 @@
 
     <eventBoundary>True</eventBoundary>
     <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.4</splitPercentage>
+    <splitPercentage>0.5</splitPercentage>
+    <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
   <!-- Mail View -->
@@ -442,7 +444,8 @@
 
     <eventBoundary>True</eventBoundary>
     <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.4</splitPercentage>
+    <splitPercentage>0.5</splitPercentage>
+    <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
   <!-- Mixed View -->
@@ -454,7 +457,8 @@
 
     <eventBoundary>True</eventBoundary>
     <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.4</splitPercentage>
+    <splitPercentage>0.5</splitPercentage>
+    <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
   <!-- All View -->
@@ -466,7 +470,8 @@
 
     <eventBoundary>True</eventBoundary>
     <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.4</splitPercentage>
+    <orientationEnum>Vertical</orientationEnum>
+    <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
   <!-- In View -->
@@ -478,7 +483,8 @@
 
     <eventBoundary>True</eventBoundary>
     <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.4</splitPercentage>
+    <splitPercentage>0.5</splitPercentage>
+    <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
   <!-- Out View -->
@@ -490,7 +496,8 @@
 
     <eventBoundary>True</eventBoundary>
     <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.4</splitPercentage>
+    <splitPercentage>0.5</splitPercentage>
+    <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
   <!-- Calendar View -->
@@ -502,7 +509,8 @@
 
     <eventBoundary>True</eventBoundary>
     <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.4</splitPercentage>
+    <splitPercentage>0.5</splitPercentage>
+    <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
   <!-- Contacts View -->
@@ -514,7 +522,8 @@
 
     <eventBoundary>True</eventBoundary>
     <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.4</splitPercentage>
+    <splitPercentage>0.5</splitPercentage>
+    <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
   <!-- Untitled View -->
@@ -526,6 +535,8 @@
 
     <eventBoundary>True</eventBoundary>
     <border>0.0, 0.0, 0.0, 0.0</border>
+    <splitPercentage>0.5</splitPercentage>
+    <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
 </core:Parcel>

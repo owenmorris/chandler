@@ -1362,7 +1362,7 @@
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-    <splitPercentage>0.25</splitPercentage>
+    <splitPercentage>0.19</splitPercentage>
     <border>0.0, 0.0, 0.0, 0.0</border>
   </SplitterWindow>
   
@@ -1436,7 +1436,7 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
 
-    <size>800,650</size>
+    <size>1024,720</size>
     <border>0.0, 0.0, 0.0, 0.0</border>
   </View>
 

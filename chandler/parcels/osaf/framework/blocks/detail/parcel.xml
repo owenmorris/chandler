@@ -33,12 +33,14 @@
 
   <CharacterStyle itsName="BigTextStyle">
     <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>14</fontSize>
+    <fontSize>10</fontSize>
+    <fontStyle>bold</fontStyle>
   </CharacterStyle>
 
   <CharacterStyle itsName="LabelStyle">
     <fontFamily>DefaultUIFont</fontFamily>
-    <fontSize>12</fontSize>
+    <fontStyle>bold</fontStyle>
+    <fontSize>8</fontSize>
   </CharacterStyle>
 
   <ColorStyle itsName="GrayBackground1">
@@ -178,6 +180,9 @@
     <event itemref="doc:TogglePrivate"/>
   </ToolbarItem>
  
+  <!--
+    Detail view attribute editors
+  -->
   <ContentItemDetail itsName="FromArea"
                      itemClass="osaf.framework.blocks.detail.Detail.ToAndFromBlock">
     <blockName value="FromArea"/>
@@ -196,7 +201,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
+    <minimumSize>70, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
@@ -228,7 +233,8 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="ContactFullNameEditField"
@@ -260,7 +266,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
+    <minimumSize>70, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
@@ -293,7 +299,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
+    <minimumSize>70, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
@@ -316,30 +322,30 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <selectedItemsAttribute>about</selectedItemsAttribute>
-    <minimumSize>300, 32</minimumSize>
+    <minimumSize>300, 24</minimumSize>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
   <StaticText itsName="StaticHeadline"
               itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
     <blockName value="StaticHeadline"/>
-    <title>Subject</title>
+    <title>subject</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 32</minimumSize>
+    <minimumSize>70, 24</minimumSize>
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="EditHeadline"
             itemClass="osaf.framework.blocks.detail.Detail.EditHeadlineRedirectAttribute">
     <blockName value="EditHeadline"/>
-    <characterStyle itemref="doc:BigTextStyle"/>
+    <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>False</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>300, 32</minimumSize>
+    <minimumSize>300, 24</minimumSize>
   </EditText>
 
   <ContentItemDetail itsName="EmailAddressArea"
@@ -361,7 +367,8 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="EditEmailAddress"
@@ -392,14 +399,15 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
 
   <StaticText itsName="DateTime"
               itemClass="osaf.framework.blocks.detail.Detail.DateTimeBlock">
     <blockName value="DateTime"/>
     <title>Date/Time</title>
-    <characterStyle itemref="doc:LabelStyle"/>
+    <characterStyle itemref="doc:TextStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>200, 24</minimumSize>
@@ -409,7 +417,7 @@
               itemClass="osaf.framework.blocks.detail.Detail.KindLabel">
     <blockName value="KindLabel"/>
     <title>Kind</title>
-    <characterStyle itemref="doc:LabelStyle"/>
+    <characterStyle itemref="doc:TextStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>150, 24</minimumSize>
@@ -434,7 +442,8 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="EditCalendarStartTime"
@@ -466,7 +475,8 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="EditCalendarDuration"
@@ -498,7 +508,8 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Right</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
+    <minimumSize>70, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
   <EditText itsName="EditCalendarLocation"
