@@ -48,7 +48,7 @@ PANELS = {
                 "type" : "boolean",
             },
         },
-        "id" : "IMAPPane",
+        "id" : "IMAPPanel",
     },
     "SMTP" : {
         "fields" : {
@@ -81,7 +81,7 @@ PANELS = {
                 "type" : "string",
             },
         },
-        "id" : "SMTPPane",
+        "id" : "SMTPPanel",
     },
     "WebDAV" : {
         "fields" : {
@@ -114,21 +114,39 @@ PANELS = {
                 "type" : "boolean",
             },
         },
-        "id" : "WebDAVPane",
+        "id" : "WebDAVPanel",
     },
 }
 
 class AccountPreferencesDialog(wx.Dialog):
-    def __init__(self, parent, resources):
-        pre = wx.PreDialog()
+
+    def __init__(self, parent, title, size=wx.DefaultSize,
+         pos=wx.DefaultPosition, style=wx.DEFAULT_DIALOG_STYLE, resources=None):
+
+        wx.Dialog.__init__(self, parent, -1, title, pos, size, style)
+
         self.resources = resources
-        resources.LoadOnDialog(pre, parent, 'AccountPrefsDialog')
-        self.this = pre.this
+
+        # innerSizer will have two children to manage: on the left is the
+        # AccountsPanel and on the right is the switchable detail panel
+        self.innerSizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.accountsPanel = self.resources.LoadPanel(self, "AccountsPanel")
+        self.innerSizer.Add(self.accountsPanel, 0, wx.ALIGN_TOP|wx.ALL, 5)
+
+        # outerSizer will have two children to manage: on top is innerSizer,
+        # and below that is the OkCancelPanel
+        self.outerSizer = wx.BoxSizer(wx.VERTICAL)
+        self.outerSizer.Add(self.innerSizer, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+        self.okCancelPanel = self.resources.LoadPanel(self, "OkCancelPanel")
+        self.outerSizer.Add(self.okCancelPanel, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+
+        self.SetSizer(self.outerSizer)
+        self.outerSizer.Fit(self)
 
         self.accountsList = wx.xrc.XRCCTRL(self, "ACCOUNTS_LIST")
-        self.detailsPanel = wx.xrc.XRCCTRL(self, "DETAILS_PANEL")
         self.currentIndex = None # the list index of account in detail panel
         self.currentPanelType = None
+        self.currentPanel = None # whatever detail panel we swap in
         self.data = [ ]
 
         wx.EVT_BUTTON( self, wx.xrc.XRCID( "OK_BUTTON" ), self.OnOk )
@@ -144,7 +162,7 @@ class AccountPreferencesDialog(wx.Dialog):
             be editing. """
 
         # Make sure we're sync'ed with any changes other threads have made
-        repo.commit()
+        repo.refresh()
 
         accountKind = pm.lookup(MAIL_MODEL, "AccountBase")
         webDavAccountKind = pm.lookup(WEBDAV_MODEL, "WebDAVAccount")
@@ -184,18 +202,25 @@ class AccountPreferencesDialog(wx.Dialog):
             (if any) contents to the data list, destroy current pane, determine
             type of pane to pull in, load it, populated it. """
 
+
+        if index == self.currentIndex: return
+
         if self.currentIndex != None:
             # Get current form data and tuck it away
             self.__StoreFormData(self.currentPanelType, self.currentPanel,
              self.data[self.currentIndex]['values'])
-            self.detailsPanel.DestroyChildren()
+            self.currentPanel.Destroy()
 
         self.currentIndex = index
         self.currentPanelType = self.data[index]['item'].accountType
-        self.currentPanel = self.resources.LoadPanel(self.detailsPanel,
+        self.currentPanel = self.resources.LoadPanel(self,
          PANELS[self.currentPanelType]['id'])
         self.__FetchFormData(self.currentPanelType, self.currentPanel,
          self.data[index]['values'])
+
+        self.innerSizer.Add(self.currentPanel, 0, wx.ALIGN_CENTRE|wx.ALL, 5)
+        self.outerSizer.Fit(self)
+
 
     def __StoreFormData(self, panelType, panel, data):
         for field in PANELS[panelType]['fields'].keys():
@@ -238,7 +263,8 @@ def ShowAccountPreferencesDialog(parent):
         xrcFile = os.path.join(application.Globals.chandlerDirectory,
          'application', 'dialogs', 'AccountPreferences_wdr.xrc')
         resources = wx.xrc.XmlResource(xrcFile)
-        win = AccountPreferencesDialog(parent, resources)
+        win = AccountPreferencesDialog(parent, "Account Preferences",
+         resources=resources)
         win.CenterOnScreen()
         val = win.ShowModal()
         win.Destroy()

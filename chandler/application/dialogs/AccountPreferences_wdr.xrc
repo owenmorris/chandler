@@ -4,74 +4,7 @@
 
 <resource>
 
-<object class="wxDialog" name="AccountPrefsDialog">
-    <title>Account Preferences</title>
-    <object class="wxBoxSizer" name="OUTER_SIZER">
-        <orient>wxVERTICAL</orient>
-        <object class="sizeritem">
-            <flag>wxALL</flag>
-            <border>5</border>
-            <object class="wxBoxSizer" name="LIST_AND_DETAILS_SIZER">
-                <orient>wxHORIZONTAL</orient>
-                <object class="sizeritem">
-                    <flag>wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL</flag>
-                    <border>5</border>
-                    <object class="wxBoxSizer" name="LIST_SIZER">
-                        <orient>wxVERTICAL</orient>
-                        <object class="sizeritem">
-                            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
-                            <border>5</border>
-                            <object class="wxStaticText" name="ID_TEXT">
-                                <label>Accounts</label>
-                            </object>
-                        </object>
-                        <object class="sizeritem">
-                            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
-                            <border>5</border>
-                            <object class="wxListBox" name="ACCOUNTS_LIST">
-                                <size>150,180</size>
-                                <style>wxLB_SINGLE</style>
-                                <content>
-                                </content>
-                            </object>
-                        </object>
-                    </object>
-                </object>
-                <object class="sizeritem">
-                    <flag>wxALIGN_CENTER_HORIZONTAL|wxALL</flag>
-                    <border>5</border>
-                    <object class="wxPanel" name="DETAILS_PANEL">
-                        <size>330,270</size>
-                    </object>
-                </object>
-            </object>
-        </object>
-        <object class="sizeritem">
-            <flag>wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL</flag>
-            <border>5</border>
-            <object class="wxBoxSizer">
-                <orient>wxHORIZONTAL</orient>
-                <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
-                    <border>5</border>
-                    <object class="wxButton" name="OK_BUTTON">
-                        <label>OK</label>
-                        <default>1</default>
-                    </object>
-                </object>
-                <object class="sizeritem">
-                    <flag>wxALIGN_CENTER|wxALL</flag>
-                    <border>5</border>
-                    <object class="wxButton" name="CANCEL_BUTTON">
-                        <label>Cancel</label>
-                    </object>
-                </object>
-            </object>
-        </object>
-    </object>
-</object>
-
-<object class="wxPanel" name="SMTPPane">
+<object class="wxPanel" name="SMTPPanel">
     <object class="wxBoxSizer">
         <orient>wxVERTICAL</orient>
         <object class="sizeritem">
@@ -217,7 +150,7 @@
     </object>
 </object>
 
-<object class="wxPanel" name="IMAPPane">
+<object class="wxPanel" name="IMAPPanel">
     <object class="wxBoxSizer">
         <orient>wxVERTICAL</orient>
         <object class="sizeritem">
@@ -383,7 +316,7 @@
     </object>
 </object>
 
-<object class="wxPanel" name="WebDAVPane">
+<object class="wxPanel" name="WebDAVPanel">
     <object class="wxBoxSizer">
         <orient>wxVERTICAL</orient>
         <object class="sizeritem">
@@ -527,6 +460,50 @@
                         </object>
                     </object>
                 </object>
+            </object>
+        </object>
+    </object>
+</object>
+
+<object class="wxPanel" name="AccountsPanel">
+    <object class="wxBoxSizer">
+        <orient>wxVERTICAL</orient>
+        <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <border>5</border>
+            <object class="wxStaticText" name="ID_TEXT">
+                <label>Accounts</label>
+            </object>
+        </object>
+        <object class="sizeritem">
+            <flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
+            <border>5</border>
+            <object class="wxListBox" name="ACCOUNTS_LIST">
+                <size>150,180</size>
+                <style>wxLB_SINGLE</style>
+                <content>
+                </content>
+            </object>
+        </object>
+    </object>
+</object>
+
+<object class="wxPanel" name="OkCancelPanel">
+    <object class="wxBoxSizer">
+        <orient>wxHORIZONTAL</orient>
+        <object class="sizeritem">
+            <flag>wxALIGN_CENTER|wxALL</flag>
+            <border>5</border>
+            <object class="wxButton" name="OK_BUTTON">
+                <label>OK</label>
+                <default>1</default>
+            </object>
+        </object>
+        <object class="sizeritem">
+            <flag>wxALIGN_CENTER|wxALL</flag>
+            <border>5</border>
+            <object class="wxButton" name="CANCEL_BUTTON">
+                <label>Cancel</label>
             </object>
         </object>
     </object>
