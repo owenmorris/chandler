@@ -1,23 +1,31 @@
 # Chandler blueprint
 
-import os, hardhatutil, sys
+"""
+Notes:
+Start() is responsible for capturing all pertinent output to the open file
+object, log.  True is returned if a new build was created, False is returned
+if no code has changed, and an exception is raised if there are problems.
+"""
 
+# To appease older Pythons:
 True = 1
 False = 0
+
+
+import os, hardhatutil, sys
+
 
 treeName = "Chandler"
 
 def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
-    print "cvs vintage:", cvsVintage
-
-    # make sure workingDir is absolute
+    # make sure workingDir is absolute, remove it, and create it
     workingDir = os.path.abspath(workingDir)
-
     if not os.path.exists(workingDir):
         os.mkdir(workingDir)
     os.chdir(workingDir)
 
+    # remove outputDir and create it
     outputDir = os.path.join(workingDir, "output")
     if os.path.exists(outputDir):
         hardhatutil.rmdirRecursive(outputDir)
@@ -28,6 +36,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
      buildVersion, clobber, log)
 
     if not ret:
+        # the code hasn't changed
         return False
 
     # do release
@@ -76,15 +85,10 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     log.write("Performing " + mode + " build, version " + buildVersion + "\n")
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
-    print buildVersion, buildVersionEscaped
 
     path = os.environ.get('PATH', os.environ.get('path'))
-    print "Path =", path
 
     cvsProgram = hardhatutil.findInPath(path, "cvs")
-    print "CVS =", cvsProgram
-
-    print "HardHat = ", hardhatScript
 
     modeDir = os.path.join(workingDir, mode)
 
@@ -99,13 +103,9 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
     if clobber:
         if os.path.exists(modeDir):
-            print "removing", modeDir
-            log.write("removing " + modeDir + "\n")
             hardhatutil.rmdirRecursive(modeDir)
 
     if not os.path.exists(modeDir):
-        print "creating", modeDir
-        log.write("creating " + modeDir + "\n")
         os.mkdir(modeDir)
 
     os.chdir(modeDir)
@@ -115,10 +115,10 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     newModules = False
     changesAtAll = False
 
+    print "Examining CVS"
+    log.write("Examining CVS\n")
     for module in cvsModules:
-        print "- - - -", module, "- - - - - - - - - - - - - - - - -"
         log.write("- - - - " + module + " - - - - - - -\n")
-
         moduleData[module] = {}
         moduleDir = os.path.join(modeDir, module)
         # does module's directory exist?
@@ -131,39 +131,37 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             log.write("Checking out: " + module + " with " + cvsVintage + "\n")
             outputList = hardhatutil.executeCommandReturnOutputRetry(
              [cvsProgram, "-q", "checkout", cvsVintage, module])
-            dumpOutputList(outputList, log)
+            hardhatutil.dumpOutputList(outputList, log)
         else:
             # it exists, see if it has changed
             os.chdir(moduleDir)
-            print "seeing if we need to update", module
+            # print "seeing if we need to update", module
             log.write("Seeing if we need to update " + module + "\n")
             outputList = hardhatutil.executeCommandReturnOutputRetry(
              [cvsProgram, "-qn", "update", "-d", cvsVintage])
-            # dumpOutputList(outputList, log)
+            # hardhatutil.dumpOutputList(outputList, log)
             if NeedsUpdate(outputList):
-                print "YES"
+                print "" + module + " needs updating"
                 changesAtAll = True
                 moduleData[module]["changed"] = 1
                 # update it
                 os.chdir(moduleDir)
-                print "updating", module
                 log.write("Module out of date; updating: " + module + " with " + cvsVintage + "\n")
                 outputList = hardhatutil.executeCommandReturnOutputRetry(
                  [cvsProgram, "-q", "update", "-d", cvsVintage])
-                dumpOutputList(outputList, log)
+                hardhatutil.dumpOutputList(outputList, log)
                 if scrubAllModules.has_key(module):
-                    print "we need to scrub everything"
-                    log.write("Scrubbing everything before build\n")
+                    # print "we need to scrub everything"
+                    # log.write("Scrubbing everything before build\n")
                     needToScrubAll = True
             else:
-                print "NO, unchanged"
+                # print "NO, unchanged"
                 log.write("Module unchanged" + "\n")
                 moduleData[module]["changed"] = 0
 
     log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
     log.write("Done with CVS\n")
     mainModuleDir = os.path.join(modeDir, mainModule)
-    print "Main module dir =", mainModuleDir
 
     if not changesAtAll:
         return False
@@ -178,13 +176,11 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
              [hardhatScript, "-nS"])
         except Exception, e:
             log.write("***Error during scrub***" + "\n")
-            dumpOutputList(outputList, log)
+            CopyLog(os.path.join(modeDir, logPath), log)
             raise e
 
         libraryDir = os.path.join(modeDir, "osaf", "chandler", mode)
         if os.path.exists(libraryDir):
-            print "removing", libraryDir
-            log.write("removing " + libraryDir + "\n")
             hardhatutil.rmdirRecursive(libraryDir)
     else:
         os.chdir(mainModuleDir)
@@ -196,7 +192,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
              [hardhatScript, "-ns"])
         except Exception, e:
             log.write("***Error during scrub***" + "\n")
-            dumpOutputList(outputList, log)
+            CopyLog(os.path.join(modeDir, logPath), log)
             raise e
 
     os.chdir(mainModuleDir)
@@ -215,6 +211,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             outputList = hardhatutil.executeCommandReturnOutput(
              [hardhatScript, "-o", outputDir, "-d"+bigBLittleB+"t", 
              "-D", buildVersionEscaped])
+
         if mode == "release":
             print "Building release"
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
@@ -222,22 +219,17 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             outputList = hardhatutil.executeCommandReturnOutput(
              [hardhatScript, "-o", outputDir, "-r"+bigBLittleB+"t", 
              "-D", buildVersionEscaped])
+
     except Exception, e:
         print "a build error"
         log.write("***Error during build***" + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("HardHat Summary Log:\n")
-        dumpOutputList(outputList, log)
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("Detailed Build :og:" + "\n")
+        log.write("Build log:" + "\n")
         CopyLog(os.path.join(modeDir, logPath), log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         raise e
     else:
         log.write("Build successful" + "\n")
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("HardHat Summary Log:\n")
-        dumpOutputList(outputList, log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Detailed Build :og:" + "\n")
         CopyLog(os.path.join(modeDir, logPath), log)
@@ -245,13 +237,6 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
     return True  # end of Do( )
 
-
-def dumpOutputList(outputList, fd = None):
-    for line in outputList:
-        print "   "+ line,
-        if fd:
-            fd.write(line)
-    print
 
 
 def NeedsUpdate(outputList):

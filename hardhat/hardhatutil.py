@@ -61,7 +61,7 @@ def executeCommandReturnOutputRetry(args):
     # args = map(quoteString, args)
 
     args_str = ' '.join(args)
-    print args_str
+    # print args_str
 
     attempt = 1
     while attempt <= 5:
@@ -102,6 +102,12 @@ def executeCommandReturnOutput(args):
 
     return outputList
 
+def dumpOutputList(outputList, fd = None):
+    for line in outputList:
+        print "   "+ line,
+        if fd:
+            fd.write(line)
+    print
 
 class MissingFileError(Exception):
     """ Exception thrown when we can't find a file """

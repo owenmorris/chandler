@@ -3,8 +3,9 @@
 # tinderbox build client script for continuously building a project and
 # reporting to a tinderbox server
 
-False = 0
+# To appease older Pythons:
 True = 1
+False = 0
 
 # must be run from the hardhat directory, which will be updated to the
 # appropriate CVS vintage by this script, so it's a good idea to first
@@ -77,10 +78,17 @@ def main():
 
 
         log = open(logFile, "w")
+        log.write("Start: " + nowString + "\n")
+
         try:
-            # bring this hardhat directory up to date
-            outputList = hardhatutil.executeCommandReturnOutputRetry(
-             [cvsProgram, "update", "-D'"+ nowString + "'"])
+
+            try:
+                # bring this hardhat directory up to date
+                outputList = hardhatutil.executeCommandReturnOutputRetry(
+                 [cvsProgram, "update", "-D'"+ nowString + "'"])
+            except:
+                hardhatutil.dumpOutputList(outputList, log)
+                raise TinderbuildError, "Error updating HardHat"
 
             # load (or reload) the buildscript file for the project
             mod = hardhatutil.ModuleFromFile(buildscriptFile, "buildscript")
@@ -90,23 +98,27 @@ def main():
             SendMail(fromAddr, toAddr, startTime, buildName, "building", 
              treeName, None)
 
-            log.write("Start = " + nowString + "\n")
-
             ret = mod.Start(hardhatFile, buildDir, "-D'"+ nowString + "'", 
              buildVersion, 0, log)
+
+        except TinderbuildError, e:
+            print e
+            print "Tinderbuild:  Build failed"
+            log.write("Tinderbuild:  Build failed\n")
+            status = "build_failed"
 
         except Exception, e:
             print e
             print "Build failed"
             log.write("Build failed\n")
             status = "build_failed"
+
         else:
             if ret:
                 print "There were changes, and the build was successful"
                 log.write("There were changes, and the build was successful\n")
                 status = "success"
                 newDir = os.path.join(outputDir, buildVersion)
-                print "newDir =", newDir
                 os.rename(os.path.join(buildDir, "output"), newDir)
                 log.write("Calling CreateIndex with " + newDir + "\n")
                 if os.path.exists(outputDir+os.sep+"index.html"):
@@ -155,9 +167,12 @@ def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logConten
     if logContents:
         msg  = msg + logContents
 
-    server = smtplib.SMTP('mail.osafoundation.org')
-    server.sendmail(fromAddr, toAddr, msg)
-    server.quit()
+    try:
+        server = smtplib.SMTP('mail.osafoundation.org')
+        server.sendmail(fromAddr, toAddr, msg)
+        server.quit()
+    except Exception, e:
+        print "SendMail error", e
 
 def RotateDirectories(dir):
     """Removes all but the 3 newest subdirectories from the given directory;
@@ -196,5 +211,8 @@ def _readFile(path):
     return line.strip()
 
 
+class TinderbuildError(Exception):
+    def __init__(self, args=None):
+        self.args = args
 
 main()
