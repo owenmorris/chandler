@@ -366,6 +366,12 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
+  <BlockEvent itsName="EditCollectionRule">
+    <blockName>EditCollectionRule</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+
   <BlockEvent itsName="ShowPyCrust">
     <blockName>ShowPyCrust</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -482,6 +488,7 @@
     <childrenBlocks itemref="doc:GenerateContactItem"/>
     <childrenBlocks itemref="doc:GenerateCalendarItem"/>
     <childrenBlocks itemref="doc:GenerateNoteItem"/>
+    <childrenBlocks itemref="doc:EditCollectionRuleItem"/>
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:ShareCollectionItem"/>
     <childrenBlocks itemref="doc:SyncCollectionItem"/>
@@ -1077,6 +1084,13 @@
     <title>Subscribe to Collection...</title>
     <event itemref="doc:SharingSubscribeToCollection"/>
     <helpString>Subscribe to a published item collection</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="EditCollectionRuleItem">
+    <blockName>EditCollectionRuleItem</blockName>
+    <title>Edit collection rule...</title>
+    <event itemref="doc:EditCollectionRule"/>
+    <helpString>Edit the rule of a collection</helpString>
   </MenuItem>
 
   <MenuItem itsName="GetNewMailItem">

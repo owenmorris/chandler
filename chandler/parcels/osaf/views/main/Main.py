@@ -456,6 +456,14 @@ class MainView(View):
         # Triggered from "Tests | Subscribe to collection..."
         Sharing.manualSubscribeToCollection(self.itsView)
 
+    def onEditCollectionRuleEvent(self, event):
+        # Triggered from "Tests | Edit collection rule..."
+        collection = self.getSidebarSelectedCollection ()
+        if collection is not None:
+            rule = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "Edit rule", "Enter a rule for this collection", str(collection.getRule()))
+            if rule:
+                collection.setRule(rule)
+
     def onShowColumnEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
         event.arguments ['Check'] = True
