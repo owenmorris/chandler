@@ -69,18 +69,16 @@ class ChandlerWindow(wxFrame):
 
         components = []
         for package in componentDirectory:
-            loaderName = string.capwords(package) + 'Loader'
-            path = package + '.' + loaderName
-            exec('from ' + path + ' import *')
-            exec('loader = ' + loaderName + '(parent, self)')
-            components.append(loader)
+            if package != 'CVS':
+                loaderName = string.capwords(package) + 'Loader'
+                path = package + '.' + loaderName
+                exec('from ' + path + ' import *')
+                exec('loader = ' + loaderName + '(parent, self)')
+                components.append(loader)
         return components
  
     # Must optimize this method
     def SelectComponent(self, component, viewName):
-        oldComponent = 'I dont know'
-        oldViewName = 'I dont know'
-        self.locationBar.AddLocationHistory("jed", "jed")
         newView = component.GetViewNamed(viewName)
         if newView != self.displayPanel:        
             self.bodyPanelSizer.Remove(self.displayPanel)
