@@ -94,9 +94,9 @@ class WindowManager(Persistent):
         things, this will include the email, calendar, and contacts
         components.  In order for a component to be successfully loaded, it
         must have it's own folder in the components directory of Chandler, 
-        that folder must contain an __init__.py file, and it must have a file
-        that subclasses Component and is named the same as the package name,
-        but with a capitalized first letter.
+        that folder must contain an __init__.py file, it must have a file
+        that subclasses Component, and it must have a data.xrc file in a 
+        resources directory.
 
         Returns a list of tuples, with each tuple containing the information
         necessary to load a single component.  The first item in the tuple is
@@ -105,14 +105,40 @@ class WindowManager(Persistent):
         componentDirectory = os.listdir(COMPONENTS_DIRECTORY)
 
         componentStrings = []
-        
+        reader = XmlReader()
         for package in componentDirectory:
-            if package != 'CVS' and package[:8] != '__init__':
-                componentName = string.capwords(package)
+            try:
+                componentName = self.GetBaseClassFromXml(reader, package)
                 path = 'components.' + package + '.' + componentName
                 componentStrings.append((componentName, path))
+            except:
+                # If it isn't a component (i.e extraneous folder) then
+                # we don't want to say anything.  If it is a component,
+                # but the xml is misformatted, we have already said all
+                # we need to say
+                pass
         self._windowData['componentList'] = componentStrings
-        
+
+    def GetBaseClassFromXml(self, reader, package):
+        """Given a possible package name, sees if it actually is a component.
+        It does this by first looking for a data.xrc file.  If it cannot find
+        one, it raises an error indicating that this is not a component.  If 
+        it does find the data.xrc file, it returns the base class that
+        represents this component.  If the file is improperly formatted or 
+        does not contain the necessary information, it prints a message
+        indicating so and raises an exception."""
+        try:
+            dict = reader.ReadXmlFile('components/' + package + '/resources/data.xrc')
+        except:
+            raise "Not component"
+        try:
+            componentName = dict['resource']['ComponentClass']
+        except:
+            print 'Could not find proper information in Component XML file'
+            print 'Failed to load component:  ' + package            
+            raise "Bad XML File"
+        return componentName
+    
     def __NewWindowInfo(self):
         """Whenever a new window is created, we call this method to determine
         what that new window's size and position should be.  We first look
@@ -174,7 +200,7 @@ class WindowManager(Persistent):
         """Remove the window from the list of open windows.  Should only be
         called right before the window is closed."""
         self._windowData['windowList'].remove(win)
-                
+        
     def QuitApp(self):
         """Quit the application by closing all open windows."""
         windowsToClose = self._windowData['windowList'][:]
