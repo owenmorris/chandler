@@ -13,3 +13,21 @@
     * added model classes AgentItem, Action, Condition, Instruction, Repertoire
     * added Agent and AgentManager classes
     
+2003-09-02 Andy Hertzfeld <andy@differnet.com>
+
+    * restructured the main loop to dispatch instructions faster, by maintaining a hash
+      table that associates instructions with notifications, so it only has to
+      dispatch to the relevant instructions
+      
+    * made instructions only have one condition, instead of a list of conditions
+    
+2003-09-03 Andy Hertzfeld <andy@differnet.com>
+
+    * at Andrew Francis' urging, made Conditions no longer inherit from Action,
+    we will do polled conditions some other way
+    
+    * added text filtering to conditions, so they can select a data attribute
+    from the notification and only trigger if it matches a string in the
+    condition.  Three comparison modes are provides: equals, contains, and matches,
+    where matches treats the string in the condtion as a regular expression.
+    
