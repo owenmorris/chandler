@@ -29,7 +29,7 @@ class View(BoxContainer):
             member (block, notification)
             return True
         
-        def bubleUpCallMethod (block, methodName, notification):
+        def bubbleUpCallMethod (block, methodName, notification):
             """
               Call a method on a block or if it doesn't handle it try it's parents
             """
@@ -89,11 +89,11 @@ class View(BoxContainer):
 
         elif event.dispatchEnum == 'FocusBubbleUp':
             block = self.getFocusBlock()
-            bubleUpCallMethod (block, methodName, notification)
+            bubbleUpCallMethod (block, methodName, notification)
 
         elif event.dispatchEnum == 'ActiveViewBubbleUp':
             block = Globals.activeView
-            bubleUpCallMethod (block, methodName, notification)
+            bubbleUpCallMethod (block, methodName, notification)
 
         elif __debug__:
             assert (False)
