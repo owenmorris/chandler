@@ -11,11 +11,14 @@ import _misc
 import _core
 wx = _core 
 __docfilter__ = wx.__DocFilter(globals()) 
-wxCOLUMNHEADER_JustLeft = _colheader.wxCOLUMNHEADER_JustLeft
-wxCOLUMNHEADER_JustCenter = _colheader.wxCOLUMNHEADER_JustCenter
-wxCOLUMNHEADER_JustRight = _colheader.wxCOLUMNHEADER_JustRight
-wxCOLUMNHEADER_HITTEST_NOWHERE = _colheader.wxCOLUMNHEADER_HITTEST_NOWHERE
-wxCOLUMNHEADER_HITTEST_ITEM_ZERO = _colheader.wxCOLUMNHEADER_HITTEST_ITEM_ZERO
+wxCOLUMNHEADER_JUST_Left = _colheader.wxCOLUMNHEADER_JUST_Left
+wxCOLUMNHEADER_JUST_Center = _colheader.wxCOLUMNHEADER_JUST_Center
+wxCOLUMNHEADER_JUST_Right = _colheader.wxCOLUMNHEADER_JUST_Right
+wxCOLUMNHEADER_FLAGATTR_Enabled = _colheader.wxCOLUMNHEADER_FLAGATTR_Enabled
+wxCOLUMNHEADER_FLAGATTR_Selected = _colheader.wxCOLUMNHEADER_FLAGATTR_Selected
+wxCOLUMNHEADER_FLAGATTR_SortDirection = _colheader.wxCOLUMNHEADER_FLAGATTR_SortDirection
+wxCOLUMNHEADER_HITTEST_NoPart = _colheader.wxCOLUMNHEADER_HITTEST_NoPart
+wxCOLUMNHEADER_HITTEST_ItemZero = _colheader.wxCOLUMNHEADER_HITTEST_ItemZero
 class wxColumnHeaderEvent(_core.wxCommandEvent):
     def __repr__(self):
         return "<%s.%s; proxy of C++ wxColumnHeaderEvent instance at %s>" % (self.__class__.__module__, self.__class__.__name__, self.this,)
@@ -35,8 +38,8 @@ _colheader.wxColumnHeaderEvent_swigregister(wxColumnHeaderEventPtr)
 
 wxEVT_COLUMNHEADER_DOUBLECLICKED = _colheader.wxEVT_COLUMNHEADER_DOUBLECLICKED
 wxEVT_COLUMNHEADER_SELCHANGED = _colheader.wxEVT_COLUMNHEADER_SELCHANGED
-EVT_COLUMNHEADER_DOUBLECLICKED =  wx.PyEventBinder( wxEVT_COLUMNHEADER_DOUBLECLICKED, 1)
-EVT_COLUMNHEADER_SELCHANGED =     wx.PyEventBinder( wxEVT_COLUMNHEADER_SELCHANGED, 1)
+EVT_COLUMNHEADER_DOUBLECLICKED =  wx.PyEventBinder(wxEVT_COLUMNHEADER_DOUBLECLICKED, 1)
+EVT_COLUMNHEADER_SELCHANGED =     wx.PyEventBinder(wxEVT_COLUMNHEADER_SELCHANGED, 1)
 
 class wxColumnHeader(_core.wxControl):
     def __repr__(self):
@@ -84,28 +87,28 @@ class wxColumnHeader(_core.wxControl):
         return _colheader.wxColumnHeader_DeleteItem(*args, **kwargs)
 
     def GetLabelText(*args, **kwargs):
-        """GetLabelText(self, long itemIndex, wxString textBuffer, long textJust) -> bool"""
+        """GetLabelText(self, long itemIndex) -> wxString"""
         return _colheader.wxColumnHeader_GetLabelText(*args, **kwargs)
 
     def SetLabelText(*args, **kwargs):
-        """SetLabelText(self, long itemIndex, wxString textBuffer, long textJust) -> bool"""
+        """SetLabelText(self, long itemIndex, wxString textBuffer, long textJust)"""
         return _colheader.wxColumnHeader_SetLabelText(*args, **kwargs)
 
     def GetUIExtent(*args, **kwargs):
-        """GetUIExtent(self, long itemIndex, long originX, long extentX) -> bool"""
+        """GetUIExtent(self, long itemIndex) -> wxPoint"""
         return _colheader.wxColumnHeader_GetUIExtent(*args, **kwargs)
 
     def SetUIExtent(*args, **kwargs):
-        """SetUIExtent(self, long itemIndex, long originX, long extentX) -> bool"""
+        """SetUIExtent(self, long itemIndex, wxPoint extentPt)"""
         return _colheader.wxColumnHeader_SetUIExtent(*args, **kwargs)
 
-    def GetFlags(*args, **kwargs):
-        """GetFlags(self, long itemIndex, bool bActive, bool bEnabled, bool bSortAscending) -> bool"""
-        return _colheader.wxColumnHeader_GetFlags(*args, **kwargs)
+    def GetFlagAttribute(*args, **kwargs):
+        """GetFlagAttribute(self, long itemIndex, int flagEnum) -> bool"""
+        return _colheader.wxColumnHeader_GetFlagAttribute(*args, **kwargs)
 
-    def SetFlags(*args, **kwargs):
-        """SetFlags(self, long itemIndex, bool bActive, bool bEnabled, bool bSortAscending) -> bool"""
-        return _colheader.wxColumnHeader_SetFlags(*args, **kwargs)
+    def SetFlagAttribute(*args, **kwargs):
+        """SetFlagAttribute(self, long itemIndex, int flagEnum, bool bFlagValue) -> bool"""
+        return _colheader.wxColumnHeader_SetFlagAttribute(*args, **kwargs)
 
 
 class wxColumnHeaderPtr(wxColumnHeader):
