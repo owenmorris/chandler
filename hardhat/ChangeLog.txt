@@ -1,0 +1,16 @@
+# ChangeLog for HardHat
+
+2003-07-01 Morgen Sagen
+
+    * -D (create distribution) now takes a parameter which is a string that
+        will be used as a build version (and this gets put into version.py,
+        as well as incorporated into the distro filenames
+
+    * tinderbox builds now work (tinderbuild.py)
+
+    * singlebuild.py is a script which will build a Chandler from any date
+        or CVS tag
+
+    * tinderbuild.py and singlebuild.py are both clients of 
+        buildscripts/chandler.py which contains the instructions for
+        how to do a complete Chandler build
