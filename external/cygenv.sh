@@ -31,6 +31,6 @@ DevEnvDir=$VSINSTALLDIR
 MSVCDir=$VCINSTALLDIR/VC7
 
 export PATH="$DevEnvDir":"$MSVCDir/BIN":"$VS71COMNTOOLS":"$VS71COMNTOOLS/bin/prerelease":"$VS71COMNTOOLS/bin":"$PATH"
-export INCLUDE="$MSVCDir/ATLMFC/INCLUDE":"$MSVCDir/INCLUDE":"$MSVCDir/PlatformSDK/include/prerelease":"$MSVCDir"/PlatformSDK/include:"$INCLUDE"
+export INCLUDE="$MSVCDir/ATLMFC/INCLUDE":"$MSVCDir/INCLUDE":"$MSVCDir/PlatformSDK/include/prerelease":"$MSVCDir/PlatformSDK/include":"$INCLUDE"
 export LIB="$MSVCDir/ATLMFC/LIB":"$MSVCDir/LIB":"$MSVCDir/PlatformSDK/lib/prerelease":"$MSVCDir/PlatformSDK/lib":"$LIB"
 
