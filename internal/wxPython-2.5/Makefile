@@ -1,9 +1,8 @@
 
 include ../Makefile.inc
 
-VERSION=2.5.2.9
-RELVER=$(VERSION)-1
-SRC=$(INTERNAL)/wxPython-$(VERSION)
+RELVER=2.5.2.9-1
+SRC=$(INTERNAL)/wxPython-2.5
 
 ifeq ($(DEBUG),1)
 CONF_OPT=--enable-debug
