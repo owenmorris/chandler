@@ -15,7 +15,6 @@ from application.SplashScreen import SplashScreen
 from application.Parcel import Manager as ParcelManager
 from osaf.mail.imap import IMAPDownloader
 import osaf.contentmodel.contacts.Contacts as Contacts
-import osaf.framework.utils.imports.OutlookContacts as OutlookContacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 from repository.persistence.RepositoryError import VersionConflictError
 from repository.item.Item import Item
@@ -127,9 +126,6 @@ class MainView(View):
     def onGenerateContactsEvent(self, notification):
         GenerateItems.GenerateContacts(10)
         Globals.repository.commit()
-
-    def onImportContactsEvent(self, notification):
-        x=OutlookContacts.OutlookContacts().processFile()
 
     def onGenerateNotesEvent(self, notification):
         GenerateItems.GenerateNotes(10)

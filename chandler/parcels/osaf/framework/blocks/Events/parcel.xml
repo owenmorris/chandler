@@ -40,7 +40,6 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:EnterPressed"/>
     <subscribeAlwaysEvents itemref="events:GenerateContentItems"/>
     <subscribeAlwaysEvents itemref="events:GenerateContacts"/>
-    <subscribeAlwaysEvents itemref="events:ImportContacts"/>
     <subscribeAlwaysEvents itemref="events:GenerateNotes"/>
     <subscribeAlwaysEvents itemref="events:GenerateCalendarEventItems"/>    
     <subscribeAlwaysEvents itemref="events:CheckRepository"/>
@@ -151,10 +150,6 @@ of a limitation of the XML format, which will be eliminated</description>
   </BlockEvent>
 
   <BlockEvent itsName="GenerateContacts">
-    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="ImportContacts">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 

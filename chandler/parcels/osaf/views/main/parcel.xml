@@ -286,7 +286,6 @@
     <childrenBlocks itemref="doc:GenerateContactItem"/>
     <childrenBlocks itemref="doc:GenerateCalendarItem"/>
     <childrenBlocks itemref="doc:GenerateNoteItem"/>
-    <childrenBlocks itemref="doc:ImportContactItem"/>
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:ShareCollectionItem"/>
     <childrenBlocks itemref="doc:SyncCollectionItem"/>
@@ -759,13 +758,6 @@
     <title>Generate Notes</title>
     <event itemref="events:GenerateNotes"/>
     <helpString>Generate 10 notes</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="ImportContactItem">
-    <blockName>ImportContactItem</blockName>
-    <title>Import Contacts from Outlook CSV</title>
-    <event itemref="events:ImportContacts"/>
-    <helpString>import Contacts from contacts.csv</helpString>
   </MenuItem>
 
   <MenuItem itsName="ShareCollectionItem">
