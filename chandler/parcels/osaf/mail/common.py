@@ -10,6 +10,11 @@ import email as email
 import email.Message as Message
 import email.Utils as Utils
 
+CHANDLER_USERAGENT = "Open Source Applications Foundation Chandler .4B Release"
+CHANDLER_HEADER_PREFIX = "X-Chandler-"
+ATTACHMENT_BODY_WARNING = "The body of this message consists of Multiple Mime Parts.\nFor .4B Chandler does not support MIME Parts"
+
+MIME_TEXT_PLAIN = "text/plain"
 
 def getChandlerTransportMessage():
     message = """Subject: ***FOR CHANDLER INTERNAL USE - DO NOT DELETE ***

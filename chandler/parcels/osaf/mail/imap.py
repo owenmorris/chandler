@@ -18,6 +18,8 @@ import email.Utils as Utils
 import logging as logging
 import repository.util.UUID as UUID
 
+#XXX: Need to make sure all the flags are in place to prevent a non-ssl session if 
+#     ssl required
 
 class ChandlerIMAP4Client(imap4.IMAP4Client):
 
@@ -157,7 +159,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
             host    = self.account.host
             port    = self.account.port
             useSSL  = self.account.useSSL
-            portSSL = self.account.portSSL            
+            portSSL = self.account.portSSL
 
             if __debug__:
                 self.printAccount()
