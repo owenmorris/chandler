@@ -676,9 +676,16 @@ class OnDemandRepositoryView(RepositoryView):
                                   
             uuid = item._uuid
             if uuid in self._childrenRegistry:
+                if '_children' in item.__dict__:
+                    first = item._children._firstKey
+                    last = item._children._lastKey
+                else:
+                    first = last = None
                 children = self._childrenRegistry[uuid]
                 del self._childrenRegistry[uuid]
                 item._children = children
+                children._firstKey = first
+                children._lastKey = last
                 children._setItem(item)
 
             if self.isDebug():
