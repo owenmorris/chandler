@@ -30,16 +30,14 @@ class MainThreadCallbackEvent(wxPyEvent):
 def repositoryCallback(uuid, notification, reason, **kwds):
     if notification == 'ItemChanged':
         eventPath = '//parcels/OSAF/framework/item_' + reason
-    elif notification == 'CollectionChanged':
-        return
     else:
-        assert(0)
+        return
 
     event = Globals.repository.find(eventPath)
 
     from OSAF.framework.notifications.Notification import Notification
     note = Notification(event)
-    d = { 'uuid' : uuid }
+    d = { 'uuid' : uuid, 'keywords' : kwds }
     note.SetData(d)
 
     Globals.notificationManager.PostNotification(note)
