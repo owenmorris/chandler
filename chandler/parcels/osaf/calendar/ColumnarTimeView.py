@@ -9,6 +9,7 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import cPickle
+import copy
 
 from wxPython.wx import *
 from wxPython.xrc import *
@@ -169,9 +170,9 @@ class wxColumnarTimeView(wxColumnarSubView):
  
         if remoteAddress != None:
             if app.jabberClient.RequestRemoteObjects(remoteAddress, 'Calendar'):
-                self.remoteLoadInProgress = true
+                self.remoteLoadInProgress = True
             else:
-                self.remoteLoadInProgress = false
+                self.remoteLoadInProgress = False
                 message = _("Sorry, but %s is not present!") % (remoteAddress)
                 wxMessageBox(message)
         
@@ -205,9 +206,9 @@ class wxColumnarTimeView(wxColumnarSubView):
         for columnarItem in self.zOrderedDrawableObjects:
             if self.model.isDateInRange(columnarItem.item.startTime):
                 columnarItem.PlaceItemOnCalendar()
-                columnarItem.Show(true)
+                columnarItem.Show(True)
             else:
-                columnarItem.Show(false)
+                columnarItem.Show(False)
         self.Thaw()
                 
     def UpdateDateRange(self):
@@ -270,12 +271,21 @@ class wxColumnarTimeView(wxColumnarSubView):
                         self.model.offset + self.model.dayWidth * i, 
                         self.model.dayHeight)            
 
-    def ConvertDataObjectToDrawableObject(self, dataObject, x, y):
-        # @@@ Not especially happy about this. The new item is essentially ignored
-        #     in the case where the item is moved about in the canvas.
+    def ConvertDataObjectToDrawableObject(self, dataObject, x, y, move):
+        # Moves the item, or creates a new one
         (item, hotx, hoty) = cPickle.loads(dataObject.GetData())
         newTime = self.model.getDateTimeFromPos(wxPoint(x, y - hoty))
-        item.ChangeStart(newTime)
+        
+        if (move):
+            item.ChangeStart(newTime)
+        else:
+            newItem = copy.copy(item)
+            newItem.ChangeStart(newTime)
+
+            lr = Repository()
+            lr.AddThing(newItem)
+            item = newItem
+            
         newItemObject = ColumnarItem(self, item)
         newItemObject.PlaceItemOnCalendar()
 
