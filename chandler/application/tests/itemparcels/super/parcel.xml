@@ -44,6 +44,7 @@
     <displayName>Test Kind 1</displayName>
     <attributes itemref="super:EnumAttribute"/>
     <attributes itemref="super:RefAttribute"/>
+    <attributes itemref="super:RefAttributeInverse"/>
   </Kind>
 
 </Parcel>

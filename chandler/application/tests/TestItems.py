@@ -19,8 +19,6 @@ class ItemsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         self.manager.path.append(os.path.join(self.testdir, 'itemparcels'))
         self.loadParcels(["http://testparcels.org/items", "http://testparcels.org/super"])
-        self.rep.commit()
-        # application.Parcel.PrintItem("//parcels/items", self.rep, recursive=True)
 
         # Ensure the Parcel was created
         parcel = self.rep.findPath("//parcels/items")
@@ -48,5 +46,4 @@ class ItemsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.assert_(kind2 in kind1.subKinds)
 
 if __name__ == "__main__":
-#    unittest.main()
-    pass
+    unittest.main()
