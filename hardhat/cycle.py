@@ -46,38 +46,26 @@ def main():
     if alertAddr.find('@') == -1:
         alertAddr += "@" + defaultDomain
 
-#     print "options ", options 
-#     print " Build script ", options.doScript
-#     print "args ", args[0] 
-    
-    prevStartInt = 0
     curDir = os.path.abspath(os.getcwd())
 
     path = os.environ.get('PATH', os.environ.get('path'))
     cvsProgram = hardhatutil.findInPath(path, "cvs")
-#    print "cvs =", cvsProgram
-
-    go = 1
-    # Main loop
 
     if os.path.exists(stopFile):
         os.remove(stopFile)
+
+    go = 1
+    firstRound = 1
 
     while go:
     
         os.chdir(curDir)
 
-        startInt = int(time.time())
-
-        if ((startInt - (5 * 60)) < prevStartInt):
+        if not firstRound:
             print "Sleeping 5 minutes (" + buildName + ")"
             time.sleep(5 * 60)
-            # re-fetch start time now that we've slept
-            startInt = int(time.time())
 
         nowString = time.strftime("%Y-%m-%d %H:%M:%S")
-        startTime = str(startInt)
-        prevStartInt = startInt
         
         # check CVS for any new hardhat script
         try:
@@ -87,7 +75,6 @@ def main():
             hardhatutil.dumpOutputList(outputList)
         except:
             raise TinderbuildError, "Error updating HardHat"
-
         
         try:
             # launch the real build script
@@ -104,8 +91,11 @@ def main():
         if os.path.exists(stopFile):
             go = 0
 
+        firstRound = 0
+
+
 class TinderbuildError(Exception):
     def __init__(self, args=None):
         self.args = args
 
-main()    
+main()
