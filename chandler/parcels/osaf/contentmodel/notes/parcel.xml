@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel describes="//parcels/OSAF/contentmodel/notes"
+        itemName="notes"
+        xmlns="//Schema/Core"
+        xmlns:content="//parcels/OSAF/contentmodel"
+        xmlns:notes="//parcels/OSAF/contentmodel/notes">
+
+  <displayName>Notes</displayName>
+  <version>0.3</version>
+  <author>Open Source Applications Foundation</author>
+
+  <!-- Note -->
+
+  <Attribute itemName="title">
+    <displayName>title</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itemName="body">
+    <displayName>body</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Kind itemName="Note">
+    <displayName>Note</displayName>
+    <superKinds itemref="content:ContentItem"/>
+    <attributes itemref="notes:title"/>
+    <attributes itemref="notes:body"/>
+  </Kind>
+
+  <!-- Bookmark -->
+
+  <Attribute itemName="url">
+    <displayName>url</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Kind itemName="Bookmark">
+    <displayName>Bookmark</displayName>
+    <superKinds itemref="content:ContentItem"/>
+    <attributes itemref="content:name"/>
+    <attributes itemref="notes:url"/>
+  </Kind>
+
+  <!-- Document -->
+  
+  <Attribute itemName="filePath">
+    <displayName>file name</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Kind itemName="Document">
+    <displayName>Document</displayName>
+    <superKinds itemref="content:ContentItem"/>
+    <attributes itemref="content:name"/>
+    <attributes itemref="notes:filePath"/>
+  </Kind>
+
+</Parcel>

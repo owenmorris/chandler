@@ -57,6 +57,7 @@
   <core:Attribute itemName="attachedNotes">
     <core:displayName>attached notes</core:displayName>
     <core:description>Notes attached to this content item.</core:description>
+    <core:issues>Type should be "Note"</core:issues>
     <core:cardinality>list</core:cardinality>
     <core:type itemref="ContentItem"/>
     <core:inverseAttribute itemref="attachedToItems"/>
@@ -65,7 +66,8 @@
   <core:Attribute itemName="attachedToItems">
     <core:displayName>attached to item</core:displayName>
     <core:description>List of items this "note" is attached to.</core:description>
-    <core:cardinality>list</core:cardinality>
+    <core:issues>This attribute belongs on the note item, not the content item</core:issues>
+    <core:cardinality>single</core:cardinality>
     <core:type itemref="ContentItem"/>
     <core:inverseAttribute itemref="attachedNotes"/>
   </core:Attribute>

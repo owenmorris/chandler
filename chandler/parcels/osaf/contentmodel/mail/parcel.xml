@@ -113,7 +113,7 @@
     <attributes itemref="mail:emailAddress"/>
     <attributes itemref="mail:vcardType"/>
     <!--attributes itemref="mail:onceBelongedTo"/-->
-    <!--<attributes itemref="mail:returnAddressInverse"/>-->
+    <attributes itemref="mail:returnAddressInverse"/>
   </Kind>
 
 <!-- Email Message -->
