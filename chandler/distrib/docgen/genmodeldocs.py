@@ -14,7 +14,7 @@ from repository.schema.Kind import Kind
 from repository.schema.Types import Type
 from repository.schema.Attribute import Attribute
 from repository.schema.Cloud import Cloud, Endpoint
-from repository.item.ItemRef import RefDict
+from repository.item.RefCollections import RefList
 from repository.util.SingleRef import SingleRef
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -460,6 +460,21 @@ def RenderItem(item, urlRoot):
         elif name == "originalValues":
             pass
 
+        elif isinstance(value, RefList):
+
+            result += oddEvenRow(count)
+            result += "<td valign=top>"
+            result += "%s" % name
+            result += "</td><td valign=top>"
+            output = []
+            for j in value:
+                output.append("<a href=%s>%s</a>" % \
+                 (toLink(urlRoot, j.itsPath), j.itsName))
+            result += (", ".join(output))
+
+            result += "</td></tr>\n"
+            count += 1
+
         elif isinstance(value, list):
 
             result += oddEvenRow(count)
@@ -474,21 +489,6 @@ def RenderItem(item, urlRoot):
                 except:
                     result += "<li>%s (%s)<br>\n" % (clean(j), clean(type(j)))
             result += "</ul>"
-            result += "</td></tr>\n"
-            count += 1
-
-        elif isinstance(value, RefDict):
-
-            result += oddEvenRow(count)
-            result += "<td valign=top>"
-            result += "%s" % name
-            result += "</td><td valign=top>"
-            output = []
-            for j in value:
-                output.append("<a href=%s>%s</a>" % \
-                 (toLink(urlRoot, j.itsPath), j.itsName))
-            result += (", ".join(output))
-
             result += "</td></tr>\n"
             count += 1
 

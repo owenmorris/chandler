@@ -37,9 +37,10 @@ def repository(directory, destroy=False):
         rep.open(**kwds)
 
     if rep.findPath("//Schema") is None:
-        bootstrapPack = os.path.join(Globals.chandlerDirectory, 'repository',
-         'packs', 'schema.pack')
-        rep.loadPack(bootstrapPack)
+        rep.loadPack(os.path.join(Globals.chandlerDirectory, 'repository',
+         'packs', 'schema.pack'))
+        rep.loadPack(os.path.join(Globals.chandlerDirectory, 'repository',
+         'packs', 'chandler.pack'))
     Globals.repository = rep
 
     # Notification manager is now needed for Item Collections(?):
