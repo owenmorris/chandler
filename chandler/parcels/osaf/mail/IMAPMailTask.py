@@ -16,14 +16,14 @@ import mx.DateTime as DateTime
 import email as email
 import email.Utils as Utils
 import logging as logging
+import repository.util.UUID as UUID
 
 
-
-class MailDownloadAction(Action.Action): 
+class MailDownloadAction(Action.Action):
 
     def Execute(self, task):
         """
-        This method creates a C{IMAPDownloader} instance for each 
+        This method creates a C{IMAPDownloader} instance for each
         C{EmailAccountKind} of type IMAP4 gotten via a:a
 
         accountKind = Mail.MailParcel.getEmailAccountKind()
@@ -47,9 +47,7 @@ class MailDownloadAction(Action.Action):
                 logging.info("IMAP MAIL TASK CHECKING FOR NEW MAIL")
                 printed = True
 
-            viewName = "%s_%s" % (account.displayName, account.itsUUID)
-
-            IMAPDownloader(account.itsUUID, viewName).getMail()
+            IMAPDownloader(account).getMail()
 
 
 class ChandlerIMAP4Client(imap4.IMAP4Client):
@@ -119,23 +117,27 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
         logging.error("Unable to connect to server ", reason)
 
 
+class MailException(Exception):
+    pass
 
 class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
-    def __init__(self, accountUUID, viewName):
+    def __init__(self, account):
         """
         Creates a C{IMAPDownload} instance
-        @param accountUUID: The C{UUID} of the C{EmailAccountKind} to utilize to download an store mail
-        @type accountUUID: C{UUID}
-        @param viewName: The name to assign as the key for the view
-        @type name: a string
+        @param account: An Instance of C{EmailAccountKind}
+        @type account: C{EmailAccountKind}
         @return: C{None}
         """
 
+        if account is None:
+            raise MailException("You must pass in a Mail Account instance")
+
+        viewName = "%s_%s" % (account.displayName, str(UUID.UUID()))
         super(IMAPDownloader, self).__init__(Globals.repository, viewName)
 
         self.proto = None
-        self.accountUUID = accountUUID
+        self.accountUUID = account.itsUUID
         self.account = None
         self.downloadedStr = None
 
@@ -434,6 +436,7 @@ def make_message(data):
         return None
 
     m.dateSent = DateTime.mktime(Utils.parsedate(msg['Date']))
+    m.dateReceived = DateTime.now()
     m.subject = msg['Subject']
 
     # XXX replyAddress should really be the Reply-to header, not From
