@@ -96,6 +96,23 @@
       <core:initialValue type="core:Long">-1</core:initialValue>
     </core:Attribute>
 
+    <core:Attribute itsName="sharer">
+      <description value="The person who initially published this item" />
+      <issues value="Eventually this will point to a Contact or equivalent" />
+      <type ref="mail:EmailAddress" />
+      <cardinality value="single" />
+      <initialValue ref="core:None" />
+      <inverseAttribute ref="mail:EmailAddress/sharerOf" />
+    </core:Attribute>
+
+    <core:Attribute itsName="sharees">
+      <description value="The people who were invited to share in this item" />
+      <issues value="Eventually this will point to a Contact or equivalent" />
+      <type ref="mail:EmailAddress" />
+      <cardinality value="list" />
+      <initialValue />
+      <inverseAttribute ref="mail:EmailAddress/shareeOf" />
+    </core:Attribute>
 
     <core:classes key="python">osaf.contentmodel.ContentModel.ContentItem</core:classes>
   </core:Kind>
