@@ -453,6 +453,16 @@
         <includePolicy value="byCloud"/>
       </core:Endpoint>
       <endpoints itemref="ItemCollection/DefaultCloud/collectionOwner"/>
+      <core:Endpoint itsName="sharer">
+        <attribute value="sharer"/>
+        <includePolicy value="byValue"/>
+      </core:Endpoint>
+      <endpoints itemref="ItemCollection/DefaultCloud/sharer"/>
+      <core:Endpoint itsName="sharees">
+        <attribute value="sharees"/>
+        <includePolicy value="byValue"/>
+      </core:Endpoint>
+      <endpoints itemref="ItemCollection/DefaultCloud/sharees"/>
     </core:Cloud>
     <clouds alias="default" itemref="ItemCollection/DefaultCloud"/>
 
