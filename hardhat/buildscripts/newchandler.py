@@ -129,7 +129,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
     return "success"  # end of Do( )
 
-def doTests(testDir, workingDir, mode)
+def doTests(testDir, workingDir, mode):
 
     os.chdir(testDir)
 
