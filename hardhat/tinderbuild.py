@@ -170,18 +170,17 @@ def RotateDirectories(dir):
         hardhatutil.rmdirRecursive(os.path.join(dir, subdir))
 
 _descriptions = {
-    'enduser' : ["End-User", "Description of end-user distro"],
-    'developer' : ["Developer", "Description of developer distro"],
-    'release' : ["Lazy Developer:  Release", "Description of release distro"],
-    'debug' : ["Lazy Developer:  Debug", "Description of debug distro"],
+    'enduser' : ["End-Users' distribution", "If you just want to use Chandler, this distribution contains everything you need -- just download, unpack, run."],
+    'developer' : ["Developers' distribution", "If you're a developer and want to run Chandler in debugging mode, this distribution contains debug versions of the binaries.  Assertions are active, the __debug__ global is set to True, and memory leaks are listed upon exit.  You can also use this distribution to develop your own parcels (See <a href=http://wiki.osafoundation.org/bin/view/Main/ParcelLoading>Parcel Loading</a> for details on loading your own parcels)."],
+    'release' : ["Developers' release/ directory", "Description of release distro"],
+    'debug' : ["Developers' debug/ directory", "Description of debug distro"],
 }
 
 def CreateIndex(outputDir, newDirName, nowString, buildName):
     """Generates an index.html page from the hint files that hardhat creates
     which contain the actual distro filenames"""
     fileOut = file(outputDir+os.sep+"index.html", "w")
-    fileOut.write("<h2>Chandler Build: " + nowString + " (Pacific)</h2>\n")
-    fileOut.write("<h3>Build machine: '" + buildName + "'</h3>\n")
+    fileOut.write("<h3>Chandler Build: " + nowString + " PDT (machine: " + buildName +")</h3>\n")
     for x in ["enduser", "developer", "release", "debug"]:
         actual = _readFile(outputDir+os.sep+newDirName+os.sep+x)
         fileOut.write("<p><a href="+newDirName+"/"+actual+">"+ _descriptions[x][0] +"</a> " + _descriptions[x][1] +"</p>\n")
