@@ -9,24 +9,24 @@
 # glob: set to a comma-separated list of glob patterns
 
 # Grab the python modules 
-src=release/Library/Frameworks/Python.framework/Versions/2.3/lib
+src=debug/Library/Frameworks/Python.framework/Versions/2.3/lib
 dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.3/lib
 glob=*
 recursive=yes
 python2.3
 
 # Grab python Framework file
-src=release/Library/Frameworks/Python.framework/Versions/2.3
+src=debug/Library/Frameworks/Python.framework/Versions/2.3
 dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.3
 Python
 
 # Grab python executable file
-src=release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS
+src=debug/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS
 dest=Contents/MacOS
 python
 
 # Grab WX library
-src=release/lib
+src=debug/lib
 dest=Contents/Resources/lib
 libwx_mac-2.4.0.dylib
 libwx_mac-2.4.0.r
@@ -45,11 +45,8 @@ recursive=yes
 glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html
 application
 parcels
-
 glob=*
 model
-
-glob=*.po,*.mo
 locale
 
 # Grab the bundle files
@@ -59,6 +56,6 @@ Info.plist
 dest=Contents/Resources
 Chandler.icns
 
-src=Chandler/distrib/osx/bundle/release
+src=Chandler/distrib/osx/bundle/debug
 dest=Contents/MacOS
 RunChandler
