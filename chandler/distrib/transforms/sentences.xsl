@@ -1,6 +1,10 @@
 <xsl:stylesheet version="1.0"
      xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-     xmlns:core="//Schema/Core">
+     xmlns:core="//Schema/Core"
+     xmlns:exsl="http://exslt.org/common"
+     xmlns:func="http://exslt.org/functions"
+     extension-element-prefixes="exsl func" 
+     >
     
 	<xsl:output method="html" encoding="ISO-8859-1"/>
 	
@@ -30,67 +34,96 @@
 				</title>
 				<link rel="stylesheet" type="text/css">
 				   <xsl:attribute  name = "href" >
-				      <xsl:value-of select="$constants.cssPath" />
+                   <xsl:call-template name="createRelativePath">
+                      <xsl:with-param name="src">
+                         <xsl:apply-templates mode="translateURI" select="/core:Parcel/@describes" />
+                      </xsl:with-param>
+                      <xsl:with-param name="target" select="$constants.topURI"/>
+                   </xsl:call-template>
+				   <xsl:value-of select="$constants.cssFile" />
 				   </xsl:attribute>
 				</link>
 			</head>
 			<body>
+			    <div style="float: left;">
 				<h1>
 					<xsl:apply-templates select="." mode="getDisplayName"/>
 				</h1>
-      <xsl:if test = "core:description!=''">
-						<i><xsl:value-of select="core:description"/></i>
-      </xsl:if>
+				</div>
+				<div style="float: right;">Back to the 
+				<a>
+				<xsl:attribute  name = "href" >
+                   <xsl:call-template name="createRelativePath">
+                      <xsl:with-param name="src">
+                         <xsl:apply-templates mode="translateURI" select="/core:Parcel/@describes" />
+                      </xsl:with-param>
+                      <xsl:with-param name="target" select="$constants.topURI"/>
+                   </xsl:call-template>
+				</xsl:attribute>
+                Parcel Index
+				</a>
+				</div>
+				<br clear="all"/>
+
+		<div class="topDetailBox">
+				<xsl:apply-templates select = "core:description" />
+				<xsl:apply-templates select = "core:examples" />
+				<xsl:apply-templates select = "core:issues" />
+		</div>
+
 				<xsl:apply-templates select="core:Kind"/>
 			</body>
 		</html>
 	</xsl:template>
 	
-	<xsl:template match="core:Kind">
-		<hr/>
-		<h2>
-            <xsl:apply-templates select="." mode="getHrefAnchor"/>
-		</h2>
-      <xsl:if test = "core:description!=''">
-			<i><xsl:value-of select="core:description"/></i>
-      </xsl:if>
-				<ul>
-				<xsl:for-each select="core:attributes">
-					<li>
-					    <xsl:variable name = "typeSchema">
-					       <xsl:apply-templates select = "@itemref" mode="getTypeSchema"/>
+	
+	<xsl:template match="core:description">
+       <div class="description">
+       <span class="detailLabel">Description </span>
+       <xsl:value-of select="."/>
+       </div>
+       
+	</xsl:template>
+
+	<xsl:template match="core:examples">
+	   
+	   <xsl:if test = "position()=1">
+          <div class="detailLabel">Examples </div>
+	   </xsl:if>
+       <li class="examples"><xsl:value-of select="."/></li>	
+	</xsl:template>
+
+	<xsl:template match="core:issues">
+	   
+	   <xsl:if test = "position()=1">
+          <div class="detailLabel">Issues </div>
+	   </xsl:if>
+       <li class="issues"><xsl:value-of select="."/></li>	
+	</xsl:template>
+
+
+
+<xsl:template match="core:attributes">
+	   <xsl:if test = "position()=1">
+          <div class="indentTitle">Attributes</div>
+	   </xsl:if>
+	   <xsl:variable name = "attribute" select="func:deref(@itemref)"/>
+
+<xsl:choose>
+	<xsl:when test="$attribute">
+	 
+					<li class="sentenceAttributes">
+
+                        <xsl:variable name = "type">
+					       <xsl:apply-templates select="func:deref($attribute/core:type/@itemref)" mode="getDisplayName"/>
 					    </xsl:variable>
-                        <xsl:variable name = "isValue" select="$coreDoc/core:Parcel/core:displayName=$typeSchema"/>
-					    <xsl:variable name = "cardinality">
-					          <xsl:apply-templates select = "@itemref" mode="derefChild">
-					             <xsl:with-param name="child" select="'cardinality'" />
-					          </xsl:apply-templates>
-						</xsl:variable>
-
-					    <xsl:variable name = "description">
-					          <xsl:apply-templates select = "@itemref" mode="derefChild">
-					             <xsl:with-param name="child" select="'description'" />
-					          </xsl:apply-templates>
-						</xsl:variable>
-
-					    <xsl:variable name = "issues">
-					          <xsl:apply-templates select = "@itemref" mode="derefChild">
-					             <xsl:with-param name="child" select="'issues'" />
-					          </xsl:apply-templates>
-						</xsl:variable>
-
-						<xsl:variable name="type">
-                            <xsl:apply-templates select = "@itemref" mode="doubleDerefDisplayName">
-                               <xsl:with-param name="child" select="'type'" />
-                            </xsl:apply-templates>
-						</xsl:variable>
-
-					    <xsl:apply-templates select = "." mode="derefHref"/>
+                        <xsl:variable name = "cardinality" select="func:getAspect($attribute, 'cardinality')"/>
+					    <xsl:apply-templates select = "$attribute" mode="getHrefAnchor"/>
 					    is a
 					    <xsl:choose>
-					      <xsl:when test = "$cardinality='single' or $cardinality=''">
+					      <xsl:when test = "$cardinality='single'">
 					         <xsl:choose>
-					         	<xsl:when test="$isValue">
+					         	<xsl:when test="$attribute/@itemref">
 					         	   single
 					         	   <xsl:value-of select="$type"/>
 					         	   value.
@@ -104,7 +137,7 @@
 					      </xsl:when>
 					      <xsl:when test = "$cardinality='list'">
 					         <xsl:choose>
-					         	<xsl:when test="$isValue">
+					         	<xsl:when test="$attribute/@itemref">
 					         	   list of
 					         	   <xsl:value-of select="$type"/>
 					         	   values.
@@ -118,7 +151,7 @@
 					      </xsl:when>
 					      <xsl:when test = "$cardinality='dict'">
 					         <xsl:choose>
-					         	<xsl:when test="$isValue">
+					         	<xsl:when test="$attribute/@itemref">
 					         	   dictionary of
 					         	   <xsl:value-of select="$type"/>
 					         	   values.
@@ -135,11 +168,47 @@
 					         Its cardinality is "<xsl:value-of select="$cardinality" />".
 					      </xsl:otherwise>					      
 					    </xsl:choose>
-						<xsl:value-of select="$description"/>
-						<xsl:value-of select="$issues"/>
+
+<xsl:if test = "$attribute/core:description or $attribute/core:issues">
+		<div class="detailBox">
+				<xsl:apply-templates select = "$attribute/core:description" />
+        <xsl:if test = "$attribute/core:issues">
+				<ul>
+				<xsl:apply-templates select = "$attribute/core:issues" />
+				</ul>
+        </xsl:if>
+		</div>
+</xsl:if>
 					</li>
-				</xsl:for-each>
-			</ul>
+	</xsl:when>
+  
+	<xsl:otherwise>
+
+	  <li>The attribute referred to as <xsl:value-of select="@itemref" /> can't be found.</li>
+
+	</xsl:otherwise>
+</xsl:choose>
+
+
+</xsl:template>
+	
+	<xsl:template match="core:Kind">
+		<div class="sectionBox">
+	    <span class="sentenceHeader">		
+            <xsl:apply-templates select="." mode="getHrefAnchor"/>
+		    is a Kind defined in 
+					<xsl:apply-templates select="/core:Parcel" mode="getDisplayName"/>
+		</span><br/><br/>
+        <xsl:if test = "core:description or core:examples or core:issues">
+		<div class="detailBox">
+				<xsl:apply-templates select = "core:description" />
+				<xsl:apply-templates select = "core:examples" />
+				<xsl:apply-templates select = "core:issues" />
+		</div>
+		</xsl:if>
+				<xsl:apply-templates select = "core:attributes" />
+		</div>
+
 	</xsl:template>	
    
 </xsl:stylesheet>
