@@ -27,7 +27,6 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
         Globals.notificationManager = NotificationManager()
 
         self.loadParcel("osaf/framework/notifications/schema")
-        self.loadParcel("osaf/framework")
 
     def loadParcel(self, relPath):
         """

@@ -23,6 +23,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
     def testMail(self):
         """ Simple test for creating instances of email related kinds """
 
+        self.loadParcel("osaf/contentmodel")
         self.loadParcel("osaf/contentmodel/mail")
 
         def _verifyMailMessage(message):
@@ -40,17 +41,18 @@ class MailTest(TestContentModel.ContentModelTestCase):
         self.assertEqual(Mail.MailParcel.getMailMessageKind(),
                          self.rep.find(Path(mailPath, 'MailMessage')))
 
+
         # Construct sample items
         attachmentItem = Mail.Attachment("attachmentItem")
-        #emailAccountItem = Mail.EmailAccount("emailAccountItem")
+        emailAccountItem = Mail.EmailAccount("emailAccountItem")
         emailAddressItem = Mail.EmailAddress("emailAddressItem")
         mailMessageItem = Mail.MailMessage("mailMessageItem")
 
         # Double check kinds
         self.assertEqual(attachmentItem.itsKind,
                          Mail.MailParcel.getAttachmentKind())
-        #self.assertEqual(emailAccountItem.itsKind,
-        #                 Mail.MailParcel.getEmailAccountKind())
+        self.assertEqual(emailAccountItem.itsKind,
+                         Mail.MailParcel.getEmailAccountKind())
         self.assertEqual(emailAddressItem.itsKind,
                          Mail.MailParcel.getEmailAddressKind())
         self.assertEqual(mailMessageItem.itsKind,
