@@ -534,6 +534,9 @@ class MergeList(LinkedMap):
                 if oldAlias != alias and link._alias != alias:
                     raise MergeError, ('merging children', self.item,
                                        'child %s renamed to %s and %s' %(oldAlias, link._alias, alias), MergeError.RENAME)
+        elif link._alias in self._aliases:
+            raise MergeError, ('merging children', self.item,
+                               'child %s conflicts with other child %s, both are named %s' %(child, self._aliases[link._alias], link._alias), MergeError.RENAME)
 
         if prev is None:
             if exists:

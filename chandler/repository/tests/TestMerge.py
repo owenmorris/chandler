@@ -42,12 +42,12 @@ class TestMerge(RepositoryTestCase):
         ko = self.rep.findPath('//Schema/Core/Item')
         ao = []
         for i in xrange(o):
-            ao.append(ko.itsKind.newItem('ao_%02d' %(i), po))
+            ao.append(ko.newItem('ao_%02d' %(i), po))
         view.commit()
 
         view = self.rep.setCurrentView(main)
         for i in xrange(m):
-            am.append(km.itsKind.newItem('am_%02d' %(i), pm))
+            am.append(km.newItem('am_%02d' %(i), pm))
         main.commit()
 
         ic = [c.itsName for c in pm.iterChildren()]
@@ -158,6 +158,30 @@ class TestMerge(RepositoryTestCase):
             self.move('foo', 'bar')
         except MergeError, e:
             self.assert_(e.getReasonCode() == MergeError.MOVE)
+        else:
+            self.assert_(False)
+
+    def testCreateSameName(self):
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+        po = self.rep['p']
+        ko = self.rep.findPath('//Schema/Core/Item')
+
+        ko.newItem('foo', po)
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        pm = self.rep['p']
+        km = self.rep.findPath('//Schema/Core/Item')
+
+        ko.newItem('foo', pm)
+
+        try:
+            main.commit()
+        except MergeError, e:
+            self.assert_(e.getReasonCode() == MergeError.RENAME)
+        else:
+            self.assert_(False)
 
 
 if __name__ == "__main__":

@@ -107,7 +107,7 @@ class ItemRef(object):
 
         if isinstance(old, RefDict):
             old._removeRef(item._uuid)
-            old._item.setDirty(item.VDIRTY, otherName)
+            old._item.setDirty(item.RDIRTY, otherName)
         else:
             other._removeRef(otherName)
             other.setDirty(item.VDIRTY, otherName)

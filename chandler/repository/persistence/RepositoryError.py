@@ -29,13 +29,17 @@ class NoSuchItemError(RepositoryError):
 
 
 class MergeError(VersionConflictError):
-    "(%s) merging %s failed because %s"
+    "(%s) merging %s failed because %s, reason code: %s"
 
     def __str__(self):
-        return self.__doc__ %(self.args[0], self.args[1].itsPath, self.args[2])
+        return self.__doc__ %(self.args[0], self.args[1].itsPath, self.args[2],
+                              self.getReasonCodeName())
 
     def getReasonCode(self):
         return self.args[3]
+
+    def getReasonCodeName(self):
+        return MergeError.codeNames.get(self.args[3], str(self.args[3]))
 
     def getItem(self):
         return self.args[1]
@@ -43,3 +47,5 @@ class MergeError(VersionConflictError):
     BUG    = 0
     RENAME = 1
     MOVE   = 2
+
+    codeNames = { BUG: 'BUG', RENAME: 'RENAME', 'MOVE': MOVE }
