@@ -98,7 +98,7 @@ def isShared(collection):
     return collection.hasAttributeValue('sharedURL') and collection.sharedURL
 
 def collectionFromSharedUrl(url):
-    kind = Globals.parcelManager.lookup(CONTENT, "NamedCollection")
+    kind = Globals.parcelManager.lookup(CONTENT, "ItemCollection")
     for item in KindQuery().run([kind]):
         if isShared(item):
             if str(item.sharedURL) == (url):

@@ -147,6 +147,11 @@ def syncToServer(dav, item):
                     u'sharedURL', u'sharedUUID']:
             continue
 
+        # XXX this is probably not the best thing to do here
+        # but for now, if an attribute starts with a '_', don't share it
+        if name[0] == u'_':
+            continue
+
         # the attribute's namespace is its path...
         namespace = kind.getAttribute(name).itsPath[0:-1]
 
@@ -200,8 +205,13 @@ def syncToServer(dav, item):
         listData = ''
         for i in item:
             # mmm, recursion
-            defaultURL = dav.url.join(i.itsUUID.str16())
-            durl = i.getAttributeValue('sharedURL', default=defaultURL)
+            try:
+                durl = i.sharedURL
+            except AttributeError:
+                durl = dav.url.join(i.itsUUID.str16())
+
+            # in theory, this should be done by the cloud, but the results
+            # aren't showing up in the cloud...
             DAV(durl).put(i)
             listData += '<itemref>' + unicode(durl) + '</itemref>'
         props += makePropString('results', '//special/case', listData)
@@ -247,15 +257,17 @@ def syncFromServer(item, davItem):
             # time for some xml parsing! yum!
 
             nodes = nodesFromXml(value)
+            if len(nodes) == 0:
+                continue
 
             if attr.cardinality == 'list':
                 # replaced by mergeList + continue
                 #setfunc = item.addValue
                 mergeList(item, name, nodes, True)
                 continue
-            elif attr.cardinality == 'single': 
+            elif attr.cardinality == 'single':
                 try:
-                    otherItem = DAV(node.content).get()
+                    otherItem = DAV(nodes[0].content).get()
                     item.setAttributeValue(name, otherItem)
                 except NotFound:
                     log.warning('Cant access %s' % (node.content))

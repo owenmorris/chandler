@@ -109,7 +109,7 @@ class DAV(object):
                     continue
                 try:
                     durl = i.sharedURL
-                except AttributeValue:
+                except AttributeError:
                     durl = self.url.join(i.itsUUID.str16())
                     i.sharedURL = durl
 
