@@ -51,23 +51,24 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
     def startTLS(self):
         self.internalBio = m2.bio_new(m2.bio_s_bio())
-        m2.bio_set_write_buf_size(self.internalBio, 8192*8) # XXX change size
+        m2.bio_set_write_buf_size(self.internalBio, 0)
         self.networkBio = m2.bio_new(m2.bio_s_bio())
-        m2.bio_set_write_buf_size(self.networkBio, 8192*8) # XXX change size
+        m2.bio_set_write_buf_size(self.networkBio, 0)
         m2.bio_make_bio_pair(self.internalBio, self.networkBio)
 
         self.sslBio = m2.bio_new(m2.bio_f_ssl())
-
-        # XXX Things still don't work if we try to write more than buf at one
-        # XXX time. Dunno what would help, maybe this?
-        # XXX self.iossl = m2.bio_new(m2.bio_f_buffer()) ? 
-        # XXX m2.bio_push(self.iossl, self,sslBio) ?
 
         self.ssl = m2.ssl_new(self.ctx.ctx)
         
         m2.ssl_set_connect_state(self.ssl) # XXX client only
         m2.ssl_set_bio(self.ssl, self.internalBio, self.internalBio)
         m2.bio_set_ssl(self.sslBio, self.ssl, 1)
+
+        # Need this for writes that are larger than BIO pair buffers
+        mode = m2.ssl_get_mode(self.ssl)
+        m2.ssl_set_mode(self.ssl, mode|m2.SSL_MODE_ENABLE_PARTIAL_WRITE|m2.SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER)
+
+        # XXX Our client breaks connection with server prematurely when server sends more data than can fit in BIO pair buffers
 
         self.tlsStarted = True
 
@@ -78,40 +79,46 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
     def _encrypt(self, data=''):
         self.data += data
+        encryptedData = ''
         g = m2.bio_ctrl_get_write_guarantee(self.sslBio)
-        if g > 0:
+        if g > 0 and self.data != '':
             r = m2.bio_write(self.sslBio, self.data)
             if r <= 0:
                 assert(m2.bio_should_retry(self.sslBio))
             else:
                 self.data = self.data[r:]
-        encryptedData = ''
+                
         while 1:
             pending = m2.bio_ctrl_pending(self.networkBio)
             if pending:
                 d = m2.bio_read(self.networkBio, pending)
-                if d is not None: # This is strange, but seems to happen
+                if d is not None: # This is strange, but d can be None
                     encryptedData += d
+                else:
+                    assert(m2.bio_should_retry(self.networkBio))
             else:
                 break
         return encryptedData
 
     def _decrypt(self, data=''):
         self.encrypted += data
+        decryptedData = ''
         g = m2.bio_ctrl_get_write_guarantee(self.networkBio)
-        if g > 0:
+        if g > 0 and self.encrypted != '':
             r = m2.bio_write(self.networkBio, self.encrypted)
             if r <= 0:
                 assert(m2.bio_should_retry(self.networkBio))
             else:
                 self.encrypted = self.encrypted[r:]
-        decryptedData = ''
+                
         while 1:
             pending = m2.bio_ctrl_pending(self.sslBio)
             if pending:
                 d = m2.bio_read(self.sslBio, pending)
-                if d is not None: # This is strange, but seems to happen
+                if d is not None: # This is strange, but d can be None
                     decryptedData += d
+                else:
+                    assert(m2.bio_should_retry(self.sslBio))
             else:
                 break
         return decryptedData
@@ -167,34 +174,30 @@ class TLSProtocolWrapper(ProtocolWrapper):
             ProtocolWrapper.dataReceived(self, data)
             return
 
-        decryptedData = self._decrypt(data)
+        decryptedData = '1'
+        encryptedData = '1'
+        self.encrypted += data
+        while decryptedData != '' or encryptedData != '':
 
-        if self.data or m2.bio_ctrl_pending(self.networkBio):
+            if debug:
+                print 'before:', len(encryptedData), len(self.data), m2.bio_ctrl_pending(self.networkBio), len(decryptedData), len(self.encrypted)
+
+            decryptedData = self._decrypt()
+
+            if debug:
+                print 'middle:', len(encryptedData), len(self.data), m2.bio_ctrl_pending(self.networkBio), len(decryptedData), len(self.encrypted)
+
             encryptedData = self._encrypt()
             ProtocolWrapper.write(self, encryptedData)
 
-        if debug:
-            print 'sending decrypted off', decryptedData
-            print m2.bio_ctrl_pending(self.sslBio)
-            print m2.bio_ctrl_pending(self.networkBio)
-
-        ProtocolWrapper.dataReceived(self, decryptedData)
+            ProtocolWrapper.dataReceived(self, decryptedData)
 
     def connectionLost(self, reason):
-        if debug and 0:
+        if debug:
             print 'MyProtocolWrapper.connectionLost'
-            print 'data', self.data
-            print 'encrypted', self.encrypted
-            print m2.bio_ctrl_pending(self.sslBio)
-            print m2.bio_ctrl_pending(self.networkBio)
-
-            decryptedData = self._decrypt()
-            if decryptedData:
-                ProtocolWrapper.dataReceived(self, decryptedData)
-        
         if self.sslBio:
             m2.bio_free_all(self.sslBio)
-            self.sslBio = None
+        self.sslBio = None
         self.internalBio = None
         self.networkBio = None
 

@@ -129,6 +129,10 @@
 %constant int SSL_OP_NO_SSLv3             = 0x02000000L;
 %constant int SSL_OP_NO_TLSv1             = 0x04000000L;
 
+%constant int SSL_MODE_ENABLE_PARTIAL_WRITE = SSL_MODE_ENABLE_PARTIAL_WRITE;
+%constant int SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER = SSL_MODE_ENABLE_PARTIAL_WRITE;
+%constant int SSL_MODE_AUTO_RETRY           = SSL_MODE_AUTO_RETRY;
+
 %inline %{
 static PyObject *_ssl_err;
 
@@ -260,7 +264,15 @@ int bio_set_ssl(BIO *bio, SSL *ssl, int flag) {
     SSL_set_mode(ssl, SSL_MODE_AUTO_RETRY);
     return BIO_ctrl(bio, BIO_C_SET_SSL, flag, (char *)ssl);
 }
-    
+
+long ssl_set_mode(SSL *ssl, long mode) {
+    return SSL_set_mode(ssl, mode);
+}
+
+long ssl_get_mode(SSL *ssl) {
+    return SSL_get_mode(ssl);
+}
+
 void ssl_set_client_CA_list_from_file(SSL *ssl, const char *ca_file) {
     SSL_set_client_CA_list(ssl, SSL_load_client_CA_file(ca_file));
 }
