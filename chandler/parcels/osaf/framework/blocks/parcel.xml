@@ -1281,7 +1281,6 @@
 
     <Attribute itsName="treeTemplatePath">
       <type itemref="String"/>
-      <required>True</required>
     </Attribute>
   </Kind>
 
