@@ -32,7 +32,7 @@ Example:
         [... uninteresting python code here ...]
 
     [... later ...]
-    timing.tools.results()  # prints out the report
+    tools.timing.results()  # prints out the report
 
     Operation                       Count  Total    Avg
     ------------------------------ ------ ------ ------
