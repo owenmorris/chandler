@@ -845,10 +845,12 @@
     <Attribute itsName="openedContainers">
       <type itemref="Boolean"/>
       <cardinality>dict</cardinality>
+      <initialValue />
     </Attribute>
 
     <Attribute itsName="rootPath">
       <type itemref="Item"/>
+      <initialValue itemref="None"/>
     </Attribute>
 
     <attributes itemref="docSchema:columnHeadings"/>

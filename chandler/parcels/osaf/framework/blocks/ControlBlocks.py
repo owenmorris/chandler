@@ -912,8 +912,7 @@ class wxTreeAndList(DraggableWidget):
             else:
                 self.LoadChildren(id)
 
-                if self.IsVisible (id):
-                    self.Expand(id)
+                self.Expand(id)
 
                 child, cookie = self.GetFirstChild (id)
                 while child.IsOk():
@@ -995,22 +994,14 @@ class wxTreeAndList(DraggableWidget):
         
  
 class wxTree(wxTreeAndList, wx.TreeCtrl):
-    def __init__(self, *arguments, **keywords):
-        super (wxTree, self).__init__ (*arguments, **keywords)
+    pass
     
 
 class wxTreeList(wxTreeAndList, wx.gizmos.TreeListCtrl):
-    def __init__(self, *arguments, **keywords):
-        super (wxTreeList, self).__init__ (*arguments, **keywords)
-    
+    pass
+
 
 class Tree(RectangularChild):
-    def __init__(self, *arguments, **keywords):
-        super (Tree, self).__init__ (*arguments, **keywords)
-        self.openedContainers = {}
-        self.rootPath = None
-        self.selection = None
-
     def instantiateWidget(self):
         try:
             self.columnWidths
