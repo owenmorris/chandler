@@ -141,6 +141,9 @@ class Manager(Item):
         # Initialize any attributes that aren't persisted:
         self.repo = repository
         self.lastError = None
+        self.kindUUID = repository.findPath("//Schema/Core/Kind").itsUUID
+        self.itemUUID = repository.findPath("//Schema/Core/Item").itsUUID
+        self.attrUUID = repository.findPath("//Schema/Core/Attribute").itsUUID
 
 
     def lookup(self, namespace, name=None):
@@ -745,6 +748,13 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         for (item, attributes) in self.delayedAssigments:
             self.completeAssignments(item, attributes)
 
+        # Here we can perform any additional item clean-up such as ensuring a
+        # superKind has been assigned to a kind, or local attributes have been
+        # linked up:
+        for item in self.itemsCreated:
+            self.itemPostProcess(item)
+
+
         # Uncomment the following lines for file-by-file printouts of what
         # items are being created:
 
@@ -879,6 +889,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                "name"       : name,
                "key"        : None,
                "copyName"   : self.currentCopyName,
+               "file"       : self.locator.getSystemId(),
                "line"       : self.locator.getLineNumber()
             }
             self.currentAssigments.append(assignment)
@@ -925,6 +936,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                    "typePath"   : self.currentType,
                    "value"      : self.currentValue,
                    "key"        : None,
+                   "file"       : self.locator.getSystemId(),
                    "line"       : self.locator.getLineNumber()
                  }
                 )
@@ -944,6 +956,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                    "typePath"   : self.currentType,
                    "value"      : self.currentValue,
                    "key"        : self.currentKey,
+                   "file"       : self.locator.getSystemId(),
                    "line"       : self.locator.getLineNumber()
                  }
                 )
@@ -984,6 +997,26 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         self.mapping[prefix] = None
 
+    def itemPostProcess(self, item):
+        """ Perform any post-creation-processing such as ensuring a superkind
+            has been assigned to a kind, or local attributes have been hooked
+            up """
+
+        isItemAKind = (item.itsKind.itsUUID == self.manager.kindUUID)
+
+        if isItemAKind:
+            # Assign superKind of //Schema/Core/Item if none assigned
+            if not item.hasAttributeValue("superKinds") or \
+             (len(item.superKinds) == 0):
+                item.addValue("superKinds",
+                 self.repository.findUUID(self.manager.itemUUID))
+
+            # Hook up any local attributes to this kind
+            if item.hasChildren():
+                for child in item:
+                    if child.itsKind.itsUUID == self.manager.attrUUID:
+                        # child is an attribute
+                        item.addValue("attributes", child)
 
     def makeValue(self, item, attributeName, attributeTypePath, value, line):
         """ Creates a value from a string, based on the type
@@ -1114,6 +1147,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
             attributeName = assignment["attrName"]
             line = assignment["line"]
+            file = assignment["file"]
             if assignment.has_key("key"):
                 key = assignment["key"]
             else:
@@ -1135,7 +1169,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                     reference = self.findItem(namespace, name, line)
                     if reference is None:
                         raise self.saveErrorState("Referenced item doesn't " \
-                         "exist: %s:%s" % (namespace, name), None, line)
+                         "exist: %s:%s" % (namespace, name), file, line)
 
                 # @@@ Special cases to resolve
                 if copyName:
@@ -1166,7 +1200,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                         item.addValue(attributeName, value)
                 except:
                     raise self.saveErrorState("Couldn't add value to item ",
-                     None, line)
+                     file, line)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

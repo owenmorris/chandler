@@ -41,6 +41,4 @@ class LocalTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
 
 if __name__ == "__main__":
-    # unittest.main()
-    # Disabling this test until the parcel loader handles locals properly
-    pass
+    unittest.main()

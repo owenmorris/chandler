@@ -34,6 +34,7 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:GenerateNotes"/>
     <subscribeAlwaysEvents itemref="events:GenerateCalendarEventItems"/>    
     <subscribeAlwaysEvents itemref="events:CheckRepository"/>
+    <subscribeAlwaysEvents itemref="events:ShowPyCrust"/>
   </EventList>
 
   <BlockEvent itsName="New">
@@ -106,6 +107,10 @@ of a limitation of the XML format, which will be eliminated</description>
   </BlockEvent>
 
   <BlockEvent itsName="CheckRepository">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="ShowPyCrust">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 

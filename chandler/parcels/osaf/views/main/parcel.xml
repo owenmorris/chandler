@@ -211,6 +211,13 @@
     <helpString>run check() on the current view</helpString>
   </MenuItem>
 
+  <MenuItem itsName="ShowPyCrustItem">
+    <title>Show PyCrust Debugger</title>
+    <menuLocation>TestMenu</menuLocation>
+    <event itemref="events:ShowPyCrust"/>
+    <helpString>Brings up an interactive Python shell</helpString>
+  </MenuItem>
+
   <!--
     Toolbars
   -->
@@ -437,6 +444,7 @@
     <childrenBlocks itemref="doc:GenerateNoteItem"/>
     <childrenBlocks itemref="doc:ImportContactItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
+    <childrenBlocks itemref="doc:ShowPyCrustItem"/>
     
     <!-- Toolbar -->
     <childrenBlocks itemref="doc:NavigationBar"/>

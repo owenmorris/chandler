@@ -459,14 +459,14 @@ class wxApplication (wx.App):
         wx.PostEvent(self, evt)
         return evt.lock
 
-    if __debug__:
-        def ShowDebuggerWindow(self, event):
-            import wx.py
-            self.crustFrame = wx.py.crust.CrustFrame()
-            self.crustFrame.SetSize((700,700))
-            self.crustFrame.Show(True)
-            self.crustFrame.shell.interp.locals['chandler'] = self
-            self.crustFrame.Bind(wx.EVT_CLOSE, self.OnCloseDebuggerWindow)
-
-        def onCloseDebuggerWindow(self, event):
-            self.crustFrame.Destroy()
+    def ShowDebuggerWindow(self):
+        import wx.py
+        self.crustFrame = wx.py.crust.CrustFrame()
+        self.crustFrame.SetSize((700,700))
+        self.crustFrame.Show(True)
+        self.crustFrame.shell.interp.locals['chandler'] = self
+        self.crustFrame.shell.interp.locals['Globals'] = application.Globals
+        self.crustFrame.shell.interp.locals['repo'] = \
+         application.Globals.repository
+        self.crustFrame.shell.interp.locals['pm'] = \
+         application.Parcel.Manager.getManager()

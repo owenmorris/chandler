@@ -67,3 +67,7 @@ class MainView(View):
             repository.logger.info('Check completed successfully')
         else:
             repository.logger.info('Check completed with errors')
+
+    def onShowPyCrustEvent(self, notification):
+        Globals.wxApplication.ShowDebuggerWindow()
+
