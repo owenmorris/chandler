@@ -34,7 +34,13 @@
 				</title>
 				<link rel="stylesheet" type="text/css">
 				   <xsl:attribute  name = "href" >
-				      <xsl:value-of select="$constants.cssPath" />
+                   <xsl:call-template name="createRelativePath">
+                      <xsl:with-param name="src">
+                         <xsl:apply-templates mode="translateURI" select="/core:Parcel/@describes" />
+                      </xsl:with-param>
+                      <xsl:with-param name="target" select="$constants.topURI"/>
+                   </xsl:call-template>
+				   <xsl:value-of select="$constants.cssFile" />
 				   </xsl:attribute>
 				</link>
 			</head>
@@ -45,10 +51,12 @@
 				</h1>
 				<a>
 				<xsl:attribute  name = "href" >
-      <xsl:call-template name="createRelativePath">
-         <xsl:with-param name="src" select="/core:Parcel/@describes" />
-         <xsl:with-param name="target" select="'///'"/>
-      </xsl:call-template>
+                   <xsl:call-template name="createRelativePath">
+                      <xsl:with-param name="src">
+                         <xsl:apply-templates mode="translateURI" select="/core:Parcel/@describes" />
+                      </xsl:with-param>
+                      <xsl:with-param name="target" select="$constants.topURI"/>
+                   </xsl:call-template>
 				</xsl:attribute>
 				Back to the main index
 				</a>
