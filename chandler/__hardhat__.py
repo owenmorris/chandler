@@ -1,6 +1,5 @@
 import os, hardhatlib, hardhatutil, errno, sys
 
-bogus3()
 
 info = {
         'name':'Chandler',
@@ -22,6 +21,8 @@ dependencies = (
 
 
 def build(buildenv):
+
+    bogus3()
 
     # Build the linux launcher program
     if buildenv['os'] == 'posix':
