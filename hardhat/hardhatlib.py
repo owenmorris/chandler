@@ -18,7 +18,7 @@ to a structured log, and alert hardhatlib of problems via Exceptions.
 
 """
 
-import os, sys, glob, errno, string, shutil, fileinput
+import os, sys, glob, errno, string, shutil, fileinput, re
 
 
 # Earlier versions of Python don't define these, so let's include them here:
@@ -680,6 +680,33 @@ def rmdir_recursive(dir):
     os.rmdir(dir)
 # rmdir_recurisve()
 
+def rm_files(dir, pattern):
+    """
+    Remove files in a directory matching pattern
+    Parameters:
+        dir: directory path
+        patter: filename pattern
+    Returns:
+        nothing
+    """
+
+    pattern = '^%s$' %(pattern)
+    pattern = pattern.replace('.', '\\.').replace('*', '.*').replace('?', '.')
+    exp = re.compile(pattern)
+    
+    for name in os.listdir(dir):
+        if exp.match(name):
+            full_name = os.path.join(dir, name)
+            if not os.path.isdir(full_name):
+
+                # on Windows, if we don't have write permission we can't remove
+                # the file/directory either, so turn that on
+                if os.name == 'nt':
+                    if not os.access(full_name, os.W_OK):
+                        os.chmod(full_name, 0600)
+
+                os.remove(full_name)
+# rm_files()
 
 def executeScript(buildenv, args):
 
