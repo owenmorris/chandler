@@ -74,14 +74,6 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         hardhatutil.rmdirRecursive(outputDir)
     os.mkdir(outputDir)
     
-    # Test to determine if this is a brand new checkout
-    print "Check for debug dir ... (indicates first time through)"
-    debugDir = os.path.join(workingDir, "debug")
-    if not os.path.exists(debugDir):
-
-        ret = "build_failed" 
-        return ret
-
     print "Running tests"
     # do debug
     ret = Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
