@@ -9,20 +9,24 @@ import email as email
 import email.Message as Message
 import email.Utils as Utils
 
+
+# XXX: Relook at this logic
 def format_addr(addr):
     """
     This method formats an email address
 
-    @param addr: The email address to format
-    @type addr: list
+    @param addr: The email address list to format
+    @type addr: C{list}
     @return: C{string}
     """
-
     str = addr[0]
-    if str != '':
+    if str != None and str != '':
         str = str + ' '
-    str = str + '<' + addr[1] + '>'
-    return str
+
+        str = str + '<' + addr[1] + '>'
+        return str
+
+    return addr[1]
 
 def messageTextToKind(messageText):
     """
@@ -55,9 +59,14 @@ def messageObjectToKind(messageObject):
     m = Mail.MailMessage()
 
     if m is None:
-        raise Exception("Repository returned a MailMessage that was None")
+        raise TypeError("Repository returned a MailMessage that was None")
 
-    m.dateSent = DateTime.mktime(Utils.parsedate(messageObject['Date']))
+    if messageObject['Date'] is not None:
+        m.dateSent = DateTime.mktime(Utils.parsedate(messageObject['Date']))
+
+    else:
+        m.dateSent = None
+
     m.dateReceived = DateTime.now()
 
     if messageObject['Subject'] is None:
@@ -81,9 +90,15 @@ def messageObjectToKind(messageObject):
         ea.emailAddress = format_addr(addr)
         m.ccAddress.append(ea)
 
+    m.bccAddress = []
+    for addr in Utils.getaddresses(messageObject.get_all('Bcc', [])):
+        ea = Mail.EmailAddress()
+        ea.emailAddress = format_addr(addr)
+        m.bccAddress.append(ea)
+
     return m
 
-def KindToMessageObject(mailMessage):
+def kindToMessageObject(mailMessage):
     """
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
@@ -93,11 +108,61 @@ def KindToMessageObject(mailMessage):
     @return: C{Mail.MailMessage}
     """
 
-    ### Check that the kind is a mail message
     if not isinstance(mailMessage, Mail.MailMessage):
-        raise Exception("mailMessage must be an instance of Kind Mail.MailMessage")
+        raise TypeError("mailMessage must be an instance of Kind Mail.MailMessage")
 
 
     messageObject = Message.Message()
 
+    messageObject['Date'] = Utils.formatdate(mailMessage.dateSent.ticks(), True)
+    messageObject['Date Received'] = Utils.formatdate(mailMessage.dateReceived.ticks(), True)
+    messageObject['Subject'] = mailMessage.subject
+
+    messageObject['From'] = mailMessage.replyAddress.emailAddress
+
+    to = []
+
+    for address in mailMessage.toAddress:
+        to.append(address.emailAddress)
+
+    messageObject['To'] = ", ".join(to)
+
+    del to
+
+    cc = []
+
+    for address in mailMessage.ccAddress:
+        cc.append(address.emailAddress)
+
+    messageObject['Cc'] = ", ".join(cc)
+
+    del cc
+
+    bcc = []
+
+    for address in mailMessage.bccAddress:
+        bcc.append(address.emailAddress)
+
+    messageObject['Bcc'] = ", ".join(bcc)
+
+    del bcc
+
     return messageObject
+
+
+def kindToMessageText(mailMessage):
+    """
+    This method converts a email message string to
+    a Chandler C{Mail.MailMessage} object
+
+    @param messageObject: A C{email.Message} object representation of a mail message
+    @type messageObject: C{email.Message}
+    @return: C{Mail.MailMessage}
+    """
+
+    if not isinstance(mailMessage, Mail.MailMessage):
+        raise TypeError("mailMessage must be an instance of Kind Mail.MailMessage")
+
+    messageObject = kindToMessageObject(mailMessage)
+
+    return messageObject.as_string()
