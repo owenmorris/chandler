@@ -13,7 +13,9 @@ from model.item.Item import Item, ItemHandler
 from model.item.ItemRef import ItemRef, ItemStub, RefDict
 from model.persistence.Repository import Repository
 
-from bsddb.db import DBEnv, DB, DB_CREATE, DB_TRUNCATE, DB_FORCE, DB_INIT_MPOOL, DB_BTREE
+from struct import pack, unpack
+from bsddb.db import DBEnv, DB
+from bsddb.db import DB_CREATE, DB_TRUNCATE, DB_FORCE, DB_INIT_MPOOL, DB_BTREE
 from bsddb.db import DBNoSuchFileError, DBNotFoundError
 from dbxml import XmlContainer, XmlDocument, XmlValue
 from dbxml import XmlQueryContext, XmlUpdateContext
@@ -313,7 +315,6 @@ class XMLRepository(Repository):
             
             val = cursor.set_range(key)
             while val is not None and val[0].startswith(key):
-                print 'deleting', key
                 cursor.delete()
                 val = cursor.next()
 
@@ -322,80 +323,145 @@ class XMLRepository(Repository):
 
 class XMLRefDict(RefDict):
 
+    class _log(list):
+
+        def append(self, value):
+            if len(self) > 0:
+                if value != self[-1]:
+                    super(XMLRefDict._log, self).append(value)
+            else:
+                super(XMLRefDict._log, self).append(value)
+                
+
     def __init__(self, repository, item, name, otherName, ordered):
         
-        self._log = []
+        self._log = XMLRefDict._log()
         self._item = None
         self._uuid = UUID()
         self._repository = repository
 
         super(XMLRefDict, self).__init__(item, name, otherName, ordered)
 
-    def _detach(self, itemRef, item, name, other, otherName):
+    def _changeRef(self, key):
 
         if not self._repository.isLoading():
-            if isinstance(other, Item):
-                self._log.append((1, other.refName(name), other.getUUID()))
-            else:
-                assert isinstance(other, ItemStub), other
-        else:
-            print 'Warning, detach while load'
-
-    def _attach(self, itemRef, item, name, other, otherName):
-
-        if not self._repository.isLoading():
-            if isinstance(other, Item):
-                self._log.append((0, other.refName(name), other.getUUID()))
-            else:
-                assert isinstance(other, ItemStub), other
+            self._log.append((0, key))
         
-    def _writeRef(self, key, uuid):
+        super(XMLRefDict, self)._changeRef(key)
 
-        self._buffer.truncate(32)
-        self._buffer.seek(0, 2)
+    def _removeRef(self, key, _detach=False):
+
+        if not self._repository.isLoading():
+            self._log.append((1, key))
+        else:
+            print 'Warning, detach during load'
+
+        super(XMLRefDict, self)._removeRef(key, _detach)
+
+    def _writeRef(self, key, uuid, previous, next):
+
+        self._key.truncate(32)
+        self._key.seek(0, 2)
 
         if isinstance(key, UUID):
-            self._buffer.write('\0')
-            self._buffer.write(key._uuid)
+            self._key.write('\0')
+            self._key.write(key._uuid)
+        elif isinstance(key, str) or isinstance(key, unicode):
+            self._key.write('\1')
+            self._key.write(str(key))
         else:
-            self._buffer.write('\1')
-            self._buffer.write(key)
+            raise NotImplementedError, "refName: %s, type: %s" %(key,
+                                                                 type(key))
 
-        self._repository._refs.put(self._buffer.getvalue(), uuid._uuid)
+        if self._ordered:
+            self._value.truncate(0)
+            self._value.seek(0)
+            self._value.write(uuid._uuid)
+            self._writeValue(previous)
+            self._writeValue(next)
+            value = self._value.getvalue()
+        else:
+            value = uuid._uuid
+            
+        self._repository._refs.put(self._key.getvalue(), value)
 
-    def _eraseRef(self, key, uuid):
+    def _writeValue(self, value):
+        
+        if isinstance(value, UUID):
+            self._value.write('\0')
+            self._value.write(value._uuid)
 
-        self._buffer.truncate(32)
-        self._buffer.seek(0, 2)
+        elif isinstance(value, str) or isinstance(value, unicode):
+            self._value.write('\1')
+            self._value.write(pack('>H', len(value)))
+            self._value.write(value)
+
+        elif value is None:
+            self._value.write('\2')
+
+        else:
+            raise NotImplementedError, "value: %s, type: %s" %(value,
+                                                               type(value))
+
+    def _readValue(self):
+
+        code = self._value.read(1)
+
+        if code == '\0':
+            return UUID(self._value.read(16))
+
+        if code == '\1':
+            len = ('>H', self._value.read(2))
+            return self._value.read(len)
+
+        if code == '\2':
+            return None
+
+        raise ValueError, code
+
+    def _eraseRef(self, key):
+
+        self._key.truncate(32)
+        self._key.seek(0, 2)
 
         if isinstance(key, UUID):
-            self._buffer.write('\0')
-            self._buffer.write(key._uuid)
+            self._key.write('\0')
+            self._key.write(key._uuid)
         else:
-            self._buffer.write('\1')
-            self._buffer.write(key)
+            self._key.write('\1')
+            self._key.write(key)
 
-        self._repository._refs.delete(self._buffer.getvalue())
+        self._repository._refs.delete(self._key.getvalue())
 
     def _dbRefs(self):
 
-        self._buffer.truncate(32)
-        key = self._buffer.getvalue()
-
+        self._key.truncate(32)
         cursor = self._repository._refs.cursor()
 
         try:
+            key = self._key.getvalue()
             val = cursor.set_range(key)
         except DBNotFoundError:
             val = None
             
         while val is not None and val[0].startswith(key):
             if val[0][32] == '\0':
-                k = UUID(val[0][33:])
+                refName = UUID(val[0][33:])
             else:
-                k = val[0][33:]
+                refName = val[0][33:]
 
-            yield (k, UUID(val[1]))
+            if self._ordered:
+                self._value.truncate(0)
+                self._value.seek(0)
+                self._value.write(val[1])
+                self._value.seek(0)
+                uuid = UUID(self._value.read(16))
+                previous = self._readValue()
+                next = self._readValue()
+                yield (refName, uuid, previous, next)
+            else:
+                yield (refName, UUID(val[1]))
+                
             val = cursor.next()
 
         cursor.close()
@@ -413,17 +479,40 @@ class XMLRefDict(RefDict):
 
         self._uuid = uuid
 
-        self._buffer = cStringIO.StringIO()
-        self._buffer.write(uItem._uuid)
-        self._buffer.write(uuid._uuid)
+        self._key = cStringIO.StringIO()
+        self._key.write(uItem._uuid)
+        self._key.write(uuid._uuid)
+
+        if self._ordered:
+            self._value = cStringIO.StringIO()
             
     def _saveValues(self, generator):
 
         for entry in self._log:
+            try:
+                value = self._get(entry[1])
+            except KeyError:
+                value = None
+
             if entry[0] == 0:
-                self._writeRef(entry[1], entry[2])
+                if value is not None:
+                    if self._ordered:
+                        ref = value._value
+                        previous = value._previous
+                        next = value._next
+                    else:
+                        ref = value
+                        previous = None
+                        next = None
+
+                    uuid = ref.other(self._item).getUUID()
+                    self._writeRef(entry[1], uuid, previous, next)
+                    
+            elif entry[0] == 1:
+                self._eraseRef(entry[1])
             else:
-                self._eraseRef(entry[1], entry[2])
+                raise ValueError, entry[0]
+
         del self._log[:]
 
         if len(self) > 0:

@@ -12,10 +12,10 @@ from model.util.Path import Path
 class ItemRef(object):
     'A wrapper around a bi-directional link between two items.'
     
-    def __init__(self, refDict, item, name, other, otherName, otherCard=None):
+    def __init__(self, item, name, other, otherName, otherCard=None):
 
         super(ItemRef, self).__init__()
-        self.attach(refDict, item, name, other, otherName, otherCard)
+        self.attach(item, name, other, otherName, otherCard)
 
     def __repr__(self):
 
@@ -44,12 +44,7 @@ class ItemRef(object):
 
         raise DanglingRefError, '%s <-> %s' %(self._item, self._other)
 
-    def attach(self, refDict, item, name, other, otherName, otherCard=None):
-
-        self._attach(item, name, other, otherName, otherCard)
-        refDict._attach(self, item, name, other, otherName)
-
-    def _attach(self, item, name, other, otherName, otherCard=None):
+    def attach(self, item, name, other, otherName, otherCard=None):
 
         assert item is not None, 'item is None'
         assert other is not None, 'other is None'
@@ -57,12 +52,12 @@ class ItemRef(object):
         self._item = item
         self._other = other
 
-        if isinstance(other, model.item.Item.Item):
+        if type(other) is not ItemStub:
             if other.hasAttribute(otherName):
                 old = other.getAttribute(otherName)
                 if isinstance(old, RefDict):
-                    old[item.refName(otherName)] = self
-                    old._attach(self, other, otherName, item, name)
+                    refName = item.refName(otherName)
+                    old[refName] = self
                     return
             else:
                 if otherCard is None:
@@ -72,27 +67,17 @@ class ItemRef(object):
                     old = other._refDict(otherName, name)
                     other._references[otherName] = old
                     old[item.refName(otherName)] = self
-                    old._attach(self, other, otherName, item, name)
                     return
                 elif otherCard == 'list':
                     old = other._refDict(otherName, name, True)
                     other._references[otherName] = old
-                    old[item.refName(otherName)] = self
-                    old._attach(self, other, otherName, item, name)
+                    refName = item.refName(otherName)
+                    old[refName] = self
                     return
             
             other.setAttribute(otherName, self, _attrDict=other._references)
 
-    def detach(self, refDict, item, name, other, otherName):
-
-        (item, name, other, otherName) = self._endpoints(item, name,
-                                                         other, otherName)
-
-        if isinstance(other, model.item.Item.Item):
-            self._detach(item, name, other, otherName)
-            refDict._detach(self, item, name, other, otherName)
-        
-    def _detach(self, item, name, other, otherName):
+    def detach(self, item, name, other, otherName):
 
         old = other.getAttribute(otherName, _attrDict=other._references)
         if isinstance(old, RefDict):
@@ -100,14 +85,10 @@ class ItemRef(object):
         else:
             other._removeRef(otherName)
 
-    def reattach(self, refDict, item, name, old, new, otherName):
+    def reattach(self, item, name, old, new, otherName):
 
-        (item, name, other, otherName) = self._endpoints(item, name,
-                                                         other, otherName)
-
-        if isinstance(other, model.item.Item.Item):
-            self.detach(item, refDict, name, old, otherName)
-            self.attach(item, refDict, name, new, otherName)
+        self.detach(item, name, old, otherName)
+        self.attach(item, name, new, otherName)
 
     def other(self, item):
         'Return the other end of the ref relative to item.'
@@ -153,11 +134,11 @@ class ItemRef(object):
         if isinstance(name, UUID):
             attrs['nameType'] = "uuid"
             attrs['name'] = name.str64()
-        elif not isinstance(name, str) and not isinstance(name, unicode):
-            attrs['nameType'] = typeName(name)
+        elif isinstance(name, str) or isinstance(name, unicode):
             attrs['name'] = str(name)
         else:
-            attrs['name'] = name
+            raise NotImplementedError, "refName: %s, type: %s" %(name,
+                                                                 type(name))
 
         if withSchema:
             otherName = item._otherName(name)
@@ -192,7 +173,7 @@ class RefArgs(object):
     'A wrapper around arguments necessary to make and store an ItemRef'
     
     def __init__(self, attrName, refName, spec, otherName, otherCard,
-                 valueDict):
+                 valueDict, previous=None, next=None):
 
         super(RefArgs, self).__init__()
         
@@ -200,8 +181,10 @@ class RefArgs(object):
         self.refName = refName
         self.spec = spec
         self.otherName = otherName
-        self.valueDict = valueDict
         self.otherCard = otherCard
+        self.valueDict = valueDict
+        self.previous = previous
+        self.next = next
         self.ref = None
         
     def attach(self, item, repository):
@@ -221,11 +204,12 @@ class RefArgs(object):
             self._attach(item, other)
 
         else:
-            self.ref = ItemRef(self.valueDict, item, self.attrName,
+            self.ref = ItemRef(item, self.attrName,
                                ItemStub(item, self), self.otherName,
                                self.otherCard)
             repository._addStub(self.ref)
-            self.valueDict[self.refName] = self.ref
+            self.valueDict.__setitem__(self.refName, self.ref, 
+                                       self.previous, self.next)
 
     def _attach(self, item, other):
         
@@ -233,19 +217,19 @@ class RefArgs(object):
         
         if value is None:
             if self.ref is not None:
-                self.ref.attach(self.valueDict, item, self.attrName,
+                self.ref.attach(item, self.attrName,
                                 other, self.otherName, self.otherCard)
             else:
-                self.ref = ItemRef(self.valueDict, item, self.attrName,
+                self.ref = ItemRef(item, self.attrName,
                                    other, self.otherName, self.otherCard)
-                self.valueDict[self.refName] = self.ref
+                self.valueDict.__setitem__(self.refName, self.ref, 
+                                           self.previous, self.next)
 
         elif isinstance(value, ItemRef):
             if isinstance(value._other, ItemStub):
                 value._other = item
-                self.valueDict[self.refName] = value
-                self.valueDict._attach(value, other, self.otherName,
-                                       item, self.attrName)
+                self.valueDict.__setitem__(self.refName, value,
+                                           self.previous, self.next)
 
         elif isinstance(value, RefDict):
             otherRefName = item.refName(self.otherName)
@@ -253,17 +237,17 @@ class RefArgs(object):
                 value = value._getRef(otherRefName)
                 if isinstance(value._other, ItemStub):
                     value._other = item
-                    self.valueDict[self.refName] = value
-                    self.valueDict._attach(value, other, self.otherName,
-                                           item, self.attrName)
+                    self.valueDict.__setitem__(self.refName, value,
+                                               self.previous, self.next)
             else:
                 if self.ref is not None:
-                    self.ref.attach(self.valueDict, item, self.attrName,
+                    self.ref.attach(item, self.attrName,
                                     other, self.otherName, self.otherCard)
                 else:
-                    self.ref = ItemRef(self.valueDict, item, self.attrName,
+                    self.ref = ItemRef(item, self.attrName,
                                        other, self.otherName, self.otherCard)
-                    self.valueDict[self.refName] = self.ref
+                    self.valueDict.__setitem__(self.refName, self.ref,
+                                               self.previous, self.next)
 
         else:
             raise ValueError, value
@@ -289,7 +273,7 @@ class Attributes(dict):
         if self._item is not None:
             self._item.setDirty()
 
-        super(Attributes, self).__setitem__(key, value)
+        return super(Attributes, self).__setitem__(key, value)
 
     def __delitem__(self, key):
 
@@ -308,11 +292,33 @@ class References(Attributes):
 
         self._item = item
 
-    def _attach(self, itemRef, item, name, other, otherName):
-        pass
+    def __setitem__(self, key, value, *args):
 
-    def _detach(self, itemRef, item, name, other, otherName):
-        pass
+        return super(References, self).__setitem__(key, value)
+
+
+class RefLink(object):
+
+    def __init__(self, value):
+
+        super(RefLink, self).__init__(self)
+        self._value = value
+        
+    def _setNext(self, next, key, refDict):
+
+        if next is None:
+            refDict._last = key
+
+        self._next = next
+        refDict._changeRef(key)
+
+    def _setPrevious(self, previous, key, refDict):
+
+        if previous is None:
+            refDict._first = key
+                
+        self._previous = previous
+        refDict._changeRef(key)
 
 
 class RefDict(References):
@@ -321,13 +327,12 @@ class RefDict(References):
 
         self._name = name
         self._otherName = otherName
-
-        super(RefDict, self).__init__(item)
+        self._ordered = ordered
 
         if ordered:
-            self._keyList = []
-        else:
-            self._keyList = None
+            self._first = self._last = None
+        
+        super(RefDict, self).__init__(item)
 
     def _setItem(self, item):
 
@@ -342,16 +347,9 @@ class RefDict(References):
     def __contains__(self, obj):
 
         if isinstance(obj, model.item.Item.Item):
-            return super(RefDict, self).has_key(obj.refName(self._name))
+            return self.has_key(obj.refName(self._name))
 
-        return super(RefDict, self).has_key(obj)
-
-    def has_key(self, key):
-
-        if self._keyList is not None and isinstance(key, int):
-            return 0 <= key and key < len(self._keyList)
-
-        return super(RefDict, self).has_key(key)
+        return self.has_key(obj)
 
     def update(self, valueDict):
 
@@ -360,7 +358,7 @@ class RefDict(References):
 
     def extend(self, valueList):
 
-        if self._keyList is not None:
+        if self._ordered:
             for value in valueList:
                 self.append(value)
         else:
@@ -368,8 +366,8 @@ class RefDict(References):
 
     def append(sef, value):
 
-        if self._keyList is not None:
-            self[value.refName(self._name)] = value
+        if self._ordered:
+            self.__setitem__(value.refName(self._name), value, self._last)
         else:
             raise NotImplementedError, 'RefDict was not created ordered'
 
@@ -380,105 +378,225 @@ class RefDict(References):
 
     def dir(self):
 
-        if self._keyList is not None:
-            for key in self._keyList:
-                print self[key]
-        else:
-            for item in self:
-                print item
+        for item in self:
+            print item
 
     def __getitem__(self, key):
 
-        try:
-            ref = super(RefDict, self).__getitem__(key)
-        except KeyError:
-            if self._keyList is not None and isinstance(key, int):
-                ref = super(RefDict, self).__getitem__(self._keyList[key])
-            else:
-                raise
+        ref = self._get(key)
+        if type(ref) is RefLink:
+            ref = ref._value
             
         return ref.other(self._getItem())
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, value, previous=None, next=None):
 
-        if self._keyList is not None and isinstance(key, int):
-            key = self._keyList[key]
-            
-        old = super(RefDict, self).get(key)
+        self._changeRef(key)
         
-        if isinstance(old, ItemRef):
+        old = super(RefDict, self).get(key)
+        if old is not None:
+
+            if type(old) is RefLink:
+                old = old._value
+
             item = self._getItem()
-            if isinstance(value, ItemRef):
-                old.detach(self, item, self._name,
+            if type(value) is ItemRef:
+                old.detach(item, self._name,
                            old.other(item), self._otherName)
             else:
-                old.reattach(self, item, self._name,
+                old.reattach(item, self._name,
                              old.other(item), value, self._otherName)
-                return
+                return old
 
-        if not isinstance(value, ItemRef):
-            value = ItemRef(self, self._getItem(), self._name,
+        if type(value) is not ItemRef:
+            value = ItemRef(self._getItem(), self._name,
                             value, self._otherName)
-            
-        if self._keyList is not None and not super(RefDict, self).has_key(key):
-            self._keyList.append(key)
-            
-        super(RefDict, self).__setitem__(key, value)
 
+        if self._ordered:
+            value = RefLink(value)
+
+            if previous is None and next is None:
+                previous = self._last
+                if previous is not None and previous != key:
+                    self._get(previous)._setNext(key, previous, self)
+
+            if previous is None or previous != key:
+                value._setPrevious(previous, key, self)
+            if next is None or next != key:
+                value._setNext(next, key, self)
+
+        return super(RefDict, self).__setitem__(key, value)
+
+    def place(self, item, after=None):
+        """Place an item in this collection after another one.
+
+        The reference collection must be created ordered, that is, the
+        corresponding attribute must be of cardinality 'list'.
+        Both items must already belong to the collection. To place an item
+        first, omit 'after' or pass it None."""
+        
+        if not self._ordered:
+            raise NotImplementedError, 'RefDict was not created ordered'
+
+        key = item.refName(self._name)
+        if self.has_key(key):
+            current = self._get(key)
+            if current._previous is not None:
+                previous = self._get(current._previous)
+            else:
+                previous = None
+            if current._next is not None:
+                next = self._get(current._next)
+            else:
+                next = None
+        else:
+            raise ValueError, "This collection contains no reference to %s" %(item.getPath())
+
+        if after is not None:
+            afterKey = after.refName(self._name)
+            if self.has_key(afterKey):
+                after = self._get(afterKey)
+                afterNextKey = after._next
+            else:
+                raise ValueError, "This collection contains no reference to %s" %(after.getPath())
+        else:
+            afterKey = None
+            afterNextKey = self._first
+
+        if key == afterKey:
+            return
+
+        if previous is not None:
+            previous._setNext(current._next, current._previous, self)
+        if next is not None:
+            next._setPrevious(current._previous, current._next, self)
+
+        current._setNext(afterNextKey, key, self)
+        if afterNextKey is not None:
+            self._get(afterNextKey)._setPrevious(key, afterNextKey, self)
+        if after is not None:
+            after._setNext(key, afterKey, self)
+
+        current._setPrevious(afterKey, key, self)
+            
     def __delitem__(self, key):
 
-        if self._keyList is not None:
-            if isinstance(key, int):
-                key = self._keyList.pop(key)
+        self._removeRef(key, True)
+
+    def _removeRef(self, key, _detach=False):
+
+        value = self._get(key)
+
+        if _detach:
+            if type(value) is RefLink:
+                ref = value._value
             else:
-                self._keyList.pop(self._keyList.index(key))
+                ref = value
+            ref.detach(self._item, self._name,
+                       ref.other(self._item), self._otherName)
 
-        value = self._getRef(key)
-        item = self._getItem()
-        value.detach(self, item, self._name,
-                     value.other(item), self._otherName)
-
+        if type(value) is RefLink:
+            if value._previous is not None:
+                self._get(value._previous)._setNext(value._next,
+                                                    value._previous, self)
+            else:
+                self._first = value._next
+            if value._next is not None:
+                self._get(value._next)._setPrevious(value._previous,
+                                                    value._next, self)
+            else:
+                self._last = value._previous
+                
         super(RefDict, self).__delitem__(key)
 
-    def _removeRef(self, key):
+    def _changeRef(self, key):
 
-        if self._keyList is not None:
-            self._keyList.pop(self._keyList.index(key))
-
-        super(RefDict, self).__delitem__(key)
+        self._item.setDirty()
 
     def _getRef(self, key):
 
-        return super(RefDict, self).get(key)
-
-    def get(self, key, default=None):
-
-        value = super(RefDict, self).get(key, default)
-        if value is not default:
-            value = value.other(self._getItem())
+        value = self._get(key)
+        if type(value) is RefLink:
+            return value._value
 
         return value
 
-    def __iter__(self):
+    def _get(self, key):
 
-        class keyIter(object):
+        return super(RefDict, self).__getitem__(key)
 
-            def __init__(self, refDict):
+    def get(self, key, default=None):
 
-                super(keyIter, self).__init__()
+        value = super(RefDict, self).get(key)
 
-                if refDict._keyList is not None:
-                    self._iter = refDict._keyList.__iter__()
-                else:
-                    self._iter = refDict.iterkeys()
-                    
-                self._refDict = refDict
+        if value is not default:
+            if type(value) is RefLink:
+                value = value._value
+            return value.other(self._item)
 
-            def next(self):
+        return default
 
-                return self._refDict[self._iter.next()]
+    def first(self):
+        """Return the first referenced item.
 
-        return keyIter(self)
+        Returns None if the collection is empty. The reference collection
+        must be created ordered, that is, the corresponding attribute must
+        be of cardinality 'list'."""
+
+        if self._ordered:
+            if self._first:
+                return self[self._first]
+            else:
+                return None
+
+        raise NotImplementedError, 'RefDict was not created ordered'
+
+    def last(self):
+        """Return the last referenced item.
+
+        Returns None if the collection is empty. The reference collection
+        must be created ordered, that is, the corresponding attribute must
+        be of cardinality 'list'."""
+
+        if self._ordered:
+            if self._last:
+                return self[self._last]
+            else:
+                return None
+
+        raise NotImplementedError, 'RefDict was not created ordered'
+        
+    def next(self, previous):
+        """Return the next referenced item relative to previous.
+
+        Returns None if previous is the last referenced item in the
+        collection. The reference collection must be created ordered, that
+        is, the corresponding attribute must be of cardinality 'list'."""
+
+        if self._ordered:
+            next = self._get(previous.refName(self._name))._next
+            if next:
+                return self[next]
+            else:
+                return None
+
+        raise NotImplementedError, 'RefDict was not created ordered'
+
+    def previous(self, next):
+        """Return the previous referenced item relative to next.
+
+        Returns None if next is the first referenced item in the
+        collection. The reference collection must be created ordered, that
+        is, the corresponding attribute must be of cardinality 'list'."""
+
+        if self._ordered:
+            previous = self._get(next.refName(self._name))._previous
+            if previous:
+                return self[previous]
+            else:
+                return None
+
+        raise NotImplementedError, 'RefDict was not created ordered'
 
     def _refCount(self):
 
@@ -486,12 +604,23 @@ class RefDict(References):
 
     def _getCard(self):
 
-        if self._keyList is None:
-            return 'dict'
-        else:
+        if self._ordered:
             return 'list'
+        else:
+            return 'dict'
 
     def _saveValue(self, name, item, generator, withSchema=False):
+
+        def addAttr(attrs, attr, key):
+
+            if isinstance(key, UUID):
+                attrs[attr + 'Type'] = 'uuid'
+                attrs[attr] = key.str64()
+            elif isinstance(key, str) or isinstance(key, unicode):
+                attrs[attr] = str(name)
+            else:
+                raise NotImplementedError, "refName: %s, type: %s" %(key,
+                                                                     type(key))
 
         if len(self) > 0:
 
@@ -516,6 +645,53 @@ class RefDict(References):
 
         raise NotImplementedError, 'RefDict._saveValues'
 
+    def iterkeys(self):
+
+        if not self._ordered:
+            return super(RefDict, self).iterkeys()
+
+        class linkIter(object):
+
+            def __init__(self, refDict):
+
+                super(linkIter, self).__init__()
+
+                self._current = refDict._first
+                self._refDict = refDict
+
+            def __iter__(self):
+
+                return self
+
+            def next(self):
+
+                if self._current is None:
+                    raise StopIteration
+
+                key = self._current
+                link = self._refDict._get(key)
+                self._current = link._next
+
+                return key
+
+        return linkIter(self)
+
+    def __iter__(self):
+
+        class _iter(object):
+
+            def __init__(self, iter, refDict):
+
+                super(_iter, self).__init__()
+                self.iter = iter
+                self.refDict = refDict
+
+            def next(self):
+
+                return self.refDict[self.iter.next()]
+
+        return _iter(self.iterkeys(), self)
+
     def values(self):
 
         values = []
@@ -526,7 +702,11 @@ class RefDict(References):
 
     def _values(self):
 
-        return super(RefDict, self).values()
+        values = []
+        for key in self.iterkeys():
+            values.append(self._get(key))
+
+        return values
 
     def itervalues(self):
 
@@ -535,7 +715,8 @@ class RefDict(References):
 
     def _itervalues(self):
 
-        return super(RefDict, self).itervalues()
+        for key in self.iterkeys():
+            yield self._get(key)
 
     def iteritems(self):
 
@@ -544,11 +725,12 @@ class RefDict(References):
 
     def _iteritems(self):
 
-        return super(RefDict, self).iteritems()
+        for key in self.iterkeys():
+            yield (key, self._get(key))
 
     def copy(self):
 
-        raise NotImplemented, 'RefDict.copy is not supported'
+        raise NotImplementedError, 'RefDict.copy is not supported'
 
     def items(self):
 
@@ -558,8 +740,10 @@ class RefDict(References):
 
     def _items(self):
 
-        return super(RefDict, self).items()
-    
+        items = []
+        for key in self.iterkeys():
+            items.append((key, self._get(key)))
+
 
 class DanglingRefError(ValueError):
     pass

@@ -170,5 +170,10 @@ class FileRefDict(RefDict):
 
     def _saveValues(self, generator):
 
-        for ref in self._iteritems():
-            ref[1]._saveValue(ref[0], self._item, generator)
+        for tuple in self._iteritems():
+            if self._ordered:
+                ref = tuple[1]._value
+            else:
+                ref = tuple[1]
+                
+            ref._saveValue(tuple[0], self._item, generator)
