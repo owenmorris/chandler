@@ -8,8 +8,8 @@
 <Parcel describes="//parcels/OSAF/contentmodel/calendar"
         itemName="calendar"
         xmlns="//Schema/Core"
-        xmlns:cal="//parcels/OSAF/contentmodel/calendar"
-        xmlns:contact="//parcels/OSAF/contentmodel/contacts">
+        xmlns:content="//parcels/OSAF/contentmodel"
+        xmlns:cal="//parcels/OSAF/contentmodel/calendar">
 
   <displayName>Calendar Schema</displayName>
   <description>Kinds and Attributes related to Calendar functionality. This schema is still a strawman schema, a starting point.</description>
@@ -60,29 +60,19 @@
   <Attribute itemName="participants">
     <displayName>Participants</displayName>
     <cardinality>list</cardinality>
-    <type itemref="contact:Contact"/>
-    <inverseAttribute itemref="cal:participatingIn"/>
-  </Attribute>
-
-  <Attribute itemName="participatingIn">
-    <displayName>Participating In</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="cal:CalendarEvent"/>
-    <inverseAttribute itemref="cal:participants"/>
+    <issues>@@@ type should be Contact</issues>
+    <type itemref="content:ContentItem"/>
+    <otherName>participatingIn</otherName>
   </Attribute>
 
   <Attribute itemName="organizer">
     <displayName>Meeting Organizer</displayName>
     <cardinality>single</cardinality>
-    <type itemref="contact:Contact"/>
-    <superAttribute itemref="cal:participants"/>
   </Attribute>
 
   <Attribute itemName="attendees">
     <displayName>Meeting Attendee</displayName>
     <cardinality>list</cardinality>
-    <type itemref="contact:Contact"/>
-    <superAttribute itemref="cal:participants"/>
   </Attribute>
 
   <Attribute itemName="recurrence">

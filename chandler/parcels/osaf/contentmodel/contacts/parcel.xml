@@ -8,7 +8,7 @@
 <Parcel describes="//parcels/OSAF/contentmodel/contacts"
         itemName="contacts"
         xmlns="//Schema/Core"
-        xmlns:pim="//parcels/OSAF/contentmodel"
+        xmlns:content="//parcels/OSAF/contentmodel"
         xmlns:contact="//parcels/OSAF/contentmodel/contacts">
 
   <displayName>Contact Schema</displayName>
@@ -91,7 +91,7 @@
   <Kind itemName="Contact">
     <displayName>Contact</displayName>
     <description>Contact</description>
-    <superKinds itemref="pim:ContentItem"/>
+    <superKinds itemref="content:ContentItem"/>
     <attributes itemref="contact:homeSection"/>
     <attributes itemref="contact:workSection"/>
     <attributes itemref="contact:sections"/>
@@ -106,22 +106,13 @@
     <inverseAttribute itemref="contact:phoneNumberOwner"/>
   </Attribute>
 
-<!--
   <Attribute itemName="emailAddresses">
     <displayName>phone numbers</displayName>
     <cardinality>list</cardinality>
-    <type itemref="mail:EmailAddress"/>
-    <inverseAttribute itemref="contact:emailAddressOwner"/>
+    <issues>@@@ should be type EmailAddress</issues>
+    <type itemref="Item"/>
+    <otherName>emailAddressOwner</otherName>
   </Attribute>
-
-  <Attribute itemName="emailAddressOwner">
-    <displayName>email address owner</displayName>
-    <issues>only one owner</issues>
-    <cardinality>single</cardinality>
-    <type itemref="contact:ContactSection"/>
-    <inverseAttribute itemref="contact:emailAddresses"/>
-  </Attribute>
--->
 
   <Attribute itemName="streetAddresses">
     <displayName>phone numbers</displayName>
@@ -140,7 +131,7 @@
     <displayName>Contact Section</displayName>
     <description>Section of a contact.</description>
     <attributes itemref="contact:phoneNumbers"/>
-    <!--<attributes itemref="contact:emailAddresses"/>-->
+    <attributes itemref="contact:emailAddresses"/>
     <attributes itemref="contact:streetAddresses"/>
     <attributes itemref="contact:jabberAddresses"/>
   </Kind>

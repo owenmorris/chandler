@@ -9,7 +9,6 @@
         itemName="mail"
         xmlns="//Schema/Core"
 	xmlns:content="//parcels/OSAF/contentmodel"
-	xmlns:task="//parcels/OSAF/contentmodel/tasks"
 	xmlns:mail="//parcels/OSAF/contentmodel/mail">
 
   <displayName>Email</displayName>
@@ -105,10 +104,29 @@
     <type itemref="String"/>
   </Attribute>
 
+  <!-- Attributes that might belong in other parcels -->  
+
+  <Attribute itemName="emailAddressOwner">
+    <displayName>email address owner</displayName>
+    <issues>only one owner</issues>
+    <issues>@@@ should be type ContactSection</issues>
+    <cardinality>single</cardinality>
+    <type itemref="Item"/>
+    <otherName>emailAddresses</otherName>
+  </Attribute>
+
+  <Attribute itemName="participatingIn">
+    <displayName>Participating In</displayName>
+    <cardinality>list</cardinality>
+    <issues>type should be CalendarEvent</issues>
+    <type itemref="content:ContentItem"/>
+    <otherName>participants</otherName>
+  </Attribute>
+
   <Kind itemName="EmailAddress">
     <displayName>Email Address</displayName>
-    <!--attributes itemref="contact:emailAddressOwner"/-->
-    <!--attributes itemref="calendar:participatingIn"/-->
+    <attributes itemref="mail:emailAddressOwner"/>
+    <attributes itemref="mail:participatingIn"/>
     <attributes itemref="mail:sentToInverse"/>
     <attributes itemref="mail:emailAddress"/>
     <attributes itemref="mail:vcardType"/>
@@ -304,8 +322,9 @@
   <Attribute itemName="stronglyLinkedTask">
     <displayName>strongly linked task</displayName>
     <cardinality>single</cardinality>
-    <type itemref="task:Task"/>
-    <!--inverseAttribute itemref="stronglyLinkedMail"/-->
+    <issues>@@@ type should be task</issues>
+    <type itemref="content:ContentItem"/>
+    <otherName>stronglyLinkedMail</otherName>
   </Attribute>
 
   <Attribute itemName="spamScore">
