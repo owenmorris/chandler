@@ -8,30 +8,25 @@
 # recursive: set to yes or no
 # glob: set to a comma-separated list of glob patterns
 
-# Grab the python.exe and certain dll's from release/bin
-src=release
+# Grab certain dll's from release/bin
+src=release/bin
 dest=
-recursive=no
-bin/python.exe
-glob=wx*.dll,ms*.dll,python*.dll
-bin
+libdb41.dll
+libdbxml11.dll
+msvcr70.dll
+Pathan.dll
+python23.dll
+wxmsw24.dll
+xerces-c_2_3_0.dll
 
 
 # Grab all py, pyc, etc. from release/bin/DLLs and release/bin/Lib
 src=release/bin
-dest=bin
+dest=
 glob=*.py,*.pyc,*.pyo,*.pyd,*.so,*.dll
 recursive=yes
 DLLs
 Lib
-
-# # Grab wx libs from release/lib
-# src=release
-# dest=
-# recursive=no
-# glob=*
-# lib
-
 
 # Grab Chandler.py, version.py and LICENSE.txt
 src=Chandler
@@ -53,14 +48,11 @@ locale
 
 # Grab the launcher and linux README
 src=Chandler/distrib/win
-Chandler.bat
 README.win.txt
+
+src=Chandler/distrib/win/launcher/winlaunch/Release
+chandler.exe
 
 # Grab the overall README
 src=Chandler/distrib
 README.txt
-
-# Grab the MS runtime DLL
-src=Chandler/distrib/win
-dest=bin
-msvcr70.dll
