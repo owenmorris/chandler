@@ -1,0 +1,70 @@
+# manifest.win
+#
+# Variables maintain their value until changed, so be aware of the order of
+# things...
+# 
+# src: set this to be relative to buildenv['root']
+# dest: set this to be relative to buildenv['distdir']
+# recursive: set to yes or no
+# glob: set to a comma-separated list of glob patterns
+
+# Grab the python.exe and certain dll's from debug/bin
+src=debug
+dest=
+recursive=no
+bin/python_d.exe
+glob=wx*.dll,ms*.dll,python*.dll
+bin
+
+
+# Grab all py, pyc, etc. from debug/bin/DLLs and debug/bin/Lib
+src=debug/bin
+dest=bin
+glob=*.py,*.pyc,*.pyo,*.pyd,*.so,*.dll
+recursive=yes
+DLLs
+Lib
+
+# # Grab wx libs from debug/lib
+# src=debug
+# dest=
+# recursive=no
+# glob=*
+# lib
+
+
+# Grab Chandler.py, version.py and LICENSE.txt
+src=Chandler
+dest=
+Chandler.py
+version.py
+HISTORY.txt
+LICENSE.txt
+
+# Grab the rest of Chandler from the application/ and parcel/ folders
+recursive=yes
+glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack
+application
+parcels
+
+glob=*
+model
+
+glob=*.po,*.mo
+locale
+
+# Grab the launcher and README
+src=Chandler/distrib/win
+README.win.txt
+src=Chandler/distrib/win/debug
+Chandler.bat
+
+# Grab the overall README
+src=Chandler/distrib
+README.txt
+
+# Grab the MS runtime DLL
+src=Chandler/distrib/win
+dest=bin
+msvcr70d.dll
+msvcr71d.dll
