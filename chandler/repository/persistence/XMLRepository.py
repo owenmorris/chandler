@@ -253,8 +253,9 @@ class XMLRepository(OnDemandRepository):
             else:
                 raise ValueError, "dbxml %s not supported" %(self.version)
 
-            for ver, doc in roots.itervalues():
-                view._loadDoc(doc)
+            for name, (ver, doc) in roots.iteritems():
+                if not name in view._roots:
+                    view._loadDoc(doc)
 
         def deleteDocument(self, view, doc):
 
