@@ -41,6 +41,31 @@ dbxml-module -a \
     osaf/chandler/dbxml \
     osaf/chandler/bsddb3
 
+chandler-app -a \
+    osaf/chandler/Chandler
+
+chandler-system -a \
+    hardhat \
+    osaf/chandler/Chandler \
+    osaf/chandler/hardhat \
+    osaf/chandler/python \
+    osaf/chandler/zodb \
+    osaf/chandler/distutils \
+    osaf/chandler/egenix-mx \
+    osaf/chandler/wxpython \
+    osaf/chandler/jabber-py \
+    osaf/chandler/swig \
+    osaf/chandler/pkgconfig \
+    osaf/chandler/net/expat \
+    osaf/chandler/net/gettext \
+    osaf/chandler/net/glib \
+    osaf/chandler/net/libiconv \
+    osaf/chandler/net/libxml2 \
+    osaf/chandler/net/roadrunner \
+    osaf/chandler/net/sc-db \
+    osaf/chandler/net/rap
+
+
 chandler-source -a \
     hardhat \
     osaf/chandler/Chandler \
