@@ -52,12 +52,33 @@ apply:
 	   patch -Nup0 < patches-$(VERSION); echo ok; \
 	fi
 
+
+ifeq ($(PYLUCENE_CC),)
+PYLUCENE_CC=$(GCJ_HOME)/bin/gcc
+endif
+
+ifeq ($(PYLUCENE_CXX),)
+PYLUCENE_CXX=$(GCJ_HOME)/bin/g++
+endif
+
+ifeq ($(PYLUCENE_JCC),)
+PYLUCENE_JCC=$(GCJ_HOME)/bin/gcj
+endif
+
+ifeq ($(PYLUCENE_JCCH),)
+PYLUCENE_JCCH=$(GCJ_HOME)/bin/gcjh
+endif
+
 build: apply
 	$(MAKE) -C $(SRC) \
             PREFIX=$(PREFIX) \
             PREFIX_PYTHON=$(PREFIX_PYTHON) \
             SWIG=$(SWIG) \
             GCJ_HOME=$(GCJ_HOME) \
+            CC=$(PYLUCENE_CC) \
+            CXX=$(PYLUCENE_CXX) \
+            JCC=$(PYLUCENE_JCC) \
+            JCCH=$(PYLUCENE_JCCH) \
             DB=$(BUILD_ROOT)/persistence/db/db-4.2.52 \
             PREFIX_DB=$(PREFIX_DB) \
             BUILD_DB=build_$(SNAP) \
