@@ -7,14 +7,8 @@ SRC=$(OPENSSL)/openssl-$(VERSION)
 
 BUILD=build_$(SNAP)
 
-ifeq ($(OS),Darwin)
-PLATFORM='darwin-ppc-cc'
-endif
-ifeq ($(OS),Linux)
-# XXX fix later, just for now
-PLATFORM='linux-pentium'
-endif
-
+ifeq ($(OS),Cygwin)
+# Build using Visual C++ compiler
 ifeq ($(DEBUG),1)
 MK1MF=sed -e "s/mk1mf\.pl/mk1mf\.pl debug/" ms/do_masm.bat > ms/do_masm_debug.bat
 OUT32DLL=out32dll.dbg
@@ -24,10 +18,6 @@ MK1MF=echo "Defaults work"
 OUT32DLL=out32dll
 DOMASM=do_masm.bat
 endif
-
-
-ifeq '$(OS)' 'Cygwin'
-# Build using Visual C++ compiler
 
 $(SRC)/$(BUILD)/ms/$(DOMASM): apply
 	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
@@ -60,18 +50,17 @@ snap:
 
 else
 
+$(SRC)/$(BUILD): apply
+	cd $(SRC); mkdir $(BUILD);\
+	cp -r Configure Makefile.org *.h crypto ssl apps certs tools util doc include $(BUILD)/
+
+openssl: $(SRC)/$(BUILD)
+	cd $(SRC)/$(BUILD);\
+	../config shared --openssldir=$(PREFIX) $(CONF_OPT);\
+	$(MAKE);\
+	$(MAKE) install
+
 ifeq ($(OS),Darwin)
-
-openssl:   $(SRC)/$(BUILD)/Makefile
-	cd $(SRC)/$(BUILD); \
-	$(MAKE) -f Makefile.ssl; \
-	mkdir -p $(PREFIX)/lib; \
-	$(MAKE) -f Makefile.ssl install 
-
-$(SRC)/$(BUILD)/Makefile: apply $(SRC)/Configure
-	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
-	cp -r crypto ssl apps certs tools util doc include $(BUILD)/;cd $(BUILD);\
-	perl ../Configure -shared --openssldir=$(PREFIX) $(CONF_OPT) $(PLATFORM)
 
 snap: 
 	cd $(BUILD_ROOT); \
@@ -86,17 +75,6 @@ snap:
 		   $(SNAP)/lib/libssl.dylib
 
 else
-
-openssl:   $(SRC)/$(BUILD)/Makefile
-	cd $(SRC)/$(BUILD); \
-	$(MAKE) -f Makefile.ssl; \
-	mkdir -p $(PREFIX)/lib; \
-	$(MAKE) -f Makefile.ssl install
-
-$(SRC)/$(BUILD)/Makefile: $(SRC)/Configure
-	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
-	cp -r crypto ssl apps certs tools util doc include $(BUILD)/;cd $(BUILD);\
-	perl ../Configure shared --openssldir=$(PREFIX) $(CONF_OPT) $(PLATFORM)
 
 snap: 
 	cd $(BUILD_ROOT); \
