@@ -20,24 +20,32 @@ class TabbedView(ControlBlocks.TabbedContainer):
         if hasattr (self, 'widget'):
             # tabbed container hasn't been rendered yet
             activeTab = self.widget.GetSelection()
-            self.tabNames[activeTab] = self.getUniqueName(node.getItemDisplayName())
-            page = self.widget.GetPage(activeTab)
-            previousChild = self.childrenBlocks.previous(page.blockItem)
-            page.blockItem.parentBlock = None
+            nodeName = node.getItemDisplayName()
+            found = False
+            for tabIndex in range(self.widget.GetPageCount()):
+                tabName = self.widget.GetPageText(tabIndex)
+                if tabName == nodeName:
+                    found = True
+                    newItem = node.item
+                    self.widget.SetSelection(tabIndex)
+            if not found:
+                self.tabNames[activeTab] = nodeName
+                page = self.widget.GetPage(activeTab)
+                previousChild = self.childrenBlocks.previous(page.blockItem)
+                page.blockItem.parentBlock = None
     
-            newItem = node.item
-            newItem.parentBlock = self 
-            self.childrenBlocks.placeItem(newItem, previousChild)
-            newItem.render()                
-            newItem.widget.SetSize (self.widget.GetClientSize())                
+                newItem = node.item
+                newItem.parentBlock = self 
+                self.childrenBlocks.placeItem(newItem, previousChild)
+                newItem.render()                
+                newItem.widget.SetSize (self.widget.GetClientSize())                
             Globals.mainView.onSetActiveView(newItem)
             self.synchronizeWidget()
-        
 
     def onNewEvent (self, notification):
         "Create a new tab"
         kind = Globals.repository.findPath("parcels/osaf/framework/blocks/HTML")
-        name = self.getUniqueName("untitled")
+        name = self._getUniqueName("untitled")
         self.widget.selectedTab = len(self.tabNames)
         self.tabNames.append(name)
         item = kind.newItem(name, self)
@@ -62,7 +70,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
     def onCloseEventUpdateUI(self, notification):
         notification.data['Enable'] = (len(self.tabNames) > 1)
         
-    def getUniqueName (self, name):
+    def _getUniqueName (self, name):
         if not self.hasChild(name):
             return name
         number = 1
