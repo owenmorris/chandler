@@ -26,6 +26,10 @@
   <doc:AttributeEditorsKind itsName="AttributeEditors">
     <editorString key="String" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
     <editorString key="DateTime" value="osaf.framework.attributeEditors.AttributeEditors.DateTimeAttributeEditor"/>
+    <editorString key="ContentItem" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
+    <editorString key="EmailAddress" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
+    <editorString key="ContactName" value="osaf.framework.attributeEditors.AttributeEditors.ContactNameAttributeEditor"/>
+    <editorString key="Contact" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
     <editorString key="_default" value="osaf.framework.attributeEditors.AttributeEditors.DefaultAttributeEditor"/>
   </doc:AttributeEditorsKind>
 

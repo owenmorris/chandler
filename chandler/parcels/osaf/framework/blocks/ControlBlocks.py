@@ -408,6 +408,18 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         self.RegisterDataType ("DateTime",
                                GridCellAttributeRenderer("DateTime"),
                                GridCellAttributeEditor("DateTime"))
+        self.RegisterDataType ("EmailAddress",
+                               GridCellAttributeRenderer("String"),
+                               GridCellAttributeEditor("String"))
+        self.RegisterDataType ("ContentItem",
+                               GridCellAttributeRenderer("String"),
+                               GridCellAttributeEditor("String"))
+        self.RegisterDataType ("Contact",
+                               GridCellAttributeRenderer("String"),
+                               GridCellAttributeEditor("String"))
+        self.RegisterDataType ("ContactName",
+                               GridCellAttributeRenderer("ContactName"),
+                               GridCellAttributeEditor("ContactName"))
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnWXSelectionChanged)
