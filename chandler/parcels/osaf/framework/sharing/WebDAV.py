@@ -15,7 +15,7 @@ import crypto.ssl as ssl
 import chandlerdb.util.UUID
 
 logger = logging.getLogger('WebDAV')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 XML_CONTENT_TYPE = 'text/xml; charset="utf-8"'
 XML_DOC_HEADER = '<?xml version="1.0" encoding="utf-8"?>'
