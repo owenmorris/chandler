@@ -17,7 +17,7 @@ class wxBookmark(wx.StaticText):
       Under construction
     """
     def __init__(self, parent, text, onClickMethod, userData, id=-1):
-        wx.StaticText.__init__(self, parent, id, text)
+        super (wxBookmark, self).__init__ (parent, id, text)
         self.onClickMethod = onClickMethod
         self.userData = userData
         self.Bind(wx.EVT_LEFT_DOWN, self.onClick)

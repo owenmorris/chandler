@@ -102,7 +102,7 @@ class ComboBox(RectangularChild):
 
 class wxEditText(wx.TextCtrl):
     def __init__(self, *arguments, **keywords):
-        wx.TextCtrl.__init__ (self, *arguments, **keywords)
+        super (wxEditText, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnEnterPressed, id=self.GetId())
 
     def OnEnterPressed(self, event):
@@ -194,7 +194,7 @@ class ListDelegate:
 
 class wxList (wx.ListCtrl):
     def __init__(self, *arguments, **keywords):
-        wx.ListCtrl.__init__(self, *arguments, **keywords)
+        super (wxList, self).__init__ (*arguments, **keywords)
         self.scheduleUpdate = False
         self.lastUpdateTime = 0
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.On_wxSelectionChanged, id=self.GetId())
@@ -315,7 +315,7 @@ class List(RectangularChild):
 
 class wxSummaryTable(wx.grid.PyGridTableBase):
     def __init__(self, elementDelegate):
-        wx.grid.PyGridTableBase.__init__ (self)
+        super (wxSummaryTable, self).__init__ ()
         self.elementDelegate = elementDelegate
         self.cellAttribute = wx.grid.GridCellAttr() 
 
@@ -805,13 +805,13 @@ class wxTreeAndList:
  
 class wxTree(wx.TreeCtrl, wxTreeAndList):
     def __init__(self, *arguments, **keywords):
-        wx.TreeCtrl.__init__ (self, *arguments, **keywords)
+        super (wxTree, self).__init__ (*arguments, **keywords)
         wxTreeAndList.__init__ (self, *arguments, **keywords)
     
 
 class wxTreeList(wx.gizmos.TreeListCtrl, wxTreeAndList):
     def __init__(self, *arguments, **keywords):
-        wx.gizmos.TreeListCtrl.__init__ (self, *arguments, **keywords)
+        super (wxTreeList, self).__init__ (*arguments, **keywords)
         wxTreeAndList.__init__ (self, *arguments, **keywords)
     
 

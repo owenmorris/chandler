@@ -119,7 +119,7 @@ class EmbeddedContainer(RectangularChild):
 class wxSplitterWindow(wx.SplitterWindow):
 
     def __init__(self, *arguments, **keywords):
-        wx.SplitterWindow.__init__ (self, *arguments, **keywords)
+        super (wxSplitterWindow, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED,
                   self.OnSplitChanged,
                   id=self.GetId())
@@ -245,7 +245,7 @@ class SplitterWindow(RectangularChild):
     
 class wxTabbedContainer(wx.Notebook):
     def __init__(self, *arguments, **keywords):
-        wx.Notebook.__init__(self, *arguments, **keywords)
+        super (wxTabbedContainer, self).__init__ (*arguments, **keywords)
         self.selectedTab = 0
         
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnSelectionChanging,
