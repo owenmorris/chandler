@@ -136,7 +136,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.rep.commit()
 
         (added, removed) = notify_client.action
-        print "139: added = " + str(len(added)) + " removed = " + str(str(removed))
+        print "139: added = " + str(len(added)) + " removed = " + str(len(removed))
         self.assert_(len(added) == 0 and len(removed) == 1)
         self.assert_(c.firstName == 'Harry')
 
@@ -277,7 +277,6 @@ class TestNotification(QueryTestCase.QueryTestCase):
         view.commit()
 
         queryString = "for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where i.hasLocalAttributeValue('reminderTime')"
-#        queryString = "for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True)"
         p = self.rep.findPath('//Queries')
         k = self.rep.findPath('//Schema/Core/Query')
         q = Query.Query('bug2288Query', p, k, queryString)
@@ -287,33 +286,55 @@ class TestNotification(QueryTestCase.QueryTestCase):
             print i, hasattr(i, 'reminderTime'), i.hasLocalAttributeValue('reminderTime')
 
         k = self.rep.findPath('//parcels/notification/NotificationItem')
-        notify_client = NotificationItem.NotificationItem('testNotifier',self.rep,k)
+        notify_client = NotificationItem.NotificationItem('testNotifier', self.rep, k)
+        monitor_client = NotificationItem.NotificationItem('testMonitorNotifier', self.rep, k)
         item = notify_client
+
+        q.subscribe(notify_client, 'handle', False, True)
+        q.subscribe(monitor_client, 'handle', True, False)
+        ce = q.resultSet.first()
         self.rep.commit()
 
-        q.subscribe(notify_client, 'handle')
-        ce = q.resultSet.first()
+        # add the reminderTime attribute
         from mx import DateTime
         ce.reminderTime = DateTime.now()
+        (added, removed) = monitor_client.action
+        self.assert_(len(added) == 1 and len(removed) == 0)
+        print len(q.resultSet)
         self.rep.commit()
         (added, removed) = notify_client.action
-        print added, removed
+        self.assert_(len(added) == 1 and len(removed) == 0)
+        print len(q.resultSet)
         
+        # create a new event.  without the reminderTime attribute
         from osaf.contentmodel.calendar.Calendar import CalendarEvent
+        monitor_client.action = ([],[])
         ev = CalendarEvent("test event", view=self.rep.view)
+        (added, removed) = monitor_client.action
+        self.assert_(len(added) == 0 and len(removed) == 0)
         self.rep.commit()
         (added, removed) = notify_client.action
-        print added, removed
+        self.assert_(len(added) == 0 and len(removed) == 0)
 
+        # add the existing reminderTime attribute
+        monitor_client.action = ([],[])
         ev.reminderTime = DateTime.now()
+        (added, removed) = monitor_client.action
+        self.assert_(len(added) == 1 and len(removed) == 0)
         self.rep.commit()
         (added, removed) = notify_client.action
-        print added, removed
+        self.assert_(len(added) == 1 and len(removed) == 0)
 
+        # remove the reminderTime attribute
+        monitor_client.action = ([],[])
+        #@@@ Monitor doesn't get called for delattr
         delattr(ev, 'reminderTime')
+        (added, removed) = monitor_client.action
+        print "Monitor: ", added, removed
+#        self.assert_(len(added) == 0 and len(removed) == 1)
         self.rep.commit()
         (added, removed) = notify_client.action
-        print added, removed
+        self.assert_(len(added) == 0 and len(removed) == 1)
         
 
 if __name__ == "__main__":

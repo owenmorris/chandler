@@ -38,20 +38,13 @@ class Query(Item.Item):
         self._logical_plan = None
         self._otherViewSubscribeCallbacks = {}
         self._sameViewSubscribeCallbacks = {}
+        self._removedSinceCommit = []
 
     def _warm_init(self):
         self._otherViewSubscribeCallbacks = {}
         self._sameViewSubscribeCallbacks = {}
-        try:
-            if self._resultSet:
-                self._compile()
-                self._queryStringIsStale = False
-                self.stale = False
-            else:
-                self._queryStringIsStale = True
-        except AttributeError:
-            self._queryStringIsStale = True
-            self.stale = True
+        self._removedSinceCommit = []
+        self._queryStringIsStale = True
 
     def onItemLoad(self, view):
         self._warm_init()
@@ -113,7 +106,12 @@ class Query(Item.Item):
                 #@@@ add monitor for items in result set
         if inOtherViews:
             log.debug(u"RepoQuery<>.subscribe(): %s" % (self.queryString))
-            self.itsView.addNotificationCallback(self.queryCallback)
+            self.itsView.addNotificationCallback(self.queryCallback)        
+            
+        try:
+            self._compile()
+        except AttributeError:
+            print "compile failed", abs
         
     def unsubscribe(self, callbackItem=None, inSameView = True, inOtherViews = True):
         """
@@ -193,6 +191,9 @@ class Query(Item.Item):
                         if i in self._resultSet: # should we need this?
                             self._resultSet.remove(i)
                             removed.append(i.itsUUID)
+                        elif i in self._removedSinceCommit:
+                            removed.append(i.itsUUID)
+        self._removedSinceCommit = [] # reset for next commit
 
         if changed:
             log.debug(u"RepoQuery.queryCallback: %s %s query result" % (uuid, action))
@@ -281,8 +282,13 @@ class Query(Item.Item):
         if flag is not None:
             if flag:
                 action = ([item], [])
+                self._resultSet.append(item)
             else:
                 action = ([], [item])
+                if item in self._resultSet:
+                    self._resultSet.remove(item)
+                    self._removedSinceCommit.append(item)
+
         for callbackUUID in self._sameViewSubscribeCallbacks:
             i = self.itsView.find(callbackUUID)
             method = getattr(type(i), self._sameViewSubscribeCallbacks[callbackUUID])
@@ -303,8 +309,8 @@ class ForPlan(LogicalPlan):
         """
         constructor
 
-        @param rep: a repository instance
-        @type rep: Repository
+        @param item: the query item for this plan
+        @type item: Item
 
         @param ast: an abstract syntax tree of the query
         @type ast: list
@@ -313,6 +319,7 @@ class ForPlan(LogicalPlan):
         @type arts: dict
         """
         self.__item = item # need an item for Monitors.attach
+        assert self.__item is not None, "For plan's query item not set"
         self.args = args #@@@ AUAUGUGUGH
         self._pathKinds = {}
         self.affectedAttributes = [] # attributes that we need to watch
@@ -441,13 +448,16 @@ class ForPlan(LogicalPlan):
                             current = current.getAttribute(i).type
                         #@@@ this needs to generalize to multiple path expressions per predicate
                         self._pathKinds[current] = (attr.otherName, count)
-            self.affectedAttributes = args[1:]
+            self.affectedAttributes.append(args[1])
             return '.'.join(args)
         # other methods
         elif token is 'method':
             path = ast[1]
             args = ast[2]
             #@@@ check method name against approved list
+            methodName = path[1][1]
+            if methodName == 'hasLocalAttributeValue':
+                self.affectedAttributes.append(args[0][1:-1]) # strip quotes
             return  '.'.join(path[1])+"("+','.join(args)+")"
         # string constant or iteration variable or parameter ($1)
         elif type(ast) == str or type(ast) == unicode: 
