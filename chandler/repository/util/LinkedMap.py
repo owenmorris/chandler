@@ -150,6 +150,7 @@ class LinkedMap(dict):
             else:
                 raise ValueError, "No value for %s" %(afterKey)
         else:
+            after = None
             afterKey = None
             afterNextKey = self._firstKey
 
