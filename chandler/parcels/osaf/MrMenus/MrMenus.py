@@ -30,7 +30,7 @@ class wxMrMenus(wxViewerParcel):
         EVT_MENU(self, XRCID ('EditMenu0'), self.OnEditMenu0)
         EVT_UPDATE_UI(self, XRCID ('EditMenu0'), self.OnEditMenu0UIUpdate)
 
-        EVT_MENU(self, XRCID ('EditMenu1'), self.OnEditMenu0)
+        EVT_MENU(self, XRCID ('EditMenu1'), self.OnEditMenu1)
         EVT_UPDATE_UI(self, XRCID ('EditMenu1'), self.OnEditMenu1UIUpdate)
 
         EVT_MENU(self, XRCID('AboutMrMenusMenuItem'), self.OnAboutMrMenus)
@@ -75,16 +75,18 @@ class wxMrMenus(wxViewerParcel):
         elif self.model.radioSelection == 1:
             self.model.radioSelection = 0
         self.SynchronizeParcelViewer()
+        self.SynchronizeParcelMenu()
 
     def OnEditMenu0UIUpdate(self, event):
         if self.model.radioSelection == 0:
-            event.SetText (_('Set Radio1'))
+            event.SetText (_('Set to Dinner'))
         elif self.model.radioSelection == 1:
-            event.SetText (_('Set Radio0'))
+            event.SetText (_('Set to Lunch'))
         
     def OnEditMenu1(self, event):
         self.model.radioSelection = 1
         self.SynchronizeParcelViewer()
+        self.SynchronizeParcelMenu()
 
     def OnEditMenu1UIUpdate(self, event):
         event.Enable (self.model.radioSelection == 0)
