@@ -6,6 +6,8 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application.Globals as Globals
 import os
 import wx
+import mx.DateTime as DateTime
+
 
 class AttributeEditor (object):
 
@@ -95,6 +97,24 @@ class StringAttributeEditor (AttributeEditor):
                     if value:
                         value = value + ", "
                     value = value + part.getItemDisplayName()
+        return value
+
+
+class DateTimeAttributeEditor (StringAttributeEditor):
+    def GetAttributeValue (self, item, attributeName):
+        try:
+            itemDate = item.getAttributeValue (attributeName)
+        except AttributeError:
+            value = "No date specified"
+        else:
+            today = DateTime.today()
+            yesterday = today + DateTime.RelativeDateTime(days=-1)
+            if today.date == itemDate.date:
+                value = 'Today             ' + itemDate.Format('%I:%M %p')
+            elif yesterday.date == itemDate.date:
+                value = 'Yesterday       ' + itemDate.Format('%I:%M %p')
+            else:
+                value = itemDate.Format('%Y %b %d   %I:%M %p')
         return value
 
 

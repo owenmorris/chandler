@@ -25,6 +25,7 @@
 
   <doc:AttributeEditorsKind itsName="AttributeEditors">
     <editorString key="String" value="osaf.framework.attributeEditors.AttributeEditors.StringAttributeEditor"/>
+    <editorString key="DateTime" value="osaf.framework.attributeEditors.AttributeEditors.DateTimeAttributeEditor"/>
     <editorString key="_default" value="osaf.framework.attributeEditors.AttributeEditors.DefaultAttributeEditor"/>
   </doc:AttributeEditorsKind>
 

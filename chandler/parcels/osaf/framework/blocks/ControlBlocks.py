@@ -220,8 +220,6 @@ class AttributeDelegate (ListDelegate):
         else:
             attributeName = self.blockItem.columnAttributeNames [column]
             type = item.getAttributeAspect (attributeName, 'type').itsName
-            if type != "String":
-                type = "_default"
         return type
 
     def GetElementValue (self, row, column):
@@ -407,6 +405,9 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         self.RegisterDataType ("String",
                                GridCellAttributeRenderer("String"),
                                GridCellAttributeEditor("String"))
+        self.RegisterDataType ("DateTime",
+                               GridCellAttributeRenderer("DateTime"),
+                               GridCellAttributeEditor("DateTime"))
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnWXSelectionChanged)
