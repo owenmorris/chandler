@@ -74,6 +74,7 @@ file_list = ['../release/bin/Lib/site-packages/wxPython/xrc.py',
              'parcels/colors/ColorsView.py',
              'parcels/colors/__init__.py',
              'parcels/test/Test.py',
+             'parcels/test/Test.xrc',
              'parcels/test/__init__.py']
 file_type = 'shared'
 main_debug_file = 'Chandler.py'

@@ -24,6 +24,9 @@ class ViewerParcel (Parcel):
 
     counterpart.model              the persistent counterpart
     counterpart.resources          the model's resources
+    
+      To create a parcel you'll subclass ViewerParcel, and currently
+    it's not necessary to call the superclass's __init__.
     """
     def Install(theClass):
         """
@@ -96,4 +99,19 @@ class ViewerParcel (Parcel):
               Attach the new parcel to the view.
             """
             app.applicationResources.AttachUnknownControl ("ViewerParcel", panel)
-        
+
+class wxViewerParcel(wxPanel):
+    def __init__(self):
+        """
+          There is a little magic incantation provided by Robin Dunn here
+        to wire up the wxWindows object behind the wxPython object.
+        wxPreFrame creates the wxWindows C++ object, which is stored
+        in the this member. _setOORInfo store a back pointer in the C++
+        object to the wxPython object.
+          If you override __init__ don't forget to call the superclass.
+        """
+        value = wxPrePanel()
+        self.this = value.this
+        self._setOORInfo(self)
+
+
