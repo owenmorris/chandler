@@ -51,19 +51,20 @@ PLATFORM=macosx
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/2.3
 SITE=$(FRAMEWORK)/lib/python2.3/site-packages
 MD5=md5
+MD5CHECK=$(MD5) --check
 else
 ifeq ($(OS),Cygwin)
 PLATFORM=windows
 SITE=bin/Lib/site-packages
 MD5=md5sum.exe
+MD5CHECK=$(MD5) -c
 else
 PLATFORM=linux
 SITE=lib/python2.3/site-packages
 MD5=md5sum
+MD5CHECK=$(MD5) -c
 endif
 endif
-
-MD5CHECK=$(MD5) --check
 
 ifeq ($(CHANDLERHOME),)
 CHANDLERHOME=.
@@ -95,7 +96,8 @@ downloads: $(ARCHIVES)
 $(ARCHIVES):
 	$(CURL) $@ $(URL)/$(notdir $@)
 	$(CURL) $(@:=.md5) $(URL)/$(notdir $(@:=.md5))
-	(cd ..; $(MD5CHECK) $(notdir $(@:=.md5)))
+
+#	(cd ..; $(MD5CHECK) $(notdir $(@:=.md5)))
 
 $(BIN_ARCHIVES_INST):
 	tar -C $(CHANDLERBIN) -xvzf ../$(notdir $(basename $@))

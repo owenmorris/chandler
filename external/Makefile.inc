@@ -40,6 +40,7 @@ SITE=bin/Lib/site-packages
 PLATFORM=windows
 SWIG=$(PREFIX)/bin/swig.exe
 MD5=md5sum.exe
+MD5CHECK=$(MD5) -c
 else
 ifeq ($(OS),Darwin)
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/2.3
@@ -48,16 +49,16 @@ SITE=$(FRAMEWORK)/lib/python2.3/site-packages
 PLATFORM=macosx
 SWIG=$(PREFIX)/bin/swig
 MD5=md5
+MD5CHECK=$(MD5) --check
 else
 PYTHON:=$(PREFIX)/bin/$(PYTHON)
 SITE=lib/python2.3/site-packages
 PLATFORM=linux
 SWIG=$(PREFIX)/bin/swig
 MD5=md5sum
+MD5CHECK=$(MD5) -c
 endif
 endif
-
-MD5CHECK=$(MD5) --check
 
 ifndef GCJ_HOME
 ifeq ($(OS),Cygwin)

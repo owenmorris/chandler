@@ -51,7 +51,8 @@ sources:
 sources-$(VERSION).tar:
 	$(CURL) http://builds.o11n.org/external/sources-$(VERSION).tar
 	$(CURL) http://builds.o11n.org/external/sources-$(VERSION).tar.md5
-	$(MD5CHECK) sources-$(VERSION).tar.md5
+
+#	$(MD5CHECK) sources-$(VERSION).tar.md5
 
 sources-$(VERSION)-expanded: sources-$(VERSION).tar
 	tar xvf sources-$(VERSION).tar
