@@ -177,8 +177,6 @@ class MainView(View):
     def onShowPyCrustEvent(self, notification):
         Globals.wxApplication.ShowDebuggerWindow()
 
-    def onGenerateQueryParserEvent(self, notification):
-
     def onReloadParcelsEvent(self, notification):
         ParcelManager.getManager().loadParcels()
 
