@@ -163,7 +163,7 @@ class ColumnarItem(wxSimpleDrawableObject):
     def ConvertDrawableObjectToDataObject(self, x, y):
         dataFormat = wxCustomDataFormat("ChandlerItem")
         dragDropData = wxCustomDataObject(dataFormat)
-        data = cPickle.dumps((str(self.item.getPath()), x, y), true)
+        data = cPickle.dumps((str(self.item.getItemPath()), x, y), true)
         dragDropData.SetData(data)
         return dragDropData
     

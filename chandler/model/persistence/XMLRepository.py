@@ -142,7 +142,7 @@ class XMLRepository(Repository):
                            True, verbose)
         
         for root in self._roots.itervalues():
-            name = root.getName()
+            name = root.getItemName()
             if name != 'Schema':
                 self._saveRoot(root, self._data,
                                not hasSchema, verbose)
@@ -150,7 +150,7 @@ class XMLRepository(Repository):
     def _saveRoot(self, root, container,
                   withSchema=False, verbose=False):
 
-        log = self._transaction.get(root.getName(), None)
+        log = self._transaction.get(root.getItemName(), None)
         if log is not None:
             for item in log:
                 self._saveItem(item, container = container,
@@ -166,13 +166,13 @@ class XMLRepository(Repository):
 
         if item.isDeleted():
             if args.get('verbose'):
-                print 'Removing', item.getPath()
+                print 'Removing', item.getItemPath()
 
             self._refs.deleteItem(item)
 
         else:
             if args.get('verbose'):
-                print 'Saving', item.getPath()
+                print 'Saving', item.getItemPath()
             
             out = cStringIO.StringIO()
             generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
@@ -189,7 +189,7 @@ class XMLRepository(Repository):
     def removeItem(self, item, **args):
 
         if args.get('verbose'):
-            print 'Removing', item.getPath()
+            print 'Removing', item.getItemPath()
             
         container = args['container']
         for oldDoc in container.find(item.getUUID()):
@@ -205,7 +205,7 @@ class XMLRepository(Repository):
             raise DBError, 'Repository is not open'
 
         if not self.isLoading():
-            name = item.getRoot().getName()
+            name = item.getRoot().getItemName()
             if self._transaction.has_key(name):
                 self._transaction[name].append(item)
             else:

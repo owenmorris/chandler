@@ -78,7 +78,7 @@ class wxRepositoryViewer(wxViewerParcel):
         """Display the given Item's details in an HTML window.
         """
         htmlString = "<html><body><h5>Item</h5><ul>"
-        htmlString = htmlString + "<li><b>Path:</b> %s" % item.getPath()
+        htmlString = htmlString + "<li><b>Path:</b> %s" % item.getItemPath()
         htmlString = htmlString + "<li><b>UUID:</b> %s" % item.getUUID()
         htmlString = htmlString + "</ul><h5>Attributes</h5><ul>"
         for attribute in item.attributes():
@@ -113,12 +113,12 @@ class wxRepositoryViewer(wxViewerParcel):
             root = self.treeCtrl.AddRoot("\\\\")
             self.treeCtrl.SetItemData(root, wxTreeItemData("Repository"))
             for item in app.repository.getRoots():
-                path = item.getPath()
+                path = item.getItemPath()
                 self.LoadTree(item, path, root)
             self.treeCtrl.Expand(root)
         else:
-            path.append(item.getName())
-            node = self.treeCtrl.AppendItem(parent, item.getName())
+            path.append(item.getItemName())
+            node = self.treeCtrl.AppendItem(parent, item.getItemName())
             self.treeCtrl.SetItemData(node, wxTreeItemData(item))
             self.LoadItem(item, node)
             for child in item:
@@ -131,10 +131,10 @@ class wxRepositoryViewer(wxViewerParcel):
         if (item.hasAttributeValue('DisplayName')):
             displayName = item.DisplayName
         else:
-            displayName = item.getName()
+            displayName = item.getItemName()
             
         if (item.hasAttributeValue('Kind')):
-            kind = item.Kind.getName()
+            kind = item.Kind.getItemName()
         else:
             kind = 'Item'
         

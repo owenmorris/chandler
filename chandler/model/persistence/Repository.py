@@ -70,7 +70,7 @@ class Repository(object):
     def _addItem(self, item):
 
         try:
-            name = item.getName()
+            name = item.getItemName()
             current = self._roots[name]
         except KeyError:
             pass
@@ -83,7 +83,7 @@ class Repository(object):
 
     def _removeItem(self, item):
 
-        del self._roots[item.getName()]
+        del self._roots[item.getItemName()]
 
     def _registerItem(self, item):
 
@@ -103,7 +103,7 @@ class Repository(object):
 
         self._stubs.append(stub)
 
-    def getPath(self, path):
+    def getItemPath(self, path):
         'Return the path of the repository relative to its item, always //.'
         
         path.set('//')
@@ -180,7 +180,7 @@ class Repository(object):
             for root in self._roots.itervalues():
                 self.dir(root, path)
         else:
-            path.append(item.getName())
+            path.append(item.getItemName())
             print path
             for child in item:
                 self.dir(child, path)

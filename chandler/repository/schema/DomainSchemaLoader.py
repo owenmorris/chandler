@@ -236,7 +236,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
                 elif key == 'inverseAttribute':
                     ref = self.findItem(attributeDictionary[key])
                     item.setAttributeValue(ATTRIBUTE_REF_TAGS[key],
-                                           ref.getName())
+                                           ref.getItemName())
                                         
                 else:
                     ref = self.findItem(attributeDictionary[key])

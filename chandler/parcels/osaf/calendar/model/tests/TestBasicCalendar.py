@@ -39,7 +39,7 @@ class SimpleTest(unittest.TestCase):
         item = self.factory.NewItem()
         item.startTime
         item.endTime
-        foundItem = self.rep.find(item.getPath())
+        foundItem = self.rep.find(item.getItemPath())
         self.assert_(foundItem)
         self.assertEqual(foundItem.getUUID(), item.getUUID())
 

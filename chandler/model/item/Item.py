@@ -107,7 +107,7 @@ class Item(object):
 
         otherName = self.getAttributeAspect(name, 'OtherName')
         if otherName is None:
-            raise TypeError, 'Undefined other endpoint for %s.%s' %(self.getPath(), name)
+            raise TypeError, 'Undefined other endpoint for %s.%s' %(self.getItemPath(), name)
 
         return otherName
 
@@ -284,7 +284,7 @@ class Item(object):
                         if l < 0:
                             break;
                     if l != 0:
-                        raise ValueError, "Iterator on %s.%s doesn't match length (%d left for %d total)" %(self.getPath(), ref[0], l, len(refDict))
+                        raise ValueError, "Iterator on %s.%s doesn't match length (%d left for %d total)" %(self.getItemPath(), ref[0], l, len(refDict))
                 else:
                     for other in refDict:
                         pass
@@ -535,7 +535,7 @@ class Item(object):
                 if other.refCount() == 0:
                     other.delete()
         
-    def getName(self):
+    def getItemName(self):
         '''Return this item's name.
 
         The item name is used to lookup an item in its parent container and
@@ -571,13 +571,13 @@ class Item(object):
         
         return self._uuid
 
-    def getPath(self, path=None):
+    def getItemPath(self, path=None):
         'Return the path to this item relative to its repository.'
 
         if path is None:
             path = Path()
             
-        self._parent.getPath(path)
+        self._parent.getItemPath(path)
         path.append(self._name)
 
         return path
@@ -611,7 +611,7 @@ class Item(object):
         for child in self:
             child._setRoot(root)
 
-    def getParent(self):
+    def getItemParent(self):
         """Return this item's container parent.
 
         To change the parent, use Item.move()."""
@@ -673,9 +673,9 @@ class Item(object):
 
     def _removeItem(self, item):
 
-        del self._children[item.getName()]
+        del self._children[item.getItemName()]
 
-    def getChild(self, name, load=True):
+    def getItemChild(self, name, load=True):
         'Return the child as named or None if not found.'
 
         if self.__dict__.has_key('_children'):
@@ -725,7 +725,7 @@ class Item(object):
                     return self._parent
                 return self._parent.find(spec, _index + 1, load)
 
-            child = self.getChild(spec[_index], load)
+            child = self.getItemChild(spec[_index], load)
             if child is not None:
                 if _index == l - 1:
                     return child

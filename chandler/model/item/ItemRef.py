@@ -203,7 +203,7 @@ class RefArgs(object):
             
         if self.refName is None:
             if other is None:
-                raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(self.spec, self.spec, item.getPath())
+                raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(self.spec, self.spec, item.getItemPath())
             else:
                 self.refName = other.refName(self.attrName)
 
@@ -348,7 +348,7 @@ class RefDict(References):
     def __repr__(self):
 
         return '<%s: %s.%s.%s>' %(type(self).__name__,
-                                  self._getItem().getPath(),
+                                  self._getItem().getItemPath(),
                                   self._name, self._otherName)
 
     def __contains__(self, obj):
@@ -457,7 +457,7 @@ class RefDict(References):
             else:
                 next = None
         else:
-            raise ValueError, "This collection contains no reference to %s" %(item.getPath())
+            raise ValueError, "This collection contains no reference to %s" %(item.getItemPath())
 
         if after is not None:
             afterKey = after.refName(self._name)
@@ -465,7 +465,7 @@ class RefDict(References):
                 after = self._get(afterKey)
                 afterNextKey = after._next
             else:
-                raise ValueError, "This collection contains no reference to %s" %(after.getPath())
+                raise ValueError, "This collection contains no reference to %s" %(after.getItemPath())
         else:
             afterKey = None
             afterNextKey = self._first

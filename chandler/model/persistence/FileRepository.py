@@ -101,7 +101,7 @@ class FileRepository(Repository):
             contents.write('\n')
         
         for root in self._roots.itervalues():
-            name = root.getName()
+            name = root.getItemName()
             if name != 'Schema':
                 self._saveRoot(root, not hasSchema, verbose)
                 contents.write(name)
@@ -126,7 +126,7 @@ class FileRepository(Repository):
             for child in item:
                 commit(child, repository, contents, **args)
 
-        name = root.getName()
+        name = root.getItemName()
         dir = os.path.join(self.dbHome, name)
 
         if not os.path.exists(dir):
@@ -142,10 +142,10 @@ class FileRepository(Repository):
     def _saveItem(self, item, **args):
 
         if args.get('verbose'):
-            print item.getPath()
+            print item.getItemPath()
             
         uuid = item.getUUID().str16()
-        filename = os.path.join(self.dbHome, item.getRoot().getName(),
+        filename = os.path.join(self.dbHome, item.getRoot().getItemName(),
                                 uuid + '.item')
         out = file(filename, 'w')
         generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')

@@ -26,7 +26,7 @@ class SimpleTest(unittest.TestCase):
         item = self.factory.NewItem()
         item.CalendarStartTime
         item.CalendarEndTime
-        foundItem = self.rep.find(item.getPath())
+        foundItem = self.rep.find(item.getItemPath())
         self.assert_(foundItem)
         self.assertEqual(foundItem.getUUID(), item.getUUID())
 
