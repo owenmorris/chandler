@@ -276,11 +276,9 @@ Global
 		{B6FF7684-7EA0-4894-B5FD-CA3DD263EFEE}.Release Static.ActiveCfg = Release Static|Win32
 		{B6FF7684-7EA0-4894-B5FD-CA3DD263EFEE}.Release Static.Build.0 = Release Static|Win32
 		{3F2D29FE-9A85-4B7D-8430-1D26375175A8}.Debug.ActiveCfg = Debug Static|Win32
-		{3F2D29FE-9A85-4B7D-8430-1D26375175A8}.Debug.Build.0 = Debug Static|Win32
 		{3F2D29FE-9A85-4B7D-8430-1D26375175A8}.Debug Static.ActiveCfg = Debug Static|Win32
 		{3F2D29FE-9A85-4B7D-8430-1D26375175A8}.Debug Static.Build.0 = Debug Static|Win32
 		{3F2D29FE-9A85-4B7D-8430-1D26375175A8}.Release.ActiveCfg = Release Static|Win32
-		{3F2D29FE-9A85-4B7D-8430-1D26375175A8}.Release.Build.0 = Release Static|Win32
 		{3F2D29FE-9A85-4B7D-8430-1D26375175A8}.Release Static.ActiveCfg = Release Static|Win32
 		{3F2D29FE-9A85-4B7D-8430-1D26375175A8}.Release Static.Build.0 = Release Static|Win32
 		{EA9FCCCD-13BE-4B47-9179-C93A48C4C39E}.Debug.ActiveCfg = Debug|Win32
