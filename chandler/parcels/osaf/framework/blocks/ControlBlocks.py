@@ -210,7 +210,7 @@ class ListDelegate:
         return self.blockItem.contents.len()
 
 
-class wxList (wx.ListCtrl, DraggableWidget):
+class wxList (DraggableWidget, wx.ListCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxList, self).__init__ (*arguments, **keywords)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.On_wxSelectionChanged, id=self.GetId())

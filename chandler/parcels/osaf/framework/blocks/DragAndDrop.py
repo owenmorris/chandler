@@ -26,6 +26,7 @@ class DraggableWidget (object):
             
 class DropReceiveWidget (object):
     def __init__(self, *arguments, **keywords):
+        super (DropReceiveWidget, self).__init__ (*arguments, **keywords)
         dropTarget = DropTarget(self)
         self.SetDropTarget(dropTarget)
         

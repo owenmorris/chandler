@@ -238,10 +238,9 @@ class SplitterWindow(RectangularChild):
         return style
 
     
-class wxTabbedContainer(wx.Notebook, DropReceiveWidget):
+class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
     def __init__(self, *arguments, **keywords):
         super (wxTabbedContainer, self).__init__ (*arguments, **keywords)
-        DropReceiveWidget.__init__(self, *arguments, **keywords)
         self.selectedTab = 0
         
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnSelectionChanging,
