@@ -7,6 +7,7 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
+import wx.colheader
 import mx.DateTime as DateTime
 
 import osaf.contentmodel.calendar.Calendar as Calendar
@@ -269,11 +270,10 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
     def PrintCanvas(self, dc):
         self.columnCanvas.PrintCanvas(dc)
 
-    def OnDaySelect(self, event):
-        # pick the date based on the index
-        index = event.GetEventObject().index
+    def OnDaySelect(self, day):
+            
         startDate = self.blockItem.rangeStart
-        selectedDate = startDate + DateTime.RelativeDateTime(days=index)
+        selectedDate = startDate + DateTime.RelativeDateTime(days=day)
         
         # @@@ add method on block item for setting selected date
         self.blockItem.selectedDate = selectedDate
@@ -281,13 +281,13 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         self.blockItem.postDateChanged()
         self.wxSynchronizeWidget()
 
-    def OnWeekSelect(self, event):
+    def OnWeekSelect(self):
         self.blockItem.dayMode = False
         self.blockItem.selectedDate = self.blockItem.rangeStart
         self.blockItem.postDateChanged()
         self.wxSynchronizeWidget()
 
-    def OnExpand(self, event):
+    def OnExpand(self):
         self.headerCanvas.toggleSize()
         self.wxSynchronizeWidget()
 
@@ -300,6 +300,8 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
 
         # @@@ constants
         self.yOffset = 50
+        
+        
         self.hourHeight = 40
         self.weekHeaderHeight = 22
         self.scrollbarWidth = wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X)
@@ -327,28 +329,14 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         self.Bind(wx.EVT_BUTTON, self.parent.OnToday, self.todayButton)
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
-        # Setup the weekday header buttons
-        self.weekButton = CollectionCanvas.CanvasTextButton(self, "Week",
-                                                            self.bigFont,
-                                                            self.bigFontColor,
-                                                            self.bgColor)
-        self.Bind(wx.EVT_BUTTON, self.parent.OnWeekSelect, self.weekButton)
-        
-        self.dayButtons = []
-        for day in range(7):
-            button = CollectionCanvas.CanvasTextButton(self, " ",
-                                                       self.bigFont,
-                                                       self.bigFontColor,
-                                                       self.bgColor)
-            button.index = day
-            self.dayButtons.append(button)
-            self.Bind(wx.EVT_BUTTON, self.parent.OnDaySelect, button)
-
-        self.expandButton = CollectionCanvas.CanvasTextButton(self, "+",
-                                                              self.bigFont,
-                                                              self.bigFontColor,
-                                                              self.bgColor)
-        self.Bind(wx.EVT_BUTTON, self.parent.OnExpand, self.expandButton)
+        # Setup the weekday header buttons        
+        self.weekHeader = wx.colheader.ColumnHeader(self)
+        self.weekHeaderHeight = self.weekHeader.GetSize().height
+        headerLabels = ["Week", "S", "M", "T", "W", "T", "F", "S", "+"]
+        for header in headerLabels:
+            self.weekHeader.AppendItem(header, wx.colheader.COLUMNHEADER_JUST_Center, 30, bSortEnabled=False)
+        self.Bind(wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnDayColumnSelect, self.weekHeader)
+         
 
     def OnSize(self, event):
         self._doDrawingCalculations()
@@ -366,22 +354,21 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         self.prevButton.Move((self.size.width - nextButtonSize.width - prevButtonSize.width - 10, 5))
         self.todayButton.Move((self.size.width - nextButtonSize.width - prevButtonSize.width - todayButtonSize.width - 15, 5))
 
-        # size weekday header buttons
-        self.weekButton.SetDimensions(0, self.yOffset - self.weekHeaderHeight,
-                                      self.xOffset, self.weekHeaderHeight)
-        for day in range(6):
-            self.dayButtons[day].SetDimensions(self.xOffset + (self.dayWidth * day),
-                                               self.yOffset - self.weekHeaderHeight,
-                                               self.dayWidth, self.weekHeaderHeight)
+        self.weekHeader.SetDimensions(0, self.yOffset, 
+                                      self.size.width, -1)
 
-        lastWidth = self.size.width - self.scrollbarWidth - (self.dayWidth * 6) - self.xOffset
-        self.dayButtons[6].SetDimensions(self.xOffset + (self.dayWidth * 6), 
-                                         self.yOffset - self.weekHeaderHeight,
-                                         lastWidth, self.weekHeaderHeight)
-        self.expandButton.SetDimensions(self.size.width - self.scrollbarWidth,
-                                        self.yOffset - self.weekHeaderHeight, 
-                                        self.scrollbarWidth, self.weekHeaderHeight)    
+        # column layout rules are funky:
+        # - the "Week" column and the first 6 days are more or less fixed at self.dayWidth
+        # - the last column (expando-button) is fixed
+        # - the 7th day is flexy
+        columnCount = self.weekHeader.GetItemCount()
+        for day in range(columnCount - 2):
+            self.weekHeader.SetUIExtent(day, (0, self.dayWidth))
 
+        lastWidth = self.size.width - (self.dayWidth * (columnCount-2)) - self.scrollbarWidth
+        self.weekHeader.SetUIExtent(columnCount-2, (0, lastWidth))
+        self.weekHeader.SetUIExtent(columnCount-1, (0, self.scrollbarWidth))
+        
         self.Refresh()
         event.Skip()
 
@@ -396,37 +383,10 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         self.monthButton.UpdateSize()
         self.todayButton.UpdateSize()
 
-        # Update the days in the header based on the selected date
-        # @@@ hack hack until we get the colheader
-
-        if (('__WXMAC__' in wx.PlatformInfo) or
-            ('__WXGTK__' in wx.PlatformInfo)):
-        
-            if self.parent.blockItem.dayMode:
-                self.weekButton.SetLabel("Week", font=self.bigFont,
-                                         fgcolor=self.bigFontColor)
-            else:
-                self.weekButton.SetLabel("Week", font=self.bigBoldFont,
-                                         fgcolor=wx.BLUE)
-
         for day in range(7):
             currentDate = startDate + DateTime.RelativeDateTime(days=day)
             dayName = currentDate.Format('%a ') + str(currentDate.day)
-
-            if (('__WXMAC__' in wx.PlatformInfo) or
-                ('__WXGTK__' in wx.PlatformInfo)):
-                if (self.parent.blockItem.dayMode and
-                    (selectedDate == currentDate)):
-                    self.dayButtons[day].SetLabel(dayName,
-                                                  font=self.bigBoldFont,
-                                                  fgcolor=wx.BLUE)
-                else:
-                    self.dayButtons[day].SetLabel(dayName,
-                                                  font=self.bigFont,
-                                                  fgcolor=self.bigFontColor)
-            else:
-                self.dayButtons[day].SetLabel(dayName)
-                                
+            self.weekHeader.SetLabelText(day+1, dayName)
             
         self.Layout()
         self.Refresh()
@@ -476,59 +436,9 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
 
         # Draw one extra line to parallel the scrollbar below
         dc.DrawLine(self.size.width - self.scrollbarWidth,
-                    self.yOffset - self.weekHeaderHeight,
+                    self.yOffset,
                     self.size.width - self.scrollbarWidth,
                     self.size.height)
-
-
-        # Draw the boxes for the weekdays
-        # @@@ we shouldn't have to do this, the header should do this for us
-
-        # Draw the top and bottom lines for the boxes
-        dc.DrawLine(0, self.yOffset - self.weekHeaderHeight,
-                    self.xOffset + self.size.width,
-                    self.yOffset - self.weekHeaderHeight)
-        dc.DrawLine(0, self.yOffset,
-                    self.xOffset + self.size.width,
-                    self.yOffset)
-
-        # Draw the lines between the boxes
-        for day in range(self.parent.blockItem.daysPerView):
-            dc.DrawLine(self.xOffset + (self.dayWidth * day),
-                        self.yOffset - self.weekHeaderHeight,
-                        self.xOffset + (self.dayWidth * day),
-                        self.yOffset)
-
-        # Draw the selected day (or show week mode selected)
-        # @@@ hack hack -- unfortunately, the header/button can't
-        # handle this for us, we need to do it while drawing
-        # the background. Eventually the header should do this
-        # for us.
-        
-        startDay = self.parent.blockItem.rangeStart
-        dc.SetPen(wx.Pen(wx.Color(153,204,255)))
-        dc.SetBrush(wx.Brush(wx.Color(153,204,255)))
-
-        if self.parent.blockItem.dayMode == True:
-            selectedDay = self.parent.blockItem.selectedDate
-            delta = selectedDay - startDay
-
-            if delta.day == 6:
-                dc.DrawRectangle(self.xOffset + (self.dayWidth * 6),
-                                 self.yOffset - self.weekHeaderHeight + 1,
-                                 self.size.width - self.scrollbarWidth - (self.dayWidth * 6) - self.xOffset,
-                                 self.weekHeaderHeight - 1)
-                                 
-            else:
-                dc.DrawRectangle(self.xOffset + (self.dayWidth * delta.day) + 1,
-                                 self.yOffset - self.weekHeaderHeight + 1,
-                                 self.dayWidth - 1,
-                                 self.weekHeaderHeight - 1)
-        else:
-            dc.DrawRectangle(1, self.yOffset - self.weekHeaderHeight + 1,
-                             self.xOffset - 1,
-                             self.weekHeaderHeight - 1)
-
 
     def DrawCells(self, dc):
         self._doDrawingCalculations()
@@ -544,7 +454,7 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         self.fullHeight = 0
         for day in range(self.parent.columns):
             currentDate = startDay + DateTime.RelativeDateTime(days=day)
-            rect = wx.Rect((self.dayWidth * day) + self.xOffset, self.yOffset,
+            rect = wx.Rect((self.dayWidth * day) + self.xOffset, self.yOffset + self.weekHeaderHeight,
                            width, self.size.height)
             self.DrawDay(dc, currentDate, rect)
 
@@ -651,6 +561,35 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         size = box.bounds.GetSize()
 
         self.editor.SetItem(box.getItem(), position, size, size.height)
+
+    def OnDayColumnSelect(self, event):
+        """
+        dispatches to appropriate events in self.parent, 
+        based on the column selected
+        """
+        
+        colIndex = self.weekHeader.GetSelectedItem()
+        
+        # column 0, week button
+        if (colIndex == 0):
+            return self.parent.OnWeekSelect()
+            
+        # last column, the "+" expand button
+        # (this may change...)
+        if (colIndex == 8):
+            # re-fix selection so that the expand button doesn't stay selected
+            if self.parent.blockItem.dayMode:
+                # ugly back-calculation of the previously selected day
+                reldate = self.parent.blockItem.selectedDate - \
+                          self.parent.blockItem.rangeStart
+                self.weekHeader.SetSelectedItem(reldate.day+1)
+            else:
+                self.weekHeader.SetSelectedItem(0)
+            return self.parent.OnExpand()
+        
+        # all other cases mean a day was selected
+        # OnDaySelect takes a zero-based day, and our first day is in column 1
+        return self.parent.OnDaySelect(colIndex-1)
 
     def getDateTimeFromPosition(self, position):
         # bound the position by the available space that the user 
@@ -1216,7 +1155,7 @@ class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
         for i in range(7):
             weekday = startDay + DateTime.RelativeDateTime(days=i)
             rect = wx.Rect(self.dayWidth * i,
-                           self.yOffset - 20,
+                           self.yOffset,
                            self.dayWidth, 20) # Related to font height?
             self.DrawWeekday(dc, weekday, rect)
 
