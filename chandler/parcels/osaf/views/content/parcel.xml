@@ -475,11 +475,19 @@
   </SplitterWindow>
 
   <!-- In View -->
+  <DetailBlock itsName="InDetailView">
+    <contents itemref="core:None"/>
+    <detailViewCache itemref="view:InDetailViewCache"/>
+  </DetailBlock>
+
+  <DetailViewCache itsName="InDetailViewCache">
+  </DetailViewCache>
+
   <SplitterWindow itsName="InView">
     <contents itemref="view:inItemCollection"/>
 
     <childrenBlocks itemref="view:InSummary"/>
-    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
+    <childrenBlocks itemref="view:InDetailView"/>
 
     <eventBoundary>True</eventBoundary>
     <border>0.0, 0.0, 0.0, 0.0</border>

@@ -96,6 +96,12 @@
     <core:inverseAttribute itemref="ItemCollection/_results"/>
   </core:Attribute>
 
+  <core:Attribute itsName="contentsOwner">
+    <core:type itemref="blocks:Block"/>
+    <core:cardinality>list</core:cardinality>
+    <core:inverseAttribute itemref="blocks:Block/contents"/>
+  </core:Attribute>
+
   <core:Kind itsName="ContentItem">
     <core:superKinds itemref="core:Item"/>
     <core:displayName>Default Content Item Display Name</core:displayName>
@@ -113,6 +119,7 @@
     <core:attributes itemref="itemCollectionInclusions"/>
     <core:attributes itemref="itemCollectionExclusions"/>
     <core:attributes itemref="itemCollectionResults"/>
+    <core:attributes itemref="contentsOwner"/>
 
     <core:Attribute itsName="etag">
       <core:type itemref="core:String"/>
@@ -411,18 +418,11 @@
       <core:initialValue type="core:String">__adhoc__</core:initialValue>
     </core:Attribute>
 
-    <core:Attribute itsName="collectionOwner">
-      <core:type itemref="blocks:Block"/>
-      <core:cardinality>list</core:cardinality>
-      <core:inverseAttribute itemref="blocks:Block/contents"/>
-    </core:Attribute>
-
     <core:attributes itemref="ItemCollection/_rule"/>
     <core:attributes itemref="ItemCollection/_inclusions"/>
     <core:attributes itemref="ItemCollection/_exclusions"/>
     <core:attributes itemref="ItemCollection/_filterKinds"/>
     <core:attributes itemref="ItemCollection/_results"/>
-    <core:attributes itemref="ItemCollection/collectionOwner"/>
     <core:attributes itemref="ItemCollection/queryStringStale"/>
     <core:attributes itemref="ItemCollection/resultsStale"/>
     <core:attributes itemref="ItemCollection/indexName"/>

@@ -12,7 +12,7 @@ def main():
             """
               Check for -wing command line argument; if specified, try to connect to
             an already-running WingIDE instance.  See:
-              http://wiki.osafoundation.org/bin/view/Main/DebuggingChandler#wingIDE
+              http://wiki.osafoundation.org/bin/view/Chandler/DebuggingChandler#wingIDE". 
             for details.
             """
             import wingdbstub

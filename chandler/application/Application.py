@@ -301,6 +301,7 @@ class wxApplication (wx.App):
                                                    Globals.mainView.dispatchEvent)
             Block.addEventsToEventNameToItemUUID (GlobalEvents.subscribeAlwaysEvents)
 
+            self.ignoreSynchronizeWidget = False
             self.RenderMainView ()
 
             Globals.repository.commit()
@@ -320,7 +321,6 @@ class wxApplication (wx.App):
         mainView.lastDynamicBlock = False
         mainView.onSetActiveView(mainView)
 
-        self.ignoreSynchronizeWidget = False
         mainView.render()
 
         """
@@ -337,21 +337,10 @@ class wxApplication (wx.App):
         self.mainFrame.Layout()
 
     def UnRenderMainView (self):
-        def destroyChildrenWidgets (block):
-            for child in block.childrenBlocks:
-                destroyChildrenWidgets (child)
-                if hasattr (child, 'widget'):
-                    try:
-                        member = getattr (type(child.widget), 'DestroyChildren')
-                    except AttributeError:
-                        pass
-                    else:
-                        member (child.widget)
-
         mainView = Globals.mainView
         self.mainFrame
 
-        destroyChildrenWidgets (mainView)
+        mainView.unRender()
 
         oldSizer = self.mainFrame.GetSizer()
         oldSizer.DeleteWindows()

@@ -210,7 +210,6 @@
 
     <Attribute itsName="dispatchToBlock">
       <type itemref="docSchema:Block"/>
-      <copyPolicy value="copy"/>
     </Attribute>
 
     <Attribute itsName="methodName">
@@ -289,9 +288,12 @@
     <superKinds itemref="Item"/>
 
     <Attribute itsName="contents">
-      <type itemref="contentModel:ItemCollection"/>
-      <copyPolicy value="cascade"/>
-      <inverseAttribute itemref="contentModel:ItemCollection/collectionOwner"/>
+      <type itemref="contentModel:ContentItem"/>
+      <inverseAttribute itemref="contentModel:contentsOwner"/>
+    </Attribute>
+
+    <Attribute itsName="whichAttribute">
+      <type itemref="String"/>
     </Attribute>
 
     <Attribute itsName="parentBlock">
@@ -304,9 +306,7 @@
     <Attribute itsName="childrenBlocks">
       <type itemref="docSchema:Block"/>
       <cardinality>list</cardinality>
-      <copyPolicy value="cascade"/>
       <inverseAttribute itemref="docSchema:Block/parentBlock"/>
-      <required>True</required>
       <initialValue />
     </Attribute>
 
@@ -458,13 +458,10 @@
       <type itemref="docSchema:Block"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="docSchema:DynamicChild/dynamicParent"/>
-      <copyPolicy value="cascade"/>
-      <required>False</required>
     </Attribute>
     
     <Attribute itsName="collectionSpecifier">
       <redirectTo>dynamicChildren</redirectTo>
-      <copyPolicy value="copy"/>
     </Attribute>
     
     <Cloud itsName="DefaultCloud">
@@ -491,7 +488,6 @@
     <Attribute itsName="dynamicParent">
       <type itemref="docSchema:Block"/>
       <inverseAttribute itemref="docSchema:DynamicContainer/dynamicChildren"/>
-      <required>False</required>
       <initialValue itemref="None"/>
     </Attribute>
     
@@ -1032,6 +1028,49 @@
 
   </Kind>
   
+  <!-- Detail Block contains detail views of various summary views  -->
+
+  <Kind itsName="DetailBlock">
+    <classes key="python">osaf.framework.blocks.Block.DetailBlock</classes>
+    <superKinds itemref="docSchema:Block"/>
+    
+    <Attribute itsName="detailViewCache">
+      <type itemref="docSchema:DetailViewCache"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="docSchema:DetailViewCache/detailView"/>
+      <required>True</required>
+    </Attribute>
+  
+  </Kind>
+
+  <!-- Detail view cache caches views for a detail view  -->
+
+  <Kind itsName="DetailViewCache">
+    <classes key="python">osaf.framework.blocks.Block.DetailViewCache</classes>
+    <superKinds itemref="Item"/>
+
+    <!-- 
+       We'd like to have a dictionary of references to views in the soup accesed
+     with keys that are kinds of items. However, the repository has a very limited
+     set of data types, and doesn't support dictionaries of strings.
+       This will ultimately have to be fixed, otherwise we won't be able to find
+     references that are implemented as UUIDs and clean up unreferenced views.
+     -->
+    <Attribute itsName="kindUUIDToViewUUID">
+      <type itemref="String"/>
+      <cardinality>dict</cardinality>
+      <initialValue/>
+    </Attribute>
+
+    <Attribute itsName="detailView">
+      <type itemref="docSchema:DetailBlock"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="docSchema:DetailBlock/detailViewCache"/>
+      <required>True</required>
+    </Attribute>
+  
+  </Kind>
+
   <!-- Item Detail Block  -->
 
   <Kind itsName="ItemDetail">
@@ -1039,7 +1078,7 @@
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <attributes itemref="docSchema:selection"/>
-  </Kind>    
+  </Kind>
 
   <!-- SelectionContainer -->
  

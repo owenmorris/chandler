@@ -7,6 +7,7 @@ import application.Globals as Globals
 from repository.item.Item import Item
 from chandlerdb.util.UUID import UUID
 from osaf.framework.notifications.schema.Event import Event
+from osaf.framework.notifications.Notification import Notification
 import wx
 import logging
 
@@ -53,10 +54,7 @@ class Block(Item):
             except AttributeError:
                 pass
             else:
-                try:
-                    list = theClass.eventNameToItemUUID [eventName]
-                except Exception, e:
-                    print eventName
+                list = theClass.eventNameToItemUUID [eventName]
                 if list [0] == event.itsUUID:
                     list [1] = list [1] - 1 #decrement the reference count
                     if list [1] == 0:
@@ -76,9 +74,8 @@ class Block(Item):
             finally:
                 Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
             """
-              Store a non persistent pointer to the widget in the block and pin the block
-            to keep it in memory. Store a pointer to the block in the widget. Undo all this
-            when the widget is destroyed.
+              Store a non persistent pointer to the widget in the block. Store a pointer to
+            the block in the widget. Undo all this when the widget is destroyed.
             """
 
             if widget:
@@ -90,11 +87,11 @@ class Block(Item):
                   After the blocks are wired up, call OnInit if it exists.
                 """
                 try:
-                    OnInitMethod = getattr (type (widget), "OnInit")
+                    method = getattr (type (widget), "OnInit")
                 except AttributeError:
                     pass
                 else:
-                    OnInitMethod (widget)
+                    method (widget)
                 """
                   For those blocks with contents, we need to subscribe to notice changes
                 to items in the contents.
@@ -104,8 +101,12 @@ class Block(Item):
                 except AttributeError:
                     pass
                 else:
-                    contents.subscribe (self, "onCollectionChanged")
-
+                    try:
+                        subscribeMethod = getattr (type (contents), "subscribe")
+                    except AttributeError:
+                        pass
+                    else:
+                        subscribeMethod (contents, self, "onCollectionChanged")
                 """
                   For those blocks with subscribeWhenVisibleEvents or subscribeAlwaysEvents,
                 we need to subscribe to them.
@@ -135,9 +136,13 @@ class Block(Item):
 
                     self.addEventsToEventNameToItemUUID (subscribeAlwaysEvents)
 
-                doFreeze = isinstance (widget, wx.Window)
-                if doFreeze:
-                    widget.Freeze()
+                try:
+                    method = getattr (type (self.widget), 'Freeze')
+                except AttributeError:
+                    pass
+                else:
+                    method (self.widget)
+
                 for child in self.childrenBlocks:
                     child.render()
 
@@ -151,27 +156,25 @@ class Block(Item):
                     self.synchronizeWidget()
                 finally:
                     Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
-                if doFreeze:
-                    widget.Thaw()
 
-    def rerender (self):
-        """ 
-        Tear down and rebuild the widgets for all blocks starting at self.
-        Used by ReloadParcels
-        """
-        import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
+                try:
+                    method = getattr (type (self.widget), 'Thaw')
+                except AttributeError:
+                    pass
+                else:
+                    method (self.widget)
+
+    def unRender (self):
         for child in self.childrenBlocks:
-            # Menus are not contined in the widget hierarchy, so
-            #  we need to handle them specially.
-            if isinstance(child, DynamicContainerBlocks.MenuBar):
-                # flag rebuild of dynamic containers including menus
-                Globals.mainView.lastDynamicBlock = True
+            child.unRender()
+        if hasattr (self, 'widget') and not isinstance (self.widget, wx.ToolBarToolBase):
+            try:
+                member = getattr (type(self.widget), 'Destroy')
+            except AttributeError:
+                pass
             else:
-                # destroy a widget
-                if hasattr(child, 'widget'):
-                    child.widget.Destroy ()
-                    child.render ()
-        self.synchronizeWidget ()
+                wx.CallAfter (member, self.widget)
+
 
     def onCollectionChanged (self, action):
         """
@@ -195,8 +198,12 @@ class Block(Item):
         except AttributeError:
             pass
         else:
-            contents.unsubscribe (self)
-
+            try:
+                unsubscribe = getattr (type (contents), "unsubscribe")
+            except AttributeError:
+                pass
+            else:
+                unsubscribe (contents, self)
         try:
             subscribeWhenVisibleEventsUUID = self.widget.subscribeWhenVisibleEventsUUID
         except AttributeError:
@@ -399,7 +406,7 @@ class wxRectangularChild (wx.Panel):
     CalculateWXFlag = classmethod(CalculateWXFlag)    
     
 
-class RectangularChild(Block):
+class RectangularChild (Block):
     def DisplayContextMenu(self, position, data):
         try:
             self.contextMenu
@@ -424,3 +431,64 @@ class BlockEvent(Event):
         # No, not global: copy me
         items[self.itsUUID] = self
         return [self]
+
+    
+class DetailBlock(Block):
+    def instantiateWidget (self):
+        return wxRectangularChild (self.parentBlock.widget)
+
+    def SetChildBlock (self):
+        newView = self.detailViewCache.GetViewForItem (self.contents)
+        children = iter (self.childrenBlocks)
+        try:
+            oldView = children.next()
+        except StopIteration:
+            oldView = None
+        if not newView is oldView:
+            self.childrenBlocks = []
+
+            if not oldView is None:
+                oldView.unRender()
+
+            if not newView is None:
+                notification = Notification (self)
+                notification.SetData ({'item':self.contents})
+                self.childrenBlocks.append (newView)
+                newView.onSelectItemEvent (notification)
+                newView.render()
+
+                sizer = wx.BoxSizer (wx.HORIZONTAL)
+                self.widget.SetSizer (sizer)
+
+                sizer.Add (newView.widget,
+                           newView.stretchFactor, 
+                           wxRectangularChild.CalculateWXFlag (newView), 
+                           wxRectangularChild.CalculateWXBorder (newView))
+                self.widget.Layout()
+
+    def onSelectItemEvent (self, notification):
+        self.contents = notification.data['item']
+        self.SetChildBlock()
+
+class DetailViewCache (Item):
+    def GetViewForItem (self, item):
+        view = None
+        if not item is None:
+            kindUUIDString = str (item.itsUUID)
+            try:
+                viewUUIDString = self.kindUUIDToViewUUID [kindUUIDString]
+            except KeyError:
+                kindString = str (item.itsKind.itsName)
+                try:
+                    name = {"MailMessage":"EmailRootTemplate",
+                            "CalendarEvent":"CalendarRootTemplate"} [kindString]
+                except KeyError:
+                    pass
+                else:
+                    template = Globals.repository.findPath ("//parcels/osaf/framework/blocks/detail/" + name)
+                    view = template.copy (parent = Globals.repository.findPath ("//userdata"),
+                                          cloudAlias="default")
+                    self.kindUUIDToViewUUID [kindUUIDString] = str (view.itsUUID)
+            else:
+                view = Globals.repository.findUUID (UUID (viewUUIDString))
+        return view

@@ -84,8 +84,15 @@ class NotificationManager(object):
         self.declarations.acquire()
         try:
             decls = []
-            for e in events:
-                decls.append(self.declarations[e.itsUUID])
+            for event in events:
+                eventUUID = event.itsUUID
+                try:
+                    declaration = self.declarations[eventUUID]
+                except KeyError:
+                    declaration = Declaration(event)
+                    self.declarations[eventUUID] = declaration
+
+                decls.append(declaration)
 
             #print decls
 
