@@ -5,4 +5,3 @@ Notes about Windows build issues:
   you don't have access to Visual Studio 7 we will be making frequent pre-built
   distributions of all the Chandler modules available on the website, so you
   don't need to build everything from scratch.
-
