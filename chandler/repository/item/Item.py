@@ -173,14 +173,14 @@ class Item(object):
         if _attrDict is self._references:
             if not (isItem or isRef):
                 del _attrDict[name]
-            else:
-                old = _attrDict.get(name)
+
+            elif name in _attrDict:
+                old = _attrDict[name]
 
                 if isinstance(old, ItemRef):
                     if isItem:
                         # reattaching on original endpoint
-                        old.reattach(self, name,
-                                     old.other(self), value,
+                        old.reattach(self, name, old.other(self), value,
                                      self._otherName(name))
                         return value
                     elif isRef:
@@ -189,10 +189,12 @@ class Item(object):
                                    self._otherName(name))
                     else:
                         raise TypeError, type(value)
+
                 elif isinstance(old, RefDict):
                     old.clear()
-                elif old is not None:
-                    raise ValueError, old
+
+                else:
+                    raise TypeError, type(old)
 
         elif (isItem or isRef) and _attrDict is self._values:
             del _attrDict[name]

@@ -570,10 +570,15 @@ class ItemHandler(xml.sax.ContentHandler):
                 for val in value:
                     cls.xmlValue(None, val, 'value', attrType, 'single',
                                  generator, withSchema)
+            elif isinstance(value, model.item.Item.Item):
+                raise TypeError, 'Item %s cannot be stored in a collection of literals' %(value.getItemPath())
             else:
                 generator.characters(cls.makeString(value))
         else:
-            attrType.typeXML(value, generator)
+            if attrType.recognizes(value):
+                attrType.typeXML(value, generator)
+            else:
+                raise TypeError, 'Value %s is not recognized by type %s' %(value, attrType.getItemPath())
 
         generator.endElement(tag)
 

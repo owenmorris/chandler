@@ -171,7 +171,7 @@ class XMLRepository(OnDemandRepository):
                     item.setDirty(False)
                 del self._transaction[:]
 
-        except DBError:
+        except:
             if txn:
                 txn.abort()
                 self._store.txnEnded(self._env, txn)
