@@ -191,6 +191,8 @@ class SMTPAccount(AccountBase):
             kind = MailParcel.getSMTPAccountKind()
         super (SMTPAccount, self).__init__(name, parent, kind)
 
+        self.accountType = "SMTP"
+
 class IMAPAccount(AccountBase):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
@@ -198,6 +200,8 @@ class IMAPAccount(AccountBase):
         if not kind:
             kind = MailParcel.getIMAPAccountKind()
         super (IMAPAccount, self).__init__(name, parent, kind)
+
+        self.accountType = "IMAP"
 
 class MailDeliveryBase(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -207,6 +211,7 @@ class MailDeliveryBase(Item.Item):
             kind = MailParcel.getMailDeliveryBaseKind()
         super (MailDeliveryBase, self).__init__(name, parent, kind)
 
+
 class SMTPDelivery(MailDeliveryBase):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
@@ -215,6 +220,23 @@ class SMTPDelivery(MailDeliveryBase):
             kind = MailParcel.getSMTPDeliveryKind()
         super (SMTPDelivery, self).__init__(name, parent, kind)
 
+        self.deliveryType = "SMTP"
+        self.state = "DRAFT"
+
+    #XXX: Will want to expand state to an object with error or sucess code 
+    #     desc string, and date
+    def sendFailed(self):
+        self.history.append("FAILED")
+        self.state = "FAILED"
+        self.tries += 1
+
+    #XXX: See comments above
+    def sendSucceeded(self):
+        self.history.append("SENT")
+        self.state = "SENT"
+        self.tries += 1
+
+
 class IMAPDelivery(MailDeliveryBase):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
@@ -222,6 +244,8 @@ class IMAPDelivery(MailDeliveryBase):
         if not kind:
             kind = MailParcel.getIMAPDeliveryKind()
         super (IMAPDelivery, self).__init__(name, parent, kind)
+
+        self.deliveryType = "IMAP"
 
 class MIMEBase(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
@@ -259,7 +283,9 @@ class MailMessageMixin(MIMEContainer):
             kind = MailParcel.getMailMessageMixinKind()
         super (MailMessageMixin, self).__init__(name, parent, kind)
 
-    def InitOutgoingAttributes (self):
+        self.mimeType = "MESSAGE"
+
+    def InitOutgoingAttributes(self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
         """
@@ -268,14 +294,62 @@ class MailMessageMixin(MIMEContainer):
         except AttributeError:
             pass
 
+        self.outgoingMessage()
+
+
+    def outgoingMessage(self, type="SMTP", account=None):
+        if type != "SMTP":
+            raise TypeError("Only SMTP currently supported")
+
+        if account is None:
+            accountKind = MailParcel.getSMTPAccountKind()
+
+            """Get the first SMTP Account"""
+            for acc in Query.KindQuery().run([accountKind]):
+                acccount = acc
+                break
+
+            if account is None:
+                raise Exception("No SMTP Account exists in the Repository")
+
+        #XXX:SAdd test to make sure it is an item
+        elif not account.isItemOf(MailParcel.getSMTPAccountKind()):
+            raise TypeError("Only SMTP Accounts Supported")
+
+        self.deliveryExtension = SMTPDelivery()
+        self.isOutbound = True
+        self.parentAccount = account
+
+
+    def incomingMessage(self, type="IMAP", account=None):
+        if type != "IMAP":
+            raise TypeError("Only IMAP currently supported")
+
+        if account is None:
+            accountKind = MailParcel.getIMAPAccountKind()
+
+            """Get the first IMAP Account"""
+            for acc in Query.KindQuery().run([accountKind]):
+                acccount = acc
+                break
+
+            if account is None:
+                raise Exception("No IMAP Account exists in the Repository")
+
+        #XXX:SAdd test to make sure it is an item
+        elif not account.isItemOf(MailParcel.getIMAPAccountKind()):
+            raise TypeError("Only IMAP Accounts Supported")
+
+        self.deliveryExtension = IMAPDelivery()
+        self.isInbound = True
+        self.parentAccount = account
+
+
 class MailMessage(Notes.Note, MailMessageMixin):
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
             kind = MailParcel.getMailMessageKind()
         super (MailMessage, self).__init__(name, parent, kind)
-        self.mimeType = "MESSAGE"
-        self.isInBound = False
-        self.isOutBound = False
 
 class MIMEBinary(MIMENote):
     def __init__(self, name=None, parent=None, kind=None):

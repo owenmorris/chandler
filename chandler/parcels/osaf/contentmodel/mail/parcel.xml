@@ -86,6 +86,18 @@
             <initialValue type="Integer" value="300" />
         </Attribute>
 
+        <Attribute itsName="accountType">
+            <displayName value="Account Type" />
+            <description value="POP, IMAP, WEBDAV, or SMTP" />
+            <type ref="mail:AccountBase/accountType/accountTypeEnum" />
+
+            <Enumeration itsName="accountTypeEnum">
+                <values value="POP" />
+                <values value="IMAP" />
+                <values value="SMTP" />
+                <values value="WEBDAV" />
+            </Enumeration>
+        </Attribute>
     </Kind>
 
     <Kind itsName="IMAPAccount">
@@ -124,7 +136,7 @@
             <initialValue />
         </Attribute>
 
-        <Attribute itsName="defaultSmtpAccount">
+        <Attribute itsName="defaultSMTPAccount">
             <displayName value="Default SMTP Account" />
             <description value="Which SMTP account to use for sending mail from this account" />
             <type ref="mail:SMTPAccount" />
@@ -180,7 +192,7 @@
             <displayName value="Accounts" />
             <description value="Which IMAP accounts use this SMTP account as their default" />
             <type ref="mail:IMAPAccount" />
-            <inverseAttribute ref="mail:IMAPAccount/defaultSmtpAccount" />
+            <inverseAttribute ref="mail:IMAPAccount/defaultSMTPAccount" />
             <cardinality value="list" />
             <initialValue />
         </Attribute>
@@ -202,7 +214,6 @@
                 <values value="IMAP" />
                 <values value="SMTP" />
             </Enumeration>
-
         </Attribute>
 
         <Attribute itsName="mailMessage">
@@ -267,14 +278,14 @@
         <Attribute itsName="folder">
             <displayName value="Folder" />
             <type ref="String" />
-            <initialValue type="String" value="INBOX" />
+            <initialValue type="String" value="" />
         </Attribute>
 
         <Attribute itsName="uid">
             <displayName value="IMAP UID" />
             <description value="The unique IMAP ID for the message" />
-            <type ref="String" />
-            <initialValue ref="None" />
+            <type ref="Long" />
+            <initialValue type="Long" value="0"/>
         </Attribute>
 
         <Attribute itsName="namespace">
@@ -404,12 +415,12 @@
             <inverseAttribute ref="mail:MailDeliveryBase/mailMessage" />
         </Attribute>
 
-        <Attribute itsName="isOutBound">
+        <Attribute itsName="isOutbound">
             <type ref="Boolean" />
             <initialValue type="Boolean" value="False" />
         </Attribute>
 
-        <Attribute itsName="isInBound">
+        <Attribute itsName="isInbound">
             <type ref="Boolean" />
             <initialValue type="Boolean" value="False" />
         </Attribute>
