@@ -364,6 +364,9 @@ class wxList (DraggableWidget, wx.ListCtrl):
         """
         return self.GetElementValue (row, column)
 
+    def OnGetItemImage (self, item):
+        return -1
+    
     def GoToItem(self, item):
         self.Select (self.blockItem.contents.index (item))
 
