@@ -42,20 +42,26 @@ class PublishCollectionDialog(wx.Dialog):
         invitees = self.inviteesText.GetValue()
         if invitees:
             invitees = invitees.split(",")
+            bad_addrs = []
+
             for invitee in invitees:
                 if not osaf.mail.message.isValidEmailAddress(invitee):
-                    self.waitLabel.SetLabel("Invalid address: %s" % invitee)
-                    return
+                    bad_addrs.append(invitee)
 
-        url = self.urlText.GetValue()
-        self.waitLabel.SetLabel("Publishing, Please Wait...")
+            size = len(bad_addrs)
 
-        osaf.framework.webdav.Dav.DAV(url).put(self.collection)
+            if size > 0:
+                a = size > 1 and "addresses" or "address"
+                self.waitLabel.SetLabel("Invalid %s: %s" % (a, ', '.join(bad_addrs)))
+                return
 
-        if invitees:
+            url = self.urlText.GetValue()
+            self.waitLabel.SetLabel("Publishing, Please Wait...")
+
+            osaf.framework.webdav.Dav.DAV(url).put(self.collection)
             osaf.mail.sharing.sendInvitation(url, invitees)
 
-        self.EndModal(True)
+            self.EndModal(True)
 
     def OnCancel(self, evt):
         self.EndModal(False)
