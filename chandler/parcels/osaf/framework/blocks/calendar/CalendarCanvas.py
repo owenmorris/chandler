@@ -265,9 +265,15 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
             self.DrawWrappedText(dc, dayName, dayRect)
 
         # Draw a line across the bottom of the header
-        dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
+        dc.SetPen(wx.Pen(wx.Colour(179, 179, 179)))
         dc.DrawLine((0, self.size.height - 1),
                     (self.size.width, self.size.height - 1))
+        dc.SetPen(wx.Pen(wx.Colour(204, 204, 204)))
+        dc.DrawLine((0, self.size.height - 2),
+                    (self.size.width, self.size.height - 2))
+        dc.SetPen(wx.Pen(wx.Colour(179, 179, 179)))
+        dc.DrawLine((0, self.size.height - 3),
+                    (self.size.width, self.size.height - 3))
 
     def DrawCells(self, dc):
         pass
