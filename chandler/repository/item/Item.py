@@ -658,6 +658,10 @@ class Item(object):
 
         return (self._status & Item.STALE) != 0
     
+    def _setStale(self):
+
+        self._status |= Item.STALE
+
     def isDirty(self):
 
         return (self._status & Item.DIRTY) != 0

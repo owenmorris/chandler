@@ -176,6 +176,9 @@ class RepositoryView(object):
 
         super(RepositoryView, self).__init__()
 
+        if not repository.isOpen():
+            raise RepositoryError, "Repository is not open"
+
         self.repository = repository
 
         self._thread = threading.currentThread()
@@ -184,7 +187,7 @@ class RepositoryView(object):
         self._deletedRegistry = {}
         self._childrenRegistry = {}
         self._stubs = []
-        self._status = 0
+        self._status = RepositoryView.OPEN
 
     def __str__(self):
 
@@ -205,7 +208,29 @@ class RepositoryView(object):
     def getTextType(self):
 
         raise NotImplementedError, "RepositoryView.getTextType"
+
+    def close(self):
+
+        if not self._status & RepositoryView.OPEN:
+            raise RepositoryError, "RepositoryView is not open"
+
+        del self.repository._threaded.view
     
+        for item in self._registry.itervalues():
+            item._setStale()
+
+        self._registry.clear()
+        self._roots.clear()
+        self._deletedRegistry.clear()
+        self._childrenRegistry.clear()
+
+        self._status &= ~RepositoryView.OPEN
+
+    def isOpen(self):
+
+        return ((self._status & RepositoryView.OPEN) != 0 and
+                self.repository.isOpen())
+
     def isLoading(self):
 
         return (self._status & RepositoryView.LOADING) != 0
@@ -517,7 +542,9 @@ class RepositoryView(object):
     ROOT_ID = property(getUUID)
     logger = property(getLogger)
     debug = property(isDebug)
-    LOADING = 0x1
+
+    OPEN = 0x1
+    LOADING = 0x2
     
 
 class Store(object):
