@@ -81,7 +81,11 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, ski
         # Initialize sources
         print "Setup source tree..."
         log.write("- - - - tree setup - - - - - - -\n")
-        
+
+        outputList = hardhatutil.executeCommandReturnOutputRetry(
+         [cvsProgram, "-q -z3", "checkout", cvsVintage, "internal/installers"])
+        hardhatutil.dumpOutputList(outputList, log)
+
         outputList = hardhatutil.executeCommandReturnOutputRetry(
          [cvsProgram, "-q -z3", "checkout", cvsVintage, "chandler"])
         hardhatutil.dumpOutputList(outputList, log)

@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 
-import hardhatutil, time, smtplib, os, sys
-from optparse import OptionParser
+import hardhatutil, time, os, sys
 
 whereAmI = os.path.dirname(os.path.abspath(hardhatutil.__file__))
 
 homeDir = os.environ['HOME']
 buildDir = os.path.join(homeDir, "tinderbuild")
 stopFile = os.path.join(buildDir, "stop")
-defaultDomain = "osafoundation.org"
-defaultRsyncServer = "192.168.101.46"      #  IP of current server
 
 def main():
     curDir = os.path.abspath(os.getcwd())

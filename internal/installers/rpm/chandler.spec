@@ -12,8 +12,8 @@
 # a Source/Source0 entry)
 #
 
-Version: 0.4
-Release: 8
+Version: $DISTRIB_VERSION
+Release: $DISTRIB_RELEASE
 Summary: Chandler - an Open Source Personal Information Manager
 Name: Chandler
 License: GPLv2
@@ -32,7 +32,7 @@ notes, and instant messaging functions.
 #cd $RPM_BUILD_ROOT
 #tar zxvf %{SOURCE0}
 #%clean
-#if [ -d "$RPM_BUILD_ROOT/usr/local/Chandler" ]; then
+#if [ -d "$RPM_BUILD_ROOT/usr/local/chandler" ]; then
 #rm -rf $RPM_BUILD_ROOT
 #fi
 #%post
@@ -41,9 +41,9 @@ notes, and instant messaging functions.
 #fi
 #%preun
 #if [ "$1" = 0 ]; then
-#find $RPM_INSTALL_PREFIX/Chandler -type f -name '*.pyc' -exec rm -f {} \;
-#find $RPM_INSTALL_PREFIX/Chandler -type f -name '*.pyo' -exec rm -f {} \;
+#find $RPM_INSTALL_PREFIX/chandler -type f -name '*.pyc' -exec rm -f {} \;
+#find $RPM_INSTALL_PREFIX/chandler -type f -name '*.pyo' -exec rm -f {} \;
 #fi
 %files
 %defattr(-,root,root)
-/usr/local/Chandler
+/usr/local/chandler

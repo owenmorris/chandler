@@ -1,7 +1,10 @@
 import os, sys, time, sha, md5
 from stat import *
 
-def findInPath(path,fileName):
+def findInPath(path, fileName, strict=1):
+    """
+    Find filename in path.
+    """
     dirs = path.split(os.pathsep)
     for dir in dirs:
         if os.path.isfile(os.path.join(dir, fileName)):
@@ -9,6 +12,9 @@ def findInPath(path,fileName):
         if os.name == 'nt' or sys.platform == 'cygwin':
             if os.path.isfile(os.path.join(dir, fileName + ".exe")):
                 return os.path.join(dir, fileName + ".exe")
+    if strict:
+        raise CommandNotFound, fileName
+        
     return None
 
 

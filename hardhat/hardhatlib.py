@@ -19,7 +19,7 @@ to a structured log, and alert hardhatlib of problems via Exceptions.
 """
 
 import os, sys, glob, fnmatch, errno, string, shutil, fileinput, re, popen2
-
+import hardhatutil
 
 # Earlier versions of Python don't define these, so let's include them here:
 True = 1
@@ -28,12 +28,12 @@ False = 0
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 defaults = {
-    'verbosity'         : 1,
-    'showenv'           : 0,
-    'version'           : 'release',
-    'showlog'           : False,
-    'interactive'       : True,
-    'outputdir'         : "",
+    'verbosity'   : 1,
+    'showenv'     : 0,
+    'version'     : 'release',
+    'showlog'     : False,
+    'interactive' : True,
+    'outputdir'   : "",
 }
 
 
@@ -120,15 +120,13 @@ def init(buildenv):
 
     CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
 
-    buildenv['sh']    = findInPath(buildenv['path'], "sh")
-    buildenv['make']  = findInPath(buildenv['path'], "make")
-    buildenv['cvs']   = findInPath(buildenv['path'], "cvs")
-    buildenv['scp']   = findInPath(buildenv['path'], "scp")
-    buildenv['tar']   = findInPath(buildenv['path'], "tar")
-    buildenv['gzip']  = findInPath(buildenv['path'], "gzip")
-    buildenv['zip']   = findInPath(buildenv['path'], "zip")
-    buildenv['cvs']   = findInPath(buildenv['path'], "cvs")
-    #buildenv['perl'] = findInPath(buildenv['path'], "perl")
+    buildenv['sh']    = hardhatutil.findInPath(buildenv['path'], "sh", 0)
+    buildenv['make']  = hardhatutil.findInPath(buildenv['path'], "make", 0)
+    buildenv['cvs']   = hardhatutil.findInPath(buildenv['path'], "cvs")
+    buildenv['scp']   = hardhatutil.findInPath(buildenv['path'], "scp", 0)
+    buildenv['tar']   = hardhatutil.findInPath(buildenv['path'], "tar", 0)
+    buildenv['gzip']  = hardhatutil.findInPath(buildenv['path'], "gzip", 0)
+    buildenv['zip']   = hardhatutil.findInPath(buildenv['path'], "zip", 0)
 
     # set OS-specific variables
     if buildenv['os'] == 'win':
@@ -138,7 +136,7 @@ def init(buildenv):
         buildenv['swig']     = os.path.join(CHANDLERBIN, 'release', 'bin', 'swig.exe')
         buildenv['swig_d']   = os.path.join(CHANDLERBIN, 'debug',   'bin', 'swig.exe')
 
-        buildenv['makensis'] = findInPath(buildenv['path'], "makensis.exe")
+        buildenv['makensis'] = hardhatutil.findInPath(buildenv['path'], "makensis.exe", 0)
 
         import os_win
         
@@ -1557,12 +1555,17 @@ def compressDirectory(buildenv, directories, fileRoot):
         "Running gzip on " + fileRoot + ".tar")
         return fileRoot + ".tar.gz"
 
-def makeInstaller(buildenv, directories, fileRoot):
-    """This assumes that directory is an immediate child of the current dir"""
+def makeInstaller(buildenv, directories, fileRoot, majorVersion='0', minorVersion='0', releaseVersion='1'):
+    """
+    This assumes that directory is an immediate child of the current dir
+    """
         # TODO: OS X (dmg?) support
     if buildenv['os'] == 'win':
+        if not buildenv['makensis']:
+            raise hardhatutil.CommandNotFound, 'makensis'
         nsisScriptPath = os.path.join(buildenv['root'], "internal", "installers", "win")
-        scriptOption   = '/DSNAP_%s /DDISTRIB_DIR=%s' % (buildenv['version'].upper(), fileRoot)
+        scriptOption   = '/DSNAP_%s /DDISTRIB_DIR=%s /DDISTRIB_VERSION=%s.%s-%s' % \
+                          (buildenv['version'].upper(), fileRoot, majorVersion, minorVersion, releaseVersion)
 
         if sys.platform == 'cygwin':
           scriptName = os.path.join(nsisScriptPath, "makeinstaller.sh")
@@ -1585,9 +1588,10 @@ def makeInstaller(buildenv, directories, fileRoot):
     elif buildenv['os'] == 'posix':
         specPath   = os.path.join(buildenv['root'], "internal", "installers", "rpm")
         scriptName = os.path.join(specPath, "makeinstaller.sh")
+        version    = '%s.%s' % (majorVersion, minorVersion)
 
         executeCommand(buildenv, "HardHat",
-             [scriptName, specPath, os.path.join(specPath, "chandler.spec"), buildenv['root'], fileRoot],
+             [scriptName, specPath, os.path.join(specPath, "chandler.spec"), buildenv['root'], fileRoot, version, releaseVersion],
              "Building Linux (RPM) Installer")
 
         installTargetFile = '%s.i386.rpm' % fileRoot
@@ -1610,16 +1614,6 @@ def convertLineEndings(srcdir):
                         f.write(newtext)
                         f.close()
  
-def findInPath(path,fileName):
-    dirs = path.split(os.pathsep)
-    for dir in dirs:
-        if os.path.isfile(os.path.join(dir, fileName)):
-            return os.path.join(dir, fileName)
-        if os.name == 'nt' or sys.platform == 'cygwin':
-            if os.path.isfile(os.path.join(dir, fileName + ".exe")):
-                return os.path.join(dir, fileName + ".exe")
-    return None
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Exception Classes
 

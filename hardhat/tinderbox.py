@@ -82,8 +82,10 @@ def main():
     path = os.environ.get('PATH', os.environ.get('path'))
     cvsProgram = hardhatutil.findInPath(path, "cvs")
     print "cvs =", cvsProgram
-    rsyncProgram = hardhatutil.findInPath(path, "rsync")
-    print "rsync =", rsyncProgram
+    
+    if not skipRsync:
+        rsyncProgram = hardhatutil.findInPath(path, "rsync")
+        print "rsync =", rsyncProgram
 
     startInt = int(time.time())
     startTime = str(startInt)
@@ -315,11 +317,14 @@ def RotateDirectories(dir):
         if os.path.isdir(subdir):
             hardhatutil.rmdirRecursive(subdir)
 
-_descriptions = {
-    'enduser' : ["End-Users' distribution", "If you just want to use Chandler, this distribution contains everything you need -- just download, install and run."],
-    'developer' : ["Developers' distribution", "If you're a developer and want to run Chandler in debugging mode, this distribution contains debug versions of the binaries.  Assertions are active, the __debug__ global is set to True, and memory leaks are listed upon exit.  You can also use this distribution to develop your own parcels (See <a href='http://wiki.osafoundation.org/bin/view/Chandler/ParcelLoading'>Parcel Loading</a> for details on loading your own parcels)."],
-}
 
+_instructions = {
+    '.gz'  : ['tarball', 'Download the tarball, extract into a new directory and run.'],
+    '.zip' : ['tarball', 'Download the zip file, extract into a new directory and run.'],
+    '.dmg' : ['install', 'Download the dmg file, double-click to open, copy the application to your preferred location and run.'],
+    '.rpm' : ['install', 'Download the rpm file, install and run.'],
+    '.exe' : ['install', 'Download the installation executable, double-click to install and run.'],
+}
 
 def CreateIndex(outputDir, newDirName, nowString, buildName):
     """
@@ -351,20 +356,77 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
                   'biological weapons).</p>\n'
     index = head1 + head2 + cryptoblurb
 
+    userInstall = None
+    userTarball = None
+    devInstall  = None
+    devTarball  = None
+
     for distro in ('enduser', 'developer'):
         lines = _readFile(os.path.join(outputDir, newDirName, distro))
-        
+
         for line in lines:
             actualDistroFile = line.strip()
             actualDistro     = os.path.join(outputDir, newDirName, actualDistroFile)
 
-            index += '<p>Download <a href="' + actualDistroFile + '"> ' +\
-                     _descriptions[distro][0] + '</a> (' +\
-                     hardhatutil.fileSize(actualDistro) + '): <br>\n' +\
-                     ' MD5 checksum: ' + hardhatutil.MD5sum(actualDistro) +\
-                     '<br>\n' +\
-                     ' SHA checksum: ' + hardhatutil.SHAsum(actualDistro) +\
-                     '<br>\n<p>' + _descriptions[distro][1] + '</p>\n'
+            distroExt = os.path.splitext(actualDistroFile)[1]
+
+            if _instructions.has_key(distroExt):
+                distroType = _instructions[distroExt][0]
+            else:
+                raise MissingFileError, ('Unknown distribution extension: %s' % distroExt)
+
+            if distroType == 'tarball':
+                if distro == 'enduser':
+                    userTarball = (actualDistroFile, actualDistro, _instructions[distroExt][1])
+                else:
+                    devTarball  = (actualDistroFile, actualDistro, _instructions[distroExt][1])
+            else:
+                if distro == 'developer':
+                    devInstall  = (actualDistroFile, actualDistro, _instructions[distroExt][1])
+                else:
+                    userInstall = (actualDistroFile, actualDistro, _instructions[distroExt][1])
+
+    if userInstall:
+        index += '<h3>End-User Installer</h3>\n' +\
+                 '<p>If you just want to use Chandler, then this is the file to download.<br/>\n' +\
+                 userInstall[2] + '</p>\n'
+
+        index += '<p><a href="%s">%s</a> (%s)<br/>\n' % \
+                    (userInstall[0], userInstall[0], hardhatutil.fileSize(userInstall[1]))
+        index += 'MD5 checksum: %s<br/>\nSHA checksum: %s</p>\n' % \
+                    (hardhatutil.MD5sum(userInstall[1]), hardhatutil.SHAsum(userInstall[1]))
+
+    if devInstall:
+        index += '<h3>Developer Installer</h3>\n' +\
+                 "<p>If you're a developer and want to run Chandler in debugging mode, " +\
+                 'this distribution contains debug versions of the binaries.  ' +\
+                 'Assertions are active, the __debug__ global is set to True, ' +\
+                 'and memory leaks are listed upon exit.  You can also use this ' +\
+                 'distribution to develop your own parcels (See ' +\
+                 '<a href="http://wiki.osafoundation.org/bin/view/Chandler/ParcelLoading">Parcel Loading</a> ' +\
+                 'for details on loading your own parcels).<br/>\n' +\
+                 devInstall[2] + '</p>\n'
+
+        index += '<p><a href="%s">%s</a> (%s)<br/>\n' % \
+                    (devInstall[0], devInstall[0], hardhatutil.fileSize(devInstall[1]))
+        index += 'MD5 checksum: %s<br/>\nSHA checksum: %s</p>\n' % \
+                    (hardhatutil.MD5sum(actualDistro), hardhatutil.SHAsum(devInstall[1]))
+
+    index += '<h3>Compressed Install Images</h3>\n' +\
+             '<p>The End-User and Developer compressed images contain a snapshot of Chandler.\n' +\
+             'Use these if you cannot or do not want to use the installers.</p>\n'
+
+    if userTarball:
+        index += '<p>End-Users: <a href="%s">%s</a> (%s): %s<br/>\n' % \
+                    (userTarball[0], userTarball[0], hardhatutil.fileSize(userTarball[1]), userTarball[2])
+        index += 'MD5 checksum: %s<br/>\nSHA checksum: %s</p>\n' % \
+                    (hardhatutil.MD5sum(userTarball[1]), hardhatutil.SHAsum(userTarball[1]))
+
+    if devTarball:
+        index += '<p>Developers: <a href="%s">%s</a> (%s): %s<br/>\n' % \
+                    (devTarball[0], devTarball[0], hardhatutil.fileSize(devTarball[1]), devTarball[2])
+        index += 'MD5 checksum: %s<br/>\nSHA checksum: %s</p>\n' % \
+                    (hardhatutil.MD5sum(devTarball[1]), hardhatutil.SHAsum(devTarball[1]))
 
     index += '</body></html>\n'
 

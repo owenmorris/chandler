@@ -34,12 +34,14 @@ run within the Hardhat/Tinderbox environment so it has some assumptions.
 Running internal/installers/rpm/makeinstaller.sh without any command
 line parameters will give you the following usage help:
 
-   usage: $0 <path to .spec file> <.spec file> <path to distrib directory> <distrib file root>
+   usage: $0 <path to .spec file> <.spec file> <path to distrib directory> <distrib file root> <major.minor> <release>
 
-   example: $0 /home/builder/tinderbuild/internal/installers/rpm/ chandler.spec /home/builder/tinderbuild/ Chandler_linux_foo
+   example: $0 /home/builder/tinderbuild/internal/installers/rpm/ chandler.spec /home/builder/tinderbuild/ Chandler_linux_foo 0.4 8
    
 This script will check the rpm setup, copy the distribution tarball from 
 the tinderbuild working directory, setup the proper SOURCES/ tree, call
 rpmbuild and then finally copy and rename the rpm to the tinderbuild 
 working directory.
 
+If you do need to run rpmbuild manually, read the contents of 
+makeinstallers.sh to see what needs to be done for rpmbuild to work.

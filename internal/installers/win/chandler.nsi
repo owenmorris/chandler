@@ -14,7 +14,7 @@
 !endif
 
 !define PRODUCT_NAME "Chandler"
-!define PRODUCT_VERSION "0.4+"
+!define PRODUCT_VERSION "${DISTRIB_VERSION}"
 !define PRODUCT_PUBLISHER "Open Source Applications Foundation"
 !define PRODUCT_WEB_SITE "http://osafoundation.org"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_BINARY}"
@@ -36,7 +36,7 @@
 
 ; Wizard pages
 !insertmacro MUI_PAGE_WELCOME
-;;;!insertmacro MUI_PAGE_LICENSE "..\..\..\${DISTRIB_DIR}\LICENSE.txt"
+; !insertmacro MUI_PAGE_LICENSE "..\..\..\${DISTRIB_DIR}\LICENSE.txt"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 
@@ -61,10 +61,12 @@
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "Setup.exe"
+;Icon path\to\foo.ico
+;UninstallIcon path\to\foo.ico
 InstallDir "$PROGRAMFILES\Chandler"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
-ShowInstDetails hide
-ShowUnInstDetails hide
+ShowInstDetails nevershow
+ShowUnInstDetails nevershow
 
   ; show the language selection dialog before any UI pages are displayed
 
@@ -100,8 +102,8 @@ Section "MainSection" SEC01
   File /r "..\..\..\${DISTRIB_DIR}\tools"
 
   CreateDirectory "$SMPROGRAMS\Chandler"
-  CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}"
-  CreateShortCut "$DESKTOP\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}"
+  CreateShortCut "$SMPROGRAMS\Chandler\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" ; "" "path\to\foo.ico" 
+  CreateShortCut "$DESKTOP\Chandler.lnk" "$INSTDIR\${PRODUCT_BINARY}" ; "" "path\to\foo.ico"
 SectionEnd
 
   ; create the uninstall shortcut - done here so that it will only
@@ -130,7 +132,7 @@ Function un.onUninstSuccess
 FunctionEnd
 
 Function un.onInit
-!insertmacro MUI_UNGETLANGUAGE
+  ;!insertmacro MUI_UNGETLANGUAGE
   MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove $(^Name) and all of its components?" IDYES +2
   Abort
 FunctionEnd

@@ -32,7 +32,7 @@ def removeRuntimeDir(buildenv):
 
 def distribute(buildenv):
 
-    _createVersionFile(buildenv)
+    majorVersion, minorVersion, releaseVersion = _createVersionFile(buildenv)
 
     buildVersionShort = \
      hardhatutil.RemovePunctuation(buildenv['buildVersion'])
@@ -94,7 +94,7 @@ def distribute(buildenv):
             os.chdir(buildenv['root'])
             
             compFile1         = hardhatlib.compressDirectory(buildenv, [distName], distName)
-            installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName)
+            installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName, majorVersion, minorVersion, releaseVersion)
 
         elif buildenv['os'] == 'win':
 
@@ -116,7 +116,7 @@ def distribute(buildenv):
             hardhatlib.convertLineEndings(buildenv['distdir'])
 
             compFile1         = hardhatlib.compressDirectory(buildenv, [distName], distName)
-            installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName)
+            installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName, majorVersion, minorVersion, releaseVersion)
 
     if buildenv['version'] == 'release':
 
@@ -135,7 +135,7 @@ def distribute(buildenv):
             os.chdir(buildenv['root'])
             
             compFile1         = hardhatlib.compressDirectory(buildenv, [distName], distName)
-            installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName)
+            installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName, majorVersion, minorVersion, releaseVersion)
 
         if buildenv['os'] == 'osx':
 
@@ -186,10 +186,18 @@ def distribute(buildenv):
             hardhatlib.convertLineEndings(buildenv['distdir'])
 
             compFile1         = hardhatlib.compressDirectory(buildenv, [distName], distName)
-            installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName)
+            installTargetFile = hardhatlib.makeInstaller(buildenv, [distName], distName, majorVersion, minorVersion, releaseVersion)
 
     # put the compressed files in the right place if specified 'outputdir'
     if buildenv['outputdir']:
+        if buildenv['version'] == 'release':
+            outputFlagFile = os.path.join(buildenv['outputdir'], 'enduser')
+        else:
+            outputFlagFile = os.path.join(buildenv['outputdir'], 'developer')
+
+        if os.path.exists(outputFlagFile):
+            os.remove(outputFlagFile)
+
         if not os.path.exists(buildenv['outputdir']):
             os.mkdir(buildenv['outputdir'])
 
@@ -209,16 +217,10 @@ def distribute(buildenv):
             if os.path.exists(installSource):
                 os.rename(installSource, installTarget)
             
-                if buildenv['version'] == 'release':
-                    _outputLine(buildenv['outputdir'] + os.sep + "enduser", installTargetFile)
-                else:
-                    _outputLine(buildenv['outputdir'] + os.sep + "developer", installTargetFile)
+                _outputLine(outputFlagFile, installTargetFile)
 
         # write out the compressed image
-        if buildenv['version'] == 'release':
-            _outputLine(buildenv['outputdir']+os.sep+"enduser", compFile1)
-        else:
-            _outputLine(buildenv['outputdir']+os.sep+"developer", compFile1)
+        _outputLine(outputFlagFile, compFile1)
 
     # remove the distribution directory, since we have a tarball/zip
     if os.access(distDir, os.F_OK):
@@ -230,13 +232,18 @@ def _outputLine(path, text):
     output.close()
 
 def _createVersionFile(buildenv):
-    versionFile = "version.py"
+    majorVersion   = '0'
+    minorVersion   = '4'
+    releaseVersion = '8'
+    versionFile    = 'version.py'
     if os.path.exists(versionFile):
         os.remove(versionFile)
     versionFileHandle = open(versionFile, 'w', 0)
-    versionFileHandle.write("build = \"" + buildenv['buildVersion'] + "\"\n")
-    versionFileHandle.write("release = \".5\"\n")
+    versionFileHandle.write('build = "%s"\n' % buildenv['buildVersion'])
+    versionFileHandle.write('release = "%s.%s-%s"\n' % (majorVersion, minorVersion, releaseVersion))
     versionFileHandle.close()
+    
+    return (majorVersion, minorVersion, releaseVersion)
 
 def generateDocs(buildenv):
 
