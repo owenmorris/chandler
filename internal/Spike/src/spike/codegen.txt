@@ -67,15 +67,15 @@ effectively form a test for the code generator, forcing us to design a dummy
 API that will support all the features used in the current Chandler schemas.)
 
 Depending on the cardinality, we'll use different kinds of descriptors.
-Attributes with ``single`` cardinality use ``schema.Attribute``:
+Attributes with ``single`` cardinality use ``schema.One``:
 
     >>> codegen.generateAttribute(displayName)
-        displayName = schema.Attribute(String)
+        displayName = schema.One(String)
 
-attributes with ``list`` cardinality use ``schema.Collection``:
+attributes with ``list`` cardinality use ``schema.Many``:
 
     >>> codegen.generateAttribute(examples)
-        examples = schema.Collection(String)
+        examples = schema.Many(String)
 
 and attributes with ``dict`` cardinality use ``schema.Mapping``:
 
@@ -85,12 +85,12 @@ and attributes with ``dict`` cardinality use ``schema.Mapping``:
 If an attribute is required, we include the ``required`` keyword::
 
     >>> codegen.generateAttribute(values)
-        values = schema.Collection(Symbol, required=True)
+        values = schema.Many(Symbol, required=True)
 
 And if it doesn't have a type declared, we use ``object`` as the default::
 
     >>> codegen.generateAttribute(kindOf)
-        kindOf = schema.Collection(object)
+        kindOf = schema.Many(object)
 
 
 To-Do
@@ -119,20 +119,20 @@ defined for the kind::
 
     >>> codegen.generateClass(rep.findPath('//Schema/Core/Item'))
     class Item:
-        displayName = schema.Attribute(String)
-        monitors = schema.Attribute(object)
-        queries = schema.Collection(object)
-        issues = schema.Collection(String)
-        examples = schema.Collection(String)
-        description = schema.Attribute(String)
+        displayName = schema.One(String)
+        monitors = schema.One(object)
+        queries = schema.Many(object)
+        issues = schema.Many(String)
+        examples = schema.Many(String)
+        description = schema.One(String)
 
 If the kind has superkinds, they are listed as base classes, and the class
 body only contains non-inherited attributes::
 
     >>> codegen.generateClass(rep.findPath('//Schema/Core/Taxon'))
     class Taxon(Item):
-        aliasedBy = schema.Collection(object)
-        typeFor = schema.Collection(object)
+        aliasedBy = schema.Many(object)
+        typeFor = schema.Many(object)
 
 
 To-Do

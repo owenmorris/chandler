@@ -10,6 +10,7 @@ def make_docsuite(filename,package='spike',**kw):
         )
     return suite        
 
+test_schema = make_docsuite('schema.txt')
 test_models = make_docsuite('models.txt')
 test_events = make_docsuite('events.txt')
 test_codegen = make_docsuite('codegen.txt')
@@ -17,5 +18,5 @@ test_codegen = make_docsuite('codegen.txt')
 def suite():
     # Return all tests
     return TestSuite(
-        [test_models(), test_events(), test_codegen()]
+        [test_schema(), test_models(), test_events(), test_codegen()]
     )

@@ -394,7 +394,8 @@ will actually be created or "finished" during the initial prototyping period.
   ``spike.storage``
     Base classes for workspaces, an in-memory workspace implementation, and
     workspace->repository interfacing.  May become a subpackage with undo/redo
-    stuff, depending on time/resource availability.
+    stuff, depending on time/resource availability.  UUID stuff will also go
+    here, along with any schema evolution mechanisms and tools.
 
   ``spike.services``
     Support for "background" tasks and services via Twisted, and inter-parcel
@@ -465,12 +466,12 @@ like::
 
     class inheritance(schema.Relationship):
         """Subclass/superclass relationship"""
-        subclass = schema.TBD
-        superclass = schema.TBD
+        subclass   = schema.Many()
+        superclass = schema.Many()
 
     class Kind(schema.Entity):
-         subclasses = schema.Collection(inheritance.subclass)
-         superclasses = schema.Collection(inheritance.superclass)
+         subclasses = schema.Many(inheritance.subclass)
+         superclasses = schema.Many(inheritance.superclass)
 
 thus allowing bidirectional relationships to be defined without needing to
 explicitly specify the type.  (Possible downside: if multiple types allowed to
@@ -485,8 +486,8 @@ relationships, e.g.::
 
     class likes(schema.Relationship):
         """People a contact likes"""
-        liker = Contact
-        liked = Contact
+        liker = schema.Many(Contact)
+        liked = schema.Many(Contact)
 
 Then, one could iterate over liker/likes pairs, or use dynamic relationship
 navigation to go from a person to their liked people or vice versa.  This
@@ -527,12 +528,12 @@ symbolic constants at the beginning of the file, or using some kind of
 32-bit hex marker to identify the actual UUID, e.g.::
 
     class Item:
-        displayName = schema.Attribute(String, 0x454E)
-        monitors = schema.Attribute(object, 0x43A9)
-        queries = schema.Collection(object, 0xAF0D)
-        issues = schema.Collection(String, 0xB941)
-        examples = schema.Collection(String, 0x8725)
-        description = schema.Attribute(String, 0x33C9)
+        displayName = schema.One(String, 0x454E)
+        monitors = schema.One(object, 0x43A9)
+        queries = schema.Many(object, 0xAF0D)
+        issues = schema.Many(String, 0xB941)
+        examples = schema.Many(String, 0x8725)
+        description = schema.One(String, 0x33C9)
 
 The actual UUIDs could then be looked up elsewhere.  This is is still ugly,
 but it beats putting 128-bit UUIDs in the code.
@@ -691,39 +692,3 @@ Misc. issues:
   have a single subscriber for a given sender at any one time, and perhaps
   ``Callback`` for hook events that should only be called once.
 
-
-Schema Responsibilities
------------------------
-
-* All schema objects except descriptors know their fully-qualified import name
-  (for UUID lookups).
-  
-* Descriptors and Roles exist for each cardinality
-
-* Descriptors create default role if given a type (problem: this requires
-  descriptors to know their name, because role needs to know its name and
-  location, which means we'll need peak.binding-style attribute activation.)
-
-* Descriptor asks Role to subscribe a set so that its inverse reference is
-  automatically updated, if it has one (Q: should we do this for
-  "unidirectional" relationships too?  or let the repository handle it?)
-
-* Role knows how to create a default set of the right type for its cardinality,
-  etc.
-
-* Role knows its Relationship and inverse Role (if bidirectional)
-
-* Role knows its required type, requiredness, and other metadata (policies?)
-
-* Entity can be asked to retrieve a set for a given Role
-
-* Sets can be told their "owner", in which case they also publish object-level
-  events
-  
-* Should we have a general hook for attribute metadata, like in peak.binding?
-  Since we have to scan and activate descriptors so they know their name, it
-  seems reasonable to allow other metadata here.  It would also prevent an
-  explosion of keyword options to descriptors and roles as Chandler's metadata
-  needs evolve, while allowing third parties to define and use their own kinds
-  of structural metadata.
- 

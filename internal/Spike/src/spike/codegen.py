@@ -3,7 +3,7 @@
 import sys
 
 cardinalities = {
-    'single':'Attribute', 'list':'Collection', 'dict':'Mapping'
+    'single':'One', 'list':'Many', 'dict':'Mapping'
 }
 
 def generateClass(kind,stream=None):

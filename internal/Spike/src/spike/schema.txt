@@ -1,0 +1,60 @@
+=========================
+Schema Definition Support
+=========================
+
+The ``spike.schema`` module is used to define new Spike content types and the
+relationships between them.
+
+    >>> from spike import schema
+
+
+
+Entity Classes
+
+* Entity can be asked to retrieve a set for a given Role
+
+* EntityClass sets name and parent class for embedded Roles
+
+
+Roles
+
+* Role classes exist for each cardinality (initially: One & Many)
+
+* Roles are descriptors
+
+* Roles have a way to set name/parent class, and they do not change once set
+
+* Roles __reduce__ as global objects (so they don't get pickled)
+
+* Role synchronizes (update-and-replace) if given another role instead of a
+  type
+
+* Setting ``aRole.inverse`` ensures that ``aRole.inverse.inverse is aRole``
+
+* Role knows how to create a default set of the right type for its cardinality
+
+* Role subscribes created set so that its inverse reference is
+  automatically updated, if it has one (Q: should we do this for
+  "unidirectional" relationships too?  or let the repository handle it?)
+
+* Role knows its required type, requiredness, and other metadata (policies?)
+
+
+Relationships
+
+* Relationship expects two roles in class dict, and attempts to link them by
+setting the ``.inverse`` of one to point to the other.
+
+
+Misc.
+
+* All schema objects know their fully-qualified import name (for UUID lookups)
+  
+* Should we have a general hook for attribute metadata, like in peak.binding?
+  Since we have to scan and activate descriptors so they know their name, it
+  seems reasonable to allow other metadata here.  It would also prevent an
+  explosion of keyword options to descriptors and roles as Chandler's metadata
+  needs evolve, while allowing third parties to define and use their own kinds
+  of structural metadata.
+
+
