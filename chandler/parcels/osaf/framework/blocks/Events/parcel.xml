@@ -30,6 +30,7 @@ of a limitation of the XML format, which will be eliminated</description>
     <blockEvents itemref="events:EnterPressed"/>
     <blockEvents itemref="events:GenerateContentItems"/>
     <blockEvents itemref="events:GenerateContacts"/>
+    <blockEvents itemref="events:ImportContacts"/>
     <blockEvents itemref="events:GenerateNotes"/>
     <blockEvents itemref="events:GenerateCalendarEvents"/>    
     <blockEvents itemref="events:CheckRepository"/>
@@ -109,6 +110,11 @@ of a limitation of the XML format, which will be eliminated</description>
   <BlockEvent itemName="GenerateContentItems">
     <dispatchEnum>BubbleUp</dispatchEnum>
     <methodName>OnGenerateContentItems</methodName>
+  </BlockEvent>
+
+  <BlockEvent itemName="ImportContacts">
+    <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnImportContacts</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="GenerateContacts">

@@ -11,6 +11,7 @@ from OSAF.framework.notifications.Notification import Notification
 from wxPython.wx import *
 from wxPython.html import *
 
+import OSAF.framework.utils.imports.OutlookContacts as OutlookContacts
 import OSAF.contentmodel.tests.GenerateItems as GenerateItems
 
 class View(BoxContainer):
@@ -166,6 +167,9 @@ class View(BoxContainer):
     def OnGenerateContacts(self, notification):
         GenerateItems.GenerateContacts(10)
         Globals.repository.commit()
+
+    def OnImportContacts(self, notification):
+        x=OutlookContacts.OutlookContacts().processFile()
 
     def OnGenerateNotes(self, notification):
         GenerateItems.GenerateNotes(10)
