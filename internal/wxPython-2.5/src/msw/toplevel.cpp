@@ -223,7 +223,7 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
 
 #if 1
 		// take advantage of WinXP native window double-buffering
-		if (wxApp::GetComCtl32Version() >= 500)
+		if (wxApp::GetComCtl32Version() >= 582)
 //			if (GetKeyState( VK_CAPITAL ) == 0)
 			{
 				*exflags |= 0x02000000;	// WS_EX_COMPOSITED
