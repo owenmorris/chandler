@@ -71,7 +71,7 @@
                 <border>0</border>
                 <object class="wxSplitterWindow" name="SplitterWindow">
                     <orientation>vertical</orientation>
-                    <style>wxSP_LIVE_UPDATE</style>
+                    <style>wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE</style>
                     <sashpos>140</sashpos>
                     <minsize>5</minsize>
                     <object class="wxTreeCtrl" subclass="application.SideBar.wxSideBar" name="SideBar">
