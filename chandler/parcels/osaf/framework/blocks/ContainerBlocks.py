@@ -51,7 +51,7 @@ class ContainerChild(Block):
         """
         UUID = self.getUUID()
         assert not Globals.association.has_key(UUID)
-        Globals.association[UUID] = parent
+        Globals.association[UUID] = window
         window.counterpartUUID = UUID
         for child in self.childrenBlocks:
             child.render (parent, parentWindow)
@@ -125,11 +125,11 @@ class BoxContainer(RectContainer):
 class StaticText(RectContainer):
     def renderOneBlock (self, parent, parentWindow):
         assert isinstance (parent, wxSizerPtr) #must be in a container
-        if self.alignment == "Left":
+        if self.textAlignmentEnum == "Left":
             style = wxALIGN_LEFT
-        elif self.alignment == "Center":
+        elif self.textAlignmentEnum == "Center":
             style = wxALIGN_CENTRE
-        elif self.alignment == "Right":
+        elif self.textAlignmentEnum == "Right":
             style = wxALIGN_RIGHT
 
         staticText = wxStaticText (parentWindow,
@@ -147,7 +147,7 @@ class StaticText(RectContainer):
      
 class Menu(ContainerChild):
     def renderOneBlock(self, parent, parentWindow):
-        frame = parentWindow.GetParent()
+        frame = parentWindow
         while not isinstance (frame, wxFrame):
             frame = frame.GetParent()
         menuBar = frame.GetMenuBar()
@@ -209,3 +209,35 @@ class TreeList(RectContainer):
 class EditText(RectContainer):
     def __init__(self, *arguments, **keywords):
         super (EditText, self).__init__ (*arguments, **keywords)
+
+    def renderOneBlock(self, parent, parentWindow):
+        assert isinstance (parent, wxSizerPtr) #must be in a container
+        
+        style = 0
+        if self.textAlignmentEnum == "Left":
+            style |= wxTE_LEFT
+        elif self.textAlignmentEnum == "Center":
+            style |= wxTE_CENTRE
+        elif self.textAlignmentEnum == "Right":
+            style |= wxTE_RIGHT
+
+        if self.lineStyleEnum == "MultiLine":
+            style |= wxTE_MULTILINE
+
+        if self.textStyleEnum == "RichText":
+            style |= wxTE_RICH2
+
+        if self.readOnly:
+            style |= wxTE_READONLY
+
+        editText = wxTextCtrl (parentWindow,
+                               -1,
+                               "",
+                               wxDefaultPosition,
+                               (self.minimumSize.width, self.minimumSize.height),
+                               style)
+
+        editText.SetFont(Font (self.characterStyle))
+        parent.Add(editText, int(self.stretchFactor), 
+                   self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        return editText, None, None

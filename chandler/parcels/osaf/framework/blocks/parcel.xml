@@ -70,6 +70,16 @@
     <implementationTypes key="python">OSAF.framework.blocks.DocumentTypes.RectType</implementationTypes>
   </Struct>
  
+  <Enumeration itemName="textAlignmentEnumType">
+    <values>Left</values>
+    <values>Center</values>
+    <values>Right</values>
+  </Enumeration>
+    
+  <Attribute itemName="textAlignmentEnum">
+    <type itemref="docSchema:textAlignmentEnumType"/>
+  </Attribute>
+    
   <!--
     Chandler Query
   -->
@@ -125,6 +135,10 @@
     <attributes itemref="docSchema:fontName"/>
   </Kind>
   
+  <Attribute itemName="characterStyle">
+    <type itemref="docSchema:CharacterStyle"/>
+  </Attribute>
+
 
   <!--
     Events
@@ -282,22 +296,13 @@
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.StaticText</classes>
     <superKinds itemref="docSchema:RectContainer"/>
 
-    <Enumeration itemName="alignmentEnumType">
-      <values>Left</values>
-      <values>Center</values>
-      <values>Right</values>
-    </Enumeration>
-    
-    <Attribute itemName="alignment">
-      <type itemref="docSchema:StaticText/alignmentEnumType"/>
-    </Attribute>
-    
     <Attribute itemName="title">
       <type itemref="String"/>
     </Attribute>
     
-    <attributes itemref="docSchema:StaticText/alignment"/>
+    <attributes itemref="docSchema:textAlignmentEnum"/>
     <attributes itemref="docSchema:StaticText/title"/>
+    <attributes itemref="docSchema:characterStyle"/>
   </Kind>
 
   <!--
@@ -405,9 +410,11 @@
       <type itemref="Boolean"/>
     </Attribute>
 
+    <attributes itemref="docSchema:textAlignmentEnum"/>
     <attributes itemref="docSchema:EditText/lineStyleEnum"/>
     <attributes itemref="docSchema:EditText/textStyleEnum"/>
     <attributes itemref="docSchema:EditText/readOnly"/>
+    <attributes itemref="docSchema:characterStyle"/>
   </Kind>
 
 </Parcel>

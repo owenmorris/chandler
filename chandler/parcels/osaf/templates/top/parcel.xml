@@ -115,7 +115,7 @@
     <border>3.0, 3.0, 3.0, 3.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
-    <alignment>Left</alignment>
+    <textAlignmentEnum>Left</textAlignmentEnum>
     <characterStyle itemref="doc:HeaderCharacterStyle"/>
     <title>Repository Viewer</title>
   </StaticText>
@@ -140,13 +140,93 @@
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
   </TreeList>
+ 
+  <CharacterStyle itemName="TextStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+    <fontSize>10.0</fontSize>
+    <fontStyle></fontStyle>
+    <fontName></fontName>
+  </CharacterStyle>
+
+  <EditText itemName="LeftText">
+    <open>True</open>
+
+    <size>100,20</size>
+    <minimumSize>100,20</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <textStyleEnum>PlainText</textStyleEnum>
+    <readOnly>False</readOnly>
+    <characterStyle itemref="doc:TextStyle"/>readOnly
+  </EditText>
+  
+  <EditText itemName="RightText">
+    <open>True</open>
+
+    <size>100,20</size>
+    <minimumSize>100,20</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <characterStyle itemref="doc:TextStyle"/>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <textStyleEnum>PlainText</textStyleEnum>
+    <readOnly>False</readOnly>
+  </EditText>
+  
+  <BoxContainer itemName="LeftBox">
+    <content-spec itemref="doc:myQuery"/>
+    <childrenBlocks itemref="doc:LeftText"/>
+    <open>True</open>
+
+    <size>200,100</size>
+    <minimumSize>200,100</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>alignCenter</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <orientationEnum>Horizontal</orientationEnum>
+  </BoxContainer>
+
+  <BoxContainer itemName="RightBox">
+    <content-spec itemref="doc:myQuery"/>
+    <childrenBlocks itemref="doc:RightText"/>
+    <open>True</open>
+
+    <size>200,100</size>
+    <minimumSize>200,100</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>alignCenter</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <orientationEnum>Horizontal</orientationEnum>
+  </BoxContainer>
+
+  <BoxContainer itemName="ContentBox">
+    <content-spec itemref="doc:myQuery"/>
+    <childrenBlocks itemref="doc:LeftBox"/>
+    <childrenBlocks itemref="doc:RightBox"/>
+    <open>True</open>
+
+    <size>200,100</size>
+    <minimumSize>200,100</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <orientationEnum>Horizontal</orientationEnum>
+  </BoxContainer>
 
   <BoxContainer itemName="TopDocument">
     <content-spec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:FileMenu"/>
     <childrenBlocks itemref="doc:EditMenu"/>
     <childrenBlocks itemref="doc:Header"/>
-    <childrenBlocks itemref="doc:TreeList"/>
+    <childrenBlocks itemref="doc:ContentBox"/>
     <childrenBlocks itemref="doc:Controller"/>
     <open>True</open>
 

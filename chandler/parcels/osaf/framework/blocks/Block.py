@@ -13,8 +13,10 @@ class Block(Item):
         self.parentBlock = None
         self.styles = []
  
+
     def render (self, parent, parentWindow):
         pass
+
 
     def findController (self):
         from OSAF.framework.blocks.Controller import Controller
@@ -27,6 +29,7 @@ class Block(Item):
             block = block.parentBlock
             
         return None
+
 
     def dispatchEvent (self, notification):
         
@@ -45,11 +48,7 @@ class Block(Item):
         """
           Find the controller for the window with the focus
         """
-        window = wxWindow_FindFocus()
-        while not hasattr (window, "counterpartUUID"):
-            window = window.GetParent()
-        focusWindow = Globals.repository.find (window.counterpartUUID)
-        controller = focusWindow.findController()
+        controller = self.getFocusBlock().findController()
         """
           Construct method name based upon the name of the event.
         """
@@ -72,13 +71,75 @@ class Block(Item):
                     controller = controller.GetParent().GetParent()
         elif __debug__:
             assert (False)
+
+
+    def getFocusBlock (self):
+        focusWindow = wxWindow_FindFocus()
+        try:
+            UUID = focusWindow.counterpartUUID
+        except AttributeError:
+            return Globals.topController
+        return (Globals.repository.find (UUID))
+
+    
+    def rebuildMenus (self):
         
+        def buildMenuList (block, data):
+            parent = block.parentBlock
+            if (parent):
+                buildMenuList (parent, data)
+
+            """
+              Initialize data if it's empty
+            """
+            if len (data) == 0:
+                data['menuList'] = []
+                data['firstMenu'] = True
+                data['nameIndex'] = {}
+                
+            nameIndex = data['nameIndex']
+            firstMenu = data['firstMenu']
+            list = []
+            for child in block.childrenBlocks:
+                if isinstance (child, Menu) or isinstance (child, MenuItem):
+                    name = child.getItemName()
+                    nameIndex[name] = child
+                    list.append (name)
+            if len(list) != 0:
+                data['menuList'].append (list)
+            
+            data = {}
+            buildMenuList (self.getFocusBlock(), data)
+        
+
+
+    def onSetFocus (self):
+        """
+          Cruise up the parent hierarchy looking for the parent of the first
+        menu or menuItem. If it's not the same as the last time the focus
+        changed then we need to rebuild all the menus.
+        """
+        from OSAF.framework.blocks.ContainerBlocks import Menu
+        from OSAF.framework.blocks.ContainerBlocks import MenuItem
+
+        block = self.getFocusBlock()
+        while (block):
+            for child in block.childrenBlocks:
+                if isinstance (child, Menu) or isinstance (child, MenuItem):
+                    parent = child.parentBlock
+                    if parent != Globals.wxApplication.menuParent:
+                        Globals.wxApplication.menuParent = parent
+                        self.rebuildMenus(parent)
+                        return
+            block = block.parentBlock
+
 
 class BlockEvent(Event):
 
     commandIDs = []
     MINIMUM_WX_ID = 2500
     MAXIMUM_WX_ID = 4999
+
 
     def wxIDToEvent (theClass, wxID):
         """
@@ -89,7 +150,7 @@ class BlockEvent(Event):
  
     wxIDToEvent = classmethod (wxIDToEvent)
     
-    
+
     def getwxID (self):
         """
           wxWindows needs a integer for a command id. Commands between

@@ -28,9 +28,10 @@ class MainThreadCallbackEvent(wxPyEvent):
         self.lock = threading.Lock()
 
 
-class TestFrame(wxFrame):
+class MainFrame(wxFrame):
     def __init__(self):
         wxFrame.__init__(self, None, -1, "TestPane", size=(640,480))
+        self.SetBackgroundColour (wxSystemSettings_GetSystemColour(wxSYS_COLOUR_3DFACE))
 
 
 class wxApplicationNew (wxApp):
@@ -157,6 +158,7 @@ class wxApplicationNew (wxApp):
 
         EVT_MENU(self, -1, self.OnCommand)
         EVT_UPDATE_UI(self, -1, self.OnCommand)
+        EVT_SET_FOCUS(self, self.OnSetFocus)
 
         #allocate the Jabber client, logging in if possible
         #import ChandlerJabber
@@ -168,11 +170,12 @@ class wxApplicationNew (wxApp):
         
         topDocument = Globals.repository.find('//parcels/OSAF/templates/top/TopDocument')
         if topDocument:
-            self.testFrame = TestFrame()
+            self.mainFrame = MainFrame()
             assert isinstance (topDocument, Block)
-            self.testFramePanel = wxPanel(self.testFrame, -1)
             Globals.topController = topDocument.findController()
-            topDocument.render (self.testFramePanel, self.testFramePanel)
+            self.menuParent = Globals.topController.parentBlock
+            self.mainFrame.counterpartUUID = topDocument.getUUID()
+            topDocument.render (self.mainFrame, self.mainFrame)
 
             events = Globals.repository.find('//parcels/OSAF/framework/blocks/events')
             names = []
@@ -183,8 +186,9 @@ class wxApplicationNew (wxApp):
                                                    Globals.topController.getUUID(),
                                                    Globals.topController.dispatchEvent)
 
-            self.testFrame.Show()
+            self.mainFrame.Show()
         return true                     #indicates we succeeded with initialization
+
 
     def OnTerminate(self):
         """
@@ -239,13 +243,17 @@ class wxApplicationNew (wxApp):
                 except KeyError:
                     pass
 
+                
+    def OnSetFocus(self, event):
+        Globals.topController.onSetFocus()
 
     def OnQuit(self):
         """
           Exit the application. Close with an argument of True forces the
         window to close.
         """
-        self.testFrame.Close (TRUE)
+        self.mainFrame.Close (TRUE)
+
 
     def OnMainThreadCallbackEvent(self, event):
         """
@@ -264,6 +272,7 @@ class wxApplicationNew (wxApp):
         evt.lock.acquire()
         wxPostEvent(self, evt)
         return evt.lock
+
 
     if __debug__:
         def DebugRoutine(self, event):
