@@ -6,7 +6,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from model.item.Item import Item
-from model.schema.Namespace import Namespace
 from model.item.ItemRef import RefDict
 from model.util.Path import Path
 

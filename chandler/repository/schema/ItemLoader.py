@@ -2,7 +2,6 @@
 
     @@@ Known Issues (most require resolving data model and repository issues)
     (1) Special case for the 'root' element, aka where do we put odd items?
-    (2) Special case for 'Domain' items, creating a 'FlatDomain' class
     (3) Special case for inverseAttribute and displayAttribute
     (4) Plumbing is available for better error handling, not all there yet
     (5) Types not all handled (assumes strings)
@@ -20,7 +19,6 @@ import xml.sax.handler
 from model.item.Item import Item
 from model.schema.Kind import Kind
 from model.schema.Attribute import Attribute
-from model.schema.Namespace import Domain
 import model.schema.Types
 
 class ItemLoader(object):
@@ -190,11 +188,6 @@ class ItemHandler(xml.sax.ContentHandler):
             parent = self.repository
         else:
             parent = self.repository.find(namespace)
-
-        # @@@ (2) Hack for Domain
-        if local == 'Domain':
-            item = FlatDomain(name, parent, schemaItem)
-        else:
             item = schemaItem.newItem(name, parent)
 
         return item
@@ -216,8 +209,5 @@ class ItemHandler(xml.sax.ContentHandler):
             else:
                 item.addValue(attributeName, reference)
 
-class FlatDomain(Domain):
-    def getNamespace(self, name):
-        return self
             
     
