@@ -26,6 +26,7 @@ import osaf.mail.sharing as MailSharing
 import osaf.framework.webdav.Dav as Dav
 
 
+
 class MainView(View):
     """
       Main Chandler view contains event handlers for Chandler
@@ -72,7 +73,10 @@ class MainView(View):
         # Triggered from "Test | Get Mail" menu
         account = \
          Globals.repository.findPath('//parcels/osaf/mail/IMAPAccountOne')
+
+        Globals.repository.commit()
         IMAPDownloader (account).getMail()
+        Globals.repository.refresh()
 
     def onNewEvent (self, notification):
         # Create a new Content Item
