@@ -5,8 +5,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import xml.sax, xml.sax.saxutils
-import sys, re, os.path
+import sys, re, os.path, xml.sax
 
 
 class packlist(list, xml.sax.ContentHandler):
