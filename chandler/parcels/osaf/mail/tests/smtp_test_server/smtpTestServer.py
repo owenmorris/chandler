@@ -6,12 +6,8 @@ import sys
 
 """
 TESTS:
-1. Connection error *
-2. Invalid return in lineRecieved *
-3. Transfer and protocol error *
 5. Bad TLS Start *
 4. Timeout 
-6. Retries and 4xx codes
 """
 
 PORT = 2500
