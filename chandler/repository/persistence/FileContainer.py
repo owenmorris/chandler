@@ -19,6 +19,10 @@ class FileContainer(DBContainer):
 
         return OutputStream(self, name, True)
 
+    def appendFile(self, name):
+
+        return OutputStream(self, name, False)
+
     def deleteFile(self, name):
 
         File(self, name).delete()
@@ -229,7 +233,7 @@ class Block(object):
 
         return self._data
 
-    def seek(self, position):
+    def seek(self, position, write=False):
 
         key = pack('>16sll', self._key[0:16], 0L,
                    position >> OutputStream.BLOCK_SHIFT)
@@ -238,7 +242,11 @@ class Block(object):
             self._key = key
             data = self._container.get(self._key)
             if data is not None:
-                self._data = StringIO(data)
+                if write:
+                    self._data = StringIO()
+                    self._data.write(data)
+                else:
+                    self._data = StringIO(data)
             else:
                 self._data = StringIO()
 
@@ -246,10 +254,10 @@ class Block(object):
 
     def put(self):
 
-        data = self._data.getvalue()
-        self._data.close()
-
-        self._container.put(self._key, data)
+        if self._data is not None:
+            data = self._data.getvalue()
+            self._data.close()
+            self._container.put(self._key, data)
 
 
 class OutputStream(object):
@@ -267,7 +275,7 @@ class OutputStream(object):
         self._block = Block(container.store._blocks, self._file)
         self.length = self._file.getLength()
         self.position = 0
-        
+
         self.seek(self.length);
 
     def close(self):
@@ -277,31 +285,31 @@ class OutputStream(object):
 
         self._file.modify(self.length, long(time() * 1000))
 
-    def write(self, b, length = -1):
+    def write(self, buffer, length = -1):
 
         blockPos = self.position & OutputStream.BLOCK_MASK
         offset = 0
-        if length == -1:
-            length = len(b)
+        if length < 0:
+            length = len(buffer)
 
         while blockPos + length >= OutputStream.BLOCK_LEN:
             blockLen = OutputStream.BLOCK_LEN - blockPos
 
-            self._block.getData().write(b[offset:offset+blockLen])
+            self._block.getData().write(buffer[offset:offset+blockLen])
             self._block.put()
 
             length -= blockLen
             offset += blockLen
             self.position += blockLen
 
-            self._block.seek(self.position);
+            self._block.seek(self.position, True)
             blockPos = 0
 
         if length > 0:
-            if offset == 0 and length == len(b):
-                self._block.getData().write(b)
+            if offset == 0 and length == len(buffer):
+                self._block.getData().write(buffer)
             else:
-                self._block.getData().write(b[offset:offset+length])
+                self._block.getData().write(buffer[offset:offset+length])
             self.position += length
 
         if self.position > self.length:
@@ -320,7 +328,7 @@ class OutputStream(object):
             (self.position >> OutputStream.BLOCK_SHIFT)):
             self._block.put()
 
-        self._block.seek(pos)
+        self._block.seek(pos, True)
         self.position = pos
 
 
@@ -351,7 +359,7 @@ class InputStream(object):
         buffer = None
         data = None
 
-        if length == -1:
+        if length < 0:
             length = self.length - self.position
 
         if self.position + length > self.length:

@@ -20,9 +20,9 @@ class Lob(object):
         self._compression = None
         self._data = ''
 
-    def getOutputStream(self, compression=None):
+    def getOutputStream(self, compression=None, append=False):
 
-        outputStream = self._getBufferedOutputStream()
+        outputStream = self._getOutputStream(append)
 
         if compression:
             if compression == 'bz2':
@@ -38,7 +38,7 @@ class Lob(object):
 
     def getInputStream(self):
 
-        inputStream = self._getBufferedInputStream()
+        inputStream = self._getInputStream()
         compression = self._compression
 
         if compression:
@@ -51,11 +51,12 @@ class Lob(object):
 
         return inputStream
 
-    def _getBufferedOutputStream(self):
+    def _getOutputStream(self, append):
 
+        self._append = append
         return BufferedOutputStream(lambda data: self._setData(data))
 
-    def _getBufferedInputStream(self):
+    def _getInputStream(self):
 
         return BufferedInputStream(lambda: self._getData())
 
@@ -76,9 +77,9 @@ class Text(Lob):
         
         self.encoding = encoding
         
-    def getWriter(self, compression='bz2'):
+    def getWriter(self, compression='bz2', append=False):
 
-        return OutputStreamWriter(self.getOutputStream(compression),
+        return OutputStreamWriter(self.getOutputStream(compression, append),
                                   self.encoding)
 
     def getReader(self):

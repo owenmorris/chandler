@@ -468,8 +468,11 @@ class XMLText(Text):
             self._dirty = True
 
         if self._dirty:
-            self._version += 1
-            out = view.repository.store._text.createFile(self._makeKey())
+            if self._append:
+                out = view.repository.store._text.appendFile(self._makeKey())
+            else:
+                self._version += 1
+                out = view.repository.store._text.createFile(self._makeKey())
             out.write(self._data)
             out.close()
 
@@ -511,10 +514,10 @@ class XMLText(Text):
         super(XMLText, self)._setData(data)
         self._dirty = True
 
-    def _getBufferedInputStream(self):
+    def _getInputStream(self):
 
         if self._uuid is None:
-            return super(XMLText, self)._getBufferedInputStream()
+            return super(XMLText, self)._getInputStream()
 
         return self._view.repository.store._text.openFile(self._makeKey())
 
@@ -575,9 +578,9 @@ class XMLBinary(Binary):
         super(XMLBinary, self)._setData(data)
         self._dirty = True
 
-    def _getBufferedInputStream(self):
+    def _getInputStream(self):
 
         if self._uuid is None:
-            return super(XMLBinary, self)._getBufferedInputStream()
+            return super(XMLBinary, self)._getInputStream()
 
         return self._view.repository.store._binary.openFile(self._makeKey())
