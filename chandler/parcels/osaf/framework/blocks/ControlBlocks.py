@@ -210,20 +210,13 @@ class AttributeDelegate (ListDelegate):
         except AttributeError:
             value = ""
         else:
-            # @@@ getAttributeAspect of a indirectAttribute returns
-            # the aspect of the indirectAttribute rather than the 
-            # attribute itself.  This code should be changed once
-            # that is fixed.            
-#            if item.getAttributeAspect (attributeName, "cardinality") == "list":
+            if item.getAttributeAspect (attributeName, "cardinality") == "list":
                 compoundValue = value
                 value = ""
-                try:
-                    for part in compoundValue:
-                        if value:
-                            value = value + ", "
-                        value = value + part.getItemDisplayName()
-                except:
-                    return compoundValue
+                for part in compoundValue:
+                    if value:
+                        value = value + ", "
+                    value = value + part.getItemDisplayName()
         return value
 
     def SetElementValue (self, row, column, value):
