@@ -1,4 +1,4 @@
-
+#!/bin/env python
 
 """
 HardHat:  OSAF Build Environment
@@ -80,6 +80,9 @@ else:
 
 # Initialize hardhatlib
 import hardhatlib
+# Here is a trick to figure out what directory hardhat lives in, even if
+# we were called found by the user's PATH
+whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
 try:
     buildenv = hardhatlib.init(osafRoot)
 
@@ -98,6 +101,7 @@ except Exception, e:
     raise e
     sys.exit(1)
     
+buildenv['hardhatroot'] = whereAmI
 buildenv['version'] = 'release'
 buildenv['showlog'] = False
 buildenv['interactive'] = True

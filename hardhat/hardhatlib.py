@@ -725,7 +725,7 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
 
     setupEnvironment(buildenv)
 
-    wrapper = buildenv['root'] + os.sep + "hardhat" + os.sep + "wrapper.py"
+    wrapper = buildenv['hardhatroot'] + os.sep + "wrapper.py"
     logfile = buildenv['logfile']
 
     if buildenv['showenv']:
@@ -1043,7 +1043,7 @@ def cvsClean(buildenv, dirs):
 # Nightly-build-handling methods
 
 # workdir is /home/builder/nightly
-def buildComplete(buildenv, releaseId, workDir):
+def buildComplete(buildenv, releaseId, cvsModule, module):
     if os.environ.has_key('CVS') and os.environ.has_key('SCP') and os.environ.has_key('TAR'):
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
 	 "Paths to tools found, proceeding")
@@ -1052,16 +1052,16 @@ def buildComplete(buildenv, releaseId, workDir):
 	 "Paths to tools need to be set in the following environment variables:  CVS, SCP, TAR")
 	raise HardHatError
 
-    # buildGetSource(buildenv, releaseId, workDir)
 
-def buildGetSource(buildenv, releaseId, workDir):
+    buildGetSource(buildenv, releaseId, cvsModule)
 
-    log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-     "Getting Source")
+def buildGetSource(buildenv, releaseId, cvsModule):
 
-    os.chdir(workDir)
+    os.chdir(buildenv['osafroot'])
 
     if os.path.exists("osaf"):
+	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
+	 "Removing existing osaf under", buildenv['osafroot'])
 	rmdir_recursive("osaf")
 
     if os.path.exists("latest.tar"):
@@ -1070,8 +1070,8 @@ def buildGetSource(buildenv, releaseId, workDir):
 	"Untarring previous source")
 
     executeCommand(buildenv, "HardHat", 
-     [buildenv['cvs'], "checkout", "chandler-source"], 
-    "Updating chandler-source from CVS")
+     [buildenv['cvs'], "checkout", cvsModule], 
+    "Checking out", cvsModule, "from CVS")
 
     executeCommand(buildenv, "HardHat", 
      [buildenv['tar'], "cf", "latest-temp.tar"], 
