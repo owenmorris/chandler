@@ -110,13 +110,19 @@ class wxApplication (wx.App):
         """
           Main application initialization.
         """
+        self.needsUpdateUI = True
+        self.ignoreSynchronizeWidget = True
+        self.focus = None
+
         tools.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
+        wx.InitAllImageHandlers()
+
         """
           Disable automatic calling of UpdateUIEvents. We will call them
         manually when blocks get rendered, change visibility, etc.
         """
         wx.UpdateUIEvent.SetUpdateInterval (-1)
-        self.needsUpdateUI = True
+
         """
           Install a custom displayhook to keep Python from setting the global
         _ (underscore) to the value of the last evaluated expression.  If 
@@ -127,6 +133,7 @@ class wxApplication (wx.App):
             sys.stdout.write(str(obj))
 
         sys.displayhook = _displayHook
+
         """
           Find the directory that Chandler lives in by looking up the file that
         the application module lives in.
@@ -138,35 +145,7 @@ class wxApplication (wx.App):
         os.chdir (Globals.chandlerDirectory)
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
-        self.ignoreSynchronizeWidget = True
 
-        wx.InitAllImageHandlers()
-        """
-          Splash Screen
-        """
-        splashBitmap = self.GetImage ("splash")
-        splash = wx.SplashScreen(splashBitmap,
-                                 wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT,
-                                 6000, None, -1, wx.DefaultPosition,
-                                 wx.DefaultSize,
-                                 wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR)
-        splash.Show()
-
-        """
-          Setup internationalization
-        To experiment with a different locale, try 'fr' and wx.LANGUAGE_FRENCH
-        """
-        os.environ['LANGUAGE'] = 'en'
-#        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
-        """
-          @@@ Sets the python locale, used by wx.CalendarCtrl and mxDateTime
-        for month and weekday names. When running on Linux, 'en' is not
-        understood as a locale, nor is 'fr'. On Windows, you can try 'fr'.
-        locale.setlocale(locale.LC_ALL, 'en')
-        """
-#        wx.Locale_AddCatalogLookupPathPrefix('locale')
-#        self.locale.AddCatalog('Chandler.mo')
-        gettext.install('chandler', 'locale')
         """
           Load the parcels which are contained in the PARCEL_IMPORT directory.
         It's necessary to add the "parcels" directory to sys.path in order
@@ -176,7 +155,6 @@ class wxApplication (wx.App):
         parcelDir = os.path.join(Globals.chandlerDirectory,
                                  self.PARCEL_IMPORT.replace ('.', os.sep))
         sys.path.insert (1, parcelDir)
-
         """
         If PARCELDIR env var is set, put that
         directory into sys.path before any modules are imported.
@@ -189,12 +167,42 @@ class wxApplication (wx.App):
                 debugParcelDir = path
                 sys.path.insert (2, debugParcelDir)
 
+        """
+          Splash Screen
+        """
+        splashBitmap = self.GetImage ("splash")
+        splash = wx.SplashScreen(splashBitmap,
+                                 wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT,
+                                 6000, None, -1, wx.DefaultPosition,
+                                 wx.DefaultSize,
+                                 wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR)
+        splash.Show()
+ 
+        """
+          Setup internationalization
+        To experiment with a different locale, try 'fr' and wx.LANGUAGE_FRENCH
+        """
+        os.environ['LANGUAGE'] = 'en'
+#        self.locale = wx.Locale(wx.LANGUAGE_ENGLISH)
+
+        """
+          @@@ Sets the python locale, used by wx.CalendarCtrl and mxDateTime
+        for month and weekday names. When running on Linux, 'en' is not
+        understood as a locale, nor is 'fr'. On Windows, you can try 'fr'.
+        locale.setlocale(locale.LC_ALL, 'en')
+        """
+#        wx.Locale_AddCatalogLookupPathPrefix('locale')
+#        self.locale.AddCatalog('Chandler.mo')
+        gettext.install('chandler', 'locale')
+
+        """
+          Crypto initialization
+        """
         Globals.crypto = Crypto.Crypto()
         Globals.crypto.init()
 
         """
           Open the repository.
-        -create argument forces a new repository.
         Load the Repository after the path has been altered, but before
         the parcels are loaded. 
         """
@@ -207,11 +215,15 @@ class wxApplication (wx.App):
                  'exclusive': '-exclusive' in sys.argv,
                  'refcounted': True}
 
-        if '-repo' in sys.argv:
-            for i in range(0, len(sys.argv)):
-                if sys.argv[i] == '-repo':
-                    path = sys.argv[i+1]
-                    kwds['fromPath'] = path
+        try:
+            index = sys.argv.index ('-repo')
+        except ValueError:
+            pass
+        else:
+            try:
+                kwds['fromPath'] = sys.argv [index +1 ]
+            except IndexError:
+                pass
 
         if '-create' in sys.argv:
             Globals.repository.create(**kwds)
@@ -233,7 +245,9 @@ class wxApplication (wx.App):
         Globals.notificationManager = NotificationManager()
         Globals.notificationManager.PrepareSubscribers()
 
-        # Load Parcels
+        """
+          Load Parcels
+        """
         parcelSearchPath = [ parcelDir ]
         if debugParcelDir:
             parcelSearchPath.append( debugParcelDir )
@@ -242,9 +256,12 @@ class wxApplication (wx.App):
          application.Parcel.Manager.getManager(path=parcelSearchPath)
         application.Globals.parcelManager.loadParcels()
 
-        Globals.repository.commit()
-
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
+        self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy, id=-1)
+        self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
 
         """
           The Twisted Reactor should be started before other Managers
@@ -258,19 +275,6 @@ class wxApplication (wx.App):
           Start the notification manager
         """
         Globals.notificationManager.PrepareSubscribers()
-
-        # It is important to commit before the task manager starts
-        Globals.repository.commit()
-        from osaf.framework.tasks.TaskManager import TaskManager
-        Globals.taskManager = TaskManager()
-        Globals.taskManager.start()
-
-        self.focus = None
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
-        self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
-        self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy, id=-1)
-        self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
 
         from osaf.framework.blocks.Views import View
         from osaf.framework.blocks.Block import Block
@@ -315,7 +319,16 @@ class wxApplication (wx.App):
                        wxRectangularChild.CalculateWXFlag(mainView), 
                        wxRectangularChild.CalculateWXBorder(mainView))
 
+            Globals.repository.commit()
             self.mainFrame.Show()
+
+            """
+              It is important to commit before the task manager starts
+              for some reason that nobody can remember.
+            """
+            from osaf.framework.tasks.TaskManager import TaskManager
+            Globals.taskManager = TaskManager()
+            Globals.taskManager.start()
 
             tools.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
