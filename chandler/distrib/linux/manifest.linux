@@ -51,8 +51,8 @@ parcels
 # Grab the launcher and linux README
 src=Chandler/distrib/linux
 Chandler.sh
-README.linux
+README.linux.txt
 
 # Grab the overall README
 src=Chandler/distrib
-README
+README.txt
