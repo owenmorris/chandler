@@ -20,9 +20,9 @@ class MainView(View):
     """
     def onQuitEvent (self, notification):
         Globals.wxApplication.mainFrame.Close ()
-        
+
     def onUndoEventUpdateUI (self, notification):
-        notification.data ['Text'] = "Can't Undo\tCtrl+Z"            
+        notification.data ['Text'] = "Can't Undo\tCtrl+Z"
         notification.data ['Enable'] = False
 
     def onRedoEventUpdateUI (self, notification):
@@ -36,15 +36,15 @@ class MainView(View):
 
     def onPasteEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
-        
+ 
     def onPreferencesEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
-        
+
     def onGetNewMailEvent (self, notification):
         accountList = [Globals.repository.findPath('//parcels/osaf/mail/IMAPAccount One')]
         account = accountList[0]
-        IMAPDownloader (account.itsUUID, account.displayName + str(account.itsUUID)).getMail()
-        
+        IMAPDownloader (account).getMail()
+
     # Test Methods
 
     def onGenerateContentItemsEvent(self, notification):
