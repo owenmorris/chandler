@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-from wxPython.wx import *
+import wx
 from Action import Action
 
 """
@@ -40,13 +40,13 @@ class DialogAction(Action):
         message = self._SubstituteAttributes(template, notification.GetData())
         
         if self.NeedsConfirmation():
-            confirmDialog = wxMessageDialog(Globals.wxMainFrame, message, _("Confirm Action"), wxYES_NO | wxICON_QUESTION)
+            confirmDialog = wx.MessageDialog(Globals.wxMainFrame, message, _("Confirm Action"), wx.YES_NO | wx.ICON_QUESTION)
                         
             result = confirmDialog.ShowModal()
             confirmDialog.Destroy()
             # FIXME: need to execute sub-action when the result is yes
         else:
-            wxMessageBox(message)
+            wx.MessageBox(message)
 
         return True
     
