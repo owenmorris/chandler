@@ -5,3 +5,4 @@ release*.tar.gz
 sources*.tar
 gcc*
 mingw*
+*-expanded

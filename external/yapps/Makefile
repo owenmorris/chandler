@@ -26,7 +26,7 @@ clean:
 	rm -rf  $(SRC)/$(BUILD)
 
 patches:
-	diff -u yapps3-patched/grammar.py yapps3/grammar.py > patches-$(VERSION); true
-	diff -u yapps3-patched/yapps2.py yapps3/yapps2.py >> patches-$(VERSION); true
-	diff -u yapps3-patched/parsetree.py yapps3/parsetree.py >> patches-$(VERSION); true
-	diff -u yapps3-patched/yapps_grammar.py yapps3/yapps_grammar.py >> patches-$(VERSION); true
+	diff -u yapps3/grammar.py yapps3-patched/grammar.py > patches-$(VERSION); true
+	diff -u yapps3/yapps2.py yapps3-patched/yapps2.py >> patches-$(VERSION); true
+	diff -u yapps3/parsetree.py yapps3-patched/parsetree.py >> patches-$(VERSION); true
+	diff -u yapps3/yapps_grammar.py yapps3-patched/yapps_grammar.py >> patches-$(VERSION); true
