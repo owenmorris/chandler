@@ -171,7 +171,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
             self.failUnless(kind.hasAttributeValue(i))
 
         # Test iterating over reference attributes
-        referenceAttributeNames = ['superKinds', 'attributes',
+        referenceAttributeNames = ['superKinds', 'attributes', 'clouds',
                                    'inheritedAttributes']
         for i in kind.iterAttributeValues(referencesOnly=True):
             self.failUnless(i[0] in referenceAttributeNames)
