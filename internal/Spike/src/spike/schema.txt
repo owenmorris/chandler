@@ -2,15 +2,122 @@
 Schema Definition Support
 =========================
 
-The ``spike.schema`` module is used to define new Spike content types and the
-relationships between them.
-
-    >>> from spike import schema, events
+.. contents:: **Table of Contents**
 
 
 ------------
 Introduction
 ------------
+
+The ``spike.schema`` module is used to define new Spike content types and the
+relationships between them.  Here's a simple example::
+
+    >>> from spike import schema
+
+    >>> class Person(schema.Entity):
+    ...     name = schema.One(str)
+    ...     age = schema.One(int)
+    ...     parents = schema.Many()
+    ...     children = schema.Many(inverse=parents)
+    ...     def __repr__(self): return self.name
+
+You can create instances of ``schema.Entity`` classes using keyword arguments
+to set their initial attribute values, and you can also manipulate their
+attributes normally after creation::
+
+    >>> Joe = Person(name="Joe", age=39)
+    >>> Joe
+    Joe
+    >>> Joe.age
+    39
+    >>> del Joe.age
+    >>> Joe.age
+    Traceback (most recent call last):
+    ...
+    AttributeError: age
+
+    >>> Joe.age = 40
+
+Attributes are type-checked; you can't set them to values that don't conform
+to the type declared in the class::
+
+    >>> Joe.children = ["Sam", "Nancy"]
+    Traceback (most recent call last):
+    ...
+    TypeError: 'Sam' is not of type Person
+
+    >>> Joe.age = 1.5
+    Traceback (most recent call last):
+    ...
+    TypeError: 1.5 is not of type int
+
+If an error occurs when changing an attribute, the original value is restored::
+
+    >>> Joe.age
+    40
+
+And bidirectional relationships are automatically maintained, so for our
+``Person`` class you don't have to change both the ``parents`` and ``children``
+attributes, just one or the other suffices::
+
+    >>> Bob = Person(name="Bob")
+    >>> Mary = Person(name="Mary")
+    >>> Joe.parents = [Bob, Mary]
+    >>> list(Bob.children)
+    [Joe]
+    >>> list(Mary.children)
+    [Joe]
+    >>> del Mary.children
+    >>> list(Joe.parents)
+    [Bob]
+    >>> Bob.children.remove(Joe)
+    >>> list(Joe.parents)
+    []
+
+Sometimes, you need to be able to define a relationship without modifying one
+or both of the types involved.  For example, if someone wanted to create a
+"likes" relationship between ``Person`` objects, they could do it like this::
+
+    >>> class Likes(schema.Relationship):
+    ...     likedBy = schema.Many(Person)
+    ...     likes   = schema.Many(Person)
+
+Then they could use the schema dynamic API to access this data without using
+attributes::
+
+    >>> Likes.likedBy.of(Joe)
+    Set([], type=Person)
+
+    >>> Likes.likes.of(Joe).add(Bob)  # Joe likes Bob...
+    >>> Likes.likes.of(Joe)
+    Set([Bob], type=Person)
+
+    >>> Likes.likedBy.of(Bob)   # Which means Bob is likedBy Joe
+    Set([Joe], type=Person)
+
+This works for all attribute definitions, not just externally-defined
+relationships::
+
+    >>> Person.age.of(Joe)
+    Set([40], type=int)
+
+For ease of programming, the ``of()`` method always returns an observable set,
+even if the attribute can only have one value.  In any case, you can subscribe
+to receive ``models.SetChanged`` events (see ``spike.models``) whenever a set's
+membership changes::
+
+    >>> def printIt(event): print event
+    >>> Person.age.of(Joe).subscribe(printIt)
+
+    >>> Joe.age = 41
+    <Change for Set([41], type=int): removed=[40], added=[41]>
+    >>> del Joe.age
+    <Change for Set([], type=int): removed=[41], added=[]>
+    >>> Joe.age = 40
+    <Change for Set([40], type=int): removed=[], added=[40]>
+
+    >>> Joe.age = 40    # no event, because we're not really changing anything
+
 
 Entities and Values
 ===================
@@ -126,57 +233,6 @@ method that returns the corresponding link set for the given entity.  So,
 except that it also works for roles that were not defined in the entity class.
 This allows you to add new relationships to Chandler content types without
 needing to change Chandler's source code.
-
-
-Simple Entities
-===============
-
-Now let's define some simple entities and have a look at how they work::
-
-    >>> class Person(schema.Entity):
-    ...     name = schema.One(str)
-    ...     age = schema.One(int)
-    ...     parents = schema.Many()
-    ...     children = schema.Many(inverse=parents)
-    ...     def __repr__(self): return self.name
-
-You can create schema instances with initial values using keyword arguments,
-and then manipulate their attributes normally::
-
-    >>> Joe = Person(name="Joe", age=39)
-    >>> Joe
-    Joe
-    >>> Joe.age
-    39
-    >>> del Joe.age
-    >>> Joe.age
-    Traceback (most recent call last):
-    ...
-    AttributeError: age
-
-Attributes are type-checked::
-
-    >>> Joe.age = 1.5
-    Traceback (most recent call last):
-    ...
-    TypeError: 1.5 is not of type int
-
-And bidirectional relationships are automatically maintained::
-
-    >>> Bob = Person(name="Bob")
-    >>> Mary = Person(name="Mary")
-    >>> Joe.parents = [Bob, Mary]
-    >>> list(Bob.children)
-    [Joe]
-    >>> list(Mary.children)
-    [Joe]
-    >>> del Mary.children
-    >>> list(Joe.parents)
-    [Bob]
-    >>> Bob.children.remove(Joe)
-    >>> list(Joe.parents)
-    []
-
 
 
 ------------
@@ -686,14 +742,7 @@ To Do
 
 Roles
 
-* Role can retrieve itself for an Entity  (``aRole.of(anEntity)``)
-
-* Role classes exist for each cardinality (initially: One & Many)
-
 * Roles __reduce__ as global objects (so they don't get pickled)
-
-* Role knows how to create a default set of the right type for its cardinality
-  (and notices if it has no valid types defined)
 
 * Role knows its requiredness, and other metadata (policies?)
 
