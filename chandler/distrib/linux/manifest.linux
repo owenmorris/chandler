@@ -50,10 +50,17 @@ glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html
 application
 parcels
 
-# Grab the launcher and linux README
+# Grab the launcher script and linux README
 src=Chandler/distrib/linux
 Chandler.sh
 README.linux.txt
+
+# Grab the launcher programs
+src=Chandler/distrib/linux/launcher
+dest=
+chandler
+dest=lib
+chandler_bin
 
 # Grab the overall README
 src=Chandler/distrib

@@ -28,6 +28,13 @@ if sys.platform != 'darwin':
 
 def build(buildenv):
 
+    if buildenv['os'] == 'posix':
+        os.chdir("distrib/linux/launcher")
+        hardhatlib.executeCommand( buildenv, info['name'],
+         [buildenv['make']],
+         "Making launcher programs")
+        os.chdir("../../..")
+
     os.chdir("distrib")
 
     if buildenv['os'] == 'posix' or buildenv['os'] == 'osx':
