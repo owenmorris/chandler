@@ -59,8 +59,10 @@ class JabberClient:
         self.accessibleViews = {}
         self.openPeers = {}
  
-        self.rosterParcel = None
-        self.FindRosterParcel()
+        self.rosterParcel = self.FindParcel('Roster')
+        self.contactsParcel = self.FindParcel('Contacts')
+        
+        # this is used to give a one-time call to the roster after we log in
         self.rosterNotified = false
         
         self.ReadAccountFromPreferences()
@@ -68,12 +70,12 @@ class JabberClient:
             
     # set up the reference to the roster parcel by iterating through the
     # parcel list
-    def FindRosterParcel(self):
+    def FindParcel(self, parcelName):
         parcelList = self.application.model.URLTree.GetParcelList()
         for parcel in parcelList:
-            if parcel.displayName == 'Roster':
-                self.rosterParcel = parcel
-                return
+            if parcel.displayName == parcelName:
+                return parcel
+        return None
             
     def HasLoginInfo(self):
         self.ReadAccountFromPreferences()
@@ -240,7 +242,17 @@ class JabberClient:
                 return realID
         
         return jabberID
-    
+
+    # return true if the passed-in ID is subscribed to
+    def IsSubscribed(self, jabberID):
+        realIDs = self.roster.getJIDs()
+        searchID = str(jabberID).lower()
+        for realID in realIDs:
+            idParts = str(realID).split('/')
+            if idParts[0].lower() == searchID:
+                return true
+        return false
+        
     # logout from the jabber server and terminate the connection
     def Logout(self):
         if self.connected:
@@ -502,6 +514,8 @@ class JabberClient:
             app.presenceWindow.PresenceChanged(who)
         if self.rosterParcel != None:
             self.rosterParcel.PresenceChanged(who)
+        if self.contactsParcel != None:
+            self.contactsParcel.PresenceChanged(who)
             
     # register the user
     def Register(self):
@@ -533,7 +547,7 @@ class JabberClient:
     # presence of the associated jabber_id
     def RequestSubscription(self, jabberID, subscribeFlag):
         if jabberID == None:
-            tkMessageBox.showerror('No Jabber ID. Please enter a jabber ID before subscribing!')
+            wxMessageBox('No Jabber ID. Please enter a jabber ID before subscribing!')
             return
         
         # first, add or remove the new item to the roster	
