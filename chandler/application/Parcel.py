@@ -1569,7 +1569,7 @@ class ValueSet(object):
             if card == "dict":
                 print "Reload: item %s, unassigning %s[%s] = '%s'" % \
                  (self.item.itsPath, attrName, key, value)
-                self.item.removeValue(attrName, key)
+                self.item.removeValue(attrName, key=key)
             elif card == "list":
                 # First, see if this is a ref collection, since we handle those
                 # differently; to remove an item from a ref collection, we use
