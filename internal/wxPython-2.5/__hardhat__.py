@@ -45,7 +45,6 @@ def build(buildenv):
          '--enable-sound',
          '--with-sdl',
          '--enable-display',
-         '--with-libpng=builtin',
         ]
 
         if version == "debug":
@@ -131,13 +130,15 @@ def build(buildenv):
          'BUILD_GLCANVAS=0',
          'BUILD_BASE=build_%s' % version,
          'WX_CONFIG='+buildenv['root']+'/%s/bin/wx-config' % version,
-         'build',
         ]
-        if version == "debug":
-            buildOptions.append("--debug")
+
         if buildenv['os'] == "posix":
             buildOptions.append("WXPORT=gtk2")
             buildOptions.append("UNICODE=1")
+
+        buildOptions.append("build")
+        if version == "debug":
+            buildOptions.append("--debug")
 
         buildOptions.append("install")
 
