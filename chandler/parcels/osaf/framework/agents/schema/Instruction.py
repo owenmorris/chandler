@@ -3,11 +3,10 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from repository.item.Item import Item
+import application.Globals as Globals
 from Action import Action
-import logging
-import time
-import application.Globals as Globals # for application
+from repository.item.Item import Item
+import logging, time
 
 class Timer:
     def __init__(self):
@@ -87,15 +86,14 @@ class Instruction(Item):
         return []
 
     def Execute(self, agent, notification):
-        self.getLog().debug('Instruction::Execute')
+        self.getLog().debug('%s / %s' % (agent.getItemDisplayName(), self.getItemDisplayName()))
 
         result = None
 
         actions = self._GetNewActions(notification)
         for action in actions:
+            self.getLog().debug('%s / %s / %s' % (agent.getItemDisplayName(), self.getItemDisplayName(), action.getItemDisplayName()))
             start = time.clock()
-            
-            self.getLog().debug(action)
 
             if action.IsAsynchronous():
                 # agent.MakeTask(action, notification)
@@ -103,8 +101,7 @@ class Instruction(Item):
             elif action.UseWxThread() or action.NeedsConfirmation():
                 actionProxy = DeferredAction(action.getUUID())
 
-                app = Globals.app
-                lock = app.PostAsyncEvent(actionProxy.Execute, agent.getUUID(), notification)
+                lock = Globals.application.PostAsyncEvent(actionProxy.Execute, agent.getUUID(), notification)
                 #while lock.locked():
                 #    yield 'wait', 1.0
                 #yield 'go', 0
@@ -112,10 +109,7 @@ class Instruction(Item):
                 yield 'condition', None, True
                 result = None
             else:
-                self.getLog().debug('running action')
                 result = action.Execute(agent, notification)
-
-            self.getLog().debug('ExecuteActions - yielding')
 
             end = time.clock() - start
             actionID = action.getUUID()
@@ -129,6 +123,8 @@ class Instruction(Item):
                 self.timers[actionID] = timer
             timer.update(end - start)
             """
+
+            self.getLog().debug('%s / %s / %s' % (agent.getItemDisplayName(), self.getItemDisplayName(), 'yielding'))
             yield result
 
     def GetMagicNumber(self, actionID):

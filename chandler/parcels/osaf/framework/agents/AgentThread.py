@@ -3,9 +3,9 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import threading, logging
+import application.Globals as Globals
 import Scheduler
-import application.Globals as Globals # for repository
+import threading, logging
 
 class AgentThread(threading.Thread):
     """
@@ -13,7 +13,7 @@ class AgentThread(threading.Thread):
       conditions
     """
     def __init__(self, agent):
-        threading.Thread.__init__(self)
+        super(AgentThread, self).__init__()
         self.setDaemon(True)
         self.agent = agent
         self.agentID = agent.agentID
@@ -21,9 +21,9 @@ class AgentThread(threading.Thread):
         self.scheduler = Scheduler.Scheduler()
         self.log = logging.getLogger('Agent')
 
-    def _CheckForNotifications(self, notificationManager, agentItem):
+    def _CheckForNotifications(self, agentItem):
         #print 'checking for notification'
-        notification = notificationManager.GetNextNotification(self.agentID)
+        notification = Globals.notificationManager.GetNextNotification(self.agentID)
         if notification:
             self.scheduler.schedule(0, False, 0, self._HandleNotification, notification, agentItem)
 
@@ -35,10 +35,11 @@ class AgentThread(threading.Thread):
         return result
 
     def run(self):
+        repository = Globals.repository
+
         # XXX
         # it isn't clear why this is needed here, but if it isn't here
         # the repository deadlocks when we try to find()
-        repository = Globals.repository
         repository.commit()
 
         # Get this threads agent item view
@@ -51,8 +52,7 @@ class AgentThread(threading.Thread):
 
         # XXX Set up a scheduler to look for new notifications until the
         #     notification manager can give us callbacks
-        notificationManager = Globals.notificationManager
-        self.scheduler.schedule(0.1, True, 0.1, self._CheckForNotifications, notificationManager, agentItem)
+        self.scheduler.schedule(0.1, True, 0.1, self._CheckForNotifications, agentItem)
 
         # Start the scheduler
         self.scheduler.start()
@@ -135,7 +135,6 @@ def _ExecuteInstructions(agentItem, instructions, notification):
     """
     log = logging.getLogger('Agent')
 
-    log.debug('_ExecuteInstructions')
     for instruction in instructions:
         result = instruction.Execute(agentItem, notification)
         log.debug('_ExecuteInstructions - yielding')

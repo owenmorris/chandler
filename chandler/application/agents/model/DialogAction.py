@@ -5,7 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from wxPython.wx import *
-from application.agents.model.Action import Action
+from Action import Action
 
 """
 The  DialogAction class is a subclass of Action that displays a dialog using text derived from

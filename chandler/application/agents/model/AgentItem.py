@@ -4,6 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
+import OSAF.AppSchema.utils.indexer as indexer
 from repository.item.Item import Item
 
 """
@@ -13,8 +14,8 @@ and refers to its sister class, AgentItem, for the agent's persistent state
 
 class AgentItem(Item):
     def __init__(self, *args):
-        Item.__init__(self, *args)
-        Globals.agentManager.Register(self)
+        super(AgentItem, self).__init__(*args)
+        indexer.getIndex('agents').addItem(self)
 
     def GetName(self):
         """ return the name of the agent """
@@ -63,27 +64,27 @@ class AgentItem(Item):
                 notificationList += instructionList
         return notificationList
     
-    def SubscribeToNotifications(self, notificationManager):
+    def SubscribeToNotifications(self):
         """
           Subscribe to the notifications used by the active instructions 
         """
         clientID = self.getUUID()
         notifications = self._GetActiveNotifications()
         for notification in notifications:
-            notificationManager.Subscribe(notification, clientID)
+            Globals.notificationManager.Subscribe(notification, clientID)
 
-    def UnsubscribeFromNotifications(self, notificationManager):
+    def UnsubscribeFromNotifications(self):
         """
           Unsubscribe from the notifications used by the active instructions 
         """
         clientID = self.getUUID()
         notifications = self._GetActiveNotifications()
         for notification in notifications:
-            notificationManager.Unsubscribe(notification, clientID)
+            Globals.notificationManager.Unsubscribe(notification, clientID)
 
 
     # methods concerning the agent's status
-    def UpdateStatus(self):
+    def _UpdateStatus(self):
         """
           UpdateStatus calculates various status properties of the agent,
           which are kept in the status dictionary.  This method maintains
@@ -94,11 +95,8 @@ class AgentItem(Item):
           FIXME: Not implemented yet
         """
 
-        if not self.hasAttributeValue('status'):
-            self.status = {}
-
-        self.status['busyness'] = str(self._CalculateBusyness())
-        self.status['urgency'] = str(self._CalculateUrgency())
+        self.addValue('status', str(self._CalculateBusyness()), 'busyness')
+        self.addValue('status', str(self._CalculateUrgency()), 'urgency')
         return True
 
     def StatusChanged(self):
@@ -106,7 +104,7 @@ class AgentItem(Item):
         pass
 
     def GetStatus(self, attribute):
-        return self.status[attribute]
+        return self.getValue('status', attribute, 0)
  
     def DumpStatus(self):
         print self.getItemName()

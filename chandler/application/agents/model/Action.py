@@ -3,12 +3,10 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, os.path, time
-
+import application.Globals as Globals
 from wxPython.wx import *
-
 from repository.item.Item import Item
-import application.Globals as Globals # for repository
+import os, os.path, time
 
 """
 The Action Class is a persistent object containing information about a
