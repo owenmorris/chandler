@@ -30,3 +30,7 @@
     * Improperly formatted remote url's no longer cause an exeption within
       Chandler.  Parcels with xrc that doesn't have <label> as the first 
       item in their menus will no longer cause an exception within Chandler.
+      
+2003-07-17 Jed Burgess <jed@osafoundation.org>
+    * Fixed SplashScreen to be able to handle longer html pages that require
+      scrolling.

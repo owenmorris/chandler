@@ -22,9 +22,15 @@ class SplashScreen(wxDialog):
         wxDialog.__init__(self, parent, -1, title, 
                          style=wxFRAME_FLOAT_ON_PARENT|\
                          wxDEFAULT_FRAME_STYLE)
-        panel = HTMLPanel(self, pageLocation, size=(700, -1))
+        defaultWindowWidth = 700
+        maxWindowHeight = 600
+        panel = HTMLPanel(self, pageLocation, size=(defaultWindowWidth, -1))
         internalRep = panel.GetInternalRepresentation()
-        panel.SetSize((internalRep.GetWidth(), internalRep.GetHeight()))
+        width = internalRep.GetWidth()
+        height = internalRep.GetHeight()
+        if height > maxWindowHeight:
+            height = maxWindowHeight
+        panel.SetSize((width, height))
         self.SetClientSize(panel.GetSize())
         
         self.CentreOnScreen()
@@ -54,7 +60,7 @@ class HTMLPanel(wxHtmlWindow):
           Sets up the wxHtmlWindow and loads the proper page to be displayed.
         """
         wxHtmlWindow.__init__(self, parent, size=size,
-                              style=wxHW_SCROLLBAR_NEVER)
+                              style=wxHW_SCROLLBAR_AUTO)
         self.parent = parent
         self.LoadPage(pageLocation)
         
