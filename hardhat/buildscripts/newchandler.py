@@ -86,8 +86,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     
         os.chdir(chanDir)
     
-        for releaseMode in ('debug', 'release'):
-    
+# build release first, because on Windows, debug needs release libs (temp fix for bug 1468)
+        for releaseMode in ('release', 'debug'):
             doInstall(releaseMode, workingDir, log)
             #   Create end-user, developer distributions
             print "Making distribution files for " + releaseMode

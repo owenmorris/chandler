@@ -20,6 +20,11 @@ msvcr71d.dll
 msvcrtd.dll
 python23_d.dll
 xerces-c_2_4_0D.dll
+# (temp fix for bug 1468)
+src=chandler/release/bin
+dest=debug/bin
+msvcp71.dll
+msvcr71.dll
 
 # Grab all py, pyc, etc. from debug/bin/DLLs and debug/bin/Lib
 src=chandler/debug/bin
