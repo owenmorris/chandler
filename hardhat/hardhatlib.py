@@ -562,8 +562,10 @@ def runTest(buildenv, testFile, fullPath):
 
     if buildenv['version'] == 'debug':
         python = buildenv['python_d']
+        pythonPath = buildenv['pythonlibdir_d'] + os.sep + '..' + os.sep + '..'
     elif buildenv['version'] == 'release':
         python = buildenv['python']
+        pythonPath = buildenv['pythonlibdir'] + os.sep + '..' + os.sep + '..'
 
     exit_code = executeCommand(buildenv, testFile, [ python, testFile, '-v' ],
                                "Testing %s" %(fullPath),
@@ -591,9 +593,9 @@ def recursiveTest(buildenv, path):
             recursiveTest(buildenv, full_name)
             # Do not recurse into debug or release dirs since they
             # should not contain any of our tests.
-            if (full_name.rfind(chandler_debug) < 0) and \
-               (full_name.rfind(chandler_release) < 0):
-                recursiveTest(buildenv, full_name)
+            #if (full_name.rfind(chandler_debug) < 0) and \
+            #   (full_name.rfind(chandler_release) < 0):
+            #    recursiveTest(buildenv, full_name)
 
 def test(buildenv, dir, *modules):
     """
