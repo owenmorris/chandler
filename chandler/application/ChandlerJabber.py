@@ -42,6 +42,7 @@ class JabberClient:
         
         self.connected = false
         self.loggedIn = false
+        self.timer = None
         
         self.resourceMap = {}
         self.accessibleViews = {}
@@ -123,9 +124,9 @@ class JabberClient:
             self.connection.sendInitPresence()
             self.loggedIn = TRUE		
 
-            # arrange to get called at idle time while we're looged in
-            EVT_IDLE(self.viewer, self.OnIdle)
-           
+            # arrange to get called periodically while we're looged in
+            self.timer = JabberTimer(self)
+            self.timer.Start(400)    
         else:
             wxMessageBox(_("There is an authentication problem. We can't log into the jabber server.  Perhaps your password is incorrect."))
             #self.Logout()
@@ -156,7 +157,8 @@ class JabberClient:
     def OnIdle(self, event):
         if self.connection != None:
             self.connection.process(0)			
-        
+            print "process idle"
+            
     # return the list of jabber_ids of online members of roster
     # optionally, filter for Chandler clients only
     def GetActiveIDs(self, chandlerOnly):
@@ -197,8 +199,10 @@ class JabberClient:
         self.connection = None
         self.loggedIn = false
         
-        # cancel the idle calls
-        EVT_IDLE(self.viewer, None)
+        # cancel the periodic timer calls
+        if self.timer != None:
+            self.timer.Stop()
+            self.timer = None
     
     # manage the accessible views
     def GetAccessibleViews(self, jabberID):
@@ -412,3 +416,14 @@ class JabberClient:
         else:
             subscribeType = 'unsubscribe'
         self.connection.send(Presence(to=jabberID, type=subscribeType))
+        
+# here's a subclass of timer to periodically drive the event mechanism
+class JabberTimer(wxTimer):
+    def __init__(self, jabberClient):
+        self.jabberClient = jabberClient
+        wxTimer.__init__(self)
+        
+    def Notify(self):
+        if self.jabberClient.connection != None:
+            self.jabberClient.connection.process(0)			
+        
