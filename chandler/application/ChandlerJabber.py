@@ -229,6 +229,18 @@ class JabberClient:
             
         return activeIDs
 
+    # GetCompleteID takes a possibly partial jabber id and returns
+    # a corresponding fully qualified ID, by looking it up in the roster
+    def GetCompleteID(self, jabberID):
+        realIDs = self.roster.getJIDs()
+        searchID = str(jabberID).lower()
+        for realID in realIDs:
+            idParts = str(realID).split('/')
+            if idParts[0].lower() == searchID:
+                return realID
+        
+        return jabberID
+    
     # logout from the jabber server and terminate the connection
     def Logout(self):
         if self.connected:
