@@ -65,9 +65,15 @@
       <type itemref="String"/>
     </Attribute>
 
+    <Attribute itemName="date">
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+
     <attributes itemref="zaobao:link"/>
     <attributes itemref="zaobao:RSSBase/creator"/>
     <attributes itemref="zaobao:RSSBase/category"/>
+    <attributes itemref="zaobao:RSSBase/date"/>
     <superKinds itemref="Item"/>
   </Kind>
 

@@ -69,20 +69,9 @@ class RSSChannel(Item):
 
 class RSSItem(Item):
     def Update(self, data, encoding):
-        #for i,v in data.items():
-        #    print i
-        #print '---'
-
         # fill in the item
         attrs = {'title':'displayName'}
         SetAttributes(self, data, attrs, encoding)
 
         attrs = ['description', 'creator', 'link', 'category', 'date']
         SetAttributes(self, data, attrs, encoding)
-
-        try:
-            date = mx.DateTime.DateTimeFrom(data['date'])
-            self.setAttributeValue('lastModified', date)
-        except KeyError:
-            self.removeAttributeValue('lastModified')
-        

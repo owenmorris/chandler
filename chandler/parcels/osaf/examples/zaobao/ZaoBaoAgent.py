@@ -18,7 +18,9 @@ _defaultBlogs = [ "http://www.pavlov.net/blog/rss10.rdf", \
                   "http://blogs.osafoundation.org/pieter/index.rdf", \
                   "http://blogs.osafoundation.org/blogotomy/index.rdf", \
                   "http://lessig.org/blog/index.xml", \
-                  "http://diveintomark.org/xml/rss.xml"]
+                  "http://diveintomark.org/xml/rss.xml", \
+                  "http://rss.news.yahoo.com/rss/topstories", \
+                  "http://rss.news.yahoo.com/rss/world"]
 
 BASE_PATH = '//Parcels/OSAF/examples/zaobao'
 
