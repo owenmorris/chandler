@@ -266,24 +266,89 @@ class SplitWindow(RectangularChild):
         return style
 
     
+class wxTabbedContainer(wx.Notebook):
+    def __init__(self, *arguments, **keywords):
+        wx.Notebook.__init__(self, *arguments, **keywords)
+        self.selectedTab = 0
+        
+        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnSelectionChanging,
+                  id=self.GetId())
+        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnSelectionChanged,
+                  id=self.GetId())
+
+    def OnSelectionChanging (self, event):
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            pageNum = event.GetSelection()
+            page = self.GetPage(pageNum)
+            try:
+                page.blockUUID
+            except AttributeError:
+                pass
+            else:
+                item = Globals.repository.find(page.blockUUID)
+                block = Globals.repository.find(self.blockUUID)
+                block.UnregisterEvents(item)
+        event.Skip()
+
+    def OnSelectionChanged (self, event):
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            pageNum = event.GetSelection()
+            self.selectedTab = pageNum
+            page = self.GetPage(pageNum)
+            try:
+                page.blockUUID
+            except AttributeError:
+                pass
+            else:    
+                item = Globals.repository.find(page.blockUUID)
+                block = Globals.repository.find(self.blockUUID)
+                block.RegisterEvents(item)
+                Globals.mainView.onSetActiveView(item)
+        event.Skip()
+        
+    def wxSynchronizeWidget(self):
+        counterpart = Globals.repository.find (self.blockUUID)
+        assert(len(counterpart.childrenBlocks) >= 1), "Tabbed containers cannot be empty"
+        assert(len(counterpart.childrenBlocks) == len(counterpart.tabNames)), "Improper number of tabs"
+        self.Freeze()
+        for pageNum in range (self.GetPageCount()):
+            page = self.GetPage(0)
+            pageBlock = Globals.repository.find(page.blockUUID)
+            if not pageBlock.parentBlock:
+                self.DeletePage(0)
+            else:
+                self.RemovePage(0)
+        index = 0
+        for child in counterpart.childrenBlocks:
+            window = Globals.association[child.itsUUID]
+            self.AddPage(window, counterpart.tabNames[index])
+            if index == self.selectedTab:
+                counterpart.RegisterEvents(child)
+            else:
+                try:
+                    counterpart.UnregisterEvents(child)
+                except NotSubscribed:
+                    pass
+            index += 1
+        self.SetSelection(self.selectedTab)
+        self.Thaw()
+
+    def __del__(self):
+        del Globals.association [self.counterpartUUID]
+        
+
 class TabbedContainer(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
-        self.tabIndex = 0
-        try:
-            id = Block.getWidgetID(self.selectionChanged)
-        except AttributeError:
-            id = 0
-            
-        tabbedContainer = wx.Notebook(parentWindow, id, 
-                                      wx.DefaultPosition,
-                                      (self.minimumSize.width, self.minimumSize.height),
-                                      style = self.Calculate_wxStyle())
+        tabbedContainer = wxTabbedContainer(parentWindow, 
+                                            Block.getWidgetID(self),
+                                            wx.DefaultPosition,
+                                            (self.size.width, self.size.height),
+                                            style=self.Calculate_wxStyle())
         
-        self.parentBlock.addToContainer(parent, tabbedContainer, self.stretchFactor, 
-                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
-
-        tabbedContainer.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnSelectionChanging)
-        tabbedContainer.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnSelectionChanged)
+        self.parentBlock.addToContainer(parent, tabbedContainer, 
+                                        self.stretchFactor, 
+                                        self.Calculate_wxFlag(), 
+                                        self.Calculate_wxBorder())
 
         return tabbedContainer, tabbedContainer, tabbedContainer
 
@@ -300,14 +365,27 @@ class TabbedContainer(RectangularChild):
             assert (False)
         return style
 
-    def addToContainer(self, parent, child, weight, flag, border, append=True):
-        assert self.tabIndex < len(self.tabNames)
-        parent.AddPage(child, self.tabNames[self.tabIndex])
-        self.tabIndex += 1
-
-    def removeFromContainer(self, parent, child, doDestroy=True):
-        # @@@ Must be implemented
-        pass
+    
+    
+    def RegisterEvents(self, block):
+        try:
+            events = block.blockEvents
+        except AttributeError:
+            return
+        self.currentId = UUID()
+        Globals.notificationManager.Subscribe(events, self.currentId, 
+                                              Globals.mainView.dispatchEvent)
+ 
+    def UnregisterEvents(self, oldBlock):
+        try:
+            events = oldBlock.blockEvents
+        except AttributeError:
+            return
+        try:
+            id = self.currentId
+        except AttributeError:
+            return # If we haven't registered yet
+        Globals.notificationManager.Unsubscribe(id)    
     
     def OnChooseTabEvent (self, notification):
         tabbedContainer = Globals.association[self.itsUUID]
@@ -316,12 +394,6 @@ class TabbedContainer(RectangularChild):
             if tabbedContainer.GetPageText(index) == choice:
                 tabbedContainer.SetSelection (index)
                 break
-
-    def OnSelectionChanging (self, event):
-        event.Skip()
-
-    def OnSelectionChanged (self, event):
-        event.Skip()
 
         
 class Toolbar(RectangularChild):

@@ -10,14 +10,6 @@ from osaf.framework.blocks.Block import Block as Block
 from repository.util.UUID import UUID
 
 class TabbedView(ControlBlocks.TabbedContainer):
-    def instantiateWidget (self, parent, parentWindow):
-        try:
-            self.tabTitles
-        except AttributeError:
-            self.tabTitles = self.tabNames
-        self.activeTab = -1
-        return ControlBlocks.TabbedContainer.instantiateWidget(self, parent, parentWindow)
-
     def OnSelectionChangedEvent(self, notification):
         node = notification.data['item']
         if node and isinstance(node, Node):
@@ -27,98 +19,48 @@ class TabbedView(ControlBlocks.TabbedContainer):
                     tabbedContainer = Globals.association [self.itsUUID]
                 except KeyError:
                     return  # tabbed container hasn't been rendered yet
-                self.activeTab = tabbedContainer.GetSelection()
-                self.tabTitles[self.activeTab] = self.getUniqueName(node.getItemDisplayName())
-                page = tabbedContainer.GetPage(self.activeTab)
-                tabbedContainer.RemovePage(self.activeTab)
-                self.UnregisterEvents(newChild)
+                activeTab = tabbedContainer.GetSelection()
+                self.tabNames[activeTab] = self.getUniqueName(node.getItemDisplayName())
+                page = tabbedContainer.GetPage(activeTab)
                 item = Globals.repository.find(page.blockUUID)
+                previousChild = self.childrenBlocks.previous(item)
                 item.parentBlock = None
-                page.Destroy()
 
-                newChild.parentBlock = self
+                newChild.parentBlock = self                
+                self.childrenBlocks.placeItem(newChild, previousChild)
                 newChild.render(tabbedContainer, tabbedContainer)                
                 wxNewChild = Globals.association [newChild.itsUUID]
                 wxNewChild.SetSize (tabbedContainer.GetClientSize())                
-                self.RegisterEvents(newChild)
                 Globals.mainView.onSetActiveView(newChild)
-
-    def addToContainer(self, parent, child, weight, flag, border, append=True):
-        if self.activeTab == -1:
-            parent.AddPage(child, self.tabTitles[self.tabIndex])
-            self.tabIndex += 1
-        else:
-            parent.InsertPage(self.activeTab, child, self.tabTitles[self.activeTab], True)
+                self.synchronizeWidget()
 
     def OnNewEvent (self, notification):
         "Create a new tab"
         tabbedContainer = Globals.association[self.itsUUID]
         kind = Globals.repository.find("parcels/osaf/framework/blocks/HTML")
-        self.activeTab = tabbedContainer.GetPageCount()
-        self.tabTitles.append(self.getUniqueName("untitled"))
-        
-        item = kind.newItem(self.tabTitles[self.activeTab], self)
+        name = self.getUniqueName("untitled")
+        tabbedContainer.selectedTab = len(self.tabNames)
+        self.tabNames.append(name)
+        item = kind.newItem(name, self)
         item.url = ""
         item.parentBlock = self
-        (page, parent, parentWindow) = item.render(tabbedContainer, tabbedContainer)
+        item.render(tabbedContainer, tabbedContainer)
+        self.synchronizeWidget()
 
     def OnCloseEvent (self, notification):
         "Close the current tab"
         tabbedContainer = Globals.association[self.itsUUID]
         selection = tabbedContainer.GetSelection()
-        self.tabTitles.remove(self.tabTitles[selection])
+        self.tabNames.remove(self.tabNames[selection])
         page = tabbedContainer.GetPage(selection)
-        tabbedContainer.RemovePage(selection)
+        if selection > (len(self.tabNames) - 1):
+            tabbedContainer.selectedTab = selection - 1
+        else:
+            tabbedContainer.selectedTab = selection
         item = Globals.repository.find(page.blockUUID)
-        self.UnregisterEvents(item)
         item.parentBlock = None
-        page.Destroy()
-                    
-    def OnSelectionChanging(self, event):
-        tabbedContainer = Globals.association [self.itsUUID]
-        page = tabbedContainer.GetPage(event.GetSelection())
-        try:
-            page.blockUUID
-        except AttributeError:
-            pass
-        else:    
-            item = Globals.repository.find(page.blockUUID)
-            self.UnregisterEvents(item)
-        event.Skip()
-        
-    def OnSelectionChanged(self, event):
-        tabbedContainer = Globals.association [self.itsUUID]
-        page = tabbedContainer.GetPage(event.GetSelection())
-        try:
-            page.blockUUID
-        except AttributeError:
-            pass
-        else:    
-            item = Globals.repository.find(page.blockUUID)
-            self.RegisterEvents(item)
-            Globals.mainView.onSetActiveView(item)
-        event.Skip()
-            
-    def RegisterEvents(self, block):
-        try:
-            events = block.blockEvents
-        except AttributeError:
-            return
-        self.currentId = UUID()
-        Globals.notificationManager.Subscribe(events, self.currentId, 
-                                              Globals.mainView.dispatchEvent)
- 
-    def UnregisterEvents(self, oldBlock):
-        try:
-            events = oldBlock.blockEvents
-        except AttributeError:
-            return
-        try:
-            id = self.currentId
-        except AttributeError:
-            return # If we haven't registered yet
-        Globals.notificationManager.Unsubscribe(id)
-        
+        self.synchronizeWidget()
+                                        
     def getUniqueName (self, name):
         if not self.hasChild(name):
             return name
