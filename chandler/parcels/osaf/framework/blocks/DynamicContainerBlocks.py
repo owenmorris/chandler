@@ -556,7 +556,18 @@ class ToolbarItem(Block.Block, DynamicChild):
         elif self.toolbarItemKind == 'Check':
             numItems = 0
         elif self.toolbarItemKind == 'Radio':
-            numItems = 0
+            bitmap = wx.Image (self.bitmap, 
+                               wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+            if self.label:
+                tool = wxToolbar.AddRadioLabelTool(id, self.label, bitmap,
+                                                   shortHelp=self.title,
+                                                   longHelp=self.helpString)
+            else:
+                tool = wxToolbar.AddRadioTool(id, bitmap, shortHelp=self.title,
+                                              longHelp=self.helpString)
+            # Bind events to the Application OnCommand dispatcher, which will
+            #  call the block.event method
+            wxToolbar.Bind (wx.EVT_TOOL, Globals.wxApplication.OnCommand, id=id)
         elif self.toolbarItemKind == 'Text':
             tool = wx.TextCtrl (wxToolbar, id, "", 
                                wx.DefaultPosition, 
