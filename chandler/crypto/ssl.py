@@ -7,7 +7,7 @@ SSL/TLS-related functionality.
 
 import os
 from M2Crypto import SSL, util, EVP
-import Crypto # XXX for getProfileDir
+import application.Globals 
 
 class SSLVerificationError(Exception):
     pass
@@ -74,7 +74,7 @@ def getSSLContext(protocol='sslv23', verify=True, verifyCallback=None):
             if not os.path.exists(caCertFile):
                 caCertFile = None
         if caCertFile is None:
-            caCertFile = os.path.join(Crypto.getProfileDir(), 'cacert.pem')
+            caCertFile = os.path.join(application.Globals.options.profileDir, 'cacert.pem')
         if ctx.load_verify_locations(caCertFile) != 1:
             raise SSLContextError, "No CA certificate file"
 

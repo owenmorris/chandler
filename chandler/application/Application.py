@@ -138,15 +138,6 @@ class wxApplication (wx.App):
 
         sys.displayhook = _displayHook
 
-        """
-          Find the directory that Chandler lives in by looking up the file that
-        the application module lives in.
-        """
-        pathComponents = sys.modules['application'].__file__.split (os.sep)
-        assert len (pathComponents) > 3
-        Globals.chandlerDirectory = os.sep.join(pathComponents[0:-2])
-
-        os.chdir (Globals.chandlerDirectory)
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
 
@@ -200,7 +191,7 @@ class wxApplication (wx.App):
         """
           Crypto initialization
         """
-        Globals.crypto = Crypto.Crypto()
+        Globals.crypto = Crypto.Crypto(Globals.options.profileDir)
         Globals.crypto.init()
 
         """
@@ -296,12 +287,12 @@ class wxApplication (wx.App):
         self.ignoreSynchronizeWidget = False
         self.RenderMainView ()
 
-        if '-prof' in sys.argv:
+        if Globals.options.profile:
             import hotshot, hotshot.stats
-            prof = hotshot.Profile('commit.log')
+            prof = hotshot.Profile(os.path.join(Globals.options.profileDir, 'commit.log'))
             prof.runcall(self.UIRepositoryView.commit)
             prof.close()
-            stats = hotshot.stats.load('commit.log')
+            stats = hotshot.stats.load(os.path.join(Globals.options.profileDir, 'commit.log'))
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
             stats.print_stats(125)

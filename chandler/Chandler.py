@@ -3,60 +3,107 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import sys, os
+import sys, os, shutil
 import application.Globals
 
-def loadConfig():
+def locateProfileDir(chandlerDirectory):
+    """
+    Locate the Chandler repository.
+    The location is determined either by parameters, or if not specified, by
+    the presence of a .chandler directory in the users home directory.
+    """
+      # if a profileDir is specified then just use it
+    if application.Globals.options.profileDir:
+        application.Globals.options.profileDir = os.path.expanduser(application.Globals.options.profileDir)
+    else:
+        homeDir = os.path.expanduser('~')
+
+        if os.name == 'nt':
+            profileDir = os.path.join(homeDir, 'Chandler')          
+            # TODO need to add the location of the users Application Data directory
+        elif os.name == 'posix':
+            if sys.platform == 'darwin':
+                homeDir    = os.path.join(homeDir, 'Library', 'Application Support')
+                profileDir = os.path.join(homeDir, 'Chandler')
+            else:
+                profileDir = os.path.join(homeDir, '.chandler')          
+
+        if not os.path.isdir(profileDir):
+              # if not found, then figure out where to create one
+            if os.path.isdir(homeDir):
+                os.mkdir(profileDir, 0700)
+            else:
+                profileDir = chandlerDirectory
+  
+        application.Globals.options.profileDir = profileDir
+
+def loadConfig(chandlerDirectory):
     """
     Load and parse the command line options.
     Sets Globals.options and Globals.args
     """
-      #@@@ Globals.chandlerDirectory can be replaced by '~' if a true profile directory is needed - bear
-      #@@@ todo: add code to determine what a good profileDir value should be if not passed in
-      
                       # option name, (value, short cmd, long cmd, type flag, default, environment variable, help text)
-    _configItems = { 'parcelDir':  ('-p', '--parcelDir',  's', None,  'PARCELDIR', 'Location for private/user parcels'),
-                     'webserver':  ('-W', '--webserver',  'b', False,  'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
-                     'stderr':     ('-e', '--stderr',     'b', False, None,        'Echo error output to log file'),
-                     'create':     ('-c', '--create',     'b', False, None,        'Force creation of a new repository'),
-                     'ramdb':      ('-d', '--ramdb',      'b', False, None,        ''),
-                     'exclusive':  ('-x', '--exclusive',  'b', False, None,        'open repository exclusive'),
-                     'repo':       ('-r', '--repo',       's', None,  None,        'repository to copy during startup'),
-                     'profileDir': ('',   '--profileDir', 's', application.Globals.chandlerDirectory, 'PROFILE_DIR', 'location of the Chandler Repository'),
-                     'nocatch':    ('-n', '--nocatch', 'b', False, None, ''),
-                     'wing':       ('-w', '--wing',    'b', False, None, ''),
-                     'komodo':     ('-k', '--komodo',  'b', False, None, ''),
+    _configItems = { 'parcelDir':  ('-p', '--parcelDir',  's', None,  'PARCELDIR',         'Location for private/user parcels'),
+                     'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
+                     'profileDir': ('-P', '--profileDir', 's', None,  'PROFILE_DIR',       'location of the Chandler Repository'),
+                     'profile':    ('',   '--prof',       'b', False, None, 'save profiling data'),
+                     'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
+                     'create':     ('-c', '--create',     'b', False, None, 'Force creation of a new repository'),
+                     'ramdb':      ('-d', '--ramdb',      'b', False, None, ''),
+                     'exclusive':  ('-x', '--exclusive',  'b', False, None, 'open repository exclusive'),
+                     'repo':       ('-r', '--repo',       's', None,  None, 'repository to copy during startup'),
+                     'nocatch':    ('-n', '--nocatch',    'b', False, None, ''),
+                     'wing':       ('-w', '--wing',       'b', False, None, ''),
+                     'komodo':     ('-k', '--komodo',     'b', False, None, ''),
                       }
 
     from optparse import OptionParser
-    
+
     usage  = "usage: %prog [options]"   # %prog expands to os.path.basename(sys.argv[0])
     parser = OptionParser(usage=usage, version="%prog " + __version__)
 
     for key in _configItems:
-      (shortCmd, longCmd, optionType, defaultValue, environName, helpText) = _configItems[key]
-    
-      if environName and os.environ.has_key(environName):
-          defaultValue = os.environ[environName]
+        (shortCmd, longCmd, optionType, defaultValue, environName, helpText) = _configItems[key]
 
-      if optionType == 'b':
-          parser.add_option(shortCmd, longCmd, dest=key, action='store_true', default=defaultValue, help=helpText)
-      else:
-          parser.add_option(shortCmd, longCmd, dest=key, default=defaultValue, help=helpText)
+        if environName and os.environ.has_key(environName):
+            defaultValue = os.environ[environName]
+
+        if optionType == 'b':
+            parser.add_option(shortCmd, longCmd, dest=key, action='store_true', default=defaultValue, help=helpText)
+        else:
+            parser.add_option(shortCmd, longCmd, dest=key, default=defaultValue, help=helpText)
 
     (application.Globals.options, application.Globals.args) = parser.parse_args()
 
-    if application.Globals.options.profileDir:
-        application.Globals.options.profileDir = os.path.expanduser(application.Globals.options.profileDir)
-
+    locateProfileDir(chandlerDirectory)
 
 def main():
     message = "while trying to start."
 
     """
+    Find the directory that Chandler lives in by looking up the file that
+    the application module lives in.
+    """
+    pathComponents = sys.modules['application'].__file__.split(os.sep)
+    assert len(pathComponents) > 3
+    chandlerDirectory = os.sep.join(pathComponents[0:-2])
+
+    application.Globals.chandlerDirectory = chandlerDirectory
+
+    os.chdir(chandlerDirectory)
+
+    """
     Process any command line switches and any environment variable values
     """
-    loadConfig()
+    loadConfig(chandlerDirectory)
+
+    """
+    Check for the presence of the cacert.pem file in the profile directory
+    and if not found, copy it from the chandler directory
+    """
+    if not os.path.isfile(os.path.join(application.Globals.options.profileDir, 'cacert.pem')):
+        shutil.copyfile(os.path.join(chandlerDirectory, 'crypto', 'cacert.pem'), \
+                        os.path.join(application.Globals.options.profileDir, 'cacert.pem'))
 
     def realMain():
         if __debug__ and application.Globals.options.wing:
@@ -82,7 +129,8 @@ def main():
           The details of unhandled exceptions are now handled by the logger,
         and logged to a file: chandler.log
         """
-        handler = logging.FileHandler('chandler.log')
+        logFile = os.path.join(application.Globals.options.profileDir, 'chandler.log')
+        handler = logging.FileHandler(logFile)
         formatter = \
          logging.Formatter('%(asctime)s %(name)s %(levelname)s: %(message)s')
         handler.setFormatter(formatter)
@@ -92,7 +140,7 @@ def main():
         # Also send twisted output to chandler.log, per bug 1997
         # @@@ Probably not a good long term solution(?)
         import twisted.python.log
-        twisted.python.log.startLogging(file('chandler.log', 'a+'), 0)
+        twisted.python.log.startLogging(file(logFile, 'a+'), 0)
 
         """
           Don't redirect stdio to a file. useBestVisual, uses best screen
