@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.1-3
+RELVER=0.1-4
 QP=$(INTERNAL)/queryparser
 
 ifeq ($(OS),Cygwin)
