@@ -361,15 +361,12 @@ class ToEditField (EditTextAttribute):
             item.who = toFieldString
        
     def loadAttributeIntoWidget (self, item, widget):
-        whoRedirect = item.getAttributeAspect('who', 'redirectTo')
-        try:
-            whoString = item.who # get redirected who list
-        except AttributeError:
-            whoString = ''
-        if len(whoString) > 0:
+        whoContacts = item.who # get redirected who list
+        whoString = ''
+        if len(whoContacts) > 0:
             whoNames = []
-            for whom in whoString.values():
-                whoNames += (whom.getItemDisplayName(),)
+            for whom in whoContacts.values():
+                whoNames.append(whom.getItemDisplayName())
             whoString = ', '.join(whoNames)
         widget.SetValue(whoString)
 
