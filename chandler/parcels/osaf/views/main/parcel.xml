@@ -899,9 +899,9 @@
   
   <MenuItem itsName="AddDemoViewItem">
     <blockName>AddDemoViewItem</blockName>
-    <title>Add Block Demo View</title>
+    <title>Add Block Demo View (Unstable)</title>
     <event itemref="doc:AddDemoView"/>
-    <helpString>Adds the block demo view to the sidebar</helpString>
+    <helpString>Adds the block demo view to the sidebar (Known to be unstable on some systems)</helpString>
   </MenuItem>
   
   <MenuItem itsName="AddRepositoryViewItem">
