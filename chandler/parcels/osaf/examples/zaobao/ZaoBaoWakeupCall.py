@@ -36,5 +36,7 @@ class WakeupCall(WakeupCaller.WakeupCall):
                 #print 'failed to parse %s' % item.url
                 #print e
                 logging.exception('zaobao failed to parse %s' % item.url)
+            except Exception, e:
+                logging.exception('zaobao failed to parse %s' % item.url)
 
         view.commit()

@@ -8,7 +8,11 @@ from osaf.contentmodel.ContentModel import ContentItem
 from osaf.contentmodel.ItemCollection import ItemCollection
 import mx.DateTime
 import feedparser
+import os, logging
+from repository.item.Query import KindQuery
 
+logger = logging.getLogger('ZaoBao')
+logger.setLevel(logging.INFO)
 
 # sets a given attribute overriding the name with newattr
 def SetAttribute(self, data, attr, newattr=None):
@@ -41,7 +45,7 @@ def NewChannelFromURL(view, url, update = True):
 
     channel = RSSChannel(view=view)
     channel.url = url
-    
+
     if update:
         try:
             channel.Update(data)
@@ -58,9 +62,11 @@ class RSSChannel(ItemCollection):
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super(RSSChannel, self).__init__(name, parent, kind, view)
         self.items = ItemCollection(view=view)
-        
 
     def Update(self, data=None):
+        logger.info("Updating channel: %s" % getattr(self, 'displayName',
+                    self.url))
+
         etag = self.getAttributeValue('etag', default=None)
         lastModified = self.getAttributeValue('lastModified', default=None)
         if lastModified:
@@ -69,7 +75,7 @@ class RSSChannel(ItemCollection):
         if not data:
             # fetch the dat
             data = feedparser.parse(str(self.url), etag, lastModified)
-                
+
         # set etag
         SetAttribute(self, data, 'etag')
 
@@ -83,18 +89,21 @@ class RSSChannel(ItemCollection):
             if data.bozo and (data.bozo_exception != feedparser.CharacterEncodingOverride):
                 raise data.bozo_exception
         except KeyError:
+            print "Error"
             return
 
         self._DoChannel(data['channel'])
-        self._DoItems(data['items'])
-            
+        count = self._DoItems(data['items'])
+        if count:
+            logger.info("...added %d RSSItems" % count)
+
     def addRSSItem(self, rssItem):
         """
             Add a single item, and add it to any listening collections
         """
         rssItem.channel = self
         self.items.add(rssItem)
-        
+
 
     def _DoChannel(self, data):
         # fill in the item
@@ -112,30 +121,39 @@ class RSSChannel(ItemCollection):
 
     def _DoItems(self, items):
         # make children
-                
+
         # lets look for each existing item. This is ugly and is an O(n^2) problem
         # if the items are unsorted. Bleah.
         view = self.itsView
-        if len(items) == 0:
-            return
-            
+
+        count = 0
+
         for newItem in items:
+
             found = False
-            for oldItem in self.items:
+            for oldItem in self.items.resultSet:
                 # check to see if this doesn't already exist
                 if oldItem.isSimilar(newItem):
                     found = True
+                    oldItem.Update(newItem)
                     break
-                    
+
             if not found:
                 # we have a new item - add it
                 rssItem = RSSItem(view=view)
                 rssItem.Update(newItem)
-                try: 
+                try:
                     self.addRSSItem(rssItem)
+                    count += 1
                 except Exception, e:
                     print "Error adding an item: " + str(e)
                     raise
+
+        return count
+
+    def markAllItemsRead(self):
+        for item in self.items:
+            item.isRead = True
 
 ##
 # RSSItem
@@ -156,33 +174,83 @@ class RSSItem(ContentItem):
         # @@@MOR attrs = ['creator', 'link', 'category']
         SetAttributes(self, data, attrs)
 
-        description = data.get('description')
-        if description:
-            self.content = self.getAttributeAspect('content', 'type').makeValue(description, indexed=True)
+        content = data.get('content')
+
+        # Use the 'content' info first, falling back to what's in 'description'
+        if content:
+            content = content[0]['value']
+        else:
+            content = data.get('description')
+
+        if content:
+            self.content = self.getAttributeAspect('content', 'type').makeValue(content, indexed=True)
 
         date = data.get('date')
         if date:
             self.date = mx.DateTime.DateTimeFrom(str(date))
-            
+        else:
+            # Give the item a date so we can sort on it
+            self.date = mx.DateTime.now()
+
     def isSimilar(self, feedItem):
         """
             Returns True if the two items are the same, False otherwise
+            In this case, they're the same if title/link are the same, and
+            if the feed item has a date, compare that too.
+            Some feeds also define guids for items, so perhaps we should
+            look at those too.
         """
         try:
-            haveLocalDate = self.hasLocalAttributeValue('date')
+
+            # If no date in the item, just consider it a matching date;
+            # otherwise do compare datestamps:
+            dateMatch = True
             haveFeedDate = 'date' in feedItem
-            
-            # not every item has a date, so if neither item has a date, then
-            # in a sense their dates are equivalent
+            if haveFeedDate:
+                feedDate = mx.DateTime.DateTimeFrom(str(feedItem.date))
+                if self.date != feedDate:
+                    dateMatch = False
+
             if self.displayName == feedItem.title and \
-                ((haveFeedDate and haveLocalDate and \
-                  self.date == mx.DateTime.DateTimeFrom(str(feedItem.date))) or \
-                  not haveFeedDate and not haveLocalDate):
-                return True
-            else:
-                return False
+               str(self.link) == feedItem.link and \
+               dateMatch:
+                    return True
+
         except Exception, e:
             print "oops: " + str(e)
-            return False
 
-            
+        return False
+
+class Parcel(application.Parcel.Parcel):
+
+    def startupParcel(self):
+
+        view = self.itsView
+
+        urls = self.getChannelsList()
+
+        chanKind = RSSChannel.getKind(view)
+        for channel in KindQuery().run([chanKind]):
+            if channel.url in urls:
+                urls.remove(channel.url)
+        for url in urls:
+            try:
+                newChannel = NewChannelFromURL(view, url, update=False)
+            except Exception, e:
+                logger.exception(e)
+
+    def getChannelsList(self):
+
+        channelList = []
+        try:
+            profileDir = application.Globals.options.profileDir
+            fileName = os.path.join(profileDir, 'zaobao.txt')
+            if os.path.isfile(fileName):
+                channelFile = file(fileName, "r")
+                channelList = channelFile.readlines()
+        except Exception, e:
+            logger.exception(e)
+
+        return channelList
+
+

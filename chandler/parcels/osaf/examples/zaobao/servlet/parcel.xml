@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Parcel itsName="servlet"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:web="http://osafoundation.org/parcels/osaf/framework/webserver"
+        xmlns:serv="http://osafoundation.org/parcels/osaf/framework/webserver/servers" >
+
+    <web:Resource itsName="zaoBaoResource">
+        <displayName value="ZaoBao Servlet"/>
+        <location value="zaobao"/>
+        <resourceClass value="osaf.examples.zaobao.servlet.Servlet.ZaoBaoResource"/>
+        <server itemref="serv:mainServer"/>
+    </web:Resource>
+
+</Parcel>
