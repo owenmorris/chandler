@@ -12,7 +12,7 @@ BIN_ARCHIVES=../$(SNAP)-0.3-15.tar.gz \
              ../Launchers-$(SNAP)-0.3-7.tar.gz
 
 # these get installed into chandler
-HOME_ARCHIVES=../QueryParser-$(SNAP)-0.1-3.tar.gz
+HOME_ARCHIVES=../QueryParser-$(SNAP)-0.1-4.tar.gz
 
 ARCHIVES = $(BIN_ARCHIVES) $(HOME_ARCHIVES)
 
