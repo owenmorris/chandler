@@ -1,0 +1,1 @@
+parcelClass = "StockQuote.StockQuoteModel"

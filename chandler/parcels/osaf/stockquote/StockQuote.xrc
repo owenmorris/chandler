@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<resource version="2.4.0.0">
+  <object class="wxPanel" subclass="OSAF.stockquote.StockQuote.wxStockQuoteViewer" name="StockQuote">
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="sizeritem">
+        <object class="wxStaticText">
+          <label>Web Services sample parcel</label>
+          <style></style>
+          <font>
+            <size>18</size>
+            <style>swiss</style>
+            <weight>normal</weight>
+            <family>normal</family>
+            <underlined>0</underlined>
+            <face>MS Sans Serif</face>
+            <encoding>windows-1252</encoding>
+          </font>
+        </object>
+        <flag>wxALIGN_CENTRE</flag>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="sizeritem">
+            <object class="wxButton" name="GetQuoteButton">
+              <label>Get Quote</label>
+              <style></style>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxTextCtrl" name="StockSymbol">
+              <value>MSFT</value>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText" name="QuoteLabel">
+              <label></label>
+            </object>
+          </object>
+        </object>
+        <flag>wxALL|wxALIGN_CENTRE</flag>
+      </object>
+    </object>
+    <font>
+      <size>12</size>
+      <style>default</style>
+      <weight>normal</weight>
+      <family>normal</family>
+      <underlined>0</underlined>
+    </font>
+  </object>
+  <object class="wxMenu" name="ViewerParcelMenu">
+    <label>StockQuote</label>
+    <object class="wxMenuItem" name="GetQuoteMenuItem">
+      <label>Get Quote</label>
+    </object>
+  </object>
+</resource>
