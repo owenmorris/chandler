@@ -38,22 +38,22 @@ parser Query:
     token ID: '[a-zA-Z]+'
     token END: '$'
 
-    rule stmt: union_stmt {{ return union_stmt }} 
-        | intersection_stmt {{ return intersection_stmt }}
-        | difference_stmt {{ return difference_stmt }}
-        | for_stmt {{ return for_stmt }}
+    rule stmt: union_stmt {{ return union_stmt }} END
+        | intersection_stmt {{ return intersection_stmt }} END
+        | difference_stmt {{ return difference_stmt }} END
+        | for_stmt {{ return for_stmt }} END
 
     rule stmt_list: stmt {{ result = [ stmt ] }}
         (',' stmt {{ result.append(stmt) }} )*
         {{ return result }}
 
-    rule union_stmt: 'union' '\(' stmt_list '\)' 
+    rule union_stmt: 'union' "\(" stmt_list "\)"
         {{ return [ 'union', stmt_list] }}
 
-    rule intersection_stmt: 'intersect' '\(' stmt {{ stmt1 = stmt }} ',' stmt {{ stmt2 = stmt }} '\)'
+    rule intersection_stmt: 'intersect' "\(" stmt {{ stmt1 = stmt }} ',' stmt {{ stmt2 = stmt }} "\)"
         {{ return [ 'intersect', stmt1, stmt2] }}
 
-    rule difference_stmt: 'difference' '\(' stmt {{ stmt1 = stmt }} ',' stmt {{ stmt2=stmt }}  '\)'
+    rule difference_stmt: 'difference' "\(" stmt {{ stmt1 = stmt }} ',' stmt {{ stmt2=stmt }}  "\)"
         {{ return [ 'difference', stmt1, stmt2] }}
 
     rule for_stmt: 'for' ID 'in' 
@@ -87,9 +87,10 @@ parser Query:
 
     rule value_expr: constant {{ return constant }}
          | ID {{ result = ID }}
-           [ "\(" [ arg_list {{ result = make_op(result,'fn',arg_list) }} ] '\)'
-            | {{ result = [result] }} ("\." ID {{ result.append(ID) }} )+
-              {{ result = make_op(result,'path',None) }}
+           [ "\(" {{ arg_list = [] }} [ arg_list ] {{ result = make_op(result,'fn',arg_list) }} "\)"
+             | {{ result = [result] }} ("\\." ID {{ result.append(ID) }} )+
+               {{ result = make_op(result,'path',None) }}
+               [ "\(" [ arg_list {{ result = ['method', result, arg_list] }} ] "\)" ]
            ]
          {{ return result }}
 
