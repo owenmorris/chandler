@@ -1656,6 +1656,7 @@
   <BoxContainer itsName="SidebarContainerContainer">
     <childrenBlocks itemref="doc:SidebarContainer"/>
     <childrenBlocks itemref="doc:SidebarTPB"/>
+    <border>4,0,0,0</border>
   </BoxContainer>
   
   <BoxContainer itsName="SidebarContainer">
@@ -1681,6 +1682,7 @@
       <core:Integer value="0"/>
       <core:Boolean value="True"/>
     </selection>
+    <border>0,0,4,0</border>
   </Sidebar>
  
   <calendar:MiniCalendar itsName="MiniCalendar">
