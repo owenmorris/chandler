@@ -136,7 +136,8 @@ class wxViewerParcel(wxPanel):
           Override to do tasks that need to happen just before your parcel is
         displayed.
         """
-        self.addViewParcelMenu ()
+        self.AddViewParcelMenu ()
+        self.SetFocus ()
     
     def Deactivate(self):
         """
@@ -161,7 +162,7 @@ class wxViewerParcel(wxPanel):
             oldMenu = menuBar.Remove (index)
             del oldMenu
 
-    def addViewParcelMenu(self):
+    def AddViewParcelMenu(self):
         """
           Override to customize your parcel menu.
         """

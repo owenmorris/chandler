@@ -107,6 +107,9 @@ class wxChandlerWindow(wxFrame):
         EVT_SIZE(self, self.OnSize)
         EVT_CLOSE(self, self.OnClose)
         EVT_ACTIVATE(self, self.OnActivate)
+        EVT_MENU(self, -1, self.OnMenuCommand)
+        self.InMenuCommand = false       #used by OnMenuCommand
+
 
     if __debug__:
         def OnToggleDebugMenu(self, event):
@@ -176,4 +179,25 @@ class wxChandlerWindow(wxFrame):
         self.model.size['y'] = rect.GetY()
         self.model.size['width'] = rect.GetWidth()
         self.model.size['height'] = rect.GetHeight()
+            
+    def OnMenuCommand(self, event):
+        """
+          Catch menu commands and pass them along to the viewerParcels.
+        First we let the application get a crack at the event, if it
+        doesn't handle it we pass it along to the window that has the
+        focus (i.e. the viewerParcel). In the event the viewerParcel doesn't
+        handle the event we'll get recursively called, so we use
+        InMenuCommand to ignore recursive calls.
+          For some unknown reason ProcessEvent on the focusWindow always
+        returns true, even when the event isn't processed, so we don't
+        try the focusWindow first, followed by the application if it doesn't
+        get processed.
+        """
+        if not self.InMenuCommand:
+            self.InMenuCommand = true
+            focusWindow = wxWindow_FindFocus ()
+            processed = application.Application.app.ProcessEvent(event)
+            if not processed:
+                focusWindow.GetEventHandler().ProcessEvent(event)
+            self.InMenuCommand = false
             

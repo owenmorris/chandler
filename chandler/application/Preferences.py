@@ -10,7 +10,8 @@ from Persistence import Persistent, PersistentDict
 
 class Preferences (Persistent):
     """
-       Global Application preferences. """
+       Global Application preferences.
+    """
     def __init__(self):
         self.windowSize = PersistentDict.PersistentDict()
         self.windowSize['width'] = 679
