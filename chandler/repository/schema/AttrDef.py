@@ -26,6 +26,9 @@ class AttrDef(Item):
                                          'Cardinality': 'single' },
                             'OtherName': { 'Required': False,
                                            'Cardinality': 'single' },
+                            'InheritingKinds': { 'Required': False,
+                                                 'Cardinality': 'dict',
+                                                 'OtherName': 'InheritedAttrDefs' },
                             'Kinds': { 'Required': False,
                                        'Cardinality': 'dict',
                                        'OtherName': 'AttrDefs' },
@@ -51,3 +54,10 @@ class AttrDef(Item):
             return self.getAttribute(name)
 
         return default
+
+    def _saveRefs(self, generator, withSchema):
+
+        for attr in self._references.items():
+            if self.getAttrAspect(attr[0], 'Persist', True):
+                attr[1]._xmlValue(attr[0], self, '\n  ',
+                                  generator, withSchema)

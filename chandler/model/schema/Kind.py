@@ -25,7 +25,7 @@ class Kind(Item):
         
         return self.getAttribute('Class')(name, parent, self)
         
-    def getAttrDef(self, name):
+    def getAttrDef(self, name, inherit=False):
 
         attrDef = self.getValue('AttrDefs', name, _attrDict=self._references)
         if attrDef is None:
@@ -41,32 +41,39 @@ class Kind(Item):
         if self.hasAttribute('SuperKind'):
             if self.hasValue('NotFoundAttrDefs', name):
                 return None
-        
+
+            cache = True
             for superKind in self.SuperKind:
-                attrDef = superKind.getAttrDef(name)
-                if attrDef is not None:
-                    self.attach('InheritedAttrDefs', attrDef)
-                    return attrDef
-                
-            if not self.hasValue('NotFoundAttrDefs', name):
+                if superKind is not None:
+                    attrDef = superKind.getAttrDef(name, True)
+                    if attrDef is not None:
+                        self.attach('InheritedAttrDefs', attrDef)
+                        return attrDef
+                else:
+                    cache = False
+                    
+            if cache and not self.hasValue('NotFoundAttrDefs', name):
                 self.addValue('NotFoundAttrDefs', name)
 
         return None
 
+    def _saveRefs(self, generator, withSchema):
+
+        for attr in self._references.items():
+            if self.getAttrAspect(attr[0], 'Persist', True):
+                attr[1]._xmlValue(attr[0], self, '\n  ',
+                                  generator, withSchema)
+
 
 class KindKind(Kind):
 
-    def getAttrDef(self, name):
+    def getAttrDef(self, name, inherit=False):
 
-        attrDef = super(KindKind, self).getAttrDef(name)
+        attrDef = super(KindKind, self).getAttrDef(name, inherit)
         if attrDef is None:
-            attrDef = self.Class.kind.getAttrDef(name)
+            attrDef = self.Class.kind.getAttrDef(name, inherit)
 
         return attrDef
-    
-    def inheritAttrDef(self, name):
-
-        return None
     
 
 Kind.kind = MetaKind(Kind, { 'SuperKind': { 'Required': False,
@@ -79,12 +86,15 @@ Kind.kind = MetaKind(Kind, { 'SuperKind': { 'Required': False,
                                         'Cardinality': 'dict',
                                         'OtherName': 'Kind' },
                              'Kind': { 'Required': False,
-                                        'Cardinality': 'single',
-                                        'Persist': False,
-                                        'OtherName': 'Items' },
+                                       'Cardinality': 'single',
+                                       'Persist': False,
+                                       'OtherName': 'Items' },
                              'AttrDefs': { 'Required': True,
                                            'Cardinality': 'dict',
                                            'OtherName': 'Kinds' },
+                             'InheritedAttrDefs': { 'Required': False,
+                                                    'Cardinality': 'dict',
+                                                    'OtherName': 'InheritingKinds' },
                              'NotFoundAttrDefs': { 'Required': True,
                                                    'Cardinality': 'list',
                                                    'Persist': False },

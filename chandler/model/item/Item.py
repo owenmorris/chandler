@@ -664,6 +664,14 @@ class Item(object):
             self._xmlTag('parent', { 'type': 'uuid' },
                          str(self._parent.getUUID()), generator)
 
+        self._saveAttrs(generator, withSchema)
+        self._saveRefs(generator, withSchema)
+
+        generator.characters('\n')
+        generator.endElement('item')
+
+    def _saveAttrs(self, generator, withSchema):
+
         for attr in self._attributes.iteritems():
             if self.getAttrAspect(attr[0], 'Persist', True):
                 attrType = self.getAttrAspect(attr[0], 'Type')
@@ -672,13 +680,12 @@ class Item(object):
                                attrType, attrCard, '\n  ',
                                generator, withSchema)
 
+    def _saveRefs(self, generator, withSchema):
+
         for attr in self._references.iteritems():
             if self.getAttrAspect(attr[0], 'Persist', True):
                 attr[1]._xmlValue(attr[0], self, '\n  ',
                                   generator, withSchema)
-
-        generator.characters('\n')
-        generator.endElement('item')
 
     def _xmlTag(self, tag, attrs, value, generator):
 
