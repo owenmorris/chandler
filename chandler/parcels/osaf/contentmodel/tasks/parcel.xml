@@ -119,9 +119,37 @@
     <attributes itemref="tasks:preventsProgressOn"/>
     <attributes itemref="tasks:taskStatus"/>
     <attributes itemref="tasks:dueDate"/>
-    <attributes itemref="mail:stronglyLinkedMail"/>
     
     <classes key="python">osaf.contentmodel.tasks.Task.TaskMixin</classes>
+      
+    <Cloud itsName="Cloud">
+      <kind itemref="tasks:TaskMixin"/>
+      <Endpoint itsName="requestor">
+        <attribute value="tasks:requestor"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="tasks:TaskMixin/Cloud/requestor"/>
+
+      <Endpoint itsName="requestee">
+        <attribute value="tasks:requestee"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="tasks:TaskMixin/Cloud/requestee"/>
+
+      <Endpoint itsName="dependsOn">
+        <attribute value="tasks:dependsOn"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="tasks:TaskMixin/Cloud/dependsOn"/>
+
+      <Endpoint itsName="preventsProgressOn">
+        <attribute value="tasks:preventsProgressOn"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="tasks:TaskMixin/Cloud/preventsProgressOn"/>
+
+    </Cloud>
+      
   </Kind>
 
   <Kind itsName="Task">

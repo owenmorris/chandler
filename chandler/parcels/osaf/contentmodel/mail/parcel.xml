@@ -346,21 +346,6 @@
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itsName="stronglyLinkedTask">
-    <displayName>Related Task</displayName>
-    <description>A task which was created when a user 'stamped' this mail message to indicate that some task needs to get done.</description>
-    <type itemref="calendar:CalendarEvent"/>
-    <inverseAttribute itemref="mail:stronglyLinkedMail"/>
-  </Attribute>
-
-  <Attribute itsName="stronglyLinkedMail">
-    <displayName>Related Mail Message</displayName>
-    <description>This task was created when a user 'stamped' the linked mail message to indicate that some task needs to get done.</description>
-    <issues>Mitch would like to come up with a better name for this than 'Related Mail Message'.</issues>
-    <type itemref="mail:MailMessage"/>
-    <inverseAttribute itemref="mail:stronglyLinkedTask"/>
-  </Attribute>
-
   <Attribute itsName="spamScore">
     <displayName>Spam Score</displayName>
     <type itemref="Integer"/>
@@ -409,10 +394,63 @@
     <attributes itemref="mail:downloadAccount"/>
     <attributes itemref="mail:serverStatus"/>
     <attributes itemref="mail:deliveryStatus"/>
-    <attributes itemref="mail:stronglyLinkedTask"/>
     <attributes itemref="mail:spamScore"/>
 
     <classes key="python">osaf.contentmodel.mail.Mail.MailMessageMixin</classes>
+      
+    <Cloud itsName="Cloud">
+      <kind itemref="mail:MailMessageMixin"/>
+      <Endpoint itsName="sentTo">
+        <attribute value="mail:sentTo"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="mail:MailMessageMixin/Cloud/sentTo"/>
+
+      <Endpoint itsName="toAddress">
+        <attribute value="mail:toAddress"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="mail:MailMessageMixin/Cloud/toAddress"/>
+
+      <Endpoint itsName="ccAddress">
+        <attribute value="mail:ccAddress"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="mail:MailMessageMixin/Cloud/ccAddress"/>
+
+      <Endpoint itsName="bccAddress">
+        <attribute value="mail:bccAddress"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="mail:MailMessageMixin/Cloud/bccAddress"/>
+
+      <Endpoint itsName="replyAddress">
+        <attribute value="mail:replyAddress"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="mail:MailMessageMixin/Cloud/replyAddress"/>
+
+      <Endpoint itsName="attachments">
+        <attribute value="mail:attachments"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="mail:MailMessageMixin/Cloud/attachments"/>
+
+      <Endpoint itsName="downloadAccount">
+        <attribute value="mail:downloadAccount"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="mail:MailMessageMixin/Cloud/downloadAccount"/>
+
+
+    </Cloud>
+    <issues>Once we have attributes and a cloud defined for Attachment, we need to include
+    attachments by cloud, and not by value.</issues>
+      
+    <issues>Really not sure what to do with the "downloadAccount" attribute and
+        how it should be included in the cloud.  For now it's by value.</issues>
+      
+      
   </Kind>
 
   <Kind itsName="MailMessage">

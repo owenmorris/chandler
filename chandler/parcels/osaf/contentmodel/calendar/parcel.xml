@@ -58,11 +58,6 @@
     <type itemref="cal:Reminder"/>
   </Attribute>
 
-  <Attribute itsName="resources">
-    <displayName>Resources</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="String"/>
-  </Attribute>
 
 
   <!-- Calendar Event Attributes -->
@@ -76,17 +71,6 @@
     <values>tentative</values>
     <values>cancelled</values>
   </Enumeration>
-
-  <Attribute itsName="endTime">
-    <displayName>End-Time</displayName>
-    <type itemref="DateTime"/>
-  </Attribute>
-
-  <Attribute itsName="calendar">
-    <displayName>Calendar</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="cal:Calendar"/>
-  </Attribute>
 
   <Attribute itsName="participants">
     <displayName>Participants</displayName>
@@ -138,21 +122,75 @@
     <displayName>Calendar Event Mixin Kind</displayName>
     <description>This is the set of CalendarEvent-specific attributes.</description>
     <description>This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated</description>
+    <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEventMixin</classes>
 
-    <!-- event-specific attributes -->
+    <!-- parcel attributes -->
     <attributes itemref="cal:startTime"/>
     <attributes itemref="cal:location"/>
     <attributes itemref="cal:recurrence"/>
     <attributes itemref="cal:reminders"/>
-    <attributes itemref="cal:resources"/>
-    <attributes itemref="cal:endTime"/>
-    <attributes itemref="cal:calendar"/>
     <attributes itemref="cal:participants"/>
     <attributes itemref="cal:organizer"/>
     <attributes itemref="cal:attendees"/>
     <attributes itemref="cal:transparency"/>
 
-    <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEventMixin</classes>
+    <!-- local attributes -->
+    <Attribute itsName="calendar">
+      <displayName>Calendar</displayName>
+      <cardinality>list</cardinality>
+      <type itemref="cal:Calendar"/>
+    </Attribute>
+
+    <Attribute itsName="endTime">
+      <displayName>End-Time</displayName>
+      <type itemref="DateTime"/>
+    </Attribute>
+
+    <Attribute itsName="resources">
+      <displayName>Resources</displayName>
+      <cardinality>list</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+
+    <Cloud itsName="Cloud">
+      <kind itemref="cal:CalendarEventMixin"/>
+      <Endpoint itsName="attendees">
+        <attribute value="cal:attendees"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="cal:CalendarEventMixin/Cloud/attendees"/>
+
+      <Endpoint itsName="organizer">
+        <attribute value="cal:organizer"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="cal:CalendarEventMixin/Cloud/organizer"/>
+
+      <Endpoint itsName="location">
+        <attribute value="cal:location"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="cal:CalendarEventMixin/Cloud/location"/>
+
+      <Endpoint itsName="recurrence">
+        <attribute value="cal:recurrence"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="cal:CalendarEventMixin/Cloud/recurrence"/>
+
+      <Endpoint itsName="reminders">
+        <attribute value="cal:reminders"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="cal:CalendarEventMixin/Cloud/reminders"/>
+
+      <Endpoint itsName="participants">
+        <attribute value="cal:participants"/>
+        <includePolicy value="byValue"/>
+      </Endpoint>
+      <endpoints itemref="cal:CalendarEventMixin/Cloud/participants"/>
+    </Cloud>
+
   </Kind>
 
   <Kind itsName="CalendarEvent">
