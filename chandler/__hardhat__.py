@@ -5,12 +5,11 @@ info = {
        }
 
 dependencies = (
-                'Python-2.2.2', 
-                'wxWindows-2.4',
+                'python', 
+                'wxpython',
                 'distutils',
-                'egenix-mx-base-2.0.4',
-                'ZODB4',
-                'PyXML'
+                'egenix-mx',
+                'zodb',
                )
 
 
