@@ -26,3 +26,10 @@ class NoSuchItemError(RepositoryError):
 
     def __str__(self):
         return self.__doc__ % self.args
+
+
+class MergeError(VersionConflictError):
+    "(%s) merging %s failed because %s"
+
+    def __str__(self):
+        return self.__doc__ % self.args

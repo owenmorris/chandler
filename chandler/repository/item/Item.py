@@ -66,6 +66,8 @@ class Item(object):
         if kind is not None:
             kind.getInitialValues(self, self._values, self._references)
 
+        self.setDirty(Item.NDIRTY, None)
+
     def _fillItem(self, name, parent, kind, **kwds):
 
         self._uuid = kwds['uuid']
@@ -86,7 +88,7 @@ class Item(object):
             references._setItem(self)
             self._references = references
 
-        self._setParent(parent, kwds.get('previous'), kwds.get('next'))
+        self._setParent(parent)
 
     def __iter__(self):
         """
@@ -644,9 +646,7 @@ class Item(object):
         """
 
         return ('_children' in self.__dict__ and
-                not ('_notChildren' in self.__dict__ and
-                     name in self._notChildren) and
-                self._children.has_key(name, load))
+                self._children.resolveAlias(name, load) is not None)
 
     def hasChildren(self):
         """
@@ -677,11 +677,11 @@ class Item(object):
         if not (after is None or after.itsParent is self):
             raise ValueError, '%s not a child of %s' %(after, self)
         
-        key = child._name
+        key = child._uuid
         if after is None:
             afterKey = None
         else:
-            afterKey = after._name
+            afterKey = after._uuid
 
         self._children.place(key, afterKey)
 
@@ -1312,9 +1312,8 @@ class Item(object):
         C{False}.
 
         @param dirty: one of L{Item.VDIRTY <VDIRTY>},
-        L{Item.RDIRTY <RDIRTY>}, L{Item.CDIRTY <CDIRTY>},
-        L{Item.SDIRTY, <SDIRTY>} or a bitwise or'ed combination, defaults to
-        C{Item.VDIRTY}.
+        L{Item.RDIRTY <RDIRTY>}, L{Item.CDIRTY <CDIRTY>}, or a bitwise or'ed
+        combination, defaults to C{Item.VDIRTY}.
         @type dirty: an integer
         @param attribute: the name of the attribute that was changed,
         optional, defaults to C{None} which means that no attribute was
@@ -1338,6 +1337,7 @@ class Item(object):
             if self._status & Item.DIRTY == 0:
                 repository = self.getRepositoryView()
                 if repository is not None and not repository.isLoading():
+
                     if attribute is not None:
                         if self.getAttributeAspect(attribute, 'persist',
                                                    default=True) == False:
@@ -1354,6 +1354,8 @@ class Item(object):
             self._status &= ~(Item.DIRTY | Item.ADIRTY)
             self._values._clearDirties()
             self._references._clearDirties()
+            if '_children' in self.__dict__:
+                self._children._clearDirties()
 
         return False
 
@@ -1491,12 +1493,10 @@ class Item(object):
                 self.removeAttributeValue(name, _attrDict=self._references)
 
             parent = self.itsParent
-
+            view = self.getRepositoryView()
+            
             parent._removeItem(self)
-            self._setRoot(None)
-
-            if not '_origName' in self.__dict__:
-                self.__dict__['_origName'] = (parent.itsUUID, self._name)
+            self._setRoot(None, view)
 
             self._status |= Item.DELETED | Item.STALE
             self._status &= ~Item.DELETING
@@ -1575,29 +1575,26 @@ class Item(object):
             
         return self._root
 
-    def _setRoot(self, root):
+    def _setRoot(self, root, oldView):
 
         if root is not self._root:
 
-            oldRepository = self.getRepositoryView()
             self._root = root
-            newRepository = self.getRepositoryView()
+            newView = self.getRepositoryView()
 
-            if oldRepository is not newRepository:
+            if oldView is not newView:
 
-                if oldRepository is not None and newRepository is not None:
+                if oldView is not None and newView is not None:
                     raise NotImplementedError, 'changing repositories'
 
-                if oldRepository is not None:
-                    oldRepository._unregisterItem(self)
+                if oldView is not None:
+                    oldView._unregisterItem(self)
 
-                if newRepository is not None:
-                    newRepository._registerItem(self)
-
-                    self.setDirty(Item.CDIRTY, None)
+                if newView is not None:
+                    newView._registerItem(self)
 
             for child in self.iterChildren(load=False):
-                child._setRoot(root)
+                child._setRoot(root, oldView)
 
     def __getParent(self):
 
@@ -1806,24 +1803,19 @@ class Item(object):
         """
 
         if name != self._name:
-            origName = self._name
             parent = self.itsParent
 
             if parent._isItem():
-                link = parent._children._get(self._name)
-                parent._removeItem(self)
-                self._name = name or self._uuid.str64()
-                parent._addItem(self, link._previousKey, link._nextKey)
+                link = parent._children._get(self._uuid)
             else:
-                parent._removeItem(self)
-                self._name = name or self._uuid.str64()
-                parent._addItem(self)
-                self.setDirty(Item.SDIRTY, None)
+                link = parent._roots._get(self._uuid)
+
+            parent._removeItem(self)
+            self._name = name or self._uuid.str64()
+            parent._addItem(self, link._previousKey, link._nextKey)
+
+            self.setDirty(Item.NDIRTY, None)
                 
-            if not '_origName' in self.__dict__:
-                self.__dict__['_origName'] = (parent.itsUUID, origName)
-
-
     def move(self, newParent, previous=None, next=None):
         """
         Move this item under another container.
@@ -1850,10 +1842,10 @@ class Item(object):
             
         parent = self.itsParent
         if parent is not newParent:
+            oldView = parent.getRepositoryView()
             parent._removeItem(self)
-            self._setParent(newParent, previous, next)
-            if not '_origName' in self.__dict__:
-                self.__dict__['_origName'] = (parent.itsUUID, self._name)
+            self._setParent(newParent, previous, next, oldView)
+            self.setDirty(Item.NDIRTY, None)
 
     def _isRepository(self):
         return False
@@ -1861,14 +1853,13 @@ class Item(object):
     def _isItem(self):
         return True
 
-    def _setParent(self, parent, previous=None, next=None):
+    def _setParent(self, parent, previous=None, next=None, oldView=None):
 
         if parent is not None:
             if parent._isRepository():
                 parent = parent.view
             self._parent = parent
-            self._root = None
-            self._setRoot(parent._addItem(self, previous, next))
+            self._setRoot(parent._addItem(self, previous, next), oldView)
         else:
             self._parent = None
 
@@ -1876,33 +1867,22 @@ class Item(object):
 
         name = item._name
         
-        if self.__dict__.has_key('_children'):
+        if '_children' in self.__dict__:
 
             loading = self.getRepositoryView().isLoading()
-            current = self.getItemChild(name, not loading)
-                
-            if current is not None:
+            if self._children.resolveAlias(name, not loading):
                 raise ValueError, "A child '%s' exists already under %s" %(item._name, self.itsPath)
 
         else:
-            self._children = Children(self)
+            self._children = self.getRepositoryView()._createChildren(self)
 
-        self._children.__setitem__(name, item, previous, next)
+        self._children.__setitem__(item._uuid, item, previous, next, name)
 
-        if '_notChildren' in self.__dict__ and name in self._notChildren:
-            del self._notChildren[name]
-            
         return self.itsRoot
 
     def _removeItem(self, item):
 
-        name = item._name
-        del self._children[name]
-
-        if '_notChildren' in self.__dict__:
-            self._notChildren[name] = name
-        else:
-            self._notChildren = { name: name }
+        del self._children[item._uuid]
 
     def getItemChild(self, name, load=True):
         """
@@ -1924,17 +1904,7 @@ class Item(object):
 
         child = None
         if '_children' in self.__dict__:
-            child = self._children.get(name, None, False)
-
-        if load and child is None:
-            hasNot = '_notChildren' in self.__dict__
-            if not (hasNot and name in self._notChildren):
-                child = self.getRepositoryView()._loadChild(self, name)
-                if child is None:
-                    if not hasNot:
-                        self._notChildren = { name: name }
-                    else:
-                        self._notChildren[name] = name
+            child = self._children.getByAlias(name, None, load)
 
         return child
 
@@ -2216,16 +2186,8 @@ class Item(object):
                 self._status |= Item.MERGED
                 
             if newDirty == Item.VDIRTY:
-                mergeNewOld('attribute')
-            elif newDirty == Item.RDIRTY:
-                mergeNewOld('ref')
-            elif newDirty == Item.VRDIRTY:
                 mergeNewOld('attribute', 'ref')
             elif oldDirty == Item.VDIRTY:
-                mergeOldNew(Item.VDIRTY, 'attribute')
-            elif oldDirty == Item.RDIRTY:
-                mergeOldNew(Item.RDIRTY, 'ref')
-            elif oldDirty == Item.VRDIRTY:
                 mergeOldNew(Item.VRDIRTY, 'attribute', 'ref')
             else:
                 raise NotImplementedError, "merge %0.4x:%0.4x" %(oldDirty,
@@ -2264,33 +2226,17 @@ class Item(object):
                 xmlTag('class', { 'module': self.__module__ },
                        type(self).__name__, generator)
 
-        attrs = {}
-        parent = self.itsParent
-        parentID = parent.itsUUID.str64()
+        attrs = { 'type': 'uuid' }
+        if '_children' in self.__dict__:
+            attrs['container'] = 'True'
+            if mode == 'save':
+                self._children._saveValues(version)
 
-        if not isDeleted:
-            if parent._isItem():
-                link = parent._children._get(self._name)
-                if link._previousKey is not None:
-                    attrs['previous'] = link._previousKey
-                if link._nextKey is not None:
-                    attrs['next'] = link._nextKey
-
-            if '_children' in self.__dict__:
-                children = self._children
-                if children._firstKey is not None:
-                    attrs['first'] = children._firstKey
-                if children._lastKey is not None:
-                    attrs['last'] = children._lastKey
-
-        xmlTag('container', attrs, parentID, generator)
-
-        if not isDeleted:
-            if save & Item.VDIRTY:
-                self._values._xmlValues(generator, withSchema, version, mode)
-            if save & Item.RDIRTY:
-                self._references._xmlValues(generator, withSchema, version,
-                                            mode)
+        xmlTag('parent', attrs, self.itsParent.itsUUID.str64(), generator)
+            
+        if not isDeleted and save & Item.VRDIRTY:
+            self._values._xmlValues(generator, withSchema, version, mode)
+            self._references._xmlValues(generator, withSchema, version, mode)
 
         generator.endElement('item')
 
@@ -2317,15 +2263,15 @@ class Item(object):
                 self._references._unload()
             repository._unregisterItem(self)
 
-            self._parent._unloadChild(self._name)
+            self._parent._unloadChild(self)
             if '_children' in self.__dict__ and len(self._children) > 0:
                 repository._registerChildren(self._uuid, self._children)
 
             self._status |= Item.STALE
 
-    def _unloadChild(self, name):
+    def _unloadChild(self, child):
 
-        self._children._unload(name)
+        self._children._unload(child)
 
     def _refDict(self, name, otherName=None, persist=None):
 
@@ -2366,8 +2312,8 @@ class Item(object):
     SCHEMA     = 0x0020
     NEW        = 0x0040
     STALE      = 0x0080
-    SDIRTY     = 0x0100           # name of sibling(s) changed
-    CDIRTY     = 0x0200           # parent or first/last child changed
+    NDIRTY     = 0x0100           # parent or name changed
+    CDIRTY     = 0x0200           # children list changed
     RDIRTY     = 0x0400           # ref collection changed
     MERGED     = 0x0800
     SAVED      = 0x1000
@@ -2376,7 +2322,7 @@ class Item(object):
     NODIRTY    = 0x8000           # turn off dirtying
     
     VRDIRTY    = VDIRTY | RDIRTY
-    DIRTY      = VDIRTY | RDIRTY | SDIRTY | CDIRTY
+    DIRTY      = VDIRTY | RDIRTY | NDIRTY | CDIRTY
     SAVEMASK   = DIRTY | ADIRTY | NEW | DELETED | SCHEMA
 
     __access__ = 0L
@@ -2465,23 +2411,27 @@ class Item(object):
 
 class Children(LinkedMap):
 
-    def __init__(self, item, dictionary=None):
+    def __init__(self, item):
 
-        super(Children, self).__init__(dictionary)
+        super(Children, self).__init__()
         self._item = item
 
     def _setItem(self, item):
 
+        assert item._uuid == self._item._uuid
         self._item = item
+
         for link in self._itervalues():
             link._value._parent = item
         
     def linkChanged(self, link, key):
 
-        if key is None:
-            self._item.setDirty(Item.CDIRTY, None)
-        else:
-            link._value.setDirty(Item.SDIRTY, None)
+        self._item.setDirty(Item.CDIRTY, None)
+
+    def _unload(self, child):
+
+        link = super(Children, self)._unload(child._uuid)
+        del self._aliases[child._name]
     
     def __repr__(self):
 
@@ -2509,8 +2459,11 @@ class Children(LinkedMap):
 
     def _load(self, key):
 
-        if self._item.getRepositoryView()._loadChild(self._item,
-                                                     key) is not None:
+        if self._item.getRepositoryView()._loadItem(key) is not None:
             return True
 
         return False
+
+    def _saveValues(self, version):
+
+        pass

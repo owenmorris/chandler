@@ -18,7 +18,7 @@ from repository.persistence.RepositoryView import OnDemandRepositoryView
 from repository.persistence.Repository import Repository
 from repository.persistence.Repository import RepositoryNotifications
 from repository.persistence.XMLLob import XMLText, XMLBinary
-from repository.persistence.XMLRefDict import XMLRefDict
+from repository.persistence.XMLRefDict import XMLRefDict, XMLChildren
 from repository.util.SAX import XMLGenerator
 
 timing = False
@@ -66,11 +66,13 @@ class XMLRepositoryView(OnDemandRepositoryView):
         for item in self._log:
             if not item.isNew():
                 self.logger.debug('reloading version %d of %s',
-                                  self.version, item)
+                                  self._version, item)
                 self._loadItem(item._uuid, instance=item)
 
         del self._log[:]
-        self._notRoots.clear()
+        if self._dirty:
+            self._roots._clearDirties()
+            self._dirty = 0
 
         self.prune(10000)
 
@@ -79,7 +81,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
         store = self.repository.store
         items = []
         
-        for doc in store.queryItems(self.version, query):
+        for doc in store.queryItems(self._version, query):
             uuid = store.getDocUUID(doc)
             if not uuid in self._deletedRegistry:
                 # load and doc, trick to pass doc directly to find
@@ -93,7 +95,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         store = self.repository.store
         results = []
-        docs = store.searchItems(self.version, query)
+        docs = store.searchItems(self._version, query)
         for (uuid, (ver, attribute)) in docs.iteritems():
             if not uuid in self._deletedRegistry:
                 item = self.find(uuid, load=load)
@@ -108,6 +110,10 @@ class XMLRepositoryView(OnDemandRepositoryView):
             return XMLRefDict(self, item, name, otherName, readOnly)
         else:
             return TransientRefDict(item, name, otherName, readOnly)
+
+    def _createChildren(self, parent):
+
+        return XMLChildren(self, parent)
 
     def _getLobType(self, mode):
 
@@ -188,13 +194,15 @@ class XMLRepositoryView(OnDemandRepositoryView):
                                 ood[uuid] = item
 
                     if ood:
-                        self._mergeItems(ood, self.version, newVersion,
+                        self._mergeItems(ood, self._version, newVersion,
                                          history)
                 
                     for item in self._log:
                         size += self._saveItem(item, newVersion, store, ood)
+                    if self._dirty:
+                        self._roots._saveValues(newVersion)
 
-                if newVersion > self.version:
+                if newVersion > self._version:
                     histNotifications = RepositoryNotifications()
                     
                     def unload(uuid, version, docId, status, parent, dirties):
@@ -215,7 +223,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                             item._version < newVersion):
                             unloads[item._uuid] = item
 
-                    history.apply(unload, self.version, newVersion)
+                    history.apply(unload, self._version, newVersion)
                     
                 if txnStarted:
                     self._commitTransaction()
@@ -244,6 +252,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 raise
 
         if self._log:
+
             for item in self._log:
                 if not item._status & Item.MERGED:
                     item._version = newVersion
@@ -251,10 +260,14 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 item._status &= ~(Item.NEW | Item.MERGED | Item.SAVED)
             del self._log[:]
 
-        if newVersion > self.version:
+            if self._dirty:
+                self._roots._clearDirties()
+                self._dirty = 0
+
+        if newVersion > self._version:
             self.logger.debug('refreshing view from version %d to %d',
-                              self.version, newVersion)
-            self.version = newVersion
+                              self._version, newVersion)
+            self._version = newVersion
             for item in unloads.itervalues():
                 self.logger.debug('unloading version %d of %s',
                                   item._version, item)
@@ -265,8 +278,6 @@ class XMLRepositoryView(OnDemandRepositoryView):
                                       newVersion, item)
                     self._loadItem(item._uuid, instance=item)
                     
-        self._notRoots.clear()
-
         after = datetime.now()
         if count > 0:
             self.logger.info('%s committed %d items (%ld bytes) in %s',
@@ -318,14 +329,8 @@ class XMLRepositoryView(OnDemandRepositoryView):
         xml = out.getvalue()
         out.close()
 
-        if '_origName' in item.__dict__:
-            origPN = item.__dict__['_origName']
-            del item.__dict__['_origName']
-        else:
-            origPN = None
-
-        store.saveItem(xml, uuid, newVersion,
-                       (item.itsParent.itsUUID, item._name), origPN,
+        parent = item.itsParent.itsUUID
+        store.saveItem(xml, uuid, newVersion, parent,
                        item._status & Item.SAVEMASK,
                        item._values._getDirties(),
                        item._references._getDirties())
@@ -335,7 +340,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 store.saveACL(newVersion, uuid, name, acl)
 
         if isDeleted:
-            self._notifications.changed(uuid, 'deleted', parent=origPN[0])
+            self._notifications.changed(uuid, 'deleted', parent=parent)
         elif isNew:
             self._notifications.changed(uuid, 'added')
         else:
@@ -353,11 +358,9 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 if newDirty & oldDirty:
                     raise VersionConflictError, (item, newDirty, oldDirty)
                 else:
-                    if (newDirty == item.VDIRTY or oldDirty == item.VDIRTY or
-                        newDirty == item.RDIRTY or oldDirty == item.RDIRTY or
-                        newDirty == item.VRDIRTY or oldDirty == item.VRDIRTY):
+                    if newDirty == item.VDIRTY or oldDirty == item.VDIRTY:
                         items[uuid] = (docId, oldDirty, newDirty)
                     else:
-                        raise NotImplementedError, 'Item %s may be mergeable but this particular merge (0x%x:0x%x) is not implemented yet' %(item.itsPath, newDirty, oldDirty)    
+                        raise NotImplementedError, 'Item %s may be mergeable but this particular merge (0x%x:0x%x) is not implemented yet' %(item.itsPath, newDirty, oldDirty)
 
         history.apply(check, oldVersion, newVersion)

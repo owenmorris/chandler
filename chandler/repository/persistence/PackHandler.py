@@ -148,6 +148,7 @@ class PackHandler(ContentHandler):
 
             for item in items:
                 item._status |= item.NEW
+                item.setDirty(item.NDIRTY, None)
 
             return items[0]
 

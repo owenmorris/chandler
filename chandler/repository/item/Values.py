@@ -252,6 +252,20 @@ class References(Values):
                 value._xmlValue(key, item, generator, withSchema, version,
                                 attrs, mode)
 
+    def _clearDirties(self):
+
+        try:
+            for key, flags in self._flags.iteritems():
+                if flags & Values.DIRTY:
+                    self._flags[key] &= ~Values.DIRTY
+
+                    value = self.get(key)
+                    if value is not None:
+                        value._clearDirties()
+                        
+        except AttributeError:
+            pass
+
     def _isRefDict(self):
 
         return False

@@ -49,7 +49,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         # Test to see that item became a respository root
         self.rep.commit()
-        roots = self.rep.getRoots()
+        roots = list(self.rep.iterRoots())
         self.assert_(item in roots)
         self.failIf(item.isDirty())
 
@@ -152,7 +152,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         child2 = item['child2']
         child3 = self.rep['child3']
 
-        self.assert_(child3 in self.rep.getRoots())
+        self.assert_(child3 in list(self.rep.iterRoots()))
         self.assertItemPathEqual(child3, '//child3')
         self.assertIsRoot(child3.itsRoot)
 

@@ -6,6 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from cStringIO import StringIO
 
+from repository.item.Item import Children
 from repository.item.ItemRef import RefDict
 from repository.item.Indexes import NumericIndex
 from repository.util.UUID import UUID
@@ -50,14 +51,18 @@ class XMLRefDict(RefDict):
         super(XMLRefDict, self)._changeRef(key, alias, noMonitors)
 
         if not self.view.isLoading():
-            self._changedRefs[key] = (0, alias)
+            op, alias = self._changedRefs.get(key, (1, alias))
+            if op != 0:
+                self._changedRefs[key] = (0, alias)
         
     def _removeRef(self, key, _detach=False):
 
         link = super(XMLRefDict, self)._removeRef(key, _detach)
 
         if not self.view.isLoading():
-            self._changedRefs[key] = (1, link._alias)
+            op, alias = self._changedRefs.get(key, (0, link._alias))
+            if op != 1:
+                self._changedRefs[key] = (1, alias)
         else:
             raise ValueError, 'detach during load'
 
@@ -84,8 +89,12 @@ class XMLRefDict(RefDict):
 
         if load and key is None:
             view = self.view
-            key = view.repository.store.readName(view.version, self._uuid,
+            key = view.repository.store.readName(view._version, self._uuid,
                                                  alias)
+            if key is not None:
+                op, oldAlias = self._changedRefs.get(key, (0, None))
+                if oldAlias == alias:
+                    key = None
 
         return key
 
@@ -122,7 +131,7 @@ class XMLRefDict(RefDict):
                         alias = value._alias
     
                         self._writeRef(key, version, previous, next, alias)
-                        if oldAlias is not None:
+                        if oldAlias is not None and oldAlias != alias:
                             store.writeName(version, self._uuid, oldAlias,
                                             None)
                         if alias is not None:
@@ -132,7 +141,8 @@ class XMLRefDict(RefDict):
                 elif op == 1:             # remove
                     self._deleteRef(key, version)
                     if oldAlias is not None:
-                        store.writeName(version, key, oldAlias, None)
+                        store.writeName(version, self._uuid, oldAlias,
+                                        None)
 
                 else:                     # error
                     raise ValueError, op
@@ -140,8 +150,6 @@ class XMLRefDict(RefDict):
             if self._changedRefs:
                 self.view._notifications.changed(self._item._uuid, self._name)
 
-            self._changedRefs.clear()
-            
             if len(self) > 0:
                 generator.startElement('db', {})
                 generator.characters(self._uuid.str64())
@@ -157,6 +165,13 @@ class XMLRefDict(RefDict):
 
         else:
             raise ValueError, mode
+
+    def _clearDirties(self):
+
+        self._changedRefs.clear()
+        if self._indexes:
+            for name, index in self._indexes.iteritems():
+                index._clearDirties()
 
     def _createIndex(self, indexType, **kwds):
 
@@ -284,7 +299,6 @@ class XMLNumericIndex(NumericIndex):
                 indexes.saveKey(self._key, self._value,
                                 version, key, node)
 
-            self._changedKeys.clear()
             self._version = version
             
         elif mode == 'serialize':
@@ -292,4 +306,132 @@ class XMLNumericIndex(NumericIndex):
 
         else:
             raise ValueError, mode
+
+    def _clearDirties(self):
+
+        self._changedKeys.clear()
         
+
+class XMLChildren(Children):
+
+    def __init__(self, view, item):
+
+        super(XMLChildren, self).__init__(item)
+
+        self.view = view
+        
+        self._uuid = item.itsUUID
+        self._changedRefs = {}
+        self._key = self._getRefs().prepareKey(self._uuid, self._uuid)
+        self._value = StringIO()
+
+        ref = self._getRefs().loadRef(self._key, self._item._version,
+                                      self._uuid)
+        if ref is not None:
+            self._firstKey, self._lastKey, alias = ref
+
+    def resolveAlias(self, alias, load=True):
+
+        load = load and not self._item.isNew()
+        key = None
+        
+        if self._aliases:
+            key = self._aliases.get(alias)
+
+        if load and key is None:
+            view = self.view
+            key = view.repository.store.readName(view._version,
+                                                 self._uuid, alias)
+            if key is not None:
+                op, oldAlias = self._changedRefs.get(key, (0, None))
+                if oldAlias == alias:
+                    key = None
+
+        return key
+
+    def _load(self, key):
+
+        if self.view._loadItem(key) is not None:
+            return True
+
+        return False
+
+    def linkChanged(self, link, key):
+
+        super(XMLChildren, self).linkChanged(link, key)
+        
+        if not self.view.isLoading():
+            op, alias = self._changedRefs.get(key, (1, link._alias))
+            if op != 0:
+                # changed element: key, maybe old alias: alias
+                self._changedRefs[key] = (0, alias)
+
+    def __delitem__(self, key):
+
+        link = super(XMLChildren, self).__delitem__(key)
+        op, alias = self._changedRefs.get(key, (0, link._alias))
+        if op != 1:
+            # deleted element: key, maybe old alias: alias
+            self._changedRefs[key] = (1, alias)
+
+    def __setitem__(self, key, value,
+                    previousKey=None, nextKey=None, alias=None):
+
+        if previousKey is None and nextKey is None and self.view.isLoading():
+            ref = self._getRefs().loadRef(self._key, self._item._version, key)
+            if ref is not None:
+                previousKey, nextKey, refAlias = ref
+                assert alias == refAlias
+
+        super(XMLChildren, self).__setitem__(key, value,
+                                             previousKey, nextKey, alias)
+
+    def _getRefs(self):
+
+        return self.view.repository.store._refs
+
+    def _writeRef(self, key, version, previous, next, alias):
+
+        self._getRefs().saveRef(self._key, self._value, version, key,
+                                previous, next, alias)
+
+    def _deleteRef(self, key, version):
+
+        self._getRefs().deleteRef(self._key, self._value, version, key)
+
+    def _saveValues(self, version):
+
+        store = self.view.repository.store
+
+        for key, (op, oldAlias) in self._changedRefs.iteritems():
+            try:
+                link = self._get(key, load=False)
+            except KeyError:
+                link = None
+    
+            if op == 0:               # change
+                if link is not None:
+                    ref = link._value
+                    previous = link._previousKey
+                    next = link._nextKey
+                    alias = link._alias
+                    
+                    self._writeRef(key, version, previous, next, alias)
+                    if oldAlias != alias:
+                        store.writeName(version, self._uuid, oldAlias, None)
+                    store.writeName(version, self._uuid, alias, key)
+
+                elif key is None:
+                    self._writeRef(self._uuid, version,
+                                   self._firstKey, self._lastKey, None)
+                        
+            elif op == 1:             # remove
+                self._deleteRef(key, version)
+                store.writeName(version, self._uuid, oldAlias, None)
+
+            else:                     # error
+                raise ValueError, op
+
+    def _clearDirties(self):
+
+        self._changedRefs.clear()

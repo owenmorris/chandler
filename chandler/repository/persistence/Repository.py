@@ -224,14 +224,14 @@ class Repository(object):
         Iterate over the roots of this repository using the current view.
         """
 
-        return self.iterChildren()
-    
-    def iterChildren(self, load=True):
+        return self.view.__iter__()
+
+    def iterRoots(self, load=True):
         """
         Iterate over the roots of this repository using the current view.
         """
 
-        return self.view.iterChildren(load)
+        return self.view.iterRoots(load)
 
     def isOpen(self):
         """
@@ -251,7 +251,7 @@ class Repository(object):
         for more details.
         """
 
-        return self.getRoot(name, load) is not None
+        return self.view.hasRoot(name, load)
 
     def getRoot(self, name, load=True):
         """
@@ -267,17 +267,6 @@ class Repository(object):
     def __getitem__(self, key):
 
         return self.view.__getitem__(key)
-
-    def getRoots(self, load=True):
-        """
-        Get all roots in the repository.
-
-        See L{RepositoryView.getRoots
-        <repository.persistence.RepositoryView.RepositoryView.getRoots>}
-        for more details.
-        """
-
-        return self.view.getRoots(load)
 
     def walk(self, path, callable, _index=0, **kwds):
         """
@@ -468,9 +457,6 @@ class Store(object):
     def serveItem(self, version, uuid):
         raise NotImplementedError, "%s.serveItem" %(type(self))
     
-    def loadChild(self, version, uuid, name):
-        raise NotImplementedError, "%s.loadChild" %(type(self))
-
     def serveChild(self, version, uuid, name):
         raise NotImplementedError, "%s.serveChild" %(type(self))
 

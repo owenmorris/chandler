@@ -205,14 +205,6 @@ class XMLContainer(object):
 
         return None
             
-    def loadChild(self, version, uuid, name):
-
-        uuid = self.store.readName(version, uuid, name)
-        if uuid is None:
-            return None
-
-        return self.loadItem(version, uuid)
-
     def queryItems(self, version, query):
 
         store = self.store
@@ -244,10 +236,6 @@ class XMLContainer(object):
                 results.append(doc)
 
         return results
-
-    def deleteDocument(self, doc):
-
-        self._xml.deleteDocument(self.store.txn, doc, self.store.updateCtx)
 
     def getDocument(self, docId):
 
@@ -364,10 +352,6 @@ class XMLStore(Store):
 
         return self._data.loadItem(version, uuid)
     
-    def loadChild(self, version, uuid, name):
-
-        return self._data.loadChild(version, uuid, name)
-
     def loadRef(self, version, uItem, uuid, key):
 
         buffer = self._refs.prepareKey(uItem, uuid)
@@ -550,7 +534,7 @@ class XMLStore(Store):
             self.repository._env.lock_put(lock)
         return None
 
-    def saveItem(self, xml, uuid, version, currPN, origPN, status,
+    def saveItem(self, xml, uuid, version, parent, status,
                  dirtyValues, dirtyRefs):
         
         doc = XmlDocument()
@@ -566,23 +550,14 @@ class XMLStore(Store):
             raise
 
         if status & Item.DELETED:
-            parent, name = origPN
             self._versions.setDocVersion(uuid, version, 0)
             self._history.writeVersion(uuid, version, 0, status,
                                        parent, [], [])
-            self.writeName(version, parent, name, None)
 
         else:
             self._versions.setDocVersion(uuid, version, docId)
             self._history.writeVersion(uuid, version, docId, status,
                                        None, dirtyValues, dirtyRefs)
-
-            if origPN is not None:
-                parent, name = origPN
-                self.writeName(version, parent, name, None)
-
-            parent, name = currPN
-            self.writeName(version, parent, name, uuid)
 
     def serveItem(self, version, uuid):
 

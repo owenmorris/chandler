@@ -25,10 +25,12 @@ class TestMove(RepositoryTestCase):
         cineguidePack = os.path.join(self.testdir, 'data', 'packs',
                                      'cineguide.pack')
         self.rep.loadPack(cineguidePack)
-        self.rep.commit()
-
+        
     def move(self, withCommit):
 
+        if withCommit:
+            self.rep.commit()
+            
         c = self.rep['CineGuide']
         k = c['KHepburn']
         m = k.movies.first()
@@ -53,6 +55,14 @@ class TestMove(RepositoryTestCase):
         self.move(True)
 
     def testMove(self):
+        self.move(False)
+
+    def testReopenCommit(self):
+        self._reopenRepository()
+        self.move(True)
+
+    def testReopen(self):
+        self._reopenRepository()
         self.move(False)
 
 

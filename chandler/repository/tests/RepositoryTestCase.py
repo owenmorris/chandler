@@ -99,7 +99,7 @@ class RepositoryTestCase(TestCase):
 
     # Repository specific assertions
     def assertIsRoot(self, item):
-        self.assert_(item in self.rep.getRoots())
+        self.assert_(item in list(self.rep.iterRoots()))
 
     def assertItemPathEqual(self, item, string):
         self.assertEqual(str(item.itsPath), string)

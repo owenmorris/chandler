@@ -74,6 +74,10 @@ class RepositoryView(object):
 
         raise NotImplementedError, "%s._createRefDict" %(type(self))
     
+    def _createChildren(self, parent):
+
+        raise NotImplementedError, "%s._createChildren" %(type(self))
+    
     def _getLobType(self):
 
         raise NotImplementedError, "%s._getLobType" %(type(self))
@@ -86,7 +90,8 @@ class RepositoryView(object):
         re-opening a closed view.
         """
 
-        self._roots = {}
+        self._roots = self._createChildren(self)
+        self._dirty = 0
         self._registry = {}
         self._deletedRegistry = {}
         self._childrenRegistry = {}
@@ -94,6 +99,10 @@ class RepositoryView(object):
         self._status = RepositoryView.OPEN
         
         self.repository.store.attachView(self)
+
+    def setDirty(self, dirty, attribute):
+
+        self._dirty = dirty
 
     def closeView(self):
         """
@@ -113,7 +122,8 @@ class RepositoryView(object):
             item._setStale()
 
         self._registry.clear()
-        self._roots.clear()
+        self._roots = None
+        self._dirty = 0
         self._deletedRegistry.clear()
         self._childrenRegistry.clear()
         del self._stubs[:]
@@ -149,6 +159,10 @@ class RepositoryView(object):
 
         return ((self._status & RepositoryView.OPEN) != 0 and
                 self.repository.isOpen())
+
+    def isNew(self):
+
+        return False
 
     def isStale(self):
 
@@ -328,7 +342,7 @@ class RepositoryView(object):
         @return: an L{ACL<repository.item.Access.ACL>} instance or C{None}
         """
 
-        return self.repository.store.loadACL(self.version, uuid, name)
+        return self.repository.store.loadACL(self._version, uuid, name)
 
     def loadPack(self, path, parent=None):
         """
@@ -369,7 +383,7 @@ class RepositoryView(object):
         
         if item is None:
             path = Path('//')
-            for root in self.getRoots():
+            for root in self.iterRoots():
                 self.dir(root, path)
         else:
             if path is None:
@@ -451,7 +465,7 @@ class RepositoryView(object):
         """
 
         result = True
-        for root in self.getRoots():
+        for root in self.iterRoots():
             check = root.check(True)
             result = result and check
 
@@ -470,7 +484,7 @@ class RepositoryView(object):
         @return: C{True} or C{False}
         """
 
-        return self.getRoot(name, load) is not None
+        return self._roots.resolveAlias(name, load) is not None
 
     def getRoot(self, name, load=True):
         """
@@ -485,10 +499,7 @@ class RepositoryView(object):
         @return: a root item or C{None} if not found.
         """
 
-        try:
-            return self._roots[name]
-        except KeyError:
-            return self._loadRoot(name)
+        return self._roots.getByAlias(name, None, load)
 
     def __getitem__(self, key):
 
@@ -514,29 +525,30 @@ class RepositoryView(object):
 
     def __iter__(self):
         """
-        Iterate over the roots of this repository in this view.
+        See L{iterRoots}
         """
 
-        return self.iterChildren()
+        return self.iterRoots()
     
-    def iterChildren(self, load=True):
+    def iterChildren(self):
+        """
+        See L{iterRoots}
+        """
+
+        return self.iterRoots()
+    
+    def iterRoots(self, load=True):
         """
         Iterate over the roots of this repository in this view.
         """
 
-        return self.getRoots(load).__iter__()
+        if not load:
+            for child in self._roots._itervalues():
+                yield child._value
 
-    def getRoots(self, load=True):
-        """
-        Get all roots in the repository from this view.
-
-        A repository root is defined as an item whose parent is this view.
-
-        @param load: if load is C{False}, only return the loaded roots.
-        @type load: boolean
-        """
-        
-        return self._roots.values()
+        else:
+            for child in self._roots:
+                yield child
 
     def _getPath(self, path=None):
 
@@ -564,20 +576,20 @@ class RepositoryView(object):
 
         name = item.itsName
 
-        if name in self._roots:
+        if self._roots.resolveAlias(name, not self.isLoading()):
             raise ValueError, "A root named '%s' exists already" %(name)
 
-        self._roots[name] = item
+        self._roots.__setitem__(item._uuid, item, alias=name)
 
         return item
 
     def _removeItem(self, item):
 
-        del self._roots[item.itsName]
+        del self._roots[item.itsUUID]
 
-    def _unloadChild(self, name):
+    def _unloadChild(self, child):
 
-        del self._roots[name]
+        self._roots._unload(child)
 
     def _registerItem(self, item):
 
@@ -674,9 +686,6 @@ class RepositoryView(object):
     def _loadRoot(self, name):
         raise NotImplementedError, "%s._loadRoot" %(type(self))
 
-    def _loadChild(self, parent, name):
-        raise NotImplementedError, "%s._loadChild" %(type(self))
-
     def _newItems(self):
         raise NotImplementedError, "%s._newItems" %(type(self))
 
@@ -701,6 +710,10 @@ class RepositoryView(object):
 
         return self.repository.logger.getEffectiveLevel() <= logging.DEBUG
 
+    def getRepositoryView(self):
+
+        return self
+
     itsUUID = property(__getUUID)
     itsName = property(__getName)
     itsPath = property(_getPath)
@@ -717,13 +730,16 @@ class RepositoryView(object):
 class OnDemandRepositoryView(RepositoryView):
 
     def __init__(self, repository, name):
+
+        self._version = repository.store.getVersion()
+        self._hooks = None
         
         super(OnDemandRepositoryView, self).__init__(repository, name)
 
-        self.version = repository.store.getVersion()
-        self._hooks = None
-        self._notRoots = {}
-        
+    def isNew(self):
+
+        return self._version == 0
+
     def _loadDoc(self, doc, instance=None):
 
         try:
@@ -781,51 +797,11 @@ class OnDemandRepositoryView(RepositoryView):
     def _loadItem(self, uuid, instance=None):
 
         if not uuid in self._deletedRegistry:
-            doc = self.repository.store.loadItem(self.version, uuid)
+            doc = self.repository.store.loadItem(self._version, uuid)
 
             if doc is not None:
                 self.logger.debug("loading item %s", uuid)
                 return self._loadDoc(doc, instance)
-
-        return None
-
-    def _loadRoot(self, name):
-
-        return self._loadChild(None, name)
-
-    def getRoots(self, load=True):
-        'Return a list of the roots in the repository.'
-
-        if load:
-            for uuid in self.repository.store.readNames(self.version,
-                                                        self.itsUUID):
-                self.find(uuid)
-            
-        return super(OnDemandRepositoryView, self).getRoots(load)
-
-    def _loadChild(self, parent, name):
-
-        if parent is not None and parent is not self:
-            uuid = parent.itsUUID
-        else:
-            uuid = self.itsUUID
-
-        store = self.repository.store
-        doc = store.loadChild(self.version, uuid, name)
-                
-        if doc is not None:
-            uuid = store.getDocUUID(doc)
-
-            if (not self._deletedRegistry or
-                not uuid in self._deletedRegistry):
-                if self.isDebug():
-                    if parent is not None and parent is not self:
-                        self.logger.debug("loading child %s of %s",
-                                          name, parent.itsPath)
-                    else:
-                        self.logger.debug("loading root %s", name)
-                    
-                return self._loadDoc(doc)
 
         return None
 
@@ -852,10 +828,6 @@ class OnDemandRepositoryView(RepositoryView):
 
         super(OnDemandRepositoryView, self)._addItem(item, previous, next)
 
-        name = item.itsName
-        if name in self._notRoots:
-            del self._notRoots[name]
-
         item.setPinned(True)
 
         return item
@@ -864,18 +836,8 @@ class OnDemandRepositoryView(RepositoryView):
 
         super(OnDemandRepositoryView, self)._removeItem(item)
 
-        name = item.itsName
-        self._notRoots[name] = name
-
         item.setPinned(False)
         
-    def getRoot(self, name, load=True):
-
-        if not name in self._notRoots:
-            return super(OnDemandRepositoryView, self).getRoot(name, load)
-
-        return None
-
     def prune(self, size):
 
         registry = self._registry

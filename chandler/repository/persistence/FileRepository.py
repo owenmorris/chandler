@@ -94,9 +94,6 @@ class FileRepositoryView(RepositoryView):
     def _loadItem(self, uuid):
         return None
 
-    def _loadChild(self, parent, name):
-        return None
-
     def purge(self):
         'Purge the repository directory tree of all item files that do not correspond to currently existing items in the repository.'
         

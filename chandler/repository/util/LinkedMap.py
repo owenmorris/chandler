@@ -17,6 +17,7 @@ class LinkedMap(dict):
 
             self._previousKey = self._nextKey = None
             self._value = value
+            self._alias = None
 
         def __repr__(self):
 
@@ -41,13 +42,12 @@ class LinkedMap(dict):
             linkedMap.linkChanged(self, key)
 
 
-    def __init__(self, dictionary=None):
+    def __init__(self):
 
         super(LinkedMap, self).__init__()
-        self._firstKey = self._lastKey = None
 
-        if dictionary is not None:
-            self.update(dictionary)
+        self._firstKey = self._lastKey = None
+        self._aliases = None
 
     def __repr__(self):
 
@@ -102,7 +102,8 @@ class LinkedMap(dict):
 
         return self._get(key, load)._value
 
-    def __setitem__(self, key, value, previousKey=None, nextKey=None):
+    def __setitem__(self, key, value,
+                    previousKey=None, nextKey=None, alias=None):
 
         link = super(LinkedMap, self).get(key)
 
@@ -124,6 +125,13 @@ class LinkedMap(dict):
                 link._setNext(nextKey, key, self)
 
             super(LinkedMap, self).__setitem__(key, link)
+
+        if alias:
+            link._alias = alias
+            if self._aliases is None:
+                self._aliases = { alias: key }
+            else:
+                self._aliases[alias] = key
 
         return link
 
@@ -183,6 +191,9 @@ class LinkedMap(dict):
                 
         super(LinkedMap, self).__delitem__(key)
 
+        if link._alias is not None:
+            del self._aliases[link._alias]
+
         return link
 
     def has_key(self, key, load=True):
@@ -204,6 +215,52 @@ class LinkedMap(dict):
             return link._value
 
         return default
+
+    def getByAlias(self, alias, default=None, load=True):
+        """
+        Get the value referenced through its alias.
+        
+        @param alias: the alias of the item referenced.
+        @type key: a string
+        @param default: the default value to return if there is no value
+        for C{key} in this collection, C{None} by default.
+        @type default: anything
+        @param load: if the value exists but hasn't been loaded yet,
+        this method will return C{default} if this parameter is C{False}.
+        @type load: boolean
+        @return: a value of the collection or C{default}
+        """
+        
+        key = None
+
+        if self._aliases is not None:
+            key = self._aliases.get(alias)
+            
+        if key is None and load:
+            key = self.resolveAlias(alias, load)
+
+        if key is None:
+            return default
+            
+        return self.get(key, default, load)
+
+    def resolveAlias(self, alias, load=True):
+        """
+        Resolve the alias to its corresponding reference key.
+
+        @param alias: the alias to resolve.
+        @type alias: a string
+        @param load: if the value exists but hasn't been loaded yet,
+        this method will return C{None} if this parameter is C{False}.
+        @type load: boolean
+        @return: a key into the collection or C{None} if the alias does not
+        exist.
+        """
+        
+        if self._aliases:
+            return self._aliases.get(alias)
+
+        return None
 
     def firstKey(self):
         "Return the first key of this mapping."

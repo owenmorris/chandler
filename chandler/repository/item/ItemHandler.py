@@ -4,8 +4,6 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import repository.item as ItemPackage
-
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
@@ -146,18 +144,19 @@ class ItemHandler(ContentHandler):
         self.cls = None
         self.kindRef = None
         self.parentRef = None
-        self.previous = self.next = None
-        self.first = self.last = None
+        self.isContainer = False
         self.withSchema = attrs.get('withSchema', 'False') == 'True'
         self.uuid = UUID(attrs.get('uuid'))
         self.version = long(attrs.get('version', '0L'))
         
     def itemEnd(self, itemHandler, attrs):
 
+        from repository.item.Item import Item
+        
         cls = self.cls
         if cls is None:
             if self.kind is None:
-                cls = ItemPackage.Item.Item
+                cls = Item
             else:
                 cls = self.kind.getItemClass()
 
@@ -174,16 +173,13 @@ class ItemHandler(ContentHandler):
             
         item._fillItem(self.name, self.parent, self.kind, uuid = self.uuid,
                        values = self.values, references = self.references,
-                       previous = self.previous, next = self.next,
                        afterLoadHooks = self.afterLoadHooks,
                        version = self.version)
+        if self.isContainer:
+            item._children = self.repository._createChildren(item)
+            
         if pinned:
             item._status |= item.PINNED
-
-        if self.first or self.last:
-            item._children = ItemPackage.Item.Children(item)
-            item._children._firstKey = self.first
-            item._children._lastKey = self.last
 
         self.repository._registerItem(item)
 
@@ -239,22 +235,9 @@ class ItemHandler(ContentHandler):
         else:
             self.parentRef = Path(self.data)
 
+        self.isContainer = attrs.get('container', 'False') == 'True'
         self.parent = self.repository.find(self.parentRef)
-        if self.parent is None:
-            if self.afterLoadHooks is not None:
-                self.afterLoadHooks.append(self._move)
-            else:
-                raise ValueError, "Parent %s not found" %(self.parentRef)
 
-    def containerEnd(self, itemHandler, attrs):
-
-        self.parentRef = UUID(self.data)
-        self.previous = attrs.get('previous')
-        self.next = attrs.get('next')
-        self.first = attrs.get('first')
-        self.last = attrs.get('last')
-
-        self.parent = self.repository.find(self.parentRef)
         if self.parent is None:
             if self.afterLoadHooks is not None:
                 self.afterLoadHooks.append(self._move)
@@ -268,7 +251,7 @@ class ItemHandler(ContentHandler):
             if self.parent is None:
                 raise ValueError, 'Parent %s not found' %(self.parentRef)
             else:
-                self.item.move(self.parent, self.previous, self.next)
+                self.item.move(self.parent)
 
     def classEnd(self, itemHandler, attrs):
 
@@ -598,10 +581,13 @@ class ItemHandler(ContentHandler):
         generator.startElement(tag, attrs)
 
         if attrCard == 'single':
-            if isinstance(value, ItemPackage.Item.Item):
+
+            from repository.item.Item import Item
+            
+            if isinstance(value, Item):
                 raise TypeError, "item %s cannot be stored as a literal value" %(value.itsPath)
 
-            if value is ItemPackage.Item.Item.Nil:
+            if value is Item.Nil:
                 raise ValueError, 'Cannot persist Item.Nil'
 
             if attrType is not None:

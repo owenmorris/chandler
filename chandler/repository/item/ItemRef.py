@@ -34,6 +34,9 @@ class ItemRef(object):
 
         return '<ItemRef: %s - %s>' %(self._item, self._other)
 
+    def _clearDirties(self):
+        pass
+
     def _setItem(self, item):
         pass
 
@@ -481,13 +484,6 @@ class RefDict(LinkedMap):
     items.
     """
     
-    class link(LinkedMap.link):
-
-        def __init__(self, value):
-
-            super(RefDict.link, self).__init__(value)
-            self._alias = None
-
     def __init__(self, item, name, otherName, readOnly=False):
         """
         The constructor for this class. A RefDict should not be instantiated
@@ -499,7 +495,6 @@ class RefDict(LinkedMap):
         self._otherName = otherName
         self._setItem(item)
         self._count = 0
-        self._aliases = None
         self._readOnly = readOnly
         self._indexes = None
         self._flags = RefDict.SETDIRTY
@@ -797,20 +792,14 @@ class RefDict(LinkedMap):
             value = ItemRef(self._getItem(), self._name,
                             value, self._otherName)
 
-        link = super(RefDict, self).__setitem__(key, value,
-                                                previousKey, nextKey)
+        super(RefDict, self).__setitem__(key, value,
+                                         previousKey, nextKey, alias)
+
         if not loading:
             self._count += 1
             if self._indexes:
                 for index in self._indexes.itervalues():
                     index.insertKey(key, previousKey)
-
-        if alias:
-            link._alias = alias
-            if self._aliases is None:
-                self._aliases = { alias: key }
-            else:
-                self._aliases[alias] = key
 
         return value
 
@@ -879,13 +868,9 @@ class RefDict(LinkedMap):
             value.detach(self._item, self._name,
                          value.other(self._item), self._otherName)
 
-        link = super(RefDict, self).__delitem__(key)
-        if link._alias is not None:
-            del self._aliases[link._alias]
-            
         self._count -= 1
 
-        return link
+        return super(RefDict, self).__delitem__(key)
 
     def _load(self, key):
 
@@ -953,52 +938,6 @@ class RefDict(LinkedMap):
             return value.other(self._item)
 
         return default
-
-    def getByAlias(self, alias, default=None, load=True):
-        """
-        Get the item referenced through its alias.
-        
-        @param alias: the alias of the item referenced.
-        @type key: a string
-        @param default: the default value to return if there is no reference
-        for C{key} in this ref collection, C{None} by default.
-        @type default: anything
-        @param load: if the reference exists but hasn't been loaded yet,
-        this method will return C{default} if this parameter is C{False}.
-        @type load: boolean
-        @return: an C{Item} instance or C{default}
-        """
-        
-        key = None
-
-        if self._aliases is not None:
-            key = self._aliases.get(alias)
-            
-        if key is None and load:
-            key = self.resolveAlias(alias, load)
-
-        if key is None:
-            return default
-            
-        return self.get(key, default, load)
-
-    def resolveAlias(self, alias, load=True):
-        """
-        Resolve the alias to its corresponding reference key.
-
-        @param alias: the alias to resolve.
-        @type alias: a string
-        @param load: if the reference exists but hasn't been loaded yet,
-        this method will return C{None} if this parameter is C{False}.
-        @type load: boolean
-        @return: a L{UUID<repository.util.UUID.UUID>} or C{None} if the
-        alias does not exist.
-        """
-        
-        if self._aliases:
-            return self._aliases.get(alias)
-
-        return None
 
     def getAlias(self, item):
         """
@@ -1275,6 +1214,9 @@ class RefDict(LinkedMap):
             return False
 
         return True
+
+    def _clearDirties(self):
+        pass
 
     SETDIRTY = 0x0001
 

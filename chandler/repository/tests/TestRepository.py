@@ -39,11 +39,11 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
         root = self.rep['Packs']
         self.assert_(root.itsName == 'Packs')
     
-    def testGetRoots(self):
+    def testIterRoots(self):
         """ Make sure the roots of the repository are correct"""
 
         # (The parcel manager sticks the //parcels root in there)
-        for root in self.rep.getRoots():
+        for root in self.rep.iterRoots():
             self.assert_(root.itsName in ['Schema', 'Packs', 'parcels'])
 
     def testWalk(self):

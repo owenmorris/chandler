@@ -34,6 +34,12 @@ class ContentHandler(SAXCallback):
 
         return self.exception is not None
 
+    def parse(self, xml):
+
+        createPushParser(self, xml, len(xml), 'filter').parseChunk('', 0, 1)
+        if self.errorOccurred():
+            raise self.saxError()
+        
     def saxError(self):
 
         try:
@@ -190,12 +196,6 @@ class XMLFilter(ContentHandler):
 
         raise NotImplementedError, 'XMLFilter.output'
 
-    def parse(self, xml):
-
-        createPushParser(self, xml, len(xml), 'filter').parseChunk('', 0, 1)
-        if self.errorOccurred():
-            raise self.saxError()
-        
     def endDocument(self):
 
         if self.cdata:

@@ -62,20 +62,6 @@ class RemoteStore(XMLStore):
 
         return doc
 
-    def loadChild(self, version, uuid, name):
-
-        doc = super(RemoteStore, self).loadChild(version, uuid, name)
-        if doc is None:
-            versionId = self._versions.getVersionId(self.itsUUID)
-            remoteVersion = self._versions.getVersion(versionId)
-            xml = self.transport.serveChild(remoteVersion, uuid, name)
-            if xml is not None:
-                filter = RemoteFilter(self, versionId)
-                self.transport.parseDoc(xml, filter)
-                doc = filter.getDocument()
-
-        return doc
-
     def getVersion(self):
 
         version = super(RemoteStore, self).getVersion()
