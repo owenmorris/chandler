@@ -1,0 +1,176 @@
+=======================
+The Spike Content Model
+=======================
+
+.. contents:: **Table of Contents**
+
+
+-------------------------------
+Content Items and Action Stamps
+-------------------------------
+
+Spike's content model distinguishes between two major kinds of entities:
+items, and stamps.  Items contain pure "content" (like text, a photo, or a web
+page), while stamps contain tracking information used to manage actions
+associated with items.  For example, a "Task" stamp is used to track a
+completion status and due date associated with an item.
+
+Most PIM objects will be either items or stamps, and will therefore derive
+from either ``pim.content.Item`` or ``pim.content.Stamp``::
+
+    >>> from pim.content import Item, Stamp
+
+
+Content Items
+=============
+
+Content items have ``displayName``, ``importance``, and ``isPrivate``
+attributes, all with default values::
+
+    >>> item = Item()
+    >>> item.displayName
+    '<pim.content.Item object at ...>'
+    >>> item.importance
+    Importance.normal
+    >>> item.isPrivate
+    False
+
+A content item's string form is its ``displayName``::
+
+    >>> item.displayName = u"Foo"
+    >>> print item, str(item), unicode(item)
+    Foo Foo Foo
+
+Content items also have a ``createdOn`` datetime that is initialized with the
+current time as of the moment it's first accessed::
+
+    >>> from datetime import datetime
+    >>> datetime.now() <= item.createdOn <= datetime.now()
+    True
+
+And content items' importance is an enumeration of possible values::
+
+    >>> from pim.content import Importance
+    >>> sorted(Importance)
+    [Importance.fyi, Importance.important, Importance.normal]
+
+Finally, content items can have a "body"::
+
+    >>> item.body = "You're no-body till you have a body"
+    >>> item.body
+    "You're no-body till you have a body"
+
+
+XXX can't demo "creator" until we have Contacts
+
+
+Action Stamps
+=============
+
+A valid stamp is always associated with exactly one content item, and it takes
+its display name from that item::
+
+    >>> aStamp = Stamp(contentItem = item)
+    >>> print aStamp.contentItem
+    Foo
+    >>> print aStamp
+    Foo
+
+Once set, a stamp's content item cannot be removed or changed, from either
+end of the relationship::
+
+    >>> del aStamp.contentItem
+    Traceback (most recent call last):
+      ...
+    TypeError: A stamp's content item cannot be changed
+
+    >>> aStamp.contentItem = Item()
+    Traceback (most recent call last):
+      ...
+    TypeError: A stamp's content item cannot be changed
+
+    >>> item.actionStamps.remove(aStamp)
+    Traceback (most recent call last):
+      ...
+    TypeError: A stamp's content item cannot be changed
+
+Stamps can be either active or inactive.  When a stamp is inactive, it doesn't
+show up on views that display active stamps, but it retains its data in case
+the content item is re-stamped with that stamp type::
+
+    >>> aStamp.isActive
+    True
+    >>> aStamp.isActive = False
+    >>> aStamp.isActive
+    False
+
+Content items currently allow only one stamp of each kind.  This is not because
+of any inherent issue, but because Chandler's stamping model is deliberately
+crippled in this way.  If that design decision is ever revisited, it would be
+straightforward to remove this restriction, but for now it's needed in order to
+enforce the crippling at the API level::
+
+    >>> item.actionStamps.add(Stamp())
+    Traceback (most recent call last):
+      ...
+    TypeError: Only one 'Stamp' stamp allowed per content item
+
+    >>> Stamp(contentItem=item)
+    Traceback (most recent call last):
+      ...
+    TypeError: Only one 'Stamp' stamp allowed per content item
+
+
+Stamping Operations
+===================
+
+``get_stamp(type)``
+    Return the existing stamp (whether active or inactive) of type `type`.  If
+    there's no existing stamp of the right type, returns ``None``::
+
+        >>> print item.get_stamp(Stamp)
+        Foo
+
+        >>> class MyStamp(Stamp): pass
+        >>> print item.get_stamp(MyStamp)
+        None
+
+``stamp(type)``
+    Return an active stamp of the specified `type`.  If there's an existing
+    stamp, this method returns it, after reactivating it if needed.  If there's
+    no existing stamp of the right type, create one and return it::
+
+        >>> aStamp.isActive
+        False
+        >>> stamp = item.stamp(Stamp)
+        >>> stamp is aStamp
+        True
+        >>> aStamp.isActive
+        True
+
+        >>> stamp = item.stamp(MyStamp)
+        >>> stamp.__class__
+        <class 'MyStamp'>
+        >>> stamp.isActive
+        True
+
+``unstamp(type)``
+    Deactivate the existing active stamp of the specified `type`.  If there's
+    no existing stamp of this type, the operation does nothing.
+
+        >>> item.unstamp(MyStamp)
+        >>> stamp.isActive
+        False
+
+        >>> class OtherStamp(Stamp): pass
+        >>> item.unstamp(OtherStamp)
+
+
+----------------------
+The Application object
+----------------------
+
+XXX can't demo this effectively until Contacts implemented
+
+    >>> from pim.content import Application
+

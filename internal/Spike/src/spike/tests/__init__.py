@@ -8,7 +8,7 @@ def make_docsuite(filename,package='spike',**kw):
         return doctest.DocFileSuite(
             filename, optionflags=doctest.ELLIPSIS, package=package, **kw
         )
-    return suite        
+    return suite
 
 test_schema = make_docsuite('schema.txt')
 test_models = make_docsuite('models.txt')
@@ -18,16 +18,20 @@ test_codegen = make_docsuite('codegen.txt')
 
 def all():
     # Return all tests
-    return TestSuite(
-        [suite(), test_codegen()]
-    )    
+    return TestSuite( [suite(), slow()] )
 
+def slow():
+    return TestSuite([
+        test_codegen(), defaultTestLoader.loadTestsFromNames(
+            ['pim.tests.slow']
+        )
+    ])
 
 def suite():
     # Return all dependency-free unit tests
     return TestSuite(
         [test_events(), test_models(), test_schema(),
-            defaultTestLoader.loadTestsFromNames(['pim.tests'])
+            defaultTestLoader.loadTestsFromNames(['pim.tests.suite'])
         ]
     )
 
