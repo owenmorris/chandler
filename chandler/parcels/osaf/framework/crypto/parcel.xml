@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- Copyright (c) 2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/framework/crypto"
@@ -18,6 +18,7 @@
 
   <Kind itsName="PrivateKey">
     <displayName>Private Key</displayName>
+    <description>The private key for a certificate. A private key is needed to decrypt communications sent to you, and to encrypt communications sent by you. A private key should never be shared (although it may be replicated). All of the attributes are dynamically computed/extract from the pem attribute.</description>
 
     <!-- cipher -->
     <!-- XXX should probably choose from enum -->
@@ -45,14 +46,24 @@
     <!-- pem -->
     <Attribute itsName="pem">
       <displayName>pem</displayName>
+      <description>This attribute holds the actual private key. All the other attributes are computed or extracted from this. This should generally be password protected.</description>
       <type itemref="Text"/>
       <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- certificate -->
+    <Attribute itsName="certificate">
+      <displayName>certificate</displayName>
+      <type itemref="crypto:Certificate"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="crypto:Certificate"/>
     </Attribute>
 
     <attributes itemref="crypto:PrivateKey/cipher"/>
     <attributes itemref="crypto:PrivateKey/isEncrypted"/>
     <attributes itemref="crypto:PrivateKey/bits"/>
     <attributes itemref="crypto:PrivateKey/pem"/>
+    <attributes itemref="crypto:PrivateKey/certificate"/>
 
     <superKinds itemref="Item"/>
     <classes key="python">osaf.framework.crypto.PrivateKeyItem.PrivateKeyItem</classes>
@@ -62,6 +73,8 @@
 
   <Kind itsName="Certificate">
     <displayName>Certificate</displayName>
+    <description>The Kind for X.509 certificates. All of the attributes are dynamically computed except for the pem attribute, which stores the actual certificate.</description>
+
     <!-- notBefore -->
     <Attribute itsName="notBefore">
       <displayName>notBefore</displayName>
@@ -87,6 +100,7 @@
     <!-- XXX Might want this to be a number -->
     <Attribute itsName="fingerprint">
       <displayName>fingerprint</displayName>
+      <description>A fingerprint can be used by humans to verify that the certificate belongs to the person/entity they think it belongs to. A fingerprint should be verified out of band, for example in actual face-to-face meeting, or telephone conversation or so forth.</description>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
@@ -150,6 +164,7 @@
     <!-- asText -->
     <Attribute itsName="asText">
       <displayName>asText</displayName>
+      <description>The human readable version of the certificate.</description>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
@@ -157,6 +172,7 @@
     <!-- pem -->
     <Attribute itsName="pem">
       <displayName>pem</displayName>
+      <description>The actual machine-readable certificate. All the other attributes of a certificate Item are calculated/extracted from this attribute.</description>
       <type itemref="Text"/>
       <cardinality>single</cardinality>
     </Attribute>
@@ -174,6 +190,7 @@
       <displayName>privateKey</displayName>
       <type itemref="crypto:PrivateKey"/>
       <cardinality>single</cardinality>
+      <inverseAttribute itemref="crypto:PrivateKey"/>
     </Attribute>
 
     <attributes itemref="crypto:Certificate/notBefore"/>
@@ -195,6 +212,28 @@
 
     <superKinds itemref="Item"/>
     <classes key="python">osaf.framework.crypto.CertificateItem.CertificateItem</classes>
+  </Kind>
+
+  <!-- Kind: CA -->
+
+  <Kind itsName="CA">
+    <displayName>CA</displayName>
+    <description>Certificate Authority (CA) Kind. The purpose for items of this Kind is to store all the information that is needed to run a CA. For example, each certificate has a serial number and a CA must make sure it never issues two certificates with the same serial number.</description>
+
+    <!-- lastSerialNumber -->
+    <Attribute itsName="lastSerialNumber">
+      <displayName>lastSerialNumber</displayName>
+      <type itemref="Integer"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <!-- XXX Might want to have references to Certificates and potentially
+         XXX private keys as well from here -->
+
+    <attributes itemref="crypto:CA/lastSerialNumber"/>
+
+    <superKinds itemref="Item"/>
+    <classes key="python">osaf.framework.crypto.CAItem.CAItem</classes>
   </Kind>
 
 </Parcel>

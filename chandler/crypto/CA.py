@@ -30,15 +30,13 @@ def makeRequest(pkey):
     req.sign(pkey, 'sha1')
     return req
 
-def makeCert(req, caPkey):
+def makeCert(req, caPkey, availableSerialNumber):
     pkey = req.get_pubkey()
     if not req.verify(pkey):
         raise Exception, 'Error verifying request'
     sub = req.get_subject()
     cert = X509.X509()
-    # XXX Need to store the latest generated serial in repository and
-    # XXX generate one higher in here.
-    cert.set_serial_number(1)
+    cert.set_serial_number(availableSerialNumber)
     cert.set_version(2)
     cert.set_subject(sub)
     issuer = X509.X509_Name()
@@ -61,9 +59,9 @@ def makeCert(req, caPkey):
     cert.sign(caPkey, 'sha1')
     return cert
 
-def ca():
+def ca(availableSerialNumber):
     rsa = generateRSAKey()
     pkey = makePKey(rsa)
     req = makeRequest(pkey)
-    cert = makeCert(req, pkey)
+    cert = makeCert(req, pkey, availableSerialNumber)
     return (cert, pkey, rsa) # XXX Shouldn't need to return pkey, see bug 1542

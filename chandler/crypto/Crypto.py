@@ -54,14 +54,20 @@ class Crypto(object):
         caItem = Globals.repository.findPath('//' +
                                              storagePath + '/' + certName)
         if caItem is None or force:
-            # Create private key and certificate
-            import CA
-            (cert, pkey, rsa) = CA.ca()
-            self._pkey = pkey # XXX Shouldn't need this, see CA.ca()
-
             # Create storage area in db
             itemKind = Globals.repository.findPath('//Schema/Core/Item')
             certStorage = itemKind.newItem(storagePath, Globals.repository)
+            
+            # Create 'CA database'
+            caKind = Globals.repository.findPath('//parcels/osaf/framework/crypto/CA')
+            caItem = caKind.newItem('Repository CA', certStorage)
+            caItem.lastSerialNumber = 0
+
+            # Create private key and certificate
+            import CA
+            (cert, pkey, rsa) = CA.ca(caItem.lastSerialNumber + 1)
+            self._pkey = pkey # XXX Shouldn't need this, see CA.ca()
+            caItem.lastSerialNumber = caItem.lastSerialNumber + 1
 
             # Save certificate to db
             certKind = Globals.repository.findPath('//parcels/osaf/framework/crypto/Certificate')
@@ -71,12 +77,11 @@ class Crypto(object):
 
             # Save private key to db
             pkeyKind = Globals.repository.findPath('//parcels/osaf/framework/crypto/PrivateKey')
-            pkeyItem = certKind.newItem('Repository Private Key', certStorage)
+            pkeyItem = pkeyKind.newItem('Repository Private Key', certStorage)
             # There is no RSA.as_pem(), not sure if we need one
             buf = BIO.MemoryBuffer()
             rsa.save_key_bio(buf, cipher='aes_256_cbc', callback=self._passphrase_callback)
             pkeyItem.setPem(buf.read())
-            #XXX Why don't the following show in detail view?
             #XXX These should be handled inside the PrivateKeyItem, by
             #XXX extracting from the RSA object itself
             pkeyItem.bits = 2048
@@ -84,7 +89,7 @@ class Crypto(object):
             pkeyItem.cipher = 'aes_256_cbc'
 
             # Set link in db between certificate and private key
-            #certItem.privateKey = pkeyItem # XXX doesn't work
+            certItem.privateKey = pkeyItem
 
             Globals.repository.commit() # XXX Shouldn't need this
 
