@@ -8,6 +8,8 @@ import vobject
 import dateutil.tz
 import StringIO
 import itertools
+import osaf.contentmodel.calendar.Calendar as Calendar
+from repository.item.Query import KindQuery
 
 if not Globals.chandlerDirectory: Globals.chandlerDirectory = '.'
 
@@ -92,20 +94,8 @@ def convertToUTC(dt, tz = None):
     if not tz: tz = localtime
     args = (dt.year, dt.month, dt.day, dt.hour, dt.minute, int(dt.second))
     return datetime.datetime(*args).replace(tzinfo=tz).astimezone(utc)
+
     
-
-#only look at vcalendar roots
-#setBehavior iCalendar, transformChildrenToNative
-
-def newEvent(rep, name=None, parent = None):
-    """Create a new CalendarEvent in the repository, return it."""
-
-    eventkind = rep.findPath("//parcels/osaf/contentmodel/calendar/CalendarEvent")
-    userdata = rep.findPath("//userdata")
-
-    if parent is None: parent = userdata
-    return eventkind.newItem(name, parent)
-
 def importICalendar(cal, rep, parent=None):
     """Import the given vobject vcalendar into rep at the given parent.
     
@@ -130,7 +120,7 @@ def importICalendar(cal, rep, parent=None):
         else: duration = None
         #lets not go crazy with large recurrence sets
         for dt in itertools.islice(event.rruleset, 10):
-            newevent = newEvent(rep)
+            newevent = Calendar.CalendarEvent()
             newevent.startTime = convertToMX(dt)
             if duration:
                 newevent.endTime = convertToMX(dt + duration)
@@ -146,26 +136,59 @@ def importICalendar(cal, rep, parent=None):
                 newevent.createdOn = convertToMX(test[0].value)
     return True
 
-def exportICalendar(eventlist, stream):
-    """Export all events in eventlist as iCalendar to stream."""
-    pass
+def eventsToVObject(items, cal=None):
+    """Iterate through items, add to cal, create a new vcalendar if needed.
+
+    Chandler doesn't do recurrence yet, so for now we don't worry
+    about timezones.
+
+    """
+    if cal is None:
+        cal = vobject.iCalendar()
+    for event in items:
+        vevent = cal.add('vevent')
+        vevent.add('uid').value = unicode(event.itsUUID)
+        try:
+            vevent.add('summary').value = event.displayName
+        except AttributeError:
+            pass
+        try:
+            vevent.add('dtstart').value = convertToUTC(event.startTime)
+        except AttributeError:
+            pass
+        try:
+            vevent.add('dtend').value = convertToUTC(event.endTime)
+        except AttributeError:
+            pass
+        try:
+            vevent.add('dtstamp').value = convertToUTC(event.createdOn)
+        except AttributeError:
+            pass
+        try:
+            vevent.add('description').value = event.body.getReader().read()
+        except AttributeError:
+            pass
+    return cal
 
 def importFile(filename, rep):
-    #rep.logger.info("got to importFile") 
+    success = True
     f = file(filename)
     try:
         for vcal in vobject.readComponents(f): importICalendar(vcal, rep)
     except Exception, e:
         msg = "Failed vobject.readComponents, caught exception "
         rep.logger.info(msg + str(e))
+        success = False
     f.close()
     rep.commit()
+    return success
+
+def exportFile(filename, rep):
+    f = file(filename, 'w')
+    eventkind = rep.findPath('//parcels/osaf/contentmodel/calendar/CalendarEvent')
+    cal = eventsToVObject(KindQuery().run([eventkind]))
+    cal.serialize(f)
     return True
-
-def exportICalendar(events, out):
-    """Export the list of Chandler CalendarEvents to one VCALENDAR in out."""
-    pass
-
 
 #------------------- Testing and running functions -----------------------------
 

@@ -331,7 +331,20 @@ class MainView(View):
         except Exception, e:
             repository.logger.info("Failed importFile, caught exception " + str(e))
             self.setStatusMessage("Import failed")
-        
+
+    def onExportIcalendarEvent(self, event):
+        # triggered from "Test | Export Events as iCalendar" Menu
+        repository = Globals.repository
+        self.setStatusMessage ("Exporting to " + ical.OUTFILE)
+        try:
+            if ical.exportFile(ical.OUTFILE, repository):
+                self.setStatusMessage ("Export completed")
+            else:
+                repository.logger.info("Failed exportFile")
+                self.setStatusMessage("Export failed")
+        except Exception, e:
+            repository.logger.info("Failed exportFile, caught exception " + str(e))
+            self.setStatusMessage("Export failed")
 
     def onCommitRepositoryEvent(self, event):
         # Test menu item

@@ -216,6 +216,10 @@
     <destinationBlockReference itemref="doc:MainView"/>
   </BlockEvent>
 
+ <BlockEvent itsName="ExportIcalendar">
+    <blockName>ExportIcalendar</blockName>
+    <destinationBlockReference itemref="doc:MainView"/>
+  </BlockEvent>
 
   <BlockEvent itsName="CommitRepository">
     <blockName>CommitRepository</blockName>
@@ -388,6 +392,7 @@
     <childrenBlocks itemref="doc:GenerateContactItem"/>
     <childrenBlocks itemref="doc:GenerateCalendarItem"/>
     <childrenBlocks itemref="doc:ImportIcalendarItem"/>
+    <childrenBlocks itemref="doc:ExportIcalendarItem"/>
     <childrenBlocks itemref="doc:GenerateNoteItem"/>
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:ShareCollectionItem"/>
@@ -952,6 +957,13 @@
     <title>Import iCalendar data</title>
     <event itemref="doc:ImportIcalendar"/>
     <helpString>Import iCalendar file from import.ics</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="ExportIcalendarItem">
+    <blockName>ExportIcalendarItem</blockName>
+    <title>Export Events as iCalendar</title>
+    <event itemref="doc:ExportIcalendar"/>
+    <helpString>Export Calendar Events to export.ics</helpString>
   </MenuItem>
 
   <MenuItem itsName="LogViewChangesItem">
