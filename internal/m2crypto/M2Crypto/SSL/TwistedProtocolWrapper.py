@@ -47,9 +47,9 @@ class TLSProtocolWrapper(ProtocolWrapper):
         self.checked = False # Post connection check done or not
         
         if hasattr(factory.wrappedFactory, 'getContext'):
-            self.ctx = factory.wrappedFactory.getContext()
+            ctx = factory.wrappedFactory.getContext()
         else:
-            self.ctx = Context() # Note that this results in insecure SSL
+            ctx = Context() # Note that this results in insecure SSL
 
         if hasattr(factory.wrappedFactory, 'sslChecker'):
             self.postConnectionCheck = factory.wrappedFactory.sslChecker
@@ -60,7 +60,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
             
         if hasattr(factory.wrappedFactory, 'startTLS'):
             if factory.wrappedFactory.startTLS:
-                self.startTLS()
+                self.startTLS(ctx)
 
     def __del__(self):
         self.clear()
@@ -82,13 +82,15 @@ class TLSProtocolWrapper(ProtocolWrapper):
         # We can reuse self.ctx and it will be deleted automatically
         # when this instance dies
         
-    def startTLS(self, ctx=None, client=1):
+    def startTLS(self, ctx, client=1):
         """
         Start SSL/TLS. If this is not called, this instance just passes data
         through untouched.
         """
         if self.tlsStarted:
             raise Exception, 'TLS already started'
+
+        self.ctx = ctx
 
         self.internalBio = m2.bio_new(m2.bio_s_bio())
         m2.bio_set_write_buf_size(self.internalBio, 0)
@@ -134,8 +136,8 @@ class TLSProtocolWrapper(ProtocolWrapper):
             ProtocolWrapper.write(self, encryptedData)
         except M2Crypto.BIO.BIOError, e:
             # See http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
-            # for the error codes returned by SSL_get_error.
-            e.args = (m2.ssl_get_error(self.ssl, -1), e.args[0])
+            # for the error codes returned by SSL_get_verify_result.
+            e.args = (m2.ssl_get_verify_result(self.ssl), e.args[0])
             raise e
 
     def writeSequence(self, data):
@@ -198,8 +200,8 @@ class TLSProtocolWrapper(ProtocolWrapper):
                     break
         except M2Crypto.BIO.BIOError, e:
             # See http://www.openssl.org/docs/apps/verify.html#DIAGNOSTICS
-            # for the error codes returned by SSL_get_error.
-            e.args = (m2.ssl_get_error(self.ssl, -1), e.args[0])
+            # for the error codes returned by SSL_get_verify_result.
+            e.args = (m2.ssl_get_verify_result(self.ssl), e.args[0])
             raise e
 
     def connectionLost(self, reason):
