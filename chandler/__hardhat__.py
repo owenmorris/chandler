@@ -34,6 +34,19 @@ def build(buildenv):
              os.sep + "debug")
         os.chdir("../../..")
 
+
+    # Build UUID Extension and install it
+    os.chdir(os.path.join("model","util","ext"))
+    if buildenv['version'] == 'debug':
+        python = buildenv['python_d']
+    if buildenv['version'] == 'release':
+        python = buildenv['python']
+    hardhatlib.executeCommandNoCapture( buildenv, info['name'],
+     [python, "setup.py", "install"], "Building UUID Extension" )
+    os.chdir("../../..")
+
+
+
     os.chdir("distrib")
 
     if buildenv['os'] == 'posix' or buildenv['os'] == 'osx':
