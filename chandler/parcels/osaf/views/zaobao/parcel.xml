@@ -15,10 +15,15 @@
 
   <core:version>0.3</core:version>
 
+  <!-- RSS Channels -->
+  <zb:RSSChannel itemName="osaf">
+    <zb:url>http://www.osafoundation.org/rss/2.0/</zb:url>
+  </zb:RSSChannel>
+
   <!-- Queries -->
   <Query itemName="myQuery">
     <queryEnum>listOfItems</queryEnum>
-    <data></data>
+    <data>//parcels/OSAF/views/zaobao/osaf.items</data>
   </Query>
 
   <!-- Styles -->
@@ -62,6 +67,8 @@
   <!-- The view itself -->
 
   <zb:ZaoBaoTreeList itemName="ItemList">
+    <contentSpec itemref="doc:myQuery"/>
+
     <hideRoot>True</hideRoot>
     <noLines>False</noLines>
     <useButtons>True</useButtons>
@@ -80,7 +87,6 @@
 
   <zb:ZaoBaoItemView itemName="ItemView">
     <url></url>
-    <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
@@ -105,7 +111,6 @@
 
   <BoxContainer itemName="ZaoBaoTab">
     <eventBoundary>True</eventBoundary>
-    <content-spec itemref="doc:myQuery"/>
     <open>True</open>
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
