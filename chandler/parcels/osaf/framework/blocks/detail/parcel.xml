@@ -121,7 +121,7 @@
     <childrenBlocks itemref="doc:CalendarStamp"/>
     <!-- Attributes -->
     <colorStyle itemref="doc:GrayBackground3"/>
-    <toolSize>24,24</toolSize>
+    <toolSize>20,20</toolSize>
     <separatorWidth>50</separatorWidth>
     <subscribeWhenVisibleEvents itemref="doc:ButtonPressed"/>
     <stretchFactor>0.0</stretchFactor>
@@ -134,7 +134,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.MailMessageButton">
     <blockName>MailMessageButton</blockName>
     <title>Send as message</title>
-    <bitmap>application/images/markup_message.gif</bitmap>
+    <bitmap>application/images/KindFilterMessage.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Send this item as a mail message</helpString>
@@ -145,7 +145,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.TaskStamp">
     <blockName>TaskStamp</blockName>
     <title>Put on Taskpad</title>
-    <bitmap>application/images/markup_put_on_taskpad.gif</bitmap>
+    <bitmap>application/images/KindFilterTask.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Put this item onto the Taskpad</helpString>
@@ -156,7 +156,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.CalendarStamp">
     <blockName>CalendarStamp</blockName>
     <title>Put on Calendar</title>
-    <bitmap>application/images/markup_put_on_calendar.gif</bitmap>
+    <bitmap>application/images/KindFilterEvent.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Put this item onto the Calendar</helpString>

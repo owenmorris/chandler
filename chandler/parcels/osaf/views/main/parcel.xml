@@ -1027,7 +1027,7 @@
     <childrenBlocks itemref="doc:ShareButton"/>
     
     <!-- Attributes -->
-    <toolSize>25,25</toolSize>
+    <toolSize>24,24</toolSize>
     <buttonsLabeled>True</buttonsLabeled>
     <stretchFactor>0</stretchFactor>
   </Toolbar>
@@ -1087,7 +1087,7 @@
     <childrenBlocks itemref="doc:KindFilterTask"/>
     
     <!-- Attributes -->
-    <toolSize>21,20</toolSize>
+    <toolSize>20,20</toolSize>
     <separatorWidth>20</separatorWidth>
     <stretchFactor>0</stretchFactor>
   </Toolbar>
@@ -1098,7 +1098,7 @@
   <ToolbarItem itsName="KindFilterAll">
     <blockName>KindFilterAll</blockName>
     <title>All</title>
-    <bitmap>application/images/KindFilterAll.png</bitmap>
+    <bitmap>application/images/KindFilterAll.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:KindFilterAllEvent"/>
     <helpString></helpString>
@@ -1114,7 +1114,7 @@
   <ToolbarItem itsName="KindFilterMessage">
     <blockName>KindFilterMessage</blockName>
     <title>Messages</title>
-    <bitmap>application/images/KindFilterMessage.png</bitmap>
+    <bitmap>application/images/KindFilterMessage.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:KindFilterMessageEvent"/>
     <helpString></helpString>
@@ -1130,7 +1130,7 @@
   <ToolbarItem itsName="KindFilterEvent">
     <blockName>KindFilterEvent</blockName>
     <title>Calendar</title>
-    <bitmap>application/images/KindFilterEvent.png</bitmap>
+    <bitmap>application/images/KindFilterEvent.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:KindFilterEventEvent"/>
     <helpString></helpString>
@@ -1146,7 +1146,7 @@
   <ToolbarItem itsName="KindFilterTask">
     <blockName>KindFilterTask</blockName>
     <title>Taskpad</title>
-    <bitmap>application/images/KindFilterTask.png</bitmap>
+    <bitmap>application/images/KindFilterTask.gif</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:KindFilterTaskEvent"/>
     <helpString></helpString>
