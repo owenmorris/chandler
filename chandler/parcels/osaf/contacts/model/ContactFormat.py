@@ -82,9 +82,9 @@ class ContactFormat(Item):
             return False
     
     def AddBodyAttribute(self, attribute):
-       if not self.HasBodyAttribute(newAttribute):
+       if not self.HasBodyAttribute(attribute):
             list = self.GetBodyAttributes()
-            list.append(newAttribute)
+            list.append(attribute)
             self.SetBodyAttributes(list)
     
     headerAttributes = property(GetHeaderAttributes, SetHeaderAttributes)
