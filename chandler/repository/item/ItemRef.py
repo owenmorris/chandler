@@ -66,7 +66,7 @@ class ItemRef(object):
                 if otherCard is None:
                     otherCard = other.getAttributeAspect(otherName,
                                                          'cardinality',
-                                                         'single')
+                                                         default='single')
                 if otherCard != 'single':
                     old = other._refDict(otherName, name, otherPersist)
                     other._references[otherName] = old
@@ -145,7 +145,7 @@ class ItemRef(object):
             attrs['otherName'] = otherName
             attrs['otherCard'] = other.getAttributeAspect(otherName,
                                                           'cardinality',
-                                                          'single')
+                                                          default='single')
 
         generator.startElement('ref', attrs)
         generator.characters(other.getUUID().str64())
@@ -563,7 +563,7 @@ class RefDict(LinkedMap):
             if withSchema:
                 otherName = item._otherName(name)
                 otherCard = other.getAttributeAspect(otherName, 'cardinality',
-                                                     'single')
+                                                     default='single')
                 attrs['cardinality'] = 'list'
                 attrs['otherName'] = otherName
                 attrs['otherCard'] = otherCard

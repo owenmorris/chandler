@@ -390,7 +390,8 @@ class ItemHandler(xml.sax.ContentHandler):
             if attribute is None:
                 cardinality = 'single'
             else:
-                cardinality = attribute.getAspect('cardinality', 'single')
+                cardinality = attribute.getAspect('cardinality',
+                                                  default='single')
 
         return cardinality
 
@@ -399,7 +400,7 @@ class ItemHandler(xml.sax.ContentHandler):
         attrType = attrs.get('type')
 
         if attrType is None and attribute is not None:
-            attrType = attribute.getAspect('type', None)
+            attrType = attribute.getAspect('type', default=None)
             if attrType is not None:
                 return type(attrType).__name__
 

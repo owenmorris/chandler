@@ -15,19 +15,24 @@ class Attribute(Item):
 
         return self.hasAttributeValue(name)
 
-    def getAspect(self, name, default=None):
+    def getAspect(self, name, **kwds):
 
         if self.hasAttributeValue(name):
             return self.getAttributeValue(name)
 
         if self.hasAttributeValue('superAttribute'):
             return self.getAttributeValue('superAttribute').getAspect(name,
-                                                                      default)
+                                                                      **kwds)
 
-        return default
+        if self._kind is not None:
+            aspectAttr = self._kind.getAttribute(name)
+            if aspectAttr.hasAttributeValue('defaultValue'):
+                return aspectAttr.getAttributeValue('defaultValue')
+        
+        return kwds.get('default', None)
 
     def _xmlRefs(self, generator, withSchema, mode):
 
         for attr in self._references.items():
-            if self.getAttributeAspect(attr[0], 'persist', True):
+            if self.getAttributeAspect(attr[0], 'persist', default=True):
                 attr[1]._xmlValue(attr[0], self, generator, withSchema, mode)

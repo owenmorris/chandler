@@ -142,14 +142,14 @@ class Item(object):
 
         return False
 
-    def getAttributeAspect(self, name, aspect, default=None):
+    def getAttributeAspect(self, name, aspect, **kwds):
 
         if self._kind is not None:
             attribute = self._kind.getAttribute(name)
             if attribute is not None:
-                return attribute.getAspect(aspect, default)
+                return attribute.getAspect(aspect, **kwds)
 
-        return default
+        return kwds.get('default', None)
 
     def setAttributeValue(self, name, value=None, _attrDict=None):
         """Create and/or set a Chandler attribute.
@@ -190,7 +190,8 @@ class Item(object):
 
         if isItem:
             otherName = self._otherName(name)
-            card = self.getAttributeAspect(name, 'cardinality', 'single')
+            card = self.getAttributeAspect(name, 'cardinality',
+                                           default='single')
 
             if card == 'single':
                 value = ItemRef(self, name, value, otherName)
@@ -236,7 +237,7 @@ class Item(object):
         except KeyError:
             pass
 
-        inherit = self.getAttributeAspect(name, 'inheritFrom', None)
+        inherit = self.getAttributeAspect(name, 'inheritFrom', default=None)
         if inherit is not None:
             value = self
             for attr in inherit.split('.'):
@@ -305,6 +306,14 @@ class Item(object):
 
         else:
             raise ValueError, '%s or %s not a %s of %s' %(child, after, self)
+
+    def dir(self, recursive=True):
+        'Print out a listing of each child under this item, recursively.'
+        
+        for child in self:
+            print child.getItemPath()
+            if recursive:
+                child.dir(True)
 
     def iterChildren(self, load=True):
 
@@ -393,13 +402,16 @@ class Item(object):
         attrValue = _attrDict.get(attribute, None)
             
         if attrValue is None:
-            card = self.getAttributeAspect(attribute, 'cardinality', 'single')
+            card = self.getAttributeAspect(attribute, 'cardinality',
+                                           default='single')
 
             if card == 'dict':
                 if isItem:
                     attrValue = self._refDict(attribute)
                 else:
-                    _attrDict[attribute] = PersistentDict(self, key=value)
+                    attrValue = PersistentDict(self)
+                    attrValue[key] = value
+                    _attrDict[attribute] = attrValue
                     return
 
             elif card == 'list':
@@ -601,7 +613,7 @@ class Item(object):
 
             for name in self._references.keys():
                 policy = self.getAttributeAspect(name, 'deletePolicy',
-                                                 'remove')
+                                                 default='remove')
                 if policy == 'cascade':
                     value = self._references[name]
                     if value is not None:
@@ -662,7 +674,8 @@ class Item(object):
 
         if not (self._status & Item.DELETED):
             for name in self._references.iterkeys():
-                policy = self.getAttributeAspect(name, 'countPolicy', 'none')
+                policy = self.getAttributeAspect(name, 'countPolicy',
+                                                 default='none')
                 if policy == 'count':
                     count += self._references[name]._refCount()
 
@@ -729,7 +742,7 @@ class Item(object):
     def _setKind(self, kind):
 
         if self._kind is not None:
-            self._kind.detach('items', self)
+            self._kind.removeValue('items', value=self)
 
         self._kind = kind
 
@@ -957,10 +970,10 @@ class Item(object):
     def _xmlAttrs(self, generator, withSchema, mode):
 
         for key, value in self._values.iteritems():
-            if self.getAttributeAspect(key, 'persist', True):
+            if self.getAttributeAspect(key, 'persist', default=True):
                 attrType = self.getAttributeAspect(key, 'type')
                 attrCard = self.getAttributeAspect(key, 'cardinality',
-                                                   'single')
+                                                   default='single')
                 ItemHandler.xmlValue(key, value, 'attribute',
                                      attrType, attrCard, generator,
                                      withSchema)
@@ -968,7 +981,7 @@ class Item(object):
     def _xmlRefs(self, generator, withSchema, mode):
 
         for key, value in self._references.iteritems():
-            if self.getAttributeAspect(key, 'persist', True):
+            if self.getAttributeAspect(key, 'persist', default=True):
                 value._xmlValue(key, self, generator, withSchema, mode)
 
     def _refDict(self, name, otherName=None, persist=None):
@@ -976,7 +989,7 @@ class Item(object):
         if otherName is None:
             otherName = self._otherName(name)
         if persist is None:
-            persist = self.getAttributeAspect(name, 'persist', True)
+            persist = self.getAttributeAspect(name, 'persist', default=True)
 
         return self.getRepository().createRefDict(self, name,
                                                   otherName, persist)

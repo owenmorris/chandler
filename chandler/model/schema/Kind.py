@@ -121,7 +121,7 @@ class Kind(Item):
     def _xmlRefs(self, generator, withSchema, mode):
 
         for attr in self._references.items():
-            if self.getAttributeAspect(attr[0], 'persist', True):
+            if self.getAttributeAspect(attr[0], 'persist', default=True):
                 attr[1]._xmlValue(attr[0], self, generator, withSchema, mode)
 
     def isAlias(self):
