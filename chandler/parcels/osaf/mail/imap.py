@@ -18,6 +18,7 @@ import email.Utils as Utils
 import logging as logging
 import repository.util.UUID as UUID
 import common as common
+import repository.item.Query as Query
 
 #XXX: Need to make sure all the flags are in place to prevent a non-ssl session if 
 #     ssl required
@@ -371,3 +372,23 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
                                                 self.account.username, info)
 
         self.log.info(str)
+
+
+def getFirstIMAPAccount():
+    """
+    This method returns the first IMAP Account found in the Repository.
+    The method will throw a C{IMAPException} if there is no C{IMAPAccount}
+    in the Repository.
+
+    @return C{IMAPAccount}
+    """
+    accountKind = Mail.MailParcel.getIMAPAccountKind()
+    account = None
+
+    for acc in Query.KindQuery().run([accountKind]):
+        account = acc
+
+    if account is None:
+        raise IMAPException("No IMAP Account exists in Repository")
+
+    return account

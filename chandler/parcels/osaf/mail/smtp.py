@@ -17,6 +17,7 @@ import errors as errorCode
 import message as message
 import osaf.contentmodel.mail.Mail as Mail
 import repository.util.UUID as UUID
+import repository.item.Query as Query
 import mx.DateTime as DateTime
 
 try:
@@ -133,7 +134,7 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
                 from_addr = self.mailMessage.fromAddress.emailAddress
 
         finally:
-           self.restorePreviousView()
+            self.restorePreviousView()
 
         factory = ChandlerESMTPSenderFactory(username, password, from_addr, to_addrs, msg, d,
                                              retries, sslContext, heloFallback, authRequired, useSSL, useSSL)
@@ -369,3 +370,44 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
 
         self.account.setPinned()
         self.mailMessage.setPinned()
+
+def getDefaultSMTPAccount():
+    """
+    This method returns a tuple containing:
+        1. the first C{SMTPAccount} account in the Repository.
+        2. The ReplyTo C{EmailAddress} associated with the C{SMTPAccounts}
+           parent which will either be a POP or IMAP Acccount.
+
+    The method will throw a C{SMTPException} if:
+    1. No C{SMTPAccount} in the Repository
+    2. No parent account associated with the C{SMTPAccount}
+    3. The replyToAddress of the parent account is None
+
+    @return C{tuple} in the form (C{SMTPAccount}, C{EmailAddress})
+    """
+    accountKind = Mail.MailParcel.getSMTPAccountKind()
+    account = None
+    replyToAddress = None
+
+    """Get the first SMTP Account"""
+    for acc in Query.KindQuery().run([accountKind]):
+        account = acc
+        break
+
+    if account is None:
+        raise SMTPException("No SMTP Account found")
+
+    accList = account.accounts
+
+    if accList is None:
+        raise SMTPException("No Parent Accounts associated with the SMTP account. Can not get replyToAddress.")
+
+    """Get the first IMAP Account"""
+    for parentAccount in accList:
+        replyToAddress = parentAccount.replyToAddress
+        break
+
+    if replyToAddress is None:
+        raise SMTPException("No replyToAddress found for IMAP Account")
+
+    return (account, replyToAddress)

@@ -12,7 +12,6 @@ import errors as errorCode
 import message as message
 import osaf.contentmodel.mail.Mail as Mail
 import repository.persistence.RepositoryView as RepositoryView
-import repository.item.Query as Query
 import repository.util.UUID as UUID
 import mx.DateTime as DateTime
 
@@ -94,8 +93,6 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
 
             messageText = self.__createMessageText()
 
-            print "Message Text:\n", messageText
-
             d = defer.Deferred().addCallbacks(self.__invitationSuccessCheck, self.__invitationFailure)
             msg = StringIO(messageText)
 
@@ -156,26 +153,5 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
         return messageObject.as_string()
 
     def __getData(self):
-        accountKind = Mail.MailParcel.getSMTPAccountKind()
-
-        """Get the first SMTP Account"""
-        for acc in Query.KindQuery().run([accountKind]):
-            self.account = acc
-            break
-
-        if self.account is None:
-            raise SharingException("No SMTP Account found to send invitation with")
-
-        imapList = self.account.accounts
-
-        if imapList is None:
-            raise SharingException("No IMAP Accounts associated with the SMTP account. Can not get replyToAddress.")
-
-        """Get the first IMAP Account"""
-        for imapAccount in imapList:
-            self.from_addr = imapAccount.replyToAddress.emailAddress
-            break
-
-        if self.from_addr is None:
-            raise SharingException("No replyToAddress found for IMAP Account")
-
+        self.account, replyToAddress = smtp.getDefaultSMTPAccount()
+        self.from_addr = replyToAddress.emailAddress

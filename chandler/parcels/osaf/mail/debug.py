@@ -24,12 +24,7 @@ def sendInvitation():
     sharing.SMTPInvitationSender("http://test.com", ['brian@localhost', 'bkirsch@osafoundation.org']).sendInvitation()
 
 def sendSMTPMessage():
-    accountKind = Mail.MailParcel.getSMTPAccountKind()
-    account = None
-
-    for acc in Query.KindQuery().run([accountKind]):
-        account = acc
-        break
+    account, replyToAddress = smtp.getDefaultSMTPAccount()
 
     m = Mail.MailMessage()
 
@@ -39,29 +34,13 @@ def sendSMTPMessage():
 
     ea1 = Mail.EmailAddress()
     ea1.emailAddress = "bkirsch@osafoundation.org"
-    #ea1.fullName = "Brian Kirsch"
+    ea1.fullName = "Brian Kirsch"
 
-    ea2 = Mail.EmailAddress()
-    ea2.emailAddress = "bbi.com"
-    #ea2.fullName = "Brian Kirsch"
 
-    ea3 = Mail.EmailAddress()
-    ea3.emailAddress = "bill@test.com"
-
-    ea4 = Mail.EmailAddress()
-    ea4.emailAddress = "brian@yahoo.com"
-    #ea.fullName = "Brian Kirsch"
-
+    m.toAddress.append(ea)
     m.toAddress.append(ea1)
-    #m.toAddress.append(ea2)
-    #m.toAddress.append(ea3)
-    #m.toAddress.append(ea4)
-    # m.toAddress.append(ea1)
-    #m.ccAddress.append(ea2)
-    #m.bccAddress.append(ea)
 
-    m.fromAddress = ea
-    #m.replyToAddress = ea
+    m.fromAddress = replyToAddress
     m.subject = "This is a Test From SMTPSenderAction"
     m.body = message.strToText(m, "body", "This is some body Text")
 
