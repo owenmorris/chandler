@@ -26,13 +26,13 @@ dest=Contents/MacOS
 python
 
 # Grab wx and db libs
-src=release
+src=debug
 dest=Contents/Resources
 glob=*.dylib,*.r,*.rsrc,*.jnilib,*.la
 lib
-src=release/db
+src=debug/db
 lib
-src=release/dbxml
+src=debug/dbxml
 lib
 
 # Grab Chandler.py and others
