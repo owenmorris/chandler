@@ -14,6 +14,28 @@ from model.util.PersistentDict import PersistentDict
 from Kind import Kind
 
 
+class TypeKind(Kind):
+
+    def findTypes(self, value):
+        """Return a list of types recognizing value.
+
+        The list is sorted by order of 'relevance', a very subjective concept
+        that is specific to the category of matching types.
+        For example, Integer < Long < Float or String < Symbol."""
+
+        matches = []
+        # kludge
+        for item in self.getItemParent():
+            if item._kind is self:
+                if item.recognizes(value):
+                    matches.append(item)
+
+        if matches:
+            matches.sort(lambda x, y: x._compareTypes(y))
+
+        return matches
+    
+
 class Type(Item):
 
     def makeValue(cls, data):
@@ -27,6 +49,12 @@ class Type(Item):
 
     def recognizes(self, value):
         raise NotImplementedError, "Type.recognizes()"
+
+    # override this to compare types of the same category, like
+    # Integer, Long and Float or String and Symbol
+    # in order of 'relevance' for findTypes
+    def _compareTypes(self, other):
+        return 0
 
     def isAlias(self):
         return False
@@ -70,7 +98,7 @@ class Type(Item):
 
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
-    handlerName = classmethod(handlerName)    
+    handlerName = classmethod(handlerName)
 
 
 class String(Type):
@@ -87,6 +115,9 @@ class String(Type):
     def unserialize(self, data):
         return String.makeValue(data)
 
+    def _compareTypes(self, other):
+        return -1
+
     makeValue = classmethod(makeValue)
     makeString = classmethod(makeString)
 
@@ -102,6 +133,9 @@ class Symbol(Type):
     def recognizes(self, value):
         return type(value) is str
 
+    def _compareTypes(self, other):
+        return 1
+    
     makeValue = classmethod(makeValue)
 
 
@@ -115,6 +149,9 @@ class Integer(Type):
 
     def recognizes(self, value):
         return type(value) is int
+
+    def _compareTypes(self, other):
+        return -1
 
     makeValue = classmethod(makeValue)
 
@@ -130,6 +167,13 @@ class Long(Type):
     def recognizes(self, value):
         return type(value) is long or type(value) is int
 
+    def _compareTypes(self, other):
+        if other._name == 'Integer':
+            return 1
+        if other._name == 'Float':
+            return -1
+        return 0
+
     makeValue = classmethod(makeValue)
 
 
@@ -144,6 +188,9 @@ class Float(Type):
     def recognizes(self, value):
         return (type(value) is float or
                 type(value) is long or type(value) is int)
+
+    def _compareTypes(self, other):
+        return 1
 
     makeValue = classmethod(makeValue)
 

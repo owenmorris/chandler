@@ -5,7 +5,7 @@
   <item withSchema="True">
     <name>Type</name>
     <kind type="path">//Schema/Core/Kind</kind>
-    <class module="model.schema.Kind">Kind</class>
+    <class module="model.schema.Types">TypeKind</class>
 
     <ref name="attributes" otherName="kinds" cardinality="list" 
          otherCard="list">

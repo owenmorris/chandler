@@ -43,12 +43,13 @@ class Kind(Item):
     def newKind(self, name, parent, superKind=None):
         """Create a new kind, programmatically.
 
-        The superKind of the kind created defaults to the Item kind."""
+        The superKind of the kind created defaults to the Item kind at
+        //Schema/Core/Item."""
 
         if superKind is None:
-            superKind = self.kind.kind.getItemParent().getItemChild('Item')
+            superKind = self._kind.getItemParent().getItemChild('Item')
         
-        kind = type(self)(name, parent, self.kind)
+        kind = Kind(name, parent, self.kind)
         kind.addValue('superKinds', superKind)
 
         return kind

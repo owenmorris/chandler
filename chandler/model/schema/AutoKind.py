@@ -7,6 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from model.item.Item import Item
 from model.schema.Kind import Kind
+from model.schema.Types import Type
 from model.schema.Attribute import Attribute
 
 
@@ -119,7 +120,7 @@ class AutoKind(object):
         else:
             self._verifyAttribute(name, attribute, kwds)
 
-        if kwds.has_key('value'):
+        if 'value' in kwds:
             self._setValue(name, attribute, kwds['value'], kwds)
 
         return attribute
@@ -155,7 +156,16 @@ class AutoKind(object):
             if aspect != 'value' and aspect != 'otherCardinality':
                 attribute.setAttributeValue(aspect, value)
 
-        kind.addValue('attributes', attribute, alias=name)
+        if 'type' not in kwds and 'value' in kwds:
+            value = kwds['value']
+            if not isinstance(value, Item):
+                if attribute.getAspect('cardinality') == 'single':
+                    typeKind = kind._kind.getItemParent().getItemChild('Type')
+                    types = typeKind.findTypes(value)
+                    if types:
+                        attribute.setAttributeValue('type', types[0])
+
+        kind.addValue('attributes', attribute)
         
         return attribute
 
