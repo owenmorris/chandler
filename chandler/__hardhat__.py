@@ -11,6 +11,7 @@ dependencies = (
                 'PyXML',
                 'egenix-mx-base-2.0.4',
                 'zodb',
+                'jabber-py',
                )
 
 
