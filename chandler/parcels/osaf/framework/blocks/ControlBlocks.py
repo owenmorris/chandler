@@ -470,6 +470,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.AutoSizeRows()
         self.EnableGridLines(False)
         self.EnableDragCell(True)
+        self.DisableDragRowSize()
         self.SetDefaultCellBackgroundColour(wx.WHITE)
         self.SetMargins(0-wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
                         0-wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y))
