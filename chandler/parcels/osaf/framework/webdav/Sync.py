@@ -126,8 +126,8 @@ def syncToServer(dav, item):
 
         elif acard == 'single':
             if isinstance(value, Item):
-                defaultURL = dav.url.join(i.itsUUID.str16())
-                durl = i.getAttributeValue('sharedURL', default=defaultURL)
+                defaultURL = dav.url.join(value.itsUUID.str16())
+                durl = value.getAttributeValue('sharedURL', default=defaultURL)
                 DAV(durl).put(value)
                 props += makePropString(name, namespace, '<itemref>%s</itemref>' % (unicode(durl)))
             else:

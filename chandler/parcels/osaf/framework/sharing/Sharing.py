@@ -38,10 +38,6 @@ def subscribeToWebDavCollection(url):
     event.Post({'collection':collection})
     Globals.repository.commit()
 
-def publishWebDavCollection(collection):
-    """ Given a collection, tell the webdav subsystem to publish it, and
-        return the url for it. """
-    return ""
 
 def sendInvites(addresses, url):
     """ Tell the email subsystem to send a sharing invite to the given
@@ -68,11 +64,16 @@ def manualSubscribeToCollection():
 
 def manualPublishCollection(collection):
     print 'Share collection "%s"' % collection.displayName
-    addresses = application.dialogs.Util.promptUser( \
+    url = application.dialogs.Util.promptUser( \
      Globals.wxApplication.mainFrame, "Publish Collection...",
-     "Email address to send invites: (comma separated)", "")
-    url = publishWebDavCollection(collection)
-    if addresses is not None:
-        addresses = addresses.split(",")
-        sendInvites(addresses, url)
+     "URL to publish collection to:",
+     "http://code-bear.com/dav/%s" % collection.itsUUID)
+    if url is not None:
+        addresses = application.dialogs.Util.promptUser( \
+         Globals.wxApplication.mainFrame, "Publish Collection...",
+         "Email address to send invites: (comma separated)", "")
+        osaf.framework.webdav.Dav.DAV(url).put(collection)
+        if addresses is not None:
+            addresses = addresses.split(",")
+            sendInvites(addresses, url)
 
