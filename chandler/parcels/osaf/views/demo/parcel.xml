@@ -238,7 +238,7 @@
   <Button itsName="ImageButton">
     <!-- Attributes -->
     <buttonKind>Image</buttonKind>
-    <icon>application/images/refresh.png</icon>
+    <icon>application/images/reply.png</icon>
 
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
