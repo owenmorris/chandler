@@ -51,7 +51,6 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 cvsModules = (
     'osaf/chandler/Chandler',
     'osaf/chandler/python',
-    'osaf/chandler/zodb',
     'osaf/chandler/egenix-mx',
     'osaf/chandler/wxpython',
     'osaf/chandler/jabber-py',
@@ -65,7 +64,6 @@ cvsModules = (
 # If any of these modules have changed, scrub everything before building
 scrubAllModules = {
     'osaf/chandler/python':1,
-    'osaf/chandler/zodb':1,
     'osaf/chandler/egenix-mx':1,
     'osaf/chandler/wxpython':1,
     'osaf/chandler/jabber-py':1,
