@@ -15,5 +15,5 @@
 # in addition to the first matching regex or "DEFAULT".
 #
 # I'm commenting these out until we fix hula:
-ALL /disk1/cvs-scripts/no_tabs
 # ALL /disk1/twisted/python/bin/loginfo  --commitinfo
+ALL /disk1/cvs-scripts/no_tabs
