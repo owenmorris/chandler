@@ -26,15 +26,15 @@ class Thing(PersistentDict):
     def __init__(self, dict=None):
         PersistentDict.__init__(self, dict)
 
-    def GetAttribute(self, uri):
-        """ Returns the value of the attribute named by the uri argument.
-        Looks for an AttributeTemplate for this uri, and does validation
+    def GetAttribute(self, url):
+        """ Returns the value of the attribute named by the url argument.
+        Looks for an AttributeTemplate for this url, and does validation
         if it finds one.
         
         @@@ Note: we're doing validation because we can, to show off
         AttributeTemplates. We might not want to for performance reasons.
         """
-        template = self.GetAttributeTemplate(uri)
+        template = self.GetAttributeTemplate(url)
 
         # If we have schema information about this attribute, use it
         if template:
@@ -42,11 +42,11 @@ class Thing(PersistentDict):
             # If the attribute is required, throw an exception if
             # we don't find it. (usual dictionary behavior)
             if template.GetRequired():
-                value = self[uri]
+                value = self[url]
 
             # If the attribute is not required, provide a default
             else:
-                value = self.get(uri, template.GetDefault())
+                value = self.get(url, template.GetDefault())
 
             # Do a check against type and cardinality
             assert(template.IsValid(value))
@@ -54,36 +54,36 @@ class Thing(PersistentDict):
         # If we don't have schema information, return None if
         # we can't find the attribute. (use get instead of [])
         else:
-            value = self.get(uri, None)
+            value = self.get(url, None)
             
         return value
     
-    def SetAttribute(self, uri, value):
-        """ Sets the attribute named by 'uri', giving it 'value'.
-        Looks for an AttributeTemplate for this uri, and does validation
+    def SetAttribute(self, url, value):
+        """ Sets the attribute named by 'url', giving it 'value'.
+        Looks for an AttributeTemplate for this url, and does validation
         if it finds one.
         
         @@@ Note: we're doing validation because we can, to show off
         AttributeTemplates. We might not want to for performance reasons.
         """
-        template = self.GetAttributeTemplate(uri)
+        template = self.GetAttributeTemplate(url)
 
         # if we have schema information, use it for validation
         if template:
             assert(template.IsValid(value))
             
-        self[uri] = value
+        self[url] = value
         
-    def HasAttribute(self, uri):
-        return self.has_key(uri)
+    def HasAttribute(self, url):
+        return self.has_key(url)
         
-    def GetAttributeTemplate(self, uri):
-        """ Returns an AttributeTemplate for this uri, if we can find one.
+    def GetAttributeTemplate(self, url):
+        """ Returns an AttributeTemplate for this url, if we can find one.
         If this Thing has a type, we ask the KindOfItem
         """
         ako = self.GetAko()
         if ako:
-            template = ako.GetAttributeTemplate(uri)
+            template = ako.GetAttributeTemplate(url)
         else:
             template = None
         return template
@@ -103,28 +103,28 @@ class Thing(PersistentDict):
         """
         self[chandler.ako] = akoThing
         
-    def GetUri(self):
-        """ Returns the uri that uniquely names this Thing.
+    def GetURL(self):
+        """ Returns the url that uniquely names this Thing.
         """
-        return self.get(chandler.uri)
+        return self.get(chandler.url)
     
-    def SetUri(self, uri):
-        """ Sets the uri that uniquely names this Thing.
+    def SetURL(self, url):
+        """ Sets the url that uniquely names this Thing.
         """
-        self[chandler.uri] = uri
+        self[chandler.url] = url
         
-    def GetAkoUri(self):
-        """ Convenience method to get the uri of the KindOfThing
+    def GetAkoURL(self):
+        """ Convenience method to get the url of the KindOfThing
             associated with this 'Thing'. Returns None if there is
             no KindOfThing associated.
         """
         ako = self.GetAko()
         if (ako != None):
-            return ako.GetUri()
+            return ako.GetURL()
         return None
     
     def GetAllAttributes(self):
-        """ Returns a list of uris for the attributes of this 'Thing' instance.
+        """ Returns a list of urls for the attributes of this 'Thing' instance.
         """
         return self.keys()
         
@@ -141,11 +141,11 @@ class Thing(PersistentDict):
     # through the attribute dictionary, in order to do our thing
     def DumpThing(self, key, indent = '    '):
         className = self.__class__.__name__
-        uri = self.GetUri()
+        url = self.GetURL()
         if key == None:
-            xmlStr = indent + '<%s uri="%s">\n' % (className, uri)
+            xmlStr = indent + '<%s url="%s">\n' % (className, url)
         else:
-            xmlStr = indent + '<%s name="%s" uri="%s">\n' % (className, key, uri)
+            xmlStr = indent + '<%s name="%s" url="%s">\n' % (className, key, url)
            
         # iterate through the attributes of the Thing
         for key in self.keys():
@@ -190,7 +190,7 @@ class Thing(PersistentDict):
     # generate the appropriate RAP call to a repository.
     
     def PrintTriples(self):
-        print ('******* Triples for ' + self.GetUri() + ' *********')
+        print ('******* Triples for ' + self.GetURL() + ' *********')
         for key in self.keys():
             value = self[key]
             if (type(value) is PersistentList):
@@ -202,14 +202,14 @@ class Thing(PersistentDict):
 
     def PrintTriple(self, key, value):
         if (isinstance(value, Thing)):
-            print (self.GetUri(), key, value.GetUri())
+            print (self.GetURL(), key, value.GetURL())
         else:
-            print (self.GetUri(), key, value)
+            print (self.GetURL(), key, value)
             
     def GetUniqueId(self):
         """ @@@ Scaffolding hack, really the repository will take
         care of generating universally unique ids. We just need 
-        something for now for item uris.
+        something for now for item urls.
         """
         now = DateTime.now()
         name = (str(now.absdate) + '.' + 

@@ -25,51 +25,51 @@ _sharingChoices = [_('private'), _('public')]
 _reputationChoices = [_('trustworthy'), _('reliable'), _('honest'), 
                       _('secure'), _('unknown')]
 
-_attributes = [{ chandler.uri : chandler.contactType,
+_attributes = [{ chandler.url : chandler.contactType,
                  chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Contact Type'),
                  chandler.default : '' },
                
-               { chandler.uri : chandler.contactName,
+               { chandler.url : chandler.contactName,
                  chandler.range : ContactName,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Contact Name'),
                  chandler.default : '' },
 
-               { chandler.uri : chandler.contactMethod,
+               { chandler.url : chandler.contactMethod,
                  chandler.range : ContactMethod,
                  chandler.cardinality : None,
                  chandler.required : False,
                  chandler.displayName : _('Contact Method'),
                  chandler.default : [] },           
                
-               { chandler.uri : chandler.photoURL,
+               { chandler.url : chandler.photoURL,
                  chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Photo URL'),
                  chandler.default : None },
 
-               { chandler.uri : chandler.group,
+               { chandler.url : chandler.group,
                  chandler.range : 'string',
                  chandler.cardinality : None,
                  chandler.required : False,
                  chandler.displayName : _('Group'),
                  chandler.default : [] },
                
-               # Lists of uris, for attribute formatting
+               # Lists of urls, for attribute formatting
                
-               { chandler.uri : chandler.headerAttribute,
+               { chandler.url : chandler.headerAttribute,
                  chandler.range : 'string',
                  chandler.cardinality : None,
                  chandler.required : False,
                  chandler.displayName : _('Header Attribute'),
                  chandler.default : [] },
                
-               { chandler.uri : chandler.bodyAttribute,
+               { chandler.url : chandler.bodyAttribute,
                  chandler.range : 'string',
                  chandler.cardinality : None,
                  chandler.required : False,
@@ -78,70 +78,70 @@ _attributes = [{ chandler.uri : chandler.contactType,
                
                # The laundry list of contact attributes...
                
-               { chandler.uri : chandler.companyName,
+               { chandler.url : chandler.companyName,
                  chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Company'),
                  chandler.default : _('company name') },
 
-               { chandler.uri : chandler.jobTitle,
+               { chandler.url : chandler.jobTitle,
                  chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Title'),
                  chandler.default : _('job title') },              
                
-               { chandler.uri : chandler.occupation,
+               { chandler.url : chandler.occupation,
                  chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Occupation'),
                  chandler.default : _('occupation') },
 
-               { chandler.uri : chandler.relationship,
+               { chandler.url : chandler.relationship,
                  chandler.range : _relationshipChoices,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Relationship'),
                  chandler.default : _('relationship') },
 
-               { chandler.uri : chandler.age,
+               { chandler.url : chandler.age,
                  chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Age'),
                  chandler.default : _('age') },
                
-               { chandler.uri : chandler.birthday,
+               { chandler.url : chandler.birthday,
                  chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Birthday'),
                  chandler.default : _('birthday') },
 
-               { chandler.uri : chandler.gender,
+               { chandler.url : chandler.gender,
                  chandler.range : _genderChoices,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Gender'),
                  chandler.default : _('gender') },
                                       
-               { chandler.uri : chandler.sharing,
+               { chandler.url : chandler.sharing,
                  chandler.range : _sharingChoices,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Sharing Policy'),
                  chandler.default : _('public') },
 
-               { chandler.uri : chandler.reputation,
+               { chandler.url : chandler.reputation,
                  chandler.range : _reputationChoices,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Reputation'),
                  chandler.default : _('unknown') },
 
-               { chandler.uri : chandler.interests,
+               { chandler.url : chandler.interests,
                  chandler.range : [],
                  chandler.cardinality : None,
                  chandler.required : False,
@@ -238,8 +238,8 @@ class Contact(Item):
         """
         for contactMethod in self.GetContactMethods():
             if contactMethod.GetMethodType() == contactType:
-                for attributeUri in contactMethod.GetAllAttributes():
-                    if (contactMethod.GetAttribute(attributeUri) == contactValue):
+                for attributeURL in contactMethod.GetAllAttributes():
+                    if (contactMethod.GetAttribute(attributeURL) == contactValue):
                         return true
         return false
     

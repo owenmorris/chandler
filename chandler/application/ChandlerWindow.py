@@ -238,45 +238,45 @@ class wxChandlerWindow(wxFrame):
         self.model.size['height'] = rect.GetHeight()
         self.model.sashSize = self.splitterWindow.GetSashPosition ()
 
-    # parse a uri to extract the remote address and parcel name
-    # returns a tuple of (parcelname, remoteaddresss, localuri)
+    # parse a url to extract the remote address and parcel name
+    # returns a tuple of (parcelname, remoteaddresss, localurl)
     # FIXME: this shouldn't be part of ChandlerWindow, but for now
     # we don't have a better place for it
-    def ParseUri(self, uri):
-        if uri.startswith('/'):
-            uri = uri[1:]
-        if uri.endswith('/'):
-            uri = uri[:-1] 
-        fields = uri.split('/')
+    def ParseURL(self, url):
+        if url.startswith('/'):
+            url = url[1:]
+        if url.endswith('/'):
+            url = url[:-1] 
+        fields = url.split('/')
         
         remoteaddress = None
         parcelname = fields[0]
-        localuri = uri
+        localurl = url
         
         if parcelname.find('@') > -1:
             remoteaddress = fields[0]
             parcelname = fields[1]
-            localuri = string.join(fields[1:], '/')
+            localurl = string.join(fields[1:], '/')
         
-        return (parcelname, remoteaddress, localuri)
+        return (parcelname, remoteaddress, localurl)
 
-    def IsRemoteUri(self):
+    def IsRemoteURL(self):
         return self.isRemote
     
-    def GoToUri(self, uri, doAddToHistory = true):
+    def GoToURL(self, url, doAddToHistory = true):
         """
-          Navigates to the specified uri.  Steps for this include:
-        1) Adjusting the sidebar to represent the currently selected uri  
+          Navigates to the specified url.  Steps for this include:
+        1) Adjusting the sidebar to represent the currently selected url  
         2) Adjusting the navigation bar to have the proper history and 
         synchronize its view  3) Telling the parcel to display the proper
-        uri.
+        url.
         """
         # If the window has already been closed
         if not application.Application.app.association.has_key(id(self.model)):
             return false
 
-        parcelname, remoteaddress, localuri = self.ParseUri(uri)
-        parcel = application.Application.app.model.URLTree.UriExists(parcelname)
+        parcelname, remoteaddress, localurl = self.ParseURL(url)
+        parcel = application.Application.app.model.URLTree.URLExists(parcelname)
         if parcel == None:
             return false
         
@@ -284,18 +284,18 @@ class wxChandlerWindow(wxFrame):
           give the parcel a chance to redirect the url to another parcel.  This allows
           the roster to offer links to other parcels, for example
         """
-        mappedURI = parcel.RedirectURI(uri)
-        if mappedURI != uri:
-            uri = mappedURI
-            parcelname, remoteaddress, localuri = self.ParseUri(uri)
-            parcel = application.Application.app.model.URLTree.UriExists(parcelname)
+        mappedURL = parcel.RedirectURL(url)
+        if mappedURL != url:
+            url = mappedURL
+            parcelname, remoteaddress, localurl = self.ParseURL(url)
+            parcel = application.Application.app.model.URLTree.URLExists(parcelname)
             if parcel == None:
                 return false
         
         self.isRemote = remoteaddress != None
             
-        self.sideBar.model.SelectUri(localuri)
+        self.sideBar.model.SelectURL(localurl)
         if doAddToHistory:
-            self.navigationBar.model.AddUriToHistory(uri)
+            self.navigationBar.model.AddURLToHistory(url)
         self.navigationBar.model.SynchronizeView()
-        return parcel.GoToUri(remoteaddress, localuri)
+        return parcel.GoToURL(remoteaddress, localurl)

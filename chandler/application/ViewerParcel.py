@@ -37,10 +37,10 @@ class ViewerParcel (Parcel):
         below.
           Currently we install by appending to the end of the list
         """
-        uriList = app.model.URLTree.GetUriChildren('')
+        urlList = app.model.URLTree.GetURLChildren('')
         found = false
-        for uri in uriList:
-            parcel = app.model.URLTree.UriExists(uri)
+        for url in urlList:
+            parcel = app.model.URLTree.URLExists(url)
             if parcel.__module__ == theClass.__module__:
                 found = true
                 break
@@ -51,7 +51,7 @@ class ViewerParcel (Parcel):
             else:
                 instance = theClass.__new__ (theClass)
             instance.__init__()
-            app.model.URLTree.AddUri(instance, instance.displayName)
+            app.model.URLTree.AddURL(instance, instance.displayName)
         
     Install = classmethod (Install)
     
@@ -113,22 +113,22 @@ class ViewerParcel (Parcel):
             panel.Activate()
             panel.Show ()
 
-    def GoToUri(self, remoteaddress, uri):
+    def GoToURL(self, remoteaddress, url):
         """
-          Override to navigate your parcel to the specified uri.
+          Override to navigate your parcel to the specified url.
           The remoteaddress specifies the address of a remote repository,
           or 'None' for the local repository
         """
         self.SynchronizeView()
         return true
 
-    def RedirectURI(self, uri):
+    def RedirectURL(self, url):
         """
-          give the parcel a chance to redirect the uri to another parcel.
+          give the parcel a chance to redirect the url to another parcel.
           By default, we don't do any mapping, but parcels can override
           this if they want to.
         """
-        return uri
+        return url
     
     def GetAccessibleViews(self, who):
         """

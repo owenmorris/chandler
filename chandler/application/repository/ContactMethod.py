@@ -13,70 +13,70 @@ from application.repository.Namespace import chandler
 from application.repository.Item import Item
 from application.repository.ContactName import ContactName
 
-_attributes = [{ chandler.uri : chandler.methodType,
+_attributes = [{ chandler.url : chandler.methodType,
                  chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Contact Method'),
                  chandler.default : '' },
                
-               { chandler.uri : chandler.methodDescription,
+               { chandler.url : chandler.methodDescription,
                  chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Description'),
                  chandler.default : '' },
                
-               { chandler.uri : chandler.methodComment,
+               { chandler.url : chandler.methodComment,
                  chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Comment'),
                  chandler.default : None },
                
-               { chandler.uri : chandler.methodAttributes,
+               { chandler.url : chandler.methodAttributes,
                  chandler.range : 'string',
                  chandler.cardinality : None,
                  chandler.required : False,
                  chandler.displayName : _('Method Attributes'),
                  chandler.default : [] }]
                
-_phoneAttributes = [{ chandler.uri : chandler.phonenumber,
+_phoneAttributes = [{ chandler.url : chandler.phonenumber,
                       chandler.range : 'string',
                       chandler.cardinality : 1,
                       chandler.required : False,
                       chandler.displayName : _('Phone Number'),
                       chandler.default : _('phone number') }]
                    
-_emailAttributes = [{ chandler.uri : chandler.emailAddress,
+_emailAttributes = [{ chandler.url : chandler.emailAddress,
                       chandler.range : 'string',
                       chandler.cardinality : 1,
                       chandler.required : False,
                       chandler.displayName : _('Email Address'),
                       chandler.default : _('email address') }]
 
-_jabberAttributes = [{ chandler.uri : chandler.jabberAddress,
+_jabberAttributes = [{ chandler.url : chandler.jabberAddress,
                        chandler.range : 'string',
                        chandler.cardinality : 1,
                        chandler.required : False,
                        chandler.displayName : _('Jabber ID'),
                        chandler.default : _('jabber id') }]
 
-_websiteAttributes = [{ chandler.uri : chandler.url,
+_websiteAttributes = [{ chandler.url : chandler.url,
                         chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
                         chandler.displayName : _('URL'),
                         chandler.default : _('URL') }]
 
-_noteAttributes = [{ chandler.uri : chandler.note,
+_noteAttributes = [{ chandler.url : chandler.note,
                      chandler.range : 'string',
                      chandler.cardinality : 1,
                      chandler.required : False,
                      chandler.displayName : _('Note'),
                      chandler.default : _('') }]
                    
-_postalAttributes = [{ chandler.uri : chandler.street,
+_postalAttributes = [{ chandler.url : chandler.street,
                        chandler.range : 'string',
                        chandler.cardinality : 1,
                        chandler.required : False,
@@ -84,28 +84,28 @@ _postalAttributes = [{ chandler.uri : chandler.street,
                        chandler.default : _('street address') },
                      
                      # hack!
-                     { chandler.uri : 'linebreak',
+                     { chandler.url : 'linebreak',
                        chandler.range : 'string',
                        chandler.cardinality : 1,
                        chandler.required : False,
                        chandler.displayName : _('linebreak'),
                        chandler.default : _('linebreak') },                     
                      
-                     { chandler.uri : chandler.city,
+                     { chandler.url : chandler.city,
                        chandler.range : 'string',
                        chandler.cardinality : 1,
                        chandler.required : False,
                        chandler.displayName : _('City'),
                        chandler.default : _('city') },
                      
-                     { chandler.uri : chandler.state,
+                     { chandler.url : chandler.state,
                        chandler.range : 'string',
                        chandler.cardinality : 1,
                        chandler.required : False,
                        chandler.displayName : _('State'),
                        chandler.default : _('state') },
                      
-                     { chandler.uri : chandler.zip,
+                     { chandler.url : chandler.zip,
                        chandler.range : 'string',
                        chandler.cardinality : 1,
                        chandler.required : False,
@@ -122,8 +122,8 @@ _methodTypes = { 'phone' : (chandler.PhoneContactMethod, _phoneAttributes),
 
 class AkoContactMethodFactory(AkoThingFactory):
     def __init__(self, type):
-        uri, typeAttributes = _methodTypes[type]
-        AkoThingFactory.__init__(self, uri,
+        url, typeAttributes = _methodTypes[type]
+        AkoThingFactory.__init__(self, url,
                                  _attributes + typeAttributes)
         
 class ContactMethod(Item):
@@ -144,10 +144,10 @@ class ContactMethod(Item):
     #     meta-information as 'Thing's
     def InitMethodAttributes(self, type):
         attributes = []
-        uri, typeAttributes = _methodTypes[type]
+        url, typeAttributes = _methodTypes[type]
         for typeAttribute in typeAttributes:
-            attributeUri = typeAttribute[chandler.uri]
-            attributes.append(attributeUri)
+            attributeURL = typeAttribute[chandler.url]
+            attributes.append(attributeURL)
         self.SetMethodAttributes(attributes)
         
     def GetLocationAbbreviation(self):

@@ -54,9 +54,9 @@ class Repository:
             # FIXME: need to indicate failure somehow...
             pass
         
-    def FindThing(self, uri):
+    def FindThing(self, url):
         for thing in self.thingList:
-            if (thing.GetUri() == uri):
+            if (thing.GetURL() == url):
                 return thing
         return None
         

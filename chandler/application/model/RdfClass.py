@@ -10,14 +10,14 @@ class RdfClass(RdfResource):
         RdfResource.__init__(self)
 
         self.name = klass.__name__
-        self.uri = klass.uri
+        self.url = klass.url
         self.rdfs = klass.rdfs
 
-    def __init__(self, name, uri):
+    def __init__(self, name, url):
         RdfResource.__init__(self)
 
         self.name = name
-        self.uri = uri
+        self.url = url
         self.rdfs = PersistentDict()
 
     def addProperty(self, property, restriction):
@@ -25,7 +25,7 @@ class RdfClass(RdfResource):
 
     def printTriples(self):
         """Scaffolding, just to give a taste"""
-        print (self.uri, rdf.type, rdfs.Class)
+        print (self.url, rdf.type, rdfs.Class)
 
         for key in self.rdfs.keys():
             print (key, rdfs.domain, self.name)

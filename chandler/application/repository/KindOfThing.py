@@ -29,24 +29,24 @@ class ThingFactory:
     def CreateThing(self, dict):
         return Thing(dict)
 
-    def GetThing(self, uri, dict):
+    def GetThing(self, url, dict):
         repository = Repository()
-        thing = repository.FindThing(self.uri)
+        thing = repository.FindThing(self.url)
         if (thing is None):
             thing = self.CreateThing(dict)
             repository.AddThing(thing)
         return thing
 
 class AkoThingFactory:
-    def __init__(self, uri, templateDict):
-        self.uri = uri
+    def __init__(self, url, templateDict):
+        self.url = url
         self.templateDict = templateDict
     
     def GetAko(self):
         repository = Repository()
-        akoItem = repository.FindThing(self.uri)
+        akoItem = repository.FindThing(self.url)
         if (akoItem is None):
-            akoItem = KindOfThing(self.uri, self.templateDict)
+            akoItem = KindOfThing(self.url, self.templateDict)
             repository.AddThing(akoItem)
 
             templateList = akoItem.GetAllAttributeTemplates()
@@ -56,9 +56,9 @@ class AkoThingFactory:
         return akoItem      
 
 class KindOfThing(Thing):
-    def __init__(self, uri, templateList):
+    def __init__(self, url, templateList):
         Thing.__init__(self)
-        self.SetUri(uri)
+        self.SetURL(url)
         self.CreateAttributeTemplates(templateList)
         
     def CreateAttributeTemplates(self, attributeTemplateList):
@@ -66,10 +66,10 @@ class KindOfThing(Thing):
         for templateDict in attributeTemplateList:
             self.CreateAttributeTemplate(templateDict)
         
-    def GetAttributeTemplate(self, uri):
+    def GetAttributeTemplate(self, url):
         templateList = self[chandler.template]
         for template in templateList:
-            if (template.GetUri() == uri):
+            if (template.GetURL() == url):
                 return template
         return None
     
@@ -78,9 +78,9 @@ class KindOfThing(Thing):
         template = AttributeTemplate(dict)
         templateList.append(template)
     
-    def RemoveAttributeTemplate(self, uri):
+    def RemoveAttributeTemplate(self, url):
         templateList = self[chandler.template]
-        template = self.GetAttributeTemplate(uri)
+        template = self.GetAttributeTemplate(url)
         if template:
             templateList.remove(template)
     

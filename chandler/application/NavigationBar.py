@@ -18,7 +18,7 @@ class NavigationBar(Persistent):
     def __init__(self):
         """
           The model part of the navigation bar simply tracks the history
-        and future of visited uri's.
+        and future of visited url's.
         """
         self.history = PersistentList()
         self.future = PersistentList()
@@ -27,7 +27,7 @@ class NavigationBar(Persistent):
         """
           Notifies the window's wxPython counterpart that they need to
         synchronize themselves to match their persistent model counterpart.
-        Whenever the uri is changed, the navigation bar is notified with 
+        Whenever the url is changed, the navigation bar is notified with 
         the SynchronizeView to update the data to reflect changes.
         """
         if not app.association.has_key(id(self)):
@@ -37,20 +37,26 @@ class NavigationBar(Persistent):
             wxWindow = app.association[id(self)]
             
         if len(self.history) > 0:
-            wxWindow.SetUri(self.history[-1])
+            wxWindow.SetURL(self.history[-1])
             
-    def AddUriToHistory(self, uri):
+    def AddURLToHistory(self, url):
         """
-          Adds the specified uri to the history list and clears the future
+          Adds the specified url to the history list and clears the future
         list.
         """
         self.future = PersistentList()
-        uriWithCase = app.model.URLTree.GetProperCaseOfURI(uri)
-        self.history.append(uriWithCase)
+        urlWithCase = app.model.URLTree.GetProperCaseOfURL(url)
+        # FIXME:  There is a problem where, when parcels can 
+        # redirect urls (within ChandlerWindow) we do not properly
+        # find their url within the sidebar (since the url leaves
+        # its displayed hierarchy).
+        if urlWithCase == None:
+            urlWithCase = url
+        self.history.append(urlWithCase)
         
-    def GetCurrentUri(self):
+    def GetCurrentURL(self):
         """
-          Returns the current uri.  Returns None if there is no current uri
+          Returns the current url.  Returns None if there is no current url
         (when first launching the app).
         """
         if len(self.history) == 0:
@@ -92,29 +98,29 @@ class wxNavigationBar(wxToolBar):
         EVT_TOOL(self, XRCID("stop"), self.DoStop)
         EVT_TOOL(self, XRCID("reload"), self.DoReload)
         EVT_TOOL(self, XRCID("home"), self.GoHome)
-        EVT_TEXT_ENTER(self, XRCID("uriBox"), self.UriEntered)
+        EVT_TEXT_ENTER(self, XRCID("urlBox"), self.URLEntered)
         
-    def UriEntered(self, event):
-        """When the user enters a location in the uri text box of the toolbar,
-        we navigate to that uri.  If switching to that uri fails (because of
-        a typo or because that uri does not exist), then we simply reset the
-        text box to the current uri."""
-        if not hasattr(self, 'uriBox'):
-            self.uriBox = self.FindWindowByName('uriBox')
-        oldUri = self.model.history[-1]
-        newUri = self.uriBox.GetValue()
+    def URLEntered(self, event):
+        """When the user enters a location in the url text box of the toolbar,
+        we navigate to that url.  If switching to that url fails (because of
+        a typo or because that url does not exist), then we simply reset the
+        text box to the current url."""
+        if not hasattr(self, 'urlBox'):
+            self.urlBox = self.FindWindowByName('urlBox')
+        oldurl = self.model.history[-1]
+        newurl = self.urlBox.GetValue()
         
-        if not app.wxMainFrame.GoToUri(newUri):
-            print "Failed to navigate to " + newUri
-            print "setting to " + oldUri
-            self.uriBox.SetValue(oldUri)
+        if not app.wxMainFrame.GoToURL(newURL):
+            print "Failed to navigate to " + newURL
+            print "setting to " + oldURL
+            self.urlBox.SetValue(oldURL)
         
-    def SetUri(self, uri):
-        """Sets the text of the uri text field in the navigation bar to reflect
+    def SetURL(self, url):
+        """Sets the text of the url text field in the navigation bar to reflect
         the current view."""
-        if not hasattr(self, 'uriBox'):
-            self.uriBox = self.FindWindowByName('uriBox')
-        self.uriBox.SetValue(uri)
+        if not hasattr(self, 'urlBox'):
+            self.urlBox = self.FindWindowByName('urlBox')
+        self.urlBox.SetValue(url)
 
     def GoPrev(self, event):
         """Change to the most recent past view.  This moves you back one
@@ -128,8 +134,8 @@ class wxNavigationBar(wxToolBar):
         if len(self.model.history) > 1:
             currentLocation = self.model.history.pop()
             self.model.future.append(currentLocation)
-            newUri = self.model.history[-1]
-            app.wxMainFrame.GoToUri(newUri, false)
+            newURL = self.model.history[-1]
+            app.wxMainFrame.GoToURL(newURL, false)
 
     def GoNext(self, event):
         """Change to the next view in your future list.  The Next button
@@ -138,9 +144,9 @@ class wxNavigationBar(wxToolBar):
         list will be popped off, added to the history list, and you will
         navigate to that view."""
         if len(self.model.future) > 0:
-            newUri = self.model.future.pop()
-            self.model.history.append(newUri)
-            app.wxMainFrame.GoToUri(newUri, false)
+            newURL = self.model.future.pop()
+            self.model.history.append(newURL)
+            app.wxMainFrame.GoToURL(newURL, false)
 
     def DoStop(self, event):
         pass

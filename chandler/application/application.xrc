@@ -42,7 +42,7 @@
                     </object>
                     <object class="separator">
                     </object>
-                    <object class="wxTextCtrl" name="uriBox">
+                    <object class="wxTextCtrl" name="urlBox">
                         <style>wxTE_PROCESS_ENTER</style>
                         <option>1</option>
                         <size>160,-1</size>

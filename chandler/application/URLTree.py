@@ -55,23 +55,23 @@ class URLTree(Persistent):
                 parcels.append(entry.parcel)
         return parcels
     
-    def UriExists(self, uri):
+    def URLExists(self, url):
         """
-          If the uri exists, then this returns the parcel associated
-        with that uri.  If it does not exist, returns None.
+          If the url exists, then this returns the parcel associated
+        with that url.  If it does not exist, returns None.
         """
-        treeEntry = self.__GetUriEntry(self.__GetUriFields(uri), self.tree)
+        treeEntry = self.__GetURLEntry(self.__GetURLFields(url), self.tree)
         if treeEntry != None:
             return treeEntry.parcel
         return None
 
-    def GetUriChildren(self, uri):
+    def GetURLChildren(self, url):
         """
-          Returns a list containing all of the children uri's of the supplied
-        uri.  Returns an empty list if the uri has no children.  Returns 
-        None if the specified uri could not be found.
+          Returns a list containing all of the children url's of the supplied
+        url.  Returns an empty list if the url has no children.  Returns 
+        None if the specified url could not be found.
         """
-        entry = self.__GetUriEntry(self.__GetUriFields(uri), self.tree)
+        entry = self.__GetURLEntry(self.__GetURLFields(url), self.tree)
         if entry != None:
             list = []
             for child in entry.children:
@@ -79,33 +79,33 @@ class URLTree(Persistent):
             return list
         return None
     
-    def AddUri(self, parcel, uri):
+    def AddURL(self, parcel, url):
         """
-          Adds the given parcel at the given uri.  In order for the addition
-        to be successful, the parcel must not be None, the path to the uri
-        must already exist, and the uri itself must not already exist.
+          Adds the given parcel at the given url.  In order for the addition
+        to be successful, the parcel must not be None, the path to the url
+        must already exist, and the url itself must not already exist.
         """
-        fields = self.__GetUriFields(uri)
+        fields = self.__GetURLFields(url)
         separator = '/'
         if parcel != None and\
-           self.UriExists(separator.join(fields[:-1])) and\
-           not self.UriExists(uri):
-            parentEntry = self.__GetUriEntry(fields[:-1], self.tree)
+           self.URLExists(separator.join(fields[:-1])) and\
+           not self.URLExists(url):
+            parentEntry = self.__GetURLEntry(fields[:-1], self.tree)
             newEntry = TreeEntry(parcel, fields[-1], PersistentList())
             parentEntry.children.append(newEntry)
             self.__SynchronizeSideBars()
             return true
         return false
     
-    def RemoveUri(self, uri):
+    def RemoveURL(self, url):
         """
-          Removes the specified uri.  Returns the parcel that was located
-        at that uri and None if the uri could not be removed.  A uri that has
+          Removes the specified url.  Returns the parcel that was located
+        at that url and None if the url could not be removed.  A url that has
         children cannot be removed.
         """
-        if self.UriExists(uri) and len(self.GetUriChildren(uri)) == 0:
-            fields = self.__GetUriFields(uri)
-            parentEntry = self.__GetUriEntry(fields[:-1], self.tree)
+        if self.URLExists(url) and len(self.GetURLChildren(url)) == 0:
+            fields = self.__GetURLFields(url)
+            parentEntry = self.__GetURLEntry(fields[:-1], self.tree)
             for item in parentEntry.children:
                 if item.name == fields[-1]:
                     parcel = item.parcel
@@ -116,43 +116,43 @@ class URLTree(Persistent):
                     return parcel
         return None
     
-    def RenameUri(self, oldUri, newUri):
+    def RenameURL(self, oldURL, newURL):
         """
-          Renames oldUri to be newUri.  oldUri and newUri can only differ in
-        their last field.  oldUri must exist and newUri must not exist.  If
-        oldUri has any children, they will be affected by the change.  Returns
-        the parcel located at the specified uri if the renaming is successful,
+          Renames oldURL to be newURL.  oldURL and newURL can only differ in
+        their last field.  oldURL must exist and newURL must not exist.  If
+        oldURL has any children, they will be affected by the change.  Returns
+        the parcel located at the specified url if the renaming is successful,
         None otherwise.  If None is returned, then no changes were made to the
         URLTree.
         """
-        if self.UriExists(oldUri) and not self.UriExists(newUri):
-            oldFields = self.__GetUriFields(oldUri)
-            newFields = self.__GetUriFields(newUri)
+        if self.URLExists(oldURL) and not self.URLExists(newURL):
+            oldFields = self.__GetURLFields(oldURL)
+            newFields = self.__GetURLFields(newURL)
             separator = '/'
             if separator.join(oldFields[:-1]) ==\
                separator.join(newFields[:-1]):
-                entry = self.__GetUriEntry(oldFields, self.tree)
+                entry = self.__GetURLEntry(oldFields, self.tree)
                 entry.name = newFields[-1]
                 self.__SynchronizeSideBars()
                 return entry.parcel
         return None
 
-    def MoveParcel(self, oldUri, newUri):
+    def MoveParcel(self, oldURL, newURL):
         """
-          Moves the parcel located at oldUri to newUri.  oldUri must exist,
-        newUri must not exist, and the path to newUri must exist.  Returns 
+          Moves the parcel located at oldURL to newURL.  oldURL must exist,
+        newURL must not exist, and the path to newURL must exist.  Returns 
         the parcel that was moved if the move is successful, None otherwise.
-        If the move is successful, the parcel will be located at newUri and
-        nothing will be located at oldUri.  If it is not successful, then no 
+        If the move is successful, the parcel will be located at newURL and
+        nothing will be located at oldURL.  If it is not successful, then no 
         changes were made.
         """
-        if self.UriExists(oldUri) and not self.UriExists(newUri):
-            oldFields = self.__GetUriFields(oldUri)
-            newFields = self.__GetUriFields(newUri)
+        if self.URLExists(oldURL) and not self.URLExists(newURL):
+            oldFields = self.__GetURLFields(oldURL)
+            newFields = self.__GetURLFields(newURL)
             separator = '/'
-            if self.UriExists(separator.join(newFields[:-1])):
-                oldParent = self.__GetUriEntry(oldFields[:-1], self.tree)
-                newParent = self.__GetUriEntry(newFields[:-1], self.tree)
+            if self.URLExists(separator.join(newFields[:-1])):
+                oldParent = self.__GetURLEntry(oldFields[:-1], self.tree)
+                newParent = self.__GetURLEntry(newFields[:-1], self.tree)
                 for child in oldParent.children:
                     if child.name == oldFields[-1]:
                         entry = child
@@ -163,15 +163,15 @@ class URLTree(Persistent):
                 return entry.parcel
         return None
     
-    def SetParcelAtUri(self, uri, newParcel):
+    def SetParcelAtURL(self, url, newParcel):
         """
-          Sets the parcel located at uri to be newParcel.  Returns
-        the parcel that had been located at uri if the change is successful,
+          Sets the parcel located at url to be newParcel.  Returns
+        the parcel that had been located at url if the change is successful,
         returns None if no changes were made.  In order to use this,
-        there must already be something located at uri.  If you want to
-        add a parcel to a new uri, use URLTree.AddUri.
+        there must already be something located at url.  If you want to
+        add a parcel to a new url, use URLTree.AddURL.
         """
-        entry = self.__GetUriEntry(self.__GetUriFields(uri), self.tree)
+        entry = self.__GetURLEntry(self.__GetURLFields(url), self.tree)
         if entry != None:
             oldParcel = entry.parcel
             entry.parcel = newParcel
@@ -179,47 +179,47 @@ class URLTree(Persistent):
             return oldParcel
         return None
     
-    def GetProperCaseOfURI(self, uri):
+    def GetProperCaseOfURL(self, url):
         """
-          Takes in a uri and returns the proper case for that uri.
+          Takes in a url and returns the proper case for that url.
         """
-        return self.__URICaseHelper(self.__GetUriFields(uri), self.tree, '')
+        return self.__URLCaseHelper(self.__GetURLFields(url), self.tree, '')
     
-    def __URICaseHelper(self, uriFields, URLTreeLevel, uriSoFar):
+    def __URLCaseHelper(self, urlFields, URLTreeLevel, urlSoFar):
         """
-          Recursively builds up the proper case for the supplied uriFields.
+          Recursively builds up the proper case for the supplied urlFields.
         """
-        if len(uriFields) == 0:
-            return uriSoFar
+        if len(urlFields) == 0:
+            return urlSoFar
         for treeEntry in URLTreeLevel:
-            if treeEntry.name.lower() == uriFields[0].lower():
-                if len(uriSoFar) > 0:
-                    uriSoFar += '/'
-                uriSoFar += treeEntry.name
-                return self.__URICaseHelper(uriFields[1:], treeEntry.children, uriSoFar)
+            if treeEntry.name.lower() == urlFields[0].lower():
+                if len(urlSoFar) > 0:
+                    urlSoFar += '/'
+                urlSoFar += treeEntry.name
+                return self.__URLCaseHelper(urlFields[1:], treeEntry.children, urlSoFar)
         return None
 
-    def __GetUriEntry(self, uriFields, URLTreeLevel):
+    def __GetURLEntry(self, urlFields, URLTreeLevel):
         """
-          Recursively finds the specified uri and returns the 
+          Recursively finds the specified url and returns the 
         TreeEntry assocaited with it.
         """
         for treeEntry in URLTreeLevel:
-            if treeEntry.name.lower() == uriFields[0].lower():
-                if len(uriFields) == 1:
+            if treeEntry.name.lower() == urlFields[0].lower():
+                if len(urlFields) == 1:
                     return treeEntry
-                return self.__GetUriEntry(uriFields[1:], treeEntry.children)
+                return self.__GetURLEntry(urlFields[1:], treeEntry.children)
         return None
         
-    def __GetUriFields(self, uri):
+    def __GetURLFields(self, url):
         """
-          Extracts the individual items within a uri and returns it as a list.
+          Extracts the individual items within a url and returns it as a list.
         """
-        if not uri.startswith('/'):
-            uri = '/' + uri
-        if uri.endswith('/'):
-            uri = uri[:-1]
-        return uri.split('/')
+        if not url.startswith('/'):
+            url = '/' + url
+        if url.endswith('/'):
+            url = url[:-1]
+        return url.split('/')
 
     def __SynchronizeSideBars(self):
         """

@@ -12,7 +12,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 class Namespace(object):
-    """A class that allows the client to express URIs easily in python
+    """A class that allows the client to express URLs easily in python
 
     Example: dc.title => 'http://purl.org/dc/elements/1.1/title'
     """

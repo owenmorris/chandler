@@ -208,6 +208,6 @@ class ClickedOnURLHandler:
         
     def ClickedURL(self, event):
         app = application.Application.app
-        app.wxMainFrame.GoToUri(self.url, true)
+        app.wxMainFrame.GoToURL(self.url, true)
        
         

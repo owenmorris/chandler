@@ -624,26 +624,26 @@ class JabberClient:
     # utility routine that parses a url, sees if the first part is
     # a remote address, and strips it if we're not connected or the
     # user isn't present
-    def StripRemoteIfNecessary(self, uri):
-        if uri.startswith('/'):
-            uri = uri[1:]
-        if uri.endswith('/'):
-            uri = uri[:-1] 
-        fields = uri.split('/')
+    def StripRemoteIfNecessary(self, url):
+        if url.startswith('/'):
+            url = url[1:]
+        if url.endswith('/'):
+            url = url[:-1] 
+        fields = url.split('/')
         
         remoteaddress = None
-        localuri = uri
+        localurl = url
         
         if fields[0].find('@') > -1:
             remoteaddress = fields[0]
-            localuri = string.join(fields[1:], '/')
+            localurl = string.join(fields[1:], '/')
 
             if not self.IsConnected():
-                return localuri
+                return localurl
             if not self.IsPresent(remoteaddress):
-                return localuri
+                return localurl
             
-        return uri
+        return url
     
 # here's a subclass of timer to periodically drive the event mechanism
 class JabberTimer(wxTimer):

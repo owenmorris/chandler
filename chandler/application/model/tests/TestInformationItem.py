@@ -119,32 +119,32 @@ class TestRdfOnTheFly(unittest.TestCase):
 
         # set up the test
         item = InformationItem()
-        propertyUri = 'sample_uri'
+        propertyURL = 'sample_url'
         propertyValue = 'foo'
 
         # add the rdf property to the rdf dictionary
-        item.rdf[propertyUri] = propertyValue
+        item.rdf[propertyURL] = propertyValue
 
         # look to see that the property was set on the dictionary
-        self.assertEqual(item.rdf[propertyUri], propertyValue)
+        self.assertEqual(item.rdf[propertyURL], propertyValue)
 
     def testAddRdfs(self):
         """Test adding random rdf property to schema at runtime"""
 
         # set up the test
         item = InformationItem()
-        propertyUri = 'sample_uri'
+        propertyURL = 'sample_url'
         propertyValue = 'foo'
         propertyRestriction = RdfRestriction(str, 1)
 
         # add the schema property restriction to the class rdfs dictionary
-        InformationItem.rdfs[propertyUri] = propertyRestriction
+        InformationItem.rdfs[propertyURL] = propertyRestriction
 
         # add the property to the instance
-        item.setRdfAttribute(propertyUri, propertyValue, InformationItem.rdfs)
+        item.setRdfAttribute(propertyURL, propertyValue, InformationItem.rdfs)
 
         # look up the property on the instance and check its value
-        self.assertEqual(item.getRdfAttribute(propertyUri,
+        self.assertEqual(item.getRdfAttribute(propertyURL,
                                               InformationItem.rdfs),
                          propertyValue)
 

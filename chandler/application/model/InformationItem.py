@@ -37,9 +37,9 @@ class EntityItem:
 class InformationItem(RdfObject, Observable):
     """Information Item"""
 
-    # The uri for the InformationItem class: might want to do this
+    # The url for the InformationItem class: might want to do this
     # differently
-    uri = chandler.InformationItem
+    url = chandler.InformationItem
 
     # Define the schema for InformationItem
     # -------------------------------------------------------------
@@ -74,7 +74,7 @@ class InformationItem(RdfObject, Observable):
     def __init__(self):
         RdfObject.__init__(self)
         Observable.__init__(self)
-        self.uri = str(now()) #need to generate a unique uri
+        self.url = str(now()) #need to generate a unique url
 
     # Define attributes of InformationItem python objects
     # ------------------------------------------------------

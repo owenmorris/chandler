@@ -15,43 +15,43 @@ from application.repository.Repository import Repository
 
 from mx import DateTime
 
-_attributes = [{ chandler.uri : dc.identifier,
+_attributes = [{ chandler.url : dc.identifier,
                  chandler.range : str,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.default : None },
                
-               { chandler.uri : chandler.remoteAddress,
+               { chandler.url : chandler.remoteAddress,
                  chandler.range : str,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.default : None },
                
-               { chandler.uri : chandler.project,
+               { chandler.url : chandler.project,
                  chandler.range : str,
                  chandler.cardinality : None,
                  chandler.required : False,
                  chandler.default : None },
                
-               { chandler.uri : chandler.status,
+               { chandler.url : chandler.status,
                  chandler.range : str,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.default : None },
                
-               { chandler.uri : chandler.topic,
+               { chandler.url : chandler.topic,
                  chandler.range : str,
                  chandler.cardinality : None,
                  chandler.required : False,
                  chandler.default : None },
                
-               { chandler.uri : chandler.dateCreated,
+               { chandler.url : chandler.dateCreated,
                  chandler.range : 'DateTime',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.default : None },
                         
-               { chandler.uri : chandler.dateModified,
+               { chandler.url : chandler.dateModified,
                  chandler.range : 'DateTime',
                  chandler.cardinality : 1,
                  chandler.required : False,
@@ -66,7 +66,7 @@ class Item(Thing):
     def __init__(self, dict=None):
         Thing.__init__(self, dict)
         self.SetAko(AkoItemFactory().GetAko())
-        self.SetUri(self.GetUniqueId())
+        self.SetURL(self.GetUniqueId())
         
     # Convenience methods make chandler attributes accessible
     # via python object attributes

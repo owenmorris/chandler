@@ -15,14 +15,14 @@ from application.repository.Namespace import chandler
 # many of these strings should really be enumerated types; we'll convert them
 # to that when the infrastructure is ready.
 
-_attributes = [{ chandler.uri : chandler.fullname,
+_attributes = [{ chandler.url : chandler.fullname,
                  chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Full Name'),
                  chandler.default : '' },
                
-               { chandler.uri : chandler.sortname,
+               { chandler.url : chandler.sortname,
                  chandler.range : 'string',
                  chandler.cardinality : 1,
                  chandler.required : False,
@@ -31,56 +31,56 @@ _attributes = [{ chandler.uri : chandler.fullname,
                ]
 
 # @@@ Hack, need to implement subclassing
-_personAttributes = [ { chandler.uri : chandler.fullname,
+_personAttributes = [ { chandler.url : chandler.fullname,
                         chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
                         chandler.displayName : _('Full Name'),
                         chandler.default : 'New Contact' },
                       
-                      { chandler.uri : chandler.sortname,
+                      { chandler.url : chandler.sortname,
                         chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
                         chandler.displayName : _('Sort Name'),
                         chandler.default : '' }, 
                       
-                      { chandler.uri : chandler.firstname,
+                      { chandler.url : chandler.firstname,
                         chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
                         chandler.displayName : _('First Name'),
                         chandler.default : 'New' },
                       
-                      { chandler.uri : chandler.middlename,
+                      { chandler.url : chandler.middlename,
                         chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
                         chandler.displayName : _('Middle Name'),
                         chandler.default : '' },
                       
-                      { chandler.uri : chandler.lastname,
+                      { chandler.url : chandler.lastname,
                         chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
                         chandler.displayName : _('Last Name'),
                         chandler.default : 'Contact' },
                       
-                      { chandler.uri : chandler.nickname,
+                      { chandler.url : chandler.nickname,
                         chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
                         chandler.displayName : _('Nickname'),
                         chandler.default : 'nickname' },
                       
-                      { chandler.uri : chandler.honorific,
+                      { chandler.url : chandler.honorific,
                         chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
                         chandler.displayName : _('Honorific'),
                         chandler.default : '' },
                       
-                      { chandler.uri : chandler.suffix,
+                      { chandler.url : chandler.suffix,
                         chandler.range : 'string',
                         chandler.cardinality : 1,
                         chandler.required : False,
@@ -116,15 +116,15 @@ class ContactName(Thing):
         else:
             self.SetAko(AkoContactNameFactory().GetAko())
             
-        self.SetUri(self.GetUniqueId())
+        self.SetURL(self.GetUniqueId())
         
     def IsPersonName(self):
         ako = self.GetAko()
-        return (ako.GetUri() == chandler.PersonName)
+        return (ako.GetURL() == chandler.PersonName)
 
-    def SetAttribute(self, uri, value):
-        Thing.SetAttribute(self, uri, value)
-        if (uri == chandler.fullname):
+    def SetAttribute(self, url, value):
+        Thing.SetAttribute(self, url, value)
+        if (url == chandler.fullname):
             self.ParseFullName()
         else:
             self.CalcFullName()

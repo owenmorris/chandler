@@ -16,7 +16,7 @@ class RdfObject(RdfResource):
     """Base class for any RDF model object in Chandler"""
 
     # Define the schema by creating a dictionary (rdfs) on the class.
-    # The keys to the dictionary are the property URIs, the values are
+    # The keys to the dictionary are the property URLs, the values are
     # the types of the expected as values of the properties.
     #
     # By defining InformationItem (the python class), we're defining a
@@ -33,8 +33,8 @@ class RdfObject(RdfResource):
     # the schema definition.
     #
     # Properties are referenced using the RdfNamespace python object.
-    # It currently generates the uri for the property in the form of a
-    # string. We may want to change it to generate a URI object, or a
+    # It currently generates the url for the property in the form of a
+    # string. We may want to change it to generate a URL object, or a
     # RdfProperty object.
     #
     # Alternatively, we could define the schema in a data file. Bootstrap
@@ -61,24 +61,24 @@ class RdfObject(RdfResource):
         self.rdf = PersistentDict()
         self.rdfClass = None
 
-    def getRdfAttribute(self, uri, rdfs):
-        restriction = rdfs[uri]
+    def getRdfAttribute(self, url, rdfs):
+        restriction = rdfs[url]
         
         if restriction.isRequired:
-            value = self.rdf[uri]
+            value = self.rdf[url]
         else:
-            value = self.rdf.get(uri, restriction.default)
+            value = self.rdf.get(url, restriction.default)
 
         assert(restriction.isValid(value))
         return value
 
-    def setRdfAttribute(self, uri, value, rdfs):
-        restriction = rdfs[uri]
+    def setRdfAttribute(self, url, value, rdfs):
+        restriction = rdfs[url]
         assert(restriction.isValid(value))
-        self.rdf[uri] = value
+        self.rdf[url] = value
 
     def printTriples(self):
         """Scaffolding, just to give a taste"""
         for key in self.rdf.keys():
-            print (self.uri, key, self.rdf[key]) 
+            print (self.url, key, self.rdf[key]) 
 

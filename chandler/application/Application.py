@@ -261,7 +261,7 @@ class wxApplication (wxApp):
         self.InCommand = false          #used by OnCommand
         self.jabberClient.Login()
 
-        self.OpenStartingUri()
+        self.OpenStartingURL()
         
         self.initInProgress = false
         return true                     #indicates we succeeded with initialization
@@ -276,23 +276,23 @@ class wxApplication (wxApp):
             menuBar.Check (XRCID ('CreateNewRepository'),
                             hasattr (self.model, 'CreateNewRepository'))
 
-    def OpenStartingUri(self):
+    def OpenStartingURL(self):
         """
-          Opens the proper uri when the application first starts.  If
+          Opens the proper url when the application first starts.  If
         this is the first time running, then we just take the first item
         in the URLTree.  If we have persisted, then we use the last
-        remembered uri.
+        remembered url.
         """
         if not hasattr(self, 'wxMainFrame'):
             self.wxMainFrame = app.association[id(self.model.mainFrame)]
-        uri = self.wxMainFrame.navigationBar.model.GetCurrentUri()
-        if uri != None:
-            uri = app.jabberClient.StripRemoteIfNecessary(uri)
-            self.wxMainFrame.GoToUri(uri, false)
+        url = self.wxMainFrame.navigationBar.model.GetCurrentURL()
+        if url != None:
+            url = app.jabberClient.StripRemoteIfNecessary(url)
+            self.wxMainFrame.GoToURL(url, false)
         else:
-            children = self.model.URLTree.GetUriChildren('')
+            children = self.model.URLTree.GetURLChildren('')
             if len(children) > 0:
-                self.wxMainFrame.GoToUri(children[0], true)
+                self.wxMainFrame.GoToURL(children[0], true)
             
     def OnQuit(self, event):
         """
@@ -445,7 +445,7 @@ class wxApplication (wxApp):
         or None if it doesn't exist.
         """
         urlPieces = url.split('/')
-        return application.Application.app.model.URLTree.UriExists(urlPieces[0])
+        return application.Application.app.model.URLTree.URLExists(urlPieces[0])
         
     def GetViewObjects(self, url, jabberID):
         """

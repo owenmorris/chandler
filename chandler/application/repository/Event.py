@@ -14,21 +14,21 @@ from application.repository.Namespace import chandler
 from application.repository.Item import Item
 from mx.DateTime import DateTimeFrom
 
-_attributes = [{ chandler.uri : chandler.startTime,
+_attributes = [{ chandler.url : chandler.startTime,
                  chandler.displayName : 'Start Time',
                  chandler.range : 'dateTime',
                  chandler.cardinality : 1,
                  chandler.required : True,
                  chandler.default : None },
                
-               { chandler.uri : chandler.endTime,
+               { chandler.url : chandler.endTime,
                  chandler.displayName : 'End Time',
                  chandler.range : 'dateTime',
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.default : None },
                        
-               { chandler.uri : chandler.headline,
+               { chandler.url : chandler.headline,
                  chandler.displayName : 'Headline',
                  chandler.range : str,
                  chandler.cardinality : 1,
@@ -60,11 +60,11 @@ class Event(Item):
                          doc='mxDateTime: event start time and date')
 
     # override SetAttribute to allow DateTime values to be set as unicode strings
-    def SetAttribute(self, uri, value):
-        if uri == chandler.startTime or uri == chandler.endTime:
+    def SetAttribute(self, url, value):
+        if url == chandler.startTime or url == chandler.endTime:
             if isinstance(value, unicode) or isinstance(value, str):
                  value = DateTimeFrom(str(value))
-        Thing.SetAttribute(self, uri, value)
+        Thing.SetAttribute(self, url, value)
         
     def GetEndTime(self):
         """Returns the end date and time of the event, as an mxDateTime"""
