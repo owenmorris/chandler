@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=2.5.3.1-5
+RELVER=2.5.3.1-6
 SRC=$(INTERNAL)/wxPython-2.5
 
 ifeq ($(DEBUG),1)
