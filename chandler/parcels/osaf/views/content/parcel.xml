@@ -78,23 +78,6 @@
     <fontSize>10.0</fontSize>
   </CharacterStyle>
 
-  <!-- Month -->
-  <calendarBlocks:CanvasMonth itsName="SummaryMonth">
-    <contents itemref="view:calendarItemCollection"/>
-  </calendarBlocks:CanvasMonth>
-
-  <!-- Week -->
-  <calendarBlocks:CanvasWeek itsName="SummaryWeek">
-    <contents itemref="view:calendarItemCollection"/>
-    <daysPerView>7</daysPerView>
-  </calendarBlocks:CanvasWeek>
-
-  <!-- Day -->
-  <calendarBlocks:CanvasWeek itsName="SummaryDay">
-    <contents itemref="view:calendarItemCollection"/>
-    <daysPerView>1</daysPerView>
-  </calendarBlocks:CanvasWeek>
-
   <!-- Mixed Table -->
   <Table itsName="MixedTable">
     <contents itemref="view:mixedItemCollection"/>
@@ -121,12 +104,15 @@
   </Table>
 
   <!-- All Summary View -->
-  <BoxContainer itsName="AllSummary">
+  <LayoutChooser itsName="AllSummary">
     <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
-    <childrenBlocks itemref="view:AllTable"/>
+    <choices itemref="view:AllTable"/>
+    <choices itemref="view:AllMonth"/>
+    <choices itemref="view:AllWeek"/>
+    <choices itemref="view:AllDay"/>    
     <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
-
+  </LayoutChooser>
+  
   <!-- All Table -->
   <Table itsName="AllTable">
     <contents itemref="view:allItemCollection"/>
@@ -152,11 +138,31 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <BoxContainer itsName="InSummary">
+  <!-- AllMonth -->
+  <calendarBlocks:CanvasMonth itsName="AllMonth">
+    <contents itemref="view:allItemCollection"/>
+  </calendarBlocks:CanvasMonth>
+
+  <!-- AllWeek -->
+  <calendarBlocks:CanvasWeek itsName="AllWeek">
+    <contents itemref="view:allItemCollection"/>
+    <daysPerView>7</daysPerView>
+  </calendarBlocks:CanvasWeek>
+
+  <!-- AllDay -->
+  <calendarBlocks:CanvasWeek itsName="AllDay">
+    <contents itemref="view:allItemCollection"/>
+    <daysPerView>1</daysPerView>
+  </calendarBlocks:CanvasWeek>
+
+  <LayoutChooser itsName="InSummary">
     <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
-    <childrenBlocks itemref="view:InTable"/>
+    <choices itemref="view:InTable"/>
+    <choices itemref="view:InMonth"/>
+    <choices itemref="view:InWeek"/>
+    <choices itemref="view:InDay"/>    
     <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
+  </LayoutChooser>
 
   <!-- In Table -->
   <Table itsName="InTable">
@@ -183,11 +189,31 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <BoxContainer itsName="OutSummary">
+  <!-- InMonth -->
+  <calendarBlocks:CanvasMonth itsName="InMonth">
+    <contents itemref="view:inItemCollection"/>
+  </calendarBlocks:CanvasMonth>
+
+  <!-- InWeek -->
+  <calendarBlocks:CanvasWeek itsName="InWeek">
+    <contents itemref="view:inItemCollection"/>
+    <daysPerView>7</daysPerView>
+  </calendarBlocks:CanvasWeek>
+
+  <!-- InDay -->
+  <calendarBlocks:CanvasWeek itsName="InDay">
+    <contents itemref="view:inItemCollection"/>
+    <daysPerView>1</daysPerView>
+  </calendarBlocks:CanvasWeek>
+
+  <LayoutChooser itsName="OutSummary">
     <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
-    <childrenBlocks itemref="view:OutTable"/>
+    <choices itemref="view:OutTable"/>
+    <choices itemref="view:OutMonth"/>
+    <choices itemref="view:OutWeek"/>
+    <choices itemref="view:OutDay"/>    
     <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
+  </LayoutChooser>
 
   <!-- Out Table -->
   <Table itsName="OutTable">
@@ -214,12 +240,29 @@
     <columnWidths>170</columnWidths>
   </Table>
   
+  <!-- OutMonth -->
+  <calendarBlocks:CanvasMonth itsName="OutMonth">
+    <contents itemref="view:outItemCollection"/>
+  </calendarBlocks:CanvasMonth>
+
+  <!-- OutWeek -->
+  <calendarBlocks:CanvasWeek itsName="OutWeek">
+    <contents itemref="view:outItemCollection"/>
+    <daysPerView>7</daysPerView>
+  </calendarBlocks:CanvasWeek>
+
+  <!-- OutDay -->
+  <calendarBlocks:CanvasWeek itsName="OutDay">
+    <contents itemref="view:outItemCollection"/>
+    <daysPerView>1</daysPerView>
+  </calendarBlocks:CanvasWeek>
+
   <LayoutChooser itsName="CalendarSummary">
     <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
     <choices itemref="view:CalendarTable"/>
-    <choices itemref="view:SummaryMonth"/>
-    <choices itemref="view:SummaryWeek"/>
-    <choices itemref="view:SummaryDay"/>    
+    <choices itemref="view:CalendarMonth"/>
+    <choices itemref="view:CalendarWeek"/>
+    <choices itemref="view:CalendarDay"/>    
     <orientationEnum>Vertical</orientationEnum>
   </LayoutChooser>
 
@@ -247,6 +290,23 @@
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
   </Table>
+
+  <!-- Month -->
+  <calendarBlocks:CanvasMonth itsName="CalendarMonth">
+    <contents itemref="view:calendarItemCollection"/>
+  </calendarBlocks:CanvasMonth>
+
+  <!-- Week -->
+  <calendarBlocks:CanvasWeek itsName="CalendarWeek">
+    <contents itemref="view:calendarItemCollection"/>
+    <daysPerView>7</daysPerView>
+  </calendarBlocks:CanvasWeek>
+
+  <!-- Day -->
+  <calendarBlocks:CanvasWeek itsName="CalendarDay">
+    <contents itemref="view:calendarItemCollection"/>
+    <daysPerView>1</daysPerView>
+  </calendarBlocks:CanvasWeek>
 
   <!-- Contacts Table -->
   <Table itsName="ContactsTable">
@@ -348,12 +408,14 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <!-- Untitled Summary -->
-  <BoxContainer itsName="UntitledSummary">
+  <LayoutChooser itsName="UntitledSummary">
     <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
-    <childrenBlocks itemref="view:UntitledTable"/>
+    <choices itemref="view:UntitledTable"/>
+    <choices itemref="view:UntitledMonth"/>
+    <choices itemref="view:UntitledWeek"/>
+    <choices itemref="view:UntitledDay"/>    
     <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
+  </LayoutChooser>
 
   <!-- Untitled Table -->
   <Table itsName="UntitledTable">
@@ -380,7 +442,22 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <!-- Views -->
+  <!-- UntitledMonth -->
+  <calendarBlocks:CanvasMonth itsName="UntitledMonth">
+    <contents itemref="view:untitledItemCollection"/>
+  </calendarBlocks:CanvasMonth>
+
+  <!-- UntitledWeek -->
+  <calendarBlocks:CanvasWeek itsName="UntitledWeek">
+    <contents itemref="view:untitledItemCollection"/>
+    <daysPerView>7</daysPerView>
+  </calendarBlocks:CanvasWeek>
+
+  <!-- UntitledDay -->
+  <calendarBlocks:CanvasWeek itsName="UntitledDay">
+    <contents itemref="view:untitledItemCollection"/>
+    <daysPerView>1</daysPerView>
+  </calendarBlocks:CanvasWeek>
 
   <!-- Notes View -->
   <SplitterWindow itsName="NotesView">
