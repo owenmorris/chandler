@@ -70,22 +70,27 @@ class ViewerParcel (Parcel):
         """
         assert hasattr (app.applicationResources, 'FindResource')
         resources = wxXmlResource(self.modulePath)
-        parcelMenuResourceXRC = resources.FindResource ('ViewerParcelMenu',
-                                                             'wxMenu')
-        assert parcelMenuResourceXRC != None
-        
-        self.displayName = ''
-        node = parcelMenuResourceXRC.GetChildren()
-        while node != None:
-            if node.GetName() == 'label':
-                self.displayName = node.GetChildren().GetContent()
-                break
-            node = menuNode.GetNext()
         """
-          Make sure we find a label
+          All parcels must have a resource file. Although they are not
+        required to have a resource menu, or have a label defined.
         """
-        assert self.displayName != ''
+        assert (resources)
 
+        ignoreErrors = wxLogNull ()
+        parcelMenuResourceXRC = resources.FindResource ('ViewerParcelMenu','wxMenu')
+        del ignoreErrors
+        """
+          Make sure you call the base class before defining your own displayName.
+        """
+        assert not hasattr (self, 'displayName')
+        self.displayName = _('UnnamedParcel')
+        if parcelMenuResourceXRC != None:
+            node = parcelMenuResourceXRC.GetChildren()
+            while node != None:
+                if node.GetName() == 'label':
+                    self.displayName = node.GetChildren().GetContent()
+                    break
+                node = menuNode.GetNext()
 
     def SynchronizeView (self):
         """
