@@ -1089,7 +1089,12 @@ class Item(object):
             module = name[:lastDot]
             name = name[lastDot+1:]
 
-        m = __import__(module, {}, {}, name)
+        try:
+            m = __import__(module, {}, {}, name)
+        except ImportError:
+            raise
+        except Exception, e:
+            raise ImportError, 'Importing class %s.%s failed with %s' %(module, name, e)
         
         try:
             cls = getattr(m, name)
@@ -1099,6 +1104,8 @@ class Item(object):
 
         except AttributeError:
             raise ImportError, "Module %s has no class %s" %(module, name)
+        except Exception, e:
+            raise ImportError, 'Importing class %s.%s failed with %s' %(module, name, e)
 
     def __new__(cls, *args, **kwds):
 
