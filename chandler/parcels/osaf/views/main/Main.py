@@ -138,15 +138,15 @@ class MainView(View):
         repository = Globals.repository
         checkingMessage = _('Checking repository...')
         repository.logger.info(checkingMessage)
-        self.setStatusText (checkingMessage)
+        self.setStatusMessage (checkingMessage)
         if repository.check():
             successMessage = _('Check completed successfully')
             repository.logger.info (successMessage)
-            self.setStatusText (successMessage)
+            self.setStatusMessage (successMessage)
         else:
             errorMessage = _('Check completed with errors')
             repository.logger.info (errorMessage)
-            self.setStatusText (errorMessage)
+            self.setStatusMessage (errorMessage)
 
     def onShowPyCrustEvent(self, notification):
         # Test menu item
@@ -241,17 +241,17 @@ class MainView(View):
         The "File | Sync | WebDAV" menu item
         """
         # find all the shared collections and sync them.
-        self.setStatusText (_("checking shared collections"))
+        self.setStatusMessage (_("checking shared collections"))
         collections = self.sharedWebDAVCollections ()
         if len (collections) == 0:
-            self.setStatusText (_("No shared collections found"))
+            self.setStatusMessage (_("No shared collections found"))
             return
         for collection in collections:
-            self.setStatusText (_("synchronizing %s") % collection)
+            self.setStatusMessage (_("synchronizing %s") % collection)
             Sharing.syncCollection(collection)
 
         # synch mail
-        self.setStatusText (_("Sharing synchronized."))
+        self.setStatusMessage (_("Sharing synchronized."))
 
     def onSyncWebDAVEventUpdateUI (self, notification):
         accountOK = self.webDAVAccountIsSetup ()
@@ -294,7 +294,7 @@ class MainView(View):
         self.onSyncWebDAVEvent (notification)
 
         # synch mail
-        self.setStatusText (_("Getting new Mail"))
+        self.setStatusMessage (_("Getting new Mail"))
         self.onGetNewMailEvent (notification)
 
     def onShareOrManageEvent (self, notification):
@@ -335,12 +335,14 @@ class MainView(View):
             menuTitle = _('Share a collection')
         notification.data ['Text'] = menuTitle
 
-    def setStatusText (self, statusMessage):
+    def setStatusMessage (self, statusMessage, progressPercentage=-1):
         """
-          Display a text status message.
-        Uses the status bar in the main frame.
+          Allows you to set the message contained in the status bar.  You can also specify 
+        values for the progress bar contained on the right side of the status bar.  If you
+        specify a progressPercentage (as a float 0 to 1) the progress bar will appear.  If 
+        no percentage is specified the progress bar will disappear.
         """
-        Globals.wxApplication.mainFrame.SetStatusText (statusMessage)
+        Globals.wxApplication.mainFrame.GetStatusBar().blockItem.setStatusMessage (statusMessage, progressPercentage)
 
     def SharingInvitees (self, itemCollection):
         # return the list of sharing invitees
@@ -362,7 +364,7 @@ class MainView(View):
             if path:
                 url = "%s/%s" % (path, itemCollection.itsUUID)
             else:
-                self.setStatusText (_("You need to set up the server and path in the account dialog!"))
+                self.setStatusMessage (_("You need to set up the server and path in the account dialog!"))
                 return
             url = url.encode ('utf-8')
         return url
@@ -398,14 +400,14 @@ class MainView(View):
         self.RepositoryCommitWithStatus()
 
         # show status
-        self.setStatusText (_("Sharing collection %s") % itemCollection.displayName)
+        self.setStatusMessage (_("Sharing collection %s") % itemCollection.displayName)
     
         # check that it's not already shared, and we have the sharing account set up.
         url = self.SharingURL (itemCollection)
 
         # build list of invitees.
         if len (self.SharingInvitees (itemCollection)) == 0:
-            self.setStatusText (_("No sharees!"))
+            self.setStatusMessage (_("No sharees!"))
             return
 
         # change the name to include "Shared"
@@ -413,23 +415,23 @@ class MainView(View):
             itemCollection.displayName = _("%s (Shared)") % itemCollection.displayName
 
         # Sync the collection with WebDAV
-        self.setStatusText (_("accessing WebDAV server"))
+        self.setStatusMessage (_("accessing WebDAV server"))
         Dav.DAV(url).put(itemCollection)
 
         # Send out sharing invites
         inviteeStringsList = self.SharingInvitees (itemCollection)
-        self.setStatusText (_("inviting %s") % inviteeStringsList)
+        self.setStatusMessage (_("inviting %s") % inviteeStringsList)
         self.SendSharingInvitations (itemCollection, url)
 
         # Done
-        self.setStatusText (_("Sharing initiated."))
+        self.setStatusMessage (_("Sharing initiated."))
 
     def displaySMTPSendSuccess (self, mailMessage):
         """
           Called when the SMTP Send was successful.
         """
         if mailMessage is not None and mailMessage.isOutbound:
-            self.setStatusText (_('mailMessage "%s" sent.') % mailMessage.about)
+            self.setStatusMessage (_('mailMessage "%s" sent.') % mailMessage.about)
 
     def displaySMTPSendError (self, mailMessage):
         """
@@ -453,15 +455,15 @@ class MainView(View):
    
                 errorMessage = _("The following %s occurred. %s") % (str, ', '.join(errorStrings))
                 errorMessage = errorMessage.encode ('utf-8')
-            self.setStatusText (errorMessage)
+            self.setStatusMessage (errorMessage)
             application.dialogs.Util.showAlert(Globals.wxApplication.mainFrame, errorMessage)
-            self.setStatusText ('')
+            self.setStatusMessage ('')
         
     def RepositoryCommitWithStatus (self):
         """
           Do a repository commit with notice posted in the Status bar.
         """
-        self.setStatusText (_("committing changes to the repository..."))
+        self.setStatusMessage (_("committing changes to the repository..."))
         Globals.repository.commit()
-        self.setStatusText ('')
+        self.setStatusMessage ('')
 

@@ -769,11 +769,15 @@ class StaticText(RectangularChild):
 
     
 class wxStatusBar (wx.StatusBar):
-    
+    def __init__(self, *arguments, **keywords):
+        super (wxStatusBar, self).__init__ (*arguments, **keywords)
+        self.gauge = wx.Gauge(self, -1, 100, size=(125, 30), style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
+        self.gauge.Show(False)
+        
     def wxSynchronizeWidget(self):
         if self.blockItem.isShown != self.IsShown():
             self.Show (self.blockItem.isShown)
-
+            
 
 class StatusBar(Block):
     def instantiateWidget (self):
@@ -782,6 +786,29 @@ class StatusBar(Block):
         frame.SetStatusBar (widget)
         return widget
 
+    def setStatusMessage(self, statusMessage, progressPercentage=-1):
+        """
+          Allows you to set the message contained in the status bar.  You can also specify 
+        values for the progress bar contained on the right side of the status bar.  If you
+        specify a progressPercentage (as a float 0 to 1) the progress bar will appear.  If 
+        no percentage is specified the progress bar will disappear.
+        """
+        if progressPercentage == -1:
+            if self.widget.GetFieldsCount() != 1:
+                self.widget.SetFieldsCount(1)
+            self.widget.SetStatusText(statusMessage)
+            self.widget.gauge.Show(False)
+        else:
+            if self.widget.GetFieldsCount() != 2:
+                self.widget.SetFieldsCount(2)
+                self.widget.SetStatusWidths([-1, 150])
+            self.widget.SetStatusText(statusMessage)
+            self.widget.gauge.Show(True)
+            self.widget.gauge.SetValue((int)(progressPercentage*100))
+            # By default widgets are added to the left side...we must reposition them
+            rect = self.widget.GetFieldRect(1)
+            self.widget.gauge.SetPosition((rect.x+2, rect.y+2))
+                            
     def onShowHideEvent(self, notification):
         self.isShown = not self.isShown
         self.synchronizeWidget()
