@@ -48,7 +48,7 @@ class MainFrame(wxFrame):
         counterpart = Globals.repository.find (self.counterpartUUID)
         counterpart.size.width = self.GetSize().x
         counterpart.size.height = self.GetSize().y
-        counterpart.setDirty()
+        counterpart.setDirty()   # Temporary repository hack -- DJA
 
 
 class wxApplicationNew (wxApp):
@@ -202,12 +202,15 @@ class wxApplicationNew (wxApp):
             self.mainFrame.counterpartUUID = topView.getUUID()
             EVT_SIZE(self.mainFrame, self.mainFrame.OnSize)
 
-            events = Globals.repository.find('//parcels/OSAF/framework/blocks/Events')
-            names = []
-            for child in events:
-                names.append (child.name)
-            
-            Globals.notificationManager.Subscribe (names,
+            GlobalEvents = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GlobalEvents')
+
+            events = []
+            for event in GlobalEvents.blockEvents:
+                events.append (event)
+            for event in topView.blockEvents:
+                events.append (event)
+
+            Globals.notificationManager.Subscribe (events,
                                                    Globals.topView.getUUID(),
                                                    Globals.topView.dispatchEvent)
 
@@ -231,15 +234,14 @@ class wxApplicationNew (wxApp):
 
             if isinstance (blockEvent, BlockEvent):
                 assert isinstance (blockEvent, BlockEvent)
-                data = {'event':blockEvent}
                 if event.GetEventType() == wxEVT_UPDATE_UI:
-                    data ['type'] = 'UpdateUI'
+                    data = {'type':'UpdateUI'}
                 else:
-                    data ['type'] = 'Normal'
+                    data = {'type':'Normal'}
 
-                notification = Notification(blockEvent.name, None, None)
+                notification = Notification(blockEvent, None, None)
                 notification.SetData(data)
-                Globals.topView.dispatchEvent(notification)
+                Globals.notificationManager.PostNotification (notification)
                 if event.GetEventType() == wxEVT_UPDATE_UI:
                     try:
                         event.Check (data ['Check'])
@@ -268,6 +270,7 @@ class wxApplicationNew (wxApp):
         if self.focus != focus:
             self.focus = focus
             Globals.topView.onSetFocus()
+        event.Skip()
 
     def OnExit(self):
         """

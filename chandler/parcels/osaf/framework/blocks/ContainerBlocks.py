@@ -162,12 +162,12 @@ class EmbeddedContainer(RectangularChild):
             return newChild.render (parent, parentWindow)
         return None, None, None
     
-    def on_chandler_SwitchEmbeddedChild (self, notification):
+    def OnSwitchEmbeddedChildEvent (self, notification):
         oldChild = Globals.repository.find (self.contentSpec.data)
         wxOldChild = Globals.association[oldChild.getUUID()]
         self.getParentBlock(self.wxParentWindow).removeFromContainer(self.wxParent, wxOldChild)
                 
-        self.contentSpec.data = notification.data['event'].choice
+        self.contentSpec.data = notification.event.choice
         newChild = Globals.repository.find (self.contentSpec.data)
         if newChild:
             newChild.render (self.wxParent, self.wxParentWindow)
@@ -336,7 +336,7 @@ class wxSplitWindow(wxSplitterWindow):
         counterpart = Globals.repository.find (self.counterpartUUID)
         counterpart.size.width = self.GetSize().x
         counterpart.size.height = self.GetSize().y
-        counterpart.setDirty()
+        counterpart.setDirty()   # Temporary repository hack -- DJA
 
 
 class SplitWindow(RectangularChild):
@@ -450,9 +450,9 @@ class TabbedContainer(RectangularChild):
                 window.AddPage(child, self.tabNames[childNameIndex])
                 childNameIndex = childNameIndex + 1
 
-    def on_block_TabChoice (self, notification):
+    def OnChooseTabEvent (self, notification):
         tabbedContainer = Globals.association[self.getUUID()]
-        choice = notification.data ['event'].choice
+        choice = notification.event.choice
         for index in xrange (tabbedContainer.GetPageCount()):
             if tabbedContainer.GetPageText(index) == choice:
                 tabbedContainer.SetSelection (index)
@@ -511,11 +511,11 @@ class wxTreeList(wxTreeListCtrl):
           Load the items in the tree only when they are visible.
         """
         arguments = {'node':TreeNode (event.GetItem(), self),
-                     'event':Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GetTreeListData'),
                      'type':'Normal'}
-        notification = Notification('block/GetTreeListData', None, None)
+        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GetTreeListData')
+        notification = Notification(event, None, None)
         notification.SetData(arguments)
-        Globals.topView.dispatchEvent(notification)
+        Globals.notificationManager.PostNotification (notification)
 
     def OnColumnDrag(self, event):
         counterpart = Globals.repository.find (self.counterpartUUID)
@@ -533,11 +533,11 @@ class TreeList(RectangularChild):
             treeList.AddColumnInfo(info)
 
         arguments = {'node':TreeNode (None, treeList),
-                     'event':Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GetTreeListData'),
                      'type':'Normal'}
-        notification = Notification("block/GetTreeListData", None, None)
+        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GetTreeListData')
+        notification = Notification(event, None, None)
         notification.SetData(arguments)
-        Globals.topView.dispatchEvent(notification)
+        Globals.notificationManager.PostNotification (notification)
 
         self.getParentBlock(parentWindow).addToContainer(parent, treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return treeList, None, None

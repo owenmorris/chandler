@@ -147,31 +147,31 @@
     <helpString></helpString>
   </MenuItem>
 
-  <ChoiceEvent itemName="ChooseButtons">
-    <name>block/TabChoice</name>
+  <ChoiceEvent itemName="ChooseButtonsTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
+    <methodName>OnChooseTabEvent</methodName>
     <choice>Buttons</choice>
   </ChoiceEvent>
 
-  <ChoiceEvent itemName="ChooseControls">
-    <name>block/TabChoice</name>
+  <ChoiceEvent itemName="ChooseControlsTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
+    <methodName>OnChooseTabEvent</methodName>
     <choice>Controls</choice>
   </ChoiceEvent>
 
-  <ChoiceEvent itemName="ChooseData">
-    <name>block/TabChoice</name>
+  <ChoiceEvent itemName="ChooseDataTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
+    <methodName>OnChooseTabEvent</methodName>
     <choice>Data</choice>
   </ChoiceEvent>
-  
-  <ChoiceEvent itemName="ChooseEmbedded">
-    <name>chandler/TabChoice</name>
+
+  <ChoiceEvent itemName="ChooseEmbeddedTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
+    <methodName>OnChooseTabEvent</methodName>
     <choice>Embedded</choice>
   </ChoiceEvent>
 
@@ -182,7 +182,7 @@
     <itemLocation></itemLocation>
     <menuItemKind>Radio</menuItemKind>
     <accel></accel>
-    <event itemref="doc:ChooseButtons"/>
+    <event itemref="doc:ChooseButtonsTab"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -193,7 +193,7 @@
     <itemLocation></itemLocation>
     <menuItemKind>Radio</menuItemKind>
     <accel></accel>
-    <event itemref="doc:ChooseControls"/>
+    <event itemref="doc:ChooseControlsTab"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -204,7 +204,7 @@
     <itemLocation></itemLocation>
     <menuItemKind>Radio</menuItemKind>
     <accel></accel>
-    <event itemref="doc:ChooseData"/>
+    <event itemref="doc:ChooseDataTab"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -215,7 +215,7 @@
     <itemLocation></itemLocation>
     <menuItemKind>Radio</menuItemKind>
     <accel></accel>
-    <event itemref="doc:ChooseEmbedded"/>
+    <event itemref="doc:ChooseEmbeddedTab"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -230,10 +230,10 @@
   </MenuItem>
 
   <ChoiceEvent itemName="SwitchEmbeddedChild">
-    <name>chandler/SwitchEmbeddedChild</name>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:EmbeddedTitle"/>
-    <choice>parcels/OSAF/templates/top/LeftText</choice>
+    <methodName>OnSwitchEmbeddedChildEvent</methodName>
+    <choice>parcels/OSAF/templages/top/LeftText</choice>
   </ChoiceEvent>  
   
   <MenuItem itemName="SwitchViewItem">
@@ -785,6 +785,13 @@
 
     <childrenBlocks itemref="doc:Header"/>
     <childrenBlocks itemref="doc:ContentBox"/>
+
+    <blockEvents itemref="doc:ChooseButtonsTab"/>
+    <blockEvents itemref="doc:ChooseControlsTab"/>
+    <blockEvents itemref="doc:ChooseDataTab"/>
+    <blockEvents itemref="doc:SwitchEmbeddedChild"/>
+    <blockEvents itemref="doc:ChooseEmbeddedTab"/>
+
     <open>True</open>
 
     <size>912,512</size>

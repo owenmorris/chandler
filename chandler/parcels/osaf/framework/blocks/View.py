@@ -28,18 +28,18 @@ class View(BoxContainer):
             for child in block.childrenBlocks:
                 broadcast (child, methodName, event)
 
-        event = notification.data['event']
+        event = notification.event
         """
           Find the block with the focus
         """
         block = self.getFocusBlock()
         """
-          Construct method name based upon the name of the event.
+          Construct method name based upon the type of the event.
         """
-        methodName = 'on_' + event.name.replace ('/', '_')
+        methodName = event.methodName
 
         if notification.data['type'] == 'UpdateUI':
-            methodName += '_UpdateUI'
+            methodName += 'UpdateUI'
 
         if event.dispatchEnum == 'SendToBlock':
             callMethod (event.dispatchToBlock, methodName, notification)
@@ -81,26 +81,26 @@ class View(BoxContainer):
                     if parent != Globals.wxApplication.menuParent:
                         Globals.wxApplication.menuParent = parent
                         Menu.rebuildMenus(parent)
-                        return
+                    return
             block = block.parentBlock
 
 
-    def on_block_Quit (self, notification):
+    def OnQuitEvent (self, notification):
         Globals.wxApplication.mainFrame.Close ()
         
-    def on_block_Undo_UpdateUI (self, notification):
+    def OnUndoEventUpdateUI (self, notification):
         notification.data ['Text'] = 'Undo Command\tCtrl+Z'
 
-    def on_block_Cut_UpdateUI (self, notification):
+    def OnCutEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
 
-    def on_block_Copy_UpdateUI (self, notification):
+    def OnCopyEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
 
-    def on_block_Paste_UpdateUI (self, notification):
+    def OnPasteEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
 
-    def on_block_GetTreeListData (self, notification):
+    def OnGetTreeListData (self, notification):
         node = notification.data['node']
         item = node.GetData()
         if item:

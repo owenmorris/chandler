@@ -147,7 +147,7 @@
 
 
   <!--
-    Events
+    Block Events
   -->
 
   <Kind itemName="BlockEvent">
@@ -168,10 +168,14 @@
       <type itemref="docSchema:Block"/>
     </Attribute>
 
+    <Attribute itemName="methodName">
+      <type itemref="String"/>
+    </Attribute>
+
     <attributes itemref="docSchema:BlockEvent/dispatchEnum"/>
     <attributes itemref="docSchema:BlockEvent/dispatchToBlock"/>
+    <attributes itemref="docSchema:BlockEvent/methodName"/>
   </Kind>
-
 
   <Kind itemName="ChoiceEvent">
     <classes key="python">OSAF.framework.blocks.Block.ChoiceEvent</classes>
@@ -182,6 +186,15 @@
     </Attribute>
 
     <attributes itemref="docSchema:ChoiceEvent/choice"/>
+  </Kind>
+
+  <Attribute itemName="blockEvents">
+    <type itemref="docSchema:BlockEvent"/>
+    <cardinality>list</cardinality>
+  </Attribute>
+
+  <Kind itemName="EventData">
+    <attributes itemref="docSchema:blockEvents"/>
   </Kind>
 
   <!--
@@ -231,6 +244,8 @@
   <Kind itemName="View">
     <classes key="python">OSAF.framework.blocks.View.View</classes>
     <superKinds itemref="docSchema:BoxContainer"/>
+
+    <attributes itemref="docSchema:blockEvents"/>
   </Kind>
 
   <!--

@@ -8,60 +8,80 @@
 <core:Parcel describes="//parcels/OSAF/framework/blocks/Events"
              itemName="Events"
              xmlns:core="//Schema/Core"
-             xmlns="//parcels/OSAF/framework/blocks">
+             xmlns="//parcels/OSAF/framework/blocks"
+             xmlns:events="//parcels/OSAF/framework/blocks/Events">
 
   <description>Events, need to be defined in a different parcel than the schema because 
 of a limitation of the XML format, which will be eliminated</description>
   <version>0.3</version>
-  
+
+  <EventData itemName="GlobalEvents">
+    <blockEvents itemref="events:Quit"/>
+    <blockEvents itemref="events:Undo"/>
+    <blockEvents itemref="events:Redo"/>
+    <blockEvents itemref="events:Cut"/>
+    <blockEvents itemref="events:Copy"/>
+    <blockEvents itemref="events:Paste"/>
+    <blockEvents itemref="events:GetTreeListData"/>
+    <blockEvents itemref="events:Preferences"/>
+    <blockEvents itemref="events:Right"/>
+    <blockEvents itemref="events:Left"/>
+    <blockEvents itemref="events:SelectionChanged"/>
+  </EventData>
+
   <BlockEvent itemName="Quit">
-    <name>block/Quit</name>
     <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnQuitEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Undo">
-    <name>block/Undo</name>
     <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnUndoEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Redo">
-    <name>block/Redo</name>
     <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnRedoEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Cut">
-    <name>block/Cut</name>
     <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnCutEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Copy">
-    <name>block/Copy</name>
     <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnCopyEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Paste">
-    <name>block/Paste</name>
     <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnPasteEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="GetTreeListData">
-    <name>block/GetTreeListData</name>
     <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnGetTreeListDataEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Preferences">
-    <name>block/Preferences</name>
     <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnPreferencesEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Right">
-    <name>block/Right</name>
     <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnRightEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="Left">
-    <name>block/Left</name>
     <dispatchEnum>BubbleUp</dispatchEnum>
+    <methodName>OnLeftEvent</methodName>
+  </BlockEvent>
+
+  <BlockEvent itemName="SelectionChanged">
+    <dispatchEnum>Broadcast</dispatchEnum>
+    <methodName>OnSelectionChangedEvent</methodName>
   </BlockEvent>
 
 
