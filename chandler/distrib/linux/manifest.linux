@@ -35,7 +35,7 @@ recursive=no
 python2.3
 
 # Grab the GTK library
-libwx_gtk-2.5.so
+libwx_gtk-2.4.so
 
 # Grab Chandler.py
 src=Chandler
