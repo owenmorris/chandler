@@ -5,6 +5,7 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import xml.sax
+
 from ItemRef import ItemRef
 from ItemRef import RefDict
 from ItemRef import RefList
@@ -526,7 +527,11 @@ class Item(object):
 
         def typeName(value):
 
-            if isinstance(value, UUID):
+            typeHandler = ItemHandler.typeHandlers.get(type(value))
+
+            if typeHandler is not None:
+                return typeHandler.handlerName()
+            elif isinstance(value, UUID):
                 return 'uuid'
             elif isinstance(value, Path):
                 return 'path'
@@ -562,7 +567,7 @@ class Item(object):
                     if attrType is None:
                         attrs['type'] = typeName(value)
                     elif withSchema:
-                        attrs['type'] = attrType.typeName()
+                        attrs['type'] = attrType.handlerName()
 
             generator.characters(indent)
             generator.startElement(tag, attrs)
@@ -581,7 +586,12 @@ class Item(object):
                 generator.characters(indent)
             else:
                 if attrType is None:
-                    value = str(value)
+                    typeHandler = ItemHandler.typeHandlers.get(type(value))
+
+                    if typeHandler is not None:
+                        value = typeHandler.makeString(value)
+                    else:
+                        value = str(value)
                 else:
                     value = attrType.serialize(value, withSchema)
                 generator.characters(value)
@@ -591,6 +601,8 @@ class Item(object):
 
 class ItemHandler(xml.sax.ContentHandler):
     'A SAX ContentHandler implementation responsible for loading items.'
+    
+    typeHandlers = {}
     
     def __init__(self, repository, parent):
 
@@ -847,9 +859,22 @@ class ItemHandler(xml.sax.ContentHandler):
         if attrDef is not None:
             type = attrDef.getAspect('Type')
             if type is not None:
-                return type.makeValue(data)
+                return type.unserialize(data)
 
-        if typeName == 'str':
+        if typeName.find('.') > 0:
+            try:
+                typeHandler = ItemHandler.typeHandlers[typeName]
+            except KeyError:
+                lastDot = typeName.rindex('.')
+                module = typeName[:lastDot]
+                name = typeName[lastDot+1:]
+        
+                typeHandler = getattr(__import__(module, {}, {}, name), name)
+                ItemHandler.typeHandlers[typeName] = typeHandler
+
+            return typeHandler.makeValue(data)
+
+        if typeName == 'str' or typeName == 'unicode':
             return data
 
         if typeName == 'uuid':
@@ -859,13 +884,18 @@ class ItemHandler(xml.sax.ContentHandler):
             return Path(data)
 
         if typeName == 'bool':
-            return data != 'False'
-        
-        if typeName == 'class':
-            lastDot = data.rindex('.')
-            module = data[:lastDot]
-            name = data[lastDot+1:]
-            return getattr(__import__(module, {}, {}, name), name)
-        
-        return getattr(__import__('__builtin__', {}, {}, typeName),
-                       typeName)(data)
+            return data != False
+
+        if typeName == 'int':
+            return int(data)
+
+        if typeName == 'long':
+            return long(data)
+
+        if typeName == 'float':
+            return float(data)
+
+        if typeName == 'complex':
+            return complex(data)
+
+        raise ValueError, "Unknown type: " + typeName

@@ -4,7 +4,10 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import mx.DateTime
+
 from model.item.Item import Item
+from model.item.Item import ItemHandler
 from model.item.ItemRef import RefDict
 from MetaKind import MetaKind
 from Kind import Kind
@@ -12,116 +15,136 @@ from Kind import Kind
 
 class Type(Item):
 
+    def makeValue(cls, data):
+        raise NotImplementedError, "Type.makeValue()"
+
+    def makeString(cls, value):
+        return str(value)
+
+    def handlerName(self):
+        return "%s.%s" %(type(self).__module__, type(self).__name__)
+
+    def serialize(self, value, withSchema=False):
+        return Type.makeString(value)
+    
+    def unserialize(self, data):
+        raise NotImplementedError, "Type.unserialize()"
+
     kind = MetaKind(Kind, { 'TypeFor': { 'Required': False,
                                          'Cardinality': 'dict',
                                          'OtherName': 'Type' }})
-
-    def makeValue(self, data):
-
-        return self.unserialize(data)
-
-    def typeName(self):
-
-        raise NotImplementedError, "Type.typeName()"
-
-    def serialize(self, value, withSchema=False):
-
-        return str(value)
+    makeValue = classmethod(makeValue)
+    makeString = classmethod(makeString)
     
-    def unserialize(self, data):
-
-        raise NotImplementedError, "Type.unserialize()"
-
 
 class String(Type):
 
-    def typeName(self):
-        return 'str'
+    def makeValue(cls, data):
+        return str(data)
 
     def unserialize(self, data):
-        return str(data)
+        return String.makeValue(data)
+
+    makeValue = classmethod(makeValue)
 
 
 class Integer(Type):
 
-    def typeName(self):
-        return 'int'
+    def makeValue(cls, data):
+        return int(data)
 
     def unserialize(self, data):
-        return int(data)
+        return Integer.makeValue(data)
+
+    makeValue = classmethod(makeValue)
 
 
 class Long(Type):
 
-    def typeName(self):
-        return 'long'
+    def makeValue(cls, data):
+        return long(data)
 
     def unserialize(self, data):
-        return long(data)
+        return Long.makeValue(data)
+
+    makeValue = classmethod(makeValue)
 
 
 class Float(Type):
 
-    def typeName(self):
-        return 'float'
+    def makeValue(cls, data):
+        return float(data)
 
     def unserialize(self, data):
-        return float(data)
+        return Float.makeValue(data)
+
+    makeValue = classmethod(makeValue)
 
     
 class Complex(Type):
 
-    def typeName(self):
-        return 'complex'
+    def makeValue(cls, data):
+        return complex(data)
 
     def unserialize(self, data):
-        return complex(data)
+        return Complex.makeValue(data)
+
+    makeValue = classmethod(makeValue)
 
 
 class Bool(Type):
 
-    def typeName(self):
-        return 'bool'
+    def makeValue(cls, data):
+        return data != 'False'
 
     def unserialize(self, data):
-        return data != 'False'
+        return Bool.makeValue(data)
+
+    makeValue = classmethod(makeValue)
 
 
 class UUID(Type):
 
-    def typeName(self):
-        return 'uuid'
+    def makeValue(cls, data):
+        return model.util.UUID(data)
 
     def unserialize(self, data):
-        return model.util.UUID(data)
+        return UUID.makeValue(data)
+
+    makeValue = classmethod(makeValue)
 
 
 class Path(Type):
 
-    def typeName(self):
-        return 'path'
+    def makeValue(cls, data):
+        return model.util.Path(data)
 
     def unserialize(self, data):
-        return model.util.Path(data)
+        return Path.makeValue(data)
+
+    makeValue = classmethod(makeValue)
 
 
 class Class(Type):
 
-    def typeName(self):
-
-        return 'class'
-
-    def serialize(self, value, withSchema=False):
-
-        return "%s.%s" %(value.__module__, value.__name__)
-
-    def unserialize(self, data):
-
+    def makeValue(cls, data):
         lastDot = data.rindex('.')
         module = data[:lastDot]
         name = data[lastDot+1:]
         
         return getattr(__import__(module, {}, {}, name), name)
+
+    def makeString(cls, value):
+        return "%s.%s" %(value.__module__, value.__name__)
+
+    def unserialize(self, data):
+        return Class.makeValue(data)
+        
+    def serialize(self, value, withSchema=False):
+        return Class.makeString(value)
+
+    makeValue = classmethod(makeValue)
+    makeString = classmethod(makeString)
 
 
 class Enum(Type):
@@ -131,9 +154,11 @@ class Enum(Type):
                                          'OtherName': 'Type' },
                             'Values': { 'Cardinality': 'list' } })
 
-    def typeName(self):
+    def makeValue(cls, data):
+        return data
 
-        return 'str'
+    def makeString(cls, value):
+        return value
 
     def serialize(self, value, withSchema=False):
 
@@ -150,3 +175,40 @@ class Enum(Type):
             return self.Values[int(data)]
 
         return self.Values.index(data) and data
+
+    makeValue = classmethod(makeValue)
+    makeString = classmethod(makeString)
+    
+
+class DateTime(Type):
+
+    def makeValue(cls, data):
+        return mx.DateTime.ISO.ParseDateTime(data)
+        
+    def makeString(cls, value):
+        return mx.DateTime.ISO.str(value)
+
+    def serialize(self, value, withSchema=False):
+        return DateTime.makeString(value)
+
+    def unserialize(self, data):
+        return DateTime.makeValue(data)
+
+    makeValue = classmethod(makeValue)
+    makeString = classmethod(makeString)
+
+
+class RelativeDateTime(Type):
+
+    def makeValue(cls, data):
+        return mx.DateTime.RelativeDateTimeFrom(data)
+
+    def unserialize(self, data):
+        return RelativeDateTime.makeValue(data)
+
+    makeValue = classmethod(makeValue)
+    
+
+ItemHandler.typeHandlers[type] = Class
+ItemHandler.typeHandlers[type(mx.DateTime.now())] = DateTime
+ItemHandler.typeHandlers[type(mx.DateTime.RelativeDateTime())] = RelativeDateTime

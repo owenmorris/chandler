@@ -13,5 +13,5 @@
         <ref name="NotFoundAttrDefs" type="path">//Schema/Model/Attributes/NotFoundAttrDefs</ref>
         <ref name="Class" type="path">//Schema/Model/Attributes/Class</ref>
     </ref>
-    <attribute name="Class" type="class">model.schema.Kind.Kind</attribute>
+    <attribute name="Class" type="model.schema.Types.Class">model.schema.Kind.Kind</attribute>
 </item>

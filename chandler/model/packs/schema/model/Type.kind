@@ -8,5 +8,5 @@
     <ref name="AttrDefs">
         <ref name="TypeFor" type="path">//Schema/Model/Attributes/TypeFor</ref>
     </ref>
-    <attribute name="Class" type="class">model.schema.Types.Type</attribute>
+    <attribute name="Class" type="model.schema.Types.Class">model.schema.Types.Type</attribute>
 </item>

@@ -12,5 +12,5 @@
         <ref name="5ddf5752-ab0d-11d7-8a19-000393db837c" nameType="uuid"
              type="path">//Schema/Model/Type</ref>
     </ref>
-    <attribute name="Class" type="class">model.schema.Types.Enum</attribute>
+    <attribute name="Class" type="model.schema.Types.Class">model.schema.Types.Enum</attribute>
 </item>

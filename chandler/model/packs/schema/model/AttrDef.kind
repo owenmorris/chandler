@@ -18,5 +18,5 @@
         <ref name="DisplayName" type="path">//Schema/Model/Attributes/DisplayName</ref>
         <ref name="Kinds" type="path">//Schema/Model/Attributes/Kinds</ref>
     </ref>
-    <attribute name="Class" type="class">model.schema.AttrDef.AttrDef</attribute>
+    <attribute name="Class" type="model.schema.Types.Class">model.schema.AttrDef.AttrDef</attribute>
 </item>
