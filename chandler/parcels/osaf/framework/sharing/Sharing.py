@@ -21,6 +21,7 @@ import wx
 import time, StringIO, urlparse, libxml2, os, mx
 import chandlerdb
 import WebDAV, httplib
+import AccountInfoPrompt
 
 logger = logging.getLogger('Sharing')
 logger.setLevel(logging.INFO)
@@ -568,11 +569,11 @@ class WebDAVConduit(ShareConduit):
     def __getSettings(self):
         if self.account is None:
             return (self.host, self.port, self.sharePath.strip("/"),
-                    self.username, self.password, self.useSSL)
+                    self.username, self.password, self.account.useSSL)
         else:
             return (self.account.host, self.account.port,
                     self.account.path.strip("/"), self.account.username,
-                    self.account.password, self.useSSL)
+                    self.account.password, self.account.useSSL)
 
     def __getClient(self):
         if self.client is None:
@@ -1207,10 +1208,11 @@ def newOutboundShare(view, collection, account=None):
         if account is None:
             return None
 
-    conduit = WebDAVConduit(account=account)
-    format = CloudXMLFormat()
-    share = Share(conduit=conduit, format=format, contents=collection)
-    share.displayName = collections.displayName
+    conduit = WebDAVConduit(view=view, account=account)
+    format = CloudXMLFormat(view=view)
+    share = Share(view=view, conduit=conduit, format=format,
+                  contents=collection)
+    share.displayName = collection.displayName
     share.hidden = False # indicates that the DetailView should show this share
     return share
 
@@ -1230,19 +1232,43 @@ def newInboundShare(view, url):
     @return: A Share item, or None if no WebDAV account could be found.
     """
 
+    (useSSL, host, port, path, query, fragment) = __spliturl(url)
+
+    parent = view.findPath("//userdata")
+
     account = findMatchingWebDAVAccount(view, url)
+
     if account is None:
         # @@@MOR must prompt user for account information (?)
         # then create an account
 
-        # For now, just:
-        return None
+        # Examine the URL for scheme, host, port, path
+        info = AccountInfoPrompt.PromptForNewAccountInfo(wx.GetApp().mainFrame,
+                                                         host=host,
+                                                         path=path)
+        if info is not None:
+            (description, username, password) = info
+            kindPath = "//parcels/osaf/framework/sharing/WebDAVAccount"
+            webDAVAccountKind = view.findPath(kindPath)
+            account = webDAVAccountKind.newItem(name=None, parent=parent)
+            account.displayName = description
+            account.host = host
+            account.path = path
+            account.username = username
+            account.password = password
+            account.isDefault = False
+            account.useSSL = useSSL
+            account.port = port
 
     share = None
     if account is not None:
-        conduit = WebDAVConduit(account=account)
-        format = CloudXMLFormat()
-        share = Share(conduit=conduit, format=format)
+        shareName = path.strip("/").split("/")[-1]
+        print path
+        print shareName
+        conduit = WebDAVConduit(view=view, shareName=shareName,
+                                account=account)
+        format = CloudXMLFormat(view=view)
+        share = Share(view=view, conduit=conduit, format=format)
         share.hidden = False
     return share
 
@@ -1293,7 +1319,7 @@ def findMatchingWebDAVAccount(view, url):
 
     webDAVAccountKind = view.findPath("//parcels/osaf/framework/sharing/WebDAVAccount")
 
-    (useSSL, host, path, query, fragment) = __spliturl(url)
+    (useSSL, host, port, path, query, fragment) = __spliturl(url)
 
     # Get the parent directory of the given path:
     # '/dev1/foo/bar' becomes ['dev1', 'foo']
@@ -1327,7 +1353,7 @@ def findMatchingShare(view, url):
     # matching share; go through all conduits this account points to and look
     # for shareNames that match
 
-    (useSSL, host, path, query, fragment) = __spliturl(url)
+    (useSSL, host, port, path, query, fragment) = __spliturl(url)
 
     # '/dev1/foo/bar' becomes 'bar'
     shareName = path.strip("/").split("/")[-1:]
