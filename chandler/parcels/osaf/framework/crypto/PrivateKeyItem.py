@@ -3,7 +3,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from repository.item.Item import Item
-from M2Crypto import RSA
+from M2Crypto import RSA, BIO
 
 class PrivateKeyItem(Item):
 
@@ -29,5 +29,10 @@ class PrivateKeyItem(Item):
         text = self.getAttributeAspect('pem',
                                        'type').makeValue(pem, compression=None)
         self.pem = text
-        self._rsa = rsa
 
+        if rsa is None:
+            buf = BIO.MemoryBuffer(pem)
+            self._rsa = RSA.load_key_bio(buf,
+                                         Globals.crypto._passphrase_callback)
+        else:
+            self._rsa = rsa

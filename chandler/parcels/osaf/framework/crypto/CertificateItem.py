@@ -3,7 +3,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from repository.item.Item import Item
-from M2Crypto import X509, util
+from M2Crypto import X509, BIO, util
 from M2Crypto.EVP import MessageDigest
 import mx.DateTime as DateTime
 from email.Utils import parsedate
@@ -11,7 +11,7 @@ from email.Utils import parsedate
 class CertificateItem(Item):
     def __init__(self, *args):
         super(CertificateItem, self).__init__(*args)
-        self._x509 = None # XXX TODO Create from PEM if any
+        self._x509 = None
 
     def getName(self):
         return self.getItemDisplayName()
@@ -75,9 +75,13 @@ class CertificateItem(Item):
         text = self.getAttributeAspect('pem',
                                        'type').makeValue(pem, compression=None)
         self.pem = text
-        self._x509 = x509
 
-        # XXX Should probably create x509 from pem
+        if x509 is None:
+            buf = BIO.MemoryBuffer(pem)
+            self._x509 = X509.load_cert_bio(buf)
+        else:
+            self._x509 = x509
+
         # XXX These should probably be done on demand
         if self._x509:
             self._calculateFingerprint()
