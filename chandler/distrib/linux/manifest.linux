@@ -107,13 +107,17 @@ locale
 src=chandler/distrib/linux
 README.linux.txt
 
-# Grab the main launcher script
+# Grab the launcher programs
 src=chandler
 dest=
 chandler
-# and the other launch script
+src=chandler/release/lib
+dest=release/lib
+chandler_bin
+# and the launch scripts (this is temporary until bug 1672 is fixed.)
 src=chandler/release
 dest=release
+RunChandler
 RunPython
 
 # Grab the overall README
