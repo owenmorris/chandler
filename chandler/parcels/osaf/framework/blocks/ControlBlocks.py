@@ -129,21 +129,28 @@ class EditText(RectangularChild):
                                                          self.Calculate_wxBorder())
         return editText, None, None
 
+
+
+class wxHTML(wxHtmlWindow):
+    def OnLinkClicked(self, link):
+        webbrowser.open(link.GetHref())
     
 class HTML(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
-        htmlWindow = wxHtmlWindow(parentWindow,
-                                  Block.getwxID(self),
-                                  wxDefaultPosition,
-                                  (self.minimumSize.width, self.minimumSize.height))
+        htmlWindow = wxHTML(parentWindow,
+                            Block.getwxID(self),
+                            wxDefaultPosition,
+                            (self.minimumSize.width,
+                             self.minimumSize.height))
         if self.url:
             htmlWindow.LoadPage(self.url)
-        
-        self.getParentBlock(parentWindow).addToContainer(parent,
-                                                         htmlWindow,
-                                                         self.stretchFactor,
-                                                         self.Calculate_wxFlag(),
-                                                         self.Calculate_wxBorder())
+
+        parentBlock = self.getParentBlock(parentWindow)
+        parentBlock.addToContainer(parent,
+                                   htmlWindow,
+                                   self.stretchFactor,
+                                   self.Calculate_wxFlag(),
+                                   self.Calculate_wxBorder())
         return htmlWindow, None, None
 
     

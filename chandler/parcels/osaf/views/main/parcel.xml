@@ -26,9 +26,9 @@
     <data></data>
   </Query>
 
-  <Query itemName="parcelViewerQuery">
+  <Query itemName="mainViewerQuery">
     <queryEnum>listOfItems</queryEnum>
-    <data>parcels/OSAF/views/repositoryviewer/RepositoryBox</data>
+    <data>parcels/OSAF/views/main/AboutChandlerHTML</data>
   </Query>  
 
   <!--
@@ -330,11 +330,26 @@
   <StatusBar itemName="StatusBar">
   </StatusBar>
 
+  <!-- 
+    About Chandler View 
+  -->
+  <HTML itemName="AboutChandlerHTML">
+    <url>application/welcome.html</url>
+    <eventBoundary>True</eventBoundary>
+    <open>True</open>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </HTML>
+
   <!--
     Sidebar locations
   -->
   <Node itemName="URLRoot">
     <displayName></displayName>
+    <children itemref="doc:AboutChandler"/>
     <children itemref="doc:Repository"/>
     <children itemref="doc:Demo"/>
     <children itemref="doc:ZaoBao"/>
@@ -344,19 +359,24 @@
     <children itemref="doc:NotesView"/>
   </Node>
 
+  <Node itemName="AboutChandler">
+    <displayName>About Chandler</displayName>
+    <item itemref="doc:AboutChandlerHTML"/>
+  </Node>
+
   <Node itemName="Repository">
     <displayName>Repository</displayName>
     <item itemref="repository:RepositoryBox"/>
   </Node>
 
   <Node itemName="Demo">
-    <displayName>Demo</displayName>
+    <displayName>Block Demo</displayName>
     <item itemref="demo:TabBox"/>
   </Node>
 
   <Node itemName="ZaoBao">
     <displayName>ZaoBao</displayName>
-    <item itemref="zaobao:ZaoBaoView"/>
+    <item itemref="zaobao:AboutZaoBao"/>
     <children itemref="doc:OSAFRSS"/>
     <children itemref="doc:ZaoBaoRSS"/>
     <children itemref="doc:TedRSS"/>
@@ -439,9 +459,9 @@
   <!--
     Layout blocks
   -->
-  <EmbeddedContainer itemName="ParcelViewer">
+  <EmbeddedContainer itemName="MainViewer">
     <!-- Attributes -->
-    <contentSpec itemref="doc:parcelViewerQuery"/>
+    <contentSpec itemref="doc:mainViewerQuery"/>
     <open>True</open>
     <size>100,20</size>
     <minimumSize>100,20</minimumSize>
@@ -453,7 +473,7 @@
   <Tree itemName="Sidebar">
     <!-- Attributes -->
     <elementDelegate>OSAF.views.main.SideBar.SideBarDelegate</elementDelegate>
-    <selection itemref="doc:Repository"/>
+    <selection itemref="doc:AboutChandler"/>
 
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
@@ -486,7 +506,7 @@
   <SplitWindow itemName="MainSplitter">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:Sidebar"/>
-    <childrenBlocks itemref="doc:ParcelViewer"/>
+    <childrenBlocks itemref="doc:MainViewer"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

@@ -9,6 +9,7 @@
              itemName="locations"
              xmlns:core="//Schema/Core"
              xmlns="//parcels/OSAF/framework/blocks"
+             xmlns:main="//parcels/OSAF/views/main"
              xmlns:doc="//parcels/OSAF/views/locations"
              xmlns:repository="//parcels/OSAF/views/repositoryviewer"
              xmlns:demo="//parcels/OSAF/views/demo"
@@ -22,6 +23,7 @@
   -->
   <Node itemName="URLRoot">
     <displayName></displayName>
+    <children itemref="doc:AboutChandler"/>
     <children itemref="doc:Repository"/>
     <children itemref="doc:Demo"/>
     <children itemref="doc:ZaoBao"/>
@@ -31,20 +33,30 @@
     <children itemref="doc:NotesView"/>
   </Node>
 
+  <Node itemName="AboutChandler">
+    <displayName>About Chandler</displayName>
+    <item itemref="main:AboutChandlerHTML"/>
+  </Node>
+
   <Node itemName="Repository">
     <displayName>Repository</displayName>
     <item itemref="repository:RepositoryBox"/>
   </Node>
 
   <Node itemName="Demo">
-    <displayName>Demo</displayName>
+    <displayName>Block Demo</displayName>
     <item itemref="demo:TabBox"/>
   </Node>
 
   <Node itemName="ZaoBao">
     <displayName>ZaoBao</displayName>
-    <item itemref="zaobao:ZaoBaoView"/>
-    <children itemref="doc:OSAFNews"/>
+    <item itemref="zaobao:AboutZaoBao"/>
+    <children itemref="doc:OSAFRSS"/>
+    <children itemref="doc:ZaoBaoRSS"/>
+    <children itemref="doc:TedRSS"/>
+    <children itemref="doc:ChaoRSS"/>
+    <children itemref="doc:LessigRSS"/>
+    <children itemref="doc:MarkRSS"/>
   </Node>
 
   <Node itemName="OSAFNews">

@@ -114,6 +114,17 @@
 
   </BoxContainer>
 
+  <HTML itemName="AboutZaoBao">
+    <url>application/welcome.html</url>
+    <eventBoundary>True</eventBoundary>
+    <open>True</open>
+    <size>900,580</size>
+    <minimumSize>900,580</minimumSize>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </HTML>
+
   <SplitWindow itemName="ZaoBaoView">
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
