@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <name>FrenchTitle</name>
+    <kind type="path">//Schema/Model/AttrDef</kind>
+
+    <ref name="Type" type="path">//Schema/Model/Types/String</ref>
+    <attribute name="Cardinality">single</attribute>
+    <attribute name="Required">True</attribute>
+</item>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <name>KHepburn</name>
+    <kind type="path">//Schema/CineGuide/Actor</kind>
+
+    <attribute name="Name">Katharine Hepburn</attribute>
+    <attribute name="Born">1907-MM-DD</attribute>
+    <attribute name="Died">2003-MM-DD</attribute>
+</item>
