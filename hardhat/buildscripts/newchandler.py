@@ -106,7 +106,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
               cvsVintage, buildVersion, log)
             CopyLog(os.path.join(workingDir, logPath), log)
 
-        changes = "-nochanges"
+        changes = "-first-run"
     else:
         os.chdir(chanDir)
     
@@ -115,14 +115,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         if changesInCVS(chanDir, workingDir, cvsVintage, log):
             log.write("Changes in CVS, do an install\n")
             changes = "-changes"
-        else:
-            log.write("No changes, install skipped\n")
-            changes = "-nochanges"
-
-        # do tests after checking CVS
-        for releaseMode in ('debug', 'release'):
-    
-            if changes == "-changes":
+            for releaseMode in ('debug', 'release'):        
                 doInstall(releaseMode, workingDir, log)
                 
                 #   Create end-user, developer distributions
@@ -137,8 +130,13 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                 outputList = hardhatutil.executeCommandReturnOutput(
                  [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
                 hardhatutil.dumpOutputList(outputList, log)
-                
-    
+                    
+        else:
+            log.write("No changes, install skipped\n")
+            changes = "-nochanges"
+
+        # do tests after checking CVS
+        for releaseMode in ('debug', 'release'):   
             ret = Do(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
             CopyLog(os.path.join(workingDir, logPath), log)
