@@ -162,7 +162,7 @@ ifeq ($(OS),Linux)
 compiler=compiler
 
 $(compiler):
-	@echo you need to install a gcc 3.3.x distribution for your Linux distribution that includes gcj and set GCJ_HOME to point at its installation directory
+	@echo you need to install a gcc 3.4.x distribution for your Linux distribution that includes gcj and set GCJ_HOME to point at its installation directory
 
 endif
 
