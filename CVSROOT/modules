@@ -33,7 +33,6 @@ chandler-app -a \
     osaf/chandler/Chandler
 
 chandler-system -a \
-    osaf/chandler/4suite \
     osaf/chandler/Chandler \
     osaf/chandler/egenix-mx \
     osaf/chandler/jabber-py \
