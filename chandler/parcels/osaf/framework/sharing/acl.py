@@ -12,8 +12,8 @@ One could construct an ACL object like this, starting with ACE:
 <D:ace>
 <D:principal><D:all/></D:principal>
 <D:grant>
-<D:privilege><D:read/></D:privilege>
 <D:privilege><ns-1:write/></D:privilege>
+<D:privilege><D:read/></D:privilege>
 </D:grant>
 </D:ace>
 <BLANKLINE>
@@ -22,12 +22,12 @@ Then creating the actual ACL by passing in the ACE:
     
 >>> aclObj = ACL(acl=[allACE])
 >>> print aclObj
-<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" >
+<D:acl xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" xmlns:D="DAV:">
 <D:ace>
 <D:principal><D:all/></D:principal>
 <D:grant>
-<D:privilege><D:read/></D:privilege>
 <D:privilege><ns-1:write/></D:privilege>
+<D:privilege><D:read/></D:privilege>
 </D:grant>
 </D:ace>
 </D:acl>
@@ -35,65 +35,23 @@ Then creating the actual ACL by passing in the ACE:
 Let's play with the ACE object some more:
 
 >>> allACE.deny('yawn', 'http://www.example.com/namespaces/acl/')
->>> print allACE
-<D:ace>
-<D:principal><D:all/></D:principal>
-<D:deny><D:privilege><ns-1:yawn/></D:privilege>
-</D:deny>
-<D:grant>
-<D:privilege><D:read/></D:privilege>
-<D:privilege><ns-1:write/></D:privilege>
-</D:grant>
-</D:ace>
-<BLANKLINE>
->>> print allACE._deny.privileges['yawn']
-['ns-1', 'http://www.example.com/namespaces/acl/']
+>>> print allACE._deny.privileges.keys()
+[('yawn', 'http://www.example.com/namespaces/acl/')]
 >>> allACE.deny('yawn', 'http://www.example.com/namespaces/fooledya/acl/')
->>> print allACE
-<D:ace>
-<D:principal><D:all/></D:principal>
-<D:deny><D:privilege><ns-2:yawn/></D:privilege>
-</D:deny>
-<D:grant>
-<D:privilege><D:read/></D:privilege>
-<D:privilege><ns-1:write/></D:privilege>
-</D:grant>
-</D:ace>
-<BLANKLINE>
->>> print allACE._deny.privileges['yawn']
-['ns-2', 'http://www.example.com/namespaces/fooledya/acl/']
+>>> print allACE._grant.privileges
+{('write', 'http://www.xythos.com/namespaces/StorageServer/acl/'): 'ns-1', ('read', 'DAV:'): 'D'}
 >>> allACE.protected = True
 >>> print allACE
 <BLANKLINE>
 >>> allACE.protected = False
->>> print allACE
-<D:ace>
-<D:principal><D:all/></D:principal>
-<D:deny><D:privilege><ns-2:yawn/></D:privilege>
-</D:deny>
-<D:grant>
-<D:privilege><D:read/></D:privilege>
-<D:privilege><ns-1:write/></D:privilege>
-</D:grant>
-</D:ace>
-<BLANKLINE>
 >>> allACE.removeDeny('yawn', 'http://www.example.com/namespaces/fooledya/acl/')
+>>> allACE.removeDeny('yawn', 'http://www.example.com/namespaces/acl/')
 >>> print allACE
 <D:ace>
 <D:principal><D:all/></D:principal>
 <D:grant>
-<D:privilege><D:read/></D:privilege>
 <D:privilege><ns-1:write/></D:privilege>
-</D:grant>
-</D:ace>
-<BLANKLINE>
->>> allACE.mapPrefixes({'http://www.xythos.com/namespaces/StorageServer/acl/': 'XA'})
->>> print allACE
-<D:ace>
-<D:principal><D:all/></D:principal>
-<D:grant>
 <D:privilege><D:read/></D:privilege>
-<D:privilege><XA:write/></D:privilege>
 </D:grant>
 </D:ace>
 <BLANKLINE>
@@ -108,13 +66,21 @@ Traceback (most recent call last):
 ValueError: ace already added
 >>> dummyACE = ACE(principal='http://example.com/users/dummy', deny=(), grant=('read', 'DAV:'))
 >>> aclObj.add(dummyACE)
+>>> print dummyACE.denyList()
+[]
+>>> print dummyACE.grantList()
+[('read', 'DAV:')]
+>>> print allACE.denyList()
+[]
+>>> print allACE.grantList()
+[('write', 'http://www.xythos.com/namespaces/StorageServer/acl/'), ('read', 'DAV:')]
 >>> print aclObj
-<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" >
+<D:acl xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" xmlns:D="DAV:">
 <D:ace>
 <D:principal><D:all/></D:principal>
 <D:grant>
-<D:privilege><D:read/></D:privilege>
 <D:privilege><ns-1:write/></D:privilege>
+<D:privilege><D:read/></D:privilege>
 </D:grant>
 </D:ace>
 <D:ace>
@@ -132,12 +98,12 @@ Traceback (most recent call last):
     self.acl.remove(ace)
 ValueError: list.remove(x): x not in list
 >>> print aclObj
-<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" >
+<D:acl xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" xmlns:D="DAV:">
 <D:ace>
 <D:principal><D:all/></D:principal>
 <D:grant>
-<D:privilege><D:read/></D:privilege>
 <D:privilege><ns-1:write/></D:privilege>
+<D:privilege><D:read/></D:privilege>
 </D:grant>
 </D:ace>
 </D:acl>
@@ -200,7 +166,7 @@ Let's parse real life XML now:
 >>> print len(realACL.acl), realACL.acl[0].protected
 3 True
 >>> print realACL
-<D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" >
+<D:acl xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" xmlns:D="DAV:">
 <D:ace>
 <D:principal><D:owner/></D:principal>
 <D:grant>
@@ -213,10 +179,17 @@ Let's parse real life XML now:
 </D:ace>
 </D:acl>
 
+BUGS:
+    * DAV: namespace prefix hardcoded to D
+    * privileges and namespaces show in the reverse order they are added
+    * manually mapping some namespaces to ns-[0-9]+ prefixes will break
+      things
+    * serializing ACEs without going through ACL does not map the namespace
+      prefixes correctly between grant and deny lists
+    * only ACL serialization outputs namespace declarations (so the only
+      way to use serialize anything is really by serializing ACLs only)
+
 TODO:
-   * BUG: Should be able to have deny and grant rules where local name
-     is the same but namespace differs. Currently we can only have one name
-     (trying to add replaces previous entry).
    * Higher level API:
       - pythonic (raise exceptions on errors, return python objects
         instead of XML etc.)
@@ -279,22 +252,17 @@ class ACE(object):
         """
         self._grant.remove(privilege, namespace)
 
-    def namespaces(self):
+    def denyList(self):
         """
-        Get the tuple list of namespace prefixes and strings.
+        Get the list of lists [denyPrivilege, namespace].
         """
-        return self._deny.namespaces() + self._grant.namespaces()
+        return self._deny.privileges.keys()
 
-    def mapPrefixes(self, map):
+    def grantList(self):
         """
-        Specify namespace prefixes. They are automatically specified,
-        but in some instances it is useful to override the defaults.
-
-        @param map: A dictionary where keys are namespace URIs and values
-                    the corresponding prefixes.
+        Get the list of lists [grantPrivilege, namespace].
         """
-        self._deny.mapPrefixes(map)
-        self._grant.mapPrefixes(map)
+        return self._grant.privileges.keys()
 
     def __str__(self):
         if self.protected:
@@ -316,8 +284,9 @@ class ACL(object):
         """
         if acl is None:
             acl = []
-        self.acl = acl
-
+        self.acl = acl[:]
+        self.namespacePrefixMap = {'DAV:': 'D'}
+        
     def add(self, ace):
         """
         Add an ACE to the ACL.
@@ -332,24 +301,44 @@ class ACL(object):
         """
         self.acl.remove(ace)
 
-    def __str__(self):
-        acl = '<D:acl xmlns:D="DAV:" '
-        s = ''
-        nsCounter = 1
+    def mapPrefixes(self, map):
+        """
+        Specify namespace prefixes. They are automatically specified,
+        but in some instances it is useful to override the defaults.
 
+        @param map: A dictionary where keys are namespace URIs and values
+                    the corresponding prefixes.
+        """
+        map['DAV:'] = 'D'
+        self.namespacePrefixMap = map
+
+    def __str__(self):
         namespaces = []
         for ace in self.acl:
-            namespaces += ace.namespaces()
+            nsList = ace._deny.namespaces() + ace._grant.namespaces()
+            for ns in nsList:
+                if ns not in namespaces:
+                    namespaces += [ns]
 
-        map = {'DAV:': 'D'}
+        acl = '<D:acl'
+        s = ''
+        nsCounter = 1
+        map = self.namespacePrefixMap
+
         for namespace in namespaces:
-            if not map.has_key(namespace[1]):
-                map[namespace[1]] = 'ns-' + str(nsCounter)
-                acl += 'xmlns:ns-%d="%s" ' %(nsCounter, namespace[1])
+            mappedPrefix = self.namespacePrefixMap.get(namespace)
+            if mappedPrefix:
+                prefix = mappedPrefix
+            else:
+                prefix = 'ns-' + str(nsCounter)
+                map[namespace] = prefix
                 nsCounter += 1
+            
+            acl += ' xmlns:%s="%s"' %(prefix, namespace)
 
         for ace in self.acl:
-            ace.mapPrefixes(map)
+            ace._deny.mapPrefixes(map)
+            ace._grant.mapPrefixes(map)
             s += str(ace)
 
         return '%s>\n%s</D:acl>' %(acl, s)
@@ -522,10 +511,11 @@ class _Privileges(object):
             else:
                 self.nsCounter = 1
                 prefix = 'ns-1'
-            self.privileges = {privilege[0] : [prefix, privilege[1]]}
+            self.privileges = {privilege : prefix}
         else:
             self.nsCounter = 0
             self.privileges = {}
+        self.namespacePrefixMap = {'DAV:': 'D'}
 
     def add(self, name, namespace='DAV:'):
         if namespace == 'DAV:':
@@ -533,25 +523,36 @@ class _Privileges(object):
         else:
             self.nsCounter += 1
             prefix = 'ns-%d' %(self.nsCounter)
-        self.privileges[name] = [prefix, namespace]
+        self.privileges[(name, namespace)] = prefix
 
     def remove(self, name, namespace='DAV:'):
-        self.privileges.pop(name)
+        self.privileges.pop((name, namespace))
 
     def namespaces(self):
-        return self.privileges.values()
+        namespaces = []
+        keys = self.privileges.keys()
+        for key in keys:
+            if key[1] not in namespaces:
+                namespaces += [key[1]]
+        return namespaces
 
     def mapPrefixes(self, map):
-        names = self.privileges.keys()
-        for name in names:
-            if map.has_key(self.privileges[name][1]):
-                self.privileges[name][0] = map[self.privileges[name][1]]
+        #@param map: {'namespace': 'prefix'}
+        # XXX It kind of sucks that we have another copy of namespacePrefixMap
+        # XXX here; ACL also has a version.
+        map['DAV:'] = 'D'
+        self.namespacePrefixMap = map
 
     def __str__(self):
         s = ''
-        names = self.privileges.keys()
-        for name in names:
-            s += '<D:privilege><%s:%s/></D:privilege>\n' %(self.privileges[name][0], name) 
+        keys = self.privileges.keys()
+        for key in keys:
+            mappedPrefix = self.namespacePrefixMap.get(key[1])
+            if mappedPrefix:
+                prefix = mappedPrefix
+            else:
+                prefix = self.privileges[key]
+            s += '<D:privilege><%s:%s/></D:privilege>\n' %(prefix, key[0]) 
         return s
 
 
