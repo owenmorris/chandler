@@ -22,8 +22,10 @@ logPath = 'hardhat.log'
 
 def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
+    global ret
+
     # find path to buildscripts
-    thisScriptDir = os.join("~/hardhat", "buildscripts")
+    thisScriptDir = os.path.join("/home/markie/hardhat", "buildscripts")
     print "Build scripts dir is " + thisScriptDir + "\n"
 
     # make sure workingDir is absolute, remove it, and create it
@@ -50,6 +52,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         else:
             dbgStr = ""
 
+        ret = "no_changes" 
         extModuleDir = os.path.join(releaseModeDir, "external")
         intModuleDir = os.path.join(releaseModeDir, "internal")
         if not os.path.exists(releaseModeDir):
