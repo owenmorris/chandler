@@ -49,12 +49,12 @@ endif
 
 BUILD=build_$(SNAP)
 
-$(SRC)/$(BUILD)/Makefile: apply
+$(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../dist/configure --prefix=$(PREFIX)/db \
                           --enable-cxx $(CONF_DBG)
 
-build: $(SRC)/$(BUILD)/Makefile
+build: apply $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
 
 clean:

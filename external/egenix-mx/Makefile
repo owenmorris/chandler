@@ -23,7 +23,7 @@ snap:
 	cd $(BUILD_ROOT); \
         tar -cvzf $(EGENIX)/$(SNAP).tar.gz \
                   $(SNAP)/$(SITE)/mx \
-            -X xcludes
+            -X $(EGENIX)/xcludes
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)

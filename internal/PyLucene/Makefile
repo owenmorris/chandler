@@ -30,6 +30,12 @@ BUILD=build_$(SNAP)
 
 ifeq ($(OS),Cygwin)
 
+build: apply
+	MAKEFLAGS=; \
+	$(MAKE) -f $(OS_MAKE) GCJ=`cygpath -aw $(GCJ_HOME)` $(COMP_OPT) \
+                              DBVERSION=4.2.52 VERSION=$(VERSION) \
+                              all install
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYLUCENE)/$(SNAP).tar.gz \
@@ -66,17 +72,17 @@ snap:
 
 endif
 
+build: apply
+	MAKEFLAGS=; \
+	$(MAKE) -f $(OS_MAKE) GCJ=$(GCJ_HOME) $(COMP_OPT) \
+                              DBVERSION=4.2.52 VERSION=$(VERSION) \
+                              all install
+
 endif
 
 apply: patches
 	patch -Nup0 < patches; echo ok
 	make -C $(BUILD_ROOT)/persistence/db apply
-
-build: apply
-	MAKEFLAGS=; \
-	$(MAKE) -f $(OS_MAKE) GCJ=`cygpath -aw $(GCJ_HOME)` $(COMP_OPT) \
-                              DBVERSION=4.2.52 VERSION=$(VERSION) \
-                              all install
 
 expand: lucene-$(VERSION)-src.tar.gz
 	tar xvzf lucene-$(VERSION)-src.tar.gz
