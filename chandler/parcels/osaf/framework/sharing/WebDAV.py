@@ -11,7 +11,7 @@ import libxml2
 import urlparse
 import logging
 import application.Globals as Globals
-import M2Crypto.httpslib as httpslib
+import crypto.ssl as ssl
 import chandlerdb.util.UUID
 
 logger = logging.getLogger('WebDAV')
@@ -41,9 +41,9 @@ class Client(object):
         if self.useSSL:
             if self.ctx is None:
                 self.ctx = Globals.crypto.getSSLContext()
-            self.conn = httpslib.HTTPSConnection(self.host,
-                                                 self.port,
-                                                 ssl_context=self.ctx)
+            self.conn = ssl.HTTPSConnection(self.host,
+                                            self.port,
+                                            ssl_context=self.ctx)
         else:
             self.conn = httplib.HTTPConnection(self.host, self.port)
 

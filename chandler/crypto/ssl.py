@@ -6,7 +6,7 @@ SSL/TLS-related functionality.
 """
 
 import os, sys
-from M2Crypto import SSL, util, EVP
+from M2Crypto import SSL, util, EVP, httpslib
 import util as cryptoUtil
 
 class SSLVerificationError(Exception):
@@ -200,3 +200,12 @@ def init(profileDir):
     caFile = os.path.join(chandlerDirectory, 'crypto', _caFile)
 
     cryptoUtil.copyfile(caFile, caFileProfileDir, mode=0600)
+
+
+from M2Crypto.SSL import Checker
+
+class HTTPSConnection(httpslib.HTTPSConnection):
+    def connect(self):
+        httpslib.HTTPSConnection.connect(self)
+        check = Checker.Checker()
+        check(self.sock.get_peer_cert(), self.sock.addr[0])
