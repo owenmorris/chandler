@@ -12,7 +12,7 @@ True = 1
 False = 0
 
 
-import os, hardhatutil, sys, re
+import os, hardhatutil, hardhatlib, sys, re
 
 
 treeName = "Chandler"
@@ -60,12 +60,12 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
             # Now need to do the setup for external - "expand" and "make"
             os.chdir("external")
-            os.environ.put("BUILD_ROOT", os.path.join(outputDir, "debug", "external") )
+            os.putenv("BUILD_ROOT", os.path.join(outputDir, "debug", "external") )
             print "Building debug"
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             log.write("Building debug..." + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [buildenv['make'], "expand" ],
+             ['make', "expand" ],
              "Expanding external sources")
             outputList = hardhatutil.executeCommandReturnOutput(
              [buildenv['make'], "DEBUG=1" ],
@@ -260,12 +260,10 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
              [buildenv['make'] ],
              "Making external programs")
             outputList = hardhatutil.executeCommandReturnOutput(
-             buildenv, info['name'],
              [buildenv['make'], "binaries" ],
              "Making external binaries")
             os.chdir(intModuleDir)
             outputList = hardhatutil.executeCommandReturnOutput(
-             buildenv, info['name'],
              [buildenv['make'] ],
              "Making internal programs")
             outputList = hardhatutil.executeCommandReturnOutput(
@@ -302,16 +300,13 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
              [buildenv['make'] ],
              "Making external programs")
             outputList = hardhatutil.executeCommandReturnOutput(
-             buildenv, info['name'],
              [buildenv['make'], "binaries" ],
              "Making external binaries")
             os.chdir(intModuleDir)
             outputList = hardhatutil.executeCommandReturnOutput(
-             buildenv, info['name'],
              [buildenv['make'] ],
              "Making internal programs")
             outputList = hardhatutil.executeCommandReturnOutput(
-             buildenv, info['name'],
              [buildenv['make'], "binaries" ],
              "Making internal binaries")
         
