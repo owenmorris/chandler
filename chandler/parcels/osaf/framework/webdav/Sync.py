@@ -153,6 +153,7 @@ def merge(dav, item, davItem, hasLocalChanges):
 def mergeList(item, attrName, nodes, nodesAreItemRefs):
     list = item.getAttributeValue(attrName, default=[])
 
+    localList = [i for i in list]
     serverList = []
     for node in nodes:
         if nodesAreItemRefs:
@@ -169,17 +170,25 @@ def mergeList(item, attrName, nodes, nodesAreItemRefs):
             serverList.append(value)
 
     log.info('%sMerging List: %s in %s' % (OFFSET(), attrName, str(item)))
+    log.info('%s`- server list:' % (OFFSET()))
+
+    for i in serverList:
+        log.info('%s   |- %s:' % (OFFSET(), str(i)))
+
+    log.info('%s`- local list:' % (OFFSET()))
+    for i in localList:
+        log.info('%s   |- %s:' % (OFFSET(), str(i)))
+
     try:
         # for now, just sync with whatever the server gave us
         for i in serverList:
-            if i not in list:
+            if i not in localList:
                 item.addValue(attrName, i)
                 log.info('%sAdding %s to list %s' % (OFFSET(), i, item))
-        # XXX this should work but has some issues.. fixme!
-        #for i in list:
-        #    if i not in serverList:
-        #        item.removeValue(attrName, i)
-        #        log.info('%sremoving %s from list %s' % (OFFSET(), i, item))
+        for i in localList:
+            if i not in serverList:
+                item.removeValue(attrName, i)
+                log.info('%sremoving %s from list %s' % (OFFSET(), i, item))
 
     except Exception, e:
         log.exception(e)
@@ -454,7 +463,8 @@ def getItem(dav):
                         log.warning('Skipping %s -- Not a ContentItem' % (str(k)))
                         continue
                     if not k.hasAttributeValue('sharedURL'):
-                        continue
+                        k.sharedURL = dav.url.join(k.itsUUID.str16())
+
                     Dav.DAV(k.sharedURL).sync(k)
 
     dav.sync(newItem)
