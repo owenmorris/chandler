@@ -168,11 +168,5 @@
         <delay>00:04:00:00</delay>
   </wakeupCall:WakeupCall>
 
-  <!-- view related stuff - not sure if this is used anywhere? -->
-  
-  <Kind itsName="ZaoBaoItemDetail">
-    <classes key="python">osaf.examples.zaobao.blocks.ZaoBaoItemDetail</classes>
-    <superKinds itemref="docSchema:ItemDetail"/>
-  </Kind>  
   
 </Parcel>

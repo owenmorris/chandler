@@ -51,11 +51,12 @@
     <minimumSize>400,100</minimumSize>
   </Tree>
 
-  <zb:ZaoBaoItemDetail itsName="ItemDetail">
+  <ItemDetail itsName="ItemBodyArea" itemClass="osaf.examples.zaobao.blocks.ZaoBaoItemDetail">
+    <blockName value="articletext"/>
     <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
-  </zb:ZaoBaoItemDetail>
-
+    <minimumSize>100,50</minimumSize>    
+  </ItemDetail>
+  
   <EditText itsName="NewChannel">
     <size>100,20</size>
     <minimumSize>100,20</minimumSize>
@@ -66,33 +67,12 @@
     <characterStyle itemref="doc:HeaderCharacterStyle"/>
   </EditText>
 
-  <BoxContainer itsName="ItemViewBox">
-    <size>200,100</size>
-    <minimumSize>200,100</minimumSize>
-    <orientationEnum>Vertical</orientationEnum>
-
-    <childrenBlocks itemref="doc:ItemDetail"/>
-    <childrenBlocks itemref="doc:NewChannel"/>
-
-  </BoxContainer>
-
   <HTML itsName="AboutZaoBao">
     <url>parcels/osaf/examples/zaobao/AboutZaoBao.html</url>
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
   </HTML>
-
-  <SplitterWindow itsName="ZaoBaoViewSplitter">
-    <eventBoundary>True</eventBoundary>
-    <size>900,580</size>
-    <minimumSize>900,580</minimumSize>
-
-    <childrenBlocks itemref="doc:ZaoBaoTree"/>
-    <childrenBlocks itemref="doc:ItemViewBox"/>
-  </SplitterWindow>
-
-  <!-- Example single channel view -->
 
   <Tree itsName="ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
@@ -107,12 +87,7 @@
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
   </Tree>
-
-  <zb:ZaoBaoItemDetail itsName="ChannelItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
-  </zb:ZaoBaoItemDetail>
-
+  
   <SplitterWindow itsName="ZaoBaoChannelViewOld">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
@@ -120,63 +95,6 @@
 
     <childrenBlocks itemref="doc:ChannelList"/>
     <childrenBlocks itemref="doc:ChannelItemDetail"/>
-  </SplitterWindow>
-
-
-  <Tree itsName="chandlerwiki_ChannelList">
-    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
-    <rootPath itemref="doc:chandlerwiki-rss-channel"/>
-
-    <columnHeadings>Subject</columnHeadings>
-    <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
-    <columnWidths>150</columnWidths>
-
-    <hideRoot>False</hideRoot>
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-  </Tree>
-
-  <zb:ZaoBaoItemDetail itsName="chandlerwiki_ChannelItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
-  </zb:ZaoBaoItemDetail>
-
-  <SplitterWindow itsName="chandlerwiki_ZaoBaoChannelView">
-    <eventBoundary>True</eventBoundary>
-    <size>900,580</size>
-    <minimumSize>900,580</minimumSize>
-
-    <childrenBlocks itemref="doc:chandlerwiki_ChannelList"/>
-    <childrenBlocks itemref="doc:chandlerwiki_ChannelItemDetail"/>
-  </SplitterWindow>
-
-
-  <Tree itsName="junglewiki_ChannelList">
-    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
-    <rootPath itemref="doc:junglewiki-rss-channel"/>
-
-    <columnHeadings>Subject</columnHeadings>
-    <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
-    <columnWidths>150</columnWidths>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-  </Tree>
-
-  <zb:ZaoBaoItemDetail itsName="junglewiki_ChannelItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
-  </zb:ZaoBaoItemDetail>
-
-  <SplitterWindow itsName="junglewiki_ZaoBaoChannelView">
-    <eventBoundary>True</eventBoundary>
-    <size>900,580</size>
-    <minimumSize>900,580</minimumSize>
-
-    <childrenBlocks itemref="doc:junglewiki_ChannelList"/>
-    <childrenBlocks itemref="doc:junglewiki_ChannelItemDetail"/>
   </SplitterWindow>
 
   <contentModel:ItemCollection itsName="ZaoBaoItemView">
@@ -187,6 +105,7 @@
     <displayName>RSS Channels</displayName>
     <_rule value="for i in '//parcels/osaf/examples/zaobao/RSSChannel' where True"/>
   </contentModel:ItemCollection>
+  
   <BoxContainer itsName="ZaoBaoViewOld">
     <displayName>ZaoBao</displayName>
  
@@ -212,6 +131,12 @@
   
   <!-- ContentItem will handle display of the channel title -->
   
+  <!-- The raw HTML channel data  -->
+  <ItemDetail itsName="ChannelItemDetail" itemClass="osaf.examples.zaobao.blocks.ZaoBaoItemDetail">
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+  </ItemDetail>
+
   <!-- URL -->
   <ContentItemDetail itsName="LinkArea"
     itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
@@ -266,16 +191,6 @@
     <characterStyle itemref="detail:TextStyle"/>
   </EditText>
   
-  <!-- Content area -->
-  <!--
-  <EditText itsName="ContentArea"
-    itemclass="osaf.framework.blocks.detail.Detail.NoteBody">
-    <blockName>NotesArea</blockName>
-    <readOnly>True</readOnly>
-    <characterStyle itemref="detail:LabelStyle"/>    
-  </EditText>
-  -->
-  
   <!-- Author area -->
   <ContentItemDetail itsName="AuthorArea" itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedLabeledTextAttributeBlock">
     <blockName>AuthorArea</blockName>
@@ -310,11 +225,11 @@
     <key itemref="zb:RSSItem"/>
     
     <!-- UI Elements for detail view -->
+    <rootBlocks itemref="doc:ItemBodyArea"/>
     <rootBlocks itemref="doc:LinkArea"/>
     <rootBlocks itemref="doc:AuthorArea"/>
     <!--<rootBlocks itemref="doc:DateArea"/> -->
     <rootBlocks itemref="doc:CategoryArea"/>
-    <!-- <rootBlocks itemref="doc:ContentArea"/> -->
   </detail:DetailTrunkSubtree>
   
 </core:Parcel>

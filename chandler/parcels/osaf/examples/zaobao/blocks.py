@@ -9,6 +9,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from repository.item.Query import KindQuery
 from osaf.framework.blocks.ControlBlocks import Tree, ItemDetail, ListDelegate
 import osaf.examples.zaobao.RSSData as RSSData
+import osaf.framework.blocks.detail.Detail as Detail
 
 # GetZaoBaoElementValues is shared between both classes
 def GetZaoBaoElementValues(element):
@@ -103,7 +104,7 @@ def onEnterPressedEvent(self, event):
     view.commit()
 
 
-class ZaoBaoItemDetail(ItemDetail):
+class ZaoBaoItemDetail(Detail.HTMLDetailArea):
 
     def getHTMLText(self, item):
         if item == item.itsView:
