@@ -17,7 +17,7 @@ from application.ViewerParcel import *
 from application.Application import app
 from repository.util.Path import Path
 from repository.item.Item import Item
-import os
+import os, logging
 from application.SplashScreen import SplashScreen
 
 class RepositoryViewer(ViewerParcel):
@@ -59,26 +59,41 @@ class wxRepositoryViewerEdit(wxSplitterWindow):
     
     def __init__(self, parent, id):
         wxSplitterWindow.__init__(self, parent, id)     
-        self.p2 = wxWindow(self, -1)
-        
+        self.p2 = wxSplitterWindow(self, -1)
+        self.buttons = wxWindow(self.p2, -1)
+        self.logtc = wxTextCtrl(self.p2, -1,
+                              style = wxTE_MULTILINE|wxTE_READONLY|wxHSCROLL)
+        self.p2.SplitHorizontally(self.buttons, self.logtc, 25)
         box = wxBoxSizer(wxVERTICAL)
-        b = wxButton(self.p2, -1, "Submit Changes")
+        b = wxButton(self.buttons, -1, "Submit Changes")
         box.Add(b, 0, wxALIGN_CENTER|wxALL, 10)
         self.p2.SetAutoLayout(True)
-        self.p2.SetSizer(box)        
+        self.p2.SetSizer(box)
         EVT_BUTTON(self, b.GetId(), self.UpdateRepository)
         b.SetBackgroundColour(wxBLUE)
         b.SetForegroundColour(wxWHITE)
         self.DisplayItem()  
-        self.SplitVertically(self.p1, self.p2, 590)
-        self.p1.Layout()
-        
-    def UpdateRepository(self, evt):     
+        self.SplitVertically(self.p1, self.p2, 520)
+        self.p2.SetMinimumPaneSize(10)
+        self.SetMinimumPaneSize(20)
+        self.log=logging.getLogger('parcels.OSAF.repositoryviewer')
+
+    def DoLogString(self, message):
+        """ Output events as feedback for the user, also use the logging module. """
+        import time
+        self.log.debug(message)
+        message = time.strftime("%X") + ":\n" + message
+        if self.logtc:
+            self.logtc.AppendText(message + '\n')
+
+                
+    def UpdateRepository(self, evt):
         if not self.item: return
         if not self.__dirty: return
         for k in self.widgets:
             self.item.setAttributeValue(k, self.widgets[k].GetValue())
         self.__dirty=False#Now we're clean locally
+        self.DoLogString("Updated %s" % (self.item.getItemDisplayName()))
 
     def TrackDirt(self, evt):
         """ Event handler to track when widgets get changed. """
@@ -101,8 +116,6 @@ class wxRepositoryViewerEdit(wxSplitterWindow):
             oldp1.Clear()
             oldp1.Destroy()
         self.p1=p1
-        self.p1.maxWidth  = 600
-        self.p1.maxHeight = 1000
         self.p1.x = self.p1.y = 0
 
         # Ideally the scrollbars would be dynamically created.  How?
@@ -132,9 +145,11 @@ class wxRepositoryViewerEdit(wxSplitterWindow):
                     self.value_attrs.append((0,0))
             sizer = wxFlexGridSizer(cols=3, hgap=6, vgap=6)
             sizer.AddMany(self.value_attrs)
-            self.p1.SetSizer(sizer)
-            self.p1.SetAutoLayout(true)
-            self.p1.Layout()
+            border = wxBoxSizer(wxVERTICAL)
+            border.Add(sizer, 0, wxALL, 10)
+            self.p1.SetSizer(border)
+            self.p1.SetAutoLayout(True)
+            self.p1.FitInside()
 
     def label(self, text):
         """ Put a label on the edit panel."""
@@ -171,6 +186,7 @@ class wxRepositoryViewer(wxViewerParcel):
         # Set up the help page
         EVT_MENU(self, XRCID('AboutRepositoryViewer'), self.OnAboutRepositoryViewer)
         EVT_MENU(self, XRCID('ChangeViewMode'), self.OnChangeViewMode)
+        EVT_MENU(self, XRCID('CheckRepository'), self.CheckRepository)
         EVT_UPDATE_UI(self, XRCID('ChangeViewMode'), self.OnChangeViewUpdateUI)
         # Set up tree control using a spacer column
         self.treeCtrl = wxTreeListCtrl(self.splitter)
@@ -227,12 +243,17 @@ class wxRepositoryViewer(wxViewerParcel):
         self.treeItemsByUUID = {}
         self.LoadTree()
 
+        
     def OnTabChanged(self, event):
         event.Skip()
         
     def OnChangeViewMode(self, event):
         self.notebook.AdvanceSelection()
 
+    def CheckRepository(self, event):
+        app.repository.check()
+        self.editTab.DoLogString("Repository checked OK")
+        
     def OnChangeViewUpdateUI(self, event):
         if self.notebook.GetSelection() == 0:
             event.SetText(_('Use Edit Mode'))
