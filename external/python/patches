@@ -76,3 +76,59 @@
                                                    list(dbd['libdirs']))
                      if (db_incs or dbkey == std_dbinc) and \
                             dblib_dir is not None:
+--- Python-2.3.3/Lib/distutils/command/build_ext.py	Tue Nov 19 05:12:28 2002
++++ Python-2.3.3-patched/Lib/distutils/command/build_ext.py	Wed Oct 13 22:27:02 2004
+@@ -81,6 +81,10 @@
+          "specify the compiler type"),
+         ('swig-cpp', None,
+          "make SWIG create C++ files (default is C)"),
++        ('swig-opts=', None,
++         "list of SWIG command line options"),
++        ('swig=', None,
++         "path to the SWIG executable"),
+         ]
+ 
+     boolean_options = ['inplace', 'debug', 'force', 'swig-cpp']
+@@ -108,7 +112,8 @@
+         self.force = None
+         self.compiler = None
+         self.swig_cpp = None
+-
++        self.swig_opts = None
++        self.swig = None
+ 
+     def finalize_options (self):
+         from distutils import sysconfig
+@@ -205,6 +210,11 @@
+         if self.undef:
+             self.undef = string.split(self.undef, ',')
+ 
++        if self.swig_opts is None:
++            self.swig_opts = []
++        else:
++            self.swig_opts = self.swig_opts.split(' ')
++
+     # finalize_options ()
+ 
+ 
+@@ -509,7 +519,7 @@
+         # source -- but there should be an option to put SWIG output in
+         # the temp dir.
+ 
+-        if self.swig_cpp:
++        if self.swig_cpp or '-c++' in self.swig_opts:
+             target_ext = '.cpp'
+         else:
+             target_ext = '.c'
+@@ -526,8 +536,9 @@
+         if not swig_sources:
+             return new_sources
+ 
+-        swig = self.find_swig()
+-        swig_cmd = [swig, "-python"]
++        swig = self.swig or self.find_swig()
++        swig_cmd = [swig, '-python']
++        swig_cmd.extend(self.swig_opts)
+         if self.swig_cpp:
+             swig_cmd.append("-c++")
+ 
