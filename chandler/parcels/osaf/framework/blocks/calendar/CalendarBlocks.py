@@ -20,7 +20,7 @@ class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
 
     def PlaceItemOnCalendar(self):
         counterpart = Globals.repository.find(self.canvas.counterpartUUID)
-        width = counterpart.size.width
+        width = counterpart.dayWidth
         height = int(self.item.duration.hours * counterpart.hourHeight)
         position = counterpart.getPosFromDateTime(self.item.startTime)
         bounds = wx.Rect(position.x, position.y, width, height)
@@ -29,15 +29,18 @@ class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
     def Draw(self, dc):
         # @@@ Scaffolding
         dc.SetBrush(wx.Brush(wx.Color(180, 192, 121)))
+        dc.SetPen(wx.TRANSPARENT_PEN)
+        
         dc.DrawRoundedRectangle((1, 1),
                                 (self.bounds.width - 1,
-                                self.bounds.height - 1),
+                                 self.bounds.height - 1),
                                 radius=10)
+
         dc.SetTextForeground(wx.BLACK)
         dc.SetFont(wx.SWISS_FONT)
         time = self.item.startTime
-        dc.DrawText(time.Format('%I:%M %p'), (10, 0))
-        dc.DrawText(self.item.headline, (10, 14))
+        dc.DrawText(time.Format('%I:%M %p ') + self.item.headline, (10, 0))
+        #dc.DrawText(self.item.headline, (10, 14))
 
     def DragHitTest(self, x, y):
         return False
@@ -74,14 +77,13 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
         del Globals.association[self.counterpartUUID]
 
     def OnSize(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
-            counterpart = Globals.repository.find(self.counterpartUUID)
-            newSize = self.GetSize()
-            counterpart.size.width = newSize.width
-            counterpart.size.height = newSize.height
-            self.SetVirtualSize(newSize)
-            for drawableObject in self.zOrderedDrawableObjects:
-                drawableObject.PlaceItemOnCalendar()
+        counterpart = Globals.repository.find(self.counterpartUUID)
+        newSize = self.GetSize()
+        counterpart.size.width = newSize.width
+        counterpart.size.height = newSize.height
+        self.SetVirtualSize(newSize)
+        for drawableObject in self.zOrderedDrawableObjects:
+            drawableObject.PlaceItemOnCalendar()
         event.Skip()
 
     def DrawBackground(self, dc):
@@ -128,7 +130,7 @@ class WeekBlock(Block.RectangularChild):
         super (WeekBlock, self).__init__(*arguments, **keywords)
         
         self.rangeIncrement = DateTime.RelativeDateTime(days=7)
-        self.updateRange(DateTime.today())
+        self.updateRange(DateTime.today() + self.rangeIncrement)
 
     def renderOneBlock(self, parent, parentWindow):
         canvas = wxWeekBlock(parentWindow,
@@ -194,12 +196,11 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
         del Globals.association[self.counterpartUUID]
 
     def OnSize(self, event):
-        if not Globals.wxApplication.insideSynchronizeFramework:
-            counterpart = Globals.repository.find(self.counterpartUUID)
-            newSize = self.GetSize()
-            counterpart.size.width = newSize.width
-            counterpart.size.height = newSize.height
-            self.SetVirtualSize(newSize)
+        counterpart = Globals.repository.find(self.counterpartUUID)
+        newSize = self.GetSize()
+        counterpart.size.width = newSize.width
+        counterpart.size.height = newSize.height
+        self.SetVirtualSize(newSize)
         event.Skip()
 
     def DrawBackground(self, dc):
