@@ -9,7 +9,6 @@
   <namespaceMap key="Alias" value="//Schema/Core/Alias" />
   <namespaceMap key="Anything" value="//Schema/Core/Anything" />
   <namespaceMap key="Attribute" value="//Schema/Core/Attribute" />
-  <namespaceMap key="Binary" value="//Schema/Core/Binary" />
   <namespaceMap key="Boolean" value="//Schema/Core/Boolean" />
   <namespaceMap key="Cardinality" value="//Schema/Core/Cardinality" />
   <namespaceMap key="Class" value="//Schema/Core/Class" />
@@ -30,6 +29,7 @@
   <namespaceMap key="Item" value="//Schema/Core/Item" />
   <namespaceMap key="Kind" value="//Schema/Core/Kind" />
   <namespaceMap key="List" value="//Schema/Core/List" />
+  <namespaceMap key="Lob" value="//Schema/Core/Lob" />
   <namespaceMap key="Long" value="//Schema/Core/Long" />
   <namespaceMap key="None" value="//Schema/Core/None" />
   <namespaceMap key="Parcel" value="//Schema/Core/Parcel" />
@@ -42,7 +42,6 @@
   <namespaceMap key="Struct" value="//Schema/Core/Struct" />
   <namespaceMap key="Symbol" value="//Schema/Core/Symbol" />
   <namespaceMap key="Taxon" value="//Schema/Core/Taxon" />
-  <namespaceMap key="Text" value="//Schema/Core/Text" />
   <namespaceMap key="Type" value="//Schema/Core/Type" />
   <namespaceMap key="URL" value="//Schema/Core/URL" />
   <namespaceMap key="UUID" value="//Schema/Core/UUID" />

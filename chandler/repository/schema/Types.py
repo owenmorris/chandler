@@ -1150,6 +1150,10 @@ class Tuple(Collection):
 
 class Lob(Type):
 
+    def getImplementationType(self):
+
+        return self.itsView._getLobType()
+
     def getParsedValue(self, itemHandler, data):
 
         value = itemHandler.value
@@ -1158,6 +1162,26 @@ class Lob(Type):
 
         return value
 
+    def makeValue(self, data,
+                  encoding=None, mimetype='text/plain', compression='bz2',
+                  encryption=None, key=None, indexed=False):
+
+        if data and not encoding and type(data) is unicode:
+            encoding = 'utf-8'
+
+        lob = self.getImplementationType()(self.itsView,
+                                           encoding, mimetype, indexed)
+
+        if data:
+            if encoding:
+                out = lob.getWriter(compression, encryption, key)
+            else:
+                out = lob.getOutputStream(compression, encryption, key)
+            out.write(data)
+            out.close()
+
+        return lob
+    
     def startValue(self, itemHandler):
 
         itemHandler.tagCounts.append(0)
@@ -1180,66 +1204,15 @@ class Lob(Type):
         value = self.getImplementationType()(self.itsView)
         return value._readValue(itemReader, offset, data, withSchema)
 
-
-class Text(Lob):
-
-    def getImplementationType(self):
-
-        return self.itsView._getLobType('text')
-
-    def makeValue(self, data,
-                  encoding='utf-8', mimetype='text/plain', compression='bz2',
-                  encryption=None, key=None, indexed=False):
-
-        text = self.getImplementationType()(self.itsView,
-                                            encoding, mimetype, indexed)
-        if data:
-            writer = text.getWriter(compression, encryption, key)
-            writer.write(data)
-            writer.close()
-
-        return text
-    
-    def textStart(self, itemHandler, attrs):
+    def lobStart(self, itemHandler, attrs):
 
         itemHandler.tagCounts[-1] += 1
 
-    def textEnd(self, itemHandler, attrs):
+    def lobEnd(self, itemHandler, attrs):
 
         itemHandler.value.load(itemHandler.data, attrs)
         itemHandler.tagCounts[-1] -= 1
 
     def handlerName(self):
 
-        return 'text'
-
-
-class Binary(Lob):
-
-    def getImplementationType(self):
-
-        return self.itsView._getLobType('binary')
-
-    def makeValue(self, data, mimetype='text/plain', compression=None,
-                  encryption=None, key=None, indexed=False):
-
-        binary = self.getImplementationType()(self.itsView, mimetype, indexed)
-        if data:
-            out = binary.getOutputStream(compression, encryption, key)
-            out.write(data)
-            out.close()
-
-        return binary
-    
-    def binaryStart(self, itemHandler, attrs):
-
-        itemHandler.tagCounts[-1] += 1
-
-    def binaryEnd(self, itemHandler, attrs):
-
-        itemHandler.value.load(itemHandler.data, attrs)
-        itemHandler.tagCounts[-1] -= 1
-
-    def handlerName(self):
-
-        return 'binary'
+        return 'lob'

@@ -121,7 +121,7 @@
 
     <Attribute itsName="content">
       <cardinality>single</cardinality>
-      <type itemref="Text"/>
+      <type itemref="Lob"/>
     </Attribute>
 
     <attributes itemref="zaobao:RSSItem/content"/>

@@ -49,9 +49,11 @@ class NotesTest(TestContentModel.ContentModelTestCase):
         # Literal properties
         noteItem.displayName = "sample note"
 
-        # Text property
-        textType = self.rep.findPath("//Schema/Core/Text")
-        noteItem.body = textType.makeValue("more elaborate sample note body")
+        # Lob property
+        lobType = noteItem.getAttributeAspect('body', 'type')
+
+        # when data is unicode, encoding defaults to utf-8
+        noteItem.body = lobType.makeValue(u"more elaborate sample note body")
 
         _verifyNote(noteItem)
 

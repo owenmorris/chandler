@@ -17,7 +17,7 @@ from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryView import OnDemandRepositoryView
 from repository.persistence.Repository import Repository
 from repository.persistence.Repository import RepositoryNotifications
-from repository.persistence.DBLob import DBText, DBBinary
+from repository.persistence.DBLob import DBLob
 from repository.persistence.DBRefs import DBRefList, DBChildren
 from repository.persistence.DBContainer import HashTuple
 from repository.persistence.DBItemIO import DBItemWriter, DBItemMergeReader
@@ -118,14 +118,9 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         return DBChildren(self, parent, new)
 
-    def _getLobType(self, mode):
+    def _getLobType(self):
 
-        if mode == 'text':
-            return DBText
-        if mode == 'binary':
-            return DBBinary
-
-        raise ValueError, mode
+        return DBLob
 
     def _startTransaction(self):
 

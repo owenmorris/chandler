@@ -14,10 +14,11 @@ from repository.util.Streams import HTMLReader, Base64InputStream
 
 class Lob(object):
 
-    def __init__(self, mimetype='text/plain', indexed=False):
+    def __init__(self, encoding=None, mimetype='text/plain', indexed=False):
 
         super(Lob, self).__init__()
 
+        self.encoding = encoding
         self.mimetype = mimetype.lower()
         self._compression = None
         self._encryption = None
@@ -90,14 +91,6 @@ class Lob(object):
 
         return self._data
 
-
-class Text(Lob):
-
-    def __init__(self, encoding='utf-8', mimetype='text/plain', indexed=False):
-
-        super(Text, self).__init__(mimetype, indexed)
-        self.encoding = encoding
-        
     def getWriter(self, compression='bz2', encryption=None, key=None,
                   append=False):
 
@@ -111,8 +104,8 @@ class Text(Lob):
 
     def getPlainTextReader(self, key=None):
 
-        if self.mimetype in Text._readers:
-            return Text._readers[self.mimetype](self, key)
+        if self.mimetype in Lob._readers:
+            return Lob._readers[self.mimetype](self, key)
 
         return NotImplementedError, "Converting mimetype '%s' to plain text" %(self.mimetype)
 
@@ -125,19 +118,3 @@ class Text(Lob):
 
         'text/vnd.osaf-stream64': lambda self, key: InputStreamReader(Base64InputStream(self.getInputStream(key)), self.encoding)
     }
-
-
-class Binary(Lob):
-
-    def __init__(self, mimetype='application/binary', indexed=False):
-
-        super(Binary, self).__init__(mimetype, indexed)
-
-    def getPlainTextReader(self, key=None):
-
-        if self.mimetype in Binary._readers:
-            return Binary._readers[self.mimetype](self, key)
-
-        return NotImplementedError, "Converting mimetype '%s' to plain text" %(self.mimetype)
-
-    _readers = {}

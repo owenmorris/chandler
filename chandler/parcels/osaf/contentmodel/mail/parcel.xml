@@ -491,7 +491,7 @@
         </Attribute>
 
         <Attribute itsName="rfc2822Message">
-            <type itemref="Text" />
+            <type itemref="Lob" />
         </Attribute>
 
         <Attribute itsName="dateSentString">

@@ -4,7 +4,7 @@
     <name>picture</name>
     <kind type="path">//Schema/Core/Attribute</kind>
 
-    <ref name="type" type="path">//Schema/Core/Binary</ref>
+    <ref name="type" type="path">//Schema/Core/Lob</ref>
     <attribute name="cardinality">single</attribute>
     <attribute name="required">False</attribute>
 </item>

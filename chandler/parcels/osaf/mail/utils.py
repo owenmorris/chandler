@@ -10,7 +10,7 @@ import email.Message as Message
 import email.Utils as Utils
 import mx.DateTime as DateTime
 import application.Globals as Globals
-from repository.util.Lob import Text
+from repository.util.Lob import Lob
 
 def getChandlerTransportMessage():
     """Returns the skeleton of a mail message populated with the subject
@@ -114,7 +114,8 @@ def isString(var):
 
     return False
 
-def strToText(contentItem, attribute, string, indexText=False):
+def strToText(contentItem, attribute, string,
+              indexText=False, encoding='utf-8'):
     """Converts a C{str} to C{Text}
        Notes:
           This should be a unicode string that a charset can be set on
@@ -122,13 +123,14 @@ def strToText(contentItem, attribute, string, indexText=False):
     if not isString(string):
         return None
 
-    return contentItem.getAttributeAspect(attribute, 'type').makeValue(string, indexed=indexText)
+    return contentItem.getAttributeAspect(attribute, 'type').makeValue(string, indexed=indexText, encoding=encoding)
 
 
 def textToStr(text):
     """Converts a C{Text} to a C{str}"""
-    assert isinstance(text, Text), "Must pass a Text instance"
-
+    assert isinstance(text, Lob), "Must pass a Lob instance"
+    assert text.encoding, "Encoding must not be None for reader API"
+    
     reader = text.getReader()
     string = reader.read()
     reader.close()

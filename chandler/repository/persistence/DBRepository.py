@@ -96,7 +96,7 @@ class DBRepository(OnDemandRepository):
 
     def _createStore(self):
 
-        return XMLStore(self)
+        return DBStore(self)
 
     def _lockOpen(self):
         
@@ -231,12 +231,12 @@ class DBRepository(OnDemandRepository):
     OPEN_FLAGS = DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN | DB_THREAD
 
 
-class XMLStore(Store):
+class DBStore(Store):
 
     def __init__(self, repository):
 
         self._threaded = threading.local()
-        super(XMLStore, self).__init__(repository)
+        super(DBStore, self).__init__(repository)
         
     def open(self, **kwds):
 
@@ -251,8 +251,7 @@ class XMLStore(Store):
             self._values = ValueContainer(self, "__values__", txn, **kwds)
             self._refs = RefContainer(self, "__refs__", txn, **kwds)
             self._names = NamesContainer(self, "__names__", txn, **kwds)
-            self._text = FileContainer(self, "__text__", txn, **kwds)
-            self._binary = FileContainer(self, "__binary__", txn, **kwds)
+            self._lobs = FileContainer(self, "__lobs__", txn, **kwds)
             self._blocks = BlockContainer(self, "__blocks__", txn, **kwds)
             self._index = IndexContainer(self, "__index__", txn, **kwds)
             self._acls = ACLContainer(self, "__acls__", txn, **kwds)
@@ -269,8 +268,7 @@ class XMLStore(Store):
         self._values.close()
         self._refs.close()
         self._names.close()
-        self._text.close()
-        self._binary.close()
+        self._lobs.close()
         self._blocks.close()
         self._index.close()
         self._acls.close()
@@ -282,8 +280,7 @@ class XMLStore(Store):
         self._values.attachView(view)
         self._refs.attachView(view)
         self._names.attachView(view)
-        self._text.attachView(view)
-        self._binary.attachView(view)
+        self._lobs.attachView(view)
         self._blocks.attachView(view)
         self._index.attachView(view)
         self._acls.attachView(view)
@@ -295,8 +292,7 @@ class XMLStore(Store):
         self._values.detachView(view)
         self._refs.detachView(view)
         self._names.detachView(view)
-        self._text.detachView(view)
-        self._binary.detachView(view)
+        self._lobs.detachView(view)
         self._blocks.detachView(view)
         self._index.detachView(view)
         self._acls.detachView(view)
@@ -409,12 +405,12 @@ class XMLStore(Store):
         view = repository.getCurrentView(create=False)
         if view is not None:
             if view._exclusive.acquire():
-                status = XMLStore.EXCLUSIVE
+                status = DBStore.EXCLUSIVE
         
         if not self._ramdb:
             if self.txn is None:
                 self.txn = repository._env.txn_begin(None)
-                status |= XMLStore.TXNSTARTED
+                status |= DBStore.TXNSTARTED
         else:
             self.txn = None
 
@@ -423,13 +419,13 @@ class XMLStore(Store):
     def commitTransaction(self, status):
 
         try:
-            if status & XMLStore.TXNSTARTED:
+            if status & DBStore.TXNSTARTED:
                 if self.txn is None:
                     raise AssertionError, 'txn is None'
                 self.txn.commit()
                 self.txn = None
         finally:
-            if status & XMLStore.EXCLUSIVE:
+            if status & DBStore.EXCLUSIVE:
                 self.repository.view._exclusive.release()
 
         return status
@@ -437,13 +433,13 @@ class XMLStore(Store):
     def abortTransaction(self, status):
 
         try:
-            if status & XMLStore.TXNSTARTED:
+            if status & DBStore.TXNSTARTED:
                 if self.txn is None:
                     raise AssertionError, 'txn is None'
                 self.txn.abort()
                 self.txn = None
         finally:
-            if status & XMLStore.EXCLUSIVE:
+            if status & DBStore.EXCLUSIVE:
                 self.repository.view._exclusive.release()
 
         return status

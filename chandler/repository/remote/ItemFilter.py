@@ -59,9 +59,9 @@ class ItemFilter(XMLOffFilter):
 
         XMLOffFilter.endElement(self, tag)
 
-    def textEnd(self, attrs):
+    def lobEnd(self, attrs):
 
-        value = self.repository._getLobType('text')(self.repository)
+        value = self.repository._getLobType()(self.repository)
         value.load(self.data, attrs)
         generator = self.generator
         

@@ -253,7 +253,7 @@ class RemoteFilter(XMLFilter):
             unicodeText = None
             text = self.data
 
-        out = store._text.createFile(store.lobName(uuid, version))
+        out = store._lobs.createFile(store.lobName(uuid, version))
         if compression == 'bz2':
             out = BZ2OutputStream(out)
         elif compression == 'zlib':

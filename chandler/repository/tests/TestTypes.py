@@ -36,8 +36,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                         'Complex', 'Boolean', 'UUID', 'SingleRef', 'Path',
                         'NoneType', 'Class', 'Enumeration', 'Struct',
                         'DateTime', 'DateTimeDelta', 'RelativeDateTime',
-                        'Collection', 'Dictionary', 'List', 'Lob', 'Text',
-                        'Binary']
+                        'Collection', 'Dictionary', 'List', 'Lob']
 
         # make dict of attribute and  type items.
         self.atts = {}
@@ -62,7 +61,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                          'Enumeration':'ref', 'Struct':'ref', 'DateTime':None,
                          'DateTimeDelta':None, 'RelativeDateTime':None,
                          'Collection':None, 'Dictionary':'dict', 'List':'list',
-                         'Lob':None, 'Text':'text', 'Binary':'binary' }
+                         'Lob':'lob' }
 
         for i in handlerNames:
             if handlerNames[i] is not None:
@@ -83,9 +82,8 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                           'RelativeDateTime':'type(mx.DateTime.RelativeDateTime())',
                           'Dictionary':'repository.item.PersistentCollections.PersistentDict',
                           'List':'repository.item.PersistentCollections.PersistentList',
-                          'Text':'repository.persistence.DBLob.DBText',
-                          'Binary':'repository.persistence.DBLob.DBBinary' }
-        excludes = ['NoneType','Enumeration','Struct','Collection','Lob']
+                          'Lob':'repository.persistence.DBLob.DBLob' }
+        excludes = ['NoneType','Enumeration','Struct','Collection']
 
         for n in [ x for x in self.typenames if x not in excludes ]:
             t = self._find("//Schema/Core/%s" % n)
@@ -107,9 +105,8 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                         'Struct':'ref', 'DateTime':'2004-01-08 12:34:56.15',
                         'DateTimeDelta':'-08:45:12', 'RelativeDateTime':'12:09:32',
                         'Collection':None, 'Dictionary':'{"a":"b","c":"d"}',
-                        'List':'["one", "two", 3]', 'Lob':None, 'Text':'text',
-                        'Binary':'binary' }
-        excludes = [ 'NoneType','Enumeration','Struct','Collection','Lob']
+                        'List':'["one", "two", 3]', 'Lob':'lob' }
+        excludes = [ 'NoneType','Enumeration','Struct','Collection' ]
 
         for name in [ x for x in typeStrings if x not in excludes ]:
             typeItem = self._find('//Schema/Core/%s' % name)
@@ -144,9 +141,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         self.structType.implementationTypes = {'python': myStruct }
         self.struct = myStruct()
 
-        self.text = self.types['Text'].makeValue("aba;dsjfa;jfdl;ajru87z.vncxyt89q47654", 'utf-8', 'text/plain')
-        self.binary = self.types['Binary'].makeValue('znxc.verq98347dszf', 'text/plain')
-
+        self.lob = self.types['Lob'].makeValue("aba;dsjfa;jfdl;ajru87z.vncxyt89q47654", encoding='utf-8', mimetype='text/plain')
 
     def testMakeString(self):
         """ Test makeString
@@ -162,7 +157,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
 
         # we don't test NoneType because it can't create values
         # we don't test Collection and Lob because they are abstract types
-        # we don't test Binary and Text because they don't implement makeString()
+        # we don't test Lob because it doesn't implement makeString()
         # dict keyed by type name, values is a legal string value for that type
         typeStrings = { 'String':'abcde', 'Symbol':'str', 'Integer':'123',
                         'Long':'456', 'Float':'123.456', 'Complex':'(2.4+8j)',
@@ -176,8 +171,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                         'RelativeDateTime':self.relativeDateTimeString,
                         'Collection':None,
                         'Dictionary':'{"a":"b","c":"d"}',
-                        'List':'[one, two, 3]', 'Lob':None,
-                        'Text':'text', 'Binary':'binary' }
+                        'List':'[one, two, 3]', 'Lob':'lob' }
 
         # dict keyed by typename, value is legal values for that
         typeValues = { 'String':'abcde', 'Symbol':'str', 'Integer':123,
@@ -191,12 +185,11 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                        'RelativeDateTime':self.relativeDateTime,
                        'Collection':None,
                        'Dictionary':{"a":"b","c":"d"},
-                       'List':["one", "two", "3"], 'Lob':None,
-                       'Text':self.text, 'Binary':self.binary }
+                       'List':["one", "two", "3"], 'Lob':'lob' }
 
         #@@@ RelativeDateTime is in this list due to a bug in mxDateTime
-        excludes = [ 'NoneType', 'Collection', 'Lob', 'Enumeration', 'Struct',
-                     'Binary','Text', 'RelativeDateTime']
+        excludes = [ 'NoneType', 'Collection', 'Enumeration', 'Struct',
+                     'Lob', 'RelativeDateTime']
 
         for name in [ x for x in typeValues if x not in excludes ]:
             typeItem = self._find('//Schema/Core/%s' % name)
@@ -247,9 +240,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                        'Collection':(None, [None]),
                        'Dictionary':({"a":"b","c":"d"}, ["abcde"]),
                        'List':(["one", "two", "3"], ["abcde"]),
-                       'Lob':(None, [None]),
-                       'Text':(self.text,[123]),
-                       'Binary':(self.binary, [123]) }
+                       'Lob':(self.lob, [123]) }
 
         for name in typeValues:
             goodValue, badValues = typeValues[name]
@@ -307,7 +298,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
         relativeDateTimeTypes = [ self.types['RelativeDateTime'] ]
         dictTypes = [ self.types['Dictionary'] ]
         listTypes = [ self.types['List'] ]
-        textTypes = [ self.types['Text'] ]
+        lobTypes = [ self.types['Lob'] ]
         binaryTypes = [ self.types['Binary'] ]
 
         # dict keyed by values of a type,
@@ -324,7 +315,7 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                   self.dateTime:dateTimeTypes,
                   self.dateTimeDelta:dateTimeDeltaTypes,
                   self.relativeDateTime:relativeDateTimeTypes,
-                  self.text:textTypes, self.binary:binaryTypes} 
+                  self.lob:lobTypes}
 
         for v in values:
             foundTypes = typeKind.findTypes(v)
