@@ -15,7 +15,9 @@ False = 0
 import os, hardhatutil, hardhatlib, sys, re
 
 path = os.environ.get('PATH', os.environ.get('path'))
+whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
 cvsProgram = hardhatutil.findInPath(path, "cvs")
+treeName = "Chandler"
 mainModule = 'chandler'
 logPath = 'hardhat.log'
 
@@ -55,7 +57,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     # make sure workingDir is absolute, remove it if it exists, and create it
     workingDir = os.path.abspath(workingDir)
     if os.path.exists(workingDir):
-        os.rmdirRecursive(workingDir)
+        hardhatutil.rmdirRecursive(workingDir)
     os.mkdir(workingDir)
     os.chdir(workingDir)
 
