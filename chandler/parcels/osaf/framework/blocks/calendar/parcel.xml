@@ -29,6 +29,9 @@
     <Attribute itsName="rangeIncrement">
       <type itemref="RelativeDateTime"/>
     </Attribute>
+    <Attribute itsName="selectedDate">
+      <type itemref="DateTime"/>
+    </Attribute>
   </Kind>
 
   <Kind itsName="CanvasWeek">
@@ -43,6 +46,12 @@
     </Attribute>
     <Attribute itsName="daysPerView">
       <type itemref="Integer"/>
+    </Attribute>
+    <Attribute itsName="dayMode">
+      <type itemref="Boolean"/>
+    </Attribute>
+    <Attribute itsName="selectedDate">
+      <type itemref="DateTime"/>
     </Attribute>
     <attributes itemref="calBlocks:CanvasWeek/daysPerView"/>
   </Kind>

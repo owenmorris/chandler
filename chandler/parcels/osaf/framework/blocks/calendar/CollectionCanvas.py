@@ -242,12 +242,18 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         # Create common fonts for drawing, @@@ move elsewhere
         if '__WXMAC__' in wx.PlatformInfo:
             self.bigFont = wx.Font(13, wx.NORMAL, wx.NORMAL, wx.NORMAL)
+            self.bigBoldFont = wx.Font(13, wx.NORMAL, wx.NORMAL, wx.BOLD)
             self.smallFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.NORMAL,
                                      face="Verdana")
+            self.smallBoldFont = wx.Font(10, wx.SWISS, wx.NORMAL, wx.BOLD,
+                                         face="Verdana")
         else:
             self.bigFont = wx.Font(11, wx.NORMAL, wx.NORMAL, wx.NORMAL)
+            self.bigBoldFont = wx.Font(11, wx.NORMAL, wx.NORMAL, wx.BOLD)
             self.smallFont = wx.Font(8, wx.SWISS, wx.NORMAL, wx.NORMAL,
                                      face="Verdana")
+            self.smallBoldFont = wx.Font(8, wx.SWISS, wx.NORMAL, wx.BOLD,
+                                         face="Verdana")
 
         self.bigFontColor = wx.Colour(64, 64, 64)
         self.bgColor = wx.WHITE
@@ -269,12 +275,18 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                 if (x + width > rect.x + rect.width):
                     y += height
                     x = rect.x
+
+                if ((y + height > rect.y + rect.height) or
+                    (x + width > rect.x + rect.width)):
+                    return y
+                
                 dc.DrawText(word, x, y)
                 x += width
                 width, height = dc.GetTextExtent(' ')
                 dc.DrawText(' ', x, y)
                 x += width
             y += height
+        return y
 
     def DrawCenteredText(self, dc, text, rect):
         textExtent = dc.GetTextExtent(text)
@@ -339,12 +351,18 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                 self.OnCreateItem(unscrolledPosition, False)
 
             # handle selection if mouse down event, set up drag
-            elif event.LeftDown(): 
+            elif event.LeftDown():
                 hitBox = None
                 for box in self.canvasItemList:
                     if box.isHit(unscrolledPosition):
                         hitBox = box
 
+                if hoverResize and not hitBox:
+                    print "error condition, methinks"
+                    print unscrolledPosition
+                    for box in self.canvasItemList:
+                        print box.bounds, box._resizeTopBounds, box._resizeLowBounds
+                    
                 if hitBox:
                     self.OnSelectItem(hitBox.getItem())
                     self._dragBox = hitBox
