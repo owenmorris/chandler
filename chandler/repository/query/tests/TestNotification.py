@@ -43,7 +43,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         item = notify_client
         self.rep.commit()
 
-        q.subscribe(notify_client, 'handle')
+        q.subscribe(notify_client, 'handle', False, True)
         self._checkQuery(lambda i: not 'i' in i.firstName, q.resultSet)
         c = q.resultSet.next()
         self.assert_('i' in c.firstName)
@@ -98,9 +98,9 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.rep.commit()
 
         # subscribe via commit
-        q.subscribe(notify_client, 'handle')
+        q.subscribe(notify_client, 'handle', False, True)
         # subscribe via monitors
-        q.monitor(monitor_client, 'handle')
+        q.subscribe(monitor_client, 'handle', True, False)
 
         self._checkQuery(lambda i: not 'i' in i.firstName, q.resultSet)
 
@@ -116,6 +116,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         # make c leave the query
         c.firstName = 'Tom'
         (added, removed) = monitor_client.action
+        print "120: added = " + str(len(added)) + " removed = " + str(len(removed))
         self.assert_(len(added) == 0 and len(removed) == 1)
 
         # make c re-enter the query
@@ -135,6 +136,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.rep.commit()
 
         (added, removed) = notify_client.action
+        print "139: added = " + str(len(added)) + " removed = " + str(str(removed))
         self.assert_(len(added) == 0 and len(removed) == 1)
         self.assert_(c.firstName == 'Harry')
 
@@ -181,7 +183,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         item = notify_client
         self.rep.commit()
 
-        union_query.subscribe(notify_client, 'handle')
+        union_query.subscribe(notify_client, 'handle', False, True)
         union_query.resultSet.next() # force evaluation of some of the query at least
 
         #test first query in union
@@ -253,7 +255,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         k = self.rep.findPath('//Schema/Core/Query')
         q = Query.Query('testQuery', p, k, queryString)
         q.args ["$0"] = (kind.itsUUID, "attributes")
-        q.subscribe(notify_client, 'handle')
+        q.subscribe(notify_client, 'handle', False, True)
         q.compile()
 
         for i in q:

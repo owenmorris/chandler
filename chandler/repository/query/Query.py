@@ -36,12 +36,12 @@ class Query(Item.Item):
         self._queryStringIsStale = True
         self.args = {}
         self._logical_plan = None
-        self._callbacks = {}
-        self.monitorCallbacks = {}
+        self._otherViewSubscribeCallbacks = {}
+        self._sameViewSubscribeCallbacks = {}
 
     def onItemLoad(self, view):
-        self._callbacks = {}
-        self.monitorCallbacks = {}
+        self._otherViewSubscribeCallbacks = {}
+        self._sameViewSubscribeCallbacks = {}
         try:
             if self._resultSet:
                 self._compile()
@@ -84,7 +84,7 @@ class Query(Item.Item):
             self._logical_plan = None
             self.stale = True
 
-    def subscribe(self, callbackItem = None, callbackMethodName = None):
+    def subscribe(self, callbackItem = None, callbackMethodName = None, inSameView = True, inOtherViews = True):
         """
         This query should subscribe to repository changes
 
@@ -93,26 +93,49 @@ class Query(Item.Item):
 
         @param callbackMethodName: The name of the callback method on the callbackItem
         @type callbackMethodName: string
+
+        @param inSameView: if we should subscribe to changes in the current view
+        @type inSameView: Boolean
+        @param inOtherViews: if we should subscribe to changes from commits in other views
+        @type inOtherViews: Boolean
         """
         if callbackItem is not None:
-            self._callbacks [callbackItem.itsUUID] = callbackMethodName
-        log.debug(u"RepoQuery<>.subscribe(): %s" % (self.queryString))
-        self.itsView.addNotificationCallback(self.queryCallback)
+            if inSameView:
+                self._sameViewSubscribeCallbacks [callbackItem.itsUUID] = callbackMethodName
+            if inOtherViews:
+                self._otherViewSubscribeCallbacks[callbackItem.itsUUID] = callbackMethodName
+                #@@@ add monitor for items in result set
+        if inOtherViews:
+            log.debug(u"RepoQuery<>.subscribe(): %s" % (self.queryString))
+            self.itsView.addNotificationCallback(self.queryCallback)
         
-    def unsubscribe(self, callbackItem=None):
+    def unsubscribe(self, callbackItem=None, inSameView = True, inOtherViews = True):
         """
         This query should stop subscribing to repository changes. If you don't specify a
         callbackItemUUID, all subscriptions will be removed.
 
         @param callbackItem: callbackItem to be removed
         @type callbackItem: Item
+        @param inSameView: if we should remove the item from the view subscriptions
+        @type inSameView: Boolean
+        @param inOtherViews: if we should remove the item from the commit subscriptions
+        @type inOtherViews: Boolean
         """
         if callbackItem is None:
-            self._callbacks = {}
+            if inOtherViews:
+                self._otherViewSubscribeCallbacks = {}
+            if inSameView:
+                self._sameViewSubscribeCallbacks = {}
         else:
-            del self._callbacks [callbackItem.itsUUID]
-        self.itsView.removeNotificationCallback(self.queryCallback)
-        return len (self._callbacks)
+            if inOtherViews:
+                del self._otherViewSubscribeCallbacks [callbackItem.itsUUID]
+            if inSameView:
+                del self._sameViewSubscribeCallbacks [callbackItem.itsUUID]
+                #@@@ remove monitor for items in result set
+        
+        if inOtherViews:        
+            self.itsView.removeNotificationCallback(self.queryCallback)
+        return len (self._otherViewSubscribeCallbacks)
 
     def __queryHasChanged(self):
         return self._queryStringIsStale and self.queryString
@@ -167,9 +190,9 @@ class Query(Item.Item):
 
         if changed:
             log.debug(u"RepoQuery.queryCallback: %s %s query result" % (uuid, action))
-            for callbackUUID in self._callbacks:
+            for callbackUUID in self._otherViewSubscribeCallbacks:
                 item = view.find (callbackUUID)
-                method = getattr (type(item), self._callbacks [callbackUUID])
+                method = getattr (type(item), self._otherViewSubscribeCallbacks [callbackUUID])
                 method (item, (added,removed))
         log.debug(u"queryCallback: %s:%f" % (self.queryString, time.time()-start))
 
@@ -234,35 +257,6 @@ class Query(Item.Item):
 
         return plan
 
-    def monitor(self, callbackItem = None, callbackMethodName = None):
-        """
-        This query should subscribe to monitor changes
-
-        @param callbackItem: a Chandler Item that provides a callback method
-        @type callbackItem: Item
-
-        @param callbackMethodName: The name of the callback method on the callbackItem
-        @type callbackMethodName: string
-        """
-        if callbackItem is not None:
-            self.monitorCallbacks[callbackItem.itsUUID] = callbackMethodName
-        #@@@ add monitor for items in result set
-
-    def unMonitor(self, callbackItem=None):
-        """
-        This query should stop subscribing to monitor changes. If you don't specify a
-        callbackItemUUID, all subscriptions will be removed.
-
-        @param callbackItem: callbackItem to be removed
-        @type callbackItem: Item
-        """
-        if callbackItem is None:
-            self.monitorCallbacks = {}
-        else:
-            del self.monitorCallbacks [callbackItem.itsUUID]
-        #@@@ remove monitor for items in result set
-        return len (self._callbacks)
-
     def monitorCallback(self, op, item, attribute, *args, **kwds):
         flag = self._logical_plan.monitored(op, item, attribute, *args, **kwds)
         if flag is not None:
@@ -270,9 +264,9 @@ class Query(Item.Item):
                 action = ([item], [])
             else:
                 action = ([], [item])
-        for callbackUUID in self.monitorCallbacks:
+        for callbackUUID in self._sameViewSubscribeCallbacks:
             i = self.itsView.find(callbackUUID)
-            method = getattr(type(i), self.monitorCallbacks[callbackUUID])
+            method = getattr(type(i), self._sameViewSubscribeCallbacks[callbackUUID])
             method(i, action)
 
 class LogicalPlan(object):
@@ -479,7 +473,7 @@ class ForPlan(LogicalPlan):
         log.debug(u"analyze_for: collection = %s, closure = %s" % (self.collection, self.closure))
             
         self.plan= (self.collection, compile(self.closure,'<string>','eval'))
-        if len(self.__item.monitorCallbacks) > 0:
+        if len(self.__item._sameViewSubscribeCallbacks) > 0:
             for a in self.affectedAttributes:
                 Monitors.Monitors.attach(self.__item, 'monitorCallback', 'set', a)
 
@@ -522,7 +516,7 @@ class ForPlan(LogicalPlan):
             try:
                 c = eval(self._predicate)
                 if c:
-                    if len(self.__item.monitorCallbacks) > 0:
+                    if len(self.__item._sameViewSubscribeCallbacks) > 0:
                         if  len(self.affectedAttributes) > 1:
                             print "monitoring of multi-item paths is not yet supported"
                     yield i
