@@ -2,7 +2,7 @@
 
 <item>
     <name>Director</name>
-    <kind type="path">//Schema/Model/AttrDef</kind>
+    <kind type="path">//Schema/Model/Attribute</kind>
 
     <attribute name="Cardinality">single</attribute>
     <attribute name="Required">True</attribute>

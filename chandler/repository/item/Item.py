@@ -104,19 +104,13 @@ class Item(object):
 
     def _otherName(self, name):
 
-        otherName = self.getAttrAspect(name, 'OtherName')
-
+        otherName = self.getAttributeAspect(name, 'OtherName')
         if otherName is None:
-            if name.endswith('__for'):
-                otherName = name[:-5]
-            else:
-                otherName = name + '__for'
-            print 'Warning: Undefined endpoint for %s.%s' %(self.getPath(),
-                                                            name)
+            raise TypeError, 'Undefined other endpoint for %s.%s' %(self.getPath(), name)
 
         return otherName
 
-    def hasAttrAspect(self, name, aspect):
+    def hasAttributeAspect(self, name, aspect):
 
         if self._kind is not None:
             attrDef = self._kind.getAttrDef(name)
@@ -125,7 +119,7 @@ class Item(object):
 
         return False
 
-    def getAttrAspect(self, name, aspect, default=None):
+    def getAttributeAspect(self, name, aspect, default=None):
 
         if self._kind is not None:
             attrDef = self._kind.getAttrDef(name)
@@ -173,7 +167,7 @@ class Item(object):
 
         if isItem:
             otherName = self._otherName(name)
-            card = self.getAttrAspect(name, 'Cardinality', 'single')
+            card = self.getAttributeAspect(name, 'Cardinality', 'single')
 
             if card == 'dict' or card == 'list':
                 refs = self._refDict(name, otherName, card == 'list')
@@ -199,7 +193,7 @@ class Item(object):
         If the attribute is not set then attempt to inherit a value if the
         attribute's InheritFrom aspect is set, attempt to return the value
         of the optional 'default' keyword passed to this method, attempt to
-        return the value of its Default aspect if set, or finally raise 
+        return the value of its DefaultValue aspect if set, or finally raise 
         AttributeError. 
         Calling this method is only required when there is a name ambiguity
         between a python and a Chandler attribute, a situation best avoided."""
@@ -219,7 +213,7 @@ class Item(object):
         except KeyError:
             pass
 
-        inherit = self.getAttrAspect(name, 'InheritFrom', None)
+        inherit = self.getAttributeAspect(name, 'InheritFrom', None)
         if inherit is not None:
             value = self
             for attr in inherit.split('.'):
@@ -230,8 +224,8 @@ class Item(object):
         elif kwds.has_key('default'):
             return kwds['default']
 
-        elif self.hasAttrAspect(name, 'Default'):
-            return self.getAttrAspect(name, 'Default')
+        elif self.hasAttributeAspect(name, 'DefaultValue'):
+            return self.getAttributeAspect(name, 'DefaultValue')
 
         raise AttributeError, name
 
@@ -280,9 +274,6 @@ class Item(object):
     def check(self):
 
         for ref in self.attributes(referencesOnly=True):
-            if ref[0].endswith('__for'):
-                print 'Warning: Undefined endpoint for %s.%s' %(self.getPath(),
-                                                                ref[0])
             if isinstance(ref[1], RefDict):
                 refDict = ref[1]
                 if refDict._ordered:
@@ -340,7 +331,7 @@ class Item(object):
         attrValue = _attrDict.get(attribute, None)
             
         if attrValue is None:
-            card = self.getAttrAspect(attribute, 'Cardinality', 'single')
+            card = self.getAttributeAspect(attribute, 'Cardinality', 'single')
             isItem = isinstance(value, Item)
 
             if card == 'dict':
@@ -446,7 +437,7 @@ class Item(object):
             value = (self._attributes.get(attribute, None) or
                      self._references.get(attribute, None))
 
-        card = self.getAttrAspect(attribute, 'Cardinality', 'single')
+        card = self.getAttributeAspect(attribute, 'Cardinality', 'single')
         
         if card == 'dict' or card == 'list':
             del value[key]
@@ -522,7 +513,7 @@ class Item(object):
             self._attributes.clear()
 
             for name in self._references.keys():
-                policy = self.getAttrAspect(name, 'DeletePolicy', 'remove')
+                policy = self.getAttributeAspect(name, 'DeletePolicy', 'remove')
                 if policy == 'cascade':
                     value = self._references[name]
                     if value is not None:
@@ -568,7 +559,7 @@ class Item(object):
 
         if not (self._status & Item.DELETED):
             for name in self._references.iterkeys():
-                policy = self.getAttrAspect(name, 'CountPolicy', 'none')
+                policy = self.getAttributeAspect(name, 'CountPolicy', 'none')
                 if policy == 'count':
                     count += self._references[name]._refCount()
 
@@ -771,7 +762,7 @@ class Item(object):
             xmlTag('kind', { 'type': 'uuid' },
                    kind.getUUID().str64(), generator)
 
-        if withSchema or kind is None or kind.Class is not type(self):
+        if withSchema or kind is None or kind.Classes['python'] is not type(self):
             xmlTag('class', { 'module': self.__module__ },
                    type(self).__name__, generator)
 
@@ -791,16 +782,17 @@ class Item(object):
     def _saveAttrs(self, generator, withSchema):
 
         for attr in self._attributes.iteritems():
-            if self.getAttrAspect(attr[0], 'Persist', True):
-                attrType = self.getAttrAspect(attr[0], 'Type')
-                attrCard = self.getAttrAspect(attr[0], 'Cardinality', 'single')
+            if self.getAttributeAspect(attr[0], 'Persist', True):
+                attrType = self.getAttributeAspect(attr[0], 'Type')
+                attrCard = self.getAttributeAspect(attr[0], 'Cardinality',
+                                                   'single')
                 self._xmlValue(attr[0], attr[1], 'attribute',
                                attrType, attrCard, generator, withSchema)
 
     def _saveRefs(self, generator, withSchema):
 
         for attr in self._references.iteritems():
-            if self.getAttrAspect(attr[0], 'Persist', True):
+            if self.getAttributeAspect(attr[0], 'Persist', True):
                 attr[1]._saveValue(attr[0], self, generator, withSchema)
 
     def _xmlValue(self, name, value, tag, attrType, attrCard,
@@ -951,7 +943,7 @@ class ItemHandler(xml.sax.ContentHandler):
         self.attrDefs.append(attrDef)
 
         cardinality = self.getCardinality(attrDef, attrs)
-        typeName = attrs.get('type')
+        typeName = self.getTypeName(attrDef, attrs)
         
         if cardinality == 'dict' or typeName == 'dict':
             self.collections.append({})
@@ -992,9 +984,12 @@ class ItemHandler(xml.sax.ContentHandler):
                 
     def itemEnd(self, itemHandler, attrs):
 
-        cls = (self.cls or
-               self.kind and getattr(self.kind, 'Class', Item) or
-               Item)
+        cls = self.cls
+        if cls is None:
+            if self.kind is None:
+                cls = Item
+            else:
+                cls = self.kind.getAttribute('Classes')['python']
 
         self.item = item = cls(self.name, self.parent, self.kind,
                                _uuid = UUID(attrs.get('uuid')),
@@ -1064,15 +1059,19 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def attributeEnd(self, itemHandler, attrs, **kwds):
 
-        attrDef = self.attrDefs.pop()
-        cardinality = self.getCardinality(attrDef, attrs)
-
         if kwds.has_key('value'):
             value = kwds['value']
-        elif cardinality == 'single':
-            value = self.makeValue(attrs.get('type', 'str'), self.data)
         else:
-            value = self.collections.pop()
+            attrDef = self.attrDefs.pop()
+            cardinality = self.getCardinality(attrDef, attrs)
+            typeName = self.getTypeName(attrDef, attrs)
+
+            if cardinality == 'dict' or typeName == 'dict':
+                value = self.collections.pop()
+            elif cardinality == 'list' or typeName == 'list':
+                value = self.collections.pop()
+            else:
+                value = self.makeValue(typeName, self.data)
             
         self.attributes[attrs['name']] = value
 
@@ -1140,16 +1139,18 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def valueEnd(self, itemHandler, attrs, **kwds):
 
-        typeName = attrs.get('type', 'str')
-
-        if typeName == 'dict' or typeName == 'list':
-            value = self.collections.pop()
-        elif kwds.has_key('value'):
+        if kwds.has_key('value'):
             value = kwds['value']
         else:
+            typeName = attrs.get('type', None)
+            if typeName is None:
+                typeName = self.getTypeName(self.attrDefs[-1],
+                                            self.tagAttrs[-1])
+
             value = self.makeValue(typeName, self.data)
 
         name = attrs.get('name')
+
         if name is None:
             self.collections[-1].append(value)
         else:
@@ -1168,6 +1169,17 @@ class ItemHandler(xml.sax.ContentHandler):
 
         return cardinality
 
+    def getTypeName(self, attrDef, attrs):
+
+        attrType = attrs.get('type')
+
+        if attrType is None and attrDef is not None:
+            attrType = attrDef.getAspect('Type', None)
+            if attrType is not None:
+                return type(attrType).__name__
+
+        return attrType or 'str'
+
     def refName(self, attrs, attr):
 
         if attrs.has_key(attr):
@@ -1183,12 +1195,7 @@ class ItemHandler(xml.sax.ContentHandler):
             otherName = attrDef.getAspect('OtherName')
 
         if otherName is None:
-            if name.endswith('__for'):
-                otherName = name[:-5]
-            else:
-                otherName = name + '__for'
-            print 'Warning: Undefined endpoint for %s.%s' %(item.getPath(),
-                                                            name)
+            raise TypeError, 'Undefined other endpoint for %s' %(name)
 
         return otherName
 

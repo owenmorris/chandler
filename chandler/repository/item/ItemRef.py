@@ -61,8 +61,9 @@ class ItemRef(object):
                     return
             else:
                 if otherCard is None:
-                    otherCard = other.getAttrAspect(otherName, 'Cardinality',
-                                                    'single')
+                    otherCard = other.getAttributeAspect(otherName,
+                                                         'Cardinality',
+                                                         'single')
                 if otherCard == 'dict':
                     old = other._refDict(otherName, name)
                     other._references[otherName] = old
@@ -143,8 +144,9 @@ class ItemRef(object):
         if withSchema:
             otherName = item._otherName(name)
             attrs['otherName'] = otherName
-            attrs['otherCard'] = other.getAttrAspect(otherName, 'Cardinality',
-                                                     'single')
+            attrs['otherCard'] = other.getAttributeAspect(otherName,
+                                                          'Cardinality',
+                                                          'single')
 
         generator.startElement('ref', attrs)
         generator.characters(other.getUUID().str64())
@@ -159,6 +161,10 @@ class ItemStub(object):
 
         self.item = item
         self.args = args
+
+    def __repr__(self):
+
+        return '<ItemStub: %s>' %(self.args.spec)
 
     def _loadItem(self):
 
@@ -631,8 +637,8 @@ class RefDict(References):
             attrs = { 'name': name }
             if withSchema:
                 otherName = item._otherName(name)
-                otherCard = other.getAttrAspect(otherName, 'Cardinality',
-                                                'single')
+                otherCard = other.getAttributeAspect(otherName, 'Cardinality',
+                                                     'single')
                 attrs['cardinality'] = self._getCard()
                 attrs['otherName'] = otherName
                 attrs['otherCard'] = otherCard

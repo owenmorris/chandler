@@ -9,14 +9,14 @@ from model.item.ItemRef import RefDict
 from model.schema.Kind import Kind
 
 
-class AttrDef(Item):
+class Attribute(Item):
 
     def refName(self, name):
 
-        if name == 'AttrDefs' or name == 'InheritedAttrDefs':
+        if name == 'Attributes' or name == 'InheritedAttributes':
             return self._name
 
-        return super(AttrDef, self).refName(name)
+        return super(Attribute, self).refName(name)
 
     def hasAspect(self, name):
 
@@ -27,13 +27,13 @@ class AttrDef(Item):
         if self.hasAttribute(name):
             return self.getAttribute(name)
 
-        if self.hasAttribute('SuperAttrDef'):
-            return self.getAttribute('SuperAttrDef').getAspect(name, default)
+        if self.hasAttribute('SuperAttribute'):
+            return self.getAttribute('SuperAttribute').getAspect(name, default)
 
         return default
 
     def _saveRefs(self, generator, withSchema):
 
         for attr in self._references.items():
-            if self.getAttrAspect(attr[0], 'Persist', True):
+            if self.getAttributeAspect(attr[0], 'Persist', True):
                 attr[1]._saveValue(attr[0], self, generator, withSchema)

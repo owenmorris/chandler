@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item withSchema="True">
+  <name>DisplayAttribute</name>
+  <kind type="path">//Schema/Model/Attribute</kind>
+
+  <ref name="Type" otherName="TypeFor" 
+       type="path" otherCard="dict">/Model/Types/String</ref>
+
+  <attribute name="Cardinality">single</attribute>
+</item>

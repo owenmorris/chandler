@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item withSchema="True">
-  <name>AttrDef</name>
+  <name>Attribute</name>
   <kind type="path">//Schema/Model/Kind</kind>
 
-  <ref name="AttrDefs" otherName="Kinds" cardinality="dict" otherCard="dict">
+  <ref name="Attributes" otherName="Kinds" cardinality="dict" otherCard="dict">
     <ref name="Required" type="path">/Model/Attributes/Required</ref>
     <ref name="Persist" type="path">/Model/Attributes/Persist</ref>
     <ref name="Cardinality" type="path">/Model/Attributes/Cardinality</ref>
     <ref name="Type" type="path">/Model/Attributes/Type</ref>
-    <ref name="Default" type="path">/Model/Attributes/Default</ref>
+    <ref name="DefaultValue" type="path">/Model/Attributes/DefaultValue</ref>
     <ref name="InheritFrom" type="path">/Model/Attributes/InheritFrom</ref>
     <ref name="OtherName" type="path">/Model/Attributes/OtherName</ref>
     <ref name="DeletePolicy" type="path">/Model/Attributes/DeletePolicy</ref>
@@ -18,10 +18,13 @@
     <ref name="DisplayName" type="path">/Model/Attributes/DisplayName</ref>
     <ref name="InheritingKinds" type="path">/Model/Attributes/InheritingKinds</ref>
     <ref name="Kinds" type="path">/Model/Attributes/Kinds</ref>
-    <ref name="SuperAttrDef" type="path">/Model/Attributes/SuperAttrDef</ref>
-    <ref name="SubAttrDef" type="path">/Model/Attributes/SubAttrDef</ref>
+    <ref name="SuperAttribute" type="path">/Model/Attributes/SuperAttribute</ref>
+    <ref name="SubAttributes" type="path">/Model/Attributes/SubAttributes</ref>
+    <ref name="Description" type="path">/Model/Attributes/Description</ref>
   </ref>
 
-  <attribute name="Class" type="model.schema.Types.Class">model.schema.AttrDef.AttrDef</attribute>
-
+  <attribute name="Classes" cardinality="dict" 
+             type="model.schema.Types.Class">
+    <value name="python">model.schema.Attribute.Attribute</value>
+  </attribute>
 </item>

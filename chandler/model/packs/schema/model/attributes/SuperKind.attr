@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
-<item withSchema="True">
-  <name>SuperKind</name>
-  <kind type="path">//Schema/Model/AttrDef</kind>
-
-  <attribute name="Cardinality">list</attribute>
-  <attribute name="OtherName">SubKind</attribute>
-</item>

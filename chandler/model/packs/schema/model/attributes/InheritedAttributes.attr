@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item withSchema="True">
-  <name>InheritedAttrDefs</name>
-  <kind type="path">//Schema/Model/AttrDef</kind>
+  <name>InheritedAttributes</name>
+  <kind type="path">//Schema/Model/Attribute</kind>
 
   <attribute name="Cardinality">dict</attribute>
   <attribute name="Persist" type="bool">False</attribute>

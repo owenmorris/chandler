@@ -2,11 +2,11 @@
 
 <item withSchema="True">
   <name>CountPolicy</name>
-  <kind type="path">//Schema/Model/AttrDef</kind>
+  <kind type="path">//Schema/Model/Attribute</kind>
 
   <ref name="Type" otherName="TypeFor" 
        type="path" otherCard="dict">/Model/Types/CountPolicy</ref>
 
   <attribute name="Cardinality">single</attribute>
-  <attribute name="Default">none</attribute>
+  <attribute name="DefaultValue">none</attribute>
 </item>

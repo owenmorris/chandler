@@ -7,22 +7,27 @@
   <ref name="Kind" otherName="Items" 
        type="path" otherCard="dict">/Model/Kind</ref>
 
-  <ref name="AttrDefs" otherName="Kinds" cardinality="dict" otherCard="dict">
-    <ref name="SuperKind" type="path">/Model/Attributes/SuperKind</ref>
-    <ref name="SubKind" type="path">/Model/Attributes/SubKind</ref>
+  <ref name="Attributes" otherName="Kinds" cardinality="dict" otherCard="dict">
+    <ref name="SuperKinds" type="path">/Model/Attributes/SuperKinds</ref>
+    <ref name="SubKinds" type="path">/Model/Attributes/SubKinds</ref>
     <ref name="Items" type="path">/Model/Attributes/Items</ref>
-    <ref name="AttrDefs" type="path">/Model/Attributes/AttrDefs</ref>
-    <ref name="InheritedAttrDefs" type="path">/Model/Attributes/InheritedAttrDefs</ref>
-    <ref name="NotFoundAttrDefs" type="path">/Model/Attributes/NotFoundAttrDefs</ref>
-    <ref name="Class" type="path">/Model/Attributes/Class</ref>
+    <ref name="Attributes" type="path">/Model/Attributes/Attributes</ref>
+    <ref name="InheritedAttributes" type="path">/Model/Attributes/InheritedAttributes</ref>
+    <ref name="NotFoundAttributes" type="path">/Model/Attributes/NotFoundAttributes</ref>
+    <ref name="Classes" type="path">/Model/Attributes/Classes</ref>
     <ref name="TypeFor" type="path">/Model/Attributes/TypeFor</ref>
+    <ref name="DisplayName" type="path">/Model/Attributes/DisplayName</ref>
+    <ref name="DisplayAttribute" type="path">/Model/Attributes/DisplayAttribute</ref>
+    <ref name="Description" type="path">/Model/Attributes/Description</ref>
   </ref>
 
-  <ref name="SuperKind" cardinality="list" otherName="SubKind" otherCard="dict">
+  <ref name="SuperKinds" cardinality="list" otherName="SubKinds" otherCard="dict">
     <ref name="70acd404-b3c8-11d7-a72a-000393db837c" nameType="uuid"
          type="path">/Model/Item</ref>
   </ref>
 
-  <attribute name="Class" 
-             type="model.schema.Types.Class">model.schema.Kind.Kind</attribute>
+  <attribute name="Classes" cardinality="dict" 
+             type="model.schema.Types.Class">
+    <value name="python">model.schema.Kind.Kind</value>
+  </attribute>
 </item>

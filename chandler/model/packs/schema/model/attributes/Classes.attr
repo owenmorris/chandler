@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item withSchema="True">
+  <name>Classes</name>
+  <kind type="path">//Schema/Model/Attribute</kind>
+
+  <ref name="Type" otherName="TypeFor" 
+       type="path" otherCard="dict">/Model/Types/Class</ref>
+
+  <attribute name="Cardinality">dict</attribute>
+  <attribute name="DefaultValue" type="dict">
+    <value name="python" 
+           type="model.schema.Types.Class">model.item.Item.Item</value>
+  </attribute>
+</item>

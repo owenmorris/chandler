@@ -22,7 +22,7 @@ import xml.sax
 import xml.sax.handler
 
 from model.schema.Kind import Kind
-from model.schema.AttrDef import AttrDef
+from model.schema.Attribute import Attribute
 from model.schema import Types
 
 from model.item.Item import Item
@@ -30,7 +30,7 @@ from model.item.Item import Item
 # XML format tag is the key, Repository expected kind is the value
 
 ITEM_TAGS = {'Kind' : 'Kind',
-             'AttributeDefinition' : 'AttrDef',
+             'AttributeDefinition' : 'Attribute',
              'Alias': 'Alias',
              'Type' : 'Type'}
 
@@ -42,15 +42,15 @@ ATTRIBUTE_TEXT_TAGS = {'label': 'DisplayName',
                        'example': 'example',
                        'issue' : 'issue',
                        'version' : 'version',
-                       'default' : 'Default',
+                       'default' : 'DefaultValue',
                        'derivation' : 'derivation',
                        'cardinality': 'Cardinality',
                        'relationshipType': 'relationshipType',
                        'pythonClass' : 'Class'}
 
-ATTRIBUTE_REF_TAGS = {'superKind' : 'SuperKind',
-                      'superAttribute': 'SuperAttrDef',
-                      'attribute': 'AttrDefs',
+ATTRIBUTE_REF_TAGS = {'superKind' : 'SuperKinds',
+                      'superAttribute': 'SuperAttribute',
+                      'attribute': 'Attributes',
                       'type': 'Type',
                       'equivalentKind':'equivalentKind',
                       'equivalentAttribute':'equivalentAttribute',
@@ -199,8 +199,8 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
     def createAttributeDefinition(self, idString):
         """Create an AttributeDefinition item with the given id."""
         [prefix, name] = idString.split(':')
-        kind = self.repository.find('//Schema/Model/AttrDef')
-        item = AttrDef(name, self.domainSchema, kind)
+        kind = self.repository.find('//Schema/Model/Attribute')
+        item = Attribute(name, self.domainSchema, kind)
         return item
 
     def createAlias(self, idString):

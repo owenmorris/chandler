@@ -2,7 +2,7 @@
 
 <item withSchema="True">
   <name>DisplayName</name>
-  <kind type="path">//Schema/Model/AttrDef</kind>
+  <kind type="path">//Schema/Model/Attribute</kind>
 
   <ref name="Type" otherName="TypeFor" 
        type="path" otherCard="dict">/Model/Types/String</ref>

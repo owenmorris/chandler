@@ -4,12 +4,12 @@
   <name>Director</name>
   <kind type="path">//Schema/Model/Kind</kind>
 
-  <ref name="AttrDefs">
+  <ref name="Attributes">
     <ref name="Name" type="path">/CineGuide/Attributes/Name</ref>
     <ref name="Directed" type="path">/CineGuide/Attributes/Directed</ref>
   </ref>
 
-  <ref name="SuperKind">
+  <ref name="SuperKinds">
     <ref type="path">/Model/Item</ref>
   </ref>
 

@@ -8,10 +8,10 @@
       <!-- Must be loaded first -->
       <item file="Kind.kind" /> 
 
-      <item file="AttrDef.kind" />
+      <item file="Attribute.kind" />
       <item file="Item.kind" />
       <item file="Type.kind" />
-      <item file="Enum.kind" />
+      <item file="Enumeration.kind" />
 
       <item file="Types.container" cwd="types">
         <item files="*.type" />

@@ -168,7 +168,7 @@ class Class(Type):
     makeString = classmethod(makeString)
 
 
-class Enum(Type):
+class Enumeration(Type):
 
     def makeValue(cls, data):
         return data

@@ -4,14 +4,14 @@
   <name>Actor</name>
   <kind type="path">//Schema/Model/Kind</kind>
 
-  <ref name="AttrDefs">
+  <ref name="Attributes">
     <ref name="Name" type="path">/CineGuide/Attributes/Name</ref>
     <ref name="Born" type="path">/CineGuide/Attributes/Born</ref>
     <ref name="Died" type="path">/CineGuide/Attributes/Died</ref>
     <ref name="Movies" type="path">/CineGuide/Attributes/Movies</ref>
   </ref>
 
-  <ref name="SuperKind">
+  <ref name="SuperKinds">
     <ref type="path">/Model/Item</ref>
   </ref>
 

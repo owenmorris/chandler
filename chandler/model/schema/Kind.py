@@ -15,7 +15,7 @@ class Kind(Item):
         super(Kind, self).__init__(name, parent, kind, **_kwds)
 
         # recursion avoidance
-        self._attributes['NotFoundAttrDefs'] = []
+        self._attributes['NotFoundAttributes'] = []
 
     def newItem(self, name, parent):
         '''Create an item of this kind.
@@ -27,9 +27,9 @@ class Kind(Item):
         
     def getAttrDef(self, name):
 
-        attrDef = self.getValue('AttrDefs', name, _attrDict=self._references)
+        attrDef = self.getValue('Attributes', name, _attrDict=self._references)
         if attrDef is None:
-            attrDef = self.getValue('InheritedAttrDefs', name,
+            attrDef = self.getValue('InheritedAttributes', name,
                                     _attrDict=self._references)
             if attrDef is None:
                 return self.inheritAttrDef(name)
@@ -38,7 +38,7 @@ class Kind(Item):
 
     def inheritAttrDef(self, name):
 
-        if self.hasValue('NotFoundAttrDefs', name):
+        if self.hasValue('NotFoundAttributes', name):
             return None
         
         inheritingKinds = self._getInheritingKinds()
@@ -48,27 +48,27 @@ class Kind(Item):
                 if inheritingKind is not None:
                     attrDef = inheritingKind.getAttrDef(name)
                     if attrDef is not None:
-                        self.attach('InheritedAttrDefs', attrDef)
+                        self.attach('InheritedAttributes', attrDef)
                         return attrDef
                 else:
                     cache = False
                     
             if cache:
-                self.addValue('NotFoundAttrDefs', name)
+                self.addValue('NotFoundAttributes', name)
 
         return None
 
     def _getInheritingKinds(self):
 
-        if self.hasAttribute('SuperKind'):
-            return self.SuperKind
+        if self.hasAttribute('SuperKinds'):
+            return self.SuperKinds
 
         return self._kind._getInheritingKinds()
 
     def _saveRefs(self, generator, withSchema):
 
         for attr in self._references.items():
-            if self.getAttrAspect(attr[0], 'Persist', True):
+            if self.getAttributeAspect(attr[0], 'Persist', True):
                 attr[1]._saveValue(attr[0], self, generator, withSchema)
 
 
@@ -82,6 +82,7 @@ class KindKind(Kind):
 class ItemKind(Kind):
 
     def _getInheritingKinds(self):
+
         return None
 
 
@@ -99,7 +100,7 @@ class SchemaRoot(Item):
 
         def apply(item):
 
-            assert not item._attributes.get('NotFoundAttrDefs', []), item
+            assert not item._attributes.get('NotFoundAttributes', []), item
 
             for child in item:
                 apply(child)

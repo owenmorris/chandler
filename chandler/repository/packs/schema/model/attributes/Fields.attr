@@ -2,11 +2,11 @@
 
 <item withSchema="True">
   <name>Fields</name>
-  <kind type="path">//Schema/Model/AttrDef</kind>
+  <kind type="path">//Schema/Model/Attribute</kind>
 
   <ref name="Type" otherName="TypeFor" 
        type="path" otherCard="dict">/Model/Types/String</ref>
 
   <attribute name="Cardinality">list</attribute>
-  <attribute name="Default" type="NoneType">None</attribute>
+  <attribute name="DefaultValue" type="NoneType">None</attribute>
 </item>
