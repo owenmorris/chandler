@@ -157,7 +157,7 @@ def build(buildenv):
          "Building %s %s" % (info['name'], version),
          0, "output.txt")
 
-        os.putenv('WXWIN', os.getcwd())
+        os.putenv('WXWIN', buildenv['root_dos'] + "\\..\\..\\internal\\wx\\wxPython-2.5")
 
         if version == 'release':
             destination = os.path.join (buildenv['pythonlibdir'], 'site-packages', 'wx')
