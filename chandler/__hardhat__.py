@@ -11,7 +11,6 @@ dependencies = (
                 'persistence/pathan',
                 'persistence/dbxml',
                 'egenix-mx',
-                'zodb',
                 'jabber-py',
                 'SOAPpy',
                 'pychecker',
