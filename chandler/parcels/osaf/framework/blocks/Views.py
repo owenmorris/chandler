@@ -40,7 +40,7 @@ class View(BoxContainer):
                     break
                 block = block.parentBlock
         
-        def broadcast (block, methodName, notification, stopAtEventBounary = True):
+        def broadcast (block, methodName, notification, stopAtEventBoundary = True):
             """
               Call method named methodName on every block and it's children
             who implements it, except for the block that posted the event,
@@ -49,8 +49,8 @@ class View(BoxContainer):
             if block != notification.data['sender']:
                 callMethod (block, methodName, notification)
             for child in block.childrenBlocks:
-                if child and not (stopAtEventBounary and child.eventBoundary):
-                    broadcast (child, methodName, notification)
+                if child and not (stopAtEventBoundary and child.eventBoundary):
+                    broadcast (child, methodName, notification, stopAtEventBoundary)
 
         event = notification.event
         """
@@ -79,7 +79,7 @@ class View(BoxContainer):
             broadcast (block, methodName, notification)
 
         elif event.dispatchEnum == 'BroadcastEverywhere':
-            broadcast (Globals.mainView, methodName, notification, stopAtEventBounary = False)
+            broadcast (Globals.mainView, methodName, notification, stopAtEventBoundary = False)
 
         elif event.dispatchEnum == 'FocusBubbleUp':
             block = self.getFocusBlock()
