@@ -160,7 +160,7 @@ def isString(var):
     return False
 
 def strToText(contentItem, attribute, unicodeString, indexText=False, \
-              encoding=constants.DEFAULT_CHARSET):
+              encoding=constants.DEFAULT_CHARSET, replaceError=True):
     #XXX: Should rename this method to be more clear
     """Converts a C{unicode} string  to {Lob}.
     """
@@ -168,7 +168,8 @@ def strToText(contentItem, attribute, unicodeString, indexText=False, \
 
     return contentItem.getAttributeAspect(attribute, \
                                           'type').makeValue(unicodeString, \
-                                          indexed=indexText, encoding=encoding)
+                                                  indexed=indexText, encoding=encoding, \
+                                                  replace=replaceError)
 
 
 def textToStr(text):
@@ -183,12 +184,11 @@ def textToStr(text):
 
     return uStr
 
-def dataToBinary(contentItem, attribute, data, compression=None, indexText=False):
+def dataToBinary(contentItem, attribute, data, mimeType="application/octet-stream", compression=None):
     """Converts non-string data to a C{TLob}
     """
     binary =  contentItem.getAttributeAspect(attribute, \
-                                          'type').makeValue(None, \
-                                          indexed=indexText, encoding=None)
+                                          'type').makeValue(None, mimetype=mimeType)
 
     if compression:
         binaryStream = binary.getOutputStream(compression=compression)

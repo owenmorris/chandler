@@ -220,7 +220,8 @@ def messageObjectToKind(view, messageObject, messageText=None):
     if messageText is None:
         messageText = messageObject.as_string()
 
-    m.rfc2822Message = utils.dataToBinary(m, "rfc2822Message", messageText, 'bz2')
+    m.rfc2822Message = utils.dataToBinary(m, "rfc2822Message", messageText, \
+                                          'message/rfc822', 'bz2')
 
     counter = utils.Counter()
     bodyBuffer = []
@@ -242,7 +243,7 @@ def messageObjectToKind(view, messageObject, messageText=None):
 
     body = (constants.LF.join(bodyBuffer)).replace(constants.CR, constants.EMPTY)
 
-    m.body = utils.strToText(m, "body", body)
+    m.body = utils.strToText(m, "body", body, indexText=True)
 
     __parseHeaders(view, messageObject, m)
 
@@ -323,7 +324,7 @@ def kindToMessageText(mailMessage, saveMessage=True):
 
     if saveMessage:
         mailMessage.rfc2882Message = utils.dataToBinary(mailMessage, "rfc2822Message", \
-                                                        messageText, 'bz2')
+                                                        messageText, 'message/rfc822', 'bz2')
 
     return messageText
 
@@ -605,7 +606,7 @@ def __handleBinary(view, mimePart, parentMIMEContainer, counter, buf, level):
        if result[0] is not None:
              mimeBinary.mimeType = result[0]
 
-    mimeBinary.body = utils.dataToBinary(mimeBinary, "body", body, 'bz2')
+    mimeBinary.body = utils.dataToBinary(mimeBinary, "body", body, mimeBinary.mimeType, 'bz2')
 
     parentMIMEContainer.mimeParts.append(mimeBinary)
 
@@ -639,7 +640,8 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, 
             mimeText.lang = lang
 
         #XXX: This may cause issues since Note no longer a parent
-        mimeText.body = utils.strToText(mimeText, "body", getUnicodeValue(body, charset))
+        mimeText.body = utils.strToText(mimeText, "body", getUnicodeValue(body, charset), \
+                                        indexText=True)
 
         parentMIMEContainer.mimeParts.append(mimeText)
         parentMIMEContainer.hasMimeParts = True
