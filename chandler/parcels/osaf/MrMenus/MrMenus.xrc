@@ -62,17 +62,19 @@
         <style>wxNO_BORDER|wxTB_HORIZONTAL|wxTB_FLAT</style>
         <dontattachtoframe>1</dontattachtoframe>
         <bitmapsize>20,20</bitmapsize>
-        <object class="tool" name="RadioTool0">
-            <label>Radio0</label>
+        <object class="tool" name="Tool0">
+            <label>Lunch</label>
             <bitmap>application/images/Stop.png</bitmap>
-            <tooltip>Radio0</tooltip>
-            <longhelp>Selects the Radio0 item</longhelp>
+            <toggle>1</toggle>
+            <tooltip>Lunch</tooltip>
+            <longhelp>Selects the Lunch item</longhelp>
         </object>
-        <object class="tool" name="RadioTool1">
-            <label>Radio1</label>
+        <object class="tool" name="Tool1">
+            <label>Dinner</label>
             <bitmap>application/images/Stop.png</bitmap>
-            <tooltip>Radio1</tooltip>
-            <longhelp>Selects the Radio1 item</longhelp>
+            <toggle>1</toggle>
+            <tooltip>Dinner</tooltip>
+            <longhelp>Selects the Dinner item</longhelp>
         </object>
     </object>
 
