@@ -34,10 +34,41 @@ class ItemLoader(object):
         self.parser.setFeature(xml.sax.handler.feature_namespace_prefixes, True)
         self.parser.setContentHandler(ItemHandler(self.repository,
                                                   verbose))
-        self.parser.setErrorHandler(xml.sax.handler.ErrorHandler())
+        self.parser.setErrorHandler(ItemErrorHandler())
+
+        # @@@ Remove this
+        self.pathSetup()
 
     def load(self, file, parent=None):
         self.parser.parse(file)
+
+    # @@@ Bootstrapping: this method should go away!
+    def pathSetup(self):
+        itemKind = self.repository.find('//Schema/Core/Item')
+        schemaContainer = self.repository.find('//Schema')
+
+        parcelsContainer = Item('Parcels', self.repository, itemKind)
+        osafSchemaContainer = Item('OSAF', schemaContainer, itemKind)
+        osafParcelsContainer = Item('OSAF', parcelsContainer, itemKind)
+
+        kindKind = self.repository.find('//Schema/Core/Kind')
+        coreContainer = self.repository.find('//Schema/Core')
+        parcelKind = Item('Parcel', coreContainer, kindKind)
+
+        
+class ItemErrorHandler(xml.sax.ErrorHandler):
+    def error(self, exception):
+        print "SAX ERROR"
+        xml.sax.ErrorHandler.error(self, exception)
+        
+    def fatalError(self, exception):
+        print "SAX FATAL ERROR"
+        xml.sax.ErrorHandler.fatalError(self, exception)
+        
+    def warning(self, exception):
+        print "SAX WARNING!"
+        xml.sax.ErrorHandler.warning(self, exception)
+        
 
 class ItemHandler(xml.sax.ContentHandler):
     """ A SAX2 ContentHandler responsible for loading items into a
@@ -81,60 +112,64 @@ class ItemHandler(xml.sax.ContentHandler):
             self.currentValue = self.currentValue + content
 
     def startElementNS(self, (uri, local), qname, attrs):
-
-        # @@@ Special case for parcel?
-        if attrs.has_key((None, 'parcelName')):
-            element = 'Parcel'
-
-            nameString = attrs.getValue((None, 'parcelName'))
-            self.currentItem = self.createParcel(uri, local, nameString)
-            self.currentAttributes = []
-
-        if attrs.has_key((None, 'itemName')):
-            # If it has an item name, its an item
-            element = 'Item'
-
-            nameString = attrs.getValue((None, 'itemName'))
-            self.currentItem = self.createItem(uri, local, nameString)
-            self.currentAttributes = []
-
-        elif attrs.has_key((None, 'itemref')):
-            # If it has an itemref, assume its a reference attribute
-            element = 'Reference'
-            self.currentValue = attrs.getValue((None, 'itemref'))
+        try:
+            # @@@ Special case for parcel?
+            if attrs.has_key((None, 'parcelName')):
+                element = 'Parcel'
+                
+                nameString = attrs.getValue((None, 'parcelName'))
+                self.currentItem = self.createParcel(uri, local, nameString)
+                self.currentAttributes = []
+                
+            elif attrs.has_key((None, 'itemName')):
+                # If it has an item name, its an item
+                element = 'Item'
+                
+                nameString = attrs.getValue((None, 'itemName'))
+                self.currentItem = self.createItem(uri, local, nameString)
+                self.currentAttributes = []
+                
+            elif attrs.has_key((None, 'itemref')):
+                # If it has an itemref, assume its a reference attribute
+                element = 'Reference'
+                self.currentValue = attrs.getValue((None, 'itemref'))
             
-        elif attrs.has_key((None, 'key')):
-            # If it has a key, assume its a dictionary of literals
-            element = 'Dictionary'
-            self.currentKey = attrs.getValue((None, 'key'))
-            self.currentValue = ''
+            elif attrs.has_key((None, 'key')):
+                # If it has a key, assume its a dictionary of literals
+                element = 'Dictionary'
+                self.currentKey = attrs.getValue((None, 'key'))
+                self.currentValue = ''
+                
+            else:
+                # Otherwise, assume its a literal attribute
+                element = 'Attribute'
+                self.currentValue = ''
+                
+        except:
+            print "Error: %s, %s" % (self.locator.getLineNumber(), qname)
+            raise
             
-        else:
-            # Otherwise, assume its a literal attribute
-            element = 'Attribute'
-            self.currentValue = ''
-
         # Add the tag to our context stack
         self.tags.append((uri, local, element))
 
 
     def endElementNS(self, (uri, local), qname):
         (uri, local, element) = self.tags[-1]
-
+        
         # If we have a reference, delay loading
         if element == 'Reference':
             self.currentAttributes.append((local,
                                            self.currentValue,
                                            self.locator.getLineNumber()))
-
+            
         # We have an attribute, append to the current item
         elif element == 'Attribute':
 
             # If the element is empty, treat the value as a boolean
             if self.currentValue == '':
                 self.currentItem.addValue(local, True)
-
-            # Otherwise, add the value as a string
+                
+                # Otherwise, add the value as a string
             else:
                 self.currentItem.addValue(local, self.currentValue)
 
@@ -187,10 +222,11 @@ class ItemHandler(xml.sax.ContentHandler):
     def createParcel(self, uri, local, nameString):
         # @@@ Ick!
         parcelKind = self.repository.find("//Schema/Core/Item")
-        schema = self.repository.find("//Schema")
-        parcels = self.repository.find("//Parcels")
-        schemaItem = parcelKind.newItem(name, schema)
-        parcelItem = parcelKind.newItem(name, parcels)
+        schema = self.repository.find("//Schema/OSAF")
+        parcels = self.repository.find("//Parcels/OSAF")
+        schemaItem = parcelKind.newItem(nameString, schema)
+        parcelItem = parcelKind.newItem(nameString, parcels)
+
         return schemaItem
 
     def createItem(self, uri, local, nameString):
@@ -201,32 +237,33 @@ class ItemHandler(xml.sax.ContentHandler):
         (prefix, name) = nameString.split(':') 
         namespace = self.mapping[prefix]
 
-            parent = self.repository
-        else:
-            parent = self.repository.find(namespace)
-            item = schemaItem.newItem(name, parent)
+        parent = self.repository.find(namespace)
+        item = schemaItem.newItem(name, parent)
 
         return item
 
     def addReferences(self, item, attributes):
         """ Add all of the references in the list to the item """
         for (attributeName, value, line) in attributes:
-
-            (prefix, name) = value.split(':')
-
-            namespace = self.mapping[prefix]
-            reference = self.findItem(namespace, name)
-
-            # @@@ (3) Special cases to resolve
-            if attributeName == 'inverseAttribute':
-                item.addValue('otherName', reference.getItemName())
-            elif attributeName == 'displayAttribute':
-                item.addValue('displayAttribute', reference.getItemName())
-            elif attributeName == 'attributes':
-                item.addValue('attributes', reference,
-                              alias=reference.getItemName())
-            else:
-                item.addValue(attributeName, reference)
+            try:
+                (prefix, name) = value.split(':')
+                
+                namespace = self.mapping[prefix]
+                reference = self.findItem(namespace, name)
+                
+                # @@@ (3) Special cases to resolve
+                if attributeName == 'inverseAttribute':
+                    item.addValue('otherName', reference.getItemName())
+                elif attributeName == 'displayAttribute':
+                    item.addValue('displayAttribute', reference.getItemName())
+                elif attributeName == 'attributes':
+                    item.addValue('attributes', reference,
+                                  alias=reference.getItemName())
+                else:
+                    item.addValue(attributeName, reference)
+            except:
+                print "Error (%s, %s, %s)" % (attributeName, value, line)
+                raise
 
             
     
