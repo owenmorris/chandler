@@ -90,3 +90,5 @@
     * initialized the agent manager toward the end of the initialization process;
       it was being initialized before the notification manager.
       
+    * passed the actual notification object to actions instead of just the data
+    
