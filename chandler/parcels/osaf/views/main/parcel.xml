@@ -205,17 +205,17 @@
   <!--
     Toolbars
   -->
-  <Toolbar itemName="Toolbar">
+  <NavigationBar itemName="NavigationBar">
     <!-- Attributes -->
     <toolSize>16,16</toolSize>
-  </Toolbar>
+  </NavigationBar>
 
   <!--
     ToolbarItems
   -->
   <ToolbarItem itemName="BackButton">
     <!-- Attributes -->
-    <toolbarLocation>Toolbar</toolbarLocation>
+    <toolbarLocation>NavigationBar</toolbarLocation>
     <title>Back</title>
     <bitmap>application/images/back.bmp</bitmap>
     <selectedBitmap></selectedBitmap>
@@ -225,7 +225,7 @@
 
   <ToolbarItem itemName="ForwardButton">
     <!-- Attributes -->
-    <toolbarLocation>Toolbar</toolbarLocation>
+    <toolbarLocation>NavigationBar</toolbarLocation>
     <title>Forward</title>
     <bitmap>application/images/forward.bmp</bitmap>
     <selectedBitmap></selectedBitmap>
@@ -235,7 +235,7 @@
 
   <ToolbarItem itemName="ReloadButton">
     <!-- Attributes -->
-    <toolbarLocation>Toolbar</toolbarLocation>
+    <toolbarLocation>NavigationBar</toolbarLocation>
     <title>Forward</title>
     <bitmap>application/images/reload.bmp</bitmap>
     <selectedBitmap></selectedBitmap>
@@ -251,7 +251,7 @@
 
   <ToolbarItem itemName="URLBox">
     <!-- Attributes -->
-    <toolbarLocation>Toolbar</toolbarLocation>
+    <toolbarLocation>NavigationBar</toolbarLocation>
     <title>URLBox</title>
     <toolbarItemKind>Text</toolbarItemKind>
     <statusMessage></statusMessage>
@@ -301,7 +301,7 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <splitPercentage>0.25</splitPercentage>
-
+    
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
     <size>900,580</size>
@@ -330,7 +330,7 @@
     <childrenBlocks itemref="doc:ViewStatusBarItem"/>
     
     <!-- Toolbar -->
-    <childrenBlocks itemref="doc:Toolbar"/>
+    <childrenBlocks itemref="doc:NavigationBar"/>
     <childrenBlocks itemref="doc:BackButton"/>
     <childrenBlocks itemref="doc:ForwardButton"/>
     <childrenBlocks itemref="doc:ReloadButton"/>

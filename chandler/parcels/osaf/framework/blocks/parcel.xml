@@ -702,7 +702,7 @@
     <Attribute itemName="splitPercentage">
       <type itemref="Float"/>
     </Attribute>
-
+    
     <attributes itemref="docSchema:orientationEnum"/>
     <attributes itemref="docSchema:SplitWindow/splitPercentage"/>
   </Kind>  
@@ -887,6 +887,14 @@
   <Kind itemName="Sidebar">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.Sidebar</classes>
     <superKinds itemref="docSchema:TreeList"/>
+  </Kind>  
+
+  <!--
+    NavigationBar
+  -->
+  <Kind itemName="NavigationBar">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.NavigationBar</classes>
+    <superKinds itemref="docSchema:Toolbar"/>
   </Kind>  
 
   <Kind itemName="RepositoryTreeList">

@@ -90,4 +90,14 @@ of a limitation of the XML format, which will be eliminated</description>
     <methodName>OnEnterPressedEvent</methodName>
   </BlockEvent>
 
+  <BlockEvent itemName="ToolEnterPressed">
+    <dispatchEnum>Broadcast</dispatchEnum>
+    <methodName>OnToolEnterPressedEvent</methodName>
+  </BlockEvent>
+
+  <BlockEvent itemName="ToolPressed">
+    <dispatchEnum>Broadcast</dispatchEnum>
+    <methodName>OnToolPressedEvent</methodName>
+  </BlockEvent>
+
 </core:Parcel>

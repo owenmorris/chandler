@@ -183,7 +183,7 @@ class EmbeddedContainer(RectangularChild):
         child.Destroy ()
         parent.Layout ()
     
-    def OnSelectionChangedEvent (self, notification):
+    def switchEmbeddedContents(self, newPath):
         oldChild = Globals.repository.find (self.contentSpec.data)
         wxOldChild = Globals.association [oldChild.getUUID()]
         embeddedPanel = Globals.association [self.getUUID()]
@@ -193,7 +193,7 @@ class EmbeddedContainer(RectangularChild):
         embeddedSizer.Layout()
         oldChild.parentBlock = None
         
-        self.contentSpec.data = notification.data['item']      
+        self.contentSpec.data = newPath     
         newChild = Globals.repository.find (self.contentSpec.data)
         if newChild:
             newChild.parentBlock = self
@@ -380,11 +380,12 @@ class wxSplitWindow(wxSplitterWindow):
 
 class SplitWindow(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
+        style = wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE
         splitWindow = wxSplitWindow(parentWindow,
                                     Block.getwxID(self), 
                                     wxDefaultPosition,
                                     (self.size.width, self.size.height),
-                                    style=wxSP_3D|wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE)
+                                    style=style)
         self.getParentBlock(parentWindow).addToContainer(parent, splitWindow, self.stretchFactor, 
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         """
@@ -507,32 +508,45 @@ class Toolbar(RectangularChild):
         toolbar = wxToolBar(Globals.wxApplication.mainFrame, -1)
         Globals.wxApplication.mainFrame.SetToolBar(toolbar)
         return toolbar, None, None
-        
+
+    def toolPressed(self, event):
+        pass
+    
+    def toolEnterPressed(self, event):
+        pass
 
 class ToolbarItem(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         # @@@ Must use self.toolbarLocation rather than wxMainFrame.GetToolBar()
-        toolbar = Globals.wxApplication.mainFrame.GetToolBar()
+        tool = None
+        wxToolbar = Globals.wxApplication.mainFrame.GetToolBar()
+        toolbar = Globals.repository.find(wxToolbar.counterpartUUID)
         if self.toolbarItemKind == 'Button':
+            id = Block.getwxID(self)
             bitmap = wxImage (self.bitmap, wxBITMAP_TYPE_BMP).ConvertToBitmap()
-            toolbar.AddSimpleTool (0, bitmap, self.title, self.statusMessage)
+            tool = wxToolbar.AddSimpleTool (id, bitmap, 
+                                            self.title, self.statusMessage)
+            EVT_TOOL(parentWindow, id, toolbar.toolPressed)
         elif self.toolbarItemKind == 'Separator':
-            toolbar.AddSeparator()
+            wxToolbar.AddSeparator()
         elif self.toolbarItemKind == 'Check':
             pass
         elif self.toolbarItemKind == 'Radio':
             pass
         elif self.toolbarItemKind == 'Text':
-            textBox = wxTextCtrl (toolbar, -1, "", wxDefaultPosition, wxSize(300,-1), wxTE_PROCESS_ENTER)
-            textBox.SetName(self.title)
-            toolbar.AddControl (textBox)
+            tool = wxTextCtrl (wxToolbar, -1, "", 
+                                  wxDefaultPosition, 
+                                  wxSize(300,-1), 
+                                  wxTE_PROCESS_ENTER)
+            tool.SetName(self.title)
+            wxToolbar.AddControl (tool)
+            EVT_TEXT_ENTER(tool, tool.GetId(), toolbar.toolEnterPressed)
         elif __debug__:
             assert (False)
 
-        toolbar.Realize()
+        wxToolbar.Realize()
 
-        return None, None, None
-
+        return tool, None, None
 
 class Tree(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
@@ -577,6 +591,7 @@ class wxTreeList(wxTreeListCtrl):
 
     def __init__(self, *arguments, **keywords):
         wxTreeListCtrl.__init__ (self, *arguments, **keywords)
+        self.ignoreSelect = false
         EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnExpanding)
         EVT_TREE_ITEM_COLLAPSING(self, self.GetId(), self.OnCollapsing)
         EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
@@ -620,6 +635,8 @@ class wxTreeList(wxTreeListCtrl):
             pass
 
     def On_wxSelectionChanged(self, event):
+        if self.ignoreSelect:
+            return
         selection = ''
         id = self.GetSelection()
         while id.IsOk():
@@ -632,7 +649,10 @@ class wxTreeList(wxTreeListCtrl):
     
             chandlerEvent = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
             notification = Notification(chandlerEvent, None, None)
-            notification.SetData ({'item':self.GetPyData(event.GetItem()),
+            eventId = event.GetItem()
+            notification.SetData ({'item':self.GetPyData(eventId),
+                                   'name':self.GetItemText(eventId),
+                                   'id':eventId,
                                    'type':'Normal'})
             Globals.notificationManager.PostNotification (notification)
 
@@ -719,7 +739,7 @@ class TreeList(RectangularChild):
         return treeList, None, None
 
     def Calculate_wxStyle (self):
-        style = wxTR_DEFAULT_STYLE
+        style = wxTR_DEFAULT_STYLE|wxNO_BORDER
         if self.hideRoot:
             style |= wxTR_HIDE_ROOT
         if self.noLines:
@@ -777,7 +797,65 @@ class Sidebar(TreeList):
         return item.getItemDisplayName()
 
     def OnSelectionChangedEvent (self, notification):
-        event = Globals.repository.find('//parcels/OSAF/views/demo/SwitchEmbeddedChild')
-        notification = Notification(event, None, None)
-        notification.SetData(notification.data)
-        Globals.notificationManager.PostNotification (notification)
+        path = notification.data['item']
+        parcelViewer = Globals.repository.find('//parcels/OSAF/views/main/ParcelViewer')
+        parcelViewer.switchEmbeddedContents(path)
+
+    def SelectItem(self, itemId):
+        treeList = Globals.association[self.getUUID()]
+        treeList.ignoreSelect = true
+        treeList.SelectItem(itemId)
+        treeList.ignoreSelect = false
+        
+class NavigationBar(Toolbar):
+    def renderOneBlock(self, parent, parentWindow):
+        self.history = []
+        self.future = []
+        toolbar = wxToolBar(Globals.wxApplication.mainFrame, -1)
+        Globals.wxApplication.mainFrame.SetToolBar(toolbar)
+        return toolbar, None, None
+                
+    def toolPressed(self, event):
+        tool = Block.wxIDToObject(event.GetId())
+        if tool.getItemName() == 'BackButton':
+            self.GoBack()
+        elif tool.getItemName() == 'ForwardButton':
+            self.GoForward()
+
+    def tooEnterPressed(self, event):
+        tool = Block.wxIDToObject(event.GetId())
+        
+    def GoBack(self):
+        if len(self.history) > 1:
+            currentLocation = self.history.pop()
+            self.future.append(currentLocation)
+            newName, newPath, id = self.history[-1]
+            urlBox = Globals.repository.find('//parcels/OSAF/views/main/URLBox')
+            wxURLBox = Globals.association[urlBox.getUUID()]
+            wxURLBox.SetValue(newName)
+            parcelViewer = Globals.repository.find('//parcels/OSAF/views/main/ParcelViewer')
+            parcelViewer.switchEmbeddedContents(newPath)
+            sidebar = Globals.repository.find('//parcels/OSAF/views/main/Sidebar')
+            sidebar.SelectItem(id)
+    
+    def GoForward(self):
+        if len(self.future) > 0:
+            newLocation = self.future.pop()
+            self.history.append(newLocation)
+            urlBox = Globals.repository.find('//parcels/OSAF/views/main/URLBox')
+            wxURLBox = Globals.association[urlBox.getUUID()]
+            wxURLBox.SetValue(newLocation[0])
+            parcelViewer = Globals.repository.find('//parcels/OSAF/views/main/ParcelViewer')
+            parcelViewer.switchEmbeddedContents(newLocation[1])
+            sidebar = Globals.repository.find('//parcels/OSAF/views/main/Sidebar')
+            sidebar.SelectItem(newLocation[2])
+
+    def OnSelectionChangedEvent (self, notification):
+        name = notification.data['name']
+        path = notification.data['item']
+        id = notification.data['id']
+        self.history.append((name,path,id))
+        self.future = []
+        urlBox = Globals.repository.find('//parcels/OSAF/views/main/URLBox')
+        wxURLBox = Globals.association[urlBox.getUUID()]
+        wxURLBox.SetValue(name)
