@@ -289,6 +289,7 @@ def nodesFromXml(data):
 
 
 def syncFromServer(item, davItem):
+    item.itsKind = davItem.itsKind
     kind = davItem.itsKind
 
     for (name, attr) in kind.iterAttributes(True):
