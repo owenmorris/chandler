@@ -50,6 +50,7 @@ class ItemHandler(xml.sax.ContentHandler):
         self.repository = repository
         self.callback = callback
         self.callbackArg = callbackArg
+        self.log = logging.getLogger('repository.schema')
 
     def setDocumentLocator(self, locator):
         """SAX2 callback to set the locator, useful for error handling"""
@@ -205,7 +206,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
             kindItem = self.currentItem.kind
             attributeItem = kindItem.getAttribute(local)
-            
+
             assert attributeItem, \
                    "No Attribute at %s:%s" % (self.locator.getSystemId(),
                                               self.locator.getLineNumber())
@@ -271,6 +272,12 @@ class ItemHandler(xml.sax.ContentHandler):
             parent = self.currentItem
         else:
             parent = self.parcelParent
+
+        # If the item already exists, use the existing item
+        item = parent.getItemChild(name)
+        if item:
+            self.log.debug("Reloading item %s" % item.getItemPath()) 
+            return item
 
         # Find the kind represented by the tag (uri, local). The
         # parser has already mapped the prefix to the namespace (uri).

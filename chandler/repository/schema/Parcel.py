@@ -8,6 +8,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from repository.item.Item import Item
 from repository.schema.Kind import Kind
 
+import mx.DateTime as DateTime
 import logging
 
 class Parcel(Item):
@@ -40,6 +41,8 @@ class Parcel(Item):
         super(Parcel, self).__init__(name, parent, kind)
         self._status |= Item.SCHEMA
         self._setLogger()
+        self.createdOn = DateTime.now()
+        self.modifiedOn = self.createdOn
 
     def _fillItem(self, name, parent, kind, **kwds):
         super(Parcel, self)._fillItem(name, parent, kind, **kwds)

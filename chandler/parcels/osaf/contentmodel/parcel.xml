@@ -19,7 +19,7 @@
   <Attribute itemName="projects">
     <displayName>projects</displayName>
     <description>What project does this item belong to?</description>
-    <cardinality>set</cardinality>
+    <cardinality>list</cardinality>
     <type itemref="pim:Project"/>
     <inverseAttribute itemref="pim:projectItems"/>
   </Attribute>
@@ -27,7 +27,7 @@
   <Attribute itemName="folders">
     <displayName>folders</displayName>
     <description>What folders is this item filed in?</description>
-    <cardinality>set</cardinality>
+    <cardinality>list</cardinality>
     <type itemref="pim:Folder"/>
     <inverseAttribute itemref="pim:folderItems"/>
   </Attribute>
@@ -70,7 +70,7 @@
   <Attribute itemName="subProjects">
     <displayName>sub projects</displayName>
     <description>projects can be organized into hierarchies</description>
-    <cardinality>set</cardinality>
+    <cardinality>list</cardinality>
     <type itemref="pim:Project"/>
     <inverseAttribute itemref="pim:parentProject"/>
   </Attribute>
@@ -78,7 +78,7 @@
   <Attribute itemName="projectItems">
     <displayName>project items</displayName>
     <description>items can be organized into projects</description>
-    <cardinality>set</cardinality>
+    <cardinality>list</cardinality>
     <type itemref="pim:InformationItem"/>
     <inverseAttribute itemref="pim:projects"/>
   </Attribute>
@@ -101,10 +101,10 @@
     <type itemref="Item"/>
   </Attribute>
 
-  <Attribute itemName="type">
+  <Attribute itemName="folderType">
     <displayName>type</displayName>
     <description>What types of items should the folder be expected to hold?</description>
-    <cardinality>set</cardinality>
+    <cardinality>list</cardinality>
     <type itemref="Taxon"/>
   </Attribute>
 
@@ -128,7 +128,7 @@
     <attributes itemref="pim:name"/>
     <attributes itemref="description"/>
     <attributes itemref="pim:folderItems"/>
-    <attributes itemref="pim:type"/>
+    <attributes itemref="pim:folderType"/>
   </Kind>
 
 </Parcel>

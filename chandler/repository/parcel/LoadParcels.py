@@ -7,6 +7,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, string, logging
 
+import mx.DateTime as DateTime
+
 from repository.schema.ParcelLoader import ParcelLoader
 from repository.schema.Parcel import Parcel
 
@@ -19,6 +21,7 @@ def LoadDependency(repository, uri, searchPath):
     file = FindParcelFile(uri, searchPath)
     loader = ParcelLoader(repository, LoadDependency, searchPath)
     loader.load(file, uri)
+    logging.debug("Loaded the dependency %s" % file)
 
 def FindParcelFile(uri, searchPath):
     path = ""
@@ -54,14 +57,19 @@ def LoadParcels(searchPath, repository):
                 uri = "//Parcels/%s" % string.lstrip(root, directory)
                 uri = uri.replace(os.path.sep, "/")
                 parcel = repository.find(uri)
-                if not parcel:
+                path = os.path.join(root, 'parcel.xml')
+                if ((not parcel) or
+                    (parcel.modifiedOn.ticks() < os.stat(path).st_mtime)):
                     try:
-                        path = os.path.join(root, 'parcel.xml')
                         loader.load(path, uri)
+                        if parcel:
+                            logging.warning("Reloaded the parcel %s" % path)
+                            parcel.modifiedOn = DateTime.now()
                     except Exception, e:
                         logging.exception("Failed to load parcel %s" % path)
                         repository.cancel()
                     else:
+                        logging.debug("Loaded the parcel %s" % path)
                         repository.commit()
 
     root = repository.find("//Parcels")
