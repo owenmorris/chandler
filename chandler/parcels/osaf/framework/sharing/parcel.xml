@@ -17,16 +17,6 @@
     <version value="0.3" />
     <author value="Open Source Applications Foundation" />
 
-    <notif:Event itsName="sharingUpdateEvent">
-        <displayName value="Sharing Update Event" />
-        <description value="This event is posted when an inbound sharing update is received. The sharing parcel subscribes to it." />
-    </notif:Event>
-
-    <notif:Event itsName="errorEvent">
-        <displayName value="Error Event" />
-        <description value="This event is posted from the mail system if an invite fails to be sent." />
-    </notif:Event>
-
     <webdav:WebDAVAccount itsName="WebDAVAccount">
         <displayName value="WebDAV"/>
         <!--
