@@ -73,7 +73,6 @@ class Application(AutoItem):
         self.splashCount         how many times the splash screen has been shown
         self.version             used for schema evolution
         """
-        self.SetRepository (app.repository)  #AutoItem needs to know the repository
         super (Application, self).__init__ (**args)
         self.newAttribute ('preferences', Preferences ())
         self.newAttribute ('mainFrame', ChandlerWindow ())
@@ -282,9 +281,10 @@ class wxApplication (wxApp):
         # set the new global repository
         Globals.repository = self.repository
 
+        AutoItem.SetRepository (app.repository)  #AutoItem needs to know the repository
         self.model = self.repository.find('//Application')
         if not self.model:
-            self.model = Application(name='Application', parent=self.repository)
+            self.model = Application(name='Application', parent=self.repository)        
 
         # Create the agent manager.. don't start it until later
         self.agentManager = AgentManager.AgentManager()
@@ -320,11 +320,6 @@ class wxApplication (wxApp):
         LoadParcels.LoadParcels(parcelSearchPath, self.repository)
         self.repository.commit()
                                 
-        from OSAF.AppSchema.DocumentSchema.Block import Block
-        topDocument = app.repository.find('//Parcels/OSAF/templates/top/TopDocument')
-        if topDocument:
-            assert isinstance (topDocument, Block)
-            topDocument.Render (self.model.mainFrame)
 
         #""" Load the old parcels, will go away """
         self.LoadParcelsV2InDirectory(parcelDir)
@@ -368,7 +363,13 @@ class wxApplication (wxApp):
         self.agentManager.Startup()
         
         #self.OpenStartingURL()
-        
+
+        #from OSAF.AppSchema.DocumentSchema.Block import Block
+        #topDocument = app.repository.find('//Parcels/OSAF/templates/top/TopDocument')
+        #if topDocument:
+            #assert isinstance (topDocument, Block)
+            #topDocument.Render (self.wxMainFrame)
+
         return true                     #indicates we succeeded with initialization
 
     def OnTerminate(self):
