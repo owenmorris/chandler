@@ -102,9 +102,12 @@ class ItemCollection (Item):
                                       If we have a NeedsUpdate method, call it otherwise just
                                     schedule the update.
                                     """
-                                    widget.NeedsUpdate (notification)
+                                    NeedsUpdateMethod = getattr (widget, 'NeedsUpdate')
                                 except AttributeError:
                                     widget.scheduleUpdate = True
+                                else:
+                                   NeedsUpdateMethod (notification)
+
 
         elif __debug__:
             assert False, "Bad QueryEnum"
