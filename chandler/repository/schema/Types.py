@@ -129,16 +129,7 @@ class Path(Type):
 class Class(Type):
 
     def makeValue(cls, data):
-        data = str(data)
-        lastDot = data.rindex('.')
-        module = data[:lastDot]
-        name = data[lastDot+1:]
-
-        m = __import__(module, {}, {}, name)
-        try:
-            return getattr(m, name)
-        except AttributeError:
-            raise ImportError, "Module %s does not have class %s" %(module, name)
+        return cls.loadClass(data)
 
     def makeString(cls, value):
         return "%s.%s" %(value.__module__, value.__name__)

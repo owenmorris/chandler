@@ -722,6 +722,25 @@ class Item(object):
 
         generator.endElement(tag)
 
+    def loadClass(cls, name, module=None):
+
+        if module is None:
+            lastDot = name.rindex('.')
+            module = name[:lastDot]
+            name = name[lastDot+1:]
+
+        m = __import__(module, {}, {}, name)
+
+        try:
+            cls = getattr(m, name)
+            cls.__module__
+
+            return cls
+        except AttributeError:
+            raise ImportError, "Module %s has no class %s" %(module, name)
+
+    loadClass = classmethod(loadClass)
+
 
 class ItemHandler(xml.sax.ContentHandler):
     'A SAX ContentHandler implementation responsible for loading items.'
@@ -870,12 +889,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def classEnd(self, attrs):
 
-        module = __import__(attrs['module'], {}, {}, self.data)
-        try:
-            self.cls = getattr(module, self.data)
-        except AttributeError:
-            raise ImportError, "Module %s does not have class %s" %(attrs['module'], self.data)
-
+        self.cls = Item.loadClass(self.data, attrs['module'])
         if self.kind is None:
             self.kind = getattr(self.cls, 'kind', None)
 
@@ -1034,15 +1048,6 @@ class ItemHandler(xml.sax.ContentHandler):
             return complex(data)
 
         if typeName == 'class':
-            data = str(data)
-            lastDot = data.rindex('.')
-            module = data[:lastDot]
-            name = data[lastDot+1:]
-
-            m = __import__(module, {}, {}, name)
-            try:
-                return getattr(m, name)
-            except AttributeError:
-                raise ImportError, "Module %s does not have class %s" %(module, name)
+            return Item.loadClass(str(data))
 
         raise ValueError, "Unknown type: " + typeName
