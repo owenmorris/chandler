@@ -506,7 +506,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
               Should be using wx.grid.GRID_DEFAULT_COL_LABEL_HEIGHT, but
             it hasn't been wrapped yet -- DJA
             """
-            self.SetColLabelSize (32)
+            self.SetColLabelSize (20)
 
         gridTable = self.GetTable()
         newRows = gridTable.GetNumberRows()
