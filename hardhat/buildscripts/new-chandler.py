@@ -116,7 +116,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
              [cvsProgram, "-q", "checkout", cvsVintage, "chandler"])
             hardhatutil.dumpOutputList(outputList, log)
 
-    print "working dir already exists???"
+    # print "working dir already exists???"
     # do debug
     if ret == "no_changes":
         ret = Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
@@ -242,7 +242,8 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     intModuleDir = os.path.join(modeDir, "internal")
 
     if not changesAtAll:
-        return "no_changes"
+        testResult = DoTests(hardhatScript, modeDir, mode, log)
+        return testResult
 
     if needToScrubAll:
         print "Scrubbing all"
@@ -291,7 +292,6 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     os.chdir(mainModuleDir)
 
     # Only do a big build if there were new or updated modules
-    
 
     try: # build
         if needToScrubAll or newModules:
@@ -318,7 +318,6 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
          [buildenv['make'], dbgStr, "binaries" ])
         hardhatutil.dumpOutputList(outputList, log)
 
-        
     except Exception, e:
         print "a build error"
         log.write("***Error during build*** " + e.str() + "\n")
@@ -336,22 +335,24 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             CopyLog(os.path.join(modeDir, logPath), log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
 
+    testResult = DoTests(hardhatScript, modeDir, mode, log)
+
+    return testResult  # end of Do( )
+
+def DoTests (hardhatScript, modeDir, mode, log):
+
     try: # test
         if mode == "debug":
-            print "Testing debug"
-            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-            log.write("Testing debug..." + "\n")
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-dt"])
-            hardhatutil.dumpOutputList(outputList, log)
-
-        if mode == "release":
-            print "Testing release"
-            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-            log.write("Testing release..." + "\n")
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-rt"])
-            hardhatutil.dumpOutputList(outputList, log)
+            testStr = "-dt"
+        else:
+            testStr = "-t"
+    
+        print "Testing " + mode
+        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("Testing " + mode + "...\n")
+        outputList = hardhatutil.executeCommandReturnOutput(
+         [hardhatScript, testStr])
+        hardhatutil.dumpOutputList(outputList, log)
 
     except Exception, e:
         print "a testing error"
@@ -370,8 +371,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             CopyLog(os.path.join(modeDir, logPath), log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
 
-    return "success"  # end of Do( )
-
+    return "success"  # end of DoTests( )
 
 
 def NeedsUpdate(outputList):
