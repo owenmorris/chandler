@@ -16,18 +16,20 @@
     Reasons why these formats are disabled (and so not in CVS):
     
     dmars     - In beta testing, will be added when it stabilizes.
+    dmars_smake     - ditto
+    msevc4prj - ditto
     cbuilderx - Generated projects are too bad to be included in CVS. Please
                 *do not* enable this format until FIXMEs in .bkl files related
                 to cbuilderx are addressed. In particular, the project must
                 be placed into build/msw(?) directory and store object files
                 in its subdirectory and it must copy setup.h as others do.
-    cbx_unix  - Doesn't intergrate well and won't be used by most Unix people.
+    cbx_unix  - Doesn't integrate well and won't be used by most Unix people.
     -->
     
-    <disable-formats>dmars,cbx_unix,cbuilderx</disable-formats>
+    <disable-formats>dmars,dmars_smake,cbx_unix,cbuilderx,msevc4prj</disable-formats>
     
 
-    <!-- These wildcards match all .bkl files in wxWindows tree: -->
+    <!-- These wildcards match all .bkl files in wxWidgets tree: -->
     <input>
         wx.bkl
         ../../contrib/build/*/*.bkl
@@ -49,27 +51,33 @@
 
     <!-- List of output formats to generate: -->
     <add-formats>
-        autoconf,borland,dmars,mingw,msvc,msvc6prj,watcom,cbuilderx,cbx_unix
+        autoconf,borland,dmars_smake,dmars,mingw,msvc,msvc6prj,msevc4prj,watcom,cbuilderx,cbx_unix
     </add-formats>
     
     <del-formats files="../../samples/*.bkl">
-        autoconf,msvc6prj,cbuilderx,cbx_unix
+        autoconf,msvc6prj,msevc4prj,cbuilderx,cbx_unix
     </del-formats>
     <del-formats files="../../demos/*.bkl">
-        msvc6prj,cbuilderx,cbx_unix
+        msvc6prj,msevc4prj,cbuilderx,cbx_unix
     </del-formats>
     <del-formats files="../../samples/html/html_samples.bkl">
-        msvc6prj,cbuilderx,cbx_unix
+        msvc6prj,msevc4prj,cbuilderx,cbx_unix
     </del-formats>
     <del-formats files="../../samples/mobile/mobile_samples.bkl">
-        msvc6prj,cbuilderx,cbx_unix
+        msvc6prj,msevc4prj,cbuilderx,cbx_unix
     </del-formats>
     <del-formats files="../../samples/opengl/opengl_samples.bkl">
-        msvc6prj,cbuilderx,cbx_unix
+        msvc6prj,msevc4prj,cbuilderx,cbx_unix
     </del-formats>
     <del-formats files="../../utils/*.bkl">
-        msvc6prj,cbuilderx,cbx_unix
+        msvc6prj,msevc4prj,cbuilderx,cbx_unix
     </del-formats>
+
+    <!-- WinCE can't have console apps: -->
+    <del-formats files="../../samples/console/*">msevc4prj</del-formats>
+    <del-formats files="../../utils/HelpGen/src/*">msevc4prj</del-formats>
+    <del-formats files="../../contrib/utils/wxrc/*">msevc4prj</del-formats>
+    <del-formats files="../../tests/*">msevc4prj</del-formats>
 
     
     <!-- Default flags (for all formats and bakefiles): -->
@@ -82,6 +90,9 @@
     </add-flags>
     <add-flags files="wx.bkl" formats="borland">
         -o../msw/makefile.bcc
+    </add-flags>
+    <add-flags files="wx.bkl" formats="dmars_smake">
+        -o../msw/makefile.dms
     </add-flags>
     <add-flags files="wx.bkl" formats="dmars">
         -o../msw/makefile.dmc
@@ -98,6 +109,9 @@
     <add-flags files="wx.bkl" formats="msvc6prj">
         -o../msw/wx.dsw
     </add-flags>
+    <add-flags files="wx.bkl" formats="msevc4prj">
+        -o../wince/wx.vcw
+    </add-flags>
     <add-flags files="wx.bkl" formats="cbuilderx">
         -o../../wx.cbx
     </add-flags>
@@ -112,7 +126,7 @@
         -o../../contrib/src/$(INPUT_FILE_BASENAME_NOEXT)/$(INPUT_FILE_BASENAME_NOEXT).cbx
     </add-flags>
     <add-flags files="../../contrib/build/*/*.bkl"
-               formats="mingw,borland,dmars,watcom,msvc,msvc6prj">
+               formats="mingw,borland,dmars_smake,dmars,watcom,msvc,msvc6prj,msevc4prj">
         -DSRCDIR=../../src/$(INPUT_FILE_BASENAME_NOEXT)
     </add-flags>
 
@@ -133,7 +147,7 @@
 
     <!-- Makefile specific settings: -->
 
-    <add-flags formats="borland,dmars,mingw,msvc,watcom">
+    <add-flags formats="borland,dmars_smake,dmars,mingw,msvc,watcom">
         -DWRITE_OPTIONS_FILE=0
     </add-flags>
     <del-flags files="wx.bkl">
@@ -142,6 +156,9 @@
     
     <add-flags files="wx.bkl" formats="borland">
         -DOPTIONS_FILE=config.bcc
+    </add-flags>
+    <add-flags files="wx.bkl" formats="dmars_smake">
+        -DOPTIONS_FILE=config.dms
     </add-flags>
     <add-flags files="wx.bkl" formats="dmars">
         -DOPTIONS_FILE=config.dmc
@@ -164,6 +181,9 @@
     <add-flags files="../../*/*" formats="borland">
         -DOPTIONS_FILE=../build/msw/config.bcc
     </add-flags>
+    <add-flags files="../../*/*" formats="dmars_smake">
+        -DOPTIONS_FILE=../build/msw/config.dms
+    </add-flags>
     <add-flags files="../../*/*" formats="dmars">
         -DOPTIONS_FILE=../build/msw/config.dmc
     </add-flags>
@@ -178,6 +198,9 @@
     </add-flags>
     <add-flags files="../../*/*/*" formats="borland">
         -DOPTIONS_FILE=../../build/msw/config.bcc
+    </add-flags>
+    <add-flags files="../../*/*/*" formats="dmars_smake">
+        -DOPTIONS_FILE=../../build/msw/config.dms
     </add-flags>
     <add-flags files="../../*/*/*" formats="dmars">
         -DOPTIONS_FILE=../../build/msw/config.dmc
@@ -194,6 +217,9 @@
     <add-flags files="../../*/*/*/*" formats="borland">
         -DOPTIONS_FILE=../../../build/msw/config.bcc
     </add-flags>
+    <add-flags files="../../*/*/*/*" formats="dmars_smake">
+        -DOPTIONS_FILE=../../../build/msw/config.dms
+    </add-flags>
     <add-flags files="../../*/*/*/*" formats="dmars">
         -DOPTIONS_FILE=../../../build/msw/config.dmc
     </add-flags>
@@ -208,6 +234,9 @@
     </add-flags>
     <add-flags files="../../*/*/*/*/*" formats="borland">
         -DOPTIONS_FILE=../../../../build/msw/config.bcc
+    </add-flags>
+    <add-flags files="../../*/*/*/*/*" formats="dmars_smake">
+        -DOPTIONS_FILE=../../../../build/msw/config.dms
     </add-flags>
     <add-flags files="../../*/*/*/*/*" formats="dmars">
         -DOPTIONS_FILE=../../../../build/msw/config.dmc

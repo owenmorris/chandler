@@ -10,7 +10,7 @@ BASE_CFG_FLAGS="--with-opengl --enable-debug  --enable-geometry --enable-sound -
 
 function DoConfigure {
     echo "---------------------------------------------------------"
-    echo ../configure $PORT_CFG_FLAGS $BASE_CFG_FLAGS
+    echo ../configure $BASE_CFG_FLAGS $PORT_CFG_FLAGS
     echo "---------------------------------------------------------"
-    ../configure $PORT_CFG_FLAGS $BASE_CFG_FLAGS
+    ../configure $BASE_CFG_FLAGS $PORT_CFG_FLAGS
 }

@@ -77,6 +77,7 @@ ALL_DIST: distrib_clean
 	cp $(WXDIR)/install-sh $(DISTDIR)
 	cp $(WXDIR)/mkinstalldirs $(DISTDIR)
 	cp $(WXDIR)/wx-config.in $(DISTDIR)
+	cp $(WXDIR)/wx-config-wrapper.in $(DISTDIR)
 	cp $(WXDIR)/version-script.in $(DISTDIR)
 	cp $(WXDIR)/setup.h.in $(DISTDIR)
 	cp $(WXDIR)/setup.h_vms $(DISTDIR)
@@ -101,7 +102,7 @@ ALL_DIST: distrib_clean
 	cp $(ZLIBDIR)/*.h $(DISTDIR)/src/zlib
 	cp $(ZLIBDIR)/*.c $(DISTDIR)/src/zlib
 	cp $(ZLIBDIR)/README $(DISTDIR)/src/zlib
-	cp $(ZLIBDIR)/*.mms $(DISTDIR)/src/zlib
+#	cp $(ZLIBDIR)/*.mms $(DISTDIR)/src/zlib
 	mkdir $(DISTDIR)/src/regex
 	cp $(REGEXDIR)/*.h $(DISTDIR)/src/regex
 	cp $(REGEXDIR)/*.c $(DISTDIR)/src/regex
@@ -257,16 +258,27 @@ MOTIF_DIST: ALL_GUI_DIST
 
 MACX_DIST: ALL_GUI_DIST
 	cp $(INCDIR)/*.* $(DISTDIR)/include
+	mkdir $(DISTDIR)/include/wx/mac/carbon
+	mkdir $(DISTDIR)/include/wx/mac/private
+	mkdir $(DISTDIR)/include/wx/mac/carbon/private
 	cp $(INCDIR)/wx/mac/*.h $(DISTDIR)/include/wx/mac
-	cp $(MACDIR)/*.cpp $(DISTDIR)/src/mac
-	cp $(MACDIR)/*.c $(DISTDIR)/src/mac
-	cp $(MACDIR)/*.h $(DISTDIR)/src/mac
-	cp $(MACDIR)/*.r $(DISTDIR)/src/mac
-	mkdir $(DISTDIR)/src/mac/morefile
-	cp $(MACDIR)/morefile/*.h $(DISTDIR)/src/mac/morefile
-	cp $(MACDIR)/morefile/*.c $(DISTDIR)/src/mac/morefile
-	mkdir $(DISTDIR)/src/mac/macsock
-	cp $(MACDIR)/macsock/*.lib $(DISTDIR)/src/mac/macsock
+	cp $(INCDIR)/wx/mac/carbon/*.h $(DISTDIR)/include/wx/mac/carbon
+	cp $(INCDIR)/wx/mac/carbon/private/*.h $(DISTDIR)/include/wx/mac/carbon/private
+	cp $(INCDIR)/wx/mac/private/*.h $(DISTDIR)/include/wx/mac/private
+	cp $(MACDIR)/carbon/*.cpp $(DISTDIR)/src/mac/carbon
+	cp $(MACDIR)/carbon/*.c $(DISTDIR)/src/mac/carbon
+	cp $(MACDIR)/carbon/*.h $(DISTDIR)/src/mac/carbon
+	cp $(MACDIR)/carbon/*.r $(DISTDIR)/src/mac/carbon
+	mkdir $(DISTDIR)/src/mac/carbon/morefile
+	cp $(MACDIR)/carbon/morefile/*.h $(DISTDIR)/src/mac/carbon/morefile
+	cp $(MACDIR)/carbon/morefile/*.c $(DISTDIR)/src/mac/carbon/morefile
+	mkdir $(DISTDIR)/src/mac/carbon/morefilex
+	cp $(MACDIR)/carbon/morefilex/*.h $(DISTDIR)/src/mac/carbon/morefilex
+	cp $(MACDIR)/carbon/morefilex/*.c $(DISTDIR)/src/mac/carbon/morefilex
+	cp $(MACDIR)/carbon/morefilex/*.cpp $(DISTDIR)/src/mac/carbon/morefilex
+# obsolete
+#	mkdir $(DISTDIR)/src/mac/macsock
+#	cp $(MACDIR)/macsock/*.lib $(DISTDIR)/src/mac/macsock
 	mkdir $(DISTDIR)/contrib
 	cp -R $(WXDIR)/contrib $(DISTDIR)
 
@@ -516,6 +528,11 @@ SAMPLES_DIST: ALL_GUI_DIST
 	cp $(SAMPDIR)/event/Makefile.in $(DISTDIR)/samples/event
 	cp $(SAMPDIR)/event/makefile.unx $(DISTDIR)/samples/event
 	cp $(SAMPDIR)/event/*.cpp $(DISTDIR)/samples/event
+
+	mkdir $(DISTDIR)/samples/except
+	cp $(SAMPDIR)/except/Makefile.in $(DISTDIR)/samples/except
+	cp $(SAMPDIR)/except/makefile.unx $(DISTDIR)/samples/except
+	cp $(SAMPDIR)/except/*.cpp $(DISTDIR)/samples/except
 
 	mkdir $(DISTDIR)/samples/exec
 	cp $(SAMPDIR)/exec/Makefile.in $(DISTDIR)/samples/exec
@@ -817,6 +834,13 @@ SAMPLES_DIST: ALL_GUI_DIST
 	cp $(SAMPDIR)/sound/*.cpp $(DISTDIR)/samples/sound
 	cp $(SAMPDIR)/sound/*.wav $(DISTDIR)/samples/sound
 
+	mkdir $(DISTDIR)/samples/splash
+	cp $(SAMPDIR)/splash/Makefile.in $(DISTDIR)/samples/splash
+	cp $(SAMPDIR)/splash/makefile.unx $(DISTDIR)/samples/splash
+	cp $(SAMPDIR)/splash/*.cpp $(DISTDIR)/samples/splash
+	cp $(SAMPDIR)/splash/*.h $(DISTDIR)/samples/splash
+	cp $(SAMPDIR)/splash/*.png $(DISTDIR)/samples/splash
+
 	mkdir $(DISTDIR)/samples/splitter
 	cp $(SAMPDIR)/splitter/Makefile.in $(DISTDIR)/samples/splitter
 	cp $(SAMPDIR)/splitter/makefile.unx $(DISTDIR)/samples/splitter
@@ -981,7 +1005,7 @@ distrib_clean:
 # VZ: the -only targets allow to do "make dist bzip-dist-only" without copying
 #     the files twice
 dist-only:
-	@echo "*** Creating wxWindows distribution in $(DISTDIR)..."
+	@echo "*** Creating wxWidgets distribution in $(DISTDIR)..."
 	@cd _dist_dir && tar ch $(DISTDIRNAME) | gzip -f9 > ../$(WXARCHIVE);
 	@if test "$(USE_GUI)" = 1; then \
 	cd $(DISTDIR); \
@@ -996,7 +1020,7 @@ dist-only:
 	fi
 
 dist: @GUIDIST@
-	@echo "*** Creating wxWindows distribution in $(DISTDIR)..."
+	@echo "*** Creating wxWidgets distribution in $(DISTDIR)..."
 	@# now prune away a lot of the crap included by using cp -R
 	@# in other dist targets.
 	find $(DISTDIR) \( -name "CVS" -o -name ".cvsignore" -o -name "*.dsp" -o -name "*.dsw" -o -name "*.hh*" -o \
@@ -1016,7 +1040,7 @@ dist: @GUIDIST@
 	fi
 
 bzip-dist-only:
-	@echo "*** Creating wxWindows distribution in $(DISTDIR)..."
+	@echo "*** Creating wxWidgets distribution in $(DISTDIR)..."
 	@cd _dist_dir && tar ch $(DISTDIRNAME) | bzip2 -f9 > ../$(WXARCHIVE_BZIP);
 	@if test "$(USE_GUI)" = 1; then \
 	cd $(DISTDIR); \
@@ -1031,7 +1055,7 @@ bzip-dist-only:
 	fi
 
 bzip-dist: @GUIDIST@
-	@echo "*** Creating wxWindows distribution in $(DISTDIR)..."
+	@echo "*** Creating wxWidgets distribution in $(DISTDIR)..."
 	@cd _dist_dir && tar ch $(DISTDIRNAME) | bzip2 -f9 > ../$(WXARCHIVE_BZIP)
 	@if test "$(USE_GUI)" = 1; then \
 	cd $(DISTDIR); \
@@ -1045,7 +1069,7 @@ bzip-dist: @GUIDIST@
 
 # RR: Copy text and binary data separatly
 win-dist: MSW_ZIP_TEXT_DIST
-	@echo "*** Creating wxWindows ZIP distribution in $(DISTDIR)..."
+	@echo "*** Creating wxWidgets ZIP distribution in $(DISTDIR)..."
 	@cd _dist_dir && mv $(DISTDIRNAME) wxMSW
 	@cd _dist_dir && zip -r -l  ../$(WXARCHIVE_ZIP) *
 	cp $(INCDIR)/wx/msw/*.cur _dist_dir/wxMSW/include/wx/msw

@@ -28,7 +28,7 @@
         <values-description>,Unicode</values-description>
         <default-value>0</default-value>        
         <description>
-            Compile Unicode build of wxWindows?
+            Compile Unicode build of wxWidgets?
         </description>
     </option>
 
@@ -159,7 +159,7 @@ Acts according to DEBUG_INFO by default.
         <values>0,1</values>
         <default-value>0</default-value>
         <description>
-            Is this official build by wxWindows developers?
+            Is this official build by wxWidgets developers?
         </description>
     </option>
     <option name="VENDOR">
@@ -244,7 +244,10 @@ it if SHARED=1 unless you know what you are doing.
         
         <set var="WXTOPDIR"/> <!-- to be overriden on bakefile cmd line -->
 
-        <set var="TOOLKIT">MSW</set>
+        <set var="TOOLKIT" overwrite="0">
+            <if cond="FORMAT!='msevc4prj'">MSW</if>
+            <if cond="FORMAT=='msevc4prj'">WINCE</if>
+        </set>
         <set var="TOOLKIT_LOWERCASE">$(TOOLKIT.lower())</set>
         <set var="TOOLKIT_VERSION"/>
         <set var="HOST_SUFFIX"/>
@@ -256,7 +259,7 @@ it if SHARED=1 unless you know what you are doing.
         <set var="EXTRALIBS_GUI"/>
         <set var="EXTRALIBS_OPENGL">
             <if cond="COMPILER=='wat'">opengl32.lib glu32.lib</if>
-            <if cond="COMPILER=='vc'">opengl32.lib glu32.lib</if>
+            <if cond="COMPILER in ['vc','evc']">opengl32.lib glu32.lib</if>
             <if cond="COMPILER=='gcc'">-lopengl32 -lglu32</if>
         </set>
         <set var="EXTRALIBS_SDL"/>
@@ -333,6 +336,13 @@ Set the version of your Mingw installation here.
         <set var="SHARED">0</set>
         <set var="WXUNIV">0</set>
         <set var="UNICODE">0</set>
+    </if>
+
+    <!-- No need for wxUniv on embedded devices (yet): -->
+    <if cond="FORMAT=='msevc4prj'">
+        <set var="WXUNIV">0</set>
+        <set var="UNICODE">1</set>
+        <set var="MONOLITHIC">1</set> <!-- sic! -->
     </if>
 
 </makefile>

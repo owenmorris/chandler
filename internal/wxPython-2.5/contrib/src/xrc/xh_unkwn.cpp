@@ -31,7 +31,7 @@ class wxUnknownControlContainer : public wxPanel
 public:
     wxUnknownControlContainer(wxWindow *parent,
                               const wxString& controlName,
-                              wxWindowID id = -1,
+                              wxWindowID id = wxID_ANY,
                               const wxPoint& pos = wxDefaultPosition,
                               const wxSize& size = wxDefaultSize,
                               long style = 0)
@@ -68,7 +68,6 @@ void wxUnknownControlContainer::AddChild(wxWindowBase *child)
     wxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add((wxWindow*)child, 1, wxEXPAND);
     SetSizer(sizer);
-    SetAutoLayout(true);
     Layout();
 }
 
@@ -95,7 +94,7 @@ wxObject *wxUnknownWidgetXmlHandler::DoCreateResource()
 
     wxPanel *panel =
         new wxUnknownControlContainer(m_parentAsWindow,
-                                      GetName(), -1,
+                                      GetName(), wxID_ANY,
                                       GetPosition(), GetSize(),
                                       GetStyle(wxT("style")));
     SetupWindow(panel);

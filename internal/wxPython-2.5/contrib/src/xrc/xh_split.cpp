@@ -7,7 +7,7 @@
 // Copyright:   (c) 2003 panga@freemail.hu, Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
- 
+
 #ifdef __GNUG__
 #pragma implementation "xh_split.h"
 #endif
@@ -35,6 +35,7 @@ wxSplitterWindowXmlHandler::wxSplitterWindowXmlHandler() : wxXmlResourceHandler(
     XRC_ADD_STYLE(wxSP_NOBORDER);
     XRC_ADD_STYLE(wxSP_PERMIT_UNSPLIT);
     XRC_ADD_STYLE(wxSP_LIVE_UPDATE);
+    XRC_ADD_STYLE(wxSP_NO_XP_THEME);
     AddWindowStyles();
 }
 
@@ -59,7 +60,7 @@ wxObject *wxSplitterWindowXmlHandler::DoCreateResource()
     wxXmlNode *n = m_node->GetChildren();
     while (n)
     {
-        if ((n->GetType() == wxXML_ELEMENT_NODE) && 
+        if ((n->GetType() == wxXML_ELEMENT_NODE) &&
             (n->GetName() == wxT("object") ||
              n->GetName() == wxT("object_ref")))
         {
@@ -73,7 +74,7 @@ wxObject *wxSplitterWindowXmlHandler::DoCreateResource()
             {
                 win2 = win;
                 break;
-            }            
+            }
         }
         n = n->GetNext();
     }

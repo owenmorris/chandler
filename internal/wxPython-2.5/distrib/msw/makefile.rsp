@@ -1,6 +1,7 @@
 Makefile.in
 src/regex/Makefile.in
 locale/Makefile
+tests/Makefile.in
 samples/Makefile.in
 samples/access/Makefile.in
 samples/artprov/Makefile.in
@@ -20,6 +21,7 @@ samples/drawing/Makefile.in
 samples/dynamic/Makefile.in
 samples/erase/Makefile.in
 samples/except/Makefile.in
+samples/except/Makefile.in
 samples/exec/Makefile.in
 samples/event/Makefile.in
 samples/grid/Makefile.in
@@ -37,6 +39,7 @@ samples/html/test/Makefile.in
 samples/html/virtual/Makefile.in
 samples/html/widget/Makefile.in
 samples/html/zip/Makefile.in
+samples/html/htmlctrl/Makefile.in
 samples/image/Makefile.in
 samples/joytest/Makefile.in
 samples/layout/Makefile.in
@@ -61,8 +64,10 @@ samples/scrollsub/Makefile.in
 samples/shaped/Makefile.in
 samples/sound/Makefile.in
 samples/sockets/Makefile.in
+samples/splash/Makefile.in
 samples/splitter/Makefile.in
 samples/statbar/Makefile.in
+samples/taskbar/Makefile.in
 samples/text/Makefile.in
 samples/thread/Makefile.in
 samples/toolbar/Makefile.in
@@ -180,3 +185,4 @@ src/zlib/descrip.mms
 src/regex/descrip.mms
 utils/helpview/src/descrip.mms
 utils/tex2rtf/src/descrip.mms
+

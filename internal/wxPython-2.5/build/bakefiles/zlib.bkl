@@ -17,7 +17,12 @@
     <lib id="wxzlib" template="3rdparty_lib"
          cond="wxUSE_ZLIB=='builtin' and BUILDING_LIB=='1'">
         <dirname>$(LIBDIRNAME)</dirname>
-        <cflags-borland>-w-8004 -w-8012 -w-8057</cflags-borland> 
+        <cflags-borland>
+            -w-8004 -w-8008 -w-8012 -w-8057 -w-8066
+        </cflags-borland> 
+        <if cond="FORMAT=='msevc4prj'">
+            <define>NO_ERRNO_H</define>
+        </if>
         <sources>
             src/zlib/adler32.c
             src/zlib/compress.c
@@ -28,10 +33,8 @@
             src/zlib/trees.c
             src/zlib/zutil.c
             src/zlib/inflate.c
-            src/zlib/infblock.c
+            src/zlib/infback.c
             src/zlib/inftrees.c
-            src/zlib/infcodes.c
-            src/zlib/infutil.c
             src/zlib/inffast.c
         </sources>
     </lib>

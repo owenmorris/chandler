@@ -3,7 +3,7 @@
 
 <makefile>
 
-    <requires version="0.1.3"/>
+    <requires version="0.1.4"/>
     
     <!-- bakefile modules we need: -->
     <using module="datafiles"/>
@@ -16,7 +16,7 @@
     <include file="plugins_deps.bkl"/>
     
     <!-- ================================================================== -->
-    <!--                     wxWindows version numbers:                     -->
+    <!--                     wxWidgets version numbers:                     -->
     <!-- ================================================================== -->
 
     <set var="WXVER_MAJOR">$(wxwin.getVersionMajor())</set>
@@ -70,7 +70,8 @@
         <if cond="DEBUG_FLAG=='1'">d</if>
     </set>
     <set var="WXUNICODEFLAG">
-        <if cond="UNICODE=='1'">u</if>
+        <!-- WinCE is Unicode-only platform: -->
+        <if cond="UNICODE=='1' and FORMAT!='msevc4prj'">u</if>
     </set>
     <set var="WXNAMESUFFIX">
         $(WXUNICODEFLAG)$(WXDEBUGFLAG)
@@ -154,6 +155,9 @@
     <!--             Where to store built libraries and objects:         -->
     <!-- =============================================================== -->
     
+    <set var="DIR_SUFFIX_CPU">
+        <if cond="FORMAT=='msevc4prj'">_$(CPU)</if>
+    </set>
 
     <if cond="FORMAT!='autoconf'">
         <set var="WXDLLFLAG">
@@ -163,7 +167,9 @@
             $(PORTNAME)$(WXUNIVNAME)$(WXUNICODEFLAG)$(WXDEBUGFLAG)$(WXDLLFLAG)$(CFG)
         </set>
         <set var="OBJS" make_var="1">
-            <if cond="FORMAT!='cbuilderx'">$(COMPILER)_$(CFG_NAME_PART)</if>
+            <if cond="FORMAT!='cbuilderx'">
+                $(COMPILER)_$(CFG_NAME_PART)$(DIR_SUFFIX_CPU)
+            </if>
             <!-- FIXME: waiting for removal after CBX has better ../ dirs
                  support -->
             <if cond="FORMAT=='cbuilderx'">build_cbx_$(CFG_NAME_PART)</if>
@@ -175,10 +181,10 @@
     <set var="LIBDIRNAME" make_var="1">
         <if cond="FORMAT=='autoconf'">$(top_builddir)lib</if>
         <if cond="FORMAT!='autoconf' and SHARED=='0'">
-            $(nativePaths(TOP_SRCDIR))lib$(DIRSEP)$(COMPILER)_lib$(CFG)
+            $(nativePaths(TOP_SRCDIR))lib$(DIRSEP)$(COMPILER)$(DIR_SUFFIX_CPU)_lib$(CFG)
         </if>
         <if cond="FORMAT!='autoconf' and SHARED=='1'">
-            $(nativePaths(TOP_SRCDIR))lib$(DIRSEP)$(COMPILER)_dll$(CFG)
+            $(nativePaths(TOP_SRCDIR))lib$(DIRSEP)$(COMPILER)$(DIR_SUFFIX_CPU)_dll$(CFG)
         </if>
     </set>
     
@@ -254,16 +260,19 @@
         <libname>$(id)$(WXDEBUGFLAG)$(HOST_SUFFIX)</libname>
         <!--
         we want to install 3rd party libs system-wide only with static
-        version of wxWindows; otherwise they are embedded in shared libs:
+        version of wxWidgets; otherwise they are embedded in shared libs:
         -->
         <install-if>SHARED=='0'</install-if>
+        <pic>$(substituteFromDict(SHARED, {'0':'off', '1':'on'}))</pic>
     </template>
     
     
     <!-- deal with the need to copy setup.h here: -->
 
+    <set var="IS_MSVC_PRJ">$(FORMAT in ['msvc6prj','msevc4prj'])</set>
+
     <define-tag name="msvc-headers" rules="dll,lib">
-        <if cond="FORMAT=='msvc6prj'">
+        <if cond="IS_MSVC_PRJ">
             <msvc-project-files>
                 $(addPrefixToList('include\', wxwin.headersOnly(value)))
             </msvc-project-files>
@@ -271,14 +280,23 @@
     </define-tag>
 
     <define-tag name="msvc-copy-setup-h" rules="dll,lib">
-        <if cond="FORMAT=='msvc6prj'">
+        <if cond="FORMAT=='msevc4prj'">
+            <msvc-headers>wx/msw/wince/setup.h</msvc-headers>
+            <set var="vc_setup_h">wince\setup.h</set>
+            <set var="vc_setup_h_rule">wince_setup_h</set>
+        </if>
+        <if cond="FORMAT!='msevc4prj'">
             <msvc-headers>wx/msw/setup.h</msvc-headers>
-            <set var="__custom_build_files" append="1">
-                include\wx\msw\setup.h
+            <set var="vc_setup_h">setup.h</set>
+            <set var="vc_setup_h_rule">setup_h</set>
+        </if>
+        <if cond="IS_MSVC_PRJ">
+            <set var="_custom_build_files" append="1">
+                include\wx\msw\$(vc_setup_h)
             </set>
-            <set var="__custom_build_include_wx_msw_setup_h">
+            <set var="_custom_build_include_wx_msw_$(vc_setup_h_rule)">
 Creating $(SETUPHDIR)\wx\setup.h
-InputPath=..\include\wx\msw\setup.h
+InputPath=..\include\wx\msw\$(vc_setup_h)
 
 "$(SETUPHDIR)\wx\setup.h" : $(DOLLAR)(SOURCE) "$(DOLLAR)(INTDIR)" "$(DOLLAR)(OUTDIR)"
 $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
@@ -305,7 +323,7 @@ $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
 
     
     <!-- =============================================================== -->
-    <!--                  Templates for wxWindows libs:                  -->
+    <!--                  Templates for wxWidgets libs:                  -->
     <!-- =============================================================== -->
 
     <template id="wx" template="common_settings">
@@ -341,7 +359,15 @@ $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
             <if cond="FORMAT=='borland'">
                 <sys-lib>ole2w32</sys-lib>
             </if>
-            <if cond="FORMAT!='borland'">
+            <if cond="FORMAT=='msevc4prj'">
+                <sys-lib>ole32</sys-lib>
+                <sys-lib>oleaut32</sys-lib>
+                <sys-lib>uuid</sys-lib>
+                <sys-lib>commctrl</sys-lib>
+                <sys-lib>winsock</sys-lib>
+                <sys-lib>wininet</sys-lib>
+            </if>
+            <if cond="FORMAT!='borland' and FORMAT!='msevc4prj'">
                 <sys-lib>kernel32</sys-lib>
                 <sys-lib>user32</sys-lib>
                 <sys-lib>gdi32</sys-lib>
@@ -360,7 +386,9 @@ $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
             <if cond="FORMAT=='msvc' or FORMAT=='msvc6prj' or FORMAT=='borland'">
                 <sys-lib>oleacc</sys-lib>
             </if>
-            <sys-lib>odbc32</sys-lib>
+            <if cond="FORMAT!='msevc4prj'">
+                <sys-lib>odbc32</sys-lib>
+            </if>
         </if>
     </template>
 
@@ -388,7 +416,7 @@ $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
         <libname>$(WXLIBNAME)</libname>
 
         <if cond="WX_DISABLE_PRECOMP_HEADERS=='0'">
-            <if cond="FORMAT!='autoconf'">
+            <if cond="FORMAT!='autoconf' and TOOLKIT=='MSW'">
                 <sources>$(WXTOPDIR)src/msw/dummy.cpp</sources>
                 <precomp-headers-gen>
                     $(WXTOPDIR)src/msw/dummy.cpp
@@ -400,12 +428,12 @@ $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
             <precomp-headers-exclude>
                 src/common/unzip.c
                 src/common/extended.c
-                src/msw/gsocket.c
-                src/msw/gsockmsw.c
+                src/msw/gsocket.cpp
+                src/msw/gsockmsw.cpp
             </precomp-headers-exclude>
         </if>
         
-        <if cond="FORMAT=='msvc6prj' and BUILDING_LIB=='1'">
+        <if cond="IS_MSVC_PRJ=='1' and BUILDING_LIB=='1'">
             <msvc-file-group>Common Sources:src/common/*</msvc-file-group>
             <msvc-file-group>MSW Sources:src/msw/*</msvc-file-group>
             <msvc-file-group>Generic Sources:src/generic/*</msvc-file-group>
@@ -465,7 +493,7 @@ $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
     </template>
                            
     <!-- =============================================================== -->
-    <!--             Templates for building wxWindows plugins:           -->
+    <!--             Templates for building wxWidgets plugins:           -->
     <!-- =============================================================== -->
 
     <if cond="WX_STABLE_BRANCH=='1'">
@@ -496,9 +524,9 @@ $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
     
     <set var="PLUGINSUFFIX">
         <if cond="UNICODE=='0' and BUILD=='release'"></if>
-        <if cond="UNICODE=='0' and BUILD=='debug'">_d</if>
-        <if cond="UNICODE=='1' and BUILD=='release'">_u</if>
-        <if cond="UNICODE=='1' and BUILD=='debug'">_ud</if>
+        <if cond="UNICODE=='0' and BUILD=='debug'">d</if>
+        <if cond="UNICODE=='1' and BUILD=='release'">u</if>
+        <if cond="UNICODE=='1' and BUILD=='debug'">ud</if>
     </set>
 
     <set var="PLUGINS_INST_DIR" make_var="1">
@@ -527,14 +555,14 @@ $(TAB)copy "$(DOLLAR)(InputPath)" $(SETUPHDIR)\wx\setup.h
     </define-rule>
     
     <!-- =============================================================== -->
-    <!--               Support for wxWindows samples and contrib:        -->
+    <!--               Support for wxWidgets samples and contrib:        -->
     <!-- =============================================================== -->
 
     <!-- Link against one wxWin library. Value must be literal! -->
     <define-tag name="wx-lib" rules="exe,dll,module">
         <sys-lib>$(wxwin.libToLink(value))</sys-lib>
         <ldlibs>$(wxwin.extraLdflags(value))</ldlibs>
-        <if cond="FORMAT=='msvc6prj' and MONOLITHIC=='0'">
+        <if cond="IS_MSVC_PRJ=='1' and MONOLITHIC=='0'">
             <depends-on-dsp>$(wxwin.makeDspDependency(value))</depends-on-dsp>
         </if>
     </define-tag>

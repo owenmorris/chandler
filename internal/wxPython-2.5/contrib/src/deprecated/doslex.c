@@ -66,7 +66,7 @@
     #define YY_USE_CONST
   #endif
 
-  #ifdef __MINGW32__
+  #if defined(__MINGW32__) || defined(__WATCOMC__)
     #include <io.h>
   #endif
 
@@ -680,10 +680,10 @@ do_action:	/* this label is used only to access EOF actions */
         {
           loop:
             #ifdef __cplusplus
-                          while (yyinput() != '*');
+                          while (yyinput() != '*') ;
                           switch (yyinput())
             #else
-                          while (input() != '*');
+                          while (input() != '*') ;
                           switch (input())
             #endif
               {

@@ -1,6 +1,6 @@
-----------------------------
-wxWindows 2.5/2.6 Change Log
-----------------------------
+------------------------
+wxWidgets 2.5 Change Log
+------------------------
 
 INCOMPATIBLE CHANGES SINCE 2.4.x
 ================================
@@ -14,8 +14,95 @@ INCOMPATIBLE CHANGES SINCE 2.4.x
     series.
 
 ! windows are no longer fully repainted when resized, use new style
-  wxFULL_REPAINT_ON_RESIZE to force this (wxNO_FULL_REPAINT_ON_RESIZE stll
+  wxFULL_REPAINT_ON_RESIZE to force this (wxNO_FULL_REPAINT_ON_RESIZE still
   exists but doesn't do anything any more, this behaviour is default now)
+
+! wxWindow::m_font and m_backgroundColour/m_foregroundColour are no longer
+  always set, use GetFont(), GetBack/ForegroundColour() to access
+  them, and they will be dynamically determined if necessary.
+
+
+! The Sizers have had some fundamental internal changes in the 2.5.2
+  and 2.5.3 releases intended to make them do more of the "Right
+  Thing" but also be as backwards compatible as possible.  First a bit
+  about how things used to work:
+
+    * The size that a window had when Add()ed to the sizer was assumed
+      to be its minimal size, and that size would always be used by
+      default when calculating layout size and positions, and the
+      sizer itself would keep track of that minimal size.
+
+    * If the window item was Add()ed with the wxADJUST_MINSIZE flag
+      then when layout was calculated the item's GetBestSize would be
+      used to reset the minimal size that the sizer used.
+
+  The main thrust of the new Sizer changes was to make behaviour like
+  wxADJUST_MINSIZE be the default, and also to push the tracking of
+  the minimal size to the window itself (since it knows its own needs)
+  instead of having the sizer take care of it.  Consequently these
+  changes were made:
+
+    * The wxFIXED_MINSIZE flag was added to allow for the old
+      behaviour.  When this flag is used the size a window has when
+      Add()ed to the sizer will be treated as its minimal size and it
+      will not be readjusted on each layout.
+
+    * The min size stored in wxWindow and settable with SetSizeHints or
+      SetMinSize will by default be used by the sizer (if it was set)
+      as the minimal size of the sizer item.  If the minsize was not
+      set (or was only partially set) then the window's best size is
+      fetched and it is used instead of (or blended with) the minsize.
+      wxWindow:GetBestFittingSize was added to facilitate getting the
+      size to be used by the sizers.
+
+    * The best size of a window is cached so it doesn't need to
+      recaculated on every layout.  wxWindow::InvalidateBestSize was
+      added and should be called (usually just internally in control
+      methods) whenever something is done that would make the best
+      size change.
+
+    * All wxControls were changed to set the minsize to what is passed
+      to the constructor or Create method, and also to set the real
+      size of the control to the blending of the minsize and bestsize.
+      wxWindow::SetBestFittingSize was added to help with this,
+      although most controls don't need to call it directly because it
+      is called indirectly via the SetInitialSize called in the base
+      classes.
+
+  At this time, the only situation known not to work the same as
+  before is the following:
+
+	 win = new SomeWidget(parent);
+	 win->SetSize(SomeNonDefaultSize);
+	 sizer->Add(win);
+
+  In this case the old code would have used the new size as the
+  minimum, but now the sizer will use the default size as the minimum
+  rather than the size set later.  It is an easy fix though, just move
+  the specification of the size to the constructor (assuming that
+  SomeWidget will set its minsize there like the rest of the controls
+  do) or call SetMinSize instead of SetSize.
+
+  In order to fit well with this new scheme of things, all wxControls
+  or custom controls should do the following things.  (Depending on
+  how they are used you may also want to do the same thing for
+  non-control custom windows.)
+
+    * Either override or inherit a meaningful DoGetBestSize method
+      that calculates whatever size is "best" for the control.  Once
+      that size is calculated then there should normally be a call to
+      CacheBestSize to save it for later use, unless for some reason
+      you want the best size to be recalculated on every layout.
+
+    * Any method that changes the attributes of the control such that
+      the best size will change should call InvalidateBestSize so it
+      will be recalculated the next time it is needed.
+
+    * The control's constructor and/or Create method should ensure
+      that the minsize is set to the size passed in, and that the
+      control is sized to a blending of the min size and best size.
+      This can be done by calling SetBestFittingSize.
+
 
 
 - no initialization/cleanup can be done in wxApp/~wxApp because they are
@@ -42,15 +129,34 @@ INCOMPATIBLE CHANGES SINCE 2.4.x
 - wxTaskBarIcon objects must now be destroyed before the application can exit.
   Previously, the application terminated if there were no top level windows;
   now it terminates if there are no top level windows or taskbar icons left.
+- wxZlibInputStream is not by default compatible with the output of the
+  2.4.x version of wxZlibOutputStream. However, there is a compatibilty mode,
+  switched on by passing wxZLIB_24COMPATIBLE to the constructor.
+- when WXWIN_COMPATIBILITY_2_4 == 0 wxHashTable uses a new implementation
+  not using wxList keyed interface (the same used when wxUSE_STL == 1),
+  the only incompatibility being that Next() returns a wxHashTable::Node*
+  instead of a wxNode*.
+- non-const wxDC methods GetBackground(), GetBrush(), GetFont() and GetPen()
+  as well as wxWindow methods GetFont() and GetCursor() don't exist any more,
+  please fix your code -- it never worked correctly anyhow if you modified the
+  objects returned by these methods so you should simply switch to using const
+  methods.
+- wxWindow::GetFont() now returns wxFont object instead of reference
+- EVT_XXX macros are now type-safe; code that uses wrong type for event
+  handler's argument will no longer compile.
+- Identical functionality of wxFileDialog::ParseWildcard,
+  wxGenericDirCtrl::ParseFilter, Motif and MSW parsing native dialogs
+  is now accessible in ::wxParseCommonDialogsFilter
+- wxNotebookSizer and wxBookCtrlSizer are now deprecated -- the are no longer
+  needed, you can treat wxNotebook as any other control and put it directly
+  into the sizer that was wxNotebookSizer's parent sizer in old code.
 
-wxTaskBarIcon must be explicitly destroyed now, otherwise the application
-  won't exit even though there are no top level windows
 
 
 DEPRECATED METHODS SINCE 2.4.x
 ==============================
 
-Deprecated methods may still be used but will disappear in future wxWindows
+Deprecated methods may still be used but will disappear in future wxWidgets
 versions, please update your code to not use them.
 
 - wxDocManager::GetNoHistoryFiles() renamed to GetHistoryFilesCount()
@@ -63,10 +169,13 @@ versions, please update your code to not use them.
 - wxTheFontMapper: use wxFontMapper::Get() instead
 - wxStringHashTable: use wxHashMap instead
 - wxHashTableLong: use wxHashMap instead
-- wxArrayString::GetStringArray: use wxCArrayString or alternative wxWindows
+- wxArrayString::GetStringArray: use wxCArrayString or alternative wxWidgets
                                  methods taking wxArrayString
 - wxArrayString::Remove(index, count): use RemoveAt instead
 - wxTreeItemId conversion to long is deprecated and shouldn't be used
+- wxTreeCtrl::GetFirst/NextChild() 2nd argument now has type wxTreeItemIdValue
+  and not long, please change declarations of "cookie"s in your code
+  accordingly -- otherwise your code won't work on 64 bit platforms
 - [MSW only] wxWindow::GetUseCtl3D(), GetTransparentBackground() and
              SetTransparent() as well as wxNO_3D and wxUSER_COLOURS styles
 - wxList keyed interface: use wxHashMap instead
@@ -75,20 +184,143 @@ versions, please update your code to not use them.
                      wxHashTable::compatibility_iterator to store the return
                      value
 - wxWave class; use wxSound instead
+- The wxHIDE_READONLY flag for wxFileDialog was not implemented
+  and has now been removed
+- wxTaskBarIcon::OnXXX() virtual methods: use events instead
+- obsolete and not used wxUSE_GENERIC_DIALOGS_IN_MSW has been removed
 
 
 OTHER CHANGES
 =============
+
+2.5.3
+-----
+
+All:
+
+- number of fixes to wxPluginManager (Rick Brice, Hans Van Leemputten)
+- fixed memory leak in wxURL when using a proxy (Steven Van Ingelgem)
+- fixed bug in wxDateTime::Set(jdn) when DST was in effect
+- fixed fatal bug in wxString when wxUSE_STL==1 (Kurt Granroth)
+- support msgids in charsets other than C and languages other than English
+  (based on patch by Stefan Kowski)
+- added wxMicroSleep() and wxMilliSleep() replacing deprecated wxUsleep()
+- basic UDP sockets support (Lenny Maiorani)
+- fixed wxDateTime::GetWeekDayName() for some dates (Daniel Kaps)
+- deprecated wxDateTime::SetToTheWeek() in favour of SetToWeekOfYear()
+
+All (GUI):
+
+- added wxWindow::MoveBefore/AfterInTabOrder() to change tab navigation order
+- added wxTaskBarIcon::CreatePopupMenu which is now recommended way
+  of showing popup menu; calling wxTaskBarIcon::PopupMenu directly
+  is discouraged
+- added ..._CMD_...(id) variants for wxGrid event table entry macros
+- added wxWindow::Navigate for programmatic navigation to the next control.
+- wxTextCtrl::OnChar now inserts a tab character if wxTE_PROCESS_TAB is set
+- added wxKeyEvent::GetUnicodeKey()
+- added wxKeyEvent::CmdDown() and wxMouseEvent::CmdDown()
+- implemented wxListCtrl::FindItem() for non-MSW (Robin Stoll)
+- added status bar fields styles support (Tim Kosse)
+- added samples/splash
+- added support for stock buttons
+- added wxTopLevelWindow::RequestUserAttention()
+- support for comma in contrib gizmo wxLEDNumberCtrl (Grant Likely)
+- recursive wxSizer::Show for subsizer and return value if element was found
+
+Unix:
+
+- wxTaskBarIcon now supports freedesktop.org System Tray protocol
+- security fixes to wxSingleInstanceChecker
+- wx-config script was modified to allow choosing from multiple installed
+  builds of wxWidgets and to return flags/libs for selected libraries only
+- wx-config has new --version-full option
+
+wxGTK:
+
+- wxGTK uses GTK+ 2.x by default now, you have to pass --disable-gtk2 to
+  configure if you want to use GTK+ 1.2
+- fixed many rendering artifacts and wrong colours with lots of GTK+ themes
+- implemented wxColourDialog as native dialog
+- implemented wxTextCtrl::HitTest() (GTK+ >= 2)
+- implemented wxTextCtrl::ScrollLines() and ScrollPages for GTK+ 2.x
+- wxTreeCtrl::GetCount() counts root as well now (compatible with MSW)
+- added support for wxCHK_3STATE style (GTK2 only)
+- implemented text underlining under GTK2
+- implemented wxFRAME_NO_TASKBAR style (GTK >= 2.2)
+- implemented support for wxSYS_DCLICK_?, wxSYS_DRAG_? and wxSYS_CURSOR_?
+  in wxSystemSettings::GetMetric (Mart Raudsepp)
+- implemented wxTopLevel::IsMaximized() for GTK+2 and WMs that implement
+  freedesktop.org's wm-spec (Mart Raudsepp)
+- wxEVT_CONTEXT_MENU is now generated for right mouse press, not release
+- implemented alpha channel support in wxBitmap
+- added native GTK+2 wxArtProvider implementation with ability to load
+  icons from icon theme in addition to recognized stock art
+
+wxMotif:
+
+- added support for wxCHK_3STATE style (3 state checkbox)
+
+wxMSW:
+
+- fixed UNC paths handling in wxFileSystem (Daniel Nash)
+- set wxKeyEvent::m_uniChar in Unicode build
+- support for alpha channel in toolbar bitmaps (Jurgen Doornik)
+- wxFileDialog can now be moved and centered (Randall Fox)
+- restored (and improved) possibility to use wx with MFC broken in 2.5.2
+- fixed wxTextCtrl::SetMaxLength for rich edit controls
+- fixed flat style for toolbars under XP, Windows Classic style
+- fixed truncation of transferred data in wxConnection under unicode build
+- wxChoice and wxComboBox dropdown background can be set now too (Adrian Lupei)
+
+wxUniv/X11:
+
+- fixed fatal crash when opening a menu
+
+wxWinCE:
+
+- added native SmartPhone wxTextCtrl implementation using spinners
+- added native SmartPhone wxChoice implementation using spinners
+- added automatized but customizable handling of native SmartPhone menus
+- fixed wxRadioBox and wxStaticBox
+
+wxHTML:
+
+- added support for nested index entries and index entries pointing to more
+  than one page to wxHtmlHelpController
+
 
 2.5.2
 -----
 
 All:
 
+- Hindi translation added (Dhananjaya Sharma)
+- Brazilian Portuguese translation added (E. A. Tacao)
+- wxDynamicCast() now uses static_cast<wxObject *> internally and so using it
+  with anything not deriving from wxObject will fail at compile time (instead
+  of run-time) now
+- when wxUSE_STL == 1 and STL provides quasi-standard hash_map/hash_set,
+  wxHashMap/wxHashSet are just typedefs for them. This makes impossible
+  to forward declare these classes.
+
 All (GUI):
 
 - wxHtmlWindow now delays image scaling until rendering,
   resulting in much better display of scaled images
+- Added UpdateSize to wxSplitterWindow to allow layout while hidden
+- implemented Freeze/Thaw() for wxGenericTreeCtrl (Kevin Hock)
+- support for KOI8-U encoding added (Yuriy Tkachenko)
+- The old wxADJUST_MINSIZE behaviour is now the default behaviour for
+  sizer items that are windows.  This means that GetAdjustedBestSize
+  will now be called by default to determine the minimum size that a
+  window in a sizer should have.  If you want to still use the initial
+  size (and not the BestSize) then use the wxFIXED_MINSIZE flag.  When
+  windows are added to a sizer their initial size is made the window's
+  min size using SetSizeHints, and calls to wxSizer::SetItemMinSize
+  are also forwarded to SetSizeHints for window items.
+- added wxRegEx::GetMatchCount()
+- it is now possible to display images in wxHtmlListBox
 
 wxMSW:
 
@@ -100,15 +332,40 @@ wxMSW:
   even try to do it by default -- now it does
 - wxTaskBarIcon must be explicitly destroyed now, otherwise the application
   won't exit even though there are no top level windows
+- wxFileName::GetModificationTime() works with opened files too now
+- wxDC::GetClippingBox() now works even for clipping regions created by Windows
+- fixed wxFileDataObject in Unicode build (Alex D)
+- subdindented paragraphs support (Tim Kosse)
+
+wxGTK:
+
+- added support for wxTE_RIGHT and wxTE_CENTRE styles under GTK2 (Mart Raudsepp)
 
 wxMotif:
 
 - removed wxMenuItem::DeleteSubMenu()
+- wxButtons use Motif default size, which is smaller than it used to be
+  and closer to wxMSW/wxGTK look. This can be disabled by setting
+  motif.largebuttons system option to 1 (see wxSystemOptions).
+
+wxUniv/X11:
+
+- implemented DrawRoundedRectangle() (clawghoul)
 
 wxHTML:
 
 - improved tables and lists layout algorithms (Tim Kosse)
 - <div> handling fix (Xavier Nodet)
+
+Unix:
+
+- fixed priorities of mailcap entries (David Hart)
+- added "wx-config --libs=std,<extra>" syntax (i.e. support for "std")
+
+wxODBC:
+
+- Full Unicode support is now available
+- BLOB support is working
 
 
 2.5.1
@@ -175,7 +432,7 @@ All (GUI):
 
 wxMSW:
 
-- wxWindows now builds under Win64
+- wxWidgets now builds under Win64
 - fixed DDE memory leaks
 - fixed wxTE_*WRAP styles handling
 - wxTextCtrl::GetValue() works with text in non default encoding
@@ -247,7 +504,7 @@ Unix:
 All:
 
 - It is now possible to build several smaller libraries instead of single
-  huge wxWindows library; wxBase is now dependency of GUI ports rather then
+  huge wxWidgets library; wxBase is now dependency of GUI ports rather then
   separately compiled library
 - added wxDateSpan::operator==() and !=() (Lukasz Michalski)
 - added wxFileName::GetForbiddenChars() (Dimitri Schoolwerth)
@@ -411,7 +668,7 @@ wxMSW:
 - improved border handling under Windows XP
 - partial fix for wxNotebook pages looking bad under XP: wxUSE_UXTHEME
   enables XP theme engine code, and wxUSE_UXTHEME_AUTO tells
-  wxWindows to use the theme tab colour for control backgrounds.
+  wxWidgets to use the theme tab colour for control backgrounds.
 - disable wxNB_RIGHT, wxNB_LEFT, wxNB_BOTTOM notebook styles under Windows XP
 - fixed release mode build with VC 7.x (Martin Ecker)
 - added support for wxALWAYS_SHOW_SB style
@@ -462,7 +719,7 @@ INCOMPATIBLE CHANGES SINCE 2.2.x
     2.6 release.
 
     NB: if you want to build your program with different major versions
-        of wxWindows you will probably find the wxCHECK_VERSION() macro
+        of wxWidgets you will probably find the wxCHECK_VERSION() macro
         (see the documentation) useful.
 
 
@@ -679,10 +936,10 @@ wxBase:
 
 Unix (Base/GUI):
 
-- wxWindows may be built using BSD and Solaris (and possibly other) make
+- wxWidgets may be built using BSD and Solaris (and possibly other) make
   programs and not only GNU make
 - wxTCP-based IPC classes now support communicating over Unix domain sockets
-- wxWindows may be built as a dynamic shared library under Darwin / Mac OS X
+- wxWidgets may be built as a dynamic shared library under Darwin / Mac OS X
   lazy linking issues have been solved by linking a single module (.o) into
   the shared library (two step link using distrib/mac/shared-ld-sh)
 - fixed thread priority setting under Linux
@@ -694,7 +951,7 @@ All (GUI):
 - implemented radio menu items and radio toolbar buttons
 - added possibility to show text in the toolbar buttons
 - added wxArtProvider class that can be used to customize the look of standard
-  wxWindows dialogs
+  wxWidgets dialogs
 - significantly improved native font support
 - wxImage::ComputeHistogram() now uses wxImageHistogram instead of type-unsafe
   wxHashTable
@@ -735,11 +992,11 @@ wxMSW:
 - fixed multiple bugs in wxExecute() with IO redirection
 - refresh the buttons properly when the window is resized (Hans Van Leemputten)
 - huge (40*) speed up in wxMask::Create()
-- changing wxWindows styles also changes the underlying Windows window style
+- changing wxWidgets styles also changes the underlying Windows window style
 - wxTreeCtrl supports wxTR_HIDE_ROOT style (George Policello)
 - fixed flicker in wxTreeCtrl::SetItemXXX()
 - fixed redraw problems in dynamically resized wxStaticText
-- improvements to wxWindows applications behaviour when the system colours
+- improvements to wxWidgets applications behaviour when the system colours
   are changed
 - choose implicit parent for the dialog boxes better
 - fixed wxProgressDialog for ranges > 65535
@@ -928,7 +1185,7 @@ wxMSW:
 - Fixed wxFrame::SetClientSize() with toolbar bug
 - Added mousewheel processing
 - Added wxSystemSettings::Get/SetOption so we can configure
-  wxWindows at run time; used this to implement no-maskblt option
+  wxWidgets at run time; used this to implement no-maskblt option
   in wxDC
 - Fixed bug when using MDIS_ALLCHILDSTYLES style: so now MDI
   child frame styles are honoured
@@ -1198,7 +1455,7 @@ wxHTML:
   fixed handling of relative and absolute font sizes in <font size>
 
 
-NOTE: for changes after wxWindows 2.1.0 b4, please see the CVS
+NOTE: for changes after wxWidgets 2.1.0 b4, please see the CVS
 change log.
 
 2.1.0, b4, May 9th 1999
@@ -1296,7 +1553,7 @@ wxMSW:
 
 - Makefiles for more compilers and samples; Cygwin makefiles
   rationalised.
-- Added VC++ project file for compiling wxWindows as DLL.
+- Added VC++ project file for compiling wxWidgets as DLL.
 
 wxMotif:
 
@@ -1624,7 +1881,7 @@ wxMSW:
 - Added wxJoystick class and event handling, and simple demo.
 - Added simple wxWave class. Needs Stop() function.
 - Added wxModule (module.h/module.cpp) to allow definition
-  of modules to be initialized and cleaned up on wxWindows
+  of modules to be initialized and cleaned up on wxWidgets
   startup/exit.
 - Start of Mingw32 compatibility (see minimal and dialogs samples
   makefile.m95 files, and install.txt).
@@ -1666,7 +1923,7 @@ wxMSW:
 - Added wxTaskBarIcon (taskbar.cpp/h, plus samples/taskbar)
   to allow maintenance of an icon in the Windows 95 taskbar
   tray area.
-- Got MFC sample working (MFC and wxWindows in the same
+- Got MFC sample working (MFC and wxWidgets in the same
   application), partly by tweaking ntwxwin.mak settings.
 - Got DLL compilation working again (VC++).
 - Changed wxProp/Dialog Editor filenames.

@@ -9,12 +9,13 @@
 WX_MAJOR_VERSION_NUMBER="@WX_MAJOR_VERSION_NUMBER@"
 WX_MINOR_VERSION_NUMBER="@WX_MINOR_VERSION_NUMBER@"
 WX_RELEASE_NUMBER="@WX_RELEASE_NUMBER@"
+WX_SUBRELEASE_NUMBER="@WX_SUBRELEASE_NUMBER@"
 release="@WX_MAJOR_VERSION_NUMBER@.@WX_MINOR_VERSION_NUMBER@"
 is_monolithic="@MONOLITHIC@"
 cross_compiling="@cross_compiling@"
 target="@host_alias@"
 static_flag="@STATIC_FLAG@"
-
+inplace_flag="no"
 
 # Misc configuration variables:
 
@@ -29,7 +30,6 @@ update_prefixes
 
 CC="@CC@"
 GCC="@GCC@"
-GCC_SEARCHES_USR_LOCAL_INCLUDE="@GCC_SEARCHES_USR_LOCAL_INCLUDE@"
 CXX="@CXX@"
 LD="@SHARED_LD@"
 srcdir="@top_srcdir@"
@@ -48,6 +48,7 @@ TOOLCHAIN_DEFS="@TOOLCHAIN_DEFS@"
 TOOLCHAIN_DLL_DEFS="@TOOLCHAIN_DLL_DEFS@"
 WXCONFIG_INCLUDE="@WXCONFIG_INCLUDE@"
 WX_LARGEFILE_FLAGS="@WX_LARGEFILE_FLAGS@"
+GCC_PRAGMA_FLAGS="@GCC_PRAGMA_FLAGS@"
 CODE_GEN_FLAGS="@CODE_GEN_FLAGS@"
 CODE_GEN_FLAGS_CXX="@CODE_GEN_FLAGS_CXX@"
 LDFLAGS_EXE="@LDFLAGS_EXE@"
@@ -143,30 +144,16 @@ get_ldflags_gui()
     echo $flags_to_ret
 }
 
-# return the absolute path prepending builddir to it if needed
-makeabs()
-{
-    path=$1
-    # TODO: this only works under Unix and even there it could be
-    #       enhanced to remove ".." and "."
-    if [ `echo $path | sed 's/^\(.\).*/\1/'` != "/" ]; then
-        if [ $path = "." ]; then
-            path=$builddir
-        else
-            path="$builddir/$path"
-        fi
-    fi
-
-    echo $path
-}
-
 usage()
 {
     cat <<EOF
-Usage: wx-config [--prefix[=DIR]] [--exec-prefix[=DIR]] [--version] [--release]
-                 [--basename] [--static] [--libs[=LIBS]] [--gl-libs]
+Usage: wx-config [--prefix[=DIR]] [--exec-prefix[=DIR]] [--inplace]
+                 [--toolkit=TOOLKIT] [--unicode[=yes|no]] [--debug[=yes|no]]
+                 [--universal[=yes|no]] [--host=HOST]
+                 [--version[=VERSION]] [--version-full] [--release]
+                 [--list] [--basename] [--static] [--libs] [--gl-libs]
                  [--cppflags] [--cflags] [--cxxflags] [--ldflags] [--rezflags]
-                 [--cc] [--cxx] [--ld]
+                 [--cc] [--cxx] [--ld] [LIBRARIES]
 
 wx-config returns configuration information about the installed
 version of wxWidgets. It may be used to query its version and
@@ -180,19 +167,26 @@ use it to enable builds with an uninstalled wxWidgets version for
 package building and bleeding edge developers.  To do so, use it like
 this:
 
-\${wx_builddir}/wx-config --prefix=\${wx_srcdir} --exec-prefix=\${wx_builddir}
+\${wx_builddir}/wx-config --inplace
 
-Note that any other options supplied must come *after* the prefix
-specification for it to take effect.
+Note that any other options supplied must come *after* --inplace
+for it to take effect.
 
 --static must come before --cppflags, --cflags, --cxxflags,
---libs and --gl-libs.
+--libs and --gl-libs and --libs must come before the other ones.
 
---libs can take optional argument that contains comma-separated list of
-wxWidgets libraries to link against. This list can include both core
-and contrib libraries.
+wx-config can take optional argument that contains comma- or space-separated
+list of wxWidgets libraries to compile and link against. This list can
+include both core and contrib libraries. Special value "std" stands for all
+libraries linked in by default. Examples: "wx-config --libs core,base"
+or "wx-config --cxxflags core,base".
 
---gl-libs option is deprecated, used --libs=gl instead.
+--gl-libs option is deprecated, use "--libs gl" instead.
+
+If there are several different builds of wxWidgets installed in same prefix,
+you can use --host, --toolkit, --unicode, --debug, --universal and --version
+options to select one of them. Use --list option to show all available builds
+that match given criteria.
 
 EOF
 
@@ -201,46 +195,76 @@ EOF
 
 cppflags()
 {
-    # we should never specify -I/usr/include on the compiler command line: this
-    # is at best useless and at worst breaks compilation on the systems where
-    # the system headers are non-ANSI because gcc works around this by storing
-    # the ANSI-fied versions of them in its private directory which is searched
-    # after all the directories on the cmd line.
-    #
-    # the situation is a bit more complicated with -I/usr/local/include:
-    # it shouldn't be specified with some gcc installations which look there
-    # by default anyhow and give warnings (at least 3.1 does) if it is
-    # specified explicitly --
-    # but this -I switch *is* needed for other gcc installation and for
-    # the other compilers.
-    # So I put a suitable test into configure.in and reuse the result here.
-    #
-    # note that we assume that if we use GNU cc we also use GNU c++ and vice
-    # versa, i.e. this won't work (either for --cflags or --cxxflags) if GNU C
-    # compiler and non-GNU C++ compiler are used or vice versa -- we'll fix
-    # this when/if anybody complains about it
-    if test "${includedir}" != "/usr/include" \
-            -a "${includedir}" != "/usr/include/c++" \
-            -a \( "${GCC_SEARCHES_USR_LOCAL_INCLUDE}" != "yes" \
-                  -o "${includedir}" != "/usr/local/include" \) \
-            -a \( "${cross_compiling}" != "yes" \
-                  -o "${includedir}" != "/usr/${target}/include" \) ;
-    then
-        includes=" -I${includedir}"
-    fi
+    includes="-I${libdir}/wx/include/${TOOLCHAIN_NAME}"
 
-    includes="-I${libdir}/wx/include/${TOOLCHAIN_NAME}$includes"
-
-    if test $static_flag = yes ; then
-        echo $includes ${WXDEBUG_DEFINE} ${TOOLCHAIN_DEFS} ${WXCONFIG_INCLUDE} ${WX_LARGEFILE_FLAGS}
+    # in inplace case we need to also add path to contrib headers -- do it
+    # unconditionally as they might be used and we have no way of knowing if
+    # they really are
+    if test $inplace_flag = yes ; then
+        includes="$includes -I${prefix}/include -I${prefix}/contrib/include"
     else
-        echo $includes ${WXDEBUG_DEFINE} ${TOOLCHAIN_DEFS} ${TOOLCHAIN_DLL_DEFS} ${WXCONFIG_INCLUDE} ${WX_LARGEFILE_FLAGS}
+        includes="$includes -I${includedir}/wx-${WX_MAJOR_VERSION_NUMBER}.${WX_MINOR_VERSION_NUMBER}"
     fi
+
+    flags="$includes ${WXDEBUG_DEFINE} ${TOOLCHAIN_DEFS}"
+    if test $static_flag != yes ; then
+        flags="$flags ${TOOLCHAIN_DLL_DEFS}"
+    fi
+
+    if test $nogui_flag = "yes" ; then
+        flags="$flags -DwxUSE_GUI=0"
+    fi
+
+    echo "$flags ${WXCONFIG_INCLUDE} ${WX_LARGEFILE_FLAGS} ${GCC_PRAGMA_FLAGS}"
 }
 
 if test $# -eq 0; then
     usage 1 1>&2
 fi
+
+
+# handle libraries list:
+
+libs_list=""
+
+for arg in $*; do
+  case "$arg" in
+    -*)
+      ;;
+    *)
+      libs_list="$libs_list `echo "$arg" | tr ',' ' '`"
+      ;;
+  esac
+done
+      
+if test "x$libs_list" = "x" ; then
+  if test "$is_monolithic" = "0" ; then
+    # link against all libs if none given explicitly:
+    libs_list="$CORE_GUI_LIBS $CORE_BASE_LIBS"
+  fi
+else
+  # always add wxBase, any wxApp needs it:
+  libs_list="$libs_list base"
+fi
+
+# determine if at least one gui lib was used:
+if test "$is_monolithic" = "0" ; then
+  nogui_flag="yes"
+  for i in $libs_list; do
+    case $i in
+        base|net)
+          ;;
+        *)
+          nogui_flag="no"
+          ;;
+    esac
+  done
+else
+  nogui_flag="no"
+fi
+
+
+# handle options:
 
 while test $# -gt 0; do
   case "$1" in
@@ -250,10 +274,7 @@ while test $# -gt 0; do
 
   case $1 in
     --inplace)
-      prefix=`makeabs $srcdir`
-      exec_prefix=`makeabs $builddir`
-      exec_prefix_set=yes
-      update_prefixes
+      inplace_flag=yes
       ;;
     --prefix=*)
       prefix=$optarg
@@ -275,6 +296,9 @@ while test $# -gt 0; do
       ;;
     --version)
       echo ${WX_MAJOR_VERSION_NUMBER}.${WX_MINOR_VERSION_NUMBER}.${WX_RELEASE_NUMBER}
+      ;;
+    --version-full)
+      echo ${WX_MAJOR_VERSION_NUMBER}.${WX_MINOR_VERSION_NUMBER}.${WX_RELEASE_NUMBER}.${WX_SUBRELEASE_NUMBER}
       ;;
     --release)
       echo $release
@@ -301,19 +325,7 @@ while test $# -gt 0; do
       echo `eval echo ${MACRESWXCONFIG}`
       ;;
 
-    --libs*)
-      # find if the argument was --libs=list,of,libs or --libs:
-      if test "x$optarg" = "x" ; then
-          if test "$is_monolithic" = "0" ; then
-              # link against all libs if none given explicitly:
-              libs_list="$CORE_GUI_LIBS $CORE_BASE_LIBS"
-          fi
-      else
-          libs_list=`echo "$optarg" | tr ',' ' '`
-          # always add wxBase, any wxApp needs it:
-          libs_list="$libs_list base"
-      fi
-
+    --libs)
       # include install directory only if it is not default:
       if test "${libdir}" != "/usr/lib" \
               -a \( "${cross_compiling}" != "yes" \
@@ -322,12 +334,14 @@ while test $# -gt 0; do
           libs="-L${libdir}"
       fi
 
+      # it's simpler to avoid handling "base" itself at all as we add it in the
+      # end to the list of libraries anyhow
       # in monolithic build, link against the main library:
       if test "$is_monolithic" = "1" ; then
           # filter out core libs, leave only contrib in libs_list:
           newlist=
           for i in $libs_list ; do
-              if isinlist $i $CORE_BASE_LIBS $CORE_GUI_LIBS ; then
+              if isinlist $i $CORE_GUI_LIBS $CORE_BASE_LIBS; then
                   libs_list="" # do nothing
               else
                   newlist="$newlist $i"
@@ -343,6 +357,33 @@ while test $# -gt 0; do
               echo $libs ${LDFLAGS} ${WXCONFIG_LDFLAGS_GUI} ${WXCONFIG_RPATH} $contrib_libs ${WXCONFIG_LIBS} ${DMALLOC_LIBS}
           fi
       else
+          # we may need to replace "std" alias with its expansion
+          newlist=
+          hadstd=0
+          for i in $libs_list; do
+              case $i in
+                  std)
+                    hadstd=1
+                    ;;
+
+                  base)
+                    # if we have std, we're going to add base anyhow, avoid
+                    # having it twice in the end
+                    if [ $hadstd = 0 ]; then
+                        newlist="$newlist $i"
+                    fi
+                    ;;
+
+                  *)
+                    newlist="$newlist $i"
+                    ;;
+              esac
+          done
+          libs_list="$newlist"
+          if [ $hadstd = 1 ]; then
+              libs_list="$libs_list $CORE_GUI_LIBS $CORE_BASE_LIBS"
+          fi
+
           # in multilib mode, link against all sublibraries:
           wxlibs=`output_libs $libs_list`
           guildflags=`get_ldflags_gui $libs_list`
@@ -362,7 +403,11 @@ while test $# -gt 0; do
     --ld)
       echo $LD
       ;;
-    *)
+    --help|-h)
+      usage 1 1>&2
+      ;;
+    -*)
+      # unrecognized flag is error
       usage 1 1>&2
       ;;
   esac

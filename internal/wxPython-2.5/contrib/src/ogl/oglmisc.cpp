@@ -6,7 +6,7 @@
 // Created:     12/07/98
 // RCS-ID:      $Id$
 // Copyright:   (c) Julian Smart
-// Licence:   	wxWindows licence
+// Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
 
 #ifdef __GNUG__
@@ -220,7 +220,7 @@ void oglCentreText(wxDC& dc, wxList *text_list,
   // Store text extents for speed
   double *widths = new double[n];
 
-  wxNode *current = text_list->GetFirst();
+  wxObjectList::compatibility_iterator current = text_list->GetFirst();
   int i = 0;
   while (current)
   {
@@ -303,7 +303,7 @@ void oglCentreTextNoClipping(wxDC& dc, wxList *text_list,
   // Store text extents for speed
   double *widths = new double[n];
 
-  wxNode *current = text_list->GetFirst();
+  wxObjectList::compatibility_iterator current = text_list->GetFirst();
   int i = 0;
   while (current)
   {
@@ -359,7 +359,7 @@ void oglGetCentredTextExtent(wxDC& dc, wxList *text_list,
   long max_width = 0;
   long current_width = 0;
 
-  wxNode *current = text_list->GetFirst();
+  wxObjectList::compatibility_iterator current = text_list->GetFirst();
   while (current)
   {
     wxShapeTextLine *line = (wxShapeTextLine *)current->GetData();
@@ -384,7 +384,7 @@ wxStringList *oglFormatText(wxDC& dc, const wxString& text, double width, double
   // Make new lines into NULL strings at this point
   int i = 0; int j = 0; int len = text.Length();
   wxChar word[200]; word[0] = 0;
-  bool end_word = FALSE; bool new_line = FALSE;
+  bool end_word = false; bool new_line = false;
   while (i < len)
   {
     switch (text[i])
@@ -397,7 +397,7 @@ wxStringList *oglFormatText(wxDC& dc, const wxString& text, double width, double
         else
         {
           if (text[i] == wxT('n'))
-          { new_line = TRUE; end_word = TRUE; i++; }
+          { new_line = true; end_word = true; i++; }
           else
           { word[j] = wxT('%'); j ++; word[j] = text[i]; j ++; i ++; }
         }
@@ -405,17 +405,17 @@ wxStringList *oglFormatText(wxDC& dc, const wxString& text, double width, double
       }
       case 10:
       {
-        new_line = TRUE; end_word = TRUE; i++;
+        new_line = true; end_word = true; i++;
         break;
       }
       case 13:
       {
-        new_line = TRUE; end_word = TRUE; i++;
+        new_line = true; end_word = true; i++;
         break;
       }
       case wxT(' '):
       {
-        end_word = TRUE;
+        end_word = true;
         i ++;
         break;
       }
@@ -426,33 +426,33 @@ wxStringList *oglFormatText(wxDC& dc, const wxString& text, double width, double
         break;
       }
     }
-    if (i == len) end_word = TRUE;
+    if (i == len) end_word = true;
     if (end_word)
     {
       word[j] = 0;
       j = 0;
       word_list.Add(word);
-      end_word = FALSE;
+      end_word = false;
     }
     if (new_line)
     {
       word_list.Append(NULL);
-      new_line = FALSE;
+      new_line = false;
     }
   }
   // Now, make a list of strings which can fit in the box
   wxStringList *string_list = new wxStringList;
 
   wxString buffer;
-  wxStringListNode *node = word_list.GetFirst();
+  wxStringList::compatibility_iterator node = word_list.GetFirst();
   long x, y;
 
   while (node)
   {
     wxString oldBuffer(buffer);
 
-    wxChar *s = (wxChar *)node->GetData();
-    if (!s)
+    wxString s = node->GetData();
+    if (s.IsEmpty())
     {
       // FORCE NEW LINE
       if (buffer.Length() > 0)
@@ -507,7 +507,7 @@ void oglDrawFormattedText(wxDC& dc, wxList *text_list,
                     (long)(m_xpos - width/2.0), (long)(m_ypos - height/2.0),
                     (long)width+1, (long)height+1); // +1 to allow for rounding errors
 
-  wxNode *current = text_list->GetFirst();
+  wxObjectList::compatibility_iterator current = text_list->GetFirst();
   while (current)
   {
     wxShapeTextLine *line = (wxShapeTextLine *)current->GetData();
@@ -529,7 +529,7 @@ void oglFindPolylineCentroid(wxList *points, double *x, double *y)
   double xcount = 0;
   double ycount = 0;
 
-  wxNode *node = points->GetFirst();
+  wxObjectList::compatibility_iterator node = points->GetFirst();
   while (node)
   {
     wxRealPoint *point = (wxRealPoint *)node->GetData();
@@ -807,7 +807,7 @@ void UpdateListBox(wxListBox *item, wxList *list)
   if (!list)
     return;
 
-  wxNode *node = list->GetFirst();
+  wxObjectList::compatibility_iterator node = list->GetFirst();
   while (node)
   {
     wxChar *s = (wxChar *)node->GetData();

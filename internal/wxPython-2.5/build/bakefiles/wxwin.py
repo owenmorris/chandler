@@ -1,5 +1,5 @@
 #
-# Helper functions for wxWindows bakefiles
+# Helper functions for wxWidgets bakefiles
 #
 # $Id$
 #
@@ -11,8 +11,15 @@ import utils
 # register a substitution function for it that provides additional knowledge
 # about the option (in this case that it does not contain dir separators and
 # so utils.nativePaths() doesn't have to do anything with it):
-def __noopSubst(func, name):
-    return '$(%s)' % name
+
+try:
+    # this fails in 0.1.4 and 0.1.5 has different subst.callbacks signature:
+    utils.checkBakefileVersion('0.1.5') 
+    def __noopSubst(name, func, caller):
+        return '$(%s)' % name
+except AttributeError:
+    def __noopSubst(func, name):
+        return '$(%s)' % name
 utils.addSubstituteCallback('CFG', __noopSubst)
 utils.addSubstituteCallback('LIBDIRNAME', __noopSubst)
 utils.addSubstituteCallback('SETUPHDIR', __noopSubst)
@@ -20,7 +27,7 @@ utils.addSubstituteCallback('OBJS', __noopSubst)
 
 
 def mk_wxid(id):
-    """Creates wxWindows library identifier from bakefile target ID that
+    """Creates wxWidgets library identifier from bakefile target ID that
        follows this convention: DLLs end with 'dll', static libraries
        end with 'lib'. If withPrefix=1, then _wxid is returned instead
        of wxid."""
@@ -93,7 +100,7 @@ wxVersion = None
 VERSION_FILE = '../../include/wx/version.h'
 
 def getVersion():
-    """Returns wxWindows version as a tuple: (major,minor,release)."""
+    """Returns wxWidgets version as a tuple: (major,minor,release)."""
     global wxVersion
     if wxVersion == None:
         f = open(VERSION_FILE, 'rt')

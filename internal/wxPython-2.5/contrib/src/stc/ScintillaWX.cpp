@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////
 // Name:        ScintillaWX.cxx
-// Purpose:     A wxWindows implementation of Scintilla.  A class derived
+// Purpose:     A wxWidgets implementation of Scintilla.  A class derived
 //              from ScintillaBase that uses the "wx platform" defined in
 //              PlatformWX.cxx  This class is one end of a bridge between
 //              the wx world and the Scintilla world.  It needs a peer
@@ -67,21 +67,29 @@ void  wxSTCDropTarget::OnLeave() {
 #define param2 -1 // wxWindow's 2nd param is ID
 #endif
 
+#include <wx/dcbuffer.h>
+
 class wxSTCCallTip : public wxSTCCallTipBase {
 public:
     wxSTCCallTip(wxWindow* parent, CallTip* ct, ScintillaWX* swx)
         : wxSTCCallTipBase(parent, param2),
-          m_ct(ct), m_swx(swx)
+          m_ct(ct), m_swx(swx), m_cx(-1), m_cy(-1)
         {
         }
 
     ~wxSTCCallTip() {
+#if wxUSE_POPUPWIN && wxSTC_USE_POPUP && defined(__WXGTK__)
+        wxRect rect = GetRect();
+        rect.x = m_cx;
+        rect.y = m_cy;
+        GetParent()->Refresh(false, &rect);
+#endif
     }
 
     bool AcceptsFocus() const { return FALSE; }
 
     void OnPaint(wxPaintEvent& WXUNUSED(evt)) {
-        wxPaintDC dc(this);
+        wxBufferedPaintDC dc(this);
         Surface* surfaceWindow = Surface::Allocate();
         surfaceWindow->Init(&dc, m_ct->wDraw.GetID());
         m_ct->PaintCT(surfaceWindow);
@@ -105,17 +113,26 @@ public:
     virtual void DoSetSize(int x, int y,
                            int width, int height,
                            int sizeFlags = wxSIZE_AUTO) {
-        if (x != -1)
+        if (x != -1) {
+            m_cx = x;
             GetParent()->ClientToScreen(&x, NULL);
-        if (y != -1)
+        }
+        if (y != -1) {
+            m_cy = y;
             GetParent()->ClientToScreen(NULL, &y);
+        }
         wxSTCCallTipBase::DoSetSize(x, y, width, height, sizeFlags);
     }
 #endif
 
+    wxPoint GetMyPosition() {
+        return wxPoint(m_cx, m_cy);
+    }
+    
 private:
     CallTip*      m_ct;
     ScintillaWX*  m_swx;
+    int           m_cx, m_cy;
     DECLARE_EVENT_TABLE()
 };
 
@@ -125,6 +142,33 @@ BEGIN_EVENT_TABLE(wxSTCCallTip, wxSTCCallTipBase)
     EVT_LEFT_DOWN(wxSTCCallTip::OnLeftDown)
 END_EVENT_TABLE()
 
+
+//----------------------------------------------------------------------
+
+static wxTextFileType wxConvertEOLMode(int scintillaMode)
+{
+    wxTextFileType type;
+    
+    switch (scintillaMode) {
+        case wxSTC_EOL_CRLF:
+            type = wxTextFileType_Dos;
+            break;
+            
+        case wxSTC_EOL_CR:
+            type = wxTextFileType_Mac;
+            break;
+                
+        case wxSTC_EOL_LF:
+            type = wxTextFileType_Unix;
+            break;
+            
+        default:
+            type = wxTextBuffer::typeDefault;
+            break;
+    }
+    return type;
+}
+    
 
 //----------------------------------------------------------------------
 // Constructor/Destructor
@@ -389,7 +433,9 @@ void ScintillaWX::Paste() {
         wxTheClipboard->Close();
     }
     if (gotData) {
-        wxWX2MBbuf buf = (wxWX2MBbuf)wx2stc(data.GetText());
+        wxString   text = wxTextBuffer::Translate(data.GetText(),
+                                                  wxConvertEOLMode(pdoc->eolMode));
+        wxWX2MBbuf buf = (wxWX2MBbuf)wx2stc(text);
         int        len = strlen(buf);
         pdoc->InsertString(currentPos, buf, len);
         SetEmptySelection(currentPos + len);
@@ -542,14 +588,15 @@ void ScintillaWX::DoPaint(wxDC* dc, wxRect rect) {
     dc->BeginDrawing();
     ClipChildren(*dc, rcPaint);
     Paint(surfaceWindow, rcPaint);
-    dc->EndDrawing();
 
     delete surfaceWindow;
     if (paintState == paintAbandoned) {
-        // Painting area was insufficient to cover new styling or brace highlight positions
-        FullPaint(dc);
+        // Painting area was insufficient to cover new styling or brace
+        // highlight positions
+        FullPaint();
     }
     paintState = notPainting;
+    dc->EndDrawing();
 }
 
 
@@ -683,7 +730,9 @@ void ScintillaWX::DoMiddleButtonUp(Point pt) {
         wxTheClipboard->Close();
     }
     if (gotData) {
-        wxWX2MBbuf buf = (wxWX2MBbuf)wx2stc(data.GetText());
+        wxString   text = wxTextBuffer::Translate(data.GetText(),
+                                                  wxConvertEOLMode(pdoc->eolMode));
+        wxWX2MBbuf buf = (wxWX2MBbuf)wx2stc(text);
         int        len = strlen(buf);
         pdoc->InsertString(currentPos, buf, len);
         SetEmptySelection(currentPos + len);
@@ -809,6 +858,9 @@ void ScintillaWX::DoOnIdle(wxIdleEvent& evt) {
 bool ScintillaWX::DoDropText(long x, long y, const wxString& data) {
     SetDragPosition(invalidPosition);
 
+    wxString text = wxTextBuffer::Translate(data,
+                                            wxConvertEOLMode(pdoc->eolMode));
+    
     // Send an event to allow the drag details to be changed
     wxStyledTextEvent evt(wxEVT_STC_DO_DROP, stc->GetId());
     evt.SetEventObject(stc);
@@ -816,7 +868,7 @@ bool ScintillaWX::DoDropText(long x, long y, const wxString& data) {
     evt.SetX(x);
     evt.SetY(y);
     evt.SetPosition(PositionFromLocation(Point(x,y)));
-    evt.SetDragText(data);
+    evt.SetDragText(text);
     stc->GetEventHandler()->ProcessEvent(evt);
 
     dragResult = evt.GetDragResult();
@@ -860,22 +912,10 @@ void ScintillaWX::DoDragLeave() {
 #endif
 //----------------------------------------------------------------------
 
-// Redraw all of text area. This paint will not be abandoned.
-void ScintillaWX::FullPaint(wxDC *dc) {
-    wxCHECK_RET(dc != NULL, wxT("Invalid wxDC in ScintillaWX::FillPaint"));
-    paintState = painting;
-    rcPaint = GetClientRectangle();
-    paintingAllText = true;
-    Surface* surfaceWindow = Surface::Allocate();
-    surfaceWindow->Init(dc, wMain.GetID());
-
-    dc->BeginDrawing();
-    ClipChildren(*dc, rcPaint);
-    Paint(surfaceWindow, rcPaint);
-    dc->EndDrawing();
-
-    delete surfaceWindow;
-    paintState = notPainting;
+// Force the whole window to be repainted
+void ScintillaWX::FullPaint() {
+    stc->Refresh(false);
+    stc->Update();
 }
 
 
@@ -896,7 +936,11 @@ void ScintillaWX::ClipChildren(wxDC& dc, PRectangle rect) {
         rgn.Subtract(childRect);
     }
     if (ct.inCallTipMode) {
-        wxRect childRect = ((wxWindow*)ct.wCallTip.GetID())->GetRect();
+        wxSTCCallTip* tip = (wxSTCCallTip*)ct.wCallTip.GetID();
+        wxRect childRect = tip->GetRect();
+#if wxUSE_POPUPWIN && wxSTC_USE_POPUP
+        childRect.SetPosition(tip->GetMyPosition());
+#endif
         rgn.Subtract(childRect);
     }
 

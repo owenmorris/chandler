@@ -7,7 +7,7 @@
 // Copyright:   (c) 2000 Brian Gavin
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
- 
+
 #ifdef __GNUG__
 #pragma implementation "xh_listc.h"
 #endif
@@ -26,8 +26,8 @@
 
 IMPLEMENT_DYNAMIC_CLASS(wxListCtrlXmlHandler, wxXmlResourceHandler)
 
-wxListCtrlXmlHandler::wxListCtrlXmlHandler() 
-: wxXmlResourceHandler() 
+wxListCtrlXmlHandler::wxListCtrlXmlHandler()
+: wxXmlResourceHandler()
 {
     XRC_ADD_STYLE(wxLC_LIST);
     XRC_ADD_STYLE(wxLC_REPORT);
@@ -43,11 +43,14 @@ wxListCtrlXmlHandler::wxListCtrlXmlHandler()
     XRC_ADD_STYLE(wxLC_SORT_ASCENDING);
     XRC_ADD_STYLE(wxLC_SORT_DESCENDING);
     XRC_ADD_STYLE(wxLC_VIRTUAL);
+    XRC_ADD_STYLE(wxLC_HRULES);
+    XRC_ADD_STYLE(wxLC_VRULES);
+    XRC_ADD_STYLE(wxLC_NO_SORT_HEADER);
     AddWindowStyles();
 }
 
 wxObject *wxListCtrlXmlHandler::DoCreateResource()
-{ 
+{
     XRC_MAKE_INSTANCE(list, wxListCtrl)
 
     list->Create(m_parentAsWindow,
@@ -58,9 +61,9 @@ wxObject *wxListCtrlXmlHandler::DoCreateResource()
                  GetName());
 
     // FIXME: add columns definition
-    
+
     SetupWindow(list);
-    
+
     return list;
 }
 

@@ -21,6 +21,7 @@
 
 #include "wx/xrc/xh_frame.h"
 #include "wx/frame.h"
+#include "wx/dialog.h" // to get wxDEFAULT_DIALOG_STYLE
 #include "wx/log.h"
 #include "wx/intl.h"
 
@@ -38,6 +39,8 @@ wxFrameXmlHandler::wxFrameXmlHandler() : wxXmlResourceHandler()
     XRC_ADD_STYLE(wxRESIZE_BOX);
     XRC_ADD_STYLE(wxCLOSE_BOX);
 
+    XRC_ADD_STYLE(wxFRAME_NO_TASKBAR);
+    XRC_ADD_STYLE(wxFRAME_SHAPED);
     XRC_ADD_STYLE(wxFRAME_TOOL_WINDOW);
     XRC_ADD_STYLE(wxFRAME_FLOAT_ON_PARENT);
     XRC_ADD_STYLE(wxMAXIMIZE_BOX);
@@ -47,7 +50,6 @@ wxFrameXmlHandler::wxFrameXmlHandler() : wxXmlResourceHandler()
     XRC_ADD_STYLE(wxNO_3D);
     XRC_ADD_STYLE(wxTAB_TRAVERSAL);
     XRC_ADD_STYLE(wxWS_EX_VALIDATE_RECURSIVELY);
-    XRC_ADD_STYLE(wxCLIP_CHILDREN);
 
     AddWindowStyles();
 }
@@ -72,7 +74,7 @@ wxObject *wxFrameXmlHandler::DoCreateResource()
 
     CreateChildren(frame);
 
-    if (GetBool(wxT("centered"), FALSE))
+    if (GetBool(wxT("centered"), false))
         frame->Centre();
 
     return frame;

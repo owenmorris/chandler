@@ -59,7 +59,7 @@ class wxXmlResourceModule;
 //     older versions of the library may ignore it.
 //   - if you change version number, follow these steps:
 //       - set major, minor and release numbers to respective version numbers of
-//         the wxWindows library (see wx/version.h)
+//         the wxWidgets library (see wx/version.h)
 //       - reset revision to 0 unless the first three are same as before,
 //         in which case you should increase revision by one
 #define WX_XMLRES_CURRENT_VERSION_MAJOR            2
@@ -93,7 +93,8 @@ WX_DECLARE_USER_EXPORTED_OBJARRAY(wxXmlResourceDataRecord,
 enum wxXmlResourceFlags
 {
     wxXRC_USE_LOCALE     = 1,
-    wxXRC_NO_SUBCLASSING = 2
+    wxXRC_NO_SUBCLASSING = 2,
+    wxXRC_NO_RELOADING   = 4
 };
 
 // This class holds XML resources from one or more .xml files
@@ -127,7 +128,7 @@ public:
 
     // Initialize handlers for all supported controls/windows. This will
     // make the executable quite big because it forces linking against
-    // most of the wxWindows library.
+    // most of the wxWidgets library.
     void InitAllHandlers();
 
     // Initialize only a specific handler (or custom handler). Convention says
@@ -240,7 +241,7 @@ protected:
     bool UpdateResources();
 
     // Finds a resource (calls UpdateResources) and returns a node containing it.
-    wxXmlNode *FindResource(const wxString& name, const wxString& classname, bool recursive = FALSE);
+    wxXmlNode *FindResource(const wxString& name, const wxString& classname, bool recursive = false);
 
     // Helper function: finds a resource (calls UpdateResources) and returns a node containing it.
     wxXmlNode *DoFindResource(wxXmlNode *parent, const wxString& name, const wxString& classname, bool recursive);
@@ -274,7 +275,7 @@ private:
 
 // This macro translates string identifier (as used in XML resource,
 // e.g. <menuitem id="my_menu">...</menuitem>) to integer id that is needed by
-// wxWindows event tables.
+// wxWidgets event tables.
 // Example:
 //    BEGIN_EVENT_TABLE(MyFrame, wxFrame)
 //       EVT_MENU(XRCID("quit"), MyFrame::OnQuit)
@@ -329,8 +330,8 @@ public:
     // were filled.
     virtual wxObject *DoCreateResource() = 0;
 
-    // Returns TRUE if it understands this node and can create
-    // a resource from it, FALSE otherwise.
+    // Returns true if it understands this node and can create
+    // a resource from it, false otherwise.
     virtual bool CanHandle(wxXmlNode *node) = 0;
 
     // Sets the parent resource.
@@ -385,7 +386,7 @@ protected:
     // - replaces \n, \r, \t by respective chars (according to C syntax)
     // - replaces _ by & and __ by _ (needed for _File => &File because of XML)
     // - calls wxGetTranslations (unless disabled in wxXmlResource)
-    wxString GetText(const wxString& param, bool translate = TRUE);
+    wxString GetText(const wxString& param, bool translate = true);
 
     // Returns the XRCID.
     int GetID();
@@ -393,8 +394,8 @@ protected:
     // Returns the resource name.
     wxString GetName();
 
-    // Gets a bool flag (1, t, yes, on, true are TRUE, everything else is FALSE).
-    bool GetBool(const wxString& param, bool defaultv = FALSE);
+    // Gets a bool flag (1, t, yes, on, true are true, everything else is false).
+    bool GetBool(const wxString& param, bool defaultv = false);
 
     // Gets the integer value from the parameter.
     long GetLong( const wxString& param, long defaultv = 0 );
@@ -428,7 +429,7 @@ protected:
     void SetupWindow(wxWindow *wnd);
 
     // Creates children.
-    void CreateChildren(wxObject *parent, bool this_hnd_only = FALSE);
+    void CreateChildren(wxObject *parent, bool this_hnd_only = false);
 
     // Helper function.
     void CreateChildrenPrivately(wxObject *parent, wxXmlNode *rootnode = NULL);
@@ -463,9 +464,9 @@ WXDLLIMPEXP_XRC void wxXmlInitResourceModule();
 
 // This class is used to create instances of XRC "object" nodes with "subclass"
 // property. It is _not_ supposed to be used by XRC users, you should instead
-// register your subclasses via wxWindows' RTTI mechanism. This class is useful
+// register your subclasses via wxWidgets' RTTI mechanism. This class is useful
 // only for language bindings developer who need a way to implement subclassing
-// in wxWindows ports that don't support wxRTTI (e.g. wxPython).
+// in wxWidgets ports that don't support wxRTTI (e.g. wxPython).
 class WXDLLIMPEXP_XRC wxXmlSubclassFactory
 {
 public:

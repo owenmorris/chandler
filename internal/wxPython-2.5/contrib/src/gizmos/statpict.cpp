@@ -43,9 +43,9 @@ bool wxStaticPicture::Create(wxWindow *parent, wxWindowID id,
     wxSize size = s ;
     if ( bitmap.Ok() )
     {
-        if ( size.x == -1 )
+        if ( size.x == wxDefaultCoord )
             size.x = bitmap.GetWidth() ;
-        if ( size.y == -1 )
+        if ( size.y == wxDefaultCoord )
             size.y = bitmap.GetHeight() ;
     }
 
@@ -63,7 +63,7 @@ bool wxStaticPicture::Create(wxWindow *parent, wxWindowID id,
         OriginalImage = Bitmap.ConvertToImage();
 #endif
 
-    if ( id == -1 )
+    if ( id == wxID_ANY )
         m_windowId = (int)NewControlId();
     else
         m_windowId = id;

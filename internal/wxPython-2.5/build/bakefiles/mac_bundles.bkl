@@ -4,7 +4,7 @@
 <makefile>
 
     <!--
-    Support for application bundles, for wxWindows samples.
+    Support for application bundles, for wxWidgets samples.
     -->
     
     <!-- 
@@ -16,13 +16,13 @@
     </set>
     
     <set var="BUNDLE_PLIST">
-        $(TOP_SRCDIR)src/mac/Info.plist.in
+        $(TOP_SRCDIR)src/mac/carbon/Info.plist.in
     </set>
     <set var="BUNDLE_RESOURCE">
         $(LIBDIRNAME)/libwx_$(TOOLCHAIN_NAME).$(WXSOVERSION[0]).rsrc
     </set>
     <set var="BUNDLE_ICONS">
-        $(TOP_SRCDIR)src/mac/wxmac.icns
+        $(TOP_SRCDIR)src/mac/carbon/wxmac.icns
     </set>
 
     <define-tag name="wx-mac-app-bundle" rules="exe">
@@ -30,6 +30,10 @@
         <!-- bundle directory: -->
         <set var="BUNDLE">$(id).app/Contents</set>
         <set var="BUNDLE_TGT">$(BUNDLE)/PkgInfo</set>
+        <set var="BUNDLE_TGT_REF">
+            <if cond="TOOLKIT=='MAC'">$(BUNDLE)/PkgInfo</if>
+            <if cond="TOOLKIT=='COCOA'">$(BUNDLE)/PkgInfo</if>
+        </set>
         
         <add-target target="$(BUNDLE_TGT)" type="action"/>
         <modify-target target="$(BUNDLE_TGT)">
@@ -57,9 +61,9 @@
                 <!-- make a hardlink to the binary: -->
                 ln -f $(ref("__targetdir",id))$(ref("__targetname",id)) $(BUNDLE)/MacOS/$(id)
 
-                <!-- ditto wxWindows resources and icons: -->
-                ln -sf $(BUNDLE_RESOURCE) $(BUNDLE)/Resources/$(id).rsrc
-                ln -sf $(BUNDLE_ICONS) $(BUNDLE)/Resources/wxmac.icns
+                <!-- ditto wxWidgets resources and icons: -->
+                cp -f $(BUNDLE_RESOURCE) $(BUNDLE)/Resources/$(id).rsrc
+                cp -f $(BUNDLE_ICONS) $(BUNDLE)/Resources/wxmac.icns
             </command>            
         </modify-target>
         
@@ -68,7 +72,7 @@
                     cond="PLATFORM_MACOSX=='1'"/>
         <modify-target target="$(id)_bundle">
             <dependency-of>all</dependency-of>
-            <depends>$(BUNDLE_TGT)</depends>
+            <depends>$(BUNDLE_TGT_REF)</depends>
         </modify-target>
 
         <!-- "make clean" should delete the bundle: -->

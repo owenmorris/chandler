@@ -17,12 +17,12 @@ regen
 build/bakefiles/*.bkl
 build/bakefiles/Bakefiles.bkgen
 build/bakefiles/README
-build/bakefiles/*.py
+build/bakefiles/*.py*
 build/bakefiles/*.mk
-build/bakefiles/compat/FORMATS.bkmanifest
-build/bakefiles/compat/README
-build/bakefiles/compat/wx24dsp.bkl
-build/bakefiles/compat/wx24dsp.empy
+build/bakefiles/formats/*.bkl
+build/bakefiles/formats/*.empy
+build/bakefiles/formats/README
+build/bakefiles/formats/*.bkmanifest
 
 distrib/msw/*.rsp
 distrib/msw/*.bat
@@ -135,6 +135,19 @@ src/regex/tests
 src/regex/regex.3
 src/regex/regex.7
 
+src/iodbc/AUTHORS
+src/iodbc/COPYING
+src/iodbc/autoconfig
+src/iodbc/Changes.log
+src/iodbc/IAFA-PACKAGE
+src/iodbc/INSTALL
+src/iodbc/NEWS
+src/iodbc/README
+src/iodbc/*.c
+src/iodbc/*.h
+src/iodbc/*.ci
+src/iodbc/*.exp
+
 include/wx/*.h
 include/wx/*.inl
 include/wx/*.cpp
@@ -155,6 +168,7 @@ tools/gettext/*.*
 misc/afm/*.afm
 misc/gs_afm/*.afm
 
+utils/*.bkl
 utils/make*.*
 utils/configure
 utils/configure.in
@@ -164,6 +178,7 @@ utils/hhp2cached/*.cpp
 utils/hhp2cached/*.def
 utils/hhp2cached/*.rc
 utils/hhp2cached/makefile*
+utils/hhp2cached/*.bkl
 utils/hhp2cached/*.xbm
 utils/hhp2cached/*.xpm
 utils/hhp2cached/*.txt
@@ -171,11 +186,10 @@ utils/hhp2cached/*.txt
 contrib/lib/dummy
 
 samples/samples.bkl
-
 samples/*.txt
 samples/makefile*
-samples/configure
-samples/configure.in
+samples/sample.r
+samples/*.xpm
 
 samples/access/*.cpp
 samples/access/*.h
@@ -381,6 +395,7 @@ samples/docview/*.ico
 samples/docview/*.bmp
 samples/docview/*.pro
 samples/docview/*.bkl
+samples/docview/*.r
 
 samples/docvwmdi/*.h
 samples/docvwmdi/*.cpp
@@ -453,6 +468,17 @@ samples/except/*.cpp
 samples/except/*.rc
 samples/except/makefile*
 samples/except/*.xpm
+samples/except/*.bkl
+
+samples/except/*.cpp
+samples/except/*.h
+samples/except/makefile*
+samples/except/*.rc
+samples/except/*.def
+samples/except/*.ico
+samples/except/*.xpm
+samples/except/*.txt
+samples/except/*.pro
 samples/except/*.bkl
 
 samples/exec/*.cpp
@@ -665,6 +691,7 @@ samples/html/helpview/*.html
 samples/html/helpview/*.pro
 samples/html/helpview/test.zip
 samples/html/helpview/*.bkl
+samples/html/helpview/*.r
 
 samples/image/*.cpp
 samples/image/*.h
@@ -700,12 +727,20 @@ samples/internat/*.ico
 samples/internat/*.bmp
 samples/internat/*.mo
 samples/internat/*.pro
+samples/internat/bg/*.mo
+samples/internat/bg/*.po
+samples/internat/cs/*.mo
+samples/internat/cs/*.po
 samples/internat/fr/*.mo
 samples/internat/fr/*.po
 samples/internat/de/*.mo
 samples/internat/de/*.po
 samples/internat/ru/*.mo
 samples/internat/ru/*.po
+samples/internat/ja/*.mo
+samples/internat/ja/*.po
+samples/internat/ka/*.mo
+samples/internat/ka/*.po
 samples/internat/*.bkl
 
 samples/ipc/*.cpp
@@ -848,6 +883,7 @@ samples/minimal/*.ico
 samples/minimal/*.rc
 samples/minimal/*.pro
 samples/minimal/*.bkl
+samples/minimal/*.r
 
 samples/minifram/*.h
 samples/minifram/*.cpp
@@ -1068,6 +1104,20 @@ samples/shaped/*.txt
 samples/shaped/*.pro
 samples/shaped/*.bkl
 
+samples/splash/*.h
+samples/splash/*.cpp
+samples/splash/*.def
+samples/splash/*.rc
+samples/splash/makefile*
+samples/splash/*.xbm
+samples/splash/*.xpm
+samples/splash/*.txt
+samples/splash/*.ico
+samples/splash/*.bmp
+samples/splash/*.png
+samples/splash/*.pro
+samples/splash/*.bkl
+
 samples/splitter/*.cpp
 samples/splitter/*.h
 samples/splitter/*.def
@@ -1127,6 +1177,15 @@ samples/statbar/*.bmp
 samples/statbar/*.txt
 samples/statbar/*.pro
 samples/statbar/*.bkl
+
+samples/taskbar/*.cpp
+samples/taskbar/*.h
+samples/taskbar/makefile.*
+samples/taskbar/*.rc
+samples/taskbar/*.def
+samples/taskbar/*.bmp
+samples/taskbar/*.ico
+samples/taskbar/*.txt
 
 samples/text/*.cpp
 samples/text/*.h
@@ -1248,24 +1307,8 @@ samples/wizard/*.txt
 samples/wizard/*.pro
 samples/wizard/*.bkl
 
-samples/wxtest/*.cpp
-samples/wxtest/*.h
-samples/wxtest/makefile*
-samples/wxtest/*.rc
-samples/wxtest/*.def
-samples/wxtest/*.bmp
-samples/wxtest/*.xpm
-samples/wxtest/*.xbm
-samples/wxtest/*.png
-samples/wxtest/*.ico
-samples/wxtest/*.txt
-samples/wxtest/*.pro
-samples/wxtest/*.bkl
-
 demos/demos.bkl
 demos/makefile*
-demos/configure
-demos/configure.in
 
 demos/bombs/*.cpp
 demos/bombs/*.h
@@ -1293,6 +1336,7 @@ demos/forty/*.ico
 demos/forty/*.txt
 demos/forty/*.pro
 demos/forty/*.bkl
+demos/forty/*.r
 
 demos/fractal/*.cpp
 demos/fractal/*.h
@@ -1370,10 +1414,26 @@ demos/dbbrowse/help.std/*.hhp
 demos/dbbrowse/help.std/*.hhk
 demos/dbbrowse/*.bkl
 
-tests/mbconv/*.cpp
-tests/mbconv/*.bkl
+tests/*.bkl
+tests/makefile*.*
+tests/test.dsp
+tests/test.dsw
+tests/*.cpp
+tests/*.fc
 
-tests/formatconverter/*.pl
+tests/arrays/*.cpp
+tests/filesys/*.cpp
 tests/formatconverter/*.cpp
-tests/formatconverter/*.txt
+tests/longlong/*.cpp
+tests/mbconv/*.cpp
+
+tests/regex/*.cpp
+tests/regex/*.inc
+tests/regex/*.pl
+tests/regex/*.test
+
+tests/streams/*.cpp
+tests/streams/*.h
+
+tests/strings/*.cpp
 

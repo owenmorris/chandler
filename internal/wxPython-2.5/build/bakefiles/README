@@ -1,6 +1,6 @@
 
 This directory contains Bakefile (see http://bakefile.sourceforge.net)
-files needed to generate native makefiles for wxWindows library, contrib and
+files needed to generate native makefiles for wxWidgets library, contrib and
 samples.
 
 Use the bakefile_gen utility to regenerate the makefiles (run it in this

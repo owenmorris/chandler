@@ -19,7 +19,7 @@
 #endif
 
 // for all others, include the necessary headers (this file is usually all you
-// need because it includes almost all "standard" wxWindows headers)
+// need because it includes almost all "standard" wxWidgets headers)
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
@@ -36,7 +36,7 @@ class CleverListCtrl : public wxListCtrl
 {
 public:
    CleverListCtrl(wxWindow *parent,
-                  wxWindowID id = -1,
+                  wxWindowID id = wxID_ANY,
                   const wxPoint &pos = wxDefaultPosition,
                   const wxSize &size = wxDefaultSize,
                   long style = wxLC_ICON,
@@ -115,14 +115,14 @@ wxEditableListBox::wxEditableListBox(wxWindow *parent, wxWindowID id,
    : wxPanel(parent, id, pos, size, wxTAB_TRAVERSAL, name)
 {
     m_style = style;
-    m_bEdit = m_bNew = m_bDel = m_bUp = m_bDown = NULL;    
+    m_bEdit = m_bNew = m_bDel = m_bUp = m_bDown = NULL;
 
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
-    wxPanel *subp = new wxPanel(this, -1, wxDefaultPosition, wxDefaultSize,
+    wxPanel *subp = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
                                 wxSUNKEN_BORDER | wxTAB_TRAVERSAL);
     wxSizer *subsizer = new wxBoxSizer(wxHORIZONTAL);
-    subsizer->Add(new wxStaticText(subp, -1, label), 1, wxALIGN_CENTRE_VERTICAL | wxLEFT, 4);
+    subsizer->Add(new wxStaticText(subp, wxID_ANY, label), 1, wxALIGN_CENTRE_VERTICAL | wxLEFT, 4);
 
 #ifdef __WXMSW__
     #define BTN_BORDER 4
@@ -165,7 +165,6 @@ wxEditableListBox::wxEditableListBox(wxWindow *parent, wxWindowID id,
     m_bDown->SetToolTip(_("Move down"));
 #endif
 
-    subp->SetAutoLayout(TRUE);
     subp->SetSizer(subsizer);
     subsizer->Fit(subp);
 
@@ -181,7 +180,6 @@ wxEditableListBox::wxEditableListBox(wxWindow *parent, wxWindowID id,
 
     sizer->Add(m_listCtrl, 1, wxEXPAND);
 
-    SetAutoLayout(TRUE);
     SetSizer(sizer);
     Layout();
 }
@@ -194,7 +192,7 @@ void wxEditableListBox::SetStrings(const wxArrayString& strings)
     for (i = 0; i < strings.GetCount(); i++)
         m_listCtrl->InsertItem(i, strings[i]);
 
-    m_listCtrl->InsertItem(strings.GetCount(), _T(""));
+    m_listCtrl->InsertItem(strings.GetCount(), wxEmptyString);
     m_listCtrl->SetItemState(0, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
 }
 
@@ -226,13 +224,13 @@ void wxEditableListBox::OnNewItem(wxCommandEvent& WXUNUSED(event))
 
 void wxEditableListBox::OnEndLabelEdit(wxListEvent& event)
 {
-    if ( event.GetIndex() == m_listCtrl->GetItemCount()-1 && 
+    if ( event.GetIndex() == m_listCtrl->GetItemCount()-1 &&
          !event.GetText().IsEmpty() )
     {
         // The user edited last (empty) line, i.e. added new entry. We have to
         // add new empty line here so that adding one more line is still
         // possible:
-        m_listCtrl->InsertItem(m_listCtrl->GetItemCount(), _T(""));
+        m_listCtrl->InsertItem(m_listCtrl->GetItemCount(), wxEmptyString);
     }
 }
 

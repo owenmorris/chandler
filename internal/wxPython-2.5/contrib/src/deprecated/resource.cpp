@@ -215,7 +215,7 @@ bool wxResourceTable::DeleteResource(const wxString& name)
         // See if any resource has this as its child; if so, delete from
         // parent's child list.
         BeginFind();
-        wxNode *node = Next();
+        wxHashTable::Node *node = Next();
         while (node != NULL)
         {
             wxItemResource *parent = (wxItemResource *)node->GetData();
@@ -309,10 +309,10 @@ bool wxResourceTable::SaveResource(const wxString& WXUNUSED(filename))
 void wxResourceTable::ClearTable()
 {
     BeginFind();
-    wxNode *node = Next();
+    wxHashTable::Node *node = Next();
     while (node)
     {
-        wxNode *next = Next();
+        wxHashTable::Node *next = Next();
         wxItemResource *item = (wxItemResource *)node->GetData();
         delete item;
         delete node;
@@ -712,8 +712,14 @@ wxItemResource *wxResourceInterpretDialog(wxResourceTable& table, wxExpr *expr, 
     }
     dialogItem->SetStyle(windowStyle);
     dialogItem->SetValue1(isModal);
-    if (windowStyle & wxDIALOG_MODAL) // Uses style in wxWin 2
+#ifdef __VMS
+#pragma message disable CODCAUUNR
+#endif
+   if (windowStyle & wxDIALOG_MODAL) // Uses style in wxWin 2
         dialogItem->SetValue1(TRUE);
+#ifdef __VMS
+#pragma message enable CODCAUUNR
+#endif
 
     dialogItem->SetName(name);
     dialogItem->SetTitle(title);
@@ -2367,7 +2373,7 @@ long wxParseWindowStyle(const wxString& bitListString)
 }
 
 /*
-* Load a bitmap from a wxWindows resource, choosing an optimum
+* Load a bitmap from a wxWidgets resource, choosing an optimum
 * depth and appropriate type.
 */
 
@@ -2521,7 +2527,7 @@ wxBitmap wxResourceCreateBitmap(const wxString& resource, wxResourceTable *table
 }
 
 /*
-* Load an icon from a wxWindows resource, choosing an optimum
+* Load an icon from a wxWidgets resource, choosing an optimum
 * depth and appropriate type.
 */
 
@@ -2646,7 +2652,7 @@ wxIcon wxResourceCreateIcon(const wxString& resource, wxResourceTable *table)
             }
         case wxBITMAP_TYPE_XPM_DATA:
             {
-                // *** XPM ICON NOT YET IMPLEMENTED IN WXWINDOWS ***
+                // *** XPM ICON NOT YET IMPLEMENTED IN wxWidgets ***
                 /*
                 wxItemResource *item = table->FindResource(name);
                 if (!item)

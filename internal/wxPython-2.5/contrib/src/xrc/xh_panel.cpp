@@ -7,7 +7,7 @@
 // Copyright:   (c) 2000 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
- 
+
 #ifdef __GNUG__
 #pragma implementation "xh_panel.h"
 #endif
@@ -21,6 +21,7 @@
 
 #include "wx/xrc/xh_panel.h"
 #include "wx/panel.h"
+#include "wx/frame.h"  // to get wxNO_3D
 
 IMPLEMENT_DYNAMIC_CLASS(wxPanelXmlHandler, wxXmlResourceHandler)
 
@@ -29,12 +30,12 @@ wxPanelXmlHandler::wxPanelXmlHandler() : wxXmlResourceHandler()
     XRC_ADD_STYLE(wxNO_3D);
     XRC_ADD_STYLE(wxTAB_TRAVERSAL);
     XRC_ADD_STYLE(wxWS_EX_VALIDATE_RECURSIVELY);
-    XRC_ADD_STYLE(wxCLIP_CHILDREN);
+    
     AddWindowStyles();
 }
 
 wxObject *wxPanelXmlHandler::DoCreateResource()
-{ 
+{
     XRC_MAKE_INSTANCE(panel, wxPanel)
 
     panel->Create(m_parentAsWindow,
@@ -45,7 +46,7 @@ wxObject *wxPanelXmlHandler::DoCreateResource()
 
     SetupWindow(panel);
     CreateChildren(panel);
-    
+
     return panel;
 }
 

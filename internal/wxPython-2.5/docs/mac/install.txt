@@ -1,10 +1,10 @@
-wxWindows 2.5 for Mac installation
+wxWidgets 2.5 for Mac installation
 ----------------------------------
 
 On MacOS X, you can download Apple's free developer tools (gcc
 and associated headers and libraries, such as the Carbon API).
 You can then use configure in a similar way to compiling
-wxWindows on Linux (or on Windows using MinGW or Cygwin). See
+wxWidgets on Linux (or on Windows using MinGW or Cygwin). See
 'Apple Developer Tools' below for more details on using
 configure.
 
@@ -43,6 +43,15 @@ applying the changes from the folders:
 CodeWarrior Pro 5:Pre-Release:Carbon & MacOSX Development:Carbonized MSL and
 CodeWarrior Pro 5:Pre-Release:Carbon & MacOSX Development:Carbonized Runtimes 
 (consult the file CodeWarrior Pro 5:Pre-Release:Carbon & MacOSX Development:Carbon & MacOSX README)
+
+Patching headers: CodeWarrior 8.x
+---------------------------------
+
+If you run into trouble with WCHAR_MIN and WCHAR_MAX in ansi.h,
+apply the patch ansi.diff.
+
+You may also need to comment out the _T definition in
+ctype.h if you get multiple definition errors.
 
 setup.h
 -------
@@ -102,6 +111,7 @@ Several AppleScript files are provided in the docs:mac directory:
   - M5build.applescript to automatically build all samples/demos projects
   - M8xml2mcp.applescript to convert xml files to CodeWarrior 8 projects
   - M8mcp2xml.applescript to convert CodeWarrior 8 projects to xml files
+  - SetXMLCreator.applescript to set correct creator type (see below)
 
 To run the XML to MCP conversion scripts:
 
@@ -110,6 +120,9 @@ the applescript and when asked for a folder pick src/. Then it
 takes a while to scan all dirs for the xml files and convert
 them to mcps. If some conversions fail it means an mcp already
 exists (back them up prior to running the script).
+
+To set the correct creator type for importing into CodeWarrior,
+you may need to run SetXMLCreator.applescript.
 
 Apple Developer Tools
 ---------------------
@@ -132,10 +145,10 @@ account marked as a "Computer Administrator".  Then
 7) type <YOUR OWN PASSWORD>
 
 Note that while using this method is okay for development, it is not
-recommended that you require endusers to install wxWindows into their
+recommended that you require endusers to install wxWidgets into their
 system directories in order to use your program.  One way to avoid this
-is to configure wxWindows with --disable-shared.  Another way to avoid
-it is to make a framework for wxWindows.  Making frameworks is beyond
+is to configure wxWidgets with --disable-shared.  Another way to avoid
+it is to make a framework for wxWidgets.  Making frameworks is beyond
 the scope of this document.
 
 Note:

@@ -7,7 +7,7 @@
 // Copyright:   (c) 2002 Vaclav Slavik
 // Licence:     wxWindows licence
 /////////////////////////////////////////////////////////////////////////////
- 
+
 #ifdef __GNUG__
 #pragma implementation "xh_scwin.h"
 #endif
@@ -21,19 +21,26 @@
 
 #include "wx/xrc/xh_scwin.h"
 #include "wx/scrolwin.h"
+#include "wx/frame.h"  // to get wxNO_3D
 
 IMPLEMENT_DYNAMIC_CLASS(wxScrolledWindowXmlHandler, wxXmlResourceHandler)
 
-wxScrolledWindowXmlHandler::wxScrolledWindowXmlHandler() 
-: wxXmlResourceHandler() 
+wxScrolledWindowXmlHandler::wxScrolledWindowXmlHandler()
+: wxXmlResourceHandler()
 {
     XRC_ADD_STYLE(wxHSCROLL);
     XRC_ADD_STYLE(wxVSCROLL);
+
+    // wxPanel styles
+    XRC_ADD_STYLE(wxNO_3D);
+    XRC_ADD_STYLE(wxTAB_TRAVERSAL);
+    XRC_ADD_STYLE(wxWS_EX_VALIDATE_RECURSIVELY);
+
     AddWindowStyles();
 }
 
 wxObject *wxScrolledWindowXmlHandler::DoCreateResource()
-{ 
+{
     XRC_MAKE_INSTANCE(control, wxScrolledWindow)
 
     control->Create(m_parentAsWindow,
@@ -43,7 +50,8 @@ wxObject *wxScrolledWindowXmlHandler::DoCreateResource()
                     GetName());
 
     SetupWindow(control);
-    
+    CreateChildren(control);
+
     return control;
 }
 

@@ -1,8 +1,8 @@
 
 include ../Makefile.inc
 
-VERSION=2.5
-RELVER=$(VERSION)-4
+VERSION=2.5.2.9
+RELVER=$(VERSION)-1
 SRC=$(INTERNAL)/wxPython-$(VERSION)
 
 ifeq ($(DEBUG),1)
@@ -31,12 +31,12 @@ wxWidgets:
         export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
 	devenv.com build/msw/msw.sln /build $(Snap)
 	mkdir -p $(PREFIX)/$(SITE)/wx
-	install $(SRC)/lib/vc_dll/*251$(SUFFIX)*_vc.dll $(PREFIX)/$(SITE)/wx
+	install $(SRC)/lib/vc_dll/*252$(SUFFIX)*_vc.dll $(PREFIX)/$(SITE)/wx
 
 wxPython:
 	cd $(SRC)/wxPython; \
         export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
-	$(PYTHON) setup.py BUILD_BASE=$(BUILD) \
+	$(PYTHON) setup.py BUILD_BASE=$(BUILD) BUILD_ACTIVEX=0 \
                            build $(DIST_OPT) \
                            install \
                            FINAL=$(FINAL) HYBRID=0
@@ -44,8 +44,8 @@ wxPython:
 MANIFEST=$(SNAP)/$(SITE)/wx
 
 clean:
+	rm -rf $(SRC)/wxPython/$(BUILD)
 	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/msw.sln /clean $(Snap)
-	cd $(SRC)/wxPython; rm -rf $(SRC)/wxPython/$(BUILD)
 
 else
 
@@ -54,7 +54,7 @@ ifeq ($(OS),Darwin)
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../configure --prefix=$(PREFIX) $(CONF_OPT) \
-                     --disable-monolithic \
+                     --enable-monolithic \
                      --enable-geometry \
                      --enable-sound \
                      --with-sdl \
@@ -72,8 +72,7 @@ wxPython:
 
 MANIFEST=$(SNAP)/$(SITE)/wx \
          $(SNAP)/$(SITE)/wxPython \
-	 $(SNAP)/lib/libwx_mac* \
-	 $(SNAP)/lib/libwx_base_carbon* \
+	 $(SNAP)/lib/libwx* \
 	 $(SNAP)/share/locale
 
 else
@@ -81,7 +80,7 @@ else
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../configure --prefix=$(PREFIX) $(CONF_OPT) \
-                     --disable-monolithic \
+                     --enable-monolithic \
                      --enable-geometry \
                      --enable-sound \
                      --with-sdl \
@@ -101,8 +100,7 @@ wxPython:
 
 MANIFEST=$(SNAP)/$(SITE)/wx \
          $(SNAP)/$(SITE)/wxPython \
-	 $(SNAP)/lib/libwx_base* \
-	 $(SNAP)/lib/libwx_gtk2* \
+	 $(SNAP)/lib/libwx* \
 	 $(SNAP)/share/locale
 
 endif

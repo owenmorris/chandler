@@ -82,7 +82,7 @@ bool wxXmlResource::Load(const wxString& filemask)
     wxString fnd;
     wxXmlResourceDataRecord *drec;
     bool iswild = wxIsWild(filemask);
-    bool rt = TRUE;
+    bool rt = true;
 
 #if wxUSE_FILESYSTEM
     wxFileSystem fsys;
@@ -260,7 +260,7 @@ bool wxXmlResource::AttachUnknownControl(const wxString& name,
     if (!container)
     {
         wxLogError(_("Cannot find container for unknown control '%s'."), name.c_str());
-        return FALSE;
+        return false;
     }
     return control->Reparent(container);
 }
@@ -274,9 +274,9 @@ static void ProcessPlatformProperty(wxXmlNode *node)
     wxXmlNode *c = node->GetChildren();
     while (c)
     {
-        isok = FALSE;
+        isok = false;
         if (!c->GetPropVal(wxT("platform"), &s))
-            isok = TRUE;
+            isok = true;
         else
         {
             wxStringTokenizer tkn(s, wxT(" |"));
@@ -343,7 +343,7 @@ bool wxXmlResource::UpdateResources()
     {
         modif = (m_data[i].Doc == NULL);
 
-        if (!modif)
+        if (!modif && !(m_flags & wxXRC_NO_RELOADING))
         {
 #           if wxUSE_FILESYSTEM
             file = fsys.OpenFile(m_data[i].File);
@@ -362,12 +362,15 @@ bool wxXmlResource::UpdateResources()
 
         if (modif)
         {
+            wxLogTrace(_T("xrc"),
+                       _T("opening file '%s'"), m_data[i].File.c_str());
+
             wxInputStream *stream = NULL;
 
 #           if wxUSE_FILESYSTEM
             file = fsys.OpenFile(m_data[i].File);
-			if (file)
-				stream = file->GetStream();
+            if (file)
+                stream = file->GetStream();
 #           else
             stream = new wxFileInputStream(m_data[i].File);
 #           endif
@@ -391,7 +394,7 @@ bool wxXmlResource::UpdateResources()
                 rt = false;
             }
             else
-			{
+            {
                 long version;
                 int v1, v2, v3, v4;
                 wxString verstr = m_data[i].Doc->GetRoot()->GetPropVal(
@@ -411,17 +414,17 @@ bool wxXmlResource::UpdateResources()
 
                 ProcessPlatformProperty(m_data[i].Doc->GetRoot());
 #if wxUSE_FILESYSTEM
-				m_data[i].Time = file->GetModificationTime();
+                m_data[i].Time = file->GetModificationTime();
 #else
                 m_data[i].Time = wxDateTime(wxFileModificationTime(m_data[i].File));
 #endif
-			}
+            }
 
 #           if wxUSE_FILESYSTEM
-				wxDELETE(file);
-				wxUnusedVar(file);
+                wxDELETE(file);
+                wxUnusedVar(file);
 #           else
-				wxDELETE(stream);
+                wxDELETE(stream);
 #           endif
         }
     }
@@ -456,7 +459,7 @@ wxXmlNode *wxXmlResource::DoFindResource(wxXmlNode *parent,
                 wxString refName = node->GetPropVal(wxT("ref"), wxEmptyString);
                 if (refName.empty())
                     continue;
-                wxXmlNode* refNode = FindResource(refName, wxEmptyString, TRUE);
+                wxXmlNode* refNode = FindResource(refName, wxEmptyString, true);
                 if (refNode &&
                     refNode->GetPropVal(wxT("class"), wxEmptyString) == classname)
                 {
@@ -473,7 +476,7 @@ wxXmlNode *wxXmlResource::DoFindResource(wxXmlNode *parent,
                  (node->GetName() == wxT("object") ||
                   node->GetName() == wxT("object_ref")) )
             {
-                wxXmlNode* found = DoFindResource(node, name, classname, TRUE);
+                wxXmlNode* found = DoFindResource(node, name, classname, true);
                 if ( found )
                     return found;
             }
@@ -565,7 +568,7 @@ wxObject *wxXmlResource::CreateResFromNode(wxXmlNode *node, wxObject *parent,
     if ( node->GetName() == wxT("object_ref") )
     {
         wxString refName = node->GetPropVal(wxT("ref"), wxEmptyString);
-        wxXmlNode* refNode = FindResource(refName, wxEmptyString, TRUE);
+        wxXmlNode* refNode = FindResource(refName, wxEmptyString, true);
 
         if ( !refNode )
         {
@@ -710,6 +713,7 @@ void wxXmlResourceHandler::AddStyle(const wxString& name, int value)
 
 void wxXmlResourceHandler::AddWindowStyles()
 {
+    XRC_ADD_STYLE(wxCLIP_CHILDREN);
     XRC_ADD_STYLE(wxSIMPLE_BORDER);
     XRC_ADD_STYLE(wxSUNKEN_BORDER);
     XRC_ADD_STYLE(wxDOUBLE_BORDER);
@@ -719,6 +723,7 @@ void wxXmlResourceHandler::AddWindowStyles()
     XRC_ADD_STYLE(wxTRANSPARENT_WINDOW);
     XRC_ADD_STYLE(wxWANTS_CHARS);
     XRC_ADD_STYLE(wxNO_FULL_REPAINT_ON_RESIZE);
+    XRC_ADD_STYLE(wxFULL_REPAINT_ON_RESIZE);
     XRC_ADD_STYLE(wxWS_EX_BLOCK_EVENTS);
 }
 
@@ -890,11 +895,15 @@ wxBitmap wxXmlResourceHandler::GetBitmap(const wxString& param,
         wxString sid = bmpNode->GetPropVal(wxT("stock_id"), wxEmptyString);
         if ( !sid.empty() )
         {
-            wxString scl = bmpNode->GetPropVal(wxT("stock_client"), defaultArtClient);
+            wxString scl = bmpNode->GetPropVal(wxT("stock_client"), wxEmptyString);
+            if (scl.empty())
+                scl = defaultArtClient;
+            else
+                scl = wxART_MAKE_CLIENT_ID_FROM_STR(scl);
+            
             wxBitmap stockArt =
                 wxArtProvider::GetBitmap(wxART_MAKE_ART_ID_FROM_STR(sid),
-                                         wxART_MAKE_CLIENT_ID_FROM_STR(scl),
-                                         size);
+                                         scl, size);
             if ( stockArt.Ok() )
                 return stockArt;
         }
@@ -989,7 +998,7 @@ wxSize wxXmlResourceHandler::GetSize(const wxString& param)
     wxString s = GetParamValue(param);
     if (s.IsEmpty()) s = wxT("-1,-1");
     bool is_dlg;
-    long sx, sy;
+    long sx, sy = 0;
 
     is_dlg = s[s.Length()-1] == wxT('d');
     if (is_dlg) s.RemoveLast();
@@ -1089,7 +1098,7 @@ wxFont wxXmlResourceHandler::GetFont(const wxString& param)
     else if (family == wxT("swiss")) ifamily = wxSWISS;
     else if (family == wxT("modern")) ifamily = wxMODERN;
 
-    bool underlined = GetBool(wxT("underlined"), FALSE);
+    bool underlined = GetBool(wxT("underlined"), false);
 
     wxString encoding = GetParamValue(wxT("encoding"));
     wxFontMapper mapper;
@@ -1106,7 +1115,7 @@ wxFont wxXmlResourceHandler::GetFont(const wxString& param)
     wxStringTokenizer tk(faces, wxT(","));
     while (tk.HasMoreTokens())
     {
-        int index = enu.GetFacenames()->Index(tk.GetNextToken(), FALSE);
+        int index = enu.GetFacenames()->Index(tk.GetNextToken(), false);
         if (index != wxNOT_FOUND)
         {
             facename = (*enu.GetFacenames())[index];
@@ -1126,17 +1135,20 @@ void wxXmlResourceHandler::SetupWindow(wxWindow *wnd)
     //FIXME : add cursor
 
     if (HasParam(wxT("exstyle")))
-        wnd->SetExtraStyle(GetStyle(wxT("exstyle")));
+        // Have to OR it with existing style, since
+        // some implementations (e.g. wxGTK) use the extra style
+        // during creation
+        wnd->SetExtraStyle(wnd->GetExtraStyle() | GetStyle(wxT("exstyle")));
     if (HasParam(wxT("bg")))
         wnd->SetBackgroundColour(GetColour(wxT("bg")));
     if (HasParam(wxT("fg")))
         wnd->SetForegroundColour(GetColour(wxT("fg")));
     if (GetBool(wxT("enabled"), 1) == 0)
-        wnd->Enable(FALSE);
+        wnd->Enable(false);
     if (GetBool(wxT("focused"), 0) == 1)
         wnd->SetFocus();
     if (GetBool(wxT("hidden"), 0) == 1)
-        wnd->Show(FALSE);
+        wnd->Show(false);
 #if wxUSE_TOOLTIPS
     if (HasParam(wxT("tooltip")))
         wnd->SetToolTip(GetText(wxT("tooltip")));
@@ -1273,20 +1285,107 @@ static void AddStdXRCID_Records()
 {
 #define stdID(id) XRCID_Lookup(wxT(#id), id)
     stdID(-1);
-    stdID(wxID_OPEN); stdID(wxID_CLOSE); stdID(wxID_NEW);
-    stdID(wxID_SAVE); stdID(wxID_SAVEAS); stdID(wxID_REVERT);
-    stdID(wxID_EXIT); stdID(wxID_UNDO); stdID(wxID_REDO);
-    stdID(wxID_HELP); stdID(wxID_PRINT); stdID(wxID_PRINT_SETUP);
-    stdID(wxID_PREVIEW); stdID(wxID_ABOUT); stdID(wxID_HELP_CONTENTS);
-    stdID(wxID_HELP_COMMANDS); stdID(wxID_HELP_PROCEDURES);
-    stdID(wxID_CUT); stdID(wxID_COPY); stdID(wxID_PASTE);
-    stdID(wxID_CLEAR); stdID(wxID_FIND); stdID(wxID_DUPLICATE);
-    stdID(wxID_SELECTALL); stdID(wxID_OK); stdID(wxID_CANCEL);
-    stdID(wxID_APPLY); stdID(wxID_YES); stdID(wxID_NO);
-    stdID(wxID_STATIC); stdID(wxID_FORWARD); stdID(wxID_BACKWARD);
-    stdID(wxID_DEFAULT); stdID(wxID_MORE); stdID(wxID_SETUP);
-    stdID(wxID_RESET); stdID(wxID_HELP_CONTEXT);
+
+    stdID(wxID_ANY);
+    stdID(wxID_SEPARATOR);
+    
+    stdID(wxID_OPEN);
+    stdID(wxID_CLOSE);
+    stdID(wxID_NEW);
+    stdID(wxID_SAVE);
+    stdID(wxID_SAVEAS);
+    stdID(wxID_REVERT);
+    stdID(wxID_EXIT);
+    stdID(wxID_UNDO);
+    stdID(wxID_REDO);
+    stdID(wxID_HELP);
+    stdID(wxID_PRINT);
+    stdID(wxID_PRINT_SETUP);
+    stdID(wxID_PREVIEW);
+    stdID(wxID_ABOUT);
+    stdID(wxID_HELP_CONTENTS);
+    stdID(wxID_HELP_COMMANDS);
+    stdID(wxID_HELP_PROCEDURES);
+    stdID(wxID_HELP_CONTEXT);
     stdID(wxID_CLOSE_ALL);
+    stdID(wxID_PREFERENCES);
+    stdID(wxID_CUT);
+    stdID(wxID_COPY);
+    stdID(wxID_PASTE);
+    stdID(wxID_CLEAR);
+    stdID(wxID_FIND);
+    stdID(wxID_DUPLICATE);
+    stdID(wxID_SELECTALL);
+    stdID(wxID_DELETE);
+    stdID(wxID_REPLACE);
+    stdID(wxID_REPLACE_ALL);
+    stdID(wxID_PROPERTIES);
+    stdID(wxID_VIEW_DETAILS);
+    stdID(wxID_VIEW_LARGEICONS);
+    stdID(wxID_VIEW_SMALLICONS);
+    stdID(wxID_VIEW_LIST);
+    stdID(wxID_VIEW_SORTDATE);
+    stdID(wxID_VIEW_SORTNAME);
+    stdID(wxID_VIEW_SORTSIZE);
+    stdID(wxID_VIEW_SORTTYPE);
+    stdID(wxID_FILE1);
+    stdID(wxID_FILE2);
+    stdID(wxID_FILE3);
+    stdID(wxID_FILE4);
+    stdID(wxID_FILE5);
+    stdID(wxID_FILE6);
+    stdID(wxID_FILE7);
+    stdID(wxID_FILE8);
+    stdID(wxID_FILE9);
+    stdID(wxID_OK);
+    stdID(wxID_CANCEL);
+    stdID(wxID_APPLY);
+    stdID(wxID_YES);
+    stdID(wxID_NO);
+    stdID(wxID_STATIC);
+    stdID(wxID_FORWARD);
+    stdID(wxID_BACKWARD);
+    stdID(wxID_DEFAULT);
+    stdID(wxID_MORE);
+    stdID(wxID_SETUP);
+    stdID(wxID_RESET);
+    stdID(wxID_CONTEXT_HELP);
+    stdID(wxID_YESTOALL);
+    stdID(wxID_NOTOALL);
+    stdID(wxID_ABORT);
+    stdID(wxID_RETRY);
+    stdID(wxID_IGNORE);
+    stdID(wxID_ADD);
+    stdID(wxID_REMOVE);
+    stdID(wxID_UP);
+    stdID(wxID_DOWN);
+    stdID(wxID_HOME);
+    stdID(wxID_REFRESH);
+    stdID(wxID_STOP);
+    stdID(wxID_INDEX);
+    stdID(wxID_BOLD);
+    stdID(wxID_ITALIC);
+    stdID(wxID_JUSTIFY_CENTER);
+    stdID(wxID_JUSTIFY_FILL);
+    stdID(wxID_JUSTIFY_RIGHT);
+    stdID(wxID_JUSTIFY_LEFT);
+    stdID(wxID_UNDERLINE);
+    stdID(wxID_INDENT);
+    stdID(wxID_UNINDENT);
+    stdID(wxID_ZOOM_100);
+    stdID(wxID_ZOOM_FIT);
+    stdID(wxID_ZOOM_IN);
+    stdID(wxID_ZOOM_OUT);
+    stdID(wxID_UNDELETE);
+    stdID(wxID_REVERT_TO_SAVED);
+    stdID(wxID_SYSTEM_MENU);
+    stdID(wxID_CLOSE_FRAME);
+    stdID(wxID_MOVE_FRAME);
+    stdID(wxID_RESIZE_FRAME);
+    stdID(wxID_MAXIMIZE_FRAME);
+    stdID(wxID_ICONIZE_FRAME);
+    stdID(wxID_RESTORE_FRAME);
+
 #undef stdID
 }
 
@@ -1305,7 +1404,7 @@ public:
     {
         AddStdXRCID_Records();
         wxXmlResource::AddSubclassFactory(new wxXmlSubclassFactoryCXX);
-        return TRUE;
+        return true;
     }
     void OnExit()
     {
