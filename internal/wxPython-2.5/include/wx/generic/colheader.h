@@ -72,6 +72,12 @@ public:
 		bool						bFlagValue );
 
 public:
+#if defined(__WXMSW__)
+	static void MSWRenderSelection(
+		wxClientDC		*dc,
+		const wxRect		*boundsR );
+#endif
+
 #if defined(__WXGTK__)
 	static void GTKGetSortArrowBounds(
 		const wxRect		*itemBoundsR,
@@ -84,13 +90,8 @@ public:
 
 #if defined(__WXMAC__)
 	static void MacDrawThemeBackgroundNoArrows(
-		const void			*boundsR );
-#endif
-
-#if defined(__WXMSW__)
-	void MSWRenderSelection(
-		wxClientDC		*dc,
-		const wxRect		*boundsR );
+		const void			*boundsR,
+		bool				bSelected );
 #endif
 
 	static long ConvertJustification(
@@ -217,13 +218,13 @@ protected:
 	bool SetItemData(
 		long							itemIndex,
 		const wxColumnHeaderItem		*info );
+	bool GetItemBounds(
+		long				itemIndex,
+		wxRect			*boundsR );
 	wxColumnHeaderItem * GetItemRef(
-		long			itemIndex );
-	void GetItemBounds(
-		long			itemIndex,
-		wxRect		*boundsR );
+		long				itemIndex );
 	void RefreshItem(
-		long			itemIndex );
+		long				itemIndex );
 
 	void SetViewDirty( void );
 	void RecalculateItemExtents( void );

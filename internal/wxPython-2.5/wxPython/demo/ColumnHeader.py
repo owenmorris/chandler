@@ -28,7 +28,7 @@ class TestPanel( wx.Panel ):
         ch2 = wx.colheader.ColumnHeader( self, 1002, (80, 90), (270, 20), 0 )
         ch2.AppendItem( "Juan", wx.colheader.COLUMNHEADER_JUST_Left, 90, 1, 1, 1 )
         ch2.AppendItem( "Valdéz", wx.colheader.COLUMNHEADER_JUST_Center, 90, 0, 1, 1 )
-        ch2.AppendItem( "coffeehead", wx.colheader.COLUMNHEADER_JUST_Right, 90, 0, 1, 1 )
+        ch2.AppendItem( "coffee guy", wx.colheader.COLUMNHEADER_JUST_Right, 90, 0, 1, 1 )
         self.Bind( wx.colheader.EVT_COLUMNHEADER_SELCHANGED, self.OnColumnHeaderClick, ch2 )
         #ch2.SetToolTipString("Column header (2)")
         self.ch2 = ch2
@@ -39,7 +39,10 @@ class TestPanel( wx.Panel ):
         btn = wx.Button( self, -1, "Resize", (10, 190) )
         self.Bind( wx.EVT_BUTTON, self.OnTestResizeButton, btn )
         self.stepSize = 0
-        self.stepDir = 1
+        self.stepDir = -1
+
+        btn = wx.Button( self, -1, "Delete", (110, 190) )
+        self.Bind( wx.EVT_BUTTON, self.OnTestDeleteButton, btn )
 
     def OnColumnHeaderClick( self, event ):
         ch = event.GetEventObject()
@@ -55,6 +58,10 @@ class TestPanel( wx.Panel ):
         self.stepSize = self.stepSize + self.stepDir
         self.ch1.DoSetSize( 20, 40, 351 + 40 * self.stepSize, 20, 0 )
 
+    def OnTestDeleteButton(self, event):
+        self.ch1.DeleteItem( 1 )
+        self.l0.SetLabel( "deleted item (%d) from (%d)" %(1, 1001) )
+
 #----------------------------------------------------------------------
 
 def runTest(frame, nb, log):
@@ -69,9 +76,13 @@ overview = """<html><body>
 
 <p>A ColumnHeader control displays a set of joined, native-appearance button-ish things.</p>
 
-<p>Column headers are just...that!</p>
+<p>Native column headers can be found in many views, most notably in a folder Details view</p>
 
-<p>A nod is as good as a wink to a blind horse.</p>
+<p>This control embodies the native look and feel to the greatest practical degree, and fills in some holes to boot:</p>
+
+<p>MSW has no canonical UI for selection - uses a sort arrow to serve double-duty as a selection indicator; nonetheless, it has a rollover indicator</p>
+
+<p>GTK lacks, or appears to lack, a native control: a simple bevel button shall suffice for the theme background.</p>
 
 </body></html>
 """

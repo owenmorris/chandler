@@ -126,6 +126,11 @@ wxColumnHeader::wxColumnHeader()
 	Init();
 }
 
+// ================
+#if 0
+#pragma mark -
+#endif
+
 wxColumnHeader::wxColumnHeader(
 	wxWindow			*parent,
 	wxWindowID			id,
@@ -316,7 +321,7 @@ int		yDiff;
 // virtual
 wxSize wxColumnHeader::DoGetBestSize( void ) const
 {
-wxCoord	width, height;
+wxCoord		width, height;
 
 	// best width is parent's width; height is fixed by native drawing routines
 	GetParent()->GetClientSize( &width, &height );
@@ -326,7 +331,7 @@ wxCoord	width, height;
 	HDLAYOUT	hdl;
 	WINDOWPOS	wp;
 	HWND		targetViewRef;
-	RECT		boundsR;
+	RECT			boundsR;
 
 		targetViewRef = GetHwnd();
 		boundsR.left = boundsR.top = 0;
@@ -599,6 +604,9 @@ void wxColumnHeader::DeleteItem(
 			}
 			else
 				DisposeItemList();
+
+			// NB: AppendItem doesn't do this
+			SetViewDirty();
 		}
 	}
 }
@@ -716,22 +724,32 @@ bool					bResultV;
 	return bResultV;
 }
 
-void wxColumnHeader::GetItemBounds(
-	long			itemIndex,
-	wxRect		*boundsR )
+bool wxColumnHeader::GetItemBounds(
+	long				itemIndex,
+	wxRect			*boundsR )
 {
 wxColumnHeaderItem		*itemRef;
+bool					bResultV;
 
 	if (boundsR == NULL)
-		return;
+		return false;
 
 	itemRef = GetItemRef( itemIndex );
-	if (itemRef != NULL)
+	bResultV = (itemRef != NULL);
+
+	// is this item beyond the right edge?
+	if (bResultV)
+		bResultV = (itemRef->m_OriginX < m_NativeBoundsR.width);
+
+	if (bResultV)
 	{
 		boundsR->x = itemRef->m_OriginX;
 		boundsR->y = m_NativeBoundsR.y;
-		boundsR->width = itemRef->m_ExtentX;
+		boundsR->width = itemRef->m_ExtentX + 1;
 		boundsR->height = m_NativeBoundsR.height;
+
+		if (boundsR->width > m_NativeBoundsR.width - itemRef->m_OriginX)
+			boundsR->width = m_NativeBoundsR.width - itemRef->m_OriginX;
 	}
 	else
 	{
@@ -740,6 +758,8 @@ wxColumnHeaderItem		*itemRef;
 		boundsR->width =
 		boundsR->height = 0;
 	}
+
+	return bResultV;
 }
 
 wxColumnHeaderItem * wxColumnHeader::GetItemRef(
@@ -935,7 +955,8 @@ long		itemCount, i;
 
 long wxColumnHeader::Draw( void )
 {
-long		errStatus;
+wxRect		boundsR;
+long			errStatus;
 
 	errStatus = 0;
 
@@ -946,26 +967,25 @@ long		errStatus;
 	// add selection indicator - no Win32 native mechanism exists
 	if (m_ItemSelected >= 0)
 	{
-	wxColumnHeaderItem		*itemRef;
-
-		itemRef = GetItemRef( m_ItemSelected );
-		if (itemRef != NULL)
+		if (GetItemBounds( m_ItemSelected, &boundsR ))
 		{
 		wxClientDC		dc( this );
 
-			itemRef->MSWRenderSelection( &dc, &m_NativeBoundsR );
+			wxColumnHeaderItem::MSWRenderSelection( &dc, &boundsR );
 		}
 	}
 
 #elif defined(__WXMAC__)
 	// no DC needed for Mac rendering (yet)
 	for (long i=0; i<m_ItemCount; i++)
-		errStatus |= m_ItemList[i]->DrawItem( this, NULL, &m_NativeBoundsR );
+		if (GetItemBounds( i, &boundsR ))
+			errStatus |= m_ItemList[i]->DrawItem( this, NULL, &boundsR );
 #else
 wxClientDC	dc( this );
 
 	for (long i=0; i<m_ItemCount; i++)
-		errStatus |= m_ItemList[i]->DrawItem( this, &dc, &m_NativeBoundsR );
+		if (GetItemBounds( i, &boundsR ))
+			errStatus |= m_ItemList[i]->DrawItem( this, &dc, &boundsR );
 #endif
 
 	return errStatus;
@@ -1167,31 +1187,6 @@ long		resultV;
 // ================
 #if 0
 #pragma mark -
-#endif
-
-#if 0
-// static
-void wxColumnHeader::GetDefaultRect(
-	HWND			viewRef,
-	wxRect			&boundsR )
-{
-	boundsR.left =
-	boundsR.top =
-	boundsR.right =
-	boundsR.bottom = 0;
-
-	if (viewRef != NULL)
-	{
-#if defined(__WXMSW__)
-		GetClientRect( viewRef, boundsR );
-#else
-#endif
-
-		// FIXME: hacky sizing stuff, but practical for the moment...
-		OffsetRect( boundsR, -boundsR->left, -boundsR->top );
-		boundsR->bottom = boundsR->top + 20;
-	}
-}
 #endif
 
 void wxColumnHeader::GenerateEvent(
@@ -1427,6 +1422,7 @@ long wxColumnHeaderItem::DrawItem(
 	wxClientDC		*dc,
 	const wxRect		*boundsR )
 {
+//	if ((boundsR == NULL) || boundsR->IsEmpty())
 	if (boundsR == NULL)
 		return (-1L);
 
@@ -1436,27 +1432,22 @@ long wxColumnHeaderItem::DrawItem(
 
 #elif defined(__WXMAC__)
 ThemeButtonDrawInfo		drawInfo;
+RgnHandle				savedClipRgn;
 Rect					qdBoundsR;
 long					nativeTextJust;
 OSStatus				errStatus;
 
-	// is this item beyond the right edge?
-	if (m_OriginX >= boundsR->width)
-	{
-		//wxLogDebug( _T("wxColumnHeaderItem::DrawItem - bailout!") );
-		return (-1L);
-	}
-
 	errStatus = noErr;
 
-//	qdBoundsR.left = boundsR->x + m_OriginX;
-//	qdBoundsR.top = boundsR->y;
-	qdBoundsR.left = m_OriginX;
-	qdBoundsR.right = qdBoundsR.left + m_ExtentX + 1;
-	if (qdBoundsR.right > boundsR->width)
-		qdBoundsR.right = boundsR->width;
+	qdBoundsR.left = boundsR->x;
+	qdBoundsR.right = qdBoundsR.left + boundsR->width;
 	qdBoundsR.top = 0;
 	qdBoundsR.bottom = qdBoundsR.top + boundsR->height;
+
+	// clip down to the item bounds
+	savedClipRgn = NewRgn();
+	GetClip( savedClipRgn );
+	ClipRect( &qdBoundsR );
 
 	// a broken, dead attempt to tinge the background
 // Collection	origCol, newCol;
@@ -1481,8 +1472,8 @@ OSStatus				errStatus;
 //	drawInfo.adornment = kThemeAdornmentArrowDownArrow;
 
 	// NB: DrawThemeButton height is fixed, regardless of the boundsRect argument!
-	if (m_BSelected && ! m_BSortEnabled)
-		MacDrawThemeBackgroundNoArrows( &qdBoundsR );
+	if (! m_BSortEnabled)
+		MacDrawThemeBackgroundNoArrows( &qdBoundsR, m_BSelected );
 	else
 		errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
 
@@ -1538,6 +1529,10 @@ OSStatus				errStatus;
 	}
 #endif
 
+	// restore the clip region
+	SetClip( savedClipRgn );
+	DisposeRgn( savedClipRgn );
+
 	return (long)errStatus;
 #else
 
@@ -1551,15 +1546,13 @@ wxPoint			labelTextSize;
 long				originX, insetX;
 
 	// leverage native (GTK) wxRenderer
-	localBoundsR.x = boundsR->x + m_OriginX;
-	localBoundsR.y = boundsR->y;
-	localBoundsR.width = m_ExtentX;
-	localBoundsR.height = boundsR->height;
+	localBoundsR = *boundsR;
+	localBoundsR.y = 0;
 	wxRendererNative::Get().DrawHeaderButton( parentW, *dc, localBoundsR );
 
 #else
 
-	// old way - copied from generic wxRenderer
+	// unused - copied from generic wxRenderer
 const int			kCorner = 1;
 const wxCoord		x = boundsR->x;
 const wxCoord		y = boundsR->y;
@@ -1636,6 +1629,7 @@ const wxCoord		h = boundsR->height;
 #endif
 
 #if defined(__WXMSW__)
+// static
 void wxColumnHeaderItem::MSWRenderSelection(
 	wxClientDC			*dc,
 	const wxRect			*boundsR )
@@ -1649,14 +1643,17 @@ COLORREF		targetColor;
 	if ((dc == NULL) || (boundsR == NULL))
 		return;
 
+	// rendering effects under consideration:
+	//	frameRect( 2 pixels ), fillRect( 25-50% gray ), rollover bar (orange)
+
 	// compute the sub-item bounds rect
-	gdiBoundsR.left = m_OriginX;
-	gdiBoundsR.right = gdiBoundsR.left + m_ExtentX + 1;
+	gdiBoundsR.left = boundsR->x;
+	gdiBoundsR.right = gdiBoundsR.left + boundsR->width;
 	gdiBoundsR.top = boundsR->y;
 	gdiBoundsR.bottom = gdiBoundsR.top + boundsR->height;
 
 	// now...frame it
-	targetHDC =  GetHdcOf( *dc );
+	targetHDC = GetHdcOf( *dc );
 
 	//targetPen = CreatePen( PS_SOLID, 2, 0 );
 	//prevPen = ::SelectObject( targetPen );
@@ -1672,35 +1669,39 @@ COLORREF		targetColor;
 #if defined(__WXMAC__)
 // static
 void wxColumnHeaderItem::MacDrawThemeBackgroundNoArrows(
-	const void				*boundsR )
+	const void				*boundsR,
+	bool					bSelected )
 {
 ThemeButtonDrawInfo	drawInfo;
 Rect				qdBoundsR;
 RgnHandle			savedClipRgn;
 OSStatus			errStatus;
-bool				bSelected;
 
 	if ((boundsR == NULL) || EmptyRect( (const Rect*)boundsR ))
 		return;
 
-	bSelected = true;
 	qdBoundsR = *(const Rect*)boundsR;
 
+	// NB: zero draws w/o theme background shading
+	drawInfo.value = (SInt32)bSelected;
 	drawInfo.state = (bSelected ? kThemeStateActive: kThemeStateInactive);
-	drawInfo.value = (SInt32)bSelected;	// zero draws w/o theme background shading
 	drawInfo.adornment = kThemeAdornmentNone;
 
+	// clip down to the item bounds
 	savedClipRgn = NewRgn();
 	GetClip( savedClipRgn );
 	ClipRect( &qdBoundsR );
 
+	// first, render the entire area normally: fill, border and arrows
+	errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
+
+	// now render fill over the arrows, but preserve the right-side one-pixel border
+	qdBoundsR.right--;
+	ClipRect( &qdBoundsR );
 	qdBoundsR.right += 25;
 	errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
 
-	// NB: draw the right-side one-pixel border
-	// qdBoundsR.left = qdBoundsR.right - 25;
-	// errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
-
+	// restore the clip region
 	SetClip( savedClipRgn );
 	DisposeRgn( savedClipRgn );
 }
