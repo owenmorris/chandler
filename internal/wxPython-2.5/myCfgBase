@@ -1,0 +1,16 @@
+#----------------------------------------------------------------------
+# This file defines the common configure flags I use for all my
+# wxWindows builds for the various configure-based ports.
+#----------------------------------------------------------------------
+
+
+BASE_CFG_FLAGS="--with-opengl --enable-debug  --enable-geometry --enable-sound --with-sdl --enable-display --prefix=/opt/wx/2.5"
+
+
+
+function DoConfigure {
+    echo "---------------------------------------------------------"
+    echo ../configure $PORT_CFG_FLAGS $BASE_CFG_FLAGS
+    echo "---------------------------------------------------------"
+    ../configure $PORT_CFG_FLAGS $BASE_CFG_FLAGS
+}

@@ -1,0 +1,10 @@
+Document: wx-manual
+Title: wxWidgets Programming Manual
+Author: The wxWidgets Cabal
+Abstract: This manual describes the wxWidgets cross-platform GUI toolkit.
+Section: Apps/Programming
+
+Format: HTML
+Index: /usr/share/doc/wx=V-doc/wx-manual.html/wxwin.htm
+Files: /usr/share/doc/wx=V-doc/wx-manual.html/*
+

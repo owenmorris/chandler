@@ -1,0 +1,17 @@
+#!/bin/bash
+
+mkdir _docs_tmp
+cd _docs_tmp
+
+cp ../docs/latex/wx/*.gif ../docs/html/wx
+cp ../docs/latex/wx/*.css ../docs/html/wx
+
+../utils/tex2rtf/src/tex2rtf  ../docs/latex/wx/manual.tex \
+	../docs/html/wx/wx.htm \
+	-twice -html \
+	-macros ../docs/latex/wx/tex2rtf_css.ini
+
+cd ..
+rm -r _docs_tmp
+
+
