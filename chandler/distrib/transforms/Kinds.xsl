@@ -124,8 +124,11 @@
 						</td>
 						<td>
 						    <!-- itemName -->
-						    <xsl:apply-templates select = "." mode="derefHref"/>
-							
+						    <xsl:apply-templates select = "." mode="derefHref">
+                               <xsl:with-param name="text">
+                                  <xsl:apply-templates mode="quickRef" select = "@itemref" />
+                               </xsl:with-param>
+							</xsl:apply-templates>
 						</td>
 						<td>
 						    <!-- cardinality -->

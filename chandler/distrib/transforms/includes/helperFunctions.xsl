@@ -253,6 +253,7 @@
 
 <!-- Dereference the given itemref and create an href to the resulting item-->
    <xsl:template match="*" mode="derefHref">
+      <xsl:param name="text" />
       <xsl:variable name="ref">
          <xsl:apply-templates select="@itemref" mode="quickRef" />
       </xsl:variable>
@@ -261,11 +262,15 @@
       </xsl:variable>
       <xsl:choose>
          <xsl:when test="$relpath=''">
-            <xsl:apply-templates select="/core:Parcel/*[@itemName=$ref]" mode="getHrefAnchor"/>
+            <xsl:apply-templates select="/core:Parcel/*[@itemName=$ref]" mode="getHrefAnchor">
+               <xsl:with-param name="text" select="$text" />
+            </xsl:apply-templates>
          </xsl:when>
          <xsl:otherwise>
             <xsl:variable name="otherdoc" select="document(concat($relpath, $constants.parcelFileName), /)" />
-            <xsl:apply-templates select="$otherdoc/core:Parcel/*[@itemName=$ref]" mode="getHrefAnchor"/>
+            <xsl:apply-templates select="$otherdoc/core:Parcel/*[@itemName=$ref]" mode="getHrefAnchor">
+               <xsl:with-param name="text" select="$text" />
+            </xsl:apply-templates>
          </xsl:otherwise>
       </xsl:choose>
    </xsl:template>
