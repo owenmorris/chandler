@@ -302,6 +302,22 @@ def getItem(dav):
         # toss this in to the itemMap so we can find it later
         sharing.itemMap[origUUID] = newItem.itsUUID
 
-    dav.sync(newItem)
+
+    if newItem.isItemOf(Globals.repository.findPath('//parcels/osaf/contentmodel/ItemCollection')):
+        contentItemKind = Globals.repository.findPath('//parcels/osaf/contentmodel/ContentItem')
+        for i in newItem:
+            clouds = i.itsKind.getClouds('default')
+            for cloud in clouds:
+                for k in cloud.getItems(i):
+                    # we only support publishing content items
+                    
+                    if not k.isItemOf(contentItemKind):
+                        print 'Skipping %s -- Not a ContentItem' % (str(k))
+                        continue
+                    if not k.hasAttributeValue('sharedURL'):
+                        continue
+                    Dav.DAV(k.sharedURL).sync(k)
+    else:
+        dav.sync(newItem)
 
     return newItem
