@@ -16,6 +16,7 @@ import os, hardhatutil, sys, re
 
 
 treeName = "Chandler"
+path = os.environ.get('PATH', os.environ.get('path'))
 cvsProgram = hardhatutil.findInPath(path, "cvs")
 
 def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
@@ -125,8 +126,6 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     log.write("Performing " + mode + " build, version " + buildVersion + "\n")
     buildVersionEscaped = "\'" + buildVersion + "\'"
     buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
-
-    path = os.environ.get('PATH', os.environ.get('path'))
 
     modeDir = os.path.join(workingDir, mode)
 
