@@ -603,7 +603,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.SetDragData (self.blockItem.contents [event.GetRow()].itsUUID)
 
     def AddItem(self, itemUUID):
-        item = self.findUUID(itemUUID)
+        item = self.blockItem.findUUID(itemUUID)
         self.blockItem.contents.add (item)
 
     def OnRightClick(self, event):

@@ -32,11 +32,40 @@ class wxSidebar(ControlBlocks.wxTable):
     def AddItem(self, itemUUID):
         item = self.blockItem.findUUID(itemUUID)
         self.blockItem.contents[self.dropRow].add(item)
+        self.SetRowHighlight(self.dropRow, False)
     
     def OnItemDrag(self, event):
         # @@@ You currently can't drag out of the sidebar
         pass
 
+    def OnHover(self, x, y):
+        hoverRow = self.YToRow(y)
+        try:
+            self.hoverRow
+        except AttributeError:
+            # If it's our first time hovering then set previous state to be NOT_FOUND
+            self.hoverRow = wx.NOT_FOUND
+        else:
+            # Clear the selection colour if necessary
+            if self.hoverRow != wx.NOT_FOUND and self.hoverRow != hoverRow:
+                self.SetRowHighlight(self.hoverRow, False)
+                
+            # Colour the item if it exists and isn't already coloured
+            if hoverRow != wx.NOT_FOUND and hoverRow != self.hoverRow:
+                self.SetRowHighlight(hoverRow, True)
+            
+            # Store current state
+            self.hoverRow = hoverRow
+            
+    def SetRowHighlight(self, row, highlightOn):
+        if highlightOn:
+            self.SetCellBackgroundColour(row, 0, wx.LIGHT_GREY)
+        else:
+            self.SetCellBackgroundColour(row, 0, wx.WHITE)
+        # Just invalidate the changed rect
+        rect = self.CellToRect(row, 0)
+        self.RefreshRect(rect)
+        self.Update()
     
 class Sidebar (ControlBlocks.Table):
     def instantiateWidget (self):
