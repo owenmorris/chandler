@@ -168,6 +168,8 @@ class XMLRepository(OnDemandRepository):
                                    "node-element-equality-string")
                 self._xml.addIndex(txn, "", "name",
                                    "node-element-equality-string")
+                self._xml.addIndex(txn, "", "id",
+                                   "node-attribute-equality-string")
             else:
                 self._xml.open(txn, DB_DIRTY_READ | DB_THREAD)
 
@@ -680,6 +682,8 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 return
 
     def cancel(self):
+
+        self._abortTransaction()
 
         for item in self._log:
             if item.isDeleted():

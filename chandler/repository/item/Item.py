@@ -156,18 +156,20 @@ class Item(object):
         isItem = isinstance(value, Item)
         isRef = not isItem and (isinstance(value, ItemRef) or
                                 isinstance(value, RefDict))
+        old = None
 
         if _attrDict is None:
             if self._values.has_key(name):
                 _attrDict = self._values
             elif self._references.has_key(name):
                 _attrDict = self._references
+            elif self.getAttributeAspect(name, 'otherName', default=None):
+                _attrDict = self._references
+            else:
+                _attrDict = self._values
 
         if _attrDict is self._references:
-            if not (isItem or isRef):
-                del _attrDict[name]
-
-            elif name in _attrDict:
+            if name in _attrDict:
                 old = _attrDict[name]
 
                 if isinstance(old, ItemRef):
@@ -177,7 +179,8 @@ class Item(object):
                                      self._otherName(name))
                         return value
                     elif isRef:
-                        # reattaching on other endpoint, can't reuse ItemRef
+                        # reattaching on other endpoint,
+                        # can't reuse ItemRef
                         old.detach(self, name, old.other(self),
                                    self._otherName(name))
                     else:
@@ -209,10 +212,19 @@ class Item(object):
             self._references[name] = value
 
         elif isinstance(value, list):
-            companion = self.getAttributeAspect(name, 'companion',
-                                                default=None)
-            value = PersistentList(self, companion, *value)
-            self._values[name] = value
+            if _attrDict is self._references:
+                if old is None:
+                    self._references[name] = refDict = self._refDict(name)
+                else:
+                    assert isinstance(old, RefDict)
+                    refDict = old
+                refDict.extend(value)
+                value = refDict
+            else:
+                companion = self.getAttributeAspect(name, 'companion',
+                                                    default=None)
+                value = PersistentList(self, companion, *value)
+                self._values[name] = value
             
         elif isinstance(value, dict):
             companion = self.getAttributeAspect(name, 'companion',
@@ -288,13 +300,13 @@ class Item(object):
             del _attrDict[name]
         elif _attrDict is self._references:
             value = _attrDict[name]
-            del _attrDict[name]
 
             if isinstance(value, ItemRef):
                 value.detach(self, name,
                              value.other(self), self._otherName(name))
             elif isinstance(value, RefDict):
                 value.clear()
+                del _attrDict[name]
             else:
                 raise ValueError, value
 
@@ -1105,12 +1117,29 @@ class Item(object):
     def _xmlAttrs(self, generator, withSchema, version, mode):
 
         for key, value in self._values.iteritems():
-            if self.getAttributeAspect(key, 'persist', default=True):
-                attrType = self.getAttributeAspect(key, 'type')
-                attrCard = self.getAttributeAspect(key, 'cardinality',
+            if self._kind is not None:
+                attribute = self._kind.getAttribute(key)
+            else:
+                attribute = None
+                
+            if attribute is not None:
+                persist = attribute.getAspect('persist', default=True)
+            else:
+                persist = True
+
+            if persist:
+                if attribute is not None:
+                    attrType = attribute.getAspect('type')
+                    attrCard = attribute.getAspect('cardinality',
                                                    default='single')
+                    attrId = attribute.getUUID()
+                else:
+                    attrType = None
+                    attrCard = 'single'
+                    attrId = None
+                
                 ItemHandler.xmlValue(key, value, 'attribute',
-                                     attrType, attrCard, generator,
+                                     attrType, attrCard, attrId, generator,
                                      withSchema)
 
     def _xmlRefs(self, generator, withSchema, version, mode):

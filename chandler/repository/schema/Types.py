@@ -478,7 +478,7 @@ class Dictionary(Collection):
 
         generator.startElement('values', {})
         for key, val in value._iteritems():
-            ItemHandler.xmlValue(key, val, 'value', None, 'single',
+            ItemHandler.xmlValue(key, val, 'value', None, 'single', None,
                                  generator, False)
         generator.endElement('values')
 
@@ -497,7 +497,7 @@ class List(Collection):
 
         generator.startElement('values', {})
         for val in value._itervalues():
-            ItemHandler.xmlValue(None, val, 'value', None, 'single',
+            ItemHandler.xmlValue(None, val, 'value', None, 'single', None,
                                  generator, False)
         generator.endElement('values')
     

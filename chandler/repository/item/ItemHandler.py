@@ -488,7 +488,7 @@ class ItemHandler(xml.sax.ContentHandler):
         else:
             return str(value)
             
-    def xmlValue(cls, name, value, tag, attrType, attrCard,
+    def xmlValue(cls, name, value, tag, attrType, attrCard, attrId,
                  generator, withSchema):
 
         attrs = {}
@@ -502,6 +502,9 @@ class ItemHandler(xml.sax.ContentHandler):
                 attrs['name'] = str(name)
             else:
                 attrs['name'] = name
+
+        if attrId is not None:
+            attrs['id'] = attrId.str64()
 
         if attrCard == 'single':
             if attrType is not None and attrType.isAlias():
@@ -528,14 +531,14 @@ class ItemHandler(xml.sax.ContentHandler):
                 if isinstance(value, PersistentDict):
                     for key, val in value._iteritems():
                         cls.xmlValue(key, val, 'value', attrType, 'single',
-                                     generator, withSchema)
+                                     None, generator, withSchema)
                 else:
                     raise TypeError, 'dict is not persistent'
             elif isinstance(value, list):
                 if isinstance(value, PersistentList):
                     for val in value._itervalues():
                         cls.xmlValue(None, val, 'value', attrType, 'single',
-                                     generator, withSchema)
+                                     None, generator, withSchema)
                 else:
                     raise TypeError, 'list is not persistent'
             elif isinstance(value, repository.item.Item.Item):
