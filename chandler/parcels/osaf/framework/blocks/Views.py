@@ -123,6 +123,10 @@ class View(BoxContainer):
         
     def OnUndoEventUpdateUI (self, notification):
         notification.data ['Text'] = 'Undo Command\tCtrl+Z'
+        notification.data ['Enable'] = False
+
+    def OnRedoEventUpdateUI (self, notification):
+        notification.data ['Enable'] = False
 
     def OnCutEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
@@ -132,7 +136,22 @@ class View(BoxContainer):
 
     def OnPasteEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
+        
+    def OnPreferencesEventUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+        
+    def OnViewSidebarEventUpdateUI (self, notification):
+        notification.data ['Enable'] = False
 
+    def OnViewNavigationBarEventUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def OnViewBookmarksBarEventUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+
+    def OnViewStatusBarEventUpdateUI (self, notification):
+        notification.data ['Enable'] = False
+    
     # Test Methods
 
     def OnGenerateContentItems(self, notification):
