@@ -166,7 +166,9 @@ class ShareConduit(ContentModel.ChandlerItem):
             self.resourceList = self._getResourceList(location)
 
             for item in self.share.contents:
-                self.__conditionalPutItem(item, skipItems)
+
+                if not item.isPrivate:
+                    self.__conditionalPutItem(item, skipItems)
 
             self.__conditionalPutItem(self.share, skipItems)
 
@@ -1719,7 +1721,22 @@ def manualSubscribeToCollection(view):
         return
 
     share = newInboundShare(view, url)
-    share.get()
+    if share is None:
+        return
+
+    try:
+        share.get()
+    except SharingError, err:
+        msg = "Error syncing '%s'\n" % url
+        msg += "using the '%s' account:\n\n" % share.conduit.account.getItemDisplayName()
+        msg += err.message
+        application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                                    "Synchronization Error", msg)
+        share.conduit.delete()
+        share.format.delete()
+        share.delete()
+        return
+
     collection = share.contents
     mainView = Globals.views[0]
     mainView.postEventByName ("AddToSidebarWithoutCopying", {'items':[collection]})
@@ -1748,7 +1765,18 @@ def manualPublishCollection(view, collection):
         msg = "There is already a share at:\n%s" % share.conduit.getLocation()
         application.dialogs.Util.ok(wx.GetApp().mainFrame,
                                     "Share exists", msg)
+        share.conduit.delete()
+        share.format.delete()
+        share.delete()
         return
 
-    share.create()
-    share.put()
+    try:
+        share.create()
+        share.put()
+    except SharingError, err:
+        msg = "Error syncing the '%s' collection\n" % share.contents.getItemDisplayName()
+        msg += "using the '%s' account:\n\n" % share.conduit.account.getItemDisplayName()
+        msg += err.message
+        application.dialogs.Util.ok(wx.GetApp().mainFrame,
+                                    "Synchronization Error", msg)
+

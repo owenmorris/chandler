@@ -12,24 +12,38 @@
     >
 
     <share:WebDAVAccount itsName="OSAFWebDAVAccount">
-        <displayName value="OSAF WebDAV Account"/>
+        <displayName value="OSAF WebDAV"/>
         <currentItemOf itemref="current:WebDAVAccount"/>
         <host value="pilikia.osafoundation.org"/>
-        <path value="dev1"/>
+        <path value="/dev1"/>
         <username value="dev1"/>
         <password value="d4vShare"/>
         <useSSL value="False"/>
         <port value="80"/>
     </share:WebDAVAccount>
 
+    <share:WebDAVAccount itsName="XythosWebDAVAccount">
+        <displayName value="Xythos WebDAV"/>
+        <host value="www.sharemation.com"/>
+        <path value="/OSAFdot5"/>
+        <username value="OSAFdot5"/>
+        <password value="osafdemo"/>
+        <useSSL value="False"/>
+        <port value="80"/>
+    </share:WebDAVAccount>
+
     <share:WebDAVAccount itsName="VenueWebDAVAccount">
-        <displayName value="Venue WebDAV Account"/>
+        <displayName value="Venue WebDAV"/>
         <host value="webdav.venuecom.com"/>
         <path value="/calendar/OSAFdot5/calendars"/>
         <username value="OSAFdot5"/>
         <password value="demo"/>
         <useSSL value="False"/>
         <port value="80"/>
+    </share:WebDAVAccount>
+
+    <share:WebDAVAccount itsName="CustomWebDAVAccount">
+        <displayName value="Custom WebDAV"/>
     </share:WebDAVAccount>
 
 </Parcel>

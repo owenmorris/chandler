@@ -6,7 +6,10 @@ import ICalendar
 import application.Globals as Globals
 from repository.item.Query import KindQuery
 import application.dialogs.Util
+import application.Parcel
 
+SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
+CONTENTMODEL = "http://osafoundation.org/parcels/osaf/contentmodel"
 
 class ShareToolDialog(wx.Dialog):
 
@@ -78,7 +81,7 @@ class ShareToolDialog(wx.Dialog):
         for item in KindQuery().run([shareKind]):
             self.shares.append(item)
             display = "'%s' -- %s" % (item.getItemDisplayName(),
-             item.conduit.getLocation())
+             item.conduit.account.getItemDisplayName())
             self.sharesList.Append(display)
 
     def OnRefresh(self, evt):
@@ -206,43 +209,41 @@ class ShareEditorDialog(wx.Dialog):
         self.textTitle = wx.xrc.XRCCTRL(self, "TEXT_TITLE")
         wx.EVT_SET_FOCUS(self.textTitle, self.OnFocusGained)
         self.choiceColl = wx.xrc.XRCCTRL(self, "CHOICE_COLL")
-        self.textServer = wx.xrc.XRCCTRL(self, "TEXT_SERVER")
-        wx.EVT_SET_FOCUS(self.textServer, self.OnFocusGained)
-        self.textUsername = wx.xrc.XRCCTRL(self, "TEXT_USERNAME")
-        wx.EVT_SET_FOCUS(self.textUsername, self.OnFocusGained)
-        self.textPassword = wx.xrc.XRCCTRL(self, "TEXT_PASSWORD")
-        wx.EVT_SET_FOCUS(self.textPassword, self.OnFocusGained)
-        self.textSharePath = wx.xrc.XRCCTRL(self, "TEXT_SHAREPATH")
-        wx.EVT_SET_FOCUS(self.textSharePath, self.OnFocusGained)
+        self.choiceAccount = wx.xrc.XRCCTRL(self, "CHOICE_ACCOUNT")
         self.textShareName = wx.xrc.XRCCTRL(self, "TEXT_SHARENAME")
         wx.EVT_SET_FOCUS(self.textShareName, self.OnFocusGained)
 
         if join:
             self.choiceColl.Disable()
 
-        if share is not None:
-            self.textTitle.SetValue(share.getItemDisplayName())
-            self.textServer.SetValue(share.conduit.host)
-            self.textUsername.SetValue(share.conduit.username)
-            self.textPassword.SetValue(share.conduit.password)
-            self.textSharePath.SetValue(share.conduit.sharePath)
-            self.textShareName.SetValue(share.conduit.shareName)
+        if share is not None: # share provided
 
-            # self.textServer.Disable()
-            # self.textSharePath.Disable()
-            # self.textShareName.Disable()
-        else:
-            self.textTitle.SetValue("Enter a descriptive title")
+            self.textTitle.SetValue(share.getItemDisplayName())
+            self.textShareName.SetValue(share.conduit.shareName)
+            account = share.conduit.account
+
+        else: # creating the share
+
             account = Sharing.getWebDAVAccount(self.view)
-            if account is not None:
-                self.textServer.SetValue(account.host)
-                self.textUsername.SetValue(account.username)
-                self.textPassword.SetValue(account.password)
-                self.textSharePath.SetValue(account.path)
+            self.textTitle.SetValue("Enter a descriptive title")
             self.textShareName.SetValue("Enter directory name to use")
 
+        pm = application.Parcel.Manager.get(self.view)
+        accountKind = pm.lookup(SHARING, "WebDAVAccount")
+
+        self.accounts = []
+        i = 0
+        for item in KindQuery().run([accountKind]):
+            self.accounts.append(item)
+            self.choiceAccount.Append(item.getItemDisplayName())
+            if account is item:
+                defaultChoice = i
+            i += 1
+        self.choiceAccount.SetSelection(defaultChoice)
+
         if not join:
-            collKind = self.view.findPath("//parcels/osaf/contentmodel/ItemCollection")
+            collKind = pm.lookup(CONTENTMODEL, "ItemCollection")
+
             self.collections = []
             i = 1
             for item in KindQuery().run([collKind]):
@@ -271,11 +272,10 @@ class ShareEditorDialog(wx.Dialog):
 
     def OnOk(self, evt):
         title = self.textTitle.GetValue()
-        server = self.textServer.GetValue()
-        username = self.textUsername.GetValue()
-        password = self.textPassword.GetValue()
-        sharePath = self.textSharePath.GetValue()
         shareName = self.textShareName.GetValue()
+
+        accountIndex = self.choiceAccount.GetSelection() - 1
+        account = self.accounts[accountIndex]
 
         if not self.join:
             collIndex = self.choiceColl.GetSelection() - 1
@@ -283,13 +283,8 @@ class ShareEditorDialog(wx.Dialog):
 
         if self.share is None:
             conduit = Sharing.WebDAVConduit(
-             host=server,
-             port=80,
-             useSSL=False,
-             sharePath=sharePath,
+             account=account,
              shareName=shareName,
-             username=username,
-             password=password,
              view=self.view
             )
             if shareName.endswith('.ics'):
@@ -305,10 +300,7 @@ class ShareEditorDialog(wx.Dialog):
             self.share.displayName = title
         else:
             self.share.displayName = title
-            self.share.conduit.host = server
-            self.share.conduit.username = username
-            self.share.conduit.password = password
-            self.share.conduit.sharePath = sharePath
+            self.share.conduit.account = account
             self.share.conduit.shareName = shareName
             self.share.contents = collection
 
