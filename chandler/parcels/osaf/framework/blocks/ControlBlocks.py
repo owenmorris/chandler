@@ -230,8 +230,14 @@ class AttributeDelegate (ListDelegate):
             attributeName = self.blockItem.columnData [column]
             attribute = item.itsKind.getAttribute (attributeName)
             heading = attribute.getItemDisplayName()
+            redirect = item.getAttributeAspect(attributeName, 'redirectTo')
+            if redirect is not None:
+                names = redirect.split('.')
+                for name in names [:-1]:
+                    item = item.getAttributeValue (name)
+                actual = item.itsKind.getAttribute (names[-1]).getItemDisplayName()
+                heading = "%s (%s)" % (heading, actual)
         return heading
-
 
 class wxList (DraggableWidget, wx.ListCtrl):
     def __init__(self, *arguments, **keywords):
