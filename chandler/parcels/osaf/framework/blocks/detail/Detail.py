@@ -1086,18 +1086,19 @@ class EditTimeAttribute (EditRedirectAttribute):
         if validate:
             dateString = widget.GetValue().strip('?')
             (theDate, dateOnly) = self.parseDateTime (dateString)
-            try:
+            
+            if theDate is not None:
                 # save the new Date/Time into the startTime attribute
                 item.ChangeStart (theDate)
                 item.anyTime = dateOnly and not item.allDay
-            except:
-                # @@@DLD figure out reasonable exceptions to catch during conversion
-                dateString = dateString + '?'
-            else:
+                
+                # and reformat it to put back in the box.
                 format = (item.allDay or item.anyTime) and self.dateFormat or self.dateTimeFormat
                 dateString = theDate.strftime (format)
+            else:
+                # @@@DLD figure out reasonable exceptions to catch during conversion
+                dateString = dateString + '?'
                 
-    
             # redisplay the processed Date/Time in the widget
             widget.SetValue(dateString)
 
