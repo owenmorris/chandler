@@ -10,6 +10,9 @@ import sys, os, os.path
 def quoteString(str):
     return "\'" + str + "\'"
 
+def unescapeSpaces(str):
+    return str.replace("|", " ")
+
 def escapeBackslashes(str):
     return str.replace("\\", "\\\\")
 
@@ -19,10 +22,15 @@ def executeCommand(logfile, showenv, args):
     # for arg in args:
     #     print arg
 
-    # if os.path.exists( args[0] ):
-    #     print args[0], "exists"
-    # else:
-    #     print args[0], "doesn't exist"
+    if os.name == 'nt' and sys.platform != 'cygwin':
+        args[0] = unescapeSpaces(args[0])
+
+    if os.path.exists( args[0] ):
+        # print args[0], "exists"
+        pass
+    else:
+        print args[0], "doesn't exist"
+        return 127 # file not found
 
     args = map(escapeBackslashes, args)
 

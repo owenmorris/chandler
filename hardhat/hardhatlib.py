@@ -765,6 +765,9 @@ def setupEnvironment(buildenv):
 def quoteString(str):
     return "\'" + str + "\'"
 
+def escapeSpaces(str):
+    return str.replace(" ", "|")
+
 def escapeBackslashes(str):
     return str.replace("\\", "\\\\")
 
@@ -786,6 +789,12 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
     # on windows the second one can't have spaces in it, so we just pass
     # in the basename()
     if buildenv['os'] == 'win' and sys.platform != 'cygwin':
+        # args[0] is the path to the exe we want wrapper to run.  If it has
+        # a space in it, it doesn't get passed to wrapper correctly (under
+        # windows), so convert spaces to pipes (which windows filenames
+        # aren't allowed to contain).  These will then get converted back
+        # to spaces inside wrapper.py
+        args[0] = escapeSpaces(args[0])
         args[:0] = [sys.executable, os.path.basename(sys.executable), wrapper, 
          logfile, showenv]
     else:
@@ -805,6 +814,7 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
 
     args_str = ','.join(args)
     execute_str = "exit_code = os.spawnl(os.P_WAIT," + args_str + ")"
+    # print execute_str
 
     log(buildenv, HARDHAT_MESSAGE, name, message)
     
