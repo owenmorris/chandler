@@ -6,10 +6,10 @@ names outside this package.
 """
 
 __all__ = [
-    'TestAllParcels', 'TestCircular', 'TestClasses', 'TestClouds',           
-    'TestCollections', 'TestCopying', 'TestDependency', 'TestItems',
-    'TestKindAndItem', 'TestLocalAttrs', 'TestParcelLoader', 'TestUuidOf',
-    'TestParcelPerf'
+    'TestAllParcels', 'TestAttributes', 'TestCircular', 'TestClasses', 
+    'TestClouds', 'TestCollections', 'TestCopying', 'TestDependency',
+    'TestItems', 'TestKindAndItem', 'TestLocalAttrs', 'TestParcelLoader',
+    'TestUuidOf', 'TestParcelPerf'
 ]
 
 def suite():

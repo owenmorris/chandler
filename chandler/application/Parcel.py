@@ -775,15 +775,34 @@ class Parcel(Item):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+class ParcelXMLElement:
+    """A helper class to track values for a given element inside
+    a parcel.xml file.
+    """
+    
+    def __init__(self, namespaceUri, elementName, attributes, elementType,
+         item, value, assignments, reloading):
+        self.namespaceUri = namespaceUri
+        self.elementName = elementName
+        self.attributes = attributes.copy()
+        self.elementType = elementType
+        self.item = item
+        self.value = value
+        self.assignments = assignments
+        self.reloading = reloading
+        
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 
 class ParcelItemHandler(xml.sax.ContentHandler):
     """ A SAX2 ContentHandler responsible for loading items into the 
         repository.
     """
-    _DELAYED_REFERENCE = 0
-    _DELAYED_LITERAL   = 1
-    _DELAYED_UUIDOF    = 2
-    _DELAYED_RESET     = 3
+    _DELAYED_REFERENCE  = 0
+    _DELAYED_LITERAL    = 1
+    _DELAYED_UUIDOF     = 2
+    _DELAYED_RESET      = 3
 
     def saveState(self, file=None, line=None):
         if not file:
@@ -804,7 +823,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         """SAX2 callback at the start of the document"""
 
         # Keep a stack of tags, to know where we are during processing
-        self.tags = []
+        self.elementStack = []
 
         # Keep track of namespace prefixes
         self.mapping = {}
@@ -815,8 +834,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         # For debugging, save a list of items we've generated for this file
         self.itemsCreated = []
-
-        self.currentItem = None
 
         # Get the parcel's parent
         parentRepoPath = self.repoPath[:self.repoPath.rfind('/')]
@@ -850,12 +867,25 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         self.saveState()
 
-        (uri, local, element,
-         item, handleItem, references, reloading) = self.tags[-1]
+        currentElement = self.elementStack[-1]
 
-        if element == 'Attribute' or element == 'Dictionary':
-            self.currentValue += content
+        if currentElement.elementType in ('Attribute', 'Subattribute'):
+            if currentElement.value is None:
+                if len(content.strip()) > 0: currentElement.value = ''
 
+            if type(currentElement.value) in (str, unicode):
+                currentElement.value += content
+                
+    def __getCurrentItem(self):
+        """Returns the most recent item in self's elementStack"""
+        
+        for index in range(0, len(self.elementStack)):
+            item = self.elementStack[-index - 1].item
+            if item is not None:
+                return item
+        return None
+        
+        
     def startElementNS(self, (uri, local), qname, attrs):
         """SAX2 callback for the beginning of a tag"""
 
@@ -867,6 +897,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             raise ParcelException(explanation)
 
         uri = self.manager._convertOldUris(uri)
+        
+        currentItem = None
+        currentValue = None
 
         nameString = None
         if attrs.has_key((None, 'itemName')):
@@ -875,6 +908,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             nameString = attrs.getValue((None, 'itemName'))
         elif attrs.has_key((None, 'itsName')):
             nameString = attrs.getValue((None, 'itsName'))
+            
         if nameString:
             # If it has an item name, it's an item
             element = 'Item'
@@ -894,41 +928,45 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
             # If we have the document root, use the parcel parent.
             # Otherwise, the currentItem is the parent.
-            if len(self.tags) > 0:
-                parent = self.currentItem
-            else:
+            parent = self.__getCurrentItem()
+            if parent is None:
                 parent = self.parcelParent
 
             self.currentAssignments = []
 
-            self.handleCurrentItem = self.manager.handleKind(self, kind)
-            if parent is None:
-                self.currentItem = None
-            else:                
+            if not self.manager.handleKind(self, kind):
+                element = 'Ignore'
+                
             # If the item already exists, we're reloading the item
-                self.currentItem = parent.getItemChild(nameString)
+            currentItem = parent.getItemChild(nameString)
 
-                if self.currentItem is not None:
-                    self.reloadingCurrentItem = True
-                else:
-                    self.reloadingCurrentItem = False
+            if currentItem is not None:
+                self.reloadingCurrentItem = True
+            else:
+                self.reloadingCurrentItem = False
                     
-                    if self.handleCurrentItem:
-                        self.currentItem = self.createItem(kind, parent,
-                                                           nameString, classString)
-                        self.itemsCreated.append(self.currentItem)
+                if element is not 'Ignore':
+                    currentItem = self.createItem(kind, parent,
+                                                  nameString, classString)
+                    self.itemsCreated.append(currentItem)
+
+        elif len(self.elementStack) > 0 and \
+             self.elementStack[-1].elementType == 'Ignore':
+            # If we're ignoring the current item, ignore its attributes, etc
+            # as well.
+            element = 'Ignore'
 
         elif attrs.has_key((None, 'uuidOf')):
             # We need to get the UUID of the target item and assign it
             # to the attribute
             element = 'UuidOf'
-            self.currentValue = attrs.getValue((None, 'uuidOf'))
+            currentValue = attrs.getValue((None, 'uuidOf'))
             self.currentCopyName = None
 
         elif attrs.has_key((None, 'itemref')):
             # If it has an itemref, assume its a reference attribute
             element = 'Reference'
-            self.currentValue = attrs.getValue((None, 'itemref'))
+            currentValue = attrs.getValue((None, 'itemref'))
             if attrs.has_key((None, 'copy')):
                 self.currentCopyName = attrs.getValue((None, 'copy'))
             else:
@@ -943,7 +981,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             print "Deprecation warning: 'ref' should be 'itemref' at", \
              self.locator.getSystemId(), self.locator.getLineNumber()
             element = 'Reference'
-            self.currentValue = attrs.getValue((None, 'ref'))
+            currentValue = attrs.getValue((None, 'ref'))
             if attrs.has_key((None, 'copy')):
                 self.currentCopyName = attrs.getValue((None, 'copy'))
             else:
@@ -953,57 +991,24 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             else:
                 self.currentAliasName = None
 
-        elif attrs.has_key((None, 'key')):
-            # If it has a key, assume its a dictionary of literals
-            element = 'Dictionary'
-            self.currentKey = attrs.getValue((None, 'key'))
-            if attrs.has_key((None, 'type')):
-                # Store the full path to the type item
-                (typeNamespace, typeName) = self.getNamespaceName(
-                 attrs.getValue((None, 'type')))
-                typeItem = self.manager.lookup(typeNamespace, typeName)
-                if typeItem is None:
-                    explanation = \
-                     "Type doesn't exist: %s:%s" % (typeNamespace, typeName)
-                    self.saveExplanation(explanation)
-                    raise ParcelException(explanation)
-                self.currentType = str(typeItem.itsPath) # TODO, perhaps
-                # instead of converting to string and back, just store item
-                # reference ?
-            else:
-                self.currentType = None
-            if attrs.has_key((None, 'value')):
-                self.currentValue = attrs.getValue((None, 'value'))
-            else:
-                self.currentValue = ''
-
         else:
-            # Otherwise, assume its a literal attribute
+            # Otherwise, assume it's a literal attribute
             element = 'Attribute'
-            if attrs.has_key((None, 'type')):
-                # Store the full path to the type item
-                (typeNamespace, typeName) = self.getNamespaceName(
-                 attrs.getValue((None, 'type')))
-                typeItem = self.manager.lookup(typeNamespace, typeName)
-                if typeItem is None:
-                    explanation = \
-                     "Type doesn't exist: %s:%s" % (typeNamespace, typeName)
-                    self.saveExplanation(explanation)
-                    raise ParcelException(explanation)
-                self.currentType = str(typeItem.itsPath) # TODO, perhaps
-                # instead of converting to string and back, just store item
-                # reference ?
+            
+            # ... except in some special cases!
+            
+            if len(self.elementStack) > 0:
 
-            else:
-                self.currentType = None
+                if self.elementStack[-1].elementType in ('Attribute', 'Subattribute'):
+                    element = 'Subattribute'
+
             if attrs.has_key((None, 'value')):
-                self.currentValue = attrs.getValue((None, 'value'))
-            else:
-                self.currentValue = ''
-
+                currentValue = attrs.getValue((None, 'value'))
+    
         # Add the tag to our context stack
-        self.tags.append((uri, local, element,
-                          self.currentItem, self.handleCurrentItem,
+        self.elementStack.append(ParcelXMLElement(uri, local, attrs,
+                          element, currentItem,
+                          currentValue,
                           self.currentAssignments,
                           self.reloadingCurrentItem))
 
@@ -1016,30 +1021,104 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         elementUri = uri
         elementLocal = local
-
-        (uri, local, element, currentItem, handleCurrentItem,
-         currentAssignments, reloadingCurrentItem) = self.tags[-1]
+        
+        currentElement = self.elementStack[-1]
+        currentItem = self.__getCurrentItem()
 
         # We have an item, add the collected attributes to the list
-        if element == 'Item':
-            if self.currentItem is not None:
-                self.delayedAssignments.append((self.currentItem,
-                                               self.currentAssignments))
+        if currentElement.elementType == 'Item':
+            if currentItem is not None:
+                self.delayedAssignments.append((currentItem, \
+                                                self.currentAssignments))
     
             # Look at the tags stack for the parent item, and the
             # parent references
-            if len(self.tags) >= 2:
-                self.currentItem = self.tags[-2][3]
-                self.handleCurrentItem = self.tags[-2][4]
-                self.currentAssignments = self.tags[-2][5]
-                self.reloadingCurrentItem = self.tags[-2][6]
+            if len(self.elementStack) >= 2:
+                nextElement = self.elementStack[-2]
+                self.currentAssignments = nextElement.assignments
+                self.reloadingCurrentItem = nextElement.reloading
+        elif currentElement.elementType in ('Attribute', 'Subattribute'):
+            currentType = None
+            if currentElement.attributes.has_key((None, 'type')):
+                # Store the full path to the type item
+                (typeNamespace, typeName) = \
+                 self.getNamespaceName(currentElement.attributes.getValue((None, 'type')))
+                currentType = self.manager.lookup(typeNamespace, typeName)
+                if currentType is None:
+                    explanation = \
+                     "Type doesn't exist: %s:%s" % (typeNamespace, typeName)
+                    self.saveExplanation(explanation)
+                    raise ParcelException(explanation)
+            
+            if elementLocal != "initialValue":
+                
+                if currentType is None:
+                    #
+                    # Possibly element is pointing to an attribute
+                    # of currentItem
+                    #
+                    if currentItem is None:
+                        explanation = "Neither attribute type or item specified"
+                        self.saveExplanation(explanation)
+                        raise ParcelException(explanation)
+    
+                    kindItem = currentItem.itsKind
+                    try:
+                        currentType = kindItem.getAttribute(elementLocal)
+                    except AttributeError:
+                        currentType = None
+    
+                if currentType is None:
+                    #
+                    # See what the (elementUri, elementLocal) pair point to.
+                    # Hopefully, it's either some known attribute of the
+                    # currentItem, or a type (including kinds).
+                    currentType = self.manager.lookup(elementUri, elementLocal)
+    
+                if currentType is None:
+                    explanation = \
+                                "Kind %s does not have the attribute '%s'" \
+                                % (kindItem.itsPath, elementLocal)
+                    self.saveExplanation(explanation)
+                    raise ParcelException(explanation)
+                    
 
-        elif self.currentItem is not None:
-            # This is an attribute assignment; Delay its assignment
+                # If it's an Attribute, try to figure out the appropriate
+                # type
+                if currentType.itsKind.itsUUID == self.manager.attrUUID:
+                    
+                    try:
+                        currentType = currentType.type
+                    except Exception, e:
+                        explanation = \
+                            "Unable to determine type of attribute '%s' for value '%s':'%s'" % \
+                            ( currentType.itsPath, currentElement.value, e )
+                        self.saveExplanation(explanation)
+                        raise
+
+            # For non-top-level attributes (i.e. literals), make sure we
+            # propagate the value up the tags stack.
+            if (len(self.elementStack) >= 2):
+                nextElement = self.elementStack[-2]
+                if nextElement.value is None: nextElement.value = []
+                if currentElement.elementType is 'Subattribute':
+                    currentElement.value = self.makeValue(currentItem, \
+                                                  currentType, elementLocal, \
+                                                  currentElement.value)
+                if type(nextElement.value) is list:
+                    nextElement.value.append(currentElement.value)
+                    
+
+        if currentItem is not None and \
+           not currentElement.elementType in ('Ignore', 'Item', 'Subattribute'): \
+            # This is a top-level assignment; Delay the assignment
             # until we reach the end of the xml document
+            
+            if currentElement.value is None:
+                currentElement.value = ''
 
             # We are deprecating defaultValue:
-            if local == "defaultValue":
+            if currentElement.elementName == "defaultValue":
                 explanation = \
                  "The 'defaultValue' attribute has been deprecated"
                 self.saveExplanation(explanation)
@@ -1047,43 +1126,41 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
             # Initialize the assignment with values shared by all types:
             assignment = {
-               "reloading"  : reloadingCurrentItem,
-               "attrName"   : local,
+               "reloading"  : currentElement.reloading,
+               "attrName"   : currentElement.elementName,
                "key"        : None,
                "copyName"   : None,
                "file"       : self.locator.getSystemId(),
                "line"       : self.locator.getLineNumber()
             }
             
-            if element == 'Reference':
-                (namespace, name) = self.getNamespaceName(self.currentValue)
+            if currentElement.elementType == 'Reference':
+                (namespace, name) = self.getNamespaceName(currentElement.value)
                 assignment["assignType"] = self._DELAYED_REFERENCE
                 assignment["namespace"] = namespace
                 assignment["name"] = name
                 assignment["copyName"] = self.currentCopyName
                 assignment["aliasName"] = self.currentAliasName
 
-            elif element == 'UuidOf':
-                (namespace, name) = self.getNamespaceName(self.currentValue)
+            elif currentElement.elementType == 'UuidOf':
+                (namespace, name) = self.getNamespaceName(currentElement.value)
                 assignment["assignType"] = self._DELAYED_UUIDOF
                 assignment["namespace"] = namespace
                 assignment["name"] = name
-
-            elif element == 'Attribute': # A scalar or a list
+                
+            elif currentElement.elementType == 'Attribute': # A scalar or a list
                 assignment["assignType"] = self._DELAYED_LITERAL
-                assignment["typePath"] = self.currentType
-                assignment["value"] = self.currentValue
-
-            elif element == 'Dictionary':
-                assignment["assignType"] = self._DELAYED_LITERAL
-                assignment["typePath"] = self.currentType
-                assignment["value"] = self.currentValue
-                assignment["key"] = self.currentKey
-
+                assignment["valueType"] = currentType
+                assignment["value"] = currentElement.value
+                if currentElement.attributes.has_key((None, "key")):
+                    # a cardinality=dict attribute
+                    assignment["key"] = \
+                              currentElement.attributes.getValue((None, 'key'))
+            
             # Store this assignment
             self.currentAssignments.append(assignment)
 
-        self.tags.pop()
+        self.elementStack.pop()
 
     def startPrefixMapping(self, prefix, uri):
         """ SAX2 callback for namespace prefixes """
@@ -1128,41 +1205,29 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                     # child is an attribute
                     item.addValue("attributes", child)
 
-    def makeValue(self, item, attributeName, attributeTypePath, value):
+    def makeValue(self, item, valueType, attributeName, rawValue):
         """ Creates a value from a string, based on the type
             of the attribute.
         """
-        if attributeTypePath:
-            attributeType = self.repository.findPath(attributeTypePath)
-            if attributeType is None:
-                explanation = \
-                 "Attribute type doesn't exist '%s'" % attributeTypePath
-                self.saveExplanation(explanation)
-                raise ParcelException(explanation)
-            value = attributeType.makeValue(value)
-        else:
-            if item is None:
-                explanation = \
-                 "Neither attribute type or item specified"
-                self.saveExplanation(explanation)
-                raise ParcelException(explanation)
 
-            kindItem = item.itsKind
+        value = rawValue
+        
+        if type(value) in (unicode, str):
             try:
-                attributeItem = kindItem.getAttribute(attributeName)
-            except AttributeError:
-                explanation = \
-                 "Kind %s does not have the attribute '%s'" \
-                  % (kindItem.itsPath, attributeName)
-                self.saveExplanation(explanation)
-                raise ParcelException(explanation)
-
-            try:
-                value = attributeItem.type.makeValue(value)
+                value = valueType.makeValue(value)
             except Exception, e:
                 explanation = \
-                 "'%s' for item '%s', attribute '%s', value '%s'" % \
-                 ( e, item.itsPath, attributeName, value )
+                            "Unable to create value for type '%s' from string '%s': %s" % \
+                            ( valueType.itsPath, value, e )
+                self.saveExplanation(explanation)
+                raise
+        elif type(value) is list:
+            try:
+                value = valueType.makeCollection(value)
+            except Exception, e:
+                explanation = \
+                            "Unable to create value for type '%s' from sub-items '%s': %s" % \
+                            ( valueType.itsPath, value, e )
                 self.saveExplanation(explanation)
                 raise
 
@@ -1267,7 +1332,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
             #@@@Temporary testing tool written by Morgen -- DJA
             if timing: tools.timing.begin("Attribute assignments")
-
+            
             if assignment["assignType"] == self._DELAYED_REFERENCE:
 
                 namespace = assignment["namespace"]
@@ -1371,10 +1436,39 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
             elif assignment["assignType"] == self._DELAYED_LITERAL:
 
-                attributeTypePath = assignment["typePath"]
-                value = assignment["value"]
+                rawValue = assignment["value"]
+                valueType = assignment["valueType"]
 
-                assignmentTuple = (attributeName, value, key)
+                if attributeName == "initialValue" and rawValue == "":
+                    # Set a reasonable default for an empty <initialValue>
+                    # attribute.
+                    cardinality = item.cardinality
+            
+                    if cardinality == "list":
+                        value = []
+                    elif cardinality == "dict":
+                        value = {}
+                    else:
+                        value = rawValue
+
+                else:
+                    if valueType is None:
+                        try:
+                            valueType = item.type
+                        except Exception, e:
+                            explanation = \
+                                        "Unable to determine type of attribute '%s' for value '%s':'%s'" % \
+                                        ( item.itsPath, assignment["value"], e )
+                            self.saveExplanation(explanation)
+                            raise
+
+                    value = self.makeValue(item, valueType, attributeName, rawValue)
+                
+                
+                #@@@ Weird behaviour of Lobs here mean we would run into
+                # trouble if we stuck value and not rawValue in
+                # assignmentTuple.
+                assignmentTuple = (attributeName, rawValue, key)
 
                 if old.assignmentExists(assignmentTuple):
                     # This assignment appeared in the XML file from before;
@@ -1386,21 +1480,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 else:
                     # This assignment doesn't appear in the previous version
                     # of XML, so let's apply it to the item.
-
-                    # Special cases
-                    if item.itsKind.itsUUID == self.manager.attrUUID and \
-                     attributeName in ("initialValue", "defaultValue"):
-                        card = item.cardinality
-                        if card == "dict":
-                            value = {}
-                        elif card == "list":
-                            value = []
-                        else:
-                            value = self.makeValue(item, attributeName,
-                             attributeTypePath, value)
-                    else:
-                        value = self.makeValue(item, attributeName,
-                         attributeTypePath, value)
 
                     try:
                         if key is not None:
@@ -1732,68 +1811,3 @@ def PrintItem(path, rep, recursive=False, level=0):
             PrintItem(childPath, rep, recursive=True, level=level+1)
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-def __prepareRepo():
-    from repository.persistence.DBRepository import DBRepository
-
-    Globals.chandlerDirectory = os.path.join(os.environ['CHANDLERHOME'])
-    repoDir = os.path.join(Globals.chandlerDirectory, '__repository__')
-    rep = DBRepository(repoDir)
-    rep.open(create=True)
-    if rep.findPath("//Schema") is None:
-        print "Bootstrapping //Schema"
-        bootstrapPack = os.path.join(Globals.chandlerDirectory, 'repository',
-         'packs', 'schema.pack')
-        rep.loadPack(bootstrapPack)
-
-        chandlerPack = os.path.join(Globals.chandlerDirectory, 'repository',
-         'packs', 'chandler.pack')
-        rep.loadPack(chandlerPack)
-
-    return rep
-
-
-def __test():
-    """
-    If this module is run as a script, run some tests
-    """
-    import time
-
-    rep = __prepareRepo()
-
-    parcelPath = [os.path.join(Globals.chandlerDirectory, "parcels")]
-    manager = Manager.get(rep.view, path=parcelPath)
-    manager.loadParcels()
-
-    if False:
-        # Get the "virtual" core parcel (//parcels/core)
-        core = manager.lookup(CORE)
-        print core.itsPath
-        print core.lookup("Kind").itsPath
-        print core.lookup("Parcel/file").itsPath
-
-        # Get the "real" core (//Schema/Core)
-        item = manager.lookup(CORE, "")
-        print item.itsPath
-
-        item = manager.lookup(CORE, "Parcel")
-        print item.itsPath
-
-        item = manager.lookup(CORE, "Parcel/file")
-        print item.itsPath
-
-        item = manager.lookup(CPIA, "Block")
-        print item.itsPath
-
-
-    rep.commit()
-    rep.close()
-
-    #@@@Temporary testing tool written by Morgen -- DJA
-    if timing:
-        print "\nTiming results:"
-        tools.timing.results()
-
-
-if __name__ == "__main__":
-    __test()

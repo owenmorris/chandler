@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003-2004 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itsName="attributes"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:attrs="http://testparcels.org/attributes">
+
+  <namespace value="http://testparcels.org/attributes" />
+
+  <Attribute itsName="BooleanAttr">
+    <type itemref="Boolean" />
+    <cardinality>dict</cardinality>
+  </Attribute>
+
+  <Attribute itsName="IntAttr">
+    <type itemref="Integer" />
+    <cardinality>list</cardinality>
+  </Attribute>
+
+  <Attribute itsName="FloatAttr">
+    <type itemref="Float"/>
+    <initialValue type="Float">12.0</initialValue>
+  </Attribute>
+
+  <Attribute itsName="StringAttr">
+    <cardinality>dict</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <Attribute itsName="DictAttr">
+    <type itemref="Dictionary" />
+    <cardinality>list</cardinality>
+  </Attribute>
+
+  <Attribute itsName="ListAttr">
+    <type itemref="List" />
+    <cardinality>single</cardinality>
+  </Attribute>
+
+  <Attribute itsName="LobAttr">
+    <type itemref="Lob" />
+  </Attribute>
+
+  <Attribute itsName="TupleAttr">
+    <type itemref="Tuple" />
+  </Attribute>
+  
+  <Kind itsName="AttrsTestKind">
+    <displayName>Test of Various Attributes</displayName>
+    <attributes itemref="attrs:BooleanAttr"/>
+    <attributes itemref="attrs:IntAttr"/>
+    <attributes itemref="attrs:FloatAttr"/>
+    <attributes itemref="attrs:DictAttr"/>
+    <attributes itemref="attrs:ListAttr"/>
+    <attributes itemref="attrs:TupleAttr"/>
+    <attributes itemref="attrs:StringAttr"/>
+    <attributes itemref="attrs:LobAttr"/>
+  </Kind>
+
+  <attrs:AttrsTestKind itsName="booleanItem">
+    <attrs:BooleanAttr key="true">True</attrs:BooleanAttr>
+    <attrs:BooleanAttr key="false" value="False" />
+  </attrs:AttrsTestKind>
+
+  <attrs:AttrsTestKind itsName="intItem">
+    <attrs:IntAttr>-451</attrs:IntAttr>
+    <attrs:IntAttr value="99"/>
+  </attrs:AttrsTestKind>
+
+  <attrs:AttrsTestKind itsName="floatItem">
+    <attrs:FloatAttr>-40.175</attrs:FloatAttr>
+  </attrs:AttrsTestKind>
+
+  <attrs:AttrsTestKind itsName="stringItem">
+    <attrs:StringAttr key="note-one">&#x2022; That was a bullet point</attrs:StringAttr>
+    <attrs:StringAttr key="note-two">It&#x2019;s such a lovely day.</attrs:StringAttr>
+  </attrs:AttrsTestKind>
+
+  <attrs:AttrsTestKind itsName="lobItem">
+    <attrs:LobAttr>Welcome to the Chandler 0.4 Release! &#x0a; &#x0a;</attrs:LobAttr>
+    <attrs:IntAttr value="99"/>
+  </attrs:AttrsTestKind>
+  
+  
+  <attrs:AttrsTestKind itsName="dictItem">
+    <attrs:DictAttr>
+        <Integer>21</Integer>
+        <String>FirstValue</String>
+        <Boolean>True</Boolean>
+        <List value="1,2,3"/>
+    </attrs:DictAttr>
+    <attrs:DictAttr>
+        <String>This</String>
+        <String>The real life?</String>
+    </attrs:DictAttr>
+    <attrs:DictAttr />
+  </attrs:AttrsTestKind>
+
+  <attrs:AttrsTestKind itsName="listItem">
+    <attrs:ListAttr>
+        <Integer>39</Integer>
+        <Boolean>True</Boolean>
+        <String>Hello, cruel world</String>
+    </attrs:ListAttr>
+  </attrs:AttrsTestKind>
+
+  <attrs:AttrsTestKind itsName="tupleItem">
+    <attrs:TupleAttr>
+        <Float>3.25e-05</Float>
+        <List>x,y</List>
+    </attrs:TupleAttr>
+  </attrs:AttrsTestKind>
+</Parcel>
