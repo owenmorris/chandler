@@ -103,9 +103,9 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnAttributeNames>who</columnAttributeNames>
-    <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -127,9 +127,13 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnAttributeNames>who</columnAttributeNames>
-    <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
+    
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
+    <columnTypes>attribute</columnTypes>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -150,9 +154,9 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnAttributeNames>who</columnAttributeNames>
-    <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -173,9 +177,9 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnAttributeNames>who</columnAttributeNames>
-    <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -199,9 +203,9 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnAttributeNames>who</columnAttributeNames>
-    <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -216,9 +220,9 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnAttributeNames>who</columnAttributeNames>
-    <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -233,9 +237,9 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnAttributeNames>who</columnAttributeNames>
-    <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -250,9 +254,9 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnAttributeNames>who</columnAttributeNames>
-    <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -267,9 +271,9 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnAttributeNames>who</columnAttributeNames>
-    <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
@@ -291,9 +295,9 @@
     <columnHeadings>about</columnHeadings>
     <columnHeadings>date</columnHeadings>
 
-    <columnAttributeNames>who</columnAttributeNames>
-    <columnAttributeNames>about</columnAttributeNames>
-    <columnAttributeNames>date</columnAttributeNames>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
 
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>

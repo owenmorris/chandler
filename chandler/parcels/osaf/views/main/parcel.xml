@@ -1245,7 +1245,7 @@
     <selection itemref="content:AllTableView"/>
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <columnHeadings></columnHeadings>
-    <columnAttributeNames>displayName</columnAttributeNames>
+    <columnData>displayName</columnData>
     <columnWidths>150</columnWidths>
     <hideColumnHeadings>True</hideColumnHeadings>
   </Table>

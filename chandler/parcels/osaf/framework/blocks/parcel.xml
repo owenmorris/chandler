@@ -98,7 +98,17 @@
     <required>True</required>
   </Attribute>
 
-  <Attribute itsName="columnAttributeNames">
+  <Attribute itsName="columnHeadingTypes">
+    <type itemref="String"/>
+    <cardinality>list</cardinality>
+  </Attribute>
+  
+  <Attribute itsName="columnData">
+    <type itemref="String"/>
+    <cardinality>list</cardinality>
+  </Attribute>
+  
+  <Attribute itsName="columnTypes">
     <type itemref="String"/>
     <cardinality>list</cardinality>
   </Attribute>
@@ -786,7 +796,7 @@
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <attributes itemref="docSchema:columnHeadings"/>
-    <attributes itemref="docSchema:columnAttributeNames"/>
+    <attributes itemref="docSchema:columnData"/>
     <attributes itemref="docSchema:columnWidths"/>
 
     <attributes itemref="docSchema:elementDelegate"/>
@@ -811,7 +821,9 @@
     </Attribute>
 
     <attributes itemref="docSchema:columnHeadings"/>
-    <attributes itemref="docSchema:columnAttributeNames"/>
+    <attributes itemref="docSchema:columnHeadingTypes"/>
+    <attributes itemref="docSchema:columnData"/>
+    <attributes itemref="docSchema:columnTypes"/>
     <attributes itemref="docSchema:columnWidths"/>
 
     <attributes itemref="docSchema:elementDelegate"/>
@@ -854,7 +866,7 @@
     </Attribute>
 
     <attributes itemref="docSchema:columnHeadings"/>
-    <attributes itemref="docSchema:columnAttributeNames"/>
+    <attributes itemref="docSchema:columnData"/>
     <attributes itemref="docSchema:columnWidths"/>
 
     <attributes itemref="docSchema:elementDelegate"/>

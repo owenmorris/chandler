@@ -219,21 +219,21 @@ class AttributeDelegate (ListDelegate):
         except IndexError:
             type = "_default"
         else:
-            attributeName = self.blockItem.columnAttributeNames [column]
+            attributeName = self.blockItem.columnData [column]
             type = item.getAttributeAspect (attributeName, 'type').itsName
         return type
 
     def GetElementValue (self, row, column):
-        return self.blockItem.contents [row], self.blockItem.columnAttributeNames [column]
+        return self.blockItem.contents [row], self.blockItem.columnData [column]
 
     def SetElementValue (self, row, column, value):
         item = self.blockItem.contents [row]
-        attributeName = self.blockItem.columnAttributeNames [column]
+        attributeName = self.blockItem.columnData [column]
         item.setAttributeValue (attributeName, value)
 
     def GetColumnHeading (self, column, item):
         if item:
-            attributeName = self.blockItem.columnAttributeNames [column]
+            attributeName = self.blockItem.columnData [column]
             attribute = item.itsKind.getAttribute (attributeName)
             heading = attribute.getItemDisplayName()
             redirect = item.getAttributeAspect(attributeName, 'redirectTo')
@@ -247,6 +247,7 @@ class AttributeDelegate (ListDelegate):
         else:
             heading = self.blockItem.columnHeadings [column]
         return heading
+    
 
 class wxList (DraggableWidget, wx.ListCtrl):
     def __init__(self, *arguments, **keywords):
@@ -505,7 +506,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
                     self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
 
             self.blockItem.PostASelectionChangedEvent (item)
-            self.blockItem.selectedColumn = self.blockItem.columnAttributeNames [event.GetCol()]
+            self.blockItem.selectedColumn = self.blockItem.columnData [event.GetCol()]
         event.Skip()
 
     def Reset(self): 
@@ -565,7 +566,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
             cursorColumn = 0
             selectedColumn = self.blockItem.selectedColumn
             for columnIndex in xrange (self.GetTable().GetNumberCols()):
-                if self.blockItem.columnAttributeNames [columnIndex] == selectedColumn:
+                if self.blockItem.columnData [columnIndex] == selectedColumn:
                     cursorColumn = columnIndex
                     break
             self.SelectRow (row)
