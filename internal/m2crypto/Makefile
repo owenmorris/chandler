@@ -6,9 +6,14 @@ M2CRYPTO=$(INTERNAL)/m2crypto
 
 BUILD=build_$(SNAP)
 
+export PATH:=$(BUILD_ROOT)/$(SNAP)/bin:$(BUILD_ROOT)/$(SNAP)/bin/swig:$(PATH)
+
 build: $(PYTHON)
-	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
-                           install --force
+	$(PYTHON) setup.py \
+		build_ext --library-dirs=$(BUILD_ROOT)/$(SNAP)/lib \
+			--include-dirs=$(BUILD_ROOT)/$(SNAP)/include \
+		build --build-base=$(BUILD) $(DIST_OPT) \
+		install --force
 
 snap: 
 	cd $(BUILD_ROOT); \
