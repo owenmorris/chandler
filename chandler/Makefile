@@ -58,3 +58,5 @@ checkout:
 
 install: $(ARCHIVES) $(notdir $(ARCHIVES))
 
+clean:
+	rm -rf $(SNAP)
