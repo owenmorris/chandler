@@ -118,6 +118,9 @@ class wxSplitWindow(wxSplitterWindow):
     def __init__(self, *arguments, **keywords):
         wxSplitterWindow.__init__ (self, *arguments, **keywords)
         EVT_SPLITTER_SASH_POS_CHANGED(self, self.GetId(), self.OnSplitChanged)
+        # Setting minimum pane size prevents unsplitting a window via
+        # double-clicking:
+        self.SetMinimumPaneSize(20)
  
     def OnSplitChanged(self, event):
         counterpart = Globals.repository.find (self.counterpartUUID)
