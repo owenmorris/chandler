@@ -16,94 +16,96 @@
   <description>Agents schema for the 0.2 release</description>
   <version>0.2</version>
 
-<!-- Attributes used in Actions -->
-  <Enumeration itemName="ActionTypeEnum">
-    <values>none</values>
-    <values>script</values>
-    <values>expression</values>
-    <values>inline</values>
-    <values>classmethod</values>
-  </Enumeration>
 
-  <Attribute itemName="actionType">
-    <displayName>Action Type</displayName>
-    <type itemref="agents:ActionTypeEnum"/>
-    <cardinality>single</cardinality>
-    <!-- <defaultValue>none</defaultValue> -->
-  </Attribute>
-  
-  <Attribute itemName="actionScript">
-    <displayName>Action Script</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
-  </Attribute>
-  
-  <Attribute itemName="actionValue">
-    <displayName>Action Script</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
-  </Attribute>
+  <!-- Kind: Action -->
 
-  <Attribute itemName="actionFilePath">
-    <displayName>Action Script</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
-  </Attribute>
-
-  <Attribute itemName="asyncFlag">
-    <displayName>Asynchronous Flag</displayName>
-    <type itemref="Boolean"/>
-    <cardinality>single</cardinality>
-    <defaultValue type="Boolean">False</defaultValue>
-  </Attribute>
-
-  <Attribute itemName="wxThreadFlag">
-    <displayName>Asynchronous Flag</displayName>
-    <type itemref="Boolean"/>
-    <cardinality>single</cardinality>
-    <defaultValue type="Boolean">False</defaultValue>
-  </Attribute>
-    
-  <Attribute itemName="confirmFlag">
-    <displayName>Request Confirmation Flag</displayName>
-    <type itemref="Boolean"/>
-    <cardinality>single</cardinality>
-    <defaultValue type="Boolean">False</defaultValue>
-  </Attribute>
-
-  <Attribute itemName="actionPermissionRequest">
-    <displayName>Action Script</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
-  </Attribute>
-
-  <Attribute itemName="actionOwner">
-    <displayName>Action Instruction Backlink</displayName>
-    <type itemref="agents:Instruction"/>
-    <cardinality>list</cardinality>
-    <inverseAttribute itemref="agents:actions"/>
-  </Attribute>
-  
-  <Attribute itemName="actionRepertoireOwner">
-    <displayName>Action Repertoire Backlink</displayName>
-    <type itemref="agents:Repertoire"/>
-    <cardinality>single</cardinality>
-    <inverseAttribute itemref="agents:possibleActions"/>
-  </Attribute>
-  
-  <!-- Action Item Definition -->
   <Kind itemName="Action">
     <displayName>Action</displayName>
-    <attributes itemref="agents:actionType"/>
-    <attributes itemref="agents:actionScript"/>
-    <attributes itemref="agents:actionValue"/>
-    <attributes itemref="agents:actionFilePath"/>     
-    <attributes itemref="agents:actionPermissionRequest"/>     
-    <attributes itemref="agents:asyncFlag"/>
-    <attributes itemref="agents:wxThreadFlag"/>
-    <attributes itemref="agents:confirmFlag"/>
-    <attributes itemref="agents:actionOwner"/>
-    <attributes itemref="agents:actionRepertoireOwner"/>
+
+    <Enumeration itemName="ActionTypeEnum">
+      <values>none</values>
+      <values>script</values>
+      <values>expression</values>
+      <values>inline</values>
+      <values>classmethod</values>
+    </Enumeration>
+
+    <Attribute itemName="actionType">
+      <displayName>Action Type</displayName>
+      <type itemref="agents:Action/ActionTypeEnum"/>
+      <cardinality>single</cardinality>
+      <!-- <defaultValue>none</defaultValue> -->
+    </Attribute>
+  
+    <Attribute itemName="actionScript">
+      <displayName>Action Script</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+  
+    <Attribute itemName="actionValue">
+      <displayName>Action Script</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="actionFilePath">
+      <displayName>Action Script</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="asyncFlag">
+      <displayName>Asynchronous Flag</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="wxThreadFlag">
+      <displayName>Asynchronous Flag</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+    
+    <Attribute itemName="confirmFlag">
+      <displayName>Request Confirmation Flag</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="actionPermissionRequest">
+      <displayName>Action Script</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="actionOwner">
+      <displayName>Action Instruction Backlink</displayName>
+      <type itemref="agents:Instruction"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="agents:Instruction/actions"/>
+    </Attribute>
+  
+    <Attribute itemName="actionRepertoireOwner">
+      <displayName>Action Repertoire Backlink</displayName>
+      <type itemref="agents:Repertoire"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="agents:Repertoire/possibleActions"/>
+    </Attribute>
+
+    <attributes itemref="agents:Action/actionType"/>
+    <attributes itemref="agents:Action/actionScript"/>
+    <attributes itemref="agents:Action/actionValue"/>
+    <attributes itemref="agents:Action/actionFilePath"/>     
+    <attributes itemref="agents:Action/actionPermissionRequest"/>     
+    <attributes itemref="agents:Action/asyncFlag"/>
+    <attributes itemref="agents:Action/wxThreadFlag"/>
+    <attributes itemref="agents:Action/confirmFlag"/>
+    <attributes itemref="agents:Action/actionOwner"/>
+    <attributes itemref="agents:Action/actionRepertoireOwner"/>
     <superKinds itemref="Item"/>
     <classes key="python">application.agents.model.Action.Action</classes>
   </Kind>
@@ -114,268 +116,276 @@
     <classes key="python">application.agents.model.DialogAction.DialogAction</classes>
   </Kind>
 
-  <!-- Attributes used in Condition -->
 
-  <!-- what is this really used for? -->
-  <Enumeration itemName="ConditionTypeEnum">
-    <values>none</values>
-    <values>notification</values>
-    <values>timed</values>
-  </Enumeration>
-
-  <Attribute itemName="conditionType">
-    <displayName>Condition Type</displayName>
-    <type itemref="agents:ConditionTypeEnum"/>
-    <cardinality>single</cardinality>
-    <!-- <defaultValue>none</defaultValue> -->
-  </Attribute>
-
-  <Enumeration itemName="ConditionFilterModeEnum">
-    <values>none</values>
-    <values>listequals</values>
-    <values>equals</values>
-    <values>notequals</values>
-    <values>contains</values>
-    <values>matches</values>
-  </Enumeration>
-
-  <Attribute itemName="conditionFilterMode">
-    <displayName>Filter comparison mode</displayName>
-    <type itemref="agents:ConditionFilterModeEnum"/>
-    <cardinality>single</cardinality>
-    <!-- <defaultValue>none</defaultValue> -->
-  </Attribute>
-
-  <Attribute itemName="conditionValue">
-    <displayName>Value for filtering</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
-  </Attribute>
-  
-  <Attribute itemName="conditionAttribute">
-    <displayName>Attribute of data to compare with</displayName>
-    <type itemref="String"/>    <cardinality>single</cardinality>
-  </Attribute>
-  
-  <Attribute itemName="conditionNotification">
-    <displayName>Condition Notification</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
-  </Attribute>
-  
-  <Attribute itemName="conditionOwner">
-    <displayName>Condition Owner</displayName>
-    <type itemref="agents:Instruction"/>
-    <cardinality>single</cardinality>
-    <inverseAttribute itemref="agents:condition"/>
-  </Attribute>
-
-  <Attribute itemName="conditionRepertoireOwner">
-    <displayName>Action Repertoire Backlink</displayName>
-    <type itemref="agents:Repertoire"/>
-    <cardinality>single</cardinality>
-    <inverseAttribute itemref="agents:possibleConditions"/>
-  </Attribute>
-
-  <!-- Condition Item Definition -->
+  <!-- Kind: Condition -->
   
   <Kind itemName="Condition">
     <displayName>Condition</displayName>
-    <attributes itemref="agents:conditionType"/>
-    <attributes itemref="agents:conditionFilterMode"/>
-    <attributes itemref="agents:conditionValue"/>
-    <attributes itemref="agents:conditionAttribute"/>    
-    <attributes itemref="agents:conditionNotification"/>
-    <attributes itemref="agents:conditionOwner"/>
-    <attributes itemref="agents:conditionRepertoireOwner"/>
+
+    <!-- what is this really used for? -->
+    <Enumeration itemName="ConditionTypeEnum">
+      <values>none</values>
+      <values>notification</values>
+      <values>timed</values>
+    </Enumeration>
+
+    <Attribute itemName="conditionType">
+      <displayName>Condition Type</displayName>
+      <type itemref="agents:Condition/ConditionTypeEnum"/>
+      <cardinality>single</cardinality>
+      <!-- <defaultValue>none</defaultValue> -->
+    </Attribute>
+
+    <Enumeration itemName="ConditionFilterModeEnum">
+      <values>none</values>
+      <values>listequals</values>
+      <values>equals</values>
+      <values>notequals</values>
+      <values>contains</values>
+      <values>matches</values>
+    </Enumeration>
+
+    <Attribute itemName="conditionFilterMode">
+      <displayName>Filter comparison mode</displayName>
+      <type itemref="agents:Condition/ConditionFilterModeEnum"/>
+      <cardinality>single</cardinality>
+      <!-- <defaultValue>none</defaultValue> -->
+    </Attribute>
+
+    <Attribute itemName="conditionValue">
+      <displayName>Value for filtering</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+  
+    <Attribute itemName="conditionAttribute">
+      <displayName>Attribute of data to compare with</displayName>
+      <type itemref="String"/>    <cardinality>single</cardinality>
+    </Attribute>
+  
+    <Attribute itemName="conditionNotification">
+      <displayName>Condition Notification</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+  
+    <Attribute itemName="conditionOwner">
+      <displayName>Condition Owner</displayName>
+      <type itemref="agents:Instruction"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="agents:Instruction/condition"/>
+    </Attribute>
+
+    <Attribute itemName="conditionRepertoireOwner">
+      <displayName>Action Repertoire Backlink</displayName>
+      <type itemref="agents:Repertoire"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="agents:Repertoire/possibleConditions"/>
+    </Attribute>
+
+    <attributes itemref="agents:Condition/conditionType"/>
+    <attributes itemref="agents:Condition/conditionFilterMode"/>
+    <attributes itemref="agents:Condition/conditionValue"/>
+    <attributes itemref="agents:Condition/conditionAttribute"/>    
+    <attributes itemref="agents:Condition/conditionNotification"/>
+    <attributes itemref="agents:Condition/conditionOwner"/>
+    <attributes itemref="agents:Condition/conditionRepertoireOwner"/>
     <superKinds itemref="Item"/>
     <classes key="python">application.agents.model.Condition.Condition</classes>
   </Kind>
 
-  <!-- Attributes used in Schedule -->
-  <Attribute itemName="startTime">
-    <displayName>Start Time</displayName>
-    <type itemref="DateTime"/>
-    <cardinality>single</cardinality>
-  </Attribute>
 
-  <Attribute itemName="repeatFlag">
-    <displayName>Repeat Flag</displayName>
-    <type itemref="Boolean"/>
-    <cardinality>single</cardinality>
-  </Attribute>
-
-  <Attribute itemName="repeatDelay">
-    <displayName>Repeat Delay</displayName>
-    <type itemref="DateTimeDelta"/>
-    <cardinality>single</cardinality>
-  </Attribute>
-
-  <Attribute itemName="scheduleOwner">
-    <displayName>Schedule Owner</displayName>
-    <type itemref="agents:Instruction"/>
-    <cardinality>single</cardinality>
-    <inverseAttribute itemref="agents:schedule"/>
-  </Attribute>
+  <!-- Kind: Schedule -->
 
   <Kind itemName="Schedule">
     <displayName>Timed Condition</displayName>
-    <attributes itemref="agents:startTime"/>
-    <attributes itemref="agents:repeatFlag"/>
-    <attributes itemref="agents:repeatDelay"/>
-    <attributes itemref="agents:scheduleOwner"/>
+
+    <Attribute itemName="startTime">
+      <displayName>Start Time</displayName>
+      <type itemref="DateTime"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="repeatFlag">
+      <displayName>Repeat Flag</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="repeatDelay">
+      <displayName>Repeat Delay</displayName>
+      <type itemref="DateTimeDelta"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="scheduleOwner">
+      <displayName>Schedule Owner</displayName>
+      <type itemref="agents:Instruction"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="agents:Instruction/schedule"/>
+    </Attribute>
+
+    <attributes itemref="agents:Schedule/startTime"/>
+    <attributes itemref="agents:Schedule/repeatFlag"/>
+    <attributes itemref="agents:Schedule/repeatDelay"/>
+    <attributes itemref="agents:Schedule/scheduleOwner"/>
     <superKinds itemref="Item"/>
   </Kind>
-  
-  <!-- Attributes used in Instruction -->
-  <Attribute itemName="enabled">
-    <displayName>Enabled Flag</displayName>
-    <type itemref="Boolean"/>
-    <cardinality>single</cardinality>
-    <defaultValue type="Boolean">False</defaultValue>
-  </Attribute>
 
-  <Attribute itemName="schedule">
-    <displayName>Instruction Schedule</displayName>
-    <type itemref="agents:Schedule"/>
-    <cardinality>single</cardinality>
-    <inverseAttribute itemref="agents:scheduleOwner"/>
-  </Attribute>
-  
-  <Attribute itemName="condition">
-    <displayName>Instruction Condition</displayName>
-    <type itemref="agents:Condition"/>
-    <cardinality>single</cardinality>
-    <inverseAttribute itemref="agents:conditionOwner"/>
-  </Attribute>
-  
-  <Attribute itemName="actions">
-    <displayName>Instruction Actions</displayName>
-    <type itemref="agents:Action"/>
-    <cardinality>list</cardinality>
-    <inverseAttribute itemref="agents:actionOwner"/>
-  </Attribute>
-  
-  <Attribute itemName="instructionOwner">
-    <displayName>Owning Agent</displayName>
-    <type itemref="agents:AgentItem"/>
-    <cardinality>single</cardinality>
-    <inverseAttribute itemref="agents:instructions"/>
-  </Attribute>
 
-  <Attribute itemName="timers">
-    <displayName>Timers</displayName>
-    <type itemref="UUID"/>
-    <cardinality>dict</cardinality>
-  </Attribute>  
-  
-  <!-- Instruction Item Definition -->
+  <!-- Kind: Instruction -->
+
   <Kind itemName="Instruction">
     <displayName>Instruction</displayName>
-    <attributes itemref="agents:enabled"/>
-    <attributes itemref="agents:schedule"/>
-    <attributes itemref="agents:condition"/>
-    <attributes itemref="agents:actions"/>
-    <attributes itemref="agents:instructionOwner"/>
-    <attributes itemref="agents:timers"/>
+
+    <Attribute itemName="enabled">
+      <displayName>Enabled Flag</displayName>
+      <type itemref="Boolean"/>
+      <cardinality>single</cardinality>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+
+    <Attribute itemName="schedule">
+      <displayName>Instruction Schedule</displayName>
+      <type itemref="agents:Schedule"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="agents:Schedule/scheduleOwner"/>
+    </Attribute>
+  
+    <Attribute itemName="condition">
+      <displayName>Instruction Condition</displayName>
+      <type itemref="agents:Condition"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="agents:Condition/conditionOwner"/>
+    </Attribute>
+  
+    <Attribute itemName="actions">
+      <displayName>Instruction Actions</displayName>
+      <type itemref="agents:Action"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="agents:Action/actionOwner"/>
+    </Attribute>
+  
+    <Attribute itemName="instructionOwner">
+      <displayName>Owning Agent</displayName>
+      <type itemref="agents:AgentItem"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="agents:AgentItem/instructions"/>
+    </Attribute>
+
+    <Attribute itemName="timers">
+      <displayName>Timers</displayName>
+      <type itemref="UUID"/>
+      <cardinality>dict</cardinality>
+    </Attribute>  
+
+    <attributes itemref="agents:Instruction/enabled"/>
+    <attributes itemref="agents:Instruction/schedule"/>
+    <attributes itemref="agents:Instruction/condition"/>
+    <attributes itemref="agents:Instruction/actions"/>
+    <attributes itemref="agents:Instruction/instructionOwner"/>
+    <attributes itemref="agents:Instruction/timers"/>
     <superKinds itemref="Item"/>
     <classes key="python">application.agents.model.Instruction.Instruction</classes>
   </Kind>
   
-  <!-- Attributes used in Repertoire -->
-  <Attribute itemName="possibleActions">
-    <displayName>Possible Actions</displayName>
-    <type itemref="agents:Action"/>
-    <cardinality>list</cardinality>
-    <inverseAttribute itemref="agents:actionRepertoireOwner"/>
-  </Attribute>
+  
+  <!-- Kind: Repertoire -->
 
-  <Attribute itemName="possibleConditions">
-    <displayName>Possible Conditions</displayName>
-    <type itemref="agents:Condition"/>
-    <cardinality>list</cardinality>
-    <inverseAttribute itemref="agents:conditionRepertoireOwner"/>
-  </Attribute>
-  
-  <Attribute itemName="repertoireOwner">
-    <displayName>Owning Agent</displayName>
-    <type itemref="agents:AgentItem"/>
-    <cardinality>single</cardinality>
-    <inverseAttribute itemref="agents:repertoire"/>
-  </Attribute>
-  
-  <!-- Repertoire Item Definition -->
   <Kind itemName="Repertoire">
     <displayName>Repertoire</displayName>
-    <attributes itemref="agents:possibleActions"/>
-    <attributes itemref="agents:possibleConditions"/>
-    <attributes itemref="agents:repertoireOwner"/>
+
+    <Attribute itemName="possibleActions">
+      <displayName>Possible Actions</displayName>
+      <type itemref="agents:Action"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="agents:Action/actionRepertoireOwner"/>
+    </Attribute>
+
+    <Attribute itemName="possibleConditions">
+      <displayName>Possible Conditions</displayName>
+      <type itemref="agents:Condition"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="agents:Condition/conditionRepertoireOwner"/>
+    </Attribute>
+  
+    <Attribute itemName="repertoireOwner">
+      <displayName>Owning Agent</displayName>
+      <type itemref="agents:AgentItem"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="agents:AgentItem/repertoire"/>
+    </Attribute>
+
+    <attributes itemref="agents:Repertoire/possibleActions"/>
+    <attributes itemref="agents:Repertoire/possibleConditions"/>
+    <attributes itemref="agents:Repertoire/repertoireOwner"/>
     <classes key="python">application.agents.model.Repertoire.Repertoire</classes>
   </Kind>
-  
-  <!-- Attributes used in AgentItem -->
-  <Attribute itemName="agentOwner">
-    <displayName>Agent Owner</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
-  </Attribute>
-  
-  <Attribute itemName="roles">
-    <displayName>Agent Roles</displayName>
-    <type itemref="String"/>
-    <cardinality>list</cardinality>
-  </Attribute>
-  
-  <Attribute itemName="repertoire">
-    <displayName>Agent Repertoire</displayName>
-    <type itemref="agents:Repertoire"/>
-    <cardinality>single</cardinality>
-    <inverseAttribute itemref="agents:repertoireOwner"/>
-  </Attribute>
-  
-  <Attribute itemName="instructions">
-    <displayName>Agent Instructions</displayName>
-    <type itemref="agents:Instruction"/>
-    <cardinality>list</cardinality>
-    <inverseAttribute itemref="agents:instructionOwner"/>
-  </Attribute>
-  
-  <Attribute itemName="sourceFile">
-    <displayName>Path of Source File</displayName>
-    <type itemref="String"/>
-    <cardinality>single</cardinality>
-  </Attribute>
 
-  <Attribute itemName="status">
-    <displayName>Status Dictionary</displayName>
-    <type itemref="String"/>
-    <cardinality>dict</cardinality>
-  </Attribute>
   
-  <Attribute itemName="imageData">
-    <displayName>Image Data</displayName>
-    <type itemref="String"/>
-    <cardinality>dict</cardinality>
-  </Attribute>
-  
-  <Attribute itemName="prefData">
-    <displayName>Preference Data</displayName>
-    <type itemref="String"/>
-    <cardinality>dict</cardinality>
-  </Attribute>
+  <!-- Kind: AgentItem -->
 
-  <!-- Finally, here's the AgentItem Definition -->
-  
   <Kind itemName="AgentItem">
     <displayName>The Agent</displayName>
-    <attributes itemref="agents:agentOwner"/>
-    <attributes itemref="agents:roles"/>
-    <attributes itemref="agents:repertoire"/>
-    <attributes itemref="agents:instructions"/>
-    <attributes itemref="agents:sourceFile"/>
-    <attributes itemref="agents:imageData"/>
-    <attributes itemref="agents:prefData"/>
-    <attributes itemref="agents:status"/>
+
+    <Attribute itemName="agentOwner">
+      <displayName>Agent Owner</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="roles">
+      <displayName>Agent Roles</displayName>
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
+    <Attribute itemName="repertoire">
+      <displayName>Agent Repertoire</displayName>
+      <type itemref="agents:Repertoire"/>
+      <cardinality>single</cardinality>
+      <inverseAttribute itemref="agents:Repertoire/repertoireOwner"/>
+    </Attribute>
+
+    <Attribute itemName="instructions">
+      <displayName>Agent Instructions</displayName>
+      <type itemref="agents:Instruction"/>
+      <cardinality>list</cardinality>
+      <inverseAttribute itemref="agents:Instruction/instructionOwner"/>
+    </Attribute>
+
+    <Attribute itemName="sourceFile">
+      <displayName>Path of Source File</displayName>
+      <type itemref="String"/>
+      <cardinality>single</cardinality>
+    </Attribute>
+
+    <Attribute itemName="status">
+      <displayName>Status Dictionary</displayName>
+      <type itemref="String"/>
+      <cardinality>dict</cardinality>
+    </Attribute>
+
+    <Attribute itemName="imageData">
+      <displayName>Image Data</displayName>
+      <type itemref="String"/>
+      <cardinality>dict</cardinality>
+    </Attribute>
+
+    <Attribute itemName="prefData">
+      <displayName>Preference Data</displayName>
+      <type itemref="String"/>
+      <cardinality>dict</cardinality>
+    </Attribute>
+
+    <attributes itemref="agents:AgentItem/agentOwner"/>
+    <attributes itemref="agents:AgentItem/roles"/>
+    <attributes itemref="agents:AgentItem/repertoire"/>
+    <attributes itemref="agents:AgentItem/instructions"/>
+    <attributes itemref="agents:AgentItem/sourceFile"/>
+    <attributes itemref="agents:AgentItem/imageData"/>
+    <attributes itemref="agents:AgentItem/prefData"/>
+    <attributes itemref="agents:AgentItem/status"/>
     <superKinds itemref="Item"/>
     <classes key="python">application.agents.model.AgentItem.AgentItem</classes>
   </Kind>
