@@ -79,6 +79,7 @@ class MainFrame(wx.Frame):
         wx.Frame.__init__ (self, *arguments, **keywords)
         self.SetBackgroundColour (wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DFACE))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
+        self.Bind(wx.EVT_CLOSE, self.OnSize)
 
     def OnClose(self, event):
         """
@@ -97,18 +98,15 @@ class MainFrame(wx.Frame):
         self.Destroy()
 
     def OnSize(self, event):
+        """
+          Calling Skip causes wxWindows to continue processing the event, 
+        which will cause the parent class to get a crack at the event.
+        """
         event.Skip()
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            block = Globals.repository.find (self.blockUUID)
-            block.size.width = self.GetSize().x
-            block.size.height = self.GetSize().y
-            """
-              size is a repository type that I defined. They seem harder
-            to define than necessary and they don't automatically dirty
-            themselves when modified. We need to improve this feature
-            of the repository -- DJA
-            """
-            block.setDirty()   # Temporary repository hack -- DJA
+            Globals.mainView.size.width = self.GetSize().x
+            Globals.mainView.size.height = self.GetSize().y
+            Globals.mainView.setDirty()   # Temporary repository hack -- DJA
 
 
 class wxApplication (wx.App):
@@ -139,7 +137,7 @@ class wxApplication (wx.App):
         os.chdir (Globals.chandlerDirectory)
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
-        self.ignoreSynchronizeWidget = False
+        self.ignoreSynchronizeWidget = True
 
         wx.InitAllImageHandlers()
         """
@@ -266,8 +264,6 @@ class wxApplication (wx.App):
                                        style=wx.DEFAULT_FRAME_STYLE)
             Globals.mainView = mainView
             self.menuParent = None
-            self.mainFrame.blockUUID = mainView.itsUUID
-            self.mainFrame.Bind(wx.EVT_SIZE, self.mainFrame.OnSize)
 
             GlobalEvents = Globals.repository.find('//parcels/osaf/framework/blocks/Events/GlobalEvents')
             """
@@ -286,8 +282,22 @@ class wxApplication (wx.App):
                                                        Globals.mainView.dispatchEvent)
 
             Globals.mainView.onSetActiveView(mainView)
+
+            self.ignoreSynchronizeWidget = False
             mainView.render (self.mainFrame, self.mainFrame)
-            
+
+            """
+              We have to wire up the block mainView, it's widget and sizer to a new
+            sizer that we add to the mainFrame.
+            """
+            sizer = wx.BoxSizer (wx.HORIZONTAL)
+            self.mainFrame.SetSizer (sizer)
+            widget = Globals.association [mainView.itsUUID]
+            sizer.Add (widget,
+                       mainView.stretchFactor, 
+                       mainView.Calculate_wxFlag(), 
+                       mainView.Calculate_wxBorder())
+
             self.mainFrame.Show()
 
             return True                     #indicates we succeeded with initialization

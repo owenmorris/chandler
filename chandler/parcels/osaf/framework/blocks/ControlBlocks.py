@@ -48,8 +48,6 @@ class Button(RectangularChild):
             assert False, "unknown buttonKind"
 
         parentWindow.Bind(wx.EVT_BUTTON, self.buttonPressed, id=id)
-        self.parentBlock.addToContainer(parent, button, self.stretchFactor,
-                                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return button, None, None
 
     def buttonPressed(self, event):
@@ -67,8 +65,6 @@ class Choice(RectangularChild):
                               wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
-        self.parentBlock.addToContainer(parent, choice, self.stretchFactor, 
-                                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return choice, None, None
 
 
@@ -78,8 +74,6 @@ class ComboBox(RectangularChild):
                               wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
-        self.parentBlock.addToContainer(parent, comboBox, self.stretchFactor, 
-                                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return comboBox, None, None
 
 
@@ -123,11 +117,6 @@ class EditText(RectangularChild):
                                style=style, name=self._name)
 
         editText.SetFont(Font (self.characterStyle))
-        self.parentBlock.addToContainer(parent,
-                                        editText,
-                                        self.stretchFactor, 
-                                        self.Calculate_wxFlag(),
-                                        self.Calculate_wxBorder())
         return editText, None, None
 
 
@@ -145,12 +134,6 @@ class HTML(RectangularChild):
                              self.minimumSize.height))
         if self.url:
             htmlWindow.LoadPage(self.url)
-            
-        self.parentBlock.addToContainer(parent,
-                                        htmlWindow,
-                                        self.stretchFactor,
-                                        self.Calculate_wxFlag(),
-                                        self.Calculate_wxBorder())
         return htmlWindow, None, None
 
  
@@ -202,6 +185,7 @@ class wxListBlock(wx.ListCtrl):
         event.Skip()
 
     def OnSize(self, event):
+        event.Skip()
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             size = self.GetClientSize()
             widthMinusLastColumn = 0
@@ -211,7 +195,6 @@ class wxListBlock(wx.ListCtrl):
             lastColumnWidth = size.width - widthMinusLastColumn
             if lastColumnWidth > 0:
                 self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
-        event.Skip()
 
     def On_wxSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
@@ -286,11 +269,6 @@ class List(RectangularChild):
         list = wxListBlock(parentWindow,
                            Block.getWidgetID(self),
                            style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
-        self.parentBlock.addToContainer(parent,
-                                        list,
-                                        self.stretchFactor,
-                                        self.Calculate_wxFlag(),
-                                        self.Calculate_wxBorder())
         return list, None, None
 
 
@@ -378,15 +356,6 @@ class wxSummary(wx.grid.Grid):
                 self.SetColSize (lastColumnIndex, lastColumnWidth)
                 self.ForceRefresh()
         event.Skip()
-
-    def removeFromContainer(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
-            block = Globals.repository.find (self.blockUUID)
-            item = block.contentSpec [event.GetIndex()]
-            if block.selection != item:
-                block.selection = item
-            block.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                       {'item':item})
 
 
     def Reset(self): 
@@ -491,11 +460,6 @@ class Summary(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
         list = wxSummary(parentWindow,
                          Block.getWidgetID(self))
-        self.parentBlock.addToContainer(parent,
-                                        list,
-                                        self.stretchFactor,
-                                        self.Calculate_wxFlag(),
-                                        self.Calculate_wxBorder())
         return list, None, None
 
     def NeedsUpdate(self):
@@ -523,8 +487,6 @@ class RadioBox(RectangularChild):
                               wx.DefaultPosition, 
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices, self.itemsPerLine, dimension)
-        self.parentBlock.addToContainer(parent, radioBox, self.stretchFactor, 
-                                        self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return radioBox, None, None
 
 
@@ -550,10 +512,6 @@ class StaticText(RectangularChild):
                                    style)
 
         staticText.SetFont(Font (self.characterStyle))
-        self.parentBlock.addToContainer(parent, staticText,
-                                        self.stretchFactor,
-                                        self.Calculate_wxFlag(),
-                                        self.Calculate_wxBorder())
         return staticText, None, None
 
 
@@ -884,14 +842,7 @@ class ItemDetail(RectangularChild):
                                   wx.DefaultPosition,
                                   (self.minimumSize.width,
                                    self.minimumSize.height))
-        
-        
-        self.parentBlock.addToContainer(parent,
-                                        htmlWindow,
-                                        self.stretchFactor,
-                                        self.Calculate_wxFlag(),
-                                        self.Calculate_wxBorder())
-        
+
         return htmlWindow, None, None
 
     def getHTMLText(self, item):

@@ -177,18 +177,11 @@ class ContainerChild(Block):
                 child.render (parent, parentWindow)
             self.synchronizeWidget()
         return widget
-                
-    def addToContainer(self, parent, child, id, flag, border):
-        pass
-    
-    def removeFromContainer(self, parent, child):
-        pass
 
     
 class wxRectangularChild (wx.Panel):
     def __init__(self, *arguments, **keywords):
         super (wxRectangularChild, self).__init__ (*arguments, **keywords)
-        self.Bind(wx.EVT_SIZE, self.OnSize)
 
     def wxSynchronizeWidget(self):
         block = Globals.repository.find (self.blockUUID)
@@ -201,21 +194,6 @@ class wxRectangularChild (wx.Panel):
                     parentSizer.Show (self)
                 else:
                     parentSizer.Hide (self)
-        if block.open:
-            self.SetSize ((block.size.width, block.size.height))
-            self.Layout()
-
-    def OnSize(self, event):
-        """
-          Calling Skip causes wxWindows to continue processing the event, 
-        which will cause the parent class to get a crack at the event.
-        """
-        event.Skip()
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
-            block = Globals.repository.find (self.blockUUID)
-            block.size.width = event.GetSize().x
-            block.size.height = event.GetSize().y
-            block.setDirty()   # Temporary repository hack -- DJA
 
 
 class RectangularChild(ContainerChild):

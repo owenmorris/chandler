@@ -4,14 +4,33 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-from Block import *
+from Block import Block, RectangularChild, wxRectangularChild
 from Node import Node
 from Styles import Font
 from repository.util.UUID import UUID
 import wx
 
 
-class BoxContainer(RectangularChild):
+class wxBoxContainer (wxRectangularChild):
+    def __init__(self, *arguments, **keywords):
+        super (wxBoxContainer, self).__init__ (*arguments, **keywords)
+
+    def wxSynchronizeWidget(self, *arguments, **keywords):
+        super (wxBoxContainer, self).wxSynchronizeWidget (*arguments, **keywords)
+        
+        block = Globals.repository.find (self.blockUUID)
+        if block.open:
+            sizer = self.GetSizer()
+            sizer.Clear()
+            for childWidget in self.GetChildren():
+                childBlock = Globals.repository.find (childWidget.blockUUID)
+                sizer.Add (childWidget,
+                           childBlock.stretchFactor, 
+                           childBlock.Calculate_wxFlag(), 
+                           childBlock.Calculate_wxBorder())
+
+
+class BoxContainer (RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
         if self.orientationEnum == 'Horizontal':
             orientation = wx.HORIZONTAL
@@ -23,33 +42,13 @@ class BoxContainer(RectangularChild):
 
         if self.parentBlock:
             parentWidget = Globals.association [self.parentBlock.itsUUID]
-            widget = wxRectangularChild (parentWidget, -1)
-            self.parentBlock.addToContainer (parentWidget,
-                                             widget, 
-                                             self.stretchFactor, 
-                                             self.Calculate_wxFlag(), 
-                                             self.Calculate_wxBorder())
         else:
-            parentWidget = None
-            widget = Globals.wxApplication.mainFrame
-
+            parentWidget = Globals.wxApplication.mainFrame
+ 
+        widget = wxBoxContainer (parentWidget, -1)
         widget.SetSizer (sizer)
 
         return widget, None, parentWidget
-                
-    def addToContainer(self, parent, child, weight, flag, border, append=True):
-        parentSizer = parent.GetSizer()
-        if append:
-            parentSizer.Add(child, int(weight), flag, border)
-        else:
-            parentSizer.Prepend(child, int(weight), flag, border)
-        
-    def removeFromContainer(self, parent, child, doDestroy=True):
-        parentSizer = parent.GetSizer()
-        parentSizer.Remove(child)
-        if doDestroy:
-            child.Destroy()
-        parentSizer.Layout()
 
 
 class EmbeddedContainer(RectangularChild):
@@ -57,11 +56,6 @@ class EmbeddedContainer(RectangularChild):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         panel = wx.Panel(parentWindow, -1)
         panel.SetSizer(sizer)
-        self.parentBlock.addToContainer(parent,
-                                        panel,
-                                        self.stretchFactor,
-                                        self.Calculate_wxFlag(),
-                                        self.Calculate_wxBorder())
         try:
             newChild = self.contentSpec.data[0]
         except IndexError:
@@ -71,21 +65,6 @@ class EmbeddedContainer(RectangularChild):
             self.RegisterEvents(newChild)
             Globals.mainView.onSetActiveView(newChild)
             return panel, sizer, panel
-        
-
-    def addToContainer (self, parent, child, weight, flag, border, append=True):
-        if append:
-            parent.Add(child, int(weight), flag, border)
-        else:
-            parent.Prepend(child, int(weight), flag, border)
-        parent.Layout()
-        
-    def removeFromContainer(self, parent, child, doDestroy=True):
-        parentSizer = parent.GetSizer()
-        parentSizer.Remove(child)
-        if doDestroy:
-            child.Destroy()
-        parentSizer.Layout()
     
     def OnSelectionChangedEvent(self, notification):
         node = notification.data['item']
@@ -102,7 +81,6 @@ class EmbeddedContainer(RectangularChild):
                 oldChild = self.contentSpec.data[0]
                 wxOldChild = Globals.association [oldChild.itsUUID]
                 self.UnregisterEvents(oldChild)
-                self.removeFromContainer (embeddedPanel, wxOldChild)
                 oldChild.parentBlock = None
             
                 self.contentSpec.data = [newChild]
@@ -248,10 +226,6 @@ class SplitWindow(RectangularChild):
                                     wx.DefaultPosition,
                                     (self.size.width, self.size.height),
                                     style=self.Calculate_wxStyle(parentWindow))
-        self.parentBlock.addToContainer(parent, splitWindow, 
-                                        self.stretchFactor, 
-                                        self.Calculate_wxFlag(), 
-                                        self.Calculate_wxBorder())
         return splitWindow, splitWindow, splitWindow
                 
     def Calculate_wxStyle (self, parentWindow):
@@ -340,11 +314,6 @@ class TabbedContainer(RectangularChild):
                                             (self.size.width, self.size.height),
                                             style=self.Calculate_wxStyle())
         
-        self.parentBlock.addToContainer(parent, tabbedContainer, 
-                                        self.stretchFactor, 
-                                        self.Calculate_wxFlag(), 
-                                        self.Calculate_wxBorder())
-
         return tabbedContainer, tabbedContainer, tabbedContainer
 
     def Calculate_wxStyle(self):
