@@ -105,14 +105,14 @@ def Do(hardhatScript, mode, workingDir, cvsVintage, buildVersion, clobber, log):
             os.chdir(modeDir)
             print "checking out", module
             log.write("checking out: " + module + " with " + cvsVintage + "\n")
-            outputList = hardhatutil.executeCommandReturnOutput(
+            outputList = hardhatutil.executeCommandReturnOutputRetry(
              [cvsProgram, "-q", "checkout", cvsVintage, module])
             dumpOutputList(outputList, log)
         else:
             # it exists, see if it has changed
             os.chdir(moduleDir)
             print "seeing if we need to update", module
-            outputList = hardhatutil.executeCommandReturnOutput(
+            outputList = hardhatutil.executeCommandReturnOutputRetry(
              [cvsProgram, "-qn", "update", cvsVintage])
             dumpOutputList(outputList, log)
             if NeedsUpdate(outputList):
@@ -122,7 +122,7 @@ def Do(hardhatScript, mode, workingDir, cvsVintage, buildVersion, clobber, log):
                 os.chdir(moduleDir)
                 print "updating", module
                 log.write("updating: " + module + " with " + cvsVintage + "\n")
-                outputList = hardhatutil.executeCommandReturnOutput(
+                outputList = hardhatutil.executeCommandReturnOutputRetry(
                  [cvsProgram, "-q", "update", cvsVintage])
                 dumpOutputList(outputList, log)
                 if scrubAllModules.has_key(module):

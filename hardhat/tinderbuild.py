@@ -67,7 +67,7 @@ def main():
         log = open(logFile, "w+")
         try:
             # bring this hardhat directory up to date
-            outputList = hardhatutil.executeCommandReturnOutput(
+            outputList = hardhatutil.executeCommandReturnOutputRetry(
              [cvsProgram, "update", "-D'"+ nowString + "'"])
 
             # load (or reload) the buildscript file for the project

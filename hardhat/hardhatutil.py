@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, time
 
 def findInPath(path,fileName):
     dirs = path.split(os.pathsep)
@@ -47,6 +47,37 @@ def escapeSpaces(str):
 
 def escapeBackslashes(str):
     return str.replace("\\", "\\\\")
+
+
+def executeCommandReturnOutputRetry(args):
+
+    args[0] = escapeSpaces(args[0])
+    args = map(escapeBackslashes, args)
+
+    if not os.path.exists(args[0]):
+        raise CommandNotFound
+
+    # all args need to be quoted
+    # args = map(quoteString, args)
+
+    args_str = ' '.join(args)
+    print args_str
+
+    attempt = 1
+    while attempt <= 5:
+        output = os.popen(args_str, "r")
+        outputList = output.readlines()
+        exitCode = output.close()
+        if exitCode == None:
+            return outputList
+        print "Command failed with exit code", exitCode
+        print "Waiting 30 seconds..."
+        time.sleep(30)
+        print "Retrying command"
+        attempt += 1
+
+    raise ExternalCommandError, exitCode
+
 
 def executeCommandReturnOutput(args):
 
