@@ -18,12 +18,16 @@ class Kind(Item):
         self._values['NotFoundAttributes'] = []
 
     def newItem(self, name, parent):
-        '''Create an item of this kind.
+        """Create an item of this kind.
 
-        The class instantiated is taken from the Kind's Class attribute if it
-        is set. The Item class is used otherwise.'''
+        The python class instantiated is taken from the Kind's Classes
+        attribute if it is set. The Item class is used otherwise."""
         
-        return self.getAttributeValue('Class')(name, parent, self)
+        return self.getItemClass()(name, parent, self)
+
+    def getItemClass(self):
+
+        return self.getAttributeValue('Classes')['python']
         
     def getAttribute(self, name):
 

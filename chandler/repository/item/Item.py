@@ -767,7 +767,8 @@ class Item(object):
             xmlTag('kind', { 'type': 'uuid' },
                    kind.getUUID().str64(), generator)
 
-        if withSchema or kind is None or kind.Classes['python'] is not type(self):
+        if (withSchema or kind is None or
+            kind.getItemClass() is not type(self)):
             xmlTag('class', { 'module': self.__module__ },
                    type(self).__name__, generator)
 
@@ -993,7 +994,7 @@ class ItemHandler(xml.sax.ContentHandler):
             if self.kind is None:
                 cls = Item
             else:
-                cls = self.kind.getAttributeValue('Classes')['python']
+                cls = self.kind.getItemClass()
 
         self.item = item = cls(self.name, self.parent, self.kind,
                                _uuid = UUID(attrs.get('uuid')),
