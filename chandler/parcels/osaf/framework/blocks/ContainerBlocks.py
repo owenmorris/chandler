@@ -184,7 +184,6 @@ class EmbeddedContainer(RectangularChild):
         parent.Layout ()
     
     def OnSelectionChangedEvent (self, notification):
-        node = notification.data['node']
         oldChild = Globals.repository.find (self.contentSpec.data)
         wxOldChild = Globals.association [oldChild.getUUID()]
         embeddedPanel = Globals.association [self.getUUID()]
@@ -194,7 +193,7 @@ class EmbeddedContainer(RectangularChild):
         embeddedSizer.Layout()
         oldChild.parentBlock = None
         
-        self.contentSpec.data = node.GetData()        
+        self.contentSpec.data = notification.data['item']      
         newChild = Globals.repository.find (self.contentSpec.data)
         if newChild:
             newChild.parentBlock = self
@@ -263,10 +262,9 @@ class wxEditText(wxTextCtrl):
         EVT_TEXT_ENTER(self, self.GetId(), self.OnEnterPressed)
 
     def OnEnterPressed(self, event):
-        arguments = {'text':self.GetValue(), 'type':'Normal'}
         event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/EnterPressed')
         notification = Notification(event, None, None)
-        notification.SetData(arguments)
+        notification.SetData ({'text':self.GetValue(), 'type':'Normal'})
         Globals.notificationManager.PostNotification (notification)
 
             
@@ -331,10 +329,6 @@ class List(RectangularChild):
 
 class RadioBox(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
-        id = 0
-        if self.hasAttributeValue ("selectionChanged"):  # Repository bug/feature -- DJA
-            id = self.selectionChanged.getwxID()
-
         if self.radioAlignEnum == "Across":
             dimension = wxRA_SPECIFY_COLS
         elif self.radioAlignEnum == "Down":
@@ -458,9 +452,10 @@ class StatusBar(RectangularChild):
     
 class TabbedContainer(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
-        id = 0
-        if self.hasAttributeValue ("selectionChanged"):  # Repository bug/feature -- DJA
+        try:
             id = self.selectionChanged.getwxID()
+        except AttributeError:
+            id = 0
             
         if self.tabPosEnum == "Top":
             style = 0
@@ -585,7 +580,7 @@ class wxTreeList(wxTreeListCtrl):
         EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnExpanding)
         EVT_TREE_ITEM_COLLAPSING(self, self.GetId(), self.OnCollapsing)
         EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
-        EVT_TREE_SEL_CHANGED(self, self.GetId(), self.OnItemActivated)
+        EVT_TREE_SEL_CHANGED(self, self.GetId(), self.On_wxSelectionChanged)
  
     def OnExpanding(self, event):
         """
@@ -624,12 +619,11 @@ class wxTreeList(wxTreeListCtrl):
         except AttributeError:
             pass
 
-    def OnItemActivated(self, event):
-        arguments = {'node':TreeNode (event.GetItem(), self),
-                     'type':'Normal'}
-        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
-        notification = Notification(event, None, None)
-        notification.SetData(arguments)
+    def On_wxSelectionChanged(self, event):
+        chandlerEvent = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
+        notification = Notification(chandlerEvent, None, None)
+        notification.SetData ({'item':self.GetPyData(event.GetItem()),
+                               'type':'Normal'})
         Globals.notificationManager.PostNotification (notification)
 
     def SynchronizeFramework(self):
@@ -694,9 +688,9 @@ class TreeList(RectangularChild):
 
 
 class wxRepositoryTreeList(wxTreeList):
-    def GoToURI(self, URI):
+    def GoToUrl(self, url):
         treeNode = self.GetRootItem()
-        for name in URI.split ('/'):
+        for name in url.split ('/'):
             if name:
                 assert (self.ItemHasChildren (treeNode))
                 self.Expand (treeNode)
@@ -714,6 +708,7 @@ class wxRepositoryTreeList(wxTreeList):
                     """
                     assert (False)
                     return
+       
         self.SelectItem (child)
         self.ScrollTo (child)
 
@@ -739,9 +734,9 @@ class RepositoryTreeList(TreeList):
         else:
             node.AddRootNode (Globals.repository, ['//'], True)
 
-    def OnGoToURI (self, notification):
+    def OnSelectionChangedEvent (self, notification):
         wxTreeListWindow = Globals.association[self.getUUID()]
-        wxTreeListWindow.GoToURI (notification.data['URI'])
+        wxTreeListWindow.GoToUrl (str (notification.GetData()['item'].getItemPath()))
 
         
 class Sidebar(TreeList):
@@ -757,10 +752,7 @@ class Sidebar(TreeList):
                               ['Views'], true)
             
     def OnSelectionChangedEvent (self, notification):
-        node = notification.data['node']
-        name = node.treeList.GetItemText(node.nodeId)
-        arguments = {'parcelName':name, 'type':'Normal'}
         event = Globals.repository.find('//parcels/OSAF/views/demo/SwitchEmbeddedChild')
         notification = Notification(event, None, None)
-        notification.SetData(arguments)
+        notification.SetData(notification.data)
         Globals.notificationManager.PostNotification (notification)

@@ -227,7 +227,6 @@
     <blockEvents itemref="docSchema:Right"/>
     <blockEvents itemref="docSchema:Left"/>
     <blockEvents itemref="docSchema:SelectionChanged"/>
-    <blockEvents itemref="docSchema:GoToURI"/>
   </docSchema:EventData>
 
   <docSchema:BlockEvent itemName="Quit">
@@ -283,11 +282,6 @@
   <docSchema:BlockEvent itemName="SelectionChanged">
     <dispatchEnum>Broadcast</dispatchEnum>
     <methodName>OnSelectionChangedEvent</methodName>
-  </docSchema:BlockEvent>
-
-  <docSchema:BlockEvent itemName="GoToURI">
-    <dispatchEnum>Broadcast</dispatchEnum>
-    <methodName>OnGoToURI</methodName>
   </docSchema:BlockEvent>
   -->
 

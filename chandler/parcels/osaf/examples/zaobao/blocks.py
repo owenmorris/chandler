@@ -58,13 +58,13 @@ class wxZaoBaoItemView(wxItemView):
 
         self.OnSelectionChangedEvent (item)
 
-        arguments = {'URI':item, 'type':'Normal'}
-        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GoToURI')
+        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
         notification = Notification(event, None, None)
-        notification.SetData(arguments)
+        notification.SetData({'item':item, 'type':'Normal'})
+
         Globals.notificationManager.PostNotification (notification)
 
-    def OnSelectionChangedEvent(self, item):
+    def On_wxSelectionChanged(self, item):
         if item:
             displayName = item.getItemDisplayName()
 
@@ -104,3 +104,11 @@ class ZaoBaoItemView(ItemView):
                                                          self.Calculate_wxFlag(),
                                                          self.Calculate_wxBorder())
         return htmlWindow, None, None
+
+    def OnSelectionChangedEvent (self, notification):
+        """
+          Display the item in the wxWindow counterpart.
+        """
+        wxWindow = Globals.association[self.getUUID()]
+        wxWindow.On_wxSelectionChanged (notification.data['item'])
+

@@ -28,7 +28,6 @@ of a limitation of the XML format, which will be eliminated</description>
     <blockEvents itemref="events:ViewStatusBar"/>    
     <blockEvents itemref="events:SelectionChanged"/>
     <blockEvents itemref="events:EnterPressed"/>    
-    <blockEvents itemref="events:GoToURI"/>
   </EventData>
 
   <BlockEvent itemName="Quit">
@@ -89,11 +88,6 @@ of a limitation of the XML format, which will be eliminated</description>
   <BlockEvent itemName="EnterPressed">
     <dispatchEnum>Broadcast</dispatchEnum>
     <methodName>OnEnterPressedEvent</methodName>
-  </BlockEvent>
-
-  <BlockEvent itemName="GoToURI">
-    <dispatchEnum>Broadcast</dispatchEnum>
-    <methodName>OnGoToURI</methodName>
   </BlockEvent>
 
 </core:Parcel>

@@ -22,15 +22,16 @@ class View(BoxContainer):
             except AttributeError:
                 return False
         
-        def broadcast (block, methodName, notification):
+        def broadcast (block, focusBlock, methodName, notification):
             """
               Call method named methodName on every block and it's children
             who implements it
             """
             if block:
-                callMethod (block, methodName, notification)
+                if block != focusBlock:
+                    callMethod (block, methodName, notification)
                 for child in block.childrenBlocks:
-                    broadcast (child, methodName, notification)
+                    broadcast (child, focusBlock, methodName, notification)
 
         event = notification.event
         """
@@ -51,10 +52,11 @@ class View(BoxContainer):
         if event.dispatchEnum == 'SendToBlock':
             callMethod (event.dispatchToBlock, methodName, notification)
         elif event.dispatchEnum == 'Broadcast':
+            focusBlock = block
             while (not block.eventBoundary and block.parentBlock):
                 block = block.parentBlock
                 
-            broadcast (block, methodName, notification)
+            broadcast (block, focusBlock, methodName, notification)
         elif event.dispatchEnum == 'BubbleUp':
             while (block):
                 if callMethod (block, methodName, notification):
@@ -113,17 +115,16 @@ class View(BoxContainer):
 
 class wxItemView(wxHtmlWindow):
     def OnLinkClicked(self, wx_linkinfo):
-        itemURL = wx_linkinfo.GetHref()
-        item = Globals.repository.find(itemURL)
-        self.OnSelectionChangedEvent (item)
+        item = Globals.repository.find(wx_linkinfo.GetHref())
 
-        arguments = {'URI':itemURL, 'type':'Normal'}
-        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GoToURI')
+        self.On_wxSelectionChanged (item)
+
+        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
         notification = Notification(event, None, None)
-        notification.SetData(arguments)
+        notification.SetData ({'item':item, 'type':'Normal'})
         Globals.notificationManager.PostNotification (notification)
 
-    def OnSelectionChangedEvent(self, item):
+    def On_wxSelectionChanged(self, item):
         def formatReference(reference):
             """
               Formats the a reference attribute to be clickable, etcetera
@@ -146,7 +147,7 @@ class wxItemView(wxHtmlWindow):
 
         if item:
             displayName = item.getItemDisplayName()
-
+    
             try:
                 kind = item.kind.getItemName()
             except AttributeError:
@@ -196,7 +197,7 @@ class wxItemView(wxHtmlWindow):
             HTMLText = "%s%s</ul></body></html>" % (HTMLText, dyn_html)
         else:
             HTMLText = "<html><body><h5>Item Viewer</h5></body></html>"
-
+    
         self.SetPage(HTMLText)
 
 
@@ -215,9 +216,8 @@ class ItemView(HTML):
 
     def OnSelectionChangedEvent (self, notification):
         """
-          Display the given Item's details in an HTML window.
+          Display the item in the wxWindow counterpart.
         """
-        item = notification.data['node'].GetData()
-        wxItemViewWindow = Globals.association[self.getUUID()]
-        wxItemViewWindow.OnSelectionChangedEvent (item)
+        wxWindow = Globals.association[self.getUUID()]
+        wxWindow.On_wxSelectionChanged (notification.data['item'])
 
