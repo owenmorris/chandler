@@ -37,8 +37,6 @@ def run(buildenv):
 
 
     hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
-     "Setting path to " + path)
-    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
      "Using " + python)
     os.putenv('path', path)
 
@@ -54,17 +52,12 @@ def run(buildenv):
 	else:
 	    additional_path = buildenv['root'] + os.sep + 'release' + os.sep + 'lib'
 	ld_library_path = additional_path + os.pathsep + ld_library_path
-	hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
-	 "Setting LD_LIBRARY_PATH to " + ld_library_path)
 	os.putenv('LD_LIBRARY_PATH', ld_library_path)
 	
 
-    exit_code = os.spawnl(os.P_WAIT, python, python, "Chandler.py")
+    hardhatlib.executeCommand( buildenv, info['name'],
+     [python, "Chandler.py"], "Running Chandler" )
 
-    if exit_code != 0:
-        hardhatlib.log(buildenv, hardhatlib.HARDHAT_ERROR, info['name'], 
-         "Chandler exited with code = " + str(exit_code))
-        raise hardhatlib.HardHatError
 
 def removeRuntimeDir(buildenv):
 
