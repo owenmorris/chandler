@@ -39,6 +39,7 @@ wxPython:
                            USE_SWIG=0 \
                            SWIG=`cygpath -aw $(SWIG)` \
                            INSTALL_MULTIVERSION=0 \
+			   MONOLITHIC=0 \
                            build $(DIST_OPT) \
                            install \
                            FINAL=$(FINAL) HYBRID=0
