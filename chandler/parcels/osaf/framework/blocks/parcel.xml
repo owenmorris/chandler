@@ -651,10 +651,16 @@
     <classes key="python">osaf.framework.blocks.ControlBlocks.Summary</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
+    <Attribute itemName="cursorColumnLabel">
+      <type itemref="String"/>
+      <defaultValue itemref="None"/>
+    </Attribute>
+    
     <attributes itemref="docSchema:columnHeadings"/>
     <attributes itemref="docSchema:columnWidths"/>
     <attributes itemref="docSchema:elementDelegate"/>
     <attributes itemref="docSchema:selection"/>
+    <attributes itemref="docSchema:Summary/cursorColumnLabel"/>
   </Kind>  
 
   <!--

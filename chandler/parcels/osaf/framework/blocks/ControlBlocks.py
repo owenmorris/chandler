@@ -236,6 +236,7 @@ class wxList (DraggableWidget, wx.ListCtrl):
                 self.blockItem.selection = item
             self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                                                               {'item':item})
+        event.Skip()
 
     def OnItemDrag(self, event):
         self.SetDragData (self.blockItem.contents[event.GetIndex()].itsUUID)
@@ -333,11 +334,7 @@ class wxSummary(wx.grid.Grid):
         self.SetRowLabelSize(0)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
-
-    def OnColumnDrag(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
-            columnIndex = event.GetRowOrCol()
-            self.blockItem.columnWidths [columnIndex] = self.GetColSize (columnIndex)
+        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.On_wxSelectionChanged)
 
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
@@ -351,6 +348,21 @@ class wxSummary(wx.grid.Grid):
             if lastColumnWidth > 0:
                 self.SetColSize (lastColumnIndex, lastColumnWidth)
                 self.ForceRefresh()
+        event.Skip()
+
+    def OnColumnDrag(self, event):
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            columnIndex = event.GetRowOrCol()
+            self.blockItem.columnWidths [columnIndex] = self.GetColSize (columnIndex)
+
+    def On_wxSelectionChanged(self, event):
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            item = self.blockItem.contents [event.GetRow()]
+            if self.blockItem.selection != item:
+                self.blockItem.selection = item
+            self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                                                              {'item':item})
+            self.blockItem.cursorColumnLabel = self.GetTable().GetColLabelValue (event.GetCol())
         event.Skip()
 
     def Reset(self): 
@@ -404,7 +416,7 @@ class wxSummary(wx.grid.Grid):
             when the grid is deleted.
             """
             gridTable = wxSummaryTable(self)
-            self.SetTable (gridTable, True)
+            self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
             self.currentRows = gridTable.GetNumberRows()
             self.currentColumns = gridTable.GetNumberCols()
 
@@ -412,15 +424,23 @@ class wxSummary(wx.grid.Grid):
         if self.blockItem.selection:
             self.GoToItem (self.blockItem.selection)
 
-    def OnGetItemText (self, row, column):
-        """
-          OnGetItemText won't be called if it's in the delegate -- WxPython won't
-        call it if it's in a base class
-        """
-        return self.GetElementText (row, column)
-
     def GoToItem(self, item):
-        self.SelectRow (self.blockItem.contents.index (item))
+        row = self.blockItem.contents.index (item)
+
+        cursorColumn = 0
+        try:
+            cursorColumnLabel = self.blockItem.cursorColumnLabel
+        except AttributeError:
+            pass
+        else:
+            table = self.GetTable()
+            for columnIndex in xrange (table.GetNumberCols()):
+                if table.GetColLabelValue(columnIndex) == cursorColumnLabel:
+                    cursorColumn = columnIndex
+                    break
+
+        self.SelectRow (row)
+        self.SetGridCursor (row, cursorColumn)
 
 
 class Summary(RectangularChild):
@@ -607,6 +627,7 @@ class wxTreeAndList(DraggableWidget):
         
                 self.blockItem.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                                      {'item':selection})
+        event.Skip()
 
     def OnItemDrag(self, event):
         self.SetDragData (self.GetItemData(event.GetItem()).GetData())
