@@ -680,7 +680,8 @@ class NoteBody (EditTextAttribute):
         textType = item.getAttributeAspect('body', 'type')
         widgetText = widget.GetValue()
         if widgetText:
-            item.body = textType.makeValue(widgetText)
+            item.body = textType.makeValue(widgetText, encoding='ascii',
+             indexed=True)
         
     def loadAttributeIntoWidget (self, item, widget):  
         if item.hasAttributeValue("body"):
