@@ -20,7 +20,7 @@
              xmlns:calendar="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"
              xmlns:calendarModel="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
              xmlns:contacts="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
-             xmlns:stockQuote="http://osafoundation.org/parcels/osaf/examples/stockquote/views">
+             >
 
   <core:version>0.3</core:version>
 
@@ -122,7 +122,6 @@
     <items itemref="demo:BlockDemoView"/>
     <items itemref="repository:RepositoryView"/>
     <items itemref="content:MixedView"/>
-    <items itemref="stockQuote:StockQuoteView"/>
     <items itemref="content:NotesView"/>
     <items itemref="content:ContactsView"/>
     <items itemref="content:TasksView"/>
@@ -148,13 +147,6 @@
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:MixedView"/>
-  </ModifyContentsEvent>
-  
-  <ModifyContentsEvent itsName="AddStockQuoteView">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:Sidebar"/>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="stockQuote:StockQuoteView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddNotesView">
@@ -887,7 +879,6 @@
     <childrenBlocks itemref="doc:AddMailViewItem"/>
     <childrenBlocks itemref="doc:AddKindViewsItem"/>
     <childrenBlocks itemref="doc:TestSeparator3"/>
-    <childrenBlocks itemref="doc:AddStockQuoteItem"/>
   </Menu>
 
   <MenuItem itsName="AddAllAdditionalViewsItem">
@@ -968,13 +959,6 @@
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
-  <MenuItem itsName="AddStockQuoteItem">
-    <blockName>AddStockQuoteItem</blockName>
-    <title>Add Stock Quote</title>
-    <event itemref="doc:AddStockQuoteView"/>
-    <helpString>Adds the stock quote view to the sidebar</helpString>
-  </MenuItem>
-
   <MenuItem itsName="AboutChandlerItem">
     <blockName>AboutChandlerItem</blockName>
     <title>About Chandler</title>
@@ -1332,7 +1316,6 @@
     <subscribeWhenVisibleEvents itemref="doc:AddNotesView"/>    
     <subscribeWhenVisibleEvents itemref="doc:AddContactsView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddRepositoryView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddStockQuoteView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddTasksView"/>
     <subscribeWhenVisibleEvents itemref="doc:KindFilterAllEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:KindFilterEventEvent"/>
