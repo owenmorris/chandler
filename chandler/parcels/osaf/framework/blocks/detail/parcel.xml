@@ -490,7 +490,8 @@
     <minimumSize>300, 24</minimumSize>
   </EditText>
 
-  <AEBlock itsName="AECalendarDuration">
+  <AEBlock itsName="AECalendarDuration"
+           itemClass="osaf.framework.blocks.detail.Detail.AECalendarDuration">
     <blockName value="AECalendarDuration"/>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    

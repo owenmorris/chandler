@@ -1408,14 +1408,15 @@ class wxAEBlock(wxBoxContainer):
             self.drawAEBlock(clientDC)
 
     def drawAEBlock(self, dc):
-        item = self.blockItem.getItem ()
-        if item is not None:
-            blockRect = self.GetRect() # use the rect of the AE Block
-            rect = wx.Rect(0, 0, blockRect.width, blockRect.height)
-            attributeName = self.blockItem.viewAttribute
-            isSelected = self.isSelected
-            self.ensureEditor()
-            self.editor.Draw(dc, rect, item, attributeName, isSelected)
+        if self.blockItem.isShown: 
+            item = self.blockItem.getItem ()
+            if item is not None:
+                blockRect = self.GetRect() # use the rect of the AE Block
+                rect = wx.Rect(0, 0, blockRect.width, blockRect.height)
+                attributeName = self.blockItem.viewAttribute
+                isSelected = self.isSelected
+                self.ensureEditor()
+                self.editor.Draw(dc, rect, item, attributeName, isSelected)
 
     def ensureEditor(self):
         if self.editor is None:

@@ -1004,8 +1004,23 @@ class StaticDurationAttribute (StaticTextLabel):
 class AECalendarDuration (DetailSynchronizer, ControlBlocks.AEBlock):
     """
     Example usage of an AEBlock, used for the duration edit field.
-    Only shows itself for a Calendar Event
+    Only shows itself for a Calendar Event.
+    @@@DLD - clean up!  We shouldn't even need this class.
+    We need a shouldShow method so we don't try to show ourselves for
+       items that don't have our attribute.
+    We need a synchronizeWidget method in order to show/hide ourself
+       before the default synchronizeWidget gets called, which does
+       all the Attribute Editor work.
     """
+    def synchronizeWidget (self):
+        # only shown for non-CalendarEventMixin kinds
+        item = self.selectedItem ()
+        if item is None:
+            self.isShown = False
+        else:
+            self.isShown = self.shouldShow (item)
+        super (AECalendarDuration, self).synchronizeWidget ()
+
     def shouldShow (self, item):
         # only shown for non-CalendarEventMixin kinds
         calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
