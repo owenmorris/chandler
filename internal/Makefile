@@ -4,7 +4,8 @@ include Makefile.inc
 SYSTEMS=UUIDext \
         wxPython-2.5 \
         m2crypto \
-        launchers
+        launchers \
+        queryparser
 
 .PHONY: binaries $(SYSTEMS)
 
