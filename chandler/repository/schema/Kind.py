@@ -117,7 +117,7 @@ class Kind(Item):
 
         return None
 
-    def getAttribute(self, name):
+    def getAttribute(self, name, noError=False):
         """
         Get an attribute definition item.
 
@@ -146,7 +146,7 @@ class Kind(Item):
             else:
                 attribute = self._inheritAttribute(name)
 
-        if attribute is None:
+        if attribute is None and noError is False:
             raise AttributeError, "Kind %s has no definition for attribute '%s'" %(self.itsPath, name)
 
         return attribute
@@ -233,11 +233,7 @@ class Kind(Item):
         cache = True
         for superKind in self.superKinds:
             if superKind is not None:
-                try:
-                    attribute = superKind.getAttribute(name)
-                except AttributeError:
-                    attribute = None
-
+                attribute = superKind.getAttribute(name, True)
                 if attribute is not None:
                     # during core schema loading _kind can be None
                     if attribute._kind is not None:

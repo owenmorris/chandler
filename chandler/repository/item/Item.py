@@ -192,10 +192,9 @@ class Item(object):
         """
 
         if self._kind is not None:
-            try:
-                return self._kind.getAttribute(name).hasAspect(aspect)
-            except AttributeError:
-                pass
+            attribute = self._kind.getAttribute(name, True)
+            if attribute is not None:
+                return attribute.hasAspect(aspect)
 
         return False
 
