@@ -220,7 +220,7 @@ def changesInCVS(workingDir, cvsVintage, log):
         print "seeing if we need to update", module
         log.write("Seeing if we need to update " + module + "\n")
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-qn -z3", "update", "-d", cvsVintage, module])
+         [cvsProgram, "-qn", "update", "-d", cvsVintage, module])
         # hardhatutil.dumpOutputList(outputList, log)
         if NeedsUpdate(outputList):
             changesDict[module] = True
