@@ -117,15 +117,6 @@ class CalendarEventMixin(Item.Item):
         # give a starting display name
         self.displayName = "New Event"
 
-
-class CalendarEvent(CalendarEventMixin, Notes.Note):
-
-    def __init__(self, name=None, parent=None, kind=None):
-        if not kind:
-            kind = Globals.repository.findPath("//parcels/osaf/contentmodel/calendar/CalendarEvent")
-        super (CalendarEvent, self).__init__(name, parent, kind)
-        self.participants = []
-
     def GetDuration(self):
         """Returns an mxDateTimeDelta, None if no startTime or endTime"""
         
@@ -156,6 +147,15 @@ class CalendarEvent(CalendarEventMixin, Notes.Note):
         self.startTime = dateTime
         self.endTime = self.startTime + duration
 
+
+
+class CalendarEvent(CalendarEventMixin, Notes.Note):
+
+    def __init__(self, name=None, parent=None, kind=None):
+        if not kind:
+            kind = Globals.repository.findPath("//parcels/osaf/contentmodel/calendar/CalendarEvent")
+        super (CalendarEvent, self).__init__(name, parent, kind)
+        self.participants = []
 
 class Location(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
