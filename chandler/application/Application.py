@@ -23,22 +23,6 @@ import tools.timing
 wxEVT_MAIN_THREAD_CALLBACK = wx.NewEventType()
 EVT_MAIN_THREAD_CALLBACK = wx.PyEventBinder(wxEVT_MAIN_THREAD_CALLBACK, 0)
 
-def repositoryCallback(view, changes, notification, **kwds):
-    # Postpone import to avoid circular imports
-    from osaf.framework.notifications.Notification import Notification
-
-    if notification != 'History':
-        return
-
-    eventPath = '//parcels/osaf/framework/commit_history'
-    event = view.findPath(eventPath)
-
-    note = Notification(event)
-    note.threadid = id(threading.currentThread())
-    note.SetData({'changes' : changes})
-    Globals.notificationManager.PostNotification(note)
-
-
 def mixinAClass (self, myMixinClassImportPath):
     """
       Given an object, self, and the path as a string to a mixin class,
@@ -275,9 +259,6 @@ class wxApplication (wx.App):
         """
         Globals.notificationManager.PrepareSubscribers()
 
-        # Set it up so that repository changes generate notifications
-        Globals.repository.addNotificationCallback(repositoryCallback)
-
         # It is important to commit before the task manager starts
         Globals.repository.commit()
         from osaf.framework.tasks.TaskManager import TaskManager
@@ -365,9 +346,14 @@ class wxApplication (wx.App):
                 """
                 assert updateUIEvent
             else:
-                args = {}
+                args = {'wxEvent':event}
                 if updateUIEvent:
                     args['UpdateUI'] = True
+                else:
+                    try:
+                        args['buttonState'] = event.GetEventObject().GetToolState (wxID)
+                    except AttributeError: 
+                        pass
  
                 block.Post (blockEvent, args)
  

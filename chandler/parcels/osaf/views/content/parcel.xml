@@ -22,113 +22,63 @@
 
   <core:version>0.3</core:version>
 
-  <!-- Queries -->
-  <contentModel:Query itsName="calendarQuery">
-    <data value="for i in '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True"/>
-  </contentModel:Query>
-
-  <contentModel:NamedCollection itsName="calendarItemCollection">
+  <!-- ItemCollections -->
+  <contentModel:ItemCollection itsName="calendarItemCollection">
     <displayName>Calendar</displayName>
-    <rule itemref="view:calendarQuery"/>
-  </contentModel:NamedCollection>
+    <_rule value="for i in '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True"/>
+  </contentModel:ItemCollection>
 
-  <contentModel:Query itsName="notesQuery">
-    <data value="for i in '//parcels/osaf/contentmodel/Note' where True"/>
-    <exactKind>True</exactKind>
-  </contentModel:Query>
-
-  <contentModel:NamedCollection itsName="notesItemCollection">
+  <contentModel:ItemCollection itsName="notesItemCollection">
     <displayName>Notes</displayName>
-    <rule itemref="view:notesQuery"/>
-  </contentModel:NamedCollection>
+    <_rule value="for i in '//parcels/osaf/contentmodel/Note' where True"/>
+  </contentModel:ItemCollection>
 
-  <contentModel:Query itsName="taskQuery">
-    <data value="for i in '//parcels/osaf/contentmodel/tasks/TaskMixin' where True"/>
-  </contentModel:Query>
-
-  <contentModel:NamedCollection itsName="taskItemCollection">
+  <contentModel:ItemCollection itsName="taskItemCollection">
     <displayName>TaskList</displayName>
-    <rule itemref="view:taskQuery"/>
-  </contentModel:NamedCollection>
+    <_rule value="for i in '//parcels/osaf/contentmodel/tasks/TaskMixin' where True"/>
+  </contentModel:ItemCollection>
 
-  <contentModel:Query itsName="mailQuery">
-    <data value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where True"/>
-  </contentModel:Query>
-
-  <contentModel:NamedCollection itsName="mailItemCollection">
+  <contentModel:ItemCollection itsName="mailItemCollection">
     <displayName>MailList</displayName>
-    <rule itemref="view:mailQuery"/>
-  </contentModel:NamedCollection>
+    <_rule value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where True"/>
+  </contentModel:ItemCollection>
 
-  <contentModel:Query itsName="contactQuery">
-    <data value="for i in '//parcels/osaf/contentmodel/contacts/Contact' where True"/>
-    <exactKind>True</exactKind>
-  </contentModel:Query>
-
-  <contentModel:NamedCollection itsName="contactItemCollection">
+  <contentModel:ItemCollection itsName="contactItemCollection">
     <displayName>Contacts</displayName>
-    <rule itemref="view:contactQuery"/>
-  </contentModel:NamedCollection>
+    <_rule value="for i in '//parcels/osaf/contentmodel/contacts/Contact' where True"/>
+  </contentModel:ItemCollection>
 
-  <contentModel:Query itsName="mixedQuery">
-    <data value="union(for i in '//parcels/osaf/contentmodel/Note' where True, for i in '//parcels/osaf/contentmodel/contacts/Contact' where True)"/>
-  </contentModel:Query>
-
-  <contentModel:Query itsName="allQuery">
-    <data value="for i in '//parcels/osaf/contentmodel/Note' where True"/>
-  </contentModel:Query>
-
-  <contentModel:NamedCollection itsName="mixedItemCollection">
+  <contentModel:ItemCollection itsName="mixedItemCollection">
     <displayName>Mixed</displayName>
-    <rule itemref="view:mixedQuery"/>
-  </contentModel:NamedCollection>
+    <_rule value="union(for i in '//parcels/osaf/contentmodel/Note' where True, for i in '//parcels/osaf/contentmodel/contacts/Contact' where True)"/>
+  </contentModel:ItemCollection>
 
-  <contentModel:Query itsName="untitledQuery">
-  </contentModel:Query>
-
-  <contentModel:NamedCollection itsName="untitledItemCollection">
+  <contentModel:ItemCollection itsName="untitledItemCollection">
     <displayName>Untitled</displayName>
-    <rule itemref="view:untitledQuery"/>
-  </contentModel:NamedCollection>
+  </contentModel:ItemCollection>
 
-  <contentModel:NamedCollection itsName="allItemCollection">
+  <contentModel:ItemCollection itsName="allItemCollection">
     <displayName>All</displayName>
-    <rule itemref="view:allQuery"/>
-  </contentModel:NamedCollection>
+    <_rule value="for i in '//parcels/osaf/contentmodel/Note' where True"/>
+  </contentModel:ItemCollection>
 
-  <contentModel:Query itsName="inQuery">
-    <data value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"/>
-  </contentModel:Query>
-
-  <contentModel:NamedCollection itsName="inItemCollection">
+  <contentModel:ItemCollection itsName="inItemCollection">
     <displayName>In</displayName>
-    <rule itemref="view:inQuery"/>
-  </contentModel:NamedCollection>
+    <_rule value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isInbound == True"/>
+  </contentModel:ItemCollection>
 
-  <contentModel:Query itsName="outQuery">
-    <data value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isOutbound == True"/>
-  </contentModel:Query>
-
-  <contentModel:NamedCollection itsName="outItemCollection">
+  <contentModel:ItemCollection itsName="outItemCollection">
     <displayName>Out</displayName>
-    <rule itemref="view:outQuery"/>
-  </contentModel:NamedCollection>
+    <_rule value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isOutbound == True"/>
+  </contentModel:ItemCollection>
 
-  <contentModel:Query itsName="junkQuery">
-  </contentModel:Query>
-
-  <contentModel:NamedCollection itsName="junkItemCollection">
+  <contentModel:ItemCollection itsName="junkItemCollection">
     <displayName>Junk</displayName>
-    <rule itemref="view:junkQuery"/>
-  </contentModel:NamedCollection>
+  </contentModel:ItemCollection>
 
-  <contentModel:Query itsName="trashQuery">
-  </contentModel:Query>
-
-  <contentModel:NamedCollection itsName="trashItemCollection">
+  <contentModel:ItemCollection itsName="trashItemCollection">
     <displayName>Trash</displayName>
-    <rule itemref="view:trashQuery"/>
-  </contentModel:NamedCollection>
+  </contentModel:ItemCollection>
 
   <!-- Calendar Blocks -->
   <CharacterStyle itsName="CalendarTitle">

@@ -40,7 +40,6 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         originalItem = Globals.repository.findPath('parcels/osaf/views/content/UntitledView')
         name = self._getUniqueName("Untitled")
         newItem = originalItem.copy(name, self)
-        newItem.contents._ItemCollection__refresh() # @@@ Hack to work around Bug#1568
         newItem.contents.displayName = name
         
         self.widget.selectedTab = self.widget.GetPageCount()

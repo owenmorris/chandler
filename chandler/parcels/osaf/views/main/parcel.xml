@@ -539,7 +539,8 @@
   <MenuItem itsName="DeleteItem">
     <blockName>DeleteItem</blockName>
     <title>Delete</title>
-    <event itemref="events:NULL"/>
+    <accel>DELETE</accel>
+    <event itemref="events:Delete"/>
     <helpString value="Delete the selection"/>
   </MenuItem>
   
@@ -1092,7 +1093,7 @@
   </MenuItem>
 
   <!--
-    Toolbars
+    NavigationBar
   -->
   <Toolbar itemName="NavigationBar">
     <blockName>NavigationBar</blockName>
@@ -1108,7 +1109,7 @@
   </Toolbar>
 
   <!--
-    ToolbarItems
+    NavigationBar ToolbarItems
   -->
   <ToolbarItem itsName="SyncButton">
     <blockName>SyncButton</blockName>
@@ -1139,6 +1140,117 @@
     <helpString>Share or Manage the collection selected in the sidebar</helpString>
     <event itemref="doc:ShareOrManage"/>
   </ToolbarItem>
+
+  <ToolbarItem itsName="SyncButton">
+    <blockName>SyncButton</blockName>
+    <title>Sync</title>
+    <label>Sync All</label>
+    <bitmap>application/images/toolbar_sync.gif</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Get new Mail and synchronize with other Chandler users</helpString>
+    <event itemref="doc:SyncAll"/>
+  </ToolbarItem>
+
+  <!--
+    KindFilterBar
+  -->
+  <Toolbar itemName="KindFilterBar">
+    <blockName>NavigationBar</blockName>
+    <!-- Children -->
+    <childrenBlocks itemref="doc:KindFilterAll"/>
+    <childrenBlocks itemref="doc:KindFilterMessage"/>
+    <childrenBlocks itemref="doc:KindFilterEvent"/>
+    <childrenBlocks itemref="doc:KindFilterTask"/>
+    <childrenBlocks itemref="doc:KindFilterNotes"/>
+    
+    <!-- Attributes -->
+    <toolSize>21,20</toolSize>
+    <separatorWidth>20</separatorWidth>
+    <stretchFactor>0</stretchFactor>
+  </Toolbar>
+
+  <!--
+    KindFilterBar ToolbarItems
+  -->
+  <ToolbarItem itsName="KindFilterAll">
+    <blockName>KindFilterAll</blockName>
+    <title>All</title>
+    <bitmap>application/images/KindFilterAll.png</bitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <event itemref="doc:KindFilterAllEvent"/>
+    <helpString></helpString>
+  </ToolbarItem>
+
+  <KindParameterizedEvent itemName="KindFilterAllEvent">
+    <kindParameter ref="core:None" />
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onKindParameterizedEvent</methodName>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+  </KindParameterizedEvent>
+
+  <ToolbarItem itsName="KindFilterMessage">
+    <blockName>KindFilterMessage</blockName>
+    <title>Message</title>
+    <bitmap>application/images/KindFilterMessage.png</bitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <event itemref="doc:KindFilterMessageEvent"/>
+    <helpString></helpString>
+  </ToolbarItem>
+
+  <KindParameterizedEvent itemName="KindFilterMessageEvent">
+    <kindParameter itemref="mail:MailMessage"/>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onKindParameterizedEvent</methodName>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+  </KindParameterizedEvent>
+
+  <ToolbarItem itsName="KindFilterEvent">
+    <blockName>KindFilterEvent</blockName>
+    <title>Event</title>
+    <bitmap>application/images/KindFilterEvent.png</bitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <event itemref="doc:KindFilterEventEvent"/>
+    <helpString></helpString>
+  </ToolbarItem>
+
+  <KindParameterizedEvent itemName="KindFilterEventEvent">
+    <kindParameter itemref="calendarModel:CalendarEvent"/>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onKindParameterizedEvent</methodName>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+  </KindParameterizedEvent>
+
+  <ToolbarItem itsName="KindFilterTask">
+    <blockName>KindFilterTask</blockName>
+    <title>Task</title>
+    <bitmap>application/images/KindFilterTask.png</bitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <event itemref="doc:KindFilterTaskEvent"/>
+    <helpString></helpString>
+  </ToolbarItem>
+
+  <KindParameterizedEvent itemName="KindFilterTaskEvent">
+    <kindParameter itemref="tasks:Task"/>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onKindParameterizedEvent</methodName>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+  </KindParameterizedEvent>
+
+  <ToolbarItem itsName="KindFilterNotes">
+    <blockName>KindFilterNotes</blockName>
+    <title>Notes</title>
+    <bitmap>application/images/KindFilterNotes.png</bitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <event itemref="doc:KindFilterNotesEvent"/>
+    <helpString></helpString>
+  </ToolbarItem>
+
+  <KindParameterizedEvent itemName="KindFilterNotesEvent">
+    <kindParameter itemref="contentModel:Note"/>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>onKindParameterizedEvent</methodName>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+  </KindParameterizedEvent>
 
   <!--
     Status Bar
@@ -1227,6 +1339,7 @@
 
   <BoxContainer itsName="SidebarBoxContainer">
     <!-- Layout children -->
+    <childrenBlocks itemref="doc:KindFilterBar"/>
     <childrenBlocks itemref="doc:Sidebar"/>
     <childrenBlocks itemref="doc:MiniCalendar"/>
 
@@ -1235,17 +1348,18 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </BoxContainer>
 
-  <contentModel:NamedCollection itsName="sidebarItemCollection">
-    <inclusions uuidOf="content:AllTableView"/>
-    <inclusions uuidOf="content:InTableView"/>
-    <inclusions uuidOf="content:OutTableView"/>
-    <inclusions uuidOf="content:CalendarTableView"/>
-    <inclusions uuidOf="content:ContactTableView"/>
-    <inclusions uuidOf="content:JunkTableView"/>
-    <inclusions uuidOf="content:TrashTableView"/>
-  </contentModel:NamedCollection>
+  <contentModel:ItemCollection itsName="sidebarItemCollection">
+    <_inclusions itemref="content:AllTableView"/>
+    <_inclusions itemref="content:InTableView"/>
+    <_inclusions itemref="content:OutTableView"/>
+    <_inclusions itemref="content:CalendarTableView"/>
+    <_inclusions itemref="content:ContactTableView"/>
+    <_inclusions itemref="content:JunkTableView"/>
+    <_inclusions itemref="content:TrashTableView"/>
+  </contentModel:ItemCollection>
 
-  <Table itsName="Sidebar">
+  <Table itsName="Sidebar"
+         itemClass="osaf.views.main.SideBar.Sidebar">
     <contents itemref="doc:sidebarItemCollection"/>
     <selection itemref="content:AllTableView"/>
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
@@ -1289,28 +1403,34 @@
     <childrenBlocks itemref="doc:MainBoxContainer"/>
     
     <!-- Block Events -->
-    <subscribeWhenVisibleEvents itemref="doc:ShowHideSidebar"/>
-    <subscribeWhenVisibleEvents itemref="doc:ShowHideNavigationBar"/>
-    <subscribeWhenVisibleEvents itemref="doc:ShowHideStatusBar"/>
+
     <subscribeWhenVisibleEvents itemref="doc:AddAllAdditionalViews"/>
     <subscribeWhenVisibleEvents itemref="doc:AddDemoView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddRepositoryView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddMixedTableView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddStockQuoteView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddNoteTableView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddTaskTableView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddMailTableView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddKindViews"/>
-    <subscribeWhenVisibleEvents itemref="doc:ResendSharingInvitationsEvent"/>
-    <subscribeWhenVisibleEvents itemref="doc:NewMailMessage"/>
-    <subscribeWhenVisibleEvents itemref="doc:NewTask"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddMailTableView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddMixedTableView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddNoteTableView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddRepositoryView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddStockQuoteView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddTaskTableView"/>
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterAllEvent"/>
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterEventEvent"/>
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterMessageEvent"/>
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterTaskEvent"/>
+    <subscribeWhenVisibleEvents itemref="doc:KindFilterNotesEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:NewCalendarEvent"/>
-    <subscribeWhenVisibleEvents itemref="doc:NewNote"/>
     <subscribeWhenVisibleEvents itemref="doc:NewContact"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewMailMessage"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewNote"/>
+    <subscribeWhenVisibleEvents itemref="doc:NewTask"/>
+    <subscribeWhenVisibleEvents itemref="doc:ResendSharingInvitationsEvent"/>
     <subscribeWhenVisibleEvents itemref="doc:ShareCollection"/>
-    <subscribeWhenVisibleEvents itemref="doc:SyncCollection"/>
     <subscribeWhenVisibleEvents itemref="doc:ShareOrManage"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShowHideNavigationBar"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShowHideSidebar"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShowHideStatusBar"/>
     <subscribeWhenVisibleEvents itemref="doc:SyncAll"/>
+    <subscribeWhenVisibleEvents itemref="doc:SyncCollection"/>
     <subscribeWhenVisibleEvents itemref="doc:SyncWebDAV"/>
 
     <!-- Attributes -->

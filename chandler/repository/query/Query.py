@@ -29,11 +29,12 @@ class Query(object):
         log.debug("RepoQuery.__init__: ")
         self.__rep = repo
         self.queryString = queryString
-        self.args = []
+        self.args = {}
         self._kind = None
         self._logical_plan = None
         self._predicate = None
         self.recursive = True
+        self._callbacks = {}
 
     def execute(self):
         """
@@ -48,32 +49,40 @@ class Query(object):
             return
         log.debug("RepoQuery.execute(): %s" % self.queryString)
 
-#        tools.timing.reset()
-        tools.timing.begin("Parsing query")
-        if self.queryString is None:
-            raise ValueError, "queryString for %s is None" % self.itsUUID
-        self.ast = QueryParser.parse('stmt', self.queryString)
-        tools.timing.end("Parsing query")
-        log.debug("execute: AST = %s" % self.ast)
+        if self.queryString:
+            #tools.timing.reset()
+            #tools.timing.begin("Parsing query")
+            self.ast = QueryParser.parse('stmt', self.queryString)
+            #tools.timing.end("Parsing query")
+            log.debug("execute: AST = %s" % self.ast)
+    
+            #tools.timing.begin("Analyzing query")
+            self._logical_plan = self.__analyze(self.ast)
+            #tools.timing.end("Analyzing query")
+            #tools.timing.results()
+            log.debug("execute: %s:%f" % (self.queryString,time.time()-start))
+        else:
+            self._logical_plan = None
 
-        tools.timing.begin("Analyzing query")
-        self._logical_plan = self.__analyze(self.ast)
-        tools.timing.end("Analyzing query")
-#        tools.timing.results()
-        log.debug("execute: %s:%f" % (self.queryString,time.time()-start))
-
-    def subscribe(self):
+    def subscribe(self, callbackItem, callbackMethodName):
         """
         This query should subscribe to repository changes
         """
+        self._callbacks [callbackItem.itsUUID] = callbackMethodName
         log.debug("RepoQuery<>.subscribe(): %s" % (self.queryString))
         self.__rep.addNotificationCallback(self.queryCallback)
         
-    def unsubscribe(self):
+    def unsubscribe(self, callbackItem=None):
         """
-        This query should stop subscribing to repository changes
+        This query should stop subscribing to repository changes. If you don't specify a
+        callbackItemUUID, all subscriptions will be removed.
         """
+        if callbackItem is None:
+            self._callbacks = {}
+        else:
+            del self._callbacks [callbackItem.itsUUID]
         self.__rep.removeNotificationCallback(self.queryCallback)
+        return len (self._callbacks)
     
     def queryCallback(self, view, changes, notification, **kwds):
         """
@@ -114,7 +123,10 @@ class Query(object):
                     break #@@@ this means we stop after 1 item (like old code) efficient, but wrong
         if changed:
             log.debug("RepoQuery.queryCallback: %s %s query result" % (uuid, action))
-            view.findPath('//parcels/osaf/framework/query_changed').Post( {'query' : i.itsUUID, 'action': action} )
+            for callbackUUID in self._callbacks.keys():
+                item = view.find (callbackUUID)
+                method = getattr (type(item), self._callbacks [callbackUUID])
+                method (item, action)
         log.debug("queryCallback: %s:%f" % (self.queryString, time.time()-start))
 
     def __iter__(self):
@@ -154,7 +166,9 @@ class Query(object):
             if kind is not None:
                 return ('kind', kind)
             if name.startswith('$'): # variable argument
-                return ('arg',self.args[int(name[1:])-1])
+                itemUUID, attribute = self.args[name]
+                item = self.__rep.find (itemUUID)
+                return ('arg',item.getAttributeValue(attribute))
             assert False, "lookup_source couldn't handle %s" % name
 
         def compile_predicate(ast):

@@ -214,7 +214,7 @@ class AttributeDelegate (ListDelegate):
 
     def GetElementType (self, row, column):
         try:
-            item = self.blockItem.contents[row]
+            item = self.blockItem.contents [row]
         except IndexError:
             type = "_default"
         else:
@@ -226,7 +226,7 @@ class AttributeDelegate (ListDelegate):
         return self.blockItem.contents [row], self.blockItem.columnAttributeNames [column]
 
     def SetElementValue (self, row, column, value):
-        item = self.blockItem.contents[row]
+        item = self.blockItem.contents [row]
         attributeName = self.blockItem.columnAttributeNames [column]
         item.setAttributeValue (attributeName, value)
 
@@ -282,10 +282,9 @@ class wxList (DraggableWidget, wx.ListCtrl):
         event.Skip()
 
     def OnItemDrag(self, event):
-        self.SetDragData (self.blockItem.contents[event.GetIndex()].itsUUID)
+        self.SetDragData (self.blockItem.contents [event.GetIndex()].itsUUID)
                             
     def wxSynchronizeWidget(self):
-        self.blockItem.contents.resultsStale = True
         self.Freeze()
         self.ClearAll()
         self.SetItemCount (self.GetElementCount())
@@ -460,7 +459,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
 
     def AddItem(self, itemUUID):
         item = Globals.repository.findUUID(itemUUID)
-        self.blockItem.contents.add(item)
+        self.blockItem.contents.add (item)
 
     def OnWXSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
@@ -484,11 +483,6 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         helper function to readjust everything after the contents change
         """
         #Trim/extend the control's rows and update all values
-        self.BeginBatch()
-        """
-          Hack to work around Stuarts bug #1568 -- DJA
-        """
-        self.blockItem.contents._ItemCollection__refresh()
 
         if self.blockItem.hideColumnHeadings:
             self.SetColLabelSize (0)
@@ -502,6 +496,8 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         gridTable = self.GetTable()
         newRows = gridTable.GetNumberRows()
         newColumns = gridTable.GetNumberCols()
+
+        self.BeginBatch()
         for current, new, deleteMessage, addMessage in [
             (self.currentRows, newRows, wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED), 
             (self.currentColumns, newColumns, wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED, wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED)]: 
@@ -516,10 +512,11 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         for columnIndex in xrange (newColumns):
             self.SetColSize (columnIndex, self.blockItem.columnWidths [columnIndex])
 
+        self.EndBatch() 
+
         #Update all displayed values
         message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
         self.ProcessTableMessage (message) 
-        self.EndBatch() 
 
         # The scroll bars aren't resized (at least on windows) 
         # Jiggling the size of the window rescales the scrollbars 
@@ -529,7 +526,6 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         self.ForceRefresh () 
 
     def wxSynchronizeWidget(self):
-        self.blockItem.contents.resultsStale = True
         self.Reset()
         selection = self.blockItem.selection
         self.GoToItem (self.blockItem.selection)
@@ -666,7 +662,7 @@ class ImageRenderer (wx.grid.PyGridCellRenderer):
                      wx.COPY,
                      True)
 
-class Table(RectangularChild):
+class Table (RectangularChild):
     def __init__(self, *arguments, **keywords):
         super (Table, self).__init__ (*arguments, **keywords)
         self.selection = None
@@ -681,28 +677,14 @@ class Table(RectangularChild):
         self.selection = notification.data['item']
         self.widget.GoToItem (self.selection)
 
-    def onRequestSelectSidebarItemEvent (self, notification):
-        # Request the sidebar to change selection
-        # Item specified is usually by name
-        try:
-            item = notification.data['item']
-        except KeyError:
-            # find the item by name
-            itemName = notification.data['itemName']
-            for item in self.contents:
-                if item.itsName == itemName:
-                    notification.data['item'] = item
-                    break
-            else:
-                return
-
-        # Got the item. First tell ourself about it.
-        self.onSelectionChangedEvent (notification)
-
-        # Next broadcast inside our boundary to tell dependent
-        self.Post (Globals.repository.findPath \
-                   ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                   {'item':item})
+    def onDeleteEvent (self, notification):
+        self.contents.beginUpdate()
+        for row in self.widget.GetSelectedRows():
+            self.contents.remove (self.contents [row])
+        self.contents.endUpdate()
+        
+    def onDeleteEventUpdateUI (self, notification):
+        notification.data ['Enable'] = self.widget.IsSelection()
 
     def onRequestSelectItemEvent (self, notification):
         # request the Table part of the Active View to change selection
@@ -725,7 +707,6 @@ class Table(RectangularChild):
             self.Post (Globals.repository.findPath \
                        ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':newSelection})
-
 
 class RadioBox(RectangularChild):
     def instantiateWidget(self):

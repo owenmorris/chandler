@@ -28,6 +28,7 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:Cut"/>
     <subscribeAlwaysEvents itemref="events:Copy"/>
     <subscribeAlwaysEvents itemref="events:Paste"/>
+    <subscribeAlwaysEvents itemref="events:Delete"/>
     <subscribeAlwaysEvents itemref="events:Preferences"/>
     <subscribeAlwaysEvents itemref="events:SharingSubscribeToCollection"/>
     <subscribeAlwaysEvents itemref="events:EditAccountPreferences"/>
@@ -93,6 +94,10 @@ of a limitation of the XML format, which will be eliminated</description>
   </BlockEvent>
 
   <BlockEvent itsName="Paste">
+    <dispatchEnum>FocusBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="Delete">
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 

@@ -64,6 +64,30 @@
     <core:type itemref="ContextEnum"/>
   </core:Attribute>
 
+  <core:Attribute itsName="itemCollectionInclusions">
+    <core:type itemref="ItemCollection"/>
+    <core:cardinality>list</core:cardinality>
+    <core:inverseAttribute itemref="ItemCollection/_inclusions"/>
+  </core:Attribute>
+
+  <core:Attribute itsName="itemCollectionInclusions">
+    <core:type itemref="ItemCollection"/>
+    <core:cardinality>list</core:cardinality>
+    <core:inverseAttribute itemref="ItemCollection/_inclusions"/>
+  </core:Attribute>
+
+  <core:Attribute itsName="itemCollectionExclusions">
+    <core:type itemref="ItemCollection"/>
+    <core:cardinality>list</core:cardinality>
+    <core:inverseAttribute itemref="ItemCollection/_exclusions"/>
+  </core:Attribute>
+
+  <core:Attribute itsName="itemCollectionResults">
+    <core:type itemref="ItemCollection"/>
+    <core:cardinality>list</core:cardinality>
+    <core:inverseAttribute itemref="ItemCollection/_exclusions"/>
+  </core:Attribute>
+
   <core:Kind itsName="ContentItem">
     <core:superKinds itemref="core:Item"/>
     <core:displayName>Default Content Item Display Name</core:displayName>
@@ -78,6 +102,9 @@
     <core:attributes itemref="core:Parcel/createdOn"/>
     <core:attributes itemref="core:Parcel/modifiedOn"/>
     <core:attributes itemref="conversations"/>
+    <core:attributes itemref="itemCollectionInclusions"/>
+    <core:attributes itemref="itemCollectionExclusions"/>
+    <core:attributes itemref="itemCollectionResults"/>
 
     <core:Attribute itsName="etag">
       <core:type itemref="core:String"/>
@@ -336,109 +363,68 @@
   </core:Kind>
 
 
-  <!--
-    Chandler Query
-  -->
-
-  <core:Enumeration itsName="queryEnumType">
-    <core:values>Kind</core:values>
-  </core:Enumeration>
-
-  <core:Attribute itsName="queryEnum">
-    <core:type itemref="queryEnumType"/>
-    <core:initialValue type="queryEnumType">Kind</core:initialValue>
-  </core:Attribute>
-
-  <core:Attribute itsName="data">
-    <core:type itemref="core:String"/>
-<!--    <copyPolicy value="cascade"/> -->
-  </core:Attribute>
-
-  <core:Attribute itsName="queryOwner">
-    <core:type itemref="ItemCollection"/>
-    <core:cardinality>list</core:cardinality>
-    <core:inverseAttribute itemref="rule"/>
-  </core:Attribute>
-
-  <core:Attribute itsName="results">
-    <core:type itemref="core:Item"/>
-    <core:cardinality>list</core:cardinality>
-    <initialValue/>
-    <copyPolicy value="cascade"/>
-  </core:Attribute>
-
-  <core:Attribute itsName="exactKind">
-    <core:type itemref="core:Boolean"/>
-    <initialValue type="core:Boolean" value="False"/>
-  </core:Attribute>
-
-  <core:Kind itsName="Query">
-    <core:classes key="python">osaf.contentmodel.Query.Query</core:classes>
-    <core:superKinds itemref="core:Item"/>
-
-    <core:attributes itemref="queryOwner"/>
-
-    <core:attributes itemref="queryEnum"/>
-    <core:attributes itemref="data"/>
-    <core:attributes itemref="results"/>
-    <core:attributes itemref="exactKind"/>
-
-    <core:Cloud itsName="DefaultCloud">
-        <core:Endpoint itsName="queryOwner">
-            <attribute value="queryOwner"/>
-            <includePolicy value="byRef"/>  <!-- @@@ is this right?  -->
-        </core:Endpoint>
-        <endpoints ref="Query/DefaultCloud/queryOwner"/>
-        <core:Endpoint itsName="results">
-            <attribute value="results"/>
-            <includePolicy value="byRef"/>  <!-- @@@ is this right?  -->
-        </core:Endpoint>
-        <endpoints ref="Query/DefaultCloud/results"/>
-    </core:Cloud>
-    <clouds alias="default" ref="Query/DefaultCloud"/>
-
-  </core:Kind>
-
-  <!-- Item Collection stuff -->
-
-  <!-- this gets sent whenever the items in a collection change -->
-  <events:Event itsName="collection_changed"/>
-
-
-  <core:Attribute itsName="collectionOwner">
-    <core:type itemref="core:Item"/>
-    <core:cardinality>list</core:cardinality>
-    <core:inverseAttribute itemref="blocks:Block/contents"/>
-    <initialValue/>
-  </core:Attribute>
-
-  <core:Attribute itsName="rule">
-    <core:displayName>Rule</core:displayName>
-    <core:cardinality>single</core:cardinality>
-    <core:type itemref="Query"/>
-    <core:inverseAttribute itemref="queryOwner"/>
-    <initialValue ref="core:None"/>
-    <copyPolicy value="cascade"/>
-  </core:Attribute>
-
-  <core:Attribute itsName="inclusions">
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="core:UUID"/>
-    <initialValue/>
-    <copyPolicy value="cascade"/>
-  </core:Attribute>
-
-  <core:Attribute itsName="exclusions">
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="core:UUID"/>
-    <initialValue/>
-    <copyPolicy value="cascade"/>
-  </core:Attribute>
+  <!-- ItemCollection -->
 
   <core:Kind itsName="ItemCollection">
+    <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
     <core:superKinds itemref="ContentItem"/>
-    <core:displayName>Item Collection</core:displayName>
-    <core:attributes itemref="collectionOwner"/>
+
+    <core:Attribute itsName="_rule">
+      <core:type itemref="core:String"/>
+      <core:initialValue type="core:String"></core:initialValue>
+    </core:Attribute>
+
+    <core:Attribute itsName="_inclusions">
+      <core:type itemref="core:Item"/>
+      <core:cardinality>list</core:cardinality>
+      <core:inverseAttribute itemref="itemCollectionInclusions"/>
+      <initialValue/>
+    </core:Attribute>
+
+    <core:Attribute itsName="_exclusions">
+      <type itemref="core:Item"/>
+      <core:cardinality>list</core:cardinality>
+      <core:inverseAttribute itemref="itemCollectionExclusions"/>
+      <initialValue/>
+    </core:Attribute>
+
+    <core:Attribute itsName="_filterKinds">
+      <type itemref="core:String"/>
+      <core:cardinality>list</core:cardinality>
+      <initialValue/>
+    </core:Attribute>
+
+    <core:Attribute itsName="_results">
+      <type itemref="core:Item"/>
+      <core:cardinality>list</core:cardinality>
+      <core:inverseAttribute itemref="itemCollectionResults"/>
+      <initialValue/>
+    </core:Attribute>
+
+    <core:Attribute itsName="queryStringStale">
+      <core:type itemref="core:Boolean"/>
+      <initialValue type="core:Boolean" value="True"/>
+    </core:Attribute>
+
+    <core:Attribute itsName="resultsStale">
+      <core:type itemref="core:Boolean"/>
+      <initialValue type="core:Boolean" value="True"/>
+    </core:Attribute>
+
+    <core:Attribute itsName="collectionOwner">
+      <core:type itemref="blocks:Block"/>
+      <core:cardinality>list</core:cardinality>
+      <core:inverseAttribute itemref="blocks:Block/contents"/>
+    </core:Attribute>
+
+    <core:attributes itemref="ItemCollection/_rule"/>
+    <core:attributes itemref="ItemCollection/_inclusions"/>
+    <core:attributes itemref="ItemCollection/_exclusions"/>
+    <core:attributes itemref="ItemCollection/_filterKinds"/>
+    <core:attributes itemref="ItemCollection/_results"/>
+    <core:attributes itemref="ItemCollection/collectionOwner"/>
+    <core:attributes itemref="ItemCollection/queryStringStale"/>
+    <core:attributes itemref="ItemCollection/resultsStale"/>
 
     <core:Attribute itsName="who">
       <redirectTo>sharees</redirectTo>
@@ -453,67 +439,33 @@
     </core:Attribute>
 
     <core:Cloud itsName="DefaultCloud">
-        <core:Endpoint itsName="collectionOwner">
-            <attribute value="collectionOwner"/>
-            <includePolicy value="byRef"/>  <!-- @@@ Correct? -->
-        </core:Endpoint>
-        <endpoints ref="ItemCollection/DefaultCloud/collectionOwner"/>
+      <core:Endpoint itsName="_inclusions">
+        <attribute value="_inclusions"/>
+        <includePolicy value="byCloud"/>
+      </core:Endpoint>
+      <endpoints ref="ItemCollection/DefaultCloud/_inclusions"/>
+      <core:Endpoint itsName="_exclusions">
+        <attribute value="_exclusions"/>
+        <includePolicy value="byCloud"/>
+      </core:Endpoint>
+      <endpoints ref="ItemCollection/DefaultCloud/_exclusions"/>
+      <core:Endpoint itsName="_filterKinds">
+        <attribute value="_filterKinds"/>
+        <includePolicy value="byCloud"/>
+      </core:Endpoint>
+      <endpoints ref="ItemCollection/DefaultCloud/_filterKinds"/>
+      <core:Endpoint itsName="_results">
+        <attribute value="_results"/>
+        <includePolicy value="byCloud"/>
+      </core:Endpoint>
+      <endpoints ref="ItemCollection/DefaultCloud/_results"/>
+      <core:Endpoint itsName="collectionOwner">
+        <attribute value="collectionOwner"/>
+        <includePolicy value="byCloud"/>
+      </core:Endpoint>
+      <endpoints ref="ItemCollection/DefaultCloud/collectionOwner"/>
     </core:Cloud>
     <clouds alias="default" ref="ItemCollection/DefaultCloud"/>
-
-  </core:Kind>
-
-  <core:Kind itsName="NamedCollection">
-    <core:superKinds itemref="ItemCollection"/>
-    <core:displayName>Named Collection</core:displayName>
-    <core:attributes itemref="rule"/>
-    <core:attributes itemref="inclusions"/>
-    <core:attributes itemref="exclusions"/>
-    <core:classes key="python">osaf.contentmodel.ItemCollection.NamedCollection</core:classes>
-
-    <core:Cloud itsName="DefaultCloud">
-        <core:Endpoint itsName="rule">
-            <attribute value="rule"/>
-            <includePolicy value="byCloud"/>
-            <cloudAlias value="default"/>
-        </core:Endpoint>
-        <endpoints ref="NamedCollection/DefaultCloud/rule"/>
-        <!-- I don't think we need endpoints for inclusions and exclusions
-             since they just store UUIDs.  -->
-    </core:Cloud>
-    <clouds alias="default" ref="NamedCollection/DefaultCloud"/>
-
-  </core:Kind>
-
-  <core:Kind itsName="AdHocCollection">
-    <core:superKinds itemref="ItemCollection"/>
-    <core:displayName>Ad-Hoc Collection</core:displayName>
-    <core:attributes itemref="inclusions"/>
-    <core:attributes itemref="exclusions"/>
-    <core:classes key="python">osaf.contentmodel.ItemCollection.AdHocCollection</core:classes>
-
-    <!-- This kind doesn't need to define a cloud because it will inherit it
-         from ItemCollection.
-    -->
-  </core:Kind>
-
-  <core:Kind itsName="EphemeralCollection">
-    <core:superKinds itemref="ItemCollection"/>
-    <core:displayName>Ephemeral Collection</core:displayName>
-    <core:attributes itemref="rule"/>
-    <core:classes key="python">osaf.contentmodel.ItemCollection.EphemeralCollection</core:classes>
-
-    <core:Cloud itsName="DefaultCloud">
-        <core:Endpoint itsName="rule">
-            <attribute value="rule"/>
-            <includePolicy value="byCloud"/>
-            <cloudAlias value="default"/>
-        </core:Endpoint>
-        <endpoints ref="EphemeralCollection/DefaultCloud/rule"/>
-        <!-- I don't think we need endpoints for inclusions and exclusions
-             since they just store UUIDs.  -->
-    </core:Cloud>
-    <clouds alias="default" ref="EphemeralCollection/DefaultCloud"/>
 
   </core:Kind>
 

@@ -296,7 +296,7 @@
     <Attribute itsName="contents">
       <type itemref="contentModel:ItemCollection"/>
       <copyPolicy value="cascade"/>
-      <inverseAttribute itemref="contentModel:collectionOwner"/>
+      <inverseAttribute itemref="contentModel:ItemCollection/collectionOwner"/>
     </Attribute>
 
     <Attribute itsName="parentBlock">
@@ -345,6 +345,9 @@
     <attributes itemref="docSchema:Block/eventBoundary"/>
     <attributes itemref="docSchema:subscribeWhenVisibleEvents"/>    
     <attributes itemref="docSchema:subscribeAlwaysEvents"/>    
+    <attributes itemref="contentModel:itemCollectionInclusions"/>
+    <attributes itemref="contentModel:itemCollectionExclusions"/>
+    <attributes itemref="contentModel:itemCollectionResults"/>
 
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="contents">
