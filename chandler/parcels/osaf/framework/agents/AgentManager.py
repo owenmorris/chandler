@@ -148,8 +148,7 @@ class AgentManager:
         """
           unregister an agent from the agent manager
         """
-        if self.IsRegistered(agent):
-            
+        if self.IsRegistered(agent):           
             # unsubscribe to notifications
             clientID = agent.GetClientID()
             notificationManager = self.application.model.notificationManager
@@ -159,6 +158,14 @@ class AgentManager:
                   notificationManager.Unsubscribe(notification, clientID)
             
             del self.agentMap[agent.model]
+ 
+    def Stop(self):
+        """
+          The stop message is called before quitting to stop the threads associated with the agents
+        """
+        for agent in self.agentMap.values():
+            agent.Suspend()
+            self.Unregister(agent)
             
 class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
     """

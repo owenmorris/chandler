@@ -183,9 +183,9 @@ class Agent:
     def Suspend(self):
         """
            suspend execution of the agent
-           FIXME: not yet implemented
         """
-        pass
+        self.isRunning = False
+        
         
     def Resume(self):
         """
