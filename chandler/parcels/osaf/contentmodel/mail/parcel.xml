@@ -9,10 +9,11 @@
         itemName="mail"
         itemClass="osaf.contentmodel.mail.Mail.MailParcel"
         xmlns="//Schema/Core"
-	xmlns:content="//parcels/osaf/contentmodel"
-	xmlns:contact="//parcels/osaf/contentmodel/contacts"
-	xmlns:calendar="//parcels/osaf/contentmodel/calendar"
-	xmlns:mail="//parcels/osaf/contentmodel/mail">
+        xmlns:content="//parcels/osaf/contentmodel"
+        xmlns:contact="//parcels/osaf/contentmodel/contacts"
+        xmlns:calendar="//parcels/osaf/contentmodel/calendar"
+        xmlns:mail="//parcels/osaf/contentmodel/mail"
+        xmlns:tasks="//parcels/osaf/contentmodel/tasks">
 
   <displayName>Mail Content Model</displayName>
   <description>Content Model for the Mail Messages, Email Accounts, and other things related to email/</description>
@@ -37,7 +38,6 @@
 <!-- Email Account -->
   <Attribute itemName="serverName">
     <displayName>Server</displayName>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
@@ -45,14 +45,12 @@
     <displayName>Account Name</displayName>
     <description>My user name on this server.</description>
     <issues>This should always be a single-line string that displays in a one-line text field rather than a scrolling text box.</issues>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="accountType">
     <displayName>Account Type</displayName>
     <description>POP, IMAP, etc.</description>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
@@ -60,7 +58,6 @@
     <displayName>Password</displayName>
     <description>This could either be a password or some other sort of authentication info. We can use it for whatever is needed for this account type.</description>
     <issues>This should not be a simple string. We need some solution for encrypting it.</issues>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
@@ -75,7 +72,6 @@
   <Attribute itemName="returnAddress">
     <displayName>Return Address</displayName>
     <description>The Email Address to use as the return address for mail sent from this account.</description>
-    <cardinality>single</cardinality>
     <type itemref="mail:EmailAddress"/>
     <inverseAttribute itemref="mail:returnAddressInverse"/>
   </Attribute>
@@ -92,7 +88,6 @@
     <displayName>Polling Frequency</displayName>
     <description>Some description of frequency, like 'never', or 'every 5 minutes'</description>
     <issues>This shouldn't really be of type String. Maybe RelativeDateTime, or some new data type?</issues>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
@@ -120,14 +115,12 @@
     <examples>"abe@osafoundation.org"</examples>
     <examples>"Abe Lincoln {abe@osafoundation.org}" (except with angle brackets instead of '{' and '}')</examples>
     <description>An RFC 822 email address.</description>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="vcardType">
     <displayName>vCard type</displayName>
     <description>Typical vCard types are values like 'internet', 'x400', and 'pref'. Chandler will use this attribute when doing import/export of Contact records in vCard format.</description>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
@@ -147,8 +140,8 @@
     <attributes itemref="mail:sentToInverse"/>
     <attributes itemref="mail:replyAddressInverse"/>
     <attributes itemref="calendar:participatingIn"/>
-    <attributes itemref="calendar:requestedTasks"/>
-    <attributes itemref="calendar:taskRequests"/>
+    <attributes itemref="tasks:requestedTasks"/>
+    <attributes itemref="tasks:taskRequests"/>
     <classes key="python">osaf.contentmodel.mail.Mail.EmailAddress</classes>
   </Kind>
 
@@ -156,7 +149,6 @@
   <Attribute itemName="subject">
     <displayName>Subject</displayName>
     <description>The subject line of an email message.</description>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
@@ -203,7 +195,6 @@
   <Attribute itemName="replyAddress">
     <displayName>Reply Address</displayName>
     <description>The Email address listed as the reply to address in the header of this message.</description>
-    <cardinality>single</cardinality>
     <type itemref="mail:EmailAddress"/>
     <inverseAttribute itemref="mail:replyAddressInverse"/>
   </Attribute>
@@ -220,35 +211,30 @@
     <displayName>Date Sent</displayName>
     <description>...add description here...</description>
     <issues>Is dateSent the unmolested Date string as it arrives (which the RFC says can have one of three formats, and which has a fourth incorrect but reasonably common format) or is it converted into a Chandler DateTime (or whatever) Item? - Ducky</issues>
-    <cardinality>single</cardinality>
     <type itemref="DateTime"/>
   </Attribute>
 
   <Attribute itemName="dateReceived">
     <displayName>Date Received</displayName>
     <description>...add description here...</description>
-    <cardinality>single</cardinality>
     <type itemref="DateTime"/>
   </Attribute>
 
   <Attribute itemName="deliveryReceiptRequested">
     <displayName>Delivery Receipt Requested</displayName>
     <description>...add description here...</description>
-    <cardinality>single</cardinality>
     <type itemref="Boolean"/>
   </Attribute>
 
   <Attribute itemName="readReceiptRequested">
     <displayName>Read Receipt Requested</displayName>
     <description>...add description here...</description>
-    <cardinality>single</cardinality>
     <type itemref="Boolean"/>
   </Attribute>
 
   <Attribute itemName="messageHeader">
     <displayName>Message Header</displayName>
     <description>...add description here...</description>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
@@ -256,7 +242,6 @@
     <displayName>Message Body</displayName>
     <description>a MIME-body, complete with content-type, content-encoding, character encoding, etc.</description>
     <issues>Ducky says: There are a whole bunch of things that need to be specified for the body (or attachment) of a message, including content-type (jpg, html, text, word), content-encoding (7-bit or 8-bit ASCII?), character encoding (Shift-JIS, Big 5?), length, etc. What you might want to do is declare an as-yet-unspecified MIME-body that holds all of the information and the body of the message part (body or attachment).</issues>
-    <cardinality>single</cardinality>
     <type itemref="Text"/>
   </Attribute>
 
@@ -287,7 +272,6 @@
   <Attribute itemName="inReplyTo">
     <displayName>In Reply To</displayName>
     <description>the Email Message that this message is a reply to</description>
-    <cardinality>single</cardinality>
     <type itemref="mail:MailMessage"/>
     <superAttribute itemref="mail:relatedMessages"/>
   </Attribute>
@@ -303,7 +287,6 @@
   <Attribute itemName="characterEncoding">
     <displayName>Character Encoding</displayName>
     <description>...add description here...</description>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
@@ -311,7 +294,6 @@
     <displayName>Has Been Read</displayName>
     <description>...add description here...</description>
     <issues>I suspect that has-been-read is probably a subset of Status.  It traditionally is. -Ducky</issues>
-    <cardinality>single</cardinality>
     <type itemref="Boolean"/>
   </Attribute>
 
@@ -324,14 +306,12 @@
   <Attribute itemName="status">
     <displayName>Status</displayName>
     <description>The status can be 'read', 'unread', or 'replied'. (A Task might also have a status, but this is a different notion of status.)</description>
-    <cardinality>single</cardinality>
     <type itemref="mail:Status"/>
   </Attribute>
 
   <Attribute itemName="downloadAccount">
     <displayName>Download Account</displayName>
     <description>used when sending the reply, to make the reply be 'from' the right account</description>
-    <cardinality>single</cardinality>
     <type itemref="mail:EmailAccount"/>
     <inverseAttribute itemref="mail:downloadedMail"/>
   </Attribute>
@@ -339,21 +319,18 @@
   <Attribute itemName="serverStatus">
     <displayName>Server Status</displayName>
     <description>The server status can be either 'on server' or 'deleted from server'.</description>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="deliveryStatus">
     <displayName>Delivery Status</displayName>
     <description>The delivery status can be 'queued', 'sent', or 'unsent'.</description>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="stronglyLinkedTask">
     <displayName>Related Task</displayName>
     <description>A task which was created when a user 'stamped' this mail message to indicate that some task needs to get done.</description>
-    <cardinality>single</cardinality>
     <type itemref="calendar:CalendarEvent"/>
     <inverseAttribute itemref="mail:stronglyLinkedMail"/>
   </Attribute>
@@ -362,14 +339,12 @@
     <displayName>Related Mail Message</displayName>
     <description>This task was created when a user 'stamped' the linked mail message to indicate that some task needs to get done.</description>
     <issues>Mitch would like to come up with a better name for this than 'Related Mail Message'.</issues>
-    <cardinality>single</cardinality>
     <type itemref="mail:MailMessage"/>
     <inverseAttribute itemref="mail:stronglyLinkedTask"/>
   </Attribute>
 
   <Attribute itemName="spamScore">
     <displayName>Spam Score</displayName>
-    <cardinality>single</cardinality>
     <type itemref="Integer"/>
   </Attribute>
 

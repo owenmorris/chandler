@@ -2,14 +2,119 @@
 
 <!-- $Revision$ -->
 <!-- $Date$ -->
-<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- Copyright (c) 2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/contentmodel/tasks"
         itemName="tasks"
-        xmlns="//Schema/Core">
+        itemClass="osaf.contentmodel.tasks.Task.TaskParcel"
+        xmlns="//Schema/Core"
+        xmlns:content="//parcels/osaf/contentmodel"
+        xmlns:mail="//parcels/osaf/contentmodel/mail"
+        xmlns:contact="//parcels/osaf/contentmodel/contacts"
+        xmlns:cal="//parcels/osaf/contentmodel/calendar"
+        xmlns:tasks="//parcels/osaf/contentmodel/tasks">
 
-  <displayName>depricated -- empty parcel</displayName>
-  <description>task attributes can be found in the calendar parcel</description>
+  <displayName>Task Content Model</displayName>
+  <description>Kinds and Attributes related to Task functionality. 
+    This schema is still a strawman schema, a starting point.</description>
+  <issues>Consider using the common icalendar task attributes (i.e. percentComplete)</issues>
+  <version>0.4</version>
+  <author>Open Source Applications Foundation</author>
+
+
+  <!-- Task attributes -->
+
+  <Attribute itemName="requestor">
+    <displayName>Requestor</displayName>
+    <issues>Type could be Contact, EmailAddress or String</issues>
+    <issues>Think about using the icalendar terminology</issues>
+    <type itemref="content:ContentItem"/>
+    <inverseAttribute itemref="tasks:requestedTasks"/>
+  </Attribute>
+
+  <Attribute itemName="requestedTasks">
+    <displayName>Requested Tasks</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="tasks:Task"/>
+    <inverseAttribute itemref="tasks:requestor"/>
+  </Attribute>
+
+  <Attribute itemName="requestee">
+    <displayName>Requestee</displayName>
+    <issues>Type could be Contact, EmailAddress or String</issues>
+    <issues>Think about using the icalendar terminology</issues>
+    <type itemref="content:ContentItem"/>
+    <inverseAttribute itemref="tasks:taskRequests"/>
+  </Attribute>
+
+  <Attribute itemName="taskRequests">
+    <displayName>Task Requests</displayName>
+    <description>List of tasks requested for the contact</description>
+    <cardinality>list</cardinality>
+    <type itemref="cal:CalendarEvent"/>
+    <inverseAttribute itemref="tasks:requestee"/>
+  </Attribute>
+
+  <Attribute itemName="dependsOn">
+    <displayName>Depends On</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="tasks:Task"/>
+    <inverseAttribute itemref="tasks:preventsProgressOn"/>
+  </Attribute>
+
+  <Attribute itemName="preventsProgressOn">
+    <displayName>Blocks</displayName>
+    <cardinality>list</cardinality>
+    <type itemref="tasks:Task"/>
+    <inverseAttribute itemref="tasks:dependsOn"/>
+  </Attribute>
+
+  <Attribute itemName="status">
+    <displayName>Status</displayName>
+    <type itemref="tasks:TaskStatusEnum"/>
+  </Attribute>
+
+  <Enumeration itemName="TaskStatusEnum">
+    <displayName>Task Status</displayName>
+    <values>todo</values>
+    <values>blocked</values>
+    <values>done</values>
+    <values>deferred</values>
+  </Enumeration>
+
+  <Attribute itemName="dueDate">
+    <displayName>Due date</displayName>
+    <type itemref="DateTime"/>
+  </Attribute>
+
+
+  <Kind itemName="Task">
+    <displayName>Task</displayName>
+    <issues>Do we want to support the idea of tasks having sub-tasks? If so, then we need to add attributes for 'superTask' and 'subTasks'.</issues>
+    <issues>Task should maybe have a 'Timezone' attribute.</issues>
+    <superKinds itemref="content:ContentItem"/>
+
+    <!-- general -->
+    <attributes itemref="content:importance"/>
+    <attributes itemref="cal:headline"/>
+    <attributes itemref="cal:body"/>
+    <attributes itemref="cal:recurrence"/>
+    <attributes itemref="cal:reminders"/>
+
+    <!-- task -->
+    <attributes itemref="tasks:requestor"/>
+    <attributes itemref="tasks:requestee"/>
+    <attributes itemref="tasks:dependsOn"/>
+    <attributes itemref="tasks:preventsProgressOn"/>
+    <attributes itemref="tasks:status"/>
+    <attributes itemref="tasks:dueDate"/>
+    <attributes itemref="mail:stronglyLinkedMail"/>
+
+    <displayAttribute itemref="cal:headline"/>
+
+    <classes key="python">osaf.contentmodel.tasks.Task.Task</classes>
+
+  </Kind>
 
 </Parcel>

@@ -9,8 +9,8 @@
 <core:Parcel describes="//parcels/osaf/contentmodel"
              itemName="contentmodel"
              xmlns:core="//Schema/Core"
-	     xmlns:notes="//parcels/osaf/contentmodel/notes"
-	     xmlns:contact="//parcels/osaf/contentmodel/contacts"
+	         xmlns:notes="//parcels/osaf/contentmodel/notes"
+	         xmlns:contact="//parcels/osaf/contentmodel/contacts"
              xmlns="//parcels/osaf/contentmodel"
              itemClass="osaf.contentmodel.ContentModel.ContentModel">
 

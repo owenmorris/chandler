@@ -10,8 +10,8 @@
         itemClass="osaf.contentmodel.calendar.Calendar.CalendarParcel"
         xmlns="//Schema/Core"
         xmlns:content="//parcels/osaf/contentmodel"
-	xmlns:mail="//parcels/osaf/contentmodel/mail"
-	xmlns:contact="//parcels/osaf/contentmodel/contacts"
+        xmlns:mail="//parcels/osaf/contentmodel/mail"
+        xmlns:contact="//parcels/osaf/contentmodel/contacts"
         xmlns:cal="//parcels/osaf/contentmodel/calendar">
 
   <displayName>Calendar Content Model</displayName>
@@ -29,26 +29,22 @@
   <Attribute itemName="startTime">
     <issues>For items that represent *only* Tasks, this attribute serves as the 'Do-on' attribute. For items that represent only Calendar Events, this attribute serves as the 'Start-time' attribute. I think this unified attribute may match the way iCalendar models these attributes, but we should check to make sure. - Brian</issues>
     <displayName>Start-Time/Do-on</displayName>
-    <cardinality>single</cardinality>
     <type itemref="DateTime"/>
   </Attribute>
 
   <Attribute itemName="headline">
     <displayName>Headline</displayName>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="body">
     <displayName>Body</displayName>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="location">
     <issues>We might want to think about having Location be just a 'String', rather than a reference to a 'Location' item.</issues>
     <displayName>Location</displayName>
-    <cardinality>single</cardinality>
     <type itemref="cal:Location"/>
     <inverseAttribute itemref="cal:eventsAtLocation"/>
   </Attribute>
@@ -78,91 +74,11 @@
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="taskVsEvent">
-    <displayName>Task/Event</displayName>
-    <issues>How does this attribute interact with other attributes? Should the value of this attribute be derived, based on whether or not other attributes have non-null values?</issues>
-    <cardinality>single</cardinality>
-    <type itemref="cal:TaskVsEventEnum"/>
-  </Attribute>
-
-  <Enumeration itemName="TaskVsEventEnum">
-    <displayName>Task/Event Enum</displayName>
-    <values>task</values>
-    <values>event</values>
-    <values>both</values>
-  </Enumeration>
-
-  <!-- Task attributes -->
-
-  <Attribute itemName="requestor">
-    <displayName>Requestor</displayName>
-    <issues>Type could be Contact, EmailAddress or String</issues>
-    <issues>Think about using the icalendar terminology</issues>
-    <cardinality>single</cardinality>
-    <type itemref="content:ContentItem"/>
-    <inverseAttribute itemref="cal:requestedTasks"/>
-  </Attribute>
-
-  <Attribute itemName="requestedTasks">
-    <displayName>Requested Tasks</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="cal:CalendarEvent"/>
-    <inverseAttribute itemref="cal:requestor"/>
-  </Attribute>
-
-  <Attribute itemName="requestee">
-    <displayName>Requestee</displayName>
-    <issues>Type could be Contact, EmailAddress or String</issues>
-    <issues>Think about using the icalendar terminology</issues>
-    <cardinality>single</cardinality>
-    <type itemref="content:ContentItem"/>
-    <inverseAttribute itemref="cal:taskRequests"/>
-  </Attribute>
-
-  <Attribute itemName="taskRequests">
-    <displayName>Task Requests</displayName>
-    <description>List of tasks requested for the contact</description>
-    <cardinality>list</cardinality>
-    <type itemref="cal:CalendarEvent"/>
-    <inverseAttribute itemref="cal:requestee"/>
-  </Attribute>
-
-  <Attribute itemName="dependsOn">
-    <displayName>Depends On</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="cal:CalendarEvent"/>
-    <inverseAttribute itemref="cal:blocks"/>
-  </Attribute>
-
-  <Attribute itemName="blocks">
-    <displayName>Blocks</displayName>
-    <cardinality>list</cardinality>
-    <type itemref="cal:CalendarEvent"/>
-    <inverseAttribute itemref="cal:dependsOn"/>
-  </Attribute>
-
-  <Attribute itemName="status">
-    <displayName>Status</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="cal:Status"/>
-  </Attribute>
-
-  <Enumeration itemName="Status">
-    <displayName>Task Status</displayName>
-    <issues>Should we call this 'TaskStatusEnum', to be consistent with how we've named other Enumerations?</issues>
-    <values>done</values>
-    <values>not_done</values>
-    <values>not_started</values>
-    <values>waiting_on_someone_else</values>
-    <values>in_progress</values>
-    <values>deferred</values>
-  </Enumeration>
 
   <!-- Calendar Event Attributes -->
-  <Enumeration itemName="TimeTransparency">
+  <Enumeration itemName="TimeTransparencyEnum">
     <displayName>Time Transparency</displayName>
     <issues>The iCalendar values for Time Transparency are slightly different. We should consider making our values match the iCalendar ones, or be a superset of them.  Mitch suggested that a 'cancelled' value would be a useful extension.</issues>
-    <issues>Should we call this 'TimeTransparencyEnum' instead of 'TimeTransparency', to be consistent with how we've named other Enumerations?</issues>
     <values>busy</values>
     <values>free</values>
     <values>tentative</values>
@@ -171,7 +87,6 @@
 
   <Attribute itemName="endTime">
     <displayName>End-Time</displayName>
-    <cardinality>single</cardinality>
     <type itemref="DateTime"/>
   </Attribute>
 
@@ -199,7 +114,6 @@
 
   <Attribute itemName="organizer">
     <displayName>Meeting Organizer</displayName>
-    <cardinality>single</cardinality>
   </Attribute>
 
   <Attribute itemName="attendees">
@@ -209,13 +123,11 @@
 
   <Attribute itemName="transparency">
     <displayName>Time Transparency</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="cal:TimeTransparency"/>
+    <type itemref="cal:TimeTransparencyEnum"/>
   </Attribute>
 
   <Kind itemName="CalendarEvent">
-    <displayName>Calendar Event/Task</displayName>
-    <issues>Do we want to support the idea of tasks having sub-tasks? If so, then we need to add attributes for 'superTask' and 'subTasks'.</issues>
+    <displayName>Calendar Event</displayName>
     <issues>Calendar Event should maybe have a 'Timezone' attribute.</issues>
     <issues>Do we want to have 'Duration' as a derived attribute on Calendar Event? </issues>
     <issues>Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?</issues>
@@ -229,15 +141,6 @@
     <attributes itemref="cal:recurrence"/>
     <attributes itemref="cal:reminders"/>
     <attributes itemref="cal:resources"/>
-    <attributes itemref="cal:taskVsEvent"/>
-
-    <!-- task -->
-    <attributes itemref="cal:requestor"/>
-    <attributes itemref="cal:requestee"/>
-    <attributes itemref="cal:dependsOn"/>
-    <attributes itemref="cal:blocks"/>
-    <attributes itemref="cal:status"/>
-    <attributes itemref="mail:stronglyLinkedMail"/>
 
     <!-- calendar -->
     <attributes itemref="cal:endTime"/>
