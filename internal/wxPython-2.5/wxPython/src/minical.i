@@ -110,6 +110,9 @@ MustHaveApp(wxMiniCalendar);
 class wxMiniCalendar : public wxControl
 {
 public:
+        %pythonAppend wxMiniCalendar      "self._setOORInfo(self)"
+        %pythonAppend wxMiniCalendar()    ""
+
         wxMiniCalendar(wxWindow *parent,
                        wxWindowID id=-1,
                        const wxDateTime& date = wxDefaultDateTime,
