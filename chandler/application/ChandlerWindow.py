@@ -49,6 +49,8 @@ class ChandlerWindow(Persistent):
         else:
             wxWindow = app.association[id(self)]
         
+        # Probably not the right place for this.  
+        wxWindow.sideBar.model.SynchronizeView()
         wxWindow.MoveOntoScreen()
 
 class wxChandlerWindow(wxFrame):
@@ -92,6 +94,8 @@ class wxChandlerWindow(wxFrame):
         assert (self.menuBar != None)
         self.SetMenuBar (self.menuBar)
         
+        self.sideBar = self.FindWindowByName("SideBar")
+
         if __debug__:
             """
               In the debugging version, we add a command key combination that
@@ -109,10 +113,10 @@ class wxChandlerWindow(wxFrame):
         EVT_CLOSE(self, self.OnClose)
         EVT_ACTIVATE(self, self.OnActivate)
 
-
     if __debug__:
         def OnToggleDebugMenu(self, event):
             menuBar = self.GetMenuBar ()
+            
             index = menuBar.FindMenu (_('Debug'))
             if index == wxNOT_FOUND:
                 applicationResources = application.Application.app.applicationResources

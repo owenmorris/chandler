@@ -38,7 +38,8 @@ class ViewerParcel (Parcel):
           Currently we install by appending to the end of the list
         """
         found = false
-        for parcel in app.model.URLTree:
+        for item in app.model.URLTree:
+            parcel = item[0]
             if parcel.__module__ == theClass.__module__:
                 found = true
                 break
@@ -49,7 +50,7 @@ class ViewerParcel (Parcel):
             else:
                 instance = theClass.__new__ (theClass)
             instance.__init__()
-            app.model.URLTree.append (instance)
+            app.model.URLTree.append ([instance, instance.displayName, []])
         
     Install = classmethod (Install)
 

@@ -106,6 +106,7 @@ class wxApplication (wxApp):
     self.dbroot                    ZODB root object tree
     self.homeDirectory             path to a folder in the user's home directory
     self.wxMainFrame               active wxChandlerWindow
+    self.locale                    locale used for internationalization
 
     In the future we may replace ZODB with another database that provides similar
     functionality
@@ -195,7 +196,8 @@ class wxApplication (wxApp):
 
     if __debug__:
         def OnTest1 (self, event):
-            for parcel in self.model.URLTree:
+            for item in self.model.URLTree:
+                parcel = item[0]
                 """
                   Each parcel must have an attribute which is the displayName.
                 """
@@ -205,7 +207,8 @@ class wxApplication (wxApp):
                     return
         
         def OnTest2 (self, event):
-            for parcel in self.model.URLTree:
+            for item in self.model.URLTree:
+                parcel = item[0]
                 """
                   Each parcel must have an attribute which is the displayName.
                 """
@@ -215,7 +218,8 @@ class wxApplication (wxApp):
                     return
         
         def OnTest3 (self, event):
-            for parcel in self.model.URLTree:
+            for item in self.model.URLTree:
+                parcel = item[0]
                 """
                   Each parcel must have an attribute which is the displayName.
                 """
