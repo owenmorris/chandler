@@ -128,8 +128,12 @@ def init(buildenv):
          'bin' + os.sep + 'python_d.exe'
 
         import os_win
+        
+        vs = os_win.VisualStudio();
+        buildenv['compilerVersion'] = vs.version
+        
         # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for devenv.exe...")
-        devenv_file = os_win.find_exe( "devenv.exe", "7.0")
+        devenv_file = vs.find_exe( "devenv.exe")
         if( devenv_file ):
             # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + devenv_file)
             buildenv['compiler'] = devenv_file
@@ -139,7 +143,7 @@ def init(buildenv):
             raise HardHatMissingCompilerError
 
         # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for nmake.exe...")
-        nmake_file = os_win.find_exe( "nmake.exe", "7.0")
+        nmake_file = vs.find_exe( "nmake.exe")
         if( nmake_file ):
             # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + nmake_file)
             buildenv['nmake'] = nmake_file
@@ -147,11 +151,11 @@ def init(buildenv):
             log(buildenv, HARDHAT_ERROR, "HardHat", "Can't find nmake.exe")
             log_dump(buildenv)
             raise HardHatMissingCompilerError
-        include_path = os_win.get_msvc_paths('include', '7.0')
+        include_path = vs.get_msvc_paths('include')
         include_path = string.join( include_path, ";")
         # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Include: " + include_path)
         os.putenv('INCLUDE', include_path)
-        lib_path = os_win.get_msvc_paths('lib', '7.0')
+        lib_path = vs.get_msvc_paths('library')
         lib_path = string.join( lib_path, ";")
         # log(buildenv, HARDHAT_MESSAGE, "HardHat", "lib: " + lib_path)
         os.putenv('LIB', lib_path)
