@@ -52,6 +52,15 @@ def syncItem(dav, item):
         # put back merged local changes
         syncToServer(dav, item)
 
+    if serverChanges or localChanges:
+        # Make sure we have the latest etag and lastModified
+        # Note: some servers *cough*xythos*cough* change the etag when you
+        # do a PROPPATCH
+        item.etag = dav.etag
+        item.lastModified = dav.lastModified
+        item.sharedVersion = item._version
+
+
 
 
 
@@ -120,11 +129,6 @@ def syncToServer(dav, item):
     print url, r.status, r.reason
     print r.read()
 
-    # argh!! i hate this.. we have to get the etag again here since
-    # some servers *cough*xythos*cough* change the etag when you proppatch
-    item.etag = dav.etag
-    item.lastModified = dav.lastModified
-    item.sharedVersion = item._version
 
 
 
@@ -189,7 +193,7 @@ def getItem(dav):
     origUUID = davItem.itsUUID
     newItem = repository.findUUID(sharing.itemMap[origUUID])
     if newItem:
-        syncItem(dav, newItem)
+        dav.sync(newItem)
         return newItem
 
     # otherwise, create a new item for the davItem
