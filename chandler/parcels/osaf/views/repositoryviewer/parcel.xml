@@ -115,7 +115,7 @@
     <size>517,564</size>
     <minimumSize>50,50</minimumSize>
     <border>0.0, 0.0, 0.0, 0.0</border>
-    <alignmentEnum>alignCenter</alignmentEnum>
+    <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
   </SplitWindow>
   
