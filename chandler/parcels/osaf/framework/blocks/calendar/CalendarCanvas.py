@@ -436,6 +436,10 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
         self.Bind(wx.EVT_BUTTON, self.OnPrev, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.OnNext, self.nextButton)
         self.Bind(wx.EVT_BUTTON, self.OnToday, self.todayButton)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+
+    def OnSize(self, event):
+        self.Refresh()
 
     def wxSynchronizeWidget(self):
         self.monthButton.SetLabel(self.blockItem.rangeStart.Format("%B %Y"))
