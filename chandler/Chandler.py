@@ -14,7 +14,7 @@ if __debug__ and '-wing' in sys.argv:
     import wingdbstub
 import logging
 from wxPython.wx import *
-from application.ApplicationNew import wxApplicationNew
+from application.Application import wxApplicationNew
 
 def main():
 
