@@ -31,7 +31,7 @@ class TestBinary(RepositoryTestCase):
 
         largeBinary = os.path.join(self.testdir, 'data', 'khepltr.jpg')
 
-        input = file(largeBinary, 'r')
+        input = file(largeBinary, 'rb')
         binary = khepburn.getAttributeAspect('picture', 'type').makeValue(None, mimetype='image/jpg')
         outputStream = binary.getOutputStream(compression='bz2')
         
@@ -56,7 +56,7 @@ class TestBinary(RepositoryTestCase):
         khepburn = self.rep.find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
-        input = file(largeBinary, 'r')
+        input = file(largeBinary, 'rb')
         inputStream = khepburn.picture.getInputStream()
         data = input.read()
         picture = inputStream.read()
@@ -71,7 +71,7 @@ class TestBinary(RepositoryTestCase):
 
         largeBinary = os.path.join(self.testdir, 'data', 'khepltr.jpg')
 
-        input = file(largeBinary, 'r')
+        input = file(largeBinary, 'rb')
         binary = khepburn.getAttributeAspect('picture', 'type').makeValue(None, mimetype='image/jpg')
         outputStream = binary.getOutputStream(compression='zlib')
         
@@ -96,7 +96,7 @@ class TestBinary(RepositoryTestCase):
         khepburn = self.rep.find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
-        input = file(largeBinary, 'r')
+        input = file(largeBinary, 'rb')
         inputStream = khepburn.picture.getInputStream()
         data = input.read()
         picture = inputStream.read()
@@ -111,7 +111,7 @@ class TestBinary(RepositoryTestCase):
 
         largeBinary = os.path.join(self.testdir, 'data', 'khepltr.jpg')
 
-        input = file(largeBinary, 'r')
+        input = file(largeBinary, 'rb')
         binary = khepburn.getAttributeAspect('picture', 'type').makeValue(None, mimetype='image/jpg')
         outputStream = binary.getOutputStream(compression=None)
         
@@ -131,7 +131,7 @@ class TestBinary(RepositoryTestCase):
         khepburn = self.rep.find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
-        input = file(largeBinary, 'r')
+        input = file(largeBinary, 'rb')
         inputStream = khepburn.picture.getInputStream()
         data = input.read()
         picture = inputStream.read()
