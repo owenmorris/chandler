@@ -1,0 +1,204 @@
+==================================================
+Automatic UUID Generation for Spike Schema Modules
+==================================================
+
+One of Spike's features for schema management is that it allows you to specify
+UUIDs (Universally Unique Identifiers) so that your schema can be used in a
+Chandler repository without naming conflicts with other schemas.
+
+Manually specifying UUIDs, however, is a tedious and error-prone task.  The
+``spike.uuidgen`` module (and the ``spike_it`` command line tool) help by
+automatically generating UUIDs and adding them to your schema module (at the
+bottom, where they won't interfere with your code's readability.)
+
+
+---------------------
+The Command-Line Tool
+---------------------
+
+Once Spike is installed, you can run the command-line tool using::
+
+    RunPython -m spike_it path/to/module.py ...
+
+Where ``path/to/module.py`` designates the source of the module you wish to add
+UUIDs to.  You may specify more than one module on the command line.  The files
+must be writable, as the tool may add UUID declarations to the end of the file.
+
+Note that each module's code will be executed, in order for the tool to
+identify what contained schema items are lacking UUIDs.  So the modules must
+be syntactically correct, and anything they import must be available on
+``PYTHONPATH`` at the time you run the tool.
+
+TODO: Actually implement the command-line version!
+
+
+---------------------------
+The ``UUIDGenerator`` Class
+---------------------------
+
+(Note: the following is all implementation detail; you don't need to know about
+it unless you need to troubleshoot UUID generation for your module, or you are
+working on Spike's internals.)
+
+The entire functionality of the ``spike.uuidgen`` module is exposed via the
+``UUIDGenerator`` class::
+
+    >>> from spike.uuidgen import UUIDGenerator
+
+Normally, a UUID generator creates new unique IDs, but since our examples need
+to have fixed values for testing, we'll use a list of pre-generated UUIDs, and
+use its ``pop()`` method as the ``make_uuid`` argument to our generator
+instance::
+
+    >>> make_uuid = [
+    ...     'dafcf661-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf662-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf663-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf664-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf665-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf666-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf667-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf668-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf669-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf66a-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf66b-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf66c-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf66d-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf66e-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf66f-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf670-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf671-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf672-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf673-8768-11d9-9096-000b6a0f72f9',
+    ...     'dafcf674-8768-11d9-9096-000b6a0f72f9'
+    ... ].pop
+
+    >>> gen = UUIDGenerator(make_uuid = make_uuid)
+
+The basic function of a ``UUIDGenerator`` is to generate a line of code that
+assigns a UUID for an object that does not currently have a UUID.  For
+example::
+
+    >>> source = """
+    ... # we're going to execute this more than once, so hang on to the source
+    ...
+    ... from spike import schema
+    ... class Foo(schema.Entity):
+    ...     bar = schema.One()
+    ...     baz = schema.Many(int)
+    ...     spam = schema.One(uuid = 'dafcf65f-8768-11d9-9096-000b6a0f72f9')
+    ...
+    ... class Bar(schema.Relationship):
+    ...     uuid = 'dafcf63d-8768-11d9-9096-000b6a0f72f9'
+    ...     fwd = schema.One()
+    ...     back = Foo.bar
+    ...
+    ... class Baz(schema.Entity):
+    ...     alias = Foo.spam
+    ...     invertible = schema.One(inverse=schema.Many())
+    ...
+    ... class IgnoreMe(schema.Entity):
+    ...     __module__ = "no_such.module"
+    ...     foreign = schema.Many()
+    ... """
+    >>> exec source     # now run it
+
+    >>> print Foo.uuid
+    None
+    >>> print Foo.bar.uuid
+    None
+
+    >>> list(gen.genRole(Foo.bar))
+    ["Foo.bar.uuid = 'dafcf674-8768-11d9-9096-000b6a0f72f9'\n"]
+
+    >>> list(gen.genClass(Foo))     # doctest: +NORMALIZE_WHITESPACE
+    ["Foo.uuid = 'dafcf673-8768-11d9-9096-000b6a0f72f9'\n",
+     "Foo.baz.uuid = 'dafcf672-8768-11d9-9096-000b6a0f72f9'\n"]
+
+Once an assignment has been generated for a given object, it is not created
+again by that generator instance.  This ensures that even if an object is
+accessible via more than one name, it will only have one UUID assigned::
+
+    >>> list(gen.genRole(Foo.bar))
+    []
+    >>> list(gen.genClass(Foo))
+    []
+
+The ``genMapping()`` method yields assignments for all classes in a module
+dictionary, along with one for the module itself, if not specified::
+
+    >>> mdict = {'__name__': None}
+    >>> exec source in mdict
+    >>> list(gen.genMapping(mdict))     # doctest: +NORMALIZE_WHITESPACE
+    ["uuid = 'dafcf671-8768-11d9-9096-000b6a0f72f9'\n",
+     "Bar.fwd.uuid = 'dafcf670-8768-11d9-9096-000b6a0f72f9'\n",
+     "Baz.uuid = 'dafcf66f-8768-11d9-9096-000b6a0f72f9'\n",
+     "Baz.invertible.uuid = 'dafcf66e-8768-11d9-9096-000b6a0f72f9'\n",
+     "Baz.invertible.inverse.uuid = 'dafcf66d-8768-11d9-9096-000b6a0f72f9'\n",
+     "Foo.uuid = 'dafcf66c-8768-11d9-9096-000b6a0f72f9'\n",
+     "Foo.bar.uuid = 'dafcf66b-8768-11d9-9096-000b6a0f72f9'\n",
+     "Foo.baz.uuid = 'dafcf66a-8768-11d9-9096-000b6a0f72f9'\n"]
+
+Notice, by the way, that the ``IgnoreMe`` class is ignored entirely because
+its ``__module__`` is different from the module's ``__name__``.  Under normal
+(i.e. non-test) circumstances, this would mean that ``IgnoreMe`` had been
+imported from another module, and we do not want to generate UUID assignments
+for other modules; they should do this for themselves.
+
+Also note that roles are only processed in the class where they are *first*
+defined, so that their assignment is under their canonical name.  Anonymous
+inverse roles (like ``Baz.invertible.inverse``) are assigned via their
+inverse.
+
+Finally, let's do the same generation process, but this time, direct from
+source code::
+
+    >>> trailer = gen.fromSource(source)
+    >>> print trailer
+    <BLANKLINE>
+    ###########################################################################
+    # DO NOT DELETE!  The following UUIDs are here for purposes of repository
+    # synchronization and schema evolution.  If you delete them, you will have
+    # difficulty upgrading databases created with this schema.  If you rename
+    # items in the code above, you must rename them here as well, and if you
+    # move items to another module, you must move their UUIDs with them.  In
+    # other words, once a UUID is assigned to a particular role, entity,
+    # relationship, or module, it should move with the module.
+    ###########################################################################
+    <BLANKLINE>
+    uuid = 'dafcf669-8768-11d9-9096-000b6a0f72f9'
+    Bar.fwd.uuid = 'dafcf668-8768-11d9-9096-000b6a0f72f9'
+    Baz.uuid = 'dafcf667-8768-11d9-9096-000b6a0f72f9'
+    Baz.invertible.uuid = 'dafcf666-8768-11d9-9096-000b6a0f72f9'
+    Baz.invertible.inverse.uuid = 'dafcf665-8768-11d9-9096-000b6a0f72f9'
+    Foo.uuid = 'dafcf664-8768-11d9-9096-000b6a0f72f9'
+    Foo.bar.uuid = 'dafcf663-8768-11d9-9096-000b6a0f72f9'
+    Foo.baz.uuid = 'dafcf662-8768-11d9-9096-000b6a0f72f9'
+    <BLANKLINE>
+
+Notice that a warning banner is generated.  Now, let's verify that running
+a new generator against the combined source code produces no output, because
+everything that needs a UUID will now have one::
+
+    >>> print UUIDGenerator().fromSource(source+trailer)
+    <BLANKLINE>
+
+And, one final test.  The warning banner should not be included in the output
+if it's already present in the input::
+
+    >>> print gen.fromSource(source+trailer+"class New(schema.Entity):pass\n")
+    New.uuid = 'dafcf661-8768-11d9-9096-000b6a0f72f9'
+    <BLANKLINE>
+
+Whew.  Okay, that's basically it.  As you can probably tell, the command line
+tool should just look something like this::
+
+    gen = UUIDGenerator()
+    for arg in sys.argv[1:]
+        trailer = gen.fromSource(open(arg,'rt').read())
+        if trailer:
+            open(arg,'at').write(trailer)
+
+But maybe with a help option, some argument error checking, and perhaps some
+progress reporting as well.
+
