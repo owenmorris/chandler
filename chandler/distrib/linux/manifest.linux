@@ -48,7 +48,7 @@ LICENSE.txt
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes
-glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html
+glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack
 application
 parcels
 
