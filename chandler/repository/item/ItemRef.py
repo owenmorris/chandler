@@ -21,10 +21,26 @@ class ItemRef(object):
         self.attach(item, name, other, otherName,
                     otherCard, otherPersist, otherAlias)
 
-    def _copy(self, item, name):
+    def _copy(self, references, item, copyItem, name, policy, copies):
 
-        return ItemRef(item, name, self._other(item),
-                       item._kind.getOtherName(name))
+        if policy == 'copy':
+            references[name] = ItemRef(copyItem, name, self._other(item),
+                                       copyItem._kind.getOtherName(name))
+
+        elif policy == 'cascade':
+            other = self.other(item)
+            copyOther = copies.get(other.itsUUID, None)
+
+            if copyOther is None:
+                if item.itsParent is copyItem.itsParent:
+                    otherParent = other.itsParent
+                else:
+                    otherParent = copyItem.itsParent
+                copyOther = other.copy(None, otherParent, copies)
+
+            if not name in references:
+                references[name] = ItemRef(copyItem, name, copyOther,
+                                           copyItem._kind.getOtherName(name))
 
     def __repr__(self):
 
@@ -206,7 +222,7 @@ class _noneRef(ItemRef):
     def __repr__(self):
         return '<NoneRef>'
 
-    def _copy(self, item, name):
+    def _copy(self, references, item, copyItem, name, policy, copies):
         return self
 
     def attach(self, item, name, other, otherName,
@@ -451,14 +467,32 @@ class RefDict(LinkedMap):
         
         super(RefDict, self).__init__()
 
-    def _copy(self, item, name):
+    def _copy(self, references, item, copyItem, name, policy, copies):
 
-        refDict = item._refDict(name)
-        for value in self:
-            refDict.append(value)
+        refDict = copyItem._refDict(name)
+        references[name] = refDict
+        
+        if policy == 'copy':
+            for key in self.iterkeys():
+                link = self._get(key)
+                other = link._value.other(item)
+                refDict.append(other, link._alias)
 
-        if self._aliases is not None:
-            refDict._aliases = self._aliases.copy()
+        elif policy == 'cascade':
+            for key in self.iterkeys():
+                link = self._get(key)
+                other = link._value.other(item)
+                copyOther = copies.get(other.itsUUID, None)
+
+                if copyOther is None:
+                    if item.itsParent is copyItem.itsParent:
+                        otherParent = other.itsParent
+                    else:
+                        otherParent = copyItem.itsParent
+                    copyOther = other.copy(None, otherParent, copies)
+
+                if not copyOther in refDict:
+                    refDict.append(copyOther, link._alias)
 
         return refDict
 

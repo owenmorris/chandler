@@ -512,6 +512,21 @@ class XMLText(Text, ItemValue):
         self._view = view
         self._version = 0
 
+    def _copy(self, item, attribute):
+
+        view = item.itsView
+        copy = view._getLobType('text')(view, self.encoding,
+                                        self.mimetype, self._indexed)
+
+        inputStream = self.getInputStream()
+        outputStream = copy.getOutputStream(self._compression)
+
+        outputStream.write(inputStream.read())
+        outputStream.close()
+        inputStream.close()
+
+        return copy
+
     def _xmlValue(self, generator):
 
         uuid = self.getUUID()
@@ -629,6 +644,20 @@ class XMLBinary(Binary, ItemValue):
         self._view = view
         self._version = 0
         
+    def _copy(self, item, attribute):
+
+        view = item.itsView
+        copy = view._getLobType('binary')(view, self.mimetype, self._indexed)
+
+        inputStream = self.getInputStream()
+        outputStream = copy.getOutputStream(self._compression)
+
+        outputStream.write(inputStream.read())
+        outputStream.close()
+        inputStream.close()
+
+        return copy
+
     def _xmlValue(self, generator):
 
         uuid = self.getUUID()

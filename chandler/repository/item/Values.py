@@ -22,18 +22,18 @@ class Values(dict):
 
         self._item = item
 
-    def _copy(self, item):
+    def _copy(self, orig, copies):
 
-        values = type(self)(item)
-        for name, value in self.iteritems():
+        item = self._item
+
+        for name, value in orig.iteritems():
             if isinstance(value, PersistentCollection):
                 value = value._copy(item, name, value._companion)
             elif isinstance(value, ItemValue):
                 value = value._copy(item, name)
+                value._setItem(item, name)
 
-            values[name] = value
-
-        return values
+            self[name] = value
 
     def __setitem__(self, key, value):
 
@@ -138,15 +138,14 @@ class References(Values):
 
         self._item = item
 
-    def _copy(self, item):
+    def _copy(self, orig, copies):
 
-        references = type(self)(item)
-        for name, value in self.iteritems():
-            copyPolicy = item.getAttributeAspect(name, 'copyPolicy')
-            if copyPolicy == 'copy':
-                references[name] = value._copy(item, name)
-                
-        return references
+        item = self._item
+        
+        for name, value in orig.iteritems():
+            policy = item.getAttributeAspect(name, 'copyPolicy')
+            if policy == 'copy' or policy == 'cascade':
+                value._copy(self, orig._item, item, name, policy, copies)
 
     def __setitem__(self, key, value, *args):
 
@@ -217,4 +216,4 @@ class ItemValue(object):
 
     def _copy(self, item, attribute):
 
-        raise NotImplementedError, 'ItemValue._copy is abstract'
+        raise NotImplementedError, '%s._copy' %(type(self))

@@ -7,4 +7,5 @@
     <attribute name="cardinality">single</attribute>
     <attribute name="required">True</attribute>
     <attribute name="otherName">directed</attribute>
+    <attribute name="copyPolicy">cascade</attribute>
 </item>

@@ -242,14 +242,18 @@ class Item(object):
               references to the items stored in the mixed collection. By
               default, if the companion aspect is not set, the entire
               repository is considered. This aspect takes a string value.
-            - C{copyPolicy}: when an item is copied with the L{copy} method,
-              its reference attribute values are copied if this policy is
-              set to C{copy}. By default, C{copyPolicy} is set to
-              C{remove}. This aspect takes a string value.
+            - C{copyPolicy}: when an item is copied this policy defines
+              what happens to items that are referenced by this
+              attribute. Possible C{copyPolicy} values are:
+                - C{remove}, the default. The reference is not copied.
+                - C{copy}, the reference is copied.
+                - C{cascade}, the referenced item is copied recursively and
+                  a reference to this copy is set.
+              This aspect takes a string value.
             - C{deletePolicy}: when an item is deleted this policy defines
               what happens to items that are referenced by this
               attribute. Possible C{deletePolicy} values are:
-                - C{remove}, the default
+                - C{remove}, the default.
                 - C{cascade}, which causes the referenced item(s) to get
                   deleted as well. See C{countPolicy} below.
               This aspect takes a string value.
@@ -1153,7 +1157,7 @@ class Item(object):
 
         return False
 
-    def copy(self, name=None, parent=None):
+    def copy(self, name=None, parent=None, copies=None):
         """
         Copy this item.
 
@@ -1168,14 +1172,24 @@ class Item(object):
         by default
         @type parent: an item
         """
+
+        if copies is None:
+            copies = {}
+        elif self._uuid in copies:
+            return copies[self._uuid]
+            
         cls = type(self)
         item = cls.__new__(cls)
         item._fillItem(name, parent or self.itsParent, self._kind,
                        uuid = UUID(), version = self._version)
         item._status |= Item.NEW
+        copies[self._uuid] = item
 
-        item._values = self._values._copy(item)
-        item._references = self._references._copy(item)
+        item._values = Values(item)
+        item._references = References(item)
+
+        item._values._copy(self._values, copies)
+        item._references._copy(self._references, copies)
 
         return item
 

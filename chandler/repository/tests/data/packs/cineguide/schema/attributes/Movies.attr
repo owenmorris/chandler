@@ -6,5 +6,5 @@
 
     <attribute name="cardinality">list</attribute>
     <attribute name="otherName">actors</attribute>
-    <attribute name="copyPolicy">copy</attribute>
+    <attribute name="copyPolicy">cascade</attribute>
 </item>
