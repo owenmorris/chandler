@@ -200,9 +200,8 @@ def distribute(buildenv):
 
         # The end-user installer
         if installTargetFile:
-            installTargetFile = '%s.exe' % installTargetFile
-            installSource     = os.path.join(buildenv['root'], installTargetFile)
-            installTarget     = os.path.join(buildenv['outputdir'], installTargetFile)
+            installSource = os.path.join(buildenv['root'], installTargetFile)
+            installTarget = os.path.join(buildenv['outputdir'], installTargetFile)
 
             if os.path.exists(installTarget):
                 os.remove(installTarget)
