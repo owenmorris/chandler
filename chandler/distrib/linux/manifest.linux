@@ -2,7 +2,7 @@
 #
 # Variables maintain their value until changed, so be aware of the order of
 # things...
-# 
+#
 # src: set this to be relative to buildenv['root']
 # dest: set this to be relative to buildenv['distdir']
 # recursive: set to yes or no
@@ -38,10 +38,11 @@ python2.3
 libwx_gtk-2.4.so
 libwx_gtk2-2.4.so
 
-# Grab Chandler.py and LICENSE.txt
+# Grab Chandler.py, version.py and LICENSE.txt
 src=Chandler
 dest=
 Chandler.py
+version.py
 LICENSE.txt
 
 # Grab the rest of Chandler from the application/ and parcel/ folders

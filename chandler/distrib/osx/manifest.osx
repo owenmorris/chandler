@@ -32,18 +32,19 @@ libwx_mac-2.4.0.dylib
 libwx_mac-2.4.0.r
 libwx_mac-2.4.0.rsrc
 
-# Grab Chandler.py and LICENSE.txt
+# Grab Chandler.py, version.py and LICENSE.txt
 src=Chandler
 dest=Contents/Resources
 Chandler.py
+version.py
 LICENSE.txt
- 
+
 # Grab the rest of Chandler from the application/ and parcel/ folders
 recursive=yes
 glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html
 application
 parcels
- 
+
 # Grab the bundle files
 src=Chandler/distrib/osx/bundle
 dest=Contents

@@ -33,10 +33,11 @@ Lib
 # lib
 
 
-# Grab Chandler.py and LICENSE.txt
+# Grab Chandler.py, version.py and LICENSE.txt
 src=Chandler
 dest=
 Chandler.py
+version.py
 LICENSE.txt
 
 # Grab the rest of Chandler from the application/ and parcel/ folders
