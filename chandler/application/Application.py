@@ -369,11 +369,10 @@ class wxApplication (wxApp):
                 assert (hasattr (module, parcelClassStrings[1]))
                 theClass = module.__dict__[parcelClassStrings[1]]
                 """
-                  Currently parcels each have a class and data, which is a
-                non persistent dictionary.
+                  parcels is a dictionary that is indexed by class. For viewer
+                parcels, we add a data dictionary when one is first loaded.
                 """
-                self.parcels[id(theClass)] = {'class' : theClass,
-                                                     'data' : {} }
+                self.parcels[id(theClass)] = {}
                 theClass.path = pathToPackage
                 theClass.Install ()
 

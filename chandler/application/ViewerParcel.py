@@ -25,8 +25,8 @@ class ViewerParcel (Parcel):
     counterpart.model              the persistent counterpart
     counterpart.resources          the model's resources
     
-      To create a parcel you'll subclass ViewerParcel, and currently
-    it's not necessary to call the superclass's __init__.
+      To create a parcel you'll subclass ViewerParcel, and remember
+    to call the superclass's __init__.
     """
     def Install(theClass):
         """
@@ -227,8 +227,6 @@ class wxViewerParcel(wxPanel):
         """
         self.model = model
         self.resources = resources
-        parcelDictionary = app.parcels[id(self.model.__class__)]
-        self.data = parcelDictionary['data']
         """
           OnInit does general initialization, which can only be done after
         __init__ has been called.
@@ -243,10 +241,14 @@ class wxViewerParcel(wxPanel):
         per class data, and if this turns out to be a common need, I'll add it
         to wxPacelViewer -- DJA
         """
-        if not self.data.has_key ('__OnInitDataCalled__'):
-            if hasattr (self, 'OnInitData'):
+        if hasattr (self, 'OnInitData'):
+            parcelDictionary = app.parcels[id(self.model.__class__)]
+            if parcelDictionary.has_key('data'):
+                self.data = parcelDictionary['data']
+            else:
+                parcelDictionary['data'] = {}
+                self.data = parcelDictionary['data']
                 self.OnInitData()
-            self.data['__OnInitDataCalled__'] = 1
 
         # Only bind erase background on Windows for flicker reasons
         if wxPlatform == '__WXMSW__':
