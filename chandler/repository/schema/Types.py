@@ -316,23 +316,18 @@ class Class(Type):
 class Enumeration(Type):
 
     def getImplementationType(self):
-
         return type(self)
 
     def handlerName(cls):
-
         return 'str'
     
     def makeValue(self, data):
-
         return data
 
     def makeString(self, value):
-
         return value
 
     def recognizes(self, value):
-
         try:
             return self.values.index(value) >= 0
         except ValueError:
@@ -432,12 +427,13 @@ class Struct(Type):
     def makeValue(self, data):
 
         result = self.getImplementationType()()
-        for pair in data.split(','):
-            fieldName, value = pair.split(':')
-            typeHandler = self.fields[fieldName].get('type', None)
-            if typeHandler is not None:
-                value = typeHandler.makeValue(value)
-            setattr(result, fieldName, value)
+        if data:
+            for pair in data.split(','):
+                fieldName, value = pair.split(':')
+                typeHandler = self.fields[fieldName].get('type', None)
+                if typeHandler is not None:
+                    value = typeHandler.makeValue(value)
+                setattr(result, fieldName, value)
 
         return result
 
@@ -632,9 +628,10 @@ class Dictionary(Collection):
     def makeValue(self, data):
 
         result = {}
-        for pair in data.split(','):
-            key, value = pair.split(':')
-            result[key] = value
+        if data:
+            for pair in data.split(','):
+                key, value = pair.split(':')
+                result[key] = value
 
         return result
 
@@ -676,7 +673,10 @@ class List(Collection):
     
     def makeValue(self, data):
 
-        return data.split(',')
+        if data:
+            return data.split(',')
+        else:
+            return []
 
     def makeString(self, value):
 
