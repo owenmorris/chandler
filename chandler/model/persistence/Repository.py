@@ -21,18 +21,13 @@ class Repository(object):
     The repository has direct access to its roots by name and to all its
     items by UUID. It can be used as an iterator over all its items."""
 
-    def __init__(self):
-        
-        super(Repository, self).__init__()
+    def create(self):
 
         self._roots = {}
         self._registry = {}
         self._unresolvedRefs = []
         self._orphans = []
         
-    def create(self):
-        raise NotImplementedError, "Repository.create"
-
     def open(self, verbose=False):
         raise NotImplementedError, "Repository.open"
 

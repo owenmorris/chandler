@@ -29,11 +29,13 @@ class FileRepository(Repository):
     def create(self):
 
         if not self._isOpen:
+            super(FileRepository, self).create()
             self._isOpen = True
 
     def open(self, verbose=False):
 
         if not self._isOpen:
+            super(FileRepository, self).create()
             self._load(verbose=verbose)
             self._isOpen = True
 

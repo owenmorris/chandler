@@ -40,6 +40,7 @@ class XMLRepository(Repository):
     def create(self):
 
         if self._env is None:
+            super(XMLRepository, self).create()
             self._env = DBEnv()
             self._env.open(self.dbHome, DB_CREATE | DB_INIT_MPOOL, 0)
             self._schema = XMLRepository.xmlContainer(self._env, "__schema__")
