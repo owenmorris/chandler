@@ -156,8 +156,7 @@ try:
             hardhatlib.scrub(buildenv, arg)
 
         if opt == "-S":
-	    history = {}
-            hardhatlib.scrubDependencies(buildenv, arg, history)
+            hardhatlib.scrubDependencies(buildenv, arg)
 
         if opt == "-t":
             hardhatlib.test(buildenv, arg)
