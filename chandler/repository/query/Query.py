@@ -185,6 +185,7 @@ class Query(Item.Item):
         #@@@ change this to batch notifications
         added = []
         removed = []
+        changed_uuids = []
         for uuid, reason, kwds in changes:
             i = None # kill this
             i = view.findUUID(uuid)
@@ -195,20 +196,23 @@ class Query(Item.Item):
                 if flag is not None:
                     changed = True
                     if flag:
-                        action = "entered"
                         self._resultSet.append(i)
                         added.append(i.itsUUID)
                     else:
-                        action = "exited"
                         if i in self._resultSet: # should we need this?
                             self._resultSet.remove(i)
                             removed.append(i.itsUUID)
                         elif i in self._removedSinceCommit:
                             removed.append(i.itsUUID)
+            elif notification == 'changeonly':
+                if i.itsUUID in self._resultSet:
+                    changed = True
+                    changed_uuids.append(i.itsUUID)
+                
         self._removedSinceCommit = [] # reset for next commit
 
         if changed:
-            log.debug(u"RepoQuery.queryCallback: %s %s query result" % (uuid, action))
+            log.debug(u"RepoQuery.queryCallback: %s %s query result" % (uuid, [added, removed, changed_uuids] ))
             for callbackUUID in self._otherViewSubscribeCallbacks:
                 item = view.find (callbackUUID)
                 method = getattr (type(item), self._otherViewSubscribeCallbacks [callbackUUID])
@@ -273,7 +277,6 @@ class Query(Item.Item):
         queryArgs = ast[1:]
 
         if queryType == 'for':
-            #@@@ recursive handling is a problem now, just like args
             plan = ForPlan(self, queryArgs, self.args)
         elif queryType == 'union':
             childPlans = [ self.__analyze(i) for i in queryArgs[0] ]
@@ -459,7 +462,7 @@ class ForPlan(LogicalPlan):
                 # walk path, building reverse lookup to be used by changed()
                 for i in args[1:]:
                     try:
-                        if (i.startswith('its')): #@@@ is this right?
+                        if (i.startswith('its')):
                             attr = getattr(current, i)
                         else:
                             attr = current.getAttribute(i)
@@ -582,7 +585,6 @@ class ForPlan(LogicalPlan):
                             print "monitoring of multi-item paths is not yet supported"
                     yield i
             except AttributeError, ae:
-                #@@@ log
                 log.debug(u"AttributeError, %s" % ae)
                 pass
 
@@ -697,9 +699,6 @@ class UnionPlan(LogicalPlan):
         plans = self.__plans
         log.debug(u"__execute_union: plan = %s" % plans)
         
-        #@@@ DANGER - hack for self._sourceKind - fix with notification upgrade
-#        self._sourceKind = None
-
         s = sets.Set(plans[0].execute())
         for p in plans[1:]:
             s1 = sets.Set(p.execute())
