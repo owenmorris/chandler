@@ -769,8 +769,18 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         
         # now select the "next" item
         totalItems = len(contents)
-        newRowSelection = min(newRowSelection, totalItems - 1)
-        self.blockItem.postEventByName("SelectItemBroadcast", {'item':contents[newRowSelection]})
+        """
+          We call wxSynchronizeWidget here because the postEvent causes the DetailView
+        to call it's wxSynchrnoizeWidget, which calls layout, which causes us to redraw
+        the table, which hasn't had time to get it's notificaitons so its data is out
+        of synch and chandler Crashes. So I think the long term fix is to not call
+        wxSynchronizeWidget here or in the DetailView and instead let the notifications
+        cause wxSynchronizeWidget to be called. -- DJA
+        """
+        self.wxSynchronizeWidget()
+        if totalItems > 0:
+            newRowSelection = min(newRowSelection, totalItems - 1)
+            self.blockItem.postEventByName("SelectItemBroadcast", {'item':contents[newRowSelection]})
 
 
 
