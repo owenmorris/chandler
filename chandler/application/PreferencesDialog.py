@@ -188,7 +188,6 @@ class PreferencesDialog(wxDialog):
 
         self.formContainer.SetSizerAndFit(self.gridSizer)
         self.RestorePreferences()
-        self.SelectFirstField()
         
     def ResetForm(self):
         self.gridSizer = wxFlexGridSizer(cols=2, vgap=4, hgap=4)
@@ -245,6 +244,7 @@ class PreferencesDialog(wxDialog):
         self.SelectSection(event.GetString())
         self.ClearForm()
         self.RenderSelectedForm()
+        self.SelectFirstField()
         self.Layout()
 
 # here's a utility class to handle tabbing between fields
