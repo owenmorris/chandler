@@ -9,6 +9,20 @@ import repository.query.tests.QueryTestCase as QueryTestCase
 
 class TestCompoundQueries(QueryTestCase.QueryTestCase):
 
+    def testDifferenceQuery(self):
+        """ Test a difference query """
+        results = self._executeQuery(u"difference(for i in '//Schema/Core/Kind' where contains(i.itsName,'o'),for i in '//Schema/Core/Kind' where contains(i.itsName,'t'))")
+        #@@@ TODO better result check
+#        self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
+
+    def testIntersectQuery(self):
+        """ Test an intersection query """
+        results = self._executeQuery(u"intersect(for i in '//Schema/Core/Kind' where contains(i.itsName,'o'),for i in '//Schema/Core/Kind' where contains(i.itsName,'t'))")
+        #@@@ TODO better result check
+#        self._checkQuery(lambda i: not i.hasAttributeValue("superKinds"), results)
+        for i in results:
+            print i
+
     def testUnionQuery(self):
         """ Test a union query """
         import application

@@ -5,8 +5,8 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import repository.query.parser.QueryParser as QueryParser
-import application.Globals as Globals
 import tools.timing
+import sets
 
 import logging
 log = logging.getLogger("RepoQuery")
@@ -244,10 +244,32 @@ class Query(object):
             """
             Produce a logical plan that corresponds to the 'union' statement
             represented by the AST.
-            (The AST is actually the arguments to 'union')
+            (The AST is actually the list of arguments to 'union')
             """
+            print ast
             queries = [ self.__analyze(i) for i in ast[0] ]
             return ('union', queries)
+
+        def analyze_intersect(ast):
+            """
+            Produce a logical plan that corresponds to the 'intersect' statement
+            represented by the AST
+            (The AST is the two arguments to 'intersect')
+            """
+            print ast
+            queries = [ self.__analyze(i) for i in ast[0:2] ]
+            print queries
+            return ('intersect', queries)
+
+        def analyze_difference(ast):
+            """
+            Produce a logical plan that corresponds to the 'difference'
+            statement represented by the AST
+            (The AST is the two arguments to 'difference')
+            """
+            queries = [ self.__analyze(i) for i in ast[0:2] ]
+            return ('difference', queries)
+
 
         log.debug("__analyze %s" % ast)
         op = ast[0]
@@ -257,9 +279,9 @@ class Query(object):
         elif op == 'union':
             plan = analyze_union(ast[1:])
         elif op == 'intersect':
-            assert False, "Intersection unimplemented"
+            plan = analyze_intersect(ast[1:])
         elif op == 'difference':
-            assert False, "Difference unimplemented"
+            plan = analyze_difference(ast[1:])
         else:
             raise ValueError, "Unrecognized operator %s" % op
 
@@ -285,18 +307,49 @@ class Query(object):
     def __execute_union(self, plans):
         """
         Execute the query plan for a union statement
-        @param: queries
-        @type param: list (queries to union)
+        @param: plans
+        @type param: list (plans to union)
         """
-        log.debug("__execute_union: plan=%s" % plans)
+        log.debug("__execute_union: plan = %s" % plans)
         
         #@@@ DANGER - hack for self._kind - fix with notification upgrade
         self._kind = None
-        for p in plans:
+
+        s = sets.Set(self.__executePlan(plans[0]))
+        for p in plans[1:]:
+            s1 = sets.Set(self.__executePlan(p))
+            s.union(s1)
+        return s
+        
+#        for p in plans:
 #            print p
-            for i in self.__executePlan(p):
+#            for i in self.__executePlan(p):
 #                print i
-                yield i
+#                yield i
+
+    def __execute_intersect(self, plans):
+        """
+        Execute the query plan for an intersect statement
+        @params: plans
+        @type param: list (two plans)
+        """
+        log.debug("__execute_intersect: plan = %s" % plans)
+        self._kind = None
+        s1 = sets.Set(self.__executePlan(plans[0]))
+        s2 = sets.Set(self.__executePlan(plans[1]))
+        return s1.intersection(s2)
+
+    def __execute_difference(self, plans):
+        """
+        Execute the query plan for a difference statement
+        @params: plans
+        @type param: list (two plans)
+        """
+        log.debug("__execute_difference: plan = %s" % plans)
+        self._kind = None
+        s1 = sets.Set(self.__executePlan(plans[0]))
+        s2 = sets.Set(self.__executePlan(plans[1]))
+        return s1.difference(s2)
 
     def __executePlan(self, plan):
         """
@@ -313,10 +366,10 @@ class Query(object):
             return self.__execute_for(plan[1])
         elif plan[0] == 'union':
             return self.__execute_union(plan[1])
-        elif plan[0] == 'intersection':
-            assert False, "Intersection evaluation unimplemented"
+        elif plan[0] == 'intersect':
+            return self.__execute_intersect(plan[1])
         elif plan[0] == 'difference':
-            assert False, "Difference evaluation unimplemented"
+            return self.__execute_difference(plan[1])
         else:
             raise ValueError, "Unrecognized plan %s" % plan[0]
         log.debug("__executePlan %s:%f", (self.queryString % time.time()-start))
