@@ -21,9 +21,10 @@
     <ref name="Description" type="path">/Model/Attributes/Description</ref>
   </ref>
 
-  <ref name="SuperKinds" cardinality="list" otherName="SubKinds" otherCard="dict">
-    <ref name="70acd404-b3c8-11d7-a72a-000393db837c" nameType="uuid"
-         type="path">/Model/Item</ref>
+  <ref name="SuperKinds" cardinality="list"
+       otherName="SubKinds" otherCard="dict">
+    <ref name="9a3ec754-db42-11d7-a8ad-000393db837c" nameType="uuid"
+         type="path">/Model/Taxon</ref>
   </ref>
 
   <attribute name="Classes" cardinality="dict" 

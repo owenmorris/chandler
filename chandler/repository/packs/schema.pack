@@ -10,6 +10,7 @@
 
       <item file="Attribute.kind" />
       <item file="Item.kind" />
+      <item file="Taxon.kind" />
       <item file="Type.kind" />
       <item file="Enumeration.kind" />
 
