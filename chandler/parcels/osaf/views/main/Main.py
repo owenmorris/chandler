@@ -444,13 +444,26 @@ class MainView(View):
             self.setStatusMessage (_("No sharees!"))
             return
 
-        # change the name to include "Shared"
+
+        # change the name to include "Shared", but first record the
+        # original name in case webdav publishing fails and we need to
+        # restore it
+        originalName = itemCollection.displayName
         if not "Shared" in itemCollection.displayName:
             itemCollection.displayName = _("%s (Shared)") % itemCollection.displayName
+        # @@@ Update the sidebar to display new collection name (hack for 0.4)
+        sidebarPath = '//parcels/osaf/views/main/Sidebar'
+        sidebar = Globals.repository.findPath (sidebarPath)
+        sidebar.synchronizeWidget()
 
         # Sync the collection with WebDAV
         self.setStatusMessage (_("accessing WebDAV server"))
-        Dav.DAV(url).put(itemCollection)
+        try:
+            Dav.DAV(url).put(itemCollection)
+        except:
+            # An error occurred during webdav; restore the collection's name
+            itemCollection.displayName = originalName
+            raise
 
         # Send out sharing invites
         inviteeStringsList = self.SharingInvitees (itemCollection)
