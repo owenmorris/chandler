@@ -128,8 +128,9 @@
                 <label>Delete</label>
                 <accel>Del</accel>
             </object>
-            <object class="separator"/>
-            <object class="wxMenuItem" name="ToggleBuildMode">
+            <!-- An apparent bug (bugzilla #917) in wxWindows for GTK causes editing to not work -->
+            <object platform="mac|win" class="separator"/>
+            <object platform="mac|win" class="wxMenuItem" name="ToggleBuildMode">
                 <label>Build Mode</label>
                 <accel>Ctrl+B</accel>
             </object>
