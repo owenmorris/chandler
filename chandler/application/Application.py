@@ -71,12 +71,15 @@ class Application(Persistent):
         to call the base class, since it initializes the objects data
         """
         Persistent.__setstate__(self, dict)
-        createNewRepository = self.version != Application.VERSION
         if __debug__:
-            createNewRepository = createNewRepository or hasattr (self, 'CreateNewRepository')
-        if createNewRepository:
+            createNewRepository = hasattr (self, 'CreateNewRepository')
+        else:
+            createNewRepository = 0
+        if self.version != Application.VERSION or createNewRepository:
             self.__dict__.clear  ()
             self.__init__ ()
+            if __debug__ and createNewRepository:
+                self.CreateNewRepository = 1
 
             
 class wxApplication (wxApp):
