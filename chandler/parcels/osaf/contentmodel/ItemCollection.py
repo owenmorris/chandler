@@ -128,4 +128,12 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
             self.createIndex()
             return self.resultSet.getIndexPosition (self.indexName, item)
 
+    def subscribe(self, *arguments, **keywords):
+        if self.source:
+            self.source.subscribe (self, "")
+        super (ItemCollection, self).subscribe (*arguments, **keywords)
 
+    def unsubscribe(self, *arguments, **keywords):
+        super (ItemCollection, self).unsubscribe (*arguments, **keywords)
+        if self.source:
+            self.source.unsubscribe (self)

@@ -238,8 +238,14 @@ class Query(Item.Item):
             log.debug(u"RepoQuery.queryCallback: %s %s query result" % (uuid, [added, removed, changed_uuids] ))
             for callbackUUID in self._otherViewSubscribeCallbacks:
                 item = view.find (callbackUUID)
-                method = getattr (type(item), self._otherViewSubscribeCallbacks [callbackUUID])
-                method (item, (added,removed))
+                """
+                  We allow subscriptions to items without callbacks. This used to keep the _resultSet up to date
+                when notifications aren't required -- DJA
+                """
+                methodName = self._otherViewSubscribeCallbacks [callbackUUID]
+                if methodName:
+                    method = getattr (type(item), methodName)
+                    method (item, (added,removed))
         log.debug(u"queryCallback: %s:%f" % (self.queryString, time.time()-start))
 
     def __len__ (self):
@@ -336,8 +342,14 @@ class Query(Item.Item):
             
             for callbackUUID in self._sameViewSubscribeCallbacks:
                 i = self.itsView.find(callbackUUID)
-                method = getattr(type(i), self._sameViewSubscribeCallbacks[callbackUUID])
-                method(i, action)
+                """
+                  We allow subscriptions to items without callbacks. This used to keep the _resultSet up to date
+                when notifications aren't required -- DJA
+                """
+                methodName = self._sameViewSubscribeCallbacks[callbackUUID]
+                if methodName:
+                    method = getattr(type(i), methodName)
+                    method(i, action)
 
 class LogicalPlan(object):
     """
