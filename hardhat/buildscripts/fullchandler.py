@@ -24,7 +24,7 @@ cvsModules = (
     'external', 'internal', 'chandler',
 )
 
-def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
+def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, skipTests=False):
 
     global buildenv, changes
 
@@ -100,11 +100,14 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         for releaseMode in ('release', 'debug'):
             doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
 
-        for releaseMode in ('release', 'debug'):
-            ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
-              cvsVintage, buildVersion, log)
-            if ret != 'success':
-                break
+        if skipTests:
+            ret = 'success'
+        else:
+            for releaseMode in ('release', 'debug'):
+                ret = doTests(hardhatScript, releaseMode, workingDir,
+                              outputDir, cvsVintage, buildVersion, log)
+                if ret != 'success':
+                    break
 
         changes = "-first-run"
     else:
@@ -130,11 +133,14 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             changes = "-nochanges"
 
         # do tests
-        for releaseMode in ('debug', 'release'):   
-            ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
-              cvsVintage, buildVersion, log)
-            if ret != 'success':
-                break
+        if skipTests:
+            ret = 'success'
+        else:
+            for releaseMode in ('debug', 'release'):   
+                ret = doTests(hardhatScript, releaseMode, workingDir,
+                              outputDir, cvsVintage, buildVersion, log)
+                if ret != 'success':
+                    break
 
     return ret + changes 
 

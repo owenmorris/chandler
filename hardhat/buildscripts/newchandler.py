@@ -22,7 +22,7 @@ mainModule = 'chandler'
 logPath = 'hardhat.log'
 separator = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
 
-def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
+def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log, skipTests=False):
 
     global buildenv, changes
 
@@ -92,11 +92,14 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             doInstall(releaseMode, workingDir, log)
 
             doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
-            
-            ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
-              cvsVintage, buildVersion, log)
-            if ret != 'success':
-                break
+
+            if skipTests:
+                ret = 'success'
+            else:
+                ret = doTests(hardhatScript, releaseMode, workingDir,
+                              outputDir, cvsVintage, buildVersion, log)
+                if ret != 'success':
+                    break
 
         changes = "-first-run"
     else:
@@ -123,11 +126,14 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             changes = "-nochanges"
 
         # do tests
-        for releaseMode in ('debug', 'release'):   
-            ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
-              cvsVintage, buildVersion, log)
-            if ret != 'success':
-                break
+        if skipTests:
+            ret = 'success'
+        else:
+            for releaseMode in ('debug', 'release'):   
+                ret = doTests(hardhatScript, releaseMode, workingDir,
+                              outputDir, cvsVintage, buildVersion, log)
+                if ret != 'success':
+                    break
 
     return ret + changes 
 
