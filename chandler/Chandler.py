@@ -68,7 +68,6 @@ def loadConfig(chandlerDirectory):
                      'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
                      'create':     ('-c', '--create',     'b', False, None, 'Force creation of a new repository'),
                      'ramdb':      ('-d', '--ramdb',      'b', False, None, ''),
-                     'exclusive':  ('-x', '--exclusive',  'b', False, None, 'open repository exclusive'),
                      'repo':       ('-r', '--repo',       's', None,  None, 'repository to copy during startup'),
                      'recover':    ('-R', '--recover',    'b', False, None, 'open repository with recovery'),
                      'nocatch':    ('-n', '--nocatch',    'b', False, None, ''),
@@ -171,7 +170,17 @@ def main():
         # The normal way: wrap the app in an exception frame
         try:
             import logging, traceback, wx
+            from repository.persistence.RepositoryError import RepositoryOpenDeniedError, ExclusiveOpenDeniedError
             realMain()
+
+        except (RepositoryOpenDeniedError, ExclusiveOpenDeniedError):
+            message = "Another instance of Chandler currently has the " \
+                      "repository open."
+            logging.exception(message)
+            dialog = wx.MessageDialog(None, message, "Chandler", wx.OK | wx.ICON_INFORMATION)
+            dialog.ShowModal()
+            dialog.Destroy()
+
         except Exception, exception:
             type, value, stack = sys.exc_info()
             formattedBacktrace = "".join (traceback.format_exception (type, value, stack, 5))

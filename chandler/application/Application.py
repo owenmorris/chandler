@@ -221,19 +221,21 @@ class wxApplication (wx.App):
                  'ramdb': options.ramdb,
                  'create': True,
                  'recover': options.recover,
-                 'exclusive': options.exclusive,
+                 'exclusive': True,
                  'refcounted': True }
-                 
+
         if Globals.options.repo:
             kwds['fromPath'] = Globals.options.repo
         wx.Yield()
         self.repository = DBRepository(path)
+
         if Globals.options.create:
             self.repository.create(**kwds)
         else:
             self.repository.open(**kwds)
+
         wx.Yield()
-        
+
         self.UIRepositoryView = self.repository.getCurrentView()
 
         if not self.UIRepositoryView.findPath('//Packs/Schema'):
