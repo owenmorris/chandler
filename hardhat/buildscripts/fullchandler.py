@@ -273,7 +273,8 @@ def doUploadToStaging(buildmode, workingDir, cvsVintage, log):
     os.putenv('BUILD_ROOT', buildRoot)
     os.chdir(buildRoot)
     uploadDir = os.path.join(buildRoot, timestamp)
-    os.mkdir(uploadDir)
+    if not os.path.exists(uploadDir):
+        os.mkdir(uploadDir)
 
     try:
         upload = ' uploadworld UPLOAD=' + uploadDir
