@@ -206,6 +206,7 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
         fileOut2.write("<html><head><META HTTP-EQUIV=Pragma CONTENT=no-cache><link rel=Stylesheet href=http://www.osafoundation.org/css/OSAF.css type=text/css charset=iso-8859-1></head><body topmargin=0 leftmargin=0 marginwith=0 marginheight=0><img src=http://www.osafoundation.org/images/OSAFLogo.gif><table border=0><tr><td width=19>&nbsp;</td><td width=550>\n")
         fileOut2.write("<h2>Chandler Build: " + nowString + " PDT (machine: " + buildName +")</h2>\n")
         fileOut2.write("<p><a href="+newDirName+"/"+actual+"> "+ _descriptions[x][0] +"</a>: " + _descriptions[x][1] +"</p>\n")
+        fileOut2.write("<p>Download <a href="+newDirName+"/"+actual+">" + actual + "</a></p>\n")
         fileOut2.write("</td></tr></table></body></html>\n")
         fileOut2.close()
     fileOut.write("</td></tr></table></body></html>\n")
