@@ -30,10 +30,16 @@
   </CharacterStyle>  
 
   <!-- Events -->
+  <ChoiceEvent itemName="MyDumbEvent">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:ItemList"/>
+    <methodName>OnDumbEvent</methodName>
+    <choice>Buttons</choice>
+  </ChoiceEvent>
 
   <!-- Menus -->
-  <Menu itemName="RepositoryMenu">
-    <title>Repository Viewer</title>
+  <Menu itemName="ZBMenu">
+    <title>ZaoBao</title>
     <operation>InsertBefore</operation>
     <menuLocation></menuLocation>
     <itemLocation></itemLocation>
@@ -44,14 +50,13 @@
   <MenuItem itemName="BlankItem">
     <title>Do Something...</title>
     <operation>InsertBefore</operation>
-    <menuLocation>RepositoryMenu</menuLocation>
+    <menuLocation>ZBMenu</menuLocation>
     <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
     <accel></accel>
-    <helpString>Not yet implemented</helpString>
+    <event itemref="doc:MyDumbEvent"/>
+    <helpString></helpString>
   </MenuItem>
-
-
 
 
   <!-- The view itself -->
@@ -84,6 +89,20 @@
     <stretchFactor>1.0</stretchFactor>
   </zb:ZaoBaoItemView>
 
+  <EditText itemName="NewChannel">
+    <open>True</open>
+    <size>100,20</size>
+    <minimumSize>100,20</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <lineStyleEnum>SingleLine</lineStyleEnum>
+    <textStyleEnum>PlainText</textStyleEnum>
+    <readOnly>False</readOnly>
+    <characterStyle itemref="doc:HeaderCharacterStyle"/>
+  </EditText>
+
   <BoxContainer itemName="ZaoBaoTab">
     <eventBoundary>True</eventBoundary>
     <content-spec itemref="doc:myQuery"/>
@@ -95,8 +114,12 @@
     <stretchFactor>1.0</stretchFactor>
     <orientationEnum>Vertical</orientationEnum>
 
+    <childrenBlocks itemref="doc:ZBMenu"/>
+    <childrenBlocks itemref="doc:BlankItem"/>
+
     <childrenBlocks itemref="doc:ItemList"/>
     <childrenBlocks itemref="doc:ItemView"/>
+    <childrenBlocks itemref="doc:NewChannel"/>
 
   </BoxContainer>
 
