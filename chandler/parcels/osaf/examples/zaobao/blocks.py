@@ -6,13 +6,14 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from repository.item.Query import KindQuery
-from osaf.framework.blocks.ControlBlocks import Tree, ItemDetail, ListDelegate
+import wx
+import application
 import osaf.examples.zaobao.RSSData as RSSData
 import osaf.framework.blocks.detail.Detail as Detail
+import application.Globals as Globals
+import osaf.framework.blocks.Block as Block
 
 class ZaoBaoItemDetail(Detail.HTMLDetailArea):
-
     def getHTMLText(self, item):
         if item == item.itsView:
             return
@@ -48,3 +49,21 @@ class LinkDetail(Detail.StaticRedirectAttribute):
     def staticTextLabelValue(self, item):
         theLabel = str(item.getAttributeValue(Detail.GetRedirectAttribute(item, self.whichAttribute())))
         return theLabel
+
+
+class ZaoBaoController(Block.Block):
+    def onNewZaoBaoChannelEvent(self, event):
+        url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "New Channel", "Enter a URL for the RSS Channel", "http://")
+        if url and url != "":
+            try: 
+                # create the zaobao channel
+                channel = osaf.examples.zaobao.RSSData.NewChannelFromURL(view=self.itsView, url=url, update=True)
+
+                # now post the new collection to the sidebar
+                mainView = Globals.views[0]
+                mainView.postEventByName ('AddToSidebarWithoutCopying', {'items': [channel.items]})
+            except:
+                application.dialogs.Util.ok(wx.GetApp().mainFrame, "New Channel Error", 
+                    "Could not create channel for " + url + "\nCheck the URL and try again.")
+                raise
+

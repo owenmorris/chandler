@@ -396,22 +396,6 @@ class MainView(View):
         # Test menu item
         self.RepositoryCommitWithStatus ()
         
-    # temporary until we can add this dynamically
-    def onNewZaoBaoChannelEvent(self, event):
-        url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "New Channel", "Enter a URL for the RSS Channel", "http://")
-        if url and url != "":
-            try: 
-                # create the zaobao channel
-                channel = osaf.examples.zaobao.RSSData.NewChannelFromURL(view=self.itsView, url=url, update=True)
-                
-                # now post the new collection to the sidebar
-                mainView = Globals.views[0]
-                mainView.postEventByName ('AddToSidebarWithoutCopying', {'items': [channel.items]})
-            except:
-                application.dialogs.Util.ok(wx.GetApp().mainFrame, "New Channel Error", 
-                    "Could not create channel for " + url + "\nCheck the URL and try again.")
-                raise
-
     def onGenerateContentItemsEvent(self, event):
         # triggered from "Test | Generate Some Content Items" and
         # "Test | Generate Many Content Items" menu items

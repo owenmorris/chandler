@@ -5,17 +5,18 @@
       xmlns:doc="http://osafoundation.org/parcels/osaf/examples/zaobao/blocks"
       xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
       xmlns:zaobao="http://osafoundation.org/examples/zaobao/schema"
-      xmlns="http://osafoundation.org/parcels/osaf/framework/blocks">
+      xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+      xmlns:main="http://osafoundation.org/parcels/osaf/views/main">
 
   <core:displayName value="ZaoBao View Items"/>
   <core:description value="Events and menu items and such"/>
   <core:namespace value="http://osafoundation.org/parcels/osaf/examples/zaobao/blocks"/>
   
-  <!-- blocks and menu items for the main view -->
+  <!-- blocks and menu items -->
   <BlockEvent itsName="NewZaoBaoChannelEvent">
     <blockName>NewZaoBaoChannel</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>MainView</dispatchToBlockName>
+    <dispatchEnum>SendToBlockByReference</dispatchEnum>
+    <destinationBlockReference itemref="doc:ZaoBaoController"/>
     <commitAfterDispatch>True</commitAfterDispatch>
   </BlockEvent>
   
@@ -23,9 +24,12 @@
     <blockName>NewZaoBaoChannelItem</blockName>
     <title>New ZaoBao Channel</title>
     <event itemref="doc:NewZaoBaoChannelEvent"/>
+    <parentBlock itemref="main:NewItemMenu"/>
   </MenuItem>
-             
-             
+
+  <Block itsName="ZaoBaoController" itemClass="osaf.examples.zaobao.blocks.ZaoBaoController">
+  </Block>
+  
   <!-- detail view stuff -->
 
   <!-- The actual detail area block -->

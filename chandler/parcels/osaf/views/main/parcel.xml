@@ -19,7 +19,6 @@
              xmlns:calendarModel="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
              xmlns:contacts="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
              xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
-             xmlns:zaobao="http://osafoundation.org/parcels/osaf/examples/zaobao/blocks"
              >
 
   <core:version>0.3</core:version>
@@ -452,7 +451,6 @@
     <childrenBlocks itemref="doc:NewEventItem"/>
     <childrenBlocks itemref="doc:NewSeparator1"/>
     <childrenBlocks itemref="doc:NewContactItem"/>
-    <childrenBlocks itemref="zaobao:NewZaoBaoChannel"/>
   </Menu>
   
   <MenuItem itsName="NewNoteItem">
