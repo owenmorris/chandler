@@ -102,11 +102,11 @@ class MainFrame(wx.Frame):
           Calling Skip causes wxWindows to continue processing the event, 
         which will cause the parent class to get a crack at the event.
         """
-        event.Skip()
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             Globals.mainView.size.width = self.GetSize().x
             Globals.mainView.size.height = self.GetSize().y
             Globals.mainView.setDirty()   # Temporary repository hack -- DJA
+        event.Skip()
 
 
 class wxApplication (wx.App):

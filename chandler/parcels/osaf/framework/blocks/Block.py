@@ -161,7 +161,7 @@ class wxRectangularChild (wx.Panel):
     def __del__(self):
         del Globals.association [self.blockUUID]
 
-
+        
 class RectangularChild(ContainerChild):
     def Calculate_wxFlag (self):
         if self.alignmentEnum == 'grow':

@@ -19,8 +19,6 @@
     <childrenBlocks itemref="views:PKITestView/clientRow"/>
     <childrenBlocks itemref="views:PKITestView/sendRow"/>
     <orientationEnum>Vertical</orientationEnum>
-    <open>True</open>
-    <size>0,0</size>
     <minimumSize>0,0</minimumSize>
     <blockEvents itemref="views:StartStopServerEvent"/>
     <blockEvents itemref="views:ConnectDisconnectClientEvent"/>
@@ -30,9 +28,6 @@
       <childrenBlocks itemref="views:PKITestView/StartStopServerButton"/>
       <childrenBlocks itemref="views:PKITestView/ServerPortLabel"/>
       <childrenBlocks itemref="views:PKITestView/ServerPortText"/>
-      <orientationEnum>Horizontal</orientationEnum>
-      <open>True</open>
-      <size>0,0</size>
       <minimumSize>0,0</minimumSize>
     </blocks:BoxContainer>
 
@@ -42,18 +37,12 @@
       <childrenBlocks itemref="views:PKITestView/ClientHostText"/>
       <childrenBlocks itemref="views:PKITestView/ClientPortLabel"/>
       <childrenBlocks itemref="views:PKITestView/ClientPortText"/>
-      <orientationEnum>Horizontal</orientationEnum>
-      <open>True</open>
-      <size>0,0</size>
       <minimumSize>0,0</minimumSize>
     </blocks:BoxContainer>
 
     <blocks:BoxContainer itemName="sendRow">
       <childrenBlocks itemref="views:PKITestView/sendCol"/>
       <childrenBlocks itemref="views:PKITestView/receiveCol"/>
-      <orientationEnum>Horizontal</orientationEnum>
-      <open>True</open>
-      <size>0,0</size>
       <minimumSize>0,0</minimumSize>
     </blocks:BoxContainer>
 
@@ -61,17 +50,12 @@
       <childrenBlocks itemref="views:PKITestView/SendButtonLabelSizer"/>
       <childrenBlocks itemref="views:PKITestView/RepositoryTree"/>
       <orientationEnum>Vertical</orientationEnum>
-      <open>True</open>
-      <size>0,0</size>
       <minimumSize>0,0</minimumSize>
     </blocks:BoxContainer>
 
     <blocks:BoxContainer itemName="SendButtonLabelSizer">
       <childrenBlocks itemref="views:PKITestView/SendDataToServerButton"/>
       <childrenBlocks itemref="views:PKITestView/SendLabel"/>
-      <orientationEnum>Horizontal</orientationEnum>
-      <open>True</open>
-      <size>0,0</size>
       <minimumSize>0,0</minimumSize>
     </blocks:BoxContainer>
 
@@ -79,8 +63,6 @@
       <childrenBlocks itemref="views:PKITestView/ReceivedLabel"/>
       <childrenBlocks itemref="views:PKITestView/ReceivedText"/>
       <orientationEnum>Vertical</orientationEnum>
-      <open>True</open>
-      <size>0,0</size>
       <minimumSize>0,0</minimumSize>
     </blocks:BoxContainer>
 
@@ -90,7 +72,6 @@
       <title>Start/Stop Server</title>
       <buttonKind>Text</buttonKind>
       <event itemref="views:StartStopServerEvent"/>
-      <open>True</open>
       <size>120,20</size>
       <minimumSize>120,20</minimumSize>
       <alignmentEnum>alignCenter</alignmentEnum>
@@ -101,7 +82,6 @@
       <title>Connect/Disconnect Client</title>
       <buttonKind>Text</buttonKind>
       <event itemref="views:ConnectDisconnectClientEvent"/>
-      <open>True</open>
       <size>140,20</size>
       <minimumSize>140,20</minimumSize>
       <alignmentEnum>alignCenter</alignmentEnum>
@@ -112,7 +92,6 @@
       <title>Send</title>
       <buttonKind>Text</buttonKind>
       <event itemref="views:SendDataToServerEvent"/>
-      <open>True</open>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>
       <alignmentEnum>alignCenter</alignmentEnum>
@@ -159,7 +138,6 @@
       <characterStyle itemref="views:PKITestView/TextStyle"/>
       <readOnly>False</readOnly>
       <!-- XXX Should somehow set a default value here -->
-      <open>True</open>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>
       <alignmentEnum>alignCenter</alignmentEnum>
@@ -183,8 +161,6 @@
       <textStyleEnum>PlainText</textStyleEnum>
       <characterStyle itemref="views:PKITestView/TextStyle"/>
       <readOnly>False</readOnly>
-      <!-- XXX Should somehow set a default value here -->
-      <open>True</open>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>
       <border>0.0, 0.0, 0.0, 0.0</border>
@@ -209,8 +185,6 @@
       <textStyleEnum>PlainText</textStyleEnum>
       <characterStyle itemref="views:PKITestView/TextStyle"/>
       <readOnly>False</readOnly>
-      <!-- XXX Should somehow set a default value here -->
-      <open>True</open>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>
       <alignmentEnum>alignCenter</alignmentEnum>

@@ -124,11 +124,25 @@ class wxSplitterWindow(wx.SplitterWindow):
         self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED,
                   self.OnSplitChanged,
                   id=self.GetId())
+        self.Bind(wx.EVT_SIZE, self.OnSize)
         """
           Setting minimum pane size prevents unsplitting a window by double-clicking
         """
         self.SetMinimumPaneSize(20)
  
+    def OnSize(self, event):
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            block = Globals.repository.find(self.blockUUID)
+            newSize = self.GetSize()
+            block.size.width = newSize.width
+            block.size.height = newSize.height
+            if block.orientationEnum == "Horizontal":
+                distance = block.size.height
+            else:
+                distance = block.size.width
+            self.SetSashPosition (int (distance * block.splitPercentage + 0.5))
+        event.Skip()
+
     def OnSplitChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             block = Globals.repository.find (self.blockUUID)
@@ -137,7 +151,7 @@ class wxSplitterWindow(wx.SplitterWindow):
             splitMode = self.GetSplitMode()
             if splitMode == wx.SPLIT_HORIZONTAL:
                 block.splitPercentage = position / height
-            elif splitMode == wx.SPLIT_VERTICAL:
+            else:
                 block.splitPercentage = position / width
 
     def wxSynchronizeWidget(self):

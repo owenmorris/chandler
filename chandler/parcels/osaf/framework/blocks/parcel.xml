@@ -707,6 +707,7 @@
     
     <Attribute itemName="splitPercentage">
       <type itemref="Float"/>
+      <defaultValue type="Float">0.5</defaultValue>
     </Attribute>
     
     <attributes itemref="docSchema:orientationEnum"/>

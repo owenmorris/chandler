@@ -218,7 +218,6 @@ class wxList (wx.ListCtrl):
         event.Skip()
 
     def OnSize(self, event):
-        event.Skip()
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             size = self.GetClientSize()
             widthMinusLastColumn = 0
@@ -228,6 +227,7 @@ class wxList (wx.ListCtrl):
             lastColumnWidth = size.width - widthMinusLastColumn
             if lastColumnWidth > 0:
                 self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
+        event.Skip()
 
     def On_wxSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:

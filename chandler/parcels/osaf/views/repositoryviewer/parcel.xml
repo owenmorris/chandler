@@ -76,8 +76,6 @@
     <childrenBlocks itemref="doc:ItemDetail"/>
 
     <!-- Attributes -->
-    <splitPercentage>0.5</splitPercentage>
-
     <eventBoundary>True</eventBoundary>
     <size>517,564</size>
     <minimumSize>50,50</minimumSize>

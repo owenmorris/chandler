@@ -174,8 +174,6 @@
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
-
-    <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
   <!-- Notes View -->
@@ -188,8 +186,6 @@
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
-
-    <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
   <!-- Contacts View -->
@@ -202,8 +198,6 @@
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
-
-    <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
   <!-- Mixed View -->
@@ -216,8 +210,6 @@
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
-
-    <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
   <!-- MonthView View -->
@@ -230,8 +222,6 @@
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
-
-    <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
   <!-- Week View -->
@@ -244,8 +234,6 @@
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
-
-    <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
 </core:Parcel>

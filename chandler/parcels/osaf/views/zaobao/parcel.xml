@@ -109,8 +109,6 @@
   </HTML>
 
   <SplitterWindow itemName="ZaoBaoView">
-    <splitPercentage>0.5</splitPercentage>
-    
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -151,8 +149,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="ZaoBaoChannelView">
-    <splitPercentage>0.5</splitPercentage>
-    
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -186,8 +182,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="chandlerwiki_ZaoBaoChannelView">
-    <splitPercentage>0.5</splitPercentage>
-    
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -220,8 +214,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="junglewiki_ZaoBaoChannelView">
-    <splitPercentage>0.5</splitPercentage>
-    
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -255,8 +247,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="ted_ZaoBaoChannelView">
-    <splitPercentage>0.5</splitPercentage>
-    
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -290,8 +280,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="zaobao_ZaoBaoChannelView">
-    <splitPercentage>0.5</splitPercentage>
-    
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -326,8 +314,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="chao_ZaoBaoChannelView">
-    <splitPercentage>0.5</splitPercentage>
-    
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -362,8 +348,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="lessig_ZaoBaoChannelView">
-    <splitPercentage>0.5</splitPercentage>
-    
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -398,8 +382,6 @@
   </zb:ZaoBaoItemDetail>
 
   <SplitterWindow itemName="mark_ZaoBaoChannelView">
-    <splitPercentage>0.5</splitPercentage>
-    
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>

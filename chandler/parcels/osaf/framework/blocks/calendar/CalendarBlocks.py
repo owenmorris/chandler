@@ -103,13 +103,14 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
     # Event handlers
 
     def OnSize(self, event):
-        block = Globals.repository.find(self.blockUUID)
-        newSize = self.GetSize()
-        block.size.width = newSize.width
-        block.size.height = newSize.height
-        self.SetVirtualSize(newSize)
-        for drawableObject in self.zOrderedDrawableObjects:
-            drawableObject.PlaceItemOnCalendar()
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            block = Globals.repository.find(self.blockUUID)
+            newSize = self.GetSize()
+            block.size.width = newSize.width
+            block.size.height = newSize.height
+            self.SetVirtualSize(newSize)
+            for drawableObject in self.zOrderedDrawableObjects:
+                drawableObject.PlaceItemOnCalendar()
         event.Skip()
 
     def OnIdle(self, event):
@@ -257,11 +258,12 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
     # Events
 
     def OnSize(self, event):
-        block = Globals.repository.find(self.blockUUID)
-        newSize = self.GetSize()
-        block.size.width = newSize.width
-        block.size.height = newSize.height
-        self.SetVirtualSize(newSize)
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            block = Globals.repository.find(self.blockUUID)
+            newSize = self.GetSize()
+            block.size.width = newSize.width
+            block.size.height = newSize.height
+            self.SetVirtualSize(newSize)
         event.Skip()
 
     def OnIdle(self, event):
