@@ -1,6 +1,103 @@
+Binary files libxml2-2.6.16/.DS_Store and libxml2-2.6.16-patched/.DS_Store differ
 diff -r -upN libxml2-2.6.16/Makefile.in libxml2-2.6.16-patched/Makefile.in
 --- libxml2-2.6.16/Makefile.in	Wed Nov 10 09:36:58 2004
-+++ libxml2-2.6.16-patched/Makefile.in	Tue Jan  4 00:01:10 2005
++++ libxml2-2.6.16-patched/Makefile.in	Sun Jan 16 23:00:35 2005
+@@ -428,8 +428,8 @@ sbindir = @sbindir@
+ sharedstatedir = @sharedstatedir@
+ sysconfdir = @sysconfdir@
+ target_alias = @target_alias@
+-SUBDIRS = include . doc example xstc @PYTHON_SUBDIR@
+-DIST_SUBDIRS = include . doc example python xstc
++SUBDIRS = include . xstc @PYTHON_SUBDIR@
++DIST_SUBDIRS = include . python xstc
+ INCLUDES = -I$(top_builddir)/include -I@srcdir@/include @THREAD_CFLAGS@ @Z_CFLAGS@ 
+ bin_SCRIPTS = xml2-config
+ lib_LTLIBRARIES = libxml2.la
+@@ -544,45 +544,45 @@ all: config.h
+ 
+ .SUFFIXES:
+ .SUFFIXES: .c .lo .o .obj
+-am--refresh:
+-	@:
+-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
+-	@for dep in $?; do \
+-	  case '$(am__configure_deps)' in \
+-	    *$$dep*) \
+-	      echo ' cd $(srcdir) && $(AUTOMAKE) --gnu '; \
+-	      cd $(srcdir) && $(AUTOMAKE) --gnu  \
+-		&& exit 0; \
+-	      exit 1;; \
+-	  esac; \
+-	done; \
+-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  Makefile'; \
+-	cd $(top_srcdir) && \
+-	  $(AUTOMAKE) --gnu  Makefile
+-.PRECIOUS: Makefile
+-Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
+-	@case '$?' in \
+-	  *config.status*) \
+-	    echo ' $(SHELL) ./config.status'; \
+-	    $(SHELL) ./config.status;; \
+-	  *) \
+-	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)'; \
+-	    cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe);; \
+-	esac;
+-
+-$(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
+-	$(SHELL) ./config.status --recheck
+-
+-$(top_srcdir)/configure:  $(am__configure_deps)
+-	cd $(srcdir) && $(AUTOCONF)
+-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+-	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
+-
+-config.h: stamp-h1
+-	@if test ! -f $@; then \
+-	  rm -f stamp-h1; \
+-	  $(MAKE) stamp-h1; \
+-	else :; fi
++#am--refresh:
++#	@:
++#$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
++#	@for dep in $?; do \
++#	  case '$(am__configure_deps)' in \
++#	    *$$dep*) \
++#	      echo ' cd $(srcdir) && $(AUTOMAKE) --gnu '; \
++#	      cd $(srcdir) && $(AUTOMAKE) --gnu  \
++#		&& exit 0; \
++#	      exit 1;; \
++#	  esac; \
++#	done; \
++#	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  Makefile'; \
++#	cd $(top_srcdir) && \
++#	  $(AUTOMAKE) --gnu  Makefile
++#.PRECIOUS: Makefile
++#Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
++#	@case '$?' in \
++#	  *config.status*) \
++#	    echo ' $(SHELL) ./config.status'; \
++#	    $(SHELL) ./config.status;; \
++#	  *) \
++#	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)'; \
++#	    cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe);; \
++#	esac;
++#
++#$(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
++#	$(SHELL) ./config.status --recheck
++#
++#$(top_srcdir)/configure:  $(am__configure_deps)
++#	cd $(srcdir) && $(AUTOCONF)
++#$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
++#	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
++#
++#config.h: stamp-h1
++#	@if test ! -f $@; then \
++#	  rm -f stamp-h1; \
++#	  $(MAKE) stamp-h1; \
++#	else :; fi
+ 
+ stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
+ 	@rm -f stamp-h1
 @@ -1349,15 +1349,15 @@ uninstall-man: uninstall-man1 uninstall-
  	uninstall-man1 uninstall-man3 uninstall-pkgconfigDATA
  
@@ -20,6 +117,20 @@ diff -r -upN libxml2-2.6.16/Makefile.in libxml2-2.6.16-patched/Makefile.in
  
  testall : tests SVGtests SAXtests
  
+diff -r -upN libxml2-2.6.16/configure libxml2-2.6.16-patched/configure
+--- libxml2-2.6.16/configure	Wed Nov 10 09:33:00 2004
++++ libxml2-2.6.16-patched/configure	Sun Jan 16 23:02:46 2005
+@@ -26529,6 +26529,10 @@ if test "$with_python" != "no" ; then
+     then
+         echo Found python in $with_python/bin/python
+         PYTHON="$with_python/bin/python"
++    elif test -x "$with_python/bin/python_d"
++    then
++        echo Found python in $with_python/bin/python_d
++        PYTHON="$with_python/bin/python_d"
+     else
+ 	if test -x "$with_python"
+ 	then
 diff -r -upN libxml2-2.6.16/configure.in libxml2-2.6.16-patched/configure.in
 --- libxml2-2.6.16/configure.in	Wed Nov 10 09:32:39 2004
 +++ libxml2-2.6.16-patched/configure.in	Tue Jan  4 00:01:10 2005
@@ -207,7 +318,16 @@ diff -r -upN libxml2-2.6.16/win32/Makefile.msvc libxml2-2.6.16-patched/win32/Mak
  	if not exist $(INCPREFIX)\libxml mkdir $(INCPREFIX)\libxml
 diff -r -upN libxml2-2.6.16/win32/configure.js libxml2-2.6.16-patched/win32/configure.js
 --- libxml2-2.6.16/win32/configure.js	Wed Aug 25 15:20:57 2004
-+++ libxml2-2.6.16-patched/win32/configure.js	Mon Jan 10 19:40:58 2005
++++ libxml2-2.6.16-patched/win32/configure.js	Sun Jan 16 23:09:59 2005
+@@ -50,7 +50,7 @@ var withTree = true;
+ var withReader = true;
+ var withWriter = true;
+ var withWalker = true;
+-var withPattern = true;
++var withPattern = false;
+ var withPush = true;
+ var withValid = true;
+ var withSax1 = true;
 @@ -162,7 +162,7 @@ function usage()
  /* Discovers the version we are working with by reading the apropriate
     configuration file. Despite its name, this also writes the configuration
