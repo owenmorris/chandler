@@ -66,10 +66,12 @@ class Values(dict):
                           item.getAttributeAspect(name, 'copyPolicy',
                                                   default='copy'))
                 other = item.find(value.itsUUID)
-                copyOther = copyFn(item, other, policy)
-
-                if copyOther is not item.Nil:
-                    self[name] = SingleRef(copyOther.itsUUID)
+                if other is None:
+                    self.name = value
+                else:
+                    copyOther = copyFn(item, other, policy)
+                    if copyOther is not item.Nil:
+                        self[name] = SingleRef(copyOther.itsUUID)
             else:
                 self[name] = value
 
