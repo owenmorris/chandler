@@ -11,7 +11,7 @@ from repository.schema.ParcelLoader import ParcelLoader
 from repository.schema.Parcel import Parcel
 
 def LoadDependency(repository, uri, searchPath):
-    # Don't load if we find the parcel
+    # Easy success if we find the parcel
     parcel = repository.find(uri)
     if parcel: return
 
@@ -49,5 +49,11 @@ def LoadParcels(searchPath, repository):
                 uri = uri.replace(os.path.sep, "/")
                 parcel = repository.find(uri)
                 if not parcel:
-                    path = os.path.join(root, 'parcel.xml')
-                    loader.load(path, uri)
+                    try:
+                        path = os.path.join(root, 'parcel.xml')
+                        loader.load(path, uri)
+                    except:
+                        repository.cancel()
+                        print "Failed to load parcel", path
+                    else:
+                        repository.commit()
