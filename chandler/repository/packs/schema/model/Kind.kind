@@ -12,7 +12,7 @@
 
       <!-- 
          - plus local attributes below:
-         -     notFoundAttributes, inheritedAttributes, inheritedNames,
+         -     notFoundAttributes, inheritedAttributes,
          -     superKinds, subKinds, items, attributes, classes, 
          -     displayAttribute
         -->
@@ -61,24 +61,6 @@
     <attribute name="cardinality">list</attribute>
     <attribute name="persist" type="bool">False</attribute>
     <attribute name="otherName">inheritingKinds</attribute>
-  </item>
-
-  <item withSchema="True">
-    <name>inheritedNames</name>
-    <kind type="path">//Schema/Model/Attribute</kind>
-    <class module="model.schema.Attribute">Attribute</class>
-    <parent type="path">//Schema/Model/Kind</parent>
-
-    <ref name="kinds" otherName="attributes"
-         cardinality="list" otherCard="list">
-      <ref type="path">..</ref>
-    </ref>
-
-    <ref name="type" otherName="typeFor" 
-         type="path" otherCard="list">/Model/UUID</ref>
-
-    <attribute name="cardinality">dict</attribute>
-    <attribute name="persist" type="bool">False</attribute>
   </item>
 
   <item withSchema="True">

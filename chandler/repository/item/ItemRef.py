@@ -118,7 +118,7 @@ class ItemRef(object):
         return 1
 
     def _xmlValue(self, name, item, generator, withSchema, mode,
-                  previous=None, next=None):
+                  previous=None, next=None, alias=None):
 
         def addAttr(attrs, attr, value):
 
@@ -138,6 +138,7 @@ class ItemRef(object):
         addAttr(attrs, 'name', name)
         addAttr(attrs, 'previous', previous)
         addAttr(attrs, 'next', next)
+        addAttr(attrs, 'alias', alias)
 
         if withSchema:
             otherName = item._otherName(name)
@@ -572,11 +573,6 @@ class RefDict(LinkedMap):
             attrs['count'] = str(self._count)
 
             generator.startElement('ref', attrs)
-            if self._aliases:
-                for key, value in self._aliases.iteritems():
-                    generator.startElement('alias', { 'name': key })
-                    generator.characters(value.str64())
-                    generator.endElement('alias')
             self._xmlValues(generator, mode)
             generator.endElement('ref')
 
@@ -587,7 +583,8 @@ class RefDict(LinkedMap):
             link._value._xmlValue(key, self._item,
                                   generator, False, mode,
                                   previous=link._previousKey,
-                                  next=link._nextKey)
+                                  next=link._nextKey,
+                                  alias=link._alias)
 
     def copy(self):
 

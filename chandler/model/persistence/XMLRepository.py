@@ -594,9 +594,9 @@ class XMLRefDict(RefDict):
                 if entry[0] == 0:
                     if value is not None:
                         ref = value._value
-                        alias = value._alias
                         previous = value._previousKey
                         next = value._nextKey
+                        alias = value._alias
     
                         uuid = ref.other(self._item).getUUID()
                         self._writeRef(entry[1], uuid, previous, next, alias)
@@ -611,6 +611,11 @@ class XMLRefDict(RefDict):
             self._deletedRefs.clear()
             
             if len(self) > 0:
+                if self._aliases:
+                    for key, value in self._aliases.iteritems():
+                        generator.startElement('alias', { 'name': key })
+                        generator.characters(value.str64())
+                        generator.endElement('alias')
                 generator.startElement('db', {})
                 generator.characters(self._uuid.str64())
                 generator.endElement('db')

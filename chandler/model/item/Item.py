@@ -526,7 +526,7 @@ class Item(object):
         del self._references[name]
 
     def hasAttributeValue(self, name, _attrDict=None):
-        'Check for existence of a Chandler attribute.'
+        'Check for existence of a value for a given Chandler attribute.'
 
         if _attrDict is None:
             return (self._values.has_key(name) or

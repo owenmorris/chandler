@@ -17,16 +17,20 @@ class Kind(Item):
         super(Kind, self).__init__(name, parent, kind)
 
         # recursion avoidance
-        self._values['inheritedNames'] = {}
         self._values['notFoundAttributes'] = []
+        refDict = self._refDict('inheritedAttributes',
+                                'inheritingKinds', False)
+        self._references['inheritedAttributes'] = refDict
 
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Kind, self)._fillItem(name, parent, kind, **kwds)
 
         # recursion avoidance
-        self._values['inheritedNames'] = {}
         self._values['notFoundAttributes'] = []
+        refDict = self._refDict('inheritedAttributes',
+                                'inheritingKinds', False)
+        self._references['inheritedAttributes'] = refDict
 
     def newItem(self, name, parent):
         """Create an item of this kind.
@@ -64,7 +68,7 @@ class Kind(Item):
             attribute = None
             
         if attribute is None:
-            uuid = self.getValue('inheritedNames', name)
+            uuid = self.inheritedAttributes.resolveAlias(name)
             if uuid is not None:
                 attribute = self.getValue('inheritedAttributes', uuid,
                                           _attrDict=self._references)
@@ -79,7 +83,7 @@ class Kind(Item):
         if uuid is not None:
             if self.hasValue('attributes', uuid, _attrDict=self._references):
                 return True
-        elif self.hasValue('inheritedNames', name):
+        elif self.inheritedAttributes.resolveAlias(name):
             return True
         else:
             return self.inheritAttribute(name) is not None
@@ -96,9 +100,8 @@ class Kind(Item):
                 if inheritingKind is not None:
                     attribute = inheritingKind.getAttribute(name)
                     if attribute is not None:
-                        self.addValue('inheritedNames',
-                                      attribute.getUUID(), name)
-                        self.addValue('inheritedAttributes', attribute)
+                        self.addValue('inheritedAttributes', attribute,
+                                      alias=name)
                         return attribute
                 else:
                     cache = False
