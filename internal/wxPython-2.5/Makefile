@@ -44,7 +44,7 @@ wxPython:
 MANIFEST=$(SNAP)/$(SITE)/wx
 
 clean:
-	cd $(SRC); devenv.com build/msw/msw.sln /clean $(Snap)
+	cd $(SRC); MAKEFLAGS=; devenv.com build/msw/msw.sln /clean $(Snap)
 	cd $(SRC)/wxPython; rm -rf $(SRC)/wxPython/$(BUILD)
 
 else
