@@ -65,7 +65,7 @@ class Instruction(Item):
           asking the condition.
         """
         try:
-            if self.enabled and self.condition != None:
+            if self.enabled:
                 notifications = self.condition.GetNotifications()
                 return notifications
 
@@ -79,12 +79,10 @@ class Instruction(Item):
           evaluate an instruction's condition, and return
           a list of actions to be executed if the condition is satisfied
         """
-        if not self.enabled:
-            return []
-
-        if not self.hasAttributeValue('condition') or \
-               self.condition.IsSatisfied(notification):
-            return self.actions
+        if self.enabled:
+            if not self.hasAttributeValue('condition') or \
+                   self.condition.IsSatisfied(notification):
+                return self.actions
 
         return []
 
