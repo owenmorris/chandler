@@ -135,8 +135,8 @@ class wxSplitWindow(wx.SplitterWindow):
 
     def __init__(self, *arguments, **keywords):
         wx.SplitterWindow.__init__ (self, *arguments, **keywords)
-        self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED, 
-                  self.OnSplitChanged, 
+        self.Bind(wx.EVT_SPLITTER_SASH_POS_CHANGED,
+                  self.OnSplitChanged,
                   id=self.GetId())
         """
           Setting minimum pane size prevents unsplitting a window by double-clicking
@@ -162,9 +162,76 @@ class wxSplitWindow(wx.SplitterWindow):
             """
             event.Skip()
             counterpart = Globals.repository.find (self.counterpartUUID)
-            counterpart.size.width = self.GetSize().x
-            counterpart.size.height = self.GetSize().y
+            counterpart.size.width = event.GetSize().x
+            counterpart.size.height = event.GetSize().y
             counterpart.setDirty()   # Temporary repository hack -- DJA
+
+    def wxSynchronizeFramework(self):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+
+        self.SetSize ((counterpart.size.width, counterpart.size.height))
+
+        assert (len (counterpart.childrenBlocks) >= 1 and
+                len (counterpart.childrenBlocks) <= 2)
+
+        # Collect information about the splitter
+        oldWindow1 = self.GetWindow1()
+        oldWindow2 = self.GetWindow2()
+        children = iter (counterpart.childrenBlocks)
+        window1 = Globals.association[children.next().itsUUID]
+        try:
+            window2 = Globals.association[children.next().itsUUID]
+        except StopIteration:
+            window2 = None
+            isSplit = False
+        else:
+            isSplit = True
+
+        # Update any differences between the block and wxCounterpart
+        self.Freeze()
+        if isSplit:
+            if (counterpart.orientationEnum == "Horizontal"):
+                splitMode = wx.SPLIT_HORIZONTAL
+                distance = counterpart.size.width
+            else:
+                assert counterpart.orientationEnum == "Vertical"
+                splitMode = wx.SPLIT_VERTICAL
+                distance = counterpart.size.height
+            position = int (round (distance * counterpart.splitPercentage))
+
+            if self.IsSplit():
+                if self.GetSplitMode() != splitMode:
+                    self.SetSplitMode (splitMode)
+                if oldWindow1 != window1:
+                    result = self.ReplaceWindow (oldWindow1, window1)
+                    assert (result)
+                    oldWindow1.Destroy()
+                if oldWindow2 != window2:
+                    result = self.ReplaceWindow (oldWindow2, window2)
+                    assert (result)
+                    oldWindow2.Destroy()
+            else:
+                if splitMode == wx.SPLIT_HORIZONTAL:
+                    success = self.SplitHorizontally (window1, window2, position)
+                else:
+                    success = self.SplitVertically (window1, window2, position)
+                assert success
+                if oldWindow1 and (oldWindow1 != window1):
+                    oldWindow1.Destroy()
+
+        else:
+            if self.IsSplit():
+                self.UnSplit()
+                oldWindow2.Destroy()
+            if not oldWindow1:
+                self.Initialize (window1)
+            else:
+                if oldWindow1 != window1:
+                    result = self.ReplaceWindow (self.GetWindow1(), window1)
+                    assert (result)
+                    oldWindow1.Destroy()
+        self.Thaw()
+        self.GetParent().GetSizer().Layout()
 
     def __del__(self):
         del Globals.association [self.counterpartUUID]
@@ -181,10 +248,6 @@ class SplitWindow(RectangularChild):
                                         self.stretchFactor, 
                                         self.Calculate_wxFlag(), 
                                         self.Calculate_wxBorder())
-        """
-          Wire up onSize after __init__ has been called, otherwise it will
-        call onSize
-        """
         splitWindow.Bind(wx.EVT_SIZE, splitWindow.OnSize)
         return splitWindow, splitWindow, splitWindow
                 
@@ -211,32 +274,9 @@ class SplitWindow(RectangularChild):
             parent.Unsplit(child)
             if doDestroy:
                 child.Destroy()
-                    
-    def handleChildren(self, window):
-        numChildrenToAdd = len(self.childrenToAdd)
-        if numChildrenToAdd == 1:
-            window1 = window.GetWindow1()
-            if not window1:
-                window.Initialize(self.childrenToAdd[0])
-            else:
-                self.doSplitWindow(window, self.childrenToAdd[0], window1)
-        elif numChildrenToAdd == 2:
-            self.doSplitWindow(window, self.childrenToAdd[0], self.childrenToAdd[1])
-        self.childrenToAdd = []
-        return window
 
-    def doSplitWindow(self, window, window1, window2):
-        width, height = window.GetSizeTuple()
-        assert self.splitPercentage >= 0.0 and self.splitPercentage < 1.0
-        if self.orientationEnum == "Horizontal":
-            window.SplitHorizontally(window1,
-                                     window2,
-                                     int (round (height * self.splitPercentage)))
-        else:
-            window.SplitVertically(window1,
-                                   window2,
-                                   int (round (width * self.splitPercentage)))
-    
+    def handleChildren(self, window):
+        pass
 
 class TabbedContainer(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):

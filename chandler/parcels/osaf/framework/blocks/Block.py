@@ -122,12 +122,13 @@ class Block(Item):
         except AttributeError:
             pass
         else:
-            oldInsideSynchronizeFramework = Globals.wxApplication.insideSynchronizeFramework
-            try:
+            if not Globals.wxApplication.insideSynchronizeFramework:
+                oldInsideSynchronizeFramework = Globals.wxApplication.insideSynchronizeFramework
                 Globals.wxApplication.insideSynchronizeFramework = True
-                method()
-            finally:
-                Globals.wxApplication.insideSynchronizeFramework = oldInsideSynchronizeFramework
+                try:
+                    method()
+                finally:
+                    Globals.wxApplication.insideSynchronizeFramework = oldInsideSynchronizeFramework
 
 
 class ContainerChild(Block):
@@ -157,9 +158,9 @@ class ContainerChild(Block):
               After the blocks are wired up, give the window a chance
             to synchronize itself to any persistent state.
             """
-            self.SynchronizeFramework()
             for child in self.childrenBlocks:
                 child.render (parent, parentWindow)
+            self.SynchronizeFramework()
             self.handleChildren(window)
         return window, parent, parentWindow
                 

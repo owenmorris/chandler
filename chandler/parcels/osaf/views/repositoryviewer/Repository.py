@@ -55,8 +55,10 @@ class RepositoryDelegate:
             parentUUID = notification.data['parent']
         except KeyError:
             item = Globals.repository.find (notification.data['uuid'])
-            parent = item.itsParent
-            if not parent:
+
+            try:
+                parent = item.itsParent
+            except AttributeError:
                 return
 
             parentUUID = parent.itsUUID
