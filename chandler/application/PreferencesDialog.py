@@ -205,7 +205,7 @@ class PreferencesDialog(wxDialog):
             key, field, type = entry
             if type != 'boolean':
                 field.SetFocus()
-                field.SetSelection(-1, -1)
+                field.SelectAll()
                 return
         
     # add the command buttons
@@ -262,7 +262,7 @@ class TextFieldHandler:
                newIndex = 0
            key, field, type = self.dialog.fieldList[newIndex]
            field.SetFocus()
-           field.SetSelection(-1, -1)
+           field.SelectAll()
        
         else:
             event.Skip()
