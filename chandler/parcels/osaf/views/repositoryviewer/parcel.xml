@@ -46,6 +46,8 @@
   </ItemDetail>
 
   <SplitterWindow itsName="RepositoryBox">
+    <displayName>Repository Viewer</displayName>
+
     <!-- Layout children -->
     <childrenBlocks itemref="doc:RepositoryTree"/>
     <childrenBlocks itemref="doc:ItemDetail"/>
