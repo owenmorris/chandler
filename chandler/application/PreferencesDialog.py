@@ -101,7 +101,9 @@ class PreferencesDialog(wxDialog):
         # add the section list box and wire it up
         self.listbox = wxListBox(self, self.eventID, wxDefaultPosition, wxSize(100, 120),
                        sectionList, wxLB_SINGLE)
-        hBox.Add(self.listbox, 0, wxNORTH | wxWEST | wxSOUTH, 8)
+        self.listbox.SetSelection(0)
+        
+        hBox.Add(self.listbox, 0, wxNORTH | wxWEST | wxSOUTH, 8)  
         self.eventID += 1
 
         # add a small gap between the section list and the form
