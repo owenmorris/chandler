@@ -9,13 +9,13 @@ CONF_OPT=--enable-debug
 DIST_OPT=--debug
 FINAL=0
 SUFFIX=d
-MANIFEST_SUFFIX=_d
+PYTHON_SUFFIX=_d
 else
 CONF_OPT=--enable-optimized
 DIST_OPT=
 FINAL=1
 SUFFIX=
-MANIFEST_SUFFIX=
+PYTHON_SUFFIX=
 endif
 
 
@@ -38,8 +38,8 @@ wxPython:
 	cd $(SRC)/wxPython; \
         export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
 	cp $(SRC)/wxPython/src/winxp.manifest $(BUILD_ROOT)/$(SNAP)/bin/chandler.exe.manifest; \
-	cp $(SRC)/wxPython/src/winxp.manifest $(BUILD_ROOT)/$(SNAP)/bin/python$(MANIFEST_SUFFIX).exe.manifest; \
-	chmod a+x $(BUILD_ROOT)/$(SNAP)/bin/python$(MANIFEST_SUFFIX).exe.manifest; \
+	cp $(SRC)/wxPython/src/winxp.manifest $(BUILD_ROOT)/$(SNAP)/bin/python$(PYTHON_SUFFIX).exe.manifest; \
+	chmod a+x $(BUILD_ROOT)/$(SNAP)/bin/python$(PYTHON_SUFFIX).exe.manifest; \
 	$(PYTHON) setup.py BUILD_BASE=$(BUILD) BUILD_ACTIVEX=0 \
                            USE_SWIG=0 \
                            SWIG=`cygpath -aw $(SWIG)` \
@@ -49,7 +49,7 @@ wxPython:
                            install \
                            FINAL=$(FINAL) HYBRID=0
 
-MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest $(SNAP)/bin/python$(MANIFEST_SUFFIX).exe.manifest
+MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest $(SNAP)/bin/python$(PYTHON_SUFFIX).exe.manifest
 
 clean:
 	rm -rf $(SRC)/wxPython/$(BUILD)

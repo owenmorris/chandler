@@ -596,7 +596,7 @@ void wxMiniCalendar::OnPaint(wxPaintEvent& WXUNUSED(event))
         m_normalFont.GetStyle(), wxBOLD, m_normalFont.GetUnderlined(), 
 		m_normalFont.GetFaceName(), m_normalFont.GetEncoding());
 	dc.SetFont(m_boldFont);
-	wxString todaytext = "Today";
+	wxString todaytext = wxT("Today");
 	dc.GetTextExtent(todaytext, &todayw, &todayh);
 
 	m_todayRect = wxRect(0, 0, 0, 0);
