@@ -102,9 +102,11 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
              [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
             hardhatutil.dumpOutputList(outputList, log)
             
-            ret = Do(hardhatScript, releaseMode, workingDir, outputDir, 
+            ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
             CopyLog(os.path.join(workingDir, logPath), log)
+            if ret != 'success':
+                break
 
         changes = "-first-run"
     else:
@@ -143,9 +145,11 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
         # do tests
         for releaseMode in ('debug', 'release'):   
-            ret = Do(hardhatScript, releaseMode, workingDir, outputDir, 
+            ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
             CopyLog(os.path.join(workingDir, logPath), log)
+            if ret != 'success':
+                break
 
     return ret + changes 
 
@@ -155,7 +159,7 @@ cvsModules = (
     'chandler',
 )
 
-def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log):
+def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log):
 
     testDir = os.path.join(workingDir, "chandler")
     os.chdir(testDir)
@@ -190,7 +194,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log
             CopyLog(os.path.join(workingDir, logPath), log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
 
-    return "success"  # end of Do( )
+    return "success"  # end of doTests( )
 
 def changesInCVS(moduleDir, workingDir, cvsVintage, log, filename):
     changesAtAll = False
