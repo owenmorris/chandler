@@ -121,8 +121,8 @@ snap:
                   $(SNAP)/bin/DLLs $(SNAP)/bin/Include $(SNAP)/bin/Lib \
             --exclude site-packages \
             --exclude test
-	$(MD5) $(BUILD_ROOT)/$(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > \
-               $(BUILD_ROOT)/$(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
+	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > \
+               $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
 
@@ -147,8 +147,8 @@ snap:
                   $(SNAP)/Library/Frameworks/Python.framework \
             --exclude site-packages \
             --exclude test
-	$(MD5) $(BUILD_ROOT)/$(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > \
-               $(BUILD_ROOT)/$(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
+	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > \
+               $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
 
 else
 
@@ -175,7 +175,8 @@ snap:
                   $(SNAP)/include/python* \
             --exclude site-packages \
             --exclude test; \
-	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
+	$(MD5) $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz > \
+               $(PYTHON)/python-$(SNAP)-$(RELVER).tar.gz.md5
 
 sources:: bzip2-$(BZIP2VERSION).tar.gz
 
