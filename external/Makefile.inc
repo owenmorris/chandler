@@ -39,7 +39,7 @@ endif
 
 default: all
 
-env:
+env::
 	@echo Operating system is $(OS)
 ifeq ($(BUILD_ROOT),)
 	@echo BUILD_ROOT is not set && false
