@@ -17,6 +17,7 @@ buildDir = os.path.join(homeDir, "tinderbuild")
 logFile = os.path.join(buildDir, "build.log")
 stopFile = os.path.join(buildDir, "stop")
 fromAddr = "builds"
+defaultDomain = "osafoundation" + "." + "org"
 
 def main():
     global buildscriptFile
@@ -24,7 +25,9 @@ def main():
     parser = OptionParser(usage="%prog [options] buildName", version="%prog 1.2")
     parser.add_option("-t", "--toAddr", action="store", type="string", dest="toAddr",
       default="buildreport", help="Where to mail script reports\n"
-      " [default] buildreport (at) osafoundation.org")
+      " [default] buildreport "
+      + "(at) osafoundation "
+      + "(dot) org")
     parser.add_option("-p", "--project", action="store", type="string", dest="project",
       default="chandler", help="Name of script to use (without .py extension)\n"
       "[default] chandler")
@@ -33,7 +36,9 @@ def main():
       " [default] ~/output")
     parser.add_option("-a", "--alert", action="store", type="string", dest="alertAddr",
       default="buildman", help="E-mail to notify on build errors \n"
-      " [default] buildman (at) osafoundation.org")
+      " [default] buildman "
+      + "(at) osafoundation "
+      + "(dot) org")
       
     (options, args) = parser.parse_args()
     if len(args) != 1:
@@ -41,6 +46,7 @@ def main():
         parser.error("You must at least provide a name for your build")
 
     buildName = args[0]
+    fromAddr += "@" + defaultDomain
     prevStartInt = 0
     curDir = os.path.abspath(os.getcwd())
     buildscriptFile = os.path.join("buildscripts", options.project + ".py")
@@ -193,17 +199,15 @@ def main():
 
 def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logContents):
     nowTime  = str(int(time.time()))
-    fromAddr += "@osafoundation.org"
-    if toAddr.find('@') == -1:
-        toAddr += "@osafoundation.org"
     msg      = ("From: %s\r\nTo: %s\r\n\r\n" % (fromAddr, toAddr))
+    msg      = msg + "Subject: " + status + " from " + buildName + "\n"
     msg      = msg + "tinderbox: tree: " + treeName + "\n"
     msg      = msg + "tinderbox: buildname: " + buildName + "\n"
     msg      = msg + "tinderbox: starttime: " + startTime + "\n"
     msg      = msg + "tinderbox: timenow: " + nowTime + "\n"
     msg      = msg + "tinderbox: errorparser: unix\n"
     msg      = msg + "tinderbox: status: " + status + "\n"
-    msg      = msg + "tinderbox: administrator: builds" + "@osafoundation.org\n"
+    msg      = msg + "tinderbox: administrator: builds" + "@" + defaultDomain + "\n"
     msg      = msg + "tinderbox: END\n"
     if logContents:
         msg  = msg + logContents
@@ -221,11 +225,24 @@ def RotateDirectories(dir):
     uses normal sorting to determine the order."""
 
     dirs = os.listdir(dir)
+    for anyDir in dirs:
+        if not os.path.isdir(os.path.join(dir, anyDir)):
+            dirs.remove(anyDir)
+
     dirs.sort()
     for subdir in dirs[:-3]:
-        # print "  subdir = ", subdir
+        subdir = os.path.join(dir, subdir)
         if os.path.isdir(subdir):
-            hardhatutil.rmdirRecursive(os.path.join(dir, subdir))
+            hardhatutil.rmdirRecursive(subdir)
+
+    # hack to delete archives still being created by __hardhat__.py
+    list2 = os.listdir(buildDir)
+    for fileName in list2:
+        fileName = os.path.join(buildDir, fileName)
+        if os.path.isdir(fileName):
+            continue
+        elif fileName.find('Chandler_') != -1:
+            os.remove(fileName)
 
 _descriptions = {
     'enduser' : ["End-Users' distribution", "If you just want to use Chandler, this distribution contains everything you need -- just download, unpack, run."],
