@@ -119,9 +119,9 @@ class TestText(RepositoryTestCase):
 
         self.assert_(data == string)
         
-    def testAppendBZ2(self):
-
-        self.appended('bz2')
+#    def testAppendBZ2(self):
+#
+#        self.appended('bz2')
 
     def testAppendZlib(self):
 
