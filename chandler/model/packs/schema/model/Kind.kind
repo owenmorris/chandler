@@ -15,7 +15,6 @@
     <ref name="inheritedAttributes" type="path">/Model/Attributes/inheritedAttributes</ref>
     <ref name="notFoundAttributes" type="path">/Model/Attributes/notFoundAttributes</ref>
     <ref name="classes" type="path">/Model/Attributes/classes</ref>
-    <ref name="typeFor" type="path">/Model/Attributes/typeFor</ref>
     <ref name="displayAttribute" type="path">/Model/Attributes/displayAttribute</ref>
   </ref>
 

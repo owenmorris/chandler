@@ -7,6 +7,8 @@
   <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
     <ref name="displayName" type="path">/Model/Attributes/displayName</ref>
     <ref name="description" type="path">/Model/Attributes/description</ref>
+    <ref name="typeFor" type="path">/Model/Attributes/typeFor</ref>
+    <ref name="aliasedBy" type="path">/Model/Attributes/aliasedBy</ref>
   </ref>
 
   <ref name="superKinds" cardinality="list"
