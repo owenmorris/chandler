@@ -69,12 +69,12 @@ def main():
     buildVersion = nowString
 
     # default is "-D now", but override with date; override that with tag
-    cvsVintage = "-D '" + nowString + "'"
+    cvsVintage = "-D'" + nowString + "'"
     if cvsDateArg:
-        cvsVintage = "-D " + cvsDateArg
+        cvsVintage = "-D'" + cvsDateArg + "'"
         buildVersion = cvsDateArg
     if cvsTagArg:
-        cvsVintage = "-r " + cvsTagArg
+        cvsVintage = "-r" + cvsTagArg
         buildVersion = cvsTagArg
     if buildVersionArg:
         buildVersion = buildVersionArg

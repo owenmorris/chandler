@@ -68,7 +68,7 @@ def main():
         try:
             # bring this hardhat directory up to date
             outputList = hardhatutil.executeCommandReturnOutput(
-             [cvsProgram, "update", "-D '"+ nowString + "'"])
+             [cvsProgram, "update", "-D'"+ nowString + "'"])
 
             # load (or reload) the buildscript file for the project
             mod = hardhatutil.ModuleFromFile(buildscriptFile, "buildscript")
@@ -78,7 +78,7 @@ def main():
             SendMail(fromAddr, toAddr, startTime, buildName, "building", 
              treeName, None)
 
-            mod.Start(hardhatFile, buildDir, "-D '"+ nowString + "'", 
+            mod.Start(hardhatFile, buildDir, "-D'"+ nowString + "'", 
              buildVersion, 0, log)
 
         except Exception, e:
