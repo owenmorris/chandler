@@ -120,15 +120,15 @@ def init(buildenv):
 
     CHANDLERHOME, CHANDLERBIN = getCHANDLERvars(buildenv)
 
-    buildenv['sh']   = findInPath(buildenv['path'], "sh")
-    buildenv['make'] = findInPath(buildenv['path'], "make")
-    buildenv['cvs']  = findInPath(buildenv['path'], "cvs")
-    buildenv['scp']  = findInPath(buildenv['path'], "scp")
-    buildenv['tar']  = findInPath(buildenv['path'], "tar")
-    buildenv['gzip'] = findInPath(buildenv['path'], "gzip")
-    buildenv['zip']  = findInPath(buildenv['path'], "zip")
-    buildenv['cvs']  = findInPath(buildenv['path'], "cvs")
-    #buildenv['perl']  = findInPath(buildenv['path'], "perl")
+    buildenv['sh']    = findInPath(buildenv['path'], "sh")
+    buildenv['make']  = findInPath(buildenv['path'], "make")
+    buildenv['cvs']   = findInPath(buildenv['path'], "cvs")
+    buildenv['scp']   = findInPath(buildenv['path'], "scp")
+    buildenv['tar']   = findInPath(buildenv['path'], "tar")
+    buildenv['gzip']  = findInPath(buildenv['path'], "gzip")
+    buildenv['zip']   = findInPath(buildenv['path'], "zip")
+    buildenv['cvs']   = findInPath(buildenv['path'], "cvs")
+    #buildenv['perl'] = findInPath(buildenv['path'], "perl")
 
     # set OS-specific variables
     if buildenv['os'] == 'win':
@@ -1556,6 +1556,22 @@ def compressDirectory(buildenv, directories, fileRoot):
         "Running gzip on " + fileRoot + ".tar")
         return fileRoot + ".tar.gz"
 
+def convertLineEndings(srcdir):
+    """Convert all .txt files in the distribution root to DOS style line endings"""
+    for name in os.listdir(srcdir):
+        fullpath = os.path.join(srcdir, name)
+        if os.path.isdir(fullpath):
+            convertLineEndings(fullpath)
+        else:
+            if fnmatch.fnmatch(name, "*.txt"):
+                if os.path.isfile(fullpath):
+                    text    = open(fullpath, "rb").read()
+                    newtext = text.replace("\n", "\r\n")
+                    if newtext != text:
+                        f = open(fullpath, "wb")
+                        f.write(newtext)
+                        f.close()
+ 
 def findInPath(path,fileName):
     dirs = path.split(os.pathsep)
     for dir in dirs:
