@@ -1065,6 +1065,7 @@ long			resultV;
 #else
 wxClientDC	dc( this );
 
+	// NB: this case being used for both Mac and GTK
 	for (long i=0; i<m_ItemCount; i++)
 		if (GetItemBounds( i, &boundsR ))
 			resultV |= m_ItemList[i]->DrawItem( this, &dc, &boundsR );
@@ -1230,11 +1231,11 @@ long					resultV;
 
 	// add bitmap reference as needed
 	// NB: text and icon are mutually exclusive:
-	// - need m_BitmapJustification  + mgmt. to fully implement nonMutEx behavior
-	// FIXME: scaling a la wxBytmap::SetWidth/Height doesn't apply !!!
-	// FIXME: protect against HBMP leaks?
+	// - need m_BitmapJustification + mgmt. to fully implement non-MutEx behavior
 	if (itemRef->HasValidBitmapRef( itemRef->m_BitmapRef ))
 	{
+		// FIXME: scaling a la wxBitmap::SetWidth/Height doesn't apply !!!
+		// FIXME: protect against HBMP leaks?
 		itemData.fmt &= ~HDF_STRING;
 		itemData.fmt |= HDF_BITMAP;
 		itemData.mask |= HDI_BITMAP;
@@ -1246,7 +1247,7 @@ long					resultV;
 	}
 
 	// add sort arrows as needed
-	// NB: should sort and bitmap be MutEx?
+	// NB: should sort arrows and bitmaps be MutEx?
 	itemData.fmt &= ~(HDF_SORTDOWN | HDF_SORTUP);
 	if (itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
 		itemData.fmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
@@ -1684,8 +1685,8 @@ OSStatus				errStatus;
 	DisposeRgn( savedClipRgn );
 
 	return (long)errStatus;
-#else
 
+#else
 wxRect				localBoundsR, subItemBoundsR;
 wxPoint				labelTextSize;
 long					originX, insetX;
