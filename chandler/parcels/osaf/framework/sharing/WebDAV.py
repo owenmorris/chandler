@@ -91,7 +91,7 @@ class Client(object):
         # Parse the propfind, pulling out the URLs for each child along
         # with their ETAGs, and storing them in the resourceList dictionary:
         text = resp.read()
-        # @@@ Hack to avoid libxml2 complaints:
+        # @@@ Hack to avoid libxml2 complaints: (maybe fixed 1/19/2005)
         text = text.replace('="DAV:"', '="http://osafoundation.org/dav"')
         try:
             doc = libxml2.parseDoc(text)

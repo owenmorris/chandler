@@ -22,7 +22,17 @@ Let's play with the ACE object some more:
 >>> allACE.deny('yawn', 'http://www.example.com/namespaces/acl/')
 >>> print allACE
 <D:ace><D:principal><D:all/></D:principal><D:deny><D:privilege><ns-1:yawn/></D:privilege></D:deny><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace>
+>>> print allACE._deny.privileges['yawn']
+['ns-1', 'http://www.example.com/namespaces/acl/']
 >>> allACE.deny('yawn', 'http://www.example.com/namespaces/fooledya/acl/')
+>>> print allACE
+<D:ace><D:principal><D:all/></D:principal><D:deny><D:privilege><ns-2:yawn/></D:privilege></D:deny><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace>
+>>> print allACE._deny.privileges['yawn']
+['ns-2', 'http://www.example.com/namespaces/fooledya/acl/']
+>>> allACE.protected = True
+>>> print allACE
+<BLANKLINE>
+>>> allACE.protected = False
 >>> print allACE
 <D:ace><D:principal><D:all/></D:principal><D:deny><D:privilege><ns-2:yawn/></D:privilege></D:deny><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace>
 >>> allACE._deny = _Deny(())
@@ -104,9 +114,12 @@ class ACE(object):
         self._grant.mapPrefixes(map)
 
     def __str__(self):
-        return '<D:ace>%s%s%s</D:ace>' %(str(self._principal),
-                                         str(self._deny),
-                                         str(self._grant))
+        if self.protected:
+            return ''
+        else:
+            return '<D:ace>%s%s%s</D:ace>' %(str(self._principal),
+                                             str(self._deny),
+                                             str(self._grant))
 
 class ACL(object):
     """
