@@ -551,16 +551,7 @@ class wxTreeList(wxTreeListCtrl):
         
 class TreeList(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
-        style = wxTR_DEFAULT_STYLE
-        if self.hideRoot:
-            style |= wxTR_HIDE_ROOT
-        if self.noLines:
-            style |= wxTR_NO_LINES
-        if self.useButtons:
-            style |= wxTR_HAS_BUTTONS
-        else:
-            style |= wxTR_NO_BUTTONS
-        treeList = wxTreeList(parentWindow, Block.getwxID(self), style = style)
+        treeList = wxTreeList(parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
         info = wxTreeListColumnInfo()
         for x in range(len(self.columnHeadings)):
             info.SetText(self.columnHeadings[x])
@@ -584,6 +575,19 @@ class TreeList(RectangularChild):
         Globals.notificationManager.PostNotification (notification)
 
         return treeList, None, None
+
+    def Calculate_wxStyle (self):
+        style = wxTR_DEFAULT_STYLE
+        if self.hideRoot:
+            style |= wxTR_HIDE_ROOT
+        if self.noLines:
+            style |= wxTR_NO_LINES
+        if self.useButtons:
+            style |= wxTR_HAS_BUTTONS
+        else:
+            style |= wxTR_NO_BUTTONS
+        return style
+
 
 class RepositoryTreeList(TreeList):
     def OnGetTreeListDataEvent (self, notification):
@@ -614,9 +618,9 @@ class Sidebar(TreeList):
         item = node.GetData()
         if item:
             for child in item:
-                node.AddChildNode (None, child, false)
+                node.AddChildNode (None, [child], false)
         else:
-            node.AddRootNode (['Repository Viewer', 'Demo'], 'Views', true)
+            node.AddRootNode (['Repository Viewer', 'Demo'], ['Views'], true)
     
     def OnSelectionChangedEvent (self, notification):
         pass
