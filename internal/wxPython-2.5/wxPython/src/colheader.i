@@ -97,6 +97,9 @@ public:
     virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
     virtual wxSize DoGetBestSize( void ) const;
 
+    void ResizeToFit( void );
+    long GetTotalUIExtent( void );
+
     void SetUnicodeFlag(
         bool            bSetFlag );
     long GetSelectedItemIndex( void );
@@ -114,6 +117,12 @@ public:
         bool                bSortAscending = false );
     void DeleteItem(
         long                itemIndex );
+    void GetImageRef(
+        long                itemIndex,
+        wxBitmap        &imageRef );
+    void SetImageRef(
+        long                itemIndex,
+        wxBitmap        &imageRef );
     wxString GetLabelText(
         long                itemIndex );
     void SetLabelText(

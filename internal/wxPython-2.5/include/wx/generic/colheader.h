@@ -19,10 +19,12 @@
 #include "wx/control.h"			// the base class
 #include "wx/dcclient.h"
 #include "wx/font.h"
+#include "wx/bitmap.h"
 
 
 // forward decls
 // class wxColumnHeaderItem;
+// class wxBitmap;
 
 // ----------------------------------------------------------------------------
 // wxColumnHeader: a control that provides a native-appearance column header
@@ -49,10 +51,16 @@ public:
 	void SetItemData(
 		const wxColumnHeaderItem		*info );
 
+	void GetImageRef(
+		wxBitmap			&imageRef );
+	void SetImageRef(
+		wxBitmap			&imageRef,
+		const wxRect		*boundsR );
+
 	void GetLabelText(
-		wxString		&textBuffer );
+		wxString			&textBuffer );
 	void SetLabelText(
-		const wxString	&textBuffer );
+		const wxString		&textBuffer );
 
 	long GetLabelJustification( void );
 	void SetLabelJustification(
@@ -81,7 +89,7 @@ public:
 #if defined(__WXGTK__)
 	static void GTKGetSortArrowBounds(
 		const wxRect		*itemBoundsR,
-		wxRect			*arrowBoundsR );
+		wxRect			*targetBoundsR );
 	static void GTKDrawSortArrow(
 		wxClientDC		*dc,
 		const wxRect		*boundsR,
@@ -94,6 +102,11 @@ public:
 		bool				bSelected );
 #endif
 
+	static void GetBitmapBounds(
+		const wxRect		*itemBoundsR,
+		long				targetJustification,
+		wxRect			*targetBoundsR );
+
 	static long ConvertJustification(
 		long				sourceEnum,
 		bool				bToNative );
@@ -102,6 +115,7 @@ public:
 	wxString				m_LabelTextRef;
 	unsigned long			m_FontID;
 	long					m_TextJust;
+	wxBitmap				*m_ImageRef;
 	long					m_ImageID;
 	long					m_OriginX;
 	long					m_ExtentX;
@@ -135,6 +149,16 @@ public:
 
 	virtual bool Destroy( void );
 
+	// embellish (override) some base class virtuals
+	virtual void DoMoveWindow( int x, int y, int width, int height );
+	virtual bool Enable( bool bEnable = true );
+	virtual bool Show( bool bShow = true );
+	virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
+	virtual wxSize DoGetBestSize( void ) const;
+
+	void ResizeToFit( void );
+	long GetTotalUIExtent( void );
+
 	void SetUnicodeFlag(
 		bool				bSetFlag );
 
@@ -157,6 +181,14 @@ public:
 		bool				bActive,
 		bool				bSortEnabled,
 		bool				bSortAscending );
+
+	void GetImageRef(
+		long				itemIndex,
+		wxBitmap			&imageRef );
+	void SetImageRef(
+		long				itemIndex,
+		wxBitmap			&imageRef );
+
 	wxString GetLabelText(
 		long				itemIndex );
 	void SetLabelText(
@@ -183,13 +215,6 @@ public:
 
 	// implementation only from now on
 	// -------------------------------
-
-	// embellish (override) some base class virtuals
-	virtual void DoMoveWindow( int x, int y, int width, int height );
-	virtual bool Enable( bool bEnable = true );
-	virtual bool Show( bool bShow = true );
-	virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
-	virtual wxSize DoGetBestSize( void ) const;
 
 #if defined(__WXMSW__)
 	virtual WXDWORD MSWGetStyle(

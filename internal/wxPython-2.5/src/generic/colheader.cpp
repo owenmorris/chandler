@@ -380,13 +380,40 @@ void wxColumnHeader::DoSetSize(
 	int		height,
 	int		sizeFlags )
 {
+	// FIXME: should be - invalidate( origBoundsR )
+
 	wxControl::DoSetSize( x, y, width, height, sizeFlags );
 
 	// FIXME: sloppy hack
 	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
 	wxControl::DoGetSize( &(m_NativeBoundsR.width), &(m_NativeBoundsR.height) );
 
-	RecalculateItemExtents();
+	// FIXME: should be - invalidate( newBoundsR )
+	// RecalculateItemExtents();
+	SetViewDirty();
+}
+
+void wxColumnHeader::ResizeToFit( void )
+{
+long		extentX;
+
+	extentX = GetTotalUIExtent();
+	DoSetSize( m_NativeBoundsR.x, m_NativeBoundsR.y, extentX, m_NativeBoundsR.height, 0 );
+}
+
+long wxColumnHeader::GetTotalUIExtent( void )
+{
+long		extentX, i;
+
+	extentX = 0;
+	if (m_ItemList != NULL)
+		for (i=0; i<m_ItemCount; i++)
+		{
+			if (m_ItemList[i] != NULL)
+				extentX += m_ItemList[i]->m_ExtentX;
+		}
+
+	return extentX;
 }
 
 // ----------------------------------------------------------------------------
@@ -771,8 +798,41 @@ wxColumnHeaderItem * wxColumnHeader::GetItemRef(
 		return NULL;
 }
 
+void wxColumnHeader::GetImageRef(
+	long				itemIndex,
+	wxBitmap			&imageRef )
+{
+wxColumnHeaderItem		*itemRef;
+bool					bResultV;
+
+	itemRef = GetItemRef( itemIndex );
+	bResultV = (itemRef != NULL);
+	if (bResultV)
+	{
+		itemRef->GetImageRef( imageRef );
+	}
+	else
+	{
+//		imageRef.Init();
+	}
+}
+
+void wxColumnHeader::SetImageRef(
+	long				itemIndex,
+	wxBitmap			&imageRef )
+{
+wxColumnHeaderItem		*itemRef;
+
+	itemRef = GetItemRef( itemIndex );
+	if (itemRef != NULL)
+	{
+		itemRef->SetImageRef( imageRef, &m_NativeBoundsR );
+		RefreshItem( itemIndex );
+	}
+}
+
 wxString wxColumnHeader::GetLabelText(
-	long			itemIndex )
+	long				itemIndex )
 {
 wxColumnHeaderItem		*itemRef;
 wxString				textBuffer;
@@ -956,9 +1016,9 @@ long		itemCount, i;
 long wxColumnHeader::Draw( void )
 {
 wxRect		boundsR;
-long			errStatus;
+long			resultV;
 
-	errStatus = 0;
+	resultV = 0;
 
 #if defined(__WXMSW__)
 	// render native control window
@@ -975,20 +1035,20 @@ long			errStatus;
 		}
 	}
 
-#elif defined(__WXMAC__)
-	// no DC needed for Mac rendering (yet)
+#elif 0 && defined(__WXMAC__)
+	// no DC needed for Mac rendering (except for bitmaps)
 	for (long i=0; i<m_ItemCount; i++)
 		if (GetItemBounds( i, &boundsR ))
-			errStatus |= m_ItemList[i]->DrawItem( this, NULL, &boundsR );
+			resultV |= m_ItemList[i]->DrawItem( this, NULL, &boundsR );
 #else
 wxClientDC	dc( this );
 
 	for (long i=0; i<m_ItemCount; i++)
 		if (GetItemBounds( i, &boundsR ))
-			errStatus |= m_ItemList[i]->DrawItem( this, &dc, &boundsR );
+			resultV |= m_ItemList[i]->DrawItem( this, &dc, &boundsR );
 #endif
 
-	return errStatus;
+	return resultV;
 }
 
 void wxColumnHeader::SetViewDirty( void )
@@ -1228,6 +1288,7 @@ wxColumnHeaderItem::wxColumnHeaderItem()
 	:
 	m_FontID( 0 )
 	, m_TextJust( 0 )
+	, m_ImageRef( NULL )
 	, m_ImageID( -1 )
 	, m_OriginX( 0 )
 	, m_ExtentX( 0 )
@@ -1243,6 +1304,7 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 	:
 	m_FontID( 0 )
 	, m_TextJust( 0 )
+	, m_ImageRef( NULL )
 	, m_ImageID( -1 )
 	, m_OriginX( 0 )
 	, m_ExtentX( 0 )
@@ -1256,6 +1318,7 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 
 wxColumnHeaderItem::~wxColumnHeaderItem()
 {
+	delete m_ImageRef;
 }
 
 // NB: a copy and nothing else...
@@ -1277,6 +1340,13 @@ void wxColumnHeaderItem::GetItemData(
 	info->m_BSortAscending = m_BSortAscending;
 
 	GetLabelText( info->m_LabelTextRef );
+
+	if (info->m_ImageRef != m_ImageRef)
+	{
+		if (info->m_ImageRef != NULL)
+			;
+		//GetImageRef( info->m_ImageRef );
+	}
 }
 
 void wxColumnHeaderItem::SetItemData(
@@ -1296,6 +1366,35 @@ void wxColumnHeaderItem::SetItemData(
 	m_BSortAscending = info->m_BSortAscending;
 
 	SetLabelText( info->m_LabelTextRef );
+	if (m_ImageRef != NULL)
+		SetImageRef( *(info->m_ImageRef), NULL );
+}
+
+void wxColumnHeaderItem::GetImageRef(
+	wxBitmap			&imageRef )
+{
+	if (m_ImageRef != NULL)
+		imageRef = *m_ImageRef;
+//	else
+//		imageRef.Init();
+}
+
+void wxColumnHeaderItem::SetImageRef(
+	wxBitmap			&imageRef,
+	const wxRect		*boundsR )
+{
+wxRect			targetBoundsR;
+
+	delete m_ImageRef;
+	m_ImageRef = new wxBitmap( imageRef );
+
+	if ((boundsR != NULL) && (m_ImageRef != NULL) && m_ImageRef->Ok())
+	{
+		GetBitmapBounds( boundsR, m_TextJust, &targetBoundsR );
+
+		m_ImageRef->SetWidth( targetBoundsR.width );
+		m_ImageRef->SetHeight( targetBoundsR.height );
+	}
 }
 
 void wxColumnHeaderItem::GetLabelText(
@@ -1507,6 +1606,15 @@ OSStatus				errStatus;
 		}
 	}
 
+	// render the bitmap, should one be present
+	if ((dc != NULL) && (m_ImageRef != NULL) && m_ImageRef->Ok())
+	{
+	wxRect		iconBoundsR;
+
+		GetBitmapBounds( boundsR, m_TextJust, &iconBoundsR );
+		dc->DrawBitmap( *m_ImageRef, iconBoundsR.x, iconBoundsR.y, false );
+	}
+
 #if 0
 	// FIXME: need implementation
 	// TODO: can label text and a bitmap (icon) be shown simultaneously?
@@ -1617,6 +1725,16 @@ const wxCoord		h = boundsR->height;
 #else
 		// FIXME: what about non-(Mac,MSW,GTK) platforms?
 #endif
+
+	}
+
+	// render the bitmap, should one be present
+	if ((dc != NULL) && (m_ImageRef != NULL) && m_ImageRef->Ok())
+	{
+	wxRect		iconBoundsR;
+
+		GetBitmapBounds( &iconBoundsR );
+		dc->DrawBitmap( imageRef, iconBoundsR.x, iconBoundsR.y, false );
 	}
 
 	return 0;
@@ -1711,11 +1829,11 @@ OSStatus			errStatus;
 // static
 void wxColumnHeaderItem::GTKGetSortArrowBounds(
 	const wxRect			*itemBoundsR,
-	wxRect				*arrowBoundsR )
+	wxRect				*targetBoundsR )
 {
 int		sizeX, sizeY, insetX;
 
-	if (arrowBoundsR == NULL)
+	if (targetBoundsR == NULL)
 		return;
 
 	if (itemBoundsR != NULL)
@@ -1724,17 +1842,17 @@ int		sizeX, sizeY, insetX;
 		sizeY = 12;
 		insetX = 8;
 
-		arrowBoundsR->x = itemBoundsR->x - (sizeX + insetX);
-		arrowBoundsR->y = itemBoundsR->y + (itemBoundsR->height - sizeY) / 2;
-		arrowBoundsR->width = sizeX;
-		arrowBoundsR->height = sizeY;
+		targetBoundsR->x = itemBoundsR->x - (sizeX + insetX);
+		targetBoundsR->y = itemBoundsR->y + (itemBoundsR->height - sizeY) / 2;
+		targetBoundsR->width = sizeX;
+		targetBoundsR->height = sizeY;
 	}
 	else
 	{
-		arrowBoundsR->x =
-		arrowBoundsR->y =
-		arrowBoundsR->width =
-		arrowBoundsR->height = 0;
+		targetBoundsR->x =
+		targetBoundsR->y =
+		targetBoundsR->width =
+		targetBoundsR->height = 0;
 	}
 }
 
@@ -1771,6 +1889,52 @@ wxPoint		triPt[3];
 	dc->DrawPolygon( 3, triPt, boundsR->x, boundsR->y );
 }
 #endif
+
+// static
+void wxColumnHeaderItem::GetBitmapBounds(
+	const wxRect			*itemBoundsR,
+	long					targetJustification,
+	wxRect				*targetBoundsR )
+{
+int		sizeX, sizeY, insetX;
+
+	if (targetBoundsR == NULL)
+		return;
+
+	if (itemBoundsR != NULL)
+	{
+		sizeX =
+		sizeY = 12;
+		insetX = 8;
+
+		targetBoundsR->x = itemBoundsR->x + insetX;
+		targetBoundsR->y = itemBoundsR->y + (itemBoundsR->height - sizeY) / 2;
+		targetBoundsR->width = sizeX;
+		targetBoundsR->height = sizeY;
+
+		switch (targetJustification)
+		{
+		case wxCOLUMNHEADER_JUST_Right:
+			targetBoundsR->x += (itemBoundsR->width - sizeX) - (2 * insetX);
+			break;
+
+		case wxCOLUMNHEADER_JUST_Center:
+			targetBoundsR->x += (itemBoundsR->width - sizeX) / 2;
+			break;
+
+		case wxCOLUMNHEADER_JUST_Left:
+		default:
+			break;
+		}
+	}
+	else
+	{
+		targetBoundsR->x =
+		targetBoundsR->y =
+		targetBoundsR->width =
+		targetBoundsR->height = 0;
+	}
+}
 
 // static
 long wxColumnHeaderItem::ConvertJustification(

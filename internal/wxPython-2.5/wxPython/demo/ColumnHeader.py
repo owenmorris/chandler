@@ -1,6 +1,10 @@
+#
+# ColumnHeader.py
+#
 
-import  wx
-import  wx.colheader
+import wx
+import wx.colheader
+import images
 
 #----------------------------------------------------------------------
 
@@ -44,23 +48,38 @@ class TestPanel( wx.Panel ):
         btn = wx.Button( self, -1, "Delete", (110, 190) )
         self.Bind( wx.EVT_BUTTON, self.OnTestDeleteButton, btn )
 
+        btn = wx.Button( self, -1, "Add Bitmap Item", (210, 190) )
+        self.Bind( wx.EVT_BUTTON, self.OnAddBitmapItemButton, btn )
+
     def OnColumnHeaderClick( self, event ):
         ch = event.GetEventObject()
         self.l0.SetLabel( "clicked (%d) - selected (%ld)" %(event.GetId(), ch.GetSelectedItemIndex()) )
         # self.log.write( "Click! (%ld)\n" % event.GetEventType())
 
     def OnTestResizeButton(self, event):
+        curWidth =  self.ch1.GetTotalUIExtent()
         if (self.stepSize == 1):
             self.stepDir = (-1)
         else:
             if (self.stepSize == (-1)):
                 self.stepDir = 1
         self.stepSize = self.stepSize + self.stepDir
-        self.ch1.DoSetSize( 20, 40, 351 + 40 * self.stepSize, 20, 0 )
+        self.ch1.DoSetSize( 20, 40, curWidth + 40 * self.stepSize, 20, 0 )
 
     def OnTestDeleteButton(self, event):
-        self.ch1.DeleteItem( 1 )
-        self.l0.SetLabel( "deleted item (%d) from (%d)" %(1, 1001) )
+        ch = self.ch1
+        ch.DeleteItem( 1 )
+        self.l0.SetLabel( "deleted item (%d) from (%d)" %(1, ch.GetId()) )
+
+    def OnAddBitmapItemButton(self, event):
+        ch = self.ch2
+        itemCount = ch.GetItemCount() + 1
+        ch.AppendItem( "", wx.colheader.COLUMNHEADER_JUST_Center, 40, 0, 0, 1 )
+        testBmp = images.getTest2Bitmap()
+        ch.SetImageRef( itemCount, testBmp )
+        ch.SetSelectedItemIndex( itemCount - 1 )
+        ch.ResizeToFit()
+        self.l0.SetLabel( "added bitmap item (%d) to (%d)" %(itemCount, ch.GetId()) )
 
 #----------------------------------------------------------------------
 
