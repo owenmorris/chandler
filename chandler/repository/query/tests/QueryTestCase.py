@@ -7,7 +7,7 @@ class QueryTestCase(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
         RepositoryTestCase.RepositoryTestCase._setup(self, False)
 
-        self.testdir = os.path.join(self.rootdir, 'chandler', 'repository', \
+        self.testdir = os.path.join(self.rootdir, 'repository', \
          'query', 'tests')
         RepositoryTestCase.RepositoryTestCase._openRepository(self, False)
 
