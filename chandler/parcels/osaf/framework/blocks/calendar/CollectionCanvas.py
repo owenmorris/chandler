@@ -275,6 +275,12 @@ class wxCollectionCanvas(wx.ScrolledWindow,
                 dc.DrawText(' ', (x, y))
                 x += width
             y += height
+
+    def DrawCenteredText(self, dc, text, rect):
+        textExtent = dc.GetTextExtent(text)
+        middleRect = rect.width / 2
+        middleText = textExtent[0] / 2
+        dc.DrawText(text, (rect.x + middleRect - middleText, rect.y))
         
     # Mouse movement
 

@@ -234,9 +234,11 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
     def _doDrawingCalculations(self, dc):
         # @@@ magic numbers
         self.size = self.GetVirtualSize()
-        self.xOffset = self.size.width / 8
+        self.adjustedSize = self.parent.columnCanvas.GetVirtualSize()
+        
+        self.xOffset = self.adjustedSize.width / 8
         self.hourHeight = 40
-        self.dayWidth = (self.size.width - self.xOffset) / self.parent.blockItem.daysPerView
+        self.dayWidth = (self.adjustedSize.width - self.xOffset) / self.parent.blockItem.daysPerView
         self.dayHeight = self.hourHeight * 24
 
     def DrawBackground(self, dc):
@@ -262,7 +264,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
             dayRect = wx.Rect(self.xOffset + (self.dayWidth * day),
                               self.size.height - 20,
                               self.dayWidth, 20)
-            self.DrawWrappedText(dc, dayName, dayRect)
+            self.DrawCenteredText(dc, dayName, dayRect)
 
         # Draw a line across the bottom of the header
         dc.SetPen(wx.Pen(wx.Colour(179, 179, 179)))
@@ -645,7 +647,7 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
         dc.SetFont(self.bigFont)
 
         dayName = weekday.Format('%a')
-        self.DrawWrappedText(dc, dayName, rect)
+        self.DrawCenteredText(dc, dayName, rect)
 
     # handle mouse related actions: move, create
 
