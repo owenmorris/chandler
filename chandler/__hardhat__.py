@@ -6,12 +6,22 @@ info = {
 
 dependencies = (
                 'Python-2.2.2', 
-                'wxWindows',
+                'wxWindows-2.4',
                 'distutils',
                 'egenix-mx-base-2.0.4',
                 'ZODB4',
                 'PyXML'
                )
+
+if os.name == 'nt':
+    dependencies = (
+		    'Python-2.2.2', 
+		    'wxWindows',
+		    'distutils',
+		    'egenix-mx-base-2.0.4',
+		    'ZODB4',
+		    'PyXML'
+		   )
 
 
 def build(buildenv):
@@ -25,7 +35,7 @@ def clean(buildenv):
 
 
 def run(buildenv):
-    
+
     if buildenv['version'] == 'debug':
         path = buildenv['root'] + os.sep + 'debug' + os.sep + 'bin' + os.pathsep + buildenv['path']
         python = buildenv['python_d.run']
