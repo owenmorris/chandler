@@ -27,9 +27,14 @@ MIME_CONTAINER = ["alternative", "parallel", "related", "report", "partial", "di
 DATE_IS_EMPTY = -57600
 
 class MailException(Exception):
+    """Base class for all Chandler mail related exceptions"""
     pass
 
 def getChandlerTransportMessage():
+    """Returns the skeleton of a mail message populated with the subject
+       and body verbage Chandler uses when the message in not intended to
+       be view by users i.e. a sharing invitation."""
+
     message = \
 """Subject: ***FOR CHANDLER INTERNAL USE - DO NOT DELETE ***
 
@@ -42,9 +47,19 @@ as Chandler will manage this email automatically for you.
 
 
 def getEmptyDate():
+    """Returns a DateTime object set to 0 ticks.
+       @return: C{mx.DateTime} object"""
+
     return DateTime.DateFromTicks(0)
 
 def dateIsEmpty(date):
+    """Determines if a C{mx.DateTime} is empty (set to 0 ticks).
+
+       @param date: The date to check if it is empty
+       @type date: C{mx.DateTime}
+
+       @return bool: True if the date is empty, False otherwise
+    """
     #XXX: Need to protect this better but having trouble with
     #     the mx.DateTime API
     if date is None or date.ticks() == DATE_IS_EMPTY:

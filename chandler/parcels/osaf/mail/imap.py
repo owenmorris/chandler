@@ -25,11 +25,6 @@ import common as common
 import repository.item.Query as Query
 
 """
-   twisted.IMAP4Client Exceptions:
-      1. IMAP4Exception
-      2. IllegalServerResponse
-      3. SSL?
-
    Notes:
    ------
    1. Move event notification in to a listener class outside of main mail code
@@ -38,6 +33,8 @@ import repository.item.Query as Query
 """
 
 def NotifyUIAsync(message, logger=logging.info, **keys):
+    """Temp method for posting a event to the CPIA layer. This
+       method will be refactored soon"""
     logger(message)
     if Globals.wxApplication is not None: # test framework has no wxApplication
         Globals.wxApplication.CallItemMethodAsync(Globals.mainView,
@@ -45,16 +42,23 @@ def NotifyUIAsync(message, logger=logging.info, **keys):
                                                    message, **keys)
 
 class IMAPException(common.MailException):
+    """Base class for all Chandler IMAP based exceptions"""
     pass
 
 class ChandlerIMAP4Client(imap4.IMAP4Client, policies.TimeoutMixin):
 
-    timeout = 40 #seconds
+    """The number of seconds before calling C{self.timeout}"""
+    timeout = 25 #seconds
 
     def __init__(self, contextFactory=None):
         imap4.IMAP4Client.__init__(self, contextFactory)
 
     def timeoutConnection(self):
+        """Called by C{policies.TimeoutMixin} base class.
+           If the connection is not Done the method will
+           errbacki a C{IMAPException}
+        """
+
         if __debug__:
            self.factory.log.info("timeoutConnection method called")
 
@@ -63,10 +67,16 @@ class ChandlerIMAP4Client(imap4.IMAP4Client, policies.TimeoutMixin):
             self.factory.deferred.errback(exc)
 
     def connectionMade(self):
+        """Sets the timeout timer then calls
+           C{twisted.mail.imap4.IMAP4Client.connectionMade}
+        """
         self.setTimeout(self.timeout)
         imap4.IMAP4Client.connectionMade(self)
 
     def sendLine(self, line):
+        """Resets the timeout timer then calls
+           C{twisted.mail.imap4.IMAP4Client.sendLine}
+        """
         self.resetTimeout()
 
         """This method utilized for debugging SSL IMAP4 Communications"""
@@ -76,6 +86,9 @@ class ChandlerIMAP4Client(imap4.IMAP4Client, policies.TimeoutMixin):
         imap4.IMAP4Client.sendLine(self, line)
 
     def lineReceived(self, line):
+        """Resets the timeout timer then calls
+           C{twisted.mail.imap4.IMAP4Client.lineReceived}
+        """
         self.resetTimeout()
 
         """This method utilized for debugging SSL IMAP4 Communications"""

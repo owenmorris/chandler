@@ -73,9 +73,25 @@ def emailAddressesAreEqual(emailAddressOne, emailAddressTwo):
     return emailAddressOne.lower() == emailAddressTwo.lower()
 
 def dateTimeToRFC2882Date(dateTime):
+    """Converts a C{mx.DateTime} objedt ot a
+       RFC2882 Date String
+
+       @param dateTime: a C{mx.DateTime} instance
+       @type dateTime: C{mx.DateTime}
+
+       @return: RFC2882 Date String
+    """
     return Utils.formatdate(dateTime.ticks(), True)
 
 def format_addr(emailAddress):
+    """Formats a sting version of a Chandler EmailAddress instance
+       @param emailAddress: A Chandler EmailAddress instance
+       @type emailAddress: C{Mail.EmailAddress}
+
+       @return: String in the format 'Name <EmailAddress>' if the
+                emailAddress has a name associated of 'EmailAddress'
+                otherwise.
+    """
     if not isinstance(emailAddress, Mail.EmailAddress):
         return None
 
@@ -85,6 +101,8 @@ def format_addr(emailAddress):
     return emailAddress.emailAddress
 
 def createMessageID():
+    """Creates a unique message id
+       @return: String containing the unique message id"""
     return Utils.make_msgid()
 
 def hasValue(value):
@@ -105,6 +123,12 @@ def hasValue(value):
     return False
 
 def isPlainTextContentType(contentType):
+    """Determines if the content-type is 'text/plain'
+       @param contentType: content type string
+       @type contentType: C{str}
+
+       @return bool: True if content-type='text/plain'
+    """
     if __isString(contentType):
         contentType = contentType.lower().strip()
 
@@ -114,12 +138,14 @@ def isPlainTextContentType(contentType):
     return False
 
 def createChandlerHeader(postfix):
+    """Creates a chandler header with postfix provided"""
     if not hasValue(postfix):
         return None
 
     return common.CHANDLER_HEADER_PREFIX + postfix
 
 def isChandlerHeader(header):
+    """Returns true if the header is Chandler defined header"""
     if not hasValue(header):
         return False
 
@@ -354,6 +380,7 @@ def kindToMessageText(mailMessage):
 
 
 def strToText(contentItem, attribute, string):
+    """Converts a C{str} to C{Text}"""
     if not __isString(string):
         return None
 
@@ -362,6 +389,7 @@ def strToText(contentItem, attribute, string):
 
 
 def textToStr(text):
+    """Converts a C{Text} to a C{str}"""
     if not isinstance(text, XMLRepositoryView.XMLText):
         return False
 
@@ -372,6 +400,7 @@ def textToStr(text):
     return string
 
 def getMailMessage(UUID):
+    """Returns a C{MailMessage} from its C{UUID}"""
     if not isinstance(UUID, UUID.UUID):
         return None
 

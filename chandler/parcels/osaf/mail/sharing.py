@@ -52,22 +52,40 @@ def receivedInvitation(url, collectionName, fromAddress):
 
 
 def sendInvitation(url, collectionName, sendToList):
+    """Sends a sharing invitation via SMTP to a list of recipients
+
+       @param url: The url to share
+       @type url: C{str}
+
+       @param collectionName: The name of the collection
+       @type collectionName: C{str}
+
+       @param sendToList: List of email addresses to invite
+       @type: C{list}
+    """
     SMTPInvitationSender(url, collectionName, sendToList).sendInvitation()
 
 def NotifyUIAsync(message, **keys):
+    """Temp method for posting a event to the CPIA layer. This
+       method will be refactored soon"""
     if Globals.wxApplication is not None: # test framework has no wxApplication
         Globals.wxApplication.CallItemMethodAsync(Globals.mainView,
                                                   'setStatusMessage',
                                                    message, **keys)
 
 class SharingConstants(object):
+    """Contants used by the sharing code"""
     SHARING_HEADER  = "Sharing-URL"
     SHARING_DIVIDER = ";"
 
 class SharingException(Exception):
+    """Base class for all Chqndler Sharing related exceptions"""
     pass
 
 class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
+    """Sends an invitation via SMTP. Use the osaf.mail.sharing.sendInvitation
+       method do not call this class directly"""
+
     def __init__(self, url, collectionName, sendToList, account=None):
         if account is not None and not account.isItemOf(Mail.MailParcel.getSMTPAccountKind()):
             raise SharingException("You must pass a SMTPAccount instance")
@@ -142,8 +160,10 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
         finally:
             self.restorePreviousView()
 
-        self.factory = smtp.ChandlerESMTPSenderFactory(username, password, self.from_addr, self.sendToList, msg, d,
-                                                       retries, sslContext, heloFallback, authRequired, useSSL, useSSL)
+        self.factory = smtp.ChandlerESMTPSenderFactory(username, password, self.from_addr,
+                                                       self.sendToList, msg, d, retries,
+                                                       sslContext, heloFallback, authRequired, 
+                                                       useSSL, useSSL)
 
         reactor.connectTCP(host, port, self.factory)
 
