@@ -160,7 +160,9 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         items = []
         nextDate = date + DateTime.RelativeDateTime(days=1)
         for item in self.contents:
-            if ((item.startTime >= date) and (item.startTime < nextDate)):
+            if ((item.startTime >= date) and
+                (item.startTime < nextDate) and
+                item.duration):
                 items.append(item)
         return items
 
