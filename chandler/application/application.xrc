@@ -2,12 +2,17 @@
 
 <resource version="2.4.0.0">
 
+    <!-- XRC encodes wxWindows user-interface objects in XML. For an introduction to XRC
+      see tech note 14, in the wxPython source tree located at wxPython/docs/tech/tn0014.txt -->
+      
     <object class="wxFrame" subclass="application.ChandlerWindow.wxChandlerWindow" name="ChandlerWindow">
         <size>100,50</size>
         <title>Chandler</title>
         <style>wxDEFAULT_FRAME_STYLE|wxNO_FULL_REPAINT_ON_RESIZE</style>
-        <object class="wxBoxSizer">
+ 
+       <object class="wxBoxSizer">
             <orient>wxVERTICAL</orient>
+
             <object class="sizeritem">
                 <flag>wxGROW</flag>
                 <border>1</border>
@@ -45,31 +50,25 @@
                     </object>
                 </object>
             </object>
+
             <object class="sizeritem">
                 <option>1</option>
                 <flag>wxALIGN_CENTRE|wxALL|wxEXPAND</flag>
                 <border>0</border>
-                <object class="wxBoxSizer">
-                    <orient>wxHORIZONTAL</orient>
-                    <object class="sizeritem">
-                        <flag>wxEAST|wxWEST|wxEXPAND</flag>
-                        <border>2</border>
-                        <object class="wxTreeCtrl" subclass="application.SideBar.wxSideBar" name="SideBar">
-                            <size>140,10</size>
-                            <style>wxSUNKEN_BORDER|wxTR_DEFAULT_STYLE|wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|
-                                   wxTR_NO_LINES|wxTR_FULL_ROW_HIGHLIGHT</style>
-                        </object>
+                <object class="wxSplitterWindow" name="SplitterWindow">
+                    <orientation>vertical</orientation>
+                    <style>wxSP_LIVE_UPDATE</style>
+                    <sashpos>140</sashpos>
+                    <minsize>5</minsize>
+                    <object class="wxTreeCtrl" subclass="application.SideBar.wxSideBar" name="SideBar">
+                        <style>wxSUNKEN_BORDER|wxTR_DEFAULT_STYLE|wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|
+                               wxTR_NO_LINES|wxTR_FULL_ROW_HIGHLIGHT</style>
                     </object>
-                    <object class="sizeritem">
-                        <option>1</option>
-                        <flag>wxALL|wxEXPAND</flag>
-                        <border>2</border>
-                        <object class="unknown" name="ViewerParcel">
-                            <size>100,10</size>
-                        </object>
+                    <object class="unknown" name="ViewerParcel">
                     </object>
                 </object>
             </object>
+
         </object>
     </object>
 
@@ -81,6 +80,7 @@
                 <accel>Ctrl+Q</accel>
             </object>
         </object>
+
         <object class="wxMenu" name="EditMenu">
             <label>&amp;Edit</label>
             <object class="wxMenuItem" name="Undo">
@@ -114,6 +114,7 @@
                 <label>Preferences...</label>
             </object>
         </object>
+
         <object class="wxMenu" name="ViewMenu">
             <label>&amp;View</label>
             <object class="wxMenuItem" name="ShowNavigationBar">
@@ -133,6 +134,7 @@
                 <label>Presence Window</label>
             </object>
         </object>
+
         <object class="wxMenu" name="HelpMenu">
             <label>&amp;Help</label>
             <object class="wxMenuItem" name="Help">

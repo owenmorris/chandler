@@ -37,6 +37,7 @@ class ChandlerWindow(Persistent):
         self.size['y'] = -1
         self.size['width'] = -1
         self.size['height'] = -1
+        self.sashSize = -1
         
     def SynchronizeView(self):
         """
@@ -116,7 +117,8 @@ class wxChandlerWindow(wxFrame):
         else:
             self.navigationBar = self.FindWindowByName("NavigationBar")
         assert (self.navigationBar != None)
-
+        self.splitterWindow = self.FindWindowByName("SplitterWindow")
+        assert (self.splitterWindow != None)
         if __debug__:
             """
               In the debugging version, we add a command key combination that
@@ -138,6 +140,7 @@ class wxChandlerWindow(wxFrame):
         EVT_SIZE(self, self.OnSize)
         EVT_CLOSE(self, self.OnClose)
         EVT_ACTIVATE(self, self.OnActivate)
+        EVT_SPLITTER_SASH_POS_CHANGED(self, XRCID('SplitterWindow'), self.OnSplitterSashChanged)
 
     if __debug__:
         def HasDebugMenu(self):
@@ -194,7 +197,11 @@ class wxChandlerWindow(wxFrame):
         del application.Application.app.association[id(self.model)]
         application.Application.app.model.URLTree.RemoveSideBar(self.model)
         self.Destroy()
-        
+
+    def OnSplitterSashChanged(self, event):
+        self.model.sashSize = event.GetSashPosition ()
+
+
     def MoveOntoScreen(self):
         """
           Check to see if the window location is off screen and moves it onto
@@ -211,7 +218,8 @@ class wxChandlerWindow(wxFrame):
         if self.model.size['x'] < screenSize[0] or \
            self.model.size['y'] < screenSize[1] or \
            self.model.size['x'] + self.model.size['width'] > screenSize[2] or \
-           self.model.size['y'] + self.model.size['height'] > screenSize[3]:
+           self.model.size['y'] + self.model.size['height'] > screenSize[3] or \
+           self.model.sashSize < 0:
             preferences = application.Application.app.model.preferences
             self.SetSize ((preferences.windowSize['width'],
                           preferences.windowSize['height']))
@@ -221,11 +229,14 @@ class wxChandlerWindow(wxFrame):
                            self.model.size['y'],
                            self.model.size['width'],
                            self.model.size['height']))
+            self.splitterWindow.SetSashPosition (self.model.sashSize)
+            
         rect = self.GetRect()
         self.model.size['x'] = rect.GetX()
         self.model.size['y'] = rect.GetY()
         self.model.size['width'] = rect.GetWidth()
         self.model.size['height'] = rect.GetHeight()
+        self.model.sashSize = self.splitterWindow.GetSashPosition ()
 
     # parse a uri to extract the remote address and parcel name
     # returns a tuple of (parcelname, remoteaddresss, localuri)
