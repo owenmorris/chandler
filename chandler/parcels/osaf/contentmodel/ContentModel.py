@@ -11,7 +11,7 @@ from repository.util.Path import Path
 import repository.item.Item as Item
 import repository.item.Query as Query
 import repository.persistence.XMLRepositoryView as XMLRepositoryView
-from mx import DateTime
+import mx.DateTime as DateTime
 import logging
 
 import application.Globals as Globals
@@ -536,9 +536,9 @@ class ContentItem(Item.Item):
         import mail.Mail as Mail
         return Mail.EmailAddress.getCurrentMeEmailAddress ()
 
-    def setStatusText (cls, message):
-        Globals.mainView.setStatusText (message)
-    setStatusText = classmethod (setStatusText)
+    def setStatusMessage (cls, message, *args):
+        Globals.mainView.setStatusMessage (message, *args)
+    setStatusMessage = classmethod (setStatusMessage)
 
 class Project(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):

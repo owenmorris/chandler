@@ -431,7 +431,7 @@ class MainView(View):
           Called when the SMTP Send was successful.
         """
         if mailMessage is not None and mailMessage.isOutbound:
-            self.setStatusMessage (_('mailMessage "%s" sent.') % mailMessage.about)
+            self.setStatusMessage (_('Mail "%s" sent.') % mailMessage.about)
 
     def displaySMTPSendError (self, mailMessage):
         """
