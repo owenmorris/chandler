@@ -64,9 +64,13 @@ def distribute(buildenv):
 
     os.mkdir(distDir)
     
+    if buildenv['os'] == 'posix':
+
+        if buildenv['version'] == 'release':
+            manifestFile = "manifest.linux"
+            handleManifest(buildenv, manifestFile)
 
     if buildenv['os'] == 'win':
-
 
         if buildenv['version'] == 'release':
             manifestFile = "manifest.win"
