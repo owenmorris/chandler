@@ -16,6 +16,7 @@ dependencies = (
                 'zodb',
                 'jabber-py',
                 'pychecker',
+                '4suite',
                )
 
 
