@@ -561,6 +561,7 @@
   </BoxContainer>
   
   <View itemName="MainView">
+        itemClass="OSAF.views.main.MainView.MainView">
     <!-- Menus -->
     <childrenBlocks itemref="doc:FileMenu"/>
     <childrenBlocks itemref="doc:QuitItem"/>
