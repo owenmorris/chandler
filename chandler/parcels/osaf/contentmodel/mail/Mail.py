@@ -294,7 +294,9 @@ class SMTPDelivery(MailDeliveryBase):
         self.tries += 1
 
         # announce to the UI thread that an error occurred
-        self.announceSMTPSendError (self.mailMessage.itsUUID)
+        Globals.wxApplication.CallItemMethodAsync (Globals.mainView,
+                                                   'displaySMTPSendError',
+                                                   self.mailMessage)
 
     #XXX: See comments above
     def sendSucceeded(self):
@@ -306,33 +308,9 @@ class SMTPDelivery(MailDeliveryBase):
         self.tries += 1
 
         # announce to the UI thread that an error occurred
-        self.announceSMTPSendSuccess (self.mailMessage.itsUUID)
-
-    def announceSMTPSendError (cls, uuid):
-        """ 
-          Call this method to announce that an SMTP sending error has
-        occurred. This method is non-blocking.
-        Called from the Twisted thread.
-        """
-    
-        def _announceSMTPSendError (uuid):
-            # post a Chandler event to get back to the UI Thread
-            ContentModel.ContentItem.messageMainView ('displaySMTPSendError', uuid)
-    
-        # post an application event to call above
-        Globals.wxApplication.PostAsyncEvent(_announceSMTPSendError, uuid)
-    announceSMTPSendError = classmethod (announceSMTPSendError)
-
-    def announceSMTPSendSuccess (cls, uuid):
-        """ Call this method to announce that SMTP sending was
-            a success. This method is non-blocking. """
-    
-        def _announceSMTPSendSuccess (uuid):
-            # post a Chandler event to get back to the UI Thread
-            ContentModel.ContentItem.messageMainView ('displaySMTPSendSuccess', uuid)
-    
-        Globals.wxApplication.PostAsyncEvent(_announceSMTPSendSuccess, uuid)
-    announceSMTPSendSuccess = classmethod (announceSMTPSendSuccess)
+        Globals.wxApplication.CallItemMethodAsync (Globals.mainView,
+                                                   'displaySMTPSendSuccess',
+                                                   self.mailMessage)
 
 
 class IMAPDelivery(MailDeliveryBase):

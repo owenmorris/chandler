@@ -11,6 +11,7 @@ from repository.util.UUID import UUID
 import application.Parcel
 from repository.persistence.XMLRepository import XMLRepository
 from crypto import Crypto
+import logging as logging
 
 #@@@Temporary testing tool written by Morgen -- DJA
 import tools.timing
@@ -111,7 +112,6 @@ class MainFrame(wx.Frame):
             Globals.mainView.size.height = self.GetSize().y
             Globals.mainView.setDirty(Globals.mainView.VDIRTY, 'size')   # Temporary repository hack -- DJA
         event.Skip()
-
 
 class wxApplication (wx.App):
     """
@@ -489,6 +489,63 @@ class wxApplication (wx.App):
         wx.PostEvent(self, evt)
         return evt.lock
 
+    def _DispatchItemMethod (self, transportItem, methodName, transportArgs, keyArgs):
+        """
+          Private dispatcher for a method call on an item done between threads.
+        See CallItemMethodAsync() below for calling details.
+        Does a repository commit to get the changes across from the other thread.
+        """
+        Globals.repository.commit () # bring changes across from the other thread/view
+
+        # unwrap the target item and find the method to call
+        item = transportItem.unwrap ()
+        try:
+            member = getattr (type(item), methodName)
+        except AttributeError:
+            logging.warning ("CallItemMethodAsync couldn't find method %s on item %s" % (methodName, str (item)))
+            return
+
+        # unwrap the transportArgs
+        args = []
+        for wrapper in transportArgs:
+            args.append (wrapper.unwrap())
+
+        # unwrap the keyword args
+        for key, wrapper in keyArgs.items():
+            keyArgs[key] = wrapper.unwrap()
+
+        # call the member with params
+        member (item, *args, **keyArgs)
+
+    def CallItemMethodAsync (self, item, methodName, *args, **keyArgs):
+        """
+          Post an asynchronous event that will call a method by name in an item.
+        Communication between threads is tricky.  This method will convert
+        all parameters into UUIDs for transport during the event posting,
+        and they will be converted back to items when the event is received.
+        However you will have to do a commits in the non-UI thread for the data
+        to pass across smoothly.  The UI thread will do a commit to get
+        the changes on its side.  
+        Also, items that are not simple arguments or keyword arguments will 
+        not be converted to/from UUID.
+        @param item: an C{Item} whose method we wish to call
+        @type item: C{Item}
+        @param methodName: the name of the method to call
+        @type methodName: C{String}
+        All other args are passed across to the other thread.
+        """
+        # convert the item whose method we're calling
+        transportItem = TransportWrapper (item)
+        # convert all the arg items
+        transportArgs = []
+        for anItem in args:
+            transportArgs.append (TransportWrapper (anItem))
+        # convert all dictionary items
+        for key,value in keyArgs.items():
+            keyArgs[key] = TransportWrapper (value)
+        Globals.wxApplication.PostAsyncEvent (self._DispatchItemMethod, transportItem, 
+                                              methodName, transportArgs, keyArgs)
+
     def ShowDebuggerWindow(self):
         import wx.py
         rootObjects = {
@@ -502,3 +559,36 @@ class wxApplication (wx.App):
          rootLabel="Chandler")
         self.crustFrame.SetSize((700,700))
         self.crustFrame.Show(True)
+
+class TransportWrapper (object):
+    """
+      Wrapper class for items sent between threads by
+    CallItemMethodAsync() in wxApplication.
+    Simply wraps any object with this class.  If the 
+    object was an Item, we remember its UUID and
+    use that to get back the right item on in the
+    other thread/view.
+    """
+    def __init__ (self, possibleItem):
+        """
+          Construct a TrasportWrapper from an object.
+        """
+        try:
+            self.itemUUID = possibleItem.itsUUID
+        except AttributeError:
+            self.nonItem = possibleItem
+
+    def unwrap (self):
+        """
+          Unwrap the original object, using the UUID
+        if the original was an Item.
+        """
+        try:
+            theUUID = self.itemUUID
+        except AttributeError:
+            return self.nonItem
+        else:
+            repView = Globals.mainView
+            item = repView.findUUID (theUUID)
+            return item
+        

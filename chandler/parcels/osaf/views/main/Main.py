@@ -42,7 +42,7 @@ class MainView(View):
         Globals.wxApplication.mainFrame.Close ()
 
     def onUndoEventUpdateUI (self, notification):
-        notification.data ['Text'] = "Can't Undo\tCtrl+Z"
+        notification.data ['Text'] = _("Can't Undo\tCtrl+Z")
         notification.data ['Enable'] = False
 
     def onRedoEventUpdateUI (self, notification):
@@ -71,61 +71,15 @@ class MainView(View):
         # if the "me" address was changed by editing, we'll start using a new one.
         Mail.EmailAddress.releaseCurrentMeEmailAddress()
 
-    def onEditMailAccountEvent (self, notification):
-        # @@@ Deprecated, replaced by onEditAccountPreferencesEvent, above
-
-        account = \
-         Globals.repository.findPath('//parcels/osaf/mail/IMAPAccountOne')
-        if application.dialogs.Util.promptForItemValues(
-         Globals.wxApplication.mainFrame,
-         "IMAP Account",
-         account,
-         [
-           { "attr":"host", "label":"IMAP Server" },
-           { "attr":"username", "label":"Username" },
-           { "attr":"password", "label":"Password", "password":True },
-         ]
-        ):
-            try:
-                self.RepositoryCommitWithStatus ()
-            except VersionConflictError, e:
-                # A first experiment with resolving conflicts.  Not sure
-                # yet where the logic for handling this should live.  Could
-                # be here, could be handled by the conflicting item itself(?).
-
-                # Retrieve the conflicting item
-                conflict = e.getItem()
-                itemPath = conflict.itsPath
-                host = conflict.host
-                username = conflict.username
-                password = conflict.password
-                print "Got a conflict with item:", itemPath
-                # The conflict item has *our* values in it; to see the
-                # values that were committed by the other thread, we need
-                # to cancel our transaction, commit, and refetch the item.
-                Globals.repository.cancel()
-                # Get the latest items committed from other threads
-                Globals.repository.commit()
-                # Refetch item
-                account = Globals.repository.findPath(itemPath)
-                # To resolve this conflict we're going to simply reapply the 
-                # values that were set in the dialog box.
-                account.host = host
-                account.username = username
-                account.password = password
-                Globals.repository.commit()
-                # Note: this commit, too, could get a conflict I suppose, so
-                # do we need to put this sort of conflict resolution in a loop?
-                print "Conflict resolved"
-
-
     def onGetNewMailEvent (self, notification):
+        # Triggered from "Test | Get Mail" menu
         account = \
          Globals.repository.findPath('//parcels/osaf/mail/IMAPAccountOne')
         IMAPDownloader (account).getMail()
 
     def onNewEvent (self, notification):
-        # create a new content item
+        # Create a new Content Item
+        # Triggered from "File | New Item" menu, for any of the item kinds.
         event = notification.event
         newItem = event.kindParameter.newItem (None, self)
         newItem.InitOutgoingAttributes ()
@@ -143,6 +97,7 @@ class MainView(View):
         args['itemName'] = 'AllTableView'
         contactKind = Contacts.ContactsParcel.getContactKind ()
         if newItem.isItemOf (contactKind):
+            # go to Contacts for a new Contact
             args['itemName'] = 'ContactTableView'
         self.Post(requestSelectSidebarItem, args)
 
@@ -156,7 +111,8 @@ class MainView(View):
 
     # Test Methods
 
-    def onGenerateContentItemsEvent(self, notification): 
+    def onGenerateContentItemsEvent(self, notification):
+        # triggered from "Test | Generate Content Items" Menu
         GenerateItems.GenerateNotes(2) 
         GenerateItems.generateCalendarEventItems(2, 30) 
         GenerateItems.GenerateContacts(2) 
@@ -178,28 +134,35 @@ class MainView(View):
         Globals.repository.commit()
 
     def onCheckRepositoryEvent(self, notification):
-
+        # triggered from "Test | Check Repository" Menu
         repository = Globals.repository
-        repository.logger.info('Checking repository...')
-        self.setStatusText ('Checking repository...')
+        checkingMessage = _('Checking repository...')
+        repository.logger.info(checkingMessage)
+        self.setStatusText (checkingMessage)
         if repository.check():
-            repository.logger.info('Check completed successfully')
-            self.setStatusText ('Check completed successfully')
+            successMessage = _('Check completed successfully')
+            repository.logger.info (successMessage)
+            self.setStatusText (successMessage)
         else:
-            repository.logger.info('Check completed with errors')
-            self.setStatusText ('Check completed with errors')
+            errorMessage = _('Check completed with errors')
+            repository.logger.info (errorMessage)
+            self.setStatusText (errorMessage)
 
     def onShowPyCrustEvent(self, notification):
+        # Test menu item
         Globals.wxApplication.ShowDebuggerWindow()
 
     def onReloadParcelsEvent(self, notification):
+        # Test menu item
         ParcelManager.getManager().loadParcels()
         self.rerender ()
 
     def onCommitRepositoryEvent(self, notification):
+        # Test menu item
         self.RepositoryCommitWithStatus ()
 
     def onAboutChandlerEvent(self, notification):
+        # The "Help | About Chandler..." menu item
         """
           Show the splash screen in response to the about command
         """
@@ -244,10 +207,10 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
         notification.data ['Enable'] = collection is not None
         if collection:
-            menuTitle = 'Share collection "%s"' \
+            menuTitle = _('Share collection "%s"') \
                     % collection.displayName
         else:
-            menuTitle = 'Share a collection'
+            menuTitle = _('Share a collection')
         notification.data ['Text'] = menuTitle
 
     def onSyncCollectionEvent (self, notification):
@@ -262,32 +225,33 @@ class MainView(View):
         """
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            menuTitle = 'Sync collection "%s"' % collection.displayName
+            menuTitle = _('Sync collection "%s"') % collection.displayName
             if Sharing.isShared(collection):
                 notification.data['Enable'] = True
             else:
                 notification.data['Enable'] = False
         else:
             notification.data['Enable'] = False
-            menuTitle = 'Sync a collection'
+            menuTitle = _('Sync a collection')
         notification.data ['Text'] = menuTitle
 
     def onSyncWebDAVEvent (self, notification):
         """
           Synchronize WebDAV sharing.
+        The "File | Sync | WebDAV" menu item
         """
         # find all the shared collections and sync them.
-        self.setStatusText ("checking shared collections")
+        self.setStatusText (_("checking shared collections"))
         collections = self.sharedWebDAVCollections ()
         if len (collections) == 0:
-            self.setStatusText ("No shared collections found")
+            self.setStatusText (_("No shared collections found"))
             return
         for collection in collections:
-            self.setStatusText ("synchronizing %s" % collection)
+            self.setStatusText (_("synchronizing %s") % collection)
             Sharing.syncCollection(collection)
 
         # synch mail
-        self.setStatusText ("Sharing synchronized.")
+        self.setStatusText (_("Sharing synchronized."))
 
     def onSyncWebDAVEventUpdateUI (self, notification):
         accountOK = self.webDAVAccountIsSetup ()
@@ -324,12 +288,13 @@ class MainView(View):
     def onSyncAllEvent (self, notification):
         """
           Synchronize Mail and all sharing.
+        The "File | Sync | All" menu item
         """
         # find all the shared collections and sync them.
         self.onSyncWebDAVEvent (notification)
 
         # synch mail
-        self.setStatusText ("Getting new Mail")
+        self.setStatusText (_("Getting new Mail"))
         self.onGetNewMailEvent (notification)
 
     def onShareOrManageEvent (self, notification):
@@ -339,6 +304,7 @@ class MainView(View):
         In either case, the real work here is to tell the summary
         view to deselect, and the detail view that the selection has
         changed to the entire summary view's collection.
+        The "Collection | Share collection " menu item
         """
         # lookup the Request Select Event
         rootPath = '//parcels/osaf/framework/blocks/Events/'
@@ -361,35 +327,20 @@ class MainView(View):
         if accountOK and collection is not None:
             notification.data['Enable'] = True
             if Sharing.isShared (collection):
-                menuTitle = 'Manage collection "%s"' % collection.displayName
+                menuTitle = _('Manage collection "%s"') % collection.displayName
             else:
-                menuTitle = 'Share collection "%s"' % collection.displayName
+                menuTitle = _('Share collection "%s"') % collection.displayName
         else:
             notification.data['Enable'] = False
-            menuTitle = 'Share a collection'
+            menuTitle = _('Share a collection')
         notification.data ['Text'] = menuTitle
 
     def setStatusText (self, statusMessage):
+        """
+          Display a text status message.
+        Uses the status bar in the main frame.
+        """
         Globals.wxApplication.mainFrame.SetStatusText (statusMessage)
-
-    def onMessageMainViewEvent (self, notification):
-        """
-          Handler for general message to call one of my methods.
-        Used by ContentModel when it wants to call a method here,
-        e.g. setStatusText.
-        """
-        # unpack the arguments
-        data = notification.data
-        args = data['__args']
-        keys = data['__keys']
-        methodName = data['__methodName']
-        # look up the method by name
-        try:
-            member = getattr (type(self), methodName)
-        except AttributeError:
-            return
-        # call the method with params
-        member (self, *args, **keys)
 
     def SharingInvitees (self, itemCollection):
         # return the list of sharing invitees
@@ -411,19 +362,22 @@ class MainView(View):
             if path:
                 url = "%s/%s" % (path, itemCollection.itsUUID)
             else:
-                self.setStatusText ("You need to set up the server and path in the account dialog!")
+                self.setStatusText (_("You need to set up the server and path in the account dialog!"))
                 return
             url = url.encode ('utf-8')
         return url
 
     def SendSharingInvitations (self, itemCollection, url):
+        """
+          Send Sharing invitations to all invitees.
+        """
         inviteeStringsList = self.SharingInvitees (itemCollection)
         MailSharing.sendInvitation(url, itemCollection.displayName, inviteeStringsList)
 
     def onResendSharingInvitations (self, notification):
         """
           Resend the sharing invitations for the selected collection.
-        This is a Test menu item handler.
+        The "Test | Resend Sharing Invitations" menu item
         """
         itemCollection = self.getSidebarSelectedCollection ()
         url = self.SharingURL (itemCollection)
@@ -435,59 +389,52 @@ class MainView(View):
         notification.data ['Enable'] = isShared
 
     def ShareCollection (self, itemCollection):
+        """
+          Share an ItemCollection.
+        Called by ItemCollection.shareSend(), when the Notify button
+        is pressed in the itemCollection's Detail View.
+        """
         # commit changes, since we'll be switching to Twisted thread
         self.RepositoryCommitWithStatus()
 
         # show status
-        self.setStatusText ("Sharing collection %s" % itemCollection.displayName)
+        self.setStatusText (_("Sharing collection %s") % itemCollection.displayName)
     
         # check that it's not already shared, and we have the sharing account set up.
         url = self.SharingURL (itemCollection)
 
         # build list of invitees.
         if len (self.SharingInvitees (itemCollection)) == 0:
-            self.setStatusText ("No sharees!")
+            self.setStatusText (_("No sharees!"))
             return
 
         # change the name to include "Shared"
         if not "Shared" in itemCollection.displayName:
-            itemCollection.displayName = "%s (Shared)" % itemCollection.displayName
+            itemCollection.displayName = _("%s (Shared)") % itemCollection.displayName
 
         # Sync the collection with WebDAV
-        self.setStatusText ("accessing WebDAV server")
+        self.setStatusText (_("accessing WebDAV server"))
         Dav.DAV(url).put(itemCollection)
 
         # Send out sharing invites
         inviteeStringsList = self.SharingInvitees (itemCollection)
-        self.setStatusText ("inviting %s" % inviteeStringsList)
+        self.setStatusText (_("inviting %s") % inviteeStringsList)
         self.SendSharingInvitations (itemCollection, url)
 
-        # set the isShared attribute on the collection, so queries can find them
-        itemCollection.isShared = True
-
         # Done
-        self.setStatusText ("Sharing initiated.")
+        self.setStatusText (_("Sharing initiated."))
 
-    def displaySMTPSendSuccess (self, mailMessageUUID):
+    def displaySMTPSendSuccess (self, mailMessage):
         """
           Called when the SMTP Send was successful.
         """
-        mailMessageKind = Mail.MailParcel.getMailMessageKind ()
-        mailMessage = mailMessageKind.findUUID(mailMessageUUID)
-    
         if mailMessage is not None and mailMessage.isOutbound:
-            self.setStatusText ('mailMessage "%s" sent.' % mailMessage.about)
+            self.setStatusText (_('mailMessage "%s" sent.') % mailMessage.about)
 
-    def displaySMTPSendError (self, mailMessageUUID):
+    def displaySMTPSendError (self, mailMessage):
         """
           Called when the SMTP Send generated an error.
         """
-        Globals.repository.commit () # bring changes across from the other thread/view
-
-        # Lookup the message
-        mailMessageKind = Mail.MailParcel.getMailMessageKind ()
-        mailMessage = mailMessageKind.findUUID(mailMessageUUID)
-    
         if mailMessage is not None and mailMessage.isOutbound:
             """DLDTBD - Select the message in CPIA"""
     
@@ -497,21 +444,24 @@ class MainView(View):
                  errorStrings.append(error.errorString)
    
             if len (errorStrings) == 0:
-                errorMessage = "An unknown error occurred."
+                errorMessage = _("An unknown error occurred.")
             else:
                 if len (errorStrings) == 1:
-                    str = "error"
+                    str = _("error")
                 else:
-                    str = "errors"
+                    str = _("errors")
    
-                errorMessage = "The following %s occurred. %s" % (str, ', '.join(errorStrings))
+                errorMessage = _("The following %s occurred. %s") % (str, ', '.join(errorStrings))
                 errorMessage = errorMessage.encode ('utf-8')
             self.setStatusText (errorMessage)
             application.dialogs.Util.showAlert(Globals.wxApplication.mainFrame, errorMessage)
             self.setStatusText ('')
         
     def RepositoryCommitWithStatus (self):
-        self.setStatusText ("committing changes to the repository...")
+        """
+          Do a repository commit with notice posted in the Status bar.
+        """
+        self.setStatusText (_("committing changes to the repository..."))
         Globals.repository.commit()
         self.setStatusText ('')
 

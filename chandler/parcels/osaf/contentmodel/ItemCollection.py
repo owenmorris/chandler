@@ -159,7 +159,7 @@ class ItemCollection(ContentModel.ContentItem):
         self.getRepositoryView().findPath('//parcels/osaf/contentmodel/collection_changed').Post( {'collection' : self.itsUUID} )
 
     def shareSend (self):
-        self.messageMainView ('ShareCollection', self) # ==> MainView.ShareCollection (self)
+        Globals.mainView.ShareCollection (self) # mainView shares the collection showing progress
 
 class NamedCollection(ItemCollection):
     def __init__(self, name=None, parent=None, kind=None):
