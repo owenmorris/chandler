@@ -65,5 +65,5 @@ class TextQuery(Query):
 
     def run(self, repository):
 
-        for pair in repository.searchItems(expression):
+        for pair in repository.searchItems(self.expression):
             yield pair
