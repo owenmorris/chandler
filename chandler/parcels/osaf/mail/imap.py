@@ -21,14 +21,32 @@ import repository.util.UUID as UUID
 import common as common
 import repository.item.Query as Query
 
-#XXX: Need to make sure all the flags are in place to prevent a non-ssl session if 
-#     ssl required
+"""
+   twisted.IMAP4Client Exceptions:
+      1. IMAP4Exception
+      2. IllegalServerResponse
+      3. SSL?
+"""
 
 class ChandlerIMAP4Client(imap4.IMAP4Client):
 
     def __init__(self, contextFactory=None, useSSL=False):
         imap4.IMAP4Client.__init__(self, contextFactory)
         self.useSSL = useSSL
+
+    def sendLine(self, line):
+        """This method utilized for debugging SSL IMAP4 Communications"""
+        if __debug__ and self.useSSL:
+            self.factory.log.info(">>> %s" % line)
+
+        imap4.IMAP4Client.sendLine(self, line)
+
+    def lineReceived(self, line):
+        """This method utilized for debugging SSL IMAP4 Communications"""
+        if __debug__ and self.useSSL:
+            self.factory.log.info("<<< %s" % line)
+
+        imap4.IMAP4Client.lineReceived(self, line)
 
     def serverGreeting(self, caps):
         """
@@ -53,7 +71,7 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
 class ChandlerIMAP4Factory(protocol.ClientFactory):
     protocol = ChandlerIMAP4Client
 
-    def __init__(self, deferred, useSSL=False):
+    def __init__(self, deferred, log, useSSL=False):
         """
         A C{protocol.ClientFactory} that creates C{ChandlerIMAP4Client} instances
         and stores the callback and errback to be used by the C{ChandlerIMAP4Client} instances
@@ -61,13 +79,22 @@ class ChandlerIMAP4Factory(protocol.ClientFactory):
         @param: deferred: A C{defer.Deferred} to callback when connected to the IMAP server 
                           and errback if no connection or command failed
         @type deferred: C{defer.Deferred}
+
+        @param: log: A log instance
+        @type log: C{}
+
+        @param: useSSL: A boolean to indicate whether to run in SSL mode
+        @type useSSL: C{boolean}
+
         @return: C{None}
         """
+        print "Log ", type(log)
 
         if not isinstance(deferred, defer.Deferred):
             raise IMAPException("deferred must be a defer.Deferred instance")
 
         self.deferred = deferred
+        self.log = log
         self.useSSL = useSSL
 
     def buildProtocol(self, addr):
@@ -150,7 +177,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         d.addCallback(self.loginClient)
         d.addErrback(self.catchErrors)
 
-        factory = ChandlerIMAP4Factory(d, useSSL)
+        factory = ChandlerIMAP4Factory(d, self.log, useSSL)
 
         if useSSL:
             reactor.connectSSL(host, port, factory, ssl.ClientContextFactory(useM2=1))
@@ -317,7 +344,8 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
             totalDownloaded = 0
             foundInvitation = False
             sharingInvitations = {}
-            sharingHeader = sharing.getChandlerSharingHeader() 
+            sharingHeader = sharing.getChandlerSharingHeader()
+            div = sharing.SharingConstants.SHARING_DIVIDER
 
             for msg in msgs:
 
@@ -327,7 +355,9 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
                 messageObject = email.message_from_string(messageText)
 
                 if messageObject[sharingHeader] is not None:
-                    sharingInvitations[uid] = messageObject[sharingHeader]
+                    url, collectionName = messageObject[sharingHeader].split(div)
+                    fromAddress = messageObject['From']
+                    sharingInvitations[uid] = (url, collectionName, fromAddress)
                     foundInvitation = True
                     continue
 
@@ -379,11 +409,13 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
         return self.proto.expunge()
 
-    def _processSharingRequests(self, result, urls):
+    def _processSharingRequests(self, result, invites):
         if __debug__:
             self.printCurrentView("_processSharingRequests")
 
-        sharing.receivedInvitation(urls)
+        for invite in invites:
+            url, collectionName, fromAddress = invite
+            sharing.receivedInvitation(url, collectionName, fromAddress)
 
     def __getLastUID(self):
         return self.account.messageDownloadSequence

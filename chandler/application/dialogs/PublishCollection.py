@@ -66,7 +66,8 @@ class PublishCollectionDialog(wx.Dialog):
         osaf.framework.webdav.Dav.DAV(url).put(self.collection)
 
         if invitees:
-            osaf.mail.sharing.sendInvitation(url, invitees)
+            osaf.mail.sharing.sendInvitation(url, self.collection.displayName,
+             invitees)
 
         self.EndModal(True)
 

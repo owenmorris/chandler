@@ -22,46 +22,58 @@ except ImportError:
     from StringIO import StringIO
 
 
-def receivedInvitation(url):
+def receivedInvitation(url, collectionName, fromAddress):
     """
        Calls osaf.framework.sharing.anounceSharingUrl.
-       If url is a C{list} will call the above method
-       for each URL in the C{list} otherwise will call
-       the above methodf with the url C{str} passed in.
 
-       @param url: The invitation url or a list of invitation url's
-       @type: C: {str} or C{list} of C{str}'s
+       @param url: The url to share
+       @type url: C{str}
+
+       @param collectionName: The name of the collection
+       @type collectionName: C{str}
+
+       @param fromAddress: The email address of the person sending the invite
+       @type: C{str} or C{EmailAddress}
     """
 
-    if isinstance(url, list):
-       for u in url:
-           if not isinstance(u, str):
-               raise SharingException("URL List contains a value that is not a String")
+    if not isinstance(url, str):
+        raise SharingException("URL must be a String")
 
-           chandlerSharing.Sharing.announceSharingUrl(u)
+    if not isinstance(collectionName, str):
+        raise SharingException("collectionName must be a String")
 
-    elif isinstance(url, str):
-        chandlerSharing.Sharing.announceSharingUrl(url)
+    if isinstance(fromAddress, Mail.EmailAddress):
+        fromAddress = message.format_addr(fromAddress)
 
-    else:
-        raise SharingException("URL must be a list of Strings or a String")
+    elif not isinstance(fromAddress, str):
+        raise SharingException("fromAddress must be a String or a Mail.EmailAddress")
 
-def sendInvitation(url, sendToList):
-    SMTPInvitationSender(url, sendToList).sendInvitation()
+    chandlerSharing.Sharing.announceSharingInvitation(url, collectionName, fromAddress)
+
+
+def sendInvitation(url, collectionName, sendToList):
+    SMTPInvitationSender(url, collectionName, sendToList).sendInvitation()
 
 class SharingConstants(object):
-    SHARING_HEADER = "Sharing-URL"
+    SHARING_HEADER  = "Sharing-URL"
+    SHARING_DIVIDER = ";"
 
 class SharingException(Exception):
     pass
 
 class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
-    def __init__(self, url, sendToList, account=None):
+    def __init__(self, url, collectionName, sendToList, account=None):
         if account is not None and not account.isItemOf(Mail.MailParcel.getSMTPAccountKind()):
             raise SharingException("You must pass a SMTPAccount instance")
 
         if not isinstance(url, str):
             raise SharingException("URL must be a String")
+
+        if isinstance(collectionName, unicode):
+            collectionName = str(collectionName)
+
+        elif not isinstance(collectionName, str):
+            raise SharingException("collectionName must be a String or Unicode")
 
         if not isinstance(sendToList, list):
             raise SharingException("sendToList must be of a list of email addresses")
@@ -73,6 +85,7 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
         self.account = None
         self.from_addr = None
         self.url = url
+        self.collectionName = collectionName
         self.sendToList = sendToList
         self.accountUUID = None
 
@@ -138,14 +151,15 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
             for address in result[1]:
                 addrs.append(address[0])
 
-            info = "Sharing invitation %s sent to [%s]" % (self.url, ", ".join(addrs))
+            info = "Sharing invitation (%s: %s) sent to [%s]" % (self.collectionName, self.url, ", ".join(addrs))
             self.log.info(info)
 
         else:
             errorText = []
             for recipient in result[1]:
                 email, code, str = recipient
-                e = "Failed to send invitation | %s | %s | %s | %s |" % (self.url, email, code, str)
+                e = "Failed to send invitation | (%s: %s) | %s | %s | %s |" % (self.collectionName, self.url,
+                                                                               email, code, str)
                 errorText.append(e)
 
             self.log.error('\n'.join(e))
@@ -156,19 +170,22 @@ class SMTPInvitationSender(RepositoryView.AbstractRepositoryViewManager):
         if __debug__:
             self.printCurrentView("__invitationFailure")
 
-        e = "Failed to send invitation | %s | %s |" % (self.url, result.value)
+        e = "Failed to send invitation | (%s: %s) | %s |" % (self.collectionName, self.url, result.value)
         self.log.error(e)
         self.__cleanup()
 
     def __cleanup(self):
         self.account = None
         self.url = None
+        self.collectionName = None
         self.from_addr = None
         self.sendToList = None
 
     def __createMessageText(self):
+        sendStr = "%s%s%s" % (self.url, SharingConstants.SHARING_DIVIDER, self.collectionName)
+
         messageObject = common.getChandlerTransportMessage()
-        messageObject[getChandlerSharingHeader()] = self.url
+        messageObject[getChandlerSharingHeader()] = sendStr
         messageObject['From'] = self.from_addr
         messageObject['To'] = ', '.join(self.sendToList)
         messageObject['Message-ID'] = message.createMessageID()

@@ -21,7 +21,7 @@ def downloadIMAPMail():
 
 
 def sendInvitation():
-    sharing.sendInvitation("http://test.com", ['brian@localhost'])
+    sharing.sendInvitation("http://test.com", "In", ['brian@localhost'])
 
 def sendSMTPMessage():
     account, replyToAddress = smtp.getSMTPAccount()

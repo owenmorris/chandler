@@ -29,6 +29,10 @@ class Parcel(application.Parcel.Parcel):
     def _sharingUpdateCallback(self, notification):
         # When we receive the event, display a dialog
         url = notification.data['share']
+        collectionName = notification.data['name']
+        fromAddress = notification.data['from']
+        print "Received invite from %s; collection '%s' at %s" % (fromAddress,
+         collectionName, url)
         collection = collectionFromSharedUrl(url)
         if collection is not None:
             application.dialogs.Util.showAlert( \
@@ -104,15 +108,17 @@ def collectionFromSharedUrl(url):
 # Non-blocking methods that the mail thread can call to post events to the
 # main thread:
 
-def announceSharingUrl(url):
+def announceSharingInvitation(url, collectionName, fromAddress):
     """ Call this method to announce that an inbound sharing invitation has
         arrived. This method is non-blocking. """
 
-    def _announceSharingUrl(url):
+    def _announceSharingInvitation(url, collectionName, fromAddress):
         event = Globals.parcelManager.lookup(SHARING, 'sharingUpdateEvent')
-        event.Post( { 'share' : url } )
+        event.Post( { 'share' : url, 'name' : collectionName,
+         'from' : fromAddress } )
 
-    Globals.wxApplication.PostAsyncEvent(_announceSharingUrl, url)
+    Globals.wxApplication.PostAsyncEvent(_announceSharingInvitation, url,
+     collectionName, fromAddress)
 
 def announceError(error):
     """ Call this method to announce an error. This method is non-blocking. """
