@@ -6,6 +6,9 @@ __license__ = "OSAF License"
 
 from wxPython.wx import *
 from wxPython.xrc import *
+
+import string
+
 import application.Application
 """Ideally we'd prefer to do a "from application.Application import app", however,
 because Application imports ChandlerWindow (the mutually recursive import problem),
