@@ -10,7 +10,7 @@ from xml.sax import parseString
 from datetime import datetime
 from struct import pack, unpack
 from sys import exc_info
-from threading import currentThread, RLock
+from threading import currentThread
 
 from repository.util.UUID import UUID
 from repository.item.Item import Item
@@ -21,7 +21,7 @@ from repository.persistence.Repository import OnDemandRepository, Store
 from repository.persistence.Repository import OnDemandRepositoryView
 
 from bsddb.db import DBEnv, DB, DBError
-from bsddb.db import DB_CREATE, DB_BTREE, DB_TXN_NOWAIT
+from bsddb.db import DB_CREATE, DB_BTREE, DB_LOCK_WRITE
 from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL
 from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_TXN, DB_DIRTY_READ
 from bsddb.db import DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError
@@ -106,7 +106,7 @@ class XMLRepository(OnDemandRepository):
         txn = None
         
         try:
-            txn = self._env.txn_begin(None, DB_DIRTY_READ | DB_TXN_NOWAIT)
+            txn = self._env.txn_begin(None, DB_DIRTY_READ)
                 
             self._refs = XMLRepository.refContainer(self, "__refs__",
                                                     txn, create)
@@ -333,6 +333,7 @@ class XMLRepository(OnDemandRepository):
 
     class refContainer(dbContainer):
 
+        # has to run within the commit() transaction
         def deleteItem(self, view, item):
 
             cursor = None
@@ -362,25 +363,9 @@ class XMLRepository(OnDemandRepository):
             if create:
                 self._db.put(Repository.ROOT_ID._uuid, pack('>l', ~0), txn)
 
-            self.lock = RLock()
-
         def getVersion(self, view):
 
             return ~unpack('>l', self.get(view, Repository.ROOT_ID._uuid))[0]
-
-        def nextVersion(self, view, noChanges):
-
-            try:
-                self.lock.acquire()
-                version = self.getVersion(view)
-                if not noChanges:
-                    version += 1
-                    self.put(view, Repository.ROOT_ID._uuid,
-                             pack('>l', ~version))
-            finally:
-                self.lock.release()
-
-            return version
 
         def setDocVersion(self, view, uuid, version, docId):
 
@@ -389,8 +374,12 @@ class XMLRepository(OnDemandRepository):
 
         def getDocVersion(self, view, uuid):
 
-            cursor = self.cursor(view)
+            cursor = None
+            txnStarted = False
             try:
+                txnStarted = view._startTransaction()
+                cursor = self.cursor(view)
+                
                 try:
                     key = uuid._uuid
                     value = cursor.set_range(key)
@@ -401,12 +390,19 @@ class XMLRepository(OnDemandRepository):
                         return ~unpack('>l', value[0][16:20])[0]
                     return None
             finally:
-                cursor.close()
+                if cursor:
+                    cursor.close()
+                if txnStarted:
+                    view._abortTransaction()
 
         def getDocId(self, view, uuid, version):
 
-            cursor = self.cursor(view)
+            cursor = None
+            txnStarted = False
             try:
+                txnStarted = view._startTransaction()
+                cursor = self.cursor(view)
+
                 try:
                     key = uuid._uuid
                     value = cursor.set_range(key)
@@ -425,7 +421,10 @@ class XMLRepository(OnDemandRepository):
                     return None
 
             finally:
-                cursor.close()
+                if cursor:
+                    cursor.close()
+                if txnStarted:
+                    view._abortTransaction()
 
         def deleteVersion(self, view, uuid):
 
@@ -442,6 +441,7 @@ class XMLRepository(OnDemandRepository):
             self.put(view, "%s%s" %(pack('>l', version), uuid._uuid),
                      pack('>l', docId))
 
+        # has to run within the commit transaction
         def uuids(self, view, oldVersion, newVersion):
 
             cursor = self.cursor(view)
@@ -543,25 +543,47 @@ class XMLRepositoryView(OnDemandRepositoryView):
         for item in self._log:
             print item.getItemPath()
 
+    def _startTransaction(self):
+
+        if self._txn is None:
+            self._txn = self.repository._env.txn_begin(None, DB_DIRTY_READ)
+            return True
+
+        return False
+
+    def _abortTransaction(self):
+
+        if self._txn is not None:
+            self._txn.abort()
+            self._txn = None
+            return True
+
+        return False
+
     def commit(self):
-        
+
         repository = self.repository
         verbose = repository.verbose
         versions = repository._versions
+        env = repository._env
         history = repository._history
 
         before = datetime.now()
-        count = 0
+        count = len(self._log)
+        lock = None
         
         try:
-            self._txn = repository._env.txn_begin(None, (DB_DIRTY_READ |
-                                                         DB_TXN_NOWAIT))
-            newVersion = versions.nextVersion(self, not self._log)
+            self._txn = repository._env.txn_begin(None, DB_DIRTY_READ)
+
+            newVersion = versions.getVersion(self)
+            if count > 0:
+                lock = env.lock_get(env.lock_id(), Repository.ROOT_ID._uuid,
+                                    DB_LOCK_WRITE)
+                newVersion += 1
+                versions.put(self, Repository.ROOT_ID._uuid,
+                             pack('>l', ~newVersion))
             
-            if self._log:
-                count = len(self._log)
                 store = repository._store
-                                                                     
                 for item in self._log:
                     self._saveItem(item, newVersion, store, versions, history,
                                    verbose)
@@ -570,13 +592,12 @@ class XMLRepositoryView(OnDemandRepositoryView):
             if self._txn:
                 self._txn.abort()
                 self._txn = None
+            if lock:
+                env.lock_put(lock)
+
             raise
 
         else:
-            if self._txn:
-                self._txn.commit()
-                self._txn = None
-
             if self._log:
                 for item in self._log:
                     item._setSaved(newVersion)
@@ -587,17 +608,30 @@ class XMLRepositoryView(OnDemandRepositoryView):
                                                                 newVersion)
 
             if newVersion > self.version:
-                oldVersion = self.version
-                self.version = newVersion
+                try:
+                    oldVersion = self.version
+                    self.version = newVersion
 
-                for uuid in history.uuids(self, oldVersion, newVersion):
-                    item = self._registry.get(uuid)
-                    if item is not None and item._version < newVersion:
-                        if verbose:
-                            print 'unloading version %d of %s' %(item._version,
-                                                                 item.getItemPath())
-                        item._unloadItem()
+                    for uuid in history.uuids(self, oldVersion, newVersion):
+                        item = self._registry.get(uuid)
+                        if item is not None and item._version < newVersion:
+                            if verbose:
+                                print 'unloading version %d of %s' %(item._version,
+                                                                     item.getItemPath())
+                            item._unloadItem()
+                except:
+                    if self._txn:
+                        self._txn.abort()
+                        self._txn = None
+                    raise
             
+            if self._txn:
+                self._txn.commit()
+                self._txn = None
+
+            if lock:
+                env.lock_put(lock)
+
             if count > 0:
                 print 'committed %d items in %s' %(count,
                                                    datetime.now() - before)
@@ -694,8 +728,12 @@ class XMLRefDict(RefDict):
         if key in self._deletedRefs:
             return None
 
-        cursor = view.repository._refs.cursor(view)
+        cursor = None
+        txnStarted = False
         try:
+            txnStarted = view._startTransaction()
+            cursor = view.repository._refs.cursor(view)
+
             try:
                 cursorKey = self._packKey(key)
                 value = cursor.set_range(cursorKey)
@@ -727,7 +765,10 @@ class XMLRefDict(RefDict):
                         value = cursor.next()
 
         finally:
-            cursor.close()
+            if cursor:
+                cursor.close()
+            if txnStarted:
+                view._abortTransaction()
 
     def _changeRef(self, key):
 

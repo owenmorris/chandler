@@ -565,16 +565,16 @@ class ItemHandler(xml.sax.ContentHandler):
     xmlValue = classmethod(xmlValue)
 
     typeDispatch = {
-        'str': lambda(data): str(data),
-        'unicode': lambda(data): unicode(data),
-        'uuid': lambda(data): UUID(data),
-        'path': lambda(data): Path(data),
+        'str': str,
+        'unicode': unicode,
+        'uuid': UUID,
+        'path': Path,
         'ref': lambda(data): SingleRef(UUID(data)),
         'bool': lambda(data): data != 'False',
-        'int': lambda(data): int(data),
-        'long': lambda(data): long(data),
-        'float': lambda(data): float(data),
-        'complex': lambda(data): complex(data),
+        'int': int,
+        'long': long,
+        'float': float,
+        'complex': complex,
         'class': lambda(data): repository.item.Item.Item.loadClass(str(data)),
         'NoneType': lambda(data): None,
     }
