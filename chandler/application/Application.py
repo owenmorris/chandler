@@ -193,7 +193,7 @@ class wxApplication (wxApp):
         objects from changing in other threads. This allows me to continue
         working -- DJA
         """
-        #Globals.agentManager.Startup()
+        Globals.agentManager.Startup()
 
         EVT_MENU(self, -1, self.OnCommand)
         EVT_UPDATE_UI(self, -1, self.OnCommand)
