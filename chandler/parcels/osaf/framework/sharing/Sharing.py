@@ -61,6 +61,11 @@ def subscribeToWebDavCollection(url):
         return
 
     collection = osaf.framework.webdav.Dav.DAV(url).get( )
+
+    # @@@ Hmm, this should always have a displayName
+    if not collection.hasAttributeValue("displayName"):
+        collection.displayName = "Imported"
+
     event = Globals.parcelManager.lookup(EVENTS,
      "NewItemCollectionItem")
     event.Post({'collection':collection})
