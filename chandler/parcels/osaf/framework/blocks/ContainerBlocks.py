@@ -669,6 +669,7 @@ class wxTreeList(wxTreeListCtrl):
 
     def GoToPath(self, path):
         treeNode = self.GetRootItem()
+        counterpart = Globals.repository.find (self.counterpartUUID)
         child = None
         for name in path.split ('/'):
             if name:
@@ -677,7 +678,7 @@ class wxTreeList(wxTreeListCtrl):
                 child, cookie = self.GetFirstChild (treeNode, 0)
                 while child.IsOk():
                     try:
-                        if name == self.GetPyData(child).getItemDisplayName():
+                        if name == counterpart.GetTreeDataName (self.GetPyData(child)):
                             break
                     except AttributeError:
                         pass
@@ -696,6 +697,11 @@ class wxTreeList(wxTreeListCtrl):
 
 
 class TreeList(RectangularChild):
+    """
+      TreeList is an abstract class. To use it, you must subclass it and
+    implement GetTreeData and GetTreeDataName. See RepositoryTreeList
+    for an example
+    """
     def __init__(self, *arguments, **keywords):
         super (TreeList, self).__init__ (*arguments, **keywords)
         self.openedContainers = {}
@@ -726,11 +732,16 @@ class TreeList(RectangularChild):
 
 
 class RepositoryTreeList(TreeList):
+    """
+      TreeList is an abstract class. To use it, you must subclass it and
+    implement GetTreeData and GetTreeDataName. See RepositoryTreeList
+    for an example
+    """
     def GetTreeData (self, node):
         item = node.GetData()
         if item:
             for child in item:
-                names = [child.getItemName()]
+                names = [self.GetTreeDataName (child)]
                 names.append (str(child.getItemDisplayName()))
                 try:
                     names.append (child.kind.getItemName())
@@ -742,11 +753,14 @@ class RepositoryTreeList(TreeList):
         else:
             node.AddRootNode (Globals.repository, ['//'], True)
 
+    def GetTreeDataName (self, item):
+        return item.getItemName()
+
     def OnSelectionChangedEvent (self, notification):
         wxTreeListWindow = Globals.association[self.getUUID()]
         wxTreeListWindow.GoToPath (str (notification.GetData()['item'].getItemPath()))
 
-        
+
 class Sidebar(TreeList):
     def GetTreeData (self, node):
         item = node.GetData()
@@ -759,6 +773,9 @@ class Sidebar(TreeList):
                                ('Zaobao', 'parcels/OSAF/views/zaobao/ZaoBaoTab')], 
                               ['Views'], true)
             
+    def GetTreeDataName (self, item):
+        return item.getItemDisplayName()
+
     def OnSelectionChangedEvent (self, notification):
         event = Globals.repository.find('//parcels/OSAF/views/demo/SwitchEmbeddedChild')
         notification = Notification(event, None, None)

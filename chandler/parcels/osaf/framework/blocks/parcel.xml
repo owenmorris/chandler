@@ -897,6 +897,13 @@
   <Kind itemName="ItemView">
     <classes key="python">OSAF.framework.blocks.Views.ItemView</classes>
     <superKinds itemref="docSchema:HTML"/>
+
+    <Attribute itemName="selection">
+      <type itemref="UUID"/>
+      <defaultValue type="UUID"></defaultValue>
+    </Attribute>
+
+    <attributes itemref="docSchema:ItemView/selection"/>
   </Kind>  
 
 </Parcel>

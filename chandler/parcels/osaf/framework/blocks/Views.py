@@ -119,7 +119,7 @@ class wxItemView(wxHtmlWindow):
         notification.SetData ({'item':item, 'type':'Normal'})
         Globals.notificationManager.PostNotification (notification)
 
-    def On_wxSelectionChanged(self, item):
+    def SynchronizeFramework(self):
         def formatReference(reference):
             """
               Formats the a reference attribute to be clickable, etcetera
@@ -140,9 +140,10 @@ class wxItemView(wxHtmlWindow):
     
             return "<a href=\"%(url)s\">%(kind)s: %(dn)s</a>" % locals()
 
-        if item:
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        item = Globals.repository.find (counterpart.selection)
+        try:
             displayName = item.getItemDisplayName()
-    
             try:
                 kind = item.kind.getItemName()
             except AttributeError:
@@ -190,8 +191,8 @@ class wxItemView(wxHtmlWindow):
             dyn_html = "".join([y for x, y in allAttrs])
     
             HTMLText = "%s%s</ul></body></html>" % (HTMLText, dyn_html)
-        else:
-            HTMLText = "<html><body><h5>Item Viewer</h5></body></html>"
+        except:
+            HTMLText = "<html><body><h5></h5></body></html>"
     
         self.SetPage(HTMLText)
 
@@ -213,6 +214,8 @@ class ItemView(HTML):
         """
           Display the item in the wxWindow counterpart.
         """
+        item = notification.data['item']
+        self.selection = item.getUUID()
         wxWindow = Globals.association[self.getUUID()]
-        wxWindow.On_wxSelectionChanged (notification.data['item'])
+        wxWindow.SynchronizeFramework ()
 
