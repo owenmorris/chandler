@@ -183,14 +183,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
                     enabled = len(item.toAddress) > 0
         
         event.arguments['Enable'] = enabled    
-
-        # @@@BJS It'd be nice to set the Text attribute in the event, to cause the
-        # toolbaritem to be re-labeled (eg, event.arguments['Text'] = label), but this 
-        # doesn't seem to work (I think it's because ToolBarItems aren't real widgets).
-        # Instead, set the block's label directly here.
-        toolbarItem = event.arguments['sender']
-        toolbarItem.widget.SetLabel(label)
-        toolbarItem.parentBlock.widget.Realize()
+        event.arguments ['Text'] = label
             
     def onSendShareItemEvent (self, event):
         """

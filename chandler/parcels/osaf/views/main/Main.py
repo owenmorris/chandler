@@ -196,12 +196,7 @@ class MainView(View):
         # If we get asked about this, and it hasn't already been set, there's no selected 
         # item in the detail view - disallow sending. Also, make sure the label's set back to "Send"
         event.arguments ['Enable'] = False
-        # @@@BJS Just as in DetailRoot.onSendShareItemEventUpdateUI, it'd be nice to just
-        # set the Text in the event to update the label of this toolbaritem, but that doesn't work.
-        # Do it the hard way.
-        toolbarItem = event.arguments['sender']
-        toolbarItem.widget.SetLabel(_("Send"))
-        toolbarItem.parentBlock.widget.Realize()
+        event.arguments ['Text'] = _(u"Send")
 
     def onSendMailEvent (self, event):
         # commit changes, since we'll be switching to Twisted thread
