@@ -208,7 +208,7 @@ class Subscription(object):
 
     def post(self, notification):
         if callable(self.callback):
-            self.callback(*self.args)
+            self.callback(notification, *self.args)
         else:
             self.queue.put(notification)
 
