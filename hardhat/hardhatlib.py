@@ -1074,7 +1074,7 @@ def handleManifest(buildenv, filename):
         if line[0:1] == "#":
             continue
 
-        line = line.expandVars(line)
+        line = expandVars(line)
 
         if line.find("=") != -1:
             (name,value) = line.split("=")
