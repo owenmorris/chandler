@@ -416,6 +416,9 @@ class References(Values):
             else:
                 self._item.setDirty(self._item.VDIRTY, name, self, True)
             del self[name]
+        elif value._isUUID() and other._isItem() and value == other._uuid:
+            self._item.setDirty(self._item.VDIRTY, name, self, True)
+            del self[name]
         elif value._isRefList():
             value._removeRef(other)
         else:
@@ -436,6 +439,8 @@ class References(Values):
                 value._unloadRef(other)
             elif value is other:
                 self[name] = other._uuid
+            elif value._isUUID() and value == other._uuid:
+                pass
             else:
                 raise BadRefError, (self._item, name, other, value)
 
