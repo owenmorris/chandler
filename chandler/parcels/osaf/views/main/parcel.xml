@@ -119,6 +119,16 @@
     <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
+  <BlockEvent itsName="SendMail">
+    <eventName>SendMail</eventName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
+  <BlockEvent itsName="ShareItem">
+    <eventName>ShareItem</eventName>
+    <dispatchToBlock itemref="doc:MainView"/>
+  </BlockEvent>
+
   <!-- Test Block Events -->
 
   <ModifyContentsEvent itsName="AddAllAdditionalViews">
@@ -1373,6 +1383,9 @@
     <subscribeWhenVisibleEvents itemref="doc:ShowHideStatusBar"/>
     <subscribeWhenVisibleEvents itemref="doc:SyncAll"/>
     <subscribeWhenVisibleEvents itemref="doc:SyncWebDAV"/>
+    <subscribeWhenVisibleEvents itemref="doc:SendMail"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShareItem"/>
+ 
     <!-- Test Block Events -->
     <subscribeWhenVisibleEvents itemref="doc:AddAllAdditionalViews"/>
     <subscribeWhenVisibleEvents itemref="doc:AddContactsView"/>

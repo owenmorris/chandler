@@ -21,6 +21,7 @@ import repository.query.Query as Query
 from repository.item.Query import KindQuery
 from repository.item.Item import Item
 import osaf.mail.sharing as MailSharing
+import osaf.mail.smtp as smtp
 
 
 class MainView(View):
@@ -163,12 +164,29 @@ class MainView(View):
              "", statusMessage)
             self.setStatusMessage ('')
 
-    def ShareCollection (self, itemCollection):
+    def onSendMailEvent (self, notification):
+        # put a "committing" message into the status bar
+        self.setStatusMessage ('Committing changes...')
+
+        # commit changes, since we'll be switching to Twisted thread
+        Globals.repository.commit()
+    
+        # get default SMTP account
+        item = notification.data ['item']
+        account = item.defaultSMTPAccount ()
+
+        # put a sending message into the status bar
+        self.setStatusMessage ('Sending mail...')
+
+        # Now send the mail
+        smtp.SMTPSender(account, item).sendMail()
+
+    def onShareItemEvent (self, notification):
         """
           Share an ItemCollection.
-        Called by ItemCollection.shareSend(), when the Notify button
-        is pressed in the itemCollection's Detail View.
         """
+        itemCollection = notification.data ['item']
+
         # commit changes, since we'll be switching to Twisted thread
         self.RepositoryCommitWithStatus()
 
@@ -365,7 +383,7 @@ class MainView(View):
         """
         Update the menu to reflect the selected collection name
         """
-        # Only enable it user has set their webdav account up
+        # Only enable if user has set their webdav account up
         if not self.webDAVAccountIsSetup ():
             notification.data ['Enable'] = False
             return

@@ -478,23 +478,10 @@ class MailMessageMixin(MIMEContainer):
         """
           Share this item, or Send if it's an Email
         We assume we want to send this MailMessage here.
-        
         """
-        # put a "committing" message into the status bar
-        self.setStatusMessage ('Committing changes...')
-
-        # commit changes, since we'll be switching to Twisted thread
-        Globals.repository.commit()
-    
-        # get default SMTP account
-        account = self.defaultSMTPAccount ()
-
-        # put a sending message into the status bar
-        self.setStatusMessage ('Sending mail...')
-
-        # Now send the mail
-        import osaf.mail.smtp as smtp
-        smtp.SMTPSender(account, self).sendMail()
+        # message the main view to do the work
+        targetView = self.itsView.findPath ('//parcels/osaf/views/main/MainView')
+        targetView.PostEventByName ('SendMail', {'item': self})
 
 class MailMessage(MailMessageMixin, Notes.Note):
     
