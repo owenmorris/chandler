@@ -99,20 +99,6 @@
     Layout blocks
   -->
   
-  <!-- DetailTrunkParentBlock -->
-  <!-- Each summary view has a copy of one these - when an Item is selected in it, 
-       it asks the DetailTrunkCache to build an appropriate DetailTrunk for that item. -->
-  <TrunkParentBlock itsName="DetailTrunkParentBlock">
-    <blockName value="DetailTrunkParentBlock"/>
-    <trunkDelegate itemref="doc:DetailTrunkDelegate"/>
-  </TrunkParentBlock>
-
-  <!-- We have one of this - it knows how to build a DetailTrunk for a given Item's Kind,
-       out of the trees of blocks below, and persists it. -->
-  <DetailTrunkDelegate itsName="DetailTrunkDelegate">
-    <trunkStub itemref="doc:DetailTrunkStub"/>
-  </DetailTrunkDelegate>
-
   <!-- The DetailTrunkCache starts each specific DetailTrunk by cloning this stub. -->
   <DetailRoot itsName="DetailTrunkStub"
               itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
