@@ -1386,7 +1386,9 @@
     <treeTemplatePath>//parcels/osaf/views/main/SidebarDetailViewTemplate</treeTemplatePath>
   </SidebarDetailViewCache>
 
-  <calendar:MiniCalendar itsName="MiniCalendar"/>
+  <calendar:MiniCalendar itsName="MiniCalendar">
+    <stretchFactor>0</stretchFactor>
+  </calendar:MiniCalendar>
 
   <BoxContainer itsName="SidebarBoxContainer">
     <blockName>SidebarBoxContainer</blockName>
@@ -1397,6 +1399,7 @@
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
+    <stretchFactor>0</stretchFactor>
   </BoxContainer>
 
   <contentModel:ItemCollection itsName="sidebarItemCollection">
@@ -1424,7 +1427,7 @@
   <BoxContainer itsName="MainBoxContainer">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:NavigationBar"/>
-    <childrenBlocks itemref="doc:MainSplitter"/>
+    <childrenBlocks itemref="doc:HorizontalMainContainer"/>
     
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
@@ -1441,16 +1444,14 @@
     <contextMenu itemref="doc:sidebarContextMenu"/>
   </Table>
  
-  <SplitterWindow itsName="MainSplitter">
+  <BoxContainer itsName="HorizontalMainContainer">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:SidebarBoxContainer"/>
     <childrenBlocks itemref="doc:TabbedView"/>
 
     <!-- Attributes -->
-    <orientationEnum>Vertical</orientationEnum>
-    <splitPercentage>0.2</splitPercentage>
-    <allowResize>False</allowResize>
-  </SplitterWindow>
+    <orientationEnum>Horizontal</orientationEnum>
+  </BoxContainer>
   
   <SplitterWindow itsName="SidebarDetailViewTemplate">
     <childrenBlocks itemref="doc:SummaryView"/>

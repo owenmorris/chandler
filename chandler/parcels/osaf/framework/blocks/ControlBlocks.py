@@ -564,9 +564,13 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             for column in xrange (lastColumnIndex):
                 widthMinusLastColumn += self.GetColSize (column)
             lastColumnWidth = size.width - widthMinusLastColumn
-            if lastColumnWidth > 0:
-                self.SetColSize (lastColumnIndex, lastColumnWidth)
-                self.ForceRefresh()
+            # @@@ This does not work properly and needs to be looked at
+            # Removing it for the single column case because it causes the
+            # sidebar to grow indefinitely
+            if self.GetNumberCols() != 1:
+                if lastColumnWidth > 0:
+                    self.SetColSize (lastColumnIndex, lastColumnWidth)
+                    self.ForceRefresh()
         event.Skip()
 
     def OnColumnDrag(self, event):

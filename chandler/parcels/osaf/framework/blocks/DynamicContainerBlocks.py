@@ -758,7 +758,7 @@ class Toolbar (Block.RectangularChild, DynamicContainer):
         return wxToolbar(self.parentBlock.widget, 
                          Block.Block.getWidgetID(self),
                          wx.DefaultPosition,
-                         (300, self.toolSize.height+heightGutter),
+                         (-1, self.toolSize.height+heightGutter),
                          style=self.calculate_wxStyle())
 
     def calculate_wxStyle (self):
