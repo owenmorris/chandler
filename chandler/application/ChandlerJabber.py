@@ -392,12 +392,8 @@ class JabberClient:
         objectList = self.DecodePythonObject(body)
         
         # send the objects back to the relevant view
-        if len(objectList) > 0:
-            self.application.AddObjectsToView(url, objectList)
-            
-        if lastFlag:
-            self.application.ObjectResponseCompleted(url)
-            
+        self.application.AddObjectsToView(url, objectList, lastFlag)
+                        
     # handle receiving notification of an error to an object request
     # FIXME: handle errors soon by telling the application to put up a dialog
     def HandleErrorResponse(self, fromAddress, body):

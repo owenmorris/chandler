@@ -384,27 +384,18 @@ class wxApplication (wxApp):
 		# FIXME: should return an error here
 		return []
 	
-	def AddObjectsToView(self, url, objectList):
+	def AddObjectsToView(self, url, objectList, lastFlag):
 		"""
 		  add the passed in objects to the view specified by the url.
 		  Figure out the appropriate parcel, and let it do the work
 		"""
 		parcel = self.GetParcelFromURL(url)		
 		if parcel != None:
-			parcel.AddObjectsToView(url, objectList)
+			parcel.AddObjectsToView(url, objectList, lastFlag)
 		else:
 			# FIXME: should return an error here
 			pass
-	
-	def ObjectResponseCompleted(self, url):
-		"""
-		  tell the view that we've received the whole response, so we
-		  can sort the list, clean up, etc
-		"""
-		parcel = self.GetParcelFromURL(url)		
-		if parcel != None:
-			parcel.ObjectResponseCompleted(url)
-		
+			
 	# handler for the Show/Hide Presence Window command
 	def TogglePresenceWindow(self, event):
 		if self.presenceWindow == None:

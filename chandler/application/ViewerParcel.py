@@ -138,18 +138,11 @@ class ViewerParcel (Parcel):
         """
         return []
     
-    def AddObjectsToView(self, url, objectList):
+    def AddObjectsToView(self, url, objectList, lastFlag):
         """
           add the objects in the passed-in list to the view.
           We don't do anything here in the base class; parcels
           override this so they can manage their own objectlist.
-        """
-        pass
-
-    def ObjectResponseCompleted(self, url):
-        """
-          this method notifies the parcel the response is done.
-          Parcels should override this for post-processing
         """
         pass
     
