@@ -1,5 +1,5 @@
 
-VERSION=0.3-8
+VERSION=0.3-9
 
 include Makefile.inc
 
@@ -25,7 +25,6 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
         python/bzip2-1.0.2.tar.gz \
         python/zlib-1.2.1.tar.gz \
         swig/swig-1.3.21.tar.gz \
-        swig/swigwin-1.3.21.zip \
         epydoc/epydoc-2.1.tar.gz \
         persistence/xerces-c/xerces-c-src2_4_0.tar.gz \
         persistence/pathan/libpathan-1.2-2-src.tar.gz \

@@ -25,27 +25,35 @@ BUILD=build_$(SNAP)
 
 ifeq ($(OS),Cygwin)
 
-swig: expand
+EXECUTABLE=.exe
 
-snap: 
-	cd $(BUILD_ROOT); \
-	tar -cvzf $(SWIG)/$(SNAP).tar.gz \
-		$(SNAP)/bin/swig.exe
+swig:  $(SRC)/$(BUILD)/Makefile
+	cd $(SRC)/$(BUILD); \
+	$(MAKE) ; \
+	$(MAKE) install
 
-clean:
-	if [ -f $(BUILD_ROOT)/$(SNAP)/bin/swig.exe ]; then \
-		rm -f $(BUILD_ROOT)/$(SNAP)/bin/swig.exe; \
-	fi
-
-expand:    swigwin-1.3.21.zip
-	unzip -o swigwin-$(VERSION).zip -d $(BUILD_ROOT)/$(SNAP)/bin/;\
-	mv $(BUILD_ROOT)/$(SNAP)/bin/SWIG-$(VERSION) $(BUILD_ROOT)/$(SNAP)/bin/swig;\
-	chmod a+x $(BUILD_ROOT)/$(SNAP)/bin/swig/swig.exe
+$(SRC)/$(BUILD)/Makefile:
+	cd $(SRC); \
+	mkdir -p $(BUILD); \
+	cd $(BUILD); \
+	../configure --prefix=$(PREFIX) $(CONF_OPT) \
+	--build=i386-pc-cygwin \
+	--with-python=$(PYTHON) \
+	--without-ruby \
+	--without-php4 \
+	--without-chicken \
+	--without-pike \
+	--without-guile \
+	--without-ocaml
 
 else
 
+EXECUTABLE=
+
 $(SRC)/$(BUILD)/Makefile:
-	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
+	cd $(SRC); \
+	mkdir -p $(BUILD); \
+	cd $(BUILD); \
 	../configure --prefix=$(PREFIX) $(CONF_OPT) \
                  --enable-shared \
                  --with-python=$(PYTHON) \
@@ -58,22 +66,23 @@ $(SRC)/$(BUILD)/Makefile:
 
 swig:   $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); \
-        $(MAKE) ; $(MAKE) install 
+        $(MAKE) ; \
+        $(MAKE) install 
+
+endif
 
 snap: 
 	cd $(BUILD_ROOT); \
 	tar -cvzf $(SWIG)/$(SNAP).tar.gz \
-                  $(SNAP)/bin/swig \
+                  $(SNAP)/bin/swig$(EXECUTABLE) \
                   $(SNAP)/share/aclocal/swig.m4 \
                   $(SNAP)/lib/swig1.3 
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
 
-expand: swig-$(VERSION).tar.gz
+expand: swig-$(VERSION).tar.gz 
 	tar xvzf swig-$(VERSION).tar.gz
-
-endif
 
 build: swig
 

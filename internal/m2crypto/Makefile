@@ -4,12 +4,14 @@ include ../Makefile.inc
 RELVER=0.12
 M2CRYPTO=$(INTERNAL)/m2crypto
 
+MANIFEST=$(SNAP)/$(SITE)/M2Crypto
+
 BUILD=build_$(SNAP)
 
 ifeq ($(OS),Cygwin)
 
 build: $(PYTHON)
-	PATH="$(BUILD_ROOT)/$(SNAP)/bin/swig:$(PATH)" \
+	PATH="$(BUILD_ROOT)/$(SNAP)/bin:$(PATH)" \
 	$(PYTHON) setup.py \
 		build_ext --library-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/lib` \
 			--include-dirs=`cygpath -aw $(BUILD_ROOT)/$(SNAP)/include` \
@@ -30,8 +32,8 @@ endif
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(M2CRYPTO)/m2crypto-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/M2Crypto
+	tar -cvzf $(M2CRYPTO)/m2crypto-$(SNAP)-$(RELVER).tar.gz \
+			 $(MANIFEST)
 
 upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
 	scp m2crypto-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
