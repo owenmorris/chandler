@@ -510,12 +510,6 @@ class ContentItem(Item.Item):
             about = ''
         return about
 
-    def shareSend (self):
-        """
-          Share this item, or Send if it's an Email
-        """
-        raise NotImplementedError, "Don't know how to Send/Share this item"
-
     def getEmailAddress (self, nameOrAddressString):
         """
           Lookup or create an EmailAddress based

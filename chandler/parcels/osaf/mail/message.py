@@ -255,7 +255,7 @@ def kindToMessageObject(mailMessage):
     @return: C{Mail.MailMessage}
     """
 
-    if not isinstance(mailMessage, Mail.MailMessage):
+    if not isinstance(mailMessage, Mail.MailMessageMixin):
         raise TypeError("mailMessage must be an instance of Kind Mail.MailMessage")
 
     #XXX: To do figure out in relpy to / recieved  / references logic
@@ -341,7 +341,7 @@ def kindToMessageText(mailMessage):
     @return: C{Mail.MailMessage}
     """
 
-    if not isinstance(mailMessage, Mail.MailMessage):
+    if not isinstance(mailMessage, Mail.MailMessageMixin):
         raise TypeError("mailMessage must be an instance of Kind Mail.MailMessage")
 
     messageObject = kindToMessageObject(mailMessage)

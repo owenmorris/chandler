@@ -78,7 +78,7 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
         if account is None or not account.isItemOf(Mail.MailParcel.getSMTPAccountKind()):
             raise SMTPMailException("You must pass an SMTPAccount instance")
 
-        if mailMessage is None or not isinstance(mailMessage, Mail.MailMessage):
+        if mailMessage is None or not isinstance(mailMessage, Mail.MailMessageMixin):
             raise SMTPMailException("You must pass a MailMessage instance")
 
         viewName = "SMTPSender_%s" % str(UUID.UUID())
