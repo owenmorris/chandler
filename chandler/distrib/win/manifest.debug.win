@@ -8,6 +8,8 @@
 # recursive: set to yes or no
 # glob: set to a comma-separated list of glob patterns
 
+exclude=CVS,*.pyo,*.pyc
+
 # Grab certain dll's from debug/bin
 src=chandler/debug/bin
 dest=debug/bin
@@ -51,7 +53,6 @@ parcels
 tools
 
 glob=*
-exclude=CVS
 repository
 locale
 

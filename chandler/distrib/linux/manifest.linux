@@ -8,6 +8,8 @@
 # recursive: set to yes or no
 # glob: set to a comma-separated list of glob patterns
 
+exclude=CVS,tests,*.pyo,*.pyc
+
 # Grab the python executable
 src=chandler/release/bin
 dest=release/bin
@@ -98,7 +100,6 @@ parcels
 tools
 
 glob=*
-exclude=CVS
 repository
 locale
 
