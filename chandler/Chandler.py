@@ -33,10 +33,10 @@ def locateProfileDir(chandlerDirectory):
             if dataDir is None or not os.path.isdir(dataDir):
                 dataDir = os.path.expanduser('~')
                 
-            profileDir = os.path.join(dataDir, 'Open Source Application Foundation', 'Chandler')
+            profileDir = os.path.join(dataDir, 'Open Source Applications Foundation', 'Chandler')
         elif sys.platform == 'darwin':
             dataDir    = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support')
-            profileDir = os.path.join(dataDir, 'Open Source Application Foundation', 'Chandler')
+            profileDir = os.path.join(dataDir, 'Open Source Applications Foundation', 'Chandler')
         else:
             dataDir    = os.path.expanduser('~')
             profileDir = os.path.join(dataDir, '.chandler')
