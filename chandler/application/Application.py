@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-import os, sys, stat, gettext, locale, threading
+import os, sys, stat, gettext, locale, threading, logging
 from wxPython.wx import *
 from wxPython.xrc import *
 
@@ -369,6 +369,8 @@ class wxApplication (wxApp):
         self.repository.commit(purge=True)
         self.repository.close()
         del self.applicationResources
+
+        logging.shutdown()
 
     def OpenStartingURL(self):
         """
