@@ -34,23 +34,23 @@ src=chandler/debug/lib
 dest=debug/lib
 recursive=yes
 glob=*.py,*.pyd,*.so,*.security
-python2.3/bsddb
-python2.3/compiler
-python2.3/curses
-python2.3/email
-python2.3/encodings
-python2.3/hotshot
-python2.3/lib-dynload
-python2.3/lib-old
-python2.3/lib-tk
-python2.3/logging
-python2.3/plat-linux2
-python2.3/site-packages
-python2.3/xml
+python2.4/bsddb
+python2.4/compiler
+python2.4/curses
+python2.4/email
+python2.4/encodings
+python2.4/hotshot
+python2.4/lib-dynload
+python2.4/lib-old
+python2.4/lib-tk
+python2.4/logging
+python2.4/plat-linux2
+python2.4/site-packages
+python2.4/xml
 
 # Grab files from the lib/python2.3 directory
 recursive=no
-python2.3
+python2.4
 
 # Grab the DB libraries
 dest=debug/db/lib

@@ -17,7 +17,7 @@ libdb43.dll
 libdb_java43.dll
 msvcp71.dll
 msvcr71.dll
-python23.dll
+python24.dll
 
 # Grab all py, pyc, etc. from release/bin/DLLs and release/bin/Lib
 src=chandler/release/bin
