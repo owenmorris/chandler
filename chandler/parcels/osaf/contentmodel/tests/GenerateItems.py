@@ -89,8 +89,11 @@ LASTNAMES = ['Anderson', 'Baker', 'Botz', 'Brown', 'Burgess',
 
 PHONETYPES = ['cell', 'voice', 'fax', 'pager']
 
+#area codes not listed as valid at http://www.cs.ucsd.edu/users/bsy/area.html
+AREACODES = [311,411,555,611,811,324,335]
+
 def GeneratePhoneNumber():
-    areaCode = random.randint(201, 799)
+    areaCode = random.choice(AREACODES)
     exchange = random.randint(220, 999)
     number = random.randint(1000, 9999)
     return "(%3d) %3d-%4d" % (areaCode, exchange, number)
