@@ -560,6 +560,22 @@ class Item(object):
             else:
                 raise TypeError, (type(value), value)
 
+    def clearValues(self):
+        """
+        Clear all Chandler attribute values on this item.
+
+        All Chandler attribute values are cleared and restored to their
+        initial values.
+        """
+
+        self._values.clear()
+        self._references.clear()
+
+        if self._kind is not None:
+            self._kind.getInitialValues(self, self._values, self._references)
+
+        self.setDirty()
+
     def hasChild(self, name, load=True):
         """
         Tell whether this item has a child of that name.
