@@ -1,0 +1,34 @@
+--- egenix-mx-base-2.0.4/mx/DateTime/DateTime.py	Wed Oct 10 01:10:00 2001
++++ egenix-mx-base-2.0.4-patched/mx/DateTime/DateTime.py	Fri Apr 18 10:15:12 2003
+@@ -537,7 +537,7 @@
+ 
+     def __radd__(self,other,
+                  # Locals:
+-                 None=None,isinstance=isinstance,DateTimeType=DateTimeType,
++                 isinstance=isinstance,DateTimeType=DateTimeType,
+                  DateTime=DateTime,DateTimeDelta=DateTimeDelta):
+ 
+         if isinstance(other,DateTimeType):
+@@ -640,7 +640,7 @@
+ 
+     def __rsub__(self,other,
+                  # Locals:
+-                 None=None,isinstance=isinstance,DateTime=DateTime):
++                 isinstance=isinstance,DateTime=DateTime):
+ 
+         if isinstance(other,DateTimeType):
+             # DateTime (other) - RelativeDateTime (self)
+--- egenix-mx-base-2.0.4/mx/DateTime/Parser.py	Mon Dec 10 02:15:48 2001
++++ egenix-mx-base-2.0.4-patched/mx/DateTime/Parser.py	Sat Apr 19 09:48:59 2003
+@@ -1,3 +1,4 @@
++# -*- coding: utf-8 -*-
+ """ Date/Time string parsing module.
+ 
+     Note about the Y2K problems:
+--- egenix-mx-base-2.0.4/mx/DateTime/Timezone.py	Wed Nov 28 06:44:25 2001
++++ egenix-mx-base-2.0.4-patched/mx/DateTime/Timezone.py	Sat Apr 19 09:48:59 2003
+@@ -1,3 +1,4 @@
++# -*- coding: utf-8 -*-
+ """ Timezone information.
+ 
+     XXX This module still has prototype status and is undocumented.

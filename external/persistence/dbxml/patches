@@ -1,0 +1,23 @@
+--- dbxml-1.2.1/src/python/setup.py	Tue Jan 27 08:12:03 2004
++++ dbxml-1.2.1-patched/src/python/setup.py	Fri Mar 12 12:08:11 2004
+@@ -46,10 +46,16 @@
+                  os.path.join(pathan_home, "include"),
+                  os.path.join(xerces_home, "include")]
+ 
+-  LIBDIRS =     ["../../build_unix/.libs",
+-                 os.path.join(db_home, "lib"),
+-                 os.path.join(pathan_home, "lib"),
+-                 os.path.join(xerces_home, "lib")]
++  if debug:
++    LIBDIRS =     ["../../build_debug/.libs",
++                   os.path.join(db_home, "lib"),
++                   os.path.join(pathan_home, "lib"),
++                   os.path.join(xerces_home, "lib")]
++  else:
++    LIBDIRS =     ["../../build_release/.libs",
++                   os.path.join(db_home, "lib"),
++                   os.path.join(pathan_home, "lib"),
++                   os.path.join(xerces_home, "lib")]
+ 
+   LIBS =        ["dbxml-1.2",
+                  "db_cxx-4.2",

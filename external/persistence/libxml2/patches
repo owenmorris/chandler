@@ -1,0 +1,140 @@
+--- libxml2-2.6.3/parser.c	Mon Dec  8 01:57:00 2003
++++ libxml2-2.6.3-patched/parser.c	Fri Dec 12 12:42:37 2003
+@@ -11533,6 +11533,7 @@
+     }
+     xmlDetectSAX2(ctxt);
+     if (data!=NULL) {
++	ctxt->userData = data;
+ 	ctxt->_private = data;
+     }
+ 
+@@ -11803,6 +11804,7 @@
+     }
+     xmlDetectSAX2(ctxt);
+     if (data!=NULL) {
++	ctxt->userData=data;
+ 	ctxt->_private=data;
+     }
+ 
+--- libxml2-2.6.3/Makefile.in	Wed Dec 10 03:56:54 2003
++++ libxml2-2.6.3-patched/Makefile.in	Fri Dec 12 13:30:54 2003
+@@ -184,9 +184,9 @@
+ install_sh = @install_sh@
+ pythondir = @pythondir@
+ 
+-SUBDIRS = include . doc example @PYTHON_SUBDIR@
++SUBDIRS = include . @PYTHON_SUBDIR@
+ 
+-DIST_SUBDIRS = include . doc example python
++DIST_SUBDIRS = include . python
+ 
+ INCLUDES = -I$(top_builddir)/include -I@srcdir@/include @THREAD_CFLAGS@ @Z_CFLAGS@ 
+ 
+@@ -470,25 +470,29 @@
+ 
+ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
+  configure.lineno
+-$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
+-	cd $(top_srcdir) && \
+-	  $(AUTOMAKE) --gnu  Makefile
+-Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
+-	cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)
+-
+-$(top_builddir)/config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
+-	$(SHELL) ./config.status --recheck
+-$(srcdir)/configure:  $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
+-	cd $(srcdir) && $(AUTOCONF)
+-
+-$(ACLOCAL_M4):  configure.in acinclude.m4
+-	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
+-
+-config.h: stamp-h1
+-	@if test ! -f $@; then \
+-	  rm -f stamp-h1; \
+-	  $(MAKE) stamp-h1; \
+-	else :; fi
++
++# This is commented out for Chandler build since it causes 
++# configure to be regenerated
++#
++#$(srcdir)/Makefile.in:  Makefile.am  $(top_srcdir)/configure.in $(ACLOCAL_M4)
++#	cd $(top_srcdir) && \
++#	  $(AUTOMAKE) --gnu  Makefile
++#Makefile:  $(srcdir)/Makefile.in  $(top_builddir)/config.status
++#	cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)
++#
++#$(top_builddir)/config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
++#	$(SHELL) ./config.status --recheck
++#$(srcdir)/configure:  $(srcdir)/configure.in $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
++#	cd $(srcdir) && $(AUTOCONF)
++#
++#$(ACLOCAL_M4):  configure.in acinclude.m4
++#	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
++#
++#config.h: stamp-h1
++#	@if test ! -f $@; then \
++#	  rm -f stamp-h1; \
++#	  $(MAKE) stamp-h1; \
++#	else :; fi
+ 
+ stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
+ 	@rm -f stamp-h1
+@@ -1187,7 +1191,7 @@
+ #testOOM_DEPENDENCIES = $(DEPS)
+ #testOOM_LDADD= $(LDADDS)
+ 
+-check-local: tests
++check-local:
+ 
+ testall : tests SVGtests SAXtests
+ 
+--- libxml2-2.6.3/python/Makefile.in	Wed Dec 10 03:56:54 2003
++++ libxml2-2.6.3-patched/python/Makefile.in	Sun Dec 14 17:51:10 2003
+@@ -187,10 +187,11 @@
+ # Makefile for libxml2 python library
+ AUTOMAKE_OPTIONS = 1.4 foreign
+ 
+-SUBDIRS = . tests
++SUBDIRS = .
+ 
+ INCLUDES = \
+ 	-I$(PYTHON_INCLUDES) \
++	-I../include \
+ 	-I$(top_srcdir)/include
+ 
+ 
+@@ -206,7 +207,6 @@
+ 	generator.py		\
+ 	libxml_wrap.h		\
+ 	libxml.py		\
+-	drv_libxml2.py		\
+ 	libxml2-python-api.xml	\
+ 	$(DOCS)
+ 
+@@ -584,10 +584,9 @@
+ @WITH_PYTHON_TRUE@install-data-local:
+ @WITH_PYTHON_TRUE@	$(mkinstalldirs) $(DESTDIR)$(pythondir)
+ @WITH_PYTHON_TRUE@	@INSTALL@ -m 0644 libxml2.py $(DESTDIR)$(pythondir)
+-@WITH_PYTHON_TRUE@	@INSTALL@ -m 0644 drv_libxml2.py $(DESTDIR)$(pythondir)
+-@WITH_PYTHON_TRUE@	$(mkinstalldirs) $(DESTDIR)$(DOCS_DIR)
+-@WITH_PYTHON_TRUE@	@(for doc in $(DOCS) ; \
+-@WITH_PYTHON_TRUE@	   do @INSTALL@ -m 0644 $$doc $(DESTDIR)$(DOCS_DIR) ; done)
++@WITH_PYTHON_TRUE@#	$(mkinstalldirs) $(DESTDIR)$(DOCS_DIR)
++@WITH_PYTHON_TRUE@#	@(for doc in $(DOCS) ; \
++@WITH_PYTHON_TRUE@#	   do @INSTALL@ -m 0644 $$doc $(DESTDIR)$(DOCS_DIR) ; done)
+ 
+ @WITH_PYTHON_TRUE@$(GENERATED): gen_prog
+ 
+--- libxml2-2.6.3/configure	Wed Dec 10 03:56:59 2003
++++ libxml2-2.6.3-patched/configure	Fri Dec 12 13:37:55 2003
+@@ -25174,6 +25174,10 @@
+     then
+         echo Found python in $with_python/bin/python
+         PYTHON="$with_python/bin/python"
++    elif test -x "$with_python/bin/python_d"
++    then
++        echo Found python in $with_python/bin/python_d
++        PYTHON="$with_python/bin/python_d"
+     else
+ 	if test -x "$with_python"
+ 	then

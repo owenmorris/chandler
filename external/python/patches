@@ -1,0 +1,47 @@
+--- Python-2.3.3/setup.py	Thu Mar 11 00:06:36 2004
++++ Python-2.3.3-patched/setup.py	Wed Mar 10 23:57:45 2004
+@@ -516,6 +516,13 @@
+                                 )},
+             }
+ 
++        # for Chandler build
++        if os.environ.has_key('DB'):
++            DB = os.environ['DB']
++            db_try_this['db4']['libdirs'] = ( os.path.join(DB, 'lib'), )
++            db_try_this['db4']['incdirs'] = ( os.path.join(DB, 'include'), )
++            del db_try_this['db3']
++
+         db_search_order = db_try_this.keys()
+         db_search_order.sort()
+         db_search_order.reverse()
+--- Python-2.3.3/Mac/OSX/Makefile	Tue Nov  4 14:45:16 2003
++++ Python-2.3.3-patched/Mac/OSX/Makefile	Thu Mar 11 00:55:56 2004
+@@ -58,8 +58,7 @@
+ compileall=$(srcdir)/Lib/compileall.py
+ bundlebuilder=$(srcdir)/Lib/plat-mac/bundlebuilder.py
+ 
+-installapps: install_PythonLauncher install_Python install_BuildApplet install_IDE \
+-	install_IDLE install_PackageManager
++installapps: install_Python
+ 
+ install_PythonLauncher:
+ 	cd $(srcdir)/Mac/OSX/PythonLauncher/PythonLauncher.pbproj ; \
+--- Python-2.3.3/PC/getpathp.c	Mon Aug 18 10:54:10 2003
++++ Python-2.3.3-patched/PC/getpathp.c	Thu Mar 11 10:45:08 2004
+@@ -479,8 +479,14 @@
+ 	}
+  
+ 	skiphome = pythonhome==NULL ? 0 : 1;
+-	machinepath = getpythonregpath(HKEY_LOCAL_MACHINE, skiphome);
+-	userpath = getpythonregpath(HKEY_CURRENT_USER, skiphome);
++
++#if 0
++        /* Chandler doesn't want to grab registry info because we want to
++         * ignore extensions that the user already has installed.
++         */
++        machinepath = getpythonregpath(HKEY_LOCAL_MACHINE, skiphome);
++        userpath = getpythonregpath(HKEY_CURRENT_USER, skiphome);
++#endif
+ 	/* We only use the default relative PYTHONPATH if we havent
+ 	   anything better to use! */
+ 	skipdefault = envpath!=NULL || pythonhome!=NULL || \
