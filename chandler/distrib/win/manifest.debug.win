@@ -12,15 +12,15 @@
 src=debug/bin
 dest=
 PathanD.dll
-libdb41d.dll
-libdbxml11d.dll
+libdb42d.dll
+libdbxml12d.dll
 msvci70d.dll
 msvcp70d.dll
 msvcr70d.dll
 msvcrtd.dll
 python23_d.dll
 wxmsw24d.dll
-xerces-c_2_3_0D.dll
+xerces-c_2_4_0D.dll
 
 # Grab all py, pyc, etc. from debug/bin/DLLs and debug/bin/Lib
 src=debug/bin

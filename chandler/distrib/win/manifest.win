@@ -11,15 +11,15 @@
 # Grab certain dll's from release/bin
 src=release/bin
 dest=
-libdb41.dll
-libdbxml11.dll
+libdb42.dll
+libdbxml12.dll
 msvci70.dll
 msvcp70.dll
 msvcr70.dll
 Pathan.dll
 python23.dll
 wxmsw24.dll
-xerces-c_2_3_0.dll
+xerces-c_2_4_0.dll
 
 
 # Grab all py, pyc, etc. from release/bin/DLLs and release/bin/Lib

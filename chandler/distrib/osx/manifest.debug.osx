@@ -35,9 +35,9 @@ libxml2.2.dylib
 
 # Grab DB libraries
 src=debug/db/lib
-libdb-4.1.dylib
+libdb-4.2.dylib
 src=debug/lib
-libxerces-c.23.dylib
+libxerces-c.24.dylib
 
 # Grab Chandler.py and others
 src=Chandler

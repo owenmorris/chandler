@@ -43,14 +43,14 @@ libwx_gtk2-2.4.so
 # Grab the DB libraries
 dest=lib
 src=release/db/lib
-libdb_cxx-4.1.so
-libdb-4.1.so
+libdb_cxx-4.2.so
+libdb-4.2.so
 src=release/lib
-libxerces-c.so.23
+libxerces-c.so.24
 libpathan.so.2
 libxml2.so.2
 src=release/dbxml/lib
-libdbxml-1.1.so
+libdbxml-1.2.so
 
 # Grab Chandler.py, and others
 src=Chandler
