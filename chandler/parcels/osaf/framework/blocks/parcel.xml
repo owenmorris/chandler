@@ -123,6 +123,11 @@
 
     <Attribute itemName="data">
       <type itemref="Item"/>
+      <type itemref="docSchema:Query/queryEnumType"/>
+    </Attribute>
+
+    <Attribute itemName="data">
+      <type itemref="Item"/>
       <cardinality>list</cardinality>
     </Attribute>
 
@@ -176,6 +181,9 @@
     <type itemref="docSchema:BlockEvent"/>
   </Attribute>
     
+  <Attribute itemName="selection">
+    <type itemref="SingleRef"/>
+  </Attribute>
   <!--
     Block Events
   -->
@@ -537,10 +545,6 @@
       <type itemref="String"/>
     </Attribute>
 
-    <Attribute itemName="clicked">
-      <type itemref="docSchema:BlockEvent"/>
-    </Attribute>
-
     <Attribute itemName="rightClicked">
       <type itemref="docSchema:BlockEvent"/>
     </Attribute>
@@ -549,7 +553,7 @@
     <attributes itemref="docSchema:Button/buttonKind"/>
     <attributes itemref="docSchema:Button/icon"/>
     <attributes itemref="docSchema:characterStyle"/>    
-    <attributes itemref="docSchema:Button/clicked"/>
+    <attributes itemref="docSchema:event"/>
     <attributes itemref="docSchema:Button/rightClicked"/>
   </Kind>
   
@@ -658,6 +662,7 @@
     <attributes itemref="docSchema:columnHeadings"/>
     <attributes itemref="docSchema:columnWidths"/>
     <attributes itemref="docSchema:elementDelegate"/>
+    <attributes itemref="docSchema:selection"/>
   </Kind>  
 
   <!--
@@ -684,10 +689,6 @@
       <cardinality>dict</cardinality>
     </Attribute>
 
-    <Attribute itemName="selection">
-      <type itemref="SingleRef"/>
-    </Attribute>
-
     <Attribute itemName="rootPath">
       <type itemref="Item"/>
     </Attribute>
@@ -699,7 +700,7 @@
     <attributes itemref="docSchema:Tree/noLines"/>
     <attributes itemref="docSchema:Tree/useButtons"/>    
     <attributes itemref="docSchema:Tree/openedContainers"/>
-    <attributes itemref="docSchema:Tree/selection"/>
+    <attributes itemref="docSchema:selection"/>
     <attributes itemref="docSchema:Tree/rootPath"/>
   </Kind>  
 
@@ -881,11 +882,7 @@
     <classes key="python">OSAF.framework.blocks.ControlBlocks.ItemDetail</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <Attribute itemName="selection">
-      <type itemref="UUID"/>
-    </Attribute>
-
-    <attributes itemref="docSchema:ItemDetail/selection"/>
+    <attributes itemref="docSchema:selection"/>
   </Kind>    
 
   <!--

@@ -502,8 +502,6 @@
     <hideRoot>True</hideRoot>
     <noLines>True</noLines>
     <useButtons>False</useButtons>
-    <columnHeadings>View</columnHeadings>    
-    <columnWidths>125</columnWidths>
     <rootPath  itemref="doc:URLRoot"/>
 
     <open>True</open>

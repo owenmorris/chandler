@@ -96,6 +96,35 @@ class Block(Item):
                 theWindow.scheduleUpdate = True
 
 
+    def SynchronizeFramework (self):
+        """
+          synchronizeFramework's job is to make the wx counterpart match the state of
+        the data persisted in the block. There's a tricky problem that occurs: Often
+        we add a handler to the wx counterpart of a block to, for example, get called
+        when the user changes the selection, which we use to update the block's selection
+        and post a selection changed notification. It turns out that while we are in
+        synchronizeFramework, changes to the wx counterpart cause these handlers to be
+        called, and in this case we don't want to post a notification. So we wrap calls
+        to synchronizeFramework and set a flag indicating that we're inside
+        synchronizeFramework so the handler's can tell when not to post selection
+        changed events. We use this flag in other similar situations, for example,
+        during shutdown to ignore events caused by the framework tearing down wx
+        counterparts.
+        """
+        try:
+            theWindow = Globals.association[self.getUUID()]
+            method = getattr (theWindow, 'wxSynchronizeFramework')
+        except AttributeError:
+            pass
+        else:
+            oldInsideSynchronizeFramework = Globals.wxApplication.insideSynchronizeFramework
+            try:
+                Globals.wxApplication.insideSynchronizeFramework = True
+                method()
+            finally:
+                Globals.wxApplication.insideSynchronizeFramework = oldInsideSynchronizeFramework
+
+
 class ContainerChild(Block):
     def render (self, parent, parentWindow):
         (window, parent, parentWindow) = self.renderOneBlock (parent, parentWindow)
@@ -123,10 +152,7 @@ class ContainerChild(Block):
               After the blocks are wired up, give the window a chance
             to synchronize itself to any persistent state.
             """
-            try:
-                window.SynchronizeFramework()
-            except AttributeError:
-                pass
+            self.SynchronizeFramework()
             for child in self.childrenBlocks:
                 child.render (parent, parentWindow)
             self.handleChildren(window)

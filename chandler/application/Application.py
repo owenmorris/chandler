@@ -89,21 +89,28 @@ class MainFrame(wxFrame):
         we'll remove the handler
         """
         EVT_IDLE(Globals.wxApplication, None)
+        """
+          When we quit, as each wxWidget window is torn down our handlers that
+        track changes to the selection are called, and we don't want to count
+        these changes, since they weren't caused by user actions.
+        """
+        Globals.wxApplication.insideSynchronizeFramework = True
         Globals.wxApplication.mainFrame = None
         self.Destroy()
 
     def OnSize(self, event):
-        event.Skip()
-        counterpart = Globals.repository.find (self.counterpartUUID)
-        counterpart.size.width = self.GetSize().x
-        counterpart.size.height = self.GetSize().y
-        """
-          size is a repository type that I defined. They seem harder
-        to define than necessary and they don't automatically dirty
-        themselves when modified. We need to improve this feature
-        of the repository -- DJA
-        """
-        counterpart.setDirty()   # Temporary repository hack -- DJA
+        if not Globals.wxApplication.insideSynchronizeFramework:
+            event.Skip()
+            counterpart = Globals.repository.find (self.counterpartUUID)
+            counterpart.size.width = self.GetSize().x
+            counterpart.size.height = self.GetSize().y
+            """
+              size is a repository type that I defined. They seem harder
+            to define than necessary and they don't automatically dirty
+            themselves when modified. We need to improve this feature
+            of the repository -- DJA
+            """
+            counterpart.setDirty()   # Temporary repository hack -- DJA
 
 
 class wxApplication (wxApp):
@@ -133,6 +140,7 @@ class wxApplication (wxApp):
         Globals.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
         assert Globals.wxApplication == None, "We can have only one application"
         Globals.wxApplication = self
+        self.insideSynchronizeFramework = False
 
         wxInitAllImageHandlers()
         """
@@ -298,14 +306,24 @@ class wxApplication (wxApp):
 
         wxID = event.GetId()
         if wxID >= Block.MINIMUM_WX_ID and wxID <= Block.MAXIMUM_WX_ID:
-            blockEvent = Block.wxIDToObject (wxID)
+            block = Block.wxIDToObject (wxID)
 
-            if isinstance (blockEvent, BlockEvent):
-                args = {}
-                if event.GetEventType() == wxEVT_UPDATE_UI:
-                    args['UpdateUI'] = True
+            args = {}
+            if event.GetEventType() == wxEVT_UPDATE_UI:
+                args['UpdateUI'] = True
 
-                blockEvent.Post (args)
+            try:
+                blockEvent = block.event
+            except AttributeError:
+                """
+                  If we have an event and it's not an update event
+                then we'd better have a block event for it, otherwise
+                we can't post the event.
+                """
+                assert event.GetEventType() == wxEVT_UPDATE_UI
+                pass
+            else:
+                block.Post (blockEvent, args)
                 if event.GetEventType() == wxEVT_UPDATE_UI:
                     try:
                         event.Check (args ['Check'])
@@ -322,7 +340,7 @@ class wxApplication (wxApp):
                     else:
                         eventObject = event.GetEventObject()
                         event.SetText (text)
-                return
+                    return
         event.Skip()
 
     def OnIdle(self, event):

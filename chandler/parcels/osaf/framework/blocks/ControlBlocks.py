@@ -18,7 +18,7 @@ import webbrowser # for opening external links
 class Button(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
         try:
-            id = Block.getwxID(self.event)
+            id = Block.getwxID(self)
         except AttributeError:
             id = 0
 
@@ -158,7 +158,7 @@ class ListDelegate:
     """
     def ElementText (self, index, column):
         counterpart = Globals.repository.find (self.counterpartUUID)
-        result = counterpart.contentSpec.indexResult (item)
+        result = counterpart.contentSpec[item]
         column = counterpart.columnHeadings[column]
         try:
             return str (result.getAttributeValue(column))
@@ -167,7 +167,7 @@ class ListDelegate:
 
     def ElementCount (self):
         counterpart = Globals.repository.find (self.counterpartUUID)
-        return counterpart.contentSpec.getResultSize()
+        return counterpart.contentSpec.len()
 
 
 class wxListBlock(wxListCtrl):
@@ -186,65 +186,67 @@ class wxListBlock(wxListCtrl):
         """
         if self.scheduleUpdate:
             if (time.time() - self.lastUpdateTime) > 1.0:
-                self.SynchronizeFramework()
+                counterpart = Globals.repository.find (self.counterpartUUID)
+                counterpart.SynchronizeFramework()
         else:
             lastupdateTime = time.time()
         event.Skip()
 
     def OnSize(self, event):
-        size = event.GetSize()
-        widthMinusLastColumn = 0
-        assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
-        for column in range (self.GetColumnCount() - 1):
-            widthMinusLastColumn += self.GetColumnWidth (column)
-        lastColumnWidth = size.width - widthMinusLastColumn
-        if lastColumnWidth > 0:
-            self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
-        event.Skip()
+        if not Globals.wxApplication.insideSynchronizeFramework:
+            size = event.GetSize()
+            widthMinusLastColumn = 0
+            assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
+            for column in range (self.GetColumnCount() - 1):
+                widthMinusLastColumn += self.GetColumnWidth (column)
+            lastColumnWidth = size.width - widthMinusLastColumn
+            if lastColumnWidth > 0:
+                self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
+            event.Skip()
 
     def On_wxSelectionChanged(self, event):
-        counterpart = Globals.repository.find (self.counterpartUUID)
-        item = counterpart.contentSpec.indexResult (event.GetIndex())
-        counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
-                          {'item':item})
+        if not Globals.wxApplication.insideSynchronizeFramework:
+            counterpart = Globals.repository.find (self.counterpartUUID)
+            item = counterpart.contentSpec [event.GetIndex()]
+            if counterpart.selection != item:
+                counterpart.selection = item
+            counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+                              {'item':item})
 
-    def SynchronizeFramework(self):
+
+    def wxSynchronizeFramework(self):
         counterpart = Globals.repository.find (self.counterpartUUID)
         elementDelegate = counterpart.elementDelegate
         if not elementDelegate:
             elementDelegate = '//parcels/OSAF/framework/blocks/ControlBlocks/ListDelegate'
         mixinAClass (self, elementDelegate)
 
+        queryItem = counterpart.contentSpec
+        queryItem.resultsStale = True
         self.Freeze()
-        for index in xrange (self.GetColumnCount()):
-            self.DeleteColumn(0)
-
+        self.ClearAll()
         for index in range (len(counterpart.columnHeadings)):
             self.InsertColumn(index,
                               str(counterpart.columnHeadings[index]),
                               width = counterpart.columnWidths[index])
 
-        self.Thaw()
-        self.DeleteAllItems()
         self.SetItemCount (self.ElementCount())
+        self.Thaw()
         try:
             subscription = self.subscriptionUUID
         except AttributeError:
             counterpart = Globals.repository.find (self.counterpartUUID)
-            try:
-                queryItem = counterpart.contentSpec
-            except AttributeError:
-                pass
-            else:
-                events = [Globals.repository.find('//parcels/OSAF/framework/item_changed'),
-                          Globals.repository.find('//parcels/OSAF/framework/item_added'),
-                          Globals.repository.find('//parcels/OSAF/framework/item_deleted')]
-                self.subscriptionUUID = UUID()
-                Globals.notificationManager.Subscribe (events,
-                                                       self.subscriptionUUID,
-                                                       queryItem.onItemChanges)
-                queryItem.resultsStale = True
+            events = [Globals.repository.find('//parcels/OSAF/framework/item_changed'),
+                      Globals.repository.find('//parcels/OSAF/framework/item_added'),
+                      Globals.repository.find('//parcels/OSAF/framework/item_deleted')]
+            self.subscriptionUUID = UUID()
+            Globals.notificationManager.Subscribe (events,
+                                                   self.subscriptionUUID,
+                                                   queryItem.onItemChanges)
                 
+        if counterpart.selection:
+            self.GoToItem (counterpart.selection)
+
         self.scheduleUpdate = False
         self.lastUpdateTime = time.time()
         
@@ -260,8 +262,17 @@ class wxListBlock(wxListCtrl):
         """
         return self.ElementText (index, column)
 
+    def GoToItem(self, item):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        index = counterpart.contentSpec.index (item)
+        self.Select (index)
+
 
 class List(RectangularChild):
+    def __init__(self, *arguments, **keywords):
+        super (List, self).__init__ (*arguments, **keywords)
+        self.selection = None
+
     def renderOneBlock (self, parent, parentWindow):
         list = wxListBlock(parentWindow,
                            Block.getwxID(self),
@@ -280,6 +291,13 @@ class List(RectangularChild):
     def NeedsUpdate(self):
         wxWindow = Globals.association[self.getUUID()]
         wxWndow.scheduleUpdate = True    
+
+    def OnSelectionChangedEvent (self, notification):
+        """
+          Display the item in the wxWindow counterpart.
+        """
+        self.selection = notification.data['item']
+        self.GoToItem (self.selection)
 
 
 class RadioBox(RectangularChild):
@@ -393,25 +411,27 @@ class wxTreeAndList:
         """
         if self.scheduleUpdate:
            if (time.time() - self.lastUpdateTime) > 0.5:
-                self.SynchronizeFramework()
+               counterpart = Globals.repository.find (self.counterpartUUID)
+               counterpart.SynchronizeFramework()
         else:
             lastupdateTime = time.time()
         event.Skip()
 
     def OnSize(self, event):
-        size = event.GetSize()
-        if isinstance (self, wxTreeListCtrl):
-            widthMinusLastColumn = 0
-            assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
-            for column in range (self.GetColumnCount() - 1):
-                widthMinusLastColumn += self.GetColumnWidth (column)
-            lastColumnWidth = size.width - widthMinusLastColumn
-            if lastColumnWidth > 0:
-                self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
-        else:
-            assert isinstance (self, wxTreeList), "We're assuming the only other choice is a wxTree"
-            self.SetSize (size)
-        event.Skip()
+        if not Globals.wxApplication.insideSynchronizeFramework:
+            size = event.GetSize()
+            if isinstance (self, wxTreeListCtrl):
+                widthMinusLastColumn = 0
+                assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
+                for column in range (self.GetColumnCount() - 1):
+                    widthMinusLastColumn += self.GetColumnWidth (column)
+                lastColumnWidth = size.width - widthMinusLastColumn
+                if lastColumnWidth > 0:
+                    self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
+            else:
+                assert isinstance (self, wxTreeCtrl), "We're assuming the only other choice is a wxTree"
+                self.SetSize (size)
+            event.Skip()
 
     def OnExpanding(self, event):
         self.LoadChildren(event.GetItem())
@@ -420,28 +440,30 @@ class wxTreeAndList:
         """
           Load the items in the tree only when they are visible.
         """
-        counterpart = Globals.repository.find (self.counterpartUUID)
-
-        parentUUID = self.GetPyData (parentId)
-        for child in self.ElementChildren (Globals.repository [parentUUID]):
-            cellValues = self.ElementCellValues (child)
-            childNodeId = self.AppendItem (parentId,
-                                           cellValues.pop(0),
-                                           -1,
-                                           -1,
-                                           wxTreeItemData (child.getUUID()))
-            index = 1
-            for value in cellValues:
-                self.SetItemText (childNodeId, value, index)
-                index += 1
-            self.SetItemHasChildren (childNodeId, self.ElementHasChildren (child))
-
-        counterpart.openedContainers [parentUUID] = True
+        child, cookie = self.GetFirstChild (parentId, 0)
+        if not child.IsOk():
+            
+            counterpart = Globals.repository.find (self.counterpartUUID)
+    
+            parentUUID = self.GetPyData (parentId)
+            for child in self.ElementChildren (Globals.repository [parentUUID]):
+                cellValues = self.ElementCellValues (child)
+                childNodeId = self.AppendItem (parentId,
+                                               cellValues.pop(0),
+                                               -1,
+                                               -1,
+                                               wxTreeItemData (child.getUUID()))
+                index = 1
+                for value in cellValues:
+                    self.SetItemText (childNodeId, value, index)
+                    index += 1
+                self.SetItemHasChildren (childNodeId, self.ElementHasChildren (child))
+    
+            counterpart.openedContainers [parentUUID] = True
 
     def OnCollapsing(self, event):
         counterpart = Globals.repository.find (self.counterpartUUID)
         id = event.GetItem()
-        self.DeleteChildren (id)
         """
           if the data passed in has a UUID we'll keep track of the
         state of the opened tree
@@ -450,39 +472,38 @@ class wxTreeAndList:
             del counterpart.openedContainers [self.GetPyData(id)]
         except AttributeError:
             pass
+        self.CollapseAndReset (id)
 
     def OnColumnDrag(self, event):
-        counterpart = Globals.repository.find (self.counterpartUUID)
-        columnIndex = event.GetColumn()
-        try:
-            counterpart.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
-        except AttributeError:
-            pass
+        if not Globals.wxApplication.insideSynchronizeFramework:
+            counterpart = Globals.repository.find (self.counterpartUUID)
+            columnIndex = event.GetColumn()
+            try:
+                counterpart.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
+            except AttributeError:
+                pass
 
     def On_wxSelectionChanged(self, event):
-        counterpart = Globals.repository.find (self.counterpartUUID)
-
-        itemUUID = self.GetPyData(self.GetSelection())
-        selection = Globals.repository.find (itemUUID)
-        if counterpart.selection != selection:
-            counterpart.selection = selection
+        if not Globals.wxApplication.insideSynchronizeFramework:
+            counterpart = Globals.repository.find (self.counterpartUUID)
     
-            counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
-                              {'item':selection})
+            itemUUID = self.GetPyData(self.GetSelection())
+            selection = Globals.repository.find (itemUUID)
+            if counterpart.selection != selection:
+                counterpart.selection = selection
+        
+                counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+                                  {'item':selection})
 
-    def ExpandItem(self, id):
-        # @@@ Needs to handle the difference in how wxTreeCtrls and wxTreeListCtrls
-        # expand items.
-        self.Expand (id)
-
-    def SynchronizeFramework(self):
+    def wxSynchronizeFramework(self):
         def ExpandContainer (self, openedContainers, id):
             try:
                 expand = openedContainers [self.GetPyData(id)]
             except KeyError:
                 return
 
-            self.ExpandItem(id)
+            self.LoadChildren(id)
+            self.Expand(id)
             child, cookie = self.GetFirstChild (id, 0)
             while child.IsOk():
                 ExpandContainer (self, openedContainers, child)
@@ -515,7 +536,8 @@ class wxTreeAndList:
                                    -1,
                                    -1,
                                    wxTreeItemData (root.getUUID()))
-        self.SetItemHasChildren (rootNodeId, self.ElementHasChildren (root))        
+        self.SetItemHasChildren (rootNodeId, self.ElementHasChildren (root))
+        self.LoadChildren(rootNodeId)
         ExpandContainer (self, counterpart.openedContainers, self.GetRootItem ())
 
         selection = counterpart.selection
@@ -546,6 +568,7 @@ class wxTreeAndList:
             parent = self.ElementParent (item)
             if parent:
                 id = ExpandTreeToItem (self, parent)
+                self.LoadChildren(id)
                 self.Expand (id)
                 itemUUID = item.getUUID()
                 child, cookie = self.GetFirstChild (id, 0)
@@ -630,16 +653,19 @@ class wxItemDetail(wxHtmlWindow):
             event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
             event.Post({'item':item, 'type':'Normal'})
 
-    def SynchronizeFramework(self):
+    def wxSynchronizeFramework(self):
         counterpart = Globals.repository.find (self.counterpartUUID)
-        item = Globals.repository.find (counterpart.selection)
-        try:
-            self.SetPage(counterpart.getHTMLText(item))
-        except TypeError:
-            self.SetPage('<body><html><h1>Error displaying the item</h1></body></html>')
+        if counterpart.selection:
+            self.SetPage(counterpart.getHTMLText(counterpart.selection))
+        else:
+            self.SetPage('<html><body></body></html>')
 
 
 class ItemDetail(RectangularChild):
+    def __init__(self, *arguments, **keywords):
+        super (ItemDetail, self).__init__ (*arguments, **keywords)
+        self.selection = None
+
     def renderOneBlock (self, parent, parentWindow):
         htmlWindow = wxItemDetail(parentWindow,
                                   Block.getwxID(self),
@@ -663,7 +689,5 @@ class ItemDetail(RectangularChild):
         """
           Display the item in the wxWindow counterpart.
         """
-        item = notification.data['item']
-        self.selection = item.getUUID()
-        wxWindow = Globals.association[self.getUUID()]
-        wxWindow.SynchronizeFramework ()
+        self.selection = notification.data['item']
+        self.SynchronizeFramework ()

@@ -139,25 +139,27 @@ class wxSplitWindow(wxSplitterWindow):
         self.SetMinimumPaneSize(20)
  
     def OnSplitChanged(self, event):
-        counterpart = Globals.repository.find (self.counterpartUUID)
-        width, height = self.GetSizeTuple()
-        position = float (event.GetSashPosition())
-        splitMode = self.GetSplitMode()
-        if splitMode == wxSPLIT_HORIZONTAL:
-            counterpart.splitPercentage = position / height
-        elif splitMode == wxSPLIT_VERTICAL:
-            counterpart.splitPercentage = position / width
+        if not Globals.wxApplication.insideSynchronizeFramework:
+            counterpart = Globals.repository.find (self.counterpartUUID)
+            width, height = self.GetSizeTuple()
+            position = float (event.GetSashPosition())
+            splitMode = self.GetSplitMode()
+            if splitMode == wxSPLIT_HORIZONTAL:
+                counterpart.splitPercentage = position / height
+            elif splitMode == wxSPLIT_VERTICAL:
+                counterpart.splitPercentage = position / width
 
     def OnSize(self, event):
-        """
-          Calling Skip causes wxWindows to continue processing the event, which
-        will cause the parent class to get a crack at the event.
-        """
-        event.Skip()
-        counterpart = Globals.repository.find (self.counterpartUUID)
-        counterpart.size.width = self.GetSize().x
-        counterpart.size.height = self.GetSize().y
-        counterpart.setDirty()   # Temporary repository hack -- DJA
+        if not Globals.wxApplication.insideSynchronizeFramework:
+            """
+              Calling Skip causes wxWindows to continue processing the event, which
+            will cause the parent class to get a crack at the event.
+            """
+            event.Skip()
+            counterpart = Globals.repository.find (self.counterpartUUID)
+            counterpart.size.width = self.GetSize().x
+            counterpart.size.height = self.GetSize().y
+            counterpart.setDirty()   # Temporary repository hack -- DJA
 
     def __del__(self):
         del Globals.association [self.counterpartUUID]

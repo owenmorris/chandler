@@ -7,6 +7,7 @@ import logging
 import application.Globals as Globals
 from Block import *
 from ContainerBlocks import *
+from MenuBlocks import MenuEntry
 from OSAF.framework.notifications.Notification import Notification
 from wxPython.wx import *
 from wxPython.html import *
@@ -15,7 +16,6 @@ import OSAF.framework.utils.imports.OutlookContacts as OutlookContacts
 import OSAF.contentmodel.tests.GenerateItems as GenerateItems
 
 class View(BoxContainer):
-    inDispatchEvent = False
     def dispatchEvent (self, notification):
         
         def callMethod (block, methodName, notification):
@@ -23,68 +23,70 @@ class View(BoxContainer):
               Call method named methodName on block
             """
             try:
-                member = getattr (block, methodName)                
+                member = getattr (block, methodName)
             except AttributeError:
                 return False
-      
-            View.inDispatchEvent = True
+
+            """
+              Comment in this code to see which events are dispatched -- DJA
             try:
-                member (notification)
-            finally:
-                View.inDispatchEvent = False
+                updateUI = notification.data['UpdateUI']
+            except KeyError:
+                print "Calling %s" % methodName
+            """
+            member (notification)
             return True
         
         def broadcast (block, methodName, notification):
             """
               Call method named methodName on every block and it's children
-            who implements it
+            who implements it, except for the block that posted the event,
+            to avoid recursive calls.
             """
+            sender = notification.data['sender']
             callMethod (block, methodName, notification)
             for child in block.childrenBlocks:
-                if child and not child.eventBoundary:
+                if child and not child.eventBoundary and child != sender:
                     broadcast (child, methodName, notification)
 
         event = notification.event
         """
-          There are a number of situations where either recursive, unnecessary,
-        or incorrect extra events are posted as a side effect of handling an
-        event. We're in the process of coming up with a new model that deals
-        with these properly. However, until that work is finished, we'll ignore
-        recursive postings of events which is a good temporary approximate solution.
+          Construct method name based upon the type of the event.
         """
-        if View.inDispatchEvent:
-            logging.warn('ignoring recursive event %s', event)
+        methodName = event.methodName
+
+        try:
+            updateUI = notification.data['UpdateUI']
+        except KeyError:
+            pass
         else:
+            methodName += 'UpdateUI'
+
+        if event.dispatchEnum == 'SendToBlock':
+            callMethod (event.dispatchToBlock, methodName, notification)
+
+        elif event.dispatchEnum == 'Broadcast':
             """
-              Find the block with the focus
+              Find the block to dispatch to. If the sender is a menu
+            we'll dispatch to the block with the focus, otherwise we'll
+            dispatch to whoever 
             """
+            block = notification.data['sender']
+            if isinstance (block, MenuEntry):
+                block = self.getFocusBlock()
+
+            while (not block.eventBoundary and block.parentBlock):
+                block = block.parentBlock
+                
+            broadcast (block, methodName, notification)
+        elif event.dispatchEnum == 'BubbleUp':
             block = self.getFocusBlock()
-            """
-              Construct method name based upon the type of the event.
-            """
-            methodName = event.methodName
-    
-            try:
-                updateUI = notification.data['UpdateUI']
-            except KeyError:
-                pass
-            else:
-                methodName += 'UpdateUI'
-    
-            if event.dispatchEnum == 'SendToBlock':
-                callMethod (event.dispatchToBlock, methodName, notification)
-            elif event.dispatchEnum == 'Broadcast':
-                while (not block.eventBoundary and block.parentBlock):
-                    block = block.parentBlock
-                    
-                broadcast (block, methodName, notification)
-            elif event.dispatchEnum == 'BubbleUp':
-                while (block):
-                    if callMethod (block, methodName, notification):
-                        break
-                    block = block.parentBlock
-            elif __debug__:
-                assert (False)
+            while (block):
+                if  callMethod (block, methodName, notification):
+                    break
+                block = block.parentBlock
+        elif __debug__:
+            assert (False)
 
     def getFocusBlock (self):
         focusWindow = wxWindow_FindFocus()

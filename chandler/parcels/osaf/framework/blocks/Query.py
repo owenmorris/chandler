@@ -10,7 +10,7 @@ class Query (Item):
         self.data = []
         self.results = []
 
-    def getResultSize(self):
+    def len(self):
         if self.resultsStale:
             self.refreshResults()
         return len (self.results)
@@ -24,11 +24,11 @@ class Query (Item):
 
         elif self.queryEnum == "Kind":
             self.results = []
-            for item in self.getResultsIterator():
+            for item in self:
                 self.results.append (item)
         self.resultsStale = False
 
-    def getResultsIterator (self):
+    def __iter__ (self):
         if self.queryEnum == "ContainerSearch":
             assert False, "This code isn't written"
 
@@ -41,10 +41,24 @@ class Query (Item):
         elif __debug__:
             assert False, "Bad QueryEnum"
 
-    def indexResult (self, index):
+    def __getitem__ (self, index):
         if self.resultsStale:
             self.refreshResults()
         return self.results [index]
+ 
+    def index (self, item):
+        if self.resultsStale:
+            self.refreshResults()
+        """
+          Apparent repository bug: comment in the following instruction and watch it fail -- DJA
+        return self.results.index (item)
+        """
+        index = 0
+        for object in self:
+            if object == item:
+                return index
+            index = index + 1
+        assert (False)
  
     def onItemChanges(self, notification):
         if self.queryEnum == "ContainerSearch":
