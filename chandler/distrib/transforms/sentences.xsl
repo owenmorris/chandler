@@ -112,8 +112,9 @@
 
 <xsl:choose>
 	<xsl:when test="$attribute">
+					    <xsl:variable name = "typeNode" select = "func:deref($attribute/core:type/@itemref)" />
                         <xsl:variable name = "type">
-					       <xsl:apply-templates select="func:deref($attribute/core:type/@itemref)" mode="getDisplayName"/>
+					       <xsl:apply-templates select="$typeNode" mode="getDisplayName"/>
 					    </xsl:variable>
                         <xsl:variable name = "cardinality" select="func:getAspect($attribute, 'cardinality')"/>
 					    <xsl:apply-templates select = "$attribute" mode="getHrefAnchor"/>
@@ -121,43 +122,43 @@
 					    <xsl:choose>
 					      <xsl:when test = "$cardinality='single'">
 					         <xsl:choose>
-					         	<xsl:when test="$attribute/@itemref">
-					         	   single
-					         	   <xsl:value-of select="$type"/>
-					         	   value.
-					         	</xsl:when>
-					         	<xsl:otherwise>
+					         	<xsl:when test="local-name($typeNode)='Kind'">
 					         	   reference to a single
 					         	   <xsl:value-of select="$type"/>
 					         	   item.					         	 
+					         	</xsl:when>
+					         	<xsl:otherwise>
+					         	   single
+					         	   <xsl:value-of select="$type"/>
+					         	   value.
 					         	</xsl:otherwise>
 					         </xsl:choose>
 					      </xsl:when>
 					      <xsl:when test = "$cardinality='list'">
 					         <xsl:choose>
-					         	<xsl:when test="$attribute/@itemref">
-					         	   list of
-					         	   <xsl:value-of select="$type"/>
-					         	   values.
-					         	</xsl:when>
-					         	<xsl:otherwise>
+					         	<xsl:when test="local-name($typeNode)='Kind'">
 					         	   list of references to
 					         	   <xsl:value-of select="$type"/>
 					         	   items.					         	 
+					         	</xsl:when>
+					         	<xsl:otherwise>
+					         	   list of
+					         	   <xsl:value-of select="$type"/>
+					         	   values.
 					         	</xsl:otherwise>
 					         </xsl:choose>
 					      </xsl:when>
 					      <xsl:when test = "$cardinality='dict'">
 					         <xsl:choose>
-					         	<xsl:when test="$attribute/@itemref">
-					         	   dictionary of
-					         	   <xsl:value-of select="$type"/>
-					         	   values.
-					         	</xsl:when>
-					         	<xsl:otherwise>
+					         	<xsl:when test="local-name($typeNode)='Kind'">
 					         	   dictionary of references to
 					         	   <xsl:value-of select="$type"/>
 					         	   items.					         	 
+					         	</xsl:when>
+					         	<xsl:otherwise>
+					         	   dictionary of
+					         	   <xsl:value-of select="$type"/>
+					         	   values.
 					         	</xsl:otherwise>
 					         </xsl:choose>
 					      </xsl:when>
@@ -166,6 +167,9 @@
 					         Its cardinality is "<xsl:value-of select="$cardinality" />".
 					      </xsl:otherwise>					      
 					    </xsl:choose>
+      <xsl:if test="func:getAspect($attribute, 'required') = 'True'">
+         <xsl:text>It is a required attribute.</xsl:text>
+      </xsl:if>
 
 <xsl:if test = "$attribute/core:description or $attribute/core:issues">
 		<xsl:apply-templates select = "$attribute/core:description" />
