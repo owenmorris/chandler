@@ -422,7 +422,7 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
 
     def OnSelectItem(self, item):
         self.parent.blockItem.selection = item
-        self.parent.blockItem.postSelectionChanged()
+        self.parent.blockItem.postSelectItemBroadcast()
         self.parent.wxSynchronizeWidget()
 
     def OnCreateItem(self, unscrolledPosition, createOnDrag):

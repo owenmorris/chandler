@@ -277,7 +277,7 @@ class AttributeDelegate (ListDelegate):
 class wxList (DraggableWidget, wx.ListCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxList, self).__init__ (*arguments, **keywords)
-        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnWXSelectionChanged, id=self.GetId())
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnWXSelectItem, id=self.GetId())
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_LIST_BEGIN_DRAG, self.OnItemDrag)
 
@@ -299,12 +299,12 @@ class wxList (DraggableWidget, wx.ListCtrl):
                 self.SetColumnWidth (self.GetColumnCount() - 1, lastColumnWidth)
         event.Skip()
 
-    def OnWXSelectionChanged(self, event):
+    def OnWXSelectItem(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             item = self.blockItem.contents [event.GetIndex()]
             if self.blockItem.selection != item:
                 self.blockItem.selection = item
-            self.blockItem.PostGlobalEvent("SelectionChanged", {'item':item})
+            self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':item})
         event.Skip()
 
     def OnItemDrag(self, event):
@@ -348,7 +348,7 @@ class List(RectangularChild):
                        Block.getWidgetID(self),
                        style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
 
-    def onSelectionChangedEvent (self, notification):
+    def onSelectItemEvent (self, notification):
         """
           Display the item in the widget.
         """
@@ -512,7 +512,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
                     gridTable = self.GetTable()
                     for columnIndex in xrange (gridTable.GetNumberCols()):
                         self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-                self.blockItem.PostGlobalEvent("SelectionChanged", {'item':item})
+                self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':item})
         event.Skip()
 
     def OnSize(self, event):
@@ -616,7 +616,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             self.blockItem.selection = []
             self.blockItem.selectedItemToView = None
             self.ClearSelection()
-        self.blockItem.PostGlobalEvent("SelectionChanged", {'item':item})
+        self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':item})
 
     def DeleteSelection (self):
         self.blockItem.contents.beginUpdate()
@@ -641,7 +641,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.blockItem.selectedItemToView = None
         Globals.repository.commit()
         self.blockItem.contents.endUpdate()
-        self.blockItem.PostGlobalEvent("SelectionChanged", {'item':None})
+        self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':None})
 
 
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
@@ -766,7 +766,7 @@ class Table (RectangularChild):
     def instantiateWidget (self):
         return wxTable (self.parentBlock.widget, Block.getWidgetID(self))
 
-    def onSelectionChangedEvent (self, notification):
+    def onSelectItemEvent (self, notification):
         item = notification.data ['item']
         if item != self.selectedItemToView:
             self.selectedItemToView = item
@@ -781,7 +781,7 @@ class Table (RectangularChild):
             else:
                 self.widget.SelectBlock (row, 0, row, self.widget.GetColumnCount() - 1)
                 self.widget.MakeCellVisible (row, 0)
-            self.PostGlobalEvent("SelectionChanged", {'item':item})
+            self.PostGlobalEvent("SelectItemBroadcast", {'item':item})
 
     def onDeleteEvent (self, notification):
         self.widget.DeleteSelection()
@@ -903,7 +903,7 @@ class wxTreeAndList(DraggableWidget):
         self.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnExpanding, id=self.GetId())
         self.Bind(wx.EVT_TREE_ITEM_COLLAPSING, self.OnCollapsing, id=self.GetId())
         self.Bind(wx.EVT_LIST_COL_END_DRAG, self.OnColumnDrag, id=self.GetId())
-        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnWXSelectionChanged, id=self.GetId())
+        self.Bind(wx.EVT_TREE_SEL_CHANGED, self.OnWXSelectItem, id=self.GetId())
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_TREE_BEGIN_DRAG, self.OnItemDrag)
 
@@ -969,7 +969,7 @@ class wxTreeAndList(DraggableWidget):
             except AttributeError:
                 pass
 
-    def OnWXSelectionChanged(self, event):
+    def OnWXSelectItem(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
     
             itemUUID = self.GetItemData(self.GetSelection()).GetData()
@@ -977,7 +977,7 @@ class wxTreeAndList(DraggableWidget):
             if self.blockItem.selection != selection:
                 self.blockItem.selection = selection
         
-                self.blockItem.PostGlobalEvent("SelectionChanged", {'item':selection})
+                self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':selection})
         event.Skip()
 
     def OnItemDrag(self, event):
@@ -1093,7 +1093,7 @@ class Tree(RectangularChild):
                                style=wxTreeAndList.CalculateWXStyle(self))
         return tree
 
-    def onSelectionChangedEvent (self, notification):
+    def onSelectItemEvent (self, notification):
         self.widget.GoToItem (notification.GetData()['item'])
                             
 
@@ -1108,7 +1108,7 @@ class wxItemDetail(wx.html.HtmlWindow):
         if not item:
             webbrowser.open(itemURL)
         else:
-            self.blockItem.PostGlobalEvent("SelectionChanged", {'item':item})
+            self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':item})
 
     def wxSynchronizeWidget(self):
         if self.blockItem.selection:
@@ -1132,7 +1132,7 @@ class ItemDetail(RectangularChild):
     def getHTMLText(self, item):
         return '<body><html><h1>%s</h1></body></html>' % item.getDisplayName()
 
-    def onSelectionChangedEvent (self, notification):
+    def onSelectItemEvent (self, notification):
         """
           Display the item in the wxWidget.
         """

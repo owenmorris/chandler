@@ -33,10 +33,10 @@ application specific parcels here</description>
     <subscribeAlwaysEvents itemref="events:Quit"/>
     <subscribeAlwaysEvents itemref="events:Redo"/>
     <subscribeAlwaysEvents itemref="events:SelectedDateChanged"/>
+    <subscribeAlwaysEvents itemref="events:SelectItemBroadcast"/>
+    <subscribeAlwaysEvents itemref="events:SelectItemBroadcastInsideActiveView"/>
     <subscribeAlwaysEvents itemref="events:Undo"/>
 
-    <subscribeAlwaysEvents itemref="events:SelectionChanged"/>
-    <subscribeAlwaysEvents itemref="events:SelectionChangedInsideActiveView"/>
     <subscribeAlwaysEvents itemref="events:RequestSelectSidebarItem"/>
     <subscribeAlwaysEvents itemref="events:EnterPressed"/>
   </EventList>
@@ -89,19 +89,20 @@ application specific parcels here</description>
     <dispatchEnum>BroadcastEverywhere</dispatchEnum>
   </BlockEvent>
 
+  <BlockEvent itsName="SelectItemBroadcast">
+    <methodName>onSelectItemEvent</methodName>
+    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="SelectItemBroadcastInsideActiveView">
+    <methodName>onSelectItemEvent</methodName>
+    <dispatchEnum>BroadcastInsideActiveViewEventBoundary</dispatchEnum>
+  </BlockEvent>
+
   <BlockEvent itsName="Undo">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-
-  <BlockEvent itsName="SelectionChanged">
-    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
-  </BlockEvent>
-
-  <BlockEvent itsName="SelectionChangedInsideActiveView">
-    <methodName>onSelectionChangedEvent</methodName>
-    <dispatchEnum>BroadcastInsideActiveViewEventBoundary</dispatchEnum>
-  </BlockEvent>
 
   <BlockEvent itsName="RequestSelectSidebarItem">
     <dispatchEnum>SendToBlock</dispatchEnum>

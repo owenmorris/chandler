@@ -33,33 +33,33 @@ class DetailRoot (ControlBlocks.SelectionContainer):
     """
       Root of the Detail View.
     """
-    def onSelectionChangedEvent (self, notification):
+    def onSelectItemEvent (self, notification):
         """
           We have an event boundary inside us, which keeps all
         the events sent between blocks of the Detail View to
         ourselves.
-          When we get a SelectionChanged event, we jump across
+          When we get a SelectItem event, we jump across
         the event boundary and call synchronizeItemDetail on each
         block to give it a chance to synchronize on the details of
         the Item.  
           Notify container blocks before their children.
         """
         self.finishSelectionChanges () # finish changes to previous selected item 
-        super(DetailRoot, self).onSelectionChangedEvent(notification)
+        super(DetailRoot, self).onSelectItemEvent(notification)
         item= self.selectedItem()
-        assert item is notification.data['item'], "can't track selection in DetailRoot.onSelectionChangedEvent"
+        assert item is notification.data['item'], "can't track selection in DetailRoot.onSelectItemEvent"
         self.synchronizeWidget()
         if __debug__:
-            dumpSelectionChanged = False
-            if dumpSelectionChanged:
-                self.dumpShownHierarchy ('onSelectionChangedEvent')
+            dumpSelectItem = False
+            if dumpSelectItem:
+                self.dumpShownHierarchy ('onSelectItemEvent')
 
     def synchronizeDetailView(self, item):
         """
           We have an event boundary inside us, which keeps all
         the events sent between blocks of the Detail View to
         ourselves.
-          When we get a SelectionChanged event, we jump across
+          When we get a SelectItem event, we jump across
         the event boundary and call synchronizeItemDetail on each
         block to give it a chance to synchronize on the details of
         the Item.  
@@ -205,7 +205,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
 class DetailSynchronizer(object):
     """
       Mixin class that handles synchronizeWidget and
-    the SelectionChanged event by calling synchronizeItemDetail.
+    the SelectItem event by calling synchronizeItemDetail.
     Most client classes will only have to implement
     synchronizeItemDetail.
     """

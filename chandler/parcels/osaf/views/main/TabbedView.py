@@ -8,7 +8,7 @@ import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from osaf.framework.blocks.Block import Block as Block
 
 class TabbedView(ContainerBlocks.TabbedContainer):
-    def onSelectionChangedEvent(self, notification):
+    def onSelectItemEvent(self, notification):
         item = notification.data['item']
         if isinstance(item, Block):
             self.ChangeCurrentTab(item)
@@ -50,7 +50,7 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         newItem.render()
         self.synchronizeWidget()
         self.parentBlock.widget.Thaw()
-        self.PostGlobalEvent ('SelectionChanged', {'item':newItem})
+        self.PostGlobalEvent ('SelectItemBroadcast', {'item':newItem})
 
     def onCloseEvent (self, notification):
         """
@@ -82,7 +82,7 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         self.parentBlock.widget.Freeze()        
         self.synchronizeWidget()
         self.parentBlock.widget.Thaw()
-        self.PostGlobalEvent ('SelectionChanged',
+        self.PostGlobalEvent ('SelectItemBroadcast',
                               {'item':self.widget.GetPage(self.widget.selectedTab).blockItem})
 
     def onOpenEvent (self, notification):
@@ -102,7 +102,7 @@ class TabbedView(ContainerBlocks.TabbedContainer):
             item.widget.SetSize (self.widget.GetClientSize())
             self.synchronizeWidget()
             self.parentBlock.widget.Thaw()
-            self.PostGlobalEvent ('SelectionChanged', {'item':item})
+            self.PostGlobalEvent ('SelectItemBroadcast', {'item':item})
         
     def onCloseEventUpdateUI(self, notification):
         notification.data['Enable'] = (self.widget.GetPageCount() > 1)

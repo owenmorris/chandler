@@ -570,16 +570,16 @@ class wxMiniCalendar(wx.calendar.CalendarCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxMiniCalendar, self).__init__(*arguments, **keywords)
         self.Bind(wx.calendar.EVT_CALENDAR_SEL_CHANGED,
-                  self.OnWXSelectionChanged)
+                  self.OnWXSelectItem)
 
     def wxSynchronizeWidget(self):
         self.SetWindowStyle(wx.calendar.CAL_SUNDAY_FIRST |
                             wx.calendar.CAL_SHOW_SURROUNDING_WEEKS |
                             wx.calendar.CAL_SHOW_HOLIDAYS)
 
-    def OnWXSelectionChanged(self, event):
-        self.blockItem.Post(Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectedDateChanged'),
-                            {'start': self.getSelectedDate()})
+    def OnWXSelectItem(self, event):
+        self.blockItem.PostGlobalEvent ('SelectedDateChanged',
+                                        {'start': self.getSelectedDate()})
 
     def getSelectedDate(self):
         wxdate = self.GetDate()

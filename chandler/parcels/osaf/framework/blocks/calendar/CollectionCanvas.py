@@ -513,7 +513,7 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         Subclasses can override to handle item selection.
         """
         self.blockItem.selection = item
-        self.blockItem.postSelectionChanged()
+        self.blockItem.postSelectItemBroadcast()
         self.wxSynchronizeWidget()
 
     # DropReceiveWidget
@@ -558,16 +558,16 @@ class CollectionBlock(Block.RectangularChild):
 
     # Event handling
     
-    def onSelectionChangedEvent(self, notification):
+    def onSelectItemEvent(self, notification):
         """
         Sets the block selection and synchronizes the widget.
         """
         self.selection = notification.data['item']
         self.widget.wxSynchronizeWidget()
 
-    def postSelectionChanged(self):
+    def postSelectItemBroadcast(self):
         """
         Convenience method for posting a selection changed event.
         """
-        self.PostGlobalEvent('SelectionChanged', {'item':self.selection})
+        self.PostGlobalEvent('SelectItemBroadcast', {'item':self.selection})
 

@@ -80,5 +80,5 @@ class Sidebar (ControlBlocks.Table):
             else:
                 return
 
-        self.onSelectionChangedEvent (notification)
+        self.onSelectItemEvent (notification)
 

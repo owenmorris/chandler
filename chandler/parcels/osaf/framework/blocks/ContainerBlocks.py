@@ -189,7 +189,7 @@ class SelectionContainer(BoxContainer):
         super (SelectionContainer, self).__init__ (*arguments, **keywords)
         self.selection = None
 
-    def onSelectionChangedEvent (self, notification):
+    def onSelectItemEvent (self, notification):
         """
           just remember the new selected ContentItem.
         """
@@ -336,7 +336,7 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
         super (wxTabbedContainer, self).__init__ (*arguments, **keywords)
         self.selectedTab = 0
         
-        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnWXSelectionChanged,
+        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnWXSelectItem,
                   id=self.GetId())
 
     def CalculateWXStyle(self, block):
@@ -353,14 +353,14 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
         return style
     CalculateWXStyle = classmethod(CalculateWXStyle)
 
-    def OnWXSelectionChanged (self, event):
+    def OnWXSelectItem (self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             selection = event.GetSelection()
             if self.selectedTab != selection:
                 self.selectedTab = selection
                 page = self.GetPage(self.selectedTab)
                 Globals.mainView.onSetActiveView(page.blockItem)
-                self.blockItem.PostGlobalEvent("SelectionChanged", {'item':page.blockItem})
+                self.blockItem.PostGlobalEvent("SelectItemBroadcast", {'item':page.blockItem})
         event.Skip()
         
     def OnRequestDrop(self, x, y):
