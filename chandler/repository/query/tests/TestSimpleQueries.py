@@ -36,11 +36,20 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         results = self._compileQuery('for i in "//Schema/Core/Kind" where contains(i.itsName,"arc")')
         self._checkQuery(lambda i: not 'arc' in i.itsName, results)
                 
-    def testVariableQuery(self):
-        """ Test query where source is specified in a variable """
+    def testVariableKindQuery(self):
+        """ Test query where source (kind) is specified in a variable """
         k = self.rep.findPath('//Schema/Core/Kind')
         results = self._compileQuery('for i in $1 where contains(i.itsName,"arc")', {"$1": ([k], None)})
         self._checkQuery(lambda i: not 'arc' in i.itsName, results)
+
+    def testVariableRefCollectonQuery(self):
+        """ Test query where source (ref collection) is specified in a variable """
+        k = self.rep.findPath('//Schema/Core/Kind')
+        results = self._compileQuery('for i in $1 where contains(i.itsName,"Kind")', {"$1": (k.itsUUID,'attributes')})
+        for i in results:
+            print i
+        self._checkQuery(lambda i: not 'Kind' in i.itsName, results)
+
 
     def testNotFunctionKindQuery(self):
         """ Test negating a function call in the query predicate """

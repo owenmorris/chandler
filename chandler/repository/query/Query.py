@@ -28,6 +28,7 @@ class Query(object):
         """
         log.debug("RepoQuery.__init__: ")
         self.__rep = repo
+        self._view = self.__rep.view
         self.queryString = queryString
         self.args = {}
         self._kind = None
@@ -107,6 +108,8 @@ class Query(object):
         @param notification: a string containing the kind of notification
         @type notification: string
         """
+        if self._view != view:
+            return
         start = time.time()
         log.debug("RepoQuery.queryCallback for %s" % self.queryString)
         if self.queryString is None or self.queryString == "":
@@ -233,11 +236,7 @@ class ForPlan(LogicalPlan):
         if name.startswith('$'): 
             itemUUID, attribute = self.args[name]
             if isinstance (itemUUID, UUID):
-                item = self.__rep.find (itemUUID)                
-                if attribute is None:
-                    return ('arg', item)
-                else:
-                    return ('arg',item.getAttributeValue(attribute))
+                return ('argsrc', itemUUID, attribute)
             else:
                 if attribute is None:
                     return('arg', itemUUID)
@@ -306,10 +305,11 @@ class ForPlan(LogicalPlan):
             # this list of types to do incremental checking of multi-item paths
 
             #@@@ do iteration variable checks
-            path_type, root_kind = self.lookup_source(self.iter_source)
+            source = self.lookup_source(self.iter_source)
+            path_type = source[0]
 
             if path_type == 'kind':
-                current = root_kind
+                current = source[1]
                 count = 1
                 # walk path, building reverse lookup to be used by changed()
                 for i in ast[1][1:]:
@@ -407,8 +407,12 @@ class ForPlan(LogicalPlan):
             import repository.item.Query as RepositoryQuery
             items = RepositoryQuery.KindQuery(recursive=self.recursive).run([source[1]])
         # source is an argument (ref-collection)
-        else: 
+        elif source[0] == 'argsrc':
+            items = self._getSourceIterator(source)
+        elif source[0] == 'arg':
             items = source[1]
+        else:
+            assert False, "ForPlan.execute couldn't handle %s " % str(source)
 
         for i in items:
             try:
@@ -417,6 +421,19 @@ class ForPlan(LogicalPlan):
             except AttributeError:
                 #@@@ log
                 pass
+
+    def _getSourceIterator(self, source):
+        if len(source) == 3:
+            arg, uuid, attrName = source
+        else:
+            arg, uuid = source
+            attrName = None
+        item = self.__rep.findUUID(uuid)
+        if attrName:
+            items = item.getAttributeValue(attrName)
+        else:
+            items = item
+        return items
 
     def changed(self, item, attribute=None):
         """
@@ -432,8 +449,9 @@ class ForPlan(LogicalPlan):
         @return: true if the item entered, false if it exited, None if it was unaffected
         """
         # query source is a ref collection
-        if self.collection[0] == 'arg':
-            if item in self.collection[1]:
+        if self.collection[0] == 'argsrc':
+            items = self._getSourceIterator(self.collection)
+            if item in items:
                 i = item
                 result = eval(self._predicate)
             else:
