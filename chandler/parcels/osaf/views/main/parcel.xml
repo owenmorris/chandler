@@ -1082,7 +1082,7 @@
     <childrenBlocks itemref="doc:ShareButton"/>
     
     <!-- Attributes -->
-    <toolSize>24,24</toolSize>
+    <toolSize>25,25</toolSize>
     <buttonsLabeled>True</buttonsLabeled>
     <stretchFactor>0</stretchFactor>
   </Toolbar>
@@ -1094,7 +1094,7 @@
     <blockName>SyncButton</blockName>
     <title>Sync</title>
     <label>Sync All</label>
-    <bitmap>application/images/sync.png</bitmap>
+    <bitmap>application/images/toolbar_sync.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Get new Mail and synchronize with other Chandler users</helpString>
     <event itemref="doc:SyncAll"/>
@@ -1104,7 +1104,7 @@
     <blockName>NewButton</blockName>
     <title>New</title>
     <label>New</label>
-    <bitmap>application/images/new.png</bitmap>
+    <bitmap>application/images/toolbar_new.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Create a new Item</helpString>
     <event itemref="doc:NewNote"/>
@@ -1114,7 +1114,7 @@
     <blockName>ShareButton</blockName>
     <title>Share</title>
     <label>Share</label>
-    <bitmap>application/images/sharing.png</bitmap>
+    <bitmap>application/images/toolbar_share.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <helpString>Share or Manage the collection selected in the sidebar</helpString>
     <event itemref="doc:ShareOrManage"/>

@@ -105,7 +105,7 @@
     <!-- Children Blocks-->
     <childrenBlocks itemref="doc:TriageButton"/>
     <childrenBlocks itemref="doc:Triage"/>
-    <childrenBlocks itemref="doc:SharingButton"/>
+    <childrenBlocks itemref="doc:MailMessageButton"/>
     <childrenBlocks itemref="doc:TaskStamp"/>
     <childrenBlocks itemref="doc:CalendarStamp"/>
     <childrenBlocks itemref="doc:Spacer1"/>
@@ -121,7 +121,7 @@
     <childrenBlocks itemref="doc:PrivateButton"/>
     <!-- Attributes -->
     <colorStyle itemref="doc:GrayBackground3"/>
-    <toolSize>16,16</toolSize>
+    <toolSize>24,24</toolSize>
     <separatorWidth>50</separatorWidth>
     <subscribeWhenVisibleEvents itemref="doc:ButtonPressed"/>
   </Toolbar>
@@ -157,11 +157,11 @@
     <choices>Trash</choices>
   </Choice>
   
-  <ToolbarItem itsName="SharingButton"
-               itemClass="osaf.framework.blocks.detail.Detail.SharingButton">
-    <blockName>SharingButton</blockName>
+  <ToolbarItem itsName="MailMessageButton"
+               itemClass="osaf.framework.blocks.detail.Detail.MailMessageButton">
+    <blockName>MailMessageButton</blockName>
     <title>Sharing</title>
-    <bitmap>application/images/sharing.png</bitmap>
+    <bitmap>application/images/markup_send_as_message.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Enable sharing</helpString>
@@ -172,7 +172,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.TaskStamp">
     <blockName>TaskStamp</blockName>
     <title>Task</title>
-    <bitmap>application/images/task.png</bitmap>
+    <bitmap>application/images/markup_put_on_taskpad.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Make into a Task</helpString>
@@ -183,7 +183,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.CalendarStamp">
     <blockName>CalendarStamp</blockName>
     <title>Calendar</title>
-    <bitmap>application/images/calendar.png</bitmap>
+    <bitmap>application/images/markup_put_on_calendar.gif</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Put onto the Calendar</helpString>

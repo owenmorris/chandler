@@ -641,7 +641,7 @@ class ToolbarItem (Block.Block, DynamicChild):
         self.toolID = id
         if self.toolbarItemKind == 'Button':
             bitmap = wx.Image (self.bitmap, 
-                               wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+                               wx.BITMAP_TYPE_ANY).ConvertToBitmap()
             if self.label:
                 tool = wxToolbar.AddLabelTool (id, self.label, bitmap, 
                                                shortHelp=self.title, 
@@ -664,7 +664,7 @@ class ToolbarItem (Block.Block, DynamicChild):
             numItems = 0
         elif self.toolbarItemKind == 'Radio':
             bitmap = wx.Image (self.bitmap, 
-                               wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+                               wx.BITMAP_TYPE_ANY).ConvertToBitmap()
             if self.label:
                 tool = wxToolbar.AddRadioLabelTool(id, self.label, bitmap,
                                                    shortHelp=self.title,

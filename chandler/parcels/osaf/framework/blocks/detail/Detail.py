@@ -284,9 +284,9 @@ class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem)
         self.dynamicParent.widget.ToggleTool(self.toolID, shouldToggleBasedOnKind)
         return False
 
-class SharingButton (DetailStampButton):
+class MailMessageButton (DetailStampButton):
     """
-      Sharing button in the Markup Bar
+      Mail Message Stamping button in the Markup Bar
     """
     def stampMixinClass(self):
         return Mail.MailMessageMixin
