@@ -1,0 +1,4 @@
+2003-07-15 Morgen Sagen
+
+    * Enabled debug build of C launcher programs on Linux; the debug version
+        sets __debug__ and turns on asserts.
