@@ -42,7 +42,7 @@ binaries: env
 	done
 
 $(SYSTEMS):
-	$(MAKE) -C $@ DEBUG=$(DEBUG)
+	$(MAKE) -C $@ DEBUG=$(DEBUG) all
 
 all: env sources $(SYSTEMS)
 
