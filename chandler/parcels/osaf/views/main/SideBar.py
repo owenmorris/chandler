@@ -35,9 +35,14 @@ class Sidebar (ControlBlocks.Table):
 
         self.contents.beginUpdate()
         for view in self.contents:
-            view.contents.removeFilterKind (None)
-            if kindParameter:
-                view.contents.addFilterKind (kindParameter)
+            try:
+                contents = view.contents
+            except AttributeError:
+                pass
+            else:
+                contents.removeFilterKind (None)
+                if kindParameter:
+                    contents.addFilterKind (kindParameter)
         self.contents.endUpdate()
 
     def onRequestSelectSidebarItemEvent (self, notification):
