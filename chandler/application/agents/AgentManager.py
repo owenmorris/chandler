@@ -128,6 +128,7 @@ class AgentManager:
         
         agent = Agent(item, self)
         self.Register(agent)
+        agent.Resume()
         return agent
     
     def IsRegistered(self, agent):

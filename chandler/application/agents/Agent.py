@@ -29,9 +29,7 @@ class Agent:
         
         self._BuildInstructionMap()
         
-        # launch the agent's main loop thread
-        self.isRunning = True
-        thread.start_new(self.Mainloop, ())
+        self.isRunning = False
         
     # methods concerning agent identity 
     
