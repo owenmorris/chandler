@@ -1,0 +1,50 @@
+--- win/winlaunch_bin/winlaunch_bin.vcproj	Tue Nov 30 16:15:11 2004
++++ win-patched/winlaunch_bin/winlaunch_bin.vcproj	Tue Nov 30 15:18:32 2004
+@@ -28,21 +28,21 @@
+ 				UsePrecompiledHeader="0"
+ 				WarningLevel="3"
+ 				Detect64BitPortabilityProblems="TRUE"
+ 				DebugInformationFormat="4"/>
+ 			<Tool
+ 				Name="VCCustomBuildTool"/>
+ 			<Tool
+ 				Name="VCLinkerTool"
+-				AdditionalDependencies="..\..\..\..\external\debug\bin\libs\python23_d.lib"
++				AdditionalDependencies="..\..\..\..\external\debug\bin\libs\python24_d.lib"
+ 				OutputFile="$(OutDir)\chandler.exe"
+ 				LinkIncremental="2"
+ 				IgnoreDefaultLibraryNames=""
+-				DelayLoadDLLs="python23_d.dll"
++				DelayLoadDLLs="python24_d.dll"
+ 				GenerateDebugInformation="TRUE"
+ 				ProgramDatabaseFile="$(OutDir)/winlaunch_bin.pdb"
+ 				SubSystem="2"
+ 				TargetMachine="1"/>
+ 			<Tool
+ 				Name="VCMIDLTool"/>
+ 			<Tool
+ 				Name="VCPostBuildEventTool"/>
+@@ -82,21 +82,21 @@
+ 				UsePrecompiledHeader="0"
+ 				WarningLevel="3"
+ 				Detect64BitPortabilityProblems="TRUE"
+ 				DebugInformationFormat="3"/>
+ 			<Tool
+ 				Name="VCCustomBuildTool"/>
+ 			<Tool
+ 				Name="VCLinkerTool"
+-				AdditionalDependencies="..\..\..\..\external\release\bin\libs\python23.lib"
++				AdditionalDependencies="..\..\..\..\external\release\bin\libs\python24.lib"
+ 				OutputFile="$(OutDir)\chandler.exe"
+ 				LinkIncremental="1"
+ 				IgnoreDefaultLibraryNames=""
+-				DelayLoadDLLs="python23.dll"
++				DelayLoadDLLs="python24.dll"
+ 				GenerateDebugInformation="TRUE"
+ 				SubSystem="2"
+ 				OptimizeReferences="2"
+ 				EnableCOMDATFolding="2"
+ 				TargetMachine="1"/>
+ 			<Tool
+ 				Name="VCMIDLTool"/>
+ 			<Tool

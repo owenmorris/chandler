@@ -43,11 +43,16 @@ ARCHIVE: $(LAUNCHERS)/win/
 clean:
 	$(MAKE) -C win -k DEBUG=$(DEBUG) clean
 
-build:
+build: apply
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
 	cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
-	cd $(LAUNCHERS)/win; \
-	make
+	make -C $(LAUNCHERS)/win
+
+apply:
+ifeq ($(PYTHON_VER),2.4)
+	patch -Nup0 < patches-2.4
+endif
+
 endif
 
 ifeq ($(OS),Linux)

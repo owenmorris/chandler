@@ -10,9 +10,14 @@ then
     CHANDLERBIN=$CHANDLERHOME
 fi
 
-if [ -d $CHANDLERHOME -a -f $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python ]
+if [ "$PYTHON_VER" = "" ]
 then
-    echo "Using $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python"
+    PYTHON_VER=2.3
+fi
+
+if [ -d $CHANDLERHOME -a -f $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python ]
+then
+    echo "Using $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python"
     echo ""
 else
     echo "Error:  Please set CHANDLERHOME environment variable to point"
@@ -24,4 +29,4 @@ else
     exit 1
 fi
 
-PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels PYTHONHOME=$CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/2.3 DYLD_LIBRARY_PATH=$CHANDLERBIN/debug/lib:$CHANDLERBIN/debug/db/lib DYLD_FRAMEWORK_PATH=$CHANDLERBIN/debug/Library/Frameworks exec $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python $*
+PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels PYTHONHOME=$CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER DYLD_LIBRARY_PATH=$CHANDLERBIN/debug/lib:$CHANDLERBIN/debug/db/lib DYLD_FRAMEWORK_PATH=$CHANDLERBIN/debug/Library/Frameworks exec $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/$PYTHON_VER/Resources/Python.app/Contents/MacOS/Python $*
