@@ -39,8 +39,14 @@ class PublishCollectionDialog(wx.Dialog):
         self.OkButton = wx.xrc.XRCCTRL(self, "OK_BUTTON")
         self.CancelButton = wx.xrc.XRCCTRL(self, "CANCEL_BUTTON")
 
-        wx.EVT_BUTTON( self, wx.xrc.XRCID( "OK_BUTTON" ), self.OnOk )
-        wx.EVT_BUTTON( self, wx.xrc.XRCID( "CANCEL_BUTTON" ), self.OnCancel )
+        # This is the new style of event binding used as of wxWidgets 2.5.1
+        self.Bind(wx.EVT_BUTTON, self.OnOk,
+         id=wx.xrc.XRCID("OK_BUTTON"))
+        self.Bind(wx.EVT_BUTTON, self.OnCancel,
+         id=wx.xrc.XRCID("CANCEL_BUTTON"))
+
+        #wx.EVT_BUTTON( self, wx.xrc.XRCID( "OK_BUTTON" ), self.OnOk )
+        #wx.EVT_BUTTON( self, wx.xrc.XRCID( "CANCEL_BUTTON" ), self.OnCancel )
 
     def OnOk(self, evt):
         self.waitLabel.SetLabel("")

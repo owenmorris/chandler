@@ -394,8 +394,11 @@ class MainView(View):
 
     def onResendSharingInvitationsUpdateUI (self, notification):
         collection = self.getSidebarSelectedCollection ()
-        isShared = Sharing.isShared (collection)
-        notification.data ['Enable'] = isShared
+        if collection is not None:
+            isShared = Sharing.isShared (collection)
+            notification.data ['Enable'] = isShared
+        else:
+            notification.data ['Enable'] = False
 
     def ShareCollection (self, itemCollection):
         """
@@ -472,3 +475,25 @@ class MainView(View):
         Globals.repository.commit()
         self.setStatusMessage ('')
 
+    def selectView(self, view, showDetailView=True):
+        """ Given a view, select it in the sidebar. Optionally display its 
+            detail view """
+
+        rootPath = '//parcels/osaf/framework/blocks/Events/'
+        requestSelectSidebarItem = Globals.repository.findPath \
+                                (rootPath + 'RequestSelectSidebarItem')
+        requestSelectItem = Globals.repository.findPath \
+                                   (rootPath + 'RequestSelectItem')
+
+        # Tell the sidebar we want to select this view
+        args = {}
+        args['item'] = view
+        self.Post(requestSelectSidebarItem, args)
+
+        if showDetailView:
+            # Tell the ActiveView to select the collection
+            # It will pass the collection on to the Detail View.
+            args = {}
+            args['item'] = None
+            args['collection'] = True
+            self.Post(requestSelectItem, args)

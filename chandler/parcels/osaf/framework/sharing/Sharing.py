@@ -57,6 +57,8 @@ def subscribeToWebDavCollection(url):
         points to, then add the collection to the sidebar. """
 
     collection = collectionFromSharedUrl(url)
+
+    # See if we are already subscribed to the collection
     if collection is not None:
         application.dialogs.Util.showAlert( \
          Globals.wxApplication.mainFrame,
@@ -64,20 +66,24 @@ def subscribeToWebDavCollection(url):
          "%s" % (collection.displayName, url))
         return
 
+    # Fetch the collection
     collection = osaf.framework.webdav.Dav.DAV(url).get( )
 
-    # @@@ Hmm, this should always have a displayName
-    if not collection.hasAttributeValue("displayName"):
-        collection.displayName = "Imported"
-
+    # Add the collection to the sidebar by...
     event = Globals.parcelManager.lookup(EVENTS,
      "NewItemCollectionItem")
-    event.Post({'collection':collection})
+    args = {'collection':collection}
+    # ...creating a new view (which gets returned as args['view'])...
+    event.Post(args)
     Globals.repository.commit()
+    # ...and selecting that view in the sidebar
+    Globals.mainView.selectView(args['view'], showDetailView=True)
+
 
 def manualSubscribeToCollection():
     """ Display a dialog box prompting the user for a webdav url to 
         subscribe to.  """
+    # @@@ Obsolete, or for dev purposes only
 
     url = application.dialogs.Util.promptUser( \
      Globals.wxApplication.mainFrame, "Subscribe to Collection...",
@@ -95,6 +101,7 @@ def syncCollection(collection):
         osaf.framework.webdav.Dav.DAV(collection.sharedURL).get()
 
 def isShared(collection):
+    # @@@ Temporary hack until there is a better way to test for isShared
     return collection.hasAttributeValue('sharedURL') and collection.sharedURL
 
 def collectionFromSharedUrl(url):

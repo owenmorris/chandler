@@ -221,6 +221,10 @@ class Block(Item):
                 copies = { } # This will contain all the copied items
                 item = item.copy(parent=userdata, cloudAlias='default',
                  copies=copies)
+
+                # Return the newly created view back to the caller:
+                notification.data['view'] = item
+
                 Globals.notificationManager.PrepareSubscribers()
                 if collection is not None:
                     item.contents = collection
