@@ -9,14 +9,11 @@
     itemClass="osaf.contentmodel.mail.Mail.MailParcel"
     xmlns="http://osafoundation.org/parcels/core"
     xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
-    xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
-    xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
-    xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-    xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks">
+    xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail">
 
     <displayName>Mail Content Model</displayName>
     <description>Content Model for the Mail Messages, Email Accounts, and other things related to email</description>
-    <version>0.3</version>
+    <version>0.4</version>
     <author>Open Source Applications Foundation</author>
 
 
@@ -171,7 +168,6 @@
             <initialValue type="Boolean" value="False" />
         </Attribute>
 
-
         <Attribute itsName="accounts">
             <displayName value="Accounts" />
             <description value="Which IMAP accounts use this SMTP account as their default" />
@@ -187,6 +183,10 @@
             <initialValue type="Boolean" value="False"/>
         </Attribute>
 
+        <Attribute itsName="signiture">
+            <issues value="Basic signiture addition to an outgoing message will be refined in future releases" />
+            <type itemref="String" />
+        </Attribute>
     </Kind>
 
     <Kind itsName="MailDeliveryError">
@@ -298,9 +298,7 @@
                 <values value="SENT" />
                 <values value="FAILED" />
             </Enumeration>
-
         </Attribute>
-
     </Kind>
 
     <Kind itsName="IMAPDelivery">
@@ -344,53 +342,23 @@
         <displayName value="MIME Base Kind" />
         <description value="Super kind for MailMessage and the various MIME kinds" />
 
-        <Attribute itsName="additionalHeaders">
-            <description value="Catch-all for headers not belonging to one of the other attributes" />
+        <Attribute itsName="headers">
+            <description value="Catch-all for headers" />
             <cardinality value="dict" />
             <type itemref="String" />
             <initialValue />
         </Attribute>
 
-        <Attribute itsName="contentType">
-            <description value="Content-Type: header" />
-            <type itemref="String" />
-            <initialValue type="String" value="" />
-        </Attribute>
-
-        <Attribute itsName="contentLength">
-            <description value="Content-Length: header" />
-            <type itemref="String" />
-            <initialValue type="String" value="" />
-        </Attribute>
-
-        <Attribute itsName="contentTransferEncoding">
-            <description value="Content-Transfer-Encoding: header" />
-            <type itemref="String" />
-            <initialValue type="String" value="" />
-        </Attribute>
-
-        <Attribute itsName="contentDescription">
-            <description value="Content-Description: header" />
-            <type itemref="String" />
-            <initialValue type="String" value="" />
-        </Attribute>
-
-        <Attribute itsName="contentId">
-            <description value="Content-Id: header" />
-            <type itemref="String" />
-            <initialValue type="String" value="" />
-        </Attribute>
-
-        <Attribute itsName="contentDisposition">
-            <description value="Content-Disposition: header" />
-            <type itemref="String" />
-            <initialValue type="String" value="" />
-        </Attribute>
-
         <Attribute itsName="mimeType">
-            <type itemref="mail:MIMEBase/mimeType/mimeTypeEnum" />
+            <displayName value="mimeType" />
+            <type itemref="String" />
+            <initialValue type="String" value="" />
+        </Attribute>
 
-            <Enumeration itsName="mimeTypeEnum">
+        <Attribute itsName="mimeDesc">
+            <type itemref="mail:MIMEBase/mimeDesc/mimeDescEnum" />
+
+            <Enumeration itsName="mimeDescEnum">
                 <values value="MESSAGE" />
                 <values value="AUDIO" />
                 <values value="APPLICATION" />
@@ -411,7 +379,6 @@
                 <values value="SIGNED" />
                 <values value="ENCRYPTED" />
             </Enumeration>
-
         </Attribute>
 
         <Attribute itsName="mimeContainer">
@@ -419,7 +386,6 @@
             <initialValue itemref="None" />
             <inverseAttribute itemref="mail:MIMEContainer/mimeParts" />
         </Attribute>
-
     </Kind>
 
     <Kind itsName="MIMENote">
@@ -486,37 +452,10 @@
             <type itemref="DateTime" />
         </Attribute>
 
-        <Attribute itsName="dateReceived">
-            <type itemref="DateTime" />
-        </Attribute>
-
         <Attribute itsName="messageId">
             <type itemref="String" />
             <initialValue type="String" value="" />
         </Attribute>
-
-        <Attribute itsName="references">
-            <type itemref="String" />
-            <cardinality value="list" />
-            <initialValue />
-        </Attribute>
-
-        <Attribute itsName="received">
-            <type itemref="String" />
-            <cardinality value="list" />
-            <initialValue />
-        </Attribute>
-
-        <Attribute itsName="returnPath">
-            <type itemref="String" />
-            <initialValue type="String" value="" />
-        </Attribute>
-
-        <Attribute itsName="inReplyTo">
-            <type itemref="String" />
-            <initialValue type="String" value="" />
-        </Attribute>
-
 
         <Attribute itsName="toAddress">
             <displayName value="to"/>
@@ -564,12 +503,6 @@
             <initialValue />
         </Attribute>
 
-        <Attribute itsName="mimeVersion">
-            <type itemref="String" />
-            <initialValue type="String" value="" />
-        </Attribute>
-
-        <!-- redirections -->
         <Attribute itsName="who">
             <description value="Redirector to 'toAddress'" />
             <redirectTo value="toAddress" />
@@ -586,8 +519,8 @@
         </Attribute>
 
         <Attribute itsName="date">
-            <description value="Redirector to 'dateReceived'" />
-            <redirectTo value="dateReceived" />
+            <description value="Redirector to 'dateSent'" />
+            <redirectTo value="dateSent" />
         </Attribute>
 
         <Cloud itsName="Cloud">
@@ -630,7 +563,6 @@
           <endpoints itemref="mail:MailMessageMixin/Cloud/mimeParts"/>
         </Cloud>
         <clouds alias="default" itemref="mail:MailMessageMixin/Cloud"/>
-
     </Kind>
 
     <Kind itsName="MIMEBinary">
@@ -644,6 +576,10 @@
             <initialValue type="String" value="" />
         </Attribute>
 
+        <Attribute itsName="filesize">
+            <displayName value="File Size" />
+            <type itemref="Long" />
+        </Attribute>
     </Kind>
 
     <Kind itsName="MIMEText">

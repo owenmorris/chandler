@@ -25,17 +25,10 @@ from repository.util.Path import Path
       2. Need to revisit inbound outbound logic
       3. What should and should not be in this layer (Meeting with CPIA and Service Team)
       4. Seems like email address logic is not performant
-      5. If not moving email logic here then
-         create address api class to handle all email address
-         parsing and look up
 
 Design Issues:
-      1. Is account type really needed
-      2. Is delivery type really needed
-      3. Is tries really needed
-      4. Are the specific headers really needed or can we just lookup (Save space)
-      5. Date sent string could probally be gotten rid of
-      6. Can isOutbound isInbound can be replaced by the collection it is in
+      1. Is tries really needed
+      2. Date sent string could probally be gotten rid of
 """
 
 
@@ -54,19 +47,12 @@ class MailParcel(application.Parcel.Parcel):
             else:
                 return child
 
-        repository.walk(Path(contentitemsPath, 'inboundMailItems'),
-                        makeContainer)
-        repository.walk(Path(contentitemsPath, 'outboundMailItems'),
+        repository.walk(Path(contentitemsPath, 'mailItems'),
                         makeContainer)
 
 
     def getMailItemParent(cls, inbound=False):
-
-        parent = ContentModel.ContentModel.getContentItemParent()
-        if inbound:
-            return parent['inboundMailItems']
-        else:
-            return parent['outboundMailItems']
+        return ContentModel.ContentModel.getContentItemParent()['mailItems']
 
     getMailItemParent = classmethod(getMailItemParent)
 
@@ -307,6 +293,9 @@ class MailMessageMixin(MIMEContainer):
 
         super(MailMessageMixin, self).__init__(name, parent, kind)
 
+        self.mimeDesc = "MESSAGE"
+        self.mimeType = "message/rfc822"
+
     def InitOutgoingAttributes(self):
         """ Init any attributes on ourself that are appropriate for
         a new outgoing item.
@@ -322,8 +311,6 @@ class MailMessageMixin(MIMEContainer):
           Init only the attributes specific to this mixin.
         Called when stamping adds these attributes, and from __init__ above.
         """
-        self.mimeType = "MESSAGE"
-
         # default the fromAddress to any super class "whoFrom" definition
         try:
             whoFrom = self.getAnyWhoFrom()
@@ -415,6 +402,7 @@ class MailMessageMixin(MIMEContainer):
 
         self.isInbound = True
         self.parentAccount = account
+
 
     def shareSend(self):
         """
