@@ -45,3 +45,25 @@
  	/* We only use the default relative PYTHONPATH if we havent
  	   anything better to use! */
  	skipdefault = envpath!=NULL || pythonhome!=NULL || \
+--- Python-2.3.3/Lib/distutils/sysconfig.py	Mon Feb 10 06:02:33 2003
++++ Python-2.3.3-patched/Lib/distutils/sysconfig.py	Tue Mar 16 14:39:57 2004
+@@ -149,6 +149,19 @@
+         (cc, cxx, opt, basecflags, ccshared, ldshared, so_ext) = \
+             get_config_vars('CC', 'CXX', 'OPT', 'BASECFLAGS', 'CCSHARED', 'LDSHARED', 'SO')
+ 
++        # Chandler: add the -F flag needed to compile to installed Framework
++        if ldshared.endswith('-framework Python'):
++            site = None
++            for path in sys.path:
++                if path.endswith('site-packages'):
++                    site = path
++                    break
++            if site is not None:
++                pos = site.find('Library/Frameworks')
++                if pos > 0:
++                    ldshared = "%s -F%s -framework Python" %(ldshared[:-18],
++                                                             site[0:pos+18])
++        
+         if os.environ.has_key('CC'):
+             cc = os.environ['CC']
+         if os.environ.has_key('CXX'):

@@ -31,8 +31,7 @@ ifeq ($(OS),Darwin)
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../configure --prefix=$(PREFIX) $(CONF_DBG) \
-                     --enable-framework=$(PREFIX)/Library/Frameworks \
-                     LDFLAGS=-F$(PREFIX)/Library/Frameworks
+                     --enable-framework=$(PREFIX)/Library/Frameworks
 
 build: apply
 	cd $(SRC)/$(BUILD); \
