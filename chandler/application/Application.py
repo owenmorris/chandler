@@ -387,14 +387,27 @@ class wxApplication (wxApp):
 	
 	# handle the export command
 	def OnExportItems(self, event):
-		ImportExport().Export()
-	
-	# handle the import command		
-	def OnImportItems(self, event):
-		ImportExport().Import()
-		# tell the current view to redraw
-		self.wxMainFrame.activeParcel.UpdateFromRepository()
-		
+	    fileDialog = wxFileDialog(self.wxMainFrame, _("Select file to export to:"), "", "SavedItems", "*.*", wxSAVE|wxOVERWRITE_PROMPT )
+	    if fileDialog.ShowModal() == wxID_OK:
+	        filePath = fileDialog.GetPath()
+	        try:
+	            ImportExport().Export(filepath=filePath)
+	        except:
+	            message = _("Couldn't export repository to %s") % (filePath)
+	            wxMessageBox(message)
+
+        def OnImportItems(self, event):
+            fileDialog = wxFileDialog(self.wxMainFrame, _("Select file to import from:"), "", "", "*.*", wxOPEN)
+            if fileDialog.ShowModal() == wxID_OK:
+                filePath = fileDialog.GetPath()
+		try:
+		    ImportExport().Import(filepath=filePath)
+		    # tell the current view to redraw
+		    self.wxMainFrame.activeParcel.UpdateFromRepository()
+		except:
+		    message = _("Couldn't import Chandler items from \n%s") % (filePath)
+		    wxMessageBox(message)
+		    
 	def GetAccessibleViews(self, jabberID):
 		"""
 		  return a list of views accessible to the user represented by
