@@ -416,11 +416,14 @@ class wxViewerParcel(wxPanel):
                             menuItemNodeChild = menuItemNode.GetChildren()
                             insertAtIndex = menu.GetMenuItemCount()
                             while menuItemNodeChild != None:
-                                if menuItemNodeChild.GetName() == 'insertBefore':
+                                nodeName = menuItemNodeChild.GetName()
+                                if nodeName == 'insertAfter' or nodeName == 'insertBefore':
                                     insertAtName = menuItemNodeChild.GetChildren().GetContent()
                                     index = FindNameReturnIndex (menu, insertAtName)
                                     if index != wxNOT_FOUND:
                                         insertAtIndex = index
+                                        if nodeName == 'insertAfter':
+                                            insertAtIndex += 1
                                     break
                                 menuItemNodeChild = menuItemNodeChild.GetNext()
                             
