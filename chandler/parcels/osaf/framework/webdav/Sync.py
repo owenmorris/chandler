@@ -33,6 +33,9 @@ def syncItem(dav, item):
     print '-- needsPut      %s' % (needsPut)
     print '-- localChanges  %s' % (localChanges)
     print '-- serverChanges %s' % (serverChanges)
+    if serverChanges:
+        print '   |-- our etag  %s' % (etag)
+        print '   `-- svr etag  %s' % (dav.etag)
 
     if needsPut:
         dav.putResource(item.itsKind.itsName, 'text/plain')
@@ -94,7 +97,7 @@ def syncToServer(dav, item):
 
     for (name, value) in item.iterAttributeValues():
         # don't export these local attributes
-        if name in ['etag', 'lastModified', 'sharedURL']:
+        if name in [u'etag', u'lastModified', u'sharedVersion', u'sharedURL']:
             continue
 
         # the attribute's namespace is its path...
@@ -265,7 +268,7 @@ def getItem(dav):
         # set the version to avoid sync thinking there are local changes
         newItem.sharedVersion = newItem._version
         # set a bogus etag so it doesn't try to put
-        newItem.etag = "12345"
+        newItem.etag = "bad-etag"
 
         # toss this in to the itemMap so we can find it later
         sharing.itemMap[origUUID] = newItem.itsUUID

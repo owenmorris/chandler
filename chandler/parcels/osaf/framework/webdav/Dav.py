@@ -35,6 +35,9 @@ class DAV(object):
         return self.newConnection().put(unicode(self.url), body, mimetype, None)
         # return status.. or maybe just throw an exception if the put failed
 
+    def deleteResource(self):
+        return self.newConnection().delete(unicode(self.url))
+
     def getHeaders(self):
         r = self.newConnection().head(unicode(self.url))
         if r.status == 404:
@@ -42,7 +45,7 @@ class DAV(object):
         return r
 
     def _getETag(self):
-        return self.getHeaders().getheader('ETag', default='')
+        return unicode(self.getHeaders().getheader('ETag', default=''))
 
     def _getLastModified(self):
         return self.getHeaders().getheader('Last-Modified', default='')
