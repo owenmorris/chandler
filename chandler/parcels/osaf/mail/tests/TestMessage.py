@@ -29,6 +29,8 @@ Subject: test mail
 
 This is the body"""
 
+    __addresses = [None, "    ", "john", "sd$%dsd@dsd-fffd!.com", "bill.jones@tc.unernet.com"]
+
 
     def __getMessageObject(self):
         if self.__messageObject is None:
@@ -142,6 +144,13 @@ This is the body"""
 
         self.assertEquals(mOne['Subject'], mTwo['Subject'])
 
+
+    def testEmailValidation(self):
+         self.assertEquals(message.isValidEmailAddress(self.__addresses[0]), False)
+         self.assertEquals(message.isValidEmailAddress(self.__addresses[1]), False)
+         self.assertEquals(message.isValidEmailAddress(self.__addresses[2]), False)
+         self.assertEquals(message.isValidEmailAddress(self.__addresses[3]), False)
+         self.assertEquals(message.isValidEmailAddress(self.__addresses[4]), True)
 
     def testMessageTextToKind(self):
         """Conditions:
