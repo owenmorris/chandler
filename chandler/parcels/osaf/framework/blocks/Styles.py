@@ -27,10 +27,8 @@ class ColorStyle(Style):
     def synchronizeColor(self, block):
         widget = block.widget
         if widget:
-            if hasattr(self, "backgroundColor"):
-                widget.SetBackgroundColour(self.backgroundColor.wxColor())
-            if hasattr(self, "foregroundColor"):
-                widget.SetForegroundColour(self.foregroundColor.wxColor())
+            widget.SetBackgroundColour(self.backgroundColor.wxColor())
+            widget.SetForegroundColour(self.foregroundColor.wxColor())
         
 class Font(wx.Font):
     def __init__(self, characterStyle):
