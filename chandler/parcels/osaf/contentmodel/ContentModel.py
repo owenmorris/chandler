@@ -34,17 +34,18 @@ class ContentModel(Parcel):
             else:
                 return child
 
+        repository = Globals.repository
         if cls.contentItemParentID is not None:
-            parent = Globals.repository.findUUID(cls.contentItemParentID)
+            parent = repository.findUUID(cls.contentItemParentID)
             if parent is not None:
                 return parent
             # Our cached UUID is invalid
             cls.contentItemParentID is None
 
-        parent = Globals.repository.find(cls.contentitemsPath)
+        parent = repository.find(cls.contentitemsPath)
         if parent is None:
-            itemKind = Globals.repository.findPath('//Schema/Core/Item')
-            parent = Globals.repository.walk(cls.contentitemsPath,
+            itemKind = repository.findPath('//Schema/Core/Item')
+            parent = repository.walk(cls.contentitemsPath,
              makeContainer)
         cls.contentItemParentID = parent.itsUUID
         return parent
@@ -80,14 +81,15 @@ class ChandlerItem(Item.Item):
         """ The UUID of the kind is cached in the class's myKindID 
             attribute """
 
+        repository = Globals.repository
         if cls.myKindID is not None:
-            myKind = Globals.repository.findUUID(cls.myKindID)
+            myKind = repository.findUUID(cls.myKindID)
             if myKind is not None:
                 return myKind
             # Our cached UUID is invalid
             cls.myKindID = None
 
-        myKind = Globals.repository.findPath(cls.myKindPath)
+        myKind = repository.findPath(cls.myKindPath)
         assert myKind, "%s not yet loaded" % cls.myKindPath
         cls.myKindID = myKind.itsUUID
         return myKind
@@ -149,7 +151,7 @@ class ContentItem(ChandlerItem):
         # make sure the respository knows about the item's new Kind
         #  to trigger updates in the UI.
         # @@@BJS: I'm pretty sure this isn't necessary, so I'm commenting it out to speed things up.
-        # Globals.repository.commit ()
+        # self.itsView.commit ()
 
     def _stampPostProcess (self, addedKinds):
         """
@@ -196,7 +198,7 @@ class ContentItem(ChandlerItem):
         try:
             contentItemKinds = cachedContentItemKinds
         except NameError:
-            kindKind = Globals.repository.findPath('//Schema/Core/Kind')
+            kindKind = self.findPath('//Schema/Core/Kind')
             allKinds = Query.KindQuery().run([kindKind])
             contentItemKind = ContentItem.getKind ()
             contentItemKinds = [ aKind for aKind in allKinds if aKind.isKindOf (contentItemKind) ]

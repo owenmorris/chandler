@@ -80,14 +80,14 @@ class MainFrame(wx.Frame):
         application the mainFrame windows doesn't get destroyed, so
         we'll remove the handler
         """
-        Globals.wxApplication.Bind(wx.EVT_IDLE, None)
+        wx.GetApp().Bind(wx.EVT_IDLE, None)
         """
           When we quit, as each wxWidget window is torn down our handlers that
         track changes to the selection are called, and we don't want to count
         these changes, since they weren't caused by user actions.
         """
-        Globals.wxApplication.ignoreSynchronizeWidget = True
-        Globals.wxApplication.frame = None
+        wx.GetApp().ignoreSynchronizeWidget = True
+        wx.GetApp().frame = None
         Globals.mainViewRoot.frame = None
         self.Destroy()
 
@@ -96,7 +96,7 @@ class MainFrame(wx.Frame):
           Calling Skip causes wxWindows to continue processing the event, 
         which will cause the parent class to get a crack at the event.
         """
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             Globals.mainViewRoot.size.width = self.GetSize().x
             Globals.mainViewRoot.size.height = self.GetSize().y
             Globals.mainViewRoot.setDirty(Globals.mainViewRoot.VDIRTY, 'size', Globals.mainViewRoot._values)   # Temporary repository hack -- DJA
@@ -111,6 +111,7 @@ class wxApplication (wx.App):
     PARCEL_IMPORT = 'parcels'
 
     def OnInit(self):
+        tools.timing.begin("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
         """
           Main application initialization.
         """
@@ -212,9 +213,7 @@ class wxApplication (wx.App):
             path = os.sep.join([Globals.options.profileDir, '__repository__'])
         else:
             path = '__repository__'
-            
-        Globals.repository = DBRepository(path)
-
+        
         kwds = { 'stderr': Globals.options.stderr,
                  'ramdb': Globals.options.ramdb,
                  'create': True,
@@ -225,18 +224,21 @@ class wxApplication (wx.App):
         if Globals.options.repo:
             kwds['fromPath'] = Globals.options.repo
             
+        Globals.repository  = DBRepository(path)
         if Globals.options.create:
-            Globals.repository.create(**kwds)
+            Globals.repository .create(**kwds)
         else:
-            Globals.repository.open(**kwds)
+            Globals.repository .open(**kwds)
 
-        if not Globals.repository.findPath('//Packs/Schema'):
+        self.UIRepositoryView = Globals.repository.getCurrentView()
+
+        if not self.UIRepositoryView.findPath('//Packs/Schema'):
             """
               Bootstrap an empty repository by loading only the stuff that
             can't be loaded in a data parcel.
             """
-            Globals.repository.loadPack("repository/packs/schema.pack")
-            Globals.repository.loadPack("repository/packs/chandler.pack")
+            self.UIRepositoryView.loadPack("repository/packs/schema.pack")
+            self.UIRepositoryView.loadPack("repository/packs/chandler.pack")
 
         """
           Load Parcels
@@ -269,11 +271,11 @@ class wxApplication (wx.App):
           that isn't it's UUID. We need the name to look it up. If the main view's root
           isn't found then make a copy into the soup with the right name.
         """
-        mainViewRoot = Globals.repository.findPath('//userdata/MainViewRoot')
+        mainViewRoot = self.UIRepositoryView.findPath('//userdata/MainViewRoot')
         if not mainViewRoot:
-            template = Globals.repository.findPath ("//parcels/osaf/views/main/MainViewRoot")
+            template = self.UIRepositoryView.findPath ("//parcels/osaf/views/main/MainViewRoot")
             assert (template)
-            mainViewRoot = template.copy (parent = Globals.repository.findPath ("//userdata"),
+            mainViewRoot = template.copy (parent = self.UIRepositoryView.findPath ("//userdata"),
                                           name = "MainViewRoot",
                                           cloudAlias="default")
         self.mainFrame = MainFrame(None,
@@ -286,7 +288,7 @@ class wxApplication (wx.App):
         """
           Register to some global events for name lookup.
         """
-        globalEvents = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
+        globalEvents = self.UIRepositoryView.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
         from osaf.framework.blocks.Block import Block
         Block.addToNameToItemUUIDDictionary (globalEvents.eventsForNamedDispatch,
                                              Block.eventNameToItemUUID)
@@ -297,14 +299,14 @@ class wxApplication (wx.App):
         if '-prof' in sys.argv:
             import hotshot, hotshot.stats
             prof = hotshot.Profile('commit.log')
-            prof.runcall(Globals.repository.commit)
+            prof.runcall(self.UIRepositoryView.commit)
             prof.close()
             stats = hotshot.stats.load('commit.log')
             stats.strip_dirs()
             stats.sort_stats('time', 'calls')
             stats.print_stats(125)
         else:
-            Globals.repository.commit()
+            self.UIRepositoryView.commit()
             
         self.mainFrame.Show()
 
@@ -422,7 +424,7 @@ class wxApplication (wx.App):
         object to get the wrong type because of a "feature" of SWIG. So we need to avoid
         OnShows in this case by using ignoreSynchronizeWidget as a flag.
         """
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             widget = event.GetEventObject()
             try:
                 block = widget.blockItem
@@ -469,11 +471,11 @@ class wxApplication (wx.App):
 
         try:
             try:
-                Globals.repository.commit()
+                wx.GetApp().UIRepositoryView.commit()
             except VersionConflictError, e:
-                Globals.repository.logger.warning(str(e))
+                wx.GetApp().UIRepositoryView.logger.warning(str(e))
         finally:
-            Globals.repository.close()
+            wx.GetApp().UIRepositoryView.repository.close()
 
         Globals.crypto.shutdown()
 
@@ -500,7 +502,7 @@ class wxApplication (wx.App):
         See CallItemMethodAsync() below for calling details.
         Does a repository refresh to get the changes across from the other thread.
         """
-        Globals.repository.refresh () # bring changes across from the other thread/view
+        wx.GetApp().UIRepositoryView.refresh () # bring changes across from the other thread/view
 
         # unwrap the target item and find the method to call
         item = transportItem.unwrap ()
@@ -548,16 +550,16 @@ class wxApplication (wx.App):
         # convert all dictionary items
         for key,value in keyArgs.items():
             keyArgs[key] = TransportWrapper (value)
-        Globals.wxApplication.PostAsyncEvent (self._DispatchItemMethod, transportItem, 
-                                              methodName, transportArgs, keyArgs)
+        wx.GetApp().PostAsyncEvent (self._DispatchItemMethod, transportItem, 
+                                    methodName, transportArgs, keyArgs)
 
     def ShowDebuggerWindow(self):
         import wx.py
         rootObjects = {
          "globals" : application.Globals,
          "parcelManager" : application.Globals.parcelManager,
-         "parcelsRoot" : application.Globals.repository.findPath("//parcels"),
-         "repository" : application.Globals.repository,
+         "parcelsRoot" : self.UIRepositoryView.findPath("//parcels"),
+         "repository" : self.UIRepositoryView.repository,
          "wxApplication" : self,
         }
         self.crustFrame = wx.py.crust.CrustFrame(rootObject=rootObjects,

@@ -3,7 +3,6 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
 import os
 import wx
 import mx.DateTime as DateTime
@@ -92,7 +91,7 @@ class IAttributeEditor (object):
 
     def _GetAttributeEditorClass (theClass, type):
         """ Return the attribute editor class for this type """
-        map = Globals.repository.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
+        map = wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
         try:
             classPath = map.editorString [type]
         except KeyError:
@@ -508,7 +507,7 @@ class LocationAttributeEditor (LabeledAttributeEditor):
             # @@@DLD is there a way to get values whose displayName *starts* with the string?
             queryString = u'for i in "//parcels/osaf/contentmodel/calendar/Location" \
                           where contains(i.displayName, $0)'
-            locQuery = Query.Query (Globals.repository, queryString)
+            locQuery = Query.Query (wx.GetApp().UIRepositoryView.repository, queryString)
             locQuery.args = [ controlValue ]
             locQuery.execute ()
     
@@ -625,7 +624,7 @@ class IconAttributeEditor (BaseAttributeEditor):
         dc.DrawRectangleRect(rect) # always draw the background
         imageName = self.GetAttributeValue(item, attributeName)
         if imageName != '':
-            image = Globals.wxApplication.GetImage(imageName)
+            image = wx.GetApp().GetImage(imageName)
             if image:
                 offscreenBuffer = wx.MemoryDC()
                 offscreenBuffer.SelectObject (image)

@@ -44,13 +44,13 @@ class Parcel(application.Parcel.Parcel):
             pass
             """
             application.dialogs.Util.ok( \
-             Globals.wxApplication.mainFrame, "Sharing Invitation",
+             wx.GetApp().mainFrame, "Sharing Invitation",
              "Received an invite for an already subscribed collection:\n" \
              "%s\n%s" % (collection.displayName, url))
             """
         else:
             if application.dialogs.Util.yesNo( \
-             Globals.wxApplication.mainFrame, "Sharing Invitation",
+             wx.GetApp().mainFrame, "Sharing Invitation",
              "%s\nhas invited you to subscribe to\n'%s'\n\n" \
              "Would you like to accept the invitation?" \
              % (fromAddress, collectionName) ):
@@ -62,7 +62,7 @@ class Parcel(application.Parcel.Parcel):
         # When we receive this event, display the error
         logger.info("_errorCallback: [%s]" % error)
         application.dialogs.Util.ok( \
-         Globals.wxApplication.mainFrame, "Error", error)
+         wx.GetApp().mainFrame, "Error", error)
 
 
 def subscribeToWebDavCollection(url):
@@ -74,7 +74,7 @@ def subscribeToWebDavCollection(url):
     # See if we are already subscribed to the collection
     if collection is not None:
         application.dialogs.Util.ok( \
-         Globals.wxApplication.mainFrame,
+         wx.GetApp().mainFrame,
          "Already subscribed",
          "Already subscribed to collection '%s':\n"
          "%s" % (collection.displayName, url))
@@ -84,14 +84,14 @@ def subscribeToWebDavCollection(url):
     try:
         collection = osaf.framework.webdav.Dav.DAV(url).get( )
     except Exception, e:
-        application.dialogs.Util.ok(Globals.wxApplication.mainFrame,
+        application.dialogs.Util.ok(wx.GetApp().mainFrame,
          "WebDAV Error",
          "Couldn't get collection from:\n%s\n\nException %s: %s" % \
          (url, repr(e), str(e)))
         raise
 
     mainView = Globals.view[0]
-    mainView.postEventByName ("AddToSidebar", {'items':[collection]})
+    mainView.postEventByName ("AddToSidebarWithoutCopying", {'items':[collection]})
     Globals.repository.commit()
     # ...and selecting that view in the sidebar
     mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
@@ -105,14 +105,14 @@ def manualSubscribeToCollection():
     # @@@MOR Obsolete, or for dev purposes only
 
     url = application.dialogs.Util.promptUser( \
-     Globals.wxApplication.mainFrame, "Subscribe to Collection...",
+     wx.GetApp().mainFrame, "Subscribe to Collection...",
      "Collection URL:", "")
     if url is not None:
         subscribeToWebDavCollection(url)
 
 def manualPublishCollection(collection):
     application.dialogs.PublishCollection.ShowPublishCollectionsDialog( \
-     Globals.wxApplication.mainFrame, collection)
+     wx.GetApp().mainFrame, collection)
 
 def syncCollection(collection):
     if isShared(collection):
@@ -124,7 +124,7 @@ def syncCollection(collection):
         try:
             osaf.framework.webdav.Dav.DAV(collection.sharedURL).get()
         except Exception, e:
-            application.dialogs.Util.ok(Globals.wxApplication.mainFrame,
+            application.dialogs.Util.ok(wx.GetApp().mainFrame,
              "WebDAV Error",
              "Couldn't sync collection '%s'\nto %s\n\nException %s: %s" % \
              (collection.displayName, collection.sharedURL, repr(e), str(e)))
@@ -139,7 +139,7 @@ def putCollection(collection, url):
     try:
         osaf.framework.webdav.Dav.DAV(url).put(collection)
     except Exception, e:
-        application.dialogs.Util.ok(Globals.wxApplication.mainFrame,
+        application.dialogs.Util.ok(wx.GetApp().mainFrame,
          "WebDAV Error",
          "Couldn't publish collection '%s'\nto %s\n\nException %s: %s" % \
          (collection.displayName, url, repr(e), str(e)))
@@ -204,7 +204,7 @@ def announceSharingInvitation(url, collectionName, fromAddress):
 
     sharingParcel = \
      Globals.repository.findPath("//parcels/osaf/framework/sharing")
-    Globals.wxApplication.CallItemMethodAsync( sharingParcel,
+    wx.GetApp().CallItemMethodAsync( sharingParcel,
      '_sharingUpdateCallback', url, collectionName, fromAddress)
     logger.info("invite, just after CallItemMethodAsync")
 
@@ -214,7 +214,7 @@ def announceError(error):
 
     sharingParcel = \
      Globals.repository.findPath("//parcels/osaf/framework/sharing")
-    Globals.wxApplication.CallItemMethodAsync( sharingParcel,
+    wx.GetApp().CallItemMethodAsync( sharingParcel,
      '_errorCallback', error)
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =

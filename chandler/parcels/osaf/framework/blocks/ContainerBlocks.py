@@ -3,7 +3,6 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
 from Block import Block, RectangularChild, wxRectangularChild
 from DragAndDrop import DropReceiveWidget as DropReceiveWidget
 from DynamicContainerBlocks import Toolbar as Toolbar
@@ -186,7 +185,7 @@ class wxSplitterWindow(wx.SplitterWindow):
         self.SetMinimumPaneSize(20)
  
     def OnSize(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             newSize = self.GetSize()
             self.blockItem.size.width = newSize.width
             self.blockItem.size.height = newSize.height
@@ -205,7 +204,7 @@ class wxSplitterWindow(wx.SplitterWindow):
         event.Skip()
 
     def OnSplitChanged(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             width, height = self.GetSizeTuple()
             position = float (event.GetSashPosition())
             splitMode = self.GetSplitMode()
@@ -289,7 +288,7 @@ class wxSplitterWindow(wx.SplitterWindow):
             parent.Layout()
         self.Thaw()
 
-    def CalculateWXStyle(self, block):
+    def CalculateWXStyle(theClass, block):
         style = wx.SP_LIVE_UPDATE
         if isinstance (block.parentBlock, SplitterWindow):
             style |= wx.SP_3DSASH
@@ -311,7 +310,7 @@ class wxTabbedViewContainer(DropReceiveWidget, wx.Notebook):
     def wxSynchronizeWidget(self):
         pass
 
-    def CalculateWXStyle(self, block):
+    def CalculateWXStyle(theClass, block):
         return {
             'Top': 0,
             'Bottom': wx.NB_BOTTOM, 
@@ -382,7 +381,7 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
     CalculateWXStyle = classmethod(CalculateWXStyle)
 
     def OnWXSelectItem (self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             selection = event.GetSelection()
             if self.selectedTab != selection:
                 self.selectedTab = selection
@@ -398,7 +397,7 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
         return False
 
     def AddItem(self, itemUUID):
-        node = Globals.repository.findUUID(itemUUID)
+        node = self.blockItem.findUUID(itemUUID)
         try:
             newItem = node.item
         except AttributeError:
@@ -491,8 +490,8 @@ class TabbedView(TabbedContainer):
 
     def onNewEvent (self, event):
         "Create a new tab"
-        originalItem = Globals.repository.findPath('parcels/osaf/views/content/UntitledView')
-        userdata = Globals.repository.findPath('//userdata')
+        originalItem = self.findPath('parcels/osaf/views/content/UntitledView')
+        userdata = self.findPath('//userdata')
         newItem = originalItem.copy(parent=userdata, cloudAlias='default')
         newItem.contents.displayName = self._getUniqueName("Untitled")
         
@@ -631,13 +630,13 @@ class DetailViewCache (Item):
                 else:
                     # @@@BJS: work in progress...
                     # NOT: For now, just use the old detail view
-                    # was: template = Globals.repository.findPath ("//parcels/osaf/framework/blocks/detail/DetailRootTemplate")
-                    template = Globals.repository.findPath ("//parcels/osaf/framework/blocks/detail/" + name)
-                    view = template.copy (parent = Globals.repository.findPath ("//userdata"),
+                    # was: template = self.findPath ("//parcels/osaf/framework/blocks/detail/DetailRootTemplate")
+                    template = self.findPath ("//parcels/osaf/framework/blocks/detail/" + name)
+                    view = template.copy (parent = self.findPath ("//userdata"),
                                           cloudAlias="default")
                     self.kindUUIDToViewUUID [kindUUID] = view.itsUUID
             else:
-                view = Globals.repository.findUUID (viewUUID)
+                view = self.findUUID (viewUUID)
         return view
 
 
@@ -648,8 +647,8 @@ class SidebarDetailViewCache (Item):
             viewUUID = self.itemCollectionUUIDToViewUUID [item.itsUUID]
         except KeyError:
             if isinstance (item, ItemCollection):
-                template = Globals.repository.findPath (self.treeTemplatePath)
-                view = template.copy (parent = Globals.repository.findPath ("//userdata"),
+                template = self.findPath (self.treeTemplatePath)
+                view = template.copy (parent = self.findPath ("//userdata"),
                                       cloudAlias="default")
                 self.itemCollectionUUIDToViewUUID [item.itsUUID] = view.itsUUID
             elif isinstance (item, Block):
@@ -658,5 +657,5 @@ class SidebarDetailViewCache (Item):
                 """
                 view = item
         else:
-            view = Globals.repository.find (viewUUID)
+            view = self.find (viewUUID)
         return view

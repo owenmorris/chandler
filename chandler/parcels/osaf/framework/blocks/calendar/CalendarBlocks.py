@@ -230,7 +230,7 @@ class wxCalendarBlock(SimpleCanvas.wxSimpleCanvas):
         self.todayButton.Move((self.blockItem.size.width - width, 0))        
 
     def OnSize(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             newSize = self.GetSize()
             self.blockItem.size.width = newSize.width
             self.blockItem.size.height = newSize.height

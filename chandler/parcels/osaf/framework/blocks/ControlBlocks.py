@@ -4,7 +4,6 @@ __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import os, sys
-import application.Globals as Globals
 from application.Application import mixinAClass
 from Block import *
 from ContainerBlocks import *
@@ -77,7 +76,7 @@ class CheckBox(RectangularChild):
                           self.title,
                           wx.DefaultPosition,
                           (self.minimumSize.width, self.minimumSize.height))
-        checkbox.Bind(wx.EVT_CHECKBOX, Globals.wxApplication.OnCommand, id=id)
+        checkbox.Bind(wx.EVT_CHECKBOX, wx.GetApp().OnCommand, id=id)
         return checkbox
     
 class wxChoice(ShownSynchronizer, wx.Choice):
@@ -96,7 +95,7 @@ class Choice(RectangularChild):
                          wx.DefaultPosition,
                          (self.minimumSize.width, self.minimumSize.height),
                          self.choices)
-        choice.Bind(wx.EVT_CHOICE, Globals.wxApplication.OnCommand, id=id)
+        choice.Bind(wx.EVT_CHOICE, wx.GetApp().OnCommand, id=id)
         return choice
 
 class ComboBox(RectangularChild):
@@ -123,7 +122,7 @@ class ContextMenuItem(RectangularChild):
         id = Block.getWidgetID(self)
         self.data = data
         wxContextMenu.Append(id, self.title)
-        wxContextMenu.Bind(wx.EVT_MENU, Globals.wxApplication.OnCommand, id=id)
+        wxContextMenu.Bind(wx.EVT_MENU, wx.GetApp().OnCommand, id=id)
 
     
 class wxEditText(ShownSynchronizer, wx.TextCtrl):
@@ -327,7 +326,7 @@ class wxList (DraggableWidget, wx.ListCtrl):
         mixinAClass (self, elementDelegate)
         
     def OnSize(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             size = self.GetClientSize()
             widthMinusLastColumn = 0
             assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
@@ -339,7 +338,7 @@ class wxList (DraggableWidget, wx.ListCtrl):
         event.Skip()
 
     def OnWXSelectItem(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             item = self.blockItem.contents [event.GetIndex()]
             if self.blockItem.selection != item:
                 self.blockItem.selection = item
@@ -467,12 +466,12 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         object is being created cause the object to get the wrong type because of a
         "feature" of SWIG. So we need to avoid OnShows in this case.
         """
-        oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
-        Globals.wxApplication.ignoreSynchronizeWidget = True
+        oldIgnoreSynchronizeWidget = wx.GetApp().ignoreSynchronizeWidget
+        wx.GetApp().ignoreSynchronizeWidget = True
         try:
             super (wxTable, self).__init__ (*arguments, **keywords)
         finally:
-            Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+            wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
         self.SetColLabelAlignment(wx.ALIGN_LEFT, wx.ALIGN_CENTRE)
         self.SetRowLabelSize(0)
@@ -491,7 +490,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
 
         defaultName = "_default"
         self.SetDefaultRenderer (GridCellAttributeRenderer (defaultName))
-        map = Globals.repository.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
+        map = wx.GetApp().UIRepositoryView.findPath('//parcels/osaf/framework/attributeEditors/AttributeEditors')
         for key in map.editorString.keys():
             if key != defaultName:
                 self.RegisterDataType (key,
@@ -526,7 +525,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
 
         
     def OnRangeSelect(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             topRow = event.GetTopRow()
             bottomRow = event.GetBottomRow()
             selecting = event.Selecting()
@@ -555,7 +554,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         event.Skip()
 
     def OnSize(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             size = event.GetSize()
             widthMinusLastColumn = 0
 
@@ -574,7 +573,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         event.Skip()
 
     def OnColumnDrag(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             columnIndex = event.GetRowOrCol()
             self.blockItem.columnWidths [columnIndex] = self.GetColSize (columnIndex)
 
@@ -582,7 +581,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.SetDragData (self.blockItem.contents [event.GetRow()].itsUUID)
 
     def AddItem(self, itemUUID):
-        item = Globals.repository.findUUID(itemUUID)
+        item = self.findUUID(itemUUID)
         self.blockItem.contents.add (item)
 
     def OnRightClick(self, event):
@@ -690,7 +689,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
                 contents.remove (contents [row])
         self.blockItem.selection = []
         self.blockItem.selectedItemToView = None
-        Globals.repository.commit()
+        self.blockItem.itsView.commit()
         self.blockItem.contents.endUpdate()
         self.blockItem.postEventByName("SelectItemBroadcast", {'item':None})
 
@@ -785,7 +784,7 @@ class GridCellAttributeEditor (wx.grid.PyGridCellEditor):
 class ImageRenderer (wx.grid.PyGridCellRenderer):
     def Draw (self, grid, attr, dc, rect, row, col, isSelected):
         imageName = grid.GetTable().GetValue (row, col)
-        image = Globals.wxApplication.GetImage (imageName)
+        image = wx.GetApp().GetImage (imageName)
 
         if image:
             offscreenBuffer = wx.MemoryDC()
@@ -976,7 +975,7 @@ class wxTreeAndList(DraggableWidget):
         mixinAClass (self, self.blockItem.elementDelegate)
         
     def OnSize(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             if isinstance (self, wx.gizmos.TreeListCtrl):
                 size = self.GetClientSize()
                 widthMinusLastColumn = 0
@@ -991,7 +990,7 @@ class wxTreeAndList(DraggableWidget):
         event.Skip()
 
     def OnExpanding(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             self.LoadChildren(event.GetItem())
 
     def LoadChildren(self, parentId):
@@ -1002,7 +1001,7 @@ class wxTreeAndList(DraggableWidget):
         if not child.IsOk():
 
             parentUUID = self.GetItemData(parentId).GetData()
-            for child in self.GetElementChildren (Globals.repository [parentUUID]):
+            for child in self.GetElementChildren (self.blockItem [parentUUID]):
                 cellValues = self.GetElementValues (child)
                 childNodeId = self.AppendItem (parentId,
                                                cellValues.pop(0),
@@ -1027,7 +1026,7 @@ class wxTreeAndList(DraggableWidget):
         self.DeleteChildren (id)
 
     def OnColumnDrag(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             columnIndex = event.GetColumn()
             try:
                 self.blockItem.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
@@ -1035,10 +1034,10 @@ class wxTreeAndList(DraggableWidget):
                 pass
 
     def OnWXSelectItem(self, event):
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
     
             itemUUID = self.GetItemData(self.GetSelection()).GetData()
-            selection = Globals.repository.find (itemUUID)
+            selection = self.blockItem.find (itemUUID)
             if self.blockItem.selection != selection:
                 self.blockItem.selection = selection
         
@@ -1124,7 +1123,7 @@ class wxTreeAndList(DraggableWidget):
         self.SelectItem (id)
         self.ScrollTo (id)
 
-    def CalculateWXStyle(self, block):
+    def CalculateWXStyle(theClass, block):
         style = wx.TR_DEFAULT_STYLE|wx.NO_BORDER
         if block.hideRoot:
             style |= wx.TR_HIDE_ROOT
@@ -1169,7 +1168,7 @@ class wxItemDetail(wx.html.HtmlWindow):
           Clicking on a URL loads the page in a separate browser.
         """
         itemURL = wx_linkinfo.GetHref()
-        item = Globals.repository.findPath(itemURL)
+        item = self.blockItem.findPath(itemURL)
         if not item:
             webbrowser.open(itemURL)
         else:
@@ -1216,7 +1215,7 @@ class ContentItemDetail(SelectionContainer):
     
     def synchronizeWidget (self):
         super(ContentItemDetail, self).synchronizeWidget()
-        if not Globals.wxApplication.ignoreSynchronizeWidget:
+        if not wx.GetApp().ignoreSynchronizeWidget:
             self.synchronizeColor()
         
     def synchronizeColor (self):
@@ -1241,7 +1240,7 @@ class wxPyTimer(wx.PyTimer):
         event = wx.PyEvent()
         event.SetEventType(wx.wxEVT_TIMER)
         event.SetId(Block.getWidgetID(self.blockItem))
-        Globals.wxApplication.OnCommand(event)
+        wx.GetApp().OnCommand(event)
 
     def __del__(self):
        Block.wxOnDestroyWidget (self)

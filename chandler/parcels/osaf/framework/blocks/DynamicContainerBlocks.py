@@ -353,7 +353,7 @@ class DynamicBlock(Item):
                 bar.widget.wxSynchronizeWidget()
 
         # Since menus have changed, we need to reissue UpdateUI events
-        Globals.wxApplication.needsUpdateUI = True
+        wx.GetApp().needsUpdateUI = True
 
 class DynamicChild (DynamicBlock):
     # Abstract mixin class used to detect DynamicChild blocks
@@ -812,7 +812,7 @@ class ToolbarItem (Block.Block, DynamicChild):
                                         longHelp=self.helpString)
             # Bind events to the Application OnCommand dispatcher, which will
             #  call the block.event method
-            theToolbar.Bind (wx.EVT_TOOL, Globals.wxApplication.OnCommand, id=id)            
+            theToolbar.Bind (wx.EVT_TOOL, wx.GetApp().OnCommand, id=id)            
         elif self.toolbarItemKind == 'Separator':
             theToolbar.AddSeparator()
         elif self.toolbarItemKind == 'Check':
@@ -835,7 +835,7 @@ class ToolbarItem (Block.Block, DynamicChild):
                                wx.TE_PROCESS_ENTER)
             tool.SetName(self.title)
             theToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_TEXT_ENTER, Globals.wxApplication.OnCommand, id=id)
+            tool.Bind(wx.EVT_TEXT_ENTER, wx.GetApp().OnCommand, id=id)
         elif self.toolbarItemKind == 'Combo':
             proto = self.prototype
             choices = proto.choices
@@ -846,8 +846,8 @@ class ToolbarItem (Block.Block, DynamicChild):
                             (proto.minimumSize.width, proto.minimumSize.height),
                             proto.choices)            
             theToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_COMBOBOX, Globals.wxApplication.OnCommand, id=id)
-            tool.Bind(wx.EVT_TEXT, Globals.wxApplication.OnCommand, id=id)
+            tool.Bind(wx.EVT_COMBOBOX, wx.GetApp().OnCommand, id=id)
+            tool.Bind(wx.EVT_TEXT, wx.GetApp().OnCommand, id=id)
         elif self.toolbarItemKind == 'Choice':
             proto = self.prototype
             choices = proto.choices
@@ -857,7 +857,7 @@ class ToolbarItem (Block.Block, DynamicChild):
                             (proto.minimumSize.width, proto.minimumSize.height),
                             proto.choices)            
             theToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_CHOICE, Globals.wxApplication.OnCommand, id=id)
+            tool.Bind(wx.EVT_CHOICE, wx.GetApp().OnCommand, id=id)
         elif __debug__:
             assert False, "unknown toolbarItemKind"
         

@@ -94,7 +94,7 @@ class MainView(View):
 
     def onEditAccountPreferencesEvent (self, event):
         # Triggered from "File | Prefs | Accounts..."
-        application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(Globals.wxApplication.mainFrame)
+        application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame)
 
     def onNewEvent (self, event):
         # Create a new Content Item
@@ -131,7 +131,7 @@ class MainView(View):
             for item in activeView.childrenBlocks:
                 for canvas in item.childrenBlocks:
                     if isinstance(canvas, CollectionCanvas.CollectionBlock):
-                        printObject = Printing.Printing(Globals.wxApplication.mainFrame, canvas.widget)
+                        printObject = Printing.Printing(wx.GetApp().mainFrame, canvas.widget)
                         if isPreview:
                             printObject.OnPrintPreview()
                         else:
@@ -147,7 +147,7 @@ class MainView(View):
         event.arguments ['Enable'] = False
 
     def onQuitEvent (self, event):
-        Globals.wxApplication.mainFrame.Close ()
+        wx.GetApp().mainFrame.Close ()
 
     def onRedoEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
@@ -164,7 +164,7 @@ class MainView(View):
           Do a repository commit with notice posted in the Status bar.
         """
         self.setStatusMessage (_("committing changes to the repository..."))
-        Globals.repository.commit()
+        self.itsView.repository.commit()
         self.setStatusMessage ('')
 
     def setStatusMessage (self, statusMessage, progressPercentage=-1, alert=False):
@@ -174,9 +174,9 @@ class MainView(View):
         specify a progressPercentage (as a float 0 to 1) the progress bar will appear.  If 
         no percentage is specified the progress bar will disappear.
         """
-        Globals.wxApplication.mainFrame.GetStatusBar().blockItem.setStatusMessage (statusMessage, progressPercentage)
+        wx.GetApp().mainFrame.GetStatusBar().blockItem.setStatusMessage (statusMessage, progressPercentage)
         if alert:
-            application.dialogs.Util.ok(Globals.wxApplication.mainFrame,
+            application.dialogs.Util.ok(wx.GetApp().mainFrame,
              "", statusMessage)
             self.setStatusMessage ('')
 
@@ -281,7 +281,7 @@ class MainView(View):
 
     def onCheckRepositoryEvent(self, event):
         # triggered from "Test | Check Repository" Menu
-        repository = Globals.repository
+        repository = self.itsView.repository
         checkingMessage = _('Checking repository...')
         repository.logger.info(checkingMessage)
         self.setStatusMessage(checkingMessage)
@@ -299,41 +299,40 @@ class MainView(View):
 
     def onImportIcalendarEvent(self, event):
         # triggered from "Test | Import iCalendar" Menu
-        rep = Globals.repository
-        parent = rep.findPath("//userdata/contentitems")
+        parent = self.findPath("//userdata/contentitems")
 
         self.setStatusMessage ("Importing from import.ics")
         try:
-            conduit = rep.findPath("//userdata/fsconduit")
+            conduit = self.findPath("//userdata/fsconduit")
             if conduit is None:
                 conduit = Sharing.FileSystemConduit(name="fsconduit",
                  parent=parent, sharePath=".", shareName="import.ics")
-            format = rep.findPath("//userdata/icalImportFormat")
+            format = self.findPath("//userdata/icalImportFormat")
             if format is None:
                 format = ICalendar.ICalendarFormat(name="icalImportFormat",
                  parent=parent)
-            share = rep.findPath("//userdata/icalImportShare")
+            share = self.findPath("//userdata/icalImportShare")
             if share is None:
                 share = Sharing.Share(name="icalImportShare", parent=parent,
                  conduit=conduit, format=format)
             share.get()
             self.setStatusMessage ("Import completed")
         except Exception, e:
-            rep.logger.info("Failed importFile, caught exception " + str(e))
+            self.itsView.getLogger().info("Failed importFile, caught exception " + str(e))
             self.setStatusMessage("Import failed")
 
     def onExportIcalendarEvent(self, event):
         # triggered from "Test | Export Events as iCalendar" Menu
-        repository = Globals.repository
+        logger = self.itsView.getLogger()
         self.setStatusMessage ("Exporting to " + ical.OUTFILE)
         try:
             if ical.exportFile(ical.OUTFILE, repository):
                 self.setStatusMessage ("Export completed")
             else:
-                repository.logger.info("Failed exportFile")
+                logger.info("Failed exportFile")
                 self.setStatusMessage("Export failed")
         except Exception, e:
-            repository.logger.info("Failed exportFile, caught exception " + str(e))
+            logger.info("Failed exportFile, caught exception " + str(e))
             self.setStatusMessage("Export failed")
 
     def onCommitRepositoryEvent(self, event):
@@ -342,11 +341,11 @@ class MainView(View):
 
     def onGenerateCalendarEventItemsEvent(self, event):
         GenerateItems.generateCalendarEventItems(10, 30)
-        Globals.repository.commit()
+        self.itsView.repository.commit()
 
     def onGenerateContactsEvent(self, event):
         GenerateItems.GenerateContacts(10)
-        Globals.repository.commit()
+        self.itsView.repository.commit()
 
     def onGenerateContentItemsEvent(self, event):
         # triggered from "Test | Generate Content Items" Menu
@@ -355,49 +354,50 @@ class MainView(View):
         GenerateItems.GenerateTasks(2)
         GenerateItems.GenerateEventTasks(2)
         # GenerateItems.GenerateContacts(2) 
-        Globals.repository.commit() 
+        self.itsView.repository.commit() 
 
     def onGenerateNotesEvent(self, event):
         GenerateItems.GenerateNotes(10)
-        Globals.repository.commit()
+        self.itsView.repository.commit()
 
     def onGetNewMailEvent (self, event):
         # Triggered from "Test | Get Mail" menu
 
         if not Sharing.isMailSetUp():
             if application.dialogs.Util.okCancel( \
-             Globals.wxApplication.mainFrame,
+             wx.GetApp().mainFrame,
              "Account information required",
              "Please set up your accounts."):
                 if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
-                 Globals.wxApplication.mainFrame):
+                 wx.GetApp().mainFrame):
                     return
             else:
                 return
 
         account = Mail.MailParcel.getIMAPAccount()
 
-        Globals.repository.commit()
+        repository = self.itsView.repository
+        repository.commit()
         osaf.mail.imap.IMAPDownloader(account).getMail()
-        Globals.repository.refresh()
+        repository.refresh()
 
     def onLogRepositoryHistoryEvent(self, event):
         # triggered from "Test | Log Repository History" Menu
-        repository = Globals.repository
+        repository = self.itsView.repository
         repository.logger.info("Items changed outside %s since last commit:", repository.view)
         repository.mapHistory(self._logChange)
 
     def onLogViewChangesEvent(self, event):
         # triggered from "Test | Log View Changes" Menu
-        repository = Globals.repository
+        repository = self.itsView.repository
         repository.logger.info("Items changed in %s:", repository.view)
-        Globals.repository.mapChanges(self._logChange)
+        repository.mapChanges(self._logChange)
 
     def onReloadParcelsEvent(self, event):
         # Test menu item
         ParcelManager.getManager().loadParcels()
-        Globals.wxApplication.UnRenderMainView ()
-        Globals.wxApplication.RenderMainView ()
+        wx.GetApp().UnRenderMainView ()
+        wx.GetApp().RenderMainView ()
 
     def onResendSharingInvitationsEvent (self, event):
         """
@@ -426,7 +426,7 @@ class MainView(View):
 
     def onShowPyCrustEvent(self, event):
         # Test menu item
-        Globals.wxApplication.ShowDebuggerWindow()
+        wx.GetApp().ShowDebuggerWindow()
 
     def onShareCollectionEvent (self, event):
         # Triggered from "Test | Share collection..."
@@ -470,8 +470,8 @@ class MainView(View):
         if not self.webDAVAccountIsSetup():
             # The user hasn't set up webdav, so let's bring up the accounts
             # dialog, with the webdav account selected
-            webdavAccount = Globals.repository.findPath('//parcels/osaf/framework/sharing/WebDAVAccount')
-            application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(Globals.wxApplication.mainFrame, account=webdavAccount)
+            webdavAccount = self.findPath('//parcels/osaf/framework/sharing/WebDAVAccount')
+            application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(wx.GetApp().mainFrame, account=webdavAccount)
             return
 
         # Tell the ActiveView to select the collection
@@ -506,11 +506,11 @@ class MainView(View):
         # Triggered from "Test | Share tool..."
         import osaf.framework.sharing.ShareTool
         reload(osaf.framework.sharing.ShareTool)
-        osaf.framework.sharing.ShareTool.ShowShareToolDialog(Globals.wxApplication.mainFrame, view=self.itsView)
+        osaf.framework.sharing.ShareTool.ShowShareToolDialog(wx.GetApp().mainFrame, view=self.itsView)
 
     def onSyncCollectionEvent (self, event):
         # Triggered from "Test | Sync collection..."
-        Globals.repository.commit() 
+        self.itsView.repository.commit() 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             Sharing.syncCollection(collection)
@@ -569,11 +569,11 @@ class MainView(View):
 
         if not Sharing.isMailSetUp():
             if application.dialogs.Util.okCancel( \
-             Globals.wxApplication.mainFrame,
+             wx.GetApp().mainFrame,
              "Account information required",
              "Please set up your accounts."):
                 if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
-                 Globals.wxApplication.mainFrame):
+                 wx.GetApp().mainFrame):
                     return
             else:
                 return
@@ -611,13 +611,13 @@ class MainView(View):
         UseNewQuery = False
         if UseNewQuery:
             qString = u"for i in '//parcels/osaf/contentmodel/ItemCollection' where len (i.sharedURL) > 0"
-            collQuery = Query.Query (Globals.repository, qString)
+            collQuery = Query.Query (self.itsView.repository, qString)
             collQuery.recursive = False
             collections = []
             for item in collQuery:
                 collections.append (item)
         else:
-            itemCollectionKind = Globals.repository.findPath("//parcels/osaf/contentmodel/ItemCollection")
+            itemCollectionKind = self.findPath("//parcels/osaf/contentmodel/ItemCollection")
             allCollections = KindQuery().run([itemCollectionKind])
             collections = []
             for collection in allCollections:
@@ -633,7 +633,7 @@ class ReminderTimer(Timer):
     def synchronizeWidget (self):
         # print "*** Synchronizing ReminderTimer widget!"
         super(ReminderTimer, self).synchronizeWidget()
-        if not Globals.wxApplication.ignoreSynchronizeWidget:            
+        if not wx.GetApp().ignoreSynchronizeWidget:            
             pending = self.getPendingReminders()
             if len(pending) > 0:
                 self.setFiringTime(pending[0].reminderTime)
@@ -681,7 +681,7 @@ class ReminderTimer(Timer):
             reminderDialog = self.widget.reminderDialog
         except AttributeError:
             if createIt:
-                reminderDialog = ReminderDialog.ReminderDialog(Globals.wxApplication.mainFrame, -1)
+                reminderDialog = ReminderDialog.ReminderDialog(wx.GetApp().mainFrame, -1)
                 self.widget.reminderDialog = reminderDialog
             else:
                 reminderDialog = None

@@ -15,9 +15,13 @@ from repository.util.Path import Path
 
 chandlerDirectory = None      # Directory containing chandler executable
 parcelManager = None          # parcelManager
-repository = None             # The repository
+wxApplication = None          # The application object. Use wx.GetApp() as the prefered
+                              # way to get the application object when possible
+repository = None             # The repository -- rarely used
+                              # Most code should use wx.GetApp() or Globals.wxApplication to
+                              # get the wxApplication object it has an instance variable
+                              # UIRepositoryView which can be used for many purposes.
 mainViewRoot = None           # The main View
-wxApplication = None          # The wxWindows application object
 views = []                    # A list of nested views
 crypto = None                 # Cryptographic services
 wakeupCaller = None           # WakeupCaller Service

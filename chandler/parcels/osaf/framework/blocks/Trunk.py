@@ -4,7 +4,6 @@ __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import sys
-import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from repository.item.Item import Item
@@ -95,7 +94,7 @@ class TrunkDelegate(Item):
                 trunk = self._makeTrunkForCacheKey(keyItem)
                 self.keyUUIDToTrunkUUID[keyItem] = trunk.itsUUID
             else:
-                trunk = Globals.repository.findUUID(trunkUUID)
+                trunk = self.findUUID(trunkUUID)
         return trunk
 
     def _mapItemToCacheKey(self, item):
@@ -124,7 +123,7 @@ class TrunkDelegate(Item):
         try:
             userData = self.userData
         except AttributeError:
-            userData = Globals.repository.findPath('//userdata')
+            userData = self.findPath('//userdata')
             self.userData = userData
 
         if onlyIfReadOnly and item.parent == userData:

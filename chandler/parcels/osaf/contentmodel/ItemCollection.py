@@ -36,7 +36,7 @@ class ItemCollection(ContentModel.ContentItem):
 
     def createRepositoryQuery (self):
         self._callbacks = {} # transient
-        self._query = RepositoryQuery.Query (Globals.repository) # transient
+        self._query = RepositoryQuery.Query (self.itsView.repository) # transient
         self._updateCount = 0 # transient
         self.queryStringStale = True
         return self._query
@@ -69,7 +69,7 @@ class ItemCollection(ContentModel.ContentItem):
     def notifyOfChanges (self, action):
         if self._isInitialized() and self._updateCount == 0:
             for callbackUUID in self._callbacks.keys():
-                item = Globals.repository.find (callbackUUID)
+                item = self.find (callbackUUID)
                 method = getattr (type(item), self._callbacks [callbackUUID])
                 method (item, action)
 

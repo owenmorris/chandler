@@ -3,8 +3,6 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
-
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 
 import osaf.contentmodel.calendar.Calendar as Calendar
@@ -22,14 +20,14 @@ class ContentItemDetail(ControlBlocks.ItemDetail):
         HTMLText = "<html><body>"
         
         kind = item.itsKind
-        if kind is Globals.repository.findPath("//parcels/osaf/contentmodel/calendar/CalendarEvent"):
+        if kind is self.findPath("//parcels/osaf/contentmodel/calendar/CalendarEvent"):
             HTMLText += "<b>Headline: </b> %s<br>" % item.about
             HTMLText += "<b>Attendees: </b> %s<br>" % item.who
             HTMLText += "<b>Date: </b> %s<br>" % item.date
             HTMLText += "<b>Duration: </b> %s<br>" % item.duration
-        elif kind is Globals.repository.findPath("//parcels/osaf/contentmodel/Note"):
+        elif kind is self.findPath("//parcels/osaf/contentmodel/Note"):
             HTMLText += "<b>Title: </b> %s<br>" % item.about
-        elif kind is Globals.repository.findPath("//parcels/osaf/contentmodel/contacts/Contact"):
+        elif kind is self.findPath("//parcels/osaf/contentmodel/contacts/Contact"):
             HTMLText += "<b>First name: </b> %s<br>" % item.contactName.firstName
             HTMLText += "<b>Last name: </b> %s<br>" % item.contactName.lastName
             for phone in item.homeSection.phoneNumbers:

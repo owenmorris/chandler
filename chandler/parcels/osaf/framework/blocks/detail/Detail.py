@@ -5,7 +5,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import sys
 import application
-import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
@@ -90,7 +89,7 @@ class DetailRoot (Trunk.TrunkParentBlock):
         for child in children:
             child.isShown = item is not None
             reNotifyInside(child, item)
-        Globals.wxApplication.needsUpdateUI = True
+        wx.GetApp().needsUpdateUI = True
 
     if __debug__:
         def dumpShownHierarchy (self, methodName=''):
@@ -186,11 +185,11 @@ class DetailRoot (Trunk.TrunkParentBlock):
         item = self.selectedItem()
 
         if not Sharing.isMailSetUp():
-            if Util.okCancel(Globals.wxApplication.mainFrame,
+            if Util.okCancel(wx.GetApp().mainFrame,
              "Account information required",
              "Please set up your accounts."):
                 if not AccountPreferences.ShowAccountPreferencesDialog( \
-                 Globals.wxApplication.mainFrame):
+                 wx.GetApp().mainFrame):
                     return
             else:
                 return
@@ -213,7 +212,7 @@ class DetailRoot (Trunk.TrunkParentBlock):
             if len (whoTo) == 0:
                 message = _('Please specify who to send this message to in the "to" field.')
         if message:
-            Util.ok(Globals.wxApplication.mainFrame,
+            Util.ok(wx.GetApp().mainFrame,
              _("No Receivers"), message)
         else:
             item.shareSend() # tell the ContentItem to share/send itself.
@@ -306,7 +305,7 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         try:
             subtrees = self.subtreeList
         except AttributeError:
-            trunkSubtreeKind = Globals.repository.findPath("//parcels/osaf/framework/blocks/detail/DetailTrunkSubtree")
+            trunkSubtreeKind = self.findPath("//parcels/osaf/framework/blocks/detail/DetailTrunkSubtree")
             subtrees = list(KindQuery().run([trunkSubtreeKind]))
             self.subtreeList = subtrees
         return subtrees

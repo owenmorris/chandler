@@ -16,7 +16,6 @@ import repository.item.Query as ItemQuery
 import chandlerdb.util.UUID as UUID
 import email.Utils as Utils
 import re as re
-import application.Globals as Globals
 
 from repository.util.Path import Path
 
@@ -45,8 +44,7 @@ class MailParcel(application.Parcel.Parcel):
     def startupParcel(self):
         super(MailParcel, self).startupParcel()
 
-        repository = self.itsView
-        itemKind = repository.findPath('//Schema/Core/Item')
+        itemKind = self.findPath('//Schema/Core/Item')
         contentitemsPath = ContentModel.ContentModel.contentitemsPath
 
         def makeContainer(parent, name, child):
@@ -55,8 +53,8 @@ class MailParcel(application.Parcel.Parcel):
             else:
                 return child
 
-        repository.walk(Path(contentitemsPath, 'mailItems'),
-                        makeContainer)
+        self.walk(Path(contentitemsPath, 'mailItems'),
+                  makeContainer)
 
 
     def getMailItemParent(cls, inbound=False):

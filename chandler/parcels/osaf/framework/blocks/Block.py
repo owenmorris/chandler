@@ -33,7 +33,7 @@ class Block(Item):
     def postEventByName (self, eventName, args):
         assert self.eventNameToItemUUID.has_key (eventName), "Event name " + eventName + " not found"
         list = self.eventNameToItemUUID [eventName]
-        self.post (Globals.repository.find (list [0]), args)
+        self.post (self.find (list [0]), args)
 
     eventNameToItemUUID = {}           # A dictionary mapping event names to event UUIDS
     blockNameToItemUUID = {}           # A dictionary mapping rendered block names to block UUIDS
@@ -41,7 +41,7 @@ class Block(Item):
     def findBlockByName (theClass, name):
         assert theClass.blockNameToItemUUID.has_key (name), "Block name " + name + " not found"
         list = theClass.blockNameToItemUUID [name]
-        return Globals.repository.find (list[0])
+        return wx.GetApp().UIRepositoryView.find (list[0])
     findBlockByName = classmethod (findBlockByName)
 
     def addToNameToItemUUIDDictionary (theClass, list, dictionary):
@@ -79,19 +79,19 @@ class Block(Item):
         except AttributeError:
             pass
         else:
-            oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
-            Globals.wxApplication.ignoreSynchronizeWidget = True
+            oldIgnoreSynchronizeWidget = wx.GetApp().ignoreSynchronizeWidget
+            wx.GetApp().ignoreSynchronizeWidget = True
             try:
                 widget = instantiateWidgetMethod (self)
             finally:
-                Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+                wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
             """
               Store a non persistent pointer to the widget in the block. Store a pointer to
             the block in the widget. Undo all this when the widget is destroyed.
             """
 
             if widget:
-                Globals.wxApplication.needsUpdateUI = True
+                wx.GetApp().needsUpdateUI = True
                 assert self.itsView.isRefCounted(), "repository must be opened with refcounted=True"
                 self.widget = widget
                 widget.blockItem = self
@@ -151,12 +151,12 @@ class Block(Item):
                   After the blocks are wired up give the window a chance
                 to synchronize itself to any persistent state.
                 """
-                oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
-                Globals.wxApplication.ignoreSynchronizeWidget = False
+                oldIgnoreSynchronizeWidget = wx.GetApp().ignoreSynchronizeWidget
+                wx.GetApp().ignoreSynchronizeWidget = False
                 try:
                     self.synchronizeWidget()
                 finally:
-                    Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+                    wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
                 try:
                     method = getattr (type (self.widget), 'Thaw')
@@ -243,13 +243,13 @@ class Block(Item):
         delattr (self, 'widget')
         assert self.itsView.isRefCounted(), "respoitory must be opened with refcounted=True"
             
-        Globals.wxApplication.needsUpdateUI = True
+        wx.GetApp().needsUpdateUI = True
 
     def widgetIDToBlock (theClass, wxID):
         """
           Given a wxWindows Id, returns the corresponding Chandler block
         """
-        return Globals.repository.find (theClass.IdToUUID [wxID - theClass.MINIMUM_WX_ID])
+        return wx.GetApp().UIRepositoryView.find (theClass.IdToUUID [wxID - theClass.MINIMUM_WX_ID])
  
     widgetIDToBlock = classmethod (widgetIDToBlock)
 
@@ -311,7 +311,7 @@ class Block(Item):
             method (self.contents, item)
         
         if event.copyItems:
-            userdata = Globals.repository.findPath('//userdata')
+            userdata = self.findPath('//userdata')
 
         for item in event.items:
             modifyContents (item)
@@ -342,13 +342,13 @@ class Block(Item):
         except AttributeError:
             pass
         else:
-            if not Globals.wxApplication.ignoreSynchronizeWidget:
-                oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
-                Globals.wxApplication.ignoreSynchronizeWidget = True
+            if not wx.GetApp().ignoreSynchronizeWidget:
+                oldIgnoreSynchronizeWidget = wx.GetApp().ignoreSynchronizeWidget
+                wx.GetApp().ignoreSynchronizeWidget = True
                 try:
                     method (self.widget)
                 finally:
-                    Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+                    wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
     def pushView (self):
         """ 
@@ -423,7 +423,7 @@ class Block(Item):
         return block.frame
 
     def dispatchEvent (theClass, event):
-        
+
         def callMethod (block, methodName, event):
             """
               Call method named methodName on block
@@ -622,7 +622,7 @@ class BlockEvent(Item):
         """ Method for handling an endpoint's byMethod includePolicy """
 
         # Determine if we are a global event
-        events = Globals.repository.findPath("//parcels/osaf/framework/blocks/Events")
+        events = self.findPath("//parcels/osaf/framework/blocks/Events")
         if self.itsParent is events:
             # Yes, global: don't copy me
             references[self.itsUUID] = self

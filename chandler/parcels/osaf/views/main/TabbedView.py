@@ -3,7 +3,6 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from osaf.framework.blocks.Block import Block as Block
 
@@ -39,8 +38,8 @@ class TabbedView(ContainerBlocks.TabbedContainer):
 
     def onNewEvent (self, event):
         "Create a new tab"
-        originalItem = Globals.repository.findPath('parcels/osaf/views/content/UntitledView')
-        userdata = Globals.repository.findPath('//userdata')
+        originalItem = self.findPath('parcels/osaf/views/content/UntitledView')
+        userdata = self.findPath('//userdata')
         newItem = originalItem.copy(parent=userdata, cloudAlias='default')
         newItem.contents.displayName = self._getUniqueName("Untitled")
         

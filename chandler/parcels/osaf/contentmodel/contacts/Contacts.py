@@ -6,11 +6,10 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application
+import application.Globals as Globals
 import repository
 import repository.item.Item as Item
 import osaf.contentmodel.ContentModel as ContentModel
-import application.Globals as Globals
 import mx.DateTime as DateTime
 
 class Contact(ContentModel.ContentItem):

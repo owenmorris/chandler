@@ -6,7 +6,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
+import wx
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 
 class RepositoryDelegate (ControlBlocks.ListDelegate):
@@ -20,11 +20,11 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
         if element:
             return element.iterChildren()
         else:
-            return Globals.repository.view
+            return wx.GetApp().UIRepositoryView
 
     def GetElementValues(self, element):
         cellValues = [element.itsName or '(anonymous)']
-        if True or element != Globals.repository.view:
+        if True or element != wx.GetApp().UIRepositoryView:
             try:
                 cellValues.append (str (element.getItemDisplayName()))
             except AttributeError:
@@ -38,7 +38,7 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
         return cellValues
 
     def ElementHasChildren(self, element):
-        if element == Globals.repository.view:
+        if element == wx.GetApp().UIRepositoryView:
             return True
         else:
             return element.hasChildren()
@@ -54,7 +54,7 @@ class RepositoryDelegate (ControlBlocks.ListDelegate):
         try:
             parentUUID = notification.data['parent']
         except KeyError:
-            item = Globals.repository.find (notification.data['uuid'])
+            item = wx.GetApp().UIRepositoryView.repository.find (notification.data['uuid'])
 
             try:
                 parent = item.itsParent

@@ -17,7 +17,7 @@ WEBDAV_MODEL = "http://osafoundation.org/parcels/osaf/framework/webdav"
 def IMAPValidationHandler(item, fields, values):
     """ Return False if any invalid fields, True otherwise """
     if not Mail.EmailAddress.isValidEmailAddress(values['IMAP_EMAIL_ADDRESS']):
-        application.dialogs.Util.ok(application.Globals.wxApplication.mainFrame,
+        application.dialogs.Util.ok(wx.GetApp().mainFrame,
          "Invalid Email Address", "The email address, '%s', is invalid" % \
          (values['IMAP_EMAIL_ADDRESS']))
         return False

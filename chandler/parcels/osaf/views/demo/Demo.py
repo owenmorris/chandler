@@ -3,7 +3,6 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
 
@@ -13,11 +12,11 @@ class DemoTabs(ContainerBlocks.TabbedContainer):
         event.arguments['Check'] = (selectedText == event.choice)
 
     def onAddTextEvent(self, event):
-        textBox = Globals.repository.findPath('//parcels/osaf/views/demo/ButtonText')
+        textBox = self.findPath('//parcels/osaf/views/demo/ButtonText')
         textBox.widget.AppendText('Here is some text')
     
     def onReloadTextEvent(self, event):
-        textBox = Globals.repository.findPath('//parcels/osaf/views/demo/ButtonText')
+        textBox = self.findPath('//parcels/osaf/views/demo/ButtonText')
         textBox.widget.SetValue('')
 
 class DemoToolbarItem (DynamicContainerBlocks.ToolbarItem):
@@ -26,7 +25,7 @@ class DemoToolbarItem (DynamicContainerBlocks.ToolbarItem):
     """
     def onCycleTabsEvent (self, event):
         # just move the tab selection to the next tab
-        tabset = Globals.repository.findPath ('//parcels/osaf/views/demo/Tabs')
+        tabset = self.findPath ('//parcels/osaf/views/demo/Tabs')
         tabWidget = tabset.widget
         selection = tabWidget.GetSelection ()
         selection += 1

@@ -9,7 +9,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application
 import repository.item.Item as Item
 import osaf.contentmodel.ContentModel as ContentModel
-import application.Globals as Globals
 
 class Note(ContentModel.ContentItem):
 

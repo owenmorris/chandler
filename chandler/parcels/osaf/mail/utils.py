@@ -107,9 +107,11 @@ def NotifyUIAsync(message, logger=None, callable='setStatusMessage', **keys):
     if logger is not None:
         logger(message)
 
-    if Globals.wxApplication is not None: # test framework has no wxApplication
-        Globals.wxApplication.CallItemMethodAsync(Globals.views[0], callable,
-                                                  message, **keys)
+    wxApplication = Globals.wxApplication
+    if wxApplication is not None: # test framework has no wxApplication
+        wxApplication.CallItemMethodAsync(Globals.views[0], callable,
+                                          message, **keys)
+
 
 def dateTimeToRFC2882Date(dateTime):
     """Converts a C{mx.DateTime} object to a
