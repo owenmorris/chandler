@@ -2,7 +2,6 @@
 
 <resource version="2.4.0.0">
     <object class="wxPanel" subclass="OSAF.MrMenus.MrMenus.wxMrMenus" name="MrMenus">
-        <style>wxNO_FULL_REPAINT_ON_RESIZE</style>	
         <object class="wxBoxSizer">
             <orient>wxVERTICAL</orient>
             <object class="sizeritem">
