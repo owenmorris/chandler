@@ -62,8 +62,8 @@ class ContactEntityItem(InformationItem):
     def GetContactMethods(self):
         return self.getRdfAttribute(chandler.contactMethods, ContactEntityItem.rdfs)
     
-    def SetContactMethods(self, contactMethods):
-        self.setRdfAttribute(chandler.contactMethods, contactMethods, ContactEntityItem.rdfs)
+    def SetContactMethods(self, contactMethod):
+        self.setRdfAttribute(chandler.contactMethods, contactMethod, ContactEntityItem.rdfs)
         
     def GetPhotoURL(self):
         return self.getRdfAttribute(chandler.photoURL, ContactEntityItem.rdfs)
@@ -93,6 +93,7 @@ class ContactEntityItem(InformationItem):
     def AddAddress(self, addressType, addressLocation, attributes):
         newItem = ContactMethodItem(addressType, addressLocation, attributes)
         self.contactMethods.append(newItem)
+        self.SetContactMethods(self.contactMethods)
         
         # commit the changes
         repository = LocalRepository()
@@ -197,8 +198,6 @@ class ContactEntityItem(InformationItem):
         
     def SetAttribute(self, attributeKey, attributeValue):
         # hack to allow name parts to be set via SetAttribute
-        # FIXME: need to figure out how to reference dictionary from contact
-        # disable dictionary stuff for now
         if attributeKey.startswith('name/'):
             self.RemoveFromDictionary()
             parts = attributeKey.split('/')
@@ -244,7 +243,6 @@ class ContactEntityItem(InformationItem):
     name = property(GetName, SetName)
     contactMethods = property(GetContactMethods, SetContactMethods)
     photoURL = property(GetPhotoURL, SetPhotoURL)
-    contactMethods = property(GetContactMethods, SetContactMethods)
     contactFormat = property(GetContactFormat, SetContactFormat)
     groups = property(GetGroups, SetGroups)
     
