@@ -1044,10 +1044,10 @@ class AbstractRepositoryViewManager(object):
     def execInView(self, method, *args, **kw):
         """
         This utility method will call C{AbstractRepositoryViewManager.setCurrentView}.
-        Execute the method passed in as an argument. And finally call 
+        Execute the method passed in as an argument and call
         C{AbstractRepositoryViewManager.restorePreviousView} when the method is finished executing.
 
-        It abstracts the C{RepositoryView} switching logic for the caller and is the recommended means of 
+        It abstracts the C{RepositoryView} switching logic for the caller and is the recommended means of
         executing code that utilizes a C{RepositoryView}.
 
         @param method: The method to execute
@@ -1056,16 +1056,74 @@ class AbstractRepositoryViewManager(object):
         @type args: list reference
         @param kw: Keyword dict to pass to the method
         @type args: dict reference
-        @return: C{None}
+        @return: The value returned by the method call or None
         """
+
+        result = None
 
         self.setViewCurrent()
 
         try:
-            method(*args, **kw)
+            result = method(*args, **kw)
 
         finally:
             self.restorePreviousView()
+
+        return result
+
+
+    def execInViewThenCommit(self, method, *args, **kw):
+        """
+        This utility method will call C{AbstractRepositoryViewManager.setCurrentView},
+        execute the method passed in as an argument and perform a Repository commit in
+        the current Thread then call C{AbstractRepositoryViewManager.restorePreviousView}.
+
+        It abstracts the C{RepositoryView} switching and commit logic for the caller and
+        is the recommended means of executing a method and inline commit in a C{RepositoryView}.
+
+        @param method: The method to execute
+        @type method: a string
+        @param args: Arguments to pass to the method
+        @type args: list reference
+        @param kw: Keyword dict to pass to the method
+        @type args: dict reference
+        @return: The value returned by the method call or None
+        """
+        result = None
+
+        self.setViewCurrent()
+
+        try:
+            result = method(*args, **kw)
+            self.__commit()
+        finally:
+            self.restorePreviousView()
+
+        return result
+
+    def execInViewThenCommitInThread(self, method, *args, **kw):
+        """
+        This utility method will call C{AbstractRepositoryViewManager.setCurrentView},
+        execute the method passed in as an argument, spawn a Thread to perform a Repository commit,
+        then call C{AbstractRepositoryViewManager.restorePreviousView}. Spawning a thread prevents the
+        current Thread from blocking which the C{RepositoryView} is commiting. This is especially useful
+        when a Asynchronous model is employed.
+
+        The method abstracts the C{RepositoryView} switching and commit logic for the caller and
+        is the recommended means of executing a method and non-blocking commit in a C{RepositoryView}.
+
+        @param method: The method to execute
+        @type method: a string
+        @param args: Arguments to pass to the method
+        @type args: list reference
+        @param kw: Keyword dict to pass to the method
+        @type args: dict reference
+        @return: The value returned by the method call or None
+        """
+
+        result = self.execInView(method, *args, **kw)
+        self.commitInView(True)
+        return result
 
     def getCurrentView(self):
         """
@@ -1093,7 +1151,7 @@ class AbstractRepositoryViewManager(object):
              self.log.info("[%s] Current View is: %s" % (printString, self.getCurrentView()))
 
 
-    def commitView(self, useThread=False):
+    def commitInView(self, useThread=False):
         """
         Runs a C{RepositoryView} commit. If the commit is successful calls the
         C{AbstractRepositoryViewManager._viewCommitSuccess} method otherwise calls
@@ -1109,11 +1167,11 @@ class AbstractRepositoryViewManager(object):
         """
 
         if useThread:
-            thread = threading.Thread(target=self.__commitView)
+            thread = threading.Thread(target=self.__commitInView)
             thread.start()
 
         else:
-            self.__commitView
+            self.__commitInView
 
     def _viewCommitSuccess(self):
          """
@@ -1143,16 +1201,33 @@ class AbstractRepositoryViewManager(object):
          str = "View Commit Failed: %s" % err
          self.log.error(str)
 
-    def __commitView(self):
+    def __commitInView(self):
         """
-        Attempts to commit the view. Calls viewCommitSuccess or
-        viewCommitFailed.  Need to sync with Andi on
+        Sets the current view then Attempts to commit the view.
+        Calls viewCommitSuccess or viewCommitFailed. Then restore the 
+        previous view. Need to sync with Andi on
         what happens in the case of a conflict or
         failed commit. This is still being resolved
         by the repository team
         """
 
         self.setViewCurrent()
+
+        try:
+            self.__commit()
+
+        finally:
+            self.restorePreviousView()
+
+    def __commit(self):
+        """
+        Attempts to commit in the view. Calls viewCommitSuccess or
+        viewCommitFailed.  This method does not set or unset the current 
+        view.  Need to sync with Andi on
+        what happens in the case of a conflict or
+        failed commit. This is still being resolved
+        by the repository team
+        """
 
         try:
            self.view.commit()
@@ -1171,5 +1246,3 @@ class AbstractRepositoryViewManager(object):
 
         else:
            self._viewCommitSuccess()
-
-        self.restorePreviousView()
