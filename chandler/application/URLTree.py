@@ -97,6 +97,7 @@ class URLTree(Persistent):
             for item in parentEntry.children:
                 if item.name == fields[-1]:
                     parcel = item.parcel
+                    
                     parentEntry.children.remove(item)
                     del item
                     self.__SynchronizeSideBars()
@@ -105,13 +106,50 @@ class URLTree(Persistent):
     
     def RenameUri(self, oldUri, newUri):
         """
-          Renames oldUri to be newUri.  Returns true if successful, false
-        otherwise.  If false is returned, then no changes were made.
+          Renames oldUri to be newUri.  oldUri and newUri can only differ in
+        their last field.  oldUri must exist and newUri must not exist.  If
+        oldUri has any children, they will be affected by the change.  Returns
+        the parcel located at the specified uri if the renaming is successful,
+        None otherwise.  If None is returned, then no changes were made to the
+        URLTree.
         """
-        # ###################################
-        # Not yet implemented
-        # ###################################
-        return false
+        if self.UriExists(oldUri) and not self.UriExists(newUri):
+            oldFields = self.__GetUriFields(oldUri)
+            newFields = self.__GetUriFields(newUri)
+            separator = '/'
+            if separator.join(oldFields[:-1]) ==\
+               separator.join(newFields[:-1]):
+                entry = self.__GetUriEntry(oldFields, self.tree)
+                entry.name = newFields[-1]
+                self.__SynchronizeSideBars()
+                return entry.parcel
+        return None
+
+    def MoveParcel(self, oldUri, newUri):
+        """
+          Moves the parcel located at oldUri to newUri.  oldUri must exist,
+        newUri must not exist, and the path to newUri must exist.  Returns 
+        the parcel that was moved if the move is successful, None otherwise.
+        If the move is successful, the parcel will be located at newUri and
+        nothing will be located at oldUri.  If it is not successful, then no 
+        changes were made.
+        """
+        if self.UriExists(oldUri) and not self.UriExists(newUri):
+            oldFields = self.__GetUriFields(oldUri)
+            newFields = self.__GetUriFields(newUri)
+            separator = '/'
+            if self.UriExists(separator.join(newFields[:-1])):
+                oldParent = self.__GetUriEntry(oldFields[:-1], self.tree)
+                newParent = self.__GetUriEntry(newFields[:-1], self.tree)
+                for child in oldParent.children:
+                    if child.name == oldFields[-1]:
+                        entry = child
+                        oldParent.children.remove(child)
+                entry.name = newFields[-1]
+                newParent.children.append(entry)
+                self.__SynchronizeSideBars()
+                return entry.parcel
+        return None
     
     def SetParcelAtUri(self, uri, newParcel):
         """
@@ -159,11 +197,12 @@ class URLTree(Persistent):
         for sideBar in self.sideBars:
             sideBar.SynchronizeView()
             
-class TreeEntry:
+class TreeEntry(Persistent):
     """
       Just a wrapper class to encapsulate a single level of the URLTree.
     """
     def __init__(self, parcel, name, children):
+        Persistent.__init__(self)
         self.parcel = parcel
         self.name = name
         self.children = children
