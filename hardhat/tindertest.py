@@ -166,7 +166,7 @@ def main():
                     outputList = hardhatutil.executeCommandReturnOutputRetry(
                      [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
                      outputDir + os.sep, 
-                     "192.168.101.46:continuous-new/" + buildNameNoSpaces])
+                     "192.168.101.46:continuous/" + buildNameNoSpaces])
 
             elif ret == "build_failed":
                 print "The build failed"
