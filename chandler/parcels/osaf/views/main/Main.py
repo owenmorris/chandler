@@ -669,7 +669,7 @@ class ReminderTimer(Timer):
             except AttributeError:
                 pass
             else:
-                timesAndReminders.append (reminderTime, item)
+                timesAndReminders.append((reminderTime, item))
             
         if len(timesAndReminders) != 0:
             timesAndReminders.sort()
