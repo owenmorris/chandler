@@ -346,7 +346,7 @@
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>300, 24</minimumSize>
+    <minimumSize>450, 24</minimumSize>
   </ContentItemDetail>
 
   <StaticText itsName="EmptySpacer">
@@ -375,7 +375,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>100, 24</minimumSize>
+    <minimumSize>150, 24</minimumSize>
   </StaticText>
   
   <ContentItemDetail itsName="CalendarStartTime"

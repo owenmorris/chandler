@@ -323,7 +323,7 @@ class KindLabel (StaticTextLabel):
             kindName = item.itsKind.displayName
         except AttributeError:
             kindName = item.itsKind.itsName
-        kindName = '  (' + kindName +')'
+        kindName = '(' + kindName +')'
         return kindName
         
 class StaticRedirectAttribute (StaticTextLabel):
