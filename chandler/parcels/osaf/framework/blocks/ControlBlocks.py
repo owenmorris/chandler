@@ -707,8 +707,21 @@ class Table(RectangularChild):
     def onRequestSelectItemEvent (self, notification):
         # request the Table part of the Active View to change selection
         newSelection = notification.data['item']
-        if newSelection in self.contents:
+        # A request to select None causes everything to be deselected
+        # If the 'collection' flag is set, select the collection in
+        # the Detail View.
+        if newSelection is None:
+            # deselect
             self.onSelectionChangedEvent (notification)
+            if notification.data['collection'] == True:
+                # tell the Detail View to select the whole collection
+                self.Post (Globals.repository.findPath \
+                           ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                           {'item':self.contents})
+        elif newSelection in self.contents:
+            # select the item
+            self.onSelectionChangedEvent (notification)
+            # tell the Detail View about the new selection
             self.Post (Globals.repository.findPath \
                        ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':newSelection})

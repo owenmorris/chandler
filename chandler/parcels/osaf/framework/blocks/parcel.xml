@@ -189,6 +189,7 @@
 
     <Enumeration itsName="dispatchEnumType">
       <values>BroadcastInsideMyEventBoundary</values>
+      <values>BroadcastInsideActiveViewEventBoundary</values>
       <values>BroadcastEverywhere</values>
       <values>FocusBubbleUp</values>
       <values>ActiveViewBubbleUp</values>

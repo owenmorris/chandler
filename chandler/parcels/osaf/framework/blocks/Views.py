@@ -81,6 +81,16 @@ class View(BoxContainer):
                                       child.isShown and 
                                       not child.eventBoundary))
 
+        elif event.dispatchEnum == 'BroadcastInsideActiveViewEventBoundary':
+            block = Globals.activeView
+                
+            broadcast (block,
+                       methodName,
+                       notification,
+                       lambda child: (child is not None and
+                                      child.isShown and 
+                                      not child.eventBoundary))
+
         elif event.dispatchEnum == 'BroadcastEverywhere':
             broadcast (Globals.mainView,
                        methodName,

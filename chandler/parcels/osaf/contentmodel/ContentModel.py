@@ -184,7 +184,6 @@ class ContentItem(Item.Item):
         me = self.getCurrentMeEmailAddress ()
         self.creator = me
 
-
     def StampKind(self, operation, mixinKind):
         """
           Stamp ourself into the new kind defined by the
@@ -404,6 +403,8 @@ class ContentItem(Item.Item):
                         try:
                             self.setAttributeValue(key, value)
                         except AttributeError:
+                            pass
+                        except ValueError:
                             pass
     
     def CloneCollectionValue(self, key, value):

@@ -122,7 +122,7 @@ of a limitation of the XML format, which will be eliminated</description>
   </BlockEvent>
 
   <BlockEvent itsName="RequestSelectItem">
-    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
+    <dispatchEnum>BroadcastInsideActiveViewEventBoundary</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="EnterPressed">

@@ -46,22 +46,16 @@
     <dispatchToBlock itemref="doc:StatusBar"/>
   </BlockEvent>
 
-  <BlockEvent itsName="GoBack">
+  <BlockEvent itemName="SyncAll">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>navbarGoBack</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
+    <methodName>onSyncAllEvent</methodName>
+    <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
-  <BlockEvent itsName="GoForward">
+  <BlockEvent itemName="ShareOrManage">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>navbarGoForward</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
-  </BlockEvent>
-
-  <BlockEvent itemName="Sync">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>navbarSync</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
+    <methodName>onShareOrManageEvent</methodName>
+    <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
   <KindParameterizedEvent itemName="NewMailMessage">
@@ -98,54 +92,6 @@
     <methodName>onNewEvent</methodName>
     <dispatchToBlock itemref="doc:MainView"/>
   </KindParameterizedEvent>
-
-  <BlockEvent itemName="Reply">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>navbarReply</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
-  </BlockEvent>
-
-  <BlockEvent itemName="Discuss">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>navbarDiscuss</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
-  </BlockEvent>
-
-  <BlockEvent itemName="Forward">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>navbarForward</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
-  </BlockEvent>
-
-  <BlockEvent itemName="Delete">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>navbarDelete</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
-  </BlockEvent>
-
-  <BlockEvent itemName="Junk">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>navbarJunk</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
-  </BlockEvent>
-
-  <BlockEvent itemName="Fonts">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>navbarFonts</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
-  </BlockEvent>
-
-  <BlockEvent itemName="Print">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>navbarPrint</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
-  </BlockEvent>
-
-  <BlockEvent itemName="Search">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>navbarSearch</methodName>
-    <dispatchToBlock itemref="doc:NavigationBar"/>
-  </BlockEvent>
 
   <BlockEvent itsName="ShareCollection">
     <dispatchEnum>SendToBlock</dispatchEnum>
@@ -312,6 +258,7 @@
   <Menu itsName="CollectionMenu">
     <blockName>CollectionMenu</blockName>
     <title>&amp;Collection</title>
+    <childrenBlocks itemref="doc:ShareOrManageItem"/>
     <childrenBlocks itemref="doc:ChangeCollectionTypeMenu"/>
     <childrenBlocks itemref="doc:RenameItem"/>
   </Menu>
@@ -486,7 +433,7 @@
     <blockName>SyncIMAPItem</blockName>
     <title>IMAP</title>
     <helpString>Sync IMAP</helpString>
-    <event itemref="events:NULL"/>
+    <event itemref="events:GetNewMail"/>
   </MenuItem>
   
   <MenuItem itsName="SyncWebDAVItem">
@@ -1117,96 +1064,40 @@
     <helpString>Rename a collection</helpString>
   </MenuItem>
 
+  <MenuItem itsName="ShareOrManageItem">
+    <blockName>ShareOrManageItem</blockName>
+    <title>Share</title>
+    <event itemref="doc:ShareOrManage"/>
+    <helpString>Share or Manage a collection</helpString>
+  </MenuItem>
+
   <!--
     Toolbars
   -->
-  <Toolbar itemName="NavigationBar"
-           itemClass="osaf.framework.blocks.NavigationBlocks.NavigationBar">
+  <Toolbar itemName="NavigationBar">
     <blockName>NavigationBar</blockName>
     <!-- Children -->
-    <childrenBlocks itemref="doc:GoBackButton"/>
-    <childrenBlocks itemref="doc:GoForwardButton"/>
-    <childrenBlocks itemref="doc:Spacer1"/>
     <childrenBlocks itemref="doc:SyncButton"/>
     <childrenBlocks itemref="doc:NewButton"/>
-    <childrenBlocks itemref="doc:ReplyButton"/>
-    <childrenBlocks itemref="doc:DiscussButton"/>
-    <childrenBlocks itemref="doc:ForwardButton"/>
-    <childrenBlocks itemref="doc:Spacer2"/>
-    <childrenBlocks itemref="doc:DeleteButton"/>
-    <childrenBlocks itemref="doc:JunkButton"/>
-    <childrenBlocks itemref="doc:Spacer3"/>
-    <childrenBlocks itemref="doc:FontsButton"/>
-    <childrenBlocks itemref="doc:PrintButton"/>
-    <childrenBlocks itemref="doc:Spacer4"/>
-    <childrenBlocks itemref="doc:SearchBox"/>
+    <childrenBlocks itemref="doc:ShareButton"/>
     
     <!-- Attributes -->
     <toolSize>24,24</toolSize>
     <buttonsLabeled>True</buttonsLabeled>
-    <subscribeWhenVisibleEvents itemref="doc:GoBack"/>
-    <subscribeWhenVisibleEvents itemref="doc:GoForward"/>
-    <subscribeWhenVisibleEvents itemref="doc:Sync"/>
-    <subscribeWhenVisibleEvents itemref="doc:Reply"/>
-    <subscribeWhenVisibleEvents itemref="doc:Discuss"/>
-    <subscribeWhenVisibleEvents itemref="doc:Forward"/>
-    <subscribeWhenVisibleEvents itemref="doc:Delete"/>
-    <subscribeWhenVisibleEvents itemref="doc:Junk"/>
-    <subscribeWhenVisibleEvents itemref="doc:Fonts"/>
-    <subscribeWhenVisibleEvents itemref="doc:Print"/>
-    <subscribeWhenVisibleEvents itemref="doc:Search"/>
     <stretchFactor>0</stretchFactor>
   </Toolbar>
 
   <!--
     ToolbarItems
   -->
-  <ToolbarItem itsName="GoBackButton">
-    <blockName>GoBackButton</blockName>
-    <title>Go Back</title>
-    <bitmap>application/images/backarrow.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Go to the previous view</helpString>
-    <event itemref="doc:GoBack"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="GoForwardButton">
-    <blockName>GoForwardButton</blockName>
-    <title>Go Forward</title>
-    <bitmap>application/images/forwardarrow.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Go to the next view</helpString>
-    <event itemref="doc:GoForward"/>
-  </ToolbarItem>
-
   <ToolbarItem itsName="SyncButton">
     <blockName>SyncButton</blockName>
     <title>Sync</title>
-    <label>Sync</label>
+    <label>Sync All</label>
     <bitmap>application/images/sync.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Synchronize this Item other Chandler users</helpString>
-    <event itemref="doc:Sync"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="Spacer1">
-    <blockName>Spacer1</blockName>
-    <toolbarItemKind>Separator</toolbarItemKind>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="Spacer2">
-    <blockName>Spacer2</blockName>
-    <toolbarItemKind>Separator</toolbarItemKind>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="Spacer3">
-    <blockName>Spacer3</blockName>
-    <toolbarItemKind>Separator</toolbarItemKind>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="Spacer4">
-    <blockName>Spacer4</blockName>
-    <toolbarItemKind>Separator</toolbarItemKind>
+    <helpString>Get new Mail and synchronize with other Chandler users</helpString>
+    <event itemref="doc:SyncAll"/>
   </ToolbarItem>
 
   <ToolbarItem itsName="NewButton">
@@ -1219,80 +1110,14 @@
     <event itemref="doc:NewNote"/>
   </ToolbarItem>
 
-  <ToolbarItem itsName="ReplyButton">
-    <blockName>ReplyButton</blockName>
-    <title>Reply</title>
-    <bitmap>application/images/replyto.png</bitmap>
+  <ToolbarItem itsName="ShareButton">
+    <blockName>ShareButton</blockName>
+    <title>Share</title>
+    <label>Share</label>
+    <bitmap>application/images/sharing.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Send a reply</helpString>
-    <event itemref="doc:Reply"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="DiscussButton">
-    <blockName>DiscussButton</blockName>
-    <title>Discuss</title>
-    <label>Discuss</label>
-    <bitmap>application/images/discuss.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Discuss this Item with other Chandler users</helpString>
-    <event itemref="doc:Discuss"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="ForwardButton">
-    <blockName>ForwardButton</blockName>
-    <title>Forward</title>
-    <bitmap>application/images/forwardto.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Forward this Item to other users</helpString>
-    <event itemref="doc:Forward"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="DeleteButton">
-    <blockName>DeleteButton</blockName>
-    <title>Delete</title>
-    <label>Delete</label>
-    <bitmap>application/images/delete.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Delete this Item</helpString>
-    <event itemref="doc:Delete"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="JunkButton">
-    <blockName>JunkButton</blockName>
-    <title>Junk</title>
-    <label>Junk</label>
-    <bitmap>application/images/junk.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Mark this Item as Junk mail</helpString>
-    <event itemref="doc:Junk"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="FontsButton">
-    <blockName>FontsButton</blockName>
-    <title>Fonts</title>
-    <label>Fonts</label>
-    <bitmap>application/images/fonts.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Bring up the Fonts dialog</helpString>
-    <event itemref="doc:Fonts"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="PrintButton">
-    <blockName>PrintButton</blockName>
-    <title>Print</title>
-    <label>Print</label>
-    <bitmap>application/images/print.png</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Print this Item</helpString>
-    <event itemref="doc:Print"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="SearchBox">
-    <blockName>SearchBox</blockName>
-    <title>SearchBox</title>
-    <toolbarItemKind>Text</toolbarItemKind>
-    <helpString>Enter text to search for</helpString>
-    <event itemref="doc:Search"/>
+    <helpString>Share or Manage the collection selected in the sidebar</helpString>
+    <event itemref="doc:ShareOrManage"/>
   </ToolbarItem>
 
   <!--
@@ -1463,6 +1288,8 @@
     <subscribeWhenVisibleEvents itemref="doc:NewContact"/>
     <subscribeWhenVisibleEvents itemref="doc:ShareCollection"/>
     <subscribeWhenVisibleEvents itemref="doc:SyncCollection"/>
+    <subscribeWhenVisibleEvents itemref="doc:ShareOrManage"/>
+    <subscribeWhenVisibleEvents itemref="doc:SyncAll"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

@@ -19,6 +19,7 @@ import osaf.contentmodel.tests.GenerateItems as GenerateItems
 from repository.persistence.RepositoryError import VersionConflictError
 import repository.util.UUID as UUID
 import osaf.framework.sharing.Sharing
+import repository.query.Query as Query
 
 
 
@@ -263,3 +264,59 @@ class MainView(View):
             menuTitle = 'Sync a collection'
         notification.data ['Text'] = menuTitle
 
+    def onSyncAllEvent (self, notification):
+        """
+          Synchronize Mail and all sharing.
+        """
+        # find all the shared collections and sync them.
+        self.setStatusText ("checking shared collections")
+        qString = u"for i in '//parcels/osaf/contentmodel/ItemCollection' where contains(i.isShared,True)"
+        collQuery = Query.Query (Globals.repository, qString)
+        collQuery.recursive = False
+        for collection in collQuery:
+            self.setStatusText ("synchronizing %s" % collection)
+            osaf.framework.sharing.Sharing.syncCollection(collection)
+
+        # synch mail
+        self.setStatusText ("Getting new Mail")
+        self.onGetNewMailEvent (notification)
+
+
+    def onShareOrManageEvent (self, notification):
+        """
+          Share the collection selected in the Sidebar. 
+        If the current collection is already shared, then manage the collection.
+        In either case, the real work here is to tell the summary
+        view to deselect, and the detail view that the selection has
+        changed to the entire summary view's collection.
+        """
+        # lookup the Request Select Event
+        rootPath = '//parcels/osaf/framework/blocks/Events/'
+        requestSelectItem = Globals.repository.findPath \
+                                   (rootPath + 'RequestSelectItem')
+
+        # Tell the ActiveView to select the collection
+        # It will pass the collection on to the Detail View.
+        args = {}
+        args['item'] = None
+        args['collection'] = True
+        self.Post(requestSelectItem, args)
+
+    def onShareOrManageEventUpdateUI (self, notification):
+        """
+        Update the Toolbar button to reflect the selected collection name
+        """
+        collection = self.getSidebarSelectedCollection ()
+        if collection is not None:
+            notification.data['Enable'] = True
+            if osaf.framework.sharing.Sharing.isShared(collection):
+                menuTitle = 'Manage collection "%s"' % collection.displayName
+            else:
+                menuTitle = 'Share collection "%s"' % collection.displayName
+        else:
+            notification.data['Enable'] = False
+            menuTitle = 'Share a collection'
+        notification.data ['Text'] = menuTitle
+
+    def setStatusText (self, statusMessage):
+        Globals.wxApplication.mainFrame.SetStatusText (statusMessage)
