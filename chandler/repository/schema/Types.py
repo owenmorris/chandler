@@ -32,7 +32,7 @@ class Type(Item):
                 self._fieldXML(value, field, generator)
             generator.endElement('fields')
         else:
-            generator.characters(type(self).makeString(value))
+            generator.characters(str(value))
 
     def _fieldXML(self, value, field, generator):
 
