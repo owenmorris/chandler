@@ -2,6 +2,12 @@
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Milestone 0.3.16 (CVS tag CHANDLER_0_3_16) 2004-05-18
+    * Adoption of wxWidgets 2.5
+    * Adoption of new build structure, isolating external/internal library 
+      dependencies from pure Python code.
+    * Additional changes to follow
+
 Release 0.3 (CVS tag CHANDLER_0_3) 2004-2-24
 
     * Full transition to CPIA architecture (in Chandler.py and Application.py)
