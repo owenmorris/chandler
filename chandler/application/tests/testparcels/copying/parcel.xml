@@ -14,24 +14,29 @@
     <namespace value="http://testparcels.org/copying"/>
 
     <Kind itsName="TestKind">
-        <superKinds ref="Item"/>
-        <attributes ref="me:myChildren"/>
-        <attributes ref="me:myParent"/>
+        <Attribute itsName="myChildren">
+            <cardinality value="list"/>
+            <type ref="me:TestKind"/>
+            <inverseAttribute ref="me:TestKind/myParent"/>
+            <initialValue/>
+        </Attribute>
+
+        <Attribute itsName="myParent">
+            <cardinality value="list"/>
+            <type ref="me:TestKind"/>
+            <inverseAttribute ref="me:TestKind/myChildren"/>
+            <initialValue/>
+        </Attribute>
+        <Cloud itsName="TestKindCloud">
+            <Endpoint itsName="myChildren">
+                <includePolicy value="byCloud"/>
+                <cloudAlias value="default"/>
+                <attribute value="myChildren"/>
+            </Endpoint>
+            <endpoints ref="me:TestKind/TestKindCloud/myChildren"/>
+        </Cloud>
+        <clouds alias="default" ref="me:TestKind/TestKindCloud"/>
     </Kind>
 
-    <Attribute itsName="myChildren">
-        <cardinality value="list"/>
-        <copyPolicy value="cascade"/>
-        <type ref="me:TestKind"/>
-        <inverseAttribute ref="me:myParent"/>
-        <initialValue/>
-    </Attribute>
-
-    <Attribute itsName="myParent">
-        <cardinality value="list"/>
-        <type ref="me:TestKind"/>
-        <inverseAttribute ref="me:myChildren"/>
-        <initialValue/>
-    </Attribute>
 
 </Parcel>
