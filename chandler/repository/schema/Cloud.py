@@ -137,6 +137,8 @@ class Cloud(Item):
 
         results = []
         def copyOther(copy, other, policy):
+            if other is None:
+                return None
             uuid = other._uuid
             if uuid in items:
                 if uuid in copies:
@@ -149,7 +151,7 @@ class Cloud(Item):
             elif uuid in references:
                 return other
             else:
-                return None
+                return Item.Nil
 
         copy = item.copy(name, parent, copies, 'remove', None, copyOther)
         results.insert(0, copy)

@@ -1402,7 +1402,7 @@ class Item(object):
         def copyOther(copy, other, policy):
             if policy == 'copy':
                 return other
-            elif policy == 'cascade':
+            elif other is not None and policy == 'cascade':
                 otherCopy = copies.get(other.itsUUID, None)
                 if otherCopy is None:
                     if self.itsParent is copy.itsParent:
@@ -1413,7 +1413,7 @@ class Item(object):
                                            None, copyOther)
                 return otherCopy
             else:
-                return None
+                return Item.Nil
 
         if copyFn is None:
             copyFn = copyOther

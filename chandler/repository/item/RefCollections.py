@@ -85,7 +85,7 @@ class RefList(LinkedMap):
         for key in self.iterkeys():
             link = self._get(key)
             copyOther = copyFn(copyItem, link.getValue(self), policy)
-            if copyOther is not None and copyOther not in refList:
+            if copyOther is not copyItem.Nil and copyOther not in refList:
                 refList.append(copyOther, link._alias)
 
         return refList

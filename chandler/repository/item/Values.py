@@ -544,7 +544,7 @@ class References(Values):
         value = self._getRef(name, other)
         copyOther = copyFn(copyItem, value, policy)
 
-        if copyOther is not None and name not in copyItem._references:
+        if copyOther is not copyItem.Nil and name not in copyItem._references:
             copyItem._references._setValue(name, copyOther,
                                            copyItem._kind.getOtherName(name))
 
