@@ -78,6 +78,12 @@ class ICalendarTestCase(unittest.TestCase):
         self.share.get()
 
         # @@@ Put some checking of the imported items here
+        
+        event=self.repo.findUUID('BED962E5-6042-11D9-BE74-000A95BB2738')
+        self.assert_(event.displayName == u'3 hour event',
+         "SUMMARY of first VEVENT not imported correctly, displayName is %s"
+         % event.displayName)
+        
         # Also, put in a test of updating from a modified ics file.
 
 

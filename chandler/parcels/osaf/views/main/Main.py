@@ -30,6 +30,7 @@ import application.dialogs.ReminderDialog as ReminderDialog
 from osaf.framework.blocks.Block import Block
 from osaf.contentmodel.ItemCollection import ItemCollection
 import osaf.framework.utils.imports.icalendar as ical
+import osaf.framework.sharing.ICalendar as ICalendar
 
 class MainView(View):
     """
@@ -298,16 +299,27 @@ class MainView(View):
 
     def onImportIcalendarEvent(self, event):
         # triggered from "Test | Import iCalendar" Menu
-        repository = Globals.repository
-        self.setStatusMessage ("Importing from " + ical.INFILE)
+        rep = Globals.repository
+        parent = rep.findPath("//userdata/contentitems")
+
+        self.setStatusMessage ("Importing from import.ics")
         try:
-            if ical.importFile(ical.INFILE, repository):
-                self.setStatusMessage ("Import completed")
-            else:
-                repository.logger.info("Failed importFile")
-                self.setStatusMessage("Import failed")
+            conduit = rep.findPath("//userdata/fsconduit")
+            if conduit is None:
+                conduit = Sharing.FileSystemConduit(name="fsconduit",
+                 parent=parent, sharePath=".", shareName="import.ics")
+            format = rep.findPath("//userdata/icalImportFormat")
+            if format is None:
+                format = ICalendar.ICalendarFormat(name="icalImportFormat",
+                 parent=parent)
+            share = rep.findPath("//userdata/icalImportShare")
+            if share is None:
+                share = Sharing.Share(name="icalImportShare", parent=parent,
+                 conduit=conduit, format=format)
+            share.get()
+            self.setStatusMessage ("Import completed")
         except Exception, e:
-            repository.logger.info("Failed importFile, caught exception " + str(e))
+            rep.logger.info("Failed importFile, caught exception " + str(e))
             self.setStatusMessage("Import failed")
 
     def onExportIcalendarEvent(self, event):
