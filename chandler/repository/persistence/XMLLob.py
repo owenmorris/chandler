@@ -41,7 +41,7 @@ class XMLText(Text, ItemValue):
 
         uuid = self.getUUID()
         
-        if self._dirty:
+        if self._dirty or self._version == 0:
             store = self._view.repository.store
             if self._append:
                 out = store._text.appendFile(store.lobName(uuid,
@@ -171,7 +171,7 @@ class XMLBinary(Binary, ItemValue):
 
         uuid = self.getUUID()
 
-        if self._dirty:
+        if self._dirty or self._version == 0:
             store = self._view.repository.store
             if self._append:
                 out = store._binary.appendFile(store.lobName(uuid,
