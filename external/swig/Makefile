@@ -27,12 +27,13 @@ ifeq ($(OS),Cygwin)
 $(SRC)/$(BUILD)/Makefile:
 	mkdir -p $(SRC)/$(BUILD); \
 	cd $(SRC)/$(BUILD); \
-	PATH=$(GCJ_HOME)/bin:$(PATH); \
+	PATH="$(GCJ_HOME)/bin:$(PATH)"; \
 	../configure --prefix=`cygpath -am $(PREFIX)` $(CONF_OPT) \
-                     --with-python=`cygpath -am $(PYTHON)`
+                     --with-python=`cygpath -am $(PYTHON)` \
+                     --build=i386-pc-cygwin
 
 swig: $(SRC)/$(BUILD)/Makefile
-	PATH=$(GCJ_HOME)/bin:$(PATH); $(MAKE) -C $(SRC)/$(BUILD)
+	PATH="$(GCJ_HOME)/bin:$(PATH)"; $(MAKE) -C $(SRC)/$(BUILD)
 	$(MAKE) -C $(SRC)/$(BUILD) install
 
 else
