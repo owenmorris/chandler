@@ -1,14 +1,17 @@
---- SWIG-20Feb04/Source/Modules/main.cxx	2004-01-09 16:04:34.000000000 -0800
-+++ SWIG-20Feb04-patched/Source/Modules/main.cxx	2004-08-16 15:07:19.305283200 -0700
-@@ -89,6 +89,7 @@
-      -Wallkw         - Enable warning messages for all the languages keywords\n\
-      -Werror         - Force to treat the warnings as errors\n\
-      -w<n>           - Suppress warning number <n>\n\
+Only in SWIG-20Feb04-patched/Source/CParse: parser.c
+Only in SWIG-20Feb04-patched/Source/CParse: parser.h
+diff -u -r SWIG-20Feb04/Source/Modules/main.cxx SWIG-20Feb04-patched/Source/Modules/main.cxx
+--- SWIG-20Feb04/Source/Modules/main.cxx	Mon Aug 16 15:50:50 2004
++++ SWIG-20Feb04-patched/Source/Modules/main.cxx	Mon Aug 16 16:40:19 2004
+@@ -92,6 +92,7 @@
+                                              \n\
+                        where code 321(+) is added, and 401(no sign) and 402(-) \n\
+                        are suppressed. See documentation for code meanings.\n\
 +     -xmlout <file>  - Write an XML version of the parse tree to file after normal processing\n\
  \n";
  
  // Local variables
-@@ -96,6 +97,7 @@
+@@ -99,6 +100,7 @@
  static String  *lang_config = 0;
  static char    *cpp_extension = (char *) "cxx";
  static String  *outdir = 0;
@@ -16,7 +19,7 @@
  
  // -----------------------------------------------------------------------------
  // check_suffix(char *name)
-@@ -213,6 +215,7 @@
+@@ -216,6 +218,7 @@
    int     includecount = 0;
    int     dump_tags = 0;
    int     dump_tree = 0;
@@ -24,7 +27,7 @@
    int     browse = 0;
    int     dump_typedef = 0;
    int     dump_classes = 0;
-@@ -474,6 +477,18 @@
+@@ -484,6 +487,18 @@
  	  } else if (strcmp(argv[i],"-dump_tree") == 0) {
  	    dump_tree = 1;
  	    Swig_mark_arg(i);
@@ -43,19 +46,20 @@
  	  } else if (strcmp(argv[i],"-nocontract") == 0) {
  	    Swig_mark_arg(i);
  	    Swig_contract_mode_set(0);
-@@ -728,6 +743,9 @@
+@@ -735,6 +750,9 @@
+     }
      if (dump_tree) {
        Swig_print_tree(top);
-     }
++    }
 +    if (dump_xml) {
 +      Swig_print_xml(top, xmlout);
-+    }
+     }
    }
    if (tm_debug) Swig_typemap_debug();
-   if (memory_debug) DohMemoryDebug();
---- SWIG-20Feb04/Source/Modules/python.cxx	2003-12-13 15:52:31.000000000 -0800
-+++ SWIG-20Feb04-patched/Source/Modules/python.cxx	2004-08-16 15:07:19.415441600 -0700
-@@ -24,6 +24,7 @@
+diff -u -r SWIG-20Feb04/Source/Modules/python.cxx SWIG-20Feb04-patched/Source/Modules/python.cxx
+--- SWIG-20Feb04/Source/Modules/python.cxx	Mon Aug 16 15:53:13 2004
++++ SWIG-20Feb04-patched/Source/Modules/python.cxx	Mon Aug 16 16:37:19 2004
+@@ -20,6 +20,7 @@
  static  String       *const_code = 0;
  static  String       *shadow_methods = 0;
  static  String       *module = 0;
@@ -63,7 +67,7 @@
  static  String       *mainmodule = 0;
  static  String       *interface = 0;
  static  String       *global_name = 0;
-@@ -55,6 +56,16 @@
+@@ -51,6 +52,16 @@
  static  int       have_repr;
  static  String   *real_classname;
  
@@ -80,7 +84,7 @@
  static const char *usage = (char *)"\
  Python Options (available with -python)\n\
       -ldflags        - Print runtime libraries to link with\n\
-@@ -151,10 +162,11 @@
+@@ -147,10 +158,11 @@
       * use %module(directors="1") modulename at the start of the 
       * interface file to enable director generation.
       */
@@ -95,7 +99,7 @@
          if (options) {
            if (Getattr(options, "directors")) {
              allow_directors();
-@@ -162,6 +174,8 @@
+@@ -158,6 +170,8 @@
            if (Getattr(options, "dirprot")) {
  	    allow_dirprot();
            }
@@ -275,8 +279,10 @@
 +   *    it is "1" (the default) then do.  If it has some other
 +   *    value then assume it is supplied by the extension writer
 +   *    and use it directly.
-+   * ------------------------------------------------------------ */
-+
+    * ------------------------------------------------------------ */
+ 
+-  bool have_addtofunc(Node *n) {
+-    String* str = Getattr(n, "feature:addtofunc");
 +  String* make_autodoc(Node *n, autodoc_t ad_type) {
 +
 +    if (ad_type == AUTODOC_CLASS)
@@ -439,14 +445,18 @@
 +
 +  bool have_pythonprepend(Node *n) {
 +    String* str = Getattr(n, "feature:pythonprepend");
-+    return (str != NULL && Len(str) > 0);
-+  }
-+  
-+  /* ------------------------------------------------------------
+     return (str != NULL && Len(str) > 0);
+   }
+   
+   /* ------------------------------------------------------------
+-   * addtofunc()
+-   *    Get the %addtofunc code, stripping off {} if neccessary
 +   * pythonprepend()
 +   *    Get the %pythonprepend code, stripping off {} if neccessary
-+   * ------------------------------------------------------------ */
-+
+    * ------------------------------------------------------------ */
+ 
+-  String *addtofunc(Node *n) {
+-    String* str = Getattr(n, "feature:addtofunc");
 +  String *pythonprepend(Node *n) {
 +    String* str = Getattr(n, "feature:pythonprepend");
 +    char* t = Char(str);
@@ -460,30 +470,24 @@
 +  /* ------------------------------------------------------------
 +   * have_pythonappend()
 +   *    Check if there is a %pythonappend directive and it has text
-    * ------------------------------------------------------------ */
- 
--  bool have_addtofunc(Node *n) {
--    String* str = Getattr(n, "feature:addtofunc");
++   * ------------------------------------------------------------ */
++
 +  bool have_pythonappend(Node *n) {
 +    String* str = Getattr(n, "feature:pythonappend");
-     return (str != NULL && Len(str) > 0);
-   }
-   
-   /* ------------------------------------------------------------
--   * addtofunc()
--   *    Get the %addtofunc code, stripping off {} if neccessary
++    return (str != NULL && Len(str) > 0);
++  }
++  
++  /* ------------------------------------------------------------
 +   * pythonappend()
 +   *    Get the %pythonappend code, stripping off {} if neccessary
-    * ------------------------------------------------------------ */
- 
--  String *addtofunc(Node *n) {
--    String* str = Getattr(n, "feature:addtofunc");
++   * ------------------------------------------------------------ */
++
 +  String *pythonappend(Node *n) {
 +    String* str = Getattr(n, "feature:pythonappend");
      char* t = Char(str);
      if (*t == '{') {
        Delitem(str ,0);
-@@ -1627,7 +1952,16 @@
+@@ -1658,7 +1983,16 @@
        if (mod) {
  	String *modname = Getattr(mod,"name");
  	if (Strcmp(modname,mainmodule) != 0) {
@@ -501,7 +505,7 @@
  	} else {
  	  importname = NewString(Getattr(n,"sym:name"));
  	}
-@@ -1701,7 +2035,9 @@
+@@ -1732,7 +2066,9 @@
  	}
        }
        Printf(f_shadow,":\n");
@@ -512,7 +516,7 @@
        if (!modern) {
          Printv(f_shadow,tab4,"__swig_setmethods__ = {}\n",NIL);
          if (Len(base_class)) {
-@@ -1836,14 +2172,22 @@
+@@ -1867,14 +2203,22 @@
  	  Printv(f_shadow,pycode,"\n",NIL);
  	} else {
  
@@ -542,7 +546,7 @@
            }
          }
  
-@@ -1860,12 +2204,20 @@
+@@ -1891,12 +2235,20 @@
      String *symname = Getattr(n,"sym:name");
      Language::staticmemberfunctionHandler(n);
      if (shadow) {
@@ -567,7 +571,7 @@
          Printv(f_shadow, tab4, modern ? "" : "if _newclass:",  symname,
                 " = staticmethod(", symname, ")\n", NIL);
  
-@@ -1952,6 +2304,10 @@
+@@ -1983,6 +2335,10 @@
  
              Printv(f_shadow, tab4, "def __init__(self, *args",
                     (allow_kwargs ? ", **kwargs" : ""), "):\n", NIL);
@@ -578,7 +582,7 @@
              Printv(f_shadow, pass_self, NIL);
              if (!modern) {
                Printv(f_shadow, tab8, "_swig_setattr(self, ", rclassname, ", 'this', ", 
-@@ -1966,8 +2322,8 @@
+@@ -1997,8 +2353,8 @@
                Printv(f_shadow, tab8, "self.thisown = 1\n", NIL);
                Printv(f_shadow, tab8, "del newobj.thisown\n", NIL);
              }
@@ -589,7 +593,7 @@
    	    Delete(pass_self);
    	  }
  	  have_constructor = 1;
-@@ -1985,11 +2341,15 @@
+@@ -2016,11 +2372,15 @@
  
              Printv(f_shadow_stubs, "\ndef ", symname, "(*args",
                     (allow_kwargs ? ", **kwargs" : ""), "):\n", NIL);
@@ -607,7 +611,7 @@
              Printv(f_shadow_stubs, tab4, "return val\n", NIL);
    	  }
  	}
-@@ -2018,11 +2378,16 @@
+@@ -2049,11 +2409,16 @@
  	Printv(f_shadow,pycode,"\n", NIL);
        } else {
  	Printv(f_shadow, tab4, "def __del__(self, destroy=", module, ".", Swig_name_destroy(symname), "):\n", NIL);
@@ -627,8 +631,9 @@
        }
      }
      return SWIG_OK;
---- SWIG-20Feb04/Source/Modules/xml.cxx	2003-12-28 13:47:58.000000000 -0800
-+++ SWIG-20Feb04-patched/Source/Modules/xml.cxx	2004-08-16 14:54:35.506995200 -0700
+diff -u -r SWIG-20Feb04/Source/Modules/xml.cxx SWIG-20Feb04-patched/Source/Modules/xml.cxx
+--- SWIG-20Feb04/Source/Modules/xml.cxx	Mon Aug 16 15:50:50 2004
++++ SWIG-20Feb04-patched/Source/Modules/xml.cxx	Mon Aug 16 16:44:37 2004
 @@ -198,6 +198,7 @@
  					Replaceall( o, "<", "&lt;" );
  					Replaceall( o, "\"", "&quot;" );
@@ -648,19 +653,11 @@
  			n = Next(n);
  		}
  		indent_level -= 4;
-@@ -332,7 +332,40 @@
- };
- 
- 
--extern "C" Language *
--swig_xml( void ) {
-+static Language * new_swig_xml() {
-         return new XML();
+@@ -337,4 +337,34 @@
  }
-+extern "C" Language * swig_xml( void ) {
-+        return new_swig_xml();
+ extern "C" Language * swig_xml( void ) {
+         return new_swig_xml();
 +}
-+
 +
 +/* -----------------------------------------------------------------------------
 + * Swig_print_xml
@@ -690,10 +687,11 @@
 +    
 +    Printf( out, "<?xml version=\"1.0\" ?> \n" );
 +    xml.Xml_print_tree(obj);
-+}
---- SWIG-20Feb04/Source/Swig/swig.h	2004-01-09 16:04:17.000000000 -0800
-+++ SWIG-20Feb04-patched/Source/Swig/swig.h	2004-08-16 15:07:19.515585600 -0700
-@@ -355,6 +355,8 @@
+ }
+diff -u -r SWIG-20Feb04/Source/Swig/swig.h SWIG-20Feb04-patched/Source/Swig/swig.h
+--- SWIG-20Feb04/Source/Swig/swig.h	Mon Aug 16 15:55:19 2004
++++ SWIG-20Feb04-patched/Source/Swig/swig.h	Mon Aug 16 16:37:19 2004
+@@ -359,6 +359,8 @@
  extern void Swig_print_tree(Node *obj);
  extern void Swig_print_node(Node *obj);
  
@@ -702,3 +700,4 @@
  /* -- Wrapper function Object */
  
  typedef struct {
+

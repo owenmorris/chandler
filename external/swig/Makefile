@@ -50,7 +50,7 @@ else
 
 EXECUTABLE=
 
-$(SRC)/$(BUILD)/Makefile: apply
+$(SRC)/$(BUILD)/Makefile: expand apply
 	cd $(SRC); \
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \
@@ -81,8 +81,8 @@ snap:
 clean:
 	cd $(SRC); rm -rf $(BUILD)
 
-expand: swig-$(VERSION).tar.gz 
-	tar xvzf swig-$(VERSION).tar.gz
+expand: SWIG-$(VERSION).tar.gz 
+	tar xvzf SWIG-$(VERSION).tar.gz
 
 build: swig
 
