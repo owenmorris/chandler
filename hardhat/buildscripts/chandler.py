@@ -15,12 +15,18 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         os.mkdir(workingDir)
     os.chdir(workingDir)
 
+    outputDir = os.path.join(workingDir, "output")
+    if os.path.exists(outputDir):
+        hardhatutil.rmdirRecursive(outputDir)
+    os.mkdir(outputDir)
 
     # do debug
-    Do(hardhatScript, "debug", workingDir, cvsVintage, buildVersion, clobber, log)
+    Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
+     buildVersion, clobber, log)
 
     # do release
-    Do(hardhatScript, "release", workingDir, cvsVintage, buildVersion, clobber, log)
+    Do(hardhatScript, "release", workingDir, outputDir, cvsVintage, 
+     buildVersion, clobber, log)
 
 
 
@@ -49,7 +55,8 @@ mainModule = 'osaf/chandler/Chandler'
 logPath = 'osaf/chandler/hardhat.log'
 
 
-def Do(hardhatScript, mode, workingDir, cvsVintage, buildVersion, clobber, log):
+def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, 
+ clobber, log):
 
     print "Do " + mode
     log.write("Do " + mode + "\n")
@@ -159,12 +166,14 @@ def Do(hardhatScript, mode, workingDir, cvsVintage, buildVersion, clobber, log):
             print "Building debug"
             log.write("building debug" + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-dBt", "-D", buildVersionEscaped])
+             [hardhatScript, "-o", outputDir, "-dBt", 
+             "-D", buildVersionEscaped])
         if mode == "release":
             print "Building release"
             log.write("building release" + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-rBt", "-D", buildVersionEscaped])
+             [hardhatScript, "-o", outputDir, "-rBt", 
+             "-D", buildVersionEscaped])
     except Exception, e:
         print "a build error"
         log.write("error during build" + "\n")
