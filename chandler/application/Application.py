@@ -249,8 +249,9 @@ class wxApplication (wxApp):
             ChandlerWindow.py and application.xrc.
             """
             EVT_MENU(self, XRCID ('CreateNewRepository'), 
-                        self.OnCreateNewRepository)
-            
+                           self.OnCreateNewRepository)
+            EVT_MENU(self, XRCID("DebugRoutine"), self.DebugRoutine)
+
         EVT_MENU(self, -1, self.OnCommand)
         EVT_UPDATE_UI(self, -1, self.OnCommand)
         """
@@ -548,3 +549,9 @@ class wxApplication (wxApp):
         """
         debugFlag = self.model.preferences.GetPreferenceValue('chandler/debugging/debugmenu')
         self.wxMainFrame.ShowOrHideDebugMenu(debugFlag)
+
+    if __debug__:
+        def DebugRoutine(self, event):
+            i = 1
+            pass
+    

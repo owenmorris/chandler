@@ -256,7 +256,7 @@ class wxViewerParcel(wxPanel):
           make it public for this code to work.
 
             wxWindows menus don't contain the name of the menu, even though the XRC
-          resource contains the name.
+          resource contains the name. -- DJA
         """
         def FindNameReturnIndex (menu, name):
             """
@@ -270,6 +270,22 @@ class wxViewerParcel(wxPanel):
                     return index
                 index += 1
             return wxNOT_FOUND
+
+        def CopyMenuItem(source, destination):
+            """
+              Delete all the items in the destinations, then copy all the source
+            items over to the destination. We do this instead of just replacing
+            the destination menu with the source menu, because replacing the
+            help menu on Macintosh fails (since it's owned by the system and can't
+            be deleted). Also avoiding the replace eliminates flicker that is
+            seen in the menubar as it's replaced.
+            """
+            for menuItem in destination.GetMenuItems():
+                destination.DestroyItem(menuItem)
+            
+            for menuItem in source.GetMenuItems():
+                destination.AppendItem(source.RemoveItem(menuItem))
+                
 
         mainFrameId = id(app.model.mainFrame)
         """
@@ -315,7 +331,21 @@ class wxViewerParcel(wxPanel):
                       menu is the application menu that needs to have parcel menuitems
                       added to it
                     """
-                    menu = mainMenuBar.Remove(menuIndex)
+                    menu = menuBar.GetMenu(menuBarIndex)
+                    source = mainMenuBar.GetMenu(menuIndex)
+                    """
+                      Delete all the items in the menu, then copy all the source
+                    items over to the menu. We do this instead of just replacing
+                    the menu with the source menu, because replacing the help menu
+                    on Macintosh fails (since it's owned by the system and can't
+                    be deleted). Also avoiding the replace eliminates flicker that
+                    is seen in the menubar as it's replaced.
+                    """
+                    for menuItem in menu.GetMenuItems():
+                        menu.DestroyItem(menuItem)
+                    
+                    for menuItem in source.GetMenuItems():
+                        menu.AppendItem(source.RemoveItem(menuItem))
                         
                     ignoreErrors = wxLogNull ()
                     parcelMenuResourceXRC = self.resources.FindResource (name, 'wxMenu')
@@ -350,11 +380,6 @@ class wxViewerParcel(wxPanel):
                                 menu.InsertItem (insertAtIndex, parcelMenuItems [menuItemIndex])
                                 menuItemIndex += 1
                             menuItemNode = menuItemNode.GetNext()
-                    """
-                      Update the menu with the new menu and delete the old menu
-                    """
-                    oldMenu = menuBar.Replace (menuBarIndex, menu,  _(label))
-                    oldMenu.Destroy()
                     
                 menuNode = menuNode.GetNext()
             mainMenuBar.Destroy()
@@ -369,7 +394,12 @@ class wxViewerParcel(wxPanel):
             menuBar = mainFrame.GetMenuBar ()
             menuIndex = menuBar.FindMenu (_('View')) + 1
             assert (menuIndex != wxNOT_FOUND)
-            noParcelMenu = menuBar.FindMenu(_('Help')) == menuIndex
+            """
+              On Macintosh the Debug menu , if visible, is before the
+            Help menu instead of after like other platforms
+            """
+            noParcelMenu = (menuBar.FindMenu(_('Help')) == menuIndex) or \
+                           (menuBar.FindMenu(_('Debug')) == menuIndex)
 
             ignoreErrors = wxLogNull ()
             viewerParcelMenu = self.resources.LoadMenu ('ViewerParcelMenu')

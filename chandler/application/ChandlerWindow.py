@@ -161,7 +161,14 @@ class wxChandlerWindow(wxFrame):
             else:
                 applicationResources = application.Application.app.applicationResources
                 debugMenu = applicationResources.LoadMenu('DebugMenu')
-                menuBar.Append(debugMenu, _('Debug'))
+                index = menuBar.GetMenuCount()
+                """
+                  On Macintosh the debug menu is owned by the system so you can't
+                add an item after it.
+                """
+                if wxPlatform == '__WXMAC__':
+                    index -= 1
+                menuBar.Insert(index, debugMenu, _('Debug'))
                 menuBar.Check(XRCID('CreateNewRepository'),
                                hasattr (application.Application.app.model,
                                         'CreateNewRepository'))
