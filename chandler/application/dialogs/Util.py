@@ -70,11 +70,11 @@ class ItemValuesDialog(wx.Dialog):
             if valueDict.get("password", False):
                 text = wx.TextCtrl(self, -1,
                  item.getAttributeValue(valueDict["attr"]),
-                 wxDefaultPosition, [400,-1], wx.TE_PASSWORD)
+                 wx.DefaultPosition, [400,-1], wx.TE_PASSWORD)
             else:
                 text = wx.TextCtrl(self, -1,
                  item.getAttributeValue(valueDict["attr"]),
-                 wxDefaultPosition, [400,-1])
+                 wx.DefaultPosition, [400,-1])
             box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
 
             sizer.AddSizer(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
