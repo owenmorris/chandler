@@ -19,6 +19,7 @@ class Lob(object):
         self.mimetype = mimetype
         self._compression = None
         self._data = ''
+        self._append = False
 
     def getOutputStream(self, compression=None, append=False):
 
@@ -71,11 +72,12 @@ class Lob(object):
 
 class Text(Lob):
 
-    def __init__(self, encoding='utf-8', mimetype='text/plain'):
+    def __init__(self, encoding='utf-8', mimetype='text/plain', indexed=False):
 
         super(Text, self).__init__(mimetype)
         
         self.encoding = encoding
+        self._indexed = indexed
         
     def getWriter(self, compression='bz2', append=False):
 
@@ -89,6 +91,6 @@ class Text(Lob):
 
 class Binary(Lob):
 
-    def __init__(self, mimetype='text/plain'):
+    def __init__(self, mimetype='application/binary'):
 
         super(Binary, self).__init__(mimetype)

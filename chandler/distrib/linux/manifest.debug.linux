@@ -45,12 +45,19 @@ dest=lib
 src=debug/db/lib
 libdb_cxx-4.2.so
 libdb-4.2.so
+libdb_java-4.2.so
 src=debug/lib
 libxerces-c.so.24
 libpathan.so.2
 libxml2.so.2
 src=debug/dbxml/lib
 libdbxml-1.2.so
+
+# Grab the gcj 3.3 runtime libs
+src=${gcj}/../lib
+libgcj.so.4
+libstdc++.so.5
+libgcc_s.so.1
 
 # Grab Chandler.py, and others
 src=Chandler

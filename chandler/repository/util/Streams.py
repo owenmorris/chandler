@@ -84,12 +84,17 @@ class BZ2InputStream(object):
     def __init__(self, inputStream):
 
         super(BZ2InputStream, self).__init__()
+
         self.bz2 = BZ2Decompressor()
         self.inputStream = inputStream
 
     def read(self, length = -1):
 
-        data = self.bz2.decompress(self.inputStream.read(length))
+        data = self.inputStream.read(length)
+        if len(data) == 0:
+            return ''
+        
+        data = self.bz2.decompress(data)
         
         if len(self.bz2.unused_data) > 0:
             buffer = StringIO()
@@ -115,12 +120,17 @@ class ZlibInputStream(object):
     def __init__(self, inputStream):
 
         super(ZlibInputStream, self).__init__()
+
         self.zlib = decompressobj()
         self.inputStream = inputStream
 
     def read(self, length = -1):
 
-        data = self.zlib.decompress(self.inputStream.read(length))
+        data = self.inputStream.read(length)
+        if len(data) == 0:
+            return ''
+        
+        data = self.zlib.decompress(data)
         
         if len(self.zlib.unused_data) > 0:
             buffer = StringIO()
@@ -156,6 +166,43 @@ class BufferedInputStream(object):
 
         self.buffer.close()
 
+
+class ConcatenatedInputStream(object):
+
+    def __init__(self, *streams):
+
+        self._streams = streams
+        self._done = []
+
+    def read(self, length = -1):
+
+        while self._streams:
+            data = self._streams[0].read(length)
+
+            if len(data):
+                return data
+            else:
+                self._done.append(self._streams.pop(0))
+
+    def close(self):
+
+        for stream in self._streams:
+            stream.close()
+        for stream in self._done:
+            stream.close()
+
+        del self._streams[:]
+        del self._done[:]
+
+
+class NullInputStream(object):
+
+    def read(self, length = -1):
+        return ''
+
+    def close(self):
+        pass
+        
 
 class OutputStreamWriter(object):
 

@@ -766,3 +766,5 @@ class RepositoryNotifications(dict):
                 for reason in reasons:
                     for callback in callbacks:
                         callback(uuid, 'CollectionChanged', reason)
+
+        self.clear()

@@ -13,6 +13,7 @@ src=release/bin
 dest=
 libdb42.dll
 libdbxml12.dll
+libdb_java42.dll
 msvci70.dll
 msvcp70.dll
 msvcr70.dll

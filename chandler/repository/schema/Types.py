@@ -770,7 +770,7 @@ class Lob(Type):
     def startValue(self, itemHandler):
 
         itemHandler.tagCounts.append(0)
-        itemHandler.value = self.getImplementationType()()
+        itemHandler.value = self.getImplementationType()(self.getRepository())
 
     def isValueReady(self, itemHandler):
 
@@ -784,9 +784,11 @@ class Text(Lob):
         return self.getRepository().getLobType('text')
 
     def makeValue(self, data,
-                  encoding='utf-8', mimetype='text/plain', compression='bz2'):
+                  encoding='utf-8', mimetype='text/plain', compression='bz2',
+                  indexed=False):
 
-        text = self.getImplementationType()(encoding, mimetype)
+        text = self.getImplementationType()(self.getRepository(),
+                                            encoding, mimetype, indexed)
         if data:
             writer = text.getWriter(compression)
             writer.write(data)
@@ -800,8 +802,7 @@ class Text(Lob):
 
     def textEnd(self, itemHandler, attrs):
 
-        itemHandler.value._textEnd(self.getRepository(),
-                                   itemHandler.data, attrs)
+        itemHandler.value._textEnd(itemHandler.data, attrs)
         itemHandler.tagCounts[-1] -= 1
 
     def typeXML(self, value, generator, withSchema):
@@ -828,7 +829,7 @@ class Binary(Lob):
 
     def makeValue(self, data, mimetype='text/plain', compression=None):
 
-        binary = self.getImplementationType()(mimetype=mimetype)
+        binary = self.getImplementationType()(self.getRepository(), mimetype)
         if data:
             out = binary.getOutputStream(compression)
             out.write(data)
@@ -842,8 +843,7 @@ class Binary(Lob):
 
     def binaryEnd(self, itemHandler, attrs):
 
-        itemHandler.value._binaryEnd(self.getRepository(),
-                                     itemHandler.data, attrs)
+        itemHandler.value._binaryEnd(itemHandler.data, attrs)
         itemHandler.tagCounts[-1] -= 1
 
     def typeXML(self, value, generator, withSchema):

@@ -8,6 +8,9 @@ from struct import pack, unpack
 from cStringIO import StringIO
 from time import time
 
+from PyLucene import DbDirectory, IndexWriter, StandardAnalyzer
+from PyLucene import Document, Field
+
 from repository.util.UUID import UUID
 from repository.persistence.DBContainer import DBContainer
 from repository.persistence.Repository import RepositoryError
@@ -357,13 +360,13 @@ class InputStream(object):
         blockPos = self.position & OutputStream.BLOCK_MASK
         offset = 0
         buffer = None
-        data = None
+        data = ''
 
         if length < 0:
             length = self.length - self.position
 
         if self.position + length > self.length:
-            raise RepositoryError, "Reading past end of file"
+            length = self.length - self.position
 
         while blockPos + length >= OutputStream.BLOCK_LEN:
             blockLen = OutputStream.BLOCK_LEN - blockPos
@@ -399,3 +402,34 @@ class InputStream(object):
 
         self._block.seek(pos)
         self.position = pos
+
+
+class IndexContainer(FileContainer):
+
+    def __init__(self, store, name, txn, create):
+
+        super(IndexContainer, self).__init__(store, name, txn, create)
+
+        if create:
+            directory = DbDirectory(txn, self._db, store._blocks._db)
+            indexWriter = IndexWriter(directory, StandardAnalyzer(), True)
+            indexWriter.close()
+
+    def getIndexWriter(self):
+
+        return IndexWriter(DbDirectory(self.store.txn,
+                                       self._db, self.store._blocks._db),
+                           StandardAnalyzer(), False)
+
+    def indexDocument(self, indexWriter, reader, uuid, version):
+
+        doc = Document()
+        doc.add(Field("uuid", uuid.str16(), True, False, False))
+        doc.add(Field("version", str(version), True, False, False))
+        doc.add(Field.Text("contents", reader))
+
+        indexWriter.addDocument(doc)
+
+    def optimizeIndex(self, indexWriter):
+
+        indexWriter.optimize()

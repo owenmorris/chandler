@@ -15,7 +15,7 @@
     </ref>
 
     <attribute name="synopsis">
-      <text>Interné depuis vingt-cinq ans, un homme s'échappe le jour où il apprend que sa femme va divorcer. Il retrouve sa fille qui lui donne toute son affection.</text>
+      <text indexed="True">Interné depuis vingt-cinq ans, un homme s'échappe le jour où il apprend que sa femme va divorcer. Il retrouve sa fille qui lui donne toute son affection.</text>
     </attribute>
   </item>
 
@@ -31,7 +31,7 @@
     </ref>
 
    <attribute name="synopsis">
-      <text>Les débuts d'une jeune actrice</text>
+      <text indexed="True">Les débuts d'une jeune actrice</text>
    </attribute>
   </item>
 
@@ -48,7 +48,7 @@
     </ref>
 
    <attribute name="synopsis">
-      <text>Pendant la guerre de Sécession, le docteur Marsch se dans les rangs nordistes. Sa femme et ses quatre filles doivent se débrouiller pour vivre.</text>
+      <text indexed="True">Pendant la guerre de Sécession, le docteur Marsch se dans les rangs nordistes. Sa femme et ses quatre filles doivent se débrouiller pour vivre.</text>
    </attribute>
   </item>
 
@@ -65,7 +65,7 @@
     </ref>
 
    <attribute name="synopsis">
-      <text>Une jeune femme s'éprend d'un homme déjà marié.</text>
+      <text indexed="True">Une jeune femme s'éprend d'un homme déjà marié.</text>
    </attribute>
   </item>
 
@@ -81,7 +81,7 @@
     </ref>
 
    <attribute name="synopsis">
-      <text>Les tentatives d'une jeune fille modeste pour entrer dans la bonne société.</text>
+      <text indexed="True">Les tentatives d'une jeune fille modeste pour entrer dans la bonne société.</text>
    </attribute>
   </item>
 
@@ -98,7 +98,7 @@
     </ref>
 
    <attribute name="synopsis">
-      <text>La rivalité entre Elisabeth Ire d'Angleterre et Marie d'Écosse et de France.</text>
+      <text indexed="True">La rivalité entre Elisabeth Ire d'Angleterre et Marie d'Écosse et de France.</text>
    </attribute>
   </item>
 
@@ -114,7 +114,7 @@
     </ref>
 
    <attribute name="synopsis">
-      <text>Une jeune fille se déguise en garçon pour participer aux activités d'une bande d'escrocs. Grâce à une rencontre, elle réalisera son rêve : la création d'une compagnie théâtrale.</text>
+      <text indexed="True">Une jeune fille se déguise en garçon pour participer aux activités d'une bande d'escrocs. Grâce à une rencontre, elle réalisera son rêve : la création d'une compagnie théâtrale.</text>
    </attribute>
   </item>
 
@@ -129,45 +129,61 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Rêvant de devenir actrices de théâtre, plusieurs filles se retrouvent dans la même pension de famille.</text>
+    </attribute>
   </item>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Bringing Up Baby</attribute>
-    <attribute name="frenchTitle">L'Impossible Monsieur Bebe</attribute>
+    <attribute name="frenchTitle">L'Impossible Monsieur Bébé</attribute>
     <attribute name="released">1938-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/HHawks</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Une jeune fille excentrique provoque la perte d'un os de dinosaure et d'un léopard apprivoisé, propriété d'un professeur de zoologie.</text>
+    </attribute>
   </item>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Woman of the Year</attribute>
-    <attribute name="frenchTitle">La Femme de l'Annee</attribute>
+    <attribute name="frenchTitle">La Femme de l'Année</attribute>
     <attribute name="released">1942-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/GStevens</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Un journaliste sportif épouse une femme qui fait de la politique. Ils n'ont en commun que leur amour.</text>
+    </attribute>
   </item>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Keeper of the Flame</attribute>
-    <attribute name="frenchTitle">La Flamme Sacree</attribute>
+    <attribute name="frenchTitle">La Flamme Sacrée</attribute>
     <attribute name="released">1942-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/GCukor</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Un journaliste américain revenu d'un camp de concentration découvre au risque de sa vie le secret d'un patriote qui vient de mourir.</text>
+    </attribute>
   </item>
 
   <item>
@@ -181,6 +197,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Histoire d'amour d'un engagé américain de la Seconde Guerre mondiale et sa "marraine" de New-York.</text>
+    </attribute>
   </item>
 
   <item>
@@ -194,6 +214,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Des paysans chinois combattent les Japonais.</text>
+    </attribute>
   </item>
 
   <item>
@@ -207,19 +231,27 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Un aventurier tombe amoureux d'une jeune fille et l'épouse. Le mariage ne se révèle pas très satisfaisant.</text>
+    </attribute>
   </item>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">The Sea of Grass</attribute>
-    <attribute name="frenchTitle">Le Maitre de la Prairie</attribute>
+    <attribute name="frenchTitle">Le Maître de la Prairie</attribute>
     <attribute name="released">1947-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/EKazan</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Un riche fermier règne en maître sur les pâturages du Nouveau-Mexique.</text>
+    </attribute>
   </item>
 
   <item>
@@ -233,6 +265,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Un millionnaire soutient la campagne à la présidence des États-Unis d'un homme intègre aidé par sa femme.</text>
+    </attribute>
   </item>
 
   <item>
@@ -246,6 +282,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Un couple d'avocats se retrouve opposé à la défense et à l'accusation d'un criminel.</text>
+    </attribute>
   </item>
 
   <item>
@@ -259,6 +299,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">1915, en Afrique. Un marin sauve une jeune missionnaire anglaise. Ils vont descendre ensemble une rivière périlleuse et affronter les Allemands.</text>
+    </attribute>
   </item>
 
   <item>
@@ -272,19 +316,27 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Après de multiples disputes, une championne de tennis et son entraîneur tombent amoureux l'un de l'autre.</text>
+    </attribute>
   </item>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Summertime</attribute>
-    <attribute name="frenchTitle">Vacances a Venise</attribute>
+    <attribute name="frenchTitle">Vacances à Venise</attribute>
     <attribute name="released">1955-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/DLean</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Une vieille fille américaine, en vacances à Venise, s'éprend d'un Italien dont elle va découvrir qu'il est déjà marié.</text>
+    </attribute>
   </item>
 
   <item>
@@ -298,6 +350,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Un homme, qui prétend pouvoir faire la pluie et le beau temps, s'empare surtout du coeur d'une femme, ce qui déclenchera l'orage.</text>
+    </attribute>
   </item>
 
   <item>
@@ -311,57 +367,77 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Un avion soviétique va atterrir en Allemagne de l'Ouest, dans la zone américaine. Il est piloté par une femme. Sur le thème de Ninotchka.</text>
+    </attribute>
   </item>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Desk Set</attribute>
-    <attribute name="frenchTitle">Une Femme de Tete</attribute>
+    <attribute name="frenchTitle">Une Femme de Tête</attribute>
     <attribute name="released">1957-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/WLang</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Un ingénieur est chargé de mettre au point une machine électronique. Celle-ci établira des listes de licenciements à la place des fiches de paie et conseillera un mariage.</text>
+    </attribute>
   </item>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Suddenly Last Summer</attribute>
-    <attribute name="frenchTitle">Soudain l'Ete Dernier</attribute>
+    <attribute name="frenchTitle">Soudain l'Été Dernier</attribute>
     <attribute name="released">1959-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/JLMankiewicz</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Un étrange triangle sentimental entre un médecin spécialiste des nerfs, une femme très riche et sa nièce.</text>
+    </attribute>
   </item>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
-    <attribute name="title">Lond Day's Journey into Night</attribute>
+    <attribute name="title">Long Day's Journey into Night</attribute>
     <attribute name="released">1962-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/SLumet</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">La chronique d'une famille dans les années 1910.</text>
+    </attribute>
   </item>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">Guess Who's Coming to Dinner</attribute>
-    <attribute name="frenchTitle">Devine qui Vient Diner ?</attribute>
+    <attribute name="frenchTitle">Devine qui Vient Dîner ?</attribute>
     <attribute name="released">1967-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/SKramer</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Une jeune femme présente son fiancé noir à ses parents.</text>
+    </attribute>
   </item>
 
   <item>
@@ -375,6 +451,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Drame du roi Henri II méditant pour se trouver lui-même un successeur, la veille de Noël.</text>
+    </attribute>
   </item>
 
   <item>
@@ -388,6 +468,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Une femme excentrique refuse de croire que le monde a perdu de sa beauté.</text>
+    </attribute>
   </item>
 
   <item>
@@ -401,6 +485,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Après la chute de Troie, les femmes de la cité se révoltent contre les Grecs, avant d'être contraintes à l'exil.</text>
+    </attribute>
   </item>
 
   <item>
@@ -414,6 +502,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Le Duke retrouve ici le rôle du marshal borgne de 'Cent dollars pour un shérif'.</text>
+    </attribute>
   </item>
 
   <item>
@@ -426,6 +518,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Alby, qui a dix ans, casse sa tirelire et celle d'un copain pour faire un merveilleux cadeau d'anniversaire à son grand-père : refaire voler son vieux ballon dirigeable.</text>
+    </attribute>
   </item>
 
   <item>
@@ -439,31 +535,43 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Un couple de personnes âgées passe ses dernières vacances dans sa maison de campagne.</text>
+    </attribute>
   </item>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
-    <attribute name="title">Georges Stevens: A Filmmaker's Story</attribute>
+    <attribute name="title">Georges Stevens: A Filmmaker's Journey</attribute>
     <attribute name="released">1984-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/GStevensJR</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Evocation de l'oeuvre d'un des géants d'Hollywood par son fils.</text>
+    </attribute>
   </item>
 
   <item>
     <kind type="path">//Schema/CineGuide/Kinds/Movie</kind>
 
     <attribute name="title">The Man Upstairs</attribute>
-    <attribute name="frenchTitle">Bijoux, Hot-Dogs et Tasses de Cafe</attribute>
+    <attribute name="frenchTitle">Bijoux, Hot-Dogs et Tasses de Café</attribute>
     <attribute name="released">1992-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/GShaefer</ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Un voleur de bijoux s'évade et se cache chez une vieille dame. Ils deviennent amis.</text>
+    </attribute>
   </item>
 
   <item>
@@ -477,6 +585,10 @@
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
+
+    <attribute name="synopsis">
+      <text indexed="True">Mike et Terry tombent amoureux fous, mais ils sont fiancés chacun de leur côté.</text>
+    </attribute>
   </item>
 
 </xml>

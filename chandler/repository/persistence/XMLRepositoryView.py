@@ -22,6 +22,7 @@ from repository.persistence.Repository import RepositoryNotifications
 from repository.util.UUID import UUID
 from repository.util.SAX import XMLGenerator
 from repository.util.Lob import Text, Binary
+from repository.util.Streams import ConcatenatedInputStream, NullInputStream
 
 
 class XMLRepositoryView(OnDemandRepositoryView):
@@ -56,8 +57,6 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
     def cancel(self):
 
-        self.repository.store._abortTransaction()
-
         for item in self._log:
             if item.isDeleted():
                 del self._deletedRegistry[item.getUUID()]
@@ -83,6 +82,11 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
 class XMLRepositoryLocalView(XMLRepositoryView):
 
+    def __init__(self, repository):
+
+        super(XMLRepositoryLocalView, self).__init__(repository)
+        self._indexWriter = None
+        
     def createRefDict(self, item, name, otherName, persist):
 
         if persist:
@@ -98,6 +102,37 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             return XMLBinary
 
         raise ValueError, mode
+
+    def _startTransaction(self):
+
+        return self.repository.store._startTransaction()
+
+    def _commitTransaction(self):
+
+        if self._indexWriter is not None:
+            self.repository.store._index.optimizeIndex(self._indexWriter)
+            self._indexWriter.close()
+            self._indexWriter = None
+            
+        self.repository.store._commitTransaction()
+
+    def _abortTransaction(self):
+
+        if self._indexWriter is not None:
+            self._indexWriter.close()
+            self._indexWriter = None
+            
+        self.repository.store._abortTransaction()
+
+    def _getIndexWriter(self):
+
+        if self._indexWriter is None:
+            store = self.repository.store
+            if store.txn is None:
+                raise RepositoryError, "Can't index outside transaction"
+            self._indexWriter = store._index.getIndexWriter()
+
+        return self._indexWriter
 
     def commit(self):
 
@@ -118,7 +153,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         
         while True:
             try:
-                txnStarted = store._startTransaction()
+                txnStarted = self._startTransaction()
 
                 newVersion = versions.getVersion()
                 if count > 0:
@@ -147,7 +182,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             except DBLockDeadlockError:
                 self.logger.info('restarting commit aborted by deadlock')
                 if txnStarted:
-                    store._abortTransaction()
+                    self._abortTransaction()
                 if lock:
                     env.lock_put(lock)
                     lock = None
@@ -157,7 +192,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             except:
                 self.logger.exception('aborting transaction (%ld bytes)', size)
                 if txnStarted:
-                    store._abortTransaction()
+                    self._abortTransaction()
                 if lock:
                     env.lock_put(lock)
                     lock = None
@@ -191,11 +226,11 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
                     except:
                         if txnStarted:
-                            store._abortTransaction()
+                            self._abortTransaction()
                         raise
             
                 if txnStarted:
-                    store._commitTransaction()
+                    self._commitTransaction()
 
                 if lock:
                     env.lock_put(lock)
@@ -474,28 +509,36 @@ class XMLClientRefDict(XMLRefDict):
 
 class XMLText(Text):
 
-    def __init__(self, *args, **kwds):
+    def __init__(self, view, *args, **kwds):
 
         super(XMLText, self).__init__(*args, **kwds)
+
         self._uuid = None
-        self._view = None
+        self._view = view
         self._version = 0
+        self._indexed = False
         self._dirty = False
         
     def _xmlValue(self, view, generator):
 
-        if self._uuid is None:
-            self._uuid = UUID()
-            self._dirty = True
-
+        uuid = self.getUUID()
+        store = view.repository.store
+        
         if self._dirty:
             if self._append:
-                out = view.repository.store._text.appendFile(self._makeKey())
+                out = store._text.appendFile(self._makeKey())
             else:
                 self._version += 1
-                out = view.repository.store._text.createFile(self._makeKey())
+                out = store._text.createFile(self._makeKey())
             out.write(self._data)
             out.close()
+            self._data = ''
+
+            if self._indexed:
+                store._index.indexDocument(view._getIndexWriter(),
+                                           self.getReader(),
+                                           self.getUUID(),
+                                           self.getVersion())
 
         attrs = {}
         attrs['version'] = str(self._version)
@@ -504,21 +547,35 @@ class XMLText(Text):
         if self._compression:
             attrs['compression'] = self._compression
         attrs['type'] = 'uuid'
+        if self._indexed:
+            attrs['indexed'] = 'True'
         
         generator.startElement('text', attrs)
-        generator.characters(self._uuid.str64())
+        generator.characters(uuid.str64())
         generator.endElement('text')
+
+    def getUUID(self):
+
+        if self._uuid is None:
+            self._uuid = UUID()
+            self._dirty = True
+
+        return self._uuid
+
+    def getVersion(self):
+
+        return self._version
 
     def _makeKey(self):
 
-        return pack('>16sl', self._uuid._uuid, ~self._version)
+        return pack('>16sl', self.getUUID()._uuid, ~self._version)
 
-    def _textEnd(self, view, data, attrs):
+    def _textEnd(self, data, attrs):
 
         self.mimetype = attrs.get('mimetype', 'text/plain')
         self._compression = attrs.get('compression', None)
         self._version = long(attrs.get('version', '0'))
-        self._view = view
+        self._indexed = attrs.get('indexed', 'False') == 'True'
 
         if attrs.has_key('encoding'):
             self._encoding = attrs['encoding']
@@ -537,31 +594,49 @@ class XMLText(Text):
 
     def _getInputStream(self):
 
-        if self._uuid is None:
-            return super(XMLText, self)._getInputStream()
+        if self._data:
+            dataIn = super(XMLText, self)._getInputStream()
+        else:
+            dataIn = None
 
-        return self._view.repository.store._text.openFile(self._makeKey())
-
+        text = self._view.repository.store._text
+        key = self._makeKey()
+        
+        if dataIn is not None:
+            if self._append:
+                if text.fileExists(key):
+                    return ConcatenatedInputStream(text.openFile(key), dataIn)
+                else:
+                    return dataIn
+            else:
+                return dataIn
+        elif text.fileExists(key):
+            return text.openFile(key)
+        else:
+            return NullInputStream()
+        
 
 class XMLBinary(Binary):
 
-    def __init__(self, *args, **kwds):
+    def __init__(self, view, *args, **kwds):
 
         super(XMLBinary, self).__init__(*args, **kwds)
+
         self._uuid = None
-        self._view = None
+        self._view = view
         self._version = 0
         self._dirty = False
         
     def _xmlValue(self, view, generator):
 
-        if self._uuid is None:
-            self._uuid = UUID()
-            self._dirty = True
+        uuid = self.getUUID()
 
         if self._dirty:
-            self._version += 1
-            out = view.repository.store._binary.createFile(self._makeKey())
+            if self._append:
+                out = view.repository.store._binary.appendFile(self._makeKey())
+            else:
+                self._version += 1
+                out = view.repository.store._binary.createFile(self._makeKey())
             out.write(self._data)
             out.close()
 
@@ -573,19 +648,30 @@ class XMLBinary(Binary):
         attrs['type'] = 'uuid'
         
         generator.startElement('binary', attrs)
-        generator.characters(self._uuid.str64())
+        generator.characters(uuid.str64())
         generator.endElement('binary')
+
+    def getUUID(self):
+
+        if self._uuid is None:
+            self._uuid = UUID()
+            self._dirty = True
+
+        return self._uuid
+
+    def getVersion(self):
+
+        return self._version
 
     def _makeKey(self):
 
         return pack('>16sl', self._uuid._uuid, ~self._version)
 
-    def _binaryEnd(self, view, data, attrs):
+    def _binaryEnd(self, data, attrs):
 
         self.mimetype = attrs.get('mimetype', 'text/plain')
         self._compression = attrs.get('compression', None)
         self._version = long(attrs.get('version', '0'))
-        self._view = view
 
         if attrs.get('type', 'binary') == 'binary':
             writer = self.getWriter()
@@ -601,7 +687,24 @@ class XMLBinary(Binary):
 
     def _getInputStream(self):
 
-        if self._uuid is None:
-            return super(XMLBinary, self)._getInputStream()
+        if self._data:
+            dataIn = super(XMLBinary, self)._getInputStream()
+        else:
+            dataIn = None
 
-        return self._view.repository.store._binary.openFile(self._makeKey())
+        binary = self._view.repository.store._binary
+        key = self._makeKey()
+        
+        if dataIn is not None:
+            if self._append:
+                if binary.fileExists(key):
+                    return ConcatenatedInputStream(binary.openFile(key),
+                                                   dataIn)
+                else:
+                    return dataIn
+            else:
+                return dataIn
+        elif binary.fileExists(key):
+            return binary.openFile(key)
+        else:
+            return NullInputStream()

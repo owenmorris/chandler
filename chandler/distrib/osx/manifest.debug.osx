@@ -36,8 +36,20 @@ libxml2.2.dylib
 # Grab DB libraries
 src=debug/db/lib
 libdb-4.2.dylib
+libdb_cxx-4.2.dylib
+libdb_java-4.2.jnilib
+libdb_java-4.2.la
+src=debug/dbxml/lib
+libdbxml-1.2.dylib
 src=debug/lib
 libxerces-c.24.dylib
+libpathan.2.0.2.dylib
+
+# Grab gcj 3.4 runtime libs
+src=$(GCJ_HOME)/lib
+libgcj.4.dylib
+libstdc++.6.dylib
+libgcc_s.1.0.dylib
 
 # Grab Chandler.py and others
 src=Chandler

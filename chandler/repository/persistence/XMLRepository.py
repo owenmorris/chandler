@@ -18,6 +18,7 @@ from repository.persistence.XMLRepositoryView import XMLRepositoryClientView
 from repository.persistence.DBContainer import DBContainer, RefContainer
 from repository.persistence.DBContainer import VerContainer, HistContainer
 from repository.persistence.FileContainer import FileContainer, BlockContainer
+from repository.persistence.FileContainer import IndexContainer
 
 from bsddb.db import DBEnv, DB, DBError
 from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD
@@ -347,8 +348,8 @@ class XMLStore(Store):
             self._history = HistContainer(self, "__history__", txn, create)
             self._text = FileContainer(self, "__text__", txn, create)
             self._binary = FileContainer(self, "__binary__", txn, create)
-            self._index = FileContainer(self, "__index__", txn, create)
             self._blocks = BlockContainer(self, "__blocks__", txn, create)
+            self._index = IndexContainer(self, "__index__", txn, create)
         finally:
             if txnStarted:
                 self._commitTransaction()

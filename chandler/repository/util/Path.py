@@ -87,7 +87,7 @@ class Path(object):
 
         return self._names.pop(i)
 
-    def canonize(self):
+    def normalize(self):
 
         names = []
         for name in self._names:
@@ -106,29 +106,29 @@ class Path(object):
     def __eq__(self, other):
 
         return (isinstance(other, Path) and
-                self.canonize()._names.__eq__(other.canonize()._names))
+                self.normalize()._names.__eq__(other.normalize()._names))
 
     def __ge__(self, other):
 
         return (isinstance(other, Path) and
-                self.canonize()._names.__ge__(other.canonize()._names))
+                self.normalize()._names.__ge__(other.normalize()._names))
 
     def __gt__(self, other):
 
         return (isinstance(other, Path) and
-                self.canonize()._names.__gt__(other.canonize()._names))
+                self.normalize()._names.__gt__(other.normalize()._names))
 
     def __le__(self, other):
 
         return (isinstance(other, Path) and
-                self.canonize()._names.__le__(other.canonize()._names))
+                self.normalize()._names.__le__(other.normalize()._names))
 
     def __lt__(self, other):
 
         return (isinstance(other, Path) and
-                self.canonize()._names.__lt__(other.canonize()._names))
+                self.normalize()._names.__lt__(other.normalize()._names))
 
     def __ne__(self, other):
 
         return (isinstance(other, Path) and
-                self.canonize()._names.__ne__(other.canonize()._names))
+                self.normalize()._names.__ne__(other.normalize()._names))
