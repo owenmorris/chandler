@@ -1,128 +1,126 @@
 <?xml version="2.0" encoding="iso-8859-1"?>
 
-<DomainSchema id="zaobao:RSSSchema"
+<DomainSchema itemName="zaobao:RSSSchema"
 	root="ZaoBao"
 	xmlns="http://osafoundation.org/2003/08/schema_definition">
 	
-	<label>ZaoBao RSS Schema</label>
-	<comment>RSS schema for ZaoBao parcel for 0.2 release</comment>
+	<displayName>ZaoBao RSS Schema</displayName>
+	<description>RSS schema for ZaoBao parcel for 0.2 release</description>
 	<version>0.1</version>
 	
-	<containmentPath prefix="types"
+	<itemPathMapping prefix="types"
 		path="//Schema/Model/Types/"/>
-	<containmentPath prefix="zaobao"
+	<itemPathMapping prefix="zaobao"
 		path="//Schema/RSSSchema/"/>
 		
-	<AttributeDefinition id="zaobao:creator">
-		<label>Creator</label>
+	<Attribute itemName="zaobao:creator">
+		<displayName>Creator</displayName>
 		<cardinality>single</cardinality>
 		<type itemref="types:String"/>
-	</AttributeDefinition>
+	</Attribute>
 	
-	<AttributeDefinition id="zaobao:description">
-		<label>Description</label>
+	<Attribute itemName="zaobao:description">
+		<displayName>Description</displayName>
 		<cardinality>single</cardinality>
 		<type itemref="types:String"/>
-	</AttributeDefinition>
+	</Attribute>
 	
-	<AttributeDefinition id="zaobao:language">
-		<label>Language</label>
+	<Attribute itemName="zaobao:language">
+		<displayName>Language</displayName>
 		<cardinality>single</cardinality>
 		<type itemref="types:String"/>
-	</AttributeDefinition>
+	</Attribute>
 	
-	<AttributeDefinition id="zaobao:link">
-		<label>Web URL</label>
+	<Attribute itemName="zaobao:link">
+		<displayName>Web URL</displayName>
 		<cardinality>single</cardinality>
 		<type itemref="types:String"/>
-	</AttributeDefinition>
+	</Attribute>
 	
-	<AttributeDefinition id="zaobao:title">
-		<label>Title</label>
+	<Attribute itemName="zaobao:title">
+		<displayName>Title</displayName>
 		<cardinality>single</cardinality>
 		<type itemref="types:String"/>
-	</AttributeDefinition>
+	</Attribute>
 	
-	<AttributeDefinition id="zaobao:category">
-		<label>Category</label>
+	<Attribute itemName="zaobao:category">
+		<displayName>Category</displayName>
 		<cardinality>single</cardinality>
 		<type itemref="types:String"/>
-	</AttributeDefinition>
+	</Attribute>
 	
-	<AttributeDefinition id="zaobao:encoding">
-		<label>Encoding</label>
+	<Attribute itemName="zaobao:encoding">
+		<displayName>Encoding</displayName>
 		<cardinality>single</cardinality>
 		<type itemref="types:String"/>
-	</AttributeDefinition>
+	</Attribute>
 	
-	<AttributeDefinition id="zaobao:etag">
-		<label>eTag</label>
+	<Attribute itemName="zaobao:etag">
+		<displayName>eTag</displayName>
 		<cardinality>single</cardinality>
 		<type itemref="types:String"/>
-	</AttributeDefinition>
+	</Attribute>
 	
-	<AttributeDefinition id="zaobao:lastModified">
-		<label>Last Modified</label>
+	<Attribute itemName="zaobao:lastModified">
+		<displayName>Last Modified</displayName>
 		<cardinality>single</cardinality>
 		<type itemref="types:DateTime"/>
-	</AttributeDefinition>
+	</Attribute>
 	
-	<AttributeDefinition id="zaobao:rssURL">
-	        <label>RSS URL</label>
+	<Attribute itemName="zaobao:rssURL">
+	        <displayName>RSS URL</displayName>
 		<cardinality>single</cardinality>
 		<type itemref="types:String"/>
-	</AttributeDefinition>
+	</Attribute>
 	
-	<AttributeDefinition id="zaobao:isUnread">
-	        <label>Is Unread</label>
+	<Attribute itemName="zaobao:isUnread">
+	        <displayName>Is Unread</displayName>
 		<cardinality>single</cardinality>
 		<type itemref="types:Boolean"/>
-	</AttributeDefinition>
+	</Attribute>
 	
-	<AttributeDefinition id="zaobao:items">
-	<label>Items</label>
+	<Attribute itemName="zaobao:items">
+	<displayName>Items</displayName>
 	<cardinality>list</cardinality>
     	<type itemref="zaobao:RSSItem"/>
 	<inverseAttribute itemref="zaobao:channel"/>
-	</AttributeDefinition>
+	</Attribute>
 
-	<AttributeDefinition id="zaobao:channel">
-	<label>Channel</label>
+	<Attribute itemName="zaobao:channel">
+	<displayName>Channel</displayName>
 	<cardinality>single</cardinality>
     	<type itemref="zaobao:RSSChannel"/>
 	<inverseAttribute itemref="zaobao:items"/>
-	</AttributeDefinition>
+	</Attribute>
 
-	<Kind id="zaobao:RSSChannel">
-		<label>RSS Channel</label>
-		<attribute itemref="zaobao:creator"/>
-		<attribute itemref="zaobao:description"/>
-		<attribute itemref="zaobao:link"/>
-		<attribute itemref="zaobao:title"/>
-		<attribute itemref="zaobao:category"/>
-		<attribute itemref="zaobao:language"/>
-		<attribute itemref="zaobao:encoding"/>
-		<attribute itemref="zaobao:etag"/>
-		<attribute itemref="zaobao:lastModified"/>
-		<attribute itemref="zaobao:rssURL"/>
-		<attribute itemref="zaobao:isUnread"/>
-		<attribute itemref="zaobao:items"/>
-		<pythonClass>OSAF.zaobao.model.RSSData.RSSChannel</pythonClass>
+	<Kind itemName="zaobao:RSSChannel">
+		<displayName>RSS Channel</displayName>
+		<attributes itemref="zaobao:creator"/>
+		<attributes itemref="zaobao:description"/>
+		<attributes itemref="zaobao:link"/>
+		<attributes itemref="zaobao:title"/>
+		<attributes itemref="zaobao:category"/>
+		<attributes itemref="zaobao:language"/>
+		<attributes itemref="zaobao:encoding"/>
+		<attributes itemref="zaobao:etag"/>
+		<attributes itemref="zaobao:lastModified"/>
+		<attributes itemref="zaobao:rssURL"/>
+		<attributes itemref="zaobao:isUnread"/>
+		<attributes itemref="zaobao:items"/>
+		<classes key="python">OSAF.zaobao.model.RSSData.RSSChannel</classes>
 	</Kind>	
 
-	<Kind id="zaobao:RSSItem">
-		<label>RSS Item</label>
-		<attribute itemref="zaobao:creator"/>
-		<attribute itemref="zaobao:description"/>
-		<attribute itemref="zaobao:link"/>
-		<attribute itemref="zaobao:title"/>
-		<attribute itemref="zaobao:category"/>
-		<attribute itemref="zaobao:lastModified"/>
-		<attribute itemref="zaobao:channel"/>
-		<pythonClass>OSAF.zaobao.model.RSSData.RSSItem</pythonClass>
+	<Kind itemName="zaobao:RSSItem">
+		<displayName>RSS Item</displayName>
+		<attributes itemref="zaobao:creator"/>
+		<attributes itemref="zaobao:description"/>
+		<attributes itemref="zaobao:link"/>
+		<attributes itemref="zaobao:title"/>
+		<attributes itemref="zaobao:category"/>
+		<attributes itemref="zaobao:lastModified"/>
+		<attributes itemref="zaobao:channel"/>
+		<classes key="python">OSAF.zaobao.model.RSSData.RSSItem</classes>
 	</Kind>
-	
-	
 	
 <!-- end -->	
 </DomainSchema>
