@@ -56,9 +56,11 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     
     # make sure workingDir is absolute, remove it if it exists, and create it
     workingDir = os.path.abspath(workingDir)
+    chanDir = os.path.join(workingDir, "chandler")
     if os.path.exists(workingDir):
-        hardhatutil.rmdirRecursive(workingDir)
-    os.mkdir(workingDir)
+        hardhatutil.rmdirRecursive(chanDir)
+    else
+        os.mkdir(workingDir)
     os.chdir(workingDir)
 
     # remove outputDir and create it
