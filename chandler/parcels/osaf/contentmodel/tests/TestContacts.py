@@ -10,6 +10,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import unittest, os
 
 import OSAF.contentmodel.tests.TestContentModel as TestContentModel
+import OSAF.contentmodel.tests.GenerateItems as GenerateItems
 import OSAF.contentmodel.contacts.Contacts as Contacts
 
 import mx.DateTime as DateTime
@@ -66,6 +67,10 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         
         contactNameItem = contentItemParent.find("contactNameItem")
         _verifyContactName(contactNameItem)
+
+    def testGeneratedContacts(self):
+        GenerateItems.GenerateContacts(100)
+        self.rep.commit()
         
 
 if __name__ == "__main__":

@@ -93,6 +93,7 @@
     <displayName>Contact</displayName>
     <description>Contact</description>
     <superKinds itemref="content:ContentItem"/>
+    <attributes itemref="contact:contactName"/>
     <attributes itemref="contact:homeSection"/>
     <attributes itemref="contact:workSection"/>
     <attributes itemref="contact:sections"/>

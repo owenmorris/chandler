@@ -9,44 +9,20 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-import repository.persistence.XMLRepository as XMLRepository
+#import repository.persistence.XMLRepository as XMLRepository
 import repository.parcel.LoadParcels as LoadParcels
+import repository.tests.RepositoryTestCase as RepositoryTestCase
 import OSAF.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
 
-class ContentModelTestCase(unittest.TestCase):
+class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
-        self.rootdir = os.environ['CHANDLERHOME']
-        self.testdir = os.path.join(self.rootdir, 'Chandler', 'repository',
-                                    'tests')
-
-        # Create an empty repository
-        self.rep = XMLRepository.XMLRepository(os.path.join(self.testdir,
-                                                            '__repository__'))
-        self.rep.create()
-
-        # Load the schema of schemas
-        schemaPack = os.path.join(self.rootdir, 'Chandler', 'repository',
-                                  'packs', 'schema.pack')
-        self.rep.loadPack(schemaPack)
-        self.rep.commit()
+        RepositoryTestCase.RepositoryTestCase.setUp(self)
 
         # Load the parcels
         Globals.repository = self.rep
         self.parceldir = os.path.join(self.rootdir, 'Chandler', 'parcels')
         LoadParcels.LoadParcels(self.parceldir, self.rep)
-
-    def tearDown(self):
-        self.rep.close()
-        self.rep.delete()
-
-    def _reopenRepository(self):
-        self.rep.commit()
-        self.rep.close()
-        self.rep = XMLRepository.XMLRepository(os.path.join(self.testdir,
-                                                            '__repository__'))
-        self.rep.open()
-
 
 class ContentItemTest(ContentModelTestCase):
 
