@@ -271,12 +271,18 @@ bool		bResultV;
 			m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Enabled, bEnable );
 
 #if defined(__WXMSW__)
-	bool		bSortAscending;
+	bool		bSelected, bSortEnabled, bSortAscending;
 
+		bSelected = false;
+		bSortEnabled = false;
 		bSortAscending = false;
 		if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
+		{
+			bSelected = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Selected );
+			bSortEnabled = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortEnabled );
 			bSortAscending = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
-		(void)Win32ItemSelect( i, bEnable, bSortAscending );
+		}
+		(void)Win32ItemSelect( i, bSelected, bSortEnabled, bSortAscending );
 #endif
 	}
 
@@ -318,14 +324,16 @@ wxCoord	width, height;
 	{
 	HDLAYOUT	hdl;
 	WINDOWPOS	wp;
-	RECT			boundsR;
+	HWND		targetViewRef;
+	RECT		boundsR;
 
+		targetViewRef = GetHwnd();
 		boundsR.left = boundsR.top = 0;
 		boundsR.right = width;
 		boundsR.bottom = height;
-		hdl.prc = boundsR;
+		hdl.prc = &boundsR;
 		hdl.pwpos = &wp;
-		if (Header_Layout( viewRef, (LPARAM)&hdl ) != 0)
+		if (Header_Layout( targetViewRef, (LPARAM)&hdl ) != 0)
 			height = wp.cy;
 	}
 
@@ -530,13 +538,17 @@ bool		bSelected;
 					m_ItemList[i]->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_Selected, bSelected );
 
 #if defined(__WXMSW__)
-			bool		bSortAscending;
+			bool		bSortEnabled, bSortAscending;
 
+				bSortEnabled = false;
 				bSortAscending = false;
 				if ((m_ItemList != NULL) && (m_ItemList[i] != NULL))
+				{
+					bSortEnabled = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortEnabled );
 					bSortAscending = m_ItemList[i]->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
+				}
 
-				(void)Win32ItemSelect( i, bSelected, bSortAscending );
+				(void)Win32ItemSelect( i, bSelected, bSortEnabled, bSortAscending );
 #endif
 			}
 
