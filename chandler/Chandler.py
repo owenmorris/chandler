@@ -97,14 +97,6 @@ def main():
     """
     loadConfig(chandlerDirectory)
 
-    """
-    Check for the presence of the cacert.pem file in the profile directory
-    and if not found, copy it from the chandler directory
-    """
-    if not os.path.isfile(os.path.join(application.Globals.options.profileDir, 'cacert.pem')):
-        shutil.copyfile(os.path.join(chandlerDirectory, 'crypto', 'cacert.pem'), \
-                        os.path.join(application.Globals.options.profileDir, 'cacert.pem'))
-
     def realMain():
         if __debug__ and application.Globals.options.wing:
             """
@@ -118,7 +110,7 @@ def main():
             """
             Check for -komodo command line argument; if specified, try to connect to
             an already-running Komodo instance.  See:
-              http://wiki.osafoundation.org/bin/view/Chandler/DebuggingChandler#Debugging_with_ActiveState_Komod".
+              http://wiki.osafoundation.org/bin/view/Chandler/DebuggingChandler#Komodo".
             for details.
             """
             import dbgp.client

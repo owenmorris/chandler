@@ -1,13 +1,13 @@
 """
 SSL/TLS-related functionality.
 
-@copyright = Copyright (c) 2004 Open Source Applications Foundation
-@license   = http://osafoundation.org/Chandler_0.1_license_terms.htm
+@copyright: Copyright (c) 2004-2005 Open Source Applications Foundation
+@license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 
-import os
+import os, sys
 from M2Crypto import SSL, util, EVP
-import application.Globals 
+import util as cryptoUtil
 
 class SSLVerificationError(Exception):
     pass
@@ -28,22 +28,30 @@ class ClientContextFactory:
     """A context factory for SSL clients."""
 
     isClient = 1
-    useM2    = 1
     method   = 'sslv23' # slv23 actually means any version of SSL
 
-    def __init__(self, method='sslv23', verify=True):
+    def __init__(self, profileDir, method='sslv23', verify=True,
+                 verifyCallback=None):
+        self.profileDir = profileDir
         self.method = method
         self.verify = verify
+        self.verifyCallback = verifyCallback
 
     def getContext(self):
-        return getSSLContext(protocol=self.method, verify=self.verify)
+        return getContext(profileDir=self.profileDir,
+                          protocol=self.method,
+                          verify=self.verify,
+                          verifyCallback=self.verifyCallback)
 
 
-def getSSLContext(protocol='sslv23', verify=True, verifyCallback=None):
+def getContext(profileDir, protocol='sslv23', verify=True,
+               verifyCallback=None):
     """
     Get an SSL context. You should use this method to get a context
     in Chandler rather than creating them directly.
 
+    @param profileDir:     Location of the cacert.pem file
+    @type profileDir:      str
     @param protocol:       An SSL protocol version string.
     @type protocol:        str
     @param verify:         Verify SSL/TLS connection. True by default.
@@ -67,14 +75,8 @@ def getSSLContext(protocol='sslv23', verify=True, verifyCallback=None):
     if verify:
         # XXX We'd like to load the CA certs from repository, or better yet,
         # XXX provide BIO 'directory' from which to load certs on demand.
-        parcelDir = os.getenv('PARCELDIR')
-        caCertFile = None
-        if parcelDir is not None:
-            caCertFile = os.path.join(parcelDir, 'personal', 'cacert.pem')
-            if not os.path.exists(caCertFile):
-                caCertFile = None
-        if caCertFile is None:
-            caCertFile = os.path.join(application.Globals.options.profileDir, 'cacert.pem')
+        caCertFile = os.path.join(profileDir, _caFile)
+
         if ctx.load_verify_locations(caCertFile) != 1:
             raise SSLContextError, "No CA certificate file"
 
@@ -178,3 +180,23 @@ def _verifyCallback(ok, store):
     if not ok:
         raise SSLVerificationError # XXX Or should I do something else?
     return ok
+
+
+_caFile = 'cacert.pem'
+
+
+def init(profileDir):
+    """
+    Initialize the ssl module.
+    """
+    caFileProfileDir = os.path.join(profileDir, _caFile)
+    if os.path.exists(caFileProfileDir):
+        return
+    
+    # Is there an easier way to get the full path of this file/dir?
+    pathComponents = sys.modules['crypto'].__file__.split(os.sep)
+    assert len(pathComponents) > 3
+    chandlerDirectory = os.sep.join(pathComponents[0:-2])
+    caFile = os.path.join(chandlerDirectory, 'crypto', _caFile)
+
+    cryptoUtil.copyfile(caFile, caFileProfileDir, mode=0600)

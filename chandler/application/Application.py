@@ -191,8 +191,8 @@ class wxApplication (wx.App):
         """
           Crypto initialization
         """
-        Globals.crypto = Crypto.Crypto(Globals.options.profileDir)
-        Globals.crypto.init()
+        Globals.crypto = Crypto.Crypto()
+        Globals.crypto.init(Globals.options.profileDir)
 
         """
           Open the repository.

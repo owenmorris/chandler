@@ -10,7 +10,7 @@ import base64
 import libxml2
 import urlparse
 import logging
-import crypto.ssl as ssl
+import application.Globals as Globals
 import M2Crypto.httpslib as httpslib
 
 logger = logging.getLogger('WebDAV')
@@ -39,7 +39,7 @@ class Client(object):
 
         if self.useSSL:
             if self.ctx is None:
-                self.ctx = ssl.getSSLContext()
+                self.ctx = Globals.crypto.getSSLContext()
             self.conn = httpslib.HTTPSConnection(self.host,
                                                  self.port,
                                                  ssl_context=self.ctx)

@@ -20,7 +20,7 @@ import logging as logging
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
 import osaf.contentmodel.mail.Mail as Mail
 import chandlerdb.util.UUID as UUID
-import crypto.ssl as ssl
+import application.Globals as Globals
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
 
 #Chandler Mail Service imports
@@ -395,7 +395,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
             heloFallback = False
 
         if account.useSSL:
-            sslContext = ssl.getSSLContext()
+            sslContext = Globals.crypto.getSSLContext()
 
         msg = StringIO.StringIO(messageText)
 

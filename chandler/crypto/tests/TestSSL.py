@@ -1,23 +1,22 @@
 """
 Unit test for SSL context, connection and related security checks.
 
-@copyright = Copyright (c) 2004 Open Source Applications Foundation
-@license   = http://osafoundation.org/Chandler_0.1_license_terms.htm
+@copyright: Copyright (c) 2004-2005 Open Source Applications Foundation
+@license:   http://osafoundation.org/Chandler_0.1_license_terms.htm
 """
 
 import unittest
-import crypto.ssl
-import TestM2CryptoInitShutdown
-from M2Crypto import SSL
 import socket
+from M2Crypto import SSL
+import application.Globals as Globals
+import crypto
+import TestM2CryptoInitShutdown
 
 # XXX This should not inherit from InitShutdown because that makes us
 #     run it's tests too
 class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
     
     def testSSL(self):
-        return
-        
         if not self.isOnline():
             return
 
@@ -28,7 +27,7 @@ class TestSSL(TestM2CryptoInitShutdown.InitShutdown):
         site = 'www.thawte.com'
         fp   = 'D85FE7EC903564DEFD4BCFF82047726F14C09C31'
         
-        ctx = crypto.ssl.getSSLContext()
+        ctx = Globals.crypto.getSSLContext()
         conn = SSL.Connection(ctx)
 
         # We wrap the connect() in try/except and filter some common

@@ -4,7 +4,7 @@ from repository.item.Item import Item
 from repository.util.URL import URL
 
 from M2Crypto import SSL, httpslib
-import crypto.ssl as ssl
+import application.Globals as Globals
 
 import Sync
 
@@ -176,5 +176,5 @@ class SSLDAVConnection(SSLDAV):
 
         super(SSLDAVConnection, self).__init__(host,
                                                port,
-                                               ssl_context=ssl.getSSLContext())
+                                               ssl_context=Globals.crypto.getSSLContext())
         self.setauth(acct.username, acct.password)
