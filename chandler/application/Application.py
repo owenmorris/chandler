@@ -100,6 +100,19 @@ class wxApplication (wxApp):
         wxInitAllImageHandlers()
 
         """
+          Splash Screen
+        """
+        
+        splashFile = os.path.join(Globals.chandlerDirectory, 
+                                  "application", "images", "splash.png")
+        splashBitmap = wxImage(splashFile, wxBITMAP_TYPE_PNG).ConvertToBitmap()
+        splash = wxSplashScreen(splashBitmap, 
+                                wxSPLASH_CENTRE_ON_SCREEN|wxSPLASH_TIMEOUT, 
+                                6000, None, -1, wxDefaultPosition, wxDefaultSize,
+                                wxSIMPLE_BORDER|wxFRAME_NO_TASKBAR|wxSTAY_ON_TOP)
+        splash.Show()
+        
+        """
           Setup internationalization
         To experiment with a different locale, try 'fr' and wxLANGUAGE_FRENCH
         """
