@@ -275,6 +275,7 @@ class wxViewerParcel(wxPanel):
         """
         self.ReplaceViewParcelMenu()
         self.UpdateParcelMenus()
+        self.UpdateActionsBar()
         app.wxMainFrame.activeParcel = self
     
     def Deactivate(self):
@@ -474,3 +475,16 @@ class wxViewerParcel(wxPanel):
         
         return None
     
+    def UpdateActionsBar(self):
+        """
+          Updates the ChandlerWindow to display the ActionsBar of this
+        parcel.  Override to customize your parcel ActionsBar.
+        """
+        mainFrameId = id(app.model.mainFrame)
+        if app.association.has_key(mainFrameId):
+            mainFrame = app.association[mainFrameId]
+            ignoreErrors = wxLogNull()
+            actionsBar = self.resources.LoadToolBar(mainFrame, 'ActionsBar')
+            del ignoreErrors
+            mainFrame.ReplaceActionsBar(actionsBar)
+            

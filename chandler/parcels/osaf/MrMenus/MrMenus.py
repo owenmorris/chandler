@@ -34,6 +34,9 @@ class wxMrMenus(wxViewerParcel):
         EVT_UPDATE_UI(self, XRCID ('EditMenu1'), self.OnEditMenu1UIUpdate)
 
         EVT_MENU(self, XRCID('AboutMrMenusMenuItem'), self.OnAboutMrMenus)
+        
+        EVT_TOOL(self, XRCID('RadioTool0'), self.OnParce1Menu0)
+        EVT_TOOL(self, XRCID('RadioTool1'), self.OnParce1Menu1)
 
         self.radioBox = self.FindWindowById (XRCID ('RadioBox'))
         assert (self.radioBox != None)

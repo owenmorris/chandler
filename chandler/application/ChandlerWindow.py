@@ -121,6 +121,7 @@ class wxChandlerWindow(wxFrame):
         assert (self.navigationBar != None)
         self.actionsBar = self.FindWindowByName("ActionsBar")
         assert (self.actionsBar != None)
+        self.emptyActionsBar = self.actionsBar
         self.splitterWindow = self.FindWindowByName("SplitterWindow")
         assert (self.splitterWindow != None)
         
@@ -291,6 +292,36 @@ class wxChandlerWindow(wxFrame):
             else:
                 self.verticalSizer.Remove(self.actionsBar)
             self.verticalSizer.Layout()
+            
+    def ReplaceActionsBar(self, newActionsBar):
+        """
+          Replaces the ActionsBar with the one provided.  This is called
+        whenever we change parcels so that the current parcel can display
+        its version of the ActionsBar.
+        """
+        if newActionsBar == None:
+            newActionsBar = self.emptyActionsBar
+        if self.actionsBar.IsShown():
+            if not hasattr(self, 'verticalSizer'):
+                self.verticalSizer = self.actionsBar.GetContainingSizer()
+       
+            if self.model.showNavigationBar:
+                self.verticalSizer.Remove(self.navigationBar)
+                self.verticalSizer.Remove(self.actionsBar)
+                self.actionsBar.Show(False)
+                self.actionsBar = newActionsBar
+                self.verticalSizer.Prepend(self.actionsBar, 0, wxEXPAND)
+                self.actionsBar.Show(True)
+                self.verticalSizer.Prepend(self.navigationBar, 0, wxEXPAND)
+            else:
+                self.verticalSizer.Remove(self.actionsBar)
+                self.actionsBar.Show(False)
+                self.actionsBar = newActionsBar
+                self.verticalSizer.Prepend(self.actionsBar, 0, wxEXPAND)
+                self.actionsBar.Show(True)
+        else:
+            self.actionsBar = newActionsBar
+            self.actionsBar.Show(False)
             
     def OnShowSideBar(self, event):
         """

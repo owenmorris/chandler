@@ -22,4 +22,6 @@
     * Hooked up the View menu items to show/hide the SideBar, NavigationBar,
       ActionsBar, and StatusBar.
     
-    
+2003-07-07 Jed Burgess <jed@osafoundation.org>
+    * Added the ability for parcels to add their version of the ActionsBar
+      to ChandlerWindow.
