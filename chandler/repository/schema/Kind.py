@@ -307,6 +307,19 @@ class Kind(Item):
 
     # end typeness of Kind as SingleRef
 
+    def getClouds(self):
+
+        clouds = self.getAttributeValue('clouds', default=None,
+                                        _attrDict=self._references)
+
+        if not clouds:
+            for superKind in self._getSuperKinds():
+                clouds = superKind.getClouds()
+                if clouds:
+                    break
+
+        return clouds
+
     NoneString = "__NONE__"
 
 

@@ -715,6 +715,16 @@ class Item(object):
                                 result = result and check
         
         for key, value in self._references.iteritems():
+            attrCard = self.getAttributeAspect(key, 'cardinality',
+                                               default='single')
+            if attrCard == 'single':
+                check = checkCardinality(key, value, ItemRef, 'single')
+            elif attrCard == 'list':
+                check = checkCardinality(key, value, RefDict, 'list')
+            elif attrCard == 'dict':
+                logger.error("Attribute %s on %s is using deprecated 'dict' cardinality, use 'list' instead", key, itsPath)
+                check = False
+                
             check = value.check(self, key)
             result = result and check
 

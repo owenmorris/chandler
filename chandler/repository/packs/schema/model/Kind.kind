@@ -14,7 +14,7 @@
          - plus local attributes below:
          -     notFoundAttributes, inheritedAttributes,
          -     superKinds, subKinds, attributes, classes, 
-         -     displayAttribute
+         -     displayAttribute, clouds
         -->
     </ref>
 
@@ -143,6 +143,21 @@
 
     <attribute name="cardinality">single</attribute>
     <attribute name="defaultValue">displayName</attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>clouds</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Kind</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="cardinality">list</attribute>
+    <attribute name="otherName">kind</attribute>
   </item>
 
 </items>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item withSchema="True">
+    <name>Kind</name>
+    <kind type="path">//Schema/Core/Cloud</kind>
+
+    <ref name="endpoints" otherName="clouds"
+         cardinality="list" otherCard="list">
+
+      <!-- 
+         - plus local endpoints below:
+         -     attributes, inheritedAttributes
+        -->
+    </ref>
+
+    <ref name="kind" otherName="clouds" otherCard="list"
+         type="path">//Schema/Core/Kind</ref>
+  </item>
+
+  <item withSchema="True">
+    <name>attributes</name>
+    <kind type="path">//Schema/Core/Endpoint</kind>
+    <parent type="path">//Schema/Core/Clouds/Kind</parent>
+
+    <ref name="clouds" otherName="endpoints"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="attribute" cardinality="list">
+      <value>attributes</value>
+    </attribute>
+    <attribute name="includePolicy">byCloud</attribute>
+
+    <ref name="cloud" otherName="cloudFor" otherCard="list"
+         type="path">//Schema/Core/Clouds/Attribute</ref>
+  </item>
+
+  <item withSchema="True">
+    <name>inheritedAttributes</name>
+    <kind type="path">//Schema/Core/Endpoint</kind>
+    <parent type="path">//Schema/Core/Clouds/Kind</parent>
+
+    <ref name="clouds" otherName="endpoints"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="attribute" cardinality="list">
+      <value>inheritedAttributes</value>
+    </attribute>
+    <attribute name="includePolicy">byCloud</attribute>
+
+    <ref name="cloud" otherName="cloudFor" otherCard="list"
+         type="path">//Schema/Core/Clouds/Attribute</ref>
+  </item>
+
+</items>

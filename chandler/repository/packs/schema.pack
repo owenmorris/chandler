@@ -19,7 +19,13 @@
       <item file="Struct.kind" />
       <item file="Enumeration.kind" />
       <item file="Parcel.kind" />
+      <item file="Cloud.kind" />
+      <item file="Endpoint.kind" />
 
+      <item file="Clouds.namespace" cwd="clouds">
+        <item file="Kind.cloud" />
+        <item file="Attribute.cloud" />
+      </item>
     </item>
   </item>
 

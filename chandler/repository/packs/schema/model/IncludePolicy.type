@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<item withSchema="True">
+  <name>IncludePolicy</name>
+  <kind type="path">//Schema/Core/Enumeration</kind>
+  <class module="repository.schema.Types">Enumeration</class>
+
+  <attribute name="values" cardinality="list">
+    <value>byValue</value>
+    <value>byCloud</value>
+    <value>byReference</value>
+    <value>none</value>
+  </attribute>
+</item>

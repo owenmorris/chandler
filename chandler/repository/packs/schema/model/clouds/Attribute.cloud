@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items withSchema="True">
+
+  <item>
+    <name>Attribute</name>
+    <kind type="path">//Schema/Core/Cloud</kind>
+
+    <ref name="endpoints" otherName="clouds"
+         cardinality="list" otherCard="list">
+
+      <!-- 
+         - plus local endpoints below:
+         -     type
+        -->
+    </ref>
+
+    <ref name="kind" otherName="clouds" otherCard="list"
+         type="path">//Schema/Core/Attribute</ref>
+  </item>
+
+  <item withSchema="True">
+    <name>type</name>
+    <kind type="path">//Schema/Core/Endpoint</kind>
+    <parent type="path">//Schema/Core/Clouds/Attribute</parent>
+
+    <ref name="clouds" otherName="endpoints"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <attribute name="attribute" cardinality="list">
+      <value>type</value>
+    </attribute>
+    <attribute name="includePolicy">byValue</attribute>
+  </item>
+
+</items>

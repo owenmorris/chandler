@@ -13,6 +13,9 @@
       <item file="Kinds.namespace" cwd="kinds">
         <item files="*.kind" />
       </item>
+      <item file="Clouds.namespace" cwd="clouds">
+        <item files="*.cloud" />
+      </item>
     </item>
   </item>
   
