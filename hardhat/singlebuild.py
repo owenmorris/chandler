@@ -109,7 +109,7 @@ def main():
     try:
         # bring this hardhat directory up to date
         outputList = hardhatutil.executeCommandReturnOutput(
-         [cvsProgram, "update", "-D '"+ nowString + "'"])
+         [cvsProgram, "update", cvsVintage])
 
         # load the buildscript file for the project
         mod = hardhatutil.ModuleFromFile(buildscriptFile, "buildscript")
