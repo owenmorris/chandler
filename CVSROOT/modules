@@ -25,21 +25,6 @@
 # can be useful for creating a module that consists of many directories
 # spread out over the entire source repository.
 
-# chandler-source -a \
-#     osaf/chandler/Chandler \
-#     osaf/chandler/PyXML \
-#     osaf/chandler/Python-2.2.2 \
-#     osaf/chandler/WingIDE \
-#     osaf/chandler/zodb \
-#     osaf/chandler/distutils \
-#     osaf/chandler/egenix-mx-base-2.0.4 \
-#     osaf/chandler/hardhat \
-#     osaf/chandler/jabber-py \
-#     osaf/chandler/wxWindows-2.4
-
-dbxml-module -a \
-    osaf/chandler/dbxml \
-    osaf/chandler/bsddb3
 
 chandler-app -a \
     osaf/chandler/Chandler
@@ -64,7 +49,24 @@ chandler-system -a \
     osaf/chandler/net/sc-db \
     osaf/chandler/net/rap
 
+dbxml-module -a \
+    osaf/chandler/dbxml \
+    osaf/chandler/bsddb3
 
+rap -a \
+    hardhat \
+    osaf/chandler/swig \
+    osaf/chandler/pkgconfig \
+    osaf/chandler/net/expat \
+    osaf/chandler/net/gettext \
+    osaf/chandler/net/glib \
+    osaf/chandler/net/libiconv \
+    osaf/chandler/net/libxml2 \
+    osaf/chandler/net/roadrunner \
+    osaf/chandler/net/sc-db \
+    osaf/chandler/net/rap
+
+# Obsolete:
 chandler-source -a \
     hardhat \
     osaf/chandler/Chandler \
@@ -86,15 +88,3 @@ chandler-source -a \
     osaf/chandler/net/sc-db \
     osaf/chandler/net/rap
 
-rap -a \
-    hardhat \
-    osaf/chandler/swig \
-    osaf/chandler/pkgconfig \
-    osaf/chandler/net/expat \
-    osaf/chandler/net/gettext \
-    osaf/chandler/net/glib \
-    osaf/chandler/net/libiconv \
-    osaf/chandler/net/libxml2 \
-    osaf/chandler/net/roadrunner \
-    osaf/chandler/net/sc-db \
-    osaf/chandler/net/rap
