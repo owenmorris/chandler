@@ -17,9 +17,8 @@
 #define _WX_GENERIC_COLUMNHEADER_H
 
 #include "wx/control.h"			// the base class
+#include "wx/dcclient.h"
 #include "wx/font.h"
-
-class WXDLLEXPORT wxStaticText;
 
 
 // forward decls
@@ -37,7 +36,9 @@ public:
 	wxColumnHeaderItem();
 	virtual ~wxColumnHeaderItem();
 
-	virtual long DrawSelf( void );
+	long DrawSelf(
+		wxClientDC		*dc,
+		const wxRect		*boundsR );
 
 	long HitTest(
 		const wxPoint		&locationPt );
@@ -80,7 +81,6 @@ public:
 		bool			bToNative );
 
 public:
-	wxRect				m_NativeBoundsR;
 	wxString				m_LabelTextRef;
 	unsigned long			m_FontID;
 	long					m_TextJust;

@@ -29,10 +29,10 @@
 #endif
 
 #if !defined(WX_PRECOMP)
-//	#include "wx/dcclient.h"
 	#include "wx/settings.h"
-	#include "wx/brush.h"
 	#include "wx/listbox.h"
+	#include "wx/dcclient.h"
+	#include "wx/brush.h"
 #endif // WX_PRECOMP
 
 //#if wxUSE_COLUMNHEADER
@@ -609,7 +609,6 @@ wxPoint					targetExtent;
 long					originX;
 
 	// set invariant values
-	itemInfo.m_NativeBoundsR = m_NativeBoundsR;
 	itemInfo.m_BEnabled = true;
 
 #if defined(__WXMAC__)
@@ -901,20 +900,26 @@ long		itemCount, i;
 	return resultV;
 }
 
-// NB: this routine is unused for Win32
-//
 long wxColumnHeader::Draw( void )
 {
 long		errStatus;
 
 	errStatus = 0;
 
-#if !defined(__WXMSW__)
+#if defined(__WXMSW__)
+	// no drawing needed for MSW
+#elif defined(__WXMAC__)
+	// no DC needed for Mac (yet)
 	for (long i=0; i<m_ItemCount; i++)
-		errStatus |= m_ItemList[i]->DrawSelf();
+		errStatus |= m_ItemList[i]->DrawSelf( NULL, &m_NativeBoundsR );
+#else
+wxClientDC	dc( this );
+
+	for (long i=0; i<m_ItemCount; i++)
+		errStatus |= m_ItemList[i]->DrawSelf( &dc, &m_NativeBoundsR );
 #endif
 
-	return (long)errStatus;
+	return errStatus;
 }
 
 void wxColumnHeader::SetViewDirty( void )
@@ -941,7 +946,6 @@ long		originX, i;
 		for (i=0; i<m_ItemCount; i++)
 			if (m_ItemList[i] != NULL)
 			{
-				m_ItemList[i]->m_NativeBoundsR = m_NativeBoundsR;
 				m_ItemList[i]->m_OriginX = originX;
 				originX += m_ItemList[i]->m_ExtentX;
 			}
@@ -1218,7 +1222,6 @@ void wxColumnHeaderItem::GetItemData(
 	if (info == NULL)
 		return;
 
-	info->m_NativeBoundsR = m_NativeBoundsR;
 	info->m_FontID = m_FontID;
 	info->m_ImageID = m_ImageID;
 	info->m_TextJust = m_TextJust;
@@ -1238,7 +1241,6 @@ void wxColumnHeaderItem::SetItemData(
 	if (info == NULL)
 		return;
 
-	m_NativeBoundsR = info->m_NativeBoundsR;
 	m_FontID = info->m_FontID;
 	m_ImageID = info->m_ImageID;
 	m_TextJust = info->m_TextJust;
@@ -1365,15 +1367,19 @@ long wxColumnHeaderItem::HitTest(
 {
 long		targetX, resultV;
 
-//	targetX = locationPt.x - m_NativeBoundsR.x;
 	targetX = locationPt.x;
 	resultV = ((targetX >= m_OriginX) && (targetX < m_OriginX + m_ExtentX));
 
 	return resultV;
 }
 
-long wxColumnHeaderItem::DrawSelf( void )
+long wxColumnHeaderItem::DrawSelf(
+	wxClientDC		*dc,
+	const wxRect		*boundsR )
 {
+	if (boundsR == NULL)
+		return (-1L);
+
 #if defined(__WXMSW__)
 	// NB: implementation not needed ??
 	return 0;
@@ -1385,7 +1391,7 @@ long					nativeTextJust;
 OSStatus				errStatus;
 
 	// is this item beyond the right edge?
-	if (m_OriginX >= m_NativeBoundsR.width)
+	if (m_OriginX >= boundsR->width)
 	{
 		//wxLogDebug( _T("wxColumnHeaderItem::DrawSelf - bailout!") );
 		return (-1L);
@@ -1393,14 +1399,14 @@ OSStatus				errStatus;
 
 	errStatus = noErr;
 
-//	qdBoundsR.left = m_NativeBoundsR.x + m_OriginX;
-//	qdBoundsR.top = m_NativeBoundsR.y;
+//	qdBoundsR.left = boundsR->x + m_OriginX;
+//	qdBoundsR.top = boundsR->y;
 	qdBoundsR.left = m_OriginX;
 	qdBoundsR.top = 0;
 	qdBoundsR.right = qdBoundsR.left + m_ExtentX + 1;
-	if (qdBoundsR.right > m_NativeBoundsR.width)
-		qdBoundsR.right = m_NativeBoundsR.width;
-	qdBoundsR.bottom = qdBoundsR.top + m_NativeBoundsR.height;
+	if (qdBoundsR.right > boundsR->width)
+		qdBoundsR.right = boundsR->width;
+	qdBoundsR.bottom = qdBoundsR.top +  boundsR->height;
 
 	// a broken, dead attempt to tinge the background
 // Collection	origCol, newCol;
@@ -1486,31 +1492,34 @@ OSStatus				errStatus;
 #else
 
 #if 0		// copied from generic wxRenderer
-const int			kCorner = 1;
-const wxCoord		x = rect.x;
-const wxCoord		y = rect.y;
-const wxCoord		w = rect.width;
-const wxCoord		h = rect.height;
 
-	wxClientDC	dc( this );
-	dc.SetBrush( *wxTRANSPARENT_BRUSH );
+const int			kCorner = 1;
+const wxCoord		x =  boundsR->x;
+const wxCoord		y =  boundsR->y;
+const wxCoord		w =  boundsR->width;
+const wxCoord		h =  boundsR->height;
+
+	if (dc == NULL)
+		return (-1L);
+
+	dc->SetBrush( *wxTRANSPARENT_BRUSH );
 
 	// (outer) right and bottom
-	dc.SetPen( m_penBlack );
-	dc.DrawLine( x + w + 1 - kCorner, y, x + w, y + h );
-	dc.DrawRectangle( x, y+h, w+1, 1 );
+	dc->SetPen( m_penBlack );
+	dc->DrawLine( x + w + 1 - kCorner, y, x + w, y + h );
+	dc->DrawRectangle( x, y+h, w+1, 1 );
 
 	// (inner) right and bottom
-	dc.SetPen( m_penDarkGrey );
-	dc.DrawLine( x + w - kCorner, y, x + w - 1, y + h );
-	dc.DrawRectangle( x + 1, y + h - 1, w - 2, 1 );
+	dc->SetPen( m_penDarkGrey );
+	dc->DrawLine( x + w - kCorner, y, x + w - 1, y + h );
+	dc->DrawRectangle( x + 1, y + h - 1, w - 2, 1 );
 
 	// (outer) top and left
-	dc.SetPen( m_penHighlight );
-	dc.DrawRectangle( x, y, w + 1 - kCorner, 1 );
-	dc.DrawRectangle( x, y, 1, h );
-	dc.DrawLine( x, y + h - 1, x + 1, y + h - 1 );
-	dc.DrawLine( x + w - 1, y, x + w - 1, y + 1 );
+	dc->SetPen( m_penHighlight );
+	dc->DrawRectangle( x, y, w + 1 - kCorner, 1 );
+	dc->DrawRectangle( x, y, 1, h );
+	dc->DrawLine( x, y + h - 1, x + 1, y + h - 1 );
+	dc->DrawLine( x + w - 1, y, x + w - 1, y + 1 );
 #endif
 
 	// FIXME: GTK - need implementation
