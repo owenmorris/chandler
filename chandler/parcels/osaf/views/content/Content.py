@@ -50,9 +50,9 @@ class ContentItemDetail(ControlBlocks.ItemDetail):
 
 
 class CalendarListDelegate (ControlBlocks.ListDelegate):
-    def ElementText (self, index, column):
+    def GetElementText (self, row, column):
         counterpart = Globals.repository.find (self.counterpartUUID)
-        result = counterpart.contentSpec [index]
+        result = counterpart.contentSpec [row]
         if column == 0:
             return result.getWho()
         elif column == 1:
@@ -78,9 +78,9 @@ class ContactListDelegate(ControlBlocks.ListDelegate):
         else:
             return ""
 
-    def ElementText (self, index, column): 
+    def GetElementText (self, row, column): 
         counterpart = Globals.repository.find (self.counterpartUUID)
-        result = counterpart.contentSpec [index]
+        result = counterpart.contentSpec [row]
         if column == 0:
             return self.valOrEmpty(result, ("contactName", "firstName"))
         elif column == 1:
@@ -94,9 +94,9 @@ class ContactListDelegate(ControlBlocks.ListDelegate):
         return ""
 
 class MixedListDelegate(ControlBlocks.ListDelegate):
-    def ElementText (self, index, column):
+    def GetElementText (self, row, column):
         counterpart = Globals.repository.find (self.counterpartUUID)
-        result = counterpart.contentSpec [index]
+        result = counterpart.contentSpec [row]
         if column == 0:
             return result.getWho()
         elif column == 1:
@@ -109,9 +109,9 @@ class MixedListDelegate(ControlBlocks.ListDelegate):
 
 
 class NoteListDelegate(ControlBlocks.ListDelegate):
-    def ElementText (self, index, column):
+    def GetElementText (self, row, column):
         counterpart = Globals.repository.find (self.counterpartUUID)
-        result = counterpart.contentSpec [index]
+        result = counterpart.contentSpec [row]
         if column == 0:
             return result.getAbout()
         elif column == 1:

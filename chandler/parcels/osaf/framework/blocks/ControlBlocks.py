@@ -13,6 +13,7 @@ from repository.util.UUID import UUID
 import wx
 import wx.html
 import wx.gizmos
+import wx.grid
 import webbrowser # for opening external links
 
 class Button(RectangularChild):
@@ -156,14 +157,20 @@ class ListDelegate:
       Default delegate for Lists that use the block's contentSpec. Override
     to customize your behavior.
     """
-    def ElementText (self, index, column):
+    def GetElementText (self, row, column):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        result = counterpart.contentSpec[item]
+        name = counterpart.columnHeadings[column]
+        try:
+            return str (result.getAttributeValue(name))
+        except AttributeError:
+            return ""
+
+    def SetElementText (self, row, column, value):
         counterpart = Globals.repository.find (self.counterpartUUID)
         result = counterpart.contentSpec[item]
         column = counterpart.columnHeadings[column]
-        try:
-            return str (result.getAttributeValue(column))
-        except AttributeError:
-            return ""
+        result.setAttributeValue(column, value)
 
     def ElementCount (self):
         counterpart = Globals.repository.find (self.counterpartUUID)
@@ -173,11 +180,11 @@ class ListDelegate:
 class wxListBlock(wx.ListCtrl):
     def __init__(self, *arguments, **keywords):
         wx.ListCtrl.__init__(self, *arguments, **keywords)
+        self.scheduleUpdate = False
+        self.lastUpdateTime = 0
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.On_wxSelectionChanged, id=self.GetId())
         self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.scheduleUpdate = False
-        self.lastUpdateTime = 0
 
     def OnIdle(self, event):
         """
@@ -197,7 +204,7 @@ class wxListBlock(wx.ListCtrl):
             size = event.GetSize()
             widthMinusLastColumn = 0
             assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
-            for column in range (self.GetColumnCount() - 1):
+            for column in xrange (self.GetColumnCount() - 1):
                 widthMinusLastColumn += self.GetColumnWidth (column)
             lastColumnWidth = size.width - widthMinusLastColumn
             if lastColumnWidth > 0:
@@ -225,7 +232,7 @@ class wxListBlock(wx.ListCtrl):
         queryItem.resultsStale = True
         self.Freeze()
         self.ClearAll()
-        for index in range (len(counterpart.columnHeadings)):
+        for index in xrange (len(counterpart.columnHeadings)):
             self.InsertColumn(index,
                               str(counterpart.columnHeadings[index]),
                               width = counterpart.columnWidths[index])
@@ -255,12 +262,12 @@ class wxListBlock(wx.ListCtrl):
         del Globals.association [self.counterpartUUID]
 
 
-    def OnGetItemText (self, index, column):
+    def OnGetItemText (self, row, column):
         """
           OnGetItemText won't be called if it's in the delegate -- WxPython won't
         call it if it's in a base class
         """
-        return self.ElementText (index, column)
+        return self.GetElementText (row, column)
 
     def GoToItem(self, item):
         counterpart = Globals.repository.find (self.counterpartUUID)
@@ -276,7 +283,7 @@ class List(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         list = wxListBlock(parentWindow,
                            Block.getwxID(self),
-                           style=self.Calculate_wxStyle())
+                           style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
         self.parentBlock.addToContainer(parent,
                                         list,
                                         self.stretchFactor,
@@ -284,9 +291,210 @@ class List(RectangularChild):
                                         self.Calculate_wxBorder())
         return list, None, None
 
-    def Calculate_wxStyle (self):
-        style = wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS
-        return style
+
+    def NeedsUpdate(self):
+        wxWindow = Globals.association[self.itsUUID]
+        wxWndow.scheduleUpdate = True    
+
+    def OnSelectionChangedEvent (self, notification):
+        """
+          Display the item in the wxWindow counterpart.
+        """
+        self.selection = notification.data['item']
+        self.GoToItem (self.selection)
+
+
+class wxSummaryTable(wx.grid.PyGridTableBase):
+    def __init__(self, elementDelegate):
+        wx.grid.PyGridTableBase.__init__ (self)
+        self.elementDelegate = elementDelegate
+        self.cellAttribute = wx.grid.GridCellAttr() 
+
+    def GetAttr(self, row, col, kind):
+        self.cellAttribute.IncRef() 
+        return self.cellAttribute 
+
+    def GetNumberRows(self):
+        return self.elementDelegate.ElementCount() 
+
+    def GetNumberCols(self): 
+        counterpart = Globals.repository.find (self.elementDelegate.counterpartUUID)
+        return len(counterpart.columnHeadings)
+
+    def GetColLabelValue(self, column):
+        counterpart = Globals.repository.find (self.elementDelegate.counterpartUUID)
+        return counterpart.columnHeadings[column]
+
+    def IsEmptyCell(self, row, column): 
+        return False 
+
+    def GetValue(self, row, column): 
+        return self.elementDelegate.GetElementText(row, column)
+
+    def SetValue(self, row, column, value):
+        self.elementDelegate.GetElementText(row, column, value) 
+
+class wxSummary(wx.grid.Grid):
+    def __init__(self, *arguments, **keywords):
+        super (wxSummary, self).__init__ (*arguments, **keywords)
+        self.SetRowLabelSize(0)
+        self.scheduleUpdate = False
+        self.lastUpdateTime = 0
+        self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
+
+    def OnIdle(self, event):
+        """
+          Wait a second after a update is first scheduled before updating
+        and don't update more than once a second.
+        """
+        if self.scheduleUpdate:
+            if (time.time() - self.lastUpdateTime) > 1.0:
+                counterpart = Globals.repository.find (self.counterpartUUID)
+                counterpart.SynchronizeFramework()
+        else:
+            lastupdateTime = time.time()
+        event.Skip()
+
+    def OnColumnDrag(self, event):
+        if not Globals.wxApplication.insideSynchronizeFramework:
+            counterpart = Globals.repository.find (self.counterpartUUID)
+            columnIndex = event.GetRowOrCol()
+            counterpart.columnWidths [columnIndex] = self.GetColSize (columnIndex)
+
+    def OnSize(self, event):
+        if not Globals.wxApplication.insideSynchronizeFramework:
+            size = event.GetSize()
+            widthMinusLastColumn = 0
+            assert self.GetNumberCols() > 0, "We're assuming that there is at least one column"
+            lastColumnIndex = self.GetNumberCols() - 1
+            for column in xrange (lastColumnIndex):
+                widthMinusLastColumn += self.GetColSize (column)
+            lastColumnWidth = size.width - widthMinusLastColumn
+            if lastColumnWidth > 0:
+                self.SetColSize (lastColumnIndex, lastColumnWidth)
+                self.ForceRefresh()
+        event.Skip()
+
+    def removeFromContainer(self, event):
+        if not Globals.wxApplication.insideSynchronizeFramework:
+            counterpart = Globals.repository.find (self.counterpartUUID)
+            item = counterpart.contentSpec [event.GetIndex()]
+            if counterpart.selection != item:
+                counterpart.selection = item
+            counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
+                              {'item':item})
+
+
+    def Reset(self): 
+        """
+          A Grid can't easily redisplay its contents, so we write the following
+        helper function to readjust everything after the contents change
+        """
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        #Trim/extend the control's rows and update all values
+        self.BeginBatch()
+        gridTable = self.GetTable()
+        newRows = gridTable.GetNumberRows()
+        newColumns = gridTable.GetNumberCols()
+        for current, new, deleteMessage, addMessage in [
+            (self.currentRows, newRows, wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, wx.grid.GRIDTABLE_NOTIFY_ROWS_APPENDED), 
+            (self.currentColumns, newColumns, wx.grid.GRIDTABLE_NOTIFY_COLS_DELETED, wx.grid.GRIDTABLE_NOTIFY_COLS_APPENDED)]: 
+                if new < current: 
+                    message = wx.grid.GridTableMessage (gridTable, deleteMessage, new, current-new) 
+                    self.ProcessTableMessage (message) 
+                elif new > current: 
+                    message = wx.grid.GridTableMessage (gridTable, addMessage, new-current) 
+                    self.ProcessTableMessage (message) 
+        self.currentRows = newRows
+        self.currentColumns = newColumns
+        for columnIndex in xrange (newColumns):
+            self.SetColSize (columnIndex, counterpart.columnWidths [columnIndex])
+
+        #Update all displayed values
+        message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
+        self.ProcessTableMessage (message) 
+        self.EndBatch() 
+
+        # The scroll bars aren't resized (at least on windows) 
+        # Jiggling the size of the window rescales the scrollbars 
+        h,w = self.GetSize() 
+        self.SetSize ((h+1, w)) 
+        self.SetSize ((h, w)) 
+        self.ForceRefresh () 
+
+    def wxSynchronizeFramework(self):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        queryItem = counterpart.contentSpec
+        queryItem.resultsStale = True
+        elementDelegate = counterpart.elementDelegate
+        if not elementDelegate:
+            elementDelegate = '//parcels/OSAF/framework/blocks/ControlBlocks/ListDelegate'
+        mixinAClass (self, elementDelegate)
+
+        table = self.GetTable()
+        if not table:
+            """
+              wxSummaryTable handles the callbacks to display the elements of the
+            table. Setting the second argument to True cause the table to be deleted
+            when the grid is deleted.
+            """
+            gridTable = wxSummaryTable(self)
+            self.SetTable (gridTable, True)
+            self.currentRows = gridTable.GetNumberRows()
+            self.currentColumns = gridTable.GetNumberCols()
+
+        try:
+            subscription = self.subscriptionUUID
+        except AttributeError:
+            counterpart = Globals.repository.find (self.counterpartUUID)
+            events = [Globals.repository.find('//parcels/OSAF/framework/item_changed'),
+                      Globals.repository.find('//parcels/OSAF/framework/item_added'),
+                      Globals.repository.find('//parcels/OSAF/framework/item_deleted')]
+            self.subscriptionUUID = UUID()
+            Globals.notificationManager.Subscribe (events,
+                                                   self.subscriptionUUID,
+                                                   queryItem.onItemChanges)
+        self.Reset()
+        if counterpart.selection:
+            self.GoToItem (counterpart.selection)
+
+        self.scheduleUpdate = False
+        self.lastUpdateTime = time.time()
+        
+    def __del__(self):
+        Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
+        del Globals.association [self.counterpartUUID]
+
+
+    def OnGetItemText (self, row, column):
+        """
+          OnGetItemText won't be called if it's in the delegate -- WxPython won't
+        call it if it's in a base class
+        """
+        return self.GetElementText (row, column)
+
+    def GoToItem(self, item):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        row = counterpart.contentSpec.index (item)
+        self.SelectRow (row)
+
+
+class Summary(RectangularChild):
+    def __init__(self, *arguments, **keywords):
+        super (Summary, self).__init__ (*arguments, **keywords)
+        self.selection = None
+
+    def renderOneBlock (self, parent, parentWindow):
+        list = wxSummary(parentWindow,
+                         Block.getwxID(self))
+        self.parentBlock.addToContainer(parent,
+                                        list,
+                                        self.stretchFactor,
+                                        self.Calculate_wxFlag(),
+                                        self.Calculate_wxBorder())
+        return list, None, None
 
     def NeedsUpdate(self):
         wxWindow = Globals.association[self.itsUUID]
@@ -395,14 +603,14 @@ class ToolbarItem(RectangularChild):
 
 class wxTreeAndList:
     def __init__(self, *arguments, **keywords):
+        self.scheduleUpdate = False
+        self.lastUpdateTime = 0
         self.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnExpanding, id=self.GetId())
         self.Bind(wx.EVT_TREE_ITEM_COLLAPSING, self.OnCollapsing, id=self.GetId())
         self.Bind(wx.EVT_LIST_COL_END_DRAG, self.OnColumnDrag, id=self.GetId())
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.On_wxSelectionChanged, id=self.GetId())
         self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.scheduleUpdate = False
-        self.lastUpdateTime = 0
 
     def OnIdle(self, event):
         """
@@ -423,7 +631,7 @@ class wxTreeAndList:
             if isinstance (self, wx.gizmos.TreeListCtrl):
                 widthMinusLastColumn = 0
                 assert self.GetColumnCount() > 0, "We're assuming that there is at least one column"
-                for column in range (self.GetColumnCount() - 1):
+                for column in xrange (self.GetColumnCount() - 1):
                     widthMinusLastColumn += self.GetColumnWidth (column)
                 lastColumnWidth = size.width - widthMinusLastColumn
                 if lastColumnWidth > 0:
@@ -523,7 +731,7 @@ class wxTreeAndList:
                 self.RemoveColumn (0)
     
             info = wx.gizmos.TreeListColumnInfo()
-            for index in range (len(counterpart.columnHeadings)):
+            for index in xrange (len(counterpart.columnHeadings)):
                 info.SetText (counterpart.columnHeadings[index])
                 info.SetWidth (counterpart.columnWidths[index])
                 self.AddColumnInfo (info)

@@ -601,6 +601,19 @@
   </Kind>  
 
   <!--
+    Summary
+  -->
+  <Kind itemName="Summary">
+    <classes key="python">OSAF.framework.blocks.ControlBlocks.Summary</classes>
+    <superKinds itemref="docSchema:RectangularChild"/>
+
+    <attributes itemref="docSchema:columnHeadings"/>
+    <attributes itemref="docSchema:columnWidths"/>
+    <attributes itemref="docSchema:elementDelegate"/>
+    <attributes itemref="docSchema:selection"/>
+  </Kind>  
+
+  <!--
     Tree
   -->
   <Kind itemName="Tree">

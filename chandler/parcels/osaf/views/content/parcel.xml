@@ -104,7 +104,7 @@
   </List>
 
   <!-- Mixed List -->
-  <List itemName="MixedList">
+  <Summary itemName="MixedList">
     <contentSpec itemref="view:mixedQuery"/>
 
     <elementDelegate>OSAF.views.content.Content.MixedListDelegate</elementDelegate>
@@ -122,7 +122,7 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </List>
+  </Summary>
 
   <ItemDetail itemName="ContentItemDetail"
               itemClass="OSAF.views.content.Content.ContentItemDetail">
