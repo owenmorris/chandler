@@ -507,7 +507,7 @@ class LocationAttributeEditor (LabeledAttributeEditor):
             view = wx.GetApp().UIRepositoryView
             queryName = 'locationAttributeEditorQuery'
             locQuery = view.findPath('//Queries/'+queryName)
-            if not locQuery:
+            if locQuery is None:
                 p = view.findPath('//Queries')
                 k = view.findPath('//Schema/Core/Query')
                 locQuery = Query.Query (queryName, p, k, queryString)
