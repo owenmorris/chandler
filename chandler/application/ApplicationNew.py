@@ -170,7 +170,7 @@ class wxApplicationNew (wxApp):
         # Globals.jabberClient.Login()
 
         
-        from OSAF.AppSchema.DocumentSchema.Block import Block
+        from OSAF.framework.blocks.Block import Block
         
         topDocument = Globals.repository.find('//parcels/OSAF/templates/top/TopDocument')
         if topDocument:
