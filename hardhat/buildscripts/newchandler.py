@@ -101,7 +101,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         buildVersionEscaped = "\'" + buildVersion + "\'"
         buildVersionEscaped = buildVersionEscaped.replace(" ", "|")
         
-        if changesInCVS(testDir, workingDir, cvsVintage, log):
+        if changesInCVS(chanDir, workingDir, cvsVintage, log):
             log.write("Changes in CVS, do an install\n")
             changes = "-changes"
         else:
