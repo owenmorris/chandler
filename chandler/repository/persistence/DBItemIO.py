@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from struct import pack, unpack
 from cStringIO import StringIO
 
-from chandlerdb.util.UUID import UUID
+from chandlerdb.util.UUID import UUID, _uuid
 from repository.item.Item import Item
 from repository.item.Values import Values, References, ItemValue
 from repository.item.ItemIO import ItemWriter, ItemReader
@@ -31,8 +31,14 @@ class DBItemWriter(ItemWriter):
     def writeItem(self, item, version):
 
         self.values = []
-        super(DBItemWriter, self).writeItem(item, version)
 
+        if not item.isNew():
+            self.oldValues = self.store._items.getItemValues(item._version,
+                                                             item._uuid)
+        else:
+            self.oldValues = None
+
+        super(DBItemWriter, self).writeItem(item, version)
         self.store._items.saveItem(self.valueBuffer,
                                    item._uuid, version,
                                    self.uKind, item._status & Item.SAVEMASK,
@@ -181,6 +187,13 @@ class DBItemWriter(ItemWriter):
 
         self.store._values.saveValue(self.valueBuffer, item._uuid, version,
                                      uAttr, uValue, buffer.getvalue())
+
+    def _unchangedValue(self, item, name):
+
+        try:
+            self.values.append((name, self.oldValues[_uuid.hash(name)]))
+        except KeyError:
+            raise AssertionError, "unchanged value for '%s' not found" %(name)
 
     def _type(self, buffer, flags, item, value, verify, withSchema, attrType):
 

@@ -298,7 +298,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 if count > 0:
                     duration = after - before
                     try:
-                        speed = ", %d/s" % round(count / duration)
+                        speed = ", %d items/s" % round(count / duration)
                     except ZeroDivisionError:
                         speed = ' (speed could not be measured)'
                     self.logger.info('%s committed %d items in %s%s',

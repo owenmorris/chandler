@@ -79,6 +79,12 @@ class ItemWriter(object):
     def _values(self, item, version, withSchema, isNew):
         raise NotImplementedError, "%s._values" %(type(self))
 
+    def _value(self, item, name, value, version, flags, withSchema, attribute):
+        raise NotImplementedError, "%s._value" %(type(self))
+
+    def _unchangedValue(self, item, name):
+        raise NotImplementedError, "%s._unchangedValue" %(type(self))
+
     def _references(self, item, version, withSchema, isNew):
         raise NotImplementedError, "%s._references" %(type(self))
 

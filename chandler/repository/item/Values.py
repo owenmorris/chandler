@@ -205,12 +205,10 @@ class Values(dict):
         item = self._item
         kind = item._kind
 
-        all = True
-
         for name, value in self.iteritems():
 
             flags = self._getFlags(name)
-            if not (all or flags & Values.DIRTY != 0):
+            if flags & Values.TRANSIENT != 0:
                 continue
             
             if kind is not None:
@@ -220,7 +218,11 @@ class Values(dict):
                 attribute = None
                 persist = True
 
-            if not (persist and flags & Values.TRANSIENT == 0):
+            if not persist:
+                continue
+            
+            if not (all or flags & Values.DIRTY != 0):
+                itemWriter._unchangedValue(item, name)
                 continue
             
             if value is item.Nil:
@@ -626,12 +628,10 @@ class References(Values):
         item = self._item
         kind = item._kind
 
-        all = True
-
         for name, value in self.iteritems():
 
             flags = self._getFlags(name)
-            if not (all or flags & Values.DIRTY != 0):
+            if flags & Values.TRANSIENT != 0:
                 continue
             
             if kind is not None:
@@ -641,7 +641,11 @@ class References(Values):
                 attribute = None
                 persist = True
 
-            if not (persist and flags & Values.TRANSIENT == 0):
+            if not persist:
+                continue
+            
+            if not (all or flags & Values.DIRTY != 0):
+                itemWriter._unchangedValue(item, name)
                 continue
             
             if value is item.Nil:

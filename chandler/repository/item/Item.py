@@ -1543,6 +1543,16 @@ class Item(object):
                 
         return self._name or '{%s}' %(self._uuid.str64())
 
+    def getItemDisplayString(self):
+        """
+        Return a user-readable string representation of this item.
+
+        This method is intended to be overriden.
+        It calls L{getItemDisplayName} by default.
+        """
+
+        return self.getItemDisplayName();
+
     def refCount(self, counted=False, loaded=False):
         """
         Return the number of bi-directional references to this item.

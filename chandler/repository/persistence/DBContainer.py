@@ -891,6 +891,21 @@ class ItemContainer(DBContainer):
                 self.closeCursor(cursor)
                 store.abortTransaction(txnStatus)
 
+    def getItemValues(self, version, uuid):
+
+        item = self.get(pack('>16sl', uuid._uuid, ~version))
+
+        vCount, dCount = unpack('>ll', item[-8:])
+        offset = -(vCount * 20 + dCount * 4 + 8)
+        values = {}
+
+        for i in xrange(vCount):
+            hash, uuid = unpack('>l16s', item[offset:offset+20])
+            values[hash] = UUID(uuid)
+            offset += 20
+
+        return values
+
     def loadItem(self, version, uuid):
 
         version, item = self._findItem(version, uuid)
