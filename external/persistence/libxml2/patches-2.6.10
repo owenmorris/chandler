@@ -153,19 +153,10 @@
  	-I$(top_srcdir)/include
  
  DOCS_DIR = $(datadir)/doc/libxml2-python-$(LIBXML_VERSION)
-@@ -295,7 +296,6 @@
- 	generator.py		\
- 	libxml_wrap.h		\
- 	libxml.py		\
--	drv_libxml2.py		\
- 	libxml2-python-api.xml	\
- 	$(DOCS)
- 
-@@ -690,10 +690,9 @@
- @WITH_PYTHON_TRUE@install-data-local:
+@@ -691,9 +692,9 @@
  @WITH_PYTHON_TRUE@	$(mkinstalldirs) $(DESTDIR)$(pythondir)
  @WITH_PYTHON_TRUE@	@INSTALL@ -m 0644 libxml2.py $(DESTDIR)$(pythondir)
--@WITH_PYTHON_TRUE@	@INSTALL@ -m 0644 $(srcdir)/drv_libxml2.py $(DESTDIR)$(pythondir)
+ @WITH_PYTHON_TRUE@	@INSTALL@ -m 0644 $(srcdir)/drv_libxml2.py $(DESTDIR)$(pythondir)
 -@WITH_PYTHON_TRUE@	$(mkinstalldirs) $(DESTDIR)$(DOCS_DIR)
 -@WITH_PYTHON_TRUE@	@(for doc in $(DOCS) ; \
 -@WITH_PYTHON_TRUE@	   do @INSTALL@ -m 0644 $$doc $(DESTDIR)$(DOCS_DIR) ; done)
@@ -284,3 +275,50 @@
  if (error != 0) {
  	WScript.Echo("Version discovery failed, aborting.");
  	WScript.Quit(error);
+--- libxml2-2.6.10/python/drv_libxml2.py	Wed Jun 23 15:24:02 2004
++++ libxml2-2.6.10-patched/python/drv_libxml2.py	Wed Jun 23 15:23:57 2004
+@@ -13,7 +13,7 @@
+       to be invoked before the corresponding content callback,
+       because the underlying reader interface parses
+       data by chunks of 512 bytes
+-    
++
+ TODO
+     - search for TODO
+     - some ErrorHandler events (warning)
+@@ -33,7 +33,7 @@
+ 
+ """
+ 
+-__author__  = u"Stéphane Bidoul <sbi@skynet.be>"
++__author__  = u"Stephane Bidoul <sbi@skynet.be>"
+ __version__ = "0.3"
+ 
+ import codecs
+@@ -91,6 +91,17 @@
+         "Return the system identifier for the current event."
+         return self.__locator.BaseURI()
+ 
++class PseudoLocator(object):
++
++    def __init__(self, reader):
++        self.__reader = reader
++
++    def getLineNumber(self):
++        return self.__reader.CurrentNode().lineNo()
++
++    def getSystemId(self):
++        return self.__reader.BaseUri()
++
+ class LibXml2Reader(xmlreader.XMLReader):
+ 
+     def __init__(self):
+@@ -145,6 +156,8 @@
+             reader.SetParserProp(libxml2.PARSER_DEFAULTATTRS,1)
+             reader.SetParserProp(libxml2.PARSER_SUBST_ENTITIES,1)
+             reader.SetParserProp(libxml2.PARSER_VALIDATE,self.__validate)
++            # configure our fake locator
++            self._cont_handler.setDocumentLocator(PseudoLocator(reader))
+             # we reuse attribute maps (for a slight performance gain)
+             if self.__ns:
+                 attributesNSImpl = xmlreader.AttributesNSImpl({},{})
