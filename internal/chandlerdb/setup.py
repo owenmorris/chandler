@@ -10,7 +10,8 @@ from distutils.core import setup, Extension
 def main():
 
     PREFIX = os.environ['PREFIX']
-    
+    DEBUG = os.environ.get('DEBUG', 0)
+
     extensions = []
     modules = ['chandlerdb.__init__',
                'chandlerdb.util.__init__',
@@ -35,11 +36,15 @@ def main():
                                 sources=['chandlerdb/item/item.c']))
 
     if os.name == 'nt':
+        if DEBUG == 0:
+            libdb_name = 'libdb43'
+        else:
+            libdb_name = 'libdb43d'
         ext = Extension('chandlerdb.persistence.container',
                         sources=['chandlerdb/persistence/container.c'],
                         include_dirs=[os.path.join(PREFIX, 'include', 'db')],
                         library_dirs=[os.path.join(PREFIX, 'lib')],
-                        libraries=['libdb43', 'ws2_32'])
+                        libraries=[libdb_name, 'ws2_32'])
     else:
         ext = Extension('chandlerdb.persistence.container',
                         sources=['chandlerdb/persistence/container.c'],
