@@ -9,7 +9,7 @@ BUILD=build_$(SNAP)
 
 # Temporary until integrated into Twisted
 applysmtp:
-	patch $(SRC)/twisted/mail/smtp.py smtp-patches; echo ok
+	patch -Nup0 < smtp-patches; echo ok
 
 # Temporary until refactored and integrated into Twisted
 applym2:

@@ -1,65 +1,178 @@
-141a142
-> 
-156a158,173
-> 
-> class ESMTPClientError(SMTPClientError):
->     pass
-> 
-> class EHLORequiredError(ESMTPClientError):
->     pass
-> 
-> class AUTHRequiredError(ESMTPClientError):
->     pass
-> 
-> class TLSRequiredError(ESMTPClientError):
->     pass
-> 
-> class AuthenticationError(ESMTPClientError):
->     pass
-> 
-1064a1082,1096
->     def esmtpEHLORequired(self, code, resp):
->         return EHLORequiredError(502, "Error: server does not support ESMTP", str(self.log))
-> 
->     def esmtpAUTHRequired(self, code, resp):
->         return AUTHRequiredError(502, "Error: server does not support registered Authenticators", str(self.log))
-> 
->     def esmtpTLSRequired(self, code, resp):
->         return TLSRequiredError(502, "Error: server does not support TLS", str(self.log))
-> 
->     def esmtpAUTHFailed(self, code, resp):
->         return AuthenticationError(code, resp, str(self.log))
-> 
->     def esmtpAUTHMalformedChallenge(self, code, resp):
->         return AuthenticationError(501, "Error: server returned a malformed Authentication Challenge", str(self.log))
-> 
-1077a1110
->         self._failresponse = self.esmtpEHLORequired
-1082d1114
-< 
-1107c1139,1140
-<             self._okresponse = self.smtpState_disconnect
----
->             self._okresponse = self.esmtpTLSRequired
->             self._failresponse = self.esmtpTLSRequired
-1148c1181,1182
-<             self._okresponse = self.smtpState_disconnect
----
->             self._okresponse = self.esmtpAUTHRequired
->             self._failresponse = self.esmtpAUTHRequired
-1154c1188,1189
-<         self._failresponse = self.smtpState_disconnect
----
->         self._failresponse = self.esmtpAUTHFailed
-> 
-1164a1200,1201
->         self._failresponse = self.esmtpAUTHFailed
-> 
-1171,1172c1208,1209
-<             self._okresponse = self.smtpState_disconnect
-<             self._failresponse = self.smtpState_disconnect
----
->             self._okresponse = self.esmtpAUTHMalformedChallenge
->             self._failresponse = self.esmtpAUTHMalformedChallenge
-1178d1214
-<             self._failresponse = self.smtpState_disconnect
+--- Twisted-r11303/twisted/mail/smtp.py	2004-08-16 11:21:00.000000000 -0700
++++ Twisted-r11303-patched/twisted/mail/smtp.py	2004-08-28 01:17:49.559240000 -0700
+@@ -134,31 +134,48 @@     def getMessageDelivery(self):
+         This will be called once per message.
+         """
+ 
+ class SMTPError(Exception):
+     pass
+ 
+ class SMTPClientError(SMTPError):
+     def __init__(self, code, resp, log=None, addresses=None):
++
+         self.code = code
+         self.resp = resp
+         self.log = log
+         self.addresses = addresses
+ 
+     def __str__(self):
+         if self.code > 0:
+             res = ["%.3d %s" % (self.code, self.resp)]
+         else:
+             res = [self.resp]
+         if self.log:
+             res.append('')
+             res.append(self.log)
+         return '\n'.join(res)
+ 
++
++class ESMTPClientError(SMTPClientError):
++    pass
++
++class EHLORequiredError(ESMTPClientError):
++    pass
++
++class AUTHRequiredError(ESMTPClientError):
++    pass
++
++class TLSRequiredError(ESMTPClientError):
++    pass
++
++class AuthenticationError(ESMTPClientError):
++    pass
++
+ class SMTPConnectError(SMTPClientError):
+     pass
+ 
+ class SMTPProtocolError(SMTPClientError):
+     pass
+ 
+ class SMTPDeliveryError(SMTPClientError):
+     pass
+@@ -1057,34 +1074,49 @@     def sentMail(self, code, resp, numOk
+ 
+     def __init__(self, secret, contextFactory=None, *args, **kw):
+         SMTPClient.__init__(self, *args, **kw)
+         self.authenticators = {}
+         self.secret = secret
+         self.context = contextFactory
+         self.tlsMode = False
+ 
++    def esmtpEHLORequired(self, code, resp):
++        return EHLORequiredError(502, "Error: server does not support ESMTP", str(self.log))
++
++    def esmtpAUTHRequired(self, code, resp):
++        return AUTHRequiredError(502, "Error: server does not support registered Authenticators", str(self.log))
++
++    def esmtpTLSRequired(self, code, resp):
++        return TLSRequiredError(502, "Error: server does not support TLS", str(self.log))
++
++    def esmtpAUTHFailed(self, code, resp):
++        return AuthenticationError(code, resp, str(self.log))
++
++    def esmtpAUTHMalformedChallenge(self, code, resp):
++        return AuthenticationError(501, "Error: server returned a malformed Authentication Challenge", str(self.log))
++
+     def registerAuthenticator(self, auth):
+         self.authenticators[auth.getName().upper()] = auth
+ 
+     def connectionMade(self):
+         self._expected = [220]
+         self._okresponse = self.esmtpState_ehlo
+         self._failresponse = self.smtpConnectionFailed
+ 
+     def esmtpState_ehlo(self, code, resp):
+         self.sendLine('EHLO ' + self.identity)
+         self._expected = SUCCESS
+ 
+         self._okresponse = self.esmtpState_serverConfig
++        self._failresponse = self.esmtpEHLORequired
+ 
+         if self.heloFallback:
+             self._failresponse = self.smtpState_helo
+ 
+-
+     def esmtpState_serverConfig(self, code, resp):
+         items = {}
+         for line in resp.splitlines():
+             e = line.split(None, 1)
+             if len(e) > 1:
+                 items[e[0]] = e[1]
+             else:
+                 items[e[0]] = None
+@@ -1099,17 +1131,18 @@     def tryTLS(self, code, resp, items):
+             self._expected = [220]
+             self._okresponse = self.esmtpState_starttls
+             self.sendLine('STARTTLS')
+         elif self.requireTransportSecurity:
+             self.tlsMode = False
+             log.msg("TLS required but not available: closing connection")
+             self.sendLine('QUIT')
+             self._expected = xrange(0, 1000)
+-            self._okresponse = self.smtpState_disconnect
++            self._okresponse = self.esmtpTLSRequired
++            self._failresponse = self.esmtpTLSRequired
+         else:
+             self.tlsMode = False
+             self.authenticate(code, resp, items)
+ 
+     def esmtpState_starttls(self, code, resp):
+         self.transport.startTLS(self.context)
+         self.tlsMode = True
+ 
+@@ -1140,47 +1173,50 @@     def authenticate(self, code, resp, i
+                         self._authinfo = self.authenticators[s]
+ 
+                     return
+ 
+         if self.requireAuthentication:
+             log.msg("Authentication required but none available: closing connection")
+             self.sendLine('QUIT')
+             self._expected = xrange(0, 1000)
+-            self._okresponse = self.smtpState_disconnect
++            self._okresponse = self.esmtpAUTHRequired
++            self._failresponse = self.esmtpAUTHRequired
+         else:
+             self.smtpState_from(code, resp)
+ 
+     def _esmtpState_plainAuth(self, code, resp):
+         self._okresponse = self.smtpState_from
+-        self._failresponse = self.smtpState_disconnect
++        self._failresponse = self.esmtpAUTHFailed
++
+         self._expected = [235]
+         challenge = encode_base64(self._authinfo.challengeResponse(self.secret, 2), eol="")
+         self.sendLine('AUTH PLAIN ' + challenge)
+ 
+     def esmtpState_challenge(self, code, resp):
+         auth = self._authinfo
+         del self._authinfo
+         self._authResponse(auth, resp)
+ 
+     def _authResponse(self, auth, challenge):
++        self._failresponse = self.esmtpAUTHFailed
++
+         try:
+             challenge = base64.decodestring(challenge)
+ 
+         except binascii.Error, e:
+             # Illegal challenge, give up, then quit
+             self.sendLine('*')
+-            self._okresponse = self.smtpState_disconnect
+-            self._failresponse = self.smtpState_disconnect
++            self._okresponse = self.esmtpAUTHMalformedChallenge
++            self._failresponse = self.esmtpAUTHMalformedChallenge
+ 
+         else:
+             resp = auth.challengeResponse(self.secret, challenge)
+             self._expected = [235]
+             self._okresponse = self.smtpState_from
+-            self._failresponse = self.smtpState_disconnect
+             self.sendLine(encode_base64(resp, eol=""))
+ 
+         if auth.getName() == "LOGIN" and challenge == "Username:":
+             self._expected = [334]
+             self._authinfo = auth
+             self._okresponse = self.esmtpState_challenge
+ 
+ 
