@@ -8,6 +8,7 @@ from Block import Block, RectangularChild, wxRectangularChild, ContainerChild
 from DragAndDrop import DropReceiveWidget as DropReceiveWidget
 from Node import Node
 from Styles import Font
+from repository.util.UUID import UUID
 import wx
 
 
