@@ -1414,7 +1414,7 @@ def createInstaller(buildenv, directory, distName):
 
     else:
         os.rename(directory, distName)
-        return compressDirectory(buildenv, distname,
+        return compressDirectory(buildenv, distName,
          buildenv['module'] + "_" + buildenv['oslabel'] + "_" + \
           buildenv['releaseId'])
 
