@@ -4,6 +4,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import UUIDext
+
 from struct import pack, unpack
 
 from repository.util.UUID import UUID
@@ -68,9 +70,27 @@ class DBContainer(object):
     def _logDL(self, n):
 
         self.store.repository.logger.info('detected deadlock: %d', n)
-        
+
 
 class RefContainer(DBContainer):
+        
+    def _readValue(self, value, offset):
+
+        code = value[offset]
+        offset += 1
+
+        if code == '\0':
+            return (17, UUID(value[offset:offset+16]))
+
+        if code == '\1':
+            len, = unpack('>H', value[offset:offset+2])
+            offset += 2
+            return (len + 3, value[offset:offset+len])
+
+        if code == '\2':
+            return (1, None)
+
+        raise ValueError, code
 
     def loadRef(self, version, key, cursorKey):
 
@@ -137,24 +157,6 @@ class RefContainer(DBContainer):
                 if txnStarted:
                     self.store._abortTransaction()
         
-    def _readValue(self, value, offset):
-
-        code = value[offset]
-        offset += 1
-
-        if code == '\0':
-            return (17, UUID(value[offset:offset+16]))
-
-        if code == '\1':
-            len, = unpack('>H', value[offset:offset+2])
-            offset += 2
-            return (len + 3, value[offset:offset+len])
-
-        if code == '\2':
-            return (1, None)
-
-        raise ValueError, code
-
     # has to run within the commit() transaction
     def deleteItem(self, item):
 
@@ -331,3 +333,71 @@ class HistContainer(DBContainer):
 
         finally:
             cursor.close()
+
+
+class NamesContainer(DBContainer):
+
+    def writeName(self, key, name, version, uuid):
+
+        if isinstance(name, unicode):
+            name = name.encode('utf-8')
+            
+        if uuid is None:
+            uuid = key
+
+        self.put(pack('>16sll', key._uuid, UUIDext.hash(name), ~version),
+                 uuid._uuid)
+
+    def readName(self, key, name, version):
+
+        if isinstance(name, unicode):
+            name = name.encode('utf-8')
+
+        cursorKey = pack('>16sl', key._uuid, UUIDext.hash(name))
+            
+        while True:
+            txnStarted = False
+            cursor = None
+
+            try:
+                txnStarted = self.store._startTransaction()
+                cursor = self.cursor()
+                
+                try:
+                    value = cursor.set_range(cursorKey, flags=DB_DIRTY_READ)
+                except DBNotFoundError:
+                    return None
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(8)
+                        continue
+                    else:
+                        raise
+
+                try:
+                    while value is not None and value[0].startswith(cursorKey):
+                        nameVer = ~unpack('>l', value[0][-4:])[0]
+                
+                        if nameVer <= version:
+                            if value[1] == value[0][0:16]:    # removed name
+                                return None
+
+                            return UUID(value[1])
+
+                        else:
+                            value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(9)
+                        continue
+                    else:
+                        raise
+
+                return None
+
+            finally:
+                if cursor:
+                    cursor.close()
+                if txnStarted:
+                    self.store._abortTransaction()

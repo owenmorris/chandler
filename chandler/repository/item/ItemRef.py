@@ -557,8 +557,9 @@ class RefDict(LinkedMap):
         if alias:
             link._alias = alias
             if self._aliases is None:
-                self._aliases = {}
-            self._aliases[alias] = key
+                self._aliases = { alias: key }
+            else:
+                self._aliases[alias] = key
             
         if not loading:
             self._count += 1
@@ -640,7 +641,7 @@ class RefDict(LinkedMap):
         if key is not None:
             self._changeRef(key)
 
-    def _changeRef(self, key):
+    def _changeRef(self, key, alias=None):
 
         self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
 
@@ -656,15 +657,28 @@ class RefDict(LinkedMap):
 
         return default
 
-    def getByAlias(self, alias):
+    def getByAlias(self, alias, load=True):
         'Get the item referenced through the alias.'
-        
-        return self[self._aliases[alias]]
+
+        key = None
+
+        if self._aliases is not None:
+            key = self._aliases.get(alias)
+            
+        if key is None and load:
+            key = self.resolveAlias(alias)
+
+        if key is None:
+            raise KeyError, alias
+            
+        return self[key]
 
     def resolveAlias(self, alias):
-        """Resolve the alias to its corresponding reference key.
+        """
+        Resolve the alias to its corresponding reference key.
 
-        Returns None if alias does not exist."""
+        Returns None if alias does not exist.
+        """
         
         if self._aliases:
             return self._aliases.get(alias)
@@ -806,7 +820,7 @@ class TransientRefDict(RefDict):
     def linkChanged(self, link, key):
         pass
     
-    def _changeRef(self, key):
+    def _changeRef(self, key, alias=None):
         pass
 
     def check(self, item, name):

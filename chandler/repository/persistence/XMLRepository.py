@@ -17,6 +17,7 @@ from repository.persistence.XMLRepositoryView import XMLRepositoryLocalView
 from repository.persistence.XMLRepositoryView import XMLRepositoryClientView
 from repository.persistence.DBContainer import DBContainer, RefContainer
 from repository.persistence.DBContainer import VerContainer, HistContainer
+from repository.persistence.DBContainer import NamesContainer
 from repository.persistence.FileContainer import FileContainer, BlockContainer
 from repository.persistence.FileContainer import IndexContainer
 
@@ -166,11 +167,9 @@ class XMLContainer(object):
             self._xml.open(txn, DB_DIRTY_READ | DB_THREAD)
 
     def attachView(self, view):
-
         pass
 
     def detachView(self, view):
-
         pass
 
     def loadItem(self, version, uuid):
@@ -193,45 +192,11 @@ class XMLContainer(object):
             
     def loadChild(self, version, uuid, name):
 
-        store = self.store
-        ctx = store.ctx
-        ctx.setVariableValue("name", XmlValue(name.encode('utf-8')))
-        ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
-        ctx.setVariableValue("version", XmlValue(float(version)))
+        uuid = self.store._names.readName(uuid, name, version)
+        if uuid is None:
+            return None
 
-        doc = None
-        ver = 0
-        txnStarted = False
-
-        try:
-            txnStarted = store._startTransaction()
-            if self.version in ('1.2.0', '1.2.1'):
-                for value in self._xml.queryWithXPath(store.txn,
-                                                      self.store.containerExpr,
-                                                      DB_DIRTY_READ):
-                    result = value.asDocument()
-                    dv = self.getDocVersion(result)
-                    if dv > ver:
-                        ver = dv
-                        doc = result
-
-                if doc is not None:
-                    value = XmlValue()
-                    if (doc.getMetaData('', 'deleted', value) and
-                        value.asString() == 'True'):
-                        doc = None
-                    else:
-                        uuid = self.getDocUUID(doc)
-                        if store._versions.getDocVersion(uuid, version) != ver:
-                            doc = None
-
-                return doc
-
-            raise ValueError, "dbxml %s not supported" %(self.version)
-
-        finally:
-            if txnStarted:
-                store._abortTransaction()
+        return self.loadItem(version, uuid)
 
     def loadRoots(self, version):
 
@@ -368,6 +333,7 @@ class XMLStore(Store):
                 
             self._data = XMLContainer(self, "__data__", txn, create)
             self._refs = RefContainer(self, "__refs__", txn, create)
+            self._names = NamesContainer(self, "__names__", txn, create)
             self._versions = VerContainer(self, "__versions__", txn, create)
             self._history = HistContainer(self, "__history__", txn, create)
             self._text = FileContainer(self, "__text__", txn, create)
@@ -382,6 +348,7 @@ class XMLStore(Store):
 
         self._data.close()
         self._refs.close()
+        self._names.close()
         self._versions.close()
         self._history.close()
         self._text.close()
@@ -393,6 +360,7 @@ class XMLStore(Store):
 
         self._data.attachView(view)
         self._refs.attachView(view)
+        self._names.attachView(view)
         self._versions.attachView(view)
         self._history.attachView(view)
         self._text.attachView(view)
@@ -404,6 +372,7 @@ class XMLStore(Store):
 
         self._data.detachView(view)
         self._refs.detachView(view)
+        self._names.detachView(view)
         self._versions.detachView(view)
         self._history.detachView(view)
         self._text.detachView(view)
@@ -524,21 +493,7 @@ class XMLStore(Store):
 
             return updateCtx
 
-    def _getContainerExpr(self):
-
-        try:
-            return self._threaded.containerExpr
-        except AttributeError:
-            xml = self._data._xml
-            xpath = "/item[container=$uuid and name=$name and number(@version)<=$version]"
-            containerExpr = xml.parseXPathExpression(None, xpath, self.ctx)
-            self._threaded.containerExpr = containerExpr
-
-            return containerExpr
-
-    
     env = property(_getEnv)
     ctx = property(_getCtx)
     updateCtx = property(_getUpdateCtx)
-    containerExpr = property(_getContainerExpr)
     txn = property(_getTxn, _setTxn)

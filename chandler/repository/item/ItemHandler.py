@@ -297,14 +297,6 @@ class ItemHandler(ContentHandler):
             value = self.collections.pop()
             self.references[attrs['name']] = value
 
-    def aliasEnd(self, itemHandler, attrs):
-
-        refDict = self.collections[-1]
-        if refDict._aliases is None:
-            refDict._aliases = {}
-
-        refDict._aliases[attrs['name']] = UUID(self.data)
-
     def dbEnd(self, itemHandler, attrs):
             
         if not self.collections:

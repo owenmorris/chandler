@@ -64,7 +64,7 @@ static PyObject *hash(PyObject *self, PyObject *args)
     unsigned int len = 0;
 
     PyArg_ParseTuple(args, "s#", &uuid, &len);
-    if (len != 16)
+    if (len < 0)
         return Py_BuildValue("");
 
     return Py_BuildValue("l", hash_uuid(uuid, len));

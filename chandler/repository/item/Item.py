@@ -1205,8 +1205,13 @@ class Item(object):
                     
                 self.removeAttributeValue(name, _attrDict=self._references)
 
-            self.itsParent._removeItem(self)
+            parent = self.itsParent
+
+            parent._removeItem(self)
             self._setRoot(None)
+
+            if not '_origName' in self.__dict__:
+                self.__dict__['_origName'] = (parent.itsUUID, self._name)
 
             self._status |= Item.DELETED | Item.STALE
             self._status &= ~Item.DELETING
@@ -1354,11 +1359,16 @@ class Item(object):
         @type name: a string
         """
 
-        parent = self.itsParent
-        link = parent._children._get(self._name)
-        parent._removeItem(self)
-        self._name = name or self._uuid.str64()
-        parent._addItem(self, link._previousKey, link._nextKey)
+        if name != self._name:
+            origName = self._name
+            parent = self.itsParent
+            link = parent._children._get(self._name)
+            parent._removeItem(self)
+            self._name = name or self._uuid.str64()
+            parent._addItem(self, link._previousKey, link._nextKey)
+            if not '_origName' in self.__dict__:
+                self.__dict__['_origName'] = (parent.itsUUID, origName)
+
 
     def move(self, newParent, previous=None, next=None):
         """
@@ -1388,6 +1398,8 @@ class Item(object):
         if parent is not newParent:
             parent._removeItem(self)
             self._setParent(newParent, previous, next)
+            if not '_origName' in self.__dict__:
+                self.__dict__['_origName'] = (parent.itsUUID, self._name)
 
     def _isRepository(self):
         return False

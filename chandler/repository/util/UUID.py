@@ -60,7 +60,7 @@ class UUID(object):
 
         self._uuid = state
         self._hash = UUIDext.hash(state)
-    
+
     def __eq__(self, other):
 
         return isinstance(other, UUID) and self._uuid == other._uuid

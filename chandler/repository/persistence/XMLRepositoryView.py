@@ -159,6 +159,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         repository = self.repository
         store = repository.store
         data = store._data
+        names = store._names
         versions = store._versions
         history = store._history
         env = repository._env
@@ -199,7 +200,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 
                     for item in self._log:
                         size += self._saveItem(item, newVersion,
-                                               data, versions, history, ood)
+                                               data, names, versions, history,
+                                               ood)
 
                 if newVersion > self.version:
                     histNotifications = RepositoryNotifications(repository)
@@ -280,7 +282,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                              datetime.now() - before)
         self.prune(10000)
 
-    def _saveItem(self, item, newVersion, data, versions, history, ood):
+    def _saveItem(self, item, newVersion, data, names, versions, history, ood):
 
         uuid = item._uuid
         isNew = item.isNew()
@@ -328,20 +330,29 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             raise
 
         if isDeleted:
-            parent=item.itsParent.itsUUID
+            parent, name = item.__dict__['_origName']
             versions.setDocVersion(uuid, newVersion, 0)
             history.writeVersion(uuid, newVersion, 0, item._status, parent)
             self._notifications.changed(uuid, 'deleted', parent=parent)
+            names.writeName(parent, name, newVersion, None)
 
         else:
             versions.setDocVersion(uuid, newVersion, docId)
             history.writeVersion(uuid, newVersion, docId, item._status)
 
             if isNew:
+                names.writeName(item.itsParent.itsUUID, item._name,
+                                newVersion, uuid)
                 self._notifications.changed(uuid, 'added')
             else:
+                if '_origName' in item.__dict__:
+                    parent, name = item.__dict__['_origName']
+                    names.writeName(parent, name, newVersion, None)
+                    names.writeName(item.itsParent.itsUUID, item._name,
+                                    newVersion, uuid)
+                    del item.__dict__['_origName']
                 self._notifications.changed(uuid, 'changed')
-
+                    
         return size
 
     def _mergeItems(self, items, oldVersion, newVersion, history):
@@ -417,17 +428,18 @@ class XMLRefDict(RefDict):
         return self.view.repository.store._refs.loadRef(version, key,
                                                         cursorKey)
 
-    def _changeRef(self, key):
+    def _changeRef(self, key, alias=None):
 
         if not self.view.isLoading():
-            self._log.append((0, key))
+            self._log.append((0, key, alias))
         
-        super(XMLRefDict, self)._changeRef(key)
+        super(XMLRefDict, self)._changeRef(key, alias)
 
     def _removeRef(self, key, _detach=False):
 
         if not self.view.isLoading():
-            self._log.append((1, key))
+            link = self._get(key, load=False)
+            self._log.append((1, key, link._alias))
             self._deletedRefs[key] = key
         else:
             raise ValueError, 'detach during load'
@@ -456,7 +468,13 @@ class XMLRefDict(RefDict):
             self._value.write('\0')
             self._value.write(value._uuid)
 
-        elif isinstance(value, str) or isinstance(value, unicode):
+        elif isinstance(value, str):
+            self._value.write('\1')
+            self._value.write(pack('>H', len(value)))
+            self._value.write(value)
+
+        elif isinstance(value, unicode):
+            value = value.encode('utf-8')
             self._value.write('\1')
             self._value.write(pack('>H', len(value)))
             self._value.write(value)
@@ -471,6 +489,20 @@ class XMLRefDict(RefDict):
     def _eraseRef(self, key):
 
         self.view.repository.store._refs.delete(self._packKey(key))
+
+    def resolveAlias(self, alias):
+
+        key = None
+        
+        if self._aliases:
+            key = self._aliases.get(alias)
+
+        if key is None:
+            view = self.view
+            key = view.repository.store._names.readName(self._uuid, alias,
+                                                        view.version)
+
+        return key
 
     def _setItem(self, item):
 
@@ -504,13 +536,14 @@ class XMLRefDict(RefDict):
     def _xmlValues(self, generator, version, mode):
 
         if mode == 'save':
-            for entry in self._log:
+            names = self.view.repository.store._names
+            for op, key, oldAlias in self._log:
                 try:
-                    value = self._get(entry[1])
+                    value = self._get(key, load=False)
                 except KeyError:
                     value = None
     
-                if entry[0] == 0:
+                if op == 0:               # change
                     if value is not None:
                         ref = value._value
                         previous = value._previousKey
@@ -518,14 +551,22 @@ class XMLRefDict(RefDict):
                         alias = value._alias
     
                         uuid = ref.other(self._item).itsUUID
-                        self._writeRef(entry[1], version,
+                        self._writeRef(key, version,
                                        uuid, previous, next, alias)
+                        if oldAlias is not None:
+                            names.writeName(self._uuid, oldAlias,
+                                            version, None)
+                        if alias is not None:
+                            names.writeName(self._uuid, alias,
+                                            version, uuid)
                         
-                elif entry[0] == 1:
-                    self._writeRef(entry[1], version, None, None, None, None)
+                elif op == 1:             # remove
+                    self._writeRef(key, version, None, None, None, None)
+                    if oldAlias is not None:
+                        names.writeName(key, version, oldAlias, None)
 
-                else:
-                    raise ValueError, entry[0]
+                else:                     # error
+                    raise ValueError, op
 
             if self._log:
                 self.view._notifications.changed(self._item._uuid, self._name)
@@ -534,11 +575,6 @@ class XMLRefDict(RefDict):
             self._deletedRefs.clear()
             
             if len(self) > 0:
-                if self._aliases:
-                    for key, value in self._aliases.iteritems():
-                        generator.startElement('alias', { 'name': key })
-                        generator.characters(value.str64())
-                        generator.endElement('alias')
                 generator.startElement('db', {})
                 generator.characters(self._uuid.str64())
                 generator.endElement('db')
