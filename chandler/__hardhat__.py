@@ -72,7 +72,6 @@ def build(buildenv):
                                   'Building launcher ' + version,
                                   0, 'output.txt')
 
-
     os.chdir("distrib")
 
     if buildenv['os'] == 'posix' or buildenv['os'] == 'osx':
