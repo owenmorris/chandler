@@ -598,27 +598,33 @@ class Item(object):
         if isinstance(spec, Path):
             l = len(spec)
 
-            if _index == l:
-                if spec[_index - 1] == self._name:
-                    return self
-                else:
-                    return None
-
-            if _index > l:
+            if l == 0 or _index >= l:
                 return None
 
             if _index == 0:
                 if spec[0] == '//':
-                    return self.getRepository().find(spec)
+                    return self.getRepository().find(spec, 1)
 
                 elif spec[0] == '/':
                     if self._root is self:
-                        return self.find(spec, _index=1)
+                        return self.find(spec, 1)
                     else:
-                        return self._root.find(spec, _index=0)
+                        return self._root.find(spec, 1)
+
+            if spec[_index] == '.':
+                if _index == l - 1:
+                    return self
+                return self.find(spec, _index + 1)
+
+            if spec[_index] == '..':
+                if _index == l - 1:
+                    return self._parent
+                return self._parent.find(spec, _index + 1)
 
             child = self.getChild(spec[_index])
             if child is not None:
+                if _index == l - 1:
+                    return child
                 return child.find(spec, _index + 1)
 
         elif isinstance(spec, UUID):
@@ -887,7 +893,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 refName = ref[0]
                 if refName is None:
                     if other is None:
-                        raise ValueError, "refName to %s is None, it should be loaded before %s" %(str(ref[1]), str(item.getPath()))
+                        raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(str(ref[1]), str(ref[1]), str(item.getPath()))
                     else:
                         refName = other.refName(attrName)
                 otherName = ref[2]._otherName

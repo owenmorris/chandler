@@ -70,7 +70,7 @@ class Repository(object):
         
         return self._roots.get(name)
 
-    def find(self, spec):
+    def find(self, spec, _index=0):
         '''Find an item as specified or return None if not found.
         
         Spec can be a Path, a UUID or a string in which case it gets coerced
@@ -83,17 +83,17 @@ class Repository(object):
             if l == 0:
                 return None
 
-            if spec[0] == '//':
-                index = 1
-            else:
-                index = 0
+            if spec[_index] == '//':
+                _index += 1
 
-            if index >= l:
+            if _index >= l:
                 return None
 
-            root = self._roots.get(spec[index])
+            root = self._roots.get(spec[_index])
             if root is not None:
-                return root.find(spec, index + 1)
+                if _index == l - 1:
+                    return root
+                return root.find(spec, _index + 1)
 
             return None
 
