@@ -146,25 +146,27 @@ def main():
                 status = "success"
 
                 newDir = os.path.join(outputDir, buildVersion)
+                print "Renaming " + os.path.join(buildDir, "output") + " to " + newDir 
+                log.write("Renaming " + os.path.join(buildDir, "output") + " to " + newDir + "\n")
                 os.rename(os.path.join(buildDir, "output"), newDir)
-                log.write("Calling CreateIndex with " + newDir + "\n")
-                if os.path.exists(outputDir+os.sep+"index.html"):
-                    os.remove(outputDir+os.sep+"index.html")
-                if os.path.exists(outputDir+os.sep+"time.js"):
-                    os.remove(outputDir+os.sep+"time.js")
-                for x in ["enduser"]:      # was  ["enduser", "developer"]:
-                    if os.path.exists(outputDir+os.sep+x+".html"):
-                        os.remove(outputDir+os.sep+x+".html")
-                RotateDirectories(outputDir)
-                CreateIndex(outputDir, buildVersion, nowString, buildName)
-
-                buildNameNoSpaces = buildName.replace(" ", "")
-                print "Rsyncing..."
-                outputList = hardhatutil.executeCommandReturnOutputRetry(
-                 [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
-                 outputDir + os.sep, 
-                 "192.168.101.46:continuous/" + buildNameNoSpaces])
-                hardhatutil.dumpOutputList(outputList, log)
+#                 log.write("Calling CreateIndex with " + newDir + "\n")
+#                 if os.path.exists(outputDir+os.sep+"index.html"):
+#                     os.remove(outputDir+os.sep+"index.html")
+#                 if os.path.exists(outputDir+os.sep+"time.js"):
+#                     os.remove(outputDir+os.sep+"time.js")
+#                 for x in ["enduser"]:      # was  ["enduser", "developer"]:
+#                     if os.path.exists(outputDir+os.sep+x+".html"):
+#                         os.remove(outputDir+os.sep+x+".html")
+#                 RotateDirectories(outputDir)
+#                 CreateIndex(outputDir, buildVersion, nowString, buildName)
+# 
+#                 buildNameNoSpaces = buildName.replace(" ", "")
+#                 print "Rsyncing..."
+#                 outputList = hardhatutil.executeCommandReturnOutputRetry(
+#                  [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
+#                  outputDir + os.sep, 
+#                  "192.168.101.46:continuous/" + buildNameNoSpaces])
+#                 hardhatutil.dumpOutputList(outputList, log)
 
             elif ret == "build_failed":
                 print "The build failed"
