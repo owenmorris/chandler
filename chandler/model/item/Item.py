@@ -850,8 +850,10 @@ class Item(object):
         """Walk a path and invoke a callable along the way.
 
         The callable's arguments should be (parent, childName, child, **kwds).
-        If the callable returns a false condition, the walking recursion is
-        aborted."""
+        The callable's child argument is None if the path didn't
+        correspond to an existing item.
+        The callable's return value is used to recursively continue walking
+        unless this return values is None."""
 
         if _index == 0 and not isinstance(path, Path):
             path = Path(path)
@@ -881,8 +883,7 @@ class Item(object):
             return self._parent.walk(path, callable, _index + 1, **kwds)
 
         child = self.getItemChild(path[_index], kwds.get('load', True))
-        if not callable(self, path[_index], child, **kwds):
-            return False
+        child = callable(self, path[_index], child, **kwds)
         if child is not None:
             if _index == l - 1:
                 return child
@@ -898,7 +899,7 @@ class Item(object):
         to the item unless the path is absolute."""
 
         if isinstance(spec, Path):
-            return self.walk(spec, lambda parent, name, child, **kwds: True,
+            return self.walk(spec, lambda parent, name, child, **kwds: child,
                              load=load)
 
         elif isinstance(spec, UUID):
@@ -910,7 +911,7 @@ class Item(object):
                 return self.find(UUID(spec), 0, load)
 
             return self.walk(Path(spec),
-                             lambda parent, name, child, **kwds: True,
+                             lambda parent, name, child, **kwds: child,
                              0, load=load)
 
         return None

@@ -178,8 +178,7 @@ class Repository(object):
             return None
 
         root = self.getRoot(path[_index], kwds.get('load', True))
-        if not callable(self, path[_index], root, **kwds):
-            return False
+        root = callable(self, path[_index], root, **kwds)
         if root is not None:
             if _index == l - 1:
                 return root
@@ -195,7 +194,7 @@ class Repository(object):
         to the first name element in the path, a root in the repository.'''
         
         if isinstance(spec, Path):
-            return self.walk(spec, lambda parent, name, child, **kwds: True,
+            return self.walk(spec, lambda parent, name, child, **kwds: child,
                              load=load)
 
         elif isinstance(spec, UUID):
@@ -214,7 +213,7 @@ class Repository(object):
                 return self.find(UUID(spec), 0, load)
             else:
                 return self.walk(Path(spec),
-                                 lambda parent, name, child, **kwds: True,
+                                 lambda parent, name, child, **kwds: child,
                                  0, load=load)
 
         return None
