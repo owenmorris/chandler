@@ -28,14 +28,6 @@ class MainView(View):
     """
       Main Chandler view contains event handlers for Chandler
     """
-    def onNULLEvent (self, notification):
-        """ The NULL Event handler """
-        pass
-
-    def onNULLEventUpdateUI (self, notification):
-        """ The NULL Event is always disabled """
-        notification.data ['Enable'] = False
-
     def onQuitEvent (self, notification):
         Globals.wxApplication.mainFrame.Close ()
 

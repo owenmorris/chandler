@@ -187,22 +187,6 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         item= self.selectedItem()
         self.synchronizeDetailView(item)
 
-    """
-    This is a copy of the global NULL event
-    We need to have a copy here, because of limitations
-    in our XLM parsing and template copy mechanism.
-    It's a long story.  
-    Some day we should remove this
-    code and use the global event in Main instead.
-    """
-    def onNULLEvent (self, notification):
-        """ The NULL Event handler """
-        pass
-
-    def onNULLEventUpdateUI (self, notification):
-        """ The NULL Event is always disabled """
-        notification.data ['Enable'] = False
-
     def finishSelectionChanges (self):
         """ 
           Need to finish any changes to the selected item

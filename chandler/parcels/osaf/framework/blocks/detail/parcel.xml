@@ -57,14 +57,6 @@
     Events
   -->
   
-  <BlockEvent itsName="NULL">
-    <description>The NULL event, used when no event is needed. </description>
-    <examples>An unimplemented MenuItem</examples>
-    <methodName>onNULLEvent</methodName>
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:DetailRootTemplate"/>
-  </BlockEvent>
-
   <BlockEvent itsName="ButtonPressed">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onButtonPressed</methodName>
@@ -87,7 +79,6 @@
     <blockName value="DetailRootTemplate"/>
     <childrenBlocks itemref="doc:DetailTrunk"/>
     <subscribeWhenVisibleEvents itemref="doc:SendShareItem"/>
-    <subscribeWhenVisibleEvents itemref="doc:NULL"/>
   </SelectionContainer>
 
   <ContentItemDetail itsName="DetailTrunk">

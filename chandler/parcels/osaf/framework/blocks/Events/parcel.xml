@@ -18,7 +18,6 @@ of a limitation of the XML format, which will be eliminated</description>
   <version>0.3</version>
 
   <EventList itsName="GlobalEvents">
-    <subscribeAlwaysEvents itemref="events:NULL"/>
     <subscribeAlwaysEvents itemref="events:New"/>
     <subscribeAlwaysEvents itemref="events:Open"/>
     <subscribeAlwaysEvents itemref="events:NewItemCollectionItem"/>
@@ -52,13 +51,6 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:AboutChandler"/>    
     <subscribeAlwaysEvents itemref="events:SelectedDateChanged"/>
   </EventList>
-
-  <BlockEvent itsName="NULL">
-    <description>The NULL event, used when no event is needed. </description>
-    <examples>An unimplemented MenuItem</examples>
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <dispatchToBlock itemref="doc:MainView"/>
-  </BlockEvent>
 
   <BlockEvent itsName="New">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>

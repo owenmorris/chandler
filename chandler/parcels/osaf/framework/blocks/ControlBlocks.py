@@ -663,9 +663,9 @@ class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
                 dc.SetTextForeground (attr.GetTextColour())
                 dc.SetBrush (wx.Brush (attr.GetBackgroundColour(), wx.SOLID))
         else:
-            dc.SetTextBackground (wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE))
-            dc.SetTextForeground (wxSystemSettings_GetSystemColour(wxSYS_COLOUR_GRAYTEXT))
-            dc.SetBrush (wx.Brush (wxSystemSettings_GetSystemColour(wxSYS_COLOUR_BTNFACE), wxSOLID))
+            dc.SetTextBackground (wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE))
+            dc.SetTextForeground (wx.SystemSettings.GetColour(wx.SYS_COLOUR_GRAYTEXT))
+            dc.SetBrush (wx.Brush (wx.SystemSettings.GetColour(wx.SYS_COLOUR_BTNFACE), wx.SOLID))
 
         dc.SetFont (attr.GetFont())
 

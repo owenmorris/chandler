@@ -340,9 +340,7 @@ class wxApplication (wx.App):
                 blockEvent = block.event
             except AttributeError:
                 """
-                  If we have an event and it's not an update event
-                then we'd better have a block event for it, otherwise
-                we can't post the event.
+                  Ignore blocks that don't have events.
                 """
                 assert updateUIEvent
             else:
@@ -362,10 +360,13 @@ class wxApplication (wx.App):
                         event.Check (args ['Check'])
                     except KeyError:
                         pass
+
                     try:
-                        event.Enable (args ['Enable'])
+                        enable = args ['Enable']
                     except KeyError:
-                        pass
+                        enable = True
+                    event.Enable (enable)
+
                     try:
                         text = args ['Text']
                     except KeyError:
@@ -373,7 +374,6 @@ class wxApplication (wx.App):
                     else:
                         eventObject = event.GetEventObject()
                         event.SetText (text)
-                    return
         else:
             event.Skip()
 

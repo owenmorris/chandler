@@ -399,11 +399,6 @@ class wxMenuItem (wx.MenuItem):
             kind = wx.ITEM_SEPARATOR
             style = (parentWidget, id, "", "", kind, None)
         else:
-            """
-              Menu items must have an event, otherwise they can't cause any action,
-            nor can we use wxWindows api's to distinguish them from each other.
-            """
-            assert block.hasAttributeValue('event')
             id = Block.Block.getWidgetID(block)
             if block.menuItemKind == "Normal":
                 kind = wx.ITEM_NORMAL
@@ -472,6 +467,11 @@ class wxMenu(wx.Menu):
         if isinstance (newItem.widget, wxMenuItem):
             success = self.InsertItem (index, newItem.widget)
             assert success
+            """
+              Disable menus by default. If they have an event then they will
+            be enabled by an UpdateUIEvent or out command dispatch in Application.py
+            """
+            self.Enable (newItem.widget.GetId(), False)
         else:
             self.InsertMenu (index, 0, newItem.title, newItem.widget, newItem.helpString)
         
@@ -575,6 +575,7 @@ class wxToolbar (wx.ToolBar):
         self.toolItems = 0
         
     def wxSynchronizeWidget(self):
+        dynamicChildren = self.blockItem.dynamicChildren
         if self.blockItem.isShown != self.IsShown():
             self.Show (self.blockItem.isShown)
             
@@ -584,11 +585,11 @@ class wxToolbar (wx.ToolBar):
         
         # check if anything has changed in this toolbar
         rebuild = False
-        if len(self.blockItem.dynamicChildren) != len(self.toolItemList):
+        if len(dynamicChildren) != len(self.toolItemList):
             rebuild = True
         else:
             i = 0
-            for item in self.blockItem.dynamicChildren:
+            for item in dynamicChildren:
                 if item is not self.toolItemList[i]:
                     rebuild = True
                     break
@@ -602,10 +603,18 @@ class wxToolbar (wx.ToolBar):
             self.toolItems = 0
             
             # we should have a toolbar set up for us in the barList
-            for item in self.blockItem.dynamicChildren:
+            for item in dynamicChildren:
                 self.toolItems += item.addTool(self)
                 self.toolItemList.append(item)
             self.Realize()
+            """
+              Disable all tools. If they have an event they will be enabled
+            by UpdateUIEvents or OnCommand dispatcher in Application.py.
+            This has to be done after calling Realise
+            """
+            for item in dynamicChildren:
+                self.EnableTool (Block.Block.getWidgetID(item), False)
+            
             
 class Toolbar (Block.RectangularChild, DynamicContainer):
     def instantiateWidget (self):

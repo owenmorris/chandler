@@ -379,7 +379,6 @@
     <blockName>NewWindowItem</blockName>
     <title>New Window</title>
     <helpString>Open a new Window</helpString>
-    <event itemref="events:NULL"/>
   </MenuItem>
   
   <MenuItem itsName="NewItemCollectionItem">
@@ -401,7 +400,6 @@
     <blockName>CloseWindowItem</blockName>
     <title>Close Window</title>
     <helpString>Close the selected Window</helpString>
-    <event itemref="events:NULL"/>
   </MenuItem>
   
   <MenuItem itsName="FileSeparator1">
@@ -472,7 +470,6 @@
     <blockName>PrefsSyncItem</blockName>
     <title>Sync...</title>
     <helpString>Synchronization Preferences</helpString>
-    <event itemref="events:NULL"/>
   </MenuItem>
   
   <MenuItem itsName="PrefsAccountsItem">
@@ -545,7 +542,6 @@
     <blockName>SelectAllItem</blockName>
     <title>Select all</title>
     <accel>Ctrl+A</accel>
-    <event itemref="events:NULL"/>
     <helpString value="Select all"/>
   </MenuItem>
   
@@ -638,42 +634,36 @@
   <MenuItem itsName="SortByWhenItem">
     <blockName>SortByWhenItem</blockName>
     <title>When</title>
-    <event itemref="events:NULL"/>
     <helpString value="Sort by Date"/>
   </MenuItem>
 
   <MenuItem itsName="SortByStampItem">
     <blockName>SortByStampItem</blockName>
     <title>Stamp</title>
-    <event itemref="events:NULL"/>
     <helpString value="Sort by stamped Kind"/>
   </MenuItem>
 
   <MenuItem itsName="SortByWhoItem">
     <blockName>SortByWhoItem</blockName>
     <title>Who</title>
-    <event itemref="events:NULL"/>
     <helpString value="Sort by Who"/>
   </MenuItem>
 
   <MenuItem itsName="SortByWhatItem">
     <blockName>SortByWhatItem</blockName>
     <title>What</title>
-    <event itemref="events:NULL"/>
     <helpString value="Sort by Kind"/>
   </MenuItem>
 
   <MenuItem itsName="ViewExpandCollItem">
     <blockName>ViewExpandCollItem</blockName>
     <title>Expand all Ad-hoc collections</title>
-    <event itemref="events:NULL"/>
     <helpString value="Expand all Ad-hoc collections"/>
   </MenuItem>
 
   <MenuItem itsName="ViewCollapseCollItem">
     <blockName>ViewCollapseCollItem</blockName>
     <title>Collapse all Ad-hoc collections</title>
-    <event itemref="events:NULL"/>
     <helpString value="Collapse all Ad-hoc collections"/>
   </MenuItem>
 
@@ -704,56 +694,48 @@
   <MenuItem itsName="View2PaneLayoutItem">
     <blockName>View2PaneLayoutItem</blockName>
     <title>2-pane layout</title>
-    <event itemref="events:NULL"/>
     <helpString value="View using a two pane layout"/>
   </MenuItem>
 
   <MenuItem itsName="View3LinesPerRowItem">
     <blockName>View3LinesPerRowItem</blockName>
     <title>Up to 3 lines per row</title>
-    <event itemref="events:NULL"/>
     <helpString value="View up to three lines per row"/>
   </MenuItem>
 
   <MenuItem itsName="GoToTodayItem">
     <blockName>GoToTodayItem</blockName>
     <title>Go to today</title>
-    <event itemref="events:NULL"/>
     <helpString value="Move the calendar to Today"/>
   </MenuItem>
 
   <MenuItem itsName="ViewMonthItem">
     <blockName>ViewMonthItem</blockName>
     <title>Month view</title>
-    <event itemref="events:NULL"/>
     <helpString value="Switch the calendar to the Month view"/>
   </MenuItem>
 
   <MenuItem itsName="ViewWeekItem">
     <blockName>ViewWeekItem</blockName>
     <title>Week view</title>
-    <event itemref="events:NULL"/>
     <helpString value="Switch the calendar to the Week view"/>
   </MenuItem>
 
   <MenuItem itsName="ViewDayItem">
     <blockName>ViewDayItem</blockName>
     <title>Day view</title>
-    <event itemref="events:NULL"/>
     <helpString value="Switch the calendar to the Day view"/>
   </MenuItem>
 
   <MenuItem itsName="ViewNextItem">
     <blockName>ViewNextItem</blockName>
     <title>Next</title>
-    <event itemref="events:NULL"/>
     <helpString value="Move to the next item"/>
   </MenuItem>
 
   <MenuItem itsName="ViewPreviousItem">
     <blockName>ViewPreviousItem</blockName>
     <title>Previous</title>
-    <event itemref="events:NULL"/>
     <helpString value="Move to the previous item"/>
   </MenuItem>
 
@@ -969,28 +951,24 @@
   <MenuItem itsName="StampMessageItem">
     <blockName>StampMessageItem</blockName>
     <title>Send as Message</title>
-    <event itemref="events:NULL"/>
     <helpString>Stamp with Message attributes</helpString>
   </MenuItem>
 
   <MenuItem itsName="StampTaskItem">
     <blockName>StampTaskItem</blockName>
     <title>Put on Taskpad</title>
-    <event itemref="events:NULL"/>
     <helpString>Stamp with Task attributes</helpString>
   </MenuItem>
 
   <MenuItem itsName="StampEventItem">
     <blockName>StampEventItem</blockName>
     <title>Put on Calendar</title>
-    <event itemref="events:NULL"/>
     <helpString>Stamp with Calendar Event attributes</helpString>
   </MenuItem>
 
   <MenuItem itsName="RenameItem">
     <blockName>RenameItem</blockName>
     <title>Rename</title>
-    <event itemref="events:NULL"/>
     <helpString>Rename a collection</helpString>
   </MenuItem>
 
