@@ -1690,7 +1690,6 @@
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <splitPercentage>0.2</splitPercentage>
-    <allowResize>False</allowResize>
   </SplitterWindow>
   
   <TabbedContainer itsName="TabbedView2"
@@ -1727,8 +1726,8 @@
 
   <DetailBlock itsName="MainDetailView">
     <blockName>MainDetailView</blockName>
-    <detailItem itemref="doc:MainView"/>
-    <childrenBlocks itemref="doc:MainView"/>
+    <detailItem itemref="doc:MainView2"/>
+    <childrenBlocks itemref="doc:MainView2"/>
     <viewCache itemref="doc:MainDetailViewCache"/>
   </DetailBlock>
 
