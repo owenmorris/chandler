@@ -473,8 +473,6 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         finally:
             wx.GetApp().ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
-        # would be nice if we could put at least some of this into CPIA
-        self.SetWindowStyle(self.GetWindowStyle() | wx.SUNKEN_BORDER)
         self.SetColLabelAlignment(wx.ALIGN_LEFT, wx.ALIGN_CENTRE)
         self.SetRowLabelSize(0)
         self.AutoSizeRows()
