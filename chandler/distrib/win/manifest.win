@@ -947,8 +947,6 @@ release/bin/Lib/zipfile.py
 release/bin/Lib/__future__.py
 release/bin/Lib/__future__.pyo
 release/bin/Lib/__phello__.foo.py
-release/bin/libs.not/python22.exp
-release/bin/libs.not/python22.lib
 release/bin/python.exe
 release/bin/python22.dll
 release/bin/pythonw.exe
@@ -1045,7 +1043,6 @@ Chandler/parcels/contacts/ContactsView.xrc
 Chandler/parcels/contacts/ImageCache.py
 Chandler/parcels/contacts/MiniContactCard.py
 Chandler/parcels/contacts/MiniContactCardView.py
-Chandler/parcels/contacts/resources/andy.jpg
 Chandler/parcels/contacts/resources/badge.gif
 Chandler/parcels/contacts/resources/cell-phone.gif
 Chandler/parcels/contacts/resources/contacts.xml
@@ -1055,7 +1052,6 @@ Chandler/parcels/contacts/resources/fax.gif
 Chandler/parcels/contacts/resources/genericphoto.jpg
 Chandler/parcels/contacts/resources/home-address.gif
 Chandler/parcels/contacts/resources/home-phone.gif
-Chandler/parcels/contacts/resources/mitch.64.gif
 Chandler/parcels/contacts/resources/names.txt
 Chandler/parcels/contacts/resources/note.gif
 Chandler/parcels/contacts/resources/web.gif
