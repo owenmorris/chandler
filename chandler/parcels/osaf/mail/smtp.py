@@ -43,7 +43,7 @@ class SMTPConstants(object):
     SUCCESS = 250
 
 class ChandlerESMTPSender(smtp.ESMTPSender, policies.TimeoutMixin):
-    timeout = 60 #seconds
+    timeout = 40 #seconds
 
     def timeoutConnection(self):
         if not self.factory.done:
