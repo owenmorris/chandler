@@ -499,15 +499,19 @@ class ItemHandler(ContentHandler):
     def typeHandler(cls, repository, value):
 
         try:
-            return repository[cls.typeHandlers[repository][type(value)]]
+            for uuid in cls.typeHandlers[repository][type(value)]:
+                t = repository[uuid]
+                if t.recognizes(value):
+                    return t
         except KeyError:
-            typeKind = repository[cls.typeHandlers[repository][None]]
-            types = typeKind.findTypes(value)
+            pass
 
-            if types:
-                return types[0]
+        typeKind = repository[cls.typeHandlers[repository][None]]
+        types = typeKind.findTypes(value)
+        if types:
+            return types[0]
             
-            raise TypeError, 'No handler for values of type %s' %(type(value))
+        raise TypeError, 'No handler for values of type %s' %(type(value))
 
     def typeName(cls, repository, value):
 
@@ -534,9 +538,10 @@ class ItemHandler(ContentHandler):
 
         if attrCard == 'single':
             if attrType is not None and attrType.isAlias():
-                attrType = attrType.type(value)
-                if attrType is None:
-                    attrType = cls.typeHandler(repository, value)
+                aliasType = attrType.type(value)
+                if aliasType is None:
+                    raise TypeError, "%s does not alias type of value '%s' of type %s" %(attrType.itsPath, value, type(value))
+                attrType = aliasType
                 attrs['typeid'] = attrType._uuid.str64()
 
             elif withSchema or attrType is None:

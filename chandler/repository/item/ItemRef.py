@@ -426,6 +426,10 @@ class Values(dict):
 
         self._item = item
 
+    def _copy(self, item):
+
+        return Values(item)
+
     def _getItem(self):
 
         return self._item
@@ -457,6 +461,10 @@ class References(Values):
             value._setItem(item)
 
         self._item = item
+
+    def _copy(self, item):
+
+        return References(item)
 
     def __setitem__(self, key, value, *args):
 

@@ -55,10 +55,16 @@ class Type(Item):
         super(Type, self)._fillItem(name, parent, kind, **kwds)
 
         self._status |= Item.SCHEMA
-        implementationType = self.getImplementationType()
+        self._registerTypeHandler(self.getImplementationType())
+
+    def _registerTypeHandler(self, implementationType):
+        
         if implementationType is not None:
             typeHandlers = ItemHandler.typeHandlers[self.getRepository()]
-            typeHandlers[self.getImplementationType()] = self._uuid
+            if implementationType in typeHandlers:
+                typeHandlers[implementationType].append(self._uuid)
+            else:
+                typeHandlers[implementationType] = [ self._uuid ]
 
     def getImplementationType(self):
         return self.implementationTypes['python']
@@ -103,6 +109,11 @@ class Type(Item):
 
 
 class String(Type):
+
+    def _fillItem(self, name, parent, kind, **kwds):
+
+        super(String, self)._fillItem(name, parent, kind, **kwds)
+        self._registerTypeHandler(str)
 
     def getImplementationType(self):
 

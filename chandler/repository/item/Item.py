@@ -73,11 +73,15 @@ class Item(object):
         self._version = kwds['version']
         self._access = 0L
 
-        kwds['values']._setItem(self)
-        self._values = kwds['values']
-        
-        kwds['references']._setItem(self)
-        self._references = kwds['references']
+        values = kwds.get('values')
+        if values is not None:
+            values._setItem(self)
+            self._values = values
+
+        references = kwds.get('references')
+        if references is not None:
+            references._setItem(self)
+            self._references = references
 
         self._setParent(parent, kwds.get('previous'), kwds.get('next'))
 
@@ -1124,6 +1128,19 @@ class Item(object):
             self._status &= ~Item.DIRTY
 
         return False
+
+    def copy(self, name=None, parent=None):
+
+        cls = type(self)
+        item = cls.__new__(cls)
+        item._fillItem(name, parent or self.itsParent, self._kind,
+                       uuid = UUID(), version = self._version)
+        item._status |= Item.NEW
+
+        item._values = self._values._copy(item)
+        item._references = self._references._copy(item)
+
+        return item
 
     def delete(self, recursive=False):
         """

@@ -5,8 +5,8 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from repository.item.Item import Item
-from repository.item.ItemRef import RefDict, NoneRef
+from repository.item.Item import Item, ItemValue
+from repository.item.ItemRef import ItemRef, RefDict, NoneRef
 from repository.item.PersistentCollections import PersistentCollection
 from repository.util.Path import Path
 from repository.util.UUID import UUID
@@ -220,13 +220,25 @@ class Kind(Item):
 
         for name, value in self._initialValues.iteritems():
             if isinstance(value, PersistentCollection):
-                value = value.copy(item, name, value._companion, value)
+                value = value._copy(item, name, value._companion, value)
+            elif isinstance(value, ItemValue):
+                raise NotImplementedError, 'ItemValue initialValue'
+
             values[name] = value
 
-        # only initialValue of None for refs is supported at the moment
         for name, value in self._initialReferences.iteritems():
             if value is None:
                 value = NoneRef
+            elif isinstance(value, Item):
+                value = ItemRef(item, name, value, item._otherName(name))
+            elif isinstance(value, PersistentCollection):
+                refDict = self._refDict(name, item._otherName(name))
+                for other in value.itervalues():
+                    refDict.append(other)
+                value = refDict
+            else:
+                raise TypeError, value
+            
             references[name] = value
 
     def flushCaches(self):
