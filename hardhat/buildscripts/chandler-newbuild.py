@@ -36,7 +36,8 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
      buildVersion, clobber, log)
 
     if ret == "no_changes" or ret =="build_failed" or ret == "test_failed":
-        closeLog()
+        modeDir = os.path.join(workingDir, "debug")
+        CopyLog(os.path.join(modeDir, logPath), log)
         pass # return ret
 
     # do release
