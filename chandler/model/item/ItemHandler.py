@@ -114,7 +114,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 otherName = self.getOtherName(name, attribute, attrs)
                 refDict = self.repository.createRefDict(None, name,
                                                         otherName, True)
-
+                
                 if attrs.has_key('first'):
                     firstKey = self.makeValue(attrs.get('firstType', 'str'),
                                               attrs['first'])
@@ -293,7 +293,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 self.refs.append(RefArgs(self.collections[-1]._name, name,
                                          ref, self.collections[-1]._otherName,
                                          otherCard, self.collections[-1],
-                                         previous, next))
+                                         previous, next, attrs.get('alias')))
             else:
                 name = attrs['name']
                 otherName = self.getOtherName(name, self.getAttribute(name),
@@ -303,6 +303,14 @@ class ItemHandler(xml.sax.ContentHandler):
         else:
             value = self.collections.pop()
             self.references[attrs['name']] = value
+
+    def aliasEnd(self, itemHandler, attrs):
+
+        refDict = self.collections[-1]
+        if refDict._aliases is None:
+            refDict._aliases = {}
+
+        refDict._aliases[attrs['name']] = UUID(self.data)
 
     def dbEnd(self, itemHandler, attrs):
             
@@ -317,7 +325,7 @@ class ItemHandler(xml.sax.ContentHandler):
             for ref in refDict._dbRefs():
                 args = RefArgs(refDict._name, ref[0], ref[1],
                                refDict._otherName, otherCard, refDict,
-                               ref[2], ref[3])
+                               ref[2], ref[3], ref[4])
                 self.refs.append(args)
 
     def valueStart(self, itemHandler, attrs):

@@ -9,8 +9,8 @@
 
     <ref name="attributes" otherName="kinds" cardinality="list" 
          otherCard="list">
-      <ref type="path">/Model/Attributes/displayName</ref>
-      <ref type="path">/Model/Attributes/description</ref>
+      <ref alias="displayName" type="path">/Model/Attributes/displayName</ref>
+      <ref alias="description" type="path">/Model/Attributes/description</ref>
 
       <!-- 
          - plus local attributes below:

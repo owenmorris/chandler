@@ -423,7 +423,8 @@ class XMLRefDict(RefDict):
         self._item = None
         self._uuid = UUID()
         self._repository = repository
-
+        self._deletedRefs = {}
+        
         super(XMLRefDict, self).__init__(item, name, otherName)
 
     def _getRepository(self):
@@ -432,15 +433,12 @@ class XMLRefDict(RefDict):
 
     def _loadRef(self, key):
 
+        if key in self._deletedRefs:
+            return None
+
         self._key.truncate(32)
         self._key.seek(0, 2)
-
-        if isinstance(key, UUID):
-            self._key.write('\0')
-            self._key.write(key._uuid)
-        else:
-            self._key.write('\1')
-            self._key.write(key)
+        self._key.write(key._uuid)
 
         value = self._repository._refs.get(self._key.getvalue())
         if value is None:
@@ -453,8 +451,9 @@ class XMLRefDict(RefDict):
         uuid = UUID(self._value.read(16))
         previous = self._readValue()
         next = self._readValue()
-
-        return (key, uuid, previous, next)
+        alias = self._readValue()
+        
+        return (key, uuid, previous, next, alias)
 
     def _changeRef(self, key):
 
@@ -467,31 +466,24 @@ class XMLRefDict(RefDict):
 
         if not self._repository.isLoading():
             self._log.append((1, key))
+            self._deletedRefs[key] = key
         else:
-            ValueError, 'detach during load'
+            raise ValueError, 'detach during load'
 
         super(XMLRefDict, self)._removeRef(key, _detach)
 
-    def _writeRef(self, key, uuid, previous, next):
+    def _writeRef(self, key, uuid, previous, next, alias):
 
         self._key.truncate(32)
         self._key.seek(0, 2)
-
-        if isinstance(key, UUID):
-            self._key.write('\0')
-            self._key.write(key._uuid)
-        elif isinstance(key, str) or isinstance(key, unicode):
-            self._key.write('\1')
-            self._key.write(str(key))
-        else:
-            raise NotImplementedError, "refName: %s, type: %s" %(key,
-                                                                 type(key))
+        self._key.write(key._uuid)
 
         self._value.truncate(0)
         self._value.seek(0)
         self._value.write(uuid._uuid)
         self._writeValue(previous)
         self._writeValue(next)
+        self._writeValue(alias)
         value = self._value.getvalue()
             
         self._repository._refs.put(self._key.getvalue(), value)
@@ -534,13 +526,7 @@ class XMLRefDict(RefDict):
 
         self._key.truncate(32)
         self._key.seek(0, 2)
-
-        if isinstance(key, UUID):
-            self._key.write('\0')
-            self._key.write(key._uuid)
-        else:
-            self._key.write('\1')
-            self._key.write(key)
+        self._key.write(key._uuid)
 
         self._repository._refs.delete(self._key.getvalue())
 
@@ -556,10 +542,7 @@ class XMLRefDict(RefDict):
             val = None
             
         while val is not None and val[0].startswith(key):
-            if val[0][32] == '\0':
-                refName = UUID(val[0][33:])
-            else:
-                refName = val[0][33:]
+            refName = UUID(val[0][32:])
 
             self._value.truncate(0)
             self._value.seek(0)
@@ -568,7 +551,8 @@ class XMLRefDict(RefDict):
             uuid = UUID(self._value.read(16))
             previous = self._readValue()
             next = self._readValue()
-            yield (refName, uuid, previous, next)
+            alias = self._readValue()
+            yield (refName, uuid, previous, next, alias)
                 
             val = cursor.next()
 
@@ -605,19 +589,22 @@ class XMLRefDict(RefDict):
                 if entry[0] == 0:
                     if value is not None:
                         ref = value._value
+                        alias = value._alias
                         previous = value._previousKey
                         next = value._nextKey
     
                         uuid = ref.other(self._item).getUUID()
-                        self._writeRef(entry[1], uuid, previous, next)
+                        self._writeRef(entry[1], uuid, previous, next, alias)
                         
                 elif entry[0] == 1:
                     self._eraseRef(entry[1])
+
                 else:
                     raise ValueError, entry[0]
     
             del self._log[:]
-    
+            self._deletedRefs.clear()
+            
             if len(self) > 0:
                 generator.startElement('db', {})
                 generator.characters(self._uuid.str64())

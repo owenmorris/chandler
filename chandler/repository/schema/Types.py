@@ -233,14 +233,14 @@ class Enumeration(Type):
     def recognizes(self, value):
 
         try:
-            return self.Values.index(value) >= 0
+            return self.values.index(value) >= 0
         except ValueError:
             return False
 
     def typeXML(self, value, generator):
 
         try:
-            number = self.Values.index(value)
+            number = self.values.index(value)
         except ValueError:
             raise ValueError, "%d not in %s enum" %(value, self._name)
             
@@ -249,7 +249,7 @@ class Enumeration(Type):
     def unserialize(self, data):
 
         if data[0] >= '0' and data[0] <= '9':
-            return self.Values[int(data)]
+            return self.values[int(data)]
 
         return data
 

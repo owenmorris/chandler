@@ -13,14 +13,14 @@ class LinkedMap(dict):
 
         def __init__(self, value):
 
-            super(LinkedMap.link, self).__init__(self)
+            super(LinkedMap.link, self).__init__()
 
             self._previousKey = self._nextKey = None
             self._value = value
 
         def __repr__(self):
 
-            return self._value.__repr__()
+            return "<link: %s>" %(self._value.__repr__())
         
         def _setNext(self, nextKey, key, linkedMap):
 
@@ -117,6 +117,8 @@ class LinkedMap(dict):
 
             super(LinkedMap, self).__setitem__(key, link)
 
+        return link
+
     def place(self, key, afterKey=None):
         "Move a key in this collection after another one."
 
@@ -161,21 +163,23 @@ class LinkedMap(dict):
             
     def __delitem__(self, key):
 
-        value = self._get(key)
+        link = self._get(key)
 
-        if value._previousKey is not None:
-            self._get(value._previousKey)._setNext(value._nextKey,
-                                                   value._previousKey, self)
+        if link._previousKey is not None:
+            self._get(link._previousKey)._setNext(link._nextKey,
+                                                  link._previousKey, self)
         else:
-            self._firstKey = value._nextKey
+            self._firstKey = link._nextKey
             
-        if value._nextKey is not None:
-            self._get(value._nextKey)._setPrevious(value._previousKey,
-                                                   value._nextKey, self)
+        if link._nextKey is not None:
+            self._get(link._nextKey)._setPrevious(link._previousKey,
+                                                  link._nextKey, self)
         else:
-            self._lastKey = value._previousKey
+            self._lastKey = link._previousKey
                 
         super(LinkedMap, self).__delitem__(key)
+
+        return link
 
     def has_key(self, key, load=True):
 

@@ -60,7 +60,7 @@ class ItemRef(object):
             if other.hasAttributeValue(otherName):
                 old = other.getAttributeValue(otherName)
                 if isinstance(old, RefDict):
-                    old[item.refName(otherName)] = self
+                    old[item._refName(otherName)] = self
                     return
             else:
                 if otherCard is None:
@@ -70,7 +70,7 @@ class ItemRef(object):
                 if otherCard != 'single':
                     old = other._refDict(otherName, name, otherPersist)
                     other._references[otherName] = old
-                    old[item.refName(otherName)] = self
+                    old[item._refName(otherName)] = self
                     return
             
             other.setAttributeValue(otherName, self,
@@ -81,7 +81,7 @@ class ItemRef(object):
         old = other.getAttributeValue(otherName, _attrDict=other._references)
 
         if isinstance(old, RefDict):
-            old._removeRef(item.refName(otherName))
+            old._removeRef(item._refName(otherName))
         else:
             other._removeRef(otherName)
 
@@ -177,7 +177,7 @@ class RefArgs(object):
     'A wrapper around arguments necessary to make and store an ItemRef'
     
     def __init__(self, attrName, refName, spec, otherName, otherCard,
-                 valueDict, previous=None, next=None):
+                 valueDict, previous=None, next=None, alias=None):
 
         super(RefArgs, self).__init__()
         
@@ -189,6 +189,7 @@ class RefArgs(object):
         self.valueDict = valueDict
         self.previous = previous
         self.next = next
+        self.alias = alias
         self.ref = None
         
     def attach(self, item, repository):
@@ -202,7 +203,7 @@ class RefArgs(object):
             if other is None:
                 raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(self.spec, self.spec, item.getItemPath())
             else:
-                self.refName = other.refName(self.attrName)
+                self.refName = other._refName(self.attrName)
 
         if other is not None:
             if not other._isAttaching():
@@ -217,7 +218,8 @@ class RefArgs(object):
                                self.otherCard)
             repository._addStub(self.ref)
             self.valueDict.__setitem__(self.refName, self.ref, 
-                                       self.previous, self.next, False)
+                                       self.previous, self.next, self.alias,
+                                       False)
 
     def _attach(self, item, other):
         
@@ -231,22 +233,25 @@ class RefArgs(object):
                 self.ref = ItemRef(item, self.attrName,
                                    other, self.otherName, self.otherCard)
                 self.valueDict.__setitem__(self.refName, self.ref, 
-                                           self.previous, self.next)
+                                           self.previous, self.next,
+                                           self.alias)
 
         elif isinstance(value, ItemRef):
             if isinstance(value._other, ItemStub):
                 value._other = item
                 self.valueDict.__setitem__(self.refName, value,
-                                           self.previous, self.next)
+                                           self.previous, self.next,
+                                           self.alias)
 
         elif isinstance(value, RefDict):
-            otherRefName = item.refName(self.otherName)
+            otherRefName = item._refName(self.otherName)
             if value.has_key(otherRefName):
                 value = value._getRef(otherRefName)
                 if isinstance(value._other, ItemStub):
                     value._other = item
                     self.valueDict.__setitem__(self.refName, value,
-                                               self.previous, self.next)
+                                               self.previous, self.next,
+                                               self.alias)
             else:
                 if self.ref is not None:
                     self.ref.attach(item, self.attrName,
@@ -255,7 +260,8 @@ class RefArgs(object):
                     self.ref = ItemRef(item, self.attrName,
                                        other, self.otherName, self.otherCard)
                     self.valueDict.__setitem__(self.refName, self.ref,
-                                               self.previous, self.next)
+                                               self.previous, self.next,
+                                               self.alias)
 
         else:
             raise ValueError, value
@@ -307,14 +313,26 @@ class References(Values):
 
 class RefDict(LinkedMap):
 
+    class link(LinkedMap.link):
+
+        def __init__(self, value):
+
+            super(RefDict.link, self).__init__(value)
+            self._alias = None
+
     def __init__(self, item, name, otherName):
 
         self._name = name
         self._otherName = otherName
         self._setItem(item)
         self._count = 0
+        self._aliases = None
         
         super(RefDict, self).__init__()
+
+    def _makeLink(self, value):
+
+        return RefDict.link(value)
 
     def _setItem(self, item):
 
@@ -345,7 +363,7 @@ class RefDict(LinkedMap):
     def __contains__(self, obj):
 
         if isinstance(obj, model.item.Item.Item):
-            return self.has_key(obj.refName(self._name))
+            return self.has_key(obj._refName(self._name))
 
         return self.has_key(obj)
 
@@ -354,9 +372,9 @@ class RefDict(LinkedMap):
         for value in valueList:
             self.append(value)
 
-    def append(self, value):
+    def append(self, item, alias=None):
 
-        self[value.refName(self._name)] = value
+        self.__setitem__(item._refName(self._name), item, alias=alias)
 
     def clear(self):
 
@@ -372,7 +390,8 @@ class RefDict(LinkedMap):
 
         return self._getRef(key).other(self._getItem())
 
-    def __setitem__(self, key, value, previousKey=None, nextKey=None,
+    def __setitem__(self, key, value,
+                    previousKey=None, nextKey=None, alias=None,
                     load=True):
 
         loading = self._getRepository().isLoading()
@@ -383,6 +402,7 @@ class RefDict(LinkedMap):
             if ref is not None:
                 previousKey = ref[2]
                 nextKey = ref[3]
+                alias = ref[4]
         
         old = super(RefDict, self).get(key, None, load)
         if old is not None:
@@ -391,17 +411,30 @@ class RefDict(LinkedMap):
                 old.detach(item, self._name,
                            old.other(item), self._otherName)
             else:
-                old.reattach(item, self._name,
-                             old.other(item), value, self._otherName)
+                if value is not old.other(item):
+                    print 'Warning: reattaching %s for %s on %s' %(value,
+                                                                   old.other(item),
+                                                                   self._name)
+                    old.reattach(item, self._name,
+                                 old.other(item), value, self._otherName)
                 return old
 
         if type(value) is not ItemRef:
             value = ItemRef(self._getItem(), self._name,
                             value, self._otherName)
 
-        super(RefDict, self).__setitem__(key, value, previousKey, nextKey)
+        link = super(RefDict, self).__setitem__(key, value,
+                                                previousKey, nextKey)
+        if alias:
+            link._alias = alias
+            if self._aliases is None:
+                self._aliases = {}
+            self._aliases[alias] = key
+            
         if not loading:
             self._count += 1
+
+        return value
 
     def placeItem(self, item, after):
         """Place an item in this collection after another one.
@@ -409,13 +442,18 @@ class RefDict(LinkedMap):
         Both items must already belong to the collection. To place an item
         first,  pass None for 'after'."""
         
-        key = item.refName(self._name)
+        key = item._refName(self._name)
         if after is not None:
-            afterKey = after.refName(self._name)
+            afterKey = after._refName(self._name)
         else:
             afterKey = None
 
         super(RefDict, self).place(key, afterKey)
+
+    def removeItem(self, item):
+        "Remove a referenced item from this reference collection."
+        
+        del self[item._refName(self._name)]
             
     def __delitem__(self, key):
 
@@ -429,7 +467,10 @@ class RefDict(LinkedMap):
             value.detach(self._item, self._name,
                          value.other(self._item), self._otherName)
 
-        super(RefDict, self).__delitem__(key)
+        link = super(RefDict, self).__delitem__(key)
+        if link._alias:
+            del self._aliases[link._alias]
+            
         self._count -= 1
 
     def _load(self, key):
@@ -441,7 +482,8 @@ class RefDict(LinkedMap):
             ref = self._loadRef(key)
             if ref is not None:
                 args = RefArgs(self._name, ref[0], ref[1],
-                               self._otherName, None, self, ref[2], ref[3])
+                               self._otherName, None, self,
+                               ref[2], ref[3], ref[4])
                 args.attach(self._item, self._item.getRepository())
                 
                 return True
@@ -474,6 +516,10 @@ class RefDict(LinkedMap):
             return value.other(self._item)
 
         return default
+
+    def getByAlias(self, alias):
+
+        return self[self._aliases[alias]]
 
     def _refCount(self):
 
@@ -513,6 +559,11 @@ class RefDict(LinkedMap):
             attrs['count'] = str(self._count)
 
             generator.startElement('ref', attrs)
+            if self._aliases:
+                for key, value in self._aliases.iteritems():
+                    generator.startElement('alias', { 'name': key })
+                    generator.characters(value.str64())
+                    generator.endElement('alias')
             self._xmlValues(generator, mode)
             generator.endElement('ref')
 
@@ -551,7 +602,7 @@ class RefDict(LinkedMap):
         Returns None if previous is the last referenced item in the
         collection."""
 
-        nextKey = self.nextKey(previous.refName(self._name))
+        nextKey = self.nextKey(previous._refName(self._name))
         if nextKey is not None:
             return self[nextKey]
 
@@ -563,7 +614,7 @@ class RefDict(LinkedMap):
         Returns None if next is the first referenced item in the
         collection."""
 
-        previousKey = self.previousKey(next.refName(self._name))
+        previousKey = self.previousKey(next._refName(self._name))
         if previousKey is not None:
             return self[previousKey]
 

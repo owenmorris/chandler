@@ -197,7 +197,7 @@ class Item(object):
             else:
                 refs = self._refDict(name, otherName)
                 value = ItemRef(self, name, value, otherName)
-                refs[value._getItem().refName(name)] = value
+                refs[value._getItem()._refName(name)] = value
                 value = refs
 
             self._references[name] = value
@@ -369,7 +369,7 @@ class Item(object):
 
         raise TypeError, "%s is not multi-valued" %(attribute)
 
-    def setValue(self, attribute, value, key=None, _attrDict=None):
+    def setValue(self, attribute, value, key=None, alias=None, _attrDict=None):
         """Set a value for a multi-valued attribute, for an optional key.
 
         When the cardinality of the attribute is 'list' and its type is a
@@ -382,7 +382,7 @@ class Item(object):
 
         isItem = isinstance(value, Item)
         if isItem and key is None:
-            key = value.refName(attribute)
+            key = value._refName(attribute)
 
         if _attrDict is None:
             if isItem:
@@ -414,14 +414,17 @@ class Item(object):
 
             _attrDict[attribute] = attrValue
 
-        attrValue[key] = value
+        if isItem and alias:
+            attrValue.__setitem__(key, value, alias=alias)
+        else:
+            attrValue[key] = value
 
-    def addValue(self, attribute, value, key=None, _attrDict=None):
+    def addValue(self, attribute, value, key=None, alias=None, _attrDict=None):
         "Add a value for a multi-valued attribute for a given optional key."
 
         isItem = isinstance(value, Item)
         if isItem and key is None:
-            key = value.refName(attribute)
+            key = value._refName(attribute)
         
         if _attrDict is None:
             if isItem:
@@ -432,13 +435,16 @@ class Item(object):
         attrValue = _attrDict.get(attribute, None)
 
         if attrValue is None:
-            self.setValue(attribute, value, key, _attrDict)
+            self.setValue(attribute, value, key, alias, _attrDict)
 
         else:
             self.setDirty()
 
             if isinstance(attrValue, dict):
-                attrValue[key] = value
+                if isItem and alias:
+                    attrValue.__setitem__(key, value, alias=alias)
+                else:
+                    attrValue[key] = value
             elif isinstance(attrValue, list):
                 attrValue.append(value)
             else:
@@ -487,28 +493,33 @@ class Item(object):
 
         return False
 
-    def removeValue(self, attribute, key, _attrDict=None):
+    def removeValue(self, attribute, key=None, value=None, _attrDict=None):
         """Remove the value from a multi-valued attribute for a given key.
 
         When the cardinality of the attribute is 'list' and its type is a
-        literal, key must be an integer.
-        When the cardinality of the attribute is 'list' or 'dict' and its
-        values are references, the detach() method should be called instead."""
+        literal, key must be an integer and value None.
+        When the cardinality of the attribute is 'dict' and its type is a
+        literal, key must be an existing key and value is ignored.
+        When the cardinality of the attribute is 'list' and its
+        values are references, key is ignored and value must be the
+        referenced item to remove from the collection."""
 
-        self.setDirty()
-
+        if isinstance(value, Item) and key is None:
+            key = value._refName(attribute)
+            _attrDict = self._references
+        
         if _attrDict is not None:
-            value = _attrDict.get(attribute, None)
+            value = _attrDict[attribute]
         else:
             value = (self._values.get(attribute, None) or
                      self._references.get(attribute, None))
 
-        card = self.getAttributeAspect(attribute, 'cardinality', 'single')
-        
-        if card == 'dict' or card == 'list':
+        if value is not None:
             del value[key]
         else:
-            raise TypeError, "%s is not multi-valued" %(attribute)
+            raise KeyError, 'No value for attribute %s' %(attribute)
+
+        self.setDirty()
 
     def _removeRef(self, name):
 
@@ -639,12 +650,8 @@ class Item(object):
                 
         return self._name
 
-    def refName(self, name):
-        '''Return the reference name for this item.
-
-        The reference name is used as a key into multi-valued attribute
-        dictionaries storing ItemRefs to this and other items.
-        By default, this name is the UUID of the item.'''
+    def _refName(self, name):
+        'deprecated'
         
         return self._uuid
 
@@ -702,6 +709,12 @@ class Item(object):
                 newRepository._registerItem(self)
 
                 self.setDirty()
+
+        if root:
+            if root.getItemName() == 'Schema':
+                self._status |= Item.SCHEMA
+            else:
+                self._status &= ~Item.SCHEMA
 
         for child in self.iterChildren(load=False):
             child._setRoot(root)
