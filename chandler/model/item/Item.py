@@ -7,8 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import xml.sax
 
 from ItemRef import ItemRef
-from ItemRef import RefDict
-from ItemRef import RefList
+from ItemRef import References, RefDict
 
 from model.util.UUID import UUID
 from model.util.Path import Path
@@ -33,7 +32,7 @@ class Item(object):
 
         self._deleted = False
         self._attributes = _kwds.get('_attributes') or {}
-        self._references = _kwds.get('_references') or {}
+        self._references = _kwds.get('_references') or References()
         self._uuid = _kwds.get('_uuid') or UUID()
         
         self._name = name or self._uuid.str64()
@@ -98,8 +97,9 @@ class Item(object):
                 otherName = name[:-5]
             else:
                 otherName = name + '__for'
-            print 'Warning: Undefined endpoint for %s.%s' %(item.getPath(),
+            print 'Warning: Undefined endpoint for %s.%s' %(self.getPath(),
                                                             name)
+            raise ValueError, "__for"
 
         return otherName
 
@@ -145,8 +145,8 @@ class Item(object):
                 old = _attrDict.get(name)
 
                 if isinstance(old, ItemRef):
-                    old._reattach(self, old.other(self), value,
-                                  self._otherName(name))
+                    old.reattach(self, name, old.other(self), value,
+                                 self._otherName(name))
                     return
                 else:
                     old.clear()
@@ -156,17 +156,20 @@ class Item(object):
 
         if isItem:
             otherName = self._otherName(name)
-            value = ItemRef(self, name, value, otherName)
             card = self.getAttrAspect(name, 'Cardinality', 'single')
 
             if card == 'dict':
-                refs = RefDict(self, name, otherName)
+                refs = self._refDict(name, otherName)
+                value = ItemRef(refs, self, name, value, otherName)
                 refs[value._getItem().refName(name)] = value
                 value = refs
             elif card == 'list':
-                refs = RefList(self, name, otherName)
+                refs = self._refDict(name, otherName, True)
+                value = ItemRef(refs, self, name, value, otherName)
                 refs[value._getItem().refName(name)] = value
                 value = refs
+            else:
+                value = ItemRef(self._references, self, name, value, otherName)
 
             self._references[name] = value
 
@@ -234,8 +237,8 @@ class Item(object):
             del _attrDict[name]
 
             if isinstance(value, ItemRef):
-                value._detach(self, name,
-                              value.other(self), self._otherName(name))
+                value.detach(self, name,
+                             value.other(self), self._otherName(name))
             elif isinstance(value, RefDict):
                 value.clear()
 
@@ -268,7 +271,7 @@ class Item(object):
         if value is None:
             return default
 
-        if isinstance(value, dict) or isinstance(value, RefDict):
+        if isinstance(value, dict):
             return value.get(key, default)
 
         if isinstance(value, list):
@@ -296,15 +299,15 @@ class Item(object):
 
             if card == 'dict':
                 if isItem:
-                    attrValue = RefDict(self, attribute,
-                                        self._otherName(attribute))
+                    attrValue = self._refDict(attribute,
+                                              self._otherName(attribute))
                 else:
                     attrValue = { key: value }
                     return
             elif card == 'list':
                 if isItem:
-                    attrValue = RefList(self, attribute,
-                                        self._otherName(attribute))
+                    attrValue = self._refDict(attribute,
+                                              self._otherName(attribute), True)
                 else:
                     attrValue = [ value ]
                     return
@@ -328,7 +331,7 @@ class Item(object):
 
         if attrValue is None:
             self.setValue(attribute, value, key, _attrDict=_attrDict)
-        elif isinstance(attrValue, dict) or isinstance(attrValue, RefDict):
+        elif isinstance(attrValue, dict):
             attrValue[key] = value
         elif isinstance(attrValue, list):
             attrValue.append(value)
@@ -341,7 +344,7 @@ class Item(object):
         value = (self._attributes.get(attribute, None) or
                  self._references.get(attribute, None))
 
-        if isinstance(value, dict) or isinstance(value, RefDict):
+        if isinstance(value, dict):
             return value.has_key(key)
         elif isinstance(value, list):
             return 0 <= key and key < len(value)
@@ -356,7 +359,7 @@ class Item(object):
         attrValue = (self._attributes.get(attribute, None) or
                      self._references.get(attribute, None))
 
-        if isinstance(attrValue, dict) or isinstance(attrValue, RefDict):
+        if isinstance(attrValue, dict):
             for v in attrValue.itervalues():
                 if v == value:
                     return True
@@ -379,7 +382,7 @@ class Item(object):
             value = (self._attributes.get(attribute, None) or
                      self._references.get(attribute, None))
 
-        if isinstance(value, dict) or isinstance(value, RefDict):
+        if isinstance(value, dict):
             del value[key]
         elif isinstance(value, list):
             value.pop(key)
@@ -539,7 +542,7 @@ class Item(object):
         self._kind = kind
 
         if self._kind is not None:
-            self._references['Kind'] = ItemRef(self, 'Kind',
+            self._references['Kind'] = ItemRef(self._references, self, 'Kind',
                                                self._kind, 'Items', 'dict')
 
     def getRepository(self):
@@ -742,6 +745,12 @@ class Item(object):
 
         generator.endElement(tag)
 
+    def _refDict(self, name, otherName, ordered=False):
+
+        return self.getRepository().createRefDict(self, name,
+                                                  otherName, ordered)
+        
+
     def loadClass(cls, name, module=None):
 
         if module is None:
@@ -855,25 +864,14 @@ class ItemHandler(xml.sax.ContentHandler):
 
             if cardinality != 'single':
                 otherName = self.getOtherName(name, attrDef, attrs)
-                if attrDef:
-                    uuid = attrDef.getUUID()
-                else:
-                    uuid = UUID()
-                dbDict = self.repository.createRefDict(uuid)
-                
-                if cardinality == 'dict':
-                    self.collections.append(RefDict(None, name, otherName,
-                                                    dbDict))
-                elif cardinality == 'list':
-                    self.collections.append(RefList(None, name, otherName,
-                                                    dbDict))
-                else:
-                    raise ValueError, "Illegal cardinality: %s" %(cardinality)
+                refDict = self.repository.createRefDict(None, name, otherName,
+                                                        cardinality == 'list')
+                self.collections.append(refDict)
 
     def itemStart(self, itemHandler, attrs):
 
         self.attributes = {}
-        self.references = {}
+        self.references = References()
         self.refs = []
         self.collections = []
         self.attrDefs = []
@@ -929,7 +927,7 @@ class ItemHandler(xml.sax.ContentHandler):
             if other is not None:
                 value = other._references.get(otherName)
                 if value is None:
-                    valueDict[refName] = ItemRef(item, attrName,
+                    valueDict[refName] = ItemRef(valueDict, item, attrName,
                                                  other, otherName, otherCard)
                 elif isinstance(value, ItemRef):
                     if value._other is None:
@@ -943,11 +941,12 @@ class ItemHandler(xml.sax.ContentHandler):
                             value._other = item
                             valueDict[refName] = value
                     else:
-                        valueDict[refName] = ItemRef(item, attrName,
+                        valueDict[refName] = ItemRef(valueDict, item, attrName,
                                                      other, otherName,
                                                      otherCard)
             else:
-                value = ItemRef(item, attrName, other, otherName, otherCard)
+                value = ItemRef(valueDict, item, attrName, other, otherName,
+                                otherCard)
                 valueDict[refName] = value
                 self.repository._appendRef(item, attrName,
                                            ref[1], otherName, otherCard, value)

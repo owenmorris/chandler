@@ -40,7 +40,7 @@ class Kind(Item):
         if self.hasValue('NotFoundAttrDefs', name):
             return None
         
-        inheritingKinds = self._getInheritingKinds(name)
+        inheritingKinds = self._getInheritingKinds()
         if inheritingKinds is not None:
             cache = True
             for inheritingKind in inheritingKinds:
@@ -57,12 +57,12 @@ class Kind(Item):
 
         return None
 
-    def _getInheritingKinds(self, name):
+    def _getInheritingKinds(self):
 
         if self.hasAttribute('SuperKind'):
             return self.SuperKind
 
-        return self._kind._getInheritingKinds(name)
+        return self._kind._getInheritingKinds()
 
     def _saveRefs(self, generator, withSchema):
 
@@ -81,7 +81,7 @@ class KindKind(Kind):
 
 class ItemKind(Kind):
 
-    def _getInheritingKinds(self, name):
+    def _getInheritingKinds(self):
         return None
 
 

@@ -10,6 +10,7 @@ import cStringIO
 from model.util.UUID import UUID
 from model.item.Item import ItemHandler
 from model.item.ItemRef import ItemRef
+from model.item.ItemRef import RefDict
 from model.persistence.Repository import Repository
 
 from bsddb.db import DBEnv, DB, DB_CREATE, DB_INIT_MPOOL, DB_BTREE
@@ -43,6 +44,7 @@ class XMLRepository(Repository):
             super(XMLRepository, self).create()
             self._env = DBEnv()
             self._env.open(self.dbHome, DB_CREATE | DB_INIT_MPOOL, 0)
+            self._refs = XMLRepository.refContainer(self._env, "__refs__")
             self._schema = XMLRepository.xmlContainer(self._env, "__schema__")
             self._data = XMLRepository.xmlContainer(self._env, "__data__")
 
@@ -56,6 +58,7 @@ class XMLRepository(Repository):
 
         if self._env is not None:
             self._save(purge=purge, verbose=verbose)
+            self._refs.close()
             self._data.close()
             self._schema.close()
             self._env.close()
@@ -146,9 +149,9 @@ class XMLRepository(Repository):
 
         container.putDocument(doc)
 
-    def createRefDict(self, uuid):
+    def createRefDict(self, item, name, otherName, ordered=False):
 
-        return XMLRefDict(self, uuid)
+        return XMLRefDict(self, item, name, otherName, ordered)
 
 
     class xmlContainer(object):
@@ -195,26 +198,107 @@ class XMLRepository(Repository):
             self._xml = None
 
 
-class XMLRefDict(dict):
+    class refContainer(object):
 
-    def __init__(self, repository, uuid):
+        def __init__(self, env, name):
+
+            super(XMLRepository.refContainer, self).__init__()
         
-        super(XMLRefDict, self).__init__()
+            self._db = DB(env)
+            self._db.open(name, None, DB_BTREE, DB_CREATE)
+            
+        def close(self):
 
-        self._uuid = uuid
+            self._db.close()
+            self._db = None
+
+        def put(self, key, value):
+
+            self._db.put(key, value);
+
+        def get(self, key):
+
+            return self._db.get(key);
+
+
+class XMLRefDict(RefDict):
+
+    def __init__(self, repository, item, name, otherName, ordered)
+        
+        super(XMLRefDict, self).__init__(item, name, otherName, ordered)
+
         self._repository = repository
+        self._buffer = cStringIO.StringIO()
+
+    def __setitem__(self, key, value):
+
+        if self._item is not None:
+            other = value.other(self._item)
+
+            if other is not None:
+                self._writeRef(other)
+
+       super(RefDict, self).__setitem__(key, value)
+
+    def _writeRef(self, item):
+
+        self._buffer.seek(31, 0)
+
+        if isinstance(key, UUID):
+            self._buffer.write(key._uuid)
+        else:
+            self._buffer.write(key)
+
+        self._repository._refs.put(self._buffer.getvalue(), other._uuid._uuid)
+
+    def __getitem__(self, key):
+
+#        value = super(dict, self).get(key, None)
+#        if value is not None:
+#            return value
+#
+#        self._buffer.reset()
+#        self._buffer.write(item._uuid._uuid)
+#        self._buffer.write(uuid._uuid)
+#
+#        if isinstance(key, UUID):
+#            self._buffer.write(key._uuid)
+#        else:
+#            self._buffer.write(key)
+#
+#        uuid = UUID(self._repository._refs.get(self._buffer.getvalue()))
+#        other = self.repository.find(uuid)
+
+        return super(RefDict, self).__getitem__(key)
         
     def _setItem(self, item):
 
+        if self._item is not None and self._item is not item:
+            raise ValueError, 'Item is already set'
+        
         self._item = item
 
-    def _getItem(self):
+        if item is not None:
+            if item._kind is not None:
+                attrDef = item._kind.getAttrDef(name)
+                if attrDef is not None:
+                    uuid = attrDef.getUUID()
+                else:
+                    uuid = UUID()
+            else:
+                uuid = UUID()
 
-        return self._item
+            self._buffer.reset()
+            self._buffer.write(self._item._uuid._uuid)
+            self._buffer.write(uuid._uuid)
 
-    def _xmlValue(self, generator):
+            for item in self:
+                self._writeRef(item)
+            
 
-        for ref in self.iteritems():
+    def _xmlValues(self, generator):
+
+        for ref in self._iteritems():
             ref[1]._xmlValue(ref[0], self._item, generator)
 
 #        generator.startElement('db', {})

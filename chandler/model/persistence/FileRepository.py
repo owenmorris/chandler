@@ -10,6 +10,7 @@ import os
 
 from model.util.UUID import UUID
 from model.persistence.Repository import Repository
+from model.item.ItemRef import RefDict
 
 
 class FileRepository(Repository):
@@ -152,19 +153,13 @@ class FileRepository(Repository):
         out.write('\n')
         out.close()
 
-    def createRefDict(self, uuid):
+    def createRefDict(self, item, name, otherName, ordered=False):
 
-        return FileRefDict()
+        return FileRefDict(item, name, otherName, ordered)
     
 
-class FileRefDict(dict):
+class FileRefDict(RefDict):
 
-    def _setItem(self, item):
-        self._item = item
-
-    def _getItem(self):
-        return self._item
-
-    def _xmlValue(self, generator):
-        for ref in self.iteritems():
+    def _xmlValues(self, generator):
+        for ref in self._iteritems():
             ref[1]._xmlValue(ref[0], self._item, generator)

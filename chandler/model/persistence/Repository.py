@@ -37,7 +37,7 @@ class Repository(object):
     def isOpen(self):
         raise NotImplementedError, "Repository.isOpen"
     
-    def createRefDict(self, uuid):
+    def createRefDict(self, item, name, otherName, ordered=False):
         raise NotImplementedError, "Repository.createRefDict"
     
     def __iter__(self):
