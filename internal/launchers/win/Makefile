@@ -33,7 +33,8 @@ winlaunch_bin/chandler.exe: winlaunch_bin/winlaunch_bin.cpp
 	cp $(DLLS) $(BUILD_ROOT)/$(SNAP)/bin
 
 clean:
-	rm $@ 
+	devenv.com winlaunch/winlaunch.sln /clean $(SNAP)
+	devenv.com winlaunch_bin/winlaunch_bin.sln /clean $(SNAP)
 
 endif
 
