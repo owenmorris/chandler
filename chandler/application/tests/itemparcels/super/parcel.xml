@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel describes="//parcels/super"
+        itemName="super"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:items="http://testparcels.org/items"
+        xmlns:super="http://testparcels.org/super">
+
+  <namespace value="http://testparcels.org/super"/>
+
+  <Enumeration itemName="TestEnumType">
+    <values>A</values>
+    <values>B</values>
+    <values>C</values>
+  </Enumeration>
+
+  <Attribute itemName="EnumAttribute">
+    <displayName>Enum Attribute</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="super:TestEnumType"/>
+  </Attribute>
+
+  <Attribute itemName="RefAttribute">
+    <displayName>Ref Attribute</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="super:Kind1"/>
+    <inverseAttribute itemref="super:RefAttributeInverse"/>
+  </Attribute>
+
+  <Attribute itemName="RefAttributeInverse">
+    <displayName>Ref Attribute Inverse</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="super:Kind1"/>
+    <inverseAttribute itemref="super:RefAttribute"/>
+  </Attribute>
+
+  <Kind itemName="Kind1">
+    <superKinds itemref="Item"/>
+    <displayName>Test Kind 1</displayName>
+    <attributes itemref="super:EnumAttribute"/>
+    <attributes itemref="super:RefAttribute"/>
+  </Kind>
+
+</Parcel>

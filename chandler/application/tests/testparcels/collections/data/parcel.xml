@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itemName="data"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:coll="http://testparcels.org/collections" >
+
+  <namespace value="http://testparcels.org/collections/data" />
+
+  <coll:Block itemName="parent">
+  </coll:Block>
+
+  <coll:Block itemName="child1">
+  </coll:Block>
+
+  <coll:Block itemName="child2">
+  </coll:Block>
+
+</Parcel>

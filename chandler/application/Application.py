@@ -8,7 +8,7 @@ from new import classobj
 import wx
 import Globals
 from repository.util.UUID import UUID
-import repository.parcel.LoadParcels as LoadParcels
+import application.Parcel
 from repository.persistence.XMLRepository import XMLRepository
 from crypto import Crypto
 
@@ -24,7 +24,7 @@ def repositoryCallback(changes, notification, **kwds):
 
     if notification != 'History':
         return
-    
+
     eventPath = '//parcels/osaf/framework/commit_history'
 
     event = Globals.repository.findPath(eventPath)
@@ -118,7 +118,7 @@ class wxApplication (wx.App):
     """
     PARCEL_IMPORT = 'parcels'
 
-    def OnInit(self):       
+    def OnInit(self):
         """
           Main application initialization.
         """
@@ -222,11 +222,13 @@ class wxApplication (wx.App):
         Globals.notificationManager = NotificationManager()
 
         # Load Parcels
-        parcelSearchPath = parcelDir
+        parcelSearchPath = [ parcelDir ]
         if __debug__ and debugParcelDir:
-            parcelSearchPath = parcelSearchPath + os.pathsep + debugParcelDir
+            parcelSearchPath.append( debugParcelDir )
 
-        LoadParcels.LoadParcels(parcelSearchPath, Globals.repository)
+        parcelManager = \
+         application.Parcel.Manager.getManager(path=parcelSearchPath)
+        parcelManager.loadParcels()
 
         Globals.repository.commit()
 
