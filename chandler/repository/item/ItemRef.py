@@ -24,7 +24,7 @@ class ItemRef(object):
 
         return '<ItemRef: %s - %s>' %(self._item, self._other)
 
-    def _setItem(self):
+    def _setItem(self, item):
         pass
 
     def getItem(self):
@@ -163,6 +163,59 @@ class ItemRef(object):
         generator.startElement('ref', attrs)
         generator.characters(other.getUUID().str64())
         generator.endElement('ref')
+
+
+class _noneRef(ItemRef):
+
+    def __init__(self):
+        super(_noneRef, self).__init__(None, None, None, None)
+
+    def __repr__(self):
+        return '<NoneRef>'
+
+    def attach(self, item, name, other, otherName,
+               otherCard=None, otherPersist=None):
+        pass
+
+    def detach(self, item, name, other, otherName):
+        pass
+    
+    def reattach(self, item, name, old, new, otherName):
+        item.name = ItemRef(item, name, new, otherName)
+    
+    def getItem(self):
+        return None
+
+    def getOther(self):
+        return None
+
+    def _unload(self, item):
+        pass
+
+    def other(self, item):
+        return None
+
+    def check(self, item, name):
+        pass
+
+    def _refCount(self):
+        return 0
+
+    def _xmlValue(self, name, item, generator, withSchema, version, mode,
+                  previous=None, next=None, alias=None):
+
+        generator.startElement('ref', {'name': name, 'type': 'none'})
+        generator.endElement('ref')
+
+    def __new__(cls, *args, **kwds):
+
+        try:
+            return _noneRef._noneRef
+        except AttributeError:
+            _noneRef._noneRef = ItemRef.__new__(cls, *args, **kwds)
+            return _noneRef._noneRef
+
+NoneRef = _noneRef()
 
 
 class Stub(object):

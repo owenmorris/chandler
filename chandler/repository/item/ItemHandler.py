@@ -11,7 +11,7 @@ from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import SingleRef
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
-from repository.item.ItemRef import Values, References, RefArgs
+from repository.item.ItemRef import Values, References, RefArgs, NoneRef
 
 from repository.util.UUID import UUID
 from repository.util.Path import Path
@@ -285,6 +285,9 @@ class ItemHandler(xml.sax.ContentHandler):
 
             if typeName == 'path':
                 ref = Path(self.data)
+            elif typeName == 'none':
+                self.references[attrs['name']] = NoneRef
+                return
             else:
                 ref = UUID(self.data)
 

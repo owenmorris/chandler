@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import xml.sax, xml.sax.saxutils
 import cStringIO
 
-from repository.item.ItemRef import ItemRef, RefArgs
+from repository.item.ItemRef import ItemRef, NoneRef, RefArgs
 from repository.item.ItemRef import Values, References, RefDict
 from repository.item.ItemHandler import ItemHandler
 from repository.item.PersistentCollections import PersistentCollection
@@ -173,15 +173,19 @@ class Item(object):
                 _attrDict = self._values
 
         if _attrDict is self._references:
+            if value is None:
+                value = NoneRef
+                isRef = True
             if name in _attrDict:
                 old = _attrDict[name]
 
                 if isinstance(old, ItemRef):
                     if isItem:
-                        # reattaching on original endpoint
-                        old.reattach(self, name, old.other(self), value,
-                                     self._otherName(name))
-                        return value
+                        if old is not NoneRef:
+                            # reattaching on original endpoint
+                            old.reattach(self, name, old.other(self), value,
+                                         self._otherName(name))
+                            return value
                     elif isRef:
                         # reattaching on other endpoint,
                         # can't reuse ItemRef
