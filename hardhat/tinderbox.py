@@ -182,7 +182,7 @@ def main():
                  options.rsyncServer + ":continuous/" + buildNameNoSpaces])
                 hardhatutil.dumpOutputList(outputList, log)
 
-        elif ret == "build_failed":
+        elif ret[:12] == "build_failed":
             print "The build failed"
             log.write("The build failed\n")
             status = "build_failed"
@@ -198,7 +198,7 @@ def main():
             log = open(logFile, "w")
 
         
-        elif ret == "test_failed":
+        elif ret[:11] == "test_failed":
             print "Unit tests failed"
             log.write("Unit tests failed\n")
             status = "test_failed"

@@ -169,10 +169,9 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log
 
     except Exception, e:
         print "a testing error"
-        log.write("***Error during tests*** " + e.str() + "\n")
+        log.write("***Error during tests*** " + str(e) + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Tests log:" + "\n")
-        hardhatutil.dumpOutputList(outputList, log)
         if os.path.exists(os.path.join(workingDir, logPath)) :
             CopyLog(os.path.join(workingDir, logPath), log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
