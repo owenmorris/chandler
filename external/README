@@ -62,7 +62,7 @@ in which they're built (listed in the SYSTEMS Makefile variable).
 
  - world: builds all of external and internal; Chandler ready to run
  - default, all: build all subsystems
- - end: check build environment
+ - env: check build environment
  - compilers: download and install compilers for your platform
  - binaries: create release or debug binaries for upload
  - install: installs binaries into chandler directory
