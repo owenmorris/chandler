@@ -46,6 +46,10 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         item= self.selectedItem()
         assert item is notification.data['item'], "can't track selection in DetailRoot.onSelectionChangedEvent"
         self.synchronizeWidget()
+        if __debug__:
+            dumpSelectionChanged = False
+            if dumpSelectionChanged:
+                self.dumpShownHierarchy ('onSelectionChangedEvent')
 
     def synchronizeDetailView(self, item):
         """
@@ -81,11 +85,46 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         for child in children:
             child.isShown = item is not None
             reNotifyInside(child, item)
-    
+
+    if __debug__:
+        def dumpShownHierarchy (self, methodName=''):
+            """ Like synchronizeDetailView, but just dumps info about which
+            blocks are currently shown.
+            """
+            def reNotifyInside(block, item, indent):
+                if not isinstance(block, DynamicContainerBlocks.ToolbarItem):
+                    if block.isShown:
+                        print indent + '+' + block.blockName
+                    else:
+                        print indent + '-' + block.blockName
+                try:
+                    # process from the children up
+                    for child in block.childrenBlocks:
+                        reNotifyInside (child, item, indent + '  ')
+                except AttributeError:
+                    pass
+            item= self.selectedItem()
+            try:
+                itemDescription = item.itsKind.itsName + ' '
+            except AttributeError:
+                itemDescription = ''
+            try:
+                itemDescription += str (item)
+            except:
+                itemDescription += str (item.itsName)
+            print methodName + " " + itemDescription
+            print "-------------------------------"
+            reNotifyInside(self, item, '')
+            print
+
     def synchronizeWidget (self):
         item= self.selectedItem()
         self.synchronizeDetailView(item)
         super(DetailRoot, self).synchronizeWidget ()
+        if __debug__:
+            dumpSynchronizeWidget = False
+            if dumpSynchronizeWidget:
+                self.dumpShownHierarchy ('synchronizeWidget')
         
     def onDestroyWidget (self):
         # Hack - DLDTBD - remove when wxWidgets issue is resolved.
@@ -428,9 +467,10 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
             widget = self.widget
             self.loadAttributeIntoWidget(item, widget)
         
-    def onLoseFocus (self, notification):
+    def onLoseFocus (self, event):
         # called when we lose focus, to save away the text
         self.saveTextValue()
+        event.Skip()
         
     def OnDataChanged (self):
         # Notification that an edit operation has taken place
@@ -518,6 +558,12 @@ class ToEditField (EditTextAttribute):
 
 class FromEditField (EditTextAttribute):
     """Edit field containing the sender's contact"""
+    def shouldShow (self, item):
+        # don't show if the item is a Contact
+        contactKind = Contacts.ContactsParcel.getContactKind ()
+        shouldShow = not item.isItemOf (contactKind)
+        return shouldShow
+
     def saveAttributeFromWidget(self, item, widget):  
         pass
 
@@ -560,6 +606,17 @@ class EditRedirectAttribute (EditTextAttribute):
             value = ''
         widget.SetValue(value)
 
+class EditHeadlineRedirectAttribute (EditRedirectAttribute):
+    """
+    An attribute-based edit field
+    Doesn't show for contacts.
+    """
+    def shouldShow (self, item):
+        # don't show if the item is a Contact
+        contactKind = Contacts.ContactsParcel.getContactKind ()
+        shouldShow = not item.isItemOf (contactKind)
+        return shouldShow
+
 class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
     def shouldShow (self, item):
         # if the item is a MailMessageMixin, we should show ourself
@@ -574,20 +631,20 @@ class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
             if isinstance (item, ItemCollection.ItemCollection):
                 # collection: label should read "Notify"
                 label = "Notify"
-                # disable this button if the collection is already shared
+                # change the button label if the collection is already shared
                 try:
-                    shouldEnable = not Sharing.isShared (item)
+                    renotify = Sharing.isShared (item)
                 except AttributeError:
-                    shouldEnable = True
+                    pass
                 else:
-                    if not shouldEnable:
-                        label = "Shared"
+                    if renotify:
+                        label = "Renotify"
                 # disable the button if no sharees
                 try:
                     sharees = item.sharees
                 except AttributeError:
                     sharees = []
-                shouldEnable = shouldEnable and len (sharees) > 0
+                shouldEnable = len (sharees) > 0
             else:
                 # not a collection, so it's probably Mail
                 label = "Send"

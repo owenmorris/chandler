@@ -79,6 +79,7 @@
   <!-- Root -->
   <SelectionContainer itemName="DetailRootTemplate"
                      itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
+    <blockName value="DetailRootTemplate"/>
     <childrenBlocks itemref="doc:DetailTrunk"/>
     <subscribeWhenVisibleEvents itemref="doc:SendShareItem"/>
     <subscribeWhenVisibleEvents itemref="doc:NULL"/>
@@ -86,8 +87,10 @@
 
   <ContentItemDetail itemName="DetailTrunk">
     <!-- child blocks -->
+    <blockName value="DetailTrunk"/>
     <childrenBlocks itemref="doc:MarkupBar"/>
     <childrenBlocks itemref="doc:FromAndToArea"/>
+    <childrenBlocks itemref="doc:ContactFullNameArea"/>
     <childrenBlocks itemref="doc:CoreIndent"/>
     <childrenBlocks itemref="doc:NotesArea"/>
     <childrenBlocks itemref="doc:SendShareButton"/>
@@ -261,8 +264,8 @@
 
   <!-- FromAndToArea -->
   <ContentItemDetail itsName="FromAndToArea">
+    <blockName value="FromAndToArea"/>
     <childrenBlocks itemref="doc:FromArea"/>
-    <childrenBlocks itemref="doc:ContactFullNameArea"/>
     <childrenBlocks itemref="doc:ToArea"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
@@ -270,6 +273,7 @@
  
   <ContentItemDetail itsName="FromArea"
                      itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
+    <blockName value="FromArea"/>
     <childrenBlocks itemref="doc:FromString"/>
     <childrenBlocks itemref="doc:FromEditField1"/>
     <!-- Attributes -->
@@ -279,6 +283,7 @@
 
   <StaticText itsName="FromString"
               itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+    <blockName value="FromString"/>
     <title>From: </title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
@@ -288,6 +293,7 @@
   
   <EditText itsName="FromEditField1"
             itemClass="osaf.framework.blocks.detail.Detail.FromEditField">
+    <blockName value="FromEditField1"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -298,6 +304,7 @@
 
   <ContentItemDetail itsName="ContactFullNameArea"
                      itemClass="osaf.framework.blocks.detail.Detail.ContactFullNameBlock">
+    <blockName value="ContactFullNameArea"/>
     <childrenBlocks itemref="doc:ContactFullNameString"/>
     <childrenBlocks itemref="doc:ContactFullNameEditField"/>
     <!-- Attributes -->
@@ -306,6 +313,7 @@
   </ContentItemDetail>
 
   <StaticText itsName="ContactFullNameString">
+    <blockName value="ContactFullNameString"/>
     <title>Full Name: </title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
@@ -315,6 +323,7 @@
   
   <EditText itsName="ContactFullNameEditField"
             itemClass="osaf.framework.blocks.detail.Detail.ContactFullNameEditField">
+    <blockName value="ContactFullNameEditField"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -325,6 +334,7 @@
 
   <ContentItemDetail itsName="ToArea"
                      itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
+    <blockName value="ToArea"/>
     <childrenBlocks itemref="doc:ToString"/>
     <childrenBlocks itemref="doc:ToEditField1"/>
     <!-- Attributes -->
@@ -334,6 +344,7 @@
  
   <StaticText itsName="ToString"
               itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+    <blockName value="ToString"/>
     <title>To: </title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
@@ -343,6 +354,7 @@
   
   <EditText itsName="ToEditField1"
             itemClass="osaf.framework.blocks.detail.Detail.ToEditField">
+    <blockName value="ToEditField1"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -353,6 +365,7 @@
 
   <!-- CoreIndent -->
   <ContentItemDetail itsName="CoreIndent">
+    <blockName value="DetailRootTemplate"/>
     <childrenBlocks itemref="doc:Indent"/>
     <childrenBlocks itemref="doc:CoreArea"/>
     <childrenBlocks itemref="doc:Indent2"/>
@@ -362,18 +375,21 @@
  
   <ContentItemDetail itsName="Indent">
     <!-- Attributes -->
+    <blockName value="Indent"/>
     <size>80,80</size>
     <stretchFactor>0</stretchFactor>
   </ContentItemDetail>
  
   <ContentItemDetail itsName="Indent2">
     <!-- Attributes -->
+    <blockName value="Indent2"/>
     <size>80,80</size>
     <stretchFactor>0</stretchFactor>
   </ContentItemDetail>
  
   <!-- CoreArea -->
   <ContentItemDetail itsName="CoreArea">
+    <blockName value="CoreArea"/>
     <childrenBlocks itemref="doc:KindLabel"/>
     <childrenBlocks itemref="doc:HeadlineArea"/>
     <childrenBlocks itemref="doc:EmailAddressArea"/>
@@ -387,6 +403,7 @@
  
   <StaticText itsName="KindLabel"
               itemClass="osaf.framework.blocks.detail.Detail.KindLabel">
+    <blockName value="KindLabel"/>
     <title>Kind</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -396,6 +413,7 @@
   
   <ContentItemDetail itsName="HeadlineArea"
                      itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
+    <blockName value="HeadlineArea"/>
     <childrenBlocks itemref="doc:StaticHeadline"/>
     <childrenBlocks itemref="doc:EditHeadline"/>
     <!-- Attributes -->
@@ -407,6 +425,7 @@
  
   <StaticText itsName="StaticHeadline"
               itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+    <blockName value="StaticHeadline"/>
     <title>Subject</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -415,7 +434,8 @@
   </StaticText>
   
   <EditText itsName="EditHeadline"
-            itemClass="osaf.framework.blocks.detail.Detail.EditRedirectAttribute">
+            itemClass="osaf.framework.blocks.detail.Detail.EditHeadlineRedirectAttribute">
+    <blockName value="EditHeadline"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -427,6 +447,7 @@
 
   <ContentItemDetail itsName="EmailAddressArea"
                      itemClass="osaf.framework.blocks.detail.Detail.EmailAddressBlock">
+    <blockName value="EmailAddressArea"/>
     <childrenBlocks itemref="doc:StaticEmailAddress"/>
     <childrenBlocks itemref="doc:EditEmailAddress"/>
     <!-- Attributes -->
@@ -438,6 +459,7 @@
  
   <StaticText itsName="StaticEmailAddress"
               itemClass="osaf.framework.blocks.detail.Detail.StaticEmailAddressAttribute">
+    <blockName value="StaticEmailAddress"/>
     <title>home email address</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -447,6 +469,7 @@
   
   <EditText itsName="EditEmailAddress"
             itemClass="osaf.framework.blocks.detail.Detail.EditEmailAddressAttribute">
+    <blockName value="EditEmailAddress"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -458,6 +481,7 @@
 
   <StaticText itsName="DateTime"
               itemClass="osaf.framework.blocks.detail.Detail.DateTimeBlock">
+    <blockName value="DateTime"/>
     <title>Date/Time</title>
     <characterStyle itemref="doc:TextStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -467,6 +491,7 @@
   
   <ContentItemDetail itsName="CalendarStartTime"
                      itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+    <blockName value="CalendarStartTime"/>
     <childrenBlocks itemref="doc:StaticCalendarStartTime"/>
     <childrenBlocks itemref="doc:EditCalendarStartTime"/>
     <!-- Attributes -->
@@ -478,6 +503,7 @@
  
   <StaticText itsName="StaticCalendarStartTime"
               itemClass="osaf.framework.blocks.detail.Detail.StaticTimeAttribute">
+    <blockName value="StaticCalendarStartTime"/>
     <title>Start Time</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -487,6 +513,7 @@
   
   <EditText itsName="EditCalendarStartTime"
             itemClass="osaf.framework.blocks.detail.Detail.EditTimeAttribute">
+    <blockName value="EditCalendarStartTime"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -498,6 +525,7 @@
 
   <ContentItemDetail itsName="CalendarDuration"
                      itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+    <blockName value="CalendarDuration"/>
     <childrenBlocks itemref="doc:StaticCalendarDuration"/>
     <childrenBlocks itemref="doc:EditCalendarDuration"/>
     <!-- Attributes -->
@@ -508,6 +536,7 @@
  
   <StaticText itsName="StaticCalendarDuration"
               itemClass="osaf.framework.blocks.detail.Detail.StaticDurationAttribute">
+    <blockName value="StaticCalendarDuration"/>
     <title>Duration</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -517,6 +546,7 @@
   
   <EditText itsName="EditCalendarDuration"
             itemClass="osaf.framework.blocks.detail.Detail.EditDurationAttribute">
+    <blockName value="EditCalendarDuration"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -529,6 +559,7 @@
   <!-- NotesArea -->
   <EditText itsName="NotesArea"
                    itemClass="osaf.framework.blocks.detail.Detail.NoteBody">
+    <blockName value="NotesArea"/>
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>RichText</textStyleEnum>
@@ -543,6 +574,7 @@
           itemClass="osaf.framework.blocks.detail.Detail.SendShareButton">
 
     <!-- Attributes -->
+    <blockName value="SendShareButton"/>
     <title>xxxxx</title>
     <buttonKind>Text</buttonKind>
 
