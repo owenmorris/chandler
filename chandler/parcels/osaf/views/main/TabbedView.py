@@ -31,17 +31,15 @@ class TabbedView(ControlBlocks.TabbedContainer):
                 self.tabTitles[self.activeTab] = self.getUniqueName(node.getItemDisplayName())
                 page = tabbedContainer.GetPage(self.activeTab)
                 tabbedContainer.RemovePage(self.activeTab)
-                self.UnregisterEvents(page)
+                self.UnregisterEvents(newChild)
                 item = Globals.repository.find(page.counterpartUUID)
                 item.parentBlock = None
                 page.Destroy()
 
                 newChild.parentBlock = self
-                newChild.render(tabbedContainer, tabbedContainer)
-                
+                newChild.render(tabbedContainer, tabbedContainer)                
                 wxNewChild = Globals.association [newChild.itsUUID]
-                wxNewChild.SetSize (tabbedContainer.GetClientSize())
-                
+                wxNewChild.SetSize (tabbedContainer.GetClientSize())                
                 self.RegisterEvents(newChild)
                 Globals.mainView.onSetActiveView(newChild)
 
@@ -69,23 +67,35 @@ class TabbedView(ControlBlocks.TabbedContainer):
         self.tabTitles.remove(self.tabTitles[selection])
         page = tabbedContainer.GetPage(selection)
         tabbedContainer.RemovePage(selection)
-        self.UnregisterEvents(page)
         item = Globals.repository.find(page.counterpartUUID)
+        self.UnregisterEvents(item)
         item.parentBlock = None
         page.Destroy()
                     
-#    def OnSelectionChanging(self, event):
-#        tabbedContainer = Globals.association [self.itsUUID]
-#        page = tabbedContainer.GetPage(tabbedContainer.GetSelection())
-#        self.UnregisterEvents(page)
-#        event.Skip()
+    def OnSelectionChanging(self, event):
+        tabbedContainer = Globals.association [self.itsUUID]
+        page = tabbedContainer.GetPage(event.GetSelection())
+        try:
+            page.counterpartUUID
+        except AttributeError:
+            pass
+        else:    
+            item = Globals.repository.find(page.counterpartUUID)
+            self.UnregisterEvents(item)
+        event.Skip()
         
-#    def OnSelectionChanged(self, event):
-#        tabbedContainer = Globals.association [self.itsUUID]
-#        page = tabbedContainer.GetPage(tabbedContainer.GetSelection())
-#        self.RegisterEvents(page)
-#        Globals.mainView.onSetActiveView(page)
-#        event.Skip()
+    def OnSelectionChanged(self, event):
+        tabbedContainer = Globals.association [self.itsUUID]
+        page = tabbedContainer.GetPage(event.GetSelection())
+        try:
+            page.counterpartUUID
+        except AttributeError:
+            pass
+        else:    
+            item = Globals.repository.find(page.counterpartUUID)
+            self.RegisterEvents(item)
+            Globals.mainView.onSetActiveView(item)
+        event.Skip()
             
     def RegisterEvents(self, block):
         try:
@@ -93,8 +103,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
         except AttributeError:
             return
         self.currentId = UUID()
-        Globals.notificationManager.Subscribe(events, 
-                                              self.currentId, 
+        Globals.notificationManager.Subscribe(events, self.currentId, 
                                               Globals.mainView.dispatchEvent)
  
     def UnregisterEvents(self, oldBlock):
