@@ -1114,24 +1114,46 @@ def handleManifest(buildenv, filename):
                      + abspath)
                     continue
 
+#expand $(VAR) with value of VAR environment variable
+#expand ${program} with full path of directory containing program from PATH
+
 def expandVars(line):
 
-    start = 0
-    while True:
-        start = line.find('$(', start)
-        if start == -1:
-            return line
-        end = line.find(')', start)
-        if end == -1:
-            return line
+    def replaceVars(line, op, cl, fn):
+        
+        start = 0
+        while True:
+            start = line.find(op, start)
+            if start == -1:
+                return line
+            end = line.find(cl, start)
+            if end == -1:
+                return line
 
-        var = line[start+2:end]
-        var = os.getenv(var)
+            var = line[start+len(op):end]
+            var = fn(var)
 
-        if var is not None:
-            line = "%s%s%s" %(line[0:start], var, line[end+1:])
-        else:
-            start = start + 2
+            if var is not None:
+                line = "%s%s%s" %(line[0:start], var, line[end+len(cl):])
+            else:
+                start = start + len(op)
+
+    def pathFind(var):
+
+        path = os.getenv('PATH')
+        if path is not None:
+            for p in path.split(os.pathsep):
+                program = os.path.join(p, var)
+                if os.path.isfile(program):
+                    return p
+
+        return None
+
+    line = replaceVars(line, '$(', ')', os.getenv)
+    line = replaceVars(line, '${', '}', pathFind)
+
+    return line
+    
 
 def _copyTree(srcdir, destdir, recursive, patterns):
     os.chdir(srcdir)
