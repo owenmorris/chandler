@@ -166,14 +166,14 @@ class promptUserDialog(wx.Dialog):
         box = wx.BoxSizer(wx.HORIZONTAL)
 
         if isPassword:
-            text = wx.TextCtrl(self, -1, value, wx.DefaultPosition, [400,-1],
+            text = wx.TextCtrl(self, -1, value, wx.DefaultPosition, [500,-1],
              wx.TE_PASSWORD)
         else:
-            text = wx.TextCtrl(self, -1, value, wx.DefaultPosition, [400,-1])
+            text = wx.TextCtrl(self, -1, value, wx.DefaultPosition, [500,-1])
 
         box.Add(text, 1, wx.ALIGN_CENTRE|wx.ALL, 5)
 
-        sizer.AddSizer(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
+        sizer.Add(box, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5)
 
         # line = wx.StaticLine(self, -1, size=(20,-1), style=wx.LI_HORIZONTAL)
         # sizer.Add(line, 0, wx.GROW|wx.ALIGN_CENTER_VERTICAL|wx.RIGHT|wx.TOP, 5)
