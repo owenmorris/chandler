@@ -13,6 +13,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 main(int argc, char **argv)
 {
     int retval = 0;
+    FILE *fp;
     struct stat statBuf;            /* For lstat() */
     if((lstat("Chandler.py", &statBuf)==-1) || ! S_ISREG(statBuf.st_mode)) {
         printf("ERROR: Chandler.py not found; exiting\n");
@@ -23,7 +24,8 @@ main(int argc, char **argv)
     Py_Initialize();
     PySys_SetArgv(argc, argv);
 
-    FILE *fp = fopen("Chandler.py", "r+");
+
+    fp = fopen("Chandler.py", "r+");
     retval = PyRun_SimpleFile(fp, "Chandler.py");
     if(retval != 0) {
         printf("Python interpreter exited with value = %d\n", retval);
