@@ -53,32 +53,42 @@ class SMTPSendAction(Action.Action):
         m = Mail.MailMessage()
 
         ea = Mail.EmailAddress()
-        ea.emailAddress = "brian@localhost"
-        ea.fullName = "Brian Kirsch"
+        ea.emailAddress = "brian@abc.com"
+        #ea.fullName = "Brian Kirsch"
+
 
         ea1 = Mail.EmailAddress()
-        ea1.emailAddress = "bkirsch@osafoundation.org"
-        ea1.fullName = "Brian Kirsch"
+        ea1.emailAddress = "bkiro"
+        #ea1.fullName = "Brian Kirsch"
 
         ea2 = Mail.EmailAddress()
-        ea2.emailAddress = "bkmuzic@yahoo.com"
-        ea2.fullName = "Brian Kirsch"
+        ea2.emailAddress = "bbi.com"
+        #ea2.fullName = "Brian Kirsch"
 
-        m.toAddress.append(ea)
-        #m.toAddress.append(ea1)
+        ea3 = Mail.EmailAddress()
+        ea3.emailAddress = "bill@test.com"
+
+        ea4 = Mail.EmailAddress()
+        ea4.emailAddress = "brian@yahoo.com"
+        #ea.fullName = "Brian Kirsch"
+
+        m.toAddress.append(ea1)
+        m.toAddress.append(ea2)
+        m.toAddress.append(ea3)
+        m.toAddress.append(ea4)
+       # m.toAddress.append(ea1)
         #m.ccAddress.append(ea2)
+        #m.bccAddress.append(ea)
 
-        m.fromAddress = ea1
-        m.replyToAddress = ea
+        m.fromAddress = ea
+        #m.replyToAddress = ea
         m.subject = "This is a Test From SMTPSenderAction"
         m.body = message.strToText(m, "body", "This is some body Text")
-        m.inReplyTo = "TEST"
 
         Globals.repository.commit()
 
-        d = defer.Deferred().addBoth(self.smtpResponse)
+        smtp.SMTPSender(account, m).sendMail()
 
-        smtp.SMTPSender(account, m, d).sendMail()
+        account = None
+        m = None
 
-    def smtpResponse(selfi, result):
-        print "SMTP Response Got: ", result

@@ -223,7 +223,7 @@ class MailDeliveryError(Item.Item):
         super (MailDeliveryError, self).__init__(name, parent, kind)
 
     def __str__(self):
-        return "Error Code: %d Error: %s Error Date: %s" % (self.errorCode, self.errorString, self.errorDate.strftime())
+        return "| %d | %s | %s |" % (self.errorCode, self.errorString, self.errorDate.strftime())
 
 
 class MailDeliveryBase(Item.Item):
