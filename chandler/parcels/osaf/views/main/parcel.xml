@@ -394,7 +394,7 @@
     <title>Generate Content Items</title>
     <location>TestMenu</location>
     <event itemref="events:GenerateContentItems"/>
-    <helpString>generates sample items: 5 contacts, 5 notes, 5 events</helpString>
+    <helpString>generates sample items: 2 contacts, 2 notes, 2 events</helpString>
   </MenuItem>
 
   <MenuItem itsName="GenerateContactItem">
