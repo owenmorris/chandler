@@ -35,3 +35,8 @@
 
     * tinderbuild.py now keeps the last 3 builds around so that
       people can get the latest bits
+
+2003-08-06 Morgen Sagen
+ 
+    * CHANDLERDIR environment variable is set when executing external commands
+    * parcels directory is put in sys.path when running unit tests
