@@ -332,19 +332,25 @@ class DBRepositoryView(OnDemandRepositoryView):
                     
         return itemWriter.writeItem(item, newVersion)
 
-    def mapChanges(self, callable):
+    def mapChanges(self, callable, freshOnly=False):
 
         for item in self._log:
-            if item.isDeleted():
-                callable(item, item._version, item._status, [], [])
-            elif item.isNew():
-                callable(item, item._version, item._status,
-                         item._values.keys(),
-                         item._references.keys())
-            else:
-                callable(item, item._version, item._status,
-                         item._values._getDirties(), 
-                         item._references._getDirties())
+            status = item._status
+            if not freshOnly or freshOnly and status & Item.FDIRTY:
+                if freshOnly:
+                    status &= ~Item.FDIRTY
+                    item._status = status
+
+                if item.isDeleted():
+                    callable(item, item._version, status, [], [])
+                elif item.isNew():
+                    callable(item, item._version, status,
+                             item._values.keys(),
+                             item._references.keys())
+                else:
+                    callable(item, item._version, status,
+                             item._values._getDirties(), 
+                             item._references._getDirties())
     
     def mapHistory(self, callable, fromVersion=0, toVersion=0):
 

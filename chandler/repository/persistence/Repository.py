@@ -456,9 +456,9 @@ class Repository(object):
         except ValueError:
             return None
 
-    def mapChanges(self, callable):
+    def mapChanges(self, callable, freshOnly=False):
 
-        self.view.mapChanges(callable)
+        self.view.mapChanges(callable, freshOnly)
 
     def mapHistory(self, callable, fromVersion=0, toVersion=0):
 

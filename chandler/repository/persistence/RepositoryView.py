@@ -711,7 +711,7 @@ class RepositoryView(object):
 
         return self
 
-    def mapChanges(self, callable):
+    def mapChanges(self, callable, freshOnly=False):
         """
         Invoke a callable for every item changed in this view.
 
@@ -727,6 +727,15 @@ class RepositoryView(object):
             - a list of changed literal attribute names
 
             - a list of changed references attribute names
+
+        The return value of C{callable} is not used.
+
+        @param callable: the function or method to be invoked.
+        @type callable: a python callable
+        @param freshOnly: optionally limit invocation of C{callable} to
+        items that were changed since last time this method was called or
+        since the last commit, whichever came last; C{False} by default.
+        @type freshOnly: boolean
         """
 
         raise NotImplementedError, "%s.mapChanges" %(type(self))

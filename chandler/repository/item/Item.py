@@ -1274,6 +1274,8 @@ class Item(object):
                     Item._monitorsClass.invoke('set', self, attribute)
                 
             self._lastAccess = _countAccess()
+            dirty |= Item.FDIRTY
+
             if self._status & Item.DIRTY == 0:
                 view = self.getRepositoryView()
                 if view is not None and not view.isLoading():
@@ -1291,7 +1293,7 @@ class Item(object):
                 self._status |= dirty
 
         else:
-            self._status &= ~(Item.DIRTY | Item.ADIRTY)
+            self._status &= ~(Item.DIRTY | Item.ADIRTY | Item.FDIRTY)
             self._values._clearDirties()
             self._references._clearDirties()
             if self._children is not None:
@@ -2264,27 +2266,27 @@ class Item(object):
             return False
     Nil        = nil()
     
-    DELETED    = 0x0001
-    VDIRTY     = 0x0002           # literal or ref changed
-    DELETING   = 0x0004
-    RAW        = 0x0008
-    ATTACHING  = 0x0010
-    SCHEMA     = 0x0020
-    NEW        = 0x0040
-    STALE      = 0x0080
-    NDIRTY     = 0x0100           # parent or name changed
-    CDIRTY     = 0x0200           # children list changed
-    RDIRTY     = 0x0400           # ref collection changed
-    CORESCHEMA = 0x0800           # core schema item
-    CONTAINER  = 0x1000           # has children
-    ADIRTY     = 0x2000           # acl(s) changed
-    PINNED     = 0x4000           # auto-refresh, don't stale
-    NODIRTY    = 0x8000           # turn off dirtying
-
-    VMERGED    = VDIRTY << 16
-    RMERGED    = RDIRTY << 16
-    NMERGED    = NDIRTY << 16
-    CMERGED    = CDIRTY << 16
+    DELETED    = 0x00000001
+    VDIRTY     = 0x00000002           # literal or ref changed
+    DELETING   = 0x00000004
+    RAW        = 0x00000008
+    ATTACHING  = 0x00000010
+    SCHEMA     = 0x00000020
+    NEW        = 0x00000040
+    STALE      = 0x00000080
+    NDIRTY     = 0x00000100           # parent or name changed
+    CDIRTY     = 0x00000200           # children list changed
+    RDIRTY     = 0x00000400           # ref collection changed
+    CORESCHEMA = 0x00000800           # core schema item
+    CONTAINER  = 0x00001000           # has children
+    ADIRTY     = 0x00002000           # acl(s) changed
+    PINNED     = 0x00004000           # auto-refresh, don't stale
+    NODIRTY    = 0x00008000           # turn off dirtying
+    FDIRTY     = 0x00010000           # fresh dirty since last mapChange call
+    VMERGED    = 0x00020000
+    RMERGED    = 0x00040000
+    NMERGED    = 0x00080000
+    CMERGED    = 0x00100000
 
     VRDIRTY    = VDIRTY | RDIRTY
     DIRTY      = VDIRTY | RDIRTY | NDIRTY | CDIRTY
