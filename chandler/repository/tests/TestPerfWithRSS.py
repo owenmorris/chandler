@@ -86,7 +86,7 @@ class TestPerfWithRSS(RepositoryTestCase):
                 data = feedparser.parse(feed.url, etag, modified)
                 itemCount += len(data['items'])
                 feedCount += 1
-                feed.Update(data)
+                feed.Update()
                 if commitInsideLoop:
                     self.rep.logger.info('%0.5d committing %s, %0.6d',
                                          feedCount, feed.url, itemCount)
@@ -105,6 +105,7 @@ class TestPerfWithRSS(RepositoryTestCase):
             self.fail()
 
         self.rep.logger.info('Processed %d items', itemCount)
+
         self.assert_(True)
         
     def __getFeeds(self):
