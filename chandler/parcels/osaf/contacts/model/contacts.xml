@@ -1,0 +1,290 @@
+<?xml version="1.0"?>
+
+<DomainSchema id="contacts:ContactsSchema"
+              root="Contacts"
+              xmlns="http://osafoundation.org/2003/08/schema_definition">
+
+  <label>Contacts Schema</label>
+  <comment>Contacts schema for the 0.2 release</comment>
+  <version>0.1</version>
+
+  <containmentPath prefix="types"
+                   path="//Schema/Model/Types/"/>
+  <containmentPath prefix="contacts"
+                   path="//Schema/ContactsSchema/"/>
+
+  <!-- Attributes used in ContactName -->
+
+  <AttributeDefinition id="contacts:fullname">
+    <label>Full Name</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:sortname">
+    <label>Sort Name</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:firstname">
+    <label>First Name</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:middlename">
+    <label>Middle Name</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:lastname">
+    <label>Last Name</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:nickname">
+    <label>Nick Name</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:nameEntity">
+    <label>Name Entity</label>
+    <cardinality>single</cardinality>
+    <type itemref="contacts:ContactEntity"/>
+    <inverseAttribute itemref="contacts:contactName"/>
+  </AttributeDefinition>
+
+  <!-- ContactName Item Definition -->
+
+  <Kind id="contacts:ContactName">
+    <label>Contact Name</label>
+    <attribute itemref="contacts:fullname"/>
+    <attribute itemref="contacts:sortname"/>
+    <attribute itemref="contacts:firstname"/>
+    <attribute itemref="contacts:middlename"/>
+    <attribute itemref="contacts:lastname"/>
+    <attribute itemref="contacts:nickname"/>
+    <attribute itemref="contacts:nameEntity"/>
+    <pythonClass>OSAF.contacts.model.ContactName.ContactName</pythonClass>
+  </Kind>
+
+  <!-- Attributes used in ContactMethod -->
+
+  <AttributeDefinition id="contacts:methodType">
+    <label>Method Type</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:methodDescription">
+    <label>Method Description</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:methodComment">
+    <label>Method Type</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:methodValue">
+    <label>Method Value</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:methodEntity">
+    <label>Method Entity</label>
+    <cardinality>single</cardinality>
+    <type itemref="contacts:ContactEntity"/>
+    <inverseAttribute itemref="contacts:contactMethods"/>
+  </AttributeDefinition>
+
+  <!-- ContactMethod Item Definition -->
+
+  <Kind id="contacts:ContactMethod">
+    <label>Contact Method</label>
+    <attribute itemref="contacts:methodType"/>
+    <attribute itemref="contacts:methodDescription"/>
+    <attribute itemref="contacts:methodComment"/>
+    <attribute itemref="contacts:methodValue"/>
+    <attribute itemref="contacts:methodEntity"/>
+    <pythonClass>OSAF.contacts.model.ContactMethod.ContactMethod</pythonClass>
+  </Kind>
+
+  <!-- Attributes used in PhoneContactMethod -->
+
+  <AttributeDefinition id="contacts:phonenumber">
+    <label>Phone Number</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <!-- PhoneContactMethod Item Definition -->
+
+  <Kind id="contacts:PhoneContactMethod">
+    <label>Phone Contact Method</label>
+    <attribute itemref="contacts:phonenumber"/>
+    <superKind itemref="contacts:ContactMethod"/>
+    <pythonClass>OSAF.contacts.model.ContactMethod.ContactMethod</pythonClass>
+  </Kind>
+
+  <!-- Attributes used in EmailContactMethod -->
+
+  <AttributeDefinition id="contacts:emailaddress">
+    <label>Email Address</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <!-- EmailContactMethod Item Definition -->
+
+  <Kind id="contacts:EmailContactMethod">
+    <label>Email Contact Method</label>
+    <attribute itemref="contacts:emailaddress"/>
+    <superKind itemref="contacts:ContactMethod"/>
+    <pythonClass>OSAF.contacts.model.ContactMethod.ContactMethod</pythonClass>
+  </Kind>
+
+  <!-- Attributes used in ContactFormat -->
+
+  <AttributeDefinition id="contacts:headerAttributes">
+    <label>Header Attributes</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:bodyAttributes">
+    <label>Body Attributes</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:formatEntity">
+    <label>Format Entity</label>
+    <cardinality>single</cardinality>
+    <type itemref="contacts:ContactEntity"/>
+    <inverseAttribute itemref="contacts:contactFormat"/>
+  </AttributeDefinition>
+
+  <!-- ContactFormat Item Definition -->
+
+  <Kind id="contacts:ContactFormat">
+    <label>Contact Format</label>
+    <attribute itemref="contacts:headerAttributes"/>
+    <attribute itemref="contacts:bodyAttributes"/>
+    <attribute itemref="contacts:formatEntity"/>
+    <pythonClass>OSAF.contacts.model.ContactFormat.ContactFormat</pythonClass>
+  </Kind>
+
+  <!-- Main Attributes used in ContactEntity -->
+
+  <AttributeDefinition id="contacts:contactType">
+    <label>Contact Type</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:contactName">
+    <label>Contact Name</label>
+    <cardinality>single</cardinality>
+    <type itemref="contacts:ContactName"/>
+    <inverseAttribute itemref="contacts:nameEntity"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:contactMethods">
+    <label>Contact Methods</label>
+    <cardinality>list</cardinality>
+    <type itemref="contacts:ContactMethod"/>
+    <inverseAttribute itemref="contacts:methodEntity"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:contactPhotoURL">
+    <label>Contact Photo URL</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:contactGroups">
+    <label>Contact Groups</label>
+    <cardinality>list</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:contactFormat">
+    <label>Contact Format</label>
+    <cardinality>single</cardinality>
+    <type itemref="contacts:ContactFormat"/>
+    <inverseAttribute itemref="contacts:formatEntity"/>
+  </AttributeDefinition>
+
+  <!-- Other Attributes used in ContactEntity -->
+
+  <AttributeDefinition id="contacts:companyName">
+    <label>Company Name</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:jobTitle">
+    <label>Job Title</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:occupation">
+    <label>Occupation</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:relationship">
+    <label>Relationship</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:age">
+    <label>Age</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:Integer"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:gender">
+    <label>Gender</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="contacts:sharing">
+    <label>Sharing</label>
+    <cardinality>single</cardinality>
+    <type itemref="types:String"/>
+  </AttributeDefinition>
+
+  <!-- ContactEntity Item Definition -->
+
+  <Kind id="contacts:ContactEntity">
+    <label>Contact Entity</label>
+    <attribute itemref="contacts:contactType"/>
+    <attribute itemref="contacts:contactName"/>
+    <attribute itemref="contacts:contactMethods"/>
+    <attribute itemref="contacts:contactPhotoURL"/>
+    <attribute itemref="contacts:contactGroups"/>
+    <attribute itemref="contacts:contactFormat"/>
+    <attribute itemref="contacts:companyName"/>
+    <attribute itemref="contacts:jobTitle"/>
+    <attribute itemref="contacts:occupation"/>
+    <attribute itemref="contacts:relationship"/>
+    <attribute itemref="contacts:age"/>
+    <attribute itemref="contacts:gender"/>
+    <attribute itemref="contacts:sharing"/>
+    <pythonClass>OSAF.contacts.model.ContactEntity.ContactEntity</pythonClass>
+  </Kind>
+
+</DomainSchema>
