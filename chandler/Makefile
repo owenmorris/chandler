@@ -27,7 +27,7 @@ BIN_ARCHIVES=../Launchers-$(SNAP)-0.4-9.tar.gz \
              ../libxml2-$(SNAP)-2.6.16-3.tar.gz \
              ../m2crypto-$(SNAP)-0.12-9.tar.gz \
              ../pychecker-$(SNAP)-0.8.13-2.tar.gz \
-             ../pylucene-$(SNAP)-0.9.6-1.tar.gz \
+             ../pylucene-$(SNAP)-0.9.8-1.tar.gz \
              ../python-$(SNAP)-2.4-2.tar.gz \
              ../soappy-$(SNAP)-0.10.2-2.tar.gz \
              ../twisted-$(SNAP)-r11303-4.tar.gz \
