@@ -151,8 +151,15 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def endElementNS(self, (uri, local), qname):
         """SAX2 callback for the end of a tag"""
+        elementUri = uri
+        elementLocal = local
         
         (uri, local, element, currentItem, currentReferences) = self.tags[-1]
+        currentItemsKindPath = currentItem.kind.getItemPath().__str__()
+        if currentItemsKindPath[:13] == "//Schema/Core":
+            isSchemaItem = True
+        else:
+            isSchemaItem = False
 
         # If we have a reference, delay loading
         if element == 'Reference':
@@ -164,14 +171,21 @@ class ItemHandler(xml.sax.ContentHandler):
         # end of the document because superKinds are not yet linked up and 
         # therefore attribute assignments could fail.
         elif element == 'Attribute':
-            self.currentReferences.append((self._DELAYED_LITERAL, local,
-             self.currentType, self.currentValue, None, self.locator.getLineNumber()))
+            if isSchemaItem:
+                value = self.makeValue(currentItem, elementLocal, self.currentType, self.currentValue, self.locator.getLineNumber())
+                currentItem.addValue(elementLocal, value)
+            else: # Delay
+                self.currentReferences.append((self._DELAYED_LITERAL, local,
+                 self.currentType, self.currentValue, None, self.locator.getLineNumber()))
                 
         # We have a dictionary, similar to attribute, but we have a key
         elif element == 'Dictionary':
-
-            self.currentReferences.append((self._DELAYED_LITERAL, local,
-             self.currentType, self.currentValue, self.currentKey, self.locator.getLineNumber()))
+            if isSchemaItem:
+                value = self.makeValue(currentItem, elementLocal, self.currentType, self.currentValue, self.locator.getLineNumber())
+                currentItem.setValue(elementLocal, value, self.currentKey)
+            else: # Delay
+                self.currentReferences.append((self._DELAYED_LITERAL, local,
+                 self.currentType, self.currentValue, self.currentKey, self.locator.getLineNumber()))
 
             
         # We have an item, add the collected attributes to the list

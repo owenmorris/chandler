@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itemName="sub"
+        xmlns="//Schema/Core"
+        xmlns:sub="//parcels/classes/sub"
+        xmlns:super="//parcels/classes/super" >
+
+  <Kind itemName="MySubKind">
+    <displayName>My Sub Kind</displayName>
+    <superKinds itemref="super:MySuperKind"/>
+  </Kind>
+
+  <sub:MySubKind itemName="itemSub"/>
+
+</Parcel>
