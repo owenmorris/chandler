@@ -62,6 +62,7 @@
 
   <contentModel:Query itsName="contactQuery">
     <data value="for i in '//parcels/osaf/contentmodel/contacts/Contact' where True"/>
+    <exactKind>True</exactKind>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="contactItemCollection">
