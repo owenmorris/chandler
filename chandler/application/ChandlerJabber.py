@@ -20,11 +20,12 @@ import base64
 
 import xmlstream
 from jabber import *
-from application.agents.Notifications.NotificationManager import NotificationManager
-from application.agents.Notifications.Notification import Notification
+from OSAF.framework.notifications.Notification import Notification
 
 import application.Application
 import application.Globals as Globals
+from repository.schema.AutoItem import AutoItem
+
 
 # jabber callbacks
 def messageCallback(connection, messageElement):
@@ -36,13 +37,14 @@ def presenceCallback(connection, presenceElement):
 def iqCallback(connection, iqElement):
     connection.jabberclient.HandleIq(iqElement)
 
-class PresenceState:
+class PresenceState(AutoItem):
     def __init__(self, who, type, status, resource):
-        self.who = who
-        self.type = type
-        self.status = status
-        self.resource = resource
-    
+        super (PresenceState, self).__init__(name=who)
+        self.newAttribute('who', who)
+        self.newAttribute('type', type)
+        self.newAttribute('status', status)
+        self.newAttribute('resource', resource)
+
 class JabberClient:
     def __init__(self, application):
         self.application = application
@@ -123,20 +125,22 @@ class JabberClient:
     # define the notifications that we post
     def DeclareNotifications(self):
         # presence subscription request
+        nm = Globals.notificationManager
+
         description = _("Someone has requested a subscription to your presence.")
-        Globals.notificationManager.DeclareNotification('chandler/im/presence-request', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        nm.DeclareNotification('chandler/im/presence-request', nm.SYSTEM_CLIENT, 'unknown', description)
 
         # presence changed
         description = _("Someone's presence state has changed.")
-        Globals.notificationManager.DeclareNotification('chandler/im/presence-changed', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        nm.DeclareNotification('chandler/im/presence-changed', nm.SYSTEM_CLIENT, 'unknown', description)
 
         # instant message arrived
         description = _("You have received a new instant message.")
-        Globals.notificationManager.DeclareNotification('chandler/im/message-arrived', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        nm.DeclareNotification('chandler/im/message-arrived', nm.SYSTEM_CLIENT, 'unknown', description)
         
         # instant message sent
         description = _("You have sent a new instant message.")
-        Globals.notificationManager.DeclareNotification('chandler/im/message-sent', NotificationManager.SYSTEM_CLIENT, 'unknown', description)
+        nm.DeclareNotification('chandler/im/message-sent', nm.SYSTEM_CLIENT, 'unknown', description)
                                                 
     # login to the Jabber server
     def Login(self):
@@ -193,6 +197,7 @@ class JabberClient:
         return None
    
     def SetPresenceState(self, jabberID, state):
+        application.Application.app.repository.commit()
         key = str(jabberID)
         self.presenceStateMap[key] = state
 
