@@ -61,9 +61,15 @@ ValueError: list.remove(x): x not in list
 >>> print aclObj
 <D:acl xmlns:D="DAV:" xmlns:ns-1="http://www.xythos.com/namespaces/StorageServer/acl/" ><D:ace><D:principal><D:all/></D:principal><D:grant><D:privilege><D:read/></D:privilege><D:privilege><ns-1:write/></D:privilege></D:grant></D:ace></D:acl>
 
+The handiest way to get an ACL object is to parse it from the XML returned
+by the server:
+
+>>> parsedACL = parse(str(aclObj))
+>>> print str(parsedACL) == str(aclObj)
+True
+
 TODO:
-   * Complete the API.
-   * Might want to rething a more user friendly API.
+   * Make sure parsing works with XML returned by servers (whitespace etc.)
    * Higher level API:
       - pythonic (raise exceptions on errors, return python objects
         instead of XML etc.)
@@ -78,6 +84,7 @@ TODO:
 """
 
 import libxml2
+
 
 class ACE(object):
     """
@@ -121,6 +128,7 @@ class ACE(object):
                                              str(self._deny),
                                              str(self._grant))
 
+
 class ACL(object):
     """
     Access Control List (ACL) consists of one of more ACEs. ACL defines all
@@ -159,22 +167,85 @@ class ACL(object):
 
         return '%s>%s</D:acl>' %(acl, s)
 
+
 def parse(text):
-    # @@@ Hack to avoid libxml2 complaints: (maybe fixed 1/19/2005)
+    """
+    Parse XML into ACL object.
+    
+    @param text: The XML (text) to be parsed into an ACL object.
+    """
+    # XXX Hack to avoid libxml2 complaints: (maybe fixed 1/19/2005)
     text = text.replace('="DAV:"', '="http://osafoundation.org/dav"')
-    try:    
+    try:
         doc = libxml2.parseDoc(text)
-        for node in doc.children:
-            if node.name == 'ace' and node.ns().content == 'http://osafoundation.org/dav':
-                # 1. get principal
-                # 2. get deny privileges
-                # 3. get grant privileges
-                # 4. get protected property
-                pass
+        acl = ACL()
+        aceNode = doc.children.children
+        while aceNode:
+            if not _isDAVElement(aceNode, 'ace'):
+                raise ValueError, 'ace not found'
+
+            # 1. get principal
+            principal = aceNode.children
+            if not _isDAVElement(principal, 'principal'):
+                raise ValueError, 'principal not found'
+            actualPrincipal = principal.children
+            if not _isDAVElement(actualPrincipal):
+                raise ValueError, 'actual principal not found'
+            if actualPrincipal.name == 'href':
+                ace = ACE(actualPrincipal.content)
+            else:
+                ace = ACE(actualPrincipal.name)
+
+            # 2. get deny and grant privileges
+            node = principal.next
+            while node:
+                if not _isDAVElement(node):
+                    raise ValueError, 'deny or grant expected, wrong namespace'
+                if node.name == 'deny':
+                    privilege = node.children
+                    while privilege:
+                        if not _isDAVElement(privilege, 'privilege'):
+                            raise ValueError, 'privilege expected'
+                        ace.deny(privilege.children.name,
+                                 _translateDAVNamespace(privilege.children.ns().content))
+                        privilege = privilege.next
+                elif node.name == 'grant':
+                    privilege = node.children
+                    while privilege:
+                        if not _isDAVElement(privilege, 'privilege'):
+                            raise ValueError, 'privilege expected'
+                        ace.grant(privilege.children.name,
+                                  _translateDAVNamespace(privilege.children.ns().content))
+                        privilege = privilege.next
+                else:
+                    raise ValueError, 'deny or grant expected'
+                node = node.next
+           
+            # 3. get protected property TODO
+
+            acl.add(ace)
+            
+            aceNode = aceNode.next
+
+        return acl
     finally:
         doc.freeDoc() # It really really sucks I need to do this.
 
-    return None
+
+# XXX Terrible namespace hacks for DAV: because libxml2 does not like it
+
+def _isDAVElement(node, name=None):
+    ns = node.ns().content == 'http://osafoundation.org/dav'
+    if name is None:
+        return ns
+    return ns and node.name == name
+
+
+def _translateDAVNamespace(ns):
+    if ns == 'http://osafoundation.org/dav':
+        return 'DAV:'
+    return ns
+        
 
 class _Principal(object):
     def __init__(self, url):
@@ -192,6 +263,7 @@ class _Principal(object):
             return '<D:principal><D:%s/></D:principal>' %(self.url)
         else:
             return '<D:principal><D:href>%s</D:href></D:principal>' %(self.url)
+
 
 class _Privileges(object):
     """
@@ -238,6 +310,7 @@ class _Privileges(object):
             s += '<D:privilege><%s:%s/></D:privilege>' %(self.privileges[name][0], name) 
         return s
 
+
 class _Grant(_Privileges):
     """
     The set of privileges to grant.
@@ -248,6 +321,7 @@ class _Grant(_Privileges):
         else:
             return ''
 
+
 class _Deny(_Privileges):
     """
     The set of privileges to deny.
@@ -257,6 +331,7 @@ class _Deny(_Privileges):
             return '<D:deny>%s</D:deny>' %(super(_Deny, self).__str__())
         else:
             return ''
+
 
 if __name__ == '__main__':
     import doctest
