@@ -4,6 +4,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from repository.item.Item import Item
+
 
 class Query(object):
     'The root class for all queries.'
@@ -45,25 +47,33 @@ class KindQuery(Query):
     def run(self, kinds):
 
         if kinds:
-            newItems = kinds[0].itsView._newItems()
-            if self.recursive or len(kinds) > 1:
-                newItems = list(newItems)
-            for item in self._run(kinds, newItems):
-                yield item
+            view = kinds[0].itsView
+            matches = set()
+            changedItems = set()
 
-    def _run(self, kinds, newItems):
+            for item in view._log:
+                if item._status & Item.NDIRTY:
+                    changedItems.add(item)
+
+            for item in self._run(kinds, changedItems):
+                if item not in matches:
+                    matches.add(item)
+                    yield item
+
+    def _run(self, kinds, changedItems):
 
         for kind in kinds:
-            for item in newItems:
+            for item in changedItems:
                 if item._kind is kind:
                     yield item
 
             for item in kind.itsView.queryItems(kind=kind):
-                yield item
+                if item not in changedItems: 
+                    yield item
 
             if self.recursive:
                 subKinds = kind.getAttributeValue('subKinds', default=[])
-                for item in self._run(subKinds, newItems):
+                for item in self._run(subKinds, changedItems):
                     yield item
 
 
