@@ -155,37 +155,37 @@
     <Cloud itsName="Cloud">
       <kind itemref="cal:CalendarEventMixin"/>
       <Endpoint itsName="attendees">
-        <attribute value="cal:attendees"/>
+        <attribute value="attendees"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/Cloud/attendees"/>
 
       <Endpoint itsName="organizer">
-        <attribute value="cal:organizer"/>
+        <attribute value="organizer"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/Cloud/organizer"/>
 
       <Endpoint itsName="location">
-        <attribute value="cal:location"/>
+        <attribute value="location"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/Cloud/location"/>
 
       <Endpoint itsName="recurrence">
-        <attribute value="cal:recurrence"/>
+        <attribute value="recurrence"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/Cloud/recurrence"/>
 
       <Endpoint itsName="reminders">
-        <attribute value="cal:reminders"/>
+        <attribute value="reminders"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/Cloud/reminders"/>
 
       <Endpoint itsName="participants">
-        <attribute value="cal:participants"/>
+        <attribute value="participants"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="cal:CalendarEventMixin/Cloud/participants"/>

@@ -401,43 +401,43 @@
     <Cloud itsName="Cloud">
       <kind itemref="mail:MailMessageMixin"/>
       <Endpoint itsName="sentTo">
-        <attribute value="mail:sentTo"/>
+        <attribute value="sentTo"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="mail:MailMessageMixin/Cloud/sentTo"/>
 
       <Endpoint itsName="toAddress">
-        <attribute value="mail:toAddress"/>
+        <attribute value="toAddress"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="mail:MailMessageMixin/Cloud/toAddress"/>
 
       <Endpoint itsName="ccAddress">
-        <attribute value="mail:ccAddress"/>
+        <attribute value="ccAddress"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="mail:MailMessageMixin/Cloud/ccAddress"/>
 
       <Endpoint itsName="bccAddress">
-        <attribute value="mail:bccAddress"/>
+        <attribute value="bccAddress"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="mail:MailMessageMixin/Cloud/bccAddress"/>
 
       <Endpoint itsName="replyAddress">
-        <attribute value="mail:replyAddress"/>
+        <attribute value="replyAddress"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="mail:MailMessageMixin/Cloud/replyAddress"/>
 
       <Endpoint itsName="attachments">
-        <attribute value="mail:attachments"/>
+        <attribute value="attachments"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="mail:MailMessageMixin/Cloud/attachments"/>
 
       <Endpoint itsName="downloadAccount">
-        <attribute value="mail:downloadAccount"/>
+        <attribute value="downloadAccount"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="mail:MailMessageMixin/Cloud/downloadAccount"/>

@@ -125,25 +125,25 @@
     <Cloud itsName="Cloud">
       <kind itemref="tasks:TaskMixin"/>
       <Endpoint itsName="requestor">
-        <attribute value="tasks:requestor"/>
+        <attribute value="requestor"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="tasks:TaskMixin/Cloud/requestor"/>
 
       <Endpoint itsName="requestee">
-        <attribute value="tasks:requestee"/>
+        <attribute value="requestee"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="tasks:TaskMixin/Cloud/requestee"/>
 
       <Endpoint itsName="dependsOn">
-        <attribute value="tasks:dependsOn"/>
+        <attribute value="dependsOn"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="tasks:TaskMixin/Cloud/dependsOn"/>
 
       <Endpoint itsName="preventsProgressOn">
-        <attribute value="tasks:preventsProgressOn"/>
+        <attribute value="preventsProgressOn"/>
         <includePolicy value="byValue"/>
       </Endpoint>
       <endpoints itemref="tasks:TaskMixin/Cloud/preventsProgressOn"/>
