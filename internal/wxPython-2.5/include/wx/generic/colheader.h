@@ -36,7 +36,8 @@ public:
 	wxColumnHeaderItem();
 	virtual ~wxColumnHeaderItem();
 
-	long DrawSelf(
+	long DrawItem(
+		wxWindow		*parentW,
 		wxClientDC		*dc,
 		const wxRect		*boundsR );
 

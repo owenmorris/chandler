@@ -142,7 +142,7 @@ END_DECLARE_EVENT_TYPES()
 
 typedef void (wxEvtHandler::*wxMiniCalendarEventFunction)(wxMiniCalendarEvent&);
 
-#define EVT_MINI_CALENDAR(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_MINI_CALENDAR_DOUBLECLICKED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxMiniCalendarEventFunction, & fn ), (wxObject *) NULL),
+#define EVT_MINI_CALENDAR_DOUBLECLICKED(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_MINI_CALENDAR_DOUBLECLICKED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxMiniCalendarEventFunction, & fn ), (wxObject *) NULL),
 #define EVT_MINI_CALENDAR_SEL_CHANGED(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_MINI_CALENDAR_SEL_CHANGED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxMiniCalendarEventFunction, & fn ), (wxObject *) NULL),
 #define EVT_MINI_CALENDAR_DAY(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_MINI_CALENDAR_DAY_CHANGED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxMiniCalendarEventFunction, & fn ), (wxObject *) NULL),
 #define EVT_MINI_CALENDAR_MONTH(id, fn) DECLARE_EVENT_TABLE_ENTRY(wxEVT_MINI_CALENDAR_MONTH_CHANGED, id, wxID_ANY, (wxObjectEventFunction) (wxEventFunction) (wxCommandEventFunction)  wxStaticCastEvent( wxMiniCalendarEventFunction, & fn ), (wxObject *) NULL),
