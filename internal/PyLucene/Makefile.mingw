@@ -30,7 +30,7 @@ JCCH = $(GCJ)\bin\gcjh
 
 LUCENE = $(SRCDIR)\lucene-$(VERSION)
 
-PYTHON_INC = $(RELDIR)\bin\include -I$(RELDIR)\..\python\Python-2.3.3\Include
+PYTHON_INC = $(RELDIR)\bin\Include
 PYTHON_SITE = $(RELDIR)\bin\Lib\site-packages
 
 OBJS = $(BINDIR)\db_const.o $(BINDIR)\db.o $(BINDIR)\store.o $(BINDIR)\lucene.o  $(BINDIR)\reader.java.o $(BINDIR)\reader.cpp.o
@@ -69,6 +69,7 @@ $(BINDIR)\_PyLucene$(_dbg).pyd: $(OBJS) PyLucene_wrap.cxx
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.Db
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.DbTxn
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.store.Directory
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.store.FSDirectory
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.store.db.DbDirectory
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.analysis.Analyzer
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.analysis.standard.StandardAnalyzer

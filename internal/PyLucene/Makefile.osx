@@ -71,6 +71,7 @@ $(BINDIR)/_PyLucene.so: $(OBJS) PyLucene_wrap.cxx
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.Db
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.DbTxn
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.store.Directory
+	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.store.FSDirectory
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.store.db.DbDirectory
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.analysis.Analyzer
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.analysis.standard.StandardAnalyzer

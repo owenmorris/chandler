@@ -712,15 +712,16 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
 #define  SWIGTYPE_p_org__apache__lucene__analysis__standard__StandardAnalyzer swig_types[9] 
 #define  SWIGTYPE_p_void swig_types[10] 
 #define  SWIGTYPE_p_org__apache__lucene__search__Query swig_types[11] 
-#define  SWIGTYPE_p_jreader swig_types[12] 
-#define  SWIGTYPE_p_java__io__Reader swig_types[13] 
+#define  SWIGTYPE_p_java__io__Reader swig_types[12] 
+#define  SWIGTYPE_p_jreader swig_types[13] 
 #define  SWIGTYPE_p_org__apache__lucene__index__IndexWriter swig_types[14] 
 #define  SWIGTYPE_p_org__apache__lucene__store__db__DbDirectory swig_types[15] 
-#define  SWIGTYPE_p_org__apache__lucene__store__Directory swig_types[16] 
-#define  SWIGTYPE_p_java__lang__Object swig_types[17] 
-#define  SWIGTYPE_p_jdbtxn swig_types[18] 
-#define  SWIGTYPE_p_org__apache__lucene__document__Document swig_types[19] 
-static swig_type_info *swig_types[21];
+#define  SWIGTYPE_p_org__apache__lucene__store__FSDirectory swig_types[16] 
+#define  SWIGTYPE_p_org__apache__lucene__store__Directory swig_types[17] 
+#define  SWIGTYPE_p_java__lang__Object swig_types[18] 
+#define  SWIGTYPE_p_jdbtxn swig_types[19] 
+#define  SWIGTYPE_p_org__apache__lucene__document__Document swig_types[20] 
+static swig_type_info *swig_types[22];
 
 /* -------- TYPES TABLE (END) -------- */
 
@@ -749,6 +750,7 @@ static swig_type_info *swig_types[21];
 #include "com/sleepycat/db/DbTxn.h"
 
 #include "org/apache/lucene/store/Directory.h"
+#include "org/apache/lucene/store/FSDirectory.h"
 #include "org/apache/lucene/store/db/DbDirectory.h"
 #include "org/apache/lucene/analysis/Analyzer.h"
 #include "org/apache/lucene/analysis/standard/StandardAnalyzer.h"
@@ -1003,6 +1005,62 @@ static PyObject * Directory_swigregister(PyObject *self, PyObject *args) {
     PyObject *obj;
     if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
     SWIG_TypeClientData(SWIGTYPE_p_org__apache__lucene__store__Directory, obj);
+    Py_INCREF(obj);
+    return Py_BuildValue((char *)"");
+}
+static PyObject *_wrap_FSDirectory_getDirectory(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    jstring arg1 ;
+    jboolean arg2 ;
+    org::apache::lucene::store::FSDirectory *result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OO:FSDirectory_getDirectory",&obj0,&obj1)) goto fail;
+    {
+        if (obj0 == Py_None)
+        arg1 = NULL;
+        else
+        arg1 = JvNewStringUTF(PyString_AsString(obj0));
+    }
+    {
+        arg2 = PyObject_IsTrue(obj1);
+    }
+    {
+        try {
+            result = (org::apache::lucene::store::FSDirectory *)org::apache::lucene::store::FSDirectory::getDirectory(arg1,arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = SWIG_NewPointerObj((void *) result, SWIGTYPE_p_org__apache__lucene__store__FSDirectory, 0);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject * FSDirectory_swigregister(PyObject *self, PyObject *args) {
+    PyObject *obj;
+    if (!PyArg_ParseTuple(args,(char*)"O", &obj)) return NULL;
+    SWIG_TypeClientData(SWIGTYPE_p_org__apache__lucene__store__FSDirectory, obj);
     Py_INCREF(obj);
     return Py_BuildValue((char *)"");
 }
@@ -2633,6 +2691,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"attachCurrentThread", _wrap_attachCurrentThread, METH_VARARGS },
 	 { (char *)"delete_Directory", _wrap_delete_Directory, METH_VARARGS },
 	 { (char *)"Directory_swigregister", Directory_swigregister, METH_VARARGS },
+	 { (char *)"FSDirectory_getDirectory", _wrap_FSDirectory_getDirectory, METH_VARARGS },
+	 { (char *)"FSDirectory_swigregister", FSDirectory_swigregister, METH_VARARGS },
 	 { (char *)"new_DbDirectory", _wrap_new_DbDirectory, METH_VARARGS },
 	 { (char *)"delete_DbDirectory", _wrap_delete_DbDirectory, METH_VARARGS },
 	 { (char *)"DbDirectory_swigregister", DbDirectory_swigregister, METH_VARARGS },
@@ -2693,17 +2753,14 @@ static PyMethodDef SwigMethods[] = {
 static void *_p_org__apache__lucene__analysis__standard__StandardAnalyzerTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *) (org::apache::lucene::analysis::Analyzer *) ((org::apache::lucene::analysis::standard::StandardAnalyzer *) x));
 }
-static void *_p_java__io__ReaderTo_p_java__lang__Object(void *x) {
-    return (void *)((java::lang::Object *)  ((java::io::Reader *) x));
-}
-static void *_p_org__apache__lucene__analysis__AnalyzerTo_p_java__lang__Object(void *x) {
-    return (void *)((java::lang::Object *)  ((org::apache::lucene::analysis::Analyzer *) x));
+static void *_p_org__apache__lucene__search__IndexSearcherTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *) (org::apache::lucene::search::Searcher *) ((org::apache::lucene::search::IndexSearcher *) x));
 }
 static void *_p_org__apache__lucene__search__SearcherTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *)  ((org::apache::lucene::search::Searcher *) x));
 }
-static void *_p_org__apache__lucene__search__IndexSearcherTo_p_java__lang__Object(void *x) {
-    return (void *)((java::lang::Object *) (org::apache::lucene::search::Searcher *) ((org::apache::lucene::search::IndexSearcher *) x));
+static void *_p_org__apache__lucene__analysis__AnalyzerTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *)  ((org::apache::lucene::analysis::Analyzer *) x));
 }
 static void *_p_org__apache__lucene__queryParser__QueryParserTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *)  ((org::apache::lucene::queryParser::QueryParser *) x));
@@ -2711,29 +2768,38 @@ static void *_p_org__apache__lucene__queryParser__QueryParserTo_p_java__lang__Ob
 static void *_p_org__apache__lucene__document__FieldTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *)  ((org::apache::lucene::document::Field *) x));
 }
-static void *_p_org__apache__lucene__document__DocumentTo_p_java__lang__Object(void *x) {
-    return (void *)((java::lang::Object *)  ((org::apache::lucene::document::Document *) x));
-}
 static void *_p_org__apache__lucene__search__HitsTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *)  ((org::apache::lucene::search::Hits *) x));
 }
-static void *_p_org__apache__lucene__store__DirectoryTo_p_java__lang__Object(void *x) {
-    return (void *)((java::lang::Object *)  ((org::apache::lucene::store::Directory *) x));
-}
-static void *_p_org__apache__lucene__store__db__DbDirectoryTo_p_java__lang__Object(void *x) {
-    return (void *)((java::lang::Object *) (org::apache::lucene::store::Directory *) ((org::apache::lucene::store::db::DbDirectory *) x));
+static void *_p_org__apache__lucene__search__QueryTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *)  ((org::apache::lucene::search::Query *) x));
 }
 static void *_p_org__apache__lucene__index__IndexWriterTo_p_java__lang__Object(void *x) {
     return (void *)((java::lang::Object *)  ((org::apache::lucene::index::IndexWriter *) x));
 }
-static void *_p_org__apache__lucene__search__QueryTo_p_java__lang__Object(void *x) {
-    return (void *)((java::lang::Object *)  ((org::apache::lucene::search::Query *) x));
+static void *_p_org__apache__lucene__store__db__DbDirectoryTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *) (org::apache::lucene::store::Directory *) ((org::apache::lucene::store::db::DbDirectory *) x));
+}
+static void *_p_org__apache__lucene__store__FSDirectoryTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *) (org::apache::lucene::store::Directory *) ((org::apache::lucene::store::FSDirectory *) x));
+}
+static void *_p_org__apache__lucene__store__DirectoryTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *)  ((org::apache::lucene::store::Directory *) x));
+}
+static void *_p_org__apache__lucene__document__DocumentTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *)  ((org::apache::lucene::document::Document *) x));
+}
+static void *_p_java__io__ReaderTo_p_java__lang__Object(void *x) {
+    return (void *)((java::lang::Object *)  ((java::io::Reader *) x));
 }
 static void *_p_org__apache__lucene__search__IndexSearcherTo_p_org__apache__lucene__search__Searcher(void *x) {
     return (void *)((org::apache::lucene::search::Searcher *)  ((org::apache::lucene::search::IndexSearcher *) x));
 }
 static void *_p_org__apache__lucene__analysis__standard__StandardAnalyzerTo_p_org__apache__lucene__analysis__Analyzer(void *x) {
     return (void *)((org::apache::lucene::analysis::Analyzer *)  ((org::apache::lucene::analysis::standard::StandardAnalyzer *) x));
+}
+static void *_p_org__apache__lucene__store__FSDirectoryTo_p_org__apache__lucene__store__Directory(void *x) {
+    return (void *)((org::apache::lucene::store::Directory *)  ((org::apache::lucene::store::FSDirectory *) x));
 }
 static void *_p_org__apache__lucene__store__db__DbDirectoryTo_p_org__apache__lucene__store__Directory(void *x) {
     return (void *)((org::apache::lucene::store::Directory *)  ((org::apache::lucene::store::db::DbDirectory *) x));
@@ -2750,12 +2816,13 @@ static swig_type_info _swigt__p_jstring[] = {{"_p_jstring", 0, "jstring *", 0},{
 static swig_type_info _swigt__p_org__apache__lucene__analysis__standard__StandardAnalyzer[] = {{"_p_org__apache__lucene__analysis__standard__StandardAnalyzer", 0, "org::apache::lucene::analysis::standard::StandardAnalyzer *", 0},{"_p_org__apache__lucene__analysis__standard__StandardAnalyzer"},{0}};
 static swig_type_info _swigt__p_void[] = {{"_p_void", 0, "void *", 0},{"_p_void"},{0}};
 static swig_type_info _swigt__p_org__apache__lucene__search__Query[] = {{"_p_org__apache__lucene__search__Query", 0, "org::apache::lucene::search::Query *", 0},{"_p_org__apache__lucene__search__Query"},{0}};
-static swig_type_info _swigt__p_jreader[] = {{"_p_jreader", 0, "jreader *", 0},{"_p_jreader"},{0}};
 static swig_type_info _swigt__p_java__io__Reader[] = {{"_p_java__io__Reader", 0, "java::io::Reader *", 0},{"_p_java__io__Reader"},{0}};
+static swig_type_info _swigt__p_jreader[] = {{"_p_jreader", 0, "jreader *", 0},{"_p_jreader"},{0}};
 static swig_type_info _swigt__p_org__apache__lucene__index__IndexWriter[] = {{"_p_org__apache__lucene__index__IndexWriter", 0, "org::apache::lucene::index::IndexWriter *", 0},{"_p_org__apache__lucene__index__IndexWriter"},{0}};
 static swig_type_info _swigt__p_org__apache__lucene__store__db__DbDirectory[] = {{"_p_org__apache__lucene__store__db__DbDirectory", 0, "org::apache::lucene::store::db::DbDirectory *", 0},{"_p_org__apache__lucene__store__db__DbDirectory"},{0}};
-static swig_type_info _swigt__p_org__apache__lucene__store__Directory[] = {{"_p_org__apache__lucene__store__Directory", 0, "org::apache::lucene::store::Directory *", 0},{"_p_org__apache__lucene__store__Directory"},{"_p_org__apache__lucene__store__db__DbDirectory", _p_org__apache__lucene__store__db__DbDirectoryTo_p_org__apache__lucene__store__Directory},{0}};
-static swig_type_info _swigt__p_java__lang__Object[] = {{"_p_java__lang__Object", 0, "java::lang::Object *", 0},{"_p_org__apache__lucene__search__Hits", _p_org__apache__lucene__search__HitsTo_p_java__lang__Object},{"_p_org__apache__lucene__analysis__Analyzer", _p_org__apache__lucene__analysis__AnalyzerTo_p_java__lang__Object},{"_p_org__apache__lucene__search__Searcher", _p_org__apache__lucene__search__SearcherTo_p_java__lang__Object},{"_p_org__apache__lucene__search__IndexSearcher", _p_org__apache__lucene__search__IndexSearcherTo_p_java__lang__Object},{"_p_org__apache__lucene__queryParser__QueryParser", _p_org__apache__lucene__queryParser__QueryParserTo_p_java__lang__Object},{"_p_org__apache__lucene__document__Field", _p_org__apache__lucene__document__FieldTo_p_java__lang__Object},{"_p_org__apache__lucene__analysis__standard__StandardAnalyzer", _p_org__apache__lucene__analysis__standard__StandardAnalyzerTo_p_java__lang__Object},{"_p_org__apache__lucene__search__Query", _p_org__apache__lucene__search__QueryTo_p_java__lang__Object},{"_p_java__io__Reader", _p_java__io__ReaderTo_p_java__lang__Object},{"_p_org__apache__lucene__index__IndexWriter", _p_org__apache__lucene__index__IndexWriterTo_p_java__lang__Object},{"_p_org__apache__lucene__store__Directory", _p_org__apache__lucene__store__DirectoryTo_p_java__lang__Object},{"_p_org__apache__lucene__store__db__DbDirectory", _p_org__apache__lucene__store__db__DbDirectoryTo_p_java__lang__Object},{"_p_org__apache__lucene__document__Document", _p_org__apache__lucene__document__DocumentTo_p_java__lang__Object},{"_p_java__lang__Object"},{0}};
+static swig_type_info _swigt__p_org__apache__lucene__store__FSDirectory[] = {{"_p_org__apache__lucene__store__FSDirectory", 0, "org::apache::lucene::store::FSDirectory *", 0},{"_p_org__apache__lucene__store__FSDirectory"},{0}};
+static swig_type_info _swigt__p_org__apache__lucene__store__Directory[] = {{"_p_org__apache__lucene__store__Directory", 0, "org::apache::lucene::store::Directory *", 0},{"_p_org__apache__lucene__store__Directory"},{"_p_org__apache__lucene__store__FSDirectory", _p_org__apache__lucene__store__FSDirectoryTo_p_org__apache__lucene__store__Directory},{"_p_org__apache__lucene__store__db__DbDirectory", _p_org__apache__lucene__store__db__DbDirectoryTo_p_org__apache__lucene__store__Directory},{0}};
+static swig_type_info _swigt__p_java__lang__Object[] = {{"_p_java__lang__Object", 0, "java::lang::Object *", 0},{"_p_org__apache__lucene__search__Hits", _p_org__apache__lucene__search__HitsTo_p_java__lang__Object},{"_p_org__apache__lucene__search__IndexSearcher", _p_org__apache__lucene__search__IndexSearcherTo_p_java__lang__Object},{"_p_org__apache__lucene__search__Searcher", _p_org__apache__lucene__search__SearcherTo_p_java__lang__Object},{"_p_org__apache__lucene__analysis__Analyzer", _p_org__apache__lucene__analysis__AnalyzerTo_p_java__lang__Object},{"_p_org__apache__lucene__queryParser__QueryParser", _p_org__apache__lucene__queryParser__QueryParserTo_p_java__lang__Object},{"_p_org__apache__lucene__document__Field", _p_org__apache__lucene__document__FieldTo_p_java__lang__Object},{"_p_org__apache__lucene__analysis__standard__StandardAnalyzer", _p_org__apache__lucene__analysis__standard__StandardAnalyzerTo_p_java__lang__Object},{"_p_org__apache__lucene__search__Query", _p_org__apache__lucene__search__QueryTo_p_java__lang__Object},{"_p_java__io__Reader", _p_java__io__ReaderTo_p_java__lang__Object},{"_p_org__apache__lucene__index__IndexWriter", _p_org__apache__lucene__index__IndexWriterTo_p_java__lang__Object},{"_p_org__apache__lucene__store__db__DbDirectory", _p_org__apache__lucene__store__db__DbDirectoryTo_p_java__lang__Object},{"_p_org__apache__lucene__store__FSDirectory", _p_org__apache__lucene__store__FSDirectoryTo_p_java__lang__Object},{"_p_org__apache__lucene__store__Directory", _p_org__apache__lucene__store__DirectoryTo_p_java__lang__Object},{"_p_java__lang__Object"},{"_p_org__apache__lucene__document__Document", _p_org__apache__lucene__document__DocumentTo_p_java__lang__Object},{0}};
 static swig_type_info _swigt__p_jdbtxn[] = {{"_p_jdbtxn", 0, "jdbtxn *", 0},{"_p_jdbtxn"},{0}};
 static swig_type_info _swigt__p_org__apache__lucene__document__Document[] = {{"_p_org__apache__lucene__document__Document", 0, "org::apache::lucene::document::Document *", 0},{"_p_org__apache__lucene__document__Document"},{0}};
 
@@ -2772,10 +2839,11 @@ _swigt__p_jstring,
 _swigt__p_org__apache__lucene__analysis__standard__StandardAnalyzer, 
 _swigt__p_void, 
 _swigt__p_org__apache__lucene__search__Query, 
-_swigt__p_jreader, 
 _swigt__p_java__io__Reader, 
+_swigt__p_jreader, 
 _swigt__p_org__apache__lucene__index__IndexWriter, 
 _swigt__p_org__apache__lucene__store__db__DbDirectory, 
+_swigt__p_org__apache__lucene__store__FSDirectory, 
 _swigt__p_org__apache__lucene__store__Directory, 
 _swigt__p_java__lang__Object, 
 _swigt__p_jdbtxn, 

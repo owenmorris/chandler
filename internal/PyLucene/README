@@ -33,7 +33,7 @@
     - bunzip2 -c ../gcc-3.3.2.tar.bz2 | tar -xvf -
     - mkdir build install
     - cd build
-    - ../gcc-3.3.2/configure --enable-threads=posix --prefix=$CWD/gcc-3.3.2/install
+    - ../gcc-3.3.2/configure --enable-threads=posix --prefix=$CWD/gcc-3.3.2/install --enable-languages=c,c++,java
     - make bootstrap
     - make install
 

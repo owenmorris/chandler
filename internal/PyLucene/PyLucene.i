@@ -28,6 +28,7 @@ for fn in dir(_PyLucene):
 #include "com/sleepycat/db/DbTxn.h"
 
 #include "org/apache/lucene/store/Directory.h"
+#include "org/apache/lucene/store/FSDirectory.h"
 #include "org/apache/lucene/store/db/DbDirectory.h"
 #include "org/apache/lucene/analysis/Analyzer.h"
 #include "org/apache/lucene/analysis/standard/StandardAnalyzer.h"
@@ -244,6 +245,12 @@ namespace org {
                 class Directory : public ::java::lang::Object {
                     Directory();
                 };
+%nodefault;
+                class FSDirectory : public Directory {
+                public:
+                    static FSDirectory *getDirectory(jstring, jboolean);
+                };
+%makedefault;
                 namespace db {
                     class DbDirectory : public Directory {
                     public:

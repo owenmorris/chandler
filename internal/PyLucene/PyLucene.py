@@ -58,6 +58,21 @@ class DirectoryPtr(Directory):
         self.__class__ = Directory
 _PyLucene.Directory_swigregister(DirectoryPtr)
 
+class FSDirectory(Directory):
+    def __init__(self): raise RuntimeError, "No constructor defined"
+    def __repr__(self):
+        return "<C org::apache::lucene::store::FSDirectory instance at %s>" % (self.this,)
+    getDirectory = staticmethod(_PyLucene.FSDirectory_getDirectory)
+
+class FSDirectoryPtr(FSDirectory):
+    def __init__(self, this):
+        self.this = this
+        if not hasattr(self,"thisown"): self.thisown = 0
+        self.__class__ = FSDirectory
+_PyLucene.FSDirectory_swigregister(FSDirectoryPtr)
+
+FSDirectory_getDirectory = _PyLucene.FSDirectory_getDirectory
+
 class DbDirectory(Directory):
     def __repr__(self):
         return "<C org::apache::lucene::store::db::DbDirectory instance at %s>" % (self.this,)
