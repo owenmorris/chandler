@@ -462,12 +462,14 @@ class wxApplication (wx.App):
 
     def ShowDebuggerWindow(self):
         import wx.py
-        self.crustFrame = wx.py.crust.CrustFrame()
+        rootObjects = {
+         "globals" : application.Globals,
+         "parcelManager" : application.Parcel.Manager.getManager(),
+         "parcelsRoot" : application.Globals.repository.findPath("//parcels"),
+         "repository" : application.Globals.repository,
+         "wxApplication" : self,
+        }
+        self.crustFrame = wx.py.crust.CrustFrame(rootObject=rootObjects,
+         rootLabel="Chandler")
         self.crustFrame.SetSize((700,700))
         self.crustFrame.Show(True)
-        self.crustFrame.shell.interp.locals['chandler'] = self
-        self.crustFrame.shell.interp.locals['Globals'] = application.Globals
-        self.crustFrame.shell.interp.locals['repo'] = \
-         application.Globals.repository
-        self.crustFrame.shell.interp.locals['pm'] = \
-         application.Parcel.Manager.getManager()
