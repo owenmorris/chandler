@@ -438,3 +438,4 @@ def generateDocs(buildenv):
                           'parcels/OSAF/framework/notifications',
                           'repository/item',
                           'repository/schema')
+
