@@ -20,7 +20,7 @@ class PresenceWindow(wxFrame):
     def __init__(self, title, jabberClient):
         self.jabberClient = jabberClient
         
-        wxFrame.__init__(self, None, -1, title, size=(200, 120), style=wxSTAY_ON_TOP | wxDEFAULT_FRAME_STYLE)
+        wxFrame.__init__(self, None, -1, title, size=(200, 240), style=wxSTAY_ON_TOP | wxDEFAULT_FRAME_STYLE)
         sizer = wxBoxSizer(wxVERTICAL)
         
         # base ID for events
@@ -151,7 +151,7 @@ class PresencePanel(wxScrolledWindow):
             for jabberID in buddyList:
                 presenceEntry = self.RenderPresenceEntry(jabberID)                
                 container.Add(presenceEntry, 0, wxEXPAND)
-                if self.IsOpen(jabberID):
+                if self.IsOpen(jabberID) and self.jabberClient.IsPresent(jabberID):
                     self.AddAccessibleViews(jabberID, container)
                     
                 container.Add(-1, 4)

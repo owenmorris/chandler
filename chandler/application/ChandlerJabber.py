@@ -243,7 +243,6 @@ class JabberClient:
     def HandleViewRequest(self, requestJabberID):
         # get the dictionary containing the accessible views
         views = self.application.GetAccessibleViews(requestJabberID)
-        print "handle view request ", views
         
         # pickle the result
         viewStr = cPickle.dumps(views)		
@@ -267,7 +266,7 @@ class JabberClient:
         mappedResponse = self.FixExtraBlanks(mappedResponse)
             
         newViews = cPickle.loads(mappedResponse)	
-        self.setAccessibleViews(fromAddress, newViews)
+        self.SetAccessibleViews(fromAddress, newViews)
                         
     # handle an incoming message
     def HandleMessage(self, messageElement):
@@ -278,7 +277,6 @@ class JabberClient:
         subject = messageElement.getSubject()
         
         xRequest = messageElement.getX()		
-        print "handle message", xRequest, type, body, fromAddress
         if xRequest != None:
             if xRequest == 'chandler:shimmer-request':
                 self.application.repository.ReceivedRequest(body, fromAddress)
@@ -296,7 +294,7 @@ class JabberClient:
                 self.HandleViewRequest(fromAddress)
                 return	
             elif xRequest == 'chandler:response-views':
-                self.handleViewResponse(fromAddress, body)
+                self.HandleViewResponse(fromAddress, body)
                 return	
         
         # it's a main stream instant message (not one of our structured ones.
@@ -334,7 +332,6 @@ class JabberClient:
         error = iqElement.getError()
                     
     def RequestAccessibleViews(self, jabberID):
-        print "in request accessible views", jabberID
         requestMessage = Message(jabberID, 'Requesting accessible views')
         requestMessage.setX('chandler:request-views')
         requestMessage.setSubject('Requesting accessible views')
