@@ -112,7 +112,7 @@ class BaseAttributeEditor (IAttributeEditor):
         self.isShared = isShared
 
     def ReadOnly (self, (item, attribute)):
-        return str (item.itsParent.itsPath) !=  '//userdata'
+        return not str(item.itsPath).startswith('//userdata')
 
     def Draw (self, dc, rect, item, attributeName, isSelected):
         """ You must override Draw. """
@@ -237,7 +237,7 @@ class DateTimeAttributeEditor (StringAttributeEditor):
 class RepositoryAttributeEditor (StringAttributeEditor):
     """ Uses Repository Type conversion to provide String representation. """
     def ReadOnly (self, (item, attribute)):
-        return False # not read-only allows editing the attribute
+        return False # Force editability even if we're in the "read-only" part of the repository
 
     def GetAttributeValue (self, item, attributeName):
         # attempt to access as a Chandler attribute first
@@ -463,9 +463,6 @@ class LabeledAttributeEditor (StringAttributeEditor):
 
 class LocationAttributeEditor (LabeledAttributeEditor):
     """ Knows that the data Type is a Location. """
-    def ReadOnly (self, (item, attribute)):
-        return False
-
     def GetAttributeValue (self, item, attributeName):
         # get the value, and if it doesn't exist, use the label
         try:
@@ -531,9 +528,6 @@ class LocationAttributeEditor (LabeledAttributeEditor):
 
 class DateTimeDeltaAttributeEditor (LabeledAttributeEditor):
     """ Knows that the data Type is DateTimeDelta. """
-    def ReadOnly (self, (item, attribute)):
-        return False
-
     def GetAttributeValue (self, item, attributeName):
         # attempt to access as a plain Python attribute
         try:
@@ -617,6 +611,9 @@ class EmailAddressAttributeEditor (StringAttributeEditor):
         return value
 
 class IconAttributeEditor (BaseAttributeEditor):
+    def ReadOnly (self, (item, attribute)):
+        return True # The Icon editor doesn't support editing.
+
     def GetAttributeValue (self, item, attributeName):
         # simple implementation - get the value, assume it's a string
         try:
