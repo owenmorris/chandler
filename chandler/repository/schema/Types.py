@@ -232,6 +232,8 @@ class Complex(Type):
     def makeValue(self, data):
         return complex(data)
 
+    def makeString(self, data):
+        return str(data)[1:-1]
 
 class Boolean(Type):
 
