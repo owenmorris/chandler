@@ -117,6 +117,7 @@
     <attributes itemref="description"/>
     <attributes itemref="examples"/>
     <attributes itemref="issues"/>
+    <attributes itemref="Item/kind"/>
     <classes key="python">repository.item.Item.Item</classes>
 
     <!-- local attributes -->
@@ -127,8 +128,10 @@
       <type itemref="Kind"/>
       <cardinality>single</cardinality>
       <inverseAttribute itemref="items"/>
-    </Attribute>
+    </Attribute>'
+    
 
+    
   </Kind>
 
   <Kind itemName="Attribute">
@@ -138,6 +141,21 @@
     <examples>('author', Person)</examples>
 
     <classes key="python">repository.schema.Attribute.Attribute</classes>
+
+    <attributes itemref="Attribute/required"/>
+    <attributes itemref="Attribute/persist"/>
+    <attributes itemref="Attribute/cardinality"/>
+    <attributes itemref="Attribute/type"/>
+    <attributes itemref="Attribute/defaultValue"/>
+    <attributes itemref="Attribute/inheritFrom"/>
+    <attributes itemref="Attribute/otherName"/>
+    <attributes itemref="Attribute/deletePolicy"/>
+    <attributes itemref="Attribute/copyPolicy"/>
+    <attributes itemref="Attribute/countPolicy"/>
+    <attributes itemref="Attribute/inheritingKinds"/>
+    <attributes itemref="Attribute/kinds"/>
+    <attributes itemref="Attribute/superAttribute"/>
+    <attributes itemref="Attribute/subAttributes"/>
 
     <!-- local attributes -->
     <Attribute itemName="required">
@@ -256,6 +274,9 @@
   <Kind itemName="Taxon">
     <superKinds itemref="Item"/>
 
+    <attributes itemref="Taxon/aliasedBy"/>
+    <attributes itemref="Taxon/typeFor"/>
+
     <!-- local attributes -->
     <Attribute itemName="aliasedBy">
       <displayName>Aliased By</displayName>
@@ -288,6 +309,16 @@
     </description>
     <superKinds itemref="Taxon"/>
     <classes key="python">repository.schema.Kind.Kind</classes>
+
+    <attributes itemref="Kind/notFoundAttributes"/>
+    <attributes itemref="Kind/inheritedAttributes"/>
+    <attributes itemref="Kind/superKinds"/>
+    <attributes itemref="Kind/subKinds"/>
+    <attributes itemref="Kind/items"/>
+    <attributes itemref="Kind/attributes"/>
+    <attributes itemref="Kind/classes"/>
+    <attributes itemref="Kind/displayAttribute"/>
+
 
     <!-- local attributes -->
     <Attribute itemName="notFoundAttributes">
@@ -371,6 +402,8 @@
     <superKinds itemref="Taxon"/>
     <classes key="python">repository.schema.Alias.Alias</classes>
 
+    <attributes itemref="Alias/types"/>
+
     <!-- local attributes -->
     <Attribute itemName="types">
       <displayName>Types (alias for)</displayName>
@@ -396,6 +429,8 @@
     <superKinds itemref="Taxon"/>
     <classes key="python">repository.schema.Types.Type</classes>
 
+    <attributes itemref="Type/fields"/>
+    
     <!-- local attributes -->
     <Attribute itemName="fields">
       <displayName>Fields</displayName>
@@ -411,14 +446,16 @@
     <displayName>Enumeration</displayName>
     <superKinds itemref="Type"/>
     <classes key="python">repository.schema.Types.Enumeration</classes>
-    
+
+    <attributes itemref="Enumeration/values"/>
+     
     <!-- local attributes -->
     <Attribute itemName="values">
       <displayName>Values</displayName>
       <description>The list of available values for this enumeration</description>
       <type itemref="Symbol"/>
       <cardinality>list</cardinality>
-      <required/>
+      <required>True</required>
     </Attribute>
   </Kind>
 
@@ -428,6 +465,15 @@
     <superKinds itemref="Item"/>
     <classes key="python">repository.schema.Parcel.Parcel</classes>
 
+    <attributes itemref="Parcel/author"/>
+    <attributes itemref="Parcel/publisher"/>
+    <attributes itemref="Parcel/status"/>
+    <attributes itemref="Parcel/summary"/>
+    <attributes itemref="Parcel/icon"/>
+    <attributes itemref="Parcel/version"/>
+    <attributes itemref="Parcel/createdOn"/>
+    <attributes itemref="Parcel/modifiedOn"/>
+            
     <!-- local attributes -->
     <Attribute itemName="author">
       <type itemref="String"/>
