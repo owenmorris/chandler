@@ -242,7 +242,9 @@ bool			bResultV;
 
 	// NB: the CreateControl call crashes on MacOS
 #if defined(__WXMSW__)
-	localName = _T(WC_HEADER);
+	// NB: this is a string from Win32 headers and is conditionally defined as Unicode or ANSI,
+	// hence, no _T() nor wxT() macro is desirable
+	localName = WC_HEADER;
 	bResultV =
 		CreateControl(
 			parent, id, pos, actualSize,
@@ -1369,7 +1371,7 @@ long		resultV;
 
 	ZeroMemory( &itemData, sizeof(itemData) );
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
-	itemData.pszText = (LPSTR)titleText;
+	itemData.pszText = (LPTSTR)titleText;
 	itemData.cxy = (int)nWidth;
 	itemData.cchTextMax = 256;
 //	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
@@ -1432,7 +1434,7 @@ long					resultV;
 
 	// add string reference
 	itemData.mask = HDI_TEXT | HDI_FORMAT | HDI_WIDTH;
-	itemData.pszText = (LPSTR)(itemRef->m_LabelTextRef.c_str());
+	itemData.pszText = (LPTSTR)(itemRef->m_LabelTextRef.c_str());
 	itemData.cxy = (int)(itemRef->m_ExtentX);
 	itemData.cchTextMax = 256;
 //	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
