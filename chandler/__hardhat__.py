@@ -27,10 +27,10 @@ def clean(buildenv):
 def run(buildenv):
 
     if buildenv['version'] == 'debug':
-        python = buildenv['python_d.run']
+        python = buildenv['python_d']
 
     if buildenv['version'] == 'release':
-        python = buildenv['python.run']
+        python = buildenv['python']
 
     hardhatlib.executeCommandNoCapture( buildenv, info['name'],
      [python, "Chandler.py"], "Running Chandler" )
