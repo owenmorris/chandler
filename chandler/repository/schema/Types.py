@@ -199,6 +199,17 @@ class DateTime(Type):
     makeString = classmethod(makeString)
 
 
+class DateTimeDelta(Type):
+
+    def makeValue(cls, data):
+        return mx.DateTime.DateTimeDeltaFrom(str(data))
+        
+    def unserialize(self, data):
+        return DateTimeDelta.makeValue(data)
+
+    makeValue = classmethod(makeValue)
+
+
 class RelativeDateTime(Type):
 
     def makeValue(cls, data):
@@ -212,4 +223,5 @@ class RelativeDateTime(Type):
 
 ItemHandler.typeHandlers[type] = Class
 ItemHandler.typeHandlers[type(mx.DateTime.now())] = DateTime
+ItemHandler.typeHandlers[type(mx.DateTime.DateTimeDelta(0))] = DateTimeDelta
 ItemHandler.typeHandlers[type(mx.DateTime.RelativeDateTime())] = RelativeDateTime
