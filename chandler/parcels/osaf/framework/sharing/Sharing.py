@@ -182,8 +182,7 @@ class ShareConduit(ContentModel.ChandlerItem):
         # assumes self.resourceList is populated
 
         if itemPath not in self.resourceList:
-            print "Hey, it's not there:", itemPath # @@@MOR
-            logger.info("...Not on server")
+            logger.info("...Not on server: %s" % itemPath)
             return None
 
         if not self.__haveLatest(itemPath):
@@ -609,13 +608,24 @@ class WebDAVConduit(ShareConduit):
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
             if isinstance(item, Share):
-                return "/%s/%s/share.xml" % (sharePath, self.shareName)
+                path = "/"
+                if sharePath:
+                    path += "%s/" % sharePath
+                path += "%s/share.xml" % self.shareName
+                return path
             else:
-                return "/%s/%s/%s.%s" % (sharePath, self.shareName,
-                 item.itsUUID, extension)
+                path = "/"
+                if sharePath:
+                    path += "%s/" % sharePath
+                path += "%s/%s.%s" % (self.shareName, item.itsUUID, extension)
+                return path
 
         elif style == ImportExportFormat.STYLE_SINGLE:
-            return "/%s/%s" % (sharePath, self.shareName)
+            path = "/"
+            if sharePath:
+                path += "%s/" % sharePath
+            path += self.shareName
+            return path
 
         else:
             print "Error" #@@@MOR Raise something
@@ -1242,10 +1252,16 @@ def newInboundShare(view, url):
         # @@@MOR must prompt user for account information (?)
         # then create an account
 
+        # Get the parent directory of the given path:
+        # '/dev1/foo/bar' becomes ['dev1', 'foo']
+        parentPath = path.strip('/').split('/')[:-1]
+        # ['dev1', 'foo'] becomes "dev1/foo"
+        parentPath = "/".join(parentPath)
+
         # Examine the URL for scheme, host, port, path
         info = AccountInfoPrompt.PromptForNewAccountInfo(wx.GetApp().mainFrame,
                                                          host=host,
-                                                         path=path)
+                                                         path=parentPath)
         if info is not None:
             (description, username, password) = info
             kindPath = "//parcels/osaf/framework/sharing/WebDAVAccount"
@@ -1253,7 +1269,7 @@ def newInboundShare(view, url):
             account = webDAVAccountKind.newItem(name=None, parent=parent)
             account.displayName = description
             account.host = host
-            account.path = path
+            account.path = parentPath
             account.username = username
             account.password = password
             account.isDefault = False
@@ -1263,8 +1279,6 @@ def newInboundShare(view, url):
     share = None
     if account is not None:
         shareName = path.strip("/").split("/")[-1]
-        print path
-        print shareName
         conduit = WebDAVConduit(view=view, shareName=shareName,
                                 account=account)
         format = CloudXMLFormat(view=view)

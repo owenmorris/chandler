@@ -78,8 +78,8 @@ class Client(object):
     def propfind(self, url, body=None, depth=None, extraHeaders={ }):
         extraHeaders = extraHeaders.copy()
         extraHeaders['Content-Type'] = XML_CONTENT_TYPE
-        if body is None:
-            body = "%s\n<D:propfind xmlns:D=\"DAV:\"><D:prop><D:getlastmodified/></D:prop></D:propfind>" % XML_DOC_HEADER
+        if body is None: # by default, ask for etags
+            body = "%s\n<D:propfind xmlns:D=\"DAV:\"><D:prop><D:getetag/></D:prop></D:propfind>" % XML_DOC_HEADER
         if depth is not None:
             extraHeaders['Depth'] = str(depth)
         return self._request('PROPFIND', url, body, extraHeaders=extraHeaders)
