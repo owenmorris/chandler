@@ -98,6 +98,7 @@ class MenuEntry(Block):
     def installMenu (cls, menuList, wxMenuObject, data):
         nameToItemIndex = data['nameToItemIndex']
         oldMenuList = cls.getMenuItems (wxMenuObject)
+
         for index in xrange (len (menuList)):
             menuItemName = menuList [index]
             menuItem = nameToItemIndex [menuItemName]
@@ -115,6 +116,7 @@ class MenuEntry(Block):
                 menuItem.setMenuItem (wxMenuObject, wxMenuItem, oldItem, index)
 
         for oldItem in oldMenuList:
+            index += 1
             cls.deleteItem (wxMenuObject, index, oldItem)
     installMenu = classmethod (installMenu)
 
