@@ -62,9 +62,9 @@ class DBLob(Lob, ItemValue):
             self._data = ''
 
             if self._indexed:
+                reader = self.getPlainTextReader(replace=True)
                 store._index.indexDocument(self._view._getIndexWriter(),
-                                           self.getPlainTextReader(),
-                                           uuid,
+                                           reader, uuid,
                                            self._getItem().itsUUID,
                                            self._getAttribute(),
                                            self.getVersion())
