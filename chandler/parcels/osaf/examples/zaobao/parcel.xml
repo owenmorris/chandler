@@ -45,7 +45,7 @@
 
   <Kind itsName="RSSChannel">
     <!-- make this into an item collection so we can appear natively in the sidebar -->
-    <superKinds itemref="content:ItemCollection"/>
+    <superKinds itemref="content:ContentItem"/>
     
     <classes key="python">osaf.examples.zaobao.RSSData.RSSChannel</classes>
     
@@ -107,6 +107,13 @@
       <type itemref="doc:RSSItem"/>
       <inverseAttribute itemref="doc:RSSItem/channel"/>
     </Attribute>
+    
+    <Attribute itsName="itemCollections">
+        <displayName>Item Collections</displayName>
+        <cardinality>list</cardinality>
+        <type itemref="content:ItemCollection"/>
+        <initialValue/>
+    </Attribute>
 
     <!-- Actual attribute uses -->
     
@@ -119,6 +126,7 @@
 
     <attributes itemref="doc:RSSChannel/isUnread"/>
     <attributes itemref="doc:RSSChannel/items"/>
+    <attributes itemref="doc:RSSChannel/itemCollections"/>
 
     <!-- These attributes are shared between RSSChannel and RSSItem -->
     <attributes itemref="doc:link"/>

@@ -363,14 +363,24 @@ class MainView(View):
     def onNewZaoBaoChannelEvent(self, event):
         url = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "New Channel", "Enter a URL for the RSS Channel", "http://")
         if url and url != "":
-            # create the zaobao channel and send it to the sidebar
-            channel = osaf.examples.zaobao.RSSData.NewChannelFromURL(view=self.itsView, url=url, update=True)
-            if channel:
-                self.postEventByName ('AddToSidebarWithoutCopying', {'items':[channel]})
+            try: 
+                # create the zaobao channel
+                channel = osaf.examples.zaobao.RSSData.NewChannelFromURL(view=self.itsView, url=url, update=True)
+                
+                # hook up a new collection for the sidebar
+                collKind = self.itsView.findPath("//parcels/osaf/contentmodel/ItemCollection")
+                sidebarCollection = collKind.newItem(None, None)
+                sidebarCollection.displayName = channel.displayName
+                channel.addCollection(sidebarCollection)
+                
+                # now post the new collection to the sidebar
+                mainView = Globals.views[0]
+                mainView.postEventByName ('AddToSidebarWithoutCopying', {'items': [sidebarCollection]})
                 self.itsView.commit()
-            else:
-                application.dialogs.Util.ok(wx.GetApp().mainFrame, "New Channel Error", "Could not create channel for " + 
-                    url + "\nCheck the URL and try again.")
+            except:
+                application.dialogs.Util.ok(wx.GetApp().mainFrame, "New Channel Error", 
+                    "Could not create channel for " + url + "\nCheck the URL and try again.")
+                raise
 
     def onGenerateCalendarEventItemsEvent(self, event):
         GenerateItems.generateCalendarEventItems(self.itsView, 10, 30)

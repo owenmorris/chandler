@@ -47,7 +47,7 @@ def NewChannelFromURL(view, url, update = True):
             channel.Update(data)
         except:
             channel.delete()
-            channel = None
+            raise
 
     return channel
 
@@ -87,6 +87,24 @@ class RSSChannel(ItemCollection):
         self._DoChannel(data['channel'])
         self._DoItems(data['items'])
 
+    def addCollection(self, collection):
+        """
+            Add a new collection, and update it with the list of all known items to date
+        """
+        for rssItem in self.items:
+            collection.add(rssItem)
+            
+        self.itemCollections.append(collection)
+            
+    def addRSSItem(self, rssItem):
+        """
+            Add a single item, and add it to any listening collections
+        """
+        self.addValue('items', rssItem)
+        for collection in self.itemCollections:
+            collection.add(rssItem)
+        
+
     def _DoChannel(self, data):
         # fill in the item
         attrs = {'title':'displayName'}
@@ -102,29 +120,30 @@ class RSSChannel(ItemCollection):
 
     def _DoItems(self, items):
         # make children
-        
-        # XXX because feedparser is currently broken and gives us
-        # all new entries when a feed changes, we need to delete
-        # all the existing items
-        
-        # instead, lets look for each existing item. This is ugly and is an O(n^2) problem
+                
+        # lets look for each existing item. This is ugly and is an O(n^2) problem
         # if the items are unsorted. Bleah.
         view = self.itsView
-        if len(items) > 0:
-            for newItem in items:
-                found = False
-                for oldItem in self.items:
-                    # check to see if this doesn't already exist
-                    if oldItem.isSimilar(newItem):
-                        found = True
-                    # how to break out of this loop?
-                        
-                if not found:
-                    # we have a new item - add it
-                    rssItem = RSSItem(view=view)
-                    rssItem.Update(newItem)
-                    self.addValue('items', rssItem)
-                    self.add(rssItem)
+        if len(items) == 0:
+            return
+            
+        for newItem in items:
+            found = False
+            for oldItem in self.items:
+                # check to see if this doesn't already exist
+                if oldItem.isSimilar(newItem):
+                    found = True
+                    break
+                    
+            if not found:
+                # we have a new item - add it
+                rssItem = RSSItem(view=view)
+                rssItem.Update(newItem)
+                try: 
+                    self.addRSSItem(rssItem)
+                except Exception, e:
+                    print "Error adding an item: " + str(e)
+                    raise
 
 ##
 # RSSItem
