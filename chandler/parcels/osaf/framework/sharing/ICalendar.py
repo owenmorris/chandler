@@ -59,17 +59,20 @@ def itemsToVObject(view, items, cal=None):
     about timezones.
 
     """
-    taskKind  = view.findPath("//parcels/osaf/contentmodel/EventTask")
+    taskKind  = view.findPath(ICalendarFormat._taskPath)
+    eventKind  = view.findPath(ICalendarFormat._calendarEventPath)
     if cal is None:
         cal = vobject.iCalendar()
     for item in items:
         if item.isItemOf(taskKind):
             taskorevent='TASK'
             comp = cal.add('vtodo')
-        else:
+        elif item.isItemOf(eventKind):
             taskorevent='EVENT'
             comp = cal.add('vevent')
-
+        else:
+            continue
+        
         if item.getAttributeValue('uid', default=None) is None:
             item.uid = unicode(item.itsUUID)
         comp.add('uid').value = item.uid
@@ -104,9 +107,9 @@ class ICalendarFormat(Sharing.ImportExportFormat):
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/ICalendarFormat"
 
-    __calendarEventPath = "//parcels/osaf/contentmodel/calendar/CalendarEvent"
-    __taskPath = "//parcels/osaf/contentmodel/EventTask"
-    __lobPath = "//Schema/Core/Lob"
+    _calendarEventPath = "//parcels/osaf/contentmodel/calendar/CalendarEvent"
+    _taskPath = "//parcels/osaf/contentmodel/EventTask"
+    _lobPath = "//Schema/Core/Lob"
     
     def fileStyle(self):
         return self.STYLE_SINGLE
@@ -118,7 +121,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         view = self.itsView
         queryString='union(for i in "%s" where i.uid == $0, \
                            for i in "%s" where i.uid == $0)' % \
-                           (self.__calendarEventPath, self.__taskPath)
+                           (self._calendarEventPath, self._taskPath)
         p = view.findPath('//Queries')
         k = view.findPath('//Schema/Core/Query')
         q = Query.Query(None, p, k, queryString)
@@ -139,9 +142,9 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         view = self.itsView
         
         newItemParent = self.findPath("//userdata")
-        eventKind = self.itsView.findPath(self.__calendarEventPath)
-        taskKind  = self.itsView.findPath(self.__taskPath)
-        textKind  = self.itsView.findPath(self.__lobPath)
+        eventKind = self.itsView.findPath(self._calendarEventPath)
+        taskKind  = self.itsView.findPath(self._taskPath)
+        textKind  = self.itsView.findPath(self._lobPath)
         
         if item is None:
             item = ItemCollection.ItemCollection(view=view)
