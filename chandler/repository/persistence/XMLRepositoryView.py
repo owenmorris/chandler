@@ -265,13 +265,19 @@ class XMLRepositoryView(OnDemandRepositoryView):
                     
         self._notRoots.clear()
 
-        if histNotifications is not None:
-            histNotifications.dispatchHistory()
-
+        after = datetime.now()
         if count > 0:
             self.logger.info('%s committed %d items (%ld bytes) in %s',
-                             self, count, size,
-                             datetime.now() - before)
+                             self, count, size, after - before)
+
+        if histNotifications is not None:
+            count = len(histNotifications)
+            histNotifications.dispatchHistory()
+            delta = datetime.now() - after
+            if delta.seconds > 1:
+                self.logger.warning('%s %d notifications run in %s',
+                                    self, count, delta)
+
         self.prune(10000)
 
         if timing: tools.timing.end("Repository commit")
