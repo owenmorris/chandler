@@ -8,13 +8,18 @@ working properly.
 """
 
 import unittest
+import os, sys
 import application.Globals as Globals
 from crypto import Crypto
 
 
 class InitShutdown(unittest.TestCase):
     def setUp(self):
-        Globals.crypto = Crypto.Crypto()
+        pathComponents = sys.modules['crypto'].__file__.split (os.sep)
+        assert len (pathComponents) > 3
+        chandlerDirectory = os.path.join(os.sep.join(pathComponents[0:-2]), 'crypto')
+        
+        Globals.crypto = Crypto.Crypto(chandlerDirectory)
         Globals.crypto.init()        
 
     def tearDown(self):
