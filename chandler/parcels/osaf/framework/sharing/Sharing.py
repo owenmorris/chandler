@@ -1648,6 +1648,8 @@ def ensureAccountSetUp(view):
         elif not SMTPReady:
             """ Returns the defaultSMTPAccount or None"""
             account = Mail.MailParcel.getSMTPAccount(view)
+        else:
+            account = getWebDAVAccount(view)
 
         response = \
           application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(
