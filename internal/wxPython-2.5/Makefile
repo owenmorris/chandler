@@ -5,6 +5,7 @@ RELVER=2.5.3.1-14
 SRC=$(INTERNAL)/wxPython-2.5
 SWIG_OPTION=1
 WXMAJORVERSIONCOMPACT=253
+UNICODE_SUFFIX=u
 
 ifeq ($(DEBUG),1)
 CONF_OPT=--enable-debug
@@ -34,7 +35,7 @@ wxWidgets:
         export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
 	devenv.com build/msw/msw.sln /build $(Snap)
 	mkdir -p $(PREFIX)/$(SITE)/wx
-	install $(SRC)/lib/vc_dll/*$(WXMAJORVERSIONCOMPACT)$(SUFFIX)*_vc.dll $(PREFIX)/$(SITE)/wx
+	install $(SRC)/lib/vc_dll/*$(WXMAJORVERSIONCOMPACT)$(UNICODE_SUFFIX)$(SUFFIX)*_vc.dll $(PREFIX)/$(SITE)/wx
 
 wxPython:
 	cd $(SRC)/wxPython; \
