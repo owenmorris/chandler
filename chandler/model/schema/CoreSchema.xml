@@ -1,0 +1,1936 @@
+<?xml version="1.0"?>
+
+<DomainSchema id="core:CoreSchema" root="Core"
+  xmlns="http://osafoundation.org/2003/08/CoreSchema"
+  xmlns:core="http://osafoundation.org/2003/08/CoreSchema"
+  xml:base="http://osafoundation.org/2003/08/CoreSchema">
+
+<!-- the 'containmentPath' elements may be temporary -->
+<!-- they might get replaced once we figure out parcel loading -->
+<!-- right now, they're very handy for the xslt transform to our 'pack & item xml' formats -->
+  <containmentPath prefix="core" path="//Schema/CoreSchema/"/>
+
+  <label>Core</label>
+  <version>0</version>
+  <dependsOn itemref="core:CoreSchema"/>
+  <comment>
+    Chandler stores Items.
+    example: Chandler stores my calendar event "Lunch with Tug" 
+     
+    Each Item is an instance of some Kind.
+    example: "Lunch with Tug" is an instance of an "Calendar Event" 
+     
+    Each Kind has a template of Attribute Definitions.
+    example: An "Calendar Event" has a "start time", an "end time", a "headline", etc.
+     
+    Each Item instance has it's own list of Attribute Values.
+    example: "Lunch with Tug" has a "start time", an "end time", a "headline", etc.
+     
+    An Item can have more Attribute Values than are in the template of Attribute Definitions for that Kind.
+    example: "Lunch with Tug" has an "imaginary" attribute, even though "Calendar Event" does not have an "imaginary" attribute.
+     
+    Each attribute of an Item can have a Value.
+    example: The "start time" of "Lunch with Tug" is "1:00pm".
+     
+    A value can be a literal, or a reference to another Item.
+    example: The "start time" of "Lunch with Tug" is "1:00pm, 15 Mar 1992".
+    example: The "owner" of "Lunch with Tug" is the user Tug, who created the Calendar Event.
+     
+    A Literal is an instance of some Type.
+    example: "1:00pm, 15 Mar 1992" is a "datetime" 
+     
+    An Attribute Definition of one Kind can have a inverse Attribute Definition of another Kind
+    example: The "reminder" attribute of "Calendar Event" is the inverse of the "event" attribute of "Reminder", so that each event knows whether it has a reminder, and each reminder knows which event to remind the user of.
+  </comment>
+
+<!-- Global Attributes -->
+  <AttributeDefinition id="core:label">
+    <label>label</label>
+    <comment>Any sort of name for an item.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:name">
+    <label>name</label>
+    <comment>A human-readable name for an item.</comment>
+    <superAttribute itemref="core:label"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:abbreviation">
+    <label>abbreviation</label>
+    <comment>A human-readable abbreviation for a name.</comment>
+    <superAttribute itemref="core:label"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:id">
+    <label>identifier name</label>
+    <comment>A name for use in computer programs -- no spaces or special characters. Similar to (dublin core: creator).</comment>
+    <type itemref="core:Symbol"/>
+    <superAttribute itemref="core:label"/>
+    <hidden/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:annotation">
+    <label>annotation</label>
+    <comment>Any sort of comment or annotation for an item.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:comment">
+    <label>comment</label>
+    <comment>Any sort of comment or description to explain more about an item.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:String"/>
+    <superAttribute itemref="core:annotation"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:example">
+    <label>example</label>
+    <comment>An example of this item.</comment>
+    <superAttribute itemref="core:annotation"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:issue">
+    <label>issue</label>
+    <comment>Any open issue with this item.</comment>
+    <superAttribute itemref="core:annotation"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:equivalent">
+    <label>equivalent</label>
+    <comment>This item is conceptually equivalent to these others.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Item"/>
+    <inverseAttribute itemref="core:equivalent"/>
+    <relationshipType>equivalent</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:hidden">
+    <label>hidden</label>
+    <comment>Is this a 'hidden' system Type used for house-keeping, or is this a domain Type that an end-user would want to see?</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Boolean"/>
+    <hidden/>
+    <default>false</default>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:type">
+    <label>type</label>
+    <comment>What sorts of values can this field or attribute have?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Taxon"/>
+    <inverseAttribute itemref="core:usedAsTypeIn"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:usedAsTypeIn">
+    <label>used as type in</label>
+    <comment>What fields and attributes use this taxon as their type?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Field"/>
+    <type itemref="core:AttributeDefinition"/>
+    <inverseAttribute itemref="core:type"/>
+  </AttributeDefinition>
+
+<!-- Item -->
+  <AttributeDefinition id="core:uuid">
+    <label>uuid</label>
+    <comment>The unique id of this item. Similar to (dublin core: creator).</comment>
+    <cardinality>single</cardinality>
+    <required/>
+    <type itemref="core:UUID"/>
+    <hidden/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:instanceOf">
+    <label>instance of</label>
+    <comment>The Kind that this item is an instance of.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Kind"/>
+    <hidden/>
+    <unidirectional/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:instanceOfPrimaryKind">
+    <label>instance of primary kind</label>
+    <comment>The Kind that this item is an instance of. An item can be an instance of only one main Kind, although it can have additional 'instance of additional kinds'.</comment>
+    <cardinality>single</cardinality>
+    <superAttribute itemref="core:instanceOf"/>
+    <default>common:GenericItem</default>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:instanceOfAdditionalKind">
+    <label>instance of additional kinds</label>
+    <comment>Other Kinds that this item is also an instance of. An item can be an 'also instance of' more than one Kind. For example, a particular 'Email Message' could also be a 'Task'.</comment>
+    <superAttribute itemref="core:instanceOf"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:createdBy">
+    <label>created by</label>
+    <comment>Who made this item? Similar to (dublin core: creator).</comment>
+    <cardinality>single</cardinality>
+    <required/>
+    <type itemref="core:Operator"/>
+    <hidden/>
+    <inverseAttribute itemref="core:itemsCreated"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:creationTime">
+    <label>creation time</label>
+    <comment>When was this item created? Similar to (dublin core: created).</comment>
+    <cardinality>single</cardinality>
+    <required/>
+    <type itemref="core:RigidDatetime"/>
+    <hidden/>
+    <default>now</default>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:lastModifiedTime">
+    <label>last modified time</label>
+    <comment>When was this item last modified?</comment>
+    <cardinality>single</cardinality>
+    <required/>
+    <type itemref="core:RigidDatetime"/>
+    <hidden/>
+    <default>now</default>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:deleted">
+    <label>deleted</label>
+    <comment>Is this item now logically deleted?</comment>
+    <cardinality>single</cardinality>
+    <required/>
+    <type itemref="core:Boolean"/>
+    <hidden/>
+    <default>false</default>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:repositoryContainmentParent">
+    <label>parent</label>
+    <comment>The parent item in the repository containment hierarchy. If the parent value is null, then this is a root item.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Item"/>
+    <hidden/>
+    <inverseAttribute itemref="core:repositoryContainmentChildren"/>
+    <relationshipType>parent</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:repositoryContainmentChildren">
+    <label>children</label>
+    <comment>The children items in the repository containment hierarchy.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Item"/>
+    <hidden/>
+    <inverseAttribute itemref="core:repositoryContainmentParent"/>
+    <relationshipType>children</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:repositoryContainmentPath">
+    <label>path</label>
+    <comment>Path within the Chandler repository.</comment>
+    <derivation>Derived from 'parent' and 'identifier name'</derivation>
+    <cardinality>single</cardinality>
+    <type itemref="core:RepositoryContainmentPath"/>
+    <hidden/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:proxyFor">
+    <label>proxy for</label>
+    <comment>If this item is a copy of some record from another PIM, what's the address of the foreign record?</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:ForeignItem"/>
+    <hidden/>
+    <inverseAttribute itemref="core:localCopy"/>
+    <relationshipType>owns</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:note">
+    <label>note</label>
+    <comment>Any notes or annotations that people have made about this item.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Note"/>
+    <inverseAttribute itemref="core:noteAppliesTo"/>
+    <superAttribute itemref="core:annotation"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:copyright">
+    <label>copyright</label>
+    <comment>What is the copyright license for this item?</comment>
+    <cardinality>list</cardinality>
+    <type itemref="core:Copyright"/>
+    <inverseAttribute itemref="core:copyrightAppliesTo"/>
+    <superAttribute itemref="core:annotation"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:adHocAttributeList">
+    <label>ad hoc attribute list</label>
+    <comment>What attributes have been added to this individual item?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:AttributeDefinition"/>
+    <hidden/>
+    <inverseAttribute itemref="core:usedAsAdHocAttributeInItems"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:sameItemAs">
+    <label>same item as</label>
+    <comment>If two items conceptually represent the same thing, we can use this attribute to make a note of that.  For example, in my address book I might accidentally create two different 'Contacts' for Amy Merkle.  I don't want to delete either of them, because other Items reference them, but I do want to Chandler to understand they're really should be the same Item.  See also the RDF/OWL notion of 'owl:sameIndividualAs'.</comment>
+    <inverseAttribute itemref="core:sameItemAs"/>
+    <superAttribute itemref="core:equivalent"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:suppliedIn">
+    <label>supplied in</label>
+    <comment>The Domain Schema where this item comes from.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:DomainSchema"/>
+    <hidden/>
+    <inverseAttribute itemref="core:itemsSupplied"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Item">
+    <label>Item</label>
+    <displayAttribute itemref="core:label"/>
+    <attribute itemref="core:id"/>
+    <attribute itemref="core:uuid"/>
+    <attribute itemref="core:instanceOfPrimaryKind"/>
+    <attribute itemref="core:instanceOfAdditionalKind"/>
+    <attribute itemref="core:createdBy"/>
+    <attribute itemref="core:creationTime"/>
+    <attribute itemref="core:lastModifiedTime"/>
+    <attribute itemref="core:deleted"/>
+    <attribute itemref="core:repositoryContainmentParent"/>
+    <attribute itemref="core:repositoryContainmentChildren"/>
+    <attribute itemref="core:repositoryContainmentPath"/>
+    <attribute itemref="core:proxyFor"/>
+    <attribute itemref="core:note"/>
+    <attribute itemref="core:copyright"/>
+    <attribute itemref="core:adHocAttributeList"/>
+    <attribute itemref="core:sameItemAs"/>
+    <attribute itemref="core:suppliedIn"/>
+  </Kind>
+
+<!-- Domain Schema -->
+  <AttributeDefinition id="core:dependsOn">
+    <label>dependent on</label>
+    <comment>The other Domain Schemas that this one builds on top of.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:DomainSchema"/>
+    <inverseAttribute itemref="core:isUsedBy"/>
+    <relationshipType>parent</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:isUsedBy">
+    <label>is used by</label>
+    <comment>The other Domain Schemas that are built on top of this one.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:DomainSchema"/>
+    <inverseAttribute itemref="core:dependsOn"/>
+    <relationshipType>children</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:version">
+    <label>version</label>
+    <comment>Version info for this Domain Schema.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Version"/>
+    <inverseAttribute itemref="core:currentItem"/>
+    <superAttribute itemref="core:annotation"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:schemaDefinitions">
+    <label>definitions</label>
+    <comment>All the stuff defined by this schema: Types, Kinds, Attribute Definitions, Enums, etc.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:SchemaItem"/>
+    <inverseAttribute itemref="core:definedInDomainSchema"/>
+    <relationshipType>owns</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:definedTypes">
+    <label>defined Types</label>
+    <comment>All the Types defined by this schema</comment>
+    <type itemref="core:Type"/>
+    <inverseAttribute itemref="core:typeDefinedInDomainSchema"/>
+    <superAttribute itemref="core:schemaDefinitions"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:definedKinds">
+    <label>defined Kinds</label>
+    <comment>All the Kinds defined by this schema</comment>
+    <type itemref="core:Kind"/>
+    <inverseAttribute itemref="core:kindDefinedInDomainSchema"/>
+    <superAttribute itemref="core:schemaDefinitions"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:definedAttributeDefinitions">
+    <label>defined Attribute Definitions</label>
+    <comment>All the Attribute Definitions defined by this schema</comment>
+    <type itemref="core:AttributeDefinition"/>
+    <inverseAttribute itemref="core:attributeDefinedInDomainSchema"/>
+    <superAttribute itemref="core:schemaDefinitions"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:definedAliases">
+    <label>defined Aliases</label>
+    <comment>All the Aliases defined by this schema</comment>
+    <type itemref="core:Alias"/>
+    <inverseAttribute itemref="core:aliasDefinedInDomainSchema"/>
+    <superAttribute itemref="core:schemaDefinitions"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:itemsSupplied">
+    <label>items supplied</label>
+    <comment>All the items included with the domain schema -- typically enum instances, but they could be anything.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Item"/>
+    <inverseAttribute itemref="core:suppliedIn"/>
+  </AttributeDefinition>
+
+  <Kind id="core:DomainSchema">
+    <label>Domain Schema</label>
+    <displayAttribute itemref="core:label"/>
+    <issue>We should arrange for each Domain Schema to have a namespace.  We might do that just by having an attribute on Domain Schema, or we might want to do something fancier using the Semantic Mapping feature.</issue>
+    <superKind itemref="core:Item"/>
+    <attribute itemref="core:label"/>
+    <attribute itemref="core:comment"/>
+    <attribute itemref="core:example"/>
+    <attribute itemref="core:issue"/>
+    <attribute itemref="core:dependsOn"/>
+    <attribute itemref="core:isUsedBy"/>
+    <attribute itemref="core:version"/>
+    <attribute itemref="core:definedTypes"/>
+    <attribute itemref="core:definedKinds"/>
+    <attribute itemref="core:definedAttributeDefinitions"/>
+    <attribute itemref="core:definedAliases"/>
+    <attribute itemref="core:itemsSupplied"/>
+  </Kind>
+
+<!-- Schema Item -->
+  <AttributeDefinition id="core:definedInDomainSchema">
+    <label>defined in</label>
+    <comment>The Domain Schema where this item is defined.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:DomainSchema"/>
+    <inverseAttribute itemref="core:schemaDefinitions"/>
+    <relationshipType>ownedBy</relationshipType>
+  </AttributeDefinition>
+
+  <Kind id="core:SchemaItem">
+    <label>Schema Item</label>
+    <superKind itemref="core:Item"/>
+    <abstract/>
+  </Kind>
+
+<!-- Taxon -->
+  <AttributeDefinition id="core:superTaxon">
+    <label>super taxon</label>
+    <comment>The supertaxon(s) for this taxon.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Taxon"/>
+    <inverseAttribute itemref="core:subTaxons"/>
+    <relationshipType>parent</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:subTaxons">
+    <label>sub taxons</label>
+    <comment>The subtaxons of this taxon.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Taxon"/>
+    <inverseAttribute itemref="core:superTaxon"/>
+    <relationshipType>children</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:usedInAlias">
+    <label>used in alias</label>
+    <comment>What are all the various Aliases that include this taxon?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Alias"/>
+    <inverseAttribute itemref="core:aliasFor"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Taxon">
+    <label>Taxon</label>
+    <comment>
+      Taxon can be a Kind, or a Type, or a Kind-of-Compound-Attribute. Taxon is an abstract superkind for these three other kinds.
+    </comment>
+    <superKind itemref="core:SchemaItem"/>
+    <displayAttribute itemref="core:label"/>
+    <abstract/>
+    <attribute itemref="core:label"/>
+    <attribute itemref="core:comment"/>
+    <attribute itemref="core:example"/>
+    <attribute itemref="core:issue"/>
+    <attribute itemref="core:hidden"/>
+    <attribute itemref="core:usedAsTypeIn"/>
+    <attribute itemref="core:usedInAlias"/>
+  </Kind>
+
+<!-- Type -->
+  <AttributeDefinition id="core:typeDefinedInDomainSchema">
+    <label>defined in</label>
+    <comment>...add comment here...</comment>
+    <superAttribute itemref="core:definedInDomainSchema"/>
+    <inverseAttribute itemref="core:definedTypes"/>
+  </AttributeDefinition>
+  
+  <AttributeDefinition id="core:superType">
+    <label>super type</label>
+    <comment>The supertype for this type.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Type"/>
+    <inverseAttribute itemref="core:subTypes"/>
+    <superAttribute itemref="core:superTaxon"/>
+    <default>core:Literal</default>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:subTypes">
+    <label>sub type</label>
+    <comment>The subtypes of this type.</comment>
+    <type itemref="core:Type"/>
+    <inverseAttribute itemref="core:superType"/>
+    <superAttribute itemref="core:subTaxons"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:formats">
+    <label>formats</label>
+    <comment>What display formats are available for this type?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:AttributeFormat"/>
+    <inverseAttribute itemref="core:appliesToType"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Type">
+    <label>Type</label>
+    <example>'integer'</example>
+    <example>'boolean'</example>
+    <example>'string'</example>
+    <comment>
+      Items have attributes. Each attribute can have some associated type, and the attribute values for that attribute are restricted to being values of that type. An attribute's values can be completely unrestricted, or they can be restricted to some specific Kind, or some specific Type.
+    </comment>
+    <issue>What is the list of supported types?</issue>
+    <issue>Can a new Parcel create a new Type?</issue>
+    <issue>What's actually involved in supporting a new Type? Beyond simply creating a new instance in the repository, what Chandler code has to be changed?</issue>
+    <issue>What's the relationship between (a) a Type and (b) the formatting options for that Type? Should 'percentage' really be its own Type, or should it just be a way of formatting 'float'?</issue>
+    <superKind itemref="core:Taxon"/>
+    <attribute itemref="core:typeDefinedInDomainSchema"/>
+    <attribute itemref="core:superType"/>
+    <attribute itemref="core:subTypes"/>
+    <attribute itemref="core:formats"/>
+  </Kind>
+
+<!-- Compound-Type -->
+  <AttributeDefinition id="core:field">
+    <label>fields</label>
+    <comment>The fields in a compound type.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Field"/>
+    <inverseAttribute itemref="core:owningType"/>
+    <relationshipType>owns</relationshipType>
+  </AttributeDefinition>
+
+  <Kind id="core:CompoundType">
+    <label>Compound-Type</label>
+    <example>'date' = 'year', 'month', 'day'</example>
+    <example>'time' = 'hour', 'minute', 'second'</example>
+    <example>'datetime' = 'date', 'time', 'timezone'</example>
+    <example>'fraction' = 'numerator', 'denominator'</example>
+    <example>'person name' = 'first name', 'middle name', 'last name', 'title', 'suffix'</example>
+    <example>'quantity' = 'number', 'unit'</example>
+    <comment>
+      A Kind describes all the attributes that Items of that kind might typically have.  Similarly, a Compound-Type describes all the fields that compound literal might typically have.  Compound literals are similar to items, in that they both contain attributes.  But compound literals don't have UUIDs, so a compound literal can never be refered to except as a part of an item.  Compound literals are 'wholly owned' by the items that use them.
+      For example, you might have a Person item that represents Abraham Lincoln. The item will have attributes, like 'date of birth', 'date of death', 'name', and 'nickname'. And the item has a UUID, and can be refered to by other items.  The 'nickname' attribute just holds a simple string literal, but the 'name' attribute holds a compound literal of the type 'person name', which has fields for 'first name', 'middle name', 'last name', etc.
+    </comment>
+    <superKind itemref="core:Type"/>
+    <attribute itemref="core:field"/>
+  </Kind>
+  
+<!-- Field -->
+  <AttributeDefinition id="core:owningType">
+    <label>owning type</label>
+    <comment>The compound type that this field is a part of.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:CompoundType"/>
+    <inverseAttribute itemref="core:field"/>
+    <relationshipType>ownedBy</relationshipType>
+  </AttributeDefinition>
+
+  <Kind id="core:Field">
+    <label>Field</label>
+    <superKind itemref="core:SchemaItem"/>
+    <displayAttribute itemref="core:label"/>
+    <attribute itemref="core:label"/>
+    <attribute itemref="core:comment"/>
+    <attribute itemref="core:example"/>
+    <attribute itemref="core:issue"/>
+    <attribute itemref="core:owningType"/>
+    <attribute itemref="core:type"/>
+  </Kind>
+
+<!-- Kind -->
+  <AttributeDefinition id="core:abstract">
+    <label>abstract</label>
+    <comment>TRUE if this is an abstract superkind and cannot be instantiated.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Boolean"/>
+    <default>false</default>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:attribute">
+    <label>implied attributes</label>
+    <comment>A set of attributes typically found on items of this Kind.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:AttributeDefinition"/>
+    <inverseAttribute itemref="core:usedInKind"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:displayAttribute">
+    <label>display attribute</label>
+    <comment>For items of this kind, what attribute should we look in to find a human readable name for this item?  For example, in an Email Message item we might use the 'subject' attribute, and in a Contact item we might use the 'person name' attribute.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:AttributeDefinition"/>
+    <type itemref="core:AttributeChain"/>
+    <inverseAttribute itemref="core:usedAsDisplayAttribute"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:equivalentKind">
+    <label>equivalent kinds</label>
+    <comment>Similar to the RDF/OWL property 'owl:equivalentClass'.</comment>
+    <type itemref="core:Kind"/>
+    <inverseAttribute itemref="core:equivalentKind"/>
+    <superAttribute itemref="core:equivalent"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:kindDefinedInDomainSchema">
+    <label>defined in</label>
+    <comment>...add comment here...</comment>
+    <superAttribute itemref="core:definedInDomainSchema"/>
+    <inverseAttribute itemref="core:definedKinds"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:superKind">
+    <label>super kind</label>
+    <comment>The superkinds for this kind.</comment>
+    <type itemref="core:Kind"/>
+    <inverseAttribute itemref="core:subKinds"/>
+    <superAttribute itemref="core:superTaxon"/>
+    <default>core:Item</default>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:subKinds">
+    <label>sub kinds</label>
+    <comment>The subkinds of this kind.</comment>
+    <type itemref="core:Kind"/>
+    <inverseAttribute itemref="core:superKind"/>
+    <superAttribute itemref="core:subTaxons"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Kind">
+    <label>Kind</label>
+    <example>Calendar Event</example>
+    <example>Contact</example>
+    <example>Sailing Ship</example>
+    <example>Homework Assignment</example>
+    <comment>
+      A Kind represents a 'type', or 'class', or 'category' of items.
+      A Kind can represent: new user-defined Kind ('Book', 'Sailing Ship', 'Course', 'Homework Assignment', 'Grade', etc.).
+      A Kind can represent: a Kind from a standard Parcel ('Calendar Event', 'Task', 'Contact', etc.)
+      A Kind can represent: a basic Kind of system Item ('Kind', 'Item', 'Change')
+    </comment>
+    <superKind itemref="core:Taxon"/>
+    <attribute itemref="core:abstract"/>
+    <attribute itemref="core:attribute"/>
+    <attribute itemref="core:displayAttribute"/>
+    <attribute itemref="core:equivalentKind"/>
+    <attribute itemref="core:kindDefinedInDomainSchema"/>
+    <attribute itemref="core:superKind"/>
+    <attribute itemref="core:subKinds"/>
+  </Kind>
+
+<!-- Alias -->
+  <AttributeDefinition id="core:aliasFor">
+    <label>alias for</label>
+    <comment>What are all the various Types or Kinds that this is an alias for?</comment>
+    <cardinality>set</cardinality>
+    <required/>
+    <type itemref="core:Taxon"/>
+    <inverseAttribute itemref="core:usedInAlias"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:aliasDefinedInDomainSchema">
+    <label>defined in</label>
+    <comment>...add comment here...</comment>
+    <superAttribute itemref="core:definedInDomainSchema"/>
+    <inverseAttribute itemref="core:definedAliases"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Alias">
+    <label>Taxon Alias</label>
+    <example>'String' = 'ASCII String' | 'Unicode String' | 'Polyglot String'</example>
+    <example>'Datetime' = 'Rigid Datetime' | 'Flexible Datetime'</example>
+    <example>'Anything' = 'Item' | 'Literal'</example>
+    <comment>
+      Let's say 'String' is a type that's an alias for either 'Unicode String' or 'Polyglot String'. Then, if an Attribute Definition is supposed to be of type 'String', that means the attribute value can be a Unicode String or a Polyglot String
+    </comment>
+    <superKind itemref="core:Taxon"/>
+    <attribute itemref="core:aliasFor"/>
+    <attribute itemref="core:aliasDefinedInDomainSchema"/>
+  </Kind>
+
+<!-- Attribute Definition -->
+  <AttributeDefinition id="core:superAttribute">
+    <label>super attribute</label>
+    <comment>What attribute is this a sub-attribute of?</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:AttributeDefinition"/>
+    <inverseAttribute itemref="core:subAttributes"/>
+    <relationshipType>parent</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:subAttributes">
+    <label>sub attributes</label>
+    <comment>What attributes have this one as their super attribute?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:AttributeDefinition"/>
+    <inverseAttribute itemref="core:superAttribute"/>
+    <relationshipType>children</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:cardinality">
+    <label>cardinality</label>
+    <comment>How many values can this attribute have?</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:CardinalityEnum"/>
+    <unidirectional/>
+    <default>core:single</default>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:default">
+    <label>default value</label>
+    <comment>What default value is 'copied' into new instances?</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Anything"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:defaultFormat">
+    <label>default format</label>
+    <comment>How should this attribute be displayed in a table?</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:AttributeFormat"/>
+    <inverseAttribute itemref="core:usedAsDefaultFormat"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:restrictions">
+    <label>restrictions</label>
+    <comment>What restrictions are there on the values we expect to have for attribute?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:AttributeRestriction"/>
+    <inverseAttribute itemref="core:appliesToAttribute"/>
+    <relationshipType>owns</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:equivalentAttributes">
+    <label>equivalent attributes</label>
+    <comment>Similar to the RDF/OWL property 'owl:equivalentProperty'.</comment>
+    <type itemref="core:AttributeDefinition"/>
+    <inverseAttribute itemref="core:equivalentAttributes"/>
+    <superAttribute itemref="core:equivalent"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:required">
+    <label>required</label>
+    <comment>TRUE if this attribute is not allowed to have a NULL value.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Boolean"/>
+    <default>false</default>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:derivation">
+    <label>derivation rule</label>
+    <comment>How should Chandler automatically calculate the value of this attribute?</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:DerivationRule"/>
+    <inverseAttribute itemref="core:derivedAttribute"/>
+    <relationshipType>owns</relationshipType>
+  </AttributeDefinition>
+  
+  <AttributeDefinition id="core:inverseAttribute">
+    <label>inverse attribute</label>
+    <comment>On the item that this attribute points to, what attribute points to this item?  Similar to the RDF/OWL property 'owl:inverseOf'.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:AttributeDefinition"/>
+    <inverseAttribute itemref="core:inverseAttribute"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:unidirectional">
+    <label>unidirectional</label>
+    <comment>TRUE if the value of this attribute points to another item, but that item has no attribute that points back to this item.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Boolean"/>
+    <default>false</default>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:relationshipType">
+    <label>relationship type</label>
+    <comment>What sort of relationship does this item have to the item pointed to by this attribute?</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:RelationshipTypeEnum"/>
+    <unidirectional/>
+    <default>core:peer</default>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:attributeDefinedInDomainSchema">
+    <label>defined in</label>
+    <comment>...add comment here...</comment>
+    <superAttribute itemref="core:definedInDomainSchema"/>
+    <inverseAttribute itemref="core:definedAttributeDefinitions"/>
+  </AttributeDefinition>
+  
+  <AttributeDefinition id="core:usedInKind">
+    <label>usedInKind</label>
+    <comment>Which kinds use this attribute as one of their implied attributes, typically found on items of that Kind?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Kind"/>
+    <inverseAttribute itemref="core:attribute"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:usedAsDisplayAttribute">
+    <label>used as display attribute</label>
+    <comment>Which kinds use this attribute as the source for a human readable display name for items?  For example, in an Email Message item we might use the 'subject' attribute, and in a Contact item we might use the 'person name' attribute.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Kind"/>
+    <inverseAttribute itemref="core:displayAttribute"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:usedAsAdHocAttributeInItems">
+    <label>ad hoc attribute in items</label>
+    <comment>What items have include this as an ad hoc attribute?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Item"/>
+    <hidden/>
+    <inverseAttribute itemref="core:adHocAttributeList"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:transitive">
+    <label>transitive</label>
+    <comment>Is this a transitive relationship?  A relationship 'foo' is transitive when ((A.foo = B, and B.foo = C) means that (A.foo = C)). For example, the 'subclass' relationship is transitive.  If A is a subclass of B, and B is a subclass of C, then A is a subclass C.  Similar to the RDF/OWL property 'owl:TransitiveProperty'.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Boolean"/>
+    <derivation>Derived from core:relationshipType.</derivation>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:symmetric">
+    <label>symmetric</label>
+    <comment>Is this a symmetric relationship?  A relationship 'foo' is symmetric when ((A.foo = B) means that (B.foo = A)). For example, the 'spouse' relationship is symmetric.  If A is the spouse of B, then B is the spouse of A.  Similar to the RDF/OWL property 'owl:SymmetricProperty'.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Boolean"/>
+    <derivation>Derived from core:relationshipType.</derivation>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:deletePolicy">
+    <label>delete policy</label>
+    <comment>If A has a reference to B, and vice-versa, what do we do when A is deleted?  Do we delete B also, or do we just remove B's reference to A, or do we delete B only if nobody else now references B?</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:DeletePolicyEnum"/>
+    <derivation>Derived from core:relationshipType.</derivation>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:copyPolicy">
+    <label>copy policy</label>
+    <comment>If A has a reference to B, and vice-versa, what do we do when A is copied?  Do we copy B also (deep copy), or do we just set the new copy of A to point to the old version of B (shallow copy)?</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:CopyPolicyEnum"/>
+    <derivation>Derived from core:relationshipType.</derivation>
+  </AttributeDefinition>
+
+
+  <Kind id="core:AttributeDefinition">
+    <label>Attribute Definition</label>
+    <example>('name', text string)</example>
+    <example>('height', integer)</example>
+    <example>('author', Person)</example>
+    <comment>
+      Kinds have Attribute Definitions. Each Attribute Definition can have some associated type, and the Attribute Values for that Attribute Definition are restricted to being values of that type.  An attribute's values can be completely unrestricted, or they can be restricted to some specific Kind, or some specific Type.  Attribute Definitions can also have default values, and default formats, derivation rules, etc.
+      Some Attribute Definitions are global, and other Attribute Definitions are associated with a single Kind.  Also, some Attribute Definitions are associated with a single instance of an Item, rather than for a Kind.
+    </comment>
+    <issue>It's not clear how best to associate an Attribute Definition with an Item or a Kind.  For example, let's say we have a Kind called "Book", and an Item called "The Cat in the Hat".  We want "Book" to have an Attribute Definition called 'author', and "The Cat in the Hat" has an 'author' of "Dr. Suess".  We also want to have a global Attribute Definition 'author', which is a sub-attribute of the dublin core attribute 'creator'.  The global 'author' can be shared, so that it is used for Books, Movies, Articles, and a wide variety of other Kinds.  The global 'author' has a shared semantic meaning, and it has a few shared properties, like the 'name': 'author'.  But in the context of our "Book", we want to say more about the 'author'.  Let's say that in the context of "Book", 'author' should be required, should have a cardinality of 'one' (not 'many'), and should have values of type "Person".  How do we associate that extra information with the notion of the 'author' Attribute Definition as it appears in the "Book" Kind?  One option is to have a global "Attribute Definition" for 'author' (which just has a name and maybe one or two other properties), and then have a separate "Attribute Binding" that associates 'author' and "Book" (which has a cardinality, type, etc.).  An second option is to use only "Attribute Definitions", not "Attribute Bindings", but to allow the "Book" to have its own "Attribute Definition" for 'author', which would have a pointer up to the global shared 'author', and which would provide additional properties (like cardinality) that we would interpret as _refining_ or _overriding_ or _extending_ the properties of the global 'author' Attribute Definition.  In this scenario, some Attribute Definitions would be associated with a particular Kind, while others would be associated with some more globally scoped item, like a Domain Schema.  To further complicate matters, individual items can have ad hoc attributes.  For example, a user could edit "The Cat in the Hat" and add an attribute 'foo' with a value of 'foobar', even though in general a "Book" doesn't have a 'foo' attribute.  So that means some Attribute Definitions can be associated with individual items.  We would probably like to make the assertion that each Attribute Definition should be defined in exactly one place, where that place is either an individual Item (like "The Cat in the Hat"), a Kind (like "Book"), or a Domain Schema (for global attributes). And each of those 3 places would have a different inverse attribute.  Since Domain Schemas and Kinds are both Items, you'd think we could just generally say that this thing is 'defined in' an Item.  But that won't work, because when this thing is 'defined in' a Kind, we need to explicitly use a different inverse attribute from the one used for Item, so that we can tell whether this thing is serving as an Attribute Definition for (a) the Item-ness of the Kind Item, or (b) the Kind-ness of the Kind Item.  Yikes!  Here's a quick example, to make that last point more concrete.  Let's say I have some Kind, like 'Book', and I just want to jot a little note on it using an ad hoc attribute called 'my little note about the Book Kind'.  If 'my little note about the Book Kind' is an Attribute Definition that's 'defined in' the Kind 'Book', how do we avoid misinterpreting it to mean that all books have a 'my little note about the Book Kind' attribute.</issue>
+    <issue>Some Attributes have values that are literals, while others have values that are references to other Items. Right now, we instead just merge the 'Reference Definition' attributes up into 'Attribute Definition', which is a little sloppy.</issue>
+    <superKind itemref="core:SchemaItem"/>
+    <displayAttribute itemref="core:label"/>
+    <attribute itemref="core:label"/>
+    <attribute itemref="core:comment"/>
+    <attribute itemref="core:example"/>
+    <attribute itemref="core:issue"/>
+    <attribute itemref="core:hidden"/>
+    <attribute itemref="core:superAttribute"/>
+    <attribute itemref="core:subAttributes"/>
+    <attribute itemref="core:type"/>
+    <attribute itemref="core:cardinality"/>
+    <attribute itemref="core:default"/>
+    <attribute itemref="core:defaultFormat"/>
+    <attribute itemref="core:restrictions"/>
+    <attribute itemref="core:equivalentAttributes"/>
+    <attribute itemref="core:required"/>
+    <attribute itemref="core:derivation"/>
+    <attribute itemref="core:inverseAttribute"/>
+    <attribute itemref="core:unidirectional"/>
+    <attribute itemref="core:relationshipType"/>
+    <attribute itemref="core:attributeDefinedInDomainSchema"/>
+    <attribute itemref="core:usedInKind"/>
+    <attribute itemref="core:usedAsDisplayAttribute"/>
+    <attribute itemref="core:usedAsAdHocAttributeInItems"/>
+    <attribute itemref="core:transitive"/>
+    <attribute itemref="core:symmetric"/>
+    <attribute itemref="core:deletePolicy"/>
+    <attribute itemref="core:copyPolicy"/>
+  </Kind>
+
+<!-- Attribute Chain -->
+  <AttributeDefinition id="core:attributeChain">
+    <label>attribute chain</label>
+    <comment>An ordered list of the attributes that we should follow to hop from one item to the next.</comment>
+    <cardinality>list</cardinality>
+    <type itemref="core:AttributeDefinition"/>
+  </AttributeDefinition>
+
+  <Kind id="core:AttributeChain">
+    <label>Attribute Chain</label>
+    <example>employee.department.departmentManager.lastName</example>
+    <superKind itemref="core:Item"/>
+    <attribute itemref="core:attributeChain"/>
+  </Kind>
+
+<!-- Enum Kind -->
+  <AttributeDefinition id="core:appearsInEnumeration">
+    <label>appears in enumeration</label>
+    <comment>This item is one of the possible values in these enumerations.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:EnumKind"/>
+    <inverseAttribute itemref="core:element"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:element">
+    <label>elements</label>
+    <comment>An ordered list of the values the possible values for this enum, each of which is an item.</comment>
+    <cardinality>list</cardinality>
+    <type itemref="core:Item"/>
+    <inverseAttribute itemref="core:appearsInEnumeration"/>
+  </AttributeDefinition>
+
+  <Kind id="core:EnumKind">
+    <label>Enumeration Kind</label>
+    <example>In a bug tracking system, you might have a 'bug priority' enum, with values of 'high', 'medium', and 'low'</example>
+    <issue>If we set things up this way, how do we do strong typing?  If 'bug priority' is just an Item, not a Kind, then on the Kind for 'Bug', how do we have an Attribute Definition that's strongly typed to point to a 'bug priority' value?  Maybe we need to make Enum be a Subkind of Kind instead of a Subkind of Item, and then have 'Bug Priority' be a SubKind of Enum with an attribute that points to its list of instances (the 'extension' of the Kind).</issue>
+    <superKind itemref="core:Kind"/>
+    <abstract/>
+    <attribute itemref="core:element"/>
+  </Kind>
+
+<!-- Cardinality Enum -->
+  <EnumKind id="core:CardinalityEnum">
+    <label>Cardinality Enum</label>
+    <element>core:single</element>
+    <element>core:set</element>
+    <element>core:list</element>
+  </EnumKind>
+
+  <Item id="core:single"/>
+  <Item id="core:set"/>
+  <Item id="core:list"/>
+
+<!-- Delete Policy Enum -->
+  <EnumKind id="core:DeletePolicyEnum">
+    <label>Delete Policy Enum</label>
+    <element>core:cascadeDelete</element>
+    <element>core:strongReference</element>
+    <element>core:weakReference</element>
+  </EnumKind>
+
+  <Item id="core:cascadeDelete"/>
+  <Item id="core:strongReference"/>
+  <Item id="core:weakReference"/>
+
+<!-- Copy Policy Enum -->
+  <EnumKind id="core:CopyPolicyEnum">
+    <label>Copy Policy Enum</label>
+    <element>core:deepCopy</element>
+    <element>core:shallowCopy</element>
+    <element>core:superShallowCopy</element>
+  </EnumKind>
+
+  <Item id="core:deepCopy"/>
+  <Item id="core:shallowCopy"/>
+  <Item id="core:superShallowCopy"/>
+
+<!-- Relationship Type Enum -->
+  <EnumKind id="core:RelationshipTypeEnum">
+    <label>Relationship Type Enum</label>
+    <element>core:peer</element>
+    <element>core:parent</element>
+    <element>core:children</element>
+    <element>core:owns</element>
+    <element>core:ownedBy</element>
+    <element>core:equivalent</element>
+  </EnumKind>
+
+  <Item id="core:peer"/>
+  <Item id="core:parent"/>
+  <Item id="core:children"/>
+  <Item id="core:owns"/>
+  <Item id="core:ownedBy"/>
+  <Item id="core:equivalent"/>
+
+<!-- Attribute Format -->
+  <AttributeDefinition id="core:appliesToType">
+    <label>applies to type</label>
+    <comment>Which type is this a display format for?</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Type"/>
+    <inverseAttribute itemref="core:formats"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:formatString">
+    <label>format string</label>
+    <example>DD MMM YYYY</example>
+    <example>MM/DD/YY HH:MM</example>
+    <example>NN%</example>
+    <example>$ N,NNN.NN</example>
+    <cardinality>single</cardinality>
+    <type itemref="core:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:formatFields">
+    <label>format string</label>
+    <comment>A list of the attribute fields used in the format string.</comment>
+    <cardinality>list</cardinality>
+    <type itemref="core:Field"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:usedAsDefaultFormat">
+    <label>used as default format</label>
+    <comment>What attributes use this as their default format?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:AttributeDefinition"/>
+    <inverseAttribute itemref="core:defaultFormat"/>
+  </AttributeDefinition>
+
+  <Kind id="core:AttributeFormat">
+    <label>Attribute Format</label>
+    <example>DD MMM YYYY</example>
+    <example>MM/DD/YY HH:MM</example>
+    <example>NN%</example>
+    <example>$ N,NNN.NN</example>
+    <issue>What's the relationship, if any, between this AttributeFormat and the CPIA notion of a display phrase?</issue>
+    <superKind itemref="core:Item"/>
+    <displayAttribute itemref="core:formatString"/>
+    <attribute itemref="core:appliesToType"/>
+    <attribute itemref="core:formatString"/>
+    <attribute itemref="core:formatFields"/>
+    <attribute itemref="core:usedAsDefaultFormat"/>
+  </Kind>
+
+<!-- Attribute Restriction -->
+  <AttributeDefinition id="core:appliesToAttribute">
+    <label>applies to</label>
+    <comment>Which attribute is this a restriction on?</comment>
+    <cardinality>single</cardinality>
+    <required/>
+    <type itemref="core:AttributeDefinition"/>
+    <inverseAttribute itemref="core:restrictions"/>
+    <relationshipType>ownedBy</relationshipType>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:restrictionInfo">
+    <label>restriction</label>
+    <comment>What is the actual restriction? </comment>
+    <issue>(@@@ -- If we want to support restrictions, this needs to be not a 'Simple String', but rather some more complicated machine-readable specification of the restriction.</issue>
+    <cardinality>single</cardinality>
+    <required/>
+    <type itemref="core:SimpleString"/>
+  </AttributeDefinition>
+
+  <Kind id="core:AttributeRestriction">
+    <label>Attribute Restriction</label>
+    <example>'rainfall' should be a non-negative number</example>
+    <example>'age' should be over 21</example>
+    <example>'start-time' should come before 'end-time'</example>
+    <example>my 'mother' should have a 'birth-date' prior to my 'birth-date'</example>
+    <example>my 'mother' should not be the 'daughter' of my 'son'</example>
+    <comment>
+      See the wiki page for DataModelIssues#Restrictions_on_Attributes.
+    </comment>
+    <issue>How do we actually represent the restriction info?</issue>
+    <issue>Should we change the name to be 'Expectation' instead of 'Restriction'?</issue>
+    <superKind itemref="core:Item"/>
+    <displayAttribute itemref="core:restrictionInfo"/>
+    <attribute itemref="core:appliesToAttribute"/>
+    <attribute itemref="core:restrictionInfo"/>
+  </Kind>
+
+<!-- Derivation Rule -->
+  <AttributeDefinition id="core:derivedAttribute">
+    <label>derived attribute</label>
+    <comment>Which attribute does this derivation rule apply to?</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:DerivationRule"/>
+    <inverseAttribute itemref="core:derivation"/>
+    <relationshipType>ownedBy</relationshipType>
+  </AttributeDefinition>
+  
+  <AttributeDefinition id="core:formula">
+    <label>formula</label>
+    <comment>What is the actual derivation rule?</comment>
+    <issue>(@@@ -- not clear how to represent this.</issue>
+    <cardinality>single</cardinality>
+    <required/>
+    <type itemref="core:SimpleString"/>
+  </AttributeDefinition>
+
+  <Kind id="auto:DerivationRule">
+    <label>Derivation Rule</label>
+    <superKind itemref="core:Item"/>
+    <displayAttribute itemref="core:formula"/>
+    <attribute itemref="core:derivedAttribute"/>
+    <attribute itemref="core:formula"/>
+  </Kind>
+
+<!-- Note -->
+  <AttributeDefinition id="core:noteAppliesTo">
+    <label>item</label>
+    <comment>The item or items being annotated</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Item"/>
+    <inverseAttribute itemref="core:note"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:content">
+    <label>content</label>
+    <comment>The annotation itself</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:PolyglotText"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Note">
+    <label>Note</label>
+    <example>'They called on Tuesday and said it would be ready by Friday at noon.'</example>
+    <example>'This is probably trash now -- feel free to delete it.'</example>
+    <comment>
+      An Note represents a note that a user adds to an e-mail message or to any other item. An annotation might also represent an actual editing change to the original message itself. See EditingReceivedEmail. See MessageAnnotation.
+    </comment>
+    <issue>Are Notes always associated with exactly 1 Item?</issue>
+    <issue>Can a selection of 5 Items be annotated with 1 Note?</issue>
+    <issue>Can a particular attribute of an Item be the subject of a note? (example: I select the 'population' field of the 'Canada' Item, and I add the annotation: 'The U.N. says this is now over 32 million')</issue>
+    <issue>Is a note just a bunch of text?</issue>
+    <issue>Can an note represent an actual edit to the original Item? (example: I edit the body of an e-mail message and change a misspelling.)</issue>
+    <superKind itemref="core:Item"/>
+    <displayAttribute itemref="core:content"/>
+    <attribute itemref="core:noteAppliesTo"/>
+    <attribute itemref="core:content"/>
+  </Kind>
+
+<!-- Copyright -->
+  <AttributeDefinition id="core:holder">
+    <label>holder</label>
+    <comment>The copyright holder or holders.</comment>
+    <cardinality>list</cardinality>
+    <type itemref="core:PersonOrOganization"/>
+    <type itemref="core:String"/>
+    <deletePolicy>strong reference</deletePolicy>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:copyrightDate">
+    <label>date</label>
+    <comment>The copyright date.  Typically a year, or list of years, or a range of years.</comment>
+    <cardinality>list</cardinality>
+    <type itemref="core:Date"/>
+    <type itemref="core:String"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:license">
+    <label>license</label>
+    <comment>The copyright license (e.g. 'All rights reserved').</comment>
+    <cardinality>list</cardinality>
+    <type itemref="core:PolyglotText"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:copyrightAppliesTo">
+    <label>copyright applies to</label>
+    <comment>What items is this the copyright for?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Item"/>
+    <inverseAttribute itemref="core:copyright"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Copyright">
+    <label>Copyright</label>
+    <example>'Copyright (c) 2003 by Farmer Jones, all rights reserved.'</example>
+    <example>The creativecommons.org 'Public Domain Dedication'.</example>
+    <comment>
+      A Copyright represents a copyright statement and license terms.
+    </comment>
+    <superKind itemref="core:Item"/>
+    <displayAttribute itemref="core:license"/>
+    <attribute itemref="core:holder"/>
+    <attribute itemref="core:copyrightDate"/>
+    <attribute itemref="core:license"/>
+    <attribute itemref="core:copyrightAppliesTo"/>
+  </Kind>
+
+<!-- Language -->
+  <AttributeDefinition id="core:iso6391Code">
+    <label>ISO 639-1 Code</label>
+    <comment>example: 'en' -- ISO 639-1 Codes</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:SimpleString"/>
+    <superAttribute itemref="core:abbreviation"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:iso6392Code">
+    <label>ISO 639-2 Code</label>
+    <comment>ISO 639-2 Codes</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:SimpleString"/>
+    <superAttribute itemref="core:abbreviation"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:country">
+    <label>country</label>
+    <comment>A country, in the sense of the ISO 3166 notion of country</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Country"/>
+    <inverseAttribute itemref="core:langauges"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:rfc1766Code">
+    <label>RFC 1766 Code</label>
+    <derivation>derived from iso6391Code, and country.rfc3166Code</derivation>
+    <cardinality>single</cardinality>
+    <type itemref="core:SimpleString"/>
+    <superAttribute itemref="core:abbreviation"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:rfc3066Code">
+    <label>RFC 3066 Code</label>
+    <derivation>derived from iso6391Code, iso6392Code, and country.iso3166Code</derivation>
+    <cardinality>single</cardinality>
+    <type itemref="core:SimpleString"/>
+    <superAttribute itemref="core:abbreviation"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Language">
+    <label>Language</label>
+    <example>English</example>
+    <example>French</example>
+    <example>Spanish</example>
+    <example>Japanese</example>
+    <comment>
+      A Language Item represents the language that a text string is in. For example, the string 'Calendar' would be associated with the language 'English', whereas the string 'Veranstaltungskalender' would be associated with the language 'German'.
+    </comment>
+    <superKind itemref="core:Item"/>
+    <displayAttribute itemref="core:label"/>
+    <attribute itemref="core:label"/>
+    <attribute itemref="core:iso6391Code"/>
+    <attribute itemref="core:iso6392Code"/>
+    <attribute itemref="core:country"/>
+    <attribute itemref="core:rfc1766Code"/>
+    <attribute itemref="core:rfc3066Code"/>
+  </Kind>
+
+<!-- Country -->
+  <AttributeDefinition id="core:rfc3166Code">
+    <label>RFC 3166 Code</label>
+    <comment>a two letter country code</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:SimpleString"/>
+    <superAttribute itemref="core:abbreviation"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:langauges">
+    <label>langauges</label>
+    <comment>The languages that are used in this country.</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Language"/>
+    <inverseAttribute itemref="core:country"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Country">
+    <label>Country</label>
+    <example>France</example>
+    <example>Japan</example>
+    <comment>A Country represents one of the nations in the world.</comment>
+    <superKind itemref="core:Item"/>
+    <displayAttribute itemref="core:label"/>
+    <attribute itemref="core:label"/>
+    <attribute itemref="core:rfc3166Code"/>
+    <attribute itemref="core:langauges"/>
+  </Kind>
+
+<!-- Operator -->
+  <AttributeDefinition id="core:itemsCreated">
+    <label>items created</label>
+    <comment>What items has this operator created?</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:Item"/>
+    <hidden/>
+    <inverseAttribute itemref="core:createdBy"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Operator">
+    <label>Operator</label>
+    <example>Vanessa Kline</example>
+    <example>Kevin Rulwa's e-mail agent</example>
+    <comment>
+      Someone or something that can create and edit items.
+    </comment>
+    <superKind itemref="core:Item"/>
+    <abstract/>
+    <attribute itemref="core:comment"/>
+    <attribute itemref="core:itemsCreated"/>
+  </Kind>
+
+<!-- VersionInfo -->
+  <AttributeDefinition id="core:versionInfo">
+    <label>version info</label>
+    <comment>A simple version number, or some simple version string, or a version info item, or a URL that points to a page with version info.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Anything"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:currentItem">
+    <label>current item</label>
+    <comment>The item that this is the version info for.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Item"/>
+    <inverseAttribute itemref="core:version"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Version">
+    <label>Version</label>
+    <comment>
+      A minimal placeholder for storing version info.  Sub-kinds of this kind can add more sophisiticated representations for doing high-tech versioning and keeping track of version changes.
+    </comment>
+    <superKind itemref="core:Item"/>
+    <displayAttribute itemref="core:versionInfo"/>
+    <attribute itemref="core:versionInfo"/>
+    <attribute itemref="core:currentItem"/>
+  </Kind>
+
+<!-- Foreign Item -->
+  <AttributeDefinition id="core:sourceItem">
+    <label>source item</label>
+    <comment>Type is probably a 'string' or a 'URL' or some kind of item with more detailed info. In any case, it's whatever info we need to keep track of in order to find the original information from the foreign data source.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:String"/>
+    <type itemref="core:URL"/>
+    <type itemref="core:Anything"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:rawSnapshot">
+    <label>raw snapshot</label>
+    <comment>This attribute is jus a place for keeping a copy of the raw information, just the way it was when we first read it from the foreign data source.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:String"/>
+    <type itemref="core:Blob"/>
+    <type itemref="core:Anything"/>
+  </AttributeDefinition>
+
+   <AttributeDefinition id="core:localCopy">
+    <label>local copy</label>
+    <comment>The Chanlder Item that's a copy of the information from this foreign source.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Item"/>
+    <inverseAttribute itemref="core:proxyFor"/>
+    <relationshipType>ownedBy</relationshipType>
+  </AttributeDefinition>
+
+  <Kind id="core:ForeignItem">
+    <label>Foreign Item</label>
+    <comment>...add comment here...</comment>
+    <superKind itemref="core:Item"/>
+    <displayAttribute itemref="core:sourceItem"/>
+    <attribute itemref="core:sourceItem"/>
+    <attribute itemref="core:rawSnapshot"/>
+    <attribute itemref="core:localCopy"/>
+  </Kind>
+
+<!-- String -->
+  <Alias id="core:String">
+    <label>String</label>
+    <comment>
+      If an attribute is of type 'String', the values are allowed to be any sort of string type: an 'Simple String' (like a 'Unicode String'), or a 'Compound String' (like a 'Polyglot String').
+    </comment>
+    <aliasFor itemref="core:SimpleString"/>
+    <aliasFor itemref="core:CompoundString"/>
+  </Alias>
+
+<!-- Datetime -->
+  <Alias id="core:Datetime">
+    <label>Datetime</label>
+    <comment>
+      If an attribute is of type 'Datetime', the values are allowed to be any sort of datetime type: an 'Rigid Datetime' or a 'Flexible Datetime'.
+    </comment>
+    <aliasFor itemref="core:RigidDatetime"/>
+    <aliasFor itemref="core:FlexibleDatetime"/>
+  </Alias>
+
+<!-- Anything -->
+  <Alias id="core:Anything">
+    <label>Anything</label>
+    <comment>
+      If an attribute is of type 'Anything', the values are allowed to be any type: any 'Item' or any 'Literal'.
+    </comment>
+    <aliasFor itemref="core:Item"/>
+    <aliasFor itemref="core:Literal"/>
+  </Alias>
+
+<!-- Literal -->
+  <Type id="core:Literal">
+    <label>Literal</label>
+    <example>25</example>
+    <example>0.75</example>
+    <example>TRUE</example>
+    <example>'this is a simple string'</example>
+    <comment>
+      The abstract root for all the literal types such as Integer, Float, Boolean, and String.
+    </comment>
+    <abstract/>
+  </Type>
+
+<!-- Number -->
+  <Type id="core:Number">
+    <label>Number</label>
+    <example>25</example>
+    <example>0.75</example>
+    <superType itemref="core:Literal"/>
+    <abstract/>
+  </Type>
+
+<!-- Integer -->
+  <Type id="core:Integer">
+    <label>Integer</label>
+    <example>25</example>
+    <example>75</example>
+    <superType itemref="core:Number"/>
+  </Type>
+
+<!-- Float -->
+  <Type id="core:Float">
+    <label>Float</label>
+    <example>2.5</example>
+    <example>0.75</example>
+    <superType itemref="core:Number"/>
+  </Type>
+
+<!-- Boolean -->
+  <Type id="core:Boolean">
+    <label>Boolean</label>
+    <example>TRUE</example>
+    <example>FALSE</example>
+    <superType itemref="core:Literal"/>
+  </Type>
+
+<!-- Blob -->
+  <Type id="core:Blob">
+    <label>Blob</label>
+    <comment>
+      A sequence of bytes.  A blob of binary data, like you would find inside a gif or an mp3.
+    </comment>
+    <superType itemref="core:Literal"/>
+  </Type>
+
+<!-- Simple String -->
+  <Type id="core:SimpleString">
+    <label>Simple String</label>
+    <example>'this is a simple string'</example>
+    <example>'the future of ideas'</example>
+    <comment>
+      A simple text string.  Strings can include words that have links -- links to Chandler items or traditional web browser URL links.
+    </comment>
+    <superType itemref="core:Literal"/>
+    <abstract/>
+  </Type>
+
+<!-- Symbol -->
+  <Type id="core:Symbol">
+    <label>Symbol</label>
+    <comment>
+      A short ASCII string with no spaces or special characters.  Something suitable for using as a variable name in Python or Java.
+    </comment>
+    <superType itemref="core:SimpleString"/>
+  </Type>
+
+<!-- ASCII String -->
+  <Type id="core:ASCIIString">
+    <label>ASCII String</label>
+    <comment>
+      Any ASCII string.  Just plain text, with no special markup that Chandler knows anything about.
+    </comment>
+    <superType itemref="core:SimpleString"/>
+  </Type>
+
+<!-- Unicode String -->
+  <Type id="core:UnicodeString">
+    <label>Unicode String</label>
+    <comment>
+      Any Unicode string.  Just plain text, with no special markup that Chandler knows anything about.
+    </comment>
+    <superType itemref="core:SimpleString"/>
+  </Type>
+
+<!-- Rich Text String -->
+  <Type id="core:RichTextString">
+    <label>Rich Text String</label>
+    <comment>
+      A string where some of the words might be bold, or italic, or underlined, or drawn in red.  The string is stored with some kind of graphical markup info that Chandler knows how to parse when it displays the string.  For markup, we could use RTF, or some subset of HTML, or something else entirely.
+    </comment>
+    <superType itemref="core:SimpleString"/>
+  </Type>
+
+<!-- RepositoryContainmentPath -->
+  <Type id="core:RepositoryContainmentPath">
+    <label>Path</label>
+    <example>//home/kitchen/fridge/ketchup</example>
+    <comment>
+      Every item can be found in the repository through its path, a / separated concatenation of the item's name and its parent ancestry. A path to an item can be expressed relative to the repository in which case it begins with //. A path to an item can be expressed relative to the item's root in which case it begins with /. Or it can be expressed relative to an item in which case it begins with a name.
+    </comment>
+    <superType itemref="core:Literal"/>
+  </Type>
+
+<!-- UUID -->
+  <Type id="core:UUID">
+    <label>UUID</label>
+    <example>e2d03cb4-9d58-11d7-d179-000393db837c</example>
+    <comment>
+      Every item can be found in the repository through its UUID, a Universally Unique IDentifier. The UUID is a 128-bit number implemented following the UUID IETF specification draft.
+    </comment>
+    <superType itemref="core:Literal"/>
+  </Type>
+
+<!-- Any URI -->
+  <Type id="core:AnyURI">
+    <label>Any URI</label>
+    <example>http://www.osafoundation.org/</example>
+    <example>rap://esu.edu/~pat/contacts/clive</example>
+    <comment>
+      A conventional URL or URI.
+    </comment>
+    <superType itemref="core:Literal"/>
+  </Type>
+
+<!-- Rigid Datetime -->
+  <Type id="core:RigidDatetime">
+    <label>Rigid Datetime</label>
+    <example>2003/08/11 3:34:45</example>
+    <comment>
+      A datetime that's required to have valid values for all fields: YYYY/MM/DD hh:mm:ss. A rigid datetime could be stored as an integer like 'number of seconds since 1970', whereas a Flexible Datetime can not, because it may not have some fields: year or day or time of day.
+    </comment>
+    <superType itemref="core:Literal"/>
+    <field>
+      <label>year</label>
+      <type itemref="core:Integer"/>
+    </field>
+    <field>
+      <label>month</label>
+      <type itemref="core:Integer"/>
+    </field>
+    <field>
+      <label>day</label>
+      <type itemref="core:Integer"/>
+    </field>
+    <field>
+      <label>hour</label>
+      <type itemref="core:Integer"/>
+    </field>
+    <field>
+      <label>minute</label>
+      <type itemref="core:Integer"/>
+    </field>
+    <field>
+      <label>second</label>
+      <type itemref="core:Integer"/>
+    </field>
+    <field>
+      <label>timezone</label>
+      <type itemref="core:Timezone"/>
+    </field>
+  </Type>
+
+<!-- Timezone -->
+  <AttributeDefinition id="core:majorCities">
+    <label>major cities</label>
+    <comment>example: 'Los Angeles' -- a few major cities in each timezone</comment>
+    <cardinality>list</cardinality>
+    <type itemref="core:String"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Timezone">
+    <label>Timezone</label>
+    <example>('PST', 'Pacific Standard Time', -8:00)</example>
+    <example>('PDT', 'Pacific Daylight Time', -7:00)</example>
+    <example>('PT', 'Pacific Time', (transition rules), PST, PDT)</example>
+    <comment>
+      There's set of about 70 time zones in the world.
+    </comment>
+    <superKind itemref="core:Item"/>
+    <displayAttribute itemref="core:label"/>
+    <attribute itemref="core:label"/>
+    <attribute itemref="core:abbreviation"/>
+    <attribute itemref="core:majorCities"/>
+  </Kind>
+
+<!-- Fixed Timezone -->
+  <AttributeDefinition id="core:utcOffset">
+    <label>UTC Offset</label>
+    <comment>example: -7:00</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Duration"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:summerTimezoneFor">
+    <label>summer timezone for</label>
+    <comment>example: the 'PDT' fixed timezone is the summer timezone for the 'Pacific Time' DST timezone</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:DaylightSavingTimezone"/>
+    <inverseAttribute itemref="core:summerTimezone"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:winterTimezoneFor">
+    <label>winter timezone for</label>
+    <comment>example: the 'PST' fixed timezone is the summer timezone for the 'Pacific Time' DST timezone</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:DaylightSavingTimezone"/>
+    <inverseAttribute itemref="core:winterTimezone"/>
+  </AttributeDefinition>
+
+  <Kind id="core:FixedTimezone">
+    <label>Fixed Timezone</label>
+    <example>('PST', 'Pacific Standard Time', -8:00)</example>
+    <example>('PDT', 'Pacific Daylight Time', -7:00)</example>
+    <comment>
+      A fixed timezone is one that has a constant UTC Offset all year round, rather than changing to observe Daylight Saving Time.
+    </comment>
+    <superKind itemref="core:Timezone"/>
+    <attribute itemref="core:utcOffset"/>
+    <attribute itemref="core:summerTimezoneFor"/>
+    <attribute itemref="core:winterTimezoneFor"/>
+  </Kind>
+
+  <core:FixedTimezone id="core:PST_Timezone">
+    <core:label>Pacific Standard Time</core:label>
+    <core:abbreviation>PST</core:abbreviation>
+    <core:utcOffset>-8:00</core:utcOffset>
+  </core:FixedTimezone>
+
+  <core:FixedTimezone id="core:PDT_Timezone">
+    <core:label>Pacific Daylight Time</core:label>
+    <core:abbreviation>PDT</core:abbreviation>
+    <core:utcOffset>-7:00</core:utcOffset>
+  </core:FixedTimezone>
+  
+<!-- Daylight Saving Timezone -->
+  <AttributeDefinition id="core:summerTimezone">
+    <label>summer timezone</label>
+    <comment>example: PDT</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:FixedTimezone"/>
+    <inverseAttribute itemref="core:summerTimezoneFor"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:winterTimezone">
+    <label>winter timezone</label>
+    <comment>example: PST</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:FixedTimezone"/>
+    <inverseAttribute itemref="core:winterTimezoneFor"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:transitionRule">
+    <label>transition rule</label>
+    <comment>@@@ -- some representation that specifies when the transitions happen, like a table of transition times, or some kind of recurrence rule</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:String"/>
+  </AttributeDefinition>
+
+  <Kind id="core:DaylightSavingTimezone">
+    <label>Daylight Saving Timezone</label>
+    <example>('PT', 'Pacific Time', (transition rules), PST, PDT)</example>
+    <comment>
+      A daylight saving timezone is one that changes twice a year, to observe daylight saving time during the summer.
+    </comment>
+    <superKind itemref="core:Timezone"/>
+    <attribute itemref="core:summerTimezone"/>
+    <attribute itemref="core:winterTimezone"/>
+    <attribute itemref="core:transitionRule"/>
+  </Kind>
+
+  <core:DaylightSavingTimezone id="core:PT_Timezone">
+    <core:label>Pacific Time</core:label>
+    <core:abbreviation>PT</core:abbreviation>
+    <core:summerTimezone itemref="core:PDT_Timezone"/>
+    <core:winterTimezone itemref="core:PST_Timezone"/>
+  </core:DaylightSavingTimezone>
+
+<!-- Date -->
+  <AttributeDefinition id="core:year">
+    <label>year</label>
+    <comment>e.g. 1992</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Integer"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:month">
+    <label>month</label>
+    <comment>range between 1 and 12</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Integer"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:day">
+    <label>day</label>
+    <comment>range between 1 and 31</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Integer"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:dayOfTheWeek">
+    <label>day of the week</label>
+    <derivation>derived from (day/month/year)</derivation>
+    <cardinality>single</cardinality>
+    <type itemref="core:String"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Date">
+    <label>Date</label>
+    <comment>
+      'date' = 'year', 'month', 'day'
+    </comment>
+    <superKind itemref="core:Item"/>
+    <attribute itemref="core:year"/>
+    <attribute itemref="core:month"/>
+    <attribute itemref="core:day"/>
+    <attribute itemref="core:dayOfTheWeek"/>
+  </Kind>
+
+<!-- Time -->
+  <AttributeDefinition id="core:hour">
+    <label>hours</label>
+    <comment>...add comment here...</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Number"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:minute">
+    <label>minutes</label>
+    <comment>...add comment here...</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Number"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:second">
+    <label>seconds</label>
+    <comment>...add comment here...</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Number"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:timezone">
+    <label>timezone</label>
+    <comment>...add comment here...</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Timezone"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Time">
+    <label>Time</label>
+    <comment>
+      'time' = 'hour', 'minute', 'second'
+    </comment>
+    <superKind itemref="core:Item"/>
+    <attribute itemref="core:hour"/>
+    <attribute itemref="core:minute"/>
+    <attribute itemref="core:second"/>
+    <attribute itemref="core:timezone"/>
+  </Kind>
+
+<!-- Flexible Datetime -->
+  <Kind id="core:FlexibleDatetime">
+    <label>Flexible Datetime</label>
+    <comment>
+      'datetime' = 'date', 'time', 'timezone'
+    </comment>
+    <superKind itemref="core:Item"/>
+    <attribute itemref="core:year"/>
+    <attribute itemref="core:month"/>
+    <attribute itemref="core:day"/>
+    <attribute itemref="core:dayOfTheWeek"/>
+    <attribute itemref="core:hour"/>
+    <attribute itemref="core:minute"/>
+    <attribute itemref="core:second"/>
+    <attribute itemref="core:timezone"/>
+  </Kind>
+
+<!-- Duration -->
+  <AttributeDefinition id="core:years">
+    <label>years</label>
+    <comment>...add comment here...</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Number"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:months">
+    <label>months</label>
+    <comment>...add comment here...</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Number"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:days">
+    <label>days</label>
+    <comment>...add comment here...</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Number"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:hours">
+    <label>hours</label>
+    <comment>...add comment here...</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Number"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:minutes">
+    <label>minutes</label>
+    <comment>...add comment here...</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Number"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:seconds">
+    <label>seconds</label>
+    <comment>...add comment here...</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:Number"/>
+  </AttributeDefinition>
+
+  <Kind id="core:Duration">
+    <label>Duration</label>
+    <comment>
+      'duration' = 'years', 'months', 'days', 'hours', 'minutes', 'seconds'
+    </comment>
+    <superKind itemref="core:Item"/>
+    <attribute itemref="core:years"/>
+    <attribute itemref="core:months"/>
+    <attribute itemref="core:days"/>
+    <attribute itemref="core:hours"/>
+    <attribute itemref="core:minutes"/>
+    <attribute itemref="core:seconds"/>
+  </Kind>
+
+<!-- Compound String -->
+  <Kind id="core:CompoundString">
+    <label>Compound String</label>
+    <superKind itemref="core:Item"/>
+    <abstract/>
+  </Kind>
+
+<!-- String with References -->
+  <AttributeDefinition id="core:stringWithReferenceTags">
+    <label>string with reference tags</label>
+    <comment>The text string itself, including some special tags to mark the substrings that have references.</comment>
+    <cardinality>single</cardinality>
+    <type itemref="core:SimpleString"/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:references">
+    <label>references</label>
+    <comment>A list of the items that the string has links to.</comment>
+    <cardinality>list</cardinality>
+    <type itemref="core:Item"/>
+  </AttributeDefinition>
+
+  <Kind id="core:StringWithReferences">
+    <label>String with References</label>
+    <example>'Lunch with [_1]Sally[/_1] and [_2]Jim[/_2]'</example>
+    <comment>
+      A string that includes 'references' to other Chandler Items.
+    </comment>
+    <issue>The interaction between this 'String with References' and 'Polyglot String' could be complicated. Maybe we just shouldn't bother supporting Polyglot Strings with References.</issue>
+    <issue>What's the relationship between this 'String with References' and the notion of a 'display phrase'?</issue>
+    <superKind itemref="core:CompoundString"/>
+    <attribute itemref="core:stringWithReferenceTags"/>
+    <attribute itemref="core:references"/>
+  </Kind>
+
+<!-- String with Language Tag -->
+  <AttributeDefinition id="core:language">
+    <label>language</label>
+    <comment>example: 'English'</comment>
+    <cardinality>single</cardinality>
+    <required/>
+    <type itemref="core:Language"/>
+    <unidirectional/>
+  </AttributeDefinition>
+
+  <AttributeDefinition id="core:value">
+    <label>value</label>
+    <comment>example: 'Hello World'</comment>
+    <cardinality>single</cardinality>
+    <required/>
+    <type itemref="core:SimpleString"/>
+  </AttributeDefinition>
+
+  <Kind id="core:StringwithLanguageTag">
+    <label>String with Language Tag</label>
+    <example>(en, 'Hello World')</example>
+    <example>(de, 'Guten Tag Welt')</example>
+    <comment>
+      A 'String with Langague Tag' represents a single string literal, associated with the language that it's in.
+    </comment>
+    <superKind itemref="core:CompoundString"/>
+    <attribute itemref="core:language"/>
+    <attribute itemref="core:value"/>
+  </Kind>
+
+<!-- Polyglot String -->
+  <AttributeDefinition id="core:strings">
+    <label>strings</label>
+    <comment>this is like a Python dictionary, with string translations keyed by language</comment>
+    <cardinality>set</cardinality>
+    <type itemref="core:StringwithLanguageTag"/>
+  </AttributeDefinition>
+
+  <Kind id="core:PolyglotString">
+    <label>Polyglot String</label>
+    <example>'Hello World' / 'Guten Tag Welt' / ...</example>
+    <comment>
+      A Polyglot String represents a collection of related strings, with one string for each Language that the string has been translated into.
+    </comment>
+    <superKind itemref="core:CompoundString"/>
+    <attribute itemref="core:strings"/>
+  </Kind>
+
+<!-- Polyglot Text -->
+  <Alias id="core:PolyglotText">
+    <label>Polyglot Text</label>
+    <example>'Congress shall make no law respecting an establishment of religion, or prohibiting the free exercise thereof; or abridging the freedom of speech, or of the press; or the right of the people peaceably to assemble, and to petition the government for a redress of grievances.'</example>
+    <comment>
+      A Text item represents a block of text.  Text items can have tabs, carriage returns, etc.  Optionally, Text items can also have rich text formatting, including bold, italics, etc.
+    </comment>
+    <issue>@@@ -- we need to address the whole issue of the 'string vs. text' distinction.</issue>
+    <aliasFor itemref="core:PolyglotString"/>
+  </Alias>
+
+<!-- Person Or Oganization -->
+  <Kind id="core:PersonOrOganization">
+    <label>Person Or Oganization</label>
+    <example>The Tides Foundation</example>
+    <example>Chemistry Department</example>
+    <example>Paula Skinner</example>
+    <example>CIA</example>
+    <example>NeXT, Inc.</example>
+    <superKind itemref="core:Item"/>
+    <attribute itemref="core:label"/>
+  </Kind>
+
+</DomainSchema>
+

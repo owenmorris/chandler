@@ -7,6 +7,9 @@
     + Many datatypes are interpreted as strings, not dealing with
       int or float types.
     + Doesn't deal with DTDs or XSDs.
+    + Only treats 'attribute' as a multivalued attribute, treats it as a
+      special case
+    + Treats OtherName/inverseAttribute as a special case
 
 """
 
@@ -49,7 +52,6 @@ ATTRIBUTE_REF_TAGS = {'superKind' : 'SuperKind',
                       'superAttribute': 'SuperAttrDef',
                       'attribute': 'AttrDefs',
                       'type': 'Type',
-                      'displayAttribute':'displayAttribute',
                       'equivalentKind':'equivalentKind',
                       'equivalentAttribute':'equivalentAttribute',
                       'inverseAttribute':'OtherName',
@@ -59,6 +61,8 @@ ATTRIBUTE_BOOL_TAGS = {'hidden' : 'hidden',
                        'abstract' : 'abstract',
                        'unidirectional' : 'unidirectional',
                        'required' : 'Required'}
+
+IGNORE_TAGS = ['displayAttribute']
 
 class DomainSchemaLoader(object):
     """ Load items defined in the schema file into the repository,
@@ -156,8 +160,8 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
         # Create the item in the repository
         if local in ITEM_TAGS:
-            # self.addAttributes(self.currentItem, self.currentAttributes)
-            self.todo.append((self.currentItem, self.currentAttributes))
+            if self.currentItem:
+                self.todo.append((self.currentItem, self.currentAttributes))
             self.currentAttributes = self.schemaAttributes
             self.currentItem = None
 
@@ -215,6 +219,9 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
         for key in attributeDictionary.keys():
 
+            #print "Loading attributes(%s, %s)" % (key,
+            #                                      attributeDictionary[key])
+            
             # For references, find the item to set the attribute
             if key in ATTRIBUTE_REF_TAGS:
 
@@ -222,6 +229,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
                 if key == 'attribute':
                     for attr in attributeDictionary[key]:
                         ref = self.findItem(attr)
+                        # print "Loading aspects(%s, %s)" % (attr, ref)
                         item.attach(ATTRIBUTE_REF_TAGS[key], ref)
 
                 # Special case for 'OtherName'
