@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
-
-<item>
-    <name>dictionaries</name>
-    <kind type="path">//Schema/Core/Attribute</kind>
-
-    <attribute name="cardinality">dict</attribute>
-</item>
