@@ -23,7 +23,7 @@ class SimpleTest(unittest.TestCase):
            Loads the schema and calendar """
         
         rootdir = os.environ['CHANDLERDIR']
-        schemaPack = os.path.join(rootdir, 'model', 'packs', 'schema.pack')
+        schemaPack = os.path.join(rootdir, 'repository', 'packs', 'schema.pack')
         self.rep = XMLRepository('test')
         self.rep.create()
         self.rep.loadPack(schemaPack)
