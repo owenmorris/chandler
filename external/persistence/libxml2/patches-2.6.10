@@ -1,0 +1,286 @@
+--- libxml2-2.6.10/Makefile.in	Sun May 16 20:47:43 2004
++++ libxml2-2.6.10-patched/Makefile.in	Thu Jun 17 21:08:42 2004
+@@ -418,8 +418,8 @@
+ sharedstatedir = @sharedstatedir@
+ sysconfdir = @sysconfdir@
+ target_alias = @target_alias@
+-SUBDIRS = include . doc example @PYTHON_SUBDIR@
+-DIST_SUBDIRS = include . doc example python
++SUBDIRS = include . @PYTHON_SUBDIR@
++DIST_SUBDIRS = include . python
+ INCLUDES = -I$(top_builddir)/include -I@srcdir@/include @THREAD_CFLAGS@ @Z_CFLAGS@ 
+ bin_SCRIPTS = xml2-config
+ lib_LTLIBRARIES = libxml2.la
+@@ -528,45 +528,48 @@
+ 
+ .SUFFIXES:
+ .SUFFIXES: .c .lo .o .obj
+-am--refresh:
+-	@:
+-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
+-	@for dep in $?; do \
+-	  case '$(am__configure_deps)' in \
+-	    *$$dep*) \
+-	      echo ' cd $(srcdir) && $(AUTOMAKE) --gnu '; \
+-	      cd $(srcdir) && $(AUTOMAKE) --gnu  \
+-		&& exit 0; \
+-	      exit 1;; \
+-	  esac; \
+-	done; \
+-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  Makefile'; \
+-	cd $(top_srcdir) && \
+-	  $(AUTOMAKE) --gnu  Makefile
+-.PRECIOUS: Makefile
+-Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
+-	@case '$?' in \
+-	  *config.status*) \
+-	    echo ' $(SHELL) ./config.status'; \
+-	    $(SHELL) ./config.status;; \
+-	  *) \
+-	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)'; \
+-	    cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe);; \
+-	esac;
+-
+-$(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
+-	$(SHELL) ./config.status --recheck
+-
+-$(top_srcdir)/configure:  $(am__configure_deps)
+-	cd $(srcdir) && $(AUTOCONF)
+-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+-	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
+-
+-config.h: stamp-h1
+-	@if test ! -f $@; then \
+-	  rm -f stamp-h1; \
+-	  $(MAKE) stamp-h1; \
+-	else :; fi
++# This is commented out for Chandler build since it causes 
++# configure to be regenerated
++#
++# am--refresh:
++# 	@:
++# $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
++# 	@for dep in $?; do \
++# 	  case '$(am__configure_deps)' in \
++# 	    *$$dep*) \
++# 	      echo ' cd $(srcdir) && $(AUTOMAKE) --gnu '; \
++# 	      cd $(srcdir) && $(AUTOMAKE) --gnu  \
++# 		&& exit 0; \
++# 	      exit 1;; \
++# 	  esac; \
++# 	done; \
++# 	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  Makefile'; \
++# 	cd $(top_srcdir) && \
++# 	  $(AUTOMAKE) --gnu  Makefile
++# .PRECIOUS: Makefile
++# Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
++# 	@case '$?' in \
++# 	  *config.status*) \
++# 	    echo ' $(SHELL) ./config.status'; \
++# 	    $(SHELL) ./config.status;; \
++# 	  *) \
++# 	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe)'; \
++# 	    cd $(top_builddir) && $(SHELL) ./config.status $@ $(am__depfiles_maybe);; \
++# 	esac;
++# 
++# $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
++# 	$(SHELL) ./config.status --recheck
++# 
++# $(top_srcdir)/configure:  $(am__configure_deps)
++# 	cd $(srcdir) && $(AUTOCONF)
++# $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
++# 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
++# 
++# config.h: stamp-h1
++# 	@if test ! -f $@; then \
++# 	  rm -f stamp-h1; \
++# 	  $(MAKE) stamp-h1; \
++# 	else :; fi
+ 
+ stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
+ 	@rm -f stamp-h1
+@@ -1334,7 +1337,7 @@
+ #testOOM_DEPENDENCIES = $(DEPS)
+ #testOOM_LDADD= $(LDADDS)
+ 
+-check-local: all tests
++check-local:
+ 
+ testall : tests SVGtests SAXtests
+ 
+--- libxml2-2.6.10/configure	Sun May 16 20:29:30 2004
++++ libxml2-2.6.10-patched/configure	Thu Jun 17 23:07:54 2004
+@@ -26330,6 +26330,10 @@
+     then
+         echo Found python in $with_python/bin/python
+         PYTHON="$with_python/bin/python"
++    elif test -x "$with_python/bin/python_d"
++    then
++        echo Found python in $with_python/bin/python_d
++        PYTHON="$with_python/bin/python_d"
+     else
+ 	if test -x "$with_python"
+ 	then
+--- libxml2-2.6.10/parser.c	Fri May 14 14:49:20 2004
++++ libxml2-2.6.10-patched/parser.c	Thu Jun 17 20:58:22 2004
+@@ -11134,6 +11134,7 @@
+     }
+     xmlDetectSAX2(ctxt);
+     if (data!=NULL) {
++	ctxt->userData = data;
+ 	ctxt->_private = data;
+     }
+ 
+@@ -11404,6 +11405,7 @@
+     }
+     xmlDetectSAX2(ctxt);
+     if (data!=NULL) {
++	ctxt->userData=data;    
+ 	ctxt->_private=data;
+     }
+ 
+--- libxml2-2.6.10/python/Makefile.in	Sun May 16 20:47:44 2004
++++ libxml2-2.6.10-patched/python/Makefile.in	Thu Jun 17 23:06:02 2004
+@@ -279,9 +279,10 @@
+ 
+ # Makefile for libxml2 python library
+ AUTOMAKE_OPTIONS = 1.4 foreign
+-SUBDIRS = . tests
++SUBDIRS = .
+ INCLUDES = \
+ 	-I$(PYTHON_INCLUDES) \
++	-I../include \
+ 	-I$(top_srcdir)/include
+ 
+ DOCS_DIR = $(datadir)/doc/libxml2-python-$(LIBXML_VERSION)
+@@ -295,7 +296,6 @@
+ 	generator.py		\
+ 	libxml_wrap.h		\
+ 	libxml.py		\
+-	drv_libxml2.py		\
+ 	libxml2-python-api.xml	\
+ 	$(DOCS)
+ 
+@@ -690,10 +690,9 @@
+ @WITH_PYTHON_TRUE@install-data-local:
+ @WITH_PYTHON_TRUE@	$(mkinstalldirs) $(DESTDIR)$(pythondir)
+ @WITH_PYTHON_TRUE@	@INSTALL@ -m 0644 libxml2.py $(DESTDIR)$(pythondir)
+-@WITH_PYTHON_TRUE@	@INSTALL@ -m 0644 $(srcdir)/drv_libxml2.py $(DESTDIR)$(pythondir)
+-@WITH_PYTHON_TRUE@	$(mkinstalldirs) $(DESTDIR)$(DOCS_DIR)
+-@WITH_PYTHON_TRUE@	@(for doc in $(DOCS) ; \
+-@WITH_PYTHON_TRUE@	   do @INSTALL@ -m 0644 $$doc $(DESTDIR)$(DOCS_DIR) ; done)
++@WITH_PYTHON_TRUE@#	$(mkinstalldirs) $(DESTDIR)$(DOCS_DIR)
++@WITH_PYTHON_TRUE@#	@(for doc in $(DOCS) ; \
++@WITH_PYTHON_TRUE@#	   do @INSTALL@ -m 0644 $$doc $(DESTDIR)$(DOCS_DIR) ; done)
+ 
+ @WITH_PYTHON_TRUE@$(GENERATED): gen_prog
+ 
+--- libxml2-2.6.10/win32/Makefile.msvc	Fri Apr 30 15:27:30 2004
++++ libxml2-2.6.10-patched/win32/Makefile.msvc	Thu Jun 17 23:17:45 2004
+@@ -15,7 +15,9 @@
+ # There should never be a need to modify anything below this line.
+ # ----------------------------------------------------------------
+ 
+-AUTOCONF = .\config.msvc
++BUILD_VERSION=.
++
++AUTOCONF = $(BUILD_VERSION)\config.msvc
+ !include $(AUTOCONF)
+ 
+ # Names of various input and output components.
+@@ -27,10 +29,10 @@
+ XML_A = $(XML_BASENAME)_a.lib
+ 
+ # Place where we let the compiler put its output.
+-BINDIR = bin.msvc
+-XML_INTDIR = int.msvc
+-XML_INTDIR_A = int.a.msvc
+-UTILS_INTDIR = int.utils.msvc
++BINDIR = $(BUILD_VERSION)\bin.msvc
++XML_INTDIR = $(BUILD_VERSION)\int.msvc
++XML_INTDIR_A = $(BUILD_VERSION)\int.a.msvc
++UTILS_INTDIR = $(BUILD_VERSION)\int.utils.msvc
+ 
+ # The preprocessor and its options.
+ CPP = cl.exe /EP
+@@ -39,6 +41,10 @@
+ CPPFLAGS = $(CPPFLAGS) /D "_REENTRANT"
+ !endif
+ 
++!if "$(DEBUG)" == "1"
++CRUNTIME = $(CRUNTIME)d
++!endif
++
+ # The compiler and its options.
+ CC = cl.exe
+ CFLAGS = /nologo /D "WIN32" /D "_WINDOWS" /D "_MBCS" /W1 $(CRUNTIME)
+@@ -223,7 +229,7 @@
+ 	copy $(BINDIR)\$(XML_A) $(LIBPREFIX)
+ 	copy $(BINDIR)\$(XML_IMP) $(LIBPREFIX)
+ 	copy $(BINDIR)\*.exe $(BINPREFIX)
+-	-copy $(BINDIR)\*.pdb $(BINPREFIX)
++	if exist $(BINDIR)\*.pdb copy $(BINDIR)\*.pdb $(BINPREFIX)
+ 
+ # This is a target for me, to make a binary distribution. Not for the public use,
+ # keep your hands off :-)
+--- libxml2-2.6.10/win32/configure.js	Thu Dec 11 06:03:14 2003
++++ libxml2-2.6.10-patched/win32/configure.js	Thu Jun 17 23:14:02 2004
+@@ -54,6 +54,7 @@
+ var withSax1 = true;
+ var withLegacy = true;
+ var withOutput = true;
++var withPattern = false;
+ var withPython = false;
+ /* Win32 build options. */
+ var dirSep = "\\";
+@@ -160,17 +161,17 @@
+ /* Discovers the version we are working with by reading the apropriate
+    configuration file. Despite its name, this also writes the configuration
+    file included by our makefile. */
+-function discoverVersion()
++function discoverVersion(build_version)
+ {
+ 	var fso, cf, vf, ln, s;
+ 	fso = new ActiveXObject("Scripting.FileSystemObject");
+ 	cf = fso.OpenTextFile(configFile, 1);
+ 	if (compiler == "msvc")
+-		versionFile = ".\\config.msvc";
++		versionFile = build_version + ".\\config.msvc";
+ 	else if (compiler == "mingw")
+-		versionFile = ".\\config.mingw";
++		versionFile = build_version + ".\\config.mingw";
+ 	else if (compiler == "bcb")
+-		versionFile = ".\\config.bcb";
++		versionFile = build_version + ".\\config.bcb";
+ 	vf = fso.CreateTextFile(versionFile, true);
+ 	vf.WriteLine("# " + versionFile);
+ 	vf.WriteLine("# This file is generated automatically by " + WScript.ScriptName + ".");
+@@ -319,6 +320,8 @@
+ 			of.WriteLine(s.replace(/\@WITH_LEGACY\@/, withLegacy? "1" : "0"));
+ 		} else if (s.search(/\@WITH_OUTPUT\@/) != -1) {
+ 			of.WriteLine(s.replace(/\@WITH_OUTPUT\@/, withOutput? "1" : "0"));
++		} else if (s.search(/\@WITH_PATTERN\@/) != -1) {
++			of.WriteLine(s.replace(/\@WITH_PATTERN\@/, withPattern? "1" : "0"));
+ 		} else
+ 			of.WriteLine(ln);
+ 	}
+@@ -328,8 +331,8 @@
+ /* Configures Python bindings. Otherwise identical to the above */
+ function configureLibxmlPy()
+ {
+-	var pyOptsFileIn = srcDirXml + "\\python\\setup.py.in";
+-	var pyOptsFile = srcDirXml + "\\python\\setup.py";
++	var pyOptsFileIn = srcDirXml + "\\python\\winSetup.py.in";
++	var pyOptsFile = srcDirXml + "\\python\\winSetup.py";
+ 	var fso, ofi, of, ln, s;
+ 	fso = new ActiveXObject("Scripting.FileSystemObject");
+ 	ofi = fso.OpenTextFile(pyOptsFileIn, 1);
+@@ -539,7 +542,7 @@
+ 	buildSoPrefix = "$(PREFIX)" + dirSep + "lib";
+ 
+ // Discover the version.
+-discoverVersion();
++discoverVersion(buildDebug ? "debug" : "release");
+ if (error != 0) {
+ 	WScript.Echo("Version discovery failed, aborting.");
+ 	WScript.Quit(error);

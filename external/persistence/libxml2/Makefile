@@ -1,5 +1,5 @@
 
-VERSION=2.6.3
+VERSION=2.6.10
 LIBXML2=$(BUILD_ROOT)/persistence/libxml2
 SRC=$(LIBXML2)/libxml2-$(VERSION)
 
@@ -81,7 +81,7 @@ clean:
 endif
 
 apply: patches
-	patch -Nup0 < patches; echo ok
+	patch -Nup0 < patches-$(VERSION); echo ok
 
 expand: libxml2-$(VERSION).tar.gz
 	tar xvzf libxml2-$(VERSION).tar.gz
