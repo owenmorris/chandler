@@ -284,7 +284,7 @@ class wxApplication (wx.App):
             Globals.mainView.onSetActiveView(mainView)
 
             self.ignoreSynchronizeWidget = False
-            mainView.render (self.mainFrame, self.mainFrame)
+            mainView.render()
 
             """
               We have to wire up the block mainView, it's widget and sizer to a new

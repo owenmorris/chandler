@@ -34,7 +34,7 @@ class wxBoxContainer (wxRectangularChild):
 
 
 class BoxContainer (RectangularChild):
-    def instantiateWidget (self, parent, parentWindow):
+    def instantiateWidget (self):
         if self.orientationEnum == 'Horizontal':
             orientation = wx.HORIZONTAL
         else:
@@ -51,11 +51,11 @@ class BoxContainer (RectangularChild):
         widget = wxBoxContainer (parentWidget, Block.getWidgetID(self))
         widget.SetSizer (sizer)
 
-        return widget, None, parentWidget
+        return widget
 
 
 class EmbeddedContainer(RectangularChild):
-    def instantiateWidget (self, parent, parentWindow):
+    def instantiateWidget (self):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
         parentWidget = Globals.association [self.parentBlock.itsUUID]
         panel = wx.Panel(parentWidget, -1)
@@ -68,7 +68,7 @@ class EmbeddedContainer(RectangularChild):
             newChild.parentBlock = self
             self.RegisterEvents(newChild)
             Globals.mainView.onSetActiveView(newChild)
-            return panel, sizer, panel
+            return panel
     
     def OnSelectionChangedEvent(self, notification):
         node = notification.data['item']
@@ -89,7 +89,7 @@ class EmbeddedContainer(RectangularChild):
             
                 self.contentSpec.data = [newChild]
                 newChild.parentBlock = self
-                newChild.render (embeddedSizer, embeddedPanel)
+                newChild.render()
                 self.RegisterEvents(newChild)
                 Globals.mainView.onSetActiveView(newChild)
                 
@@ -224,14 +224,14 @@ class wxSplitterWindow(wx.SplitterWindow):
 
  
 class SplitterWindow(RectangularChild):
-    def instantiateWidget (self, parent, parentWindow):
+    def instantiateWidget (self):
         parentWidget = Globals.association [self.parentBlock.itsUUID]
         splitterWindow = wxSplitterWindow(parentWidget,
                                           Block.getWidgetID(self), 
                                           wx.DefaultPosition,
                                           (self.size.width, self.size.height),
                                           style=self.Calculate_wxStyle())
-        return splitterWindow, splitterWindow, splitterWindow
+        return splitterWindow
                 
     def Calculate_wxStyle (self):
         style = wx.SP_LIVE_UPDATE
@@ -313,7 +313,7 @@ class wxTabbedContainer(wx.Notebook):
         
 
 class TabbedContainer(RectangularChild):
-    def instantiateWidget (self, parent, parentWindow):
+    def instantiateWidget (self):
         parentWidget = Globals.association [self.parentBlock.itsUUID]
         tabbedContainer = wxTabbedContainer(parentWidget, 
                                             Block.getWidgetID(self),
@@ -321,7 +321,7 @@ class TabbedContainer(RectangularChild):
                                             (self.size.width, self.size.height),
                                             style=self.Calculate_wxStyle())
         
-        return tabbedContainer, tabbedContainer, tabbedContainer
+        return tabbedContainer
 
     def Calculate_wxStyle(self):
         if self.tabPosEnum == "Top":
@@ -336,8 +336,6 @@ class TabbedContainer(RectangularChild):
             assert (False)
         return style
 
-    
-    
     def RegisterEvents(self, block):
         try:
             events = block.blockEvents
@@ -368,10 +366,10 @@ class TabbedContainer(RectangularChild):
 
         
 class Toolbar(ContainerChild):
-    def instantiateWidget (self, parent, parentWindow):
+    def instantiateWidget (self):
         toolbar = Globals.wxApplication.mainFrame.CreateToolBar(wx.TB_HORIZONTAL)
         toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
-        return toolbar, None, None
+        return toolbar
 
     def toolPressed(self, event):
         pass

@@ -34,14 +34,14 @@ class BookmarksBar(RectangularChild):
         super (BookmarksBar, self).__init__ (*arguments, **keywords)
         self.bookmarksPath = None
 
-    def instantiateWidget(self, parent, parentWindow):
+    def instantiateWidget(self):
         parentWidget = Globals.association [self.parentBlock.itsUUID]
         panelWidget = wxRectangularChild (parentWidget, -1)
         sizer = wx.BoxSizer (wx.HORIZONTAL)
         sizer.SetMinSize ((self.minimumSize.width, self.minimumSize.height))
         self.addBookmarks (panelWidget, sizer)
         panelWidget.SetSizerAndFit (sizer)
-        return panelWidget, None, None
+        return panelWidget
     
     def addBookmarks(self, parent, sizer):
         for child in self.bookmarksPath.children:
@@ -68,13 +68,13 @@ class NavigationBar(Toolbar):
     """
       Under construction
     """
-    def instantiateWidget(self, parent, parentWindow):
+    def instantiateWidget(self):
         self.history = []
         self.future = []
 
-        returnArguments = Toolbar.instantiateWidget(self, parent, parentWindow)
+        navigationBar = Toolbar.instantiateWidget(self)
         self.showOrHideNavigationBar()
-        return returnArguments
+        return navigationBar
     
     def toolPressed(self, event):
         tool = Block.widgetIDToBlock(event.GetId())

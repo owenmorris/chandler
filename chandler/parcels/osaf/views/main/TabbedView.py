@@ -28,7 +28,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
 
                 newChild.parentBlock = self                
                 self.childrenBlocks.placeItem(newChild, previousChild)
-                newChild.render(tabbedContainer, tabbedContainer)                
+                newChild.render()                
                 wxNewChild = Globals.association [newChild.itsUUID]
                 wxNewChild.SetSize (tabbedContainer.GetClientSize())                
                 Globals.mainView.onSetActiveView(newChild)
@@ -44,7 +44,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
         item = kind.newItem(name, self)
         item.url = ""
         item.parentBlock = self
-        item.render(tabbedContainer, tabbedContainer)
+        item.render()
         self.synchronizeWidget()
 
     def OnCloseEvent (self, notification):

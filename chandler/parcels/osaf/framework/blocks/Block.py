@@ -31,16 +31,16 @@ class Block(Item):
         args['sender'] = self
         event.Post (args)
 
-    def render (self, parent, parentWindow):
+    def render (self):
         try:
-            method = getattr (self, "instantiateWidget")
+            instantiateWidgetMethod = getattr (self, "instantiateWidget")
         except AttributeError:
             return
         else:
             oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
             Globals.wxApplication.ignoreSynchronizeWidget = True
             try:
-                (widget, parent, parentWindow) = method (parent, parentWindow)
+                widget = instantiateWidgetMethod()
             finally:
                 Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
             """
@@ -56,26 +56,9 @@ class Block(Item):
                   After the blocks are wired up, give the window a chance
                 to synchronize itself to any persistent state.
                 """
-                parent = widget
-                parentWindow = widget
                 for child in self.childrenBlocks:
-                    child.render (parent, parentWindow)
+                    child.render()
                 self.synchronizeWidget()
-
-    def instantiateWidget(self, parent, parentWindow):
-        """
-          You should usually override instantiateWidget in your Block subclass
-        to create a platform specific widget for the block. The three
-        objects returned are:
-         - The platform specific widget created, e.g. wx.Panel
-         - The platform specific widget for the Block's parent block
-         - The platform specific parent of the widget created, e.g.
-           wx.Panel's platform specific parent.
-          We need to occasionally return all these arguments because our
-        blocks containers are included in our hierarchy of Blocks, where as
-        wxWindows sizers are not included in their hiearchy of windows.
-        """
-        return None, None, None
 
     IdToUUID = []               # A list mapping Ids to UUIDS
     UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids

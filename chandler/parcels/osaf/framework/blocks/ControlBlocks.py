@@ -33,7 +33,7 @@ class wxToggleButton(wx.ToggleButton):
 
         
 class Button(RectangularChild):
-    def instantiateWidget(self, parent, parentWindow):
+    def instantiateWidget(self):
         try:
             id = Block.getWidgetID(self)
         except AttributeError:
@@ -64,7 +64,7 @@ class Button(RectangularChild):
             assert False, "unknown buttonKind"
 
         parentWidget.Bind(wx.EVT_BUTTON, self.buttonPressed, id=id)
-        return button, None, None
+        return button
 
     def buttonPressed(self, event):
         try:
@@ -80,12 +80,12 @@ class wxChoice(wx.Choice):
         del Globals.association [self.blockUUID]
 
 class Choice(RectangularChild):
-    def instantiateWidget(self, parent, parentWindow):
+    def instantiateWidget(self):
         choice = wxChoice(parentWindow, -1, 
                           wx.DefaultPosition,
                           (self.minimumSize.width, self.minimumSize.height),
                           self.choices)
-        return choice, None, None
+        return choice
 
 
 class wxComboBox(wx.ComboBox):
@@ -93,13 +93,13 @@ class wxComboBox(wx.ComboBox):
         del Globals.association [self.blockUUID]
 
 class ComboBox(RectangularChild):
-    def instantiateWidget(self, parent, parentWindow):
+    def instantiateWidget(self):
         parentWidget = Globals.association [self.parentBlock.itsUUID]
         comboBox = wxComboBox(parentWidget, -1, self.selection, 
                               wx.DefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
-        return comboBox, None, None
+        return comboBox
 
 
 class wxEditText(wx.TextCtrl):
@@ -117,7 +117,7 @@ class wxEditText(wx.TextCtrl):
 
 
 class EditText(RectangularChild):
-    def instantiateWidget(self, parent, parentWindow):
+    def instantiateWidget(self):
         style = 0
         if self.textAlignmentEnum == "Left":
             style |= wx.TE_LEFT
@@ -146,7 +146,7 @@ class EditText(RectangularChild):
                                style=style, name=self._name)
 
         editText.SetFont(Font (self.characterStyle))
-        return editText, None, None
+        return editText
 
 
 
@@ -159,7 +159,7 @@ class wxHTML(wx.html.HtmlWindow):
 
 
 class HTML(RectangularChild):
-    def instantiateWidget (self, parent, parentWindow):
+    def instantiateWidget (self):
         parentWidget = Globals.association [self.parentBlock.itsUUID]
         htmlWindow = wxHTML(parentWidget,
                             Block.getWidgetID(self),
@@ -167,7 +167,7 @@ class HTML(RectangularChild):
                             (self.minimumSize.width, self.minimumSize.height))
         if self.url:
             htmlWindow.LoadPage(self.url)
-        return htmlWindow, None, None
+        return htmlWindow
 
  
 class ListDelegate:
@@ -297,12 +297,12 @@ class List(RectangularChild):
         super (List, self).__init__ (*arguments, **keywords)
         self.selection = None
 
-    def instantiateWidget (self, parent, parentWindow):
+    def instantiateWidget (self):
         parentWidget = Globals.association [self.parentBlock.itsUUID]
         list = wxList (parentWidget,
                        Block.getWidgetID(self),
                        style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
-        return list, None, None
+        return list
 
 
     def NeedsUpdate(self):
@@ -488,10 +488,10 @@ class Summary(RectangularChild):
         super (Summary, self).__init__ (*arguments, **keywords)
         self.selection = None
 
-    def instantiateWidget (self, parent, parentWindow):
+    def instantiateWidget (self):
         parentWidget = Globals.association [self.parentBlock.itsUUID]
         list = wxSummary (parentWidget, Block.getWidgetID(self))
-        return list, None, None
+        return list
 
     def NeedsUpdate(self):
         wxWindow = Globals.association[self.itsUUID]
@@ -511,7 +511,7 @@ class wxRadioBox(wx.RadioBox):
 
 
 class RadioBox(RectangularChild):
-    def instantiateWidget(self, parent, parentWindow):
+    def instantiateWidget(self):
         if self.radioAlignEnum == "Across":
             dimension = wx.RA_SPECIFY_COLS
         elif self.radioAlignEnum == "Down":
@@ -524,7 +524,7 @@ class RadioBox(RectangularChild):
                               wx.DefaultPosition, 
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices, self.itemsPerLine, dimension)
-        return radioBox, None, None
+        return radioBox
 
 
 class wxStaticText(wx.StaticText):
@@ -532,7 +532,7 @@ class wxStaticText(wx.StaticText):
         del Globals.association [self.blockUUID]
 
 class StaticText(RectangularChild):
-    def instantiateWidget (self, parent, parentWindow):
+    def instantiateWidget (self):
         if self.textAlignmentEnum == "Left":
             style = wx.ALIGN_LEFT
         elif self.textAlignmentEnum == "Center":
@@ -549,7 +549,7 @@ class StaticText(RectangularChild):
                                    style)
 
         staticText.SetFont(Font (self.characterStyle))
-        return staticText, None, None
+        return staticText
 
     
 class wxStatusBar (wx.StatusBar):
@@ -564,19 +564,19 @@ class wxStatusBar (wx.StatusBar):
 
 
 class StatusBar(Block):
-    def instantiateWidget (self, parent, parentWindow):
+    def instantiateWidget (self):
         frame = Globals.wxApplication.mainFrame
         assert frame.GetStatusBar() == None
         widget = wxStatusBar (frame, Block.getWidgetID(self))
         frame.SetStatusBar (widget)
-        return widget, None, None
+        return widget
 
 
 class ToolbarItem(Block):
     """
       Under construction
     """
-    def instantiateWidget (self, parent, parentWindow):
+    def instantiateWidget (self):
         # @@@ Must use self.toolbarLocation rather than wxMainFrame.GetToolBar()
         tool = None
         wxToolbar = Globals.wxApplication.mainFrame.GetToolBar()
@@ -608,7 +608,7 @@ class ToolbarItem(Block):
 
         wxToolbar.Realize()
 
-        return tool, None, None
+        return tool
 
 
 class wxTreeAndList:
@@ -829,15 +829,15 @@ class Tree(RectangularChild):
         self.rootPath = None
         self.selection = None
 
-    def instantiateWidget(self, parent, parentWindow):
+    def instantiateWidget(self):
         parentWidget = Globals.association [self.parentBlock.itsUUID]
         try:
             self.columnHeadings
         except AttributeError:
-            tree = wxTree (parentWindow, Block.getWidgetID(self), style = self.Calculate_wxStyle())
+            tree = wxTree (parentWidget, Block.getWidgetID(self), style = self.Calculate_wxStyle())
         else:
-            tree = wxTreeList (parentWindow, Block.getWidgetID(self), style = self.Calculate_wxStyle())
-        return tree, None, None
+            tree = wxTreeList (parentWidget, Block.getWidgetID(self), style = self.Calculate_wxStyle())
+        return tree
 
     def OnSelectionChangedEvent (self, notification):
         widget = Globals.association[self.itsUUID]
@@ -886,7 +886,7 @@ class ItemDetail(RectangularChild):
         super (ItemDetail, self).__init__ (*arguments, **keywords)
         self.selection = None
 
-    def instantiateWidget (self, parent, parentWindow):
+    def instantiateWidget (self):
         parentWidget = Globals.association [self.parentBlock.itsUUID]
         htmlWindow = wxItemDetail(parentWidget,
                                   Block.getWidgetID(self),
@@ -894,7 +894,7 @@ class ItemDetail(RectangularChild):
                                   (self.minimumSize.width,
                                    self.minimumSize.height))
 
-        return htmlWindow, None, None
+        return htmlWindow
 
     def getHTMLText(self, item):
         return '<body><html><h1>%s</h1></body></html>' % item.getDisplayName()

@@ -167,10 +167,10 @@ class WeekBlock(Block.RectangularChild):
         self.rangeIncrement = DateTime.RelativeDateTime(days=7)
         self.updateRange(DateTime.today() + self.rangeIncrement)
 
-    def instantiateWidget(self, parent, parentWindow):
-        canvas = wxWeekBlock(parentWindow,
-                             Block.Block.getWidgetID(self))
-        return canvas, None, None
+    def instantiateWidget(self):
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        canvas = wxWeekBlock(parentWidget, Block.Block.getWidgetID(self))
+        return canvas
 
     # Event handlers
 
@@ -345,10 +345,10 @@ class MonthBlock(Block.RectangularChild):
         self.rangeIncrement = DateTime.RelativeDateTime(months=1)
         self.updateRange(DateTime.today())
 
-    def instantiateWidget(self, parent, parentWindow):
-        canvas = wxMonthBlock(parentWindow,
-                              Block.Block.getWidgetID(self))
-        return canvas, None, None
+    def instantiateWidget(self):
+        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        canvas = wxMonthBlock(parentWidget, Block.Block.getWidgetID(self))
+        return canvas
 
     # Event handlers
 
