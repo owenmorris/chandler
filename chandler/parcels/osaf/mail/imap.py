@@ -3,28 +3,35 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
-import osaf.contentmodel.mail.Mail as Mail
+#twisted imports
 import twisted.internet.defer as defer
 import twisted.internet.reactor as reactor
 import twisted.internet.protocol as protocol
-import twisted.protocols.policies as policies
 import twisted.python.failure as failure
 import twisted.internet.error as error
 import twisted.mail.imap4 as imap4
-import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
+import twisted.protocols.policies as policies
+
+#python / mx imports
 import mx.DateTime as DateTime
-import message as message
-import sharing as sharing
 import email as email
-import errors as errors
 import email.Utils as Utils
 import logging as logging
+
+#Chandler imports
+import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
 import chandlerdb.util.UUID as UUID
-import common as common
 import repository.item.Query as Query
+import application.Globals as Globals
+import osaf.contentmodel.mail.Mail as Mail
 import crypto.ssl as ssl
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
+
+#Chandler Mail Service imports
+import message as message
+import sharing as sharing
+import errors as errors
+import common as common
 
 """
   Bug:
@@ -32,7 +39,6 @@ import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
       should set last uid locally before fetch then save on commit to prevent
       change if no messages downloaded
 """
-
 
 class ChandlerIMAP4Client(imap4.IMAP4Client):
     timeout = common.TIMEOUT
@@ -48,6 +54,7 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
         @type caps: dict
         @return C{None}
         """
+
         self.factory.imapDownloader.proto = self
 
         if caps is None:
@@ -78,13 +85,15 @@ class ChandlerIMAP4Client(imap4.IMAP4Client):
 class ChandlerIMAP4Factory(protocol.ClientFactory):
     protocol = ChandlerIMAP4Client
 
-    def __init__(self, imapDownloader, retries):
+    def __init__(self, imapDownloader):
         """
         @return: C{None}
         """
         self.imapDownloader = imapDownloader
         self.connectionLost = False
         self.sendFinished = 0
+
+        retries = self.imapDownloader.account.numRetries
 
         assert isinstance(retries, (int, long))
         self.retries = -retries
@@ -159,15 +168,13 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
         self.__getAccount()
 
-        self.factory = ChandlerIMAP4Factory(self, self.account.numRetries)
+        self.factory = ChandlerIMAP4Factory(self)
 
         self.wrappingFactory = policies.WrappingFactory(self.factory)
         self.wrappingFactory.protocol = wrapper.TLSProtocolWrapper
         self.factory.startTLS = self.account.useSSL
         self.factory.getContext = lambda : ssl.getSSLContext()
-        reactor.connectTCP(self.account.host,
-                           self.account.port,
-                           self.wrappingFactory)
+        reactor.connectTCP(self.account.host, self.account.port, self.wrappingFactory)
 
     def catchErrors(self, err):
         """
@@ -314,7 +321,12 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
         for msg in msgs:
             messageText = msgs[msg]['RFC822']
-            uid = long(msgs[msg]['UID'])
+            uid  = long(msgs[msg]['UID'])
+
+            try:
+                flags = msgs[msg]['FLAGS']
+            except KeyError:
+                flags = []
 
             messageObject = email.message_from_string(messageText)
 
@@ -327,9 +339,15 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
             repMessage = message.messageObjectToKind(messageObject, messageText)
 
+            """Set the message as incoming"""
             repMessage.incomingMessage(account=self.account)
+
+            """Save IMAP Delivery info in Repository"""
             repMessage.deliveryExtension.folder = "INBOX"
             repMessage.deliveryExtension.uid = uid
+
+            for flag in flags:
+                repMessage.deliveryExtension.flags.append(flag)
 
             if uid > self.__getLastUID():
                 self.__setLastUID(uid)

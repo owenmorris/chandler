@@ -23,16 +23,14 @@ class MessageTest(MailTestCase.MailTestCase):
 Message-Id: <E1Bu9Jy-0007u1-9d@test.com>
 From: bill@home.net
 Cc: jake@now.com
-Bcc: don@we.com
 Date: Mon, 9 Aug 2004 13:55:15 -0700
 Content-Length: 75
-Content-Transfer-Encoding: us-ascii
+Content-Transfer-Encoding: 7bit
 Mime-Version: 1.0
 Received: from [192.168.101.37] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2]) by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id i7GKWWpo017020; Mon, 16 Aug 2004 13:32:32 -0700
-In-Reply-To: <2EE66978-EFB1-11D8-8048-000A95CA1ECC@osafoundation.org>
 References: <9CF0AF12-ED6F-11D8-B611-000A95B076C2@osafoundation.org> <7542F892-EF9F-11D8-8048-000A95CA1ECC@osafoundation.org> <07A5D499-EFA1-11D8-9F44-000A95D9289E@osafoundation.org> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@osafoundation.org>
 Subject: test mail
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii; format=flowed
 
 This is the body"""
 
@@ -72,29 +70,20 @@ This is the body"""
         m.ccAddress = []
         m.ccAddress.append(ccOne)
 
-        bccOne = Mail.EmailAddress()
-        bccOne.emailAddress = "don@we.com"
-
-        m.bccAddress = []
-        m.bccAddress.append(bccOne)
-
         m.subject = "test mail"
+        m.headers['Content-Length'] = "75"
+        m.headers['Content-Type'] = "text/plain; charset=us-ascii; format=flowed"
+        m.headers['Content-Transfer-Encoding'] = "7bit"
+        m.headers['Mime-Version'] = "1.0"
+
+        m.headers['Received'] = "from [192.168.101.37] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2]) by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id i7GKWWpo017020; Mon, 16 Aug 2004 13:32:32 -0700"
+
+        m.headers['References'] = "<9CF0AF12-ED6F-11D8-B611-000A95B076C2@osafoundation.org> <7542F892-EF9F-11D8-8048-000A95CA1ECC@osafoundation.org> <07A5D499-EFA1-11D8-9F44-000A95D9289E@osafoundation.org> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@osafoundation.org>"
+
         dateString = "Mon, 9 Aug 2004 13:55:15 -0700"
-        m.contentLength = "75"
-        m.contentType = "text/plain"
-        m.contentTransferEncoding = "us-ascii"
-        m.mimeVersion = "1.0"
-        m.inReplyTo = "<2EE66978-EFB1-11D8-8048-000A95CA1ECC@osafoundation.org>"
-
-        #XXX: This will need to be updated to handle multiple received headers
-        m.received.append("from [192.168.101.37] (w002.z065106067.sjc-ca.dsl.cnc.net [65.106.67.2]) by kahuna.osafoundation.org (8.12.8/8.12.8) with ESMTP id i7GKWWpo017020; Mon, 16 Aug 2004 13:32:32 -0700")
-
-        #XXX: This will need to be updated laterQ
-        m.references.append("<9CF0AF12-ED6F-11D8-B611-000A95B076C2@osafoundation.org> <7542F892-EF9F-11D8-8048-000A95CA1ECC@osafoundation.org> <07A5D499-EFA1-11D8-9F44-000A95D9289E@osafoundation.org> <2EE66978-EFB1-11D8-8048-000A95CA1ECC@osafoundation.org>")
-
         m.dateSent = MXDateTime.mktime(Utils.parsedate(dateString))
         m.dateSentString = dateString
-        m.dateReceived = MXDateTime.now()
+
         m.body = message.strToText(m, "body", "This is the body")
         m.rfc2822Message = message.strToText(m, "rfc2822Message", self.__mail)
 
@@ -139,18 +128,16 @@ This is the body"""
 
         self.__compareEmailAddressLists(mOne.toAddress, mTwo.toAddress)
         self.__compareEmailAddressLists(mOne.ccAddress, mTwo.ccAddress)
-        self.__compareEmailAddressLists(mOne.bccAddress, mTwo.bccAddress)
 
         self.__compareDateTimes(mOne.dateSent, mTwo.dateSent)
 
         self.assertEquals(mOne.fromAddress.emailAddress, mTwo.fromAddress.emailAddress)
 
         self.assertEquals(mOne.subject, mTwo.subject)
-        self.assertEquals(mOne.contentLength, mTwo.contentLength)
-        self.assertEquals(mOne.contentType, mTwo.contentType)
-        self.assertEquals(mOne.contentTransferEncoding, mTwo.contentTransferEncoding)
-        self.assertEquals(mOne.mimeVersion, mTwo.mimeVersion)
-        self.assertEquals(mOne.inReplyTo, mTwo.inReplyTo)
+        self.assertEquals(mOne.headers['Content-Length'], mTwo.headers['Content-Length'])
+        self.assertEquals(mOne.headers['Content-Type'], mTwo.headers['Content-Type'])
+        self.assertEquals(mOne.headers['Content-Transfer-Encoding'], mTwo.headers['Content-Transfer-Encoding'])
+        self.assertEquals(mOne.headers['Mime-Version'], mTwo.headers['Mime-Version'])
         self.assertEquals(message.textToStr(mOne.body), message.textToStr(mTwo.body))
         self.assertEquals(message.textToStr(mOne.rfc2822Message), message.textToStr(mTwo.rfc2822Message))
 
@@ -162,12 +149,10 @@ This is the body"""
         self.assertEquals(mOne['From'], mTwo['From'])
         self.assertEquals(mOne['To'], mTwo['To'])
         self.assertEquals(mOne['Cc'], mTwo['Cc'])
-        self.assertEquals(mOne['Bcc'], mTwo['Bcc'])
         self.assertEquals(mOne['Content-Length'], mTwo['Content-Length'])
         self.assertEquals(mOne['Content-Type'], mTwo['Content-Type'])
         self.assertEquals(mOne['Content-Transfer-Encoding'], mTwo['Content-Transfer-Encoding'])
         self.assertEquals(mOne['Mime-Version'], mTwo['Mime-Version'])
-        self.assertEquals(mOne['In-Reply-To'], mTwo['In-Reply-To'])
         self.assertEquals(mOne['Subject'], mTwo['Subject'])
 
 

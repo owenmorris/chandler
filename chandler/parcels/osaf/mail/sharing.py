@@ -1,26 +1,33 @@
 __revision__  = "$Revision$"
 __date__      = "$Date$"
-__copyright__ = "Copyright (c) 2004-2005 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import application.Globals as Globals
+#twisted imports
 import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
+
+#python / mx imports
 import email.Message as Message
-import logging as logging
-import smtp as smtp
-import twisted.mail.smtp as smtpTwisted
-import common as common
-import message as message
+import mx.DateTime as DateTime
+
+#Chandler imports
+import application.Globals as Globals
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
-import chandlerdb.util.UUID as UUID
-import mx.DateTime as DateTime
 import osaf.framework.sharing as chandlerSharing
-import cStringIO as StringIO
-import crypto.ssl as ssl
-import twisted.protocols.policies as policies
-import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
+import chandlerdb.util.UUID as UUID
+
+#Chandler Mail Service imports
+import smtp as smtp
+import common as common
+import message as message
+
+"""
+TO DO:
+ 1. Need to encode Chandler Sharing Header for Transport to account from i18n collection names
+"""
+
 
 def receivedInvitation(url, collectionName, fromAddress):
     """
@@ -66,6 +73,7 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
         assert isinstance(sendToList, list), "sendToList must be of a list of email addresses"
         assert len(sendToList) > 0, "sendToList must contain at least one email address"
 
+        #XXX: This needs to be intenationalized with a char conversion
         collectionName = str(collectionName)
 
         assert isinstance(collectionName, str), "collectionName must be a String or Unicode"
@@ -97,39 +105,12 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
         self.__getData()
 
-        username     = None
-        password     = None
-        authRequired = False
-        sslContext   = None
-        heloFallback = True
-
-        if self.account.useAuth:
-            username     = self.account.username
-            password     = self.account.password
-            authRequired = True
-            heloFallback = False
-
-        if self.account.useSSL:
-            sslContext = ssl.getSSLContext()
-
         messageText = self.__createMessageText()
 
         d = defer.Deferred().addCallbacks(self.__invitationSuccessCheck, self.__invitationFailure)
-        msg = StringIO.StringIO(messageText)
 
-        factory = smtpTwisted.ESMTPSenderFactory(username, password, self.from_addr,
-                                                 self.sendToList, msg, d, self.account.numRetries, common.TIMEOUT,
-                                                 sslContext, heloFallback, authRequired,
-                                                 self.account.useSSL)
+        smtp.SMTPSender.sendMailMessage(self.from_addr, self.sendToList, messageText, d, self.account)
 
-        factory.protocol = smtp.ChandlerESMTPSender
-
-        wrappingFactory = policies.WrappingFactory(factory)
-        wrappingFactory.protocol = wrapper.TLSProtocolWrapper
-
-        reactor.connectTCP(self.account.host,
-                           self.account.port,
-                           wrappingFactory)
 
     def __invitationSuccessCheck(self, result):
         if __debug__:
@@ -180,11 +161,12 @@ class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
         sendStr = "%s%s%s" % (self.url, common.SharingConstants.SHARING_DIVIDER, self.collectionName)
 
         messageObject = common.getChandlerTransportMessage()
+
+        """Add the chandler sharing header"""
         messageObject[getChandlerSharingHeader()] = sendStr
-        messageObject['From'] = self.from_addr
-        messageObject['To'] = ', '.join(self.sendToList)
-        messageObject['Message-ID'] = message.createMessageID()
-        messageObject['User-Agent'] = common.CHANDLER_USERAGENT
+
+        """populate the standard static mail message headers"""
+        message.populateStaticHeaders(messageObject)
 
         return messageObject.as_string()
 

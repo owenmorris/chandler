@@ -3,19 +3,53 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+#python / mx imports
+import email as email
+import email.Header as Header
+import email.Message as Message
+import email.Utils as Utils
+import mx.DateTime as DateTime
+import logging as logging
+
+#Chandler imports
 import osaf.contentmodel.mail.Mail as Mail
 import chandlerdb.util.UUID as UUID
 from repository.util.Lob import Text
-import mx.DateTime as DateTime
-import email as email
-import email.Message as Message
-import email.Utils as Utils
+
+#Chandler Mail Service imports
 import common as common
-import logging as logging
+
+"""
+Notes:
+1. Encoding Email Address: Only encode name if present
+
+   TO DO:
+      Clean up what is decoded and what is does not need to be decoded
+      Need to decode values with in params ie. filename
+   Yes: 
+   1. Email Address name
+   2. Subject
+
+   That's it
+   No: 
+   Received headers
+   Content-Type or Content-Disposition ect
+"""
+
+def decodeHeader(header, charset=common.DEFAULT_CHARSET):
+    try:
+        decoded    = Header.make_header(Header.decode_header(header))
+        unicodeStr = decoded.__unicode__()
+        line       = Utils.UEMPTYSTRING.join(unicodeStr.splitlines())
+
+        return line.encode(charset, 'replace')
+
+    except(UnicodeError, LookupError):
+        return Utils.EMPTYSTRING.join(header.splitlines())
 
 
 def dateTimeToRFC2882Date(dateTime):
-    """Converts a C{mx.DateTime} objedt ot a
+    """Converts a C{mx.DateTime} object to a
        RFC2882 Date String
 
        @param dateTime: a C{mx.DateTime} instance
@@ -29,27 +63,6 @@ def createMessageID():
     """Creates a unique message id
        @return: String containing the unique message id"""
     return Utils.make_msgid()
-
-def getToAddressesFromMailMessage(mailMessage):
-    assert isinstance(mailMessage, Mail.MailMessageMixin), "mailMessage must be an instance of Kind Mail.MailMessage"
-    to_addrs = []
-
-    for address in mailMessage.toAddress:
-        to_addrs.append(address.emailAddress)
-
-    return to_addrs
-
-def getFromAddressFromMailMessage(mailMessage):
-    assert isinstance(mailMessage, Mail.MailMessageMixin), "mailMessage must be an instance of Kind Mail.MailMessage"
-
-    if mailMessage.replyToAddress is not None:
-        return mailMessage.replyToAddress.emailAddress
-
-    elif mailMessage.fromAddress is not None:
-        return mailMessage.fromAddress.emailAddress
-
-    return None
-
 
 def hasValue(value):
     """
@@ -73,6 +86,7 @@ def isPlainTextContentType(contentType):
 
        @return bool: True if content-type='text/plain'
     """
+    #XXX: is this needed
     if __isString(contentType) and contentType.lower().strip() == common.MIME_TEXT_PLAIN:
         return True
 
@@ -93,6 +107,55 @@ def isChandlerHeader(header):
 
     return False
 
+def populateStaticHeaders(messageObject):
+    """Populates the static mail headers"""
+    #XXX: Need to document method
+    #XXX: Will be expanded when i18n is in place
+
+    if not messageObject.has_key('User-Agent'):
+        messageObject['User-Agent'] = common.CHANDLER_USERAGENT
+
+    if not messageObject.has_key('MIME-Version'):
+        messageObject['MIME-Version'] = "1.0"
+
+    if not messageObject.has_key('Content-Type'):
+        messageObject['Content-Type'] = "text/plain; charset=us-ascii; format=flowed"
+
+    if not messageObject.has_key('Content-Transfer-Encoding'):
+       messageObject['Content-Transfer-Encoding'] = "7bit"
+
+
+def populateParam(messageObject, param, var, type='String'):
+    #XXX: Need to document method
+
+    if type == 'String':
+        if hasValue(var):
+            messageObject[param] = var
+
+    elif(type == 'EmailAddress'):
+        if var is not None and hasValue(var.emailAddress):
+            messageObject[param] = Mail.EmailAddress.format(var)
+
+def populateEmailAddresses(mailMessage, messageObject):
+    #XXX: Need to document
+    populateParam(messageObject, 'From', mailMessage.fromAddress, 'EmailAddress')
+    populateParam(messageObject, 'Reply-To', mailMessage.replyToAddress, 'EmailAddress')
+
+    populateEmailAddressList(mailMessage.toAddress, messageObject, 'To')
+    populateEmailAddressList(mailMessage.ccAddress, messageObject, 'Cc')
+
+def populateEmailAddressList(emailAddressList, messageObject, key):
+    #XXX: Need to document
+    addrs = []
+
+    for address in emailAddressList:
+        if hasValue(address.emailAddress):
+            addrs.append(Mail.EmailAddress.format(address))
+
+    if len(addrs) > 0:
+        messageObject[key] = ", ".join(addrs)
+
+
 def messageTextToKind(messageText):
     """
     This method converts a email message string to
@@ -107,7 +170,7 @@ def messageTextToKind(messageText):
 
     return messageObjectToKind(email.message_from_string(messageText), messageText)
 
-def messageObjectToKind(messageObject, messageText=None):
+def messageObjectToKind(messageObject, messageText=None, root=True):
     """
     This method converts a email message string to
     a Chandler C{Mail.MailMessage} object
@@ -121,70 +184,13 @@ def messageObjectToKind(messageObject, messageText=None):
 
     m = Mail.MailMessage()
 
-    assert m is not None, "Repository returned a MailMessage that was None"
-
     if messageText is None:
         messageText = messageObject.as_string()
 
     # Save the original message text in a text blob
-    m.rfc2822Message = strToText(m, "rfc2822Message", messageText)
-
-    date = messageObject['Date']
-
-    if date is not None:
-        parsed = Utils.parsedate(date)
-
-        """It is a non-rfc date string"""
-        if parsed is None:
-            if __debug__:
-                logging.warn("Message contains a Non-RFC Compliant Date format")
-
-            m.dateSent = common.getEmptyDate()
-
-        else:
-            m.dateSent = DateTime.mktime(parsed)
-
-        m.dateSentString = date
-        del messageObject['Date']
-
-    else:
-        m.dateSent = common.getEmptyDate()
-        m.dateSentString = ""
-
-    m.dateReceived = DateTime.now()
-
-    __assignToKind(m, messageObject, 'Subject', 'String', 'subject')
-    __assignToKind(m, messageObject, 'Content-Type', 'String', 'contentType')
-    __assignToKind(m, messageObject, 'Content-Length', 'String', 'contentLength')
-    __assignToKind(m, messageObject, 'Content-Transfer-Encoding', 'String', 'contentTransferEncoding')
-    __assignToKind(m, messageObject, 'Mime-Version', 'String', 'mimeVersion')
-    __assignToKind(m, messageObject, 'Message-ID', 'String', 'messageId')
-    __assignToKind(m, messageObject, 'Return-Path', 'String', 'returnPath')
-    __assignToKind(m, messageObject, 'In-Reply-To', 'String', 'inReplyTo')
-    __assignToKind(m, messageObject, 'From', 'EmailAddress', 'fromAddress')
-    __assignToKind(m, messageObject, 'Reply-To', 'EmailAddress', 'replyToAddress')
-    __assignToKind(m.toAddress, messageObject, 'To', 'EmailAddressList')
-    __assignToKind(m.ccAddress, messageObject, 'Cc', 'EmailAddressList')
-    __assignToKind(m.bccAddress, messageObject, 'Bcc', 'EmailAddressList')
-    __assignToKind(m.references, messageObject, 'References', 'StringList')
-    __assignToKind(m.received, messageObject, 'Received', 'StringList')
-
-    m.chandlerHeaders = {}
-    m.additionalHeaders = {}
-
-    for (key, val) in messageObject.items():
-
-        if isChandlerHeader(key):
-            m.chandlerHeaders[key] =  val
-
-        else:
-            m.additionalHeaders[key] = val
-
-        try:
-            del messageObject[key]
-
-        except KeyError:
-            logging.error("in osaf.mail.message.messageObjectToKind: KEY ERROR")
+    #XXX: Only save this if it is the root element
+    if root:
+        m.rfc2822Message = strToText(m, "rfc2822Message", messageText)
 
     if messageObject.is_multipart():
         mimeParts = messageObject.get_payload()
@@ -195,8 +201,7 @@ def messageObjectToKind(messageObject, messageText=None):
         for mimePart in mimeParts:
             if isPlainTextContentType(mimePart.get_content_type()):
                 # Note: while grabbing the body, strip all CR
-                m.body = strToText(m, "body",
-                 mimePart.get_payload().replace("\r", ""))
+                m.body = strToText(m, "body", mimePart.get_payload().replace("\r", ""))
                 found = True
 
         if not found:
@@ -206,6 +211,8 @@ def messageObjectToKind(messageObject, messageText=None):
         # Note: while grabbing the body, strip all CR
         m.body = strToText(m, "body",
          messageObject.get_payload().replace("\r", ""))
+
+    __parseHeaders(m, messageObject)
 
     return m
 
@@ -222,41 +229,34 @@ def kindToMessageObject(mailMessage):
 
     assert isinstance(mailMessage, Mail.MailMessageMixin), "mailMessage must be an instance of Kind Mail.MailMessage"
 
-    #XXX: To do figure out in relpy to / recieved  / references logic
     messageObject = Message.Message()
 
+    """Create a messageId if none exists"""
     if not hasValue(mailMessage.messageId):
         mailMessage.messageId = createMessageID()
 
-    __populateParam(messageObject, 'Message-ID', mailMessage.messageId)
+    """Create a dateSent if none exists"""
+    if not hasValue(mailMessage.dateSentString):
+        mailMessage.dateSent = DateTime.now()
+        mailMessage.dateSentString = dateTimeToRFC2882Date(mailMessage.dateSent)
 
-    messageObject['User-Agent'] = common.CHANDLER_USERAGENT
+    populateParam(messageObject, 'Message-ID', mailMessage.messageId)
+    populateParam(messageObject, 'Date', mailMessage.dateSentString)
 
-    __populateParam(messageObject, 'Date', mailMessage.dateSentString)
-    __populateParam(messageObject, 'Subject', mailMessage.subject)
-    __populateParam(messageObject, 'Content-Type', mailMessage.contentType)
-    __populateParam(messageObject, 'Content-Length', mailMessage.contentLength)
-    __populateParam(messageObject, 'Content-Transfer-Encoding', mailMessage.contentTransferEncoding)
-    __populateParam(messageObject, 'MIME-Version', mailMessage.mimeVersion)
-    __populateParam(messageObject, 'Return-Path', mailMessage.returnPath)
-    __populateParam(messageObject, 'In-Reply-To', mailMessage.inReplyTo)
+    populateEmailAddresses(mailMessage, messageObject)
+    populateStaticHeaders(messageObject)
 
-    if len(mailMessage.references) > 0:
-        messageObject['References'] = " ".join(mailMessage.references)
+    keys = mailMessage.headers.keys()
 
-    #XXX: This will be a special case because we need multiple received headers
-    if len(mailMessage.received) > 0:
-        messageObject['Received'] = " ".join(mailMessage.received)
+    for key in keys:
+        messageObject[key] = mailMessage.headers[key]
 
     keys = mailMessage.chandlerHeaders.keys()
 
     for key in keys:
         messageObject[key] = mailMessage.chandlerHeaders[key]
 
-    keys = mailMessage.additionalHeaders.keys()
-
-    for key in keys:
-        messageObject[key] = mailMessage.additionalHeaders[key]
+    populateParam(messageObject, 'Subject', mailMessage.subject)
 
     try:
         payload = mailMessage.body
@@ -264,37 +264,8 @@ def kindToMessageObject(mailMessage):
         payloadStr = ""
     else:
         payloadStr = textToStr(payload)
+
     messageObject.set_payload(payloadStr)
-
-    __populateParam(messageObject, 'From', mailMessage.fromAddress, 'EmailAddress')
-    __populateParam(messageObject, 'Reply-To', mailMessage.replyToAddress, 'EmailAddress')
-
-    to = []
-
-    for address in mailMessage.toAddress:
-        if hasValue(address.emailAddress):
-            to.append(Mail.EmailAddress.format(address))
-
-    if len(to) > 0:
-        messageObject['To'] = ", ".join(to)
-
-    cc = []
-
-    for address in mailMessage.ccAddress:
-        if hasValue(address.emailAddress):
-            cc.append(Mail.EmailAddress.format(address))
-
-    if len(cc) > 0:
-        messageObject['Cc'] = ", ".join(cc)
-
-    bcc = []
-
-    for address in mailMessage.bccAddress:
-        if hasValue(address.emailAddress):
-             bcc.append(Mail.EmailAddress.format(address))
-
-    if len(bcc) > 0:
-        messageObject['Bcc'] = ", ".join(bcc)
 
     return messageObject
 
@@ -342,41 +313,99 @@ def textToStr(text):
 
     return string
 
-def getMailMessage(UUID):
-    """Returns a C{MailMessage} from its C{UUID}"""
-    assert isinstance(UUID, UUID.UUID), "Must pass a UUID.UUID object"
+def __parseHeaders(m, messageObject):
 
-    mailMessageKind = Mail.MailMessage.getKind()
-    return mailMessageKind.findUUID(UUID)
+    date = messageObject['Date']
+
+    if date is not None:
+        #XXX: look at using Utils.parsedate_tz
+        parsed = Utils.parsedate(date)
+
+        """It is a non-rfc date string"""
+        if parsed is None:
+            if __debug__:
+                logging.warn("Message contains a Non-RFC Compliant Date format")
+
+            #Set the sent date to the current Date
+            m.dateSent = DateTime.now()
+
+        else:
+            m.dateSent = DateTime.mktime(parsed)
+
+        ##XXX:  Do we need this the tz could be preserved
+        m.dateSentString = date
+        del messageObject['Date']
+
+    else:
+        m.dateSent = common.getEmptyDate()
+        m.dateSentString = ""
+
+    __assignToKind(m, messageObject, 'Subject', 'String', 'subject')
+    # Do not decode the message ID as it requires no i18n processing
+    __assignToKind(m, messageObject, 'Message-ID', 'String', 'messageId', False)
+    __assignToKind(m, messageObject, 'From', 'EmailAddress', 'fromAddress')
+    __assignToKind(m, messageObject, 'Reply-To', 'EmailAddress', 'replyToAddress')
+    __assignToKind(m.toAddress, messageObject, 'To', 'EmailAddressList')
+    __assignToKind(m.ccAddress, messageObject, 'Cc', 'EmailAddressList')
+    __assignToKind(m.bccAddress, messageObject, 'Bcc', 'EmailAddressList')
+
+    m.chandlerHeaders = {}
+    m.headers = {}
+
+    #XXX: Will want to selectively decodeHeaders for i18n support see RFC: 2231 
+    #     for more info
+
+    for (key, val) in messageObject.items():
+        if isChandlerHeader(key):
+            m.chandlerHeaders[key] = val
+
+        else:
+            m.headers[key] = val
+
+        del messageObject[key]
 
 
-def __populateParam(messageObject, param, var, type='String'):
 
-    if type == 'String':
-        if hasValue(var):
-            messageObject[param] = var
+def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
 
-    elif(type == 'EmailAddress'):
-        if var is not None and hasValue(var.emailAddress):
-            messageObject[param] = Mail.EmailAddress.format(var)
+    try:
+        """ Test that a key exists and its value is not None """
+        if messageObject[key] is None:
+            return
+    except KeyError:
+        return
 
-
-def __assignToKind(kindVar, messageObject, key, type, attr = None):
+    if decode:
+        __decodeHeader(messageObject, key)
 
     if type == "String":
-        if messageObject[key] is not None:
-            setattr(kindVar, attr, messageObject[key])
+        setattr(kindVar, attr, messageObject[key])
 
     # XXX: This logic will need to be expanded
     elif type == "StringList":
-        if messageObject[key] is not None:
-            kindVar.append(messageObject[key])
+        kindVar.append(messageObject[key])
 
     elif type == "EmailAddress":
-        if messageObject[key] is not None:
-            addr = Utils.parseaddr(messageObject[key])
+        keyArgs = {}
+        addr = Utils.parseaddr(messageObject[key])
 
+        if hasValue(addr[0]):
+            keyArgs['fullName'] = addr[0]
+
+        # Use any existing EmailAddress, but don't update them
+        #  because that will cause the item to go stale in the UI thread.
+        ea = Mail.EmailAddress.getEmailAddress(addr[1], **keyArgs)
+
+        if ea is not None:
+            setattr(kindVar, attr, ea)
+
+        elif __debug__:
+            logging.error("in osaf.mail.message.__assignToKind: invalid email address found")
+
+    elif type == "EmailAddressList":
+        for addr in Utils.getaddresses(messageObject.get_all(key, [])):
             keyArgs = {}
+
             if hasValue(addr[0]):
                 keyArgs['fullName'] = addr[0]
 
@@ -385,38 +414,20 @@ def __assignToKind(kindVar, messageObject, key, type, attr = None):
             ea = Mail.EmailAddress.getEmailAddress(addr[1], **keyArgs)
 
             if ea is not None:
-                setattr(kindVar, attr, ea)
+                kindVar.append(ea)
 
             elif __debug__:
                 logging.error("in osaf.mail.message.__assignToKind: invalid email address found")
-
-    elif type == "EmailAddressList":
-        if messageObject[key] is not None:
-            for addr in Utils.getaddresses(messageObject.get_all(key, [])):
-                keyArgs = {}
-                if hasValue(addr[0]):
-                    keyArgs['fullName'] = addr[0]
-
-                # Use any existing EmailAddress, but don't update them
-                #  because that will cause the item to go stale in the UI thread.
-                ea = Mail.EmailAddress.getEmailAddress(addr[1], **keyArgs)
-                if ea is not None:
-                    kindVar.append(ea)
-
-                elif __debug__:
-                    logging.error("in osaf.mail.message.__assignToKind: invalid email address found")
     else:
         logging.error("in osaf.mail.message.__assignToKind: HEADER SLIPPED THROUGH")
 
-    try:
-       del messageObject[key]
+    del messageObject[key]
 
-    except KeyError:
-        logging.error("in osaf.mail.message.__assignToKind: KEY ERROR")
+def __decodeHeader(messageObject, key):
+    messageObject.replace_header(key, decodeHeader(messageObject[key]))
 
 def __isString(var):
     if isinstance(var, (str, unicode)):
         return True
 
     return False
-

@@ -5,14 +5,20 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 """ Contains common functionality shared across the Mail Domain (SMTP, IMAP4, POP3) """
 
-#XXX: This is a bad import in the GUI layer. Will remove when notifications figured out
-import application.Globals as Globals
-
+#python / mx imports
 import email as email
 import email.Message as Message
 import email.Utils as Utils
 import mx.DateTime as DateTime
 import version
+
+#Chandler imports
+#XXX: This is a bad import in the GUI layer. Will remove when notifications figured out
+import application.Globals as Globals
+
+
+#XXX: This will go away with internationalization
+DEFAULT_CHARSET = "ascii"
 
 CHANDLER_USERAGENT = "Chandler (%s %s)" % (version.release, version.build)
 CHANDLER_HEADER_PREFIX = "X-Chandler-"
@@ -21,6 +27,7 @@ ATTACHMENT_BODY_WARNING = "\tThe body of this message consists of Multiple Mime 
 """MIME TYPE SPECS"""
 
 MIME_TEXT_PLAIN = "text/plain"
+MIME_APPLEFILE = "application/applefile"
 
 MIME_TEXT = ["plain", "html", "enriched", "sgml", "richtext", "rfc-headers"]
 MIME_BINARY = ["image", "application", "audio", "video"]

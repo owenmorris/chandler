@@ -3,33 +3,42 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
-import application.Globals as Globals
+#twisted imports
 import twisted.mail.smtp as smtp
 import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
-import email.Message as Message
-import logging as logging
-import common as common
-import errors as errors
 import twisted.internet.error as error
-import message as message
+import twisted.protocols.policies as policies
+
+#python / mx imports
+import email.Message as Message
+import mx.DateTime as DateTime
+import cStringIO as StringIO
+import logging as logging
+
+#Chandler imports
+import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
+import application.Globals as Globals
 import osaf.contentmodel.mail.Mail as Mail
 import chandlerdb.util.UUID as UUID
-import mx.DateTime as DateTime
-import twisted.protocols.policies as policies
-import cStringIO as StringIO
 import crypto.ssl as ssl
 import M2Crypto.SSL.TwistedProtocolWrapper as wrapper
+
+#Chandler Mail Service imports
+import common as common
+import errors as errors
+import message as message
+
 
 """
  Notes:
  ------
-1. Look in to what happens when you resend a message multiple times that succeeds each time
-2. Should sending use a pool or a queue
-3. Should not be able to send a message if it is already inbound
-4. SendMail can be called mutilple times is that desired behavior or one per instance
-5. Do we really need the error codes (Perhaps not)
+1. Should sending use a pool or a queue
+2. Do we really need the error codes (Perhaps not)
+3. Could make smtp class just a transport and pass around a tuple of the account, message, and view).
+   Else need safeguards to make sure smtp not called 2x at same time. Can have a parent account class
+   that spawns an SMTPSender for each request
+   
 """
 
 class ChandlerESMTPSender(smtp.ESMTPSender):
@@ -101,31 +110,16 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         for item in self.mailMessage.deliveryExtension.deliveryErrors:
             item.delete()
 
-        username     = None
-        password     = None
-        authRequired = False
-        sslContext   = None
-        heloFallback = True
-
-        if self.account.useAuth:
-            username     = self.account.username
-            password     = self.account.password
-            authRequired = True
-            heloFallback = False
-
-        if self.account.useSSL:
-            sslContext = ssl.getSSLContext()
-
         self.mailMessage.outgoingMessage(account=self.account)
 
-        msg = StringIO.StringIO(message.kindToMessageText(self.mailMessage))
+        messageText = message.kindToMessageText(self.mailMessage)
 
         d = defer.Deferred()
         d.addCallback(self.execInViewThenCommitInThreadDeferred, self.__mailSuccessCheck)
         d.addErrback(self.execInViewThenCommitInThreadDeferred,  self.__mailFailure)
 
-        to_addrs = message.getToAddressesFromMailMessage(self.mailMessage)
-        from_addr = message.getFromAddressFromMailMessage(self.mailMessage)
+        to_addrs = self.__getRcptTo()
+        from_addr = self.__getMailFrom()
 
         """Perform error checking to make sure To, From have values"""
         if len(to_addrs) == 0:
@@ -136,18 +130,7 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
             self.execInViewThenCommitInThread(self.__fatalError("From Address"))
             return
 
-        factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
-                                          d, self.account.numRetries, common.TIMEOUT, sslContext, heloFallback,
-                                          authRequired, self.account.useSSL)
-
-        factory.protocol = ChandlerESMTPSender
-
-        wrappingFactory = policies.WrappingFactory(factory)
-        wrappingFactory.protocol = wrapper.TLSProtocolWrapper
-        
-        reactor.connectTCP(self.account.host,
-                           self.account.port,
-                           wrappingFactory)
+        SMTPSender.sendMailMessage(from_addr, to_addrs, messageText, d, self.account)
 
     def __mailSuccessCheck(self, result):
         """Twisted smtp.py will call the deferred callback (this method) if
@@ -372,4 +355,57 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
         assert self.account is not None, "No Account for UUID: %s" % self.accountUUID
         assert self.mailMessage is not None, "No MailMessage for UUID: %s" % self.mailMessageUUID
 
+    def __getMailFrom(self):
+        #XXX: Will want to refine how this look is done when mail preferences are in place
+        if self.mailMessage.replyToAddress is not None:
+            return self.mailMessage.replyToAddress.emailAddress
 
+        elif self.mailMessage.fromAddress is not None:
+            return self.mailMessage.fromAddress.emailAddress
+
+        return None
+
+    def __getRcptTo(self):
+        to_addrs = []
+
+        for address in self.mailMessage.toAddress:
+            to_addrs.append(address.emailAddress)
+
+        for address in self.mailMessage.ccAddress:
+            to_addrs.append(address.emailAddress)
+
+        for address in self.mailMessage.bccAddress:
+            to_addrs.append(address.emailAddress)
+
+        return to_addrs
+
+    def sendMailMessage(cls, from_addr, to_addrs, messageText, deferred, account):
+        #XXX: Perform some error checking
+        username     = None
+        password     = None
+        authRequired = False
+        sslContext   = None
+        heloFallback = True
+
+        if account.useAuth:
+            username     = account.username
+            password     = account.password
+            authRequired = True
+            heloFallback = False
+
+        if account.useSSL:
+            sslContext = ssl.getSSLContext()
+
+        msg = StringIO.StringIO(messageText)
+
+        factory = smtp.ESMTPSenderFactory(username, password, from_addr, to_addrs, msg,
+                                          deferred, account.numRetries, common.TIMEOUT, sslContext,
+                                          heloFallback, authRequired, account.useSSL)
+
+        factory.protocol = ChandlerESMTPSender
+        wrappingFactory = policies.WrappingFactory(factory)
+        wrappingFactory.protocol = wrapper.TLSProtocolWrapper
+
+        reactor.connectTCP(account.host, account.port, wrappingFactory)
+
+    sendMailMessage = classmethod(sendMailMessage)

@@ -126,7 +126,7 @@ class SMTPTestServer(basic.LineReceiver):
             if TERMINATOR == line:
                 self.in_data = False
                 self.sendLine(OK_STRING)
-                self.writeMessage("\r\n".join(self.data))
+                #self.writeMessage("\r\n".join(self.data))
                 self.data = []
 
             else:
