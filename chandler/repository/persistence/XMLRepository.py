@@ -21,6 +21,7 @@ from repository.persistence.XMLRepositoryView import XMLRepositoryView
 from repository.persistence.DBContainer import DBContainer, RefContainer
 from repository.persistence.DBContainer import VerContainer, HistContainer
 from repository.persistence.DBContainer import NamesContainer, ACLContainer
+from repository.persistence.DBContainer import IndexesContainer
 from repository.persistence.FileContainer import FileContainer, BlockContainer
 from repository.persistence.FileContainer import IndexContainer
 from repository.remote.CloudFilter import CloudFilter
@@ -320,6 +321,7 @@ class XMLStore(Store):
             self._blocks = BlockContainer(self, "__blocks__", txn, **kwds)
             self._index = IndexContainer(self, "__index__", txn, **kwds)
             self._acls = ACLContainer(self, "__acls__", txn, **kwds)
+            self._indexes = IndexesContainer(self, "__indexes__", txn, **kwds)
         finally:
             if txnStarted:
                 self.commitTransaction()
@@ -336,6 +338,7 @@ class XMLStore(Store):
         self._blocks.close()
         self._index.close()
         self._acls.close()
+        self._indexes.close()
 
     def attachView(self, view):
 
@@ -349,6 +352,7 @@ class XMLStore(Store):
         self._blocks.attachView(view)
         self._index.attachView(view)
         self._acls.attachView(view)
+        self._indexes.attachView(view)
 
     def detachView(self, view):
 
@@ -362,6 +366,7 @@ class XMLStore(Store):
         self._blocks.detachView(view)
         self._index.detachView(view)
         self._acls.detachView(view)
+        self._indexes.detachView(view)
 
     def loadItem(self, version, uuid):
 
@@ -393,7 +398,7 @@ class XMLStore(Store):
                 assert ref is not None
 
                 refs.append(ref)
-                key = ref[3]
+                key = ref[1]
         finally:
             if txnStarted:
                 self.abortTransaction()

@@ -235,7 +235,7 @@ class Block(object):
     def __init__(self, container, file):
 
         super(Block, self).__init__()
-        
+
         self._container = container
         self._key = pack('>16sll', file.getKey()._uuid, 0L, 0L)
         self._data = None
@@ -252,10 +252,11 @@ class Block(object):
 
         key = pack('>16sll', self._key[0:16], 0L,
                    position >> OutputStream.BLOCK_SHIFT)
-        
+
         if self._data is None or key != self._key:
             self._key = key
             data = self._container.get(self._key)
+
             if data is not None:
                 if write:
                     self._data = StringIO()

@@ -317,6 +317,8 @@ class ItemHandler(ContentHandler):
         else:
             value = self.collections.pop()
             self.references[attrs['name']] = value
+            if value._indexes and self.afterLoadHooks is not None:
+                self.afterLoadHooks.append(value._restoreIndexes)
 
     def dbEnd(self, itemHandler, attrs):
             
@@ -325,6 +327,17 @@ class ItemHandler(ContentHandler):
 
         refDict = self.collections[-1]
         refDict._prepareBuffers(self.uuid, UUID(self.data))
+
+    def indexEnd(self, itemHandler, attrs):
+
+        if not self.collections:
+            raise ValueError, self.tagAttrs[-1]['name']
+
+        refDict = self.collections[-1]
+        kwds = attrs.copy()
+        del kwds['type']
+        del kwds['name']
+        refDict.addIndex(attrs['name'], attrs['type'], **kwds)
 
     def attributeStart(self, itemHandler, attrs):
 

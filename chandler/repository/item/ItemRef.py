@@ -9,7 +9,7 @@ import repository.item as ItemPackage
 from repository.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
-
+from repository.item.Indexes import NumericIndex
 
 class ItemRef(object):
     'A wrapper around a bi-directional link between two items.'
@@ -84,8 +84,7 @@ class ItemRef(object):
             if other.hasAttributeValue(otherName):
                 old = other.getAttributeValue(otherName)
                 if isinstance(old, RefDict):
-                    old.__setitem__(item._refName(otherName), self,
-                                    alias=otherAlias)
+                    old.__setitem__(item._uuid, self, alias=otherAlias)
                     return
             else:
                 if otherCard is None:
@@ -95,8 +94,7 @@ class ItemRef(object):
                 if otherCard != 'single':
                     old = other._refDict(otherName, name, otherPersist)
                     other._references[otherName] = old
-                    old.__setitem__(item._refName(otherName), self,
-                                    alias=otherAlias)
+                    old.__setitem__(item._uuid, self, alias=otherAlias)
                     return
             
             other.setAttributeValue(otherName, self,
@@ -107,7 +105,7 @@ class ItemRef(object):
         old = other.getAttributeValue(otherName, _attrDict=other._references)
 
         if isinstance(old, RefDict):
-            old._removeRef(item._refName(otherName))
+            old._removeRef(item._uuid)
         else:
             other._removeRef(otherName)
 
@@ -362,7 +360,7 @@ class RefArgs(object):
             if other is None:
                 raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(self.spec, self.spec, item.itsPath)
             else:
-                self.refName = other._refName(self.attrName)
+                self.refName = other._uuid
 
         if other is not None:
             if not other._isAttaching():
@@ -413,7 +411,7 @@ class RefArgs(object):
                 return value
 
         elif isinstance(value, RefDict):
-            otherRefName = item._refName(self.otherName)
+            otherRefName = item._uuid
             if value.has_key(otherRefName):
                 value = value._getRef(otherRefName)
                 if isinstance(value._other, Stub):
@@ -478,6 +476,7 @@ class RefDict(LinkedMap):
         self._count = 0
         self._aliases = None
         self._readOnly = readOnly
+        self._indexes = None
         
         super(RefDict, self).__init__()
 
@@ -550,9 +549,48 @@ class RefDict(LinkedMap):
 
         load = not self._item.isNew()
         if isinstance(obj, ItemPackage.Item.Item):
-            return self.has_key(obj._refName(self._name), load)
+            return self.has_key(obj._uuid, load)
 
         return self.has_key(obj, load)
+
+    def addIndex(self, name, indexType, **kwds):
+
+        index = self._createIndex(indexType, **kwds)
+
+        if self._indexes is None:
+            self._indexes = { name: index }
+        else:
+            self._indexes[name] = index
+
+        if not self._getRepository().isLoading():
+            self.fillIndex(index)
+            self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
+
+    def _createIndex(self, indexType, *args, **kwds):
+
+        if indexType == 'numeric':
+            return NumericIndex(*args, **kwds)
+
+        raise NotImplementedError, "indexType: %s" %(indexType)
+
+    def removeIndex(self, name):
+
+        del self._indexes[name]
+        self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
+
+    def fillIndex(self, index):
+
+        for key in self.iterkeys():
+            link = self._get(key)
+            index.insertKey(key, link._previousKey)
+
+    def _restoreIndexes(self):
+
+        for index in self._indexes.itervalues():
+            if index.isPersistent():
+                index._restore(self._item._version)
+            else:
+                self.fillIndex(index)
 
     def extend(self, valueList):
         """
@@ -591,15 +629,18 @@ class RefDict(LinkedMap):
         @type alias: a string
         """
 
-        self.__setitem__(item._refName(self._name), item, alias=alias)
+        self.__setitem__(item._uuid, item, alias=alias)
 
     def clear(self):
         """
         Remove all references from this ref collection.
         """
         
-        for key in self.keys():
+        key = self.firstKey()
+        while key is not None:
+            next = self.nextKey(key)
             del self[key]
+            key = next
 
     def dir(self):
         """
@@ -624,9 +665,7 @@ class RefDict(LinkedMap):
         if loading and previousKey is None and nextKey is None:
             ref = self._loadRef(key)
             if ref is not None:
-                previousKey = ref[2]
-                nextKey = ref[3]
-                alias = ref[4]
+                previousKey, nextKey, alias = ref
         
         old = super(RefDict, self).get(key, None, load)
         if old is not None:
@@ -650,19 +689,22 @@ class RefDict(LinkedMap):
 
         link = super(RefDict, self).__setitem__(key, value,
                                                 previousKey, nextKey)
+        if not loading:
+            self._count += 1
+            if self._indexes:
+                for index in self._indexes.itervalues():
+                    index.insertKey(key, previousKey)
+
         if alias:
             link._alias = alias
             if self._aliases is None:
                 self._aliases = { alias: key }
             else:
                 self._aliases[alias] = key
-            
-        if not loading:
-            self._count += 1
 
         return value
 
-    def placeItem(self, item, after):
+    def placeItem(self, item, after, indexName=None):
         """
         Place an item in this collection after another one.
 
@@ -674,15 +716,22 @@ class RefDict(LinkedMap):
         @param after: the item to place C{item} after or C{None} if C{item} is
         to be first in this ref collection.
         @type after: an C{Item} instance
+        @param indexName: the name of an index to use instead of the
+        collection's default intrinsic order
+        @type indexName: a string
         """
         
-        key = item._refName(self._name)
+        key = item._uuid
         if after is not None:
-            afterKey = after._refName(self._name)
+            afterKey = after._uuid
         else:
             afterKey = None
 
-        super(RefDict, self).place(key, afterKey)
+        if indexName is None:
+            super(RefDict, self).place(key, afterKey)
+        else:
+            self._indexes[indexName].moveKey(key, afterKey)
+            self._item.setDirty(attribute=self._name, dirty=self._item.RDIRTY)
 
     def removeItem(self, item):
         """
@@ -692,7 +741,7 @@ class RefDict(LinkedMap):
         @type item: an C{Item} instance
         """
         
-        del self[item._refName(self._name)]
+        del self[item._uuid]
             
     def __delitem__(self, key):
 
@@ -721,6 +770,9 @@ class RefDict(LinkedMap):
             del self._aliases[link._alias]
             
         self._count -= 1
+        if self._indexes:
+            for index in self._indexes.itervalues():
+                index.removeKey(key)
 
         return link
 
@@ -733,9 +785,9 @@ class RefDict(LinkedMap):
             loading = repository._setLoading()
             ref = self._loadRef(key)
             if ref is not None:
-                args = RefArgs(self._name, ref[0], ref[1],
+                args = RefArgs(self._name, key, key,
                                self._otherName, None, self,
-                               ref[2], ref[3], ref[4])
+                               ref[0], ref[1], ref[2])
                 value = args.attach(self._item, repository)
                 if value is not None:
                     self.__setitem__(args.refName, value, args.previous,
@@ -837,6 +889,28 @@ class RefDict(LinkedMap):
 
         return None
 
+    def getByIndex(self, indexName, position):
+        """
+        Get the item through its position in an index.
+
+        C{position} is 0-based and may be negative to begin search from end
+        going backwards with C{-1} being the index of the last element.
+
+        C{IndexError} is raised if C{position} is out of range.
+
+        @param indexName: the name of the index to search
+        @type indexName: a string
+        @param position: the position of the item in the index
+        @type position: integer
+        @return: an C{Item} instance
+        """
+
+        return self[self._indexes[indexName].getKey(position)]
+
+    def resolveIndex(self, indexName, position):
+
+        return self._indexes[indexName].getKey(position)
+
     def _refCount(self):
 
         return len(self)
@@ -882,6 +956,10 @@ class RefDict(LinkedMap):
                                   previous=link._previousKey,
                                   next=link._nextKey,
                                   alias=link._alias)
+        if self._indexes:
+            for name, index in self._indexes.iteritems():
+                attrs = { 'name': name }
+                index._xmlValues(generator, version, attrs, mode)
 
     def copy(self):
         """
@@ -893,59 +971,91 @@ class RefDict(LinkedMap):
         
         raise NotImplementedError, 'RefDict.copy is not supported'
 
-    def first(self):
+    def first(self, indexName=None):
         """
         Get the first item referenced in this ref collection.
 
+        @param indexName: the name of an index to use instead of the
+        collection's default intrinsic order
+        @type indexName: a string
         @return: an C{Item} instance or C{None} if empty.
         """
 
-        firstKey = self.firstKey()
+        if indexName is None:
+            firstKey = self.firstKey()
+        else:
+            firstKey = self._indexes[indexName].getFirstKey()
+            
         if firstKey is not None:
             return self[firstKey]
 
         return None
 
-    def last(self):
+    def last(self, indexName=None):
         """
         Get the last item referenced in this ref collection.
 
+        @param indexName: the name of an index to use instead of the
+        collection's default intrinsic order
+        @type indexName: a string
         @return: an C{Item} instance or C{None} if empty.
         """
 
-        lastKey = self.lastKey()
+        if indexName is None:
+            lastKey = self.lastKey()
+        else:
+            lastKey = self._indexes[indexName].getLastKey()
+            
         if lastKey is not None:
             return self[lastKey]
 
         return None
 
-    def next(self, previous):
+    def next(self, previous, indexName=None):
         """
         Get the next referenced item relative to previous.
 
         @param previous: the previous item relative to the item sought.
         @type previous: a C{Item} instance
+        @param indexName: the name of an index to use instead of the
+        collection's default intrinsic order
+        @type indexName: a string
         @return: an C{Item} instance or C{None} if C{previous} is the last
         referenced item in the collection.
         """
 
-        nextKey = self.nextKey(previous._refName(self._name))
+        key = previous._uuid
+
+        if indexName is None:
+            nextKey = self.nextKey(key)
+        else:
+            nextKey = self._indexes[indexName].getNextKey(key)
+
         if nextKey is not None:
             return self[nextKey]
 
         return None
 
-    def previous(self, next):
+    def previous(self, next, indexName=None):
         """
         Get the previous referenced item relative to next.
 
         @param next: the next item relative to the item sought.
         @type next: a C{Item} instance
+        @param indexName: the name of an index to use instead of the
+        collection's default intrinsic order
+        @type indexName: a string
         @return: an C{Item} instance or C{None} if next is the first
         referenced item in the collection.
         """
 
-        previousKey = self.previousKey(next._refName(self._name))
+        key = next._uuid
+
+        if indexName is None:
+            previousKey = self.previousKey(key)
+        else:
+            previousKey = self._indexes[indexName].getPreviousKey(key)
+
         if previousKey is not None:
             return self[previousKey]
 

@@ -130,34 +130,27 @@ class LinkedMap(dict):
     def place(self, key, afterKey=None):
         "Move a key in this collection after another one."
 
-        if self.has_key(key):
-            current = self._get(key)
-            if current._previousKey == afterKey:
-                return
-            if current._previousKey is not None:
-                previous = self._get(current._previousKey)
-            else:
-                previous = None
-            if current._nextKey is not None:
-                next = self._get(current._nextKey)
-            else:
-                next = None
-        else:
-            raise ValueError, "No value for key %s" %(key)
-
-        if afterKey is not None:
-            if self.has_key(afterKey):
-                after = self._get(afterKey)
-                afterNextKey = after._nextKey
-            else:
-                raise ValueError, "No value for %s" %(afterKey)
-        else:
-            after = None
-            afterKey = None
-            afterNextKey = self._firstKey
-
         if key == afterKey:
             return
+
+        current = self._get(key)
+        if current._previousKey == afterKey:
+            return
+        if current._previousKey is not None:
+            previous = self._get(current._previousKey)
+        else:
+            previous = None
+        if current._nextKey is not None:
+            next = self._get(current._nextKey)
+        else:
+            next = None
+
+        if afterKey is None:
+            after = None
+            afterNextKey = self._firstKey
+        else:
+            after = self._get(afterKey)
+            afterNextKey = after._nextKey
 
         if previous is not None:
             previous._setNext(current._nextKey, current._previousKey, self)

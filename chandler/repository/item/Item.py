@@ -219,10 +219,12 @@ class Item(object):
               aspect takes an item of kind C{Type} as value.
             - C{defaultValue}: the value to return when there is no value
               set for this attribute. This default value is owned by the
-              attribute item and is a read-only when it is a collection. By
-              default, an attribute has no default value. See
-              C{initialValue}, C{inheritFrom} and C{redirectTo} below. This
-              aspect takes any type of value.
+              schema attribute item and is read-only when it is a collection
+              or a Lob. Other mutable types, such as Structs, should be used
+              with care as mutating a defaultValue causes it to appear
+              changed by all items returning it. By default, an attribute
+              has no default value. See C{initialValue}, C{inheritFrom} and
+              C{redirectTo} below. This aspect takes any type of value.
             - C{initialValue}: similar to C{defaultValue} but the initial
               value is set as the value of the attribute the first time it is
               returned. A copy of the initial value is set when it is a
@@ -1404,10 +1406,6 @@ class Item(object):
                     return self.getAttributeValue(displayAttribute)
                 
         return self._name
-
-    def _refName(self, name):
-        
-        return self._uuid
 
     def refCount(self):
         """

@@ -108,9 +108,9 @@ class RefContainer(DBContainer):
             return (17, UUID(value[offset:offset+16]))
 
         if code == '\1':
-            len, = unpack('>H', value[offset:offset+2])
+            l, = unpack('>H', value[offset:offset+2])
             offset += 2
-            return (len + 3, value[offset:offset+len])
+            return (l + 3, value[offset:offset+l])
 
         if code == '\2':
             return (1, None)
@@ -141,19 +141,22 @@ class RefContainer(DBContainer):
             raise NotImplementedError, "value: %s, type: %s" %(value,
                                                                type(value))
 
-    def saveRef(self, keyBuffer, buffer, version, key,
-                uuid, previous, next, alias):
+    def saveRef(self, keyBuffer, buffer, version, key, previous, next, alias):
 
         buffer.truncate(0)
         buffer.seek(0)
-        if uuid is not None:
-            self._writeValue(buffer, uuid)
-            self._writeValue(buffer, previous)
-            self._writeValue(buffer, next)
-            self._writeValue(buffer, alias)
-        else:
-            self._writeValue(buffer, None)
-            
+
+        self._writeValue(buffer, previous)
+        self._writeValue(buffer, next)
+        self._writeValue(buffer, alias)
+        self.put(self._packKey(keyBuffer, key, version), buffer.getvalue())
+
+    def deleteRef(self, keyBuffer, buffer, version, key):
+
+        buffer.truncate(0)
+        buffer.seek(0)
+
+        self._writeValue(buffer, None)
         self.put(self._packKey(keyBuffer, key, version), buffer.getvalue())
 
     def eraseRef(self, buffer, key):
@@ -189,25 +192,23 @@ class RefContainer(DBContainer):
                 
                         if refVer <= version:
                             value = value[1]
-                            offset = 0
 
-                            len, uuid = self._readValue(value, offset)
-                            offset += len
-                    
-                            if uuid is None:
+                            if len(value) == 1:   # deleted ref
                                 return None
 
                             else:
-                                len, previous = self._readValue(value, offset)
-                                offset += len
+                                offset = 0
 
-                                len, next = self._readValue(value, offset)
-                                offset += len
+                                l, previous = self._readValue(value, offset)
+                                offset += l
 
-                                len, alias = self._readValue(value, offset)
-                                offset += len
+                                l, next = self._readValue(value, offset)
+                                offset += l
 
-                                return (key, uuid, previous, next, alias)
+                                l, alias = self._readValue(value, offset)
+                                offset += l
+
+                                return (previous, next, alias)
 
                         else:
                             value = cursor.next()
@@ -620,6 +621,140 @@ class ACLContainer(DBContainer):
                 except DBLockDeadlockError:
                     if txnStarted:
                         self._logDL(11)
+                        continue
+                    else:
+                        raise
+
+                return None
+
+            finally:
+                if cursor:
+                    cursor.close()
+                if txnStarted:
+                    self.store.abortTransaction()
+
+
+class IndexesContainer(DBContainer):
+
+    def prepareKey(self, uuid):
+
+        buffer = cStringIO.StringIO()
+        buffer.write(uuid._uuid)
+
+        return buffer
+            
+    def _packKey(self, buffer, key, version=None):
+
+        buffer.truncate(16)
+        buffer.seek(0, 2)
+        buffer.write(key._uuid)
+        if version is not None:
+            buffer.write(pack('>l', ~version))
+
+        return buffer.getvalue()
+
+    def _readValue(self, value, offset):
+
+        code = value[offset]
+        offset += 1
+
+        if code == '\0':
+            return (17, UUID(value[offset:offset+16]))
+
+        if code == '\1':
+            return (1, None)
+
+        raise ValueError, code
+
+    def _writeValue(self, buffer, value):
+        
+        if isinstance(value, UUID):
+            buffer.write('\0')
+            buffer.write(value._uuid)
+
+        elif value is None:
+            buffer.write('\1')
+
+        else:
+            raise TypeError, "value: %s, type: %s" %(value, type(value))
+
+    def saveKey(self, keyBuffer, buffer, version, key, node):
+
+        buffer.truncate(0)
+        buffer.seek(0)
+
+        if node is not None:
+            level = node.getLevel()
+            buffer.write(pack('b', node.getLevel()))
+            for lvl in xrange(1, level + 1):
+                point = node.getPoint(lvl)
+                self._writeValue(buffer, point.prevKey)
+                self._writeValue(buffer, point.nextKey)
+                buffer.write(pack('>l', point.dist))
+        else:
+            buffer.write('\0')
+            
+        self.put(self._packKey(keyBuffer, key, version), buffer.getvalue())
+
+    def loadKey(self, index, keyBuffer, version, key):
+        
+        cursorKey = self._packKey(keyBuffer, key)
+
+        while True:
+            txnStarted = False
+            cursor = None
+
+            try:
+                txnStarted = self.store.startTransaction()
+                cursor = self.cursor()
+
+                try:
+                    value = cursor.set_range(cursorKey, flags=self._flags)
+                except DBNotFoundError:
+                    return None
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(14)
+                        continue
+                    else:
+                        raise
+
+                try:
+                    while value is not None and value[0].startswith(cursorKey):
+                        keyVer = ~unpack('>l', value[0][32:36])[0]
+                
+                        if keyVer <= version:
+                            value = value[1]
+                            level = unpack('b', value[0])[0]
+
+                            if level == 0:
+                                return None
+                    
+                            offset = 1
+                            node = index._createNode(level)
+
+                            for lvl in xrange(1, level + 1):
+                                point = node.getPoint(lvl)
+
+                                l, prevKey = self._readValue(value, offset)
+                                offset += l
+                                l, nextKey = self._readValue(value, offset)
+                                offset += l
+                                dist = unpack('>l', value[offset:offset+4])[0]
+                                offset += 4
+
+                                point.prevKey = prevKey
+                                point.nextKey = nextKey
+                                point.dist = dist
+
+                            return node
+                        
+                        else:
+                            value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(15)
                         continue
                     else:
                         raise
