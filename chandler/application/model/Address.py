@@ -9,7 +9,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-from application.persist import Persist
+from Persistence import PersistentDict
 
 from RdfObject import RdfObject
 from RdfRestriction import RdfRestriction
@@ -22,7 +22,7 @@ class Address(RdfObject):
     # Define the schema for Addresses
     # ---------------------------------------
 
-    rdfs = Persist.Dict()
+    rdfs = PersistentDict.PersistentDict()
     rdfs[chandler.address1] = RdfRestriction(str, 1)
     rdfs[chandler.address2] = RdfRestriction(str, 1)
     rdfs[chandler.address3] = RdfRestriction(str, 1)

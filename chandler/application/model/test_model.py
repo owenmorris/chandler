@@ -18,8 +18,6 @@ from PlaceItem import PlaceItem
 
 from sample_data import ItemDict
 
-from application.persist import Persist
-
 class BasicEventTest(unittest.TestCase):
     def testEmptyFields(self):
         event = EventItem()

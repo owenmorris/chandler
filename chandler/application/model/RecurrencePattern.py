@@ -11,7 +11,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-from application.persist import Persist
+from Persistence import PersistentDict
 
 from RdfObject import RdfObject
 from RdfRestriction import RdfRestriction
@@ -24,7 +24,7 @@ class RecurrencePattern(RdfObject):
     # Define the schema for RecurrencePattern
     # ---------------------------------------
 
-    rdfs = Persist.Dict()
+    rdfs = PersistentDict.PersistentDict()
 
     def __init__(self):
         RdfObject.__init__(self)

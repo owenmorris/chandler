@@ -13,7 +13,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-from application.persist import Persist
+from Persistence import PersistentDict
 
 from Observable import Observable
 from RdfObject import RdfObject
@@ -41,7 +41,7 @@ class InformationItem(RdfObject, Observable):
     # to fix this somehow. Perhaps we'll need to use strings instead of
     # types.
 
-    rdfs = Persist.Dict()
+    rdfs = PersistentDict.PersistentDict()
     
     rdfs[dc.identifier] = RdfRestriction(str, 1)
     rdfs[dc.subject] = RdfRestriction(str, 1) # dcq.SubjectSchema
