@@ -15,6 +15,9 @@ import xml.sax.handler
 
 from wxPython.wx import *
 
+from OSAF.contacts.model.ContactEntity import *
+
+# FIXME: remove this old model stuff soon
 from application.repository.Repository import Repository
 from application.repository.Namespace import chandler
 from application.repository.Contact import Contact, AkoContactFactory
@@ -109,7 +112,7 @@ class ContactTemplateHandler(xml.sax.handler.ContentHandler):
         self.contactTemplate = None
         self.buffer = ""
         
-    def startElement(self, name, attributes):		
+    def startElement(self, name, attributes):
         self.buffer = ""
                 
         if name == 'ContactTemplate':
@@ -133,7 +136,7 @@ class ContactTemplateHandler(xml.sax.handler.ContentHandler):
     def characters(self, data):
         self.buffer += data
                                 
-    def endElement(self, name):					
+    def endElement(self, name):
         if name == 'ContactTemplate':
             self.contactTemplate = None
 
@@ -162,9 +165,9 @@ class ContactMetaData:
     # return a list of all the groups by iterating through the contacts
     def GetGroupsList(self):
         allGroups = []
-        repository = Repository()
-        for item in repository.thingList:
-            if isinstance(item, Contact):
+      
+        for item in app.repository.find("//Contacts"):
+            if isinstance(item, ContactEntity):
                 contactGroups = item.GetGroups()
                 for currentGroup in contactGroups:
                     try:
@@ -250,9 +253,9 @@ class ContactMetaData:
     # return a list of all of the choices for the passed-in attribute
     def GetAttributeChoices(self, attributeName):
         choices = []
-        repository = Repository()
-        for item in repository.thingList:
-            if isinstance(item, Contact):
+        
+        for item in app.repository.find("//Contacts"):
+            if isinstance(item, ContactEntity):    
                 contact = item                
                 value = contact.GetAttribute(attributeName)
                 

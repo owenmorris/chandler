@@ -11,7 +11,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from wxPython.wx import *
 from application.Application import app
-from application.repository.Repository import Repository
 from OSAF.contacts.AutoCompleteTextCtrl import *
 
 # here's the text widget used to display a group name, and link to the group when clicked on
@@ -196,11 +195,10 @@ class MultiEnumText(wxStaticText):
         # FIXME: Perhaps create a convenience method
         # Look up the attribute's display name. Search the repository
         # for the attribute template, using the attribute's url
-        repository = Repository()
-        attributeTemplate = repository.FindThing(self.attribute)
-        attributeDisplayName = attributeTemplate.GetDisplayName()
+        # for now, just use raw attribute name
+        attributeDisplayName = self.attribute
         
-        addLabel = _("Add a new %s") % (attributeDisplayName)
+        addLabel = _("Add a new %s") % (self.attribute)
         self.checkMenu.AppendSeparator()
         self.checkMenu.Append(contactsView.commandID, addLabel, addLabel)
         wx.EVT_MENU(contactsView, contactsView.commandID, self.AddNewItem)
