@@ -74,6 +74,8 @@ ifeq ($(OS),Cygwin)
             echo it needs to be set to the absolute gcc with gcj installation path; \
             echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/mingw-3.1; \
             false; \
+        else \
+            $(GCJ_HOME)/bin/gcj.exe --v; \
         fi
 else
 	@if [ ! -f $(GCJ_HOME)/bin/gcj ]; then \
@@ -81,6 +83,8 @@ else
             echo it needs to be set to the absolute gcc with gcj installation path; \
             echo or unset it and run 'make compilers' to install gcc with gcj into $(BUILD_ROOT)/gcc-3.4; \
             false; \
+        else \
+            $(GCJ_HOME)/bin/gcj --v; \
         fi
 endif
 
@@ -124,7 +128,7 @@ ifeq ($(OS),Linux)
 compiler=compiler
 
 $(compiler):
-	echo you need to install a gcc 3.3.x distribution for your Linux distribution that includes gcj and set GCJ_HOME to point at its installation directory
+	@echo you need to install a gcc 3.3.x distribution for your Linux distribution that includes gcj and set GCJ_HOME to point at its installation directory
 
 endif
 
