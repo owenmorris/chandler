@@ -7,30 +7,6 @@ import application.Globals as Globals
 import OSAF.framework.blocks.ControlBlocks as ControlBlocks
 
         
-class SideBar(ControlBlocks.Tree):
-    def renderOneBlock(self, parent, parentWindow):
-        returnArguments = ControlBlocks.Tree.renderOneBlock(self, parent, parentWindow)
-        self.showOrHideSideBar(returnArguments[0])
-        return returnArguments
-    
-    def OnViewSideBarEvent(self, notification):
-        self.open = not self.open
-        self.showOrHideSideBar(Globals.association[self.itsUUID])
-
-    def showOrHideSideBar(self, sidebar):
-        if sidebar.IsShown() != self.open:
-            sidebar.Show(self.open)
-            parentWindow = Globals.association[self.parentBlock.itsUUID]
-            if self.open:
-                self.parentBlock.addToContainer(parentWindow, sidebar, None, None, None)
-            else:
-                self.parentBlock.removeFromContainer(parentWindow, sidebar, False)
-            self.parentBlock.handleChildren(parentWindow)
-            
-    def OnViewSideBarEventUpdateUI(self, notification):
-        notification.data['Check'] = self.open
-
-
 class SideBarDelegate:
     def ElementParent(self, element):
         return element.parent

@@ -100,6 +100,14 @@ class Block(Item):
             if hasattr(theWindow, "scheduleUpdate"):
                 theWindow.scheduleUpdate = True
 
+    def OnShowHide(self, notification):
+        self.open = not self.open
+        self.parentBlock.SynchronizeFramework()
+
+
+    def OnShowHideUpdateUI(self, notification):
+        notification.data['Check'] = self.open
+
 
     def SynchronizeFramework (self):
         """
@@ -111,7 +119,7 @@ class Block(Item):
         synchronizeFramework, changes to the wx counterpart cause these handlers to be
         called, and in this case we don't want to post a notification. So we wrap calls
         to synchronizeFramework and set a flag indicating that we're inside
-        synchronizeFramework so the handler's can tell when not to post selection
+        synchronizeFramework so the handlers can tell when not to post selection
         changed events. We use this flag in other similar situations, for example,
         during shutdown to ignore events caused by the framework tearing down wx
         counterparts.

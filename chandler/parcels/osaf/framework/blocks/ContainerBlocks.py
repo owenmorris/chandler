@@ -172,64 +172,60 @@ class wxSplitWindow(wx.SplitterWindow):
         self.SetSize ((counterpart.size.width, counterpart.size.height))
 
         assert (len (counterpart.childrenBlocks) >= 1 and
-                len (counterpart.childrenBlocks) <= 2)
+                len (counterpart.childrenBlocks) <= 2), "We don't currently allow splitter windows with no contents"
 
         # Collect information about the splitter
         oldWindow1 = self.GetWindow1()
         oldWindow2 = self.GetWindow2()
-        children = iter (counterpart.childrenBlocks)
-        window1 = Globals.association[children.next().itsUUID]
-        try:
-            window2 = Globals.association[children.next().itsUUID]
-        except StopIteration:
-            window2 = None
-            isSplit = False
-        else:
-            isSplit = True
+        
+        window1 = None
+        window2 = None
 
+        children = iter (counterpart.childrenBlocks)
+        child1 = children.next()
+        if child1.open:
+            window1 = Globals.association[child1.itsUUID]
+
+        if len (counterpart.childrenBlocks) >= 2:
+            child2 = children.next()
+            if child2.open:
+                window2 = Globals.association[child2.itsUUID]
+
+        isSplit = bool (window1) and bool (window2)
+        
         # Update any differences between the block and wxCounterpart
         self.Freeze()
-        if isSplit:
-            if (counterpart.orientationEnum == "Horizontal"):
-                splitMode = wx.SPLIT_HORIZONTAL
-                distance = counterpart.size.width
+        if not self.IsSplit() and isSplit:
+            if counterpart.orientationEnum == "Horizontal":
+                position = counterpart.size.height * counterpart.splitPercentage
+                success = self.SplitHorizontally (window1, window2, position)
             else:
-                assert counterpart.orientationEnum == "Vertical"
-                splitMode = wx.SPLIT_VERTICAL
-                distance = counterpart.size.height
-            position = int (round (distance * counterpart.splitPercentage))
-
-            if self.IsSplit():
-                if self.GetSplitMode() != splitMode:
-                    self.SetSplitMode (splitMode)
-                if oldWindow1 != window1:
-                    result = self.ReplaceWindow (oldWindow1, window1)
-                    assert (result)
-                    oldWindow1.Destroy()
-                if oldWindow2 != window2:
-                    result = self.ReplaceWindow (oldWindow2, window2)
-                    assert (result)
-                    oldWindow2.Destroy()
-            else:
-                if splitMode == wx.SPLIT_HORIZONTAL:
-                    success = self.SplitHorizontally (window1, window2, position)
-                else:
-                    success = self.SplitVertically (window1, window2, position)
-                assert success
-                if oldWindow1 and (oldWindow1 != window1):
-                    oldWindow1.Destroy()
-
-        else:
-            if self.IsSplit():
-                self.UnSplit()
-                oldWindow2.Destroy()
-            if not oldWindow1:
+                position = counterpart.size.width * counterpart.splitPercentage
+                success = self.SplitVertically (window1, window2, position)
+            assert success
+            window1.Show()
+            window2.Show()
+        elif not oldWindow1 and not oldWindow2 and not isSplit:
+            if window1:
                 self.Initialize (window1)
             else:
-                if oldWindow1 != window1:
-                    result = self.ReplaceWindow (self.GetWindow1(), window1)
-                    assert (result)
-                    oldWindow1.Destroy()
+                self.Initialize (window2)
+        else:
+            if self.IsSplit() and not isSplit:
+                success = self.Unsplit()
+                assert success
+            if bool (oldWindow1) ^ bool (window1):
+                window1, window2 = window2, window1
+            if window1:
+                success = self.ReplaceWindow (oldWindow1, window1)
+                assert success
+                oldWindow1.Show(False)
+                window1.Show()
+            if window2:
+                success = self.ReplaceWindow (oldWindow2, window2)
+                assert success
+                oldWindow2.Show(False)
+                window2.Show()
         self.Thaw()
         
     def __del__(self):

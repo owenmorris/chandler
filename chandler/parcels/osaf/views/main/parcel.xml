@@ -39,6 +39,12 @@
     Events
   -->
 
+  <BlockEvent itemName="ShowHideSidebar">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>OnShowHide</methodName>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+  </BlockEvent>
+
   <!--
     Menus
   -->
@@ -148,7 +154,7 @@
     <title>View Sidebar</title>
     <menuLocation>ViewMenu</menuLocation>
     <menuItemKind>Check</menuItemKind>
-    <event itemref="events:ViewSideBar"/>
+    <event itemref="doc:ShowHideSidebar"/>
   </MenuItem>
 
   <MenuItem itemName="ViewNavigationBarItem">
@@ -452,9 +458,7 @@
     <border>3.0, 3.0, 3.0, 3.0</border>
   </TabbedContainer>  
 
-  <Tree itemName="Sidebar"
-        itemClass="OSAF.views.main.SideBar.SideBar">
-
+  <Tree itemName="Sidebar">
     <!-- Attributes -->
     <elementDelegate>OSAF.views.main.SideBar.SideBarDelegate</elementDelegate>
     <selection itemref="doc:AboutChandler"/>
@@ -564,6 +568,9 @@
     <!-- Layout children -->
     <childrenBlocks itemref="doc:BookmarksContainer"/>
     
+    <!-- Block Events -->
+    <blockEvents itemref="doc:ShowHideSidebar"/>
+
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
 
