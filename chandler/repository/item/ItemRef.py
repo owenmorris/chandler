@@ -1178,10 +1178,16 @@ class RefDict(LinkedMap):
 
         key = previous._uuid
 
-        if indexName is None:
-            nextKey = self.nextKey(key)
-        else:
-            nextKey = self._indexes[indexName].getNextKey(key)
+        try:
+            if indexName is None:
+                nextKey = self.nextKey(key)
+            else:
+                nextKey = self._indexes[indexName].getNextKey(key)
+        except KeyError:
+            if key in self:
+                raise
+            else:
+                raise ValueError, '%s not in collection %s' %(previous, self)
 
         if nextKey is not None:
             return self[nextKey]
@@ -1203,10 +1209,16 @@ class RefDict(LinkedMap):
 
         key = next._uuid
 
-        if indexName is None:
-            previousKey = self.previousKey(key)
-        else:
-            previousKey = self._indexes[indexName].getPreviousKey(key)
+        try:
+            if indexName is None:
+                previousKey = self.previousKey(key)
+            else:
+                previousKey = self._indexes[indexName].getPreviousKey(key)
+        except KeyError:
+            if key in self:
+                raise
+            else:
+                raise ValueError, '%s not in collection %s' %(next, self)
 
         if previousKey is not None:
             return self[previousKey]
