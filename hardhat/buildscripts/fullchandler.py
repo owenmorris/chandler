@@ -301,7 +301,7 @@ def doUploadToStaging(buildmode, workingDir, cvsVintage, log):
         log.write(separator)
 
 
-def doBuild(buildmode, workingDir, log, cvsChanges, clean='clean'):
+def doBuild(buildmode, workingDir, log, cvsChanges, clean='realclean'):
     # We only build external if there were changes in it
     # We build internal if external or internal were changed
     # We never build in chandler, because there is nothing to build
