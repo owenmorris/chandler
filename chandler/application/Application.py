@@ -310,7 +310,7 @@ class wxApplication (wx.App):
 
         wxID = event.GetId()
         if wxID >= Block.MINIMUM_WX_ID and wxID <= Block.MAXIMUM_WX_ID:
-            block = Block.wxIDToObject (wxID)
+            block = Block.widgetIDToBlock (wxID)
 
             args = {}
             if event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]:

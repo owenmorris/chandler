@@ -59,13 +59,13 @@ class Block(Item):
     MINIMUM_WX_ID = 2500
     MAXIMUM_WX_ID = 4999
 
-    def wxIDToObject (theClass, wxID):
+    def widgetIDToBlock (theClass, wxID):
         """
           Given a wxWindows Id, returns the corresponding Chandler block
         """
         return Globals.repository.find (theClass.IdToUUID [wxID - theClass.MINIMUM_WX_ID])
  
-    wxIDToObject = classmethod (wxIDToObject)
+    widgetIDToBlock = classmethod (widgetIDToBlock)
 
     def getwxID (theClass, object):
         """

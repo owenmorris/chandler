@@ -81,7 +81,7 @@ class NavigationBar(Toolbar):
         return returnArguments
     
     def toolPressed(self, event):
-        tool = Block.wxIDToObject(event.GetId())
+        tool = Block.widgetIDToBlock(event.GetId())
         if tool.itsName == 'BackButton':
             self.GoBack()
         elif tool.itsName == 'ForwardButton':
