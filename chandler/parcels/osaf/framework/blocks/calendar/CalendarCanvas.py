@@ -635,9 +635,6 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         
         self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/backarrow.png")
         self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/forwardarrow.png")
-        self.todayButton = CollectionCanvas.CanvasTextButton(self, today.Format("%b %d, %Y"),
-                                                             self.bigFont, self.bigFontColor,
-                                                             self.bgColor)
         self.monthButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %Y"),
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
@@ -647,7 +644,6 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
  
         self.Bind(wx.EVT_BUTTON, self.parent.OnPrev, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.parent.OnNext, self.nextButton)
-        self.Bind(wx.EVT_BUTTON, self.parent.OnToday, self.todayButton)
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
         # Setup the weekday header buttons        
@@ -669,11 +665,9 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
 
         nextButtonSize = self.nextButton.GetSize()
         prevButtonSize = self.prevButton.GetSize()        
-        todayButtonSize = self.todayButton.GetSize()
 
         self.nextButton.Move((self.size.width - nextButtonSize.width - 5, 5))
         self.prevButton.Move((self.size.width - nextButtonSize.width - prevButtonSize.width - 10, 5))
-        self.todayButton.Move((self.size.width - nextButtonSize.width - prevButtonSize.width - todayButtonSize.width - 15, 5))
 
         self.weekHeader.SetDimensions(0, self.yOffset, 
                                       self.size.width, -1)
@@ -702,7 +696,6 @@ class wxWeekHeaderCanvas(wxCalendarCanvas):
         
         self.monthButton.SetLabel(selectedDate.Format("%B %Y"))
         self.monthButton.UpdateSize()
-        self.todayButton.UpdateSize()
 
         for day in range(7):
             currentDate = startDate + DateTime.RelativeDateTime(days=day)
@@ -1372,14 +1365,10 @@ class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
         
         self.prevButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/backarrow.png")
         self.nextButton = CollectionCanvas.CanvasBitmapButton(self, "application/images/forwardarrow.png")
-        self.todayButton = CollectionCanvas.CanvasTextButton(self, today.Format("%b %d, %Y"),
-                                                             self.bigFont, self.bigFontColor,
-                                                             self.bgColor)
         self.monthButton = CollectionCanvas.CanvasTextButton(self, today.Format("%B %Y"),
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
 
-        self.todayButton.UpdateSize()
         self.monthButton.UpdateSize()
 
         box = wx.BoxSizer(wx.HORIZONTAL)
@@ -1387,14 +1376,12 @@ class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
         box.Add((0,0), 1, wx.EXPAND, 5)
         box.Add(self.monthButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
         box.Add((0,0), 1, wx.EXPAND, 5)
-        box.Add(self.todayButton, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
         box.Add(self.prevButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
         box.Add(self.nextButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
         self.SetSizer(box)
                                             
         self.Bind(wx.EVT_BUTTON, self.OnPrev, self.prevButton)
         self.Bind(wx.EVT_BUTTON, self.OnNext, self.nextButton)
-        self.Bind(wx.EVT_BUTTON, self.OnToday, self.todayButton)
         self.Bind(wx.EVT_SIZE, self.OnSize)
 
     def OnSize(self, event):
