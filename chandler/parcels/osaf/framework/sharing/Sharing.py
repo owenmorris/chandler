@@ -11,10 +11,14 @@ import osaf.mail.imap
 from chandlerdb.util.UUID import UUID
 import application.dialogs.PublishCollection
 from repository.item.Query import KindQuery
+import repository
+import logging
 import wx
+import time
 
 SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
 EVENTS = "http://osafoundation.org/parcels/osaf/framework/blocks/Events"
+MAINVIEW = "http://osafoundation.org/parcels/osaf/views/main"
 CONTENT = "http://osafoundation.org/parcels/osaf/contentmodel"
 WEBDAV_MODEL = "http://osafoundation.org/parcels/osaf/framework/webdav"
 
@@ -22,8 +26,8 @@ class Parcel(application.Parcel.Parcel):
 
     def _sharingUpdateCallback(self, url, collectionName, fromAddress):
         # When we receive the event, display a dialog
-        print "Received invite from %s; collection '%s' at %s" % (fromAddress,
-         collectionName, url)
+        logging.info("_sharingUpdateCallback: [%s][%s][%s]" % \
+         (url, collectionName, fromAddress))
         collection = collectionFromSharedUrl(url)
         if collection is not None:
             # @@@ For 0.4 we will silently eat re-invites
@@ -46,6 +50,7 @@ class Parcel(application.Parcel.Parcel):
 
     def _errorCallback(self, error):
         # When we receive this event, display the error
+        logging.info("_errorCallback: [%s]" % error)
         application.dialogs.Util.ok( \
          Globals.wxApplication.mainFrame, "Error", error)
 
@@ -76,8 +81,7 @@ def subscribeToWebDavCollection(url):
         raise
 
     # Add the collection to the sidebar by...
-    event = Globals.parcelManager.lookup(EVENTS,
-     "NewItemCollectionItem")
+    event = Globals.parcelManager.lookup(MAINVIEW, "NewItemCollection")
     args = {'collection':collection}
     # ...creating a new view (which gets returned as args['view'])...
     event.Post(args)
@@ -186,12 +190,23 @@ def isMailSetUp():
 def announceSharingInvitation(url, collectionName, fromAddress):
     """ Call this method to announce that an inbound sharing invitation has
         arrived. This method is non-blocking. """
+    logging.info("announceSharingInvitation() received an invitation from " \
+    "mail: [%s][%s][%s]" % (url, collectionName, fromAddress))
+
+    # @@@ Hack to wait for commit in other thread (but same view) to finish
+    view = Globals.repository.view
+    while (view._status & \
+     repository.persistence.RepositoryView.RepositoryView.COMMITTING):
+        time.sleep(1)
+
     sharingParcel = Globals.parcelManager.lookup(SHARING)
     Globals.wxApplication.CallItemMethodAsync( sharingParcel,
      '_sharingUpdateCallback', url, collectionName, fromAddress)
+    logging.info("invite, just after CallItemMethodAsync")
 
 def announceError(error):
     """ Call this method to announce an error. This method is non-blocking. """
+    logging.info("announceError() received an error from mail: [%s]" % error)
     sharingParcel = Globals.parcelManager.lookup(SHARING)
     Globals.wxApplication.CallItemMethodAsync( sharingParcel,
      '_errorCallback', error)
