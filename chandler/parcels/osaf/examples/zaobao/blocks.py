@@ -1,8 +1,8 @@
 import application.Globals as Globals
+from repository.item.Query import KindQuery
 from OSAF.framework.blocks.ContainerBlocks import TreeList
 from OSAF.framework.blocks.Views import wxItemView, ItemView
 from OSAF.framework.notifications.Notification import Notification
-from repository.item.Query import KindQuery
 from OSAF.examples.zaobao.RSSData import ZaoBaoParcel
 
 class ZaoBaoTreeList(TreeList):
@@ -25,20 +25,11 @@ class ZaoBaoTreeList(TreeList):
                     node.AddChildNode(child, names, False)
 
         else:
-            node.AddRootNode (Globals.repository, ['//'], True)
+            node.AddRootNode(Globals.repository, ['//'], True)
 
     def OnGoToURI (self, notification):
-        return
         wxTreeListWindow = Globals.association[self.getUUID()]
-        #wxTreeListWindow.GoToURI (notification.data['URI'])
-
-
-
-
-
-
-
-
+        wxTreeListWindow.GoToURI(notification.data['URI'])
 
 
 class wxZaoBaoItemView(wxItemView):
@@ -73,9 +64,9 @@ class wxZaoBaoItemView(wxItemView):
 
             HTMLText = HTMLText + '</body></html>\n'
 
-            print HTMLText
+            #print HTMLText
         else:
-            HTMLText = "<html><body><h5>Item Viewer</h5></body></html>"
+            HTMLText = "<html><body><h5>Select an Item</h5></body></html>"
 
         self.SetPage(HTMLText)
 

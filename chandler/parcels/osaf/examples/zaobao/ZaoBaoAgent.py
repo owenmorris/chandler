@@ -6,11 +6,11 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from repository.item.Item import Item
 from repository.item.Query import KindQuery
 from OSAF.framework.agents.schema.Action import Action
-from OSAF.examples.zaobao.RSSData import ZaoBaoParcel,RSSChannel
+from OSAF.examples.zaobao.RSSData import ZaoBaoParcel, RSSChannel
 
 import feedparser
 
-_defaultBlogs = [ "http://www.pavlov.net/blog/rss10.rdf", \
+_defaultBlogs = [ \
                   "http://www.osafoundation.org/rss/2.0/", \
                   "http://blogs.osafoundation.org/devnews/index.rdf", \
                   "http://blogs.osafoundation.org/zaobao/index.rdf", \
