@@ -50,34 +50,47 @@
   </core:Attribute>
 
   <core:Attribute itemName="groups">
-    <core:displayName>Groups/"Item Collections"</core:displayName>
-    <core:description>List of groups/"item collections" this item belongs to.</core:description>
-    <core:issues>Should we change the name to "item collections"?</core:issues>
+    <core:displayName>Item Collections</core:displayName>
+    <core:description>List of item collections this item belongs to.</core:description>
+    <core:issues>We still need to work out some issues about how item collections are modeled.</core:issues>
     <core:cardinality>list</core:cardinality>
     <core:type itemref="Group"/>
     <core:inverseAttribute itemref="itemsInGroup"/>
   </core:Attribute>
 
   <core:Attribute itemName="attachedNotes">
-    <core:displayName>Attached Notes</core:displayName>
-    <core:description>Notes attached to this content item.</core:description>
+    <core:displayName>Contained Notes</core:displayName>
+    <core:description>Notes contained in this content item.</core:description>
     <core:issues>Type should be "Note"</core:issues>
+    <core:deletePolicy>cascade</core:deletePolicy>
     <core:cardinality>list</core:cardinality>
     <core:type itemref="ContentItem"/>
     <core:otherName>attachedToItems</core:otherName>
   </core:Attribute>
 
+  <core:Attribute itemName="conversations">
+    <core:displayName>Conversations</core:displayName>
+    <core:description>Conversations about this content item.</core:description>
+    <core:issues>Type should be "Conversation"</core:issues>
+    <core:deletePolicy>cascade</core:deletePolicy>
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="ContentItem"/>
+    <core:otherName>subjectItem</core:otherName>
+  </core:Attribute>
+
   <core:Attribute itemName="fyiLinks">
-    <core:displayName>FYI links</core:displayName>
-    <core:description>Items that the user wants to keep FYI pointers to from this item.</core:description>
+    <core:displayName>References</core:displayName>
+    <core:description>Items that the user wants to keep reference pointers to from this item.</core:description>
+    <core:issues>In our design meeting on 13 Jan 2004, we talked about deleting this attribute and implementing this feature using the "Item Collections" attribute.</core:issues>
     <core:cardinality>list</core:cardinality>
     <core:type itemref="ContentItem"/>
     <core:inverseAttribute itemref="fyiLinkedToItems"/>
   </core:Attribute>
 
   <core:Attribute itemName="fyiLinkedToItems">
-    <core:displayName>Items with FYI links to this item</core:displayName>
-    <core:description>List of items that have FYI links pointing to this item.</core:description>
+    <core:displayName>Items with References to this item</core:displayName>
+    <core:description>List of items that have references pointing to this item.</core:description>
+    <core:issues>In our design meeting on 13 Jan 2004, we talked about deleting this attribute and implementing this feature using the "Item Collections" attribute.</core:issues>
     <core:cardinality>list</core:cardinality>
     <core:type itemref="ContentItem"/>
     <core:inverseAttribute itemref="fyiLinks"/>
@@ -151,17 +164,17 @@
 
 <!-- Group -->
   <core:Attribute itemName="itemsInGroup">
-    <core:displayName>Items in Group/"Item Collection"</core:displayName>
-    <core:description>List of items in a group.</core:description>
+    <core:displayName>Items in the Item Collection</core:displayName>
+    <core:description>List of items in the item collection.</core:description>
     <core:cardinality>list</core:cardinality>
     <core:type itemref="ContentItem"/>
     <core:inverseAttribute itemref="groups"/>
   </core:Attribute>
 
   <core:Kind itemName="Group">
-    <core:displayName>Group/"Item Collection"</core:displayName>
+    <core:displayName>Item Collection</core:displayName>
     <core:description>See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject</core:description>
-    <core:issues>Should we change the name from "Group" to "Item Collection"?</core:issues>
+    <core:issues>We still need to work out some issues about how item collections are modeled.</core:issues>
     <core:superKinds itemref="ContentItem"/>
     <core:displayAttribute itemref="name"/>
     <core:attributes itemref="name"/>
