@@ -59,9 +59,30 @@
     <children itemref="doc:MarkRSS"/>
   </Node>
 
-  <Node itemName="OSAFNews">
+  <Node itemName="OSAFRSS">
     <displayName>OSAF News</displayName>
     <item itemref="zaobao:ZaoBaoChannelView"/>
+  </Node>
+  <Node itemName="TedRSS">
+    <displayName>Ted Leung on the air</displayName>
+    <item itemref="zaobao:ted_ZaoBaoChannelView"/>
+  </Node>
+  <Node itemName="ZaoBaoRSS">
+    <displayName>ZaoBao News</displayName>
+    <item itemref="zaobao:zaobao_ZaoBaoChannelView"/>
+  </Node>
+  <Node itemName="ChaoRSS">
+    <displayName>Chao's Blog</displayName>
+    <item itemref="zaobao:chao_ZaoBaoChannelView"/>
+  </Node>
+  <Node itemName="LessigRSS">
+    <displayName>Lessig Blog</displayName>
+    <item itemref="zaobao:lessig_ZaoBaoChannelView"/>
+  </Node>
+
+  <Node itemName="MarkRSS">
+    <displayName>dive in to mark</displayName>
+    <item itemref="zaobao:mark_ZaoBaoChannelView"/>
   </Node>
 
   <Node itemName="CalendarView">
