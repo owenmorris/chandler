@@ -91,7 +91,7 @@ installext:
             -cf - python$(PV)$(SUFFIX).lib \
                   python$(PV)$(SUFFIX).exp | tar -C $(BINDIR)/libs -xvf -
 	(cd $(SRC)/Lib; tar -cf - *.py) | tar -C $(BINDIR)/Lib -xvf -
-	(cd $(SRC)/PCbuild; tar -C -cf - *.pyd) | tar -C $(BINDIR)/DLLs -xvf -
+	(cd $(SRC)/PCbuild; tar -cf - *.pyd) | tar -C $(BINDIR)/DLLs -xvf -
 	for mod in compiler distutils email encodings hotshot xml \
                    bsddb logging; \
         do \
