@@ -375,15 +375,20 @@ class wxSimpleCanvas (wxScrolledWindow):
                             self.dragCreateDrawableObject = self.CreateNewDrawableObject (dragRect,
                                                                                           self.dragStart,
                                                                                           wxPoint (x, y))
+                            # if we weren't allowed to create one, give up
+                            if self.dragCreateDrawableObject == None:
+                                return true
+                            
                             self.DeSelectAll()
                             self.dragCreateDrawableObject.selected = true
                             self.zOrderedDrawableObjects.insert (0, self.dragCreateDrawableObject)
                             self.RefreshScrolledRect (self.dragCreateDrawableObject.bounds);
                         return true
                     else:
-                        self.dragCreateDrawableObject.SizeDrag (dragRect,
-                                                                self.dragStart,
-                                                                wxPoint (x, y))
+                        if self.dragCreateDrawableObject != None:
+                            self.dragCreateDrawableObject.SizeDrag (dragRect,
+                                                                    self.dragStart,
+                                                                    wxPoint (x, y))
     
                 elif event.ButtonUp():
                     del self.dragStart
