@@ -26,6 +26,8 @@
       An Attachment represents an e-mail attachment.
     </description>
     <issues>see http://lists.osafoundation.org/pipermail/design/2003-April/002400.html</issues>
+    <issues>I'd argue for calling Attachments either MIMEElement or MessagePart.  In a multipart/mixed message (essentially any message with an attachment), there sort of isn't a body.  The part that is looks like an RFC822 body is simply the text "This is a MIME-encapsulated message."  What is *presented to the user as the body* is usually the first displayable part or the first text part. -Ducky</issues>
+    <issues>From the schema, it isn't clear if the body and attachments have been converted into Chandler Items or if they are unmolested text.  (Ditto for From, Date, and the headers.)  To do spam control right you have to keep around the exact, original, unmolested text of the message.  Anti-spam programs find useful information in the strangest places -- for example, there's one program commonly used by spammers that has a distrinctive set of delimiters between message parts. You also can't run it through the spam filter, decide you're done, munge it, and throw away the original because the Bayesian classifiers need to have the original message to retrain on if the user decides that the classifier got it wrong.  So somewhere, you have to keep around the original. -Ducky</issues>
   </Kind>
 
 <!-- Email Account -->
@@ -126,6 +128,7 @@
   <Attribute itemName="onceBelongedTo">
     <displayName>Once Belonged To</displayName>
     <issues>type should be Contact</issues>
+    <description>We keep some old email addresses on file, just so we can still associate old email messages with the contacts who sent them.  If this email address is being kept for that reason, then this attribute will point to the contact that the email address used to belong to.</description>
     <cardinality>single</cardinality>
     <type itemref="content:ContentItem"/>
     <otherName>pastEmailAddresses</otherName>
@@ -228,6 +231,7 @@
   <Attribute itemName="dateSent">
     <displayName>Date Sent</displayName>
     <description>...add description here...</description>
+    <issues>Is dateSent the unmolested Date string as it arrives (which the RFC says can have one of three formats, and which has a fourth incorrect but reasonably common format) or is it converted into a Chandler DateTime (or whatever) Item? - Ducky</issues>
     <cardinality>single</cardinality>
     <type itemref="DateTime"/>
   </Attribute>
@@ -317,6 +321,7 @@
   <Attribute itemName="hasBeenRead">
     <displayName>Has Been Read</displayName>
     <description>...add description here...</description>
+    <issues>I suspect that has-been-read is probably a subset of Status.  It traditionally is. -Ducky</issues>
     <cardinality>single</cardinality>
     <type itemref="Boolean"/>
   </Attribute>
@@ -374,7 +379,7 @@
   <Kind itemName="MailMessage">
     <displayName>Email Message</displayName>
     <description>An Email Message represents any sort of email message, sent or received.</description>
-    <issues>We need another attribute. A boolean attribute to indicate whether this message was an incoming message or outgoing message.</issues>
+    <issues>We need another attribute. A boolean attribute to indicate whether this message was an incoming message or outgoing message. (I suspect that we won't want to derive whether something was in or out.  If we base it on headers, the headers could potentially be forged. -Ducky)</issues>
     <issues>We probably don't want to have both 'hasBeenRead' and 'status'.</issues>
     <superKinds itemref="content:ContentItem"/>
     <displayAttribute itemref="mail:subject"/>
