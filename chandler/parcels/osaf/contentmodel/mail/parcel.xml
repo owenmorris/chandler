@@ -307,7 +307,7 @@
 
         <Attribute itsName="additionalHeaders">
             <description value="Catch-all for headers not belonging to one of the other attributes" />
-            <cardinality value="list" />
+            <cardinality value="dict" />
             <type ref="String" />
             <initialValue />
         </Attribute>
@@ -511,7 +511,7 @@
 
         <Attribute itsName="chandlerHeaders">
             <type ref="String" />
-            <cardinality value="list" />
+            <cardinality value="dict" />
             <initialValue />
         </Attribute>
 
