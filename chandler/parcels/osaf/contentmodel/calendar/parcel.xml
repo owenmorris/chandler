@@ -102,22 +102,6 @@
     <type itemref="cal:TimeTransparencyEnum"/>
   </Attribute>
   
-  <Attribute itsName="who">
-    <redirectTo>participants</redirectTo>
-  </Attribute>
-
-  <Attribute itsName="whoFrom">
-    <redirectTo>organizer</redirectTo>
-  </Attribute>
-
-  <Attribute itsName="about">
-    <redirectTo>displayName</redirectTo>
-  </Attribute>
-
-  <Attribute itsName="date">
-    <redirectTo>startTime</redirectTo>
-  </Attribute>  
-
   <Kind itsName="CalendarEventMixin">
     <displayName>Calendar Event Mixin Kind</displayName>
     <description>This is the set of CalendarEvent-specific attributes.</description>
@@ -133,6 +117,23 @@
     <attributes itemref="cal:organizer"/>
     <attributes itemref="cal:attendees"/>
     <attributes itemref="cal:transparency"/>
+
+    <!-- redirections -->
+    <Attribute itsName="who">
+      <redirectTo>participants</redirectTo>
+    </Attribute>
+    
+    <Attribute itsName="whoFrom">
+      <redirectTo>organizer</redirectTo>
+    </Attribute>
+    
+    <Attribute itsName="about">
+      <redirectTo>displayName</redirectTo>
+    </Attribute>
+    
+    <Attribute itsName="date">
+      <redirectTo>startTime</redirectTo>
+    </Attribute>  
 
     <!-- local attributes -->
     <Attribute itsName="calendar">
@@ -198,14 +199,8 @@
     <issues>Calendar Event should maybe have a 'Timezone' attribute.</issues>
     <issues>Do we want to have 'Duration' as a derived attribute on Calendar Event? </issues>
     <issues>Do we want to have a Boolean 'AllDay' attribute, to indicate that an event is an all day event? Or should we instead have the 'startTime' and 'endTime' attributes be 'RelativeDateTime' instead of 'DateTime', so that they can store all day values like '14 June 2004' as well as specific time values like '4:05pm 14 June 2004'?</issues>
-    <superKinds itemref="content:Note"/>
     <superKinds itemref="cal:CalendarEventMixin"/>
-    <!-- redirections -->
-    <attributes itemref="cal:who"/>
-    <attributes itemref="cal:whoFrom"/>
-    <attributes itemref="cal:about"/>
-    <attributes itemref="cal:date"/>
-
+    <superKinds itemref="content:Note"/>
     <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEvent</classes>
 
   </Kind>

@@ -88,22 +88,6 @@
     <type itemref="DateTime"/>
   </Attribute>
 
-  <Attribute itsName="who">
-    <redirectTo>requestor</redirectTo>
-  </Attribute>
-
-  <Attribute itsName="whoFrom">
-    <redirectTo>requestee</redirectTo>
-  </Attribute>
-
-  <Attribute itsName="about">
-    <redirectTo>displayName</redirectTo>
-  </Attribute>
-
-  <Attribute itsName="date">
-    <redirectTo>dueDate</redirectTo>
-  </Attribute>  
-
   <Kind itsName="TaskMixin">
     <displayName>Task Mixin Kind</displayName>
     <description>This is the set of Task-specific attributes.</description>
@@ -120,6 +104,23 @@
     <attributes itemref="tasks:taskStatus"/>
     <attributes itemref="tasks:dueDate"/>
     
+    <!-- redirections -->
+    <Attribute itsName="who">
+      <redirectTo>requestee</redirectTo>
+    </Attribute>
+  
+    <Attribute itsName="whoFrom">
+      <redirectTo>requestor</redirectTo>
+    </Attribute>
+  
+    <Attribute itsName="about">
+      <redirectTo>displayName</redirectTo>
+    </Attribute>
+  
+    <Attribute itsName="date">
+      <redirectTo>dueDate</redirectTo>
+    </Attribute>  
+
     <classes key="python">osaf.contentmodel.tasks.Task.TaskMixin</classes>
       
     <Cloud itsName="Cloud">
@@ -156,14 +157,8 @@
     <displayName>Task</displayName>
     <issues>Do we want to support the idea of tasks having sub-tasks? If so, then we need to add attributes for 'superTask' and 'subTasks'.</issues>
     <issues>Task should maybe have a 'Timezone' attribute.</issues>
-    <superKinds itemref="content:Note"/>
     <superKinds itemref="tasks:TaskMixin"/>
-    <!-- redirections -->
-    <attributes itemref="tasks:who"/>
-    <attributes itemref="tasks:whoFrom"/>
-    <attributes itemref="tasks:about"/>
-    <attributes itemref="tasks:date"/>
-    
+    <superKinds itemref="content:Note"/>
     <classes key="python">osaf.contentmodel.tasks.Task.Task</classes>
     
   </Kind>

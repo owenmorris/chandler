@@ -64,18 +64,6 @@
     <core:type itemref="ContextEnum"/>
   </core:Attribute>
 
-  <core:Attribute itsName="who">
-    <redirectTo>creator</redirectTo>
-  </core:Attribute>
-
-  <core:Attribute itsName="about">
-    <redirectTo>displayName</redirectTo>
-  </core:Attribute>
-
-  <core:Attribute itsName="date">
-    <redirectTo>createdOn</redirectTo>
-  </core:Attribute>
-
   <core:Kind itsName="ContentItem">
     <core:superKinds itemref="core:Item"/>
     <core:displayName>Default Content Item Display Name</core:displayName>
@@ -128,9 +116,17 @@
     <core:classes key="python">osaf.contentmodel.Notes.Note</core:classes>
     
     <!-- redirections -->
-    <core:attributes itemref="who"/>
-    <core:attributes itemref="date"/>
-    <core:attributes itemref="about"/>
+    <core:Attribute itsName="who">
+      <redirectTo>creator</redirectTo>
+    </core:Attribute>
+  
+    <core:Attribute itsName="about">
+      <redirectTo>displayName</redirectTo>
+    </core:Attribute>
+  
+    <core:Attribute itsName="date">
+      <redirectTo>createdOn</redirectTo>
+    </core:Attribute>
   </core:Kind>
   
   <!-- Conversation -->
@@ -234,50 +230,30 @@
   <core:Kind itsName="MailedTask">
     <core:displayName>Mailed Task</core:displayName>
     <core:description>A Task stamped as a Mail, or vica versa</core:description>
-    <core:superKinds itemref="mail:MailMessage"/>
-    <core:superKinds itemref="tasks:TaskMixin"/>
-    <!-- redirections -->
-    <attributes itemref="tasks:who"/>
-    <attributes itemref="tasks:whoFrom"/>
-    <attributes itemref="tasks:about"/>
-    <attributes itemref="tasks:date"/>
+    <core:superKinds itemref="tasks:Task"/>
+    <core:superKinds itemref="mail:MailMessageMixin"/>
   </core:Kind>
 
   <core:Kind itsName="MailedEvent">
     <core:displayName>Mailed Event</core:displayName>
     <core:description>An Event stamped as a Mail, or vica versa</core:description>
-    <core:superKinds itemref="mail:MailMessage"/>
-    <core:superKinds itemref="calendar:CalendarEventMixin"/>
-    <!-- redirections -->
-    <attributes itemref="calendar:who"/>
-    <attributes itemref="calendar:whoFrom"/>
-    <attributes itemref="calendar:about"/>
-    <attributes itemref="calendar:date"/>
+    <core:superKinds itemref="calendar:CalendarEvent"/>
+    <core:superKinds itemref="mail:MailMessageMixin"/>
   </core:Kind>
 
   <core:Kind itsName="EventTask">
     <core:displayName>Event Task</core:displayName>
     <core:description>A Task stamped as an Event, or vica versa</core:description>
-    <core:superKinds itemref="calendar:CalendarEvent"/>
-    <core:superKinds itemref="tasks:TaskMixin"/>
+    <core:superKinds itemref="tasks:Task"/>
+    <core:superKinds itemref="calendar:CalendarEventMixin"/>
     <core:superKinds itemref="TaskEventExtraMixin"/>
-    <!-- redirections -->
-    <attributes itemref="tasks:who"/>
-    <attributes itemref="tasks:whoFrom"/>
-    <attributes itemref="tasks:about"/>
-    <attributes itemref="tasks:date"/>
   </core:Kind>
 
   <core:Kind itsName="MailedEventTask">
     <core:displayName>Mailed Event Task</core:displayName>
     <core:description>A Task stamped as an Event stamped as Mail, in any sequence</core:description>
-    <core:superKinds itemref="mail:MailMessageMixin"/>
     <core:superKinds itemref="EventTask"/>
-    <!-- redirections -->
-    <attributes itemref="tasks:who"/>
-    <attributes itemref="tasks:whoFrom"/>
-    <attributes itemref="tasks:about"/>
-    <attributes itemref="tasks:date"/>
+    <core:superKinds itemref="mail:MailMessageMixin"/>
   </core:Kind>
 
 <!-- Project -->
