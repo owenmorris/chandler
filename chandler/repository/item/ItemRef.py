@@ -152,6 +152,23 @@ class RefDict(dict):
 
         return value
 
+    def __iter__(self):
+
+        class keyIter(object):
+
+            def __init__(self, refDict):
+
+                super(keyIter, self).__init__()
+
+                self._iter = refDict.iterkeys()
+                self._refDict = refDict
+
+            def next(self):
+
+                return self._refDict[self._iter.next()]
+
+        return keyIter(self)
+
 
 class RefList(RefDict):
 

@@ -428,7 +428,6 @@ class Item(object):
 
         for attr in self._attributes.iteritems():
             if self.getAttrAspect(attr[0], 'Persist', True):
-                print attr[0]
                 attrType = self.getAttrAspect(attr[0], 'Type')
                 attrCard = self.getAttrAspect(attr[0], 'Cardinality', 'single')
                 self._xmlValue(attr[0], attr[1], 'attribute',
@@ -475,7 +474,7 @@ class Item(object):
                     attrs['otherName'] = self._otherName(name)
 
             if isinstance(value, RefDict):
-                tag = 'refs'
+                tag = 'ref'
                 if withSchema:
                     attrs['otherName'] = self._otherName(name)
                     withSchema = False
@@ -522,6 +521,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
         self.tagMethods = []
         self.tagAttrs = []
+        self.tags = []
         self.attributes = {}
         self.refs = []
         self.collections = []
@@ -539,6 +539,17 @@ class ItemHandler(xml.sax.ContentHandler):
         if method is not None:
             method(self, attrs)
 
+        self.tags.append(tag)
+
+    def endElement(self, tag):
+
+        self.tags.pop()
+        self.tagMethods.pop()(self, self.tagAttrs.pop())
+
+    def characters(self, data):
+
+        self.data += data
+
     def attributeStart(self, attrs):
 
         attrDef = self.getAttrDef(attrs['name'])
@@ -552,28 +563,23 @@ class ItemHandler(xml.sax.ContentHandler):
         elif cardinality == 'list' or typeName == 'list':
             self.collections.append([])
 
-    def refsStart(self, attrs):
+    def refStart(self, attrs):
 
-        name = attrs['name']
-        attrDef = self.getAttrDef(attrs['name'])
-        self.attrDefs.append(attrDef)
+        if self.tags[-1] == 'item':
+            name = attrs['name']
+            attrDef = self.getAttrDef(attrs['name'])
+            self.attrDefs.append(attrDef)
 
-        cardinality = self.getCardinality(attrDef, attrs)
-        otherName = self.getOtherName(name, attrDef, attrs)
-        
-        if cardinality == 'dict':
-            self.collections.append(RefDict(None, otherName))
-        elif cardinality == 'list':
-            self.collections.append(RefList(None, name, otherName))
+            cardinality = self.getCardinality(attrDef, attrs)
+
+            if cardinality != 'single':
+                otherName = self.getOtherName(name, attrDef, attrs)
                 
-    def characters(self, data):
-
-        self.data += data
-
-    def endElement(self, tag):
-
-        self.tagMethods.pop()(self, self.tagAttrs.pop())
-
+                if cardinality == 'dict':
+                    self.collections.append(RefDict(None, otherName))
+                elif cardinality == 'list':
+                    self.collections.append(RefList(None, name, otherName))
+                
     def itemEnd(self, attrs):
 
         cls = self.cls or self.kind.Class
@@ -669,17 +675,34 @@ class ItemHandler(xml.sax.ContentHandler):
             
         self.attributes[attrs['name']] = value
 
-    def refsEnd(self, attrs):
+    def refEnd(self, attrs):
 
-        attrDef = self.attrDefs.pop()
-        cardinality = self.getCardinality(attrDef, attrs)
+        if self.tags[-1] == 'item':
+            attrDef = self.attrDefs.pop()
+            cardinality = self.getCardinality(attrDef, attrs)
+        else:
+            cardinality = 'single'
 
         if cardinality == 'single':
-            raise ValueError, "Invalid cardinality type " + cardinality
+            typeName = attrs.get('type', 'path')
+
+            if typeName == 'path':
+                ref = Path(self.data)
+            else:
+                ref = UUID(self.data)
+
+            if self.collections:
+                name = self.makeValue(None, attrs.get('nameType', 'str'),
+                                      attrs['name'])
+                self.refs.append((name, ref, self.collections[-1]))
+            else:
+                name = attrs['name']
+                otherName = self.getOtherName(name, self.getAttrDef(name),
+                                              attrs)
+                self.refs.append(((name, otherName), ref))
         else:
             value = self.collections.pop()
-            
-        self.attributes[attrs['name']] = value
+            self.attributes[attrs['name']] = value
 
     def valueEnd(self, attrs):
 
@@ -696,24 +719,6 @@ class ItemHandler(xml.sax.ContentHandler):
         else:
             name = self.makeValue(None, attrs.get('nameType', 'str'), name)
             self.collections[-1][name] = value
-
-    def refEnd(self, attrs):
-
-        typeName = attrs.get('type', 'path')
-
-        if typeName == 'path':
-            ref = Path(self.data)
-        else:
-            ref = UUID(self.data)
-
-        if self.collections:
-            name = self.makeValue(None, attrs.get('nameType', 'str'),
-                                  attrs['name'])
-            self.refs.append((name, ref, self.collections[-1]))
-        else:
-            name = attrs['name']
-            otherName = self.getOtherName(name, self.getAttrDef(name), attrs)
-            self.refs.append(((name, otherName), ref))
 
     def getCardinality(self, attrDef, attrs):
 

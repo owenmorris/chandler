@@ -5,13 +5,13 @@
     <kind type="path">//Schema/Model/Kind</kind>
     <class module="model.schema.Kind">KindKind</class>
 
-    <refs name="AttrDefs">
+    <ref name="AttrDefs">
         <ref name="SuperKind" type="path">//Schema/Model/Attributes/SuperKind</ref>
         <ref name="SubKind" type="path">//Schema/Model/Attributes/SubKind</ref>
         <ref name="AttrDefs" type="path">//Schema/Model/Attributes/AttrDefs</ref>
         <ref name="InheritedAttrDefs" type="path">//Schema/Model/Attributes/InheritedAttrDefs</ref>
         <ref name="NotFoundAttrDefs" type="path">//Schema/Model/Attributes/NotFoundAttrDefs</ref>
         <ref name="Class" type="path">//Schema/Model/Attributes/Class</ref>
-    </refs>
+    </ref>
     <attribute name="Class" type="class">model.schema.Kind.Kind</attribute>
 </item>
