@@ -86,7 +86,8 @@ class RSSChannel(ItemCollection):
 
         # if the feed is bad, raise the sax exception
         try:
-            if data.bozo and (data.bozo_exception != feedparser.CharacterEncodingOverride):
+            if data.bozo and not isinstance(data.bozo_exception, feedparser.CharacterEncodingOverride):
+                logger.error("For url '%s', feedparser exception: %s" % (self.url, data.bozo_exception))
                 raise data.bozo_exception
         except KeyError:
             print "Error"
