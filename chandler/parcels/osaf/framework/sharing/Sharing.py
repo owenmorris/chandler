@@ -95,7 +95,8 @@ def syncCollection(collection):
 
 def isShared(collection):
     # @@@ Temporary hack until there is a better way to test for isShared
-    return collection.hasAttributeValue('sharedURL') and collection.sharedURL
+    return collection.hasAttributeValue('sharedURL') and (collection.sharedURL
+     is not None)
 
 def collectionFromSharedUrl(url):
     kind = Globals.parcelManager.lookup(CONTENT, "ItemCollection")
