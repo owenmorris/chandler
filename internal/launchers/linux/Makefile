@@ -1,8 +1,6 @@
 
 include ../../Makefile.inc
 
-RELVER=0.3-1
-LAUNCHERS=$(INTERNAL)/launchers
 
 BUILD=build_$(SNAP)
 
@@ -32,13 +30,6 @@ build:
 	cp $(BUILD)/chandler $(BUILD_ROOT)/$(SNAP)
 	cp $(BUILD)/chandler_bin $(BUILD_ROOT)/$(SNAP)
 
-snap: 
-	cd $(BUILD_ROOT); \
-        tar -cvzf $(LAUNCHERS)/launchers-$(SNAP)-$(RELVER).tar.gz \
-          $(SNAP)/chandler $(SNAP)/chandler_bin
 
 clean:
 	rm -rf $(BUILD)
-
-upload: launchers-$(SNAP)-$(RELVER).tar.gz
-	scp launchers-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
