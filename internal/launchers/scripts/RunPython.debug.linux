@@ -5,15 +5,23 @@ then
     CHANDLERHOME=`pwd`
 fi
 
-if [ -f $CHANDLERHOME/debug/bin/python_d ]
+if [ "$CHANDLERBIN" = "" ]
 then
-    echo "Using $CHANDLERHOME/debug/bin/python_d"
+    CHANDLERBIN=$CHANDLERHOME
+fi
+
+if [ -d $CHANDLERHOME -a -f $CHANDLERBIN/debug/bin/python_d ]
+then
+    echo "Using $CHANDLERBIN/debug/bin/python_d"
     echo ""
 else
     echo "Error:  Please set CHANDLERHOME environment variable to point"
     echo "        to the directory that contains the debug "
     echo "        subdirectory, then rerun RunPython"
+    echo "Error:  Please unset the CHANDLERBIN environment variable or "
+    echo "        set it to point to the directory that contains the debug "
+    echo "        subdirectory, then rerun RunPython"
     exit 1
 fi
 
-PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels PYTHONHOME=$CHANDLERHOME/debug LD_LIBRARY_PATH=$CHANDLERHOME/debug/lib:$CHANDLERHOME/debug/dbxml/lib:$CHANDLERHOME/debug/db/lib $CHANDLERHOME/debug/bin/python_d $*
+PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels PYTHONHOME=$CHANDLERBIN/debug LD_LIBRARY_PATH=$CHANDLERBIN/debug/lib:$CHANDLERBIN/debug/dbxml/lib:$CHANDLERBIN/debug/db/lib $CHANDLERBIN/debug/bin/python_d $*

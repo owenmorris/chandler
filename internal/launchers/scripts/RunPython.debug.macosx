@@ -5,15 +5,23 @@ then
     CHANDLERHOME=`pwd`
 fi
 
-if [ -d $CHANDLERHOME -a -f $CHANDLERHOME/debug/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python ]
+if [ "$CHANDLERBIN" = "" ]
 then
-    echo "Using $CHANDLERHOME/release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python"
+    CHANDLERBIN=$CHANDLERHOME
+fi
+
+if [ -d $CHANDLERHOME -a -f $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python ]
+then
+    echo "Using $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python"
     echo ""
 else
     echo "Error:  Please set CHANDLERHOME environment variable to point"
     echo "        to the directory that contains the chandler "
     echo "        subdirectory, then rerun RunPython"
+    echo "Error:  Please unset the CHANDLERBIN environment variable or "
+    echo "        set it to point to the directory that contains the debug "
+    echo "        subdirectory, then rerun RunPython"
     exit 1
 fi
 
-PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels PYTHONHOME=$CHANDLERHOME/debug/Library/Frameworks/Python.framework/Versions/2.3 DYLD_LIBRARY_PATH=$CHANDLERHOME/debug/lib:$CHANDLERHOME/debug/dbxml/lib:$CHANDLERHOME/debug/db/lib DYLD_FRAMEWORK_PATH=$CHANDLERHOME/debug/Library/Frameworks exec $CHANDLERHOME/debug/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python $*
+PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels PYTHONHOME=$CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/2.3 DYLD_LIBRARY_PATH=$CHANDLERBIN/debug/lib:$CHANDLERBIN/debug/dbxml/lib:$CHANDLERBIN/debug/db/lib DYLD_FRAMEWORK_PATH=$CHANDLERBIN/debug/Library/Frameworks exec $CHANDLERBIN/debug/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python $*

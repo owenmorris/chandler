@@ -34,15 +34,14 @@ endif
 
 snap: 
 	cd $(BUILD_ROOT); \
-	tar -cvzf $(M2CRYPTO)/m2crypto-$(SNAP)-$(RELVER).tar.gz \
-			 $(MANIFEST)
+	tar -cvzf $(M2CRYPTO)/m2crypto-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 
 upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
 	scp m2crypto-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 
 install:
-	cd $(BUILD_ROOT)/../chandler; \
-	tar -zxvf $(M2CRYPTO)/m2crypto-$(SNAP)-$(RELVER).tar.gz
+	cd $(BUILD_ROOT); \
+        tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
 
 clean:
 	rm -rf $(BUILD)

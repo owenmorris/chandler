@@ -56,6 +56,14 @@ GCJ_HOME=/usr
 endif
 endif
 
+ifeq ($(CHANDLERHOME),)
+CHANDLERHOME=$(BUILD_ROOT)/../chandler
+endif
+
+ifeq ($(CHANDLERBIN),)
+CHANDLERBIN=$(CHANDLERHOME)
+endif
+
 ifeq ($(OS),Cygwin)
 ifdef VS71COMNTOOLS
 
@@ -89,6 +97,7 @@ else
             false; \
         fi
 endif
+	echo CHANDLERBIN is $(CHANDLERBIN)
 	@echo GCJ_HOME is $(GCJ_HOME)
 ifeq ($(OS),Cygwin)
 	@if [ ! -f $(GCJ_HOME)/bin/gcj.exe ]; then \

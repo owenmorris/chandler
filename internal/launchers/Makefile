@@ -74,7 +74,7 @@ snap:
 
 install:
 	cd $(BUILD_ROOT); \
-        tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/../chandler -xvf -
+        tar -cf - $(MANIFEST) | tar -C $(CHANDLERBIN) -xvf -
 
 clean:
 	rm -rf $(BUILD)

@@ -1,5 +1,8 @@
-@ECHO OFF
+@echo off
 setlocal
-set PATH=debug\bin
-debug\bin\python_d.exe Chandler.py %*
+if "%CHANDLERHOME%"=="" set CHANDLERHOME=.
+if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
+echo CHANDLERBIN is %CHANDLERBIN%
+path %CHANDLERBIN%\debug\bin
+"%CHANDLERBIN%\debug\bin\python_d.exe" Chandler.py %*
 endlocal

@@ -1,2 +1,13 @@
 #!/bin/sh
-debug/RunPython Chandler.py $*
+
+if [ "$CHANDLERHOME" = "" ]
+then
+    CHANDLERHOME=`pwd`
+fi
+
+if [ "$CHANDLERBIN" = "" ]
+then
+    CHANDLERBIN=$CHANDLERHOME
+fi
+
+$CHANDLERBIN/debug/RunPython Chandler.py $*

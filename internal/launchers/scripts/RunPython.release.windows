@@ -1,5 +1,8 @@
-@ECHO OFF
+@echo off
 setlocal
-set PATH=release\bin
-release\bin\python.exe -O %*
+if "%CHANDLERHOME%"=="" set CHANDLERHOME=.
+if "%CHANDLERBIN%"=="" set CHANDLERBIN=%CHANDLERHOME%
+echo CHANDLERBIN is %CHANDLERBIN%
+path %CHANDLERBIN%\release\bin
+"%CHANDLERBIN%\release\bin\python.exe" -O %*
 endlocal

@@ -1,14 +1,21 @@
 
 # This Makefile requires cygwin on Windows
 # It should *not* be made to depend on external/internal
-# When a version changes, the ARCHIVES list below needs to be updated.
+# When a version changes, the ARCHIVES lists below needs to be updated.
 #
-ARCHIVES=../$(SNAP)-0.3-14.tar.gz \
-         ../wxPython-$(SNAP)-2.5-4.tar.gz \
-         ../UUIDext-$(SNAP)-0.3-2.tar.gz \
-         ../m2crypto-$(SNAP)-0.12-1.tar.gz \
-         ../QueryParser-$(SNAP)-0.1-2.tar.gz \
-         ../Launchers-$(SNAP)-0.3-4.tar.gz
+
+# these get installed into release or debug
+BIN_ARCHIVES=../$(SNAP)-0.3-14.tar.gz \
+             ../wxPython-$(SNAP)-2.5-4.tar.gz \
+             ../UUIDext-$(SNAP)-0.3-2.tar.gz \
+             ../m2crypto-$(SNAP)-0.12-1.tar.gz \
+             ../Launchers-$(SNAP)-0.3-4.tar.gz
+
+# these get installed into chandler
+HOME_ARCHIVES=../QueryParser-$(SNAP)-0.1-2.tar.gz
+
+ARCHIVES = $(BIN_ARCHIVES) $(HOME_ARCHIVES)
+
 
 OS=$(shell uname)
 
@@ -40,6 +47,14 @@ SITE=lib/python2.3/site-packages
 endif
 endif
 
+ifeq ($(CHANDLERHOME),)
+CHANDLERHOME=.
+endif
+
+ifeq ($(CHANDLERBIN),)
+CHANDLERBIN=$(CHANDLERHOME)
+endif
+
 HOST=builds.osafoundation.org
 URL=http://$(HOST)/external/$(PLATFORM)
 
@@ -52,8 +67,11 @@ downloads: $(ARCHIVES)
 $(ARCHIVES):
 	curl -o $@ $(URL)/$(notdir $@)
 
-$(notdir $(ARCHIVES)):
-	tar -C ../chandler -xvzf ../$@
+$(notdir $(BIN_ARCHIVES)):
+	tar -C $(CHANDLERBIN) -xvzf ../$@
+
+$(notdir $(HOME_ARCHIVES)):
+	tar -C $(CHANDLERHOME) -xvzf ../$@
 
 checkout:
 	cd ..; \

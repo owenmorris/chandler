@@ -36,6 +36,24 @@ defaults = {
     'outputdir'         : "",
 }
 
+
+def getCHANDLERvars():
+
+    CHANDLERHOME = os.getenv('CHANDLERHOME')
+    if not CHANDLERHOME:
+        if buildenv['os'] == 'win':
+            # Use DOS format paths under windows
+            CHANDLERHOME = os.path.join(buildenv['root_dos'], 'chandler')
+        else:
+            CHANDLERHOME = os.path.join(buildenv['root'], "chandler")
+
+    CHANDLERBIN = os.getenv('CHANDLERBIN')
+    if not CHANDLERBIN:
+        CHANDLERBIN = CHANDLERHOME
+
+    return (CHANDLERHOME, CHANDLERBIN)
+
+
 def init(buildenv):
     """
     Initialize the build environment, which is a dictionary containing
@@ -104,11 +122,7 @@ def init(buildenv):
     else:
         raise HardHatUnknownPlatformError
 
-    # set up paths to the pythons we are building (release and debug)
-    buildenv['python'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
-     'bin' + os.sep + 'python'
-    buildenv['python_d'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
-     'bin' + os.sep + 'python_d'
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars()
 
     buildenv['sh']   = findInPath(buildenv['path'], "sh")
     buildenv['make'] = findInPath(buildenv['path'], "make")
@@ -123,10 +137,10 @@ def init(buildenv):
     # set OS-specific variables
     if buildenv['os'] == 'win':
 
-        buildenv['python'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
-         'bin' + os.sep + 'python.exe'
-        buildenv['python_d'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
-         'bin' + os.sep + 'python_d.exe'
+        buildenv['python'] = os.path.join(CHANDLERBIN,
+                                          'release', 'bin', 'python.exe')
+        buildenv['python_d'] = os.path.join(CHANDLERBIN,
+                                            'debug', 'bin', 'python_d.exe')
 
         import os_win
         
@@ -166,52 +180,66 @@ def init(buildenv):
         devenv_dir = os.path.dirname(devenv_file)
         buildenv['path'] = devenv_dir + os.pathsep + buildenv['path']
 
-        buildenv['swig'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
-         'bin' + os.sep + 'swig.exe'
-        buildenv['swig_d'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
-         'bin' + os.sep + 'swig.exe'
+        buildenv['swig'] = os.path.join(CHANDLERBIN,
+                                        'release', 'bin', 'swig.exe')
+        buildenv['swig_d'] = os.path.join(CHANDLERBIN,
+                                          'debug', 'bin', 'swig.exe')
 
     if buildenv['os'] == 'posix':
-        buildenv['swig'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
-         'bin' + os.sep + 'swig'
-        buildenv['swig_d'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
-         'bin' + os.sep + 'swig'
 
+        buildenv['python'] = os.path.join(CHANDLERBIN,
+                                          'release', 'bin', 'python')
+        buildenv['python_d'] = os.path.join(CHANDLERBIN,
+                                            'debug', 'bin', 'python_d')
+
+        buildenv['swig'] = os.path.join(CHANDLERBIN,
+                                        'release', 'bin', 'swig')
+        buildenv['swig_d'] = os.path.join(CHANDLERBIN,
+                                          'debug', 'bin', 'swig')
 
     if buildenv['os'] == 'osx':
-        buildenv['swig'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
-         'bin' + os.sep + 'swig'
-        buildenv['swig_d'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
-         'bin' + os.sep + 'swig'
 
-        buildenv['python'] = os.path.join(buildenv['root'], 'chandler', 'release',
-         'Library', 'Frameworks', 'Python.framework', 'Versions', 'Current', 
-         'Resources', 'Python.app', 'Contents', 'MacOS', 'Python')
+        buildenv['python'] = os.path.join(CHANDLERBIN, 'release', 'Library',
+                                          'Frameworks', 'Python.framework',
+                                          'Versions', 'Current', 'Resources',
+                                          'Python.app', 'Contents', 'MacOS',
+                                          'Python')
 
-        buildenv['python_d'] = os.path.join(buildenv['root'], 'chandler', 'debug', 
-         'Library', 'Frameworks', 'Python.framework', 'Versions', 'Current', 
-         'Resources', 'Python.app', 'Contents', 'MacOS', 'Python')
+        buildenv['python_d'] = os.path.join(CHANDLERBIN, 'debug', 'Library',
+                                            'Frameworks', 'Python.framework',
+                                            'Versions', 'Current', 'Resources',
+                                            'Python.app', 'Contents', 'MacOS',
+                                            'Python')
+
+        buildenv['swig'] = os.path.join(CHANDLERBIN,
+                                        'release', 'bin', 'swig')
+        buildenv['swig_d'] = os.path.join(CHANDLERBIN,
+                                          'debug', 'bin', 'swig')
+
 
     # Determine the Python lib directory (the parent of site-packages)
     if buildenv['os'] == 'posix':
-        lib_dir_release = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
-         'lib' + os.sep + 'python2.3'
-        lib_dir_debug = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
-         'lib' + os.sep + 'python2.3'
+        lib_dir_release = os.path.join(CHANDLERBIN,
+                                       'release', 'lib', 'python2.3')
+        lib_dir_debug = os.path.join(CHANDLERBIN,
+                                     'debug', 'lib', 'python2.3')
+
     if buildenv['os'] == 'win':
-        lib_dir_release = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
-         'bin' + os.sep + 'Lib'
-        lib_dir_debug = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
-         'bin' + os.sep + 'Lib'
+        lib_dir_release = os.path.join(CHANDLERBIN, 'release', 'bin', 'Lib')
+        lib_dir_debug = os.path.join(CHANDLERBIN, 'debug', 'bin', 'Lib')
+
     if buildenv['os'] == 'osx':
-        lib_dir_release = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
-         'Library/Frameworks/Python.framework/Versions/Current/lib/python2.3'
-        lib_dir_debug = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
-         'Library/Frameworks/Python.framework/Versions/Current/lib/python2.3'
+        lib_dir_release = os.path.join(CHANDLERBIN, 'release', 'Library',
+                                       'Frameworks', 'Python.framework',
+                                       'Versions', 'Current', 'lib',
+                                       'python2.3')
+        lib_dir_debug = os.path.join(CHANDLERBIN, 'debug', 'Library',
+                                     'Frameworks', 'Python.framework',
+                                     'Versions', 'Current', 'lib',
+                                     'python2.3')
 
     buildenv['pythonlibdir'] = lib_dir_release
     buildenv['pythonlibdir_d'] = lib_dir_debug
-
 
     return buildenv
 # end init()
@@ -576,6 +604,8 @@ def runTest(buildenv, testFile, fullPath):
         
 def recursiveTest(buildenv, path):
 
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars()
+
     path = os.path.abspath(path)
     os.chdir(path)
 
@@ -584,8 +614,8 @@ def recursiveTest(buildenv, path):
         fullTestFilePath = os.path.join(path, testFile)
         runTest(buildenv, testFile, fullTestFilePath)
 
-    chandler_debug = os.sep + 'chandler' + os.sep + 'debug'
-    chandler_release = os.sep + 'chandler' + os.sep + 'release'
+    chandler_debug = os.path.join(CHANDLERBIN, 'debug')
+    chandler_release = os.path.join(CHANDLERBIN, 'release')
 
     for name in os.listdir(path):
         full_name = os.path.join(path, name)
@@ -909,15 +939,14 @@ def mirrorDirSymlinks(src, dest):
 
 def setupEnvironment(buildenv):
 
-    if buildenv['version'] == 'debug':
-        path = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + 'bin' + \
-         os.pathsep + buildenv['path']
-        os.putenv('BUILDMODE', 'debug')
+    CHANDLERHOME, CHANDLERBIN = getCHANDLERvars()
+    os.putenv('CHANDLERHOME', CHANDLERHOME)
+    os.putenv('CHANDLERBIN', CHANDLERBIN)
 
-    if buildenv['version'] == 'release':
-        path = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + 'bin' + \
-         os.pathsep + buildenv['path']
-        os.putenv('BUILDMODE', 'release')
+    path = [ os.path.join(CHANDLERHOME, buildenv['version'], 'bin'),
+             buildenv['path'] ]
+    path = os.pathsep.join(path)
+    os.putenv('BUILDMODE', buildenv['version'])
 
     # to run Chandler-related scripts from directories other than 
     # chandler, PYTHONPATH is needed
@@ -961,35 +990,31 @@ def setupEnvironment(buildenv):
     os.putenv('PATH', path)
     os.putenv('PYTHONPATH', pythonpath)
 
-    if buildenv['os'] == 'win':
-        # Use DOS format paths under windows
-        os.putenv('CHANDLERHOME', buildenv['root_dos']+"\\chandler")
-    else:
-        os.putenv('CHANDLERHOME', buildenv['root']+os.sep+"chandler")
-
-
     if buildenv['os'] == 'posix':
-        ld_library_path = os.environ.get('LD_LIBRARY_PATH', '')
+        ld_library_path = os.getenv('LD_LIBRARY_PATH', '')
         ver = buildenv['version']
-        additional_path=os.path.join(buildenv['root'],'chandler',ver,'lib')+\
-         os.pathsep + os.path.join(buildenv['root'],'chandler',ver,'db','lib')+\
-         os.pathsep + os.path.join(buildenv['root'],'chandler',ver,'dbxml','lib')
-        ld_library_path = additional_path + os.pathsep + ld_library_path
+        additional_paths = [ os.path.join(CHANDLERBIN, ver, 'lib'),
+                             os.path.join(CHANDLERBIN, ver, 'db', 'lib'),
+                             os.path.join(CHANDLERBIN, ver, 'dbxml', 'lib'),
+                             ld_library_path ]
+        ld_library_path = os.pathsep.join(additional_paths)
         os.putenv('LD_LIBRARY_PATH', ld_library_path)
 
     if buildenv['os'] == 'osx':
-        dyld_library_path = os.environ.get('DYLD_LIBRARY_PATH', '')
+        dyld_library_path = os.getenv('DYLD_LIBRARY_PATH', '')
         ver = buildenv['version']
-        additional_path=os.path.join(buildenv['root'],'chandler',ver,'lib')+\
-         os.pathsep + os.path.join(buildenv['root'],'chandler',ver,'db','lib')+\
-         os.pathsep + os.path.join(buildenv['root'],'chandler',ver,'dbxml','lib')
-        dyld_library_path = additional_path + os.pathsep + dyld_library_path
+        additional_paths = [ os.path.join(CHANDLERBIN, ver, 'lib'),
+                             os.path.join(CHANDLERBIN, ver, 'db', 'lib'),
+                             os.path.join(CHANDLERBIN, ver, 'dbxml', 'lib'),
+                             dyld_library_path ]
+        dyld_library_path = os.pathsep.join(additional_paths)
         os.putenv('DYLD_LIBRARY_PATH', dyld_library_path)
 
-        dyld_framework_path = os.environ.get('DYLD_FRAMEWORK_PATH', '')
-        additional_path = os.path.join( buildenv['root'], 'chandler', ver, 'Library',
-         'Frameworks')
-        dyld_framework_path = additional_path + os.pathsep + dyld_framework_path
+        dyld_framework_path = os.getenv('DYLD_FRAMEWORK_PATH', '')
+        additional_paths = [ os.path.join(CHANDLERBIN, ver, 'Library',
+                                          'Frameworks'),
+                             dyld_framework_path ]
+        dyld_framework_path = os.pathsep.join(additional_paths)
         os.putenv('DYLD_FRAMEWORK_PATH', dyld_framework_path)
 
 def quoteString(str):

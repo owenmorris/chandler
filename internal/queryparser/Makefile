@@ -28,7 +28,7 @@ clean:
 	rm -f $(SRC)/QueryParser.py $(MANIFEST)
 
 install:
-	tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/../chandler -xvf -
+	tar -cf - $(MANIFEST) | tar -C $(CHANDLERHOME) -xvf -
 
 upload: QueryParser-$(SNAP)-$(RELVER).tar.gz
 	scp QueryParser-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)

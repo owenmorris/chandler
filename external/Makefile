@@ -100,7 +100,7 @@ upload:	$(SNAP)-$(VERSION).tar.gz
 	scp $(SNAP)-$(VERSION).tar.gz $(UPLOAD)
 
 install: $(SNAP)-$(VERSION).tar.gz
-	tar -C ../chandler -xvzf $(SNAP)-$(VERSION).tar.gz
+	tar -C $(CHANDLERBIN) -xvzf $(SNAP)-$(VERSION).tar.gz
 
 checkout:
 	cd ..; \

@@ -1,2 +1,13 @@
 #!/bin/sh
-release/RunPython -O Chandler.py $*
+
+if [ "$CHANDLERHOME" = "" ]
+then
+    CHANDLERHOME=`pwd`
+fi
+
+if [ "$CHANDLERBIN" = "" ]
+then
+    CHANDLERBIN=$CHANDLERHOME
+fi
+
+$CHANDLERBIN/release/RunPython -O Chandler.py $*
