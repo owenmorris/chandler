@@ -1,4 +1,12 @@
 /* Copyright (c) 1999 Ng Pheng Siong. All rights reserved.  */
+/* 
+** Open Source Applications Foundation (OSAF) has extended the functionality
+** to make it possible to create and verify certificates programmatically.
+**
+** OSAF Changes copyright (c) 2004 Open Source Applications Foundation.
+** Author: Heikki Toivonen
+*/
+
 /* $Id$   */
 
 %{
@@ -23,6 +31,7 @@
 
 %name(x509_get_serial_number) extern ASN1_INTEGER *X509_get_serialNumber(X509 *);
 %name(x509_get_pubkey) extern EVP_PKEY *X509_get_pubkey(X509 *);
+%name(x509_set_pubkey) extern int X509_set_pubkey(X509 *, EVP_PKEY *);
 %name(x509_get_issuer_name) extern X509_NAME *X509_get_issuer_name(X509 *);
 %name(x509_get_subject_name) extern X509_NAME *X509_get_subject_name(X509 *);
 
@@ -43,6 +52,10 @@
 %constant int NID_organizationName            = 17;
 %constant int NID_organizationalUnitName      = 18;
 %constant int NID_pkcs9_emailAddress          = 48;
+
+/* Cribbed from rsa.h. */
+%constant int RSA_3                           = 0x3L;
+%constant int RSA_F4                          = 0x10001L;
 
 /* Cribbed from x509_vfy.h. */
 %constant int		X509_V_OK					= 0;
@@ -112,6 +125,10 @@ ASN1_UTCTIME *x509_get_not_before(X509 *x) {
 /* X509_get_notAfter() is a macro. */
 ASN1_UTCTIME *x509_get_not_after(X509 *x) {
     return X509_get_notAfter(x);
+}
+
+ASN1_TIME *x509_gmtime_adj(ASN1_TIME *s, long adj) {
+    return X509_gmtime_adj(s, adj);
 }
 
 /*
@@ -189,8 +206,28 @@ int x509_name_type_check(X509_NAME *name) {
     return 1;
 }
 
+int x509_set_version(X509 *x, long version) {
+    return X509_set_version(x, version);
+}
+
+X509 *x509_new() {
+    return X509_new();
+}
+
+int x509_sign(X509 *x, EVP_PKEY *pkey, EVP_MD *md) {
+    return X509_sign(x, pkey, md);
+}
+
 X509_NAME *x509_req_get_subject_name(X509_REQ *x) {
     return X509_REQ_get_subject_name(x);
+}
+
+int x509_req_set_subject_name(X509_REQ *x, X509_NAME *name) {
+    return X509_REQ_set_subject_name(x, name);
+}
+
+int x509_req_set_version(X509_REQ *x, long version) {
+    return X509_REQ_set_version(x, version);
 }
 
 int x509_req_sign(X509_REQ *x, EVP_PKEY *pkey, EVP_MD *md) {

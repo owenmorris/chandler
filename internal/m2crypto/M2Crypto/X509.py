@@ -4,13 +4,16 @@ This module has evolved based on the needs of supporting X.509
 certificate operations (mainly attribute getters for 
 authentication purposes) from within an SSL connection.
 
-This module is emphatically not sufficient to implement CA-like
-functionality in Python. Given the availability of open source CA 
-tools such as OpenSSL's CA.[sh|pl], Oscar, IBM's XXX, it is 
-unlikely that this module will ever evolve to the aforementioned
-sufficiency.
+Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved.
 
-Copyright (c) 1999-2003 Ng Pheng Siong. All rights reserved."""
+Open Source Applications Foundation (OSAF) has extended the functionality
+to make it possible to create and verify certificates programmatically.
+
+Epydoc comments also by OSAF.
+
+OSAF Changes copyright (c) 2004 Open Source Applications Foundation.
+Author: Heikki Toivonen
+"""
 
 RCS_id='$Id$'
 
@@ -82,9 +85,12 @@ class X509:
     Object interface to an X.509 digital certificate.
     """
 
-    def __init__(self, x509, _pyfree=0):
-        assert m2.x509_type_check(x509), "'x509' type error"
-        self.x509 = x509
+    def __init__(self, x509=None, _pyfree=0):
+        if x509 is not None:
+            assert m2.x509_type_check(x509), "'x509' type error"
+            self.x509 = x509
+        else:
+            self.x509 = m2.x509_new()
         self._pyfree = _pyfree
 
     def __del__(self):
@@ -114,6 +120,18 @@ class X509:
         assert m2.x509_type_check(self.x509), "'x509' type error"
         return m2.x509_get_version(self.x509)
 
+    def set_version(self, version):
+        """
+        Set version.
+
+        @type version:  an integer
+        @param version: Version number.
+        @rtype:         an integer
+        @return:        Returns 0 on failure.
+        """
+        assert m2.x509_type_check(self.x509), "'x509' type error"    
+        return m2.x509_set_version(self.x509, version)
+
     def get_serial_number(self):
         assert m2.x509_type_check(self.x509), "'x509' type error"
         asn1_integer = m2.x509_get_serial_number(self.x509)
@@ -131,6 +149,18 @@ class X509:
         assert m2.x509_type_check(self.x509), "'x509' type error"
         return m2.x509_get_pubkey(self.x509)
 
+    def set_pubkey(self, pkey):
+        """
+        Set the public key for the certificate
+
+        @type pkey:  EVP_PKEY
+        @param pkey: Public key
+        @rtype:      XXX
+        @return:     XXX
+        """
+        assert m2.x509_type_check(self.x509), "'x509' type error"
+        return m2.x509_set_pubkey(self.x509, pkey.pkey)
+
     def get_issuer(self):
         assert m2.x509_type_check(self.x509), "'x509' type error"
         return X509_Name(m2.x509_get_issuer_name(self.x509))
@@ -139,6 +169,23 @@ class X509:
         assert m2.x509_type_check(self.x509), "'x509' type error"
         return X509_Name(m2.x509_get_subject_name(self.x509))
 
+    def sign(self, pkey, md):
+        """
+        Sign the certificate.
+
+        @type pkey:  EVP_PKEY
+        @param pkey: Public key
+        @type md:    string
+        @param md:   Message digest algorithm to use for signing, for example
+                     'sha1'.
+        @rtype:      XXX
+        @return:     XXX
+        """
+        assert m2.x509_type_check(self.x509), "'x509' type error"        
+        mda = getattr(m2, md)
+        if not mda:
+            raise ValueError, ('unknown message digest', md)
+        return m2.x509_sign(self.x509, pkey.pkey, mda())
 
 def load_cert(file):
     bio = BIO.openfile(file)
@@ -212,6 +259,9 @@ class X509_Stack:
 
 
 class Request:
+    """
+    An X509 certificate request. A request is required to make a certificate.
+    """
     def __init__(self, req=None, _pyfree=0):
         if req is not None:
             self.req = req
@@ -239,10 +289,32 @@ class Request:
         return m2.x509_req_write_pem(bio.bio_ptr(), self.req)
 
     def set_pubkey(self, pkey):
+        """
+        Set the public key for the request.
+
+        @type pkey:  EVP_PKEY
+        @param pkey: Public key
+        @rtype:      XXX
+        @return:     XXX
+        """
         return m2.x509_req_set_pubkey(self.req, pkey.pkey)
 
     def get_subject(self):
         return X509_Name(m2.x509_req_get_subject_name(self.req))
+
+    def set_version(self, version):
+        """
+        Set version.
+
+        @type version:  an integer
+        @param version: Version number.
+        @rtype:         an integer
+        @return:        Returns 0 on failure.
+        """
+        return m2.x509_req_set_version(self.req, version)
+
+    def verify(self, pkey):
+        return m2.x509_req_verify(self.req, pkey)
 
     def sign(self, pkey, md):
         mda = getattr(m2, md)
