@@ -8,8 +8,8 @@ names outside this package.
 __all__ = [
     'TestAllParcels', 'TestAttributes', 'TestCircular', 'TestClasses', 
     'TestClouds', 'TestCollections', 'TestCopying', 'TestDependency',
-    'TestItems', 'TestKindAndItem', 'TestLocalAttrs', 'TestParcelLoader',
-    'TestUuidOf', 'TestParcelPerf'
+    'TestItems', 'TestKindAndItem', 'TestLocalAttrs', 'TestParcelErrors',
+    'TestParcelLoader','TestUuidOf', 'TestParcelPerf'
 ]
 
 def suite():

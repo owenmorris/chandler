@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003-2005 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itsName="thisIsWrong"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:moi="http://testparcels.org/itsname">
+
+  <namespace value="http://testparcels.org/itsname"/>
+
+  <Kind itsName="MyKind">
+    <superKinds itemref="Item"/>
+    <Attribute itsName="myAttribute">
+        <type itemref="moi:MyKind/myAttribute"/>
+    </Attribute>
+  </Kind>
+</Parcel>

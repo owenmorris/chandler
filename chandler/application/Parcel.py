@@ -931,6 +931,17 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             parent = self.__getCurrentItem()
             if parent is None:
                 parent = self.parcelParent
+                # <http://bugzilla.osafoundation.org/show_bug.cgi?id=2495>
+                # Make sure that the top-level parcel's itsName
+                # actually matches where it's going in the repository.
+                # Otherwise, it's possible to run into an infinite
+                # recursion here.
+                if self.repoPath.split('/')[-1] != nameString:
+                    explanation = "Parcel's itsName '%s' doesn't match last component of repository path '%s'" % \
+                                (nameString, self.repoPath)
+                    self.saveExplanation(explanation)
+                    raise ParcelException(explanation)
+
 
             self.currentAssignments = []
 
