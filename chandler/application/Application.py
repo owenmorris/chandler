@@ -127,9 +127,16 @@ class wxApplication (wxApp):
         app = self;
 
         wxInitAllImageHandlers()
-        gettext.install('Chandler')
 
         self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
+        
+        #Setup internationalization
+        os.environ['LANGUAGE'] = 'en'
+        self.locale = wxLocale(wxLANGUAGE_ENGLISH)
+        wxLocale_AddCatalogLookupPathPrefix('locale')
+        self.locale.AddCatalog('Chandler.mo')
+        gettext.install('Chandler', self.chandlerDirectory + os.sep + 'locale')
+        
         resourceFile = "application" +\
                        os.sep + "application.xrc"
 

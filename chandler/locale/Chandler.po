@@ -1,0 +1,166 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: Tue Feb 25 14:26:56 2003\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.4\n"
+
+
+#: application/Application.py:132 locale/ChandlerXRC.py:8
+msgid "Quit"
+msgstr ""
+
+#: application/ChandlerWindow.py:121 application/ChandlerWindow.py:125
+#: locale/ChandlerXRC.py:25
+msgid "Debug"
+msgstr ""
+
+#: application/ViewerParcel.py:174 locale/ChandlerXRC.py:18
+msgid "View"
+msgstr ""
+
+#: locale/ChandlerXRC.py:1
+msgid "Chandler"
+msgstr ""
+
+#: locale/ChandlerXRC.py:2
+msgid "Prev"
+msgstr ""
+
+#: locale/ChandlerXRC.py:3
+msgid "Next"
+msgstr ""
+
+#: locale/ChandlerXRC.py:4
+msgid "Reload"
+msgstr ""
+
+#: locale/ChandlerXRC.py:5
+msgid "Stop"
+msgstr ""
+
+#: locale/ChandlerXRC.py:6
+msgid "Home"
+msgstr ""
+
+#: locale/ChandlerXRC.py:7
+msgid "File"
+msgstr ""
+
+#: locale/ChandlerXRC.py:9 locale/ChandlerXRC.py:11
+msgid "Edit"
+msgstr ""
+
+#: locale/ChandlerXRC.py:10
+msgid "Undo"
+msgstr ""
+
+#: locale/ChandlerXRC.py:12
+msgid "Redo"
+msgstr ""
+
+#: locale/ChandlerXRC.py:13
+msgid "Cut"
+msgstr ""
+
+#: locale/ChandlerXRC.py:14
+msgid "Copy"
+msgstr ""
+
+#: locale/ChandlerXRC.py:15
+msgid "Paste"
+msgstr ""
+
+#: locale/ChandlerXRC.py:16
+msgid "Delete"
+msgstr ""
+
+#: locale/ChandlerXRC.py:17
+msgid "Preferences..."
+msgstr ""
+
+#: locale/ChandlerXRC.py:19
+msgid "Navigation Bar"
+msgstr ""
+
+#: locale/ChandlerXRC.py:20
+msgid "Action Bar"
+msgstr ""
+
+#: locale/ChandlerXRC.py:21
+msgid "Side Bar"
+msgstr ""
+
+#: locale/ChandlerXRC.py:22
+msgid "Help"
+msgstr ""
+
+#: locale/ChandlerXRC.py:23
+msgid "Chandler Help"
+msgstr ""
+
+#: locale/ChandlerXRC.py:24
+msgid "About Chandler..."
+msgstr ""
+
+#: locale/ChandlerXRC.py:26 locale/ChandlerXRC.py:29 locale/ChandlerXRC.py:32
+msgid "Calendar"
+msgstr ""
+
+#: locale/ChandlerXRC.py:27
+msgid "Contacts"
+msgstr ""
+
+#: locale/ChandlerXRC.py:28
+msgid "Test"
+msgstr ""
+
+#: locale/ChandlerXRC.py:30
+msgid "Go To Today"
+msgstr ""
+
+#: locale/ChandlerXRC.py:31
+msgid "Go To Date..."
+msgstr ""
+
+#: locale/ChandlerXRC.py:33
+msgid "September 32 - September 32, 2003"
+msgstr ""
+
+#: locale/ChandlerXRC.py:34
+msgid "Today"
+msgstr ""
+
+#: locale/ChandlerXRC.py:35
+msgid "Task Window"
+msgstr ""
+
+#: locale/ChandlerXRC.py:36
+msgid "Banner Window"
+msgstr ""
+
+#: locale/ChandlerXRC.py:37
+msgid "ViewerParcel"
+msgstr ""
+
+#: locale/ChandlerXRC.py:38
+msgid "Add new contact..."
+msgstr ""
+
+#: locale/ChandlerXRC.py:39
+msgid "Add new address"
+msgstr ""
+
+#: locale/ChandlerXRC.py:40
+msgid "Generate 100 contacts"
+msgstr ""
+

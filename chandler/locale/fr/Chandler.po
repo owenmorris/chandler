@@ -1,0 +1,166 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: Tue Feb 25 14:26:56 2003\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.4\n"
+
+
+#: application/Application.py:132 locale/ChandlerXRC.py:8
+msgid "Quit"
+msgstr "Quitter"
+
+#: application/ChandlerWindow.py:121 application/ChandlerWindow.py:125
+#: locale/ChandlerXRC.py:25
+msgid "Debug"
+msgstr "Corriger"
+
+#: application/ViewerParcel.py:174 locale/ChandlerXRC.py:18
+msgid "View"
+msgstr "Voir"
+
+#: locale/ChandlerXRC.py:1
+msgid "Chandler"
+msgstr "Chandler"
+
+#: locale/ChandlerXRC.py:2
+msgid "Prev"
+msgstr "Précedente"
+
+#: locale/ChandlerXRC.py:3
+msgid "Next"
+msgstr "Suivante"
+
+#: locale/ChandlerXRC.py:4
+msgid "Reload"
+msgstr "Actualiser"
+
+#: locale/ChandlerXRC.py:5
+msgid "Stop"
+msgstr "Arrêter"
+
+#: locale/ChandlerXRC.py:6
+msgid "Home"
+msgstr "Démarage"
+
+#: locale/ChandlerXRC.py:7
+msgid "File"
+msgstr "Fichier"
+
+#: locale/ChandlerXRC.py:9 locale/ChandlerXRC.py:11
+msgid "Edit"
+msgstr "Édition"
+
+#: locale/ChandlerXRC.py:10
+msgid "Undo"
+msgstr "Annuler"
+
+#: locale/ChandlerXRC.py:12
+msgid "Redo"
+msgstr "Rétablir"
+
+#: locale/ChandlerXRC.py:13
+msgid "Cut"
+msgstr "Couper"
+
+#: locale/ChandlerXRC.py:14
+msgid "Copy"
+msgstr "Copier"
+
+#: locale/ChandlerXRC.py:15
+msgid "Paste"
+msgstr "Coller"
+
+#: locale/ChandlerXRC.py:16
+msgid "Delete"
+msgstr "Supprimer"
+
+#: locale/ChandlerXRC.py:17
+msgid "Preferences..."
+msgstr "Préférences"
+
+#: locale/ChandlerXRC.py:19
+msgid "Navigation Bar"
+msgstr "Barre des Navigations"
+
+#: locale/ChandlerXRC.py:20
+msgid "Action Bar"
+msgstr "Barre des Actions"
+
+#: locale/ChandlerXRC.py:21
+msgid "Side Bar"
+msgstr "Barre Latérale"
+
+#: locale/ChandlerXRC.py:22
+msgid "Help"
+msgstr "Aide"
+
+#: locale/ChandlerXRC.py:23
+msgid "Chandler Help"
+msgstr "Aide de Chandler"
+
+#: locale/ChandlerXRC.py:24
+msgid "About Chandler..."
+msgstr "À propos de Chandler"
+
+#: locale/ChandlerXRC.py:26 locale/ChandlerXRC.py:29 locale/ChandlerXRC.py:32
+msgid "Calendar"
+msgstr "À propos de Chandler"
+ 
+
+#: locale/ChandlerXRC.py:27
+msgid "Contacts"
+msgstr "Contacts"
+
+#: locale/ChandlerXRC.py:28
+msgid "Test"
+msgstr "Essayer"
+
+#: locale/ChandlerXRC.py:30
+msgid "Go To Today"
+msgstr "Aller à aujourd'hui"
+
+#: locale/ChandlerXRC.py:31
+msgid "Go To Date..."
+msgstr "Aller à "
+
+#: locale/ChandlerXRC.py:33
+msgid "September 32 - September 32, 2003"
+msgstr "32 Septembre - 32 Septembre, 2003"
+
+#: locale/ChandlerXRC.py:34
+msgid "Today"
+msgstr "Aujourd'hui"
+
+#: locale/ChandlerXRC.py:35
+msgid "Task Window"
+msgstr "Fênetre des Tâches"
+
+#: locale/ChandlerXRC.py:36
+msgid "Banner Window"
+msgstr "Fenêtre de Bannière"
+
+#: locale/ChandlerXRC.py:37
+msgid "ViewerParcel"
+msgstr "Parcel de Voyeur"
+
+#: locale/ChandlerXRC.py:38
+msgid "Add new contact..."
+msgstr "Nouvelle contact"
+
+#: locale/ChandlerXRC.py:39
+msgid "Add new address"
+msgstr "Nouvelle addresse"
+
+#: locale/ChandlerXRC.py:40
+msgid "Generate 100 contacts"
+msgstr "Fabriquer 100 contacts"
