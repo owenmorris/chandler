@@ -1,6 +1,6 @@
---- PyLucene-0.9.3-137/Makefile	2004-12-11 18:59:22.000000000 -0800
-+++ PyLucene-0.9.3-137-patched/Makefile	2004-12-15 08:56:57.791895216 -0800
-@@ -245,17 +245,17 @@
+--- PyLucene-0.9.5/Makefile	Mon Jan 10 12:51:32 2005
++++ PyLucene-0.9.5-patched/Makefile	Mon Jan 10 13:53:34 2005
+@@ -248,17 +248,17 @@
  PYLUCENE_CP:=$(PYLUCENE_CP):$(DB)/java/src
  
  ifeq ($(OS),Cygwin)
@@ -19,7 +19,7 @@
  SWIG_OPT:=$(SWIG_OPT) -D_WITH_DB_DIRECTORY=1 -DDB_LIB_VER="'$(DB_LIB_VER)'" -DDB_VER=$(subst .,,$(DB_LIB_VER))
  
  $(BINDIR)/db.o:
-@@ -296,17 +296,17 @@
+@@ -299,17 +299,17 @@
  ifeq ($(OS),Cygwin)
  DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java' -exec cygpath -aw {} \;` 
  DB_CONST=`cygpath -aw $(DB)/java/src/com/sleepycat/db/$(BINDIR)/DbConstants.java`
@@ -38,7 +38,7 @@
  SWIG_OPT:=$(SWIG_OPT) -D_WITH_DB_DIRECTORY=1 -DDB_LIB_VER="'$(DB_LIB_VER)'" -DDB_VER=$(subst .,,$(DB_LIB_VER))
  
  $(BINDIR)/db_const.o:
-@@ -671,23 +671,29 @@
+@@ -703,23 +703,29 @@
  else
  
  ifeq ($(OS),Linux)
