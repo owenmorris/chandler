@@ -14,6 +14,36 @@ ClassTypes = type, ClassType
 NullSet = Set(type=())
 
 
+def __setUUID(self,uuid):
+    """Validate a UUID and save it in self._uuid unless it's already set
+
+    Used to create a property for roles and entity/relationship classes to
+    track their UUIDs.
+    """
+    uustr = str(uuid).lower()
+    if map(len,uustr.split('-')) == [8, 4, 4, 4, 12]:
+        for c in uustr:
+            if c not in '0123456789-abcdef':
+                raise ValueError("%r is not valid in UUID format" % c)
+        else:
+            old = getattr(self,'uuid',None)
+            if old is not None and old<>uustr:
+                raise TypeError(
+                    "Can't change UUID once set (was %s)" % old
+                )
+            self._uuid = uustr
+            return
+
+    raise ValueError("%r is not a valid UUID" % (uuid,))
+
+
+uuid_prop = property(
+    lambda self:self.__dict__.get('_uuid'),     # avoid inheritance in class!
+    __setUUID,
+    doc="Universally Unique identifier for this object"
+)
+
+
 def load_role(cls, name):
     val = getattr(cls,name)
     if not isinstance(val,Role):
@@ -88,7 +118,7 @@ class Role(ActiveDescriptor):
 
     types = ()
     isReference = False
-    name = owner = _inverse = _loadMap = None
+    name = owner = _inverse = _loadMap = _uuid = None
     cardinality = "Role"
 
     def __init__(self,types=(),**kw):
@@ -97,6 +127,7 @@ class Role(ActiveDescriptor):
         for k,v in kw.items():
             setattr(self,k,v)
         self.setDoc()   # default the doc string
+
 
     def __setInverse(self,inverse):
         if self._inverse is not inverse:    # No-op if no change
@@ -115,6 +146,8 @@ class Role(ActiveDescriptor):
         lambda s: s._inverse, __setInverse, doc =
         """The inverse of this role"""
     )
+
+    uuid = uuid_prop
 
     def addTypes(self,*types):
         """Add ``types`` to allowed types for this role"""
@@ -339,6 +372,30 @@ class Many(Role):
 
 class Activator(type):
     """Metaclass that activates contained roles"""
+
+    uuid = uuid_prop
+
+    def __new__(meta,name,bases,cdict):
+        # Does the class body have a 'uuid' declaration?
+        uuid = cdict.get('uuid')
+
+        if isinstance(uuid,ActiveDescriptor):
+            # Looks like the class wants to define a 'uuid' role for
+            # its instances, so don't confuse it with the class' missing UUID
+            uuid = None
+
+        elif uuid:
+            # Strip the UUID out so instances don't end up seeing it
+            del cdict['uuid']
+
+        # Create the class
+        cls = super(Activator,meta).__new__(meta,name,bases,cdict)
+
+        if uuid:
+            # and set its uuid if appropriate
+            cls.uuid = uuid
+
+        return cls
 
     def __init__(cls,name,bases,cdict):
         for name,ob in cdict.items():

@@ -721,6 +721,63 @@ access is to immediately replace the calculated value with a new value::
         >>> print CalcDemo.alias.getLoader(Dummy())
         <function dummyLoader at ...>
 
+``uuid``
+    The UUID for this role, relationship, entity class, or module.  Must be
+    set to a UUID object (such as found in ``chandlerdb.util.UUID`` or
+    ``peak.util.uuid``) or a validly-formatted UUID string such as the one
+    shown below::
+
+        >>> r = schema.Role(uuid='dafcf65e-8768-11d9-9096-000b6a0f72f9')
+
+        >>> r = schema.Role(uuid="foo")
+        Traceback (most recent call last):
+          ...
+        ValueError: 'foo' is not a valid UUID
+
+        >>> r = schema.Role(uuid='dafcf65e-87q8-11d9-9096-000b6a0f72f9')
+        Traceback (most recent call last):
+          ...
+        ValueError: 'q' is not valid in UUID format
+
+    Note that this attribute is always a string when read back, even if it was
+    set to a UUID object.  This is so that Spike can avoid being dependent on
+    a UUID library to function::
+
+        >>> r.uuid
+        'dafcf65e-8768-11d9-9096-000b6a0f72f9'
+
+    Entity and relationship classes can also have UUIDs::
+
+        >>> class MyRel(schema.Relationship):
+        ...     r1 = r2 = schema.Role()
+        ...     uuid = 'dafcf639-8768-11d9-9096-000b6a0f72f9'
+        >>> MyRel.uuid
+        'dafcf639-8768-11d9-9096-000b6a0f72f9'
+
+        >>> class MyEntity(schema.Entity):
+        ...     uuid = 'dafcf63d-8768-11d9-9096-000b6a0f72f9'
+        >>> MyEntity.uuid
+        'dafcf63d-8768-11d9-9096-000b6a0f72f9'
+
+    But they do not transfer to instances of the class, or to subclasses::
+
+        >>> MyEntity().uuid
+        Traceback (most recent call last):
+          ...
+        AttributeError: ...
+
+        >>> class NewEntity(MyEntity): pass
+        >>> print NewEntity.uuid
+        None
+
+    And you can only set them once for a given role or class::
+
+        >>> MyEntity.uuid = 'dafcf65e-8768-11d9-9096-000b6a0f72f9'
+        Traceback (most recent call last):
+          ...
+        TypeError: Can't change UUID once set (was dafcf63d-...)
+
+
 To avoid silent definition errors, ``Role`` classes will not allow setting
 attributes that are not defined by their class::
 
