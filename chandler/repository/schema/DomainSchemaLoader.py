@@ -3,9 +3,6 @@
     @@@ Known Issues
     + Assumes all elements are in the appropriate namespace, should ignore
       elements from other namespaces.
-    + Does not support forward references. If an item is referenced,
-      assumes it already exists in the repository. An item will exist
-      in the repository as soon as it is defined.
     + Does not handle default values for our attributes
     + Many datatypes are interpreted as strings, not dealing with
       int or float types.
@@ -76,7 +73,6 @@ class DomainSchemaLoader(object):
         self.parser.setErrorHandler(xml.sax.handler.ErrorHandler())
         
     def load(self, file, parent=None):
-        print "Loading file: " + file
         self.parser.parse(file)
 
 class DomainSchemaHandler(xml.sax.ContentHandler):
@@ -99,8 +95,13 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
         self.parent = self.repository.find("//Schema")
 
+        # save a list of items and attributes, wire them up later
+        # to be able to handle forward references
+        self.todo = []
+
     def endDocument(self):
-        pass
+        for (item, attributes) in self.todo:
+            self.addAttributes(item, attributes)
     
     def characters(self, content):
 
@@ -128,6 +129,7 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
         # Create the item
         if local in ITEM_TAGS:
             self.currentAttributes = {}
+            self.currentAttributes['attribute'] = []
             idString = attrs.getValue((None, 'id'))
             if local == 'Kind':
                 self.currentItem = self.createKind(idString)
@@ -136,7 +138,11 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
         # Add an attribute to the current item
         elif local in ATTRIBUTE_REF_TAGS:
-            self.currentAttributes[local] = attrs.getValue((None, 'itemref'))
+            refValue = attrs.getValue((None, 'itemref'))
+            if local == 'attribute':
+                self.currentAttributes[local].append(refValue)
+            else:
+                self.currentAttributes[local] = refValue
         elif local in ATTRIBUTE_BOOL_TAGS:
             self.currentAttributes[local] = True
 
@@ -150,7 +156,8 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
 
         # Create the item in the repository
         if local in ITEM_TAGS:
-            self.addAttributes(self.currentItem, self.currentAttributes)
+            # self.addAttributes(self.currentItem, self.currentAttributes)
+            self.todo.append((self.currentItem, self.currentAttributes))
             self.currentAttributes = self.schemaAttributes
             self.currentItem = None
 
@@ -205,15 +212,25 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
     def addAttributes(self, item, attributeDictionary):
         """Add the attributes in attributeDictionary to the given item.
         """
+
         for key in attributeDictionary.keys():
 
             # For references, find the item to set the attribute
             if key in ATTRIBUTE_REF_TAGS:
-                ref = self.findItem(attributeDictionary[key])
+
                 # Special case for 'attribute', our only multivalued attribute
                 if key == 'attribute':
-                    item.attach(ATTRIBUTE_REF_TAGS[key], ref)
+                    for attr in attributeDictionary[key]:
+                        ref = self.findItem(attr)
+                        item.attach(ATTRIBUTE_REF_TAGS[key], ref)
+
+                # Special case for 'OtherName'
+                elif key == 'inverseAttribute':
+                    ref = self.findItem(attributeDictionary[key])
+                    item.setAttribute(ATTRIBUTE_REF_TAGS[key], ref.getName())
+                                        
                 else:
+                    ref = self.findItem(attributeDictionary[key])
                     item.setAttribute(ATTRIBUTE_REF_TAGS[key], ref)
                     
             # For booleans or text, look up the value in the dictionary
@@ -223,4 +240,5 @@ class DomainSchemaHandler(xml.sax.ContentHandler):
             elif key in ATTRIBUTE_BOOL_TAGS:
                 value = attributeDictionary[key]
                 item.setAttribute(ATTRIBUTE_BOOL_TAGS[key], value)
+
 
