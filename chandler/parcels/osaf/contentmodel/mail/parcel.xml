@@ -163,7 +163,7 @@
             <displayName value="Number of Retries" />
             <description value="How many times to retry before giving up" />
             <type itemref="Integer" />
-            <initialValue type="Integer" value="3" />
+            <initialValue type="Integer" value="1" />
         </Attribute>
 
 
