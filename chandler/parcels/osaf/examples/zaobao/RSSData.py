@@ -220,37 +220,3 @@ class RSSItem(ContentItem):
             print "oops: " + str(e)
 
         return False
-
-class Parcel(application.Parcel.Parcel):
-
-    def startupParcel(self):
-
-        view = self.itsView
-
-        urls = self.getChannelsList()
-
-        chanKind = RSSChannel.getKind(view)
-        for channel in KindQuery().run([chanKind]):
-            if channel.url in urls:
-                urls.remove(channel.url)
-        for url in urls:
-            try:
-                newChannel = NewChannelFromURL(view, url, update=False)
-            except Exception, e:
-                logger.exception(e)
-
-    def getChannelsList(self):
-
-        channelList = []
-        try:
-            profileDir = application.Globals.options.profileDir
-            fileName = os.path.join(profileDir, 'zaobao.txt')
-            if os.path.isfile(fileName):
-                channelFile = file(fileName, "r")
-                channelList = channelFile.readlines()
-        except Exception, e:
-            logger.exception(e)
-
-        return channelList
-
-

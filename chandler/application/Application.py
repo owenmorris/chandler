@@ -21,7 +21,7 @@ logger.setLevel(logging.INFO)
 #@@@Temporary testing tool written by Morgen -- DJA
 import tools.timing
 
-SCHEMA_VERSION = "3"
+SCHEMA_VERSION = "4"
 
 """
   Event used to post callbacks on the UI thread

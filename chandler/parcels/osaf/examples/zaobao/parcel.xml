@@ -9,8 +9,7 @@
      xmlns="http://osafoundation.org/parcels/core"
      xmlns:doc="http://osafoundation.org/examples/zaobao"
      xmlns:wakeupCall="http://osafoundation.org/parcels/osaf/framework/wakeup"
-     xmlns:schema="http://osafoundation.org/examples/zaobao/schema"
-     itemClass="osaf.examples.zaobao.RSSData.Parcel">
+     xmlns:schema="http://osafoundation.org/examples/zaobao/schema" >
 
     <namespace value="http://osafoundation.org/examples/zaobao"/>
     <version>0.3</version>
