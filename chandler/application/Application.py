@@ -9,7 +9,7 @@ import os, sys, stat
 from wxPython.wx import *
 from wxPython.xrc import *
 from application.Preferences import Preferences
-from Persistence import Persistent, PersistentDict
+from Persistence import Persistent, PersistentList
 import application.ChandlerWindow
 
 from ZODB import DB, FileStorage 
@@ -48,7 +48,7 @@ class Application(Persistent):
         """
         self.preferences = Preferences()
         self.mainFrame = application.ChandlerWindow.ChandlerWindow()
-        self.URLTree = PersistentDict.PersistentDict ()
+        self.URLTree = PersistentList.PersistentList ()
         self.version = Application.VERSION
     
     def SynchronizeView(self):

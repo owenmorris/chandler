@@ -8,7 +8,7 @@ __license__ = "OSAF License"
 parcel viewer.
 """
 
-import new, types
+import new, types, exceptions
 from application.Parcel import Parcel
 from application.Application import app
 
@@ -21,15 +21,18 @@ class ViewerParcel (Parcel):
         Classes may be "old style" (type (theClass) == types.ClassType) or
         "new style". The construction method is different in each case: see
         below.
+          Currently we install by appending to the end of the list
         """
         module = theClass.__module__
-        if not app.model.URLTree.has_key(module):
+        try:
+            index = app.model.URLTree.index (module)
+        except ValueError:
             if type (theClass) == types.ClassType:
                 instance = new.instance (theClass, {})
             else:
                 instance = theClass.__new__ (theClass)
             instance.__init__()
-            app.model.URLTree[module] = instance
+            app.model.URLTree.append (module)
         
     Install = classmethod (Install)
 
