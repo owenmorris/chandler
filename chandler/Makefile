@@ -18,22 +18,22 @@ endif
 # When a version changes, the ARCHIVES lists below needs to be updated.
 
 # these get installed into release or debug
-BIN_ARCHIVES=../Launchers-$(SNAP)-0.4-5.tar.gz \
-             ../chandlerdb-$(SNAP)-0.4-2.tar.gz \
+BIN_ARCHIVES=../Launchers-$(SNAP)-0.4-6.tar.gz \
+             ../chandlerdb-$(SNAP)-0.4-3.tar.gz \
              ../db-$(SNAP)-4.3.21-1.tar.gz \
-             ../egenix-mx-base-$(SNAP)-2.1.0-1.tar.gz \
-             ../epydoc-$(SNAP)-2.1-1.tar.gz \
-             ../jabberpy-$(SNAP)-0.4-0-1.tar.gz \
-             ../libxml2-$(SNAP)-2.6.10-1.tar.gz \
-             ../m2crypto-$(SNAP)-0.12-4.tar.gz \
-             ../pychecker-$(SNAP)-0.8.13-1.tar.gz \
-             ../pylucene-$(SNAP)-0.9.2-1.tar.gz \
-             ../python-$(SNAP)-2.3.3-2.tar.gz \
-             ../soappy-$(SNAP)-0.10.2-1.tar.gz \
-             ../twisted-$(SNAP)-r11303-2.tar.gz \
-             ../wxPython-$(SNAP)-2.5.3.1-1.tar.gz \
-             ../yapps-$(SNAP)-2.1.1-1.tar.gz \
-             ../zopeinterface-$(SNAP)-3.0.0b1-1.tar.gz
+             ../egenix-mx-base-$(SNAP)-2.1.0-3.tar.gz \
+             ../epydoc-$(SNAP)-2.1-2.tar.gz \
+             ../jabberpy-$(SNAP)-0.4-0-2.tar.gz \
+             ../libxml2-$(SNAP)-2.6.10-2.tar.gz \
+             ../m2crypto-$(SNAP)-0.12-5.tar.gz \
+             ../pychecker-$(SNAP)-0.8.13-2.tar.gz \
+             ../pylucene-$(SNAP)-0.9.3-137-1.tar.gz \
+             ../python-$(SNAP)-2.4-1.tar.gz \
+             ../soappy-$(SNAP)-0.10.2-2.tar.gz \
+             ../twisted-$(SNAP)-r11303-3.tar.gz \
+             ../wxPython-$(SNAP)-2.5.3.1-2.tar.gz \
+             ../yapps-$(SNAP)-2.1.1-2.tar.gz \
+             ../zopeinterface-$(SNAP)-3.0.0b1-2.tar.gz
 
 # OpenSSL gets bundled into M2Crypto on Windows
 ifneq ($(OS),Cygwin)
@@ -41,7 +41,7 @@ BIN_ARCHIVES += ../openssl-$(SNAP)-0.9.7d-1.tar.gz
 endif
 
 # these get installed into chandler
-HOME_ARCHIVES=../QueryParser-$(SNAP)-0.4-1.tar.gz
+HOME_ARCHIVES=../QueryParser-$(SNAP)-0.4-2.tar.gz
 
 ARCHIVES = $(BIN_ARCHIVES) $(HOME_ARCHIVES)
 ARCHIVES_MD5 = $(addsuffix .md5,$(ARCHIVES))
