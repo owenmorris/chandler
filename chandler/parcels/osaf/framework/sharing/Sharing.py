@@ -1470,9 +1470,11 @@ def findMatchingWebDAVAccount(view, url):
     # ['dev1', 'foo'] becomes "dev1/foo"
     path = "/".join(path)
 
+
     for account in KindQuery().run([webDAVAccountKind]):
         # Does this account's url info match?
-        if account.useSSL == useSSL and account.host == host and account.port == port and account.path == path:
+        accountPath = account.path.strip('/')
+        if account.useSSL == useSSL and account.host == host and account.port == port and accountPath == path:
             return account
 
     return None
