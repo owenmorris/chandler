@@ -31,7 +31,7 @@ BIN_ARCHIVES=../Launchers-$(SNAP)-0.4-9.tar.gz \
              ../python-$(SNAP)-2.4-2.tar.gz \
              ../soappy-$(SNAP)-0.10.2-2.tar.gz \
              ../twisted-$(SNAP)-r11303-4.tar.gz \
-             ../wxPython-$(SNAP)-2.5.3.1-8.tar.gz \
+             ../wxPython-$(SNAP)-2.5.3.1-10.tar.gz \
              ../yapps-$(SNAP)-2.1.1-2.tar.gz \
              ../zopeinterface-$(SNAP)-3.0.0b1-2.tar.gz \
              ../dateutil-$(SNAP)-0.5-1.tar.gz \
