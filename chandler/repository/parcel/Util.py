@@ -31,18 +31,13 @@ def PrintItem(uri, rep, recursive=False, level=0):
 
     # For Kinds, display their attributes (except for the internal ones
     # like notFoundAttributes:
-    if item.hasAttributeValue("kind") and \
-     "//Schema/Core/Kind" == str(item.itsKind.itsPath):
+    if item.itsKind and "//Schema/Core/Kind" == str(item.itsKind.itsPath):
         for i in range(level+2):
             print " ",
-        print "attributes:"
+        print "attributes for this kind:"
 
         displayedAttrs = { }
-        for (name,attr) in item.itsKind.iterAttributes():
-            if name == "attributes" or \
-               name == "notFoundAttributes" or \
-               name == "inheritedAttributes":
-                continue
+        for (name,attr) in item.iterAttributes():
             displayedAttrs[name] = attr
 
         keys = displayedAttrs.keys()
