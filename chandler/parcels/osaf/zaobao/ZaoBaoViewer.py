@@ -24,72 +24,73 @@ class ZaoBaoViewer (ViewerParcel):
 
     def GetNotificationList(self):
         return [RSSData.FEED_CHANGED_NOTIFICATION]
-   
+
     def ReceiveNotification(self, notification):
         if notification.GetName() == RSSData.FEED_CHANGED_NOTIFICATION:
             myWxViewer = app.association[id(self)]
             channel = notification.GetData()
             myWxViewer.RSSIndexView.update(channel,
                                            {'event':'RSS item changed','key':id(channel)})
-            
-        
+
+
     def GetAccessibleViews(self, who):
         """ return a list of accessible views (for now, ones that are public)
         """
         self.hasPermission = 1
         if self.hasPermission: return [self.displayName]
         else: return []
-    
+
     def GetViewObjects(self, url, jabberID):
         return RSSData.loadLocalObjects().values()
-        
+
     def AddObjectsToView(self, url, objectList, lastFlag):
         """pass new objects for display to the wxViewer"""
         viewer = app.association.get(id(self))
         if (viewer): viewer.AddObjectsToView(url, objectList, lastFlag)
-    
+
     def HasPermission(self, jabberID, url):
         return self.hasPermission
-    
+
     def SetPermission(self, permission):
         self.hasPermission = permission == 'public'
-    
+
     def getSharingPolicy(self):
         """Hard-coded policies for now"""
         if self.hasPermission: return 'public'
         else: return 'private'
-        
+
     def GoToURL(self, remoteAddress, url):
         ViewerParcel.GoToURL(self, remoteAddress, url)
         viewer = app.association.get(id(self))
         if viewer: viewer.GoToURL(remoteAddress, url)
         return true
 
-        
+
 class wxZaoBaoViewer(wxViewerParcel):
     def OnInit(self):
-        self.titleFont = wxFont(16, wxSWISS, wxNORMAL, 
+        self.titleFont = wxFont(16, wxSWISS, wxNORMAL,
                                 wxNORMAL, false, "Arial")
-        
+
         #create splitter window
         self.twoPane = wxSplitterWindow(self, -1)
         self.twoPane.SetMinimumPaneSize(100) # prevent unsplitting
-        
+
         #create main UI elements
         self.titleText = wxStaticText(self, -1, self.model.displayName)
         self.titleText.SetFont(self.titleFont)
         self.urlTextArea = wxTextCtrl(self, -1, "",style=wxTE_PROCESS_ENTER)
-        self.addURLButton = wxButton(self, 10, "Add")
-        self.addURLButton.SetSize((45, -1))
+        self.addURLButton = wxButton(self, -1, "Add", style=wxBU_EXACTFIT)
         self.addURLButton.SetToolTipString(_("Add me"))
         #self.addURLButton.SetDefault()
-        self.RSSIndexView = wxZaoBaoIndexView(self.twoPane, -1, 
+        self.RSSIndexView = wxZaoBaoIndexView(self.twoPane, -1,
                                               style=wxLC_REPORT|wxSUNKEN_BORDER|wxLC_SINGLE_SEL)
         self.RSSItemView = wxZaoBaoItemView(self.twoPane, -1,path=self.model.path + os.sep)
         self.RSSIndexView.setItemView(self.RSSItemView)
-        self.twoPane.SplitHorizontally(self.RSSIndexView, self.RSSItemView)
-        self.twoPane.SetSashPosition(250)
-       
+        self.twoPane.SplitHorizontally(self.RSSIndexView, self.RSSItemView, 250)
+
+        wxCallAfter(self.RSSIndexView.Refresh)
+        wxCallAfter(self.urlTextArea.SetFocus)
+
         self.__do_layout()
         self.__doMenus()
 
@@ -97,16 +98,14 @@ class wxZaoBaoViewer(wxViewerParcel):
         EVT_BUTTON(self, self.addURLButton.GetId(), self.onAddRssUrl)
 
         #get top-most parent window to set status bar
-        aFrame = self
-        while not isinstance(aFrame,wxFrame):
-            aFrame = aFrame.GetParent()
-        self.frame = aFrame
-        self.RSSItemView.SetRelatedFrame(aFrame,_("ZaoBao - your daily fix"))
+        self.frame = wxGetTopLevelParent(self)
+        self.RSSItemView.SetRelatedFrame(self.frame,_("ZaoBao - your daily fix"))
         self.RSSItemView.SetRelatedStatusBar(0)
 
         self.RSSIndexView.register(self)
         self.RSSIndexView.updateRSSFeeds()
-        
+
+
     def onAddRssUrl(self, event):
         rssURL = self.urlTextArea.GetLineText(0)
         try:
@@ -120,7 +119,7 @@ class wxZaoBaoViewer(wxViewerParcel):
             progressDlg = None
             if possibleFeeds == "cancelled": return
             noOfPossibleFeeds = len(possibleFeeds)
-            possibleFeeds = [feed 
+            possibleFeeds = [feed
                              for feed in possibleFeeds
                              if not self.RSSIndexView.alreadySubscribed(feed)]
             noOfFeeds = len(possibleFeeds)
@@ -134,7 +133,7 @@ class wxZaoBaoViewer(wxViewerParcel):
                     dlg = wxMultipleChannelsDialog(possibleFeeds,self, -1,"")
                     dlg.ShowModal()
                     dlg.Destroy()
-            
+
                 for rssURL in possibleFeeds:
                     try:
                         anRSSData = RSSData.getNewRSSChannel(rssURL)
@@ -147,7 +146,7 @@ class wxZaoBaoViewer(wxViewerParcel):
         except IOError, e:
             if progressDlg: progressDlg.Destroy()
             wxMessageBox(_("Could not load URL: ") + rssURL)
-        
+
     #def onAddRssUrl(self, event):
         #"""Add RSS URL typed into text input area, checking first if
         #input text is a valid RSS URL"""
@@ -170,26 +169,26 @@ class wxZaoBaoViewer(wxViewerParcel):
             #if success: self.RSSIndexView.addRSS(anRSSData)
             #else: answer = wxMessageBox(e.args)
         #self.SetCursor(wxNullCursor)
-        
+
     def OnReload(self):
         """Spawns a thread to check for updates from RSS feed"""
         print "reload pressed"
         RSSData._updateRSSFeeds()
- 
+
     def onAboutZaoBaoItem(self, event):
         pageLocation = pageLocation = self.model.path + os.sep + "AboutZaoBao.html"
         infoPage = SplashScreen(self, _("About ZaoBao"), pageLocation,
                                False, False)
         infoPage.Show(True)
-    
+
     def editPageTemplate(self, event):
         """Edits RSSItemView HTML template"""
         self.RSSItemView.editPageTemplate(path=self.model.path + os.sep)
-    
+
     def editItemTemplate(self, event):
         """Edits each item within the RSSItemView HTML template"""
         self.RSSItemView.editItemTemplate(path=self.model.path + os.sep)
-    
+
     def __doMenus(self):
         EVT_MENU(self, XRCID("EditPageTemplate"), self.editPageTemplate)
         EVT_MENU(self, XRCID("EditItemTemplate"), self.editItemTemplate)
@@ -197,7 +196,7 @@ class wxZaoBaoViewer(wxViewerParcel):
         EVT_MENU(self, XRCID("DeleteItem"), self.RSSIndexView.onDeleteItem)
         EVT_MENU(self, XRCID("RefreshItem"), self.RSSIndexView.onRefreshItem)
         EVT_MENU(self, XRCID("AboutZaoBaoMenuItem"), self.onAboutZaoBaoItem)
-        
+
     def __do_layout(self):
         # begin wxGlade: wxZaoBaoFrame.__do_layout
         mainSizer = wxBoxSizer(wxVERTICAL)
@@ -222,15 +221,15 @@ class wxZaoBaoViewer(wxViewerParcel):
             self.urlTextArea.SetValue(args.getRSSURL())
         else:
             self.frame.GetStatusBar().SetStatusText(args.get('event',''))
-     
+
     def Deactivate(self):
         """Removes observers from the model (RSSData) and remembers the previously
         selected RSS feed just before deactivation"""
         wxViewerParcel.Deactivate(self)
-    
+
     def Activate(self):
         wxViewerParcel.Activate(self)
-        
+
 
     def GoToURL(self, remoteAddress, url):
        self.RSSIndexView.loadObjects(remoteAddress,url)
@@ -247,7 +246,7 @@ class wxZaoBaoViewer(wxViewerParcel):
            self.urlSizer.Add(self.sharingCombo, 0, wxALL, 5)
            EVT_COMBOBOX(self,self.sharingCombo.GetId(),self.OnSetPermission)
        self.Layout()
-       
+
     def AddObjectsToView(self, url, objectList, lastFlag):
         indexView = self.RSSIndexView
         for rssData in objectList:
@@ -259,11 +258,11 @@ class wxZaoBaoViewer(wxViewerParcel):
             for (col,colInfo) in indexView._columnInfo.items():
                 indexView.SetColumnWidth(col, doAutoWidth and wxLIST_AUTOSIZE or colInfo['defaultWidth'])
                 indexView._colSortFlag[col] = colInfo['sortFlag']
-        
+
     def OnSetPermission(self, event):
         comboBox = event.GetEventObject()
         data = comboBox.GetString(comboBox.GetSelection())
         self.model.SetPermission(data)
-        
-       
+
+
 # end of class wxZaoBaoView
