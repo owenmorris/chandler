@@ -39,10 +39,9 @@ import repository.item.Query as Query
 
 def NotifyUIAsync(message, logger=logging.info, **keys):
     logger(message)
-    if Globals.wxApplication is not None: # test framework has no wxApplication
-        Globals.wxApplication.CallItemMethodAsync(Globals.mainView,
-                                                  'setStatusMessage',
-                                                  message, **keys)
+    Globals.wxApplication.CallItemMethodAsync(Globals.mainView,
+                                               'setStatusMessage',
+                                               message, **keys)
 
 class IMAPException(common.MailException):
     pass
@@ -485,7 +484,6 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
 
         else:
-            #XXX: Why is disconnect private
             self._setDone()
             self.__disconnect()
 
@@ -499,7 +497,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
         Globals.wxApplication.PostAsyncEvent(Globals.repository.commit)
 
-        NotifyUIAsync (self.downloadedStr, self.__printInfo)
+        NotifyUIAsync(self.downloadedStr, self.__printInfo)
         self.downloadedStr = None
 
         self.account.setPinned(False)
@@ -527,14 +525,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
     def __getAccount(self):
 
-        accountKind = Mail.MailParcel.getIMAPAccountKind()
-        self.account = accountKind.findUUID(self.accountUUID)
-
-        if self.account is None: 
-            message = _("No Account for UUID: %s") % self.account.itsUUID
-            NotifyUIAsync (message, self.log.exception, alert=True)
-            raise IMAPException(message)
-
+        self.account = getIMAPAccount(self.accountUUID)
         self.account.setPinned()
 
 
@@ -572,9 +563,6 @@ def getIMAPAccount(UUID=None):
     account = None
 
     if UUID is not None:
-        if not isinstance(UUID.UUID):
-            raise IMAPException("The UUID argument must be of type UUID.UUID")
-
         account = accountKind.findUUID(UUID)
 
     else:
@@ -584,7 +572,7 @@ def getIMAPAccount(UUID=None):
 
     if account is None:
         message = _("No IMAP Account exists in Repository")
-        NotifyUIAsync (message, alert=True)
+        NotifyUIAsync(message, alert=True)
         raise IMAPException(message)
 
     return account
