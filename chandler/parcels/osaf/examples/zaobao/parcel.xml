@@ -147,7 +147,7 @@
     <task:Schedule itsName="ZaoBaoSchedule">
       <task:startTime>2003-11-11 11:11:11+0800</task:startTime>
       <task:repeatFlag>True</task:repeatFlag>
-      <task:repeatDelay>00:00:05:00</task:repeatDelay>
+      <task:repeatDelay>00:04:00:00</task:repeatDelay>
     </task:Schedule>
 
     <task:Action itsName="GetFeeds" itemClass="osaf.examples.zaobao.ZaoBaoTask.UpdateAction">
