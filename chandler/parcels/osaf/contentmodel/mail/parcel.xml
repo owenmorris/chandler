@@ -27,6 +27,13 @@
         <displayName value="Account base kind" />
         <description value="The base kind for various account kinds, such as IMAP, SMTP, WebDav" />
 
+        <Attribute itsName="numRetries">
+            <displayName value="Number of Retries" />
+            <description value="How many times to retry before giving up" />
+            <type itemref="Integer" />
+            <initialValue type="Integer" value="1" />
+        </Attribute>
+
         <Attribute itsName="username">
             <displayName value="Username" />
             <description value="The account login name" />
@@ -157,13 +164,6 @@
             <description value="Whether or not to use authentication when sending mail" />
             <type itemref="Boolean" />
             <initialValue type="Boolean" value="False" />
-        </Attribute>
-
-        <Attribute itsName="numRetries">
-            <displayName value="Number of Retries" />
-            <description value="How many times to retry before giving up" />
-            <type itemref="Integer" />
-            <initialValue type="Integer" value="1" />
         </Attribute>
 
 
