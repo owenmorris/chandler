@@ -317,7 +317,7 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
 
     fileOut = file(outputDir + os.sep + "latest.html", "w")
     fileOut.write(head1 +\
-                  '<meta http-equiv="refresh" content="5;URL=' + newDirName +\
+                  '<meta http-equiv="refresh" content="0;URL=' + newDirName +\
                   '">' + head2 +\
                   '<h2>Latest Continuous ' + buildName + ' Build</h2>' +\
                   '<a href="' + newDirName + '">' + newDirName + '</a>' +\
