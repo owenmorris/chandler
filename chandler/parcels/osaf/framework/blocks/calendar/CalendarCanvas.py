@@ -226,7 +226,6 @@ class wxWeekPanel(wx.Panel, CalendarEventHandler):
         self.columnCanvas.wxSynchronizeWidget()
         
     def PrintCanvas(self, dc):
-        self.headerCanvas.PrintCanvas(dc)
         self.columnCanvas.PrintCanvas(dc)
 
     def OnDaySelect(self, event):

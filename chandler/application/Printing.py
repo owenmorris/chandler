@@ -26,6 +26,8 @@ class Printing(object):
         previewPrintout = CanvasPrintout(self.canvas)
         printingPrintout = CanvasPrintout(self.canvas)
         self.preview = wx.PrintPreview(previewPrintout, printingPrintout, data)
+        if '__WXGTK__' in wx.PlatformInfo:
+            self.preview.SetZoom(150)
         
         if not self.preview.Ok():
             return
