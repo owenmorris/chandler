@@ -18,6 +18,9 @@ SYSTEMS=persistence/db \
 
 .PHONY: sources expand binaries $(SYSTEMS)
 
+env::
+	mkdir -p $(PREFIX)/bin $(PREFIX)/lib $(PREFIX)/include
+
 sources: env
 	for system in $(SYSTEMS); \
 	do \
