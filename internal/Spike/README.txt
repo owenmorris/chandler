@@ -51,8 +51,8 @@ To run Spike's tests, use::
 
     python setup.py test
 
-This will run Spike's tests, after upgrading the existing installation if
-necessary.  Note that the installation location must be on the ``PYTHONPATH``
+This will run Spike's default tests, after upgrading the existing installation
+if necessary. Note that the installation location must be on the ``PYTHONPATH``
 when using this command.  If you installed to the default location (Python's
 ``site-packages``), this is taken care of automatically, but if you are using
 a custom location you must add it to your ``PYTHONPATH`` environment variable.
@@ -71,6 +71,14 @@ Note, by the way, that Spike code in CVS should *never* have test failures or
 errors.  If you encounter such an error, please report it to me at once.  It's
 not a "work in progress" error, because I will only be checking in code to
 Spike if the changes pass all tests in my development environment.
+
+By default, ``setup.py test`` only runs unit tests with no outside dependencies
+(e.g. to the repository tools).  If you want to run a complete test suite, you
+should use::
+
+    python setup.py -q test -s spike.tests.all
+
+and this will run all tests, not just those listed in ``spike.tests.suite``.
 
 
 Alternate Installation

@@ -6,7 +6,7 @@ PACKAGE_VERSION = "0.0.0"
 
 SCRIPTS         = []           # No scripts yet
 ALL_EXTS        = ['*.txt']    # include text files in installation
-PACKAGES        = ['spike', 'spike.tests']
+PACKAGES        = ['spike', 'spike.tests', 'pim', 'pim.tests']
 DEFAULT_SUITE   = 'spike.tests.suite' # default tests to run on 'setup.py test'
 
 
