@@ -169,17 +169,17 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
                 else:
                     if renotify:
                         label = _("Send to new")
-            elif isinstance(item, Mail.MailMessageMixin):
+            elif isinstance(item, Mail.MailMessageMixin) and item.isOutbound:
                 # It's mail. Has it been sent already?
                 sent = False
                 try:
-                    sent = item.isOutbound and item.deliveryExtension.state == "SENT"
+                    sent = item.deliveryExtension.state == "SENT"
                 except AttributeError:
                     pass
                 if sent:
                     label = _("Sent")
                 else:
-                    # Not sent yet - do we have valid addressees?
+                    # Not sent yet - enable it if it's outbound and we have valid addressees?
                     enabled = len(item.toAddress) > 0
         
         event.arguments['Enable'] = enabled    
