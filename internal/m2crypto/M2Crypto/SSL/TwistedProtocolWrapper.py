@@ -36,7 +36,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
         wrappingFactory.protocol = TLSProtocolWrapper
         reactor.connectTCP(host, port, wrappingFactory)
 
-    MyFactory should have the following interface:
+    MyFactory should have the following interface (XXX ugly):
 
         startTLS:     boolean   Set to True to start SSL immediately
         getContext(): function  Should return M2Crypto.SSL.Context()
@@ -45,7 +45,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
     """
     def __init__(self, factory, wrappedProtocol):
         if debug:
-            print 'MyProtocolWrapper.__init__'
+            print 'TwistedProtocolWrapper.__init__'
         ProtocolWrapper.__init__(self, factory, wrappedProtocol)
 
         # wrappedProtocol == client/server instance
@@ -108,7 +108,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
             raise Exception, 'TLS already started'
 
         if debug:
-            print 'MyProtocolWrapper.startTLS'
+            print 'TwistedProtocolWrapper.startTLS'
 
         self.ctx = ctx
 
@@ -143,12 +143,12 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
     def makeConnection(self, transport):
         if debug:
-            print 'MyProtocolWrapper.makeConnection'
+            print 'TwistedProtocolWrapper.makeConnection'
         ProtocolWrapper.makeConnection(self, transport)
 
     def write(self, data):
         if debug:
-            print 'MyProtocolWrapper.write'
+            print 'TwistedProtocolWrapper.write'
         if not self.tlsStarted:
             ProtocolWrapper.write(self, data)
             return
@@ -165,7 +165,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
     def writeSequence(self, data):
         if debug:
-            print 'MyProtocolWrapper.writeSequence'
+            print 'TwistedProtocolWrapper.writeSequence'
         if not self.tlsStarted:
             ProtocolWrapper.writeSequence(self, ''.join(data))
             return
@@ -174,35 +174,35 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
     def loseConnection(self):
         if debug:
-            print 'MyProtocolWrapper.loseConnection'
+            print 'TwistedProtocolWrapper.loseConnection'
         # XXX Do we need to do m2.ssl_shutdown(self.ssl)?
         ProtocolWrapper.loseConnection(self)
 
     def registerProducer(self, producer, streaming):
         if debug:
-            print 'MyProtocolWrapper.registerProducer'
+            print 'TwistedProtocolWrapper.registerProducer'
         ProtocolWrapper.registerProducer(self, producer, streaming)
 
     def unregisterProducer(self):
         if debug:
-            print 'MyProtocolWrapper.unregisterProducer'
+            print 'TwistedProtocolWrapper.unregisterProducer'
         ProtocolWrapper.unregisterProducer(self)
 
     def stopConsuming(self):
         if debug:
-            print 'MyProtocolWrapper.stopConsuming'
+            print 'TwistedProtocolWrapper.stopConsuming'
         ProtocolWrapper.stopConsuming(self)
 
     def connectionMade(self):
         if debug:
-            print 'MyProtocolWrapper.connectionMade'
+            print 'TwistedProtocolWrapper.connectionMade'
         ProtocolWrapper.connectionMade(self)
         if self.tlsStarted and self.isClient and not self.helloDone:
             self._clientHello()
 
     def dataReceived(self, data):
         if debug:
-            print 'MyProtocolWrapper.dataReceived'
+            print 'TwistedProtocolWrapper.dataReceived'
         if not self.tlsStarted:
             ProtocolWrapper.dataReceived(self, data)
             return
@@ -230,8 +230,7 @@ class TLSProtocolWrapper(ProtocolWrapper):
 
     def connectionLost(self, reason):
         if debug:
-            print 'MyProtocolWrapper.connectionLost'
-            print 'reason=', reason
+            print 'TwistedProtocolWrapper.connectionLost'
         self.clear()
         ProtocolWrapper.connectionLost(self, reason)
 
@@ -242,13 +241,13 @@ class TLSProtocolWrapper(ProtocolWrapper):
                 x509 = X509.X509(x, 1)
             else:
                 x509 = None
-            if not self.postConnectionCheck(x509):
+            if not self.postConnectionCheck(x509, self.transport.addr[0]):
                 raise Checker.SSLVerificationError, 'post connection check'
             self.checked = 1
 
     def _clientHello(self):
         if debug:
-            print 'MyProtocolWrapper._clientHello'
+            print 'TwistedProtocolWrapper._clientHello'
         
         try:
             # We rely on OpenSSL implicitly starting with client hello

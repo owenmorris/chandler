@@ -27,9 +27,12 @@ class Checker:
         self.fingerprint = peerCertHash
         self.digest = peerCertDigest
 
-    def __call__(self, peerCert):
+    def __call__(self, peerCert, host=None):
         if peerCert is None:
             raise NoCertificate, 'peer did not return certificate'
+
+        if host is not None:
+            self.host = host
         
         if self.fingerprint:
             der = peerCert.as_der()
