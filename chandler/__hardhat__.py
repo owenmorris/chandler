@@ -78,11 +78,6 @@ def distribute(buildenv):
             buildenv['distdir'] = distDirParent
             distDir = distDirParent
 
-            os.chdir(buildenv['root'])
-            compFile2 = hardhatlib.compressDirectory(buildenv, 
-             ["debug"],
-             "Chandler_osx_dev_debug_" + buildVersionShort)
-
         elif buildenv['os'] == 'posix':
 
             distName = 'Chandler_linux_debug_' + buildVersionShort
@@ -97,12 +92,6 @@ def distribute(buildenv):
             os.chdir(buildenv['root'])
             compFile1 = hardhatlib.compressDirectory(buildenv, [distName],
              distName)
-
-            os.chdir(buildenv['root'])
-            compFile2 = hardhatlib.compressDirectory(buildenv, 
-             ["debug"],
-             "Chandler_linux_dev_debug_" + buildVersionShort)
-            os.chdir(buildenv['root'])
 
         elif buildenv['os'] == 'win':
 
@@ -119,11 +108,6 @@ def distribute(buildenv):
             os.chdir(buildenv['root'])
             compFile1 = hardhatlib.compressDirectory(buildenv, [distName], 
              distName)
-
-            os.chdir(buildenv['root'])
-            compFile2 = hardhatlib.compressDirectory(buildenv, 
-             ["debug"],
-             "Chandler_win_dev_debug_" + buildVersionShort)
 
 
     if buildenv['version'] == 'release':
@@ -142,12 +126,6 @@ def distribute(buildenv):
             os.chdir(buildenv['root'])
             compFile1 = hardhatlib.compressDirectory(buildenv, [distName],
              distName)
-
-            os.chdir(buildenv['root'])
-            compFile2 = hardhatlib.compressDirectory(buildenv, 
-             ["release"],
-             "Chandler_linux_dev_release_" + buildVersionShort)
-            os.chdir(buildenv['root'])
 
         if buildenv['os'] == 'osx':
 
@@ -179,11 +157,6 @@ def distribute(buildenv):
             buildenv['distdir'] = distDirParent
             distDir = distDirParent
 
-            os.chdir(buildenv['root'])
-            compFile2 = hardhatlib.compressDirectory(buildenv, 
-             ["release"],
-             "Chandler_osx_dev_release_" + buildVersionShort)
-
         if buildenv['os'] == 'win':
 
             distName = 'Chandler_win_' + buildVersionShort
@@ -198,11 +171,6 @@ def distribute(buildenv):
             os.chdir(buildenv['root'])
             compFile1 = hardhatlib.compressDirectory(buildenv, [distName], 
              distName)
-
-            os.chdir(buildenv['root'])
-            compFile2 = hardhatlib.compressDirectory(buildenv, 
-             ["release"],
-             "Chandler_win_dev_release_" + buildVersionShort)
 
     # put the compressed files in the right place if specified 'outputdir'
     if buildenv['outputdir']:
