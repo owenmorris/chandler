@@ -6,4 +6,4 @@ containing the class (e.g. CalendarView.py) and the second string
 specifies the class of the parcel (e.g. CalendarView)
 """
 
-parcelClass = "MrMenus.MrMenus"
+parcelClassV2 = "MrMenus.MrMenus"
