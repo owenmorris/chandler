@@ -457,6 +457,14 @@
   </Kind>
   
   <!--
+    ScrolledContainer
+  -->
+  <Kind itsName="ScrolledContainer">
+    <classes key="python">osaf.framework.blocks.ContainerBlocks.ScrolledContainer</classes>
+    <superKinds itemref="docSchema:BoxContainer"/>
+  </Kind>  
+  
+  <!--
     EmbeddedContainer
   -->
   <Kind itsName="EmbeddedContainer">
@@ -1084,8 +1092,8 @@
   <!-- SelectionContainer -->
  
   <Kind itsName="SelectionContainer">
-    <classes key="python">osaf.framework.blocks.ControlBlocks.SelectionContainer</classes>
-    <superKinds itemref="docSchema:BoxContainer"/>
+    <classes key="python">osaf.framework.blocks.ContainerBlocks.SelectionContainer</classes>
+    <superKinds itemref="docSchema:ScrolledContainer"/>
 
     <attributes itemref="docSchema:selection"/>
   </Kind>    

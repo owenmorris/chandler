@@ -1047,50 +1047,6 @@ class ItemDetail(RectangularChild):
         self.selection = notification.data['item']
         self.synchronizeWidget ()
 
-class wxScrolledWindow (wx.ScrolledWindow):
-    pass
-
-class SelectionContainer(BoxContainer):
-    """
-    SelectionContainer
-    Keeps track of the current selected item
-    """
-    def __init__(self, *arguments, **keywords):
-        super (SelectionContainer, self).__init__ (*arguments, **keywords)
-        self.selection = None
-
-    def xinstantiateWidget (self):
-        # DLDTBD - figure out how to share this code with BoxContainer
-        if self.orientationEnum == 'Horizontal':
-            orientation = wx.HORIZONTAL
-        else:
-            orientation = wx.VERTICAL
-
-        sizer = wx.BoxSizer(orientation)
-        sizer.SetMinSize((200,200))
-
-        if self.parentBlock:
-            parentWidget = self.parentBlock.widget
-        else:
-            parentWidget = Globals.wxApplication.mainFrame
- 
-        widget = wxScrolledWindow (parentWidget, Block.getWidgetID(self), \
-                                   size=(300,300), style=wx.VSCROLL)
-        widget.SetSizerAndFit (sizer)
-
-        widget.Show (self.isShown)
-        return widget
-
-    def onSelectionChangedEvent (self, notification):
-        """
-          just remember the new selected ContentItem.
-        """
-        item = notification.data['item']
-        self.selection = item
-
-    def selectedItem(self):
-        # return the item being viewed
-        return self.selection
     
 class ContentItemDetail(BoxContainer):
     """

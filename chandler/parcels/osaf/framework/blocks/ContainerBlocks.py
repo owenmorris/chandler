@@ -183,6 +183,58 @@ class EmbeddedContainer(RectangularChild):
                     embeddedSizer.Layout()
 
         
+class wxScrolledContainer (wx.ScrolledWindow):
+    def wxSynchronizeWidget(self, *arguments, **keywords):
+        if self.blockItem.isShown:
+            sizer = self.GetSizer()
+            sizer.Clear()
+            for childBlock in self.blockItem.childrenBlocks:
+                if childBlock.isShown and isinstance (childBlock, RectangularChild):
+                    sizer.Add (childBlock.widget,
+                               childBlock.stretchFactor, 
+                               wxRectangularChild.CalculateWXFlag(childBlock), 
+                               wxRectangularChild.CalculateWXBorder(childBlock))
+            self.Layout()
+            self.SetScrollRate(0,1)
+
+        
+class ScrolledContainer(BoxContainer):
+    def instantiateWidget (self):
+        if self.orientationEnum == 'Horizontal':
+            orientation = wx.HORIZONTAL
+        else:
+            orientation = wx.VERTICAL
+
+        sizer = wx.BoxSizer(orientation)
+        sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
+
+        widget = wxScrolledContainer (self.parentBlock.widget, Block.getWidgetID(self))
+        widget.SetSizer (sizer)
+
+        return widget
+    
+  
+class SelectionContainer(ScrolledContainer):
+    """
+    SelectionContainer
+    Keeps track of the current selected item
+    """
+    def __init__(self, *arguments, **keywords):
+        super (SelectionContainer, self).__init__ (*arguments, **keywords)
+        self.selection = None
+
+    def onSelectionChangedEvent (self, notification):
+        """
+          just remember the new selected ContentItem.
+        """
+        item = notification.data['item']
+        self.selection = item
+
+    def selectedItem(self):
+        # return the item being viewed
+        return self.selection    
+
+        
 class wxSplitterWindow(wx.SplitterWindow):
 
     def __init__(self, *arguments, **keywords):
