@@ -785,7 +785,7 @@ def setupEnvironment(buildenv):
     # log(buildenv, HARDHAT_MESSAGE, 'hardhat', "Setting path to " + path)
     # os.putenv('path', path)
     if (sys.platform == 'cygwin' and
-        '.'.join(map(str, sys.version_info[:3])) < 2.3.0):
+        '.'.join(map(str, sys.version_info[:3])) < '2.3.0'):
         # Even though we're under cygwin, we're going to be launching 
         # external programs that expect PATH to be in DOS format, so
         # convert it
