@@ -11,9 +11,15 @@
     xmlns:current="http://osafoundation.org/parcels/osaf/current"
     >
 
-    <share:WebDAVAccount itsName="WebDAVAccount">
-        <displayName value="WebDAV Account"/>
+    <share:WebDAVAccount itsName="OSAFWebDAVAccount">
+        <displayName value="OSAF WebDAV Account"/>
         <currentItemOf itemref="current:WebDAVAccount"/>
+        <host value="pilikia.osafoundation.org"/>
+        <path value="dev1"/>
+        <username value="dev1"/>
+        <password value="d4vShare"/>
+        <useSSL value="False"/>
+        <port value="80"/>
     </share:WebDAVAccount>
 
 </Parcel>
