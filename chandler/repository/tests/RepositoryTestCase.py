@@ -7,7 +7,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from unittest import TestCase
-import logging, os, sys
+import logging, os, sys, gettext
 
 from repository.persistence.XMLRepository import XMLRepository
 from repository.util.Path import Path
@@ -27,6 +27,10 @@ class RepositoryTestCase(TestCase):
         root.addHandler(handler)
 
         self.ramdb = ramdb
+
+        # set up the gettext locale, so we have a definition of _()
+        os.environ['LANGUAGE'] = 'en'
+        gettext.install('chandler', 'locale')
 
     def _openRepository(self, ramdb=True):
         preloadedRepositoryPath = os.path.join(self.testdir, '__preloaded_repository__')
