@@ -367,12 +367,13 @@ void wxColumnHeader::DoGetSize(
 
 // virtual
 void wxColumnHeader::OnPaint(
-	wxPaintEvent		& WXUNUSED(event) )
+	wxPaintEvent		&event )
 {
 #if !defined(__WXMSW__)
 	Draw();
 #else
-	::DefWindowProc( GetHwnd(), WM_PAINT, 0, 0 );
+	event.Skip();
+//	::DefWindowProc( GetHwnd(), WM_PAINT, 0, 0 );
 //	wxControl::MSWWindowProc( WM_PAINT, 0, 0 );
 //	wxWindow::OnPaint( event );
 //	wxControl::OnPaint( event );
@@ -386,16 +387,20 @@ void wxColumnHeader::OnPaint(
 void wxColumnHeader::OnDoubleClick(
 	wxMouseEvent		&event )
 {
-	if (HitTest( event.GetPosition() ) < wxCOLUMNHEADER_HITTEST_ItemZero)
+long		itemIndex;
+
+	itemIndex = HitTest( event.GetPosition() );
+	if (itemIndex >= wxCOLUMNHEADER_HITTEST_ItemZero)
 	{
-		event.Skip();
-	}
-	else
-	{
+		// NB: just call the single click handler for the present
 		OnClick( event );
 
 		// NB: unused for the present
 		//GenerateEvent( wxEVT_COLUMNHEADER_DOUBLECLICKED );
+	}
+	else
+	{
+		event.Skip();
 	}
 }
 
@@ -411,11 +416,14 @@ long		itemIndex;
 		if (itemIndex >= wxCOLUMNHEADER_HITTEST_ItemZero)
 		{
 			OnClick_SelectOrToggleSort( itemIndex );
+			// event.Skip();
 			break;
 		}
-
-		// unknown message - unhandled - fall through
-		//wxLogDebug( _T("wxColumnHeader::OnClick - unknown hittest code") );
+		else
+		{
+			// unknown message - unhandled - fall through
+			//wxLogDebug( _T("wxColumnHeader::OnClick - unknown hittest code") );
+		}
 
 	case wxCOLUMNHEADER_HITTEST_NoPart:
 		event.Skip();
