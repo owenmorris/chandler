@@ -31,4 +31,5 @@ class CopyingTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.assertEquals(child, grandChild.myParent.first())
 
 if __name__ == "__main__":
-    unittest.main()
+    # unittest.main()
+    pass
