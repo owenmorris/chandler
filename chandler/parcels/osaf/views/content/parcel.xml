@@ -157,7 +157,7 @@
     <stretchFactor>1.0</stretchFactor>
   </Summary>
 
-  <ItemDetail itemName="ContentItemDetail"
+  <ItemDetail itemName="CalendarEventDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
     <open>True</open>
     <size>100,50</size>
@@ -167,7 +167,7 @@
     <stretchFactor>1.0</stretchFactor>
   </ItemDetail>
 
-  <ItemDetail itemName="CalendarEventDetail"
+  <ItemDetail itemName="NoteDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
     <open>True</open>
     <size>100,50</size>
@@ -187,7 +187,27 @@
     <stretchFactor>1.0</stretchFactor>
   </ItemDetail>
 
-  <ItemDetail itemName="NoteDetail"
+  <ItemDetail itemName="MixedItemDetail"
+              itemClass="osaf.views.content.Content.ContentItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </ItemDetail>
+
+  <ItemDetail itemName="MonthItemDetail"
+              itemClass="osaf.views.content.Content.ContentItemDetail">
+    <open>True</open>
+    <size>100,50</size>
+    <minimumSize>100,50</minimumSize>
+    <border>0.0, 0.0, 0.0, 0.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+  </ItemDetail>
+
+  <ItemDetail itemName="WeekItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
     <open>True</open>
     <size>100,50</size>
@@ -255,7 +275,7 @@
   <!-- Mixed View -->
   <SplitWindow itemName="MixedListView">
     <childrenBlocks itemref="view:MixedList"/>
-    <childrenBlocks itemref="view:ContentItemDetail"/>
+    <childrenBlocks itemref="view:MixedItemDetail"/>
 
     <open>True</open>
     <eventBoundary>True</eventBoundary>
@@ -270,10 +290,10 @@
     <splitPercentage>0.5</splitPercentage>
   </SplitWindow>
 
-  <!-- Week View -->
+  <!-- MonthView View -->
   <SplitWindow itemName="MonthView">
     <childrenBlocks itemref="view:SummaryMonth"/>
-    <childrenBlocks itemref="view:ContentItemDetail"/>
+    <childrenBlocks itemref="view:MonthItemDetail"/>
 
     <open>True</open>
     <eventBoundary>True</eventBoundary>
@@ -286,13 +306,12 @@
 
     <orientationEnum>Horizontal</orientationEnum>
     <splitPercentage>0.5</splitPercentage>
-    
   </SplitWindow>
 
   <!-- Week View -->
   <SplitWindow itemName="WeekView">
     <childrenBlocks itemref="view:SummaryWeek"/>
-    <childrenBlocks itemref="view:ContentItemDetail"/>
+    <childrenBlocks itemref="view:WeekItemDetail"/>
 
     <open>True</open>
     <eventBoundary>True</eventBoundary>
