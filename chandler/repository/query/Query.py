@@ -64,11 +64,12 @@ class Query(object):
         else:
             self._logical_plan = None
 
-    def subscribe(self, callbackItem, callbackMethodName):
+    def subscribe(self, callbackItem = None, callbackMethodName = None):
         """
         This query should subscribe to repository changes
         """
-        self._callbacks [callbackItem.itsUUID] = callbackMethodName
+        if callbackItem is not None:
+            self._callbacks [callbackItem.itsUUID] = callbackMethodName
         log.debug("RepoQuery<>.subscribe(): %s" % (self.queryString))
         self.__rep.addNotificationCallback(self.queryCallback)
         
