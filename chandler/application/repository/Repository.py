@@ -21,7 +21,6 @@ from application.repository import Thing
 
 class Repository:
 
-    print "XYZZY---------------------------------------------------"
     # as per the borg pattern, this will become the object's __dict__
     _shared_state = {}
     
