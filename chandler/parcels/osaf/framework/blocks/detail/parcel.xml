@@ -319,7 +319,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 20</minimumSize>
+    <minimumSize>80, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="FromEditField1"
@@ -329,7 +329,7 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>True</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>80, 20</minimumSize>
+    <minimumSize>80, 24</minimumSize>
   </EditText>
 
   <ContentItemDetail itsName="ToArea"
@@ -347,7 +347,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 20</minimumSize>
+    <minimumSize>80, 24</minimumSize>
   </StaticText>
   
   <EditText itsName="ToEditField1"
@@ -357,7 +357,7 @@
     <textStyleEnum>PlainText</textStyleEnum>
     <readOnly>True</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>80, 20</minimumSize>
+    <minimumSize>80, 24</minimumSize>
   </EditText>
 
   <!-- CoreIndent -->
@@ -397,7 +397,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 20</minimumSize>
+    <minimumSize>80, 24</minimumSize>
   </StaticText>
   
   <StaticText itsName="Headline"
@@ -406,7 +406,7 @@
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 20</minimumSize>
+    <minimumSize>80, 24</minimumSize>
   </StaticText>
   
   <StaticText itsName="DateTime"
@@ -415,7 +415,7 @@
     <characterStyle itemref="doc:TextStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
-    <minimumSize>80, 20</minimumSize>
+    <minimumSize>80, 24</minimumSize>
   </StaticText>
   
   <!-- NotesArea -->
