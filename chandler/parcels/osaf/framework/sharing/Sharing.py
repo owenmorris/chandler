@@ -193,12 +193,6 @@ def announceSharingInvitation(url, collectionName, fromAddress):
     logging.info("announceSharingInvitation() received an invitation from " \
     "mail: [%s][%s][%s]" % (url, collectionName, fromAddress))
 
-    # @@@ Hack to wait for commit in other thread (but same view) to finish
-    view = Globals.repository.view
-    while (view._status & \
-     repository.persistence.RepositoryView.RepositoryView.COMMITTING):
-        time.sleep(1)
-
     sharingParcel = \
      Globals.repository.findPath("//parcels/osaf/framework/sharing")
     Globals.wxApplication.CallItemMethodAsync( sharingParcel,
@@ -208,12 +202,6 @@ def announceSharingInvitation(url, collectionName, fromAddress):
 def announceError(error):
     """ Call this method to announce an error. This method is non-blocking. """
     logging.info("announceError() received an error from mail: [%s]" % error)
-
-    # @@@ Hack to wait for commit in other thread (but same view) to finish
-    view = Globals.repository.view
-    while (view._status & \
-     repository.persistence.RepositoryView.RepositoryView.COMMITTING):
-        time.sleep(1)
 
     sharingParcel = \
      Globals.repository.findPath("//parcels/osaf/framework/sharing")
