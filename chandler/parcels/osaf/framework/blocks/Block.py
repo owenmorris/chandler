@@ -288,10 +288,6 @@ class Block(Item):
                     Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
 
 
-class ContainerChild(Block):
-    pass
-
-    
 class wxRectangularChild (wx.Panel):
     def __init__(self, *arguments, **keywords):
         super (wxRectangularChild, self).__init__ (*arguments, **keywords)
@@ -348,7 +344,7 @@ class wxRectangularChild (wx.Panel):
     CalculateWXFlag = classmethod(CalculateWXFlag)
     
 
-class RectangularChild(ContainerChild):
+class RectangularChild(Block):
     def DisplayContextMenu(self, position, data):
         try:
             self.contextMenu

@@ -383,19 +383,11 @@
   </Kind>
 
   <!--
-    ContainerChild is the most generic child of a container
-  -->
-  <Kind itsName="ContainerChild">
-    <classes key="python">osaf.framework.blocks.Block.ContainerChild</classes>
-    <superKinds itemref="docSchema:Block"/>
-  </Kind>
-
-  <!--
     RectangularChild is a rectangular child of a container
   -->
   <Kind itsName="RectangularChild">
     <classes key="python">osaf.framework.blocks.Block.RectangularChild</classes>
-    <superKinds itemref="docSchema:ContainerChild"/>
+    <superKinds itemref="docSchema:Block"/>
 
     <Attribute itsName="size">
       <type itemref="docSchema:SizeType"/>

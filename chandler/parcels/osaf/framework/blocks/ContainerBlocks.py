@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-from Block import Block, RectangularChild, wxRectangularChild, ContainerChild
+from Block import Block, RectangularChild, wxRectangularChild
 from DragAndDrop import DropReceiveWidget as DropReceiveWidget
 from DynamicContainerBlocks import Toolbar as Toolbar
 from Styles import Font

@@ -209,7 +209,7 @@ class HTML(RectangularChild):
 class ListDelegate (object):
     """
       Default delegate for Lists that use the block's contents. Override
-    to customize your behavior. You must implement GetItemValue.
+    to customize your behavior. You must implement GetElementValue.
     """
     def GetColumnCount (self):
         return len (self.blockItem.columnHeadings)
