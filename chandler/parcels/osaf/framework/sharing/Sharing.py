@@ -21,7 +21,7 @@ import logging
 import wx
 import time, StringIO, urlparse, libxml2, os, mx
 import chandlerdb
-import WebDAV
+import WebDAV, httplib
 
 logger = logging.getLogger('Sharing')
 logger.setLevel(logging.INFO)
@@ -377,6 +377,9 @@ class ShareConduit(ContentModel.ChandlerItem):
         location = self.getLocation()
         logger.info("Starting GET of %s" % (location))
 
+        if not self.exists():
+            raise NotFound()
+
         retrievedItems = []
         self.resourceList = self._getResourceList(location)
         self.__resetSeen()
@@ -539,7 +542,10 @@ class ShareConduit(ContentModel.ChandlerItem):
             value['seen'] = False
 
     def __setSeen(self, path):
-        self.manifest[path]['seen'] = True
+        try:
+            self.manifest[path]['seen'] = True
+        except:
+            pass
 
     def __iterUnseen(self):
         for (path, value) in self.manifest.iteritems():
@@ -769,6 +775,16 @@ class WebDAVConduit(ShareConduit):
             url = "http://%s:%s%s" % (self.host, self.port, path)
         return url
 
+    def exists(self):
+        super(WebDAVConduit, self).exists()
+
+        resp = self.__getClient().head(self.getLocation())
+        resp.read()
+        if resp.status == httplib.NOT_FOUND:
+            return False
+        else:
+            return True
+
     def create(self):
         super(WebDAVConduit, self).create()
 
@@ -777,8 +793,8 @@ class WebDAVConduit(ShareConduit):
         if style == ImportExportFormat.STYLE_DIRECTORY:
             url = self.getLocation()
             resp = self.__getClient().mkcol(url)
+            resp.read() # Always need to read each response
             # @@@MOR Raise an exception if already exists?
-            # print "response from mkcol:", resp.read()
 
     def destroy(self):
         print " @@@MOR unimplemented"
@@ -792,12 +808,12 @@ class WebDAVConduit(ShareConduit):
         url = self.__getItemURL(item)
         text = self.share.format.exportProcess(item)
         resp = self.__getClient().put(url, text)
-        resp.read()
+        resp.read() # Always need to read each response
         etag = resp.getheader('ETag', None)
         if not etag:
             # mod_dav doesn't give us back an etag upon PUT
             resp = self.__getClient().head(url)
-            resp.read()
+            resp.read() # Always need to read each response
             etag = resp.getheader('ETag', None)
             if not etag:
                 print "HEAD didn't give me an etag"
@@ -846,7 +862,7 @@ class WebDAVConduit(ShareConduit):
 
         elif style == ImportExportFormat.STYLE_SINGLE:
             resp = self.__getClient().head(location)
-            resp.read()
+            resp.read() # Always need to read each response
             etag = resp.getheader('ETag', None)
             etag = self.__cleanEtag(etag)
             path = urlparse.urlparse(location)[2]

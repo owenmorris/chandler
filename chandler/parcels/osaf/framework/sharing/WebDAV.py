@@ -9,16 +9,22 @@ import mimetypes
 import base64
 import libxml2
 import urlparse
+import logging
 import crypto.ssl as ssl
 import M2Crypto.httpslib as httpslib
+
+logger = logging.getLogger('WebDAV')
+logger.setLevel(logging.DEBUG)
 
 XML_CONTENT_TYPE = 'text/xml; charset="utf-8"'
 XML_DOC_HEADER = '<?xml version="1.0" encoding="utf-8"?>'
 
+DEFAULT_RETRIES = 3
+
 class Client(object):
 
     def __init__(self, host, port=80, username=None, password=None,
-     useSSL=False, ctx=None):
+     useSSL=False, ctx=None, retries=DEFAULT_RETRIES):
         self.host = host
         self.port = port
         self.username = username
@@ -26,8 +32,11 @@ class Client(object):
         self.useSSL = useSSL
         self.ctx = ctx
         self.conn = None
+        self.retries = retries
 
     def connect(self):
+        logger.debug("Opening connection")
+
         if self.useSSL:
             if self.ctx is None:
                 self.ctx = ssl.getSSLContext()
@@ -36,6 +45,8 @@ class Client(object):
                                                  ssl_context=self.ctx)
         else:
             self.conn = httplib.HTTPConnection(self.host, self.port)
+
+        self.conn.debuglevel = 0
 
     def mkcol(self, url, extraHeaders={ }):
         return self._request('MKCOL', url, extraHeaders=extraHeaders)
@@ -75,7 +86,7 @@ class Client(object):
         resources = []
         resp = self.propfind(url, depth=1, extraHeaders=extraHeaders)
         if resp.status != httplib.MULTI_STATUS:
-            raise "ERROR, got status %d" % resp.status # @@@
+            raise WebDAVException() # @@@MOR Any way to recover from this?
 
         # Parse the propfind, pulling out the URLs for each child along
         # with their ETAGs, and storing them in the resourceList dictionary:
@@ -85,7 +96,7 @@ class Client(object):
         try:
             doc = libxml2.parseDoc(text)
         except:
-            print "parsing response failed:", text
+            logging.error("Parsing response failed: %s" % text)
             raise
         node = doc.children.children
         while node:
@@ -131,6 +142,8 @@ class Client(object):
         return self._request('ACL', url, body, headers)
 
     def _request(self, method, url, body=None, extraHeaders={ }):
+        logger.debug("_request: %s %s" % (method, url))
+
         if self.conn is None:
             self.connect()
 
@@ -140,25 +153,62 @@ class Client(object):
             extraHeaders = extraHeaders.copy()
             extraHeaders['Authorization'] = auth
 
-        # @@@MOR Rewrite all this retry code:
-        try:
-            self.conn.request(method, url, body, extraHeaders)
-        except httplib.CannotSendRequest:
-            print "Got a 'cannotsendrequest', so reconnecting and retrying"
-            self.connect()
-            self.conn.request(method, url, body, extraHeaders)
-        except socket.error, e:
-            print "Got a request socket error", e
-            print "Reconnecting and retrying"
-            self.connect()
-            self.conn.request(method, url, body, extraHeaders)
-        try:
-            response = self.conn.getresponse()
-        except socket.error, e:
-            print "Got a response socket error", e
-            print "Reconnecting and retrying"
-            self.connect()
-            self.conn.request(method, url, body, extraHeaders)
-            response = self.conn.getresponse()
-        return response
+        triesLeft = self.retries
+        while triesLeft > 0:
+            logger.debug("%d tries left" % triesLeft)
+            triesLeft -= 1
 
+            try:
+                logger.debug("Sending request: %s %s" % (method, url))
+                self.conn.request(method, url, body, extraHeaders)
+            except httplib.CannotSendRequest:
+                logger.debug("Got CannotSendRequest")
+                self.connect()
+                continue
+            except socket.error, e:
+                logger.debug("Got socket error: %s" % e)
+                self.connect()
+                continue
+
+            try:
+                response = self.conn.getresponse()
+            except httplib.BadStatusLine, e:
+                if not e.line:
+                    # This condition means the server closed a keepalive
+                    # connection.  Reopen.
+                    logger.debug("Server closed keepalive connection")
+                    self.connect()
+                    continue
+                else:
+                    # We must have gotten a garbled status line
+                    raise
+            except socket.error, e:
+                logger.debug("Got socket error: %s" % e)
+                self.connect()
+                continue
+
+            # Check for HTTP redirects (30X codes)
+            if response.status in (httplib.MOVED_PERMANENTLY, httplib.FOUND,
+             httplib.SEE_OTHER, httplib.TEMPORARY_REDIRECT):
+                response.read() # Always need to read each response
+                url = response.getheader('Location')
+                logger.debug("Redirecting to: %s" % url)
+                continue
+
+            return response
+
+        # After the retries, we didn't succeed.
+        # @@@MOR What sort of exceptions do we want to raise here?
+        raise ConnectionError()
+
+class WebDAVException(Exception):
+    pass
+
+class ConnectionError(WebDAVException):
+    pass
+
+class NotFound(WebDAVException):
+    pass
+
+class NotAuthorized(WebDAVException):
+    pass
