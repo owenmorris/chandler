@@ -9,6 +9,14 @@
  	@$(PERL) $(TOP)/util/mkdir-p.pl $(INSTALL_PREFIX)$(INSTALLTOP)/bin \
  		$(INSTALL_PREFIX)$(INSTALLTOP)/lib \
  		$(INSTALL_PREFIX)$(INSTALLTOP)/lib/pkgconfig \
+@@ -830,7 +830,6 @@
+ 			echo 'OpenSSL shared libraries have been installed in:'; \
+ 			echo '  $(INSTALLTOP)'; \
+ 			echo ''; \
+-			sed -e '1,/^$$/d' doc/openssl-shared.txt; \
+ 		fi; \
+ 	fi
+ 	cp openssl.pc $(INSTALL_PREFIX)$(INSTALLTOP)/lib/pkgconfig
 --- openssl-0.9.7d/Makefile.ssl	2004-03-17 04:08:47.000000000 -0800
 +++ openssl-0.9.7d-patched/Makefile.ssl	2004-05-07 21:31:24.000000000 -0700
 @@ -772,7 +772,7 @@
@@ -20,3 +28,24 @@
  	@$(PERL) $(TOP)/util/mkdir-p.pl $(INSTALL_PREFIX)$(INSTALLTOP)/bin \
  		$(INSTALL_PREFIX)$(INSTALLTOP)/lib \
  		$(INSTALL_PREFIX)$(INSTALLTOP)/lib/pkgconfig \
+--- openssl-0.9.7d/Configure	Fri Mar 12 13:24:44 2004
++++ openssl-0.9.7d-patched/Configure	Thu May 20 10:42:06 2004
+@@ -1194,7 +1194,7 @@
+ 	$shlib_minor=$2;
+ 	}
+ 
+-open(IN,'<Makefile.org') || die "unable to read Makefile.org:$!\n";
++open(IN,'<../Makefile.org') || die "unable to read Makefile.org:$!\n";
+ unlink("$Makefile.new") || die "unable to remove old $Makefile.new:$!\n" if -e "$Makefile.new";
+ open(OUT,">$Makefile.new") || die "unable to create $Makefile.new:$!\n";
+ print OUT "### Generated automatically from Makefile.org by Configure.\n\n";
+--- openssl-0.9.7d/util/mkfiles.pl	Wed Jan  2 08:55:35 2002
++++ openssl-0.9.7d-patched/util/mkfiles.pl	Thu May 20 14:44:11 2004
+@@ -53,7 +53,6 @@
+ "crypto/krb5",
+ "ssl",
+ "apps",
+-"test",
+ "tools"
+ );
+ 
