@@ -300,7 +300,13 @@ class JabberClient:
         responseMessage.setX('chandler:receive-error')
         responseMessage.setSubject(url)
         self.connection.send(responseMessage)
-         
+
+    # send a vanilla text message
+    def SendTextMessage(self, toAddress, messageText):
+        messageObject = Message(toAddress, messageText)
+        messageObject.setType('chat')
+        self.connection.send(messageObject)
+
     # handle responses to requests for accessible views
     def HandleViewResponse(self, fromAddress, responseBody):
         newViews = self.DecodePythonObject(responseBody)
