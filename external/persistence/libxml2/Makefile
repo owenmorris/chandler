@@ -46,7 +46,7 @@ clean:
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(LIBXML2)/$(SNAP).tar.gz \
-                  $(SNAP)/$(SITE)/libxml2*
+                  $(SNAP)/$(SITE)/*libxml2*
 
 else
 
@@ -73,7 +73,7 @@ snap:
 	cd $(BUILD_ROOT); \
         tar -cvzf $(LIBXML2)/$(SNAP).tar.gz \
                   $(SNAP)/lib/libxml2* \
-                  $(SNAP)/$(SITE)/libxml2*
+                  $(SNAP)/$(SITE)/*libxml2*
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
