@@ -13,6 +13,7 @@ import crypto.ssl as ssl
 import M2Crypto.httpslib as httpslib
 
 XML_CONTENT_TYPE = 'text/xml; charset="utf-8"'
+XML_DOC_HEADER = '<?xml version="1.0" encoding="utf-8"?>'
 
 class Client(object):
 
@@ -59,12 +60,12 @@ class Client(object):
     def delete(self, url, extraHeaders={ }):
         return self._request('DELETE', url, extraHeaders=extraHeaders)
 
-    def propfind(self, url, depth=None, extraHeaders={ }):
+    def propfind(self, url, body=None, depth=None, extraHeaders={ }):
         extraHeaders = extraHeaders.copy()
         extraHeaders['Content-Type'] = XML_CONTENT_TYPE
         if depth is not None:
             extraHeaders['Depth'] = str(depth)
-        return self._request('PROPFIND', url, extraHeaders=extraHeaders)
+        return self._request('PROPFIND', url, body, extraHeaders=extraHeaders)
 
     def ls(self, url, extraHeaders={ }):
         # A helper method which parses a PROPFIND response and returns a
@@ -113,6 +114,21 @@ class Client(object):
             node = node.next
         doc.freeDoc()
         return resources
+
+    def getacl(self, url, extraHeaders={ }):
+        # Strictly speaking this method is not needed, you could use
+        # propfind, or getprops.
+        body = XML_DOC_HEADER + \
+               '<D:propfind xmlns:D="DAV:"><D:prop><D:acl/></D:prop></D:propfind>'
+        return self.propfind(url, body, extraHeaders=extraHeaders)
+
+    def setacl(self, url, acl, extraHeaders={ }):
+        # url is the resource who's acl we are changing
+        # acl is an ACL object that sets the actual ACL
+        body = XML_DOC_HEADER + str(acl)
+        headers = extraHeaders.copy()
+        headers['Content-Type'] = XML_CONTENT_TYPE
+        return self._request('ACL', url, body, headers)
 
     def _request(self, method, url, body=None, extraHeaders={ }):
         if self.conn is None:
