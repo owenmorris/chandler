@@ -418,6 +418,12 @@ support.
         >>> events.weak_receiver(hello)==events.weak_receiver(ob.hello)
         False
 
+    Finally, creating a weak receiver for a weak receiver just returns the
+    same object::
+    
+        >>> h = events.weak_receiver(hello)
+        >>> events.weak_receiver(h) is h
+        True
 
 ``weak_sender(sender, callback=None)``
     Wrap an arbitrary `sender` object, and return an object that hashes and

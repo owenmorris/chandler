@@ -139,6 +139,9 @@ class weak_receiver(ref):
                 self.func = receiver.im_func
                 return self
 
+        if isinstance(receiver,weak_receiver):
+            return receiver
+
         try:
             return ref.__new__(cls,receiver,callback)
         except TypeError:
