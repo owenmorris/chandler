@@ -56,8 +56,6 @@ class wxZaoBaoItemView(wxItemView):
             self.LoadPage(itemURL)
             return
 
-        self.OnSelectionChangedEvent (item)
-
         event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
         notification = Notification(event, None, None)
         notification.SetData({'item':item, 'type':'Normal'})

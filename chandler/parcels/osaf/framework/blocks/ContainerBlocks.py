@@ -620,11 +620,21 @@ class wxTreeList(wxTreeListCtrl):
             pass
 
     def On_wxSelectionChanged(self, event):
-        chandlerEvent = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
-        notification = Notification(chandlerEvent, None, None)
-        notification.SetData ({'item':self.GetPyData(event.GetItem()),
-                               'type':'Normal'})
-        Globals.notificationManager.PostNotification (notification)
+        selection = ''
+        id = self.GetSelection()
+        while id.IsOk():
+            selection = '/' + self.GetItemText(id) + selection
+            id = self.GetItemParent (id)
+
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        if counterpart.selection != selection:
+            counterpart.selection = selection
+    
+            chandlerEvent = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
+            notification = Notification(chandlerEvent, None, None)
+            notification.SetData ({'item':self.GetPyData(event.GetItem()),
+                                   'type':'Normal'})
+            Globals.notificationManager.PostNotification (notification)
 
     def SynchronizeFramework(self):
         def ExpandContainer (self, openedContainers, id):
@@ -655,8 +665,36 @@ class wxTreeList(wxTreeListCtrl):
         counterpart.GetTreeData(TreeNode (None, self))
 
         ExpandContainer (self, counterpart.openedContainers, self.GetRootItem ())
+        self.GoToPath (counterpart.selection)
 
-        
+    def GoToPath(self, path):
+        treeNode = self.GetRootItem()
+        child = None
+        for name in path.split ('/'):
+            if name:
+                assert (self.ItemHasChildren (treeNode))
+                self.Expand (treeNode)
+                child, cookie = self.GetFirstChild (treeNode, 0)
+                while child.IsOk():
+                    try:
+                        if name == self.GetPyData(child).getItemDisplayName():
+                            break
+                    except AttributeError:
+                        pass
+                    child = self.GetNextSibling (child)
+
+                if child.IsOk():
+                    treeNode = child
+                else:
+                    """
+                      path doesn't exist
+                    """
+                    return
+        if child:
+            self.SelectItem (child)
+            self.ScrollTo (child)
+
+
 class TreeList(RectangularChild):
     def __init__(self, *arguments, **keywords):
         super (TreeList, self).__init__ (*arguments, **keywords)
@@ -687,45 +725,14 @@ class TreeList(RectangularChild):
         return style
 
 
-class wxRepositoryTreeList(wxTreeList):
-    def GoToUrl(self, url):
-        treeNode = self.GetRootItem()
-        for name in url.split ('/'):
-            if name:
-                assert (self.ItemHasChildren (treeNode))
-                self.Expand (treeNode)
-                child, cookie = self.GetFirstChild (treeNode, 0)
-                while child.IsOk():
-                    if name == self.GetPyData(child).getItemName():
-                        break
-                    child = self.GetNextSibling (child)
-
-                if child.IsOk():
-                    treeNode = child
-                else:
-                    """
-                      URL doesn't exist
-                    """
-                    assert (False)
-                    return
-       
-        self.SelectItem (child)
-        self.ScrollTo (child)
-
-
 class RepositoryTreeList(TreeList):
-    def renderOneBlock (self, parent, parentWindow):
-        treeList = wxRepositoryTreeList(parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
-        return super (RepositoryTreeList, self).renderOneBlock (parent, parentWindow, nativeWindow=treeList)
-
     def GetTreeData (self, node):
         item = node.GetData()
         if item:
             for child in item:
                 names = [child.getItemName()]
-                names.append (str(child.getItemDisplayName()))
                 try:
-                    names.append (child.kind.getItemName())
+                    names.append (str(child.getItemDisplayName()))
                 except AttributeError:
                     names.append ('(kindless)')
                 names.append (str(child.getUUID()))
@@ -736,7 +743,7 @@ class RepositoryTreeList(TreeList):
 
     def OnSelectionChangedEvent (self, notification):
         wxTreeListWindow = Globals.association[self.getUUID()]
-        wxTreeListWindow.GoToUrl (str (notification.GetData()['item'].getItemPath()))
+        wxTreeListWindow.GoToPath (str (notification.GetData()['item'].getItemPath()))
 
         
 class Sidebar(TreeList):

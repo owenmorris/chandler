@@ -867,12 +867,18 @@
       <cardinality>dict</cardinality>
     </Attribute>
 
+    <Attribute itemName="selection">
+      <type itemref="String"/>
+      <defaultValue type="String"></defaultValue>
+    </Attribute>
+
     <attributes itemref="docSchema:TreeList/hideRoot"/>
     <attributes itemref="docSchema:TreeList/noLines"/>
     <attributes itemref="docSchema:TreeList/useButtons"/>    
     <attributes itemref="docSchema:TreeList/columnHeadings"/>
     <attributes itemref="docSchema:TreeList/columnWidths"/>
     <attributes itemref="docSchema:TreeList/openedContainers"/>
+    <attributes itemref="docSchema:TreeList/selection"/>
   </Kind>  
 
   <!--

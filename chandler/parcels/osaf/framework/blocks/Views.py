@@ -22,16 +22,15 @@ class View(BoxContainer):
             except AttributeError:
                 return False
         
-        def broadcast (block, focusBlock, methodName, notification):
+        def broadcast (block, methodName, notification):
             """
               Call method named methodName on every block and it's children
             who implements it
             """
             if block:
-                if block != focusBlock:
-                    callMethod (block, methodName, notification)
+                callMethod (block, methodName, notification)
                 for child in block.childrenBlocks:
-                    broadcast (child, focusBlock, methodName, notification)
+                    broadcast (child, methodName, notification)
 
         event = notification.event
         """
@@ -52,11 +51,10 @@ class View(BoxContainer):
         if event.dispatchEnum == 'SendToBlock':
             callMethod (event.dispatchToBlock, methodName, notification)
         elif event.dispatchEnum == 'Broadcast':
-            focusBlock = block
             while (not block.eventBoundary and block.parentBlock):
                 block = block.parentBlock
                 
-            broadcast (block, focusBlock, methodName, notification)
+            broadcast (block, methodName, notification)
         elif event.dispatchEnum == 'BubbleUp':
             while (block):
                 if callMethod (block, methodName, notification):
@@ -115,12 +113,9 @@ class View(BoxContainer):
 
 class wxItemView(wxHtmlWindow):
     def OnLinkClicked(self, wx_linkinfo):
-        item = Globals.repository.find(wx_linkinfo.GetHref())
-
-        self.On_wxSelectionChanged (item)
-
         event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
         notification = Notification(event, None, None)
+        item = Globals.repository.find(wx_linkinfo.GetHref())
         notification.SetData ({'item':item, 'type':'Normal'})
         Globals.notificationManager.PostNotification (notification)
 
