@@ -30,3 +30,8 @@
             hardhat.py demo.py
 
     * Added the -l <scripts> option which "lints" the scripts using PyChecker
+
+2003-07-14 Morgen Sagen
+
+    * tinderbuild.py now keeps the last 3 builds around so that
+      people can get the latest bits
