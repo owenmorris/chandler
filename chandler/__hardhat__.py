@@ -44,7 +44,7 @@ def run(buildenv):
 
 
     if buildenv['os'] == 'posix':
-	ld_library_path = os.environ['LD_LIBRARY_PATH']
+	ld_library_path = os.environ.get('LD_LIBRARY_PATH', '')
 	if buildenv['version'] == 'debug':
 	    additional_path = buildenv['root'] + os.sep + 'debug' + os.sep + \
 	     'lib'
