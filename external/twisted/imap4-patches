@@ -1,0 +1,29 @@
+--- Twisted-r11303/twisted/mail/imap4.py	2004-08-16 11:21:00.000000000 -0700
++++ Twisted-r11303-patched/twisted/mail/imap4.py	2004-10-01 16:48:52.470741168 -0700
+@@ -3925,19 +3925,26 @@
+         self.user = user
+ 
+     def getName(self):
+         return "LOGIN"
+ 
+     def challengeResponse(self, secret, chal):
+         if chal == 'User Name\0':
+             return self.user
++
++        elif chal == 'Username:':
++            return self.user
++
+         elif chal == 'Password\0':
+             return secret
+ 
++        elif chal == 'Password:':
++            return secret
++
+ components.backwardsCompatImplements(LOGINAuthenticator)
+ 
+ class PLAINAuthenticator:
+     implements(IClientAuthentication)
+ 
+     def __init__(self, user):
+         self.user = user
+ 

@@ -11,6 +11,9 @@ BUILD=build_$(SNAP)
 applysmtp:
 	patch -Nup0 < smtp-patches; echo ok
 
+applyimap4:
+	patch -Nup0 < imap4-patches; echo ok
+
 # Temporary until refactored and integrated into Twisted
 applym2:
 	rm -f $(SRC)/twisted/internet/m2ssl.py ; \
@@ -20,7 +23,7 @@ applym2:
 apply: patches-$(VERSION)
 	patch -Nup0 < patches-$(VERSION);echo ok
 
-build: apply applym2 applysmtp
+build: apply applym2 applysmtp applyimap4
 	cd $(SRC); \
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
