@@ -16,3 +16,7 @@
     * Fixed a bug where linux launcher would segfault if no LD_LIBRARY_PATH.
     * Windows launcher overrides PYTHONHOME and PYTHONPATH variables to
       ensure we are picking up the intended Python extensions.
+
+2003-09-15 Kaitlin Duck Sherwood
+    * Changed the README file for the 0.2 release.
+
