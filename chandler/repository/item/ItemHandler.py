@@ -578,7 +578,7 @@ class ItemHandler(xml.sax.ContentHandler):
             if attrType.recognizes(value):
                 attrType.typeXML(value, generator)
             else:
-                raise TypeError, 'Value %s is not recognized by type %s' %(value, attrType.getItemPath())
+                raise TypeError, 'Value %s of type %s on %s is not recognized by type %s' %(value, type(value), name, attrType.getItemPath())
 
         generator.endElement(tag)
 

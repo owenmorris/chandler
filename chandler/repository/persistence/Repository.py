@@ -8,6 +8,7 @@ import os, os.path, xml.sax, threading
 
 from model.util.UUID import UUID
 from model.util.Path import Path
+from model.util.ThreadLocal import ThreadLocal
 from model.item.Item import Item
 from model.item.ItemHandler import ItemHandler, ItemsHandler
 from model.item.ItemRef import ItemStub, DanglingRefError
@@ -30,7 +31,7 @@ class Repository(object):
 
         self.dbHome = dbHome
         self._status = 0
-        self._thread = threading.currentThread()
+        self._threaded = ThreadLocal()
 
     def create(self, verbose=False):
 
@@ -42,124 +43,121 @@ class Repository(object):
         
     def _init(self, verbose):
 
-        self._roots = {}
-        self._registry = {}
-        self._deletedRegistry = {}
-        self._stubs = []
         self._status = 0
         self.verbose = verbose
         
+    def _isRepository(self):
+
+        return True
+    
     def close(self, purge=False):
+
         raise NotImplementedError, "Repository.close"
 
     def commit(self, purge=False):
-        raise NotImplementedError, "Repository.commit"
-    
-    def createRefDict(self, item, name, otherName, persist):
-        raise NotImplementedError, "Repository.createRefDict"
-    
-    def addTransaction(self, item):
-        raise NotImplementedError, "Repository.addTransaction"
-    
-    def isOpen(self):
 
-        return (self._status & Repository.OPEN) != 0
+        if not self.isOpen():
+            raise RepositoryError, "Repository is not open"
 
-    def isLoading(self):
+        self.view.commit()
 
-        return (self._status & Repository.LOADING) != 0
+    def _createView(self):
 
-    def setLoading(self, loading=True):
+        return RepositoryView(self)
 
-        if self._thread is not threading.currentThread():
-            raise RepositoryError, 'current thread is not owning thread'
-        
-        status = (self._status & Repository.LOADING != 0)
+    def _getView(self):
 
-        if loading:
-            self._status |= Repository.LOADING
-        else:
-            self._status &= ~Repository.LOADING
+        try:
+            return self._threaded.view
 
-        return status
+        except AttributeError:
+            view = self._createView()
+            self._threaded.view = view
+
+            return view
 
     def __iter__(self):
 
-        return self._registry.itervalues()
+        return self.view._registry.itervalues()
 
-    def _addItem(self, item, previous=None, next=None):
+    def isOpen(self):
 
-        try:
-            name = item.getItemName()
-            current = self._roots[name]
-        except KeyError:
-            pass
-        else:
-            current.delete()
-
-        self._roots[name] = item
-
-        return item
-
-    def _removeItem(self, item):
-
-        del self._roots[item.getItemName()]
-
-    def _registerItem(self, item):
-
-        self._registry[item.getUUID()] = item
-
-    def _unregisterItem(self, item):
-
-        uuid = item.getUUID()
-        del self._registry[uuid]
-        if item.isDeleting():
-            self._deletedRegistry[uuid] = uuid
-
-    def _loadItem(self, uuid):
-        raise NotImplementedError, "Repository._loadItem"
-
-    def _loadRoot(self, name):
-        raise NotImplementedError, "Repository._loadRoot"
-
-    def _loadChild(self, parent, name):
-        raise NotImplementedError, "Repository._loadChild"
-
-    def _saveItem(self, item, **args):
-        raise NotImplementedError, "Repository._saveItem"
-
-    def _addStub(self, stub):
-
-        if not self.isLoading():
-            self._stubs.append(stub)
-
-    def getItemPath(self, path):
-        'Return the path of the repository relative to its item, always //.'
-        
-        path.set('//')
-
-        return path
+        return (self._status & Repository.OPEN) != 0
 
     def hasRoot(self, name, load=True):
 
         return self.getRoot(name, load) is not None
 
     def getRoot(self, name, load=True):
-        'Return the root as named or None if not found.'
 
-        try:
-            return self._roots[name]
-        except KeyError:
-            return self._loadRoot(name)
+        return self.getRoot(self, name, load)
 
     def getRoots(self):
-        'Return a list of the roots in the repository.'
 
-        return self._roots.values()
+        return self.view.getRoots()
 
-    def _findKind(self, spec, withSchema):
+    def walk(self, path, callable, _index=0, **kwds):
 
-        return self.find(spec)
+        return self.view.walk(path, callable, _index, **kwds)
+
+    def find(self, spec, _index=0, load=True):
+
+        return self.view.find(spec, _index, load)
+
+    def loadPack(self, path, parent=None, verbose=False):
+
+        self.view.loadPack(path, parent, verbose)
+
+    def dir(self, item=None, path=None):
+
+        self.view.dir(item, path)
+
+    def check(self):
+
+        self.view.check()
+
+    OPEN = 0x1
+    view = property(_getView)
+
+
+class RepositoryView(object):
+
+    def __init__(self, repository):
+
+        super(RepositoryView, self).__init__()
+
+        self.repository = repository
+
+        self._thread = threading.currentThread()
+        self._roots = {}
+        self._registry = {}
+        self._deletedRegistry = {}
+        self._stubs = []
+        self._status = 0
+
+    def _isRepository(self):
+        return False
+
+    def createRefDict(self, item, name, otherName, persist):
+        raise NotImplementedError, "RepositoryView.createRefDict"
+    
+    def isLoading(self):
+
+        return (self._status & RepositoryView.LOADING) != 0
+        
+    def setLoading(self, loading=True):
+
+        if self._thread is not threading.currentThread():
+            raise RepositoryError, 'current thread is not owning thread'
+
+        status = (self._status & RepositoryView.LOADING != 0)
+
+        if loading:
+            self._status |= RepositoryView.LOADING
+        else:
+            self._status &= ~RepositoryView.LOADING
+
+        return status
 
     def walk(self, path, callable, _index=0, **kwds):
 
@@ -217,6 +215,10 @@ class Repository(object):
                                  0, load=load)
 
         return None
+
+    def _findKind(self, spec, withSchema):
+
+        return self.find(spec)
 
     def loadPack(self, path, parent=None, verbose=False):
         'Load items from the pack definition file at path.'
@@ -289,9 +291,6 @@ class Repository(object):
 
         return handler.item
 
-    def purge(self):
-        raise NotImplementedError, "Repository.purge"
-
     def check(self):
 
         def apply(item):
@@ -303,12 +302,92 @@ class Repository(object):
         for root in self.getRoots():
             apply(root)
 
+    def hasRoot(self, name, load=True):
+
+        return self.getRoot(name, load) is not None
+
+    def getRoot(self, name, load=True):
+        'Return the root as named or None if not found.'
+
+        try:
+            return self._roots[name]
+        except KeyError:
+            return self._loadRoot(name)
+
+    def getRoots(self):
+        'Return a list of the roots in the repository.'
+
+        return self._roots.values()
+
+    def getItemPath(self, path=None):
+        'Return the path of the repository relative to its item, always //.'
+
+        if path is None:
+            path = Path()
+        path.set('//')
+
+        return path
+
+    def logItem(self, item):
+
+        if not self.repository.isOpen():
+            raise RepositoryError, 'Repository is not open'
+
+        if item.getRepository() is not self.repository.view:
+            raise RepositoryError, 'current thread is not owning item'
+
+        return not self.isLoading()
+
+    def __iter__(self):
+
+        return self._registry.itervalues()
+
+    def _addItem(self, item, previous=None, next=None):
+
+        try:
+            name = item.getItemName()
+            current = self._roots[name]
+        except KeyError:
+            pass
+        else:
+            current.delete()
+
+        self._roots[name] = item
+
+        return item
+
+    def _removeItem(self, item):
+
+        del self._roots[item.getItemName()]
+
+    def _registerItem(self, item):
+
+        self._registry[item.getUUID()] = item
+
+    def _unregisterItem(self, item):
+
+        uuid = item.getUUID()
+        del self._registry[uuid]
+        if item.isDeleting():
+            self._deletedRegistry[uuid] = uuid
+
+    def _loadItem(self, uuid):
+        raise NotImplementedError, "Repository._loadItem"
+
+    def _loadRoot(self, name):
+        raise NotImplementedError, "Repository._loadRoot"
+
+    def _loadChild(self, parent, name):
+        raise NotImplementedError, "Repository._loadChild"
+
+    def _addStub(self, stub):
+
+        if not self.isLoading():
+            self._stubs.append(stub)
 
     ROOT_ID = UUID('3631147e-e58d-11d7-d3c2-000393db837c')
+    LOADING = 0x1
     
-    OPEN    = 0x1
-    LOADING = 0x2
-
 
 class Store(object):
 
@@ -333,29 +412,36 @@ class Store(object):
 
 class OnDemandRepository(Repository):
 
-    def __init__(self, dbHome):
+    def _createView(self):
+
+        return OnDemandRepositoryView(self)
+
+
+class OnDemandRepositoryView(RepositoryView):
+
+    def __init__(self, repository):
         
-        super(OnDemandRepository, self).__init__(dbHome)
+        super(OnDemandRepositoryView, self).__init__(repository)
         self._hooks = None
 
     def _loadXML(self, xml):
 
         try:
-            loading = self._status & self.LOADING
+            loading = self.isLoading()
             if not loading:
-                self._status |= self.LOADING
+                self.setLoading(True)
                 self._hooks = []
 
             exception = None
 
-            item = self._loadItemXML(xml, self._store,
+            item = self._loadItemXML(xml, self.repository._store,
                                      afterLoadHooks = self._hooks)
-            if self.verbose:
+            if self.repository.verbose:
                 print "loaded item %s" %(item.getItemPath())
 
         except:
             if not loading:
-                self._status &= ~self.LOADING
+                self.setLoading(False)
                 self._hooks = None
             raise
         
@@ -367,23 +453,23 @@ class OnDemandRepository(Repository):
                             hook()
                 finally:
                     self._hooks = None
-                    self._status &= ~self.LOADING
+                    self.setLoading(False)
 
         return item
 
     def _loadItem(self, uuid):
 
         if not uuid in self._deletedRegistry:
-            xml = self._store.loadItem(uuid)
+            xml = self.repository._store.loadItem(uuid)
 
             if xml is not None:
-                if self.verbose:
+                if self.repository.verbose:
                     print "loading item %s" %(uuid)
                 return self._loadXML(xml)
 
         return None
 
-    def _loadRoot(self, name, verbose=False):
+    def _loadRoot(self, name):
 
         return self._loadChild(None, name)
 
@@ -392,15 +478,16 @@ class OnDemandRepository(Repository):
         if parent is not None and parent is not self:
             uuid = parent.getUUID()
         else:
-            uuid = Repository.ROOT_ID
+            uuid = self.ROOT_ID
 
-        xml = self._store.loadChild(uuid, name)
+        store = self.repository._store
+        xml = store.loadChild(uuid, name)
                 
         if xml is not None:
-            uuid = self._store.getUUID(xml)
+            uuid = store.getUUID(xml)
             if (not self._deletedRegistry or
-                not self._store.getUUID(xml) in self._deletedRegistry):
-                if self.verbose:
+                not store.getUUID(xml) in self._deletedRegistry):
+                if self.repository.verbose:
                     if parent is not None and parent is not self:
                         print "loading child %s of %s" %(name,
                                                          parent.getItemPath())
@@ -422,10 +509,9 @@ class OnDemandRepository(Repository):
         
         try:
             hooks = self._hooks
-            loading = self._status & self.LOADING
-            self._status &= ~self.LOADING
+            loading = self.setLoading(False)
             
             return self.find(spec)
         finally:
             self._hooks = hooks
-            self._status |= loading
+            self.setLoading(loading)

@@ -589,7 +589,7 @@ class Item(object):
         if dirty:
             if self._status & Item.DIRTY == 0:
                 repository = self.getRepository()
-                if repository is not None and repository.addTransaction(self):
+                if repository is not None and repository.logItem(self):
                     self._status |= Item.DIRTY
                     return True
         else:
@@ -598,14 +598,14 @@ class Item(object):
         return False
 
     def delete(self, recursive=False):
-        """Delete this item and disconnect all its item references.
+        """Delete this item and detach all its item references.
 
         If this item has children, they are recursively deleted first if
         'recursive' is True.
         If this item has references to other items and the references delete
         policy is 'cascade' then these other items are deleted last.
         A deleted item is no longer reachable through the repository or other
-        items. It is an error to access deleted item reference."""
+        items. It is an error to access deleted items."""
 
         if (not (self._status & Item.DELETED) and
             not (self._status & Item.DELETING)):
@@ -786,9 +786,14 @@ class Item(object):
             self._setRoot(parent._addItem(self, previous, next))
             self._parent = parent
 
+    def _isRepository(self):
+        return False
+
     def _setParent(self, parent, previous=None, next=None):
 
         if parent is not None:
+            if parent._isRepository():
+                parent = parent.view
             self._parent = parent
             self._setRoot(parent._addItem(self, previous, next))
         else:

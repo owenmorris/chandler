@@ -11,6 +11,7 @@ from datetime import datetime
 
 from model.util.UUID import UUID
 from model.persistence.Repository import Repository, RepositoryError
+from model.persistence.Repository import RepositoryView
 from model.item.ItemRef import RefDict, TransientRefDict
 
 
@@ -32,22 +33,43 @@ class FileRepository(Repository):
         if not self.isOpen():
             super(FileRepository, self).open(verbose)
             self._status |= self.OPEN
-            self._load()
+            self.view._load()
 
     def close(self):
 
         if self.isOpen():
             self._status &= ~self.OPEN
 
+    def commit(self, purge=False):
+
+        super(FileRepository, self).commit(purge)
+        if purge:
+            self.view.purge()
+
+    def _createView(self):
+
+        return FileRepositoryView(self)
+
+
+class FileRepositoryView(RepositoryView):
+
+    def createRefDict(self, item, name, otherName, persist):
+
+        if persist:
+            return FileRefDict(item, name, otherName)
+        else:
+            return TransientRefDict(item, name, otherName)
+    
     def _load(self):
         'Load items from the directory the repository was initialized with.'
 
         loading = None
+        dbHome = self.repository.dbHome
         
         try:
             loading = self.setLoading()
-            if os.path.isdir(self.dbHome):
-                contents = file(os.path.join(self.dbHome, 'contents.lst'), 'r')
+            if os.path.isdir(dbHome):
+                contents = file(os.path.join(dbHome, 'contents.lst'), 'r')
             
                 for dir in contents.readlines():
                     self._loadItems(dir[:-1])
@@ -58,12 +80,14 @@ class FileRepository(Repository):
     def _loadItems(self, dir):
 
         hooks = []
-
-        contents = file(os.path.join(self.dbHome, dir, 'contents.lst'), 'r')
+        dbHome = self.repository.dbHome
+        verbose = self.repository.verbose
+        
+        contents = file(os.path.join(dbHome, dir, 'contents.lst'), 'r')
         for uuid in contents.readlines():
-            self._loadItemFile(os.path.join(self.dbHome, dir,
+            self._loadItemFile(os.path.join(dbHome, dir,
                                             uuid[:-1] + '.item'),
-                               verbose=self.verbose, afterLoadHooks=hooks)
+                               verbose=verbose, afterLoadHooks=hooks)
         contents.close()
 
         for hook in hooks:
@@ -81,33 +105,34 @@ class FileRepository(Repository):
     def purge(self):
         'Purge the repository directory tree of all item files that do not correspond to currently existing items in the repository.'
         
-        if os.path.exists(self.dbHome):
+        dbHome = self.repository.dbHome
+
+        if os.path.exists(dbHome):
             def purge(arg, path, names):
                 for item in names:
                     if item.endswith('.item'):
                         uuid = UUID(item[:-5])
                         if not self._registry.has_key(uuid):
                             os.remove(os.path.join(path, item))
-            os.path.walk(self.dbHome, purge, None)
+            os.path.walk(dbHome, purge, None)
 
-    def commit(self, purge=False):
-        '''Save all items into the directory this repository was created with.
+    def commit(self):
+        """Save all items into the directory this repository was created with.
 
         After save is complete a contents.lst file contains the UUIDs of all
-        items that were saved to their own uuid.item file.'''
+        items that were saved to their own uuid.item file."""
 
-        if not self.isOpen():
-            raise DBError, "Repository is not open"
+        dbHome = self.repository.dbHome
 
-        if not os.path.exists(self.dbHome):
-            os.mkdir(self.dbHome)
-        elif not os.path.isdir(self.dbHome):
-            raise ValueError, "%s exists but is not a directory" %(self.dbHome)
+        if not os.path.exists(dbHome):
+            os.mkdir(dbHome)
+        elif not os.path.isdir(dbHome):
+            raise ValueError, "%s exists but is not a directory" %(dbHome)
 
         before = datetime.now()
         count = 0
 
-        contents = file(os.path.join(self.dbHome, 'contents.lst'), 'w')
+        contents = file(os.path.join(dbHome, 'contents.lst'), 'w')
         hasSchema = self._roots.has_key('Schema')
 
         if hasSchema:
@@ -127,16 +152,13 @@ class FileRepository(Repository):
         after = datetime.now()
         print 'committed %d items in %s' %(count, after - before)
         
-        if purge:
-            self.purge()
-
     def _saveItems(self, root, withSchema=False):
 
-        def commit(item, repository, contents, **args):
+        def commit(item, view, contents, **args):
 
             count = 0
             if item.isDirty():
-                repository._saveItem(item, **args)
+                view._saveItem(item, **args)
                 count += 1
                 item.setDirty(False)
 
@@ -144,12 +166,12 @@ class FileRepository(Repository):
             contents.write('\n')
                 
             for child in item:
-                count += commit(child, repository, contents, **args)
+                count += commit(child, view, contents, **args)
 
             return count
 
         name = root.getItemName()
-        dir = os.path.join(self.dbHome, name)
+        dir = os.path.join(self.repository.dbHome, name)
 
         if not os.path.exists(dir):
             os.mkdir(dir)
@@ -157,7 +179,8 @@ class FileRepository(Repository):
             raise ValueError, "%s exists but is not a directory" %(dir)
 
         rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
-        count = commit(root, self, rootContents, verbose = self.verbose)
+        count = commit(root, self, rootContents,
+                       verbose = self.repository.verbose)
         rootContents.close()
 
         return count
@@ -168,7 +191,8 @@ class FileRepository(Repository):
             print item.getItemPath()
             
         uuid = item.getUUID().str16()
-        filename = os.path.join(self.dbHome, item.getRoot().getItemName(),
+        filename = os.path.join(self.repository.dbHome,
+                                item.getRoot().getItemName(),
                                 uuid + '.item')
         out = file(filename, 'w')
         generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
@@ -180,20 +204,6 @@ class FileRepository(Repository):
         out.write('\n')
         out.close()
 
-    def createRefDict(self, item, name, otherName, persist):
-
-        if persist:
-            return FileRefDict(item, name, otherName)
-        else:
-            return TransientRefDict(item, name, otherName)
-    
-    def addTransaction(self, item):
-
-        if not self.isOpen():
-            raise RepositoryError, 'Repository is not open'
-
-        return not self.isLoading()
-    
 
 class FileRefDict(RefDict):
     pass
