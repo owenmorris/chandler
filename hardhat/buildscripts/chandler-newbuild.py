@@ -18,6 +18,9 @@ import os, hardhatutil, hardhatlib, sys, re
 treeName = "Chandler"
 path = os.environ.get('PATH', os.environ.get('path'))
 cvsProgram = hardhatutil.findInPath(path, "cvs")
+mainModule = 'chandler'
+logPath = 'hardhat.log'
+
 
 def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
@@ -54,7 +57,9 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             extModuleDir = os.path.join(releaseModeDir, "external")
             intModuleDir = os.path.join(releaseModeDir, "internal")
             version = getVersion(os.path.join(extModuleDir, "Makefile"))
-            if not os.path.exists (os.path.join(extModuleDir, "sources-" + version + ".tar.gz")):
+            sourceTarball = os.path.join(extModuleDir, "sources-" + version + ".tar.gz")
+            log.write("Checking for source tarball " + sourceTarball)
+            if not os.path.exists(sourceTarball) :
                 print "checking out external"
                 log.write("Checking out: external with " + cvsVintage + "\n")
                 outputList = hardhatutil.executeCommandReturnOutputRetry(
@@ -97,9 +102,6 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             print "an initialization error"
             log.write("***Error during initialization***" + "\n")
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-            log.write("initialization log:" + "\n")
-            CopyLog(os.path.join(releaseModeDir, logPath), log)
-            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
             return "init_failed"
 
     # do debug
@@ -134,9 +136,6 @@ scrubAllModules = {
     'internal/PyLucene':1,
     'external/Makefile':1,
 }
-
-mainModule = 'chandler'
-logPath = 'hardhat.log'
 
 
 def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, 
