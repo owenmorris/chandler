@@ -206,11 +206,15 @@ class wxApplication (wxApp):
             EVT_MENU(self, XRCID ('CreateNewRepository'), 
                      self.OnCreateNewRepository)
 
-        EVT_MENU(self, -1, self.OnMenuCommand)
-        self.InMenuCommand = false      #used by OnMenuCommand
+        EVT_MENU(self, -1, self.OnCommand)
+        EVT_UPDATE_UI(self, -1, self.OnCommand)
+
+        self.InCommand = false          #used by OnCommand
+
         if wxPlatform != '__WXGTK__':
             self.OpenStartingUri()
-        return true  #indicates we succeeded with initialization
+
+        return true                     #indicates we succeeded with initialization
 
     if __debug__:
         def OnCreateNewRepository (self, event):
@@ -288,16 +292,16 @@ class wxApplication (wxApp):
                 theClass.path = pathToPackage
                 theClass.Install ()
 
-    def OnMenuCommand(self, event):
+    def OnCommand(self, event):
         """
-          Catch menu commands and pass them along to the viewerParcels.
+          Catch commands and pass them along to the viewerParcels.
         If the event the viewerParcel doesn't handle the event we'll get
-        recursively called, so we use InMenuCommand to ignore recursive calls.
+        recursively called, so we use InCommand to ignore recursive calls.
         """
-        if not self.InMenuCommand:
-            self.InMenuCommand = true
+        if not self.InCommand:
+            self.InCommand = true
             activeParcel = self.wxMainFrame.activeParcel
             if activeParcel != None:
                 activeParcel.GetEventHandler().ProcessEvent(event)
-            self.InMenuCommand = false
-            
+            self.InCommand = false
+
