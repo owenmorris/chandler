@@ -17,7 +17,7 @@ def GetElementCellValues(element):
         return ['','']
 
     displayName = element.getAttributeValue('displayName',
-                                            default='<Untitled>')
+                                            default='<Loading...>')
     date = element.getAttributeValue('date', default=None)
     if not date:
         date = element.getAttributeValue('lastModified', default='')
@@ -106,7 +106,7 @@ class ZaoBaoItemDetail(ItemDetail):
         if item == Globals.repository.view:
             return
         if item:
-            displayName = item.getAttributeValue('displayName', default='<Untitled>')
+            displayName = item.getAttributeValue('displayName', default='<Loading...>')
 
             # make the html
             HTMLText = '<html><body>\n\n'
