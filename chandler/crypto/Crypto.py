@@ -101,22 +101,35 @@ class Crypto(object):
             digest = md.final()
             hexstr = hex(util.octx_to_num(digest))
             fingerprint = hexstr[2:len(hexstr)-1]
+            fpLen = len(fingerprint)
+            if fpLen < 40: # len(sha1 in hex) == 40
+                fingerprint = '0' * (40 - fpLen) + fingerprint # Pad with 0's
             if fingerprint != certSha1Fingerprint:
-                raise WrongCertificate
+                raise WrongCertificate, 'SHA1 fingerprints do not match'
 
         if host:
+            hostValidationPassed = False
+            
             # XXX The hostname in the certificate can contain
             #     regexp, but not all software supports that (for example
             #     IE6 does not). TODO for us as well...
-            
-            # XXX Check this extension first: subjectAltName=DNS:somehost
-            
-            # commonName
+
+            # XXX subjectAltName might contain multiple fields
+            # subjectAltName=DNS:somehost
             try:
-                if cert.get_subject().CN != host:
-                    raise WrongHost
-            except AttributeError:
-                raise WrongHost
+                if cert.get_ext('subjectAltName').get_value() != 'DNS:' + host:
+                    raise WrongHost, 'subjectAltName does not match host'
+                hostValidationPassed = True
+            except LookupError:
+                pass
+            
+            # commonName=somehost
+            if not hostValidationPassed:
+                try:
+                    if cert.get_subject().CN != host:
+                        raise WrongHost, 'commonName does not match host'
+                except AttributeError:
+                    raise WrongHost, 'no commonName in certificate'
 
     def _verifyCallback(ok, store):
         if not ok:
