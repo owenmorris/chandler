@@ -1675,6 +1675,11 @@
     <columnWidths>150</columnWidths>
     <hideColumnHeadings>True</hideColumnHeadings>
     <contextMenu itemref="doc:sidebarContextMenu"/>
+    <selection>
+      <core:Integer value="0"/>
+      <core:Integer value="0"/>
+      <core:Boolean value="True"/>
+    </selection>
   </Sidebar>
  
   <calendar:MiniCalendar itsName="MiniCalendar">
