@@ -36,7 +36,6 @@ class DAV(object):
             raise TypeError
 
         self.url = resourceURL
-        self.connection = None
 
     def newConnection(self):
         """
@@ -59,8 +58,8 @@ class DAV(object):
             raise NotFound
         return r
 
-    def getProps(self, what, depth=0):
-        r = self.newConnection().propfind(unicode(self.url), what, depth)
+    def getProps(self, body, depth=0):
+        r = self.newConnection().propfind(unicode(self.url), body, depth)
         if r.status == 404:
             raise NotFound
         return r
@@ -85,9 +84,9 @@ class DAV(object):
         return Sync.getItem(self)
 
     def put(self, item):
-        # add an entry here to say that we're already here
+        # add an entry into the itemMap to indicate that there is a local copy of a foreign item
         sharing = Globals.repository.findPath('//parcels/osaf/framework/GlobalShare')
-        #if item.itsUUID not in sharing.values(): # only add us if we originated here
+        # XXX if item.itsUUID not in sharing.values(): # only add us if we originated here
         sharing.itemMap[item.itsUUID] = item.itsUUID
 
         if item.hasAttributeValue('sharedURL'):
@@ -108,9 +107,12 @@ class DAV(object):
                 if not i.isItemOf(contentItemKind):
                     log.warning('Skipping %s -- Not a ContentItem' % (str(i)))
                     continue
-                defaultURL = self.url.join(i.itsUUID.str16())
-                durl = i.getAttributeValue('sharedURL', default=defaultURL)
-                i.sharedURL = durl
+                try:
+                    durl = i.sharedURL
+                except AttributeValue:
+                    durl = self.url.join(i.itsUUID.str16())
+                    i.sharedURL = durl
+
                 sharing.itemMap[i.itsUUID] = i.itsUUID
                 DAV(durl).sync(i)
 

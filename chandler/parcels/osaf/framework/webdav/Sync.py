@@ -9,7 +9,7 @@ import Dav
 import DAVItem as DAVItem
 
 import logging
-log = logging.getLogger("sharing")
+log = logging.getLogger('sharing')
 log.setLevel(logging.INFO)
 
 def syncItem(dav, item):
@@ -65,6 +65,8 @@ def syncItem(dav, item):
 
         # because some server suck (moddav) and don't change the etag
         # when you change properties, lets force this
+        # maybe use a "ptag" property instead of etags so we can change it
+        # whenever
         dav.putResource(item.itsKind.itsName, 'text/plain')
 
 
@@ -210,7 +212,7 @@ def syncToServer(dav, item):
     r = dav.setProps(props)
     #print url, r.status, r.reason
     #print r.read()
-    
+
 
 
 
@@ -251,19 +253,17 @@ def syncFromServer(item, davItem):
                 #setfunc = item.addValue
                 mergeList(item, name, nodes, True)
                 continue
-            elif attr.cardinality == 'single':
-                setfunc = item.setAttributeValue
-            elif attr.cardinality == 'dict':
-                # XXX implement me
-                pass
-            else:
-                raise Exception
-            for node in nodes:
+            elif attr.cardinality == 'single': 
                 try:
                     otherItem = DAV(node.content).get()
-                    setfunc(name, otherItem)
+                    item.setAttributeValue(name, otherItem)
                 except NotFound:
                     log.warning('Cant access %s' % (node.content))
+            elif attr.cardinality == 'dict':
+                # XXX implement me
+                log.info('NOTIMPLEMENTED Trying to share cardinality dict attribute' % (node.content))
+            else:
+                raise Exception
 
         else:
             if attr.cardinality == 'list':
@@ -325,7 +325,7 @@ def getItem(dav):
     origUUID = davItem.itsUUID
     try:
         newItem = repository.findUUID(sharing.itemMap[origUUID])
-    except:
+    except: # XXX figure out if this is a KeyError or an AttributeError
         newItem = None
 
     if not newItem:
@@ -336,7 +336,7 @@ def getItem(dav):
         newItem.sharedUUID = origUUID
         # set the version to avoid sync thinking there are local changes
         newItem.sharedVersion = newItem._version
-        # set a bogus etag so it doesn't try to put
+        # XXX set a bogus etag so it doesn't try to put
         newItem.etag = "bad-etag"
 
         # toss this in to the itemMap so we can find it later

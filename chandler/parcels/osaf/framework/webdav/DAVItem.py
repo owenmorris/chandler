@@ -48,9 +48,6 @@ class DAVItem(object):
 
         r = self.dav.getProps(body, 0)
 
-        if r.status == 404:
-            raise Dav.NotFound
-
         xmlgoop = r.read()
 
         log.debug('PROPFIND returned:')
