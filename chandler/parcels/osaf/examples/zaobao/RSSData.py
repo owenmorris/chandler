@@ -12,7 +12,6 @@ import mx.DateTime
 import types
 import feedparser
 
-
 ##
 # ZaoBaoParcel
 ##
@@ -79,22 +78,20 @@ class ZaoBaoParcel(Parcel):
     RSSItemKindID = None
 
 
-def SetAttribute(self, data, attr, nattr=None, encoding=None):
+def SetAttribute(self, data, attr, nattr=None):
     if not nattr:
         nattr = attr
     value = data.get(attr)
     if value:
-        if encoding:
-            value = unicode(value, encoding)
         self.setAttributeValue(nattr, value)
 
-def SetAttributes(self, data, attributes, encoding=None):
+def SetAttributes(self, data, attributes):
     if type(attributes) == types.DictType:
         for attr, nattr in attributes.items():
-            SetAttribute(self, data, attr, nattr=nattr, encoding=encoding)
+            SetAttribute(self, data, attr, nattr=nattr)
     elif type(attributes) == types.ListType:
         for attr in attributes:
-            SetAttribute(self, data, attr, encoding=encoding)
+            SetAttribute(self, data, attr)
 
 
 ##
@@ -135,10 +132,11 @@ class RSSChannel(ContentItem):
             lastModified = lastModified.tuple()
 
         # fetch the data
-        data = feedparser.parse(self.url, etag, lastModified)
 
-        # get the encoding
-        encoding = data.get('encoding', 'latin_1')
+        # XXX because of a bug in feedparser 3.0 betas we don't do
+        # etags or lastmodified here (bug 1421)
+        #data = feedparser.parse(self.url, etag, lastModified)
+        data = feedparser.parse(self.url)
 
         # set etag
         SetAttribute(self, data, 'etag')
@@ -148,27 +146,40 @@ class RSSChannel(ContentItem):
         if modified:
             self.lastModified = mx.DateTime.mktime(modified)
 
-        self._DoChannel(data['channel'], encoding)
-        self._DoItems(data['items'], encoding)
+        # if the feed is bad, raise the sax exception
+        if data['bozo'] == 1:
+            raise data['bozo_exception']
 
-    def _DoChannel(self, data, encoding):
+        self._DoChannel(data['channel'])
+        self._DoItems(data['items'])
+
+    def _DoChannel(self, data):
         # fill in the item
         attrs = {'title':'displayName'}
-        SetAttributes(self, data, attrs, encoding)
+        SetAttributes(self, data, attrs)
 
         attrs = ['link', 'description', 'copyright', 'creator', 'category', 'language']
-        SetAttributes(self, data, attrs, encoding)
+        SetAttributes(self, data, attrs)
 
         date = data.get('date')
         if date:
-            self.date = mx.DateTime.DateTimeFrom(date)
+            self.date = mx.DateTime.DateTimeFrom(str(date))
 
-    def _DoItems(self, items, encoding):
+    def _DoItems(self, items):
         # make children
+        #print 'len items:', len(items)
+
+        # XXX because feedparser is currently broken and gives us
+        # all new entries when a feed changes, we need to delete
+        # all the existing items
+        if len(items) > 0:
+            for item in self.items:
+                item.delete()
+
         for itemData in items:
             #print 'new item'
             item = RSSItem()
-            item.Update(itemData, encoding)
+            item.Update(itemData)
             self.addValue('items', item)
 
 
@@ -184,14 +195,18 @@ class RSSItem(ContentItem):
             kind = ZaoBaoParcel.getRSSItemKind()
         super(RSSItem, self).__init__(name, parent, kind)
 
-    def Update(self, data, encoding):
+    def Update(self, data):
         # fill in the item
         attrs = {'title':'displayName'}
-        SetAttributes(self, data, attrs, encoding)
+        SetAttributes(self, data, attrs)
 
-        attrs = ['description', 'creator', 'link', 'category']
-        SetAttributes(self, data, attrs, encoding)
+        attrs = ['creator', 'link', 'category']
+        SetAttributes(self, data, attrs)
+
+        description = data.get('description')
+        if description:
+            self.content = self.getAttributeAspect('content', 'type').makeValue(description, indexed=True)
 
         date = data.get('date')
         if date:
-            self.date = mx.DateTime.DateTimeFrom(date)
+            self.date = mx.DateTime.DateTimeFrom(str(date))

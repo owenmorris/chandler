@@ -5,14 +5,13 @@
         itemClass="OSAF.examples.zaobao.RSSData.ZaoBaoParcel"
         xmlns="//Schema/Core"
         xmlns:zaobao="//parcels/OSAF/examples/zaobao"
-        xmlns:foo="//parcels/OSAF/framework"
-        xmlns:bar="//parcels/OSAF/framework/agents"
-        xmlns:agent="//parcels/OSAF/framework/agents/schema"
+        xmlns:fw="//parcels/OSAF/framework"
+        xmlns:task="//parcels/OSAF/framework/tasks"
         xmlns:content="//parcels/OSAF/contentmodel"
         xmlns:docSchema="//parcels/OSAF/framework/blocks">
 
   <displayName>ZaoBao RSS Schema</displayName>
-  <description>RSS schema for ZaoBao parcel for 0.2 release</description>
+  <description>RSS schema for ZaoBao parcel for 0.4 release</description>
   <version>0.1</version>
 
 
@@ -122,6 +121,12 @@
       <inverseAttribute itemref="zaobao:RSSChannel/items"/>
     </Attribute>
 
+    <Attribute itemName="content">
+      <cardinality>single</cardinality>
+      <type itemref="Text"/>
+    </Attribute>
+
+    <attributes itemref="zaobao:RSSItem/content"/>
     <attributes itemref="zaobao:link"/>
     <attributes itemref="zaobao:category"/>
     <attributes itemref="zaobao:creator"/>
@@ -133,36 +138,26 @@
   </Kind>
 
 
+  <!-- ZaoBao Task Definition -->
 
-  <!-- ZaoBao Agent Definition -->
 
-  <agent:AgentItem itemName="ZaoBaoAgent">
-    <displayName>The ZaoBao Agent</displayName>
-    <description>This agent does ZaoBao's work</description>
+  <task:Task itemName="ZaoBaoTask">
+    <displayName>ZaoBao Scheduled Task</displayName>
 
-    <agent:Schedule itemName="ZaoBaoSchedule">
-      <agent:startTime>2003-11-11 12:56:00+0800</agent:startTime>
-      <agent:repeatFlag>True</agent:repeatFlag>
-      <agent:repeatDelay>00:00:05:00</agent:repeatDelay>
-    </agent:Schedule>
+    <task:Schedule itemName="ZaoBaoSchedule">
+      <task:startTime>2003-11-11 11:11:11+0800</task:startTime>
+      <task:repeatFlag>True</task:repeatFlag>
+      <task:repeatDelay>00:00:05:00</task:repeatDelay>
+    </task:Schedule>
 
-    <agent:Action itemName="GetFeeds" itemClass="OSAF.examples.zaobao.ZaoBaoAgent.UpdateAction">
+    <task:Action itemName="GetFeeds" itemClass="OSAF.examples.zaobao.ZaoBaoTask.UpdateAction">
       <description>Gets and updates all the feeds</description>
-    </agent:Action>
+    </task:Action>
 
-    <agent:Instruction itemName="UpdateFeeds">
-      <description>Update feeds every so often based on the ZaoBaoSchedule</description>
-      <agent:enabled>True</agent:enabled>
-      <agent:schedule itemref="zaobao:ZaoBaoAgent/ZaoBaoSchedule"/>
-      <agent:actions itemref="zaobao:ZaoBaoAgent/GetFeeds"/>
-    </agent:Instruction>
+    <task:schedule itemref="zaobao:ZaoBaoTask/ZaoBaoSchedule"/>
+    <task:actions itemref="zaobao:ZaoBaoTask/GetFeeds"/>
 
-    <agent:instructions itemref="zaobao:ZaoBaoAgent/UpdateFeeds"/>
-  </agent:AgentItem>
-
-
-
-
+  </task:Task>
 
 
   <!-- view related stuff -->
@@ -170,8 +165,6 @@
     <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoItemDetail</classes>
     <superKinds itemref="docSchema:ItemDetail"/>
   </Kind>  
-
-
 
 
 </Parcel>

@@ -118,9 +118,13 @@ class ZaoBaoItemDetail(ItemDetail):
             if link:
                 HTMLText = HTMLText + '</a>\n'
 
-            desc = item.getAttributeValue('description', default=displayName)
+            content = item.getAttributeValue('content', default=None)
+            if content:
+                content = content.getReader().read()
+            else:
+                content = displayName
             #desc = desc.replace("<", "&lt;").replace(">", "&gt;")
-            HTMLText = HTMLText + '<p>' + desc + '</p>\n\n'
+            HTMLText = HTMLText + '<p>' + content + '</p>\n\n'
 
             HTMLText = HTMLText + '</body></html>\n'
 
