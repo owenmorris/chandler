@@ -2,7 +2,7 @@
         itemName="Core"
         xmlns="//Schema/Core">
 
-  <displayName>Core Schema</displayName>
+  <displayName>Core Data Model</displayName>
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
 
@@ -89,14 +89,14 @@
   </Attribute>
 
   <Attribute itemName="annotations">
-    <displayName>Annotation</displayName>
+    <displayName>Annotations</displayName>
     <description>Any sort of description or annotation for an item.</description>
     <type itemref="String"/>
     <cardinality>list</cardinality>
   </Attribute>
 
   <Attribute itemName="examples">
-    <displayName>Example</displayName>
+    <displayName>Examples</displayName>
     <description>An example of this item, usually for schema items.</description>
     <superAttribute itemref="annotations"/>
     <type itemref="String"/>
@@ -104,7 +104,7 @@
   </Attribute>
 
   <Attribute itemName="issues">
-    <displayName>Open Issue</displayName>
+    <displayName>Open Issues</displayName>
     <description>Any open issue with this item, usually for schema items.</description>
     <superAttribute itemref="annotations"/>
     <type itemref="String"/>
@@ -140,7 +140,7 @@
 
     <!-- local attributes -->
     <Attribute itemName="required">
-    <displayName>required</displayName>
+    <displayName>Required</displayName>
     <description>TRUE if this attribute is not allowed to have a NULL value.</description>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
@@ -148,14 +148,14 @@
     </Attribute>
 
     <Attribute itemName="persist">
-      <displayName>persist</displayName>
+      <displayName>Persist</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
       <defaultValue>True</defaultValue>
     </Attribute>
 
     <Attribute itemName="cardinality">
-      <displayName>cardinality</displayName>
+      <displayName>Cardinality</displayName>
       <description>How many values can this attribute have?</description>
       <type itemref="Cardinality"/>
       <cardinality>single</cardinality>
@@ -172,14 +172,14 @@
     </Attribute>
 
     <Attribute itemName="defaultValue">
-      <displayName>default value</displayName>
+      <displayName>Default Value</displayName>
       <description>What default value is 'copied' into new instances?</description>
       <type itemref="Anything"/>
       <cardinality>single</cardinality>
     </Attribute>
 
     <Attribute itemName="inheritFrom">
-      <displayName>inherit from</displayName>
+      <displayName>Inherit From</displayName>
       <description>Another attribute that this attribute inherits its value from.</description>
       <issues>Brian suggests changing the name to "inheritValuesFrom"</issues>
       <type itemref="String"/>
@@ -187,7 +187,7 @@
     </Attribute>
 
     <Attribute itemName="otherName">
-      <displayName>inverse attribute</displayName>
+      <displayName>Inverse Attribute</displayName>
       <description>On the item that this attribute points to, what attribute points to this item?  Similar to the RDF/OWL property 'owl:inverseOf'.</description>
       <issues>Parcel files understand inverseAttribute, a reference to an attribute. The repository understands otherName, just the symbol used for the attribute.</issues>
       <type itemref="Symbol"/>
@@ -195,7 +195,7 @@
     </Attribute>
 
     <Attribute itemName="deletePolicy">
-      <displayName>delete policy</displayName>
+      <displayName>Delete Policy</displayName>
       <description>If A has a reference to B, and vice-versa, what do we do when A is deleted?  Do we delete B also, or do we just remove B's reference to A, or do we delete B only if nobody else now references B?</description>
       <type itemref="DeletePolicy"/>
       <cardinality>single</cardinality>
@@ -203,7 +203,7 @@
     </Attribute>
 
     <Attribute itemName="copyPolicy">
-      <displayName>copy policy</displayName>
+      <displayName>Copy Policy</displayName>
       <description>If A has a reference to B, and vice-versa, what do we do when A is copied?  Do we copy B also (deep copy), or do we just set the new copy of A to point to the old version of B (shallow copy)?</description>
       <type itemref="CopyPolicy"/>
       <cardinality>single</cardinality>
@@ -211,7 +211,7 @@
     </Attribute>
 
     <Attribute itemName="countPolicy">
-      <displayName>count policy</displayName>
+      <displayName>Count Policy</displayName>
       <type itemref="CountPolicy"/>
       <cardinality>single</cardinality>
       <defaultValue>none</defaultValue>
@@ -227,7 +227,7 @@
     </Attribute>
 
     <Attribute itemName="kinds">
-      <displayName>Kinds</displayName>
+      <displayName>Appears on Kinds</displayName>
       <description>Kinds that have this attribute</description>
       <type itemref="Kind"/>
       <cardinality>list</cardinality>
@@ -235,7 +235,7 @@
     </Attribute>
 
     <Attribute itemName="superAttribute">
-      <displayName>super attribute</displayName>
+      <displayName>Super Attribute</displayName>
       <description>What attribute is this a sub-attribute of?</description>
       <type itemref="Attribute"/>
       <cardinality>single</cardinality>
@@ -243,7 +243,7 @@
     </Attribute>
 
     <Attribute itemName="subAttributes">
-      <displayName>sub attributes</displayName>
+      <displayName>Sub Attributes</displayName>
       <description>What attributes have this one as their super attribute?</description>
       <type itemref="Attribute"/>
       <cardinality>list</cardinality>
@@ -265,7 +265,7 @@
     </Attribute>
 
     <Attribute itemName="typeFor">
-      <displayName>used as type in</displayName>
+      <displayName>Used as type in</displayName>
       <description>What attributes use this taxon as their type?</description>
       <type itemref="Attribute"/>
       <cardinality>list</cardinality>
@@ -307,7 +307,7 @@
     </Attribute>
 
     <Attribute itemName="superKinds">
-      <displayName>super kind</displayName>
+      <displayName>Super Kinds</displayName>
       <description>The superkinds for this kind.</description>
       <type itemref="Kind"/>
       <cardinality>list</cardinality>
@@ -315,7 +315,7 @@
     </Attribute>
 
     <Attribute itemName="subKinds">
-      <displayName>sub kind</displayName>
+      <displayName>Sub Kinds</displayName>
       <description>The subkinds of this kind.</description>
       <type itemref="Kind"/>
       <cardinality>list</cardinality>
@@ -323,7 +323,7 @@
     </Attribute>
 
     <Attribute itemName="items">
-      <displayName>Items: instances</displayName>
+      <displayName>Instance Items</displayName>
       <description>The Items that are instances of this Kind.</description>
       <issues>Brian suggests changing the name to "instanceItems"</issues>
       <type itemref="Item"/>
@@ -333,7 +333,7 @@
     </Attribute>
 
     <Attribute itemName="attributes">
-      <displayName>implied attributes</displayName>
+      <displayName>Implied Attributes</displayName>
       <description>A set of attributes typically found on items of this Kind.</description>
       <type itemref="Attribute"/>
       <cardinality>list</cardinality>
@@ -341,7 +341,7 @@
     </Attribute>
 
     <Attribute itemName="classes">
-      <displayName>classes</displayName>
+      <displayName>Classes</displayName>
       <description>Language bindings for this kind.</description>
       <type itemref="Class"/>
       <cardinality>dict</cardinality>
@@ -349,7 +349,7 @@
     </Attribute>
 
     <Attribute itemName="displayAttribute">
-      <displayName>display attribute</displayName>
+      <displayName>Display Attribute</displayName>
       <description>For items of this kind, what attribute should we look in to find a human readable name for this item?</description>
       <examples>For an Email Message, 'subject'</examples>
       <examples>For a Contact item, 'person name'</examples>
@@ -372,7 +372,7 @@
 
     <!-- local attributes -->
     <Attribute itemName="types">
-      <displayName>types (alias for)</displayName>
+      <displayName>Types (alias for)</displayName>
       <description>What are all the various Types or Kinds that this is an alias for?</description>
       <issues>Brian suggests calling this aliasFor</issues>
       <type itemref="Taxon"/>
@@ -413,7 +413,7 @@
     
     <!-- local attributes -->
     <Attribute itemName="values">
-      <displayName>values</displayName>
+      <displayName>Values</displayName>
       <description>The list of available values for this enumeration</description>
       <type itemref="Symbol"/>
       <cardinality>list</cardinality>
@@ -459,11 +459,13 @@
     </Attribute>
 
     <Attribute itemName="createdOn">
+      <displayName>Creation Date</displayName>
       <type itemref="DateTime"/>
       <cardinality>single</cardinality>
     </Attribute>
 
     <Attribute itemName="modifiedOn">
+      <displayName>Last Modified Date</displayName>
       <type itemref="DateTime"/>
       <cardinality>single</cardinality>
     </Attribute>
