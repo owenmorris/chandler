@@ -236,7 +236,16 @@ class ICalendarFormat(Sharing.ImportExportFormat):
             uidMatchItem = self.findUID(event.uid[0].value)
             first = True
             
-            for dt in itertools.islice(event.rruleset, MAXRECUR):
+            # FIXME total hack to deal with the fact that dateutil.rrule doesn't
+            # know how to deal with dates without time.
+            # If DTSTART's VALUE parameter is set to DATE, don't use rruleset
+            isDate = type(event.dtstart[0].value) == datetime.date
+            if isDate:
+                recurrenceIter = [event.dtstart[0].value]
+            else:
+                recurrenceIter = itertools.islice(event.rruleset, MAXRECUR)
+            
+            for dt in recurrenceIter:
                 if uidMatchItem is not None:
                     logger.debug("matched UID")
                     eventItem = uidMatchItem
