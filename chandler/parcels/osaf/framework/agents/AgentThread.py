@@ -21,14 +21,13 @@ class AgentThread(threading.Thread):
         self.scheduler = Scheduler.Scheduler()
         self.log = logging.getLogger('Agent')
 
-    def _CheckForNotifications(self, agentItem):
+    def _NewNotification(self, notification):
         #print 'checking for notification'
-        notification = Globals.notificationManager.GetNextNotification(self.agentID)
-        if notification:
-            self.scheduler.schedule(0, False, 0, self._HandleNotification, notification, agentItem)
+        self.scheduler.schedule(0, False, 0, self._HandleNotification, notification)
 
-    def _HandleNotification(self, notification, agentItem):
+    def _HandleNotification(self, notification):
         self.log.debug('got notification %s', notification.GetName())
+        agentItem = Globals.repository[self.agentID]
         instructions = self._GetInstructionsByName(agentItem, notification.name)
         result = _ExecuteInstructions(agentItem, instructions, notification)
         self.log.debug(result)
@@ -45,14 +44,13 @@ class AgentThread(threading.Thread):
         # Get this threads agent item view
         agentItem = repository.find(self.agentID)
 
+        # subscribe to notifications
+        agentItem.SubscribeToNotifications(self._NewNotification)
+
         self.instructionMap = _BuildInstructionMap(agentItem)
 
         # schedule all instructions with times
         self._ScheduleInstructions(agentItem)
-
-        # XXX Set up a scheduler to look for new notifications until the
-        #     notification manager can give us callbacks
-        self.scheduler.schedule(0.1, True, 0.1, self._CheckForNotifications, agentItem)
 
         # Start the scheduler
         self.scheduler.start()

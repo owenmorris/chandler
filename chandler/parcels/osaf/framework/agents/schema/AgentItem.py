@@ -64,13 +64,13 @@ class AgentItem(Item):
                 notificationList += instructionList
         return notificationList
 
-    def SubscribeToNotifications(self):
+    def SubscribeToNotifications(self, callback):
         """
           Subscribe to the notifications used by the active instructions 
         """
         clientID = self.getUUID()
         notifications = self._GetActiveNotifications()
-        Globals.notificationManager.Subscribe(notifications, clientID)
+        Globals.notificationManager.Subscribe(notifications, clientID, callback)
 
     def UnsubscribeFromNotifications(self):
         """

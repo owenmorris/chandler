@@ -99,10 +99,6 @@ class AgentManager:
         if not self.IsRegistered(agentID):
             raise KeyError, 'Agent Not Registered'
 
-        # subscribe to notifications
-        agentItem = Globals.repository.find(agentID)
-        agentItem.SubscribeToNotifications()
-
         # hook up the widget
         #widget = AgentControl.wxAgentControl(agentID)
         #widget.AddToToolBar()
