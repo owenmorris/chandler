@@ -36,6 +36,14 @@ lib
 src=chandler/debug/dbxml
 lib
 
+# Grab gcj 3.4.1 runtime libs
+src=$(GCJ_HOME)/lib
+libgcj.5.dylib
+libgcj.5.0.0.dylib
+libstdc++.6.dylib
+libstdc++.6.0.1.dylib
+libgcc_s.1.0.dylib
+
 # Grab Chandler.py and others
 src=chandler
 dest=Contents/Resources
