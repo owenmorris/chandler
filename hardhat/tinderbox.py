@@ -291,7 +291,17 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
             'alt="[OSAF Logo]">\n' +\
             '<h2>Chandler Build: ' + nowString + ' PDT (machine: ' +\
             buildName + ')</h2>\n'
-    index = head1 + head2
+    cryptoblurb = '<p>This software is subject to the U.S. Export ' +\
+                  'Administration Regulations and other U.S. law, and may ' +\
+                  'not be exported or re-exported to certain countries ' +\
+                  '(currently Cuba, Iran, Libya, North Korea, Sudan and ' +\
+                  'Syria) or to persons or entities prohibited from ' +\
+                  'receiving U.S. exports (including Denied Parties, ' +\
+                  'Specially Designated Nationals, and entities on the ' +\
+                  'Bureau of Industry and Security Entity List or involved ' +\
+                  'with missile technology or nuclear, chemical or ' +\
+                  'biological weapons).</p>'
+    index = head1 + head2 + cryptoblurb
 
     for distro in ('enduser', 'developer'):
         actualDistroFile = _readFile(outputDir + os.sep + newDirName +
