@@ -8,8 +8,6 @@ include $(BUILD_ROOT)/Makefile.inc
 BUILD=build_$(SNAP)
 
 
-default: all
-
 build:
 	cd $(SRC); \
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
@@ -25,5 +23,3 @@ snap:
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
-
-all: build
