@@ -41,7 +41,7 @@
   </Action>
 
   <AgentItem itemName="PresenceSubscription">
-    <role>approval</role>
+    <roles>approval</roles>
     <agentDescription>The agent automatically approves presence subscription requests when the sender meets various criterion.</agentDescription>
     <instructions itemref="test:SubscriptionRequest"/>
     <repertoire itemref="test:TestAgentRepertoire"/>

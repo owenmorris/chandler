@@ -53,7 +53,6 @@
     </description>
     <issues>@@@ -- add a categories attribute, to keep track of what 'virtual folders' the item appears in</issues>
     <superKinds itemref="Item"/>
-    <abstract/>
     <attributes itemref="pim:projects"/>
     <attributes itemref="pim:folders"/>
   </Kind>

@@ -11,7 +11,10 @@
         xmlns:contact="//Parcels/OSAF/PimSchema/ContactSchema">
 
   <displayName>Calendar Schema</displayName>
-  <description>Calendar schema for the 0.3 release</description>
+  <description>Kinds and Attributes related to Calendar functionality. This schema is still a strawman schema, a starting point.</description>
+  <issues>We have not yet fully addressed dates, times, timezones, etc.</issues>
+  <issues>Reminders, recurrence are still placeholders, and they might be general enough to live with PimSchema.</issues>
+  <issues>The calendar schema depends heavily on people/contacts/users/groups/etc, we have yet to adequately model them.</issues>
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
 
@@ -93,7 +96,6 @@
     <type itemref="cal:Reminder"/>
   </Attribute>
 
-  <!-- @@@ This may have an enum or type as a type, string temporarily -->
   <Attribute itemName="transparency">
     <displayName>Time Transparency</displayName>
     <cardinality>single</cardinality>
@@ -106,9 +108,9 @@
     <type itemref="Integer"/>
   </Attribute>
 
-  <!-- @@@ temporary attribute, something for location and calendar -->
   <Attribute itemName="name">
     <displayName>Name</displayName>
+    <issues>Temporary attribute, something for location and calendar</issues>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
@@ -136,11 +138,12 @@
     <attributes itemref="cal:priority"/>
     <displayAttribute itemref="cal:headline"/>
     <classes key="python">OSAF.PimSchema.CalendarSchema.CalendarEvent.CalendarEvent</classes>
+
   </Kind>
 
-  <!-- @@@ Location may be not be calendar specific -->
   <Kind itemName="Location">
     <displayName>Location</displayName>
+    <issues>Location may not be calendar specific</issues>
     <attributes itemref="cal:name"/>
     <attributes itemref="cal:eventsAtLocation"/>
     <displayAttribute itemref="cal:name"/>
