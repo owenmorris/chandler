@@ -20,17 +20,47 @@ class ZaoBaoParcel(Parcel):
     def __init__(self, name, parent, kind):
         Parcel.__init__(self, name, parent, kind)
 
-    def _setUUIDs(self):
+    def _setUUIDs(self, parent):
+
+        # hackery to avoid threading conflicts
+        ZaoBaoParcel.RSSItemParentID = parent.getUUID()
+        
         ZaoBaoParcel.RSSChannelKindID = self.find('RSSChannel').getUUID()
         ZaoBaoParcel.RSSItemKindID = self.find('RSSItem').getUUID()
 
     def onItemLoad(self):
         super(ZaoBaoParcel, self).onItemLoad()
-        self._setUUIDs()
+
+        # @@@ hackery to avoid threading conflicts
+        repository = self.getRepository()
+        parent = repository.find('//userdata/zaobaoitems')
+        
+        self._setUUIDs(parent)
 
     def startupParcel(self):
         super(ZaoBaoParcel, self).startupParcel()
-        self._setUUIDs()
+
+        # @@@ hackery to avoid threading conflicts
+        # Create a separate parent for RSSItems
+        repository = self.getRepository()
+        parent = repository.find('//userdata/zaobaoitems')
+        if not parent:
+            itemKind = repository.find('//Schema/Core/Item')
+            userdata = repository.find('//userdata')
+            if not userdata:
+                userdata = itemKind.newItem('userdata', repository)
+            parent = itemKind.newItem('zaobaoitems', userdata)
+        
+        self._setUUIDs(parent)
+
+    # @@@ hackery to avoid threading conflicts
+    # Keep track of a separate parent for RSSItems
+
+    def getRSSItemParent(cls):
+        assert cls.RSSItemParentID, "ZaoBaoParcel not yet loaded"
+        return Globals.repository[cls.RSSItemParentID]
+
+    getRSSItemParent = classmethod(getRSSItemParent)
 
     def getRSSChannelKind(cls):
         assert cls.RSSChannelKindID, "ZaoBaoParcel not yet loaded"
@@ -90,6 +120,9 @@ def NewChannelFromURL(url, update = True):
 
 class RSSChannel(ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
+        # @@@ parent is hackery to avoid threading conflicts
+        if not parent:
+            parent = ZaoBaoParcel.getRSSItemParent()
         if not kind:
             kind = ZaoBaoParcel.getRSSChannelKind()
         super(RSSChannel, self).__init__(name, parent, kind)
@@ -144,6 +177,9 @@ class RSSChannel(ContentItem):
 ##
 class RSSItem(ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
+        # @@@ parent is hackery to avoid threading conflicts
+        if not parent:
+            parent = ZaoBaoParcel.getRSSItemParent()
         if not kind:
             kind = ZaoBaoParcel.getRSSItemKind()
         super(RSSItem, self).__init__(name, parent, kind)
