@@ -153,6 +153,9 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     mainModuleDir = os.path.join(modeDir, mainModule)
     extModuleDir = os.path.join(modeDir, "external")
     intModuleDir = os.path.join(modeDir, "internal")
+    version = hardhatutil.executeCommandReturnOutput(
+     [buildenv['grep'], "VERSION=", os.path.join(extModuleDir, "Makefile") ],
+     "Looking up version string")
 
     if not changesAtAll:
         return "no_changes"
@@ -204,7 +207,10 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     else:
         bigBLittleB = "b"
 
-    try: # build
+    # Make sure this is not the first time through
+    #   if the first time, we need to do everything
+    if not exists (os.path.join(extModuleDir, "sources-" + version + ".tar.gz")):
+        log.write("Initial construction of " + version + " build - - - \n")
         if mode == "debug":
             print "Building debug"
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
@@ -246,6 +252,9 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
              [buildenv['make'], "binaries" ],
              "Making internal binaries")
 
+        
+
+    try: # build
     except Exception, e:
         print "a build error"
         log.write("***Error during build***" + "\n")
