@@ -264,8 +264,6 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                     uidMatchItem = None
                     countUpdated += 1
                 else:
-                    # @@@MOR This needs to use the new defaultParent framework
-                    # to determine the parent
                     eventItem = pickKind.newItem(None, newItemParent)
                     countNew += 1
                     if first:
