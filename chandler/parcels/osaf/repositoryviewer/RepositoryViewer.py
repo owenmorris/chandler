@@ -170,6 +170,8 @@ class wxRepositoryViewer(wxViewerParcel):
 
         # Set up the help page
         EVT_MENU(self, XRCID('AboutRepositoryViewer'), self.OnAboutRepositoryViewer)
+        EVT_MENU(self, XRCID('ChangeViewMode'), self.OnChangeViewMode)
+        EVT_UPDATE_UI(self, XRCID('ChangeViewMode'), self.OnChangeViewUpdateUI)
         # Set up tree control using a spacer column
         self.treeCtrl = wxTreeListCtrl(self.splitter)
         info = wxTreeListColumnInfo()
@@ -227,7 +229,16 @@ class wxRepositoryViewer(wxViewerParcel):
 
     def OnTabChanged(self, event):
         event.Skip()
+        
+    def OnChangeViewMode(self, event):
+        self.notebook.AdvanceSelection()
 
+    def OnChangeViewUpdateUI(self, event):
+        if self.notebook.GetSelection() == 0:
+            event.SetText(_('Use Edit Mode'))
+        else:
+            event.SetText(_('Use View Mode'))
+    
     def OnSelChanged(self, event):
         """
           Display the selected Item.

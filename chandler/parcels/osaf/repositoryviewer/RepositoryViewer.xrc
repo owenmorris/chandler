@@ -10,15 +10,17 @@
   
   <object class="wxMenu" name="ViewerParcelMenu">
     <label>Repository Viewer</label>
+    <object class="wxMenuItem" name="ChangeViewMode">
+      <label>Use Edit Mode</label>
+    </object>
   </object>
 
   <object class="wxMenu" name="HelpMenu">
-      <label>Help</label>
-      <object class="wxMenuItem" name="AboutRepositoryViewer">
-          <label>About Repository Viewer...</label>
-          <insertBefore>About Chandler...</insertBefore>
-      </object>
+    <label>Help</label>
+    <object class="wxMenuItem" name="AboutRepositoryViewer">
+      <label>About Repository Viewer...</label>
+      <insertBefore>About Chandler...</insertBefore>
+    </object>
   </object>
-
 
 </resource>
