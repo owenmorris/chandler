@@ -215,6 +215,7 @@ class MainView(View):
 
     def onSyncCollectionEvent (self, notification):
         # Triggered from "Test | Sync collection..."
+        Globals.repository.commit() 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             Sharing.syncCollection(collection)
