@@ -4,6 +4,7 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="views"
+        describes="//parcels/osaf/examples/stockquote"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
         xmlns:views="http://osafoundation.org/parcels/osaf/examples/stockquote/views"
@@ -21,9 +22,8 @@
     <isShown>True</isShown>
     <size>0,0</size>
     <minimumSize>0,0</minimumSize>
-    <!-- This is no longer an attribute of BoxContainer
-    <blockEvents itemref="views:GetQuoteEvent"/>
-    -->
+
+    <subscribeWhenVisibleEvents itemref="views:GetQuoteEvent"/>
 
     <blocks:BoxContainer itsName="layout">
       <childrenBlocks itemref="views:StockQuoteView/GetQuoteButton"/>
@@ -57,7 +57,6 @@
       <readOnly>False</readOnly>
       <characterStyle itemref="views:StockQuoteView/TextStyle"/>
       <!-- XXX Should somehow set a default value here -->
-      <!-- XXX Pressing enter should send same event as button -->
       <isShown>True</isShown>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>

@@ -28,3 +28,5 @@ class StockQuoteView(BoxContainer):
         valueLabel.widget.SetLabel('')#Allow user to notice change
         valueLabel.widget.SetLabel('$' + str(self.proxy.getQuote( symbol )))
 
+    def onEnterPressedEvent(self, notification):
+        self.OnGetQuoteEvent(notification)
