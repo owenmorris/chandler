@@ -121,7 +121,7 @@
   </BoxContainer>
 
   <HTML itemName="AboutZaoBao">
-    <url>application/welcome.html</url>
+    <url>parcels/OSAF/examples/zaobao/AboutZaoBao.html</url>
     <eventBoundary>True</eventBoundary>
     <open>True</open>
     <size>900,580</size>
