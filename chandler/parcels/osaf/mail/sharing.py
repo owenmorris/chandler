@@ -8,14 +8,12 @@ import twisted.internet.reactor as reactor
 import twisted.internet.defer as defer
 
 #python / mx imports
-import email.Message as Message
 import mx.DateTime as DateTime
 
 #Chandler imports
 import osaf.contentmodel.mail.Mail as Mail
-import osaf.framework.twisted.TwistedRepositoryViewManager as TwistedRepositoryViewManager
-import osaf.framework.sharing as chandlerSharing
-import chandlerdb.util.UUID as UUID
+import osaf.contentmodel.ItemCollection as ItemCollection
+import repository.item.ItemError as ItemError
 
 #Chandler Mail Service imports
 import smtp as smtp
@@ -26,9 +24,10 @@ import utils as utils
 """
 TO DO:
  1. Need to encode Chandler Sharing Header for Transport to account from i18n collection names
-"""
+ """
 
-def sendInvitation(repository, url, collectionName, sendToList):
+
+def sendInvitation(repository, url, itemCollection, sendToList):
     """Sends a sharing invitation via SMTP to a list of recipients
 
        @param repository: The repository we're using
@@ -37,138 +36,89 @@ def sendInvitation(repository, url, collectionName, sendToList):
        @param url: The url to share
        @type url: C{str}
 
-       @param collectionName: The name of the collection
-       @type collectionName: C{str}
+       @param itemCollection: An ItemCollection Instance
+       @type itemCollection: C{itemCollection}
 
-       @param sendToList: List of email addresses to invite
+       @param sendToList: List of EmailAddress Items
        @type: C{list}
     """
-    SMTPInvitationSender(repository, url, collectionName, sendToList).sendInvitation()
+    SMTPInvitationSender(repository, url, itemCollection, sendToList).sendInvitation()
 
 
-class SMTPInvitationSender(TwistedRepositoryViewManager.RepositoryViewManager):
-    """Sends an invitation via SMTP. Use the osaf.mail.sharing.sendInvitation
-       method do not call this class directly"""
+class SMTPInvitationSender:
+    """Sends an invitation via SMTP."""
 
-    def __init__(self, repository, url, collectionName, sendToList, account=None):
-
-        #XXX: Do not assume a str should be unicode
+    def __init__(self, repository, url, itemCollection, sendToList, account=None):
         assert isinstance(url, basestring), "URL must be a String"
         assert isinstance(sendToList, list), "sendToList must be of a list of email addresses"
         assert len(sendToList) > 0, "sendToList must contain at least one email address"
+        assert isinstance(itemCollection, ItemCollection.ItemCollection), \
+                          "itemCollection must be of type osaf.contentmodel.ItemCollection"
 
-        if isinstance(collectionName, unicode):
-            collectionName = collectionName.encode(constants.DEFAULT_CHARSET)
 
-        #XXX: Need to adjust this logic
-        assert isinstance(collectionName, str), "collectionName must be a String or Unicode"
-
-        viewName = "SMTPInvitationSender_%s" % str(UUID.UUID())
-
-        super(SMTPInvitationSender, self).__init__(repository, viewName)
-
-        self.account = None
         #XXX: Theses may eventual need i18n decoding
-        self.from_addr = None
+        self.fromAddress = None
         self.url = url
-        self.collectionName = collectionName
         self.sendToList = sendToList
-        self.accountUUID = None
+        self.repository = repository
 
-        if account is not None:
-             self.accountUUID = account.itsUUID
-
-    def sendInvitation(self):
-        if __debug__:
-            self.printCurrentView("sendInvitation")
-
-        reactor.callFromThread(self.execInView, self.__sendInvitation)
-
-    def __sendInvitation(self):
-
-        if __debug__:
-            self.printCurrentView("__sendInvitation")
-
-        self.__getData()
-
-        messageText = self.__createMessageText()
-
-        d = defer.Deferred().addCallbacks(self.__invitationSuccessCheck, self.__invitationFailure)
-
-        smtp.SMTPSender.sendMailMessage(self.from_addr, self.sendToList, messageText, \
-                                        d, self.account)
-
-
-    def __invitationSuccessCheck(self, result):
-        if __debug__:
-            self.printCurrentView("__invitationSuccessCheck")
-
-        if result[0] == len(result[1]):
-            addrs = []
-
-            for address in result[1]:
-                addrs.append(address[0])
-
-            #XXX: info may contain unicode values
-            info = "Sharing invitation (%s: %s) sent to [%s]" % \
-                   (self.collectionName, self.url, ", ".join(addrs))
-
-            self.log.info(info)
+        if isinstance(itemCollection.displayName, unicode):
+            self.collectionName = itemCollection.displayName.encode(constants.DEFAULT_CHARSET)
 
         else:
-            errorText = []
-            for recipient in result[1]:
-                email, code, str = recipient
+            self.collectionName = itemCollection.displayName
 
-                """If the recipient was accepted skip"""
-                if code == constants.SMTP_SUCCESS:
-                    continue
-
-                #XXX: May contain unicode value
-                e = "Failed to send invitation | (%s: %s) | %s | %s | %s |" % (self.collectionName,
-                                                                               self.url, 
-                                                                               email, code, str)
-                errorText.append(e)
-
-            err = '\n'.join(errorText)
-
-            utils.NotifyUIAsync(_(err), self.log.error, alert=True)
-
-    def __invitationFailure(self, result):
-        if __debug__:
-            self.printCurrentView("__invitationFailure")
 
         try:
-            desc = result.value.resp
-        except:
-            desc = result.value
+            self.collectionBody = utils.textToStr(itemCollection.body)
 
-        #XXX: May contain unicode value
-        e = "Failed to send invitation | (%s: %s) | %s |" % (self.collectionName, self.url,
-                                                             desc)
+        except ItemError.NoValueForAttributeError:
+            self.collectionBody = u""
 
-        utils.NotifyUIAsync(e, self.log.error, alert=True)
+        if account is None:
+            accountUUID = None
 
-    def __createMessageText(self):
+        else:
+            accountUUID = account.itsUUID
+
+        self.account, self.fromAddress = Mail.MailParcel.getSMTPAccount(self.repository.view, \
+                                         accountUUID)
+
+    def sendInvitation(self):
+        smtp.SMTPSender(self.repository, self.account, self.__createMessage()).sendMail()
+
+    def __createMessage(self):
+        self.repository.view.refresh()
+
         #XXX: Tnis needs to be base 64 encoded
         sendStr = "%s%s%s" % (self.url, constants.SHARING_DIVIDER, self.collectionName)
 
-        messageObject = utils.getChandlerTransportMessage()
+        m = Mail.MailMessage(view=self.repository.view)
 
-        """Add the chandler sharing header"""
-        messageObject[getChandlerSharingHeader()] = sendStr
+        #XXX: Try commenting out see what happens
+        #m.toAddress = []
+        #m.chandlerHeaders = {}
 
-        """populate the standard static mail message headers"""
-        message.populateStaticHeaders(messageObject)
+        m.subject = self.__createSubject()
+        m.fromAddress = self.fromAddress
 
-        return messageObject.as_string()
+        m.chandlerHeaders[message.createChandlerHeader(constants.SHARING_HEADER)] = sendStr
 
-    def __getData(self):
-        """If accountUUID is None will return the first SMTPAccount found"""
-        self.account, replyToAddress = Mail.MailParcel.getSMTPAccount(self.getCurrentView(), \
-                                       self.accountUUID)
-        self.from_addr = replyToAddress.emailAddress
+        for address in self.sendToList:
+            assert isinstance(address, Mail.EmailAddress), \
+            "sendToList can only contain EmailAddres Object"
+            m.toAddress.append(address)
 
+        m.body = utils.strToText(m, "body", self.collectionBody)
 
-def getChandlerSharingHeader():
-    return message.createChandlerHeader(constants.SHARING_HEADER)
+        self.repository.view.commit()
+
+        return m
+
+    def __createSubject(self):
+        try:
+            name = self.fromAddress.fullName
+        except AttributeError:
+            name = self.FromAddress.emailAddress
+
+        return "%s has invited you to share the %s collection" % (name, self.collectionName)
