@@ -951,6 +951,29 @@ class EditEmailAddressAttribute (EditRedirectAttribute):
         whoString = ', '.join(whoNames)
         widget.SetValue(whoString)
 
+
+class AttachmentArea (DetailSynchronizedLabeledTextAttributeBlock):
+    """ an area visible only when the item (a mail message) has attachments """
+    def shouldShow (self, item):
+        return item is not None and item.hasAttachments()
+    
+class AttachmentTextField (EditTextAttribute):
+    """
+    A read-only list of email attachments, for now.
+    """
+    def loadAttributeIntoWidget (self, item, widget):
+        # For now, just list the attachments' filenames
+        if item is None or not item.hasAttachments():
+            value = ""
+        else:
+            value = ", ".join([ attachment.filename for attachment in item.getAttachments() if hasattr(attachment, 'filename') ])
+        widget.SetValue(value)
+    
+    def saveAttributeFromWidget (self, item, widget, validate):  
+        # It's read-only, but we have to override this method.
+        pass
+    
+
 def _getSharingHeaderInfo(mailItem):
     """ Return the Chandler sharing header's values, split into a handy list. Throws if not present. """
     sharingHeader = MailSharing.getChandlerSharingHeader()

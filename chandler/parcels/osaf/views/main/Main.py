@@ -490,11 +490,10 @@ class MainView(View):
             return
 
         # @@@ BJS For 0.5, simplify sharing: if the Kind filter isn't All, switch it to All now.
-        """ This doesn't appear to work:
-        allKindFilterToolbarItemWidget = Block.findBlockByName('KindFilterAllItem').widget
-        if not allKindFilterToolbarItemWidget.IsToggled():
-            allKindFilterToolbarItemWidget.Toggle()
-        """
+        allKindFilterToolbarItem = Block.findBlockByName('KindFilterAllItem')
+        if not allKindFilterToolbarItem.widget.IsToggled():
+            # @@@BJS Maybe put up an alert here to let the user know we've pulled the rug out?
+            allKindFilterToolbarItem.dynamicParent.widget.ToggleTool(allKindFilterToolbarItem.toolID, True)
         
         # Tell the ActiveView to select the collection
         # It will pass the collection on to the Detail View.

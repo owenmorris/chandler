@@ -429,7 +429,7 @@ class MailMessageMixin(MIMEContainer):
         self.isInbound = True
         self.parentAccount = account
 
-    def getAttachements(self):
+    def getAttachments(self):
         """ First pass at API will be expanded upon later """
         # Anything not in the body of the message will have a filename, and size with it
         return self.mimeParts

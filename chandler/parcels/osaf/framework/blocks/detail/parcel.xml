@@ -153,6 +153,7 @@
     <rootBlocks itemref="doc:ToMailArea"/>
     <rootBlocks itemref="doc:FromArea"/>
     <rootBlocks itemref="doc:AcceptShareButton"/>
+    <rootBlocks itemref="doc:AttachmentArea"/>
   </doc:DetailTrunkSubtree>
 
   <!-- Item Collection -->
@@ -311,6 +312,36 @@
     <readOnly>True</readOnly>
     <textAlignmentEnum>Left</textAlignmentEnum>
     <minimumSize>100, 24</minimumSize>
+  </EditText>
+
+  <ContentItemDetail itsName="AttachmentArea"
+                     itemClass="osaf.framework.blocks.detail.Detail.AttachmentArea">
+    <blockName value="AttachmentArea"/>
+    <childrenBlocks itemref="doc:AttachmentString"/>
+    <childrenBlocks itemref="doc:AttachmentTextField"/>
+    <!-- Attributes -->
+    <position>0.95</position>
+    <stretchFactor>0.0</stretchFactor>
+  </ContentItemDetail>
+ 
+  <StaticText itsName="AttachmentString">
+    <blockName value="AttachmentString"/>
+    <title>attachments</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>90, 24</minimumSize>
+    <border>0.0, 0.0, 0.0, 5.0</border>
+  </StaticText>
+  
+  <EditText itsName="AttachmentTextField"
+            itemClass="osaf.framework.blocks.detail.Detail.AttachmentTextField">
+    <blockName value="AttachmentTextField"/>
+    <characterStyle itemref="doc:TextStyle"/>
+    <lineStyleEnum>MultiLine</lineStyleEnum>
+    <readOnly>True</readOnly>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <minimumSize>100, 48</minimumSize>
   </EditText>
 
   <ContentItemDetail itsName="ContactFullNameArea"
@@ -510,7 +541,8 @@
   </PresentationStyle>
 
   <!-- Headline area done as an AE Block -->
-  <AEBlock itsName="HeadlineBlock">
+  <AEBlock itsName="HeadlineBlock"
+           itemClass="osaf.framework.blocks.detail.Detail.DetailSynchronizedAttributeEditorBlock">
     <blockName value="HeadlineBlock"/>
     <characterStyle itemref="doc:LabelStyle"/>
     <position>0.5</position>
