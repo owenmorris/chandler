@@ -240,6 +240,12 @@ class wxApplication (wx.App):
         Globals.agentManager = AgentManager()
         Globals.agentManager.Startup()
 
+        # It is important to commit before the task manager starts
+        Globals.repository.commit()
+        from OSAF.framework.tasks.TaskManager import TaskManager
+        Globals.taskManager = TaskManager()
+        Globals.taskManager.start()
+
         self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
         self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
         self.focus = None
@@ -350,6 +356,8 @@ class wxApplication (wx.App):
           Main application termination.
         """
         Globals.agentManager.Shutdown()
+        Globals.taskManager.stop()
+
         """
           Since Chandler doesn't have a save command and commits typically happen
         only when the user completes a command that changes the user's data, we
