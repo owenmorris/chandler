@@ -263,6 +263,25 @@ class Item(object):
         return (self.__dict__.has_key('_children') and
                 self._children.has_key(name))
 
+    def placeChild(self, child, after):
+        """Place a child after another one in this item's children collection.
+
+        To place a children in first position, pass None for after."""
+        
+        if (child.getItemParent() is self and
+            (after is None or after.getItemParent() is self)):
+
+            key = child.getItemName()
+            if after is None:
+                afterKey = None
+            else:
+                afterKey = after.getItemName()
+
+            self._children.place(key, afterKey)
+
+        else:
+            raise ValueError, '%s or %s not a %s of %s' %(child, after, self)
+
     def iterChildren(self, load=True):
 
         if not load:
