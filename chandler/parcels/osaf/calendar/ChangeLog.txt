@@ -1,9 +1,12 @@
 # ChangeLog for Calendar Parcel
 
+2003-07-24 capps@osafoundation.org
+   * Created calendar data parcel as sub parcel of calendar parcel
+   * Moved calendar viewer parcel code on to new repository
+
 2003-07-15
    * Fix for Bug#456 ("About Calendar" info page missing)
    * Removed discussion of a now-dead bug from the About page.
-   
 
 2003-07-14 capps@osafoundation.org
 
