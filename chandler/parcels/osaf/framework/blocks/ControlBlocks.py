@@ -469,6 +469,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         self.SetRowLabelSize(0)
         self.AutoSizeRows()
         self.EnableGridLines(False)
+        self.SetDefaultCellBackgroundColour(wx.WHITE)
         self.SetMargins(0-wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
                         0-wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y))
         """
