@@ -4,6 +4,7 @@
 import unittest, os
 
 from model.persistence.FileRepository import FileRepository
+from model.schema.DomainSchemaLoader import DomainSchemaLoader
 
 from OSAF.calendar.model.CalendarEvent import CalendarEvent
 from OSAF.calendar.model.CalendarEvent import CalendarEventFactory
@@ -21,12 +22,16 @@ class SimpleTest(unittest.TestCase):
         
         rootdir = os.environ['CHANDLERDIR']
         schemaPack = os.path.join(rootdir, 'model', 'packs', 'schema.pack')
-        calendarPack = os.path.join(rootdir, 'parcels', 'OSAF',
-                                    'calendar', 'model', 'calendar.pack')
-        self.rep = FileRepository('test')
+        #calendarPack = os.path.join(rootdir, 'parcels', 'OSAF',
+        #                            'calendar', 'model', 'calendar.pack')
+        self.rep = FileRepository('test2')
         self.rep.create()
         self.rep.loadPack(schemaPack)
-        self.rep.loadPack(calendarPack)
+        #self.rep.loadPack(calendarPack)
+        calendarPath = os.path.join(rootdir, 'parcels', 'OSAF',
+                                    'calendar', 'model', 'calendar.xml')
+        self.loader = DomainSchemaLoader(self.rep)
+        self.loader.load(calendarPath)
         self.factory = CalendarEventFactory(self.rep)
     
     def testFactoryBasics(self):
