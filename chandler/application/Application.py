@@ -247,7 +247,7 @@ class wxApplication (wxApp):
 
 
         """
-        Load the Repository after the path has ben altered, but before
+        Load the Repository after the path has been altered, but before
         the parcels are loaded. Only load packs if they have not yet been loaded.
         """
         self.repository = FileRepository(os.path.join(self.chandlerDirectory,
