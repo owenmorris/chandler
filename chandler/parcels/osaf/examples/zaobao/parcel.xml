@@ -9,6 +9,45 @@
   <description>RSS schema for ZaoBao parcel for 0.2 release</description>
   <version>0.1</version>
 
+  <Attribute itemName="link">
+    <displayName>Web URL</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
+
+  <!-- Kind: RSSChannel -->
+
+  <Kind itemName="RSSFeed">
+    <displayName>RSS Feed</displayName>
+
+    <Attribute itemName="etag">
+      <displayName>eTag</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="String"/>
+    </Attribute>
+  
+    <Attribute itemName="lastModified">
+      <displayName>Last Modified</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="DateTime"/>
+    </Attribute>
+
+    <Attribute itemName="channel">
+      <displayName>The feed's channel</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="zaobao:RSSChannel"/>
+      <inverseAttribute itemref="zaobao:RSSChannel/feed"/>
+    </Attribute>
+
+    <attributes itemref="zaobao:link"/>
+    <attributes itemref="zaobao:RSSFeed/etag"/>
+    <attributes itemref="zaobao:RSSFeed/lastModified"/>
+    <attributes itemref="zaobao:RSSFeed/channel"/>
+    <superKinds itemref="Item"/>
+    <classes key="python">OSAF.examples.zaobao.RSSData.RSSFeed</classes>
+  </Kind>
+
+
   <!-- Kind: RSSBase -->
 
   <Kind itemName="RSSBase">
@@ -20,27 +59,14 @@
       <type itemref="String"/>
     </Attribute>
 
-    <Attribute itemName="link">
-      <displayName>Web URL</displayName>
-      <cardinality>single</cardinality>
-      <type itemref="String"/>
-    </Attribute>
-
-    <Attribute itemName="title">
-      <displayName>Title</displayName>
-      <cardinality>single</cardinality>
-      <type itemref="String"/>
-    </Attribute>
-
     <Attribute itemName="category">
       <displayName>Category</displayName>
       <cardinality>single</cardinality>
       <type itemref="String"/>
     </Attribute>
 
+    <attributes itemref="zaobao:link"/>
     <attributes itemref="zaobao:RSSBase/creator"/>
-    <attributes itemref="zaobao:RSSBase/link"/>
-    <attributes itemref="zaobao:RSSBase/title"/>
     <attributes itemref="zaobao:RSSBase/category"/>
     <superKinds itemref="Item"/>
   </Kind>
@@ -81,24 +107,6 @@
       <type itemref="String"/>
     </Attribute>
   
-    <Attribute itemName="etag">
-      <displayName>eTag</displayName>
-      <cardinality>single</cardinality>
-      <type itemref="String"/>
-    </Attribute>
-  
-    <Attribute itemName="lastModified">
-      <displayName>Last Modified</displayName>
-      <cardinality>single</cardinality>
-      <type itemref="DateTime"/>
-    </Attribute>
-  
-    <Attribute itemName="rssURL">
-      <displayName>RSS URL</displayName>
-      <cardinality>single</cardinality>
-      <type itemref="String"/>
-    </Attribute>
-
     <Attribute itemName="isUnread">
       <displayName>Is Unread</displayName>
       <cardinality>single</cardinality>
@@ -112,16 +120,24 @@
       <inverseAttribute itemref="zaobao:RSSItem/channel"/>
     </Attribute>
 
+    <Attribute itemName="feed">
+      <displayName>The channel's feed</displayName>
+      <cardinality>single</cardinality>
+      <type itemref="zaobao:RSSFeed"/>
+      <inverseAttribute itemref="zaobao:RSSFeed/channel"/>
+    </Attribute>
+
     <attributes itemref="zaobao:RSSChannel/language"/>
     <attributes itemref="zaobao:RSSChannel/encoding"/>
-    <attributes itemref="zaobao:RSSChannel/etag"/>
-    <attributes itemref="zaobao:RSSChannel/lastModified"/>
-    <attributes itemref="zaobao:RSSChannel/rssURL"/>
     <attributes itemref="zaobao:RSSChannel/isUnread"/>
     <attributes itemref="zaobao:RSSChannel/items"/>
+    <attributes itemref="zaobao:RSSChannel/feed"/>
     <superKinds itemref="zaobao:RSSBase"/>
     <classes key="python">OSAF.examples.zaobao.RSSData.RSSChannel</classes>
   </Kind>  
+
+
+  <!-- ZaoBao Agent Definition -->
 
   <agent:AgentItem itemName="ZaoBaoAgent">
     <displayName>The ZaoBao Agent</displayName>
