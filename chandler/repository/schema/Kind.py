@@ -40,6 +40,19 @@ class Kind(Item):
         
         return self.getItemClass()(name, parent, self)
 
+    def newKind(self, name, parent, superKind=None):
+        """Create a new kind, programmatically.
+
+        The superKind of the kind created defaults to the Item kind."""
+
+        if superKind is None:
+            superKind = self.kind.kind.getItemParent().getItemChild('Item')
+        
+        kind = type(self)(name, parent, self.kind)
+        kind.addValue('superKinds', superKind)
+
+        return kind
+
     def getItemClass(self):
         """Return the class used to create items of this Kind.
 

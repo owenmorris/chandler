@@ -58,6 +58,18 @@ class AutoKind(object):
                             other attribute. This is required only when the
                             other attribute does not exist and needs to be
                             created with a non-default cardinality.
+        - deletePolicy: this aspect can be set to control what happens to a
+                        referenced item when the referencing item is being
+                        deleted. Possible values are 'remove', the default
+                        and 'cascade', which causes the referenced item to
+                        be deleted as well.
+        - countPolicy: when the deletePolicy is 'cascade', the countPolicy
+                       can be used to modify the delete behaviour to only 
+                       delete the referenced item if its reference count is
+                       0. The reference count of an item is defined by the
+                       total number of references it holds in attributes
+                       where the countPolicy is set to 'count'. By default,
+                       the countPolicy is 'none'.
 
     To specify the initial value of an attribute use the 'value' keyword.
     It is an error to redefine aspects on an existing attribute. That is,
@@ -68,12 +80,12 @@ class AutoKind(object):
         - create a single valued String typed attribute named 'foo' and
           assigned it the initial value 'bar'.
         item.createAttribute('foo', value='bar',
-                              type=repository.find('//Schema/Model/String'))
+                              type=repository.find('//Schema/Core/String'))
 
         - create a list valued Integer typed attributed named 'foo' and assign
           it the initial value 5.
         item.createAttribute('foo', value=5, cardinality='list',
-                              type=repository.find('//Schema/Model/Integer'))
+                              type=repository.find('//Schema/Core/Integer'))
 
         - create a reference from i1 to i2 attaching it to 'foo' on i1 and
           'bar' on i2.
