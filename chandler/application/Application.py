@@ -311,10 +311,6 @@ class wxApplication (wxApp):
         #""" Load the old parcels, will go away """
         self.LoadParcelsV2InDirectory(parcelDir)
 
-        #""" Load the debugging parcels """
-        if __debug__ and debugParcelDir:
-            self.LoadParcelsV2InDirectory(debugParcelDir)
-
         self.model.SynchronizeView()
         EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
         EVT_MENU(self, XRCID ("About"), self.OnAbout)
