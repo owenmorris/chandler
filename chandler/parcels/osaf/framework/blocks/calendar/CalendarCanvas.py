@@ -403,8 +403,8 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
             headline = time.Format('%I:%M %p ') + item.displayName
 
             if (self.parent.blockItem.selection is item):
-                dc.SetBrush(wx.Brush(wx.Colour(128, 128, 128)))
-                dc.SetPen(wx.Pen(wx.Colour(153, 153, 153)))
+                dc.SetBrush(wx.Brush(wx.Colour(153, 153, 153)))
+                dc.SetPen(wx.Pen(wx.Colour(128, 128, 128)))
             else:
                 dc.SetBrush(wx.Brush(wx.Colour(204, 204, 204)))
                 dc.SetPen(wx.Pen(wx.Colour(179, 179, 179)))
