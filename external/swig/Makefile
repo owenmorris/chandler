@@ -72,7 +72,7 @@ swig:   $(SRC)/$(BUILD)/Makefile
 endif
 
 apply: patches-$(VERSION)
-	patch -Nup0 < patches-$(VERSION)
+	patch -Nup0 < patches-$(VERSION); echo ok
 
 # snap target can be empty since we don't actually need swig when
 # running Chandler
