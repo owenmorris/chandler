@@ -234,6 +234,7 @@ class wxCalendarBlock(SimpleCanvas.wxSimpleCanvas):
             newSize = self.GetSize()
             self.blockItem.size.width = newSize.width
             self.blockItem.size.height = newSize.height
+            self.blockItem.setDirty()   # Temporary repository hack -- DJA
             self.SetVirtualSize(newSize)
             self.displayItems()                        
             self._positionNavigationButtons()

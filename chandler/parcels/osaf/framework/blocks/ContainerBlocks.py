@@ -184,6 +184,8 @@ class wxSplitterWindow(wx.SplitterWindow):
             newSize = self.GetSize()
             self.blockItem.size.width = newSize.width
             self.blockItem.size.height = newSize.height
+            self.blockItem.setDirty()   # Temporary repository hack -- DJA
+            
             if self.blockItem.orientationEnum == "Horizontal":
                 distance = self.blockItem.size.height
             else:
