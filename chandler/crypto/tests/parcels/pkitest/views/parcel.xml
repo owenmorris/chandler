@@ -4,7 +4,7 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itemName="views"
-        xmlns="//Schema/Core"
+        xmlns="http://osafoundation.org/parcels/core"
         xmlns:blocks="//parcels/osaf/framework/blocks"
         xmlns:views="//parcels/pkitest/views"
         itemClass="pkitest.PKITest.PKITestViewParcel">

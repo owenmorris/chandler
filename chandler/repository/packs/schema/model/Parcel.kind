@@ -14,6 +14,7 @@
          - plus local attributes below:
          -     author, publisher, status, summary, icon,
          -     version, createdOn, modifiedOn
+         -     namespace, namespaceMap, file,
         -->
     </ref>
 
@@ -23,7 +24,7 @@
     </ref>
 
     <attribute name="classes" cardinality="dict" type="class">
-      <value name="python">repository.parcel.Parcel.Parcel</value>
+      <value name="python">application.Parcel.Parcel</value>
     </attribute>
   </item>
 
@@ -154,5 +155,76 @@
          type="path" otherCard="list">/Core/DateTime</ref>
     <attribute name="cardinality">single</attribute>
   </item>
+
+
+  <item withSchema="True">
+    <name>namespace</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Parcel</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor"
+         type="path" otherCard="list">/Core/String</ref>
+    <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue" type="str"></attribute>
+  </item>
+
+  <item withSchema="True">
+    <name>namespaceMap</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Parcel</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor"
+         type="path" otherCard="list">/Core/String</ref>
+    <attribute name="cardinality">dict</attribute>
+    <attribute name="initialValue" type="dict"><values /></attribute>
+  </item>
+
+  <!--
+  <item withSchema="True">
+    <name>namespaceRoot</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Parcel</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor"
+         type="path" otherCard="list">/Core/SingleRef</ref>
+    <attribute name="cardinality">single</attribute>
+  </item>
+  -->
+
+  <item withSchema="True">
+    <name>file</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/Parcel</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor"
+         type="path" otherCard="list">/Core/String</ref>
+    <attribute name="cardinality">single</attribute>
+    <attribute name="initialValue" type="str"></attribute>
+  </item>
+
 
 </items>

@@ -10,7 +10,7 @@ import logging, os, sys, time
 
 from repository.persistence.XMLRepository import XMLRepository
 from repository.util.Path import Path
-from repository.parcel.LoadParcels import LoadParcels
+import application
 
 preloadPath = '__preloaded_repository__'
 
@@ -34,8 +34,16 @@ def makePreloadedRepository(path, schema=True, parcels=False):
         rep.loadPack(schemaPack)
 
     if parcels:
-        parcelDir = os.path.join(rootdir, 'chandler', 'parcels')
-        LoadParcels(parcelDir, rep)
+        # Create and start the notification manager -- this is needed for
+        # ItemCollections
+        from osaf.framework.notifications.NotificationManager import NotificationManager
+        application.Globals.notificationManager = NotificationManager()
+        application.Globals.repository = rep
+
+        manager = application.Parcel.Manager.getManager(repository=rep, \
+         path=[os.path.join(rootdir, 'chandler', 'parcels')])
+        manager.loadParcels()
+
 
     rep.commit()
     rep.close()

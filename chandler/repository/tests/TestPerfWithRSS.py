@@ -13,7 +13,8 @@ from bsddb.db import DBNoSuchFileError
 from repository.util.Path import Path
 from repository.item.Query import KindQuery
 from repository.persistence.XMLRepository import XMLRepository
-import repository.parcel.LoadParcels as LoadParcels
+from repository.tests.RepositoryTestCase import RepositoryTestCase
+import application
 import application.Globals as Globals
 
 # get Zaobao's feedparser
@@ -34,28 +35,21 @@ _defaultBlogs = [ "%s%s%s" %("file://", RSS_HOME, f) for f in _rssfiles ]
 
 BASE_PATH = Path('//parcels/osaf/examples/zaobao')
 
-class TestPerfWithRSS(unittest.TestCase):
+class TestPerfWithRSS(RepositoryTestCase):
     """ Simple performance tests """
 
     def setUp(self):
-        self.rootdir = _chandlerDir
-        self.testdir = os.path.join(self.rootdir, 'chandler', 'repository',
-                                    'tests')
-        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
+
+        super(TestPerfWithRSS, self).setUp()
 
         from osaf.framework.notifications.NotificationManager import NotificationManager
         Globals.notificationManager = NotificationManager()
 
         Globals.repository = self.rep # to keep indexer happy
-        self.rep.create()
-        schemaPack = os.path.join(self.rootdir, 'chandler', 'repository', 'packs', 'schema.pack')
-        self.rep.loadPack(schemaPack)
 
-        parcelDir = os.path.join(self.rootdir, 'chandler','parcels')
-        sys.path.insert(1, parcelDir)
-        LoadParcels.LoadParcel(os.path.join(parcelDir, 'osaf', 'examples', 
-         'zaobao'), '//parcels/osaf/examples/zaobao', parcelDir, self.rep)
-        
+        # sys.path.insert(1, parcelDir)
+        self.loadParcel("http://osafoundation.org/parcels/osaf/examples/zaobao")
+
         self.rep.commit()
         self.rep.logger.debug("Going to try: ",len(_defaultBlogs)," feeds")
 

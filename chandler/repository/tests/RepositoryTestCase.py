@@ -11,6 +11,7 @@ import logging, os, sys
 
 from repository.persistence.XMLRepository import XMLRepository
 from repository.util.Path import Path
+from application.Parcel import Manager as ParcelManager
 
 class RepositoryTestCase(TestCase):
 
@@ -41,6 +42,10 @@ class RepositoryTestCase(TestCase):
             self.rep.loadPack(self.schemaPack)
             self.rep.commit()
 
+        self.manager = \
+         ParcelManager.getManager(repository=self.rep, \
+         path=[os.path.join(self.rootdir, 'chandler', 'parcels')])
+
     def setUp(self, ramdb=True):
         self._setup(ramdb)
         
@@ -68,6 +73,18 @@ class RepositoryTestCase(TestCase):
 
     def _find(self, path):
         return self.rep.findPath(path)
+
+    def loadParcel(self, namespace):
+        self.loadParcels([namespace])
+
+    def loadParcels(self, namespaces=None):
+        self.manager.loadParcels(namespaces)
+        if namespaces:
+            for namespace in namespaces:
+                parcelItem = self.manager.lookup(namespace)
+                self.assert_(parcelItem)
+                # print "Loaded namespace %s as item %s" % \
+                # (namespace, parcelItem.itsPath)
 
     _KIND_KIND = Path("//Schema/Core/Kind")
     _ITEM_KIND = Path("//Schema/Core/Item")

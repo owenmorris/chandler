@@ -222,6 +222,7 @@ def generateDocs(buildenv):
                           '--inheritance listed',
                           '--no-private',
                           'parcels/osaf/framework/notifications',
+                          'application',
                           'repository/item',
                           'repository/persistence',
                           'repository/util',

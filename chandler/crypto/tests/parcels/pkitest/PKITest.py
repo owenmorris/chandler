@@ -1,6 +1,6 @@
 from application import Globals
 from osaf.framework.blocks.ContainerBlocks import BoxContainer
-from repository.parcel.Parcel import Parcel
+from application.Parcel import Parcel
 from M2Crypto import SSL, Rand, threading as m2threading
 import thread
 from socket import *

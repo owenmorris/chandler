@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<items>
+
+  <item>
+    <name>ParcelManager</name>
+    <kind type="path">//Schema/Core/Kind</kind>
+
+    <ref name="attributes">
+
+      <!-- 
+         - plus local attributes below:
+         -     registry
+        -->
+    </ref>
+
+    <ref name="superKinds">
+      <ref type="path">//Schema/Core/Item</ref>
+    </ref>
+
+    <attribute name="classes">
+      <value name="python">application.Parcel.Manager</value>
+    </attribute>
+  </item>
+
+  <item>
+    <name>registry</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <parent type="path">//Schema/Core/ParcelManager</parent>
+
+    <ref name="kinds">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" type="path">//Schema/Core/SingleRef</ref>
+    <attribute name="cardinality">dict</attribute>
+    <attribute name="initialValue" type="dict"><values /></attribute>
+
+  </item>
+
+  <item withSchema="True">
+    <name>path</name>
+    <kind type="path">//Schema/Core/Attribute</kind>
+    <class module="repository.schema.Attribute">Attribute</class>
+    <parent type="path">//Schema/Core/ParcelManager</parent>
+
+    <ref name="kinds" otherName="attributes"
+         cardinality="list" otherCard="list">
+      <ref type="path">..</ref>
+    </ref>
+
+    <ref name="type" otherName="typeFor"
+         type="path" otherCard="list">/Core/String</ref>
+    <attribute name="cardinality">list</attribute>
+    <attribute name="initialValue" type="list"><values /></attribute>
+  </item>
+
+</items>
