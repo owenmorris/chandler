@@ -68,15 +68,17 @@ class ViewerParcel (Parcel):
             path = path + ".xrc"
 
             """
-              ViewerParcels must have a resource file with the same name as the
-            module with an .xrc extension. We'll freeze the app.wxMainFrame
-            while adding the panel, since it's temporarily owned by app.wxMainFrame
-            and would otherwise cause it to be temporarily displayed on the screen
+              ViewerParcels must have a resource file with the same name as 
+            the module with an .xrc extension. We'll freeze the 
+            app.wxMainFrame while adding the panel, since it's temporarily 
+            owned by app.wxMainFrame and would otherwise cause it to be 
+            temporarily displayed on the screen.
             """
             assert (os.path.exists (path))
             resources = wxXmlResource(path)
             app.wxMainFrame.Freeze ()
-            panel = resources.LoadObject(app.wxMainFrame, modulename, "wxPanel")
+            panel = resources.LoadObject(app.wxMainFrame, modulename, 
+                                         "wxPanel")
             panel.Show (FALSE)
             app.wxMainFrame.Thaw ()
             assert (panel != None)
@@ -88,10 +90,11 @@ class ViewerParcel (Parcel):
             panel = app.association[id(self)]
         """
           We'll check to see if we've got a parcel installed in the view, and
-        if so we'll remove it from the association and destroy it. Only windows
-        with the attribute "model" are removed from the association since on the
-        Mac there are some extra scrollbars added below the viewer parcel
-        container. Shortcut the case of setting the same window we've already set.
+        if so we'll remove it from the association and destroy it. Only 
+        windows with the attribute "model" are removed from the association 
+        since on the Mac there are some extra scrollbars added below the 
+        viewer parcel container. Shortcut the case of setting the same 
+        window we've already set.
         """
         container = app.wxMainFrame.FindWindowByName("ViewerParcel_container")
         children = container.GetChildren ()
@@ -102,10 +105,11 @@ class ViewerParcel (Parcel):
                     del app.association[id(window.model)]
             container.DestroyChildren ()
             """
-              Attach the new parcel to the view. Don't forget to show the panel
-            which was temporarily hidden
+              Attach the new parcel to the view. Don't forget to show the 
+            panel which was temporarily hidden.
             """
-            app.applicationResources.AttachUnknownControl("ViewerParcel", panel)
+            app.applicationResources.AttachUnknownControl("ViewerParcel", 
+                                                          panel)
             panel.Activate()
             panel.Show ()
 
@@ -173,14 +177,17 @@ class wxViewerParcel(wxPanel):
         del ignoreErrors
         if (viewerParcelMenu != None):
             mainFrameId = id(app.model.mainFrame)
-            if app.association.has_key(mainFrameId):
-                menuBar = app.association[mainFrameId].GetMenuBar ()
+            mainFrame = app.association[mainFrameId]
+            if not mainFrame.model.isClosing:
+                menuBar = mainFrame.GetMenuBar ()
                 index = menuBar.FindMenu (_('View'))
                 assert (index != wxNOT_FOUND)
                 if menuBar.FindMenu(_('Help')) == (index + 1):
-                    menuBar.Insert (index + 1, viewerParcelMenu, self.GetMenuName())
+                    menuBar.Insert (index + 1, viewerParcelMenu, 
+                                    self.GetMenuName())
                 else:
-                    oldMenu = menuBar.Replace (index + 1, viewerParcelMenu, self.GetMenuName())
+                    oldMenu = menuBar.Replace (index + 1, viewerParcelMenu, 
+                                               self.GetMenuName())
                     del oldMenu
         
     def AddViewParcelMenu(self):
@@ -192,9 +199,11 @@ class wxViewerParcel(wxPanel):
         del ignoreErrors
         if (viewerParcelMenu != None):
             mainFrameId = id(app.model.mainFrame)
-            if app.association.has_key(mainFrameId):
-                menuBar = app.association[mainFrameId].GetMenuBar ()
+            mainFrame = app.association[mainFrameId]
+            if not mainFrame.model.isClosing:
+                menuBar = mainFrame.GetMenuBar ()
                 index = menuBar.FindMenu (_('View'))
                 assert (index != wxNOT_FOUND)
-                menuBar.Insert (index + 1, viewerParcelMenu, self.GetMenuName())
+                menuBar.Insert (index + 1, viewerParcelMenu, 
+                                self.GetMenuName())
             

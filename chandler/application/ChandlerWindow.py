@@ -33,7 +33,8 @@ class ChandlerWindow(Persistent):
         self.size['x'] = -1
         self.size['y'] = -1
         self.size['width'] = -1
-        self.size['height'] = -1        
+        self.size['height'] = -1
+        self.isClosing = false
         
     def SynchronizeView(self):
         """
@@ -41,6 +42,7 @@ class ChandlerWindow(Persistent):
         synchronize themselves to match their peristent model counterpart.
         """
         app = application.Application.app
+        self.isClosing = false
         if not app.association.has_key(id(self)):
             wxWindow = app.applicationResources.LoadFrame (None, "ChandlerWindow")
             assert (wxWindow != None)
@@ -152,10 +154,10 @@ class wxChandlerWindow(wxFrame):
         """
           Closing the last window causes the application to quit.
         """
+        self.model.isClosing = true
         self.Destroy()
         
     def OnDestroy(self, event):
-        a = 1
         del application.Application.app.association[id(self.model)]
         
     def MoveOntoScreen(self):
