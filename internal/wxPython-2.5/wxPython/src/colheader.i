@@ -101,10 +101,15 @@ public:
     void ResizeToFit( void );
     long GetTotalUIExtent( void );
 
-    void SetUnicodeFlag(
-        bool            bSetFlag );
-    long GetSelectedItemIndex( void );
-    void SetSelectedItemIndex(
+    bool GetFlagVisibleSelection( void );
+    void SetFlagVisibleSelection(
+        bool                bFlagValue );
+    bool GetFlagUnicode( void );
+    void SetFlagUnicode(
+        bool                bFlagValue );
+
+    long GetSelectedItem( void );
+    void SetSelectedItem(
         long            itemIndex );
     wxColumnHeaderHitTestResult HitTest(
         const wxPoint    &locationPt );

@@ -52,7 +52,8 @@ public:
 	long DrawItem(
 		wxWindow		*parentW,
 		wxClientDC		*dc,
-		const wxRect		*boundsR );
+		const wxRect		*boundsR,
+		bool				bVisibleSelection );
 
 	long HitTest(
 		const wxPoint		&locationPt );
@@ -177,16 +178,20 @@ public:
 	void ResizeToFit( void );
 	long GetTotalUIExtent( void );
 
-	void SetUnicodeFlag(
-		bool				bSetFlag );
+	bool GetFlagVisibleSelection( void );
+	void SetFlagVisibleSelection(
+		bool				bFlagValue );
+	bool GetFlagUnicode( void );
+	void SetFlagUnicode(
+		bool				bFlagValue );
 
 	// returns a non-negative value for a column header item
 	// or wxCOLUMNHEADER_HITTEST_NOWHERE for no item
 	wxColumnHeaderHitTestResult HitTest(
 		const wxPoint		&locationPt );
 
-	long GetSelectedItemIndex( void );
-	void SetSelectedItemIndex(
+	long GetSelectedItem( void );
+	void SetSelectedItem(
 		long				itemIndex );
 	long GetItemCount( void );
 
@@ -313,6 +318,7 @@ protected:
 	wxColumnHeaderItem		**m_ItemList;
 	long					m_ItemCount;
 	long					m_ItemSelected;
+	bool					m_BVisibleSelection;
 	bool					m_BUseUnicode;
 
 	// fonts

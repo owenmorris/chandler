@@ -159,6 +159,8 @@ void wxColumnHeader::Init( void )
 	m_ItemCount = 0;
 	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
 
+	m_BVisibleSelection = true;
+
 #if wxUSE_UNICODE
 	m_BUseUnicode = true;
 #else
@@ -166,10 +168,35 @@ void wxColumnHeader::Init( void )
 #endif
 }
 
-void wxColumnHeader::SetUnicodeFlag(
-	bool			bSetFlag )
+bool wxColumnHeader::GetFlagVisibleSelection( void )
 {
-	m_BUseUnicode = bSetFlag;
+	return m_BVisibleSelection;
+}
+
+void wxColumnHeader::SetFlagVisibleSelection(
+	bool			bFlagValue )
+{
+	if (m_BVisibleSelection == bFlagValue)
+		return;
+
+	m_BVisibleSelection = bFlagValue;
+
+	RefreshItem( m_ItemSelected );
+	SetViewDirty();
+}
+
+bool wxColumnHeader::GetFlagUnicode( void )
+{
+	return m_BUseUnicode;
+}
+
+void wxColumnHeader::SetFlagUnicode(
+	bool			bFlagValue )
+{
+	if (m_BUseUnicode == bFlagValue)
+		return;
+
+	m_BUseUnicode = bFlagValue;
 }
 
 bool wxColumnHeader::Create(
@@ -184,6 +211,7 @@ wxString		localName;
 wxSize		actualSize;
 bool			bResultV;
 
+	localName = name;
 	actualSize = CalculateDefaultSize();
 	if (size.x > 0)
 		actualSize.x = size.x;
@@ -205,7 +233,6 @@ bool			bResultV;
 	}
 
 #else
-	localName = name;
 	bResultV =
 		wxControl::Create(
 			parent, id, pos, actualSize,
@@ -440,7 +467,7 @@ long		extentX, i;
 
 // virtual
 void wxColumnHeader::OnPaint(
-	wxPaintEvent		&event )
+	wxPaintEvent		& WXUNUSED(event) )
 {
 	Draw();
 
@@ -519,10 +546,10 @@ void wxColumnHeader::OnClick_SelectOrToggleSort(
 {
 long			curSelectionIndex;
 
-	curSelectionIndex = GetSelectedItemIndex();
+	curSelectionIndex = GetSelectedItem();
 	if (itemIndex != m_ItemSelected)
 	{
-		SetSelectedItemIndex( itemIndex );
+		SetSelectedItem( itemIndex );
 	}
 	else if (bToggleSortDirection)
 	{
@@ -536,8 +563,11 @@ long			curSelectionIndex;
 				bSortFlag = item->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
 				item->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection, ! bSortFlag );
 
-				RefreshItem( itemIndex );
-				SetViewDirty();
+				if (m_BVisibleSelection)
+				{
+					RefreshItem( itemIndex );
+					SetViewDirty();
+				}
 			}
 
 		// for testing: can induce text wrapping outside of bounds rect
@@ -574,15 +604,18 @@ void wxColumnHeader::DisposeItemList( void )
 	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
 }
 
-long wxColumnHeader::GetSelectedItemIndex( void )
+long wxColumnHeader::GetSelectedItem( void )
 {
 	return m_ItemSelected;
 }
 
-void wxColumnHeader::SetSelectedItemIndex(
+void wxColumnHeader::SetSelectedItem(
 	long			itemIndex )
 {
 bool		bSelected;
+
+//	if (! m_BVisibleSelection)
+//		return;
 
 	if ((itemIndex >= 0) && (itemIndex < m_ItemCount))
 		if (m_ItemSelected != itemIndex)
@@ -1048,7 +1081,7 @@ long			resultV;
 	wxWindowMSW::MSWDefWindowProc( WM_PAINT, 0, 0 );
 
 	// add selection indicator - no Win32 native mechanism exists
-	if (m_ItemSelected >= 0)
+	if (m_BVisibleSelection && (m_ItemSelected >= 0))
 	{
 		if (GetItemBounds( m_ItemSelected, &boundsR ))
 		{
@@ -1062,14 +1095,14 @@ long			resultV;
 	// no DC needed for Mac rendering (except for bitmaps)
 	for (long i=0; i<m_ItemCount; i++)
 		if (GetItemBounds( i, &boundsR ))
-			resultV |= m_ItemList[i]->DrawItem( this, NULL, &boundsR );
+			resultV |= m_ItemList[i]->DrawItem( this, NULL, &boundsR, m_BVisibleSelection );
 #else
 wxClientDC	dc( this );
 
 	// NB: this case being used for both Mac and GTK
 	for (long i=0; i<m_ItemCount; i++)
 		if (GetItemBounds( i, &boundsR ))
-			resultV |= m_ItemList[i]->DrawItem( this, &dc, &boundsR );
+			resultV |= m_ItemList[i]->DrawItem( this, &dc, &boundsR, m_BVisibleSelection );
 #endif
 
 	return resultV;
@@ -1115,6 +1148,7 @@ long		originX, i;
 void wxColumnHeader::MacControlUserPaneActivateProc(
 	bool			bActivating )
 {
+	// FIXME: is this the right way to handle activate events ???
 	Enable( bActivating );
 }
 #endif
@@ -1141,7 +1175,7 @@ long wxColumnHeader::Win32ItemInsert(
 	long			nWidth,
 	const void		*titleText,
 	long			textJust,
-	bool			bUseUnicode,
+	bool			WXUNUSED(bUseUnicode),
 	bool			bSelected,
 	bool			bSortEnabled,
 	bool			bSortAscending )
@@ -1582,13 +1616,16 @@ long		targetX, resultV;
 long wxColumnHeaderItem::DrawItem(
 	wxWindow		*parentW,
 	wxClientDC		*dc,
-	const wxRect		*boundsR )
+	const wxRect		*boundsR,
+	bool				bVisibleSelection )
 {
 //	if ((boundsR == NULL) || boundsR->IsEmpty())
 	if (boundsR == NULL)
 		return (-1L);
 
 #if defined(__WXMSW__)
+	// WXUNUSED(parentW, dc)
+
 	// NB: implementation not needed ??
 	return 0;
 
@@ -1597,7 +1634,7 @@ ThemeButtonDrawInfo		drawInfo;
 RgnHandle				savedClipRgn;
 Rect					qdBoundsR;
 long					nativeTextJust;
-bool					bHasIcon;
+bool					bSelected, bHasIcon;
 OSStatus				errStatus;
 
 	errStatus = noErr;
@@ -1607,7 +1644,8 @@ OSStatus				errStatus;
 	qdBoundsR.top = 0;
 	qdBoundsR.bottom = qdBoundsR.top + boundsR->height;
 
-	// determine bitmap rendering condition
+	// determine selection and bitmap rendering conditions
+	bSelected = m_BSelected && bVisibleSelection;
 	bHasIcon = ((dc != NULL) && HasValidBitmapRef( m_BitmapRef ));
 
 	// clip down to the item bounds
@@ -1621,12 +1659,13 @@ OSStatus				errStatus;
 //	errStatus = SetAppearanceTintColor( &tintRGB, origCol, newCol );
 
 	if (m_BEnabled)
-		drawInfo.state = (m_BSelected ? kThemeStateActive: kThemeStateInactive);
+		drawInfo.state = (bSelected && bVisibleSelection ? kThemeStateActive: kThemeStateInactive);
 	else
-		drawInfo.state = (m_BSelected ? kThemeStateUnavailable : kThemeStateUnavailableInactive);
+		drawInfo.state = (bSelected && bVisibleSelection ? kThemeStateUnavailable : kThemeStateUnavailableInactive);
 //	drawInfo.state = kThemeStatePressed;
 
-	drawInfo.value = (SInt32)m_BSelected;	// zero draws w/o theme background shading
+	// zero draws w/o theme background shading
+	drawInfo.value = (SInt32)m_BSelected && bVisibleSelection;
 
 	drawInfo.adornment = (m_BSortAscending ? kThemeAdornmentNone : kThemeAdornmentArrowDoubleArrow);
 //	drawInfo.adornment = kThemeAdornmentNone;					// doesn't work - draws down arrow !!
@@ -1639,7 +1678,7 @@ OSStatus				errStatus;
 
 	// NB: DrawThemeButton height is fixed, regardless of the boundsRect argument!
 	if (! m_BSortEnabled)
-		MacDrawThemeBackgroundNoArrows( &qdBoundsR, m_BSelected && m_BEnabled );
+		MacDrawThemeBackgroundNoArrows( &qdBoundsR, bSelected && m_BEnabled );
 	else
 		errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
 
@@ -1693,12 +1732,13 @@ OSStatus				errStatus;
 wxRect				localBoundsR, subItemBoundsR;
 wxPoint				labelTextSize;
 long					originX, insetX;
-bool					bHasIcon;
+bool					bSelected, bHasIcon;
 
 	if ((parentW == NULL) || (dc == NULL))
 		return (-1L);
 
-	// determine bitmap rendering condition
+	// determine selection and bitmap rendering conditions
+	bSelected = m_BSelected && bVisibleSelection;
 	bHasIcon = ((dc != NULL) && HasValidBitmapRef( m_BitmapRef ));
 
 	// draw column header background:
@@ -1737,7 +1777,7 @@ bool					bHasIcon;
 
 	// draw sort direction arrows (if specified)
 	// NB: what if icon avail? mut. ex.?
-	if (m_BSelected && m_BSortEnabled)
+	if (bSelected && m_BSortEnabled)
 	{
 #if defined(__WXGTK__)
 		GTKGetSortArrowBounds( &localBoundsR, &subItemBoundsR );
