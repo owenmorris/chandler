@@ -21,8 +21,7 @@ import PresencePanel
 
 from zodb import db 
 from zodb.storage.file import FileStorage
-
-from application.model.LocalRepository import LocalRepository
+from application.repository.Repository import Repository
 
 """
 	The application module makes available the following global data to
@@ -474,9 +473,11 @@ class wxApplication (wxApp):
 		  FIXME:  this routine is temporary scaffolding - we'll use the
 		  real database stuff with indexing when it's developed.
 		"""
-		repository = LocalRepository()
-		for item in repository.objectList:
-			if item.__class__.__name__ == 'ContactEntityItem':
+
+                
+                repository = Repository()
+                for item in repository.thingList:
+	            if item.__class__.__name__ == 'Contact':
 				if item.HasContactMethod('jabberID', jabberID):
 					return item.GetFullName()
 		return None
