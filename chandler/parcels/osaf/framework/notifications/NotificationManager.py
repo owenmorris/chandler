@@ -92,18 +92,6 @@ class NotificationManager(object):
                 self.subscriptions.release()
 
             return clientID
-            """
-            try:
-                try:
-                    subscriber = self.subscribers[clientID]
-                except KeyError:
-                    subscriber = Subscriber(clientID, source)
-                    self.subscribers[clientID] = subscriber
-            finally:
-                self.subscribers.release()
-
-            self.declarations[name].subscribers[clientID] = subscriber
-            """
         finally:
             self.declarations.release()
 
@@ -136,11 +124,15 @@ class NotificationManager(object):
             if not self.declarations.has_key(name):
                 raise NotDeclared, '%s %s' % (name, clientID)
 
-            subscribers = self.declarations[name].subscribers.values()
-            for sub in subscribers:
-                sub.post(notification)
+            decl = self.declarations[name]
+            notification._eventUUID = decl.event.getUUID()
+
+            subscribers = decl.subscribers.values()
         finally:
             self.declarations.release()
+
+        for sub in subscribers:
+            sub.post(notification)
 
     def GetNextNotification(self, clientID):
         self.subscriptions.acquire()
@@ -216,7 +208,7 @@ class Subscription(object):
         if callable(self.callback):
             return None
         return self.queue.get(wait)
-        
+
 
 class LockableDict(dict):
     def __init__(self, *args, **kwds):
