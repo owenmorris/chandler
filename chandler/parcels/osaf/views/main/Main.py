@@ -662,12 +662,19 @@ class ReminderTimer(Timer):
         # @@@BJS Eventually, the query should be able to do the sorting for us;
         # for now, that doesn't seem to work so we're doing it here.
         # ... this routine should just be "return self.contents.resultSet"
-        timesAndReminders = [ (item.reminderTime, item) for item in self.contents]
-        if len(timesAndReminders) == 0:
-            return []
-        timesAndReminders.sort()
-        sortedReminders = [ item[1] for item in timesAndReminders ]
-        return sortedReminders
+        timesAndReminders = []
+        for item in self.contents:
+            try:
+                reminderTime = item.reminderTime
+            except AttributeError:
+                pass
+            else:
+                timesAndReminders.append (reminderTime, item)
+            
+        if len(timesAndReminders) != 0:
+            timesAndReminders.sort()
+            timesAndReminders = [ item[1] for item in timesAndReminders ]
+        return timesAndReminders
     
     def onCollectionChanged(self, event):
         # print "*** Got reminders collection changed!"
