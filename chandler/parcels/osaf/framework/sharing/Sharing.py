@@ -604,7 +604,7 @@ class FileSystemConduit(ShareConduit):
 
         elif style == ImportExportFormat.STYLE_SINGLE:
             stat = os.stat(location)
-            fileList[where] = { 'data' : stat.st_mtime }
+            fileList[location] = { 'data' : stat.st_mtime }
 
         else:
             print "@@@ Raise an exception here"
