@@ -49,7 +49,7 @@ ifeq ($(OS),Cygwin)
 GCJ_HOME=$(compiler)
 endif
 ifeq ($(OS),Darwin)
-GCJ_HOME=$(compiler)/install
+GCJ_HOME=$(compiler)
 endif
 ifeq ($(OS),Linux)
 GCJ_HOME=/usr
