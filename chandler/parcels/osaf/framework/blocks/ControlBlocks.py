@@ -783,7 +783,8 @@ class StatusBar(Block):
             if self.widget.GetFieldsCount() != 2:
                 self.widget.SetFieldsCount(2)
                 self.widget.SetStatusWidths([-1, 150])
-            self.widget.SetStatusText(statusMessage)
+            if statusMessage is not None:
+                self.widget.SetStatusText(statusMessage)
             self.widget.gauge.Show(True)
             self.widget.gauge.SetValue((int)(progressPercentage*100))
             # By default widgets are added to the left side...we must reposition them
