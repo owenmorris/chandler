@@ -402,23 +402,9 @@ class MainView(View):
 
 
     def __loadMailTests (self, dir):
-        if not Sharing.isMailSetUp(self.itsView):
-            if application.dialogs.Util.okCancel( \
-             wx.GetApp().mainFrame,
-             "Account information required",
-             "Please set up your accounts."):
-                if not application.dialogs.AccountPreferences.ShowAccountPreferencesDialog( \
-                 wx.GetApp().mainFrame, view=self.itsView):
-                    return
-            else:
-                return
-
-        view = self.itsView
-        view.commit()
-
         import osaf.mail.utils as utils
-        utils.loadMailTests(view, dir)
-        view.refresh()
+        utils.loadMailTests(self.itsView, dir)
+        self.itsView.refresh()
 
     def onGetNewMailEvent (self, event):
         # Triggered from "Test | Get Mail" menu
