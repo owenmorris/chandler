@@ -21,7 +21,8 @@ logger.setLevel(logging.INFO)
 #@@@Temporary testing tool written by Morgen -- DJA
 import tools.timing
 
-SCHEMA_VERSION = "4"
+# Increment this constant whenever you change the schema:
+SCHEMA_VERSION = "5"
 
 """
   Event used to post callbacks on the UI thread

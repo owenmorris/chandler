@@ -162,6 +162,10 @@
             <cardinality value="dict" />
         </Attribute>
 
+        <Attribute itsName="marker">
+            <type itemref="SingleRef"/>
+        </Attribute>
+
     </Kind>
 
     <Kind itsName="FileSystemConduit">

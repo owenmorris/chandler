@@ -16,6 +16,7 @@ from chandlerdb.util.uuid import UUID
 import application.dialogs.PublishCollection
 from repository.item.Query import KindQuery
 from repository.util.Lob import Lob
+from repository.item.Item import Item
 import repository.query.Query as Query
 import repository
 import logging
@@ -122,7 +123,11 @@ class ShareConduit(ContentModel.ContentItem):
         super(ShareConduit, self).__init__(name, parent, kind, view)
 
         self.__clearManifest()
-
+        
+        # 'marker' is an item which exists only to keep track of the repository
+        # view version number at the time of last sync
+        self.marker = Item('marker', self, None)
+        
     def setShare(self, share):
         self.share = share
 
@@ -134,14 +139,14 @@ class ShareConduit(ContentModel.ContentItem):
         if not skip:
             externalItemExists = self.__externalItemExists(item)
             itemVersion = item.getVersion()
-            prevVersion = self.__lookupVersion(item)
+            prevVersion = self.marker.getVersion()
             if itemVersion > prevVersion or not externalItemExists:
                 logger.info("...putting '%s' %s (%d vs %d) (on server: %s)" % \
                  (item.getItemDisplayName(), item.itsUUID, itemVersion,
                  prevVersion, externalItemExists))
                 data = self._putItem(item)
                 if data is not None:
-                    self.__addToManifest(item, data, itemVersion)
+                    self.__addToManifest(item, data)
                     logger.info("...done, data: %s, version: %d" %
                      (data, itemVersion))
             else:
@@ -183,6 +188,9 @@ class ShareConduit(ContentModel.ContentItem):
             # of the items has changed.
             self._putItem(self.share)
 
+        # dirty our marker
+        self.marker.setDirty(Item.NDIRTY)
+
         self.itsView.commit()
 
         self.disconnect()
@@ -199,11 +207,9 @@ class ShareConduit(ContentModel.ContentItem):
         if not self.__haveLatest(itemPath):
             # logger.info("...getting: %s" % itemPath)
             (item, data) = self._getItem(itemPath, into)
-            # The version is set to -1 to indicate it needs to be
-            # set later on (by syncManifestVersions) because we won't
-            # know the item version until *after* commit
+
             if item is not None:
-                self.__addToManifest(item, data, -1)
+                self.__addToManifest(item, data)
                 logger.info("...imported '%s' %s, data: %s" % \
                  (item.getItemDisplayName(), item, data))
                 return item
@@ -264,10 +270,6 @@ class ShareConduit(ContentModel.ContentItem):
             self.__removeFromManifest(removePath)
 
         self.itsView.commit()
-        # Now that we've committed all fetched items, we need to update
-        # the versions in the manifest
-        self.__syncManifestVersions()
-        self.itsView.commit()
 
         logger.info("Finished GET of %s" % location)
 
@@ -325,13 +327,12 @@ class ShareConduit(ContentModel.ContentItem):
     def __clearManifest(self):
         self.manifest = {}
 
-    def __addToManifest(self, item, data, version):
+    def __addToManifest(self, item, data):
         # data is an ETAG, or last modified date
         path = self._getItemPath(item)
         self.manifest[path] = {
          'uuid' : item.itsUUID,
          'data' : data,
-         'version' : version,
         }
 
 
@@ -341,12 +342,6 @@ class ShareConduit(ContentModel.ContentItem):
     def __externalItemExists(self, item):
         itemPath = self._getItemPath(item)
         return itemPath in self.resourceList
-
-    def __lookupVersion(self, item):
-        try:
-            return self.manifest[self._getItemPath(item)]['version']
-        except:
-            return -1
 
     def __haveLatest(self, path, data=None):
         """ Do we have the latest copy of this item? """
@@ -382,17 +377,6 @@ class ShareConduit(ContentModel.ContentItem):
         for (path, value) in self.manifest.iteritems():
             if not value['seen']:
                 yield path
-
-    def __syncManifestVersions(self):
-        # Since repository version numbers change once you have committed,
-        # we need to commit first and then run this routine which gets the
-        # new version numbers for items we've just imported.
-        for (path, value) in self.manifest.iteritems():
-            if value['version'] == -1:
-                item = self.itsView.findUUID(value['uuid'])
-                if item is not None:
-                    value['version'] = item.getVersion()
-
 
     def connect(self):
         pass
