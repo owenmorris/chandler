@@ -517,6 +517,10 @@ static int read64Bytes(char *text, int from, unsigned char *uuid, int to)
 int make_uuid(unsigned char *uuid, char *text, int len)
 {
     switch (len) {
+      case 16:
+        memcpy(uuid, text, len);
+        return 0;
+
       case 22:
         if (read64Bytes(text, 0, uuid, 0) ||
             read64Bytes(text, 11, uuid, 8))

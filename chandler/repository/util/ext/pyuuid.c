@@ -15,6 +15,7 @@ static PyObject *make(PyObject *self, PyObject *args)
         if (generate_uuid(uuid))
             return Py_BuildValue("");
         break;
+      case 16:
       case 22:
       case 36:
         if (make_uuid(uuid, text, len))
