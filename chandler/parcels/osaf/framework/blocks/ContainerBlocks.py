@@ -33,13 +33,19 @@ class BoxContainer(RectangularChild):
             parent.SetSizer(sizer)
             return parent, sizer, parent
                 
-    def addToContainer(self, parent, child, weight, flag, border):
-        parent.Add(child, int(weight), flag, border)
-        
-    def removeFromContainer(self, parent, child):
-        parent.Remove(child)
-        child.Destroy()
+    def addToContainer(self, parent, child, weight, flag, border, append=True):
+        if append:
+            parent.Add(child, int(weight), flag, border)
+        else:
+            parent.Prepend(child, int(weight), flag, border)
         parent.Layout()
+        
+    def removeFromContainer(self, parent, child, doDestroy=True):
+        parentSizer = parent.GetSizer()
+        parentSizer.Remove(child)
+        if doDestroy:
+            child.Destroy()
+        parentSizer.Layout()
 
 
 class EmbeddedContainer(RectangularChild):
@@ -62,13 +68,19 @@ class EmbeddedContainer(RectangularChild):
             return panel, sizer, panel
         
 
-    def addToContainer (self, parent, child, weight, flag, border):
-        parent.Add(child, int(weight), flag, border)
+    def addToContainer (self, parent, child, weight, flag, border, append=True):
+        if append:
+            parent.Add(child, int(weight), flag, border)
+        else:
+            parent.Prepend(child, int(weight), flag, border)
+        parent.Layout()
         
-    def removeFromContainer(self, parent, child):
-        parent.Remove (child)
-        child.Destroy ()
-        parent.Layout ()
+    def removeFromContainer(self, parent, child, doDestroy=True):
+        parentSizer = parent.GetSizer()
+        parentSizer.Remove(child)
+        if doDestroy:
+            child.Destroy()
+        parentSizer.Layout()
     
     def OnSelectionChangedEvent(self, notification):
         node = notification.data['item']
@@ -85,7 +97,7 @@ class EmbeddedContainer(RectangularChild):
                 oldChild = self.contentSpec.data[0]
                 wxOldChild = Globals.association [oldChild.getUUID()]
                 self.UnregisterEvents(oldChild)
-                self.removeFromContainer (embeddedSizer, wxOldChild)
+                self.removeFromContainer (embeddedPanel, wxOldChild)
                 oldChild.parentBlock = None
             
                 self.contentSpec.data = [newChild]
@@ -178,30 +190,44 @@ class SplitWindow(RectangularChild):
             style |= wxSP_3D
         return style
 
-    def addToContainer(self, parent, child, weight, flag, border):
+    def addToContainer(self, parent, child, weight, flag, border, append=True):
         if not hasattr(self, 'childrenToAdd'):
             self.childrenToAdd = []
         self.childrenToAdd.append(child)
-        
-    def removeFromContainer(self, parent, child):
-        # @@@ Must be implemented
-        pass
-        
+
+    def removeFromContainer(self, parent, child, doDestroy=True):
+        try:
+            self.childrenToAdd.remove(child)
+        except ValueError:
+            parent.Unsplit(child)
+            if doDestroy:
+                child.Destroy()
+                    
     def handleChildren(self, window):
-        assert (len (self.childrenToAdd) == 2)
-        width, height = window.GetSizeTuple()
-        assert self.splitPercentage >= 0.0 and self.splitPercentage < 1.0
-        if self.orientationEnum == "Horizontal":
-            window.SplitHorizontally(self.childrenToAdd[0],
-                                     self.childrenToAdd[1],
-                                     int (round (height * self.splitPercentage)))
-        else:
-            window.SplitVertically(self.childrenToAdd[0],
-                                   self.childrenToAdd[1],
-                                   int (round (width * self.splitPercentage)))
+        numChildrenToAdd = len(self.childrenToAdd)
+        if numChildrenToAdd == 1:
+            window1 = window.GetWindow1()
+            if not window1:
+                window.Initialize(self.childrenToAdd[0])
+            else:
+                self.doSplitWindow(window, self.childrenToAdd[0], window1)
+        elif numChildrenToAdd == 2:
+            self.doSplitWindow(window, self.childrenToAdd[0], self.childrenToAdd[1])
         self.childrenToAdd = []
         return window
 
+    def doSplitWindow(self, window, window1, window2):
+        width, height = window.GetSizeTuple()
+        assert self.splitPercentage >= 0.0 and self.splitPercentage < 1.0
+        if self.orientationEnum == "Horizontal":
+            window.SplitHorizontally(window1,
+                                     window2,
+                                     int (round (height * self.splitPercentage)))
+        else:
+            window.SplitVertically(window1,
+                                   window2,
+                                   int (round (width * self.splitPercentage)))
+    
 
 class TabbedContainer(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
@@ -229,12 +255,12 @@ class TabbedContainer(RectangularChild):
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return tabbedContainer, tabbedContainer, tabbedContainer
 
-    def addToContainer(self, parent, child, weight, flag, border):
+    def addToContainer(self, parent, child, weight, flag, border, append=True):
         if not hasattr(self, 'childrenToAdd'):
             self.childrenToAdd = []
         self.childrenToAdd.append(child)
 
-    def removeFromContainer(self, parent, child):
+    def removeFromContainer(self, parent, child, doDestroy=True):
         # @@@ Must be implemented
         pass
 

@@ -294,21 +294,6 @@
     <methodName>OnPreferencesEvent</methodName>
   </docSchema:BlockEvent>
 
-  <BlockEvent itemName="ViewSidebar">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnViewSidebarEvent</methodName>
-  </BlockEvent>
-
-  <BlockEvent itemName="ViewNavigationBar">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnViewNavigationBarEvent</methodName>
-  </BlockEvent>
-
-  <BlockEvent itemName="ViewStatusBar">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnViewStatusBarEvent</methodName>
-  </BlockEvent>
-
   <docSchema:BlockEvent itemName="SelectionChanged">
     <dispatchEnum>Broadcast</dispatchEnum>
     <methodName>OnSelectionChangedEvent</methodName>
@@ -347,9 +332,8 @@
 
     <Attribute itemName="open">
       <type itemref="Boolean"/>
-      <defaultValue type="Boolean">False</defaultValue>
+      <defaultValue type="Boolean">True</defaultValue>
     </Attribute>
-
 
     <Attribute itemName="eventBoundary">
       <type itemref="Boolean"/>
@@ -390,14 +374,17 @@
 
     <Attribute itemName="size">
       <type itemref="docSchema:SizeType"/>
+      <defaultValue type="docSchema:SizeType">0,0</defaultValue>
     </Attribute>
 
     <Attribute itemName="minimumSize">
       <type itemref="docSchema:SizeType"/>
+      <defaultValue type="docSchema:SizeType">0,0</defaultValue>
     </Attribute>
 
     <Attribute itemName="border">
       <type itemref="docSchema:RectType"/>
+      <defaultValue type="docSchema:RectType">0.0, 0.0, 0.0, 0.0</defaultValue>
     </Attribute>
     
     <Enumeration itemName="alignmentEnumType">
@@ -416,10 +403,12 @@
 
     <Attribute itemName="alignmentEnum">
       <type itemref="docSchema:RectangularChild/alignmentEnumType"/>
+      <defaultValue type="docSchema:RectangularChild/alignmentEnumType">grow</defaultValue>
     </Attribute>
 
     <Attribute itemName="stretchFactor">
       <type itemref="Float"/>
+      <defaultValue type="Float">1.0</defaultValue>
     </Attribute>
 
     <attributes itemref="docSchema:RectangularChild/size"/>
@@ -950,4 +939,3 @@
   </Kind>
 
 </Parcel>
-

@@ -180,14 +180,14 @@
     <helpString></helpString>
   </MenuItem>
 
-  <MenuItem itemName="ViewSidebarItem">
+  <MenuItem itemName="ViewSideBarItem">
     <title>View Sidebar</title>
     <operation>InsertBefore</operation>
     <menuLocation>ViewMenu</menuLocation>
     <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
+    <menuItemKind>Check</menuItemKind>
     <accel></accel>
-    <event itemref="events:ViewSidebar"/>
+    <event itemref="events:ViewSideBar"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -196,9 +196,20 @@
     <operation>InsertBefore</operation>
     <menuLocation>ViewMenu</menuLocation>
     <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
+    <menuItemKind>Check</menuItemKind>
     <accel></accel>
     <event itemref="events:ViewNavigationBar"/>
+    <helpString></helpString>
+  </MenuItem>
+
+  <MenuItem itemName="ViewBookmarksBarItem">
+    <title>View Bookmarks Bar</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>ViewMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Check</menuItemKind>
+    <accel></accel>
+    <event itemref="events:ViewBookmarksBar"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -207,7 +218,7 @@
     <operation>InsertBefore</operation>
     <menuLocation>ViewMenu</menuLocation>
     <itemLocation></itemLocation>
-    <menuItemKind>Normal</menuItemKind>
+    <menuItemKind>Check</menuItemKind>
     <accel></accel>
     <event itemref="events:ViewStatusBar"/>
     <helpString></helpString>
@@ -337,7 +348,8 @@
   <!--
     Status Bar
   -->
-  <StatusBar itemName="StatusBar">
+  <StatusBar itemName="StatusBar"
+             itemClass="OSAF.framework.blocks.NavigationBlocks.ChandlerStatusBar">
   </StatusBar>
 
   <!-- 
@@ -480,7 +492,9 @@
     <stretchFactor>0.0</stretchFactor>
   </EmbeddedContainer>  
 
-  <Tree itemName="Sidebar">
+  <Tree itemName="Sidebar"
+        itemClass="OSAF.views.main.SideBar.SideBar">
+
     <!-- Attributes -->
     <elementDelegate>OSAF.views.main.SideBar.SideBarDelegate</elementDelegate>
     <selection itemref="doc:AboutChandler"/>
@@ -562,8 +576,9 @@
     <childrenBlocks itemref="doc:EditSeparator2"/>
     <childrenBlocks itemref="doc:PreferencesItem"/>
     <childrenBlocks itemref="doc:ViewMenu"/>
-    <childrenBlocks itemref="doc:ViewSidebarItem"/>
+    <childrenBlocks itemref="doc:ViewSideBarItem"/>
     <childrenBlocks itemref="doc:ViewNavigationBarItem"/>
+    <childrenBlocks itemref="doc:ViewBookmarksBarItem"/>
     <childrenBlocks itemref="doc:ViewStatusBarItem"/>
     <childrenBlocks itemref="doc:TestMenu"/>
     <childrenBlocks itemref="doc:GenerateAllItem"/>

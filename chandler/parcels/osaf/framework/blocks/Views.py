@@ -141,18 +141,6 @@ class View(BoxContainer):
     def OnPreferencesEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
         
-    def OnViewSidebarEventUpdateUI (self, notification):
-        notification.data ['Enable'] = False
-
-    def OnViewNavigationBarEventUpdateUI (self, notification):
-        notification.data ['Enable'] = False
-
-    def OnViewBookmarksBarEventUpdateUI (self, notification):
-        notification.data ['Enable'] = False
-
-    def OnViewStatusBarEventUpdateUI (self, notification):
-        notification.data ['Enable'] = False
-    
     # Test Methods
 
     def OnGenerateContentItems(self, notification):

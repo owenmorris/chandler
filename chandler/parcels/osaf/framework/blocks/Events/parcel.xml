@@ -23,8 +23,9 @@ of a limitation of the XML format, which will be eliminated</description>
     <blockEvents itemref="events:Copy"/>
     <blockEvents itemref="events:Paste"/>
     <blockEvents itemref="events:Preferences"/>
-    <blockEvents itemref="events:ViewSidebar"/>
+    <blockEvents itemref="events:ViewSideBar"/>
     <blockEvents itemref="events:ViewNavigationBar"/>
+    <blockEvents itemref="events:ViewBookmarksBar"/>
     <blockEvents itemref="events:ViewStatusBar"/>    
     <blockEvents itemref="events:SelectionChanged"/>
     <blockEvents itemref="events:EnterPressed"/>
@@ -71,18 +72,23 @@ of a limitation of the XML format, which will be eliminated</description>
     <methodName>OnPreferencesEvent</methodName>
   </BlockEvent>
 
-  <BlockEvent itemName="ViewSidebar">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnViewSidebarEvent</methodName>
+  <BlockEvent itemName="ViewSideBar">
+    <dispatchEnum>Broadcast</dispatchEnum>
+    <methodName>OnViewSideBarEvent</methodName>
   </BlockEvent>
 
   <BlockEvent itemName="ViewNavigationBar">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>Broadcast</dispatchEnum>
     <methodName>OnViewNavigationBarEvent</methodName>
   </BlockEvent>
 
+  <BlockEvent itemName="ViewBookmarksBar">
+    <dispatchEnum>Broadcast</dispatchEnum>
+    <methodName>OnViewBookmarksBarEvent</methodName>
+  </BlockEvent>
+
   <BlockEvent itemName="ViewStatusBar">
-    <dispatchEnum>BubbleUp</dispatchEnum>
+    <dispatchEnum>Broadcast</dispatchEnum>
     <methodName>OnViewStatusBarEvent</methodName>
   </BlockEvent>
 
