@@ -405,7 +405,7 @@ class Item(object):
                 else:
                     yield ref
 
-    def check(self):
+    def check(self, recursive=False):
 
         logger = self.getRepository().logger
         result = True
@@ -454,6 +454,11 @@ class Item(object):
         for key, value in self._references.iteritems():
             check = value.check(self, key)
             result = result and check
+
+        if recursive:
+            for child in self:
+                check = child.check(True)
+                result = result and check
 
         return result
         

@@ -391,15 +391,10 @@ class RepositoryView(object):
 
     def check(self):
 
-        def apply(item):
-            result = item.check()
-            for child in item:
-                result = result and apply(child)
-            return result
-
         result = True
         for root in self.getRoots():
-            result = result and apply(root)
+            check = root.check(True)
+            result = result and check
 
         return result
 
