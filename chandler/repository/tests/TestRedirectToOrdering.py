@@ -1,0 +1,111 @@
+"""
+Unit tests for the ordering under mixinKinds of the redirectTo aspect 
+"""
+
+__revision__  = "$Revision$"
+__date__      = "$Date$"
+__copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
+__license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
+
+import RepositoryTestCase, os, unittest
+
+from repository.schema.Attribute import Attribute
+from repository.util.Path import Path
+
+class RedirectAttributeOrderingTest(RepositoryTestCase.RepositoryTestCase):
+    """Test Redirect Attribute Ordering"""
+    
+    # When we have multiple superKinds, and there is a conflict between
+    # more than one attribute with redirectTo aspect, the ordering
+    # changes when reloading the repository.
+
+    def _createNoteAndTaskKinds(self):
+        kind = self._find('//Schema/Core/Kind')
+        itemKind = self._find('//Schema/Core/Item')
+        attrKind = itemKind.itsParent['Attribute']
+
+        # noteKind has a 'creator' string, and a 'who' attribute to 
+        #   redirectTo 'creator'
+        noteKind = kind.newItem('Note', self.rep)
+        creatorAttribute = Attribute('creator', noteKind, attrKind)
+        creatorAttribute.cardinality = 'single'
+        noteKind.addValue('attributes',
+                          creatorAttribute, alias='creator')
+        whoAttribute = Attribute('who', noteKind, attrKind)
+        whoAttribute.cardinality = 'single'
+        whoAttribute.redirectTo = 'creator'
+        noteKind.addValue('attributes',
+                          whoAttribute, alias='who')
+
+        # taskMixin has a 'participant' string, and a 'who' attribute to 
+        #   redirectTo 'participant'
+        taskMixin = kind.newItem('TaskMixin', self.rep)
+        participantAttribute = Attribute('participant', taskMixin, attrKind)
+        participantAttribute.cardinality = 'single'
+        taskMixin.addValue('attributes',
+                           participantAttribute, alias='participant')
+        whoAttribute = Attribute('who', taskMixin, attrKind)
+        whoAttribute.cardinality = 'single'
+        whoAttribute.redirectTo = 'participant'
+        taskMixin.addValue('attributes',
+                           whoAttribute, alias='who')
+
+        # taskKind is a Kind with superkinds noteKind and taskMixin
+        taskKind = kind.newItem('Task', self.rep)
+        taskKind.addValue('superKinds', noteKind)
+        taskKind.addValue('superKinds', taskMixin)
+
+        return (noteKind, taskMixin, taskKind)
+
+    def testRedirectTo(self):
+        noteKind, taskMixin, taskKind = self._createNoteAndTaskKinds()
+
+        aNote = noteKind.newItem('aNote', self.rep)
+        aTaskMixin = taskMixin.newItem('aTaskMixin', self.rep)
+        aTask = taskKind.newItem('aTask', self.rep)
+
+        noteWho = 'whoWroteTheNote'
+        aNote.who = noteWho
+        taskMixinWho = 'whoWroteTheTaskMixin'
+        aTaskMixin.who = taskMixinWho
+        taskWho = 'whoWroteTheTask'
+        aTask.who = taskWho
+
+        print "checking attributes"
+        self.assert_(aNote.who == noteWho)
+        self.assert_(aNote.creator == noteWho)
+        self.assert_(aTaskMixin.who == taskMixinWho)
+        self.assert_(aTaskMixin.participant == taskMixinWho)
+        self.assert_(aTask.who == taskWho)
+        self.assert_(aTask.participant == taskWho)
+        self.rep.commit()
+        print "Task.who points to " + aTask.getAttributeAspect('who', 'redirectTo')
+
+        aNoteUUID = aNote.itsUUID
+        aTaskMixinUUID = aTaskMixin.itsUUID
+        aTaskUUID = aTask.itsUUID
+
+        self._reopenRepository()
+        
+        aNote = self.rep.find(aNoteUUID)
+        aTaskMixin = self.rep.find(aTaskMixinUUID)
+        aTask = self.rep.find(aTaskUUID)
+
+        self.assert_(aNote.who == noteWho)
+        self.assert_(aNote.creator == noteWho)
+        self.assert_(aTaskMixin.who == taskMixinWho)
+        self.assert_(aTaskMixin.participant == taskMixinWho)
+        # test that the participant value is still there
+        self.assert_(aTask.participant == taskWho)
+        print "Task.who points to " + aTask.getAttributeAspect('who', 'redirectTo')
+        # should still be redirected to participant, but now it's creator
+        # Andi, reenable the line below when you fix it
+        #self.assert_(aTask.who == taskWho)
+        
+                  
+if __name__ == "__main__":
+#    import hotshot
+#    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
+#    profiler.run('unittest.main()')
+#    profiler.close()
+     unittest.main()

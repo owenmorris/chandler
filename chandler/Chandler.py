@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 def main():
-    try:
+        #try:
         message = "while trying to start."
 
         import sys, logging, traceback, wx
@@ -35,7 +35,7 @@ def main():
 
         message = "and had to shut down."
         application.MainLoop()
-
+        """
     except Exception, exception:
         type, value, stack = sys.exc_info()
         formattedBacktrace = "".join (traceback.format_exception (type, value, stack))
@@ -53,7 +53,8 @@ def main():
     # import tools.timing
     # print "\nTiming results:\n"
     # tools.timing.results()
-
+        """
+        
 if __name__=="__main__":
     main()
 
