@@ -44,6 +44,9 @@ def executeCommand(logfile, showenv, args):
     output.write("Executing: ")
     output.write(" ".join(args[0:]))
     output.write("\n")
+    output.write("Current directory: ")
+    output.write(os.getcwd())
+    output.write("\n")
 
     if showenv == "yes":
 	output.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - env -\n")
