@@ -349,5 +349,44 @@ Misc.:
 * atomic operations (rollback current operation on error)
 * undo log via event listeners?
 * event aggregation?  suppression?
+* receiver prioritization (override getReceivers())
+
+
+Platform Extensibility
+======================
+
+As Chandler becomes a widely-used development platform, various extensibility
+and scalability issues come into play.  For example, application startup time
+is currently proportional to the number of parcels installed, because Chandler
+has to scan for an ever-increasing number of ``parcel.xml`` files, and make an
+ever-increasing number of ``startupParcel()`` calls.
+
+In contrast, the Eclipse platform uses an approach that avoids activating
+plugins until and unless that plugin is actually performing some function,
+which allows a user to install large numbers of plugins without significantly
+affecting startup time.  Of course, plugins that actually need to start with
+the platform exist, but Eclipse's plugin API is designed so as to make it easy
+to avoid unnecessary early startup.
+
+Also, because Chandler involves a possibly-evolving data model, managing schema
+evolution will play a big part in Chandler's extensibility story.  Spike will
+experiment with some different ways of handling both of these issues, such as
+by using Spike's event mechanism to issue "install", "uninstall", and "upgrade"
+events to parcels, to allow them to perform any necessary repository
+maintenance, and to manage inter-parcel version dependency issues.  (E.g.
+prohibiting the uninstallation of a parcel that another parcel depends on.)
+
+Spike will also attempt to delay importing a parcel's code until either one of
+its operations is used, or an object of one of its types is accessed, thus
+helping to amortize startup cost over a longer time period, and to move the
+cost of unused parcels closer to zero.
+
+For example, parcels containing Twisted servers should not hook Chandler
+startup in order to register their servers with Twisted. Instead, a mechanism
+should be provided for putting server definitions into the repository.  These
+definitions would designate the parcel class to be used for actually managing
+connections for that server, so the parcel would not actually be started until
+a connection of the appropriate type is received, thus avoiding the need to
+import the parcel at Chandler startup.
 
 
