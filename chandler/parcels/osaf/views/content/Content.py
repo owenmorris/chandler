@@ -8,7 +8,6 @@ import application.Globals as Globals
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 
 import osaf.contentmodel.calendar.Calendar as Calendar
-import osaf.contentmodel.notes.Notes as Notes
 import osaf.contentmodel.contacts.Contacts as Contacts
 
 import repository.item.Query as Query
@@ -28,7 +27,7 @@ class ContentItemDetail(ControlBlocks.ItemDetail):
             HTMLText += "<b>Attendees: </b> %s<br>" % item.who
             HTMLText += "<b>Date: </b> %s<br>" % item.date
             HTMLText += "<b>Duration: </b> %s<br>" % item.duration
-        elif kind is Globals.repository.findPath("//parcels/osaf/contentmodel/notes/Note"):
+        elif kind is Globals.repository.findPath("//parcels/osaf/contentmodel/Note"):
             HTMLText += "<b>Title: </b> %s<br>" % item.about
         elif kind is Globals.repository.findPath("//parcels/osaf/contentmodel/contacts/Contact"):
             HTMLText += "<b>First name: </b> %s<br>" % item.contactName.firstName
