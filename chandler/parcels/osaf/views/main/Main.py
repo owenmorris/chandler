@@ -154,10 +154,6 @@ class MainView(View):
         dialog.ShowModal()
         dialog.Destroy()
         
-
-    def onPreferencesEventUpdateUI (self, event):
-        event.arguments ['Enable'] = False
-
     def onQuitEvent (self, event):
         wx.GetApp().mainFrame.Close ()
 
@@ -389,27 +385,14 @@ class MainView(View):
                     "Could not create channel for " + url + "\nCheck the URL and try again.")
                 raise
 
-    def onGenerateCalendarEventItemsEvent(self, event):
-        GenerateItems.generateCalendarEventItems(self.itsView, 10, 30)
-        self.itsView.commit()
-
-    def onGenerateContactsEvent(self, event):
-        GenerateItems.GenerateContacts(self.itsView, 10)
-        self.itsView.commit()
-
     def onGenerateContentItemsEvent(self, event):
-        # triggered from "Test | Generate Content Items" Menu
-        view = self.itsView
-        GenerateItems.GenerateNotes(view, 2) 
-        GenerateItems.generateCalendarEventItems(view, 2, 30)
-        GenerateItems.GenerateTasks(view, 2)
-        GenerateItems.GenerateEventTasks(view, 2)
-        # GenerateItems.GenerateContacts(view, 2)
-        view.commit() 
+        # triggered from "Test | Generate Some Content Items" and
+        # "Test | Generate Many Content Items" menu items
+        count = event.arguments['sender'].blockName == 'GenerateSomeDataItem' and 4 or 100
+        sidebarCollection = Block.findBlockByName ("Sidebar").contents
+        mainView = Globals.views[0]
+        GenerateItems.GenerateAllItems(self.itsView, count, mainView, sidebarCollection)
 
-    def onGenerateNotesEvent(self, event):
-        GenerateItems.GenerateNotes(self.itsView, 10)
-        self.itsView.commit()
 
     def onMimeTestEvent (self, event):
         self.__loadMailTests ("mime_tests")
@@ -417,15 +400,12 @@ class MainView(View):
     def oni18nMailTestEvent (self, event):
         self.__loadMailTests ("i18n_tests")
 
-
     def __loadMailTests (self, dir):
         import osaf.mail.utils as utils
         utils.loadMailTests(self.itsView, dir)
         self.itsView.refresh()
 
     def onGetNewMailEvent (self, event):
-        # Triggered from "Test | Get Mail" menu
-
         # Make sure we have all the accounts; returns False if the user cancels
         # out and we don't.
         if not Sharing.ensureAccountSetUp(self.itsView):
@@ -436,18 +416,6 @@ class MainView(View):
         for account in Mail.MailParcel.getActiveIMAPAccounts(self.itsView):
             osaf.mail.imap.IMAPDownloader(view.repository, account).getMail()
         view.refresh()
-
-    def onLogRepositoryHistoryEvent(self, event):
-        # triggered from "Test | Log Repository History" Menu
-        repository = self.itsView.repository
-        repository.logger.info("Items changed outside %s since last commit:", repository.view)
-        repository.mapHistory(self._logChange)
-
-    def onLogViewChangesEvent(self, event):
-        # triggered from "Test | Log View Changes" Menu
-        repository = self.itsView.repository
-        repository.logger.info("Items changed in %s:", repository.view)
-        repository.mapChanges(self._logChange)
 
     def onReloadParcelsEvent(self, event):
         theApp = wx.GetApp()
@@ -483,10 +451,6 @@ class MainView(View):
             rule = application.dialogs.Util.promptUser(wx.GetApp().mainFrame, "Edit rule", "Enter a rule for this collection", str(collection.getRule()))
             if rule:
                 collection.setRule(rule)
-
-    def onShowColumnEventUpdateUI (self, event):
-        event.arguments ['Enable'] = False
-        event.arguments ['Check'] = True
 
     def onShowPyCrustEvent(self, event):
         # Test menu item
@@ -671,10 +635,10 @@ class ReminderTimer(Timer):
                 self.setFiringTime(pending[0].reminderTime)
     
     def getPendingReminders (self):
-        # @@@BJS Eventually, the query should be able to do the hasAttribute filtering for us;
+        # @@@BJS Eventually, the query should be able to do the sorting for us;
         # for now, that doesn't seem to work so we're doing it here.
-        # Should be: timesAndReminders = [ (item.reminderTime, item) for item in self.contents.getResults().values() ]
-        timesAndReminders = [ (item.reminderTime, item) for item in self.contents.getResults().values() if item.hasLocalAttributeValue("reminderTime")]
+        # ... this routine should just be "return self.contents.resultSet"
+        timesAndReminders = [ (item.reminderTime, item) for item in self.contents]
         if len(timesAndReminders) == 0:
             return []
         timesAndReminders.sort()

@@ -683,7 +683,6 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
         
     def wxSynchronizeWidget(self):
         super (wxToolbar, self).wxSynchronizeWidget()
-        
         self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
         self.SetToolSeparation(self.blockItem.separatorWidth)
         self.blockItem.synchronizeColor()
@@ -710,14 +709,13 @@ class wxToolbar (Block.ShownSynchronizer, wx.ToolBar):
                     block.onDestroyWidget () # notify the world about the tool's destruction
                     self.DeleteToolByPos(0)
                 self.toolItemList = []
-                self.toolItems = 0
-                
-        self.toolItems = len (dynamicChildren)
-        # shallow copy the children list
-        for child in dynamicChildren:
-            if rebuild:
-                child.render ()
-            self.toolItemList.append (child)
+                self.toolItems = len (dynamicChildren)
+                # shallow copy the children list
+                for child in dynamicChildren:
+                    if rebuild:
+                        child.render ()
+                    self.toolItemList.append (child)
+
         # draw the bar, and we're done.
         self.Realize()
         

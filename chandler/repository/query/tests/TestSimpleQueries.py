@@ -98,7 +98,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         )
 
         view = self.rep.view
-        GenerateItems.GenerateContacts(view, 100)
+        GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateContact)
 
         view.commit()
         
@@ -114,7 +114,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         )
 
         view = self.rep.view
-        GenerateItems.generateCalendarEventItems(view, 100, 30)
+        GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateCalendarEvent)
 
         view.commit()
         
@@ -154,7 +154,7 @@ class TestSimpleQueries(QueryTestCase.QueryTestCase):
         )
 
         view = self.rep.view
-        GenerateItems.generateCalendarEventItems(view, 100, 30)
+        GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateCalendarEvent)
 
         view.commit()
 

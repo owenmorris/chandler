@@ -64,6 +64,12 @@
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </ModifyContentsEvent>
 
+  <BlockEvent itsName="NewZaoBaoChannelEvent">
+    <blockName>NewZaoBaoChannel</blockName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
+  </BlockEvent>
+  
   <KindParameterizedEvent itsName="NewMailMessage">
     <blockName>NewMailMessage</blockName>
     <kindParameter itemref="mail:MailMessage"/>
@@ -102,12 +108,6 @@
 
   <BlockEvent itsName="ManageSidebarCollection">
     <blockName>ManageSidebarCollection</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>MainView</dispatchToBlockName>
-  </BlockEvent>
-
-  <BlockEvent itsName="ShowColumn">
-    <blockName>ShowColumn</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
@@ -172,21 +172,8 @@
     <items itemref="demo:BlockDemoView"/>
     <items itemref="repository:RepositoryView"/>
     <items itemref="repository:CPIAView"/>
-    <items itemref="doc:mixedItemCollection"/>
-    <items itemref="doc:notesItemCollection"/>
-    <items itemref="doc:contactItemCollection"/>
-    <items itemref="doc:taskItemCollection"/>
-    <items itemref="doc:mailItemCollection"/>
   </ModifyContentsEvent>
   
-  <ModifyContentsEvent itsName="AddContactsView">
-    <blockName>AddContactsView</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>Sidebar</dispatchToBlockName>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="doc:contactItemCollection"/>
-  </ModifyContentsEvent>
-
   <ModifyContentsEvent itsName="AddDemoView">
     <blockName>AddDemoView</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -194,41 +181,7 @@
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
   </ModifyContentsEvent>
-  
-  <ModifyContentsEvent itsName="AddKindViews">
-    <blockName>AddKindViews</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>Sidebar</dispatchToBlockName>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="doc:notesItemCollection"/>
-    <items itemref="doc:taskItemCollection"/>
-    <items itemref="doc:mailItemCollection"/>
-  </ModifyContentsEvent>
-  
-  <ModifyContentsEvent itsName="AddMailView">
-    <blockName>AddMailView</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>Sidebar</dispatchToBlockName>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="doc:mailItemCollection"/>
-  </ModifyContentsEvent>
-  
-  <ModifyContentsEvent itsName="AddMixedView">
-    <blockName>AddMixedView</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>Sidebar</dispatchToBlockName>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="doc:mixedItemCollection"/>
-  </ModifyContentsEvent>
-  
-  <ModifyContentsEvent itsName="AddNotesView">
-    <blockName>AddNotesView</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>Sidebar</dispatchToBlockName>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="doc:notesItemCollection"/>
-  </ModifyContentsEvent>
-
+    
   <ModifyContentsEvent itsName="AddRepositoryView">
     <blockName>AddRepositoryView</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
@@ -244,15 +197,7 @@
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="repository:CPIAView"/>
   </ModifyContentsEvent>
-  
-  <ModifyContentsEvent itsName="AddTasksView">
-    <blockName>AddTasksView</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>Sidebar</dispatchToBlockName>
-    <methodName>onModifyContentsEvent</methodName>
-    <items itemref="doc:taskItemCollection"/>
-  </ModifyContentsEvent>
-  
+    
   <BlockEvent itsName="ChangeLayout">
     <blockName>ChangeLayout</blockName>
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
@@ -282,26 +227,8 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
-  <BlockEvent itsName="GenerateCalendarEventItems">
-    <blockName>GenerateCalendarEventItems</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>MainView</dispatchToBlockName>
-  </BlockEvent>
-
-  <BlockEvent itsName="GenerateContacts">
-    <blockName>GenerateContacts</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>MainView</dispatchToBlockName>
-  </BlockEvent>
-
   <BlockEvent itsName="GenerateContentItems">
     <blockName>GenerateContentItems</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>MainView</dispatchToBlockName>
-  </BlockEvent>
-
-  <BlockEvent itsName="GenerateNotes">
-    <blockName>GenerateNotes</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
@@ -332,18 +259,6 @@
 
   <BlockEvent itsName="i18nMailTest">
     <blockName>i18nMailTest</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>MainView</dispatchToBlockName>
-  </BlockEvent>
-
-  <BlockEvent itsName="LogRepositoryHistory">
-    <blockName>LogRepositoryHistory</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>MainView</dispatchToBlockName>
-  </BlockEvent>
-
-  <BlockEvent itsName="LogViewChanges">
-    <blockName>LogViewChanges</blockName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
@@ -412,18 +327,13 @@
     <childrenBlocks itemref="doc:FileSeparator1"/>
     <childrenBlocks itemref="doc:NewItemCollectionItem"/>
     <childrenBlocks itemref="doc:FileSeparator2"/>
-    <childrenBlocks itemref="doc:NewTabItem"/>
-    <childrenBlocks itemref="doc:NewWindowItem"/>
-    <childrenBlocks itemref="doc:CloseTabItem"/>
-    <childrenBlocks itemref="doc:CloseWindowItem"/>
-    <childrenBlocks itemref="doc:FileSeparator3"/>
     <childrenBlocks itemref="doc:PrintPreviewItem"/> 
     <childrenBlocks itemref="doc:PrintItem"/> 
-    <childrenBlocks itemref="doc:FileSeparator4"/>
+    <childrenBlocks itemref="doc:FileSeparator3"/>
     <childrenBlocks itemref="doc:ImportExportMenu"/>
     <childrenBlocks itemref="doc:SyncMenu"/>
-    <childrenBlocks itemref="doc:PreferencesMenu"/>
-    <childrenBlocks itemref="doc:FileSeparator5"/>
+    <childrenBlocks itemref="doc:PrefsAccountsItem"/>
+    <childrenBlocks itemref="doc:FileSeparator4"/>
     <childrenBlocks itemref="doc:QuitItem"/>
   </Menu>
 
@@ -443,37 +353,9 @@
   <Menu itsName="ViewMenu">
     <blockName>ViewMenu</blockName>
     <title>&amp;View</title>
-    <childrenBlocks itemref="doc:ViewColumnsMenu"/>
-    <childrenBlocks itemref="doc:ViewSeparator1"/>
-
-    <childrenBlocks itemref="doc:ViewSortByMenu"/>
-    <childrenBlocks itemref="doc:ViewSeparator2"/>
-
-    <childrenBlocks itemref="doc:ViewExpandCollItem"/>
-    <childrenBlocks itemref="doc:ViewCollapseCollItem"/>
-    <childrenBlocks itemref="doc:ViewSeparator3"/>
-
     <childrenBlocks itemref="doc:ViewToolBarItem"/>
     <childrenBlocks itemref="doc:ViewSideBarItem"/>
     <childrenBlocks itemref="doc:ViewStatusBarItem"/>
-    <childrenBlocks itemref="doc:ViewSeparator4"/>
-
-    <childrenBlocks itemref="doc:View2PaneLayoutItem"/>
-    <childrenBlocks itemref="doc:ViewSeparator5"/>
-
-    <childrenBlocks itemref="doc:View3LinesPerRowItem"/>
-    <childrenBlocks itemref="doc:ViewSeparator6"/>
-
-    <childrenBlocks itemref="doc:GoToTodayItem"/>
-    <childrenBlocks itemref="doc:ViewSeparator7"/>
-
-    <childrenBlocks itemref="doc:ViewMonthItem"/>
-    <childrenBlocks itemref="doc:ViewWeekItem"/>
-    <childrenBlocks itemref="doc:ViewDayItem"/>
-    <childrenBlocks itemref="doc:ViewSeparator8"/>
-
-    <childrenBlocks itemref="doc:ViewNextItem"/>
-    <childrenBlocks itemref="doc:ViewPreviousItem"/>
   </Menu>
 
   <Menu itsName="ItemMenu">
@@ -495,30 +377,20 @@
   <Menu itsName="TestMenu">
     <blockName>TestMenu</blockName>
     <title>&amp;Test</title>
-    <childrenBlocks itemref="doc:SkinsMenuItem"/>
-    <childrenBlocks itemref="doc:GenerateAllItem"/>
-    <childrenBlocks itemref="doc:GenerateContactItem"/>
-    <childrenBlocks itemref="doc:GenerateCalendarItem"/>
-    <childrenBlocks itemref="doc:GenerateNoteItem"/>
-    <childrenBlocks itemref="doc:EditCollectionRuleItem"/>
-    <childrenBlocks itemref="doc:SharingSubscribeToICalendarItem"/>
-    <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
-    <childrenBlocks itemref="doc:SharingImportDemoCalendarItem"/>
-    <childrenBlocks itemref="doc:ShareCollectionItem"/>
-    <childrenBlocks itemref="doc:SyncCollectionItem"/>
-    <childrenBlocks itemref="doc:ShareToolItem"/>
-    <childrenBlocks itemref="doc:GetNewMailItem"/>
+    <childrenBlocks itemref="doc:GenerateSomeDataItem"/>
+    <childrenBlocks itemref="doc:GenerateMuchDataItem"/>
+    <childrenBlocks itemref="doc:EditCollectionRuleItem"/>    
     <childrenBlocks itemref="doc:MimeTestItem"/>
     <childrenBlocks itemref="doc:i18nMailTestItem"/>
     <childrenBlocks itemref="doc:StartProfilerItem"/>
     <childrenBlocks itemref="doc:StopProfilerItem"/>
-    <childrenBlocks itemref="doc:CheckRepositoryItem"/>
-    <childrenBlocks itemref="doc:LogViewChangesItem"/>
-    <childrenBlocks itemref="doc:LogRepositoryHistoryItem"/>
-    <childrenBlocks itemref="doc:ShowPyCrustItem"/>
     <childrenBlocks itemref="doc:ReloadParcelsItem"/>
     <childrenBlocks itemref="doc:CommitRepositoryItem"/>
-    <childrenBlocks itemref="doc:AddAdditionalViewsItem"/>
+    <childrenBlocks itemref="doc:CheckRepositoryItem"/>
+    <childrenBlocks itemref="doc:ShowPyCrustItem"/>
+    <childrenBlocks itemref="doc:ShareMenu"/>
+    <childrenBlocks itemref="doc:SkinsMenu"/>
+    <childrenBlocks itemref="doc:AddAdditionalViews"/>
   </Menu>
 
   <Menu itsName="HelpMenu">
@@ -594,20 +466,6 @@
     <!-- removed to disable menu item until post-kibble, bug 2309:
         <event itemref="doc:NewContact"/> -->
   </MenuItem>
-
-  <MenuItem itsName="NewTabItem">
-    <blockName>NewTabItem</blockName>
-    <title>New Tab</title>
-    <accel>Ctrl+T</accel>
-    <helpString>Open a new blank tab</helpString>
-    <event itemref="events:New"/>
-  </MenuItem>
-  
-  <MenuItem itsName="NewWindowItem">
-    <blockName>NewWindowItem</blockName>
-    <title>New Window</title>
-    <helpString>Open a new Window</helpString>
-  </MenuItem>
   
   <MenuItem itsName="NewItemCollectionItem">
     <blockName>NewItemCollectionItem</blockName>
@@ -616,20 +474,12 @@
     <event itemref="doc:NewItemCollection"/>
   </MenuItem>
 
-  <MenuItem itsName="CloseTabItem">
-    <blockName>CloseTabItem</blockName>
-    <title>Close Tab</title>
-    <accel>Ctrl+W</accel>
-    <helpString>Close the current tab</helpString>
-    <event itemref="events:Close"/>
+  <MenuItem itsName="NewZaoBaoChannel">
+    <blockName>NewZaoBaoChannelItem</blockName>
+    <title>New ZaoBao Channel</title>
+    <event itemref="doc:NewZaoBaoChannelEvent"/>
   </MenuItem>
-  
-  <MenuItem itsName="CloseWindowItem">
-    <blockName>CloseWindowItem</blockName>
-    <title>Close Window</title>
-    <helpString>Close the selected Window</helpString>
-  </MenuItem>
-  
+
   <MenuItem itsName="PrintPreviewItem">
     <blockName>PrintPreviewItem</blockName>
     <title>Print Preview</title>
@@ -664,11 +514,6 @@
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
-  <MenuItem itsName="FileSeparator5">
-    <blockName>FileSeparator5</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-
   <Menu itsName="ImportExportMenu">
     <blockName>ImportExportMenu</blockName>
     <title>Import/Export</title>
@@ -704,27 +549,6 @@
     <title>Shares</title>
     <helpString>Sync Shares</helpString>
     <event itemref="doc:SyncWebDAV"/>
-  </MenuItem>
-  
-  <Menu itsName="PreferencesMenu">
-    <blockName>PreferencesMenu</blockName>
-    <title>Preferences</title>
-    <childrenBlocks itemref="doc:PrefsProfileItem"/>
-    <childrenBlocks itemref="doc:PrefsSyncItem"/>
-    <childrenBlocks itemref="doc:PrefsAccountsItem"/>
-  </Menu>
-  
-  <MenuItem itsName="PrefsProfileItem">
-    <blockName>PrefsProfileItem</blockName>
-    <title>Profile</title>
-    <helpString>Profile Preferences</helpString>
-    <event itemref="events:Preferences"/>
-  </MenuItem>
-  
-  <MenuItem itsName="PrefsSyncItem">
-    <blockName>PrefsSyncItem</blockName>
-    <title>Sync...</title>
-    <helpString>Synchronization Preferences</helpString>
   </MenuItem>
   
   <MenuItem itsName="PrefsAccountsItem">
@@ -800,128 +624,6 @@
     <helpString value="Select all"/>
   </MenuItem>
   
-  <MenuItem itsName="ViewSeparator1">
-    <blockName>ViewSeparator1</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-  
-  <MenuItem itsName="ViewSeparator2">
-    <blockName>ViewSeparator2</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-  
-  <MenuItem itsName="ViewSeparator3">
-    <blockName>ViewSeparator3</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-  
-  <MenuItem itsName="ViewSeparator4">
-    <blockName>ViewSeparator4</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-  
-  <MenuItem itsName="ViewSeparator5">
-    <blockName>ViewSeparator5</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-  
-  <MenuItem itsName="ViewSeparator6">
-    <blockName>ViewSeparator6</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-  
-  <MenuItem itsName="ViewSeparator7">
-    <blockName>ViewSeparator7</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-  
-  <MenuItem itsName="ViewSeparator8">
-    <blockName>ViewSeparator8</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-
-  <Menu itsName="ViewColumnsMenu">
-    <blockName>ViewColumnsMenu</blockName>
-    <title>Columns</title>
-    <childrenBlocks itemref="doc:ShowStampColumnItem"/>
-    <childrenBlocks itemref="doc:ShowWhoColumnItem"/>
-    <childrenBlocks itemref="doc:ShowAboutColumnItem"/>
-    <childrenBlocks itemref="doc:ShowDateColumnItem"/>
-  </Menu>
-
-  <MenuItem itsName="ShowStampColumnItem">
-    <blockName>ShowStampColumn</blockName>
-    <title>stamp</title>
-    <menuItemKind>Check</menuItemKind>
-    <event itemref="doc:ShowColumn"/>
-  </MenuItem>
-
-  <MenuItem itsName="ShowWhoColumnItem">
-    <blockName>ShowWhoColumn</blockName>
-    <title>who</title>
-    <menuItemKind>Check</menuItemKind>
-    <event itemref="doc:ShowColumn"/>
-  </MenuItem>
-
-  <MenuItem itsName="ShowAboutColumnItem">
-    <blockName>ShowAboutColumn</blockName>
-    <title>about</title>
-    <menuItemKind>Check</menuItemKind>
-    <event itemref="doc:ShowColumn"/>
-  </MenuItem>
-
-  <MenuItem itsName="ShowDateColumnItem">
-    <blockName>ShowDateColumn</blockName>
-    <title>date</title>
-    <menuItemKind>Check</menuItemKind>
-    <event itemref="doc:ShowColumn"/>
-  </MenuItem>
-
-  <Menu itsName="ViewSortByMenu">
-    <blockName>ViewSortByMenu</blockName>
-    <title>Sort by</title>
-    <childrenBlocks itemref="doc:SortByWhenItem"/>
-    <childrenBlocks itemref="doc:SortByStampItem"/>
-    <childrenBlocks itemref="doc:SortByWhoItem"/>
-    <childrenBlocks itemref="doc:SortByWhatItem"/>
-  </Menu>
-
-  <MenuItem itsName="SortByWhenItem">
-    <blockName>SortByWhenItem</blockName>
-    <title>When</title>
-    <helpString value="Sort by Date"/>
-  </MenuItem>
-
-  <MenuItem itsName="SortByStampItem">
-    <blockName>SortByStampItem</blockName>
-    <title>Stamp</title>
-    <helpString value="Sort by stamped Kind"/>
-  </MenuItem>
-
-  <MenuItem itsName="SortByWhoItem">
-    <blockName>SortByWhoItem</blockName>
-    <title>Who</title>
-    <helpString value="Sort by Who"/>
-  </MenuItem>
-
-  <MenuItem itsName="SortByWhatItem">
-    <blockName>SortByWhatItem</blockName>
-    <title>What</title>
-    <helpString value="Sort by Kind"/>
-  </MenuItem>
-
-  <MenuItem itsName="ViewExpandCollItem">
-    <blockName>ViewExpandCollItem</blockName>
-    <title>Expand all Ad-hoc collections</title>
-    <helpString value="Expand all Ad-hoc collections"/>
-  </MenuItem>
-
-  <MenuItem itsName="ViewCollapseCollItem">
-    <blockName>ViewCollapseCollItem</blockName>
-    <title>Collapse all Ad-hoc collections</title>
-    <helpString value="Collapse all Ad-hoc collections"/>
-  </MenuItem>
-
   <MenuItem itsName="ViewToolBarItem">
     <blockName>ViewToolBarItem</blockName>
     <title>View Toolbar</title>
@@ -946,55 +648,14 @@
     <helpString value="Show or hide the Status bar"/>
   </MenuItem>
 
-  <MenuItem itsName="View2PaneLayoutItem">
-    <blockName>View2PaneLayoutItem</blockName>
-    <title>2-pane layout</title>
-    <helpString value="View using a two pane layout"/>
-  </MenuItem>
-
-  <MenuItem itsName="View3LinesPerRowItem">
-    <blockName>View3LinesPerRowItem</blockName>
-    <title>Up to 3 lines per row</title>
-    <helpString value="View up to three lines per row"/>
-  </MenuItem>
-
   <MenuItem itsName="GoToTodayItem">
     <blockName>GoToTodayItem</blockName>
     <title>Go to today</title>
     <helpString value="Move the calendar to Today"/>
   </MenuItem>
 
-  <MenuItem itsName="ViewMonthItem">
-    <blockName>ViewMonthItem</blockName>
-    <title>Month view</title>
-    <helpString value="Switch the calendar to the Month view"/>
-  </MenuItem>
 
-  <MenuItem itsName="ViewWeekItem">
-    <blockName>ViewWeekItem</blockName>
-    <title>Week view</title>
-    <helpString value="Switch the calendar to the Week view"/>
-  </MenuItem>
-
-  <MenuItem itsName="ViewDayItem">
-    <blockName>ViewDayItem</blockName>
-    <title>Day view</title>
-    <helpString value="Switch the calendar to the Day view"/>
-  </MenuItem>
-
-  <MenuItem itsName="ViewNextItem">
-    <blockName>ViewNextItem</blockName>
-    <title>Next</title>
-    <helpString value="Move to the next item"/>
-  </MenuItem>
-
-  <MenuItem itsName="ViewPreviousItem">
-    <blockName>ViewPreviousItem</blockName>
-    <title>Previous</title>
-    <helpString value="Move to the previous item"/>
-  </MenuItem>
-
-  <Menu itsName="SkinsMenuItem">
+  <Menu itsName="SkinsMenu">
     <blockName>SkinsMenu</blockName>
     <title>Skins</title>
     <helpString>Change user-interface skin</helpString>
@@ -1030,32 +691,18 @@
     <dispatchToBlockName>MainViewRoot</dispatchToBlockName>
   </ChoiceEvent>  
   
-  <MenuItem itsName="GenerateAllItem">
-    <blockName>GenerateAllItem</blockName>
-    <title>Generate Content Items</title>
+  <MenuItem itsName="GenerateSomeDataItem">
+    <blockName>GenerateSomeDataItem</blockName>
+    <title>Generate Data</title>
     <event itemref="doc:GenerateContentItems"/>
-    <helpString>generates a few different kinds of content items</helpString>
+    <helpString>generates a few items of each kind</helpString>
   </MenuItem>
 
-  <MenuItem itsName="GenerateContactItem">
-    <blockName>GenerateContactItem</blockName>
-    <title>Generate Contacts</title>
-    <event itemref="doc:GenerateContacts"/>
-    <helpString>generates 10 sample contacts</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="GenerateCalendarItem">
-    <blockName>GenerateCalendarItem</blockName>
-    <title>Generate Calendar Event Items</title>
-    <event itemref="doc:GenerateCalendarEventItems"/>
-    <helpString>generates 10 sample calendar events</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="GenerateNoteItem">
-    <blockName>GenerateNoteItem</blockName>
-    <title>Generate Notes</title>
-    <event itemref="doc:GenerateNotes"/>
-    <helpString>Generate 10 notes</helpString>
+  <MenuItem itsName="GenerateMuchDataItem">
+    <blockName>GenerateMuchDataItem</blockName>
+    <title>Generate Lots of Data</title>
+    <event itemref="doc:GenerateContentItems"/>
+    <helpString>generates many items of each kind</helpString>
   </MenuItem>
 
   <MenuItem itsName="StartProfilerItem">
@@ -1071,6 +718,18 @@
     <event itemref="doc:StopProfiler"/>
     <helpString>Stop profiling events</helpString>
   </MenuItem>
+
+  <Menu itsName="ShareMenu">
+    <blockName>ShareMenu</blockName>
+    <title>Share</title>
+    <helpString>Sharing-related test commands</helpString>
+    <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
+    <childrenBlocks itemref="doc:SharingSubscribeToICalendarItem"/>
+    <childrenBlocks itemref="doc:SharingImportDemoCalendarItem"/>
+    <childrenBlocks itemref="doc:ShareCollectionItem"/>
+    <childrenBlocks itemref="doc:SyncCollectionItem"/>
+    <childrenBlocks itemref="doc:ShareToolItem"/>
+  </Menu>
 
   <MenuItem itsName="ShareCollectionItem">
     <blockName>ShareCollectionItem</blockName>
@@ -1121,13 +780,6 @@
     <helpString>Edit the rule of a collection</helpString>
   </MenuItem>
 
-  <MenuItem itsName="GetNewMailItem">
-    <blockName>GetNewMailItem</blockName>
-    <title>Get Mail</title>
-    <event itemref="doc:GetNewMail"/>
-    <helpString>Gets new email from IMAP server</helpString>
-  </MenuItem>
-
   <MenuItem itsName="MimeTestItem">
     <blockName>MimeTestItem</blockName>
     <title>MIME Torture Tests</title>
@@ -1163,20 +815,6 @@
     <helpString>Export Calendar Events to export.ics</helpString>
   </MenuItem>
 
-  <MenuItem itsName="LogViewChangesItem">
-    <blockName>LogViewChanges</blockName>
-    <title>Log View Changes</title>
-    <event itemref="doc:LogViewChanges"/>
-    <helpString>log the items changed in the current view</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="LogRepositoryHistoryItem">
-    <blockName>LogRepositoryHistory</blockName>
-    <title>Log Repository History</title>
-    <event itemref="doc:LogRepositoryHistory"/>
-    <helpString>log the items that were changed and committed in other views since the current view's last commit</helpString>
-  </MenuItem>
-
   <MenuItem itsName="ShowPyCrustItem">
     <blockName>ShowPyCrustItem</blockName>
     <title>Show PyCrust Debugger...</title>
@@ -1198,8 +836,8 @@
     <helpString>Performs a repository commit()</helpString>
   </MenuItem>
 
-  <Menu itsName="AddAdditionalViewsItem">
-    <blockName>AddAdditionalViewsItem</blockName>
+  <Menu itsName="AddAdditionalViews">
+    <blockName>AddAdditionalViews</blockName>
     <title>Add Additional Views</title>
     <helpString>Add views to the sidebar</helpString>
 
@@ -1208,13 +846,6 @@
     <childrenBlocks itemref="doc:AddDemoViewItem"/>
     <childrenBlocks itemref="doc:AddRepositoryViewItem"/>
     <childrenBlocks itemref="doc:AddCPIAViewItem"/>
-    <childrenBlocks itemref="doc:AddMixedViewItem"/>
-    <childrenBlocks itemref="doc:TestSeparator2"/>
-    <childrenBlocks itemref="doc:AddNotesViewItem"/>
-    <childrenBlocks itemref="doc:AddContactsViewItem"/>
-    <childrenBlocks itemref="doc:AddTasksViewItem"/>
-    <childrenBlocks itemref="doc:AddMailViewItem"/>
-    <childrenBlocks itemref="doc:AddKindViewsItem"/>
   </Menu>
 
   <MenuItem itsName="AddAllAdditionalViewsItem">
@@ -1236,20 +867,6 @@
     <helpString>Adds the block demo view to the sidebar</helpString>
   </MenuItem>
   
-  <!-- XXX temporary until we have a dynamic way to add this -->
-  <BlockEvent itsName="NewZaoBaoChannelEvent">
-    <blockName>NewZaoBaoChannel</blockName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>MainView</dispatchToBlockName>
-  </BlockEvent>
-  
-  <MenuItem itsName="NewZaoBaoChannel">
-    <blockName>NewZaoBaoChannelItem</blockName>
-    <title>New ZaoBao Channel</title>
-    <event itemref="doc:NewZaoBaoChannelEvent"/>
-  </MenuItem>
-  <!-- end temporary -->
-
   <MenuItem itsName="AddRepositoryViewItem">
     <blockName>AddRepositoryViewItem</blockName>
     <title>Add Repository Viewer</title>
@@ -1264,53 +881,6 @@
     <helpString>Adds the CPIA viewer to the sidebar</helpString>
   </MenuItem>
   
-  <MenuItem itsName="AddMixedViewItem">
-    <blockName>AddMixedViewItem</blockName>
-    <title>Add Mixed View</title>
-    <event itemref="doc:AddMixedView"/>
-    <helpString>Adds the mixed list view to the sidebar</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="TestSeparator2">
-    <blockName>TestSeparator2</blockName>
-    <menuItemKind>Separator</menuItemKind>
-  </MenuItem>
-  
-  <MenuItem itsName="AddNotesViewItem">
-    <blockName>AddNotesViewItem</blockName>
-    <title>Add Note-Kind View</title>
-    <event itemref="doc:AddNotesView"/>
-    <helpString>Adds the Note-Kind view to the sidebar</helpString>
-  </MenuItem>
-  
-  <MenuItem itsName="AddContactsViewItem">
-    <blockName>AddContactsViewItem</blockName>
-    <title>Add Contact-Kind View</title>
-    <event itemref="doc:AddContactsView"/>
-    <helpString>Adds the Contact-Kind view to the sidebar</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="AddTasksViewItem">
-    <blockName>AddTasksViewItem</blockName>
-    <title>Add Task-Kind View</title>
-    <event itemref="doc:AddTasksView"/>
-    <helpString>Adds the Task-Kind view to the sidebar</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="AddMailViewItem">
-    <blockName>AddMailViewItem</blockName>
-    <title>Add Mail-Kind View</title>
-    <event itemref="doc:AddMailView"/>
-    <helpString>Adds the Mail-Kind view to the sidebar</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="AddKindViewsItem">
-    <blockName>AddKindViewsItem</blockName>
-    <title>Add all Kind-specific Views</title>
-    <event itemref="doc:AddKindViews"/>
-    <helpString>Adds the Kind-specific views to the sidebar</helpString>
-  </MenuItem>
-
   <MenuItem itsName="AboutChandlerItem">
     <blockName>AboutChandlerItem</blockName>
     <title>About Chandler</title>
@@ -1534,7 +1104,8 @@
   
   <contentModel:ItemCollection itsName="ReminderItems">
     <displayName>ReminderItems</displayName>
-    <_rule value="for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where True"/><!-- i.hasAttribute('reminderTime') -->
+    <indexName value="reminderTime"/>
+    <_rule value="for i inevery '//parcels/osaf/contentmodel/calendar/CalendarEventMixin' where i.hasLocalAttributeValue('reminderTime')"/>
   </contentModel:ItemCollection>
 
   <!--
@@ -1563,33 +1134,6 @@
 
   <contentModel:ItemCollection itsName="untitledItemCollection">
     <displayName>Untitled</displayName>
-  </contentModel:ItemCollection>
-
-  <!-- Test Item collections -->
-
-  <contentModel:ItemCollection itsName="mixedItemCollection">
-    <displayName>Mixed</displayName>
-    <_rule value="union(for i inevery '//parcels/osaf/contentmodel/Note' where True, for i inevery '//parcels/osaf/contentmodel/contacts/Contact' where True)"/>
-  </contentModel:ItemCollection>
-
-  <contentModel:ItemCollection itsName="notesItemCollection">
-    <displayName>Notes</displayName>
-    <_rule value="for i inevery '//parcels/osaf/contentmodel/Note' where True"/>
-  </contentModel:ItemCollection>
-
-  <contentModel:ItemCollection itsName="contactItemCollection">
-    <displayName>Contacts</displayName>
-    <_rule value="for i inevery '//parcels/osaf/contentmodel/contacts/Contact' where True"/>
-  </contentModel:ItemCollection>
-
-  <contentModel:ItemCollection itsName="taskItemCollection">
-    <displayName>TaskList</displayName>
-    <_rule value="for i inevery '//parcels/osaf/contentmodel/tasks/TaskMixin' where True"/>
-  </contentModel:ItemCollection>
-
-  <contentModel:ItemCollection itsName="mailItemCollection">
-    <displayName>MailList</displayName>
-    <_rule value="for i inevery '//parcels/osaf/contentmodel/mail/MailMessageMixin' where True"/>
   </contentModel:ItemCollection>
 
   <!--

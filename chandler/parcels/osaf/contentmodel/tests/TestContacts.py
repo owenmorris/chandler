@@ -68,7 +68,7 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
         self.loadParcels(["http://osafoundation.org/parcels/osaf/contentmodel/contacts", "http://osafoundation.org/parcels/osaf/contentmodel/mail"])
 
         view = self.rep.view
-        GenerateItems.GenerateContacts(view, 100)
+        GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateContact)
         view.commit()
         
 

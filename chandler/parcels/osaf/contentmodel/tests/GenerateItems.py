@@ -16,12 +16,13 @@ import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.Notes as Notes
+import osaf.contentmodel.ItemCollection as ItemCollection
 
 HEADLINES = ["Dinner", "Lunch", "Meeting", "Movie", "Games"]
 
 DURATIONS = [60, 90, 120, 150, 180]
 
-REMINDERS = [None, None, 1, 10] # The "None"s make a 50% chance the event will have no reminder...
+REMINDERS = [None, None, None, None, 1, 10] # The "None"s make only a 30% chance an event will have a reminder...
 
 def GenerateCalendarParticipant(view):
     email = Mail.EmailAddress(view=view)
@@ -32,7 +33,7 @@ def GenerateCalendarParticipant(view):
 
 IMPORTANCE = ["important", "normal", "fyi"]
 
-def GenerateCalendarEvent(view, days):
+def GenerateCalendarEvent(view, days=30):
     event = Calendar.CalendarEvent(view=view)
     event.displayName = random.choice(HEADLINES)
     
@@ -56,10 +57,6 @@ def GenerateCalendarEvent(view, days):
     event.importance = random.choice(IMPORTANCE)
     return event
     
-def generateCalendarEventItems(view, count, days):
-    """ Generate _count_ events over the next _days_ number of days """
-    for index in range(count):
-        GenerateCalendarEvent(view, days)
 
 TITLES = ["reading list", "restaurant recommendation", "vacation ideas",
           "grocery list", "gift ideas", "life goals", "fantastic recipe",
@@ -74,11 +71,6 @@ def GenerateNote(view):
     note.createdOn = DateTime.now() + delta
     return note
 
-def GenerateNotes(view, count):
-    """ Generate _count_ notes """
-    for index in range(count):
-        GenerateNote(view)
-
 def GenerateTask(view):
     """ Generate one Task item """
     task = Task.Task(view=view)
@@ -88,42 +80,37 @@ def GenerateTask(view):
     task.displayName = random.choice(TITLES)
     return task
 
-def GenerateTasks(view, count):
-    """ Generate _count_ tasks """
-    for index in range(count):
-        GenerateTask(view)
-
-def GenerateEventTask(view):
+def GenerateEventTask(view, days=30):
     """ Generate one Task/Event stamped item """
-    event = GenerateCalendarEvent(view, 30)
+    event = GenerateCalendarEvent(view, days)
     event.StampKind('add', Task.TaskMixin.getKind(event.itsView))
-
-def GenerateEventTasks(view, count):
-    for index in range(count):
-        GenerateEventTask(view)
+    return event
 
 DOMAIN_LIST = ['flossrecycling.com', 'flossresearch.org', 'rosegardens.org',
                'electricbagpipes.com', 'facelessentity.com', 'example.com',
-               'example.org', 'example.net', 'hangarhonchos.org']
+               'example.org', 'example.net', 'hangarhonchos.org', 'ludditesonline.net']
 
-FIRSTNAMES = ['Aleks', 'Alexis', 'Amy', 'Andi', 'Andy', 'Aparna',
-              'Bart', 'Blue', 'Brian', 'Caroline', 'Cedric', 'Chao', 'Chris',
-              'Ducky', 'Dulcy', 'Erin', 'Esther',
-              'Freada', 'Greg', 'Heikki', 'Hilda',
+FIRSTNAMES = ['Alec', 'Aleks', 'Alexis', 'Amy', 'Andi', 'Andy', 'Aparna',
+              'Bart', 'Blue', 'Brian', 'Bryan', 'Caroline', 'Cedric', 'Chao', 'Chris',
+              'David', 'Donn', 'Ducky', 'Dulcy', 'Erin', 'Esther',
+              'Freada', 'Grant', 'Greg', 'Heikki', 'Hilda',
               'Jed', 'John', 'Jolyn', 'Jurgen', 'Jae Hee',
-              'Katie', 'Kevin', 'Lou',
+              'Katie', 'Kevin', 'Lisa', 'Lou',
               'Michael', 'Mimi', 'Mitch', 'Mitchell', 'Morgen',
               'Pieter', 'Robin', 'Stefanie', 'Stuart', 'Suzette',
               'Ted', 'Trudy', 'William']
 
-LASTNAMES = ['Anderson', 'Baker', 'Botz', 'Brown', 'Burgess',
-             'Capps', 'Cerneka', 'Chang', 'Decker', 'Decrem', 'Desai', 'Dunn',
-             'Figueroa', 'Gamble', 'Gravelle',
+LASTNAMES = ['Anderson', 'Baillie', 'Baker', 'Botz', 'Brown', 'Burgess',
+             'Capps', 'Cerneka', 'Chang', 'Decker', 'Decrem', 'Denman', 'Desai', 'Dunn', 'Dusseault',
+             'Figueroa', 'Flett', 'Gamble', 'Gravelle',
              'Hartsook', 'Haurnesser', 'Hernandez', 'Hertzfeld', 'Humpa',
-             'Kapor', 'Klein', 'Kim', 'Lam', 'Leung', 'McDevitt', 'Montulli',
+             'Kapor', 'Klein', 'Kim', 'Lam', 'Leung', 'McDevitt', 'Montulli', 'Moseley',
              'Okimoto', 'Parlante', 'Parmenter', 'Rosa',
-             'Sagen', 'Sciabica', 'Sherwood', 'Skinner', 'Sun',
+             'Sagen', 'Sciabica', 'Sherwood', 'Skinner', 'Stearns', 'Sun', 'Surovell',
              'Tauber', 'Totic', 'Toivonen', 'Toy', 'Tsurutome', 'Vajda', 'Yin']
+
+COLLECTION_ADJECTIVES = ['Critical', 'Eventual', 'Sundry', 'Ignorable', 'Miscellaneous', 'Fascinating']
+COLLECTION_NOUNS = ['Items', 'Scratchings', 'Things', 'Oddments', 'Stuff', 'Dregs', 'Fewmets' ]
 
 PHONETYPES = ['cell', 'voice', 'fax', 'pager']
 
@@ -164,12 +151,57 @@ def GenerateContactName(view):
     name.lastName = random.choice(LASTNAMES)
     return name
 
-
 def GenerateContact(view):
     contact = Contacts.Contact(view=view)
     contact.contactName = GenerateContactName(view)
     return contact
 
-def GenerateContacts(view, count):
+def GenerateCollection(view, postToView=None, existingNames=None):
+    collection = ItemCollection.ItemCollection(view=view)
+    
+    while True:
+        # Find a name that isn't already in use
+        potentialName = ' '.join((random.choice(COLLECTION_ADJECTIVES), random.choice(COLLECTION_NOUNS),))
+        if existingNames is None or potentialName not in existingNames:
+            collection.displayName = potentialName
+            if existingNames is not None:
+                existingNames.append(potentialName)
+            break
+        
+    if postToView is not None:
+        postToView.postEventByName ('AddToSidebarWithoutCopying', {'items': [ collection ] })
+    return collection
+
+
+def GenerateItems(view, count, function, collections=[], *args, **dict):
+    """ 
+    Generate 'count' content items using the given function (and args), and
+    add them to a subset of the given collections (if given)
+    """
+    
+    # At most, we'll add each item to a third of the collections, if we were given any
+    maxCollCount = (len(collections) / 3)
+    
+    results = []
     for index in range(count):
-        GenerateContact(view)
+        newItem = function(view, *args, **dict)
+        
+        if maxCollCount > 0:
+            for index in range(random.randint(1, maxCollCount)):
+                collections[random.randint(0, len(collections)-1)].add(newItem)    
+            
+        results.append(newItem)
+
+    return results
+
+def GenerateAllItems(view, count, mainView=None, sidebarCollection=None):
+    """ Generate a bunch of items of several types, for testing. """
+    
+    # Generate some item collections to put them in.
+    existingNames = sidebarCollection is not None and [ existingCollection.displayName for existingCollection in sidebarCollection] or []
+    collections = GenerateItems(view, 5, GenerateCollection, [], mainView, existingNames)
+    
+    for fn in GenerateNote, GenerateCalendarEvent, GenerateTask, GenerateEventTask: # GenerateContact omitted.
+        GenerateItems(view, count, fn, collections)
+
+    view.commit() 

@@ -27,7 +27,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         )
 
         view = self.rep.view
-        GenerateItems.GenerateContacts(view, 100)
+        GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateContact)
         contact = GenerateItems.GenerateContact(view)
         contact.contactName.firstName = "Alexis"
 
@@ -76,7 +76,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         )
 
         view = self.rep.view
-        GenerateItems.GenerateContacts(view, 100)
+        GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateContact)
         contact = GenerateItems.GenerateContact(view)
         contact.contactName.firstName = "Alexis"
 
@@ -158,9 +158,10 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         #create test data
         view = self.rep.view
-        GenerateItems.GenerateNotes(view, 20)
-        GenerateItems.generateCalendarEventItems(view, 20, 5)
-        GenerateItems.GenerateContacts(view, 10)
+        GenerateItems.GenerateItems(view, 20, GenerateItems.GenerateNote)
+        GenerateItems.GenerateItems(view, 20, GenerateItems.GenerateCalendarEvent, days=5)
+        GenerateItems.GenerateItems(view, 10, GenerateItems.GenerateContact)
+
         # make sure there's at least one good data item
         import osaf.contentmodel.calendar.Calendar as Calendar
         import osaf.contentmodel.contacts.Contacts as Contacts

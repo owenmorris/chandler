@@ -21,7 +21,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
 
         view = self.rep.view
         tools.timing.begin("application.tests.testParcelPerf.testContacts-generate")
-        GenerateItems.GenerateContacts(view, 100)
+        GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateContact)
         tools.timing.end("application.tests.testParcelPerf.testContacts-generate")
 
         tools.timing.begin("application.tests.testParcelPerf.testContacts-commit")
@@ -41,7 +41,7 @@ class TestParcelPerf(RepositoryTestCase.RepositoryTestCase):
 
         view = self.rep.view
         tools.timing.begin("application.tests.testParcelPerf.testCalendarEvents-generate")
-        GenerateItems.generateCalendarEventItems(view, 100, 30)
+        GenerateItems.GenerateItems(view, 100, GenerateItems.GenerateCalendarEvent)
         tools.timing.end("application.tests.testParcelPerf.testCalendarEvents-generate")
 
         tools.timing.begin("application.tests.testParcelPerf.testCalendarEvents-commit")
