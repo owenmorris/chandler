@@ -34,6 +34,10 @@ class Set(object):
         """Shortcut for ``SetChanged.unsubscribe(set,receiver)``"""
         SetChanged.unsubscribe(self,receiver)
 
+    def getReceivers(self):
+        """Shortcut for ``SetChanged.getReceivers(set)``"""
+        return SetChanged.getReceivers(self)
+
     def replace(self,remove=(),add=()):
         """Remove items in ``remove``, add items in ``add``, generate events"""
         data = self.data
@@ -43,7 +47,12 @@ class Set(object):
             t = self.type
             for ob in add:
                 if not isinstance(ob,t):
-                    raise TypeError("%s is not a %s" % (ob,self._typeName(t)))
+                    if t:
+                        raise TypeError(
+                            "%s is not of type %s" % (ob,self._typeName(t))
+                        )
+                    else:
+                        raise TypeError("Null set cannot be changed")
         if remove:
             for ob in remove:
                 if ob in data:
@@ -65,7 +74,7 @@ class Set(object):
 
     def _typeName(self,t):
         if isinstance(t,tuple):
-            return '/'.join([typ.__name__ for typ in t])
+            return '/'.join([typ.__name__ for typ in t]) or '()'
         else:
             return t.__name__
             

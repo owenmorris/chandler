@@ -68,6 +68,8 @@ one kind of event that sets produce::
     >>> models.SetChanged.getReceivers(s)
     set([<weakref at ...; to 'function' at ... (printEvent)>])
 
+    >>> s.getReceivers()
+    set([<weakref at ...; to 'function' at ... (printEvent)>])
 
 The ``.add()`` method adds a new member::
 
@@ -154,7 +156,7 @@ can be included::
     >>> s.add(1)
     Traceback (most recent call last):
     ...
-    TypeError: 1 is not a str
+    TypeError: 1 is not of type str
     >>> s
     Set([], type=str)
 
@@ -169,7 +171,7 @@ generated if the operation fails, and the set retains its original contents::
     >>> s.replace(remove=['a'], add=['x','y',24])
     Traceback (most recent call last):
     ...
-    TypeError: 24 is not a str
+    TypeError: 24 is not of type str
 
     >>> s
     Set(['a'], type=str)
@@ -184,8 +186,19 @@ If more than one type is acceptable, you can use a tuple of types, e.g.::
     >>> s.add(1.25)
     Traceback (most recent call last):
     ...
-    TypeError: 1.25 is not a int/str
-    
+    TypeError: 1.25 is not of type int/str
+
+You can also use an empty type tuple to indicate that *no* type is acceptable,
+in which case the set will be both empty and immutable::
+
+    >>> s = models.Set(type=())
+    >>> s
+    Set([], type=())
+    >>> s.replace(add=[1])
+    Traceback (most recent call last):
+    ...
+    TypeError: Null set cannot be changed
+
 
 Rollback
 ========
