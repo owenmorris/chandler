@@ -19,7 +19,6 @@ dependencies = (
                 '4suite',
                )
 
-
 def build(buildenv):
 
     # Build the linux launcher program
