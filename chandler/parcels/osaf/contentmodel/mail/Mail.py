@@ -222,6 +222,9 @@ class MailDeliveryError(Item.Item):
             kind = MailParcel.getMailDeliveryErrorKind()
         super (MailDeliveryError, self).__init__(name, parent, kind)
 
+    def __str__(self):
+        return "Error Code: %d Error: %s Error Date: %s" % (self.errorCode, self.errorString, self.errorDate.strftime())
+
 
 class MailDeliveryBase(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
