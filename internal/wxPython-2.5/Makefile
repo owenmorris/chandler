@@ -3,8 +3,7 @@ include ../Makefile.inc
 
 VERSION=2.5
 RELVER=$(VERSION)-2
-WX=$(INTERNAL)
-SRC=$(WX)/wxPython-$(VERSION)
+SRC=$(INTERNAL)/wxPython-$(VERSION)
 
 ifeq ($(DEBUG),1)
 CONF_OPT=--enable-debug
@@ -20,6 +19,8 @@ endif
 
 
 BUILD=build_$(SNAP)
+
+.PHONY: wxWidgets wxPython
 
 
 ifeq ($(OS),Cygwin)
@@ -41,7 +42,7 @@ wxPython:
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(WX)/wxPython-$(SNAP)-$(RELVER).tar.gz \
+        tar -cvzf $(SRC)/wxPython-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/wx
 
 clean:
@@ -73,7 +74,7 @@ wxPython:
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(WX)/wxPython-$(SNAP)-$(RELVER).tar.gz \
+        tar -cvzf $(SRC)/wxPython-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/wx \
                   $(SNAP)/$(SITE)/wxPython \
 	          $(SNAP)/lib/libwx_mac* \
@@ -105,7 +106,7 @@ wxPython:
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(WX)/wxPython-$(SNAP)-$(RELVER).tar.gz \
+        tar -cvzf $(SRC)/wxPython-$(SNAP)-$(RELVER).tar.gz \
                   $(SNAP)/$(SITE)/wx \
                   $(SNAP)/$(SITE)/wxPython \
 	          $(SNAP)/lib/libwx_base* \
