@@ -568,12 +568,8 @@ class wxTreeList(wxTreeListCtrl):
         """
           Load the items in the tree only when they are visible.
         """
-        arguments = {'node':TreeNode (event.GetItem(), self),
-                     'type':'Normal'}
-        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GetTreeListData')
-        notification = Notification(event, None, None)
-        notification.SetData(arguments)
-        Globals.notificationManager.PostNotification (notification)
+        counterpart = Globals.repository.find (self.counterpartUUID)
+        counterpart.GetTreeData(TreeNode (event.GetItem(), self))
 
     def OnCollapsing(self, event):
         self.DeleteChildren (event.GetItem())
@@ -593,30 +589,28 @@ class wxTreeList(wxTreeListCtrl):
         
         
 class TreeList(RectangularChild):
-    def renderOneBlock(self, parent, parentWindow):
-        treeList = wxTreeList(parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
+    def renderOneBlock(self, parent, parentWindow, nativeWindow=None):
+        if nativeWindow:
+            treeList = nativeWindow
+        else:
+            treeList = wxTreeList(parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
         info = wxTreeListColumnInfo()
         for x in range(len(self.columnHeadings)):
             info.SetText(self.columnHeadings[x])
             info.SetWidth(self.columnWidths[x])
             treeList.AddColumnInfo(info)
-        self.getParentBlock(parentWindow).addToContainer(parent, treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.getParentBlock(parentWindow).addToContainer(parent,
+                                                         treeList,
+                                                         1,
+                                                         self.Calculate_wxFlag(),
+                                                         self.Calculate_wxBorder())
         """
-          We need to send a GetTreeListData event to the tree list to fill out it's root
-        item. Unfortunately, it isn't completely wired up because we haven't set the focus
-        and assigned the counterpartUUID, which are necessary for the event dispatch to
-        work. So we'll go the the extra work in this case to get it wired up before sending
-        the event. I couldn't think of a better solution -- DJA
+           Normally render, who calls us assigns our UUID to the counterpartUUID, however
+           GetTreeData need it before we return, so we'll assign it here -- DJA
         """
-        treeList.SetFocus()
         treeList.counterpartUUID = self.getUUID()
-        arguments = {'node':TreeNode (None, treeList),
-                     'type':'Normal'}
-        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GetTreeListData')
-        notification = Notification(event, None, None)
-        notification.SetData(arguments)
-        Globals.notificationManager.PostNotification (notification)
 
+        self.GetTreeData(TreeNode (None, treeList))
         return treeList, None, None
 
     def Calculate_wxStyle (self):
@@ -632,9 +626,37 @@ class TreeList(RectangularChild):
         return style
 
 
+class wxRepositoryTreeList(wxTreeList):
+    def GoToURI(self, URI):
+        treeNode = self.GetRootItem()
+        for name in URI.split ('/'):
+            if name:
+                assert (self.ItemHasChildren (treeNode))
+                self.Expand (treeNode)
+                child, cookie = self.GetFirstChild (treeNode, 0)
+                while child.IsOk():
+                    if name == self.GetPyData(child).getItemName():
+                        break
+                    child = self.GetNextSibling (child)
+
+                if child.IsOk():
+                    treeNode = child
+                else:
+                    """
+                      URL doesn't exist
+                    """
+                    assert (False)
+                    return
+        self.SelectItem (child)
+        self.ScrollTo (child)
+
+
 class RepositoryTreeList(TreeList):
-    def OnGetTreeListDataEvent (self, notification):
-        node = notification.data['node']
+    def renderOneBlock (self, parent, parentWindow):
+        treeList = wxRepositoryTreeList(parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
+        return super (RepositoryTreeList, self).renderOneBlock (parent, parentWindow, nativeWindow=treeList)
+
+    def GetTreeData (self, node):
         item = node.GetData()
         if item:
             for child in item:
@@ -652,12 +674,11 @@ class RepositoryTreeList(TreeList):
 
     def OnGoToURI (self, notification):
         wxTreeListWindow = Globals.association[self.getUUID()]
-        #wxTreeListWindow.GoToURI (notification.data['URI'])
+        wxTreeListWindow.GoToURI (notification.data['URI'])
 
         
 class Sidebar(TreeList):
-    def OnGetTreeListDataEvent (self, notification):
-        node = notification.data['node']
+    def GetTreeData (self, node):
         item = node.GetData()
         if item:
             for child in item:

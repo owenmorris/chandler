@@ -117,7 +117,7 @@ class wxItemView(wxHtmlWindow):
         item = Globals.repository.find(itemURL)
         self.OnSelectionChangedEvent (item)
 
-        arguments = {'URI':item, 'type':'Normal'}
+        arguments = {'URI':itemURL, 'type':'Normal'}
         event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GoToURI')
         notification = Notification(event, None, None)
         notification.SetData(arguments)

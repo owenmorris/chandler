@@ -223,7 +223,6 @@
     <blockEvents itemref="docSchema:Cut"/>
     <blockEvents itemref="docSchema:Copy"/>
     <blockEvents itemref="docSchema:Paste"/>
-    <blockEvents itemref="docSchema:GetTreeListData"/>
     <blockEvents itemref="docSchema:Preferences"/>
     <blockEvents itemref="docSchema:Right"/>
     <blockEvents itemref="docSchema:Left"/>
@@ -259,11 +258,6 @@
   <docSchema:BlockEvent itemName="Paste">
     <dispatchEnum>BubbleUp</dispatchEnum>
     <methodName>OnPasteEvent</methodName>
-  </docSchema:BlockEvent>
-
-  <docSchema:BlockEvent itemName="GetTreeListData">
-    <dispatchEnum>BubbleUp</dispatchEnum>
-    <methodName>OnGetTreeListDataEvent</methodName>
   </docSchema:BlockEvent>
 
   <docSchema:BlockEvent itemName="Preferences">
