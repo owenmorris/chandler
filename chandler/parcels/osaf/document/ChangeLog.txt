@@ -1,7 +1,0 @@
-# ChangeLog for Document Parcel
-
-2003-09-04 Jed Burges <jed@osafoundation.org>
-   * Created the document parcel
-   
-2003-09-16 Jed Burgess <jed@osafoundation.org>
-   * Complete overhaul of the structure of the document architecture
