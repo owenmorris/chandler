@@ -443,7 +443,11 @@ def __assignToKind(kindVar, messageObject, key, type, attr = None):
             ea = Mail.EmailAddress.getEmailAddress(addr[1],
                                                    **keyArgs)
 
-            setattr(kindVar, attr, ea)
+            if ea is not None:
+                setattr(kindVar, attr, ea)
+
+            elif __debug__:
+                logging.error("in osaf.mail.message.__assignToKind: invalid email address found")
 
     elif type == "EmailAddressList":
         if messageObject[key] is not None:
@@ -454,9 +458,13 @@ def __assignToKind(kindVar, messageObject, key, type, attr = None):
 
                 # Use any existing EmailAddress, but don't update them
                 #  because that will cause the item to go stale in the UI thread.
-                ea = Mail.EmailAddress.getEmailAddress(addr[1], 
+                ea = Mail.EmailAddress.getEmailAddress(addr[1],
                                                        **keyArgs)
-                kindVar.append(ea)
+                if ea is not None:
+                    kindVar.append(ea)
+
+                elif __debug__:
+                    logging.error("in osaf.mail.message.__assignToKind: invalid email address found")
     else:
         logging.error("in osaf.mail.message.__assignToKind: HEADER SLIPPED THROUGH")
 
