@@ -207,7 +207,7 @@ diff -r -upN libxml2-2.6.16/win32/Makefile.msvc libxml2-2.6.16-patched/win32/Mak
  	if not exist $(INCPREFIX)\libxml mkdir $(INCPREFIX)\libxml
 diff -r -upN libxml2-2.6.16/win32/configure.js libxml2-2.6.16-patched/win32/configure.js
 --- libxml2-2.6.16/win32/configure.js	Wed Aug 25 15:20:57 2004
-+++ libxml2-2.6.16-patched/win32/configure.js	Tue Jan  4 00:35:40 2005
++++ libxml2-2.6.16-patched/win32/configure.js	Mon Jan 10 19:40:58 2005
 @@ -162,7 +162,7 @@ function usage()
  /* Discovers the version we are working with by reading the apropriate
     configuration file. Despite its name, this also writes the configuration
@@ -232,6 +232,17 @@ diff -r -upN libxml2-2.6.16/win32/configure.js libxml2-2.6.16-patched/win32/conf
  	vf = fso.CreateTextFile(versionFile, true);
  	vf.WriteLine("# " + versionFile);
  	vf.WriteLine("# This file is generated automatically by " + WScript.ScriptName + ".");
+@@ -347,8 +347,8 @@ function configureLibxml()
+ /* Configures Python bindings. Otherwise identical to the above */
+ function configureLibxmlPy()
+ {
+-	var pyOptsFileIn = srcDirXml + "\\python\\setup.py.in";
+-	var pyOptsFile = srcDirXml + "\\python\\setup.py";
++	var pyOptsFileIn = srcDirXml + "\\python\\winSetup.py.in";
++	var pyOptsFile = srcDirXml + "\\python\\winSetup.py";
+ 	var fso, ofi, of, ln, s;
+ 	fso = new ActiveXObject("Scripting.FileSystemObject");
+ 	ofi = fso.OpenTextFile(pyOptsFileIn, 1);
 @@ -540,7 +540,7 @@ if (buildSoPrefix == "")
  	buildSoPrefix = "$(PREFIX)" + dirSep + "lib";
  
