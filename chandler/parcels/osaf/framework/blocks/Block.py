@@ -53,6 +53,15 @@ class Block(Item):
                 self.widget = widget
                 widget.blockItem = self
                 """
+                  For those widgets with contents, we need to subscribe to notice changes
+                to items in the contents.
+                """
+                try:
+                    self.contents.subscribeWidgetToChanges (widget)
+                except AttributeError:
+                    pass
+                    
+                """
                   After the blocks are wired up, give the window a chance
                 to synchronize itself to any persistent state.
                 """
@@ -71,6 +80,10 @@ class Block(Item):
           Called just before a widget is destroyed. It is the opposite of
         instantiateWidget.
         """
+        try:
+            self.contents.unSubscribeWidgetToChanges (self.widget)
+        except AttributeError:
+            pass
         delattr (self, 'widget')
         self.setPinned (False)
  

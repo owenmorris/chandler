@@ -1,7 +1,10 @@
 
+import time
 import application.Globals as Globals
 from repository.item.Item import Item
 import repository.item.Query as RepositoryQuery
+from repository.util.UUID import UUID
+import wx
 
 class ItemCollection (Item):
 
@@ -85,16 +88,64 @@ class ItemCollection (Item):
                     if kind is item.itsKind:
                         self.resultsStale = True
                         for block in self.usedInBlocks:
+                            """
+                              We might not have a widget for every block that uses the
+                            itemCollection, so ignore those that don't
+                            """
                             try:
-                                block.widget.scheduleUpdate = True
+                                widget = block.widget
                             except AttributeError:
-                                """
-                                  We might not have a widget for every block that uses the
-                                itemCollection, so ignore those that don't
-                                """
                                 pass
+                            else:
+                                try:
+                                    """
+                                      If we have a NeedsUpdate method, call it otherwise just
+                                    schedule the update.
+                                    """
+                                    widget.NeedsUpdate (notification)
+                                except AttributeError:
+                                    widget.scheduleUpdate = True
 
-
-                            
         elif __debug__:
             assert False, "Bad QueryEnum"
+
+    def subscribeWidgetToChanges (self, widget):
+        """
+          We can't have already subscribed to notifications.
+          Also make sure we're the right contents for the widget
+        """
+        assert (not hasattr (widget, 'subscriptionUUID'))
+        assert (widget.blockItem.contents == self)
+        events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
+                  Globals.repository.findPath('//parcels/osaf/framework/item_added'),
+                  Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
+        widget.subscriptionUUID = UUID()
+        Globals.notificationManager.Subscribe (events,
+                                               widget.subscriptionUUID,
+                                               self.onItemChanges)
+        widget.scheduleUpdate = False
+        widget.lastUpdateTime = 0
+        if not hasattr (widget, 'waitTimeBetweenUpdates'):
+            widget.waitTimeBetweenUpdates = 0.4
+        widget.Bind (wx.EVT_IDLE, self.OnIdle)
+        
+
+    def OnIdle(self, event):
+        """
+          Wait a while after a update is first scheduled before updating
+        and don't update more than once a second.
+        """
+        widget = event.GetEventObject()
+        if widget.scheduleUpdate:
+            if (time.time() - widget.lastUpdateTime) > widget.waitTimeBetweenUpdates:
+                widget.blockItem.synchronizeWidget()
+                widget.scheduleUpdate = False
+                widget.lastUpdateTime = time.time()
+        else:
+            lastupdateTime = time.time()
+        event.Skip()
+
+    def unSubscribeWidgetToChanges (self, widget):
+        widget.Bind (wx.EVT_IDLE, None)
+        Globals.notificationManager.Unsubscribe(widget.subscriptionUUID)
+        delattr (widget, 'subscriptionUUID')

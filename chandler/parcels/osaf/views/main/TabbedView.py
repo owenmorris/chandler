@@ -7,7 +7,6 @@ import application.Globals as Globals
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
 from osaf.framework.blocks.Node import Node as Node
 from osaf.framework.blocks.Block import Block as Block
-from repository.util.UUID import UUID
 
 class TabbedView(ControlBlocks.TabbedContainer):
     def OnSelectionChangedEvent(self, notification):

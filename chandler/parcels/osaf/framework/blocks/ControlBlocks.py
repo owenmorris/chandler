@@ -3,7 +3,6 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import time
 import os
 import application.Globals as Globals
 from application.Application import mixinAClass
@@ -11,7 +10,6 @@ from Block import *
 from ContainerBlocks import *
 from DragAndDrop import DraggableWidget as DraggableWidget
 from Styles import Font
-from repository.util.UUID import UUID
 import wx
 import wx.html
 import wx.gizmos
@@ -171,24 +169,9 @@ class ListDelegate:
 class wxList (wx.ListCtrl, DraggableWidget):
     def __init__(self, *arguments, **keywords):
         super (wxList, self).__init__ (*arguments, **keywords)
-        self.scheduleUpdate = False
-        self.lastUpdateTime = 0
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.On_wxSelectionChanged, id=self.GetId())
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_LIST_BEGIN_DRAG, self.OnItemDrag)
-
-    def OnIdle(self, event):
-        """
-          Wait a second after a update is first scheduled before updating
-        and don't update more than once a second.
-        """
-        if self.scheduleUpdate:
-            if (time.time() - self.lastUpdateTime) > 1.0:
-                self.blockItem.synchronizeWidget()
-        else:
-            lastupdateTime = time.time()
-        event.Skip()
 
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
@@ -229,25 +212,9 @@ class wxList (wx.ListCtrl, DraggableWidget):
 
         self.SetItemCount (self.ElementCount())
         self.Thaw()
-        try:
-            subscription = self.subscriptionUUID
-        except AttributeError:
-            events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
-                      Globals.repository.findPath('//parcels/osaf/framework/item_added'),
-                      Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
-            self.subscriptionUUID = UUID()
-            Globals.notificationManager.Subscribe (events,
-                                                   self.subscriptionUUID,
-                                                   self.blockItem.contents.onItemChanges)
-                
+
         if self.blockItem.selection:
             self.GoToItem (self.blockItem.selection)
-
-        self.scheduleUpdate = False
-        self.lastUpdateTime = time.time()
-        
-    def __del__(self):
-        Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
 
     def OnGetItemText (self, row, column):
         """
@@ -269,9 +236,6 @@ class List(RectangularChild):
         return wxList (self.parentBlock.widget,
                        Block.getWidgetID(self),
                        style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
-
-    def NeedsUpdate(self):
-        self.widget.scheduleUpdate = True    
 
     def OnSelectionChangedEvent (self, notification):
         """
@@ -313,23 +277,8 @@ class wxSummary(wx.grid.Grid):
     def __init__(self, *arguments, **keywords):
         super (wxSummary, self).__init__ (*arguments, **keywords)
         self.SetRowLabelSize(0)
-        self.scheduleUpdate = False
-        self.lastUpdateTime = 0
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
-
-    def OnIdle(self, event):
-        """
-          Wait a second after a update is first scheduled before updating
-        and don't update more than once a second.
-        """
-        if self.scheduleUpdate:
-            if (time.time() - self.lastUpdateTime) > 1.0:
-                self.blockItem.synchronizeWidget()
-        else:
-            lastupdateTime = time.time()
-        event.Skip()
 
     def OnColumnDrag(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
@@ -405,25 +354,9 @@ class wxSummary(wx.grid.Grid):
             self.currentRows = gridTable.GetNumberRows()
             self.currentColumns = gridTable.GetNumberCols()
 
-        try:
-            subscription = self.subscriptionUUID
-        except AttributeError:
-            events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
-                      Globals.repository.findPath('//parcels/osaf/framework/item_added'),
-                      Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
-            self.subscriptionUUID = UUID()
-            Globals.notificationManager.Subscribe (events,
-                                                   self.subscriptionUUID,
-                                                   self.blockItem.contents.onItemChanges)
         self.Reset()
         if self.blockItem.selection:
             self.GoToItem (self.blockItem.selection)
-
-        self.scheduleUpdate = False
-        self.lastUpdateTime = time.time()
-        
-    def __del__(self):
-        Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
 
     def OnGetItemText (self, row, column):
         """
@@ -443,9 +376,6 @@ class Summary(RectangularChild):
 
     def instantiateWidget (self):
         return wxSummary (self.parentBlock.widget, Block.getWidgetID(self))
-
-    def NeedsUpdate(self):
-        self.widget.scheduleUpdate = True    
 
     def OnSelectionChangedEvent (self, notification):
         """
@@ -547,27 +477,12 @@ class ToolbarItem(Block):
 class wxTreeAndList(DraggableWidget):
     def __init__(self, *arguments, **keywords):
         super (wxTreeAndList, self).__init__ (*arguments, **keywords)
-        self.scheduleUpdate = False
-        self.lastUpdateTime = 0
         self.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnExpanding, id=self.GetId())
         self.Bind(wx.EVT_TREE_ITEM_COLLAPSING, self.OnCollapsing, id=self.GetId())
         self.Bind(wx.EVT_LIST_COL_END_DRAG, self.OnColumnDrag, id=self.GetId())
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.On_wxSelectionChanged, id=self.GetId())
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_TREE_BEGIN_DRAG, self.OnItemDrag)
-
-    def OnIdle(self, event):
-        """
-          Wait a second after a update is first scheduled before updating
-        and don't update more than once a second.
-        """
-        if self.scheduleUpdate:
-           if (time.time() - self.lastUpdateTime) > 0.5:
-               self.blockItem.synchronizeWidget()
-        else:
-            lastupdateTime = time.time()
-        event.Skip()
 
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
@@ -697,23 +612,7 @@ class wxTreeAndList(DraggableWidget):
         if not selection:
             selection = root
         self.GoToItem (selection)
-
-        try:
-            subscription = self.subscriptionUUID
-        except AttributeError:
-            events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
-                      Globals.repository.findPath('//parcels/osaf/framework/item_added'),
-                      Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
-            self.subscriptionUUID = UUID()
-            Globals.notificationManager.Subscribe (events,
-                                                   self.subscriptionUUID,
-                                                   self.NeedsUpdate)
-        self.scheduleUpdate = False
-        self.lastUpdateTime = time.time()
         
-    def __del__(self):
-        Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
-
     def GoToItem(self, item):
         def ExpandTreeToItem (self, item):
             parent = self.ElementParent (item)

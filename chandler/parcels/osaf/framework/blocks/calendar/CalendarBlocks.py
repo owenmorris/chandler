@@ -7,13 +7,11 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import wx
-import time
 from mx import DateTime
 
 import application.SimpleCanvas as SimpleCanvas
 import osaf.framework.blocks.Block as Block
 import application.Globals as Globals
-import repository.util.UUID as UUID
 
 class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
     def __init__(self, canvas, item):
@@ -60,13 +58,10 @@ class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
 class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
     def __init__(self, *arguments, **keywords):
         super (wxWeekBlock, self).__init__ (*arguments, **keywords)
-        self.scheduleUpdate = False
-        self.lastUpdateTime = 0
 
         SimpleCanvas.wxSimpleCanvas.OnInit(self, None)
 
         self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
         
         self.SetScrollRate(0,0)
 
@@ -78,27 +73,6 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
                 self.zOrderedDrawableObjects.append(drawableObject)
                 drawableObject.PlaceItemOnCalendar()
 
-        # subscribe to repository changes
-        # @@@ common code, should be refactored somehow
-        try:
-            subscription = self.subscriptionUUID
-        except:
-            events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
-                      Globals.repository.findPath('//parcels/osaf/framework/item_added'),
-                      Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
-            self.subscriptionUUID = UUID.UUID()
-            Globals.notificationManager.Subscribe(events,
-                                                  self.subscriptionUUID,
-                                                  self.blockItem.contents.onItemChanges)
-
-        self.scheduleUpdate = False
-        self.lastUpdateTime = time.time()
-
-    def __del__(self):
-        Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
-
-    # Event handlers
-
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             newSize = self.GetSize()
@@ -108,15 +82,6 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
             for drawableObject in self.zOrderedDrawableObjects:
                 drawableObject.PlaceItemOnCalendar()
         event.Skip()
-
-    def OnIdle(self, event):
-        if self.scheduleUpdate:
-            if (time.time() - self.lastUpdateTime) > 1.0:
-                self.wxSynchronizeWidget()
-                self.Refresh()
-        else:
-            self.lastupdateTime = time.time()
-        event.Skip()        
 
     def DrawBackground(self, dc):
         # Use the transparent pen for painting the background
@@ -165,11 +130,6 @@ class WeekBlock(Block.RectangularChild):
     def instantiateWidget(self):
         return wxWeekBlock(self.parentBlock.widget, Block.Block.getWidgetID(self))
 
-    # Event handlers
-
-    def NeedsUpdate(self):
-        self.widget.scheduleUpdate = True
-
     # Derived attributes
     
     def getHourHeight(self):
@@ -207,14 +167,9 @@ class WeekBlock(Block.RectangularChild):
 class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
     def __init__(self, *arguments, **keywords):
         super (wxMonthBlock, self).__init__ (*arguments, **keywords)
-        self.scheduleUpdate = False
-        self.lastUpdateTime = 0
 
         SimpleCanvas.wxSimpleCanvas.OnInit(self, None)
-
-        self.Bind(wx.EVT_SIZE, self.OnSize)
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
-        
+        self.Bind(wx.EVT_SIZE, self.OnSize)        
         self.SetScrollRate(0,0)
     
     def wxSynchronizeWidget(self):
@@ -223,25 +178,6 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
             if self.blockItem.isDateInRange(item.startTime):
                 drawableObject = CalendarItem(self, item)
                 self.zOrderedDrawableObjects.append(drawableObject)
-
-        # subscribe to repository changes
-        # @@@ common code, should be refactored somehow
-        try:
-            subscription = self.subscriptionUUID
-        except:
-            events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
-                      Globals.repository.findPath('//parcels/osaf/framework/item_added'),
-                      Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
-            self.subscriptionUUID = UUID.UUID()
-            Globals.notificationManager.Subscribe(events,
-                                                  self.subscriptionUUID,
-                                                  self.blockItem.contents.onItemChanges)
-
-            self.scheduleUpdate = False
-            self.lastUpdateTime = time.time()
-
-    def __del__(self):
-        Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
 
     # Events
 
@@ -252,16 +188,6 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
             self.blockItem.size.height = newSize.height
             self.SetVirtualSize(newSize)
         event.Skip()
-
-    def OnIdle(self, event):
-        if self.scheduleUpdate:
-            if (time.time() - self.lastUpdateTime) > 1.0:
-                self.wxSynchronizeWidget()
-                self.Refresh()
-        else:
-            self.lastupdateTime = time.time()
-        event.Skip()
-
 
     def DrawBackground(self, dc):
         # Use the transparent pen for drawing the background rectangles
@@ -334,11 +260,6 @@ class MonthBlock(Block.RectangularChild):
 
     def instantiateWidget(self):
         return wxMonthBlock(self.parentBlock.widget, Block.Block.getWidgetID(self))
-
-    # Event handlers
-
-    def NeedsUpdate(self):
-        self.widget.scheduleUpdate = True
 
     # Derived attributes
     

@@ -8,7 +8,6 @@ from Block import *
 from ContainerBlocks import *
 from ControlBlocks import *
 from Node import *
-from repository.util.UUID import UUID
 import wx
 
 
