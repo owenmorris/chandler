@@ -90,7 +90,7 @@ class ViewerParcel (Parcel):
                 if node.GetName() == 'label':
                     self.displayName = node.GetChildren().GetContent()
                     break
-                node = menuNode.GetNext()
+                node = node.GetNext()
         self.description = _('The ' + self.displayName + ' parcel')
 
     def SynchronizeView (self):
