@@ -49,3 +49,12 @@ morgen -a \
     osaf/chandler/egenix-mx \
     osaf/chandler/hardhat \
     osaf/chandler/wxpython
+
+rap -a \        
+    osaf/chandler/net/expat-win \
+    osaf/chandler/net/gettext-darwin \
+    osaf/chandler/net/glib \
+    osaf/chandler/net/libiconv \
+    osaf/chandler/net/libxml2 \
+    osaf/chandler/net/roadrunner \
+    osaf/chandler/net/rap
