@@ -454,35 +454,6 @@ class wxApplication (wx.App):
 
         wxID = event.GetId()
 
-        #XXX: This is a patch for bug #2665 that forces the sidebar to
-        #     get focus. This is required because TextCtrl's can be
-        #     Destroyed before losing focus in OSX. When the TextCntrl does
-        #     get an onLoseFocusEvent event and does a GetValue
-        #     the memory has already been deallocated.
-        #     this patch can be removed when wxPython 2.5.4 is integrated in to Chandler.
-
-        if event.GetEventType() == wx.wxEVT_COMMAND_TOOL_CLICKED:
-            appBar = Block.findBlockByName("ApplicationBar")
-
-            # @@@MOR:
-            # Only change the focus if we're clicking one of the 'view selector'
-            # buttons (one of the first 4) since stealing focus from the DV
-            # breaks the Send button.  This hack on a hack should get removed
-            # when wx 2.5.4 is integrated.
-            numToCheck = 4
-
-            for child in appBar.childrenBlocks:
-
-                if numToCheck == 0:
-                    break
-
-                if hasattr(child, "widget") and child.widget.GetId() == wxID:
-                    Block.findBlockByName("Sidebar").widget.SetFocus()
-                    break
-
-                numToCheck -= 1
-
-
         if wxID >= Block.MINIMUM_WX_ID and wxID <= Block.MAXIMUM_WX_ID:
             block = Block.widgetIDToBlock (wxID)
             updateUIEvent = event.GetEventType() == wx.EVT_UPDATE_UI.evtType[0]
