@@ -71,6 +71,7 @@
     Menus
   -->
   <Menu itsName="DemoMenu">
+    <blockName>DemoMenu</blockName>
     <title>Block Demo</title>
     <itemLocation>HelpMenu</itemLocation>
     <helpString></helpString>
@@ -80,6 +81,7 @@
     Menu Items
   -->
   <MenuItem itsName="IntroMenuItem">
+    <blockName>IntroMenuItem</blockName>
     <title>Intro Tab</title>
     <location>DemoMenu</location>
     <menuItemKind>Radio</menuItemKind>
@@ -88,6 +90,7 @@
   </MenuItem>
 
   <MenuItem itsName="ButtonsMenuItem">
+    <blockName>ButtonsMenuItem</blockName>
     <title>Buttons Tab</title>
     <location>DemoMenu</location>
     <menuItemKind>Radio</menuItemKind>
@@ -96,6 +99,7 @@
   </MenuItem>
 
   <MenuItem itsName="ControlsMenuItem">
+    <blockName>ControlsMenuItem</blockName>
     <title>Controls Tab</title>
     <location>DemoMenu</location>
     <menuItemKind>Radio</menuItemKind>
@@ -104,6 +108,7 @@
   </MenuItem>
 
   <MenuItem itsName="HTMLMenuItem">
+    <blockName>HTMLMenuItem</blockName>
     <title>HTML Tab</title>
     <location>DemoMenu</location>
     <menuItemKind>Radio</menuItemKind>

@@ -116,9 +116,9 @@
     <items itemref="repository:RepositoryView"/>
     <items itemref="content:MixedListView"/>
     <items itemref="stockQuote:StockQuoteView"/>
-    <items itemref="content:NoteListView"/>
-    <items itemref="content:TaskListView"/>
-    <items itemref="content:MailListView"/>
+    <items itemref="content:NoteTableView"/>
+    <items itemref="content:TaskTableView"/>
+    <items itemref="content:MailTableView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddDemoView">
@@ -149,69 +149,77 @@
     <items itemref="stockQuote:StockQuoteView"/>
   </ModifyContentsEvent>
   
-  <ModifyContentsEvent itsName="AddNoteListView">
+  <ModifyContentsEvent itsName="AddNoteTableView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:NoteListView"/>
+    <items itemref="content:NoteTableView"/>
   </ModifyContentsEvent>
   
-  <ModifyContentsEvent itsName="AddTaskListView">
+  <ModifyContentsEvent itsName="AddTaskTableView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:TaskListView"/>
+    <items itemref="content:TaskTableView"/>
   </ModifyContentsEvent>
   
-  <ModifyContentsEvent itsName="AddMailListView">
+  <ModifyContentsEvent itsName="AddMailTableView">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:MailListView"/>
+    <items itemref="content:MailTableView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddKindViews">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:NoteListView"/>
-    <items itemref="content:TaskListView"/>
-    <items itemref="content:MailListView"/>
+    <items itemref="content:NoteTableView"/>
+    <items itemref="content:TaskTableView"/>
+    <items itemref="content:MailTableView"/>
   </ModifyContentsEvent>
   
   <!--
     Menus
   -->  
   <Menu itsName="FileMenu">
+    <blockName>FileMenu</blockName>
     <title>&amp;File</title>
     <location>MenuBar</location>
   </Menu>
 
   <Menu itsName="EditMenu">
+    <blockName>EditMenu</blockName>
     <title>&amp;Edit</title>
     <location>MenuBar</location>
   </Menu>
     
   <Menu itsName="ViewMenu">
+    <blockName>ViewMenu</blockName>
     <title>&amp;View</title>
     <location>MenuBar</location>
   </Menu>
 
   <Menu itsName="TestMenu">
+    <blockName>TestMenu</blockName>
     <title>&amp;Test</title>
   </Menu>
   
   <Menu itsName="HelpMenu">
+    <blockName>HelpMenu</blockName>
     <title>&amp;Help</title>
   </Menu>
  
   <!-- the Menu Bar -->
-  <MenuBar itsName="MenuBar"/>
+  <MenuBar itsName="MenuBar">
+    <blockName>MenuBar</blockName>
+  </MenuBar>
 
   <!--
     Menu Items
   -->
   <MenuItem itsName="NewTabItem">
+    <blockName>NewTabItem</blockName>
     <title>New Tab</title>
     <location>FileMenu</location>
     <accel>N</accel>
@@ -220,6 +228,7 @@
   </MenuItem>
   
   <MenuItem itsName="CloseTabItem">
+    <blockName>CloseTabItem</blockName>
     <title>Close Tab</title>
     <location>FileMenu</location>
     <accel>W</accel>
@@ -228,11 +237,13 @@
   </MenuItem>
   
   <MenuItem itsName="FileSeparator1">
+    <blockName>FileSeparator1</blockName>
     <location>FileMenu</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="QuitItem">
+    <blockName>QuitItem</blockName>
     <title>Quit</title>
     <location>FileMenu</location>
     <accel>Q</accel>
@@ -241,6 +252,7 @@
   </MenuItem>
   
   <MenuItem itsName="UndoItem">
+    <blockName>UndoItem</blockName>
     <title>Undo</title>
     <location>EditMenu</location>
     <accel>Z</accel>
@@ -248,6 +260,7 @@
   </MenuItem>
 
   <MenuItem itsName="RedoItem">
+    <blockName>RedoItem</blockName>
     <title>Redo</title>
     <location>EditMenu</location>
     <accel>Y</accel>
@@ -255,11 +268,13 @@
   </MenuItem>
 
   <MenuItem itsName="EditSeparator1">
+    <blockName>EditSeparator1</blockName>
     <location>EditMenu</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="CutItem">
+    <blockName>CutItem</blockName>
     <title>Cut</title>
     <location>EditMenu</location>
     <accel>X</accel>
@@ -267,6 +282,7 @@
   </MenuItem>
 
   <MenuItem itsName="CopyItem">
+    <blockName>CopyItem</blockName>
     <title>Copy</title>
     <location>EditMenu</location>
     <accel>C</accel>
@@ -274,6 +290,7 @@
   </MenuItem>
 
   <MenuItem itsName="PasteItem">
+    <blockName>PasteItem</blockName>
     <title>Paste</title>
     <location>EditMenu</location>
     <accel>V</accel>
@@ -281,17 +298,33 @@
   </MenuItem>
   
   <MenuItem itsName="EditSeparator2">
+    <blockName>EditSeparator2</blockName>
+    <location>EditMenu</location>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="NewItemCollectionItem">
+    <blockName>NewItemCollectionItem</blockName>
+    <title>New ItemCollection</title>
+    <location>EditMenu</location>
+    <event itemref="events:NewItemCollectionItem"/>
+  </MenuItem>
+
+  <MenuItem itsName="EditSeparator3">
+    <blockName>EditSeparator3</blockName>
     <location>EditMenu</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="PreferencesItem">
+    <blockName>PreferencesItem</blockName>
     <title>Preferences</title>
     <location>EditMenu</location>
     <event itemref="events:Preferences"/>
   </MenuItem>
 
   <MenuItem itsName="ViewSideBarItem">
+    <blockName>ViewSideBarItem</blockName>
     <title>View Sidebar</title>
     <location>ViewMenu</location>
     <menuItemKind>Check</menuItemKind>
@@ -299,6 +332,7 @@
   </MenuItem>
 
   <MenuItem itsName="ViewNavigationBarItem">
+    <blockName>ViewNavigationBarItem</blockName>
     <title>View Navigation Bar</title>
     <location>ViewMenu</location>
     <menuItemKind>Check</menuItemKind>
@@ -306,6 +340,7 @@
   </MenuItem>
 
   <MenuItem itsName="ViewStatusBarItem">
+    <blockName>ViewStatusBarItem</blockName>
     <title>View Status Bar</title>
     <location>ViewMenu</location>
     <menuItemKind>Check</menuItemKind>
@@ -313,6 +348,7 @@
   </MenuItem>
 
   <MenuItem itsName="GenerateAllItem">
+    <blockName>GenerateAllItem</blockName>
     <title>Generate Content Items</title>
     <location>TestMenu</location>
     <event itemref="events:GenerateContentItems"/>
@@ -320,6 +356,7 @@
   </MenuItem>
 
   <MenuItem itsName="GenerateContactItem">
+    <blockName>GenerateContactItem</blockName>
     <title>Generate Contacts</title>
     <location>TestMenu</location>
     <event itemref="events:GenerateContacts"/>
@@ -327,6 +364,7 @@
   </MenuItem>
 
   <MenuItem itsName="GenerateCalendarItem">
+    <blockName>GenerateCalendarItem</blockName>
     <title>Generate Calendar Event Items</title>
     <location>TestMenu</location>
     <event itemref="events:GenerateCalendarEventItems"/>
@@ -334,6 +372,7 @@
   </MenuItem>
 
   <MenuItem itsName="GenerateNoteItem">
+    <blockName>GenerateNoteItem</blockName>
     <title>Generate Notes</title>
     <location>TestMenu</location>
     <event itemref="events:GenerateNotes"/>
@@ -341,6 +380,7 @@
   </MenuItem>
 
   <MenuItem itsName="ImportContactItem">
+    <blockName>ImportContactItem</blockName>
     <title>Import Contacts from Outlook CSV</title>
     <location>TestMenu</location>
     <event itemref="events:ImportContacts"/>
@@ -348,6 +388,7 @@
   </MenuItem>
 
   <MenuItem itsName="CheckRepositoryItem">
+    <blockName>CheckRepositoryItem</blockName>
     <title>Check Repository</title>
     <location>TestMenu</location>
     <event itemref="events:CheckRepository"/>
@@ -355,6 +396,7 @@
   </MenuItem>
 
   <MenuItem itsName="ShowPyCrustItem">
+    <blockName>ShowPyCrustItem</blockName>
     <title>Show PyCrust Debugger</title>
     <location>TestMenu</location>
     <event itemref="events:ShowPyCrust"/>
@@ -362,6 +404,7 @@
   </MenuItem>
 
   <MenuItem itsName="ReloadParcelsItem">
+    <blockName>ReloadParcelsItem</blockName>
     <title>Reload Parcels</title>
     <location>TestMenu</location>
     <event itemref="events:ReloadParcels"/>
@@ -369,12 +412,14 @@
   </MenuItem>
 
   <Menu itsName="AddAdditionalViewsItem">
+    <blockName>AddAdditionalViewsItem</blockName>
     <title>Add Additional Views</title>
     <location>TestMenu</location>
     <helpString>Add views to the sidebar</helpString>
   </Menu>
 
   <MenuItem itsName="AddAllAdditionalViewsItem">
+    <blockName>AddAllAdditionalViewsItem</blockName>
     <title>Add All Additional Views</title>
     <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddAllAdditionalViews"/>
@@ -382,11 +427,13 @@
   </MenuItem>
 
   <MenuItem itsName="TestSeparator1">
+    <blockName>TestSeparator1</blockName>
     <location>AddAdditionalViewsItem</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="AddDemoViewItem">
+    <blockName>AddDemoViewItem</blockName>
     <title>Add Block Demo View</title>
     <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddDemoView"/>
@@ -394,6 +441,7 @@
   </MenuItem>
 
   <MenuItem itsName="AddRepositoryViewItem">
+    <blockName>ButtonsMenuItem</blockName>
     <title>Add Repository Viewer</title>
     <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddRepositoryView"/>
@@ -401,6 +449,7 @@
   </MenuItem>
   
   <MenuItem itsName="AddMixedViewItem">
+    <blockName>AddMixedViewItem</blockName>
     <title>Add Mixed View</title>
     <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddMixedListView"/>
@@ -408,32 +457,37 @@
   </MenuItem>
 
   <MenuItem itsName="TestSeparator2">
+    <blockName>TestSeparator2</blockName>
     <location>AddAdditionalViewsItem</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="AddNoteViewItem">
+    <blockName>AddNoteViewItem</blockName>
     <title>Add Note-Kind View</title>
     <location>AddAdditionalViewsItem</location>
-    <event itemref="doc:AddNoteListView"/>
+    <event itemref="doc:AddNoteTableView"/>
     <helpString>Adds the Note-Kind view to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="AddTaskViewItem">
+    <blockName>AddTaskViewItem</blockName>
     <title>Add Task-Kind View</title>
     <location>AddAdditionalViewsItem</location>
-    <event itemref="doc:AddTaskListView"/>
+    <event itemref="doc:AddTaskTableView"/>
     <helpString>Adds the Task-Kind view to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="AddMailViewItem">
+    <blockName>AddMailViewItem</blockName>
     <title>Add Mail-Kind View</title>
     <location>AddAdditionalViewsItem</location>
-    <event itemref="doc:AddMailListView"/>
+    <event itemref="doc:AddMailTableView"/>
     <helpString>Adds the Mail-Kind view to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="AddKindViewsItem">
+    <blockName>AddKindViewsItem</blockName>
     <title>Add all Kind-specific Views</title>
     <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddKindViews"/>
@@ -441,11 +495,13 @@
   </MenuItem>
 
   <MenuItem itsName="TestSeparator3">
+    <blockName>TestSeparator3</blockName>
     <location>AddAdditionalViewsItem</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="AddStockQuoteItem">
+    <blockName>AddStockQuoteItem</blockName>
     <title>Add Stock Quote</title>
     <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddStockQuoteView"/>
@@ -453,6 +509,7 @@
   </MenuItem>
 
   <MenuItem itsName="AboutChandlerItem">
+    <blockName>AboutChandlerItem</blockName>
     <title>About Chandler</title>
     <location>HelpMenu</location>
     <event itemref="events:AboutChandler"/>
@@ -464,6 +521,7 @@
   -->
   <Toolbar itemName="NavigationBar"
            itemClass="osaf.framework.blocks.NavigationBlocks.NavigationBar">
+    <blockName>NavigationBar</blockName>
     <!-- Dynamic Children -->
     <dynamicChildren itemref="doc:GoBackButton"/>
     <dynamicChildren itemref="doc:GoForwardButton"/>
@@ -504,7 +562,7 @@
     ToolbarItems
   -->
   <ToolbarItem itsName="GoBackButton">
-    <!-- Attributes -->
+    <blockName>GoBackButton</blockName>
     <location>NavigationBar</location>
     <title>Back</title>
     <bitmap>application/images/backarrow.png</bitmap>
@@ -514,7 +572,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="GoForwardButton">
-    <!-- Attributes -->
+    <blockName>GoForwardButton</blockName>
     <location>NavigationBar</location>
     <title>Forward</title>
     <bitmap>application/images/forwardarrow.png</bitmap>
@@ -524,7 +582,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="SyncButton">
-    <!-- Attributes -->
+    <blockName>SyncButton</blockName>
     <location>NavigationBar</location>
     <title>Sync</title>
     <label>Sync</label>
@@ -535,31 +593,31 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer1">
-    <!-- Attributes -->
+    <blockName>Spacer1</blockName>
     <location>NavigationBar</location>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer2">
-    <!-- Attributes -->
+    <blockName>Spacer2</blockName>
     <location>NavigationBar</location>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer3">
-    <!-- Attributes -->
+    <blockName>Spacer3</blockName>
     <location>NavigationBar</location>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer4">
-    <!-- Attributes -->
+    <blockName>Spacer4</blockName>
     <location>NavigationBar</location>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itsName="NewButton">
-    <!-- Attributes -->
+    <blockName>NewButton</blockName>
     <location>NavigationBar</location>
     <title>New</title>
     <label>New</label>
@@ -570,7 +628,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ReplyButton">
-    <!-- Attributes -->
+    <blockName>ReplyButton</blockName>
     <location>NavigationBar</location>
     <title>Reply</title>
     <bitmap>application/images/replyto.png</bitmap>
@@ -580,7 +638,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DiscussButton">
-    <!-- Attributes -->
+    <blockName>DiscussButton</blockName>
     <location>NavigationBar</location>
     <title>Discuss</title>
     <label>Discuss</label>
@@ -591,7 +649,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ForwardButton">
-    <!-- Attributes -->
+    <blockName>ForwardButton</blockName>
     <location>NavigationBar</location>
     <title>Forward</title>
     <bitmap>application/images/forwardto.png</bitmap>
@@ -601,7 +659,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DeleteButton">
-    <!-- Attributes -->
+    <blockName>DeleteButton</blockName>
     <location>NavigationBar</location>
     <title>Delete</title>
     <label>Delete</label>
@@ -612,7 +670,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="JunkButton">
-    <!-- Attributes -->
+    <blockName>JunkButton</blockName>
     <location>NavigationBar</location>
     <title>Junk</title>
     <label>Junk</label>
@@ -623,7 +681,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="FontsButton">
-    <!-- Attributes -->
+    <blockName>FontsButton</blockName>
     <location>NavigationBar</location>
     <title>Fonts</title>
     <label>Fonts</label>
@@ -634,7 +692,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="PrintButton">
-    <!-- Attributes -->
+    <blockName>PrintButton</blockName>
     <location>NavigationBar</location>
     <title>Print</title>
     <label>Print</label>
@@ -645,7 +703,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="SearchBox">
-    <!-- Attributes -->
+    <blockName>SearchBox</blockName>
     <location>NavigationBar</location>
     <title>SearchBox</title>
     <toolbarItemKind>Text</toolbarItemKind>
@@ -665,7 +723,7 @@
   <TabbedContainer itsName="TabbedView"
                    itemClass="osaf.views.main.TabbedView.TabbedView">
     <!-- Layout children -->
-    <childrenBlocks itemref="content:InListView"/>
+    <childrenBlocks itemref="content:InTableView"/>
 
     <!-- Attributes -->
     <tabPosEnum>Top</tabPosEnum>
@@ -687,17 +745,17 @@
   </BoxContainer>
 
   <contentModel:NamedCollection itsName="sidebarItemCollection">
-    <inclusions uuidOf="content:InListView"/>
-    <inclusions uuidOf="content:OutListView"/>
-    <inclusions uuidOf="content:CalendarListView"/>
-    <inclusions uuidOf="content:ContactListView"/>
-    <inclusions uuidOf="content:JunkListView"/>
-    <inclusions uuidOf="content:TrashListView"/>
+    <inclusions uuidOf="content:InTableView"/>
+    <inclusions uuidOf="content:OutTableView"/>
+    <inclusions uuidOf="content:CalendarTableView"/>
+    <inclusions uuidOf="content:ContactTableView"/>
+    <inclusions uuidOf="content:JunkTableView"/>
+    <inclusions uuidOf="content:TrashTableView"/>
   </contentModel:NamedCollection>
 
   <Table itsName="Sidebar">
     <contents itemref="doc:sidebarItemCollection"/>
-    <selection itemref="content:InListView"/>
+    <selection itemref="content:InTableView"/>
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <columnHeadings></columnHeadings>
     <columnAttributeNames>displayName</columnAttributeNames>
@@ -762,6 +820,8 @@
     <childrenBlocks itemref="doc:CopyItem"/>
     <childrenBlocks itemref="doc:PasteItem"/>
     <childrenBlocks itemref="doc:EditSeparator2"/>
+    <childrenBlocks itemref="doc:NewItemCollectionItem"/>
+    <childrenBlocks itemref="doc:EditSeparator3"/>
     <childrenBlocks itemref="doc:PreferencesItem"/>
     <childrenBlocks itemref="doc:ViewMenu"/>
     <childrenBlocks itemref="doc:ViewSideBarItem"/>
@@ -807,9 +867,9 @@
     <subscribeWhenVisibleEvents itemref="doc:AddRepositoryView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddMixedListView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddStockQuoteView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddNoteListView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddTaskListView"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddMailListView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddNoteTableView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddTaskTableView"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddMailTableView"/>
     <subscribeWhenVisibleEvents itemref="doc:AddKindViews"/>
 
     <!-- Attributes -->

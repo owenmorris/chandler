@@ -164,6 +164,12 @@ class DynamicContainer(RefCollectionDictionary):
     This list of children is in "dynamicChildren" and the
     back pointer is in "dynamicParent".
     """                
+    def itemNameAccessor(self, item):
+        """
+          Use blockName for the accessor
+        """
+        return item.blockName
+    
     def rebuildDynamicContainers(cls, startingAtBlock, dynamicChildBlock):
         """
            rebuildDynamicContainers rebuilds the dynamic
@@ -205,7 +211,7 @@ class DynamicContainer(RefCollectionDictionary):
                 # pick up container definitions
                 if isinstance (child, DynamicContainer):
                     child.dynamicChildren = [] # rebuild children from scratch
-                    containers [child.itsName] = child
+                    containers [child.blockName] = child
                                            
         def rebuildChildren(block, containers):
             """
@@ -234,8 +240,8 @@ class DynamicContainer(RefCollectionDictionary):
                         # Shouldn't have items with the same name, unless they are the same
                         if __debug__:
                             if not child in bar:
-                                if bar.has_key(child.itsName):
-                                    logging.warning("%s already has a %s named %s" % (bar.itsName, child.itsKind, child.itsName))
+                                if bar.has_key(child.blockName):
+                                    logging.warning("%s already has a %s named %s" % (bar.blockName, child.blockName, child.blockName))
                         i = bar.index(child.itemLocation)
                         bar.insert(i, child)
                     elif child.operation == 'Replace':
@@ -273,7 +279,7 @@ class DynamicContainer(RefCollectionDictionary):
         # Help users who forget to put a location attribute on a menuItem or toolbarItem
         for menu in containers['MenuBar']:
             assert isinstance(menu, Menu), "Non-Menu block named %s found in \
-                 Menu Bar (specify a location attribute)" % menu.itsName 
+                 Menu Bar (specify a location attribute)" % menu.blockName 
         for bar in containers.values():
             bar.synchronizeWidget()
     rebuildDynamicContainers=classmethod(rebuildDynamicContainers)

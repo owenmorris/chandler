@@ -78,6 +78,11 @@
     <rule itemref="view:mixedQuery"/>
   </contentModel:NamedCollection>
 
+  <contentModel:NamedCollection itsName="untitledItemCollection">
+    <displayName>Untitled</displayName>
+    <rule itemref="view:mixedQuery"/>
+  </contentModel:NamedCollection>
+
   <contentModel:Query itsName="inQuery">
   </contentModel:Query>
 
@@ -168,12 +173,12 @@
 
   <BoxContainer itsName="InSummary">
     <childrenBlocks itemref="view:LayoutSelector3"/>
-    <childrenBlocks itemref="view:InList"/>
+    <childrenBlocks itemref="view:InTable"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
 
-  <!-- In List -->
-  <Table itsName="InList">
+  <!-- In Table -->
+  <Table itsName="InTable">
     <contents itemref="view:inItemCollection"/>
 
     <columnHeadings>who</columnHeadings>
@@ -191,12 +196,12 @@
 
   <BoxContainer itsName="OutSummary">
     <childrenBlocks itemref="view:LayoutSelector2"/>
-    <childrenBlocks itemref="view:OutList"/>
+    <childrenBlocks itemref="view:OutTable"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
 
-  <!-- Out List -->
-  <Table itsName="OutList">
+  <!-- Out Table -->
+  <Table itsName="OutTable">
     <contents itemref="view:outItemCollection"/>
 
     <columnHeadings>who</columnHeadings>
@@ -214,15 +219,15 @@
   
   <ChoiceContainer itsName="CalendarSummary">
     <childrenBlocks itemref="view:LayoutSelector"/>
-    <choices itemref="view:CalendarList"/>
+    <choices itemref="view:CalendarTable"/>
     <choices itemref="view:SummaryMonth"/>
     <choices itemref="view:SummaryWeek"/>
     <choices itemref="view:SummaryDay"/>    
     <orientationEnum>Vertical</orientationEnum>
   </ChoiceContainer>
 
-  <!-- Calendar List -->
-  <Table itsName="CalendarList">
+  <!-- Calendar Table -->
+  <Table itsName="CalendarTable">
     <contents itemref="view:calendarItemCollection"/>
 
     <columnHeadings>who</columnHeadings>
@@ -240,12 +245,12 @@
 
   <BoxContainer itsName="ContactSummary">
     <childrenBlocks itemref="view:LayoutSelector4"/>
-    <childrenBlocks itemref="view:ContactList"/>
+    <childrenBlocks itemref="view:ContactTable"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
 
-  <!-- Contact List -->
-  <Table itsName="ContactList">
+  <!-- Contact Table -->
+  <Table itsName="ContactTable">
     <contents itemref="view:contactItemCollection"/>
 
     <columnHeadings>who</columnHeadings>
@@ -261,8 +266,8 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <!-- Note List -->
-  <Table itsName="NoteList">
+  <!-- Note Table -->
+  <Table itsName="NoteTable">
     <contents itemref="view:notesItemCollection"/>
 
     <columnHeadings>who</columnHeadings>
@@ -278,8 +283,8 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <!-- Task List -->
-  <Table itsName="TaskList">
+  <!-- Task Table -->
+  <Table itsName="TaskTable">
     <contents itemref="view:taskItemCollection"/>
 
     <columnHeadings>who</columnHeadings>
@@ -295,8 +300,8 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <!-- Mail List -->
-  <Table itsName="MailList">
+  <!-- Mail Table -->
+  <Table itsName="MailTable">
     <contents itemref="view:mailItemCollection"/>
 
     <columnHeadings>who</columnHeadings>
@@ -314,12 +319,12 @@
 
   <BoxContainer itsName="JunkSummary">
     <childrenBlocks itemref="view:LayoutSelector5"/>
-    <childrenBlocks itemref="view:JunkList"/>
+    <childrenBlocks itemref="view:JunkTable"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
 
-  <!-- Junk List -->
-  <Table itsName="JunkList">
+  <!-- Junk Table -->
+  <Table itsName="JunkTable">
     <contents itemref="view:junkItemCollection"/>
 
     <columnHeadings>who</columnHeadings>
@@ -337,13 +342,30 @@
 
   <BoxContainer itsName="TrashSummary">
     <childrenBlocks itemref="view:LayoutSelector6"/>
-    <childrenBlocks itemref="view:TrashList"/>
+    <childrenBlocks itemref="view:TrashTable"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
 
-  <!-- Trash List -->
-  <Table itsName="TrashList">
+  <!-- Trash Table -->
+  <Table itsName="TrashTable">
     <contents itemref="view:trashItemCollection"/>
+
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnAttributeNames>who</columnAttributeNames>
+    <columnAttributeNames>about</columnAttributeNames>
+    <columnAttributeNames>date</columnAttributeNames>
+
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
+  </Table>
+
+  <!-- Untitled Table -->
+  <Table itsName="UntitledTable">
+    <contents itemref="view:inItemCollection"/>
 
     <columnHeadings>who</columnHeadings>
     <columnHeadings>about</columnHeadings>
@@ -388,6 +410,7 @@
 
   <!-- LayoutSelector -->
   <Toolbar itemName="LayoutSelector">
+    <blockName>LayoutSelector</blockName>
     <childrenBlocks itemref="view:ListViewButton"/>
     <childrenBlocks itemref="view:MonthViewButton"/>
     <childrenBlocks itemref="view:WeekViewButton"/>
@@ -407,6 +430,7 @@
 
   <!-- LayoutSelector2 -->
   <Toolbar itemName="LayoutSelector2">
+    <blockName>LayoutSelector2</blockName>
     <childrenBlocks itemref="view:ListViewButton2"/>
     <childrenBlocks itemref="view:MonthViewButton2"/>
     <childrenBlocks itemref="view:WeekViewButton2"/>
@@ -426,6 +450,7 @@
 
   <!-- LayoutSelector3 -->
   <Toolbar itemName="LayoutSelector3">
+    <blockName>LayoutSelector3</blockName>
     <childrenBlocks itemref="view:ListViewButton3"/>
     <childrenBlocks itemref="view:MonthViewButton3"/>
     <childrenBlocks itemref="view:WeekViewButton3"/>
@@ -445,6 +470,7 @@
 
   <!-- LayoutSelector4 -->
   <Toolbar itemName="LayoutSelector4">
+    <blockName>LayoutSelector4</blockName>
     <childrenBlocks itemref="view:ListViewButton4"/>
     <childrenBlocks itemref="view:MonthViewButton4"/>
     <childrenBlocks itemref="view:WeekViewButton4"/>
@@ -464,6 +490,7 @@
 
   <!-- LayoutSelector5 -->
   <Toolbar itemName="LayoutSelector5">
+    <blockName>LayoutSelector5</blockName>
     <childrenBlocks itemref="view:ListViewButton5"/>
     <childrenBlocks itemref="view:MonthViewButton5"/>
     <childrenBlocks itemref="view:WeekViewButton5"/>
@@ -483,6 +510,7 @@
 
   <!-- LayoutSelector6 -->
   <Toolbar itemName="LayoutSelector6">
+    <blockName>LayoutSelector6</blockName>
     <childrenBlocks itemref="view:ListViewButton6"/>
     <childrenBlocks itemref="view:MonthViewButton6"/>
     <childrenBlocks itemref="view:WeekViewButton6"/>
@@ -510,6 +538,7 @@
     ToolbarItems
   -->
   <ToolbarItem itsName="ListViewButton">
+    <blockName>ListViewButton</blockName>
     <location>LayoutSelector</location>
     <dynamicParent itemref="view:LayoutSelector"/>
     <title>List View</title>
@@ -521,6 +550,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton">
+    <blockName>MonthViewButton</blockName>
     <location>LayoutSelector</location>
     <dynamicParent itemref="view:LayoutSelector"/>
     <title>Month View</title>
@@ -532,6 +562,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton">
+    <blockName>WeekViewButton</blockName>
     <location>LayoutSelector</location>
     <dynamicParent itemref="view:LayoutSelector"/>
     <title>Week View</title>
@@ -543,6 +574,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton">
+    <blockName>DayViewButton</blockName>
     <location>LayoutSelector</location>
     <dynamicParent itemref="view:LayoutSelector"/>
     <title>Day View</title>
@@ -554,6 +586,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton2">
+    <blockName>ListViewButton2</blockName>
     <location>LayoutSelector2</location>
     <dynamicParent itemref="view:LayoutSelector2"/>
     <title>List View</title>
@@ -565,6 +598,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton2">
+    <blockName>MonthViewButton2</blockName>
     <location>LayoutSelector2</location>
     <dynamicParent itemref="view:LayoutSelector2"/>
     <title>Month View</title>
@@ -576,6 +610,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton2">
+    <blockName>WeekViewButton2</blockName>
     <location>LayoutSelector2</location>
     <dynamicParent itemref="view:LayoutSelector2"/>
     <title>Week View</title>
@@ -587,6 +622,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton2">
+    <blockName>DayViewButton2</blockName>
     <location>LayoutSelector2</location>
     <dynamicParent itemref="view:LayoutSelector2"/>
     <title>Day View</title>
@@ -598,6 +634,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton3">
+    <blockName>ListViewButton3</blockName>
     <location>LayoutSelector3</location>
     <dynamicParent itemref="view:LayoutSelector3"/>
     <title>List View</title>
@@ -609,6 +646,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton3">
+    <blockName>MonthViewButton3</blockName>
     <location>LayoutSelector3</location>
     <dynamicParent itemref="view:LayoutSelector3"/>
     <title>Month View</title>
@@ -620,6 +658,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton3">
+    <blockName>WeekViewButton3</blockName>
     <location>LayoutSelector3</location>
     <dynamicParent itemref="view:LayoutSelector3"/>
     <title>Week View</title>
@@ -631,6 +670,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton3">
+    <blockName>DayViewButton3</blockName>
     <location>LayoutSelector3</location>
     <dynamicParent itemref="view:LayoutSelector3"/>
     <title>Day View</title>
@@ -642,6 +682,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton4">
+    <blockName>ListViewButton4</blockName>
     <location>LayoutSelector4</location>
     <dynamicParent itemref="view:LayoutSelector4"/>
     <title>List View</title>
@@ -653,6 +694,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton4">
+    <blockName>MonthViewButton4</blockName>
     <location>LayoutSelector4</location>
     <dynamicParent itemref="view:LayoutSelector4"/>
     <title>Month View</title>
@@ -664,6 +706,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton4">
+    <blockName>WeekViewButton4</blockName>
     <location>LayoutSelector4</location>
     <dynamicParent itemref="view:LayoutSelector4"/>
     <title>Week View</title>
@@ -675,6 +718,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton4">
+    <blockName>DayViewButton4</blockName>
     <location>LayoutSelector4</location>
     <dynamicParent itemref="view:LayoutSelector4"/>
     <title>Day View</title>
@@ -686,6 +730,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton5">
+    <blockName>ListViewButton5</blockName>
     <location>LayoutSelector5</location>
     <dynamicParent itemref="view:LayoutSelector5"/>
     <title>List View</title>
@@ -697,6 +742,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton5">
+    <blockName>MonthViewButton5</blockName>
     <location>LayoutSelector5</location>
     <dynamicParent itemref="view:LayoutSelector5"/>
     <title>Month View</title>
@@ -708,6 +754,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton5">
+    <blockName>WeekViewButton5</blockName>
     <location>LayoutSelector5</location>
     <dynamicParent itemref="view:LayoutSelector5"/>
     <title>Week View</title>
@@ -719,6 +766,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton5">
+    <blockName>DayViewButton5</blockName>
     <location>LayoutSelector5</location>
     <dynamicParent itemref="view:LayoutSelector5"/>
     <title>Day View</title>
@@ -730,6 +778,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton6">
+    <blockName>ListViewButton6</blockName>
     <location>LayoutSelector6</location>
     <dynamicParent itemref="view:LayoutSelector6"/>
     <title>List View</title>
@@ -741,6 +790,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton6">
+    <blockName>MonthViewButton6</blockName>
     <location>LayoutSelector6</location>
     <dynamicParent itemref="view:LayoutSelector6"/>
     <title>Month View</title>
@@ -752,6 +802,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton6">
+    <blockName>WeekViewButton6</blockName>
     <location>LayoutSelector6</location>
     <dynamicParent itemref="view:LayoutSelector6"/>
     <title>Week View</title>
@@ -763,6 +814,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton6">
+    <blockName>DayViewButton6</blockName>
     <location>LayoutSelector6</location>
     <dynamicParent itemref="view:LayoutSelector6"/>
     <title>Day View</title>
@@ -774,10 +826,10 @@
   </ToolbarItem>
 
   <!-- Note View -->
-  <SplitterWindow itsName="NoteListView">
+  <SplitterWindow itsName="NoteTableView">
     <contents itemref="view:notesItemCollection"/>
 
-    <childrenBlocks itemref="view:NoteList"/>
+    <childrenBlocks itemref="view:NoteTable"/>
     <childrenBlocks itemref="detail:DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
@@ -786,10 +838,10 @@
   </SplitterWindow>
 
   <!-- Task View -->
-  <SplitterWindow itsName="TaskListView">
+  <SplitterWindow itsName="TaskTableView">
     <contents itemref="view:taskItemCollection"/>
 
-    <childrenBlocks itemref="view:TaskList"/>
+    <childrenBlocks itemref="view:TaskTable"/>
     <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
@@ -798,10 +850,10 @@
   </SplitterWindow>
 
   <!-- Mail View -->
-  <SplitterWindow itsName="MailListView">
+  <SplitterWindow itsName="MailTableView">
     <contents itemref="view:mailItemCollection"/>
 
-    <childrenBlocks itemref="view:MailList"/>
+    <childrenBlocks itemref="view:MailTable"/>
     <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
@@ -821,7 +873,7 @@
   </SplitterWindow>
 
   <!-- In View -->
-  <SplitterWindow itsName="InListView">
+  <SplitterWindow itsName="InTableView">
     <contents itemref="view:inItemCollection"/>
 
     <childrenBlocks itemref="view:InSummary"/>
@@ -833,7 +885,7 @@
   </SplitterWindow>
 
   <!-- Out View -->
-  <SplitterWindow itsName="OutListView">
+  <SplitterWindow itsName="OutTableView">
     <contents itemref="view:outItemCollection"/>
 
     <childrenBlocks itemref="view:OutSummary"/>
@@ -845,7 +897,7 @@
   </SplitterWindow>
 
   <!-- Calendar View -->
-  <SplitterWindow itsName="CalendarListView">
+  <SplitterWindow itsName="CalendarTableView">
     <contents itemref="view:calendarItemCollection"/>
 
     <childrenBlocks itemref="view:CalendarSummary"/>
@@ -857,7 +909,7 @@
   </SplitterWindow>
 
   <!-- Contact View -->
-  <SplitterWindow itsName="ContactListView">
+  <SplitterWindow itsName="ContactTableView">
     <contents itemref="view:contactItemCollection"/>
 
     <childrenBlocks itemref="view:ContactSummary"/>
@@ -868,7 +920,7 @@
   </SplitterWindow>
 
   <!-- Junk View -->
-  <SplitterWindow itsName="JunkListView">
+  <SplitterWindow itsName="JunkTableView">
     <contents itemref="view:junkItemCollection"/>
 
     <childrenBlocks itemref="view:JunkSummary"/>
@@ -879,11 +931,22 @@
   </SplitterWindow>
 
   <!-- Trash View -->
-  <SplitterWindow itsName="TrashListView">
+  <SplitterWindow itsName="TrashTableView">
     <contents itemref="view:trashItemCollection"/>
 
     <childrenBlocks itemref="view:TrashSummary"/>
     <childrenBlocks itemref="view:TrashItemDetail"/>
+
+    <eventBoundary>True</eventBoundary>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+  </SplitterWindow>
+
+  <!-- Untitled View -->
+  <SplitterWindow itsName="UntitledView">
+    <contents itemref="view:untitledItemCollection"/>
+
+    <childrenBlocks itemref="view:UntitledTable"/>
+    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>

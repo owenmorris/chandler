@@ -460,8 +460,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         """
           Hack to work around Stuarts bug #1568 -- DJA
         """
-        if len (self.blockItem.contents) == 0:
-            self.blockItem.contents._ItemCollection__refresh()
+        self.blockItem.contents._ItemCollection__refresh()
 
         if self.blockItem.hideColumnHeadings:
             self.SetColLabelSize (0)

@@ -281,6 +281,7 @@
 
     <Attribute itsName="contents">
       <type itemref="contentModel:ItemCollection"/>
+      <copyPolicy value="cascade"/>
       <inverseAttribute itemref="contentModel:collectionOwner"/>
     </Attribute>
 
@@ -315,6 +316,11 @@
       <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
 
+    <Attribute itsName="blockName">
+      <type itemref="String"/>
+    </Attribute>
+
+    <attributes itemref="docSchema:Block/blockName"/>
     <attributes itemref="docSchema:Block/contents"/>
     <attributes itemref="docSchema:Block/childrenBlocks"/>
     <attributes itemref="docSchema:Block/parentBlock"/>

@@ -187,7 +187,12 @@ class Block(Item):
         operation = event.operation
         for item in event.items:
             if event.copyItems:
-                pass # eventually item = copy of event.item
+                item = item.copy (None, #NewName
+                                  Globals.repository.findPath('//userdata')) #parent
+                """
+                  Hack to work around Stuarts bug #1568 -- DJA
+                """
+                item.contents._ItemCollection__refresh()               
             if operation == 'toggle':
                 try:
                     index = self.contents.index (item)

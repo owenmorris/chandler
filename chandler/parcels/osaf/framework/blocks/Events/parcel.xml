@@ -9,7 +9,9 @@
              itsName="Events"
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
-             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events">
+             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
+             xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
+             xmlns:doc="http://osafoundation.org/parcels/osaf/views/main">
 
   <description>Events, need to be defined in a different parcel than the schema because 
 of a limitation of the XML format, which will be eliminated</description>
@@ -25,6 +27,7 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:Copy"/>
     <subscribeAlwaysEvents itemref="events:Paste"/>
     <subscribeAlwaysEvents itemref="events:Preferences"/>
+    <subscribeAlwaysEvents itemref="events:NewItemCollectionItem"/>
     <subscribeAlwaysEvents itemref="events:ViewNavigationBar"/>
     <subscribeAlwaysEvents itemref="events:SelectionChanged"/>
     <subscribeAlwaysEvents itemref="events:EnterPressed"/>
@@ -75,6 +78,14 @@ of a limitation of the XML format, which will be eliminated</description>
   <BlockEvent itsName="Preferences">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
+
+  <ModifyContentsEvent itsName="NewItemCollectionItem">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Sidebar"/>
+    <methodName>onModifyContentsEvent</methodName>
+    <items itemref="content:UntitledView"/>
+    <copyItems>True</copyItems>
+  </ModifyContentsEvent>
 
   <BlockEvent itsName="ViewNavigationBar">
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>

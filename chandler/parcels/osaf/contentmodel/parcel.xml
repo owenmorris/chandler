@@ -321,6 +321,7 @@
   <core:Attribute itsName="data">
     <core:type itemref="core:Item"/>
     <core:cardinality>list</core:cardinality>
+    <copyPolicy value="cascade"/>
   </core:Attribute>
 
   <core:Attribute itsName="queryOwner">
@@ -333,6 +334,7 @@
     <core:type itemref="core:Item"/>
     <core:cardinality>list</core:cardinality>
     <initialValue/>
+    <copyPolicy value="cascade"/>
   </core:Attribute>
 
   <core:Kind itsName="Query">
@@ -365,18 +367,21 @@
     <core:type itemref="Query"/>
     <core:inverseAttribute itemref="queryOwner"/>
     <initialValue ref="core:None"/>
+    <copyPolicy value="cascade"/>
   </core:Attribute>
 
   <core:Attribute itsName="inclusions">
     <core:cardinality>list</core:cardinality>
     <core:type itemref="core:UUID"/>
     <initialValue/>
+    <copyPolicy value="cascade"/>
   </core:Attribute>
 
   <core:Attribute itsName="exclusions">
     <core:cardinality>list</core:cardinality>
     <core:type itemref="core:UUID"/>
     <initialValue/>
+    <copyPolicy value="cascade"/>
   </core:Attribute>
 
   <core:Kind itsName="ItemCollection">

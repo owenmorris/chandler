@@ -104,6 +104,7 @@
   <!-- MarkupBar -->
   <Toolbar itemName="MarkupBar1"
            itemClass="osaf.framework.blocks.detail.Detail.MarkupBar">
+    <blockName>MarkupBar1</blockName>
     <!-- Dynamic Children -->
     <dynamicChildren itemref="doc:TriageButton"/>
     <dynamicChildren itemref="doc:Triage"/>
@@ -133,7 +134,7 @@
     ToolbarItems
   -->
   <ToolbarItem itsName="TriageButton">
-    <!-- Attributes -->
+    <blockName>TriageButton</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Triage</title>
@@ -145,7 +146,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="Triage">
-    <!-- Attributes -->
+    <blockName>Triage</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Triage</title>
@@ -165,7 +166,7 @@
   
   <ToolbarItem itsName="SharingButton"
                itemClass="osaf.framework.blocks.detail.Detail.SharingButton">
-    <!-- Attributes -->
+    <blockName>SharingButton</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Sharing</title>
@@ -178,7 +179,7 @@
 
   <ToolbarItem itsName="TaskStamp"
                itemClass="osaf.framework.blocks.detail.Detail.TaskStamp">
-    <!-- Attributes -->
+    <blockName>TaskStamp</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Task</title>
@@ -191,7 +192,7 @@
 
   <ToolbarItem itsName="CalendarStamp"
                itemClass="osaf.framework.blocks.detail.Detail.CalendarStamp">
-    <!-- Attributes -->
+    <blockName>CalendarStamp</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Calendar</title>
@@ -203,14 +204,14 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer1">
-    <!-- Attributes -->
+    <blockName>Spacer1</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itsName="NeedsReplyButton">
-    <!-- Attributes -->
+    <blockName>NeedsReplyButton</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Needs reply</title>
@@ -222,7 +223,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer2">
-    <!-- Attributes -->
+    <blockName>Spacer2</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <toolbarItemKind>Separator</toolbarItemKind>
@@ -230,7 +231,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="OutboxFlag">
-    <!-- Attributes -->
+    <blockName>OutboxFlag</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Outbox</title>
@@ -241,7 +242,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="RepliedFlag">
-    <!-- Attributes -->
+    <blockName>RepliedFlag</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Replied</title>
@@ -252,7 +253,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ForwardedFlag">
-    <!-- Attributes -->
+    <blockName>ForwardedFlag</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Forwarded</title>
@@ -263,7 +264,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="RedirectedFlag">
-    <!-- Attributes -->
+    <blockName>RedirectedFlag</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Redirected</title>
@@ -274,7 +275,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DraftFlag">
-    <!-- Attributes -->
+    <blockName>DraftFlag</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Draft</title>
@@ -285,7 +286,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="QueuedFlag">
-    <!-- Attributes -->
+    <blockName>QueuedFlag</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Queued</title>
@@ -296,7 +297,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer3">
-    <!-- Attributes -->
+    <blockName>Spacer3</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <toolbarItemKind>Separator</toolbarItemKind>
@@ -304,7 +305,7 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="PrivateButton">
-    <!-- Attributes -->
+    <blockName>PrivateButton</blockName>
     <location>MarkupBar1</location>
     <dynamicParent itemref="doc:MarkupBar1"/>
     <title>Private</title>
