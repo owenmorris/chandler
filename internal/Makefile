@@ -4,7 +4,8 @@ include Makefile.inc
 SYSTEMS=PyLucene \
         UUIDext \
         wxPython-2.5 \
-	launchers
+        m2crypto \
+        launchers
 
 .PHONY: binaries $(SYSTEMS)
 
