@@ -9,6 +9,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import email as email
 import email.Message as Message
 import email.Utils as Utils
+import mx.DateTime as DateTime
 
 CHANDLER_USERAGENT = "Chandler/.4B Release"
 CHANDLER_HEADER_PREFIX = "X-Chandler-"
@@ -22,6 +23,8 @@ MIME_TEXT = ["plain", "html", "enriched", "sgml", "richtext", "rfc-headers"]
 MIME_BINARY = ["image", "application", "audio", "video"]
 MIME_SECURITY = ["encrypted", "signed"]
 MIME_CONTAINER = ["alternative", "parallel", "related", "report", "partial", "digest"]
+
+DATE_IS_EMPTY = -57600
 
 class MailException(Exception):
     pass
@@ -38,6 +41,16 @@ as Chandler will manage this email automatically for you.
     return email.message_from_string(message)
 
 
+def getEmptyDate():
+    return DateTime.DateFromTicks(0)
+
+def dateIsEmpty(date):
+    #XXX: Need to protect this better but having trouble with
+    #     the mx.DateTime API
+    if date is None or date.ticks() == DATE_IS_EMPTY:
+        return True
+
+    return False
 
 def disableTwistedTLS(items):
     """Disables SSL support for debugging so

@@ -14,7 +14,12 @@ import re as re
 import common as common
 import logging as logging
 
-__exp = "\w+((-\w+)|(\.\w+)|(\_\w+))*\@[A-Za-z2-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]{2,5}"
+"""
+NOTES:
+-------
+1. There will be memory / performance problems with very large emails however emails over 10mb's are
+   rare so can deal with optimization at a later date
+"""
 
 
 def isValidEmailAddress(emailAddress):
@@ -167,13 +172,24 @@ def messageObjectToKind(messageObject, messageText=None):
     date = messageObject['Date']
 
     if date is not None:
-        m.dateSent = DateTime.mktime(Utils.parsedate(date))
+        parsed = Utils.parsedate(date)
+
+        """It is a non-rfc date string"""
+        if parsed is None:
+            if __debug__:
+                logging.warn("Message contains a Non-RFC Compliant Date format")
+
+            m.dateSent = common.getEmptyDate() 
+
+        else:
+            m.dateSent = DateTime.mktime(parsed)
+
         m.dateSentString = date
         del messageObject['Date']
 
-    #XXX: Will this fail at the Repository level
     else:
-        m.dateSent = None
+        m.dateSent = common.getEmptyDate() 
+        m.dateSentString = ""
 
     m.dateReceived = DateTime.now()
 
@@ -220,8 +236,6 @@ def messageObjectToKind(messageObject, messageText=None):
             if isPlainTextContentType(mimePart.get_content_type()):
                 m.body = strToText(m, "body",  mimePart.get_payload())
                 found = True
-
-
 
         if not found:
             m.body = strToText(m, "body", common.ATTACHMENT_BODY_WARNING)
@@ -393,7 +407,7 @@ def __assignToKind(kindVar, messageObject, key, type, attr = None):
 
             # Use any existing EmailAddress, but don't update them
             #  because that will cause the item to go stale in the UI thread.
-            ea = Mail.EmailAddress.getEmailAddress(addr[1], 
+            ea = Mail.EmailAddress.getEmailAddress(addr[1],
                                                    **keyArgs)
 
             setattr(kindVar, attr, ea)
