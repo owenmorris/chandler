@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os
+import os, shutil
 from distutils.core import setup, Extension
 
 def main():
@@ -34,6 +34,8 @@ def main():
     setup(name='chandlerdb', version='0.4',
           ext_modules=extensions,
           py_modules=modules)
+    if os.name == 'nt':
+        shutil.move('rijndael.py', 'chandlerdb/util/rijndael.py')
     setup(name='chandlerdb', version='0.4',
           py_modules=['chandlerdb.util.rijndael'])
 
