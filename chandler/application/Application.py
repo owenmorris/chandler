@@ -239,13 +239,6 @@ class wxApplication (wx.App):
             Globals.repository.loadPack("repository/packs/chandler.pack")
 
         """
-          Create the notification manager. Start later.
-        """
-        from osaf.framework.notifications.NotificationManager import NotificationManager
-        Globals.notificationManager = NotificationManager()
-        Globals.notificationManager.PrepareSubscribers()
-
-        """
           Load Parcels
         """
         parcelSearchPath = [ parcelDir ]
@@ -272,19 +265,11 @@ class wxApplication (wx.App):
         self.__twistedReactorManager.startReactor()
 
         """
-          Start the notification manager
-        """
-        Globals.notificationManager.PrepareSubscribers()
-
-        from osaf.framework.blocks.Views import View
-        from osaf.framework.blocks.Block import Block
-        """
           Load and display the main chandler view.
         """
         mainView = Globals.repository.findPath('//parcels/osaf/views/main/MainView')
 
         if mainView:
-            assert isinstance (mainView, View)
             self.mainFrame = MainFrame(None,
                                        -1,
                                        "Chandler",
@@ -294,11 +279,9 @@ class wxApplication (wx.App):
             
             GlobalEvents = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
             """
-              Subscribe to some global events.
+              Register to some global events for name lookup.
             """
-            Globals.notificationManager.Subscribe (GlobalEvents.subscribeAlwaysEvents,
-                                                   UUID(),
-                                                   Globals.mainView.dispatchEvent)
+            from osaf.framework.blocks.Block import Block
             Block.addEventsToEventNameToItemUUID (GlobalEvents.subscribeAlwaysEvents)
 
             self.ignoreSynchronizeWidget = False
@@ -359,7 +342,6 @@ class wxApplication (wx.App):
         Delay imports to avoid circular references.
         """
         from osaf.framework.blocks.Block import Block, BlockEvent
-        from osaf.framework.notifications.Notification import Notification
 
         wxID = event.GetId()
         if wxID >= Block.MINIMUM_WX_ID and wxID <= Block.MAXIMUM_WX_ID:
@@ -371,33 +353,36 @@ class wxApplication (wx.App):
                 """
                   Ignore blocks that don't have events.
                 """
+                if not updateUIEvent:
+                    pass
                 assert updateUIEvent
             else:
-                args = {'wxEvent':event}
+                arguments = {'wxEvent':event}
                 if updateUIEvent:
-                    args['UpdateUI'] = True
+                    arguments ['UpdateUI'] = True
                 else:
                     try:
-                        args['buttonState'] = event.GetEventObject().GetToolState (wxID)
+                        arguments ['buttonState'] = event.GetEventObject().GetToolState (wxID)
                     except AttributeError: 
                         pass
  
-                block.Post (blockEvent, args)
+
+                block.Post (blockEvent, arguments)
  
                 if updateUIEvent:
                     try:
-                        event.Check (args ['Check'])
+                        event.Check (arguments ['Check'])
                     except KeyError:
                         pass
 
                     try:
-                        enable = args ['Enable']
+                        enable = arguments ['Enable']
                     except KeyError:
                         enable = True
                     event.Enable (enable)
 
                     try:
-                        text = args ['Text']
+                        text = arguments ['Text']
                     except KeyError:
                         pass
                     else:
@@ -425,29 +410,9 @@ class wxApplication (wx.App):
             except AttributeError:
                 pass
             else:
-                try:
-                    subscribeWhenVisibleEvents = block.subscribeWhenVisibleEvents
-                except AttributeError:
-                    pass
-                else:
-                    if widget.IsShown() != event.GetShow():
-                        """
-                          The state of the new GetShow flag should be the opposite of whether or
-                        not we have a subscribeWhenVisibleEventsUUID attribute
-                        """
-                        assert event.GetShow() ^ hasattr (widget, 'subscribeWhenVisibleEventsUUID')
-        
-                        if event.GetShow():
-                            widget.subscribeWhenVisibleEventsUUID = UUID()
-                            Globals.notificationManager.Subscribe (subscribeWhenVisibleEvents,
-                                                                   widget.subscribeWhenVisibleEventsUUID,
-                                                                   Globals.mainView.dispatchEvent)
-                        else:
-                            Globals.notificationManager.Unsubscribe (widget.subscribeWhenVisibleEventsUUID)
-                            delattr (widget, 'subscribeWhenVisibleEventsUUID')
-                        self.needsUpdateUI = True
-    
-                
+                if widget.IsShown() != event.GetShow():
+                    self.needsUpdateUI = True
+
         event.Skip()
 
     def OnIdle(self, event):

@@ -127,7 +127,7 @@ class ItemCollection(ContentModel.ContentItem):
         """
           When making lots of modifications to _inclusions, exclusion, rule or _filterKinds
         surround the changes with beginUpdate and endUpdate to avoid causing each change
-        to send a separate notification as in:
+        to send a separate event as in:
 
           itemCollection.beginUpdate()
           try:

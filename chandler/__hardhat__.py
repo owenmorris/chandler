@@ -219,7 +219,6 @@ def generateDocs(buildenv):
                           '-o %s -v -n Chandler' % targetDir,
                           '--inheritance listed',
                           '--no-private',
-                          'parcels/osaf/framework/notifications',
                           'application',
                           'repository/item',
                           'repository/persistence',

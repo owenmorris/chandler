@@ -5,7 +5,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from osaf.framework.blocks.Views import View
-from osaf.framework.notifications.Notification import Notification
 import wx
 import os
 import application.dialogs.AccountPreferences
@@ -64,7 +63,7 @@ class MainView(View):
         if mailMessage is not None and mailMessage.isOutbound:
             self.setStatusMessage (_('Mail "%s" sent.') % mailMessage.about)
 
-    def onAboutEvent(self, notification):
+    def onAboutEvent(self, event):
         # The "Help | About Chandler..." menu item
         """
           Show the splash screen in response to the about command
@@ -80,23 +79,22 @@ class MainView(View):
                               None, html, False, False)
         splash.Show(True)
 
-    def onCopyEventUpdateUI (self, notification):
-        notification.data ['Enable'] = False
+    def onCopyEventUpdateUI (self, event):
+        event.arguments ['Enable'] = False
 
-    def onCutEventUpdateUI (self, notification):
-        notification.data ['Enable'] = False
+    def onCutEventUpdateUI (self, event):
+        event.arguments ['Enable'] = False
 
-    def onDeleteEventUpdateUI (self, notification):
-        notification.data ['Enable'] = False
+    def onDeleteEventUpdateUI (self, event):
+        event.arguments ['Enable'] = False
 
-    def onEditAccountPreferencesEvent (self, notification):
+    def onEditAccountPreferencesEvent (self, event):
         # Triggered from "File | Prefs | Accounts..."
         application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(Globals.wxApplication.mainFrame)
 
-    def onNewEvent (self, notification):
+    def onNewEvent (self, event):
         # Create a new Content Item
         # Triggered from "File | New Item" menu, for any of the item kinds.
-        event = notification.event
         newItem = event.kindParameter.newItem (None, None)
         newItem.InitOutgoingAttributes ()
         self.RepositoryCommitWithStatus ()
@@ -111,13 +109,13 @@ class MainView(View):
         # Tell the ActiveView to select our new item
         self.PostEventByName ('SelectItemBroadcastInsideActiveView', {'item':newItem})
 
-    def onPasteEventUpdateUI (self, notification):
-        notification.data ['Enable'] = False
+    def onPasteEventUpdateUI (self, event):
+        event.arguments ['Enable'] = False
         
-    def onPrintPreviewEvent (self, notification):
+    def onPrintPreviewEvent (self, event):
         self.printEvent(True)
         
-    def onPrintEvent (self, notification):
+    def onPrintEvent (self, event):
         self.printEvent(False)
 
     def printEvent(self, isPreview):
@@ -136,21 +134,21 @@ class MainView(View):
         dialog.Destroy()
         
 
-    def onPreferencesEventUpdateUI (self, notification):
-        notification.data ['Enable'] = False
+    def onPreferencesEventUpdateUI (self, event):
+        event.arguments ['Enable'] = False
 
-    def onQuitEvent (self, notification):
+    def onQuitEvent (self, event):
         Globals.wxApplication.mainFrame.Close ()
 
-    def onRedoEventUpdateUI (self, notification):
-        notification.data ['Enable'] = False
+    def onRedoEventUpdateUI (self, event):
+        event.arguments ['Enable'] = False
 
-    def onUndoEventUpdateUI (self, notification):
-        notification.data ['Text'] = _("Can't Undo\tCtrl+Z")
-        notification.data ['Enable'] = False
+    def onUndoEventUpdateUI (self, event):
+        event.arguments ['Text'] = _("Can't Undo\tCtrl+Z")
+        event.arguments ['Enable'] = False
 
-    def onNewEventUpdateUI (self, notification):
-        notification.data ['Enable'] = True
+    def onNewEventUpdateUI (self, event):
+        event.arguments ['Enable'] = True
 
     def RepositoryCommitWithStatus (self):
         """
@@ -191,7 +189,7 @@ class MainView(View):
              "", statusMessage)
             self.setStatusMessage ('')
 
-    def onSendMailEvent (self, notification):
+    def onSendMailEvent (self, event):
         # put a "committing" message into the status bar
         self.setStatusMessage ('Committing changes...')
 
@@ -199,7 +197,7 @@ class MainView(View):
         Globals.repository.commit()
     
         # get default SMTP account
-        item = notification.data ['item']
+        item = event.arguments ['item']
         account = Mail.MailParcel.getSMTPAccount()[0]
 
         # put a sending message into the status bar
@@ -208,11 +206,11 @@ class MainView(View):
         # Now send the mail
         smtp.SMTPSender(account, item).sendMail()
 
-    def onShareItemEvent (self, notification):
+    def onShareItemEvent (self, event):
         """
           Share an ItemCollection.
         """
-        itemCollection = notification.data ['item']
+        itemCollection = event.arguments ['item']
 
         # commit changes, since we'll be switching to Twisted thread
         self.RepositoryCommitWithStatus()
@@ -293,7 +291,7 @@ class MainView(View):
         logger.info("%s %d 0x%0.4x\n  values: %s\n  refs: %s",
                     Item.__repr__(item), version, status, values, references)
 
-    def onCheckRepositoryEvent(self, notification):
+    def onCheckRepositoryEvent(self, event):
         # triggered from "Test | Check Repository" Menu
         repository = Globals.repository
         checkingMessage = _('Checking repository...')
@@ -308,19 +306,19 @@ class MainView(View):
             repository.logger.info (errorMessage)
             self.setStatusMessage (errorMessage)
 
-    def onCommitRepositoryEvent(self, notification):
+    def onCommitRepositoryEvent(self, event):
         # Test menu item
         self.RepositoryCommitWithStatus ()
 
-    def onGenerateCalendarEventItemsEvent(self, notification):
+    def onGenerateCalendarEventItemsEvent(self, event):
         GenerateItems.generateCalendarEventItems(10, 30)
         Globals.repository.commit()
 
-    def onGenerateContactsEvent(self, notification):
+    def onGenerateContactsEvent(self, event):
         GenerateItems.GenerateContacts(10)
         Globals.repository.commit()
 
-    def onGenerateContentItemsEvent(self, notification):
+    def onGenerateContentItemsEvent(self, event):
         # triggered from "Test | Generate Content Items" Menu
         GenerateItems.GenerateNotes(2) 
         GenerateItems.generateCalendarEventItems(2, 30)
@@ -329,11 +327,11 @@ class MainView(View):
         # GenerateItems.GenerateContacts(2) 
         Globals.repository.commit() 
 
-    def onGenerateNotesEvent(self, notification):
+    def onGenerateNotesEvent(self, event):
         GenerateItems.GenerateNotes(10)
         Globals.repository.commit()
 
-    def onGetNewMailEvent (self, notification):
+    def onGetNewMailEvent (self, event):
         # Triggered from "Test | Get Mail" menu
 
         if not Sharing.isMailSetUp():
@@ -353,26 +351,26 @@ class MainView(View):
         osaf.mail.imap.IMAPDownloader(account).getMail()
         Globals.repository.refresh()
 
-    def onLogRepositoryHistoryEvent(self, notification):
+    def onLogRepositoryHistoryEvent(self, event):
         # triggered from "Test | Log Repository History" Menu
         repository = Globals.repository
         repository.logger.info("Items changed outside %s since last commit:", repository.view)
         repository.mapHistory(self._logChange)
 
-    def onLogViewChangesEvent(self, notification):
+    def onLogViewChangesEvent(self, event):
         # triggered from "Test | Log View Changes" Menu
         repository = Globals.repository
         repository.logger.info("Items changed in %s:", repository.view)
         Globals.repository.mapChanges(self._logChange)
 
-    def onReloadParcelsEvent(self, notification):
+    def onReloadParcelsEvent(self, event):
         # Test menu item
         ParcelManager.getManager().loadParcels()
         # @@@DLD figure out why rerender fails on the new wxWidgets
         Globals.wxApplication.UnRenderMainView ()
         Globals.wxApplication.RenderMainView ()
 
-    def onResendSharingInvitationsEvent (self, notification):
+    def onResendSharingInvitationsEvent (self, event):
         """
           Resend the sharing invitations for the selected collection.
         The "Test | Resend Sharing Invitations" menu item
@@ -381,57 +379,57 @@ class MainView(View):
         url = self.SharingURL (itemCollection)
         self.SendSharingInvitations (itemCollection, url)
 
-    def onResendSharingInvitationsEventUpdateUI (self, notification):
+    def onResendSharingInvitationsEventUpdateUI (self, event):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             isShared = Sharing.isShared (collection)
-            notification.data ['Enable'] = isShared
+            event.arguments ['Enable'] = isShared
         else:
-            notification.data ['Enable'] = False
+            event.arguments ['Enable'] = False
 
-    def onSharingSubscribeToCollectionEvent(self, notification):
+    def onSharingSubscribeToCollectionEvent(self, event):
         # Triggered from "Tests | Subscribe to collection..."
         Sharing.manualSubscribeToCollection()
 
-    def onShowColumnEventUpdateUI (self, notification):
-        notification.data ['Enable'] = False
-        notification.data ['Check'] = True
+    def onShowColumnEventUpdateUI (self, event):
+        event.arguments ['Enable'] = False
+        event.arguments ['Check'] = True
 
-    def onShowPyCrustEvent(self, notification):
+    def onShowPyCrustEvent(self, event):
         # Test menu item
         Globals.wxApplication.ShowDebuggerWindow()
 
-    def onShareCollectionEvent (self, notification):
+    def onShareCollectionEvent (self, event):
         # Triggered from "Test | Share collection..."
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             Sharing.manualPublishCollection(collection)
 
-    def onShareCollectionEventUpdateUI (self, notification):
+    def onShareCollectionEventUpdateUI (self, event):
         """
         Update the menu to reflect the selected collection name
         """
         # Only enable if user has set their webdav account up
         if not self.webDAVAccountIsSetup ():
-            notification.data ['Enable'] = False
+            event.arguments ['Enable'] = False
             return
 
         collection = self.getSidebarSelectedCollection ()
-        notification.data ['Enable'] = collection is not None
+        event.arguments ['Enable'] = collection is not None
         if collection:
             menuTitle = _('Share collection "%s"') \
                     % collection.displayName
         else:
             menuTitle = _('Share a collection')
-        notification.data ['Text'] = menuTitle
+        event.arguments ['Text'] = menuTitle
 
-    def onShareSidebarCollectionEvent(self, notification):
-        self._onShareOrManageSidebarCollectionEvent(notification)
+    def onShareSidebarCollectionEvent(self, event):
+        self._onShareOrManageSidebarCollectionEvent(event)
         
-    def onManageSidebarCollectionEvent(self, notification):
-        self._onShareOrManageSidebarCollectionEvent(notification)
+    def onManageSidebarCollectionEvent(self, event):
+        self._onShareOrManageSidebarCollectionEvent(event)
         
-    def _onShareOrManageSidebarCollectionEvent(self, notification):
+    def _onShareOrManageSidebarCollectionEvent(self, event):
         """
           Share the collection selected in the Sidebar. 
         If the current collection is already shared, then manage the collection.
@@ -453,13 +451,13 @@ class MainView(View):
         self.PostEventByName ('SelectItemBroadcastInsideActiveView', {'item':self.getSidebarSelectedCollection ()})
 
         
-    def onShareSidebarCollectionEventUpdateUI (self, notification):
-        self._onShareOrManageSidebarCollectionEventUpdateUI(notification, False)
+    def onShareSidebarCollectionEventUpdateUI (self, event):
+        self._onShareOrManageSidebarCollectionEventUpdateUI(event, False)
         
-    def onManageSidebarCollectionEventUpdateUI (self, notification):
-        self._onShareOrManageSidebarCollectionEventUpdateUI(notification, True)
+    def onManageSidebarCollectionEventUpdateUI (self, event):
+        self._onShareOrManageSidebarCollectionEventUpdateUI(event, True)
         
-    def _onShareOrManageSidebarCollectionEventUpdateUI (self, notification, doManage):
+    def _onShareOrManageSidebarCollectionEventUpdateUI (self, event, doManage):
         """
         Update the menu to reflect the selected collection name
         """
@@ -467,22 +465,22 @@ class MainView(View):
         verb = (doManage and _('Manage') or _('Share'))
         
         if collection is not None:
-            # notification.data['Enable'] = True
+            # event.arguments['Enable'] = True
             menuTitle = _('%s collection "%s"') % (verb, collection.displayName)
         else:
             menuTitle = _('%s a collection') % verb
             
-        notification.data ['Text'] = menuTitle
-        notification.data['Enable'] = doManage == (collection is not None and Sharing.isShared(collection))
+        event.arguments ['Text'] = menuTitle
+        event.arguments['Enable'] = doManage == (collection is not None and Sharing.isShared(collection))
 
-    def onSyncCollectionEvent (self, notification):
+    def onSyncCollectionEvent (self, event):
         # Triggered from "Test | Sync collection..."
         Globals.repository.commit() 
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             Sharing.syncCollection(collection)
 
-    def onSyncCollectionEventUpdateUI (self, notification):
+    def onSyncCollectionEventUpdateUI (self, event):
         """
         Update the menu to reflect the selected collection name
         """
@@ -490,15 +488,15 @@ class MainView(View):
         if collection is not None:
             menuTitle = _('Sync collection "%s"') % collection.displayName
             if Sharing.isShared(collection):
-                notification.data['Enable'] = True
+                event.arguments['Enable'] = True
             else:
-                notification.data['Enable'] = False
+                event.arguments['Enable'] = False
         else:
-            notification.data['Enable'] = False
+            event.arguments['Enable'] = False
             menuTitle = _('Sync a collection')
-        notification.data ['Text'] = menuTitle
+        event.arguments ['Text'] = menuTitle
 
-    def onSyncWebDAVEvent (self, notification):
+    def onSyncWebDAVEvent (self, event):
         """
           Synchronize WebDAV sharing.
         The "File | Sync | WebDAV" menu item
@@ -519,20 +517,20 @@ class MainView(View):
         # synch mail
         self.setStatusMessage (_("Sharing synchronized."))
 
-    def onSyncWebDAVEventUpdateUI (self, notification):
+    def onSyncWebDAVEventUpdateUI (self, event):
         accountOK = self.webDAVAccountIsSetup ()
         sharedCollections = self.sharedWebDAVCollections ()
         enable = accountOK and len (sharedCollections) > 0
-        notification.data ['Enable'] = enable
+        event.arguments ['Enable'] = enable
         # @@@DLD set up the help string to let the user know why it's disabled
 
-    def onSyncAllEvent (self, notification):
+    def onSyncAllEvent (self, event):
         """
           Synchronize Mail and all sharing.
         The "File | Sync | All" menu item
         """
         # find all the shared collections and sync them.
-        self.onSyncWebDAVEvent (notification)
+        self.onSyncWebDAVEvent (event)
 
         if not Sharing.isMailSetUp():
             if application.dialogs.Util.okCancel( \
@@ -547,7 +545,7 @@ class MainView(View):
 
         # synch mail
         self.setStatusMessage (_("Getting new Mail"))
-        self.onGetNewMailEvent (notification)
+        self.onGetNewMailEvent (event)
 
     def SendSharingInvitations (self, itemCollection, url):
         """
@@ -616,7 +614,7 @@ class ReminderTimer(Timer):
         sortedReminders = [ item[1] for item in timesAndReminders ]
         return sortedReminders
     
-    def onCollectionChanged(self, notification):
+    def onCollectionChanged(self, event):
         # print "*** Got reminders collection changed!"
         pending = self.getPendingReminders()
         closeIt = False
@@ -631,7 +629,7 @@ class ReminderTimer(Timer):
             self.closeReminderDialog();
         self.setFiringTime(nextReminderTime)
     
-    def onReminderTimeEvent(self, notification):
+    def onReminderTimeEvent(self, event):
         # Run the reminders dialog and re-queue our timer if necessary
         # print "*** Got reminders time event!"
         pending = self.getPendingReminders()

@@ -9,8 +9,7 @@
         itsName="blocks"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:docSchema="http://osafoundation.org/parcels/osaf/framework/blocks"
-        xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
-        xmlns:events="http://osafoundation.org/parcels/osaf/framework/notifications/schema">
+        xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel">
 
   <description>Schema for blocks that make up CPIA documents </description>
   <version>0.3</version>
@@ -188,7 +187,7 @@
 
   <Kind itsName="BlockEvent">
     <classes key="python">osaf.framework.blocks.Block.BlockEvent</classes>
-    <superKinds itemref="events:Event"/>
+    <superKinds itemref="Item"/>
 
     <Attribute itsName="eventName">
       <type itemref="String"/>

@@ -310,7 +310,7 @@ class Kind(Item):
 
         kind = parent.getItemChild(name)
         if kind is None:
-            kind = Kind(name, parent, self._kind)
+            kind = self._kind.newItem(name, parent)
 
             kind.addValue('superKinds', self)
             kind.superKinds.extend(superKinds)

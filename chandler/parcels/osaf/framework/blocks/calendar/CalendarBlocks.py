@@ -272,10 +272,8 @@ class CalendarBlock(Block.RectangularChild):
     def __init__(self, *arguments, **keywords):
         super(CalendarBlock, self).__init__(*arguments, **keywords)
 
-    # notification
-
-    def onSelectedDateChangedEvent(self, notification):
-        self.updateRange(notification.data['start'])
+    def onSelectedDateChangedEvent(self, event):
+        self.updateRange(event.arguments['start'])
         self.widget.renderDateChanged()
 
     def postDateChanged(self):
@@ -627,7 +625,7 @@ class MiniCalendar(Block.RectangularChild):
         return wxMiniCalendar(self.parentBlock.widget,
                               Block.Block.getWidgetID(self))
 
-    def onSelectedDateChangedEvent(self, notification):
-        self.widget.setSelectedDate(notification.data['start'])
+    def onSelectedDateChangedEvent(self, event):
+        self.widget.setSelectedDate(event.arguments['start'])
 
 

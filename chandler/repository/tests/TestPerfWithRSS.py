@@ -42,9 +42,6 @@ class TestPerfWithRSS(RepositoryTestCase):
 
         super(TestPerfWithRSS, self).setUp()
 
-        from osaf.framework.notifications.NotificationManager import NotificationManager
-        Globals.notificationManager = NotificationManager()
-
         Globals.repository = self.rep # to keep indexer happy
 
         # sys.path.insert(1, parcelDir)

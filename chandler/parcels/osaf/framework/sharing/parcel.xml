@@ -7,7 +7,6 @@
 
 <Parcel itsName="sharing"
     xmlns="http://osafoundation.org/parcels/core"
-    xmlns:notif="http://osafoundation.org/parcels/osaf/framework/notifications/schema"
     xmlns:webdav="http://osafoundation.org/parcels/osaf/framework/webdav"
     itemClass="osaf.framework.sharing.Sharing.Parcel"
     >

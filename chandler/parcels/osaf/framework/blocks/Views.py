@@ -5,13 +5,12 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from ContainerBlocks import BoxContainer
-from osaf.framework.notifications.Notification import Notification
 import wx
 
 class View(BoxContainer):
-    def dispatchEvent (self, notification):
+    def dispatchEvent (self, event):
         
-        def callMethod (block, methodName, notification):
+        def callMethod (block, methodName, event):
             """
               Call method named methodName on block
             """
@@ -26,31 +25,30 @@ class View(BoxContainer):
             print "Calling %s" % methodName
             """
 
-            member (block, notification)
+            member (block, event)
             return True
         
-        def bubbleUpCallMethod (block, methodName, notification):
+        def bubbleUpCallMethod (block, methodName, event):
             """
               Call a method on a block or if it doesn't handle it try it's parents
             """
             while (block):
-                if  callMethod (block, methodName, notification):
+                if  callMethod (block, methodName, event):
                     break
                 block = block.parentBlock
         
-        def broadcast (block, methodName, notification, childTest):
+        def broadcast (block, methodName, event, childTest):
             """
               Call method named methodName on every block and it's children
             who pass the childTest except for the block that posted the event,
             to avoid recursive calls.
             """
-            if block != notification.data['sender']:
-                callMethod (block, methodName, notification)
+            if block != event.arguments['sender']:
+                callMethod (block, methodName, event)
             for child in block.childrenBlocks:
                 if childTest (child):
-                    broadcast (child, methodName, notification, childTest)
+                    broadcast (child, methodName, event, childTest)
 
-        event = notification.event
         """
           Construct method name based upon the type of the event.
         """
@@ -60,7 +58,7 @@ class View(BoxContainer):
                 methodName = 'on' + event.eventName + 'Event'
 
         try:
-            updateUI = notification.data['UpdateUI']
+            updateUI = event.arguments['UpdateUI']
         except KeyError:
             pass
         else:
@@ -68,16 +66,16 @@ class View(BoxContainer):
 
         dispatchEnum = event.dispatchEnum
         if dispatchEnum == 'SendToBlock':
-            callMethod (event.dispatchToBlock, methodName, notification)
+            callMethod (event.dispatchToBlock, methodName, event)
 
         elif dispatchEnum == 'BroadcastInsideMyEventBoundary':
-            block = notification.data['sender']
+            block = event.arguments['sender']
             while (not block.eventBoundary and block.parentBlock):
                 block = block.parentBlock
                 
             broadcast (block,
                        methodName,
-                       notification,
+                       event,
                        lambda child: (child is not None and
                                       child.isShown and 
                                       not child.eventBoundary))
@@ -87,7 +85,7 @@ class View(BoxContainer):
                 
             broadcast (block,
                        methodName,
-                       notification,
+                       event,
                        lambda child: (child is not None and
                                       child.isShown and 
                                       not child.eventBoundary))
@@ -95,16 +93,16 @@ class View(BoxContainer):
         elif dispatchEnum == 'BroadcastEverywhere':
             broadcast (Globals.mainView,
                        methodName,
-                       notification,
+                       event,
                        lambda child: (child is not None and child.isShown))
 
         elif dispatchEnum == 'FocusBubbleUp':
             block = self.getFocusBlock()
-            bubbleUpCallMethod (block, methodName, notification)
+            bubbleUpCallMethod (block, methodName, event)
 
         elif dispatchEnum == 'ActiveViewBubbleUp':
             block = Globals.activeView
-            bubbleUpCallMethod (block, methodName, notification)
+            bubbleUpCallMethod (block, methodName, event)
 
         elif __debug__:
             assert (False)

@@ -43,11 +43,6 @@ def repository(directory, destroy=False):
          'packs', 'chandler.pack'))
     Globals.repository = rep
 
-    # Notification manager is now needed for Item Collections(?):
-    from osaf.framework.notifications.NotificationManager \
-     import NotificationManager
-    Globals.notificationManager = NotificationManager()
-
 def logger(file):
     """
     Set up the logging handler

@@ -172,9 +172,9 @@ class TestNotification(QueryTestCase.QueryTestCase):
             print i
 
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
 #    import hotshot
 #    profiler = hotshot.Profile('/tmp/TestItems.hotshot')
 #    profiler.run('unittest.main()')
 #    profiler.close()
-    unittest.main()
+#    unittest.main()

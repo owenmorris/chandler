@@ -93,10 +93,7 @@ class RepositoryTestCase(TestCase):
         import application
         import application.Globals as Globals
         import osaf.contentmodel.tests.GenerateItems as GenerateItems
-        from osaf.framework.notifications.NotificationManager import NotificationManager
         Globals.repository = self.rep
-        Globals.notificationManager = NotificationManager()
-        Globals.notificationManager.PrepareSubscribers()
 
         self.manager.loadParcels(namespaces)
         if namespaces:

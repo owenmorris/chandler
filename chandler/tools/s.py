@@ -55,11 +55,6 @@ if r is None:
         )
     application.Globals.repository = r
 
-# Notification manager is now needed for Item Collections(?):
-if application.Globals.notificationManager is None:
-    from osaf.framework.notifications.NotificationManager import NotificationManager
-    application.Globals.notificationManager = NotificationManager()
-
 # Bind some useful variables:
 pm = application.Parcel.Manager.getManager()
 Kind = r.findPath("//Schema/Core/Kind")

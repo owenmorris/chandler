@@ -8,8 +8,8 @@ import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 from osaf.framework.blocks.Block import Block as Block
 
 class TabbedView(ContainerBlocks.TabbedContainer):
-    def onSelectItemEvent(self, notification):
-        item = notification.data['item']
+    def onSelectItemEvent(self, event):
+        item = event.arguments['item']
         if isinstance(item, Block):
             self.ChangeCurrentTab(item)
 
@@ -37,7 +37,7 @@ class TabbedView(ContainerBlocks.TabbedContainer):
             self.synchronizeWidget()
             self.parentBlock.widget.Thaw()
 
-    def onNewEvent (self, notification):
+    def onNewEvent (self, event):
         "Create a new tab"
         originalItem = Globals.repository.findPath('parcels/osaf/views/content/UntitledView')
         name = self._getUniqueName("Untitled")
@@ -52,13 +52,13 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         self.parentBlock.widget.Thaw()
         self.PostEventByName ('SelectItemBroadcast', {'item':newItem})
 
-    def onCloseEvent (self, notification):
+    def onCloseEvent (self, event):
         """
           Will either close the current tab (if not data is present
         in the sender) or will close the tab specified by data.
         """
         try:
-            item = notification.data['sender'].data
+            item = event.arguments['sender'].data
         except AttributeError:
             pageIndex = self.widget.GetSelection()
         else:
@@ -85,9 +85,9 @@ class TabbedView(ContainerBlocks.TabbedContainer):
         self.PostEventByName ('SelectItemBroadcast',
                               {'item':self.widget.GetPage(self.widget.selectedTab).blockItem})
 
-    def onOpenEvent (self, notification):
+    def onOpenEvent (self, event):
         "Opens the chosen item in a new tab"
-        item = notification.data['sender'].data
+        item = event.arguments['sender'].arguments
         found = False
         for tabIndex in range (self.widget.GetPageCount()):
             tabName = self.widget.GetPageText (tabIndex)
@@ -104,8 +104,8 @@ class TabbedView(ContainerBlocks.TabbedContainer):
             self.parentBlock.widget.Thaw()
             self.PostEventByName ('SelectItemBroadcast', {'item':item})
         
-    def onCloseEventUpdateUI(self, notification):
-        notification.data['Enable'] = (self.widget.GetPageCount() > 1)
+    def onCloseEventUpdateUI(self, event):
+        event.arguments['Enable'] = (self.widget.GetPageCount() > 1)
         
     def _getUniqueName (self, name):
         if not self.hasChild(name):

@@ -34,10 +34,6 @@ def makePreloadedRepository(path, schema=True, parcels=False):
         rep.loadPack(schemaPack)
 
     if parcels:
-        # Create and start the notification manager -- this is needed for
-        # ItemCollections
-        from osaf.framework.notifications.NotificationManager import NotificationManager
-        application.Globals.notificationManager = NotificationManager()
         application.Globals.repository = rep
 
         manager = application.Parcel.Manager.getManager(repository=rep, \

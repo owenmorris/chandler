@@ -96,16 +96,16 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
 
     # Event handling
     
-    def onSelectedDateChangedEvent(self, notification):
+    def onSelectedDateChangedEvent(self, event):
         """
         Sets the selected date range and synchronizes the widget.
 
-        @param notification: notification sent on selected date changed event
-        @type notification: osaf.framework.notifications.Notification
-        @param notification['start']: start of the newly selected date range
-        @type notification['start']: mx.DateTime.DateTime
+        @param event: event sent on selected date changed event
+        @type event: osaf.framework.blocks.Block.BlockEvent
+        @param event['start']: start of the newly selected date range
+        @type event['start']: mx.DateTime.DateTime
         """
-        self.setRange(notification.data['start'])
+        self.setRange(event.arguments['start'])
         self.widget.wxSynchronizeWidget()
 
     def postDateChanged(self):
@@ -447,7 +447,7 @@ class wxWeekColumnCanvas(CollectionCanvas.wxCollectionCanvas):
             self.OnSelectItem(event)
 
             # @@@ Bug#1854 currently this is too slow,
-            # and the notification causes flicker
+            # and the event causes flicker
             Globals.repository.commit()
         return None
     
@@ -676,7 +676,7 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
             self.OnSelectItem(event)
             
             # @@@ Bug#1854 currently this is too slow,
-            # and the notification causes flicker
+            # and the event causes flicker
             Globals.repository.commit()
         return None
 

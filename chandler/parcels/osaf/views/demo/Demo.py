@@ -8,15 +8,15 @@ import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
 
 class DemoTabs(ContainerBlocks.TabbedContainer):
-    def onChoiceEventUpdateUI(self, notification):
+    def onChoiceEventUpdateUI(self, event):
         selectedText = self.widget.GetPageText (self.widget.GetSelection())
-        notification.data['Check'] = (selectedText == notification.event.choice)
+        event.arguments['Check'] = (selectedText == event.choice)
 
-    def onAddTextEvent(self, notification):
+    def onAddTextEvent(self, event):
         textBox = Globals.repository.findPath('//parcels/osaf/views/demo/ButtonText')
         textBox.widget.AppendText('Here is some text')
     
-    def onReloadTextEvent(self, notification):
+    def onReloadTextEvent(self, event):
         textBox = Globals.repository.findPath('//parcels/osaf/views/demo/ButtonText')
         textBox.widget.SetValue('')
 
@@ -24,7 +24,7 @@ class DemoToolbarItem (DynamicContainerBlocks.ToolbarItem):
     """
       Demo for a ToolbarItem that handles its own clicks.
     """
-    def onCycleTabsEvent (self, notification):
+    def onCycleTabsEvent (self, event):
         # just move the tab selection to the next tab
         tabset = Globals.repository.findPath ('//parcels/osaf/views/demo/Tabs')
         tabWidget = tabset.widget

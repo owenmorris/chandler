@@ -1722,10 +1722,6 @@ def __prepareRepo():
          'packs', 'schema.pack')
         rep.loadPack(bootstrapPack)
     Globals.repository = rep
-
-    # Notification manager is now needed for Item Collections(?):
-    from osaf.framework.notifications.NotificationManager import NotificationManager
-    Globals.notificationManager = NotificationManager()
     return rep
 
 

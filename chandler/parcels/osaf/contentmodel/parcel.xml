@@ -14,7 +14,6 @@
              xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
              xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
              xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
-             xmlns:events="http://osafoundation.org/parcels/osaf/framework/notifications/schema"
              xmlns="http://osafoundation.org/parcels/osaf/contentmodel"
              itemClass="osaf.contentmodel.ContentModel.ContentModel">
 
@@ -428,17 +427,17 @@
     <core:attributes itemref="ItemCollection/indexName"/>
 
     <!-- redirections -->
-    <core:Attribute itsName="who"> 	 
-      <redirectTo>sharees</redirectTo> 	 
-    </core:Attribute> 	 
+    <core:Attribute itsName="who">
+      <redirectTo>sharees</redirectTo>
+    </core:Attribute>
     
-    <core:Attribute itsName="whoFrom"> 	 
-      <redirectTo>sharer</redirectTo> 	 
-    </core:Attribute> 	 
+    <core:Attribute itsName="whoFrom">
+      <redirectTo>sharer</redirectTo>
+    </core:Attribute>
     
-    <core:Attribute itsName="about"> 	 
-      <redirectTo>displayName</redirectTo> 	 
-    </core:Attribute> 	 
+    <core:Attribute itsName="about">
+      <redirectTo>displayName</redirectTo>
+    </core:Attribute>
     
     <!-- Default Cloud -->
     <core:Cloud itsName="DefaultCloud">

@@ -6,8 +6,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application.Globals as Globals
 from repository.item.Item import Item
 from chandlerdb.util.UUID import UUID
-from osaf.framework.notifications.schema.Event import Event
-from osaf.framework.notifications.Notification import Notification
 import wx
 import logging
 
@@ -16,13 +14,15 @@ class Block(Item):
     def __init__(self, *arguments, **keywords):
         super (Block, self).__init__ (*arguments, **keywords)
 
-    def Post (self, event, args):
+    def Post (self, event, arguments):
         """
           Events that are posted by the block pass along the block
         that sent it.
         """
-        args['sender'] = self
-        event.Post (args)
+        arguments ['sender'] = self
+        event.arguments = arguments
+        Globals.mainView.dispatchEvent (event)
+        del event.arguments
 
     def PostEventByName (self, eventName, args):
         assert self.eventNameToItemUUID.has_key (eventName), "Block Event name " + eventName + " not subscribed"
@@ -116,25 +116,7 @@ class Block(Item):
                 except AttributeError:
                     pass
                 else:
-                    if  widget.IsShown():
-                        widget.subscribeWhenVisibleEventsUUID = UUID()
-                        Globals.notificationManager.Subscribe (subscribeWhenVisibleEvents,
-                                                               widget.subscribeWhenVisibleEventsUUID,
-                                                               Globals.mainView.dispatchEvent)
                     self.addEventsToEventNameToItemUUID (subscribeWhenVisibleEvents)
-
-                try:
-                    subscribeAlwaysEvents = self.subscribeAlwaysEvents
-                except:
-                    pass
-                else:
-                    if not self.subscribedBlocks.has_key (self.itsUUID):
-                        self.subscribedBlocks [self.itsUUID] = UUID()
-                        Globals.notificationManager.Subscribe (subscribeAlwaysEvents,
-                                                               self.subscribedBlocks [self.itsUUID],
-                                                               Globals.mainView.dispatchEvent)
-
-                    self.addEventsToEventNameToItemUUID (subscribeAlwaysEvents)
 
                 try:
                     method = getattr (type (self.widget), 'Freeze')
@@ -210,7 +192,6 @@ class Block(Item):
             pass
         else:
             self.removeEventsToEventNameToItemUUID (self.subscribeWhenVisibleEvents)
-            Globals.notificationManager.Unsubscribe (self.widget.subscribeWhenVisibleEventsUUID)
             delattr (self.widget, 'subscribeWhenVisibleEventsUUID')
 
         delattr (self, 'widget')
@@ -259,21 +240,20 @@ class Block(Item):
         return Globals.mainView
     getFocusBlock = classmethod (getFocusBlock)
 
-    def onShowHideEvent(self, notification):
+    def onShowHideEvent(self, event):
         self.isShown = not self.isShown
         self.synchronizeWidget()
         self.parentBlock.synchronizeWidget()
 
-    def onShowHideEventUpdateUI(self, notification):
-        notification.data['Check'] = self.isShown
+    def onShowHideEventUpdateUI(self, event):
+        event.arguments['Check'] = self.isShown
 
-    def onModifyContentsEvent(self, notification):
-        event = notification.event
+    def onModifyContentsEvent(self, event):
         operation = event.operation
 
         # 'collection' is an item collection that we want our new view
         # to contain
-        collection = notification.data.get('collection', None)
+        collection = event.arguments.get('collection', None)
 
         # we'll put the copies in //userdata
         userdata = Globals.repository.findPath('//userdata')
@@ -285,9 +265,8 @@ class Block(Item):
                  copies=copies)
 
                 # Return the newly created view back to the caller:
-                notification.data['view'] = item
+                event.arguments ['view'] = item
 
-                Globals.notificationManager.PrepareSubscribers()
                 if collection is not None:
                     untitledItemCollection = item.contents
                     
@@ -310,9 +289,9 @@ class Block(Item):
         the data persisted in the block. There's a tricky problem that occurs: Often
         we add a handler to the wxWidget of a block to, for example, get called
         when the user changes the selection, which we use to update the block's selection
-        and post a selection changed notification. It turns out that while we are in
+        and post a selection item block event. It turns out that while we are in
         synchronizeWidget, changes to the wxWidget cause these handlers to be
-        called, and in this case we don't want to post a notification. So we wrap calls
+        called, and in this case we don't want to post an event. So we wrap calls
         to synchronizeWidget and set a flag indicating that we're inside
         synchronizeWidget so the handlers can tell when not to post selection
         changed events. We use this flag in other similar situations, for example,
@@ -419,7 +398,7 @@ class RectangularChild (Block):
             self.contextMenu.displayContextMenu(self.widget, position, data)
                 
         
-class BlockEvent(Event):
+class BlockEvent(Item):
 
     def includePolicyMethod(self, items, references, cloudAlias):
         """ Method for handling an endpoint's byMethod includePolicy """
@@ -454,10 +433,18 @@ class DetailBlock(Block):
                 oldView.unRender()
 
             if not newView is None:
-                notification = Notification (self)
-                notification.SetData ({'item':self.contents})
                 self.childrenBlocks.append (newView)
-                newView.onSelectItemEvent (notification)
+                """
+                  It's surprising the amount of work necessary to create an event --
+                  all because it's an Item
+                """
+                parent = Globals.repository.findPath ('//userdata')
+                kind = Globals.repository.findPath('//parcels/osaf/framework/blocks/BlockEvent')
+                event = BlockEvent (None, parent, kind)
+                event.arguments = {'item':self.contents}
+                newView.onSelectItemEvent (event)
+                event.delete()
+
                 newView.render()
 
                 sizer = wx.BoxSizer (wx.HORIZONTAL)
@@ -469,8 +456,8 @@ class DetailBlock(Block):
                            wxRectangularChild.CalculateWXBorder (newView))
                 self.widget.Layout()
 
-    def onSelectItemEvent (self, notification):
-        self.contents = notification.data['item']
+    def onSelectItemEvent (self, event):
+        self.contents = event.arguments['item']
         self.SetChildBlock()
 
 class DetailViewCache (Item):

@@ -12,7 +12,6 @@
     xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
     xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
     xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
-    xmlns:notif="http://osafoundation.org/parcels/osaf/framework/notifications/schema"
     xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks">
 
     <displayName>Mail Content Model</displayName>

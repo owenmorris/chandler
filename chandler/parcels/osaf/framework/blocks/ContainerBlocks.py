@@ -137,13 +137,13 @@ class LayoutChooser(BoxContainer):
         self.widget.setSelectedChoice(selectionIndex)
         self.synchronizeWidget()
 
-    def onChangeLayoutEvent(self, notification):
+    def onChangeLayoutEvent(self, event):
         # @@@ On the Mac, radio buttons do not work as radio
         # buttons, but rather they behave as individual toggle
         # buttons.  As a workaround, we deselect the other 
         # radio buttons.
         if '__WXMAC__' in wx.PlatformInfo:
-            itemId = notification.data['sender'].widget.GetId()
+            itemId = event.arguments['sender'].widget.GetId()
             pos = self.widget.getIdPos(itemId)
             self.widget.setSelectedChoice(pos)
         self.synchronizeWidget()
@@ -189,11 +189,11 @@ class SelectionContainer(BoxContainer):
         super (SelectionContainer, self).__init__ (*arguments, **keywords)
         self.selection = None
 
-    def onSelectItemEvent (self, notification):
+    def onSelectItemEvent (self, event):
         """
           just remember the new selected ContentItem.
         """
-        item = notification.data['item']
+        item = event.arguments['item']
         self.selection = item
 
     def selectedItem(self):
@@ -392,7 +392,6 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
             self.SetSelection(currentTab)
             
     def wxSynchronizeWidget(self):
-        from osaf.framework.notifications.NotificationManager import NotSubscribed as NotSubscribed
         assert(len(self.blockItem.childrenBlocks) >= 1), "Tabbed containers cannot be empty"
         self.Freeze()
         for pageNum in range (self.GetPageCount()):
@@ -420,8 +419,8 @@ class TabbedContainer(RectangularChild):
                                   style=wxTabbedContainer.CalculateWXStyle(self))
 
     
-    def onChoiceEvent (self, notification):
-        choice = notification.event.choice
+    def onChoiceEvent (self, event):
+        choice = event.choice
         for index in xrange (self.widget.GetPageCount()):
             if self.widget.GetPageText(index) == choice:
                 self.widget.SetSelection (index)

@@ -18,7 +18,7 @@
              xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
              xmlns:view="http://osafoundation.org/parcels/osaf/views/content"
              xmlns:main="http://osafoundation.org/parcels/osaf/views/main"
-	     xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events">
+             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events">
 
   <core:version>0.3</core:version>
 

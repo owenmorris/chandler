@@ -8,9 +8,8 @@
 <Parcel describes="//parcels/osaf/framework/blocks/calendar"
         itsName="calendar"
         xmlns="http://osafoundation.org/parcels/core"
-	xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
-	xmlns:calBlocks="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"
-	xmlns:events="http://osafoundation.org/parcels/osaf/framework/notifications/schema">
+        xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
+        xmlns:calBlocks="http://osafoundation.org/parcels/osaf/framework/blocks/calendar">
 
   <description>calendar blocks</description>
   <version>0.3</version>

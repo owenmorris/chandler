@@ -115,13 +115,13 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
 
 
 
-if __name__ == "__main__":
-    # set logging
-    handler = logging.FileHandler('test.log')
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    handler.setFormatter(formatter)
-    root = logging.getLogger()
-    root.addHandler(handler)
+#if __name__ == "__main__":
+    ## set logging
+    #handler = logging.FileHandler('test.log')
+    #formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    #handler.setFormatter(formatter)
+    #root = logging.getLogger()
+    #root.addHandler(handler)
 
-    unittest.main()
+    #unittest.main()
 

@@ -171,47 +171,47 @@ class EditText(RectangularChild):
     """
     Edit Menu enabling and handling
     """
-    def onUndoEventUpdateUI (self, notification):
+    def onUndoEventUpdateUI (self, event):
         canUndo = self.widget.CanUndo()
-        notification.data ['Enable'] = canUndo
+        event.arguments ['Enable'] = canUndo
         if canUndo:
-            notification.data ['Text'] = 'Undo Command\tCtrl+Z'
+            event.arguments ['Text'] = 'Undo Command\tCtrl+Z'
         else:
-            notification.data ['Text'] = "Can't Undo\tCtrl+Z"            
+            event.arguments ['Text'] = "Can't Undo\tCtrl+Z"            
 
-    def onUndoEvent (self, notification):
+    def onUndoEvent (self, event):
         self.widget.Undo()
         self.OnDataChanged()
 
-    def onRedoEventUpdateUI (self, notification):
-        notification.data ['Enable'] = self.widget.CanRedo()
+    def onRedoEventUpdateUI (self, event):
+        event.arguments ['Enable'] = self.widget.CanRedo()
 
-    def onRedoEvent (self, notification):
+    def onRedoEvent (self, event):
         self.widget.Redo()
         self.OnDataChanged()
 
-    def onCutEventUpdateUI (self, notification):
-        notification.data ['Enable'] = self.widget.CanCut()
+    def onCutEventUpdateUI (self, event):
+        event.arguments ['Enable'] = self.widget.CanCut()
 
-    def onCutEvent (self, notification):
+    def onCutEvent (self, event):
         self.widget.Cut()
         self.OnDataChanged()
 
-    def onCopyEventUpdateUI (self, notification):
-        notification.data ['Enable'] = self.widget.CanCopy()
+    def onCopyEventUpdateUI (self, event):
+        event.arguments ['Enable'] = self.widget.CanCopy()
 
-    def onCopyEvent (self, notification):
+    def onCopyEvent (self, event):
         self.widget.Copy()
 
-    def onPasteEventUpdateUI (self, notification):
-        notification.data ['Enable'] = self.widget.CanPaste()
+    def onPasteEventUpdateUI (self, event):
+        event.arguments ['Enable'] = self.widget.CanPaste()
 
-    def onPasteEvent (self, notification):
+    def onPasteEvent (self, event):
         self.widget.Paste()
         self.OnDataChanged()
     
     def OnDataChanged (self):
-        # override in subclass for notification when edit operations have taken place
+        # override in subclass for event when edit operations have taken place
         pass
 
 class wxHTML(wx.html.HtmlWindow):
@@ -378,11 +378,11 @@ class List(RectangularChild):
                        Block.getWidgetID(self),
                        style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
 
-    def onSelectItemEvent (self, notification):
+    def onSelectItemEvent (self, event):
         """
           Display the item in the widget.
         """
-        self.selection = notification.data['item']
+        self.selection = event.arguments['item']
         self.widget.GoToItem (self.selection)
 
 
@@ -796,8 +796,8 @@ class Table (RectangularChild):
     def instantiateWidget (self):
         return wxTable (self.parentBlock.widget, Block.getWidgetID(self))
 
-    def onSelectItemEvent (self, notification):
-        item = notification.data ['item']
+    def onSelectItemEvent (self, event):
+        item = event.arguments ['item']
         if item != self.selectedItemToView:
             self.selectedItemToView = item
             row = -1
@@ -813,11 +813,11 @@ class Table (RectangularChild):
                 self.widget.MakeCellVisible (row, 0)
             self.PostEventByName("SelectItemBroadcast", {'item':item})
 
-    def onDeleteEvent (self, notification):
+    def onDeleteEvent (self, event):
         self.widget.DeleteSelection()
         
-    def onDeleteEventUpdateUI (self, notification):
-        notification.data ['Enable'] = len (self.selection) != 0
+    def onDeleteEventUpdateUI (self, event):
+        event.arguments ['Enable'] = len (self.selection) != 0
 
 class RadioBox(RectangularChild):
     def instantiateWidget(self):
@@ -895,7 +895,7 @@ class StatusBar(Block):
             rect = self.widget.GetFieldRect(1)
             self.widget.gauge.SetPosition((rect.x+2, rect.y+2))
                             
-    def onShowHideEvent(self, notification):
+    def onShowHideEvent(self, event):
         self.isShown = not self.isShown
         self.synchronizeWidget()
         Globals.wxApplication.mainFrame.Layout()
@@ -1116,14 +1116,14 @@ class Tree(RectangularChild):
                                style=wxTreeAndList.CalculateWXStyle(self))
         return tree
 
-    def onSelectItemEvent (self, notification):
-        self.widget.GoToItem (notification.GetData()['item'])
+    def onSelectItemEvent (self, event):
+        self.widget.GoToItem (event.arguments['item'])
                             
 
 class wxItemDetail(wx.html.HtmlWindow):
     def OnLinkClicked(self, wx_linkinfo):
         """
-          Clicking on an item changes the selection (post notification).
+          Clicking on an item changes the selection (post event).
           Clicking on a URL loads the page in a separate browser.
         """
         itemURL = wx_linkinfo.GetHref()
@@ -1155,11 +1155,11 @@ class ItemDetail(RectangularChild):
     def getHTMLText(self, item):
         return '<body><html><h1>%s</h1></body></html>' % item.getDisplayName()
 
-    def onSelectItemEvent (self, notification):
+    def onSelectItemEvent (self, event):
         """
           Display the item in the wxWidget.
         """
-        self.selection = notification.data['item']
+        self.selection = event.arguments['item']
         self.synchronizeWidget ()
 
     

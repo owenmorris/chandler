@@ -33,7 +33,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
     """
       Root of the Detail View.
     """
-    def onSelectItemEvent (self, notification):
+    def onSelectItemEvent (self, event):
         """
           We have an event boundary inside us, which keeps all
         the events sent between blocks of the Detail View to
@@ -45,9 +45,9 @@ class DetailRoot (ControlBlocks.SelectionContainer):
           Notify container blocks before their children.
         """
         self.finishSelectionChanges () # finish changes to previous selected item 
-        super(DetailRoot, self).onSelectItemEvent(notification)
+        super(DetailRoot, self).onSelectItemEvent(event)
         item= self.selectedItem()
-        assert item is notification.data['item'], "can't track selection in DetailRoot.onSelectItemEvent"
+        assert item is event.arguments['item'], "can't track selection in DetailRoot.onSelectItemEvent"
         self.synchronizeWidget()
         if __debug__:
             dumpSelectItem = False
@@ -139,7 +139,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         super(DetailRoot, self).onDestroyWidget ()
         showReentrant (self)
 
-    def onSendShareItemEvent (self, notification):
+    def onSendShareItemEvent (self, event):
         """
           Send or Share the current item.
         """
@@ -183,7 +183,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         # Called to resynchronize the whole Detail View
         # Called when an itemCollection gets new sharees,
         #  because the Notify button should then be enabled.
-        # @@@DLD - devise a block-dependency-notification scheme.
+        # @@@DLD - devise a block-dependency-event scheme.
         item= self.selectedItem()
         self.synchronizeDetailView(item)
 
@@ -443,10 +443,10 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         shouldShow = not isinstance (item, ItemCollection.ItemCollection)
         return shouldShow
 
-    def onButtonPressedEvent (self, notification):
+    def onButtonPressedEvent (self, event):
         # Rekind the item by adding or removing the associated Mixin Kind
         self.finishSelectionChanges () # finish changes to editable fields 
-        tool = notification.data['sender']
+        tool = event.arguments['sender']
         item = self.selectedItem()
         isANoteKind = item.isItemOf(ContentModel.ContentModel.getNoteKind())
         if not isANoteKind:
@@ -461,18 +461,18 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
             # notify the world that the item has a new kind.
             self.resynchronizeDetailView ()
 
-    def onButtonPressedEventUpdateUI(self, notification):
+    def onButtonPressedEventUpdateUI(self, event):
         item = self.selectedItem()
         if item is not None:
             enable = item.isItemOf(ContentModel.ContentModel.getNoteKind())
         else:
             enable = False
-        notification.data ['Enable'] = enable
+        event.arguments ['Enable'] = enable
 
-    def onTogglePrivateEvent(self, notification):
+    def onTogglePrivateEvent(self, event):
         item = self.selectedItem()
         if item is not None:
-            tool = notification.data['sender']
+            tool = event.arguments['sender']
             item.isPrivate = self.widget.GetToolState(tool.toolID)
 
 class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
@@ -587,7 +587,7 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
         event.Skip()
         
     def OnDataChanged (self):
-        # Notification that an edit operation has taken place
+        # event that an edit operation has taken place
         self.saveTextValue()
 
     def synchronizeItemDetail (self, item):
@@ -1181,7 +1181,7 @@ class AllDayCheckBox (DetailSynchronizer, ControlBlocks.CheckBox):
             self.widget.SetValue(allDay)
         return hasChanged
     
-    def onToggleAllDayEvent (self, notification):
+    def onToggleAllDayEvent (self, event):
         item = self.selectedItem()
         if item is not None:
             if self.widget.GetValue() == wx.CHK_CHECKED:
@@ -1216,7 +1216,7 @@ class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
             self.widget.Select(choiceIndex)
         return hasChanged
 
-    def onReminderChangedEvent (self, notification):
+    def onReminderChangedEvent (self, event):
         item = self.selectedItem()
         if item is not None:
             reminderChoice = self.widget.GetStringSelection()

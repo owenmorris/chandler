@@ -24,13 +24,6 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
 
         Globals.repository = self.rep
 
-        # Create and start the notification manager -- this is needed for
-        # ItemCollections
-        from osaf.framework.notifications.NotificationManager import NotificationManager
-        Globals.notificationManager = NotificationManager()
-
-        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/notifications/schema")
-
 
     def isOnline(self):
         import socket

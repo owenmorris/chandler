@@ -45,9 +45,9 @@ class ZaoBaoListDelegate (ListDelegate):
             return len(element.getAttributeValue('items', default=[])) != 0
         return False
 
-    def NeedsUpdate(self, notification):
+    def NeedsUpdate(self, event):
         chanUUID = self.blockItem.rootPath.itsUUID
-        changedUUID = notification.data['uuid']
+        changedUUID = event.arguments['uuid']
         if chanUUID == changedUUID:
             self.scheduleUpdate = True
 
@@ -84,15 +84,15 @@ class ZaoBaoTreeDelegate (ListDelegate):
 
         return False
 
-    def NeedsUpdate(self, notification):
-        item = Globals.repository.findUUID(notification.data['uuid'])
+    def NeedsUpdate(self, event):
+        item = Globals.repository.findUUID(event.arguments['uuid'])
         if item.itsKind is RSSData.ZaoBaoParcel.getRSSChannelKind():
             self.scheduleUpdate = True
 
 
 # XXX need to relocate this somewhere...
-def onEnterPressedEvent(self, notification):
-    url = notification.GetData()['text']
+def onEnterPressedEvent(self, event):
+    url = event.arguments['text']
     if len(url) < 5:
         return
 

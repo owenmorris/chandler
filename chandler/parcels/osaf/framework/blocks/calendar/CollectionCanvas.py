@@ -567,11 +567,11 @@ class CollectionBlock(Block.RectangularChild):
 
     # Event handling
     
-    def onSelectItemEvent(self, notification):
+    def onSelectItemEvent(self, event):
         """
         Sets the block selection and synchronizes the widget.
         """
-        self.selection = notification.data['item']
+        self.selection = event.arguments['item']
         self.widget.wxSynchronizeWidget()
 
     def postSelectItemBroadcast(self):

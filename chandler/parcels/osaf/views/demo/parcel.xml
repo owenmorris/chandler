@@ -59,7 +59,7 @@
   </BlockEvent>
 
   <BlockEvent itsName="AddText">
-    <eventName>ReloadText</eventName>
+    <eventName>AddText</eventName>
     <dispatchToBlock itemref="doc:Tabs"/>
   </BlockEvent>
 

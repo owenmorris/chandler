@@ -59,7 +59,7 @@ class ReminderDialog(wx.Dialog):
         # Do "dismiss all" on close
         self.Bind(wx.EVT_CLOSE, self.onClose)
         
-        # Note when we're being destroyed, so we can ignore subsequent notifications
+        # Note when we're being destroyed, so we can ignore subsequent events
         self.Bind(wx.EVT_WINDOW_DESTROY, self.onDestroy)
 
         # Save controls using attribute names that hopefully wont collide with

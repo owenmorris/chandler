@@ -50,8 +50,8 @@ class Sidebar (ControlBlocks.Table):
     def instantiateWidget (self):
         return wxSidebar (self.parentBlock.widget, Block.Block.getWidgetID(self))    
 
-    def onKindParameterizedEvent (self, notification):
-        kindParameter = notification.event.kindParameter
+    def onKindParameterizedEvent (self, event):
+        kindParameter = event.kindParameter
 
         self.contents.beginUpdate()
         for view in self.contents:
@@ -65,20 +65,20 @@ class Sidebar (ControlBlocks.Table):
                     contents.addFilterKind (kindParameter)
         self.contents.endUpdate()
 
-    def onRequestSelectSidebarItemEvent (self, notification):
+    def onRequestSelectSidebarItemEvent (self, event):
         # Request the sidebar to change selection
         # Item specified is usually by name
         try:
-            item = notification.data['item']
+            item = event.arguments['item']
         except KeyError:
             # find the item by name
-            itemName = notification.data['itemName']
+            itemName = event.arguments['itemName']
             for item in self.contents:
                 if item.itsName == itemName:
-                    notification.data['item'] = item
+                    event.arguments['item'] = item
                     break
             else:
                 return
 
-        self.onSelectItemEvent (notification)
+        self.onSelectItemEvent (event)
 
