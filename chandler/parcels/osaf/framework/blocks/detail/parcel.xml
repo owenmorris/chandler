@@ -104,7 +104,6 @@
     <blockName>MarkupBar</blockName>
     <!-- Children Blocks-->
     <childrenBlocks itemref="doc:TriageButton"/>
-    <childrenBlocks itemref="doc:Triage"/>
     <childrenBlocks itemref="doc:MailMessageButton"/>
     <childrenBlocks itemref="doc:TaskStamp"/>
     <childrenBlocks itemref="doc:CalendarStamp"/>
@@ -139,24 +138,6 @@
     <event itemref="doc:NULL"/>
   </ToolbarItem>
 
-  <ToolbarItem itsName="Triage">
-    <blockName>Triage</blockName>
-    <title>Triage</title>
-    <toolbarItemKind>Choice</toolbarItemKind>
-    <helpString>Mark Item to be done now or later, etc</helpString>
-    <prototype itemref="doc:TriageChoice"/>
-    <event itemref="doc:NULL"/>
-  </ToolbarItem>
-  
-  <!-- prototype for the above ToolbarItem -->
-  <Choice itemName="TriageChoice">
-    <choices>Processing</choices>
-    <choices>Deferred until</choices>
-    <choices>Processed</choices>
-    <choices>Junk</choices>
-    <choices>Trash</choices>
-  </Choice>
-  
   <ToolbarItem itsName="MailMessageButton"
                itemClass="osaf.framework.blocks.detail.Detail.MailMessageButton">
     <blockName>MailMessageButton</blockName>
