@@ -9,6 +9,7 @@ import application.Globals as Globals
 from application.Application import mixinAClass
 from Block import *
 from ContainerBlocks import *
+from DragAndDrop import DraggableWidget as DraggableWidget
 from Styles import Font
 from repository.util.UUID import UUID
 import wx
@@ -195,7 +196,7 @@ class ListDelegate:
         return block.contents.len()
 
 
-class wxList (wx.ListCtrl):
+class wxList (wx.ListCtrl, DraggableWidget):
     def __init__(self, *arguments, **keywords):
         super (wxList, self).__init__ (*arguments, **keywords)
         self.scheduleUpdate = False
@@ -203,6 +204,7 @@ class wxList (wx.ListCtrl):
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.On_wxSelectionChanged, id=self.GetId())
         self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_LIST_BEGIN_DRAG, self.OnItemDrag)
 
     def OnIdle(self, event):
         """
@@ -238,7 +240,11 @@ class wxList (wx.ListCtrl):
             block.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':item})
 
-
+    def OnItemDrag(self, event):
+        block = Globals.repository.find(self.blockUUID)
+        itemUUID = block.contents[event.GetIndex()].itsUUID
+        self.SetDragData(itemUUID)
+                            
     def wxSynchronizeWidget(self):
         block = Globals.repository.find (self.blockUUID)
         elementDelegate = block.elementDelegate
@@ -303,7 +309,6 @@ class List(RectangularChild):
                        Block.getWidgetID(self),
                        style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
         return list
-
 
     def NeedsUpdate(self):
         wxWindow = Globals.association[self.itsUUID]
@@ -611,7 +616,7 @@ class ToolbarItem(Block):
         return tool
 
 
-class wxTreeAndList:
+class wxTreeAndList(DraggableWidget):
     def __init__(self, *arguments, **keywords):
         self.scheduleUpdate = False
         self.lastUpdateTime = 0
@@ -621,6 +626,7 @@ class wxTreeAndList:
         self.Bind(wx.EVT_TREE_SEL_CHANGED, self.On_wxSelectionChanged, id=self.GetId())
         self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(wx.EVT_SIZE, self.OnSize)
+        self.Bind(wx.EVT_TREE_BEGIN_DRAG, self.OnItemDrag)
 
     def OnIdle(self, event):
         """
@@ -710,6 +716,11 @@ class wxTreeAndList:
                 block.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                            {'item':selection})
 
+    def OnItemDrag(self, event):
+        itemUUID = self.GetItemData(event.GetItem()).GetData()
+        block = Globals.repository.find(self.blockUUID)
+        self.SetDragData(itemUUID)
+        
     def wxSynchronizeWidget(self):
         def ExpandContainer (self, openedContainers, id):
             try:
@@ -841,7 +852,7 @@ class Tree(RectangularChild):
     def OnSelectionChangedEvent (self, notification):
         widget = Globals.association[self.itsUUID]
         widget.GoToItem (notification.GetData()['item'])
-
+                            
     def Calculate_wxStyle (self):
         style = wx.TR_DEFAULT_STYLE|wx.NO_BORDER
         if self.hideRoot:

@@ -5,6 +5,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from Block import Block, RectangularChild, wxRectangularChild, ContainerChild
+from DragAndDrop import DropReceiveWidget as DropReceiveWidget
 from Node import Node
 from Styles import Font
 from repository.util.UUID import UUID
@@ -259,9 +260,10 @@ class SplitterWindow(RectangularChild):
         return style
 
     
-class wxTabbedContainer(wx.Notebook):
+class wxTabbedContainer(wx.Notebook, DropReceiveWidget):
     def __init__(self, *arguments, **keywords):
         super (wxTabbedContainer, self).__init__ (*arguments, **keywords)
+        DropReceiveWidget.__init__(self, *arguments, **keywords)
         self.selectedTab = 0
         
         self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnSelectionChanging,
@@ -274,6 +276,20 @@ class wxTabbedContainer(wx.Notebook):
 
     def OnSelectionChanged (self, event):
         self.HandleSelectionChange(event, True)
+        
+    def OnRequestDrop(self, x, y):
+        tab = self.HitTest((x, y))[0]
+        if tab > -1:
+            self.SetSelection(tab)
+            return True
+        return False
+
+    def AddItem(self, itemUUID):
+        node = Globals.repository.findUUID(itemUUID)
+        newItem = node.item
+        block = Globals.repository.find(self.blockUUID)
+        if isinstance(newItem, Block):
+            block.ChangeCurrentTab(node)
         
     def HandleSelectionChange(self, event, registerEvents):
         if not Globals.wxApplication.ignoreSynchronizeWidget:

@@ -13,26 +13,32 @@ class TabbedView(ControlBlocks.TabbedContainer):
     def OnSelectionChangedEvent(self, notification):
         node = notification.data['item']
         if node and isinstance(node, Node):
-            newChild = node.item
-            if isinstance(newChild, Block):
-                try:
-                    tabbedContainer = Globals.association [self.itsUUID]
-                except KeyError:
-                    return  # tabbed container hasn't been rendered yet
-                activeTab = tabbedContainer.GetSelection()
-                self.tabNames[activeTab] = self.getUniqueName(node.getItemDisplayName())
-                page = tabbedContainer.GetPage(activeTab)
-                item = Globals.repository.find(page.blockUUID)
-                previousChild = self.childrenBlocks.previous(item)
-                item.parentBlock = None
+            newItem = node.item
+            if isinstance(newItem, Block):
+                self.ChangeCurrentTab(node)
 
-                newChild.parentBlock = self                
-                self.childrenBlocks.placeItem(newChild, previousChild)
-                newChild.render()                
-                wxNewChild = Globals.association [newChild.itsUUID]
-                wxNewChild.SetSize (tabbedContainer.GetClientSize())                
-                Globals.mainView.onSetActiveView(newChild)
-                self.synchronizeWidget()
+    def ChangeCurrentTab(self, node):
+        newItem = node.item
+        newItemUUID = newItem.itsUUID
+        try:
+            tabbedContainer = Globals.association [self.itsUUID]
+        except KeyError:
+            return  # tabbed container hasn't been rendered yet
+        activeTab = tabbedContainer.GetSelection()
+        self.tabNames[activeTab] = self.getUniqueName(node.getItemDisplayName())
+        page = tabbedContainer.GetPage(activeTab)
+        item = Globals.repository.find(page.blockUUID)
+        previousChild = self.childrenBlocks.previous(item)
+        item.parentBlock = None
+
+        newItem.parentBlock = self 
+        self.childrenBlocks.placeItem(newItem, previousChild)
+        newItem.render()                
+        wxNewChild = Globals.association [newItem.itsUUID]
+        wxNewChild.SetSize (tabbedContainer.GetClientSize())                
+        Globals.mainView.onSetActiveView(newItem)
+        self.synchronizeWidget()
+        
 
     def OnNewEvent (self, notification):
         "Create a new tab"
