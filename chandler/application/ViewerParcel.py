@@ -52,3 +52,4 @@ class ViewerParcel (Parcel):
             app.applicationResources.AttachUnknownControl ("ViewerParcel", panel)
             panel.model = self
             panel.OnInit ()
+            panel.Layout()
