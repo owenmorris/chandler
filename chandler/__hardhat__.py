@@ -71,11 +71,30 @@ def build(buildenv):
              info['name'], "Copying RunRelease to release")
             hardhatlib.copyFile("RunRelease", buildenv['root'] + \
              os.sep + "release")
+
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
+             info['name'], "Copying RunPython to release")
+            hardhatlib.copyFile("RunPythonRelease", buildenv['root'] + \
+             os.sep + "release")
+            os.rename(
+             buildenv['root']+os.sep+"release"+os.sep+"RunPythonRelease",
+             buildenv['root']+os.sep+"release"+os.sep+"RunPython"
+            )
+
         if buildenv['version'] == 'debug':
             hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
              info['name'], "Copying RunDebug to debug")
             hardhatlib.copyFile("RunDebug", buildenv['root'] + \
              os.sep + "debug")
+
+            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
+             info['name'], "Copying RunPython to debug")
+            hardhatlib.copyFile("RunPythonDebug", buildenv['root'] + \
+             os.sep + "debug")
+            os.rename(
+             buildenv['root']+os.sep+"debug"+os.sep+"RunPythonDebug",
+             buildenv['root']+os.sep+"debug"+os.sep+"RunPython"
+            )
 
     if buildenv['os'] == 'win':
         os.chdir("win")
