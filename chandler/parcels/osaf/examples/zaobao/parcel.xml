@@ -8,7 +8,8 @@
         xmlns:foo="//parcels/OSAF/framework"
         xmlns:bar="//parcels/OSAF/framework/agents"
         xmlns:agent="//parcels/OSAF/framework/agents/schema"
-        xmlns:content="//parcels/OSAF/contentmodel">
+        xmlns:content="//parcels/OSAF/contentmodel"
+        xmlns:docSchema="//parcels/OSAF/framework/blocks">
 
   <displayName>ZaoBao RSS Schema</displayName>
   <description>RSS schema for ZaoBao parcel for 0.2 release</description>
@@ -158,5 +159,27 @@
 
     <agent:instructions itemref="zaobao:ZaoBaoAgent/UpdateFeeds"/>
   </agent:AgentItem>
+
+
+
+
+
+
+  <!-- view related stuff -->
+
+
+
+  <Kind itemName="ZaoBaoTreeList">
+    <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoTreeList</classes>
+    <superKinds itemref="docSchema:TreeList"/>
+  </Kind>  
+
+  <Kind itemName="ZaoBaoItemView">
+    <classes key="python">OSAF.examples.zaobao.blocks.ZaoBaoItemView</classes>
+    <superKinds itemref="docSchema:ItemView"/>
+  </Kind>  
+
+
+
 
 </Parcel>
