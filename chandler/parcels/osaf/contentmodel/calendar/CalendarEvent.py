@@ -12,13 +12,11 @@ from mx import DateTime
 
 class CalendarEvent(Item):
 
-    def __init__(self, repository, headline=""):
-        parent = repository.find("//Parcels/OSAF/PimSchema/CalendarSchema")
-        kind = repository.find("//Schema/OSAF/PimSchema/CalendarSchema/CalendarEvent")
-        Item.__init__(self, None, parent, kind)
+    def __init__(self, name, parent, kind):
+        #super(CalendarEvent, self).__init__(name, parent, kind)
+        Item.__init__(self, name, parent, kind)
         self.startTime = DateTime.now()
         self.endTime = DateTime.now()
-        self.headline = headline
 
     def GetDuration(self):
         """Returns an mxDateTimeDelta, None if no startTime or endTime"""

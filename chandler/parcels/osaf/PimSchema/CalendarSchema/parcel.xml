@@ -15,6 +15,13 @@
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
 
+  <Enumeration itemName="TimeTransparency">
+    <displayName>Time Transparency</displayName>
+    <values>busy</values>
+    <values>free</values>
+    <values>tentative</values>
+  </Enumeration>
+
   <Attribute itemName="startTime">
     <displayName>Start Time</displayName>
     <cardinality>single</cardinality>
@@ -90,7 +97,13 @@
   <Attribute itemName="transparency">
     <displayName>Time Transparency</displayName>
     <cardinality>single</cardinality>
-    <type itemref="String"/>
+    <type itemref="cal:TimeTransparency"/>
+  </Attribute>
+
+  <Attribute itemName="priority">
+    <displayName>Priority</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="Integer"/>
   </Attribute>
 
   <!-- @@@ temporary attribute, something for location and calendar -->
@@ -120,6 +133,7 @@
     <attributes itemref="cal:recurrence"/>
     <attributes itemref="cal:reminders"/>
     <attributes itemref="cal:transparency"/>
+    <attributes itemref="cal:priority"/>
     <displayAttribute itemref="cal:headline"/>
     <classes key="python">OSAF.PimSchema.CalendarSchema.CalendarEvent.CalendarEvent</classes>
   </Kind>
