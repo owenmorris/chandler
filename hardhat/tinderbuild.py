@@ -112,7 +112,7 @@ def main():
                 if os.path.exists(outputDir+os.sep+"index.html"):
                     os.remove(outputDir+os.sep+"index.html")
                 RotateDirectories(outputDir)
-                CreateIndex(outputDir, buildVersion, nowString)
+                CreateIndex(outputDir, buildVersion, nowString, buildName)
 
                 buildNameNoSpaces = buildName.replace(" ", "")
     # rsync -e ssh -avzp --delete /home/builder/output/ 192.168.101.46:continuous/kilauea-osx
@@ -176,11 +176,12 @@ _descriptions = {
     'debug' : ["Lazy Developer:  Debug", "Description of debug distro"],
 }
 
-def CreateIndex(outputDir, newDirName, nowString):
+def CreateIndex(outputDir, newDirName, nowString, buildName):
     """Generates an index.html page from the hint files that hardhat creates
     which contain the actual distro filenames"""
     fileOut = file(outputDir+os.sep+"index.html", "w")
-    fileOut.write("<p>" + nowString + "</p>\n")
+    fileOut.write("<h2>Chandler Build: " + buildName + " </h2>\n")
+    fileOut.write("<p>CVS Timestamp:" + nowString + " (Pacific)</p>\n")
     for x in ["enduser", "developer", "release", "debug"]:
         actual = _readFile(outputDir+os.sep+newDirName+os.sep+x)
         fileOut.write("<p><a href="+newDirName+"/"+actual+">"+ _descriptions[x][0] +"</a> " + _descriptions[x][1] +"</p>\n")
