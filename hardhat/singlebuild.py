@@ -109,12 +109,12 @@ def main():
 
     curDir = os.path.abspath(os.getcwd())
 
-    if not os.path.exists(buildDir):
-        os.mkdir(buildDir)
+    if os.path.exists(buildDir):
+        hardhatutil.rmdirRecursive(buildDir)
+    os.mkdir(buildDir)
 
     path = os.environ.get('PATH', os.environ.get('path'))
     cvsProgram = hardhatutil.findInPath(path, "cvs")
-    # print "CVS =", cvsProgram
 
     log = open(logFile, "w+")
     try:
