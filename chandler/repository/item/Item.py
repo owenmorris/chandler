@@ -1136,20 +1136,28 @@ class Item(object):
 
         return False
 
-    def removeValue(self, attribute, key=None, alias=None, _attrDict=None):
+    def removeValue(self, attribute, value=None, key=None, alias=None,
+                    _attrDict=None):
         """
-        Remove a value from a Chandler collection attribute, for a given key.
+        Remove a value from a Chandler collection attribute.
 
         This method only operates on collections actually owned by this
         attribute, not on collections inherited or otherwise defaulted via
         L{getAttributeValue}.
 
-        If there is no value for the provided key, C{KeyError} is raised.
+        If C{value} is not provided and there is no value for the provided
+        C{key} or C{alias}, C{KeyError} is raised.
+
+        To remove a value from a dictionary of literals, a C{key} must be
+        provided.
+
         The C{alias} argument can be used instead of C{key} when the
         collection is a L{ref collection<repository.item.ItemRef.RefDict>}.
 
         @param attribute: the name of the attribute
         @type attribute: a string
+        @param value: the value to remove
+        @type value: anything
         @param key: the key into the collection
         @type key: integer for lists, anything for dictionaries
         @param alias: when the collection is a
@@ -1175,19 +1183,28 @@ class Item(object):
                     for i in xrange(len(attributes) - 1):
                         item = item.getAttributeValue(attributes[i])
 
-                    return item.removeValue(attributes[-1], key, alias)
+                    return item.removeValue(attributes[-1], value, key, alias)
 
                 else:
                     _attrDict = self._values
 
-        value = _attrDict.get(attribute, Item.Nil)
+        values = _attrDict.get(attribute, Item.Nil)
 
-        if value is not Item.Nil:
-            if alias is not None:
-                key = value.resolveAlias(alias)
-                if key is None:
-                    raise KeyError, 'No value for alias %s' %(alias)
-            del value[key]
+        if values is not Item.Nil:
+            if key is not None or alias is not None:
+                if alias is not None:
+                    key = value.resolveAlias(alias)
+                    if key is None:
+                        raise KeyError, 'No value for alias %s' %(alias)
+                del values[key]
+            elif _attrDict is self._references:
+                del values[value._uuid]
+            elif isinstance(values, list):
+                values.remove(value)
+            elif isinstance(values, dict):
+                raise TypeError, 'To remove from dict value on %s, key must be specified' %(attribute)
+            else:
+                raise TypeError, type(values)
         else:
             raise KeyError, 'No value for attribute %s' %(attribute)
 

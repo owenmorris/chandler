@@ -278,9 +278,9 @@ class SkipList(object):
 
     def position(self, map, key):
 
-        curr = map[key]
         dist = -1
 
+        curr = map[key]
         while curr is not None:
             level = curr.getLevel()
             point = curr.getPoint(level)

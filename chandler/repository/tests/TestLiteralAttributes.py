@@ -120,7 +120,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
 
         #test removeValue by removing values and checking
         #that value is removed and length has decreased
-        item.removeValue('strings', 0)
+        item.removeValue('strings', key=0)
         self.failIf(item.hasValue('strings', 'Mickey'))
         self.assertEquals(len(item.strings), 3)
 
@@ -132,7 +132,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
         self.failIf(item.hasValue('strings', 'Donald'))
         self.assertEquals(len(item.strings), 1)
 
-        item.removeValue('strings', 0)
+        item.removeValue('strings', key=0)
         self.failIf(item.hasValue('strings', 'Minnie'))
         self.assertEquals(len(item.strings), 0)
 
@@ -207,7 +207,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
 
         #test removeValue by removing values and checking
         #that value is removed and length has decreased
-        item.removeValue('strings', 'Mickey')
+        item.removeValue('strings', key='Mickey')
         self.assert_(item.hasValue('strings', 'Mouse'))
         self.assertEquals(len(item.strings), 3)
 
@@ -219,7 +219,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
         self.failIf(item.hasValue('strings', 'Duck'))
         self.assertEquals(len(item.strings), 1)
 
-        item.removeValue('strings', 'Minnie')
+        item.removeValue('strings', key='Minnie')
         self.failIf(item.hasValue('strings', 'Mouse'))
         self.assertEquals(len(item.strings), 0)
 
