@@ -19,25 +19,37 @@ from zodb.storage.file import FileStorage
 
 from application.repository import Thing
 
+
+# Global variables to implement the "borg" pattern from the Python Cookbook
+# These used to live inside the Repository class definition but that caused
+# problems when PyChecker tried to load this class multiple times (it would
+# end up trying to reopen the ZODB database).
+
+_repositoryInitialized = False
+_shared_state = {}
+
 class Repository:
 
-    # as per the borg pattern, this will become the object's __dict__
-    _shared_state = {}
-    
-    _storage = FileStorage('_Repository_')
-    _db = db.DB(_storage)
-    _connection = _db.open()
-    _dbroot = _connection.root()
-
-    if not _dbroot.has_key('thingList'):
-        _dbroot['thingList'] = PersistentList()
-    _shared_state['thingList'] = _dbroot['thingList']
-    
-    transaction.get_transaction().commit()
-    
     def __init__(self):
-        self.__dict__ = self._shared_state
-        
+        # Upon first created instance, open the database:
+        global _repositoryInitialized, _shared_state
+        if not _repositoryInitialized:
+            _shared_state = {}
+
+            _storage = FileStorage('_Repository_')
+            _db = db.DB(_storage)
+            _connection = _db.open()
+            _dbroot = _connection.root()
+
+            if not _dbroot.has_key('thingList'):
+                _dbroot['thingList'] = PersistentList()
+            _shared_state['thingList'] = _dbroot['thingList']
+            transaction.get_transaction().commit()
+
+            _repositoryInitialized = True
+
+        self.__dict__ = _shared_state
+
     def AddThing(self, thing):
         """ Add the 'thing' to the repostiory """
         assert(isinstance(thing, Thing.Thing))
