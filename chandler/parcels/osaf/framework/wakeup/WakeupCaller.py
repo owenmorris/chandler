@@ -6,7 +6,17 @@ import twisted.internet.defer as defer
 import logging as logging
 import twisted.internet.error as error
 import chandlerdb.util.UUID as UUID
+import repository.item.Item as Item
 import mx.DateTime as DateTime
+
+"""
+Notes:
+   1. Could just have the class name as an argument with out having 
+      to make it an item
+"""
+class WakeupCall(Item.Item):
+    def receiveWakeupCall(self):
+        pass
 
 class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
     MAX_POOL_SIZE = 15
