@@ -324,7 +324,9 @@ def CreateIndex(outputDir, newDirName, nowString, buildName):
                   '</body></html>\n')
     fileOut.close()
 
-    # This file is used by http://builds.osafoundation.org/index.html
+    # This file is used by:
+    # - http://builds.osafoundation.org/index.html
+    # - http://wiki.osafoundation.org/bin/view/Chandler/GettingChandler
     fileOut = file(outputDir+os.sep+"time.js", "w")
     fileOut.write("document.write('" + nowString + "');\n")
     fileOut.close()
