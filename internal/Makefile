@@ -1,7 +1,7 @@
 
 include Makefile.inc
 
-SYSTEMS=UUIDext \
+SYSTEMS=chandlerdb \
         wxPython-2.5 \
         m2crypto \
         launchers \
