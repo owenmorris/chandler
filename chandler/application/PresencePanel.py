@@ -134,6 +134,10 @@ class PresencePanel(wxScrolledWindow):
             for view in viewList:
                 viewWidget = wxStaticText(self, -1, view)
                 viewWidget.SetFont(self.nameFont)
+                url = str(jabberID) + '/' + view
+                handler = ClickedOnURLHandler(url)
+                EVT_LEFT_DOWN(viewWidget, handler.ClickedURL)
+
                 container.Add(viewWidget, 0, wxEXPAND | wxWEST, 36)
    
     # loop through the buddy list, rendering the presence state
@@ -187,5 +191,13 @@ class OpenHandler:
     def ClickedTriangle(self, event):
         self.presencePanel.ToggleOpen(self.jabberID)
         self.presencePanel.RenderWidgets()
+ 
+class ClickedOnURLHandler:
+    def __init__(self, url):
+        self.url = url
         
+    def ClickedURL(self, event):
+        app = application.Application.app
+        app.wxMainFrame.GoToUri(self.url, true)
+       
         
