@@ -100,7 +100,6 @@ class ColumnarTimeView (ColumnarSubView):
     def UpdateItems(self):
         viewer = app.association[id(self)]
         remoteAddress = self.columnarView.calendarView.remoteAddress
-        viewer.zOrderedDrawableObjects[0:] = []
         viewer._loadEvents()
         viewer._displayEvents()
         
@@ -161,6 +160,9 @@ class wxColumnarTimeView(wxColumnarSubView):
         """Load the events from the repository, creating a ColumnarItem
            for every Event item.
         """
+        # @@@ check this one, clears the canvas of objects
+        self.zOrderedDrawableObjects[0:] = []
+
         remoteAddress = self.model.columnarView.calendarView.remoteAddress
         overlay = self.model.columnarView.calendarView.overlayRemoteItems
  
@@ -205,6 +207,7 @@ class wxColumnarTimeView(wxColumnarSubView):
         self.Thaw()
                 
     def UpdateDateRange(self):
+        self._loadEvents()
         self._displayEvents()
         self.Refresh()
         

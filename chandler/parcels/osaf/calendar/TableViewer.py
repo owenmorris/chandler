@@ -9,7 +9,8 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from wxPython.wx import *
-from wxPython.grid import *
+from wxPython.gizmos import *
+
 from mx import DateTime
 
 from persistence import Persistent
@@ -30,7 +31,10 @@ class TableViewer(Persistent):
         self.updateRange(DateTime.today())
         
     def UpdateItems(self):
-        pass
+        viewer = app.association[id(self)]
+        viewer._loadEvents()
+        viewer._displayEvents()
+        viewer.Refresh()
         
     def SynchronizeView(self, view):
         view.OnInit(self)
@@ -59,19 +63,14 @@ class wxTableViewer(wxPanel):
         
     def OnInit(self, model):
         self.model = model
-        self.grid = wxGrid(self, -1)
+
+        self.list = wxListCtrl(self, style=wxLC_REPORT)
+        self.list.InsertColumn(0, _('Headline'))
+        self.list.InsertColumn(1, _('Start Time'))
+        self.list.InsertColumn(2, _('Duration'))
         
         self._loadEvents()
-        
-        self.grid.CreateGrid(100, 3)
-        # self.grid.SetColLabelSize(0)
-        self.grid.SetColLabelValue(0, _("Start Time"))
-        self.grid.SetColLabelValue(1, _("Duration"))
-        self.grid.SetColLabelValue(2, _("Headline"))
-        self.grid.SetRowLabelSize(0)        
-        self.grid.SetSize(self.GetClientSize())
-        
-        self._fillGrid()
+        self._displayEvents()
         
         EVT_SIZE(self, self.OnSize)
         EVT_CALENDAR_DATE(self, self.OnCalendarDate)
@@ -81,23 +80,29 @@ class wxTableViewer(wxPanel):
         for item in app.repository.find("//Calendar"):
             self.eventList.append(item)
         
-    def _fillGrid(self):
-        self.grid.ClearGrid()
-        index = 0
+    def _displayEvents(self):
+        self.list.DeleteAllItems()
+        index = 0;
         for item in self.eventList:
             if (self.model.isDateInRange(item.startTime)):
-                self.grid.SetCellValue(index, 0, str(item.startTime))
-                self.grid.SetCellValue(index, 1, str(item.duration))
-                self.grid.SetCellValue(index, 2, item.headline)
+                if (item.duration.hours > 1):
+                    hourString = "%s hours" % item.duration.hours
+                elif (item.duration.hours < 1):
+                    hourString = "%d minutes" % item.duration.minutes
+                else:
+                    hourString = "1 hour"
+                startString = item.startTime.Format('%x %I:%M %p')
+                self.list.InsertStringItem(index, item.headline)
+                self.list.SetStringItem(index, 1, startString)
+                self.list.SetStringItem(index, 2, hourString)
                 index = index + 1
         
     def OnSize(self, event):
-        self.grid.SetSize(self.GetClientSize())
-        self.grid.SetDefaultColSize(self.GetSize().width/3, TRUE)
+        self.list.SetSize(self.GetClientSize())
                 
     def OnCalendarDate(self, event):
-        # self._loadEvents()
-        self._fillGrid()
+        self._loadEvents()
+        self._displayEvents()
         self.Refresh()
         event.Skip()
         

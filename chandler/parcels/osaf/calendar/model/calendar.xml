@@ -10,6 +10,8 @@
                    path="//Schema/Model/Types/"/>
   <itemPathMapping prefix="cal" 
                    path="//Schema/CalendarSchema/"/>
+  <itemPathMapping prefix="contacts"
+                   path="//Schema/ContactsSchema/"/>
 
   <Attribute itemName="cal:startTime">
     <displayName>Start Time</displayName>
@@ -42,6 +44,19 @@
     <type itemref="cal:Calendar"/>
   </Attribute>
 
+  <Attribute itemName="cal:participant">
+    <displayName>Participant</displayName>
+    <cardinality>dict</cardinality>
+    <type itemref="contacts:ContactEntity"/>
+  </Attribute>
+
+  <Attribute itemName="cal:participatingIn">
+    <displayName>Participating In</displayName>
+    <cardinality>dict</cardinality>
+    <type itemref="cal:CalendarEvent"/>
+  </Attribute>
+
+  <!-- @@@ temporary attribute, something for location and calendar -->
   <Attribute itemName="cal:name">
     <displayName>Name</displayName>
     <cardinality>single</cardinality>
@@ -64,6 +79,7 @@
     <classes key="python">OSAF.calendar.model.CalendarEvent.CalendarEvent</classes>
   </Kind>
 
+  <!-- @@@ Location may be not be calendar specific -->
   <Kind itemName="cal:Location">
     <displayName>Location</displayName>
     <attributes itemref="cal:name"/>

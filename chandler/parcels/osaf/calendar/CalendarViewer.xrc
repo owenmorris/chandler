@@ -25,6 +25,10 @@
    <object class="wxMenuItem" name="MenuDeleteCalendar">
       <label>Delete Calendar Item</label>
    </object>
+   <object class="separator"/>
+   <object class="wxMenuItem" name="MenuGenerateEvents">
+      <label>Generate 100 Calendar Events</label>
+   </object>
 </object>
 
 <object class="wxMenu" name="HelpMenu">
@@ -155,7 +159,6 @@
 <object class="wxPanel"
         subclass = "OSAF.calendar.TableViewer.wxTableViewer"
         name="TableViewer">
-    <style>wxSUNKEN_BORDER</style>
     <size>500, 500</size>
 </object>
 

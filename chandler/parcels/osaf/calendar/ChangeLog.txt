@@ -1,5 +1,10 @@
 # ChangeLog for Calendar Parcel
 
+2003-09-05 Katie Capps Parlante <capps@osafoundation.org>
+   * Added participant to calendar model
+   * Changed table view to use wxListCtrl instead of wxGrid
+   * Added Generate Events feature (menu item, unit test)
+
 2003-08-11 Katie Capps Parlante <capps@osafoundation.org>
    * Added Location to calendar model
    * Changed names of calendar model attributes

@@ -11,6 +11,8 @@ from OSAF.calendar.model.CalendarEvent import CalendarEventFactory
 from OSAF.calendar.model.Location import Location
 from OSAF.calendar.model.Location import LocationFactory
 
+from OSAF.calendar.CalendarTest import CalendarTest
+
 from mx import DateTime
 
 class SimpleTest(unittest.TestCase):
@@ -94,6 +96,11 @@ class SimpleTest(unittest.TestCase):
 
         self.assertEqual(item.location, location)
         self.assertEqual(item.location.name, "Palo Alto")
+
+    def testEventGeneration(self):
+        """Generate Calendar events"""
+        generator = CalendarTest(self.rep)
+        generator.generateEvents(100, 100)
 
     def tearDown(self):
         # Note: to use for diagnosis if a test fails

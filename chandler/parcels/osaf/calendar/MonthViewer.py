@@ -135,7 +135,7 @@ class wxMonthViewer(wxSimpleCanvas):
         event.Skip()
 
     def OnCalendarDate(self, event):
-        self._loadEvents()
+        # self._loadEvents()
         self.Refresh()
         event.Skip()
         

@@ -26,6 +26,8 @@ from OSAF.calendar.TableViewer import TableViewer
 from OSAF.calendar.CalendarDialog import wxCalendarDialog
 from OSAF.calendar.MonthNavigator import MonthNavigator
 
+from OSAF.calendar.CalendarTest import CalendarTest
+
 from OSAF.calendar.CalendarEvents import *
 
 class CalendarViewer(ViewerParcel):
@@ -103,6 +105,7 @@ class wxCalendarViewer(wxViewerParcel):
         EVT_MENU(self, XRCID("MenuOverlayRemote"), self.OnOverlayRemote)
         EVT_MENU(self, XRCID("MenuSharingPolicy"), self.OnSharingPolicy)
         EVT_MENU(self, XRCID("MenuAboutCalendar"), self.OnAboutCalendar)
+        EVT_MENU(self, XRCID("MenuGenerateEvents"), self.OnGenerateEvents)
         
         self._initCalendarTitle()
         self._initViewTypeList()
@@ -262,6 +265,16 @@ class wxCalendarViewer(wxViewerParcel):
         infoPage = SplashScreen(self, _("About Calendar"), pageLocation, false)
         infoPage.ShowModal()
         infoPage.Destroy()
+
+    def OnGenerateEvents(self, event):
+        """ Generates 100 events over the next few months """
+        generator = CalendarTest(app.repository)
+        # Generate 20 events in the next two weeks
+        generator.generateEvents(20, 14)
+        # Generate 80 events in the next 6 months
+        generator.generateEvents(80, 180)
+        self.currentView.model.UpdateItems()
+        app.repository.commit()
 
     # Navigation event handlers
 
