@@ -4,6 +4,7 @@ __date__        = "$Date$"
 __copyright__   = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__     = "GPL -- see LICENSE.txt"
 
+# TESTING CVS NOTIFICATION
 
 """
 HardHat:  OSAF Build Environment
