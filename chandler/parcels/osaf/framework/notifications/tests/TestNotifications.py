@@ -19,6 +19,24 @@ def MakeEvent():
     event = eventKind.newItem(None, Globals.repository)
     return event
 
+
+def repositoryCallback(uuid, notification, reason):
+    if notification == 'ItemChanged':
+        eventPath = '//parcels/OSAF/framework/item_' + reason
+    elif notification == 'CollectionChanged':
+        return
+    else:
+        assert(0)
+
+    event = Globals.repository.find(eventPath)
+
+    from OSAF.framework.notifications.Notification import Notification
+    note = Notification(event)
+    d = { 'uuid' : uuid }
+    note.SetData(d)
+
+    Globals.notificationManager.PostNotification(note)
+
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 class NMTest(RepositoryTestCase.RepositoryTestCase):
     def _loadParcel(self, relPath):
@@ -45,42 +63,11 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
         #import repository.parcel.LoadParcels as LoadParcels
         #LoadParcels.LoadParcels(self.parceldir, self.rep)
         self._loadParcel("OSAF/framework/notifications/schema")
-        self._loadParcel("OSAF/framework/utils/indexer")
+        self._loadParcel("OSAF/framework")
 
         # Create and start the notification manager
         from OSAF.framework.notifications.NotificationManager import NotificationManager
         Globals.notificationManager = NotificationManager()
-
-
-
-    def test_FindNotifications(self):
-        """ tests FindNotifications() """
-        """
-        nm = Globals.notificationManager
-
-        e1 = MakeEvent('dumb/event')
-        e2 = MakeEvent('dumbevent')
-
-        # need to call this after all events are made or else they don't currently get picked up
-        nm.PrepareSubscribers()
-
-        events = nm.FindEvents('.*')
-        self.assert_(e1 in events)
-        self.assert_(e2 in events)
-
-        events = nm.FindEvents('dumb.*')
-        self.assert_(e1 in events)
-        self.assert_(e2 in events)
-        
-        events = nm.FindEvents('dumb/.*')
-        self.assert_(e1 in events)
-        self.assert_(e2 not in events)
-
-        events = nm.FindEvents('dumbevent')
-        self.assert_(e1 not in events)
-        self.assert_(e2 in events)
-        """
-
 
     def test_Subscribe(self):
         """ tests Subscribe() """
@@ -115,13 +102,46 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
 
 
 
-    #def test_Unsubscribe(self):
-    #    """ tests Unsubscribe() """
-    #    print 'Testing Unsubscribe()'
+    def test_RepositoryNotifications(self):
+        """ tests Unsubscribe() """
+        nm = Globals.notificationManager
+        rep = Globals.repository
 
-    #def test_PostNotification(self):
-    #    """ tests PostNotification() """
-    #    print 'Testing PostNotification()'
+        # initialization code
+        nm.PrepareSubscribers()
+        rep.commit()
+        rep.addNotificationCallback(repositoryCallback)
+
+        def onItemChanged(note):
+            uuid = note.GetData()['uuid']
+            print 'Changed:', Globals.repository[uuid].getItemPath()
+        def onItemAdded(note):
+            uuid = note.GetData()['uuid']
+            print 'Added:', Globals.repository[uuid].getItemPath()
+        def onItemDeleted(note):
+            uuid = note.GetData()['uuid']
+            print 'Deleted:', uuid
+
+        # subscribe to changed, added, deleted events
+        e = rep.find('//parcels/OSAF/framework/item_changed')
+        nm.Subscribe(e, 1, onItemChanged)
+        e = rep.find('//parcels/OSAF/framework/item_added')
+        nm.Subscribe(e, 2, onItemAdded)
+        e = rep.find('//parcels/OSAF/framework/item_deleted')
+        nm.Subscribe(e, 3, onItemDeleted)
+
+        print 'adding event'
+        e = MakeEvent()
+        Globals.repository.commit()
+
+        print '\n'
+        print 'deleting event'
+        e.delete()
+        Globals.repository.commit()
+
+
+
+
 
 if __name__ == "__main__":
     # set logging
@@ -132,12 +152,4 @@ if __name__ == "__main__":
     root.addHandler(handler)
 
     unittest.main()
-
-
-
-
-
-
-
-
 
