@@ -276,6 +276,11 @@
     <destinationBlockReference itemref="doc:MainView"/>
   </BlockEvent>
 
+  <BlockEvent itsName="ShareTool">
+    <blockName>ShareTool</blockName>
+    <destinationBlockReference itemref="doc:MainView"/>
+  </BlockEvent>
+  
   <BlockEvent itsName="SyncCollection">
     <blockName>SyncCollection</blockName>
     <destinationBlockReference itemref="doc:MainView"/>
@@ -381,6 +386,7 @@
     <childrenBlocks itemref="doc:ShareCollectionItem"/>
     <childrenBlocks itemref="doc:SyncCollectionItem"/>
     <childrenBlocks itemref="doc:ResendSharingInvitationsItem"/>
+    <childrenBlocks itemref="doc:ShareToolItem"/>
     <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:LogViewChangesItem"/>
@@ -890,6 +896,13 @@
     <title>Share collection</title>
     <event itemref="doc:ShareCollection"/>
     <helpString>Enable sharing a collection</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="ShareToolItem">
+    <blockName>ShareToolItem</blockName>
+    <title>Share tool...</title>
+    <event itemref="doc:ShareTool"/>
+    <helpString>Display the Share Tool</helpString>
   </MenuItem>
 
   <MenuItem itsName="SyncCollectionItem">

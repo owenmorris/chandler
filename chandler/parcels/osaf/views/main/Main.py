@@ -484,6 +484,12 @@ class MainView(View):
         event.arguments ['Text'] = menuTitle
         event.arguments['Enable'] = doManage == (collection is not None and Sharing.isShared(collection))
 
+    def onShareToolEvent(self, event):
+        # Triggered from "Test | Share tool..."
+        import osaf.framework.sharing.ShareTool
+        reload(osaf.framework.sharing.ShareTool)
+        osaf.framework.sharing.ShareTool.ShowShareToolDialog(Globals.wxApplication.mainFrame, view=self.itsView)
+
     def onSyncCollectionEvent (self, event):
         # Triggered from "Test | Sync collection..."
         Globals.repository.commit() 
