@@ -147,6 +147,12 @@ def test():
   ['for', 'i', 'z', ['>', ['fn', 'len', [['path', ['z', 'messages'], None]]], '1000']]
   >>> print parse('for_stmt', 'for i in "//Schema/Core/Kind" where i.hasAttributeValue("itsName")')
   ['for', 'i', '"//Schema/Core/Kind"', ['method', ['path', ['i', 'hasAttributeValue'], None], ['"itsName"']]]
+  >>> print parse('for_stmt', u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.importance == 'fyi'")
+  ['for', u'i', u"'//parcels/osaf/contentmodel/calendar/CalendarEvent'", [u'==', ['path', [u'i', u'importance'], None], u"'fyi'"]]
+  >>> print parse('for_stmt', u"for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' where i.startTime > date('2004-08-01') and i.startTime < date('2004-08-01')")
+  ['for', u'i', u"'//parcels/osaf/contentmodel/calendar/CalendarEvent'", [u'and', [u'>', ['path', [u'i', u'startTime'], None], ['fn', u'date', [u"'2004-08-01'"]]], [u'<', ['path', [u'i', u'startTime'], None], ['fn', u'date', [u"'2004-08-01'"]]]]]
+  >>> print parse('for_stmt', u"for i in '//Schema/Core/Kind' where ftcontains(i.description,'\\"howard johnson\\" and pancakes')")
+  ['for', u'i', u"'//Schema/Core/Kind'", ['fn', u'ftcontains', [['path', [u'i', u'description'], None], u'\\'"howard johnson" and pancakes\\'']]]
 
   ### UNION_EXPR
   >>> print parse('union_stmt','union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True, for i in "//parcels/osaf/contentmodel/Note" where True, for i in "//parcels/osaf/contentmodel/contacts/Contact" where True)')
