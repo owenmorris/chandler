@@ -3,7 +3,8 @@ import davlib
 from repository.item.Item import Item
 from repository.util.URL import URL
 
-import Import, Export
+import application.Globals as Globals
+import Import, Export, Sync
 
 """
  * If I make ItemCollections use a refcollection under the hood as a real attribute
@@ -25,12 +26,42 @@ class DAV(object):
     def newConnection(self):
         return DAVConnection(self.url)
 
-    # importing
+    def putResource(self, body, mimetype='text/plain/'):
+        return self.newConnection().put(unicode(self.url), body, mimetype, None)
+        # return status.. or maybe just throw an exception if the put failed
+
+    def getHeaders(self):
+        return self.newConnection().head(unicode(self.url))
+
+    def _getETag(self):
+        return self.getHeaders().getheader('ETag', default='')
+
+    def _getLastModified(self):
+        return self.getHeaders().getheader('Last-Modified', default='')
+
+
     def get(self):
         """ returns a newly created Item """
-        return Import.getItem(self)
+        return Sync.getItem(self)
+
+    def put(self, item):
+        # add an entry here to say that we're already here
+        sharing = Globals.repository.findPath('//parcels/osaf/framework/GlobalShare') 
+        sharing.itemMap[item.itsUUID] = item.itsUUID
+
+        item.sharedURL = self.url
+        self.sync(item)
+
+    def sync(self, item):
+        return Sync.syncItem(self, item)
+
+
+    etag = property(_getETag)
+    lastModified = property(_getLastModified)
+
 
     def getCollection(self):
+        # this code can't work.
         """ gives back a new ItemCollection """
         collection = self.get()
 
@@ -47,15 +78,12 @@ class DAV(object):
         # get a listing of all items in the collection... propfind depth 1
 
         # make a new ItemCollection based on the properties of the dav
-        # collection
+        # collection        if not changed:
 
         # for each resource found in the dav collection, get it and add it to
         # our itemcollection
-        pass
 
-    # exporting
-    def put(self, item):
-        Export.putItem(self, item)
+
 
     def putCollection(self, itemCollection):
         """
@@ -79,8 +107,26 @@ class DAV(object):
 
         return self.url
 
-    def sync(self, item):
-        return Import.sync(item)
+
+
+
+    def syncCollection(self, itemCollection):
+        """ gives back a new ItemCollection """
+        # this will update the itemcollection if needed
+        self.sync(itemCollection)
+
+
+        # if the collection item itself hasn't changed, sync up the current
+        # items in the collection
+        for item in itemCollection:
+            DAV(item.sharedURL).sync(item)
+            
+            listXmlGoop = collection._getAttribute('http://www.osafoundation.org/', 'items')
+            nodes = Import.makeAndParse(listXmlGoop)
+
+            for node in nodes:
+                item = DAV(node.content).get()
+                collection.add(item)
 
 
 class DAVConnection(davlib.DAV):

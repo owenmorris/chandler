@@ -39,10 +39,12 @@ class TestDAV(TestContentModel.ContentModelTestCase):
         testItem3 = DAV(url).get()
 
         print testItem, testItem2, testItem3
+
+        
         """ export item collections """
         """
         ic = ItemCollection.NamedCollection()
-        for index in range(10):
+        for index in range(5):
             ic.add(GenerateItems.GenerateCalendarEvent(100))
 
         a = DAV('http://code-bear.com/dav/' + str(ic.itsUUID)).putCollection(ic)

@@ -64,6 +64,7 @@ def putItem(dav, item):
     item.etag = r.getheader('ETag', default='')
     item.lastModified = r.getheader('Last-Modified', default='')
     item.sharedVersion = item._version
+    item.sharedURL = dav.url
 
     # ew...
     sharing = Globals.repository.findPath('//parcels/osaf/framework/GlobalShare') 

@@ -47,8 +47,6 @@ class DAVItem(object):
         r = self.dav.newConnection().propfind(url, body, depth)
 
         xmlgoop = r.read()
-        print url
-        print xmlgoop
 
         doc = libxml2.parseDoc(xmlgoop)
 

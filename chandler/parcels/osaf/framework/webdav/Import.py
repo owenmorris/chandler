@@ -97,3 +97,5 @@ def sync(item, di=None):
             item.setAttributeValue(name, attr.type.makeValue(value))
 
     item.sharedVersion = item._version
+
+    return True
