@@ -299,7 +299,7 @@ class wxSimpleCanvas (wxScrolledWindow):
         x, y = event.GetPositionTuple()
         x, y = self.CalcUnscrolledPosition (x, y)
         for drawableObject in self.zOrderedDrawableObjects:
-            if drawableObject.bounds.Inside (x, y):
+            if drawableObject.bounds.Inside ((x, y)):
                 event.m_x = x - drawableObject.bounds.GetX()
                 event.m_y = y - drawableObject.bounds.GetY()
                 if drawableObject.ProcessEvent (event):
