@@ -497,16 +497,16 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
         widget = super (EditTextAttribute, self).instantiateWidget()
         # We need to save off the changed widget's data into the block periodically
         # Hopefully OnLoseFocus is getting called every time we lose focus.
-        widget.Bind(wx.EVT_KILL_FOCUS, self.saveDataAndSkip)
-        widget.Bind(wx.EVT_KEY_UP, self.saveDataAndSkip)
+        widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
+        widget.Bind(wx.EVT_KEY_UP, self.onKeyPressed)
         return widget
 
-    def saveTextValue (self):
+    def saveTextValue (self, validate=False):
         # save the user's edits into item's attibute
         item = self.selectedItem()
         widget = self.widget
         if item and widget:
-            self.saveAttributeFromWidget(item, widget)
+            self.saveAttributeFromWidget(item, widget, validate=validate)
         
     def loadTextValue (self, item):
         # load the edit text from our attribute into the field
@@ -516,7 +516,12 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
             widget = self.widget
             self.loadAttributeIntoWidget(item, widget)
     
-    def saveDataAndSkip (self, event):
+    def onLoseFocus (self, event):
+        # called when we get an event; to saves away the data and skips the event
+        self.saveTextValue(validate=True)
+        event.Skip()
+        
+    def onKeyPressed (self, event):
         # called when we get an event; to saves away the data and skips the event
         self.saveTextValue()
         event.Skip()
@@ -529,7 +534,7 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
         self.loadTextValue(item)
         return super(EditTextAttribute, self).synchronizeItemDetail(item)
             
-    def saveAttributeFromWidget (self, item, widget):  
+    def saveAttributeFromWidget (self, item, widget, validate):  
        # subclasses need to override this method
        raise NotImplementedError, "%s.SaveAttributeFromWidget()" % (type(self))
 
@@ -547,7 +552,7 @@ class NoteBody (EditTextAttribute):
         knowsBody = item.itsKind.hasAttribute("body")
         return knowsBody
 
-    def saveAttributeFromWidget (self, item, widget):
+    def saveAttributeFromWidget (self, item, widget, validate):
         textType = item.getAttributeAspect('body', 'type')
         widgetText = widget.GetValue()
         if widgetText:
@@ -565,32 +570,33 @@ class ToEditField (EditTextAttribute):
     """
     Body attribute of a ContentItem, e.g. a Note
     """
-    def saveAttributeFromWidget(self, item, widget):  
-        toFieldString = widget.GetValue()
-
-        # remember the old value for nice change detection
-        oldWhoString = item.ItemWhoString ()
-
-        # parse the addresses and get/create/validate
-        processedAddresses, validAddresses = self.parseEmailAddresses (item, toFieldString)
-
-        # reassign the list to the attribute
-        try:
-            item.who = validAddresses
-        except:
-            pass
-
-        # Detect changes from none to some, and resynchronizeDetailView
-        #  so we can reenable the Notify button when sharees are added.
-        if isinstance (item, ItemCollection.ItemCollection):
-            whoString = item.ItemWhoString ()
-            oneEmpty = len (whoString) == 0 or len (oldWhoString) == 0
-            oneOK = len (whoString) > 0 or len (oldWhoString) > 0
-            if oneEmpty and oneOK:
-                self.resynchronizeDetailView ()
-
-        # redisplay the processed addresses in the widget
-        widget.SetValue (processedAddresses)
+    def saveAttributeFromWidget(self, item, widget, validate):
+        if validate:
+            toFieldString = widget.GetValue()
+    
+            # remember the old value for nice change detection
+            oldWhoString = item.ItemWhoString ()
+    
+            # parse the addresses and get/create/validate
+            processedAddresses, validAddresses = self.parseEmailAddresses (item, toFieldString)
+    
+            # reassign the list to the attribute
+            try:
+                item.who = validAddresses
+            except:
+                pass
+    
+            # Detect changes from none to some, and resynchronizeDetailView
+            #  so we can reenable the Notify button when sharees are added.
+            if isinstance (item, ItemCollection.ItemCollection):
+                whoString = item.ItemWhoString ()
+                oneEmpty = len (whoString) == 0 or len (oldWhoString) == 0
+                oneOK = len (whoString) > 0 or len (oldWhoString) > 0
+                if oneEmpty and oneOK:
+                    self.resynchronizeDetailView ()
+    
+            # redisplay the processed addresses in the widget
+            widget.SetValue (processedAddresses)
 
     def loadAttributeIntoWidget (self, item, widget):
         whoString = item.ItemWhoString ()
@@ -604,7 +610,7 @@ class FromEditField (EditTextAttribute):
     def shouldShow (self, item):
         return ItemCollectionOrMailMessageMixin (item)
 
-    def saveAttributeFromWidget(self, item, widget):  
+    def saveAttributeFromWidget(self, item, widget, validate):  
         pass
 
     def loadAttributeIntoWidget(self, item, widget):
@@ -636,7 +642,7 @@ class EditRedirectAttribute (EditTextAttribute):
     An attribute-based edit field
     Our parent block knows which attribute we edit.
     """
-    def saveAttributeFromWidget(self, item, widget):
+    def saveAttributeFromWidget(self, item, widget, validate):
         item.setAttributeValue(self.whichAttribute(), widget.GetValue())
 
     def loadAttributeIntoWidget(self, item, widget):
@@ -710,26 +716,27 @@ class ContactFullNameEditField (EditRedirectAttribute):
     An attribute-based edit field for contactName:fullName
     The actual value is stored in an contactName object.
     """
-    def saveAttributeFromWidget(self, item, widget):
+    def saveAttributeFromWidget(self, item, widget, validate):
         contactName = item.getAttributeValue (self.whichAttribute())
         widgetString = widget.GetValue()
         contactName.setAttributeValue('fullName', widgetString)
-        names = widgetString.split (' ')
-        if len (names) > 0:
-            contactName.firstName = names[0]
-        if len (names) > 1:
-            contactName.lastName = names[-1]
-        # put the fullName into any emailAddress objects connected to this item.
-        try:
-            item.homeSection.fullName = widgetString
-            item.homeSection.emailAddress.fullName = widgetString
-        except AttributeError:
-            pass
-        try:
-            item.workSection.fullName = widgetString
-            item.workSection.emailAddress.fullName = widgetString
-        except AttributeError:
-            pass
+        if validate:
+            names = widgetString.split (' ')
+            if len (names) > 0:
+                contactName.firstName = names[0]
+            if len (names) > 1:
+                contactName.lastName = names[-1]
+            # put the fullName into any emailAddress objects connected to this item.
+            try:
+                item.homeSection.fullName = widgetString
+                item.homeSection.emailAddress.fullName = widgetString
+            except AttributeError:
+                pass
+            try:
+                item.workSection.fullName = widgetString
+                item.workSection.emailAddress.fullName = widgetString
+            except AttributeError:
+                pass
 
 
     def loadAttributeIntoWidget(self, item, widget):
@@ -776,14 +783,15 @@ class EditEmailAddressAttribute (EditRedirectAttribute):
         shouldShow = item.isItemOf (contactKind)
         return shouldShow
 
-    def saveAttributeFromWidget(self, item, widget):
-        section = item.getAttributeValue (self.whichAttribute())
-        widgetString = widget.GetValue()
-        processedAddresses, validAddresses = self.parseEmailAddresses (item, widgetString)
-        section.setAttributeValue('emailAddresses', validAddresses)
-        for address in validAddresses:
-            address.fullName = section.fullName
-        widget.SetValue (processedAddresses)
+    def saveAttributeFromWidget(self, item, widget, validate):
+        if validate:
+            section = item.getAttributeValue (self.whichAttribute())
+            widgetString = widget.GetValue()
+            processedAddresses, validAddresses = self.parseEmailAddresses (item, widgetString)
+            section.setAttributeValue('emailAddresses', validAddresses)
+            for address in validAddresses:
+                address.fullName = section.fullName
+            widget.SetValue (processedAddresses)
 
     def loadAttributeIntoWidget(self, item, widget):
         value = ''
@@ -852,23 +860,24 @@ class EditTimeAttribute (EditRedirectAttribute):
             pass
         return theDate
 
-    def saveAttributeFromWidget(self, item, widget):
+    def saveAttributeFromWidget(self, item, widget, validate):
         """"
           Update the attribute from the user edited string in the widget.
         """
-        dateString = widget.GetValue().strip('?')
-        theDate = self.parseDateTime (dateString)
-        try:
-            # save the new Date/Time into the startTime attribute
-            item.ChangeStart (theDate)
-        except:
-            # DLDTBD figure out reasonable exceptions to catch during conversion
-            dateString = dateString + '?'
-        else:
-            dateString = theDate.strftime (self.timeFormat)
-
-        # redisplay the processed Date/Time in the widget
-        widget.SetValue(dateString)
+        if validate:
+            dateString = widget.GetValue().strip('?')
+            theDate = self.parseDateTime (dateString)
+            try:
+                # save the new Date/Time into the startTime attribute
+                item.ChangeStart (theDate)
+            except:
+                # DLDTBD figure out reasonable exceptions to catch during conversion
+                dateString = dateString + '?'
+            else:
+                dateString = theDate.strftime (self.timeFormat)
+    
+            # redisplay the processed Date/Time in the widget
+            widget.SetValue(dateString)
 
 
     def loadAttributeIntoWidget(self, item, widget):
@@ -910,28 +919,29 @@ class EditDurationAttribute (EditRedirectAttribute):
         calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
         return item.isItemOf (calendarMixinKind)
 
-    def saveAttributeFromWidget(self, item, widget):
+    def saveAttributeFromWidget(self, item, widget, validate):
         """"
           Update the attribute from the user edited string in the widget.
         """
-        durationString = widget.GetValue().strip('?')
-        try:
-            # convert to Date/Time
-            theDuration = DateTime.Parser.DateTimeDeltaFromString (durationString)
-        except ValueError: 
-            pass
-
-        # if we got a value different from the default
-        if self.hundredDays > theDuration > self.zeroDays:
-            # save the new duration
-            item.duration = theDuration
-
-        # get the newly formatted string
-        durationString = self.formattedDuration (theDuration, durationString)
-
-        # redisplay the processed Date/Time in the widget
-        widget.SetValue(durationString)
-
+        if validate:
+            durationString = widget.GetValue().strip('?')
+            try:
+                # convert to Date/Time
+                theDuration = DateTime.Parser.DateTimeDeltaFromString (durationString)
+            except ValueError: 
+                pass
+    
+            # if we got a value different from the default
+            if self.hundredDays > theDuration > self.zeroDays:
+                # save the new duration
+                item.duration = theDuration
+    
+            # get the newly formatted string
+            durationString = self.formattedDuration (theDuration, durationString)
+    
+            # redisplay the processed Date/Time in the widget
+            widget.SetValue(durationString)
+    
 
     def loadAttributeIntoWidget(self, item, widget):
         """"
