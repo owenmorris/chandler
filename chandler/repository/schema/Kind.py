@@ -65,7 +65,7 @@ class Kind(Item):
 
         child = self.getItemChild(name)
         if child:
-            return child.itsUUID
+            return child._uuid
         
         if self.hasAttributeValue('attributes', _attrDict=self._references):
             return self.attributes.resolveAlias(name)
@@ -148,8 +148,7 @@ class Kind(Item):
                         inheritedAttributes.append(attribute, alias=name)
             for uuid, link in inheritedAttributes._iteritems():
                 name = link._alias
-                if (not self.hasChild(name) and
-                    attributes and not attributes.resolveAlias(name)):
+                if not self.resolve(name):
                     yield (name, link._value.other(self))
 
     def _inheritAttribute(self, name):
