@@ -9,18 +9,15 @@ import os.path
 import os
 
 from model.util.UUID import UUID
-from model.item.Item import ItemHandler
 from model.persistence.Repository import Repository
 
 
 class FileRepository(Repository):
-    '''A basic one-shot XML files based repository.
+    """A basic one-shot XML files based repository.
 
     This simple repository implementation saves all items in separate XML
     item files in a given directory. It can then load them back to restore
-    the same exact item hierarchy.
-    The repository has direct access to its roots by name and to all its
-    items by UUID. It can be used as an iterator over all its items.'''
+    the same exact item hierarchy."""
 
     def __init__(self, dir):
         'Construct a FileRepository giving it a directory pathname'
@@ -55,17 +52,6 @@ class FileRepository(Repository):
 
         for hook in hooks:
             hook()
-
-    def _loadItem(self, path, cover,
-                  parent=None, verbose=False, afterLoadHooks=None):
-
-        if verbose:
-            print path
-            
-        handler = ItemHandler(cover, parent or self, afterLoadHooks)
-        xml.sax.parse(path, handler)
-
-        return handler.item
 
     def purge(self):
         'Purge the repository directory tree of all item files that do not correspond to currently existing items in the repository.'
@@ -122,7 +108,7 @@ class FileRepository(Repository):
             raise ValueError, "%s exists but is not a directory" %(dir)
 
         rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
-        root.save(self, contents=rootContents,
+        root.save(self, contents = rootContents,
                   encoding = encoding, withSchema = withSchema,
                   verbose = verbose)
         rootContents.close()

@@ -11,6 +11,7 @@ import os
 from model.util.UUID import UUID
 from model.util.Path import Path
 from model.item.Item import Item
+from model.item.Item import ItemHandler
 from model.persistence.PackHandler import PackHandler
 
 
@@ -28,6 +29,15 @@ class Repository(object):
         self._registry = {}
         self._unresolvedRefs = []
 
+    def open(self):
+        pass
+
+    def close(self):
+        pass
+    
+    def isOpen(self):
+        return True
+    
     def __iter__(self):
 
         return self._registry.itervalues()
@@ -166,7 +176,14 @@ class Repository(object):
 
     def _loadItem(self, path, cover,
                   parent=None, verbose=False, afterLoadHooks=None):
-        raise NotImplementedError, "Repository._loadItem"
+
+        if verbose:
+            print path
+            
+        handler = ItemHandler(cover, parent or self, afterLoadHooks)
+        xml.sax.parse(path, handler)
+
+        return handler.item
 
     def purge(self):
         raise NotImplementedError, "Repository.purge"
