@@ -107,7 +107,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
 
     for module in cvsModules:
         print "- - - -", module, "- - - - - - - - - - - - - - - - -"
-        log.write("- - - - Processing module: " + module + " - - - - - - -\n")
+        log.write("- - - - " + module + " - - - - - - -\n")
 
         moduleData[module] = {}
         moduleDir = os.path.join(modeDir, module)
@@ -124,7 +124,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             # it exists, see if it has changed
             os.chdir(moduleDir)
             print "seeing if we need to update", module
-            log.write("Seeing if we need to update " + module)
+            log.write("Seeing if we need to update " + module + "\n")
             outputList = hardhatutil.executeCommandReturnOutputRetry(
              [cvsProgram, "-qn", "update", "-d", cvsVintage])
             # dumpOutputList(outputList, log)
@@ -176,20 +176,19 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         if mode == "debug":
             print "Building debug"
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-            log.write("Building debug" + "\n")
+            log.write("Building debug..." + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
              [hardhatScript, "-o", outputDir, "-dBt", 
              "-D", buildVersionEscaped])
         if mode == "release":
             print "Building release"
             log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-            log.write("Building release" + "\n")
+            log.write("Building release..." + "\n")
             outputList = hardhatutil.executeCommandReturnOutput(
              [hardhatScript, "-o", outputDir, "-rBt", 
              "-D", buildVersionEscaped])
     except Exception, e:
         print "a build error"
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("***Error during build***" + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Build log:" + "\n")
@@ -198,7 +197,6 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         raise e
     else:
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         log.write("Build successful" + "\n")
         log.write("Build log:" + "\n")
         CopyLog(os.path.join(modeDir, logPath), log)
