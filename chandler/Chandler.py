@@ -16,26 +16,41 @@ def locateProfileDir(chandlerDirectory):
     if application.Globals.options.profileDir:
         application.Globals.options.profileDir = os.path.expanduser(application.Globals.options.profileDir)
     else:
-        homeDir = os.path.expanduser('~')
-
         if os.name == 'nt':
-            profileDir = os.path.join(homeDir, 'Chandler')          
-            # TODO need to add the location of the users Application Data directory
-        elif os.name == 'posix':
-            if sys.platform == 'darwin':
-                homeDir    = os.path.join(homeDir, 'Library', 'Application Support')
-                profileDir = os.path.join(homeDir, 'Chandler')
-            else:
-                profileDir = os.path.join(homeDir, '.chandler')          
+            dataDir = None
+
+            if os.environ.has_key('APPDATA'):
+                dataDir = os.environ['APPDATA']
+            elif os.environ.has_key('USERPROFILE'):
+                dataDir = os.environ['USERPROFILE']
+                if os.path.isdir(os.path.join(dataDir, 'Application Data')):
+                    dataDir = os.path.join(dataDir, 'Application Data')
+
+            if dataDir is None or not os.path.isdir(dataDir):
+                if os.environ.has_key('HOMEDRIVE') and os.environ.has_key('HOMEPATH'):
+                    dataDir = '%s%s' % (os.environ['HOMEDRIVE'], os.environ['HOMEPATH'])
+                    
+            if dataDir is None or not os.path.isdir(dataDir):
+                dataDir = os.path.expanduser('~')
+                
+            profileDir = os.path.join(dataDir, 'Chandler')
+        elif sys.platform == 'darwin':
+            dataDir    = os.path.join(os.path.expanduser('~'), 'Library', 'Application Support')
+            profileDir = os.path.join(dataDir, 'Chandler')
+        else:
+            dataDir    = os.path.expanduser('~')
+            profileDir = os.path.join(dataDir, '.chandler')          
 
         if not os.path.isdir(profileDir):
               # if not found, then figure out where to create one
-            if os.path.isdir(homeDir):
+            if os.path.isdir(dataDir):
                 os.mkdir(profileDir, 0700)
             else:
                 profileDir = chandlerDirectory
   
         application.Globals.options.profileDir = profileDir
+
+        print 'Using profile directory: %s' % profileDir
 
 def loadConfig(chandlerDirectory):
     """
