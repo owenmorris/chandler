@@ -321,7 +321,6 @@
     <childrenBlocks itemref="doc:ImportContactItem"/>
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:ShareCollectionItem"/>
-    <childrenBlocks itemref="doc:EditMailAccountItem"/>
     <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
@@ -554,7 +553,7 @@
     <blockName>PrefsAccountsItem</blockName>
     <title>Accounts...</title>
     <helpString>Account Preferences</helpString>
-    <event itemref="events:NULL"/>
+    <event itemref="events:EditAccountPreferences"/>
   </MenuItem>
   
   <MenuItem itsName="QuitItem">
@@ -844,13 +843,6 @@
     <title>Subscribe to Collection...</title>
     <event itemref="events:SharingSubscribeToCollection"/>
     <helpString>Subscribe to a published item collection</helpString>
-  </MenuItem>
-
-  <MenuItem itsName="EditMailAccountItem">
-    <blockName>EditMailAccountItem</blockName>
-    <title>Edit Mail Account...</title>
-    <event itemref="events:EditMailAccount"/>
-    <helpString>Edit email account settings</helpString>
   </MenuItem>
 
   <MenuItem itsName="GetNewMailItem">

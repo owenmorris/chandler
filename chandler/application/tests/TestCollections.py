@@ -34,5 +34,6 @@ class CollectionsTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.assertEqual(child1, parent.getValue('foo', alias='one'))
         self.assertEqual(child2, parent.getValue('foo', alias='two'))
 
+
 if __name__ == "__main__":
     unittest.main()

@@ -8,7 +8,8 @@ from osaf.framework.blocks.Views import View
 from osaf.framework.notifications.Notification import Notification
 import wx
 import os
-import application.Application
+import application.dialogs.AccountPreferences
+import application.dialogs.Util
 import osaf.contentmodel.mail.Mail as Mail
 from application.SplashScreen import SplashScreen
 from application.Parcel import Manager as ParcelManager
@@ -53,17 +54,22 @@ class MainView(View):
         notification.data ['Enable'] = False
 
     def onSharingSubscribeToCollectionEvent(self, notification):
-        url =  application.Application.promptUser( \
-         Globals.wxApplication.mainFrame, "Subscribe to Collection...", 
+        url =  application.dialogs.Util.promptUser( \
+         Globals.wxApplication.mainFrame, "Subscribe to Collection...",
          "Collection URL:", "http://webdav.osafoundation.org/")
         if url is not None:
             print "I would be subscribing to %s here" % url
 
+    def onEditAccountPreferencesEvent (self, notification):
+        # Triggered from "File | Prefs | Accounts..."
+        application.dialogs.AccountPreferences.ShowAccountPreferencesDialog(Globals.wxApplication.mainFrame)
 
     def onEditMailAccountEvent (self, notification):
+        # @@@ Deprecated, replaced by onEditAccountPreferencesEvent, above
+
         account = \
          Globals.repository.findPath('//parcels/osaf/mail/IMAPAccountOne')
-        if application.Application.promptForItemValues(
+        if application.dialogs.Util.promptForItemValues(
          Globals.wxApplication.mainFrame,
          "IMAP Account",
          account,

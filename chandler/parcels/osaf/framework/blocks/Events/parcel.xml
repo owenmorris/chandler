@@ -30,7 +30,7 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:Paste"/>
     <subscribeAlwaysEvents itemref="events:Preferences"/>
     <subscribeAlwaysEvents itemref="events:SharingSubscribeToCollection"/>
-    <subscribeAlwaysEvents itemref="events:EditMailAccount"/>
+    <subscribeAlwaysEvents itemref="events:EditAccountPreferences"/>
     <subscribeAlwaysEvents itemref="events:GetNewMail"/>
     <subscribeAlwaysEvents itemref="events:SelectionChanged"/>
     <subscribeAlwaysEvents itemref="events:SelectionChangedSentToSidebar"/>
@@ -104,7 +104,7 @@ of a limitation of the XML format, which will be eliminated</description>
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itsName="EditMailAccount">
+  <BlockEvent itsName="EditAccountPreferences">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
