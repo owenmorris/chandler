@@ -55,6 +55,10 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
             outputList = hardhatutil.executeCommandReturnOutputRetry(
              [cvsProgram, "-q", "checkout", cvsVintage, "internal"])
             hardhatutil.dumpOutputList(outputList, log)
+            log.write("Checking out: chandler with " + cvsVintage + "\n")
+            outputList = hardhatutil.executeCommandReturnOutputRetry(
+             [cvsProgram, "-q", "checkout", cvsVintage, "chandler"])
+            hardhatutil.dumpOutputList(outputList, log)
 
         if releaseMode == "debug":
             dbgStr = "DEBUG=1"
