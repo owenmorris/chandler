@@ -118,7 +118,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     print "Examining CVS"
     log.write("Examining CVS\n")
     for module in cvsModules:
-        print "module..."
+        print module, "..."
         log.write("- - - - " + module + " - - - - - - -\n")
         moduleData[module] = {}
         moduleDir = os.path.join(modeDir, module)
