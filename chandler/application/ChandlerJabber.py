@@ -245,12 +245,9 @@ class JabberClient:
         # get the dictionary containing the accessible views
         views = self.application.GetAccessibleViews(requestJabberID)
         
-        # pickle the result
-        viewStr = cPickle.dumps(views)		
-        
-        # escape blanks in the pickled data, so we can later strip the ones jabber adds
-        viewStr = string.replace(viewStr, ' ', '--b--')
-        
+        # encode the viewList
+        viewStr = self.EncodePythonObject(views)		
+                
         # send it back to the requestor		
         self.SendViewResponse(viewStr, requestJabberID, 'chandler:response-views')
         self.openPeers[requestJabberID] = 1
@@ -269,10 +266,7 @@ class JabberClient:
         
     # handle responses to requests for accessible views
     def HandleViewResponse(self, fromAddress, responseBody):
-        mappedResponse = responseBody.encode('ascii')
-        mappedResponse = self.FixExtraBlanks(mappedResponse)
-            
-        newViews = cPickle.loads(mappedResponse)	
+        newViews = self.DecodePythonObject(reponseBody)
         self.SetAccessibleViews(fromAddress, newViews)
                         
     # handle an incoming message
@@ -407,21 +401,18 @@ class JabberClient:
     def HandleErrorResponse(self, fromAddress, body):
         pass
     
-    # encode an objectlist into a text string, using cPickle and base64 encoding
-    def EncodeObjectList(self, objectList):
-        viewStr = cPickle.dumps(objectList)		
-        # escape blanks in the pickled data, so we can later strip the ones jabber adds
-        #viewStr = string.replace(viewStr, ' ', '--b--')
+    # encode a Python object into a text string, using cPickle and base64 encoding
+    def EncodePythonObject(self, objectToEncode):
+        viewStr = cPickle.dumps(objectToEncode)		
         viewStr = base64.encodestring(viewStr)
-        return viewStr
+        return objectToEncode
     
-    # decode an objectlist from a text string, using base65 and cPickle
+    # decode a Python object from a text string, using base64 and cPickle
     def DecodeObjectList(self, objectStr):
-        mappedResponse = objectStr.encode('ascii')
-        mappedResponse = self.FixExtraBlanks(mappedResponse)
-        mappedResponse = base64.decodestring(viewStr)
-        objectList = cPickle.loads(mappedResponse)	
-        return objectList
+        mappedObjectStr = objectStr.encode('ascii')
+        mappedObjectStr = self.FixExtraBlanks(mappedObjectStr)
+        mappedObjectStr = base64.decodestring(mappedObjectStr)
+        return cPickle.loads(mappedObjectStr)	
     
     # put up a dialog to confirm the subscription request
     def ConfirmSubscription(self, subscriptionType, who):
