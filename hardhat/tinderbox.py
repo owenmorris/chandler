@@ -51,7 +51,7 @@ def main():
       " [default] False")
 
     (options, args) = parser.parse_args()
-    if len(args) != 1:
+    if len(args) < 1:
         parser.print_help()
         parser.error("You must at least provide a name for your build")
 
