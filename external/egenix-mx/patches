@@ -1,25 +1,20 @@
---- egenix-mx-base-2.1.0/mx/DateTime/DateTime.py	2001-10-10 01:10:00.000000000 -0700
-+++ egenix-mx-base-2.1.0-patched/mx/DateTime/DateTime.py	2004-03-16 17:39:23.000000000 -0800
-@@ -537,7 +537,7 @@
+--- egenix-mx-base-2.1.0/mx/BeeBase/mxBeeBase/mxBeeBase.c	2001-12-20 13:01:53.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/BeeBase/mxBeeBase/mxBeeBase.c	2004-03-18 18:41:26.000000000 -0800
+@@ -65,10 +65,10 @@
+ /* --- forward declarations ----------------------------------------------- */
  
-     def __radd__(self,other,
-                  # Locals:
--                 None=None,isinstance=isinstance,DateTimeType=DateTimeType,
-+                 isinstance=isinstance,DateTimeType=DateTimeType,
-                  DateTime=DateTime,DateTimeDelta=DateTimeDelta):
+ staticforward PyTypeObject mxBeeIndex_Type;
+-staticforward PyMethodDef mxBeeIndex_Methods[];
++extern PyMethodDef mxBeeIndex_Methods[];
  
-         if isinstance(other,DateTimeType):
-@@ -640,7 +640,7 @@
+ staticforward PyTypeObject mxBeeCursor_Type;
+-staticforward PyMethodDef mxBeeCursor_Methods[];
++extern PyMethodDef mxBeeCursor_Methods[];
  
-     def __rsub__(self,other,
-                  # Locals:
--                 None=None,isinstance=isinstance,DateTime=DateTime):
-+                 isinstance=isinstance,DateTime=DateTime):
- 
-         if isinstance(other,DateTimeType):
-             # DateTime (other) - RelativeDateTime (self)
+ staticforward
+ mxBeeCursorObject *mxBeeCursor_New(mxBeeIndexObject *index,   /* Index object */
 --- egenix-mx-base-2.1.0/mx/DateTime/mxDateTime/mxDateTime.c	2001-12-10 02:15:49.000000000 -0800
-+++ egenix-mx-base-2.1.0-patched/mx/DateTime/mxDateTime/mxDateTime.c	2004-03-16 17:48:11.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/DateTime/mxDateTime/mxDateTime.c	2004-03-18 18:38:26.000000000 -0800
 @@ -76,8 +76,10 @@
  #define STRFTIME_OUTPUT_SIZE	1024
  
@@ -31,3 +26,78 @@
  
  /* Define this to enable the copy-protocol (__copy__, __deepcopy__) */
  #define COPY_PROTOCOL
+@@ -160,10 +162,10 @@
+ /* --- forward declarations ----------------------------------------------- */
+ 
+ staticforward PyTypeObject mxDateTime_Type;
+-staticforward PyMethodDef mxDateTime_Methods[];
++extern PyMethodDef mxDateTime_Methods[];
+ 
+ staticforward PyTypeObject mxDateTimeDelta_Type;
+-staticforward PyMethodDef mxDateTimeDelta_Methods[];
++extern PyMethodDef mxDateTimeDelta_Methods[];
+ 
+ staticforward
+ PyObject *mxDateTimeDelta_FromDaysEx(long days,
+--- egenix-mx-base-2.1.0/mx/Proxy/mxProxy/mxProxy.c	2001-12-20 11:57:46.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/Proxy/mxProxy/mxProxy.c	2004-03-18 18:39:06.000000000 -0800
+@@ -66,7 +66,7 @@
+ /* --- forward declarations ----------------------------------------------- */
+ 
+ staticforward PyTypeObject mxProxy_Type;
+-staticforward PyMethodDef mxProxy_Methods[];
++extern PyMethodDef mxProxy_Methods[];
+ static int mxProxy_DefuncObjectReference(mxProxyObject *self);
+ static int mxProxy_FinalizeWeakReferences(void);
+ 
+--- egenix-mx-base-2.1.0/mx/Queue/mxQueue/mxQueue.c	2001-12-20 11:57:46.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/Queue/mxQueue/mxQueue.c	2004-03-18 18:39:35.000000000 -0800
+@@ -58,7 +58,7 @@
+ /* --- forward declarations ----------------------------------------------- */
+ 
+ staticforward PyTypeObject mxQueue_Type;
+-staticforward PyMethodDef mxQueue_Methods[];
++extern PyMethodDef mxQueue_Methods[];
+ 
+ /* --- internal macros ---------------------------------------------------- */
+ 
+--- egenix-mx-base-2.1.0/mx/Stack/mxStack/mxStack.c	2001-12-20 11:57:46.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/Stack/mxStack/mxStack.c	2004-03-18 18:40:00.000000000 -0800
+@@ -58,7 +58,7 @@
+ /* --- forward declarations ----------------------------------------------- */
+ 
+ staticforward PyTypeObject mxStack_Type;
+-staticforward PyMethodDef mxStack_Methods[];
++extern PyMethodDef mxStack_Methods[];
+ 
+ /* --- internal macros ---------------------------------------------------- */
+ 
+--- egenix-mx-base-2.1.0/mx/TextTools/mxTextTools/mxTextTools.c	2001-12-28 12:53:03.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/TextTools/mxTextTools/mxTextTools.c	2004-03-18 18:40:51.000000000 -0800
+@@ -141,7 +141,7 @@
+ 
+ /* --- Text Search Object ----------------------------------------------*/
+ 
+-staticforward PyMethodDef mxTextSearch_Methods[];
++extern PyMethodDef mxTextSearch_Methods[];
+ 
+ /* allocation */
+ 
+@@ -912,7 +912,7 @@
+ 
+ /* --- Character Set Object --------------------------------------------*/
+ 
+-staticforward PyMethodDef mxCharSet_Methods[];
++extern PyMethodDef mxCharSet_Methods[];
+ 
+ /* internal */
+ 
+@@ -2081,7 +2081,7 @@
+ 
+ /* --- Tag Table Object ------------------------------------------------*/
+ 
+-staticforward PyMethodDef mxTagTable_Methods[];
++extern PyMethodDef mxTagTable_Methods[];
+ 
+ PyObject *mxTagTable_New(PyObject *definition,
+ 			 int tabletype,
