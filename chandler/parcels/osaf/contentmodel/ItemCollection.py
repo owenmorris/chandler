@@ -3,9 +3,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import repository.item.Item as Item
+import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
-
 """
  * Need to dirty the collection when the rule attribute is changed
  * think about implementing the full Set API
@@ -15,7 +14,7 @@ import logging
 log = logging.getLogger("ItemCollection")
 log.setLevel(logging.INFO)
 
-class ItemCollection(Item.Item):
+class ItemCollection(ContentModel.ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:
             parent = Globals.repository.findPath('//userdata/contentitems')
@@ -159,7 +158,8 @@ class ItemCollection(Item.Item):
         # post collection_changed notification
         self.getRepositoryView().findPath('//parcels/osaf/contentmodel/collection_changed').Post( {'collection' : self.itsUUID} )
 
-
+    def shareSend (self):
+        self.messageMainView ('ShareCollection', self) # ==> MainView.ShareCollection (self)
 
 class NamedCollection(ItemCollection):
     def __init__(self, name=None, parent=None, kind=None):

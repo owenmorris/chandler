@@ -66,9 +66,9 @@
     <dispatchToBlock itemref="doc:MarkupBar"/>
   </BlockEvent>
 
-  <BlockEvent itemName="SendMailMessage">
+  <BlockEvent itemName="SendShareItem">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onSendMailMessageEvent</methodName>
+    <methodName>onSendShareItemEvent</methodName>
     <dispatchToBlock itemref="doc:DetailRootTemplate"/>
   </BlockEvent>
 
@@ -80,7 +80,7 @@
   <SelectionContainer itemName="DetailRootTemplate"
                      itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
     <childrenBlocks itemref="doc:DetailTrunk"/>
-    <subscribeWhenVisibleEvents itemref="doc:SendMailMessage"/>
+    <subscribeWhenVisibleEvents itemref="doc:SendShareItem"/>
     <subscribeWhenVisibleEvents itemref="doc:NULL"/>
   </SelectionContainer>
 
@@ -90,7 +90,7 @@
     <childrenBlocks itemref="doc:FromAndToArea"/>
     <childrenBlocks itemref="doc:CoreIndent"/>
     <childrenBlocks itemref="doc:NotesArea"/>
-    <childrenBlocks itemref="doc:SendBar"/>
+    <childrenBlocks itemref="doc:SendShareButton"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <size>80,20</size>
@@ -434,32 +434,10 @@
     <minimumSize>380, 120</minimumSize>
   </EditText>
 
-  <!-- Send Bar -->
-  <ContentItemDetail itsName="SendBar"
-                     itemClass="osaf.framework.blocks.detail.Detail.MailMessageBlock">
-    <childrenBlocks itemref="doc:NotifyRadioBox"/>
-    <childrenBlocks itemref="doc:SendButton"/>
-    <!-- Attributes -->
-    <minimumSize>300,40</minimumSize>
-    <stretchFactor>1</stretchFactor>
-    <orientationEnum>Horizontal</orientationEnum>
-  </ContentItemDetail>
- 
-  <RadioBox itsName="NotifyRadioBox">
-    <!-- Attributes -->
-    <title>Notify</title>
-    <choices>All</choices>
-    <choices>New</choices>
-    <radioAlignEnum>Across</radioAlignEnum>
-    <itemsPerLine>2</itemsPerLine>
+  <!-- Send button -->
+  <Button itsName="SendShareButton"
+          itemClass="osaf.framework.blocks.detail.Detail.SendShareButton">
 
-    <size>200,24</size>
-    <minimumSize>200,30</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <stretchFactor>0.0</stretchFactor>
-  </RadioBox>
-  
-  <Button itsName="SendButton">
     <!-- Attributes -->
     <title>Send</title>
     <buttonKind>Text</buttonKind>
@@ -467,7 +445,7 @@
     <size>60,30</size>
     <minimumSize>60,30</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <event itemref="doc:SendMailMessage"/>
+    <event itemref="doc:SendShareItem"/>
     <alignmentEnum>alignCenter</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </Button>

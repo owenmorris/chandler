@@ -18,9 +18,10 @@ import osaf.framework.utils.imports.OutlookContacts as OutlookContacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 from repository.persistence.RepositoryError import VersionConflictError
 import repository.util.UUID as UUID
-import osaf.framework.sharing.Sharing
+import osaf.framework.sharing.Sharing as Sharing
 import repository.query.Query as Query
-
+import osaf.mail.sharing as MailSharing
+import osaf.framework.webdav.Dav as Dav
 
 
 class MainView(View):
@@ -59,7 +60,7 @@ class MainView(View):
 
     def onSharingSubscribeToCollectionEvent(self, notification):
         # Triggered from "Tests | Subscribe to collection..."
-        osaf.framework.sharing.Sharing.manualSubscribeToCollection()
+        Sharing.manualSubscribeToCollection()
 
     def onEditAccountPreferencesEvent (self, notification):
         # Triggered from "File | Prefs | Accounts..."
@@ -222,14 +223,14 @@ class MainView(View):
         # Triggered from "Test | Share collection..."
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            osaf.framework.sharing.Sharing.manualPublishCollection(collection)
+            Sharing.manualPublishCollection(collection)
 
     def onShareCollectionEventUpdateUI (self, notification):
         """
         Update the menu to reflect the selected collection name
         """
         # Only enable it user has set their webdav account up
-        if osaf.framework.sharing.Sharing.getWebDavPath() == None:
+        if Sharing.getWebDavPath() == None:
             notification.data ['Enable'] = False
             return
 
@@ -246,7 +247,7 @@ class MainView(View):
         # Triggered from "Test | Sync collection..."
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
-            osaf.framework.sharing.Sharing.syncCollection(collection)
+            Sharing.syncCollection(collection)
 
     def onSyncCollectionEventUpdateUI (self, notification):
         """
@@ -255,7 +256,7 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             menuTitle = 'Sync collection "%s"' % collection.displayName
-            if osaf.framework.sharing.Sharing.isShared(collection):
+            if Sharing.isShared(collection):
                 notification.data['Enable'] = True
             else:
                 notification.data['Enable'] = False
@@ -275,7 +276,7 @@ class MainView(View):
         collQuery.recursive = False
         for collection in collQuery:
             self.setStatusText ("synchronizing %s" % collection)
-            osaf.framework.sharing.Sharing.syncCollection(collection)
+            Sharing.syncCollection(collection)
 
         # synch mail
         self.setStatusText ("Getting new Mail")
@@ -309,7 +310,7 @@ class MainView(View):
         collection = self.getSidebarSelectedCollection ()
         if collection is not None:
             notification.data['Enable'] = True
-            if osaf.framework.sharing.Sharing.isShared(collection):
+            if Sharing.isShared (collection):
                 menuTitle = 'Manage collection "%s"' % collection.displayName
             else:
                 menuTitle = 'Share collection "%s"' % collection.displayName
@@ -320,3 +321,108 @@ class MainView(View):
 
     def setStatusText (self, statusMessage):
         Globals.wxApplication.mainFrame.SetStatusText (statusMessage)
+
+    def onMessageMainViewEvent (self, notification):
+        """
+          Handler for general message to call one of my methods.
+        Used by ContentModel when it wants to call a method here,
+        e.g. setStatusText.
+        """
+        # unpack the arguments
+        data = notification.data
+        args = data['__args']
+        keys = data['__keys']
+        methodName = data['__methodName']
+        # look up the method by name
+        try:
+            member = getattr (type(self), methodName)
+        except AttributeError:
+            return
+        # call the method with params
+        member (self, *args, **keys)
+
+    def ShareCollection (self, itemCollection):
+        # put a "committing" message into the status bar
+        self.setStatusText ('Committing changes...')
+
+        # commit changes, since we'll be switching to Twisted thread
+        Globals.repository.commit()
+    
+        # API to tell the collection to share itself.
+        self.setStatusText ("Sharing collection %s" % itemCollection.displayName)
+        try:
+            invitees = itemCollection.sharees
+        except AttributeError:
+            invitees = []
+        if len (invitees) == 0:
+            self.setStatusText ("No sharees!")
+            return
+
+        #account = Sharing.getWebDavAccount ()
+        if Sharing.isShared (itemCollection):
+            url = str (itemCollection.sharedURL)
+            self.setStatusText ("Collection %s is already shared - resharing" % itemCollection.displayName)
+        else:
+            path = Sharing.getWebDavPath()
+            if path:
+                url = "%s/%s" % (path, itemCollection.itsUUID)
+            else:
+                self.setStatusText ("You need to set up the server and path in the account dialog!")
+                return
+            url = url.encode ('utf-8')
+
+        # change the name to include "Shared"
+        if not "Shared" in itemCollection.displayName:
+            itemCollection.displayName = "%s (Shared)" % itemCollection.displayName
+
+        # Sync the collection with WebDAV
+        self.setStatusText ("accessing WebDAV server")
+        Dav.DAV(url).put(itemCollection)
+
+        # Send out sharing invites
+        inviteeStringsList = []
+        for entity in invitees:
+            inviteeStringsList.append (entity.emailAddress)
+        self.setStatusText ("inviting %s" % inviteeStringsList)
+        MailSharing.sendInvitation(url, itemCollection.displayName, inviteeStringsList)
+
+        # Done
+        self.setStatusText ("Sharing initiated.")
+
+    def displaySMTPSendSuccess (self, mailMessageUUID):
+        """
+          Called when the SMTP Send was successful.
+        """
+        mailMessageKind = Mail.MailParcel.getMailMessageKind ()
+        mailMessage = mailMessageKind.findUUID(mailMessageUUID)
+    
+        if mailMessage is not None and mailMessage.isOutbound:
+            self.setStatusText ('mailMessage "%s" sent.' % mailMessage.about)
+
+    def displaySMTPSendError (self, mailMessageUUID):
+        """
+          Called when the SMTP Send generated an error.
+        """
+        # Lookup the message
+        mailMessageKind = Mail.MailParcel.getMailMessageKind ()
+        mailMessage = mailMessageKind.findUUID(mailMessageUUID)
+    
+        if mailMessage is not None and mailMessage.isOutbound:
+            """DLDTBD - Select the message in CPIA"""
+    
+            errorStrings = []
+    
+            for error in mailMessage.deliveryExtension.deliveryErrors:
+                 errorStrings.append(error.errorString)
+   
+            str = "error"
+   
+            if len(errorStrings) > 1:
+                str = "errors"
+   
+            errorMessage = "The following %s occurred. %s" % (str, ', '.join(errorStrings))
+            errorMessage = errorMessage.encode ('utf-8')
+            self.setStatusText (errorMessage)
+            application.dialogs.Util.showAlert(Globals.wxApplication.mainFrame, errorMessage)
+            self.setStatusText ('')
+        

@@ -39,8 +39,6 @@ class MailParcel(application.Parcel.Parcel):
                         makeContainer)
             
         self._setUUIDs()
-
-        SMTPDelivery.startup ()
         
     def getMailItemParent(cls, inbound=False):
 
@@ -285,19 +283,6 @@ class SMTPDelivery(MailDeliveryBase):
         self.deliveryType = "SMTP"
         self.state = "DRAFT"
 
-    MAILPARCEL = "//parcels/osaf/contentmodel/mail/"
-
-    def startup (cls):
-        # subscribe to the error and success events, and specify class
-        # methods to be called.
-        event = Globals.repository.findPath(cls.MAILPARCEL + 'smtpSendErrorEvent')
-        Globals.notificationManager.Subscribe([event], UUID.UUID(),
-                                              cls._smtpSendErrorCallback)
-        event = Globals.repository.findPath(cls.MAILPARCEL + 'smtpSendSuccessEvent')
-        Globals.notificationManager.Subscribe([event], UUID.UUID(),
-                                              cls._smtpSendSuccessCallback)
-    startup = classmethod (startup)
-
     #XXX: Will want to expand state to an object with error or sucess code 
     #     desc string, and date
     def sendFailed(self):
@@ -323,50 +308,6 @@ class SMTPDelivery(MailDeliveryBase):
         # announce to the UI thread that an error occurred
         self.announceSMTPSendSuccess (self.mailMessage.itsUUID)
 
-    def _smtpSendErrorCallback (notification):
-        """
-          Called from the UI thread when we receive this event, 
-        to display the error
-        """
-        mailMessageUUID = notification.data['messageUUID']
-
-        # Lookup the message
-        mailMessageKind = MailParcel.getMailMessageKind ()
-        mailMessage = mailMessageKind.findUUID(mailMessageUUID)
-    
-        if mailMessage is not None and mailMessage.isOutbound:
-            """DLDTBD - Switch the CPIA view to show the message"""
-    
-            errorStrings = []
-    
-            for error in mailMessage.deliveryExtension.deliveryErrors:
-                 errorStrings.append(error.errorString)
-   
-            str = "error"
-   
-            if len(errorStrings) > 1:
-                str = "errors"
-   
-            errorMessage = "The following %s occurred: %s" % (str, ', '.join(errorStrings))
-            application.dialogs.Util.showAlert(Globals.wxApplication.mainFrame, errorMessage)
-    _smtpSendErrorCallback = staticmethod (_smtpSendErrorCallback)
-
-    def _smtpSendSuccessCallback (notification):
-        """
-          Called from the UI Thread when send was a success, 
-        to give the user feedback.
-        """
-        mailMessageUUID = notification.data['messageUUID']
-
-        # Lookup the message
-        mailMessageKind = MailParcel.getMailMessageKind ()
-        mailMessage = mailMessageKind.findUUID(mailMessageUUID)
-    
-        if mailMessage is not None and mailMessage.isOutbound:
-            # DLDTBD - do something instead of printing when mail sent.
-            print 'mailMessage "%s" sent!' % mailMessage.about
-    _smtpSendSuccessCallback = staticmethod (_smtpSendSuccessCallback)
-
     def announceSMTPSendError (cls, uuid):
         """ 
           Call this method to announce that an SMTP sending error has
@@ -375,9 +316,8 @@ class SMTPDelivery(MailDeliveryBase):
         """
     
         def _announceSMTPSendError (uuid):
-            # find and post a Chandler event to get back to the UI Thread
-            event = Globals.repository.findPath(cls.MAILPARCEL + 'smtpSendErrorEvent')
-            event.Post( { 'messageUUID' : uuid } )
+            # post a Chandler event to get back to the UI Thread
+            ContentModel.ContentItem.messageMainView ('displaySMTPSendError', uuid)
     
         # post an application event to call above
         Globals.wxApplication.PostAsyncEvent(_announceSMTPSendError, uuid)
@@ -388,8 +328,8 @@ class SMTPDelivery(MailDeliveryBase):
             a success. This method is non-blocking. """
     
         def _announceSMTPSendSuccess (uuid):
-            event = Globals.repository.findPath(cls.MAILPARCEL + 'smtpSendSuccessEvent')
-            event.Post( { 'messageUUID' : uuid } )
+            # post a Chandler event to get back to the UI Thread
+            ContentModel.ContentItem.messageMainView ('displaySMTPSendSuccess', uuid)
     
         Globals.wxApplication.PostAsyncEvent(_announceSMTPSendSuccess, uuid)
     announceSMTPSendSuccess = classmethod (announceSMTPSendSuccess)
@@ -504,12 +444,19 @@ class MailMessage(Notes.Note, MailMessageMixin):
         """
           Share this item, or Send if it's an Email
         We assume we want to send this MailMessage here.
+        DLDTBD - move to MailMessageMixin
         """
+        # put a "committing" message into the status bar
+        self.setStatusText ('Committing changes...')
+
         # commit changes, since we'll be switching to Twisted thread
         Globals.repository.commit()
     
         # get default SMTP account
         account = self.defaultSMTPAccount ()
+
+        # put a sending message into the status bar
+        self.setStatusText ('Sending mail...')
 
         # Now send the mail
         import osaf.mail.smtp as smtp
@@ -621,20 +568,17 @@ class EmailAddress(Item.Item):
         isValidAddress = message.isValidEmailAddress (address)
 
         # DLDTBD - switch on the better queries
+        # Need to override compare operators to use emailAddressesAreEqual, etc
         useBetterQuery = False
         if useBetterQuery:
 
             # get all addresses whose emailAddress or fullName match the param
             queryString = u'for i in "//parcels/osaf/contentmodel/mail/EmailAddress" \
-                          where contains(i.emailAddress,$0) or contains(i.fullName, $0)'
+                          where i.emailAddress =="$0" or i.fullName =="$0"'
             addrQuery = Query.Query (Globals.repository, queryString)
             addrQuery.args = [ address ]
-            addresses = addrQuery.execute ()
-            
-            try:
-                n = len (addresses)
-            except TypeError:
-                addresses = []
+            addresses = addrQuery
+
         else:
             # old slow query method
             emailAddressKind = MailParcel.getEmailAddressKind ()
@@ -722,14 +666,14 @@ class EmailAddress(Item.Item):
         assert len (imapAccounts) == 1, "The EmailAddress %s is not being used in %d accounts!" \
                   %  (len (imapAccounts), meEmailAddress.emailAddress)
         account = imapAccounts.first()
-
-        # Create a fresh unused EmailAddress for editing
-        newMe = EmailAddress(clone=meEmailAddress) # a fresh unused EmailAddress
-
-        # Put the new EmailAddress into the account that owns "me",
-        account.replyToAddress = newMe
-        assert cls._capturedAccount is None, "capturedAccount error"
-        cls._capturedAccount = account
+        if account:
+            # Create a fresh unused EmailAddress for editing
+            newMe = EmailAddress(clone=meEmailAddress) # a fresh unused EmailAddress
+    
+            # Put the new EmailAddress into the account that owns "me",
+            account.replyToAddress = newMe
+            assert cls._capturedAccount is None, "capturedAccount error"
+            cls._capturedAccount = account
     captureCurrentMeEmailAddress = classmethod (captureCurrentMeEmailAddress)
 
     # the captured IMAP account is save here during capture/release
@@ -741,23 +685,23 @@ class EmailAddress(Item.Item):
         If unchanged, we revert back to the old one.
         """
         # get the new user-edited "me" address out of the account
-        assert cls._capturedAccount is not None, "capuredAccount error"
-        account = cls._capturedAccount
-        cls._capturedAccount = None
-        newMeCandidate = account.replyToAddress
-
-        """
-          We'll want to use whatever existing address matches the user's edit.
-        Could be the new fresh one, could be an existing reuse, 
-        and could be the old one if no edit was made. 
-        If we're not using the new fresh copy, then we delete it.
-        """
-        theNewMe = cls.getEmailAddress (newMeCandidate.emailAddress)
-        account.replyToAddress = theNewMe
-        if theNewMe is not newMeCandidate:
-            newMeCandidate.delete ()
-
-        # Invalidate the "me" emailAddress string cache in case there was an edit.
-        cls._theMeAddress = None
+        if cls._capturedAccount is not None:
+            account = cls._capturedAccount
+            cls._capturedAccount = None
+            newMeCandidate = account.replyToAddress
+    
+            """
+              We'll want to use whatever existing address matches the user's edit.
+            Could be the new fresh one, could be an existing reuse, 
+            and could be the old one if no edit was made. 
+            If we're not using the new fresh copy, then we delete it.
+            """
+            theNewMe = cls.getEmailAddress (newMeCandidate.emailAddress)
+            account.replyToAddress = theNewMe
+            if theNewMe is not newMeCandidate:
+                newMeCandidate.delete ()
+    
+            # Invalidate the "me" emailAddress string cache in case there was an edit.
+            cls._theMeAddress = None
     releaseCurrentMeEmailAddress = classmethod (releaseCurrentMeEmailAddress)
 

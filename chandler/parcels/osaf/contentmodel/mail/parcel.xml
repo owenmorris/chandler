@@ -792,14 +792,4 @@
 
     </Kind>
 
-    <notif:Event itsName="smtpSendErrorEvent">
-        <displayName value="SMTP Send Error Event" />
-        <description value="This event is posted from the mail system when an SMTP Send error happens." />
-    </notif:Event>
-
-    <notif:Event itsName="smtpSendSuccessEvent">
-        <displayName value="SMTP Send Success Event" />
-        <description value="This event is posted from the mail system when an SMTP Send succeeds." />
-    </notif:Event>
-
 </Parcel>

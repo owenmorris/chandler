@@ -47,6 +47,7 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:CommitRepository"/>
     <subscribeAlwaysEvents itemref="events:AboutChandler"/>    
     <subscribeAlwaysEvents itemref="events:SelectedDateChanged"/>
+    <subscribeAlwaysEvents itemref="events:MessageMainView"/>
   </EventList>
 
   <BlockEvent itsName="NULL">
@@ -172,6 +173,12 @@ of a limitation of the XML format, which will be eliminated</description>
 
   <BlockEvent itsName="AboutChandler">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="MessageMainView">
+    <description>A general event to call a method in the Main View. </description>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:MainView"/>
   </BlockEvent>
 
 </core:Parcel>

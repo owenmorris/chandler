@@ -71,7 +71,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
     def assertKinds(self, item, kindsList):
         self.assertAttributes(item)
         for kind in kindsList:
-            self.assert_(item.itsKind.isKindOf(kind))
+            self.assert_(item.isItemOf(kind))
 
     def traverseStampSquence(self, item, sequence):
         for operation, stampKind in sequence:
@@ -85,7 +85,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
             item.StampKind(operation, stampKind)
             self.assertAttributes(item)
             if operation == 'add':
-                self.assert_(item.itsKind.isKindOf(stampKind))
+                self.assert_(item.isItemOf(stampKind))
 
     def testStamping(self):
         # Make sure the contentModel is loaded.
@@ -166,7 +166,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
                                           (remove, eventMixin),
                                           (add, taskMixin),
                                           (remove, mailMixin)))
-        self.assert_(aTask.itsKind.isKindOf(taskKind))
+        self.assert_(aTask.isItemOf(taskKind))
 
         # check stamping on an Event
         anEvent = Calendar.CalendarEvent("anEvent")
@@ -179,7 +179,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
                                             (remove, mailMixin),
                                             (add, eventMixin),
                                             (remove, taskMixin)))
-        self.assert_(anEvent.itsKind.isKindOf(eventKind))
+        self.assert_(anEvent.isItemOf(eventKind))
 
         # check stamping on a Mail Message
         aMessage = Mail.MailMessage("aMessage")
@@ -188,7 +188,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
                                              (add, taskMixin),
                                              (remove, eventMixin),
                                              (remove, taskMixin)))
-        self.assert_(aMessage.itsKind.isKindOf(mailKind))
+        self.assert_(aMessage.isItemOf(mailKind))
 
         # now mixin some arbitrary Kind
         anotherKind = self.rep.findPath('//parcels/osaf/framework/blocks/Block')
@@ -221,7 +221,7 @@ class StampingTest(TestContentModel.ContentModelTestCase):
         if testFailureCases:
             anotherEvent = Calendar.CalendarEvent("anotherEvent")
             self.setAttributes(anotherEvent)
-            self.assert_(anotherEvent.itsKind.isKindOf(eventKind))
+            self.assert_(anotherEvent.isItemOf(eventKind))
             try:
                 # double stamping
                 self.traverseStampSquence(anotherEvent, ((add, mailMixin),

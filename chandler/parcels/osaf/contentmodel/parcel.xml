@@ -440,6 +440,14 @@
     <core:displayName>Item Collection</core:displayName>
     <core:attributes itemref="collectionOwner"/>
 
+    <core:Attribute itsName="who">
+      <redirectTo>sharees</redirectTo>
+    </core:Attribute>
+
+    <core:Attribute itsName="about">
+      <redirectTo>displayName</redirectTo>
+    </core:Attribute>
+
     <core:Cloud itsName="DefaultCloud">
         <core:Endpoint itsName="collectionOwner">
             <attribute value="collectionOwner"/>

@@ -531,6 +531,20 @@ class ContentItem(Item.Item):
         import mail.Mail as Mail
         return Mail.EmailAddress.getCurrentMeEmailAddress ()
 
+    def messageMainView (cls, methodName, *args, **keywords):
+        messageMainViewEvent = Globals.repository.findPath \
+                             ('//parcels/osaf/framework/blocks/Events/MessageMainView')
+        data = {}
+        data['__methodName'] = methodName
+        data['__args'] = args
+        data['__keys'] = keywords
+        Globals.mainView.Post (messageMainViewEvent, data)
+    messageMainView = classmethod (messageMainView)
+
+    def setStatusText (cls, message):
+        cls.messageMainView ('setStatusText', message)
+    setStatusText = classmethod (setStatusText)
+
 class Project(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
         if not parent:

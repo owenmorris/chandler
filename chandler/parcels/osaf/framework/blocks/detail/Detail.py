@@ -8,8 +8,10 @@ import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.DynamicContainerBlocks as DynamicContainerBlocks
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
+import osaf.framework.sharing.Sharing as Sharing
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.ContentModel as ContentModel
+import osaf.contentmodel.ItemCollection as ItemCollection
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import repository.item.Query as Query
@@ -93,7 +95,7 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         super(DetailRoot, self).onDestroyWidget ()
         showReentrant (self)
 
-    def onSendMailMessageEvent (self, notification):
+    def onSendShareItemEvent (self, notification):
         item = self.selectedItem()
         item.shareSend() # tell the ContentItem to share/send itself.
 
@@ -133,9 +135,12 @@ class DetailSynchronizer(object):
 
     def synchronizeItemDetail (self, item):
         # if there is an item, we should show ourself, else hide
-        shouldShow = item is not None
+        shouldShow = self.shouldShow (item)
         return self.show(shouldShow)
-        
+    
+    def shouldShow (self, item):
+        return item is not None
+
     def show (self, shouldShow):
         # if the show status has changed, tell our widget, and return True
         try:
@@ -203,7 +208,8 @@ class StaticRedirectAttribute (StaticTextLabel):
       Static Text that displays the name of the selected item's Attribute
     """
     def staticTextLabelValue (self, item):
-        redirectAttr = item.getAttributeAspect(self.whichAttribute(), 'redirectTo')
+        redirectName = self.whichAttribute ()
+        redirectAttr = item.getAttributeAspect(redirectName, 'redirectTo')
         if redirectAttr is None:
             redirectAttr = '  '
         else:
@@ -213,24 +219,11 @@ class StaticRedirectAttribute (StaticTextLabel):
 class LabeledTextAttributeBlock (ControlBlocks.ContentItemDetail):
     def synchronizeItemDetail(self, item):
         whichAttr = self.selectedItemsAttribute
-        try:
-            attr = item.getAttributeValue(whichAttr)
-            self.isShown = attr is not None
-        except AttributeError:
-            self.isShown = item.hasAttributeAspect(whichAttr, 'redirectTo')
+        if item is None:
+            self.isShown = False
+        else:
+            self.isShown = item.itsKind.hasAttribute(whichAttr)
         self.synchronizeWidget()
-
-class MailMessageBlock (DetailSynchronizer, ControlBlocks.ContentItemDetail):
-    """
-    A block whose contents are shown only when the item is a Mail Message.
-    """
-    def synchronizeItemDetail(self, item):
-        mailKind = Mail.MailParcel.getMailMessageKind ()
-        try:
-            shouldShow = item.itsKind.isKindOf (mailKind)
-        except AttributeError:
-            shouldShow = False
-        return self.show(shouldShow)
 
 class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     """   
@@ -246,7 +239,7 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         # Rekind the item by adding or removing the associated Mixin Kind
         tool = notification.data['sender']
         item = self.selectedItem()
-        isANoteKind = item.itsKind.isKindOf(ContentModel.ContentModel.getNoteKind())
+        isANoteKind = item.isItemOf(ContentModel.ContentModel.getNoteKind())
         if not isANoteKind:
             return
         if item is not None:
@@ -265,7 +258,7 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
     def onButtonPressedUpdateUI (self, notification):
         item = self.selectedItem()
         if item is not None:
-            enable = item.itsKind.isKindOf(ContentModel.ContentModel.getNoteKind())
+            enable = item.isItemOf(ContentModel.ContentModel.getNoteKind())
         else:
             enable = False
         notification.data ['Enable'] = enable
@@ -285,7 +278,7 @@ class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem)
     def synchronizeItemDetail (self, item):
         # toggle this button to reflect the kind of the selected item
         shouldToggleBasedOnClass = isinstance(item, self.stampMixinClass())
-        shouldToggleBasedOnKind = item.itsKind.isKindOf(self.stampMixinKind())
+        shouldToggleBasedOnKind = item.isItemOf(self.stampMixinKind())
         assert shouldToggleBasedOnClass == shouldToggleBasedOnKind, \
                "Class/Kind mismatch for class %s, kind %s" % (item.__class__, item.itsKind)
         self.dynamicParent.widget.ToggleTool(self.toolID, shouldToggleBasedOnKind)
@@ -375,6 +368,14 @@ class NoteBody (EditTextAttribute):
     """
     Body attribute of a ContentItem, e.g. a Note
     """
+    def shouldShow (self, item):
+        if item is None:
+            return False
+        # need to show even if there is no value, so we test
+        # the kind to see if it knows about the attribute.
+        knowsBody = item.itsKind.hasAttribute("body")
+        return knowsBody
+
     def saveAttributeFromWidget (self, item, widget):  
         textType = item.getAttributeAspect('body', 'type')
         widgetText = widget.GetValue()
@@ -423,7 +424,10 @@ class ToEditField (EditTextAttribute):
         widget.SetValue (', '.join (processedAddresses))
 
     def loadAttributeIntoWidget (self, item, widget):
-        whoString = item.ItemWhoString ()
+        try:
+            whoString = item.ItemWhoString ()
+        except AttributeError:
+            whoString = ""
         widget.SetValue (whoString)
 
 class FromEditField (EditTextAttribute):
@@ -431,7 +435,10 @@ class FromEditField (EditTextAttribute):
     def saveAttributeFromWidget(self, item, widget):  
         pass       
     def loadAttributeIntoWidget(self, item, widget):
-        whoString = item.ItemWhoFromString ()
+        try:
+            whoString = item.ItemWhoFromString ()
+        except AttributeError:
+            whoString = ''
         widget.SetValue (whoString)
 
 class EditRedirectAttribute (EditTextAttribute):
@@ -448,5 +455,45 @@ class EditRedirectAttribute (EditTextAttribute):
         except AttributeError:
             value = ''
         widget.SetValue(value)
+
+class SendShareButton (DetailSynchronizer, ControlBlocks.Button):
+    def shouldShow (self, item):
+        if item is None:
+            return False
+        # if the item is a MailMessageMixin, we should show ourself
+        shouldShow = item.isItemOf(Mail.MailParcel.getMailMessageMixinKind())
+        # if the item is a collection, we should show ourself
+        shouldShow = shouldShow or isinstance (item, ItemCollection.ItemCollection)
+        return shouldShow
+
+    def synchronizeItemDetail (self, item):
+        # if the button should be visible, enable/disable
+        if self.shouldShow (item):
+            if isinstance (item, ItemCollection.ItemCollection):
+                # collection: label should read "share"
+                label = "Share"
+                # disable this button if the collection is already shared
+                try:
+                    shouldEnable = not Sharing.isShared (item)
+                except AttributeError:
+                    shouldEnable = True
+                else:
+                    if not shouldEnable:
+                        label = "Shared"
+            else:
+                # not a collection, so it's probably Mail
+                label = "Send"
+                shouldEnable = True
+                try:
+                    dateSent = item.dateSent
+                except AttributeError:
+                    dateSent = None
+                if dateSent is not None:
+                    label = "Sent"
+                    shouldEnable = False
+            self.widget.Enable (shouldEnable)
+            self.widget.SetLabel (label)
+        return super (SendShareButton, self).synchronizeItemDetail (item)
+
 
 
