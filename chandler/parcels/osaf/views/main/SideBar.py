@@ -19,7 +19,7 @@ class wxSidebar(ControlBlocks.wxTable):
         
     def AddItem(self, itemUUID):
         item = self.blockItem.findUUID(itemUUID)
-        self.blockItem.contents[self.dropRow].contents.add(item)
+        self.blockItem.contents[self.dropRow].add(item)
     
     def OnItemDrag(self, event):
         # @@@ You currently can't drag out of the sidebar
