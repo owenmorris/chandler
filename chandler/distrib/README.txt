@@ -170,7 +170,7 @@ same as the 0.1 release) is at
 
 The wikified version of the README will have a more up-to-date list of major 
 known bugs in 0.1 at
-   http://wiki.osafoundation.org/bin/view/Main/ChandlerPurposeAndGoals
+   http://wiki.osafoundation.org/bin/view/Main/ChandlerZeroPointOneREADME#bugs
 
 
 If, when you try Chandler, it doesn't perform as expected, you can either file a
