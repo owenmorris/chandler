@@ -1,11 +1,8 @@
 import application.Globals as Globals
 
 import davlib
-import httplib
 import libxml2
 import logging
-
-import Dav
 
 class BadItem(Exception):
     pass
