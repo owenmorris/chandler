@@ -50,7 +50,7 @@ else
 
 EXECUTABLE=
 
-$(SRC)/$(BUILD)/Makefile: expand apply
+$(SRC)/$(BUILD)/Makefile: apply
 	cd $(SRC); \
 	mkdir -p $(BUILD); \
 	cd $(BUILD); \

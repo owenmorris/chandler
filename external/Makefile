@@ -26,7 +26,7 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
         python/Python-2.3.3.tgz \
         python/bzip2-1.0.2.tar.gz \
         python/zlib-1.2.1.tar.gz \
-        swig/swig-20Feb04.tar.gz \
+        swig/SWIG-20Feb04.tar.gz \
         epydoc/epydoc-2.1.tar.gz \
         PyLucene/PyLucene-0.5.1.tar.gz \
         persistence/xerces-c/xerces-c-src2_4_0.tar.gz \
@@ -88,11 +88,11 @@ clean: env
 	done
 
 realclean:
-	rm -rf $(SNAP)
+	rm -rf release debug
 	@for system in $(SYSTEMS); \
 	do \
 	    echo making _realclean in $$system; \
-	    $(MAKE) -C $$system -k DEBUG=$(DEBUG) _realclean; \
+	    $(MAKE) -C $$system -k _realclean; \
 	done
 
 upload:	$(SNAP)-$(VERSION).tar.gz
