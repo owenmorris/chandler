@@ -284,8 +284,8 @@
     <childrenBlocks itemref="doc:ResendSharingInvitations"/>
     <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
-    <childrenBlocks itemref="doc:ShowViewChanges"/>
-    <childrenBlocks itemref="doc:ShowRepositoryHistory"/>
+    <childrenBlocks itemref="doc:LogViewChanges"/>
+    <childrenBlocks itemref="doc:LogRepositoryHistory"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
     <childrenBlocks itemref="doc:ReloadParcelsItem"/>
     <childrenBlocks itemref="doc:CommitRepositoryItem"/>
@@ -827,18 +827,18 @@
     <helpString>run check() on the current view</helpString>
   </MenuItem>
 
-  <MenuItem itsName="ShowViewChanges">
-    <blockName>ShowViewChanges</blockName>
-    <title>Show View Changes</title>
-    <event itemref="events:ShowViewChanges"/>
-    <helpString>show the items changed in the current view</helpString>
+  <MenuItem itsName="LogViewChanges">
+    <blockName>LogViewChanges</blockName>
+    <title>Log View Changes</title>
+    <event itemref="events:LogViewChanges"/>
+    <helpString>log the items changed in the current view</helpString>
   </MenuItem>
 
-  <MenuItem itsName="ShowRepositoryHistory">
-    <blockName>ShowRepositoryHistory</blockName>
-    <title>Show Repository History</title>
-    <event itemref="events:ShowRepositoryHistory"/>
-    <helpString>show the items that were changed and committed in other views since the current view's last commit</helpString>
+  <MenuItem itsName="LogRepositoryHistory">
+    <blockName>LogRepositoryHistory</blockName>
+    <title>Log Repository History</title>
+    <event itemref="events:LogRepositoryHistory"/>
+    <helpString>log the items that were changed and committed in other views since the current view's last commit</helpString>
   </MenuItem>
 
   <MenuItem itsName="ShowPyCrustItem">

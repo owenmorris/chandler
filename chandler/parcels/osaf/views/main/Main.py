@@ -158,14 +158,14 @@ class MainView(View):
         logger.info("%s %d 0x%0.4x\n  values: %s\n  refs: %s",
                     Item.__repr__(item), version, status, values, references)
 
-    def onShowViewChangesEvent(self, notification):
-        # triggered from "Test | Show View Changes" Menu
+    def onLogViewChangesEvent(self, notification):
+        # triggered from "Test | Log View Changes" Menu
         repository = Globals.repository
         repository.logger.info("Items changed in %s:", repository.view)
         Globals.repository.mapChanges(self._logChange)
 
-    def onShowRepositoryHistoryEvent(self, notification):
-        # triggered from "Test | Show Repository History" Menu
+    def onLogRepositoryHistoryEvent(self, notification):
+        # triggered from "Test | Log Repository History" Menu
         repository = Globals.repository
         repository.logger.info("Items changed outside %s since last commit:", repository.view)
         repository.mapHistory(self._logChange)
