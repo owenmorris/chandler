@@ -18,7 +18,7 @@ def makePreloadedRepository(path, schema=True, parcels=False):
     """
     """
     rootdir = os.environ['CHANDLERHOME']
-    handler = logging.FileHandler(os.path.join(rootdir,'chandler','chandler.log'))
+    handler = logging.FileHandler(os.path.join(rootdir,'chandler.log'))
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     handler.setFormatter(formatter)
     root = logging.getLogger()
@@ -54,8 +54,7 @@ def testCreate(rep, rootdir):
     rep.delete()
     t1 = time.time()
     rep.create()
-    schemaPack = os.path.join(rootdir, 'chandler', 'repository',
-                              'packs', 'schema.pack')
+    schemaPack = os.path.join(rootdir, 'repository', 'packs', 'schema.pack')
     rep.loadPack(schemaPack)
     rep.commit()
     print time.time() - t1
@@ -65,7 +64,7 @@ def testOpenFrom(rep, rootdir):
     """
     rep.delete()
     t1 = time.time()
-    rep.open(fromPath=os.path.join(rootdir,'chandler','repository','tests',preloadPath))
+    rep.open(fromPath=os.path.join(rootdir,'repository','tests',preloadPath))
     rep.commit()
     print time.time() - t1
 
@@ -73,7 +72,7 @@ def testPreloadVsNoPreload():
     """
     """
     rootdir = os.environ['CHANDLERHOME']
-    handler = logging.FileHandler(os.path.join(rootdir,'chandler','chandler.log'))
+    handler = logging.FileHandler(os.path.join(rootdir,'chandler.log'))
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     handler.setFormatter(formatter)
     root = logging.getLogger()

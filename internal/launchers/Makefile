@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.3-2
+RELVER=0.3-3
 LAUNCHERS=$(INTERNAL)/launchers
 
 BUILD=build_$(SNAP)
@@ -45,7 +45,7 @@ endif
 
 ifeq ($(OS),Linux)
 
-LAUNCHER_FILES=$(SNAP)/chandler $(SNAP)/chandler_bin
+LAUNCHER_FILES=$(SNAP)/chandler $(SNAP)/lib/chandler_bin
 LIB_FILES=
 
 ARCHIVE: $(LAUNCHERS)/linux/
@@ -70,7 +70,7 @@ snap:
 
 install:
 	cd $(BUILD_ROOT); \
-        tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/.. -xvf -
+        tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/../chandler -xvf -
 
 clean:
 	rm -rf $(BUILD)

@@ -5,15 +5,15 @@ then
     CHANDLERHOME=`pwd`
 fi
 
-if [ -d $CHANDLERHOME/chandler -a -f $CHANDLERHOME/release/bin/python ]
+if [ -f $CHANDLERHOME/release/bin/python ]
 then
     echo "Using $CHANDLERHOME/release/bin/python"
     echo ""
 else
     echo "Error:  Please set CHANDLERHOME environment variable to point"
-    echo "        to the directory that contains the chandler and release"
-    echo "        subdirectories, then rerun RunPython"
+    echo "        to the directory that contains the release "
+    echo "        subdirectory, then rerun RunPython"
     exit 1
 fi
 
-CHANDLERDIR=$CHANDLERHOME/chandler PYTHONPATH=$CHANDLERHOME/chandler:$CHANDLERHOME/chandler/parcels PYTHONHOME=$CHANDLERHOME/release LD_LIBRARY_PATH=$CHANDLERHOME/release/lib:$CHANDLERHOME/release/dbxml/lib:$CHANDLERHOME/release/db/lib $CHANDLERHOME/release/bin/python -O $*
+PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels PYTHONHOME=$CHANDLERHOME/release LD_LIBRARY_PATH=$CHANDLERHOME/release/lib:$CHANDLERHOME/release/dbxml/lib:$CHANDLERHOME/release/db/lib $CHANDLERHOME/release/bin/python -O $*

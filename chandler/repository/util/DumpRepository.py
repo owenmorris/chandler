@@ -9,14 +9,14 @@ from repository.persistence.XMLRepository import XMLRepository
 from repository.parcel.Util import PrintItem
 
 rootdir = os.environ['CHANDLERHOME']
-repdir = os.path.join(rootdir, 'chandler', '__repository__')
+repdir = os.path.join(rootdir, '__repository__')
 rep = XMLRepository(repdir)
 
 createRepository = False
 
 if createRepository:
     rep.create()
-    schemaPack = os.path.join(rootdir, 'chandler', 'repository', 'packs', 
+    schemaPack = os.path.join(rootdir, 'repository', 'packs', 
                               'schema.pack')
     rep.loadPack(schemaPack)
     rep.commit()

@@ -1,6 +1,5 @@
 @ECHO OFF
 setlocal
-cd ..\chandler
-set PATH=..\debug\bin
-..\debug\bin\python_d %*
+set PATH=debug\bin
+debug\bin\python_d.exe %*
 endlocal

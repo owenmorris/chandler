@@ -17,10 +17,10 @@ class RepositoryTestCase(TestCase):
 
     def _setup(self, ramdb=True):
         self.rootdir = os.environ['CHANDLERHOME']
-        self.schemaPack = os.path.join(self.rootdir, 'chandler', 'repository',
+        self.schemaPack = os.path.join(self.rootdir, 'repository',
                                   'packs', 'schema.pack')
 
-        handler = logging.FileHandler(os.path.join(self.rootdir,'chandler','chandler.log'))
+        handler = logging.FileHandler(os.path.join(self.rootdir,'chandler.log'))
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
         handler.setFormatter(formatter)
         root = logging.getLogger()
@@ -44,12 +44,12 @@ class RepositoryTestCase(TestCase):
 
         self.manager = \
          ParcelManager.getManager(repository=self.rep, \
-         path=[os.path.join(self.rootdir, 'chandler', 'parcels')])
+         path=[os.path.join(self.rootdir, 'parcels')])
 
     def setUp(self, ramdb=True):
         self._setup(ramdb)
         
-        self.testdir = os.path.join(self.rootdir, 'chandler', 'repository',
+        self.testdir = os.path.join(self.rootdir, 'repository',
                                     'tests')
         self._openRepository(ramdb)
 

@@ -24,11 +24,11 @@ MODLIBS=
 ALLLIBS=	$(LIBPYTHON) $(MODLIBS) $(LIBS) $(SYSLIBS)
 
 build:
-	mkdir -p $(BUILD)
+	mkdir -p $(BUILD)/lib
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) chandler.c -o $(BUILD)/chandler
-	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) chandler_bin.c $(ALLLIBS) -o $(BUILD)/chandler_bin
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) chandler_bin.c $(ALLLIBS) -o $(BUILD)/lib/chandler_bin
 	cp $(BUILD)/chandler $(BUILD_ROOT)/$(SNAP)
-	cp $(BUILD)/chandler_bin $(BUILD_ROOT)/$(SNAP)
+	cp $(BUILD)/lib/chandler_bin $(BUILD_ROOT)/$(SNAP)/lib
 
 
 clean:

@@ -19,12 +19,12 @@ import application.Globals as Globals
 
 # get Zaobao's feedparser
 _chandlerDir = os.environ['CHANDLERHOME']
-sys.path.append(os.path.join(_chandlerDir,'chandler','parcels','osaf','examples','zaobao'))
+sys.path.append(os.path.join(_chandlerDir,'parcels','osaf','examples','zaobao'))
 import feedparser
 
 # get all the RSS files in RSS_HOME (repository/tests/data/rssfeeds)
 # You can obtain the files from http://aloha.osafoundation.org/~twl/RSSdata/rssfeeds.syndic8.tar.bz2
-RSS_HOME=os.path.join(_chandlerDir,'chandler','repository','tests','data','rssfeeds/')
+RSS_HOME=os.path.join(_chandlerDir,'repository','tests','data','rssfeeds/')
 if os.path.exists(RSS_HOME):
     _rssfiles = os.listdir(RSS_HOME)
 else:

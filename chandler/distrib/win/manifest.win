@@ -9,8 +9,8 @@
 # glob: set to a comma-separated list of glob patterns
 
 # Grab certain dll's from release/bin
-src=release/bin
-dest=
+src=chandler/release/bin
+dest=release/bin
 libdb42.dll
 libdbxml12.dll
 libdb_java42.dll
@@ -21,8 +21,8 @@ python23.dll
 xerces-c_2_4_0.dll
 
 # Grab all py, pyc, etc. from release/bin/DLLs and release/bin/Lib
-src=release/bin
-dest=
+src=chandler/release/bin
+dest=release/bin
 glob=*.py,*.pyc,*.pyo,*.pyd,*.so,*.dll
 recursive=yes
 DLLs
@@ -57,7 +57,7 @@ locale
 src=chandler/distrib/win
 README.win.txt
 
-src=release
+src=chandler/release
 chandler.exe
 
 # Grab the overall README

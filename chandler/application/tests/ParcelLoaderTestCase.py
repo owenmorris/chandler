@@ -20,8 +20,7 @@ class ParcelLoaderTestCase(RepositoryTestCase.RepositoryTestCase):
 
         super(ParcelLoaderTestCase, self)._setup(self)
 
-        self.testdir = os.path.join(self.rootdir, 'chandler', 'application',
-         'tests')
+        self.testdir = os.path.join(self.rootdir, 'application', 'tests')
 
         super(ParcelLoaderTestCase, self)._openRepository(self)
 

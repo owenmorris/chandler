@@ -72,7 +72,7 @@ wxPython:
 
 MANIFEST=$(SNAP)/$(SITE)/wx \
          $(SNAP)/$(SITE)/wxPython \
- 	 $(SNAP)/lib/libwx_mac* \
+	 $(SNAP)/lib/libwx_mac* \
 	 $(SNAP)/lib/libwx_base_carbon* \
 	 $(SNAP)/share/locale
 
@@ -137,4 +137,4 @@ snap:
 
 install:
 	cd $(BUILD_ROOT); \
-	tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/.. -xvf -
+	tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/../chandler -xvf -

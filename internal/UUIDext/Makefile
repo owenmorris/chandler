@@ -22,7 +22,7 @@ upload: UUIDext-$(SNAP)-$(RELVER).tar.gz
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(UUIDEXT)/UUIDext-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
-                  
+
 install:
 	cd $(BUILD_ROOT); \
-        tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/.. -xvf -
+        tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/../chandler -xvf -

@@ -17,7 +17,7 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
         super(ContentModelTestCase,self)._setup(self)
 
-        self.testdir = os.path.join(self.rootdir, 'chandler', 'parcels', \
+        self.testdir = os.path.join(self.rootdir, 'parcels', \
          'osaf', 'contentmodel', 'tests')
 
         super(ContentModelTestCase,self)._openRepository(self)

@@ -41,7 +41,7 @@ upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
 	scp m2crypto-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
 
 install:
-	cd $(BUILD_ROOT)/..; \
+	cd $(BUILD_ROOT)/../chandler; \
 	tar -zxvf $(M2CRYPTO)/m2crypto-$(SNAP)-$(RELVER).tar.gz
 
 clean:

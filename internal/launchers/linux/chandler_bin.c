@@ -15,6 +15,7 @@ main(int argc, char **argv)
     int retval = 0;
     FILE *fp;
     struct stat statBuf;            /* For lstat() */
+    chdir("..");
     if((lstat("Chandler.py", &statBuf)==-1) || ! S_ISREG(statBuf.st_mode)) {
         printf("ERROR: Chandler.py not found; exiting\n");
         exit(-1);

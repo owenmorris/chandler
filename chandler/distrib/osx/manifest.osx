@@ -10,24 +10,24 @@
 
 # Grab the python modules 
 src=release/Library/Frameworks/Python.framework/Versions/2.3/lib
-dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.3/lib
+dest=Contents/release/Resources/Library/Frameworks/Python.framework/Versions/2.3/lib
 glob=*
 recursive=yes
 python2.3
 
 # Grab python Framework file
 src=release/Library/Frameworks/Python.framework/Versions/2.3
-dest=Contents/Resources/Library/Frameworks/Python.framework/Versions/2.3
+dest=Contents/release/Resources/Library/Frameworks/Python.framework/Versions/2.3
 Python
 
 # Grab python executable file
 src=release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS
-dest=Contents/MacOS
+dest=Contents/MacOS/release
 python
 
 # Grab wx and db libs
 src=release
-dest=Contents/Resources
+dest=Contents/release/Resources
 glob=*.dylib,*.r,*.rsrc,*.jnilib,*.la
 lib
 src=release/db
@@ -37,7 +37,7 @@ lib
 
 # Grab Chandler.py and others
 src=chandler
-dest=Contents/Resources
+dest=Contents/release/Resources
 Chandler.py
 version.py
 HISTORY.txt
@@ -62,12 +62,13 @@ locale
 
 
 # Grab the bundle files
-src=chandler/distrib/osx/bundle
+src=chandler/distrib/osx/bundle/release
 dest=Contents
 Info.plist
-dest=Contents/Resources
+src=chandler/distrib/osx/bundle
+dest=Contents/release/Resources
 Chandler.icns
 
 src=chandler/distrib/osx/bundle/release
-dest=Contents/MacOS
+dest=Contents/MacOS/release
 RunChandler

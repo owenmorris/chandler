@@ -44,7 +44,7 @@ def init(buildenv):
         root: fully qualified path to the top of the build hierarchy
     Returns:
         buildenv:  a dictionary containing the following environment settings:
-            - root: the root path passed in (which should be the parent of osaf)
+            - root: the root path passed in (which should be the parent of chandler)
             - os: win, posix, unknown
             - path: system executable search path
             - compiler: full path to C compiler (currently windows only)
@@ -105,9 +105,9 @@ def init(buildenv):
         raise HardHatUnknownPlatformError
 
     # set up paths to the pythons we are building (release and debug)
-    buildenv['python'] = buildenv['root'] + os.sep + 'release' + os.sep + \
+    buildenv['python'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
      'bin' + os.sep + 'python'
-    buildenv['python_d'] = buildenv['root'] + os.sep + 'debug' + os.sep + \
+    buildenv['python_d'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
      'bin' + os.sep + 'python_d'
 
     buildenv['sh']   = findInPath(buildenv['path'], "sh")
@@ -123,9 +123,9 @@ def init(buildenv):
     # set OS-specific variables
     if buildenv['os'] == 'win':
 
-        buildenv['python'] = buildenv['root'] + os.sep + 'release' + os.sep + \
+        buildenv['python'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
          'bin' + os.sep + 'python.exe'
-        buildenv['python_d'] = buildenv['root'] + os.sep + 'debug' + os.sep + \
+        buildenv['python_d'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
          'bin' + os.sep + 'python_d.exe'
 
         import os_win
@@ -166,47 +166,47 @@ def init(buildenv):
         devenv_dir = os.path.dirname(devenv_file)
         buildenv['path'] = devenv_dir + os.pathsep + buildenv['path']
 
-        buildenv['swig'] = buildenv['root'] + os.sep + 'release' + os.sep + \
+        buildenv['swig'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
          'bin' + os.sep + 'swig.exe'
-        buildenv['swig_d'] = buildenv['root'] + os.sep + 'debug' + os.sep + \
+        buildenv['swig_d'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
          'bin' + os.sep + 'swig.exe'
 
     if buildenv['os'] == 'posix':
-        buildenv['swig'] = buildenv['root'] + os.sep + 'release' + os.sep + \
+        buildenv['swig'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
          'bin' + os.sep + 'swig'
-        buildenv['swig_d'] = buildenv['root'] + os.sep + 'debug' + os.sep + \
+        buildenv['swig_d'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
          'bin' + os.sep + 'swig'
 
 
     if buildenv['os'] == 'osx':
-        buildenv['swig'] = buildenv['root'] + os.sep + 'release' + os.sep + \
+        buildenv['swig'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
          'bin' + os.sep + 'swig'
-        buildenv['swig_d'] = buildenv['root'] + os.sep + 'debug' + os.sep + \
+        buildenv['swig_d'] = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
          'bin' + os.sep + 'swig'
 
-        buildenv['python'] = os.path.join(buildenv['root'], 'release', 
+        buildenv['python'] = os.path.join(buildenv['root'], 'chandler', 'release',
          'Library', 'Frameworks', 'Python.framework', 'Versions', 'Current', 
          'Resources', 'Python.app', 'Contents', 'MacOS', 'Python')
 
-        buildenv['python_d'] = os.path.join(buildenv['root'], 'debug', 
+        buildenv['python_d'] = os.path.join(buildenv['root'], 'chandler', 'debug', 
          'Library', 'Frameworks', 'Python.framework', 'Versions', 'Current', 
          'Resources', 'Python.app', 'Contents', 'MacOS', 'Python')
 
     # Determine the Python lib directory (the parent of site-packages)
     if buildenv['os'] == 'posix':
-        lib_dir_release = buildenv['root'] + os.sep + 'release' + os.sep + \
+        lib_dir_release = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
          'lib' + os.sep + 'python2.3'
-        lib_dir_debug = buildenv['root'] + os.sep + 'debug' + os.sep + \
+        lib_dir_debug = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
          'lib' + os.sep + 'python2.3'
     if buildenv['os'] == 'win':
-        lib_dir_release = buildenv['root'] + os.sep + 'release' + os.sep + \
+        lib_dir_release = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
          'bin' + os.sep + 'Lib'
-        lib_dir_debug = buildenv['root'] + os.sep + 'debug' + os.sep + \
+        lib_dir_debug = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
          'bin' + os.sep + 'Lib'
     if buildenv['os'] == 'osx':
-        lib_dir_release = buildenv['root'] + os.sep + 'release' + os.sep + \
+        lib_dir_release = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + \
          'Library/Frameworks/Python.framework/Versions/Current/lib/python2.3'
-        lib_dir_debug = buildenv['root'] + os.sep + 'debug' + os.sep + \
+        lib_dir_debug = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + \
          'Library/Frameworks/Python.framework/Versions/Current/lib/python2.3'
 
     buildenv['pythonlibdir'] = lib_dir_release
@@ -373,9 +373,13 @@ def build(buildenv, module_name):
     """
 
     os.chdir(buildenv['root'])
-    # log(buildenv, HARDHAT_MESSAGE, module_name, "Building")
-    module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-     "__hardhat__.py"
+    log(buildenv, HARDHAT_MESSAGE, module_name, "Building")
+    if module_name == 'chandler':
+        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
+    else:
+        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
     module = module_from_file(buildenv, module_path, module_name)
     os.chdir(module_name)
     module.build(buildenv)
@@ -396,8 +400,12 @@ def buildDependencies(buildenv, module_name, history):
         nothing
     """
 
-    module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-     "__hardhat__.py"
+    if module_name == 'chandler':
+        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
+    else:
+        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
     module = module_from_file(buildenv, module_path, module_name)
     for dependency in module.dependencies:
         if not history.has_key(dependency):
@@ -420,8 +428,11 @@ def scrub(buildenv, module_name):
     """
 
     os.chdir(buildenv['root'])
-    # log(buildenv, HARDHAT_MESSAGE, module_name, "Building")
-    module_path = buildenv['root'] + os.sep + module_name 
+    log(buildenv, HARDHAT_MESSAGE, module_name, "Scrubbing")
+    if module_name == 'chandler':
+        module_path = buildenv['root'] + os.sep + module_name
+    else:
+        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name
     cvsClean(buildenv, [module_path])
     # log(buildenv, HARDHAT_MESSAGE, module_name, "Back from build")
 # end scrub()
@@ -442,13 +453,17 @@ def scrubDependencies(buildenv, module_name):
     getDependencies(buildenv, module_name, dependencies)
     dirsToScrub = []
     for dep in dependencies.keys():
-        dirsToScrub.append(buildenv['root'] + os.sep + dep)
+        dirsToScrub.append(buildenv['root'] + os.sep + 'chandler' + os.sep + dep)
     cvsClean(buildenv, dirsToScrub)
 # end scrubDependencies()
 
 def getDependencies(buildenv, module_name, history):
-    module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-     "__hardhat__.py"
+    if module_name == 'chandler':
+        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
+    else:
+        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
     module = module_from_file(buildenv, module_path, module_name)
     for dependency in module.dependencies:
         if not history.has_key(dependency):
@@ -470,19 +485,14 @@ def run(buildenv, module_name):
     """
     log(buildenv, HARDHAT_MESSAGE, module_name, "Executing")
     os.chdir(buildenv['root'])
-    module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-     "__hardhat__.py"
+    if module_name == 'chandler':
+        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
+    else:
+        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
     module = module_from_file(buildenv, module_path, module_name)
     os.chdir(module_name)
-
-    # Under Windows, python gets part of sys.path from the registry,
-    # but this can be a problem since it might get site-packages from
-    # the wrong python installation.  By setting PYTHONPATH we can
-    # guarantee that our site-packages will be first in the path
-    if buildenv['os'] == 'win':
-        pythonPath = buildenv['root'] + '\\' + \
-         buildenv['version'] + '\\bin\\lib\\site-packages' 
-        os.putenv('PYTHONPATH', pythonPath)
 
     module.run(buildenv)
     log(buildenv, HARDHAT_MESSAGE, module_name, "Execution complete")
@@ -505,8 +515,12 @@ def removeRuntimeDir(buildenv, module_name):
 
     log(buildenv, HARDHAT_MESSAGE, module_name, "Removing runtime directory")
     os.chdir(buildenv['root'])
-    module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-     "__hardhat__.py"
+    if module_name == 'chandler':
+        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
+    else:
+        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
     module = module_from_file(buildenv, module_path, module_name)
     os.chdir(module_name)
     module.removeRuntimeDir(buildenv)
@@ -527,8 +541,12 @@ def distribute(buildenv, module_name, buildVersion):
     """
     log(buildenv, HARDHAT_MESSAGE, module_name, "Creating distribution")
     os.chdir(buildenv['root'])
-    module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-     "__hardhat__.py"
+    if module_name == 'chandler':
+        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
+    else:
+        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
     module = module_from_file(buildenv, module_path, module_name)
     os.chdir(module_name)
 
@@ -544,8 +562,10 @@ def runTest(buildenv, testFile, fullPath):
 
     if buildenv['version'] == 'debug':
         python = buildenv['python_d']
+        pythonPath = buildenv['pythonlibdir_d'] + os.sep + '..' + os.sep + '..'
     elif buildenv['version'] == 'release':
         python = buildenv['python']
+        pythonPath = buildenv['pythonlibdir'] + os.sep + '..' + os.sep + '..'
 
     exit_code = executeCommand(buildenv, testFile, [ python, testFile, '-v' ],
                                "Testing %s" %(fullPath),
@@ -564,10 +584,18 @@ def recursiveTest(buildenv, path):
         fullTestFilePath = os.path.join(path, testFile)
         runTest(buildenv, testFile, fullTestFilePath)
 
+    chandler_debug = os.sep + 'chandler' + os.sep + 'debug'
+    chandler_release = os.sep + 'chandler' + os.sep + 'release'
+
     for name in os.listdir(path):
         full_name = os.path.join(path, name)
         if os.path.isdir(full_name):
             recursiveTest(buildenv, full_name)
+            # Do not recurse into debug or release dirs since they
+            # should not contain any of our tests.
+            if (full_name.rfind(chandler_debug) < 0) and \
+               (full_name.rfind(chandler_release) < 0):
+                recursiveTest(buildenv, full_name)
 
 def test(buildenv, dir, *modules):
     """
@@ -611,8 +639,12 @@ def test(buildenv, dir, *modules):
 def generateDocs(buildenv, module_name):
     os.chdir(buildenv['root'])
     # log(buildenv, HARDHAT_MESSAGE, module_name, "Building")
-    module_path = buildenv['root'] + os.sep + module_name + os.sep + \
-     "__hardhat__.py"
+    if module_name == 'chandler':
+        module_path = buildenv['root'] + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
+    else:
+        module_path = buildenv['root'] + os.sep + 'chandler' + os.sep + module_name + os.sep + \
+         "__hardhat__.py"
     module = module_from_file(buildenv, module_path, module_name)
     os.chdir(module_name)
     module.generateDocs(buildenv)
@@ -879,17 +911,17 @@ def mirrorDirSymlinks(src, dest):
 def setupEnvironment(buildenv):
 
     if buildenv['version'] == 'debug':
-        path = buildenv['root'] + os.sep + 'debug' + os.sep + 'bin' + \
+        path = buildenv['root'] + os.sep + 'chandler' + os.sep + 'debug' + os.sep + 'bin' + \
          os.pathsep + buildenv['path']
         os.putenv('BUILDMODE', 'debug')
 
     if buildenv['version'] == 'release':
-        path = buildenv['root'] + os.sep + 'release' + os.sep + 'bin' + \
+        path = buildenv['root'] + os.sep + 'chandler' + os.sep + 'release' + os.sep + 'bin' + \
          os.pathsep + buildenv['path']
         os.putenv('BUILDMODE', 'release')
 
     # to run Chandler-related scripts from directories other than 
-    # osaf/chandler/Chandler, PYTHONPATH is needed
+    # chandler, PYTHONPATH is needed
     pythonpaths = []
     prevPath = os.getenv('PYTHONPATH')
     if prevPath:
@@ -898,10 +930,6 @@ def setupEnvironment(buildenv):
     # need to add chandler and chandler/parcels to PYTHONPATH
     pythonpaths.append(os.path.join(buildenv['root'], "chandler"))
     pythonpaths.append(os.path.join(buildenv['root'], "chandler", "parcels"))
-    # (until we switch over to new build completely, we also need to keep
-    # adding capital-C Chandler to the sys.path:)
-    pythonpaths.append(os.path.join(buildenv['root'], "Chandler"))
-    pythonpaths.append(os.path.join(buildenv['root'], "Chandler", "parcels"))
     pythonpath = os.pathsep.join(pythonpaths)
 
     # log(buildenv, HARDHAT_MESSAGE, 'hardhat', "Setting path to " + path)
@@ -936,33 +964,31 @@ def setupEnvironment(buildenv):
 
     if buildenv['os'] == 'win':
         # Use DOS format paths under windows
-        os.putenv('CHANDLERDIR', buildenv['root_dos']+"\\Chandler")
-        os.putenv('CHANDLERHOME', buildenv['root_dos'])
+        os.putenv('CHANDLERHOME', buildenv['root_dos']+"\\chandler")
     else:
-        os.putenv('CHANDLERDIR', buildenv['root']+os.sep+"Chandler")
-        os.putenv('CHANDLERHOME', buildenv['root'])
+        os.putenv('CHANDLERHOME', buildenv['root']+os.sep+"chandler")
 
 
     if buildenv['os'] == 'posix':
         ld_library_path = os.environ.get('LD_LIBRARY_PATH', '')
         ver = buildenv['version']
-        additional_path=os.path.join(buildenv['root'],ver,'lib')+\
-         os.pathsep + os.path.join(buildenv['root'],ver,'db','lib')+\
-         os.pathsep + os.path.join(buildenv['root'],ver,'dbxml','lib')
+        additional_path=os.path.join(buildenv['root'],'chandler',ver,'lib')+\
+         os.pathsep + os.path.join(buildenv['root'],'chandler',ver,'db','lib')+\
+         os.pathsep + os.path.join(buildenv['root'],'chandler',ver,'dbxml','lib')
         ld_library_path = additional_path + os.pathsep + ld_library_path
         os.putenv('LD_LIBRARY_PATH', ld_library_path)
 
     if buildenv['os'] == 'osx':
         dyld_library_path = os.environ.get('DYLD_LIBRARY_PATH', '')
         ver = buildenv['version']
-        additional_path=os.path.join(buildenv['root'],ver,'lib')+\
-         os.pathsep + os.path.join(buildenv['root'],ver,'db','lib')+\
-         os.pathsep + os.path.join(buildenv['root'],ver,'dbxml','lib')
+        additional_path=os.path.join(buildenv['root'],'chandler',ver,'lib')+\
+         os.pathsep + os.path.join(buildenv['root'],'chandler',ver,'db','lib')+\
+         os.pathsep + os.path.join(buildenv['root'],'chandler',ver,'dbxml','lib')
         dyld_library_path = additional_path + os.pathsep + dyld_library_path
         os.putenv('DYLD_LIBRARY_PATH', dyld_library_path)
 
         dyld_framework_path = os.environ.get('DYLD_FRAMEWORK_PATH', '')
-        additional_path = os.path.join( buildenv['root'], ver, 'Library',
+        additional_path = os.path.join( buildenv['root'], 'chandler', ver, 'Library',
          'Frameworks')
         dyld_framework_path = additional_path + os.pathsep + dyld_framework_path
         os.putenv('DYLD_FRAMEWORK_PATH', dyld_framework_path)
@@ -989,6 +1015,14 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
         showenv = "yes"
     else:
         showenv = "no"
+
+    if showenv == "yes":
+        print "incoming args:"
+        for arg in args:
+            print arg
+        print "PYTHONPATH is", os.getenv('PYTHONPATH')
+        print "PYTHONHOME is", os.getenv('PYTHONHOME')
+        print "PATH is", os.getenv('PATH')
 
     # spawnl wants the name of the file we're executing twice -- however,
     # on windows the second one can't have spaces in it, so we just pass
@@ -1019,7 +1053,8 @@ def executeCommand(buildenv, name, args, message, flags=0, extlog=None):
 
     args_str = ','.join(args)
     execute_str = "exit_code = os.spawnl(os.P_WAIT," + args_str + ")"
-    # print execute_str
+    if showenv == "yes":
+        print execute_str
 
     log(buildenv, HARDHAT_MESSAGE, name, message)
     

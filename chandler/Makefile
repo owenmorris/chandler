@@ -7,7 +7,7 @@ ARCHIVES=../$(SNAP)-0.3-10.tar.gz \
          ../wxPython-$(SNAP)-2.5-2.tar.gz \
          ../UUIDext-$(SNAP)-0.3-2.tar.gz \
          ../m2crypto-$(SNAP)-0.12-1.tar.gz \
-         ../Launchers-$(SNAP)-0.3-2.tar.gz
+         ../Launchers-$(SNAP)-0.3-3.tar.gz
 
 OS=$(shell uname)
 
@@ -48,7 +48,7 @@ $(ARCHIVES):
 	curl -o $@ $(URL)/$(notdir $@)
 
 $(notdir $(ARCHIVES)):
-	tar -C .. -xvzf ../$@
+	tar -C ../chandler -xvzf ../$@
 
 checkout:
 	cd ..; \

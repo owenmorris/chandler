@@ -1,6 +1,5 @@
 @ECHO OFF
 setlocal
-cd ..\chandler
-set PATH=..\release\bin
-..\release\bin\python -O Chandler.py %*
+set PATH=release\bin
+release\bin\python.exe -O Chandler.py %*
 endlocal

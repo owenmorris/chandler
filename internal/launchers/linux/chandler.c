@@ -25,11 +25,19 @@ char * AbsolutePath(char *base, char *rel) {
     char *pathBuf = malloc((PATH_MAX+1) * sizeof(char));
     char *retPath = NULL;
     char *slashPtr = strchr(rel, '/');
+    if (!pathBuf) {
+      printf("ERROR: Out of memory!\n");
+      exit(-1);
+    }
     if(slashPtr == rel){
         /* rel begins with a slash -- it's already absolute */
         return realpath(rel, pathBuf);
     }
     retPath = malloc((strlen(base)+strlen(rel)+2) * sizeof(char));
+    if (!retPath) {
+      printf("ERROR: Out of memory!\n");
+      exit(-1);
+    }
     strcpy(retPath, base);
     strcat(retPath, "/");
     strcat(retPath, rel);
@@ -68,6 +76,10 @@ char * FindProgram(char *arg) {
     } else {
         envPath = getenv("PATH");
         pathList = malloc((strlen(envPath)+1) * sizeof(char));
+        if (!pathList) {
+            printf("ERROR: Out of memory!\n");
+            exit(-1);
+        }
         strcpy(pathList,envPath); /* copy because strtok is destructive */
         while(pathDir=strtok(pathList,":")){
             pathList = NULL;  /* strtok needs this to be NULL after 1st time */
@@ -87,17 +99,20 @@ char * FindProgram(char *arg) {
 }
 
 
-int SetLibraryPath(char *dir){
+int PrependToLdLibraryPath(char *dir){
 
-    /* Given a directory, prepend it to the existing LD_LIBRARY_PATH environment
-     * variable.
+    /* Given a directory, prepend it to the existing LD_LIBRARY_PATH 
+     * environment variable.
      */
 
     char *newLibraryPath;
     char *curLibraryPath = getenv("LD_LIBRARY_PATH");
     if(curLibraryPath) {
-        newLibraryPath = malloc((strlen(dir) + strlen(curLibraryPath) + 2) *
-         sizeof(char));
+        newLibraryPath = malloc((strlen(dir) + strlen(curLibraryPath) + 2) * sizeof(char));
+        if (!newLibraryPath) {
+          printf("ERROR: Out of memory!\n");
+          exit(-1);
+        }
         strcpy(newLibraryPath, dir);
         strcat(newLibraryPath, ":");
         strcat(newLibraryPath, curLibraryPath);
@@ -108,8 +123,27 @@ int SetLibraryPath(char *dir){
 }
 
 
-#define APPENDLIB "/lib"
+#define APPENDLIB1 "/lib"
+#define APPENDLIB2 "/db/lib"
+#define APPENDLIB3 "/dbxml/lib"
 #define PROG_BIN "chandler_bin"
+
+char *LibDir(char *exeDir, char *appendLib)
+{
+    struct stat statBuf;            /* For lstat() */
+    char *libDir = malloc((strlen(exeDir)+strlen(appendLib)+1) * sizeof(char));
+    if (!libDir) {
+      printf("ERROR: Out of memory!\n");
+      exit(-1);
+    }
+    strcpy(libDir, exeDir);
+    strcat(libDir, appendLib);
+    if((lstat(libDir, &statBuf)==-1) || ! S_ISDIR(statBuf.st_mode)) {
+        printf("ERROR: %s is not a directory; exiting\n", libDir);
+        exit(-1);
+    }
+    return libDir;
+}
 
 main(int argc, char **argv)
 {
@@ -120,31 +154,44 @@ main(int argc, char **argv)
 
     char *exePath = NULL;
     char *exeDir = NULL;
-    char *libDir = NULL;
+    char *libDir1 = NULL;
+    char *libDir2 = NULL;
+    char *libDir3 = NULL;
+
+    char *chandlerHome;
 
     exePath = FindProgram(argv[0]);
     exeDir = dirname(exePath);
-    libDir = malloc((strlen(exeDir)+strlen(APPENDLIB)+1) * sizeof(char));
-    strcpy(libDir, exeDir);
-    strcat(libDir, APPENDLIB);
-    if((lstat(libDir, &statBuf)==-1) || ! S_ISDIR(statBuf.st_mode)) {
-        printf("ERROR: %s is not a directory; exiting\n", libDir);
-        exit(-1);
-    }
+
+    libDir1 = LibDir(exeDir, APPENDLIB1);
+    libDir2 = LibDir(exeDir, APPENDLIB2);
+    libDir3 = LibDir(exeDir, APPENDLIB3);
 
     printf("exePath: [%s]\n", exePath);
-    printf("exeDir:  [%s]\n", exeDir);
-    printf("libDir:  [%s]\n", libDir);
-    SetLibraryPath(libDir);
-    unsetenv("PYTHONPATH");
+    printf("exeDir :  [%s]\n", exeDir);
+    printf("libDir1:  [%s]\n", libDir1);
+    printf("libDir2:  [%s]\n", libDir2);
+    printf("libDir3:  [%s]\n", libDir3);
+    PrependToLdLibraryPath(libDir1);
+    PrependToLdLibraryPath(libDir2);
+    PrependToLdLibraryPath(libDir3);
+
+    chandlerHome = AbsolutePath(exeDir, "..");
+    setenv("PYTHONPATH", chandlerHome, 1);
+    free(chandlerHome);
+
     unsetenv("PYTHONHOME");
 #ifndef DEBUGMODE
     setenv("PYTHONOPTIMIZE", "1", 1);
 #endif
     chdir(exeDir);
     free(exePath);
-    exePath = malloc((strlen(libDir)+strlen(PROG_BIN)+2) * sizeof(char));
-    strcpy(exePath, libDir);
+    exePath = malloc((strlen(libDir1)+strlen(PROG_BIN)+2) * sizeof(char));
+    if (!exePath) {
+      printf("ERROR: Out of memory!\n");
+      exit(-1);
+    }
+    strcpy(exePath, libDir1);
     strcat(exePath, "/");
     strcat(exePath, PROG_BIN);
     if((lstat(exePath, &statBuf)==-1) || ! S_ISREG(statBuf.st_mode)) {
@@ -152,7 +199,9 @@ main(int argc, char **argv)
         exit(-1);
     }
 
-    free(libDir);
+    free(libDir1);
+    free(libDir2);
+    free(libDir3);
 
     switch(pid=fork()){
         case -1:

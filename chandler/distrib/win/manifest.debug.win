@@ -9,8 +9,8 @@
 # glob: set to a comma-separated list of glob patterns
 
 # Grab certain dll's from debug/bin
-src=debug/bin
-dest=
+src=chandler/debug/bin
+dest=debug/bin
 PathanD.dll
 libdb42d.dll
 libdbxml12d.dll
@@ -22,8 +22,8 @@ python23_d.dll
 xerces-c_2_4_0D.dll
 
 # Grab all py, pyc, etc. from debug/bin/DLLs and debug/bin/Lib
-src=debug/bin
-dest=
+src=chandler/debug/bin
+dest=debug/bin
 glob=*.py,*.pyc,*.pyo,*.pyd,*.so,*.dll
 recursive=yes
 DLLs
@@ -57,7 +57,8 @@ locale
 # Grab the launcher and windows README
 src=chandler/distrib/win
 README.win.txt
-src=debug
+src=chandler/debug
+dest=debug
 chandler.exe
 
 # Grab the overall README

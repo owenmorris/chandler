@@ -9,20 +9,20 @@
 # glob: set to a comma-separated list of glob patterns
 
 # Grab the python executable
-src=debug/bin
-dest=bin
+src=chandler/debug/bin
+dest=debug/bin
 python_d
 
 # Grab the WX libs
-src=debug
+src=chandler/debug
 recursive=no
-dest=
+dest=debug
 glob=libwx*
 lib
 
 # Recursively grab python libraries
-src=debug/lib
-dest=lib
+src=chandler/debug/lib
+dest=debug/lib
 recursive=yes
 glob=*.py,*.pyc,*.pyo,*.pyd,*.so
 python2.3/bsddb
@@ -44,23 +44,26 @@ recursive=no
 python2.3
 
 # Grab the DB libraries
-dest=lib
-src=debug/db/lib
+dest=debug/db/lib
+src=chandler/debug/db/lib
 libdb_cxx-4.2.so
 libdb-4.2.so
 libdb_java-4.2.so
-src=debug/lib
+src=chandler/debug/lib
+dest=debug/lib
 libxerces-c.so.24
 libxerces-c.so.24.0
 libpathan.so.2
 libpathan.so.2.0.2
 libxml2.so.2
 libxml2.so.2.6.10
-src=debug/dbxml/lib
+src=chandler/debug/dbxml/lib
+dest=debug/dbxml/lib
 libdbxml-1.2.so
 
 # Grab the gcj 3.3 runtime libs
 src=$(GCJ_HOME)/lib
+dest=debug/lib
 libgcj.so.4
 libgcj.so.4.0.0
 libstdc++.so.5
@@ -97,10 +100,11 @@ src=chandler/distrib/linux
 README.linux.txt
 
 # Grab the launcher programs
-src=debug
-dest=
+src=chandler/debug
+dest=debug
 chandler
-dest=lib
+src=chandler/debug/lib
+dest=debug/lib
 chandler_bin
 
 # Grab the overall README

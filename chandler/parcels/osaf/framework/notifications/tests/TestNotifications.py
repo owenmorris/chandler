@@ -44,7 +44,7 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
         super(NMTest,self)._setup(self)
 
-        self.testdir = os.path.join(self.rootdir, 'chandler', 'parcels',
+        self.testdir = os.path.join(self.rootdir, 'parcels',
          'osaf', 'framework', 'notifications', 'tests')
 
         super(NMTest,self)._openRepository(self)
