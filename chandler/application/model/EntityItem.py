@@ -9,7 +9,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-from Persistence import PersistentDict
+from persistence.dict import PersistentDict
 
 from InformationItem import InformationItem
 from EmailAddress import EmailAddress
@@ -24,7 +24,7 @@ from RdfNamespace import chandler
 class EntityItem(InformationItem):
     """EntityItem"""
 
-    rdfs = PersistentDict.PersistentDict()
+    rdfs = PersistentDict()
     
     rdfs[chandler.name] = RdfRestriction(InformationItem, 1) #Name
     rdfs[chandler.place] = RdfRestriction(PlaceItem) #PlaceItem

@@ -6,7 +6,7 @@ __license__ = "OSAF License"
 
 
 from application.Application import wxApplication
-from Transaction import get_transaction
+from transaction import get_transaction
 
 if __name__=="__main__":
         

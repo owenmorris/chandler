@@ -7,7 +7,8 @@ __license__ = "OSAF License"
 
 from wxPython.wx import *
 from application.Application import app
-from Persistence import Persistent, PersistentDict
+from persistence import Persistent
+from persistence.dict import PersistentDict
 
 
 class SideBar(Persistent):
@@ -22,7 +23,7 @@ class SideBar(Persistent):
         tree of dicts that contain extra data specific to this instance of
         SideBar (like which levels are expanded).
         """
-        self.sideBarURLTree = PersistentDict.PersistentDict()
+        self.sideBarURLTree = PersistentDict()
         
     def SynchronizeView(self):
         """
@@ -43,7 +44,7 @@ class SideBar(Persistent):
         if not hasattr(wxWindow, 'root'):
             wxWindow.root = wxWindow.AddRoot('Root')
             wasEmpty = true        
-        self.sideBarURLTree = PersistentDict.PersistentDict()
+        self.sideBarURLTree = PersistentDict()
         self.__UpdateURLTree(self.sideBarURLTree, app.model.URLTree, 
                              wxWindow.root, wasEmpty)
 

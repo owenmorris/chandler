@@ -9,11 +9,12 @@ import os, sys, stat, gettext, locale
 from wxPython.wx import *
 from wxPython.xrc import *
 from application.Preferences import Preferences
-from Persistence import Persistent, PersistentList
+from persistence import Persistent 
+from persistence.list import PersistentList
 import application.ChandlerWindow
 
-from ZODB import DB, FileStorage 
-from Persistence import Persistent
+from zodb import db 
+from zodb.storage.file import FileStorage
 
 """
   The application module makes available the following global data to
@@ -48,7 +49,7 @@ class Application(Persistent):
         """
         self.preferences = Preferences()
         self.mainFrame = application.ChandlerWindow.ChandlerWindow()
-        self.URLTree = PersistentList.PersistentList ()
+        self.URLTree = PersistentList ()
         self.version = Application.VERSION
     
     def SynchronizeView(self):
@@ -153,8 +154,8 @@ class wxApplication (wxApp):
         self.applicationResources = wxXmlResource(resourceFile)
 
         #Open the database
-        self.storage = FileStorage.FileStorage ('_CHANDLER_')
-        self.db = DB.DB (self.storage)
+        self.storage = FileStorage ('_CHANDLER_')
+        self.db = db.DB (self.storage)
         self.connection = self.db.open ()
         self.dbroot = self.connection.root ()
 

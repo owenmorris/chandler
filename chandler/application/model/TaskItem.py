@@ -9,7 +9,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-from Persistence import PersistentDict
+from persistence.dict import PersistentDict
 
 from InformationItem import InformationItem
 
@@ -22,7 +22,7 @@ _DateTimeType = type(now())
 
 class TaskItem(InformationItem):
 
-    rdfs = PersistentDict.PersistentDict()
+    rdfs = PersistentDict()
 
     rdfs[chandler.calendarDate] = RdfRestriction(_DateTimeType, 0)
     rdfs[chandler.dueByDate] = RdfRestriction(_DateTimeType, 1)

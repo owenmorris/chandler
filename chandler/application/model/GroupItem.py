@@ -11,7 +11,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-from Persistence import PersistentDict
+from persistence.dict import PersistentDict
 
 from RdfObject import RdfObject
 from RdfRestriction import RdfRestriction
@@ -25,7 +25,7 @@ class GroupItem(GroupItem):
     # Define the schema for GroupItem
     # ----------------------------------
 
-    rdfs = PersistentDict.PersistentDict()
+    rdfs = PersistentDict()
 
     rdfs[chandler.members] = RdfRestriction(EntityItem)
 

@@ -12,7 +12,8 @@ because Application imports ChandlerWindow (the mutually recursive import proble
 app isn't defined yet. Further attempt postpone the include of ChandlerWindow after
 app is setup lead to hairballs
 """
-from Persistence import Persistent, PersistentDict
+from persistence import Persistent
+from persistence.dict import PersistentDict
 
 
 class ChandlerWindow(Persistent):
@@ -28,7 +29,7 @@ class ChandlerWindow(Persistent):
         indicate that the window should be tiled to fit the screen, rather than
         being brought up in it's last location and size.
         """
-        self.size = PersistentDict.PersistentDict()
+        self.size = PersistentDict()
         self.size['x'] = -1
         self.size['y'] = -1
         self.size['width'] = -1

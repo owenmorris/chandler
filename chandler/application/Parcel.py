@@ -4,7 +4,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF License"
 
-from Persistence import Persistent
+from persistence import Persistent
 
 class Parcel (Persistent):
     """

@@ -16,7 +16,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-from Persistence import PersistentDict
+from persistence.dict import PersistentDict
 
 from RdfRestriction import RdfRestriction
 from RdfNamespace import dc
@@ -40,7 +40,7 @@ class EventItem(InformationItem):
     # Define the schema for EventItem
     # -----------------------------------
 
-    rdfs = PersistentDict.PersistentDict()
+    rdfs = PersistentDict()
     
     rdfs[chandler.startTime] = RdfRestriction(_DateTimeType, 1)
     rdfs[chandler.endTime] = RdfRestriction(_DateTimeType, 1)

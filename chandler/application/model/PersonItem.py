@@ -9,7 +9,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
-from Persistence import PersistentDict
+from persistence.dict import PersistentDict
 
 from RdfRestriction import RdfRestriction
 from RdfNamespace import chandler
@@ -19,7 +19,7 @@ from PersonName import PersonName
 
 class PersonItem(EntityItem):
 
-    rdfs = PersistentDict.PersistentDict()
+    rdfs = PersistentDict()
 
     rdfs[chandler.name] = RdfRestriction(PersonName, 1)
 

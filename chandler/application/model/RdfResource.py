@@ -3,7 +3,7 @@
 """Base classes for RDF resources in Chandler
 """
 
-from Persistence import Persistent
+from persistence import Persistent
 
 import sys
 
