@@ -47,10 +47,9 @@ glob=*.py,*.png,*.xrc,*.daml,*.gif,*.xml,*.txt,*.bmp,*.jpg,*.html,*.pack
 application
 parcels
 
+
 glob=*
 model
-
-glob=*.po,*.mo
 locale
 
 # Grab the launcher and README

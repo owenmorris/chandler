@@ -48,9 +48,8 @@ parcels
 
 glob=*
 model
-
-glob=*.po,*.mo
 locale
+
 
 # Grab the bundle files
 src=Chandler/distrib/osx/bundle
