@@ -1,6 +1,10 @@
 # ChangeLog for Chandler 
 
 2004-05-14 Mark Jaffe <markie@osafoundation.org>
+   * Tinderbuilds seem to have stabilized, see if triggering a build on 
+     tinderbox makes a distribution
+
+2004-05-14 Mark Jaffe <markie@osafoundation.org>
    * Change this file to trigger a build on tinderbox
 
 2003-08-04 Morgen Sagen <morgen@osafoundation.org>
