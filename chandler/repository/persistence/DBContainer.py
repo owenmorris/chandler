@@ -12,6 +12,7 @@ from repository.item.Access import ACL, ACE
 from repository.item.Item import Item
 from chandlerdb.util.UUID import UUID, _uuid
 from repository.persistence.Repository import Repository
+from repository.persistence.RepositoryError import RepositoryFormatError
 
 from bsddb.db import DB
 from bsddb.db import DB_CREATE, DB_BTREE, DB_THREAD
@@ -1071,6 +1072,8 @@ class ItemContainer(DBContainer):
 
 class ValueContainer(DBContainer):
 
+    FORMAT_VERSION = 0x00050000
+
     def __init__(self, store, name, txn, **kwds):
 
         super(ValueContainer, self).__init__(store, name, txn,
@@ -1080,6 +1083,11 @@ class ValueContainer(DBContainer):
                                      self._indexKey, **kwds)
         if kwds.get('create', False):
             self.setVersion(0)
+        else:
+            x, version, format = self.getVersionInfo(Repository.itsUUID)
+            if format != ValueContainer.FORMAT_VERSION:
+                raise RepositoryFormatError, (ValueContainer.FORMAT_VERSION,
+                                              format)
 
     def close(self):
 
@@ -1119,9 +1127,9 @@ class ValueContainer(DBContainer):
         if value is None:
             return None
 
-        uuid, version = unpack('>16sl', value)
+        versionId, version, format = unpack('>16sLL', value)
 
-        return UUID(uuid), version
+        return UUID(versionId), version, format
         
     def getVersion(self, uuid=None):
 
@@ -1132,7 +1140,7 @@ class ValueContainer(DBContainer):
         if value is None:
             return None
 
-        return unpack('>l', value[16:])[0]
+        return unpack('>L', value[16:20])[0]
         
     def setVersion(self, version, uuid=None):
         
@@ -1140,16 +1148,16 @@ class ValueContainer(DBContainer):
             uuid = Repository.itsUUID
 
         if version != 0:
-            versionId = self.get(uuid._uuid)[0:16]
+            versionId, x, format = self.getVersionInfo(uuid)
         else:
-            versionId = UUID()._uuid
+            versionId, format = UUID(), ValueContainer.FORMAT_VERSION
 
-        self.put(uuid._uuid, pack('>16sl', versionId, version))
+        self.put(uuid._uuid, pack('>16sLL', versionId._uuid, version, format))
 
     def setVersionId(self, versionId, uuid):
 
-        version = self.getVersion(uuid)
-        self.put(uuid._uuid, pack('>16sl', versionId._uuid, version))
+        versionId, version, format = self.getVersionInfo(uuid)
+        self.put(uuid._uuid, pack('>16sLL', versionId._uuid, version, format))
 
 
 class HashTuple(tuple):

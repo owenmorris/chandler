@@ -29,11 +29,17 @@ class VersionConflictError(RepositoryError):
         return self.args[0]
 
 
+class RepositoryFormatError(RepositoryError):
+
+    def __str__(self):
+        return "Repository format version mismatch, expected version 0x%08x, but got 0x%08x" %(self.args[0], self.args[1])
+
+
 class NoSuchItemError(RepositoryError):
     "No such item %s, version %d"
 
     def __str__(self):
-        return self.__doc__ % self.args
+        return self.__doc__ % (self.args[0], self.args[1])
 
 
 class MergeError(VersionConflictError):
