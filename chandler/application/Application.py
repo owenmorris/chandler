@@ -16,6 +16,7 @@ from persistence.list import PersistentList
 
 import application.ChandlerWindow
 import PreferencesDialog
+import ChandlerJabber
 
 from zodb import db 
 from zodb.storage.file import FileStorage
@@ -128,7 +129,8 @@ class wxApplication (wxApp):
     self.homeDirectory            path to a folder in the user's home directory
     self.wxMainFrame              active wxChandlerWindow
     self.locale                   locale used for internationalization
-
+    self.jabberClient             state of jabber client including presence dictionary
+    
     In the future we may replace ZODB with another database that provides 
     similar functionality
     """
@@ -214,6 +216,9 @@ class wxApplication (wxApp):
         EVT_MENU(self, -1, self.OnCommand)
         EVT_UPDATE_UI(self, -1, self.OnCommand)
 
+        # allocate the Jabber client, logging in if possible
+        self.jabberClient = ChandlerJabber.JabberClient(self)
+        
         self.InCommand = false          #used by OnCommand
         self.OpenStartingUri()
 
