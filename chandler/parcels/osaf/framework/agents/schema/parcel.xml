@@ -54,21 +54,21 @@
     <displayName>Asynchronous Flag</displayName>
     <type itemref="Boolean"/>
     <cardinality>single</cardinality>
-    <!-- <defaultValue>False</defaultValue> -->
+    <defaultValue type="Boolean">False</defaultValue>
   </Attribute>
 
   <Attribute itemName="wxThreadFlag">
     <displayName>Asynchronous Flag</displayName>
     <type itemref="Boolean"/>
     <cardinality>single</cardinality>
-    <!-- <defaultValue>False</defaultValue> -->
+    <defaultValue type="Boolean">False</defaultValue>
   </Attribute>
     
   <Attribute itemName="confirmFlag">
     <displayName>Request Confirmation Flag</displayName>
     <type itemref="Boolean"/>
     <cardinality>single</cardinality>
-    <!-- <defaultValue>False</defaultValue> -->
+    <defaultValue type="Boolean">False</defaultValue>
   </Attribute>
 
   <Attribute itemName="actionPermissionRequest">
@@ -232,7 +232,7 @@
     <displayName>Enabled Flag</displayName>
     <type itemref="Boolean"/>
     <cardinality>single</cardinality>
-    <!-- <defaultValue>True</defaultValue> -->
+    <defaultValue type="Boolean">False</defaultValue>
   </Attribute>
 
   <Attribute itemName="schedule">
