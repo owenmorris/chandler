@@ -74,7 +74,7 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
         if self.ruleIsStale:
             args = {}
             newQueryString = self._rule
-            if self.source:
+            if self.source is not None:
                 if newQueryString:
                     newQueryString = "union (" + newQueryString + ", for i in $0 where True)"
                 else:
@@ -129,11 +129,11 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
             return self.resultSet.getIndexPosition (self.indexName, item)
 
     def subscribe(self, *arguments, **keywords):
-        if self.source:
+        if self.source is not None:
             self.source.subscribe (self, "")
         super (ItemCollection, self).subscribe (*arguments, **keywords)
 
     def unsubscribe(self, *arguments, **keywords):
         super (ItemCollection, self).unsubscribe (*arguments, **keywords)
-        if self.source:
+        if self.source is not None:
             self.source.unsubscribe (self)
