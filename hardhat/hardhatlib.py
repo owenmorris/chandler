@@ -562,6 +562,7 @@ def recursiveTest(buildenv, path):
             if exit_code != 0:
                 buildenv['test_failures'] = buildenv['test_failures'] + 1
                 buildenv['failed_tests'].append(fullTestFilePath)
+                log(buildenv, HARDHAT_ERROR, 'Tests', "Failed: %s" % fullTestFilePath)
 
     os.chdir(path)
     for name in os.listdir(path):
