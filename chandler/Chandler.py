@@ -4,14 +4,10 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 def main():
-    if True: # try:
+    try:
         message = "while trying to start."
 
         import sys, logging, traceback, wx
-        
-        # @@@BJS don't checkin!
-        sys.argv.append("-create")
-        
         if __debug__ and '-wing' in sys.argv:
             """
               Check for -wing command line argument; if specified, try to connect to
@@ -46,7 +42,7 @@ def main():
         message = "and had to shut down."
         application.MainLoop()
 
-    else: # except Exception, exception:
+    except Exception, exception:
         type, value, stack = sys.exc_info()
         formattedBacktrace = "".join (traceback.format_exception (type, value, stack))
 
