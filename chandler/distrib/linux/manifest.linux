@@ -61,7 +61,7 @@ libdb_java-4.3.so
 src=chandler/release/lib
 dest=release/lib
 libxml2.so.2
-libxml2.so.2.6.1*
+libxml2.so.2.6.16
 
 # Grab the gcj 3.4.x runtime libs
 src=chandler/release/lib
