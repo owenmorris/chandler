@@ -5,9 +5,9 @@ from twisted.internet import reactor
 import sys
 
 """
-TESTS:
-5. Bad TLS Start *
-4. Timeout 
+TODO:
+1. Add in actual SSL Handshake support
+2. Add in real PLAIN Login support
 """
 
 PORT = 2500
