@@ -16,24 +16,19 @@ class IMAPDownloadAction(Action.Action):
     def Execute(self, task):
         """
         This method creates a C{IMAPDownloader} instance for each
-        C{EmailAccountKind} of type IMAP4 gotten via a:a
+        C{IMAPAccountKind} of type IMAP4 gotten via a:a
 
-        accountKind = Mail.MailParcel.getEmailAccountKind()
+        accountKind = Mail.MailParcel.getIMAPAccountKind()
 
         @param task: The task object passed to the action
         @type task: C{osaf.framework.tasks.Task.Task}
         @return: C{None}
         """
 
-        accountKind = Mail.MailParcel.getEmailAccountKind()
+        accountKind = Mail.MailParcel.getIMAPAccountKind()
         printed = False
 
         for account in Query.KindQuery().run([accountKind]):
-            if account.accountType != 'IMAP4':
-                str =  "WARNING: Only IMAP Accounts are currently supported. "
-                str1 = "%s of type %s will be ignored" % (account.displayName, account.accountType)
-                logging.error(str, str1)
-                continue
 
             if not printed:
                 logging.info("IMAP MAIL TASK CHECKING FOR NEW MAIL")
