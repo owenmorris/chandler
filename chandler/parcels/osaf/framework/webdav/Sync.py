@@ -247,7 +247,10 @@ def getItem(dav):
 
     # get the exported item's UUID and see if we have already fetched it
     origUUID = davItem.itsUUID
-    newItem = repository.findUUID(sharing.itemMap[origUUID])
+    try:
+        newItem = repository.findUUID(sharing.itemMap[origUUID])
+    except:
+        newItem = None
 
     if not newItem:
         # create a new item for the davItem
@@ -256,6 +259,8 @@ def getItem(dav):
         newItem.sharedURL = dav.url
         # set the version to avoid sync thinking there are local changes
         newItem.sharedVersion = newItem._version
+        # set a bogus etag so it doesn't try to put
+        newItem.etag = "12345"
 
         # toss this in to the itemMap so we can find it later
         sharing.itemMap[origUUID] = newItem.itsUUID
