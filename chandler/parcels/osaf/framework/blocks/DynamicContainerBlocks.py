@@ -134,9 +134,8 @@ class RefCollectionDictionary(object):
         """
         # 
         coll = self.getAttributeValue(self.collectionDelegate())
-        if index is None:
-            coll.append(item, alias=self.itemNameAccessor(item))
-        else:
+        coll.append(item, alias=self.itemNameAccessor(item))
+        if index is not None:
             prevItem = coll.previous(index)
             coll.placeItem(item, prevItem) # place after the previous item
             
