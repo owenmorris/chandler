@@ -16,7 +16,8 @@
              xmlns:contactsModel="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
              xmlns:notesDetail="http://osafoundation.org/parcels/osaf/framework/blocks/detail/notes"
              xmlns:calendarDetail="http://osafoundation.org/parcels/osaf/framework/blocks/detail/calendar"
-             xmlns:view="http://osafoundation.org/parcels/osaf/views/content">
+             xmlns:view="http://osafoundation.org/parcels/osaf/views/content"
+	     xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events">
 
   <core:version>0.3</core:version>
 
@@ -122,7 +123,9 @@
 
     <daysPerWeek>7</daysPerWeek>
     <weeksPerView>6</weeksPerView>
-    <offset>20</offset>
+    <offset>60</offset>
+
+    <subscribeWhenVisibleEvents itemref="events:SelectedDateChanged"/>
   </calendarBlocks:MonthBlock>
 
   <!-- Week -->
@@ -132,6 +135,8 @@
     <daysPerView>7</daysPerView>
     <hoursPerView>24</hoursPerView>
     <offset>40</offset>
+
+    <subscribeWhenVisibleEvents itemref="events:SelectedDateChanged"/>
   </calendarBlocks:WeekBlock>
 
   <!-- Mixed List -->

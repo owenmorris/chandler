@@ -301,7 +301,9 @@
     <children itemref="doc:CalendarView"/>
     <children itemref="doc:ContactsView"/>
     <children itemref="doc:JunkView"/>
-    <children itemref="doc:TrashView"/>    
+    <children itemref="doc:TrashView"/>
+    <children itemref="doc:MonthView"/>
+    <children itemref="doc:WeekView"/>    
   </Node>
 
   <Node itsName="InView">
@@ -347,6 +349,16 @@
   <Node itsName="TrashView">
     <displayName>Trash</displayName>
     <item itemref="content:TrashListView"/>
+  </Node>
+
+  <Node itsName="WeekView">
+    <displayName>Week block</displayName>
+    <item itemref="content:WeekView"/>
+  </Node>
+
+  <Node itsName="MonthView">
+    <displayName>Month block</displayName>
+    <item itemref="content:MonthView"/>
   </Node>
 
   <!--
