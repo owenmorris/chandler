@@ -168,7 +168,6 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
                 self.SetStringItem(i,col,colInfo['stringFunc'](data))
         self.SetItemData(i,id(data))
         self.setReadStatus(i,data.hasNewItems())
-        data.register(self) 
         self.rssDict[id(data)] = data
      
     def loadObjects(self, remoteAddress, url):
@@ -192,10 +191,6 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
             self.SetColumnWidth(col, doAutoWidth and wxLIST_AUTOSIZE or colInfo['defaultWidth'])
             self._colSortFlag[col] = colInfo['sortFlag']
     
-    def deactivate(self):
-        for anRSSFeed in self.rssDict.values():
-            anRSSFeed.unregister(self)
-            
     def alreadySubscribed(self, rssURL):
         """check to see if rss URL is already in list of subscribed URLs"""
         for anRSSFeed in self.rssDict.values():
@@ -211,11 +206,10 @@ class wxZaoBaoIndexView(wxListCtrl, wxListCtrlAutoWidthMixin, wxColumnSorterMixi
     def deleteRSSChannelFromKey(self, key):
         """Delete the corresponding RSSChannel object given a key"""
         if (self.isLocal()):
-            repository = LocalRepository()
-            assert (isinstance(self.rssDict[key],RSSData.RSSChannel))
-            repository.deleteObject(self.rssDict[key])
-            repository.commit()
-        del self.rssDict[key]
+            channel = self.rssDict[key]
+            assert (isinstance(channel,RSSData.RSSChannel))
+            del self.rssDict[key]
+            channel.delete()
 
     def getRSSChannelFromKey(self, key):
         return self.rssDict[key]
@@ -452,7 +446,7 @@ class wxZaoBaoItemView(wxHtmlWindow):
         
     def subItemsForHTML(self,item,text):
         def translate(match):
-            return item.getAttribute(self._translationDict[match.group(0)])
+            return item.getAttributeValue(self._translationDict[match.group(0)])
         
         return self._regex.sub(translate, text)
 

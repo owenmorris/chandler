@@ -14,6 +14,7 @@ from application.SplashScreen import SplashScreen
 #ZaoBao modules
 from OSAF.zaobao.ZaoBaoUI import *
 from OSAF.zaobao.model import RSSData
+from OSAF.zaobao import rssfinder
 
 class ZaoBaoViewer (ViewerParcel):
     def __init__(self):
@@ -26,8 +27,13 @@ class ZaoBaoViewer (ViewerParcel):
         return [RSSData.FEED_CHANGED_NOTIFICATION]
    
     def ReceiveNotification(self, notification):
-        myWxViewer = app.association[id(self)]
-        print "received notification"
+        if notification.GetName() == RSSData.FEED_CHANGED_NOTIFICATION:
+            print "zaobao viewer received notification"
+            myWxViewer = app.association[id(self)]
+            channel = notification.GetData()
+            myWxViewer.RSSIndexView.update(channel,
+                                           {'event':'RSS item changed','key':id(channel)})
+            
         
     def GetAccessibleViews(self, who):
         """ return a list of accessible views (for now, ones that are public)
@@ -107,28 +113,71 @@ class wxZaoBaoViewer(wxViewerParcel):
         self.RSSIndexView.register(self)
         self.RSSIndexView.updateRSSFeeds()
         
+    def getFeeds(self,rssURL):
+        max = 9
+        progressDlg = wxProgressDialog("Searching the Internet...",
+                                       "Looking for feed: " + rssURL,
+                                       max,
+                                       NULL,
+                                       wxPD_CAN_ABORT|wxPD_APP_MODAL)
+        feeds = rssfinder.getFeeds(rssURL,progressDlg)
+        progressDlg.Destroy()
+        return feeds
+    
     def onAddRssUrl(self, event):
-        """Add RSS URL typed into text input area, checking first if
-        input text is a valid RSS URL"""
-        self.SetCursor(wxHOURGLASS_CURSOR)
         rssURL = self.urlTextArea.GetLineText(0)
-        defaultPrefix = 'http://'
-        if self.RSSIndexView.alreadySubscribed(rssURL) or self.RSSIndexView.alreadySubscribed(defaultPrefix + rssURL):
-            wxMessageBox(rssURL +_(" is already subscribed."))
-        else:
-            success = 1
-            try:
-                anRSSData = RSSData.getNewRSSChannel(rssURL)
-            except RSSData.RSSChannelException, e:
-                if (rssURL[:4] != 'http'):
+        try:
+            possibleFeeds = self.getFeeds(rssURL)
+            if possibleFeeds == "cancelled": return
+            noOfPossibleFeeds = len(possibleFeeds)
+            possibleFeeds = [feed 
+                             for feed in possibleFeeds
+                             if not self.RSSIndexView.alreadySubscribed(feed)]
+            noOfFeeds = len(possibleFeeds)
+            if noOfFeeds == 0:
+                if noOfPossibleFeeds > 0:
+                    wxMessageBox(rssURL + " is already subscribed")
+                else:
+                    wxMessageBox("Could not find any channels for " + rssURL)
+            else:
+                if noOfFeeds > 1:
+                    dlg = wxMultipleChannelsDialog(possibleFeeds,self, -1,"")
+                    dlg.ShowModal()
+                    dlg.Destroy()
+            
+                for rssURL in possibleFeeds:
                     try:
-                        anRSSData = RSSData.getNewRSSChannel(defaultPrefix + rssURL)
+                        anRSSData = RSSData.getNewRSSChannel(rssURL)
                     except RSSData.RSSChannelException, e:
-                        success = 0
-                else: success = 0
-            if success: self.RSSIndexView.addRSS(anRSSData)
-            else: answer = wxMessageBox(e.args)
-        self.SetCursor(wxNullCursor)
+                        answer = wxMessageBox(e.args)
+                    else:
+                        self.RSSIndexView.addRSS(anRSSData)
+                self.RSSIndexView.selectKey(id(anRSSData))
+        except IOError, e:
+            wxMessageBox(e.args[0])
+        
+    #def onAddRssUrl(self, event):
+        #"""Add RSS URL typed into text input area, checking first if
+        #input text is a valid RSS URL"""
+        #self.SetCursor(wxHOURGLASS_CURSOR)
+        #rssURL = self.urlTextArea.GetLineText(0)
+        #defaultPrefix = 'http://'
+        #if self.RSSIndexView.alreadySubscribed(rssURL) or self.RSSIndexView.alreadySubscribed(defaultPrefix + rssURL):
+            #wxMessageBox(rssURL +_(" is already subscribed."))
+        #else:
+            #success = 1
+            #try:
+                #anRSSData = RSSData.getNewRSSChannel(rssURL)
+            #except RSSData.RSSChannelException, e:
+                #if (rssURL[:4] != 'http'):
+                    #try:
+                        #anRSSData = RSSData.getNewRSSChannel(defaultPrefix + rssURL)
+                    #except RSSData.RSSChannelException, e:
+                        #success = 0
+                #else: success = 0
+            #if success: self.RSSIndexView.addRSS(anRSSData)
+            #else: answer = wxMessageBox(e.args)
+        #self.SetCursor(wxNullCursor)
         
     def OnReload(self):
         """Spawns a thread to check for updates from RSS feed"""
@@ -186,7 +235,6 @@ class wxZaoBaoViewer(wxViewerParcel):
     def Deactivate(self):
         """Removes observers from the model (RSSData) and remembers the previously
         selected RSS feed just before deactivation"""
-        self.RSSIndexView.deactivate()
         wxViewerParcel.Deactivate(self)
     
     def Activate(self):

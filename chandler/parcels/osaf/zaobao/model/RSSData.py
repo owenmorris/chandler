@@ -27,10 +27,12 @@ def loadLocalObjects():
     global rssDict
     if not rssDict:
         rssDict = {}
-        for item in app.repository.find("//ZaoBao"):
-            if isinstance(item,RSSChannel):
-                item._v_observers = []
-                rssDict[id(item)] = item
+        items = app.repository.find("//ZaoBao")
+        if items:
+            for item in items:
+                if isinstance(item,RSSChannel):
+                    item._v_observers = []
+                    rssDict[id(item)] = item
     return rssDict
     #if len(rssDict) == 0: #@@@ fixme should change test to a virgin repository flag
         #defaultRSSFeeds = (
@@ -62,10 +64,6 @@ def getNewRSSChannel(rssURL, isLocal=1):
 
 def updateRSSFeeds():
     loadLocalObjects()
-    notificationManager = app.model.notificationManager
-    notificationManager.DeclareNotification(FEED_CHANGED_NOTIFICATION,
-                                            NotificationManager.SYSTEM_CLIENT,
-                                            'unknown','')
     threading.Thread(target=_updateRSSFeedsLoop).start()
     
 def _updateRSSFeeds():
@@ -75,10 +73,6 @@ def _updateRSSFeeds():
     for anRSSChannel in rssDict.values():
         print 'update channel ' + anRSSChannel.getTitle()
         if anRSSChannel.update(0):
-            feedsChangedNotification = Notification(FEED_CHANGED_NOTIFICATION,
-                                                    "booleanType",'zaobaoDaemon')
-            feedsChangedNotification.SetData(anRSSChannel)
-            #notificationManager.PostNotification(feedsChangedNotification)
             needUpdate = True
     if needUpdate:
         app.repository.commit()
@@ -94,15 +88,18 @@ class RSSChannelFactory:
         self._kind = rep.find("//Schema/RSSSchema/RSSChannel")
         
     def newItem(self,rssURL):
+        parseData = feedparser.parse(rssURL)
+        if (parseData['channel'] == {}):
+            raise RSSChannelException, 'No RSS Data could be retrieved from specified URL: ' + rssURL
         item = RSSChannel(None,self._container,self._kind)
-        item.initAttributes(rssURL)
+        item.initAttributes(parseData, rssURL)
         return item
     
 class RSSChannelException(exceptions.Exception):
     def __init__(self, args=None):
         self.args = args
 
-class RSSChannel(Item,Observable1):
+class RSSChannel(Item):
     """The data model for an RSS feed and an object wrapper around the
     feedparser module.
     Each instance contains just one instance variable, data,
@@ -116,32 +113,24 @@ class RSSChannel(Item,Observable1):
         - isUnread; does this feed contain new items not viewed yet by user
     """
 
-    def __init__(self,name,parent,kind,**_kwds):
-        Item.__init__(self,name,parent,kind,**_kwds)
-        Observable1.__init__(self)
-    
-    def initAttributes(rssURL):
-        parserData = feedparser.parse(rssURL)
-        if (parserData['channel'] == {}):
-            self.delete() #@@@ verify it's ok to delete an object before __init__ is completed
-            raise RSSChannelException, 'No RSS Data could be retrieved from specified URL: ' + rssURL
-        self.setChannel(parserData,rssURL)
+    def initAttributes(self,parseData, rssURL):
+        self.setChannel(parseData,rssURL)
         
     def setChannel(self,parserData,rssURL):
         channel = parserData['channel']
-        self.setAttribute("creator",channel.get('creator',''))
-        self.setAttribute("description",channel.get('description',''))
-        self.setAttribute("link",channel.get('link',''))
-        self.setAttribute("title",channel.get('title',''))
-        self.setAttribute("category",channel.get('category',''))
-        self.setAttribute("language",channel.get('language','en-us'))
-        self.setAttribute("encoding",channel.get('encoding',''))
-        self.setAttribute("etag",parserData.get('etag',''))
+        self.setAttributeValue("creator",channel.get('creator',''))
+        self.setAttributeValue("description",channel.get('description',''))
+        self.setAttributeValue("link",channel.get('link',''))
+        self.setAttributeValue("title",channel.get('title',''))
+        self.setAttributeValue("category",channel.get('category',''))
+        self.setAttributeValue("language",channel.get('language','en-us'))
+        self.setAttributeValue("encoding",channel.get('encoding',''))
+        self.setAttributeValue("etag",parserData.get('etag',''))
         self.setModifiedDate(parserData)
-        self.setAttribute("rssURL",rssURL)
+        self.setAttributeValue("rssURL",rssURL)
         items = self.getItemsFromParseData(parserData)
         self.updateItems(items)
-        self.setAttribute('isUnread',len(items) > 0)         
+        self.setAttributeValue('isUnread',len(items) > 0)         
     
     def updateItems(self, items):
         try:
@@ -154,14 +143,14 @@ class RSSChannel(Item,Observable1):
     def updateChannel(self, parseData):
         self.setModifiedDate(parseData)
         etag = parseData.get('etag')
-        if etag: self.setAttribute('etag',etag)
+        if etag: self.setAttributeValue('etag',etag)
             
         for (key, value) in parseData['channel'].items():
             if (key == 'creator' or key == 'description' or
                 key == 'link' or key == 'title' or
                 key == 'category' or key == 'language' or
                 key == 'encoding'):
-                    self.setAttribute(key,value)
+                    self.setAttributeValue(key,value)
 
     def getItemsFromParseData(self,parseData):
         items = [RSSItemFactory(app.repository).newItem(itemData)
@@ -174,8 +163,11 @@ class RSSChannel(Item,Observable1):
     def setHasNewItems(self, hasItems, doSave=1):
        changed = self.isUnread != hasItems
        if changed:
-           self.setAttribute('isUnread',hasItems)
-           self.broadcast({'event':'RSS item changed','key':id(self)})
+           self.setAttributeValue('isUnread',hasItems)
+           feedsChangedNotification = Notification(FEED_CHANGED_NOTIFICATION,
+                                                   "RSSChannel",'zaobaoDaemon')
+           feedsChangedNotification.SetData(self)
+           app.model.notificationManager.PostNotification(feedsChangedNotification)
            if doSave:
                app.repository.commit()
        
@@ -207,11 +199,10 @@ class RSSChannel(Item,Observable1):
         except KeyError:
             modifiedDate = parseData.get('modified')
             if modifiedDate and len(modifiedDate) > 5:
-                lastModified = apply(mx.DateTime.DateTime,modifiedDate[0:3])
+                lastModified = apply(mx.DateTime.DateTime,modifiedDate[0:3]) #@@@ FIXME, need to store the whole date
             else:
                 lastModified = None
-        if lastModified:
-            self.setAttribute('lastModified',lastModified)
+        self.setAttributeValue('lastModified',lastModified)
         
     def getModifiedDateString(self):
         date = self.lastModified
@@ -239,10 +230,10 @@ class RSSChannel(Item,Observable1):
                                   self.etag,
                                   self.getModifiedDateTuple())
         newItems = self.getItemsFromParseData(newData)
-        self.updateChannel(newData)
         
         if (len(newItems) > 0 and 
             len(diffItems(self.items, newItems)) > 0):
+            self.updateChannel(newData)
             self.updateItems(newItems)
             self.setHasNewItems(1,doSave)
             if doSave: app.repository.commit()
@@ -255,21 +246,21 @@ class RSSItemFactory:
         self._kind = rep.find('//Schema/RSSSchema/RSSItem')
         
     def newItem(self, itemData):
-        item = RSSItem(itemData, itemData.get('title',''),self._container,self._kind)
+        item = RSSItem(itemData.get('title',''),self._container,self._kind)
         item.initAttributes(itemData)
         return item
     
 class RSSItem(Item):
     def initAttributes(self, itemData):
-        self.setAttribute('creator',itemData.get('creator',''))
-        self.setAttribute('description',itemData.get('description',''))
-        self.setAttribute('link',itemData.get('link',''))
-        self.setAttribute('title',itemData.get('title',''))
-        self.setAttribute('category',itemData.get('category',''))
+        self.setAttributeValue('creator',itemData.get('creator',''))
+        self.setAttributeValue('description',itemData.get('description',''))
+        self.setAttributeValue('link',itemData.get('link',''))
+        self.setAttributeValue('title',itemData.get('title',''))
+        self.setAttributeValue('category',itemData.get('category',''))
         try:
             date = itemData['date']
             lastModified = mx.DateTime.DateTimeFrom(date)
         except KeyError:
             lastModified = None
-        self.setAttribute('lastModified',lastModified)
+        self.setAttributeValue('lastModified',lastModified)
         
