@@ -512,7 +512,7 @@ def _findFiles(path, filename):
         fileList.append(os.path.join(path, filename))
     for name in os.listdir(path):
         full_name = os.path.join(path, name)
-        if os.path.isdir(full_name):
+        if os.path.isdir(full_name) and name != 'tests':
             fileList = fileList + _findFiles(full_name, filename)
     return fileList
 
