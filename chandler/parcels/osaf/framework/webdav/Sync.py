@@ -212,9 +212,7 @@ def syncToServer(dav, item):
         # don't export these local attributes
         if name in [u'etag', u'lastModified', u'sharedVersion',
                     u'sharedURL', u'sharedUUID', u'collectionOwner',
-                    u'itemCollectionResults',
-                    u'itemCollectionInclusions',
-                    u'itemCollectionInclusions'
+                    u'itemCollectionResults', u'itemCollectionInclusions',
                     u'itemCollectionExclusions']:
             continue
 
