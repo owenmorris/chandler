@@ -1,3 +1,11 @@
+2003-11-06 Jed Burgess <jed@osafoundation.org>
+   * Added on demand loading of items within the RepositoryViewer.  The
+     items viewed in the RepositoryViewer are not loaded until their
+     parent is expanded.
+
+2003-11-06 Jed Burgess <jed@osafoundation.org>
+   * Moved RepositoryViewer off of zodb.
+
 2003-09-11 Kaitlin Duck Sherwood <ducky@osafoundation.org>
    * Added an "About" page
 

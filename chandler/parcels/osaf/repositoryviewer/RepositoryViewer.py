@@ -81,6 +81,7 @@ class wxRepositoryViewer(wxViewerParcel):
         self.treeCtrl.AddColumn(_('URL'))
         
         EVT_TREE_SEL_CHANGED(self, self.treeCtrl.GetId(), self.OnSelChanged)
+        EVT_TREE_ITEM_EXPANDING(self, self.treeCtrl.GetId(), self.OnExpanding)
         
         # Set up detail view
         self.detail = wxRepositoryViewerDetail(self.splitter, -1, 
@@ -109,6 +110,17 @@ class wxRepositoryViewer(wxViewerParcel):
             item = item.getItemPath()
         app.wxMainFrame.GoToURL("Repository Viewer%s" % (item,), true)
 
+    def OnExpanding(self, event):
+        """
+          Load the items in the tree only when they are visible.
+        """
+        itemId = event.GetItem()
+        item = self.treeCtrl.GetItemData(itemId).GetData()
+        if (item != "Repository"):
+            if self.treeCtrl.GetChildrenCount(itemId, False) == 0:
+                for child in item:
+                    self.LoadTree(child, itemId)
+        
     def UpdateDisplay(self):
         item = self.model.GetDetailItem()
         self.detail.DisplayItem(item)
@@ -117,34 +129,53 @@ class wxRepositoryViewer(wxViewerParcel):
 
         uuid = str(item.getUUID())
 
-        old = self.treeCtrl.GetSelection()
-        node = self.treeItemsByUUID[uuid]
+        old = self.treeCtrl.GetSelection()        
         
+        self.GenerateTreeItems(item, uuid)
+        node = self.treeItemsByUUID[uuid]
+
         if old != node:
             self.treeCtrl.EnsureVisible(node)
             self.treeCtrl.SelectItem(node)
         
-    def LoadTree(self, item=None, path=None, parent=None):
+    def GenerateTreeItems(self, item, uuid):
         """
-          Load the repository data into the tree.
-          Recursively traverses the tree (by following the containment path), 
-          creating a tree item for every repository Item.
+          Makes sure that the item being selected has its corresponding node 
+        created within the tree (along with all of its ancestors).
+        """
+        try:
+            self.treeItemsByUUID[uuid]
+        except:
+            parent = item.getItemParent()
+            parentId = str(parent.getUUID())
+            self.GenerateTreeItems(parent, parentId)
+
+            parentNode = self.treeItemsByUUID[parentId]
+            node = self.treeCtrl.AppendItem(parentNode, item.getItemName())
+            self.treeCtrl.SetItemData(node, wxTreeItemData(item))
+            self.LoadItem(item, node)
+            if item.hasChildren():
+                self.treeCtrl.SetItemHasChildren(node, True)        
+        
+    def LoadTree(self, item=None, parent=None):
+        """
+          Loads the tree at the level of the supplied item.
+          
+          The rest of the body of the tree is only loaded when it needs to 
+        be displayed for for the first time.
         """
         if item is None:
             root = self.treeCtrl.AddRoot("\\\\")
             self.treeCtrl.SetItemData(root, wxTreeItemData("Repository"))
             for item in app.repository.getRoots():
-                path = item.getItemPath()
-                self.LoadTree(item, path, root)
+                self.LoadTree(item, root)
             self.treeCtrl.Expand(root)
         else:
-            path.append(item.getItemName())
             node = self.treeCtrl.AppendItem(parent, item.getItemName())
             self.treeCtrl.SetItemData(node, wxTreeItemData(item))
             self.LoadItem(item, node)
-            for child in item:
-                self.LoadTree(child, path, node)
-            path.pop()
+            if item.hasChildren():
+                self.treeCtrl.SetItemHasChildren(node, True)
 
     def LoadItem(self, item, node):
         """
