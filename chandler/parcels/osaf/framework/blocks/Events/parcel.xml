@@ -35,6 +35,11 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:GenerateCalendarEventItems"/>    
     <subscribeAlwaysEvents itemref="events:CheckRepository"/>
     <subscribeAlwaysEvents itemref="events:ShowPyCrust"/>
+    <subscribeAlwaysEvents itemref="events:AddAllAdditionalViews"/>
+    <subscribeAlwaysEvents itemref="events:AddDemoView"/>
+    <subscribeAlwaysEvents itemref="events:AddRepositoryView"/>
+    <subscribeAlwaysEvents itemref="events:AddMixedView"/>
+    <subscribeAlwaysEvents itemref="events:AddStockQuote"/>
     <subscribeAlwaysEvents itemref="events:AboutChandler"/>    
     <subscribeAlwaysEvents itemref="events:SelectedDateChanged"/>
   </EventList>
@@ -117,6 +122,26 @@ of a limitation of the XML format, which will be eliminated</description>
   </BlockEvent>
 
   <BlockEvent itsName="ShowPyCrust">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="AddAllAdditionalViews">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="AddDemoView">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+  
+  <BlockEvent itsName="AddRepositoryView">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+  
+  <BlockEvent itsName="AddMixedView">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="AddStockQuote">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 

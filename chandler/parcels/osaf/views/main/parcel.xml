@@ -29,12 +29,6 @@
     <dispatchToBlock itemref="doc:Sidebar"/>
   </BlockEvent>
 
-  <BlockEvent itsName="ShowHideBookmarksBar">
-    <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>onShowHideEvent</methodName>
-    <dispatchToBlock itemref="doc:BookmarksBar"/>
-  </BlockEvent>
-
   <BlockEvent itsName="ShowHideStatusBar">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onShowHideEvent</methodName>
@@ -239,13 +233,6 @@
     <event itemref="events:ViewNavigationBar"/>
   </MenuItem>
 
-  <MenuItem itsName="ViewBookmarksBarItem">
-    <title>View Bookmarks Bar</title>
-    <location>ViewMenu</location>
-    <menuItemKind>Check</menuItemKind>
-    <event itemref="doc:ShowHideBookmarksBar"/>
-  </MenuItem>
-
   <MenuItem itsName="ViewStatusBarItem">
     <title>View Status Bar</title>
     <location>ViewMenu</location>
@@ -300,6 +287,52 @@
     <location>TestMenu</location>
     <event itemref="events:ShowPyCrust"/>
     <helpString>Brings up an interactive Python shell</helpString>
+  </MenuItem>
+
+  <Menu itsName="AddAdditionalViewsItem">
+    <title>Add Additional Views</title>
+    <location>TestMenu</location>
+    <helpString>Add views to the sidebar</helpString>
+  </Menu>
+
+  <MenuItem itsName="AddAllAdditionalViewsItem">
+    <title>Add All Additional Views</title>
+    <location>AddAdditionalViewsItem</location>
+    <event itemref="events:AddAllAdditionalViews"/>
+    <helpString>Adds all of the extra views to the sidebar</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="TestSeparator1">
+    <location>AddAdditionalViewsItem</location>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="AddDemoViewItem">
+    <title>Add Block Demo View</title>
+    <location>AddAdditionalViewsItem</location>
+    <event itemref="events:AddDemoView"/>
+    <helpString>Adds the block demo view to the sidebar</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="AddRepositoryViewItem">
+    <title>Add Repository Viewer</title>
+    <location>AddAdditionalViewsItem</location>
+    <event itemref="events:AddRepositoryView"/>
+    <helpString>Adds the repository viewer to the sidebar</helpString>
+  </MenuItem>
+  
+  <MenuItem itsName="AddMixedViewItem">
+    <title>Add Mixed View</title>
+    <location>AddAdditionalViewsItem</location>
+    <event itemref="events:AddMixedView"/>
+    <helpString>Adds the mixed list view to the sidebar</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="AddStockQuoteItem">
+    <title>Add Stock Quote</title>
+    <location>AddAdditionalViewsItem</location>
+    <event itemref="events:AddStockQuote"/>
+    <helpString>Adds the stock quote view to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="AboutChandlerItem">
@@ -510,92 +543,6 @@
   </StatusBar>
 
   <!--
-    Sidebar locations
-  -->
-  <Node itsName="URLRoot">
-    <displayName></displayName>
-    <children itemref="doc:InView"/>
-    <children itemref="doc:OutView"/>
-    <children itemref="doc:Repository"/>
-    <children itemref="doc:Demo"/>
-    <children itemref="doc:CalendarView"/>
-    <children itemref="doc:ContactsView"/>
-    <children itemref="doc:NotesView"/>
-    <children itemref="doc:JunkView"/>
-    <children itemref="doc:TrashView"/>
-    <children itemref="doc:MonthView"/>
-    <children itemref="doc:WeekView"/>    
-  </Node>
-
-  <Node itsName="InView">
-    <displayName>In</displayName>
-    <item itemref="content:InListView"/>
-  </Node>
-
-  <Node itsName="OutView">
-    <displayName>Out</displayName>
-    <item itemref="content:OutListView"/>
-  </Node>
-
-  <Node itsName="Repository">
-    <displayName>Repository</displayName>
-    <item itemref="repository:RepositoryBox"/>
-  </Node>
-
-  <Node itsName="Demo">
-    <displayName>Block Demo</displayName>
-    <item itemref="demo:TabBox"/>
-  </Node>
-
-  <Node itsName="CalendarView">
-    <displayName>Calendar</displayName>
-    <item itemref="content:NewCalendarListView"/>
-  </Node>
-
-  <Node itsName="ContactsView">
-    <displayName>Contacts</displayName>
-    <item itemref="content:NewContactListView"/>
-  </Node>
-
-  <Node itsName="NotesView">
-    <displayName>Notes</displayName>
-    <item itemref="content:NoteListView"/>
-  </Node>
-
-  <Node itsName="JunkView">
-    <displayName>Junk</displayName>
-    <item itemref="content:JunkListView"/>
-  </Node>
-
-  <Node itsName="TrashView">
-    <displayName>Trash</displayName>
-    <item itemref="content:TrashListView"/>
-  </Node>
-
-  <Node itsName="WeekView">
-    <displayName>Week block</displayName>
-    <item itemref="content:WeekView"/>
-  </Node>
-
-  <Node itsName="MonthView">
-    <displayName>Month block</displayName>
-    <item itemref="content:MonthView"/>
-  </Node>
-
-  <!--
-    Bookmarks
-  -->
-  <Node itsName="BookmarksRoot">
-    <displayName></displayName>
-    <children itemref="doc:RepositoryBookmark"/>
-  </Node>
-
-  <Node itsName="RepositoryBookmark">
-    <displayName>Repository</displayName>
-    <item itemref="repository:RepositoryBox"/>
-  </Node>
-
-  <!--
     Layout blocks
   -->
   <TabbedContainer itsName="TabbedView"
@@ -625,11 +572,8 @@
   <contentModel:NamedCollection itsName="sidebarItemCollection">
     <inclusions uuidOf="content:InListView"/>
     <inclusions uuidOf="content:OutListView"/>
-    <inclusions uuidOf="repository:RepositoryBox"/>
-    <inclusions uuidOf="demo:TabBox"/>
     <inclusions uuidOf="content:NewCalendarListView"/>
     <inclusions uuidOf="content:NewContactListView"/>
-    <inclusions uuidOf="content:NoteListView"/>
     <inclusions uuidOf="content:JunkListView"/>
     <inclusions uuidOf="content:TrashListView"/>
     <inclusions uuidOf="content:MonthView"/>
@@ -644,13 +588,6 @@
     <hideColumnHeadings>True</hideColumnHeadings>
   </Table>
  
-  <BookmarksBar itsName="BookmarksBar">
-    <!-- Attributes -->
-    <bookmarksPath itemref="doc:BookmarksRoot"/>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <stretchFactor>0.0</stretchFactor>
-  </BookmarksBar>
-
   <SplitterWindow itsName="MainSplitter">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:Sidebar"/>
@@ -665,7 +602,6 @@
   <BoxContainer itsName="MainBoxContainer">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:NavigationBar"/>
-    <childrenBlocks itemref="doc:BookmarksBar"/>
     <childrenBlocks itemref="doc:MainSplitter"/>
     
     <!-- NavigationBar ToolbarItems -->
@@ -713,7 +649,6 @@
     <childrenBlocks itemref="doc:ViewMenu"/>
     <childrenBlocks itemref="doc:ViewSideBarItem"/>
     <childrenBlocks itemref="doc:ViewNavigationBarItem"/>
-    <childrenBlocks itemref="doc:ViewBookmarksBarItem"/>
     <childrenBlocks itemref="doc:ViewStatusBarItem"/>
     <childrenBlocks itemref="doc:TestMenu"/>
     <childrenBlocks itemref="doc:GenerateAllItem"/>
@@ -723,6 +658,14 @@
     <childrenBlocks itemref="doc:ImportContactItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
+    <childrenBlocks itemref="doc:AddAdditionalViewsItem"/>
+    <childrenBlocks itemref="doc:AddAllAdditionalViewsItem"/>
+    <childrenBlocks itemref="doc:TestSeparator1"/>
+    <childrenBlocks itemref="doc:AddDemoViewItem"/>
+    <childrenBlocks itemref="doc:AddRepositoryViewItem"/>
+    <childrenBlocks itemref="doc:AddMixedViewItem"/>
+    <childrenBlocks itemref="doc:AddStockQuoteItem"/>
+    
     <childrenBlocks itemref="doc:HelpMenu"/>
     <childrenBlocks itemref="doc:AboutChandlerItem"/>
     
@@ -734,7 +677,6 @@
     
     <!-- Block Events -->
     <subscribeWhenVisibleEvents itemref="doc:ShowHideSidebar"/>
-    <subscribeWhenVisibleEvents itemref="doc:ShowHideBookmarksBar"/>
     <subscribeWhenVisibleEvents itemref="doc:ShowHideStatusBar"/>
 
     <!-- Attributes -->

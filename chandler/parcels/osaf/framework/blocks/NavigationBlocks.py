@@ -12,57 +12,6 @@ import DynamicContainerBlocks as DynamicContainerBlocks
 import wx
 
 
-class wxBookmark(wx.StaticText):
-    """
-      Under construction
-    """
-    def __init__(self, parent, text, onClickMethod, userData, id=-1):
-        super (wxBookmark, self).__init__ (parent, id, text)
-        self.onClickMethod = onClickMethod
-        self.userData = userData
-        self.Bind(wx.EVT_LEFT_DOWN, self.onClick)
-        
-    def onClick(self, event):
-        self.onClickMethod(self.userData)
-        
-
-class BookmarksBar(RectangularChild):
-    """
-      Under construction
-    """
-    def __init__(self, *arguments, **keywords):
-        super (BookmarksBar, self).__init__ (*arguments, **keywords)
-        self.bookmarksPath = None
-
-    def instantiateWidget(self):
-        panelWidget = wxRectangularChild (self.parentBlock.widget, -1)
-        sizer = wx.BoxSizer (wx.HORIZONTAL)
-        sizer.SetMinSize ((self.minimumSize.width, self.minimumSize.height))
-        self.addBookmarks (panelWidget, sizer)
-        panelWidget.SetSizerAndFit (sizer)
-        return panelWidget
-    
-    def addBookmarks(self, parent, sizer):
-        for child in self.bookmarksPath.children:
-            self.addBookmark(parent, sizer, child.getItemDisplayName(), child.GetPath())
-        
-    def addBookmark(self, parent, sizer, title, path):
-        sizer.Add((10, 0), 0, wx.EXPAND)
-        bookmark = wxBookmark(parent, title, self.bookmarkPressed, path)
-        sizer.Add(bookmark, 0)
-        sizer.Add((10, 0), 0, wx.EXPAND)
-        
-    def bookmarkPressed(self, text):
-        item = Node.GetItemFromPath(text, '//parcels/osaf/views/main/URLRoot')
-        """
-          If a parcel takes the focus upon a SelectionChanged event, we must take the focus back
-        temporarily so that the sidebar gets the event.  This is a temporary solution for Bug#1249.
-        """
-        Globals.wxApplication.mainFrame.SetFocus()
-        self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                   {'item':item})
-        
-
 class NavigationBar(DynamicContainerBlocks.Toolbar):
     """
       Under construction

@@ -931,20 +931,6 @@
   </Kind>    
 
   <!--
-    BookmarksBar
-  -->
-  <Kind itsName="BookmarksBar">
-    <classes key="python">osaf.framework.blocks.NavigationBlocks.BookmarksBar</classes>
-    <superKinds itemref="docSchema:RectangularChild"/>
-
-    <Attribute itsName="bookmarksPath">
-      <type itemref="Item"/>
-    </Attribute>
-
-    <attributes itemref="docSchema:BookmarksBar/bookmarksPath"/>
-  </Kind>  
-
-  <!--
     Node, used to store URL space in repository
   -->
   <Kind itsName="Node">

@@ -44,6 +44,7 @@
   <contentModel:Query itsName="mixedQuery">
     <data itemref="calendarModel:CalendarEvent"/>
     <data itemref="contentModel:Note"/>
+    <data itemref="contactsModel:Contact"/>
   </contentModel:Query>
   <contentModel:NamedCollection itsName="mixedItemCollection">
     <rule itemref="view:mixedQuery"/>
@@ -142,7 +143,7 @@
   </calendarBlocks:WeekBlock>
 
   <!-- Mixed List -->
-  <Table itsName="MixedList">
+  <List itsName="MixedList">
     <contents itemref="view:mixedItemCollection"/>
 
     <columnData>who</columnData>
@@ -152,7 +153,7 @@
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
-  </Table>
+  </List>
 
   <!-- In List -->
   <Table itsName="InList">
@@ -291,7 +292,7 @@
     <displayName>NotesList</displayName>
 
     <childrenBlocks itemref="view:NoteList"/>
-    <childrenBlocks itemref="notesDetail:DetailRoot"/>
+    <childrenBlocks itemref="notesDetail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -311,10 +312,10 @@
 
   <!-- Mixed View -->
   <SplitterWindow itsName="MixedListView">
-    <displayName>MixedList</displayName>
+    <displayName>Mixed</displayName>
 
     <childrenBlocks itemref="view:MixedList"/>
-    <childrenBlocks itemref="view:MixedItemDetail"/>
+    <childrenBlocks itemref="notesDetail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>

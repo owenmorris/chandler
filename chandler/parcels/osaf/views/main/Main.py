@@ -70,6 +70,32 @@ class MainView(View):
         else:
             repository.logger.info('Check completed with errors')
 
+    def onShowPyCrustEvent(self, notification):
+        Globals.wxApplication.ShowDebuggerWindow()
+
+    def onAddAllAdditionalViewsEvent(self, notification):
+        self.onAddDemoViewEvent(notification)
+        self.onAddRepositoryViewEvent(notification)
+        self.onAddMixedViewEvent(notification)
+        self.onAddStockQuoteEvent(notification)
+        
+    def onAddDemoViewEvent(self, notification):
+        self._addNewView('//parcels/osaf/views/demo/TabBox')
+
+    def onAddRepositoryViewEvent(self, notification):
+        self._addNewView('//parcels/osaf/views/repositoryviewer/RepositoryBox')
+
+    def onAddMixedViewEvent(self, notification):
+        self._addNewView('//parcels/osaf/views/content/MixedListView')
+
+    def onAddStockQuoteEvent(self, notification):
+        self._addNewView('//parcels/osaf/examples/stockquote/views/StockQuoteView')
+
+    def _addNewView(self, path):
+        sidebarCollection = Globals.repository.findPath('//parcels/osaf/views/main/sidebarItemCollection')
+        newView = Globals.repository.findPath(path)
+        sidebarCollection.include(newView)        
+                
     def onAboutChandlerEvent(self, notification):
         """
           Show the splash screen in response to the about command
@@ -78,7 +104,4 @@ class MainView(View):
         splash = SplashScreen(None, _("About Chandler"), 
                               pageLocation, False, False)
         splash.Show(True)
-
-    def onShowPyCrustEvent(self, notification):
-        Globals.wxApplication.ShowDebuggerWindow()
 
