@@ -1089,7 +1089,7 @@
   </ToolbarItem>
 
   <KindParameterizedEvent itsName="KindFilterMessageEvent">
-    <kindParameter itemref="mail:MailMessage"/>
+    <kindParameter itemref="mail:MailMessageMixin"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
@@ -1105,7 +1105,7 @@
   </ToolbarItem>
 
   <KindParameterizedEvent itsName="KindFilterEventEvent">
-    <kindParameter itemref="calendarModel:CalendarEvent"/>
+    <kindParameter itemref="calendarModel:CalendarEventMixin"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
@@ -1121,7 +1121,7 @@
   </ToolbarItem>
 
   <KindParameterizedEvent itsName="KindFilterTaskEvent">
-    <kindParameter itemref="tasks:Task"/>
+    <kindParameter itemref="tasks:TaskMixin"/>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
