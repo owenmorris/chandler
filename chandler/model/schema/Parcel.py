@@ -38,6 +38,3 @@ class Parcel(Item, AutoKind):
         self.createAttribute('description', type=stringType)
         self.createAttribute('icon', type=stringType)
         self.createAttribute('version', type=stringType)
-
-        
-    

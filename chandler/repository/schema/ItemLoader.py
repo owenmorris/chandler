@@ -144,8 +144,9 @@ class ItemHandler(xml.sax.ContentHandler):
         
         # If we have a reference, delay loading
         if element == 'Reference':
-            self.currentAttributes.append((local,
-                                           self.currentValue,
+            (namespace, name) = self.getNamespaceName(self.currentValue)
+
+            self.currentAttributes.append((local, namespace, name,
                                            self.locator.getLineNumber()))
             
         # We have an attribute, append to the current item
@@ -182,12 +183,15 @@ class ItemHandler(xml.sax.ContentHandler):
     def startPrefixMapping(self, prefix, uri):
         """ SAX2 callback for namespace prefixes """
 
+        # If we define a prefix mapping, it means we depend on
+        # the parcel.
+
         # Save the prefix mapping, for use by itemref attributes
         self.mapping[prefix] = uri
 
     def endPrefixMapping(self, prefix):
         """ SAX2 callback for namespace prefixes """
-        # self.mapping[prefix] = None
+        self.mapping[prefix] = None
 
     def findItem(self, namespace, name):
         """ Find the item with the namespace indicated by prefix,
@@ -215,13 +219,17 @@ class ItemHandler(xml.sax.ContentHandler):
 
         return schemaItem
 
+    def getNamespaceName(self, nameString):
+        (prefix, name) = nameString.split(':')
+        namespace = self.mapping[prefix]
+        return (namespace, name)
+
     def createItem(self, uri, local, nameString):
 
         # Find the item represented by the tag, schema information
         schemaItem = self.findItem(uri, local)
 
-        (prefix, name) = nameString.split(':') 
-        namespace = self.mapping[prefix]
+        (namespace, name) = self.getNamespaceName(nameString)
 
         parent = self.repository.find(namespace)
         item = schemaItem.newItem(name, parent)
@@ -230,11 +238,8 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def addReferences(self, item, attributes):
         """ Add all of the references in the list to the item """
-        for (attributeName, value, line) in attributes:
+        for (attributeName, namespace, name, line) in attributes:
             try:
-                (prefix, name) = value.split(':')
-                
-                namespace = self.mapping[prefix]
                 reference = self.findItem(namespace, name)
                 
                 # @@@ (3) Special cases to resolve
