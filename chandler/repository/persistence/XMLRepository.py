@@ -620,7 +620,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
                                        store, versions, history, verbose)
 
             except DBLockDeadlockError:
-                print 'Restarting transaction aborted by deadlock'
+                print 'restarting commit aborted by deadlock'
                 if self._txn:
                     self._txn.abort()
                     self._txn = None
@@ -771,47 +771,61 @@ class XMLRefDict(RefDict):
         if key in self._deletedRefs:
             return None
 
-        cursor = None
-        txnStarted = False
-        try:
-            txnStarted = view._startTransaction()
-            cursor = view.repository._refs.cursor(view)
-
+        while True:
+            cursor = None
+            txnStarted = False
             try:
-                cursorKey = self._packKey(key)
-                value = cursor.set_range(cursorKey)
-            except DBNotFoundError:
-                return None
-            else:
-                version = self._item._version
-                while value is not None and value[0].startswith(cursorKey):
-                    refVer = ~unpack('>l', value[0][48:52])[0]
+                txnStarted = view._startTransaction()
+                cursor = view.repository._refs.cursor(view)
 
-                    if refVer <= version:
-                        self._value.truncate(0)
-                        self._value.seek(0)
-                        self._value.write(value[1])
-                        self._value.seek(0)
-                        uuid = self._readValue()
+                try:
+                    cursorKey = self._packKey(key)
+                    value = cursor.set_range(cursorKey)
 
-                        if uuid is None:
-                            return None
+                except DBLockDeadlockError:
+                    print 'restarting _loadRef aborted by deadlock'
+                    if cursor:
+                        cursor.close()
+                    if txnStarted:
+                        view._abortTransaction()
+
+                    continue
+
+                except DBNotFoundError:
+                    return None
+
+                else:
+                    version = self._item._version
+                    while value is not None and value[0].startswith(cursorKey):
+                        refVer = ~unpack('>l', value[0][48:52])[0]
+
+                        if refVer <= version:
+                            self._value.truncate(0)
+                            self._value.seek(0)
+                            self._value.write(value[1])
+                            self._value.seek(0)
+                            uuid = self._readValue()
+
+                            if uuid is None:
+                                return None
+
+                            else:
+                                previous = self._readValue()
+                                next = self._readValue()
+                                alias = self._readValue()
+        
+                                return (key, uuid, previous, next, alias)
 
                         else:
-                            previous = self._readValue()
-                            next = self._readValue()
-                            alias = self._readValue()
-        
-                            return (key, uuid, previous, next, alias)
+                            value = cursor.next()
 
-                    else:
-                        value = cursor.next()
+                    return None
 
-        finally:
-            if cursor:
-                cursor.close()
-            if txnStarted:
-                view._abortTransaction()
+            finally:
+                if cursor:
+                    cursor.close()
+                if txnStarted:
+                    view._abortTransaction()
 
     def _changeRef(self, key):
 

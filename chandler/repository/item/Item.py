@@ -12,6 +12,7 @@ from repository.item.ItemRef import Values, References, RefDict
 from repository.item.ItemHandler import ItemHandler
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
+from repository.item.PersistentCollections import SingleRef
 
 from repository.util.UUID import UUID
 from repository.util.Path import Path
@@ -119,18 +120,9 @@ class Item(object):
             attribute = self._kind.getAttribute(name)
             if attribute is not None:
                 otherName = attribute.getAspect('otherName')
-        else:
-            attribute = None
 
         if otherName is None:
-            if attribute is not None:
-                raise TypeError, 'Undefined other endpoint for %s.%s' %(self.getItemPath(), name)
-            else:
-                print 'Warning, undefined otherName for %s.%s' %(self, name)
-                if name.endswith('__for'):
-                    otherName = name[:-5]
-                else:
-                    otherName = name + '__for'
+            raise TypeError, 'Undefined other endpoint for %s.%s' %(self.getItemPath(), name)
 
         return otherName
 
@@ -197,23 +189,21 @@ class Item(object):
                 else:
                     raise TypeError, type(old)
 
-        elif (isItem or isRef) and _attrDict is self._values:
-            del _attrDict[name]
-
         if isItem:
-            otherName = self._otherName(name)
+            otherName = self.getAttributeAspect(name, 'otherName',
+                                                default=None)
             card = self.getAttributeAspect(name, 'cardinality',
                                            default='single')
 
-            if card == 'single':
-                value = ItemRef(self, name, value, otherName)
-            else:
-                refs = self._refDict(name, otherName)
-                value = ItemRef(self, name, value, otherName)
-                refs[value.getItem()._refName(name)] = value
-                value = refs
+            if card != 'single':
+                raise ValueError, 'cardinality %s of %s.%s requires collection' %(self, name, card)
 
-            self._references[name] = value
+            if otherName is None:
+                self._values[name] = value = SingleRef(value.getUUID())
+
+            else:
+                value = ItemRef(self, name, value, otherName)
+                self._references[name] = value
 
         elif isRef:
             self._references[name] = value
@@ -252,7 +242,10 @@ class Item(object):
         try:
             if (_attrDict is self._values or
                 _attrDict is None and self._values.has_key(name)):
-                return self._values[name]
+                value = self._values[name]
+                if isinstance(value, SingleRef):
+                    value = self.getRepository().find(value.getUUID())
+                return value
 
             elif (_attrDict is self._references or
                   _attrDict is None and self._references.has_key(name)):
@@ -419,16 +412,17 @@ class Item(object):
 
         self.setDirty(attribute=attribute)
 
-        isItem = isinstance(value, Item)
-        if isItem and key is None:
-            key = value._refName(attribute)
-
         if _attrDict is None:
-            if isItem:
+            if self._values.has_key(attribute):
+                _attrDict = self._values
+            elif self._references.has_key(attribute):
+                _attrDict = self._references
+            elif self.getAttributeAspect(attribute, 'otherName', default=None):
                 _attrDict = self._references
             else:
                 _attrDict = self._values
 
+        isItem = isinstance(value, Item)
         attrValue = _attrDict.get(attribute, Item.Nil)
             
         if attrValue is Item.Nil:
@@ -436,7 +430,7 @@ class Item(object):
                                            default='single')
 
             if card == 'dict':
-                if isItem:
+                if isItem and _attrDict is self._references:
                     attrValue = self._refDict(attribute)
                 else:
                     companion = self.getAttributeAspect(attribute, 'companion',
@@ -444,41 +438,46 @@ class Item(object):
                     attrValue = PersistentDict(self, companion)
                     attrValue[key] = value
                     _attrDict[attribute] = attrValue
-                    return
+                    return attrValue
 
             elif card == 'list':
-                if isItem:
+                if isItem and _attrDict is self._references:
                     attrValue = self._refDict(attribute)
                 else:
                     companion = self.getAttributeAspect(attribute, 'companion',
                                                         default=None)
-                    _attrDict[attribute] = PersistentList(self, companion,
-                                                          value)
-                    return
+                    attrValue = PersistentList(self, companion, value)
+                    _attrDict[attribute] = attrValue
+                    return attrValue
+
             else:
                 self.setAttributeValue(attribute, value, _attrDict)
-                return
+                return value
 
             _attrDict[attribute] = attrValue
 
-        if isItem and alias:
-            attrValue.__setitem__(key, value, alias=alias)
+        if isItem:
+            attrValue.__setitem__(value._refName(attribute),
+                                  value, alias=alias)
         else:
             attrValue[key] = value
+
+        return attrValue
 
     def addValue(self, attribute, value, key=None, alias=None, _attrDict=None):
         "Add a value for a multi-valued attribute for a given optional key."
 
-        isItem = isinstance(value, Item)
-        if isItem and key is None:
-            key = value._refName(attribute)
-        
         if _attrDict is None:
-            if isItem:
+            if self._values.has_key(attribute):
+                _attrDict = self._values
+            elif self._references.has_key(attribute):
+                _attrDict = self._references
+            elif self.getAttributeAspect(attribute, 'otherName', default=None):
                 _attrDict = self._references
             else:
                 _attrDict = self._values
-                
+
+        isItem = isinstance(value, Item)
         attrValue = _attrDict.get(attribute, Item.Nil)
 
         if attrValue is Item.Nil:
@@ -488,8 +487,9 @@ class Item(object):
             self.setDirty(attribute=attribute)
 
             if isinstance(attrValue, dict):
-                if isItem and alias:
-                    attrValue.__setitem__(key, value, alias=alias)
+                if isItem and _attrDict is self._references:
+                    attrValue.__setitem__(value._refName(attribute),
+                                          value, alias=alias)
                 else:
                     attrValue[key] = value
             elif isinstance(attrValue, list):
@@ -560,16 +560,17 @@ class Item(object):
         values are references, key is ignored and value must be the
         referenced item to remove from the collection."""
 
-        if isinstance(value, Item) and key is None:
-            key = value._refName(attribute)
-            _attrDict = self._references
-        
-        if _attrDict is not None:
-            value = _attrDict[attribute]
-        else:
-            value = (self._values.get(attribute, Item.Nil) or
-                     self._references.get(attribute, Item.Nil))
+        if _attrDict is None:
+            if self._values.has_key(attribute):
+                _attrDict = self._values
+            elif self._references.has_key(attribute):
+                _attrDict = self._references
+            elif self.getAttributeAspect(attribute, 'otherName', default=None):
+                _attrDict = self._references
+            else:
+                _attrDict = self._values
 
+        value = _attrDict.get(attribute, Item.Nil)
         if value is not Item.Nil:
             del value[key]
         else:

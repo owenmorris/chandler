@@ -416,14 +416,7 @@ class ItemHandler(xml.sax.ContentHandler):
             otherName = attribute.getAspect('otherName')
 
         if otherName is None:
-            if attribute is not None:            
-                raise TypeError, 'Undefined other endpoint for %s' %(name)
-            else:
-                print 'Warning, undefined otherName for %s' %(name)
-                if name.endswith('__for'):
-                    otherName = name[:-5]
-                else:
-                    otherName = name + '__for'
+            raise TypeError, 'Undefined other endpoint for %s' %(name)
 
         return otherName
 

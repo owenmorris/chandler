@@ -52,8 +52,8 @@ def LoadParcels(searchPath, repository):
                     try:
                         path = os.path.join(root, 'parcel.xml')
                         loader.load(path, uri)
-                    except:
+                    except Exception, e:
                         repository.cancel()
-                        print "Failed to load parcel", path
+                        print "Failed to load parcel %s with %s" %(path, e)
                     else:
                         repository.commit()
