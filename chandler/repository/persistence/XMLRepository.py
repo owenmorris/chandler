@@ -200,10 +200,10 @@ class XMLContainer(object):
                 except StopIteration:
                     return doc
 
-            if self.version == "1.1.1":
-                for value in self._xml.queryWithXPathExpression(store.txn,
-                                                                self.store.containerExpr,
-                                                                DB_DIRTY_READ):
+            if self.version == "1.2.0":
+                for value in self._xml.queryWithXPath(store.txn,
+                                                      self.store.containerExpr,
+                                                      DB_DIRTY_READ):
                     result = value.asDocument()
                     dv = self.getDocVersion(result)
                     if dv > ver:
@@ -251,7 +251,7 @@ class XMLContainer(object):
                 except StopIteration:
                     pass
 
-            elif self.version == "1.1.1":
+            elif self.version == "1.2.0":
                 for value in self._xml.queryWithXPath(store.txn,
                                                       "/item[container=$uuid and number(@version)<=$version]",
                                                       ctx, DB_DIRTY_READ):
@@ -283,7 +283,8 @@ class XMLContainer(object):
         docs = {}
         try:
             txnStarted = store._startTransaction()
-            for value in self._xml.queryWithXPath(store.txn, query, store.ctx,
+            for value in self._xml.queryWithXPath(None, # store.txn,
+                                                  query, store.ctx,
                                                   DB_DIRTY_READ):
                 doc = value.asDocument()
                 ver = self.getDocVersion(doc)
@@ -594,8 +595,13 @@ class HistContainer(DBContainer):
 class TextContainer(DBContainer):
     pass
 
-
 class BinaryContainer(DBContainer):
+    pass
+
+class FileContainer(DBContainer):
+    pass
+
+class BlockContainer(DBContainer):
     pass
 
 
@@ -620,6 +626,8 @@ class XMLStore(Store):
             self._history = HistContainer(self, "__history__", txn, create)
             self._text = TextContainer(self, "__text__", txn, create)
             self._binary = BinaryContainer(self, "__binary__", txn, create)
+            self._index = FileContainer(self, "__index__", txn, create)
+            self._blocks = BlockContainer(self, "__blocks__", txn, create)
         finally:
             if txnStarted:
                 self._commitTransaction()
@@ -632,6 +640,8 @@ class XMLStore(Store):
         self._history.close()
         self._text.close()
         self._binary.close()
+        self._index.close()
+        self._blocks.close()
 
     def loadItem(self, version, uuid):
 
