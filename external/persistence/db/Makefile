@@ -31,6 +31,9 @@ $(SRC)/$(BUILD)/Makefile: patches
 build: $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
 
+expand: db-$(VERSION).tar.gz
+	tar xvzf db-$(VERSION).tar.gz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(DB)/$(SNAP).tar.gz $(SNAP)/db/bin $(SNAP)/db/lib

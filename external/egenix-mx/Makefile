@@ -32,6 +32,9 @@ build: apply
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
+expand: egenix-mx-base-$(VERSION).tar.gz
+	tar xvzf egenix-mx-base-$(VERSION).tar.gz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(EGENIX)/$(SNAP).tar.gz \

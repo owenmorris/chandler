@@ -37,6 +37,9 @@ $(SRC)/$(BUILD)/Makefile: patches
 build: $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
 
+expand: libxml2-$(VERSION).tar.gz
+	tar xvzf libxml2-$(VERSION).tar.gz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(LIBXML2)/$(SNAP).tar.gz \

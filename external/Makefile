@@ -46,6 +46,13 @@ default: all
 sources:
 	tar -cvf sources.tar $(SOURCES)
 
+expand:
+	tar xvf sources.tar; \
+	@for system in $(SYSTEMS); \
+	do \
+	    (cd $$system; $(MAKE) expand); \
+	done
+
 binaries:
 	@rm -f $(SNAP).tar $(SNAP).tar.gz; \
 	for system in $(SYSTEMS); \
@@ -60,7 +67,7 @@ binaries:
 	    rm _tmp.tar; \
 	done; \
 	echo compressing $(SNAP).tar; \
-        gzip $(SNAP).tar; \
+        gzip $(SNAP).tar;
 
 all:
 	@for system in $(SYSTEMS); \

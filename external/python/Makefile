@@ -40,6 +40,9 @@ build: apply
         $(MAKE) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallframework; \
         $(MAKE) DB=$(PREFIX)/db $(COMP_OPT) frameworkinstallapps
 
+expand: Python-$(VERSION).tgz
+	tar xvzf Python-$(VERSION).tgz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYTHON)/$(SNAP).tar.gz \

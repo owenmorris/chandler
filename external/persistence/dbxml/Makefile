@@ -47,6 +47,9 @@ build: apply
                                  $(DIST_DBG) \
                            install --force
 
+expand: dbxml-$(VERSION).tar.gz
+	tar xvzf dbxml-$(VERSION).tar.gz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(DBXML)/$(SNAP).tar.gz \

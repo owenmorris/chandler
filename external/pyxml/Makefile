@@ -29,6 +29,9 @@ build:
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
+expand: PyXML-$(VERSION).tar.gz
+	tar xvzf PyXML-$(VERSION).tar.gz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYXML)/$(SNAP).tar.gz \

@@ -32,6 +32,9 @@ build: apply
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
+expand: jabberpy$(VERSION).tar.gz
+	tar xvzf jabberpy$(VERSION).tar.gz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(JABBERPY)/$(SNAP).tar.gz \

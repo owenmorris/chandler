@@ -37,6 +37,9 @@ $(SRC)/$(BUILD)/Makefile: patches
 build: $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install
 
+expand: libxslt-$(VERSION).tar.gz
+	tar xvzf libxslt-$(VERSION).tar.gz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(LIBXSLT)/$(SNAP).tar.gz \

@@ -29,6 +29,9 @@ build:
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
+expand: epydoc-$(VERSION).tar.gz
+	tar xvzf epydoc-$(VERSION).tar.gz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(EPYDOC)/$(SNAP).tar.gz \

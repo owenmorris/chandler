@@ -29,6 +29,9 @@ build:
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
+expand: pychecker-$(VERSION).tar.gz
+	tar xvzf pychecker-$(VERSION).tar.gz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYCHECKER)/$(SNAP).tar.gz \

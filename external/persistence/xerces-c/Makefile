@@ -36,6 +36,9 @@ build: $(SRC)/$(BUILD)/src/xercesc/Makefile
 	rm -f $(PREFIX)/lib/libxerces*; \
 	XERCESCROOT=$(SRC)/$(BUILD) $(MAKE) install
 
+expand: xerces-c-src$(VERSION).tar.gz
+	tar xvzf xerces-c-src$(VERSION).tar.gz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(XERCESC)/$(SNAP).tar.gz $(SNAP)/lib/libxerces*

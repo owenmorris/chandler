@@ -29,6 +29,9 @@ build: apply
                                 DBVERSION=4.2.52 VERSION=$(VERSION) \
                                 all install
 
+expand: lucene-$(VERSION).tar.gz
+	tar xvzf lucene-$(VERSION).tar.gz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(PYLUCENE)/$(SNAP).tar.gz \

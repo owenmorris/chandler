@@ -32,6 +32,9 @@ build: apply
 	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
+expand: SOAPpy-$(VERSION).tar.gz
+	tar xvzf SOAPpy-$(VERSION).tar.gz
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(SOAPPY)/$(SNAP).tar.gz \
