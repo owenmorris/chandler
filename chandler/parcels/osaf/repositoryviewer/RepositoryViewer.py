@@ -262,6 +262,10 @@ class wxRepositoryViewer(wxViewerParcel):
                 for child in item:
                     self.LoadTree(child, itemId)
         
+    def OnReload(self):
+
+        app.repository.commit()
+        
     def UpdateDisplay(self):
         item = self.model.GetDetailItem()
         self.detail.DisplayItem(item)
@@ -306,6 +310,7 @@ class wxRepositoryViewer(wxViewerParcel):
           The rest of the body of the tree is only loaded when it needs to 
         be displayed for for the first time.
         """
+
         if item is None:
             root = self.treeCtrl.AddRoot("\\\\")
             self.treeCtrl.SetItemData(root, wxTreeItemData("Repository"))
