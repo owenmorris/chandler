@@ -62,7 +62,7 @@ def LoadParcels(searchPath, repository):
                 uri = "//parcels/%s" % root[len(directory)+1:]
                 uri = uri.replace(os.path.sep, "/")
                 parcelFile = os.path.join(root, 'parcel.xml')
-                _loadParcel(parcelFile, uri, searchPath, repository, loader)
+                _loadParcel(parcelFile, uri, repository, loader)
 
     root = repository.find("//parcels")
     for parcel in WalkParcels(root):
@@ -77,14 +77,14 @@ def LoadParcel(dir, uri, searchPath, repository):
     parcelFile = os.path.join(dir, "parcel.xml")
     Parcel.setupParcels(repository)
     loader = ParcelLoader(repository, LoadDependency, searchPath)
-    _loadParcel(parcelFile, uri, searchPath, repository, loader)
+    _loadParcel(parcelFile, uri, repository, loader)
 
     root = repository.find("//parcels")
     for parcel in WalkParcels(root):
         parcel.startupParcel()
 
 
-def _loadParcel(parcelFile, uri, searchPath, repository, loader):
+def _loadParcel(parcelFile, uri, repository, loader):
     """
     Internal method used by LoadParcels and LoadParcel
     """
