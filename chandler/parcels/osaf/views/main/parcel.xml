@@ -402,6 +402,7 @@
     <childrenBlocks itemref="doc:PrintPreviewItem"/> 
     <childrenBlocks itemref="doc:PrintItem"/> 
     <childrenBlocks itemref="doc:FileSeparator4"/>
+    <childrenBlocks itemref="doc:ImportExportMenu"/>
     <childrenBlocks itemref="doc:SyncMenu"/>
     <childrenBlocks itemref="doc:PreferencesMenu"/>
     <childrenBlocks itemref="doc:FileSeparator5"/>
@@ -480,8 +481,6 @@
     <childrenBlocks itemref="doc:GenerateAllItem"/>
     <childrenBlocks itemref="doc:GenerateContactItem"/>
     <childrenBlocks itemref="doc:GenerateCalendarItem"/>
-    <childrenBlocks itemref="doc:ImportIcalendarItem"/>
-    <childrenBlocks itemref="doc:ExportIcalendarItem"/>
     <childrenBlocks itemref="doc:GenerateNoteItem"/>
     <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:ShareCollectionItem"/>
@@ -648,6 +647,14 @@
     <blockName>FileSeparator5</blockName>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
+
+  <Menu itsName="ImportExportMenu">
+    <blockName>ImportExportMenu</blockName>
+    <title>Import/Export</title>
+    <childrenBlocks itemref="doc:ImportIcalendarItem"/>
+    <childrenBlocks itemref="doc:ExportIcalendarItem"/>
+  </Menu>
+
   
   <Menu itsName="SyncMenu">
     <blockName>SyncMenu</blockName>
