@@ -1202,7 +1202,8 @@ class Lob(Type):
 
         if data:
             if encoding:
-                out = lob.getWriter(compression, encryption, key, replace)
+                out = lob.getWriter(compression, encryption, key,
+                                    False, replace)
             else:
                 out = lob.getOutputStream(compression, encryption, key)
             out.write(data)
