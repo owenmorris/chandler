@@ -144,6 +144,10 @@ def test():
   ['for', 'i', 'z', ['and', ['<', ['path', ['i', 'price'], None], '10'], ['==', ['path', ['i', 'color'], None], '"green"']]]
   >>> print parse('for_stmt', 'for i in z where len(z.messages) > 1000')
   ['for', 'i', 'z', ['>', ['fn', 'len', [['path', ['z', 'messages'], None]]], '1000']]
+
+  ### UNION_EXPR
+  >>> print parse('union_stmt','union(for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where True, for i in "//parcels/osaf/contentmodel/Note" where True, for i in "//parcels/osaf/contentmodel/contacts/Contact" where True)')
+  ['union', [['for', 'i', '"//parcels/osaf/contentmodel/calendar/CalendarEvent"', 'True'], ['for', 'i', '"//parcels/osaf/contentmodel/Note"', 'True'], ['for', 'i', '"//parcels/osaf/contentmodel/contacts/Contact"', 'True']]]
   """
   pass
 
