@@ -30,7 +30,7 @@ def init(root):
         root: fully qualified path to the top of the build hierarchy
     Returns:
         buildenv:  a dictionary containing the following environment settings:
-            - root: the root path passed in
+            - root: the root path passed in (which should be the parent of osaf)
             - os: win, posix, unknown
             - path: system executable search path
             - compiler: full path to C compiler (currently windows only)
@@ -42,9 +42,11 @@ def init(root):
     """
 
     buildenv = {}
-    buildenv['root'] = root
+    buildenv['osafroot'] = root
+    buildenv['root'] = os.path.join(root, "osaf", "chandler")
     buildenv['verbosity'] = 1
     buildenv['showenv'] = 0
+    buildenv['logfile'] = os.path.join(buildenv['osafroot'], "build.log")
 
     # normalize what python thinks the OS is to a string that we like:
     buildenv['os'] = 'unknown'
@@ -198,7 +200,7 @@ def log(buildenv, status, module_name, message):
         if buildenv['verbosity'] > 0:
             entry_dump((status, module_name, message))
 
-    output = file(buildenv['root'] + os.sep + "build.log", 'a+', 0)
+    output = file(buildenv['logfile'], 'a+', 0)
     entry_dump((status, module_name, message), output)
     output.close()
 
@@ -1042,6 +1044,8 @@ def cvsClean(buildenv, dirs):
 
 # workdir is /home/builder/nightly
 def buildComplete(buildenv, releaseId, workDir):
+    return
+    """
     if os.environ.has_key('CVS') and os.environ.has_key('SCP') and
      os.environ.has_key('TAR'):
 	log(buildenv, HARDHAT_MESSAGE, "HardHat", 
@@ -1052,7 +1056,7 @@ def buildComplete(buildenv, releaseId, workDir):
 	raise HardHatError
 
     buildGetSource(buildenv, releaseId, workDir)
-	
+    """	
 
 def buildGetSource(buildenv, releaseId, workDir):
 
@@ -1086,9 +1090,10 @@ def buildGetSource(buildenv, releaseId, workDir):
 
 
 def buildRelease(buildenv, releaseId, workDir):
+    return
 
 def buildDebug(buildenv, releaseId, workDir):
-
+    return
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Exception Classes
