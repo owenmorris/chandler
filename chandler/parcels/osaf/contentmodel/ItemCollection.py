@@ -196,6 +196,13 @@ class ItemCollection(ContentModel.ContentItem):
                     rule = "intersect (" + rule + ", for i in '" + kindPath + "' where True)"
         return (rule, args)
 
+    def shareSend (self):
+        """
+          Share this Item, or Send it (if it's an Email)
+        """
+        # ask the mainView to do the bulk of the work, showing progress
+        Globals.mainView.ShareCollection (self)
+
     def __len__ (self):
         return len (self.results)
 

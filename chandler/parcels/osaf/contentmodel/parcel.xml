@@ -369,6 +369,8 @@
     <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
     <core:superKinds itemref="ContentItem"/>
 
+    <core:displayName>Item Collection</core:displayName>
+
     <core:Attribute itsName="_rule">
       <core:type itemref="core:String"/>
       <core:initialValue type="core:String"></core:initialValue>
@@ -426,6 +428,20 @@
     <core:attributes itemref="ItemCollection/queryStringStale"/>
     <core:attributes itemref="ItemCollection/resultsStale"/>
 
+    <!-- redirections -->
+    <core:Attribute itsName="who"> 	 
+      <redirectTo>sharees</redirectTo> 	 
+    </core:Attribute> 	 
+    
+    <core:Attribute itsName="whoFrom"> 	 
+      <redirectTo>sharer</redirectTo> 	 
+    </core:Attribute> 	 
+    
+    <core:Attribute itsName="about"> 	 
+      <redirectTo>displayName</redirectTo> 	 
+    </core:Attribute> 	 
+    
+    <!-- Default Cloud -->
     <core:Cloud itsName="DefaultCloud">
       <core:Endpoint itsName="_inclusions">
         <attribute value="_inclusions"/>
