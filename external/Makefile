@@ -10,7 +10,6 @@ SYSTEMS=persistence/db \
         persistence/pathan \
         persistence/dbxml \
         persistence/libxml2 \
-        persistence/libxslt \
         openssl \
         egenix-mx \
         jabber-py \
