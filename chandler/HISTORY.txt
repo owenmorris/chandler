@@ -2,6 +2,37 @@
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+Milestone 6 (CVS tag CHANDLER_M_06) 2003-08-26
+
+    * XML repository is included; to enable it, pass the -xml command line
+      argument when running Chandler.
+
+    * New Windows launcher program written in C
+
+    * Linux and Windows launcher programs handle command line arguments;
+      Haven't figured out how to pass arguments to an OSX .app, so you
+      have to modify the RunChandler script directly to pass arguments.
+
+    * Calendar:  Changed repository path/location of calendar schema to
+      match proposal.
+
+    * Contacts:  Ported contacts package to Andi's new repository.  Lots of
+      changes, and probably lots of breakage, but it's working well enough
+      for the initial check-in.
+
+    * Created new RepositoryViewer parcel, to use the new repository.  This
+      parcel may be short lived, or only used for debugging purposes.
+
+    * The DBXML python extension statically links in libdb_cxx, libdbxml,
+      and pathan libraries directly.
+
+    * 4Suite added to site-packages.
+
+    * PyXML added to site-packages.
+
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Milestone 5 (CVS tag CHANDLER_M_05) 2003-08-12
 
     * CHANDLERDIR environment variable is set when executing external commands
