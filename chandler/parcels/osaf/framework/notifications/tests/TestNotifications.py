@@ -30,7 +30,7 @@ def repositoryCallback(changes, notification, **kwds):
     from osaf.framework.notifications.Notification import Notification
     note = Notification(event)
     note.threadid = id(threading.currentThread())
-    d = { 'changes' changes: , 'keywords' : kwds }
+    d = { 'changes' : changes , 'keywords' : kwds }
     note.SetData(d)
 
     #print uuid, notification, reason, kwds
