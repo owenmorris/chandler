@@ -131,7 +131,7 @@ _attributes = [{ chandler.uri : chandler.contactType,
                  chandler.cardinality : 1,
                  chandler.required : False,
                  chandler.displayName : _('Sharing Policy'),
-                 chandler.default : _('private') },
+                 chandler.default : _('public') },
 
                { chandler.uri : chandler.reputation,
                  chandler.range : _reputationChoices,
