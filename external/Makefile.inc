@@ -73,7 +73,7 @@ endif
 
 UPLOAD=builder@builds.o11n.org:/www/docs/external/$(PLATFORM)
 
-.PHONY: default all build compile install clean env
+.PHONY: default all build compile install clean env realclean
 
 default: all
 
@@ -168,3 +168,11 @@ endif
 
 compilers: $(compiler)
 
+_realclean::
+	@if [ "$(SRC)" = "" ]; then \
+	    echo SRC is not set; false; \
+	elif [ "$(SRC)" = "/" ]; then \
+	    echo SRC is set to $(SRC); false; \
+	else \
+	    rm -rf $(SRC); \
+	fi

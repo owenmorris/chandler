@@ -1,0 +1,11 @@
+--- PyLucene-0.5/Makefile	Thu Jul  1 13:06:30 2004
++++ PyLucene-0.5-patched/Makefile	Thu Jul  1 13:06:23 2004
+@@ -200,7 +200,7 @@
+ else
+ DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java'`
+ DB_CONST=$(DB)/java/src/com/sleepycat/db/$(BINDIR)/DbConstants.java
+-DB_INC=-I$(PREFIX_DB)/include -I$(DB) -I$(DB)/build_unix
++DB_INC=-I$(PREFIX_DB)/include -I$(DB) -I$(DB)/$(BUILD_DB)
+ endif
+ 
+ STORE_SRCS=`find store-$(LUCENE_VER) -name '*.java' -print`

@@ -12,6 +12,7 @@ SYSTEMS=persistence/db \
         persistence/dbxml \
         persistence/libxml2 \
         persistence/libxslt \
+        PyLucene \
         openssl \
         pyxml \
         egenix-mx \
@@ -31,6 +32,7 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
         persistence/dbxml/dbxml-1.2.1.tar.gz \
         persistence/libxml2/libxml2-2.6.10.tar.gz \
         persistence/libxslt/libxslt-1.1.2.tar.gz \
+        PyLucene/PyLucene-0.5.tar.gz \
         openssl/openssl-0.9.7d.tar.gz \
         pyxml/PyXML-0.8.3.tar.gz \
         egenix-mx/egenix-mx-base-2.1.0.tar.gz \
@@ -54,7 +56,7 @@ expand: env sources-$(VERSION).tar
 	    $(MAKE) -C $$system expand; \
 	done
 
-binaries: env
+binaries:
 	rm -f $(SNAP)-$(VERSION).tar $(SNAP)-$(VERSION).tar.gz
 	@for system in $(SYSTEMS); \
 	do \
@@ -70,6 +72,7 @@ binaries: env
 	done
 	gzip $(SNAP)-$(VERSION).tar
 
+$(SNAP)-$(VERSION).tar.gz: binaries
 
 $(SYSTEMS):
 	$(MAKE) -C $@ DEBUG=$(DEBUG)
@@ -82,6 +85,14 @@ clean: env
 	    $(MAKE) -C $$system -k DEBUG=$(DEBUG) clean; \
 	done
 
+realclean:
+	rm -rf $(SNAP)
+	@for system in $(SYSTEMS); \
+	do \
+	    echo making _realclean in $$system; \
+	    $(MAKE) -C $$system -k DEBUG=$(DEBUG) _realclean; \
+	done
+
 upload:	$(SNAP)-$(VERSION).tar.gz
 	scp $(SNAP)-$(VERSION).tar.gz $(UPLOAD)
 
@@ -90,7 +101,6 @@ install: $(SNAP)-$(VERSION).tar.gz
 
 build:
 	@for system in $(SYSTEMS); \
-		do \
-			$(MAKE) -C $$system DEBUG=$(DEBUG) ; \
-		done
-
+	do \
+		$(MAKE) -C $$system DEBUG=$(DEBUG); \
+	done

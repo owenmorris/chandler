@@ -1,8 +1,7 @@
 
 include Makefile.inc
 
-SYSTEMS=PyLucene \
-        UUIDext \
+SYSTEMS=UUIDext \
         wxPython-2.5 \
         m2crypto \
         launchers
