@@ -20,8 +20,35 @@ class CalendarEvent(Item):
     def __init__(self, name, parent, kind, **_kwds):
         super(CalendarEvent, self).__init__(name, parent, kind, **_kwds)
 
-    def getDuration(self):
-        if (self.hasAttribute('CalendarStartTime') and self.hasAttribute('CalendarEndTime')):
+    def GetDuration(self):
+        """Returns an mxDateTimeDelta, None if no startTime or endTime"""
+        
+        if (self.hasAttribute('CalendarStartTime') and
+            self.hasAttribute('CalendarEndTime')):
             return self.CalendarEndTime - self.CalendarStartTime
         else:
             return None
+
+    def SetDuration(self, dateTimeDelta):
+        """Set duration of event, expects value to be mxDateTimeDelta
+        
+        endTime is updated based on the new duration, startTime remains fixed
+        """
+        if (self.CalendarStartTime != None):
+            self.CalendarEndTime = self.CalendarStartTime + dateTimeDelta
+
+    CalendarDuration = property(GetDuration, SetDuration,
+                                doc="mxDateTimeDelta: the length of an event")
+
+    def ChangeStart(self, dateTime):
+        """Change the start time without changing the duration.
+
+        Setting startTime directly will effectively change the duration,
+        because the endTime is not affected. This method changes the endTime"""
+
+        duration = self.CalendarDuration
+        self.CalendarStartTime = dateTime
+        self.CalendarEndTime = self.CalendarStartTime + duration
+
+
+        
