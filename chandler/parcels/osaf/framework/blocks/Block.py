@@ -43,14 +43,15 @@ class Block(Item):
             finally:
                 Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
             """
-              Store the wxWindows version of the object in the association, so
-            given the block we can find the associated wxWindows object.
+              Store a non persistent pointer to the widget in the block and pin the block
+            to keep it in memeory. Store a pointer to the block in the widget. Undo all this
+            when the widget is destroyed.
             """
+
             if widget:
-                UUID = self.itsUUID
-                assert not Globals.association.has_key(UUID)
-                Globals.association[UUID] = widget
-                widget.blockUUID = UUID
+                self.setPinned()
+                self.widget = widget
+                widget.blockItem = self
                 """
                   After the blocks are wired up, give the window a chance
                 to synchronize itself to any persistent state.
@@ -65,6 +66,14 @@ class Block(Item):
     MINIMUM_WX_ID = 2500
     MAXIMUM_WX_ID = 4999
 
+    def onDestroyWidget (self):
+        """
+          Called just before a widget is destroyed. It is the opposite of
+        instantiateWidget.
+        """
+        delattr (self, 'widget')
+        self.setPinned (False)
+ 
     def widgetIDToBlock (theClass, wxID):
         """
           Given a wxWindows Id, returns the corresponding Chandler block
@@ -80,9 +89,8 @@ class Block(Item):
         wxID_LOWEST and wxID_HIGHEST, which are 4999 and 5999 respectively.
         Passing -1 for an ID will allocate a new ID starting with 0. So
         I will use the range starting at 2500 for our events.
-          I'll store the ID for an event in the association and the
-        wxApplication keeps a list, named commandIDs with allows us to
-        look up the UUID of a block given it's Id -- DJA
+          Use IdToUUID to lookup the Id for a event's UUID. Use UUIDtoIds to
+        lookup the UUID of a block that corresponds to an event id -- DJA
         """
         UUID = object.itsUUID
         try:
@@ -96,15 +104,6 @@ class Block(Item):
             Block.UUIDtoIds [UUID] = id
         return id
     getWidgetID = classmethod (getWidgetID)
-
-    def update (self):
-        try:
-            theWindow = Globals.association[self.itsUUID]
-        except KeyError:
-            pass
-        else:
-            if hasattr(theWindow, "scheduleUpdate"):
-                theWindow.scheduleUpdate = True
 
     def OnShowHide(self, notification):
         self.open = not self.open
@@ -131,8 +130,7 @@ class Block(Item):
         during shutdown to ignore events caused by the framework tearing down wxWidgets.
         """
         try:
-            theWindow = Globals.association[self.itsUUID]
-            method = getattr (theWindow, 'wxSynchronizeWidget')
+            method = getattr (self.widget, 'wxSynchronizeWidget')
         except AttributeError:
             pass
         else:
@@ -154,12 +152,8 @@ class wxRectangularChild (wx.Panel):
         super (wxRectangularChild, self).__init__ (*arguments, **keywords)
 
     def wxSynchronizeWidget(self):
-        block = Globals.repository.find (self.blockUUID)
-        if block.open != self.IsShown():
+        if self.blockItem.open != self.IsShown():
             self.Show (block.open)
-
-    def __del__(self):
-        del Globals.association [self.blockUUID]
 
         
 class RectangularChild(ContainerChild):

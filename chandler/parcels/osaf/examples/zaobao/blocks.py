@@ -46,7 +46,7 @@ class ZaoBaoListDelegate:
         return False
 
     def NeedsUpdate(self, notification):
-        chanUUID = Globals.repository[self.blockUUID].rootPath.itsUUID
+        chanUUID = self.blockItem.rootPath.itsUUID
         changedUUID = notification.data['uuid']
         if chanUUID == changedUUID:
             self.scheduleUpdate = True

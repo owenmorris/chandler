@@ -63,7 +63,7 @@ class ItemCollection (Item):
             index = index + 1
         assert (False)
  
-    def onItemChanges(self, notification):
+    def onItemChanges (self, notification):
         if self.queryEnum == "ContainerSearch":
             assert False, "This code isn't written"
 
@@ -83,9 +83,18 @@ class ItemCollection (Item):
             if item:
                 for kind in self.data:
                     if kind is item.itsKind:
+                        self.resultsStale = True
                         for block in self.usedInBlocks:
-                            self.resultsStale = True
-                            block.update()
+                            try:
+                                block.widget.scheduleUpdate = True
+                            except AttributeError:
+                                """
+                                  We might not have a widget for every block that uses the
+                                itemCollection, so ignore those that don't
+                                """
+                                pass
 
+
+                            
         elif __debug__:
             assert False, "Bad QueryEnum"

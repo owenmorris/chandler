@@ -35,8 +35,7 @@ class BookmarksBar(RectangularChild):
         self.bookmarksPath = None
 
     def instantiateWidget(self):
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        panelWidget = wxRectangularChild (parentWidget, -1)
+        panelWidget = wxRectangularChild (self.parentBlock.widget, -1)
         sizer = wx.BoxSizer (wx.HORIZONTAL)
         sizer.SetMinSize ((self.minimumSize.width, self.minimumSize.height))
         self.addBookmarks (panelWidget, sizer)
@@ -145,6 +144,5 @@ class NavigationBar(Toolbar):
         if len(self.history) == 0 or self.history[-1] != item:
             self.history.append(item)
         urlBox = Globals.repository.findPath('//parcels/osaf/views/main/URLBox')
-        wxURLBox = Globals.association[urlBox.itsUUID]
-        wxURLBox.SetValue(path)
+        urlBox.widget.SetValue(path)
         

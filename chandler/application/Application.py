@@ -248,6 +248,7 @@ class wxApplication (wx.App):
         self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
         self.focus = None
         self.Bind(wx.EVT_IDLE, self.OnIdle)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy, id=-1)
 
         from osaf.framework.blocks.Views import View
         """
@@ -292,8 +293,7 @@ class wxApplication (wx.App):
             """
             sizer = wx.BoxSizer (wx.HORIZONTAL)
             self.mainFrame.SetSizer (sizer)
-            widget = Globals.association [mainView.itsUUID]
-            sizer.Add (widget,
+            sizer.Add (mainView.widget,
                        mainView.stretchFactor, 
                        mainView.Calculate_wxFlag(), 
                        mainView.Calculate_wxBorder())
@@ -350,6 +350,12 @@ class wxApplication (wx.App):
                         eventObject = event.GetEventObject()
                         event.SetText (text)
                     return
+        event.Skip()
+
+    def OnDestroy(self, event):
+        theWindow = event.GetWindow()
+        if hasattr (theWindow, 'blockItem'):
+            theWindow.blockItem.onDestroyWidget()
         event.Skip()
 
     def OnIdle(self, event):

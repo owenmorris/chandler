@@ -21,7 +21,7 @@ class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
         self.item = item
 
     def PlaceItemOnCalendar(self):
-        block = Globals.repository.find(self.canvas.blockUUID)
+        block = self.canvas.blockItem
         width = block.dayWidth
         height = int(self.item.duration.hours * block.hourHeight)
         position = block.getPosFromDateTime(self.item.startTime)
@@ -71,11 +71,9 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
         self.SetScrollRate(0,0)
 
     def wxSynchronizeWidget(self):
-        block = Globals.repository.find(self.blockUUID)
-        
         # populate canvas with drawable items for each event on the calendar
-        for item in block.contents:
-            if block.isDateInRange(item.startTime):
+        for item in self.blockItem.contents:
+            if self.blockItem.isDateInRange(item.startTime):
                 drawableObject = CalendarItem(self, item)
                 self.zOrderedDrawableObjects.append(drawableObject)
                 drawableObject.PlaceItemOnCalendar()
@@ -91,23 +89,21 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
             self.subscriptionUUID = UUID.UUID()
             Globals.notificationManager.Subscribe(events,
                                                   self.subscriptionUUID,
-                                                  block.contents.onItemChanges)
+                                                  self.blockItem.contents.onItemChanges)
 
         self.scheduleUpdate = False
         self.lastUpdateTime = time.time()
 
     def __del__(self):
         Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
-        del Globals.association[self.blockUUID]
 
     # Event handlers
 
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            block = Globals.repository.find(self.blockUUID)
             newSize = self.GetSize()
-            block.size.width = newSize.width
-            block.size.height = newSize.height
+            self.blockItem.size.width = newSize.width
+            self.blockItem.size.height = newSize.height
             self.SetVirtualSize(newSize)
             for drawableObject in self.zOrderedDrawableObjects:
                 drawableObject.PlaceItemOnCalendar()
@@ -123,8 +119,6 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
         event.Skip()        
 
     def DrawBackground(self, dc):
-        block = Globals.repository.find(self.blockUUID)
-        
         # Use the transparent pen for painting the background
         dc.SetPen(wx.TRANSPARENT_PEN)
         
@@ -142,23 +136,23 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
 
         # horizontal lines separating hours + hour legend
         year = DateTime.today()
-        for j in range(block.hoursPerView):
-            dc.DrawText(year.Format("%I %p"), (2, j * block.hourHeight))
-            dc.SetPen(wx.Pen(wx.Colour(183, 183, 183)))
-            dc.DrawLine((block.offset, j * block.hourHeight),
-                        (block.size.width, j * block.hourHeight))
+        for j in range (self.blockItem.hoursPerView):
+            dc.DrawText (year.Format("%I %p"), (2, j * self.blockItem.hourHeight))
+            dc.SetPen (wx.Pen(wx.Colour(183, 183, 183)))
+            dc.DrawLine ((self.blockItem.offset, j * self.blockItem.hourHeight),
+                         (self.blockItem.size.width, j * self.blockItem.hourHeight))
             dc.SetPen(wx.Pen(wx.Colour(225, 225, 225)))
-            dc.DrawLine((block.offset, j * block.hourHeight + (block.hourHeight/2)),
-                        (block.size.width,
-                         j * block.hourHeight + (block.hourHeight/2)))
+            dc.DrawLine ((self.blockItem.offset, j * self.blockItem.hourHeight + (self.blockItem.hourHeight/2)),
+                         (self.blockItem.size.width,
+                          j * self.blockItem.hourHeight + (self.blockItem.hourHeight/2)))
             year += DateTime.RelativeDateTime(hours=1)
 
         dc.SetPen(wx.BLACK_PEN)
         
         # Draw lines between the days
-        for i in range(block.daysPerView):
-            dc.DrawLine((block.offset + block.dayWidth * i, 0),
-                        (block.offset + block.dayWidth * i, block.size.height))
+        for i in range (self.blockItem.daysPerView):
+            dc.DrawLine ((self.blockItem.offset + self.blockItem.dayWidth * i, 0),
+                         (self.blockItem.offset + self.blockItem.dayWidth * i, self.blockItem.size.height))
         
 
 class WeekBlock(Block.RectangularChild):
@@ -169,15 +163,12 @@ class WeekBlock(Block.RectangularChild):
         self.updateRange(DateTime.today() + self.rangeIncrement)
 
     def instantiateWidget(self):
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        canvas = wxWeekBlock(parentWidget, Block.Block.getWidgetID(self))
-        return canvas
+        return wxWeekBlock(self.parentBlock.widget, Block.Block.getWidgetID(self))
 
     # Event handlers
 
     def NeedsUpdate(self):
-        widget = Globals.association[self.itsUUID]
-        widget.scheduleUpdate = True
+        self.widget.scheduleUpdate = True
 
     # Derived attributes
     
@@ -227,11 +218,9 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
         self.SetScrollRate(0,0)
     
     def wxSynchronizeWidget(self):
-        block = Globals.repository.find(self.blockUUID)
-
         # populate canvas with drawable items for each event on the calendar
-        for item in block.contents:
-            if block.isDateInRange(item.startTime):
+        for item in self.blockItem.contents:
+            if self.blockItem.isDateInRange(item.startTime):
                 drawableObject = CalendarItem(self, item)
                 self.zOrderedDrawableObjects.append(drawableObject)
 
@@ -246,23 +235,21 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
             self.subscriptionUUID = UUID.UUID()
             Globals.notificationManager.Subscribe(events,
                                                   self.subscriptionUUID,
-                                                  block.contents.onItemChanges)
+                                                  self.blockItem.contents.onItemChanges)
 
             self.scheduleUpdate = False
             self.lastUpdateTime = time.time()
 
     def __del__(self):
         Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
-        del Globals.association[self.blockUUID]
 
     # Events
 
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            block = Globals.repository.find(self.blockUUID)
             newSize = self.GetSize()
-            block.size.width = newSize.width
-            block.size.height = newSize.height
+            self.blockItem.size.width = newSize.width
+            self.blockItem.size.height = newSize.height
             self.SetVirtualSize(newSize)
         event.Skip()
 
@@ -277,8 +264,6 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
 
 
     def DrawBackground(self, dc):
-        block = Globals.repository.find(self.blockUUID)
-        
         # Use the transparent pen for drawing the background rectangles
         dc.SetPen(wx.TRANSPARENT_PEN)
         
@@ -288,56 +273,56 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
 
         # Determine the starting day for the set of weeks to be shown
         # The Sunday of the week containing the first day of the month
-        startDay = block.rangeStart + \
+        startDay = self.blockItem.rangeStart + \
                    DateTime.RelativeDateTime(days=-6, weekday=(DateTime.Sunday, 0))
         
         # Paint the header
         dc.SetBrush(wx.Brush(wx.Colour(222, 231, 239)))
-        dc.DrawRectangle((0, 0), (block.size.width, block.offset))
+        dc.DrawRectangle((0, 0), (self.blockItem.size.width, self.blockItem.offset))
         
         today = DateTime.today()
 
         # Draw each day, the headers and the events in the day (for now)
         dc.SetPen(wx.TRANSPARENT_PEN)
-        for week in range(block.weeksPerView):
-            for day in range(block.daysPerWeek):
+        for week in range(self.blockItem.weeksPerView):
+            for day in range (self.blockItem.daysPerWeek):
                 currentDate = startDay + DateTime.RelativeDateTime(days=(week*7 + day))
 
                 # Label the day, highlight today, give the day the right
                 # background color based on the "range" month
-                if (currentDate.month != block.rangeStart.month):
-                    dc.SetBrush(wx.Brush(wx.Colour(246, 250, 254)))
+                if (currentDate.month != self.blockItem.rangeStart.month):
+                    dc.SetBrush (wx.Brush(wx.Colour(246, 250, 254)))
                 else:
-                    dc.SetBrush(wx.Brush(wx.Colour(232, 241, 249)))
+                    dc.SetBrush (wx.Brush(wx.Colour(232, 241, 249)))
                     
-                dc.DrawRectangle((block.dayWidth * day,
-                                  block.dayHeight * week + block.offset),
-                                 (block.dayWidth, block.dayHeight))
+                dc.DrawRectangle ((self.blockItem.dayWidth * day,
+                                   self.blockItem.dayHeight * week + self.blockItem.offset),
+                                  (self.blockItem.dayWidth, self.blockItem.dayHeight))
                 
                 if (currentDate == today):
                     dc.SetTextForeground(wx.RED)                    
-                dc.DrawText(currentDate.Format("%d %b"), 
-                            (block.dayWidth * day + 10,
-                             block.dayHeight * week + block.offset))
+                dc.DrawText (currentDate.Format("%d %b"), 
+                             (self.blockItem.dayWidth * day + 10,
+                              self.blockItem.dayHeight * week + self.blockItem.offset))
                 if (currentDate == today):
                     dc.SetTextForeground(wx.Colour(63, 87, 119))
 
         # Set the pen for drawing the month grid
-        dc.SetPen(wx.Pen(wx.Colour(183, 183, 183)))
+        dc.SetPen (wx.Pen(wx.Colour(183, 183, 183)))
         
         # Draw vertical lines separating days and the names of the weekdays
-        for i in range(block.daysPerWeek):
+        for i in range (self.blockItem.daysPerWeek):
             weekday = startDay + DateTime.RelativeDateTime(days=i)
-            dc.DrawText(weekday.Format('%A'), ((block.dayWidth * i) + 10, 0))
+            dc.DrawText (weekday.Format('%A'), ((self.blockItem.dayWidth * i) + 10, 0))
             if (i != 0):
-                dc.DrawLine((block.dayWidth * i, 0),
-                            (block.dayWidth * i, block.size.height))
+                dc.DrawLine ((self.blockItem.dayWidth * i, 0),
+                             (self.blockItem.dayWidth * i, self.blockItem.size.height))
         
         # Draw horizontal lines separating weeks
-        for j in range(block.weeksPerView):
-            dc.DrawLine((0, (j * block.dayHeight) + block.offset),
-                        (block.size.width, 
-                         (j* block.dayHeight) + block.offset))
+        for j in range(self.blockItem.weeksPerView):
+            dc.DrawLine ((0, (j * self.blockItem.dayHeight) + self.blockItem.offset),
+                         (self.blockItem.size.width, 
+                          (j* self.blockItem.dayHeight) + self.blockItem.offset))
 
 
 class MonthBlock(Block.RectangularChild):
@@ -348,15 +333,12 @@ class MonthBlock(Block.RectangularChild):
         self.updateRange(DateTime.today())
 
     def instantiateWidget(self):
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        canvas = wxMonthBlock(parentWidget, Block.Block.getWidgetID(self))
-        return canvas
+        return wxMonthBlock(self.parentBlock.widget, Block.Block.getWidgetID(self))
 
     # Event handlers
 
     def NeedsUpdate(self):
-        widget = Globals.association[self.itsUUID]
-        widget.scheduleUpdate = True
+        self.widget.scheduleUpdate = True
 
     # Derived attributes
     

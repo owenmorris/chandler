@@ -18,21 +18,7 @@ import wx.gizmos
 import wx.grid
 import webbrowser # for opening external links
 
-class wxButton(wx.Button):
-    def __del__(self):
-        del Globals.association [self.blockUUID]
 
-        
-class wxBitmapButton(wx.BitmapButton):
-    def __del__(self):
-        del Globals.association [self.blockUUID]
-
-        
-class wxToggleButton(wx.ToggleButton):
-    def __del__(self):
-        del Globals.association [self.blockUUID]
-
-        
 class Button(RectangularChild):
     def instantiateWidget(self):
         try:
@@ -40,27 +26,33 @@ class Button(RectangularChild):
         except AttributeError:
             id = 0
 
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
+        parentWidget = self.parentBlock.widget
         if self.buttonKind == "Text":
-            button = wxButton(parentWidget, id, self.title,
-                              wx.DefaultPosition,
-                              (self.minimumSize.width, self.minimumSize.height))
+            button = wx.Button (parentWidget,
+                                id,
+                                self.title,
+                                wx.DefaultPosition,
+                                (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Image":
             image = wx.Image(self.icon, 
                              wx.BITMAP_TYPE_PNG)
             bitmap = image.ConvertToBitmap()
-            button = wxBitmapButton(parentWidget, id, bitmap,
-                                    wx.DefaultPosition,
-                                    (self.minimumSize.width, self.minimumSize.height))
+            button = wx.BitmapButton (parentWidget,
+                                      id,
+                                      bitmap,
+                                      wx.DefaultPosition,
+                                      (self.minimumSize.width, self.minimumSize.height))
         elif self.buttonKind == "Toggle":
             if wx.Platform == '__WXMAC__': # @@@ Toggle buttons are not supported under OSX
-                button = wxButton(parentWidget, id, self.title,
+                button = wxButton(parentWidget,
+                                  id,
+                                  self.title,
                                   wx.DefaultPosition,
                                   (self.minimumSize.width, self.minimumSize.height))
             else:
-                button = wxToggleButton(parentWidget, id, self.title,
-                                        wx.DefaultPosition,
-                                        (self.minimumSize.width, self.minimumSize.height))
+                button = wx.ToggleButton (parentWidget, id, self.title,
+                                          wx.DefaultPosition,
+                                          (self.minimumSize.width, self.minimumSize.height))
         elif __debug__:
             assert False, "unknown buttonKind"
 
@@ -76,31 +68,23 @@ class Button(RectangularChild):
             self.Post(event, {'item':self})
 
                               
-class wxChoice(wx.Choice):
-    def __del__(self):
-        del Globals.association [self.blockUUID]
-
 class Choice(RectangularChild):
     def instantiateWidget(self):
-        choice = wxChoice(parentWindow, -1, 
+        return wx.Choice (self.parentBlock.widget,
+                          -1, 
                           wx.DefaultPosition,
                           (self.minimumSize.width, self.minimumSize.height),
                           self.choices)
-        return choice
 
-
-class wxComboBox(wx.ComboBox):
-    def __del__(self):
-        del Globals.association [self.blockUUID]
 
 class ComboBox(RectangularChild):
     def instantiateWidget(self):
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        comboBox = wxComboBox(parentWidget, -1, self.selection, 
-                              wx.DefaultPosition,
-                              (self.minimumSize.width, self.minimumSize.height),
-                              self.choices)
-        return comboBox
+        return wx.ComboBox (self.parentBlock.widget,
+                            -1,
+                            self.selection, 
+                            wx.DefaultPosition,
+                            (self.minimumSize.width, self.minimumSize.height),
+                            self.choices)
 
 
 class wxEditText(wx.TextCtrl):
@@ -109,12 +93,8 @@ class wxEditText(wx.TextCtrl):
         self.Bind(wx.EVT_TEXT_ENTER, self.OnEnterPressed, id=self.GetId())
 
     def OnEnterPressed(self, event):
-        block = Globals.repository.find (self.blockUUID)
-        block.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/EnterPressed'),
-                   {'text':self.GetValue()})
-
-    def __del__(self):
-        del Globals.association [self.blockUUID]
+        self.blockItem.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/EnterPressed'),
+                             {'text':self.GetValue()})
 
 
 class EditText(RectangularChild):
@@ -138,8 +118,7 @@ class EditText(RectangularChild):
         if self.readOnly:
             style |= wx.TE_READONLY
 
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        editText = wxEditText (parentWidget,
+        editText = wxEditText (self.parentBlock.widget,
                                -1,
                                "",
                                wx.DefaultPosition,
@@ -155,17 +134,13 @@ class wxHTML(wx.html.HtmlWindow):
     def OnLinkClicked(self, link):
         webbrowser.open(link.GetHref())
 
-    def __del__(self):
-        del Globals.association [self.blockUUID]
-
 
 class HTML(RectangularChild):
     def instantiateWidget (self):
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        htmlWindow = wxHTML(parentWidget,
-                            Block.getWidgetID(self),
-                            wx.DefaultPosition,
-                            (self.minimumSize.width, self.minimumSize.height))
+        htmlWindow = wxHTML (self.parentBlock.widget,
+                             Block.getWidgetID(self),
+                             wx.DefaultPosition,
+                             (self.minimumSize.width, self.minimumSize.height))
         if self.url:
             htmlWindow.LoadPage(self.url)
         return htmlWindow
@@ -177,23 +152,20 @@ class ListDelegate:
     to customize your behavior.
     """
     def GetElementText (self, row, column):
-        block = Globals.repository.find (self.blockUUID)
-        result = block.contents[item]
-        name = block.columnHeadings[column]
+        result = self.blockItem.contents[item]
+        name = self.blockItem.columnHeadings[column]
         try:
             return str (result.getAttributeValue(name))
         except AttributeError:
             return ""
 
     def SetElementText (self, row, column, value):
-        block = Globals.repository.find (self.blockUUID)
-        result = block.contents[item]
-        column = block.columnHeadings[column]
+        result = self.blockItem.contents[item]
+        column = self.blockItem.columnHeadings[column]
         result.setAttributeValue(column, value)
 
     def ElementCount (self):
-        block = Globals.repository.find (self.blockUUID)
-        return block.contents.len()
+        return self.blockItem.contents.len()
 
 
 class wxList (wx.ListCtrl, DraggableWidget):
@@ -213,8 +185,7 @@ class wxList (wx.ListCtrl, DraggableWidget):
         """
         if self.scheduleUpdate:
             if (time.time() - self.lastUpdateTime) > 1.0:
-                block = Globals.repository.find (self.blockUUID)
-                block.synchronizeWidget()
+                self.blockItem.synchronizeWidget()
         else:
             lastupdateTime = time.time()
         event.Skip()
@@ -233,57 +204,50 @@ class wxList (wx.ListCtrl, DraggableWidget):
 
     def On_wxSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            block = Globals.repository.find (self.blockUUID)
-            item = block.contents [event.GetIndex()]
-            if block.selection != item:
-                block.selection = item
-            block.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                       {'item':item})
+            item = self.blockItem.contents [event.GetIndex()]
+            if self.blockItem.selection != item:
+                self.blockItem.selection = item
+            self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                                                              {'item':item})
 
     def OnItemDrag(self, event):
-        block = Globals.repository.find(self.blockUUID)
-        itemUUID = block.contents[event.GetIndex()].itsUUID
-        self.SetDragData(itemUUID)
+        self.SetDragData (self.blockItem.contents[event.GetIndex()].itsUUID)
                             
     def wxSynchronizeWidget(self):
-        block = Globals.repository.find (self.blockUUID)
-        elementDelegate = block.elementDelegate
+        elementDelegate = self.blockItem.elementDelegate
         if not elementDelegate:
             elementDelegate = '//parcels/osaf/framework/blocks/ControlBlocks/ListDelegate'
         mixinAClass (self, elementDelegate)
 
-        itemCollection = block.contents
-        itemCollection.resultsStale = True
+        self.blockItem.contents.resultsStale = True
         self.Freeze()
         self.ClearAll()
-        for index in xrange (len(block.columnHeadings)):
+        for index in xrange (len(self.blockItem.columnHeadings)):
             self.InsertColumn(index,
-                              str(block.columnHeadings[index]),
-                              width = block.columnWidths[index])
+                              str(self.blockItem.columnHeadings[index]),
+                              width = self.blockItem.columnWidths[index])
 
         self.SetItemCount (self.ElementCount())
         self.Thaw()
         try:
             subscription = self.subscriptionUUID
         except AttributeError:
-            block = Globals.repository.find (self.blockUUID)
             events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
                       Globals.repository.findPath('//parcels/osaf/framework/item_added'),
                       Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
             self.subscriptionUUID = UUID()
             Globals.notificationManager.Subscribe (events,
                                                    self.subscriptionUUID,
-                                                   itemCollection.onItemChanges)
+                                                   self.blockItem.contents.onItemChanges)
                 
-        if block.selection:
-            self.GoToItem (block.selection)
+        if self.blockItem.selection:
+            self.GoToItem (self.blockItem.selection)
 
         self.scheduleUpdate = False
         self.lastUpdateTime = time.time()
         
     def __del__(self):
         Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
-        del Globals.association [self.blockUUID]
 
     def OnGetItemText (self, row, column):
         """
@@ -293,9 +257,7 @@ class wxList (wx.ListCtrl, DraggableWidget):
         return self.GetElementText (row, column)
 
     def GoToItem(self, item):
-        block = Globals.repository.find (self.blockUUID)
-        index = block.contents.index (item)
-        self.Select (index)
+        self.Select (self.blockItem.contents.index (item))
 
 
 class List(RectangularChild):
@@ -304,15 +266,12 @@ class List(RectangularChild):
         self.selection = None
 
     def instantiateWidget (self):
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        list = wxList (parentWidget,
+        return wxList (self.parentBlock.widget,
                        Block.getWidgetID(self),
                        style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
-        return list
 
     def NeedsUpdate(self):
-        wxWindow = Globals.association[self.itsUUID]
-        wxWindow.scheduleUpdate = True    
+        self.widget.scheduleUpdate = True    
 
     def OnSelectionChangedEvent (self, notification):
         """
@@ -336,12 +295,10 @@ class wxSummaryTable(wx.grid.PyGridTableBase):
         return self.elementDelegate.ElementCount() 
 
     def GetNumberCols(self): 
-        block = Globals.repository.find (self.elementDelegate.blockUUID)
-        return len(block.columnHeadings)
+        return len (self.elementDelegate.blockItem.columnHeadings)
 
     def GetColLabelValue(self, column):
-        block = Globals.repository.find (self.elementDelegate.blockUUID)
-        return block.columnHeadings[column]
+        return self.elementDelegate.blockItem.columnHeadings[column]
 
     def IsEmptyCell(self, row, column): 
         return False 
@@ -369,17 +326,15 @@ class wxSummary(wx.grid.Grid):
         """
         if self.scheduleUpdate:
             if (time.time() - self.lastUpdateTime) > 1.0:
-                block = Globals.repository.find (self.blockUUID)
-                block.synchronizeWidget()
+                self.blockItem.synchronizeWidget()
         else:
             lastupdateTime = time.time()
         event.Skip()
 
     def OnColumnDrag(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            block = Globals.repository.find (self.blockUUID)
             columnIndex = event.GetRowOrCol()
-            block.columnWidths [columnIndex] = self.GetColSize (columnIndex)
+            self.blockItem.columnWidths [columnIndex] = self.GetColSize (columnIndex)
 
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
@@ -400,7 +355,6 @@ class wxSummary(wx.grid.Grid):
           A Grid can't easily redisplay its contents, so we write the following
         helper function to readjust everything after the contents change
         """
-        block = Globals.repository.find (self.blockUUID)
         #Trim/extend the control's rows and update all values
         self.BeginBatch()
         gridTable = self.GetTable()
@@ -418,7 +372,7 @@ class wxSummary(wx.grid.Grid):
         self.currentRows = newRows
         self.currentColumns = newColumns
         for columnIndex in xrange (newColumns):
-            self.SetColSize (columnIndex, block.columnWidths [columnIndex])
+            self.SetColSize (columnIndex, self.blockItem.columnWidths [columnIndex])
 
         #Update all displayed values
         message = wx.grid.GridTableMessage (gridTable, wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES) 
@@ -433,10 +387,8 @@ class wxSummary(wx.grid.Grid):
         self.ForceRefresh () 
 
     def wxSynchronizeWidget(self):
-        block = Globals.repository.find (self.blockUUID)
-        itemCollection = block.contents
-        itemCollection.resultsStale = True
-        elementDelegate = block.elementDelegate
+        self.blockItem.contents.resultsStale = True
+        elementDelegate = self.blockItem.elementDelegate
         if not elementDelegate:
             elementDelegate = '//parcels/osaf/framework/blocks/ControlBlocks/ListDelegate'
         mixinAClass (self, elementDelegate)
@@ -456,24 +408,22 @@ class wxSummary(wx.grid.Grid):
         try:
             subscription = self.subscriptionUUID
         except AttributeError:
-            block = Globals.repository.find (self.blockUUID)
             events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
                       Globals.repository.findPath('//parcels/osaf/framework/item_added'),
                       Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
             self.subscriptionUUID = UUID()
             Globals.notificationManager.Subscribe (events,
                                                    self.subscriptionUUID,
-                                                   itemCollection.onItemChanges)
+                                                   self.blockItem.contents.onItemChanges)
         self.Reset()
-        if block.selection:
-            self.GoToItem (block.selection)
+        if self.blockItem.selection:
+            self.GoToItem (self.blockItem.selection)
 
         self.scheduleUpdate = False
         self.lastUpdateTime = time.time()
         
     def __del__(self):
         Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
-        del Globals.association [self.blockUUID]
 
     def OnGetItemText (self, row, column):
         """
@@ -483,9 +433,7 @@ class wxSummary(wx.grid.Grid):
         return self.GetElementText (row, column)
 
     def GoToItem(self, item):
-        block = Globals.repository.find (self.blockUUID)
-        row = block.contents.index (item)
-        self.SelectRow (row)
+        self.SelectRow (self.blockItem.contents.index (item))
 
 
 class Summary(RectangularChild):
@@ -494,13 +442,10 @@ class Summary(RectangularChild):
         self.selection = None
 
     def instantiateWidget (self):
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        list = wxSummary (parentWidget, Block.getWidgetID(self))
-        return list
+        return wxSummary (self.parentBlock.widget, Block.getWidgetID(self))
 
     def NeedsUpdate(self):
-        wxWindow = Globals.association[self.itsUUID]
-        wxWindow.scheduleUpdate = True    
+        self.widget.scheduleUpdate = True    
 
     def OnSelectionChangedEvent (self, notification):
         """
@@ -508,11 +453,6 @@ class Summary(RectangularChild):
         """
         self.selection = notification.data['item']
         self.GoToItem (self.selection)
-
-
-class wxRadioBox(wx.RadioBox):
-    def __del__(self):
-        del Globals.association [self.blockUUID]
 
 
 class RadioBox(RectangularChild):
@@ -524,17 +464,12 @@ class RadioBox(RectangularChild):
         elif __debug__:
             assert False, "unknown radioAlignEnum"
                                     
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        radioBox = wxRadioBox(parentWidget, -1, self.title,
-                              wx.DefaultPosition, 
-                              (self.minimumSize.width, self.minimumSize.height),
-                              self.choices, self.itemsPerLine, dimension)
-        return radioBox
-
-
-class wxStaticText(wx.StaticText):
-    def __del__(self):
-        del Globals.association [self.blockUUID]
+        return wx.RadioBox (self.parentBlock.widget,
+                            -1,
+                            self.title,
+                            wx.DefaultPosition, 
+                            (self.minimumSize.width, self.minimumSize.height),
+                            self.choices, self.itemsPerLine, dimension)
 
 class StaticText(RectangularChild):
     def instantiateWidget (self):
@@ -545,13 +480,12 @@ class StaticText(RectangularChild):
         elif self.textAlignmentEnum == "Right":
             style = wx.ALIGN_RIGHT
 
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        staticText = wxStaticText (parentWidget,
-                                   -1,
-                                   self.title,
-                                   wx.DefaultPosition,
-                                   (self.minimumSize.width, self.minimumSize.height),
-                                   style)
+        staticText = wx.StaticText (self.parentBlock.widget,
+                                    -1,
+                                    self.title,
+                                    wx.DefaultPosition,
+                                    (self.minimumSize.width, self.minimumSize.height),
+                                    style)
 
         staticText.SetFont(Font (self.characterStyle))
         return staticText
@@ -560,12 +494,8 @@ class StaticText(RectangularChild):
 class wxStatusBar (wx.StatusBar):
     
     def wxSynchronizeWidget(self):
-        block = Globals.repository.find (self.blockUUID)
-        if block.open != self.IsShown():
-            self.Show (block.open)
-
-    def __del__(self):
-        del Globals.association [self.blockUUID]
+        if self.blockItem.open != self.IsShown():
+            self.Show (self.blockItem.open)
 
 
 class StatusBar(Block):
@@ -585,15 +515,13 @@ class ToolbarItem(Block):
         # @@@ Must use self.toolbarLocation rather than wxMainFrame.GetToolBar()
         tool = None
         wxToolbar = Globals.wxApplication.mainFrame.GetToolBar()
-        toolbar = Globals.repository.find(wxToolbar.blockUUID)
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
         id = Block.getWidgetID(self)
         if self.toolbarItemKind == 'Button':
             bitmap = wx.Image (self.bitmap, 
                                wx.BITMAP_TYPE_PNG).ConvertToBitmap()
             tool = wxToolbar.AddSimpleTool (id, bitmap, 
                                             self.title, self.statusMessage)
-            parentWidget.Bind(wx.EVT_TOOL, toolbar.toolPressed, id=id)
+            self.parentBlock.widget.Bind (wx.EVT_TOOL, wxToolbar.blockItem.toolPressed, id=id)
         elif self.toolbarItemKind == 'Separator':
             wxToolbar.AddSeparator()
         elif self.toolbarItemKind == 'Check':
@@ -607,7 +535,7 @@ class ToolbarItem(Block):
                                wx.TE_PROCESS_ENTER)
             tool.SetName(self.title)
             wxToolbar.AddControl (tool)
-            tool.Bind(wx.EVT_TEXT_ENTER, toolbar.toolEnterPressed, id=id)
+            tool.Bind(wx.EVT_TEXT_ENTER, wxToolbar.blockItem.toolEnterPressed, id=id)
         elif __debug__:
             assert False, "unknown toolbarItemKind"
 
@@ -636,8 +564,7 @@ class wxTreeAndList(DraggableWidget):
         """
         if self.scheduleUpdate:
            if (time.time() - self.lastUpdateTime) > 0.5:
-               block = Globals.repository.find (self.blockUUID)
-               block.synchronizeWidget()
+               self.blockItem.synchronizeWidget()
         else:
             lastupdateTime = time.time()
         event.Skip()
@@ -668,8 +595,6 @@ class wxTreeAndList(DraggableWidget):
         child, cookie = self.GetFirstChild (parentId)
         if not child.IsOk():
             
-            block = Globals.repository.find (self.blockUUID)
-    
             parentUUID = self.GetItemData(parentId).GetData()
             for child in self.ElementChildren (Globals.repository [parentUUID]):
                 cellValues = self.ElementCellValues (child)
@@ -684,43 +609,38 @@ class wxTreeAndList(DraggableWidget):
                     index += 1
                 self.SetItemHasChildren (childNodeId, self.ElementHasChildren (child))
  
-            block.openedContainers [parentUUID] = True
+            self.blockItem.openedContainers [parentUUID] = True
 
     def OnCollapsing(self, event):
-        block = Globals.repository.find (self.blockUUID)
         id = event.GetItem()
         """
           if the data passed in has a UUID we'll keep track of the
         state of the opened tree
         """
-        del block.openedContainers [self.GetItemData(id).GetData()]
+        del self.blockItem.openedContainers [self.GetItemData(id).GetData()]
         self.DeleteChildren (id)
 
     def OnColumnDrag(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            block = Globals.repository.find (self.blockUUID)
             columnIndex = event.GetColumn()
             try:
-                block.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
+                self.blockItem.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
             except AttributeError:
                 pass
 
     def On_wxSelectionChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            block = Globals.repository.find (self.blockUUID)
     
             itemUUID = self.GetItemData(self.GetSelection()).GetData()
             selection = Globals.repository.find (itemUUID)
-            if block.selection != selection:
-                block.selection = selection
+            if self.blockItem.selection != selection:
+                self.blockItem.selection = selection
         
-                block.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                           {'item':selection})
+                self.blockItem.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                                     {'item':selection})
 
     def OnItemDrag(self, event):
-        itemUUID = self.GetItemData(event.GetItem()).GetData()
-        block = Globals.repository.find(self.blockUUID)
-        self.SetDragData(itemUUID)
+        self.SetDragData (self.GetItemData(event.GetItem()).GetData())
         
     def wxSynchronizeWidget(self):
         def ExpandContainer (self, openedContainers, id):
@@ -739,11 +659,10 @@ class wxTreeAndList(DraggableWidget):
                     ExpandContainer (self, openedContainers, child)
                     child = self.GetNextSibling (child)
 
-        block = Globals.repository.find (self.blockUUID)
-        mixinAClass (self, block.elementDelegate)
+        mixinAClass (self, self.blockItem.elementDelegate)
         
         try:
-            block.columnHeadings
+            self.blockItem.columnHeadings
         except AttributeError:
             pass # A wx.TreeCtrl won't use columnHeadings
         else:
@@ -751,14 +670,14 @@ class wxTreeAndList(DraggableWidget):
                 self.RemoveColumn (0)
     
             info = wx.gizmos.TreeListColumnInfo()
-            for index in xrange (len(block.columnHeadings)):
-                info.SetText (block.columnHeadings[index])
-                info.SetWidth (block.columnWidths[index])
+            for index in xrange (len(self.blockItem.columnHeadings)):
+                info.SetText (self.blockItem.columnHeadings[index])
+                info.SetWidth (self.blockItem.columnWidths[index])
                 self.AddColumnInfo (info)
 
         self.DeleteAllItems()
 
-        root = block.rootPath
+        root = self.blockItem.rootPath
         if not root:
             root = self.ElementChildren (None)
         cellValues = self.ElementCellValues (root)
@@ -772,9 +691,9 @@ class wxTreeAndList(DraggableWidget):
             index += 1
         self.SetItemHasChildren (rootNodeId, self.ElementHasChildren (root))
         self.LoadChildren (rootNodeId)
-        ExpandContainer (self, block.openedContainers, rootNodeId)
+        ExpandContainer (self, self.blockItem.openedContainers, rootNodeId)
 
-        selection = block.selection
+        selection = self.blockItem.selection
         if not selection:
             selection = root
         self.GoToItem (selection)
@@ -785,7 +704,6 @@ class wxTreeAndList(DraggableWidget):
             events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
                       Globals.repository.findPath('//parcels/osaf/framework/item_added'),
                       Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
-            block = Globals.repository.find (self.blockUUID)
             self.subscriptionUUID = UUID()
             Globals.notificationManager.Subscribe (events,
                                                    self.subscriptionUUID,
@@ -795,7 +713,6 @@ class wxTreeAndList(DraggableWidget):
         
     def __del__(self):
         Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
-        del Globals.association [self.blockUUID]
 
     def GoToItem(self, item):
         def ExpandTreeToItem (self, item):
@@ -839,18 +756,16 @@ class Tree(RectangularChild):
         self.selection = None
 
     def instantiateWidget(self):
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
         try:
             self.columnHeadings
         except AttributeError:
-            tree = wxTree (parentWidget, Block.getWidgetID(self), style = self.Calculate_wxStyle())
+            tree = wxTree (self.parentBlock.widget, Block.getWidgetID(self), style = self.Calculate_wxStyle())
         else:
-            tree = wxTreeList (parentWidget, Block.getWidgetID(self), style = self.Calculate_wxStyle())
+            tree = wxTreeList (self.parentBlock.widget, Block.getWidgetID(self), style = self.Calculate_wxStyle())
         return tree
 
     def OnSelectionChangedEvent (self, notification):
-        widget = Globals.association[self.itsUUID]
-        widget.GoToItem (notification.GetData()['item'])
+        self.widget.GoToItem (notification.GetData()['item'])
                             
     def Calculate_wxStyle (self):
         style = wx.TR_DEFAULT_STYLE|wx.NO_BORDER
@@ -880,14 +795,10 @@ class wxItemDetail(wx.html.HtmlWindow):
             event.Post({'item':item, 'type':'Normal'})
 
     def wxSynchronizeWidget(self):
-        block = Globals.repository.find (self.blockUUID)
-        if block.selection:
-            self.SetPage(block.getHTMLText(block.selection))
+        if self.blockItem.selection:
+            self.SetPage (self.blockItem.getHTMLText (self.blockItem.selection))
         else:
             self.SetPage('<html><body></body></html>')
-
-    def __del__(self):
-        del Globals.association [self.blockUUID]
 
 
 class ItemDetail(RectangularChild):
@@ -896,14 +807,11 @@ class ItemDetail(RectangularChild):
         self.selection = None
 
     def instantiateWidget (self):
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        htmlWindow = wxItemDetail(parentWidget,
-                                  Block.getWidgetID(self),
-                                  wx.DefaultPosition,
-                                  (self.minimumSize.width,
-                                   self.minimumSize.height))
-
-        return htmlWindow
+        return wxItemDetail (self.parentBlock.widget,
+                             Block.getWidgetID(self),
+                             wx.DefaultPosition,
+                             (self.minimumSize.width,
+                              self.minimumSize.height))
 
     def getHTMLText(self, item):
         return '<body><html><h1>%s</h1></body></html>' % item.getDisplayName()

@@ -13,8 +13,6 @@ Don't add to the globals without reviewing the addition.
 from repository.util.Path import Path
 
 
-association = {}              # A dictionary mapping persistent object UUIDs
-                              #    to non-persistent python objects, typically wxPython widgets
 agentManager = None           # AgentManager
 taskManager = None            # TaskManager
 chandlerDirectory = None      # Directory containing chandler executable

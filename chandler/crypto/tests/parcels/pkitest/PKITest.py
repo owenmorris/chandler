@@ -51,8 +51,7 @@ class PKITestView(BoxContainer):
         log.info('Start/Stop server called')
         
         serverPort = Globals.repository.findPath('//parcels/pkitest/views/PKITestView/ServerPortText')
-        wxServerPortText = Globals.association[serverPort.getUUID( )]
-        sPort = wxServerPortText.GetValue()
+        sPort = serverPort.widget.GetValue()
    
         ctx = server.setup_server_ctx()
         sock = socket(AF_INET, SOCK_STREAM)

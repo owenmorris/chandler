@@ -17,21 +17,16 @@ class wxBoxContainer (wxRectangularChild):
     def wxSynchronizeWidget(self, *arguments, **keywords):
         super (wxBoxContainer, self).wxSynchronizeWidget (*arguments, **keywords)
         
-        block = Globals.repository.find (self.blockUUID)
-        if block.open:
+        if self.blockItem.open:
             sizer = self.GetSizer()
             sizer.Clear()
-            for childBlock in block.childrenBlocks:
+            for childBlock in self.blockItem.childrenBlocks:
                 if childBlock.open and isinstance (childBlock, RectangularChild):
-                    childWidget = Globals.association [childBlock.itsUUID]
-                    sizer.Add (childWidget,
+                    sizer.Add (childBlock.widget,
                                childBlock.stretchFactor, 
                                childBlock.Calculate_wxFlag(), 
                                childBlock.Calculate_wxBorder())
         self.Layout()
-
-    def __del__(self):
-        del Globals.association [self.blockUUID]
 
 
 class BoxContainer (RectangularChild):
@@ -45,7 +40,7 @@ class BoxContainer (RectangularChild):
         sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
 
         if self.parentBlock:
-            parentWidget = Globals.association [self.parentBlock.itsUUID]
+            parentWidget = self.parentBlock.widget
         else:
             parentWidget = Globals.wxApplication.mainFrame
  
@@ -58,8 +53,7 @@ class BoxContainer (RectangularChild):
 class EmbeddedContainer(RectangularChild):
     def instantiateWidget (self):
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        panel = wx.Panel(parentWidget, -1)
+        panel = wx.Panel(self.parentBlock.widget, -1)
         panel.SetSizer(sizer)
         try:
             newChild = self.contents.data[0]
@@ -72,29 +66,24 @@ class EmbeddedContainer(RectangularChild):
             return panel
     
     def OnSelectionChangedEvent(self, notification):
-        node = notification.data['item']
-        if node and isinstance(node, Node):
-            newChild = node.item
-            if isinstance(newChild, Block):
-                try:
-                    embeddedPanel = Globals.association [self.itsUUID]
-                except KeyError:
-                    return  # embedded container hasn't been rendered yet
-                embeddedSizer = embeddedPanel.GetSizer ()
-
-                assert self.contents.queryEnum  == "ListOfItems", "EmbeddedContainers must have a ListOfItems Query"
-                oldChild = self.contents.data[0]
-                wxOldChild = Globals.association [oldChild.itsUUID]
-                self.UnregisterEvents(oldChild)
-                oldChild.parentBlock = None
-            
-                self.contents.data = [newChild]
-                newChild.parentBlock = self
-                newChild.render()
-                self.RegisterEvents(newChild)
-                Globals.mainView.onSetActiveView(newChild)
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            node = notification.data['item']
+            if node and isinstance(node, Node):
+                newChild = node.item
+                if isinstance(newChild, Block):
+                    embeddedSizer = self.widget.GetSizer ()
+                    assert self.contents.queryEnum  == "ListOfItems", "EmbeddedContainers must have a ListOfItems Query"
+                    oldChild = self.contents.data[0]
+                    self.UnregisterEvents(oldChild)
+                    oldChild.parentBlock = None
                 
-                embeddedSizer.Layout()
+                    self.contents.data = [newChild]
+                    newChild.parentBlock = self
+                    newChild.render()
+                    self.RegisterEvents(newChild)
+                    Globals.mainView.onSetActiveView(newChild)
+                    
+                    embeddedSizer.Layout()
 
     def RegisterEvents(self, block):
         try:
@@ -133,56 +122,50 @@ class wxSplitterWindow(wx.SplitterWindow):
  
     def OnSize(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            block = Globals.repository.find(self.blockUUID)
             newSize = self.GetSize()
-            block.size.width = newSize.width
-            block.size.height = newSize.height
-            if block.orientationEnum == "Horizontal":
-                distance = block.size.height
+            self.blockItem.size.width = newSize.width
+            self.blockItem.size.height = newSize.height
+            if self.blockItem.orientationEnum == "Horizontal":
+                distance = self.blockItem.size.height
             else:
-                distance = block.size.width
-            self.SetSashPosition (int (distance * block.splitPercentage + 0.5))
+                distance = self.blockItem.size.width
+            self.SetSashPosition (int (distance * self.blockItem.splitPercentage + 0.5))
         event.Skip()
 
     def OnSplitChanged(self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            block = Globals.repository.find (self.blockUUID)
             width, height = self.GetSizeTuple()
             position = float (event.GetSashPosition())
             splitMode = self.GetSplitMode()
             if splitMode == wx.SPLIT_HORIZONTAL:
-                block.splitPercentage = position / height
+                self.blockItem.splitPercentage = position / height
             else:
-                block.splitPercentage = position / width
+                self.blockItem.splitPercentage = position / width
 
     def wxSynchronizeWidget(self):
-        block = Globals.repository.find (self.blockUUID)
+        self.SetSize ((self.blockItem.size.width, self.blockItem.size.height))
 
-        self.SetSize ((block.size.width, block.size.height))
-
-        assert (len (block.childrenBlocks) >= 1 and
-                len (block.childrenBlocks) <= 2), "We don't currently allow splitter windows with no contents"
+        assert (len (self.blockItem.childrenBlocks) >= 1 and
+                len (self.blockItem.childrenBlocks) <= 2), "We don't currently allow splitter windows with no contents"
 
         # Collect information about the splitter
         oldWindow1 = self.GetWindow1()
         oldWindow2 = self.GetWindow2()
  
-        children = iter (block.childrenBlocks)
+        children = iter (self.blockItem.childrenBlocks)
 
         window1 = None
         child1 = children.next()
-        window = Globals.association[child1.itsUUID]
         if child1.open:
-            window1 = window
-        window.Show (child1.open)
+            window1 = child1.widget
+        child1.widget.Show (child1.open)
 
         window2 = None
-        if len (block.childrenBlocks) >= 2:
+        if len (self.blockItem.childrenBlocks) >= 2:
             child2 = children.next()
-            window = Globals.association[child2.itsUUID]
             if child2.open:
-                window2 = window
-            window.Show (child2.open)
+                window2 = child2.widget
+            child2.widget.Show (child2.open)
 
         shouldSplit = bool (window1) and bool (window2)
         
@@ -193,11 +176,11 @@ class wxSplitterWindow(wx.SplitterWindow):
               First time SplitterWindow creation with two windows or going between
             a split with one window to a split with two windows
             """            
-            if block.orientationEnum == "Horizontal":
-                position = block.size.height * block.splitPercentage
+            if self.blockItem.orientationEnum == "Horizontal":
+                position = self.blockItem.size.height * self.blockItem.splitPercentage
                 success = self.SplitHorizontally (window1, window2, position)
             else:
-                position = block.size.width * block.splitPercentage
+                position = self.blockItem.size.width * self.blockItem.splitPercentage
                 success = self.SplitVertically (window1, window2, position)
             assert success
         elif not oldWindow1 and not oldWindow2 and not shouldSplit:
@@ -233,20 +216,15 @@ class wxSplitterWindow(wx.SplitterWindow):
         if parent:
             parent.Layout()
         self.Thaw()
-        
-    def __del__(self):
-        del Globals.association [self.blockUUID]
 
  
 class SplitterWindow(RectangularChild):
     def instantiateWidget (self):
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        splitterWindow = wxSplitterWindow(parentWidget,
-                                          Block.getWidgetID(self), 
-                                          wx.DefaultPosition,
-                                          (self.size.width, self.size.height),
-                                          style=self.Calculate_wxStyle())
-        return splitterWindow
+        return wxSplitterWindow (self.parentBlock.widget,
+                                 Block.getWidgetID(self), 
+                                 wx.DefaultPosition,
+                                 (self.size.width, self.size.height),
+                                 style=self.Calculate_wxStyle())
                 
     def Calculate_wxStyle (self):
         style = wx.SP_LIVE_UPDATE
@@ -287,71 +265,54 @@ class wxTabbedContainer(wx.Notebook, DropReceiveWidget):
     def AddItem(self, itemUUID):
         node = Globals.repository.findUUID(itemUUID)
         newItem = node.item
-        block = Globals.repository.find(self.blockUUID)
         if isinstance(newItem, Block):
-            block.ChangeCurrentTab(node)
+            self.blockItem.ChangeCurrentTab(node)
         
     def HandleSelectionChange(self, event, registerEvents):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             pageNum = event.GetSelection()
             self.selectedTab = pageNum
             page = self.GetPage(pageNum)
-            try:
-                page.blockUUID
-            except AttributeError:
-                pass
+            if registerEvents:
+                self.blockItem.RegisterEvents(page.blockItem)
+                Globals.mainView.onSetActiveView(page.blockItem)
             else:
-                item = Globals.repository.find(page.blockUUID)
-                block = Globals.repository.find(self.blockUUID)
-                if registerEvents:
-                    block.RegisterEvents(item)
-                    Globals.mainView.onSetActiveView(item)
-                else:
-                    block.UnregisterEvents(item)
+                self.blockItem.UnregisterEvents(page.blockItem)
         event.Skip()
           
     def wxSynchronizeWidget(self):
         from osaf.framework.notifications.NotificationManager import NotSubscribed as NotSubscribed
-        block = Globals.repository.find (self.blockUUID)
-        assert(len(block.childrenBlocks) >= 1), "Tabbed containers cannot be empty"
-        assert(len(block.childrenBlocks) == len(block.tabNames)), "Improper number of tabs"
+        assert(len(self.blockItem.childrenBlocks) >= 1), "Tabbed containers cannot be empty"
+        assert(len(self.blockItem.childrenBlocks) == len(self.blockItem.tabNames)), "Improper number of tabs"
         self.Freeze()
         for pageNum in range (self.GetPageCount()):
             page = self.GetPage(0)
-            pageBlock = Globals.repository.find(page.blockUUID)
-            if not pageBlock.parentBlock:
+            if not page.blockItem.parentBlock:
                 self.DeletePage(0)
             else:
                 self.RemovePage(0)
         index = 0
-        for child in block.childrenBlocks:
-            window = Globals.association[child.itsUUID]
-            self.AddPage(window, block.tabNames[index])
+        for child in self.blockItem.childrenBlocks:
+            self.AddPage (child.widget, self.blockItem.tabNames[index])
             if index == self.selectedTab:
-                block.RegisterEvents(child)
+                self.blockItem.RegisterEvents(child)
             else:
                 try:
-                    block.UnregisterEvents(child)
+                    self.blockItem.UnregisterEvents(child)
                 except NotSubscribed:
                     pass
             index += 1
         self.SetSelection(self.selectedTab)
         self.Thaw()
-
-    def __del__(self):
-        del Globals.association [self.blockUUID]
         
 
 class TabbedContainer(RectangularChild):
     def instantiateWidget (self):
-        parentWidget = Globals.association [self.parentBlock.itsUUID]
-        tabbedContainer = wxTabbedContainer(parentWidget, 
-                                            Block.getWidgetID(self),
-                                            wx.DefaultPosition,
-                                            (self.size.width, self.size.height),
-                                            style=self.Calculate_wxStyle())
-        
-        return tabbedContainer
+        return wxTabbedContainer (self.parentBlock.widget, 
+                                  Block.getWidgetID(self),
+                                  wx.DefaultPosition,
+                                  (self.size.width, self.size.height),
+                                  style=self.Calculate_wxStyle())
 
     def Calculate_wxStyle(self):
         if self.tabPosEnum == "Top":
@@ -387,11 +348,10 @@ class TabbedContainer(RectangularChild):
         Globals.notificationManager.Unsubscribe(id)    
     
     def OnChooseTabEvent (self, notification):
-        tabbedContainer = Globals.association[self.itsUUID]
         choice = notification.event.choice
-        for index in xrange (tabbedContainer.GetPageCount()):
-            if tabbedContainer.GetPageText(index) == choice:
-                tabbedContainer.SetSelection (index)
+        for index in xrange (self.widget.GetPageCount()):
+            if self.widget.GetPageText(index) == choice:
+                self.widget.SetSelection (index)
                 break
 
         

@@ -8,16 +8,13 @@ import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 
 class DemoTabs(ContainerBlocks.TabbedContainer):
     def OnChooseTabEventUpdateUI(self, notification):
-        notebook = Globals.association[self.itsUUID]
-        selectedText = notebook.GetPageText(notebook.GetSelection())
+        selectedText = self.widget.GetPageText (self.widget.GetSelection())
         notification.data['Check'] = (selectedText == notification.event.choice)
 
     def OnAddTextEvent(self, notification):
         textBox = Globals.repository.findPath('//parcels/osaf/views/demo/ButtonText')
-        wxTextBox = Globals.association[textBox.itsUUID]
-        wxTextBox.AppendText('Here is some text')
+        textBox.widget.AppendText('Here is some text')
     
     def OnReloadTextEvent(self, notification):
         textBox = Globals.repository.findPath('//parcels/osaf/views/demo/ButtonText')
-        wxTextBox = Globals.association[textBox.itsUUID]
-        wxTextBox.SetValue('')
+        textBox.widget.SetValue('')
