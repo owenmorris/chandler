@@ -2,7 +2,7 @@ include ../Makefile.inc
 
 VERSION=0.1
 RELVER=$(VERSION)-1
-VOBJECT=$(EXTERNAL)/vobject
+VOBJECT=$(BUILD_ROOT)/vobject
 MANIFEST=$(SNAP)/$(SITE)/vobject
 BUILD=build_$(SNAP)
 SRC=vobject-$(VERSION)

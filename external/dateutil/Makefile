@@ -2,7 +2,7 @@ include ../Makefile.inc
 
 VERSION=0.5
 RELVER=$(VERSION)-1
-DATEUTIL=$(EXTERNAL)/dateutil
+DATEUTIL=$(BUILD_ROOT)/dateutil
 MANIFEST=$(SNAP)/$(SITE)/dateutil
 BUILD=build_$(SNAP)
 SRC=python-dateutil-$(VERSION)
