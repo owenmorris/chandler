@@ -25,7 +25,7 @@ apply: patches-$(VERSION)
 
 build: expand apply
 	cd $(SRC); \
-	$(PYTHON) setup.py \
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py \
           build --build-base=$(BUILD) $(DIST_OPT) \
           install --force
 
