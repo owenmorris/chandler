@@ -21,7 +21,7 @@ NS_ROOT = "http://osafoundation.org/parcels"
 CORE = "%s/core" % NS_ROOT
 CPIA = "%s/osaf/framework/blocks" % NS_ROOT
 
-timing = True
+timing = False
 if timing: import tools.timing
 
 class Manager(Item):
@@ -101,6 +101,15 @@ class Manager(Item):
 
     getManager = classmethod(getManager)
 
+    def getParentParcel(cls, item):
+        parent = item.itsParent
+        while str(parent.itsKind.itsPath) != "//Schema/Core/Parcel":
+            if str(parent.itsPath) == "//":
+                return None
+            parent = parent.itsParent
+        return parent
+
+    getParentParcel = classmethod(getParentParcel)
 
     def __bootstrap(cls, repo):
         """
@@ -405,7 +414,7 @@ class Manager(Item):
                 self._file2ns[parcelFile] = namespace
 
                 # Load this file during LoadParcels
-                self.log.info("scan: adding %s to load list" % namespace)
+                self.log.debug("scan: adding %s to load list" % namespace)
                 self.__parcelsToLoad.append(namespace)
 
 
@@ -454,7 +463,7 @@ class Manager(Item):
 
     def _convertOldUris(self, oldUri):
         """
-        A temporary hack until we modify all the parcel.xml files
+        @@@ A temporary hack until we modify all the parcel.xml files
         """
 
         if oldUri == "//Schema/Core":
@@ -583,9 +592,9 @@ class Manager(Item):
         if timing: tools.timing.begin("Load parcels")
 
         try:
-            print "Scanning parcels...",
+            print "Scanning parcels..."
             self.__scanParcels()
-            print " done"
+            print "...done"
 
             if not namespaces and self.__parcelsToLoad:
                 namespaces = self.__parcelsToLoad
@@ -597,11 +606,11 @@ class Manager(Item):
                     parcel.modifiedOn = DateTime.now()
                 print "...done"
 
-            print "Starting parcels...",
+            print "Starting parcels..."
             root = self.repo.findPath("//parcels")
             for parcel in self.__walkParcels(root):
                 parcel.startupParcel()
-            print " done"
+            print "...done"
 
         except Exception, e:
             self.__displayError()
@@ -846,24 +855,12 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             self.currentItem = parent.getItemChild(nameString)
 
             if self.currentItem is not None:
-                # In preparation for reloading, remember to reset this item
-                # before making any assignments
-                assignment = {
-                   "assignType" : self._DELAYED_RESET,
-                   "reloading"  : True,
-                   "attrName"   : None,
-                   "kind"       : kind,
-                   "file"       : self.locator.getSystemId(),
-                   "line"       : self.locator.getLineNumber()
-                }
-                self.currentAssigments.append(assignment)
                 self.reloadingCurrentItem = True
             else:
+                self.reloadingCurrentItem = False
                 self.currentItem = self.createItem(kind, parent,
                                                    nameString, classString)
-
                 self.itemsCreated.append(self.currentItem)
-                self.reloadingCurrentItem = False
 
         elif attrs.has_key((None, 'uuidOf')):
             # We need to get the UUID of the target item and assign it
@@ -951,113 +948,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         (uri, local, element, currentItem, currentAssigments,
          reloadingCurrentItem) = self.tags[-1]
 
-        # Is the current item part of the core schema?
-        isSchemaItem = (currentItem.itsKind.itsRoot.itsName == 'Schema')
-
-        # If we have a reference, delay loading
-        if element == 'Reference':
-            (namespace, name) = self.getNamespaceName(self.currentValue)
-            assignment = {
-               "assignType" : self._DELAYED_REFERENCE,
-               "reloading"  : reloadingCurrentItem,
-               "attrName"   : local,
-               "namespace"  : namespace,
-               "name"       : name,
-               "key"        : None,
-               "copyName"   : self.currentCopyName,
-               "file"       : self.locator.getSystemId(),
-               "line"       : self.locator.getLineNumber()
-            }
-            self.currentAssigments.append(assignment)
-
-        # If we need to assign the UUID of an item rather than a reference
-        # to that item; delay it until later.
-        elif element == 'UuidOf':
-            (namespace, name) = self.getNamespaceName(self.currentValue)
-            assignment = {
-               "assignType" : self._DELAYED_UUIDOF,
-               "reloading"  : reloadingCurrentItem,
-               "attrName"   : local,
-               "namespace"  : namespace,
-               "name"       : name,
-               "key"        : None,
-               "copyName"   : None,
-               "file"       : self.locator.getSystemId(),
-               "line"       : self.locator.getLineNumber()
-            }
-            self.currentAssigments.append(assignment)
-
-        # If we have a literal attribute, but delay assignment until the 
-        # end of the document because superKinds are not yet linked up and 
-        # therefore attribute assignments could fail.
-        elif element == 'Attribute':
-            if isSchemaItem:
-                if elementLocal == "defaultValue" or \
-                   elementLocal == "initialValue":
-                    # The type and cardinality of the default value we're going
-                    # to make should be that of the attribute so that the
-                    # parcel author doesn't have to re-specify the type here.
-                    # However, the attribute's type may not have been hooked up
-                    # yet, so for now we need the type specified in the
-                    # initialValue/defaultValue element.
-                    # TODO:  Delay this addValue until after we've had a chance
-                    # to hook up the attribute's type.
-                    if currentItem.cardinality == "single":
-                        value = self.makeValue(currentItem, elementLocal,
-                         self.currentType, self.currentValue,
-                         self.locator.getLineNumber())
-                        currentItem.addValue(elementLocal, value)
-                    elif currentItem.cardinality == "dict":
-                        currentItem.addValue(elementLocal, {})
-                    else:
-                        # Cardinality is list
-                        # For the moment ignore any value/type and set to empty
-                        # list.
-                        # TODO: support assignment of a non-empty list to
-                        # initialValue?
-                        currentItem.addValue(elementLocal, [])
-                else:
-                    value = self.makeValue(currentItem, elementLocal,
-                     self.currentType, self.currentValue,
-                     self.locator.getLineNumber())
-                    currentItem.addValue(elementLocal, value)
-            else: # Delay
-                self.currentAssigments.append(
-                 {
-                   "assignType" : self._DELAYED_LITERAL,
-                   "reloading"  : reloadingCurrentItem,
-                   "attrName"   : local,
-                   "typePath"   : self.currentType,
-                   "value"      : self.currentValue,
-                   "key"        : None,
-                   "file"       : self.locator.getSystemId(),
-                   "line"       : self.locator.getLineNumber()
-                 }
-                )
-
-        # We have a dictionary, similar to attribute, but we have a key
-        elif element == 'Dictionary':
-            if isSchemaItem:
-                value = self.makeValue(currentItem, elementLocal,
-                 self.currentType, self.currentValue,
-                 self.locator.getLineNumber())
-                currentItem.setValue(elementLocal, value, self.currentKey)
-            else: # Delay
-                self.currentAssigments.append(
-                 {
-                   "assignType" : self._DELAYED_LITERAL,
-                   "reloading"  : reloadingCurrentItem,
-                   "attrName"   : local,
-                   "typePath"   : self.currentType,
-                   "value"      : self.currentValue,
-                   "key"        : self.currentKey,
-                   "file"       : self.locator.getSystemId(),
-                   "line"       : self.locator.getLineNumber()
-                 }
-                )
-
         # We have an item, add the collected attributes to the list
-        elif element == 'Item':
+        if element == 'Item':
             self.delayedAssigments.append((self.currentItem,
                                            self.currentAssigments))
 
@@ -1067,6 +959,47 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 self.currentItem = self.tags[-2][3]
                 self.currentAssigments = self.tags[-2][4]
                 self.reloadingCurrentItem = self.tags[-2][5]
+
+        else:
+            # This is an attribute assignment; Delay it's assignment
+            # until we reach the end of the xml document
+
+            # Initialize the assignment with values shared by all types:
+            assignment = {
+               "reloading"  : reloadingCurrentItem,
+               "attrName"   : local,
+               "key"        : None,
+               "copyName"   : None,
+               "file"       : self.locator.getSystemId(),
+               "line"       : self.locator.getLineNumber()
+            }
+
+            if element == 'Reference':
+                (namespace, name) = self.getNamespaceName(self.currentValue)
+                assignment["assignType"] = self._DELAYED_REFERENCE
+                assignment["namespace"] = namespace
+                assignment["name"] = name
+                assignment["copyName"] = self.currentCopyName
+
+            elif element == 'UuidOf':
+                (namespace, name) = self.getNamespaceName(self.currentValue)
+                assignment["assignType"] = self._DELAYED_UUIDOF
+                assignment["namespace"] = namespace
+                assignment["name"] = name
+
+            elif element == 'Attribute': # A scalar or a list
+                assignment["assignType"] = self._DELAYED_LITERAL
+                assignment["typePath"] = self.currentType
+                assignment["value"] = self.currentValue
+
+            elif element == 'Dictionary':
+                assignment["assignType"] = self._DELAYED_LITERAL
+                assignment["typePath"] = self.currentType
+                assignment["value"] = self.currentValue
+                assignment["key"] = self.currentKey
+
+            # Store this assignment
+            self.currentAssigments.append(assignment)
 
         self.tags.pop()
 
@@ -1197,7 +1130,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             The new item's kind is derived from (uri, local).
         """
 
-
         if timing: tools.timing.begin("Creating items")
 
         try:
@@ -1220,11 +1152,13 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         return item
 
     def completeAssignments(self, item, assignments):
-        """ Add all of the references in the list to the item """
+        """ Perform all the delayed attribute assignments for an item """
+
+        (old, new) = ValueSet.getValueSets(item)
 
         for assignment in assignments:
 
-            attributeName = assignment["attrName"]
+            attributeName = str(assignment["attrName"])
             reloading = assignment["reloading"]
             line = assignment["line"]
             file = assignment["file"]
@@ -1233,24 +1167,6 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             else:
                 key = None
 
-            if assignment["assignType"] == self._DELAYED_RESET:
-                # Reset this item
-                # print "Before reloading:"
-                # PrintItem(item.itsPath, self.repository)
-                kind = assignment["kind"]
-                # item._values.clear()
-                item.itsKind = kind
-                item._kind.getInitialValues(item, item._values, item._references)
-                item.setDirty()
-                # print "After reloading:"
-                # PrintItem(item.itsPath, self.repository)
-                continue
-
-            # Our preliminary parcel reloading support will only touch
-            # cardinality-single attributes:
-            if reloading and item.getAttributeAspect(attributeName,
-             "cardinality") != "single":
-                continue
 
             if timing: tools.timing.begin("Attribute assignments")
 
@@ -1266,60 +1182,295 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
                 if namespace == CORE and name == "None":
                     reference = None
+                    assignmentTuple = \
+                     (attributeName, None, None)
                 else:
                     reference = self.findItem(namespace, name, line)
                     if reference is None:
                         raise self.saveErrorState("Referenced item doesn't " \
                          "exist: %s:%s" % (namespace, name), file, line)
+                    assignmentTuple = \
+                     (attributeName, reference, None)
 
-                # @@@ Special cases to resolve
-                if copyName:
-                    # We may be reloading, so if the copy is already there,
-                    # remove it and re-copy
-                    existingCopy = item.findPath(copyName)
-                    if existingCopy is not None:
-                        existingCopy.delete(recursive=True)
-                    # Copy the item
-                    copy = reference.copy(copyName, item)
-                    item.addValue(attributeName, copy)
-                elif attributeName == 'inverseAttribute':
-                    item.addValue('otherName', reference.itsName)
-                elif attributeName == 'displayAttribute':
-                    item.addValue('displayAttribute', reference.itsName)
-                elif attributeName == 'attributes':
-                    item.addValue('attributes', reference,
-                                  alias=reference.itsName)
+                if old.assignmentExists(assignmentTuple):
+                    # This assignment appeared in the XML file from before;
+                    # Remove it from the old value set that it doesn't get
+                    # "unassigned" at the end of this.
+                    # Also, we can skip this assignment since it must have
+                    # been applied before.
+                    old.removeAssignment(assignmentTuple)
                 else:
-                    item.addValue(attributeName, reference)
+                    # This assignment doesn't appear in the previous version
+                    # of XML, so let's apply it to the item.
+
+                    # @@@ Special cases to resolve
+                    if copyName:
+                        # We may be reloading, so if the copy is already there,
+                        # remove it and re-copy
+                        existingCopy = item.findPath(copyName)
+                        if existingCopy is not None:
+                            existingCopy.delete(recursive=True)
+                        # Copy the item
+                        copy = reference.copy(copyName, item)
+                        item.addValue(attributeName, copy)
+                    elif attributeName == 'inverseAttribute':
+                        item.addValue('otherName', reference.itsName)
+                    elif attributeName == 'displayAttribute':
+                        item.addValue('displayAttribute', reference.itsName)
+                    elif attributeName == 'attributes':
+                        item.addValue('attributes', reference,
+                                      alias=reference.itsName)
+                    else:
+                        item.addValue(attributeName, reference)
+
+                    if reloading:
+                        print "Reload: item %s, assigning %s = %s" % \
+                         (item.itsPath, attributeName, reference.itsPath)
+
+                # Record this assignment in the new set of assignments
+                new.addAssignment(assignmentTuple)
 
             elif assignment["assignType"] == self._DELAYED_UUIDOF:
                 namespace = assignment["namespace"]
                 name = assignment["name"]
+
                 reference = self.findItem(namespace, name, line)
                 if reference is None:
                     raise self.saveErrorState("Referenced item doesn't " \
                      "exist: %s:%s" % (namespace, name), file, line)
-                item.addValue(attributeName, reference.itsUUID)
+
+                assignmentTuple = \
+                 (attributeName, reference.itsUUID, None)
+
+                if old.assignmentExists(assignmentTuple):
+                    # This assignment appeared in the XML file from before;
+                    # Remove it from the old value set that it doesn't get
+                    # "unassigned" at the end of this.
+                    # Also, we can skip this assignment since it must have
+                    # been applied before.
+                    old.removeAssignment(assignmentTuple)
+                else:
+                    # This assignment doesn't appear in the previous version
+                    # of XML, so let's apply it to the item.
+
+                    item.addValue(attributeName, reference.itsUUID)
+
+                    if reloading:
+                        print "Reload: item %s, assigning %s = UUID of %s" % \
+                         (item.itsPath, attributeName, reference.itsPath)
+
+                # Record this assignment in the new set of assignments
+                new.addAssignment(assignmentTuple)
 
             elif assignment["assignType"] == self._DELAYED_LITERAL:
 
                 attributeTypePath = assignment["typePath"]
                 value = assignment["value"]
 
-                value = self.makeValue(item, attributeName,
-                 attributeTypePath, value, line)
+                assignmentTuple = (attributeName, value, key)
 
-                try:
-                    if key is not None:
-                        item.setValue(attributeName, value, key)
+                if old.assignmentExists(assignmentTuple):
+                    # This assignment appeared in the XML file from before;
+                    # Remove it from the old value set that it doesn't get
+                    # "unassigned" at the end of this.
+                    # Also, we can skip this assignment since it must have
+                    # been applied before.
+                    old.removeAssignment(assignmentTuple)
+                else:
+                    # This assignment doesn't appear in the previous version
+                    # of XML, so let's apply it to the item.
+
+                    # Special cases
+                    if item.itsKind.itsUUID == self.manager.attrUUID and \
+                     attributeName in ("initialValue", "defaultValue"):
+                        card = item.cardinality
+                        if card == "dict":
+                            value = {}
+                        elif card == "list":
+                            value = []
+                        else:
+                            value = self.makeValue(item, attributeName,
+                             attributeTypePath, value, line)
                     else:
-                        item.addValue(attributeName, value)
-                except:
-                    raise self.saveErrorState("Couldn't add value to item ",
-                     file, line)
+                        value = self.makeValue(item, attributeName,
+                         attributeTypePath, value, line)
 
+                    try:
+                        if key is not None:
+                            item.setValue(attributeName, value, key)
+                            if reloading:
+                                print "Reload: item %s, assigning %s[%s] = '%s'" % \
+                                 (item.itsPath, attributeName, key, value)
+                        else:
+                            item.addValue(attributeName, value)
+                            if reloading:
+                                print "Reload: item %s, assigning %s = '%s'" % \
+                                 (item.itsPath, attributeName, value)
+
+                    except:
+                        print attributeName, value, key
+                        raise self.saveErrorState("Couldn't add value to item ",
+                         file, line)
+
+                # Record this assignment in the new set of assignments
+                new.addAssignment(assignmentTuple)
 
             if timing: tools.timing.end("Attribute assignments")
+
+        # Remove any assignments still remaining in the old value set, since
+        # we didn't see them in the new XML
+        old.unapplyAssignments()
+
+        # Save the new ValueSet into the parcel's originalValues dict
+        new.save()
+
+
+class ValueSet(object):
+    def __init__(self, item, relPath, parcel):
+        self.item = item
+        self.relPath = relPath
+        self.parcel = parcel
+        self.assignments = {}
+
+    def getValueSets(self, item):
+        """ A class method which will return two value sets (original and new)
+            for an item.  The new ValueSet will always be empty; the original
+            will be created if the item doesn't yet have one.
+        """
+
+        # Given an item, find which parcel it lives in, and keep track of
+        # the item's path relative to the parcel item.
+        if str(item.itsKind.itsPath) == "//Schema/Core/Parcel":
+            relPath = ""
+            parcel = item
+        else:
+            relPath = str(item.itsName)
+            parcel = item.itsParent
+            while str(parcel.itsKind.itsPath) != "//Schema/Core/Parcel":
+                relPath = "%s/%s" % (str(parcel.itsName), relPath)
+                parcel = parcel.itsParent
+
+        # parcel now points to a parcel
+        # relPath is the path to the item relative to the parcel
+
+        # Create two ValueSets, old and new
+        oldSet = ValueSet(item, relPath, parcel)
+        newSet = ValueSet(item, relPath, parcel)
+
+        # See if the parcel item has an originalValues entry for this item.
+        # If not, add an entry.
+        # Bind the original ValueSet's attributes dict to the entry.
+        # The new ValueSet's attributes dict always starts out empty.
+        if relPath not in parcel.originalValues:
+            parcel.originalValues[relPath] = {}
+        oldSet.assignments = parcel.originalValues[relPath]
+
+        return (oldSet, newSet)
+
+    getValueSets = classmethod(getValueSets)
+
+    def assignmentExists(self, (attrName, value, key)):
+        """ Returns True if the ValueSet has this assignment in it. False
+            otherwise.
+        """
+        value = repr(value) # makes it easier to compare non-strings
+
+        if attrName not in self.assignments:
+            return False
+
+        card = self.item.getAttributeAspect(attrName, "cardinality")
+        if card == "dict":
+            if key not in self.assignments[attrName]:
+                return False
+            return (self.assignments[attrName][key] == value)
+        elif card == "list":
+            return value in self.assignments[attrName]
+        else:
+            return (self.assignments[attrName] == value)
+
+
+    def removeAssignment(self, (attrName, value, key)):
+        """ Remove an assignment from the ValueSet.
+        """
+        value = repr(value) # makes it easier to compare non-strings
+
+        if attrName not in self.assignments:
+            return
+
+        card = self.item.getAttributeAspect(attrName, "cardinality")
+        if card == "dict":
+            del self.assignments[attrName][key]
+        elif card == "list":
+            self.assignments[attrName].remove(value)
+        else:
+            if self.assignments[attrName] == value:
+                del self.assignments[attrName]
+
+
+    def addAssignment(self, (attrName, value, key)):
+        """ Add an assignment to the ValueSet.
+        """
+        value = repr(value) # makes it easier to compare non-strings
+        card = self.item.getAttributeAspect(attrName, "cardinality")
+
+        # add attribute to assignments dictionary if not already there
+        if attrName not in self.assignments:
+            if card == "dict":
+                self.assignments[attrName] = {}
+            elif card == "list":
+                self.assignments[attrName] = []
+
+        if card == "dict":
+            self.assignments[attrName][key] = value
+        elif card == "list":
+            self.assignments[attrName].append(value)
+        else:
+            self.assignments[attrName] = value
+
+
+    def save(self):
+        """ Bind the parcel's originalValues to this ValueSet's assignments.
+        """
+        self.parcel.originalValues[self.relPath] = self.assignments
+
+
+    def getAssignments(self):
+        """ A generator which yields assignments tuples
+        """
+        for (attrName, values) in self.assignments.iteritems():
+            card = self.item.getAttributeAspect(attrName, "cardinality")
+            if card == "dict":
+                for (key, value) in values.iteritems():
+                    yield(attrName, value, key)
+            elif card == "list":
+                for value in values:
+                    yield(attrName, value, None)
+            else:
+                yield(attrName, values, None)
+
+    def unapplyAssignments(self):
+        """ Do whatever needs to be done to the item to "remove" this 
+            assignment.
+        """
+        for (attrName, value, key) in self.getAssignments():
+            card = self.item.getAttributeAspect(attrName, "cardinality")
+            if card == "dict":
+                print "Reload: item %s, unassigning %s[%s] = '%s'" % \
+                 (self.item.itsPath, attrName, key, value)
+                self.item.removeValue(attrName, key)
+            elif card == "list":
+                list = self.item.getAttributeValue(attrName)
+                for listValue in list:
+                    if repr(listValue) == value:
+                        list.remove(listValue)
+                        print "Reload: item %s, unassigning %s = '%s'" % \
+                         (self.item.itsPath, attrName, value)
+            else:
+                if repr(self.item.getAttributeValue(attrName)) == value:
+                    print "Reload: item %s, unassigning %s = '%s'" % \
+                     (self.item.itsPath, attrName, value)
+                    self.item.removeAttributeValue(attrName)
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1423,7 +1574,7 @@ def PrintItem(path, rep, recursive=False, level=0):
             try:
                 print value.itsPath
             except:
-                print value, type(value)
+                print str(value), type(value)
 
     print
 
@@ -1466,7 +1617,6 @@ def __test():
     parcelPath = [os.path.join(Globals.chandlerDirectory, "parcels")]
     manager = Manager.getManager(repository=rep, path=parcelPath)
     manager.loadParcels()
-
 
     if False:
         # Get the "virtual" core parcel (//parcels/core)

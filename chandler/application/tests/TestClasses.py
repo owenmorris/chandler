@@ -30,4 +30,6 @@ class ClassesTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         # self.assert_(itemSub.__dict__.has_key('initCalled'))
 
 if __name__ == "__main__":
-    unittest.main()
+    # unittest.main()
+    # This test isn't meant to work anymore
+    pass

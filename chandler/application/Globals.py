@@ -16,6 +16,7 @@ from repository.util.Path import Path
 taskManager = None            # TaskManager
 chandlerDirectory = None      # Directory containing chandler executable
 notificationManager = None    # NotificationManager
+parcelManager = None          # parcelManager
 repository = None             # The repository
 mainView = None               # The main View
 wxApplication = None          # The wxWindows application object

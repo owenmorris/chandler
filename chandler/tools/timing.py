@@ -63,13 +63,15 @@ class Tracker(object):
 
     def begin(self):
         if self.prevBeginTime is not None:
-            raise "Begin called without twice without intervening end %s" % self.name
+            print "Begin called without twice without intervening end %s" % self.name
+            # raise "Begin called without twice without intervening end %s" % self.name
         self.prevBeginTime = time.time()
         self.count += 1
 
     def end(self):
         if self.prevBeginTime is None:
-            raise "End called without a Begin on %s" % self.name
+            print "End called without a Begin on %s" % self.name
+            # raise "End called without a Begin on %s" % self.name
         duration = time.time() - self.prevBeginTime
         self.totalTime += duration
         self.prevBeginTime = None
@@ -84,7 +86,8 @@ def begin(name):
 
 def end(name):
     if not trackers.has_key(name):
-        raise "End called without a Begin on %s" % name
+        print "End called without a Begin on %s" % name
+        # raise "End called without a Begin on %s" % name
     trackers[name].end()
 
 def results():

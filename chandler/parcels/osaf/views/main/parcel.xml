@@ -411,6 +411,14 @@
     <helpString>Reloads any parcels that have been modified</helpString>
   </MenuItem>
 
+  <MenuItem itsName="CommitRepositoryItem">
+    <blockName>CommitRepositoryItem</blockName>
+    <title>Commit Repository</title>
+    <location>TestMenu</location>
+    <event itemref="events:CommitRepository"/>
+    <helpString>Performs a repository commit()</helpString>
+  </MenuItem>
+
   <Menu itsName="AddAdditionalViewsItem">
     <blockName>AddAdditionalViewsItem</blockName>
     <title>Add Additional Views</title>
@@ -848,6 +856,7 @@
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
     <childrenBlocks itemref="doc:ReloadParcelsItem"/>
+    <childrenBlocks itemref="doc:CommitRepositoryItem"/>
     <childrenBlocks itemref="doc:AddAdditionalViewsItem"/>
     <childrenBlocks itemref="doc:AddAllAdditionalViewsItem"/>
     <childrenBlocks itemref="doc:TestSeparator1"/>

@@ -78,6 +78,9 @@ class MainView(View):
     def onReloadParcelsEvent(self, notification):
         ParcelManager.getManager().loadParcels()
 
+    def onCommitRepositoryEvent(self, notification):
+        Globals.repository.commit()
+
     def onAboutChandlerEvent(self, notification):
         """
           Show the splash screen in response to the about command

@@ -125,17 +125,16 @@ class wxApplication (wx.App):
         """
         tools.timing.begin("wxApplication OnInit")
 
-        if __debug__:
-            """
-              Install a custom displayhook to keep Python from setting the global
-            _ (underscore) to the value of the last evaluated expression.  If 
-            we don't do this, our mapping of _ to gettext can get overwritten.
-            This is useful in interactive debugging with PyCrust.
-            """
-            def _displayHook(obj):
-                sys.stdout.write(str(obj))
-            
-            sys.displayhook = _displayHook
+        """
+          Install a custom displayhook to keep Python from setting the global
+        _ (underscore) to the value of the last evaluated expression.  If 
+        we don't do this, our mapping of _ to gettext can get overwritten.
+        This is useful in interactive debugging with PyCrust.
+        """
+        def _displayHook(obj):
+            sys.stdout.write(str(obj))
+
+        sys.displayhook = _displayHook
 
         """
           Find the directory that Chandler lives in by looking up the file that
@@ -155,11 +154,13 @@ class wxApplication (wx.App):
           Splash Screen
         """
         splashBitmap = self.GetImage ("splash")
-        splash = wx.SplashScreen(splashBitmap, 
-                                wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT, 
-                                6000, None, -1, wx.DefaultPosition, wx.DefaultSize,
-                                wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR)
+        splash = wx.SplashScreen(splashBitmap,
+                                 wx.SPLASH_CENTRE_ON_SCREEN|wx.SPLASH_TIMEOUT,
+                                 6000, None, -1, wx.DefaultPosition,
+                                 wx.DefaultSize,
+                                 wx.SIMPLE_BORDER|wx.FRAME_NO_TASKBAR)
         splash.Show()
+
         """
           Setup internationalization
         To experiment with a different locale, try 'fr' and wx.LANGUAGE_FRENCH
@@ -185,17 +186,17 @@ class wxApplication (wx.App):
                                  self.PARCEL_IMPORT.replace ('.', os.sep))
         sys.path.insert (1, parcelDir)
 
-        if __debug__:
-            """
-              In the debugging version, if PARCELDIR env var is set, put that
-            directory into sys.path before any modules are imported.
-            """
-            debugParcelDir = None
-            if os.environ.has_key('PARCELDIR'):
-                path = os.environ['PARCELDIR']
-                if path and os.path.exists(path):
-                    debugParcelDir = path
-                    sys.path.insert (2, debugParcelDir)
+        """
+        If PARCELDIR env var is set, put that
+        directory into sys.path before any modules are imported.
+        """
+        debugParcelDir = None
+        if os.environ.has_key('PARCELDIR'):
+            path = os.environ['PARCELDIR']
+            if path and os.path.exists(path):
+                print "Using PARCELDIR environment variable (%s)" % path
+                debugParcelDir = path
+                sys.path.insert (2, debugParcelDir)
 
         Globals.crypto = Crypto.Crypto()
         Globals.crypto.init()
@@ -240,19 +241,19 @@ class wxApplication (wx.App):
 
         # Load Parcels
         parcelSearchPath = [ parcelDir ]
-        if __debug__ and debugParcelDir:
+        if debugParcelDir:
             parcelSearchPath.append( debugParcelDir )
 
-        parcelManager = \
+        application.Globals.parcelManager = \
          application.Parcel.Manager.getManager(path=parcelSearchPath)
-        parcelManager.loadParcels()
+        application.Globals.parcelManager.loadParcels()
 
         Globals.repository.commit()
 
         # XXX Repository should call crypto service to create certs
         # XXX when needed
         Globals.crypto.createRepositoryCertKey()
-        
+
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
 
         """
@@ -477,7 +478,7 @@ class wxApplication (wx.App):
         import wx.py
         rootObjects = {
          "globals" : application.Globals,
-         "parcelManager" : application.Parcel.Manager.getManager(),
+         "parcelManager" : application.Globals.parcelManager,
          "parcelsRoot" : application.Globals.repository.findPath("//parcels"),
          "repository" : application.Globals.repository,
          "wxApplication" : self,
