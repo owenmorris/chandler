@@ -482,7 +482,7 @@ class ItemHandler(ContentHandler):
         
         elif self.attributes[-1]:
             attrType = self.attributes[-1].getAspect('type')
-            if attrType is not None:
+            if attrType is not None and not attrType.isAlias():
                 self.delegates.append(attrType)
                 attrType.startValue(self)
 
