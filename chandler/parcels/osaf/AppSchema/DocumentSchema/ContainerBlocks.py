@@ -6,7 +6,7 @@ class ContainerChild(Block):
     def Render (self, parent, parentWindow):
         (parent, parentWindow) = self.RenderOneBlock (parent, parentWindow)
         for child in self.childrenBlocks:
-            child.RenderOneBlock (parent, parentWindow)
+            child.Render (parent, parentWindow)
 
     def Calculate_wxFlag (self):
         if self.alignmentEnum == 'grow':
@@ -86,6 +86,7 @@ class StaticText(ContainerChild):
         """
         assert isinstance (parent, wxSizerPtr)
         parent.Add(staticText, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        return None, None
 
         
 class EditText(ContainerChild):
