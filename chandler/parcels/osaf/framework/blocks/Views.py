@@ -117,10 +117,9 @@ class View(BoxContainer):
         while (block):
             for child in block.childrenBlocks:
                 if isinstance (child, Menu) or isinstance (child, MenuItem):
-                    parent = child.parentBlock
-                    if parent != Globals.wxApplication.menuParent:
-                        Globals.wxApplication.menuParent = parent
-                        Menu.rebuildMenus(parent)
+                    if block != Globals.wxApplication.menuParent:
+                        Globals.wxApplication.menuParent = block
+                        Menu.rebuildMenus(block)
                     return
             block = block.parentBlock
 
