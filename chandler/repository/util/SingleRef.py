@@ -25,7 +25,7 @@ class SingleRef(object):
 
     def __str__(self):
 
-        return self._uuid.str64()
+        return str(self._uuid)
 
     def __repr__(self):
 

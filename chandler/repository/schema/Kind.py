@@ -9,7 +9,7 @@ from new import classobj
 from repository.item.Item import Item
 from repository.item.Values import ItemValue
 from repository.item.PersistentCollections import PersistentCollection
-from repository.item.ItemError import NoSuchAttributeError
+from repository.item.ItemError import NoSuchAttributeError, SchemaError
 from repository.util.Path import Path
 from chandlerdb.util.UUID import UUID, _uuid
 from repository.util.SingleRef import SingleRef
@@ -45,6 +45,19 @@ class Kind(Item):
         if 'attributes' in self._references:
             for attribute in self.attributes:
                 pass
+
+        # set the class backpointer if defaultKind is True
+        if self._values.get('defaultKind', False):
+            cls = self.getItemClass()
+            try:
+                uuid = cls._defaultKind
+                if uuid != self._uuid:
+                    if self.find(uuid) is not None:
+                        raise SchemaError, ("Cannot set class %s.%s _defaultKind attribute to %s's UUID, it is already set to %s", self.itsPath, cls.__module__, cls.__name__, uuid)
+                    else:
+                        cls._defaultKind = self._uuid
+            except AttributeError:
+                cls._defaultKind = self._uuid
 
     def newItem(self, name, parent):
         """

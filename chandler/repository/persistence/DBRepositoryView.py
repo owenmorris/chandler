@@ -399,7 +399,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                 if item.isDirty():
                     oldDirty = status & Item.DIRTY
                     if uuid in merges:
-                        x, od, x, d = merges[uuid]
+                        od, x, d = merges[uuid]
                         merges[uuid] = (od | oldDirty, parent,
                                         union(d, dirties))
                     else:

@@ -47,6 +47,21 @@ class Item(object):
         # This needs to be the top of the inheritance diamond, hence we're
         # not calling super() here.
 
+        if parent is None:
+            raise ValueError, 'parent cannot be None'
+
+        if kind is None:
+            cls = type(self)
+            try:
+                uuid = cls._defaultKind
+            except AttributeError:
+                uuid = None
+
+            if uuid is not None:
+                kind = parent.find(uuid)
+                if kind is None:
+                    raise NoSuchDefaultKindError, (self, cls)
+
         self.__dict__.update({ '_status': Item.NEW,
                                '_version': 0L,
                                '_lastAccess': 0L,
@@ -56,8 +71,14 @@ class Item(object):
                                '_name': name or None,
                                '_kind': kind })
 
-        if parent is None:
-            raise ValueError, 'parent cannot be None'
+        if parent._isRepository():
+            if kind is not None:
+                parent = kind.getAttributeValue('defaultParent', default=parent)
+                if parent is None:
+                    raise NoSuchDefaultParentError, (self, kind)
+            if name is None and parent._isRepository():
+                raise ValueError, 'repository root cannot be anonymous'
+
         self._setParent(parent)
 
         if kind is not None:
