@@ -8,6 +8,8 @@ from struct import pack, unpack
 from cStringIO import StringIO
 from time import time
 
+from bsddb.db import DB_DIRTY_READ
+
 from PyLucene import DbDirectory, IndexWriter, StandardAnalyzer
 from PyLucene import IndexSearcher, QueryParser
 from PyLucene import Document, Field
@@ -62,7 +64,8 @@ class FileContainer(DBContainer):
             cursor = self.cursor()
             
             try:
-                value = cursor.set_range('', 0, 0, 0)
+                value = cursor.set_range('', flags=DB_DIRTY_READ,
+                                         dlen=0, doff=0)
             except DBNotFoundError:
                 return results
 
@@ -189,7 +192,8 @@ class File(object):
             key = self.getKey()._uuid
             
             try:
-                value = cursor.set_range(key, 0, 0, 0)
+                value = cursor.set_range(key, flags=DB_DIRTY_READ,
+                                         dlen=0, doff=0)
             except DBNotFoundError:
                 pass
             else:
@@ -412,14 +416,16 @@ class IndexContainer(FileContainer):
         super(IndexContainer, self).__init__(store, name, txn, create)
 
         if create:
-            directory = DbDirectory(txn, self._db, store._blocks._db)
+            directory = DbDirectory(txn, self._db, store._blocks._db,
+                                    DB_DIRTY_READ)
             indexWriter = IndexWriter(directory, StandardAnalyzer(), True)
             indexWriter.close()
 
     def getIndexWriter(self):
 
         return IndexWriter(DbDirectory(self.store.txn,
-                                       self._db, self.store._blocks._db),
+                                       self._db, self.store._blocks._db,
+                                       DB_DIRTY_READ),
                            StandardAnalyzer(), False)
 
     def indexDocument(self, indexWriter, reader,
@@ -440,8 +446,9 @@ class IndexContainer(FileContainer):
 
     def searchDocuments(self, version, query):
 
-        directory = DbDirectory(self.store.txn, self._db,
-                                self.store._blocks._db)
+        directory = DbDirectory(self.store.txn,
+                                self._db, self.store._blocks._db,
+                                DB_DIRTY_READ)
         searcher = IndexSearcher(directory)
         query = QueryParser.parse(query, "contents", StandardAnalyzer())
         hits = searcher.search(query)

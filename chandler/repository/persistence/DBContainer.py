@@ -51,11 +51,11 @@ class DBContainer(object):
 
     def get(self, key):
 
-        return self._db.get(key, txn=self.store.txn)
+        return self._db.get(key, txn=self.store.txn, flags=DB_DIRTY_READ)
 
     def cursor(self):
 
-        return self._db.cursor(txn=self.store.txn)
+        return self._db.cursor(txn=self.store.txn, flags=DB_DIRTY_READ)
 
 
 class RefContainer(DBContainer):
@@ -71,7 +71,7 @@ class RefContainer(DBContainer):
                 cursor = self.cursor()
 
                 try:
-                    value = cursor.set_range(cursorKey)
+                    value = cursor.set_range(cursorKey, flags=DB_DIRTY_READ)
                 except DBNotFoundError:
                     return None
                 except DBLockDeadlockError:
@@ -142,7 +142,7 @@ class RefContainer(DBContainer):
             key = item.getUUID()._uuid
 
             try:
-                val = cursor.set_range(key)
+                val = cursor.set_range(key, flags=DB_DIRTY_READ)
                 while val is not None and val[0].startswith(key):
                     cursor.delete()
                     val = cursor.next()
@@ -180,7 +180,7 @@ class VerContainer(DBContainer):
                 
             try:
                 key = uuid._uuid
-                value = cursor.set_range(key)
+                value = cursor.set_range(key, flags=DB_DIRTY_READ)
             except DBNotFoundError:
                 return None
 
@@ -210,7 +210,7 @@ class VerContainer(DBContainer):
 
             try:
                 key = uuid._uuid
-                value = cursor.set_range(key)
+                value = cursor.set_range(key, flags=DB_DIRTY_READ)
             except DBNotFoundError:
                 return None
 
@@ -248,7 +248,8 @@ class HistContainer(DBContainer):
         cursor = self.cursor()
 
         try:
-            value = cursor.set_range(pack('>l', oldVersion + 1))
+            value = cursor.set_range(pack('>l', oldVersion + 1),
+                                     flags=DB_DIRTY_READ)
         except DBNotFoundError:
             return
 

@@ -90,7 +90,7 @@ class TestText(RepositoryTestCase):
         writer = movie.synopsis.getWriter(compression=compression)
 
         while True:
-            data = input.read(1048576)
+            data = input.read(548576)
             if len(data) > 0:
                 writer.write(data)
                 movie.setDirty()

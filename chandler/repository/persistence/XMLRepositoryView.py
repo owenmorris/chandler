@@ -550,8 +550,6 @@ class XMLText(Text, ItemValue):
             out.close()
             self._data = ''
 
-            """
-            Temporarily commenting indexing out
             if self._indexed:
                 store._index.indexDocument(self._view._getIndexWriter(),
                                            self.getReader(),
@@ -559,7 +557,6 @@ class XMLText(Text, ItemValue):
                                            self._getItem().getUUID(),
                                            self._getAttribute(),
                                            self.getVersion())
-            """
 
         attrs = {}
         attrs['version'] = str(self._version)

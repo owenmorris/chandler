@@ -87,27 +87,40 @@ class BZ2InputStream(object):
 
         self.bz2 = BZ2Decompressor()
         self.inputStream = inputStream
-
+        self.extra_data = ''
+        
     def read(self, length = -1):
 
-        data = self.inputStream.read(length)
-        if len(data) == 0:
-            return ''
-        
-        data = self.bz2.decompress(data)
-        
-        if len(self.bz2.unused_data) > 0:
-            buffer = StringIO()
-            buffer.write(data)
-
-            while len(self.bz2.unused_data) > 0:
-                bz2 = BZ2Decompressor()
-                buffer.write(bz2.decompress(self.bz2.unused_data))
-                self.bz2 = bz2
-
-            data = buffer.getvalue()
-            buffer.close()
+        if len(self.extra_data) > 0:
+            data = self.extra_data
+            self.extra_data = ''
             
+        else:
+            while True:
+                data = self.inputStream.read(length)
+                if len(data) == 0:
+                    return ''
+
+                data = self.bz2.decompress(data)
+                if len(data) > 0:
+                    break
+        
+            if len(self.bz2.unused_data) > 0:
+                buffer = StringIO()
+                buffer.write(data)
+
+                while len(self.bz2.unused_data) > 0:
+                    bz2 = BZ2Decompressor()
+                    buffer.write(bz2.decompress(self.bz2.unused_data))
+                    self.bz2 = bz2
+
+                data = buffer.getvalue()
+                buffer.close()
+
+        if length > 0 and len(data) > length:
+            self.extra_data = data[length:]
+            data = data[0:length]
+
         return data
 
     def close(self):
@@ -123,27 +136,40 @@ class ZlibInputStream(object):
 
         self.zlib = decompressobj()
         self.inputStream = inputStream
+        self.extra_data = ''
 
     def read(self, length = -1):
 
-        data = self.inputStream.read(length)
-        if len(data) == 0:
-            return ''
-        
-        data = self.zlib.decompress(data)
-        
-        if len(self.zlib.unused_data) > 0:
-            buffer = StringIO()
-            buffer.write(data)
-
-            while len(self.zlib.unused_data) > 0:
-                zlib = decompressobj()
-                buffer.write(zlib.decompress(self.zlib.unused_data))
-                self.zlib = zlib
-
-            data = buffer.getvalue()
-            buffer.close()
+        if len(self.extra_data) > 0:
+            data = self.extra_data
+            self.extra_data = ''
             
+        else:
+            while True:
+                data = self.inputStream.read(length)
+                if len(data) == 0:
+                    return ''
+        
+                data = self.zlib.decompress(data)
+                if len(data) > 0:
+                    break
+        
+            if len(self.zlib.unused_data) > 0:
+                buffer = StringIO()
+                buffer.write(data)
+
+                while len(self.zlib.unused_data) > 0:
+                    zlib = decompressobj()
+                    buffer.write(zlib.decompress(self.zlib.unused_data))
+                    self.zlib = zlib
+
+                data = buffer.getvalue()
+                buffer.close()
+            
+        if length > 0 and len(data) > length:
+            self.extra_data = data[length:]
+            data = data[0:length]
+
         return data
 
     def close(self):
