@@ -72,6 +72,16 @@ class RefList(LinkedMap):
             item = self._item
             item.setDirty(item.RDIRTY, self._name, item._references, noMonitors)
 
+    # copy the indexes from self into refList, empty
+    def _copyIndexes(self, refList):
+
+        if self._indexes is not None:
+            refList._indexes = indexes = {}
+            for name, index in self._indexes.iteritems():
+                type = index.getIndexType()
+                kwds = index.getInitKeywords()
+                indexes[name] = refList._createIndex(type, **kwds)
+
     # copy the refs from self into copyItem._references
     def _copy(self, copyItem, name, policy, copyFn):
 
@@ -79,6 +89,7 @@ class RefList(LinkedMap):
             refList = copyItem._references[name]
         except KeyError:
             refList = copyItem._refList(name)
+            self._copyIndexes(refList)
             copyItem._references[name] = refList
 
         for key in self.iterkeys():

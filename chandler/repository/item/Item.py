@@ -4,8 +4,6 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import cStringIO
-
 from chandlerdb.util.uuid import UUID
 from chandlerdb.schema.descriptor import _countAccess
 from chandlerdb.item.item import CItem
@@ -17,6 +15,8 @@ from repository.item.Access import ACL
 from repository.item.PersistentCollections \
      import PersistentCollection, PersistentList, PersistentDict
 
+from repository.persistence.RepositoryView import nullRepositoryView
+
 from repository.util.SingleRef import SingleRef
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
@@ -25,17 +25,20 @@ from repository.util.LinkedMap import LinkedMap
 class Item(CItem):
     'The root class for all items.'
     
-    def __init__(self, name, parent, kind):
+    def __init__(self, name=None, parent=None, kind=None, _uuid=None):
         """
         Construct an Item.
 
         @param name: The name of the item. It must be unique among the names
-        this item's siblings. C{name} may be C{None}.
+        this item's siblings. C{name} is optional, except for roots and is
+        C{None} by default.
         @type name: a string or C{None} to create an anonymous item.
         @param parent: The parent of this item. All items require a parent
         unless they are a repository root in which case the parent argument
         is the repository.
-        @type parent: an item or the item's repository view
+        @type parent: an item or the item's repository view. C{parent} is
+        optional. When ommitted, the item is made a root of either the
+        C{kind}'s view or of the global null view.
         @param kind: The kind for this item. This kind has definitions for
         all the Chandler attributes that are to be used with this item.
         This parameter can be C{None} for Chandler attribute-less operation.
@@ -50,7 +53,7 @@ class Item(CItem):
         cls = type(self)
         self._values = Values(self)
         self._references = References(self)
-        self._uuid = UUID()
+        self._uuid = _uuid or UUID()
         self._name = name or None
         self._kind = kind
         self._version = 0
@@ -59,15 +62,10 @@ class Item(CItem):
             kind._setupClass(cls)
 
         if parent is None:
-            if kind is None:
-                raise NoParentError, self
-
-            parent = kind.getAttributeValue('defaultParent', default=Item.Nil,
-                                            _attrDict=kind._values)
-            if parent is None:
-                raise NoSuchDefaultParentError, (self, kind)
-            if parent is Item.Nil:
-                raise NoParentError, self
+            if kind is not None:
+                parent = kind.itsView
+            else:
+                parent = nullRepositoryView
 
         if name is None and not parent._isItem():
             raise AnonymousRootError, self
@@ -1217,6 +1215,45 @@ class Item(CItem):
 
         return False
 
+    def _collectItems(self, items, filter=None):
+
+        def collectItems(item):
+            parent = item.itsParent
+            if parent._isItem() and not parent in items:
+                if filter is None or filter(parent) is True:
+                    return collectItems(parent)
+
+            def collectChildren(_item):
+                if not _item in items:
+                    items.add(_item)
+                    for child in _item.iterChildren():
+                        collectItems(child)
+
+            def collectReferences(_item):
+                def collectOther(__item):
+                    if __item not in items:
+                        if filter is None or filter(__item) is True:
+                            collectItems(__item)
+                    
+                for key, value in _item._references.items():
+                    if value is not None:
+                        if value._isRefList():
+                            for other in value:
+                                collectOther(other)
+                        else:
+                            if value._isUUID():
+                                value = self.find(value)
+                            collectOther(value)
+
+            collectChildren(item)
+            collectReferences(item)
+            kind = item._kind
+            if not (kind is None or kind in items):
+                if filter is None or filter(kind) is True:
+                    collectItems(kind)
+
+        collectItems(self)
+
     def getItemCloud(self, cloudAlias, items=None):
         """
         Get the items in a cloud by using this item as entrypoint.
@@ -1528,7 +1565,7 @@ class Item(CItem):
             if oldView is not newView:
 
                 if oldView is not None and newView is not None:
-                    raise NotImplementedError, 'changing repositories'
+                    raise NotImplementedError, 'changing views'
 
                 if oldView is not None:
                     oldView._unregisterItem(self, False)
@@ -1723,7 +1760,8 @@ class Item(CItem):
             acl = Item.Nil
 
         if acl is Item.Nil:
-            acl = self.getRepositoryView().getACL(self._uuid, name, self._version)
+            acl = self.getRepositoryView().getACL(self._uuid, name,
+                                                  self._version)
 
         return acl
 
@@ -1739,6 +1777,10 @@ class Item(CItem):
             return self._root._parent
         except AttributeError:
             return None
+
+    def __setRepositoryView(self, view):
+
+        view.importItem(self)
 
     def rename(self, name):
         """
@@ -2222,6 +2264,7 @@ class Item(CItem):
                        """)
 
     itsView = property(fget = getRepositoryView,
+                       fset = __setRepositoryView,
                        doc =
                        """
                        Return this item's repository view.
@@ -2243,63 +2286,3 @@ class Item(CItem):
                        item. Setting an item's kind to C{None} clears all
                        its values.
                        """)
-
-
-class Children(LinkedMap):
-
-    def __init__(self, item, new):
-
-        super(Children, self).__init__(new)
-
-        self._item = None
-        self._setItem(item)
-
-    def _setItem(self, item):
-
-        if self._item is not None:
-            assert item._uuid == self._item._uuid
-
-            for link in self._itervalues():
-                link.getValue(self)._parent = item
-
-        if item is not None and item._isItem():
-            item._status |= Item.CONTAINER
-            
-        self._item = item
-
-    def _refCount(self):
-
-        return super(Children, self).__len__() + 1
-        
-    def linkChanged(self, link, key):
-
-        self._item.setDirty(Item.CDIRTY)
-
-    def _unloadChild(self, child):
-
-        self._unloadRef(child)
-    
-    def __repr__(self):
-
-        buffer = None
-
-        try:
-            buffer = cStringIO.StringIO()
-            buffer.write('{(currenly loaded) ')
-            first = True
-            for link in self._itervalues():
-                if not first:
-                    buffer.write(', ')
-                else:
-                    first = False
-                buffer.write(link.getValue(self)._repr_())
-            buffer.write('}')
-
-            return buffer.getvalue()
-
-        finally:
-            if buffer is not None:
-                buffer.close()
-
-    def _saveValues(self, version):
-        raise NotImplementedError, "%s._saveValues" %(type(self))

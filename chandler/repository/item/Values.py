@@ -67,11 +67,12 @@ class Values(dict):
                                                   default='copy'))
                 other = item.find(value.itsUUID)
                 if other is None:
-                    self.name = value
+                    self[name] = value
                 else:
                     copyOther = copyFn(item, other, policy)
                     if copyOther is not item.Nil:
                         self[name] = SingleRef(copyOther.itsUUID)
+
             else:
                 self[name] = value
 
@@ -291,7 +292,7 @@ class Values(dict):
     def _checkValue(self, logger, name, value, attrType):
 
         if not attrType.recognizes(value):
-            logger._error('Value %s of type %s in attribute %s on %s is not recognized by type %s', value, type(value), name, self._item.itsPath, attrType.itsPath)
+            logger.error('Value %s of type %s in attribute %s on %s is not recognized by type %s', value, type(value), name, self._item.itsPath, attrType.itsPath)
             return False
 
         return True
@@ -361,10 +362,19 @@ class References(Values):
             if value is not None and value._isItem():
                 value._references._removeRef(otherName, self._item)
 
-        if other is not None and otherName in other._references:
-            value = other._references._getRef(otherName)
-            if value is not None and value._isItem():
-                value._references._removeRef(name, other)
+        if other is not None:
+            view = self._item.itsView
+            otherView = other.itsView
+            if otherView is not view:
+                if otherView._isNullView() or view._isNullView():
+                    view.importItem(other)
+                else:
+                    raise ViewMismatchError, (self._item, other)
+                    
+            if otherName in other._references:
+                value = other._references._getRef(otherName)
+                if value is not None and value._isItem():
+                    value._references._removeRef(name, other)
 
         self._setRef(name, other, otherName, **kwds)
         if other is not None:

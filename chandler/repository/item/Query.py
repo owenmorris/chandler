@@ -50,7 +50,7 @@ class KindQuery(Query):
             matches = set()
             changedItems = set()
 
-            for item in kinds[0].itsView._log:
+            for item in kinds[0].itsView._unsavedItems():
                 if item._isNDirty():
                     changedItems.add(item)
 

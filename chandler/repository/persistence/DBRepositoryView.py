@@ -23,8 +23,6 @@ from repository.persistence.DBContainer import HashTuple
 from repository.persistence.DBItemIO \
      import DBItemWriter, DBItemVMergeReader, DBItemRMergeReader
 
-timing = False
-if timing: import tools.timing
 
 class DBRepositoryView(OnDemandRepositoryView):
 
@@ -32,16 +30,20 @@ class DBRepositoryView(OnDemandRepositoryView):
 
         super(DBRepositoryView, self).openView()
 
-        self._log = []
+        self._log = set()
         self._indexWriter = None
 
     def _logItem(self, item):
         
         if super(DBRepositoryView, self)._logItem(item):
-            self._log.append(item)
+            self._log.add(item)
             return True
         
         return False
+
+    def _unsavedItems(self):
+
+        return iter(self._log)
 
     def dirlog(self):
 
@@ -65,7 +67,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                                   self._version, item)
                 self.find(item._uuid)
 
-        del self._log[:]
+        self._log.clear()
         if self.isDirty():
             self._roots._clearDirties()
             self.setDirty(0)
@@ -111,6 +113,18 @@ class DBRepositoryView(OnDemandRepositoryView):
     def _createChildren(self, parent, new):
 
         return DBChildren(self, parent, new)
+
+    def _registerItem(self, item):
+
+        super(DBRepositoryView, self)._registerItem(item)
+        if item.isDirty():
+            self._log.add(item)
+
+    def _unregisterItem(self, item, reloadable):
+
+        super(DBRepositoryView, self)._unregisterItem(item, reloadable)
+        if item.isDirty():
+            self._log.remove(item)
 
     def _getLobType(self):
 
@@ -160,7 +174,7 @@ class DBRepositoryView(OnDemandRepositoryView):
             _log = self._log
 
             try:
-                self._log = []
+                self._log = set()
                 try:
                     self._mergeItems(self._version, newVersion,
                                      histNotifications, unloads, also, mergeFn)
@@ -212,8 +226,6 @@ class DBRepositoryView(OnDemandRepositoryView):
     def commit(self, mergeFn=None):
 
         if self._status & RepositoryView.COMMITTING == 0:
-            if timing: tools.timing.begin("Repository commit")
-
             try:
                 self._exclusive.acquire()
                 self._status |= RepositoryView.COMMITTING
@@ -282,7 +294,7 @@ class DBRepositoryView(OnDemandRepositoryView):
                         item._version = newVersion
                         item.setDirty(0, None)
                         item._status &= ~(Item.NEW | Item.MERGED)
-                    del self._log[:]
+                    self._log.clear()
 
                     if self.isDirty():
                         self._roots._clearDirties()
@@ -306,8 +318,6 @@ class DBRepositoryView(OnDemandRepositoryView):
             finally:
                 self._status &= ~RepositoryView.COMMITTING
                 self._exclusive.release()
-
-            if timing: tools.timing.end("Repository commit")
 
     def _saveItem(self, item, newVersion, itemWriter, notifications):
 

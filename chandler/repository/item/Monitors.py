@@ -14,6 +14,15 @@ class Monitors(Item):
         self.setPinned()
         Monitors.instances[view] = self
 
+    def onItemImport(self, view):
+
+        try:
+            del Monitors.instances[self.itsView]
+        except KeyError:
+            pass
+        
+        Monitors.instances[view] = self
+
     def getInstance(cls, view):
 
         try:

@@ -35,19 +35,7 @@ class DBLob(Lob, ItemValue):
 
     def _copy(self, item, attribute, key=None):
 
-        view = item.itsView
-        copy = view._getLobType()(view, self.encoding,
-                                  self.mimetype, self._indexed)
-
-        inputStream = self.getInputStream(key)
-        outputStream = copy.getOutputStream(self._compression, self._encryption,
-                                            key)
-
-        outputStream.write(inputStream.read())
-        outputStream.close()
-        inputStream.close()
-
-        return copy
+        return self.copy(item.itsView, key)
 
     def _writeData(self, uuid, store, db):
 
@@ -134,20 +122,9 @@ class DBLob(Lob, ItemValue):
 
     def load(self, data, attrs):
 
-        self.mimetype = attrs.get('mimetype', 'text/plain')
-        if attrs.has_key('encoding'):
-            self.encoding = attrs['encoding']
+        super(DBLob, self).load(data, attrs)
 
-        self._compression = attrs.get('compression', None)
-        self._encryption = attrs.get('encryption', None)
-        self._version = long(attrs.get('version', '0'))
-        self._indexed = attrs.get('indexed', 'False') == 'True'
-
-        if attrs.get('type', 'text') == 'text':
-            writer = self.getWriter()
-            writer.write(data)
-            writer.close()
-        else:
+        if attrs.get('type', 'text') != 'text':
             self._uuid = UUID(data)
 
     def _setData(self, data):

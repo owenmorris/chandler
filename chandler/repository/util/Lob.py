@@ -91,6 +91,37 @@ class Lob(object):
 
         return self._data
 
+    def load(self, data, attrs):
+        
+        self.mimetype = attrs.get('mimetype', 'text/plain')
+        if attrs.has_key('encoding'):
+            self.encoding = attrs['encoding']
+
+        self._compression = attrs.get('compression', None)
+        self._encryption = attrs.get('encryption', None)
+        self._version = long(attrs.get('version', '0'))
+        self._indexed = attrs.get('indexed', 'False') == 'True'
+
+        if attrs.get('type', 'text') == 'text':
+            writer = self.getWriter()
+            writer.write(data)
+            writer.close()
+
+    def copy(self, view, key=None):
+
+        copy = view._getLobType()(view, self.encoding,
+                                  self.mimetype, self._indexed)
+
+        inputStream = self.getInputStream(key)
+        outputStream = copy.getOutputStream(self._compression, self._encryption,
+                                            key)
+
+        outputStream.write(inputStream.read())
+        outputStream.close()
+        inputStream.close()
+
+        return copy
+
     def getWriter(self, compression='bz2', encryption=None, key=None,
                   append=False, replace=False):
 

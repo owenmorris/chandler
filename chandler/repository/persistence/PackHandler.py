@@ -26,6 +26,11 @@ class PackHandler(ContentHandler):
         self.view = view
         self.hooks = []
 
+        packs = view.getRoot('Packs')
+        if packs is None:
+            packs = Item('Packs', view, None)
+        self.packs = packs
+
     def startDocument(self):
 
         self.tagAttrs = []
@@ -70,9 +75,7 @@ class PackHandler(ContentHandler):
 
         else:
             self.name = attrs['name']
-
-            packs = self.view.findPath('Packs')
-            self.pack = Item(self.name, packs, None)
+            self.pack = Item(self.name, self.packs, None)
             self.hooks.append([])
 
     def packEnd(self, attrs):

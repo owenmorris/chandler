@@ -125,7 +125,7 @@ class Kind(Item):
             else:
                 self.itsView.logger.warn("Not installing attribute descriptor for '%s' since it would shadow already existing descriptor: %s", name, descriptor)
 
-    def newItem(self, name, parent, cls=None):
+    def newItem(self, name=None, parent=None, cls=None):
         """
         Create an new item of this kind.
 
@@ -137,9 +137,9 @@ class Kind(Item):
         @param name: The name of the item. It must be unique among the names
         this item's siblings. C{name} may be C{None}.
         @type name: a string or C{None} to create an anonymous item.
-        @param parent: The parent of this item. All items require a parent
-        unless they are a repository root in which case the parent argument
-        is the repository.
+        @param parent: The parent of this item. C{parent} is
+        optional. When ommitted, the item is made a root of either the
+        C{kind}'s view or of the global null view.
         @type parent: an item or the item's repository view
         @param cls: an optional python class to instantiate the item with,
         defaults to the class set on this kind.
@@ -167,8 +167,8 @@ class Kind(Item):
         this item's siblings. C{name} may be C{None}.
         @type name: a string or C{None} to create an anonymous item.
         @param parent: The parent of this item. All items require a parent
-        unless they are a repository root in which case the parent argument
-        is the repository.
+        unless they are a repository root in which case C{parent} is a
+        repository view.
         @type parent: an item or the item's repository view
         @param uuid: The uuid for the item.
         @type uuid: L{UUID<chandlerdb.util.uuid.UUID>}

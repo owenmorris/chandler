@@ -9,19 +9,16 @@ import logging, heapq, sys, gc
 from threading import currentThread, Thread
 
 from chandlerdb.util.uuid import UUID
+from chandlerdb.item.item import CItem
 from repository.util.Path import Path
 from repository.util.ThreadSemaphore import ThreadSemaphore
+from repository.util.Lob import Lob
 from repository.persistence.RepositoryError \
-     import RepositoryError, VersionConflictError, ViewError, \
-            RecursiveLoadItemError
-from repository.item.Item import Item
-from repository.item.ItemHandler import ItemHandler
-from repository.persistence.PackHandler import PackHandler
-import Repository
+     import RepositoryError, VersionConflictError, \
+            RecursiveLoadItemError, ItemImportError
+from repository.item.Children import Children
+from repository.item.RefCollections import TransientRefList
 
-
-timing = False
-if timing: import tools.timing
 
 class RepositoryView(object):
     """
@@ -43,7 +40,7 @@ class RepositoryView(object):
 
         super(RepositoryView, self).__init__()
 
-        if not repository.isOpen():
+        if repository is not None and not repository.isOpen():
             raise RepositoryError, "Repository is not open"
 
         self.repository = repository
@@ -80,6 +77,10 @@ class RepositoryView(object):
 
         return False
 
+    def _isNullView(self):
+
+        return False
+
     def _createRefList(self, item, name, otherName,
                        persist, readOnly, new, uuid):
 
@@ -109,10 +110,11 @@ class RepositoryView(object):
         self._status = RepositoryView.OPEN
 
         repository = self.repository
-        if repository.isRefCounted():
-            self._status |= RepositoryView.REFCOUNTED
-        repository.store.attachView(self)
-        repository._openViews.append(self)
+        if repository is not None:
+            if repository.isRefCounted():
+                self._status |= RepositoryView.REFCOUNTED
+            repository.store.attachView(self)
+            repository._openViews.append(self)
 
     def __len__(self):
 
@@ -126,13 +128,13 @@ class RepositoryView(object):
 
         if dirty:
             if not self._status & RepositoryView.LOADING:
-                self._status |= Item.CDIRTY
+                self._status |= CItem.CDIRTY
         else:
-            self._status &= ~Item.CDIRTY
+            self._status &= ~CItem.CDIRTY
 
     def isDirty(self):
 
-        return self._status & Item.CDIRTY != 0
+        return self._status & CItem.CDIRTY != 0
 
     def closeView(self):
         """
@@ -146,9 +148,10 @@ class RepositoryView(object):
             raise RepositoryError, "RepositoryView is not open"
 
         repository = self.repository
-        if repository._threaded.view is self:
-            del repository._threaded.view
-        repository._openViews.remove(self)
+        if repository is not None:
+            if repository._threaded.view is self:
+                del repository._threaded.view
+            repository._openViews.remove(self)
         
         for item in self._registry.itervalues():
             item._setStale()
@@ -157,9 +160,10 @@ class RepositoryView(object):
         self._roots = None
         self._deletedRegistry.clear()
         self._instanceRegistry.clear()
-        self._status &= ~(RepositoryView.OPEN | Item.CDIRTY)
+        self._status &= ~(RepositoryView.OPEN | CItem.CDIRTY)
 
-        repository.store.detachView(self)
+        if repository is not None:
+            repository.store.detachView(self)
 
     def prune(self, size):
         """
@@ -212,9 +216,6 @@ class RepositoryView(object):
         return (self._status & RepositoryView.LOADING) != 0
 
     def _setLoading(self, loading, runHooks=False):
-
-        if self.repository.view is not self:
-            raise ViewError, (self, self.repository.view)
 
         status = (self._status & RepositoryView.LOADING != 0)
 
@@ -398,15 +399,8 @@ class RepositoryView(object):
         @type parent: an item
         """
 
-        if timing: tools.timing.begin("Load pack")
-
-        packs = self.getRoot('Packs')
-        if not packs:
-            packs = Item('Packs', self, None)
-
+        from repository.persistence.PackHandler import PackHandler
         PackHandler(path, parent, self).parseFile(path)
-
-        if timing: tools.timing.end("Load pack")
 
     def dir(self, item=None, path=None):
         """
@@ -552,6 +546,10 @@ class RepositoryView(object):
 
         return not self.isLoading()
 
+    def _unsavedItems(self):
+
+        raise NotImplementedError, "%s._unsavedItems" %(type(self))
+
     def _addItem(self, item, previous=None, next=None):
 
         name = item.itsName
@@ -625,7 +623,7 @@ class RepositoryView(object):
                size of the cache drops below 90% of this threshhold.
         """
         
-        raise NotImplementedError, "%s.commit" %(type(self))
+        raise NotImplementedError, "%s.refresh" %(type(self))
 
     def commit(self, mergeFn=None):
         """
@@ -690,9 +688,6 @@ class RepositoryView(object):
 
     def _loadRoot(self, name):
         raise NotImplementedError, "%s._loadRoot" %(type(self))
-
-    def _newItems(self):
-        raise NotImplementedError, "%s._newItems" %(type(self))
 
     def __getUUID(self):
 
@@ -772,19 +767,114 @@ class RepositoryView(object):
         
     def _commitMerge(self):
 
-        if self._status & Item.CMERGED:
+        if self._status & CItem.CMERGED:
             self._roots._commitMerge()
 
     def _revertMerge(self):
 
-        if self._status & Item.CMERGED:
+        if self._status & CItem.CMERGED:
             self._roots._revertMerge()
 
-        self._status &= ~Item.MERGED
+        self._status &= ~CItem.MERGED
 
     def getItemVersion(self, version, item):
 
         return self.repository.store.getItemVersion(version, item._uuid)
+
+    def addNotificationCallback(self, fn):
+
+        self.repository.addNotificationCallback(fn)
+
+    def removeNotificationCallback(self, fn):
+
+        return self.repository.removeNotificationCallback(fn)
+
+    def importItem(self, item):
+
+        if self.find(item._uuid) is not None:
+            raise ItemImportError, (item, self, "item already exists")
+
+        items = set()
+        view = item.itsView
+        if view is self:
+            return items
+
+        item._collectItems(items,
+                           lambda _item: (_item.isNew() or
+                                          self.find(_item._uuid) is None))
+                           
+        sameType = type(self) is type(view)
+
+        for _item in items:
+            kind = _item._kind
+            if not (kind is None or kind in items):
+                localKind = self.find(kind._uuid)
+                if localKind is None:
+                    raise ItemImportError, (_item, self,
+                                            "Kind %s not found" %(kind.itsPath))
+                item._kind = kind
+
+            for key, value in _item._values.iteritems():
+                if not sameType and isinstance(value, Lob):
+                    _item._values[key] = value.copy(self)
+
+            for key, value in _item._references.items():
+                if value is not None:
+                    if value._isRefList():
+                        if sameType or value._isTransient():
+                            previous = None
+                            for other in value:
+                                if other not in items:
+                                    value.remove(other)
+                                    other = self.find(other._uuid)
+                                    value.insertItem(other, previous)
+                        else:
+                            localValue = self._createRefList(_item, value._name, value._otherName, True, False, True, UUID())
+                            value._copyIndexes(localValue)
+                            for other in value:
+                                if other in items:
+                                    localValue._setRef(other, load=True,
+                                                       noMonitors=True)
+                                else:
+                                    value.remove(other)
+                                    path = other.itsPath
+                                    other = self.find(other._uuid)
+                                    localValue.append(other)
+                            localValue._aliases = value._aliases
+                            _item._references[key] = localValue
+                    else:
+                        if value._isUUID():
+                            value = self.find(value)
+                        if value not in items:
+                            _item.removeAttributeValue(key)
+                            _item.setAttributeValue(key, value)
+
+        for _item in items:
+            parent = _item.itsParent
+            if hasattr(type(_item), 'onItemImport'):
+                _item.onItemImport(self)
+            if not parent in items:
+                if parent is view:
+                    localParent = self
+                else:
+                    localParent = self.find(parent._uuid)
+                if localParent is not parent:
+                    def setRoot(root, __item):
+                        view._unregisterItem(__item, False)
+                        self._registerItem(__item)
+                        __item._root = root
+                        for child in __item.iterChildren():
+                            setRoot(root, child)
+                    if _item.isNew():
+                        parent._removeItem(_item)
+                    else:
+                        parent._unloadChild(_item)
+                    root = localParent._addItem(_item)
+                    _item._parent = localParent
+                    setRoot(root, _item)
+
+        return items
+
 
     itsUUID = property(__getUUID)
     itsName = property(__getName)
@@ -803,15 +893,9 @@ class RepositoryView(object):
     COMMITTING = 0x0008
     FDIRTY     = 0x0010
     
-    # flags from Item
+    # flags from CItem
     # CDIRTY   = 0x0200
     # merge flags
-
-    def addNotificationCallback(self, fn):
-        self.repository.addNotificationCallback(fn)
-
-    def removeNotificationCallback(self, fn):
-        return self.repository.removeNotificationCallback(fn)
 
 
 class OnDemandRepositoryView(RepositoryView):
@@ -948,292 +1032,160 @@ class OnDemandRepositoryView(RepositoryView):
                         item._unloadItem(False)
                     else:
                         self.logger.warn('not pruning %s (refCount %d)',
-                                         Item.__repr__(item),
-                                         pythonRefs - itemRefs)
+                                         item._repr_(), pythonRefs - itemRefs)
             else:
                 for i in xrange(count):
                     registry[heapq.heappop(heap)[1]]._unloadItem(False)
 
 
-class AbstractRepositoryViewManager(object):
+class NullRepositoryView(RepositoryView):
 
-    def __init__(self, repository, viewName = None):
-        """
-        Base Class for View Context Management.
+    def __init__(self):
 
-        @param repository: a Repository instance
-        @type repository: C{Repository}
-        @param viewName: The name to assign as the key for the view
-        @type name: a string
-        @return: C{None}
-        """
+        super(NullRepositoryView, self).__init__(None, "null view")
 
-        if repository is None:
-            raise RepositoryError, "Repository Instance is None"
+        self._logger = logging.getLogger('repository')
+        self._logger.addHandler(logging.StreamHandler())
+        
+    def setCurrentView(self):
 
-        self.repository = repository
-        self.view = self.repository.createView(viewName)
-        self.prevView = None
-        self.callChain = False
-        self.log = self._getLog()
+        raise AssertionError, "Null view cannot be made current"
 
-    def _getLog(self):
-        """
-        This method is called by the __init__ method to retrieve a C{logging.Logger} for
-        logging.
+    def refresh(self, mergeFn=None):
+        
+        raise AssertionError, "Null view cannot refresh"
 
-        This method can be sub-classed to return a custom logger by the child.
+    def commit(self, mergeFn=None):
+        
+        raise AssertionError, "Null view cannot commit"
 
-        @return: C{logging.Logger}
-        """
+    def cancel(self):
+        
+        raise AssertionError, "Null view cannot cancel"
 
-        log = logging.getLogger("AbstractRepositoryViewManager")
-        log.setLevel(logging.DEBUG)
-        return log
+    def _createRefList(self, item, name, otherName,
+                       persist, readOnly, new, uuid):
 
-    def setViewCurrent(self):
-        """
-        This method changes the current C{RepositoryView} to be the C{RepositoryView} associated with the 
-        C{AbstractRepositoryViewManger} instance.
+        return NullViewRefList(item, name, otherName, persist, readOnly)
+    
+    def _createChildren(self, parent, new):
 
-        It saves the previous C{RepositoryView}. Calling C{AbstractRepositoryViewManager.restorePreviousView} will
-        set the previous C{RepositoryView} as the current C{RepositoryView}.
+        return Children(parent, new)
+    
+    def _getLobType(self):
 
-        @return: C{None}
-        """
+        return NullViewLob
 
-        assert self.callChain is False, "setViewCurrent called again before a restorePreviousView"
+    def _findSchema(self, spec, withSchema):
 
-        assert self.prevView is None, "Nested prevView investigate"
-        self.prevView = self.getCurrentView()
-        self.repository.setCurrentView(self.view)
+        return self.find(spec, load=False)
 
-        self.callChain = True
+    def _loadItem(self, uuid):
 
+        return None
 
-    def restorePreviousView(self):
-        """
-        This method will restore the C{RepositoryView} that was current before 
-        C{AbstractRepositoryViewManager.setViewCurrent} when called.
+    def setDirty(self, dirty):
 
-        The C{AbstractRepositoryViewManager.setViewCurrent} method must be called before this method.
+        pass
 
-        @return: C{None}
-        """
+    def isDirty(self):
 
-        if self.callChain is not True:
-            raise RepositoryError, "restorePreviousView called before setViewCurrent"
+        return False
 
-        if self.prevView is not None:
-             self.repository.setCurrentView(self.prevView)
-             self.prevView = None
+    def isOpen(self):
 
-        self.callChain = False
+        return (self._status & RepositoryView.OPEN) != 0
 
+    def isNew(self):
 
-    def execInView(self, method, *args, **kw):
-        """
-        This utility method will call C{AbstractRepositoryViewManager.setCurrentView}.
-        Execute the method passed in as an argument and call
-        C{AbstractRepositoryViewManager.restorePreviousView} when the method is finished executing.
+        return False
 
-        It abstracts the C{RepositoryView} switching logic for the caller and is the recommended means of
-        executing code that utilizes a C{RepositoryView}.
+    def isStale(self):
 
-        @param method: The method to execute
-        @type method: a string
-        @param args: Arguments to pass to the method
-        @type args: list reference
-        @param kw: Keyword dict to pass to the method
-        @type args: dict reference
-        @return: The value returned by the method call or None
-        """
+        return False
 
-        result = None
+    def isRefCounted(self):
 
-        self.setViewCurrent()
+        return True
+        
+    def isLoading(self):
 
-        try:
-            result = method(*args, **kw)
+        return False
 
-        finally:
-            self.restorePreviousView()
+    def _isNullView(self):
 
-        return result
+        return True
 
+    def _setLoading(self, loading, runHooks=False):
 
-    def execInViewThenCommit(self, method, *args, **kw):
-        """
-        This utility method will call C{AbstractRepositoryViewManager.setCurrentView},
-        execute the method passed in as an argument and perform a Repository commit in
-        the current Thread then call C{AbstractRepositoryViewManager.restorePreviousView}.
+        raise AssertionError, "Null view cannot load items"
 
-        It abstracts the C{RepositoryView} switching and commit logic for the caller and
-        is the recommended means of executing a method and inline commit in a C{RepositoryView}.
+    def _getStore(self):
 
-        @param method: The method to execute
-        @type method: a string
-        @param args: Arguments to pass to the method
-        @type args: list reference
-        @param kw: Keyword dict to pass to the method
-        @type args: dict reference
-        @return: The value returned by the method call or None
-        """
-        result = None
+        return None
 
-        self.setViewCurrent()
+    def _logItem(self, item):
 
-        try:
-            result = method(*args, **kw)
-            self.__commit()
-        finally:
-            self.restorePreviousView()
+        return True
 
-        return result
+    def _unsavedItems(self):
 
-    def execInViewThenCommitInThread(self, method, *args, **kw):
-        """
-        This utility method will call C{AbstractRepositoryViewManager.setCurrentView},
-        execute the method passed in as an argument, spawn a C{RepositoryThread} to perform
-        a Repository commit, then call C{AbstractRepositoryViewManager.restorePreviousView}. 
-        Spawning a C{RepositoryThread}prevents the current Thread from blocking which the 
-        C{RepositoryView} is commiting. This is especially useful
-        when a Asynchronous model is employed.
+        return self._registry.itervalues()
 
-        The method abstracts the C{RepositoryView} switching and commit logic for the caller and
-        is the recommended means of executing a method and non-blocking commit in a C{RepositoryView}.
+    def getLogger(self):
 
-        @param method: The method to execute
-        @type method: a string
-        @param args: Arguments to pass to the method
-        @type args: list reference
-        @param kw: Keyword dict to pass to the method
-        @type args: dict reference
-        @return: The value returned by the method call or None
-        """
+        return self._logger
 
-        result = self.execInView(method, *args, **kw)
-        self.commitInView(True)
-        return result
+    def isDebug(self):
 
-    def getCurrentView(self):
-        """
-        Gets the current C{RepositoryView} the C{Repository} is working with
-        @return: C{RepositoryView}
-        """
+        return self._logger.getEffectiveLevel() <= logging.DEBUG
 
-        return self.repository.getCurrentView(False)
+    def __getUUID(self):
 
-    def printCurrentView(self, printString = None):
-        """
-        Writes the current C{RepositoryView} as well as optional printString to the C{logging.Logger}
-        instance. This method is useful for C{RepositoryView} debugging.
+        return self.itsUUID
 
-        @param printString: An optional string to display with the message (i.e. the name of the calling method)
-        @type printString: string
-        @return: C{None}
-        """
+    def getRepositoryView(self):
 
-        str = None
+        return self
 
-        if printString is None:
-             self.log.info("Current View is: %s" % self.getCurrentView())
-        else:
-             self.log.info("[%s] Current View is: %s" % (printString, self.getCurrentView()))
+    def getItemVersion(self, version, item):
 
+        return item._version
 
-    def commitInView(self, useThread=False):
-        """
-        Runs a C{RepositoryView} commit. If the commit is successful calls the
-        C{AbstractRepositoryViewManager._viewCommitSuccess} method otherwise calls
-        the C{AbstractRepositoryViewManager._viewCommitFailed} method. Both methods
-        can be subclassed to add additional functionality. An optional useThread
-        argument can be passed which indicates to run the commit in a dedicated
-        C{RepositoryThread} to prevent blocking the current thread.
+    def queryItems(self, kind=None, attribute=None, load=True):
 
-        @param useThread: Flag to indicate whether to run the view commit in the current
-                          thread or a dedicated C{RepositoryThread} to prevent blocking
-        @type: boolean
-        @return: C{None}
-        """
+        if kind is not None:
+            return [item for item in self._registry.itervalues()
+                    if item._kind is kind]
 
-        if useThread:
-            thread = Repository.RepositoryThread(target=self.__commitInView)
-            thread.start()
+        elif attribute is not None:
+            raise NotImplementedError, 'attribute query'
 
         else:
-            self.__commitInView
+            raise ValueError, 'one of kind or value must be set'
 
-    def _viewCommitSuccess(self):
-         """
-         Called by C{AbstractRepositoryViewManager.commitView} when a
-         C{RepositoryView} is commited.
 
-         Overide this method to handle any additional functionality needed
-         when a C{RepositoryView} is committed.
-         @return: C{None}
-         """
+    logger = property(getLogger)
+    itsUUID = UUID('17368718-a164-11d9-9351-000393db837c')
 
-         pass
 
-    def _viewCommitFailed(self, err):
-         """
-         Called by C{AbstractRepositoryViewManager.commitView} when a
-         C{RepositoryView} raises an error on commited.
+class NullViewLob(Lob):
 
-         Overide this method to handle any additional functionality needed
-         when a C{RepositoryView} fails on commit.
+    def __init__(self, view, *args, **kwds):
 
-         @param err: A Python Exception instance to use for debugging and error message display
-         @type Exception
+        super(NullViewLob, self).__init__(*args, **kwds)
 
-         @return: C{None}
-         """
-         str = "View Commit Failed: %s" % err
-         self.log.error(str)
 
-    def __commitInView(self):
-        """
-        Sets the current view then Attempts to commit the view.
-        Calls viewCommitSuccess or viewCommitFailed. Then restore the 
-        previous view. Need to sync with Andi on
-        what happens in the case of a conflict or
-        failed commit. This is still being resolved
-        by the repository team
-        """
+class NullViewRefList(TransientRefList):
 
-        self.setViewCurrent()
+    def __init__(self, item, name, otherName, persist, readOnly):
 
-        try:
-            self.__commit()
+        super(NullViewRefList, self).__init__(item, name, otherName, readOnly)
+        self._transient = not persist
 
-        finally:
-            self.restorePreviousView()
+    def _isTransient(self):
 
-    def __commit(self):
-        """
-        Attempts to commit in the view. Calls viewCommitSuccess or
-        viewCommitFailed.  This method does not set or unset the current 
-        view.  Need to sync with Andi on
-        what happens in the case of a conflict or
-        failed commit. This is still being resolved
-        by the repository team
-        """
+        return self._transient
 
-        try:
-           self.view.commit()
 
-        except RepositoryError, e:
-           """This condition needs to be flushed out more"""
-           self._viewCommitFailed(e)
-
-        except VersionConflictError, e1:
-           """This condition needs to be flushed out more"""
-           self._viewCommitFailed(e1)
-
-        except Exception, e2:
-           """Catch any unknown exceptions raised by the Repository"""
-           self._viewCommitFailed(e2)
-
-        else:
-           self._viewCommitSuccess()
+nullRepositoryView = NullRepositoryView()

@@ -6,10 +6,10 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from cStringIO import StringIO
 
-from repository.item.Item import Item, Children
+from repository.item.Children import Children
 from repository.item.RefCollections import RefList
 from repository.item.Indexes import NumericIndex
-from repository.persistence.RepositoryError import MergeError, ItemViewError
+from repository.persistence.RepositoryError import MergeError
 from chandlerdb.util.uuid import UUID
 from repository.util.LinkedMap import LinkedMap
 
@@ -107,10 +107,6 @@ class PersistentRefs(object):
             return False
 
     def _loadRef(self, key):
-
-        view = self.view
-        if view is not view.repository.view:
-            raise ItemViewError, (self._item, view.repository.view)
 
         if self._isRemoved(key):
             return None

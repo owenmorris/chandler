@@ -77,28 +77,6 @@ class MergeError(VersionConflictError):
                   REF: 'REF' }
 
 
-class ViewError(RepositoryError):
-    "View '%s' is not the view, '%s', set for the current thread '%s'"
-
-    def __str__(self):
-        return self.__doc__ %(self.args[0].name,
-                              self.args[1].name,
-                              threading.currentThread().getName())
-
-
-class ItemViewError(ViewError):
-    "View '%s', set for the current thread, '%s', is not the view of the instance of %s used, '%s'."
-
-    def __str__(self):
-        return self.__doc__ %(self.args[1].name,
-                              threading.currentThread().getName(),
-                              self.getItem()._repr_(),
-                              self.getItem().itsView.name)
-
-    def getItem(self):
-        return self.args[0]
-
-
 class LoadError(RepositoryError):
     "While loading %s, %s"
 
@@ -115,6 +93,13 @@ class RecursiveLoadItemError(LoadError):
 
 class LoadValueError(LoadError):
     "While loading %s.%s, %s"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0], self.args[1], self.args[2])
+
+
+class ItemImportError(RepositoryError):
+    "While importing %s into %s, %s"
 
     def __str__(self):
         return self.__doc__ %(self.args[0], self.args[1], self.args[2])

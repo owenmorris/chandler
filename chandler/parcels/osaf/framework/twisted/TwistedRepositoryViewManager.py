@@ -4,8 +4,10 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import repository.persistence.RepositoryView as RepositoryView
+from repository.persistence.RepositoryViewManager \
+     import AbstractRepositoryViewManager
 
-class RepositoryViewManager(RepositoryView.AbstractRepositoryViewManager):
+class RepositoryViewManager(AbstractRepositoryViewManager):
 
     def execInViewDeferred(self, result, method, *args, **kw):
         """

@@ -49,6 +49,9 @@ class Index(dict):
     def getIndexType(self):
         raise NotImplementedError, "%s.getIndexType" %(type(self))
 
+    def getInitKeywords(self):
+        raise NotImplementedError, "%s.getInitKeywords" %(type(self))
+
     def __len__(self):
         return self._count
 
@@ -140,6 +143,10 @@ class NumericIndex(Index, SkipList):
 
         return 'numeric'
 
+    def getInitKeywords(self):
+
+        return {}
+
     def insertKey(self, key, afterKey):
 
         self.insert(self, key, afterKey)
@@ -196,6 +203,10 @@ class SortedIndex(DelegatingIndex):
                 del kwds['descending']
             else:
                 self._descending = False
+
+    def getInitKeywords(self):
+
+        return {'descending': self._descending }
 
     def compare(self, k0, k1):
 
@@ -319,6 +330,13 @@ class AttributeIndex(SortedIndex):
 
         return 'attribute'
     
+    def getInitKeywords(self):
+
+        kwds = super(AttributeIndex, self).getInitKeywords()
+        kwds['attribute'] = self._attribute
+
+        return kwds
+
     def compare(self, k0, k1):
 
         v0 = self._valueMap[k0].getAttributeValue(self._attribute)
@@ -365,6 +383,13 @@ class CompareIndex(SortedIndex):
 
         return 'compare'
     
+    def getInitKeywords(self):
+
+        kwds = super(AttributeIndex, self).getInitKeywords()
+        kwds['compare'] = self._compare
+
+        return kwds
+
     def compare(self, k0, k1):
 
         return getattr(self._valueMap[k0], self._compare)(self._valueMap[k1])

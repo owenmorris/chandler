@@ -402,7 +402,7 @@ class IMAPDownloader(TwistedRepositoryViewManager.RepositoryViewManager):
 
     def _viewCommitSuccess(self):
         """
-        Overides C{RepositoryView.AbstractRepositoryViewManager}.
+        Overides C{RepositoryViewManager.AbstractRepositoryViewManager}.
         It posts a commit event to the GUI thread, unpins the C{EmailAccountKind} from
         memory, and writes commit info to the logger
         @return: C{None}
