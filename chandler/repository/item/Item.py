@@ -321,6 +321,7 @@ class Item(object):
             if isinstance(value, ItemRef):
                 value.detach(self, name,
                              value.other(self), self._otherName(name))
+                del _attrDict[name]
             elif isinstance(value, RefDict):
                 value.clear()
                 del _attrDict[name]
