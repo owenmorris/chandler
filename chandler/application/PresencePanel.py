@@ -11,6 +11,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "Python"
 
+import os
 from wxPython.wx import *
 from application.Application import app
 from application.ChandlerJabber import *
@@ -47,10 +48,10 @@ class PresencePanel(wxScrolledWindow):
     # for now, it's just the jabberID itself, but soon we'll look
     # it up in Contacts
     def GetDisplayName(self, jabberID):
-        return jabberID
+        return str(jabberID)
     
     # render a presence entry for the passed-in ID
-    def RenderPresenceEntry(jabberID):
+    def RenderPresenceEntry(self, jabberID):
         entryContainer = wxBoxSizer(wxHORIZONTAL)
 
         # add the disclosure triangle 
@@ -61,7 +62,7 @@ class PresencePanel(wxScrolledWindow):
         
         triangleWidget = wxStaticBitmap(self, -1, image)
         handler = OpenHandler(self, jabberID)
-        EVT_LEFT_DOWN(triangleWidget, OpenHandler.ClickedTriangle)
+        EVT_LEFT_DOWN(triangleWidget, handler.ClickedTriangle)
         entryContainer.Add(triangleWidget, 0, wxALIGN_CENTER_VERTICAL | wxWEST, 2)
 
         # add the presence state image
@@ -70,13 +71,13 @@ class PresencePanel(wxScrolledWindow):
         else:
             image = self.absentBitmap
         presenceWidget = wxStaticBitmap(self, -1, image)
-        entryContainer.Add(presenceWidget, 0, wxALIGN_CENTER_VERTICAL | wxWEST, 2)
+        entryContainer.Add(presenceWidget, 0, wxALIGN_CENTER_VERTICAL | wxWEST | wxEAST, 2)
             
         # get the display name and render it
-        displayName = self.GetDisplayName(self, jabberID)
+        displayName = self.GetDisplayName(jabberID)
         nameWidget = wxStaticText(self, -1, displayName)
         nameWidget.SetFont(self.nameFont)
-        entryContainer.Add(self.nameWidget, 0, wxEXPAND)
+        entryContainer.Add(nameWidget, 0, wxEXPAND)
                 
         return entryContainer
         
@@ -84,10 +85,10 @@ class PresencePanel(wxScrolledWindow):
     # of each entry
     def LayoutWidgets(self):
         container = wxBoxSizer(wxVERTICAL)        
-        buddyList = self.jabberClient.GetRosterIDs()
-                
+        buddyList = self.jabberClient.GetRosterIDs(false)
+        
         for jabberID in buddyList:
-            presenceEntry = self.RenderPresenceEntry(presenceDictionary, jabberID)
+            presenceEntry = self.RenderPresenceEntry(jabberID)
             container.Add(presenceEntry, 0)
                                         
         self.SetSizerAndFit(container)           
@@ -100,5 +101,16 @@ class PresencePanel(wxScrolledWindow):
 
     # utility routine to load a bitmap from a GIF file
     def LoadBitmap(self, filename):
-        return None
+        path = app.chandlerDirectory + os.sep + 'application' + os.sep + 'images' + os.sep + filename
+        image = wxImage(path, wxBITMAP_TYPE_GIF)
+        bitmap = image.ConvertToBitmap()
+        return bitmap
+
+class OpenHandler:
+    def __init__(self, presencePanel, jabberID):
+        self.presencePanel = presencePanel
+        self.jabberID = jabberID
+        
+    def ClickedTriangle(self, event):
+        print "clicked triangle"
         

@@ -186,14 +186,14 @@ class JabberClient:
                     continue
                     
             if self.roster.getOnline(id) == 'online':
-                activeIds.append(id)		
+                activeIDs.append(id)		
             else:
                 inactiveIDs.append(id)
         
         for id in inactiveIDs:
             activeIDs.append(id)
             
-        return activeIds
+        return activeIDs
         
     # return the list of jabber_ids of online members of roster
     # optionally, filter for Chandler clients only
