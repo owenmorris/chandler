@@ -290,20 +290,22 @@ class ContactsSingleContactView(wxScrolledWindow):
             # update the header attributes
             if newHeaderSelectState != headerSelectState:
                 for index in range(len(fieldChoices)):
+                    attributeName = os.path.basename(fieldChoices[index])
                     if newHeaderSelectState[index]:
-                        self.contact.AddHeaderAttribute(fieldChoices[index])
+                        self.contact.AddHeaderAttribute(attributeName)
                     else:
-                        self.contact.RemoveHeaderAttribute(fieldChoices[index])
+                        self.contact.RemoveHeaderAttribute(attributeName)
                         
                 self.namePlate.RenderWidgets()
                 
             # update the body attributes
             if newBodySelectState != bodySelectState:
                 for index in range(len(fieldChoices)):
+                    attributeName = os.path.basename(fieldChoices[index])
                     if newBodySelectState[index]:
-                        self.contact.AddBodyAttribute(fieldChoices[index])
+                        self.contact.AddBodyAttribute(attributeName)
                     else:
-                        self.contact.RemoveBodyAttribute(fieldChoices[index])
+                        self.contact.RemoveBodyAttribute(attributeName)
                         
                 self.contactAttributeList.RenderWidgets()
          

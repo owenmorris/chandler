@@ -399,9 +399,7 @@ class ContactAddressList(wxPanel):
         if result == wxID_OK:
             addressLabel = dialog.GetSelection()
             self.AddNewAddress(addressLabel, true)
-        
-        dialog.ShowModal()
- 
+         
     # FIXME: hack to access metadata in ContactModel - this should eventually
     # be gotten from the real repository, plus we should have an easier way
     def GetContactMetaData(self):
