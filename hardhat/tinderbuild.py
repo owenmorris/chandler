@@ -46,7 +46,9 @@ def main():
 
     path = os.environ.get('PATH', os.environ.get('path'))
     cvsProgram = hardhatutil.findInPath(path, "cvs")
-    print "CVS =", cvsProgram
+    print "cvs =", cvsProgram
+    rsyncProgram = hardhatutil.findInPath(path, "rsync")
+    print "rsync =", rsyncProgram
 
     go = 1
 
@@ -111,6 +113,14 @@ def main():
                     os.remove(outputDir+os.sep+"index.html")
                 RotateDirectories(outputDir)
                 CreateIndex(outputDir, buildVersion)
+
+                buildNameNoSpaces = buildName.replace(" ", "")
+    # rsync -e ssh -avzp --delete /home/builder/output/ 192.168.101.46:continuous/kilauea-osx
+                print "Rsyncing..."
+                outputList = hardhatutil.executeCommandReturnOutputRetry(
+                 [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
+                 outputDir + os.sep, 
+                 "192.168.101.46:continuous/" + buildNameNoSpaces])
             else:
                 print "There were no changes"
                 log.write("There were no changes in CVS\n")
