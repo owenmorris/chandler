@@ -2,5 +2,5 @@
 setlocal
 cd ..\Chandler
 set PATH=..\release\bin
-..\release\bin\python -O Chandler.py $*
+..\release\bin\python -O Chandler.py %*
 endlocal
