@@ -1,4 +1,3 @@
-__author__ = "Jed Burgess"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
@@ -196,6 +195,10 @@ class wxChandlerWindow(wxFrame):
         to represent the currently selected uri  3) Adjusting the navigation
         bar to have the proper history and synchronize its view.
         """
+        # If the window has already been closed
+        if not application.Application.app.association.has_key(id(self.model)):
+            return false
+        
         for item in application.Application.app.model.URLTree:
             parcel = item[0]
             """

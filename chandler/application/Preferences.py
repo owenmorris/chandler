@@ -13,7 +13,7 @@ class Preferences (Persistent):
     """
     def __init__(self):
         self.windowSize = PersistentDict()
-        self.windowSize['width'] = 679
-        self.windowSize['height'] = 532
+        self.windowSize['width'] = 850
+        self.windowSize['height'] = 650
 
 

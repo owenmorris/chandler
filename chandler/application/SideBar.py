@@ -1,4 +1,3 @@
-__author__ = "Jed Burgess"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
@@ -100,7 +99,7 @@ class SideBar(Persistent):
         self.ignoreChangeSelect = true
         wxWindow.SelectItem(self.uriDictMap[uri])
         self.ignoreChangeSelect = false
-
+        
 class URLTreeEntry:
     """
       URLTreeEntry is just a container class for items inserted into the
