@@ -152,6 +152,8 @@ def distribute(buildenv):
 
     if buildenv['version'] == 'debug':
 
+    compFile = None
+
         if buildenv['os'] == 'posix':
 
             os.chdir(buildenv['root'])
@@ -205,9 +207,17 @@ def distribute(buildenv):
         if buildenv['outputdir']:
             if not os.path.exists(buildenv['outputdir']):
                 os.mkdir(buildenv['outputdir'])
-            if os.path.exists(buildenv['outputdir'] + os.sep + compFile):
-                os.remove(buildenv['outputdir'] + os.sep + compFile)
-            os.rename( compFile, buildenv['outputdir'] + os.sep + compFile)
+            if compFile: # this hack is temporary, for Milestone 4
+                if os.path.exists(buildenv['outputdir']+os.sep+compFile):
+                    os.remove(buildenv['outputdir']+os.sep+compFile)
+                    os.rename(compFile, buildenv['outputdir']+os.sep+compFile)
+            else:
+                if os.path.exists(buildenv['outputdir']+os.sep+compFile1):
+                    os.remove(buildenv['outputdir']+os.sep+compFile1)
+                    os.rename(compFile1, buildenv['outputdir']+os.sep+compFile1)
+                if os.path.exists(buildenv['outputdir']+os.sep+compFile2):
+                    os.remove(buildenv['outputdir']+os.sep+compFile2)
+                    os.rename(compFile2, buildenv['outputdir']+os.sep+compFile2)
 
 
     if buildenv['version'] == 'release':
