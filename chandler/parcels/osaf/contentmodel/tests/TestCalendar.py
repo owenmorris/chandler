@@ -36,8 +36,8 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
             self.assertEqual(event.importance, 'fyi')
             self.assertEqual(event.getAttributeValue('importance'), 'fyi')
 
-            self.assertEqual(event.transparency, "busy")
-            self.assertEqual(event.getAttributeValue('transparency'), "busy")
+            self.assertEqual(event.transparency, "fyi")
+            self.assertEqual(event.getAttributeValue('transparency'), "fyi")
 
         def _verifyCalendarItems(calendar, location, recurrence):
             self.assertEqual(calendar.displayName, "simple calendar")
@@ -69,7 +69,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         # CalendarEvent properties
         calendarEventItem.displayName = "simple headline"
         calendarEventItem.importance = "fyi"
-        calendarEventItem.transparency = "busy"
+        calendarEventItem.transparency = "fyi"
         _verifyCalendarEvent(calendarEventItem)
         calendarEventItem.location = locationItem
 
