@@ -237,13 +237,10 @@ class Block(Item):
 
                 Globals.notificationManager.PrepareSubscribers()
                 if collection is not None:
-                    item.contents = collection
-
-                    # @@@ Hack to also set the table's contents:
-                    tableKind = Globals.repository.findPath("//parcels/osaf/framework/blocks/Table")
-                    for copy in copies.values():
-                        if copy.isItemOf(tableKind):
-                            copy.contents = collection
+                    untitledItemCollection = item.contents
+                    
+                    for copy in untitledItemCollection.collectionOwner:
+                        copy.contents = collection
 
             if operation == 'toggle':
                 try:
