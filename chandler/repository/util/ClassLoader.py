@@ -21,8 +21,9 @@ class ClassLoader(object):
             raise
         except:
             logging.getLogger('repository').exception('Importing class %s.%s failed', module, name)
-            # yes, this is valid python, a traceback can be the second argument
-            raise ImportError, sys.exc_value, sys.exc_traceback
+            x, value, traceback = sys.exc_info()
+            # yes, this is valid python, a traceback can be raise's third arg
+            raise ImportError, value, traceback
 
         try:
             return getattr(m, name)
