@@ -45,6 +45,7 @@ class Query(Item.Item):
         # these attributes need to be setup after we reload
         self._otherViewSubscribeCallbacks = {}
         self._sameViewSubscribeCallbacks = {}
+        self._sameViewNames = [] # names of view that we are monitoring on
         self._removedSinceCommit = []
         self._queryStringIsStale = True
 
@@ -109,6 +110,7 @@ class Query(Item.Item):
         if callbackItem is not None:
             if inSameView:
                 self._sameViewSubscribeCallbacks [callbackItem.itsUUID] = callbackMethodName
+                self._sameViewNames.append(self.itsView.name)
             if inOtherViews:
                 self._otherViewSubscribeCallbacks[callbackItem.itsUUID] = callbackMethodName
                 #@@@ add monitor for items in result set
@@ -119,7 +121,7 @@ class Query(Item.Item):
         try:
             self._compile()
         except AttributeError:
-            print "compile failed", abs
+            print "compile failed", ae
         
     def unsubscribe(self, callbackItem=None, inSameView = True, inOtherViews = True):
         """
@@ -138,11 +140,13 @@ class Query(Item.Item):
                 self._otherViewSubscribeCallbacks = {}
             if inSameView:
                 self._sameViewSubscribeCallbacks = {}
+                self._sameViewNames = []
         else:
             if inOtherViews:
                 del self._otherViewSubscribeCallbacks [callbackItem.itsUUID]
             if inSameView:
                 del self._sameViewSubscribeCallbacks [callbackItem.itsUUID]
+                self._sameViewNames.remove(self.itsView.name)
                 #@@@ remove monitor for items in result set
         
         if inOtherViews:        
@@ -287,6 +291,9 @@ class Query(Item.Item):
 
     def monitorCallback(self, op, item, attribute, *args, **kwds):
         #@@@ the following try block is an attempt to generate useful output to help track down 2535 - it will be removed when we fix the bug
+        if not self.itsView.name in self._sameViewNames:
+            return
+
         try:
             assert self._logical_plan != None, "debugging check"
         except AttributeError:
@@ -312,11 +319,11 @@ class Query(Item.Item):
                 if item in self._resultSet:
                     self._resultSet.remove(item)
                     self._removedSinceCommit.append(item)
-
-        for callbackUUID in self._sameViewSubscribeCallbacks:
-            i = self.itsView.find(callbackUUID)
-            method = getattr(type(i), self._sameViewSubscribeCallbacks[callbackUUID])
-            method(i, action)
+            
+            for callbackUUID in self._sameViewSubscribeCallbacks:
+                i = self.itsView.find(callbackUUID)
+                method = getattr(type(i), self._sameViewSubscribeCallbacks[callbackUUID])
+                method(i, action)
 
 class LogicalPlan(object):
     """
@@ -525,8 +532,9 @@ class ForPlan(LogicalPlan):
         
         log.debug(u"analyze_for: collection = %s, closure = %s" % (self.collection, self.closure))
             
-        self.plan= (self.collection, compile(self.closure,'<string>','eval'))
+        self.plan = (self.collection, compile(self.closure,'<string>','eval'))
         if len(self.__item._sameViewSubscribeCallbacks) > 0:
+            Monitors.Monitors.attach(self.__item, 'monitorCallback', 'kind', 'schema')
             for a in self.affectedAttributes:
                 Monitors.Monitors.attach(self.__item, 'monitorCallback', 'set', a)
 
@@ -592,9 +600,9 @@ class ForPlan(LogicalPlan):
         return items
 
     def monitored(self, op, item, attribute, *args, **kwds):
-        return self.changed(item, attribute)
+        return self.changed(item, attribute, op)
 
-    def changed(self, item, attribute=None):
+    def changed(self, item, attribute=None, monitorOp=None):
         """
         determine whether item has entered/exited the query result set
 
@@ -603,6 +611,9 @@ class ForPlan(LogicalPlan):
 
         @param attribute: the attribute on the item that was modified
         @type attribute:
+            
+        @param monitorOp: the name of the monitor op type, if changed was called via a monitor
+        @type string:
 
         @rtype: boolean
         @return: true if the item entered, false if it exited, None if it was unaffected
@@ -639,8 +650,11 @@ class ForPlan(LogicalPlan):
             rightKind = i.itsKind is self._sourceKind
 
         if rightKind:
-            result = eval(self._predicate)
-            log.debug(u"change(): %s %s %s" % (i, self._predicate, result))
+            if monitorOp == 'kind': # monitorOp only exists when called from a monitor
+                result = True
+            else:
+                result = eval(self._predicate)
+                log.debug(u"change(): %s %s %s" % (i, self._predicate, result))
         else:
             result = None
 
@@ -692,7 +706,7 @@ class UnionPlan(LogicalPlan):
             s.union_update(s1)
         return s
         
-    def changed(self, item, attribute=None):
+    def changed(self, item, attribute=None, monitorOp=None):
         """
         determine whether item has entered/exited the query result set
 
@@ -701,6 +715,9 @@ class UnionPlan(LogicalPlan):
 
         @param attribute: the attribute on the item that was modified
         @type attribute:
+
+        @param monitorOp: the name of the monitor op type, if changed was called via a monitor
+        @type string:
 
         @rtype: boolean
         @return: true if the item entered, false if it exited, None if it was unaffected
@@ -712,7 +729,7 @@ class UnionPlan(LogicalPlan):
         return None
 
     def monitored(self, op, item, attribute, *args, **kwds):
-        return self.changed(item, attribute)
+        return self.changed(item, attribute, op)
     
 class IntersectionPlan(LogicalPlan):
     """
@@ -752,7 +769,7 @@ class IntersectionPlan(LogicalPlan):
         s2 = sets.Set(plans[1].execute())
         return s1.intersection(s2)
 
-    def changed(self, item, attribute=None):
+    def changed(self, item, attribute=None, monitorOp=None):
         """
         determine whether item has entered/exited the query result set
 
@@ -762,6 +779,9 @@ class IntersectionPlan(LogicalPlan):
         @param attribute: the attribute on the item that was modified
         @type attribute:
 
+        @param monitorOp: the name of the monitor op type, if changed was called via a monitor
+        @type string:
+
         @rtype: boolean
         @return: true if the item entered, false if it exited, None if it was unaffected
         """
@@ -769,7 +789,7 @@ class IntersectionPlan(LogicalPlan):
         return reduce((lambda x,y: x and y), [ x.changed(item, attribute) for x in self.__plans ])
 
     def monitored(self, op, item, attribute, *args, **kwds):
-        return self.changed(item, attribute)
+        return self.changed(item, attribute, op)
 
 class DifferencePlan(LogicalPlan):
     """
