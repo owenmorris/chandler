@@ -28,26 +28,6 @@
     <displayName>Loading... Jungle Wiki</displayName>
     <zb:url>http://wiki.osafoundation.org/twiki/bin/view/Jungle/WebRss?skin=rss</zb:url>
   </zb:RSSChannel>
-  <zb:RSSChannel itsName="ted">
-    <displayName>Loading... Ted Leung on the air</displayName>
-    <zb:url>http://www.sauria.com/blog?flav=rss</zb:url>
-  </zb:RSSChannel>
-  <zb:RSSChannel itsName="zaobao">
-    <displayName>Loading... ZaoBao news</displayName>
-    <zb:url>http://blogs.osafoundation.org/zaobao/index.rdf</zb:url>
-  </zb:RSSChannel>
-  <zb:RSSChannel itsName="chao">
-    <displayName>Loading... Chao's Blog</displayName>
-    <zb:url>http://blogs.osafoundation.org/chao/index.rdf</zb:url>
-  </zb:RSSChannel>
-  <zb:RSSChannel itsName="lessig">
-    <displayName>Loading... Lessig Blog</displayName>
-    <zb:url>http://lessig.org/blog/index.xml</zb:url>
-  </zb:RSSChannel>
-  <zb:RSSChannel itsName="diveintomark">
-    <displayName>Loading... dive in to mark</displayName>
-    <zb:url>http://diveintomark.org/xml/rss.xml</zb:url>
-  </zb:RSSChannel>
 
 
   <!-- Styles -->
@@ -144,7 +124,6 @@
     <childrenBlocks itemref="doc:ChannelList"/>
     <childrenBlocks itemref="doc:ChannelItemDetail"/>
   </SplitterWindow>
-  
 
 
   <Tree itsName="chandlerwiki_ChannelList">
@@ -203,159 +182,5 @@
     <childrenBlocks itemref="doc:junglewiki_ChannelList"/>
     <childrenBlocks itemref="doc:junglewiki_ChannelItemDetail"/>
   </SplitterWindow>
-
-
-
-  <Tree itsName="ted_ChannelList">
-    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
-    <rootPath itemref="doc:ted"/>
-
-    <columnHeadings>Subject</columnHeadings>
-    <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
-    <columnWidths>150</columnWidths>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-  </Tree>
-
-  <zb:ZaoBaoItemDetail itsName="ted_ChannelItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
-  </zb:ZaoBaoItemDetail>
-
-  <SplitterWindow itsName="ted_ZaoBaoChannelView">
-    <eventBoundary>True</eventBoundary>
-    <size>900,580</size>
-    <minimumSize>900,580</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-
-    <childrenBlocks itemref="doc:ted_ChannelList"/>
-    <childrenBlocks itemref="doc:ted_ChannelItemDetail"/>
-  </SplitterWindow>
-  
-
-
-  <Tree itsName="zaobao_ChannelList">
-    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
-    <rootPath itemref="doc:zaobao"/>
-
-    <columnHeadings>Subject</columnHeadings>
-    <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
-    <columnWidths>150</columnWidths>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-  </Tree>
-
-  <zb:ZaoBaoItemDetail itsName="zaobao_ChannelItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
-  </zb:ZaoBaoItemDetail>
-
-  <SplitterWindow itsName="zaobao_ZaoBaoChannelView">
-    <eventBoundary>True</eventBoundary>
-    <size>900,580</size>
-    <minimumSize>900,580</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-
-    <childrenBlocks itemref="doc:zaobao_ChannelList"/>
-    <childrenBlocks itemref="doc:zaobao_ChannelItemDetail"/>
-  </SplitterWindow>
-  
-
-
-
-  <Tree itsName="chao_ChannelList">
-    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
-    <rootPath itemref="doc:chao"/>
-
-    <columnHeadings>Subject</columnHeadings>
-    <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
-    <columnWidths>150</columnWidths>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-  </Tree>
-
-  <zb:ZaoBaoItemDetail itsName="chao_ChannelItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
-  </zb:ZaoBaoItemDetail>
-
-  <SplitterWindow itsName="chao_ZaoBaoChannelView">
-    <eventBoundary>True</eventBoundary>
-    <size>900,580</size>
-    <minimumSize>900,580</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-
-    <childrenBlocks itemref="doc:chao_ChannelList"/>
-    <childrenBlocks itemref="doc:chao_ChannelItemDetail"/>
-  </SplitterWindow>
-  
-
-
-
-  <Tree itsName="lessig_ChannelList">
-    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
-    <rootPath itemref="doc:lessig"/>
-
-    <columnHeadings>Subject</columnHeadings>
-    <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
-    <columnWidths>150</columnWidths>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-  </Tree>
-
-  <zb:ZaoBaoItemDetail itsName="lessig_ChannelItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
-  </zb:ZaoBaoItemDetail>
-
-  <SplitterWindow itsName="lessig_ZaoBaoChannelView">
-    <eventBoundary>True</eventBoundary>
-    <size>900,580</size>
-    <minimumSize>900,580</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-
-    <childrenBlocks itemref="doc:lessig_ChannelList"/>
-    <childrenBlocks itemref="doc:lessig_ChannelItemDetail"/>
-  </SplitterWindow>
-  
-
-
-
-  <Tree itsName="mark_ChannelList">
-    <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
-    <rootPath itemref="doc:diveintomark"/>
-
-    <columnHeadings>Subject</columnHeadings>
-    <columnWidths>300</columnWidths>
-    <columnHeadings>Date</columnHeadings>
-    <columnWidths>150</columnWidths>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
-  </Tree>
-
-  <zb:ZaoBaoItemDetail itsName="mark_ChannelItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
-  </zb:ZaoBaoItemDetail>
-
-  <SplitterWindow itsName="mark_ZaoBaoChannelView">
-    <eventBoundary>True</eventBoundary>
-    <size>900,580</size>
-    <minimumSize>900,580</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-
-    <childrenBlocks itemref="doc:mark_ChannelList"/>
-    <childrenBlocks itemref="doc:mark_ChannelItemDetail"/>
-  </SplitterWindow>
-
 
 </core:Parcel>
