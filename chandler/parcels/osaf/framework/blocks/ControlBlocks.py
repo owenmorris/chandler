@@ -471,11 +471,15 @@ def TreeFactory(parent):
                 crashes, which may be related to threads, race conditions, repository
                 interactions. We'll need some more time to track this down in detail.
                 """
-                #Globals.notificationManager.Subscribe (events,
-                                                       #self.subscriptionUUID,
-                                                       #self.NeedsUpdate)
+                Globals.notificationManager.Subscribe (events,
+                                                       self.subscriptionUUID,
+                                                       self.NeedsUpdate)
             self.scheduleUpdate = False
             self.lastUpdateTime = time.time()
+            
+        def __del__(self):
+            Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
+            del Globals.association [self.counterpartUUID]
 
         def GoToItem(self, item):
             def ExpandTreeToItem (self, item):
