@@ -209,7 +209,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         self.todayButton = CollectionCanvas.CanvasTextButton(self, today.Format("%b %d, %Y"),
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
-        self.monthButton = CollectionCanvas.CanvasTextButton(self, " September 8888 ",
+        self.monthButton = CollectionCanvas.CanvasTextButton(self, "",
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
 
@@ -217,11 +217,11 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add((0,0), 1, wx.EXPAND, 5)
         box.Add((0,0), 1, wx.EXPAND, 5)
-        box.Add(self.prevButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
         box.Add(self.monthButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
-        box.Add(self.nextButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
         box.Add((0,0), 1, wx.EXPAND, 5)
         box.Add(self.todayButton, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
+        box.Add(self.prevButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+        box.Add(self.nextButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
         self.SetSizer(box)
 
         self.Bind(wx.EVT_BUTTON, self.parent.OnPrev, self.prevButton)
@@ -230,6 +230,7 @@ class wxWeekHeaderCanvas(CollectionCanvas.wxCollectionCanvas):
 
     def wxSynchronizeWidget(self):
         self.monthButton.SetLabel(self.parent.blockItem.rangeStart.Format("%B %Y"))
+        self.Layout()
         self.Refresh()
 
     # Drawing code
@@ -532,18 +533,18 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
         self.todayButton = CollectionCanvas.CanvasTextButton(self, today.Format("%b %d, %Y"),
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
-        self.monthButton = CollectionCanvas.CanvasTextButton(self, " September 8888 ",
+        self.monthButton = CollectionCanvas.CanvasTextButton(self, "",
                                                              self.bigFont, self.bigFontColor,
                                                              self.bgColor)
 
         box = wx.BoxSizer(wx.HORIZONTAL)
         box.Add((0,0), 1, wx.EXPAND, 5)
         box.Add((0,0), 1, wx.EXPAND, 5)
-        box.Add(self.prevButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
         box.Add(self.monthButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
-        box.Add(self.nextButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
         box.Add((0,0), 1, wx.EXPAND, 5)
         box.Add(self.todayButton, 0, wx.ALIGN_RIGHT | wx.ALL, 5)
+        box.Add(self.prevButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
+        box.Add(self.nextButton, 0, wx.ALIGN_CENTER_HORIZONTAL | wx.ALL, 5)
         self.SetSizer(box)
                                             
         self.Bind(wx.EVT_BUTTON, self.OnPrev, self.prevButton)
@@ -557,6 +558,7 @@ class wxMonthCanvas(CollectionCanvas.wxCollectionCanvas, CalendarEventHandler):
 
     def wxSynchronizeWidget(self):
         self.monthButton.SetLabel(self.blockItem.rangeStart.Format("%B %Y"))
+        self.Layout()
         self.Refresh()
 
     # Drawing logic
