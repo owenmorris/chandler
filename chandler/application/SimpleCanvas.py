@@ -287,24 +287,20 @@ class wxSimpleDrawableObject (wx.EvtHandler):
 
 
 class wxSimpleCanvas (wx.ScrolledWindow):
+    def __init__(self, *arguments, **keywords):
+        super (wxSimpleCanvas, self).__init__ (*arguments, **keywords)
 
-    def __del__(self):
-        for item in self.zOrderedDrawableObjects:
-            item.Destroy()
-
-    def OnInit (self, dropTargetDataObject):
-        """
-          We have an extra OnInit in addition to the __init__, which you must
-        remember to call. This is necessary because of how wx.SimpleCanvases are
-        stored in XRC, but treated like wx.ScrolledWindows
-        """
         self.autoCreateDistance = 0
         self.zOrderedDrawableObjects = []
         self.internalDnDItem = None
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_MOUSE_EVENTS, self.OnMouseEvent)
-        # self.SetDropTarget (wx.CanvasDropTarget (self, dropTargetDataObject))
+
+
+    def __del__(self):
+        for item in self.zOrderedDrawableObjects:
+            item.Destroy()
 
     def RefreshScrolledRect (self, rect):
         position = rect.GetPosition()

@@ -59,10 +59,7 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
     def __init__(self, *arguments, **keywords):
         super (wxWeekBlock, self).__init__ (*arguments, **keywords)
 
-        SimpleCanvas.wxSimpleCanvas.OnInit(self, None)
-
         self.Bind(wx.EVT_SIZE, self.OnSize)
-        
         self.SetScrollRate(0,0)
 
     def wxSynchronizeWidget(self):
@@ -168,7 +165,6 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
     def __init__(self, *arguments, **keywords):
         super (wxMonthBlock, self).__init__ (*arguments, **keywords)
 
-        SimpleCanvas.wxSimpleCanvas.OnInit(self, None)
         self.Bind(wx.EVT_SIZE, self.OnSize)        
         self.SetScrollRate(0,0)
     

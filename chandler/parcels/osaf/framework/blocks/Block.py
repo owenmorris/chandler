@@ -56,44 +56,62 @@ class Block(Item):
                 self.widget = widget
                 widget.blockItem = self
                 """
+                  After the blocks are wired up, call OnInit if it exists.
+                """
+                try:
+                    OnInitMethod = getattr (widget, "OnInit")
+                except AttributeError:
+                    pass
+                else:
+                    OnInitMethod()
+                """
                   For those blocks with contents, we need to subscribe to notice changes
                 to items in the contents.
                 """
-                events = [Globals.repository.findPath('//parcels/osaf/contentmodel/collection_changed')]
-                Globals.notificationManager.Subscribe(events, id(widget), self.onCollectionChanged)
+                if self.hasAttributeValue ('contents'):
+                    events = [Globals.repository.findPath('//parcels/osaf/contentmodel/collection_changed')]
+                    Globals.notificationManager.Subscribe(events, id(widget), self.onCollectionChanged)
 
                 """
                   For those blocks with subscribeWhenVisibleEvents or subscribeAlwaysEvents,
                 we need to subscribe to them.
                 """
-                if  self.hasAttributeValue ('subscribeWhenVisibleEvents') and widget.IsShown():
-                    widget.subscribeWhenVisibleEventsUUID = UUID()
-                    Globals.notificationManager.Subscribe (self.subscribeWhenVisibleEvents,
-                                                           widget.subscribeWhenVisibleEventsUUID,
-                                                           Globals.mainView.dispatchEvent)
-                if self.hasAttributeValue ('subscribeAlwaysEvents') and not subscribedBlocks.has_key (block.itsUUID):
-                    subscribedBlocks [block.itsUUID] = UUID()
-                    Globals.notificationManager.Subscribe (events,
-                                                           subscribedBlocks [block.itsUUID],
-                                                           Globals.mainView.dispatchEvent)
+                try:
+                    subscribeWhenVisibleEvents = self.subscribeWhenVisibleEvents
+                except AttributeError:
+                    pass
+                else:
+                    if  widget.IsShown():
+                        widget.subscribeWhenVisibleEventsUUID = UUID()
+                        Globals.notificationManager.Subscribe (subscribeWhenVisibleEvents,
+                                                               widget.subscribeWhenVisibleEventsUUID,
+                                                               Globals.mainView.dispatchEvent)
 
-                """
-                  After the blocks are wired up, give the window a chance
-                to synchronize itself to any persistent state.
-                """
+                try:
+                    subscribeAlwaysEvents = self.subscribeAlwaysEvents
+                except:
+                    pass
+                else:
+                    if not subscribedBlocks.has_key (block.itsUUID):
+                        subscribedBlocks [block.itsUUID] = UUID()
+                        Globals.notificationManager.Subscribe (subscribeAlwaysEvents,
+                                                               subscribedBlocks [block.itsUUID],
+                                                               Globals.mainView.dispatchEvent)
+
                 for child in self.childrenBlocks:
                     child.render()
+                """
+                  After the blocks are wired up give the window a chance
+                to synchronize itself to any persistent state.
+                """
                 self.synchronizeWidget()
 
     def onCollectionChanged (self, notification):
         """
           When our item collection has changed, we need to synchronize
         """
-        ourCollection = self.getAttributeValue('contents', default=None)
-        if ourCollection:
-            collectionUUID = notification.data['collection']
-            if ourCollection.itsUUID == collectionUUID:
-                self.synchronizeWidget()
+        if self.contents.itsUUID == notification.data['collection']:
+            self.synchronizeWidget()
 
     IdToUUID = []               # A list mapping Ids to UUIDS
     UUIDtoIds = {}              # A dictionary mapping UUIDS to Ids
@@ -106,9 +124,14 @@ class Block(Item):
           Called just before a widget is destroyed. It is the opposite of
         instantiateWidget.
         """
-        Globals.notificationManager.Unsubscribe(id(self.widget))
+        if self.hasAttributeValue ('contents'):
+            Globals.notificationManager.Unsubscribe (id(self.widget))
 
-        if hasattr (self.widget, 'subscribeWhenVisibleEventsUUID'):
+        try:
+            subscribeWhenVisibleEventsUUID = self.widget.subscribeWhenVisibleEventsUUID
+        except AttributeError:
+            pass
+        else:
             Globals.notificationManager.Unsubscribe (self.widget.subscribeWhenVisibleEventsUUID)
             delattr (self.widget, 'subscribeWhenVisibleEventsUUID')
 

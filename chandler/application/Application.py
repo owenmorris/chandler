@@ -384,21 +384,26 @@ class wxApplication (wx.App):
             except AttributeError:
                 pass
             else:
-                if block.hasAttributeValue ('subscribeWhenVisibleEvents') and (widget.IsShown() != event.GetShow()):
-                    """
-                      The state of the new GetShow flag should be the opposite of whether or
-                    not we have a subscribeWhenVisibleEventsUUID attribute
-                    """
-                    assert event.GetShow() ^ widget.hasAttributeValue ('subscribeWhenVisibleEventsUUID')
-    
-                    if event.GetShow():
-                        widget.subscribeWhenVisibleEventsUUID = UUID()
-                        Globals.notificationManager.Subscribe (block.subscribeWhenVisibleEvents,
-                                                               widget.subscribeWhenVisibleEventsUUID,
-                                                               Globals.mainView.dispatchEvent)
-                    else:
-                        Globals.notificationManager.Unsubscribe (widget.subscribeWhenVisibleEventsUUID)
-                        delattr (widget, 'subscribeWhenVisibleEventsUUID')
+                try:
+                    subscribeWhenVisibleEvents = block.subscribeWhenVisibleEvents
+                except AttributeError:
+                    pass
+                else:
+                    if widget.IsShown() != event.GetShow():
+                        """
+                          The state of the new GetShow flag should be the opposite of whether or
+                        not we have a subscribeWhenVisibleEventsUUID attribute
+                        """
+                        assert event.GetShow() ^ widget.hasAttributeValue ('subscribeWhenVisibleEventsUUID')
+        
+                        if event.GetShow():
+                            widget.subscribeWhenVisibleEventsUUID = UUID()
+                            Globals.notificationManager.Subscribe (subscribeWhenVisibleEvents,
+                                                                   widget.subscribeWhenVisibleEventsUUID,
+                                                                   Globals.mainView.dispatchEvent)
+                        else:
+                            Globals.notificationManager.Unsubscribe (widget.subscribeWhenVisibleEventsUUID)
+                            delattr (widget, 'subscribeWhenVisibleEventsUUID')
     
                 
         event.Skip()
