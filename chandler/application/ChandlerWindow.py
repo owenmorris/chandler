@@ -219,6 +219,28 @@ class wxChandlerWindow(wxFrame):
         self.model.size['y'] = rect.GetY()
         self.model.size['width'] = rect.GetWidth()
         self.model.size['height'] = rect.GetHeight()
+
+    # parse a uri to extract the remote address and parcel name
+    # returns a tuple of (parcelname, remoteaddresss, localuri)
+    # FIXME: this shouldn't be part of ChandlerWindow, but for now
+    # we don't have a better place for it
+    def ParseUri(self, uri):
+        if uri.startswith('/'):
+            uri = uri[1:]
+        if uri.endswith('/'):
+            uri = uri[:-1] 
+        fields = uri.split('/')
+        
+        remoteaddress = None
+        parcelname = fields[0]
+        localuri = uri
+        
+        if parcelname.find('@') > -1:
+            remoteaddress = fields[0]
+            parcelname = fields[1]
+            localuri = string.join(fields[1:], '/')
+        
+        return (parcelname, remoteaddress, localuri)
             
     def GoToUri(self, uri, doAddToHistory = true):
         """
@@ -232,18 +254,13 @@ class wxChandlerWindow(wxFrame):
         if not application.Application.app.association.has_key(id(self.model)):
             return false
 
-        if uri.startswith('/'):
-            uri = uri[1:]
-        if uri.endswith('/'):
-            uri = uri[:-1]
-        fields = uri.split('/')
-        uriParcelName = fields[0]
-        parcel = application.Application.app.model.URLTree.UriExists(uriParcelName)
+        parcelname, remoteaddress, localuri = self.ParseUri(uri)
+        parcel = application.Application.app.model.URLTree.UriExists(parcelname)
         if parcel == None:
             return false
         
-        self.sideBar.model.SelectUri(uri)
+        self.sideBar.model.SelectUri(localuri)
         if doAddToHistory:
             self.navigationBar.model.AddUriToHistory(uri)
         self.navigationBar.model.SynchronizeView()
-        return parcel.GoToUri(uri)
+        return parcel.GoToUri(remoteaddress, localuri)

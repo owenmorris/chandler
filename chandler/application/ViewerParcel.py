@@ -113,17 +113,21 @@ class ViewerParcel (Parcel):
                                                           panel)
             panel.Activate()
             panel.Show ()
-            
-    def GoToUri(self, uri):
+
+    def GoToUri(self, remoteaddress, uri):
         """
           Override to navigate your parcel to the specified uri.
+          The remoteaddress specifies the address of a remote repository,
+          or 'None' for the local repository
         """
         self.SynchronizeView()
         return true
 
-    # by default, no views are remotely accessible.  Real parcels override this to
-    # make their views public or otherwise accessible
     def GetAccessibleViews(self, who):
+        """
+           By default, no views are remotely accessible.  Real parcels override
+           this to make their views public or otherwise accessible
+        """
         return []
     
 class wxViewerParcel(wxPanel):
