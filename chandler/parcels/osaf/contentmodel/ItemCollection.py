@@ -65,44 +65,31 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
 
     rule = property (getRule, setRule)
 
-    def getResults (self):
-        """
-          Override getting results to make sure it isn't stale
-        """
-        if self.ruleIsStale:
-            self.updateQueryString()
-        return self.resultSet
-
-    results = property (getResults)
-
     def _ensureQueryIsCurrent (self):
         """
            Make sure that we update the queryString if the rule is stale,
         then let our superclass handle its part.
         """
         if self.ruleIsStale:
-            self.updateQueryString()
-        return super (ItemCollection, self)._ensureQueryIsCurrent ()
-
-    def updateQueryString (self):
-        args = {}
-        newQueryString = self._rule
-        if len (self.inclusions):
+            args = {}
+            newQueryString = self._rule
+            if len (self.inclusions):
+                if newQueryString:
+                    newQueryString = "union (" + newQueryString + ", for i in $0 where True)"
+                else:
+                    newQueryString = "for i in $0 where True"
+                args ["$0"] = (self.itsUUID, "inclusions")
             if newQueryString:
-                newQueryString = "union (" + newQueryString + ", for i in $0 where True)"
-            else:
-                newQueryString = "for i in $0 where True"
-            args ["$0"] = (self.itsUUID, "inclusions")
-        if newQueryString:
-            if len (self.exclusions):
-                newQueryString = "difference (" + newQueryString + ", for i in $1 where True)"
-                args ["$1"] = (self.itsUUID, "exclusions")
-            if len (self.kindFilter) != 0:
-                for kindPath in self.kindFilter:
-                    newQueryString = "intersect (" + newQueryString + ", for i inevery '" + kindPath + "' where True)"
-        self.queryString = newQueryString
-        self.args = args
-        self.ruleIsStale = False
+                if len (self.exclusions):
+                    newQueryString = "difference (" + newQueryString + ", for i in $1 where True)"
+                    args ["$1"] = (self.itsUUID, "exclusions")
+                if len (self.kindFilter) != 0:
+                    for kindPath in self.kindFilter:
+                        newQueryString = "intersect (" + newQueryString + ", for i inevery '" + kindPath + "' where True)"
+            self.queryString = newQueryString
+            self.args = args
+            self.ruleIsStale = False
+        return super (ItemCollection, self)._ensureQueryIsCurrent ()
 
     def shareSend (self):
         """
@@ -112,37 +99,32 @@ class ItemCollection(ContentModel.ContentItem, Query.Query):
         Globals.views[0].postEventByName ('ShareItem', {'item': self})
 
     def __len__ (self):
-        return len (self.results)
-
-    def __iter__ (self):
-        if self.ruleIsStale:
-            self.updateQueryString()
-        return super (ItemCollection, self).__iter__ ()
+        return len (self.resultSet)
 
     def __contains__ (self, item):
-        return item in self.results
+        return item in self.resultSet
 
     def __getitem__ (self, index):
         try:
-            return self.results.getByIndex (self.indexName, index)
+            return self.resultSet.getByIndex (self.indexName, index)
         except NoSuchIndexError:
             self.createIndex()
-            return self.results.getByIndex (self.indexName, index)
+            return self.resultSet.getByIndex (self.indexName, index)
 
     def __delitem__(self, index):
-        self.remove (self.results [index])
+        self.remove (self.resultSet [index])
 
     def createIndex (self):
         if self.indexName == "__adhoc__":
-            self.results.addIndex (self.indexName, 'numeric')
+            self.resultSet.addIndex (self.indexName, 'numeric')
         else:
-            self.results.addIndex (self.indexName, 'attribute', attribute=self.indexName)
+            self.resultSet.addIndex (self.indexName, 'attribute', attribute=self.indexName)
 
     def index (self, item):
         try:
-            return self.results.getIndexPosition (self.indexName, item)
+            return self.resultSet.getIndexPosition (self.indexName, item)
         except NoSuchIndexError:
             self.createIndex()
-            return self.results.getIndexPosition (self.indexName, item)
+            return self.resultSet.getIndexPosition (self.indexName, item)
 
 
