@@ -110,7 +110,8 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
         for wakeupCall in Query.KindQuery().run([wakeupCallKind]):
             if not self.__isValid(wakeupCall):
                 error  = "An invalid WakeupCall was found with UUID: %s." % wakeupCall.itsUUID
-                error += "The WakeupCall must specify a WakeupCall.py sub-class and have a delay value greater than 0"
+                error += "The WakeupCall must specify a WakeupCall.py sub-class ", \
+                         "and have a delay value greater than 0"
 
                 self.log.error(error)
 
@@ -130,5 +131,6 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
             return False
 
         wakeupCall.callback = callback
+        wakeupCall.handle = None
 
         return True
