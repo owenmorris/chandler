@@ -205,7 +205,7 @@ class XMLContainer(object):
 
         try:
             txnStarted = store._startTransaction()
-            if self.version == "1.2.0":
+            if self.version in ('1.2.0', '1.2.1'):
                 for value in self._xml.queryWithXPath(store.txn,
                                                       self.store.containerExpr,
                                                       DB_DIRTY_READ):
