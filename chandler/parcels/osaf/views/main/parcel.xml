@@ -191,44 +191,88 @@
   <Menu itsName="FileMenu">
     <blockName>FileMenu</blockName>
     <title>&amp;File</title>
-    <location>MenuBar</location>
     <childrenBlocks itemref="doc:NewItemMenu"/>
-    <childrenBlocks itemref="doc:CloseTabItem"/>
     <childrenBlocks itemref="doc:FileSeparator1"/>
+    <childrenBlocks itemref="doc:NewCollectionMenu"/>
+    <childrenBlocks itemref="doc:FileSeparator2"/>
+    <childrenBlocks itemref="doc:NewTabItem"/>
+    <childrenBlocks itemref="doc:NewWindowItem"/>
+    <childrenBlocks itemref="doc:CloseTabItem"/>
+    <childrenBlocks itemref="doc:CloseWindowItem"/>
+    <childrenBlocks itemref="doc:FileSeparator3"/>
+    <childrenBlocks itemref="doc:SyncMenu"/>
+    <childrenBlocks itemref="doc:PreferencesMenu"/>
+    <childrenBlocks itemref="doc:FileSeparator4"/>
     <childrenBlocks itemref="doc:QuitItem"/>
   </Menu>
 
-  <Menu itsName="NewItemMenu">
-    <blockName>NewItemMenu</blockName>
-    <title>New</title>
-    <location>FileMenu</location>
-    <childrenBlocks itemref="doc:NewTabItem"/>
-    <childrenBlocks itemref="doc:NewItemCollectionItem"/>
-  </Menu>
-  
   <Menu itsName="EditMenu">
     <blockName>EditMenu</blockName>
     <title>&amp;Edit</title>
-    <location>MenuBar</location>
     <childrenBlocks itemref="doc:UndoItem"/>
     <childrenBlocks itemref="doc:RedoItem"/>
     <childrenBlocks itemref="doc:EditSeparator1"/>
     <childrenBlocks itemref="doc:CutItem"/>
     <childrenBlocks itemref="doc:CopyItem"/>
     <childrenBlocks itemref="doc:PasteItem"/>
-    <childrenBlocks itemref="doc:EditSeparator2"/>
-    <childrenBlocks itemref="doc:PreferencesItem"/>
+    <childrenBlocks itemref="doc:DeleteItem"/>
+    <childrenBlocks itemref="doc:SelectAllItem"/>
   </Menu>
     
   <Menu itsName="ViewMenu">
     <blockName>ViewMenu</blockName>
     <title>&amp;View</title>
-    <location>MenuBar</location>
+    <childrenBlocks itemref="doc:ViewColumnsMenu"/>
+    <childrenBlocks itemref="doc:ViewSeparator1"/>
+
+    <childrenBlocks itemref="doc:ViewSortByMenu"/>
+    <childrenBlocks itemref="doc:ViewSeparator2"/>
+
+    <childrenBlocks itemref="doc:ViewExpandCollItem"/>
+    <childrenBlocks itemref="doc:ViewCollapseCollItem"/>
+    <childrenBlocks itemref="doc:ViewSeparator3"/>
+
+    <childrenBlocks itemref="doc:ViewToolBarItem"/>
     <childrenBlocks itemref="doc:ViewSideBarItem"/>
-    <childrenBlocks itemref="doc:ViewNavigationBarItem"/>
     <childrenBlocks itemref="doc:ViewStatusBarItem"/>
+    <childrenBlocks itemref="doc:ViewSeparator4"/>
+
+    <childrenBlocks itemref="doc:View2PaneLayoutItem"/>
+    <childrenBlocks itemref="doc:ViewSeparator5"/>
+
+    <childrenBlocks itemref="doc:View3LinesPerRowItem"/>
+    <childrenBlocks itemref="doc:ViewSeparator6"/>
+
+    <childrenBlocks itemref="doc:GoToTodayItem"/>
+    <childrenBlocks itemref="doc:ViewSeparator7"/>
+
+    <childrenBlocks itemref="doc:ViewMonthItem"/>
+    <childrenBlocks itemref="doc:ViewWeekItem"/>
+    <childrenBlocks itemref="doc:ViewDayItem"/>
+    <childrenBlocks itemref="doc:ViewSeparator8"/>
+
+    <childrenBlocks itemref="doc:ViewNextItem"/>
+    <childrenBlocks itemref="doc:ViewPreviousItem"/>
   </Menu>
 
+  <Menu itsName="ItemMenu">
+    <blockName>ItemMenu</blockName>
+    <title>&amp;Item</title>
+    <childrenBlocks itemref="doc:StampAsMenu"/>
+    <childrenBlocks itemref="doc:ItemSeparator1"/>
+    <childrenBlocks itemref="doc:MarkAsMenu"/>
+    <childrenBlocks itemref="doc:ItemSeparator2"/>
+    <childrenBlocks itemref="doc:MoveToMenu"/>
+    <childrenBlocks itemref="doc:AddToMenu"/>
+  </Menu>
+  
+  <Menu itsName="CollectionMenu">
+    <blockName>CollectionMenu</blockName>
+    <title>&amp;Collection</title>
+    <childrenBlocks itemref="doc:ChangeCollectionTypeMenu"/>
+    <childrenBlocks itemref="doc:RenameItem"/>
+  </Menu>
+  
   <Menu itsName="TestMenu">
     <blockName>TestMenu</blockName>
     <title>&amp;Test</title>
@@ -246,7 +290,7 @@
     <childrenBlocks itemref="doc:CommitRepositoryItem"/>
     <childrenBlocks itemref="doc:AddAdditionalViewsItem"/>
   </Menu>
-  
+
   <Menu itsName="HelpMenu">
     <blockName>HelpMenu</blockName>
     <title>&amp;Help</title>
@@ -259,26 +303,123 @@
     <childrenBlocks itemref="doc:FileMenu"/>
     <childrenBlocks itemref="doc:EditMenu"/>
     <childrenBlocks itemref="doc:ViewMenu"/>
+    <childrenBlocks itemref="doc:ItemMenu"/>
+    <childrenBlocks itemref="doc:CollectionMenu"/>
     <childrenBlocks itemref="doc:TestMenu"/>    
     <childrenBlocks itemref="doc:HelpMenu"/>
   </MenuBar>
 
   <!--
-    Menu Items
+    Menu Items and Sub-Menus
   -->
+  <Menu itsName="NewItemMenu">
+    <blockName>NewItemMenu</blockName>
+    <title>New item</title>
+    <helpString>Create a new Content Item</helpString>
+    <childrenBlocks itemref="doc:NewNoteItem"/>
+    <childrenBlocks itemref="doc:NewMessageItem"/>
+    <childrenBlocks itemref="doc:NewTaskItem"/>
+    <childrenBlocks itemref="doc:NewEventItem"/>
+    <childrenBlocks itemref="doc:NewSeparator1"/>
+    <childrenBlocks itemref="doc:NewContactItem"/>
+  </Menu>
+  
+  <Menu itsName="NewCollectionMenu">
+    <blockName>NewCollectionMenu</blockName>
+    <title>New collection</title>
+    <helpString>Create a new Collection</helpString>
+    <childrenBlocks itemref="doc:NewGenericCollectionItem"/>
+    <childrenBlocks itemref="doc:NewMailboxItem"/>
+    <childrenBlocks itemref="doc:NewCalendarItem"/>
+    <childrenBlocks itemref="doc:NewProjectItem"/>
+  </Menu>
+  
+  <MenuItem itsName="NewNoteItem">
+    <blockName>NewTabItem</blockName>
+    <title>Note</title>
+    <helpString>Create a new Note</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
+  <MenuItem itsName="NewMessageItem">
+    <blockName>NewMessageItem</blockName>
+    <title>Message</title>
+    <helpString>Create a new Message</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
+  <MenuItem itsName="NewTaskItem">
+    <blockName>NewTaskItem</blockName>
+    <title>Task</title>
+    <helpString>Create a new Task</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
+  <MenuItem itsName="NewEventItem">
+    <blockName>NewEventItem</blockName>
+    <title>Event</title>
+    <helpString>Create a new Event</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
+  <MenuItem itsName="NewSeparator1">
+    <blockName>NewSeparator1</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="NewContactItem">
+    <blockName>NewContactItem</blockName>
+    <title>Contact</title>
+    <helpString>Create a new Contact</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+
+  <MenuItem itsName="NewGenericCollectionItem">
+    <blockName>NewGenericCollectionItem</blockName>
+    <title>Generic collection</title>
+    <helpString>Create a new Generic collection</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
+  <MenuItem itsName="NewMailboxItem">
+    <blockName>NewMailboxItem</blockName>
+    <title>Mailbox</title>
+    <helpString>Create a new Mailbox collection</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
+  <MenuItem itsName="NewCalendarItem">
+    <blockName>NewCalendarItem</blockName>
+    <title>Calendar</title>
+    <helpString>Create a new Calendar collection</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
+  <MenuItem itsName="NewProjectItem">
+    <blockName>NewProjectItem</blockName>
+    <title>Project</title>
+    <helpString>Create a new Project collection</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
   <MenuItem itsName="NewTabItem">
     <blockName>NewTabItem</blockName>
     <title>New Tab</title>
-    <location>NewItemMenu</location>
     <accel>T</accel>
     <helpString>Open a new blank tab</helpString>
     <event itemref="events:New"/>
   </MenuItem>
   
+  <MenuItem itsName="NewWindowItem">
+    <blockName>NewWindowItem</blockName>
+    <title>New Window</title>
+    <helpString>Open a new Window</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
   <MenuItem itsName="NewItemCollectionItem">
     <blockName>NewItemCollectionItem</blockName>
     <title>New Item Collection</title>
-    <location>NewItemMenu</location>
     <accel>N</accel>
     <helpString>Create a new Item Collection</helpString>
     <event itemref="events:NewItemCollectionItem"/>
@@ -287,53 +428,128 @@
   <MenuItem itsName="CloseTabItem">
     <blockName>CloseTabItem</blockName>
     <title>Close Tab</title>
-    <location>FileMenu</location>
     <accel>W</accel>
     <helpString>Close the current tab</helpString>
     <event itemref="events:Close"/>
   </MenuItem>
   
+  <MenuItem itsName="CloseWindowItem">
+    <blockName>CloseWindowItem</blockName>
+    <title>Close Window</title>
+    <helpString>Close the selected Window</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
   <MenuItem itsName="FileSeparator1">
     <blockName>FileSeparator1</blockName>
-    <location>FileMenu</location>
     <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="FileSeparator3">
+    <blockName>FileSeparator3</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="FileSeparator4">
+    <blockName>FileSeparator4</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="FileSeparator2">
+    <blockName>FileSeparator2</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <Menu itsName="SyncMenu">
+    <blockName>SyncMenu</blockName>
+    <title>Sync</title>
+    <childrenBlocks itemref="doc:SyncAllItem"/>
+    <childrenBlocks itemref="doc:SyncIMAPItem"/>
+    <childrenBlocks itemref="doc:SyncWebDAVItem"/>
+  </Menu>
+  
+  <MenuItem itsName="SyncAllItem">
+    <blockName>SyncAllItem</blockName>
+    <title>All</title>
+    <helpString>Sync All</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
+  <MenuItem itsName="SyncIMAPItem">
+    <blockName>SyncIMAPItem</blockName>
+    <title>IMAP</title>
+    <helpString>Sync IMAP</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
+  <MenuItem itsName="SyncWebDAVItem">
+    <blockName>SyncWebDAVItem</blockName>
+    <title>WebDAV</title>
+    <helpString>Sync WebDAV</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
+  <Menu itsName="PreferencesMenu">
+    <blockName>PreferencesMenu</blockName>
+    <title>Preferences</title>
+    <childrenBlocks itemref="doc:PrefsProfileItem"/>
+    <childrenBlocks itemref="doc:PrefsSyncItem"/>
+    <childrenBlocks itemref="doc:PrefsAccountsItem"/>
+  </Menu>
+  
+  <MenuItem itsName="PrefsProfileItem">
+    <blockName>PrefsProfileItem</blockName>
+    <title>Profile</title>
+    <helpString>Profile Preferences</helpString>
+    <event itemref="events:Preferences"/>
+  </MenuItem>
+  
+  <MenuItem itsName="PrefsSyncItem">
+    <blockName>PrefsSyncItem</blockName>
+    <title>Sync...</title>
+    <helpString>Synchronization Preferences</helpString>
+    <event itemref="events:NULL"/>
+  </MenuItem>
+  
+  <MenuItem itsName="PrefsAccountsItem">
+    <blockName>PrefsAccountsItem</blockName>
+    <title>Accounts...</title>
+    <helpString>Account Preferences</helpString>
+    <event itemref="events:NULL"/>
   </MenuItem>
   
   <MenuItem itsName="QuitItem">
     <blockName>QuitItem</blockName>
     <title>Quit</title>
-    <location>FileMenu</location>
     <accel>Q</accel>
-    <helpString>Quit Chandler</helpString>
+    <helpString value="Quit Chandler"/>
     <event itemref="events:Quit"/>
   </MenuItem>
   
   <MenuItem itsName="UndoItem">
     <blockName>UndoItem</blockName>
     <title>Undo</title>
-    <location>EditMenu</location>
     <accel>Z</accel>
     <event itemref="events:Undo"/>
+    <helpString value="Can't Undo"/>
   </MenuItem>
 
   <MenuItem itsName="RedoItem">
     <blockName>RedoItem</blockName>
     <title>Redo</title>
-    <location>EditMenu</location>
     <accel>Y</accel>
     <event itemref="events:Redo"/>
+    <helpString value="Can't Redo"/>
   </MenuItem>
 
   <MenuItem itsName="EditSeparator1">
     <blockName>EditSeparator1</blockName>
-    <location>EditMenu</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="CutItem">
     <blockName>CutItem</blockName>
     <title>Cut</title>
-    <location>EditMenu</location>
     <accel>X</accel>
     <event itemref="events:Cut"/>
   </MenuItem>
@@ -341,7 +557,6 @@
   <MenuItem itsName="CopyItem">
     <blockName>CopyItem</blockName>
     <title>Copy</title>
-    <location>EditMenu</location>
     <accel>C</accel>
     <event itemref="events:Copy"/>
   </MenuItem>
@@ -349,52 +564,203 @@
   <MenuItem itsName="PasteItem">
     <blockName>PasteItem</blockName>
     <title>Paste</title>
-    <location>EditMenu</location>
     <accel>V</accel>
     <event itemref="events:Paste"/>
   </MenuItem>
   
-  <MenuItem itsName="EditSeparator2">
-    <blockName>EditSeparator2</blockName>
-    <location>EditMenu</location>
+  <MenuItem itsName="DeleteItem">
+    <blockName>DeleteItem</blockName>
+    <title>Delete</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Delete the selection"/>
+  </MenuItem>
+  
+  <MenuItem itsName="SelectAllItem">
+    <blockName>SelectAllItem</blockName>
+    <title>Select all</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Select all"/>
+  </MenuItem>
+  
+  <MenuItem itsName="ViewSeparator1">
+    <blockName>ViewSeparator1</blockName>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
-  <MenuItem itsName="PreferencesItem">
-    <blockName>PreferencesItem</blockName>
-    <title>Preferences</title>
-    <location>EditMenu</location>
-    <event itemref="events:Preferences"/>
+  <MenuItem itsName="ViewSeparator2">
+    <blockName>ViewSeparator2</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="ViewSeparator3">
+    <blockName>ViewSeparator3</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="ViewSeparator4">
+    <blockName>ViewSeparator4</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="ViewSeparator5">
+    <blockName>ViewSeparator5</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="ViewSeparator6">
+    <blockName>ViewSeparator6</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="ViewSeparator7">
+    <blockName>ViewSeparator7</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="ViewSeparator8">
+    <blockName>ViewSeparator8</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+
+  <Menu itsName="ViewColumnsMenu">
+    <blockName>ViewColumnsMenu</blockName>
+    <title>Columns</title>
+  </Menu>
+
+  <Menu itsName="ViewSortByMenu">
+    <blockName>ViewSortByMenu</blockName>
+    <title>Sort by</title>
+    <childrenBlocks itemref="doc:SortByWhenItem"/>
+    <childrenBlocks itemref="doc:SortByStampItem"/>
+    <childrenBlocks itemref="doc:SortByWhoItem"/>
+    <childrenBlocks itemref="doc:SortByWhatItem"/>
+  </Menu>
+
+  <MenuItem itsName="SortByWhenItem">
+    <blockName>SortByWhenItem</blockName>
+    <title>When</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Sort by Date"/>
+  </MenuItem>
+
+  <MenuItem itsName="SortByStampItem">
+    <blockName>SortByStampItem</blockName>
+    <title>Stamp</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Sort by stamped Kind"/>
+  </MenuItem>
+
+  <MenuItem itsName="SortByWhoItem">
+    <blockName>SortByWhoItem</blockName>
+    <title>Who</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Sort by Who"/>
+  </MenuItem>
+
+  <MenuItem itsName="SortByWhatItem">
+    <blockName>SortByWhatItem</blockName>
+    <title>What</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Sort by Kind"/>
+  </MenuItem>
+
+  <MenuItem itsName="ViewExpandCollItem">
+    <blockName>ViewExpandCollItem</blockName>
+    <title>Expand all Ad-hoc collections</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Expand all Ad-hoc collections"/>
+  </MenuItem>
+
+  <MenuItem itsName="ViewCollapseCollItem">
+    <blockName>ViewCollapseCollItem</blockName>
+    <title>Collapse all Ad-hoc collections</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Collapse all Ad-hoc collections"/>
+  </MenuItem>
+
+  <MenuItem itsName="ViewToolBarItem">
+    <blockName>ViewToolBarItem</blockName>
+    <title>View Toolbar</title>
+    <menuItemKind>Check</menuItemKind>
+    <event itemref="doc:ShowHideNavigationBar"/>
+    <helpString value="Shor or Hide the Toolbar"/>
   </MenuItem>
 
   <MenuItem itsName="ViewSideBarItem">
     <blockName>ViewSideBarItem</blockName>
     <title>View Sidebar</title>
-    <location>ViewMenu</location>
     <menuItemKind>Check</menuItemKind>
     <event itemref="doc:ShowHideSidebar"/>
-  </MenuItem>
-
-  <MenuItem itsName="ViewNavigationBarItem">
-    <blockName>ViewNavigationBarItem</blockName>
-    <title>View Navigation Bar</title>
-    <location>ViewMenu</location>
-    <menuItemKind>Check</menuItemKind>
-    <event itemref="doc:ShowHideNavigationBar"/>
+    <helpString value="Show or hide the Sidebar"/>
   </MenuItem>
 
   <MenuItem itsName="ViewStatusBarItem">
     <blockName>ViewStatusBarItem</blockName>
     <title>View Status Bar</title>
-    <location>ViewMenu</location>
     <menuItemKind>Check</menuItemKind>
     <event itemref="doc:ShowHideStatusBar"/>
+    <helpString value="Show or hide the Status bar"/>
+  </MenuItem>
+
+  <MenuItem itsName="View2PaneLayoutItem">
+    <blockName>View2PaneLayoutItem</blockName>
+    <title>2-pane layout</title>
+    <event itemref="events:NULL"/>
+    <helpString value="View using a two pane layout"/>
+  </MenuItem>
+
+  <MenuItem itsName="View3LinesPerRowItem">
+    <blockName>View3LinesPerRowItem</blockName>
+    <title>Up to 3 lines per row</title>
+    <event itemref="events:NULL"/>
+    <helpString value="View up to three lines per row"/>
+  </MenuItem>
+
+  <MenuItem itsName="GoToTodayItem">
+    <blockName>GoToTodayItem</blockName>
+    <title>Go to today</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Move the calendar to Today"/>
+  </MenuItem>
+
+  <MenuItem itsName="ViewMonthItem">
+    <blockName>ViewMonthItem</blockName>
+    <title>Month view</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Switch the calendar to the Month view"/>
+  </MenuItem>
+
+  <MenuItem itsName="ViewWeekItem">
+    <blockName>ViewWeekItem</blockName>
+    <title>Week view</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Switch the calendar to the Week view"/>
+  </MenuItem>
+
+  <MenuItem itsName="ViewDayItem">
+    <blockName>ViewDayItem</blockName>
+    <title>Day view</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Switch the calendar to the Day view"/>
+  </MenuItem>
+
+  <MenuItem itsName="ViewNextItem">
+    <blockName>ViewNextItem</blockName>
+    <title>Next</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Move to the next item"/>
+  </MenuItem>
+
+  <MenuItem itsName="ViewPreviousItem">
+    <blockName>ViewPreviousItem</blockName>
+    <title>Previous</title>
+    <event itemref="events:NULL"/>
+    <helpString value="Move to the previous item"/>
   </MenuItem>
 
   <MenuItem itsName="GenerateAllItem">
     <blockName>GenerateAllItem</blockName>
     <title>Generate Content Items</title>
-    <location>TestMenu</location>
     <event itemref="events:GenerateContentItems"/>
     <helpString>generates sample items: 2 contacts, 2 notes, 2 events</helpString>
   </MenuItem>
@@ -402,7 +768,6 @@
   <MenuItem itsName="GenerateContactItem">
     <blockName>GenerateContactItem</blockName>
     <title>Generate Contacts</title>
-    <location>TestMenu</location>
     <event itemref="events:GenerateContacts"/>
     <helpString>generates 10 sample contacts</helpString>
   </MenuItem>
@@ -410,7 +775,6 @@
   <MenuItem itsName="GenerateCalendarItem">
     <blockName>GenerateCalendarItem</blockName>
     <title>Generate Calendar Event Items</title>
-    <location>TestMenu</location>
     <event itemref="events:GenerateCalendarEventItems"/>
     <helpString>generates 10 sample calendar events</helpString>
   </MenuItem>
@@ -418,7 +782,6 @@
   <MenuItem itsName="GenerateNoteItem">
     <blockName>GenerateNoteItem</blockName>
     <title>Generate Notes</title>
-    <location>TestMenu</location>
     <event itemref="events:GenerateNotes"/>
     <helpString>Generate 10 notes</helpString>
   </MenuItem>
@@ -426,7 +789,6 @@
   <MenuItem itsName="ImportContactItem">
     <blockName>ImportContactItem</blockName>
     <title>Import Contacts from Outlook CSV</title>
-    <location>TestMenu</location>
     <event itemref="events:ImportContacts"/>
     <helpString>import Contacts from contacts.csv</helpString>
   </MenuItem>
@@ -434,7 +796,6 @@
   <MenuItem itsName="SharingSubscribeToCollectionItem">
     <blockName>SharingSubscribeToCollection</blockName>
     <title>Subscribe to Collection...</title>
-    <location>TestMenu</location>
     <event itemref="events:SharingSubscribeToCollection"/>
     <helpString>Subscribe to a published item collection</helpString>
   </MenuItem>
@@ -442,7 +803,6 @@
   <MenuItem itsName="EditMailAccountItem">
     <blockName>EditMailAccountItem</blockName>
     <title>Edit Mail Account...</title>
-    <location>TestMenu</location>
     <event itemref="events:EditMailAccount"/>
     <helpString>Edit email account settings</helpString>
   </MenuItem>
@@ -450,7 +810,6 @@
   <MenuItem itsName="GetNewMailItem">
     <blockName>GetNewMailItem</blockName>
     <title>Get Mail</title>
-    <location>TestMenu</location>
     <event itemref="events:GetNewMail"/>
     <helpString>Gets new email from IMAP server</helpString>
   </MenuItem>
@@ -458,7 +817,6 @@
   <MenuItem itsName="CheckRepositoryItem">
     <blockName>CheckRepositoryItem</blockName>
     <title>Check Repository</title>
-    <location>TestMenu</location>
     <event itemref="events:CheckRepository"/>
     <helpString>run check() on the current view</helpString>
   </MenuItem>
@@ -466,7 +824,6 @@
   <MenuItem itsName="ShowPyCrustItem">
     <blockName>ShowPyCrustItem</blockName>
     <title>Show PyCrust Debugger...</title>
-    <location>TestMenu</location>
     <event itemref="events:ShowPyCrust"/>
     <helpString>Brings up an interactive Python shell</helpString>
   </MenuItem>
@@ -474,7 +831,6 @@
   <MenuItem itsName="ReloadParcelsItem">
     <blockName>ReloadParcelsItem</blockName>
     <title>Reload Parcels</title>
-    <location>TestMenu</location>
     <event itemref="events:ReloadParcels"/>
     <helpString>Reloads any parcels that have been modified</helpString>
   </MenuItem>
@@ -482,7 +838,6 @@
   <MenuItem itsName="CommitRepositoryItem">
     <blockName>CommitRepositoryItem</blockName>
     <title>Commit Repository</title>
-    <location>TestMenu</location>
     <event itemref="events:CommitRepository"/>
     <helpString>Performs a repository commit()</helpString>
   </MenuItem>
@@ -490,7 +845,6 @@
   <Menu itsName="AddAdditionalViewsItem">
     <blockName>AddAdditionalViewsItem</blockName>
     <title>Add Additional Views</title>
-    <location>TestMenu</location>
     <helpString>Add views to the sidebar</helpString>
 
     <childrenBlocks itemref="doc:AddAllAdditionalViewsItem"/>
@@ -510,21 +864,18 @@
   <MenuItem itsName="AddAllAdditionalViewsItem">
     <blockName>AddAllAdditionalViewsItem</blockName>
     <title>Add All Additional Views</title>
-    <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddAllAdditionalViews"/>
     <helpString>Adds all of the extra views to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="TestSeparator1">
     <blockName>TestSeparator1</blockName>
-    <location>AddAdditionalViewsItem</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="AddDemoViewItem">
     <blockName>AddDemoViewItem</blockName>
     <title>Add Block Demo View</title>
-    <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddDemoView"/>
     <helpString>Adds the block demo view to the sidebar</helpString>
   </MenuItem>
@@ -532,7 +883,6 @@
   <MenuItem itsName="AddRepositoryViewItem">
     <blockName>ButtonsMenuItem</blockName>
     <title>Add Repository Viewer</title>
-    <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddRepositoryView"/>
     <helpString>Adds the repository viewer to the sidebar</helpString>
   </MenuItem>
@@ -540,21 +890,18 @@
   <MenuItem itsName="AddMixedViewItem">
     <blockName>AddMixedViewItem</blockName>
     <title>Add Mixed View</title>
-    <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddMixedListView"/>
     <helpString>Adds the mixed list view to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="TestSeparator2">
     <blockName>TestSeparator2</blockName>
-    <location>AddAdditionalViewsItem</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="AddNoteViewItem">
     <blockName>AddNoteViewItem</blockName>
     <title>Add Note-Kind View</title>
-    <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddNoteTableView"/>
     <helpString>Adds the Note-Kind view to the sidebar</helpString>
   </MenuItem>
@@ -562,7 +909,6 @@
   <MenuItem itsName="AddTaskViewItem">
     <blockName>AddTaskViewItem</blockName>
     <title>Add Task-Kind View</title>
-    <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddTaskTableView"/>
     <helpString>Adds the Task-Kind view to the sidebar</helpString>
   </MenuItem>
@@ -570,7 +916,6 @@
   <MenuItem itsName="AddMailViewItem">
     <blockName>AddMailViewItem</blockName>
     <title>Add Mail-Kind View</title>
-    <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddMailTableView"/>
     <helpString>Adds the Mail-Kind view to the sidebar</helpString>
   </MenuItem>
@@ -578,21 +923,18 @@
   <MenuItem itsName="AddKindViewsItem">
     <blockName>AddKindViewsItem</blockName>
     <title>Add all Kind-specific Views</title>
-    <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddKindViews"/>
     <helpString>Adds the Kind-specific views to the sidebar</helpString>
   </MenuItem>
 
   <MenuItem itsName="TestSeparator3">
     <blockName>TestSeparator3</blockName>
-    <location>AddAdditionalViewsItem</location>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
   <MenuItem itsName="AddStockQuoteItem">
     <blockName>AddStockQuoteItem</blockName>
     <title>Add Stock Quote</title>
-    <location>AddAdditionalViewsItem</location>
     <event itemref="doc:AddStockQuoteView"/>
     <helpString>Adds the stock quote view to the sidebar</helpString>
   </MenuItem>
@@ -600,9 +942,164 @@
   <MenuItem itsName="AboutChandlerItem">
     <blockName>AboutChandlerItem</blockName>
     <title>About Chandler</title>
-    <location>HelpMenu</location>
     <event itemref="events:AboutChandler"/>
     <helpString>About Chandler...</helpString>
+  </MenuItem>
+
+  <Menu itsName="StampAsMenu">
+    <blockName>StampAsMenu</blockName>
+    <title>Stamp as</title>
+    <helpString>Stamp this Item with an additional Kind</helpString>
+    <childrenBlocks itemref="doc:StampMessageItem"/>
+    <childrenBlocks itemref="doc:StampTaskItem"/>
+    <childrenBlocks itemref="doc:StampEventItem"/>
+  </Menu>
+
+  <MenuItem itsName="StampMessageItem">
+    <blockName>StampMessageItem</blockName>
+    <title>Message</title>
+    <event itemref="events:NULL"/>
+    <helpString>Stamp with Message attributes</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="StampTaskItem">
+    <blockName>StampTaskItem</blockName>
+    <title>Task</title>
+    <event itemref="events:NULL"/>
+    <helpString>Stamp with Task attributes</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="StampEventItem">
+    <blockName>StampEventItem</blockName>
+    <title>Event</title>
+    <event itemref="events:NULL"/>
+    <helpString>Stamp with Calendar Event attributes</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="ItemSeparator1">
+    <blockName>ItemSeparator1</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+
+  <Menu itsName="MarkAsMenu">
+    <blockName>MarkAsMenu</blockName>
+    <title>Mark as</title>
+    <helpString>Mark this Item with an attribute</helpString>
+    <childrenBlocks itemref="doc:MarkJunkItem"/>
+    <childrenBlocks itemref="doc:MarkReadItem"/>
+    <childrenBlocks itemref="doc:MarkNeedsReplyItem"/>
+    <childrenBlocks itemref="doc:MarkImportantItem"/>
+    <childrenBlocks itemref="doc:MarkNormalItem"/>
+    <childrenBlocks itemref="doc:MarkFYIItem"/>
+  </Menu>
+
+  <MenuItem itsName="ItemSeparator2">
+    <blockName>ItemSeparator1</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+
+  <MenuItem itsName="MarkJunkItem">
+    <blockName>MarkJunkItem</blockName>
+    <title>Junk</title>
+    <event itemref="events:NULL"/>
+    <helpString>Mark as Junk or Not Junk</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="MarkReadItem">
+    <blockName>MarkReadItem</blockName>
+    <title>Unread</title>
+    <event itemref="events:NULL"/>
+    <helpString>Mark as Unread or Read</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="MarkNeedsReplyItem">
+    <blockName>MarkNeedsReplyItem</blockName>
+    <title>Needs reply</title>
+    <event itemref="events:NULL"/>
+    <helpString>Mark as needing a reply</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="MarkImportantItem">
+    <blockName>MarkImportantItem</blockName>
+    <title>Important</title>
+    <event itemref="events:NULL"/>
+    <helpString>Mark as Important</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="MarkNormalItem">
+    <blockName>MarkNormalItem</blockName>
+    <title>Normal</title>
+    <event itemref="events:NULL"/>
+    <helpString>Mark as Normal priority</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="MarkFYIItem">
+    <blockName>MarkFYIItem</blockName>
+    <title>FYI</title>
+    <event itemref="events:NULL"/>
+    <helpString>Mark as Informational priority</helpString>
+  </MenuItem>
+
+  <Menu itsName="MoveToMenu">
+    <blockName>MoveToMenu</blockName>
+    <title>Move to</title>
+    <helpString>Move to a collection</helpString>
+  </Menu>
+
+  <Menu itsName="AddToMenu">
+    <blockName>AddToMenu</blockName>
+    <title>Add to</title>
+    <helpString>Add to a collection</helpString>
+  </Menu>
+
+  <Menu itsName="ChangeCollectionTypeMenu">
+    <blockName>ChangeCollectionTypeMenu</blockName>
+    <title>Change collection type to</title>
+    <helpString>Change a collection type</helpString>
+    <childrenBlocks itemref="doc:CollGenericItem"/>
+    <childrenBlocks itemref="doc:CollMailboxItem"/>
+    <childrenBlocks itemref="doc:CollCalendarItem"/>
+    <childrenBlocks itemref="doc:CollProjectItem"/>
+  </Menu>
+
+  <MenuItem itsName="CollGenericItem">
+    <blockName>CollGenericItem</blockName>
+    <title>Generic</title>
+    <event itemref="events:NULL"/>
+    <helpString>Make a collection Generic</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="CollMailboxItem">
+    <blockName>CollMailboxItem</blockName>
+    <title>Mailbox</title>
+    <event itemref="events:NULL"/>
+    <helpString>Make this collection a Mailbox</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="CollCalendarItem">
+    <blockName>CollCalendarItem</blockName>
+    <title>Calendar</title>
+    <event itemref="events:NULL"/>
+    <helpString>Make this collection a Calendar</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="CollProjectItem">
+    <blockName>CollProjectItem</blockName>
+    <title>Project</title>
+    <event itemref="events:NULL"/>
+    <helpString>Make this collection a Project</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="CollectionSeparator1">
+    <blockName>CollectionSeparator1</blockName>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+
+  <MenuItem itsName="RenameItem">
+    <blockName>RenameItem</blockName>
+    <title>Rename</title>
+    <event itemref="events:NULL"/>
+    <helpString>Rename a collection</helpString>
   </MenuItem>
 
   <!--
@@ -652,7 +1149,6 @@
   -->
   <ToolbarItem itsName="GoBackButton">
     <blockName>GoBackButton</blockName>
-    <location>NavigationBar</location>
     <title>Go Back</title>
     <bitmap>application/images/backarrow.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
@@ -662,7 +1158,6 @@
 
   <ToolbarItem itsName="GoForwardButton">
     <blockName>GoForwardButton</blockName>
-    <location>NavigationBar</location>
     <title>Go Forward</title>
     <bitmap>application/images/forwardarrow.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
@@ -672,7 +1167,6 @@
 
   <ToolbarItem itsName="SyncButton">
     <blockName>SyncButton</blockName>
-    <location>NavigationBar</location>
     <title>Sync</title>
     <label>Sync</label>
     <bitmap>application/images/sync.png</bitmap>
@@ -683,31 +1177,26 @@
 
   <ToolbarItem itsName="Spacer1">
     <blockName>Spacer1</blockName>
-    <location>NavigationBar</location>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer2">
     <blockName>Spacer2</blockName>
-    <location>NavigationBar</location>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer3">
     <blockName>Spacer3</blockName>
-    <location>NavigationBar</location>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itsName="Spacer4">
     <blockName>Spacer4</blockName>
-    <location>NavigationBar</location>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itsName="NewButton">
     <blockName>NewButton</blockName>
-    <location>NavigationBar</location>
     <title>New</title>
     <label>New</label>
     <bitmap>application/images/new.png</bitmap>
@@ -718,7 +1207,6 @@
 
   <ToolbarItem itsName="ReplyButton">
     <blockName>ReplyButton</blockName>
-    <location>NavigationBar</location>
     <title>Reply</title>
     <bitmap>application/images/replyto.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
@@ -728,7 +1216,6 @@
 
   <ToolbarItem itsName="DiscussButton">
     <blockName>DiscussButton</blockName>
-    <location>NavigationBar</location>
     <title>Discuss</title>
     <label>Discuss</label>
     <bitmap>application/images/discuss.png</bitmap>
@@ -739,7 +1226,6 @@
 
   <ToolbarItem itsName="ForwardButton">
     <blockName>ForwardButton</blockName>
-    <location>NavigationBar</location>
     <title>Forward</title>
     <bitmap>application/images/forwardto.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
@@ -749,7 +1235,6 @@
 
   <ToolbarItem itsName="DeleteButton">
     <blockName>DeleteButton</blockName>
-    <location>NavigationBar</location>
     <title>Delete</title>
     <label>Delete</label>
     <bitmap>application/images/delete.png</bitmap>
@@ -760,7 +1245,6 @@
 
   <ToolbarItem itsName="JunkButton">
     <blockName>JunkButton</blockName>
-    <location>NavigationBar</location>
     <title>Junk</title>
     <label>Junk</label>
     <bitmap>application/images/junk.png</bitmap>
@@ -771,7 +1255,6 @@
 
   <ToolbarItem itsName="FontsButton">
     <blockName>FontsButton</blockName>
-    <location>NavigationBar</location>
     <title>Fonts</title>
     <label>Fonts</label>
     <bitmap>application/images/fonts.png</bitmap>
@@ -782,7 +1265,6 @@
 
   <ToolbarItem itsName="PrintButton">
     <blockName>PrintButton</blockName>
-    <location>NavigationBar</location>
     <title>Print</title>
     <label>Print</label>
     <bitmap>application/images/print.png</bitmap>
@@ -793,7 +1275,6 @@
 
   <ToolbarItem itsName="SearchBox">
     <blockName>SearchBox</blockName>
-    <location>NavigationBar</location>
     <title>SearchBox</title>
     <toolbarItemKind>Text</toolbarItemKind>
     <helpString>Enter text to search for</helpString>
