@@ -329,7 +329,6 @@ class MainView(View):
 
     def onExportIcalendarEvent(self, event):
         # triggered from "Test | Export Events as iCalendar" Menu
-        self.itsView.getLogger().info("Trying exportFile")
         eventKind = Calendar.CalendarEvent.getKind(self.itsView)
         self.setStatusMessage ("Exporting to export.ics")
         try:

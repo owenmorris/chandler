@@ -51,37 +51,46 @@ def convertToUTC(dt, tz = None):
     args = (dt.year, dt.month, dt.day, dt.hour, dt.minute, int(dt.second))
     return datetime.datetime(*args).replace(tzinfo=tz).astimezone(utc)
 
-def eventsToVObject(items, cal=None):
+def itemsToVObject(view, items, cal=None):
     """Iterate through items, add to cal, create a new vcalendar if needed.
 
     Chandler doesn't do recurrence yet, so for now we don't worry
     about timezones.
 
     """
+    taskKind  = view.findPath("//parcels/osaf/contentmodel/EventTask")
     if cal is None:
         cal = vobject.iCalendar()
-    for event in items:
-        vevent = cal.add('vevent')
-        vevent.add('uid').value = unicode(event.itsUUID)
+    for item in items:
+        if item.isItemOf(taskKind):
+            taskorevent='TASK'
+            comp = cal.add('vtodo')
+        else:
+            taskorevent='EVENT'
+            comp = cal.add('vevent')            
+        comp.add('uid').value = unicode(item.itsUUID)
         try:
-            vevent.add('summary').value = event.displayName
+            comp.add('summary').value = item.displayName
         except AttributeError:
             pass
         try:
-            vevent.add('dtstart').value = convertToUTC(event.startTime)
+            comp.add('dtstart').value = convertToUTC(item.startTime)
         except AttributeError:
             pass
         try:
-            vevent.add('dtend').value = convertToUTC(event.endTime)
+            if taskorevent == 'TASK':
+                comp.add('due').value = convertToUTC(item.dueDate)
+            else:
+                comp.add('dtend').value = convertToUTC(item.endTime)
         except AttributeError:
             pass
         try:
-            vevent.add('description').value = event.body.getReader().read()
+            comp.add('description').value = item.body.getReader().read()
         except AttributeError:
             pass
         try:
-            vevent.add('valarm').add('trigger').value = \
-              convertToUTC(event.reminderTime) - convertToUTC(event.startTime)
+            comp.add('valarm').add('trigger').value = \
+              convertToUTC(item.reminderTime) - convertToUTC(item.startTime)
         except AttributeError:
             pass
     return cal
@@ -91,7 +100,7 @@ class ICalendarFormat(Sharing.ImportExportFormat):
     myKindPath = "//parcels/osaf/framework/sharing/ICalendarFormat"
 
     __calendarEventPath = "//parcels/osaf/contentmodel/calendar/CalendarEvent"
-    __taskPath = "//parcels/osaf/contentmodel/EventTask/"
+    __taskPath = "//parcels/osaf/contentmodel/EventTask"
     __lobPath = "//Schema/Core/Lob"
     
     def fileStyle(self):
@@ -263,13 +272,13 @@ class ICalendarFormat(Sharing.ImportExportFormat):
         return item
 
     def exportProcess(self, item, depth=0):
-        # item is the whole collection or it may be a single event
+        # item is the whole collection or it may be a single event or task
         if isinstance(item, ItemCollection.ItemCollection):
-            events = [item]
+            items = [item]
         else:
-            events = item.contents
+            items = item.contents
         
-        cal = eventsToVObject(events)
+        cal = itemsToVObject(self.itsView, items)
         return cal.serialize()
 
 
