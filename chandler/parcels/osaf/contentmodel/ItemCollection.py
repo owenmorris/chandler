@@ -84,6 +84,11 @@ class ItemCollection(Item.Item):
         uuid = item.itsUUID
         self.exclusions.append(uuid)
 
+        # if the item we're excluded was already included, remove it
+        # from that list
+        if uuid in self.inclusions:
+            self.inclusions.remove(uuid)
+
         if uuid in self.results:
             self.results.remove(uuid)
             self.__dirty()
