@@ -128,3 +128,39 @@
        jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x1,0x0,0x1,0x0,0x0,0x0,0x0,};
     }
    final private JJCalls[] jj_2_rtns = new JJCalls[1];
+--- lucene-1.3-final/src/java/org/apache/lucene/index/IndexReader.java	Mon Dec 15 15:04:42 2003
++++ lucene-1.3-final-patched/src/java/org/apache/lucene/index/IndexReader.java	Sun May 30 01:26:59 2004
+@@ -362,7 +362,7 @@
+     reflected in the {@link #docFreq} statistic, though
+     this will be corrected eventually as the index is further modified.
+   */
+-  public final synchronized void delete(int docNum) throws IOException {
++  public final synchronized void deleteDocument(int docNum) throws IOException {
+     if(stale)
+       throw new IOException("IndexReader out of date and no longer valid for deletion");
+       
+@@ -385,7 +385,7 @@
+   }
+ 
+   /** Implements deletion of the document numbered <code>docNum</code>.
+-   * Applications should call {@link #delete(int)} or {@link #delete(Term)}.
++   * Applications should call {@link #deleteDocument(int)} or {@link #deleteDocuments(Term)}.
+    */
+   protected abstract void doDelete(int docNum) throws IOException;
+ 
+@@ -395,13 +395,13 @@
+     term with the appropriate field and the unique ID string as its text and
+     passes it to this method.  Returns the number of documents deleted.
+   */
+-  public final int delete(Term term) throws IOException {
++  public final int deleteDocuments(Term term) throws IOException {
+     TermDocs docs = termDocs(term);
+     if ( docs == null ) return 0;
+     int n = 0;
+     try {
+       while (docs.next()) {
+-        delete(docs.doc());
++        deleteDocument(docs.doc());
+         n++;
+       }
+     } finally {

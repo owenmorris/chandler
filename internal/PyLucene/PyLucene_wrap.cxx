@@ -4382,6 +4382,87 @@ static PyObject *_wrap_IndexReader_termPositions(PyObject *self, PyObject *args)
 }
 
 
+static PyObject *_wrap_IndexReader_deleteDocument(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    jint arg2 ;
+    PyObject * obj0 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"Ol:IndexReader_deleteDocument",&obj0,&arg2)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            (arg1)->deleteDocument(arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
+static PyObject *_wrap_IndexReader_deleteDocuments(PyObject *self, PyObject *args) {
+    PyObject *resultobj;
+    org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
+    org::apache::lucene::index::Term *arg2 = (org::apache::lucene::index::Term *) 0 ;
+    jint result;
+    PyObject * obj0 = 0 ;
+    PyObject * obj1 = 0 ;
+    
+    if(!PyArg_ParseTuple(args,(char *)"OO:IndexReader_deleteDocuments",&obj0,&obj1)) goto fail;
+    if ((SWIG_ConvertPtr(obj0,(void **) &arg1, SWIGTYPE_p_org__apache__lucene__index__IndexReader,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    if ((SWIG_ConvertPtr(obj1,(void **) &arg2, SWIGTYPE_p_org__apache__lucene__index__Term,SWIG_POINTER_EXCEPTION | 0 )) == -1) SWIG_fail;
+    {
+        try {
+            result = (jint)(arg1)->deleteDocuments(arg2);
+            
+            if (PyErr_Occurred())
+            return NULL;
+        } catch (java::lang::Throwable *e) {
+            java::io::StringWriter *buffer = new java::io::StringWriter();
+            java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
+            
+            e->printStackTrace(writer);
+            writer->close();
+            
+            jstring message = buffer->toString();
+            jint len = JvGetStringUTFLength(message);
+            char buf[len + 1];
+            
+            JvGetStringUTFRegion(message, 0, len, buf);
+            buf[len] = '\0';
+            PyErr_SetString(PyExc_ValueError, buf);
+            
+            return NULL;
+        }
+    }
+    resultobj = PyInt_FromLong((long)result);
+    return resultobj;
+    fail:
+    return NULL;
+}
+
+
 static PyObject *_wrap_IndexReader_undeleteAll(PyObject *self, PyObject *args) {
     PyObject *resultobj;
     org::apache::lucene::index::IndexReader *arg1 = (org::apache::lucene::index::IndexReader *) 0 ;
@@ -5250,6 +5331,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"IndexReader_docFreq", _wrap_IndexReader_docFreq, METH_VARARGS },
 	 { (char *)"IndexReader_termDocs", _wrap_IndexReader_termDocs, METH_VARARGS },
 	 { (char *)"IndexReader_termPositions", _wrap_IndexReader_termPositions, METH_VARARGS },
+	 { (char *)"IndexReader_deleteDocument", _wrap_IndexReader_deleteDocument, METH_VARARGS },
+	 { (char *)"IndexReader_deleteDocuments", _wrap_IndexReader_deleteDocuments, METH_VARARGS },
 	 { (char *)"IndexReader_undeleteAll", _wrap_IndexReader_undeleteAll, METH_VARARGS },
 	 { (char *)"IndexReader_close", _wrap_IndexReader_close, METH_VARARGS },
 	 { (char *)"IndexReader_isLocked", _wrap_IndexReader_isLocked, METH_VARARGS },
@@ -5445,6 +5528,8 @@ SWIGEXPORT(void) SWIG_init(void) {
 #endif
     JvInitClass(&org::apache::lucene::document::Field::class$);
     JvInitClass(&org::apache::lucene::queryParser::QueryParser::class$);
+    JvInitClass(&org::apache::lucene::store::FSDirectory::class$);
+    JvInitClass(&org::apache::lucene::index::IndexReader::class$);
     
 }
 

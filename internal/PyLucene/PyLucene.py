@@ -304,6 +304,8 @@ class IndexReader(Object):
     def docFreq(*args): return _PyLucene.IndexReader_docFreq(*args)
     def termDocs(*args): return _PyLucene.IndexReader_termDocs(*args)
     def termPositions(*args): return _PyLucene.IndexReader_termPositions(*args)
+    def deleteDocument(*args): return _PyLucene.IndexReader_deleteDocument(*args)
+    def deleteDocuments(*args): return _PyLucene.IndexReader_deleteDocuments(*args)
     def undeleteAll(*args): return _PyLucene.IndexReader_undeleteAll(*args)
     def close(*args): return _PyLucene.IndexReader_close(*args)
     isLocked = staticmethod(_PyLucene.IndexReader_isLocked)

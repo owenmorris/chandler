@@ -381,9 +381,8 @@ namespace org {
                     virtual TermDocs *termDocs();
                     virtual TermPositions *termPositions(Term *);
                     virtual TermPositions *termPositions();
-%rename(deleteTerm) delete$;
-//                    void delete$(jint);
-//                    jint delete$(Term *);
+                    void deleteDocument(jint);
+                    jint deleteDocuments(Term *);
                     virtual void undeleteAll();
                     void close();
                     static jboolean isLocked(::org::apache::lucene::store::Directory *);
@@ -440,4 +439,6 @@ namespace org {
 #endif
     JvInitClass(&org::apache::lucene::document::Field::class$);
     JvInitClass(&org::apache::lucene::queryParser::QueryParser::class$);
+    JvInitClass(&org::apache::lucene::store::FSDirectory::class$);
+    JvInitClass(&org::apache::lucene::index::IndexReader::class$);
 %}
