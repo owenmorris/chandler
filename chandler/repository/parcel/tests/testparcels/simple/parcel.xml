@@ -18,6 +18,7 @@
     <displayName>Test Kind</displayName>
     <attributes itemref="simple:TestAttribute"/>
     <attributes itemref="simple:ListAttribute"/>
+    <attributes itemref="simple:DictAttribute"/>
     <displayAttribute itemref="simple:TestAttribute"/>
   </Kind>
 
@@ -36,6 +37,13 @@
   <Attribute itemName="ListAttribute">
     <displayName>List Attribute</displayName>
     <cardinality>list</cardinality>
+    <type itemref="String"/>
+    <initialValue/>
+  </Attribute>
+
+  <Attribute itemName="DictAttribute">
+    <displayName>Dict Attribute</displayName>
+    <cardinality>dict</cardinality>
     <type itemref="String"/>
     <initialValue/>
   </Attribute>

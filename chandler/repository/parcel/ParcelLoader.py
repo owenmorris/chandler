@@ -184,6 +184,8 @@ class ItemHandler(xml.sax.ContentHandler):
                     if currentItem.cardinality == "single":
                         value = self.makeValue(currentItem, elementLocal, self.currentType, self.currentValue, self.locator.getLineNumber())
                         currentItem.addValue(elementLocal, value)
+                    elif currentItem.cardinality == "dict":
+                        currentItem.addValue(elementLocal, {})
                     else:
                         # Cardinality is list
                         # For the moment ignore any value/type and set to empty

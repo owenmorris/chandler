@@ -67,10 +67,14 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.assert_(subKind.superKinds.has_key(testKind.itsUUID))
         self.assert_(testKind.subKinds.has_key(subKind.itsUUID))
 
-        # Ensure that an empty defaultValue for a list attribute gets
-        # sets properly
+        # Ensure that initialValue for a list/dict attributes are
+        # set properly
         item3 = self.rep.findPath("//parcels/simple/data/item3")
+        self.assertEqual(type(item3.ListAttribute).__name__, "PersistentList")
+        self.assertEqual(type(item3.DictAttribute).__name__, "PersistentDict")
+        # make sure this attribute isn't readonly:
         item3.ListAttribute.append("foo")
+        # make sure an initialValue was set correctly:
         self.assert_(item3.TestAttribute == "XYZZY")
 
 
