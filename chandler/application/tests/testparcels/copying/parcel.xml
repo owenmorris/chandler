@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel
+    itsName="copying"
+    xmlns="http://osafoundation.org/parcels/core"
+    xmlns:me="http://testparcels.org/copying"
+    >
+
+    <namespace value="http://testparcels.org/copying"/>
+
+    <Kind itsName="TestKind">
+        <superKinds ref="Item"/>
+        <attributes ref="me:myChildren"/>
+        <attributes ref="me:myParent"/>
+    </Kind>
+
+    <Attribute itsName="myChildren">
+        <cardinality value="list"/>
+        <copyPolicy value="cascade"/>
+        <type ref="me:TestKind"/>
+        <inverseAttribute ref="me:myParent"/>
+        <initialValue/>
+    </Attribute>
+
+    <Attribute itsName="myParent">
+        <cardinality value="list"/>
+        <type ref="me:TestKind"/>
+        <inverseAttribute ref="me:myChildren"/>
+        <initialValue/>
+    </Attribute>
+
+</Parcel>

@@ -669,7 +669,7 @@ class Parcel(Item):
             nameHead = name
             nameTail = None
 
-        if not self.namespaceMap.has_key(""):
+        if self.namespaceMap.has_key(""):
             # This parcel is simply acting on behalf of another parcel, and
             # when we lookup items they should be relative to the other parcel.
             parcel = self.findPath(self.namespaceMap[""])
@@ -728,7 +728,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         # Save a list of items and attributes, wire them up later
         # to be able to handle forward references
-        self.delayedReferences = []
+        self.delayedAssigments = []
 
         # For debugging, save a list of items we've generated for this file
         self.itemsCreated = []
@@ -744,8 +744,8 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         # We've delayed loading the references until the end of the file.
         # Wire up attribute/reference pairs to the items.
-        for (item, attributes) in self.delayedReferences:
-            self.addReferences(item, attributes)
+        for (item, attributes) in self.delayedAssigments:
+            self.completeAssignments(item, attributes)
 
         # Uncomment the following lines for file-by-file printouts of what
         # items are being created:
@@ -789,18 +789,26 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             self.currentItem = self.createItem(uri, local,
                                                nameString, classString)
             self.itemsCreated.append(self.currentItem)
-            self.currentReferences = []
+            self.currentAssigments = []
 
         elif attrs.has_key((None, 'itemref')):
             # If it has an itemref, assume its a reference attribute
             # print "Deprecation warning: itemref should now be ref"
             element = 'Reference'
             self.currentValue = attrs.getValue((None, 'itemref'))
+            if attrs.has_key((None, 'copy')):
+                self.currentCopyName = attrs.getValue((None, 'copy'))
+            else:
+                self.currentCopyName = None
 
         elif attrs.has_key((None, 'ref')):
-            # If it has an itemref, assume its a reference attribute
+            # If it has a ref, assume its a reference attribute
             element = 'Reference'
             self.currentValue = attrs.getValue((None, 'ref'))
+            if attrs.has_key((None, 'copy')):
+                self.currentCopyName = attrs.getValue((None, 'copy'))
+            else:
+                self.currentCopyName = None
 
         elif attrs.has_key((None, 'key')):
             # If it has a key, assume its a dictionary of literals
@@ -848,7 +856,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         # Add the tag to our context stack
         self.tags.append((uri, local, element,
-                          self.currentItem, self.currentReferences))
+                          self.currentItem, self.currentAssigments))
 
     def endElementNS(self, (uri, local), qname):
         """SAX2 callback for the end of a tag"""
@@ -858,7 +866,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         elementUri = uri
         elementLocal = local
 
-        (uri, local, element, currentItem, currentReferences) = self.tags[-1]
+        (uri, local, element, currentItem, currentAssigments) = self.tags[-1]
 
         # Is the current item part of the core schema?
         isSchemaItem = (currentItem.itsKind.itsRoot.itsName == 'Schema')
@@ -866,8 +874,16 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         # If we have a reference, delay loading
         if element == 'Reference':
             (namespace, name) = self.getNamespaceName(self.currentValue)
-            self.currentReferences.append((self._DELAYED_REFERENCE, local,
-             namespace, name, None, self.locator.getLineNumber()))
+            assignment = {
+               "assignType" : self._DELAYED_REFERENCE,
+               "attrName"   : local,
+               "namespace"  : namespace,
+               "name"       : name,
+               "key"        : None,
+               "copyName"   : self.currentCopyName,
+               "line"       : self.locator.getLineNumber()
+            }
+            self.currentAssigments.append(assignment)
 
         # If we have a literal attribute, but delay assignment until the 
         # end of the document because superKinds are not yet linked up and 
@@ -904,9 +920,16 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                      self.locator.getLineNumber())
                     currentItem.addValue(elementLocal, value)
             else: # Delay
-                self.currentReferences.append((self._DELAYED_LITERAL, local,
-                 self.currentType, self.currentValue, None,
-                 self.locator.getLineNumber()))
+                self.currentAssigments.append(
+                 {
+                   "assignType" : self._DELAYED_LITERAL,
+                   "attrName"   : local,
+                   "typePath"   : self.currentType,
+                   "value"      : self.currentValue,
+                   "key"        : None,
+                   "line"       : self.locator.getLineNumber()
+                 }
+                )
 
         # We have a dictionary, similar to attribute, but we have a key
         elif element == 'Dictionary':
@@ -916,20 +939,27 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                  self.locator.getLineNumber())
                 currentItem.setValue(elementLocal, value, self.currentKey)
             else: # Delay
-                self.currentReferences.append((self._DELAYED_LITERAL, local,
-                 self.currentType, self.currentValue, self.currentKey,
-                 self.locator.getLineNumber()))
+                self.currentAssigments.append(
+                 {
+                   "assignType" : self._DELAYED_LITERAL,
+                   "attrName"   : local,
+                   "typePath"   : self.currentType,
+                   "value"      : self.currentValue,
+                   "key"        : self.currentKey,
+                   "line"       : self.locator.getLineNumber()
+                 }
+                )
 
         # We have an item, add the collected attributes to the list
         elif element == 'Item':
-            self.delayedReferences.append((self.currentItem,
-                                           self.currentReferences))
+            self.delayedAssigments.append((self.currentItem,
+                                           self.currentAssigments))
 
             # Look at the tags stack for the parent item, and the
             # parent references
             if len(self.tags) >= 2:
                 self.currentItem = self.tags[-2][3]
-                self.currentReferences = self.tags[-2][4]
+                self.currentAssigments = self.tags[-2][4]
 
         self.tags.pop()
 
@@ -1079,12 +1109,23 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         return item
 
-    def addReferences(self, item, attributes):
+    def completeAssignments(self, item, assignments):
         """ Add all of the references in the list to the item """
 
-        for (type, attributeName, namespace, name, key, line) in attributes:
+        for assignment in assignments:
 
-            if type == self._DELAYED_REFERENCE:
+            attributeName = assignment["attrName"]
+            line = assignment["line"]
+            if assignment.has_key("key"):
+                key = assignment["key"]
+            else:
+                key = None
+
+            if assignment["assignType"] == self._DELAYED_REFERENCE:
+
+                namespace = assignment["namespace"]
+                name = assignment["name"]
+                copyName = assignment["copyName"]
 
                 # TODO: make sure that the kind does indeed have this
                 # attribute (this is checked when it's a literal attribute,
@@ -1099,7 +1140,10 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                          "exist: %s:%s" % (namespace, name), None, line)
 
                 # @@@ Special cases to resolve
-                if attributeName == 'inverseAttribute':
+                if copyName:
+                    copy = reference.copy(copyName, item)
+                    item.addValue(attributeName, copy)
+                elif attributeName == 'inverseAttribute':
                     item.addValue('otherName', reference.itsName)
                 elif attributeName == 'displayAttribute':
                     item.addValue('displayAttribute', reference.itsName)
@@ -1109,19 +1153,16 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 else:
                     item.addValue(attributeName, reference)
 
-            elif type == self._DELAYED_LITERAL:
+            elif assignment["assignType"] == self._DELAYED_LITERAL:
 
-                # In the case of a literal, "namespace" specifies the path
-                # of the type item, and "name" contains the value.  If "key"
-                # is not None then use is as a dict key.
+                attributeTypePath = assignment["typePath"]
+                value = assignment["value"]
 
-                attributeTypePath = namespace
-
-                value = self.makeValue(item, attributeName, 
-                 attributeTypePath, name, line)
+                value = self.makeValue(item, attributeName,
+                 attributeTypePath, value, line)
 
                 try:
-                    if key:
+                    if key is not None:
                         item.setValue(attributeName, value, key)
                     else:
                         item.addValue(attributeName, value)

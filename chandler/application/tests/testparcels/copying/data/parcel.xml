@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel
+    itsName="data"
+    xmlns="http://osafoundation.org/parcels/core"
+    xmlns:cp="http://testparcels.org/copying"
+    xmlns:me="http://testparcels.org/copying/data"
+    >
+
+    <!-- These three items make up the "template" -->
+
+    <cp:TestKind itsName="templateParent">
+        <myChildren ref="me:templateChild0"/>
+        <myChildren ref="me:templateChild1"/>
+    </cp:TestKind>
+
+    <cp:TestKind itsName="templateChild0">
+        <myChildren ref="me:templateChild2"/>
+    </cp:TestKind>
+
+    <cp:TestKind itsName="templateChild1">
+        <myChildren ref="me:templateChild2"/>
+    </cp:TestKind>
+
+    <cp:TestKind itsName="templateChild2">
+    </cp:TestKind>
+
+
+    <!-- An item which will make use of the template:  -->
+
+    <cp:TestKind itsName="realParent">
+        <myChildren ref="me:templateParent" copy="copiedChild"/>
+    </cp:TestKind>
+
+
+</Parcel>
