@@ -66,7 +66,7 @@ ifeq ($(OS),Darwin)
 
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
-	../configure --prefix=$(PREFIX) $(CONF_OPT) \
+	MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) ../configure --prefix=$(PREFIX) $(CONF_OPT) \
                      --enable-monolithic \
                      --enable-geometry \
                      --enable-sound \
@@ -78,7 +78,7 @@ $(SRC)/$(BUILD)/Makefile:
 
 wxPython:
 	cd $(SRC)/wxPython; \
-        $(PYTHON) setup.py BUILD_OGL=0 BUILD_GLCANVAS=0 \
+        MACOSX_DEPLOYMENT_TARGET=$(MACOSX_DEPLOYMENT_TARGET) $(PYTHON) setup.py BUILD_OGL=0 BUILD_GLCANVAS=0 \
                            USE_SWIG=0 \
                            SWIG=$(SWIG) \
                            INSTALL_MULTIVERSION=0 \
