@@ -18,14 +18,14 @@
 			<Tool
 				Name="VCNMakeTool"
 				BuildCommandLine="cd ..
-nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=debug UNICODE=0 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot;
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=debug UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot;
 "
 				ReBuildCommandLine="cd ..
-nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=debug UNICODE=0 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot; clean
-nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=debug UNICODE=0 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot;
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=debug UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot; clean
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=debug UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot;
 "
 				CleanCommandLine="cd ..
-nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=debug UNICODE=0 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot; clean
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=debug UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot; clean
 "/>
 		</Configuration>
 		<Configuration
@@ -36,14 +36,14 @@ nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=d
 			<Tool
 				Name="VCNMakeTool"
 				BuildCommandLine="cd ..
-nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=0 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot;
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot;
 "
 				ReBuildCommandLine="cd ..
-nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=0 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot; clean
-nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=0 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot;
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot; clean
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot;
 "
 				CleanCommandLine="cd ..
-nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=0 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot; clean
+nmake -f makefile.vc OFFICIAL_BUILD=1 SHARED=1 MONOLITHIC=0 USE_OPENGL=1 BUILD=release UNICODE=1 MSLU=0 CXX=&quot;cl -DwxUSE_DEPRECATED=0&quot; clean
 "/>
 		</Configuration>
 	</Configurations>
