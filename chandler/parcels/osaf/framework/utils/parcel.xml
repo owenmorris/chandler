@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<Parcel itemName="utils"
+<Parcel describes="//Parcels/OSAF/AppSchema/utils"
+        itemName="utils"
         xmlns="//Schema/Core">
 
   <displayName>empty parcel</displayName>

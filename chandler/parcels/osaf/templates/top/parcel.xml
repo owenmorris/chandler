@@ -5,7 +5,8 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel itemName="top"
+<core:Parcel describes="//Parcels/OSAF/templates/top"
+             itemName="top"
              xmlns:core="//Schema/Core"
              xmlns="//Parcels/OSAF/AppSchema/DocumentSchema"
              xmlns:doc="//Parcels/OSAF/templates/top">

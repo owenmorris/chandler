@@ -1,4 +1,5 @@
-<Parcel itemName="Core"
+<Parcel describes="//Schema/Core"
+        itemName="Core"
         xmlns="//Schema/Core">
 
   <displayName>Core Schema</displayName>

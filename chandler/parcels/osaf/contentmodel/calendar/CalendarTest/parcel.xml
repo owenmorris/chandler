@@ -7,7 +7,8 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel itemName="CalendarTest"
+<core:Parcel describes="//Parcels/OSAF/PimSchema/CalendarSchema/CalendarTest"
+             itemName="CalendarTest"
              xmlns:core="//Schema/Core"
              xmlns="//Parcels/OSAF/PimSchema/CalendarSchema">
 

@@ -5,7 +5,8 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel itemName="ContactSchema"
+<Parcel describes="//Parcels/OSAF/PimSchema/ContactSchema"
+        itemName="ContactSchema"
         xmlns="//Schema/Core"
         xmlns:contact="//Parcels/OSAF/PimSchema/ContactSchema">
 

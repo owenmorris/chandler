@@ -7,7 +7,8 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel itemName="TestAgents"
+<core:Parcel describes="//Parcels/OSAF/AppSchema/AgentSchema/TestAgents"
+             itemName="TestAgents"
              xmlns:core="//Schema/Core"
              xmlns:foo="//Parcels/OSAF/framework"
              xmlns:bar="//Parcels/OSAF/framework/agents"

@@ -5,7 +5,8 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel itemName="AppSchema"
+<Parcel describes="//Parcels/OSAF/AppSchema"
+        itemName="AppSchema"
         xmlns="//Schema/Core"
         xmlns:app="//Parcels/OSAF/AppSchema"
         itemClass="OSAF.AppSchema.AppSchema.AppSchema">

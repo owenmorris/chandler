@@ -5,7 +5,8 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel itemName="EmailSchema"
+<Parcel describes="//Parcels/OSAF/PimSchema/EmailSchema"
+        itemName="EmailSchema"
         xmlns="//Schema/Core"
 	xmlns:pim="//Parcels/OSAF/PimSchema"
 	xmlns:task="//Parcels/OSAF/PimSchema/TaskSchema"

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<Parcel itemName="AgentSchema"
+<Parcel describes="//Parcels/OSAF/AppSchema/AgentSchema"
+        itemName="AgentSchema"
         xmlns="//Schema/Core">
 
   <displayName>Agents Schema</displayName>
