@@ -6,11 +6,11 @@ info = {
 
 dependencies = (
                 'Python-2.2.2', 
-		'distutils',
-		'wxWindows',
-		'egenix-mx-base-2.0.4',
-		'ZODB4'
-	       )
+                'wxWindows',
+                'distutils',
+                'egenix-mx-base-2.0.4',
+                'ZODB4'
+               )
 
 
 def build(buildenv):
