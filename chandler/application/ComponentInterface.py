@@ -16,13 +16,13 @@ from wxPython.wx import *
 
 class ComponentInterface:
     def __init__(self, window):
-        self.window = window
+        self._window = window
         
     def GoToUri(self, uri, doAddToHistory = true):
         """Selects the view (indicated by the uri) from the proper
         component.  This method will update the main display, the menubar,
         and the sidebar to reflect the current location."""
-        self.window.GoToUri(uri, doAddToHistory)
+        self._window.GoToUri(uri, doAddToHistory)
     
     def ManageMenu(self, command, data = None):
         """Possible commands are:

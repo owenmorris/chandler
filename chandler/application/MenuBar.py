@@ -28,10 +28,10 @@ class MenuBar:
         queries each of the available to components to get the necessary
         information.  It also sets up default values for menu items (i.e
         whether or not they are checked/greyed/etc."""
-        self.parent = parent
-        self.resources = wxXmlResource (RESOURCE_FILE_LOCATION)
-        self.menuBar = self.resources.LoadMenuBar(MENU_BAR_NAME)
-        self.parent.SetMenuBar(self.menuBar)
+        self._parent = parent
+        self._resources = wxXmlResource (RESOURCE_FILE_LOCATION)
+        self._menuBar = self._resources.LoadMenuBar(MENU_BAR_NAME)
+        self._parent.SetMenuBar(self._menuBar)
         
         self.__AddComponentsMenus(components)
         self.__AddComponentViewMenus(components)
@@ -41,79 +41,79 @@ class MenuBar:
     def __SetDefaults(self):
         """Initialize the state of the menus.  This includes setting whether
         or not certain items are checked, visible, etc."""
-        self.showLocationBar = true
-        self.menuBar.Check(self.menuBar.FindMenuItem("View", "Location Bar"),
-                           self.showLocationBar)
-        self.showActionsBar = true
-        self.menuBar.Check(self.menuBar.FindMenuItem("View", "Actions Bar"), 
-                           self.showActionsBar)        
-        self.showStatusBar = true
-        self.menuBar.Check(self.menuBar.FindMenuItem("View", "Status Bar"), 
-                           self.showStatusBar)                
-        self.showSideBar = true
-        self.menuBar.Check(self.menuBar.FindMenuItem("View", "Side Bar"), 
-                           self.showSideBar)
+        self._showLocationBar = true
+        self._menuBar.Check(self._menuBar.FindMenuItem("View", "Location Bar"),
+                           self._showLocationBar)
+        self._showActionsBar = true
+        self._menuBar.Check(self._menuBar.FindMenuItem("View", "Actions Bar"), 
+                           self._showActionsBar)        
+        self._showStatusBar = true
+        self._menuBar.Check(self._menuBar.FindMenuItem("View", "Status Bar"), 
+                           self._showStatusBar)                
+        self._showSideBar = true
+        self._menuBar.Check(self._menuBar.FindMenuItem("View", "Side Bar"), 
+                           self._showSideBar)
        
-        self.tableViewID = self.menuBar.FindMenuItem("View", "View as Table")
-        self.iconViewID = self.menuBar.FindMenuItem("View", "View as Icons")
-        self.useTableView = true
-        self.menuBar.Check(self.tableViewID, self.useTableView)
+        self._tableViewID = self._menuBar.FindMenuItem("View", "View as Table")
+        self._iconViewID = self._menuBar.FindMenuItem("View", "View as Icons")
+        self._useTableView = true
+        self._menuBar.Check(self._tableViewID, self._useTableView)
         
-        self.doAutoresize = true
-        self.autoresizeID = self.menuBar.FindMenuItem("View", 
+        self._doAutoresize = true
+        self._autoresizeID = self._menuBar.FindMenuItem("View", 
                                                       "Auto-resize columns")
-        self.menuBar.Check(self.autoresizeID, self.doAutoresize)
+        self._menuBar.Check(self._autoresizeID, self._doAutoresize)
           
     def __CreateEvents(self):
         """Creates all of the menu events for menu items that are not specific
         to a single component."""
         # File menu
-        EVT_MENU(self.parent, XRCID ("menu_new_viewer"), self.__OnNewViewer)
-        EVT_MENU(self.parent, XRCID ("menu_import_spool"), self.__OnImportSpool)
-        EVT_MENU(self.parent, XRCID ("menu_close"), self.__OnClose)
-        EVT_MENU(self.parent, XRCID ("menu_quit"), self.__OnQuit)
+        EVT_MENU(self._parent, XRCID ("menu_new_viewer"), self.__OnNewViewer)
+        EVT_MENU(self._parent, XRCID ("menu_import_spool"), self.__OnImportSpool)
+        EVT_MENU(self._parent, XRCID ("menu_close"), self.__OnClose)
+        EVT_MENU(self._parent, XRCID ("menu_quit"), self.__OnQuit)
 
         #Edit menu
-        EVT_MENU(self.parent, XRCID ("menu_undo"), self.__OnUndo)
-        EVT_MENU(self.parent, XRCID ("menu_cut"), self.__OnCut)
-        EVT_MENU(self.parent, XRCID ("menu_copy"), self.__OnCopy)
-        EVT_MENU(self.parent, XRCID ("menu_paste"), self.__OnPaste)
-        EVT_MENU(self.parent, XRCID ("menu_prefs"), self.__OnPrefs)
-        EVT_MENU(self.parent, XRCID ("menu_setup"), self.__OnSetup)
+        EVT_MENU(self._parent, XRCID ("menu_undo"), self.__OnUndo)
+        EVT_MENU(self._parent, XRCID ("menu_cut"), self.__OnCut)
+        EVT_MENU(self._parent, XRCID ("menu_copy"), self.__OnCopy)
+        EVT_MENU(self._parent, XRCID ("menu_paste"), self.__OnPaste)
+        EVT_MENU(self._parent, XRCID ("menu_prefs"), self.__OnPrefs)
+        EVT_MENU(self._parent, XRCID ("menu_setup"), self.__OnSetup)
 
         # View menu
-        EVT_MENU(self.parent, XRCID ("menu_show_location"), 
+        EVT_MENU(self._parent, XRCID ("menu_show_location"), 
                  self.__OnShowLocationBar)
-        EVT_MENU(self.parent, XRCID ("menu_show_actions"), 
+        EVT_MENU(self._parent, XRCID ("menu_show_actions"), 
                  self.__OnShowActionsBar)
-        EVT_MENU(self.parent, XRCID ("menu_show_tabs"), self.__OnShowTabs)
-        EVT_MENU(self.parent, XRCID ("menu_show_sidebar"), 
+        EVT_MENU(self._parent, XRCID ("menu_show_tabs"), self.__OnShowTabs)
+        EVT_MENU(self._parent, XRCID ("menu_show_sidebar"), 
                  self.__OnShowSidebar)
-        EVT_MENU(self.parent, XRCID ("menu_show_status"), self.__OnShowStatus)
-        EVT_MENU(self.parent, XRCID ("menu_display_index"), 
+        EVT_MENU(self._parent, XRCID ("menu_show_status"), self.__OnShowStatus)
+        EVT_MENU(self._parent, XRCID ("menu_display_index"), 
                  self.__OnDisplayIndex)
-        EVT_MENU(self.parent, XRCID ("menu_display_contact"), 
+        EVT_MENU(self._parent, XRCID ("menu_display_contact"), 
                  self.__OnDisplayContact)
-        EVT_MENU(self.parent, XRCID ("menu_table_view"), self.__OnTableView)
-        EVT_MENU(self.parent, XRCID ("menu_icon_view"), self.__OnIconView)
-        EVT_MENU(self.parent, XRCID ("menu_autoresize"), self.__OnAutoresize)
+        EVT_MENU(self._parent, XRCID ("menu_table_view"), self.__OnTableView)
+        EVT_MENU(self._parent, XRCID ("menu_icon_view"), self.__OnIconView)
+        EVT_MENU(self._parent, XRCID ("menu_autoresize"), self.__OnAutoresize)
         
         # Help menu
-        EVT_MENU(self.parent, wxID_ABOUT, self.__OnAbout)
+        EVT_MENU(self._parent, wxID_ABOUT, self.__OnAbout)
 
     def __AddComponentsMenus(self, components):
         """Adds the menus specific to each component to the menubar's list
         of component menus.  Only the menu specific to the current view is 
         displayed.  As the current view switches, the menus will be switched
         accordingly."""
-        self.componentsMenus = {}
+        self._componentsMenus = {}
         if len(components) > 0:
             for component in components:
                 componentName = component.data["ComponentName"]
-                self.componentsMenus[componentName] = component
+                self._componentsMenus[componentName] = component
             defaultComponent = components[0].data["ComponentName"]
-            self.menuBar.Insert(COMPONENT_MENU_POS, 
-                  self.componentsMenus[defaultComponent].data[
+            self._menuBar.Insert(COMPONENT_MENU_POS, 
+                  self._componentsMenus[defaultComponent].data[
                                                        "ComponentMenu"],
                                 defaultComponent)
 
@@ -123,33 +123,35 @@ class MenuBar:
         component's view menu is generated by the component's 
         ComponentLoader."""
         if len(components) > 0:
-            viewMenu = self.menuBar.GetMenu(self.menuBar.FindMenu("View"))
+            viewMenu = self._menuBar.GetMenu(self._menuBar.FindMenu("View"))
             viewMenu.AppendSeparator()
-            for component in components:                
-                viewMenu.AppendMenu(VIEWS_MENU_ID, 
-                                    component.data["ComponentName"] 
-                                    + ' Views',
-                                    component.data["NavigationMenu"])
-                
+            for component in components:
+                navMenu = component.data["NavigationMenu"]
+                for menu in navMenu:
+                    # Don't actually use componentName here
+                    viewMenu.AppendMenu(VIEWS_MENU_ID,
+                                        component.data["ComponentName"]
+                                        + ' Views', menu)
+
     def SelectComponent(self, name):
         """Called when the active component changes.  This method causes the 
         menu which is specific to the component to change."""
-        newMenu = self.componentsMenus[name].data["ComponentMenu"]
-        if self.menuBar.GetMenu(COMPONENT_MENU_POS) != newMenu:
-            self.menuBar.Replace(COMPONENT_MENU_POS, newMenu, name)
+        newMenu = self._componentsMenus[name].data["ComponentMenu"]
+        if self._menuBar.GetMenu(COMPONENT_MENU_POS) != newMenu:
+            self._menuBar.Replace(COMPONENT_MENU_POS, newMenu, name)
                 
     # File menu methods
     def __OnNewViewer(self, event):
-        self.parent.NewViewer()
+        self._parent.NewViewer()
 
     def __OnImportSpool(self, event):
         pass
         
     def __OnClose(self, event):
-        self.parent.Close(true)
+        self._parent.Close(true)
 
     def __OnQuit(self, event):
-        self.parent.Quit()
+        self._parent.Quit()
 
     # Edit menu methods
     def __OnUndo(self, event):
@@ -165,34 +167,34 @@ class MenuBar:
         pass
         
     def __OnPrefs(self, event):
-        dialog = self.resources.LoadDialog(self.parent, "PreferencesDialog")
+        dialog = self._resources.LoadDialog(self._parent, "PreferencesDialog")
         result = dialog.ShowModal()
         dialog.Destroy()
         
     def __OnSetup(self, event):
-        dialog = self.resources.LoadDialog(self.parent, "MailSetupDialog")
+        dialog = self._resources.LoadDialog(self._parent, "MailSetupDialog")
         result = dialog.ShowModal()
         dialog.Destroy()
         
     # View menu methods
     def __OnShowLocationBar(self, event):
-        self.showLocationBar = not self.showLocationBar
-        self.parent.ShowLocationBar(self.showLocationBar)
+        self._showLocationBar = not self._showLocationBar
+        self._parent.ShowLocationBar(self._showLocationBar)
         
     def __OnShowActionsBar(self, event):
-        self.showActionsBar = not self.showActionsBar
-        self.parent.ShowActionsBar(self.showActionsBar)
+        self._showActionsBar = not self._showActionsBar
+        self._parent.ShowActionsBar(self._showActionsBar)
         
     def __OnShowTabs(self, event):
         pass
         
     def __OnShowSidebar(self, event):
-        self.showSideBar = not self.showSideBar
-        self.parent.ShowSideBar(self.showSideBar)
+        self._showSideBar = not self._showSideBar
+        self._parent.ShowSideBar(self._showSideBar)
         
     def __OnShowStatus(self, event):
-        self.showStatusBar = not self.showStatusBar
-        self.parent.ShowStatus(self.showStatusBar)
+        self._showStatusBar = not self._showStatusBar
+        self._parent.ShowStatus(self._showStatusBar)
         
     def __OnDisplayIndex(self, event):
         pass
@@ -201,20 +203,20 @@ class MenuBar:
         pass
         
     def __OnTableView(self, event):
-        self.useTableView = true
-        self.menuBar.Check(self.tableViewID, self.useTableView)
-        self.menuBar.Check(self.iconViewID, not self.useTableView)
+        self._useTableView = true
+        self._menuBar.Check(self._tableViewID, self._useTableView)
+        self._menuBar.Check(self._iconViewID, not self._useTableView)
         
     def __OnIconView(self, event):
-        self.useTableView = false
-        self.menuBar.Check(self.tableViewID, self.useTableView)
-        self.menuBar.Check(self.iconViewID, not self.useTableView)
+        self._useTableView = false
+        self._menuBar.Check(self._tableViewID, self._useTableView)
+        self._menuBar.Check(self._iconViewID, not self._useTableView)
 
     def __OnAutoresize(self, event):
-        self.doAutoresize = not self.doAutoresize
+        self._doAutoresize = not self._doAutoresize
                 
     # Help menu methods
     def __OnAbout(self, event):
-        dialog = self.resources.LoadDialog(self.parent, "AboutDialog")
+        dialog = self._resources.LoadDialog(self._parent, "AboutDialog")
         result = dialog.ShowModal()
         dialog.Destroy()

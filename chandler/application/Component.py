@@ -32,7 +32,6 @@ __license__ = "OSAF"
 
 from wxPython.wx import *
 from wxPython.xrc import *
-from xml.sax import make_parser
 
 from ComponentXmlHandler import ComponentXmlHandler
 
@@ -82,8 +81,8 @@ class Component:
     def Load(self, parent, frame, interface, resourceInfo):
         """Called when the component is first loaded.  This is a chance
         to allocate any data structures and do the necessary setup."""
-        self.parent = parent
-        self.frame = frame
+        self._parent = parent
+        self._frame = frame
         self.interface = interface
                 
         self.data = {}
@@ -98,16 +97,12 @@ class Component:
         
         # Create the component menu from the xrc resource
         resourceLocation, menuName = resourceInfo
-        self.resource = wxXmlResource(resourceLocation)
-        self.data["ComponentMenu"] = self.resource.LoadMenu(menuName)
+        self._resource = wxXmlResource(resourceLocation)
+        self.data["ComponentMenu"] = self._resource.LoadMenu(menuName)
         
-        # Creates the xml parser that will extract the rest of
-        # the information for the component
-        parser = make_parser()
-        self.xmlHandler = ComponentXmlHandler(self.frame, self)
-        parser.setContentHandler(self.xmlHandler)
-        parser.parse(resourceLocation)
-
+        self._xmlHandler = ComponentXmlHandler(self, self._frame)
+        self._xmlHandler.Load(resourceLocation)
+        
     def Unload(self):
         """Called when the component is no longer needed.  Deallocate any
         memory and do whatever necessary cleanup."""

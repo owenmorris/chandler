@@ -1,8 +1,9 @@
 #!bin/env python
 
 """This class handles all of the xml processing for the Component parent
-class.  It uses the PyXML framework to extract the information from an
-xml file.  It is centered around the SAX model of XML parsing."""
+class.  It uses the generalized XmlReader to generate a dictionary directly
+from the xml file, and then converts that dictionary into a more meaningful
+structure for the component."""
 
 __author__ = "Jed Burgess"
 __version__ = "$Revision$"
@@ -10,86 +11,67 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "OSAF"
 
+
 from wxPython.wx import *
-from xml.sax import ContentHandler
+from application.XmlReader import XmlReader
 
-STARTING_MENU_ID = 400
+class ComponentXmlHandler:
+    def __init__(self, component, frame):
+        """Sets up the initial variables for the handler."""
+        self._component = component
+        self._frame = frame
 
-class ComponentXmlHandler(ContentHandler):
-    def __init__(self, frame, component):
-        """Sets up the content handler.  It sets defaults for a few of the
-        flags used for parsing and creates a dictionary of ids to map menu
-        ids to uri's."""
-        self.frame = frame
-        self.component = component
-
-        # A dectionary that will map menu ids to uri's
-        self.ids = {}
-        self.menuId = STARTING_MENU_ID
+        # Associates menu ids (taken from the xml) with their corresponding
+        # uri's
+        self._ids = {}
         
+    def Load(self, fileLocation):
+        """Called when it is time for the xml handler to actually do its
+        processing.  Creates a dom tree based on the specified xml file
+        and then turns that tree into a dictionary so that it can be more
+        easily accessed.  The information from that dictionary is then 
+        stored in the component's data structure."""
+        reader = XmlReader()
+        dict = reader.ReadXmlFile(fileLocation)        
+        self._dict = dict["resource"]
         
-        # The sidebar item that is currently being constructed
-        self.sidebarTuple = ()
+        self._component.data["ComponentName"] = self._dict["ComponentName"]
+        self._component.data["Description"] = self._dict["Description"]
+        self._component.data["DefaultUri"] = self._dict["DefaultUri"]
+        self.__CreateNavigationElements()
 
-        self.viewMenu = None
-        # The view submenu that is currently being constructed
-        self.sub = None
-        # Stores whether or not the current menu contains children
-        self.hasChildren = 0
-            
-    def startElement(self, name, attrs):
-        """This method is called by the SAX handler whenever an opening
-        tag is encountered in the XML.  For some of the tags we can do all
-        of the necessary processing at that time, but for some of the more
-        complex tags we must just add to the building data structures.  All
-        of the processing that we end up doing here will show its results
-        by affecting the component's  data dictionary."""
-        if name == "ComponentName":
-            self.component.data["ComponentName"] = attrs.get("name", None)
-        if name == "Description":
-            self.component.data["Description"] = attrs.get("text", None)
-        if name == "DefaultUri":
-            self.component.data["DefaultUri"] = attrs.get("text", None)
-        if name == "Navigation":
-            # An opening navigation tag causes us to start creating both the
-            # sidebar list and the navigation menu
-            self.viewMenu = wxMenu()
-        if name == "Item":
-            item = attrs.get("name", None)
-            self.sidebarTuple = (item, []) # start the tuple
-            self.sub = (item, wxMenu()) # create the submenu/store it's name
-        if name == "Child":
-            self.hasChildren = 1 # The current menu will have a submenu
-            name = attrs.get("name", None)
-            # Add the item to the sidebar list (with no children as a sublist)
-            self.sidebarTuple[1].append((name, None))
-            id = string.atoi(attrs.get("id", None))
-            # Store the  uri with associated with this id
-            self.ids[id] = self.sidebarTuple[0] + "/" + name
-            self.sub[1].Append(id, name)
-            EVT_MENU(self.frame, id, self.__NavMenuEvent)
-
-    def endElement(self, name):
-        """This method is called by the SAX handler whenever a closing tag
-        is encountered.  Many of the closing tags can just be ignored, but
-        some of them signal that we are finished building a data structure
-        and we can add it to the component's data dictionary."""
-        if name == "Navigation":
-            self.component.data["NavigationMenu"] = self.viewMenu
-        if name == "Item":
-            self.component.data["SidebarTree"].append(self.sidebarTuple)
-            if self.hasChildren:
-                self.viewMenu.AppendMenu(self.menuId, self.sub[0],
-                                         self.sub[1])
-            else:
-                self.viewMenu.Append(self.menuId, self.sub[0])
-            self.menuId = self.menuId + 1
-            self.hasChildren = 0
-
-    def __NavMenuEvent(self, event):
-        """This method is called whenever a menu event has been generated by
-        one of the view navigation menus that we created.  It associates that
-        id with the proper uri and tells the application to navigate to that
-        uri."""
+    def __CreateNavigationElements(self):
+        """Creates the navigation elements for this component.  This includes
+        both the sidebar and the view menu navigation.  These elements are 
+        all based on the same xml for consistency."""        
+        tree = []
+        menuList = []
+        nav = self._dict["Navigation"]
+        for navKey in nav.keys():
+            navItem = nav[navKey]                        
+            # Create a tuple of the item name & a list of children
+            nameChildrenTuple = (navItem["Name"], [])
+            menu = wxMenu()
+            for key in navItem.keys():
+                if key != "Name":
+                    # Sidebar stuff
+                    childName = navItem[key]["Name"]
+                    nameChildrenTuple[1].append((childName, None))
+                    # Nav menu stuff
+                    id = string.atoi(navItem[key]["Id"])
+                    menu.Append(id, childName)
+                    self._ids[id] = navItem["Name"] + "/" + childName
+                    EVT_MENU(self._frame, id, self.__MenuNavigationEvent)
+            tree.append(nameChildrenTuple)
+            menuList.append(menu)
+                
+        self._component.data["SidebarTree"] = tree
+        self._component.data["NavigationMenu"] = menuList
+        
+    def __MenuNavigationEvent(self, event):
+        """Envoked when the user has chosen one of the view navigation menus.
+        Looks up the id of the event that has been generated and tells the
+        application to navigate to the associated uri."""
         id = event.GetId()
-        self.component.interface.GoToUri(self.ids[id])
+        self._component.interface.GoToUri(self._ids[id])        
+                

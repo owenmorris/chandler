@@ -29,6 +29,6 @@ class ActionsBar(wxPanel):
         file.  To create the actions bar we must just load it from the 
         resource."""
         wxPanel.__init__(self, parent, id, size = size)
-        self.parent = parent
-        self.resources = wxXmlResource(RESOURCE_FILE_LOCATION)
-        self.actionsBar = self.resources.LoadToolBar(self, ACTIONS_BAR_NAME)
+        self._parent = parent
+        self._resources = wxXmlResource(RESOURCE_FILE_LOCATION)
+        self.actionsBar = self._resources.LoadToolBar(self, ACTIONS_BAR_NAME)

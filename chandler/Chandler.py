@@ -14,6 +14,7 @@ from wxPython.wx import *
 from wxPython.xrc import *
 
 from application.ChandlerWindow import ChandlerWindow
+from application.XmlReader import XmlReader
 
 import sys
 import os
@@ -22,21 +23,50 @@ STARTING_X_POS = 20
 STARTING_Y_POS = 20
 NEW_WINDOW_DELTA_X = 40
 NEW_WINDOW_DELTA_Y = 40
+DEFAULT_X_PERCENTAGE = .8
+DEFAULT_Y_PERCENTAGE = .9
 COMPONENTS_DIRECTORY = "./components"
+PREFS_LOCATION = "./application/resources/preferences.xrc"
 
 class osafApp(wxApp):
     def OnInit(self):
         """Does basic housecleaning setup.  Gets a list of all of the
         available  components and creates a ChandlerWindow."""
         wxInitAllImageHandlers()
-        self.componentStrings = self.__GetComponentList()
-        frame = ChandlerWindow(None, self, self.componentStrings, 
+#        InitDatabase() #
+        self._frames = []
+        self._componentStrings = self.__GetComponentList()
+        self.__LoadPrefs()
+        frame = ChandlerWindow(None, self, self._componentStrings, 
+                               size = self._windowSize,
                                pos = wxPoint(STARTING_X_POS, STARTING_Y_POS))
-        self.frames = [frame]
+        self._frames.append(frame)
         frame.Show(true)
         
         return true
 
+    def __LoadPrefs(self):
+        """Reads the preferences from an xml file."""
+        self._reader = XmlReader()
+        self._prefs = self._reader.ReadXmlFile(PREFS_LOCATION)
+        
+        x = string.atoi(self._prefs["preferences"]["windowSize"]["x"])
+        y = string.atoi(self._prefs["preferences"]["windowSize"]["y"])
+        if x == -1 or y == -1:
+            x = wxSystemSettings_GetMetric(wxSYS_SCREEN_X)
+            x = x * DEFAULT_X_PERCENTAGE
+            y = wxSystemSettings_GetMetric(wxSYS_SCREEN_Y)
+            y = y * DEFAULT_Y_PERCENTAGE                        
+        self.SetWindowSize((x, y))
+                    
+    def SetWindowSize(self, size):
+        """Sets the default size for a new ChandlerWindow."""
+        self._windowSize = size
+        
+    def __SavePrefs(self):
+        """Saves the preferences out to an xml file."""
+        self._reader.OutputXmlFile(PREFS_LOCATION, self._prefs)
+    
     def __GetComponentList(self):
         """Gets a list of each of the components for Chandler.  Among other
         things, this will include the email, calendar, and contacts
@@ -67,22 +97,23 @@ class osafApp(wxApp):
         directly overlayed."""
         location.x += NEW_WINDOW_DELTA_X
         location.y += NEW_WINDOW_DELTA_Y
-        frame = ChandlerWindow(None, self,  self.componentStrings, pos = location)
-        self.frames.append(frame)
+        frame = ChandlerWindow(None, self,  self._componentStrings, 
+                               size = self._windowSize, pos = location)
+        self._frames.append(frame)
         frame.Show(true)    
         
     def RemoveWindow(self, win):
         """Remove the window from the list of open windows.  Should only be
         called right before the window is closed."""
-        self.frames.remove(win)        
+        self._frames.remove(win)
+        # If it is the last open frame, then we output the prefences
+        # to a file.
+        if len(self._frames) == 0:
+            self.__SavePrefs()
 
     def QuitApp(self):
         """Quit the application by closing all open windows."""
-        windowsToClose = []
-        # Make a copy of self.frames because it will change as we close
-        #  individual windows
-        for frame in self.frames:
-            windowsToClose.append(frame)
+        windowsToClose = self._frames[:]
         for frame in windowsToClose:
              frame.Close(true)
 

@@ -19,13 +19,13 @@ DEFAULT_SIDEBAR_WIDTH = 160
 
 class SideBar(wxNotebook):
     def __init__(self, parent, mainFrame, id = -1, 
-                 size = (DEFAULT_SIDEBAR_WIDTH, -1), style=wxNB_BOTTOM):
+                 size = (DEFAULT_SIDEBAR_WIDTH, -1), style = wxNB_BOTTOM):
         """Sets up the sidebar, which basically just consists of creating a
         notebook and adding a NavPanel into the first tab.  We may or may not
         want to keep the notebook, but if not, it is very easy to remove."""
         wxNotebook.__init__(self, parent, id, size = size, style = style)
         
-        self.parent = parent
+        self._parent = parent
         self.navPanel = NavPanel(self, mainFrame)
         self.AddPage(self.navPanel, "Main")
                
