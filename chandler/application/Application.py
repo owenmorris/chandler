@@ -37,6 +37,21 @@ other parts of the program
 
 app=None                   #the single instance of wxApplication
 
+"""
+  Event used to post callbacks on the UI thread
+"""
+wxEVT_MAIN_THREAD_CALLBACK = wxNewEventType()
+
+def EVT_MAIN_THREAD_CALLBACK(win, func):
+    win.Connect(-1, -1, wxEVT_MAIN_THREAD_CALLBACK, func)
+
+class MainThreadCallbackEvent(wxPyEvent):
+    def __init__(self, target, *args):
+        wxPyEvent.__init__(self)
+        self.SetEventType(wxEVT_MAIN_THREAD_CALLBACK)
+        self.target = target
+        self.args = args
+
 class Application(Persistent):
     """
       The main application class. It's view counterpart is the wxPython class
@@ -138,7 +153,6 @@ class wxApplication (wxApp):
     self.locale                   locale used for internationalization
     self.jabberClient             state of jabber client including presence dictionary
     self.repository               the model.persistence.Repository instance
-    self.deferredActions          list of deferred Actions to be run at idle time
     self.argv                     the command line arguments of the process
     
     In the future we may replace ZODB with another database that provides 
@@ -184,7 +198,6 @@ class wxApplication (wxApp):
         
         self.jabberClient = None
         self.presenceWindow = None
-        self.deferredActions = []
         
         self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
 
@@ -367,6 +380,7 @@ class wxApplication (wxApp):
 
         EVT_MENU(self, -1, self.OnCommand)
         EVT_UPDATE_UI(self, -1, self.OnCommand)
+        EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
         
         """
         initialize the non-persistent part of the NotificationManager
@@ -413,6 +427,14 @@ class wxApplication (wxApp):
         # FIXME:  This will not fully quit the app if a stdout window has been
         # opened by a print statement.  We should also close that stdout window.
         self.wxMainFrame.Close()
+        self.agentManager.Stop()
+
+    def OnMainThreadCallbackEvent(self, event):
+        """
+          Fire off a custom event handler
+        """
+        event.target(*event.args)
+        event.Skip()
 
     def OnAbout(self, event):
         """
@@ -696,6 +718,14 @@ class wxApplication (wxApp):
         """
         debugFlag = self.model.preferences.GetPreferenceValue('chandler/debugging/debugmenu')
         self.wxMainFrame.ShowOrHideDebugMenu(debugFlag)
+
+
+    def PostAsyncEvent(self, callback, *args):
+        """
+          Post an asynchronous event that will call 'callback' with 'data'
+        """
+        evt = MainThreadCallbackEvent(callback, *args)
+        wxPostEvent(self, evt)
 
     if __debug__:
         def DebugRoutine(self, event):

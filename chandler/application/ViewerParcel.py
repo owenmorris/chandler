@@ -598,14 +598,6 @@ class wxViewerParcel(wxPanel):
         if notification != None:
             self.model.ReceiveNotification(notification)
 
-        # also, run any deferred actions that need to be run synchronously with wxWindows
-        # FIXME: we need to iterate the list better, in case it's being added to while we're looping
-        if len(app.deferredActions) > 0:
-            for action in app.deferredActions:
-                action.Execute()
-                
-            app.deferredActions = []
-            
     def OnReload(self):
         """
           Called when the reload button is clicked.  Override to add the
