@@ -15,10 +15,10 @@ class TestBinary(unittest.TestCase):
     """ Test Binary storage """
 
     def setUp(self):
-        rootdir = os.environ['CHANDLERDIR']
-        schemaPack = os.path.join(rootdir, 'repository',
+        self.rootdir = os.environ['CHANDLERDIR']
+        schemaPack = os.path.join(self.rootdir, 'repository',
                                   'packs', 'schema.pack')
-        cineguidePack = os.path.join(rootdir, 'repository',
+        cineguidePack = os.path.join(self.rootdir, 'repository',
                                      'tests', 'data', 'packs',
                                      'cineguide.pack')
         self.rep = XMLRepository('BinaryUnitTest-Repository')
@@ -30,8 +30,7 @@ class TestBinary(unittest.TestCase):
         khepburn = self.rep.find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
-        rootdir = os.environ['CHANDLERDIR']
-        largeBinary = os.path.join(rootdir, 'repository',
+        largeBinary = os.path.join(self.rootdir, 'repository',
                                    'tests', 'data', 'khepltr.jpg')
 
         input = file(largeBinary, 'r')
@@ -76,8 +75,7 @@ class TestBinary(unittest.TestCase):
         khepburn = self.rep.find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
-        rootdir = os.environ['CHANDLERDIR']
-        largeBinary = os.path.join(rootdir, 'repository',
+        largeBinary = os.path.join(self.rootdir, 'repository',
                                    'tests', 'data', 'khepltr.jpg')
 
         input = file(largeBinary, 'r')
@@ -122,8 +120,7 @@ class TestBinary(unittest.TestCase):
         khepburn = self.rep.find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
-        rootdir = os.environ['CHANDLERDIR']
-        largeBinary = os.path.join(rootdir, 'repository',
+        largeBinary = os.path.join(self.rootdir, 'repository',
                                    'tests', 'data', 'khepltr.jpg')
 
         input = file(largeBinary, 'r')

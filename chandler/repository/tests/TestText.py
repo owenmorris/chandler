@@ -15,10 +15,10 @@ class TestText(unittest.TestCase):
     """ Test Text storage """
 
     def setUp(self):
-        rootdir = os.environ['CHANDLERDIR']
-        schemaPack = os.path.join(rootdir, 'repository',
+        self.rootdir = os.environ['CHANDLERDIR']
+        schemaPack = os.path.join(self.rootdir, 'repository',
                                   'packs', 'schema.pack')
-        cineguidePack = os.path.join(rootdir, 'repository',
+        cineguidePack = os.path.join(self.rootdir, 'repository',
                                      'tests', 'data', 'packs',
                                      'cineguide.pack')
         self.rep = XMLRepository('TextUnitTest-Repository')
@@ -31,8 +31,7 @@ class TestText(unittest.TestCase):
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
-        rootdir = os.environ['CHANDLERDIR']
-        largeText = os.path.join(rootdir, 'repository',
+        largeText = os.path.join(self.rootdir, 'repository',
                                  'tests', 'data', 'world192.txt')
 
         input = file(largeText, 'r')
@@ -77,8 +76,7 @@ class TestText(unittest.TestCase):
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
-        rootdir = os.environ['CHANDLERHOME']
-        largeText = os.path.join(rootdir, 'Chandler', 'repository',
+        largeText = os.path.join(self.rootdir, 'repository',
                                  'tests', 'data', 'world192.txt')
 
         input = file(largeText, 'r')
@@ -123,8 +121,7 @@ class TestText(unittest.TestCase):
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
-        rootdir = os.environ['CHANDLERHOME']
-        largeText = os.path.join(rootdir, 'Chandler', 'repository',
+        largeText = os.path.join(self.rootdir, 'repository',
                                  'tests', 'data', 'world192.txt')
 
         input = file(largeText, 'r')
