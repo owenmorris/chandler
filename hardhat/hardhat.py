@@ -29,7 +29,7 @@ def usage():
     print "-C          clean MODULE and its dependencies"
     print "-d          use debug version"
     print "-D VERSION  create a distribution, using VERSION as the version string"
-    # print "-e          show environment variables in hardhat.log (on by default)"
+    print "-e          show environment variables in hardhat.log (on by default)"
     print "-g          generate documentation (via XSLT transform)"
     print "-h          display this help"
     print "-i          interactive python session"

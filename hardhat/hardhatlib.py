@@ -29,7 +29,7 @@ False = 0
 
 defaults = {
     'verbosity'         : 1,
-    'showenv'           : 1,
+    'showenv'           : 0,
     'version'           : 'release',
     'showlog'           : False,
     'interactive'       : True,
@@ -587,6 +587,8 @@ def test(buildenv, module_name):
         log(buildenv, HARDHAT_MESSAGE, 'Tests', "All tests successful")
     else:
         log(buildenv, HARDHAT_ERROR, 'Tests', "%d test(s) failed" % failures)
+        for testFile in buildenv['failed_tests']:
+            log(buildenv, HARDHAT_ERROR, 'Tests', "Failed: %s" % testFile)
         raise HardHatUnitTestError
 
 # end test()
