@@ -1120,6 +1120,9 @@ class Item(object):
         if self._status & Item.DIRTY:
             raise ValueError, 'Item %s has changed, cannot be unloaded' %(self.getItemPath())
 
+        if hasattr(type(self), 'onItemUnload'):
+            self.onItemUnload()
+
         if not self._status & Item.STALE:
             repository = self.getRepository()
 

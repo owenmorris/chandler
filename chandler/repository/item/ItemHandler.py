@@ -169,6 +169,10 @@ class ItemHandler(xml.sax.ContentHandler):
         for refArgs in self.refs:
             refArgs.attach(item, self.repository)
 
+        if self.afterLoadHooks is not None:
+            if hasattr(cls, 'onItemLoad'):
+                self.afterLoadHooks.append(self._onItemLoad)
+
     def kindEnd(self, itemHandler, attrs):
 
         assert not self.item
@@ -194,6 +198,10 @@ class ItemHandler(xml.sax.ContentHandler):
                 raise ValueError, 'Kind %s not found' %(self.kindRef)
             else:
                 self.item._setKind(self.kind)
+
+    def _onItemLoad(self):
+
+        self.item.onItemLoad()
 
     def parentEnd(self, itemHandler, attrs):
 
