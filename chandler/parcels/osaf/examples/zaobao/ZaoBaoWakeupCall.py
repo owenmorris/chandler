@@ -4,28 +4,21 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-from osaf.framework.tasks.Action import Action
+import osaf.framework.wakeup.WakeupCaller as WakeupCaller
 from osaf.examples.zaobao.RSSData import ZaoBaoParcel
 from repository.item.Query import KindQuery, TextQuery
 import socket
 import logging
 from xml.sax import SAXParseException
 
-def MainThreadCommit():
-    Globals.repository.commit()
-
-    #for item,attr in TextQuery('PyCon').run(Globals.repository):
-    #    print item.getAttributeValue(attr).getReader().read()
-    #    print '---------'
-
-class UpdateAction(Action):
-    def Execute(self, task):
+class WakeupCall(WakeupCaller.WakeupCall):
+    def receiveWakeupCall(self):
         repository = self.itsView
 
-        repository.commit()
+        repository.refresh()
 
-        #print 'Updating feeds...'
         chanKind = ZaoBaoParcel.getRSSChannelKind()
+
         for item in KindQuery().run([chanKind]):
             try:
                 item.Update()
@@ -45,6 +38,3 @@ class UpdateAction(Action):
                 logging.exception('zaobao failed to parse %s' % item.url)
 
         repository.commit()
-        #print 'Updated feeds'
-
-        Globals.wxApplication.PostAsyncEvent(MainThreadCommit)

@@ -6,7 +6,7 @@
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:zaobao="http://osafoundation.org/parcels/osaf/examples/zaobao"
         xmlns:fw="http://osafoundation.org/parcels/osaf/framework"
-        xmlns:task="http://osafoundation.org/parcels/osaf/framework/tasks"
+        xmlns:wakeupCall="http://osafoundation.org/parcels/osaf/framework/wakeup"
         xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
         xmlns:docSchema="http://osafoundation.org/parcels/osaf/framework/blocks">
 
@@ -137,31 +137,12 @@
     <classes key="python">osaf.examples.zaobao.RSSData.RSSItem</classes>
   </Kind>
 
-
-  <!-- ZaoBao Task Definition -->
-
-
-  <!-- Turning off zaobao
-
-  <task:Task itsName="ZaoBaoTask">
-    <displayName>ZaoBao Scheduled Task</displayName>
-
-    <task:Schedule itsName="ZaoBaoSchedule">
-      <task:startTime>2003-11-11 11:11:11+0800</task:startTime>
-      <task:repeatFlag>True</task:repeatFlag>
-      <task:repeatDelay>00:04:00:00</task:repeatDelay>
-    </task:Schedule>
-
-    <task:Action itsName="GetFeeds" itemClass="osaf.examples.zaobao.ZaoBaoTask.UpdateAction">
-      <description>Gets and updates all the feeds</description>
-    </task:Action>
-
-    <task:schedule itemref="zaobao:ZaoBaoTask/ZaoBaoSchedule"/>
-    <task:actions itemref="zaobao:ZaoBaoTask/GetFeeds"/>
-
-  </task:Task>
-
-  -->
+  <wakeupCall:WakeupCall itsName="ZaoBao" itemClass="osaf.examples.zaobao.ZaoBaoWakeupCall.WakeupCall">
+        <callOnStartup>True</callOnStartup>
+        <enabled>True</enabled>
+        <repeat>True</repeat>
+        <delay>00:04:00:00</delay>
+  </wakeupCall:WakeupCall>
 
   <!-- view related stuff -->
   <Kind itsName="ZaoBaoItemDetail">
