@@ -24,6 +24,16 @@ endif
 
 PREFIX=$(BUILD_ROOT)/$(SNAP)
 
+# We download some pretty big files, which can clog your network. You can now
+# control the download options (well, any options) for curl. For example:
+#   CHANDLER_CURL_OPTIONS="--limit-rate 200K"
+#
+# You can also replace curl with something else, for example wget:
+#   CURL=wget
+ifeq ($(CURL),)
+CURL=curl -O $(CHANDLER_CURL_OPTIONS)
+endif
+
 ifeq ($(OS),Cygwin)
 PYTHON:=$(PREFIX)/bin/$(PYTHON).exe
 SITE=bin/Lib/site-packages
@@ -146,7 +156,7 @@ $(compiler): $(BUILD_ROOT)/mingw-3.1.zip
 
 $(BUILD_ROOT)/mingw-3.1.zip:
 	cd $(BUILD_ROOT); \
-	curl -O $(COMPILERS)/windows/mingw-3.1.zip
+	$(CURL) $(COMPILERS)/windows/mingw-3.1.zip
 
 endif
 
@@ -160,7 +170,7 @@ $(compiler): $(BUILD_ROOT)/gcc-3.4.1.tar.bz2
 
 $(BUILD_ROOT)/gcc-3.4.1.tar.bz2:
 	cd $(BUILD_ROOT); \
-	curl -O $(COMPILERS)/osx/gcc-3.4.1.tar.bz2
+	$(CURL) $(COMPILERS)/osx/gcc-3.4.1.tar.bz2
 
 endif
 

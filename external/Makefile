@@ -49,7 +49,7 @@ sources:
 	tar -cvf sources-$(VERSION).tar $(SOURCES)
 
 sources-$(VERSION).tar:
-	curl -O http://builds.o11n.org/external/sources-$(VERSION).tar
+	$(CURL) http://builds.o11n.org/external/sources-$(VERSION).tar
 
 sources-$(VERSION)-expanded: sources-$(VERSION).tar
 	tar xvf sources-$(VERSION).tar

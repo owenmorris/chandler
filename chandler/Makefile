@@ -17,6 +17,17 @@ HOME_ARCHIVES=../QueryParser-$(SNAP)-0.1-3.tar.gz
 ARCHIVES = $(BIN_ARCHIVES) $(HOME_ARCHIVES)
 
 
+# We download some pretty big files, which can clog your network. You can now
+# control the download options (well, any options) for curl. For example:
+#   CHANDLER_CURL_OPTIONS="--limit-rate 200K"
+#
+# You can also replace curl with something else, for example wget:
+#   CURL="wget -r -P .. -nd"
+ifeq ($(CURL),)
+CURL=curl -o $(CHANDLER_CURL_OPTIONS)
+endif
+
+
 OS=$(shell uname)
 
 ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
@@ -75,7 +86,7 @@ default: install
 downloads: $(ARCHIVES)
 
 $(ARCHIVES):
-	curl -o $@ $(URL)/$(notdir $@)
+	$(CURL) $@ $(URL)/$(notdir $@)
 
 $(BIN_ARCHIVES_INST):
 	tar -C $(CHANDLERBIN) -xvzf ../$(notdir $(basename $@))
