@@ -89,17 +89,27 @@ class CalendarCanvasItem(CollectionCanvas.CanvasItem):
 
 class ColumnarCanvasItem(CalendarCanvasItem):
     resizeBufferSize = 5
+    textMargin = 3
     RESIZE_MODE_START = 1
     RESIZE_MODE_END = 2
-    def __init__(self, *arguments, **keywords):
-        super(ColumnarCanvasItem, self).__init__(*arguments, **keywords)
+    def __init__(self, item, calendarCanvas, *arguments, **keywords):
+        super(ColumnarCanvasItem, self).__init__(None, item)
         
+        startPosition = calendarCanvas.getPositionFromDateTime(item.startTime)
+        
+        # need to factor this one out, but I'll wait until we've
+        # worked out a means to split the canvas item into multiple rectangles
+        (cellWidth, cellHeight) = (calendarCanvas.dayWidth, int(item.duration.hours * calendarCanvas.hourHeight))
+        
+        self._bounds = wx.Rect(startPosition.x, startPosition.y, cellWidth, cellHeight)
+
         self._resizeLowBounds = wx.Rect(self._bounds.x,
                                         self._bounds.y + self._bounds.height - self.resizeBufferSize,
                                         self._bounds.width, self.resizeBufferSize)
         
         self._resizeTopBounds = wx.Rect(self._bounds.x, self._bounds.y,
                                         self._bounds.width, self.resizeBufferSize)
+        
 
     def isHitResize(self, point):
         """ Hit testing of a resize region.
@@ -138,8 +148,6 @@ class ColumnarCanvasItem(CalendarCanvasItem):
         time = item.startTime
 
         # Draw one event
-        headline = time.Format('%I:%M %p ') + item.displayName
-
         dc.SetPen(brushContainer.selectionPen)
         dc.DrawRoundedRectangleRect(itemRect, radius=10)
 
@@ -151,17 +159,18 @@ class ColumnarCanvasItem(CalendarCanvasItem):
                     itemRect.x + 2, itemRect.y + itemRect.height - 7)
 
         # Shift text
-        timeString = time.Format('%I:%M %p').lower()
-
-        x = itemRect.x + 3 + 5
-        y = itemRect.y + 3
-        width = itemRect.width - (3 + 10)
+        x = itemRect.x + self.textMargin + 5
+        y = itemRect.y + self.textMargin
+        width = itemRect.width - (self.textMargin + 10)
         height = 15
         timeRect = wx.Rect(x, y, width, height)
         
         # only draw time if there is room
+        timeString = time.Format('%I:%M %p').lower()
         te = dc.GetFullTextExtent(timeString, brushContainer.smallBoldFont)        
-        (timeWidth, timeHeight) = te[0], te[1]
+        timeHeight = te[1]
+        
+        # draw the time if there is room
         if (timeHeight < itemRect.height/2):
             dc.SetFont(brushContainer.smallBoldFont)
             y = self.DrawWrappedText(dc, timeString, timeRect)
@@ -320,7 +329,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                 (item.startTime < nextDate)):
                 yield item
 
-    def getItemsByDate(self, date):
+    def getItemsInRange(self, date, nextDate):
         """
         Convenience method to look for the items in the block's contents
         that appear on the given date. @@@ We may push this work down into
@@ -330,7 +339,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         @return: the items in this collection that appear on the given date
         @rtype: list of Items
         """
-        nextDate = date + DateTime.RelativeDateTime(days=1)
+        # nextDate = date + DateTime.RelativeDateTime(days=1)
         for item in self.contents:
             try:
                 anyTime = item.anyTime
@@ -346,6 +355,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
                 (item.startTime >= date) and
                 (item.startTime < nextDate)):
                 yield item
+                            
 
 class wxCalendarCanvas(CollectionCanvas.wxCollectionCanvas):
     """
@@ -845,36 +855,22 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
 
         if self.parent.blockItem.dayMode:
             startDay = self.parent.blockItem.selectedDate
+            days = 1
         else:
             startDay = self.parent.blockItem.rangeStart
+            days = 7
         
-        for day in range(self.parent.columns):
-            currentDate = startDay + DateTime.RelativeDateTime(days=day)
-            rect = wx.Rect((self.dayWidth * day) + self.xOffset, 0,
-                           self.dayWidth, self.size.height)
-            self.DrawDay(dc, currentDate, rect)
-                         
-
-    def DrawDay(self, dc, date, rect):
-        # Scaffolding, we'll get more sophisticated here
-
         # Set up fonts and brushes for drawing the events
         dc.SetTextForeground(wx.BLACK)
         dc.SetBrush(wx.WHITE_BRUSH)
 
         selectedBox = None
-        # Draw the events
-        for item in self.parent.blockItem.getItemsByDate(date):
-            time = item.startTime
-            itemRect = wx.Rect(rect.x,
-                               rect.y + int(self.hourHeight * (time.hour + time.minute/float(60))),
-                               rect.width,
-                               int(item.duration.hours * self.hourHeight))
-
-            canvasItem = ColumnarCanvasItem(itemRect, item)
+        endDay = startDay + DateTime.RelativeDateTime(days = days)
+        for item in self.parent.blockItem.getItemsInRange(startDay, endDay):
+                                               
+            canvasItem = ColumnarCanvasItem(item, self)
             self.canvasItemList.append(canvasItem)
-
-            # keep track of the current drag/resize box
+            
             if self._currentDragBox and self._currentDragBox.GetItem() == item:
                 self._currentDragBox = canvasItem                
                 
@@ -888,6 +884,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         if selectedBox:
             dc.SetBrush(self.selectionBrush)
             selectedBox.Draw(dc, self)
+            
             
     # handle mouse related actions: move, resize, create, select
 
@@ -1038,7 +1035,7 @@ class wxWeekColumnCanvas(wxCalendarCanvas):
         delta = datetime - startDay
         x = (self.dayWidth * delta.day) + self.xOffset
         y = int(self.hourHeight * (datetime.hour + datetime.minute/float(60)))
-        return (x, y)
+        return wx.Point(x, y)
         
 class WeekBlock(CalendarBlock):
     def __init__(self, *arguments, **keywords):
@@ -1252,7 +1249,7 @@ class wxMonthCanvas(wxCalendarCanvas, CalendarEventHandler):
         dc.SetTextForeground(self.smallFontColor)
         dc.SetFont(self.smallFont)
 
-        for item in self.blockItem.getItemsByDate(date):
+        for item in self.blockItem.getItemsInRange(date, date + DateTime.RelativeDateTime(days=1)):
             itemRect = wx.Rect(x, y, w, h)
             canvasItem = CollectionCanvas.CanvasItem(itemRect, item)
             self.canvasItemList.append(canvasItem)
