@@ -3,7 +3,7 @@
 @license: U{http://osafoundation.org/Chandler_0.1_license_terms.htm}
 """
 
-import os, sys, string, logging, time
+import os, logging
 import mx.DateTime as DateTime
 import xml.sax
 import xml.sax.handler
@@ -61,21 +61,21 @@ class Manager(Item):
 
         # Use the repository that was passed in, the previously passed in
         # repository, or a default one (from Globals)
-        if repository:
+        if repository is not None:
             cls.__repository = repository
-        elif not cls.__repository:
+        elif cls.__repository is None:
             cls.__repository = Globals.repository
 
-        if cls.__instanceUUID:
+        if cls.__instanceUUID is not None:
             # We already have an instance; find it via UUID
             instance = cls.__repository.findUUID(cls.__instanceUUID)
-            if not instance:
+            if instance is None:
                 # This case can happen when the repository gets swapped
                 # out from below us (during unit test runs, for example)
                 # so let's bootstrap another manager
                 cls.__instanceUUID = None
 
-        if not cls.__instanceUUID:
+        if cls.__instanceUUID is None:
             # Ensure that //parcels is sufficiently bootstrapped
             instance = cls.__bootstrap(cls.__repository)
 
@@ -106,12 +106,12 @@ class Manager(Item):
         parcelKind = repo.findPath("//Schema/Core/Parcel")
 
         parcelRoot = repo.findPath("//parcels")
-        if not parcelRoot:
+        if parcelRoot is None:
             parcelRoot = parcelKind.newItem("parcels", repo)
             parcelRoot.namespace = NS_ROOT
 
         manager = parcelRoot.findPath("manager")
-        if not manager:
+        if manager is None:
             managerKind = repo.findPath("//Schema/Core/ParcelManager")
             manager = managerKind.newItem("manager", parcelRoot)
 
@@ -189,7 +189,7 @@ class Manager(Item):
 
         self.log.debug("lookup: args (%s) (%s)" % (namespace, name))
 
-        if not namespace:
+        if namespace is None:
             self.log.warning("lookup: no namespace provided")
             return None
 
@@ -211,7 +211,7 @@ class Manager(Item):
 
         # Get the parcel associated with this namespace name (if no name
         # was provided; otherwise we have all the info in pDesc)
-        if not name:
+        if name is None:
             return self.repo.findPath(pDesc["path"])
 
         # The name passed in could actually be something like "Parcel/createdOn"
@@ -238,7 +238,7 @@ class Manager(Item):
             # path.extend(Path(nameHead.replace(".", "/")))
             path.extend(Path(nameHead))
             item = self.repo.findPath(path)
-            if not item:
+            if item is None:
                 # There is no item with this name
                 self.log.debug("lookup: no such name (%s) in namespace "
                  "(%s)" % (nameHead, namespace))
@@ -314,6 +314,7 @@ class Manager(Item):
             self._repo2ns[pDesc["path"]] = parcel.namespace
 
         handler = MappingHandler()
+        # parser = xml.sax.make_parser(["drv_libxml2"])
         parser = xml.sax.make_parser()
         parser.setFeature(xml.sax.handler.feature_namespaces, True)
         parser.setFeature(xml.sax.handler.feature_namespace_prefixes, True)
@@ -461,14 +462,14 @@ class Manager(Item):
 
         # make sure we're not already loaded
         parcel = self.repo.findPath(repoPath)
-        if parcel:
+        if parcel is not None:
             globalDepth = globalDepth - 1
             return parcel
 
         # make sure parent is loaded
         parentRepoPath = repoPath[:repoPath.rfind('/')]
         parcelParent = self.repo.findPath(parentRepoPath)
-        if not parcelParent:
+        if parcelParent is None:
             parentUri = self._repo2ns[parentRepoPath]
             for i in range(globalDepth):
                 print " ",
@@ -478,7 +479,7 @@ class Manager(Item):
         # make sure we're not already loaded (as a side effect of loading
         # parent)
         parcel = self.repo.findPath(repoPath)
-        if parcel:
+        if parcel is not None:
             # for i in range(globalDepth):
             #     print " ",
             # print "(skipping %s)" % namespace
@@ -499,6 +500,7 @@ class Manager(Item):
         handler.depCallback = self.__loadParcel
 
         # prepare the parser
+        # parser = xml.sax.make_parser(["drv_libxml2"])
         parser = xml.sax.make_parser()
         parser.setFeature(xml.sax.handler.feature_namespaces, True)
         parser.setFeature(xml.sax.handler.feature_namespace_prefixes, True)
@@ -678,7 +680,7 @@ class Parcel(Item):
         if not self.namespaceMap.has_key(nameHead):
             # The name is not in the map.
             item = parcel.findPath(nameHead)
-            if not item:
+            if item is None:
                 # There is no item with this name
                 return None
             else:
@@ -809,7 +811,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 (typeNamespace, typeName) = self.getNamespaceName(
                  attrs.getValue((None, 'type')))
                 typeItem = self.manager.lookup(typeNamespace, typeName)
-                if not typeItem:
+                if typeItem is None:
                     raise self.saveErrorState("Type doesn't exist: "\
                      "%s:%s" % (typeNamespace, typeName))
                 self.currentType = str(typeItem.itsPath) # TODO, perhaps
@@ -830,7 +832,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                 (typeNamespace, typeName) = self.getNamespaceName(
                  attrs.getValue((None, 'type')))
                 typeItem = self.manager.lookup(typeNamespace, typeName)
-                if not typeItem:
+                if typeItem is None:
                     raise self.saveErrorState("Type doesn't exist: "\
                      "%s:%s" % (typeNamespace, typeName))
                 self.currentType = str(typeItem.itsPath) # TODO, perhaps
@@ -961,19 +963,19 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         """
         if attributeTypePath:
             attributeType = self.repository.findPath(attributeTypePath)
-            if not attributeType:
+            if attributeType is None:
                 raise self.saveErrorState("Attribute type doesn't exist '%s'" \
                  % attributeTypePath, None, line)
             value = attributeType.makeValue(value)
         else:
-            if not item:
+            if item is None:
                 raise self.saveErrorState("Neither attribute type or item " \
                  "specified", None, line)
 
             kindItem = item.itsKind
             attributeItem = kindItem.getAttribute(attributeName)
 
-            if not attributeItem:
+            if attributeItem is None:
                 raise self.saveErrorState( \
                  "Kind %s does not have the attribute '%s'" % \
                  (kindItem.itsPath, attributeName), None, line )
@@ -998,7 +1000,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         # If the item doesn't yet exist, load the parcel it's supposed
         # to be in and try again
-        if not item:
+        if item is None:
             self.depCallback(namespace)
             item = self.manager.lookup(namespace, name)
 
@@ -1048,7 +1050,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         # If the item already exists, consider it an error.  In the future
         # we will want to support item reloading.
         item = parent.getItemChild(name)
-        if item:
+        if item is not None:
             raise self.saveErrorState("Item already exists %s" % item.itsPath)
 
         # Find the kind represented by the tag (uri, local). The
@@ -1056,7 +1058,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
         kind = self.findItem(uri, local,
                              self.locator.getLineNumber())
 
-        if not kind:
+        if kind is None:
             raise self.saveErrorState("Kind doesn't exist: %s:%s" % \
              (uri, local))
 
@@ -1072,7 +1074,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             self.saveErrorState(str(e))
             raise
 
-        if not item:
+        if item is None:
             raise self.saveErrorState("Item not created")
 
         return item
@@ -1092,7 +1094,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                     reference = None
                 else:
                     reference = self.findItem(namespace, name, line)
-                    if not reference:
+                    if reference is None:
                         raise self.saveErrorState("Referenced item doesn't " \
                          "exist: %s:%s" % (namespace, name), None, line)
 
@@ -1146,7 +1148,7 @@ def PrintItem(path, rep, recursive=False, level=0):
     for i in range(level):
         print " ",
     item = rep.findPath(path)
-    if not item:
+    if item is None:
         print "Error: %s was not found" % path
         return
 
@@ -1248,7 +1250,7 @@ def __prepareRepo():
     repoDir = os.path.join(Globals.chandlerDirectory, '__repository__')
     rep = XMLRepository(repoDir)
     rep.open(create=True)
-    if not rep.findPath("//Schema"):
+    if rep.findPath("//Schema") is None:
         print "Bootstrapping //Schema"
         bootstrapPack = os.path.join(Globals.chandlerDirectory, 'repository',
          'packs', 'schema.pack')
