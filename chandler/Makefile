@@ -63,6 +63,8 @@ MD5=md5sum
 endif
 endif
 
+MD5CHECK=$(MD5) --check
+
 ifeq ($(CHANDLERHOME),)
 CHANDLERHOME=.
 endif
@@ -93,7 +95,7 @@ downloads: $(ARCHIVES)
 $(ARCHIVES):
 	$(CURL) $@ $(URL)/$(notdir $@)
 	$(CURL) $(@:=.md5) $(URL)/$(notdir $(@:=.md5))
-	(cd ..; $(MD5) --check $(notdir $(@:=.md5)))
+	(cd ..; $(MD5CHECK) $(notdir $(@:=.md5)))
 
 $(BIN_ARCHIVES_INST):
 	tar -C $(CHANDLERBIN) -xvzf ../$(notdir $(basename $@))

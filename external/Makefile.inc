@@ -57,6 +57,8 @@ MD5=md5sum
 endif
 endif
 
+MD5CHECK=$(MD5) --check
+
 ifndef GCJ_HOME
 ifeq ($(OS),Cygwin)
 GCJ_HOME=$(compiler)
@@ -161,7 +163,7 @@ $(BUILD_ROOT)/mingw-3.1.zip:
 	cd $(BUILD_ROOT); \
 	$(CURL) $(COMPILERS)/windows/mingw-3.1.zip
 	$(CURL) $(COMPILERS)/windows/mingw-3.1.zip.md5
-	$(MD5) --check mingw-3.1.zip.md5
+	$(MD5CHECK) mingw-3.1.zip.md5
 
 endif
 
@@ -177,7 +179,7 @@ $(BUILD_ROOT)/gcc-3.4.1.tar.bz2:
 	cd $(BUILD_ROOT); \
 	$(CURL) $(COMPILERS)/osx/gcc-3.4.1.tar.bz2
 	$(CURL) $(COMPILERS)/osx/gcc-3.4.1.tar.bz2.md5
-	$(MD5) --check gcc-3.4.1.tar.bz2.md5
+	$(MD5CHECK) gcc-3.4.1.tar.bz2.md5
 
 endif
 
