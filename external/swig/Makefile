@@ -5,19 +5,6 @@ VERSION=20Feb04
 SWIG=$(BUILD_ROOT)/swig
 SRC=$(SWIG)/SWIG-$(VERSION)
 
-ifeq ($(DEBUG),1)
-CONF_OPT=--enable-debug
-DIST_OPT=--debug
-FINAL=0
-SUFFIX=d
-else
-CONF_OPT=
-DIST_OPT=
-FINAL=1
-SUFFIX=
-endif
-
-
 BUILD=build_$(SNAP)
 
 .PHONY: swig
@@ -28,7 +15,7 @@ $(SRC)/$(BUILD)/Makefile:
 	mkdir -p $(SRC)/$(BUILD); \
 	cd $(SRC)/$(BUILD); \
 	PATH="$(GCJ_HOME)/bin:$(PATH)"; \
-	../configure --prefix=`cygpath -am $(PREFIX)` $(CONF_OPT) \
+	../configure --prefix=`cygpath -am $(PREFIX)` \
                      --with-python=`cygpath -am $(PYTHON)` \
                      --build=i386-pc-cygwin
 
@@ -41,7 +28,7 @@ else
 $(SRC)/$(BUILD)/Makefile:
 	mkdir -p $(SRC)/$(BUILD); \
 	cd $(SRC)/$(BUILD); \
-	../configure --prefix=$(PREFIX) $(CONF_OPT) \
+	../configure --prefix=$(PREFIX) \
                      --with-python=$(PYTHON)
 
 swig: $(SRC)/$(BUILD)/Makefile
