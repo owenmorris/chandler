@@ -29,6 +29,13 @@ from repository.util.Path import Path
 Design Issues:
       1. Is tries really needed
       2. Date sent string could probally be gotten rid of
+
+MIME-TYPES:
+------------
+MIME_TEXT = ["plain", "html", "enriched", "sgml", "richtext", "rfc-headers"]
+MIME_BINARY = ["image", "application", "audio", "video"]
+MIME_SECURITY = ["encrypted", "signed"]
+MIME_CONTAINER = ["alternative", "parallel", "related", "report", "partial", "digest"]
 """
 
 
@@ -293,7 +300,6 @@ class MailMessageMixin(MIMEContainer):
 
         super(MailMessageMixin, self).__init__(name, parent, kind)
 
-        self.mimeDesc = "MESSAGE"
         self.mimeType = "message/rfc822"
 
     def InitOutgoingAttributes(self):

@@ -24,30 +24,13 @@ import utils as utils
 Notes:
 1. Encoding Email Address: Only encode name if present
 
-   TO DO:
-      Clean up what is decoded and what is does not need to be decoded
-      Need to decode values with in params ie. filename
+To Do:
+-------
+1. Work with Apple Mail and see how it handle display of various message types and copy
+2. Look at optimizations for Feedparser to prevent memory hogging
+3. Add back Unicode support
 
-Attachment Notes:
------------------------
-First Pass:
-
-Walk through parts:
-
-   1. if part is an attachment determine correct type
-      and add to mimeContainer of root email for all parts no matter how deep
-
-   2. If part is text append to body (To do messages want to preserve levels of body text)
-
-   3. If Part is text/* and not plain need th content-transfer-encoding and decode 
-      as appropriate (should be handled by decode=1)
-
-   4. If is message continue to walk for either attachments or tex
-
-   To Do:
-   ------
-   1. Look in to what happens when parsing errors occur and how to handle
-
+Look at Prologue, Echo and i18n text complete / date complete
 """
 
 def decodeHeader(header, charset=constants.DEFAULT_CHARSET):
@@ -72,19 +55,6 @@ def isChandlerHeader(header):
     assert utils.hasValue(header), "You must pass a String"
 
     if header.startswith(constants.CHANDLER_HEADER_PREFIX):
-        return True
-
-    return False
-
-def isPlainTextContentType(contentType):
-    """Determines if the content-type is 'text/plain'
-       @param contentType: content type string
-       @type contentType: C{str}
-
-       @return bool: True if content-type='text/plain'
-    """
-    #XXX: is this needed
-    if utils.isString(contentType) and contentType.lower().strip() == constants.MIME_TEXT_PLAIN:
         return True
 
     return False
@@ -179,35 +149,40 @@ def messageObjectToKind(messageObject, messageText=None):
     assert isinstance(messageObject, Message.Message), \
            "messageObject must be a Python email.Message.Message instance"
 
+    assert len(messageObject.keys()) > 0, \
+           "messageObject data is not a valid RFC2882 message"
+
     m = Mail.MailMessage()
 
     # Save the original message text in a text blob
     if messageText is None:
         messageText = messageObject.as_string()
 
-    #XXX: Save in a compressed format with a mime-type and perhaps a charset
+
+    #XXX:Could compress at a later date
     m.rfc2822Message = utils.strToText(m, "rfc2822Message", messageText)
+    counter = utils.Counter()
+    bodyBuffer = []
+    buf = None
 
-    if messageObject.is_multipart():
-        mimeParts = messageObject.get_payload()
-        found = False
-        m.hasMimeParts = True
-        m.mimeParts = []
+    __checkForDefects(messageObject)
 
-        for mimePart in mimeParts:
-            if isPlainTextContentType(mimePart.get_content_type()):
-                # Note: while grabbing the body, strip all CR
-                m.body = utils.strToText(m, "body", mimePart.get_payload().replace("\r", ""))
-                found = True
+    if __verbose():
+        if messageObject.has_key("Message-ID"):
+            messageId = messageObject["Message-ID"]
+        else:
+            messageId = "<Unknown Message>"
 
-        if not found:
-            m.body = utils.strToText(m, "body", constants.ATTACHMENT_BODY_WARNING)
+        buf = ["Message: %s\n-------------------------------" % messageId]
 
-    else:
-        # Note: while grabbing the body, strip all CR
-        m.body = utils.strToText(m, "body", messageObject.get_payload().replace("\r", ""))
+    __parsePart(messageObject, m, bodyBuffer, counter, buf)
 
-    __parseHeaders(m, messageObject)
+    m.body = utils.strToText(m, "body", '\n'.join(bodyBuffer).replace("\r", ""))
+
+    __parseHeaders(messageObject, m)
+
+    if __verbose():
+        logging.warn("\n\n%s\n\n" % '\n'.join(buf))
 
     return m
 
@@ -246,10 +221,16 @@ def kindToMessageObject(mailMessage):
 
     try:
         payload = mailMessage.body
+
+        #XXX: Temp hack this should be fixed in GUI level
+        #     investigate with Andi and Bryan
+        if payload.encoding is None:
+            payload.encoding = "utf-8"
+
+        payloadStr = utils.textToStr(payload)
+
     except AttributeError:
         payloadStr = ""
-    else:
-        payloadStr = utils.textToStr(payload)
 
     messageObject.set_payload(payloadStr)
 
@@ -275,14 +256,15 @@ def kindToMessageText(mailMessage, saveMessage=True):
     messageObject = kindToMessageObject(mailMessage)
     messageText   = messageObject.as_string()
 
-    #XXX: Want to compress this and store as well as set the mime type and charset
+    #XXX: Can compress as well
     if saveMessage:
-        mailMessage.rfc2882Message = utils.strToText(mailMessage, "rfc2822Message", messageText)
+        mailMessage.rfc2882Message = utils.strToText(mailMessage, "rfc2822Message", \
+                                                     messageText)
 
     return messageText
 
 
-def __parseHeaders(m, messageObject):
+def __parseHeaders(messageObject, m):
 
     date = messageObject['Date']
 
@@ -333,8 +315,6 @@ def __parseHeaders(m, messageObject):
             m.headers[key] = val
 
         del messageObject[key]
-
-
 
 def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
 
@@ -394,118 +374,249 @@ def __assignToKind(kindVar, messageObject, key, type, attr=None, decode=True):
     del messageObject[key]
 
 
-def __parseMessage(parentMIMEContainer, payload, body, level, messageText=None):
-    """
-        ToDo:
-        -----
-        1. Create a MailMessage Item
-        2. If Root create an RFC822message Text Lob else add the MailMessage to the ParentContainer
-        3. parse all headers
-        2. Walk through if multipart
-           a. if alternative or parallel then pass to parseMultipart will create
-              a subcontainer and add the items
+def __parsePart(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level=0):
+    __checkForDefects(mimePart)
 
-           Else:
-             a. If root put payload Text in body else append the text to the body
+    maintype  = mimePart.get_content_maintype()
 
+    if maintype == "message":
+        __handleMessage(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
 
-        Notes:
-        1, In the message itself is a multipart
-        2. Body will be either passed along to sub type or
-           if then message contains no payload will be 
-           added to by this method
+    elif maintype == "multipart":
+        __handleMultipart(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
 
-        Subtypes:
-           message/delivery-status: Treat as text and add to the body
-           message/disposition-notification-to: treat as text and add to body
-           message/external-body: either ignore and log or add payload to body
-           message/http: ignore
-           message/partial: ignore
-           message/rfc822: parse subparts get the subject and some headers and append to the message
-                           body
-    """
+    elif maintype == "text":
+        __handleText(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level)
 
-def __parseMultipart(parentMIMEContainer, payload, body, level):
-    """
-        Subtypes:
-           multipart/alternative: find the text part and append to body or take first part
-                                  and add to attachement list
-           multipart/byteranges: ignore and log don't parse sub-parts
-           multipart/digest: treat like a mixed type and parse subtypes which will be rfc-messages
-           multipart/form-data: ignore and log  don't parse sub-parts
-           multipart/mixed: ignore but parse sub-parts
-           multipart/parallel: ignore but parse sub-parts treat like mixed for now
-           multipart/related: ignore and log  don't parse sub-parts
-           multipart/signed: ignore and log don't parse sub-parts
-           multipart/encrypted: ignore and log don't parse sub-partsa
-           multipart/report: treat like a mixed type and parse subtypes can be rfc-messages, text,
-                             and or rfc-headers
-    """
+    else:
+        __handleBinary(mimePart, parentMIMEContainer,  counter, buf, level)
 
 
-def __parseApplication(parentMIMEContainer, mimePart, num):
-    """
-        Handles unkown types
-    """
-    if mimePart.get_content_subtype() == "applefile":
-        if __debug__:
-            logging.warn("__parseApplication found type applefile ignoring")
+def __handleMessage(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
+    subtype   = mimePart.get_content_subtype()
+    multipart = mimePart.is_multipart()
+
+    if __verbose():
+        __trace("message/%s" % subtype, buf, level)
+
+    """If the message is multipart then pass decode=False to
+    get_poyload otherwise pass True"""
+    payload = mimePart.get_payload(decode=not multipart)
+    assert payload is not None, "__handleMessage payload is None"
+
+    if subtype == "rfc822":
+        if multipart:
+            sub = mimePart.get_payload()[0]
+            assert sub is not None, "__handleMessage sub is None"
+
+            tmp = []
+
+            tmp.append("\n")
+            __appendHeader(sub, tmp, "From")
+            __appendHeader(sub, tmp, "Reply-To")
+            __appendHeader(sub, tmp, "Date")
+            __appendHeader(sub, tmp, "To")
+            __appendHeader(sub, tmp, "Cc")
+            __appendHeader(sub, tmp, "Subject")
+            tmp.append("\n")
+
+            bodyBuffer.append(''.join(tmp))
+
+        else:
+            logging.warn("******WARNING****** message/rfc822 part not Multipart investigate")
+
+    elif subtype == "delivery-status":
+        #XXX: This is will need i18n decoding
+        """Add the delivery status info to the message body """
+        bodyBuffer.append(mimePart.as_string())
         return
 
-    app = Mail.MIMEBinary()
-    app.mimeDesc = "APPLICATION"
-    __parseMIMEPart(app, mimePart, num)
+    elif subtype == "disposition-notification-to":
+        """Add the disposition-notification-to info to the message body"""
+        #XXX: This is will need i18n decoding
+        bodyBuffer.append(mimePart.as_string())
+        return
 
-    parentMIMEContainer.append(app)
+    elif subtype == "external-body":
+        logging.warn("Chandler Mail Service does not support message/external-body at this time")
+        return
+
+    elif subtype == "http":
+        logging.warn("Chandler Mail Service does not support message/http at this time")
+        return
+
+    elif subtype == "partial":
+        logging.warn("Chandler Mail Service does not support message/partial at this time")
+        return
+
+    if multipart:
+        for part in payload:
+            __parsePart(part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
+
+    else:
+        #XXX: Do not think this case exists investigate
+        bodyBuffer.append(payload)
 
 
-def __parseVideo(parentMIMEContainer, payload):
-    vid = Mail.MIMEBinary()
-    vid.mimeDesc = "VIDEO"
+def __handleMultipart(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
+    subtype   = mimePart.get_content_subtype()
+    multipart = mimePart.is_multipart()
 
-def __parseImage(parentMIMEContainer, payload):
-    img = Mail.MIMEBinary()
-    img.mimeDesc = "IMAGE"
+    if __verbose():
+        __trace("multipart/%s" % subtype, buf, level)
 
-def __parseAudio(parentMIMEContainer, payload):
-    img = Mail.MIMEBinary()
-    img.mimeDesc = "AUDIO"
+    """If the message is multipart then pass decode=False to
+    get_poyload otherwise pass True"""
+    payload = mimePart.get_payload(decode=not multipart)
+    assert payload is not None, "__handleMultipart payload is None"
 
-def __parseText(parentMIMEContainer, payload, body, level):
-    """
-        Subtypes:
-           text/enriched: treat as an attachment for now later add converted to text/plain
-           text/html: treat as an attachment for now later add converted to text/plain
-           text/plain: add to body
-           text/rfc-headers: add to body as text/plain
-           text/richtext: treat as an attachment for now later add converted to text/plain
-           text/sgml: treat as an attachment for now later add converted to text/plain
-    """
+    if subtype == "alternative":
+        """An alternative container should always have at least one part"""
+        if len(payload) > 0:
+            foundText = False
 
-def __parseMIMEPart(mimeItem, mimePart, num):
+            for part in payload:
+                if part.get_content_type() == "text/plain":
+                    #XXX: This needs i18n decoding
+                    payload = part.get_payload(decode=1)
+                    assert payload is not None, "__handleMultipart alternative payload is None"
+
+                    bodyBuffer.append(payload)
+                    foundText = True
+                    break
+
+            #XXX: This can be condensed for performance efficiency
+            if not foundText:
+                for part in payload:
+                    """A multipart/alternative container should have
+                       at least one part that is not multipart and
+                       is text based (plain, html, rtf) for display
+                    """
+                    if not part.is_multipart():
+                        if part.get_content_main_type() == "text":
+                            __handleText(part, parentContainer, bodyBuffer, counter, buf, level)
+                        else:
+                            __handleBinary(part, parentContainer, counter, buf, level)
+
+                        break
+
+    elif subtype == "byteranges":
+        logging.warn("Chandler Mail Service does not support multipart/byteranges at this time")
+        return
+
+    elif subtype == "form-data":
+        logging.warn("Chandler Mail Service does not support multipart/form-data at this time")
+        return
+
+    elif subtype == "signed":
+        logging.warn("Chandler Mail Service does not support multipart/signed at this time")
+        return
+
+    elif subtype == "encrypted":
+        logging.warn("Chandler Mail Service does not support multipart/encrypted at this time")
+        return
+
+    else:
+        for part in payload:
+            __parsePart(part, parentMIMEContainer, bodyBuffer, counter, buf, level+1)
+
+
+def __handleBinary(mimePart, parentMIMEContainer, counter, buf, level):
+    contype = mimePart.get_content_type()
+
+    if __verbose():
+        __trace(contype, buf, level)
+
+    # skip AppleDouble resource files per RFC1740
+    if contype == "application/applefile":
+        return
+
+    mimeBinary = Mail.MIMEBinary()
+
+    """Get the attachments data"""
     body = mimePart.get_payload(decode=1)
+    assert body is not None, "__handleBinary body is None"
 
-    mimeItem.filesize = len(body)
-    mimeItem.filename = __getFileName(mimePart, num)
+    mimeBinary.filesize = len(body)
+    mimeBinary.filename = __getFileName(mimePart, counter)
+    mimeBinary.mimeType = contype
 
-    #XXX: Need to account for charsets, and mime-type setting of body
-    mimeItem.body     = utils.strToText(mimeItem, "body", body)
-    mimeItem.mimeType = mimePart.get_content_type()
+    """Try to figure out what the real mimetype is"""
+    if contype == "application/octet-stream" and \
+       not mimeBinary.filename.endswith(".bin"):
+       result = mimetypes.guess_type(mimeBinary.filename, strict=False)
+       if result[0] is not None:
+             mimeBinary.mimeType = result[0]
+
+    mimeBinary.body = utils.dataToBinary(mimeBinary, "body", body)
+
+    parentMIMEContainer.mimeParts.append(mimeBinary)
+    parentMIMEContainer.hasMimeParts = True
+
+def __handleText(mimePart, parentMIMEContainer, bodyBuffer, counter, buf, level):
+    subtype = mimePart.get_content_subtype()
+
+    if __verbose() and size > 0:
+        __trace("text/%s" % subtype, buf, level)
+
+    """Get the attachment data"""
+    body = mimePart.get_payload(decode=1)
+    assert body is not None, "__handleText body is None"
+
+    size = len(body)
 
 
-def __getFileName(mimePart, num):
-    """
-        This should handle all Unicode decoding of filename as well
-    """
+    #XXX: If there is an encoding then decode first then store
+    #encoding = mimePart.get
+    charset  = mimePart.get_charset()
+    content_charset  = mimePart.get_content_charset()
+
+    if subtype == "plain" or subtype == "rfc822-headers":
+        #XXX: this requires i18n decoding
+        size > 0 and bodyBuffer.append(body)
+
+    else:
+        mimeText = Mail.MIMEText()
+
+        mimeText.mimeType = mimePart.get_content_type()
+        mimeText.filesize = len(body)
+        mimeText.filename = __getFileName(mimePart, counter)
+        mimeText.body = utils.strToText(mimeText, "body", body)
+
+        parentMIMEContainer.mimeParts.append(mimeText)
+        parentMIMEContainer.hasMimeParts = True
+
+def __getFileName(mimePart, counter):
+    #XXX: This should handle all Unicode decoding of filename as well
     filename = mimePart.get_filename()
 
     if filename:
         return filename
 
     """No Filename need to create an arbitrary name"""
-    ext = mimetypes.guess_extension(mimePart.get_type())
+    ext = mimetypes.guess_extension(mimePart.get_content_type())
 
     if not ext:
        ext = '.bin'
 
-    return 'MIMEBinary-%s%s' % (num, ext)
+    return 'Attachment-%s%s' % (counter.nextValue(), ext)
+
+def __checkForDefects(mimePart):
+    if len(mimePart.defects) > 0:
+        strBuffer = []
+
+        for defect in mimePart.defects:
+            strBuffer.append(str(defect.__class__).split(".").pop())
+
+        logging.warn("*****WARNING**** the following Mail Parsing defects \
+                     found: %s" % ", ".join(strBuffer))
+
+def __appendHeader(mimePart, buffer, header):
+    if mimePart.has_key(header):
+        buffer.append("%s: %s\n" % (header, decodeHeader(mimePart[header])))
+
+def __verbose():
+    return __debug__ and constants.VERBOSE
+
+def __trace(contype, buf, level):
+    buf.append("%s %s" % (level * "  ", contype))

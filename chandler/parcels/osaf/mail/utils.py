@@ -12,6 +12,14 @@ import mx.DateTime as DateTime
 import application.Globals as Globals
 from repository.util.Lob import Lob
 
+class Counter:
+    def __init__(self, val=0):
+        self.counter = val
+
+    def nextValue(self):
+        self.counter += 1
+        return self.counter
+
 def getChandlerTransportMessage():
     """Returns the skeleton of a mail message populated with the subject
        and body verbage Chandler uses when the message in not intended to
@@ -114,26 +122,43 @@ def isString(var):
 
     return False
 
-def strToText(contentItem, attribute, string,
-              indexText=False, encoding='utf-8'):
-    """Converts a C{str} to C{Text}
-       Notes:
-          This should be a unicode string that a charset can be set on
+def strToText(contentItem, attribute, string, indexText=False, encoding='utf-8'):
+    """Converts a C{str} or C{unicode} to C{Lob}.
     """
     if not isString(string):
         return None
 
-    return contentItem.getAttributeAspect(attribute, 'type').makeValue(string, indexed=indexText, encoding=encoding)
+    return contentItem.getAttributeAspect(attribute, \
+                                          'type').makeValue(string, \
+                                          indexed=indexText, encoding=encoding)
 
 
 def textToStr(text):
-    """Converts a C{Text} to a C{str}"""
+    """Converts a text C{Lob} to a C{unicode} String"""
     assert isinstance(text, Lob), "Must pass a Lob instance"
     assert text.encoding, "Encoding must not be None for reader API"
-    
+
     reader = text.getReader()
-    string = reader.read()
+    uStr = reader.read()
     reader.close()
 
-    return string
+    return uStr
 
+def dataToBinary(contentItem, attribute, data, indexText=False):
+    """Converts non-string data to a C{TLob}
+    """
+    return contentItem.getAttributeAspect(attribute, \
+                                          'type').makeValue(data, \
+                                          indexed=indexText, encoding=None)
+
+
+def binaryToData(data):
+    """Converts a C{Lob} to data"""
+    assert isinstance(data, Lob), "Must pass a Lob instance"
+    assert data.encoding is None, "Encoding must be None for inputstreamr API"
+
+    input = data.getInputStream()
+    buffer = data.read()
+    data.close()
+
+    return buffer

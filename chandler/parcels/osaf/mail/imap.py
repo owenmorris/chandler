@@ -34,6 +34,10 @@ import constants as constants
 import utils as utils
 
 """
+  TO DO:
+    1. Look not only at exists but at flags to download mail. Do not want to
+       download mail flagged as deleted but still existing in the mail box
+
   Bug:
    1. If the server times out which fetching messages the last UID can get lost
       should set last uid locally before fetch then save on commit to prevent

@@ -183,7 +183,7 @@
             <initialValue type="Boolean" value="False"/>
         </Attribute>
 
-        <Attribute itsName="signiture">
+        <Attribute itsName="signature">
             <issues value="Basic signiture addition to an outgoing message will be refined in future releases" />
             <type itemref="String" />
         </Attribute>
@@ -337,7 +337,7 @@
     </Kind>
 
     <Kind itsName="MIMEBase">
-        <superKinds itemref="content:ChandlerItem" />
+        <superKinds itemref="content:ContentItem" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEBase" />
         <displayName value="MIME Base Kind" />
         <description value="Super kind for MailMessage and the various MIME kinds" />
@@ -346,32 +346,6 @@
             <displayName value="mimeType" />
             <type itemref="String" />
             <initialValue type="String" value="" />
-        </Attribute>
-
-        <Attribute itsName="mimeDesc">
-            <type itemref="mail:MIMEBase/mimeDesc/mimeDescEnum" />
-
-            <Enumeration itsName="mimeDescEnum">
-                <values value="MESSAGE" />
-                <values value="AUDIO" />
-                <values value="APPLICATION" />
-                <values value="IMAGE" />
-                <values value="VIDEO" />
-                <values value="PLAIN" />
-                <values value="HTML" />
-                <values value="ENRICHED" />
-                <values value="RICHTEXT" />
-                <values value="SGML" />
-                <values value="RFCHEADERS" />
-                <values value="ALTERNATIVE" />
-                <values value="PARALLEL" />
-                <values value="RELATED" />
-                <values value="REPORT" />
-                <values value="PARTIAL" />
-                <values value="DIGEST" />
-                <values value="SIGNED" />
-                <values value="ENCRYPTED" />
-            </Enumeration>
         </Attribute>
 
         <Attribute itsName="mimeContainer">
@@ -383,7 +357,10 @@
 
     <Kind itsName="MIMENote">
         <superKinds itemref="mail:MIMEBase" />
-        <superKinds itemref="content:Note" />
+        <!--
+         #XXX: Temporary solution to prevent attachments
+               from showing up in the All Collection
+        superKinds itemref="content:Note"/-->
         <classes key="python" value="osaf.contentmodel.mail.Mail.MIMENote" />
         <displayName value="MIME Note" />
         <description value="MIMEBase and Note, rolled into one" />
