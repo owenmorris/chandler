@@ -53,7 +53,6 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
         # Find out if the initialization was ever done
         try:
-
             extModuleDir = os.path.join(releaseModeDir, "external")
             intModuleDir = os.path.join(releaseModeDir, "internal")
             version = getVersion(os.path.join(extModuleDir, "Makefile"))
@@ -73,10 +72,10 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
                 # Now need to do the setup for external - "expand" and "make"
                 os.chdir(extModuleDir)
-                os.putenv("BUILD_ROOT", os.path.join(outputDir, "debug", "external") )
+                os.putenv("BUILD_ROOT", extModuleDir)
                 log.write("Environment variables: \n")
-                log.write(os.getenv("BUILD_ROOT") + "\n")
-                log.write(os.getent("GCJ_HOME") + "\n")
+                log.write("BUILD_ROOT = " + buildenv["BUILD_ROOT"] + "\n")
+                log.write("GCJ_HOME = " + buildenv["GCJ_HOME"] + "\n")
                 
                 print "Building " + relStr
                 log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
