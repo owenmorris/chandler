@@ -58,7 +58,7 @@ endif
 HOST=builds.osafoundation.org
 URL=http://$(HOST)/external/$(PLATFORM)
 
-.PHONY: install $(notdir $(ARCHIVES))
+.PHONY: default install clean realclean downloads
 
 default: install
 
@@ -67,11 +67,13 @@ downloads: $(ARCHIVES)
 $(ARCHIVES):
 	curl -o $@ $(URL)/$(notdir $@)
 
-$(notdir $(BIN_ARCHIVES)):
-	tar -C $(CHANDLERBIN) -xvzf ../$@
+$(addsuffix .installed, $(notdir $(BIN_ARCHIVES))):
+	tar -C $(CHANDLERBIN) -xvzf ../$(basename $@)
+	touch $@
 
-$(notdir $(HOME_ARCHIVES)):
-	tar -C $(CHANDLERHOME) -xvzf ../$@
+$(addsuffix .installed, $(notdir $(HOME_ARCHIVES))):
+	tar -C $(CHANDLERHOME) -xvzf ../$(basename $@)
+	touch $@
 
 checkout:
 	cd ..; \
@@ -79,13 +81,13 @@ checkout:
 	cvs co chandler-python 2>&1 | tee -a cvsco.log; \
 	echo 'Do |grep "^C " ../cvsco.log| to check for potential conflicts'
 
-install: $(ARCHIVES) $(notdir $(ARCHIVES))
+install: $(ARCHIVES) $(addsuffix .installed, $(notdir $(ARCHIVES)))
 
 clean:
 	rm -rf $(CHANDLERBIN)/$(SNAP) __repository__
+	rm -f $(addsuffix .installed, $(notdir $(ARCHIVES)))
 	rm -f chandler.log randpool.dat
 
 realclean: clean
 	rm -f $(ARCHIVES)
 	rm -fr $(CHANDLERBIN)/debug $(CHANDLERBIN)/release
-
