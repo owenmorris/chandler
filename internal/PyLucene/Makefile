@@ -35,7 +35,6 @@ ifeq ($(OS),Cygwin)
 build: sources apply
 	MAKEFLAGS=; \
 	. $(BUILD_ROOT)/cygenv.sh; \
-	echo PATH is $(PATH); \
 	$(MAKE) -f $(OS_MAKE) GCJ=`cygpath -aw $(GCJ_HOME)` $(COMP_OPT) \
                               DB=`cygpath -aw $(DB)` \
                               RELDIR=`cygpath -aw $(BUILD_ROOT)/$(SNAP)` \
