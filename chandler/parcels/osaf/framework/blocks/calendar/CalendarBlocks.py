@@ -28,10 +28,6 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
         self.SetWindowStyle(wx.minical.CAL_SUNDAY_FIRST |
                             wx.minical.CAL_SHOW_SURROUNDING_WEEKS)
 
-    def Destroy(self):
-        #super (wxMiniCalendar, self).Destroy()
-        pass
-        
     def OnWXSelectItem(self, event):
         self.blockItem.postEventByName ('SelectedDateChanged',
                                         {'start': self.getSelectedDate()})
@@ -39,7 +35,7 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
     def OnWXDoubleClick(self, event):
         # Select the calendar filter
         self.blockItem.postEventByName ('ApplicationBarEvent', {})
-                                          
+
         # Set the calendar to the clicked day
         self.blockItem.postEventByName ('SelectedDateChanged',
                                         {'start': self.getSelectedDate()})
@@ -57,27 +53,26 @@ class wxMiniCalendar(wx.minical.MiniCalendar):
                                     mxdate.year)
         self.SetDate(wxdate)
 
-    
     def setSelectedDateRange(self, mxstart, mxend):
         self.resetMonth()
         self.setSelectedDate(mxstart)
-        
+
         if (mxstart.month != mxend.month):
             endday = mxstart.days_in_month + 1
         else:
             endday = mxend.day + 1
-        
+
         for day in range(mxstart.day, endday):
             attr = wx.CalendarDateAttr(wx.WHITE, wx.BLUE, wx.WHITE,
                                        wx.SWISS_FONT)
             self.SetAttr(day, attr)
-            
+
         today = DateTime.today()
         if ((today.year == mxstart.year) and (today.month == mxstart.month)):
             self.SetHoliday(today.day)
-            
+
         self.Refresh()
-    
+
     def resetMonth(self):
         for day in range(1,32):
             self.ResetAttr(day)
