@@ -109,7 +109,7 @@ class wxEditText(wx.TextCtrl):
 
     def OnEnterPressed(self, event):
         block = Globals.repository.find (self.blockUUID)
-        block.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/EnterPressed'),
+        block.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/EnterPressed'),
                    {'text':self.GetValue()})
 
     def __del__(self):
@@ -235,7 +235,7 @@ class wxList (wx.ListCtrl):
             item = block.contents [event.GetIndex()]
             if block.selection != item:
                 block.selection = item
-            block.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+            block.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':item})
 
 
@@ -261,9 +261,9 @@ class wxList (wx.ListCtrl):
             subscription = self.subscriptionUUID
         except AttributeError:
             block = Globals.repository.find (self.blockUUID)
-            events = [Globals.repository.find('//parcels/osaf/framework/item_changed'),
-                      Globals.repository.find('//parcels/osaf/framework/item_added'),
-                      Globals.repository.find('//parcels/osaf/framework/item_deleted')]
+            events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
+                      Globals.repository.findPath('//parcels/osaf/framework/item_added'),
+                      Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
             self.subscriptionUUID = UUID()
             Globals.notificationManager.Subscribe (events,
                                                    self.subscriptionUUID,
@@ -452,9 +452,9 @@ class wxSummary(wx.grid.Grid):
             subscription = self.subscriptionUUID
         except AttributeError:
             block = Globals.repository.find (self.blockUUID)
-            events = [Globals.repository.find('//parcels/osaf/framework/item_changed'),
-                      Globals.repository.find('//parcels/osaf/framework/item_added'),
-                      Globals.repository.find('//parcels/osaf/framework/item_deleted')]
+            events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
+                      Globals.repository.findPath('//parcels/osaf/framework/item_added'),
+                      Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
             self.subscriptionUUID = UUID()
             Globals.notificationManager.Subscribe (events,
                                                    self.subscriptionUUID,
@@ -709,7 +709,7 @@ class wxTreeAndList:
             if block.selection != selection:
                 block.selection = selection
         
-                block.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                block.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                            {'item':selection})
 
     def wxSynchronizeWidget(self):
@@ -771,9 +771,9 @@ class wxTreeAndList:
         try:
             subscription = self.subscriptionUUID
         except AttributeError:
-            events = [Globals.repository.find('//parcels/osaf/framework/item_changed'),
-                      Globals.repository.find('//parcels/osaf/framework/item_added'),
-                      Globals.repository.find('//parcels/osaf/framework/item_deleted')]
+            events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
+                      Globals.repository.findPath('//parcels/osaf/framework/item_added'),
+                      Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
             block = Globals.repository.find (self.blockUUID)
             self.subscriptionUUID = UUID()
             Globals.notificationManager.Subscribe (events,
@@ -863,11 +863,11 @@ class wxItemDetail(wx.html.HtmlWindow):
           Clicking on a URL loads the page in a separate browser.
         """
         itemURL = wx_linkinfo.GetHref()
-        item = Globals.repository.find(itemURL)
+        item = Globals.repository.findPath(itemURL)
         if not item:
             webbrowser.open(itemURL)
         else:
-            event = Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged')
+            event = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged')
             event.Post({'item':item, 'type':'Normal'})
 
     def wxSynchronizeWidget(self):

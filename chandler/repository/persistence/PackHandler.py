@@ -76,13 +76,13 @@ class PackHandler(ContentHandler):
         else:
             self.name = attrs['name']
 
-            packs = self.repository.find('Packs')
+            packs = self.repository.findPath('Packs')
             self.pack = Item(self.name, packs, None)
 
     def packEnd(self, attrs):
 
         if not attrs.has_key('file'):
-            itemKind = self.repository.find('Schema/Core/Item')
+            itemKind = self.repository.findPath('Schema/Core/Item')
             self.pack._kind = itemKind         #kludge
             self.pack.description = self.path
 

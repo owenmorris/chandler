@@ -26,7 +26,7 @@ class TestText(RepositoryTestCase):
         self.rep.commit()
 
     def compressed(self, compression):
-        khepburn = self.rep.find('//CineGuide/KHepburn')
+        khepburn = self.rep.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
@@ -53,7 +53,7 @@ class TestText(RepositoryTestCase):
 
         self._reopenRepository()
 
-        khepburn = self.rep.find('//CineGuide/KHepburn')
+        khepburn = self.rep.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
@@ -80,7 +80,7 @@ class TestText(RepositoryTestCase):
 
     def appended(self, compression):
 
-        khepburn = self.rep.find('//CineGuide/KHepburn')
+        khepburn = self.rep.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
@@ -106,7 +106,7 @@ class TestText(RepositoryTestCase):
 
         self._reopenRepository()
 
-        khepburn = self.rep.find('//CineGuide/KHepburn')
+        khepburn = self.rep.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 

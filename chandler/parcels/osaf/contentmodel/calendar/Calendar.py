@@ -23,19 +23,19 @@ class CalendarParcel(Parcel.Parcel):
         Parcel.Parcel.__init__(self, name, parent, kind)
 
     def _setUUIDs(self):
-        calendarEventKind = self.find('CalendarEvent')
+        calendarEventKind = self['CalendarEvent']
         CalendarParcel.calendarEventKindID = calendarEventKind.itsUUID
 
-        locationKind = self.find('Location')
+        locationKind = self['Location']
         CalendarParcel.locationKindID = locationKind.itsUUID
         
-        calendarKind = self.find('Calendar')
+        calendarKind = self['Calendar']
         CalendarParcel.calendarKindID = calendarKind.itsUUID
         
-        recurrenceKind = self.find('RecurrencePattern')
+        recurrenceKind = self['RecurrencePattern']
         CalendarParcel.recurrencePatternKindID = recurrenceKind.itsUUID
         
-        reminderKind = self.find('Reminder')
+        reminderKind = self['Reminder']
         CalendarParcel.reminderKindID = reminderKind.itsUUID
 
     def onItemLoad(self):
@@ -88,7 +88,7 @@ class CalendarEvent(ContentModel.ContentItem):
 
     def __init__(self, name=None, parent=None, kind=None):
         if not kind:
-            kind = Globals.repository.find ("//parcels/osaf/contentmodel/calendar/CalendarEvent")
+            kind = Globals.repository.findPath("//parcels/osaf/contentmodel/calendar/CalendarEvent")
         ContentModel.ContentItem.__init__(self, name, parent, kind)
         self.startTime = DateTime.now()
         self.endTime = DateTime.now()

@@ -18,6 +18,7 @@ import logging
 from repository.parcel.Util import PrintItem
 from repository.parcel.Parcel import Parcel
 from repository.util.ClassLoader import ClassLoader
+from repository.util.Path import Path
 
 
 class ParcelLoader(object):
@@ -38,7 +39,7 @@ class ParcelLoader(object):
     def load(self, file, uri):
         # Before loading a parcel, load its parent
         parentUri = uri[:uri.rfind('/')]
-        parcelParent = self.repository.find(parentUri)
+        parcelParent = self.repository.findPath(parentUri)
         if not parcelParent:
             self.callback(self.repository, parentUri, self.callbackArg)
 
@@ -82,7 +83,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
         # Get the parcel's parent
         parentUri = self.uri[:self.uri.rfind('/')]
-        self.parcelParent = self.repository.find(parentUri)
+        self.parcelParent = self.repository.findPath(parentUri)
         assert self.parcelParent, "Parcel parent has not been loaded."
 
     def endDocument(self):
@@ -225,7 +226,7 @@ class ItemHandler(xml.sax.ContentHandler):
             of the attribute.
         """
         if attributeTypePath:
-            attributeType = self.repository.find(attributeTypePath)
+            attributeType = self.repository.findPath(attributeTypePath)
             value = attributeType.makeValue(value)
         else:
             assert item, \
@@ -249,7 +250,7 @@ class ItemHandler(xml.sax.ContentHandler):
             the try loading the parcel it's supposed to be in.
         """
 
-        path = "%s/%s" % (namespace, name)
+        path = Path(namespace, name)
         item = self.repository.find(path)
 
         # If the item doesn't yet exist, load the parcel it's supposed

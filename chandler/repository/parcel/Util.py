@@ -19,7 +19,7 @@ def PrintItem(uri, rep, recursive=False, level=0):
 
     for i in range(level):
         print " ",
-    item = rep.find(uri)
+    item = rep.findPath(uri)
     if not item:
         print "Error: %s was not found" % uri
         return

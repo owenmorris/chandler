@@ -29,12 +29,12 @@ class Parcel(Item):
 
     def setupParcels(repository):
         # @@@ bootstrapping for parcels
-        parcelKind = repository.find('//Schema/Core/Parcel')
+        parcelKind = repository.findPath('//Schema/Core/Parcel')
 
-        if not repository.find('//parcels'):
+        if not repository.findPath('//parcels'):
             parcels = Parcel('parcels', repository, parcelKind)
-        if not repository.find('//parcels/osaf'):
-            parcels = repository.find('//parcels')
+        if not repository.findPath('//parcels/osaf'):
+            parcels = repository.findPath('//parcels')
             osaf = Parcel('osaf', parcels, parcelKind)
 
     setupParcels = staticmethod(setupParcels)

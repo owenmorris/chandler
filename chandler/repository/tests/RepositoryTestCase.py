@@ -10,6 +10,7 @@ from unittest import TestCase
 import os, sys
 
 from repository.persistence.XMLRepository import XMLRepository
+from repository.util.Path import Path
 
 class RepositoryTestCase(TestCase):
 
@@ -42,11 +43,11 @@ class RepositoryTestCase(TestCase):
                                                   '__repository__'))
             self.rep.open()
 
-    def _find(self, item):
-        return self.rep.find(item)
+    def _find(self, path):
+        return self.rep.findPath(path)
 
-    _KIND_KIND = "//Schema/Core/Kind"
-    _ITEM_KIND = "//Schema/Core/Item"
+    _KIND_KIND = Path("//Schema/Core/Kind")
+    _ITEM_KIND = Path("//Schema/Core/Item")
 
     # Repository specific assertions
     def assertIsRoot(self, item):

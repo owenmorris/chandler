@@ -25,9 +25,9 @@ class LocalTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.rep.commit()
 
         # Ensure the Parcel was created
-        kind = self.rep.find("//parcels/localattrs/TestKind")
+        kind = self.rep.findPath("//parcels/localattrs/TestKind")
         self.assert_(kind)
-        attr = self.rep.find("//parcels/localattrs/TestKind/TestAttribute")
+        attr = self.rep.findPath("//parcels/localattrs/TestKind/TestAttribute")
         self.assert_(attr)
         found = False
         for (name, attr) in kind.iterAttributes():

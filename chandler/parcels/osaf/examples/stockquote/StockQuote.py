@@ -15,8 +15,8 @@ class StockQuoteViewParcel(Parcel):
         # Make sure our view is in the sidebar
         Parcel.startupParcel(self)
         rep = self.getRepository()
-        urlRoot = rep.find("//parcels/osaf/views/main/URLRoot")
-        sqNode = rep.find("//parcels/osaf/examples/stockquote/views/StockQuoteViewNode")
+        urlRoot = rep.findPath("//parcels/osaf/views/main/URLRoot")
+        sqNode = rep.findPath("//parcels/osaf/examples/stockquote/views/StockQuoteViewNode")
         if urlRoot and sqNode:
             urlRoot.children.append(sqNode)
 
@@ -25,10 +25,10 @@ class StockQuoteView(BoxContainer):
     def OnGetQuoteEvent(self, notification):
         if not hasattr (self, "proxy"):
             self.proxy = WSDL.Proxy('http://services.xmethods.net/soap/urn:xmethods-delayed-quotes.wsdl')
-        symbolText = Globals.repository.find('//parcels/osaf/examples/stockquote/views/StockQuoteView/SymbolText')
+        symbolText = Globals.repository.findPath('//parcels/osaf/examples/stockquote/views/StockQuoteView/SymbolText')
         wxSymbolText = Globals.association[symbolText.itsUUID]
         symbol = wxSymbolText.GetValue()
-        valueLabel = Globals.repository.find('//parcels/osaf/examples/stockquote/views/StockQuoteView/ValueLabel')
+        valueLabel = Globals.repository.findPath('//parcels/osaf/examples/stockquote/views/StockQuoteView/ValueLabel')
         wxValueLabel = Globals.association[valueLabel.itsUUID]
         wxValueLabel.SetLabel('')#Allow user to notice change
         wxValueLabel.SetLabel('$' + str(self.proxy.getQuote( symbol )))

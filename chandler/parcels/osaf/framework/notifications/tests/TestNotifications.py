@@ -15,7 +15,7 @@ import repository.item.Item as Item
 from osaf.framework.notifications.Notification import Notification
 
 def MakeEvent():
-    eventKind = Globals.repository.find('//parcels/osaf/framework/notifications/schema/Event')
+    eventKind = Globals.repository.findPath('//parcels/osaf/framework/notifications/schema/Event')
     event = eventKind.newItem(None, Globals.repository)
     return event
 
@@ -25,7 +25,7 @@ def repositoryCallback(uuid, notification, reason, **kwds):
     else:
         return
 
-    event = Globals.repository.find(eventPath)
+    event = Globals.repository.findPath(eventPath)
 
     from osaf.framework.notifications.Notification import Notification
     note = Notification(event)
@@ -50,7 +50,7 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
         uri = uri.replace(os.path.sep, "/")
         parcelDir = os.path.join(self.rootdir, 'chandler', 'parcels', relPath)
         LoadParcels.LoadParcel(parcelDir, uri, self.parceldir, self.rep)
-        self.assert_(self.rep.find(uri))
+        self.assert_(self.rep.findPath(uri))
 
     def setUp(self):
         RepositoryTestCase.RepositoryTestCase.setUp(self)
@@ -123,11 +123,11 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
             print 'Deleted:', uuid
 
         # subscribe to changed, added, deleted events
-        e = rep.find('//parcels/osaf/framework/item_changed')
+        e = rep.findPath('//parcels/osaf/framework/item_changed')
         nm.Subscribe([e], 1, onItemChanged)
-        e = rep.find('//parcels/osaf/framework/item_added')
+        e = rep.findPath('//parcels/osaf/framework/item_added')
         nm.Subscribe([e], 2, onItemAdded)
-        e = rep.find('//parcels/osaf/framework/item_deleted')
+        e = rep.findPath('//parcels/osaf/framework/item_deleted')
         nm.Subscribe([e], 3, onItemDeleted)
 
         print 'adding event'

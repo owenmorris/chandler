@@ -15,6 +15,9 @@ import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
 import mx.DateTime as DateTime
 
+from repository.util.Path import Path
+
+
 class CalendarTest(TestContentModel.ContentModelTestCase):
     """ Test Calendar Content Model """
 
@@ -45,18 +48,18 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
                               "simple location")
 
         # Check that the globals got created by the parcel
-        calendarPath = '//parcels/osaf/contentmodel/calendar/%s'
+        calendarPath = Path('//parcels/osaf/contentmodel/calendar')
         
         self.assertEqual(Calendar.CalendarParcel.getCalendarEventKind(),
-                         self.rep.find(calendarPath % 'CalendarEvent'))
+                         self.rep.find(Path(calendarPath, 'CalendarEvent')))
         self.assertEqual(Calendar.CalendarParcel.getCalendarKind(),
-                         self.rep.find(calendarPath % 'Calendar'))
+                         self.rep.find(Path(calendarPath, 'Calendar')))
         self.assertEqual(Calendar.CalendarParcel.getLocationKind(),
-                         self.rep.find(calendarPath % 'Location'))
+                         self.rep.find(Path(calendarPath, 'Location')))
         self.assertEqual(Calendar.CalendarParcel.getRecurrencePatternKind(),
-                         self.rep.find(calendarPath % 'RecurrencePattern'))
+                         self.rep.find(Path(calendarPath, 'RecurrencePattern')))
         self.assertEqual(Calendar.CalendarParcel.getReminderKind(),
-                         self.rep.find(calendarPath % 'Reminder'))
+                         self.rep.find(Path(calendarPath, 'Reminder')))
 
         # Construct a sample item
         calendarEventItem = Calendar.CalendarEvent("calendarEventItem")
@@ -80,13 +83,13 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
         # Re-examine items
         self._reopenRepository()
 
-        contentItemParent = self.rep.find("//userdata/contentitems")
+        contentItemParent = self.rep.findPath("//userdata/contentitems")
 
-        calendarEventItem = contentItemParent.find("calendarEventItem")
-        calendarItem = contentItemParent.find("calendarItem")
-        locationItem = contentItemParent.find("locationItem")
-        recurrenceItem = contentItemParent.find("recurrenceItem")
-        reminderItem = contentItemParent.find("reminderItem")
+        calendarEventItem = contentItemParent.getItemChild("calendarEventItem")
+        calendarItem = contentItemParent.getItemChild("calendarItem")
+        locationItem = contentItemParent.getItemChild("locationItem")
+        recurrenceItem = contentItemParent.getItemChild("recurrenceItem")
+        reminderItem = contentItemParent.getItemChild("reminderItem")
         
         _verifyCalendarEvent(calendarEventItem)
         _verifyCalendarItems(calendarItem, locationItem,

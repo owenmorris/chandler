@@ -11,10 +11,10 @@ __all__ = ['getIndex']
 
 def getIndex(name):
     repository = Globals.repository
-    ITEM_KIND_PATH = '//Schema/Core/Item'
-    INDEX_KIND_PATH = '//parcels/osaf/framework/utils/indexer/Index'
+    ITEM_KIND_PATH = Path('//Schema/Core/Item')
+    INDEX_KIND_PATH = Path('//parcels/osaf/framework/utils/indexer/Index')
 
-    index = repository.find('//userdata/indexes/' + name)
+    index = repository.find(Path('//', 'userdata', 'indexes', name))
     if index:
         return index
 
@@ -25,12 +25,12 @@ def __getParent():
     """ get or create //userdata/indexes """
     repository = Globals.repository
 
-    parent = repository.find('//userdata/indexes')
+    parent = repository.findPath('//userdata/indexes')
     if parent:
         return parent
 
-    itemKind = repository.find('//Schema/Core/Item')
-    userdata = repository.find('//userdata')
+    itemKind = repository.findPath('//Schema/Core/Item')
+    userdata = repository.getRoot('userdata')
     if not userdata:
         userdata = itemKind.newItem('userdata', repository)
 

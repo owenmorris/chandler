@@ -17,7 +17,7 @@ from repository.item.Query import KindQuery
 
 def LoadDependency(repository, uri, searchPath):
     # Easy success if we find the parcel
-    parcel = repository.find(uri)
+    parcel = repository.findPath(uri)
     if parcel: return
 
     # Look for the parcel anywhere on the path
@@ -49,7 +49,7 @@ def WalkParcels(rootParcel):
 
     parcels = {}
 
-    parcelKind = repo.find("//Schema/Core/Parcel")
+    parcelKind = repo.findPath("//Schema/Core/Parcel")
     for parcel in KindQuery().run([parcelKind]):
         p = tuple(parcel.itsPath)
         if p[:rootParcelPathLen] == rootParcelPath:
@@ -77,7 +77,7 @@ def LoadParcels(searchPath, repository):
                 parcelFile = os.path.join(root, 'parcel.xml')
                 _loadParcel(parcelFile, uri, repository, loader)
 
-    root = repository.find("//parcels")
+    root = repository.findPath("//parcels")
     for parcel in WalkParcels(root):
         parcel.startupParcel()
 
@@ -92,7 +92,7 @@ def LoadParcel(dir, uri, searchPath, repository):
     loader = ParcelLoader(repository, LoadDependency, searchPath)
     _loadParcel(parcelFile, uri, repository, loader)
 
-    root = repository.find("//parcels")
+    root = repository.findPath("//parcels")
     for parcel in WalkParcels(root):
         parcel.startupParcel()
 
@@ -102,7 +102,7 @@ def _loadParcel(parcelFile, uri, repository, loader):
     Internal method used by LoadParcels and LoadParcel
     """
 
-    parcel = repository.find(uri)
+    parcel = repository.findPath(uri)
     if ((not parcel) or
         (parcel.modifiedOn.ticks() < os.stat(parcelFile).st_mtime)):
         try:

@@ -23,14 +23,14 @@ class ContentItemDetail(ControlBlocks.ItemDetail):
         HTMLText = "<html><body>"
         
         kind = item.itsKind
-        if kind is Globals.repository.find ("//parcels/osaf/contentmodel/calendar/CalendarEvent"):
+        if kind is Globals.repository.findPath("//parcels/osaf/contentmodel/calendar/CalendarEvent"):
             HTMLText += "<b>Headline: </b> %s<br>" % item.getAbout()
             HTMLText += "<b>Attendees: </b> %s<br>" % item.getWho()
             HTMLText += "<b>Date: </b> %s<br>" % item.getDate()
             HTMLText += "<b>Duration: </b> %s<br>" % item.duration
-        elif kind is Globals.repository.find ("//parcels/osaf/contentmodel/notes/Note"):
+        elif kind is Globals.repository.findPath("//parcels/osaf/contentmodel/notes/Note"):
             HTMLText += "<b>Title: </b> %s<br>" % item.getAbout()
-        elif kind is Globals.repository.find ("//parcels/osaf/contentmodel/contacts/Contact"):
+        elif kind is Globals.repository.findPath("//parcels/osaf/contentmodel/contacts/Contact"):
             HTMLText += "<b>First name: </b> %s<br>" % item.contactName.firstName
             HTMLText += "<b>Last name: </b> %s<br>" % item.contactName.lastName
             for phone in item.homeSection.phoneNumbers:

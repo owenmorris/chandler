@@ -38,7 +38,7 @@ class Node(Item):
         raise BadURL
                 
     def GetItemFromPath(theClass, path, rootURL='//parcels/osaf/views/locations/URLRoot'):
-        rootNode = Globals.repository.find(rootURL)
+        rootNode = Globals.repository.findPath(rootURL)
         while path.startswith('/'):
             path = path[1:]
         return rootNode.GetDescendant(path.split('/'))

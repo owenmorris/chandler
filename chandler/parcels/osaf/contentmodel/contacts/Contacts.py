@@ -25,19 +25,19 @@ class ContactsParcel(Parcel.Parcel):
         self._setUUIDs()
 
     def _setUUIDs(self):
-        contactKind = self.find('Contact')
+        contactKind = self['Contact']
         ContactsParcel.contactKindID = contactKind.itsUUID
         
-        contactSectionKind = self.find('ContactSection')
+        contactSectionKind = self['ContactSection']
         ContactsParcel.contactSectionKindID = contactSectionKind.itsUUID
 
-        contactNameKind = self.find('ContactName')
+        contactNameKind = self['ContactName']
         ContactsParcel.contactNameKindID = contactNameKind.itsUUID
         
-        streetAddressKind = self.find('StreetAddress')
+        streetAddressKind = self['StreetAddress']
         ContactsParcel.streetAddressKindID = streetAddressKind.itsUUID
         
-        phoneNumberKind = self.find('PhoneNumber')
+        phoneNumberKind = self['PhoneNumber']
         ContactsParcel.phoneNumberKindID = phoneNumberKind.itsUUID
 
     def getContactKind(cls):

@@ -130,8 +130,8 @@ class DeferredAction:
 
         repository.commit()
 
-        action = repository.find(self.actionID)
-        agent = repository.find(agentID)
+        action = repository.findUUID(self.actionID)
+        agent = repository.findUUID(agentID)
 
         if action.NeedsConfirmation():
             message = self._GetPermissionMessage(action, agent)

@@ -85,9 +85,9 @@ class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
         try:
             subscription = self.subscriptionUUID
         except:
-            events = [Globals.repository.find('//parcels/osaf/framework/item_changed'),
-                      Globals.repository.find('//parcels/osaf/framework/item_added'),
-                      Globals.repository.find('//parcels/osaf/framework/item_deleted')]
+            events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
+                      Globals.repository.findPath('//parcels/osaf/framework/item_added'),
+                      Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
             self.subscriptionUUID = UUID.UUID()
             Globals.notificationManager.Subscribe(events,
                                                   self.subscriptionUUID,
@@ -239,9 +239,9 @@ class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
         try:
             subscription = self.subscriptionUUID
         except:
-            events = [Globals.repository.find('//parcels/osaf/framework/item_changed'),
-                      Globals.repository.find('//parcels/osaf/framework/item_added'),
-                      Globals.repository.find('//parcels/osaf/framework/item_deleted')]
+            events = [Globals.repository.findPath('//parcels/osaf/framework/item_changed'),
+                      Globals.repository.findPath('//parcels/osaf/framework/item_added'),
+                      Globals.repository.findPath('//parcels/osaf/framework/item_deleted')]
             self.subscriptionUUID = UUID.UUID()
             Globals.notificationManager.Subscribe(events,
                                                   self.subscriptionUUID,

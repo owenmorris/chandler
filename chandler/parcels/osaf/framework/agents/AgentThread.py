@@ -42,7 +42,7 @@ class AgentThread(threading.Thread):
         repository.commit()
 
         # Get this threads agent item view
-        agentItem = repository.find(self.agentID)
+        agentItem = repository.findUUID(self.agentID)
 
         # subscribe to notifications
         agentItem.SubscribeToNotifications(self._NewNotification)

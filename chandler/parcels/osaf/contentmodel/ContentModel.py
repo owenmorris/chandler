@@ -26,23 +26,23 @@ class ContentModel(Parcel.Parcel):
 
     def _setUUIDs(self, parent):
         ContentModel.contentItemParentID = parent.itsUUID
-        ContentModel.contentItemKindID = self.find('ContentItem').itsUUID
-        ContentModel.projectKindID = self.find('Project').itsUUID
-        ContentModel.groupKindID = self.find('Group').itsUUID
+        ContentModel.contentItemKindID = self['ContentItem'].itsUUID
+        ContentModel.projectKindID = self['Project'].itsUUID
+        ContentModel.groupKindID = self['Group'].itsUUID
 
     def onItemLoad(self):
         super(ContentModel, self).onItemLoad()
         repository = self.getRepository()
-        parent = repository.find('//userdata/contentitems')
+        parent = repository.findPath('//userdata/contentitems')
         self._setUUIDs(parent)
 
     def startupParcel(self):
         Parcel.Parcel.startupParcel(self)
         repository = self.getRepository()
-        parent = repository.find('//userdata/contentitems')
+        parent = repository.findPath('//userdata/contentitems')
         if not parent:
-            itemKind = repository.find('//Schema/Core/Item')
-            userdata = repository.find('//userdata')
+            itemKind = repository.findPath('//Schema/Core/Item')
+            userdata = repository.getRoot('userdata')
             if not userdata:
                 userdata = itemKind.newItem('userdata', repository)
             parent = itemKind.newItem('contentitems', userdata)

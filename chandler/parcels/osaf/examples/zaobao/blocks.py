@@ -85,7 +85,7 @@ class ZaoBaoTreeDelegate:
         return False
 
     def NeedsUpdate(self, notification):
-        item = Globals.repository.find(notification.data['uuid'])
+        item = Globals.repository.findUUID(notification.data['uuid'])
         if item.itsKind is RSSData.ZaoBaoParcel.getRSSChannelKind():
             self.scheduleUpdate = True
 

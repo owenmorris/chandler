@@ -19,9 +19,9 @@ class Importer:
     """
     def __init__(self, destination=None):
         if destination == None:
-            self.destination=Globals.repository.find("//userdata/contentitems")
+            self.destination=Globals.repository.findPath("//userdata/contentitems")
         else:
-            self.destination=Globals.repository.find(destination)
+            self.destination=Globals.repository.findPath(destination)
         self.lineNumber=0
     
     def processObjects(self, sourceFile):

@@ -75,7 +75,7 @@ class TaskThread(RepositoryThread):
         # this function is really ugly.. i should clean it up :)
 
         from repository.item.Query import KindQuery
-        taskKind = Globals.repository.find('//parcels/osaf/framework/tasks/Task')
+        taskKind = Globals.repository.findPath('//parcels/osaf/framework/tasks/Task')
             
         for task in KindQuery().run([taskKind]):
             try:

@@ -37,7 +37,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
     def OnNewEvent (self, notification):
         "Create a new tab"
         tabbedContainer = Globals.association[self.itsUUID]
-        kind = Globals.repository.find("parcels/osaf/framework/blocks/HTML")
+        kind = Globals.repository.findPath("parcels/osaf/framework/blocks/HTML")
         name = self.getUniqueName("untitled")
         tabbedContainer.selectedTab = len(self.tabNames)
         self.tabNames.append(name)

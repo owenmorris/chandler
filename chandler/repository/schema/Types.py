@@ -370,7 +370,7 @@ class Path(Type):
 
     def eval(self, value):
 
-        item = self.find(value)
+        item = self.findPath(value)
         if item is None:
             raise ValueError, 'Path %s evaluated to None' %(value)
 

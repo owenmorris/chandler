@@ -84,7 +84,7 @@ class OutlookContacts(Importer.CSVImporter):
     def postProcess(self, object):
         """Deal with registering homeSection and workSection after the fact."""
         kindPath="//parcels/osaf/contentmodel/contacts/ContactSection"
-        sectionKind=Globals.repository.find(kindPath)
+        sectionKind=Globals.repository.findPath(kindPath)
         sectionsList=[]
         for child in object.iterChildren():
             if child.itsKind is sectionKind:

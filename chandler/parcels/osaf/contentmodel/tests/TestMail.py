@@ -14,6 +14,9 @@ import osaf.contentmodel.mail.Mail as Mail
 
 import mx.DateTime as DateTime
 
+from repository.util.Path import Path
+
+
 class MailTest(TestContentModel.ContentModelTestCase):
     """ Test Mail Content Model """
 
@@ -26,16 +29,16 @@ class MailTest(TestContentModel.ContentModelTestCase):
             pass
 
         # Test the globals
-        mailPath = '//parcels/osaf/contentmodel/mail/%s'
+        mailPath = Path('//parcels/osaf/contentmodel/mail')
 
         self.assertEqual(Mail.MailParcel.getAttachmentKind(),
-                         self.rep.find(mailPath % 'Attachment'))
+                         self.rep.find(Path(mailPath, 'Attachment')))
         self.assertEqual(Mail.MailParcel.getEmailAccountKind(),
-                         self.rep.find(mailPath % 'EmailAccount'))
+                         self.rep.find(Path(mailPath, 'EmailAccount')))
         self.assertEqual(Mail.MailParcel.getEmailAddressKind(),
-                         self.rep.find(mailPath % 'EmailAddress'))
+                         self.rep.find(Path(mailPath, 'EmailAddress')))
         self.assertEqual(Mail.MailParcel.getMailMessageKind(),
-                         self.rep.find(mailPath % 'MailMessage'))
+                         self.rep.find(Path(mailPath, 'MailMessage')))
 
         # Construct sample items
         attachmentItem = Mail.Attachment("attachmentItem")
@@ -61,9 +64,9 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
         self._reopenRepository()
 
-        contentItemParent = self.rep.find("//userdata/contentitems")
+        contentItemParent = self.rep.findPath("//userdata/contentitems")
         
-        mailMessageItem = contentItemParent.find("mailMessageItem")
+        mailMessageItem = contentItemParent.getItemChild("mailMessageItem")
         _verifyMailMessage(mailMessageItem)
         
 

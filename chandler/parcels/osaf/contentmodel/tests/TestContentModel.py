@@ -29,7 +29,7 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
         uri = uri.replace(os.path.sep, "/")
         parcelDir = os.path.join(self.rootdir, 'chandler', 'parcels', relPath)
         LoadParcels.LoadParcel(parcelDir, uri, self.parceldir, self.rep)
-        self.assert_(self.rep.find(uri))
+        self.assert_(self.rep.findPath(uri))
 
 class ContentItemTest(ContentModelTestCase):
 

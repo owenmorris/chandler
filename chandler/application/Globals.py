@@ -10,6 +10,9 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 Don't add to the globals without reviewing the addition.
 """
 
+from repository.util.Path import Path
+
+
 association = {}              # A dictionary mapping persistent object UUIDs
                               #    to non-persistent python objects, typically wxPython widgets
 agentManager = None           # AgentManager
@@ -20,4 +23,3 @@ repository = None             # The repository
 mainView = None               # The main View
 wxApplication = None          # The wxWindows application object
 activeView = None             # The last view that was displayed
-

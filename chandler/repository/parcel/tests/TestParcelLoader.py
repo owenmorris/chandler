@@ -27,9 +27,9 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         PrintItem("//parcels", self.rep)
 
         # Ensure the simple Parcel was created with the right Kind and attrs
-        simpleParcel = self.rep.find("//parcels/simple")
+        simpleParcel = self.rep.findPath("//parcels/simple")
         self.assertEqual(simpleParcel.itsKind,
-         self.rep.find('//Schema/Core/Parcel'))
+         self.rep.findPath('//Schema/Core/Parcel'))
         self.assertEqual(simpleParcel.displayName, "Simple Parcel")
         self.assertEqual(simpleParcel.description, 
          "Simple Parcel Loader Test Schema")
@@ -38,18 +38,18 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
          "Open Source Applications Foundation")
 
         # Ensure testAttribute was created with the right Kind and attrs
-        testAttribute = self.rep.find("//parcels/simple/TestAttribute")
+        testAttribute = self.rep.findPath("//parcels/simple/TestAttribute")
         self.assertEqual(testAttribute.itsKind,
-         self.rep.find('//Schema/Core/Attribute'))
+         self.rep.findPath('//Schema/Core/Attribute'))
         self.assertEqual(testAttribute.type, 
-         self.rep.find('//Schema/Core/String'))
+         self.rep.findPath('//Schema/Core/String'))
         self.assertEqual(testAttribute.displayName, "Test Attribute")
         self.assertEqual(testAttribute.cardinality, "single")
 
         # Ensure testKind was created with the right Kind and attrs
-        testKind = self.rep.find("//parcels/simple/TestKind")
+        testKind = self.rep.findPath("//parcels/simple/TestKind")
         self.assertEqual(testKind.itsKind,
-         self.rep.find('//Schema/Core/Kind'))
+         self.rep.findPath('//Schema/Core/Kind'))
         self.assertEqual(testKind.displayName, "Test Kind")
         self.assertEqual(testKind.displayAttribute, "TestAttribute")
 
@@ -58,9 +58,9 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         self.assert_(testAttribute.kinds.has_key(testKind.itsUUID))
 
         # Ensure subKind was created with the right Kind and attrs
-        subKind = self.rep.find("//parcels/simple/SubKind")
+        subKind = self.rep.findPath("//parcels/simple/SubKind")
         self.assertEqual(subKind.itsKind,
-         self.rep.find('//Schema/Core/Kind'))
+         self.rep.findPath('//Schema/Core/Kind'))
         self.assertEqual(subKind.displayName, "Subclass Test Kind")
 
         # Ensure testKind and subKind have the correct inheritence links

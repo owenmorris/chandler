@@ -6,6 +6,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import UUIDext
 
+class MalformedUUIDException(ValueError):
+    pass
 
 class UUID(object):
     """
@@ -37,7 +39,7 @@ class UUID(object):
         else:
             self._uuid = UUIDext.make(str(uuid))
             if not self._uuid:
-                raise ValueError, "Generating UUID from '%s' failed" %(uuid)
+                raise MalformedUUIDException, uuid
 
         self._hash = UUIDext.hash(self._uuid)
 

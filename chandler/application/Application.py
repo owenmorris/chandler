@@ -24,7 +24,7 @@ def repositoryCallback(uuid, notification, reason, **kwds):
     else:
         return
 
-    event = Globals.repository.find(eventPath)
+    event = Globals.repository.findPath(eventPath)
 
     # Postpone import to avoid circular imports
     from osaf.framework.notifications.Notification import Notification
@@ -203,7 +203,7 @@ class wxApplication (wx.App):
         else:
             Globals.repository.open(**kwds)
 
-        if not Globals.repository.find('//Packs/Schema'):
+        if not Globals.repository.findPath('//Packs/Schema'):
             """
               Bootstrap an empty repository by loading only the stuff that
             can't be loaded in a data parcel.
@@ -253,7 +253,7 @@ class wxApplication (wx.App):
         """
           Load and display the main chandler view.
         """
-        mainView = Globals.repository.find('//parcels/osaf/views/main/MainView')
+        mainView = Globals.repository.findPath('//parcels/osaf/views/main/MainView')
 
         if mainView:
             assert isinstance (mainView, View)
@@ -265,7 +265,7 @@ class wxApplication (wx.App):
             Globals.mainView = mainView
             self.menuParent = None
 
-            GlobalEvents = Globals.repository.find('//parcels/osaf/framework/blocks/Events/GlobalEvents')
+            GlobalEvents = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
             """
               Subscribe to some global events and those belonging to the mainView.
             """

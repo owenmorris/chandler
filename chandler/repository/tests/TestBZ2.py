@@ -29,7 +29,7 @@ class TestBZ2(RepositoryTestCase):
 
     def appended(self, compression):
 
-        khepburn = self.rep.find('//CineGuide/KHepburn')
+        khepburn = self.rep.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 
@@ -56,7 +56,7 @@ class TestBZ2(RepositoryTestCase):
 
         self._reopenRepository()
 
-        khepburn = self.rep.find('//CineGuide/KHepburn')
+        khepburn = self.rep.findPath('//CineGuide/KHepburn')
         movie = khepburn.movies.first()
         self.assert_(movie is not None)
 

@@ -80,7 +80,7 @@ class MapXML:
             if name in expandNodes:
                 node = self.reader.Expand()
                 if name == 'RootKind':
-                    kind=Globals.repository.find(node.getContent())
+                    kind=Globals.repository.findPath(node.getContent())
                     self.stack[0].kind=kind
                 elif name == 'EmptyDate':
                     self.emptyDates.append(node.getContent())

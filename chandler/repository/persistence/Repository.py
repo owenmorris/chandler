@@ -159,9 +159,17 @@ class Repository(object):
 
         return self.view.walk(path, callable, _index, **kwds)
 
-    def find(self, spec, _index=0, load=True):
+    def find(self, spec, load=True):
 
-        return self.view.find(spec, _index, load)
+        return self.view.find(spec, load)
+
+    def findPath(self, path, load=True):
+
+        return self.view.findPath(path, load)
+
+    def findUUID(self, uuid, load=True):
+
+        return self.view.findUUID(uuid, load)
 
     def queryItems(self, query, load=True):
 
@@ -327,18 +335,29 @@ class RepositoryView(object):
 
         return None
 
-    def find(self, spec, _index=0, load=True):
-        '''Find an item as specified or return None if not found.
-        
-        Spec can be a Path, a UUID or a string in which case it gets coerced
-        into one of the former. If spec is a path, the search is done relative
-        to the first name element in the path, a root in the repository.'''
-        
-        if isinstance(spec, Path):
-            return self.walk(spec, lambda parent, name, child, **kwds: child,
-                             load=load)
+    def find(self, spec, load=True):
+        """
+        Find an item.
 
-        elif isinstance(spec, UUID):
+        An item can be found by a path determined by its name and container
+        or by a uuid generated for it at creation time. If C{spec} is a
+        relative path, it is evaluated relative to C{self}.
+
+        This method returns C{None} if the item is not found or if it is
+        found but not yet loaded and C{load} was set to C{False}.
+
+        See the L{findPath} and L{findUUID} methods for versions of this
+        method that can also be called with a string.
+
+        @param spec: a path or UUID
+        @type spec: L{Path<repository.util.Path.Path>} or
+                    L{UUID<repository.util.UUID.UUID>} 
+        @param load: load the item if it not yet loaded, C{True} by default
+        @type load: boolean
+        @return: an item or C{None} if not found
+        """
+        
+        if isinstance(spec, UUID):
             if spec == self.itsUUID:
                 return self
             else:
@@ -349,17 +368,55 @@ class RepositoryView(object):
                         return self._loadItem(spec)
                     elif load and not spec in self._deletedRegistry:
                         return self._loadDoc(load)
+                    else:
+                        return None
 
-        elif isinstance(spec, str) or isinstance(spec, unicode):
-            if (spec[0] != '/' and
-                (len(spec) == 36 and spec[8] == '-' or len(spec) == 22)):
-                return self.find(UUID(spec), 0, load)
-            else:
-                return self.walk(Path(spec),
-                                 lambda parent, name, child, **kwds: child,
-                                 0, load=load)
+        if isinstance(spec, Path):
+            return self.walk(spec, lambda parent, name, child, **kwds: child,
+                             load=load)
 
-        return None
+        raise TypeError, '%s is not Path or UUID' %(type(spec))
+
+    def findPath(self, path, load=True):
+        """
+        Find an item by path.
+
+        See L{find} for more information.
+
+        @param path: a path
+        @type path: L{Path<repository.util.Path.Path>} or a path string.
+        @param load: load the item if it not yet loaded, C{True} by default
+        @type load: boolean
+        @return: an item or C{None} if not found
+        """
+
+        if isinstance(path, str) or isinstance(path, unicode):
+            path = Path(path)
+        elif not isinstance(path, Path):
+            raise TypeError, '%s is not Path or string' %(type(path))
+
+        return self.walk(path, lambda parent, name, child, **kwds: child,
+                         load=load)
+
+    def findUUID(self, uuid, load=True):
+        """
+        Find an item by UUID.
+
+        See L{find} for more information.
+
+        @param uuid: a UUID
+        @type uuid: L{UUID<repository.util.UUID.UUID>} or a uuid string.
+        @param load: load the item if it not yet loaded, C{True} by default
+        @type load: boolean
+        @return: an item or C{None} if not found
+        """
+
+        if isinstance(uuid, str) or isinstance(uuid, unicode):
+            uuid = UUID(uuid)
+        elif not isinstance(uuid, UUID):
+            raise TypeError, '%s is not UUID or string' %(type(uuid))
+
+        return self.find(uuid, load)
 
     def _findKind(self, spec, withSchema):
 

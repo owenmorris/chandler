@@ -14,6 +14,9 @@ import osaf.contentmodel.notes.Notes as Notes
 
 import mx.DateTime as DateTime
 
+from repository.util.Path import Path
+
+
 class NotesTest(TestContentModel.ContentModelTestCase):
     """ Test Notes Content Model """
 
@@ -31,12 +34,12 @@ class NotesTest(TestContentModel.ContentModelTestCase):
             reader.close()
 
         # Test the globals
-        notesPath = '//parcels/osaf/contentmodel/notes/%s'
+        notesPath = Path('//parcels/osaf/contentmodel/notes')
 
         self.assertEqual(Notes.NotesParcel.getNoteKind(),
-                         self.rep.find(notesPath % 'Note'))
+                         self.rep.find(Path(notesPath, 'Note')))
         self.assertEqual(Notes.NotesParcel.getConversationKind(),
-                         self.rep.find(notesPath % 'Conversation'))
+                         self.rep.find(Path(notesPath, 'Conversation')))
 
         # Construct sample items
         noteItem = Notes.Note("noteItem")
@@ -51,17 +54,17 @@ class NotesTest(TestContentModel.ContentModelTestCase):
         noteItem.title = "sample note"
 
         # Text property
-        textType = self.rep.find("//Schema/Core/Text")
+        textType = self.rep.findPath("//Schema/Core/Text")
         noteItem.body = textType.makeValue("more elaborate sample note body")
 
         _verifyNote(noteItem)
 
         self._reopenRepository()
 
-        contentItemParent = self.rep.find("//userdata/contentitems")
+        contentItemParent = self.rep.findPath("//userdata/contentitems")
         
-        noteItem = contentItemParent.find("noteItem")
-        conversationItem = contentItemParent.find("conversationItem")
+        noteItem = contentItemParent.getItemChild("noteItem")
+        conversationItem = contentItemParent.getItemChild("conversationItem")
         
         _verifyNote(noteItem)
         

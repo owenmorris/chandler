@@ -13,11 +13,11 @@ class DemoTabs(ContainerBlocks.TabbedContainer):
         notification.data['Check'] = (selectedText == notification.event.choice)
 
     def OnAddTextEvent(self, notification):
-        textBox = Globals.repository.find('//parcels/osaf/views/demo/ButtonText')
+        textBox = Globals.repository.findPath('//parcels/osaf/views/demo/ButtonText')
         wxTextBox = Globals.association[textBox.itsUUID]
         wxTextBox.AppendText('Here is some text')
     
     def OnReloadTextEvent(self, notification):
-        textBox = Globals.repository.find('//parcels/osaf/views/demo/ButtonText')
+        textBox = Globals.repository.findPath('//parcels/osaf/views/demo/ButtonText')
         wxTextBox = Globals.association[textBox.itsUUID]
         wxTextBox.SetValue('')

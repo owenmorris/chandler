@@ -116,7 +116,7 @@ class AgentManager:
         self.agentMap[agentID].Suspend()
 
         # unsubscribe to notifications
-        agentItem = Globals.repository.find(agentID)
+        agentItem = Globals.repository.findUUID(agentID)
         agentItem.UnsubscribeFromNotifications()
 
     def StopAll(self):

@@ -1660,7 +1660,7 @@ class Item(object):
 
         return None
 
-    def find(self, spec, _index=0, load=True):
+    def find(self, spec, load=True):
         """
         Find an item.
 
@@ -1671,30 +1671,66 @@ class Item(object):
         This method returns C{None} if the item is not found or if it is
         found but not yet loaded and C{load} was set to C{False}.
 
+        See the L{findPath} and L{findUUID} methods for versions of this
+        method that can also be called with a string.
+
         @param spec: a path or UUID
-        @type spec: Path, UUID or a string representation thereof
+        @type spec: L{Path<repository.util.Path.Path>} or
+                    L{UUID<repository.util.UUID.UUID>} 
         @param load: load the item if it not yet loaded, C{True} by default
         @type load: boolean
         @return: an item or C{None} if not found
         """
 
+        if isinstance(spec, UUID):
+            return self.getRepository().find(spec, load)
+
         if isinstance(spec, Path):
             return self.walk(spec, lambda parent, name, child, **kwds: child,
                              load=load)
 
-        elif isinstance(spec, UUID):
-            return self.getRepository().find(spec, 0, load)
+        raise TypeError, '%s is not Path or UUID' %(type(spec))
 
-        elif isinstance(spec, str) or isinstance(spec, unicode):
-            if (spec[0] != '/' and
-                (len(spec) == 36 and spec[8] == '-' or len(spec) == 22)):
-                return self.find(UUID(spec), 0, load)
+    def findPath(self, path, load=True):
+        """
+        Find an item by path.
 
-            return self.walk(Path(spec),
-                             lambda parent, name, child, **kwds: child,
-                             0, load=load)
+        See L{find} for more information.
 
-        return None
+        @param path: a path
+        @type path: L{Path<repository.util.Path.Path>} or a path string.
+        @param load: load the item if it not yet loaded, C{True} by default
+        @type load: boolean
+        @return: an item or C{None} if not found
+        """
+
+        if isinstance(path, str) or isinstance(path, unicode):
+            path = Path(path)
+        elif not isinstance(path, Path):
+            raise TypeError, '%s is not Path or string' %(type(path))
+
+        return self.walk(path, lambda parent, name, child, **kwds: child,
+                         load=load)
+
+    def findUUID(self, uuid, load=True):
+        """
+        Find an item by UUID.
+
+        See L{find} for more information.
+
+        @param uuid: a UUID
+        @type uuid: L{UUID<repository.util.UUID.UUID>} or a uuid string.
+        @param load: load the item if it not yet loaded, C{True} by default
+        @type load: boolean
+        @return: an item or C{None} if not found
+        """
+
+        if isinstance(uuid, str) or isinstance(uuid, unicode):
+            uuid = UUID(uuid)
+        elif not isinstance(uuid, UUID):
+            raise TypeError, '%s is not UUID or string' %(type(uuid))
+
+        return self.getRepository().find(uuid, load)
 
     def toXML(self):
         """

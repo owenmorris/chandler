@@ -24,16 +24,16 @@ class MailParcel(Parcel.Parcel):
         self._setUUIDs()
 
     def _setUUIDs(self):
-        attachmentKind = self.find('Attachment')
+        attachmentKind = self['Attachment']
         MailParcel.attachmentKindID = attachmentKind.itsUUID
         
-        emailAccountKind = self.find('EmailAccount')
+        emailAccountKind = self['EmailAccount']
         MailParcel.emailAccountKindID = emailAccountKind.itsUUID
         
-        emailAddressKind = self.find('EmailAddress')
+        emailAddressKind = self['EmailAddress']
         MailParcel.emailAddressKindID = emailAddressKind.itsUUID
         
-        mailMessageKind = self.find('MailMessage')
+        mailMessageKind = self['MailMessage']
         MailParcel.mailMessageKindID = mailMessageKind.itsUUID
 
     def getAttachmentKind(cls):

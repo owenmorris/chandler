@@ -24,15 +24,15 @@ class ZaoBaoParcel(Parcel):
         # hackery to avoid threading conflicts
         ZaoBaoParcel.RSSItemParentID = parent.itsUUID
         
-        ZaoBaoParcel.RSSChannelKindID = self.find('RSSChannel').itsUUID
-        ZaoBaoParcel.RSSItemKindID = self.find('RSSItem').itsUUID
+        ZaoBaoParcel.RSSChannelKindID = self['RSSChannel'].itsUUID
+        ZaoBaoParcel.RSSItemKindID = self['RSSItem'].itsUUID
 
     def onItemLoad(self):
         super(ZaoBaoParcel, self).onItemLoad()
 
         # @@@ hackery to avoid threading conflicts
         repository = self.getRepository()
-        parent = repository.find('//userdata/zaobaoitems')
+        parent = repository.findPath('//userdata/zaobaoitems')
         
         self._setUUIDs(parent)
 
@@ -42,10 +42,10 @@ class ZaoBaoParcel(Parcel):
         # @@@ hackery to avoid threading conflicts
         # Create a separate parent for RSSItems
         repository = self.getRepository()
-        parent = repository.find('//userdata/zaobaoitems')
+        parent = repository.findPath('//userdata/zaobaoitems')
         if not parent:
-            itemKind = repository.find('//Schema/Core/Item')
-            userdata = repository.find('//userdata')
+            itemKind = repository.findPath('//Schema/Core/Item')
+            userdata = repository.getRoot('userdata')
             if not userdata:
                 userdata = itemKind.newItem('userdata', repository)
             parent = itemKind.newItem('zaobaoitems', userdata)

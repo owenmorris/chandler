@@ -76,7 +76,7 @@ class TestPerfWithRSS(unittest.TestCase):
             self.rep.logger.info('committed %d feeds', len(feeds))
 
         for feed in feeds:
-            feed = self.rep.find(feed)
+            feed = self.rep.findUUID(feed)
             self.rep.logger.debug(feed.url)
             etag = feed.getAttributeValue('etag', default=None)
             lastModified = feed.getAttributeValue('lastModified', default=None)
@@ -143,7 +143,7 @@ class TestPerfWithRSS(unittest.TestCase):
 #        self.rep.close()
 #        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
 #        self.rep.open()
-#        RSSItem = self.rep.find('//parcels/osaf/examples/zaobao/RSSItem')
+#        RSSItem = self.rep.findPath('//parcels/osaf/examples/zaobao/RSSItem')
 #        self._readItems(RSSItem.itsKind)
 #        profiler = hotshot.Profile('/tmp/TestPerfWithRss.readBack.hotshot')
 #        profiler.runcall(TestPerfWithRSS._readItems, self, RSSItem.itsKind)

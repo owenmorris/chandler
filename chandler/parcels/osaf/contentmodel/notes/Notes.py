@@ -24,10 +24,10 @@ class NotesParcel(Parcel.Parcel):
         self._setUUIDs()
 
     def _setUUIDs(self):
-        noteKind = self.find('Note')
+        noteKind = self['Note']
         NotesParcel.noteKindID = noteKind.itsUUID
 
-        conversationKind = self.find('Conversation')
+        conversationKind = self['Conversation']
         NotesParcel.conversationKindID = conversationKind.itsUUID
 
     def getNoteKind(cls):

@@ -60,7 +60,7 @@ class BookmarksBar(RectangularChild):
         temporarily so that the sidebar gets the event.  This is a temporary solution for Bug#1249.
         """
         Globals.wxApplication.mainFrame.SetFocus()
-        self.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+        self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                    {'item':item})
         
 
@@ -94,7 +94,7 @@ class NavigationBar(Toolbar):
                                      style=wx.OK|wx.CENTRE)
             dialog.ShowModal()
         else:
-            self.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+            self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':item})
         
     def OnViewNavigationBarEvent(self, notification):
@@ -120,7 +120,7 @@ class NavigationBar(Toolbar):
             temporarily so that the sidebar gets the event.  This is a temporary solution for Bug#1249.
             """
             Globals.wxApplication.mainFrame.SetFocus()
-            self.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+            self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':self.history[-1]})
     
     def GoForward(self):
@@ -132,7 +132,7 @@ class NavigationBar(Toolbar):
             temporarily so that the sidebar gets the event.  This is a temporary solution for Bug#1249.
             """
             Globals.wxApplication.mainFrame.SetFocus()
-            self.Post (Globals.repository.find('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+            self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':newLocation})
 
     def OnSelectionChangedEvent (self, notification):
@@ -144,7 +144,7 @@ class NavigationBar(Toolbar):
 
         if len(self.history) == 0 or self.history[-1] != item:
             self.history.append(item)
-        urlBox = Globals.repository.find ('//parcels/osaf/views/main/URLBox')
+        urlBox = Globals.repository.findPath('//parcels/osaf/views/main/URLBox')
         wxURLBox = Globals.association[urlBox.itsUUID]
         wxURLBox.SetValue(path)
         

@@ -15,6 +15,9 @@ import osaf.contentmodel.contacts.Contacts as Contacts
 
 import mx.DateTime as DateTime
 
+from repository.util.Path import Path
+
+
 class ContactsTest(TestContentModel.ContentModelTestCase):
     """ Test Contacts Content Model """
 
@@ -30,18 +33,18 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
             self.assertEqual(name.getAttributeValue('lastName'), 'Plath')
 
         # Test the globals
-        contactsPath = '//parcels/osaf/contentmodel/contacts/%s'
+        contactsPath = Path('//parcels/osaf/contentmodel/contacts')
 
         self.assertEqual(Contacts.ContactsParcel.getContactKind(),
-                         self.rep.find(contactsPath % 'Contact'))
+                         self.rep.find(Path(contactsPath, 'Contact')))
         self.assertEqual(Contacts.ContactsParcel.getContactSectionKind(),
-                         self.rep.find(contactsPath % 'ContactSection'))
+                         self.rep.find(Path(contactsPath, 'ContactSection')))
         self.assertEqual(Contacts.ContactsParcel.getContactNameKind(),
-                         self.rep.find(contactsPath % 'ContactName'))
+                         self.rep.find(Path(contactsPath, 'ContactName')))
         self.assertEqual(Contacts.ContactsParcel.getStreetAddressKind(),
-                         self.rep.find(contactsPath % 'StreetAddress'))
+                         self.rep.find(Path(contactsPath, 'StreetAddress')))
         self.assertEqual(Contacts.ContactsParcel.getPhoneNumberKind(),
-                         self.rep.find(contactsPath % 'PhoneNumber'))
+                         self.rep.find(Path(contactsPath, 'PhoneNumber')))
 
         # Construct sample items
         contactItem = Contacts.Contact("contactItem")
@@ -70,9 +73,9 @@ class ContactsTest(TestContentModel.ContentModelTestCase):
 
         self._reopenRepository()
 
-        contentItemParent = self.rep.find("//userdata/contentitems")
+        contentItemParent = self.rep.findPath("//userdata/contentitems")
         
-        contactNameItem = contentItemParent.find("contactNameItem")
+        contactNameItem = contentItemParent.getItemChild("contactNameItem")
         _verifyContactName(contactNameItem)
 
     def testGeneratedContacts(self):

@@ -38,8 +38,8 @@ class PKITestViewParcel(Parcel):
         # Make sure our view is in the sidebar
         Parcel.startupParcel(self)
         rep = self.getRepository()
-        urlRoot = rep.find("//parcels/osaf/views/main/URLRoot")
-        pkiNode = rep.find("//parcels/pkitest/views/PKITestViewNode")
+        urlRoot = rep.findPath("//parcels/osaf/views/main/URLRoot")
+        pkiNode = rep.findPath("//parcels/pkitest/views/PKITestViewNode")
         if urlRoot and pkiNode:
             urlRoot.children.append(pkiNode)
 
@@ -50,7 +50,7 @@ class PKITestView(BoxContainer):
         log.setLevel(logging.INFO)
         log.info('Start/Stop server called')
         
-        serverPort = Globals.repository.find('//parcels/pkitest/views/PKITestView/ServerPortText')
+        serverPort = Globals.repository.findPath('//parcels/pkitest/views/PKITestView/ServerPortText')
         wxServerPortText = Globals.association[serverPort.getUUID( )]
         sPort = wxServerPortText.GetValue()
    
