@@ -427,7 +427,15 @@ def _transformFilesXslt(buildenv, transformFile, srcDir, destDir, fileList):
     if buildenv['version'] == 'release':
         python = buildenv['python']
         sitePkg = buildenv['pythonlibdir'] + os.sep + "site-packages"
-    xsltScript = os.path.join(sitePkg, "Ft", "Share", "Bin", "4xslt")
+
+    if buildenv['os'] == 'win':
+        if buildenv['version'] == 'debug':
+            xsltScript = os.path.join(sitePkg,"Ft","Share","Bin","4xslt_d.exe")
+        else:
+            xsltScript = os.path.join(sitePkg,"Ft","Share","Bin","4xslt.exe")
+    else:
+        xsltScript = os.path.join(sitePkg, "Ft", "Share", "Bin", "4xslt")
+
 
     if not os.path.exists(destDir):
         os.mkdir(destDir)
@@ -440,9 +448,17 @@ def _transformFilesXslt(buildenv, transformFile, srcDir, destDir, fileList):
         except Exception, e:
             pass
         if os.path.exists(srcFile):
-            hardhatlib.executeCommand( buildenv, info['name'], 
-             [python, xsltScript, 
-             "--outfile="+destDir+os.sep+file,
-             srcFile, transformFile 
-             ], 
-             "XSLT: " + file )
+            if buildenv['os'] == 'win':
+                hardhatlib.executeCommand( buildenv, info['name'], 
+                 [xsltScript, 
+                 "--outfile="+destDir+os.sep+file,
+                 srcFile, transformFile 
+                 ], 
+                 "XSLT: " + file )
+            else: 
+                hardhatlib.executeCommand( buildenv, info['name'], 
+                 [python, xsltScript, 
+                 "--outfile="+destDir+os.sep+file,
+                 srcFile, transformFile 
+                 ], 
+                 "XSLT: " + file )
