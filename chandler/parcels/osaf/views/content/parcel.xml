@@ -333,6 +333,7 @@
 
   <!-- Notes View -->
   <SplitterWindow itsName="NotesView">
+    <displayName>Notes</displayName>
     <contents itemref="view:notesItemCollection"/>
 
     <childrenBlocks itemref="view:NotesTable"/>
@@ -344,6 +345,7 @@
 
   <!-- Tasks View -->
   <SplitterWindow itsName="TasksView">
+    <displayName>TaskList</displayName>
     <contents itemref="view:taskItemCollection"/>
 
     <childrenBlocks itemref="view:TasksTable"/>
@@ -355,6 +357,7 @@
 
   <!-- Mail View -->
   <SplitterWindow itsName="MailView">
+    <displayName>MailList</displayName>
     <contents itemref="view:mailItemCollection"/>
 
     <childrenBlocks itemref="view:MailTable"/>
@@ -366,6 +369,7 @@
 
   <!-- Mixed View -->
   <SplitterWindow itsName="MixedView">
+    <displayName>Mixed</displayName>
     <contents itemref="view:mixedItemCollection"/>
 
     <childrenBlocks itemref="view:MixedTable"/>
@@ -389,6 +393,7 @@
 
   <!-- Contacts View -->
   <SplitterWindow itsName="ContactsView">
+    <displayName>Contacts</displayName>
     <contents itemref="view:contactItemCollection"/>
 
     <childrenBlocks itemref="view:ContactsTable"/>
