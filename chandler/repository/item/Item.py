@@ -162,7 +162,7 @@ class Item(object):
         else:
             self._attributes[name] = value
 
-    def getAttribute(self, name, _attrDict=None):
+    def getAttribute(self, name, _attrDict=None, **kwds):
         '''Return the named Chandler attribute value or raise AttributeError when not found.
 
         Calling this method is only required when there is a name ambiguity
@@ -183,11 +183,24 @@ class Item(object):
         except KeyError:
             pass
 
-        value = self.getAttrAspect(name, 'Default', None)
-        if value is not None:
-            return value
-        else:
-            raise AttributeError, name
+        value = None
+        
+        inherit = self.getAttrAspect(name, 'InheritFrom', None)
+        if inherit is not None:
+            value = self
+            for attr in inherit.split('.'):
+                value = value.getAttribute(attr, default=None)
+
+        if value is None:
+            value = self.getAttrAspect(name, 'Default', None)
+            if value is not None:
+                return value
+            elif kwds.has_key('default'):
+                return kwds['default']
+            else:
+                raise AttributeError, name
+
+        return value
 
     def removeAttribute(self, name, _attrDict=None):
         'Remove a Chandler attribute.'
