@@ -105,8 +105,11 @@ class PresencePanel(wxScrolledWindow):
         # add the presence state image
         if self.IsPresent(jabberID):
             image = self.presentBitmap
+            textColor = wxBLACK
         else:
             image = self.absentBitmap
+            textColor = wxColor(31, 31, 31)
+            
         presenceWidget = wxStaticBitmap(self, -1, image)
         entryContainer.Add(presenceWidget, 0, wxALIGN_CENTER_VERTICAL | wxWEST | wxEAST, 2)
             
@@ -114,6 +117,8 @@ class PresencePanel(wxScrolledWindow):
         displayName = self.GetDisplayName(jabberID)
         nameWidget = wxStaticText(self, -1, displayName)
         nameWidget.SetFont(self.nameFont)
+        nameWidget.SetForegroundColour(textColor)
+        
         entryContainer.Add(nameWidget, 0, wxEXPAND)
                 
         return entryContainer
