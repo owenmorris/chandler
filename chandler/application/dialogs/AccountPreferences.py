@@ -117,7 +117,7 @@ PANELS = {
             "SMTP_USE_SSL" : {
                 "attr" : "useSSL",
                 "type" : "boolean",
-                "linkedTo" : ("SMTP_PORT", { True:"465", False:"25" } )
+                "linkedTo" : ("SMTP_PORT", { True:"25", False:"25" } )
             },
             "SMTP_USE_AUTH" : {
                 "attr" : "useAuth",
@@ -355,6 +355,17 @@ class AccountPreferencesDialog(wx.Dialog):
                     item = Mail.IMAPAccount(view=self.view)
                 elif account['type'] == "SMTP":
                     item = Mail.SMTPAccount(view=self.view)
+
+                    #XXX: Temp change that checks if no SMTP Account currently
+                    #     exists and makes the new account the defaultSMTPAccount
+                    #     for the default IMAP ccount
+
+                    if Mail.MailParcel.getSMTPAccount(view=self.view)[0] is None:
+                        imapAccount = Mail.MailParcel.getIMAPAccount(view=self.view)
+
+                        if imapAccount is not None:
+                            imapAccount.defaultSMTPAccount = item
+
                 elif account['type'] == "WebDAV":
                     item = Sharing.WebDAVAccount(view=self.view)
 
