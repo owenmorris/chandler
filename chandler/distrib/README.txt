@@ -213,7 +213,7 @@ If you write your own parcel, please post information about it at
 NON-TECHNICAL INFORMATION
 
 To find out what we think is compelling about Chandler, see
-   http://www.osafoundation.org/OSAF_Our_Vision.htm
+   http://www.osafoundation.org/Chandler_Compelling_Vision.htm
 
 To learn more about the purpose and goals of the 0.1 release, see
    http://wiki.osafoundation.org/bin/view/Main/PurposeandGoals
