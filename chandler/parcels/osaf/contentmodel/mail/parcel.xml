@@ -12,14 +12,16 @@
 	xmlns:content="//parcels/OSAF/contentmodel"
 	xmlns:mail="//parcels/OSAF/contentmodel/mail">
 
-  <displayName>Email</displayName>
+  <displayName>Mail Content Model</displayName>
+  <description>Content Model for the Mail Messages, Email Accounts, and other things related to email/</description>
   <version>0.3</version>
-  <description>...add description here...</description>
+  <author>Open Source Applications Foundation</author>
 
 <!-- Attachment -->
   <Kind itemName="Attachment">
     <displayName>Attachment</displayName>
     <examples>'Budget.doc'</examples>
+    <examples>'funny.jpg'</examples>
     <description>
       An Attachment represents an e-mail attachment.
     </description>
@@ -28,61 +30,73 @@
 
 <!-- Email Account -->
   <Attribute itemName="serverName">
-    <displayName>server</displayName>
+    <displayName>Server</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="accountName">
-    <displayName>account name</displayName>
+    <displayName>Account Name</displayName>
+    <description>My user name on this server.</description>
+    <issues>This should always be a single-line string that displays in a one-line text field rather than a scrolling text box.</issues>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="accountType">
-    <displayName>account type</displayName>
-    <description>POP, IMAP</description>
+    <displayName>Account Type</displayName>
+    <description>POP, IMAP, etc.</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="password">
-    <displayName>password</displayName>
-    <issues>not a simple string, some solution needed for encrypting</issues>
+    <displayName>Password</displayName>
+    <description>This could either be a password or some other sort of authentication info. We can use it for whatever is needed for this account type.</description>
+    <issues>This should not be a simple string. We need some solution for encrypting it.</issues>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="downloadedMail">
-    <displayName>downloaded mail</displayName>
+    <displayName>Downloaded Mail</displayName>
+    <description>Mail messages that have been sent to this account, and retrieved by Chandler.</description>
     <cardinality>list</cardinality>
     <type itemref="mail:MailMessage"/>
     <inverseAttribute itemref="mail:downloadAccount"/>
   </Attribute>
 
   <Attribute itemName="returnAddress">
-    <displayName>return address</displayName>
+    <displayName>Return Address</displayName>
+    <description>The Email Address to use as the return address for mail sent from this account.</description>
     <cardinality>single</cardinality>
     <type itemref="mail:EmailAddress"/>
     <inverseAttribute itemref="mail:returnAddressInverse"/>
   </Attribute>
 
   <Attribute itemName="returnAddressInverse">
-    <displayName>return address inverse</displayName>
+    <displayName>Used as Return Address by Email Account</displayName>
+    <description>A list of Email Accounts that use this Email Address as the return address for mail sent from the account.</description>
     <cardinality>list</cardinality>
     <type itemref="mail:EmailAccount"/>
     <inverseAttribute itemref="mail:returnAddress"/>
   </Attribute>
 
   <Attribute itemName="pollingFrequency">
-    <displayName>polling frequency</displayName>
-    <issues>some description of frequency</issues>
+    <displayName>Polling Frequency</displayName>
+    <description>Some description of frequency, like 'never', or 'every 5 minutes'</description>
+    <issues>This shouldn't really be of type String. Maybe RelativeDateTime, or some new data type?</issues>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Kind itemName="EmailAccount">
     <displayName>Email Account</displayName>
+    <examples>My work account on the company IMAP server at mail.BigCompany.com</examples>
+    <examples>My home account on my ISP's POP server.</examples>
+    <description>An Email Account item is used to keep track of the info Chandler needs in order to retrieve your mail from a mail server.</description>
+    <issues>We might also want some more attributes, to keep track of things like 'port number', 'use SSL (boolean)', 'check for messages at startup (boolean)', </issues>
+    <displayAttribute itemref="mail:accountName"/>
     <attributes itemref="mail:serverName"/>
     <attributes itemref="mail:accountName"/>
     <attributes itemref="mail:accountType"/>
@@ -94,13 +108,17 @@
 
 <!-- Email Address -->
   <Attribute itemName="emailAddress">
-    <displayName>email address</displayName>
+    <displayName>Email Address</displayName>
+    <examples>"abe@osafoundation.org"</examples>
+    <examples>"Abe Lincoln {abe@osafoundation.org}" (except with angle brackets instead of '{' and '}')</examples>
+    <description>An RFC 822 email address.</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="vcardType">
     <displayName>vCard type</displayName>
+    <decription>Typical vCard types are values like 'internet', 'x400', and 'pref'. Chandler will use this attribute when doing import/export of Contact records in vCard format.</decription>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
@@ -108,7 +126,8 @@
   <!-- Attributes that might belong in other parcels -->  
 
   <Attribute itemName="emailAddressOwner">
-    <displayName>email address owner</displayName>
+    <displayName>Email Address Owner</displayName>
+    <description>The Contact that this address is </description>
     <issues>only one owner</issues>
     <issues>@@@ should be type ContactSection</issues>
     <cardinality>single</cardinality>
@@ -117,15 +136,22 @@
   </Attribute>
 
   <Attribute itemName="participatingIn">
-    <displayName>Participating In</displayName>
+    <displayName>Participant in Events</displayName>
+    <description>A list of events that include this email address as one of the invitees.</description>
     <cardinality>list</cardinality>
-    <issues>type should be CalendarEvent</issues>
+    <issues>Type should be CalendarEvent</issues>
     <type itemref="content:ContentItem"/>
     <otherName>participants</otherName>
   </Attribute>
 
-  <Kind itemName="EmailAddress">
+  <Kind itemName="EmailAddress"> 
     <displayName>Email Address</displayName>
+    <examples>"abe@osafoundation.org"</examples>
+    <description>An item that represents a simple email address, plus all the info we might want to associate with it, like lists of message to and from this address.</description>
+    <issues>We need to add an attribute "onceBelongedTo" which has as an inverseAttribute the "pastEmailAddresses" attribute on a Contact.</issues>
+    <issues>Someday we might want to have other attributes.  One example might be an 'is operational' flag that tells whether this address is still in service, or whether mail to this has been bouncing lately. Another example might be a 'superceded by' attribute, which would point to another Email Address item.</issues>
+    <issues>Depending on how we end up using the 'emailAddress' attribute, we might want to break it into two attributes, one for the "Abe Lincoln" part, and one for the "abe@osafoundation.org" part. Alternatively, we might want to use one of Andi's compound types, with two fields.</issues>
+    <displayAttribute itemref="mail:emailAddress"/>
     <attributes itemref="mail:emailAddressOwner"/>
     <attributes itemref="mail:participatingIn"/>
     <attributes itemref="mail:sentToInverse"/>
@@ -137,14 +163,14 @@
 
 <!-- Email Message -->
   <Attribute itemName="subject">
-    <displayName>subject</displayName>
-    <description>...add description here...</description>
+    <displayName>Subject</displayName>
+    <description>The subject line of an email message.</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="sentTo">
-    <displayName>sent to</displayName>
+    <displayName>Sent To</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
     <type itemref="mail:EmailAddress"/>
@@ -152,15 +178,15 @@
   </Attribute>
 
   <Attribute itemName="sentToInverse">
-    <displayName>sent to inverse</displayName>
-    <description>list of messages that have this address in their header</description>
+    <displayName>Messages sent to this address</displayName>
+    <description>A list of messages that have this address in their header</description>
     <cardinality>list</cardinality>
     <type itemref="mail:MailMessage"/>
     <inverseAttribute itemref="mail:sentTo"/>
   </Attribute>
 
   <Attribute itemName="toAddress">
-    <displayName>to address</displayName>
+    <displayName>to: Address</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
     <type itemref="mail:EmailAddress"/>
@@ -168,7 +194,7 @@
   </Attribute>
 
   <Attribute itemName="ccAddress">
-    <displayName>cc address</displayName>
+    <displayName>cc: Address</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
     <type itemref="mail:EmailAddress"/>
@@ -176,7 +202,7 @@
   </Attribute>
 
   <Attribute itemName="bccAddress">
-    <displayName>bcc address</displayName>
+    <displayName>bcc: Address</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
     <type itemref="mail:EmailAddress"/>
@@ -184,64 +210,66 @@
   </Attribute>
 
   <Attribute itemName="replyAddress">
-    <displayName>reply address</displayName>
+    <displayName>Reply Address</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="mail:EmailAddress"/>
+    <issues>Maybe this should have an inverse attribute on EmailAddress?  Or maybe it should be of type String instead of EmailAddress?</issues>
   </Attribute>
 
   <Attribute itemName="dateSent">
-    <displayName>date sent</displayName>
+    <displayName>Date Sent</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="DateTime"/>
   </Attribute>
 
   <Attribute itemName="dateReceived">
-    <displayName>date received</displayName>
+    <displayName>Date Received</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="DateTime"/>
   </Attribute>
 
   <Attribute itemName="deliveryReceiptRequested">
-    <displayName>delivery receipt requested</displayName>
+    <displayName>Delivery Receipt Requested</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="Boolean"/>
   </Attribute>
 
   <Attribute itemName="readReceiptRequested">
-    <displayName>read receipt requested</displayName>
+    <displayName>Read Receipt Requested</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="Boolean"/>
   </Attribute>
 
   <Attribute itemName="messageHeader">
-    <displayName>message header</displayName>
+    <displayName>Message Header</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="messageBody">
-    <displayName>message body</displayName>
-    <description>...add description here...</description>
-    <issues>a MIME-body, complete with content-type, content-encoding, character encoding, etc.</issues>
+    <displayName>Message Body</displayName>
+    <description>a MIME-body, complete with content-type, content-encoding, character encoding, etc.</description>
+    <issues>This should be some sort of 'Text' or 'Blob' type, rather than a String.</issues>
+    <issues>Ducky says: There are a whole bunch of things that need to be specified for the body (or attachment) of a message, including content-type (jpg, html, text, word), content-encoding (7-bit or 8-bit ASCII?), character encoding (Shift-JIS, Big 5?), length, etc. What you might want to do is declare an as-yet-unspecified MIME-body that holds all of the information and the body of the message part (body or attachment).</issues>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="relatedMessages">
-    <displayName>related messages</displayName>
+    <displayName>Related Messages</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
     <type itemref="mail:MailMessage"/>
   </Attribute>
 
   <Attribute itemName="forwardedIn">
-    <displayName>forwarded in</displayName>
+    <displayName>Forwarded In</displayName>
     <description>a list of other Email Messages that contain forwarded copies of this message</description>
     <cardinality>list</cardinality>
     <type itemref="mail:MailMessage"/>
@@ -249,7 +277,7 @@
   </Attribute>
 
   <Attribute itemName="repliedToIn">
-    <displayName>replied to in</displayName>
+    <displayName>Replied To In</displayName>
     <description>a list of other Email Messages that are replies to this message</description>
     <cardinality>list</cardinality>
     <type itemref="mail:MailMessage"/>
@@ -257,7 +285,7 @@
   </Attribute>
 
   <Attribute itemName="inReplyTo">
-    <displayName>in reply to</displayName>
+    <displayName>In Reply To</displayName>
     <description>the Email Message that this message is a reply to</description>
     <cardinality>single</cardinality>
     <type itemref="mail:MailMessage"/>
@@ -265,21 +293,21 @@
   </Attribute>
 
   <Attribute itemName="attachments">
-    <displayName>attachments</displayName>
+    <displayName>Attachments</displayName>
     <description>...add description here...</description>
     <cardinality>list</cardinality>
     <type itemref="mail:Attachment"/>
   </Attribute>
 
   <Attribute itemName="characterEncoding">
-    <displayName>character encoding</displayName>
+    <displayName>Character Encoding</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="hasBeenRead">
-    <displayName>has been read</displayName>
+    <displayName>Has Been Read</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
     <type itemref="Boolean"/>
@@ -292,14 +320,14 @@
   </Enumeration>
 
   <Attribute itemName="status">
-    <displayName>status</displayName>
-    <description>...add description here...</description>
+    <displayName>Status</displayName>
+    <description>The status can be 'read', 'unread', or 'replied'. (A Task might also have a status, but this is a different notion of status.)</description>
     <cardinality>single</cardinality>
     <type itemref="mail:Status"/>
   </Attribute>
 
   <Attribute itemName="downloadAccount">
-    <displayName>download account</displayName>
+    <displayName>Download Account</displayName>
     <description>used when sending the reply, to make the reply be 'from' the right account</description>
     <cardinality>single</cardinality>
     <type itemref="mail:EmailAccount"/>
@@ -307,29 +335,30 @@
   </Attribute>
 
   <Attribute itemName="serverStatus">
-    <displayName>server status</displayName>
-    <description>on server, deleted from server</description>
+    <displayName>Server Status</displayName>
+    <description>The server status can be either 'on server' or 'deleted from server'.</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="deliveryStatus">
-    <displayName>delivery status</displayName>
-    <description>queued, sent, unsent</description>
+    <displayName>Delivery Status</displayName>
+    <description>The delivery status can be 'queued', 'sent', or 'unsent'.</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="stronglyLinkedTask">
-    <displayName>strongly linked task</displayName>
+    <displayName>Related Task</displayName>
+    <description>A task which was created when a user 'stamped' this mail message to indicate that some task needs to get done.</description>
     <cardinality>single</cardinality>
-    <issues>@@@ type should be task</issues>
+    <issues>@@@ type should be Task</issues>
     <type itemref="content:ContentItem"/>
     <otherName>stronglyLinkedMail</otherName>
   </Attribute>
 
   <Attribute itemName="spamScore">
-    <displayName>spam score</displayName>
+    <displayName>Spam Score</displayName>
     <cardinality>single</cardinality>
     <type itemref="Integer"/>
   </Attribute>
@@ -337,7 +366,10 @@
   <Kind itemName="MailMessage">
     <displayName>Email Message</displayName>
     <description>An Email Message represents any sort of email message, sent or received.</description>
+    <issues>We need another attribute. A boolean attribute to indicate whether this message was an incoming message or outgoing message.</issues>
+    <issues>We probably don't want to have both 'hasBeenRead' and 'status'.</issues>
     <superKinds itemref="content:ContentItem"/>
+    <displayAttribute itemref="mail:subject"/>
     <attributes itemref="mail:subject"/>
     <attributes itemref="mail:sentTo"/>
     <attributes itemref="mail:toAddress"/>

@@ -12,78 +12,79 @@
         xmlns:content="//parcels/OSAF/contentmodel"
         xmlns:contact="//parcels/OSAF/contentmodel/contacts">
 
-  <displayName>Contact Schema</displayName>
+  <displayName>Contact Content Model</displayName>
   <description>Contact schema for the 0.3 release</description>
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
 
   <Attribute itemName="contactName">
-    <displayName>contact name</displayName>
-    <description>@@@</description>
+    <displayName>Contact Name</displayName>
+    <description>A reference to an item that represents the name of this contact.</description>
     <cardinality>single</cardinality>
     <type itemref="contact:ContactName"/>
     <inverseAttribute itemref="contact:contactNameOwner"/>
   </Attribute>
 
   <Attribute itemName="contactNameOwner">
-    <displayName>owner of name</displayName>
-    <description>A reference back to the contact.</description>
+    <displayName>Contact</displayName>
+    <description>The contact item that this name is part of.</description>
     <cardinality>single</cardinality>
     <type itemref="contact:Contact"/>
     <inverseAttribute itemref="contact:contactName"/>
   </Attribute>
 
   <Attribute itemName="sections">
-    <displayName>Section</displayName>
-    <description>A list of collections (sections) of contact attributes</description>
+    <displayName>Sections</displayName>
+    <description>A list of sections of contact info. For example, my Contact for my mom might have sections like 'home', 'work', 'at studio', 'vermont house'.</description>
     <cardinality>list</cardinality>
     <type itemref="contact:ContactSection"/>
     <inverseAttribute itemref="contact:sectionOwner"/>
   </Attribute>
 
   <Attribute itemName="sectionOwner">
-    <displayName>owner of section</displayName>
-    <description>A reference back to the contact</description>
+    <displayName>Owner of Section</displayName>
+    <description>A reference to the contact that this section is a part of.</description>
     <cardinality>single</cardinality>
     <type itemref="contact:Contact"/>
     <inverseAttribute itemref="contact:sections"/>
   </Attribute>
 
   <Attribute itemName="workSection">
-    <displayName>work section</displayName>
-    <description>Work section</description>
+    <displayName>Work Section</displayName>
+    <description>A section of the contact for keeping track of work phone, work address, etc.</description>
     <superAttribute itemref="contact:sections"/>
     <cardinality>single</cardinality>
   </Attribute>
 
   <Attribute itemName="homeSection">
-    <displayName>work section</displayName>
-    <description>Work section</description>
+    <displayName>Home Section</displayName>
+    <description>A section of the contact for keeping track of home phone, home address, etc.</description>
     <superAttribute itemref="contact:sections"/>
     <cardinality>single</cardinality>
   </Attribute>
 
   <Attribute itemName="birthday">
-    <displayName>birthday</displayName>
-    <description>@@@</description>
+    <displayName>Birthday</displayName>
+    <description>Date of birth, like 'July 19, 1971', or 'July 19', or 'July 1971'.</description>
     <cardinality>single</cardinality>
-    <type itemref="DateTime"/>
+    <type itemref="RelativeDateTime"/>
   </Attribute>
 
   <Enumeration itemName="GenderEnum">
-    <values>Male</values>
+    <values>Unknown</values>
     <values>Female</values>
+    <values>Male</values>
   </Enumeration>
 
   <Attribute itemName="gender">
-    <displayName>gender</displayName>
-    <description>@@@</description>
+    <displayName>Gender</displayName>
+    <description>Gender could be 'Female', 'Male', 'Unknown'.</description>
     <cardinality>single</cardinality>
     <type itemref="contact:GenderEnum"/>
   </Attribute>
 
   <Attribute itemName="isCompany">
-    <displayName>is company</displayName>
+    <displayName>Business?</displayName>
     <description>Is this a company?</description>
     <cardinality>single</cardinality>
     <type itemref="Boolean"/>
@@ -91,26 +92,32 @@
 
   <Kind itemName="Contact">
     <displayName>Contact</displayName>
-    <description>Contact</description>
+    <description>An entry in an address book. Typically represents either a person or a company.</description>
+    <issues>The 'itemsCreated' attribute is currently up on ContentItem, where really it belongs here on Contact.</issues>
+    <issues>We should also have attributes for 'Participates in Events' and 'Old Email Addresses'. And we might want to keep track of lots of sharing information like 'Permissions I've given them', 'Items of mine they've subscribed to', 'Items of theirs I've subscribed to', etc.</issues>
     <superKinds itemref="content:ContentItem"/>
+    <displayAttribute itemref="contact:contactName"/>
     <attributes itemref="contact:contactName"/>
     <attributes itemref="contact:homeSection"/>
     <attributes itemref="contact:workSection"/>
     <attributes itemref="contact:sections"/>
+    <attributes itemref="contact:birthday"/>
+    <attributes itemref="contact:gender"/>
+    <attributes itemref="contact:isCompany"/>
     <classes key="python">OSAF.contentmodel.contacts.Contacts.Contact</classes>
   </Kind>
 
   <!-- Contact Section -->
 
   <Attribute itemName="phoneNumbers">
-    <displayName>phone numbers</displayName>
+    <displayName>Phone Numbers</displayName>
     <cardinality>list</cardinality>
     <type itemref="contact:PhoneNumber"/>
     <inverseAttribute itemref="contact:phoneNumberOwner"/>
   </Attribute>
 
   <Attribute itemName="emailAddresses">
-    <displayName>phone numbers</displayName>
+    <displayName>Email Addresses</displayName>
     <cardinality>list</cardinality>
     <issues>@@@ should be type EmailAddress</issues>
     <type itemref="Item"/>
@@ -118,21 +125,25 @@
   </Attribute>
 
   <Attribute itemName="streetAddresses">
-    <displayName>phone numbers</displayName>
+    <displayName>Street Addresses</displayName>
     <cardinality>list</cardinality>
-    <type itemref="contact:PhoneNumber"/>
+    <type itemref="contact:StreetAddress"/>
     <inverseAttribute itemref="contact:streetAddressOwner"/>
   </Attribute>
 
   <Attribute itemName="jabberAddresses">
-    <displayName>jabber addresses</displayName>
-    <cardinality></cardinality>
+    <displayName>Jabber Addresses</displayName>
+    <cardinality>list</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Kind itemName="ContactSection">
     <displayName>Contact Section</displayName>
-    <description>Section of a contact.</description>
+    <description>A section of contact info. For example, my Contact for my mom might have sections like 'home', 'work', 'at studio', 'vermont house'.</description>
+    <issues>We need a displayName attribute on ContactSection, to keep track of the name of the section, like 'home', 'work', 'at studio', 'vermont house'.</issues>
+    <issues>We also need attributes for basic vCard info, including 'Photo', 'Web Page', 'Timezone', 'Job Title', and 'Employer'. Optionally, we might also want other vCard attributes like 'Job Role', 'Latitude', 'Longitude', 'Mailer (a MIME X-Mailer value)', 'Business card logo', 'Agent or Assistant', 'Department', 'vCard Categories', 'vCard Note', 'Sound', 'UID', 'Public Key', and 'Source'.</issues>
+    <issues>We also probably want some other attributes in order to interoperate with Outlook, like 'Spouse', 'Anniversary', 'Children', 'IM Address', 'Language', 'Referred By', etc.</issues>
+    <attributes itemref="contact:sectionOwner"/>
     <attributes itemref="contact:phoneNumbers"/>
     <attributes itemref="contact:emailAddresses"/>
     <attributes itemref="contact:streetAddresses"/>
@@ -144,13 +155,14 @@
 
   <Attribute itemName="fullName">
     <displayName>Full Name</displayName>
+    <description>The complete name of this person, like "Dr. Sara Anne Gibson". We probably want this attribute to be derived from other attributes like firstName and lastName.</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="sortName">
     <displayName>Sort Name</displayName>
-    <description>Name to use for sorting</description>
+    <description>The name we should use sorting, like "Sara", or "Gibson".</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
@@ -183,6 +195,9 @@
 
   <Kind itemName="ContactName">
     <displayName>Contact Name</displayName>
+    <description>The name of a contact, like "Dr. Sara Anne Gibson", or "Denver Hospital".</description>
+    <issues>In order to interoperate smoothly with vCard and Outlook and whatnot, we'll probabaly also want to have attributes for 'Initials', 'Prefixes', 'Suffixes', and maybe 'Display As'.</issues>
+    <displayAttribute itemref="contact:sortName"/>
     <attributes itemref="contact:fullName"/>
     <attributes itemref="contact:sortName"/>
     <attributes itemref="contact:firstName"/>
@@ -198,7 +213,8 @@
 
   <!-- Street Address -->
   <Attribute itemName="fullAddress">
-    <displayName>full address</displayName>
+    <displayName>Full Address</displayName>
+    <description>The value for fullAddress should be derived. It should be a concatenation of the values of the other attributes like streetAddress and locality.</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
@@ -210,46 +226,47 @@
   </Attribute>
 
   <Attribute itemName="extendedAddress">
-    <displayName>extended address</displayName>
+    <displayName>Extended Address</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="streetAddress">
-    <displayName>street address</displayName>
+    <displayName>Street Address</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="locality">
-    <displayName>locality</displayName>
-    <description>city</description>
+    <displayName>Locality</displayName>
+    <description>Usually a city.</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="region">
-    <displayName>region</displayName>
-    <description>state or province</description>
+    <displayName>Region</displayName>
+    <description>Usually a state or province.</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="postalCode">
-    <displayName>postal code</displayName>
-    <description>zipcode</description>
+    <displayName>Postal Code</displayName>
+    <description>A United States zipcode, or in general a Postal Code.</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="countryName">
-    <displayName>country name</displayName>
+    <displayName>Country Name</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="streetAddressOwner">
-    <displayName>owner of address</displayName>
+    <displayName>Owner of Address</displayName>
+    <description>The ContactSection that this StreetAddress belongs to.</description>
     <cardinality>single</cardinality>
     <type itemref="contact:ContactSection"/>
     <inverseAttribute itemref="contact:streetAddresses"/>
@@ -257,6 +274,8 @@
 
   <Kind itemName="StreetAddress">
     <displayName>Street Address</displayName>
+    <examples>543 Howard St. 5th Floor, San Francisco, CA 94105</examples>
+    <displayAttribute itemref="contact:fullAddress"/>
     <attributes itemref="contact:fullAddress"/>
     <attributes itemref="contact:postOfficeBox"/>
     <attributes itemref="contact:extendedAddress"/>
@@ -288,20 +307,21 @@
   </Enumeration>
 
   <Attribute itemName="phoneNumber">
-    <displayName>phone number</displayName>
+    <displayName>Phone Number</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="phoneType">
-    <displayName>phone type</displayName>
-    <description>vCard Types</description>
-    <cardinality>single</cardinality>
+    <displayName>Phone Type</displayName>
+    <description>One or more vCard types.</description>
+    <cardinality>list</cardinality>
     <type itemref="contact:PhoneTypeEnum"/>
   </Attribute>
 
   <Attribute itemName="phoneNumberOwner">
-    <displayName></displayName>
+    <displayName>Owner of Phone Number</displayName>
+    <description>The ContactSection that this phone number is part of.</description>
     <cardinality>single</cardinality>
     <type itemref="contact:ContactSection"/>
     <inverseAttribute itemref="contact:phoneNumbers"/>
@@ -309,6 +329,7 @@
 
   <Kind itemName="PhoneNumber">
     <displayName>Phone Number</displayName>
+    <displayAttribute itemref="contact:phoneNumber"/>
     <attributes itemref="contact:phoneNumber"/>
     <attributes itemref="contact:phoneType"/>
     <attributes itemref="contact:phoneNumberOwner"/>

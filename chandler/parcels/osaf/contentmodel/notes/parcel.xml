@@ -12,27 +12,30 @@
         xmlns:content="//parcels/OSAF/contentmodel"
         xmlns:notes="//parcels/OSAF/contentmodel/notes">
 
-  <displayName>Notes</displayName>
+  <displayName>Notes Content Model</displayName>
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
 
   <!-- Note -->
 
   <Attribute itemName="title">
-    <displayName>title</displayName>
+    <displayName>Title</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Attribute itemName="body">
-    <displayName>body</displayName>
+    <displayName>Body</displayName>
+    <issues>This attribute should be of type 'Text' or 'Blob', not 'String'.</issues>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
   <Kind itemName="Note">
     <displayName>Note</displayName>
+    <issues>The attribute 'attachedToItems' is currently on ContentItem, although it really belongs here on Note.</issues>
     <superKinds itemref="content:ContentItem"/>
+    <displayAttribute itemref="notes:title"/>
     <attributes itemref="notes:title"/>
     <attributes itemref="notes:body"/>
   </Kind>
@@ -40,7 +43,7 @@
   <!-- Bookmark -->
 
   <Attribute itemName="url">
-    <displayName>url</displayName>
+    <displayName>URL</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
@@ -55,7 +58,7 @@
   <!-- Document -->
   
   <Attribute itemName="filePath">
-    <displayName>file name</displayName>
+    <displayName>File Name</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
