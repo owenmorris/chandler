@@ -9,10 +9,7 @@ from wxPython.wx import *
 from wxPython.xrc import *
 
 import PreferencesDialog
-import ChandlerJabber
-import PresencePanel
 
-from application.agents.Notifications.NotificationManager import NotificationManager
 from repository.schema.AutoItem import AutoItem
 from repository.persistence.XMLRepository import XMLRepository
 from application.ChandlerWindow import ChandlerWindow
@@ -273,9 +270,6 @@ class wxApplication (wxApp):
         self.model = self.repository.find('//Application')
         if not self.model:
             self.model = Application(name='Application', parent=self.repository)        
-
-        # Create the notification manager
-        Globals.notificationManager = NotificationManager()
             
         """
           The model persists, so it can't store a reference to self, which
@@ -307,7 +301,14 @@ class wxApplication (wxApp):
             
         LoadParcels.LoadParcels(parcelSearchPath, self.repository)
         self.repository.commit()
-                                
+
+        # Create the notification manager
+        from OSAF.framework.notifications.NotificationManager import NotificationManager
+
+        Globals.notificationManager = NotificationManager()
+        Globals.notificationManager.PrepareSubscribers()
+
+
 
         #""" Load the old parcels, will go away """
         self.LoadParcelsV2InDirectory(parcelDir)
@@ -333,15 +334,11 @@ class wxApplication (wxApp):
         EVT_MENU(self, -1, self.OnCommand)
         EVT_UPDATE_UI(self, -1, self.OnCommand)
         EVT_MAIN_THREAD_CALLBACK(self, self.OnMainThreadCallbackEvent)
-        
-        #"""
-        #initialize the non-persistent part of the NotificationManager
-        #"""
-        Globals.notificationManager.PrepareSubscribers()
                 
         """
           allocate the Jabber client, logging in if possible
         """
+        import ChandlerJabber
         self.jabberClient = ChandlerJabber.JabberClient(self)
         
         self.InCommand = false          #used by OnCommand
@@ -633,6 +630,7 @@ class wxApplication (wxApp):
         """
         if self.presenceWindow == None:
             title = _("Presence Panel")
+            import PresencePanel
             self.presenceWindow = PresencePanel.PresenceWindow(title, self.jabberClient)
             self.presenceWindow.CentreOnScreen()
             self.presenceWindow.Show()
