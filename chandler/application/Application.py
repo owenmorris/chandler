@@ -25,6 +25,12 @@ from zodb.storage.file import FileStorage
 from application.repository.Repository import Repository
 from application.ImportExport import ImportExport
 
+print os.getcwd()
+print sys.path
+import model
+print model
+from model.persistence.FileRepository import FileRepository
+
 """
   The application module makes available the following global data to
 other parts of the program
@@ -136,6 +142,7 @@ class wxApplication (wxApp):
     self.wxMainFrame              active wxChandlerWindow
     self.locale                   locale used for internationalization
     self.jabberClient             state of jabber client including presence dictionary
+    self.repository               the model.persistence.FileRepository instance
     
     In the future we may replace ZODB with another database that provides 
     similar functionality
@@ -174,6 +181,12 @@ class wxApplication (wxApp):
         
         self.jabberClient = None
         self.presenceWindow = None
+
+        self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
+        self.repository = FileRepository(os.path.join(self.chandlerDirectory,
+         "__database__"))
+        self.repository.loadPack(os.path.join(self.chandlerDirectory, "model",
+         "packs", "schema.pack"))
         
         self.initInProgress = true
         
@@ -183,7 +196,6 @@ class wxApplication (wxApp):
 
         wxInitAllImageHandlers()
 
-        self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
         """
           Setup internationalization
         To experiment with a different locale, try 'fr' and wxLANGUAGE_FRENCH
