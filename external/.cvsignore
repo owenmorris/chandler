@@ -6,3 +6,4 @@ sources*.tar
 gcc*
 mingw*
 *-expanded
+*.md5
