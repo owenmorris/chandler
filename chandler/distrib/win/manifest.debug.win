@@ -71,6 +71,7 @@ chandlerDebug.exe
 src=chandler/debug/bin
 dest=debug/bin
 chandler.exe
+python_d.exe
 # and the launch scripts
 src=chandler/debug
 dest=debug
