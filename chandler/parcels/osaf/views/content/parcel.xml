@@ -416,8 +416,6 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.5</splitPercentage>
     <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
@@ -429,8 +427,6 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.5</splitPercentage>
     <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
@@ -442,8 +438,6 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.5</splitPercentage>
     <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
@@ -455,8 +449,6 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.5</splitPercentage>
     <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
@@ -468,9 +460,7 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>0.0, 0.0, 0.0, 0.0</border>
     <orientationEnum>Vertical</orientationEnum>
-    <splitPercentage>0.5</splitPercentage>
   </SplitterWindow>
 
   <!-- In View -->
@@ -489,8 +479,6 @@
     <childrenBlocks itemref="view:InDetailView"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.5</splitPercentage>
     <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
@@ -502,8 +490,6 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.5</splitPercentage>
     <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
@@ -515,8 +501,6 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.5</splitPercentage>
     <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
@@ -528,8 +512,6 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.5</splitPercentage>
     <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
@@ -541,8 +523,6 @@
     <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
-    <border>0.0, 0.0, 0.0, 0.0</border>
-    <splitPercentage>0.5</splitPercentage>
     <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
