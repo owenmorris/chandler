@@ -51,7 +51,105 @@ class RepositoryViewer(ViewerParcel):
             an_item = app.repository.getRoots()[0]
             return an_item.find(di)
 
+            
+class wxRepositoryViewerEdit(wxSplitterWindow):
+    """ An edit tab for the Repository viewer. """
+    __dirty=False # __dirty is set when information is changed in any edit widget
 
+    
+    def __init__(self, parent, id):
+        wxSplitterWindow.__init__(self, parent, id)     
+        self.p2 = wxWindow(self, -1)
+        
+        box = wxBoxSizer(wxVERTICAL)
+        b = wxButton(self.p2, -1, "Submit Changes")
+        box.Add(b, 0, wxALIGN_CENTER|wxALL, 10)
+        self.p2.SetAutoLayout(True)
+        self.p2.SetSizer(box)        
+        EVT_BUTTON(self, b.GetId(), self.UpdateRepository)
+        b.SetBackgroundColour(wxBLUE)
+        b.SetForegroundColour(wxWHITE)
+        self.DisplayItem()  
+        self.SplitVertically(self.p1, self.p2, 590)
+        self.p1.Layout()
+        
+    def UpdateRepository(self, evt):     
+        if not self.item: return
+        if not self.__dirty: return
+        for k in self.widgets:
+            self.item.setAttributeValue(k, self.widgets[k].GetValue())
+        self.__dirty=False#Now we're clean locally
+
+    def TrackDirt(self, evt):
+        """ Event handler to track when widgets get changed. """
+        self.__dirty=True
+        evt.Skip() 
+
+    def DisplayItem(self, item=None):
+        """
+          Layout the edit panel for the given item.  First, destroy the existing
+          widget panel, then create a new panel, populating it with widgets
+          for each attribute of the item.
+        """
+        self.item=item
+        self.widgets={}
+        p1 = wxScrolledWindow(self, -1)
+
+        if getattr(self, 'p1', 0):
+            oldp1=self.p1
+            self.ReplaceWindow(oldp1, p1)
+            oldp1.Clear()
+            oldp1.Destroy()
+        self.p1=p1
+        self.p1.maxWidth  = 600
+        self.p1.maxHeight = 1000
+        self.p1.x = self.p1.y = 0
+
+        # Ideally the scrollbars would be dynamically created.  How?
+        self.p1.SetScrollRate(0, 20)
+        
+        if item is None:
+            self.label("Item Editor")
+        else:
+            displayName = item.getItemDisplayName()
+                    
+            if item.hasAttributeValue('kind'):
+                kind = item.kind.getItemName()
+            else:
+                kind = "(kindless)"
+            self.titleText=self.label("%s: %s" % (kind, displayName))
+            
+            #for now, don't do references
+            self.value_attrs = [self.titleText, (0,0), (0,0)]
+            for k, v in item.iterAttributes(valuesOnly=True):
+                if isinstance(v, dict):
+                    #don't deal with dictionaries for now
+                    for attr in v:
+                        pass
+                else:
+                    self.value_attrs.append(self.label(str(k)))
+                    self.value_attrs.append(self.inputWidget(item, str(k), str(v)))
+                    self.value_attrs.append((0,0))
+            sizer = wxFlexGridSizer(cols=3, hgap=6, vgap=6)
+            sizer.AddMany(self.value_attrs)
+            self.p1.SetSizer(sizer)
+            self.p1.SetAutoLayout(true)
+            self.p1.Layout()
+
+    def label(self, text):
+        """ Put a label on the edit panel."""
+        return wxStaticText(self.p1, -1, text)
+        
+    def inputWidget(self, item, attr_name, val=""):
+        """
+          Return an appropriate widget for the given item attribute.
+          For now, just return a text box
+        """
+        self.widgets[attr_name]=wxTextCtrl(self.p1, -1, val, size=(300, 100), style=wxTE_MULTILINE)
+        EVT_TEXT(self, self.widgets[attr_name].GetId(), self.TrackDirt)
+        return self.widgets[attr_name]
+        
+        
 class wxRepositoryViewer(wxViewerParcel):
     def OnInit(self):
         """
@@ -72,24 +170,53 @@ class wxRepositoryViewer(wxViewerParcel):
 
         # Set up the help page
         EVT_MENU(self, XRCID('AboutRepositoryViewer'), self.OnAboutRepositoryViewer)
-        # Set up tree control
+        # Set up tree control using a spacer column
         self.treeCtrl = wxTreeListCtrl(self.splitter)
-        self.treeCtrl.AddColumn(_('Item Name'))
-        self.treeCtrl.AddColumn(_('Display Name'))
-        self.treeCtrl.AddColumn(_('Kind'))
-        self.treeCtrl.AddColumn(_('UUID'))
-        self.treeCtrl.AddColumn(_('URL'))
+        info = wxTreeListColumnInfo()
+        labels=['Item Name', 'Display Name', 'Kind', 'UUID', '', 'URL']
+        colLabels = map(_, labels)
+        colSize = [80, 80, 80, 120, 10, 120]
+        for x in range(len(colLabels)):
+            info.SetText(colLabels[x])
+            info.SetWidth(colSize[x])
+            self.treeCtrl.AddColumnInfo(info)
         
         EVT_TREE_SEL_CHANGED(self, self.treeCtrl.GetId(), self.OnSelChanged)
         EVT_TREE_ITEM_EXPANDING(self, self.treeCtrl.GetId(), self.OnExpanding)
         
+        # Set up notebook
+        self.notebookPanel = wxPanel(self.splitter, -1)
+        self.notebook = wxNotebook(self.notebookPanel, -1)
+        EVT_NOTEBOOK_PAGE_CHANGED(self.notebook, self.notebook.GetId(), self.OnTabChanged)
+        
         # Set up detail view
-        self.detail = wxRepositoryViewerDetail(self.splitter, -1, 
-                                   style=wxNO_FULL_REPAINT_ON_RESIZE | wxSUNKEN_BORDER)
+        self.viewTab = wxPanel(self.notebook, -1)
+        self.detail = wxRepositoryViewerDetail(self.viewTab, -1, 
+                                  style=wxNO_FULL_REPAINT_ON_RESIZE | wxSUNKEN_BORDER)
         self.detail.SetPage("<html><body><h5>Item Viewer</h5></body></html>")
-        self.splitter.SplitHorizontally(self.treeCtrl, self.detail, 200)
 
-        # Set up sizer
+        # Set up edit detail view
+        self.editTab= wxRepositoryViewerEdit(self.notebook, -1)
+        
+        # Do layout
+
+        self.notebook.AddPage(self.viewTab, "View", select=1)
+        self.notebook.AddPage(self.editTab, "Edit")
+        
+        notebookContainer = wxBoxSizer(wxVERTICAL)
+        notebookContainer.Add(wxNotebookSizer(self.notebook), 1, wxEXPAND, 0)
+        self.notebookPanel.SetAutoLayout(1)
+        self.notebookPanel.SetSizer(notebookContainer)
+        notebookContainer.Fit(self.notebookPanel)
+        notebookContainer.SetSizeHints(self.notebookPanel)
+
+        viewContainer = wxBoxSizer(wxVERTICAL)
+        viewContainer.Add(self.detail, -1, wxEXPAND)
+        self.viewTab.SetAutoLayout(1)
+        self.viewTab.SetSizer(viewContainer)
+
+        self.splitter.SplitHorizontally(self.treeCtrl, self.notebookPanel, 200)
+                
         self.container = wxBoxSizer(wxVERTICAL)
         self.container.Add(self.title, 0, wxEXPAND)
         self.container.Add(self.splitter, 1, wxEXPAND)
@@ -97,6 +224,9 @@ class wxRepositoryViewer(wxViewerParcel):
         
         self.treeItemsByUUID = {}
         self.LoadTree()
+
+    def OnTabChanged(self, event):
+        event.Skip()
 
     def OnSelChanged(self, event):
         """
@@ -125,6 +255,7 @@ class wxRepositoryViewer(wxViewerParcel):
         item = self.model.GetDetailItem()
         self.detail.DisplayItem(item)
         
+        self.editTab.DisplayItem(item)     
         if not item: return
 
         uuid = str(item.getUUID())
@@ -195,7 +326,7 @@ class wxRepositoryViewer(wxViewerParcel):
         u = str(item.getUUID())
         self.treeCtrl.SetItemText(node, u, 3)
         self.treeItemsByUUID[u] = node
-        self.treeCtrl.SetItemText(node, str(item.getItemPath()), 4)
+        self.treeCtrl.SetItemText(node, str(item.getItemPath()), 5)
 
     def OnAboutRepositoryViewer(self, event):
         pageLocation = self.model.path + os.sep + "AboutRepositoryViewer.html"
