@@ -67,7 +67,8 @@ build: apply $(SRC)/$(BUILD)/Makefile.defs
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(PATHAN)/$(SNAP).tar.gz $(SNAP)/lib/libpathan*
+        tar -cvzf $(PATHAN)/$(SNAP).tar.gz $(SNAP)/lib/libpathan* \
+            --exclude '*.a'
 
 clean:
 	cd $(SRC); rm -rf $(BUILD)
@@ -80,4 +81,3 @@ apply: patches-$(VERSION)
 
 expand: libpathan-$(VERSION)-2-src.tar.gz
 	tar xvzf libpathan-$(VERSION)-2-src.tar.gz
-

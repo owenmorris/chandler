@@ -64,7 +64,8 @@ clean:
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(DB)/$(SNAP).tar.gz $(SNAP)/db/bin $(SNAP)/db/lib
+        tar -cvzf $(DB)/$(SNAP).tar.gz $(SNAP)/db/bin $(SNAP)/db/lib \
+            --exclude '*.a'
 
 endif
 

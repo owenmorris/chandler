@@ -91,7 +91,8 @@ snap:
 	cd $(BUILD_ROOT); \
         tar -cvzf $(DBXML)/$(SNAP).tar.gz \
                   $(SNAP)/dbxml/bin $(SNAP)/dbxml/lib \
-                  $(SNAP)/$(SITE)/*dbxml*
+                  $(SNAP)/$(SITE)/*dbxml* \
+            --exclude '*.a'
 
 clean:
 	cd $(SRC); rm -rf $(BUILD); rm -rf src/python/$(BUILD)
