@@ -126,6 +126,7 @@ def build(buildenv):
         buildOptions = [
          python,
          'setup.py',
+         'FINAL=1',
          'BUILD_OGL=0',
          'BUILD_GLCANVAS=0',
          'BUILD_BASE=build_%s' % version,
@@ -134,7 +135,7 @@ def build(buildenv):
          'install',
         ]
         if version == "debug":
-            buildOptions.append("FINAL=0")
+            buildOptions.append("--debug")
         if buildenv['os'] == "posix":
             buildOptions.append("WXPORT=gtk2")
             buildOptions.append("UNICODE=1")
