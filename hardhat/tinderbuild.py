@@ -11,11 +11,12 @@
 
 import hardhatutil, time, smtplib, os, sys
 
-# args:  toAddr, buildName, project
+# args:  toAddr, buildName, project, outputDir
 
 toAddr    = sys.argv[1]
 buildName = sys.argv[2]
 project   = sys.argv[3]
+outputDir = sys.argv[4]
 
 whereAmI = os.path.dirname(os.path.abspath(hardhatutil.__file__))
 hardhatFile = os.path.join(whereAmI, "hardhat.py")
@@ -32,6 +33,10 @@ def main():
 
     prevStartInt = 0
     curDir = os.path.abspath(os.getcwd())
+
+    if not os.path.exists(outputDir):
+        print "outputDir doesn't exist:", outputDir
+        sys.exit(1)
 
     if not os.path.exists(buildDir):
         os.mkdir(buildDir)
@@ -90,6 +95,9 @@ def main():
             print "all is well"
             log.write("all is well")
             status = "success"
+            os.rename(os.path.join(buildDir, "output"), 
+             os.path.join(outputDir, buildVersion))
+            RotateDirectories(outputdir)
         log.close()
 
         log = open(logFile, "r")
@@ -122,5 +130,16 @@ def SendMail(fromAddr, toAddr, startTime, buildName, status, treeName, logConten
     server = smtplib.SMTP('mail.osafoundation.org')
     server.sendmail(fromAddr, toAddr, msg)
     server.quit()
+
+def RotateDirectories(dir):
+    """Removes all but the 3 newest subdirectories from the given directory;
+    assumes the directories are named with timestamps (numbers) because it 
+    uses normal sorting to determine the order."""
+
+    dirs = listdir(dir)
+    dirs.sort()
+    for dir in dirs[:-3]:
+        hardhatutil.rmdirRecursive(dir)
+
 
 main()
