@@ -239,26 +239,6 @@
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
 
-  <StaticText itsName="FromString">
-    <blockName value="FromString"/>
-    <title>from</title>
-    <characterStyle itemref="doc:LabelStyle"/>
-    <textAlignmentEnum>Right</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-    <minimumSize>70, 24</minimumSize>
-    <border>0.0, 0.0, 0.0, 5.0</border>
-  </StaticText>
-  
-  <EditText itsName="FromEditField"
-            itemClass="osaf.framework.blocks.detail.Detail.FromEditField">
-    <blockName value="FromEditField"/>
-    <characterStyle itemref="doc:TextStyle"/>
-    <lineStyleEnum>SingleLine</lineStyleEnum>
-    <readOnly>True</readOnly>
-    <textAlignmentEnum>Left</textAlignmentEnum>
-    <minimumSize>100, 24</minimumSize>
-  </EditText>
-
   <Button itsName="AcceptShareButton"
                      itemClass="osaf.framework.blocks.detail.Detail.AcceptShareButton">
     <blockName value="AcceptShareButton"/>

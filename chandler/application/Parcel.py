@@ -243,7 +243,7 @@ class Manager(Item):
         # Do a Parcel-kind query for existing parcels; populate a dictionary
         # of "parcel descriptors" (pDesc) which cache parcel information.
         # After reading info from existing parcel items, this info may be
-        # overriden from parcel.xml files further down.
+        # overridden from parcel.xml files further down.
         parcelKind = self.repo.findPath("//Schema/Core/Parcel")
         for parcel in KindQuery().run([parcelKind]):
             pDesc = {
@@ -353,6 +353,16 @@ class Manager(Item):
                     namespace = "%s/%s" % \
                     ( self._repo2ns[parentPath], myName )
 
+                # Check for duplicate namespaces
+                if self._ns2parcel.has_key(namespace):
+                    pDesc = self._ns2parcel[namespace]
+                    explanation = \
+                        "Duplicate Namespace '%s: defined at %s and %s" % \
+                        (namespace, pDesc["path"], parcelFile)
+                    
+                    self.saveExplanation(explanation)
+                    raise ParcelException(explanation)
+                
                 # Set up the parcel descriptor
                 pDesc = {
                  "time" : DateTime.now(),
@@ -953,7 +963,15 @@ class ParcelItemHandler(xml.sax.ContentHandler):
             currentItem = parent.getItemChild(nameString)
 
             if currentItem is not None:
-                self.reloadingCurrentItem = True
+                try:
+                    index = self.itemsCreated.index(currentItem)
+                    explanation = \
+                       "Child '%s' of item '%s' is already in this parcel" % \
+                       (nameString, self.itemsCreated[index].itsPath)
+                    self.saveExplanation(explanation)
+                    raise ParcelException(explanation)
+                except ValueError:
+                   self.reloadingCurrentItem = True
             else:
                 self.reloadingCurrentItem = False
                     
@@ -1320,7 +1338,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
 
         #@@@Temporary testing tool written by Morgen -- DJA
         if timing: tools.timing.begin("Creating items")
-
+        
         try:
             if className:
                 # Use the given class to instantiate the item

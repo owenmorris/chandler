@@ -20,8 +20,8 @@ class ParcelErrorTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
             os.path.join(
                 os.path.dirname(ParcelLoaderTestCase.__file__),
                 'testparcels',
-                'errors')
-            )
+                'errors'
+            ))
 
     def testItsnameParcel(self):
         """
@@ -32,6 +32,13 @@ class ParcelErrorTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         self.assertRaises(ParcelException, self.loadParcels, ["http://testparcels.org/itsname"])
         
+    def testDuplicateItems(self):
+        """
+        Test to ensure we raise a ParcelException when parsing a parcel
+        that attempts to define the same Item twice.
+        """
+
+        self.assertRaises(ParcelException, self.loadParcels, ["http://testparcels.org/dupitems"])
 
 if __name__ == "__main__":
     unittest.main()
