@@ -111,7 +111,7 @@ def _loadParcel(parcelFile, uri, repository, loader):
                 logging.warning("Reloaded the parcel %s" % parcelFile)
                 parcel.modifiedOn = DateTime.now()
         except Exception, e:
-            logging.exception("Failed to load parcel %s" % parcelFile)
+            logging.exception("Failed to load parcel %s at %s" % (parcelFile, uri))
             try:
                 repository.cancel()
             except:

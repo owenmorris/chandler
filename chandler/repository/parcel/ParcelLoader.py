@@ -260,7 +260,8 @@ class ItemHandler(xml.sax.ContentHandler):
             attributeItem = kindItem.getAttribute(attributeName)
 
             assert attributeItem, \
-                   "No Attribute at %s:%s" % (self.locator.getSystemId(),
+                   "No Attribute %s at %s:%s" % (attributeName,
+                                                 self.locator.getSystemId(),
                                               line)
         
             value = attributeItem.type.makeValue(value)
