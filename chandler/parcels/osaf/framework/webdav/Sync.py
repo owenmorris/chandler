@@ -137,7 +137,8 @@ def syncItem(dav, item):
         # do a PROPPATCH
         item.etag = dav.etag
         #item.lastModified = dav.lastModified
-        item.sharedVersion = item._version
+
+    item.sharedVersion = item._version
 
 
 
