@@ -515,13 +515,15 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
         self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
         self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnLeftClick)
 
     def OnKeyDown(self, event):
         """
-          Work around a widgets grid bug: ignore single shift key down to avoid beginning
-        editing a cell
+          Work around a widgets grid bug on Linux: ignore single shift or control key down
+        to avoid beginning editing a cell
         """
-        if event.GetKeyCode() != wx.WXK_SHIFT:
+        keyCode = event.GetKeyCode()
+        if (keyCode != wx.WXK_SHIFT and keyCode != wx.WXK_CONTROL):
             event.Skip()
 
     def OnInit (self):
@@ -544,11 +546,34 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
 
         self.SetTable (gridTable, True, selmode=wx.grid.Grid.SelectRows)
 
-        
+    
+    """
+      There is some extreme widgets hackery going on here. So happens that under some circumstances
+    widgets needs to clear the selection before setting a new selection, e.g. when you have some rows
+    in a table selected and you click on another cell. However, we need to catch changes to the selection
+    in OnRangeSelect to keep track of the selection and broadcast selection changes to other blocks.
+    So under some circumstances you get two OnRangeSelect calls, one to clear the selection and another
+    to set the new selection. When the first OnRangeSelect is called to clear the selection we used to
+    broadcast a select item event with None as the selection. This has two unfortunate side effects:
+    it causes other views (e.g. the detail view) to draw blank and it causes the subsequent call to
+    OnRangeSelect to not occur, causing the selection to vanish.
+      After reading of the widgets source code I discovered that the selection is only cleared just
+    after a EVT_GRID_CELL_LEFT_CLICK event is sent where the event.ControlDown() is FALSE, hence the
+    following hackery.
+      I won't bore you with the 5 other promising approaches to fix this bug, but each ran into another
+    widgets bug or an unexpected mine field. -- DJA
+    """
+    
+    skipNextRangeSelect = False
+
+    def OnLeftClick (self, event):
+        self.skipNextRangeSelect = not event.ControlDown()
+        event.Skip()
+
     def OnRangeSelect(self, event):
         if not wx.GetApp().ignoreSynchronizeWidget:
-            self.blockItem.selection = []
             topLeftList = self.GetSelectionBlockTopLeft()
+            self.blockItem.selection = []
             for topLeft, bottomRight in zip (topLeftList,
                                              self.GetSelectionBlockBottomRight()):
                 self.blockItem.selection.append ([topLeft[0], bottomRight[0]])
@@ -561,13 +586,17 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             else:
                 item = self.blockItem.contents [row]
 
-            if item != self.blockItem.selectedItemToView:
+            if item is not self.blockItem.selectedItemToView:
                 self.blockItem.selectedItemToView = item
                 if item is not None:
                     gridTable = self.GetTable()
                     for columnIndex in xrange (gridTable.GetNumberCols()):
                         self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-                self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
+                if self.skipNextRangeSelect:
+                    self.skipNextRangeSelect = False
+                else:
+                    self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
+                
         event.Skip()
 
     def OnSize(self, event):
