@@ -22,6 +22,8 @@ from application.URLTree import URLTree
 
 import repository.schema.LoadParcels as LoadParcels
 
+import Globals
+
 """
   The application module makes available the following global data to
 other parts of the program
@@ -189,6 +191,9 @@ class wxApplication (wxApp):
         assert app == None     #More than one app object doesn't make sense
         app = self
 
+        # set the new global app
+        Globals.app = self
+
         wxInitAllImageHandlers()
 
         """
@@ -271,6 +276,9 @@ class wxApplication (wxApp):
                                                   "repository",
                                                   "packs",
                                                   "schema.pack"))
+
+        # set the new global repository
+        Globals.app = self.repository
 
         self.model = self.repository.find('//Application')
         if not self.model:
