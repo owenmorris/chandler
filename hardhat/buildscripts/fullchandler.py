@@ -265,20 +265,58 @@ def doBuild(buildmode, workingDir, log, clean='clean'):
             hardhatutil.dumpOutputList(outputList, log)
 
             log.write(separator)
-    except Exception, e:
+    except hardhatutil.ExternalCommandErrorWithOutputList, e:
         print "build error"
         log.write("***Error during build***\n")
         log.write(separator)
         log.write("Build log:" + "\n")
-        if hasattr(e, 'outputList'):
-            hardhatutil.dumpOutputList(e.outputList, log)
-        else:
-            log.write('No build log!\n')
-            log.write(separator)
-        
+        hardhatutil.dumpOutputList(e.outputList, log)
+        log.write(separator)
+        forceBuildNextCycle(log, workingDir)
         raise e
-        
-                
+    except Exception, e:
+        print "build error"
+        log.write("***Error during build***\n")
+        log.write(separator)        
+        log.write("No build log!\n")
+        log.write(separator)
+        forceBuildNextCycle(log, workingDir)
+        raise e
+
+
+def forceBuildNextCycle(log, workingDir):
+    doRealclean(log, workingDir)
+    # We trigger build for next cycle by removing toplevel Makefiles
+    # which will be noticed as an 'update' in the beginning of next
+    # cycle which will cause doBuild etc. to be called.
+    print 'Removing toplevel Makefiles to trigger build next cycle'
+    log.write('Removing toplevel makefiles to trigger build next cycle\n')
+    for module in cvsModules:
+        makefile = os.path.join(workingDir, module, 'Makefile')
+        if os.path.exists(makefile):
+            os.remove(makefile)
+    
+
+def doRealclean(log, workingDir):
+    try:
+        # If make install fails, it will almost certainly fail next time
+        # as well - the typical case has been bad binaries packages.
+        # So what we do here is try to do realclean which will force
+        # the build to get new binaries tarballs next time, and if fixed
+        # binaries were uploaded in the meanwhile we'll recover
+        # automatically. This will also sort us out of corrupted debug/release.
+        for module in cvsModules:
+            print "Doing make realclean in " + module + "\n"
+            log.write("Doing make realclean in " + module + "\n")
+            moduleDir = os.path.join(workingDir, module)
+            os.chdir(moduleDir)
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [buildenv['make'], "realclean"])
+            hardhatutil.dumpOutputList(outputList, log)
+    except:
+        print "make realclean failed\n"
+        log.write("make realclean failed\n")
+
 
 def NeedsUpdate(outputList):
     # XXX Make this smarter:
