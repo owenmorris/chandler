@@ -483,7 +483,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
             self.restorePreviousView()
 
         """Commit the view in a thread to prevent blocking"""
-        self.commitView(True)
+        self.commitInView(True)
 
         if foundInvitation:
             uids = ','.join(map(str, sharingInvitations.keys()))

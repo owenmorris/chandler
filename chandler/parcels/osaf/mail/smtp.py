@@ -264,7 +264,7 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
            self.restorePreviousView()
 
         """Commit the view in a thread to prevent blocking"""
-        self.commitView(True)
+        self.commitInView(True)
 
 
     def __mailSuccess(self, result):
@@ -350,7 +350,7 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
            self.restorePreviousView()
 
         """Commit the view in a thread to prevent blocking"""
-        self.commitView(True)
+        self.commitInView(True)
 
     def __recordError(self, err):
         """Helper method to record the errors to the mailMessage object"""
@@ -473,7 +473,7 @@ class SMTPSender(RepositoryView.AbstractRepositoryViewManager):
             s = "SMTP send failed: %s" % deliveryError
             self.log.error(s)
 
-        self.commitView(True)
+        self.commitInView(True)
 
     def __getKinds(self):
         """Returns instances of C{SMTPAccount} and C{MailMessage}
