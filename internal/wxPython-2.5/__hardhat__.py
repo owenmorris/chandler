@@ -132,13 +132,14 @@ def build(buildenv):
          'BUILD_BASE=build_%s' % version,
          'WX_CONFIG='+buildenv['root']+'/%s/bin/wx-config' % version,
          'build',
-         'install',
         ]
         if version == "debug":
             buildOptions.append("--debug")
         if buildenv['os'] == "posix":
             buildOptions.append("WXPORT=gtk2")
             buildOptions.append("UNICODE=1")
+
+        buildOptions.append("install")
 
         hardhatlib.executeCommand(buildenv, info['name'], buildOptions,
          "Building and Installing wxPython")
