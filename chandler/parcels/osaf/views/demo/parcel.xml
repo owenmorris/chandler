@@ -544,7 +544,7 @@
 
     <childrenBlocks itemref="doc:Tabs"/>
     <open>True</open>
-
+    <eventBoundary>True</eventBoundary>
     <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>

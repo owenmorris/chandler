@@ -642,6 +642,18 @@
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.List</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
+    <Attribute itemName="columnHeadings">
+      <type itemref="String"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
+    <Attribute itemName="columnWidths">
+      <type itemref="Integer"/>
+      <cardinality>list</cardinality>
+    </Attribute>
+
+    <attributes itemref="docSchema:List/columnHeadings"/>
+    <attributes itemref="docSchema:List/columnWidths"/>
   </Kind>  
 
   <!--

@@ -329,12 +329,61 @@ class HTML(RectangularChild):
                                                          self.Calculate_wxBorder())
         return htmlWindow, None, None
 
+    
+class wxListBlock(wxListCtrl):
+    def __init__(self, *arguments, **keywords):
+        wxListCtrl.__init__(self, *arguments, **keywords)
+        EVT_LIST_ITEM_SELECTED(self, self.GetId(), self.On_wxSelectionChanged)
+
+    def AddListItem(self, row, labels, data):
+        self.InsertStringItem(row, labels.pop(0))
+        column = 1
+        for label in labels:
+            self.SetStringItem(row, column, label)
+            column += 1
+#        self.SetItemData(row, self.GetPyData(data))
+
+    def On_wxSelectionChanged(self, event):
+        chandlerEvent = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
+        notification = Notification(chandlerEvent, None, None)
+        eventId = event.GetItem()
+        notification.SetData({'id':eventId,
+                              'type':'Normal'})
+        Globals.notificationManager.PostNotification(notification)
+        
+    def SynchronizeFramework(self):
+        counterpart = Globals.repository.find (self.counterpartUUID)
+
+        for index in range (self.GetColumnCount()):
+            self.DeleteColumn(index)
+                    
+        for index in range (len(counterpart.columnHeadings)):
+            heading = str(counterpart.columnHeadings[index])
+            width = counterpart.columnWidths[index]
+            self.InsertColumn(index, heading, width=width)            
+        self.DeleteAllItems()
+        counterpart.GetListData(self)
 
 class List(RectangularChild):
+    """
+      List is an abstract class. To use it, you must subclass it and
+    implement GetListData.
+    """
     def renderOneBlock (self, parent, parentWindow):
-        return None, None, None
+        list = wxListBlock(parentWindow, Block.getwxID(self), 
+                           style=self.Calculate_wxStyle())
+        self.getParentBlock(parentWindow).addToContainer(parent, 
+                                                         list,
+                                                         1,
+                                                         self.Calculate_wxFlag(),
+                                                         self.Calculate_wxBorder())
+        return list, None, None
 
+    def Calculate_wxStyle (self):
+        style = wxLC_REPORT|wxSUNKEN_BORDER|wxLC_EDIT_LABELS
+        return style
 
+        
 class RadioBox(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
         if self.radioAlignEnum == "Across":
@@ -610,7 +659,6 @@ class wxTreeList(wxTreeListCtrl):
 
     def __init__(self, *arguments, **keywords):
         wxTreeListCtrl.__init__ (self, *arguments, **keywords)
-        self.ignoreSelect = false
         EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnExpanding)
         EVT_TREE_ITEM_COLLAPSING(self, self.GetId(), self.OnCollapsing)
         EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
@@ -660,8 +708,6 @@ class wxTreeList(wxTreeListCtrl):
             pass
 
     def On_wxSelectionChanged(self, event):
-        if self.ignoreSelect:
-            return
         selection = ''
         id = self.GetSelection()
         while id.IsOk():
