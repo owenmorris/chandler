@@ -1,2 +1,0 @@
-#!/bin/sh
-cvs update -d Chandler PyXML Python-2.2.2 ZODB4 distutils egenix-mx-base-2.0.4 hardhat wxWindows-2.4
