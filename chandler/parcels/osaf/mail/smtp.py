@@ -107,11 +107,11 @@ class SMTPSender(TwistedRepositoryViewManager.RepositoryViewManager):
 
         self.__getKinds()
 
+        self.mailMessage.outgoingMessage(account=self.account)
+
         """Clear out any previous DeliveryErrors from a previous attempt"""
         for item in self.mailMessage.deliveryExtension.deliveryErrors:
             item.delete()
-
-        self.mailMessage.outgoingMessage(account=self.account)
 
         messageText = message.kindToMessageText(self.mailMessage)
 
