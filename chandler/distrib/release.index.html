@@ -25,9 +25,25 @@ There are a few different types of Chandler distribution files that are availabl
 <br>
 &nbsp;
 <br>
-<li> <b>Python developers' pre-built-libraries distributions: </b> These files are meant for people who are interested in working with the Chandler application's Python code, but don't want to compile all the required libraries and the interpreter that Chandler depends on.  
-This type of distribution <b>does not</b> contain the Chandler Python source code -- it is expected that you will be <a href=http://wiki.osafoundation.org/bin/view/Main/GettingChandlerSource>getting that source from CVS</a>.  What it does contain is a directory full of our pre-built versions of Python, wxPython, and many other third-party projects, all configured to run Chandler.  
-To use one of these distributions, follow the <a href=http://wiki.osafoundation.org/bin/view/Main/GettingChandlerSource>instructions for checking out the Chandler Python source</a>, then download a developer distribution listed here, and place the contained directory within the "osaf/chandler" directory that you checked out of CVS.  There is a shell script within the distribution that you can use to launch Chandler.
+<li> <b>Pre-built-libraries distributions: </b> 
+These files are meant for people who are interested in working with the
+part of the Chandler application that is written in Python, but don't want
+to compile all the required libraries and the interpreter that Chandler
+depends on.  This type of distribution <b>does not</b> contain the part of
+the Chandler application that is written in Python.  You will need to <a
+href=http://wiki.osafoundation.org/bin/view/Main/GettingChandlerSource>get
+that source separately</a>.  What this distribution does
+contain is a directory full of our pre-built versions of Python,
+wxPython, and many other third-party projects, all configured to
+run Chandler.  To use one of these distributions, follow the <a
+href=http://wiki.osafoundation.org/bin/view/Main/GettingChandlerSource>
+instructions for checking out the Chandler application code</a>,
+then download one of the distributions listed at the end of this
+paragraph. Next, copy the "debug" or "release" directory from the
+pre-built-libraries distribution to the "osaf/chandler" directory that
+you checked out of CVS.  There is a shell script within the distribution
+that you can use to launch Chandler.
+
 <b>Please select one of the following:</b>
 <a href=#devbinlinux>Linux</a> | 
 <a href=#devbinosx>Mac OSX</a> | 
@@ -36,7 +52,7 @@ To use one of these distributions, follow the <a href=http://wiki.osafoundation.
 &nbsp;
 <br>
 <li> <b>Source code distribution: </b> This file contains all the source for Chandler and required third-party projects.  
-<b>A gzip'd tar file of this plugh is available </b><a href=Chandler_src_XYZZY.tar.gz>here</a>.  Also see our <a href=http://wiki.osafoundation.org/bin/view/Main/BuildingChandler>instructions for building Chandler</a>.
+<b>A gzip'd tar file of this plugh is available </b><a href=Chandler_src_XYZZY.tar.gz>here</a>, and instructions for building Chandler are in the "hardhat/README.txt" within that tar file.  Also see our <a href=http://wiki.osafoundation.org/bin/view/Main/BuildingChandler>instructions for building Chandler</a> online.
 </ul>
 
 <br>
