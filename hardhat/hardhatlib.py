@@ -131,8 +131,6 @@ def init(buildenv):
         # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Looking for devenv.exe...")
         devenv_file = os_win.find_exe( "devenv.exe", "7.0")
         if( devenv_file ):
-            # if sys.platform == 'cygwin':
-            #     devenv_file = toDosPath(devenv_file)
             # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + devenv_file)
             buildenv['compiler'] = devenv_file
         else:
@@ -144,8 +142,6 @@ def init(buildenv):
         nmake_file = os_win.find_exe( "nmake.exe", "7.0")
         if( nmake_file ):
             # log(buildenv, HARDHAT_MESSAGE, "HardHat", "Found " + nmake_file)
-            # if sys.platform == 'cygwin':
-            #     nmake_file = toDosPath(nmake_file)
             buildenv['nmake'] = nmake_file
         else:
             log(buildenv, HARDHAT_ERROR, "HardHat", "Can't find nmake.exe")
@@ -689,12 +685,48 @@ def executeScript(buildenv, args):
     if buildenv['version'] == 'release':
         python = buildenv['python']
 
+    # script = args[0]
+    print [python] + args
+    executeCommandNoCapture( buildenv, "HardHat",
+     [python] + args, "Running" )
+
+def findHardHatFile(dir):
+    """ Look for __hardhat__.py in directory "dir", and if it's not there,
+        keep searching up the directory hierarchy; return the first directory
+        that contains a __hardhat__.py file.  If / is reached without finding
+        one, return None.
+    """
+    absPath = os.path.abspath(dir)
+    if os.path.isfile(os.path.join(absPath, "__hardhat__.py")):
+        return os.path.join(absPath, "__hardhat__.py")
+    prevHead = None
+    (head, tail) = os.path.split(absPath)
+    print "Looking for __hardhat__.py in..."
+    while head != prevHead:
+        print " ", head,
+        if os.path.isfile(os.path.join(head, "__hardhat__.py")):
+            print " ...found one"
+            print
+            return os.path.join(head, "__hardhat__.py")
+        prevHead = head
+        print " ...no"
+        (head, tail) = os.path.split(head)
+    print
+    return None
+
+
+def lint(buildenv, args):
+
+    if buildenv['version'] == 'debug':
+        python = buildenv['python_d']
+
+    if buildenv['version'] == 'release':
+        python = buildenv['python']
+
     script = args[0]
-    dir = os.path.dirname(os.path.abspath(script))
-    script = os.path.basename(script)
-    os.chdir(dir)
     executeCommandNoCapture( buildenv, "HardHat",
      [python, script], "Running" )
+
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # External program control functions
@@ -1151,255 +1183,7 @@ def cvsClean(buildenv, dirs):
     else:
         log(buildenv, HARDHAT_MESSAGE, "HardHat", "Not removing files")
 
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Nightly-build-handling methods
-
-def buildComplete(buildenv):
-
-    """
-    buildenv['releaseId'] = releaseId
-    buildenv['cvsModule'] = cvsModule
-    buildenv['module'] = module
-    buildenv['revision'] = revision
-    buildenv['skipBinaries'] = skipBinaries
-    """
-
-    if buildenv['cvs'] and buildenv['scp'] and \
-     buildenv['tar'] and \
-     (buildenv['os'] == 'win' and buildenv['zip'] or \
-     buildenv['os'] != 'win' and buildenv['gzip'] ):
-        log(buildenv, HARDHAT_MESSAGE, "HardHat",
-         "All required tools found, proceeding")
-    else:
-        log(buildenv, HARDHAT_MESSAGE, "HardHat",
-         "Coudln't find all necessary tools in your path \
-          (cvs, scp, tar, zip, gzip)")
-        raise HardHatError
-
-
-    buildPrepareSource(buildenv, True)
-
-    if buildenv['skipBinaries']:
-        if os.path.isdir(os.path.join(buildenv['workroot'],"release")) and \
-            os.path.isdir(os.path.join(buildenv['workroot'],"debug")):
-            # we have previous binary directories
-
-            os.chdir(buildenv['root'])
-
-            os.rename(os.path.join(buildenv['workroot'], "release"),
-             os.path.join(buildenv['workroot'], "osaf", "chandler", "release"))
-
-            # build(buildenv, buildenv['module'])
-            distribute(buildenv, buildenv['module'])
-            os.chdir(buildenv['root'])
-
-            # put the release directory back
-            os.rename(os.path.join(buildenv['workroot'], "osaf", "chandler",
-             "release"), os.path.join(buildenv['workroot'], "release"))
-
-            releaseId = buildenv['releaseId']
-            module = buildenv['module']
-            distName = module + "_" + buildenv['oslabel'] + "_" + releaseId
-
-            installerFile = createInstaller(buildenv, "distrib", distName)
-            log(buildenv, HARDHAT_MESSAGE, "HardHat",
-             "End-user installer is in " + installerFile)
-
-            log(buildenv, HARDHAT_MESSAGE, "HardHat",
-             "Copying distributions")
-
-            releasesDir = buildenv['workroot'] + os.sep + "releases"
-            releaseDir = releasesDir + os.sep + releaseId
-
-            if not os.path.exists(releasesDir):
-                os.mkdir(releasesDir)
-            if not os.path.exists(releaseDir):
-                os.mkdir(releaseDir)
-            if os.path.exists(releaseDir + os.sep + installerFile):
-                os.remove(releaseDir + os.sep + installerFile)
-            os.rename(installerFile, releaseDir+os.sep+installerFile)
-
-            os.chdir(buildenv['workroot'])
-
-            compressedFile = compressDirectory(buildenv, "release",
-             module + "_" + buildenv['oslabel'] + "_dev_release_" + releaseId)
-            if os.path.exists(releaseDir + os.sep + compressedFile):
-                os.remove(releaseDir + os.sep + compressedFile)
-            os.rename(compressedFile, releaseDir+os.sep+compressedFile)
-
-            compressedFile = compressDirectory(buildenv, "debug",
-             module + "_" + buildenv['oslabel'] + "_dev_debug_" + releaseId)
-            if os.path.exists(releaseDir + os.sep + compressedFile):
-                os.remove(releaseDir + os.sep + compressedFile)
-            os.rename(compressedFile, releaseDir+os.sep+compressedFile)
-
-            log(buildenv, HARDHAT_MESSAGE, "HardHat",
-             "Distributions are in " + releaseDir)
-
-
-    else:
-        buildRelease(buildenv)
-        buildPrepareSource(buildenv, False)
-        buildDebug(buildenv)
-
-def buildPrepareSource(buildenv, doCheckout=True):
-    releaseId = buildenv['releaseId']
-    module = buildenv['module']
-    cvsModule = buildenv['cvsModule']
-    revision = buildenv['revision']
-
-    sourceName = module + "_src_" + releaseId
-
-    os.chdir(buildenv['workroot'])
-
-    if os.path.exists("osaf"):
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-         "Removing existing osaf under " + buildenv['workroot'])
-        rmdir_recursive("osaf")
-
-    if os.path.exists("latest.tar"):
-        executeCommand(buildenv, "HardHat", 
-         [buildenv['tar'], "xvf", "latest.tar"], 
-        "Untarring previous source")
-
-    if doCheckout:
-        if revision:
-            executeCommand(buildenv, "HardHat", 
-             [buildenv['cvs'], "checkout", "-r", revision, cvsModule], 
-            "Checking out " + cvsModule + " using tag " + revision)
-        else:
-            executeCommand(buildenv, "HardHat", 
-             [buildenv['cvs'], "checkout", "-A", cvsModule], 
-            "Checking out " + cvsModule + " from HEAD")
-
-        executeCommand(buildenv, "HardHat", 
-         [buildenv['tar'], "cvf", "latest-temp.tar", "osaf"], 
-        "Tarring current source to " + "latest-temp.tar")
-
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-         "Renaming latest-temp.tar to latest.tar")
-        if os.path.exists("latest.tar"):
-            os.remove("latest.tar")
-        os.rename("latest-temp.tar", "latest.tar")
-
-    else:
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-         "Skipping checkout")
-
-    log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-     "Latest source code prepared")
-
-
-def buildRelease(buildenv):
-    releaseId = buildenv['releaseId']
-    module = buildenv['module']
-
-    compressedFileRoot = module + "_" + buildenv['oslabel'] + \
-     "_dev_release_" + releaseId
-    distName = module + "_" + buildenv['oslabel'] + "_" + releaseId
-    distCompressedFileRoot = module + "_" + buildenv['oslabel'] + "_" + \
-     releaseId
-
-    try:
-        os.chdir(buildenv['root'])
-        if os.path.exists("release"):
-            rmdir_recursive("release")
-        buildenv['version'] = 'release'
-        history = {}
-        buildDependencies(buildenv, module, history)
-        os.chdir(buildenv['root'])
-
-        compressedFile = compressDirectory(buildenv, "release",
-         compressedFileRoot)
-        log(buildenv, HARDHAT_MESSAGE, "HardHat",
-         "Pre-built libraries are in " + compressedFile)
-
-        distribute(buildenv, module)
-        os.chdir(buildenv['root'])
-        if os.path.isdir(distName):
-            rmdir_recursive(distName)
-        # os.rename("distrib", distName)
-
-        installerFile = createInstaller(buildenv, "distrib", distName)
-        log(buildenv, HARDHAT_MESSAGE, "HardHat",
-         "End-user installer is in " + installerFile)
-
-        # distCompressedFile = compressDirectory(buildenv, distName,
-        #  distCompressedFileRoot)
-
-        log(buildenv, HARDHAT_MESSAGE, "HardHat",
-         "Copying distributions")
-
-        releasesDir = buildenv['workroot'] + os.sep + "releases"
-        releaseDir = releasesDir + os.sep + releaseId
-
-        if not os.path.exists(releasesDir):
-            os.mkdir(releasesDir)
-        if not os.path.exists(releaseDir):
-            os.mkdir(releaseDir)
-        if os.path.exists(releaseDir + os.sep + compressedFile):
-            os.remove(releaseDir + os.sep + compressedFile)
-        os.rename(compressedFile, releaseDir+os.sep+compressedFile)
-        if os.path.exists(releaseDir + os.sep + installerFile):
-            os.remove(releaseDir + os.sep + installerFile)
-        os.rename(installerFile, releaseDir+os.sep+installerFile)
-
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-         "Release distributions are in " + releaseDir)
-
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", "Moving release directory")
-        if os.path.isdir(buildenv['workroot'] + os.sep + "release"):
-            rmdir_recursive(buildenv['workroot'] + os.sep + "release")
-        os.rename("release", buildenv['workroot'] + os.sep + "release")
-
-    except Exception, e:
-        print e
-
-def buildDebug(buildenv):
-    releaseId = buildenv['releaseId']
-    module = buildenv['module']
-
-    compressedFileRoot = module + "_" + buildenv['oslabel'] + \
-     "_dev_debug_" + releaseId
-
-    try:
-        os.chdir(buildenv['root'])
-        if os.path.exists("debug"):
-            rmdir_recursive("debug")
-        buildenv['version'] = 'debug'
-        history = {}
-        buildDependencies(buildenv, module, history)
-        os.chdir(buildenv['root'])
-
-        compressedFile = compressDirectory(buildenv, "debug",
-         compressedFileRoot)
-
-        log(buildenv, HARDHAT_MESSAGE, "HardHat",
-         "Copying tarball")
-
-        releasesDir = buildenv['workroot'] + os.sep + "releases"
-        releaseDir = releasesDir + os.sep + releaseId
-
-        if not os.path.exists(releasesDir):
-            os.mkdir(releasesDir)
-        if not os.path.exists(releaseDir):
-            os.mkdir(releaseDir)
-        if os.path.exists(releaseDir + os.sep + compressedFile):
-            os.remove(releaseDir + os.sep + compressedFile)
-        os.rename(compressedFile, releaseDir+os.sep+compressedFile)
-
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", 
-         "Debug tarballs are in " + releaseDir)
-
-        log(buildenv, HARDHAT_MESSAGE, "HardHat", "Moving debug directory")
-        if os.path.isdir(buildenv['workroot'] + os.sep + "debug"):
-            rmdir_recursive(buildenv['workroot'] + os.sep + "debug")
-        os.rename("debug", buildenv['workroot'] + os.sep + "debug")
-
-    except Exception, e:
-        print e
-
+# - - - - - - -
 def compressDirectory(buildenv, directories, fileRoot):
     """This assumes that directory is an immediate child of the current dir"""
     if buildenv['os'] == 'win':
@@ -1416,25 +1200,6 @@ def compressDirectory(buildenv, directories, fileRoot):
         "Running gzip on " + fileRoot + ".tar")
         return fileRoot + ".tar.gz"
 
-def createInstaller(buildenv, directory, distName):
-    """ Runs external installation packaging script. """
-    if buildenv['os'] == 'osx':
-        # Turn the distrib directory into an application bundle
-        if os.path.isdir(distName):
-            rmdir_recursive(distName)
-        os.mkdir(distName)
-        os.rename(directory, distName + os.sep + distName + ".app")
-        makeDiskImage = buildenv['hardhatroot'] + os.sep + "makediskimage.sh"
-        executeCommand(buildenv, "HardHat", 
-         [makeDiskImage, distName], "Creating disk image from" + distName)
-        return distName + ".dmg"
-
-    else:
-        os.rename(directory, distName)
-        return compressDirectory(buildenv, distName,
-         buildenv['module'] + "_" + buildenv['oslabel'] + "_" + \
-          buildenv['releaseId'])
-
 def findInPath(path,fileName):
     dirs = path.split(os.pathsep)
     for dir in dirs:
@@ -1444,28 +1209,6 @@ def findInPath(path,fileName):
             if os.path.isfile(os.path.join(dir, fileName + ".exe")):
                 return os.path.join(dir, fileName + ".exe")
     return None
-
-def toCygwinPath(path):
-    if path[1:3] == ":\\":
-        path = path[0] + path[2:]
-        path = "/cygdrive/" + path
-        path = string.join(string.split(path, "\\"), "/")
-    return path
-
-def toDosPath(path):
-
-    try:
-        cygpath = os.popen("/bin/cygpath -w \"" + path + "\"", "r")
-        path = cygpath.readline()
-        path = path[:-1]
-        cygpath.close()
-        return path
-    except Exception, e:
-        print e
-        print "Unable to call 'cygpath' to determine DOS-equivalent for paths."
-        print "Either make sure that 'cygpath' is in your PATH or run the Windows version"
-        print "of Python from http://python.org/, rather than the Cygwin Python"
-        raise HardHatError
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Exception Classes

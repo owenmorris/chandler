@@ -17,3 +17,15 @@
 
     * Merged wxPython 2.4.1.2 into our codebase
 
+2003-07-11 Morgen Sagen
+
+    * Removed nightly.py which is superceded by singlebuild.py
+
+    * HardHat can now be run from any directory as long as a parent directory
+        contains a __hardhat__.py file (HardHat will now recursively check
+        parent directories until a __hardhat__.py file is found).  This makes
+        it easier to run scripts, for example, to run the wxPython demo:
+
+            cd osaf/chandler/wxpython/wxPython/demo
+            hardhat.py demo.py
+        
