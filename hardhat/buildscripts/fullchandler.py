@@ -1,5 +1,3 @@
-# Chandler blueprint for new build process
-
 """
 Notes:
 Start() is responsible for capturing all pertinent output to the open file
@@ -18,8 +16,13 @@ path = os.environ.get('PATH', os.environ.get('path'))
 whereAmI = os.path.dirname(os.path.abspath(hardhatlib.__file__))
 cvsProgram = hardhatutil.findInPath(path, "cvs")
 treeName = "Chandler"
-mainModule = 'chandler'
 logPath = 'hardhat.log'
+separator = "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n"
+
+# These modules are the ones to check out of CVS, and build
+cvsModules = (
+    'external', 'internal', 'chandler',
+)
 
 def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
@@ -52,17 +55,19 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     except Exception, e:
         print "Could not initialize hardhat environment.  Exiting."
         print "Exception:", e
+        import traceback
         traceback.print_exc()
-        raise e
         sys.exit(1)
     
     # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
-    chanDir = os.path.join(workingDir, mainModule)
+    chanDir = os.path.join(workingDir, 'chandler')
     # test if we've been thruough the loop at least once
-    if clobber == 1:
-        if os.path.exists(chanDir):
-            hardhatutil.rmdirRecursive(chanDir)
+    if clobber:
+        for module in cvsModules:
+            modDir = os.path.exists(os.path.join(workingDir, module))
+            if os.path.exists(modDir):
+                hardhatutil.rmdirRecursive(modDir)
             
     os.chdir(workingDir)
 
@@ -79,9 +84,9 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         # Initialize sources
         print "Setup source tree..."
         log.write("- - - - tree setup - - - - - - -\n")
-        
+
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-q -z3", "checkout", cvsVintage, "external internal chandler"])
+         [cvsProgram, "-q -z3", "checkout", cvsVintage, ' '.join(cvsModules)])
         hardhatutil.dumpOutputList(outputList, log)
     
         os.chdir(chanDir)
@@ -89,22 +94,14 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         # build release first, because on Windows, debug needs release libs (temp fix for bug 1468)
         for releaseMode in ('release', 'debug'):
             doBuild(releaseMode, workingDir, log, clean='')
-            #   Create end-user, developer distributions
-            print "Making distribution files for " + releaseMode
-            log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-            log.write("Making distribution files for " + releaseMode + "\n")
-            if releaseMode == "debug":
-                distOption = "-dD"
-            else:
-                distOption = "-D"
-                
-            outputList = hardhatutil.executeCommandReturnOutput(
-             [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
-            hardhatutil.dumpOutputList(outputList, log)
+
+            doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
             
-            ret = Do(hardhatScript, releaseMode, workingDir, outputDir, 
+            ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
             CopyLog(os.path.join(workingDir, logPath), log)
+            if ret != 'success':
+                break
 
         changes = "-first-run"
     else:
@@ -113,7 +110,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         print "Checking CVS for updates"
         log.write("Checking CVS for updates\n")
         
-        if changesInCVS(chanDir, workingDir, cvsVintage, log):
+        if changesInCVS(workingDir, cvsVintage, log):
             log.write("Changes in CVS require build\n")
             changes = "-changes"
             for releaseMode in ('debug', 'release'):        
@@ -121,18 +118,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
                 
             log.write("Changes in CVS require making distributions\n")
             for releaseMode in ('debug', 'release'):        
-                #   Create end-user, developer distributions
-                print "Making distribution files for " + releaseMode
-                log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-                log.write("Making distribution files for " + releaseMode + "\n")
-                if releaseMode == "debug":
-                    distOption = "-dD"
-                else:
-                    distOption = "-D"
-                    
-                outputList = hardhatutil.executeCommandReturnOutput(
-                 [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
-                hardhatutil.dumpOutputList(outputList, log)
+                doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript)
                     
         else:
             log.write("No changes\n")
@@ -140,19 +126,16 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
 
         # do tests
         for releaseMode in ('debug', 'release'):   
-            ret = Do(hardhatScript, releaseMode, workingDir, outputDir, 
+            ret = doTests(hardhatScript, releaseMode, workingDir, outputDir, 
               cvsVintage, buildVersion, log)
-            CopyLog(os.path.join(workingDir, logPath), log)
+            if ret != 'success':
+                break
 
     return ret + changes 
 
 
-# These modules are the ones to check out of CVS
-cvsModules = (
-    'external', 'internal', 'chandler',
-)
 
-def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log):
+def doTests(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log):
 
     testDir = os.path.join(workingDir, "chandler")
     os.chdir(testDir)
@@ -164,7 +147,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log
     
     try: # test
         print "Testing " + mode
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write(separator)
         log.write("Testing " + mode + " ...\n")
         outputList = hardhatutil.executeCommandReturnOutput(
          [hardhatScript, dashT])
@@ -172,36 +155,62 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion, log
 
     except Exception, e:
         print "a testing error"
-        log.write("***Error during tests*** " + str(e) + "\n")
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("Tests log:" + "\n")
-        if os.path.exists(os.path.join(workingDir, logPath)) :
-            CopyLog(os.path.join(workingDir, logPath), log)
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        doCopyLog("***Error during tests***", workingDir, logPath, log)
         return "test_failed"
     else:
-        log.write("Tests successful" + "\n")
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("Detailed Tests log:" + "\n")
-        if os.path.exists(os.path.join(workingDir, logPath)) :
-            CopyLog(os.path.join(workingDir, logPath), log)
-        log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        doCopyLog("Tests successful", workingDir, logPath, log)
 
-    return "success"  # end of Do( )
+    return "success"  # end of doTests( )
 
-def changesInCVS(moduleDir, workingDir, cvsVintage, log):
+
+def doDistribution(releaseMode, workingDir, log, outputDir, buildVersion, buildVersionEscaped, hardhatScript):
+    #   Create end-user, developer distributions
+    print "Making distribution files for " + releaseMode
+    log.write(separator)
+    log.write("Making distribution files for " + releaseMode + "\n")
+    if releaseMode == "debug":
+        distOption = "-dD"
+    else:
+        distOption = "-D"
+
+    try:
+        outputList = hardhatutil.executeCommandReturnOutput(
+          [hardhatScript, "-o", os.path.join(outputDir, buildVersion), distOption, buildVersionEscaped])
+        hardhatutil.dumpOutputList(outputList, log)
+    except Exception, e:
+        doCopyLog("***Error during distribution building process*** ", workingDir, logPath, log)
+        raise e
+
+
+def doCopyLog(msg, workingDir, logPath, log):
+    # hardhat scripts should leave harhat.log behind both on success and
+    # failure (barring catastrophic failure), so we can copy that into the
+    # build log
+    log.write(msg + "\n")
+    log.write(separator)
+    logPath = os.path.join(workingDir, logPath)
+    log.write("Contents of " + logPath + ":\n")
+    if os.path.exists(logPath):
+        CopyLog(logPath, log)
+    else:
+        log.write(logPath + ' does not exist!\n')
+        log.write(separator)
+
+
+def changesInCVS(workingDir, cvsVintage, log):
     changesAtAll = False
 #     print "Examining CVS"
 #     log.write("Examining CVS\n")
+
+    os.chdir(workingDir)
+    
     for module in cvsModules:
         print module, "..."
         log.write("- - - - " + module + " - - - - - - -\n")
-        moduleDir = os.path.join(workingDir, module)
-        os.chdir(moduleDir)
-        # print "seeing if we need to update", module
+        print "seeing if we need to update", module
         log.write("Seeing if we need to update " + module + "\n")
         outputList = hardhatutil.executeCommandReturnOutputRetry(
-         [cvsProgram, "-qn -z3", "update", "-d", cvsVintage])
+         [cvsProgram, "-qn -z3", "update", "-d", cvsVintage, module])
         # hardhatutil.dumpOutputList(outputList, log)
         if NeedsUpdate(outputList):
             changesAtAll = True
@@ -218,9 +227,10 @@ def changesInCVS(moduleDir, workingDir, cvsVintage, log):
             # print "NO, unchanged"
             log.write("Module unchanged" + "\n")
 
-    log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+    log.write(separator)
     log.write("Done with CVS\n")
     return changesAtAll
+
 
 def doBuild(buildmode, workingDir, log, clean='clean'):
     if buildmode == "debug":
@@ -233,19 +243,42 @@ def doBuild(buildmode, workingDir, log, clean='clean'):
     log.write('Setting BUILD_ROOT=' + buildRoot + '\n')
     os.putenv('BUILD_ROOT', buildRoot)
 
-    for mod in cvsModules:
-        if mod == 'chandler':
-            continue
-        moduleDir = os.path.join(workingDir, mod)
-        print "cd", moduleDir
-        log.write("cd " + moduleDir + "\n")
-        os.chdir(moduleDir)
+    try:
+        for module in cvsModules:
+            print module, "..."
+            log.write("- - - - " + module + " - - - - - - -\n")
 
-        print "Doing make " + dbgStr + " " + clean + " all binaries install\n"
-        log.write("Doing make " + dbgStr + " " + clean + " all binaries install\n")
+            if module == 'chandler':
+                print 'Nothing to be done for module', module
+                log.write('Nothing to be done for module ' + module + '\n')
+                log.write(separator)
+                continue
 
-        outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], dbgStr, clean, "all binaries install" ])
-        hardhatutil.dumpOutputList(outputList, log)
+            moduleDir = os.path.join(workingDir, module)
+            print "cd", moduleDir
+            log.write("cd " + moduleDir + "\n")
+            os.chdir(moduleDir)
+
+            print "Doing make " + dbgStr + " " + clean + " all binaries install\n"
+            log.write("Doing make " + dbgStr + " " + clean + " all binaries install\n")
+
+            outputList = hardhatutil.executeCommandReturnOutput( [buildenv['make'], dbgStr, clean, "all binaries install" ])
+            hardhatutil.dumpOutputList(outputList, log)
+
+            log.write(separator)
+    except Exception, e:
+        print "build error"
+        log.write("***Error during build***\n")
+        log.write(separator)
+        log.write("Build log:" + "\n")
+        if hasattr(e, 'outputList'):
+            hardhatutil.dumpOutputList(e.outputList, log)
+        else:
+            log.write('No build log!\n')
+            log.write(separator)
+        
+        raise e
+        
                 
 
 def NeedsUpdate(outputList):
@@ -272,6 +305,7 @@ def NeedsUpdate(outputList):
             return True
     return False
 
+
 def CopyLog(file, fd):
     input = open(file, "r")
     line = input.readline()
@@ -279,6 +313,7 @@ def CopyLog(file, fd):
         fd.write(line)
         line = input.readline()
     input.close()
+
 
 def getVersion(fileToRead):
     input = open(fileToRead, "r")
