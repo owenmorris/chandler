@@ -475,9 +475,9 @@ class wxApplication (wx.App):
         """
           Private dispatcher for a method call on an item done between threads.
         See CallItemMethodAsync() below for calling details.
-        Does a repository refresh to get the changes across from the other thread.
+        Does a repository commit to get the changes across from the other thread.
         """
-        Globals.repository.refresh () # bring changes across from the other thread/view
+        Globals.repository.commit () # bring changes across from the other thread/view
 
         # unwrap the target item and find the method to call
         item = transportItem.unwrap ()
