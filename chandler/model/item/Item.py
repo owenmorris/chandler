@@ -117,7 +117,7 @@ class Item(object):
                     refs[value._item.refName(name)] = value
                     value = refs
                 elif card == 'list':
-                    refs = RefList(self, otherName)
+                    refs = RefList(self, name, otherName)
                     refs[value._item.refName(name)] = value
                     value = refs
                     
@@ -441,7 +441,7 @@ class ItemHandler(xml.sax.ContentHandler):
         if cardinality == 'dict':
             self.collections.append(RefDict(None, otherName))
         elif cardinality == 'list':
-            self.collections.append(RefList(None, otherName))
+            self.collections.append(RefList(None, name, otherName))
                 
     def characters(self, data):
 

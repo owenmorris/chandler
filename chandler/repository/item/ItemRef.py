@@ -50,7 +50,7 @@ class ItemRef(object):
                     old[item.refName(name)] = self
                     return
                 elif card == 'list':
-                    old = RefList(other, other._otherName(name))
+                    old = RefList(other, name, other._otherName(name))
                     other._attributes[name] = old
                     old[item.refName(name)] = self
                     return
@@ -155,11 +155,24 @@ class RefDict(dict):
 
 class RefList(RefDict):
 
-    def __init__(self, item, otherName, initialDict=None):
+    def __init__(self, item, name, otherName, initialList=None):
 
         super(RefList, self).__init__(item, otherName, initialDict)
 
+        self._name = name
         self._keys = []
+
+        if initialList is not None:
+            self.extend(initialList)
+
+    def extend(self, valueList):
+
+        for value in valueList:
+            self.append(value)
+
+    def append(sef, value):
+
+        self[value.refName(self._name)] = value
 
     def __getitem__(self, key):
 
