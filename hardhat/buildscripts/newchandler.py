@@ -235,7 +235,7 @@ def doInstall(buildmode, workingDir, log):
     log.write("Doing make " + dbgStr + " install\n")
 
     outputList = hardhatutil.executeCommandReturnOutput(
-     [buildenv['make'], dbgStr, "install" ])
+     [buildenv['make'], dbgStr, "clean", "install" ])
     hardhatutil.dumpOutputList(outputList, log)
 
 
