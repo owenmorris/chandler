@@ -326,32 +326,35 @@ class wxSimpleCanvas (wxScrolledWindow):
 
                 deltaX =  x - self.dragStart.x
                 deltaY =  y - self.dragStart.y
+
+                if deltaX >= 0:
+                    left = self.dragStart.x
+                    width = deltaX
+                else:
+                    left = x
+                    width = -deltaX
+                    
+                if deltaY >= 0:
+                    top = self.dragStart.y
+                    height = deltaY
+                else:
+                    top = y
+                    height = -deltaY
+                dragRect = wxRect (left, top, width, height)
+
                 if not hasattr (self, 'dragCreateDrawableObject'):
                     if (deltaX * deltaX) + (deltaY * deltaY) > (self.autoCreateDistance * self.autoCreateDistance):
                         """
                            Create a new drawable object if we've dragged autoCreateDistance
                         pixels
                         """
-                        self.dragCreateDrawableObject = self.CreateNewDrawableObject (self.dragStart,
+                        self.dragCreateDrawableObject = self.CreateNewDrawableObject (dragRect,
+                                                                                      self.dragStart,
                                                                                       wxPoint (x, y))
                         self.zOrderedDrawableObjects.insert (0, self.dragCreateDrawableObject)
                         self.RefreshScrolledRect (self.dragCreateDrawableObject.bounds);
                     return true
                 else:
-                    if deltaX >= 0:
-                        left = self.dragStart.x
-                        width = deltaX
-                    else:
-                        left = x
-                        width = -deltaX
-                        
-                    if deltaY >= 0:
-                        top = self.dragStart.y
-                        height = deltaY
-                    else:
-                        top = y
-                        height = -deltaY
-                    dragRect = wxRect (left, top, width, height)
                     self.dragCreateDrawableObject.SizeDrag (dragRect,
                                                             self.dragStart,
                                                             wxPoint (x, y))
@@ -403,11 +406,12 @@ class wxSimpleCanvas (wxScrolledWindow):
         """
         assert (false)
       
-    def CreateNewDrawableObject (self, startDrag, endDrag):
+    def CreateNewDrawableObject (self, dragRect, startDrag, endDrag):
         """
           You must implement this routine to create new drawable objects by
         dragging on the blank canvas.
         """
         assert (false)
       
+
 
