@@ -304,7 +304,7 @@ class wxViewerParcel(wxPanel):
                       menu is the application menu that needs to have parcel menuitems
                       added to it
                     """
-                    menu = mainMenuBar.GetMenu (menuIndex)
+                    menu = mainMenuBar.Remove(menuIndex)
                         
                     ignoreErrors = wxLogNull ()
                     parcelMenuResourceXRC = self.resources.FindResource (name, 'wxMenu')
@@ -345,6 +345,7 @@ class wxViewerParcel(wxPanel):
                     """
                     oldMenu = menuBar.Replace (menuBarIndex, menu,  _(label))
                     del oldMenu
+
                 menuNode = menuNode.GetNext()
 
     def ReplaceViewParcelMenu(self):
