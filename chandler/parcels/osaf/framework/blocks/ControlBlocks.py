@@ -129,7 +129,7 @@ class EditText(RectangularChild):
     """
     Edit Menu enabling and handling
     """
-    def OnUndoEventUpdateUI (self, notification):
+    def onUndoEventUpdateUI (self, notification):
         canUndo = self.widget.CanUndo()
         notification.data ['Enable'] = canUndo
         if canUndo:
@@ -137,34 +137,34 @@ class EditText(RectangularChild):
         else:
             notification.data ['Text'] = "Can't Undo\tCtrl+Z"            
 
-    def OnUndoEvent (self, notification):
+    def onUndoEvent (self, notification):
         self.widget.Undo()
         self.OnDataChanged()
 
-    def OnRedoEventUpdateUI (self, notification):
+    def onRedoEventUpdateUI (self, notification):
         notification.data ['Enable'] = self.widget.CanRedo()
 
-    def OnRedoEvent (self, notification):
+    def onRedoEvent (self, notification):
         self.widget.Redo()
         self.OnDataChanged()
 
-    def OnCutEventUpdateUI (self, notification):
+    def onCutEventUpdateUI (self, notification):
         notification.data ['Enable'] = self.widget.CanCut()
 
-    def OnCutEvent (self, notification):
+    def onCutEvent (self, notification):
         self.widget.Cut()
         self.OnDataChanged()
 
-    def OnCopyEventUpdateUI (self, notification):
+    def onCopyEventUpdateUI (self, notification):
         notification.data ['Enable'] = self.widget.CanCopy()
 
-    def OnCopyEvent (self, notification):
+    def onCopyEvent (self, notification):
         self.widget.Copy()
 
-    def OnPasteEventUpdateUI (self, notification):
+    def onPasteEventUpdateUI (self, notification):
         notification.data ['Enable'] = self.widget.CanPaste()
 
-    def OnPasteEvent (self, notification):
+    def onPasteEvent (self, notification):
         self.widget.Paste()
         self.OnDataChanged()
     
@@ -281,7 +281,7 @@ class List(RectangularChild):
                        Block.getWidgetID(self),
                        style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.SUNKEN_BORDER|wx.LC_EDIT_LABELS)
 
-    def OnSelectionChangedEvent (self, notification):
+    def onSelectionChangedEvent (self, notification):
         """
           Display the item in the wxWidget.
         """
@@ -431,7 +431,7 @@ class Summary(RectangularChild):
     def instantiateWidget (self):
         return wxSummary (self.parentBlock.widget, Block.getWidgetID(self))
 
-    def OnSelectionChangedEvent (self, notification):
+    def onSelectionChangedEvent (self, notification):
         """
           Display the item in the wxWidget.
         """
@@ -717,7 +717,7 @@ class Tree(RectangularChild):
             tree = wxTreeList (self.parentBlock.widget, Block.getWidgetID(self), style = self.Calculate_wxStyle())
         return tree
 
-    def OnSelectionChangedEvent (self, notification):
+    def onSelectionChangedEvent (self, notification):
         self.widget.GoToItem (notification.GetData()['item'])
                             
     def Calculate_wxStyle (self):
@@ -769,7 +769,7 @@ class ItemDetail(RectangularChild):
     def getHTMLText(self, item):
         return '<body><html><h1>%s</h1></body></html>' % item.getDisplayName()
 
-    def OnSelectionChangedEvent (self, notification):
+    def onSelectionChangedEvent (self, notification):
         """
           Display the item in the wxWidget.
         """
@@ -785,7 +785,7 @@ class SelectionContainer(BoxContainer):
         super (SelectionContainer, self).__init__ (*arguments, **keywords)
         self.selection = None
 
-    def OnSelectionChangedEvent (self, notification):
+    def onSelectionChangedEvent (self, notification):
         """
           just remember the new selected ContentItem.
         """

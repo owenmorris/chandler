@@ -15,51 +15,51 @@ class MainView(View):
     """
       Main Chandler view contains event handlers for Chandler
     """
-    def OnQuitEvent (self, notification):
+    def onQuitEvent (self, notification):
         Globals.wxApplication.mainFrame.Close ()
         
-    def OnUndoEventUpdateUI (self, notification):
+    def onUndoEventUpdateUI (self, notification):
         notification.data ['Text'] = "Can't Undo\tCtrl+Z"            
         notification.data ['Enable'] = False
 
-    def OnRedoEventUpdateUI (self, notification):
+    def onRedoEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
 
-    def OnCutEventUpdateUI (self, notification):
+    def onCutEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
 
-    def OnCopyEventUpdateUI (self, notification):
+    def onCopyEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
 
-    def OnPasteEventUpdateUI (self, notification):
+    def onPasteEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
         
-    def OnPreferencesEventUpdateUI (self, notification):
+    def onPreferencesEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
         
     # Test Methods
 
-    def OnGenerateContentItems(self, notification):
-        GenerateItems.GenerateCalendarEvents(5, 30)
+    def onGenerateContentItemsEvent(self, notification):
+        GenerateItems.generateCalendarEventItems(5, 30)
         GenerateItems.GenerateContacts(5)
         Globals.repository.commit()
 
-    def OnGenerateCalendarEvents(self, notification):
-        GenerateItems.GenerateCalendarEvents(10, 30)
+    def onGenerateCalendarEventItemsEvent(self, notification):
+        GenerateItems.generateCalendarEventItems(10, 30)
         Globals.repository.commit()
 
-    def OnGenerateContacts(self, notification):
+    def onGenerateContactsEvent(self, notification):
         GenerateItems.GenerateContacts(10)
         Globals.repository.commit()
 
-    def OnImportContacts(self, notification):
+    def onImportContactsEvent(self, notification):
         x=OutlookContacts.OutlookContacts().processFile()
 
-    def OnGenerateNotes(self, notification):
+    def onGenerateNotesEvent(self, notification):
         GenerateItems.GenerateNotes(10)
         Globals.repository.commit()
 
-    def OnCheckRepository(self, notification):
+    def onCheckRepositoryEvent(self, notification):
 
         repository = Globals.repository
         repository.logger.info('Checking repository...')

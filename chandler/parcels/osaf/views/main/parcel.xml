@@ -24,19 +24,19 @@
 
   <BlockEvent itemName="ShowHideSidebar">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>OnShowHide</methodName>
+    <methodName>onShowHideEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
   </BlockEvent>
 
   <BlockEvent itemName="ShowHideBookmarksBar">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>OnShowHide</methodName>
+    <methodName>onShowHideEvent</methodName>
     <dispatchToBlock itemref="doc:BookmarksBar"/>
   </BlockEvent>
 
   <BlockEvent itemName="ShowHideStatusBar">
     <dispatchEnum>SendToBlock</dispatchEnum>
-    <methodName>OnShowHide</methodName>
+    <methodName>onShowHideEvent</methodName>
     <dispatchToBlock itemref="doc:StatusBar"/>
   </BlockEvent>
 
@@ -185,9 +185,9 @@
   </MenuItem>
 
   <MenuItem itemName="GenerateCalendarItem">
-    <title>Generate Calendar Events</title>
+    <title>Generate Calendar Event Items</title>
     <menuLocation>TestMenu</menuLocation>
-    <event itemref="events:GenerateCalendarEvents"/>
+    <event itemref="events:GenerateCalendarEventItems"/>
     <helpString>generates 10 sample calendar events</helpString>
   </MenuItem>
 

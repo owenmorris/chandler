@@ -42,7 +42,7 @@ def GenerateCalendarEvent(days):
     # Choose random minutes
     event.duration = DateTime.DateTimeDelta(0, 0, random.choice(DURATIONS))
     
-def GenerateCalendarEvents(count, days):
+def generateCalendarEventItems(count, days):
     """ Generate _count_ events over the next _days_ number of days """
     for index in range(count):
         GenerateCalendarEvent(days)

@@ -7,14 +7,14 @@ import application.Globals as Globals
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
 
 class DemoTabs(ContainerBlocks.TabbedContainer):
-    def OnChooseTabEventUpdateUI(self, notification):
+    def onChoiceEventUpdateUI(self, notification):
         selectedText = self.widget.GetPageText (self.widget.GetSelection())
         notification.data['Check'] = (selectedText == notification.event.choice)
 
-    def OnAddTextEvent(self, notification):
+    def onAddTextEvent(self, notification):
         textBox = Globals.repository.findPath('//parcels/osaf/views/demo/ButtonText')
         textBox.widget.AppendText('Here is some text')
     
-    def OnReloadTextEvent(self, notification):
+    def onReloadTextEvent(self, notification):
         textBox = Globals.repository.findPath('//parcels/osaf/views/demo/ButtonText')
         textBox.widget.SetValue('')

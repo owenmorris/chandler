@@ -65,7 +65,7 @@ class EmbeddedContainer(RectangularChild):
             Globals.mainView.onSetActiveView(newChild)
             return panel
     
-    def OnSelectionChangedEvent(self, notification):
+    def onSelectionChangedEvent(self, notification):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             node = notification.data['item']
             if node and isinstance(node, Node):
@@ -346,7 +346,7 @@ class TabbedContainer(RectangularChild):
             #return # If we haven't registered yet
         #Globals.notificationManager.Unsubscribe(id)    
     
-    def OnChooseTabEvent (self, notification):
+    def onChoiceEvent (self, notification):
         choice = notification.event.choice
         for index in xrange (self.widget.GetPageCount()):
             if self.widget.GetPageText(index) == choice:

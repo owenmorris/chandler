@@ -32,41 +32,39 @@
   <ChoiceEvent itemName="ChooseIntroTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
-    <methodName>OnChooseTabEvent</methodName>
+    <methodName>onChoiceEvent</methodName>
     <choice>Intro</choice>
   </ChoiceEvent>  
   
   <ChoiceEvent itemName="ChooseButtonsTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
-    <methodName>OnChooseTabEvent</methodName>
+    <methodName>onChoiceEvent</methodName>
     <choice>Buttons</choice>
   </ChoiceEvent>
 
   <ChoiceEvent itemName="ChooseControlsTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
-    <methodName>OnChooseTabEvent</methodName>
+    <methodName>onChoiceEvent</methodName>
     <choice>Controls</choice>
   </ChoiceEvent>
   
   <ChoiceEvent itemName="ChooseHTMLTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
-    <methodName>OnChooseTabEvent</methodName>
+    <methodName>onChoiceEvent</methodName>
     <choice>HTML</choice>
   </ChoiceEvent>
 
-  <BlockEvent itemName="ReloadTextEvent">
+  <BlockEvent itemName="ReloadText">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
-    <methodName>OnReloadTextEvent</methodName>
   </BlockEvent>
 
-  <BlockEvent itemName="AddTextEvent">
+  <BlockEvent itemName="AddText">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
-    <methodName>OnAddTextEvent</methodName>
   </BlockEvent>
 
   <!--
@@ -246,7 +244,7 @@
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <event itemref="doc:AddTextEvent"/>
+    <event itemref="doc:AddText"/>
     <alignmentEnum>alignCenter</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </Button>
@@ -259,7 +257,7 @@
     <size>60,40</size>
     <minimumSize>60,40</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
-    <event itemref="doc:ReloadTextEvent"/>
+    <event itemref="doc:ReloadText"/>
     <alignmentEnum>alignCenter</alignmentEnum>
     <stretchFactor>0.0</stretchFactor>
   </Button>
@@ -433,8 +431,8 @@
     <subscribeWhenVisibleEvents itemref="doc:ChooseButtonsTab"/>
     <subscribeWhenVisibleEvents itemref="doc:ChooseControlsTab"/>
     <subscribeWhenVisibleEvents itemref="doc:ChooseHTMLTab"/>
-    <subscribeWhenVisibleEvents itemref="doc:ReloadTextEvent"/>
-    <subscribeWhenVisibleEvents itemref="doc:AddTextEvent"/>
+    <subscribeWhenVisibleEvents itemref="doc:ReloadText"/>
+    <subscribeWhenVisibleEvents itemref="doc:AddText"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

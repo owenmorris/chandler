@@ -136,13 +136,13 @@ class Block(Item):
         return id
     getWidgetID = classmethod (getWidgetID)
 
-    def OnShowHide(self, notification):
+    def onShowHideEvent(self, notification):
         self.isShown = not self.isShown
         self.synchronizeWidget()
         self.parentBlock.synchronizeWidget()
 
 
-    def OnShowHideUpdateUI(self, notification):
+    def onShowHideEventUpdateUI(self, notification):
         notification.data['Check'] = self.isShown
 
 

@@ -20,9 +20,9 @@
     <childrenBlocks itemref="views:PKITestView/sendRow"/>
     <orientationEnum>Vertical</orientationEnum>
 
-    <subscribeAlwaysEvents itemref="views:StartStopServerEvent"/>
-    <subscribeAlwaysEvents itemref="views:ConnectDisconnectClientEvent"/>
-    <subscribeAlwaysEvents itemref="views:SendDataToServerEvent"/>
+    <subscribeAlwaysEvents itemref="views:StartStopServer"/>
+    <subscribeAlwaysEvents itemref="views:ConnectDisconnectClient"/>
+    <subscribeAlwaysEvents itemref="views:SendDataToServer"/>
 
     <blocks:BoxContainer itemName="serverRow">
       <childrenBlocks itemref="views:PKITestView/StartStopServerButton"/>
@@ -65,7 +65,7 @@
     <blocks:Button itemName="StartStopServerButton">
       <title>Start/Stop Server</title>
       <buttonKind>Text</buttonKind>
-      <event itemref="views:StartStopServerEvent"/>
+      <event itemref="views:StartStopServer"/>
       <size>120,20</size>
       <minimumSize>120,20</minimumSize>
       <alignmentEnum>alignCenter</alignmentEnum>
@@ -75,7 +75,7 @@
     <blocks:Button itemName="ConnectDisconnectClientButton">
       <title>Connect/Disconnect Client</title>
       <buttonKind>Text</buttonKind>
-      <event itemref="views:ConnectDisconnectClientEvent"/>
+      <event itemref="views:ConnectDisconnectClient"/>
       <size>140,20</size>
       <minimumSize>140,20</minimumSize>
       <alignmentEnum>alignCenter</alignmentEnum>
@@ -85,7 +85,7 @@
     <blocks:Button itemName="SendDataToServerButton">
       <title>Send</title>
       <buttonKind>Text</buttonKind>
-      <event itemref="views:SendDataToServerEvent"/>
+      <event itemref="views:SendDataToServer"/>
       <size>80,20</size>
       <minimumSize>80,20</minimumSize>
       <alignmentEnum>alignCenter</alignmentEnum>
@@ -229,22 +229,19 @@
 
   <!-- The events -->
 
-  <blocks:BlockEvent itemName="StartStopServerEvent">
+  <blocks:BlockEvent itemName="StartStopServer">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="views:PKITestView"/>
-    <methodName>OnStartStopServerEvent</methodName>
   </blocks:BlockEvent>
 
-  <blocks:BlockEvent itemName="ConnectDisconnectClientEvent">
+  <blocks:BlockEvent itemName="ConnectDisconnectClient">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="views:PKITestView"/>
-    <methodName>OnConnectDisconnectClientEvent</methodName>
   </blocks:BlockEvent>
 
-  <blocks:BlockEvent itemName="SendDataToServerEvent">
+  <blocks:BlockEvent itemName="SendDataToServer">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="views:PKITestView"/>
-    <methodName>OnSendDataToServerEvent</methodName>
   </blocks:BlockEvent>
 
   <!-- The node that is added to the side bar -->

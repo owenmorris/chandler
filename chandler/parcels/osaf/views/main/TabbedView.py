@@ -9,7 +9,7 @@ from osaf.framework.blocks.Node import Node as Node
 from osaf.framework.blocks.Block import Block as Block
 
 class TabbedView(ControlBlocks.TabbedContainer):
-    def OnSelectionChangedEvent(self, notification):
+    def onSelectionChangedEvent(self, notification):
         node = notification.data['item']
         if node and isinstance(node, Node):
             newItem = node.item
@@ -34,7 +34,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
             self.synchronizeWidget()
         
 
-    def OnNewEvent (self, notification):
+    def onNewEvent (self, notification):
         "Create a new tab"
         kind = Globals.repository.findPath("parcels/osaf/framework/blocks/HTML")
         name = self.getUniqueName("untitled")
@@ -46,7 +46,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
         item.render()
         self.synchronizeWidget()
 
-    def OnCloseEvent (self, notification):
+    def onCloseEvent (self, notification):
         "Close the current tab"
 
         selection = self.widget.GetSelection()
@@ -59,7 +59,7 @@ class TabbedView(ControlBlocks.TabbedContainer):
         page.blockItem.parentBlock = None
         self.synchronizeWidget()
         
-    def OnCloseEventUpdateUI(self, notification):
+    def onCloseEventUpdateUI(self, notification):
         notification.data['Enable'] = (len(self.tabNames) > 1)
         
     def getUniqueName (self, name):

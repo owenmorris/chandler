@@ -91,7 +91,7 @@ class ZaoBaoTreeDelegate:
 
 
 # XXX need to relocate this somewhere...
-def OnEnterPressedEvent(self, notification):
+def onEnterPressedEvent(self, notification):
     url = notification.GetData()['text']
     if len(url) < 5:
         return

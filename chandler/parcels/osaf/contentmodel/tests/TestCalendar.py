@@ -136,7 +136,7 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
         self.loadParcel("osaf/contentmodel/calendar")
 
-        GenerateItems.GenerateCalendarEvents(100, 100)
+        GenerateItems.generateCalendarEventItems(100, 100)
         self.rep.commit()
 
 if __name__ == "__main__":

@@ -55,7 +55,10 @@ class View(BoxContainer):
         """
           Construct method name based upon the type of the event.
         """
-        methodName = event.methodName
+        try:
+            methodName = event.methodName
+        except AttributeError:
+            methodName = 'on' + event.itsName + 'Event'
 
         try:
             updateUI = notification.data['UpdateUI']

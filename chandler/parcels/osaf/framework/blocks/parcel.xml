@@ -242,7 +242,6 @@
 
     <Attribute itemName="methodName">
       <type itemref="String"/>
-      <required>True</required>
     </Attribute>
 
     <attributes itemref="docSchema:BlockEvent/dispatchEnum"/>

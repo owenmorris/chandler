@@ -95,7 +95,7 @@ class NavigationBar(Toolbar):
             self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':item})
         
-    def OnViewNavigationBarEvent(self, notification):
+    def onViewNavigationBarEvent(self, notification):
         self.isShown = not self.isShown
         self.showOrHideNavigationBar()
         
@@ -106,7 +106,7 @@ class NavigationBar(Toolbar):
             navigationBar.Show(self.isShown)
             frame.Layout()
         
-    def OnViewNavigationBarEventUpdateUI(self, notification):
+    def onViewNavigationBarEventUpdateUI(self, notification):
         notification.data['Check'] = self.isShown
 
     def GoBack(self):
@@ -133,7 +133,7 @@ class NavigationBar(Toolbar):
             self.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
                        {'item':newLocation})
 
-    def OnSelectionChangedEvent (self, notification):
+    def onSelectionChangedEvent (self, notification):
         item = notification.data['item']
         try:
             path = item.GetPath()
