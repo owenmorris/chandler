@@ -77,6 +77,10 @@ class Kind(Item):
 
         return None
 
+    def recognizes(self, value):
+
+        raise NotImplementedError, "Kind.recognizes()"
+
     def _getInheritingKinds(self):
 
         if self.hasAttributeValue('superKinds'):
