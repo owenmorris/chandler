@@ -199,9 +199,12 @@ class ShareConduit(ContentModel.ChandlerItem):
             # The version is set to -1 to indicate it needs to be
             # set later on (by syncManifestVersions) because we won't
             # know the item version until *after* commit
-            self.__addToManifest(item, data, -1)
-            logger.info("...imported '%s' %s, data: %s" % \
-             (item.getItemDisplayName(), item, data))
+            if item is not None:
+                self.__addToManifest(item, data, -1)
+                logger.info("...imported '%s' %s, data: %s" % \
+                 (item.getItemDisplayName(), item, data))
+            else:
+                logger.info("...NOT able to import '%s'" % itemPath)
             return item
         else:
             pass
@@ -225,6 +228,11 @@ class ShareConduit(ContentModel.ChandlerItem):
 
         itemPath = self._getItemPath(self.share)
         item = self.__conditionalGetItem(itemPath, into=self.share)
+        if item is None:
+            logger.info("...NOT able to import share")
+            msg = "Not able to sync '%s'\nBad Format" % location
+            raise SharingError(message=msg)
+
         if item is not None:
             retrievedItems.append(item)
         self.__setSeen(itemPath)
