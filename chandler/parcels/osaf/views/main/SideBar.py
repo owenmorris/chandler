@@ -72,7 +72,11 @@ class SidebarTrunkDelegate(Trunk.TrunkDelegate):
                       rule) which has another problem: When the rule in the original
                       ItemCollection change we don't update our copied rule.                      
                     """
-                    key = item.copy (parent = self.findPath('//userdata'), cloudAlias="default")
+                    key = ItemCollection.ItemCollection (view=self.itsView)
+                    key._rule = item._rule
+                    key._inclusions = item._inclusions
+                    key._exclusions = item._exclusions
+                    key.displayName = item.displayName + u" filtered by " + filterKind.displayName
                     key.addFilterKind (filterKind)
                     self.itemTupleKeyToCacheKey [tupleKey] = key
         return key
