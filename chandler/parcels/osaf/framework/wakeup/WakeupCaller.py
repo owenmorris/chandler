@@ -116,9 +116,9 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
             del self.wakeupCallies[wakeupCall.itsUUID]
 
     def __populate(self):
-        wakeupKind = Globals.repository.findPath('//parcels/osaf/framework/wakeup/WakeupCall')
+        wakeupCallKind = Globals.repository.findPath('//parcels/osaf/framework/wakeup/WakeupCall')
 
-        for wakeupCall in Query.KindQuery().run([wakeupKind]):
+        for wakeupCall in Query.KindQuery().run([wakeupCallKind]):
             if not self.__isValid(wakeupCall):
                 error  = "An invalid WakeupCall was found with UUID: %s." % wakeupCall.itsUUID
                 error += "The WakeupCall must specify and Item Class and have a delay value greater than 0"
