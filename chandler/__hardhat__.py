@@ -220,6 +220,7 @@ def generateDocs(buildenv):
                           '--inheritance listed',
                           '--no-private',
                           'application',
+                          'parcels/osaf/framework/sharing',
                           'repository/item',
                           'repository/persistence',
                           'repository/util',
