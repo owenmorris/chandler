@@ -61,7 +61,7 @@
     <border>0.0, 0.0, 0.0, 5.0</border>
   </StaticText>
   
-  <StaticText itsName="LinkAttribute" itemClass="osaf.framework.blocks.detail.Detail.StaticRedirectAttribute">
+  <StaticText itsName="LinkAttribute" itemClass="osaf.examples.zaobao.blocks.LinkDetail">
     <characterStyle itemref="doc:LinkStyle"/>
     <!-- <colorStyle itemref="doc:LinkColor"/> -->
     <stretchFactor>0.0</stretchFactor>
