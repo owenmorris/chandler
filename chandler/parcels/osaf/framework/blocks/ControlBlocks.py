@@ -721,3 +721,42 @@ class ItemDetail(RectangularChild):
         """
         self.selection = notification.data['item']
         self.synchronizeWidget ()
+        
+class SelectionContainer(BoxContainer):
+    """
+    DLD - SelectionContainer
+    Keeps track of the current selected item
+    """
+    def __init__(self, *arguments, **keywords):
+        super (SelectionContainer, self).__init__ (*arguments, **keywords)
+        self.selection = None
+
+    def OnSelectionChangedEvent (self, notification):
+        """
+          just remember the new selected ContentItem.
+        """
+        self.selection = notification.data['item']
+
+    def SelectedItem(self):
+        # return the item being viewed
+        return self.selection
+    
+class ContentItemDetail(SelectionContainer):
+    """
+    DLD - ContentItemDetail
+    Any container block in the Content Item's Detail View hierarchy.
+    Not to be confused with ItemDetail (above) which uses an HTML-based widget.
+    Keeps track of the current selected item
+    Supports Color Style
+    """
+    
+    def synchronizeWidget (self):
+        super(ContentItemDetail, self).synchronizeWidget()
+        if not Globals.wxApplication.ignoreSynchronizeWidget:
+            self.synchronizeColor()
+        
+    def synchronizeColor (self):
+        # if there's a color style defined, syncronize the color
+        if hasattr(self, "colorStyle"):
+            self.colorStyle.synchronizeColor(self)    
+           

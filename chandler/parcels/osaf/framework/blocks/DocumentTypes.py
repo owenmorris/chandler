@@ -1,5 +1,6 @@
 
 import repository.schema.Types as CoreTypes
+import wx
 
 class SizeType(object):
     __slots__ = 'width', 'height'
@@ -31,6 +32,9 @@ class RectStruct(CoreTypes.Struct):
 
 class ColorType(object):
     __slots__ = 'red', 'green', 'blue', 'alpha'
+    def wxColor(self):
+        # Make a wx color
+        return wx.Color(self.red, self.green, self.blue)
 
 class ColorStruct(CoreTypes.Struct):
 

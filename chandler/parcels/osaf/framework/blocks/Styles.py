@@ -4,6 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.item.Item import Item
+import application.Globals as Globals
 import wx
 
 
@@ -18,6 +19,18 @@ class CharacterStyle(Style):
     def __init__(self, *arguments, **keywords):
         super (CharacterStyle, self).__init__ ( *arguments, **keywords)
 
+class ColorStyle(Style):
+    """ 
+    Class for Color Style
+    Attributes for backgroundColor and foregroundColor
+    """
+    def synchronizeColor(self, block):
+        widget = block.widget
+        if widget:
+            if hasattr(self, "backgroundColor"):
+                widget.SetBackgroundColour(self.backgroundColor.wxColor())
+            if hasattr(self, "foregroundColor"):
+                widget.SetForegroundColour(self.foregroundColor.wxColor())
         
 class Font(wx.Font):
     def __init__(self, characterStyle):

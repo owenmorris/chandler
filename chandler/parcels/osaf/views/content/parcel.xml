@@ -13,7 +13,9 @@
              xmlns:calendarModel="//parcels/osaf/contentmodel/calendar"
              xmlns:noteModel="//parcels/osaf/contentmodel/notes"
              xmlns:contactsModel="//parcels/osaf/contentmodel/contacts"
-	     xmlns:view="//parcels/osaf/views/content">
+             xmlns:notesDetail="//parcels/osaf/framework/blocks/detail/notes"	     
+             xmlns:calendarDetail="//parcels/osaf/framework/blocks/detail/calendar"	     
+             xmlns:view="//parcels/osaf/views/content">
 
   <core:version>0.3</core:version>
 
@@ -109,14 +111,6 @@
     <columnWidths>170</columnWidths>
   </Summary>
 
-  <ItemDetail itemName="CalendarEventDetail"
-              itemClass="osaf.views.content.Content.ContentItemDetail">
-  </ItemDetail>
-
-  <ItemDetail itemName="NoteDetail"
-              itemClass="osaf.views.content.Content.ContentItemDetail">
-  </ItemDetail>
-
   <ItemDetail itemName="ContactDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
@@ -137,19 +131,21 @@
   <!-- Calendar View -->
   <SplitterWindow itemName="CalendarListView">
     <childrenBlocks itemref="view:CalendarList"/>
-    <childrenBlocks itemref="view:CalendarEventDetail"/>
+    <childrenBlocks itemref="calendarDetail:DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
+    <splitPercentage>0.2</splitPercentage>
   </SplitterWindow>
 
   <!-- Notes View -->
   <SplitterWindow itemName="NoteListView">
     <childrenBlocks itemref="view:NoteList"/>
-    <childrenBlocks itemref="view:NoteDetail"/>
+    <childrenBlocks itemref="notesDetail:DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
+    <splitPercentage>0.2</splitPercentage>
   </SplitterWindow>
 
   <!-- Contacts View -->

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- Copyright (c) 2004 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<core:Parcel describes="//parcels/osaf/framework/blocks/detail"
+             itemName="detail"
+	     itemClass="osaf.framework.blocks.detail.Detail.DetailParcel"
+             xmlns="//parcels/osaf/framework/blocks"
+             xmlns:core="//Schema/Core"
+             xmlns:blocks="//parcels/osaf/framework/blocks"
+             xmlns:content="//parcels/osaf/contentmodel"
+             xmlns:doc="//parcels/osaf/framework/blocks/detail">
+
+  <core:version>0.3</core:version>
+
+  <!-- 
+    SCHEMA 
+  -->
+ 
+  <core:Kind itemName="DateTimeBlock">
+    <classes key="python">osaf.framework.blocks.detail.Detail.DateTimeBlock</classes>
+    <superKinds itemref="blocks:StaticText"/>
+  </core:Kind>    
+
+  <core:Kind itemName="ToEditField">
+    <classes key="python">osaf.framework.blocks.detail.Detail.ToEditField</classes>
+    <superKinds itemref="blocks:EditText"/>
+  </core:Kind>    
+
+  <core:Kind itemName="FromEditField">
+    <classes key="python">osaf.framework.blocks.detail.Detail.FromEditField</classes>
+    <superKinds itemref="blocks:EditText"/>
+  </core:Kind>    
+
+  <core:Kind itemName="NoteBody">
+    <classes key="python">osaf.framework.blocks.detail.Detail.NoteBody</classes>
+    <superKinds itemref="blocks:EditText"/>
+  </core:Kind>
+  
+  <core:Kind itemName="Headline">
+    <classes key="python">osaf.framework.blocks.detail.Detail.Headline</classes>
+    <superKinds itemref="blocks:StaticText"/>
+  </core:Kind>
+  
+  
+  <!--
+    Styles
+  -->
+  <CharacterStyle itemName="TextStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+    <fontSize>12.0</fontSize>
+    <fontStyle></fontStyle>
+    <fontName></fontName>
+  </CharacterStyle>
+
+  <CharacterStyle itemName="LabelStyle">
+    <fontFamily>DefaultUIFont</fontFamily>
+    <fontSize>14.0</fontSize>
+    <fontStyle></fontStyle>
+    <fontName></fontName>
+  </CharacterStyle>
+
+  <ColorStyle itemName="GrayBackground1">
+    <backgroundColor>240,240,240,240</backgroundColor>
+  </ColorStyle>
+  
+  <ColorStyle itemName="GrayBackground2">
+    <backgroundColor>181,181,181,181</backgroundColor>
+  </ColorStyle>
+  
+  <ColorStyle itemName="GrayBackground3">
+    <backgroundColor>221,221,221,221</backgroundColor>
+  </ColorStyle>
+      
+</core:Parcel>

@@ -19,7 +19,6 @@
   <CalendarEvent itemName="LunchWTug">
     <headline>Lunch with Tug</headline>
     <transparency>busy</transparency>
-    <priority>3</priority>
   </CalendarEvent>
 
 </core:Parcel>

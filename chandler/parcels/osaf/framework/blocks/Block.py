@@ -44,7 +44,7 @@ class Block(Item):
                 Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
             """
               Store a non persistent pointer to the widget in the block and pin the block
-            to keep it in memeory. Store a pointer to the block in the widget. Undo all this
+            to keep it in memory. Store a pointer to the block in the widget. Undo all this
             when the widget is destroyed.
             """
 

@@ -105,6 +105,14 @@
     <type itemref="String"/>
   </Attribute>
 
+  <Attribute itemName="event">
+    <type itemref="docSchema:BlockEvent"/>
+  </Attribute>
+    
+  <Attribute itemName="selection">
+    <type itemref="SingleRef"/>
+  </Attribute>
+
   <!--
     Chandler ItemCollection
   -->
@@ -181,12 +189,28 @@
     <type itemref="docSchema:CharacterStyle"/>
   </Attribute>
 
-  <Attribute itemName="event">
-    <type itemref="docSchema:BlockEvent"/>
+  <!-- 
+    Color style 
+  -->
+  
+  <Kind itemName="ColorStyle">
+    <classes key="python">osaf.framework.blocks.Styles.ColorStyle</classes>
+    <superKinds itemref="docSchema:Style"/>
+
+    <attributes itemref="docSchema:foregroundColor"/>
+    <attributes itemref="docSchema:backgroundColor"/>
+  </Kind>
+
+  <Attribute itemName="foregroundColor">
+    <type itemref="docSchema:ColorType"/>
   </Attribute>
-    
-  <Attribute itemName="selection">
-    <type itemref="SingleRef"/>
+
+  <Attribute itemName="backgroundColor">
+    <type itemref="docSchema:ColorType"/>
+  </Attribute>
+  
+  <Attribute itemName="colorStyle">
+    <type itemref="docSchema:ColorStyle"/>
   </Attribute>
 
   <!--
@@ -838,6 +862,24 @@
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <attributes itemref="docSchema:selection"/>
+  </Kind>    
+
+  <!-- SelectionContainer -->
+ 
+  <Kind itemName="SelectionContainer">
+    <classes key="python">osaf.framework.blocks.ControlBlocks.SelectionContainer</classes>
+    <superKinds itemref="docSchema:BoxContainer"/>
+
+    <attributes itemref="docSchema:selection"/>
+  </Kind>    
+
+  <!-- Content Item Detail Block -->
+  
+  <Kind itemName="ContentItemDetail">
+    <classes key="python">osaf.framework.blocks.ControlBlocks.ContentItemDetail</classes>
+    <superKinds itemref="docSchema:SelectionContainer"/>
+
+    <attributes itemref="docSchema:colorStyle"/>    
   </Kind>    
 
   <!--
