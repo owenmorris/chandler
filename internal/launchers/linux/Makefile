@@ -2,7 +2,7 @@
 include ../../Makefile.inc
 
 RELVER=0.3-1
-LAUNCHERLINUX=$(INTERNAL)/launchers/linux
+LAUNCHERS=$(INTERNAL)/launchers
 
 BUILD=build_$(SNAP)
 
@@ -26,18 +26,19 @@ MODLIBS=
 ALLLIBS=	$(LIBPYTHON) $(MODLIBS) $(LIBS) $(SYSLIBS)
 
 build:
-	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) chandler.c -o chandler
-	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) chandler_bin.c $(ALLLIBS) -o chandler_bin
-	cp chandler $(BUILD_ROOT)/$(SNAP)
-	cp chandler_bin $(BUILD_ROOT)/$(SNAP)
+	mkdir -p $(BUILD)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) chandler.c -o $(BUILD)/chandler
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) chandler_bin.c $(ALLLIBS) -o $(BUILD)/chandler_bin
+	cp $(BUILD)/chandler $(BUILD_ROOT)/$(SNAP)
+	cp $(BUILD)/chandler_bin $(BUILD_ROOT)/$(SNAP)
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(LAUNCHERLINUX)/launcherlinux-$(SNAP)-$(RELVER).tar.gz \
+        tar -cvzf $(LAUNCHERS)/launchers-$(SNAP)-$(RELVER).tar.gz \
           $(SNAP)/chandler $(SNAP)/chandler_bin
 
 clean:
 	rm -rf $(BUILD)
 
-upload: UUIDext-$(SNAP)-$(RELVER).tar.gz
-	scp UUIDext-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: launchers-$(SNAP)-$(RELVER).tar.gz
+	scp launchers-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
