@@ -7,8 +7,8 @@
     <kind type="path">//Schema/Core/Kind</kind>
     <class module="model.schema.Kind">Kind</class>
 
-    <ref name="attributes" otherName="kinds" cardinality="list" 
-         otherCard="dict">
+    <ref name="attributes" otherName="kinds"
+         cardinality="list" otherCard="list">
 
       <!-- 
          - plus local attributes below:

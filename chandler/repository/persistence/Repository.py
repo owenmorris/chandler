@@ -61,6 +61,13 @@ class Repository(object):
 
         self.view.commit()
 
+    def cancel(self):
+
+        if not self.isOpen():
+            raise RepositoryError, "Repository is not open"
+
+        self.view.cancel()
+
     def _createView(self):
 
         return RepositoryView(self)
@@ -90,7 +97,11 @@ class Repository(object):
 
     def getRoot(self, name, load=True):
 
-        return self.getRoot(self, name, load)
+        return self.view.getRoot(name, load)
+
+    def __getitem__(self, key):
+
+        return self.view.__getitem__(key)
 
     def getRoots(self):
 
@@ -318,6 +329,28 @@ class RepositoryView(object):
         except KeyError:
             return self._loadRoot(name)
 
+    def __getitem__(self, key):
+
+        if isinstance(key, UUID):
+            if key == self.ROOT_ID:
+                return self
+            else:
+                try:
+                    return self._registry[key]
+                except KeyError:
+                    item = self._loadItem(key)
+                    if item is not None:
+                        return item
+                    raise
+
+        if isinstance(key, str) or isinstance(key, unicode):
+            root = self.getRoot(key)
+            if root is not None:
+                return root
+            raise KeyError, key
+
+        raise TypeError, key
+
     def getRoots(self):
         'Return a list of the roots in the repository.'
 
@@ -379,14 +412,20 @@ class RepositoryView(object):
         if item.isDeleting():
             self._deletedRegistry[uuid] = uuid
 
+    def commit(self):
+        raise NotImplementedError, "RepositoryView.commit"
+
+    def cancel(self):
+        raise NotImplementedError, "RepositoryView.cancel"
+
     def _loadItem(self, uuid):
-        raise NotImplementedError, "Repository._loadItem"
+        raise NotImplementedError, "RepositoryView._loadItem"
 
     def _loadRoot(self, name):
-        raise NotImplementedError, "Repository._loadRoot"
+        raise NotImplementedError, "RepositoryView._loadRoot"
 
     def _loadChild(self, parent, name):
-        raise NotImplementedError, "Repository._loadChild"
+        raise NotImplementedError, "RepositoryView._loadChild"
 
     def _addStub(self, stub):
 
@@ -505,7 +544,7 @@ class OnDemandRepositoryView(RepositoryView):
         if doc is not None:
             uuid = store.getDocUUID(doc)
             if (not self._deletedRegistry or
-                not store.getUUID(doc) in self._deletedRegistry):
+                not uuid in self._deletedRegistry):
                 if self.repository.verbose:
                     if parent is not None and parent is not self:
                         print "loading child %s of %s" %(name,

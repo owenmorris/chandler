@@ -152,11 +152,7 @@ class ItemRef(object):
         addAttr(attrs, 'alias', alias)
 
         if withSchema:
-            otherName = item._otherName(name)
-            attrs['otherName'] = otherName
-            attrs['otherCard'] = other.getAttributeAspect(otherName,
-                                                          'cardinality',
-                                                          default='single')
+            attrs['otherName'] = item._otherName(name)
 
         generator.startElement('ref', attrs)
         generator.characters(other.getUUID().str64())
@@ -629,18 +625,11 @@ class RefDict(LinkedMap):
                     raise NotImplementedError, "%s, type: %s" %(value,
                                                                 type(value))
 
-        if withSchema:
-            for other in self:
-                break
-
         attrs = { 'name': name }
+        
         if withSchema:
-            otherName = item._otherName(name)
-            otherCard = other.getAttributeAspect(otherName, 'cardinality',
-                                                 default='single')
             attrs['cardinality'] = 'list'
-            attrs['otherName'] = otherName
-            attrs['otherCard'] = otherCard
+            attrs['otherName'] = item._otherName(name)
 
         addAttr(attrs, 'first', self._firstKey)
         addAttr(attrs, 'last', self._lastKey)

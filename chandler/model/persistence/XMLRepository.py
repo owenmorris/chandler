@@ -603,6 +603,18 @@ class XMLRepositoryView(OnDemandRepositoryView):
             after = datetime.now()
             print 'committed %d items in %s' %(count, after - before)
 
+    def cancel(self):
+
+        for item in self._log:
+            if item.isDeleted():
+                del self._deletedRegistry[item.getUUID()]
+                item._status &= ~Item.DELETED
+            else:
+                item.setDirty(False)
+                item._unloadItem()
+
+        del self._log[:]
+
     def _saveItem(self, item, newVersion, store, versions, history, verbose):
 
         uuid = item.getUUID()
@@ -788,41 +800,6 @@ class XMLRefDict(RefDict):
     def _eraseRef(self, key):
 
         self.view.repository._refs.delete(self.view, self._packKey(key))
-
-    def _dbRefs(self, version):
-
-        self._key.truncate(32)
-        cursor = self.view.repository._refs.cursor(self.view)
-
-        try:
-            key = self._key.getvalue()
-            val = cursor.set_range(key)
-        except DBNotFoundError:
-            val = None
-
-        deletedRefs = {}
-            
-        while val is not None and val[0].startswith(key):
-            refName = UUID(val[0][32:48])
-            refVer = ~unpack('>l', val[0][48:52])[0]
-
-            if refVer <= version:
-                self._value.truncate(0)
-                self._value.seek(0)
-                self._value.write(val[1])
-                self._value.seek(0)
-                uuid = self._readValue()
-                if uuid is None:
-                    deletedRefs[refName] = refName
-                elif not refName in deletedRefs:
-                    previous = self._readValue()
-                    next = self._readValue()
-                    alias = self._readValue()
-                    yield (refName, uuid, previous, next, alias)
-
-            val = cursor.next()
-
-        cursor.close()
 
     def _setItem(self, item):
 

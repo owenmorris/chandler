@@ -317,15 +317,7 @@ class ItemHandler(xml.sax.ContentHandler):
             raise ValueError, self.tagAttrs[-1]['name']
 
         refDict = self.collections[-1]
-        refDict._prepareKey(UUID(self.tagAttrs[-2]['uuid']), UUID(self.data))
-
-        if self.withSchema:
-            otherCard = self.tagAttrs[-1].get('otherCard', None)
-            for ref in refDict._dbRefs(self.version):
-                args = RefArgs(refDict._name, ref[0], ref[1],
-                               refDict._otherName, otherCard, refDict,
-                               ref[2], ref[3], ref[4])
-                self.refs.append(args)
+        refDict._prepareKey(self.uuid, UUID(self.data))
 
     def valueStart(self, itemHandler, attrs):
 

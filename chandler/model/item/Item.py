@@ -863,6 +863,19 @@ class Item(object):
 
         return child
 
+    def __getitem__(self, key):
+
+        if isinstance(key, UUID):
+            return self.getRepository()[key]
+
+        if isinstance(key, str) or isinstance(key, unicode):
+            child = self.getItemChild(key)
+            if child is not None:
+                return child
+            raise KeyError, key
+
+        raise TypeError, key
+
     def isRemote(self):
         'By default, an item is not remote.'
 
