@@ -48,7 +48,7 @@ chandler-system -a \
     osaf/chandler/openssl \
     osaf/chandler/m2crypto \
     osaf/chandler/pyegads \
-    internal/wx \
+    internal/wxPython-2.5 \
     osaf/hardhat
 	
 0.3 osaf/chandler/Chandler/distrib/docs
