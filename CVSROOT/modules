@@ -51,7 +51,9 @@ chandler-system -a \
     internal/wx \
     osaf/hardhat
 
-external external
+external external \
+    osaf/chandler/openssl \
+    osaf/chandler/m2crypto
 
 chandler-new -a \
     osaf/chandler/Chandler \
