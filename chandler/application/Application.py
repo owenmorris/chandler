@@ -191,7 +191,7 @@ class wxApplication (wxApp):
                   Each parcel must have an attribute which is the displayName.
                 """
                 assert (hasattr (parcel, 'displayName'))
-                if parcel.displayName == 'Calendar':
+                if parcel.displayName == _('Calendar'):
                     parcel.SynchronizeView ()
                     return
         
@@ -201,7 +201,7 @@ class wxApplication (wxApp):
                   Each parcel must have an attribute which is the displayName.
                 """
                 assert (hasattr (parcel, 'displayName'))
-                if parcel.displayName == 'Contacts':
+                if parcel.displayName == _('Contacts'):
                     parcel.SynchronizeView ()
                     return
         
@@ -211,7 +211,7 @@ class wxApplication (wxApp):
                   Each parcel must have an attribute which is the displayName.
                 """
                 assert (hasattr (parcel, 'displayName'))
-                if parcel.displayName == 'Test':
+                if parcel.displayName == _('Test'):
                     parcel.SynchronizeView ()
                     return
 
