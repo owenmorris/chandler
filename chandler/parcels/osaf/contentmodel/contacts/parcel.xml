@@ -6,7 +6,6 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel itsName="contacts"
-    itemClass="osaf.contentmodel.contacts.Contacts.ContactsParcel"
     xmlns="http://osafoundation.org/parcels/core"
     xmlns:cm="http://osafoundation.org/parcels/osaf/contentmodel"
     xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"

@@ -2,7 +2,6 @@
 
 <Parcel describes="//parcels/osaf/examples/zaobao"
         itsName="zaobao"
-        itemClass="osaf.examples.zaobao.RSSData.ZaoBaoParcel"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:zaobao="http://osafoundation.org/parcels/osaf/examples/zaobao"
         xmlns:fw="http://osafoundation.org/parcels/osaf/framework"

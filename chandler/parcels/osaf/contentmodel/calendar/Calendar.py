@@ -18,15 +18,6 @@ import osaf.contentmodel.contacts.Contacts as Contacts
 import mx.DateTime as DateTime
 
 
-class CalendarParcel(application.Parcel.Parcel):
-
-    def onItemLoad(self):
-        super(CalendarParcel, self).onItemLoad()
-
-    def startupParcel(self):
-        super(CalendarParcel, self).startupParcel()
-
-
 class CalendarEventMixin(ContentModel.ChandlerItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/CalendarEventMixin"

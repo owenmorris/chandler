@@ -10,14 +10,6 @@ import mx.DateTime
 import types
 import feedparser
 
-##
-# ZaoBaoParcel
-##
-class ZaoBaoParcel(application.Parcel.Parcel):
-
-    def startupParcel(self):
-        super(ZaoBaoParcel, self).startupParcel()
-
 
 def SetAttribute(self, data, attr, nattr=None):
     if not nattr:

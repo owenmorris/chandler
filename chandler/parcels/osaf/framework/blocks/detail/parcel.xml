@@ -7,7 +7,6 @@
 
 <core:Parcel describes="//parcels/osaf/framework/blocks/detail"
              itsName="detail"
-             itemClass="osaf.framework.blocks.detail.Detail.DetailParcel"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"

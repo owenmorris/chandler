@@ -13,14 +13,6 @@ import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
 import mx.DateTime as DateTime
 
-class ContactsParcel(application.Parcel.Parcel):
-    def onItemLoad(self):
-        super(ContactsParcel, self).onItemLoad()
-
-    def startupParcel(self):
-        super(ContactsParcel, self).startupParcel()
-
-
 class Contact(ContentModel.ContentItem):
 
     myKindID = None

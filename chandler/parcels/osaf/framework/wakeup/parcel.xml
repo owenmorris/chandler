@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
-<Parcel describes="//parcels/osaf/framework/wakeup"
-        itemClass="osaf.framework.wakeup.WakeupCallerParcel.WakeupCallerParcel"
-        itsName="wakeup"
+<Parcel itsName="wakeup"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:wake="http://osafoundation.org/parcels/osaf/framework/wakeup">
 

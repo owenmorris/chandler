@@ -27,8 +27,6 @@ Detail.py
 Classes for the ContentItem Detail View
 """
 
-class DetailParcel (application.Parcel.Parcel):
-    pass
 
 class DetailRoot (ControlBlocks.SelectionContainer):
     """

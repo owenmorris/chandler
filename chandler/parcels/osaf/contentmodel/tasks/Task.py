@@ -16,13 +16,6 @@ import osaf.contentmodel.contacts.Contacts as Contacts
 import application.Globals as Globals
 
 
-class TaskParcel(application.Parcel.Parcel):
-    def startupParcel(self):
-        super(TaskParcel, self).startupParcel()
-
-    def onItemLoad(self):
-        super(TaskParcel, self).onItemLoad()
-
 class TaskMixin(ContentModel.ChandlerItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/tasks/TaskMixin"

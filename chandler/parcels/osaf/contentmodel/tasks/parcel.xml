@@ -7,7 +7,6 @@
 
 <Parcel describes="//parcels/osaf/contentmodel/tasks"
         itsName="tasks"
-        itemClass="osaf.contentmodel.tasks.Task.TaskParcel"
         xmlns="http://osafoundation.org/parcels/core"
         xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
         xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
