@@ -128,7 +128,7 @@ class StaticText(RectContainer):
             style = wxALIGN_LEFT
         elif self.alignment == "Center":
             style = wxALIGN_CENTRE
-        elif self.aignment == "Right":
+        elif self.alignment == "Right":
             style = wxALIGN_RIGHT
 
         staticText = wxStaticText (parentWindow,
