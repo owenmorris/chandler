@@ -86,6 +86,7 @@ class wxChandlerWindow(wxFrame):
         loading.  The components are then returned as a list so that the
         window can access them when needed to switch among components."""
         components = {}
+        self.__componentRoots = {}
         for componentString in componentStrings:
             try:
                 componentName, path = componentString
@@ -94,6 +95,9 @@ class wxChandlerWindow(wxFrame):
                 exec('from ' + path + ' import *')
                 exec('component = ' + componentName + '()')
                 component.Load(parent, self, self._windowData.componentInterface)
+                for root in component.data["SidebarTree"]:
+                    rootName = root[0]
+                    self.__componentRoots[rootName] = component
                 name = component.data["ComponentName"]
                 components[name] = component
             except Exception, e:
@@ -125,13 +129,12 @@ class wxChandlerWindow(wxFrame):
         different from the current one - since it will have it's own menu) and
         selects the proper item in the sidebar."""
         uriFields = uri.split("/")
-        componentName = uriFields[0]
-        viewName = uriFields.pop()
-        component = self._components[componentName]
+        componentName = uriFields[1]
+        component = self.__componentRoots[componentName]
         if doAddToHistory:
             self._locationBar.AddLocationHistory(uri)
         self._locationBar.SetUri(uri) #displays the uri in the location bar
-        newView = component.data["View"][viewName]
+        newView = component.GetViewFromUri(uri)
         self.__ChangeActiveView(newView, component)
         # Make sure that the proper item is selected in the sidebar
         self._sideBar.navPanel.SelectItem(uri)

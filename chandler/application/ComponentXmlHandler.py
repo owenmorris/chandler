@@ -16,6 +16,8 @@ from wxPython.wx import *
 from application.XmlReader import XmlReader
 
 class ComponentXmlHandler:
+    currentMenuId = 300
+    
     def __init__(self, component, frame):
         """Sets up the initial variables for the handler."""
         self._component = component
@@ -47,26 +49,41 @@ class ComponentXmlHandler:
         tree = []
         menuList = []
         nav = self._dict["Navigation"]
+        
         for navKey in nav.keys():
-            navItem = nav[navKey]                        
-            # Create a tuple of the item name & a list of children
-            nameChildrenTuple = (navItem["Name"], [])
+            navItem = nav[navKey]
+            name = navItem["Name"]
+            children = []
             menu = wxMenu()
-            for key in navItem.keys():
-                if key != "Name":
-                    # Sidebar stuff
-                    childName = navItem[key]["Name"]
-                    nameChildrenTuple[1].append((childName, None))
-                    # Nav menu stuff
-                    id = string.atoi(navItem[key]["Id"])
-                    menu.Append(id, childName)
-                    self._ids[id] = navItem["Name"] + "/" + childName
-                    EVT_MENU(self._frame, id, self.__MenuNavigationEvent)
-            tree.append(nameChildrenTuple)
-            menuList.append(menu)
-                
+            self.__CreateSubNavigation(navItem, children, menu)
+            tree.append((name, children))
+            menuList.append((name, menu))
+
         self._component.data["SidebarTree"] = tree
         self._component.data["NavigationMenu"] = menuList
+        
+        
+    def __CreateSubNavigation(self, dict, list, menu):
+        """The recursive helper to allow for infinite nesting of views.
+        We check to see if there are any sub elements in the dictionary
+        (i.e. ones that start with Item) and if so, add them as a sub
+        item for both the sidebar and view navigation menu."""
+        for key in dict.keys():
+            if key.startswith("Item"):
+                item = dict[key]
+                name = item["Name"]
+                children = []
+                sub = wxMenu()
+                self.__CreateSubNavigation(item, children, sub)
+                list.append((name, children))
+                id = ComponentXmlHandler.currentMenuId
+                ComponentXmlHandler.currentMenuId += 1
+                if sub.GetMenuItemCount() > 0:
+                    menu.AppendMenu(id, name, sub)
+                else:
+                    menu.Append(id, name)
+                self._ids[id] = "/" + dict["Name"] + "/" + name + "/"
+                EVT_MENU(self._frame, id, self.__MenuNavigationEvent)
         
     def __MenuNavigationEvent(self, event):
         """Envoked when the user has chosen one of the view navigation menus.

@@ -15,7 +15,6 @@ Steps for creating a component:
         for your component.  (see components/cal/resources/data.xrc
         as an example)
     3)  Create one or more views to represent your component
-        and add them to self.data["View"]
 
 The application should directly access the Component's data dictionary
 to get information about the component.  There is a list of what is in
@@ -51,11 +50,6 @@ class Component:
             Returns a string representing the default uri for this
             component.
 
-        View
-            Returns a dictionary of views.  The dictionary has keys
-            representing uri's.  A corresponding view is associated
-            with each uri in the dictionary.
-
         SidebarTree
             Returns a list representing the strings that should be
             displayed for navigation within the sidebar.  Each item
@@ -89,7 +83,6 @@ class Component:
         self.data["ComponentName"] = ""
         self.data["Description"] = ""
         self.data["DefaultUri"] = ""
-        self.data["View"] = {}
         self.data["SidebarTree"] = []
         self.data["NavigationMenu"] = None
         self.data["ComponentMenu"] = None
@@ -109,6 +102,9 @@ class Component:
         self._resource.Destroy()
         if not isActive:
             self.data["ComponentMenu"].Destroy()
+
+    def GetViewFromUri(self, uri):
+        return None
             
     def Activate(self):
         """Called when the component has been selected.  Do whatever is

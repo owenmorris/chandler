@@ -127,11 +127,11 @@ class MenuBar:
             viewMenu.AppendSeparator()
             for component in components:
                 navMenu = component.data["NavigationMenu"]
-                for menu in navMenu:
+                for menuTuple in navMenu:
                     # Don't actually use componentName here
                     viewMenu.AppendMenu(VIEWS_MENU_ID,
-                                        component.data["ComponentName"]
-                                        + ' Views', menu)
+                                        menuTuple[0]
+                                        + ' Views', menuTuple[1])
 
     def SelectComponent(self, name):
         """Called when the active component changes.  This method causes the 
