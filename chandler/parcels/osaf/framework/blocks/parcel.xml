@@ -316,8 +316,8 @@
     <superKinds itemref="Item"/>
 
     <Attribute itsName="contents">
-      <type itemref="contentModel:ChandlerItem"/>
-      <inverseAttribute itemref="contentModel:ChandlerItem/contentsOwner"/>
+      <type itemref="contentModel:ContentItem"/>
+      <inverseAttribute itemref="contentModel:ContentItem/contentsOwner"/>
     </Attribute>
 
     <Attribute itsName="viewAttribute">
@@ -365,9 +365,9 @@
 
     <attributes itemref="docSchema:blockName"/>
     <attributes itemref="docSchema:eventsForNamedDispatch"/>
-    <attributes itemref="contentModel:ChandlerItem/itemCollectionInclusions"/>
-    <attributes itemref="contentModel:ChandlerItem/itemCollectionExclusions"/>
-    <attributes itemref="contentModel:ChandlerItem/itemCollectionResults"/>
+    <attributes itemref="contentModel:ContentItem/itemCollectionInclusions"/>
+    <attributes itemref="contentModel:ContentItem/itemCollectionExclusions"/>
+    <attributes itemref="contentModel:ContentItem/itemCollectionResults"/>
 
     <Attribute itsName="parentTrunkSubtrees"><!-- reference to parent tree of blocks -->
       <type itemref="docSchema:TrunkSubtree"/>

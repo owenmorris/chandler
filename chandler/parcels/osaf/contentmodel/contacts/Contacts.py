@@ -120,7 +120,7 @@ class Contact(ContentModel.ContentItem):
 
         return value
 
-class ContactName(ContentModel.ChandlerItem):
+class ContactName(ContentModel.ContentItem):
 
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/contacts/ContactName"

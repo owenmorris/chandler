@@ -152,11 +152,11 @@ def RenderInheritance(repoView):
 
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
     result += "<tr class='toprow'>\n"
-    result += "<td colspan=4><b>All Kinds:</b></td>\n"
+    result += "<td colspan=5><b>All Kinds:</b></td>\n"
     result += "</tr>\n"
 
     result += "<tr class='oddrow'>\n"
-    result += "<td><b>Kind</b></td><td><b>Class</b></td><td><b>Superclasses</b></td><td><b>Superkinds</b></td>\n"
+    result += "<td><b>Kind</b></td><td><b>Class</b></td><td><b>myKindPath</b></td><td><b>Superclasses</b></td><td><b>Superkinds</b></td>\n"
     result += "</tr>\n"
 
     count = 0
@@ -168,6 +168,16 @@ def RenderInheritance(repoView):
         if hasattr(item, 'classes'):
             klass = item.classes['python']
             result += clean(str(klass))
+        result += "</td>"
+        result += "<td>"
+        if klass is not None:
+            if hasattr(klass, 'myKindPath'):
+                checkKind = repoView.findPath(klass.myKindPath)
+                result += klass.myKindPath
+                if checkKind is item:
+                    result += " (ok)"
+                else:
+                    result += " <b>(MISMATCH)</b>"
         result += "</td>"
         result += "<td>"
         if klass is not None:

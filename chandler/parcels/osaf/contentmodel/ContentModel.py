@@ -20,7 +20,7 @@ import application.Globals as Globals
 
 class ContentModel(Parcel):
 
-    contentitemsPath = Path('//userdata')
+    contentItemsPath = Path('//userdata')
 
     # Cached UUID of //userdata
     contentItemParentID = None
@@ -41,29 +41,28 @@ class ContentModel(Parcel):
             # Our cached UUID is invalid
             cls.contentItemParentID is None
 
-        parent = view.find(cls.contentitemsPath)
+        parent = view.find(cls.contentItemsPath)
         if parent is None:
             itemKind = view.findPath('//Schema/Core/Item')
-            parent = view.walk(cls.contentitemsPath, makeContainer)
+            parent = view.walk(cls.contentItemsPath, makeContainer)
         cls.contentItemParentID = parent.itsUUID
         return parent
 
     getContentItemParent = classmethod(getContentItemParent)
 
 
-class ChandlerItem(Item.Item):
-    """ Subclasses of ChandlerItem get the following behavior for free:
+class ContentItem(Item.Item):
+
+    """ Subclasses of ContentItem get the following behavior for free:
         1. parent will automatically be set to //userdata
         2. kind will be determined from the particular subclass's myKindPath
 
         All subclasses should have myKindID initialized to None, and set
         myKindPath to a string describing their kind's repository path.
-
-        @@@ Better name suggestion welcomed!
     """
 
+    myKindPath = "//parcels/osaf/contentmodel/ContentItem"
     myKindID = None
-    myKindPath = "//parcels/osaf/contentmodel/ChandlerItem"
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
 
@@ -80,8 +79,11 @@ class ChandlerItem(Item.Item):
                 view = parent.itsView
             kind = self.getKind(view)
 
-        super (ChandlerItem, self).__init__(name, parent, kind)
 
+        super (ContentItem, self).__init__(name, parent, kind)
+
+        self.createdOn = DateTime.now()
+        self.creator = self.getCurrentMeContact(self.itsView)
 
     def getKind(cls, view):
         """ Look up a class's kind, based on its myKindPath attribute """
@@ -102,17 +104,6 @@ class ChandlerItem(Item.Item):
         return myKind
 
     getKind = classmethod(getKind)
-
-
-class ContentItem(ChandlerItem):
-    myKindPath = "//parcels/osaf/contentmodel/ContentItem"
-    myKindID = None
-
-    def __init__(self, name=None, parent=None, kind=None, view=None):
-        super (ContentItem, self).__init__(name, parent, kind, view)
-
-        self.createdOn = DateTime.now()
-        self.creator = self.getCurrentMeContact(self.itsView)
 
 
     def InitOutgoingAttributes (self):
@@ -501,14 +492,14 @@ class _SuperKindSignature(list):
         theList = ', '.join(readable)
         return '['+theList+']'
 
-class Project(ChandlerItem):
+class Project(ContentItem):
     myKindPath = "//parcels/osaf/contentmodel/Project"
     myKindID = None
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (Project, self).__init__(name, parent, kind, view)
 
-class Group(ChandlerItem):
+class Group(ContentItem):
     myKindPath = "//parcels/osaf/contentmodel/Group"
     myKindID = None
 

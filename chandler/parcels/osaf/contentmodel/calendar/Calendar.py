@@ -16,7 +16,7 @@ import osaf.contentmodel.contacts.Contacts as Contacts
 import mx.DateTime as DateTime
 
 
-class CalendarEventMixin(ContentModel.ChandlerItem):
+class CalendarEventMixin(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/CalendarEventMixin"
 
@@ -189,7 +189,7 @@ class CalendarEvent(CalendarEventMixin, Notes.Note):
         super (CalendarEvent, self).__init__(name, parent, kind, view)
         self.participants = []
 
-class Location(ContentModel.ChandlerItem):
+class Location(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/Location"
 
@@ -246,14 +246,14 @@ class Location(ContentModel.ChandlerItem):
 
     getLocation = classmethod (getLocation)
 
-class Calendar(ContentModel.ChandlerItem):
+class Calendar(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/Calendar"
 
     def __init__(self, name=None, parent=None, kind=None, view=None):
         super (Calendar, self).__init__(name, parent, kind, view)
 
-class RecurrencePattern(ContentModel.ChandlerItem):
+class RecurrencePattern(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/calendar/RecurrencePattern"
 

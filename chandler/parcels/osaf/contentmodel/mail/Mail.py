@@ -46,7 +46,7 @@ class MailParcel(application.Parcel.Parcel):
         super(MailParcel, self).startupParcel()
 
         itemKind = self.findPath('//Schema/Core/Item')
-        contentitemsPath = ContentModel.ContentModel.contentitemsPath
+        contentitemsPath = ContentModel.ContentModel.contentItemsPath
 
         def makeContainer(parent, name, child):
             if child is None:
@@ -150,7 +150,7 @@ class MailParcel(application.Parcel.Parcel):
     getActiveIMAPAccounts = classmethod(getActiveIMAPAccounts)
 
 
-class AccountBase(ContentModel.ChandlerItem):
+class AccountBase(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/AccountBase"
 
@@ -191,7 +191,7 @@ class IMAPAccount(AccountBase):
         self.accountType = "IMAP"
 
 
-class MailDeliveryError(ContentModel.ChandlerItem):
+class MailDeliveryError(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MailDeliveryError"
 
@@ -210,7 +210,7 @@ class MailDeliveryError(ContentModel.ChandlerItem):
         return "| %d | %s | %s |" % (self.errorCode, self.errorString, self.errorDate.strftime())
 
 
-class MailDeliveryBase(ContentModel.ChandlerItem):
+class MailDeliveryBase(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MailDeliveryBase"
 
@@ -271,7 +271,7 @@ class IMAPDelivery(MailDeliveryBase):
 
         self.deliveryType = "IMAP"
 
-class MIMEBase(ContentModel.ChandlerItem):
+class MIMEBase(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MIMEBase"
 
@@ -283,7 +283,10 @@ class MIMEBase(ContentModel.ChandlerItem):
 
         super(MIMEBase, self).__init__(name, parent, kind, view)
 
-class MIMENote(Notes.Note, MIMEBase):
+class MIMENote(MIMEBase):
+    # @@@MOR This used to subclass Notes.Note also, but since that superKind
+    # was removed from MIMENote's superKinds list
+
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/mail/MIMENote"
 

@@ -138,7 +138,7 @@
     </Kind>
 
     <Kind itsName="ContactName">
-        <superKinds itemref="cm:ChandlerItem"/>
+        <superKinds itemref="cm:ContentItem"/>
         <classes key="python">osaf.contentmodel.contacts.Contacts.ContactName</classes>
         <description value="A very simple (and incomplete) representation of a person's name" />
 

@@ -18,7 +18,7 @@
 
 
     <Kind itsName="AccountBase">
-        <superKinds itemref="content:ChandlerItem" />
+        <superKinds itemref="content:ContentItem" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.AccountBase" />
         <displayName value="Account base kind" />
         <description value="The base kind for various account kinds, such as IMAP, SMTP, WebDav" />
@@ -185,7 +185,7 @@
     </Kind>
 
     <Kind itsName="MailDeliveryError">
-        <superKinds itemref="content:ChandlerItem" />
+        <superKinds itemref="content:ContentItem" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MailDeliveryError" />
         <displayName value="Mail Delivery Error kind" />
         <description value="Contains the error data associated with a MailDelivery Type" />
@@ -217,7 +217,7 @@
 
 
     <Kind itsName="MailDeliveryBase">
-        <superKinds itemref="content:ChandlerItem" />
+        <superKinds itemref="content:ContentItem" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MailDeliveryBase" />
         <displayName value="Mail Delivery base kind" />
         <description value="Parent kind for delivery-specific attributes of a MailMessage" />

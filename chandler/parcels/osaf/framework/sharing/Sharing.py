@@ -35,7 +35,7 @@ CONTENT = "http://osafoundation.org/parcels/osaf/contentmodel"
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class Share(ContentModel.ChandlerItem):
+class Share(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/Share"
 
@@ -112,7 +112,7 @@ class OneTimeShare(Share):
 
 
 
-class ShareConduit(ContentModel.ChandlerItem):
+class ShareConduit(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/ShareConduit"
 
@@ -984,13 +984,13 @@ class IllegalOperation(SharingError):
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class WebDAVAccount(ContentModel.ChandlerItem):
+class WebDAVAccount(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/WebDAVAccount"
 
 # = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
-class ImportExportFormat(ContentModel.ChandlerItem):
+class ImportExportFormat(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/framework/sharing/ImportExportFormat"
 

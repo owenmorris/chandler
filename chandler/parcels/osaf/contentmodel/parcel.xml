@@ -37,69 +37,11 @@
     </Kind>
 
 
-    <!-- Chandler Item -->
-
-    <Kind itsName="ChandlerItem">
-        <superKinds itemref="Item"/>
-        <classes key="python">osaf.contentmodel.ContentModel.ChandlerItem</classes>
-        <Attribute itsName="itemCollectionInclusions">
-            <type itemref="cm:ItemCollection"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:ItemCollection/_inclusions"/>
-        </Attribute>
-
-        <Attribute itsName="itemCollectionExclusions">
-            <type itemref="cm:ItemCollection"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:ItemCollection/_exclusions"/>
-        </Attribute>
-
-        <Attribute itsName="itemCollectionResults">
-            <type itemref="cm:ItemCollection"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:ItemCollection/_results"/>
-        </Attribute>
-
-        <Attribute itsName="contentsOwner">
-            <type itemref="blocks:Block"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="blocks:Block/contents"/>
-        </Attribute>
-
-        <attributes itemref="blocks:Block/viewContainer"/>
-
-        <attributes itemref="blocks:Block/detailItemOwner"/>
-
-        <Attribute itsName="createdOn">
-            <displayName>Created On</displayName>
-            <description>DateTime this item was created</description>
-            <type itemref="DateTime"/>
-        </Attribute>
-
-        <Attribute itsName="currentItemOf">
-            <type itemref="cm:CurrentPointer"/>
-            <cardinality>list</cardinality>
-            <inverseAttribute itemref="cm:CurrentPointer/item"/>
-        </Attribute>
-
-        <!-- Sharing Cloud -->
-        <Cloud itsName="SharingCloud">
-          <Endpoint itsName="displayName">
-            <attribute value="displayName"/>
-          </Endpoint>
-          <endpoints itemref="cm:ChandlerItem/SharingCloud/displayName"/>
-          <Endpoint itsName="body">
-            <attribute value="body"/>
-          </Endpoint>
-          <endpoints itemref="cm:ChandlerItem/SharingCloud/body"/>
-        </Cloud>
-        <clouds alias="sharing" itemref="cm:ChandlerItem/SharingCloud"/>
-    </Kind>
 
     <!-- Content Item -->
 
     <Kind itsName="ContentItem">
-        <superKinds itemref="cm:ChandlerItem"/>
+        <superKinds itemref="Item"/>
         <classes key="python">osaf.contentmodel.ContentModel.ContentItem</classes>
         <displayName>Content Item</displayName>
         <examples>an Calendar Event -- 'Lunch with Tug'</examples>
@@ -163,9 +105,57 @@
             <cardinality value="list" />
         </Attribute>
 
+        <Attribute itsName="itemCollectionInclusions">
+            <type itemref="cm:ItemCollection"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="cm:ItemCollection/_inclusions"/>
+        </Attribute>
+
+        <Attribute itsName="itemCollectionExclusions">
+            <type itemref="cm:ItemCollection"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="cm:ItemCollection/_exclusions"/>
+        </Attribute>
+
+        <Attribute itsName="itemCollectionResults">
+            <type itemref="cm:ItemCollection"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="cm:ItemCollection/_results"/>
+        </Attribute>
+
+        <Attribute itsName="contentsOwner">
+            <type itemref="blocks:Block"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="blocks:Block/contents"/>
+        </Attribute>
+
+        <attributes itemref="blocks:Block/viewContainer"/>
+
+        <attributes itemref="blocks:Block/detailItemOwner"/>
+
+        <Attribute itsName="createdOn">
+            <displayName>Created On</displayName>
+            <description>DateTime this item was created</description>
+            <type itemref="DateTime"/>
+        </Attribute>
+
+        <Attribute itsName="currentItemOf">
+            <type itemref="cm:CurrentPointer"/>
+            <cardinality>list</cardinality>
+            <inverseAttribute itemref="cm:CurrentPointer/item"/>
+        </Attribute>
+
 
         <!-- Sharing Cloud -->
         <Cloud itsName="SharingCloud">
+          <Endpoint itsName="displayName">
+            <attribute value="displayName"/>
+          </Endpoint>
+          <endpoints itemref="cm:ContentItem/SharingCloud/displayName"/>
+          <Endpoint itsName="body">
+            <attribute value="body"/>
+          </Endpoint>
+          <endpoints itemref="cm:ContentItem/SharingCloud/body"/>
           <Endpoint itsName="issues">
             <attribute value="issues"/>
           </Endpoint>
@@ -190,31 +180,6 @@
           -->
         </Cloud>
         <clouds alias="sharing" itemref="cm:ContentItem/SharingCloud"/>
-
-  </Kind>
-
-  <!-- Processing Item -->
-
-  <Kind itsName="ProcessingItem">
-    <displayName>Processing Item</displayName>
-    <description>Mixin kind to give an item Processing Status.</description>
-    <issues>This could be just an attribute of Note, but we need to wrap it with a mixinKind to give Note a unique mixinKind signature for FindStampedKind(), or else we can't distinguish it from other plain ContentItems.</issues>
-
-      <Attribute itsName="processingStatus">
-
-          <Enumeration itsName="processingStatusEnum">
-              <displayName>Processing Status Enum</displayName>
-              <values>processing</values>
-              <values>deferred</values>
-              <values>done</values>
-              <values>junk</values>
-              <values>trash</values>
-          </Enumeration>
-
-          <type itemref="cm:ProcessingItem/processingStatus/processingStatusEnum"/>
-          <initialValue type="cm:ProcessingItem/processingStatus/processingStatusEnum">processing</initialValue>
-
-      </Attribute>
 
   </Kind>
 
@@ -278,7 +243,7 @@
 
   <Kind itsName="Project">
     <classes key="python">osaf.contentmodel.ContentModel.Project</classes>
-    <superKinds itemref="cm:ChandlerItem"/>
+    <superKinds itemref="cm:ContentItem"/>
     <displayName>Project</displayName>
     <examples>my "Housewarming Party" project</examples>
     <examples>my department's "Move to new building" project</examples>
@@ -307,7 +272,7 @@
     <description>See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject</description>
     <issues>We still need to work out some issues about how "playlists"/"item collections" are modeled.</issues>
     <issues>We need to find a name for these things.</issues>
-    <superKinds itemref="cm:ChandlerItem"/>
+    <superKinds itemref="cm:ContentItem"/>
     <classes key="python">osaf.contentmodel.ContentModel.Group</classes>
   </Kind>
 
@@ -328,14 +293,14 @@
     <Attribute itsName="_inclusions">
       <type itemref="Item"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="cm:ChandlerItem/itemCollectionInclusions"/>
+      <inverseAttribute itemref="cm:ContentItem/itemCollectionInclusions"/>
       <initialValue/>
     </Attribute>
 
     <Attribute itsName="_exclusions">
       <type itemref="Item"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="cm:ChandlerItem/itemCollectionExclusions"/>
+      <inverseAttribute itemref="cm:ContentItem/itemCollectionExclusions"/>
       <initialValue/>
     </Attribute>
 
@@ -348,7 +313,7 @@
     <Attribute itsName="_results">
       <type itemref="Item"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="cm:ChandlerItem/itemCollectionResults"/>
+      <inverseAttribute itemref="cm:ContentItem/itemCollectionResults"/>
       <initialValue/>
     </Attribute>
 
@@ -432,10 +397,10 @@
 
     <Kind itsName="CurrentPointer">
         <Attribute itsName="item">
-            <type itemref="cm:ChandlerItem"/>
+            <type itemref="cm:ContentItem"/>
             <cardinality>single</cardinality>
             <initialValue itemref="None"/>
-            <inverseAttribute itemref="cm:ChandlerItem/currentItemOf"/>
+            <inverseAttribute itemref="cm:ContentItem/currentItemOf"/>
         </Attribute>
     </Kind>
 

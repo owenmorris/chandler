@@ -24,7 +24,7 @@
   <author>Open Source Applications Foundation</author>
 
   <Kind itsName="CalendarEventMixin">
-    <superKinds itemref="content:ChandlerItem"/>
+    <superKinds itemref="content:ContentItem"/>
     <displayName>Calendar Event Mixin Kind</displayName>
     <description>This is the set of CalendarEvent-specific attributes. This Kind is 'mixed in' to others kinds to create Kinds that can be instantiated</description>
     <classes key="python">osaf.contentmodel.calendar.Calendar.CalendarEventMixin</classes>
@@ -220,7 +220,7 @@
   </Kind>
 
   <Kind itsName="Location">
-    <superKinds itemref="content:ChandlerItem"/>
+    <superKinds itemref="content:ContentItem"/>
     <displayName>Location</displayName>
     <issues>Location may not be calendar specific</issues>
     <displayAttribute itemref="displayName"/>
@@ -236,7 +236,7 @@
   </Kind>
 
   <Kind itsName="Calendar">
-    <superKinds itemref="content:ChandlerItem"/>
+    <superKinds itemref="content:ContentItem"/>
     <displayName>Calendar</displayName>
     <issues>Calendar should have an attribute that points to all the Calendar Events.</issues>
     <issues>Calendar should maybe have a 'Timezone' attribute.</issues>
@@ -245,7 +245,7 @@
   </Kind>
 
   <Kind itsName="RecurrencePattern">
-    <superKinds itemref="content:ChandlerItem"/>
+    <superKinds itemref="content:ContentItem"/>
     <issues>Recurrence Pattern is still a placeholder, and  might be general enough to live with PimSchema.</issues>
     <issues>Recurrence Pattern should have an attribute that points to a Calendar Event.</issues>
     <displayName>Recurrence Pattern</displayName>

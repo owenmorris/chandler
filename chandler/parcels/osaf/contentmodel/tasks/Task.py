@@ -14,7 +14,7 @@ import osaf.contentmodel.Notes as Notes
 import osaf.contentmodel.contacts.Contacts as Contacts
 
 
-class TaskMixin(ContentModel.ChandlerItem):
+class TaskMixin(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/contentmodel/tasks/TaskMixin"
 

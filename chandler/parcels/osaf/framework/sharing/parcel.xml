@@ -18,7 +18,7 @@
     <author value="Open Source Applications Foundation" />
 
     <Kind itsName="ImportExportFormat">
-        <superKinds itemref="cm:ChandlerItem"/>
+        <superKinds itemref="cm:ContentItem"/>
         <displayName value="Import/Export Format Kind"/>
         <classes key="python" value="osaf.framework.sharing.Sharing.ImportExportFormat"/>
 
@@ -47,7 +47,7 @@
     </Kind>
 
     <Kind itsName="Share">
-        <superKinds itemref="cm:ChandlerItem"/>
+        <superKinds itemref="cm:ContentItem"/>
         <displayName value="Share Kind"/>
         <description value="Represents a shared collection" />
         <classes key="python" value="osaf.framework.sharing.Sharing.Share"/>
@@ -136,7 +136,7 @@
     </Kind>
 
     <Kind itsName="ShareConduit">
-        <superKinds itemref="cm:ChandlerItem"/>
+        <superKinds itemref="cm:ContentItem"/>
         <displayName value="Share Conduit Kind"/>
         <classes key="python" value="osaf.framework.sharing.Sharing.ShareConduit"/>
 
@@ -213,7 +213,7 @@
 
 
     <Kind itsName="WebDAVAccount">
-        <superKinds itemref="cm:ChandlerItem" />
+        <superKinds itemref="cm:ContentItem" />
         <classes key="python" value="osaf.framework.sharing.Sharing.WebDAVAccount"/>
         <displayName value="WebDAV Account" />
         <description value="A WebDAV 'Account'" />

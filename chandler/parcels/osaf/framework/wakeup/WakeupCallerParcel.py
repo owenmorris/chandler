@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application
 import osaf.contentmodel.ContentModel as ContentModel
 
-class WakeupCall(ContentModel.ChandlerItem):
+class WakeupCall(ContentModel.ContentItem):
     myKindID = None
     myKindPath = "//parcels/osaf/framework/wakeup/WakeupCall"
 
