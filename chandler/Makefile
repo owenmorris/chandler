@@ -18,7 +18,7 @@ endif
 # When a version changes, the ARCHIVES lists below needs to be updated.
 
 # these get installed into release or debug
-BIN_ARCHIVES=../Launchers-$(SNAP)-0.4-7.tar.gz \
+BIN_ARCHIVES=../Launchers-$(SNAP)-0.4-8.tar.gz \
              ../chandlerdb-$(SNAP)-0.4-3.tar.gz \
              ../db-$(SNAP)-4.3.27-1.tar.gz \
              ../egenix-mx-base-$(SNAP)-2.1.0-3.tar.gz \
