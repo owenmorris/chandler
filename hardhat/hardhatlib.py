@@ -34,7 +34,7 @@ defaults = {
     'showlog'           : False,
     'interactive'       : True,
 }
- 
+
 def init(buildenv):
     """
     Initialize the build environment, which is a dictionary containing
@@ -100,7 +100,7 @@ def init(buildenv):
                 print "of Python from http://python.org/, rather than the Cygwin Python"
                 raise HardHatError
 
-    else: 
+    else:
         raise HardHatUnknownPlatformError
 
     # set up paths to the pythons we are building (release and debug)
@@ -1391,7 +1391,7 @@ class HardHatRegistryError(HardHatError):
 
 class HardHatMissingFileError(HardHatError):
     """ Exception thrown when a __hardhat__.py file cannot be found. """
-    
+
     def __init__(self,args=None):
         self.args = args
 
