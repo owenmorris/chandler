@@ -176,7 +176,8 @@ class wxApplicationNew (wxApp):
         if topDocument:
             self.testFrame = TestFrame()
             assert isinstance (topDocument, Block)
-            topDocument.Render (self.testFrame, self.testFrame)
+            self.testFramePanel = wxPanel(self.testFrame, -1)
+            topDocument.Render (self.testFramePanel, self.testFramePanel)
             self.testFrame.Show()
 
         return true                     #indicates we succeeded with initialization

@@ -21,13 +21,27 @@
   </Attribute>
 
   <Attribute itemName="fontSize">
-    <type itemref="Float"/>
+    <type itemref="Integer"/>
   </Attribute>
 
   <Attribute itemName="fontStyle">
     <type itemref="String"/>
   </Attribute>
+  
+  <Enumeration itemName="weightEnumType">
+    <values>Bold</values>
+    <values>Normal</values>
+    <values>Light</values>
+  </Enumeration>
+   
+  <Attribute itemName="fontWeight">
+    <type itemref="docSchema:weightEnumType"/>
+  </Attribute>
 
+  <Attribute itemName="underlined">
+    <type itemref="Boolean"/>
+  </Attribute>  
+  
   <Type itemName="SizeType" itemClass="OSAF.AppSchema.DocumentSchema.DocumentTypes.SizeType">
     <fields>width</fields>
     <fields>height</fields>
@@ -92,6 +106,8 @@
     <attributes itemref="docSchema:font"/>
     <attributes itemref="docSchema:fontSize"/>
     <attributes itemref="docSchema:fontStyle"/>
+    <attributes itemref="docSchema:fontWeight"/>
+    <attributes itemref="docSchema:underlined"/>
   </Kind>
 
   <!--
@@ -207,8 +223,90 @@
   <Kind itemName="StaticText">
     <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.StaticText</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
+
+    <Enumeration itemName="alignmentEnumType">
+      <values>Left</values>
+      <values>Center</values>
+      <values>Right</values>
+    </Enumeration>
+    
+    <Attribute itemName="alignment">
+      <type itemref="docSchema:StaticText/alignmentEnumType"/>
+    </Attribute>
+    
+    <Attribute itemName="title">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <attributes itemref="docSchema:StaticText/alignment"/>
+    <attributes itemref="docSchema:StaticText/title"/>
   </Kind>
 
+  <!--
+    Menu
+  -->
+  <Kind itemName="Menu">
+    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.Menu</classes>
+    <superKinds itemref="docSchema:ContainerChild"/>
+
+    <Attribute itemName="title">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <attributes itemref="docSchema:Menu/title"/>
+  </Kind>
+
+  <!--
+    MenuItem
+  -->
+  <Kind itemName="MenuItem">
+    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.MenuItem</classes>
+    <superKinds itemref="docSchema:ContainerChild"/>
+
+    <Attribute itemName="title">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <Enumeration itemName="menuItemKindEnumType">
+      <values>Normal</values>
+      <values>Separator</values>
+      <values>Check</values>
+      <values>Radio</values>
+    </Enumeration>
+    
+    <Attribute itemName="menuItemKind">
+      <type itemref="docSchema:MenuItem/menuItemKindEnumType"/>
+    </Attribute>
+    
+    <Attribute itemName="accel">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <Attribute itemName="helpString">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <attributes itemref="docSchema:MenuItem/title"/>
+    <attributes itemref="docSchema:MenuItem/menuItemKind"/>
+    <attributes itemref="docSchema:MenuItem/accel"/>
+    <attributes itemref="docSchema:MenuItem/helpString"/>
+  </Kind>
+
+
+  <!--
+    TreeList
+  -->
+  <Kind itemName="TreeList">
+    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.TreeList</classes>
+    <superKinds itemref="docSchema:ContainerChild"/>
+
+    <Attribute itemName="numColumns">
+      <type itemref="Integer"/>
+    </Attribute>
+    
+    <attributes itemref="docSchema:TreeList/numColumns"/>
+  </Kind>  
+  
   <!--
     EditText
   -->

@@ -18,8 +18,70 @@
     <data></data>
   </Query>
 
+  <MenuItem itemName="QuitItem">
+    <title>Quit</title>
+    <menuItemKind>Normal</menuItemKind>
+    <accel>Q</accel>
+    <helpString>Quit Chandler</helpString>
+  </MenuItem>
+  
+  <MenuItem itemName="CutItem">
+    <title>Cut</title>
+    <menuItemKind>Normal</menuItemKind>
+    <accel>X</accel>
+    <helpString></helpString>
+  </MenuItem>
 
-  <StaticText itemName="StaticText1">
+  <MenuItem itemName="CopyItem">
+    <title>Copy</title>
+    <menuItemKind>Normal</menuItemKind>
+    <accel>C</accel>
+    <helpString></helpString>
+  </MenuItem>
+
+  <MenuItem itemName="PasteItem">
+    <title>Paste</title>
+    <menuItemKind>Normal</menuItemKind>
+    <accel>V</accel>
+    <helpString></helpString>
+  </MenuItem>
+  
+  <MenuItem itemName="Separator">
+    <title></title>
+    <menuItemKind>Separator</menuItemKind>
+    <accel></accel>
+  </MenuItem>
+  
+  <MenuItem itemName="Preferences">
+    <title>Preferences</title>
+    <menuItemKind>Normal</menuItemKind>
+    <accel></accel>
+    <helpString></helpString>
+  </MenuItem>
+  
+  <Menu itemName="FileMenu">
+    <childrenBlocks itemref="doc:QuitItem"/>
+    <title>File</title>
+  </Menu>
+
+  <Menu itemName="EditMenu">
+    <childrenBlocks itemref="doc:CutItem"/>
+    <childrenBlocks itemref="doc:CopyItem"/>
+    <childrenBlocks itemref="doc:PasteItem"/>
+    <childrenBlocks itemref="doc:Separator"/>
+    <childrenBlocks itemref="doc:Preferences"/>
+    <title>Edit</title>
+  </Menu>
+  
+  <CharacterStyle itemName="HeaderStyle">
+    <font>Swiss</font>
+    <fontSize>12</fontSize>
+    <fontStyle>Normal</fontStyle>
+    <fontWeight>Bold</fontWeight>
+    <underlined>False</underlined>
+  </CharacterStyle>
+
+  <StaticText itemName="Header">
     <open>True</open>
 
     <size>100,20</size>
@@ -27,36 +89,26 @@
     <border>3.0, 3.0, 3.0, 3.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
+    <alignment>Left</alignment>
+    <characterStyle itemref="doc:HeaderStyle"/>
+    <title>Repository Viewer</title>
   </StaticText>
-
-
-  <StaticText itemName="StaticText2">
-    <open>True</open>
-
-    <size>100,20</size>
-    <minimumSize>100,20</minimumSize>
-    <border>3.0, 3.0, 3.0, 3.0</border>
-    <alignmentEnum>alignCenterRight</alignmentEnum>
-    <stretchFactor>1.0</stretchFactor>
-  </StaticText>
-
-
-  <StaticText itemName="StaticText3">
-    <open>True</open>
-
-    <size>100,20</size>
-    <minimumSize>100,20</minimumSize>
+  
+  <TreeList itemName="TreeList">
+    <numColumns>4</numColumns>
+    <size>600,200</size>
+    <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </StaticText>
-
+  </TreeList>
 
   <BoxContainer itemName="TopDocument">
     <content-spec itemref="doc:myQuery"/>
-    <childrenBlocks itemref="doc:StaticText1"/>
-    <childrenBlocks itemref="doc:StaticText2"/>
-    <childrenBlocks itemref="doc:StaticText3"/>
+    <childrenBlocks itemref="doc:FileMenu"/>
+    <childrenBlocks itemref="doc:EditMenu"/>
+    <childrenBlocks itemref="doc:Header"/>
+    <childrenBlocks itemref="doc:TreeList"/>
     <open>True</open>
 
     <size>400,200</size>
