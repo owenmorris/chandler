@@ -118,7 +118,7 @@ class Query(object):
             i = view.findUUID(uuid)
             #@@@ there's a big problem with this if there are paths through multiple items -- we're going to need something fairly sophisticated here.
             if i is not None:
-                log.debug("RepoQuery.queryCallback %s:%s:%s" % (i, i.itsKind, self._kind))
+#                log.debug("RepoQuery.queryCallback %s:%s:%s" % (i, i.itsKind, self._kind))
                 flag = self._logical_plan.changed(i)
                 if flag is not None:
                     changed = True
@@ -465,7 +465,7 @@ class ForPlan(LogicalPlan):
         else:
             result = None
 
-        log.debug("changed: %s, %s" % (i, result))
+        #log.debug("changed: %s, %s" % (i, result))
         return result
 
 class UnionPlan(LogicalPlan):
