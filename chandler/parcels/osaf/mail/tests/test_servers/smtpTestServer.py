@@ -218,7 +218,6 @@ class SMTPTestServer(basic.LineReceiver):
         global DIR
 
         fileName = "./%s/%s.message" % (DIR, time.time())
-        print "Filename: ", fileName
 
         out = open(fileName, "w")
         out.write(message)
