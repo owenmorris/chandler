@@ -12,8 +12,6 @@ import wx
 
 
 class wxBoxContainer (wxRectangularChild):
-    def __init__(self, *arguments, **keywords):
-        super (wxBoxContainer, self).__init__ (*arguments, **keywords)
 
     def wxSynchronizeWidget(self, *arguments, **keywords):
         super (wxBoxContainer, self).wxSynchronizeWidget (*arguments, **keywords)
@@ -24,10 +22,12 @@ class wxBoxContainer (wxRectangularChild):
             sizer.Clear()
             for childWidget in self.GetChildren():
                 childBlock = Globals.repository.find (childWidget.blockUUID)
-                sizer.Add (childWidget,
-                           childBlock.stretchFactor, 
-                           childBlock.Calculate_wxFlag(), 
-                           childBlock.Calculate_wxBorder())
+                if childBlock.open:
+                    sizer.Add (childWidget,
+                               childBlock.stretchFactor, 
+                               childBlock.Calculate_wxFlag(), 
+                               childBlock.Calculate_wxBorder())
+        self.Layout()
 
 
 class BoxContainer (RectangularChild):
@@ -45,7 +45,7 @@ class BoxContainer (RectangularChild):
         else:
             parentWidget = Globals.wxApplication.mainFrame
  
-        widget = wxBoxContainer (parentWidget, -1)
+        widget = wxBoxContainer (parentWidget, Block.getWidgetID(self))
         widget.SetSizer (sizer)
 
         return widget, None, parentWidget

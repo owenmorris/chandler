@@ -187,13 +187,10 @@ class wxRectangularChild (wx.Panel):
         block = Globals.repository.find (self.blockUUID)
         if block.open != self.IsShown():
             self.Show (block.open)
-            parentWidget = Globals.association [block.parentBlock.itsUUID]
-            parentSizer = parentWidget.GetSizer()
-            if parentSizer:
-                if self.IsShown():
-                    parentSizer.Show (self)
-                else:
-                    parentSizer.Hide (self)
+
+    def __del__(self):
+        Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
+        del Globals.association [self.blockUUID]
 
 
 class RectangularChild(ContainerChild):

@@ -51,6 +51,12 @@
     <dispatchToBlock itemref="doc:BookmarksBar"/>
   </BlockEvent>
 
+  <BlockEvent itemName="ShowHideStatusBar">
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <methodName>OnShowHide</methodName>
+    <dispatchToBlock itemref="doc:StatusBar"/>
+  </BlockEvent>
+
   <!--
     Menus
   -->
@@ -181,7 +187,7 @@
     <title>View Status Bar</title>
     <menuLocation>ViewMenu</menuLocation>
     <menuItemKind>Check</menuItemKind>
-    <event itemref="events:ViewStatusBar"/>
+    <event itemref="doc:ShowHideStatusBar"/>
   </MenuItem>
 
   <MenuItem itemName="GenerateAllItem">
@@ -284,8 +290,12 @@
   <!--
     Status Bar
   -->
-  <StatusBar itemName="StatusBar"
-             itemClass="osaf.framework.blocks.NavigationBlocks.ChandlerStatusBar">
+  <StatusBar itemName="StatusBar">
+    <size>200,20</size>
+    <minimumSize>200,20</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
   </StatusBar>
 
   <!-- 
@@ -512,7 +522,8 @@
     <!-- Layout children -->
     <childrenBlocks itemref="doc:BookmarksBar"/>
     <childrenBlocks itemref="doc:MainSplitter"/>
-
+    <childrenBlocks itemref="doc:StatusBar"/>
+    
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
 
@@ -562,15 +573,13 @@
     <childrenBlocks itemref="doc:Spacer"/>
     <childrenBlocks itemref="doc:URLBox"/>
     
-    <!-- Status Bar -->
-    <childrenBlocks itemref="doc:StatusBar"/>
-    
     <!-- Layout children -->
     <childrenBlocks itemref="doc:BookmarksContainer"/>
     
     <!-- Block Events -->
     <blockEvents itemref="doc:ShowHideSidebar"/>
     <blockEvents itemref="doc:ShowHideBookmarksBar"/>
+    <blockEvents itemref="doc:ShowHideStatusBar"/>
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>

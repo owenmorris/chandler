@@ -514,15 +514,25 @@ class StaticText(RectangularChild):
         staticText.SetFont(Font (self.characterStyle))
         return staticText, None, None
 
+    
+class wxStatusBar (wx.StatusBar):
+    
+    def wxSynchronizeWidget(self):
+        block = Globals.repository.find (self.blockUUID)
+        if block.open != self.IsShown():
+            self.Show (block.open)
+
+    def __del__(self):
+        Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
+        del Globals.association [self.blockUUID]
+
 
 class StatusBar(RectangularChild):
     def instantiateWidget (self, parent, parentWindow):
-        frame = Globals.wxApplication.mainFrame
-        assert (frame.GetStatusBar () == None), "mainFrame already has a StatusBar"
-        frame.CreateStatusBar ()
-        
-        return None, None, None
-    
+        widget = wxStatusBar (Globals.association [self.parentBlock.itsUUID],
+                              Block.getWidgetID(self))
+        return widget, None, None
+
 
 class ToolbarItem(RectangularChild):
     """
