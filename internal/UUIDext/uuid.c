@@ -46,7 +46,7 @@ static unsigned char hTable[] = {
      89, 129, 232,   1, 147, 123,  57, 122,
 };
 
-long hash_uuid(unsigned char *uuid, int len)
+long hash_bytes(unsigned char *uuid, int len)
 {
     unsigned long hash = 0xdeadbeef;
     int i = -1;
@@ -73,6 +73,45 @@ long hash_uuid(unsigned char *uuid, int len)
 
     return hash;
 }
+
+static unsigned char chew_long(unsigned long n)
+{
+    unsigned char hash = hTable[0 ^ (n & 0xff)];
+
+    n >>= 8;
+    hash = hTable[hash ^ (n & 0xff)];
+
+    n >>= 8;
+    hash = hTable[hash ^ (n & 0xff)];
+
+    n >>= 8;
+    hash = hTable[hash ^ (n & 0xff)];
+
+    return hash;
+}
+
+static long hash_long(unsigned long n)
+{
+    unsigned long hash;
+
+    hash = chew_long(n);
+    hash |= chew_long(++n) << 8;
+    hash |= chew_long(++n) << 16;
+    hash |= chew_long(++n) << 24;
+
+    return hash ? hash : hash_long(++n);
+}
+
+long combine_longs(unsigned long h0, unsigned long h1)
+{
+    unsigned long hash;
+
+    while (!(hash = hash_long(h0 + h1)))
+        h0 = hash_long(h0);
+
+    return hash;
+}
+
 
 #if defined(__MACH__)
 

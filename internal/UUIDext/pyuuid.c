@@ -67,7 +67,16 @@ static PyObject *hash(PyObject *self, PyObject *args)
     if (len < 0)
         return Py_BuildValue("");
 
-    return Py_BuildValue("l", hash_uuid(uuid, len));
+    return Py_BuildValue("l", hash_bytes(uuid, len));
+}
+
+static PyObject *combine(PyObject *self, PyObject *args)
+{
+    unsigned long h0, h1;
+
+    PyArg_ParseTuple(args, "ll", &h0, &h1);
+
+    return Py_BuildValue("l", combine_longs(h0, h1));
 }
 
 static PyMethodDef methods[] = {
@@ -79,6 +88,8 @@ static PyMethodDef methods[] = {
       "format uuid in abbreviated base 64 syntax" },
     { "hash", (PyCFunction) hash, METH_VARARGS,
       "hash 128 bit uuid down to 32 bits" },
+    { "combine", (PyCFunction) combine, METH_VARARGS,
+      "combine two hashes into one" },
     { NULL, NULL, 0, NULL }
 };
 
