@@ -653,7 +653,8 @@ Toolbar classes
 class wxToolbar (wx.ToolBar):
     def __init__(self, *arguments, **keywords):
         super (wxToolbar, self).__init__ (*arguments, **keywords)
-        self.toolItemList = []
+        # keep track of ToolbarItems so we can tell when/how they change in synchronize
+        self.toolItemList = [] # non-persistent list
         self.toolItems = 0
         
     def wxSynchronizeWidget(self):
@@ -666,48 +667,38 @@ class wxToolbar (wx.ToolBar):
         
         # first time synchronizing this bar?
         dynamicChildren = self.blockItem.dynamicChildren
-        if self.toolItems == 0:
-            self.toolItems = len (dynamicChildren)
-            # shallow copy the children list
-            for child in dynamicChildren:
-                self.toolItemList.append (child)
-            # draw the bar, and we're done.
-            self.Realize()
-            return
-        
-        # check if anything has changed in this toolbar
         rebuild = False
-        if len(dynamicChildren) != len(self.toolItemList):
-            rebuild = True
-        else:
-            i = 0
-            for item in dynamicChildren:
-                if item is not self.toolItemList[i]:
-                    rebuild = True
-                    break
-                i += 1
-        
-        if rebuild:
-            # For now, we just blow away the old toolbar, and build a new one
-            for i in xrange(self.toolItems):
-                self.DeleteToolByPos(0)
-            self.toolItemList = []
-            self.toolItems = 0
+        if self.toolItems != 0:
+            # no, check if anything has changed in this toolbar
+            if len(dynamicChildren) != len(self.toolItemList):
+                rebuild = True
+            else:
+                i = 0
+                for item in dynamicChildren:
+                    if item is not self.toolItemList[i]:
+                        rebuild = True
+                        break
+                    i += 1
             
-            # we should have a toolbar set up for us in the barList
-            for item in dynamicChildren:
-                item.instantiateWidget ()
-                self.toolItemList.append(item)
-                self.toolItems += 1
-            self.Realize()
-            """
-              Disable all tools. If they have an event they will be enabled
-            by UpdateUIEvents or OnCommand dispatcher in Application.py.
-            This has to be done after calling Realise
-            """
-            for item in dynamicChildren:
-                self.EnableTool (Block.Block.getWidgetID(item), False)
-
+            if rebuild:
+                # For now, we just blow away the old toolbar, and build a new one
+                for i in xrange(self.toolItems):
+                    block = self.toolItemList[i]
+                    block.onDestroyWidget () # notify the world about the tool's destruction
+                    self.DeleteToolByPos(0)
+                self.toolItemList = []
+                self.toolItems = 0
+                
+        self.toolItems = len (dynamicChildren)
+        # shallow copy the children list
+        for child in dynamicChildren:
+            if rebuild:
+                child.render ()
+            self.toolItemList.append (child)
+        # draw the bar, and we're done.
+        self.Realize()
+        
+# class to use for wxToobarItem
 wxToolBarToolClass = wx.ToolBarToolBase
 
 class wxToolbarItem (wxToolBarToolClass):
