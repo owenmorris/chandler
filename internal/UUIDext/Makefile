@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.3-2
+RELVER=0.3-3
 UUIDEXT=$(INTERNAL)/UUIDext
 
 BUILD=build_$(SNAP)
