@@ -277,7 +277,7 @@ class XMLContainer(object):
                 if ver <= version:
                     uuid = self.getDocUUID(doc)
                     dv = docs.get(uuid, None)
-                    if dv is not None and dv[1] < ver or dv is None:
+                    if dv is None or dv is not None and dv[1] < ver:
                         docs[uuid] = (doc, ver)
 
         finally:
@@ -386,6 +386,10 @@ class XMLStore(Store):
     def queryItems(self, version, query):
 
         return self._data.queryItems(version, query)
+
+    def searchItems(self, version, query):
+
+        return self._index.searchDocuments(version, query)
 
     def parseDoc(self, doc, handler):
 

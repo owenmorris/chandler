@@ -713,7 +713,7 @@ class Dictionary(Collection):
 
     def _empty(self):
 
-        return PersistentDict(None, None)
+        return PersistentDict(None, None, None)
 
 
 class List(Collection):
@@ -754,7 +754,7 @@ class List(Collection):
 
     def _empty(self):
 
-        return PersistentList(None, None)
+        return PersistentList(None, None, None)
 
 
 class Lob(Type):
@@ -807,10 +807,7 @@ class Text(Lob):
 
     def typeXML(self, value, generator, withSchema):
 
-        if type(value) in (unicode, str):
-            value = self.makeValue(value)
-            
-        value._xmlValue(self.getRepository(), generator)
+        value._xmlValue(generator)
 
     def recognizes(self, value):
 
@@ -848,10 +845,7 @@ class Binary(Lob):
 
     def typeXML(self, value, generator, withSchema):
 
-        if type(value) is str:
-            value = self.makeValue(value)
-            
-        value._xmlValue(self.getRepository(), generator)
+        value._xmlValue(generator)
 
     def recognizes(self, value):
 

@@ -154,6 +154,10 @@ class Repository(object):
 
         return self.view.queryItems(query, load)
 
+    def searchItems(self, query, load=True):
+
+        return self.view.searchItems(query, load)
+
     def loadPack(self, path, parent=None):
 
         self.view.loadPack(path, parent)
@@ -537,6 +541,9 @@ class RepositoryView(object):
     def queryItems(self, query, load=True):
         raise NotImplementedError, "RepositoryView.queryItems"
 
+    def searchItems(self, query, load=True):
+        raise NotImplementedError, "RepositoryView.searchItems"
+
     def _loadItem(self, uuid):
         raise NotImplementedError, "RepositoryView._loadItem"
 
@@ -601,6 +608,9 @@ class Store(object):
 
     def queryItems(self, version, query):
         raise NotImplementedError, "Store.queryItems"
+    
+    def searchItems(self, version, query):
+        raise NotImplementedError, "Store.searchItems"
     
     def parseDoc(self, doc, handler):
         raise NotImplementedError, "Store.parseDoc"

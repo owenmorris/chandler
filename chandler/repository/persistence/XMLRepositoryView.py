@@ -13,7 +13,7 @@ from bsddb.db import DBLockDeadlockError, DBNotFoundError
 from bsddb.db import DB_DIRTY_READ, DB_LOCK_WRITE
 from dbxml import XmlDocument, XmlValue
 
-from repository.item.Item import Item
+from repository.item.Item import Item, ItemValue
 from repository.item.ItemRef import RefDict, TransientRefDict
 from repository.persistence.Repository import Repository, RepositoryError
 from repository.persistence.Repository import VersionConflictError
@@ -75,9 +75,25 @@ class XMLRepositoryView(OnDemandRepositoryView):
         for doc in store.queryItems(self.version, query):
             uuid = store.getDocUUID(doc)
             if not uuid in self._deletedRegistry:
-                items.append(self.find(uuid, load=load and doc))
+                # load and doc, trick to pass doc directly to find
+                item = self.find(uuid, load=load and doc)
+                if item is not None:
+                    items.append(item)
 
         return items
+
+    def searchItems(self, query, load=True):
+
+        store = self.repository.store
+        results = []
+        docs = store.searchItems(self.version, query)
+        for (uuid, (ver, attribute)) in docs.iteritems():
+            if not uuid in self._deletedRegistry:
+                item = self.find(uuid, load=load)
+                if item is not None:
+                    results.append((item, attribute))
+
+        return results
 
 
 class XMLRepositoryLocalView(XMLRepositoryView):
@@ -507,24 +523,24 @@ class XMLClientRefDict(XMLRefDict):
         raise NotImplementedError, "XMLClientRefDict._writeRef"
 
 
-class XMLText(Text):
+class XMLText(Text, ItemValue):
 
     def __init__(self, view, *args, **kwds):
 
-        super(XMLText, self).__init__(*args, **kwds)
-
+        Text.__init__(self, *args, **kwds)
+        ItemValue.__init__(self)
+        
         self._uuid = None
         self._view = view
         self._version = 0
         self._indexed = False
-        self._dirty = False
-        
-    def _xmlValue(self, view, generator):
+
+    def _xmlValue(self, generator):
 
         uuid = self.getUUID()
-        store = view.repository.store
         
         if self._dirty:
+            store = self._view.repository.store
             if self._append:
                 out = store._text.appendFile(self._makeKey())
             else:
@@ -535,9 +551,11 @@ class XMLText(Text):
             self._data = ''
 
             if self._indexed:
-                store._index.indexDocument(view._getIndexWriter(),
+                store._index.indexDocument(self._view._getIndexWriter(),
                                            self.getReader(),
                                            self.getUUID(),
+                                           self._getItem().getUUID(),
+                                           self._getAttribute(),
                                            self.getVersion())
 
         attrs = {}
@@ -558,7 +576,7 @@ class XMLText(Text):
 
         if self._uuid is None:
             self._uuid = UUID()
-            self._dirty = True
+            self._setDirty()
 
         return self._uuid
 
@@ -590,7 +608,7 @@ class XMLText(Text):
     def _setData(self, data):
 
         super(XMLText, self)._setData(data)
-        self._dirty = True
+        self._setDirty()
 
     def _getInputStream(self):
 
@@ -616,27 +634,28 @@ class XMLText(Text):
             return NullInputStream()
         
 
-class XMLBinary(Binary):
+class XMLBinary(Binary, ItemValue):
 
     def __init__(self, view, *args, **kwds):
 
-        super(XMLBinary, self).__init__(*args, **kwds)
+        XMLBinary.__init__(self, *args, **kwds)
+        ItemValue.__init__(self)
 
         self._uuid = None
         self._view = view
         self._version = 0
-        self._dirty = False
         
-    def _xmlValue(self, view, generator):
+    def _xmlValue(self, generator):
 
         uuid = self.getUUID()
 
         if self._dirty:
+            store = self._view.repository.store
             if self._append:
-                out = view.repository.store._binary.appendFile(self._makeKey())
+                out = store._binary.appendFile(self._makeKey())
             else:
                 self._version += 1
-                out = view.repository.store._binary.createFile(self._makeKey())
+                out = store._binary.createFile(self._makeKey())
             out.write(self._data)
             out.close()
 
@@ -655,7 +674,7 @@ class XMLBinary(Binary):
 
         if self._uuid is None:
             self._uuid = UUID()
-            self._dirty = True
+            self._setDirty()
 
         return self._uuid
 
@@ -683,7 +702,7 @@ class XMLBinary(Binary):
     def _setData(self, data):
 
         super(XMLBinary, self)._setData(data)
-        self._dirty = True
+        self._setDirty()
 
     def _getInputStream(self):
 

@@ -167,7 +167,9 @@ class ItemHandler(ContentHandler):
             if isinstance(value, PersistentCollection):
                 companion = item.getAttributeAspect(attribute, 'companion',
                                                     default=None)
-                value._setItem(item, companion)
+                value._setItem(item, attribute, companion)
+            elif isinstance(value, ItemPackage.Item.ItemValue):
+                value._setItem(item, attribute)
 
         for refArgs in self.refs:
             refArgs.attach(item, self.repository)
@@ -317,9 +319,9 @@ class ItemHandler(ContentHandler):
         typeName = self.getTypeName(attribute, attrs, 'str')
         
         if cardinality == 'list':
-            self.collections.append(PersistentList(None, None))
+            self.collections.append(PersistentList(None, None, None))
         elif cardinality == 'dict':
-            self.collections.append(PersistentDict(None, None))
+            self.collections.append(PersistentDict(None, None, None))
         else:
             self.valueStart(itemHandler, attrs)
 
@@ -341,9 +343,9 @@ class ItemHandler(ContentHandler):
             typeName = self.tagAttrs[-1]['type']
 
         if typeName == 'dict':
-            self.collections.append(PersistentDict(None, None))
+            self.collections.append(PersistentDict(None, None, None))
         elif typeName == 'list':
-            self.collections.append(PersistentList(None, None))
+            self.collections.append(PersistentList(None, None, None))
 
     # valueEnd is called when parsing 'dict' or 'list' cardinality values of
     # one type (type specified with cardinality) or of unspecified type

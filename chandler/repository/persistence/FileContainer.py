@@ -9,6 +9,7 @@ from cStringIO import StringIO
 from time import time
 
 from PyLucene import DbDirectory, IndexWriter, StandardAnalyzer
+from PyLucene import IndexSearcher, QueryParser
 from PyLucene import Document, Field
 
 from repository.util.UUID import UUID
@@ -421,10 +422,13 @@ class IndexContainer(FileContainer):
                                        self._db, self.store._blocks._db),
                            StandardAnalyzer(), False)
 
-    def indexDocument(self, indexWriter, reader, uuid, version):
+    def indexDocument(self, indexWriter, reader,
+                      uuid, owner, attribute, version):
 
         doc = Document()
         doc.add(Field("uuid", uuid.str16(), True, False, False))
+        doc.add(Field("owner", owner.str16(), True, False, False))
+        doc.add(Field("attribute", attribute, True, False, False))
         doc.add(Field("version", str(version), True, False, False))
         doc.add(Field.Text("contents", reader))
 
@@ -433,3 +437,27 @@ class IndexContainer(FileContainer):
     def optimizeIndex(self, indexWriter):
 
         indexWriter.optimize()
+
+    def searchDocuments(self, version, query):
+
+        directory = DbDirectory(self.store.txn, self._db,
+                                self.store._blocks._db)
+        searcher = IndexSearcher(directory)
+        query = QueryParser.parse(query, "contents", StandardAnalyzer())
+        hits = searcher.search(query)
+        len = hits.length()
+
+        docs = {}
+        i = 0
+
+        while i < len:
+            hit = hits.doc(i)
+            ver = long(hit.get('version'))
+            if ver <= version:
+                uuid = UUID(hit.get('owner'))
+                dv = docs.get(uuid, None)
+                if dv is None or dv is not None and dv[0] < ver:
+                    docs[uuid] = (ver, hit.get('attribute'))
+            i += 1
+
+        return docs

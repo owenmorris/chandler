@@ -231,9 +231,9 @@ class Item(object):
             else:
                 companion = self.getAttributeAspect(name, 'companion',
                                                     default=None)
-                value = PersistentList(self, companion, *value)
+                value = PersistentList(self, name, companion, *value)
                 self._values[name] = value
-            
+
         elif isinstance(value, dict):
             if _attrDict is self._references:
                 if old is None:
@@ -247,8 +247,12 @@ class Item(object):
             else:
                 companion = self.getAttributeAspect(name, 'companion',
                                                     default=None)
-                value = PersistentDict(self, companion, **value)
+                value = PersistentDict(self, name, companion, **value)
                 self._values[name] = value
+            
+        elif isinstance(value, ItemValue):
+            value._setItem(self, name)
+            self._values[name] = value
             
         else:
             self._values[name] = value
@@ -519,7 +523,7 @@ class Item(object):
                 else:
                     companion = self.getAttributeAspect(attribute, 'companion',
                                                         default=None)
-                    attrValue = PersistentDict(self, companion)
+                    attrValue = PersistentDict(self, attribute, companion)
                     attrValue[key] = value
                     _attrDict[attribute] = attrValue
                     return attrValue
@@ -530,7 +534,8 @@ class Item(object):
                 else:
                     companion = self.getAttributeAspect(attribute, 'companion',
                                                         default=None)
-                    attrValue = PersistentList(self, companion, value)
+                    attrValue = PersistentList(self, attribute, companion,
+                                               value)
                     _attrDict[attribute] = attrValue
                     return attrValue
 
@@ -1346,3 +1351,39 @@ class Children(LinkedMap):
             return True
 
         return False
+
+
+class ItemValue(object):
+    'A superclass for values that can be set on only one item attribute'
+    
+    def __init__(self):
+
+        self._item = None
+        self._attribute = None
+        self._dirty = False
+
+    def _setItem(self, item, attribute):
+
+        if self._item is not None and self._item is not item:
+            raise ValueError, 'item attribute value %s is already owned by another item %s' %(self, self._item)
+        
+        self._item = item
+        if self._dirty:
+            item.setDirty()
+
+        self._attribute = attribute
+
+    def _getItem(self):
+
+        return self._item
+
+    def _getAttribute(self):
+
+        return self._attribute
+
+    def _setDirty(self):
+
+        if not self._dirty:
+            self._dirty = True
+            if self._item is not None:
+                self._item.setDirty()

@@ -55,3 +55,15 @@ class KindQuery(Query):
                 subKinds = kind.getAttributeValue('subKinds', default=[])
                 for item in self.run(subKinds):
                     yield item
+
+
+class TextQuery(Query):
+
+    def __init__(self, expression):
+
+        self.expression = expression
+
+    def run(self, repository):
+
+        for pair in repository.searchItems(expression):
+            yield pair

@@ -21,13 +21,13 @@ class PersistentCollection(object):
     This class is abstract and is to be used together with a concrete
     collection class such as list or dict.'''
 
-    def __init__(self, item, companion):
+    def __init__(self, item, attribute, companion):
 
         super(PersistentCollection, self).__init__()
 
         self._dirty = False
         self._readOnly = False
-        self.__setItem(item, companion)
+        self.__setItem(item, attribute, companion)
 
     def setReadOnly(self, readOnly=True):
 
@@ -37,19 +37,22 @@ class PersistentCollection(object):
 
         return self._readOnly
 
-    def _setItem(self, item, companion):
+    def _setItem(self, item, attribute, companion):
 
         if self._item is not None and self._item is not item:
             raise ValueError, "Collection already owned by %s" %(self._item)
 
-        self.__setItem(item, companion)
+        self.__setItem(item, attribute, companion)
         for value in self.itervalues():
             if isinstance(value, PersistentCollection):
-                value._setItem(item, companion)
+                value._setItem(item, attribute, companion)
+            elif isinstance(value, repository.item.Item.ItemValue):
+                value._setItem(item, attribute)
 
-    def __setItem(self, item, companion):
+    def __setItem(self, item, attribute, companion):
         
         self._item = item
+        self._attribute = attribute
         self._companion = companion
 
     def _setDirty(self):
@@ -64,11 +67,15 @@ class PersistentCollection(object):
     def _prepareValue(self, value):
 
         if isinstance(value, list):
-            value = PersistentList(self._item, self._companion, *value)
+            value = PersistentList(self._item, self._attribute,
+                                   self._companion, *value)
         elif isinstance(value, dict):
-            value = PersistentDict(self._item, self._companion, **value)
+            value = PersistentDict(self._item, self._attribute,
+                                   self._companion, **value)
         elif isinstance(value, repository.item.Item.Item):
             value = SingleRef(value.getUUID())
+        elif isinstance(value, repository.item.Item.ItemValue):
+            value._setItem(self._item, self._attribute)
 
         return value
 
@@ -94,10 +101,10 @@ class PersistentCollection(object):
 class PersistentList(list, PersistentCollection):
     'A persistence aware list, tracking changes into a dirty bit.'
 
-    def __init__(self, item, companion, *args):
+    def __init__(self, item, attribute, companion, *args):
 
         list.__init__(self)
-        PersistentCollection.__init__(self, item, companion)
+        PersistentCollection.__init__(self, item, attribute, companion)
 
         if args:
             self.extend(args)
@@ -217,10 +224,10 @@ class PersistentList(list, PersistentCollection):
 class PersistentDict(dict, PersistentCollection):
     'A persistence aware dict, tracking changes into a dirty bit.'
 
-    def __init__(self, item, companion, **kwds):
+    def __init__(self, item, attribute, companion, **kwds):
 
         dict.__init__(self)
-        PersistentCollection.__init__(self, item, companion)
+        PersistentCollection.__init__(self, item, attribute, companion)
 
         if kwds:
             self.update(kwds)
