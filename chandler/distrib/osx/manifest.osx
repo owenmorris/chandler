@@ -29,6 +29,8 @@ python
 src=release/lib
 dest=Contents/Resources/lib
 libwx_mac-2.4.0.dylib
+libwx_mac-2.4.0.r
+libwx_mac-2.4.0.rsrc
 
 # Grab Chandler.py and LICENSE.txt
 src=Chandler
