@@ -83,7 +83,7 @@ class Application(Persistent):
         else:
             self.splashWasShown = 0
         if self.splashWasShown < 2:
-            pageLocation = 'application' + os.sep + 'welcome.html'		
+            pageLocation = 'application' + os.sep + 'welcome.html'
             splash = SplashScreen(None, _("Welcome to Chandler"),
                                   pageLocation, false)
             if splash.ShowModal():
@@ -133,7 +133,6 @@ class wxApplication (wxApp):
     self.db                       ZODB high level database (object cache)
     self.connection               connection to ZODB
     self.dbroot                   ZODB root object tree
-    self.homeDirectory            path to a folder in the user's home directory
     self.wxMainFrame              active wxChandlerWindow
     self.locale                   locale used for internationalization
     self.jabberClient             state of jabber client including presence dictionary
@@ -216,11 +215,11 @@ class wxApplication (wxApp):
         self.connection = self.db.open ()
         self.dbroot = self.connection.root ()
 
-        if not self.dbroot.has_key('Application'):
+        if self.dbroot.has_key('Application'):
+            self.model = self.dbroot['Application']
+        else:
             self.model = Application()
             self.dbroot['Application'] = self.model
-        else:
-            self.model = self.dbroot['Application']
         """
           The model persists, so it can't store a reference to self, which
         is a wxApp object. We use the association to keep track of the
@@ -236,13 +235,7 @@ class wxApplication (wxApp):
         EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
         EVT_MENU(self, XRCID ("About"), self.OnAbout)
         EVT_MENU(self, XRCID ("Preferences"), self.OnPreferences)
-        EVT_MENU(self, XRCID("ImportItems"), self.OnImportItems)
-        EVT_MENU(self, XRCID("ExportItems"), self.OnExportItems)
         EVT_MENU(self, XRCID("TogglePresenceWindow"), self.TogglePresenceWindow)
-        
-        self.homeDirectory = wxGetHomeDir() + os.sep + ".Chandler";
-        if not os.path.exists (self.homeDirectory):
-            os.makedirs (self.homeDirectory)
         
         if __debug__:
             """
@@ -251,9 +244,10 @@ class wxApplication (wxApp):
             OnTest1 and OnTest2. To see how all this works check out
             ChandlerWindow.py and application.xrc.
             """
-            EVT_MENU(self, XRCID ('CreateNewRepository'), 
-                           self.OnCreateNewRepository)
+            EVT_MENU(self, XRCID ('CreateNewRepository'), self.OnCreateNewRepository)
             EVT_MENU(self, XRCID("DebugRoutine"), self.DebugRoutine)
+            EVT_MENU(self, XRCID("ImportItems"), self.OnImportItems)
+            EVT_MENU(self, XRCID("ExportItems"), self.OnExportItems)
 
         EVT_MENU(self, -1, self.OnCommand)
         EVT_UPDATE_UI(self, -1, self.OnCommand)
@@ -310,7 +304,7 @@ class wxApplication (wxApp):
         """
           Show the splash screen in response to the about command
         """
-        pageLocation = 'application' + os.sep + 'welcome.html'		
+        pageLocation = 'application' + os.sep + 'welcome.html'
         splash = SplashScreen(app.wxMainFrame, _("About Chandler"), 
                               pageLocation, useTimer=false)
         if splash.ShowModal():
@@ -462,7 +456,7 @@ class wxApplication (wxApp):
           Determine if the passed-in jabberID has permission to access the passed-in URL
         implement by asking the relevant parcel.
         """
-        parcel = self.GetParcelFromURL(url)		
+        parcel = self.GetParcelFromURL(url)
         if parcel != None:
             return parcel.HasPermission(jabberID, url)
         return false
@@ -480,7 +474,7 @@ class wxApplication (wxApp):
           Request a list of objects from the view specified by a URL.
         Figure out the appropriate parcel, and let it do the work.
         """
-        parcel = self.GetParcelFromURL(url)		
+        parcel = self.GetParcelFromURL(url)
         if parcel != None:
             return parcel.GetViewObjects(url, jabberID)
         
@@ -493,7 +487,7 @@ class wxApplication (wxApp):
         Figure out the appropriate parcel, and let it do the work
         It must be the active parcel, or don't deliver the objects.
         """
-        parcel = self.GetParcelFromURL(url)		
+        parcel = self.GetParcelFromURL(url)
         if self.wxMainFrame.activeParcel.model != parcel:
             # FIXME: we should at least log the error here
             return
