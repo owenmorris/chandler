@@ -1,6 +1,19 @@
                             Chandler Release History
 
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Milestone 0.3.20 (CVS tag CHANDLER_0_3_20) 2004-07-13
+    * Parcel reloading enabled
+    * WebDAV sharing enabled (manual process - no GUI)
+    * mini-calendar now in the sidebar
+    * PyCrust debugger window re-enabled in Test menu; Test menu now also contains
+      repository viewer and blocks demo (removed from sidebar)
+    * Much code refactoring and sidebar changes
+    * Menus and Toolbars are now dynamic containers, allowing context-sensitive
+      changes and reconfiguration
+    * Improved error handling and messages
+    * Implementing Stamping
+    * foundation for query parsing
+
 Milestone 0.3.19 (CVS tag CHANDLER_0_3_19) 2004-06-29
     * Sharing with WebDAV starting to be implemented
     * The parcel loader now uses libxml2, and modified SAX layer (drv_libxml2.py)
