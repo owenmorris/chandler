@@ -38,7 +38,7 @@ def clean(buildenv):
         if os.path.exists("build_debug"):
             hardhatlib.rmdir_recursive("build_debug")
             hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
-             info['name'], "Removed build_debug directory
+             info['name'], "Removed build_debug directory")
 
 
 def run(buildenv):
