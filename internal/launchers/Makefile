@@ -20,6 +20,8 @@ endif
 
 ifeq ($(OS),Darwin)
 
+LAUNCHER_FILES=
+
 build:
         cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
         cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
@@ -27,6 +29,8 @@ build:
 endif
 
 ifeq ($(OS),Cygwin)
+
+LAUNCHER_FILES="$(SNAP)/chandler.exe"
 
 ARCHIVE: $(LAUNCHERS)/win/
 
@@ -39,6 +43,8 @@ build:
 endif
 
 ifeq ($(OS),Linux)
+
+LAUNCHER_FILES="$(SNAP)/chandler $(SNAP)/chandler_bin"
 
 ARCHIVE: $(LAUNCHERS)/linux/
 
@@ -54,11 +60,11 @@ endif
 
 snap: 
 	cd $(BUILD_ROOT); \
-        tar -cvzf $(LAUNCHERS)/LAUNCHERS-$(SNAP)-$(RELVER).tar.gz \
-                  $(SNAP)/$(SITE)/LAUNCHERS*
+        tar -cvzf $(LAUNCHERS)/Launchers-$(SNAP)-$(RELVER).tar.gz \
+                  $(SNAP)/Run* $(LAUNCHER_FILES)
 
 clean:
 	rm -rf $(BUILD)
 
-upload: LAUNCHERS-$(SNAP)-$(RELVER).tar.gz
-	scp LAUNCHERS-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+upload: Launchers-$(SNAP)-$(RELVER).tar.gz
+	scp Launchers-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
