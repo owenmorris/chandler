@@ -3,11 +3,12 @@ import application.Application
 from application.agents.model.Action import Action
 
 # this should come from the jabber client itself
-whitelist = [ ".*osafoundation.*" ]
 
 class ApproveAction(Action):
     def Execute(self, agent, notification):
         print 'Executing', self.getItemDisplayName()
+
+        whitelist = [ ".*osafoundation.*" ]
 
         data = notification.GetData()
         jabberClient = application.Application.app.jabberClient
@@ -26,3 +27,23 @@ class ApproveAction(Action):
                 return True
 
         return False
+
+
+class ApproveAction2(Action):
+    def Execute(self, agent, notification):
+        print 'Executing', self.getItemDisplayName()
+
+        data = notification.GetData()
+        jabberClient = application.Application.app.jabberClient
+        
+        who = data['who']
+        subscriptionType = data['subscriptionType']
+
+        if subscriptionType == 'subscribe':
+            jabberClient.AcceptSubscriptionRequest(who)
+        elif subscriptionType == 'unsubscribe':
+            jabberClient.DeclineSubscriptionRequest(who)
+
+        jabberClient.NotifyPresenceChanged(who)
+
+        return True
