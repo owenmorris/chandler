@@ -4,8 +4,6 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from libxml2 import createPushParser
-
 from repository.remote.ItemFilter import ItemFilter
 from chandlerdb.util.UUID import UUID
 from repository.util.SAX import ContentHandler, XMLOffFilter
@@ -159,12 +157,6 @@ class RefHandler(ContentHandler):
         self.data = ''
         self._attrs = []
 
-    def parse(self, xml):
-
-        createPushParser(self, xml, len(xml), 'handler').parseChunk('', 0, 1)
-        if self.errorOccurred():
-            raise self.saxError()
-        
     def startElement(self, tag, attrs):
 
         if not self.errorOccurred():

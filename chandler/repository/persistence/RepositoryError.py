@@ -85,3 +85,16 @@ class ItemViewError(ViewError):
 
     def getItem(self):
         return self.args[0]
+
+
+class LoadError(RepositoryError):
+    "While loading %s, %s"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0], self.args[1])
+
+class LoadValueError(LoadError):
+    "While loading %s.%s, %s"
+
+    def __str__(self):
+        return self.__doc__ %(self.args[0], self.args[1], self.args[2])

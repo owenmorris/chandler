@@ -808,7 +808,7 @@ class ItemContainer(DBContainer):
                 name = name.encode('utf-8')
             buffer.write(pack('>l', _uuid.hash(name)))
             
-        for (name, uValue) in values:
+        for name, uValue in values:
             writeName(name)
             buffer.write(uValue._uuid)
 
@@ -1090,9 +1090,9 @@ class ValueContainer(DBContainer):
 
         value = self.get(uValue._uuid)
         if value is not None:
-            return value[36:]
+            return UUID(value[0:16]), value[36:]
 
-        return None
+        return None, None
 
     def getVersionInfo(self, uuid):
 

@@ -9,7 +9,10 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import RepositoryTestCase, os, unittest
 
+from cStringIO import StringIO
 from repository.item.Item import Item
+from repository.item.ItemIO import XMLItemWriter
+from repository.util.SAX import XMLPrettyGenerator, XMLGenerator
 from repository.item.RefCollections import RefList
 from repository.schema.Kind import Kind
 
@@ -44,8 +47,16 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         self.assertEquals(self.rep.view, item.itsView)
 
 #TODO test toXML
-        xml = item.toXML()
-        self.assert_(xml is not None)
+        out = StringIO()
+        generator = XMLPrettyGenerator(XMLGenerator(out))
+        itemWriter = XMLItemWriter(generator)
+        generator.startDocument()
+        itemWriter.writeItem(item, item.getVersion())
+        generator.endDocument()
+        xml = out.getvalue()
+        out.close()
+
+        self.failIf(xml is None)
 
         # Test to see that item became a respository root
         self.rep.commit()

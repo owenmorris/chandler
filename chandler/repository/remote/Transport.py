@@ -6,9 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import sys, re, xmlrpclib, jabber
 
-from libxml2 import createPushParser
 from SOAPpy import SOAPProxy
-
 from chandlerdb.util.UUID import UUID
 
 
@@ -71,12 +69,6 @@ class Transport(object):
 
         raise TypeError, '%s: unsupported signature char' %(c)
 
-    def parseDoc(self, doc, handler):
-
-        createPushParser(handler, doc, len(doc), "item").parseChunk('', 0, 1)
-        if handler.errorOccurred():
-            raise handler.saxError()
-        
     def getVersionInfo(self):
 
         return self.call('getVersionInfo', 'tui')
@@ -111,16 +103,6 @@ class SOAPTransport(Transport):
 
     def close(self):
         pass
-
-    def getDocUUID(self, doc):
-
-        index = doc.index('uuid=') + 6
-        return UUID(doc[index:doc.index('"', index)])
-    
-    def getDocVersion(self, doc):
-
-        index = doc.index('version=') + 9
-        return long(doc[index:xml.index('"', index)])
 
 
 class JabberTransport(Transport, jabber.Client):
@@ -186,25 +168,3 @@ class JabberTransport(Transport, jabber.Client):
             raise RemoteError, "".join(xml.data)
 
         return xml
-
-    def getDocUUID(self, doc):
-
-        def apply(node):
-
-            if node.name == 'item':
-                return UUID(node.attrs['uuid'])
-            for kid in node.kids:
-                apply(kid)
-
-        apply(doc)
-
-    def getDocVersion(self, doc):
-
-        def apply(node):
-
-            if node.name == 'item':
-                return long(node.attrs['version'])
-            for kid in node.kids:
-                apply(kid)
-
-        apply(doc)

@@ -18,8 +18,6 @@ from repository.util.SingleRef import SingleRef
 from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.LinkedMap import LinkedMap
-from repository.util.SAX import XMLGenerator
-from repository.util.SAX import XMLOffFilter, XMLOnFilter, XMLThruFilter
 
 
 class Item(object):
@@ -69,17 +67,14 @@ class Item(object):
 
     def _fillItem(self, name, parent, kind, **kwds):
 
-        values = kwds.get('values')
-        references = kwds.get('references')
-
         self.__dict__.update({ '_uuid': kwds['uuid'],
                                '_name': name or None,
                                '_kind': kind,
                                '_status': kwds.get('status', 0),
                                '_version': kwds['version'],
                                '_lastAccess': 0L,
-                               '_values': values,
-                               '_references': references })
+                               '_values': kwds.get('values'),
+                               '_references': kwds.get('references') })
 
         self._setParent(parent)
 
@@ -2152,96 +2147,13 @@ class Item(object):
 
         return self.getRepositoryView().find(uuid, load)
 
-    def toXML(self):
-        """
-        Generate an XML representation of this item.
-
-        This method is not a general purpose serialization method for items
-        but it can be used for debugging.
-
-        @return: an XML string
-        """
-        out = None
-        
-        try:
-            out = cStringIO.StringIO()
-            generator = XMLGenerator(out, 'utf-8')
-            generator.startDocument()
-            self._xmlItem(generator,
-                          withSchema = (self._status & Item.CORESCHEMA) != 0)
-            generator.endDocument()
-
-            return out.getvalue()
-
-        finally:
-            if out is not None:
-                out.close()
-
-    def _saveItem(self, generator, version):
-
-        withSchema = (self._status & Item.CORESCHEMA) != 0
-        self._xmlItem(generator, withSchema, version, 'save')
-
-    def _xmlItem(self, generator, withSchema=False, version=None,
-                 mode='serialize', save=None):
-
-        def xmlTag(tag, attrs, value, generator):
-
-            generator.startElement(tag, attrs)
-            generator.characters(value)
-            generator.endElement(tag)
-
-        isDeleted = self.isDeleted()
-        if save is None:
-            save = Item.DIRTY
-
-        attrs = { 'uuid': self._uuid.str64() }
-        if withSchema:
-            attrs['withSchema'] = 'True'
-        if isDeleted:
-            attrs['deleted'] = 'True'
-        if version is not None:
-            attrs['version'] = str(version)
-        generator.startElement('item', attrs)
-
-        if self._name is not None:
-            xmlTag('name', {}, self._name, generator)
-
-        if not isDeleted:
-            kind = self._kind
-            if kind is not None:
-                xmlTag('kind', { 'type': 'uuid' },
-                       kind.itsUUID.str64(), generator)
-
-            if (withSchema or kind is None or
-                kind.getItemClass() is not type(self)):
-                xmlTag('class', { 'module': self.__module__ },
-                       type(self).__name__, generator)
-
-        attrs = { 'type': 'uuid' }
-        if self._children is not None:
-            attrs['container'] = 'True'
-            if mode == 'save':
-                self._children._saveValues(version)
-
-        if not isDeleted:
-            xmlTag('parent', attrs, self.itsParent.itsUUID.str64(), generator)
-            
-            if save & Item.VRDIRTY:
-                self._values._xmlValues(generator, withSchema, version,
-                                        mode)
-                self._references._xmlValues(generator, withSchema, version,
-                                            mode)
-
-        generator.endElement('item')
-
     def _unloadItem(self, reloadable):
 
         if self._status & Item.DIRTY:
             raise DirtyItemError, self
 
         if hasattr(type(self), 'onItemUnload'):
-            self.onItemUnload()
+            self.onItemUnload(self.getRepositoryView())
 
         if not self._status & Item.STALE:
             repository = self.getRepositoryView()
@@ -2506,5 +2418,4 @@ class Children(LinkedMap):
                 buffer.close()
 
     def _saveValues(self, version):
-
-        pass
+        raise NotImplementedError, "%s._saveValues" %(type(self))

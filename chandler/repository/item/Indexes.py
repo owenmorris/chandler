@@ -12,7 +12,7 @@ class Index(dict):
     def __init__(self, **kwds):
 
         super(Index, self).__init__()
-        self._count = int(kwds.get('count', '0'))
+        self._count = 0
 
     def clear(self):
 
@@ -61,10 +61,20 @@ class Index(dict):
     def isPersistent(self):
         return False
 
-    def _xmlValues(self, generator, version, attrs, mode):
+    def _writeValue(self, itemWriter, buffer):
+        pass
+
+    def _readValue(self, itemReader, offset, data):
+        return offset
+
+    def _xmlValue(self, generator, version, attrs):
 
         generator.startElement('index', attrs)
+        self._xmlValues(generator, version)
         generator.endElement('index')
+
+    def _xmlValues(self, generator, version):
+        raise NotImplementedError, "%s._xmlValues" %(type(self))
 
 
 class NumericIndex(Index, SkipList):
@@ -158,7 +168,6 @@ class DelegatingIndex(object):
 
     def __init__(self, index, **kwds):
         self._index = index
-        super(DelegatingIndex, self).__init__()
 
     def __repr__(self):
         return '<%s: %d>' %(type(self).__name__, self._count)
@@ -166,18 +175,25 @@ class DelegatingIndex(object):
     def __getattr__(self, name):
         return getattr(self._index, name)
 
+    def _writeValue(self, itemWriter, buffer):
+        self._index._writeValue(itemWriter, buffer)
+
+    def _readValue(self, itemReader, offset, data):
+        return self._index._readValue(itemReader, offset, data)
+
 
 class SortedIndex(DelegatingIndex):
 
     def __init__(self, index, **kwds):
         
-        if 'descending' in kwds:
-            self._descending = str(kwds['descending']) == 'True'
-            del kwds['descending']
-        else:
-            self._descending = False
-
         super(SortedIndex, self).__init__(index, **kwds)
+
+        if not kwds.get('loading', False):
+            if 'descending' in kwds:
+                self._descending = str(kwds['descending']) == 'True'
+                del kwds['descending']
+            else:
+                self._descending = False
 
     def compare(self, k0, k1):
 
@@ -273,16 +289,29 @@ class SortedIndex(DelegatingIndex):
             attrs['descending'] = 'True'
         self._index._xmlValues(generator, version, attrs, mode)
 
+    def _writeValue(self, itemWriter, buffer):
+
+        super(SortedIndex, self)._writeValue(itemWriter, buffer)
+        itemWriter.writeBoolean(buffer, self._descending)
+
+    def _readValue(self, itemReader, offset, data):
+
+        offset = super(SortedIndex, self)._readValue(itemReader, offset, data)
+        offset, self._descending = itemReader.readBoolean(offset, data)
+
+        return offset
+
 
 class AttributeIndex(SortedIndex):
 
     def __init__(self, valueMap, index, **kwds):
 
-        self._valueMap = valueMap
-        self._attribute = kwds['attribute']
-        del kwds['attribute']
-
         super(AttributeIndex, self).__init__(index, **kwds)
+        self._valueMap = valueMap
+
+        if not kwds.get('loading', False):
+            self._attribute = kwds['attribute']
+            del kwds['attribute']
 
     def getIndexType(self):
 
@@ -315,16 +344,30 @@ class AttributeIndex(SortedIndex):
         attrs['attribute'] = self._attribute
         super(AttributeIndex, self)._xmlValues(generator, version, attrs, mode)
 
+    def _writeValue(self, itemWriter, buffer):
+
+        super(AttributeIndex, self)._writeValue(itemWriter, buffer)
+        itemWriter.writeSymbol(buffer, self._attribute)
+
+    def _readValue(self, itemReader, offset, data):
+
+        offset = super(AttributeIndex, self)._readValue(itemReader,
+                                                        offset, data)
+        offset, self._attribute = itemReader.readSymbol(offset, data)
+
+        return offset
+
 
 class CompareIndex(SortedIndex):
 
     def __init__(self, valueMap, index, **kwds):
 
-        self._valueMap = valueMap
-        self._compare = kwds['compare']
-        del kwds['compare']
-
         super(CompareIndex, self).__init__(index, **kwds)
+        self._valueMap = valueMap
+
+        if not kwds.get('loading', False):
+            self._compare = kwds['compare']
+            del kwds['compare']
 
     def getIndexType(self):
 
@@ -338,3 +381,15 @@ class CompareIndex(SortedIndex):
 
         attrs['compare'] = self._compare
         super(AttributeIndex, self)._xmlValues(generator, version, attrs, mode)
+
+    def _writeValue(self, itemWriter, buffer):
+
+        super(CompareIndex, self)._writeValue(itemWriter, buffer)
+        itemWriter.writeSymbol(buffer, self._compare)
+
+    def __readValue(self, itemReader, offset, data):
+
+        offset = super(CompareIndex, self)._readValue(itemReader, offset, data)
+        offset, self._compare = itemReader.readSymbol(offset, data)
+
+        return offset

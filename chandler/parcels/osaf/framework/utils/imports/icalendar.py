@@ -3,7 +3,7 @@ import application.Globals as Globals
 import mx.DateTime as DateTime
 import datetime
 import application.Globals as Globals
-from repository.persistence.XMLRepository import XMLRepository
+from repository.persistence.DBRepository import DBRepository
 import vobject
 import dateutil.tz
 import StringIO

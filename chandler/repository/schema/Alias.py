@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 from repository.schema.Types import Type
-from repository.item.ItemHandler import ValueHandler
+from repository.schema.TypeHandler import TypeHandler
 
 
 class Alias(Type):
@@ -24,7 +24,7 @@ class Alias(Type):
                 if t.recognizes(value):
                     return t
         else:
-            return ValueHandler.typeHandler(self.itsView, value)
+            return TypeHandler.typeHandler(self.itsView, value)
 
         return None
         
@@ -36,6 +36,8 @@ class Alias(Type):
         for t in self.types:
             if t.recognizes(value):
                 return True
+
+        return False
     
     def typeXML(self, value, generator):
 
@@ -48,4 +50,18 @@ class Alias(Type):
                 t.typeXML(value, generator)
                 return
 
-        raise ValueError, "value '%s' of type '%s' unrecognized by %s" %(value, type(value), self.itsPath)
+        raise TypeError, "value '%s' of type '%s' unrecognized by %s" %(value, type(value), self.itsPath)
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        if 'types' not in self._references:
+            super(Alias, self).writeValue(itemWriter, buffer, item, value,
+                                          withSchema)
+            return
+
+        for t in self.types:
+            if t.recognizes(value):
+                t.writeValue(itemWriter, buffer, item, value, withSchema)
+                return
+
+        raise TypeError, "value '%s' of type '%s' unrecognized by %s" %(value, type(value), self.itsPath)

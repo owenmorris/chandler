@@ -19,14 +19,14 @@ from repository.persistence.Repository import OnDemandRepository, Store
 from repository.persistence.RepositoryError import RepositoryError
 from repository.persistence.RepositoryError import ExclusiveOpenDeniedError
 from repository.persistence.RepositoryError import RepositoryOpenDeniedError
-from repository.persistence.XMLRepositoryView import XMLRepositoryView
+from repository.persistence.DBRepositoryView import DBRepositoryView
 from repository.persistence.DBContainer import DBContainer, RefContainer
 from repository.persistence.DBContainer import NamesContainer, ACLContainer
 from repository.persistence.DBContainer import IndexesContainer
 from repository.persistence.DBContainer import ItemContainer, ValueContainer
 from repository.persistence.FileContainer import FileContainer, BlockContainer
 from repository.persistence.FileContainer import IndexContainer
-from repository.persistence.DBGenerator import ItemDoc
+from repository.persistence.DBItemIO import DBItemReader
 from repository.remote.CloudFilter import CloudFilter
 
 from bsddb.db import DBEnv, DB, DBError
@@ -38,17 +38,17 @@ from bsddb.db import DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError
 from bsddb.db import DBLockDeadlockError
 
 
-class XMLRepository(OnDemandRepository):
+class DBRepository(OnDemandRepository):
     """
     A Berkeley DB based repository.
     """
 
     def __init__(self, dbHome):
         """
-        Construct an XMLRepository giving it a DB container pathname
+        Construct an DBRepository giving it a DB container pathname
         """
         
-        super(XMLRepository, self).__init__(dbHome)
+        super(DBRepository, self).__init__(dbHome)
         self._openLock = None
         self._exclusiveLock = None
         self._env = None
@@ -56,7 +56,7 @@ class XMLRepository(OnDemandRepository):
     def create(self, **kwds):
 
         if not self.isOpen():
-            super(XMLRepository, self).create(**kwds)
+            super(DBRepository, self).create(**kwds)
             self._create(**kwds)
             self._status |= self.OPEN
 
@@ -159,7 +159,7 @@ class XMLRepository(OnDemandRepository):
                     if f.startswith('__') or f.startswith('log.'):
                         shutil.copy2(os.path.join(fromPath,f), self.dbHome)
 
-            super(XMLRepository, self).open(**kwds)
+            super(DBRepository, self).open(**kwds)
 
             self._lockOpen()
             self._env = self._createEnv()
@@ -215,7 +215,7 @@ class XMLRepository(OnDemandRepository):
 
     def close(self):
 
-        super(XMLRepository, self).close()
+        super(DBRepository, self).close()
 
         if self.isOpen():
             self.store.close()
@@ -226,7 +226,7 @@ class XMLRepository(OnDemandRepository):
 
     def createView(self, name=None):
 
-        return XMLRepositoryView(self, name)
+        return DBRepositoryView(self, name)
 
     openUUID = UUID('c54211ac-131a-11d9-8475-000393db837c')
     OPEN_FLAGS = DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN | DB_THREAD
@@ -309,11 +309,11 @@ class XMLStore(Store):
         if args is None:
             return None
 
-        doc = ItemDoc(self, uuid, *args)
-        if doc.isDeleted():
+        itemReader = DBItemReader(self, uuid, *args)
+        if itemReader.isDeleted():
             return None
 
-        return doc
+        return itemReader
     
     def loadRef(self, version, uItem, uuid, key):
 
@@ -370,9 +370,10 @@ class XMLStore(Store):
             results = []
             
             def fn(*args):
-                doc = ItemDoc(self, *args)
-                if self._items.getItemVersion(version, doc.getUUID()) == doc.getVersion():
-                    results.append(doc)
+                itemReader = DBItemReader(self, *args)
+                if (self._items.getItemVersion(version, itemReader.getUUID()) ==
+                    itemReader.getVersion()):
+                    results.append(itemReader)
                 return True
 
             self._items.kindQuery(version, kind._uuid, fn)
@@ -388,18 +389,6 @@ class XMLStore(Store):
     def searchItems(self, version, query):
 
         return self._index.searchDocuments(version, query)
-
-    def parseDoc(self, doc, handler):
-
-        doc.parse(handler)
-
-    def getDocUUID(self, doc):
-
-        return doc.getUUID()
-
-    def getDocVersion(self, doc):
-
-        return doc.getVersion()
 
     def getItemVersion(self, version, uuid):
 

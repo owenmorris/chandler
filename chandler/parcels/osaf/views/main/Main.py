@@ -5,13 +5,13 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
 from osaf.framework.blocks.Views import View
-import wx
-import os
+from datetime import timedelta
+from time import time
+import wx, os
 import application.dialogs.AccountPreferences
 import application.dialogs.Util
 import osaf.contentmodel.mail.Mail as Mail
 import osaf.mail.imap
-import mx
 from application.SplashScreen import SplashScreen
 from application.Parcel import Manager as ParcelManager
 import osaf.contentmodel.mail.Mail as Mail
@@ -304,15 +304,18 @@ class MainView(View):
         repository = Globals.repository
         checkingMessage = _('Checking repository...')
         repository.logger.info(checkingMessage)
-        self.setStatusMessage (checkingMessage)
+        self.setStatusMessage(checkingMessage)
+        before = time()
         if repository.check():
-            successMessage = _('Check completed successfully')
-            repository.logger.info (successMessage)
-            self.setStatusMessage (successMessage)
+            after = time()
+            successMessage = _('Check completed successfully in %s'
+                               %(timedelta(seconds=after-before)))
+            repository.logger.info(successMessage)
+            self.setStatusMessage(successMessage)
         else:
             errorMessage = _('Check completed with errors')
-            repository.logger.info (errorMessage)
-            self.setStatusMessage (errorMessage)
+            repository.logger.info(errorMessage)
+            self.setStatusMessage(errorMessage)
 
     def onCommitRepositoryEvent(self, event):
         # Test menu item

@@ -9,7 +9,10 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import RepositoryTestCase, os, unittest
 
+from cStringIO import StringIO
 from repository.item.Item import Item
+from repository.item.ItemIO import XMLItemWriter
+from repository.util.SAX import XMLPrettyGenerator, XMLGenerator
 from repository.schema.Attribute import Attribute
 from repository.schema.Kind import Kind
 
@@ -85,7 +88,7 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
         # add an inherited attribute, kind2 inherits from kind1
         self.kind2.addValue('superKinds', self.kind1)
 
-        # retreive an inherited attribute
+        # retrieve an inherited attribute
         self.assert_(self.kind2.hasAttribute('k1a1'))
         self.assert_(self.kind2.getAttribute('k1a1') is not None)
 
@@ -100,10 +103,18 @@ class KindTest(RepositoryTestCase.RepositoryTestCase):
         self.assert_(self.kind2.isKindOf(self.itemKind))
         self.assert_(self.kind2.isKindOf(self.kind1))
 
-
     def testToXML(self):
-        """ Non  realistic test of to XML """
-        xml = self.kind.toXML()
+        """ Non realistic test of toXML """
+
+        out = StringIO()
+        generator = XMLPrettyGenerator(XMLGenerator(out))
+        itemWriter = XMLItemWriter(generator)
+        generator.startDocument()
+        itemWriter.writeItem(self.kind, self.kind.getVersion())
+        generator.endDocument()
+        xml = out.getvalue()
+        out.close()
+
         self.failIf(xml is None)
         
     def testRekinding(self):

@@ -12,7 +12,6 @@ import os, os.path, sys, unittest
 from bsddb.db import DBNoSuchFileError
 from repository.util.Path import Path
 from repository.item.Query import KindQuery
-from repository.persistence.XMLRepository import XMLRepository
 from repository.tests.RepositoryTestCase import RepositoryTestCase
 import application
 import application.Globals as Globals
@@ -137,7 +136,7 @@ class TestPerfWithRSS(RepositoryTestCase):
 #    def testReadBackRSS(self):
 #        self._stressTest()
 #        self.rep.close()
-#        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
+#        self.rep = DBRepository(os.path.join(self.testdir, '__repository__'))
 #        self.rep.open()
 #        RSSItem = self.rep.findPath('//parcels/osaf/examples/zaobao/RSSItem')
 #        self._readItems(RSSItem.itsKind)

@@ -17,7 +17,8 @@ class Values(dict):
     def __init__(self, item):
 
         super(Values, self).__init__()
-        self._setItem(item)
+        if item is not None:
+            self._setItem(item)
 
     def clear(self):
 
@@ -195,7 +196,37 @@ class Values(dict):
         except AttributeError:
             pass
 
-    def _xmlValues(self, generator, withSchema, version, mode):
+    def _writeValues(self, itemWriter, version, withSchema, all):
+
+        item = self._item
+        kind = item._kind
+
+        all = True
+
+        for name, value in self.iteritems():
+
+            flags = self._getFlags(name)
+            if not (all or flags & Values.DIRTY != 0):
+                continue
+            
+            if kind is not None:
+                attribute = kind.getAttribute(name)
+                persist = attribute.getAspect('persist', default=True)
+            else:
+                attribute = None
+                persist = True
+
+            if not (persist and flags & Values.TRANSIENT == 0):
+                continue
+            
+            if value is item.Nil:
+                raise ValueError, 'Cannot persist Item.Nil'
+
+            itemWriter._value(item, name, value,
+                              version, flags & Values.SAVEMASK, 
+                              withSchema, attribute)
+
+    def _xmlValues(self, generator, withSchema, version):
 
         from repository.item.ItemHandler import ValueHandler
         
@@ -469,11 +500,11 @@ class References(Values):
 
     def _setItem(self, item):
 
+        self._item = item
+
         for value in self.itervalues():
             if value is not None and value._isRefList():
                 value._setItem(item)
-
-        self._item = item
 
     def refCount(self, loaded):
 
@@ -545,8 +576,8 @@ class References(Values):
         except KeyError:
             return False
 
-    def _saveRef(self, name, other, generator, withSchema, version, attrs,
-                 mode, previous=None, next=None, alias=None):
+    def _xmlRef(self, name, other, generator, withSchema, version, attrs,
+                previous=None, next=None, alias=None):
 
         def addAttr(attrs, attr, value):
 
@@ -586,33 +617,67 @@ class References(Values):
         generator.characters(uuid.str64())
         generator.endElement('ref')
 
-    def _xmlValues(self, generator, withSchema, version, mode):
+    def _writeValues(self, itemWriter, version, withSchema, all):
 
         item = self._item
         kind = item._kind
 
-        for key, value in self.iteritems():
-            attribute = kind.getAttribute(key)
+        all = True
+
+        for name, value in self.iteritems():
+
+            flags = self._getFlags(name)
+            if not (all or flags & Values.DIRTY != 0):
+                continue
+            
+            if kind is not None:
+                attribute = kind.getAttribute(name)
+                persist = attribute.getAspect('persist', default=True)
+            else:
+                attribute = None
+                persist = True
+
+            if not (persist and flags & Values.TRANSIENT == 0):
+                continue
+            
+            if value is item.Nil:
+                raise ValueError, 'Cannot persist Item.Nil'
+
+            if withSchema and value is not None and value._isUUID():
+                value = self._getRef(name, value)
+
+            itemWriter._ref(item, name, value,
+                            version, flags & Values.SAVEMASK, 
+                            withSchema, attribute)
+
+    def _xmlValues(self, generator, withSchema, version):
+
+        item = self._item
+        kind = item._kind
+
+        for name, value in self.iteritems():
+            attribute = kind.getAttribute(name)
             if attribute.getAspect('persist', default=True):
-                flags = self._getFlags(key) & Values.SAVEMASK
+                flags = self._getFlags(name) & Values.SAVEMASK
                 attrs = { 'id': attribute.itsUUID.str64() }
                 if flags:
                     attrs['flags'] = str(flags)
 
-                if withSchema and value._isUUID():
-                    value = self._getRef(key, value)
-
                 if value is None:
-                    attrs['name'] = key
+                    attrs['name'] = name
                     attrs['type'] = 'none'
                     generator.startElement('ref', attrs)
                     generator.endElement('ref')
-                elif not withSchema and value._isUUID() or value._isItem():
-                    self._saveRef(key, value, generator, withSchema, version,
-                                  attrs, mode)
                 else:
-                    value._xmlValue(key, item, generator, withSchema, version,
-                                    attrs, mode)
+                    if withSchema and value._isUUID():
+                        value = self._getRef(name, value)
+                    
+                    if value._isRefList():
+                        value._xmlValue(name, item, generator, withSchema,
+                                        version, attrs)
+                    else:
+                        self._xmlRef(name, value, generator, withSchema,
+                                     version, attrs)
 
     def _clearDirties(self):
 
@@ -637,7 +702,8 @@ class References(Values):
 
         for key, value in self.iteritems():
             if dirties is not None and key in dirties:
-                value._clear_()
+                if value is not None and value._isRefList():
+                    value._clear_()
             else:
                 try:
                     if value is not None and value._isRefList():

@@ -11,7 +11,7 @@ import os, unittest
 
 from bsddb.db import DBNoSuchFileError
 from repository.persistence.RepositoryError import RepositoryOpenDeniedError
-from repository.persistence.XMLRepository import XMLRepository
+from repository.persistence.DBRepository import DBRepository
 
 class BasicRepositoryTest(unittest.TestCase):
     """ Very basic repository tests """
@@ -29,7 +29,7 @@ class BasicRepositoryTest(unittest.TestCase):
         self.rootdir = os.environ['CHANDLERHOME']
         self.testdir = os.path.join(self.rootdir, 'repository',
                                     'tests')
-        self.rep = XMLRepository(os.path.join(self.testdir,'__repository__'))
+        self.rep = DBRepository(os.path.join(self.testdir, '__repository__'))
 
     def testNonExistent(self):
         """ The repository should not exist at this point """

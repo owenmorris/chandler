@@ -9,7 +9,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from unittest import TestCase
 import logging, os, sys, gettext
 
-from repository.persistence.XMLRepository import XMLRepository
+from repository.persistence.DBRepository import DBRepository
 from repository.util.Path import Path
 from application.Parcel import Manager as ParcelManager
 
@@ -36,7 +36,7 @@ class RepositoryTestCase(TestCase):
 
     def _openRepository(self, ramdb=True):
         preloadedRepositoryPath = os.path.join(self.testdir, '__preloaded_repository__')
-        self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
+        self.rep = DBRepository(os.path.join(self.testdir, '__repository__'))
 
         if os.path.exists(preloadedRepositoryPath):
             self.ramdb = False
@@ -79,8 +79,8 @@ class RepositoryTestCase(TestCase):
             self.rep.openView()
         else:
             self.rep.close()
-            self.rep = XMLRepository(os.path.join(self.testdir,
-                                                  '__repository__'))
+            self.rep = DBRepository(os.path.join(self.testdir,
+                                                 '__repository__'))
             self.rep.open()
 
     def _find(self, path):

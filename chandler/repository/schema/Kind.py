@@ -39,7 +39,7 @@ class Kind(Item):
         if not kwds['update']:
             self.__init()
 
-    def onItemLoad(self):
+    def onItemLoad(self, view):
 
         # force-load attributes for schema bootstrapping
         if 'attributes' in self._references:
@@ -448,6 +448,21 @@ class Kind(Item):
             data = value.itsUUID.str64()
             
         generator.characters(data)
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        if value is None:
+            buffer.write('\0')
+        else:
+            buffer.write('\1')
+            buffer.write(value.itsUUID._uuid)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        if data[offset] == '\0':
+            return offset+1, None
+        
+        return offset+17, SingleRef(UUID(data[offset+1:offset+17]))
 
     def handlerName(self):
 

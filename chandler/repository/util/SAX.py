@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import sys, traceback
 
 from libxml2mod import xmlEncodeSpecialChars as escape
-from libxml2 import createPushParser
+from libxml2 import createPushParser, SAXParseFile
 from cStringIO import StringIO
 
 
@@ -177,6 +177,12 @@ class ContentHandler(SAXCallback):
     def parse(self, xml):
 
         createPushParser(self, xml, len(xml), 'filter').parseChunk('', 0, 1)
+        if self.errorOccurred():
+            raise self.saxError()
+        
+    def parseFile(self, file):
+
+        SAXParseFile(self, file, 0)
         if self.errorOccurred():
             raise self.saxError()
         

@@ -11,7 +11,32 @@ from chandlerdb.util.UUID import UUID
 from repository.util.Streams import ConcatenatedInputStream, NullInputStream
 
 
-class XMLText(Text, ItemValue):
+class DBLob(object):
+
+    def _writeData(self, uuid, store, db):
+
+        if self._dirty or self._version == 0:
+            if self._append:
+                out = db.appendFile(store.lobName(uuid, self._version))
+            else:
+                self._version += 1
+                out = db.createFile(store.lobName(uuid, self._version))
+            out.write(self._data)
+            out.close()
+            self._data = ''
+
+            if self._indexed:
+                store._index.indexDocument(self._view._getIndexWriter(),
+                                           self.getPlainTextReader(),
+                                           uuid,
+                                           self._getItem().itsUUID,
+                                           self._getAttribute(),
+                                           self.getVersion())
+            
+            self._dirty = False
+
+
+class DBText(Text, DBLob, ItemValue):
 
     def __init__(self, view, *args, **kwds):
 
@@ -38,31 +63,43 @@ class XMLText(Text, ItemValue):
 
         return copy
 
-    def _xmlValue(self, generator):
+    def _writeValue(self, itemWriter, buffer, withSchema):
 
         uuid = self.getUUID()
-        
-        if self._dirty or self._version == 0:
-            store = self._view.repository.store
-            if self._append:
-                out = store._text.appendFile(store.lobName(uuid,
-                                                           self._version))
-            else:
-                self._version += 1
-                out = store._text.createFile(store.lobName(uuid,
-                                                           self._version))
-            out.write(self._data)
-            out.close()
-            self._data = ''
+        store = self._view.repository.store
+        self._writeData(uuid, store, store._text)
 
-            if self._indexed:
-                store._index.indexDocument(self._view._getIndexWriter(),
-                                           self.getPlainTextReader(),
-                                           uuid,
-                                           self._getItem().itsUUID,
-                                           self._getAttribute(),
-                                           self.getVersion())
-            self._dirty = False
+        itemWriter.writeUUID(buffer, uuid)
+        itemWriter.writeInteger(buffer, self._version)
+        itemWriter.writeString(buffer, self.mimetype)
+        itemWriter.writeString(buffer, self.encoding)
+        itemWriter.writeBoolean(buffer, self._indexed)
+
+        if self._compression:
+            itemWriter.writeSymbol(buffer, self._compression)
+        else:
+            itemWriter.writeSymbol(buffer, '')
+
+        if self._encryption:
+            itemWriter.writeSymbol(buffer, self._encryption)
+        else:
+            itemWriter.writeSymbol(buffer, '')
+
+    def _readValue(self, itemReader, offset, data, withSchema):
+
+        offset, self._uuid = itemReader.readUUID(offset, data)
+        offset, self._version = itemReader.readInteger(offset, data)
+        offset, self.mimetype = itemReader.readString(offset, data)
+        offset, self.encoding = itemReader.readString(offset, data)
+        offset, self._indexed = itemReader.readBoolean(offset, data)
+        offset, _compression = itemReader.readSymbol(offset, data)
+        self._compression = _compression or None
+        offset, _encryption = itemReader.readSymbol(offset, data)
+        self._encryption = _encryption or None
+
+        return offset, self
+
+    def _xmlValue(self, generator):
 
         attrs = {}
         attrs['version'] = str(self._version)
@@ -72,12 +109,11 @@ class XMLText(Text, ItemValue):
             attrs['compression'] = self._compression
         if self._encryption:
             attrs['encryption'] = self._encryption
-        attrs['type'] = 'uuid'
         if self._indexed:
             attrs['indexed'] = 'True'
         
         generator.startElement('text', attrs)
-        generator.characters(uuid.str64())
+        generator.characters('expanding text content not implemented')
         generator.endElement('text')
 
     def getUUID(self):
@@ -111,7 +147,7 @@ class XMLText(Text, ItemValue):
 
     def _setData(self, data):
 
-        super(XMLText, self)._setData(data)
+        super(DBText, self)._setData(data)
         self._setDirty()
 
     def getOutputStream(self, compression=None, encryption=None, key=None,
@@ -125,7 +161,7 @@ class XMLText(Text, ItemValue):
     def _getInputStream(self):
 
         if self._data:
-            dataIn = super(XMLText, self)._getInputStream()
+            dataIn = super(DBText, self)._getInputStream()
         else:
             dataIn = None
 
@@ -147,7 +183,7 @@ class XMLText(Text, ItemValue):
             return NullInputStream()
         
 
-class XMLBinary(Binary, ItemValue):
+class DBBinary(Binary, DBLob, ItemValue):
 
     def __init__(self, view, *args, **kwds):
 
@@ -173,32 +209,41 @@ class XMLBinary(Binary, ItemValue):
 
         return copy
 
-    def _xmlValue(self, generator):
+    def _writeValue(self, itemWriter, buffer, withSchema):
 
         uuid = self.getUUID()
+        store = self._view.repository.store
+        self._writeData(uuid, store, store._binary)
 
-        if self._dirty or self._version == 0:
-            store = self._view.repository.store
-            if self._append:
-                out = store._binary.appendFile(store.lobName(uuid,
-                                                             self._version))
-            else:
-                self._version += 1
-                out = store._binary.createFile(store.lobName(uuid,
-                                                             self._version))
-            out.write(self._data)
-            out.close()
-            self._data = ''
+        itemWriter.writeUUID(buffer, uuid)
+        itemWriter.writeInteger(buffer, self._version)
+        itemWriter.writeString(buffer, self.mimetype)
+        itemWriter.writeBoolean(buffer, self._indexed)
 
-            if self._indexed:
-                store._index.indexDocument(self._view._getIndexWriter(),
-                                           self.getPlainTextReader(),
-                                           uuid,
-                                           self._getItem().itsUUID,
-                                           self._getAttribute(),
-                                           self.getVersion())
-            
-            self._dirty = False
+        if self._compression:
+            itemWriter.writeSymbol(buffer, self._compression)
+        else:
+            itemWriter.writeSymbol(buffer, '')
+
+        if self._encryption:
+            itemWriter.writeSymbol(buffer, self._encryption)
+        else:
+            itemWriter.writeSymbol(buffer, '')
+
+    def _readValue(self, itemReader, offset, data, withSchema):
+
+        offset, self._uuid = itemReader.readUUID(offset, data)
+        offset, self._version = itemReader.readInteger(offset, data)
+        offset, self.mimetype = itemReader.readString(offset, data)
+        offset, self._indexed = itemReader.readBoolean(offset, data)
+        offset, _compression = itemReader.readSymbol(offset, data)
+        self._compression = _compression or None
+        offset, _encryption = itemReader.readSymbol(offset, data)
+        self._encryption = _encryption or None
+
+        return offset, self
+
+    def _xmlValue(self, generator):
 
         attrs = {}
         attrs['version'] = str(self._version)
@@ -207,10 +252,9 @@ class XMLBinary(Binary, ItemValue):
             attrs['compression'] = self._compression
         if self._encryption:
             attrs['encryption'] = self._encryption
-        attrs['type'] = 'uuid'
         
         generator.startElement('binary', attrs)
-        generator.characters(uuid.str64())
+        generator.characters('expanding binary content not implemented')
         generator.endElement('binary')
 
     def getUUID(self):
@@ -240,7 +284,7 @@ class XMLBinary(Binary, ItemValue):
 
     def _setData(self, data):
 
-        super(XMLBinary, self)._setData(data)
+        super(DBBinary, self)._setData(data)
         self._setDirty()
 
     def getOutputStream(self, compression=None, encryption=None, key=None,
@@ -255,7 +299,7 @@ class XMLBinary(Binary, ItemValue):
     def _getInputStream(self):
 
         if self._data:
-            dataIn = super(XMLBinary, self)._getInputStream()
+            dataIn = super(DBBinary, self)._getInputStream()
         else:
             dataIn = None
 

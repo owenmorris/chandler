@@ -196,8 +196,23 @@ class PersistentRefs(object):
         for previousKey, item in moves.iteritems():
             self.place(item, previousKey)
 
+    def _e_1_remove(self, *args):
+        raise MergeError, (type(self).__name__, self._item, 'modified element %s was removed in other view' %(args), MergeError.MOVE)
 
-class XMLRefList(RefList, PersistentRefs):
+    def _e_2_remove(self, *args):
+        raise MergeError, (type(self).__name__, self._item, 'removed element %s was modified in other view' %(args), MergeError.MOVE)
+
+    def _e_1_renames(self, *args):
+        raise MergeError, (type(self).__name__, self._item, 'element %s renamed to %s and %s' %(args), MergeError.RENAME)
+
+    def _e_2_renames(self, *args):
+        raise MergeError, (type(self).__name__, self._item, 'element %s named %s conflicts with element %s of same name' %(args), MergeError.NAME)
+
+    def _e_names(self, *args):
+        raise MergeError, (type(self).__name__, self._item, 'element %s conflicts with other element %s, both are named %s' %(args), MergeError.NAME)
+
+
+class DBRefList(RefList, PersistentRefs):
 
     def __init__(self, view, item, name, otherName, readOnly, new, uuid):
 
@@ -228,7 +243,7 @@ class XMLRefList(RefList, PersistentRefs):
             
     def linkChanged(self, link, key):
 
-        super(XMLRefList, self).linkChanged(link, key)
+        super(DBRefList, self).linkChanged(link, key)
         self._changeRef(key, link)
         
     def _removeRef(self, other):
@@ -244,7 +259,7 @@ class XMLRefList(RefList, PersistentRefs):
     def _setRef(self, other, **kwds):
 
         loading = self.view.isLoading()
-        super(XMLRefList, self)._setRef(other, **kwds)
+        super(DBRefList, self)._setRef(other, **kwds)
 
         if not loading:
             self._count += 1
@@ -254,68 +269,47 @@ class XMLRefList(RefList, PersistentRefs):
         super(RefList, self).__setitem__(key, key, alias=alias)
         self._count += 1
     
-    def _xmlValue(self, name, item, generator, withSchema,
-                  version, attrs, mode):
+    def _saveValues(self, version):
 
-        if mode == 'save':
-            attrs['uuid'] = self.uuid.str64()
+        store = self.view.repository.store
 
-        super(XMLRefList, self)._xmlValue(name, item, generator, withSchema,
-                                          version, attrs, mode)
-        
-    def _xmlValues(self, generator, version, mode):
+        item = self._item
+        if not (self._flags & LinkedMap.NEW or
+                item.isAttributeDirty(self._name, item._references) or
+                len(self._changedRefs) == 0):
+            raise AssertionError, '%s.%s not marked dirty' %(item._repr_(),
+                                                             self._name)
 
-        if mode == 'save':
-            store = self.view.repository.store
-
-            item = self._item
-            if not (self._flags & LinkedMap.NEW or
-                    item.isAttributeDirty(self._name, item._references) or
-                    len(self._changedRefs) == 0):
-                raise AssertionError, '%s.%s not marked dirty' %(item._repr_(),
-                                                                 self._name)
-
-            self._writeRef(self.uuid, version,
-                           self._firstKey, self._lastKey, self._count)
+        self._writeRef(self.uuid, version,
+                       self._firstKey, self._lastKey, self._count)
             
-            for key, (op, oldAlias) in self._changedRefs.iteritems():
-                if op == 0:               # change
-                    link = self._get(key, load=False)
+        for key, (op, oldAlias) in self._changedRefs.iteritems():
+            if op == 0:               # change
+                link = self._get(key, load=False)
 
-                    previous = link._previousKey
-                    next = link._nextKey
-                    alias = link._alias
+                previous = link._previousKey
+                next = link._nextKey
+                alias = link._alias
     
-                    self._writeRef(key, version, previous, next, alias)
-                    if (oldAlias is not None and
-                        oldAlias != alias and
-                        oldAlias not in self._aliases):
-                        store.writeName(version, self.uuid, oldAlias, None)
-                    if alias is not None:
-                        store.writeName(version, self.uuid, alias, key)
+                self._writeRef(key, version, previous, next, alias)
+                if (oldAlias is not None and
+                    oldAlias != alias and
+                    oldAlias not in self._aliases):
+                    store.writeName(version, self.uuid, oldAlias, None)
+                if alias is not None:
+                    store.writeName(version, self.uuid, alias, key)
                         
-                elif op == 1:             # remove
-                    self._deleteRef(key, version)
-                    if oldAlias is not None and oldAlias not in self._aliases:
-                        store.writeName(version, self.uuid, oldAlias, None)
+            elif op == 1:             # remove
+                self._deleteRef(key, version)
+                if oldAlias is not None and oldAlias not in self._aliases:
+                    store.writeName(version, self.uuid, oldAlias, None)
 
-                else:                     # error
-                    raise ValueError, op
+            else:                     # error
+                raise ValueError, op
 
-            if self._changedRefs:
-                self.view._notifications.changed(self._item._uuid, self._name)
-
-            if self._indexes:
-                for name, index in self._indexes.iteritems():
-                    attrs = { 'name': name, 'type': index.getIndexType() }
-                    index._xmlValues(generator, version, attrs, mode)
-
-        elif mode == 'serialize':
-            super(XMLRefList, self)._xmlValues(generator, version, mode)
-
-        else:
-            raise ValueError, mode
-
+        if self._changedRefs:
+            self.view._notifications.changed(self._item._uuid, self._name)
+        
     def _clearDirties(self):
 
         self._flags &= ~LinkedMap.NEW
@@ -328,9 +322,9 @@ class XMLRefList(RefList, PersistentRefs):
     def _createIndex(self, indexType, **kwds):
 
         if indexType == 'numeric':
-            return XMLNumericIndex(self._getRepository(), **kwds)
+            return DBNumericIndex(self._getRepository(), **kwds)
 
-        return super(XMLRefList, self)._createIndex(indexType, **kwds)
+        return super(DBRefList, self)._createIndex(indexType, **kwds)
 
     def _copy_(self, target):
 
@@ -359,44 +353,50 @@ class XMLRefList(RefList, PersistentRefs):
         PersistentRefs._mergeChanges(target, oldVersion, toVersion)
 
 
-class XMLNumericIndex(NumericIndex):
+class DBNumericIndex(NumericIndex):
 
     def __init__(self, view, **kwds):
 
+        super(DBNumericIndex, self).__init__(**kwds)
+
         self.view = view
         self._changedKeys = {}
-        
-        if 'uuid' in kwds:
-            self._uuid = UUID(kwds['uuid'])
-            self._headKey = UUID(kwds['head'])
-            self._tailKey = UUID(kwds['tail'])
-        else:
-            self._uuid = UUID()
-            self._headKey = UUID()
-            self._tailKey = UUID()
 
+        if not kwds.get('loading', False):
+
+            if 'uuid' in kwds:
+                self._uuid = UUID(kwds['uuid'])
+                self._headKey = UUID(kwds['head'])
+                self._tailKey = UUID(kwds['tail'])
+            else:
+                self._uuid = UUID()
+                self._headKey = UUID()
+                self._tailKey = UUID()
+
+            self.__init()
+
+    def __init(self):
+    
         self._key = self._getIndexes().prepareKey(self._uuid)
         self._value = StringIO()
         self._version = 0
         
-        super(XMLNumericIndex, self).__init__(**kwds)
-
     def _keyChanged(self, key):
 
         self._changedKeys[key] = self[key]
 
     def removeKey(self, key):
 
-        super(XMLNumericIndex, self).removeKey(key)
+        super(DBNumericIndex, self).removeKey(key)
         self._changedKeys[key] = None
 
     def __getitem__(self, key):
 
         try:
-            return super(XMLNumericIndex, self).__getitem__(key)
+            return super(DBNumericIndex, self).__getitem__(key)
         except KeyError:
             if self._loadKey(key):
-                return super(XMLNumericIndex, self).__getitem__(key)
+                return super(DBNumericIndex, self).__getitem__(key)
             raise
 
     def __contains__(self, key):
@@ -405,7 +405,7 @@ class XMLNumericIndex(NumericIndex):
 
     def has_key(self, key):
 
-        has = super(XMLNumericIndex, self).has_key(key)
+        has = super(DBNumericIndex, self).has_key(key)
         if not has:
             node = self._loadKey(key)
             has = node is not None
@@ -414,7 +414,7 @@ class XMLNumericIndex(NumericIndex):
 
     def get(self, key, default=None):
 
-        node = super(XMLNumericIndex, self).get(key, default)
+        node = super(DBNumericIndex, self).get(key, default)
         if node is default:
             node = self._loadKey(key)
             if node is None:
@@ -461,41 +461,48 @@ class XMLNumericIndex(NumericIndex):
 
         return self.view.repository.store._indexes
 
-    def _xmlValues(self, generator, version, attrs, mode):
+    def _writeValue(self, itemWriter, buffer):
 
-        attrs['count'] = str(len(self))
-        attrs['uuid'] = self._uuid.str64()
-        attrs['head'] = self._headKey.str64()
-        attrs['tail'] = self._tailKey.str64()
+        super(DBNumericIndex, self)._writeValue(itemWriter, buffer)
 
-        super(XMLNumericIndex, self)._xmlValues(generator, version, attrs,
-                                                mode)
+        itemWriter.writeInteger(buffer, self._count)
+        itemWriter.writeUUID(buffer, self._uuid)
+        itemWriter.writeUUID(buffer, self._headKey)
+        itemWriter.writeUUID(buffer, self._tailKey)
 
-        if mode == 'save':
-            indexes = self._getIndexes()
+    def _readValue(self, itemReader, offset, data):
 
+        offset = super(DBNumericIndex, self)._readValue(itemReader,
+                                                        offset, data)
+        offset, self._count = itemReader.readInteger(offset, data)
+        offset, self._uuid = itemReader.readUUID(offset, data)
+        offset, self._headKey = itemReader.readUUID(offset, data)
+        offset, self._tailKey = itemReader.readUUID(offset, data)
+
+        self.__init()
+
+        return offset
+
+    def _saveValues(self, version):
+
+        indexes = self._getIndexes()
+
+        indexes.saveKey(self._key, self._value,
+                        version, self._headKey, self._head)
+        indexes.saveKey(self._key, self._value,
+                        version, self._tailKey, self._tail)
+        for key, node in self._changedKeys.iteritems():
             indexes.saveKey(self._key, self._value,
-                            version, self._headKey, self._head)
-            indexes.saveKey(self._key, self._value,
-                            version, self._tailKey, self._tail)
-            for key, node in self._changedKeys.iteritems():
-                indexes.saveKey(self._key, self._value,
-                                version, key, node)
+                            version, key, node)
 
-            self._version = version
-            
-        elif mode == 'serialize':
-            raise NotImplementedError, 'serialize'
-
-        else:
-            raise ValueError, mode
+        self._version = version
 
     def _clearDirties(self):
 
         self._changedKeys.clear()
         
 
-class XMLChildren(Children, PersistentRefs):
+class DBChildren(Children, PersistentRefs):
 
     def __init__(self, view, item, new=True):
 
@@ -545,12 +552,12 @@ class XMLChildren(Children, PersistentRefs):
             
     def linkChanged(self, link, key):
 
-        super(XMLChildren, self).linkChanged(link, key)
+        super(DBChildren, self).linkChanged(link, key)
         self._changeRef(key, link)
 
     def __delitem__(self, key):
 
-        link = super(XMLChildren, self).__delitem__(key)
+        link = super(DBChildren, self).__delitem__(key)
         self._removeRef(key, link)
 
     def __setitem__(self, key, value,
@@ -564,8 +571,8 @@ class XMLChildren(Children, PersistentRefs):
                 if alias is not None:
                     assert alias == refAlias
 
-        super(XMLChildren, self).__setitem__(key, value,
-                                             previousKey, nextKey, alias)
+        super(DBChildren, self).__setitem__(key, value,
+                                            previousKey, nextKey, alias)
 
         if not loading:
             self._count += 1
@@ -651,19 +658,3 @@ class XMLChildren(Children, PersistentRefs):
         self._item._setChildren(target)
 
         PersistentRefs._mergeChanges(target, oldVersion, toVersion)
-
-    def _e_1_remove(self, *args):
-        raise MergeError, ('children', self._item, 'modified child %s was removed in other view' %(args), MergeError.MOVE)
-
-    def _e_2_remove(self, *args):
-        raise MergeError, ('children', self._item, 'removed child %s was modified in other view' %(args), MergeError.MOVE)
-
-    def _e_1_renames(self, *args):
-        raise MergeError, ('children', self._item, 'child %s renamed to %s and %s' %(args), MergeError.RENAME)
-
-    def _e_2_renames(self, *args):
-        raise MergeError, ('children', self._item, 'child %s named %s conflicts with child %s of same name' %(args), MergeError.NAME)
-
-    def _e_names(self, *args):
-        raise MergeError, ('children', self._item, 'child %s conflicts with other child %s, both are named %s' %(args), MergeError.NAME)
-

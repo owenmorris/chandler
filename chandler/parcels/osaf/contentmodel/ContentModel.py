@@ -8,10 +8,10 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from application.Parcel import Parcel
 from repository.util.Path import Path
+from repository.util.Lob import Lob
 from repository.item.RefCollections import RefList
 import repository.item.Item as Item
 import repository.item.Query as Query
-import repository.persistence.XMLRepositoryView as XMLRepositoryView
 import mx.DateTime as DateTime
 import logging
 
@@ -454,7 +454,7 @@ class ContentItem(ChandlerItem):
         except AttributeError:
             noteBody = ''
         else:
-            if isinstance(noteBody, XMLRepositoryView.XMLText):
+            if isinstance(noteBody, Lob):
                 # Read the unicode stream from the XML
                 noteBody = noteBody.getInputStream().read()
         return noteBody

@@ -83,8 +83,8 @@ class TypesTest(RepositoryTestCase.RepositoryTestCase):
                           'RelativeDateTime':'type(mx.DateTime.RelativeDateTime())',
                           'Dictionary':'repository.item.PersistentCollections.PersistentDict',
                           'List':'repository.item.PersistentCollections.PersistentList',
-                          'Text':'repository.persistence.XMLRepositoryView.XMLText',
-                          'Binary':'repository.persistence.XMLRepositoryView.XMLBinary' }
+                          'Text':'repository.persistence.DBLob.DBText',
+                          'Binary':'repository.persistence.DBLob.DBBinary' }
         excludes = ['NoneType','Enumeration','Struct','Collection','Lob']
 
         for n in [ x for x in self.typenames if x not in excludes ]:

@@ -9,7 +9,7 @@ import wx
 import Globals
 from chandlerdb.util.UUID import UUID
 import application.Parcel
-from repository.persistence.XMLRepository import XMLRepository
+from repository.persistence.DBRepository import DBRepository
 from repository.persistence.RepositoryError import VersionConflictError
 from crypto import Crypto
 import logging as logging
@@ -206,7 +206,7 @@ class wxApplication (wx.App):
         Load the Repository after the path has been altered, but before
         the parcels are loaded. 
         """
-        Globals.repository = XMLRepository("__repository__")
+        Globals.repository = DBRepository("__repository__")
 
         kwds = { 'stderr': '-stderr' in sys.argv,
                  'ramdb': '-ramdb' in sys.argv,

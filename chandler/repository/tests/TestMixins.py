@@ -6,9 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-from repository.persistence.XMLRepository import XMLRepository
 from repository.tests.RepositoryTestCase import RepositoryTestCase
-
 from repository.item.Item import Item
 from repository.schema.Attribute import Attribute
 from repository.schema.Kind import Kind

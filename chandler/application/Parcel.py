@@ -57,7 +57,7 @@ class Manager(Item):
 
         @param repository: The repository object to load items into.  If
         no repository is passed in, "Globals.repository" will be used.
-        @type repository: L{repository.persistence.XMLRepository}
+        @type repository: L{repository.persistence.Repository}
         @param path: The search path for finding parcels.  This is a list
         of absolute directory paths; when loading parcels, each directory
         in the search path will be used as a starting point for recursively
@@ -689,11 +689,6 @@ class Parcel(Item):
         Method called at the end of loadParcels().  Parcel items can perform
         whatever non-persisted setup they need to do.
         """
-        pass
-
-    def onItemLoad(self):
-        # TODO:  Find out if we really need this here.  Subclasses of Parcel 
-        # seem to be expecting this method to be here.
         pass
 
     def lookup(self, name=None):
@@ -1612,7 +1607,7 @@ def PrintItem(path, rep, recursive=False, level=0):
         repository.parcel.PrintItem("//Schema", repository)
 
     @param rep: The repository object to use
-    @type rep: L{repository.persistence.XMLRepository}
+    @type rep: L{repository.persistence.Repository}
     @param recursive: Whether to also display child items or not (default=False)
     @type recursive:  Boolean
     """
@@ -1710,11 +1705,11 @@ def PrintItem(path, rep, recursive=False, level=0):
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 def __prepareRepo():
-    from repository.persistence.XMLRepository import XMLRepository
+    from repository.persistence.DBRepository import DBRepository
 
     Globals.chandlerDirectory = os.path.join(os.environ['CHANDLERHOME'])
     repoDir = os.path.join(Globals.chandlerDirectory, '__repository__')
-    rep = XMLRepository(repoDir)
+    rep = DBRepository(repoDir)
     rep.open(create=True)
     if rep.findPath("//Schema") is None:
         print "Bootstrapping //Schema"

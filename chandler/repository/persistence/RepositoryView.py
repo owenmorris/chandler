@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import libxml2, logging, heapq, sys, gc
+import logging, heapq, sys, gc
 
 from threading import currentThread, Thread
 
@@ -13,7 +13,7 @@ from repository.util.Path import Path
 from repository.util.ThreadSemaphore import ThreadSemaphore
 from repository.persistence.RepositoryError import RepositoryError, VersionConflictError, ViewError
 from repository.item.Item import Item
-from repository.item.ItemHandler import ItemHandler, ItemsHandler
+from repository.item.ItemHandler import ItemHandler
 from repository.persistence.PackHandler import PackHandler
 
 timing = True
@@ -294,7 +294,8 @@ class RepositoryView(object):
                     if load is True:
                         return self._loadItem(spec)
                     elif load and not spec in self._deletedRegistry:
-                        return self._loadDoc(load)
+                        # in this case, load is an itemReader (queryItems)
+                        return self._readItem(load)
                     else:
                         return None
 
@@ -387,10 +388,7 @@ class RepositoryView(object):
         if not packs:
             packs = Item('Packs', self, None)
 
-        handler = PackHandler(path, parent, self)
-        libxml2.SAXParseFile(handler, path, 0)
-        if handler.errorOccurred():
-            raise handler.saxError()
+        PackHandler(path, parent, self).parseFile(path)
 
         if timing: tools.timing.end("Load pack")
 
@@ -419,46 +417,6 @@ class RepositoryView(object):
             for child in item:
                 self.dir(child, path)
             path.pop()
-
-    def _loadItemsFile(self, path, parent, afterLoadHooks, new):
-
-        self.logger.debug("Loading item file: %s", path)
-            
-        handler = ItemsHandler(self, parent or self, afterLoadHooks, new)
-        libxml2.SAXParseFile(handler, path, 0)
-        if handler.errorOccurred():
-            raise handler.saxError()
-
-        return handler.items
-
-    def _loadItemString(self, string, parent, afterLoadHooks):
-
-        if self.isDebug():
-            index = string.find('uuid="')
-            if index > -1:
-                self.logger.debug('loading item %s', string[index+6:index+28])
-            else:
-                self.logger.debug('loading item %s', string)
-            
-        handler = ItemHandler(self, parent or self, afterLoadHooks, False)
-        ctx = libxml2.createPushParser(handler, string, len(string), "item")
-        ctx.parseChunk('', 0, 1)
-        if handler.errorOccurred():
-            raise handler.saxError()
-
-        return handler.item
-
-    def _loadItemDoc(self, doc, parser, parent, afterLoadHooks):
-
-        if self.isDebug():
-            self.logger.debug('loading item %s', doc.getDocUUID())
-
-        handler = ItemHandler(self, parent, afterLoadHooks, False)
-        parser.parseDoc(doc, handler)
-        if handler.errorOccurred():
-            raise handler.saxError()
-
-        return handler.item
 
     def check(self):
         """
@@ -841,18 +799,19 @@ class OnDemandRepositoryView(RepositoryView):
         if not loading and self.isLoading() and runHooks:
             try:
                 for hook in self._hooks:
-                    hook()
+                    hook(self)
             finally:
                 self._hooks = []
 
         return super(OnDemandRepositoryView, self)._setLoading(loading,
                                                                runHooks)
 
-    def _loadDoc(self, doc):
+    def _readItem(self, itemReader):
 
         try:
             release = False
             loading = self.isLoading()
+            debug = self.isDebug()
             if not loading:
                 release = self._exclusive.acquire()
                 self._setLoading(True)
@@ -860,10 +819,12 @@ class OnDemandRepositoryView(RepositoryView):
 
             exception = None
 
-            item = self._loadItemDoc(doc, self.repository.store,
-                                     self, self._hooks)
+            if debug:
+                self.logger.debug('loading item %s', itemReader.getUUID())
 
-            if self.isDebug():
+            item = itemReader.readItem(self, self._hooks)
+
+            if debug:
                 self.logger.debug("loaded version %d of %s",
                                   item._version, item.itsPath)
 
@@ -886,11 +847,11 @@ class OnDemandRepositoryView(RepositoryView):
     def _loadItem(self, uuid):
 
         if not uuid in self._deletedRegistry:
-            doc = self.repository.store.loadItem(self._version, uuid)
+            itemReader = self.repository.store.loadItem(self._version, uuid)
 
-            if doc is not None:
+            if itemReader is not None:
                 self.logger.debug("loading item %s", uuid)
-                return self._loadDoc(doc)
+                return self._readItem(itemReader)
 
         return None
 

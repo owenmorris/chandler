@@ -5,14 +5,14 @@ __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-from repository.persistence.XMLRepository import XMLRepository, XMLStore
-from repository.persistence.XMLRepositoryView import XMLRepositoryView
+from repository.persistence.DBRepository import DBRepository, XMLStore
+from repository.persistence.DBRepositoryView import DBRepositoryView
 from repository.remote.Transport import SOAPTransport, JabberTransport
 from repository.remote.RemoteFilter import RemoteFilter
 from chandlerdb.util.UUID import UUID
 
 
-class RemoteRepository(XMLRepository):
+class RemoteRepository(DBRepository):
 
     def __init__(self, dbHome, protocol, cloudAlias, *args, **kwds):
         'Construct an RemoteRepository giving it a transport handler'

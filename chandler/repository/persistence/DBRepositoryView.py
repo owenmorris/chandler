@@ -11,26 +11,25 @@ from bsddb.db import DBLockDeadlockError
 
 from repository.item.Item import Item
 from repository.item.RefCollections import TransientRefList
-from repository.item.ItemHandler import MergeHandler
 from repository.persistence.RepositoryError import RepositoryError, MergeError
 from repository.persistence.RepositoryError import VersionConflictError
 from repository.persistence.RepositoryView import RepositoryView
 from repository.persistence.RepositoryView import OnDemandRepositoryView
 from repository.persistence.Repository import Repository
 from repository.persistence.Repository import RepositoryNotifications
-from repository.persistence.XMLLob import XMLText, XMLBinary
-from repository.persistence.XMLRefs import XMLRefList, XMLChildren
+from repository.persistence.DBLob import DBText, DBBinary
+from repository.persistence.DBRefs import DBRefList, DBChildren
 from repository.persistence.DBContainer import HashTuple
-from repository.persistence.DBGenerator import DBGenerator
+from repository.persistence.DBItemIO import DBItemWriter, DBItemMergeReader
 
 timing = False
 if timing: import tools.timing
 
-class XMLRepositoryView(OnDemandRepositoryView):
+class DBRepositoryView(OnDemandRepositoryView):
 
     def openView(self):
 
-        super(XMLRepositoryView, self).openView()
+        super(DBRepositoryView, self).openView()
 
         self._log = []
         self._notifications = RepositoryNotifications()
@@ -38,7 +37,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
     def _logItem(self, item):
         
-        if super(XMLRepositoryView, self)._logItem(item):
+        if super(DBRepositoryView, self)._logItem(item):
             self._log.append(item)
             return True
         
@@ -84,11 +83,11 @@ class XMLRepositoryView(OnDemandRepositoryView):
         store = self.repository.store
         items = []
         
-        for doc in store.queryItems(self._version, kind, attribute):
-            uuid = store.getDocUUID(doc)
+        for itemReader in store.queryItems(self._version, kind, attribute):
+            uuid = itemReader.getUUID()
             if not uuid in self._deletedRegistry:
-                # load and doc, trick to pass doc directly to find
-                item = self.find(uuid, load=load and doc)
+                # load and itemReader, trick to pass reader directly to find
+                item = self.find(uuid, load=load and itemReader)
                 if item is not None:
                     items.append(item)
 
@@ -111,20 +110,20 @@ class XMLRepositoryView(OnDemandRepositoryView):
                        persist, readOnly, new, uuid):
 
         if persist:
-            return XMLRefList(self, item, name, otherName, readOnly, new, uuid)
+            return DBRefList(self, item, name, otherName, readOnly, new, uuid)
         else:
             return TransientRefList(item, name, otherName, readOnly)
 
     def _createChildren(self, parent, new):
 
-        return XMLChildren(self, parent, new)
+        return DBChildren(self, parent, new)
 
     def _getLobType(self, mode):
 
         if mode == 'text':
-            return XMLText
+            return DBText
         if mode == 'binary':
-            return XMLBinary
+            return DBBinary
 
         raise ValueError, mode
 
@@ -239,9 +238,10 @@ class XMLRepositoryView(OnDemandRepositoryView):
                         if count > 0:
                             newVersion += 1
                             store._values.setVersion(newVersion)
-
+                            itemWriter = DBItemWriter(store)
                             for item in self._log:
-                                size += self._saveItem(item, newVersion, store)
+                                size += self._saveItem(item, newVersion,
+                                                       itemWriter)
                             if self.isDirty():
                                 self._roots._saveValues(newVersion)
 
@@ -296,43 +296,24 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
             if timing: tools.timing.end("Repository commit")
 
-    def _saveItem(self, item, newVersion, store):
+    def _saveItem(self, item, newVersion, itemWriter):
 
-        uuid = item._uuid
-        isNew = item.isNew()
-        isDeleted = item.isDeleted()
-        isDebug = self.isDebug()
-        
-        if isDeleted:
-            del self._deletedRegistry[uuid]
-            if isNew:
-                return 0
-
-        if isDebug:
+        if self.isDebug():
             self.logger.debug('saving version %d of %s',
                               newVersion, item.itsPath)
 
-        generator = DBGenerator(store, uuid, newVersion,
-                                item._status & Item.SAVEMASK,
-                                item._values._getDirties(),
-                                item._references._getDirties())
-        generator.startDocument()
-        item._saveItem(generator, newVersion)
-        generator.endDocument()
-
-        if item._status & item.ADIRTY:
-            for name, acl in item._acls.iteritems():
-                store.saveACL(newVersion, uuid, name, acl)
-
-        if isDeleted:
+        if item.isDeleted():
+            del self._deletedRegistry[item._uuid]
+            if item.isNew():
+                return 0
             parent = item.itsParent.itsUUID
-            self._notifications.changed(uuid, 'deleted', parent=parent)
-        elif isNew:
-            self._notifications.changed(uuid, 'added')
+            self._notifications.changed(item._uuid, 'deleted', parent=parent)
+        elif item.isNew():
+            self._notifications.changed(item._uuid, 'added')
         else:
-            self._notifications.changed(uuid, 'changed')
+            self._notifications.changed(item._uuid, 'changed')
                     
-        return 0
+        return itemWriter.writeItem(item, newVersion)
 
     def mapChanges(self, callable):
 
@@ -506,9 +487,8 @@ class XMLRepositoryView(OnDemandRepositoryView):
             self._e_2_overlap(item, overlaps[0])
 
         store = self.repository.store
-        mergeHandler = MergeHandler(self, item, dirties)
-        doc = store.loadItem(toVersion, item._uuid)
-        store.parseDoc(doc, mergeHandler)
+        args = store._items.loadItem(toVersion, item._uuid)
+        DBItemMergeReader(store, item, dirties, *args).readItem(self, [])
 
     def _i_merged(self, item):
 

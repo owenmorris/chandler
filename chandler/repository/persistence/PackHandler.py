@@ -4,27 +4,27 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os.path
-import re
+import os, re
 
 from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.SAX import ContentHandler
 from repository.item.Item import Item
+from repository.item.ItemHandler import ItemsHandler
 
 
 class PackHandler(ContentHandler):
     'A SAX ContentHandler implementation responsible for loading packs.'
 
-    def __init__(self, path, parent, repository):
+    def __init__(self, path, parent, view):
 
         ContentHandler.__init__(self)
 
         self.path = path
-        self.cwd = [ os.path.dirname(path) ]
-        self.parent = [ parent ]
-        self.repository = repository
-        self.hooks = [ None ]
+        self.cwd = [os.path.dirname(path)]
+        self.parent = [parent]
+        self.view = view
+        self.hooks = []
 
     def startDocument(self):
 
@@ -59,27 +59,30 @@ class PackHandler(ContentHandler):
             self.cwd[-1] = os.path.join(self.cwd[-1], attrs['cwd'])
 
         if attrs.has_key('file'):
-            if not self.repository.find(Path('//', 'Packs', attrs['name'])):
+            if not self.view.find(Path('//', 'Packs', attrs['name'])):
                 try:
-                    self.repository.loadPack(os.path.join(self.cwd[-1],
-                                                          attrs['file']),
-                                             self.parent[-1])
-                except Exception:
+                    self.view.loadPack(os.path.join(self.cwd[-1],
+                                                    attrs['file']),
+                                       self.parent[-1])
+                except:
                     self.saveException()
                     return
 
         else:
             self.name = attrs['name']
 
-            packs = self.repository.findPath('Packs')
+            packs = self.view.findPath('Packs')
             self.pack = Item(self.name, packs, None)
+            self.hooks.append([])
 
     def packEnd(self, attrs):
 
         if not attrs.has_key('file'):
-            itemKind = self.repository.findPath('Schema/Core/Item')
+            itemKind = self.view.findPath('Schema/Core/Item')
             self.pack._kind = itemKind         #kludge
             self.pack.description = self.path
+            for hook in self.hooks.pop():
+                hook(self.view)
 
     def cwdStart(self, attrs):
 
@@ -97,9 +100,9 @@ class PackHandler(ContentHandler):
             self.hooks.append([])
         
         if attrs.has_key('path'):
-            parent = self.repository.find(Path(attrs['path']))
+            parent = self.view.find(Path(attrs['path']))
         elif attrs.has_key('uuid'):
-            parent = self.repository.find(UUID(attrs['uuid']))
+            parent = self.view.find(UUID(attrs['uuid']))
         elif attrs.has_key('file'):
             parent = self.loadItem(os.path.join(self.cwd[-1], attrs['file']),
                                    self.parent[-1])
@@ -130,24 +133,27 @@ class PackHandler(ContentHandler):
         try:
             if attrs.get('afterLoadHooks', 'False') == 'True':
                 for hook in self.hooks.pop():
-                    hook()
-        except Exception:
+                    hook(self.view)
+        except:
             self.saveException()
             return
 
     def loadItem(self, file, parent):
 
         try:
-            items = self.repository._loadItemsFile(file, parent,
-                                                   self.hooks[-1], True)
+            view = self.view
+            view.logger.debug("Loading item file: %s", file)
+            
+            handler = ItemsHandler(view, parent or view, self.hooks[-1], True)
+            handler.parseFile(file)
 
-            for item in items:
+            for item in handler.items:
                 if item._status & item.NDIRTY == 0:
                     item._status |= item.NEW
                     item.setDirty(item.NDIRTY, None)
 
-            return items[0]
+            return handler.items[0]
 
-        except Exception:
+        except:
             self.saveException()
             return

@@ -14,6 +14,7 @@ import repository.util.URL
 from new import classobj
 
 from repository.item.Item import Item
+from repository.schema.TypeHandler import TypeHandler
 from repository.item.ItemHandler import ValueHandler
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
@@ -28,7 +29,7 @@ class TypeKind(Kind):
 
         super(TypeKind, self)._fillItem(name, parent, kind, **kwds)
 
-        typeHandlers = ValueHandler.typeHandlers[self.itsView]
+        typeHandlers = TypeHandler.typeHandlers[self.itsView]
         typeHandlers[None] = self
 
     def findTypes(self, value):
@@ -60,13 +61,17 @@ class Type(Item):
     def _registerTypeHandler(self, implementationType):
 
         if implementationType is not None:
-            typeHandlers = ValueHandler.typeHandlers[self.itsView]
+            try:
+                typeHandlers = TypeHandler.typeHandlers[self.itsView]
+            except KeyError:
+                typeHandlers = TypeHandler.typeHandlers[self.itsView] = {}
+
             if implementationType in typeHandlers:
                 typeHandlers[implementationType].append(self)
             else:
                 typeHandlers[implementationType] = [ self ]
 
-    def onItemLoad(self):
+    def onItemLoad(self, view):
         self._registerTypeHandler(self.getImplementationType())
 
     def getImplementationType(self):
@@ -107,6 +112,12 @@ class Type(Item):
 
     def getParsedValue(self, itemHandler, data):
         return self.makeValue(data)
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+        raise NotImplementedError, "%s._writeValue" %(type(self))
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+        raise NotImplementedError, "%s._readValue" %(type(self))
 
     NoneString = "__NONE__"
 
@@ -149,6 +160,14 @@ class String(Type):
 
         return -1
 
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        itemWriter.writeString(buffer, value)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+        
+        return itemReader.readString(offset, data)
+
 
 class Symbol(Type):
 
@@ -182,6 +201,14 @@ class Symbol(Type):
 
         return True
 
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        itemWriter.writeSymbol(buffer, value)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+        
+        return itemReader.readSymbol(offset, data)
+
 
 class Integer(Type):
 
@@ -196,6 +223,12 @@ class Integer(Type):
 
     def _compareTypes(self, other):
         return -1
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+        itemWriter.writeInteger(buffer, value)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+        return itemReader.readInteger(offset, data)
 
 
 class Long(Type):
@@ -219,6 +252,12 @@ class Long(Type):
             return -1
         return 0
 
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+        itemWriter.writeLong(buffer, value)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+        return itemReader.readLong(offset, data)
+
 
 class Float(Type):
 
@@ -237,6 +276,12 @@ class Float(Type):
     def _compareTypes(self, other):
         return 1
 
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+        itemWriter.writeFloat(buffer, value)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+        return itemReader.readFloat(offset, data)
+
     
 class Complex(Type):
 
@@ -249,6 +294,18 @@ class Complex(Type):
     def makeValue(self, data):
         return complex(data[1:-1])
 
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        itemWriter.writeFloat(buffer, value.real)
+        itemWriter.writeFloat(buffer, value.imag)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        offset, real = itemReader.readFloat(offset, data)
+        offset, imag = itemReader.readFloat(offset, data)
+
+        return offset, complex(real, imag)
+        
 
 class Boolean(Type):
 
@@ -266,6 +323,14 @@ class Boolean(Type):
             return False
         else:
             raise ValueError, "'%s' is not 'T|true' or 'F|false'" %(data)
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        itemWriter.writeBoolean(buffer, value)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        return itemReader.readBoolean(offset, data)
 
 
 class UUID(Type):
@@ -306,6 +371,21 @@ class UUID(Type):
             return 1
 
         return 0
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        if value is None:
+            buffer.write('\0')
+        else:
+            buffer.write('\1')
+            buffer.write(value._uuid)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        if data[offset] == '\0':
+            return offset+1, None
+        
+        return offset+17, chandlerdb.util.UUID.UUID(data[offset+1:offset+17])
 
 
 class SingleRef(Type):
@@ -349,6 +429,22 @@ class SingleRef(Type):
             return 1
 
         return 0
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        if value is None:
+            buffer.write('\0')
+        else:
+            buffer.write('\1')
+            buffer.write(value._uuid._uuid)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        if data[offset] == '\0':
+            return offset+1, None
+        
+        uuid = chandlerdb.util.UUID.UUID(data[offset+1:offset+17])
+        return offset+17, repository.util.SingleRef.SingleRef(uuid)
 
 
 class Path(Type):
@@ -394,6 +490,22 @@ class Path(Type):
 
         return 0
 
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        if value is None:
+            buffer.write('\0')
+        else:
+            buffer.write('\1')
+            itemWriter.writeString(buffer, str(value))
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        if data[offset] == '\0':
+            return offset+1, None
+        
+        offset, string = itemReader.readString(offset, data)
+        return offset, repository.util.Path.Path(string)
+
 
 class URL(Type):
 
@@ -423,6 +535,22 @@ class URL(Type):
 
         return -1
 
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        if value is None:
+            buffer.write('\0')
+        else:
+            buffer.write('\1')
+            itemWriter.writeString(buffer, str(value))
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        if data[offset] == '\0':
+            return offset+1, None
+        
+        offset, string = itemReader.readString(offset, data)
+        return offset, repository.util.URL.URL(string)
+
 
 class NoneType(Type):
 
@@ -444,6 +572,14 @@ class NoneType(Type):
     def _compareTypes(self, other):
         return -1
 
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+        buffer.write('\0')
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+        if data[offset] != '\0':
+            raise AssertionError, 'invalid byte for None'
+        return offset+1, None
+
 
 class Class(Type):
 
@@ -461,6 +597,13 @@ class Class(Type):
 
     def makeString(self, value):
         return "%s.%s" %(value.__module__, value.__name__)
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+        itemWriter.writeString(buffer, self.makeString(value))
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+        offset, string = itemReader.readString(offset, data)
+        return offset, ClassLoader.loadClass(string)
         
 
 class Enumeration(Type):
@@ -478,13 +621,35 @@ class Enumeration(Type):
         return value
 
     def recognizes(self, value):
+
         try:
             return self.values.index(value) >= 0
         except ValueError:
             return False
 
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        if withSchema:
+            itemWriter.writeString(buffer, value)
+        else:
+            itemWriter.writeInteger(buffer, self.values.index(value))
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+        
+        if withSchema:
+            return itemReader.readString(offset, data)
+        else:
+            offset, integer = itemReader.readInteger(offset, data)
+            return offset, self.values[integer]
+
 
 class Struct(Type):
+
+    def getDefaultValue(self, fieldName):
+        return Item.Nil
+
+    def getFieldValue(self, value, fieldName, default):
+        return getattr(value, fieldName, default)
 
     def startValue(self, itemHandler):
         itemHandler.tagCounts.append(0)
@@ -514,7 +679,7 @@ class Struct(Type):
             typeHandler = field.get('type', None)
 
             if typeHandler is None:
-                typeHandler = ValueHandler.typeHandler(repository, fieldValue)
+                typeHandler = TypeHandler.typeHandler(repository, fieldValue)
 
             attrs = { 'name': fieldName, 'typeid': typeHandler._uuid.str64() }
             generator.startElement('field', attrs)
@@ -598,9 +763,80 @@ class Struct(Type):
                 strings.append("%s:%s" %(fieldName, fieldValue))
 
         return ",".join(strings)
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        fields = self.getAttributeValue('fields',
+                                        _attrDict=self._values,
+                                        default={})
+
+        for fieldName, field in fields.iteritems():
+            default = self.getDefaultValue(fieldName) 
+            fieldValue = self.getFieldValue(value, fieldName, default)
+            if fieldValue == default:
+                continue
+            
+            fieldType = field.get('type', None)
+            itemWriter.writeSymbol(buffer, fieldName)
+            itemWriter.writeValue(buffer, item, fieldValue,
+                                  withSchema, fieldType)
+
+        itemWriter.writeSymbol(buffer, '')
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        fields = self.getAttributeValue('fields', _attrDict=self._values,
+                                        default=None)
+
+        value = self.getImplementationType()()
+        while True:
+            offset, fieldName = itemReader.readSymbol(offset, data)
+            if fieldName != '':
+                fieldType = fields[fieldName].get('type', None)
+                offset, fieldValue = itemReader.readValue(offset, data,
+                                                          withSchema, fieldType,
+                                                          view, name)
+                setattr(value, fieldName, fieldValue)
+            else:
+                return offset, value
+
+
+class MXType(Struct):
+
+    def recognizes(self, value):
+        return type(value) is self.getImplementationType()
+
+    def getParsedValue(self, itemHandler, data):
+
+        flds = itemHandler.fields
+        if flds is None:
+            return self.makeValue(data)
+        else:
+            itemHandler.fields = None
+        
+        return self._valueFromFields(flds)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        fields = self.getAttributeValue('fields', _attrDict=self._values,
+                                        default=None)
+
+        flds = {}
+        while True:
+            offset, fieldName = itemReader.readSymbol(offset, data)
+            if fieldName != '':
+                fieldType = fields[fieldName].get('type', None)
+                offset, fieldValue = itemReader.readValue(offset, data,
+                                                          withSchema, fieldType,
+                                                          view, name)
+                flds[fieldName] = fieldValue
+            else:
+                break
+
+        return offset, self._valueFromFields(flds)
     
 
-class DateTime(Struct):
+class DateTime(MXType):
 
     def getImplementationType(self):
         return DateTime.implementationType
@@ -611,30 +847,23 @@ class DateTime(Struct):
     def makeString(self, value):
         return mx.DateTime.ISO.str(value)
 
-    def recognizes(self, value):
-        return type(value) is self.getImplementationType()
-
-    def getParsedValue(self, itemHandler, data):
-
-        flds = itemHandler.fields
-        if flds is None:
-            return self.makeValue(data)
-        else:
-            itemHandler.fields = None
-        
+    def _valueFromFields(self, flds):
         return mx.DateTime.DateTime(flds['year'],
                                     flds['month'],
                                     flds['day'],
                                     flds['hour'],
                                     flds['minute'],
-                                    flds['second'])
+                                    flds['second'])        
 
     implementationType = type(mx.DateTime.now())
 
 
-class DateTimeDelta(Struct):
+class DateTimeDelta(MXType):
 
     defaults = { 'day': 0.0, 'hour': 0.0, 'minute': 0.0, 'second': 0.0 }
+
+    def getDefaultValue(self, fieldName):
+        return DateTimeDelta.defaults[fieldName]
 
     def getImplementationType(self):
         return DateTimeDelta.implementationType
@@ -645,40 +874,34 @@ class DateTimeDelta(Struct):
     def makeString(self, value):
         return str(value)
 
-    def recognizes(self, value):
-        return type(value) is self.getImplementationType()
-
     def _fieldXML(self, repository, value, fieldName, field, generator):
 
-        default = DateTimeDelta.defaults[fieldName]
-        fieldValue = getattr(value, fieldName, default)
+        default = self.getDefaultValue(fieldName)
+        fieldValue = self.getFieldValue(value, fieldName, default)
         if default != fieldValue:
             super(DateTimeDelta, self)._fieldXML(repository, value,
                                                  fieldName, field, generator)
-          
-    def getParsedValue(self, itemHandler, data):
 
-        flds = itemHandler.fields
-        if flds is None:
-            return self.makeValue(data)
-        else:
-            itemHandler.fields = None
-        
+    def _valueFromFields(self, flds):
+
         return mx.DateTime.DateTimeDeltaFrom(days=flds.get('day', 0.0),
                                              hours=flds.get('hour', 0.0),
                                              minutes=flds.get('minute', 0.0),
                                              seconds=flds.get('second', 0.0))
-
+          
     implementationType = type(mx.DateTime.DateTimeDelta(0))
     
 
-class RelativeDateTime(Struct):
+class RelativeDateTime(MXType):
 
     defaults = { 'years': 0, 'months': 0, 'days': 0,
                  'year': None, 'month': None, 'day': None,
                  'hours': 0, 'minutes': 0, 'seconds': 0,
                  'hour': None, 'minute': None, 'second': None,
                  'weekday': None, 'weeks': 0 }
+
+    def getDefaultValue(self, fieldName):
+        return RelativeDateTime.defaults[fieldName]
 
     def getImplementationType(self):
         return RelativeDateTime.implementationType
@@ -689,25 +912,16 @@ class RelativeDateTime(Struct):
     def makeString(self, value):
         return str(value)
 
-    def recognizes(self, value):
-        return type(value) is self.getImplementationType()
-
     def _fieldXML(self, repository, value, fieldName, field, generator):
 
-        default = RelativeDateTime.defaults[fieldName]
-        fieldValue = getattr(value, fieldName, default)
+        default = self.getDefaultValue(fieldName)
+        fieldValue = self.getFieldValue(value, fieldName, default)
         if default != fieldValue:
             super(RelativeDateTime, self)._fieldXML(repository, value,
                                                     fieldName, field,
                                                     generator)
-          
-    def getParsedValue(self, itemHandler, data):
 
-        flds = itemHandler.fields
-        if flds is None:
-            return self.makeValue(data)
-        else:
-            itemHandler.fields = None
+    def _valueFromFields(self, flds):
 
         return mx.DateTime.RelativeDateTime(years=flds.get('years', 0),
                                             months=flds.get('months', 0),
@@ -723,7 +937,7 @@ class RelativeDateTime(Struct):
                                             second=flds.get('second', None),
                                             weekday=flds.get('weekday', None),
                                             weeks=flds.get('weeks', 0))
-
+          
     implementationType = type(mx.DateTime.RelativeDateTime())
 
 
@@ -809,6 +1023,14 @@ class Dictionary(Collection):
 
         return PersistentDict(None, None, None)
 
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        itemWriter.writeDict(buffer, item, value, withSchema, None)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        return itemReader.readDict(offset, data, withSchema, None, view, name)
+    
 
 class List(Collection):
 
@@ -851,6 +1073,14 @@ class List(Collection):
     def _empty(self):
 
         return PersistentList(None, None, None)
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        itemWriter.writeList(buffer, item, value, withSchema, None)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        return itemReader.readList(offset, data, withSchema, None, view, name)
 
 
 class Tuple(Collection):
@@ -907,6 +1137,16 @@ class Tuple(Collection):
 
         return tuple(super(Tuple, self).getParsedValue(itemHandler, data))
 
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        itemWriter.writeList(buffer, item, value, withSchema, None)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        offset, value = itemReader.readList(offset, data, withSchema,
+                                            None, view, name)
+        return offset, tuple(value)
+
 
 class Lob(Type):
 
@@ -926,6 +1166,19 @@ class Lob(Type):
     def isValueReady(self, itemHandler):
 
         return itemHandler.tagCounts[-1] == 0
+
+    def typeXML(self, value, generator, withSchema):
+
+        value._xmlValue(generator)
+
+    def writeValue(self, itemWriter, buffer, item, value, withSchema):
+
+        value._writeValue(itemWriter, buffer, withSchema)
+
+    def readValue(self, itemReader, offset, data, withSchema, view, name):
+
+        value = self.getImplementationType()(self.itsView)
+        return value._readValue(itemReader, offset, data, withSchema)
 
 
 class Text(Lob):
@@ -955,10 +1208,6 @@ class Text(Lob):
 
         itemHandler.value.load(itemHandler.data, attrs)
         itemHandler.tagCounts[-1] -= 1
-
-    def typeXML(self, value, generator, withSchema):
-
-        value._xmlValue(generator)
 
     def handlerName(self):
 
@@ -990,10 +1239,6 @@ class Binary(Lob):
 
         itemHandler.value.load(itemHandler.data, attrs)
         itemHandler.tagCounts[-1] -= 1
-
-    def typeXML(self, value, generator, withSchema):
-
-        value._xmlValue(generator)
 
     def handlerName(self):
 

@@ -8,7 +8,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import logging, os, sys, time
 
-from repository.persistence.XMLRepository import XMLRepository
+from repository.persistence.DBRepository import DBRepository
 from repository.util.Path import Path
 import application
 
@@ -24,7 +24,7 @@ def makePreloadedRepository(path, schema=True, parcels=False):
     root = logging.getLogger()
     root.addHandler(handler)
 
-    rep = XMLRepository(path)
+    rep = DBRepository(path)
     rep.create(ramdb=False)
 
     if schema:
@@ -74,7 +74,7 @@ def testPreloadVsNoPreload():
     root = logging.getLogger()
     root.addHandler(handler)
 
-    rep = XMLRepository('__repository__')
+    rep = DBRepository('__repository__')
     testCreate(rep, rootdir)
     rep.close()
 

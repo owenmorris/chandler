@@ -52,8 +52,8 @@ def initRepository(directory, destroy=False):
     @return: the repository object
     """
 
-    from repository.persistence.XMLRepository import XMLRepository
-    rep = XMLRepository(directory)
+    from repository.persistence.DBRepository import DBRepository
+    rep = DBRepository(directory)
 
     kwds = { 'create' : True, 'recover' : True, 'refcounted' : True }
     if destroy:

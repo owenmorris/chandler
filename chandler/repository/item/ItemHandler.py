@@ -4,6 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+from repository.schema.TypeHandler import TypeHandler
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
@@ -11,7 +12,6 @@ from repository.item.Values import Values, References, ItemValue
 from repository.persistence.RepositoryError import NoSuchItemError
 from repository.item.ItemError import *
 
-from repository.util.SingleRef import SingleRef
 from chandlerdb.util.UUID import UUID
 from repository.util.Path import Path
 from repository.util.ClassLoader import ClassLoader
@@ -38,7 +38,7 @@ class RefArgs(object):
 
         return other
 
-    def _setValue(self):
+    def _setValue(self, view):
 
         item = self.item
         other = self.other
@@ -62,15 +62,14 @@ class RefArgs(object):
                                       noMonitors=True, **self.kwds)
 
 
-class ValueHandler(ContentHandler):
+class ValueHandler(ContentHandler, TypeHandler):
 
     def __init__(self, repository):
 
-        super(ValueHandler, self).__init__()
+        ContentHandler.__init__(self)
+        TypeHandler.__init__(self)
+        
         self.repository = repository
-
-        if repository not in ItemHandler.typeHandlers:
-            ValueHandler.typeHandlers[repository] = {}
 
     def startDocument(self):
 
@@ -328,33 +327,6 @@ class ValueHandler(ContentHandler):
 
         return False
     
-    def makeValue(cls, typeName, data):
-
-        try:
-            return cls.typeDispatch[typeName](data)
-        except KeyError:
-            raise ValueError, "Unknown type %s for data: %s" %(typeName, data)
-
-    def typeHandler(cls, repository, value):
-
-        try:
-            for t in ItemHandler.typeHandlers[repository][type(value)]:
-                if t.recognizes(value):
-                    return t
-        except KeyError:
-            pass
-
-        typeKind = ItemHandler.typeHandlers[repository][None]
-        types = typeKind.findTypes(value)
-        if types:
-            return types[0]
-            
-        raise TypeError, 'No handler for values of type %s' %(type(value))
-
-    def makeString(cls, repository, value):
-
-        return cls.typeHandler(repository, value).makeString(value)
-    
     def xmlValue(cls, repository, name, value, tag, attrType, attrCard, attrId,
                  attrs, generator, withSchema):
 
@@ -421,25 +393,6 @@ class ValueHandler(ContentHandler):
         generator.endElement(tag)
 
     xmlValue = classmethod(xmlValue)
-    typeHandler = classmethod(typeHandler)
-    makeString = classmethod(makeString)
-    makeValue = classmethod(makeValue)
-
-    typeHandlers = {}
-    typeDispatch = {
-        'str': str,
-        'unicode': unicode,
-        'uuid': UUID,
-        'path': Path,
-        'ref': lambda(data): SingleRef(UUID(data)),
-        'bool': lambda(data): data != 'False',
-        'int': int,
-        'long': long,
-        'float': float,
-        'complex': complex,
-        'class': lambda(data): ClassLoader.loadClass(data),
-        'none': lambda(data): None,
-    }
 
 
 class ItemHandler(ValueHandler):
@@ -621,7 +574,7 @@ class ItemHandler(ValueHandler):
             elif other is None:
                 self.afterLoadHooks.append(refArgs._setValue)
             else:
-                refArgs._setValue()
+                refArgs._setValue(self.repository)
 
         if hasattr(cls, 'onItemLoad'):
             self.afterLoadHooks.append(item.onItemLoad)
@@ -637,10 +590,10 @@ class ItemHandler(ValueHandler):
             else:
                 raise ValueError, "While loading %s, kind %s not found" %(self.name or self.uuid, self.kindRef)
 
-    def _setKind(self):
+    def _setKind(self, view):
 
         if self.item._kind is None:
-            self.kind = self.repository.find(self.kindRef)
+            self.kind = view.find(self.kindRef)
             if self.kind is None:
                 raise ValueError, 'Kind %s not found' %(self.kindRef)
             else:
@@ -659,10 +612,10 @@ class ItemHandler(ValueHandler):
         if self.parent is None:
             self.afterLoadHooks.append(self._move)
 
-    def _move(self):
+    def _move(self, view):
 
         if self.item._parent is None:
-            self.parent = self.repository.find(self.parentRef)
+            self.parent = view.find(self.parentRef)
             if self.parent is None:
                 raise ValueError, 'Parent %s not found' %(self.parentRef)
             else:
@@ -808,94 +761,3 @@ class ItemsHandler(ContentHandler):
                 self.items.append(self.itemHandler.item)
                 self.itemHandler.endDocument()
                 self.itemHandler = None
-
-
-class MergeHandler(ItemHandler):
-
-    def __init__(self, repository, origItem, dirties):
-
-        super(MergeHandler, self).__init__(repository, None, None, False)
-
-        self.origItem = origItem
-        self.values = origItem._values._prepareMerge()
-        self.references = origItem._references._prepareMerge()
-        self.dirties = dirties
-
-    def itemEnd(self, itemHandler, attrs):
-        pass
-
-    def attributeEnd(self, itemHandler, attrs, **kwds):
-
-        name = attrs['name']
-        if name in self.dirties:
-            super(MergeHandler, self).attributeEnd(itemHandler, attrs, **kwds)
-        else:
-            Nil = self.origItem.Nil
-            value = self.values.get(name, Nil)
-            super(MergeHandler, self).attributeEnd(itemHandler, attrs, **kwds)
-            if value is Nil:
-                del self.values[name]
-            else:
-                self.values[name] = value
-
-    def refEnd(self, itemHandler, attrs):
-
-        if self.tags[-1] == 'item':
-            attribute = self.attributes.pop()
-            cardinality = self.getCardinality(attribute, attrs)
-        else:
-            return
-
-        if cardinality == 'single':     # cardinality of tag
-
-            if 'uuid' in attrs:         # ref collection
-                return
-            
-            typeName = attrs.get('type')
-
-            if typeName == 'none':
-                self.references[attrs['name']] = None
-                return
-
-            if typeName == 'uuid':
-                uuid = UUID(self.data)
-            else:
-                raise TypeError, (self.data, typeName)
-
-            name = attrs['name']
-            if name in self.dirties:
-                otherName = self.getOtherName(name, self.getAttribute(name),
-                                              attrs)
-                origItem = self.origItem
-                origRef = origItem._references.get(name, None)
-
-                if origRef is None:
-                    itemRef = uuid
-                elif (origRef._isItem() and origRef._uuid == uuid or
-                      origRef._isUUID() and origRef == uuid):
-                    itemRef = origRef
-                else:
-                    if origRef._isUUID():
-                        origRef = origItem._references._getRef(name, origRef)
-                    origItem._references._unloadValue(name, origRef, otherName)
-                    itemRef = uuid
-
-                self.references[name] = itemRef
-
-    def kindEnd(self, itemHandler, attrs):
-
-        ItemHandler.kindEnd(self, itemHandler, attrs)
-        if self.kind is None:
-            raise AssertionError, 'no kind'
-
-    def parentEnd(self, itemHandler, attrs):
-        pass
-
-    def classEnd(self, itemHandler, attrs):
-        pass
-
-    def indexEnd(self, itemHandler, attrs):
-        pass
-
-    def _setupRefList(self, name, attribute, readOnly, attrs):
-        pass

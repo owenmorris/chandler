@@ -51,7 +51,7 @@ class Repository(object):
         
         @param ramdb: a keyword argument that causes the repository to be
         created in memory instead of in the underlying file system.
-        C{False} by default, supported by C{XMLRepository} only.
+        C{False} by default, supported by C{DBRepository} only.
         @type ramdb: boolean
         """
 
@@ -71,16 +71,16 @@ class Repository(object):
         @type create: boolean
         @param ramdb: a keyword argument that causes the repository to be
         created in memory instead of using the underlying file system.
-        C{False} by default, supported by C{XMLRepository} only.
+        C{False} by default, supported by C{DBRepository} only.
         @type ramdb: boolean
         @param recover: a keyword argument that causes the repository to be
         opened with recovery. C{False} by default, supported by
-        C{XMLRepository} only.
+        C{DBRepository} only.
         @type recover: boolean
         @param exclusive: a keyword argument that causes the repository to be
         opened with exclusive access, preventing other processes from
         opening it until this process closes it. C{False} by default,
-        supported by C{XMLRepository} only.
+        supported by C{DBRepository} only.
         @type exclusive: boolean
         """
 
@@ -533,15 +533,6 @@ class Store(object):
     def searchItems(self, version, query):
         raise NotImplementedError, "%s.searchItems" %(type(self))
     
-    def parseDoc(self, doc, handler):
-        raise NotImplementedError, "%s.parseDoc" %(type(self))
-
-    def getDocUUID(self, doc):
-        raise NotImplementedError, "%s.getDocUUID" %(type(self))
-
-    def getDocVersion(self, doc):
-        raise NotImplementedError, "%s.getDocVersion" %(type(self))
-
     def getItemVersion(self, version, uuid):
         raise NotImplementedError, "%s.getItemVersion" %(type(self))
 

@@ -185,6 +185,8 @@ class RefList(LinkedMap):
                 Monitors.attach(self._item, '_reIndex',
                                 'set', kwds['attribute'], self._name, indexName)
 
+        return index
+
     def _createIndex(self, indexType, **kwds):
 
         if indexType == 'numeric':
@@ -214,7 +216,7 @@ class RefList(LinkedMap):
             link = self._get(key)
             index.insertKey(key, link._previousKey)
 
-    def _restoreIndexes(self):
+    def _restoreIndexes(self, view):
 
         for index in self._indexes.itervalues():
             if index.isPersistent():
@@ -669,44 +671,33 @@ class RefList(LinkedMap):
 
         return super(RefList, self).__len__() + 1
 
-    def _xmlValue(self, name, item, generator, withSchema, version, attrs,
-                  mode):
-
-        def addAttr(attrs, attr, value):
-
-            if value is not None:
-                if isinstance(value, UUID):
-                    attrs[attr + 'Type'] = 'uuid'
-                    attrs[attr] = value.str64()
-                elif isinstance(attr, str) or isinstance(attr, unicode):
-                    attrs[attr] = value.encode('utf-8')
-                else:
-                    raise NotImplementedError, "%s, type: %s" %(value,
-                                                                type(value))
+    def _xmlValue(self, name, item, generator, withSchema, version, attrs):
 
         attrs['name'] = name
-        
         if withSchema:
             attrs['cardinality'] = 'list'
             attrs['otherName'] = item._kind.getOtherName(name)
 
         generator.startElement('ref', attrs)
-        self._xmlValues(generator, version, mode)
+        self._xmlValues(generator, version)
+        if self._indexes:
+            for name, index in self._indexes.iteritems():
+                attrs = { 'name': name, 'type': index.getIndexType() }
+                index._xmlValue(generator, version, attrs)
         generator.endElement('ref')
 
-    def _xmlValues(self, generator, version, mode):
+    def _xmlValues(self, generator, version):
 
         refs = self._item._references
         for key in self.iterkeys():
             link = self._get(key)
-            refs._saveRef(key, link.getValue(self),
-                          generator, False, version, {}, mode,
-                          previous=link._previousKey, next=link._nextKey,
-                          alias=link._alias)
-        if self._indexes:
-            for name, index in self._indexes.iteritems():
-                attrs = { 'name': name, 'type': index.getIndexType() }
-                index._xmlValues(generator, version, attrs, mode)
+            refs._xmlRef(key, link.getValue(self),
+                         generator, False, version, {},
+                         previous=link._previousKey, next=link._nextKey,
+                         alias=link._alias)
+
+    def _saveValues(self, version):
+        raise NotImplementedError, "%s._saveValues" %(type(self))
 
     def copy(self):
         """

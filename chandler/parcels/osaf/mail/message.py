@@ -5,7 +5,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import osaf.contentmodel.mail.Mail as Mail
 import chandlerdb.util.UUID as UUID
-import repository.persistence.XMLRepositoryView as XMLRepositoryView
+from repository.util.Lob import Text
 import mx.DateTime as DateTime
 import email as email
 import email.Message as Message
@@ -334,7 +334,7 @@ def strToText(contentItem, attribute, string):
 
 def textToStr(text):
     """Converts a C{Text} to a C{str}"""
-    assert isinstance(text, XMLRepositoryView.XMLText), "Must pass a XMLRepositoryView.XMLText instance"
+    assert isinstance(text, Text), "Must pass a Text instance"
 
     reader = text.getReader()
     string = reader.read()

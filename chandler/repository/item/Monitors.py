@@ -9,9 +9,8 @@ from repository.item.Item import Item
 
 class Monitors(Item):
 
-    def onItemLoad(self):
+    def onItemLoad(self, view):
 
-        view = self.itsView
         if not view.isRefCounted():
             self.setPinned()
         Monitors.instances[view] = self

@@ -70,10 +70,6 @@ class MailParcel(application.Parcel.Parcel):
 
     getMailItemParent = classmethod(getMailItemParent)
 
-    def onItemLoad(self):
-        super(MailParcel, self).onItemLoad()
-
-
     def getSMTPAccount(cls, UUID=None):
         """
             This method returns a tuple containing:
