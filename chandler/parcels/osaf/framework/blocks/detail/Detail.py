@@ -43,7 +43,6 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         the Item.  
           Notify container blocks before their children.
         """
-        self.finishSelectionChanges () # finish changes to previous selected item 
         super(DetailRoot, self).onSelectionChangedEvent(notification)
         item= self.selectedItem()
         assert item is notification.data['item'], "can't track selection in DetailRoot.onSelectionChangedEvent"
@@ -139,6 +138,9 @@ class DetailRoot (ControlBlocks.SelectionContainer):
         showReentrant (self)
 
     def onSendShareItemEvent (self, notification):
+        """
+          Send or Share the current item.
+        """
         item = self.selectedItem()
         # preflight the send/share request
         # mail items and collections need their recievers set up
@@ -181,17 +183,6 @@ class DetailRoot (ControlBlocks.SelectionContainer):
     def onNULLEventUpdateUI (self, notification):
         """ The NULL Event is always disabled """
         notification.data ['Enable'] = False
-
-    def finishSelectionChanges (self):
-        """ 
-          Need to finish any changes to the selected item
-        that are in progress.
-        """
-        focusBlock = self.getFocusBlock()
-        try:
-            focusBlock.saveFocusData()
-        except AttributeError:
-            pass
 
 class DetailSynchronizer(object):
     """
@@ -506,11 +497,9 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
         widget = super (EditTextAttribute, self).instantiateWidget()
         # We need to save off the changed widget's data into the block periodically
         # Hopefully OnLoseFocus is getting called every time we lose focus.
-        widget.Bind(wx.EVT_KILL_FOCUS, self.onLoseFocus)
+        widget.Bind(wx.EVT_KILL_FOCUS, self.saveDataAndSkip)
+        widget.Bind(wx.EVT_KEY_UP, self.saveDataAndSkip)
         return widget
-
-    def onKeyUp (self, event):
-        self.saveTextValue()
 
     def saveTextValue (self):
         # save the user's edits into item's attibute
@@ -527,13 +516,9 @@ class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
             widget = self.widget
             self.loadAttributeIntoWidget(item, widget)
     
-    def saveFocusData (self):
-        # called to save away the data in the UI focus block
+    def saveDataAndSkip (self, event):
+        # called when we get an event; to saves away the data and skips the event
         self.saveTextValue()
-        
-    def onLoseFocus (self, event):
-        # called when we lose focus, to save away the data
-        self.saveFocusData()
         event.Skip()
         
     def OnDataChanged (self):
@@ -562,7 +547,7 @@ class NoteBody (EditTextAttribute):
         knowsBody = item.itsKind.hasAttribute("body")
         return knowsBody
 
-    def saveAttributeFromWidget (self, item, widget):  
+    def saveAttributeFromWidget (self, item, widget):
         textType = item.getAttributeAspect('body', 'type')
         widgetText = widget.GetValue()
         if widgetText:
