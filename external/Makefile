@@ -50,6 +50,8 @@ sources:
 
 sources-$(VERSION).tar:
 	$(CURL) http://builds.o11n.org/external/sources-$(VERSION).tar
+	$(CURL) http://builds.o11n.org/external/sources-$(VERSION).tar.md5
+	$(MD5) --check sources-$(VERSION).tar.md5
 
 sources-$(VERSION)-expanded: sources-$(VERSION).tar
 	tar xvf sources-$(VERSION).tar
@@ -75,6 +77,7 @@ binaries:
             tar -Af $(SNAP)-$(VERSION).tar _tmp.tar; \
             rm _tmp.tar; \
 	done
+	$(MD5) $(SNAP)-$(VERSION).tar > $(SNAP)-$(VERSION).tar.md5
 	gzip $(SNAP)-$(VERSION).tar
 
 $(SYSTEMS):
@@ -94,7 +97,7 @@ clean: env
 realclean:
 	rm -rf release debug \
 		release-*.tar.gz debug-*.tar.gz \
-		sources-*.tar sources-*-expanded
+		sources-*.tar* sources-*-expanded
 	@for system in $(SYSTEMS); \
 	do \
 	    echo making _realclean in $$system; \
@@ -103,6 +106,7 @@ realclean:
 
 upload:	$(SNAP)-$(VERSION).tar.gz
 	scp $(SNAP)-$(VERSION).tar.gz $(UPLOAD)
+	scp $(SNAP)-$(VERSION).tar.md5 $(UPLOAD)
 
 install: $(SNAP)-$(VERSION).tar.gz
 	tar -C $(CHANDLERBIN) -xvzf $(SNAP)-$(VERSION).tar.gz

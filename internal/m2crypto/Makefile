@@ -35,9 +35,11 @@ endif
 snap: 
 	cd $(BUILD_ROOT); \
 	tar -cvzf $(M2CRYPTO)/m2crypto-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+	$(MD5) m2crypto-$(SNAP)-$(RELVER).tar.gz > m2crypto-$(SNAP)-$(RELVER).tar.gz.md5
 
 upload: m2crypto-$(SNAP)-$(RELVER).tar.gz
 	scp m2crypto-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp m2crypto-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 install:
 	cd $(BUILD_ROOT); \
@@ -50,4 +52,4 @@ clean:
 
 realclean: clean
 	rm -fr build_debug build_release
-	rm -f m2crypto-debug-*.tar.gz m2crypto-release-*.tar.gz
+	rm -f m2crypto-debug-*.tar.gz* m2crypto-release-*.tar.gz*

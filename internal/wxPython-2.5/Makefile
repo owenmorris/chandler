@@ -129,14 +129,16 @@ endif
 build: wxWidgets wxPython
 
 realclean: clean
-	rm -f wxPython-debug-*.tar.gz wxPython-release-*.tar.gz
+	rm -f wxPython-debug-*.tar.gz* wxPython-release-*.tar.gz*
 
 upload: wxPython-$(SNAP)-$(RELVER).tar.gz
 	scp wxPython-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp wxPython-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 snap: 
 	cd $(BUILD_ROOT); \
 	tar -cvzf $(SRC)/wxPython-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+	$(MD5) wxPython-$(SNAP)-$(RELVER).tar.gz > wxPython-$(SNAP)-$(RELVER).tar.gz.md5
 
 install:
 	cd $(BUILD_ROOT); \

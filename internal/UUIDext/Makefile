@@ -18,14 +18,16 @@ clean:
 
 realclean: 
 	rm -fr build_debug build_release
-	rm -f UUIDext-debug-*.tar.gz UUIDext-release-*.tar.gz
+	rm -f UUIDext-debug-*.tar.gz* UUIDext-release-*.tar.gz*
 
 upload: UUIDext-$(SNAP)-$(RELVER).tar.gz
 	scp UUIDext-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp UUIDext-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(UUIDEXT)/UUIDext-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+	$(MD5) UUIDext-$(SNAP)-$(RELVER).tar.gz > UUIDext-$(SNAP)-$(RELVER).tar.gz.md5
 
 install:
 	cd $(BUILD_ROOT); \

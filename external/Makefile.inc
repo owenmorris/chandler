@@ -39,6 +39,7 @@ PYTHON:=$(PREFIX)/bin/$(PYTHON).exe
 SITE=bin/Lib/site-packages
 PLATFORM=windows
 SWIG=$(PREFIX)/bin/swig.exe
+MD5=md5sum.exe
 else
 ifeq ($(OS),Darwin)
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/2.3
@@ -46,11 +47,13 @@ PYTHON:=$(PREFIX)/$(FRAMEWORK)/bin/$(PYTHON)
 SITE=$(FRAMEWORK)/lib/python2.3/site-packages
 PLATFORM=macosx
 SWIG=$(PREFIX)/bin/swig
+MD5=md5
 else
 PYTHON:=$(PREFIX)/bin/$(PYTHON)
 SITE=lib/python2.3/site-packages
 PLATFORM=linux
 SWIG=$(PREFIX)/bin/swig
+MD5=md5sum
 endif
 endif
 
@@ -157,6 +160,8 @@ $(compiler): $(BUILD_ROOT)/mingw-3.1.zip
 $(BUILD_ROOT)/mingw-3.1.zip:
 	cd $(BUILD_ROOT); \
 	$(CURL) $(COMPILERS)/windows/mingw-3.1.zip
+	$(CURL) $(COMPILERS)/windows/mingw-3.1.zip.md5
+	$(MD5) --check mingw-3.1.zip.md5
 
 endif
 
@@ -171,6 +176,8 @@ $(compiler): $(BUILD_ROOT)/gcc-3.4.1.tar.bz2
 $(BUILD_ROOT)/gcc-3.4.1.tar.bz2:
 	cd $(BUILD_ROOT); \
 	$(CURL) $(COMPILERS)/osx/gcc-3.4.1.tar.bz2
+	$(CURL) $(COMPILERS)/osx/gcc-3.4.1.tar.bz2.md5
+	$(MD5) --check gcc-3.4.1.tar.bz2.md5
 
 endif
 

@@ -23,17 +23,19 @@ build: $(PYTHON) $(SRC)/QueryParser.g
 
 snap: 
 	tar -cvzf $(QP)/QueryParser-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
+	$(MD5) QueryParser-$(SNAP)-$(RELVER).tar.gz > QueryParser-$(SNAP)-$(RELVER).tar.gz.md5
 
 clean:
 	rm -f $(SRC)/QueryParser.py $(MANIFEST)
 
 realclean: clean
-	rm -f QueryParser-debug-*.tar.gz QueryParser-release-*.tar.gz
+	rm -f QueryParser-debug-*.tar.gz* QueryParser-release-*.tar.gz*
 
 install:
 	tar -cf - $(MANIFEST) | tar -C $(CHANDLERHOME) -xvf -
 
 upload: QueryParser-$(SNAP)-$(RELVER).tar.gz
 	scp QueryParser-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+	scp QueryParser-$(SNAP)-$(RELVER).tar.gz.md5 $(UPLOAD)
 
 

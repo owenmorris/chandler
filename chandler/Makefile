@@ -16,6 +16,8 @@ HOME_ARCHIVES=../QueryParser-$(SNAP)-0.1-4.tar.gz
 
 ARCHIVES = $(BIN_ARCHIVES) $(HOME_ARCHIVES)
 
+ARCHIVES_MD5 = $(addsuffix .md5,$(ARCHIVES))
+
 
 # We download some pretty big files, which can clog your network. You can now
 # control the download options (well, any options) for curl. For example:
@@ -24,7 +26,7 @@ ARCHIVES = $(BIN_ARCHIVES) $(HOME_ARCHIVES)
 # You can also replace curl with something else, for example wget:
 #   CURL="wget -r -P .. -nd"
 ifeq ($(CURL),)
-CURL=curl -o $(CHANDLER_CURL_OPTIONS)
+CURL=curl $(CHANDLER_CURL_OPTIONS) -o
 endif
 
 
@@ -48,13 +50,16 @@ ifeq ($(OS),Darwin)
 PLATFORM=macosx
 FRAMEWORK=Library/Frameworks/Python.framework/Versions/2.3
 SITE=$(FRAMEWORK)/lib/python2.3/site-packages
+MD5=md5
 else
 ifeq ($(OS),Cygwin)
 PLATFORM=windows
 SITE=bin/Lib/site-packages
+MD5=md5sum.exe
 else
 PLATFORM=linux
 SITE=lib/python2.3/site-packages
+MD5=md5sum
 endif
 endif
 
@@ -87,6 +92,8 @@ downloads: $(ARCHIVES)
 
 $(ARCHIVES):
 	$(CURL) $@ $(URL)/$(notdir $@)
+	$(CURL) $(@:=.md5) $(URL)/$(notdir $(@:=.md5))
+	(cd ..; $(MD5) --check $(notdir $(@:=.md5)))
 
 $(BIN_ARCHIVES_INST):
 	tar -C $(CHANDLERBIN) -xvzf ../$(notdir $(basename $@))
@@ -100,7 +107,7 @@ checkout:
 	cd ..; \
 	rm -f cvsco.log;\
 	cvs co chandler-python 2>&1 | tee -a cvsco.log; \
-	echo 'Do |grep "^C " ../cvsco.log| to check for potential conflicts'
+	@echo 'Do |grep "^C " ../cvsco.log| to check for potential conflicts'
 
 install: $(ARCHIVES) $(BIN_ARCHIVES_INST) $(HOME_ARCHIVES_INST)
 
@@ -110,4 +117,5 @@ clean:
 
 realclean: clean
 	rm -rf $(CHANDLERBIN)/debug $(CHANDLERBIN)/release
-	rm -f $(ARCHIVES) $(HOME_ARCHIVES_INST)
+	rm -f $(ARCHIVES) $(BIN_ARCHIVES_INST) $(HOME_ARCHIVES_INST)
+	rm -f $(ARCHIVES_MD5)
