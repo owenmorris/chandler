@@ -53,10 +53,25 @@ class PresencePanel(wxScrolledWindow):
 
         self.LayoutWidgets()
 
+    # routines to manipulate the open state associated with an id
+    
     # return the open state of the passed in jabberID
     def IsOpen(self, jabberID):
+        key = str(jabberID)
+        if self.openState.has_key(key):
+            return self.openState[key]
         return false
-
+    
+    # set the open state associated with an id
+    def SetOpen(self, jabberID, openFlag):
+        key = str(jabberID)
+        self.openState[key] = openFlag
+        
+    # toggle the open state associated with an id
+    def ToggleOpen(self, jabberID):
+        key = str(jabberID)
+        self.SetOpen(key, not self.IsOpen(key))
+        
     # return the present state of the passed in jabberID
     def IsPresent(self, jabberID):
         return self.jabberClient.IsPresent(jabberID)
@@ -149,5 +164,7 @@ class OpenHandler:
         self.jabberID = jabberID
         
     def ClickedTriangle(self, event):
-        print "clicked triangle"
+        self.presencePanel.ToggleOpen(self.jabberID)
+        self.presencePanel.RenderWidgets()
+        
         
