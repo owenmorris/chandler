@@ -3,7 +3,7 @@
 # It should *not* be made to depend on external/internal
 # When a version changes, the ARCHIVES list below needs to be updated.
 #
-ARCHIVES=../$(SNAP)-0.3-10.tar.gz \
+ARCHIVES=../$(SNAP)-0.3-11.tar.gz \
          ../wxPython-$(SNAP)-2.5-3.tar.gz \
          ../UUIDext-$(SNAP)-0.3-2.tar.gz \
          ../m2crypto-$(SNAP)-0.12-1.tar.gz \
