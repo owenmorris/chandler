@@ -101,10 +101,10 @@ def results():
     keys.sort()
     totalCounts = 0
     totalTime = 0.0
-    bannerFormat = "%-30s %6s %6s %6s"
+    bannerFormat = "         %-30s   %6s   %8s   %8s"
     lines = bannerFormat % \
-     ("------------------------------", "------", "------", "------")
-    dataFormat = "%-30s %6d %6.5f %6.5f"
+     ("-----------------------------", "------", "--------", "--------")
+    dataFormat = "OSAF_QA: %-30s | %6d | %6.5f | %6.5f"
     print bannerFormat % ("Operation", "Count", "Total", "Avg")
     print lines
     for key in keys:
