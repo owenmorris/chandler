@@ -3,11 +3,15 @@ import application.Globals as Globals
 import davlib
 import httplib
 import libxml2
+import logging
 
 import Dav
 
 class BadItem(Exception):
     pass
+
+log = logging.getLogger("sharing")
+log.setLevel(logging.INFO)
 
 """
 What I want this class to be able to do is keep track of the DAV properties
@@ -42,12 +46,15 @@ class DAVItem(object):
                props + \
                '</D:propfind>'
 
-        r = self.dav.newConnection().propfind(url, body, 0)
+        r = self.dav.getProps(body, 0)
 
         if r.status == 404:
             raise Dav.NotFound
 
         xmlgoop = r.read()
+
+        log.debug('PROPFIND returned:')
+        log.debug(xmlgoop)
 
         doc = libxml2.parseDoc(xmlgoop)
 
@@ -89,14 +96,13 @@ class DAVItem(object):
         xp = '/D:multistatus/D:response/D:propstat/D:prop/O:' + attr
         try:
             node = ctxt.xpathEval(xp)[0]
+            value = node.content
         except IndexError:
-            return None
+            value = None
 
-        # Do I need to free the context?
+        ctxt.xpathFreeContext()
 
-        return node.content
-
-    #def __getattr__(self, name):
+        return value
 
     itsKind = property(_getKind)
     itsUUID = property(_getUUID)
