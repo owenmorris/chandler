@@ -299,7 +299,7 @@ class wxViewerParcel(wxPanel):
         # Only bind erase background on Windows for flicker reasons
         if wxPlatform == '__WXMSW__':
             EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)
-                
+
     def OnEraseBackground (self, event):
         """
           Override OnEraseBackground to avoid erasing background. Instead
@@ -538,4 +538,16 @@ class wxViewerParcel(wxPanel):
             
         event.RequestMore()
         
+    def OnReload(self):
+        """
+          Called when the reload button is clicked.  Override to add the
+        appropriate behavior to your parcel.
+        """
+        pass
         
+    def OnStop(self):
+        """
+          Called when the reload button is clicked.  Override to add the
+        appropriate behavior to your parcel.
+        """
+        pass

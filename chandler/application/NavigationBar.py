@@ -149,10 +149,16 @@ class wxNavigationBar(wxToolBar):
             app.wxMainFrame.GoToURL(newURL, false)
 
     def DoStop(self, event):
-        pass
+        """
+          Pass the stop command to the active parcel.
+        """
+        app.wxMainFrame.activeParcel.OnStop()
     
     def DoReload(self, event):
-        pass
+        """
+          Pass the reload command to the active parcel.
+        """
+        app.wxMainFrame.activeParcel.OnReload()
     
     def GoHome(self, event):
         pass
