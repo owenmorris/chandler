@@ -223,21 +223,21 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         print "a build error"
         log.write("***Error during build***" + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("HardHat Summary Log:\n")
         dumpOutputList(outputList, log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("Build log:" + "\n")
+        log.write("Detailed Build :og:" + "\n")
         CopyLog(os.path.join(modeDir, logPath), log)
-        log.write("End of log" + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
         raise e
     else:
         log.write("Build successful" + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
+        log.write("HardHat Summary Log:\n")
         dumpOutputList(outputList, log)
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
-        log.write("Build log:" + "\n")
+        log.write("Detailed Build :og:" + "\n")
         CopyLog(os.path.join(modeDir, logPath), log)
-        log.write("End of log" + "\n")
         log.write("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n")
 
     return True  # end of Do( )
