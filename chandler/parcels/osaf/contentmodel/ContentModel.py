@@ -15,8 +15,6 @@ import repository.persistence.XMLRepositoryView as XMLRepositoryView
 import mx.DateTime as DateTime
 import logging
 
-import threading # @@@ Temporary, see "thread hack" below
-
 import application.Globals as Globals
 
 class ContentModel(Parcel):
@@ -104,12 +102,12 @@ class ContentItem(ChandlerItem):
 
         self.createdOn = DateTime.now()
 
-        # @@@ thread hack (be sure to remove "import threading" above)
+        # @@@ hack to avoid ref collection merging.
         # Currently, ref collection merging isn't activated in the repository
         # and setting creator in both the main thread and a background thread
         # will cause a merge conflict.  For now, only set creator in the main
         # thread:
-        if threading.currentThread().getName() == "MainThread":
+        if self.itsView.name == "MainThread":
             self.creator = self.getCurrentMeContact()
 
 
