@@ -71,14 +71,17 @@ class TestPanel( wx.Panel ):
         self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb2 )
         cb2.SetValue( True )
 
-        btn = wx.Button( self, -1, "Resize", (10, self.colStartY) )
-        self.Bind( wx.EVT_BUTTON, self.OnTestResizeButton, btn )
+        btn = wx.Button( self, -1, "Resize Bounds", (10, self.colStartY) )
+        self.Bind( wx.EVT_BUTTON, self.OnTestResizeBoundsButton, btn )
 
         btn = wx.Button( self, -1, "Delete Selection", (10, self.colStartY + 25) )
         self.Bind( wx.EVT_BUTTON, self.OnTestDeleteItemButton, btn )
 
         btn = wx.Button( self, -1, "Add Bitmap Item", (10, self.colStartY + 80 + 10) )
         self.Bind( wx.EVT_BUTTON, self.OnTestAddBitmapItemButton, btn )
+
+        btn = wx.Button( self, -1, "Resize Division", (10, self.colStartY + 80 + 10 + 25) )
+        self.Bind( wx.EVT_BUTTON, self.OnTestResizeDivisionButton, btn )
 
     def OnColumnHeaderClick( self, event ):
         ch = event.GetEventObject()
@@ -94,6 +97,19 @@ class TestPanel( wx.Panel ):
         else:
             self.l0.SetLabel( "(%d): no item selected" %(ch.GetId()) )
 
+    def OnTestResizeBoundsButton( self, event ):
+        ch = self.ch1
+        curWidth = ch.GetTotalUIExtent()
+        if (self.stepSize == 1):
+            self.stepDir = (-1)
+        else:
+            if (self.stepSize == (-1)):
+                self.stepDir = 1
+        self.stepSize = self.stepSize + self.stepDir
+        newSize = curWidth + 40 * self.stepSize
+        ch.DoSetSize( self.colStartX, self.colStartY + 20, newSize, 20, 0 )
+        self.l0.SetLabel( "(%d): resized bounds to %d" %(ch.GetId(), newSize) )
+
     def OnTestAddBitmapItemButton( self, event ):
         ch = self.ch2
         itemCount = ch.GetItemCount()
@@ -107,16 +123,15 @@ class TestPanel( wx.Panel ):
         else:
              self.l0.SetLabel( "(%d): enough items!" %(ch.GetId()) )
 
-    def OnTestResizeButton( self, event ):
-        curWidth = self.ch1.GetTotalUIExtent()
-        if (self.stepSize == 1):
-            self.stepDir = (-1)
+    def OnTestResizeDivisionButton( self, event ):
+        ch = self.ch2
+        itemIndex = ch.GetSelectedItem()
+        if ((itemIndex > 0) and (itemIndex < ch.GetItemCount())):
+            curExtent = ch.GetUIExtent( itemIndex )
+            ch.ResizeDivision( itemIndex, curExtent.x - 5 )
+            self.l0.SetLabel( "(%d): resized btw. %d and %d" %(ch.GetId(), itemIndex - 1, itemIndex) )
         else:
-            if (self.stepSize == (-1)):
-                self.stepDir = 1
-        self.stepSize = self.stepSize + self.stepDir
-        self.ch1.DoSetSize( self.colStartX, self.colStartY + 20, curWidth + 40 * self.stepSize, 20, 0 )
-        self.l0.SetLabel( "(%d): resized" %(self.ch1.GetId()) )
+            self.l0.SetLabel( "(%d): no item selected" %(ch.GetId()) )
 
     def OnTestEnableCheckBox( self, event ):
         curEnabled = self.ch1.IsEnabled()

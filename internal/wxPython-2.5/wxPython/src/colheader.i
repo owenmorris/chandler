@@ -98,22 +98,25 @@ public:
     virtual wxSize DoGetBestSize( void ) const;
 
     wxSize CalculateDefaultSize( void ) const;
+    long GetTotalUIExtent( void ) const;
     void ResizeToFit( void );
-    long GetTotalUIExtent( void );
+    bool ResizeDivision(
+        long            itemIndex,
+        long            originX );
 
-    bool GetFlagVisibleSelection( void );
+    bool GetFlagVisibleSelection( void ) const;
     void SetFlagVisibleSelection(
         bool                bFlagValue );
-    bool GetFlagUnicode( void );
+    bool GetFlagUnicode( void ) const;
     void SetFlagUnicode(
         bool                bFlagValue );
 
-    long GetSelectedItem( void );
+    long GetItemCount( void ) const;
+    long GetSelectedItem( void ) const;
     void SetSelectedItem(
         long            itemIndex );
     wxColumnHeaderHitTestResult HitTest(
         const wxPoint    &locationPt );
-    long GetItemCount( void );
     void AppendItem(
         const wxString        &textBuffer,
         long                textJust,
@@ -125,28 +128,28 @@ public:
         long                itemIndex );
     void GetBitmapRef(
         long                itemIndex,
-        wxBitmap        &imageRef );
+        wxBitmap        &imageRef ) const;
     void SetBitmapRef(
         long                itemIndex,
         wxBitmap        &imageRef );
     wxString GetLabelText(
-        long                itemIndex );
+        long                itemIndex ) const;
     void SetLabelText(
         long                itemIndex,
         const wxString        &textBuffer );
     long GetLabelJustification(
-        long                itemIndex );
+        long                itemIndex ) const;
     void SetLabelJustification(
         long                itemIndex,
         long                textJust );
     wxPoint GetUIExtent(
-        long                itemIndex );
+        long                itemIndex ) const;
     void SetUIExtent(
         long                itemIndex,
         wxPoint            &extentPt );
     bool GetFlagAttribute(
         long                            itemIndex,
-        wxColumnHeaderFlagAttr    flagEnum );
+        wxColumnHeaderFlagAttr    flagEnum ) const;
     bool SetFlagAttribute(
         long                            itemIndex,
         wxColumnHeaderFlagAttr        flagEnum,

@@ -168,7 +168,7 @@ void wxColumnHeader::Init( void )
 #endif
 }
 
-bool wxColumnHeader::GetFlagVisibleSelection( void )
+bool wxColumnHeader::GetFlagVisibleSelection( void ) const
 {
 	return m_BVisibleSelection;
 }
@@ -185,7 +185,7 @@ void wxColumnHeader::SetFlagVisibleSelection(
 	SetViewDirty();
 }
 
-bool wxColumnHeader::GetFlagUnicode( void )
+bool wxColumnHeader::GetFlagUnicode( void ) const
 {
 	return m_BUseUnicode;
 }
@@ -440,29 +440,6 @@ void wxColumnHeader::DoSetSize(
 	SetViewDirty();
 }
 
-void wxColumnHeader::ResizeToFit( void )
-{
-long		extentX;
-
-	extentX = GetTotalUIExtent();
-	DoSetSize( m_NativeBoundsR.x, m_NativeBoundsR.y, extentX, m_NativeBoundsR.height, 0 );
-}
-
-long wxColumnHeader::GetTotalUIExtent( void )
-{
-long		extentX, i;
-
-	extentX = 0;
-	if (m_ItemList != NULL)
-		for (i=0; i<m_ItemCount; i++)
-		{
-			if (m_ItemList[i] != NULL)
-				extentX += m_ItemList[i]->m_ExtentX;
-		}
-
-	return extentX;
-}
-
 // ----------------------------------------------------------------------------
 // drawing
 // ----------------------------------------------------------------------------
@@ -591,22 +568,73 @@ wxVisualAttributes wxColumnHeader::GetClassDefaultAttributes(
 #pragma mark -
 #endif
 
-void wxColumnHeader::DisposeItemList( void )
+// ----------------------------------------------------------------------------
+// utility
+// ----------------------------------------------------------------------------
+
+long wxColumnHeader::GetTotalUIExtent( void ) const
 {
+long		extentX, i;
+
+	extentX = 0;
 	if (m_ItemList != NULL)
-	{
-		for (long i=0; i<m_ItemCount; i++)
-			delete m_ItemList[i];
+		for (i=0; i<m_ItemCount; i++)
+		{
+			if (m_ItemList[i] != NULL)
+				extentX += m_ItemList[i]->m_ExtentX;
+		}
 
-		free( m_ItemList );
-		m_ItemList = NULL;
-	}
-
-	m_ItemCount = 0;
-	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
+	return extentX;
 }
 
-long wxColumnHeader::GetSelectedItem( void )
+void wxColumnHeader::ResizeToFit( void )
+{
+long		extentX;
+
+	extentX = GetTotalUIExtent();
+	DoSetSize( m_NativeBoundsR.x, m_NativeBoundsR.y, extentX, m_NativeBoundsR.height, 0 );
+}
+
+bool wxColumnHeader::ResizeDivision(
+	long			itemIndex,
+	long			originX )
+{
+wxColumnHeaderItem		*itemRef1, *itemRef2;
+long						deltaV;
+
+	if ((itemIndex <= 0) || (itemIndex >= m_ItemCount))
+		return false;
+
+	itemRef1 = GetItemRef( itemIndex - 1 );
+	itemRef2 = GetItemRef( itemIndex );
+	if ((itemRef1 == NULL) || (itemRef2 == NULL))
+		return false;
+
+	if ((originX <= itemRef1->m_OriginX) || (originX >= itemRef2->m_OriginX + itemRef2->m_ExtentX))
+		return false;
+
+	deltaV = itemRef2->m_OriginX - originX;
+
+	itemRef1->m_ExtentX -= deltaV;
+	itemRef2->m_ExtentX += deltaV;
+	itemRef2->m_OriginX = itemRef1->m_OriginX + itemRef1->m_ExtentX;
+
+	SetViewDirty();
+
+	return true;
+}
+
+// ================
+#if 0
+#pragma mark -
+#endif
+
+long wxColumnHeader::GetItemCount( void ) const
+{
+	return (long)m_ItemCount;
+}
+
+long wxColumnHeader::GetSelectedItem( void ) const
 {
 	return m_ItemSelected;
 }
@@ -647,11 +675,6 @@ bool		bSelected;
 
 			SetViewDirty();
 		}
-}
-
-long wxColumnHeader::GetItemCount( void )
-{
-	return (long)m_ItemCount;
 }
 
 void wxColumnHeader::DeleteItem(
@@ -781,7 +804,7 @@ bool				bIsSelected;
 
 bool wxColumnHeader::GetItemData(
 	long							itemIndex,
-	wxColumnHeaderItem				*info )
+	wxColumnHeaderItem				*info ) const
 {
 wxColumnHeaderItem		*itemRef;
 bool					bResultV;
@@ -811,7 +834,7 @@ bool					bResultV;
 
 bool wxColumnHeader::GetItemBounds(
 	long				itemIndex,
-	wxRect			*boundsR )
+	wxRect			*boundsR ) const
 {
 wxColumnHeaderItem		*itemRef;
 bool					bResultV;
@@ -848,7 +871,7 @@ bool					bResultV;
 }
 
 wxColumnHeaderItem * wxColumnHeader::GetItemRef(
-	long			itemIndex )
+	long			itemIndex ) const
 {
 	if ((itemIndex >= 0) && (itemIndex < m_ItemCount))
 		return m_ItemList[itemIndex];
@@ -858,7 +881,7 @@ wxColumnHeaderItem * wxColumnHeader::GetItemRef(
 
 void wxColumnHeader::GetBitmapRef(
 	long				itemIndex,
-	wxBitmap			&bitmapRef )
+	wxBitmap			&bitmapRef ) const
 {
 wxColumnHeaderItem		*itemRef;
 bool					bResultV;
@@ -892,7 +915,7 @@ wxRect					boundsR;
 }
 
 wxString wxColumnHeader::GetLabelText(
-	long				itemIndex )
+	long				itemIndex ) const
 {
 wxColumnHeaderItem		*itemRef;
 wxString				textBuffer;
@@ -927,7 +950,7 @@ wxColumnHeaderItem		*itemRef;
 }
 
 long wxColumnHeader::GetLabelJustification(
-	long				itemIndex )
+	long				itemIndex ) const
 {
 wxColumnHeaderItem		*itemRef;
 long						textJust;
@@ -956,7 +979,7 @@ wxColumnHeaderItem		*itemRef;
 }
 
 wxPoint wxColumnHeader::GetUIExtent(
-	long			itemIndex )
+	long			itemIndex ) const
 {
 wxColumnHeaderItem		*itemRef;
 wxPoint					extentPt;
@@ -999,7 +1022,7 @@ wxColumnHeaderItem		*itemRef;
 
 bool wxColumnHeader::GetFlagAttribute(
 	long						itemIndex,
-	wxColumnHeaderFlagAttr		flagEnum )
+	wxColumnHeaderFlagAttr		flagEnum ) const
 {
 wxColumnHeaderItem		*itemRef;
 bool					bResultV;
@@ -1138,6 +1161,21 @@ long		originX, i;
 				originX += m_ItemList[i]->m_ExtentX;
 			}
 	}
+}
+
+void wxColumnHeader::DisposeItemList( void )
+{
+	if (m_ItemList != NULL)
+	{
+		for (long i=0; i<m_ItemCount; i++)
+			delete m_ItemList[i];
+
+		free( m_ItemList );
+		m_ItemList = NULL;
+	}
+
+	m_ItemCount = 0;
+	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
 }
 
 // ================

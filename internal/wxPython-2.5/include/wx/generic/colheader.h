@@ -170,19 +170,17 @@ public:
 	virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
 	virtual wxSize DoGetBestSize( void ) const;
 
-#if defined(__WXMAC__)
-	virtual void MacControlUserPaneActivateProc(
-		bool				bActivating );
-#endif
-
 	wxSize CalculateDefaultSize( void ) const;
+	long GetTotalUIExtent( void ) const;
 	void ResizeToFit( void );
-	long GetTotalUIExtent( void );
+	bool ResizeDivision(
+		long			itemIndex,
+		long			originX );
 
-	bool GetFlagVisibleSelection( void );
+	bool GetFlagVisibleSelection( void ) const;
 	void SetFlagVisibleSelection(
 		bool				bFlagValue );
-	bool GetFlagUnicode( void );
+	bool GetFlagUnicode( void ) const;
 	void SetFlagUnicode(
 		bool				bFlagValue );
 
@@ -191,10 +189,10 @@ public:
 	wxColumnHeaderHitTestResult HitTest(
 		const wxPoint		&locationPt );
 
-	long GetSelectedItem( void );
+	long GetItemCount( void ) const;
+	long GetSelectedItem( void ) const;
 	void SetSelectedItem(
 		long				itemIndex );
-	long GetItemCount( void );
 
 	void DeleteItem(
 		long				itemIndex );
@@ -208,30 +206,30 @@ public:
 
 	void GetBitmapRef(
 		long				itemIndex,
-		wxBitmap			&bitmapRef );
+		wxBitmap			&bitmapRef ) const;
 	void SetBitmapRef(
 		long				itemIndex,
 		wxBitmap			&bitmapRef );
 
 	wxString GetLabelText(
-		long				itemIndex );
+		long				itemIndex ) const;
 	void SetLabelText(
 		long				itemIndex,
 		const wxString		&textBuffer );
 	long GetLabelJustification(
-		long				itemIndex );
+		long				itemIndex ) const;
 	void SetLabelJustification(
 		long				itemIndex,
 		long				textJust );
 
 	wxPoint GetUIExtent(
-		long				itemIndex );
+		long				itemIndex ) const;
 	void SetUIExtent(
 		long				itemIndex,
 		wxPoint			&extentPt );
 	bool GetFlagAttribute(
 		long						itemIndex,
-		wxColumnHeaderFlagAttr		flagEnum );
+		wxColumnHeaderFlagAttr		flagEnum ) const;
 	bool SetFlagAttribute(
 		long						itemIndex,
 		wxColumnHeaderFlagAttr		flagEnum,
@@ -263,15 +261,15 @@ protected:
 
 	bool GetItemData(
 		long							itemIndex,
-		wxColumnHeaderItem				*info );
+		wxColumnHeaderItem				*info ) const;
 	bool SetItemData(
 		long							itemIndex,
 		const wxColumnHeaderItem		*info );
 	bool GetItemBounds(
 		long				itemIndex,
-		wxRect			*boundsR );
+		wxRect			*boundsR ) const;
 	wxColumnHeaderItem * GetItemRef(
-		long				itemIndex );
+		long				itemIndex ) const;
 	void RefreshItem(
 		long				itemIndex );
 
@@ -280,6 +278,11 @@ protected:
 	void DisposeItemList( void );
 
 	long Draw( void );
+
+#if defined(__WXMAC__)
+	virtual void MacControlUserPaneActivateProc(
+		bool				bActivating );
+#endif
 
 #if defined(__WXMSW__)
 	long Win32ItemInsert(
