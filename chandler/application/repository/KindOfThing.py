@@ -63,7 +63,7 @@ class KindOfThing(Thing):
     
     def RemoveAttributeTemplate(self, uri):
         templateList = self[chandler.template]
-        template = GetAttributeTemplate(uri)
+        template = self.GetAttributeTemplate(uri)
         if template:
             templateList.remove(template)
     

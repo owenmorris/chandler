@@ -77,15 +77,15 @@ class Item(Thing):
         return (remoteAddress != None)
     
     def GetRemoteAddress(self):
-        return GetAttribute(chandler.remoteAddress)
+        return self.GetAttribute(chandler.remoteAddress)
     
     def SetRemoteAddress(self, address):
-        SetAttribute(chandler.remoteAddress, address)
+        self.SetAttribute(chandler.remoteAddress, address)
         
     remoteAddress = property(GetRemoteAddress, SetRemoteAddress)
     
     def GetProjects(self):
-        return GetAttribute(chandler.project)
+        return self.GetAttribute(chandler.project)
     
     def SetProjects(self, projectList):
         """
@@ -96,21 +96,21 @@ class Item(Thing):
             # a persistent variety for the item.
             projectList = PersistentList(projectList)
 
-        SetAttribute(chandler.project, projectList)
+        self.SetAttribute(chandler.project, projectList)
         
     def AddProject(self, project):
-        projectList = GetAttribute(chandler.project)
+        projectList = self.GetAttribute(chandler.project)
         projectList.add(project)
         
     def RemoveProject(self, project):
-        projectList = GetAttribute(chandler.project)
+        projectList = self.GetAttribute(chandler.project)
         projectList.remove(project)
         
     def GetDateCreated(self):
-        return GetAttribute(chandler.dateCreated)
+        return self.GetAttribute(chandler.dateCreated)
     
     def GetDateModified(self):
-        return GetAttribute(chandler.dateModified)
+        return self.GetAttribute(chandler.dateModified)
     
     projectList = property(GetProjects, SetProjects)
     dateCreated = property(GetDateCreated)
