@@ -278,6 +278,22 @@ class Query(Item.Item):
         return plan
 
     def monitorCallback(self, op, item, attribute, *args, **kwds):
+        #@@@ the following try block is an attempt to generate useful output to help track down 2535 - it will be removed when we fix the bug
+        try:
+            assert self._logical_plan != None, "debugging check"
+        except AttributeError:
+            print "=== BEGIN TEMP DEBUG INFO for BUG 2535 ==="
+            try:
+                print "QueryName = ", self.itsName
+                print "Query String = ", self._queryString
+                print "_queryStringIsStale = ", self._queryStringIsStale
+                print "stale = ", self.stale
+            except:
+                pass
+            import traceback
+            traceback.print_stack()
+            print "=== END TEMP DEBUG INFO for BUG 2535 ==="
+            
         flag = self._logical_plan.monitored(op, item, attribute, *args, **kwds)
         if flag is not None:
             if flag:
