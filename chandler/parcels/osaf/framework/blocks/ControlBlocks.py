@@ -799,17 +799,18 @@ class Table (RectangularChild):
 
     def onSelectionChangedEvent (self, notification):
         item = notification.data ['item']
-        self.selectedItemToView = item
-        if item:
-            try:
-                row = self.contents.index (item)
-            except ValueError:
-                row = -1
-        if row < 0:
-            self.widget.ClearSelection()
-        else:
-            self.widget.SelectBlock (row, 0, row, self.widget.GetColumnCount() - 1)
-        self.PostASelectionChangedEvent (item)
+        if self.selectedItemToView != item:
+            self.selectedItemToView = item
+            if item:
+                try:
+                    row = self.contents.index (item)
+                except ValueError:
+                    row = -1
+            if row < 0:
+                self.widget.ClearSelection()
+            else:
+                self.widget.SelectBlock (row, 0, row, self.widget.GetColumnCount() - 1)
+            self.PostASelectionChangedEvent (item)
 
     def onDeleteEvent (self, notification):
         self.widget.DeleteSelection()

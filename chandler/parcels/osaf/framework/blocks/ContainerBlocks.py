@@ -356,10 +356,12 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
 
     def OnWXSelectionChanged (self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            self.selectedTab = event.GetSelection()
-            page = self.GetPage(self.selectedTab)
-            Globals.mainView.onSetActiveView(page.blockItem)
-            self.blockItem.PostASelectionChangedEvent(page.blockItem)
+            selection = event.GetSelection()
+            if self.selectedTab != selection:
+                self.selectedTab = event.GetSelection()
+                page = self.GetPage(self.selectedTab)
+                Globals.mainView.onSetActiveView(page.blockItem)
+                self.blockItem.PostASelectionChangedEvent(page.blockItem)
         event.Skip()
         
     def OnRequestDrop(self, x, y):
