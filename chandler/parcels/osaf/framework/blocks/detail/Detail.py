@@ -460,7 +460,8 @@ class StaticRedirectAttribute (StaticTextLabel):
     """
     def staticTextLabelValue (self, item):
         try:
-            theLabel = item.getAttributeValue(GetRedirectAttribute(item, self.whichAttribute()))
+            value = item.getAttributeValue(GetRedirectAttribute(item, self.whichAttribute()))
+            theLabel = str(value)
         except AttributeError:
             theLabel = ""
         return theLabel
@@ -532,25 +533,22 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         self.finishSelectionChanges () # finish changes to editable fields 
         tool = event.arguments['sender']
         item = self.selectedItem()
-        isANoteKind = item.isItemOf(Notes.Note.getKind(self.itsView))
-        if not isANoteKind:
+        
+        if not item or not self._isStampable(item):
             return
-        if item is not None:
-            mixinKind = tool.stampMixinKind()
-            if self.widget.GetToolState(tool.toolID):
-                operation = 'add'
-            else:
-                operation = 'remove'
-            item.StampKind(operation, mixinKind)
-            # notify the world that the item has a new kind.
-            self.resynchronizeDetailView ()
+            
+        mixinKind = tool.stampMixinKind()
+        if self.widget.GetToolState(tool.toolID):
+            operation = 'add'
+        else:
+            operation = 'remove'
+        item.StampKind(operation, mixinKind)
+        # notify the world that the item has a new kind.
+        self.resynchronizeDetailView ()
 
     def onButtonPressedEventUpdateUI(self, event):
         item = self.selectedItem()
-        if item is not None:
-            enable = item.isItemOf(Notes.Note.getKind(self.itsView))
-        else:
-            enable = False
+        enable = item and self._isStampable(item)
         event.arguments ['Enable'] = enable
 
     def onTogglePrivateEvent(self, event):
@@ -558,6 +556,10 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
         if item is not None:
             tool = event.arguments['sender']
             item.isPrivate = self.widget.GetToolState(tool.toolID)
+            
+    def _isStampable(self, item):
+        # for now, any ContentItem is stampable. This may change if Mixin rules/policy change
+        return item.isItemOf(ContentModel.ContentItem.getKind(self.itsView))
 
 class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
     """
