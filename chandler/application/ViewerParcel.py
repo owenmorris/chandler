@@ -167,7 +167,14 @@ class ViewerParcel (Parcel):
         Here we return an empty list
         """
         return []
-     
+ 
+    def ReceiveNotification(self, notification):
+        """
+        parcels override ReceiveNotification to receive notifications
+        """
+        if __debug__:
+            print "Received Notification:", notification.name  
+
     def GetClientID(self):
         """
         derive the clientID from the parcel's name
@@ -519,14 +526,15 @@ class wxViewerParcel(wxPanel):
             actionsBar = self.resources.LoadToolBar(mainFrame, 'ActionsBar')
             del ignoreErrors
             mainFrame.ReplaceActionsBar(actionsBar)
-            
+
+        
     def OnIdle(self, event):
         """
           at idle time, fetch notifications for the parcel and call it if we have one
         """
         notification = app.model.notificationManager.GetNextNotification(self.model.GetClientID())
         if notification != None:
-            print "received notification ", notification.name
+            self.model.ReceiveNotification(notification)
             
         event.RequestMore()
         
