@@ -327,8 +327,12 @@ class AttributeDelegate (ListDelegate):
         else:
             item = self.blockItem.contents [row]
             attributeName = self.blockItem.columnHeadings [column]
-            indirectAttributeName = item.getAttributeValue (attributeName)
-            return item.getAttributeValue (indirectAttributeName)
+            try:
+                indirectAttributeName = item.getAttributeValue (attributeName)
+                value = item.getAttributeValue (indirectAttributeName)
+            except AttributeError:
+                value = ""
+            return value
 
     def GetElementType (self, row, column):
         if column == 1:
