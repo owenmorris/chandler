@@ -16,7 +16,6 @@ from application.agents.Notifications.NotificationManager import NotificationMan
 from model.schema.AutoItem import AutoItem
 from application.agents.AgentManager import AgentManager
 from application.ChandlerWindow import ChandlerWindow
-from application.ImportExport import ImportExport
 from application.Preferences import Preferences
 from application.SplashScreen import SplashScreen
 from application.URLTree import URLTree
