@@ -109,7 +109,10 @@ class ItemRef(object):
 
         attrs = { 'type': 'uuid' }
 
-        if not isinstance(name, str) and not isinstance(name, unicode):
+        if isinstance(name, UUID):
+            attrs['nameType'] = "uuid"
+            attrs['name'] = name.str64()
+        elif not isinstance(name, str) and not isinstance(name, unicode):
             attrs['nameType'] = typeName(name)
             attrs['name'] = str(name)
         else:
@@ -122,7 +125,7 @@ class ItemRef(object):
                                                      'single')
 
         generator.startElement('ref', attrs)
-        generator.characters(other.getUUID().str16())
+        generator.characters(other.getUUID().str64())
         generator.endElement('ref')
 
 

@@ -654,13 +654,13 @@ class Item(object):
         'Generate the XML representation for this item.'
 
         kind = self._kind
-        generator.startElement('item', { 'uuid': self._uuid.str16() })
+        generator.startElement('item', { 'uuid': self._uuid.str64() })
 
         self._xmlTag('name', {}, self._name, generator)
 
         if not withSchema and kind is not None:
             self._xmlTag('kind', { 'type': 'uuid' },
-                         str(kind.getUUID()), generator)
+                         kind.getUUID().str64(), generator)
 
         if withSchema or kind is None or kind.Class is not type(self):
             self._xmlTag('class', { 'module': self.__module__ },
@@ -668,7 +668,7 @@ class Item(object):
 
         if self._root is not self:
             self._xmlTag('parent', { 'type': 'uuid' },
-                         str(self._parent.getUUID()), generator)
+                         self._parent.getUUID().str64(), generator)
 
         self._saveAttrs(generator, withSchema)
         self._saveRefs(generator, withSchema)
@@ -702,7 +702,10 @@ class Item(object):
         attrs = {}
             
         if name is not None:
-            if not isinstance(name, str) and not isinstance(name, unicode):
+            if isinstance(name, UUID):
+                attrs['nameType'] = "uuid"
+                attrs['name'] = name.str64()
+            elif not isinstance(name, str) and not isinstance(name, unicode):
                 attrs['nameType'] = ItemHandler.typeName(name)
                 attrs['name'] = str(name)
             else:
@@ -729,12 +732,7 @@ class Item(object):
                                generator, withSchema)
         else:
             if withSchema or attrType is None:
-                typeHandler = ItemHandler.typeHandlers.get(type(value))
-
-                if typeHandler is not None:
-                    generator.characters(typeHandler.makeString(value))
-                else:
-                    generator.characters(str(value))
+                generator.characters(ItemHandler.makeString(value))
             else:
                 attrType.typeXML(value, generator)
 
@@ -1136,5 +1134,15 @@ class ItemHandler(xml.sax.ContentHandler):
             return 'path'
         else:
             return type(value).__name__
+
+    def makeString(cls, value):
+
+        typeHandler = cls.typeHandlers.get(type(value))
+
+        if typeHandler is not None:
+            return typeHandler.makeString(value)
+        else:
+            return str(value)
             
     typeName = classmethod(typeName)
+    makeString = classmethod(makeString)

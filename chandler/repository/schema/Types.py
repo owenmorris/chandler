@@ -32,7 +32,7 @@ class Type(Item):
                 self._fieldXML(value, field, generator)
             generator.endElement('fields')
         else:
-            generator.characters(str(value))
+            generator.characters(type(self).makeString(value))
 
     def _fieldXML(self, value, field, generator):
 
@@ -40,7 +40,7 @@ class Type(Item):
         attrs = { 'name': field,
                   'type': ItemHandler.typeName(fieldValue) }
         generator.startElement('field', attrs)
-        generator.characters(type(self).makeString(fieldValue))
+        generator.characters(ItemHandler.makeString(fieldValue))
         generator.endElement('field')
           
     def unserialize(self, data):

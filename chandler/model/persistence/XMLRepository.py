@@ -12,7 +12,8 @@ from model.item.Item import ItemHandler
 from model.persistence.Repository import Repository
 
 from bsddb3.db import DBEnv, DB_CREATE, DB_INIT_MPOOL
-from dbxml import XmlContainer, XmlDocument, XmlQueryContext, XmlValue
+from dbxml import XmlContainer, XmlDocument, XmlValue
+from dbxml import XmlQueryContext, XmlUpdateContext
 
 
 class DBError(ValueError):
@@ -66,15 +67,10 @@ class XMLRepository(Repository):
 
         def purge(container):
 
-            ctx = XmlQueryContext()
-            res = container._xml.queryWithXPath(None, "//item/@uuid", ctx)
-
-            ctx.setReturnType(XmlQueryContext.ResultValues)
-            for value in res:
+            for value in container.query("//item"):
                 doc = value.asDocument()
-                r = doc.queryWithXPath("//item/@uuid", ctx)
-                for v in r:
-                    uuid = UUID(v.asString())
+                for u in doc.queryWithXPath("//item/@uuid"):
+                    uuid = UUID(u.asString())
                     if not self._registry.has_key(uuid):
                         container.deleteDocument(doc)
 
@@ -113,7 +109,9 @@ class XMLRepository(Repository):
         if args.get('verbose'):
             print item.getPath()
             
-        uuid = item.getUUID().str16()
+        container = args['container']
+        for oldDoc in container.find(item.getUUID()):
+            container.deleteDocument(oldDoc)
 
         out = cStringIO.StringIO()
         generator = xml.sax.saxutils.XMLGenerator(out, args.get('encoding',
@@ -125,11 +123,6 @@ class XMLRepository(Repository):
         doc = XmlDocument()
         doc.setContent(out.getvalue())
         out.close()
-
-        container = args['container']
-        oldDoc = container.query(item.getUUID())
-        if oldDoc:
-            container.deleteDocument(oldDoc)
 
         container.putDocument(doc)
 
@@ -148,27 +141,29 @@ class XMLRepository(Repository):
             else:
                 self._xml.open(None, 0)
 
-            self.ctx = XmlQueryContext()
-            self.expr = self._xml.parseXPathExpression(None,
-                                                       "//item/@uuid=$uuid",
-                                                       self.ctx)
+            self._ctx = XmlQueryContext()
+            self._ctx.setReturnType(XmlQueryContext.ResultDocuments)
+            self._ctx.setEvaluationType(XmlQueryContext.Lazy)
+            self._updateCtx = XmlUpdateContext(self._xml)
 
-        def query(self, uuid):
+        def find(self, uuid):
 
-            self.ctx.setVariableValue("uuid", XmlValue(uuid.str16()))
-            res = self._xml.queryWithXPathExpression(None, self.expr)
-            for v in res:
-                return v.asDocument()
+            self._ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
+            for value in self._xml.queryWithXPath(None, "//item/@uuid=$uuid",
+                                                  self._ctx):
+                yield value.asDocument()
 
-            return None
+        def query(self, xpath, context=None):
+
+            return self._xml.queryWithXPath(None, xpath, context)
 
         def deleteDocument(self, doc):
 
-            self._xml.deleteDocument(None, doc)
+            self._xml.deleteDocument(None, doc, self._updateCtx)
 
         def putDocument(self, doc):
 
-            self._xml.putDocument(None, doc)
+            self._xml.putDocument(None, doc, self._updateCtx)
 
         def close(self):
 
