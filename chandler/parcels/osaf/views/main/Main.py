@@ -117,8 +117,10 @@ class MainView(View):
     def onGenerateContentItemsEvent(self, notification):
         # triggered from "Test | Generate Content Items" Menu
         GenerateItems.GenerateNotes(2) 
-        GenerateItems.generateCalendarEventItems(2, 30) 
-        GenerateItems.GenerateContacts(2) 
+        GenerateItems.generateCalendarEventItems(2, 30)
+        GenerateItems.GenerateTasks(2)
+        GenerateItems.GenerateEventTasks(2)
+        # GenerateItems.GenerateContacts(2) 
         Globals.repository.commit() 
 
     def onGenerateCalendarEventItemsEvent(self, notification):

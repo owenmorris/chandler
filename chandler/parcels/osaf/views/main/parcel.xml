@@ -768,7 +768,7 @@
     <blockName>GenerateAllItem</blockName>
     <title>Generate Content Items</title>
     <event itemref="events:GenerateContentItems"/>
-    <helpString>generates sample items: 2 contacts, 2 notes, 2 events</helpString>
+    <helpString>generates a few different kinds of content items</helpString>
   </MenuItem>
 
   <MenuItem itsName="GenerateContactItem">

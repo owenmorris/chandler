@@ -14,6 +14,7 @@ from mx import DateTime
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.contacts.Contacts as Contacts
 import osaf.contentmodel.mail.Mail as Mail
+import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.Notes as Notes
 
 HEADLINES = ["Dinner", "Lunch", "Meeting", "Movie", "Games"]
@@ -69,6 +70,29 @@ def GenerateNotes(count):
     """ Generate _count_ notes """
     for index in range(count):
         GenerateNote()
+
+def GenerateTask():
+    """ Generate one Task item """
+    task = Task.Task()
+    delta = DateTime.DateTimeDelta(random.randint(0, 5),
+                                   random.randint(0, 24))
+    task.dueDate = DateTime.today() + delta    
+    task.displayName = random.choice(TITLES)
+    return task
+
+def GenerateTasks(count):
+    """ Generate _count_ tasks """
+    for index in range(count):
+        GenerateTask()
+
+def GenerateEventTask():
+    """ Generate one Task/Event stamped item """
+    event = GenerateCalendarEvent(30)
+    event.StampKind('add', Task.TaskParcel.getTaskMixinKind())
+
+def GenerateEventTasks(count):
+    for index in range(count):
+        GenerateEventTask()
 
 DOMAIN_LIST = ['flossrecycling.com', 'flossresearch.org', 'rosegardens.org',
                'electricbagpipes.com', 'facelessentity.com', 'example.com',
