@@ -5,6 +5,10 @@ ifeq ($(findstring CYGWIN,$(OS)),CYGWIN)
 OS=Cygwin
 endif
 
+ifeq ($(findstring WINNT,$(OS)),WINNT)
+OS=Cygwin
+endif
+
 ifeq ($(DEBUG),1)
 SNAP=debug
 Snap=Debug
