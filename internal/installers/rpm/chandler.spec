@@ -1,33 +1,42 @@
 Version: 0.4
-Release: 1
-Summary: Test Chandler
+Release: 8
+Summary: Chandler - an Open Source Personal Information Manager
 Name: Chandler
 License: GPLv2
 Group: Office
 Vendor: Open Source Applications Foundation
 URL: http://www.osafoundation.org
-BuildRoot: %{_builddir}/%{name}
-Source0: chandler.tar.gz
+#
+# This spec file is very lightweight as most of the work
+# has already been done by the build process.
+# The rpm -ba call is made *after* the source files
+# are placed into the RPM_BUILD_ROOT directory (that's
+# why you don't see an install section below or even
+# a Source/Source0 entry)
+#
+BuildRoot: %{_builddir}/OSAF
 Prefix: /usr/local
 AutoReqProv: no
+#Source0: chandler.tar.gz
 %description
-Test Chandler RPM build
-%install
-cd $RPM_BUILD_ROOT
-tar zxvf %{SOURCE0}
+Chandler is a next-generation Personal Information Manager (PIM), 
+integrating calendar, email, contact management, task management, 
+notes, and instant messaging functions. 
+#%install
+#cd $RPM_BUILD_ROOT
+#tar zxvf %{SOURCE0}
+%clean
+if [ -d "$RPM_BUILD_ROOT/usr/local/Chandler" ]; then
+rm -rf $RPM_BUILD_ROOT
+fi
 #%post
-#if [ "$1" = 1 ];
-#then
+#if [ "$1" = 1 ]; then
 # add post-install script here
 #fi
 %preun
-if [ "$1" = 0 ];
-then
+if [ "$1" = 0 ]; then
 find $RPM_INSTALL_PREFIX/Chandler -type f -name '*.pyc' -exec rm -f {} \;
+find $RPM_INSTALL_PREFIX/Chandler -type f -name '*.pyo' -exec rm -f {} \;
 fi
-#note that the __repository__ directory and any lock file are not removed
-rm -f $RPM_INSTALL_PREFIX/Chandler/randpool.dat
-rm -f $RPM_INSTALL_PREFIX/Chandler/cacert.pem
-rm -f $RPM_INSTALL_PREFIX/Chandler/chandler.log
 %files
 /usr/local/Chandler
