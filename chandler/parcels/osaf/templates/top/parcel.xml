@@ -19,8 +19,31 @@
     <data></data>
   </Query>
 
+  <!--
+    Menus
+  -->
+  <Menu itemName="FileMenu">
+    <title>File</title>
+    <operation>InsertBefore</operation>
+    <menuLocation></menuLocation>
+    <itemLocation></itemLocation>
+  </Menu>
+
+  <Menu itemName="EditMenu">
+    <title>Edit</title>
+    <operation>InsertBefore</operation>
+    <menuLocation></menuLocation>
+    <itemLocation></itemLocation>
+  </Menu>
+  
+  <!--
+    Menu Items
+  -->
   <MenuItem itemName="QuitItem">
     <title>Quit</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>FileMenu</menuLocation>
+    <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
     <accel>Q</accel>
     <helpString>Quit Chandler</helpString>
@@ -29,6 +52,10 @@
   
   <MenuItem itemName="UndoItem">
     <title>Undo</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>EditMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <operation>InsertBefore</operation>
     <menuItemKind>Normal</menuItemKind>
     <accel>Z</accel>
     <helpString></helpString>
@@ -37,14 +64,30 @@
 
   <MenuItem itemName="RedoItem">
     <title>Redo</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>EditMenu</menuLocation>
+    <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
     <accel>Y</accel>
     <helpString></helpString>
     <event itemref="events:Redo"/>
   </MenuItem>
 
+  <MenuItem itemName="EditSeparator1">
+    <title></title>
+    <operation>InsertBefore</operation>
+    <menuLocation>EditMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Separator</menuItemKind>
+    <accel></accel>
+    <helpString></helpString>
+  </MenuItem>
+  
   <MenuItem itemName="CutItem">
     <title>Cut</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>EditMenu</menuLocation>
+    <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
     <accel>X</accel>
     <helpString></helpString>
@@ -53,6 +96,9 @@
 
   <MenuItem itemName="CopyItem">
     <title>Copy</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>EditMenu</menuLocation>
+    <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
     <accel>C</accel>
     <helpString></helpString>
@@ -61,41 +107,35 @@
 
   <MenuItem itemName="PasteItem">
     <title>Paste</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>EditMenu</menuLocation>
+    <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
     <accel>V</accel>
     <helpString></helpString>
     <event itemref="events:Paste"/>
   </MenuItem>
   
-  <MenuItem itemName="Separator">
+  <MenuItem itemName="EditSeparator2">
     <title></title>
+    <operation>InsertBefore</operation>
+    <menuLocation>EditMenu</menuLocation>
+    <itemLocation></itemLocation>
     <menuItemKind>Separator</menuItemKind>
     <accel></accel>
     <helpString></helpString>
   </MenuItem>
   
-  <MenuItem itemName="Preferences">
+  <MenuItem itemName="PreferencesItem">
     <title>Preferences</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>EditMenu</menuLocation>
+    <itemLocation></itemLocation>
     <menuItemKind>Normal</menuItemKind>
     <accel></accel>
+    <event itemref="events:Preferences"/>
     <helpString></helpString>
   </MenuItem>
-  
-  <Menu itemName="FileMenu">
-    <childrenBlocks itemref="doc:QuitItem"/>
-    <title>File</title>
-  </Menu>
-
-  <Menu itemName="EditMenu">
-    <childrenBlocks itemref="doc:UndoItem"/>
-    <childrenBlocks itemref="doc:RedoItem"/>
-    <childrenBlocks itemref="doc:CutItem"/>
-    <childrenBlocks itemref="doc:CopyItem"/>
-    <childrenBlocks itemref="doc:PasteItem"/>
-    <childrenBlocks itemref="doc:Separator"/>
-    <childrenBlocks itemref="doc:Preferences"/>
-    <title>Edit</title>
-  </Menu>
   
   <CharacterStyle itemName="HeaderCharacterStyle">
     <fontFamily>DefaultUIFont</fontFamily>
@@ -148,7 +188,19 @@
     <fontName></fontName>
   </CharacterStyle>
 
+  <MenuItem itemName="LeftMenuItem">
+    <title>Left</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>EditMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Normal</menuItemKind>
+    <accel></accel>
+    <event itemref="events:Left"/>
+    <helpString></helpString>
+  </MenuItem>
+  
   <EditText itemName="LeftText">
+    <childrenBlocks itemref="doc:LeftMenuItem"/>
     <open>True</open>
 
     <size>100,20</size>
@@ -163,7 +215,19 @@
     <characterStyle itemref="doc:TextStyle"/>readOnly
   </EditText>
   
+  <MenuItem itemName="RightMenuItem">
+    <title>Right</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>EditMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Normal</menuItemKind>
+    <accel></accel>
+    <event itemref="events:Right"/>
+    <helpString></helpString>
+  </MenuItem>
+  
   <EditText itemName="RightText">
+    <childrenBlocks itemref="doc:RightMenuItem"/>
     <open>True</open>
 
     <size>100,20</size>
@@ -224,7 +288,18 @@
   <BoxContainer itemName="TopDocument">
     <content-spec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:FileMenu"/>
+    <childrenBlocks itemref="doc:QuitItem"/>
+
     <childrenBlocks itemref="doc:EditMenu"/>
+    <childrenBlocks itemref="doc:UndoItem"/>
+    <childrenBlocks itemref="doc:RedoItem"/>
+    <childrenBlocks itemref="doc:EditSeparator1"/>
+    <childrenBlocks itemref="doc:CutItem"/>
+    <childrenBlocks itemref="doc:CopyItem"/>
+    <childrenBlocks itemref="doc:PasteItem"/>
+    <childrenBlocks itemref="doc:EditSeparator2"/>
+    <childrenBlocks itemref="doc:PreferencesItem"/>
+
     <childrenBlocks itemref="doc:Header"/>
     <childrenBlocks itemref="doc:ContentBox"/>
     <childrenBlocks itemref="doc:Controller"/>

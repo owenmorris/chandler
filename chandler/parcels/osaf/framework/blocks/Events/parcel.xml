@@ -44,4 +44,19 @@ of a limitation of the XML format, which will be eliminated</description>
     <dispatchEnum>Controller</dispatchEnum>
   </BlockEvent>
 
+  <BlockEvent itemName="Preferences">
+    <name>chandler/Preferences</name>
+    <dispatchEnum>Controller</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itemName="Right">
+    <name>chandler/Right</name>
+    <dispatchEnum>Controller</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itemName="Left">
+    <name>chandler/Left</name>
+    <dispatchEnum>Controller</dispatchEnum>
+  </BlockEvent>
+
 </core:Parcel>

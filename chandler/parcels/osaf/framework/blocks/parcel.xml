@@ -306,30 +306,47 @@
   </Kind>
 
   <!--
-    Menu
+    Menu Entries are either MenuItems or Menus
   -->
-  <Kind itemName="Menu">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.Menu</classes>
-    <superKinds itemref="docSchema:ContainerChild"/>
+  <Kind itemName="MenuEntry">
+    <classes key="python">OSAF.framework.blocks.MenuBlocks.MenuEntry</classes>
+    <superKinds itemref="docSchema:Block"/>
 
     <Attribute itemName="title">
       <type itemref="String"/>
     </Attribute>
     
-    <attributes itemref="docSchema:Menu/title"/>
+    <Enumeration itemName="operationEnumType">
+      <values>InsertBefore</values>
+      <values>Replace</values>
+      <values>Delete</values>
+    </Enumeration>
+    
+    <Attribute itemName="operation">
+      <type itemref="docSchema:MenuEntry/operationEnumType"/>
+    </Attribute>
+    
+    <Attribute itemName="menuLocation">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <Attribute itemName="itemLocation">
+      <type itemref="String"/>
+    </Attribute>
+    
+    <attributes itemref="docSchema:MenuEntry/title"/>
+    <attributes itemref="docSchema:MenuEntry/operation"/>
+    <attributes itemref="docSchema:MenuEntry/menuLocation"/>
+    <attributes itemref="docSchema:MenuEntry/itemLocation"/>
   </Kind>
 
   <!--
     MenuItem
   -->
   <Kind itemName="MenuItem">
-    <classes key="python">OSAF.framework.blocks.ContainerBlocks.MenuItem</classes>
-    <superKinds itemref="docSchema:ContainerChild"/>
+    <classes key="python">OSAF.framework.blocks.MenuBlocks.MenuItem</classes>
+    <superKinds itemref="docSchema:MenuEntry"/>
 
-    <Attribute itemName="title">
-      <type itemref="String"/>
-    </Attribute>
-    
     <Enumeration itemName="menuItemKindEnumType">
       <values>Normal</values>
       <values>Separator</values>
@@ -353,11 +370,18 @@
       <type itemref="docSchema:BlockEvent"/>
     </Attribute>
     
-    <attributes itemref="docSchema:MenuItem/title"/>
     <attributes itemref="docSchema:MenuItem/menuItemKind"/>
     <attributes itemref="docSchema:MenuItem/accel"/>
     <attributes itemref="docSchema:MenuItem/helpString"/>
     <attributes itemref="docSchema:MenuItem/event"/>
+  </Kind>
+
+  <!--
+    Menu
+  -->
+  <Kind itemName="Menu">
+    <classes key="python">OSAF.framework.blocks.MenuBlocks.Menu</classes>
+    <superKinds itemref="docSchema:MenuEntry"/>
   </Kind>
 
   <!--

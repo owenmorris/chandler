@@ -173,7 +173,7 @@ class wxApplicationNew (wxApp):
             self.mainFrame = MainFrame()
             assert isinstance (topDocument, Block)
             Globals.topController = topDocument.findController()
-            self.menuParent = Globals.topController.parentBlock
+            self.menuParent = None
             self.mainFrame.counterpartUUID = topDocument.getUUID()
             topDocument.render (self.mainFrame, self.mainFrame)
 
@@ -188,21 +188,6 @@ class wxApplicationNew (wxApp):
 
             self.mainFrame.Show()
         return true                     #indicates we succeeded with initialization
-
-
-    def OnTerminate(self):
-        """
-          Main application termination.
-        """
-        Globals.agentManager.Shutdown()
-        """
-          Since Chandler doesn't have a save command and commits typically happen
-        only when the user completes a command that changes the user's data, we
-        need to add a final commit when the application quits to save data the
-        state of the user's world, e.g. window location and size.
-        """
-        Globals.repository.commit(purge=True)
-        Globals.repository.close()
 
 
     def OnCommand(self, event):
@@ -250,9 +235,27 @@ class wxApplicationNew (wxApp):
     def OnQuit(self):
         """
           Exit the application. Close with an argument of True forces the
-        window to close.
+        window to close. We set mainFrame to None because some events
+        may come in after the window is closed that try to access the window
+        which causes Python to crash.
         """
         self.mainFrame.Close (TRUE)
+        self.mainFrame = None
+
+
+    def OnTerminate(self):
+        """
+          Main application termination.
+        """
+        Globals.agentManager.Shutdown()
+        """
+          Since Chandler doesn't have a save command and commits typically happen
+        only when the user completes a command that changes the user's data, we
+        need to add a final commit when the application quits to save data the
+        state of the user's world, e.g. window location and size.
+        """
+        Globals.repository.commit(purge=True)
+        Globals.repository.close()
 
 
     def OnMainThreadCallbackEvent(self, event):

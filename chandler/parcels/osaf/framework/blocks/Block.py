@@ -18,6 +18,10 @@ class Block(Item):
         pass
 
 
+    def renderOneBlock(self, parent, parentWindow):
+        return None, None, None
+
+
     def findController (self):
         from OSAF.framework.blocks.Controller import Controller
         block = self
@@ -63,12 +67,12 @@ class Block(Item):
               Bubble the event up through all the containing controllers
             """
             while (controller):
-                if hasattr (controller, methodName):
+                try:
                     member = getattr (controller, methodName)
                     member (notification)
                     break
-                else:
-                    controller = controller.GetParent().GetParent()
+                except AttributeError:
+                    controller = controller.parentBlock.parentBlock
         elif __debug__:
             assert (False)
 
@@ -82,54 +86,22 @@ class Block(Item):
         return (Globals.repository.find (UUID))
 
     
-    def rebuildMenus (self):
-        
-        def buildMenuList (block, data):
-            parent = block.parentBlock
-            if (parent):
-                buildMenuList (parent, data)
-
-            """
-              Initialize data if it's empty
-            """
-            if len (data) == 0:
-                data['menuList'] = []
-                data['firstMenu'] = True
-                data['nameIndex'] = {}
-                
-            nameIndex = data['nameIndex']
-            firstMenu = data['firstMenu']
-            list = []
-            for child in block.childrenBlocks:
-                if isinstance (child, Menu) or isinstance (child, MenuItem):
-                    name = child.getItemName()
-                    nameIndex[name] = child
-                    list.append (name)
-            if len(list) != 0:
-                data['menuList'].append (list)
-            
-            data = {}
-            buildMenuList (self.getFocusBlock(), data)
-        
-
-
     def onSetFocus (self):
         """
           Cruise up the parent hierarchy looking for the parent of the first
         menu or menuItem. If it's not the same as the last time the focus
-        changed then we need to rebuild all the menus.
+        changed then we need to rebuild the menus.
         """
-        from OSAF.framework.blocks.ContainerBlocks import Menu
-        from OSAF.framework.blocks.ContainerBlocks import MenuItem
+        from OSAF.framework.blocks.MenuBlocks import Menu, MenuItem
 
         block = self.getFocusBlock()
         while (block):
             for child in block.childrenBlocks:
                 if isinstance (child, Menu) or isinstance (child, MenuItem):
                     parent = child.parentBlock
-                    if parent != Globals.wxApplication.menuParent:
+                    if True or parent != Globals.wxApplication.menuParent:
                         Globals.wxApplication.menuParent = parent
-                        self.rebuildMenus(parent)
+                        Menu.rebuildMenus(parent)
                         return
             block = block.parentBlock
 

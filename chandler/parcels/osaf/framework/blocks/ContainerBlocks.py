@@ -49,12 +49,13 @@ class ContainerChild(Block):
           Store the wxWindows version of the object in the association, so
         given the block we can find the associated wxWindows object.
         """
-        UUID = self.getUUID()
-        assert not Globals.association.has_key(UUID)
-        Globals.association[UUID] = window
-        window.counterpartUUID = UUID
-        for child in self.childrenBlocks:
-            child.render (parent, parentWindow)
+        if window:
+            UUID = self.getUUID()
+            assert not Globals.association.has_key(UUID)
+            Globals.association[UUID] = window
+            window.counterpartUUID = UUID
+            for child in self.childrenBlocks:
+                child.render (parent, parentWindow)
 
 
 class RectContainer(ContainerChild):
@@ -145,54 +146,6 @@ class StaticText(RectContainer):
         return staticText, None, None
         
      
-class Menu(ContainerChild):
-    def renderOneBlock(self, parent, parentWindow):
-        frame = parentWindow
-        while not isinstance (frame, wxFrame):
-            frame = frame.GetParent()
-        menuBar = frame.GetMenuBar()
-        if not menuBar:
-            menuBar = wxMenuBar()
-            frame.SetMenuBar(menuBar)
-        assert menuBar.FindMenu(self.title) == wxNOT_FOUND
-        menu = wxMenu()
-        menuBar.Insert(menuBar.GetMenuCount(), menu, self.title)
-        assert isinstance (parent, wxSizerPtr)
-        return menu, menu, parentWindow
-
-        
-class MenuItem(ContainerChild):
-    def __init__(self, *arguments, **keywords):
-        super (ContainerChild, self).__init__ (*arguments, **keywords)
-
-    def renderOneBlock(self, parent, parentWindow):
-
-        title = self.title
-        if len(self.accel) > 0:
-            title = title + "\tCtrl+" + self.accel
-
-        id = 0
-        if self.hasAttributeValue ("event"):  # Repository bug/feature -- DJA
-            id = self.event.getwxID()
-    
-        if self.menuItemKind == "Separator":
-            id = wxID_SEPARATOR
-            kind = wxITEM_SEPARATOR
-        elif self.menuItemKind == "Normal":
-            kind = wxITEM_NORMAL
-        elif self.menuItemKind == "Check":
-            kind = wxITEM_CHECK
-        elif self.menuItemKind == "Radio":
-            kind = wxITEM_RADIO
-        elif __debug__:
-            assert (False)        
-            
-        assert isinstance (parent, wxMenu)
-        menuItem = wxMenuItem (parent, id, title, self.helpString, kind)
-        parent.AppendItem (menuItem)
-        return menuItem, None, None
-
-
 class TreeList(RectContainer):
     def renderOneBlock(self, parent, parentWindow):
         treeList = wxTreeListCtrl(parentWindow)
