@@ -54,3 +54,12 @@
  
  $(BINDIR)/db_const.o:
  	$(JCC) -C -d $(CLASSES) $(DB_CONST)
+@@ -364,7 +373,7 @@
+ ifeq ($(OS),Cygwin)
+ install::
+ ifdef DB
+-	install $(LIBDB_JAVA_LIB) $(PREFIX_DB)/build_win32/$(BINDIR)
++	install $(LIBDB_JAVA_LIB) $(PREFIX)/bin
+ endif
+ endif
+ endif
