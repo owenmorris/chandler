@@ -4,33 +4,29 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-from osaf.framework.blocks.ControlBlocks import ListDelegate
+from osaf.framework.blocks.ControlBlocks import AttributeDelegate
 
 
-class SideBarDelegate (ListDelegate):
-    def GetElementParent(self, element):
-        return element.parent
+class SideBarDelegate (AttributeDelegate):
+    def GetElementValue (self, row, column):
+        item = self.blockItem.contents [row]
+        try:
+            item = item.contents
+        except AttributeError:
+            pass
+        attributeName = self.blockItem.columnData [column]
+        try:
+            value = item.getAttributeValue (attributeName)
+        except AttributeError:
+            value = "Unnamed"
+        return value
 
-    def GetElementChildren(self, element):
-        return element.children
-
-    def GetElementValues(self, element):
-        return [element.getItemDisplayName()]
-
-    def ElementHasChildren(self, element):
-        return len(element.children) != 0
-
-    def NeedsUpdate(self, notification):
-        """
-          We need to update the display when any opened URL node has
-        a child that has been changed. When items are are added or deleted
-        their parents are modified. However, when they are changed we need
-        to get their parent.
-        """
-        itemUUID = notification.data['uuid']
-        if notification.event.itsName == "item_changed":
-            item = Globals.repository.find (itemUUID)
-            itemUUID = item.itsParent.itsUUID
-        if self.blockItem.openedContainers.has_key (itemUUID):
-            self.scheduleUpdate = True
+    def SetElementValue (self, row, column, value):
+        item = self.blockItem.contents[row]
+        try:
+            item = item.contents
+        except AttributeError:
+            pass
+        attributeName = self.blockItem.columnData [column]
+        item.setAttributeValue (attributeName, value)
 

@@ -626,6 +626,7 @@
   <Table itsName="SidebarTree">
     <contents itemref="doc:sidebarItemCollection"/>
     <selection itemref="content:InListView"/>
+    <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <columnData>displayName</columnData>
     <columnWidths>150</columnWidths>
     <hideColumnHeadings>True</hideColumnHeadings>

@@ -470,7 +470,6 @@
     ToolbarItems
   -->
   <ToolbarItem itsName="ListViewButton">
-    <!-- Attributes -->
     <location>LayoutSelector</location>
     <dynamicParent itemref="view:LayoutSelector"/>
     <title>List View</title>
@@ -482,7 +481,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton">
-    <!-- Attributes -->
     <location>LayoutSelector</location>
     <dynamicParent itemref="view:LayoutSelector"/>
     <title>Month View</title>
@@ -494,7 +492,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton">
-    <!-- Attributes -->
     <location>LayoutSelector</location>
     <dynamicParent itemref="view:LayoutSelector"/>
     <title>Week View</title>
@@ -506,7 +503,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton">
-    <!-- Attributes -->
     <location>LayoutSelector</location>
     <dynamicParent itemref="view:LayoutSelector"/>
     <title>Day View</title>
@@ -518,7 +514,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton2">
-    <!-- Attributes -->
     <location>LayoutSelector2</location>
     <dynamicParent itemref="view:LayoutSelector2"/>
     <title>List View</title>
@@ -530,7 +525,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton2">
-    <!-- Attributes -->
     <location>LayoutSelector2</location>
     <dynamicParent itemref="view:LayoutSelector2"/>
     <title>Month View</title>
@@ -542,7 +536,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton2">
-    <!-- Attributes -->
     <location>LayoutSelector2</location>
     <dynamicParent itemref="view:LayoutSelector2"/>
     <title>Week View</title>
@@ -554,7 +547,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton2">
-    <!-- Attributes -->
     <location>LayoutSelector2</location>
     <dynamicParent itemref="view:LayoutSelector2"/>
     <title>Day View</title>
@@ -566,7 +558,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton3">
-    <!-- Attributes -->
     <location>LayoutSelector3</location>
     <dynamicParent itemref="view:LayoutSelector3"/>
     <title>List View</title>
@@ -578,7 +569,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton3">
-    <!-- Attributes -->
     <location>LayoutSelector3</location>
     <dynamicParent itemref="view:LayoutSelector3"/>
     <title>Month View</title>
@@ -590,7 +580,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton3">
-    <!-- Attributes -->
     <location>LayoutSelector3</location>
     <dynamicParent itemref="view:LayoutSelector3"/>
     <title>Week View</title>
@@ -602,7 +591,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton3">
-    <!-- Attributes -->
     <location>LayoutSelector3</location>
     <dynamicParent itemref="view:LayoutSelector3"/>
     <title>Day View</title>
@@ -614,7 +602,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton4">
-    <!-- Attributes -->
     <location>LayoutSelector4</location>
     <dynamicParent itemref="view:LayoutSelector4"/>
     <title>List View</title>
@@ -626,7 +613,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton4">
-    <!-- Attributes -->
     <location>LayoutSelector4</location>
     <dynamicParent itemref="view:LayoutSelector4"/>
     <title>Month View</title>
@@ -638,7 +624,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton4">
-    <!-- Attributes -->
     <location>LayoutSelector4</location>
     <dynamicParent itemref="view:LayoutSelector4"/>
     <title>Week View</title>
@@ -650,7 +635,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton4">
-    <!-- Attributes -->
     <location>LayoutSelector4</location>
     <dynamicParent itemref="view:LayoutSelector4"/>
     <title>Day View</title>
@@ -662,7 +646,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton5">
-    <!-- Attributes -->
     <location>LayoutSelector5</location>
     <dynamicParent itemref="view:LayoutSelector5"/>
     <title>List View</title>
@@ -674,7 +657,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton5">
-    <!-- Attributes -->
     <location>LayoutSelector5</location>
     <dynamicParent itemref="view:LayoutSelector5"/>
     <title>Month View</title>
@@ -686,7 +668,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton5">
-    <!-- Attributes -->
     <location>LayoutSelector5</location>
     <dynamicParent itemref="view:LayoutSelector5"/>
     <title>Week View</title>
@@ -698,7 +679,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton5">
-    <!-- Attributes -->
     <location>LayoutSelector5</location>
     <dynamicParent itemref="view:LayoutSelector5"/>
     <title>Day View</title>
@@ -710,7 +690,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="ListViewButton6">
-    <!-- Attributes -->
     <location>LayoutSelector6</location>
     <dynamicParent itemref="view:LayoutSelector6"/>
     <title>List View</title>
@@ -722,7 +701,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="MonthViewButton6">
-    <!-- Attributes -->
     <location>LayoutSelector6</location>
     <dynamicParent itemref="view:LayoutSelector6"/>
     <title>Month View</title>
@@ -734,7 +712,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="WeekViewButton6">
-    <!-- Attributes -->
     <location>LayoutSelector6</location>
     <dynamicParent itemref="view:LayoutSelector6"/>
     <title>Week View</title>
@@ -746,7 +723,6 @@
   </ToolbarItem>
 
   <ToolbarItem itsName="DayViewButton6">
-    <!-- Attributes -->
     <location>LayoutSelector6</location>
     <dynamicParent itemref="view:LayoutSelector6"/>
     <title>Day View</title>
@@ -760,7 +736,6 @@
   <!-- Note View -->
   <SplitterWindow itsName="NoteListView">
     <contents itemref="view:notesItemCollection"/>
-    <displayName>NoteList</displayName>
 
     <childrenBlocks itemref="view:NoteList"/>
     <childrenBlocks itemref="detail:DetailRoot"/>
@@ -773,7 +748,6 @@
   <!-- Task View -->
   <SplitterWindow itsName="TaskListView">
     <contents itemref="view:taskItemCollection"/>
-    <displayName>TaskList</displayName>
 
     <childrenBlocks itemref="view:TaskList"/>
     <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
@@ -786,7 +760,6 @@
   <!-- Mail View -->
   <SplitterWindow itsName="MailListView">
     <contents itemref="view:mailItemCollection"/>
-    <displayName>MailList</displayName>
 
     <childrenBlocks itemref="view:MailList"/>
     <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
@@ -799,7 +772,6 @@
   <!-- Mixed View -->
   <SplitterWindow itsName="MixedListView">
     <contents itemref="view:mixedItemCollection"/>
-    <displayName>Mixed</displayName>
 
     <childrenBlocks itemref="view:MixedList"/>
     <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
@@ -811,7 +783,7 @@
   <!-- In View -->
   <SplitterWindow itsName="InListView">
     <contents itemref="view:inItemCollection"/>
-    <displayName>In</displayName>
+
     <childrenBlocks itemref="view:InSummary"/>
     <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
@@ -823,7 +795,6 @@
   <!-- Out View -->
   <SplitterWindow itsName="OutListView">
     <contents itemref="view:outItemCollection"/>
-    <displayName>Out</displayName>
 
     <childrenBlocks itemref="view:OutSummary"/>
     <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
@@ -836,7 +807,6 @@
   <!-- Calendar View -->
   <SplitterWindow itsName="CalendarListView">
     <contents itemref="view:calendarItemCollection"/>
-    <displayName>Calendar</displayName>
 
     <childrenBlocks itemref="view:CalendarSummary"/>
     <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
@@ -849,7 +819,6 @@
   <!-- Contact View -->
   <SplitterWindow itsName="ContactListView">
     <contents itemref="view:contactItemCollection"/>
-    <displayName>Contacts</displayName>
 
     <childrenBlocks itemref="view:ContactSummary"/>
     <childrenBlocks itemref="view:ContactItemDetail"/>
@@ -861,7 +830,6 @@
   <!-- Junk View -->
   <SplitterWindow itsName="JunkListView">
     <contents itemref="view:junkItemCollection"/>
-    <displayName>Junk</displayName>
 
     <childrenBlocks itemref="view:JunkSummary"/>
     <childrenBlocks itemref="view:JunkItemDetail"/>
@@ -873,7 +841,6 @@
   <!-- Trash View -->
   <SplitterWindow itsName="TrashListView">
     <contents itemref="view:trashItemCollection"/>
-    <displayName>Trash</displayName>
 
     <childrenBlocks itemref="view:TrashSummary"/>
     <childrenBlocks itemref="view:TrashItemDetail"/>
