@@ -46,14 +46,6 @@
                 </object>
             </object>
             <object class="sizeritem">
-                <option>0</option>
-                <flag>wxEXPAND</flag>
-                <border>1</border>
-                <object class="unknown" name="ID_FOREIGN">
-                    <size>100,24</size>
-                </object>
-            </object>
-            <object class="sizeritem">
                 <option>1</option>
                 <flag>wxALIGN_CENTRE|wxALL|wxEXPAND</flag>
                 <border>1</border>
