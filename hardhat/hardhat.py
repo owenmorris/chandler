@@ -34,7 +34,7 @@ def usage():
     print "-D VERSION  create a distribution, using VERSION as the version string"
     # print "-e          show environment variables in hardhat.log (on by default)"
     print "-h          display this help"
-    print "-i          inspect system (not implemented)"
+    # print "-i          inspect system (not implemented)"
     print "-n          non-interactive (won't prompt during scrubbing)"
     print "-r          use release version (this is the default)"
     # print "-s          spawn an interactive shell"
@@ -78,7 +78,7 @@ if string.find(projectRoot, ' ') >= 0:
 
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "abBcCdD:ehilnrsStvx")
+    opts, args = getopt.getopt(sys.argv[1:], "abBcCdD:ehinrsStvx")
 except getopt.GetoptError:
     usage()
     sys.exit(1)
@@ -177,9 +177,6 @@ try:
         if opt == "-h":
             usage()
 
-        if opt == "-l":
-            buildenv['showlog'] = True
-
         if opt == "-n":
             buildenv['interactive'] = False
 
@@ -210,6 +207,7 @@ except hardhatlib.HardHatExternalCommandError:
     print " A program that HardHat spawned exited with a non-zero exit code."
     print "          Please view the file 'hardhat.log' for details."
     print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+    sys.exit(1)
 
 except hardhatlib.HardHatMissingFileError, e:
     print 
@@ -218,6 +216,7 @@ except hardhatlib.HardHatMissingFileError, e:
     print e 
     print "Please make sure the above file exists and try again."
     print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
+    sys.exit(1)
 
 except Exception, e:
     print 
@@ -228,9 +227,4 @@ except Exception, e:
     print ""
     traceback.print_exc()
     print "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -"
-
-
-
-if buildenv['showlog']:
-    print "HardHat Log:"
-    hardhatlib.log_dump(buildenv)
+    sys.exit(1)
