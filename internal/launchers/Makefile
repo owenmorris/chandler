@@ -45,7 +45,11 @@ endif
 
 ifeq ($(OS),Linux)
 
-LAUNCHER_FILES=$(SNAP)/chandler $(SNAP)/lib/chandler_bin
+ifeq ($(DEBUG),1)
+LAUNCHER_FILES=./chandlerDebug $(SNAP)/lib/chandler_bin
+else
+LAUNCHER_FILES=./chandler $(SNAP)/lib/chandler_bin
+endif
 LIB_FILES=
 
 ARCHIVE: $(LAUNCHERS)/linux/

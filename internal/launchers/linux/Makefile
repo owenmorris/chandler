@@ -23,12 +23,21 @@ SYSLIBS=	-lm
 MODLIBS=	
 ALLLIBS=	$(LIBPYTHON) $(MODLIBS) $(LIBS) $(SYSLIBS)
 
+ifeq ($(SNAP),debug)
+build:
+	mkdir -p $(BUILD)/lib
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) chandler.c -o $(BUILD)/chandlerDebug
+	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) chandler_bin.c $(ALLLIBS) -o $(BUILD)/lib/chandler_bin
+	cp $(BUILD)/chandlerDebug $(BUILD_ROOT)
+	cp $(BUILD)/lib/chandler_bin $(BUILD_ROOT)/$(SNAP)/lib
+else
 build:
 	mkdir -p $(BUILD)/lib
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) chandler.c -o $(BUILD)/chandler
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) chandler_bin.c $(ALLLIBS) -o $(BUILD)/lib/chandler_bin
-	cp $(BUILD)/chandler $(BUILD_ROOT)/$(SNAP)
+	cp $(BUILD)/chandler $(BUILD_ROOT)
 	cp $(BUILD)/lib/chandler_bin $(BUILD_ROOT)/$(SNAP)/lib
+endif
 
 
 clean:

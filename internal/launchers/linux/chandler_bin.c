@@ -1,8 +1,9 @@
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* chandler_bin.c
  *
 __version__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
  *
  */
@@ -15,7 +16,6 @@ main(int argc, char **argv)
     int retval = 0;
     FILE *fp;
     struct stat statBuf;            /* For lstat() */
-    chdir("..");
     if((lstat("Chandler.py", &statBuf)==-1) || ! S_ISREG(statBuf.st_mode)) {
         printf("ERROR: Chandler.py not found; exiting\n");
         exit(-1);

@@ -1,8 +1,9 @@
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* chandler.c
  *
 __version__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
  *
  */
@@ -122,11 +123,16 @@ int PrependToLdLibraryPath(char *dir){
     }
 }
 
+#ifndef DEBUGMODE
+#define SNAP "/release"
+#else
+#define SNAP "/debug"
+#endif
 
-#define APPENDLIB1 "/lib"
-#define APPENDLIB2 "/db/lib"
-#define APPENDLIB3 "/dbxml/lib"
-#define PROG_BIN "chandler_bin"
+#define APPENDLIB1 SNAP "/lib"
+#define APPENDLIB2 SNAP "/db/lib"
+#define APPENDLIB3 SNAP "/dbxml/lib"
+#define PROG_BIN   "chandler_bin"
 
 char *LibDir(char *exeDir, char *appendLib)
 {
@@ -167,7 +173,7 @@ main(int argc, char **argv)
     libDir2 = LibDir(exeDir, APPENDLIB2);
     libDir3 = LibDir(exeDir, APPENDLIB3);
 
-    printf("exePath: [%s]\n", exePath);
+    printf("exePath:  [%s]\n", exePath);
     printf("exeDir :  [%s]\n", exeDir);
     printf("libDir1:  [%s]\n", libDir1);
     printf("libDir2:  [%s]\n", libDir2);
@@ -176,7 +182,7 @@ main(int argc, char **argv)
     PrependToLdLibraryPath(libDir2);
     PrependToLdLibraryPath(libDir3);
 
-    chandlerHome = AbsolutePath(exeDir, "..");
+    chandlerHome = AbsolutePath(exeDir, ".");
     setenv("PYTHONPATH", chandlerHome, 1);
     free(chandlerHome);
 

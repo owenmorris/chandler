@@ -102,8 +102,8 @@ src=chandler/distrib/linux
 README.linux.txt
 
 # Grab the launcher programs
-src=chandler/release
-dest=release
+src=chandler
+dest=
 chandler
 src=chandler/release/lib
 dest=release/lib
