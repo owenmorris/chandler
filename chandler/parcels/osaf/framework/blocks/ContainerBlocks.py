@@ -59,8 +59,17 @@ class ContainerChild(Block):
             for child in self.childrenBlocks:
                 child.render (parent, parentWindow)
             self.handleChildren(window)
+        return window, parent, parentWindow
                 
+    def getParentBlock(self, parentWindow):
+        if self.parentBlock:
+            return self.parentBlock
+        return Globals.repository.find (parentWindow.counterpartUUID)
+
     def addToContainer(self, parent, child, id, flag, border):
+        pass
+    
+    def removeFromContainer(self, childToRemove):
         pass
     
     def handleChildren(self, window):
@@ -127,7 +136,7 @@ class BoxContainer(RectangularChild):
         if self.parentBlock: 
             panel = wxPanel(parentWindow, -1)
             panel.SetSizer(sizer)
-            self.parentBlock.addToContainer(parent, panel, 1, 
+            self.getParentBlock(parentWindow).addToContainer(parent, panel, 1, 
                                             self.Calculate_wxFlag(), 
                                             self.Calculate_wxBorder())
             return panel, sizer, panel
@@ -137,8 +146,33 @@ class BoxContainer(RectangularChild):
                 
     def addToContainer(self, parent, child, weight, flag, border):
         parent.Add(child, weight, flag, border)
+        
+    def removeFromContainer(self, parent, child):
+        parent.Remove(child)
+        child.Destroy()
+        parent.Layout()
+        
 
- 
+class EmbeddedContainer(RectangularChild):
+    def renderOneBlock (self, parent, parentWindow):
+        self.wxParent = parent
+        self.wxParentWindow = parentWindow
+        newChild = Globals.repository.find (self.contentSpec.data)
+        if newChild:
+            return newChild.render (parent, parentWindow)
+        return None, None, None
+    
+    def on_chandler_SwitchEmbeddedChild (self, notification):
+        oldChild = Globals.repository.find (self.contentSpec.data)
+        wxOldChild = Globals.association[oldChild.getUUID()]
+        self.getParentBlock(self.wxParentWindow).removeFromContainer(self.wxParent, wxOldChild)
+                
+        self.contentSpec.data = notification.data['event'].choice
+        newChild = Globals.repository.find (self.contentSpec.data)
+        if newChild:
+            newChild.render (self.wxParent, self.wxParentWindow)
+            
+            
 class Button(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
         id = 0
@@ -167,7 +201,7 @@ class Button(RectangularChild):
         elif __debug__:
             assert (False)
 
-        self.parentBlock.addToContainer(parent, button, int(self.stretchFactor),
+        self.getParentBlock(parentWindow).addToContainer(parent, button, int(self.stretchFactor),
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return button, None, None
 
@@ -178,7 +212,7 @@ class Choice(RectangularChild):
                               wxDefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
-        self.parentBlock.addToContainer(parent, choice, int(self.stretchFactor), 
+        self.getParentBlock(parentWindow).addToContainer(parent, choice, int(self.stretchFactor), 
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return choice, None, None
 
@@ -189,7 +223,7 @@ class ComboBox(RectangularChild):
                               wxDefaultPosition,
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices)
-        self.parentBlock.addToContainer(parent, comboBox, int(self.stretchFactor), 
+        self.getParentBlock(parentWindow).addToContainer(parent, comboBox, int(self.stretchFactor), 
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return comboBox, None, None
 
@@ -224,7 +258,7 @@ class EditText(RectangularChild):
                                style, name=self._name)
 
         editText.SetFont(Font (self.characterStyle))
-        self.parentBlock.addToContainer(parent, editText, int(self.stretchFactor), 
+        self.getParentBlock(parentWindow).addToContainer(parent, editText, int(self.stretchFactor), 
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return editText, None, None
 
@@ -240,7 +274,7 @@ class HTML(RectangularChild):
         if self.url:
             htmlWindow.LoadPage(self.url)
         
-        self.parentBlock.addToContainer(parent, htmlWindow, int(self.stretchFactor),
+        self.getParentBlock(parentWindow).addToContainer(parent, htmlWindow, int(self.stretchFactor),
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return htmlWindow, None, None
 
@@ -267,7 +301,7 @@ class RadioBox(RectangularChild):
                               wxDefaultPosition, 
                               (self.minimumSize.width, self.minimumSize.height),
                               self.choices, self.itemsPerLine, dimension)
-        self.parentBlock.addToContainer(parent, radioBox, int(self.stretchFactor), 
+        self.getParentBlock(parentWindow).addToContainer(parent, radioBox, int(self.stretchFactor), 
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return radioBox, None, None
 
@@ -312,7 +346,7 @@ class SplitWindow(RectangularChild):
                                     wxDefaultPosition,
                                     (self.size.width, self.size.height),
                                     style=wxSP_3D|wxSP_LIVE_UPDATE|wxNO_FULL_REPAINT_ON_RESIZE)
-        self.parentBlock.addToContainer(parent, splitWindow, int(self.stretchFactor), 
+        self.getParentBlock(parentWindow).addToContainer(parent, splitWindow, int(self.stretchFactor), 
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         """
           Wire up onSize after __init__ has been called, otherwise it will
@@ -325,6 +359,10 @@ class SplitWindow(RectangularChild):
         if not hasattr(self, 'childrenToAdd'):
             self.childrenToAdd = []
         self.childrenToAdd.append(child)
+        
+    def removeFromContainer(self, childToRemove):
+        # @@@ Must be implemented
+        pass
 
     def handleChildren(self, window):
         children = window.GetChildren()
@@ -364,8 +402,10 @@ class StaticText(RectangularChild):
                                    style)
 
         staticText.SetFont(Font (self.characterStyle))
-        self.parentBlock.addToContainer(parent, staticText, int(self.stretchFactor), 
-                              self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.getParentBlock(parentWindow).addToContainer(parent, staticText,
+                                                         int(self.stretchFactor),
+                                                         self.Calculate_wxFlag(),
+                                                         self.Calculate_wxBorder())
         return staticText, None, None
 
 
@@ -390,7 +430,7 @@ class TabbedContainer(RectangularChild):
                                     wxDefaultPosition,
                                     (self.minimumSize.width, self.minimumSize.height),
                                      style = style)
-        self.parentBlock.addToContainer(parent, tabbedContainer, int(self.stretchFactor), 
+        self.getParentBlock(parentWindow).addToContainer(parent, tabbedContainer, int(self.stretchFactor), 
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return tabbedContainer, tabbedContainer, tabbedContainer
                 
@@ -398,6 +438,10 @@ class TabbedContainer(RectangularChild):
         if not hasattr(self, 'childrenToAdd'):
             self.childrenToAdd = []
         self.childrenToAdd.append(child)
+        
+    def removeFromContainer(self, childToRemove):
+        # @@@ Must be implemented
+        pass
 
     def handleChildren(self, window):
         if len (self.childrenToAdd) > 0:
@@ -495,7 +539,7 @@ class TreeList(RectangularChild):
         notification.SetData(arguments)
         Globals.topView.dispatchEvent(notification)
 
-        self.parentBlock.addToContainer(parent, treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        self.getParentBlock(parentWindow).addToContainer(parent, treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return treeList, None, None
 
 

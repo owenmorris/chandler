@@ -95,7 +95,7 @@
     <Attribute itemName="usedInBlocks">
       <type itemref="docSchema:Block"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="docSchema:Block/content-spec"/>
+      <inverseAttribute itemref="docSchema:Block/contentSpec"/>
     </Attribute>
 
     <Enumeration itemName="queryEnumType">
@@ -191,7 +191,7 @@
   <Kind itemName="Block">
     <classes key="python">OSAF.framework.blocks.Block.Block</classes>
 
-    <Attribute itemName="content-spec">
+    <Attribute itemName="contentSpec">
       <type itemref="docSchema:Query"/>
       <inverseAttribute itemref="docSchema:Query/usedInBlocks"/>
     </Attribute>
@@ -218,7 +218,7 @@
       <type itemref="Boolean"/>
     </Attribute>
 
-    <attributes itemref="docSchema:Block/content-spec"/>
+    <attributes itemref="docSchema:Block/contentSpec"/>
     <attributes itemref="docSchema:Block/childrenBlocks"/>
     <attributes itemref="docSchema:Block/parentBlock"/>
     <attributes itemref="docSchema:Block/styles"/>
@@ -297,6 +297,14 @@
     <superKinds itemref="docSchema:RectangularChild"/>
 
     <attributes itemref="docSchema:orientationEnum"/>
+  </Kind>
+  
+  <!--
+    EmbeddedContainer
+  -->
+  <Kind itemName="EmbeddedContainer">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.EmbeddedContainer</classes>
+    <superKinds itemref="docSchema:RectangularChild"/>
   </Kind>
   
   <!--

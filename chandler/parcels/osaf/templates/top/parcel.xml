@@ -168,6 +168,13 @@
     <choice>Data</choice>
   </ChoiceEvent>
   
+  <ChoiceEvent itemName="ChooseEmbedded">
+    <name>chandler/TabChoice</name>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:Tabs"/>
+    <choice>Embedded</choice>
+  </ChoiceEvent>
+
   <MenuItem itemName="ButtonsMenuItem">
     <title>Buttons Tab</title>
     <operation>InsertBefore</operation>
@@ -198,6 +205,45 @@
     <menuItemKind>Radio</menuItemKind>
     <accel></accel>
     <event itemref="doc:ChooseData"/>
+    <helpString></helpString>
+  </MenuItem>
+
+  <MenuItem itemName="EmbeddedMenuItem">
+    <title>Embedded Tab</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>DemoMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Radio</menuItemKind>
+    <accel></accel>
+    <event itemref="doc:ChooseEmbedded"/>
+    <helpString></helpString>
+  </MenuItem>
+
+  <MenuItem itemName="DemoSeparatorItem">
+    <title></title>
+    <operation>InsertBefore</operation>
+    <menuLocation>DemoMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Separator</menuItemKind>
+    <accel></accel>
+    <helpString></helpString>
+  </MenuItem>
+
+  <ChoiceEvent itemName="SwitchEmbeddedChild">
+    <name>chandler/SwitchEmbeddedChild</name>
+    <dispatchEnum>SendToBlock</dispatchEnum>
+    <dispatchToBlock itemref="doc:EmbeddedTitle"/>
+    <choice>parcels/OSAF/templates/top/LeftText</choice>
+  </ChoiceEvent>  
+  
+  <MenuItem itemName="SwitchViewItem">
+    <title>Switch Embedded View</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>DemoMenu</menuLocation>
+    <itemLocation></itemLocation>
+    <menuItemKind>Radio</menuItemKind>
+    <accel></accel>
+    <event itemref="doc:SwitchEmbeddedChild"/>
     <helpString></helpString>
   </MenuItem>
 
@@ -304,7 +350,7 @@
   <Button itemName="TextButton">
     <title>Add Text</title>
     <buttonKind>Text</buttonKind>
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     
     <open>True</open>
 
@@ -318,7 +364,7 @@
   <Button itemName="ImageButton">
     <buttonKind>Image</buttonKind>
     <icon>application/images/Reload.png</icon>
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     
     <open>True</open>
 
@@ -332,7 +378,7 @@
   <Button itemName="ToggleButton">
     <title>Toggle</title>
     <buttonKind>Toggle</buttonKind>
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     
     <open>True</open>
 
@@ -344,7 +390,7 @@
   </Button>
 
   <BoxContainer itemName="ButtonsSizer">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:ImageButton"/>
     <childrenBlocks itemref="doc:ToggleButton"/>
     <childrenBlocks itemref="doc:TextButton"/>
@@ -378,7 +424,7 @@
   </EditText>
 
   <BoxContainer itemName="ButtonsTab">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:ButtonHeader"/>
     <childrenBlocks itemref="doc:ButtonsSizer"/>
     <childrenBlocks itemref="doc:ButtonText"/>
@@ -403,7 +449,7 @@
     <radioAlignEnum>Down</radioAlignEnum>
     <itemsPerLine>3</itemsPerLine>
 
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
 
     <size>200,200</size>
@@ -418,7 +464,7 @@
     <choices>Second</choices>
     <choices>Third</choices>
 
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
 
     <size>200,200</size>
@@ -434,7 +480,7 @@
     <choices>Second</choices>
     <choices>Third</choices>
 
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
 
     <size>200,200</size>
@@ -445,7 +491,7 @@
   </ComboBox>
 
   <BoxContainer itemName="RadioSizer">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:RadioExample"/>
     <open>True</open>
 
@@ -459,7 +505,7 @@
   </BoxContainer>
   
   <BoxContainer itemName="ChoiceSizer">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:ChoiceExample"/>
     <open>True</open>
 
@@ -473,7 +519,7 @@
   </BoxContainer>
 
   <BoxContainer itemName="ComboSizer">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:ComboExample"/>
     <open>True</open>
 
@@ -487,7 +533,7 @@
   </BoxContainer>
 
   <BoxContainer itemName="ControlsTab">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:RadioSizer"/>
     <childrenBlocks itemref="doc:ComboSizer"/>
     <open>True</open>
@@ -506,7 +552,7 @@
     
     <columnWidths>200</columnWidths>
 
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
 
     <size>200,200</size>
@@ -517,7 +563,7 @@
   </TreeList>
   
   <BoxContainer itemName="TreeSizer">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:TreeExample"/>
     <open>True</open>
 
@@ -532,7 +578,7 @@
 
   <HTML itemName="HTMLExample">
     <url>http://www.osafoundation.org</url>
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
 
     <size>200,200</size>
@@ -543,7 +589,7 @@
   </HTML>
 
   <BoxContainer itemName="HTMLSizer">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:HTMLExample"/>
     <open>True</open>
 
@@ -557,9 +603,52 @@
   </BoxContainer>
 
   <BoxContainer itemName="DataTab">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:TreeSizer"/>
     <childrenBlocks itemref="doc:HTMLSizer"/>
+    <open>True</open>
+
+    <size>200,100</size>
+    <minimumSize>200,100</minimumSize>
+    <border>2.0, 2.0, 2.0, 2.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>1.0</stretchFactor>
+
+    <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
+
+  <StaticText itemName="Footer">
+    <open>True</open>
+
+    <size>100,20</size>
+    <minimumSize>100,20</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+    <textAlignmentEnum>Left</textAlignmentEnum>
+    <characterStyle itemref="doc:HeaderCharacterStyle"/>
+    <title>My Repository Viewer</title>
+  </StaticText>
+
+  <Query itemName="embeddedQuery">
+    <queryEnum>listOfItems</queryEnum>
+    <data>parcels/OSAF/templates/top/Footer</data>
+  </Query>  
+  
+  <EmbeddedContainer itemName="EmbeddedTitle">
+    <contentSpec itemref="doc:embeddedQuery"/>
+    <open>True</open>
+
+    <size>100,20</size>
+    <minimumSize>100,20</minimumSize>
+    <border>3.0, 3.0, 3.0, 3.0</border>
+    <alignmentEnum>grow</alignmentEnum>
+    <stretchFactor>0.0</stretchFactor>
+  </EmbeddedContainer>  
+  
+  <BoxContainer itemName="EmbeddedTab">
+    <contentSpec itemref="doc:myQuery"/>
+    <childrenBlocks itemref="doc:EmbeddedTitle"/>
     <open>True</open>
 
     <size>200,100</size>
@@ -575,11 +664,13 @@
     <childrenBlocks itemref="doc:ButtonsTab"/>
     <childrenBlocks itemref="doc:ControlsTab"/>
     <childrenBlocks itemref="doc:DataTab"/>
+    <childrenBlocks itemref="doc:EmbeddedTab"/>
 
     <tabPosEnum>Top</tabPosEnum>
     <tabNames>Buttons</tabNames>
     <tabNames>Controls</tabNames>
-    <tabNames>Data</tabNames>    
+    <tabNames>Data</tabNames>
+    <tabNames>Embedded</tabNames>
     
     <size>600,200</size>
 
@@ -590,11 +681,14 @@
   </TabbedContainer>
   
   <BoxContainer itemName="TabBox">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:DemoMenu"/>
     <childrenBlocks itemref="doc:ButtonsMenuItem"/>
     <childrenBlocks itemref="doc:ControlsMenuItem"/>
     <childrenBlocks itemref="doc:DataMenuItem"/>
+    <childrenBlocks itemref="doc:EmbeddedMenuItem"/>
+    <childrenBlocks itemref="doc:DemoSeparatorItem"/>
+    <childrenBlocks itemref="doc:SwitchViewItem"/>
 
     <childrenBlocks itemref="doc:Tabs"/>
     <open>True</open>
@@ -631,7 +725,7 @@
  
   <HTML itemName="HTML">
     <url></url>
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
 
     <size>100,50</size>
@@ -642,7 +736,7 @@
   </HTML>
 
   <SplitWindow itemName="RepositoryBox">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:TreeList"/>
     <childrenBlocks itemref="doc:HTML"/>
     <open>True</open>
@@ -658,7 +752,7 @@
   </SplitWindow>
 
   <SplitWindow itemName="ContentBox">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
     <childrenBlocks itemref="doc:RepositoryBox"/>
     <childrenBlocks itemref="doc:TabBox"/>
     <open>True</open>
@@ -674,7 +768,7 @@
   </SplitWindow>
 
   <View itemName="TopView">
-    <content-spec itemref="doc:myQuery"/>
+    <contentSpec itemref="doc:myQuery"/>
 
     <childrenBlocks itemref="doc:FileMenu"/>
     <childrenBlocks itemref="doc:QuitItem"/>
