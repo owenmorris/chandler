@@ -67,6 +67,19 @@
             <initialValue type="Boolean" value="True"/>
         </Attribute>
 
+        <Attribute itsName="mode">
+            <description value="This attribute indicates the sync mode for the share:  get, put, or both" />
+            <Enumeration itsName="modeEnum">
+                <displayName value="Mode Enumeration"/>
+                <values value="put"/>
+                <values value="get"/>
+                <values value="both"/>
+            </Enumeration>
+            <type itemref="share:Share/mode/modeEnum"/>
+            <cardinality value="single"/>
+            <initialValue type="share:Share/mode/modeEnum" value="both"/>
+        </Attribute>
+
         <Attribute itsName="contents">
             <type itemref="cm:ItemCollection"/>
             <inverseAttribute itemref="cm:ItemCollection/shares"/>

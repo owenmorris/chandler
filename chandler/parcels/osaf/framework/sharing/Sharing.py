@@ -92,13 +92,24 @@ class Share(ContentModel.ChandlerItem):
         self.conduit.close()
 
     def sync(self):
-        self.conduit.sync()
+        if self.mode in ('get', 'both'):
+            items = self.conduit.get()
+        else:
+            items = []
+
+        # @@@MOR For now, since server changes clobber local changes, don't
+        # bother putting an item we have just fetched
+
+        if self.mode in ('put', 'both'):
+            self.conduit.put(skipItems=items)
 
     def put(self):
-        self.conduit.put()
+        if self.mode in ('put', 'both'):
+            self.conduit.put()
 
     def get(self):
-        self.conduit.get()
+        if self.mode in ('get', 'both'):
+            self.conduit.get()
 
     def exists(self):
         return self.conduit.exists()
@@ -134,12 +145,6 @@ class ShareConduit(ContentModel.ChandlerItem):
 
     def setShare(self, share):
         self.share = share
-
-    def sync(self):
-        items = self.get()
-        # @@@MOR For now, since server changes clobber local changes, don't
-        # bother putting an item we have just fetched
-        self.put(skipItems=items)
 
     def __conditionalPutItem(self, item, skipItems=None):
         # assumes that self.resourceList has been populated
@@ -1343,13 +1348,16 @@ def newInboundShare(view, url):
         shareName = path.strip("/").split("/")[-1]
         conduit = WebDAVConduit(view=view, shareName=shareName,
                                 account=account)
+        mode = "both"
         if url.endswith(".ics"):
             import ICalendar
             format = ICalendar.ICalendarFormat(view=view)
+            mode = "get"
         else:
             format = CloudXMLFormat(view=view)
         share = Share(view=view, conduit=conduit, format=format)
         share.hidden = False
+        share.mode = mode
     return share
 
 
@@ -1690,6 +1698,12 @@ def manualPublishCollection(view, collection):
         share.format.delete()
         share.delete()
         return
+
+    if shareName.endswith(".ics"):
+        import ICalendar
+        format = ICalendar.ICalendarFormat(view=view)
+        share.mode = "put"
+        share.format = format
 
     try:
         share.create()
