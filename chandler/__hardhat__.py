@@ -17,9 +17,12 @@ dependencies = (
 def build(buildenv):
 
     os.chdir("distrib")
-    os.chdir("win")
 
     if buildenv['os'] == 'posix' or buildenv['os'] == 'osx':
+	if buildenv['os'] == 'posix':
+	    os.chdir("linux")
+	if buildenv['os'] == 'osx':
+	    os.chdir("osx")
 	if buildenv['version'] == 'release':
 	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
 	     info['name'], "Copying RunRelease to release")
@@ -32,6 +35,7 @@ def build(buildenv):
 	     os.sep + "debug")
 
     if buildenv['os'] == 'win':
+	os.chdir("win")
 	if buildenv['version'] == 'release':
 	    hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, 
 	     info['name'], "Copying MSVCR70.DLL to release/bin")
