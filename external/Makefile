@@ -46,7 +46,7 @@ $(SYSTEMS):
 all: env sources $(SYSTEMS)
 
 world: all binaries install
-	make -C ../internal DEBUG=$(DEBUG) all binaries install
+	make -C ../internal DEBUG=$(DEBUG) world
 
 clean: env
 	@for system in $(SYSTEMS); \

@@ -1,3 +1,4 @@
 *.gz
 *.zip
-yapps3
+yapps*
+*.md5

@@ -1,16 +1,13 @@
---- PyLucene-0.6.2/Makefile	Wed Oct 13 15:07:12 2004
-+++ PyLucene-0.6.2-patched/Makefile	Sat Oct 16 23:07:52 2004
-@@ -134,21 +134,23 @@
- 
- ifeq ($(OS),Cygwin)
+--- PyLucene-0.8.2/Makefile	Mon Oct 25 11:45:31 2004
++++ PyLucene-0.8.2-patched/Makefile	Mon Nov  1 14:52:29 2004
+@@ -137,19 +137,21 @@
  PYTHON_SITE=`cygpath -aw $(PREFIX_PYTHON)/Lib/site-packages`
  PYTHON_INC=`cygpath -aw $(PREFIX_PYTHON)/Include`
  PYTHON_PC=`cygpath -aw $(PREFIX_PYTHON)/PC`
  PYLUCENE_LIB=$(BINDIR)/_PyLucene$(_SUFFIX).pyd
  LIBDB_JAVA_LIB=$(BINDIR)/libdb_java42$(SUFFIX).dll
  ifeq ($(DEBUG),1)
--CCFLAGS=-g 
-+CCFLAGS=-O -g 
+ CCFLAGS=-O -g 
  LDFLAGS=-g
 +PYDBG=-DPy_TRACE_REFS
  else
@@ -25,7 +22,7 @@
  endif
  endif
  endif
-@@ -206,17 +208,17 @@
+@@ -219,17 +221,17 @@
  
  ifeq ($(OS),Cygwin)
  DB_SRCS=`find $(DB)/java/src/com/sleepycat/db -regex '.*/db/[^/]*java' -exec cygpath -aw {} \;` 
@@ -44,7 +41,7 @@
  SWIG_OPT=-D_WITH_DB_DIRECTORY=1
  
  $(BINDIR)/db_const.o:
-@@ -383,16 +385,19 @@
+@@ -525,16 +527,19 @@
  
  
  all: env sources $(BINDIR) $(LIBS)
@@ -64,7 +61,7 @@
  	install libdb_java-4.2.la.osx $(PREFIX_DB)/lib/libdb_java-4.2.la
  endif
  	install $(GCJ_HOME)/lib/libgcj.5.dylib $(PREFIX)/lib
-@@ -400,22 +405,25 @@
+@@ -542,22 +547,25 @@
  	install $(GCJ_HOME)/lib/libgcc_s.1.0.dylib $(PREFIX)/lib
  else
  
@@ -91,9 +88,9 @@
  
  clean:
  	rm -rf $(BINDIR) PyLucene.py* PyLucene_wrap.cxx
---- PyLucene-0.6.2/PyLucene.i	Sat Oct  2 13:34:04 2004
-+++ PyLucene-0.6.2-patched/PyLucene.i	Wed Oct 13 14:28:44 2004
-@@ -918,14 +918,35 @@
+--- PyLucene-0.8.2/PyLucene.i	Mon Oct 25 11:16:26 2004
++++ PyLucene-0.8.2-patched/PyLucene.i	Mon Nov  1 14:53:16 2004
+@@ -2130,16 +2130,37 @@
  #endif
  
      objects = new java::util::Hashtable();
@@ -123,9 +120,11 @@
 +    Py_DECREF(path);
 +    Py_DECREF(sys);
 +
+     JvInitClass(&java::util::Locale::class$);
+     JvInitClass(&org::apache::lucene::analysis::StopAnalyzer::class$);
      JvInitClass(&org::apache::lucene::document::Field::class$);
      JvInitClass(&org::apache::lucene::queryParser::QueryParser::class$);
+     JvInitClass(&org::apache::lucene::search::BooleanQuery::class$);
+     JvInitClass(&org::apache::lucene::search::SortField::class$);
+     JvInitClass(&org::apache::lucene::search::Sort::class$);
      JvInitClass(&org::apache::lucene::store::FSDirectory::class$);
-     JvInitClass(&org::apache::lucene::index::IndexReader::class$);
-     JvInitClass(&org::osafoundation::util::PythonRef::class$);
- %}
