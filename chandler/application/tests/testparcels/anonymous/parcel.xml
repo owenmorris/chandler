@@ -15,6 +15,17 @@
           <type itemref="this:myKind"/>
           <cardinality value="dict"/>
       </Attribute>
+      <Attribute itsName="myInner">
+        <type itemref="this:innerKind"/>
+        <cardinality value="list"/>            
+      </Attribute>
+  </Kind>
+  
+  <Kind itsName="myInnerKind">
+      <Attribute itsName="innerAttr">
+        <type itemref="String"/>
+        <cardinality>single</cardinality>
+      </Attribute>
   </Kind>
   
   <this:myKind itsName="itemWithAttributes">
@@ -24,7 +35,10 @@
   </this:myKind>
   
   <this:myKind itsName="itemWithSubItem">
-      <this:myKind />
+    <this:myInner>
+        <!-- <innerAttr value="Inner attribute value"/> -->
+    </this:myInner>
+    <this:myKind />
   </this:myKind>
 
 </Parcel>
