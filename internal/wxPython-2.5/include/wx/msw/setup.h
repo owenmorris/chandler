@@ -26,24 +26,6 @@
 // compatibility settings
 // ----------------------------------------------------------------------------
 
-// This setting determines the compatibility with 1.68 API:
-// Level 0: no backward compatibility, all new features
-// Level 1: some extra methods are defined for compatibility.
-//
-// Default is 0.
-//
-// Recommended setting: 0 (in fact the compatibility code is now very minimal
-// so there is little advantage to setting it to 1.
-#define WXWIN_COMPATIBILITY  0
-
-// This setting determines the compatibility with 2.0 API: set it to 1 to
-// enable it
-//
-// Default is 0.
-//
-// Recommended setting: 0 (please update your code instead!)
-#define WXWIN_COMPATIBILITY_2 0
-
 // This setting determines the compatibility with 2.2 API: set it to 1 to
 // enable it but please consider updating your code instead.
 //
@@ -172,10 +154,10 @@
 // Set wxUSE_UNICODE_MSLU to 1 if you want to compile wxWindows in Unicode mode
 // and be able to run compiled apps under Windows 9x as well as NT/2000/XP.
 // This setting enables use of unicows.dll from MSLU (MS Layer for Unicode, see
-// http://www.microsoft.com/globaldev/handson/dev/mslu_announce.mspx). Note that
-// you will have to modify the makefiles to include unicows.lib import library
-// as the first library (if you use MSVC, you can run the makefile with "nmake
-// MSLU=1 UNICODE=1" command).
+// http://www.microsoft.com/globaldev/handson/dev/mslu_announce.mspx). Note
+// that you will have to modify the makefiles to include unicows.lib import
+// library as the first library (see installation instructions in install.txt
+// to learn how to do it when building the library or samples).
 //
 // If your compiler doesn't have unicows.lib, you can get a version of it at
 // http://libunicows.sourceforge.net
@@ -198,6 +180,31 @@
 // ----------------------------------------------------------------------------
 // global features
 // ----------------------------------------------------------------------------
+
+// Compile library in exception-safe mode? If set to 1, the library will try to
+// behave correctly in presence of exceptions (even though it still will not
+// use the exceptions itself) and notify the user code about any unhandled
+// exceptions. If set to 0, propagation of the exceptions through the library
+// code will lead to undefined behaviour -- but the code itself will be
+// slightly smaller and faster.
+//
+// Default is 1
+//
+// Recommended setting: depends on whether you intend to use C++ exceptions
+//                      in your own code (1 if you do, 0 if you don't)
+#define wxUSE_EXCEPTIONS    1
+
+// Set wxUSE_EXTENDED_RTTI to 1 to use extended RTTI
+//
+// Default is 0
+//
+// Recommended setting: 0
+#define wxUSE_EXTENDED_RTTI 0
+
+#if defined(__BORLANDC__)
+#undef wxUSE_EXTENDED_RTTI
+#define wxUSE_EXTENDED_RTTI 1
+#endif
 
 // Set wxUSE_STL to 1 to derive wxList(Foo) and wxArray(Foo) from
 // std::list<Foo*> and std::vector<Foo*>, with a compatibility interface,
@@ -231,7 +238,7 @@
 // Default is 1
 //
 // Recommended setting: 1 (can be set to 0 if you don't use the cmd line)
-#define wxUSE_CMDLINE_PARSER 0
+#define wxUSE_CMDLINE_PARSER 1
 
 // Support for multithreaded applications: if 1, compile in thread classes
 // (thread.h) and make the library a bit more thread safe. Although thread
@@ -388,8 +395,11 @@
 #define wxUSE_ZIPSTREAM     1
 
 // Set to 1 to compile wxZlibInput/OutputStream classes. Also required by
-// wxUSE_LIBPNG.
+// wxUSE_LIBPNG and wxUSE_GZSTREAM.
 #define wxUSE_ZLIB          1
+
+// Set to 1 to compile wxGzipInput/OutputStream classes. Requires wxUSE_ZLIB.
+#define wxUSE_GZSTREAM      1
 
 // If enabled, the code written by Apple will be used to write, in a portable
 // way, float on the disk. See extended.c for the license which is different
@@ -425,6 +435,16 @@
 // Define this to use wxURL class.
 #define wxUSE_URL 1
 
+// Define this to use native platform url and protocol support.
+// Currently valid only for MS-Windows.
+// Note: if you set this to 1, you can open ftp/http/gopher sites
+// and obtain a valid input stream for these sites
+// even when you set wxUSE_PROTOCOL_FTP/HTTP to 0.
+// Doing so reduces the code size.
+//
+// This code is experimental and subject to change.
+#define wxUSE_URL_NATIVE 0
+
 // Support for regular expression matching via wxRegEx class: enable this to
 // use POSIX regular expressions in your code. You need to compile regex
 // library from src/regex to use it under Windows.
@@ -438,8 +458,8 @@
 // wxSystemOptions class
 #define wxUSE_SYSTEM_OPTIONS 1
 
-// wxWave class
-#define wxUSE_WAVE      1
+// wxSound class
+#define wxUSE_SOUND      1
 
 // XML parsing classes. Note that their API will change in the future, so
 // using wxXmlDocument and wxXmlNode in your app is not recommended.
@@ -529,17 +549,13 @@
 
 // wxToolBar related settings: if wxUSE_TOOLBAR is 0, don't compile any toolbar
 // classes at all. Otherwise, use the native toolbar class unless
-// wxUSE_TOOLBAR_NATIVE is 0. Additionally, the generic toolbar class which
-// supports some features which might not be supported by the native wxToolBar
-// class may be compiled in if wxUSE_TOOLBAR_SIMPLE is 1.
+// wxUSE_TOOLBAR_NATIVE is 0.
 //
 // Default is 1 for all settings.
 //
-// Recommended setting: 1 for wxUSE_TOOLBAR and wxUSE_TOOLBAR_NATIVE and 0 for
-// wxUSE_TOOLBAR_SIMPLE (the default is 1 mainly for backwards compatibility).
+// Recommended setting: 1 for wxUSE_TOOLBAR and wxUSE_TOOLBAR_NATIVE.
 #define wxUSE_TOOLBAR 1
 #define wxUSE_TOOLBAR_NATIVE 1
-#define wxUSE_TOOLBAR_SIMPLE 1
 
 // this setting is obsolete, value is ignored
 #define wxUSE_BUTTONBAR    1
@@ -553,6 +569,14 @@
 //
 // Recommended setting: 1
 #define wxUSE_NOTEBOOK 1
+
+// wxListbook control is similar to wxNotebook but uses wxListCtrl instead of
+// the tabs
+//
+// Default is 1.
+//
+// Recommended setting: 1
+#define wxUSE_LISTBOOK 1
 
 // wxTabDialog is a generic version of wxNotebook but it is incompatible with
 // the new class. It shouldn't be used in new code.
@@ -594,7 +618,7 @@
 // Default is 0 because it isn't yet implemented on all platforms
 //
 // Recommended setting: 1 if you need it, can be safely set to 0 otherwise
-#define wxUSE_DISPLAY       0
+#define wxUSE_DISPLAY       1
 
 // Miscellaneous geometry code: needed for Canvas library
 #define wxUSE_GEOMETRY            1
@@ -1009,12 +1033,7 @@
 //
 // Default is 0 for (most) Win32 (systems), 1 for Win16
 //
-// Recommended setting: same as default
-#if defined(__WIN95__)
 #define wxUSE_ITSY_BITSY             0
-#else
-#define wxUSE_ITSY_BITSY             1
-#endif
 
 // Set this to 1 to use RICHEDIT controls for wxTextCtrl with style wxTE_RICH
 // which allows to put more than ~32Kb of text in it even under Win9x (NT
