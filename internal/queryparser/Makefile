@@ -25,7 +25,7 @@ snap:
 	tar -cvzf $(QP)/QueryParser-$(SNAP)-$(RELVER).tar.gz $(MANIFEST)
 
 clean:
-	rm -rf $(SRC)/QueryParser.py $(MANIFEST)
+	rm -f $(SRC)/QueryParser.py $(MANIFEST)
 
 install:
 	tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/../chandler -xvf -
