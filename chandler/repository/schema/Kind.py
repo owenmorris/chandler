@@ -47,12 +47,7 @@ class Kind(Item):
         The python class instantiated is taken from the Kind's classes
         attribute if it is set. The Item class is used otherwise."""
         
-        item = self.getItemClass()(name, parent, self)
-        if self._kind is self:
-            superKind = self._kind.itsParent.getItemChild('Item')
-            item.addValue('superKinds', superKind)
-
-        return item
+        return self.getItemClass()(name, parent, self)
             
     def getItemClass(self):
         """Return the class used to create items of this Kind.
@@ -61,6 +56,18 @@ class Kind(Item):
 
         return self.getAttributeValue('classes').get('python', Item)
 
+    def check(self, recursive=False):
+
+        result = super(Kind, self).check(recursive)
+        
+        if not self.getAttributeValue('superKinds', default=None,
+                                      _attrDict = self._references):
+            self.getRepository().logger.warn('No superKinds for %s',
+                                             self.itsPath)
+            result = False
+
+        return result
+        
     def resolve(self, name):
 
         child = self.getItemChild(name)
@@ -173,11 +180,14 @@ class Kind(Item):
 
     def _getSuperKinds(self):
 
-        try:
-            return self.getAttributeValue('superKinds',
-                                          _attrDict=self._references)
-        except AttributeError:
-            raise ValueError, 'No superKind for %s' %(self.itsPath)
+        superKinds = self.getAttributeValue('superKinds', default=None,
+                                            _attrDict=self._references)
+        if not superKinds:
+            self.getRepository().logger.warn('No superKinds for %s',
+                                             self.itsPath)
+            return [ self._kind.itsParent['Item'] ]
+
+        return superKinds
 
     def _xmlRefs(self, generator, withSchema, version, mode):
 
@@ -331,3 +341,6 @@ class ItemKind(Kind):
 
     def _getSuperKinds(self):
         return []
+
+    def check(self, recursive=False):
+        return super(Kind, self).check(recursive)

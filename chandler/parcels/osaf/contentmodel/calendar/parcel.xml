@@ -262,6 +262,7 @@
   </Kind>
 
   <Kind itemName="Location">
+    <superKinds itemref="Item"/>
     <displayName>Location</displayName>
     <issues>Location may not be calendar specific</issues>
     <attributes itemref="content:name"/>
@@ -271,6 +272,7 @@
   </Kind>
 
   <Kind itemName="Calendar">
+    <superKinds itemref="Item"/>
     <displayName>Calendar</displayName>
     <issues>Calendar should have an attribute that points to all the Calendar Events.</issues>
     <issues>Calendar should maybe have a 'Timezone' attribute.</issues>
@@ -280,6 +282,7 @@
   </Kind>
 
   <Kind itemName="RecurrencePattern">
+    <superKinds itemref="Item"/>
     <issues>Recurrence Pattern is still a placeholder, and  might be general enough to live with PimSchema.</issues>
     <issues>Recurrence Pattern should have an attribute that points to a Calendar Event.</issues>
     <displayName>Recurrence Pattern</displayName>
@@ -287,6 +290,7 @@
   </Kind>
 
   <Kind itemName="Reminder">
+    <superKinds itemref="Item"/>
     <issues>Reminder is still a placeholder, and  might be general enough to live with PimSchema.</issues>
     <issues>Reminder should have an attribute that points to a Calendar Event.</issues>
     <displayName>Reminder</displayName>

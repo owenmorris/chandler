@@ -21,6 +21,7 @@
 
 <!-- Attachment -->
   <Kind itemName="Attachment">
+    <superKinds itemref="Item"/>
     <displayName>Attachment</displayName>
     <examples>'Budget.doc'</examples>
     <examples>'funny.jpg'</examples>
@@ -96,6 +97,7 @@
   </Attribute>
 
   <Kind itemName="EmailAccount">
+    <superKinds itemref="Item"/>
     <displayName>Email Account</displayName>
     <examples>My work account on the company IMAP server at mail.BigCompany.com</examples>
     <examples>My home account on my ISP's POP server.</examples>
@@ -130,6 +132,7 @@
   </Attribute>
 
   <Kind itemName="EmailAddress"> 
+    <superKinds itemref="Item"/>
     <displayName>Email Address</displayName>
     <examples>"abe@osafoundation.org"</examples>
     <description>An item that represents a simple email address, plus all the info we might want to associate with it, like lists of message to and from this address.</description>

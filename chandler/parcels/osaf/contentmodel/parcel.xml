@@ -108,6 +108,7 @@
   </core:Attribute>
 
   <core:Kind itemName="ContentItem">
+    <core:superKinds itemref="core:Item"/>
     <core:displayName>Content Item</core:displayName>
     <core:examples>an Calendar Event -- 'Lunch with Tug'</core:examples>
     <core:examples>a Contact -- 'Terry Smith'</core:examples>
@@ -157,6 +158,7 @@
   </core:Attribute>
 
   <core:Kind itemName="Project">
+    <core:superKinds itemref="core:Item"/>
     <core:displayName>Project</core:displayName>
     <core:examples>my "Housewarming Party" project</core:examples>
     <core:examples>my department's "Move to new building" project</core:examples>

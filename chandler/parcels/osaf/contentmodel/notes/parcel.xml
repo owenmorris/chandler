@@ -127,6 +127,7 @@
   </Attribute>
 
   <Kind itemName="ConversationLine">
+    <superKinds itemref="Item"/>
     <displayName>Conversation Line</displayName>
     <issues>Perhaps for performance reasons we should implement 'ConversationLine' as a struct rather than a first-class Kind.</issues>
     <attributes itemref="notes:author"/>

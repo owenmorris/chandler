@@ -251,6 +251,7 @@
   </Attribute>
 
   <Kind itemName="ContactSection">
+    <superKinds itemref="Item"/>
     <displayName>Contact Section</displayName>
     <description>A section of contact info. For example, my Contact for my mom might have sections like 'home', 'work', 'at studio', 'vermont house'.</description>
     <issues>We need a displayName attribute on ContactSection, to keep track of the name of the section, like 'home', 'work', 'at studio', 'vermont house'.</issues>
@@ -317,6 +318,7 @@
   <!-- ContactName Item Definition -->
 
   <Kind itemName="ContactName">
+    <superKinds itemref="Item"/>
     <displayName>Contact Name</displayName>
     <description>The name of a contact, like "Dr. Sara Anne Gibson", or "Denver Hospital".</description>
     <description>See also: http://wiki.osafoundation.org/twiki/bin/view/Chandler/ContactSchemaNotes</description>
@@ -399,6 +401,7 @@
   </Attribute>
 
   <Kind itemName="StreetAddress">
+    <superKinds itemref="Item"/>
     <displayName>Street Address</displayName>
     <examples>543 Howard St. 5th Floor, San Francisco, CA 94105</examples>
     <displayAttribute itemref="contact:fullAddress"/>
@@ -454,6 +457,7 @@
   </Attribute>
 
   <Kind itemName="PhoneNumber">
+    <superKinds itemref="Item"/>
     <displayName>Phone Number</displayName>
     <displayAttribute itemref="contact:phoneNumber"/>
     <attributes itemref="contact:phoneNumber"/>

@@ -104,6 +104,7 @@
   -->
   <Kind itemName="Query">
     <classes key="python">OSAF.framework.blocks.Query.Query</classes>
+    <superKinds itemref="Item"/>
 
     <Attribute itemName="usedInBlocks">
       <type itemref="docSchema:Block"/>
@@ -153,6 +154,7 @@
   -->
   <Kind itemName="Style">
     <classes key="python">OSAF.framework.blocks.Styles.Style</classes>
+    <superKinds itemref="Item"/>
     
     <Attribute itemName="usedInBlocks">
       <type itemref="docSchema:Block"/>
@@ -234,6 +236,7 @@
   </Attribute>
 
   <Kind itemName="EventData">
+    <superKinds itemref="Item"/>
     <attributes itemref="docSchema:blockEvents"/>
   </Kind>
 
@@ -243,6 +246,7 @@
 
   <Kind itemName="Block">
     <classes key="python">OSAF.framework.blocks.Block.Block</classes>
+    <superKinds itemref="Item"/>
 
     <Attribute itemName="contentSpec">
       <type itemref="docSchema:Query"/>
@@ -860,6 +864,7 @@
   -->
   <Kind itemName="Node">
     <classes key="python">OSAF.framework.blocks.Node.Node</classes>
+    <superKinds itemref="Item"/>
 
     <Attribute itemName="parent">
       <type itemref="docSchema:Node"/>
