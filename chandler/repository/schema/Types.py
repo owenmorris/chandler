@@ -239,10 +239,10 @@ class DateTimeDelta(Type):
 
     def _fieldXML(self, value, field, generator):
 
-        default = RelativeDateTime.defaults[field]
+        default = DateTimeDelta.defaults[field]
         fieldValue = getattr(value, field, default)
         if default != fieldValue:
-            super(RelativeDateTime, self)._fieldXML(value, field, generator)
+            super(DateTimeDelta, self)._fieldXML(value, field, generator)
           
     def getValue(self, itemHandler, data):
 
