@@ -17,7 +17,8 @@ from RdfClass import RdfClass
 from RdfProperty import RdfProperty
 
 class LocalRepository:
-
+    _displayRAPMessages = 0
+    
     # as per the borg pattern, this will become the object's __dict__
     _shared_state = {}
  
@@ -26,26 +27,34 @@ class LocalRepository:
     _echo_rap = False
     if os.path.exists('_echo_.txt'):
         _echo_rap = True
-        print "_echo_.txt exists: _echo_rap = True"
+        if _displayRAPMessages: 
+            print "_echo_.txt exists: _echo_rap = True"
     else:
-        print "file _echo_.txt is missing: _echo_rap = False"
+        if _displayRAPMessages: 
+            print "file _echo_.txt is missing: _echo_rap = False"
         
     if os.path.exists('_rap_.txt'):
         _use_rap = True
-        if _echo_rap: print "_rap_.txt exists: _use_rap = True"
+        if _echo_rap: 
+            if _displayRAPMessages: 
+                print "_rap_.txt exists: _use_rap = True"
     else:
-        if _echo_rap: print "file _rap_.txt is missing: _use_rap = False"
+        if _echo_rap: 
+            if _displayRAPMessages: 
+                print "file _rap_.txt is missing: _use_rap = False"
     
     if _use_rap:
         try:
             import rap
         except:
             _use_rap = False
-            print "import rap failed; maybe net/rap has not been built"
+            if _displayRAPMessages: 
+                print "import rap failed; maybe net/rap has not been built"
          
     if _use_rap:
         rap.RAP_ClientInit() # should later call rap.RAP_ClientShutdown()
-        print "rap.RAP_ClientInit()"
+        if _displayRAPMessages: 
+            print "rap.RAP_ClientInit()"
 
     _shared_state['_use_rap'] = _use_rap
     _shared_state['_echo_rap'] = _echo_rap
@@ -81,11 +90,12 @@ class LocalRepository:
     def __init__(self):
         self.__dict__ = self._shared_state
         # begin {
-        if self._echo_rap:
-            if self._use_rap:
-                print "LocalRepository._use_rap => True"
-            else:
-                print "LocalRepository._use_rap => False"
+        if self._displayRAPMessages:
+            if self._echo_rap:
+                if self._use_rap:
+                    print "LocalRepository._use_rap => True"
+                else:
+                    print "LocalRepository._use_rap => False"
         # } end
 
     # @@@ Need to close the file at some point?
