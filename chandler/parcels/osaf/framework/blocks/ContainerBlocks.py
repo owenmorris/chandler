@@ -53,7 +53,7 @@ class ContainerChild(Block):
         """
         if window:
             UUID = self.getUUID()
-            assert not Globals.association.has_key(UUID)
+#            assert not Globals.association.has_key(UUID)
             Globals.association[UUID] = window
             window.counterpartUUID = UUID
             """
@@ -184,17 +184,15 @@ class EmbeddedContainer(RectangularChild):
         parent.Layout ()
     
     def OnSelectionChangedEvent (self, notification):
-        # @@@ This isn't working yet.  For some reason, switching parcels
-        #  causes an infinite number of UpdateUI notifications to be posted.
-        return
         node = notification.data['node']
         name = node.treeList.GetItemText(node.nodeId)
         oldChild = Globals.repository.find (self.contentSpec.data)
         wxOldChild = Globals.association [oldChild.getUUID()]
-        parent = wxOldChild.GetContainingSizer ()
-        parentWindow = wxOldChild.GetParent()
-        
-        self.removeFromContainer(parent, wxOldChild)
+        embeddedPanel = Globals.association [ self.getUUID()]
+        embeddedSizer = embeddedPanel.GetSizer ()
+        embeddedSizer.Remove(wxOldChild)
+        wxOldChild.Destroy()
+        embeddedSizer.Layout()
         oldChild.parentBlock = None
         
         if name == "Demo":
@@ -205,7 +203,8 @@ class EmbeddedContainer(RectangularChild):
         newChild = Globals.repository.find (self.contentSpec.data)
         if newChild:
             newChild.parentBlock = self
-            newChild.render (parent, parentWindow)
+            newChild.render (embeddedSizer, embeddedPanel)
+        embeddedSizer.Layout()
         
             
 class Button(RectangularChild):
@@ -412,6 +411,7 @@ class SplitWindow(RectangularChild):
             window.SplitVertically(self.childrenToAdd[0],
                                    self.childrenToAdd[1],
                                    int (round (width * self.splitPercentage)))
+        self.childrenToAdd = []
         return window
    
 
@@ -479,6 +479,7 @@ class TabbedContainer(RectangularChild):
             for child in self.childrenToAdd:
                 window.AddPage(child, self.tabNames[childNameIndex])
                 childNameIndex = childNameIndex + 1
+        self.childrenToAdd = []
 
     def OnChooseTabEvent (self, notification):
         tabbedContainer = Globals.association[self.getUUID()]

@@ -539,7 +539,7 @@
     <childrenBlocks itemref="doc:ButtonsTab"/>
     <childrenBlocks itemref="doc:ControlsTab"/>
     <childrenBlocks itemref="doc:DataTab"/>
-    <childrenBlocks itemref="doc:EmbeddedTab"/>
+    <!-- childrenBlocks itemref="doc:EmbeddedTab"/ -->
 
     <tabPosEnum>Top</tabPosEnum>
     <tabNames>Buttons</tabNames>
@@ -568,8 +568,8 @@
     <blockEvents itemref="doc:ChooseButtonsTab"/>
     <blockEvents itemref="doc:ChooseControlsTab"/>
     <blockEvents itemref="doc:ChooseDataTab"/>
-    <blockEvents itemref="doc:SwitchEmbeddedChild"/>
-    <blockEvents itemref="doc:ChooseEmbeddedTab"/>
+    <!-- blockEvents itemref="doc:SwitchEmbeddedChild"/ -->
+    <!-- blockEvents itemref="doc:ChooseEmbeddedTab"/ -->
 
     <childrenBlocks itemref="doc:Tabs"/>
     <open>True</open>
