@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<!-- $Revision$ -->
+<!-- $Date$ -->
+<!-- Copyright (c) 2003 Open Source Applications Foundation -->
+<!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
+
+<Parcel itsName="sharing"
+    xmlns="http://osafoundation.org/parcels/core"
+    xmlns:notif="http://osafoundation.org/parcels/osaf/framework/notifications/schema"
+    itemClass="osaf.framework.sharing.Sharing.Parcel"
+    >
+
+    <displayName value="Sharing Parcel" />
+    <description value="Code for sharing related activities (handling sharing invites, etc)" />
+    <version value="0.3" />
+    <author value="Open Source Applications Foundation" />
+
+    <notif:Event itsName="sharingUpdateEvent">
+        <displayName value="Sharing Update Event" />
+        <description value="This event is posted when an inbound sharing update is received. The sharing parcel subscribes to it." />
+    </notif:Event>
+
+</Parcel>
