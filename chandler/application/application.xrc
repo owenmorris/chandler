@@ -63,7 +63,7 @@
                         <flag>wxALL|wxEXPAND</flag>
                         <border>1</border>
                         <object class="wxTreeCtrl" subclass="application.SideBar.wxSideBar" name="SideBar">
-                            <size>100,10</size>
+                            <size>120,10</size>
                             <style>wxTR_HAS_BUTTONS|wxTR_HIDE_ROOT|wxTR_SINGLE|wxTR_DEFAULT_STYLE</style>
                         </object>
                     </object>
