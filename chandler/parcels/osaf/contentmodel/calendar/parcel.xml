@@ -42,7 +42,7 @@
   <Attribute itsName="eventsAtLocation">
     <displayName>Calendar Events</displayName>
     <cardinality>list</cardinality>
-    <type itemref="cal:CalendarEvent"/>
+    <type itemref="cal:CalendarEventMixin"/>
     <inverseAttribute itemref="cal:location"/>
   </Attribute>
 

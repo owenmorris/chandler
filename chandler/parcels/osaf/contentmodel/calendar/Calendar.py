@@ -9,6 +9,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import application.Globals as Globals
 import application
 import repository.item.Item as Item
+import repository.query.Query as Query
 
 import osaf.contentmodel.ContentModel as ContentModel
 import osaf.contentmodel.Notes as Notes
@@ -217,6 +218,47 @@ class Location(Item.Item):
             kind = CalendarParcel.getLocationKind()
         super (Location, self).__init__(name, parent, kind)
 
+    def __str__ (self):
+        """
+          User readable string version of this Location
+        """
+        if self.isStale():
+            return super(Location, self).__str__()
+            # Stale items can't access their attributes
+        return self.getItemDisplayName ()
+
+    def getLocation (cls, locationName):
+        """
+          Factory Method for getting a Location.
+
+          Lookup or create a Location based on the supplied name string.
+        If a matching Location object is found in the repository, it
+        is returned.  If there is no match, then a new item is created
+        and returned.  
+        @param locationName: name of the Location
+        @type locationName: C{String}
+        @return: C{Location} created or found
+        """
+        # make sure the locationName looks reasonable
+        assert locationName, "Invalid locationName passed to getLocation factory"
+
+        # get all Location objects whose displayName match the param
+        queryString = u'for i in "//parcels/osaf/contentmodel/calendar/Location" \
+                      where i.displayName ==$0'
+        locQuery = Query.Query (Globals.repository, queryString)
+        locQuery.args = [ locationName ]
+        locQuery.execute ()
+
+        # return the first match found, if any
+        for firstSpot in locQuery:
+            return firstSpot
+
+        # make a new Location
+        newLocation = Location()
+        newLocation.displayName = locationName
+        return newLocation
+
+    getLocation = classmethod (getLocation)
 
 class Calendar(Item.Item):
     def __init__(self, name=None, parent=None, kind=None):
