@@ -15,3 +15,4 @@ Chandler-project.wpu
 Chandler-project-debug.wpu
 *.pyc
 *.pyo
+stdout.log

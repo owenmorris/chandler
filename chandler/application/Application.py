@@ -148,24 +148,20 @@ class wxApplication (wxApp):
 
     def __init__(self, argv=[]):
         """
-          Overriding the __init__() method for wxApp so that we can check
-        to see if the user wants stdio redirected to a window or left 
-        to the console.  Setting WXREDIRECT=0 will tell wxApp to let
-        stdio go to the console; setting WXREDIRECT=1 will redirect to 
-        a popup window; not setting WXREDIRECT at all will let wxApp
-        decide what to do.
+          Overriding the __init__() method for wxApp so that we can 
+        apply our own stdout/stderr handler, and tell wxPython not
+        to perform its standard redirection.  We have a customized 
+        handler for that.
         """
 
         self.argv = argv
 
-        if os.environ.has_key('WXREDIRECT'):
-            if os.environ['WXREDIRECT'] != '0':
-                redirect = True
-            else:
-                redirect = False
-            wxApp.__init__(self, redirect)
-        else:
-            wxApp.__init__(self)
+        # Send stdout/stderr to our custom handler
+        self.outputHandler = StandardOutputHandler("stdout.log")
+        sys.stdout = sys.stderr = self.outputHandler
+
+        # Tell wxApp not to do redirection
+        wxApp.__init__(self, False)
 
     def OnInit(self):       
         """
@@ -713,3 +709,37 @@ class wxApplication (wxApp):
         def onCloseDebuggerWindow(self, event):
             self.crustFrame.Destroy()
     
+
+class StandardOutputHandler(wxPyOnDemandOutputWindow):
+    """ 
+        Send all text passed to the write() method to:
+        - the real sys.stdout
+        - a logfile
+        - a popup window
+    """
+
+    def __init__(self, logFileName):
+        """
+        Override the super's __init__ so we can store the log file name,
+        put a visual separator into the log file to mark the start of this 
+        session, and save away the real stdout object.
+        """
+        wxPyOnDemandOutputWindow.__init__(self, 
+         "stdout/stderr also logged to " + logFileName)
+        self._logFileName = logFileName
+        self._realStdOut = sys.stdout
+        logFile = open(self._logFileName, "a")
+        logFile.write("\n------------------------------------------------\n")
+        logFile.close()
+    
+    def write(self, str):
+        """
+        Someone is trying to write to stdout or stderr; pass the text on to
+        the real stdout, to our logfile, and let the wxPy stdout popup window
+        display the text as well.
+        """
+        self._realStdOut.write(str)
+        logFile = open(self._logFileName, "a")
+        logFile.write(str)
+        logFile.close()
+        wxPyOnDemandOutputWindow.write(self, str)
