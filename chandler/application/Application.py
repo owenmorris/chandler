@@ -130,10 +130,15 @@ class wxApplication (wxApp):
 
         self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
         
-        #Setup internationalization
+        # Setup internationalization
+        # To experiment with a different locale, try 'fr' and wxLANGUAGE_FRENCH
         os.environ['LANGUAGE'] = 'en'
         self.locale = wxLocale(wxLANGUAGE_ENGLISH)
-        locale.setlocale(locale.LC_ALL, 'en')
+        
+        # @@@ Sets the python locale, used by wxCalendarCtrl and mxDateTime
+        # for month and weekday names. When running on Linux, 'en' is not
+        # understood as a locale, nor is 'fr'. On Windows, you can try 'fr'.
+        # locale.setlocale(locale.LC_ALL, 'en')
         
         wxLocale_AddCatalogLookupPathPrefix('locale')
         self.locale.AddCatalog('Chandler.mo')
