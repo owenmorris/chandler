@@ -21,3 +21,5 @@ wxApplication = None          # The wxWindows application object
 activeView = None             # The last view that was displayed
 crypto = None                 # Cryptographic services
 wakeupCaller = None           # WakeupCaller Service
+options = None                # Command line options
+args = None                   # Command line arguments

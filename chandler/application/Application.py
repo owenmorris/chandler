@@ -155,17 +155,15 @@ class wxApplication (wx.App):
         parcelDir = os.path.join(Globals.chandlerDirectory,
                                  self.PARCEL_IMPORT.replace ('.', os.sep))
         sys.path.insert (1, parcelDir)
+        
         """
         If PARCELDIR env var is set, put that
         directory into sys.path before any modules are imported.
         """
-        debugParcelDir = None
-        if os.environ.has_key('PARCELDIR'):
-            path = os.environ['PARCELDIR']
-            if path and os.path.exists(path):
-                print "Using PARCELDIR environment variable (%s)" % path
-                debugParcelDir = path
-                sys.path.insert (2, debugParcelDir)
+        debugParcelDir = Globals.options.parcelDir
+        if debugParcelDir and os.path.exists(debugParcelDir):
+            print "Using PARCELDIR (%s)" % debugParcelDir
+            sys.path.insert (2, debugParcelDir)
 
         """
           Splash Screen
@@ -206,26 +204,24 @@ class wxApplication (wx.App):
         Load the Repository after the path has been altered, but before
         the parcels are loaded. 
         """
-        Globals.repository = DBRepository("__repository__")
+        if Globals.options.profileDir:
+            path = os.sep.join([Globals.options.profileDir, '__repository__'])
+        else:
+            path = '__repository__'
+            
+        Globals.repository = DBRepository(path)
 
-        kwds = { 'stderr': '-stderr' in sys.argv,
-                 'ramdb': '-ramdb' in sys.argv,
+        kwds = { 'stderr': Globals.options.stderr,
+                 'ramdb': Globals.options.ramdb,
                  'create': True,
                  'recover': True,
-                 'exclusive': '-exclusive' in sys.argv,
-                 'refcounted': True}
-
-        try:
-            index = sys.argv.index ('-repo')
-        except ValueError:
-            pass
-        else:
-            try:
-                kwds['fromPath'] = sys.argv [index +1 ]
-            except IndexError:
-                pass
-
-        if '-create' in sys.argv:
+                 'exclusive': Globals.options.exclusive,
+                 'refcounted': True }
+                 
+        if Globals.options.repo:
+            kwds['fromPath'] = Globals.options.repo
+            
+        if Globals.options.create:
             Globals.repository.create(**kwds)
         else:
             Globals.repository.open(**kwds)

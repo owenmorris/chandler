@@ -3,11 +3,62 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003-2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import sys, os
+import application.Globals
+
+def loadConfig():
+    """
+    Load and parse the command line options.
+    Sets Globals.options and Globals.args
+    """
+      #@@@ Globals.chandlerDirectory can be replaced by '~' if a true profile directory is needed - bear
+      #@@@ todo: add code to determine what a good profileDir value should be if not passed in
+      
+                      # option name, (value, short cmd, long cmd, type flag, default, environment variable, help text)
+    _configItems = { 'parcelDir':  ('-p', '--parcelDir',  's', None,  'PARCELDIR', 'Location for private/user parcels'),
+                     'stderr':     ('-e', '--stderr',     'b', False, None,        'Echo error output to log file'),
+                     'create':     ('-c', '--create',     'b', False, None,        'Force creation of a new repository'),
+                     'ramdb':      ('-d', '--ramdb',      'b', False, None,        ''),
+                     'exclusive':  ('-x', '--exclusive',  'b', False, None,        'open repository exclusive'),
+                     'repo':       ('-r', '--repo',       's', None,  None,        'repository to copy during startup'),
+                     'profileDir': ('',   '--profileDir', 's', application.Globals.chandlerDirectory, 'PROFILE_DIR', 'location of the Chandler Repository'),
+                     'nocatch':    ('-n', '--nocatch', 'b', False, None, ''),
+                     'wing':       ('-w', '--wing',    'b', False, None, ''),
+                     'komodo':     ('-k', '--komodo',  'b', False, None, ''),
+                      }
+
+    from optparse import OptionParser
+    
+    usage  = "usage: %prog [options]"   # %prog expands to os.path.basename(sys.argv[0])
+    parser = OptionParser(usage=usage, version="%prog " + __version__)
+
+    for key in _configItems:
+      (shortCmd, longCmd, optionType, defaultValue, environName, helpText) = _configItems[key]
+    
+      if environName and os.environ.has_key(environName):
+          defaultValue = os.environ[environName]
+
+      if optionType == 'b':
+          parser.add_option(shortCmd, longCmd, dest=key, action='store_true', default=defaultValue, help=helpText)
+      else:
+          parser.add_option(shortCmd, longCmd, dest=key, default=defaultValue, help=helpText)
+
+    (application.Globals.options, application.Globals.args) = parser.parse_args()
+
+    if application.Globals.options.profileDir:
+        application.Globals.options.profileDir = os.path.expanduser(application.Globals.options.profileDir)
+
+
 def main():
     message = "while trying to start."
 
+    """
+    Process any command line switches and any environment variable values
+    """
+    loadConfig()
+
     def realMain():
-        if __debug__ and '-wing' in sys.argv:
+        if __debug__ and application.Globals.options.wing:
             """
               Check for -wing command line argument; if specified, try to connect to
             an already-running WingIDE instance.  See:
@@ -15,7 +66,7 @@ def main():
             for details.
             """
             import wingdbstub
-        if '-komodo' in sys.argv:
+        if application.Globals.options.komodo:
             """
             Check for -komodo command line argument; if specified, try to connect to
             an already-running Komodo instance.  See:
@@ -45,13 +96,12 @@ def main():
           Don't redirect stdio to a file. useBestVisual, uses best screen
         resolutions on some old computers. See wxApp.SetUseBestVisual
         """
-        application = wxApplication(redirect=False, useBestVisual=True)
+        app = wxApplication(redirect=False, useBestVisual=True)
 
         message = "and had to shut down."
-        application.MainLoop()
+        app.MainLoop()
 
-    import sys
-    if '-nocatch' in sys.argv:
+    if application.Globals.options.nocatch:
         # When debugging, it's handy to run without the outer exception frame
         import logging, traceback, wx
         realMain()
