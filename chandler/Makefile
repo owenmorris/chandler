@@ -34,7 +34,7 @@ endif
 HOST=builds.osafoundation.org
 URL=http://$(HOST)/external/$(PLATFORM)
 
-.PHONY: install
+.PHONY: install $(notdir $(ARCHIVES))
 
 default: install
 
@@ -43,9 +43,8 @@ downloads: $(ARCHIVES)
 $(ARCHIVES):
 	curl -o $@ $(URL)/$(notdir $@)
 
-install: $(ARCHIVES)
-	@for archive in $(ARCHIVES); \
-	do \
-            echo tar -C .. -xvzf $$archive; \
-            tar -C .. -xvzf $$archive; \
-	done
+$(notdir $(ARCHIVES)):
+	tar -C .. -xvzf ../$@
+
+install: $(ARCHIVES) $(notdir $(ARCHIVES))
+
