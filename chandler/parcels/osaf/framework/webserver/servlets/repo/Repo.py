@@ -732,7 +732,8 @@ def RenderItem(repoView, item):
                  value)
                 typeName = theType.getImplementationType().__name__
                 result += "<b>(%s)</b> " % typeName
-                content = value.getInputStream().read()
+                uStr = value.getReader().read()
+                content = uStr.encode('ascii', 'replace')
                 result += clean(content)
 
             except Exception, e:
