@@ -175,20 +175,6 @@ class Item(object):
         else:
             super(Item, self).__delattr__(name)
 
-    def _otherName(self, name):
-
-        otherName = None
-        
-        if self._kind is not None:
-            attribute = self._kind.getAttribute(name)
-            if attribute is not None:
-                otherName = attribute.getAspect('otherName')
-
-        if otherName is None:
-            raise TypeError, 'Undefined other endpoint for %s.%s' %(self.itsPath, name)
-
-        return otherName
-
     def hasAttributeAspect(self, name, aspect):
         """
         Tell whether an attribute as value set for the aspect.
@@ -317,7 +303,7 @@ class Item(object):
                 _attrDict = self._values
             elif self._references.has_key(name):
                 _attrDict = self._references
-            elif self.getAttributeAspect(name, 'otherName', default=None):
+            elif self._kind.getOtherName(name, default=None):
                 _attrDict = self._references
             else:
                 _attrDict = self._values
@@ -334,13 +320,13 @@ class Item(object):
                         if old is not NoneRef:
                             # reattaching on original endpoint
                             old.reattach(self, name, old.other(self), value,
-                                         self._otherName(name))
+                                         self._kind.getOtherName(name))
                             return value
                     elif isRef:
                         # reattaching on other endpoint,
                         # can't reuse ItemRef
                         old.detach(self, name, old.other(self),
-                                   self._otherName(name))
+                                   self._kind.getOtherName(name))
                     else:
                         raise TypeError, type(value)
 
@@ -351,8 +337,7 @@ class Item(object):
                     raise TypeError, type(old)
 
         if isItem:
-            otherName = self.getAttributeAspect(name, 'otherName',
-                                                default=None)
+            otherName = self._kind.getOtherName(name, default=None)
             card = self.getAttributeAspect(name, 'cardinality',
                                            default='single')
 
@@ -514,7 +499,7 @@ class Item(object):
 
             if isinstance(value, ItemRef):
                 value.detach(self, name,
-                             value.other(self), self._otherName(name))
+                             value.other(self), self._kind.getOtherName(name))
                 del _attrDict[name]
             elif isinstance(value, RefDict):
                 value.clear()
@@ -801,7 +786,7 @@ class Item(object):
                 _attrDict = self._values
             elif self._references.has_key(attribute):
                 _attrDict = self._references
-            elif self.getAttributeAspect(attribute, 'otherName', default=None):
+            elif self._kind.getOtherName(attribute, default=None):
                 _attrDict = self._references
             else:
                 _attrDict = self._values
@@ -873,7 +858,7 @@ class Item(object):
                 _attrDict = self._values
             elif self._references.has_key(attribute):
                 _attrDict = self._references
-            elif self.getAttributeAspect(attribute, 'otherName', default=None):
+            elif self._kind.getOtherName(attribute, default=None):
                 _attrDict = self._references
             else:
                 _attrDict = self._values
@@ -983,7 +968,7 @@ class Item(object):
                 _attrDict = self._values
             elif self._references.has_key(attribute):
                 _attrDict = self._references
-            elif self.getAttributeAspect(attribute, 'otherName', default=None):
+            elif self._kind.getOtherName(attribute, default=None):
                 _attrDict = self._references
             else:
                 _attrDict = self._values
@@ -1684,10 +1669,10 @@ class Item(object):
 
         if path[_index] == '..':
             if attr is not None:
-                otherName = attr.otherName
+                otherName = self._kind.getOtherName(attrName)
                 parent = self.getAttributeValue(otherName,
                                                 _attrDict=self._references)
-                otherAttr = self._kind.getAttribute(attr.otherName)
+                otherAttr = self._kind.getAttribute(otherName)
                 if otherAttr.cardinality == 'list':
                     parent = parent.first()
             else:
@@ -1979,7 +1964,7 @@ class Item(object):
     def _refDict(self, name, otherName=None, persist=None):
 
         if otherName is None:
-            otherName = self._otherName(name)
+            otherName = self._kind.getOtherName(name)
         if persist is None:
             persist = self.getAttributeAspect(name, 'persist', default=True)
 

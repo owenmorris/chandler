@@ -482,7 +482,7 @@ class ItemHandler(ContentHandler):
         otherName = attrs.get('otherName')
 
         if otherName is None and attribute is not None:
-            otherName = attribute.getAspect('otherName')
+            otherName = self.kind.getOtherName(name, default=None)
 
         if otherName is None:
             raise TypeError, 'Undefined other endpoint for %s/%s.%s of kind %s' %(self.parent.itsPath, self.name, name, self.kind.itsPath)

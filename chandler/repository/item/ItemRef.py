@@ -15,14 +15,16 @@ class ItemRef(object):
     'A wrapper around a bi-directional link between two items.'
     
     def __init__(self, item, name, other, otherName,
-                 otherCard=None, otherPersist=None):
+                 otherCard=None, otherPersist=None, otherAlias=None):
 
         super(ItemRef, self).__init__()
-        self.attach(item, name, other, otherName, otherCard, otherPersist)
+        self.attach(item, name, other, otherName,
+                    otherCard, otherPersist, otherAlias)
 
     def _copy(self, item, name):
 
-        return ItemRef(item, name, self._other(item), item._otherName(name))
+        return ItemRef(item, name, self._other(item),
+                       item._kind.getOtherName(name))
 
     def __repr__(self):
 
@@ -54,7 +56,7 @@ class ItemRef(object):
         raise DanglingRefError, '%s <-> %s' %(self._item, self._other)
 
     def attach(self, item, name, other, otherName,
-               otherCard=None, otherPersist=None):
+               otherCard=None, otherPersist=None, otherAlias=None):
 
         assert item is not None, 'item is None'
         assert other is not None, 'other is None'
@@ -66,7 +68,8 @@ class ItemRef(object):
             if other.hasAttributeValue(otherName):
                 old = other.getAttributeValue(otherName)
                 if isinstance(old, RefDict):
-                    old[item._refName(otherName)] = self
+                    old.__setitem__(item._refName(otherName), self,
+                                    alias=otherAlias)
                     return
             else:
                 if otherCard is None:
@@ -76,7 +79,8 @@ class ItemRef(object):
                 if otherCard != 'single':
                     old = other._refDict(otherName, name, otherPersist)
                     other._references[otherName] = old
-                    old[item._refName(otherName)] = self
+                    old.__setitem__(item._refName(otherName), self,
+                                    alias=otherAlias)
                     return
             
             other.setAttributeValue(otherName, self,
@@ -140,13 +144,12 @@ class ItemRef(object):
                              other._kind.itsPath)
                 return False
             else:
-                otherName = item.getAttributeAspect(name, 'otherName')
+                otherName = item._kind.getOtherName(name, default=None)
                 if otherName is None:
                     logger.error('otherName is None for attribute %s.%s',
                                  item._kind.itsPath, name)
                     return False
-                otherOtherName = other.getAttributeAspect(otherName,
-                                                          'otherName',
+                otherOtherName = other._kind.getOtherName(otherName,
                                                           default=None)
                 if otherOtherName != name:
                     logger.error("otherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s",
@@ -188,7 +191,7 @@ class ItemRef(object):
             attrs['flags'] = str(flags)
 
         if withSchema:
-            attrs['otherName'] = item._otherName(name)
+            attrs['otherName'] = item._kind.getOtherName(name)
 
         generator.startElement('ref', attrs)
         generator.characters(other._uuid.str64())
@@ -207,7 +210,7 @@ class _noneRef(ItemRef):
         return self
 
     def attach(self, item, name, other, otherName,
-               otherCard=None, otherPersist=None):
+               otherCard=None, otherPersist=None, otherAlias=None):
         pass
 
     def detach(self, item, name, other, otherName):
@@ -725,7 +728,7 @@ class RefDict(LinkedMap):
         
         if withSchema:
             attrs['cardinality'] = 'list'
-            attrs['otherName'] = item._otherName(name)
+            attrs['otherName'] = item._kind.getOtherName(name)
 
         addAttr(attrs, 'first', self._firstKey)
         addAttr(attrs, 'last', self._lastKey)

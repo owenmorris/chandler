@@ -105,6 +105,23 @@ class Kind(Item):
         else:
             return self._inheritAttribute(name) is not None
 
+    def getOtherName(self, name, **kwds):
+
+        otherName = self.getAttributeValue('otherNames', default={},
+                                           _attrDict=self._values).get(name)
+
+        if otherName is None:
+            attribute = self.getAttribute(name)
+            if attribute is not None:
+                otherName = attribute.getAspect('otherName')
+
+            if otherName is None:
+                if 'default' in kwds:
+                    return kwds['default']
+                raise TypeError, 'Undefined otherName for attribute %s on kind %s' %(name, self.itsPath)
+
+        return otherName
+
     def iterAttributes(self, inherited=True,
                        localOnly=False, globalOnly=False):
         """
@@ -215,7 +232,7 @@ class Kind(Item):
             for name, attribute in self.iterAttributes():
                 value = attribute.getAspect('initialValue', default=Item.Nil)
                 if value is not Item.Nil:
-                    otherName = attribute.getAspect('otherName')
+                    otherName = self.getOtherName(name, default=None)
                     if otherName is None:
                         self._initialValues[name] = value
                     else:
@@ -233,9 +250,9 @@ class Kind(Item):
             if value is None:
                 value = NoneRef
             elif isinstance(value, Item):
-                value = ItemRef(item, name, value, item._otherName(name))
+                value = ItemRef(item, name, value, self.getOtherName(name))
             elif isinstance(value, PersistentCollection):
-                refDict = self._refDict(name, item._otherName(name))
+                refDict = self._refDict(name, self.getOtherName(name))
                 for other in value.itervalues():
                     refDict.append(other)
                 value = refDict
