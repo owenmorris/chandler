@@ -27,7 +27,7 @@
 
 Chandler osaf/chandler/Chandler
 
-chandler osaf/chandler/Chandler & osaf/chandler/Makefile
+chandler -d . osaf/chandler/Chandler & osaf/chandler/Makefile
 
 hardhat osaf/hardhat
 
