@@ -338,6 +338,8 @@ class wxApplication (wxApp):
                 if activeParcel != None:
                     activeParcel.GetEventHandler().ProcessEvent(event)
             self.InCommand = false
+        # This gives a chance for the app to respond to the events as well
+        event.Skip()
 
     # LoginIfNecessary is called after the preferences have changed
     # to login to the jabber server if necessary
@@ -345,4 +347,3 @@ class wxApplication (wxApp):
        if not self.jabberClient.IsConnected():
            self.jabberClient.ReadAccountFromPreferences()
            self.jabberClient.Login()
-           
