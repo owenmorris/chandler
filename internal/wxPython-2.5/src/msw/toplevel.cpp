@@ -226,9 +226,10 @@ WXDWORD wxTopLevelWindowMSW::MSWGetStyle(long style, WXDWORD *exflags) const
     if ( exflags )
     {
 #if !defined(__WIN16__)
+		// FIXME: commented out until bad textcntl idle-time interactions are debugged
 		// take advantage of WinXP native window double-buffering
-		if ((wxApp::GetComCtl32Version() > 400) && (GetParent() == NULL))
-			*exflags += 0x02000000;	// WS_EX_COMPOSITED
+//		if ((wxApp::GetComCtl32Version() > 400) && (GetParent() == NULL))
+//			*exflags |= 0x02000000;	// WS_EX_COMPOSITED
 
         if ( !(GetExtraStyle() & wxTOPLEVEL_EX_DIALOG) )
         {
