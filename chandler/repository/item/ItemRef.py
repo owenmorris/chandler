@@ -24,7 +24,7 @@ class ItemRef(object):
     def _copy(self, references, item, copyItem, name, policy, copies):
 
         if policy == 'copy':
-            references[name] = ItemRef(copyItem, name, self._other(item),
+            references[name] = ItemRef(copyItem, name, self.other(item),
                                        copyItem._kind.getOtherName(name))
 
         elif policy == 'cascade':
