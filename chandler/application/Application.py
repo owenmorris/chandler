@@ -75,7 +75,7 @@ class Application(Persistent):
         else:
             self.splashWasShown = 0
         if self.splashWasShown < 2:
-            splash = SplashScreen(_("Welcome to Chandler"))
+            splash = SplashScreen(_("Welcome to Chandler"), false)
             splash.Show(true)
             
     def __setstate__(self, dict):

@@ -19,7 +19,8 @@ class SplashScreen(wxFrame):
         """
         wxFrame.__init__(self, None, -1, title, 
                          size = (700,450),
-                         style=wxSTAY_ON_TOP|wxCAPTION)
+                         style=wxSTAY_ON_TOP|\
+                         wxDEFAULT_FRAME_STYLE)
         panel = HTMLPanel(self)
         self.CentreOnScreen()
         
