@@ -185,7 +185,7 @@ class ContactEntity(Item):
     def GetAttribute(self, attributeKey):
         # hack for names to be specified as attributes
         if self.name.IsNameAttribute(attributeKey):
-            return self.GetNamePart(attributeKey)	
+            return self.GetNamePart(attributeKey)
 
         # also, allow type to be fetched as an attribute
         if attributeKey == 'type':
@@ -216,7 +216,7 @@ class ContactEntity(Item):
         self.name.SetNamePart(partName, partValue)
              
     # derive the full name from the name parts
-    def GetFullName(self):		
+    def GetFullName(self):
         return self.name.GetNamePart('fullname')
         
     def GetSortName(self):
@@ -229,12 +229,8 @@ class ContactEntity(Item):
         return self.name.GetShortName()
     
     # delete the passed-in address item
-    def DeleteAddressItem(self, item):
-        try:
-            index = self.contactMethods.index(item)
-            del self.contactMethods[index]
-        except:
-            pass
+    def DeleteContactMethod(self, item):
+        self.detach('contactMethods', item)
                         
     # fetch attribute values from their location label
     def GetContactValue(self, contactLocation, attributeName):

@@ -162,7 +162,8 @@ class Item(object):
                                  old.other(self), value, self._otherName(name))
                     return
                 else:
-                    old.clear()
+                    if old != None:
+                        old.clear()
 
         elif (isItem or isRef) and _attrDict is self._attributes:
             del _attrDict[name]
