@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.1-1
+RELVER=0.1-2
 QP=$(INTERNAL)/queryparser
 
 ifeq ($(OS),Cygwin)
@@ -29,3 +29,8 @@ clean:
 
 install:
 	tar -cf - $(MANIFEST) | tar -C $(BUILD_ROOT)/../chandler -xvf -
+
+upload: QueryParser-$(SNAP)-$(RELVER).tar.gz
+	scp QueryParser-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
+
+
