@@ -10,6 +10,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "OSAF"
 
 from application.Application import app
+from wxPython.wx import *
 
 from persistence.dict import PersistentDict
 
@@ -155,7 +156,16 @@ class ContactEntityItem(InformationItem):
             del self.groups[index]
         except:
             pass
-                
+    
+    def HasGroup(self, group):
+        try:
+            index = self.groups.index(group)
+            return true
+        except:
+            pass
+        
+        return false
+    
     # addresses manipulation
     # FIXME: GetAddresses is deprecated, use GetContactMethods instead
     def GetAddresses(self):
@@ -170,6 +180,10 @@ class ContactEntityItem(InformationItem):
             parts = attributeKey.split('/')
             return self.GetNamePart(parts[1])	
 
+        # also, allow type to be fetched as an attribute
+        if attributeKey == 'type':
+            return self.GetContactType()
+        
         attributeValue = self.attributes.GetAttribute(attributeKey)
         
         # hack for sharing - return 'private' instead of none
