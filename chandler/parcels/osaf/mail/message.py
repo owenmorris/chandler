@@ -24,28 +24,21 @@ NOTES:
 
 def isValidEmailAddress(emailAddress):
     """
-    This method tests an email address for valid syntax as defined RFC 822
-    ***Warning*** This method  will return False if Name and Address is past
-    i.e. John Jones <john@jones.com>. The method only validates against the actual
-    email address i.e. john@jones.com
+    This method tests an email address for valid syntax as defined RFC 822.
+    The method validates addresses in the form 'John Jones <john@test.com>'
+    and 'john@test.com'
 
-    @param emailAddress: A string containing a email address to validate. Please see ***Warning*** for more
-                         details
+    @param emailAddress: A string containing a email address to validate.
     @type addr: C{String}
     @return: C{Boolean}
     """
     if not __isString(emailAddress):
         return False
 
-    emailAddress = emailAddress.strip()
+    #XXX: Strip any name information. i.e. John test <john@test.com>`from the email address
+    emailAddress = Utils.parseaddr(emailAddress)[1]
 
-    #XXX: Test id the address is in the form John test <john@test.com and handle it>
-    #emailAddress = Utils.parseaddr(emailAddress)[1]
-    if len(emailAddress) > 3:
-        if re.match("\w+((-\w+)|(\.\w+)|(\_\w+))*\@[A-Za-z0-9]+((\.|-)[A-Za-z0-9]+)*\.[A-Za-z]{2,5}", emailAddress) is not None:
-            return True
-
-    return False
+    return re.match("^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$", emailAddress) is not None
 
 def emailAddressesAreEqual(emailAddressOne, emailAddressTwo):
     """
@@ -92,6 +85,7 @@ def format_addr(emailAddress):
                 emailAddress has a name associated of 'EmailAddress'
                 otherwise.
     """
+
     if not isinstance(emailAddress, Mail.EmailAddress):
         return None
 
