@@ -88,7 +88,7 @@ class Kind(Item):
                 attribute = self.getValue('inheritedAttributes', uuid,
                                           _attrDict=self._references)
             else:
-                attribute = self.inheritAttribute(name)
+                attribute = self._inheritAttribute(name)
 
         return attribute
 
@@ -101,9 +101,9 @@ class Kind(Item):
         elif self.inheritedAttributes.resolveAlias(name):
             return True
         else:
-            return self.inheritAttribute(name) is not None
+            return self._inheritAttribute(name) is not None
 
-    def inheritAttribute(self, name):
+    def _inheritAttribute(self, name):
 
         if self.hasValue('notFoundAttributes', name):
             return None

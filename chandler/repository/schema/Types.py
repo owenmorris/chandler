@@ -136,17 +136,35 @@ class String(Type):
 class Symbol(Type):
 
     def getImplementationType(self):
+
         return str
 
     def handlerName(self):
+
         return 'str'
 
     def makeValue(self, data):
+
         return str(data)
 
     def _compareTypes(self, other):
+
         return 1
-    
+
+    def recognizes(self, value):
+
+        if not (isinstance(value, str) or isinstance(value, unicode)):
+            return False
+        
+        for char in value:
+            if not (char == '_' or
+                    char >= '0' and char <= '9' or
+                    char >= 'A' and char <= 'Z' or
+                    char >= 'a' and char <= 'z'):
+                return False
+
+        return True
+
 
 class Integer(Type):
 
@@ -803,8 +821,8 @@ class Binary(Lob):
         binary = self.getImplementationType()(mimetype=mimetype)
         if data:
             out = binary.getOutputStream(compression)
-            writer.write(data)
-            writer.close()
+            out.write(data)
+            out.close()
 
         return binary
     
