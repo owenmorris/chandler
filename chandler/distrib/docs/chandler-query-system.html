@@ -25,7 +25,7 @@ If you haven't already read the document, "The Busy Developer's Guide to the Cha
 <dt>query string</dt>
 <dd>A Python string that contains a textual representation of the query</dd>
 
-<dt>query result</dt>
+<dt>query result set</dt>
 <dd>A set of Chandler Items that satisfy the boolean conditions for a query</dd>
 </dl>
 
@@ -47,28 +47,23 @@ To use a query from Python, your code will look something like this
 <pre class="codebox">
 import repository.query.Query as Query
 
-q = Query.Query(Globals.repository, "for i in '//Schema/Core/Kind' where True")
-
-q.execute()
+p = rep.findPath('//Queries')
+k = rep.findPath('//Schema/Core/Query')
+q = Query.Query("for i in '//Schema/Core/Kind' where True", p, k)
 
 for i in q:
     print i
 </pre>
 
-The main query class is in repository.query.Query.  To instantiate this class, you supply an instance of a Chandler repository, and a query string.   The query in the example specifies all items of type <span class="path">//Schema/Core/Kind</span>.  
+Queries are Chandler Items, which means that they are stored in the repository themselves.  The main query class is in repository.query.Query.  To instantiate this class, you supply a query string, a path to the query's parent in the repository, and the Kind for a Query (these last two arguments are for the Item constructor).   The query in the example specifies all items of type <span class="path">//Schema/Core/Kind</span>.  
 <p />
-Once you have an instance of Query, you can call the <span class="code">execute</span> method to prepare the query for execution. Instance of Query are Python iterators, so you should be able to perform any operation which applies to iterables in Python.
+Once you have an instance of Query, you can ask for the result set of the query.  You have two choices for how to do this. You can ask for the 'resultSet' attribute of the Query item, which will return a reference collection containing the items in the result set.  You can also call the __iter__ method on the Query Item by iterating over the Item (as shown in the example).  This gives you a Python generator for the query results, which can be more efficient thatn asking for the resultSet attribute.
 <p />
 You can update the value of the query string by changing the value of the attribute queryString:
 
 <pre class="codebox">q.queryString = "for i in '//parcels/osaf/contentmodel/contacts/Contact' where True"</pre>
 
 The query string may be the empty string, "".  In this case, the result set of the query is empty.
-
-<p />
-If your <b>for</b> query is iterating over Kinds, and you want to include items of a Kind's subkind, you should set the recursive attribute on the query object to True
-
-<pre class="codebox">q.recursive = True</pre>
 
 <p />
 Parameters allow you to use values from your Python code in a query.  Parameter names are strings that begin with "$".  To use parameters, you should set the query's <em>args</em> attribute to a dict containing the arguments. 
@@ -97,7 +92,7 @@ Keywords and required tokens in a query are shown in bold. The portions of the q
 
 The most basic query is a <b>for</b> query.  The syntax of a <b>for</b> query is:
 <p />
-<pre class="codebox"><b>for</b> <em>var</em> <b>in</b> <em>set</em> <b>where</b> <em>boolean-condition</em>
+<pre class="codebox"><b>for</b> <em>var</em> <b>in|inevery</b> <em>set</em> <b>where</b> <em>boolean-condition</em>
 </pre>
 <p />
 The result set of a <b>for</b> query is the set of items in <em>set</em> which satisfy the <em>boolean-condition</em>
@@ -106,6 +101,9 @@ Here's what you need to supply for the various portions of a <b>for</b> query:
 <p />
 <em>var</em> is the iteration variable for the query.  For now, you must use 'i'. This constraint will be removed in the future.
 <p />
+
+<p />
+If your <b>for</b> query is iterating over Kinds, and you want to include items of a Kind's subkind, you should use the keyword <b>inevery</b> instead of <b>in</b>. <p />
 <em>set</em> specifies a set of Items to apply the <em>boolean-condition</em> to.
 This allows you to issue a query over a subset of the repository.  At the moment you can supply one of three possibilities for <em>set</em>:
 <ul>
@@ -296,31 +294,44 @@ q.queryString="""difference(for i in '//Schema/Core/Kind' where contains(i.itsNa
 </pre>
 
 <h2>Query Notification</h2>
-Query Notification allows the query system to tell the application when its result set has changed. If the application is interested in knowing that the result set changed, the application provides an Item whose Python class implements a callback method.  This method will be called by the query system when the result set changes.  In the context of Chandler, this item will usually be a block, but other applications which are using the repository need only provide an Item. The application registers its Item (and its handler method) by calling the <em>subscribe</em> method on a Query object.  The arguments to <em>subscribe</em> are the UUID of a Chandler Item, and the name of a method on that item (this name is a string). 
+A key feature of Chandler queries is change notification. A Chandler query defines a set of items. The notification mechanism makes sure that the result set of the query always contains the correct Items. If you change an item so that it satisfies the conditions of some query, the notification mechanism will add that item to the result set of the query. If you change an item so that it no longer satisifies the conditions of a query then the notification mechanism will remove that item from the result set of that query. The query notification mechanism does not indicate that any attribute of any item in a query's result set has changed. It just keeps the right items in the result set.
+<p />
+Clients of a query can request that they be notified when the query notification mechanism notices items that enter or exit the query result set. Your client code supplies a Chandler Item which has a callback method.  In the Chandler application, this item will usually be an ItemCollection.
+The callback method will be passed a tuple containing two lists: a list of the UUID's of any items added to the query result and a list of the UUID's of any items removed from the query result.
+<p />
+Your code makes a request for notification by calling the <span class="code">subscribe</span> method on the Query Item. This method has two mandatory parameters and two optional parameters. The first parameter is an Item that has the required callback item, and the second parameter is that name of that callback method.  The two optional parameters are a little more difficult to explain. The repository's concurrency model gives each thread a separate view of the items in the repository. You can select when you would like to be notified of changes. The options are:
+
+<ol>
+<li>be notified of changes that happen in your view (the same view that the query is being run in) - instantaneously</li>
+
+<li>be notified of changes that happen on views outside your own - when your view commits</li>
+
+<li>be notified of both kinds of changes</li>
+</ol>
+
+<p />
+The default is to be notified of both kinds of changes. The optional parameters are Booleans that you can set to False if you don't want to be notified if changes in your view (the first optional parameter) or of changes in other view (the second optional parameter)
+<p />
+No matter how you set the view notification parameters, you will only be notified of changes that would add or remove items from the query result set.
+
 <dl>
-<dt><span class="code">q.subscribe(<em>itemUUID</em>, <em>methodName</em>)</span></dt>
-<dd>call <em>methodName</em> on the item whose UUID is <em>itemUUID</em> when changed items enter or leave the query result set.</dd>
+<dt><span class="code">q.subscribe(<em>item</em>, <em>methodName</em>, <em>inSameView</em>, <em>inOtherViews</em>)</span></dt>
+<dd>call <em>methodName</em> on  <em>item</em> when changed items enter or leave the query result set.  If inSameView, is true, the callback will be called as soon as the item is changed, if the item is in the same repository view as the Query.  If inOtherViews is true, the callback will be called when <span class="code">commit</span> is called</dd>
 </dl>
-Every time items are committed to the repository, the query system will call all subscribed methods.  These methods might look like this:
+
+At the appropriate moment, the query system will call all subscribed methods.  These methods might look like this:
 
 <pre class="codebox">
-def handle(self, action):
-    print action # simple action
+def handle(self, changes):
+    added, removed = changes
+    print added, removed # simple action
 </pre>
 
-The <em>action</em> argument to the callback method is a string with one of two values.  If the changed object now satisfies the boolean condition of the query, then the value of <em>action</em> will be 'entered'.  If the changed object no longer satisfies the boolean condition of the query then the value of <em>action</em> will be 'exited'.  (if the change to the item didn't affect its membership in the query result set, then handle wouldn't have been called).
+The <em>changes</em> argument to the callback method is a tuple containing two lists.  The first is a list of all the items which were added to the query result set.  The second is a list of all the items which were removed from the query result set.
 
 <h2>Future plans</h2>
 We are planning a number of improvements to the query system:
 <dl>
-<dt>Queries as items</dt>
-<dd>Currently queries are not Chandler items.  In a future release of Chandler, queries will be items.</dd>
-<dt>Query results as ref-collections</dt>
-<dd>Today the results of a query are a Python list, and do not persist.  In a future release of Chandler, query result sets will be persisted as reference collections</dd>
-<dt>Notification improvements</dt>
-<dd>In a future release of Chandler the query system will provide the item that changed when notifying the application of result set changes.</dt>
-<dt>Better notation for recursive queries</dt>
-<dd>In a future release of Chandler, you will be able to specify the recursiveness of a kind query directly in the query string</dd>
 <dt>Performance enhancements</dt>
 <dd>There are a number of ways to improve the performance of queries in Chandler.   This work will be ongoing over the next several releases.</dd>
 <dt>Debugging tools</dt>
@@ -360,7 +371,7 @@ Terminals in <b>bold</b>
 
 <em>difference_stmt</em>: <b>difference</b> <b>(</b><em>stmt</em> <b>,</b> <em>stmt</em><b>)</b>
 
-<em>for_stmt</em>: <b>for</b> ID <b>in</b> (<em>name_expr</em> <b>where</b> and_or_expr <b>END</b> 
+<em>for_stmt</em>: <b>for</b> ID <b>in | inevery</b> (<em>name_expr</em> <b>where</b> and_or_expr <b>END</b> 
                    | <b>STRING</b> <b>where</b> <em>and_or_expr</em> <b>END</b> 
                    | <em>stmt</em> <b>where</b> <em>and_or_expr</em> ) <b>END</b>
 
@@ -394,6 +405,9 @@ $Revision$<br>
 $Date$<br>
 $Author$<br>
 $Log$
+Revision 1.4  2005/03/15 23:00:05  twl
+Update query docs for 0.5
+
 Revision 1.3  2004/10/21 22:30:39  twl
 Commit branched docs to trunk
 
