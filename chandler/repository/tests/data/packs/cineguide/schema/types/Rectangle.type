@@ -3,6 +3,7 @@
 <item withSchema="True">
   <name>Rectangle</name>
   <kind type="path">//Schema/Core/Struct</kind>
+  <class module="repository.schema.Types">Struct</class>
 
   <attribute name="fields" type="dict" cardinality="dict">
     <value name="x">
