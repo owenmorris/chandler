@@ -322,8 +322,25 @@ returns the value to be used::
     ...     def __repr__(self):
     ...         return "%s - %s" % (self.start,self.end.strftime("%H:%M:%S"))
 
+    >>> help(Appointment)   # doctest: +NORMALIZE_WHITESPACE
+    Help on class Appointment ...
+    ...
+    class Appointment(spike.schema.Entity)
+     |  ...
+     |  Data and other attributes defined here:
+     |
+     |  end = <Role end of <class 'Appointment'>>
+     |      One(datetime, compute=<lambda>)
+     |
+     |  start = <Role start of <class 'Appointment'>>
+     |      One(datetime, default=datetime.datetime(2005, 2, 16, 13, 30))
+     |
+     |  ...
+    ...
+
     >>> print Appointment()
     2005-02-16 13:30:00 - 14:30:00
+
 
 If an attribute's initial value is defined using ``computed``, the calculation
 is performed at the time the attribute is first accessed::
@@ -585,17 +602,17 @@ All role objects have at least the following attributes and methods:
          |
          |  name = <Role name of <class 'Kind'>>
          |      Kind Name -- One(str)
-         |      
+         |
          |      This kind's name
-         |  
+         |
          |  subkinds = <Role subkinds of <class 'Kind'>>
          |      Many(Kind)
-         |      
+         |
          |      Sub-kinds of this kind
-         |  
+         |
          |  superkinds = <Role superkinds of <class 'Kind'>>
          |      Many(Kind)
-         |      
+         |
          |      Super-kinds of this kind
          |  ...
 
@@ -821,15 +838,23 @@ contents and type restrictions are correct::
     >>> oldSet = evt.linkset
     >>> list(oldSet.getReceivers())
     [<function maintainInverse at ...>]
+    >>> def dummyValidator(event): pass
+    >>> oldSet.addValidator(dummyValidator, hold=True)
+    >>> list(oldSet.getValidators())
+    [<function dummyValidator at ...>]
 
     >>> from spike import models
     >>> newSet = models.Set([], type=Kind)
     >>> list(newSet.getReceivers())
     []
+    >>> list(newSet.getValidators())
+    []
 
     >>> evt.linkset = newSet        # changing the linkset copies receivers
     >>> list(newSet.getReceivers())
     [<function maintainInverse at ...>]
+    >>> list(newSet.getValidators())
+    [<function dummyValidator at ...>]
 
 
 After all receivers have had a chance to affect the linkset, the role's

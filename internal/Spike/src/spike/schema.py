@@ -38,6 +38,8 @@ class LoadEvent(Event):
         else:
             subscribe = val.subscribe
             for rcv in ls.getReceivers(): subscribe(rcv,True)
+            subscribe = val.addValidator
+            for rcv in ls.getValidators(): subscribe(rcv,True)
         d[self.role] = val
 
     linkset = property(
@@ -126,6 +128,7 @@ class Role(ActiveDescriptor):
         if refs:
             self.isReference = True
         self._setattr('types',self.types + types)
+        self.setDoc()   # update the doc string
 
     def activateInClass(self,cls,name):
         """Role was defined/used in class `cls` under name `name`"""
@@ -254,7 +257,7 @@ class Role(ActiveDescriptor):
     def _setattr(self,attr,value):
         """Private routine allowing bypass of normal setattr constraints"""
         super(Role,self).__setattr__(attr,value)
-        
+
     def __setattr__(self,attr,value):
         if not hasattr(type(self),attr):
             raise TypeError("%r is not a public attribute of %r objects"
@@ -287,7 +290,7 @@ class One(Role):
         else:
             s.add(self.compute(ob))
 
-        s.subscribe(self.__limitMembers, True)
+        s.addValidator(self.__limitMembers, True)
         return s
 
     def __limitMembers(self,event):
@@ -307,6 +310,14 @@ class One(Role):
         if value:
             return iter(value).next()
         raise AttributeError(self.name or "???")
+
+    def docInfo(self):
+        doc = super(One,self).docInfo()
+        if self.compute is not NOT_GIVEN and hasattr(self.compute,'__name__'):
+            doc = doc[:-1]+(', compute=%s' % self.compute.__name__)+doc[-1]
+        elif self.default is not NOT_GIVEN:
+            doc = doc[:-1]+(', default=%r' % self.default)+doc[-1]
+        return doc
 
 
 class Many(Role):
