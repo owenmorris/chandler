@@ -39,16 +39,16 @@ class View(BoxContainer):
                     break
                 block = block.parentBlock
         
-        def broadcast (block, methodName, notification):
+        def broadcast (block, methodName, notification, stopAtEventBounary = True):
             """
               Call method named methodName on every block and it's children
             who implements it, except for the block that posted the event,
             to avoid recursive calls.
             """
-            sender = notification.data['sender']
-            callMethod (block, methodName, notification)
+            if block != notification.data['sender']:
+                callMethod (block, methodName, notification)
             for child in block.childrenBlocks:
-                if child and not child.eventBoundary and child != sender:
+                if child and not (stopAtEventBounary and child.eventBoundary):
                     broadcast (child, methodName, notification)
 
         event = notification.event
@@ -70,20 +70,16 @@ class View(BoxContainer):
         if event.dispatchEnum == 'SendToBlock':
             callMethod (event.dispatchToBlock, methodName, notification)
 
-        elif event.dispatchEnum == 'Broadcast':
-            """
-              Find the block to dispatch to. If the sender is a menu
-            we'll dispatch to the block with the focus, otherwise we'll
-            dispatch to whoever 
-            """
+        elif event.dispatchEnum == 'BroadcastInsideMyEventBoundary':
             block = notification.data['sender']
-            if isinstance (block, MenuEntry):
-                block = self.getFocusBlock()
-
             while (not block.eventBoundary and block.parentBlock):
                 block = block.parentBlock
                 
             broadcast (block, methodName, notification)
+
+        elif event.dispatchEnum == 'BroadcastEverywhere':
+            broadcast (Globals.mainView, methodName, notification, stopAtEventBounary = False)
+
         elif event.dispatchEnum == 'FocusBubbleUp':
             block = self.getFocusBlock()
             bubleUpCallMethod (block, methodName, notification)

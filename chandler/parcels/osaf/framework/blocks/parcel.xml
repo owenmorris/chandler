@@ -180,7 +180,8 @@
     <superKinds itemref="events:Event"/>
 
     <Enumeration itsName="dispatchEnumType">
-      <values>Broadcast</values>
+      <values>BroadcastInsideMyEventBoundary</values>
+      <values>BroadcastEverywhere</values>
       <values>FocusBubbleUp</values>
       <values>ActiveViewBubbleUp</values>
       <values>SendToBlock</values>

@@ -75,19 +75,19 @@ of a limitation of the XML format, which will be eliminated</description>
   </BlockEvent>
 
   <BlockEvent itsName="ViewNavigationBar">
-    <dispatchEnum>Broadcast</dispatchEnum>
+    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="SelectionChanged">
-    <dispatchEnum>Broadcast</dispatchEnum>
+    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="EnterPressed">
-    <dispatchEnum>Broadcast</dispatchEnum>
+    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="SelectedDateChanged">
-    <dispatchEnum>Broadcast</dispatchEnum>
+    <dispatchEnum>BroadcastEverywhere</dispatchEnum>
   </BlockEvent>
 
   <!-- Test Events -->
