@@ -5,12 +5,17 @@
 
 #include <db.h>
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER)
 #include <winsock2.h>
 #include <malloc.h>
-#else
+#elif defined(__MACH__)
 #include <arpa/inet.h>
+#elif defined(linux)
+#include <netinet/in.h>
+#else
+#error system is not linux, os x or winnt
 #endif
+
 
 #include <Python.h>
 #include "structmember.h"
