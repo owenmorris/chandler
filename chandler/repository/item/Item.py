@@ -28,13 +28,12 @@ class Item(object):
         Construct an Item.
 
         @param name: The name of the item. It must be unique among the names
-        this item's siblings. C{name} be C{None} in which case the base64
-        string representation of this item's C{UUID} becomes its name.
+        this item's siblings. C{name} may be C{None}.
         @type name: a string or C{None} to create an anonymous item.
         @param parent: The parent of this item. All items require a parent
         unless they are a repository root in which case the parent argument
         is the repository.
-        @type parent: an item
+        @type parent: an item or the item's repository view
         @param kind: The kind for this item. This kind has definitions for
         all the Chandler attributes that are to be used with this item.
         This parameter can be C{None} for Chandler attribute-less operation.
@@ -720,6 +719,14 @@ class Item(object):
         checkValues = self._values.check()
         checkRefs = self._references.check()
         result = checkValues and checkRefs
+
+        kind = self._kind
+        if kind is not None:
+            for name, desc in kind._getDescriptors(type(self)).iteritems():
+                attrDict, required = desc.isValueRequired(self)
+                if required and name not in attrDict:
+                    self.itsView.logger.error("Required value for attribute %s on %s is missing", name, self._repr_())
+                    result = False
         
         if recursive and self._children is not None:
             l = len(self._children)

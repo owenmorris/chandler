@@ -1565,26 +1565,6 @@ class ValueSet(object):
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def NewItem(view, name, parent, kind, uuid):
-    """ Create an item of a given UUID """
-
-    cls = kind.getItemClass()
-    values = repository.item.Values.Values(None)
-    refs = repository.item.Values.References(None)
-    item = cls.__new__(cls)
-    item._fillItem(name, parent, kind, uuid=uuid, version=0L, values=values,
-     references=refs)
-    values._setItem(item)
-    refs._setItem(item)
-    item._status |= Item.NEW
-    kind.getInitialValues(item, item._values, item._references)
-    kind._setupClass(cls)
-    if hasattr(cls, 'onItemLoad'):
-        item.onItemLoad(view)
-    return item
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 def PrintItem(path, rep, recursive=False, level=0):
     """
     A pretty-printer for repository items.

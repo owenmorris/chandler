@@ -199,9 +199,8 @@ class ICalendarFormat(Sharing.ImportExportFormat):
                         uuid = UUID()
                     # @@@MOR This needs to use the new defaultParent framework
                     # to determine the parent
-                    eventItem = application.Parcel.NewItem(self.itsView,
-                     None, self.itsView.findPath("//userdata"),
-                     eventKind, uuid)
+                    parent = self.findPath("//userdata")
+                    eventItem = eventKind.instantiateItem(None, parent, uuid)
                     countNew += 1
                 
                 eventItem.displayName = displayName

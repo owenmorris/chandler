@@ -576,9 +576,9 @@ class ItemHandler(ValueHandler):
             else:
                 refArgs._setValue(self.repository)
 
+        self.afterLoadHooks.append(self.setupClass)
         if hasattr(cls, 'onItemLoad'):
             self.afterLoadHooks.append(item.onItemLoad)
-        self.afterLoadHooks.append(self.setupClass)
 
     def setupClass(self, view):
 

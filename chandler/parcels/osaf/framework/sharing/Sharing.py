@@ -1219,8 +1219,9 @@ class CloudXMLFormat(ImportExportFormat):
             if uuid:
                 # @@@MOR This needs to use the new defaultParent framework
                 # to determine the parent
-                item = application.Parcel.NewItem(self.itsView, None,
-                 self.itsView.findPath("//userdata"), kind, uuid)
+                parent = self.findPath("//userdata")
+                item = kind.instantiateItem(None, parent, uuid,
+                                            withInitialValues=True)
             else:
                 item = kind.newItem(None, None)
             # print "created item", item.itsPath, item.itsKind

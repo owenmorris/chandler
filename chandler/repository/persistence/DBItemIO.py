@@ -32,7 +32,7 @@ class DBItemWriter(ItemWriter):
 
         self.values = []
 
-        if not item.isNew():
+        if not (item.isNew() or item._version == 0):
             self.oldValues = self.store._items.getItemValues(item._version,
                                                              item._uuid)
         else:
@@ -137,12 +137,12 @@ class DBItemWriter(ItemWriter):
         self.moduleName = moduleName
         self.className = className
 
-    def _children(self, item, version, isNew):
+    def _children(self, item, version, all):
 
         if item._children is not None:
             item._children._saveValues(version)
 
-    def _acls(self, item, version, isNew):
+    def _acls(self, item, version, all):
 
         if item._status & Item.ADIRTY:
             store = self.store
@@ -150,13 +150,13 @@ class DBItemWriter(ItemWriter):
             for name, acl in item._acls.iteritems():
                 store.saveACL(version, uuid, name, acl)
 
-    def _values(self, item, version, withSchema, isNew):
+    def _values(self, item, version, withSchema, all):
 
-        item._values._writeValues(self, version, withSchema, isNew)
+        item._values._writeValues(self, version, withSchema, all)
 
-    def _references(self, item, version, withSchema, isNew):
+    def _references(self, item, version, withSchema, all):
 
-        item._references._writeValues(self, version, withSchema, isNew)
+        item._references._writeValues(self, version, withSchema, all)
 
     def _value(self, item, name, value, version, flags, withSchema, attribute):
 
@@ -379,11 +379,11 @@ class DBItemReader(ItemReader):
             elif isinstance(value, ItemValue):
                 value._setItem(item, name)
 
-        if hasattr(cls, 'onItemLoad'):
-            afterLoadHooks.append(item.onItemLoad)
-
         if kind is not None:
             afterLoadHooks.append(lambda view: kind._setupClass(cls))
+
+        if hasattr(cls, 'onItemLoad'):
+            afterLoadHooks.append(item.onItemLoad)
 
         return item
 

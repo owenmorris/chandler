@@ -28,11 +28,11 @@ class ItemWriter(object):
             self._className(None, None)
 
         if status & Item.DELETED == 0:
-            isNew = (status & Item.NEW) != 0
-            self._values(item, version, withSchema, isNew)
-            self._references(item, version, withSchema, isNew)
-            self._children(item, version, isNew)
-            self._acls(item, version, isNew)
+            all = (status & Item.NEW) != 0 or item._version == 0
+            self._values(item, version, withSchema, all)
+            self._references(item, version, withSchema, all)
+            self._children(item, version, all)
+            self._acls(item, version, all)
 
     def writeString(self, buffer, value):
         raise NotImplementedError, "%s.writeString" %(type(self))
@@ -76,7 +76,7 @@ class ItemWriter(object):
     def _className(self, moduleName, className):
         raise NotImplementedError, "%s._className" %(type(self))
 
-    def _values(self, item, version, withSchema, isNew):
+    def _values(self, item, version, withSchema, all):
         raise NotImplementedError, "%s._values" %(type(self))
 
     def _value(self, item, name, value, version, flags, withSchema, attribute):
@@ -85,13 +85,13 @@ class ItemWriter(object):
     def _unchangedValue(self, item, name):
         raise NotImplementedError, "%s._unchangedValue" %(type(self))
 
-    def _references(self, item, version, withSchema, isNew):
+    def _references(self, item, version, withSchema, all):
         raise NotImplementedError, "%s._references" %(type(self))
 
-    def _children(self, item, version, isNew):
+    def _children(self, item, version, all):
         raise NotImplementedError, "%s._children" %(type(self))
 
-    def _acls(self, item, version, isNew):
+    def _acls(self, item, version, all):
         raise NotImplementedError, "%s._acls" %(type(self))
 
 
@@ -144,16 +144,16 @@ class XMLItemWriter(ItemWriter):
         self.generator.characters(parent.itsUUID.str16())
         self.generator.endElement('parent')
 
-    def _values(self, item, version, withSchema, isNew):
+    def _values(self, item, version, withSchema, all):
         item._values._xmlValues(self.generator, withSchema, version)
 
-    def _references(self, item, version, withSchema, isNew):
+    def _references(self, item, version, withSchema, all):
         item._references._xmlValues(self.generator, withSchema, version)
 
-    def _children(self, item, version, isNew):
+    def _children(self, item, version, all):
         pass
 
-    def _acls(self, item, version, isNew):
+    def _acls(self, item, version, all):
         pass
 
 

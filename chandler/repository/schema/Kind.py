@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from new import classobj
 
 from repository.item.Item import Item
-from repository.item.Values import ItemValue
+from repository.item.Values import ItemValue, Values, References
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.ItemError import NoSuchAttributeError, SchemaError
 from repository.persistence.RepositoryError import RecursiveLoadItemError
@@ -94,17 +94,27 @@ class Kind(Item):
             kinds[uuid].remove(cls)
             classes[cls].remove(uuid)
 
-    def _setupDescriptors(self, cls, sync=False):
+    def _getDescriptors(self, cls):
+
+        return Kind._descriptors.get(cls, {})
+
+    def _setupDescriptors(self, cls, sync=None):
 
         try:
             descriptors = Kind._descriptors[cls]
         except KeyError:
             descriptors = Kind._descriptors[cls] = {}
 
-        if sync:
-            attributes = self.getAttributeValue('attributes',
-                                                _attrDict=self._references,
-                                                default=[])
+        if sync is not None:
+            if sync == 'attributes':
+                attributes = self.getAttributeValue('attributes',
+                                                    _attrDict=self._references,
+                                                    default=[])
+            elif sync == 'superKinds':
+                attributes = set([a._uuid for n, a, k in self.iterAttributes()])
+            else:
+                raise AssertionError, sync
+            
             for name, descriptor in descriptors.items():
                 attr = descriptor.getAttribute(self)
                 if not (attr is None or attr[0] in attributes):
@@ -123,15 +133,86 @@ class Kind(Item):
             else:
                 self.itsView.logger.warn("Not installing attribute descriptor for '%s' since it would shadow already existing descriptor: %s", name, descriptor)
 
-    def newItem(self, name, parent):
+    def newItem(self, name, parent, cls=None):
         """
-        Create an item of this kind.
+        Create an new item of this kind.
 
         The python class instantiated is taken from the Kind's classes
         attribute if it is set. The Item class is used otherwise.
+
+        The item's constructor is invoked.
+
+        @param name: The name of the item. It must be unique among the names
+        this item's siblings. C{name} may be C{None}.
+        @type name: a string or C{None} to create an anonymous item.
+        @param parent: The parent of this item. All items require a parent
+        unless they are a repository root in which case the parent argument
+        is the repository.
+        @type parent: an item or the item's repository view
+        @param cls: an optional python class to instantiate the item with,
+        defaults to the class set on this kind.
+        @type cls: a python new style class, that is, a type instance
         """
+
+        if cls is None:
+            cls = self.getItemClass()
         
-        return self.getItemClass()(name, parent, self)
+        return cls(name, parent, self)
+
+    def instantiateItem(self, name, parent, uuid,
+                        cls=None, version=0, withInitialValues=False):
+        """
+        Instantiate an existing item of this kind.
+
+        This method is intended to help in instantiating an existing item,
+        that is an item in this or another repository for which there
+        already exists a UUID.
+
+        The item's constructor is not invoked, the item's onItemLoad
+        method is invoked if defined.
+
+        @param name: The name of the item. It must be unique among the names
+        this item's siblings. C{name} may be C{None}.
+        @type name: a string or C{None} to create an anonymous item.
+        @param parent: The parent of this item. All items require a parent
+        unless they are a repository root in which case the parent argument
+        is the repository.
+        @type parent: an item or the item's repository view
+        @param uuid: The uuid for the item.
+        @type uuid: L{UUID<chandlerdb.util.UUID.UUID>}
+        @param cls: an optional python class to instantiate the item with,
+        defaults to the class set on this kind.
+        @type cls: a python new style class, that is, a type instance
+        @param version: the optional version of this item instance, zero by
+        default.
+        @type version: integer
+        @param withInitialValues: optionally set the initial values for
+        attributes as specified in this Kind's attribute definitions.
+        @type withInitialValues: boolean
+        """
+
+        if cls is None:
+            cls = self.getItemClass()
+
+        values = Values(None)
+        references = References(None)
+
+        item = cls.__new__(cls)
+        item._fillItem(name, parent, self,
+                       uuid=uuid, version=version,
+                       values=values, references=references)
+
+        values._setItem(item)
+        references._setItem(item)
+        self._setupClass(cls)
+
+        if withInitialValues:
+            self.getInitialValues(item, values, references)
+
+        if hasattr(cls, 'onItemLoad'):
+            item.onItemLoad(self.itsView)
+
+        return item
             
     def getItemClass(self):
         """
@@ -654,12 +735,17 @@ class Descriptor(object):
 
     def registerAttribute(self, kind, attribute):
 
-        if 'otherName' in attribute._values:
+        values = attribute._values
+        
+        if 'otherName' in values:
             flags = Descriptor.REF
-        elif 'redirectTo' in attribute._values:
+        elif 'redirectTo' in values:
             flags = Descriptor.REDIRECT
         else:
             flags = Descriptor.VALUE
+
+        if values.get('required', False):
+            flags |= Descriptor.REQUIRED
 
         self.attrs[kind._uuid] = (attribute._uuid, flags)
 
@@ -671,6 +757,17 @@ class Descriptor(object):
     def getAttribute(self, kind):
 
         return self.attrs.get(kind._uuid, None)
+
+    def isValueRequired(self, item):
+
+        try:
+            attrID, flags = self.attrs[item._kind._uuid]
+        except KeyError:
+            return None, False
+        else:
+            attrDict = self.getAttrDict(item, flags)
+            return attrDict, (attrDict is not None and
+                              flags & Descriptor.REQUIRED != 0)
 
     def getName(self):
 
@@ -753,7 +850,8 @@ class Descriptor(object):
     VALUE    = 0x0001
     REF      = 0x0002
     REDIRECT = 0x0004
-
+    REQUIRED = 0x0008
+    
 
 class SchemaMonitor(Monitor):
 
@@ -764,4 +862,4 @@ class SchemaMonitor(Monitor):
             logger = kind.itsView.logger
             for cls in Kind._kinds.get(kind._uuid, []):
                 logger.warning('Change in %s caused syncing of attribute descriptors on class %s.%s for Kind %s', attrName, cls.__module__, cls.__name__, kind.itsPath)
-                kind._setupDescriptors(cls, True)
+                kind._setupDescriptors(cls, attrName)
