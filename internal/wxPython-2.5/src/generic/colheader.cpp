@@ -196,8 +196,11 @@ void wxColumnHeader::SetFlagVisibleSelection(
 
 	m_BVisibleSelection = bFlagValue;
 
-	RefreshItem( m_ItemSelected );
-	SetViewDirty();
+	if (m_ItemSelected >= 0)
+	{
+		RefreshItem( m_ItemSelected );
+		SetViewDirty();
+	}
 }
 
 bool wxColumnHeader::GetFlagUnicode( void ) const
@@ -608,8 +611,58 @@ long		extentX, i;
 bool wxColumnHeader::RescaleToFit(
 	long				newWidth )
 {
-	if (newWidth <= 0)
+long		scaleItemCount, scaleItemAmount, i;
+long		deltaX, summerX, originX, incX;
+
+	if ((newWidth <= 0) || (m_ItemList == NULL))
 		return false;
+
+	// count non-fixed-width items and tabulate size
+	scaleItemCount = 0;
+	scaleItemAmount = 0;
+	for (i=0; i<m_ItemCount; i++)
+	{
+		if ((m_ItemList[i] == NULL) || m_ItemList[i]->m_BFixedWidth)
+			continue;
+
+		scaleItemCount++;
+		scaleItemAmount += m_ItemList[i]->m_ExtentX;
+	}
+
+	// determine width delta
+	deltaX = newWidth - m_NativeBoundsR.width;
+	summerX = deltaX;
+	originX = 0;
+
+	// move and resize items as appropriate
+	for (i=0; i<m_ItemCount; i++)
+	{
+		if (m_ItemList[i] == NULL)
+			continue;
+
+		// move to new origin
+		m_ItemList[i]->m_OriginX = originX;
+
+		// resize item, if non-fixed
+		if (! m_ItemList[i]->m_BFixedWidth)
+		{
+			scaleItemCount--;
+
+			if (scaleItemCount > 0)
+				incX = (deltaX * m_ItemList[i]->m_ExtentX) / scaleItemAmount;
+			else
+				incX = summerX;
+			m_ItemList[i]->m_ExtentX += incX;
+
+			summerX -= incX;
+		}
+
+		originX += m_ItemList[i]->m_ExtentX;
+	}
+
+	for (i=0; i<m_ItemCount; i++)
+		RefreshItem( i );
+	SetViewDirty();
 
 	return true;
 }
@@ -674,9 +727,6 @@ void wxColumnHeader::SetSelectedItem(
 	long			itemIndex )
 {
 bool		bSelected;
-
-//	if (! m_BVisibleSelection)
-//		return;
 
 	if ((itemIndex >= 0) && (itemIndex < m_ItemCount))
 		if (m_ItemSelected != itemIndex)
@@ -831,6 +881,21 @@ bool				bIsSelected;
 
 	// update the counter
 	m_ItemCount += itemCount;
+}
+
+void wxColumnHeader::DisposeItemList( void )
+{
+	if (m_ItemList != NULL)
+	{
+		for (long i=0; i<m_ItemCount; i++)
+			delete m_ItemList[i];
+
+		free( m_ItemList );
+		m_ItemList = NULL;
+	}
+
+	m_ItemCount = 0;
+	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
 }
 
 bool wxColumnHeader::GetItemData(
@@ -1194,21 +1259,6 @@ long		originX, i;
 	}
 }
 
-void wxColumnHeader::DisposeItemList( void )
-{
-	if (m_ItemList != NULL)
-	{
-		for (long i=0; i<m_ItemCount; i++)
-			delete m_ItemList[i];
-
-		free( m_ItemList );
-		m_ItemList = NULL;
-	}
-
-	m_ItemCount = 0;
-	m_ItemSelected = wxCOLUMNHEADER_HITTEST_NoPart;
-}
-
 // ================
 #if 0
 #pragma mark -
@@ -1460,6 +1510,7 @@ wxColumnHeaderItem::wxColumnHeaderItem()
 	, m_BSelected( FALSE )
 	, m_BSortEnabled( FALSE )
 	, m_BSortAscending( FALSE )
+	, m_BFixedWidth( FALSE )
 {
 }
 
@@ -1475,6 +1526,7 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 	, m_BSelected( FALSE )
 	, m_BSortEnabled( FALSE )
 	, m_BSortAscending( FALSE )
+	, m_BFixedWidth( FALSE )
 {
 	SetItemData( info );
 }

@@ -16,6 +16,7 @@ class TestPanel( wx.Panel ):
         # init (non-UI) demo vars
         # NB: should be 17 for Mac; 20 for all other platforms
         # wxColumnHeader can handle it
+        self.baseWidth = 350
         self.colHeight = 20
         self.colStartX = 175
         self.colStartY = 20
@@ -28,7 +29,7 @@ class TestPanel( wx.Panel ):
         prompt = "ColumnHeader (%d)" %(cntlID)
         l1 = wx.StaticText( self, -1, prompt, (self.colStartX, self.colStartY), (200, 20) )
 
-        ch1 = wx.colheader.ColumnHeader( self, cntlID, (self.colStartX, self.colStartY + 20), (350, self.colHeight), 0 )
+        ch1 = wx.colheader.ColumnHeader( self, cntlID, (self.colStartX, self.colStartY + 20), (self.baseWidth, self.colHeight), 0 )
         dow = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ]
         for v in dow:
             ch1.AppendItem( v, wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 0, 1 )
@@ -89,10 +90,24 @@ class TestPanel( wx.Panel ):
         self.Bind( wx.EVT_CHECKBOX, self.OnTestProportionalResizingCheckBox, cb3 )
         cb3.SetValue( True )
 
+        self.colStartX -= 60
+
     def OnColumnHeaderClick( self, event ):
         ch = event.GetEventObject()
         self.l0.SetLabel( "(%d): clicked - selected (%ld)" %(event.GetId(), ch.GetSelectedItem()) )
         # self.log.write( "Click! (%ld)\n" % event.GetEventType() )
+
+    def OnTestResizeBoundsButton( self, event ):
+        ch = self.ch1
+        if (self.stepSize == 1):
+            self.stepDir = (-1)
+        else:
+            if (self.stepSize == (-1)):
+                self.stepDir = 1
+        self.stepSize = self.stepSize + self.stepDir
+        newSize = self.baseWidth + 40 * self.stepSize
+        ch.DoSetSize( self.colStartX, self.colStartY + 20, newSize, 20, 0 )
+        self.l0.SetLabel( "(%d): resized bounds to %d" %(ch.GetId(), newSize) )
 
     def OnTestDeleteItemButton( self, event ):
         ch = self.ch1
@@ -102,19 +117,6 @@ class TestPanel( wx.Panel ):
             self.l0.SetLabel( "(%d): deleted item (%d)" %(ch.GetId(), itemIndex) )
         else:
             self.l0.SetLabel( "(%d): no item selected" %(ch.GetId()) )
-
-    def OnTestResizeBoundsButton( self, event ):
-        ch = self.ch1
-        curWidth = ch.GetTotalUIExtent()
-        if (self.stepSize == 1):
-            self.stepDir = (-1)
-        else:
-            if (self.stepSize == (-1)):
-                self.stepDir = 1
-        self.stepSize = self.stepSize + self.stepDir
-        newSize = curWidth + 40 * self.stepSize
-        ch.DoSetSize( self.colStartX, self.colStartY + 20, newSize, 20, 0 )
-        self.l0.SetLabel( "(%d): resized bounds to %d" %(ch.GetId(), newSize) )
 
     def OnTestAddBitmapItemButton( self, event ):
         ch = self.ch2
