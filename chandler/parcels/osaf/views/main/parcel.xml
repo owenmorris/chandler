@@ -185,7 +185,7 @@
     <!-- Attributes -->
     <toolbarLocation>Toolbar</toolbarLocation>
     <title>Back</title>
-    <bitmap>application/back.bmp</bitmap>
+    <bitmap>application/images/back.bmp</bitmap>
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <statusMessage>Go to the previous view</statusMessage>
@@ -195,7 +195,7 @@
     <!-- Attributes -->
     <toolbarLocation>Toolbar</toolbarLocation>
     <title>Forward</title>
-    <bitmap>application/forward.bmp</bitmap>
+    <bitmap>application/images/forward.bmp</bitmap>
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <statusMessage>Go to the next view</statusMessage>
@@ -205,7 +205,7 @@
     <!-- Attributes -->
     <toolbarLocation>Toolbar</toolbarLocation>
     <title>Forward</title>
-    <bitmap>application/reload.bmp</bitmap>
+    <bitmap>application/images/reload.bmp</bitmap>
     <selectedBitmap></selectedBitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <statusMessage>Reload the current view</statusMessage>
