@@ -590,8 +590,10 @@ def RenderItem(item):
             result += "%s" % name
             result += "</td><td valign=top>"
             try:
-                theType = TypeHandler.typeHandler(Globals.repository.view, value)
-                result += "<b>(%s)</b> " % theType.handlerName()
+                theType = TypeHandler.typeHandler(Globals.repository.view,
+                 value)
+                typeName = theType.getImplementationType().__name__
+                result += "<b>(%s)</b> " % typeName
                 content = value.getInputStream().read()
                 result += clean(content)
 
@@ -624,9 +626,7 @@ def RenderItem(item):
             result += "%s" % name
             result += "</td><td valign=top>"
             theType = TypeHandler.typeHandler(Globals.repository.view, value)
-            typeName = theType.handlerName()
-            if typeName is None:
-                typeName = type(value).__name__
+            typeName = theType.getImplementationType().__name__
             result += "<b>(%s)</b> " % typeName
             try:
                 result += "<a href=%s>%s</a><br>" % (toLink(value.itsPath),
