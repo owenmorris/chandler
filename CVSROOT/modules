@@ -44,6 +44,7 @@ dbxml-module -a \
 chandler-source -a \
     hardhat \
     osaf/chandler/Chandler \
+    osaf/chandler/hardhat \
     osaf/chandler/python \
     osaf/chandler/zodb \
     osaf/chandler/distutils \
