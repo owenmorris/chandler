@@ -64,14 +64,17 @@ class Type(Item):
     def handlerName(cls):
         return None
 
-    def makeValue(cls, data):
+    def makeValue(self, data):
         raise NotImplementedError, "Type.makeValue()"
 
-    def makeString(cls, value):
+    def makeString(self, value):
         return str(value)
 
     def recognizes(self, value):
         return type(value) is self.getImplementationType()
+
+    def eval(self, value):
+        return value
 
     # override this to compare types of the same category, like
     # Integer, Long and Float or String and Symbol
@@ -83,10 +86,7 @@ class Type(Item):
         return False
 
     def typeXML(self, value, generator, withSchema):
-        generator.characters(type(self).makeString(value))
-
-    def unserialize(self, data):
-        raise NotImplementedError, "Type.unserialize()"
+        generator.characters(self.makeString(value))
 
     def startValue(self, itemHandler):
         pass
@@ -95,10 +95,8 @@ class Type(Item):
         return True
 
     def getValue(self, itemHandler, data):
-        return self.unserialize(data)
+        return self.makeValue(data)
 
-    makeValue = classmethod(makeValue)
-    makeString = classmethod(makeString)
     handlerName = classmethod(handlerName)
 
 
@@ -110,23 +108,18 @@ class String(Type):
     def handlerName(cls):
         return 'unicode'
 
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return unicode(data)
 
-    def makeString(cls, value):
+    def makeString(self, value):
         return unicode(value)
 
     def recognizes(self, value):
         return type(value) is unicode or type(value) is str
 
-    def unserialize(self, data):
-        return String.makeValue(data)
-
     def _compareTypes(self, other):
         return -1
 
-    makeValue = classmethod(makeValue)
-    makeString = classmethod(makeString)
     handlerName = classmethod(handlerName)
 
 
@@ -138,16 +131,12 @@ class Symbol(Type):
     def handlerName(cls):
         return 'str'
 
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return str(data)
-
-    def unserialize(self, data):
-        return Symbol.makeValue(data)
 
     def _compareTypes(self, other):
         return 1
     
-    makeValue = classmethod(makeValue)
     handlerName = classmethod(handlerName)
 
 
@@ -159,16 +148,12 @@ class Integer(Type):
     def handlerName(cls):
         return 'int'
 
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return int(data)
-
-    def unserialize(self, data):
-        return Integer.makeValue(data)
 
     def _compareTypes(self, other):
         return -1
 
-    makeValue = classmethod(makeValue)
     handlerName = classmethod(handlerName)
 
 
@@ -180,11 +165,8 @@ class Long(Type):
     def handlerName(cls):
         return 'long'
 
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return long(data)
-
-    def unserialize(self, data):
-        return Long.makeValue(data)
 
     def recognizes(self, value):
         return type(value) is long or type(value) is int
@@ -196,7 +178,6 @@ class Long(Type):
             return -1
         return 0
 
-    makeValue = classmethod(makeValue)
     handlerName = classmethod(handlerName)
 
 
@@ -208,11 +189,8 @@ class Float(Type):
     def handlerName(cls):
         return 'float'
     
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return float(data)
-
-    def unserialize(self, data):
-        return Float.makeValue(data)
 
     def recognizes(self, value):
         return (type(value) is float or
@@ -221,7 +199,6 @@ class Float(Type):
     def _compareTypes(self, other):
         return 1
 
-    makeValue = classmethod(makeValue)
     handlerName = classmethod(handlerName)
 
     
@@ -233,13 +210,9 @@ class Complex(Type):
     def handlerName(cls):
         return 'complex'
 
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return complex(data)
 
-    def unserialize(self, data):
-        return Complex.makeValue(data)
-
-    makeValue = classmethod(makeValue)
     handlerName = classmethod(handlerName)
 
 
@@ -251,13 +224,9 @@ class Boolean(Type):
     def handlerName(cls):
         return 'bool'
     
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return data != 'False'
 
-    def unserialize(self, data):
-        return Boolean.makeValue(data)
-
-    makeValue = classmethod(makeValue)
     handlerName = classmethod(handlerName)
 
 
@@ -266,17 +235,12 @@ class UUID(Type):
     def handlerName(cls):
         return 'uuid'
 
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return repository.util.UUID.UUID(data)
 
-    def unserialize(self, data):
-        return UUID.makeValue(data)
-
-    def makeString(cls, value):
+    def makeString(self, value):
         return value.str64()
 
-    makeValue = classmethod(makeValue)
-    makeString = classmethod(makeString)
     handlerName = classmethod(handlerName)
 
 
@@ -285,14 +249,13 @@ class SingleRef(Type):
     def handlerName(cls):
         return 'ref'
     
-    def makeValue(cls, data):
+    def makeValue(self, data):
         uuid = repository.util.UUID.UUID(data)
         return repository.item.PersistentCollections.SingleRef(uuid)
 
-    def unserialize(self, data):
-        return SingleRef.makeValue(data)
+    def eval(self, value):
+        return self.getRepository()[value]
 
-    makeValue = classmethod(makeValue)
     handlerName = classmethod(handlerName)
 
 
@@ -301,13 +264,15 @@ class Path(Type):
     def handlerName(cls):
         return 'path'
 
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return repository.util.Path.Path(data)
 
-    def unserialize(self, data):
-        return Path.makeValue(data)
+    def eval(self, value):
+        item = self.find(value)
+        if item is None:
+            raise ValueError, 'Path %s evaluated to None' %(value)
+        return item
 
-    makeValue = classmethod(makeValue)
     handlerName = classmethod(handlerName)
 
 
@@ -319,20 +284,15 @@ class NoneType(Type):
     def handlerName(cls):
         return 'none'
     
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return None
 
-    def makeString(cls, value):
+    def makeString(self, value):
         return "None"
 
-    def unserialize(self, data):
-        return None
-        
     def recognizes(self, value):
         return value is None
 
-    makeValue = classmethod(makeValue)
-    makeString = classmethod(makeString)
     handlerName = classmethod(handlerName)
 
 
@@ -344,32 +304,31 @@ class Class(Type):
     def handlerName(cls):
         return 'class'
     
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return ClassLoader.loadClass(data)
 
-    def makeString(cls, value):
+    def makeString(self, value):
         return "%s.%s" %(value.__module__, value.__name__)
-
-    def unserialize(self, data):
-        return Class.makeValue(data)
         
-    makeValue = classmethod(makeValue)
-    makeString = classmethod(makeString)
     handlerName = classmethod(handlerName)
 
 
 class Enumeration(Type):
 
     def getImplementationType(self):
+
         return type(self)
 
     def handlerName(cls):
+
         return 'str'
     
-    def makeValue(cls, data):
+    def makeValue(self, data):
+
         return data
 
-    def makeString(cls, value):
+    def makeString(self, value):
+
         return value
 
     def recognizes(self, value):
@@ -379,24 +338,6 @@ class Enumeration(Type):
         except ValueError:
             return False
 
-    def typeXML(self, value, generator, withSchema):
-
-        try:
-            number = self.values.index(value)
-        except ValueError:
-            raise ValueError, "%d not in %s enum" %(value, self._name)
-            
-        generator.characters(str(number))
-    
-    def unserialize(self, data):
-
-        if data[0] >= '0' and data[0] <= '9':
-            return self.values[int(data)]
-
-        return data
-
-    makeValue = classmethod(makeValue)
-    makeString = classmethod(makeString)
     handlerName = classmethod(handlerName)
 
 
@@ -411,33 +352,28 @@ class Struct(Type):
     def typeXML(self, value, generator, withSchema):
 
         fields = self.getAttributeValue('fields', _attrDict=self._values,
-                                        default=[])
+                                        default={})
 
         if fields:
             repository = self.getRepository()
             generator.startElement('fields', {})
-            for field in fields:
-                self._fieldXML(repository, value, field, generator)
+            for fieldName, field in fields.iteritems():
+                self._fieldXML(repository, value, fieldName, field, generator)
             generator.endElement('fields')
         else:
             raise TypeError, 'Struct %s has no fields' %(self.getItemPath())
     
-    def _fieldXML(self, repository, value, field, generator):
+    def _fieldXML(self, repository, value, fieldName, field, generator):
 
-        fieldName = field['name']
         fieldValue = getattr(value, fieldName)
+        typeHandler = field.get('type', None)
 
-        attrs = { 'name': fieldName }
-        typeHandler = ItemHandler.typeHandler(repository, fieldValue)
+        if typeHandler is None:
+            typeHandler = ItemHandler.typeHandler(repository, fieldValue)
 
-        typeName = typeHandler.handlerName()
-        if typeName is not None:
-            attrs['type'] = typeName
-        else:
-            attrs['typeid'] = typeHandler._uuid.str64()
-
+        attrs = { 'name': fieldName, 'typeid': typeHandler._uuid.str64() }
         generator.startElement('field', attrs)
-        generator.characters(ItemHandler.makeString(repository, fieldValue))
+        generator.characters(typeHandler.makeString(fieldValue))
         generator.endElement('field')
 
     def fieldsStart(self, itemHandler, attrs):
@@ -453,44 +389,86 @@ class Struct(Type):
 
         name = attrs['name']
 
-        if attrs.has_key('type'):
+        if attrs.has_key('typeid'):
+            typeHandler = itemHandler.repository[repository.util.UUID.UUID(attrs['typeid'])]
+            value = typeHandler.makeValue(itemHandler.data)
+        elif attrs.has_key('type'):
             value = itemHandler.makeValue(attrs['type'], itemHandler.data)
         else:
-            typeHandler = itemHandler.repository[UUID(attrs['typeid'])]
-            value = typeHandler.unserialize(itemHandler.data)
+            value = itemHandler.data
+            field = self.fields[name]
+            typeHandler = field.get('type', None)
+            if typeHandler is not None:
+                value = typeHandler.makeValue(value)
 
         itemHandler.fields[name] = value
 
+    def recognizes(self, value):
+
+        if super(Struct, self).recognizes(value):
+            for fieldName, field in self.fields.iteritems():
+                typeHandler = field.get('type', None)
+                if typeHandler is not None:
+                    if not typeHandler.recognizes(getattr(value, fieldName)):
+                        return False
+            return True
+
+        return False
+
     def getValue(self, itemHandler, data):
 
-        implementationType = self.getImplementationType()
         fields = itemHandler.fields
-
+        
         if fields is None:
-            return implementationType(data)
-        else:
-            return implementationType(**fields)
+            return self.makeValue(data)
 
+        else:
+            result = self.getImplementationType()()
+            for fieldName, value in fields.iteritems():
+                setattr(result, fieldName, value)
+
+            return result
+
+    def makeValue(self, data):
+
+        result = self.getImplementationType()()
+        for pair in data.split(','):
+            fieldName, value = pair.split(':')
+            typeHandler = self.fields[fieldName].get('type', None)
+            if typeHandler is not None:
+                value = typeHandler.makeValue(value)
+            setattr(result, fieldName, value)
+
+        return result
+
+    def makeString(self, value):
+
+        strings = []
+        for fieldName, field in self.fields.iteritems():
+            strings.append("%s:%s" %(fieldName, getattr(value, fieldName)))
+
+        return ",".join(strings)
+    
 
 class DateTime(Struct):
 
     def getImplementationType(self):
         return DateTime.implementationType
 
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return mx.DateTime.ISO.ParseDateTime(data)
         
-    def makeString(cls, value):
+    def makeString(self, value):
         return mx.DateTime.ISO.str(value)
 
-    def unserialize(self, data):
-        return DateTime.makeValue(data)
+    def recognizes(self, value):
+        return type(value) is self.getImplementationType()
 
     def getValue(self, itemHandler, data):
 
         flds = itemHandler.fields
         if flds is None:
-            return self.unserialize(data)
+            return self.makeValue(data)
         else:
             itemHandler.fields = None
         
@@ -501,8 +479,6 @@ class DateTime(Struct):
                                     flds['minute'],
                                     flds['second'])
 
-    makeValue = classmethod(makeValue)
-    makeString = classmethod(makeString)
     implementationType = type(mx.DateTime.now())
 
 
@@ -513,26 +489,25 @@ class DateTimeDelta(Struct):
     def getImplementationType(self):
         return DateTimeDelta.implementationType
 
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return mx.DateTime.DateTimeDeltaFrom(str(data))
         
-    def unserialize(self, data):
-        return DateTimeDelta.makeValue(data)
+    def recognizes(self, value):
+        return type(value) is self.getImplementationType()
 
-    def _fieldXML(self, repository, value, field, generator):
+    def _fieldXML(self, repository, value, fieldName, field, generator):
 
-        fieldName = field['name']
         default = DateTimeDelta.defaults[fieldName]
         fieldValue = getattr(value, fieldName, default)
         if default != fieldValue:
-            super(DateTimeDelta, self)._fieldXML(repository, value, field,
-                                                 generator)
+            super(DateTimeDelta, self)._fieldXML(repository, value,
+                                                 fieldName, field, generator)
           
     def getValue(self, itemHandler, data):
 
         flds = itemHandler.fields
         if flds is None:
-            return self.unserialize(data)
+            return self.makeValue(data)
         else:
             itemHandler.fields = None
         
@@ -541,7 +516,6 @@ class DateTimeDelta(Struct):
                                              minutes=flds.get('minute', 0.0),
                                              seconds=flds.get('second', 0.0))
 
-    makeValue = classmethod(makeValue)
     implementationType = type(mx.DateTime.DateTimeDelta(0))
     
 
@@ -556,26 +530,26 @@ class RelativeDateTime(Struct):
     def getImplementationType(self):
         return RelativeDateTime.implementationType
 
-    def makeValue(cls, data):
+    def makeValue(self, data):
         return mx.DateTime.RelativeDateTimeFrom(str(data))
 
-    def unserialize(self, data):
-        return RelativeDateTime.makeValue(data)
+    def recognizes(self, value):
+        return type(value) is self.getImplementationType()
 
-    def _fieldXML(self, repository, value, field, generator):
+    def _fieldXML(self, repository, value, fieldName, field, generator):
 
-        fieldName = field['name']
         default = RelativeDateTime.defaults[fieldName]
         fieldValue = getattr(value, fieldName, default)
         if default != fieldValue:
-            super(RelativeDateTime, self)._fieldXML(repository, value, field,
+            super(RelativeDateTime, self)._fieldXML(repository, value,
+                                                    fieldName, field,
                                                     generator)
           
     def getValue(self, itemHandler, data):
 
         flds = itemHandler.fields
         if flds is None:
-            return self.unserialize(data)
+            return self.makeValue(data)
         else:
             itemHandler.fields = None
 
@@ -594,7 +568,6 @@ class RelativeDateTime(Struct):
                                             weekday=flds.get('weekday', None),
                                             weeks=flds.get('weeks', 0))
 
-    makeValue = classmethod(makeValue)
     implementationType = type(mx.DateTime.RelativeDateTime())
 
 
@@ -656,7 +629,7 @@ class Dictionary(Collection):
                                  generator, withSchema)
         generator.endElement('values')
 
-    def makeValue(cls, data):
+    def makeValue(self, data):
 
         result = {}
         for pair in data.split(','):
@@ -665,12 +638,19 @@ class Dictionary(Collection):
 
         return result
 
+    def makeString(self, value):
+
+        strings = []
+        for k, v in self.value.iteritems():
+            strings.append("%s:%s" %(k, v))
+
+        return ",".join(strings)
+
     def _empty(self):
 
         return PersistentDict(None, None)
 
     handlerName = classmethod(handlerName)
-    makeValue = classmethod(makeValue)
     
 
 class List(Collection):
@@ -694,13 +674,16 @@ class List(Collection):
                                  generator, withSchema)
         generator.endElement('values')
     
-    def makeValue(cls, data):
+    def makeValue(self, data):
 
         return data.split(',')
+
+    def makeString(self, value):
+
+        return ",".join([str(v) for v in value])
 
     def _empty(self):
 
         return PersistentList(None, None)
     
     handlerName = classmethod(handlerName)
-    makeValue = classmethod(makeValue)

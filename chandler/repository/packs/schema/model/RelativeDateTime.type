@@ -5,20 +5,20 @@
   <kind type="path">//Schema/Core/Struct</kind>
   <class module="repository.schema.Types">RelativeDateTime</class>
 
-  <attribute name="fields" type="dict" cardinality="list">
-    <value><values><value name="name">year</value></values></value>
-    <value><values><value name="name">years</value></values></value>
-    <value><values><value name="name">month</value></values></value>
-    <value><values><value name="name">months</value></values></value>
-    <value><values><value name="name">weekday</value></values></value>
-    <value><values><value name="name">weeks</value></values></value>
-    <value><values><value name="name">day</value></values></value>
-    <value><values><value name="name">days</value></values></value>
-    <value><values><value name="name">hour</value></values></value>
-    <value><values><value name="name">hours</value></values></value>
-    <value><values><value name="name">minute</value></values></value>
-    <value><values><value name="name">minutes</value></values></value>
-    <value><values><value name="name">second</value></values></value>
-    <value><values><value name="name">seconds</value></values></value>
+  <attribute name="fields" type="dict" cardinality="dict">
+    <value name="year"><values></values></value>
+    <value name="years"><values></values></value>
+    <value name="month"><values></values></value>
+    <value name="months"><values></values></value>
+    <value name="weekday"><values></values></value>
+    <value name="weeks"><values></values></value>
+    <value name="day"><values></values></value>
+    <value name="days"><values></values></value>
+    <value name="hour"><values></values></value>
+    <value name="hours"><values></values></value>
+    <value name="minute"><values></values></value>
+    <value name="minutes"><values></values></value>
+    <value name="second"><values></values></value>
+    <value name="seconds"><values></values></value>
   </attribute>
 </item>

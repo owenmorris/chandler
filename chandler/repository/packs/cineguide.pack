@@ -4,6 +4,9 @@
 
   <item path="//Schema">
     <item file="CineGuide.domain" cwd="schema">
+      <item file="Types.namespace" cwd="types">
+        <item files="*.type" />
+      </item>
       <item file="Attributes.namespace" cwd="attributes">
         <item files="*.attr" />
       </item>

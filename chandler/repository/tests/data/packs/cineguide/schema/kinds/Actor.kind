@@ -9,6 +9,7 @@
     <ref alias="born" type="path">/CineGuide/Attributes/born</ref>
     <ref alias="died" type="path">/CineGuide/Attributes/died</ref>
     <ref alias="movies" type="path">/CineGuide/Attributes/movies</ref>
+    <ref alias="rectangle" type="path">/CineGuide/Attributes/rectangle</ref>
   </ref>
 
   <ref name="superKinds">

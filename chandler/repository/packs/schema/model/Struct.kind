@@ -37,7 +37,7 @@
       <ref type="path">..</ref>
     </ref>
 
-    <attribute name="cardinality">list</attribute>
+    <attribute name="cardinality">dict</attribute>
     <ref name="type" otherName="typeFor" 
          type="path" otherCard="list">/Core/Dictionary</ref>
   </item>

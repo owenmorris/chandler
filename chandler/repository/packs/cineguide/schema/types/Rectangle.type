@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item withSchema="True">
+  <name>Rectangle</name>
+  <kind type="path">//Schema/Core/Struct</kind>
+
+  <attribute name="fields" type="dict" cardinality="dict">
+    <value name="x">
+      <values>
+        <value name="type" type="path" eval="true">/Core/Integer</value>
+      </values>
+    </value>
+    <value name="y">
+      <values>
+        <value name="type" type="path" eval="true">/Core/Integer</value>
+      </values>
+    </value>
+  </attribute>
+
+  <attribute name="implementationTypes" cardinality="dict" type="class">
+    <value name="python">repository.tests.Types.Rectangle</value>
+  </attribute>
+
+</item>

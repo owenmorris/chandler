@@ -366,6 +366,9 @@ class ItemHandler(xml.sax.ContentHandler):
                     value = self.collections.pop()
                 else:
                     value = self.makeValue(typeName, self.data)
+                    if attrs.has_key('eval'):
+                        typeHandler = self.typeHandler(self.repository, value)
+                        value = typeHandler.eval(value)
             
         if self.delegates:
             raise ValueError, "while loading '%s.%s' type delegates didn't pop: %s" %(self.name, attrs['name'], self.delegates)
@@ -389,6 +392,9 @@ class ItemHandler(xml.sax.ContentHandler):
                 value = self.collections.pop()
             else:
                 value = self.makeValue(typeName, self.data)
+                if attrs.has_key('eval'):
+                    typeHandler = self.typeHandler(self.repository, value)
+                    value = typeHandler.eval(value)
 
         name = attrs.get('name')
 

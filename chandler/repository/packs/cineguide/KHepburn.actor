@@ -7,4 +7,11 @@
     <attribute name="name">Katharine Hepburn</attribute>
     <attribute name="born">1907-MM-DD</attribute>
     <attribute name="died">2003-MM-DD</attribute>
+
+    <attribute name="rectangle">
+      <fields>
+        <field name="x">10</field>
+        <field name="y">20</field>
+      </fields>
+    </attribute>
 </item>

@@ -5,10 +5,10 @@
   <kind type="path">//Schema/Core/Struct</kind>
   <class module="repository.schema.Types">DateTimeDelta</class>
 
-  <attribute name="fields" type="dict" cardinality="list">
-    <value><values><value name="name">day</value></values></value>
-    <value><values><value name="name">hour</value></values></value>
-    <value><values><value name="name">minute</value></values></value>
-    <value><values><value name="name">second</value></values></value>
+  <attribute name="fields" type="dict" cardinality="dict">
+    <value name="day"><values></values></value>
+    <value name="hour"><values></values></value>
+    <value name="minute"><values></values></value>
+    <value name="second"><values></values></value>
   </attribute>
 </item>

@@ -275,6 +275,13 @@ class PersistentDict(dict, PersistentCollection):
         
         return value
 
+    def get(self, key, default):
+
+        value = super(PersistentDict, self).get(key, default)
+        value = self._restoreValue(value)
+        
+        return value
+
     def itervalues(self):
 
         for value in super(PersistentDict, self).itervalues():
