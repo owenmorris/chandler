@@ -451,7 +451,7 @@ class wxTableData(wx.grid.PyGridTableBase):
         return attribute
         
 
-class wxTable(DropReceiveWidget, wx.grid.Grid):
+class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
     def __init__(self, *arguments, **keywords):
         """
           Giant hack. Calling event.GetEventObject in OnShow of application, while the
@@ -469,6 +469,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         self.SetRowLabelSize(0)
         self.AutoSizeRows()
         self.EnableGridLines(False)
+        self.EnableDragCell(True)
         self.SetDefaultCellBackgroundColour(wx.WHITE)
         self.SetMargins(0-wx.SystemSettings_GetMetric(wx.SYS_VSCROLL_X),
                         0-wx.SystemSettings_GetMetric(wx.SYS_HSCROLL_Y))
@@ -492,6 +493,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnWXSelectionChanged)
         self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
         self.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.OnRightClick)
+        self.Bind(wx.grid.EVT_GRID_CELL_BEGIN_DRAG, self.OnItemDrag)
 
     def OnInit (self):
         elementDelegate = self.blockItem.elementDelegate
@@ -549,6 +551,9 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
                 # post a selection changed event
                 self.blockItem.PostASelectionChangedEvent (selectedItem)
         event.Skip()
+
+    def OnItemDrag(self, event):
+        self.SetDragData (self.blockItem.contents [event.GetRow()].itsUUID)
 
     def AddItem(self, itemUUID):
         item = Globals.repository.findUUID(itemUUID)
