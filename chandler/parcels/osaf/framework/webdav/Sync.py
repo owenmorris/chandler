@@ -211,7 +211,11 @@ def syncToServer(dav, item):
     for (name, value) in item.iterAttributeValues():
         # don't export these local attributes
         if name in [u'etag', u'lastModified', u'sharedVersion',
-                    u'sharedURL', u'sharedUUID', u'collectionOwner' u'itemCollectionResults']:
+                    u'sharedURL', u'sharedUUID', u'collectionOwner',
+                    u'itemCollectionResults',
+                    u'itemCollectionInclusions',
+                    u'itemCollectionInclusions'
+                    u'itemCollectionExclusions']:
             continue
 
         # XXX this is probably not the best thing to do here
