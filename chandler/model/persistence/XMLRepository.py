@@ -4,11 +4,12 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, re, cStringIO, xml.sax.saxutils
+import os, os.path, re, cStringIO, xml.sax.saxutils
 
 from xml.sax import parseString
 from datetime import datetime
 from struct import pack, unpack
+from sys import exc_info
 
 from model.util.UUID import UUID
 from model.item.Item import Item
@@ -16,17 +17,14 @@ from model.item.ItemRef import ItemRef, ItemStub, RefDict, TransientRefDict
 from model.persistence.Repository import OnDemandRepository, Store
 from model.persistence.Repository import RepositoryError
 
-from bsddb.db import DBEnv, DB
-from bsddb.db import DB_CREATE, DB_RECOVER, DB_TRUNCATE, DB_FORCE, DB_BTREE
-from bsddb.db import DB_INIT_MPOOL, DB_INIT_TXN
-from bsddb.db import DBNoSuchFileError, DBNotFoundError
+from bsddb.db import DBEnv, DB, DBError
+from bsddb.db import DB_CREATE, DB_BTREE, DB_TXN_NOWAIT
+from bsddb.db import DB_RECOVER, DB_RECOVER_FATAL
+from bsddb.db import DB_INIT_MPOOL, DB_INIT_LOCK, DB_INIT_TXN, DB_DIRTY_READ
+from bsddb.db import DBRunRecoveryError, DBNoSuchFileError, DBNotFoundError
 from dbxml import XmlContainer, XmlDocument, XmlValue
 from dbxml import XmlQueryContext, XmlUpdateContext
 
-
-class DBError(RepositoryError):
-    "All DBXML related exceptions go here"
-    
 
 class XMLRepository(OnDemandRepository):
     """A Berkeley DBXML based repository.
@@ -44,10 +42,11 @@ class XMLRepository(OnDemandRepository):
         self._ctx = XmlQueryContext()
         self._transaction = {}
         
-    def create(self, verbose=False):
+    def create(self, verbose=False, notxn=False):
 
         if not self.isOpen():
             super(XMLRepository, self).create(verbose)
+            self._notxn = notxn
             self._create()
             self._status |= self.OPEN
 
@@ -57,25 +56,53 @@ class XMLRepository(OnDemandRepository):
             os.makedirs(self.dbHome)
         elif not os.path.isdir(self.dbHome):
             raise ValueError, "%s exists but is not a directory" %(self.dbHome)
-
-        self._env = DBEnv()
-        self._env.remove(self.dbHome, DB_FORCE)
+        else:
+            def purge(arg, path, names):
+                for f in names:
+                    if f.startswith('__') or f.startswith('log.'):
+                        f = os.path.join(path, f)
+                        if not os.path.isdir(f):
+                            os.remove(f)
+            os.path.walk(self.dbHome, purge, None)
         
         self._env = DBEnv()
-        self._env.open(self.dbHome, DB_CREATE | DB_INIT_MPOOL | DB_INIT_TXN, 0)
-        self._refs = XMLRepository.refContainer(self._env, "__refs__", True)
-        self._store = XMLRepository.xmlContainer(self._env, "__data__", True)
+        if self._notxn:
+            self._env.open(self.dbHome, DB_CREATE | DB_INIT_MPOOL, 0)
+        else:
+            self._env.open(self.dbHome, self.OPEN_FLAGS, 0)
 
-    def open(self, verbose=False, create=False):
+        self._openDb(True)
+
+    def open(self, verbose=False, create=False, notxn=False):
 
         if not self.isOpen():
             super(XMLRepository, self).open(verbose)
+            self._notxn = notxn
             self._env = DBEnv()
 
             try:
-                self._env.open(self.dbHome, DB_INIT_MPOOL | DB_INIT_TXN, 0)
-                self._refs = XMLRepository.refContainer(self._env, "__refs__")
-                self._store = XMLRepository.xmlContainer(self._env, "__data__")
+                if self._notxn:
+                    self._env.open(self.dbHome, DB_INIT_MPOOL, 0)
+                    self._openDb(False)
+
+                else:
+                    try:
+                        before = datetime.now()
+                        self._env.open(self.dbHome,
+                                       DB_RECOVER | self.OPEN_FLAGS, 0)
+                        after = datetime.now()
+                        print 'opened db with recovery in %s' %(after - before)
+                        self._openDb(False)
+
+                    except DBRunRecoveryError:
+                        before = datetime.now()
+                        self._env.open(self.dbHome,
+                                       DB_RECOVER_FATAL | self.OPEN_FLAGS, 0)
+                        after = datetime.now()
+                        print 'opened db with fatal recovery in %s' %(after -
+                                                                      before)
+                        self._openDb(False)
+
             except DBNoSuchFileError:
                 if create:
                     self._create()
@@ -83,6 +110,22 @@ class XMLRepository(OnDemandRepository):
                     raise
 
             self._status |= self.OPEN
+
+    def _openDb(self, create):
+
+        try:
+            if self._notxn:
+                txn = None
+            else:
+                txn = self._env.txn_begin(None, DB_DIRTY_READ | DB_TXN_NOWAIT)
+                
+            self._refs = XMLRepository.refContainer(self._env, "__refs__",
+                                                    txn, create)
+            self._store = XMLRepository.xmlContainer(self._env, "__data__",
+                                                     txn, create)
+        finally:
+            if txn:
+                txn.commit()
 
     def close(self, purge=False):
 
@@ -105,23 +148,44 @@ class XMLRepository(OnDemandRepository):
     def commit(self, purge=False):
 
         if not self.isOpen():
-            raise DBError, "Repository is not open"
+            raise RepositoryError, "Repository is not open"
 
         before = datetime.now()
         count = 0
         
         hasSchema = self._roots.has_key('Schema')
 
-        if hasSchema:
-            count += self._saveItems(self.getRoot('Schema'), self._store, True)
-        
-        for root in self._roots.itervalues():
-            name = root.getItemName()
-            if name != 'Schema':
-                count += self._saveItems(root, self._store, not hasSchema)
+        try:
+            if not self._notxn:
+                txn = self._env.txn_begin(None, DB_DIRTY_READ | DB_TXN_NOWAIT)
+                self._store.txnStarted(self._env, txn)
+                self._refs.txnStarted(self._env, txn)
+            else:
+                txn = None
 
-        after = datetime.now()
-        print 'committed %d items in %s' %(count, after - before)
+            if hasSchema:
+                count += self._saveItems(self.getRoot('Schema'),
+                                         self._store, True)
+
+            for root in self._roots.itervalues():
+                name = root.getItemName()
+                if name != 'Schema':
+                    count += self._saveItems(root, self._store, not hasSchema)
+
+        except DBError:
+            if txn:
+                txn.abort()
+                self._store.txnEnded(self._env, txn)
+                self._refs.txnEnded(self._env, txn)
+            raise
+
+        else:
+            if txn:
+                txn.commit()
+                self._store.txnEnded(self._env, txn)
+                self._refs.txnEnded(self._env, txn)
+            after = datetime.now()
+            print 'committed %d items in %s' %(count, after - before)
 
     def _saveItems(self, root, container, withSchema=False):
 
@@ -164,9 +228,8 @@ class XMLRepository(OnDemandRepository):
             doc = XmlDocument()
             doc.setContent(out.getvalue())
             out.close()
-
             container.putDocument(doc)
-
+            
     def removeItem(self, item, **args):
 
         if args.get('verbose'):
@@ -187,7 +250,7 @@ class XMLRepository(OnDemandRepository):
     def addTransaction(self, item):
 
         if not self.isOpen():
-            raise DBError, 'Repository is not open'
+            raise RepositoryError, 'Repository is not open'
 
         if not self.isLoading():
             name = item.getRoot().getItemName()
@@ -200,50 +263,66 @@ class XMLRepository(OnDemandRepository):
         
         return False
 
+    OPEN_FLAGS = DB_CREATE | DB_INIT_MPOOL | DB_INIT_LOCK | DB_INIT_TXN
+
     class xmlContainer(Store):
 
-        def __init__(self, env, name, create=False):
+        def __init__(self, env, name, txn, create):
 
             super(XMLRepository.xmlContainer, self).__init__()
         
             self._xml = XmlContainer(env, name)
-
+            self._txn = None
+            self._filename = name
+            
             if create:
-                if self._xml.exists(None):
-                    self._xml.remove(None)
-                    self._xml = XmlContainer(env, name)
-
-                self._xml.open(None, DB_CREATE)
-                self._xml.addIndex(None, "", "uuid",
+                self._xml.open(txn, DB_CREATE | DB_DIRTY_READ)
+                self._xml.addIndex(txn, "", "uuid",
                                    "node-attribute-equality-string")
-                self._xml.addIndex(None, "", "kind",
+                self._xml.addIndex(txn, "", "kind",
                                    "node-element-equality-string")
-                self._xml.addIndex(None, "", "container",
+                self._xml.addIndex(txn, "", "container",
                                    "node-element-equality-string")
-                self._xml.addIndex(None, "", "name",
+                self._xml.addIndex(txn, "", "name",
                                    "node-element-equality-string")
             else:
-                self._xml.open(None, 0)
+                self._xml.open(txn, DB_DIRTY_READ)
 
             self._ctx = XmlQueryContext()
             self._ctx.setReturnType(XmlQueryContext.ResultDocuments)
             self._ctx.setEvaluationType(XmlQueryContext.Lazy)
             self._updateCtx = XmlUpdateContext(self._xml)
 
+        def txnStarted(self, env, txn):
+
+            self._txn = txn
+
+        def txnEnded(self, env, txn):
+
+            self._txn = None
+
         def loadItem(self, uuid):
 
             self._ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
-            for value in self._xml.queryWithXPath(None, "/item[@uuid=$uuid]",
-                                                  self._ctx):
-                return value.asDocument()
-
+            results = self._xml.queryWithXPath(self._txn,
+                                               "/item[@uuid=$uuid]",
+                                               self._ctx, DB_DIRTY_READ)
+            try:
+                return results.next(self._txn).asDocument()
+            except StopIteration:
+                return None
+            
         def loadChild(self, uuid, name):
 
             self._ctx.setVariableValue("name", XmlValue(name.encode('utf-8')))
             self._ctx.setVariableValue("uuid", XmlValue(uuid.str64()))
-            for value in self._xml.queryWithXPath(None, "/item[container=$uuid and name=$name]",
-                                                  self._ctx):
-                return value.asDocument()
+            results = self._xml.queryWithXPath(self._txn,
+                                               "/item[container=$uuid and name=$name]",
+                                               self._ctx, DB_DIRTY_READ)
+            try:
+                return results.next(self._txn).asDocument()
+            except StopIteration:
+                return None
 
         def loadroots(self, repository):
 
@@ -252,25 +331,28 @@ class XMLRepository(OnDemandRepository):
             ctx.setEvaluationType(XmlQueryContext.Lazy)
             ctx.setVariableValue("uuid", XmlValue(repository.ROOT_ID.str64()))
             nameExp = re.compile("<name>(.*)</name>")
+            results = self._xml.queryWithXPath(self._txn,
+                                               "/item[container=$uuid]",
+                                               ctx, DB_DIRTY_READ)
+            try:
+                while True:
+                    xml = results.next(self._txn).asDocument()
+                    xmlString = xml.getContent()
+                    match = nameExp.match(xmlString, xmlString.index("<name>"))
+                    name = match.group(1)
 
-            for value in self._xml.queryWithXPath(None,
-                                                  "/item[container=$uuid]",
-                                                  ctx):
-                xml = value.asDocument()
-                xmlString = xml.getContent()
-                match = nameExp.match(xmlString, xmlString.index("<name>"))
-                name = match.group(1)
-
-                if not name in repository._roots:
-                    repository._loadXML(xml)
+                    if not name in repository._roots:
+                        repository._loadXML(xml)
+            except StopIteration:
+                pass
 
         def deleteDocument(self, doc):
 
-            self._xml.deleteDocument(None, doc, self._updateCtx)
+            self._xml.deleteDocument(self._txn, doc, self._updateCtx)
 
         def putDocument(self, doc):
 
-            self._xml.putDocument(None, doc, self._updateCtx)
+            self._xml.putDocument(self._txn, doc, self._updateCtx)
 
         def close(self):
 
@@ -291,19 +373,30 @@ class XMLRepository(OnDemandRepository):
 
     class refContainer(object):
 
-        def __init__(self, env, name, create=False):
+        def __init__(self, env, name, txn, create):
 
             super(XMLRepository.refContainer, self).__init__()
         
             self._db = DB(env)
-
+            self._txn = None
+            self._filename = name
+            
             if create:
-                if os.path.exists(os.path.join(env.db_home, name)):
-                    self._db.remove(name, None)
-                    self._db = DB(env)
-                self._db.open(name, None, DB_BTREE, DB_CREATE | DB_TRUNCATE)
+                self._db.open(filename = name, dbtype = DB_BTREE,
+                              flags = DB_CREATE | DB_DIRTY_READ,
+                              txn = txn)
             else:
-                self._db.open(name, None, DB_BTREE)
+                self._db.open(filename = name, dbtype = DB_BTREE,
+                              flags = DB_DIRTY_READ,
+                              txn = txn)
+
+        def txnStarted(self, env, txn):
+
+            self._txn = txn
+            
+        def txnEnded(self, env, txn):
+
+            self._txn = None
             
         def close(self):
 
@@ -312,37 +405,39 @@ class XMLRepository(OnDemandRepository):
 
         def put(self, key, value):
 
-            self._db.put(key, value)
+            self._db.put(key, value, txn=self._txn)
 
         def delete(self, key):
 
             try:
-                self._db.delete(key)
+                self._db.delete(key, txn=self._txn)
             except DBNotFoundError:
                 pass
 
         def get(self, key):
 
-            return self._db.get(key)
+            return self._db.get(key, txn=self._txn)
 
         def cursor(self):
 
-            return self._db.cursor()
+            return self._db.cursor(txn=self._txn)
 
         def deleteItem(self, item):
 
-            cursor = self._db.cursor()
-            key = item.getUUID()._uuid
-
             try:
-                val = cursor.set_range(key)
-                while val is not None and val[0].startswith(key):
-                    cursor.delete()
-                    val = cursor.next()
-            except DBNotFoundError:
-                pass
+                cursor = self._db.cursor(txn=self._txn)
+                key = item.getUUID()._uuid
 
-            cursor.close()
+                try:
+                    val = cursor.set_range(key)
+                    while val is not None and val[0].startswith(key):
+                        cursor.delete()
+                        val = cursor.next()
+                except DBNotFoundError:
+                    pass
+
+            finally:
+                cursor.close()
 
 
 class XMLRefDict(RefDict):

@@ -275,9 +275,9 @@ class wxApplication (wxApp):
         # force create the repository if -create passed in, otherwise open it
         # and create it only if it doesn't yet exist
         if '-create' in self.argv:
-            self.repository.create()
+            self.repository.create(notxn='-notxn' in self.argv)
         else:
-            self.repository.open(create=True)
+            self.repository.open(create=True, notxn='-notxn' in self.argv)
 
         # Load the repository foundations
         # @@@ This repository loading code should not be embedded in the

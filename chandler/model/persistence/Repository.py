@@ -336,10 +336,12 @@ class OnDemandRepository(Repository):
         if not loading:
             self._status &= ~self.LOADING
 
-            if self._hooks is not None:
-                for hook in self._hooks:
-                    hook()
-                self._hooks = None
+            if self._hooks:
+                try:
+                    for hook in self._hooks:
+                        hook()
+                finally:
+                    self._hooks = None
 
     def _loadXML(self, xml):
 
@@ -354,6 +356,7 @@ class OnDemandRepository(Repository):
                 print "loaded item %s" %(item.getItemPath())
 
             return item
+
         finally:
             self._resetLoading(loading)
 
