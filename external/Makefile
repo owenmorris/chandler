@@ -99,6 +99,12 @@ upload:	$(SNAP)-$(VERSION).tar.gz
 install: $(SNAP)-$(VERSION).tar.gz
 	tar -C .. -xvzf $(SNAP)-$(VERSION).tar.gz
 
+checkout:
+	cd ..; \
+	rm -f cvsco.log;\
+	cvs co chandler-all 2>&1 | tee -a cvsco.log; \
+	echo 'Do |grep "^C " ../cvsco.log| to check for potential conflicts'
+
 build:
 	@for system in $(SYSTEMS); \
 	do \
