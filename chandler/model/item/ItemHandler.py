@@ -9,6 +9,7 @@ import model.item.Item
 
 from model.util.UUID import UUID
 from model.util.Path import Path
+from model.util.PersistentList import PersistentList
 
 from ItemRef import Values, References, RefArgs
 
@@ -91,7 +92,7 @@ class ItemHandler(xml.sax.ContentHandler):
         if cardinality == 'dict' or typeName == 'dict':
             self.collections.append({})
         elif cardinality == 'list' or typeName == 'list':
-            self.collections.append([])
+            self.collections.append(PersistentList(None))
         else:
             self.setupTypeDelegate(attrs)
 
@@ -163,6 +164,10 @@ class ItemHandler(xml.sax.ContentHandler):
             item._children._lastKey = self.last
 
         self.repository._registerItem(item)
+
+        for value in self.values.itervalues():
+            if isinstance(value, PersistentList):
+                value._setItem(item)
 
         for refArgs in self.refs:
             refArgs.attach(item, self.repository)

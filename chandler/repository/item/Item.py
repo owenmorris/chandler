@@ -14,6 +14,7 @@ from ItemHandler import ItemHandler
 from model.util.UUID import UUID
 from model.util.Path import Path
 from model.util.LinkedMap import LinkedMap
+from model.util.PersistentList import PersistentList
 
 
 class Item(object):
@@ -399,7 +400,7 @@ class Item(object):
                 if isItem:
                     attrValue = self._refDict(attribute)
                 else:
-                    _attrDict[attribute] = [ value ]
+                    _attrDict[attribute] = PersistentList(self, value)
                     return
             else:
                 self.setAttributeValue(attribute, value, _attrDict)
@@ -797,10 +798,6 @@ class Item(object):
         'By default, an item is not remote.'
 
         return False
-
-    # kludge for now until we settle on a casing convention
-    def IsRemote(self):
-        return self.isRemote()
 
     def find(self, spec, _index=0, load=True):
         """Find an item as specified or return None if not found.

@@ -9,6 +9,7 @@ import mx.DateTime
 from model.item.Item import Item
 from model.item.ItemHandler import ItemHandler
 from model.item.ItemRef import RefDict
+from model.util.PersistentList import PersistentList
 from Kind import Kind
 
 
@@ -417,7 +418,7 @@ class Dictionary(Collection):
 class List(Collection):
 
     def recognizes(self, value):
-        return type(value) is list
+        return isinstance(value, PersistentList)
 
     def typeXML(self, value, generator):
 
@@ -429,7 +430,7 @@ class List(Collection):
     
     def _empty(self):
 
-        return []
+        return PersistentList(None)
     
 
 ItemHandler.typeHandlers[type] = Class

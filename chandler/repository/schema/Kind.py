@@ -112,7 +112,7 @@ class Kind(Namespace):
             return self.superKinds
 
         raise ValueError, 'No superKind for %s' %(self.getItemPath())
-        self.setDirty()
+
     def _xmlRefs(self, generator, withSchema, mode):
 
         for attr in self._references.items():
@@ -134,21 +134,4 @@ class ItemKind(Kind):
 
 
 class SchemaRoot(Item):
-
-    def _fillItem(self, name, parent, kind, **kwds):
-
-        super(SchemaRoot, self)._fillItem(name, parent, kind, **kwds)
-
-#        if kwds['afterLoadHooks'] is not None:
-#            kwds['afterLoadHooks'].append(self.afterLoadHook)
-
-    def afterLoadHook(self):
-
-        def apply(item):
-
-            assert not item._values.get('notFoundAttributes', []), item
-
-            for child in item:
-                apply(child)
-
-        apply(self)
+    pass
