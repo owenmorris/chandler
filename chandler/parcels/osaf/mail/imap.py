@@ -136,7 +136,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         self.setViewCurrent()
 
         try:
-            if __debug__: 
+            if __debug__:
                 self.printCurrentView("__getMail")
 
             self.account = self.__getAccount()
@@ -147,7 +147,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
             serverName = self.account.serverName
             serverPort = self.account.serverPort
 
-            if __debug__: 
+            if __debug__:
                 self.printAccount()
 
         finally:
@@ -188,7 +188,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         This method is a Twisted C{defer.Deferred} callback that logs in to an IMAP Server
         based on the account information stored in a C{EmailAccountKind}.
 
-        @param result: A Twisted callback result 
+        @param result: A Twisted callback result
         @type result: Could be anything
         @param proto: The C{ChandlerIMAP4Client} protocol instance
         @type proto: C{ChandlerIMAP4Client}
@@ -198,7 +198,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         self.setViewCurrent()
 
         try:
-            if __debug__: 
+            if __debug__:
                 self.printCurrentView("loginClient")
 
             """ Save the IMAP4Client instance """
@@ -208,7 +208,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
             assert self.account is not None, "Account is None can not login client"
 
-            return self.proto.login(str(self.account.accountName), 
+            return self.proto.login(str(self.account.accountName),
                                     str(self.account.password)).addCallback(self.__selectInbox)
         finally:
            self.restorePreviousView()
@@ -237,10 +237,10 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
                 if self.__getLastUID() == 0:
                     msgSet = imap4.MessageSet(1, None)
-                else: 
+                else:
                     msgSet = imap4.MessageSet(self.__getLastUID(), None)
 
-                d = self.proto.fetchUID(msgSet, uid=True) 
+                d = self.proto.fetchUID(msgSet, uid=True)
                 d.addCallback(self.__getMessagesFromUIDS)
 
                 return d
@@ -298,13 +298,13 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         try:
             """ Refresh our view before adding items to our mail account
                 and commiting. Will not cause merge conflicts since
-                no data changed in view in yet """ 
+                no data changed in view in yet """
             self.view.commit()
 
-            totalDownloaded = 0 
+            totalDownloaded = 0
 
             for msg in msgs:
-                repMessage = message.make_message(msgs[msg]['RFC822'])
+                repMessage = message.messageTextToKind(msgs[msg]['RFC822'])
                 self.account.downloadedMail.append(repMessage)
 
                 uid = long(msgs[msg]['UID'])
@@ -318,14 +318,14 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
         finally:
             self.restorePreviousView()
 
-        """Commit the view in a thread to prevent blocking""" 
+        """Commit the view in a thread to prevent blocking"""
         self.commitView(True)
 
 
     def _viewCommitSuccess(self):
         """
-        Overides C{RepositoryView.AbstractRepositoryViewManager}. 
-        It posts a commit event to the GUI thread, unpins the C{EmailAccountKind} from 
+        Overides C{RepositoryView.AbstractRepositoryViewManager}.
+        It posts a commit event to the GUI thread, unpins the C{EmailAccountKind} from
         memory, and writes commit info to the logger
         @return: C{None}
         """
@@ -359,7 +359,7 @@ class IMAPDownloader(RepositoryView.AbstractRepositoryViewManager):
 
         if self.account.serverPort != 143:
             str = "[Server: %s:%d User: %s] %s" % (self.account.serverName,
-                                                   self.account.serverPort, 
+                                                   self.account.serverPort,
                                                    self.account.accountName, info)
         else:
             str = "[Server: %s User: %s] %s" % (self.account.serverName,
