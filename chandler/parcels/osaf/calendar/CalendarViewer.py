@@ -42,12 +42,11 @@ class CalendarViewer(ViewerParcel):
         self.sharingPolicy = 'private'
         self.monthNavigator = MonthNavigator()
 
-# here's a bunch of methods to give the calendar remote viewing capabilities.  For this first,
-# rough, implementation, it always says the calendar is public, and there's no overlaying.
-# Soon, we'll add commands to control that
+# Remote viewing methods
 
-    # return a list of accessible views (for now, ones that are public)
-    # FIXME: for now, there's only one view and it's always accessible
+    # Return a list of accessible views (for now, ones that are public)
+    # A menu item determines whether or not the one view is public
+    # or private.
     def GetAccessibleViews(self, who):
         if self.sharingPolicy == 'public':
             return ['Calendar']
@@ -61,12 +60,12 @@ class CalendarViewer(ViewerParcel):
 
         
     # determine if the passed-in jabberID has access to the passed in url
-    # FIXME: sharing policies will become objects, so this will be rewritten
+    # @@@ sharing policies will become objects, so this will be rewritten
     def HasPermission(self, jabberID, url):
         return self.sharingPolicy == 'public'
     
     # return a list of objects from the view specified by the url.
-    # FIXME: for now, just return all Events
+    # @@@ for now, just return all calendar events
     def GetViewObjects(self, url, jabberID):
         eventList = []
         for item in app.repository.find("//Calendar"):
@@ -74,7 +73,7 @@ class CalendarViewer(ViewerParcel):
         return eventList
     
     # handle errors - just pass it down the the wxViewer
-    # FIXME: no error handling yet
+    # @@@ no error handling yet
     def HandleErrorResponse(self, jabberID, url, errorMessage):
         pass
     

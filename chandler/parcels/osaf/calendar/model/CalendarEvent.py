@@ -16,9 +16,9 @@ class CalendarEventFactory:
         
     def NewItem(self, headline=""):
         item = CalendarEvent(None, self._container, self._kind)
-        item.setAttributeValue("startTime", DateTime.now())
-        item.setAttributeValue("endTime", DateTime.now())
-        item.setAttributeValue("headline", headline)
+        item.startTime = DateTime.now()
+        item.endTime = DateTime.now()
+        item.headline = headline
 
         return item
 

@@ -45,7 +45,8 @@ class SimpleTest(unittest.TestCase):
     def testEventBasics(self):
         """Test basic features of CalendarEvent class"""
         item = self.factory.NewItem()
-        item.setAttributeValue("headline", "Test Event")
+        #item.setAttributeValue("headline", "Test Event")
+        item.headline = "Test Event"
         self.assertEqual(item.headline, "Test Event")
         self.assertEqual(item.IsRemote(), False)
 
@@ -89,7 +90,8 @@ class SimpleTest(unittest.TestCase):
         """Test location property on calendar event"""
         item = self.factory.NewItem()
         location = LocationFactory(self.rep).NewItem("Palo Alto")
-        item.setAttributeValue("location", location)
+        #item.setAttributeValue("location", location)
+        item.location = location
 
         self.assertEqual(item.location, location)
         self.assertEqual(item.location.name, "Palo Alto")

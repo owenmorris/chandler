@@ -16,7 +16,7 @@ class LocationFactory:
         
     def NewItem(self, name=""):
         item = Location(None, self._container, self._kind)
-        item.setAttributeValue("name", name)
+        item.name = name
 
         return item
 
