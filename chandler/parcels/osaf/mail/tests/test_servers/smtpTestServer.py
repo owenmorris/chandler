@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 from twisted.internet.protocol import Factory
 from twisted.protocols import basic
 from twisted.internet import reactor
