@@ -3,4 +3,4 @@ Chandler README.win
 
 * Running Chandler * 
 
-To run Chandler, double-click on Chandler.bat.
+To run Chandler, double-click on chandler.exe.
