@@ -37,8 +37,9 @@
      JvInitClass(&org::osafoundation::util::PythonRef::class$);
  %}
 --- PyLucene-0.6.1/Makefile	Tue Sep 21 15:24:08 2004
-+++ PyLucene-0.6.1-patched/Makefile	Tue Sep 21 18:11:51 2004
-@@ -135,19 +135,21 @@
++++ PyLucene-0.6.1-patched/Makefile	Tue Sep 21 22:49:22 2004
+@@ -134,20 +134,22 @@
+ 
  ifeq ($(OS),Cygwin)
  PYTHON_SITE=`cygpath -aw $(PREFIX_PYTHON)/Lib/site-packages`
  PYTHON_INC=`cygpath -aw $(PREFIX_PYTHON)/Include`
@@ -46,7 +47,8 @@
  PYLUCENE_LIB=$(BINDIR)/_PyLucene$(_SUFFIX).pyd
  LIBDB_JAVA_LIB=$(BINDIR)/libdb_java42$(SUFFIX).dll
  ifeq ($(DEBUG),1)
- CCFLAGS=-O0 -g 
+-CCFLAGS=-O0 -g 
++CCFLAGS=-O -g 
 +PYDBG=-DPy_TRACE_REFS
  LDFLAGS=-g
  else
