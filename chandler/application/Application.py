@@ -369,7 +369,8 @@ class wxApplication (wx.App):
                         eventObject = event.GetEventObject()
                         event.SetText (text)
                     return
-        event.Skip()
+        else:
+            event.Skip()
 
     def OnDestroy(self, event):
         widget = event.GetWindow()
