@@ -18,12 +18,12 @@ class Parcel(Item):
 
         if cls is Parcel:
             # Return the root logger for all parcels
-            return logging.getLogger('Parcels')
+            return logging.getLogger('parcels')
         else:
             # If a subclass, assume the python module of this class
             # is the same as the parcel path, and the path we will
             # use to identify the logger.
-            return logging.getLogger('Parcels.%s' % cls.__module__)
+            return logging.getLogger('parcels.%s' % cls.__module__)
 
     getLogger = classmethod(getLogger)
 
@@ -31,8 +31,10 @@ class Parcel(Item):
         # @@@ bootstrapping for parcels
         parcelKind = repository.find('//Schema/Core/Parcel')
 
-        if not repository.find('//Parcels'):
-            parcels = Parcel('Parcels', repository, parcelKind)
+        if not repository.find('//parcels'):
+            parcels = Parcel('parcels', repository, parcelKind)
+        if not repository.find('//parcels/OSAF'):
+            parcels = repository.find('//parcels')
             osaf = Parcel('OSAF', parcels, parcelKind)
 
     setupParcels = staticmethod(setupParcels)

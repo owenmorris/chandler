@@ -5,7 +5,7 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//Parcels/OSAF/templates"
+<Parcel describes="//parcels/OSAF/templates"
         itemName="templates"
         xmlns="//Schema/Core">
 

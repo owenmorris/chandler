@@ -5,11 +5,11 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//Parcels/OSAF/PimSchema/ContactSchema"
-        itemName="ContactSchema"
+<Parcel describes="//parcels/OSAF/contentmodel/contacts"
+        itemName="contacts"
         xmlns="//Schema/Core"
-        xmlns:pim="//Parcels/OSAF/PimSchema"
-        xmlns:contact="//Parcels/OSAF/PimSchema/ContactSchema">
+        xmlns:pim="//parcels/OSAF/contentmodel"
+        xmlns:contact="//parcels/OSAF/contentmodel/contacts">
 
   <displayName>Contact Schema</displayName>
   <description>Contact schema for the 0.3 release</description>

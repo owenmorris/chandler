@@ -4,6 +4,7 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from repository.item.Item import Item
+from repository.parcel.Parcel import Parcel
 from repository.schema.AutoKind import AutoKind
 from repository.util.ThreadLocal import ThreadLocal
 from repository.util.UUID import UUID
@@ -54,11 +55,11 @@ class AutoItem (Item, AutoKind):
             modulePath = theClass.__module__.replace ('.', '/')
             parent = repository.walk ('//Schema/parcels/' + modulePath,
                                       lambda parent, childName, child, **kwds:
-                                      child or Item(childName, parent, None))
+                                      child or Parcel(childName, parent, None))
             theClass.threadLocal.itemBag = \
                 repository.walk ('//parcels/' + modulePath,
                                  lambda parent, childName, child, **kwds:
-                                 child or Item(childName, parent, None))
+                                 child or Parcel(childName, parent, None))
 
             name = theClass.__name__
             kind = parent.getItemChild(name)

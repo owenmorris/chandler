@@ -6,11 +6,11 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//Parcels/OSAF/PimSchema"
-             itemName="PimSchema"
+<core:Parcel describes="//parcels/OSAF/contentmodel"
+             itemName="contentmodel"
              xmlns:core="//Schema/Core"
              xmlns:parcel="//Schema/Core/Parcel"
-             xmlns="//Parcels/OSAF/PimSchema">
+             xmlns="//parcels/OSAF/contentmodel">
 
   <core:displayName>Pim Schema</core:displayName>
   <core:description>Pim schema for the 0.3 release</core:description>

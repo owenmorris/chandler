@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-import OSAF.AppSchema.utils.indexer as indexer
+import OSAF.framework.utils.indexer as indexer
 from repository.item.Item import Item
 
 """

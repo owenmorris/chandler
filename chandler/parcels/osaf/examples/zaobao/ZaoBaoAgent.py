@@ -22,7 +22,7 @@ _defaultBlogs = [ "http://www.pavlov.net/blog/rss10.rdf", \
                   "http://www.scripting.com/rss.xml",
                   "http://xml.newsisfree.com/feeds/15/2315.xml"]
 
-BASE_PATH = '//Parcels/OSAF/examples/zaobao'
+BASE_PATH = '//parcels/OSAF/examples/zaobao'
 
 class UpdateAction(Action):
     def Execute(self, agent, notification):

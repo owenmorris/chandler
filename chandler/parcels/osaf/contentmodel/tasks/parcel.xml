@@ -5,13 +5,13 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//Parcels/OSAF/PimSchema/TaskSchema"
-        itemName="TaskSchema"
+<Parcel describes="//parcels/OSAF/contentmodel/tasks"
+        itemName="tasks"
         xmlns="//Schema/Core"
-        xmlns:pim="//Parcels/OSAF/PimSchema"
-        xmlns:contact="//Parcels/OSAF/PimSchema/ContactSchema"
-        xmlns:calendar="//Parcels/OSAF/PimSchema/CalendarSchema"
-        xmlns:task="//Parcels/OSAF/PimSchema/TaskSchema">
+        xmlns:pim="//parcels/OSAF/contentmodel"
+        xmlns:contact="//parcels/OSAF/contentmodel/contacts"
+        xmlns:calendar="//parcels/OSAF/contentmodel/calendar"
+        xmlns:task="//parcels/OSAF/contentmodel/tasks">
 
   <displayName>Task</displayName>
   <version>0.3</version>

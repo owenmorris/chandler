@@ -15,7 +15,7 @@ import xml.sax
 import xml.sax.handler
 import logging
 
-from repository.schema.Parcel import Parcel
+from repository.parcel.Parcel import Parcel
 from repository.util.ClassLoader import ClassLoader
 
 
@@ -72,7 +72,7 @@ class ItemHandler(xml.sax.ContentHandler):
         # Get the parcel's parent
         parentUri = self.uri[:self.uri.rfind('/')]
         self.parcelParent = self.repository.find(parentUri)
-        assert parentUri, "Parcel parent has not been loaded."
+        assert self.parcelParent, "Parcel parent has not been loaded."
 
     def endDocument(self):
         """SAX2 callback at the end of the document"""

@@ -7,13 +7,13 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<core:Parcel describes="//Parcels/OSAF/AppSchema/AgentSchema/TestAgents"
+<core:Parcel describes="//parcels/OSAF/framework/AgentSchema/TestAgents"
              itemName="TestAgents"
              xmlns:core="//Schema/Core"
-             xmlns:foo="//Parcels/OSAF/framework"
-             xmlns:bar="//Parcels/OSAF/framework/agents"
-             xmlns="//Parcels/OSAF/framework/agents/schema"
-             xmlns:test="//Parcels/OSAF/AppSchema/AgentSchema/TestAgents">
+             xmlns:foo="//parcels/OSAF/framework"
+             xmlns:bar="//parcels/OSAF/framework/agents"
+             xmlns="//parcels/OSAF/framework/agents/schema"
+             xmlns:test="//parcels/OSAF/framework/AgentSchema/TestAgents">
 
   <core:displayName>Agent tests</core:displayName>
   <core:description>Sample agents</core:description>

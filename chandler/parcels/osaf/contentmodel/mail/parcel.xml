@@ -5,12 +5,12 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//Parcels/OSAF/PimSchema/EmailSchema"
-        itemName="EmailSchema"
+<Parcel describes="//parcels/OSAF/contentmodel/mail"
+        itemName="mail"
         xmlns="//Schema/Core"
-	xmlns:pim="//Parcels/OSAF/PimSchema"
-	xmlns:task="//Parcels/OSAF/PimSchema/TaskSchema"
-	xmlns:email="//Parcels/OSAF/PimSchema/EmailSchema">
+	xmlns:pim="//parcels/OSAF/contentmodel"
+	xmlns:task="//parcels/OSAF/contentmodel/tasks"
+	xmlns:email="//parcels/OSAF/contentmodel/mail">
 
   <displayName>Email</displayName>
   <version>0.3</version>

@@ -5,11 +5,11 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//Parcels/OSAF/AppSchema"
-        itemName="AppSchema"
+<Parcel describes="//parcels/OSAF/framework"
+        itemName="framework"
         xmlns="//Schema/Core"
-        xmlns:app="//Parcels/OSAF/AppSchema"
-        itemClass="OSAF.AppSchema.AppSchema.AppSchema">
+        xmlns:app="//parcels/OSAF/framework"
+        itemClass="OSAF.framework.AppSchema.AppSchema">
 
   <displayName>Application Schema</displayName>
   <description>Schemas used by the Chandler Application</description>
@@ -20,7 +20,7 @@
     <displayName>Preferences</displayName>
     <description>The user's preferences for Chandler.</description>
     <attributes itemref="app:Preferences/startView"/>
-    <classes key="python">OSAF.AppSchema.Preferences.Preferences</classes>
+    <classes key="python">OSAF.framework.Preferences.Preferences</classes>
 
     <Attribute itemName="startView">
       <displayName>Start View</displayName>

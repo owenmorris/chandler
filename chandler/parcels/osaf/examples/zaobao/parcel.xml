@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<Parcel describes="//Parcels/OSAF/examples/zaobao"
+<Parcel describes="//parcels/OSAF/examples/zaobao"
         itemName="zaobao"
         xmlns="//Schema/Core"
-        xmlns:zaobao="//Parcels/OSAF/examples/zaobao"
-        xmlns:foo="//Parcels/OSAF/framework"
-        xmlns:bar="//Parcels/OSAF/framework/agents"
-        xmlns:agent="//Parcels/OSAF/framework/agents/schema">
+        xmlns:zaobao="//parcels/OSAF/examples/zaobao"
+        xmlns:foo="//parcels/OSAF/framework"
+        xmlns:bar="//parcels/OSAF/framework/agents"
+        xmlns:agent="//parcels/OSAF/framework/agents/schema">
 
   <displayName>ZaoBao RSS Schema</displayName>
   <description>RSS schema for ZaoBao parcel for 0.2 release</description>

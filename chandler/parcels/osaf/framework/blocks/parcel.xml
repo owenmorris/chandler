@@ -5,10 +5,10 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//Parcels/OSAF/AppSchema/DocumentSchema"
-        itemName="DocumentSchema"
+<Parcel describes="//parcels/OSAF/framework/blocks"
+        itemName="blocks"
         xmlns="//Schema/Core"
-        xmlns:docSchema="//Parcels/OSAF/AppSchema/DocumentSchema">
+        xmlns:docSchema="//parcels/OSAF/framework/blocks">
 
   <description>Schema for blocks that make up CPIA documents </description>
   <version>0.3</version>
@@ -43,19 +43,19 @@
     <type itemref="String"/>
   </Attribute>
 
-  <Type itemName="ColorType" itemClass="OSAF.AppSchema.DocumentSchema.DocumentTypes.ColorType">
+  <Type itemName="ColorType" itemClass="OSAF.framework.blocks.DocumentTypes.ColorType">
     <fields>red</fields>
     <fields>green</fields>
     <fields>blue</fields>
     <fields>alpha</fields>
   </Type>
  
-  <Type itemName="SizeType" itemClass="OSAF.AppSchema.DocumentSchema.DocumentTypes.SizeType">
+  <Type itemName="SizeType" itemClass="OSAF.framework.blocks.DocumentTypes.SizeType">
     <fields>width</fields>
     <fields>height</fields>
   </Type>
  
-  <Type itemName="RectType" itemClass="OSAF.AppSchema.DocumentSchema.DocumentTypes.RectType">
+  <Type itemName="RectType" itemClass="OSAF.framework.blocks.DocumentTypes.RectType">
     <fields>top</fields>
     <fields>left</fields>
     <fields>bottom</fields>
@@ -66,7 +66,7 @@
     Chandler Query
   -->
   <Kind itemName="Query">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.Query.Query</classes>
+    <classes key="python">OSAF.framework.blocks.Query.Query</classes>
 
     <Attribute itemName="usedInBlocks">
       <type itemref="docSchema:Block"/>
@@ -96,7 +96,7 @@
     Named styles
   -->
   <Kind itemName="Style">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.Styles.Style</classes>
+    <classes key="python">OSAF.framework.blocks.Styles.Style</classes>
     
     <Attribute itemName="usedInBlocks">
       <type itemref="docSchema:Block"/>
@@ -108,7 +108,7 @@
   </Kind>
 
   <Kind itemName="CharacterStyle">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.Styles.CharacterStyle</classes>
+    <classes key="python">OSAF.framework.blocks.Styles.CharacterStyle</classes>
     <superKinds itemref="docSchema:Style"/>
 
     <attributes itemref="docSchema:fontFamily"/>
@@ -122,7 +122,7 @@
     Block
   -->
   <Kind itemName="Block">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.Block.Block</classes>
+    <classes key="python">OSAF.framework.blocks.Block.Block</classes>
 
     <Attribute itemName="content-spec">
       <type itemref="docSchema:Query"/>
@@ -162,7 +162,7 @@
     ContainerChild
   -->
   <Kind itemName="ContainerChild">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.ContainerChild</classes>
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.ContainerChild</classes>
     <superKinds itemref="docSchema:Block"/>
 
     <Attribute itemName="size">
@@ -210,7 +210,7 @@
     BoxContainer
   -->
   <Kind itemName="BoxContainer">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.BoxContainer</classes>
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.BoxContainer</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
     <Enumeration itemName="orientationEnumType">
@@ -229,7 +229,7 @@
     StaticText
   -->
   <Kind itemName="StaticText">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.StaticText</classes>
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.StaticText</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
     <Enumeration itemName="alignmentEnumType">
@@ -254,7 +254,7 @@
     Menu
   -->
   <Kind itemName="Menu">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.Menu</classes>
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.Menu</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
     <Attribute itemName="title">
@@ -268,7 +268,7 @@
     MenuItem
   -->
   <Kind itemName="MenuItem">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.MenuItem</classes>
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.MenuItem</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
     <Attribute itemName="title">
@@ -304,7 +304,7 @@
     TreeList
   -->
   <Kind itemName="TreeList">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.TreeList</classes>
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.TreeList</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
     <Attribute itemName="columnHeadings">
@@ -325,7 +325,7 @@
     EditText
   -->
   <Kind itemName="EditText">
-    <classes key="python">OSAF.AppSchema.DocumentSchema.ContainerBlocks.EditText</classes>
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.EditText</classes>
     <superKinds itemref="docSchema:ContainerChild"/>
 
     <Enumeration itemName="lineStyleEnumType">

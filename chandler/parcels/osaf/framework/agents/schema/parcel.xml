@@ -8,12 +8,12 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//Parcels/OSAF/framework/agents/schema"
+<Parcel describes="//parcels/OSAF/framework/agents/schema"
         itemName="schema"
         xmlns="//Schema/Core"
-        xmlns:agents="//Parcels/OSAF/framework/agents/schema"
-        xmlns:blah="//Parcels/OSAF/AppSchema/utils"
-        xmlns:indexes="//Parcels/OSAF/AppSchema/utils/indexer">
+        xmlns:agents="//parcels/OSAF/framework/agents/schema"
+        xmlns:blah="//parcels/OSAF/framework/utils"
+        xmlns:indexes="//parcels/OSAF/framework/utils/indexer">
 
   <displayName>Agent Schema</displayName>
   <description>Agent schema for the 0.2 release</description>

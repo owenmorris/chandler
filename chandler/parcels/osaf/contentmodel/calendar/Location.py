@@ -10,9 +10,6 @@ from repository.item.Item import Item
 from mx import DateTime
 
 class Location(Item):
-    def __init__(self, repository, name=""):
-        parent = repository.find("//Parcels/OSAF/PimSchema/CalendarSchema")
-        kind = repository.find("//Schema/OSAF/PimSchema/CalendarSchema/Location")
-        Item.__init__(self, None, parent, kind)
-        self.name = name
+    def __init__(self, name, parent, kind):
+        Item.__init__(self, name, parent, kind)
         

@@ -24,7 +24,7 @@
 
     <attribute name="classes" cardinality="dict" 
                type="repository.schema.Types.Class">
-      <value name="python">repository.schema.Parcel.Parcel</value>
+      <value name="python">repository.parcel.Parcel.Parcel</value>
     </attribute>
   </item>
 

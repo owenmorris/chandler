@@ -5,11 +5,11 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//Parcels/OSAF/PimSchema/CalendarSchema"
-        itemName="CalendarSchema"
+<Parcel describes="//parcels/OSAF/contentmodel/calendar"
+        itemName="calendar"
         xmlns="//Schema/Core"
-        xmlns:cal="//Parcels/OSAF/PimSchema/CalendarSchema"
-        xmlns:contact="//Parcels/OSAF/PimSchema/ContactSchema">
+        xmlns:cal="//parcels/OSAF/contentmodel/calendar"
+        xmlns:contact="//parcels/OSAF/contentmodel/contacts">
 
   <displayName>Calendar Schema</displayName>
   <description>Kinds and Attributes related to Calendar functionality. This schema is still a strawman schema, a starting point.</description>
@@ -138,7 +138,7 @@
     <attributes itemref="cal:transparency"/>
     <attributes itemref="cal:priority"/>
     <displayAttribute itemref="cal:headline"/>
-    <classes key="python">OSAF.PimSchema.CalendarSchema.CalendarEvent.CalendarEvent</classes>
+    <classes key="python">OSAF.contentmodel.calendar.CalendarEvent.CalendarEvent</classes>
 
   </Kind>
 
@@ -148,14 +148,14 @@
     <attributes itemref="cal:name"/>
     <attributes itemref="cal:eventsAtLocation"/>
     <displayAttribute itemref="cal:name"/>
-    <classes key="python">OSAF.PimSchema.CalendarSchema.Location.Location</classes>
+    <classes key="python">OSAF.contentmodel.calendar.Location.Location</classes>
   </Kind>
 
   <Kind itemName="Calendar">
     <displayName>Calendar</displayName>
     <attributes itemref="cal:name"/>
     <displayAttribute itemref="cal:name"/>
-    <classes key="python">OSAF.PimSchema.CalendarSchema.Calendar.Calendar</classes>
+    <classes key="python">OSAF.contentmodel.calendar.Calendar.Calendar</classes>
   </Kind>
 
   <Kind itemName="RecurrencePattern">

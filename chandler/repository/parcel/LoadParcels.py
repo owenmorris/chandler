@@ -9,8 +9,8 @@ import os, string, logging
 
 import mx.DateTime as DateTime
 
-from repository.schema.ParcelLoader import ParcelLoader
-from repository.schema.Parcel import Parcel
+from repository.parcel.ParcelLoader import ParcelLoader
+from repository.parcel.Parcel import Parcel
 from repository.persistence.Repository import RepositoryError
 
 
@@ -27,7 +27,7 @@ def LoadDependency(repository, uri, searchPath):
 
 def FindParcelFile(uri, searchPath):
     path = ""
-    uri = string.lstrip(uri, "//Parcels")
+    uri = string.lstrip(uri, "//parcels")
     for part in string.split(uri, '/'):
         path = os.path.join(path, part)
     path = os.path.join(path, 'parcel.xml')
@@ -56,7 +56,7 @@ def LoadParcels(searchPath, repository):
     for directory in string.split(searchPath, os.pathsep):
         for root, dirs, files in os.walk(directory):
             if 'parcel.xml' in files:
-                uri = "//Parcels/%s" % string.lstrip(root, directory)
+                uri = "//parcels/%s" % string.lstrip(root, directory)
                 uri = uri.replace(os.path.sep, "/")
                 parcel = repository.find(uri)
                 path = os.path.join(root, 'parcel.xml')
@@ -78,6 +78,6 @@ def LoadParcels(searchPath, repository):
                         logging.debug("Loaded the parcel %s" % path)
                         repository.commit()
 
-    root = repository.find("//Parcels")
+    root = repository.find("//parcels")
     for parcel in WalkParcels(root):
         parcel.startupParcel()

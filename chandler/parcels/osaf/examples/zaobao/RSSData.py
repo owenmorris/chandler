@@ -8,7 +8,7 @@ from repository.util.Path import Path
 import mx.DateTime
 import types
 
-BASE_PATH = '//Parcels/OSAF/examples/zaobao'
+BASE_PATH = '//parcels/OSAF/examples/zaobao'
 RSSITEM_KIND_PATH = BASE_PATH + '/RSSItem'
 
 def SetAttribute(self, data, attr, nattr=None, encoding=None):

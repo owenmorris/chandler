@@ -6,8 +6,8 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-from repository.schema.Parcel import Parcel
-from OSAF.AppSchema.Preferences import Preferences
+from repository.parcel.Parcel import Parcel
+from OSAF.framework.Preferences import Preferences
 
 class AppSchema(Parcel):
     def __init__(self, name, parent, kind):
