@@ -75,7 +75,8 @@ PANELS = {
             "IMAP_PORT" : {
                 "attr" : "port",
                 "type" : "integer",
-                "default": 143
+                "default": 143,
+                "required" : True,
             },
             "IMAP_USE_SSL" : {
                 "attr" : "useSSL",
@@ -112,12 +113,12 @@ PANELS = {
             "SMTP_PORT" : {
                 "attr" : "port",
                 "type" : "integer",
-                "default": 25
+                "default": 25,
+                "required" : True,
             },
             "SMTP_USE_SSL" : {
                 "attr" : "useSSL",
                 "type" : "boolean",
-                "linkedTo" : ("SMTP_PORT", { True:"25", False:"25" } )
             },
             "SMTP_USE_AUTH" : {
                 "attr" : "useAuth",
@@ -162,7 +163,8 @@ PANELS = {
             "WEBDAV_PORT" : {
                 "attr" : "port",
                 "type" : "integer",
-                "default": 80
+                "default": 80,
+                "required" : True,
             },
             "WEBDAV_USE_SSL" : {
                 "attr" : "useSSL",
@@ -520,7 +522,11 @@ class AccountPreferencesDialog(wx.Dialog):
                 else:
                     val = control.GetClientData(index)
             elif valueType == "integer":
-                val = int(control.GetValue().strip())
+                try:
+                    val = int(control.GetValue().strip())
+                except:
+                    # Skip if not valid
+                    continue
             data[field] = val
 
     def __FetchFormData(self, panelType, panel, data):
