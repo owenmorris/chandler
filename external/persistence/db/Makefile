@@ -52,7 +52,9 @@ BUILD=build_$(SNAP)
 $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../dist/configure --prefix=$(PREFIX)/db \
-                          --enable-cxx $(CONF_DBG)
+                          --enable-cxx \
+                          --with-pic \
+                          $(CONF_DBG)
 
 build: apply $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); $(MAKE); $(MAKE) install

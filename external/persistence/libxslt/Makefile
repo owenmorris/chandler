@@ -71,6 +71,7 @@ $(SRC)/$(BUILD)/Makefile: apply
                      --with-libxml-include-prefix=$(PREFIX) \
                      --with-libxml-lib-prefix=$(PREFIX) \
                      --with-python=$(WP) \
+                     --with-pic \
                      $(CONF_DBG)
 
 build: $(SRC)/$(BUILD)/Makefile

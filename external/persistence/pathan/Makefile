@@ -58,7 +58,7 @@ $(SRC)/$(BUILD)/Makefile.defs:
                               Makefile Makefile.defs.in Makefile.deps \
                               Makefile.plat runConfigure) | tar -xf - ; \
         XERCESCROOT=$(XERCESC)/$(BUILD) \
-	./runConfigure --prefix=$(PREFIX) $(CONF_DBG)
+	./runConfigure --prefix=$(PREFIX) --with-pic $(CONF_DBG)
 
 build: apply $(SRC)/$(BUILD)/Makefile.defs
 	cd $(SRC)/$(BUILD); \

@@ -71,6 +71,7 @@ $(SRC)/$(BUILD)/Makefile:
                           --with-berkeleydb=$(PREFIX)/db \
                           --with-xerces=$(PREFIX) \
                           --with-pathan=$(PREFIX) \
+                          --with-pic \
                           $(CONF_DBG)
 
 apply: $(SRC)/$(BUILD)/Makefile patches

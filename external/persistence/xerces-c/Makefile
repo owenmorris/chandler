@@ -63,7 +63,7 @@ $(SRC)/$(BUILD)/src/xercesc/Makefile:
         cd src/xercesc; \
         XERCESCROOT=$(SRC)/$(BUILD) \
 	./runConfigure $(CONF_OS) $(CONF_DBG) -P$(PREFIX) \
-                       -minmem -nsocket -tnative -rnone
+                       -minmem -nsocket -tnative -rnone -C --with-pic
 
 build: $(SRC)/$(BUILD)/src/xercesc/Makefile
 	cd $(SRC)/$(BUILD)/src/xercesc; \

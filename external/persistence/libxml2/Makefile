@@ -64,6 +64,7 @@ $(SRC)/$(BUILD)/Makefile: apply
 	../configure --prefix=$(PREFIX) \
                      --srcdir=$(SRC) \
                      --with-python=$(WP) \
+                     --with-pic \
                      $(CONF_DBG)
 
 compile: $(SRC)/$(BUILD)/Makefile
