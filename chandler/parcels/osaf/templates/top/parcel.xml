@@ -148,21 +148,21 @@
   </MenuItem>
 
   <ChoiceEvent itemName="ChooseButtons">
-    <name>chandler/TabChoice</name>
+    <name>block/TabChoice</name>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
     <choice>Buttons</choice>
   </ChoiceEvent>
 
   <ChoiceEvent itemName="ChooseControls">
-    <name>chandler/TabChoice</name>
+    <name>block/TabChoice</name>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
     <choice>Controls</choice>
   </ChoiceEvent>
 
   <ChoiceEvent itemName="ChooseData">
-    <name>chandler/TabChoice</name>
+    <name>block/TabChoice</name>
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
     <choice>Data</choice>

@@ -39,9 +39,6 @@ def main():
         exceptionMessage = "and had to shut down."
         application.MainLoop()
 
-        exceptionMessage = "while trying to shut down."
-        application.OnTerminate()
-
     except Exception, e:
         message = "Chandler encountered an unexpected problem %s" % exceptionMessage
         logging.exception(message)

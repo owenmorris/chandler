@@ -34,6 +34,12 @@ class MainFrame(wxFrame):
         EVT_CLOSE(self, self.OnClose)
 
     def OnClose(self, event):
+        """
+          For some strange reason when there's an idle handler on the
+        application the mainFrame windows doesn't get destroyed, so
+        we'll remove the handler
+        """
+        EVT_IDLE(Globals.wxApplication, None)
         Globals.wxApplication.mainFrame = None
         self.Destroy()
 
@@ -171,7 +177,8 @@ class wxApplicationNew (wxApp):
 
         EVT_MENU(self, -1, self.OnCommand)
         EVT_UPDATE_UI(self, -1, self.OnCommand)
-        EVT_SET_FOCUS(self, self.OnSetFocus)
+        self.focus = None
+        EVT_IDLE(self, self.OnIdle)
 
         #allocate the Jabber client, logging in if possible
         #import ChandlerJabber
@@ -220,49 +227,49 @@ class wxApplicationNew (wxApp):
 
         wxID = event.GetId()
         if wxID >= Block.MINIMUM_WX_ID and wxID <= Block.MAXIMUM_WX_ID:
-
             blockEvent = Block.wxIDToObject (wxID)
-            data = {'event':blockEvent}
-            if event.GetEventType() == wxEVT_UPDATE_UI:
-                data ['type'] = 'UpdateUI'
-            else:
-                data ['type'] = 'Normal'
 
-            notification = Notification(blockEvent.name, None, None)
-            notification.SetData(data)
-            Globals.topView.dispatchEvent(notification)
-            if event.GetEventType() == wxEVT_UPDATE_UI:
-                try:
-                    event.Check (data ['Check'])
-                except KeyError:
-                    pass
-                try:
-                    event.Enable (data ['Enable'])
-                except KeyError:
-                    pass
-                try:
-                    text = data ['Text']
-                    eventObject = event.GetEventObject()
-                    event.SetText (data ['Text'])
-                except KeyError:
-                    pass
+            if isinstance (blockEvent, BlockEvent):
+                assert isinstance (blockEvent, BlockEvent)
+                data = {'event':blockEvent}
+                if event.GetEventType() == wxEVT_UPDATE_UI:
+                    data ['type'] = 'UpdateUI'
+                else:
+                    data ['type'] = 'Normal'
 
-    def OnSetFocus(self, event):
-        Globals.topView.onSetFocus()
+                notification = Notification(blockEvent.name, None, None)
+                notification.SetData(data)
+                Globals.topView.dispatchEvent(notification)
+                if event.GetEventType() == wxEVT_UPDATE_UI:
+                    try:
+                        event.Check (data ['Check'])
+                    except KeyError:
+                        pass
+                    try:
+                        event.Enable (data ['Enable'])
+                    except KeyError:
+                        pass
+                    try:
+                        text = data ['Text']
+                        eventObject = event.GetEventObject()
+                        event.SetText (data ['Text'])
+                    except KeyError:
+                        pass
+                return
+        event.Skip()
 
-    def OnQuit(self):
+    def OnIdle(self, event):
         """
-          Exit the application. Close with an argument of True forces the
-        window to close. We set mainFrame to None because some events
-        may come in after the window is closed that try to access the window
-        which causes Python to crash.
+          Adding a handler for catching a set focus event doesn't catch
+        every change to the focus. It's difficult to preprocess every event
+        so we check for focus changes in OnIdle
         """
-        mainFrame = self.mainFrame
-        self.mainFrame = None
-        mainFrame.Close (TRUE)
+        focus = wxWindow_FindFocus()
+        if self.focus != focus:
+            self.focus = focus
+            Globals.topView.onSetFocus()
 
-
-    def OnTerminate(self):
+    def OnExit(self):
         """
           Main application termination.
         """
@@ -275,7 +282,6 @@ class wxApplicationNew (wxApp):
         """
         Globals.repository.commit(purge=True)
         Globals.repository.close()
-
 
     def OnMainThreadCallbackEvent(self, event):
         """

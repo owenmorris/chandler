@@ -85,22 +85,22 @@ class View(BoxContainer):
             block = block.parentBlock
 
 
-    def on_chandler_Quit (self, notification):
-        Globals.wxApplication.OnQuit ()
+    def on_block_Quit (self, notification):
+        Globals.wxApplication.mainFrame.Close ()
         
-    def on_chandler_Undo_UpdateUI (self, notification):
+    def on_block_Undo_UpdateUI (self, notification):
         notification.data ['Text'] = 'Undo Command\tCtrl+Z'
 
-    def on_chandler_Cut_UpdateUI (self, notification):
+    def on_block_Cut_UpdateUI (self, notification):
         notification.data ['Enable'] = False
 
-    def on_chandler_Copy_UpdateUI (self, notification):
+    def on_block_Copy_UpdateUI (self, notification):
         notification.data ['Enable'] = False
 
-    def on_chandler_Paste_UpdateUI (self, notification):
+    def on_block_Paste_UpdateUI (self, notification):
         notification.data ['Enable'] = False
 
-    def on_chandler_GetTreeListData (self, notification):
+    def on_block_GetTreeListData (self, notification):
         node = notification.data['node']
         item = node.GetData()
         if item:

@@ -266,7 +266,7 @@ class RadioBox(RectangularChild):
         radioBox = wxRadioBox(parentWindow, -1, self.title,
                               wxDefaultPosition, 
                               (self.minimumSize.width, self.minimumSize.height),
-                              self.choices, self.itemsPerLine, dimension)        
+                              self.choices, self.itemsPerLine, dimension)
         self.parentBlock.addToContainer(parent, radioBox, int(self.stretchFactor), 
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return radioBox, None, None
@@ -331,9 +331,13 @@ class SplitWindow(RectangularChild):
         width, height = window.GetSizeTuple()
         assert self.splitPercentage >= 0.0 and self.splitPercentage < 1.0
         if self.orientationEnum == "Horizontal":
-            window.SplitHorizontally(children[0], children[1], height * self.splitPercentage)
+            window.SplitHorizontally(children[0],
+                                     children[1],
+                                     int (round (height * self.splitPercentage)))
         else:
-            window.SplitVertically(children[0], children[1], width * self.splitPercentage)
+            window.SplitVertically(children[0],
+                                   children[1],
+                                   int (round (width * self.splitPercentage)))
         return window
 
         assert (len (self.childrenToAdd) == 2)
@@ -402,7 +406,7 @@ class TabbedContainer(RectangularChild):
                 window.AddPage(child, self.tabNames[childNameIndex])
                 childNameIndex = childNameIndex + 1
 
-    def on_chandler_TabChoice (self, notification):
+    def on_block_TabChoice (self, notification):
         tabbedContainer = Globals.association[self.getUUID()]
         choice = notification.data ['event'].choice
         for index in xrange (tabbedContainer.GetPageCount()):
@@ -465,7 +469,7 @@ class wxTreeList(wxTreeListCtrl):
         arguments = {'node':TreeNode (event.GetItem(), self),
                      'event':Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GetTreeListData'),
                      'type':'Normal'}
-        notification = Notification('chandler/GetTreeListData', None, None)
+        notification = Notification('block/GetTreeListData', None, None)
         notification.SetData(arguments)
         Globals.topView.dispatchEvent(notification)
 
@@ -487,7 +491,7 @@ class TreeList(RectangularChild):
         arguments = {'node':TreeNode (None, treeList),
                      'event':Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GetTreeListData'),
                      'type':'Normal'}
-        notification = Notification("chandler/GetTreeListData", None, None)
+        notification = Notification("block/GetTreeListData", None, None)
         notification.SetData(arguments)
         Globals.topView.dispatchEvent(notification)
 
