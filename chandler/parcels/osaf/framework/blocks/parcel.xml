@@ -813,13 +813,14 @@
   -->
   <Kind itemName="Toolbar">
     <classes key="python">osaf.framework.blocks.ContainerBlocks.Toolbar</classes>
-    <superKinds itemref="docSchema:ContainerChild"/>
+    <superKinds itemref="docSchema:RectangularChild"/>
 
     <Attribute itemName="toolSize">
       <type itemref="docSchema:SizeType"/>
     </Attribute>
     
     <attributes itemref="docSchema:Toolbar/toolSize"/>
+    <attributes itemref="docSchema:colorStyle"/>
   </Kind>
 
   <!--
@@ -830,7 +831,7 @@
     <superKinds itemref="docSchema:Block"/>
 
     <Attribute itemName="toolbarLocation">
-      <type itemref="String"/>
+      <type itemref="docSchema:Block"/>
     </Attribute>
     
     <Attribute itemName="title">
@@ -851,6 +852,7 @@
       <values>Check</values>
       <values>Radio</values>
       <values>Text</values>
+      <values>Combo</values>
     </Enumeration>
     
     <Attribute itemName="toolbarItemKind">
@@ -860,7 +862,12 @@
     <Attribute itemName="statusMessage">
       <type itemref="String"/>
     </Attribute>
-                
+    
+    <Attribute itemName="prototype">
+      <description>The prototype block to be placed in the Toolbar</description>
+      <type itemref="docSchema:Block"/>
+    </Attribute>
+    
     <attributes itemref="docSchema:ToolbarItem/toolbarLocation"/>
     <attributes itemref="docSchema:ToolbarItem/title"/>
     <attributes itemref="docSchema:ToolbarItem/bitmap"/>

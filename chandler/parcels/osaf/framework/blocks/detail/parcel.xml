@@ -45,6 +45,11 @@
     <superKinds itemref="blocks:StaticText"/>
   </core:Kind>
   
+  <core:Kind itemName="MarkupBar">
+    <classes key="python">osaf.framework.blocks.detail.Detail.MarkupBar</classes>
+    <superKinds itemref="blocks:Toolbar"/>
+  </core:Kind>
+  
   
   <!--
     Styles
@@ -72,7 +77,7 @@
   </ColorStyle>
   
   <ColorStyle itemName="GrayBackground3">
-    <backgroundColor>221,221,221,221</backgroundColor>
+    <backgroundColor>204,204,204,204</backgroundColor>
   </ColorStyle>
       
 </core:Parcel>

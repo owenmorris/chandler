@@ -225,7 +225,7 @@
   -->
   <ToolbarItem itemName="BackButton">
     <!-- Attributes -->
-    <toolbarLocation>NavigationBar</toolbarLocation>
+    <toolbarLocation itemref="doc:NavigationBar"/>
     <title>Back</title>
     <bitmap>application/images/back.png</bitmap>
     <selectedBitmap></selectedBitmap>
@@ -235,7 +235,7 @@
 
   <ToolbarItem itemName="ForwardButton">
     <!-- Attributes -->
-    <toolbarLocation>NavigationBar</toolbarLocation>
+    <toolbarLocation itemref="doc:NavigationBar"/>
     <title>Forward</title>
     <bitmap>application/images/forward.png</bitmap>
     <selectedBitmap></selectedBitmap>
@@ -245,7 +245,7 @@
 
   <ToolbarItem itemName="RefreshButton">
     <!-- Attributes -->
-    <toolbarLocation>NavigationBar</toolbarLocation>
+    <toolbarLocation itemref="doc:NavigationBar"/>
     <title>Forward</title>
     <bitmap>application/images/refresh.png</bitmap>
     <selectedBitmap></selectedBitmap>
@@ -255,13 +255,13 @@
 
   <ToolbarItem itemName="Spacer">
     <!-- Attributes -->
-    <toolbarLocation>Toolbar</toolbarLocation>
+    <toolbarLocation itemref="doc:NavigationBar"/>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
   <ToolbarItem itemName="URLBox">
     <!-- Attributes -->
-    <toolbarLocation>NavigationBar</toolbarLocation>
+    <toolbarLocation itemref="doc:NavigationBar"/>
     <title>URLBox</title>
     <toolbarItemKind>Text</toolbarItemKind>
     <statusMessage></statusMessage>

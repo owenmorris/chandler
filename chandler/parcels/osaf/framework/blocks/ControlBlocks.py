@@ -518,16 +518,23 @@ class ToolbarItem(Block):
     def instantiateWidget (self):
         # @@@ Must use self.toolbarLocation rather than wxMainFrame.GetToolBar()
         tool = None
-        wxToolbar = Globals.wxApplication.mainFrame.GetToolBar()
+        wxToolbar = self.toolbarLocation.widget
         id = Block.getWidgetID(self)
         if self.toolbarItemKind == 'Button':
             bitmap = wx.Image (self.bitmap, 
                                wx.BITMAP_TYPE_PNG).ConvertToBitmap()
             tool = wxToolbar.AddSimpleTool (id, bitmap, 
                                             self.title, self.statusMessage)
-            self.parentBlock.widget.Bind (wx.EVT_TOOL, wxToolbar.blockItem.toolPressed, id=id)
+            wxToolbar.Bind (wx.EVT_TOOL, wxToolbar.blockItem.toolPressed, id=id)
         elif self.toolbarItemKind == 'Separator':
-            wxToolbar.AddSeparator()
+            # hack - if the title looks like a number, then add that many spearators.
+            numSeps = 1
+            if self.hasAttributeValue("title"):
+                numSeps = int(self.title)
+                if numSeps < 1:
+                    numSeps = 1
+            for i in range(0, numSeps):
+                wxToolbar.AddSeparator()
         elif self.toolbarItemKind == 'Check':
             pass
         elif self.toolbarItemKind == 'Radio':
@@ -540,6 +547,16 @@ class ToolbarItem(Block):
             tool.SetName(self.title)
             wxToolbar.AddControl (tool)
             tool.Bind(wx.EVT_TEXT_ENTER, wxToolbar.blockItem.toolEnterPressed, id=id)
+        elif self.toolbarItemKind == 'Combo':
+            proto = self.prototype
+            choices = proto.choices
+            tool = wx.ComboBox (wxToolbar,
+                            -1,
+                            proto.selection, 
+                            wx.DefaultPosition,
+                            (proto.minimumSize.width, proto.minimumSize.height),
+                            proto.choices)            
+            wxToolbar.AddControl (tool)
         elif __debug__:
             assert False, "unknown toolbarItemKind"
 
@@ -799,7 +816,7 @@ class ItemDetail(RectangularChild):
         
 class SelectionContainer(BoxContainer):
     """
-    DLD - SelectionContainer
+    SelectionContainer
     Keeps track of the current selected item
     """
     def __init__(self, *arguments, **keywords):
@@ -812,13 +829,13 @@ class SelectionContainer(BoxContainer):
         """
         self.selection = notification.data['item']
 
-    def SelectedItem(self):
+    def selectedItem(self):
         # return the item being viewed
         return self.selection
     
 class ContentItemDetail(SelectionContainer):
     """
-    DLD - ContentItemDetail
+    ContentItemDetail
     Any container block in the Content Item's Detail View hierarchy.
     Not to be confused with ItemDetail (above) which uses an HTML-based widget.
     Keeps track of the current selected item

@@ -354,16 +354,37 @@ class TabbedContainer(RectangularChild):
                 break
 
         
-class Toolbar(ContainerChild):
+class wxToolbar(wx.ToolBar):
+    def __init__(self, *arguments, **keywords):
+        super (wxToolbar, self).__init__ (*arguments, **keywords)
+        
+    def wxSynchronizeWidget(self):
+        self.SetToolBitmapSize((self.blockItem.toolSize.width, self.blockItem.toolSize.height))
+        self.blockItem.synchronizeColor()
+ 
+class Toolbar(RectangularChild):
     def instantiateWidget (self):
-        toolbar = Globals.wxApplication.mainFrame.CreateToolBar(wx.TB_HORIZONTAL)
-        toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
-        return toolbar
+        return wxToolbar(self.parentBlock.widget, 
+                             Block.getWidgetID(self),
+                             wx.DefaultPosition,
+                             (self.size.width, self.size.height),
+                             style=self.calculate_wxStyle())
 
     def toolPressed(self, event):
         pass
     
     def toolEnterPressed(self, event):
         pass
-
-
+                
+    def calculate_wxStyle (self):
+        style = wx.TB_HORIZONTAL
+        if self.Calculate_wxBorder() != 0:
+            style |= wx.SIMPLE_BORDER
+        return style
+    
+    def synchronizeColor (self):
+        # if there's a color style defined, syncronize the color
+        if self.hasAttributeValue("colorStyle"):
+            self.colorStyle.synchronizeColor(self)
+   
+  

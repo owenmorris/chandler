@@ -62,7 +62,7 @@ class BookmarksBar(RectangularChild):
                    {'item':item})
         
 
-class NavigationBar(Toolbar):
+class NavigationBar(ContainerChild):
     """
       Under construction
     """
@@ -70,7 +70,8 @@ class NavigationBar(Toolbar):
         self.history = []
         self.future = []
 
-        navigationBar = Toolbar.instantiateWidget(self)
+        navigationBar = Globals.wxApplication.mainFrame.CreateToolBar(wx.TB_HORIZONTAL)
+        navigationBar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))
         self.showOrHideNavigationBar()
         return navigationBar
     

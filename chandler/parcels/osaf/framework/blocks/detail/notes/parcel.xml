@@ -37,21 +37,176 @@
   </ContentItemDetail>
 
   <!-- MarkupBar -->
-  <ContentItemDetail itemName="MarkupBar">
-    <childrenBlocks itemref="doc:MarkupString"/>
+  <detail:MarkupBar itemName="MarkupBar">
+    <childrenBlocks itemref="doc:TriageButton"/>
+    <childrenBlocks itemref="doc:Triage"/>
+    <childrenBlocks itemref="doc:SharingButton"/>
+    <childrenBlocks itemref="doc:TaskButton"/>
+    <childrenBlocks itemref="doc:CalendarButton"/>
+    <childrenBlocks itemref="doc:Spacer1"/>
+    <childrenBlocks itemref="doc:NeedsReplyButton"/>
+    <childrenBlocks itemref="doc:Spacer2"/>
+    <childrenBlocks itemref="doc:OutboxFlag"/>
+    <childrenBlocks itemref="doc:RepliedFlag"/>
+    <childrenBlocks itemref="doc:ForwardedFlag"/>
+    <childrenBlocks itemref="doc:RedirectedFlag"/>
+    <childrenBlocks itemref="doc:DraftFlag"/>
+    <childrenBlocks itemref="doc:QueuedFlag"/>
+    <childrenBlocks itemref="doc:Spacer3"/>
+    <childrenBlocks itemref="doc:PrivateButton"/>
     <!-- Attributes -->
-    <colorStyle itemref="detail:GrayBackground2"/>
-    <orientationEnum>Vertical</orientationEnum>
-    <stretchFactor>0</stretchFactor>
-  </ContentItemDetail>
- 
-  <StaticText itemName="MarkupString">
-    <title>Markup Bar</title>
-    <characterStyle itemref="detail:LabelStyle"/>
-    <textAlignmentEnum>Center</textAlignmentEnum>    
-    <stretchFactor>0.0</stretchFactor>
-  </StaticText>
+    <colorStyle itemref="detail:GrayBackground3"/>
+    <toolSize>16,16</toolSize>
+  </detail:MarkupBar>
+
+  <!--
+    ToolbarItems
+  -->
+  <ToolbarItem itemName="TriageButton">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Triage</title>
+    <bitmap>application/images/triage.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Decide when to do...</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="Triage">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Triage</title>
+    <toolbarItemKind>Combo</toolbarItemKind>
+    <statusMessage>Mark Item to be done now or later, etc</statusMessage>
+    <prototype itemref="doc:TriageCombo"/>
+  </ToolbarItem>
   
+  <ComboBox itemName="TriageCombo">
+    <selection>Processing</selection>
+    <choices>Processing</choices>
+    <choices>Defered until</choices>
+    <choices>Processed</choices>
+  </ComboBox>
+  
+  <ToolbarItem itemName="SharingButton">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Sharing</title>
+    <bitmap>application/images/sharing.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Enable sharing</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="TaskButton">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Task</title>
+    <bitmap>application/images/task.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Make into a Task</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="CalendarButton">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Calendar</title>
+    <bitmap>application/images/calendar.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Put onto the Calendar</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="Spacer1">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <toolbarItemKind>Separator</toolbarItemKind>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="NeedsReplyButton">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Needs reply</title>
+    <bitmap>application/images/reply.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Needs a reply</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="Spacer2">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <toolbarItemKind>Separator</toolbarItemKind>
+    <title>4</title>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="OutboxFlag">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Outbox</title>
+    <bitmap>application/images/outbox.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>In the Out box</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="RepliedFlag">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Replied</title>
+    <bitmap>application/images/replied.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>A reply has been sent</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="ForwardedFlag">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Forwarded</title>
+    <bitmap>application/images/forwarded.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Has been forwarded</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="RedirectedFlag">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Redirected</title>
+    <bitmap>application/images/redirected.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Message has been redirected</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="DraftFlag">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Draft</title>
+    <bitmap>application/images/draft.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Message saved as a draft</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="QueuedFlag">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Queued</title>
+    <bitmap>application/images/queued.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Message has been queued</statusMessage>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="Spacer3">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <toolbarItemKind>Separator</toolbarItemKind>
+    <title>4</title>
+  </ToolbarItem>
+
+  <ToolbarItem itemName="PrivateButton">
+    <!-- Attributes -->
+    <toolbarLocation itemref="doc:MarkupBar"/>
+    <title>Private</title>
+    <bitmap>application/images/private.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <statusMessage>Make item Private</statusMessage>
+  </ToolbarItem>
+
   <!-- FromAndToArea -->
   <ContentItemDetail itemName="FromAndToArea">
     <childrenBlocks itemref="doc:FromArea"/>
