@@ -86,16 +86,38 @@ class CanvasTextButton(wx.BitmapButton):
         
         return bitmap
         
-    def SetLabel(self, text):
+    def SetLabel(self, text, font=None, fgcolor=None, bgcolor=None):
         """ Changes the text on the button.
+
+        Optionally change other characteristics as well.
 
         @param text: text of the button
         @type text: string
+        @param font: the text font
+        @type font: wx.Font
+        @param fgcolor: the text color
+        @type fgcolor: wx.Colour
+        @param bgcolor: the background color of the button
+        @type bgcolor: wx.Colour
         """
         self.text = text
+        if font:
+            self.font = font
+        if fgcolor:
+            self.fgcolor = fgcolor
+        if bgcolor:
+            self.bgcolor = bgcolor
         bitmap = self.buildBitmap(self.GetParent(), text,
                                   self.font, self.fgcolor, self.bgcolor)
         self.SetBitmapLabel(bitmap)
+
+    def UpdateSize(self):
+        """ Sizes the button to just fit the bitmap """
+
+        bitmap = self.GetBitmapLabel()
+        width = bitmap.GetWidth()
+        height = bitmap.GetHeight()
+        self.SetSize(wx.Size(width, height))
 
 class CanvasBitmapButton(wx.BitmapButton):
     """ Flat bitmap button, no border.
