@@ -545,4 +545,3 @@ def generateDocs(buildenv):
     indexFile.write("</body>")
     indexFile.write("</html>")
     indexFile.close()
-
