@@ -418,7 +418,7 @@ class DateTimeBlock (StaticTextLabel):
     Currently this is static text, but soon it will need to be editable
     """
     def shouldShow (self, item):
-        # only shown for non-CalendarEventMixin kinds
+        # only shown for *non-*CalendarEventMixin kinds
         calendarMixinKind = Calendar.CalendarEventMixin.getKind()
         return not item.isItemOf (calendarMixinKind)
 
@@ -500,11 +500,6 @@ def ItemCollectionOrMailMessageMixin (item):
     return isOneOrOther
 
 class StaticToFromText (StaticTextLabel):
-    def shouldShow (self, item):
-        # if the item is a MailMessageMixin, or an ItemCollection,
-        # then we should show ourself
-        return ItemCollectionOrMailMessageMixin (item)
-
     def staticTextLabelValue (self, item):
         label = self.title + _(' ')
         return label
@@ -612,11 +607,6 @@ class PrivateSwitchButton(DetailSynchronizer, DynamicContainerBlocks.ToolbarItem
     """
       "Never share" button in the Markup Bar
     """
-    def shouldShow (self, item):
-        # if the item is a collection, we should not show ourself
-        shouldShow = not isinstance (item, ItemCollection.ItemCollection)
-        return shouldShow
-
     def synchronizeItemDetail (self, item):
         # toggle this button to reflect the privateness of the selected item        
         # @@@DLD remove workaround for bug 1712 - ToogleTool doesn't work on mac when bar hidden
@@ -755,10 +745,6 @@ class ToMailEditField (EditToAddressTextAttribute):
     """
     'To' attribute of a Mail ContentItem, e.g. who it's sent to
     """
-    def shouldShow (self, item):
-        mailKind = Mail.MailMessageMixin.getKind ()
-        return item.isItemOf (mailKind)
-
     def whichAttribute(self):
         # define the attribute to be used
         return 'toAddress'
@@ -767,18 +753,12 @@ class ToCollectionEditField (EditToAddressTextAttribute):
     """
     'To' attribute of an ItemCollection, e.g. who it's shared with
     """
-    def shouldShow (self, item):
-        return isinstance (item, ItemCollection.ItemCollection)
-
     def whichAttribute(self):
         # define the attribute to be used
         return 'who'
 
 class FromEditField (EditTextAttribute):
     """Edit field containing the sender's contact"""
-    def shouldShow (self, item):
-        return ItemCollectionOrMailMessageMixin (item)
-
     def saveAttributeFromWidget(self, item, widget, validate):  
         pass
 
@@ -879,12 +859,6 @@ class ContactFullNameEditField (EditRedirectAttribute):
             value = item.ItemWhoString ()
         widget.SetValue(value)
 
-    def shouldShow (self, item):
-        # if the item is a Contact, we should show ourself
-        contactKind = Contacts.Contact.getKind ()
-        shouldShow = item.isItemOf (contactKind)
-        return shouldShow
-
 class StaticEmailAddressAttribute (StaticRedirectAttribute):
     """
       Static Text that displays the name of the selected item's Attribute.
@@ -894,24 +868,12 @@ class StaticEmailAddressAttribute (StaticRedirectAttribute):
         label = self.title + _(' ')
         return label
 
-    def shouldShow (self, item):
-        # if the item is a Contact, we should show ourself
-        contactKind = Contacts.Contact.getKind ()
-        shouldShow = item.isItemOf (contactKind)
-        return shouldShow
-
 class EditEmailAddressAttribute (EditRedirectAttribute):
     """
     An attribute-based edit field for email addresses
     The actual value is stored in an emailaddress 'section' object
     for home or work.
     """
-    def shouldShow (self, item):
-        # if the item is a Contact, we should show ourself
-        contactKind = Contacts.Contact.getKind ()
-        shouldShow = item.isItemOf (contactKind)
-        return shouldShow
-
     def saveAttributeFromWidget(self, item, widget, validate):
         if validate:
             section = item.getAttributeValue (self.whichAttribute())
@@ -943,11 +905,6 @@ class EditEmailAddressAttribute (EditRedirectAttribute):
 Classes to support CalendarEvent details
 """
 class CalendarEventBlock (DetailSynchronizer, LabeledTextAttributeBlock):
-    def shouldShow (self, item):
-        # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
-        return item.isItemOf (calendarMixinKind)
-
     def synchronizeItemDetail (self, item):
         # @@@DLD - remove special case for AEBlock child (duration).
         # Need to really resynchronize, because sizer needs to be redone
@@ -957,12 +914,6 @@ class CalendarEventBlock (DetailSynchronizer, LabeledTextAttributeBlock):
         return relayoutParent
 
 class StaticTimeAttribute (StaticTextLabel):
-    def shouldShow (self, item):
-        # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
-        shouldShow = item.isItemOf (calendarMixinKind)
-        return shouldShow
-
     def staticTextLabelValue (self, item):
         timeLabel = self.title + _(' ')
         return timeLabel
@@ -974,10 +925,6 @@ class EditTimeAttribute (EditRedirectAttribute):
     Our parent block knows which attribute we edit.
     """
     timeFormat = '%Y-%m-%d %I:%M %p'
-    def shouldShow (self, item):
-        # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
-        return item.isItemOf (calendarMixinKind)
 
     def parseDateTime (self, dateString):
         theDate = None
@@ -1036,11 +983,6 @@ class StaticDurationAttribute (StaticTextLabel):
     """
       Static Text that displays the name of the selected item's Attribute
     """
-    def shouldShow (self, item):
-        # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
-        return item.isItemOf (calendarMixinKind)
-
     def staticTextLabelValue (self, item):
         durationLabel = self.title + _(' ')
         return durationLabel
@@ -1224,11 +1166,6 @@ class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
     """
     A choice popup for Reminder Values
     """
-    def shouldShow (self, item):
-        # only shown for CalendarEventMixin kinds
-        calendarMixinKind = Calendar.CalendarEventMixin.getKind()
-        return item.isItemOf (calendarMixinKind)
-
     def synchronizeItemDetail (self, item):
         hasChanged = super(EditReminder, self).synchronizeItemDetail(item)
         if item is not None and self.isShown:
@@ -1256,5 +1193,27 @@ class EditReminder (DetailSynchronizer, ControlBlocks.Choice):
             else:
                 # @@@BJS Assumes the menu item is of the form "nn Minutes"
                 item.reminderDelta = DateTime.DateTimeDeltaFrom(minutes=int(reminderChoice.split(' ', 2)[0]))
+
+
+class EditTransparency (DetailSynchronizer, ControlBlocks.Choice):
+    """
+    A choice popup for Transparency Values (free, busy, etc.)
+    """
+    def synchronizeItemDetail (self, item):
+        hasChanged = super(EditTransparency, self).synchronizeItemDetail(item)
+        if item is not None and self.isShown:
+            try:
+                transparencyChoice = item.transparency.capitalize()
+            except AttributeError:
+                transparencyChoice= "busy"
+            choiceIndex = self.widget.FindString(transparencyChoice)
+            self.widget.Select(choiceIndex)
+        return hasChanged
+
+    def onTransparencyChangedEvent (self, event):
+        item = self.selectedItem()
+        if item is not None:
+            transparencyChoice = self.widget.GetStringSelection()
+            item.transparency = transparencyChoice.lower()
 
 

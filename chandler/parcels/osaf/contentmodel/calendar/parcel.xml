@@ -78,6 +78,7 @@
           <Enumeration itsName="TimeTransparencyEnum">
             <displayName>Time Transparency</displayName>
             <issues>The iCalendar values for Time Transparency are slightly different. We should consider making our values match the iCalendar ones, or be a superset of them.  Mitch suggested that a 'cancelled' value would be a useful extension.</issues>
+            <issues>It'd be nice to not maintain the transparency choices separately from the enum values</issues>
             <values>busy</values>
             <values>free</values>
             <values>tentative</values>

@@ -79,6 +79,11 @@
     <blockName>ReminderChanged</blockName>
     <destinationBlockReference itemref="doc:EditReminder"/>
   </BlockEvent>
+
+  <BlockEvent itsName="TransparencyChanged">
+    <blockName>TransparencyChanged</blockName>
+    <destinationBlockReference itemref="doc:EditTransparency"/>
+  </BlockEvent>
   
   <!--
     Layout blocks
@@ -606,6 +611,8 @@
     <childrenBlocks itemref="doc:CalDetailsReminderLabel"/>
     <childrenBlocks itemref="doc:EditReminder"/>
     <childrenBlocks itemref="doc:CalDetailsRightSpacer"/>
+    <childrenBlocks itemref="doc:CalDetailsTransparencyLabel"/>
+    <childrenBlocks itemref="doc:EditTransparency"/>
     <!-- Attributes -->
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>300, 24</minimumSize>
@@ -616,8 +623,8 @@
     <blockName value="EditAllDay"/>
     <!-- Attributes -->
     <title>All day</title>
-    <size>60,24</size>
-    <minimumSize>60,24</minimumSize>
+    <size>70,24</size>
+    <minimumSize>70,24</minimumSize>
     <border>0.0, 10.0, 0.0, 0.0</border>
     <event itemref="doc:ToggleAllDay"/>
     <alignmentEnum>alignMiddleLeft</alignmentEnum>
@@ -666,6 +673,27 @@
     <minimumSize>100, 24</minimumSize>
   </StaticText>
 
+  <StaticText itsName="CalDetailsTransparencyLabel">
+    <blockName value="CalDetailsTransparencyLabel"/>
+    <title>show as:</title>
+    <characterStyle itemref="doc:LabelStyle"/>
+    <textAlignmentEnum>Right</textAlignmentEnum>    
+    <stretchFactor>0.0</stretchFactor>
+    <minimumSize>70, 24</minimumSize>
+  </StaticText>
+
+  <Choice itsName="EditTransparency"
+            itemClass="osaf.framework.blocks.detail.Detail.EditTransparency">
+    <blockName value="EditReminder"/>
+    <issues>It'd be nice to not maintain the transparency choices separately from the enum values</issues>
+    <choices>Busy</choices>
+    <choices>Free</choices>
+    <choices>Tentative</choices>
+    <choices>Cancelled</choices>
+    <event itemref="doc:TransparencyChanged"/>
+    <minimumSize>100, 24</minimumSize>
+    <stretchFactor>0.0</stretchFactor>
+  </Choice>
 
   <!-- NotesArea -->
   <EditText itsName="NotesArea"
