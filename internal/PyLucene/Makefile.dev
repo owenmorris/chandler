@@ -1,6 +1,9 @@
 
 # An OS X Makefile for development only
 
+VERSION=1.3-final
+DBVERSION=4.2.52
+
 ifeq ($(DEBUG),1)
 
 CCFLAGS = -O -g
@@ -9,8 +12,8 @@ mode = debug
 
 else
 
-CCFLAGS = -O2 -g
-LDFLAGS = -g
+CCFLAGS = -O2
+LDFLAGS = 
 mode = release
 
 endif
@@ -63,10 +66,10 @@ $(BINDIR)/reader.java.o: java/org/osafoundation/io/PythonReader.java
 	$(JCC) -C -d $(CLASSES) java/org/osafoundation/io/PythonReader.java
 	$(JCC) $(CCFLAGS) -c -o $(BINDIR)/reader.java.o java/org/osafoundation/io/PythonReader.java
 
-$(BINDIR)/reader.cpp.o: cpp/PythonReader.cpp $(BINDIR)/reader.java.o
+$(BINDIR)/reader.cpp.o: $(CLASSES)/org/osafoundation/io/PythonReader.h cpp/PythonReader.cpp $(BINDIR)/reader.java.o
 	$(JCC) -I$(PYTHON_INC) -I$(CLASSES) $(CCFLAGS) -c -o $(BINDIR)/reader.cpp.o cpp/PythonReader.cpp
 
-PyLucene_wrap.cxx: PyLucene.i $(BINDIR)/reader.java.o
+$(CLASSES)/org/osafoundation/io/PythonReader.h:
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.DbEnv
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.Db
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) com.sleepycat.db.DbTxn
@@ -83,12 +86,14 @@ PyLucene_wrap.cxx: PyLucene.i $(BINDIR)/reader.java.o
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.search.IndexSearcher
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.apache.lucene.queryParser.QueryParser
 	$(JCCH) -d $(CLASSES) --classpath=$(CLASSES) org.osafoundation.io.PythonReader
+
+PyLucene_wrap.cxx: PyLucene.i $(BINDIR)/reader.java.o
 	swig -modern -I$(BINDIR)/classes -c++ -python PyLucene.i
 
 $(BINDIR)/_PyLucene.so: $(OBJS) PyLucene_wrap.cxx
 	$(CXX) -shared -bundle -o $(BINDIR)/_PyLucene.so $(CCFLAGS) -I$(CLASSES) -I$(PYTHON_INC) -I/usr/local/BerkeleyDB.4.2/include PyLucene_wrap.cxx $(BINDIR)/db_const.o $(BINDIR)/db.o $(BINDIR)/store.o $(BINDIR)/lucene.o $(BINDIR)/reader.java.o $(BINDIR)/reader.cpp.o -lgcj -liconv -flat_namespace -multiply_defined suppress -undefined warning
 
-all: $(BINDIR)/_PyLucene.so $(BINDIR)/libdb_java-4.2.jnilib
+all: $(BINDIR)/_PyLucene.so $(BINDIR)/libdb_java-4.2.jnilib PyLucene_wrap.cxx
 	echo build of $(BINDIR)/_PyLucene.so complete
 
 install: $(BINDIR)/_PyLucene.so $(BINDIR)/libdb_java-4.2.jnilib

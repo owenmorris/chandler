@@ -843,6 +843,8 @@ static PyObject *_wrap_new_Object(PyObject *self, PyObject *args) {
         try {
             result = (java::lang::Object *)new java::lang::Object();
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -879,6 +881,8 @@ static PyObject *_wrap_delete_Object(PyObject *self, PyObject *args) {
         try {
             delete arg1;
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -930,6 +934,8 @@ static PyObject *_wrap_attachCurrentThread(PyObject *self, PyObject *args) {
         try {
             result = (void *)attachCurrentThread(arg1);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -966,6 +972,8 @@ static PyObject *_wrap_delete_Directory(PyObject *self, PyObject *args) {
         try {
             delete arg1;
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1047,6 +1055,8 @@ static PyObject *_wrap_new_DbDirectory(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::store::db::DbDirectory *)new org::apache::lucene::store::db::DbDirectory(arg1,arg2,arg3,arg4);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1083,6 +1093,8 @@ static PyObject *_wrap_delete_DbDirectory(PyObject *self, PyObject *args) {
         try {
             delete arg1;
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1124,6 +1136,8 @@ static PyObject *_wrap_new_Analyzer(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::analysis::Analyzer *)new org::apache::lucene::analysis::Analyzer();
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1160,6 +1174,8 @@ static PyObject *_wrap_delete_Analyzer(PyObject *self, PyObject *args) {
         try {
             delete arg1;
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1201,6 +1217,8 @@ static PyObject *_wrap_new_StandardAnalyzer(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::analysis::standard::StandardAnalyzer *)new org::apache::lucene::analysis::standard::StandardAnalyzer();
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1237,6 +1255,8 @@ static PyObject *_wrap_delete_StandardAnalyzer(PyObject *self, PyObject *args) {
         try {
             delete arg1;
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1309,6 +1329,8 @@ static PyObject *_wrap_new_Field(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::document::Field *)new org::apache::lucene::document::Field(arg1,arg2,arg3,arg4,arg5);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1364,6 +1386,8 @@ static PyObject *_wrap_Field_Text(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::document::Field *)org::apache::lucene::document::Field::Text(arg1,arg2);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1414,6 +1438,8 @@ static PyObject *_wrap_Field_UnIndexed(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::document::Field *)org::apache::lucene::document::Field::UnIndexed(arg1,arg2);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1464,6 +1490,8 @@ static PyObject *_wrap_Field_UnStored(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::document::Field *)org::apache::lucene::document::Field::UnStored(arg1,arg2);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1500,6 +1528,8 @@ static PyObject *_wrap_delete_Field(PyObject *self, PyObject *args) {
         try {
             delete arg1;
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1541,6 +1571,8 @@ static PyObject *_wrap_new_Document(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::document::Document *)new org::apache::lucene::document::Document();
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1580,6 +1612,8 @@ static PyObject *_wrap_Document_add(PyObject *self, PyObject *args) {
         try {
             (arg1)->add(arg2);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1625,6 +1659,8 @@ static PyObject *_wrap_Document_get(PyObject *self, PyObject *args) {
         try {
             result = (arg1)->get(arg2);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1674,6 +1710,8 @@ static PyObject *_wrap_delete_Document(PyObject *self, PyObject *args) {
         try {
             delete arg1;
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1726,6 +1764,8 @@ static PyObject *_wrap_new_IndexWriter(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::index::IndexWriter *)new org::apache::lucene::index::IndexWriter(arg1,arg2,arg3);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1762,6 +1802,8 @@ static PyObject *_wrap_IndexWriter_close(PyObject *self, PyObject *args) {
         try {
             (arg1)->close();
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1801,6 +1843,8 @@ static PyObject *_wrap_IndexWriter_addDocument(PyObject *self, PyObject *args) {
         try {
             (arg1)->addDocument(arg2);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -1837,6 +1881,8 @@ static PyObject *_wrap_IndexWriter_optimize(PyObject *self, PyObject *args) {
         try {
             (arg1)->optimize();
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2009,6 +2055,8 @@ static PyObject *_wrap_delete_IndexWriter(PyObject *self, PyObject *args) {
         try {
             delete arg1;
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2053,6 +2101,8 @@ static PyObject *_wrap_Query_setBoost(PyObject *self, PyObject *args) {
         try {
             (arg1)->setBoost(arg2);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2090,6 +2140,8 @@ static PyObject *_wrap_Query_getBoost(PyObject *self, PyObject *args) {
         try {
             result = (jfloat)(arg1)->getBoost();
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2127,6 +2179,8 @@ static PyObject *_wrap_Query_toString(PyObject *self, PyObject *args) {
         try {
             result = (arg1)->toString();
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2184,6 +2238,8 @@ static PyObject *_wrap_Hits_length(PyObject *self, PyObject *args) {
         try {
             result = (jint)(arg1)->length();
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2222,6 +2278,8 @@ static PyObject *_wrap_Hits_doc(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::document::Document *)(arg1)->doc(arg2);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2260,6 +2318,8 @@ static PyObject *_wrap_Hits_score(PyObject *self, PyObject *args) {
         try {
             result = (jfloat)(arg1)->score(arg2);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2298,6 +2358,8 @@ static PyObject *_wrap_Hits_id(PyObject *self, PyObject *args) {
         try {
             result = (jint)(arg1)->id(arg2);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2345,6 +2407,8 @@ static PyObject *_wrap_Searcher_search(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::search::Hits *)(arg1)->search(arg2);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2389,6 +2453,8 @@ static PyObject *_wrap_new_IndexSearcher(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::search::IndexSearcher *)new org::apache::lucene::search::IndexSearcher(arg1);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2425,6 +2491,8 @@ static PyObject *_wrap_IndexSearcher_close(PyObject *self, PyObject *args) {
         try {
             (arg1)->close();
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2461,6 +2529,8 @@ static PyObject *_wrap_delete_IndexSearcher(PyObject *self, PyObject *args) {
         try {
             delete arg1;
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
@@ -2521,6 +2591,8 @@ static PyObject *_wrap_QueryParser_parse(PyObject *self, PyObject *args) {
         try {
             result = (org::apache::lucene::search::Query *)org::apache::lucene::queryParser::QueryParser::parse(arg1,arg2,arg3);
             
+            if (PyErr_Occurred())
+            return NULL;
         } catch (java::lang::Throwable *e) {
             java::io::StringWriter *buffer = new java::io::StringWriter();
             java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);

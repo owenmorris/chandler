@@ -200,6 +200,8 @@ typedef float jfloat;
 
     try {
         $action
+        if (PyErr_Occurred())
+            return NULL;
     } catch (java::lang::Throwable *e) {
         java::io::StringWriter *buffer = new java::io::StringWriter();
 	java::io::PrintWriter *writer = new java::io::PrintWriter(buffer);
