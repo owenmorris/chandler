@@ -15,6 +15,8 @@ int WINAPI WinMain(
 #ifndef _DEBUG
 	_putenv("PYTHONOPTIMIZE=1");
 #endif
+	_putenv("PYTHONHOME=");
+	_putenv("PYTHONPATH=");
 	Py_SetProgramName("Chandler");
 	Py_Initialize();
 	PySys_SetArgv(__argc,__argv);
