@@ -17,7 +17,7 @@ from repository.persistence.RepositoryError \
 from repository.item.Item import Item
 from repository.item.ItemHandler import ItemHandler
 from repository.persistence.PackHandler import PackHandler
-
+from repository.persistence.Repository import RepositoryThread
 timing = True
 if timing: import tools.timing
 
@@ -1069,9 +1069,10 @@ class AbstractRepositoryViewManager(object):
     def execInViewThenCommitInThread(self, method, *args, **kw):
         """
         This utility method will call C{AbstractRepositoryViewManager.setCurrentView},
-        execute the method passed in as an argument, spawn a Thread to perform a Repository commit,
-        then call C{AbstractRepositoryViewManager.restorePreviousView}. Spawning a thread prevents the
-        current Thread from blocking which the C{RepositoryView} is commiting. This is especially useful
+        execute the method passed in as an argument, spawn a C{RepositoryThread} to perform
+        a Repository commit, then call C{AbstractRepositoryViewManager.restorePreviousView}. 
+        Spawning a C{RepositoryThread}prevents the current Thread from blocking which the 
+        C{RepositoryView} is commiting. This is especially useful
         when a Asynchronous model is employed.
 
         The method abstracts the C{RepositoryView} switching and commit logic for the caller and
@@ -1123,16 +1124,16 @@ class AbstractRepositoryViewManager(object):
         the C{AbstractRepositoryViewManager._viewCommitFailed} method. Both methods
         can be subclassed to add additional functionality. An optional useThread
         argument can be passed which indicates to run the commit in a dedicated
-        thread to prevent blocking the current thread.
+        C{RepositoryThread} to prevent blocking the current thread.
 
         @param useThread: Flag to indicate whether to run the view commit in the current
-                          thread or a dedicated thread to prevent blocking
+                          thread or a dedicated C{RepositoryThread} to prevent blocking
         @type: boolean
         @return: C{None}
         """
 
         if useThread:
-            thread = Thread(target=self.__commitInView)
+            thread = RepositoryThread(target=self.__commitInView)
             thread.start()
 
         else:
