@@ -98,16 +98,16 @@ def handleManifest(buildenv, filename):
             line = line[1:]
             (before,after) = line.split(",")
             blen = len(before)
-            print "before=", before
+            # print "before=", before
         else:
-            print line
+            # print line
             if line[0:blen] == before:
                 line2 = after + line[blen:]
                 source = buildenv['root'] + os.sep + line
                 dest = buildenv['distdir'] + os.sep + line2
-                print source, "->", dest
+                # print source, "->", dest
                 path = os.path.dirname(dest)
-                print path
+                # print path
                 mkdirs(path)
                 shutil.copy(source, dest)
 
