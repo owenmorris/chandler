@@ -1372,6 +1372,8 @@
       <inverseAttribute itemref="docSchema:Block/detailItemOwner"/>
     </Attribute>
 
+    <attributes itemref="docSchema:colorStyle"/>
+
     <!-- Share the same trunkDelegate amongst all copies of the parent block -->
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="trunkDelegate">
@@ -1385,6 +1387,11 @@
             <includePolicy value="byRef"/>
         </Endpoint>
         <endpoints itemref="docSchema:TrunkParentBlock/DefaultCloud/detailItem"/>
+        <Endpoint itsName="colorStyle">
+            <attribute value="colorStyle"/>
+            <includePolicy value="byRef"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:TrunkParentBlock/DefaultCloud/colorStyle"/>
     </Cloud>
     <clouds alias="default" itemref="docSchema:TrunkParentBlock/DefaultCloud"/>
   </Kind>

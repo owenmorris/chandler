@@ -48,6 +48,10 @@
     <backgroundColor>204,204,204,204</backgroundColor>
   </ColorStyle>
       
+  <ColorStyle itsName="WhiteBackground">
+    <backgroundColor>255,255,255,0</backgroundColor>
+  </ColorStyle>
+      
   <!--
     Events
   -->

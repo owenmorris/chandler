@@ -27,6 +27,7 @@ class wxTrunkParentBlock(ContainerBlocks.wxBoxContainer):
         if self.blockItem.isShown:
             self.blockItem.installTreeOfBlocks()
         super(wxTrunkParentBlock, self).wxSynchronizeWidget(*arguments, **keywords)
+        self.blockItem.synchronizeColor()
     
 class TrunkParentBlock(ContainerBlocks.BoxContainer):
     """
@@ -83,6 +84,10 @@ class TrunkParentBlock(ContainerBlocks.BoxContainer):
             self.trunkDelegate._setContentsOnTrunk (newView, detailItem, keyItem)
             newView.synchronizeWidget()
 
+    def synchronizeColor (self):
+        # if there's a color style defined, synchronize the color
+        if self.hasLocalAttributeValue("colorStyle"):
+            self.colorStyle.synchronizeColor(self)
 
 # @@@BJS: "reload parcels" needs to blow away this cache!
 
