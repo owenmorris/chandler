@@ -189,7 +189,7 @@ def main():
                 outputList = hardhatutil.executeCommandReturnOutputRetry(
                  [rsyncProgram, "-e", "ssh", "-avzp", "--delete",
                  outputDir + os.sep, 
-                 rsyncServer + ":continuous/" + buildNameNoSpaces])
+                 options.rsyncServer + ":continuous/" + buildNameNoSpaces])
                 hardhatutil.dumpOutputList(outputList, log)
 
             elif ret == "build_failed":
