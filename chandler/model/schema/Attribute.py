@@ -41,8 +41,9 @@ class Attribute(Item):
         
         return kwds.get('default', None)
 
-    def _xmlRefs(self, generator, withSchema, mode):
+    def _xmlRefs(self, generator, withSchema, version, mode):
 
         for attr in self._references.items():
             if self.getAttributeAspect(attr[0], 'persist', default=True):
-                attr[1]._xmlValue(attr[0], self, generator, withSchema, mode)
+                attr[1]._xmlValue(attr[0], self, generator, withSchema,
+                                  version, mode)

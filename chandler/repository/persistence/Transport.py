@@ -34,12 +34,16 @@ class SOAPTransport(Transport):
     def loadChild(self, parent, name):
         return self.server.loadChild(parent, name)
 
-    def parseXML(self, xml, handler):
-        parseString(xml, handler)
+    def parseDoc(self, doc, handler):
+        parseString(doc, handler)
         
-    def getUUID(self, xml):
-        index = xml.index('uuid=') + 6
-        return UUID(xml[index:xml.index('"', index)])
+    def getDocUUID(self, doc):
+        index = doc.index('uuid=') + 6
+        return UUID(doc[index:doc.index('"', index)])
+    
+    def getDocVersion(self, doc):
+        index = doc.index('version=') + 9
+        return long(doc[index:xml.index('"', index)])
     
 
 class JabberTransport(Transport, jabber.Client):
@@ -114,7 +118,7 @@ class JabberTransport(Transport, jabber.Client):
 
         return xml
 
-    def parseXML(self, xml, handler):
+    def parseDoc(self, doc, handler):
 
         def apply(node):
 
@@ -126,10 +130,10 @@ class JabberTransport(Transport, jabber.Client):
             handler.endElement(node.name)
             
         handler.startDocument()
-        apply(xml)
+        apply(doc)
         handler.endDocument()
 
-    def getUUID(self, xml):
+    def getDocUUID(self, doc):
 
         def apply(node):
 
@@ -138,4 +142,15 @@ class JabberTransport(Transport, jabber.Client):
             for kid in node.kids:
                 apply(kid)
 
-        apply(xml)
+        apply(doc)
+
+    def getDocVersion(self, doc):
+
+        def apply(node):
+
+            if node.name == 'item':
+                return long(node.attrs['version'])
+            for kid in node.kids:
+                apply(kid)
+
+        apply(doc)

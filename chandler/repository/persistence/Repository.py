@@ -284,14 +284,14 @@ class RepositoryView(object):
 
         return handler.item
 
-    def _loadItemXML(self, xml, parser, parent=None, verbose=False,
+    def _loadItemDoc(self, doc, parser, parent=None, verbose=False,
                      afterLoadHooks=None):
 
         if verbose:
             print string[51:73]
             
         handler = ItemHandler(self, parent or self, afterLoadHooks)
-        parser.parseXML(xml, handler)
+        parser.parseDoc(doc, handler)
 
         return handler.item
 
@@ -364,6 +364,10 @@ class RepositoryView(object):
 
         del self._roots[item.getItemName()]
 
+    def _unloadChild(self, name):
+
+        del self._roots[name]
+
     def _registerItem(self, item):
 
         self._registry[item.getUUID()] = item
@@ -414,11 +418,14 @@ class Store(object):
     def loadroots(self, view):
         raise NotImplementedError, "Store.loadRoots"
 
-    def parseXML(self, xml, handler):
-        raise NotImplementedError, "Store.parseXML"
+    def parseDoc(self, doc, handler):
+        raise NotImplementedError, "Store.parseDoc"
 
-    def getUUID(self, xml):
-        raise NotImplementedError, "Store.getUUID"
+    def getDocUUID(self, doc):
+        raise NotImplementedError, "Store.getDocUUID"
+
+    def getDocVersion(self, doc):
+        raise NotImplementedError, "Store.getDocVersion"
 
 
 class OnDemandRepository(Repository):
@@ -435,7 +442,7 @@ class OnDemandRepositoryView(RepositoryView):
         super(OnDemandRepositoryView, self).__init__(repository)
         self._hooks = None
 
-    def _loadXML(self, xml):
+    def _loadDoc(self, doc):
 
         try:
             loading = self.isLoading()
@@ -445,10 +452,11 @@ class OnDemandRepositoryView(RepositoryView):
 
             exception = None
 
-            item = self._loadItemXML(xml, self.repository._store,
+            item = self._loadItemDoc(doc, self.repository._store,
                                      afterLoadHooks = self._hooks)
             if self.repository.verbose:
-                print "loaded item %s" %(item.getItemPath())
+                print "loaded version %d of %s" %(item._version,
+                                                  item.getItemPath())
 
         except:
             if not loading:
@@ -471,12 +479,12 @@ class OnDemandRepositoryView(RepositoryView):
     def _loadItem(self, uuid):
 
         if not uuid in self._deletedRegistry:
-            xml = self.repository._store.loadItem(self, uuid)
+            doc = self.repository._store.loadItem(self, uuid)
 
-            if xml is not None:
+            if doc is not None:
                 if self.repository.verbose:
                     print "loading item %s" %(uuid)
-                return self._loadXML(xml)
+                return self._loadDoc(doc)
 
         return None
 
@@ -492,19 +500,19 @@ class OnDemandRepositoryView(RepositoryView):
             uuid = self.ROOT_ID
 
         store = self.repository._store
-        xml = store.loadChild(self, uuid, name)
+        doc = store.loadChild(self, uuid, name)
                 
-        if xml is not None:
-            uuid = store.getUUID(xml)
+        if doc is not None:
+            uuid = store.getDocUUID(doc)
             if (not self._deletedRegistry or
-                not store.getUUID(xml) in self._deletedRegistry):
+                not store.getUUID(doc) in self._deletedRegistry):
                 if self.repository.verbose:
                     if parent is not None and parent is not self:
                         print "loading child %s of %s" %(name,
                                                          parent.getItemPath())
                     else:
                         print "loading root %s" %(name)
-                return self._loadXML(xml)
+                return self._loadDoc(doc)
 
         return None
 

@@ -144,7 +144,8 @@ class ItemHandler(xml.sax.ContentHandler):
         self.first = self.last = None
         self.withSchema = attrs.get('withSchema', 'False') == 'True'
         self.uuid = UUID(attrs.get('uuid'))
-                
+        self.version = long(attrs.get('version', '0L'))
+        
     def itemEnd(self, itemHandler, attrs):
 
         cls = self.cls
@@ -159,7 +160,7 @@ class ItemHandler(xml.sax.ContentHandler):
                        values = self.values, references = self.references,
                        previous = self.previous, next = self.next,
                        afterLoadHooks = self.afterLoadHooks,
-                       version = long(attrs.get('version', '0')))
+                       version = self.version)
 
         if self.first or self.last:
             item._children = model.item.Item.Children(item)
@@ -320,7 +321,7 @@ class ItemHandler(xml.sax.ContentHandler):
 
         if self.withSchema:
             otherCard = self.tagAttrs[-1].get('otherCard', None)
-            for ref in refDict._dbRefs():
+            for ref in refDict._dbRefs(self.version):
                 args = RefArgs(refDict._name, ref[0], ref[1],
                                refDict._otherName, otherCard, refDict,
                                ref[2], ref[3], ref[4])

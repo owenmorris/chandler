@@ -24,17 +24,19 @@ class ItemRef(object):
 
         return '<ItemRef: %s>' %(self._other)
 
-    def _getItem(self):
-
-        return self._item
-
-    def _setItem(self, item):
+    def _setItem(self):
         pass
 
     def getItem(self):
         'Return the item this link was established from.'
         
-        return self._item
+        item = self._item._loadItem()
+
+        if item is not None:
+            self._item = item
+            return item
+
+        raise DanglingRefError, '%s <-> %s' %(self._item, self._other)
 
     def getOther(self):
         'Return the opposite item this link was established from.'
@@ -56,7 +58,7 @@ class ItemRef(object):
         self._item = item
         self._other = other
 
-        if type(other) is not ItemStub:
+        if not isinstance(other, Stub):
             if other.hasAttributeValue(otherName):
                 old = other.getAttributeValue(otherName)
                 if isinstance(old, RefDict):
@@ -90,6 +92,15 @@ class ItemRef(object):
         self.detach(item, name, old, otherName)
         self.attach(item, name, new, otherName)
 
+    def _unload(self, item):
+
+        if item is self.getItem():
+            self._item = UUIDStub(self.getOther(), item)
+        elif item is self.getOther():
+            self._other = UUIDStub(self.getItem(), item)
+        else:
+            raise ValueError, 'item %s is not part of this ref' %(item)
+
     def other(self, item):
         'Return the other end of the ref relative to item.'
 
@@ -117,7 +128,7 @@ class ItemRef(object):
 
         return 1
 
-    def _xmlValue(self, name, item, generator, withSchema, mode,
+    def _xmlValue(self, name, item, generator, withSchema, version, mode,
                   previous=None, next=None, alias=None):
 
         def addAttr(attrs, attr, value):
@@ -152,7 +163,11 @@ class ItemRef(object):
         generator.endElement('ref')
 
 
-class ItemStub(object):
+class Stub(object):
+    pass
+
+
+class ItemStub(Stub):
     
     def __init__(self, item, args):
 
@@ -170,6 +185,28 @@ class ItemStub(object):
         other = self.item.find(self.args.spec)
         if other is not None:
             self.args._attach(self.item, other)
+
+        return other
+
+
+class UUIDStub(Stub):
+
+    def __init__(self, item, other):
+
+        super(UUIDStub, self).__init__()
+
+        self.item = item
+        self.uuid = other.getUUID()
+
+    def __repr__(self):
+
+        return '<UUIDStub: %s>' %(self.uuid)
+
+    def _loadItem(self):
+
+        other = self.item.find(self.uuid)
+        if other is None:
+            raise DanglingRefError, '%s <-> %s' %(self.item, self.uuid)
 
         return other
     
@@ -210,7 +247,7 @@ class RefArgs(object):
             if not other._isAttaching():
                 try:
                     item._setAttaching()
-                    self._attach(item, other)
+                    return self._attach(item, other)
                 finally:
                     item._setAttaching(False)
         else:
@@ -222,6 +259,8 @@ class RefArgs(object):
                                        self.previous, self.next, self.alias,
                                        False)
 
+        return None
+
     def _attach(self, item, other):
         
         value = other._references.get(self.otherName)
@@ -231,41 +270,60 @@ class RefArgs(object):
                 self.ref.attach(item, self.attrName,
                                 other, self.otherName, self.otherCard)
             else:
-                self.ref = ItemRef(item, self.attrName,
-                                   other, self.otherName, self.otherCard)
-                self.valueDict.__setitem__(self.refName, self.ref, 
+                value = ItemRef(item, self.attrName,
+                                other, self.otherName, self.otherCard)
+                self.valueDict.__setitem__(self.refName, value,
                                            self.previous, self.next,
-                                           self.alias)
+                                           self.alias, False)
 
         elif isinstance(value, ItemRef):
-            if isinstance(value._other, ItemStub):
+            if isinstance(value._other, Stub):
                 value._other = item
                 self.valueDict.__setitem__(self.refName, value,
                                            self.previous, self.next,
-                                           self.alias)
+                                           self.alias, False)
+
+            elif isinstance(value._item, Stub):
+                value._item = item
+                self.valueDict.__setitem__(self.refName, value,
+                                           self.previous, self.next,
+                                           self.alias, False)
+            else:
+                return value
 
         elif isinstance(value, RefDict):
             otherRefName = item._refName(self.otherName)
             if value.has_key(otherRefName):
                 value = value._getRef(otherRefName)
-                if isinstance(value._other, ItemStub):
+                if isinstance(value._other, Stub):
                     value._other = item
                     self.valueDict.__setitem__(self.refName, value,
                                                self.previous, self.next,
-                                               self.alias)
+                                               self.alias, False)
+
+                elif isinstance(value._item, Stub):
+                    value._item = item
+                    self.valueDict.__setitem__(self.refName, value,
+                                               self.previous, self.next,
+                                               self.alias, False)
+                else:
+                    return value
+
             else:
                 if self.ref is not None:
                     self.ref.attach(item, self.attrName,
                                     other, self.otherName, self.otherCard)
                 else:
-                    self.ref = ItemRef(item, self.attrName,
-                                       other, self.otherName, self.otherCard)
-                    self.valueDict.__setitem__(self.refName, self.ref,
+                    value = ItemRef(item, self.attrName,
+                                    other, self.otherName, self.otherCard)
+                    self.valueDict.__setitem__(self.refName, value,
                                                self.previous, self.next,
-                                               self.alias)
+                                               self.alias, False)
 
         else:
             raise ValueError, value
+
+        return None
 
 
 class Values(dict):
@@ -286,30 +344,39 @@ class Values(dict):
     def __setitem__(self, key, value):
 
         if self._item is not None:
-            self._item.setDirty()
+            self._item.setDirty(attribute=key)
 
         super(Values, self).__setitem__(key, value)
 
     def __delitem__(self, key):
 
         if self._item is not None:
-            self._item.setDirty()
+            self._item.setDirty(attribute=key)
 
         super(Values, self).__delitem__(key)
 
+    def _unload(self):
+
+        self.clear()
+        
 
 class References(Values):
 
     def _setItem(self, item):
 
-        for ref in self.itervalues():
-            ref._setItem(item)
+        for value in self.itervalues():
+            value._setItem(item)
 
         self._item = item
 
     def __setitem__(self, key, value, *args):
 
         super(References, self).__setitem__(key, value)
+
+    def _unload(self):
+
+        for value in self.itervalues():
+            value._unload(self._item)
 
 
 class RefDict(LinkedMap):
@@ -396,7 +463,8 @@ class RefDict(LinkedMap):
                     load=True):
 
         loading = self._getRepository().isLoading()
-        self._changeRef(key)
+        if not loading:
+            self._changeRef(key)
 
         if loading and previousKey is None and nextKey is None:
             ref = self._loadRef(key)
@@ -486,14 +554,22 @@ class RefDict(LinkedMap):
                 args = RefArgs(self._name, ref[0], ref[1],
                                self._otherName, None, self,
                                ref[2], ref[3], ref[4])
-                args.attach(self._item, self._item.getRepository())
-                
+                value = args.attach(self._item, self._item.getRepository())
+                if value is not None:
+                    self.__setitem__(args.refName, value, args.previous,
+                                     args.next, args.alias, False)
+                    
                 return True
         finally:
             if loading is not None:
                 repository.setLoading(loading)
 
         return False
+
+    def _unload(self, item):
+
+        for link in self._itervalues():
+            link._value._unload(item)
 
     def _loadRef(self, key):
 
@@ -506,7 +582,7 @@ class RefDict(LinkedMap):
 
     def _changeRef(self, key):
 
-        self._item.setDirty()
+        self._item.setDirty(attribute=self._name)
 
     def _getRef(self, key, load=True):
 
@@ -539,7 +615,7 @@ class RefDict(LinkedMap):
 
         return len(self)
 
-    def _xmlValue(self, name, item, generator, withSchema, mode):
+    def _xmlValue(self, name, item, generator, withSchema, version, mode):
 
         def addAttr(attrs, attr, value):
 
@@ -571,16 +647,15 @@ class RefDict(LinkedMap):
         attrs['count'] = str(self._count)
 
         generator.startElement('ref', attrs)
-        self._xmlValues(generator, mode)
+        self._xmlValues(generator, version, mode)
         generator.endElement('ref')
 
-
-    def _xmlValues(self, generator, mode):
+    def _xmlValues(self, generator, version, mode):
 
         for key in self.iterkeys():
             link = self._get(key)
             link._value._xmlValue(key, self._item,
-                                  generator, False, mode,
+                                  generator, False, version, mode,
                                   previous=link._previousKey,
                                   next=link._nextKey,
                                   alias=link._alias)

@@ -36,7 +36,7 @@ class Type(Item):
 
         super(Type, self).__init__(name, parent, kind)
         self._status |= Item.SCHEMA
-
+        
     def _fillItem(self, name, parent, kind, **kwds):
 
         super(Type, self)._fillItem(name, parent, kind, **kwds)

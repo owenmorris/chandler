@@ -21,6 +21,7 @@ class Kind(Item):
         refDict = self._refDict('inheritedAttributes',
                                 'inheritingKinds', False)
         self._references['inheritedAttributes'] = refDict
+        self._status |= Item.SCHEMA
 
         # will allow schema items to live anywhere
         self._status |= Item.SCHEMA
@@ -34,6 +35,7 @@ class Kind(Item):
         refDict = self._refDict('inheritedAttributes',
                                 'inheritingKinds', False)
         self._references['inheritedAttributes'] = refDict
+        self._status |= Item.SCHEMA
 
         # will allow schema items to live anywhere
         self._status |= Item.SCHEMA
@@ -103,7 +105,7 @@ class Kind(Item):
 
         if self.hasValue('notFoundAttributes', name):
             return None
-        
+
         inheritingKinds = self._getInheritingKinds()
         if inheritingKinds is not None:
             cache = True
@@ -129,11 +131,12 @@ class Kind(Item):
 
         raise ValueError, 'No superKind for %s' %(self.getItemPath())
 
-    def _xmlRefs(self, generator, withSchema, mode):
+    def _xmlRefs(self, generator, withSchema, version, mode):
 
         for attr in self._references.items():
             if self.getAttributeAspect(attr[0], 'persist', default=True):
-                attr[1]._xmlValue(attr[0], self, generator, withSchema, mode)
+                attr[1]._xmlValue(attr[0], self, generator, withSchema,
+                                  version, mode)
 
     def isAlias(self):
         return False

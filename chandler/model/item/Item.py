@@ -77,17 +77,17 @@ class Item(object):
         if self._status & Item.RAW:
             return super(Item, self).__repr__()
 
-        if self._status & Item.DELETED:
-            return "<%s (deleted): %s %s>" %(type(self).__name__, self._name,
-                                             self._uuid.str16())
+        if self._status & Item.STALE:
+            return "<%s (stale): %s %s>" %(type(self).__name__, self._name,
+                                           self._uuid.str16())
         else:
             return "<%s: %s %s>" %(type(self).__name__, self._name,
                                    self._uuid.str16())
 
     def __getattr__(self, name):
 
-        if self._status & Item.DELETED:
-            raise ValueError, "item is deleted: %s" %(self)
+        if self._status & Item.STALE:
+            raise ValueError, "item is stale: %s" %(self)
 
         return self.getAttributeValue(name)
 
@@ -160,7 +160,7 @@ class Item(object):
         exist or when there is an ambiguity between a python and a Chandler
         attribute, a situation best avoided."""
 
-        self.setDirty()
+        self.setDirty(attribute=name)
 
         isItem = isinstance(value, Item)
         isRef = not isItem and (isinstance(value, ItemRef) or
@@ -211,7 +211,7 @@ class Item(object):
             else:
                 refs = self._refDict(name, otherName)
                 value = ItemRef(self, name, value, otherName)
-                refs[value._getItem()._refName(name)] = value
+                refs[value.getItem()._refName(name)] = value
                 value = refs
 
             self._references[name] = value
@@ -269,7 +269,7 @@ class Item(object):
     def removeAttributeValue(self, name, _attrDict=None):
         "Remove a Chandler attribute's value."
 
-        self.setDirty()
+        self.setDirty(attribute=name)
 
         if _attrDict is None:
             if self._values.has_key(name):
@@ -400,7 +400,7 @@ class Item(object):
         references, key may be an integer or the refName of the item value
         to set."""
 
-        self.setDirty()
+        self.setDirty(attribute=attribute)
 
         isItem = isinstance(value, Item)
         if isItem and key is None:
@@ -463,7 +463,7 @@ class Item(object):
             self.setValue(attribute, value, key, alias, _attrDict)
 
         else:
-            self.setDirty()
+            self.setDirty(attribute=attribute)
 
             if isinstance(attrValue, dict):
                 if isItem and alias:
@@ -544,7 +544,7 @@ class Item(object):
         else:
             raise KeyError, 'No value for attribute %s' %(attribute)
 
-        self.setDirty()
+        self.setDirty(attribute=attribute)
 
     def _removeRef(self, name):
 
@@ -582,22 +582,31 @@ class Item(object):
 
         return (self._status & Item.DELETED) != 0
     
+    def isStale(self):
+
+        return (self._status & Item.STALE) != 0
+    
     def isDirty(self):
 
         return (self._status & Item.DIRTY) != 0
 
-    def setDirty(self, dirty=True):
+    def setDirty(self, dirty=True, attribute=None):
         """Set the dirty bit on the item so that it gets persisted.
 
         Returns True if the dirty bit was changed from unset to set.
         Returns False otherwise."""
-        
+
         if dirty:
             if self._status & Item.DIRTY == 0:
                 repository = self.getRepository()
-                if repository is not None and repository.logItem(self):
-                    self._status |= Item.DIRTY
-                    return True
+                if repository is not None and not repository.isLoading():
+                    if attribute is not None:
+                        if self.getAttributeAspect(attribute, 'persist',
+                                                   default=True) == False:
+                            return False
+                    if repository.logItem(self):
+                        self._status |= Item.DIRTY
+                        return True
         else:
             self._status &= ~Item.DIRTY
 
@@ -619,8 +628,10 @@ class Item(object):
         A deleted item is no longer reachable through the repository or other
         items. It is an error to access deleted items."""
 
-        if (not (self._status & Item.DELETED) and
-            not (self._status & Item.DELETING)):
+        if not self._status & (Item.DELETED | Item.DELETING):
+
+            if self._status & Item.STALE:
+                raise ValueError, "item is stale: %s" %(self)
 
             if not recursive and self.hasChildren():
                 raise ValueError, 'item %s has children, delete must be recursive' %(self)
@@ -650,7 +661,7 @@ class Item(object):
             self._parent._removeItem(self)
             self._setRoot(None)
 
-            self._status |= Item.DELETED
+            self._status |= Item.DELETED | Item.STALE
             self._status &= ~Item.DELETING
 
             for other in others:
@@ -721,9 +732,9 @@ class Item(object):
         return path
 
     def getRoot(self):
-        """Return this item's repository root.
+        '''Return this item's repository root.
 
-        All single-slash rooted paths are expressed relative to this root."""
+        All single-slash rooted paths are expressed relative to this root.'''
         
         return self._root
 
@@ -949,11 +960,10 @@ class Item(object):
 
         self._xmlItem(generator,
                       withSchema = (self._status & Item.SCHEMA) != 0,
-                      version = version,
-                      mode = 'save')
+                      version = version, mode = 'save')
 
-    def _xmlItem(self, generator, withSchema=False, mode='serialize',
-                 version=None):
+    def _xmlItem(self, generator, withSchema=False, version=None,
+                 mode='serialize'):
 
         def xmlTag(tag, attrs, value, generator):
 
@@ -1003,8 +1013,8 @@ class Item(object):
 
         xmlTag('container', attrs, parentID, generator)
 
-        self._xmlAttrs(generator, withSchema, mode)
-        self._xmlRefs(generator, withSchema, mode)
+        self._xmlAttrs(generator, withSchema, version, mode)
+        self._xmlRefs(generator, withSchema, version, mode)
 
         generator.endElement('item')
 
@@ -1012,7 +1022,26 @@ class Item(object):
 
         return self
 
-    def _xmlAttrs(self, generator, withSchema, mode):
+    def _unloadItem(self):
+
+        if self._status & Item.DIRTY:
+            raise ValueError, 'Item %s has changed, cannot be unloaded' %(self.getItemPath())
+        
+        if not self._status & Item.STALE:
+            self._status |= Item.DIRTY
+            if self.hasAttributeValue('kind'):
+                del self.kind
+            self._values._unload()
+            self._references._unload()
+            self.getRepository()._unregisterItem(self)
+            self._parent._unloadChild(self._name)
+            self._status |= Item.STALE
+
+    def _unloadChild(self, name):
+
+        self._children._unload(name)
+
+    def _xmlAttrs(self, generator, withSchema, version, mode):
 
         for key, value in self._values.iteritems():
             if self.getAttributeAspect(key, 'persist', default=True):
@@ -1023,11 +1052,12 @@ class Item(object):
                                      attrType, attrCard, generator,
                                      withSchema)
 
-    def _xmlRefs(self, generator, withSchema, mode):
+    def _xmlRefs(self, generator, withSchema, version, mode):
 
         for key, value in self._references.iteritems():
             if self.getAttributeAspect(key, 'persist', default=True):
-                value._xmlValue(key, self, generator, withSchema, mode)
+                value._xmlValue(key, self, generator, withSchema, version,
+                                mode)
 
     def _refDict(self, name, otherName=None, persist=None):
 
@@ -1075,6 +1105,7 @@ class Item(object):
     ATTACHING = 0x10
     SCHEMA    = 0x20
     NEW       = 0x40
+    STALE     = 0x80
 
 
 class Children(LinkedMap):

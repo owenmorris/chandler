@@ -90,6 +90,10 @@ class LinkedMap(dict):
 
         return False
 
+    def _unload(self, key):
+
+        super(LinkedMap, self).__delitem__(key)
+
     def _makeLink(self, value):
 
         return LinkedMap.link(value)
