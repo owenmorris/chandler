@@ -532,7 +532,8 @@
     <blockName>NewContactItem</blockName>
     <title>Contact</title>
     <helpString>Create a new Contact</helpString>
-    <event itemref="doc:NewContact"/>
+    <!-- removed to disable menu item until post-kibble, bug 2309:
+        <event itemref="doc:NewContact"/> -->
   </MenuItem>
 
   <MenuItem itsName="NewTabItem">
