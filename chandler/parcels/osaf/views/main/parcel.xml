@@ -112,11 +112,11 @@
     <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
-  <BlockEvent itsName="ShowHideNavigationBar">
-    <blockName>ShowHideNavigationBar</blockName>
+  <BlockEvent itsName="ShowHideApplicationBar">
+    <blockName>ShowHideApplicationBar</blockName>
     <methodName>onShowHideEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>NavigationBar</dispatchToBlockName>
+    <dispatchToBlockName>ApplicationBar</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ShowHideSidebar">
@@ -912,7 +912,7 @@
     <blockName>ViewToolBarItem</blockName>
     <title>View Toolbar</title>
     <menuItemKind>Check</menuItemKind>
-    <event itemref="doc:ShowHideNavigationBar"/>
+    <event itemref="doc:ShowHideApplicationBar"/>
     <helpString value="Show or Hide the Toolbar"/>
   </MenuItem>
 
@@ -1344,72 +1344,33 @@
   </ContextMenuItem>
 
   <!--
-    NavigationBar
+    ApplicationBar
   -->
-  <Toolbar itsName="NavigationBar">
-    <blockName>NavigationBar</blockName>
-    <childrenBlocks itemref="doc:ApplicationBarAllItem"/>
-    <childrenBlocks itemref="doc:ApplicationBarMessageItem"/>
-    <childrenBlocks itemref="doc:ApplicationBarEventItem"/>
-    <childrenBlocks itemref="doc:ApplicationBarTaskItem"/>
-    <childrenBlocks itemref="doc:SyncButton"/>
-    <childrenBlocks itemref="doc:NewButton"/>
-    <childrenBlocks itemref="doc:SendButton"/>
-    <toolSize>24,24</toolSize>
-    <buttonsLabeled>True</buttonsLabeled>
-    <stretchFactor>0</stretchFactor>
-  </Toolbar>
-
-  <ToolbarItem itsName="SyncButton">
-    <blockName>SyncButton</blockName>
-    <title>Sync</title>
-    <label>Sync All</label>
-    <bitmap>application/images/toolbar_sync.gif</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Get new Mail and synchronize with other Chandler users</helpString>
-    <event itemref="doc:SyncAll"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="NewButton">
-    <blockName>NewButton</blockName>
-    <title>New</title>
-    <label>New</label>
-    <bitmap>application/images/toolbar_new.gif</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Create a new Item</helpString>
-    <event itemref="doc:NewNote"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="SendButton">
-    <blockName>SendButton</blockName>
-    <title>Send</title>
-    <label>Send</label>
-    <bitmap>application/images/toolbar_send.gif</bitmap>
-    <toolbarItemKind>Button</toolbarItemKind>
-    <helpString>Send the selected Item</helpString>
-    <event itemref="events:SendShareItem"/>
-  </ToolbarItem>
-
-  <!-- wxWidgets bug #2432 causes ApplicationBar to fail on Macintosh
   <Toolbar itsName="ApplicationBar">
     <blockName>ApplicationBar</blockName>
-    <childrenBlocks itemref="doc:ApplicationBarAllItem"/>
-    <childrenBlocks itemref="doc:ApplicationBarMessageItem"/>
-    <childrenBlocks itemref="doc:ApplicationBarEventItem"/>
-    <childrenBlocks itemref="doc:ApplicationBarTaskItem"/>
-    <toolSize>24,24</toolSize>
+    <childrenBlocks itemref="doc:ApplicationBarAllButton"/>
+    <childrenBlocks itemref="doc:ApplicationBarMailButton"/>
+    <childrenBlocks itemref="doc:ApplicationBarTaskButton"/>
+    <childrenBlocks itemref="doc:ApplicationBarEventButton"/>
+    <childrenBlocks itemref="doc:ApplicationSeparator1"/>
+    <childrenBlocks itemref="doc:ApplicationBarSyncButton"/>
+    <childrenBlocks itemref="doc:ApplicationBarNewButton"/>
+    <childrenBlocks itemref="doc:ApplicationSeparator2"/>
+    <childrenBlocks itemref="doc:ApplicationBarSendButton"/>
+    <toolSize>26,26</toolSize>
+    <buttonsLabeled>True</buttonsLabeled>
     <separatorWidth>20</separatorWidth>
     <stretchFactor>0</stretchFactor>
   </Toolbar>
-  -->
 
-  <ToolbarItem itsName="ApplicationBarAllItem">
-    <blockName>ApplicationBarAllItem</blockName>
+  <ToolbarItem itsName="ApplicationBarAllButton">
+    <blockName>ApplicationBarAllButton</blockName>
     <title>All</title>
-    <bitmap>application/images/ApplicationBarAll.gif</bitmap>
+    <label>All</label>
+    <bitmap>application/images/ApplicationBarAll.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:ApplicationBarAll"/>
-    <helpString></helpString>
+    <helpString>No Filter</helpString>
   </ToolbarItem>
 
   <KindParameterizedEvent itsName="ApplicationBarAll">
@@ -1420,30 +1381,50 @@
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </KindParameterizedEvent>
 
-  <ToolbarItem itsName="ApplicationBarMessageItem">
-    <blockName>ApplicationBarMessageItem</blockName>
+  <ToolbarItem itsName="ApplicationBarMailButton">
+    <blockName>ApplicationBarMailButton</blockName>
     <title>Messages</title>
-    <bitmap>application/images/ApplicationBarMessage.gif</bitmap>
+    <label>Mail</label>
+    <bitmap>application/images/ApplicationBarMail.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
-    <event itemref="doc:ApplicationBarMessage"/>
-    <helpString></helpString>
+    <event itemref="doc:ApplicationBarMail"/>
+    <helpString>Mail Messages Filter</helpString>
   </ToolbarItem>
 
-  <KindParameterizedEvent itsName="ApplicationBarMessage">
-    <blockName>ApplicationBarMessage</blockName>
+  <KindParameterizedEvent itsName="ApplicationBarMail">
+    <blockName>ApplicationBarMail</blockName>
     <kindParameter itemref="mail:MailMessageMixin"/>
     <methodName>onKindParameterizedEvent</methodName>
     <dispatchEnum>SendToBlockByName</dispatchEnum>
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </KindParameterizedEvent>
 
-  <ToolbarItem itsName="ApplicationBarEventItem">
-    <blockName>ApplicationBarEventItem</blockName>
+  <ToolbarItem itsName="ApplicationBarTaskButton">
+    <blockName>ApplicationBarTaskButton</blockName>
+    <title>Taskpad</title>
+    <label>Tasks</label>
+    <bitmap>application/images/ApplicationBarTask.png</bitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <event itemref="doc:ApplicationBarTask"/>
+    <helpString>Tasks Filter</helpString>
+  </ToolbarItem>
+
+  <KindParameterizedEvent itsName="ApplicationBarTask">
+    <blockName>ApplicationBarTask</blockName>
+    <kindParameter itemref="tasks:TaskMixin"/>
+    <methodName>onKindParameterizedEvent</methodName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
+  </KindParameterizedEvent>
+
+  <ToolbarItem itsName="ApplicationBarEventButton">
+    <blockName>ApplicationBarEventButton</blockName>
     <title>Calendar</title>
-    <bitmap>application/images/ApplicationBarEvent.gif</bitmap>
+    <label>Calendar</label>
+    <bitmap>application/images/ApplicationBarEvent.png</bitmap>
     <toolbarItemKind>Radio</toolbarItemKind>
     <event itemref="doc:ApplicationBarEvent"/>
-    <helpString></helpString>
+    <helpString>Calendar Events Filter</helpString>
   </ToolbarItem>
 
   <KindParameterizedEvent itsName="ApplicationBarEvent">
@@ -1454,22 +1435,58 @@
     <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </KindParameterizedEvent>
 
-  <ToolbarItem itsName="ApplicationBarTaskItem">
-    <blockName>ApplicationBarTaskItem</blockName>
-    <title>Taskpad</title>
-    <bitmap>application/images/ApplicationBarTask.gif</bitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <event itemref="doc:ApplicationBarTask"/>
-    <helpString></helpString>
+  <ToolbarItem itsName="ApplicationSeparator1">
+    <blockName>ApplicationSeparator1</blockName>
+    <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
-  <KindParameterizedEvent itsName="ApplicationBarTask">
-    <blockName>ApplicationBarTask</blockName>
-    <kindParameter itemref="tasks:TaskMixin"/>
-    <methodName>onKindParameterizedEvent</methodName>
-    <dispatchEnum>SendToBlockByName</dispatchEnum>
-    <dispatchToBlockName>Sidebar</dispatchToBlockName>
-  </KindParameterizedEvent>
+  <ToolbarItem itsName="ApplicationBarSyncButton">
+    <blockName>ApplicationBarSyncButton</blockName>
+    <title>Sync</title>
+    <label>Sync All</label>
+    <bitmap>application/images/ApplicationBarSync.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Get new Mail and synchronize with other Chandler users</helpString>
+    <event itemref="doc:SyncAll"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="ApplicationBarNewButton">
+    <blockName>ApplicationBarNewButton</blockName>
+    <title>New</title>
+    <label>New</label>
+    <bitmap>application/images/ApplicationBarNew.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Create a new Item</helpString>
+    <event itemref="doc:NewNote"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="ApplicationSeparator2">
+    <blockName>ApplicationSeparator2</blockName>
+    <toolbarItemKind>Separator</toolbarItemKind>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="ApplicationBarSendButton">
+    <blockName>ApplicationBarSendButton</blockName>
+    <title>Send</title>
+    <label>Send</label>
+    <bitmap>application/images/ApplicationBarSend.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <helpString>Send the selected Item</helpString>
+    <event itemref="events:SendShareItem"/>
+  </ToolbarItem>
+
+  <!-- wxWidgets bug #2432 causes ApplicationBar to fail on Macintosh
+  <Toolbar itsName="ApplicationBar">
+    <blockName>ApplicationBar</blockName>
+    <childrenBlocks itemref="doc:ApplicationBarAllButton"/>
+    <childrenBlocks itemref="doc:ApplicationBarMailButton"/>
+    <childrenBlocks itemref="doc:ApplicationBarEventButton"/>
+    <childrenBlocks itemref="doc:ApplicationBarTaskButton"/>
+    <toolSize>24,24</toolSize>
+    <separatorWidth>20</separatorWidth>
+    <stretchFactor>0</stretchFactor>
+  </Toolbar>
+  -->
 
   <!--
     Status Bar
@@ -1594,7 +1611,7 @@
   </View>
 
   <BoxContainer itsName="ToolbarContainer">
-    <childrenBlocks itemref="doc:NavigationBar"/>
+    <childrenBlocks itemref="doc:ApplicationBar"/>
     <childrenBlocks itemref="doc:SidebarContainerContainer"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
@@ -1603,7 +1620,7 @@
 
   <BoxContainer itsName="ApplicationBarContainer">
     <childrenBlocks itemref="doc:ApplicationBar"/>
-    <childrenBlocks itemref="doc:NavigationBar"/>
+    <childrenBlocks itemref="doc:ApplicationBar"/>
     <stretchFactor>0</stretchFactor>
   </BoxContainer>
   -->
@@ -1734,7 +1751,7 @@
   </View>
 
   <BoxContainer itsName="CPIATestMainContainer">
-    <childrenBlocks itemref="doc:NavigationBar" copy="CPIATestNavigationBar"/>
+    <childrenBlocks itemref="doc:ApplicationBar" copy="CPIATestApplicationBar"/>
     <childrenBlocks itemref="doc:CPIATestMainSplitter"/>
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>

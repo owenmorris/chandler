@@ -190,7 +190,7 @@
   <ToolbarItem itsName="BlockDemoToolbarButton"
                itemClass="osaf.views.demo.Demo.DemoToolbarItem">
     <blockName>BlockDemoToolbarButton</blockName>
-    <location>NavigationBar</location>
+    <location>ApplicationBar</location>
     <title>Block Demo</title>
     <label>Cycle Tabs</label>
     <bitmap>application/images/forwardto.png</bitmap>

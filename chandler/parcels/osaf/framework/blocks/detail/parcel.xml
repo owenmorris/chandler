@@ -43,16 +43,8 @@
     <fontStyle>bold</fontStyle>
     <fontSize>10</fontSize>
   </CharacterStyle>
-
-  <ColorStyle itsName="GrayBackground1">
-    <backgroundColor>240,240,240,240</backgroundColor>
-  </ColorStyle>
   
-  <ColorStyle itsName="GrayBackground2">
-    <backgroundColor>181,181,181,181</backgroundColor>
-  </ColorStyle>
-  
-  <ColorStyle itsName="GrayBackground3">
+  <ColorStyle itsName="GrayBackground">
     <backgroundColor>204,204,204,204</backgroundColor>
   </ColorStyle>
       
@@ -175,9 +167,9 @@
     <childrenBlocks itemref="doc:PrivateSwitchButton"/>
     <!-- Attributes -->
     <position>0.0</position>
-    <colorStyle itemref="doc:GrayBackground3"/>
+    <colorStyle itemref="doc:GrayBackground"/>
     <toolSize>20,20</toolSize>
-    <separatorWidth>50</separatorWidth>
+    <separatorWidth>16</separatorWidth>
     <stretchFactor>0.0</stretchFactor>
   </Toolbar>
 
@@ -188,7 +180,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.MailMessageButton">
     <blockName>MailMessageButton</blockName>
     <title>Send as message</title>
-    <bitmap>application/images/ApplicationBarMessage.gif</bitmap>
+    <bitmap>application/images/MarkupBarMail.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Send this item as a mail message</helpString>
@@ -199,7 +191,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.TaskStamp">
     <blockName>TaskStamp</blockName>
     <title>Put on Taskpad</title>
-    <bitmap>application/images/ApplicationBarTask.gif</bitmap>
+    <bitmap>application/images/MarkupBarTask.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Put this item onto the Taskpad</helpString>
@@ -210,7 +202,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.CalendarStamp">
     <blockName>CalendarStamp</blockName>
     <title>Put on Calendar</title>
-    <bitmap>application/images/ApplicationBarEvent.gif</bitmap>
+    <bitmap>application/images/MarkupBarEvent.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Put this item onto the Calendar</helpString>
@@ -226,7 +218,7 @@
                itemClass="osaf.framework.blocks.detail.Detail.PrivateSwitchButton">
     <blockName>PrivateSwitchButton</blockName>
     <title>Never share this item</title>
-    <bitmap>application/images/private.png</bitmap>
+    <bitmap>application/images/MarkupBarPrivate.png</bitmap>
     <toolbarItemKind>Button</toolbarItemKind>
     <toggle>True</toggle>
     <helpString>Never share this item</helpString>

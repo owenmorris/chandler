@@ -526,7 +526,7 @@ class MainView(View):
             return
 
         # @@@ BJS For 0.5, simplify sharing: if the application filter isn't All, switch it to All now.
-        allFilterToolbarItem = Block.findBlockByName('ApplicationBarAllItem')
+        allFilterToolbarItem = Block.findBlockByName('ApplicationBarAllButton')
         if not allFilterToolbarItem.widget.IsToggled():
             # @@@BJS Maybe put up an alert here to let the user know we've pulled the rug out?
             allFilterToolbarItem.dynamicParent.widget.ToggleTool(allFilterToolbarItem.toolID, True)
