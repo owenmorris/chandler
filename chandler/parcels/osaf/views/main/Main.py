@@ -7,6 +7,8 @@ import application.Globals as Globals
 from osaf.framework.blocks.Views import View
 from osaf.framework.notifications.Notification import Notification
 import wx
+import os
+from application.SplashScreen import SplashScreen
 
 import osaf.framework.utils.imports.OutlookContacts as OutlookContacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
@@ -67,6 +69,15 @@ class MainView(View):
             repository.logger.info('Check completed successfully')
         else:
             repository.logger.info('Check completed with errors')
+
+    def onAboutChandlerEvent(self, notification):
+        """
+          Show the splash screen in response to the about command
+        """
+        pageLocation = os.path.join ('application', 'welcome.html')
+        splash = SplashScreen(None, _("About Chandler"), 
+                              pageLocation, False, False)
+        splash.Show(True)
 
     def onShowPyCrustEvent(self, notification):
         Globals.wxApplication.ShowDebuggerWindow()

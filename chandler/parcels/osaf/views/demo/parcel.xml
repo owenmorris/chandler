@@ -72,6 +72,7 @@
   -->
   <Menu itsName="DemoMenu">
     <title>Block Demo</title>
+    <itemLocation>HelpMenu</itemLocation>
     <helpString></helpString>
   </Menu>
 

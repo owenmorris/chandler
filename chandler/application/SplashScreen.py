@@ -23,7 +23,7 @@ class SplashScreen(wx.Dialog):
         if isModal:
             style= wx.FRAME_FLOAT_ON_PARENT|wx.DEFAULT_FRAME_STYLE
         else:
-            style = wx.DEFAULT_FRAME_STYLE
+            style = wx.DEFAULT_FRAME_STYLE|wx.DIALOG_NO_PARENT
         super (SplashScreen, self).__init__ (parent, -1, title, style=style)
         defaultWindowWidth = 700
         maxWindowHeight = 600
@@ -68,7 +68,7 @@ class HTMLPanel(wx.html.HtmlWindow):
         """
         super (HTMLPanel, self).__init__ (parent,
                                           size=size,
-                                          style=wx.HW_SCROLLBAR_AUTO)
+                                          style=wx.html.HW_SCROLLBAR_AUTO)
         self.parent = parent
         self.LoadPage(pageLocation)
         
@@ -78,17 +78,17 @@ class HTMLPanel(wx.html.HtmlWindow):
         clicked, then that link will be opened.  Otherwise, we close the
         splash screen.
         """
-        self.linked = false
+        self.linked = False
         wx.html.HtmlWindow.base_OnCellClicked(self, cell, x, y, event)
-        if not self.linked:
-            self.parent.Close()
+#        if not self.linked:
+#            self.parent.Close()
         
     def OnLinkClicked(self, link):
         """
           Called whenever a link on the splash screen is clicked.  Opens that
         url in the user's default web browser.
         """
-        self.linked = true
+        self.linked = True
         webbrowser.open(link.GetHref())
     
 class SplashTimer(wx.Timer):

@@ -87,6 +87,10 @@
     <title>Test</title>
   </Menu>
   
+  <Menu itsName="HelpMenu">
+    <title>Help</title>
+  </Menu>
+ 
   <!-- the Menu Bar -->
   <MenuBar itemName="MenuBar"/>
 
@@ -250,6 +254,13 @@
     <helpString>Brings up an interactive Python shell</helpString>
   </MenuItem>
 
+  <MenuItem itsName="AboutChandlerItem">
+    <title>About Chandler</title>
+    <location>HelpMenu</location>
+    <event itemref="events:AboutChandler"/>
+    <helpString>About Chandler...</helpString>
+  </MenuItem>
+
   <!--
     Toolbars
   -->
@@ -327,16 +338,6 @@
   <StatusBar itsName="StatusBar">
   </StatusBar>
 
-  <!-- 
-    About Chandler View 
-  -->
-  <HTML itsName="AboutChandlerHTML">
-    <displayName>About Chandler</displayName>
-    <url>application/welcome.html</url>
-    <eventBoundary>True</eventBoundary>
-    <border>1.0, 1.0, 1.0, 1.0</border>
-  </HTML>
-
   <!--
     Sidebar locations
   -->
@@ -344,7 +345,6 @@
     <displayName></displayName>
     <children itemref="doc:InView"/>
     <children itemref="doc:OutView"/>
-    <children itemref="doc:AboutChandler"/>
     <children itemref="doc:Repository"/>
     <children itemref="doc:Demo"/>
     <children itemref="doc:CalendarView"/>
@@ -364,11 +364,6 @@
   <Node itsName="OutView">
     <displayName>Out</displayName>
     <item itemref="content:OutListView"/>
-  </Node>
-
-  <Node itsName="AboutChandler">
-    <displayName>About Chandler</displayName>
-    <item itemref="doc:AboutChandlerHTML"/>
   </Node>
 
   <Node itsName="Repository">
@@ -459,7 +454,6 @@
   <contentModel:NamedCollection itsName="sidebarItemCollection">
     <inclusions uuidOf="content:InListView"/>
     <inclusions uuidOf="content:OutListView"/>
-    <inclusions uuidOf="doc:AboutChandlerHTML"/>
     <inclusions uuidOf="repository:RepositoryBox"/>
     <inclusions uuidOf="demo:TabBox"/>
     <inclusions uuidOf="content:NewCalendarListView"/>
@@ -547,6 +541,8 @@
     <childrenBlocks itemref="doc:ImportContactItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
+    <childrenBlocks itemref="doc:HelpMenu"/>
+    <childrenBlocks itemref="doc:AboutChandlerItem"/>
     
     <!-- StatusBar -->
     <childrenBlocks itemref="doc:StatusBar"/>

@@ -19,6 +19,7 @@
   -->
   <Menu itsName="RepositoryMenu">
     <title>Repository Viewer</title>
+    <itemLocation>HelpMenu</itemLocation>
     <helpString></helpString>
   </Menu>
 
