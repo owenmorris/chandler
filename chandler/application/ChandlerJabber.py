@@ -372,13 +372,13 @@ class JabberClient:
         for resultObject in objectList:
             resultList.append(resultObject)
             if len(resultList) >= granularity:
-                resultString = self.EncodeObjectList(resultList)
+                resultString = self.EncodePythonObject(resultList)
                 self.SendObjectResponse(fromAddress, url, resultString, 'chandler:receive-objects')
                 resultList = []
         
         # send the objects left-over in the list, even if it's empty, so the
         # application knows its the last response
-        resultString = self.EncodeObjectList(resultList)
+        resultString = self.EncodePythonObject(resultList)
         self.SendObjectResponse(fromAddress, url, resultString, 'chandler:receive-objects-done')
         
     # handle receiving a reponse to an object request.  The lastFlag
@@ -387,7 +387,7 @@ class JabberClient:
     # the one that initiated the request
     def HandleObjectResponse(self, fromAddress, url, body, lastFlag):        
         # decode the string from the body of the received message to an objectlist
-        objectList = self.DecodeObjectList(body)
+        objectList = self.DecodePythonObject(body)
         
         # send the objects back to the relevant view
         if len(objectList) > 0:
