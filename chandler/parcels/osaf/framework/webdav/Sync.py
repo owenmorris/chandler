@@ -40,9 +40,9 @@ def syncItem(dav, item):
         serverChanges = False
 
     log.info('Syncing %s (%s)' % (unicode(dav.url), item.getItemDisplayName()))
-    log.info('-- needsPut      %s' % (needsPut))
-    log.info('-- localChanges  %s' % (localChanges))
-    log.info('-- serverChanges %s' % (serverChanges))
+    log.info('|- needsPut      %s' % (needsPut))
+    log.info('|- localChanges  %s' % (localChanges))
+    log.info('`- serverChanges %s' % (serverChanges))
     if serverChanges:
         log.info('   |-- our etag  %s' % (etag))
         log.info('   `-- svr etag  %s' % (davETag))
@@ -90,15 +90,14 @@ def merge(dav, item, davItem, hasLocalChanges):
 
 
 def mergeList(item, attrName, nodes, nodesAreItemRefs):
-    from Dav import DAV, NotFound
     list = item.getAttributeValue(attrName, default=[])
 
     serverList = []
     for node in nodes:
         if nodesAreItemRefs:
             try:
-                value = DAV(node.content).get()
-            except NotFound:
+                value = Dav.DAV(node.content).get()
+            except Dav.NotFound:
                 value = None
         else:
             value = node.content
@@ -201,7 +200,7 @@ def syncToServer(dav, item):
     #
     # XXX refactor this code with the code above
     #
-    if item.isItemOf(Globals.repository.findPath('//parcels/osaf/contentmodel/ItemCollection')):
+    if item.isItemOf(item.itsView.findPath('//parcels/osaf/contentmodel/ItemCollection')):
         listData = ''
         for i in item:
             # mmm, recursion
@@ -241,7 +240,6 @@ def nodesFromXml(data):
 
 
 def syncFromServer(item, davItem):
-    from Dav import DAV, NotFound
     kind = davItem.itsKind
 
     for (name, attr) in kind.iterAttributes(True):
@@ -267,9 +265,9 @@ def syncFromServer(item, davItem):
                 continue
             elif attr.cardinality == 'single':
                 try:
-                    otherItem = DAV(nodes[0].content).get()
+                    otherItem = dav.DAV(nodes[0].content).get()
                     item.setAttributeValue(name, otherItem)
-                except NotFound:
+                except Dav.NotFound:
                     log.warning('Cant access %s' % (node.content))
             elif attr.cardinality == 'dict':
                 # XXX implement me
@@ -293,14 +291,14 @@ def syncFromServer(item, davItem):
     #
     # XXX refactor this code
     #
-    if item.isItemOf(Globals.repository.findPath('//parcels/osaf/contentmodel/ItemCollection')):
+    if item.isItemOf(item.itsView.findPath('//parcels/osaf/contentmodel/ItemCollection')):
         value = davItem._getAttribute('results', '//special/case')
 
         nodes = nodesFromXml(value)
 
         serverCollectionResults = []
         for node in nodes:
-            otherItem = DAV(node.content).get()
+            otherItem = Dav.DAV(node.content).get()
             serverCollectionResults.append(otherItem)
 
         log.debug('Merging itemCollection')
@@ -355,14 +353,20 @@ def getItem(dav):
         sharing.itemMap[origUUID] = newItem.itsUUID
 
 
-    if newItem.isItemOf(Globals.repository.findPath('//parcels/osaf/contentmodel/ItemCollection')):
-        contentItemKind = Globals.repository.findPath('//parcels/osaf/contentmodel/ContentItem')
+    # since we may already have local items, we need to walk the collection
+    # and sync up the clouds of the items in the collection.  If we don't do this
+    # we may look at the collection and think it hasn't changed when in reality
+    # one of its items may have changed....
+    # Should changing any item in a collection's cloud poke the collection when it
+    # is changed?  If we did that, I think we could remove most of this code...
+    if newItem.isItemOf(repository.findPath('//parcels/osaf/contentmodel/ItemCollection')):
+        contentItemKind = repository.findPath('//parcels/osaf/contentmodel/ContentItem')
         for i in newItem:
             clouds = i.itsKind.getClouds('default')
             for cloud in clouds:
                 for k in cloud.getItems(i):
                     # we only support publishing content items
-                    
+
                     if not k.isItemOf(contentItemKind):
                         log.warning('Skipping %s -- Not a ContentItem' % (str(k)))
                         continue

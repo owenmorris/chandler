@@ -38,33 +38,33 @@ class DAV(object):
         self.url = resourceURL
 
     def newConnection(self):
-        """
-        if not self.connection:
-            self.connection = DAVConnection(self.url)
-        return self.connection
-        """
         return DAVConnection(self.url)
 
-    def putResource(self, body, type='text/plain'):
-        return self.newConnection().put(unicode(self.url), body, type, None)
-        # return status.. or maybe just throw an exception if the put failed
-
-    def deleteResource(self):
-        return self.newConnection().delete(unicode(self.url))
-
     def getHeaders(self):
+        """ Perform a HTTP HEAD operation """
         r = self.newConnection().head(unicode(self.url))
         if r.status == 404:
             raise NotFound
         return r
 
+    def putResource(self, body, type='text/plain'):
+        """ Perform a HTTP PUT operation """
+        return self.newConnection().put(unicode(self.url), body, type, None)
+        # return status.. or maybe just throw an exception if the put failed
+
+    def deleteResource(self):
+        """ Perform a WebDAV DELETE operation """
+        return self.newConnection().delete(unicode(self.url))
+
     def getProps(self, body, depth=0):
+        """ Perform a WebDAV PROPFIND operation """
         r = self.newConnection().propfind(unicode(self.url), body, depth)
         if r.status == 404:
             raise NotFound
         return r
 
     def setProps(self, props):
+        """ Perform a WebDAV PROPPATCH """
         r = self.newConnection().setprops2(unicode(self.url), props)
         log.debug('PROPPATCH returned:')
         log.debug(r.read())
@@ -73,9 +73,11 @@ class DAV(object):
         return r
 
     def _getETag(self):
+        """ Get the ETag using getHeaders() -- not cached """
         return self.getHeaders().getheader('ETag', default='')
 
     def _getLastModified(self):
+        """ Get the last modified date using getHeaders() -- not cached """
         return self.getHeaders().getheader('Last-Modified', default='')
 
 
@@ -84,6 +86,7 @@ class DAV(object):
         return Sync.getItem(self)
 
     def put(self, item):
+        """ puts items to the webdav server """
         # add an entry into the itemMap to indicate that there is a local copy of a foreign item
         sharing = Globals.repository.findPath('//parcels/osaf/framework/GlobalShare')
         # XXX if item.itsUUID not in sharing.values(): # only add us if we originated here
