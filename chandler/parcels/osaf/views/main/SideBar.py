@@ -22,11 +22,13 @@ class SideBarDelegate (AttributeDelegate):
         return value
 
     def SetElementValue (self, row, column, value):
-        item = self.blockItem.contents[row]
+        view = self.blockItem.contents[row]
+        item = view
         try:
             item = item.contents
         except AttributeError:
             pass
         attributeName = self.blockItem.columnData [column]
         item.setAttributeValue (attributeName, value)
+        view.synchronizeWidget()
 
