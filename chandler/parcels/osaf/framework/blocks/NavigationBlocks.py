@@ -11,29 +11,6 @@ from repository.util.UUID import UUID
 from wxPython.wx import *
 
 
-class Sidebar(Tree):
-    def GetTreeData (self, node):
-        item = node.GetData()
-        if item:
-            for child in item.children:
-                node.AddChildNode (child,
-                                   [self.GetTreeDataName (child)],
-                                   len(child.children) != 0)
-        else:
-            node.AddRootNode (self.rootPath, [""], len(self.rootPath.children) != 0)
-            
-    def GetTreeDataName (self, item):
-        return item.getItemDisplayName()
-
-    def OnSelectionChangedEvent (self, notification):
-        try:
-            path = notification.GetData()['item'].GetPath()
-        except AttributeError:
-            return
-        wxTreeWindow = Globals.association[self.getUUID()]
-        wxTreeWindow.GoToPath (path)
-
-
 class NavigationBar(Toolbar):
     def renderOneBlock(self, parent, parentWindow):
         self.history = []

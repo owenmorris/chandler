@@ -871,12 +871,15 @@
     </Attribute>
 
     <Attribute itemName="selection">
-      <type itemref="String"/>
-      <defaultValue type="String"></defaultValue>
+      <type itemref="Item"/>
     </Attribute>
 
     <Attribute itemName="rootPath">
       <type itemref="Item"/>
+    </Attribute>
+
+    <Attribute itemName="elementDelegate">
+      <type itemref="String"/>
     </Attribute>
 
     <attributes itemref="docSchema:Tree/hideRoot"/>
@@ -887,14 +890,7 @@
     <attributes itemref="docSchema:Tree/openedContainers"/>
     <attributes itemref="docSchema:Tree/selection"/>
     <attributes itemref="docSchema:Tree/rootPath"/>
-  </Kind>  
-
-  <!--
-    Sidebar
-  -->
-  <Kind itemName="Sidebar">
-    <classes key="python">OSAF.framework.blocks.NavigationBlocks.Sidebar</classes>
-    <superKinds itemref="docSchema:Tree"/>
+    <attributes itemref="docSchema:Tree/elementDelegate"/>
   </Kind>  
 
   <!--
@@ -913,18 +909,12 @@
     <superKinds itemref="docSchema:RectangularChild"/>
   </Kind>  
 
-  <Kind itemName="RepositoryTree">
-    <classes key="python">OSAF.framework.blocks.RepositoryBlocks.RepositoryTree</classes>
-    <superKinds itemref="docSchema:Tree"/>
-  </Kind>  
-
   <Kind itemName="ItemDetail">
     <classes key="python">OSAF.framework.blocks.RepositoryBlocks.ItemDetail</classes>
     <superKinds itemref="docSchema:HTML"/>
 
     <Attribute itemName="selection">
       <type itemref="UUID"/>
-      <defaultValue type="UUID"></defaultValue>
     </Attribute>
 
     <attributes itemref="docSchema:ItemDetail/selection"/>

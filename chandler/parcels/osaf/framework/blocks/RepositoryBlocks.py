@@ -14,43 +14,6 @@ from wxPython.wx import *
 from wxPython.html import *
 
 
-class RepositoryTree(Tree):
-    def GetTreeData (self, node):
-        item = node.GetData()
-        if item:
-            for child in item:
-                names = [self.GetTreeDataName (child)]
-                names.append (str(child.getItemDisplayName()))
-                try:
-                    names.append (child.kind.getItemName())
-                except AttributeError:
-                    names.append ('(kindless)')
-                names.append (str(child.getUUID()))
-                names.append (str(child.getItemPath()))
-                node.AddChildNode (child, names, child.hasChildren())
-        else:
-            node.AddRootNode (Globals.repository, ['//'], True)
-
-    def GetTreeDataName (self, item):
-        return item.getItemName()
-
-    def OnSelectionChangedEvent (self, notification):
-        wxTreeWindow = Globals.association[self.getUUID()]
-        path = str (notification.GetData()['item'].getItemPath())
-        wxTreeWindow.GoToPath (path)
-
-    def ItemModified(self, notification):
-        try:
-            parentUUID = notification.data['parent']
-            i = 1
-        except KeyError:
-            item = Globals.repository.find (notification.data['uuid'])
-            parentUUID = item.getItemParent().getUUID()
-        if self.hasKey ('openedContainers', parentUUID):
-            wxTreeWindow = Globals.association[self.getUUID()]
-            wxTreeWindow.scheduleUpdate = True
-
-
 class wxItemDetail(wxHtmlWindow):
     def OnLinkClicked(self, wx_linkinfo):
         event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')

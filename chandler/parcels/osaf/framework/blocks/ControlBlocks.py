@@ -13,6 +13,7 @@ from repository.util.UUID import UUID
 from wxPython.wx import *
 from wxPython.gizmos import *
 from wxPython.html import *
+from new import classobj
 
 
 class Button(RectangularChild):
@@ -42,7 +43,7 @@ class Button(RectangularChild):
                                         wxDefaultPosition,
                                         (self.minimumSize.width, self.minimumSize.height))
         elif __debug__:
-            assert (False)
+            assert False, "unknown buttonKind"
 
         self.getParentBlock(parentWindow).addToContainer(parent, button, self.stretchFactor,
                               self.Calculate_wxFlag(), self.Calculate_wxBorder())
@@ -194,7 +195,7 @@ class RadioBox(RectangularChild):
         elif self.radioAlignEnum == "Down":
             dimension = wxRA_SPECIFY_ROWS
         elif __debug__:
-            assert (False)
+            assert False, "unknown radioAlignEnum"
                                     
         radioBox = wxRadioBox(parentWindow, -1, self.title,
                               wxDefaultPosition, 
@@ -237,7 +238,7 @@ class StaticText(RectangularChild):
 class StatusBar(RectangularChild):
     def renderOneBlock (self, parent, parentWindow):
         frame = Globals.wxApplication.mainFrame
-        assert (frame.GetStatusBar () == None)
+        assert (frame.GetStatusBar () == None), "mainFrame already has a StatusBar"
         frame.CreateStatusBar ()
         
         return None, None, None
@@ -270,66 +271,16 @@ class ToolbarItem(RectangularChild):
             wxToolbar.AddControl (tool)
             EVT_TEXT_ENTER(tool, tool.GetId(), toolbar.toolEnterPressed)
         elif __debug__:
-            assert (False)
+            assert False, "unknown toolbarItemKind"
 
         wxToolbar.Realize()
 
         return tool, None, None
 
 
-class TreeNode:
-    def __init__(self, nodeId, tree):
-        self.nodeId = nodeId
-        self.tree = tree
-
-    def AddChildNode (self, item, names, hasChildren):
-        try:
-            data = item.getUUID()
-        except AttributeError:
-            data = item
-        childNodeId = self.tree.AppendItem (self.nodeId,
-                                            names.pop(0),
-                                            -1,
-                                            -1,
-                                            wxTreeItemData (data))
-        index = 1
-        for name in names:
-            self.tree.SetItemText (childNodeId, name, index)
-            index += 1
-
-        self.tree.SetItemHasChildren (childNodeId, hasChildren)
-
-    def AddRootNode (self, item, names, hasChildren):
-        try:
-            data = item.getUUID()
-        except AttributeError:
-            data = item
-        rootNodeId = self.tree.AddRoot (names.pop(0), -1, -1,
-                                        wxTreeItemData (data))
-        """
-          wxTreeListCtrl's AddRoot generates an item expanded event if the root
-        is hidden, but a wxTreeList does not.  Therefore, we have to expand a
-        tree's hidden root manually.
-        """
-        counterpart = Globals.repository.find (self.tree.counterpartUUID)
-        if (self.tree.__class__.__bases__[0] == wxTreeCtrl) and counterpart.hideRoot:
-            self.tree.LoadChildren(rootNodeId)
-
-        index = 1
-        for name in names:
-            SetItemText (rootNodeId, name, index)
-            index += 1
-
-        self.tree.SetItemHasChildren (rootNodeId, hasChildren)
-                                             
-    def GetData (self):
-        if self.nodeId:
-            return self.tree.GetItemData (self.nodeId)
-        else:
-            return None        
-
 def TreeFactory(parent):
     class wxTree(parent):
+        classesByName = {}
         def __init__(self, *arguments, **keywords):
             parent.__init__ (self, *arguments, **keywords)
             EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnExpanding)
@@ -340,7 +291,7 @@ def TreeFactory(parent):
             self.scheduleUpdate = False
             self.lastUpdateTime = 0
             self.ignoreExpand = False
-    
+
         def OnIdle(self, event):
             """
               Don't update screen more than once a second
@@ -348,14 +299,6 @@ def TreeFactory(parent):
             if self.scheduleUpdate and (time.time() - self.lastUpdateTime) > 1.0:
                 self.SynchronizeFramework()
             event.Skip()
-    
-        def GetItemData(self, id):
-            data = self.GetPyData (id)
-            try:
-                data = Globals.repository [data]
-            except TypeError:
-                pass
-            return data
     
         def OnExpanding(self, event):
             if self.ignoreExpand:
@@ -367,13 +310,22 @@ def TreeFactory(parent):
               Load the items in the tree only when they are visible.
             """
             counterpart = Globals.repository.find (self.counterpartUUID)
-            counterpart.GetTreeData(TreeNode (parentId, self))
-            """
-              if the data passed in has a UUID we'll keep track of the
-            state of the opened tree
-            """
-            if isinstance (self.GetPyData(parentId), UUID):
-                counterpart.openedContainers [self.GetPyData(parentId)] = True
+
+            parentUUID = self.GetPyData (parentId)
+            for child in self.ElementChildren (Globals.repository [parentUUID]):
+                cellValues = self.ElementCellValues (child)
+                childNodeId = self.AppendItem (parentId,
+                                               cellValues.pop(0),
+                                               -1,
+                                               -1,
+                                               wxTreeItemData (child.getUUID()))
+                index = 1
+                for value in cellValues:
+                    self.SetItemText (childNodeId, value, index)
+                    index += 1
+                self.SetItemHasChildren (childNodeId, self.ElementHasChildren (child))
+
+            counterpart.openedContainers [parentUUID] = True
     
         def OnCollapsing(self, event):
             counterpart = Globals.repository.find (self.counterpartUUID)
@@ -397,19 +349,16 @@ def TreeFactory(parent):
                 pass
     
         def On_wxSelectionChanged(self, event):
-            selection = ''
-            id = self.GetSelection()
-            while id.IsOk():
-                selection = '/' + self.GetItemText(id) + selection
-                id = self.GetItemParent (id)
-    
             counterpart = Globals.repository.find (self.counterpartUUID)
+
+            itemUUID = self.GetPyData(self.GetSelection())
+            selection = Globals.repository.find (itemUUID)
             if counterpart.selection != selection:
                 counterpart.selection = selection
         
                 counterpart.Post (Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged'),
-                                  {'item':self.GetItemData(event.GetItem())})
-    
+                                  {'item':selection})
+
         def ExpandItem(self, id):
             # @@@ Needs to handle the difference in how wxTreeCtrls and wxTreeListCtrls
             # expand items.
@@ -419,9 +368,9 @@ def TreeFactory(parent):
             def ExpandContainer (self, openedContainers, id):
                 try:
                     expand = openedContainers [self.GetPyData(id)]
-                except:
+                except KeyError:
                     return
-    
+
                 self.ExpandItem(id)
                 child, cookie = self.GetFirstChild (id, 0)
                 while child.IsOk():
@@ -429,8 +378,33 @@ def TreeFactory(parent):
                     child = self.GetNextSibling (child)
     
             counterpart = Globals.repository.find (self.counterpartUUID)
+            """
+              Implement the knowlege of the item that a tree displays with a mixin
+            class specified by self.elementDelegate. We make a new class for our
+            block that is subclassed from the block's original class and the delegate
+            class with a little Python magic:
+            """
+            theClass = wxTree.classesByName.get (self.__class__.__name__)
+            if not theClass:
+                parts = counterpart.elementDelegate.split (".")
+                assert len(parts) >= 2, "Delegate " + counterpart.elementDelegate + "isn't a module and class"
+                delegateClassName = parts.pop ()
+                newClassName = self.__class__.__name__ + '_' + delegateClassName
+                theClass = wxTree.classesByName.get (newClassName)
+                if not theClass:
+                    module = __import__ ('.'.join(parts), globals(), locals(), delegateClassName)
+                    assert module.__dict__.get (delegateClassName), "Class " + counterpart.elementDelegate + "doesn't exist"
+                    theClass = classobj (str(newClassName),
+                                         (self.__class__, module.__dict__[delegateClassName]),
+                                         {})
+                    wxTree.classesByName [newClassName] = theClass
+                self.__class__ = theClass
+
             try:
                 counterpart.columnHeadings
+            except AttributeError:
+                pass # A wxTreeCtrl won't use columnHeadings
+            else:
                 for index in range (self.GetColumnCount()):
                     self.RemoveColumn (index)
         
@@ -439,14 +413,25 @@ def TreeFactory(parent):
                     info.SetText (counterpart.columnHeadings[index])
                     info.SetWidth (counterpart.columnWidths[index])
                     self.AddColumnInfo (info)
-            except AttributeError:
-                pass # A wxTreeCtrl won't use columnHeadings
-        
+
             self.DeleteAllItems()
-            counterpart.GetTreeData(TreeNode (None, self))
-            
+
+            root = counterpart.rootPath
+            if not root:
+                root = self.ElementChildren (None)
+            cellValues = self.ElementCellValues (root)
+            rootNodeId = self.AddRoot (cellValues.pop(0),
+                                       -1,
+                                       -1,
+                                       wxTreeItemData (root.getUUID()))
+            self.SetItemHasChildren (rootNodeId, self.ElementHasChildren (root))        
             ExpandContainer (self, counterpart.openedContainers, self.GetRootItem ())
-            self.GoToPath (counterpart.selection)
+
+            selection = counterpart.selection
+            if not selection:
+                selection = root
+            self.GoToItem (selection)
+
             try:
                 subscription = self.subscriptionUUID
             except AttributeError:
@@ -457,58 +442,40 @@ def TreeFactory(parent):
                 self.subscriptionUUID = UUID()
                 Globals.notificationManager.Subscribe (events,
                                                        self.subscriptionUUID,
-                                                       counterpart.ItemModified)
+                                                       counterpart.NeedsUpdate)
             self.scheduleUpdate = False
             self.lastUpdateTime = time.time()
-    
-    
-        def GoToPath(self, path):
-            treeNode = self.GetRootItem()
-            counterpart = Globals.repository.find (self.counterpartUUID)
-            child = treeNode
-            for name in path.split ('/'):
-                if name:
-                    """
-                      A wxTreeCtrl with a hidden root reports ItemHasChildren(rootId) 
-                    as false and we haven't added children for items that aren't yet 
-                    expanded, so we must test both.
-                    """
-                    assert (self.GetChildrenCount(treeNode) > 0 or
-                            self.ItemHasChildren (treeNode))
-                    self.ExpandItem(treeNode)
-                    child, cookie = self.GetFirstChild (treeNode, 0)
+
+        def GoToItem(self, item):
+            def ExpandTreeToItem (self, item):
+                parent = self.ElementParent (item)
+                if parent:
+                    id = ExpandTreeToItem (self, parent)
+                    self.Expand (id)
+                    itemUUID = item.getUUID()
+                    child, cookie = self.GetFirstChild (id, 0)
                     while child.IsOk():
-                        try:
-                            if name == counterpart.GetTreeDataName (self.GetItemData(child)):
-                                break
-                        except AttributeError:
-                            pass
+                        if self.GetPyData(child) == itemUUID:
+                            return child
                         child = self.GetNextSibling (child)
-    
-                    if child.IsOk():
-                        treeNode = child
-                    else:
-                        """
-                          path doesn't exist
-                        """
-                        return
-            self.SelectItem (child)
-            self.ScrollTo (child)
-            
-            pass
+                    assert False, "Didn't find the item in the tree"
+                    return None
+                else:
+                    return self.GetRootItem()
+
+            id = ExpandTreeToItem (self, item)
+            self.SelectItem (id)
+            self.ScrollTo (id)
+
     return wxTree
 
 
 class Tree(RectangularChild):
-    """
-      Tree is an abstract class. To use it, you must subclass it and
-    implement GetTreeData and GetTreeDataName. See RepositoryTree
-    for an example
-    """
     def __init__(self, *arguments, **keywords):
         super (Tree, self).__init__ (*arguments, **keywords)
         self.openedContainers = {}
         self.rootPath = None
+        self.selection = None
 
     def renderOneBlock(self, parent, parentWindow, nativeWindow=None):
         if nativeWindow:
@@ -516,9 +483,10 @@ class Tree(RectangularChild):
         else:
             try:
                 self.columnHeadings
-                type = wxTreeListCtrl
             except AttributeError:
                 type = wxTreeCtrl
+            else:
+                type = wxTreeListCtrl
             tree = TreeFactory(type)(parentWindow, Block.getwxID(self), style = self.Calculate_wxStyle())
         self.getParentBlock(parentWindow).addToContainer(parent,
                                                          tree,
@@ -526,6 +494,11 @@ class Tree(RectangularChild):
                                                          self.Calculate_wxFlag(),
                                                          self.Calculate_wxBorder())
         return tree, None, None
+
+    def OnSelectionChangedEvent (self, notification):
+        wxCounterpart = Globals.association[self.getUUID()]
+        wxCounterpart.GoToItem (notification.GetData()['item'])
+
 
     def Calculate_wxStyle (self):
         style = wxTR_DEFAULT_STYLE|wxNO_BORDER
