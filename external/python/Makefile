@@ -7,7 +7,7 @@ OS=$(shell uname)
 
 ifeq ($(DEBUG),1)
 
-CONF_DBG=--with-suffix=_d --with-pydebug
+CONF_DBG=--with-pydebug --with-suffix=_d
 COMP_OPT=OPT=-g
 PREFIX=$(BUILD_ROOT)/debug
 SNAP=debug

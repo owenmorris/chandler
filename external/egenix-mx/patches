@@ -1,5 +1,5 @@
---- egenix-mx-base-2.0.4/mx/DateTime/DateTime.py	Wed Oct 10 01:10:00 2001
-+++ egenix-mx-base-2.0.4-patched/mx/DateTime/DateTime.py	Fri Apr 18 10:15:12 2003
+--- egenix-mx-base-2.1.0/mx/DateTime/DateTime.py	2001-10-10 01:10:00.000000000 -0700
++++ egenix-mx-base-2.1.0-patched/mx/DateTime/DateTime.py	2004-03-16 17:39:23.000000000 -0800
 @@ -537,7 +537,7 @@
  
      def __radd__(self,other,
@@ -18,17 +18,16 @@
  
          if isinstance(other,DateTimeType):
              # DateTime (other) - RelativeDateTime (self)
---- egenix-mx-base-2.0.4/mx/DateTime/Parser.py	Mon Dec 10 02:15:48 2001
-+++ egenix-mx-base-2.0.4-patched/mx/DateTime/Parser.py	Sat Apr 19 09:48:59 2003
-@@ -1,3 +1,4 @@
-+# -*- coding: utf-8 -*-
- """ Date/Time string parsing module.
+--- egenix-mx-base-2.1.0/mx/DateTime/mxDateTime/mxDateTime.c	2001-12-10 02:15:49.000000000 -0800
++++ egenix-mx-base-2.1.0-patched/mx/DateTime/mxDateTime/mxDateTime.c	2004-03-16 17:48:11.000000000 -0800
+@@ -76,8 +76,10 @@
+ #define STRFTIME_OUTPUT_SIZE	1024
  
-     Note about the Y2K problems:
---- egenix-mx-base-2.0.4/mx/DateTime/Timezone.py	Wed Nov 28 06:44:25 2001
-+++ egenix-mx-base-2.0.4-patched/mx/DateTime/Timezone.py	Sat Apr 19 09:48:59 2003
-@@ -1,3 +1,4 @@
-+# -*- coding: utf-8 -*-
- """ Timezone information.
+ /* Define these to have the module use free lists (saves malloc calls) */
++#if !defined(Py_DEBUG) || Py_DEBUG == 0
+ #define MXDATETIME_FREELIST
+ #define MXDATETIMEDELTA_FREELIST
++#endif
  
-     XXX This module still has prototype status and is undocumented.
+ /* Define this to enable the copy-protocol (__copy__, __deepcopy__) */
+ #define COPY_PROTOCOL
