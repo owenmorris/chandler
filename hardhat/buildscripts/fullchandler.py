@@ -62,10 +62,10 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     # make sure workingDir is absolute
     workingDir = os.path.abspath(workingDir)
     chanDir = os.path.join(workingDir, 'chandler')
-    # test if we've been thruough the loop at least once
+    # test if we've been through the loop at least once
     if clobber:
         for module in cvsModules:
-            modDir = os.path.exists(os.path.join(workingDir, module))
+            modDir = os.path.join(workingDir, module)
             if os.path.exists(modDir):
                 hardhatutil.rmdirRecursive(modDir)
             
