@@ -59,14 +59,12 @@ class Release:
                         '?rev=CHANDLER_' + self.cvsVersion + '&')
 
 
-    def updatePLists(self):
+    def updatePList(self):
         bundleDir = os.path.join(self.chandlerDir,
                                  'distrib',
                                  'osx',
                                  'bundle')
-        plist = 'Info.plist'
-        rel = os.path.join(bundleDir, 'release', plist)
-        deb = os.path.join(bundleDir, 'debug', plist)
+        plist = os.path.join(bundleDir, 'Info.plist')
         searchLong = r'(Milestone|Release) \d\.\d\.\d+ '
         searchShort = r'>\d\.\d\.\d+<'
         if self.release:
@@ -74,16 +72,10 @@ class Release:
         else:
             longVersion = 'Milestone ' + self.version
         shortVersion = '>' + self.version + '<'
-        updateSmallFile(rel,
+        updateSmallFile(plist,
                         searchLong,
                         longVersion + ' ')
-        updateSmallFile(rel,
-                        searchShort,
-                        shortVersion)
-        updateSmallFile(deb,
-                        searchLong,
-                        longVersion + ' ')
-        updateSmallFile(deb,
+        updateSmallFile(plist,
                         searchShort,
                         shortVersion)
 
@@ -91,7 +83,7 @@ class Release:
     def cvsChanges(self):
         self.checkoutMinimal()
         self.updateWelcome()
-        self.updatePLists()
+        self.updatePList()
 
         print 'cd ' + self.workDir
         print 'cvs diff -u chandler/application/welcome.html chandler/distrib'
