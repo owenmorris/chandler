@@ -7,9 +7,12 @@ include $(BUILD_ROOT)/Makefile.inc
 
 BUILD=build_$(SNAP)
 
-build: 
+apply: patches-$(VERSION)
+    patch -Nup0 < patches-$(VERSION);echo ok
+
+build: apply
 	cd $(SRC); \
-	$(PYTHON) setup.py build --build-base=$(BUILD) \
+	$(PYTHON) setup.py build --build-base=$(BUILD) $(DIST_OPT) \
                            install --force
 
 expand: ZopeInterface-$(VERSION).tgz

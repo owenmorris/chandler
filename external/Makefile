@@ -1,5 +1,5 @@
 
-VERSION=0.3-11
+VERSION=0.3-12
 
 include Makefile.inc
 
@@ -38,7 +38,7 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
         jabber-py/jabberpy0.4-0.tar.gz \
         SOAPpy/SOAPpy-0.10.2.tar.gz \
         zope/ZopeInterface-3.0.0b1.tgz \
-        twisted/Twisted-r11108.tar.gz \
+        twisted/Twisted-r11245.tar.gz \
         pychecker/pychecker-0.8.13.tar.gz
 
 .PHONY: sources expand binaries $(SYSTEMS)

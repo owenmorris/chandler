@@ -1,0 +1,45 @@
+--- ZopeInterface-3.0.0b1/Support/zpkgtools/setup.py	Fri Jun 11 12:04:17 2004
++++ ZopeInterface-3.0.0b1-patched/Support/zpkgtools/setup.py	Mon Aug  2 17:53:12 2004
+@@ -75,28 +75,20 @@
+         for name in self.__dict__:
+             if name[0] == "_":
+                 del kwargs[name]
+-        if "--debug" in sys.argv:
+-            import pprint
+-            try:
+-                pprint.pprint(kwargs)
+-            except IOError, e:
+-                if e.errno != errno.EPIPE:
+-                    raise
+-        else:
+-            if sys.version_info < (2, 3):
+-                from distutils.dist import DistributionMetadata
+-                DistributionMetadata.classifiers = None
+-                DistributionMetadata.download_url = None
+-            try:
+-                from setuptools import setup
+-            except ImportError:
+-                # package_data can't be handled this way ;-(
+-                if self.package_data:
+-                    print >>sys.stderr, (
+-                        "can't import setuptools;"
+-                        " some package data will not be properly installed")
+-                from distutils.core import setup
+-            setup(**kwargs)
++        if sys.version_info < (2, 3):
++            from distutils.dist import DistributionMetadata
++            DistributionMetadata.classifiers = None
++            DistributionMetadata.download_url = None
++        try:
++            from setuptools import setup
++        except ImportError:
++            # package_data can't be handled this way ;-(
++            if self.package_data:
++                print >>sys.stderr, (
++                    "can't import setuptools;"
++                    " some package data will not be properly installed")
++            from distutils.core import setup
++        setup(**kwargs)
+ 
+     def load_metadata(self, path):
+         f = open(path, "rU")
