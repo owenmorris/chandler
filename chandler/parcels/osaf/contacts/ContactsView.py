@@ -39,7 +39,8 @@ class ContactsViewer(ViewerParcel):
         
         # keep a dictionary of the views
         self.views = PersistentList()
-        self.InitializeViews()
+        self._InitializeViews()
+        self._DeclareNotifications()
         
         # keep some preferences in the persistent object
         self.useOneNameField = True
@@ -53,7 +54,7 @@ class ContactsViewer(ViewerParcel):
         self.lastImageDirectory = None
 
     # set up the initial, built-in views here
-    def InitializeViews(self):
+    def _InitializeViews(self):
 
         # get the URL tree and add the base URL
         tree = app.model.URLTree
@@ -78,6 +79,12 @@ class ContactsViewer(ViewerParcel):
         view = ContactViewInfo(ContactEntity, [condition], _('Companies'), description)
         self.views.append(view)
         tree.AddURL(self, 'Contacts/Companies')
+
+    # declare the notifications defined by the contacts parcel
+    def _DeclareNotifications(self):
+        description = _("Notification issued when a contact attribute changes.")
+        clientID = self.GetClientID()
+        app.model.notificationManager.DeclareNotification('chandler/parcels/OSAF/contacts/contact-changed', clientID, 'unknown', description)
     
     # navigate to the view specified by the url, using the repository
     # specified by the remoteAddress; use the local repository for None
@@ -458,7 +465,19 @@ class wxContactsViewer(wxViewerParcel):
  
     def SetContactList(self, contactList):
         self.contentView.SetContactList(contactList)
+
+    # send out a notification that a contact attribute changed
+    def NotifyAttributeChanged(self, contact, attribute, value):
+        attributeChangedNotification = Notification("chandler/parcels/OSAF/contacts/contact-changed", "contactType", None)       
         
+        data = {}
+        data['contact'] = contact
+        data['attribute'] = attribute
+        data['value'] = value
+        
+        attributeChangedNotification.SetData(data)
+        app.model.notificationManager.PostNotification(attributeChangedNotification)
+    
     def ContactsChanged(self):
         self.lastChangedTime = time.time()
         

@@ -58,7 +58,25 @@ class Condition(Item):
         compareMode = self.conditionFilterMode
         if compareMode == 'none':
             return True
-         
+        
+        # handle the listequals mode specially, which treats the conditionAttribute and conditionValue as a
+        # comma-delimited list, where all the comparisons in the list must be true for the condition to be true
+        
+        if compareMode == 'listequals':
+            attributes = self.conditionAttribute.split(',')
+            values = self.conditionValue.split(',')
+            index = 0; length = len(attributes)
+            
+            while index < length:
+                thisAttribute = attributes[index]
+                thisNotificationValue = str(notification.data[thisAttribute])
+                thisValue = str(values[index])
+                if thisNotificationValue != thisValue:
+                    return False
+                index += 1
+                
+            return True
+                
         attributeValue = str(notification.data[self.conditionAttribute])
         conditionValue = str(self.conditionValue)
                 

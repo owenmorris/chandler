@@ -93,11 +93,11 @@ class ContactNamePlate(wxPanel):
                     text = self.editField.GetValue()
                     self.contact.SetAttribute(self.editAttribute, text)
                     self.UpdateEnumeration(text)
-
-                    # commit the changes
-                    #repository = Repository()
-                    #repository.Commit()
-
+                    
+                    # send out the change notification
+                    # FIXME: eventually, the repository code will handle this
+                    self.indexView.contactsView.NotifyAttributeChanged(self.contact, self.editAttribute, text)
+                    
                     # if the last name changed, resort the contacts
                     if self.editAttribute == 'lastname' or self.editAttribute == 'fullname':
                         # since ResortContacts can make a new contentView which would destroy
@@ -115,6 +115,7 @@ class ContactNamePlate(wxPanel):
 
             # render for the new attribute
             self.editAttribute = newAttribute
+            
             self.RenderWidgets()
             
     # terminate editing, if any, by accepting changes

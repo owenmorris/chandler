@@ -174,9 +174,6 @@ class ContactAddressList(wxPanel):
                     text = self.editField.GetValue()  
                     self.UpdateAttribute(text)
                     textGotBigger = len(self.originalText) < len(text)
-                    # commit the changes
-                    repository = Repository()
-                    repository.Commit()
 
                     # tell the index view about it, too
                     self.indexView.UpdateContact(self.contact)

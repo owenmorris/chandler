@@ -390,7 +390,11 @@ class ContactAttributeList(wxPanel):
                     else:
                         self.contact.SetAttribute(self.editAttribute, text)
                         self.UpdateEnumeration(text)
-                    
+            
+                    # send out the change notification
+                    # FIXME: eventually, the repository code will handle this
+                    self.singleContactView.contactsView.NotifyAttributeChanged(self.contact, self.editAttribute, text)
+
             self.editAttribute = ''
             self.singleContactView.DoneEditing()
                         

@@ -35,10 +35,19 @@ class DialogAction(Action):
            Use wxWindows to display a dialog, with text derived from a template specified by the action,
            and data from the data parameter.   The data parameter is a dictionary associating values with keys
         """
+      
         template = self.actionValue
         message = self._SubstituteAttributes(template, data)
         
-        wxMessageBox(message)
+        if self.actionType == 'confirmdialog':
+            application = agent.agentManager.application
+            confirmDialog = wxMessageDialog(application.wxMainFrame, message, _("Confirm Action"), wxYES_NO | wxICON_QUESTION)
+                        
+            result = confirmDialog.ShowModal()
+            confirmDialog.Destroy()
+            # FIXME: need to execute sub-action when the result is yes
+        else:
+            wxMessageBox(message)
 
         return True
     

@@ -180,6 +180,7 @@
     <attributes itemref="agents:conditionAttribute"/>    
     <attributes itemref="agents:conditionNotification"/>
     <attributes itemref="agents:conditionOwner"/>
+    <attributes itemref="agents:conditionRepertoireOwner"/>   
     <classes key="python">application.agents.model.Condition.Condition</classes>
   </Kind>
   

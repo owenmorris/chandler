@@ -53,7 +53,7 @@
      * used DialogAction to make the test agent display a dialog with the
        instant message body if it meets the condition
        
- 2003-09-04 Andy Hertzfeld <andy@differnet.com>
+ 2003-09-05 Andy Hertzfeld <andy@differnet.com>
 
      * added a 'confirmFlag' to actions; if set, it asks the user's permission via
        a dialog before executing the action.
@@ -68,5 +68,14 @@
        manager to provide a simple mechanism for the system and other actions to know
        when a notificaiton has been handled.
        
-        
+ 2003-09-07 Andy Hertzfeld <andy@differnet.com>
+ 
+     * added a listequals comparison mode that compares a list of attribute/value pairs,
+       and requires them all to be true for the condition to fire
+       
+     * used contact changed notifications and listequals comparison to add an instruction
+       to the test agent that puts up a dialog if the occupation is set to 'Dentist'
+       
+     * made sure the test agent works when it has more than one instruction
+     
     
