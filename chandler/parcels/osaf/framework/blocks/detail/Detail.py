@@ -30,13 +30,16 @@ Detail.py
 Classes for the ContentItem Detail View
 """
 
-class DetailRoot (Trunk.TrunkParentBlock):
+class DetailRoot (ControlBlocks.ContentItemDetail):
     """
       Root of the Detail View.
     """
-    ## Currently lives in the SummaryView which causes problems -- DJA
-    #def onSetContentsEvent (self, event):
-        #self.onSelectItemEvent (event)
+    def __init__(self, *arguments, **keywords):
+        super (DetailRoot, self).__init__ (*arguments, **keywords)
+        self.selection = None
+
+    def onSetContentsEvent (self, event):
+        self.selection = event.arguments['item']
 
     def onSelectItemEvent (self, event):
         """
@@ -45,8 +48,10 @@ class DetailRoot (Trunk.TrunkParentBlock):
         """
         # Finish changes to previous selected item 
         self.finishSelectionChanges () 
-           
-        super(DetailRoot, self).onSelectItemEvent(event)
+        """
+          Remember the new selected ContentItem.
+        """
+        self.selection = event.arguments['item']
 
         # Synchronize to this item; this'll swap in an appropriate detail trunk.
         self.synchronizeWidget()
@@ -54,6 +59,14 @@ class DetailRoot (Trunk.TrunkParentBlock):
             dumpSelectItem = False
             if dumpSelectItem:
                 self.dumpShownHierarchy ('onSelectItemEvent')
+
+    def selectedItem(self):
+        # return the item being viewed
+        return self.selection    
+
+    def detailRoot (self):
+        # we are the detail root object
+        return self
 
     def synchronizeDetailView(self, item):
         """
@@ -227,7 +240,12 @@ class DetailRoot (Trunk.TrunkParentBlock):
         ## @@@DLD - devise a block-dependency-event scheme.        
         #item= self.selectedItem()
         #self.synchronizeDetailView(item)
-        self.synchronizeWidget()
+        #
+        # After moving DetailRoot into the event boundary in the
+        # trees of blocks, we need to call synchronizeWidget on
+        # the TrunkParentBlock since stamping may change the tree
+        # of blocks displayed in the detail view event boundary -- DJA
+        self.parentBlock.synchronizeWidget()
 
     def finishSelectionChanges (self):
         """ 
@@ -241,10 +259,6 @@ class DetailRoot (Trunk.TrunkParentBlock):
             focusBlock.saveTextValue (validate=True)
         except AttributeError:
             pass
-
-    def detailRoot (self):
-        # return the detail root object
-        return self
 
 
 class DetailTrunkDelegate (Trunk.TrunkDelegate):
@@ -318,7 +332,7 @@ class DetailSynchronizer(Item):
     synchronizeItemDetail.
     """
     def detailRoot (self):
-        # delegate to our parent until we get outside our event boundary
+        # Cruise up the parents looking for someone who can return the detailRoot
         block = self
         while True:
             try:

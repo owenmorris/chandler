@@ -347,7 +347,7 @@
     <Attribute itsName="detailItemOwner">
       <type itemref="docSchema:Block/"/>
       <cardinality>list</cardinality>
-      <inverseAttribute itemref="docSchema:DetailBlock/detailItem"/>
+      <inverseAttribute itemref="docSchema:TrunkParentBlock/detailItem"/>
     </Attribute>
 
     <Attribute itsName="viewContainer">
@@ -1187,97 +1187,9 @@
     <clouds alias="default" itemref="docSchema:ToolbarItem/DefaultCloud"/>
   </Kind>
 
-  <!-- Detail Block contains detail views of various summary views  -->
-
-  <Kind itsName="DetailBlock">
-    <classes key="python">osaf.framework.blocks.ContainerBlocks.DetailBlock</classes>
-    <superKinds itemref="docSchema:BoxContainer"/>
-    
-    <Attribute itsName="viewCache">
-      <type itemref="docSchema:ViewCache"/>
-      <inverseAttribute itemref="docSchema:ViewCache/detailBlock"/>
-      <required>True</required>
-    </Attribute>
-  
-    <Attribute itsName="detailItem">
-      <type itemref="Item"/>
-      <inverseAttribute itemref="docSchema:Block/detailItemOwner"/>
-    </Attribute>
-
-    <Cloud itsName="DefaultCloud">
-        <Endpoint itsName="viewCache">
-            <attribute value="viewCache"/>
-            <includePolicy value="byCloud"/>
-            <cloudAlias value="default"/>
-        </Endpoint>
-        <endpoints itemref="docSchema:DetailBlock/DefaultCloud/viewCache"/>
-        <Endpoint itsName="detailItem">
-            <attribute value="detailItem"/>
-            <includePolicy value="byRef"/>
-            <cloudAlias value="default"/>
-        </Endpoint>
-        <endpoints itemref="docSchema:DetailBlock/DefaultCloud/detailItem"/>
-    </Cloud>
-    <clouds alias="default" itemref="docSchema:DetailBlock/DefaultCloud"/>
-  </Kind>
-
-  <!-- Detail view cache caches views for a detail view  -->
-
-  <Kind itsName="ViewCache">
-    <superKinds itemref="Item"/>
-
-    <Attribute itsName="detailBlock">
-      <type itemref="docSchema:DetailBlock"/>
-      <inverseAttribute itemref="docSchema:DetailBlock/viewCache"/>
-      <required>True</required>
-    </Attribute>
-  
-    <Cloud itsName="DefaultCloud">
-        <Endpoint itsName="detailBlock">
-            <attribute value="detailBlock"/>
-            <includePolicy value="byCloud"/>
-            <cloudAlias value="default"/>
-        </Endpoint>
-        <endpoints itemref="docSchema:ViewCache/DefaultCloud/detailBlock"/>
-    </Cloud>
-    <clouds alias="default" itemref="docSchema:ViewCache/DefaultCloud"/>
-  </Kind>
-
-  <Kind itsName="DetailViewCache">
-    <classes key="python">osaf.framework.blocks.ContainerBlocks.DetailViewCache</classes>
-    <superKinds itemref="docSchema:ViewCache"/>
-
-    <!-- 
-       We'd like to have a dictionary of references to views in the soup accesed
-     with keys that are kinds of items. However, the repository has a very limited
-     set of data types, and doesn't support dictionaries of strings.
-       This will ultimately have to be fixed, otherwise we won't be able to find
-     references that are implemented as UUIDs and clean up unreferenced views.
-     -->
-    <Attribute itsName="kindUUIDToViewUUID">
-      <type itemref="UUID"/>
-      <cardinality>dict</cardinality>
-      <initialValue/>
-    </Attribute>
-
-  </Kind>
-
-  <Kind itsName="SidebarDetailViewCache">
-    <classes key="python">osaf.framework.blocks.ContainerBlocks.SidebarDetailViewCache</classes>
-    <superKinds itemref="docSchema:ViewCache"/>
-
-    <!-- 
-       We'd like to have a dictionary of references to views in the soup accesed
-     with keys that are kinds of items. However, the repository has a very limited
-     set of data types, and doesn't support dictionaries of strings.
-       This will ultimately have to be fixed, otherwise we won't be able to find
-     references that are implemented as UUIDs and clean up unreferenced views.
-     -->
-    <Attribute itsName="itemCollectionUUIDToViewUUID">
-      <type itemref="UUID"/>
-      <cardinality>dict</cardinality>
-      <initialValue/>
-    </Attribute>
+  <Kind itsName="SidebarTrunkDelegate">
+    <classes key="python">osaf.framework.blocks.Trunk.SidebarTrunkDelegate</classes>
+    <superKinds itemref="docSchema:TrunkDelegate"/>
 
     <Attribute itsName="treeTemplatePath">
       <type itemref="String"/>
@@ -1293,15 +1205,6 @@
     <attributes itemref="docSchema:selection"/>
   </Kind>
 
-  <!-- SelectionContainer -->
- 
-  <Kind itsName="SelectionContainer">
-    <classes key="python">osaf.framework.blocks.ContainerBlocks.SelectionContainer</classes>
-    <superKinds itemref="docSchema:BoxContainer"/>
-
-    <attributes itemref="docSchema:selection"/>
-  </Kind>    
-
   <!--
   TrunkDelegate and TrunkParentBlock
   -->
@@ -1310,6 +1213,12 @@
     <classes key="python">osaf.framework.blocks.Trunk.TrunkDelegate</classes>
     <superKinds itemref="Item"/>
 
+    <Attribute itsName="trunkParentBlock">
+      <type itemref="docSchema:TrunkParentBlock"/>
+      <inverseAttribute itemref="docSchema:TrunkParentBlock/trunkDelegate"/>
+      <required>True</required>
+    </Attribute>
+  
     <issues value="We'd like to use itemrefs as keys, so reference tracking &amp; cleanup would work"/>
     <Attribute itsName="keyUUIDToTrunkUUID">
       <type itemref="UUID"/>
@@ -1317,34 +1226,73 @@
       <initialValue/>
     </Attribute>
 
-    <!-- A stub block to copy as the root of each tree-of-blocks we build. -->
-    <Attribute itsName="trunkStub">
-      <type itemref="docSchema:Block"/>
-    </Attribute>
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="trunkParentBlock">
+            <attribute value="trunkParentBlock"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:TrunkDelegate/DefaultCloud/trunkParentBlock"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:TrunkDelegate/DefaultCloud"/>
   </Kind>
   
   <!-- A TrunkParentBlock knows which delegate to use to substitute-in 
        an appropriate Trunk. -->
   <Kind itsName="TrunkParentBlock">
     <classes key="python">osaf.framework.blocks.Trunk.TrunkParentBlock</classes>
-    <superKinds itemref="docSchema:SelectionContainer"/>
+    <superKinds itemref="docSchema:BoxContainer"/>
 
     <Attribute itsName="trunkDelegate">
       <type itemref="docSchema:TrunkDelegate"/>
+      <inverseAttribute itemref="docSchema:TrunkDelegate/trunkParentBlock"/>
+      <required>True</required>
     </Attribute>
     
+    <Attribute itsName="detailItem">
+      <type itemref="Item"/>
+      <inverseAttribute itemref="docSchema:Block/detailItemOwner"/>
+    </Attribute>
+
     <!-- Share the same trunkDelegate amongst all copies of the parent block -->
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="trunkDelegate">
             <attribute value="trunkDelegate"/>
-            <includePolicy value="byRef"/>
+            <includePolicy value="byCloud"/>
+            <cloudAlias value="default"/>
         </Endpoint>
         <endpoints itemref="docSchema:TrunkParentBlock/DefaultCloud/trunkDelegate"/>
+        <Endpoint itsName="detailItem">
+            <attribute value="detailItem"/>
+            <includePolicy value="byRef"/>
+            <cloudAlias value="default"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:TrunkParentBlock/DefaultCloud/detailItem"/>
     </Cloud>
     <clouds alias="default" itemref="docSchema:TrunkParentBlock/DefaultCloud"/>
   </Kind>
   
-  <!-- A mapping between an Item and the "root blocks" that should appear when an 
+  <Kind itsName="DetailTrunkDelegate">
+    <classes key="python">osaf.framework.blocks.detail.Detail.DetailTrunkDelegate</classes>
+    <superKinds itemref="docSchema:TrunkDelegate"/>
+
+    <!-- A stub block to copy as the root of each tree-of-blocks we build. -->
+    <Attribute itsName="trunkStub">
+      <type itemref="docSchema:Block"/>
+    </Attribute>
+
+    <Cloud itsName="DefaultCloud">
+        <Endpoint itsName="trunkStub">
+            <attribute value="trunkStub"/>
+            <includePolicy value="byRef"/>
+            <cloudAlias value="default"/>
+        </Endpoint>
+        <endpoints itemref="docSchema:DetailTrunkDelegate/DefaultCloud/trunkStub"/>
+    </Cloud>
+    <clouds alias="default" itemref="docSchema:DetailTrunkDelegate/DefaultCloud"/>
+  </Kind>
+  
+ <!-- A mapping between an Item and the "root blocks" that should appear when an 
        Item inheriting from that Kind is displayed. (A "root block" should have a 
        "position" attribute to enable it to be sorted with other root blocks.) 
        (This is really only used by the detail view right now, but if I move its
@@ -1369,7 +1317,7 @@
   
   <Kind itsName="ContentItemDetail">
     <classes key="python">osaf.framework.blocks.ControlBlocks.ContentItemDetail</classes>
-    <superKinds itemref="docSchema:SelectionContainer"/>
+    <superKinds itemref="docSchema:BoxContainer"/>
     
     <Attribute itsName="selectedItemsAttribute">
       <description>Specifies which attribute of the selected Item should be associated with this block.</description>
@@ -1378,6 +1326,13 @@
     </Attribute>
 
     <attributes itemref="docSchema:colorStyle"/>    
+  </Kind>    
+
+  <Kind itsName="DetailRoot">
+    <classes key="python">osaf.framework.blocks.detail.Detail.DetailRoot</classes>
+    <superKinds itemref="docSchema:ContentItemDetail"/>
+    
+    <attributes itemref="docSchema:selection"/>
   </Kind>    
 
   <!-- Timer Block  -->

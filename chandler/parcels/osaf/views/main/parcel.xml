@@ -1443,15 +1443,15 @@
     <childrenBlocks itemref="doc:SidebarDetailView"/>
   </TabbedContainer>  
 
-  <DetailBlock itsName="SidebarDetailView">
+  <TrunkParentBlock itsName="SidebarDetailView">
     <blockName>SidebarDetailView</blockName>
     <detailItem itemref="content:allItemCollection"/>
-    <viewCache itemref="doc:SidebarDetailViewCache"/>
-  </DetailBlock>
+    <trunkDelegate itemref="doc:SidebarTrunkDelegate"/>
+  </TrunkParentBlock>
 
-  <SidebarDetailViewCache itsName="SidebarDetailViewCache">
+  <SidebarTrunkDelegate itsName="SidebarTrunkDelegate">
     <treeTemplatePath>//parcels/osaf/views/main/SidebarDetailViewTemplate</treeTemplatePath>
-  </SidebarDetailViewCache>
+  </SidebarTrunkDelegate>
 
   <calendar:MiniCalendar itsName="MiniCalendar">
     <stretchFactor>0</stretchFactor>
@@ -1522,7 +1522,7 @@
   
   <SplitterWindow itsName="SidebarDetailViewTemplate">
     <childrenBlocks itemref="doc:SummaryView"/>
-    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailTrunkParentBlock" copy="SidebarDetailTrunkParentBlock"/>
 
     <eventBoundary>True</eventBoundary>
     <orientationEnum>Vertical</orientationEnum>
@@ -1633,15 +1633,6 @@
     <daysPerView>1</daysPerView>
   </calendar:CanvasWeek>
 
-  <DetailBlock itsName="DetailView">
-    <blockName>DetailView</blockName>
-    <detailItem itemref="content:allItemCollection"/>
-    <viewCache itemref="doc:DetailViewCache"/>
-  </DetailBlock>
-
-  <DetailViewCache itsName="DetailViewCache">
-  </DetailViewCache>
-
   <BlockEvent itsName="ReminderTime">
     <blockName>ReminderTime</blockName>
     <destinationBlockReference itemref="doc:ReminderTimer"/>
@@ -1730,19 +1721,19 @@
     <childrenBlocks itemref="doc:CPIATestSidebarDetailView"/>
   </TabbedContainer>  
 
-  <DetailBlock itsName="CPIATestSidebarDetailView">
+  <TrunkParentBlock itsName="CPIATestSidebarDetailView">
     <blockName>SidebarDetailView</blockName>
     <detailItem itemref="content:allItemCollection"/>
-    <viewCache itemref="doc:CPIATestSidebarDetailViewCache"/>
-  </DetailBlock>
+    <trunkDelegate itemref="doc:CPIATestSidebarTrunkDelegate"/>
+  </TrunkParentBlock>
 
-  <SidebarDetailViewCache itsName="CPIATestSidebarDetailViewCache">
+  <SidebarTrunkDelegate itsName="CPIATestSidebarTrunkDelegate">
     <treeTemplatePath>//parcels/osaf/views/main/CPIATestSidebarDetailViewTemplate</treeTemplatePath>
-  </SidebarDetailViewCache>
+  </SidebarTrunkDelegate>
 
   <SplitterWindow itsName="CPIATestSidebarDetailViewTemplate">
     <childrenBlocks itemref="doc:SummaryView" copy="CPIATestSummaryView"/>
-    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailTrunkParentBlock" copy="SidebarDetailTrunkParentBlock"/>
 
     <eventBoundary>True</eventBoundary>
     <orientationEnum>Horizontal</orientationEnum>
@@ -1756,15 +1747,15 @@
     <childrenBlocks itemref="doc:MainDetailView"/>
   </ViewContainer>
 
-  <DetailBlock itsName="MainDetailView">
+  <TrunkParentBlock itsName="MainDetailView">
     <blockName>MainDetailView</blockName>
     <detailItem itemref="doc:ChandlerMainView"/>
     <childrenBlocks itemref="doc:ChandlerMainView"/>
-    <viewCache itemref="doc:MainDetailViewCache"/>
-  </DetailBlock>
+    <trunkDelegate itemref="doc:MainTrunkDelegate"/>
+  </TrunkParentBlock>
 
-  <SidebarDetailViewCache itsName="MainDetailViewCache">
-  </SidebarDetailViewCache>
+  <TrunkDelegate itsName="MainTrunkDelegate">
+  </TrunkDelegate>
 
   <contentModel:Note itsName="WelcomeNote">
       <displayName value="Welcome to Chandler 0.4"/>

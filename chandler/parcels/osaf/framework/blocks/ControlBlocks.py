@@ -1220,7 +1220,7 @@ class ItemDetail(RectangularChild):
         self.synchronizeWidget ()
 
     
-class ContentItemDetail(SelectionContainer):
+class ContentItemDetail(BoxContainer):
     """
     ContentItemDetail
     Any container block in the Content Item's Detail View hierarchy.
@@ -1239,11 +1239,6 @@ class ContentItemDetail(SelectionContainer):
         if self.hasAttributeValue("colorStyle"):
             self.colorStyle.synchronizeColor(self)
            
-    def detailRoot(self):
-        # return the root of the Detail View
-        # delegate to our parent, until we get to the Detail View Root
-        return self.parentBlock.detailRoot()
-
 class wxPyTimer(wx.PyTimer):
     """ 
     A wx.PyTimer that has an IsShown() method, like all the other widgets

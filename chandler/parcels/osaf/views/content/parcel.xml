@@ -190,7 +190,7 @@
     <contents itemref="view:calendarItemCollection"/>
 
     <childrenBlocks itemref="view:CalendarSummary"/>
-    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
+    <childrenBlocks itemref="detail:DetailTrunkParentBlock" copy="CalendarDetailTrunkParentBlock"/>
 
     <eventBoundary>True</eventBoundary>
     <orientationEnum>Vertical</orientationEnum>

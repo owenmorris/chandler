@@ -6,6 +6,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import sys
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.ContainerBlocks as ContainerBlocks
+import osaf.contentmodel.ItemCollection as ItemCollection
 from repository.item.Item import Item
 
 """
@@ -28,8 +29,7 @@ class wxTrunkParentBlock(ContainerBlocks.wxBoxContainer):
             self.blockItem.installTreeOfBlocks()
         super(wxTrunkParentBlock, self).wxSynchronizeWidget(*arguments, **keywords)
     
-class TrunkParentBlock(ContainerBlocks.SelectionContainer):
-    # @@@ Will be a BoxContainer once SelectionContainer is obsolete.
+class TrunkParentBlock(ContainerBlocks.BoxContainer):
     """
     A block that can swap in different sets of child blocks ("trunks") based
     on its detailContents. It uses a TrunkDelegate to do the heavy lifting.
@@ -37,14 +37,15 @@ class TrunkParentBlock(ContainerBlocks.SelectionContainer):
     def instantiateWidget(self):
        return wxTrunkParentBlock(self.parentBlock.widget)
     
+    def onSelectItemEvent (self, event):
+        self.detailItem = event.arguments['item']
+        self.widget.wxSynchronizeWidget()
+
     def installTreeOfBlocks(self):
         """ Maybe replace our children with a trunk of blocks appropriate for our content """
         newView = None
         try:
-            # @@@ Should be this:
-            # detailItem = self.detailItem
-            # -- but until SelectionContainer goes away, we do this:
-            detailItem = self.selectedItem()
+            detailItem = self.detailItem
         except AttributeError:
             detailItem = None
         else:
@@ -60,9 +61,15 @@ class TrunkParentBlock(ContainerBlocks.SelectionContainer):
 
             if newView is not None:
                 self.childrenBlocks.append(newView)
+                """
+                  Seems like we should always mark new views with an event boundary
+                """
+                assert newView.eventBoundary
                 newView.postEventByName("SetContents", {'item':detailItem})
                 newView.render()
 
+
+# @@@BJS: "reload parcels" needs to blow away this cache!
 
 class TrunkDelegate(Item):
     """
@@ -100,9 +107,14 @@ class TrunkDelegate(Item):
     def _mapItemToCacheKey(self, item):
         """ 
         Given an item, determine the item to be used as the cache key.
-        Can be overridden; defaults to using the item itself
+        Can be overridden; defaults to using the item itself is it's
+        a Block. The block is copied to the soup if it's not already
+        there.
         """
-        return item
+        if isinstance (item, Block.Block):
+            return self._copyItem(item, onlyIfReadOnly=True)
+        else:
+            return None
 
     def _makeTrunkForCacheKey(self, keyItem):
         """ 
@@ -126,7 +138,7 @@ class TrunkDelegate(Item):
             userData = self.findPath('//userdata')
             self.userData = userData
 
-        if onlyIfReadOnly and item.parent == userData:
+        if onlyIfReadOnly and item.itsParent == userData:
             result = item
         else:
             # @@@ BJS Morgen has opined that "default" is a bad name for a cloud; use "copy" instead?
@@ -134,15 +146,13 @@ class TrunkDelegate(Item):
             
         return result
 
-
-# @@@BJS: For John, a sample delegate that uses an itemcollection view
-# if the item is an ItemCollection (the delegate block needs an itemCollectionView 
-# attribute added), or uses the item itself if it's a block (making a copy if
-# it's not in the soup).
-class SampleSidebarTrunkDelegate(TrunkDelegate):
+class SidebarTrunkDelegate(TrunkDelegate):
+    """
+      Returns the treeTemplatePath if the item in the sidebar is an ItemCollection
+      otherwise returns the default key
+    """
     def _mapItemToCacheKey(self, item):
-        if isinstance(item, ItemCollection):
-            result = self.itemCollectionView
+        if isinstance(item, ItemCollection.ItemCollection):
+            return self.findPath (self.treeTemplatePath)
         else:
-            assert isinstance(item, Block)
-            result = self._copyItem(item, onlyIfReadOnly=True)
+            return super(SidebarTrunkDelegate, self)._mapItemToCacheKey (item)
