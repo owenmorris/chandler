@@ -24,18 +24,22 @@ _defaultBlogs = [ \
                   "http://xml.newsisfree.com/feeds/15/2315.xml"]
 
 def UpdateChannel(chan):
-    etag = chan.getAttributeValue('etag', default=None)
-    lastModified = chan.getAttributeValue('lastModified', default=None)
-    if lastModified:
-        modified = lastModified.tuple()
-    else:
-        modified = None
-    data = feedparser.parse(chan.url, etag, modified)
-    chan.Update(data)
+    try:
+        etag = chan.getAttributeValue('etag', default=None)
+        lastModified = chan.getAttributeValue('lastModified', default=None)
+        if lastModified:
+            modified = lastModified.tuple()
+        else:
+            modified = None
+        data = feedparser.parse(chan.url, etag, modified)
+        chan.Update(data)
+    except:
+        pass
 
 class UpdateAction(Action):
     def Execute(self, agent, notification):
         repository = self.getRepository()
+        repository.commit()
         #print 'Updating feeds...'
         for feed in self.__getFeeds():
             UpdateChannel(feed)
