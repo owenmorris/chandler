@@ -77,10 +77,6 @@ class Kind(Item):
 
         return None
 
-    def recognizes(self, value):
-
-        raise NotImplementedError, "Kind.recognizes()"
-
     def _getInheritingKinds(self):
 
         if self.hasAttributeValue('superKinds'):
@@ -93,6 +89,12 @@ class Kind(Item):
         for attr in self._references.items():
             if self.getAttributeAspect(attr[0], 'persist', True):
                 attr[1]._saveValue(attr[0], self, generator, withSchema)
+
+    def isAlias(self):
+        return False
+
+    def recognizes(self, value):
+        raise NotImplementedError, "Kind.recognizes()"
 
 
 class KindKind(Kind):

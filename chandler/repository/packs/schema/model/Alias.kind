@@ -5,9 +5,7 @@
   <kind type="path">//Schema/Model/Kind</kind>
 
   <ref name="attributes" otherName="kinds" cardinality="dict" otherCard="dict">
-    <ref name="typeFor" type="path">/Model/Attributes/typeFor</ref>
     <ref name="types" type="path">/Model/Attributes/types</ref>
-    <ref name="aliasedBy" type="path">/Model/Attributes/aliasedBy</ref>
   </ref>
 
   <attribute name="classes" cardinality="dict" 
