@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 // Name:        colheader.i
-// Purpose:    SWIG definitions for the wxColumnHeader
+// Purpose:    SWIG definitions for the wxColumnHeader wxWidget
 //
 // Author:      David Surovell
 //
@@ -25,6 +25,7 @@
 %import misc.i
 %pythoncode { wx = _core }
 %pythoncode { __docfilter__ = wx.__DocFilter(globals()) }
+
 %include _colheader_rename.i
 
 //---------------------------------------------------------------------------
@@ -40,6 +41,7 @@ enum wxColumnHeaderFlagAttr
 {
     wxCOLUMNHEADER_FLAGATTR_Enabled,
     wxCOLUMNHEADER_FLAGATTR_Selected,
+    wxCOLUMNHEADER_FLAGATTR_SortEnabled,
     wxCOLUMNHEADER_FLAGATTR_SortDirection
 };
 
@@ -65,8 +67,8 @@ public:
 
 
 %pythoncode {
-EVT_COLUMNHEADER_DOUBLECLICKED =  wx.PyEventBinder(wxEVT_COLUMNHEADER_DOUBLECLICKED, 1)
-EVT_COLUMNHEADER_SELCHANGED =     wx.PyEventBinder(wxEVT_COLUMNHEADER_SELCHANGED, 1)
+EVT_COLUMNHEADER_DOUBLECLICKED = wx.PyEventBinder(wxEVT_COLUMNHEADER_DOUBLECLICKED, 1)
+EVT_COLUMNHEADER_SELCHANGED = wx.PyEventBinder(wxEVT_COLUMNHEADER_SELCHANGED, 1)
 }
 
 
@@ -76,6 +78,9 @@ MustHaveApp(wxColumnHeader);
 class wxColumnHeader : public wxControl
 {
 public:
+    // wxColumnHeader();
+    // ~wxColumnHeader();
+
     wxColumnHeader(
         wxWindow        *parent,
         wxWindowID        id = -1,
@@ -83,7 +88,15 @@ public:
         const wxSize        &size = wxDefaultSize,
         long                style = 0,
         const wxString        &name = wxColumnHeaderNameStr );
-    wxColumnHeader();
+
+    virtual bool Destroy( void );
+
+    virtual void DoMoveWindow( int x, int y, int width, int height );
+    virtual bool Enable( bool bEnable = true );
+    virtual bool Show( bool bShow = true );
+    virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
+    virtual wxSize DoGetBestSize( void ) const;
+
     void SetUnicodeFlag(
         bool            bSetFlag );
     long GetSelectedItemIndex( void );
@@ -96,15 +109,20 @@ public:
         const wxString        &textBuffer,
         long                textJust,
         long                extentX,
-        bool                bActive,
-        bool                bSortAscending );
+        bool                bSelected = false,
+        bool                bSortEnabled = true,
+        bool                bSortAscending = false );
     void DeleteItem(
         long                itemIndex );
     wxString GetLabelText(
         long                itemIndex );
     void SetLabelText(
         long                itemIndex,
-        const wxString        &textBuffer,
+        const wxString        &textBuffer );
+    long GetLabelJustification(
+        long                itemIndex );
+    void SetLabelJustification(
+        long                itemIndex,
         long                textJust );
     wxPoint GetUIExtent(
         long                itemIndex );

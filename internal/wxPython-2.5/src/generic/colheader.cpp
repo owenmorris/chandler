@@ -287,13 +287,60 @@ bool		bResultV;
 // size management
 // ----------------------------------------------------------------------------
 
+// virtual
+void wxColumnHeader::DoMoveWindow(
+	int		x,
+	int		y,
+	int		width,
+	int		height )
+{
+int		yDiff;
+
+	yDiff = 0;
+
+	wxControl::DoMoveWindow( x, y + yDiff, width, height - yDiff );
+
+	// FIXME: sloppy hack
+	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
+}
+
 // NB: is this implementation necessary ??
 //
 // virtual
 wxSize wxColumnHeader::DoGetBestSize( void ) const
 {
-wxCoord		width = 200;
-wxCoord		height = 20;
+wxCoord	width, height;
+
+	// best width is parent's width; height is fixed by native drawing routines
+	GetParent()->GetClientSize( &width, &height );
+
+#if defined(__WXMSW__)
+	{
+	HDLAYOUT	hdl;
+	WINDOWPOS	wp;
+	RECT			boundsR;
+
+		boundsR.left = boundsR.top = 0;
+		boundsR.right = width;
+		boundsR.bottom = height;
+		hdl.prc = boundsR;
+		hdl.pwpos = &wp;
+		if (Header_Layout( viewRef, (LPARAM)&hdl ) != 0)
+			height = wp.cy;
+	}
+
+#elif defined(__WXMAC__)
+	{
+	SInt32		standardHeight;
+	OSStatus		errStatus;
+
+		errStatus = GetThemeMetric( kThemeMetricListHeaderHeight, &standardHeight );
+		height = standardHeight;
+	}
+
+#else
+	height = 20;
+#endif
 
 #if 0
 	if (! HasFlag( wxBORDER_NONE ))
@@ -326,39 +373,6 @@ void wxColumnHeader::DoSetSize(
 	wxControl::DoGetSize( &(m_NativeBoundsR.width), &(m_NativeBoundsR.height) );
 
 	RecalculateItemExtents();
-}
-
-// virtual
-void wxColumnHeader::DoMoveWindow(
-	int		x,
-	int		y,
-	int		width,
-	int		height )
-{
-int		yDiff;
-
-	yDiff = 0;
-
-	wxControl::DoMoveWindow( x, y + yDiff, width, height - yDiff );
-
-	// FIXME: sloppy hack
-	wxControl::DoGetPosition( &(m_NativeBoundsR.x), &(m_NativeBoundsR.y) );
-}
-
-// virtual
-void wxColumnHeader::DoGetPosition(
-	int		*x,
-	int		*y ) const
-{
-	wxControl::DoGetPosition( x, y );
-}
-
-// virtual
-void wxColumnHeader::DoGetSize(
-	int		*width,
-	int		*height ) const
-{
-	wxControl::DoGetSize( width, height );
 }
 
 // ----------------------------------------------------------------------------
@@ -415,8 +429,8 @@ long		itemIndex;
 	default:
 		if (itemIndex >= wxCOLUMNHEADER_HITTEST_ItemZero)
 		{
-			OnClick_SelectOrToggleSort( itemIndex );
-			// event.Skip();
+			OnClick_SelectOrToggleSort( itemIndex, true );
+			GenerateEvent( wxEVT_COLUMNHEADER_SELCHANGED );
 			break;
 		}
 		else
@@ -428,6 +442,41 @@ long		itemIndex;
 	case wxCOLUMNHEADER_HITTEST_NoPart:
 		event.Skip();
 		break;
+	}
+}
+
+void wxColumnHeader::OnClick_SelectOrToggleSort(
+	long				itemIndex,
+	bool				bToggleSortDirection )
+{
+long			curSelectionIndex;
+
+	curSelectionIndex = GetSelectedItemIndex();
+	if (itemIndex != m_ItemSelected)
+	{
+		SetSelectedItemIndex( itemIndex );
+	}
+	else if (bToggleSortDirection)
+	{
+	wxColumnHeaderItem	*item;
+	bool				bSortFlag;
+
+		item = ((m_ItemList != NULL) ? m_ItemList[itemIndex] : NULL);
+		if (item != NULL)
+			if (item->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortEnabled ))
+			{
+				bSortFlag = item->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
+				item->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection, ! bSortFlag );
+
+#if defined(__WXMSW__)
+				Win32ItemRefresh( itemIndex );
+#endif
+
+				SetViewDirty();
+			}
+
+		// for testing: can induce text wrapping outside of bounds rect
+//		item->SetLabelText( _wxT("같같 YOW! 같같") );
 	}
 }
 
@@ -540,6 +589,7 @@ void wxColumnHeader::AppendItem(
 	long			textJust,
 	long			extentX,
 	bool			bSelected,
+	bool			bSortEnabled,
 	bool			bSortAscending )
 {
 wxColumnHeaderItem		itemInfo;
@@ -560,6 +610,7 @@ long					originX;
 	itemInfo.m_TextJust = textJust;
 	itemInfo.m_ExtentX = extentX;
 	itemInfo.m_BSelected = ((m_ItemSelected < 0) ? bSelected : false);
+	itemInfo.m_BSortEnabled = bSortEnabled;
 	itemInfo.m_BSortAscending = bSortAscending;
 
 	targetExtent = GetUIExtent( m_ItemCount - 1 );
@@ -604,7 +655,9 @@ bool				bIsSelected;
 			targetIndex, m_ItemList[targetIndex]->m_ExtentX,
 			m_ItemList[targetIndex]->m_LabelTextRef, m_ItemList[targetIndex]->m_TextJust,
 			m_BUseUnicode,
-			bIsSelected, m_ItemList[targetIndex]->m_BSortAscending );
+			bIsSelected,
+			m_ItemList[targetIndex]->m_BSortEnabled,
+			m_ItemList[targetIndex]->m_BSortAscending );
 #endif
 
 		if (bIsSelected && (m_ItemSelected < 0))
@@ -659,14 +712,13 @@ wxString wxColumnHeader::GetLabelText(
 {
 wxColumnHeaderItem		*itemRef;
 wxString				textBuffer;
-long					textJust;
 bool					bResultV;
 
 	itemRef = GetItemRef( itemIndex );
 	bResultV = (itemRef != NULL);
 	if (bResultV)
 	{
-		(void)itemRef->GetLabelText( textBuffer, textJust );
+		(void)itemRef->GetLabelText( textBuffer );
 	}
 	else
 	{
@@ -678,7 +730,35 @@ bool					bResultV;
 
 void wxColumnHeader::SetLabelText(
 	long				itemIndex,
-	const wxString		&textBuffer,
+	const wxString		&textBuffer )
+{
+wxColumnHeaderItem		*itemRef;
+
+	itemRef = GetItemRef( itemIndex );
+	if (itemRef != NULL)
+	{
+		itemRef->SetLabelText( textBuffer );
+		RefreshItem( itemIndex );
+	}
+}
+
+long wxColumnHeader::GetLabelJustification(
+	long				itemIndex )
+{
+wxColumnHeaderItem		*itemRef;
+long						textJust;
+
+	itemRef = GetItemRef( itemIndex );
+	if (itemRef != NULL)
+		textJust = itemRef->GetLabelJustification();
+	else
+		textJust = 0;
+
+	return textJust;
+}
+
+void wxColumnHeader::SetLabelJustification(
+	long				itemIndex,
 	long				textJust )
 {
 wxColumnHeaderItem		*itemRef;
@@ -686,7 +766,7 @@ wxColumnHeaderItem		*itemRef;
 	itemRef = GetItemRef( itemIndex );
 	if (itemRef != NULL)
 	{
-		itemRef->SetLabelText( textBuffer, textJust );
+		itemRef->SetLabelJustification( textJust );
 		RefreshItem( itemIndex );
 	}
 }
@@ -849,6 +929,7 @@ long		originX, i;
 		for (i=0; i<m_ItemCount; i++)
 			if (m_ItemList[i] != NULL)
 			{
+				m_ItemList[i]->m_NativeBoundsR = m_NativeBoundsR;
 				m_ItemList[i]->m_OriginX = originX;
 				originX += m_ItemList[i]->m_ExtentX;
 			}
@@ -884,6 +965,7 @@ long wxColumnHeader::Win32ItemInsert(
 	long			textJust,
 	bool			bUseUnicode,
 	bool			bSelected,
+	bool			bSortEnabled,
 	bool			bSortAscending )
 {
 HDITEM		itemData;
@@ -906,7 +988,7 @@ long		resultV;
 	itemData.cchTextMax = 256;
 //	itemData.cchTextMax = sizeof(itemData.pszText) / sizeof(itemData.pszText[0]);
 	itemData.fmt = wxColumnHeaderItem::ConvertJust( textJust, TRUE ) | HDF_STRING;
-	if (bSelected)
+	if (bSelected && bSortEnabled)
 		itemData.fmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	resultV = (long)Header_InsertItem( targetViewRef, (int)iInsertAfter, &itemData );
@@ -970,7 +1052,7 @@ long					resultV;
 	itemData.fmt = wxColumnHeaderItem::ConvertJust( itemRef->m_TextJust, TRUE ) | HDF_STRING;
 
 	itemData.fmt &= ~(HDF_SORTDOWN | HDF_SORTUP);
-	if (itemRef->m_BSelected && itemRef->m_BEnabled)
+	if (itemRef->m_BSelected && itemRef->m_BEnabled && itemRef->m_BSortEnabled)
 		itemData.fmt |= (itemRef->m_BSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
@@ -985,6 +1067,7 @@ long					resultV;
 long wxColumnHeader::Win32ItemSelect(
 	long			itemIndex,
 	bool			bSelected,
+	bool			bSortEnabled,
 	bool			bSortAscending )
 {
 HDITEM		itemData;
@@ -1003,7 +1086,7 @@ long		resultV;
 	resultV = (long)Header_GetItem( targetViewRef, itemIndex, &itemData );
 
 	itemData.fmt &= ~(HDF_SORTDOWN | HDF_SORTUP);
-	if (bSelected)
+	if (bSelected && bSortEnabled)
 		itemData.fmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
 	resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
@@ -1046,37 +1129,12 @@ void wxColumnHeader::GetDefaultRect(
 }
 #endif
 
-void wxColumnHeader::OnClick_SelectOrToggleSort(
-	long				itemIndex )
+void wxColumnHeader::GenerateEvent(
+	wxEventType		eventType )
 {
-long			curSelectionIndex;
+wxColumnHeaderEvent	event( this, eventType );
 
-	curSelectionIndex = GetSelectedItemIndex();
-	if (itemIndex != m_ItemSelected)
-	{
-		SetSelectedItemIndex( itemIndex );
-	}
-	else
-	{
-	wxColumnHeaderItem	*item;
-	bool				bSortFlag;
-
-		item = ((m_ItemList != NULL) ? m_ItemList[itemIndex] : NULL);
-		if (item != NULL)
-		{
-			bSortFlag = item->GetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection );
-			item->SetFlagAttribute( wxCOLUMNHEADER_FLAGATTR_SortDirection, ! bSortFlag );
-
-#if defined(__WXMSW__)
-			Win32ItemRefresh( itemIndex );
-#endif
-
-			SetViewDirty();
-		}
-
-		// for testing: can induce text wrapping outside of bounds rect
-//		item->SetLabelText( _wxT("같같 YOW! 같같"), wxTextJustCenter );
-	}
+	(void)GetEventHandler()->ProcessEvent( event );
 }
 
 // ================
@@ -1088,10 +1146,6 @@ long			curSelectionIndex;
 // wxColumnHeaderEvent
 // ----------------------------------------------------------------------------
 
-void wxColumnHeaderEvent::Init( void )
-{
-}
-
 wxColumnHeaderEvent::wxColumnHeaderEvent(
 	wxColumnHeader	*col,
 	wxEventType		type )
@@ -1099,6 +1153,10 @@ wxColumnHeaderEvent::wxColumnHeaderEvent(
 	wxCommandEvent( type, col->GetId() )
 {
 	SetEventObject( col );
+}
+
+void wxColumnHeaderEvent::Init( void )
+{
 }
 
 // ================
@@ -1115,6 +1173,7 @@ wxColumnHeaderItem::wxColumnHeaderItem()
 	, m_ExtentX( 0 )
 	, m_BEnabled( FALSE )
 	, m_BSelected( FALSE )
+	, m_BSortEnabled( FALSE )
 	, m_BSortAscending( FALSE )
 {
 }
@@ -1129,6 +1188,7 @@ wxColumnHeaderItem::wxColumnHeaderItem(
 	, m_ExtentX( 0 )
 	, m_BEnabled( FALSE )
 	, m_BSelected( FALSE )
+	, m_BSortEnabled( FALSE )
 	, m_BSortAscending( FALSE )
 {
 	SetItemData( info );
@@ -1149,13 +1209,15 @@ void wxColumnHeaderItem::GetItemData(
 	info->m_NativeBoundsR = m_NativeBoundsR;
 	info->m_FontID = m_FontID;
 	info->m_ImageID = m_ImageID;
+	info->m_TextJust = m_TextJust;
 	info->m_OriginX = m_OriginX;
 	info->m_ExtentX = m_ExtentX;
 	info->m_BEnabled = m_BEnabled;
 	info->m_BSelected = m_BSelected;
+	info->m_BSortEnabled = m_BSortEnabled;
 	info->m_BSortAscending = m_BSortAscending;
 
-	GetLabelText( info->m_LabelTextRef, info->m_TextJust );
+	GetLabelText( info->m_LabelTextRef );
 }
 
 void wxColumnHeaderItem::SetItemData(
@@ -1167,35 +1229,37 @@ void wxColumnHeaderItem::SetItemData(
 	m_NativeBoundsR = info->m_NativeBoundsR;
 	m_FontID = info->m_FontID;
 	m_ImageID = info->m_ImageID;
-	m_ImageID = info->m_ImageID;
+	m_TextJust = info->m_TextJust;
 	m_OriginX = info->m_OriginX;
 	m_ExtentX = info->m_ExtentX;
 	m_BEnabled = info->m_BEnabled;
 	m_BSelected = info->m_BSelected;
+	m_BSortEnabled = info->m_BSortEnabled;
 	m_BSortAscending = info->m_BSortAscending;
 
-	SetLabelText( info->m_LabelTextRef, info->m_TextJust );
+	SetLabelText( info->m_LabelTextRef );
 }
 
-long wxColumnHeaderItem::GetLabelText(
-	wxString			&textBuffer,
-	long				&textJust )
+void wxColumnHeaderItem::GetLabelText(
+	wxString			&textBuffer )
 {
-long		returnedSize;
-
-	returnedSize = 0;
-
 	textBuffer = m_LabelTextRef;
-	textJust = m_TextJust;
-
-	return returnedSize;
 }
 
 void wxColumnHeaderItem::SetLabelText(
-	const wxString		&textBuffer,
-	long				textJust )
+	const wxString		&textBuffer )
 {
 	m_LabelTextRef = textBuffer;
+}
+
+long wxColumnHeaderItem::GetLabelJustification( void )
+{
+	return m_TextJust;
+}
+
+void wxColumnHeaderItem::SetLabelJustification(
+	long				textJust )
+{
 	m_TextJust = textJust;
 }
 
@@ -1235,6 +1299,10 @@ bool			bResult;
 		bResult = m_BSelected;
 		break;
 
+	case wxCOLUMNHEADER_FLAGATTR_SortEnabled:
+		bResult = m_BSortEnabled;
+		break;
+
 	case wxCOLUMNHEADER_FLAGATTR_SortDirection:
 		bResult = m_BSortAscending;
 		break;
@@ -1262,6 +1330,10 @@ bool			bResult;
 
 	case wxCOLUMNHEADER_FLAGATTR_Selected:
 		m_BSelected = bFlagValue;
+		break;
+
+	case wxCOLUMNHEADER_FLAGATTR_SortEnabled:
+		m_BSortEnabled = bFlagValue;
 		break;
 
 	case wxCOLUMNHEADER_FLAGATTR_SortDirection:
@@ -1307,16 +1379,18 @@ OSStatus				errStatus;
 		return (-1L);
 	}
 
+	errStatus = noErr;
+
 //	qdBoundsR.left = m_NativeBoundsR.x + m_OriginX;
 //	qdBoundsR.top = m_NativeBoundsR.y;
 	qdBoundsR.left = m_OriginX;
 	qdBoundsR.top = 0;
 	qdBoundsR.right = qdBoundsR.left + m_ExtentX + 1;
-	if (qdBoundsR.right > m_NativeBoundsR.width - 1)
-		qdBoundsR.right = m_NativeBoundsR.width - 1;
+	if (qdBoundsR.right > m_NativeBoundsR.width)
+		qdBoundsR.right = m_NativeBoundsR.width;
 	qdBoundsR.bottom = qdBoundsR.top + m_NativeBoundsR.height;
 
-	// a broken attempt to tinge the background
+	// a broken, dead attempt to tinge the background
 // Collection	origCol, newCol;
 // RGBColor	tintRGB = { 0xFFFF, 0x0000, 0xFFFF };
 //	errStatus = SetAppearanceTintColor( &tintRGB, origCol, newCol );
@@ -1339,7 +1413,10 @@ OSStatus				errStatus;
 //	drawInfo.adornment = kThemeAdornmentArrowDownArrow;
 
 	// NB: DrawThemeButton height is fixed, regardless of the boundsRect argument!
-	errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
+	if (m_BSelected && ! m_BSortEnabled)
+		MacDrawThemeBackgroundNoArrows( &qdBoundsR );
+	else
+		errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
 
 	// end of the dead attempt to tinge the background
 //	errStatus = RestoreTheme( origCol, newCol );
@@ -1403,6 +1480,7 @@ const wxCoord		y = rect.y;
 const wxCoord		w = rect.width;
 const wxCoord		h = rect.height;
 
+	wxClientDC	dc( this );
 	dc.SetBrush( *wxTRANSPARENT_BRUSH );
 
 	// (outer) right and bottom
@@ -1427,6 +1505,43 @@ const wxCoord		h = rect.height;
 	return (-1);
 #endif
 }
+
+#if defined(__WXMAC__)
+// static
+void wxColumnHeaderItem::MacDrawThemeBackgroundNoArrows(
+	const Rect		*boundsR )
+{
+ThemeButtonDrawInfo	drawInfo;
+Rect				qdBoundsR;
+RgnHandle			savedClipRgn;
+OSStatus			errStatus;
+bool				bSelected;
+
+	if ((boundsR == NULL) || EmptyRect( boundsR ))
+		return;
+
+	bSelected = true;
+	qdBoundsR = *boundsR;
+
+	drawInfo.state = (bSelected ? kThemeStateActive: kThemeStateInactive);
+	drawInfo.value = (SInt32)bSelected;	// zero draws w/o theme background shading
+	drawInfo.adornment = kThemeAdornmentNone;
+
+	savedClipRgn = NewRgn();
+	GetClip( savedClipRgn );
+	ClipRect( &qdBoundsR );
+
+	qdBoundsR.right += 25;
+	errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
+
+	// NB: draw the right-side one-pixel border
+	// qdBoundsR.left = qdBoundsR.right - 25;
+	// errStatus = DrawThemeButton( &qdBoundsR, kThemeListHeaderButton, &drawInfo, NULL, NULL, NULL, 0 );
+
+	SetClip( savedClipRgn );
+	DisposeRgn( savedClipRgn );
+}
+#endif
 
 // static
 long wxColumnHeaderItem::ConvertJust(

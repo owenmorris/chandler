@@ -38,6 +38,7 @@ typedef enum
 {
 	wxCOLUMNHEADER_FLAGATTR_Enabled,
 	wxCOLUMNHEADER_FLAGATTR_Selected,
+	wxCOLUMNHEADER_FLAGATTR_SortEnabled,
 	wxCOLUMNHEADER_FLAGATTR_SortDirection
 }
 wxColumnHeaderFlagAttr;

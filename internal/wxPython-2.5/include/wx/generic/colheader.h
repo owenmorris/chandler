@@ -47,11 +47,13 @@ public:
 	void SetItemData(
 		const wxColumnHeaderItem		*info );
 
-	long GetLabelText(
-		wxString		&textBuffer,
-		long			&textJust );
+	void GetLabelText(
+		wxString		&textBuffer );
 	void SetLabelText(
-		const wxString	&textBuffer,
+		const wxString	&textBuffer );
+
+	long GetLabelJustification( void );
+	void SetLabelJustification(
 		long			textJust );
 
 	void GetUIExtent(
@@ -68,6 +70,11 @@ public:
 		bool						bFlagValue );
 
 public:
+#if defined(__WXMAC__)
+	static void MacDrawThemeBackgroundNoArrows(
+		const Rect		*boundsR );
+#endif
+
 	static long ConvertJust(
 		long			sourceEnum,
 		bool			bToNative );
@@ -82,6 +89,7 @@ public:
 	long					m_ExtentX;
 	bool					m_BEnabled;
 	bool					m_BSelected;
+	bool					m_BSortEnabled;
 	bool					m_BSortAscending;
 };
 
@@ -129,13 +137,19 @@ public:
 		long				textJust,
 		long				extentX,
 		bool				bActive,
+		bool				bSortEnabled,
 		bool				bSortAscending );
 	wxString GetLabelText(
 		long				itemIndex );
 	void SetLabelText(
 		long				itemIndex,
-		const wxString		&textBuffer,
+		const wxString		&textBuffer );
+	long GetLabelJustification(
+		long				itemIndex );
+	void SetLabelJustification(
+		long				itemIndex,
 		long				textJust );
+
 	wxPoint GetUIExtent(
 		long				itemIndex );
 	void SetUIExtent(
@@ -152,11 +166,12 @@ public:
 	// implementation only from now on
 	// -------------------------------
 
-	// forward these functions to all subcontrols
-	virtual bool Enable(
-		bool			bEnable = true );
-	virtual bool Show(
-		bool			bShow = true );
+	// embellish (override) some base class virtuals
+	virtual void DoMoveWindow( int x, int y, int width, int height );
+	virtual bool Enable( bool bEnable = true );
+	virtual bool Show( bool bShow = true );
+	virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
+	virtual wxSize DoGetBestSize( void ) const;
 
 #if defined(__WXMSW__)
 	virtual WXDWORD MSWGetStyle(
@@ -176,7 +191,8 @@ protected:
 		long							itemCount );
 
 	void OnClick_SelectOrToggleSort(
-		long				itemIndex );
+		long				itemIndex,
+		bool				bToggleSortDirection );
 
 	bool GetItemData(
 		long							itemIndex,
@@ -203,6 +219,7 @@ protected:
 		long			textJust,
 		bool			bUseUnicode,
 		bool			bSelected,
+		bool			bSortEnabled,
 		bool			bSortAscending );
 	long Win32ItemDelete(
 		long			itemIndex );
@@ -211,6 +228,7 @@ protected:
 	long Win32ItemSelect(
 		long			itemIndex,
 		bool			bSelected,
+		bool			bSortEnabled,
 		bool			bSortAscending );
 #endif
 
@@ -223,26 +241,8 @@ protected:
 	void OnClick( wxMouseEvent &event );
 	void OnDoubleClick( wxMouseEvent &event );
 
-	// override some base class virtuals
-	virtual wxSize DoGetBestSize( void ) const;
-	virtual void DoGetPosition( int *x, int *y ) const;
-	virtual void DoGetSize( int *width, int *height ) const;
-	virtual void DoSetSize( int x, int y, int width, int height, int sizeFlags );
-	virtual void DoMoveWindow( int x, int y, int width, int height );
-
-	// generate the given calendar event(s)
-	void GenerateEvent( wxEventType type )
-	{
-	wxColumnHeaderEvent	event( this, type );
-
-		(void)GetEventHandler()->ProcessEvent( event );
-	}
-
-	void GenerateEvents( wxEventType type1, wxEventType type2 )
-	{
-		GenerateEvent( type1 );
-		GenerateEvent( type2 );
-	}
+	// event generator
+	void GenerateEvent( wxEventType eventType );
 
 protected:
 	wxRect					m_NativeBoundsR;
