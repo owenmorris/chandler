@@ -27,13 +27,17 @@ class ItemRef(object):
 
         return '<ItemRef: %s>' %(self._other)
 
-    def getItem(self):
-        'Return the item this link was established from.'
-        
+    def _getItem(self):
+
         return self._item
 
     def _setItem(self, item):
         pass
+
+    def getItem(self):
+        'Return the item this link was established from.'
+        
+        return self._item
 
     def getOther(self):
         'Return the opposite item this link was established from.'
