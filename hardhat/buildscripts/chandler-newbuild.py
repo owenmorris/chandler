@@ -102,17 +102,16 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
         # Find out if the initialization was ever done
         try:
             intModuleDir = os.path.join(releaseModeDir, "internal")
-
-                os.chdir(intModuleDir)
-                log.write("Making internal (debug) programs\n")
-                outputList = hardhatutil.executeCommandReturnOutput(
-                 [buildenv['make'], dbgStr ])
-                hardhatutil.dumpOutputList(outputList, log)
-                log.write("Making internal (debug) binaries\n")
-                outputList = hardhatutil.executeCommandReturnOutput(
-                 [buildenv['make'], dbgStr, "binaries" ])
-                hardhatutil.dumpOutputList(outputList, log)
-                ret = "no_changes" 
+            os.chdir(intModuleDir)
+            log.write("Making internal (debug) programs\n")
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [buildenv['make'], dbgStr ])
+            hardhatutil.dumpOutputList(outputList, log)
+            log.write("Making internal (debug) binaries\n")
+            outputList = hardhatutil.executeCommandReturnOutput(
+             [buildenv['make'], dbgStr, "binaries" ])
+            hardhatutil.dumpOutputList(outputList, log)
+            ret = "no_changes" 
 
         except Exception, e:
             print "an initialization error"
