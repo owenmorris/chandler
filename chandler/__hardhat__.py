@@ -21,6 +21,7 @@ dependencies = (
 
 def build(buildenv):
 
+    # Build the linux launcher program
     if buildenv['os'] == 'posix':
         os.chdir("distrib/linux/launcher")
         if buildenv['version'] == 'release':
@@ -40,6 +41,23 @@ def build(buildenv):
             hardhatlib.copyFile("chandler", buildenv['root'] + \
              os.sep + "debug")
         os.chdir("../../..")
+
+
+    # Build the windows launcher program
+    version = buildenv['version']
+
+    try:
+        os.remove('output.txt')
+    except:
+        pass
+
+    hardhatlib.executeCommand(buildenv, info['name'],
+                              [ buildenv['compiler'],
+                                'distrib/win/launcher/launcher.sln',
+                                '/build', version.capitalize(),
+                                '/out', 'output.txt' ],
+                              'Building launcher ' + version),
+                              0, 'output.txt')
 
 
     # Build UUID Extension and install it
