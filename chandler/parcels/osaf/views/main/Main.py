@@ -89,7 +89,7 @@ class MainView(View):
         # Create a new Content Item
         # Triggered from "File | New Item" menu, for any of the item kinds.
         event = notification.event
-        newItem = event.kindParameter.newItem (None, self)
+        newItem = event.kindParameter.newItem (None, None)
         newItem.InitOutgoingAttributes ()
         self.RepositoryCommitWithStatus ()
 
