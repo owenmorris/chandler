@@ -5,5 +5,4 @@
     <item file="CalendarSchema.xml"/>
   </item>
   <item file="CalendarRoot.xml"/>
-  <item file="JunkRoot.xml"/>
 </pack>

@@ -1,12 +1,12 @@
 #!bin/env python
 
-from model.persistence.Repository import Repository
+from model.persistence.FileRepository import FileRepository
 from model.item.Item import Item
 from OSAF.calendar.model.CalendarEvent import CalendarEvent
 from OSAF.calendar.model.CalendarEvent import CalendarEventFactory
 from mx import DateTime
 
-rep = Repository('data')
+rep = FileRepository('data')
 rep.loadPack('model/packs/schema.pack', verbose=True)
 rep.loadPack('parcels/OSAF/calendar/model/calendar.pack', verbose=True)
 
