@@ -1254,7 +1254,7 @@ class Item(CItem):
 
         collectItems(self)
 
-    def getItemCloud(self, cloudAlias, items=None):
+    def getItemCloud(self, cloudAlias, items=None, trace=None):
         """
         Get the items in a cloud by using this item as entrypoint.
 
@@ -1270,7 +1270,7 @@ class Item(CItem):
         if items is None:
             items = {}
         for cloud in self._kind.getClouds(cloudAlias):
-            cloud.getItems(self, cloudAlias, items)
+            cloud.getItems(self, cloudAlias, items, None, trace)
 
         return items.values()
 

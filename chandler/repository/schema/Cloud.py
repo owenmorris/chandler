@@ -17,7 +17,8 @@ from repository.persistence.RepositoryError import NoSuchItemError
 
 class Cloud(Item):
 
-    def getItems(self, item, cloudAlias, items=None, references=None):
+    def getItems(self, item, cloudAlias, items=None, references=None,
+                 trace=None):
         """
         Gather all items in the cloud from a given item entrypoint.
 
@@ -83,8 +84,11 @@ class Cloud(Item):
         for alias, endpoint, inCloud in self.iterEndpoints(cloudAlias):
             for other in endpoint.iterValues(item):
                 if other is not None and other._uuid not in items:
-                    results.extend(endpoint.getItems(other, cloudAlias,
-                                                     items, references))
+                    _items = endpoint.getItems(other, cloudAlias,
+                                               items, references, trace)
+                    if trace is not None:
+                        trace[(item, endpoint)] = _items
+                    results.extend(_items)
 
         return results
 
@@ -331,7 +335,7 @@ class Cloud(Item):
 
 class Endpoint(Item):
 
-    def getItems(self, item, cloudAlias, items, references):
+    def getItems(self, item, cloudAlias, items, references, trace):
 
         policy = self.includePolicy
         results = []
@@ -348,7 +352,7 @@ class Endpoint(Item):
 
             def getItems(cloud):
                 results.extend(cloud.getItems(item, cloudAlias,
-                                              items, references))
+                                              items, references, trace))
 
             cloud = self.getAttributeValue('cloud', default=None,
                                            _attrDict=self._references)

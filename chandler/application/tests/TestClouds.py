@@ -27,7 +27,8 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
 
         # This is how you determine which items would get copied if you
         # were doing a cloud copy:
-        items = widgetA.getItemCloud('default')
+        trace={}
+        items = widgetA.getItemCloud('default', trace=trace)
 
         expectedItems = [
             "//parcels/clouds/data/widgetA",
@@ -37,6 +38,11 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
             "//parcels/clouds/data/sprocketB",
             "//parcels/clouds/data/sprocketC",
         ]
+
+        sB = self.rep.findPath("//parcels/clouds/data/sprocketB")
+        for (item, endpoint), others in trace.iteritems():
+            if sB in others:
+                print "%s was added by following '%s' on %s" %(sB, '.'.join(endpoint.attribute), item._repr_())
 
         for item in items:
             path = str(item.itsPath)
