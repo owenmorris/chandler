@@ -33,6 +33,19 @@ Milestone 13 (CVS tag CHANDLER_M_13) 2004-1-21
 
     * Began implementing the caterpillar ui.
 
+    * Completed coding and testing of Chandler event dispatch using the
+      notification manager. Events can be dispatched to the block that has 
+      focus and bubbled up, broadcast to all blocks inside the event boundary, 
+      and sent to a particular block.
+
+    * Added, or rewrote, blocks that can be used to implement the repository
+      viewer, which include: SplitWindow, TreeList, RepositoryTreeList and
+      ItemView.
+
+    * Added neccessary events for repository viewer, which include
+      GetTreeListData, SelectionChanged and GoToURI.
+
+    * Fixed lots of bugs in the menu blocks code
 
     Parcel Loader:
 
@@ -56,6 +69,8 @@ Milestone 13 (CVS tag CHANDLER_M_13) 2004-1-21
     * Lucene full-text indexing integrated
 
     * "lob" (large object) support
+
+    * Integrated libxml2 and updated db/dbxml/xerces libraries
 
     * Bug fixes
 
