@@ -87,7 +87,7 @@ class MainView(View):
          ]
         ):
             try:
-                Globals.repository.commit()
+                self.RepositoryCommitWithStatus ()
             except VersionConflictError, e:
                 # A first experiment with resolving conflicts.  Not sure
                 # yet where the logic for handling this should live.  Could
@@ -130,7 +130,7 @@ class MainView(View):
         itemName = 'Anonymous'+str(UUID.UUID())
         newItem = event.kindParameter.newItem (itemName, self)
         newItem.InitOutgoingAttributes ()
-        Globals.repository.commit()
+        self.RepositoryCommitWithStatus ()
 
         # lookup our Request Select Events
         rootPath = '//parcels/osaf/framework/blocks/Events/'
@@ -182,10 +182,13 @@ class MainView(View):
 
         repository = Globals.repository
         repository.logger.info('Checking repository...')
+        self.setStatusText ('Checking repository...')
         if repository.check():
             repository.logger.info('Check completed successfully')
+            self.setStatusText ('Check completed successfully')
         else:
             repository.logger.info('Check completed with errors')
+            self.setStatusText ('Check completed with errors')
 
     def onShowPyCrustEvent(self, notification):
         Globals.wxApplication.ShowDebuggerWindow()
@@ -195,7 +198,7 @@ class MainView(View):
         self.rerender ()
 
     def onCommitRepositoryEvent(self, notification):
-        Globals.repository.commit()
+        self.RepositoryCommitWithStatus ()
 
     def onAboutChandlerEvent(self, notification):
         """
@@ -433,11 +436,8 @@ class MainView(View):
         notification.data ['Enable'] = isShared
 
     def ShareCollection (self, itemCollection):
-        # put a "committing" message into the status bar
-        self.setStatusText ('Committing changes...')
-
         # commit changes, since we'll be switching to Twisted thread
-        Globals.repository.commit()
+        self.RepositoryCommitWithStatus()
 
         # show status
         self.setStatusText ("Sharing collection %s" % itemCollection.displayName)
@@ -483,6 +483,8 @@ class MainView(View):
         """
           Called when the SMTP Send generated an error.
         """
+        Globals.repository.commit () # bring changes across from the other thread/view
+
         # Lookup the message
         mailMessageKind = Mail.MailParcel.getMailMessageKind ()
         mailMessage = mailMessageKind.findUUID(mailMessageUUID)
@@ -495,14 +497,22 @@ class MainView(View):
             for error in mailMessage.deliveryExtension.deliveryErrors:
                  errorStrings.append(error.errorString)
    
-            str = "error"
+            if len (errorStrings) == 0:
+                errorMessage = "An unknown error occurred."
+            else:
+                if len (errorStrings) == 1:
+                    str = "error"
+                else:
+                    str = "errors"
    
-            if len(errorStrings) > 1:
-                str = "errors"
-   
-            errorMessage = "The following %s occurred. %s" % (str, ', '.join(errorStrings))
-            errorMessage = errorMessage.encode ('utf-8')
+                errorMessage = "The following %s occurred. %s" % (str, ', '.join(errorStrings))
+                errorMessage = errorMessage.encode ('utf-8')
             self.setStatusText (errorMessage)
             application.dialogs.Util.showAlert(Globals.wxApplication.mainFrame, errorMessage)
             self.setStatusText ('')
         
+    def RepositoryCommitWithStatus (self):
+        self.setStatusText ("committing changes to the repository...")
+        Globals.repository.commit()
+        self.setStatusText ('')
+
