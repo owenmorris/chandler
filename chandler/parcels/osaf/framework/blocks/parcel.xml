@@ -737,7 +737,7 @@
   -->
   <Kind itemName="StatusBar">
     <classes key="python">osaf.framework.blocks.ControlBlocks.StatusBar</classes>
-    <superKinds itemref="docSchema:RectangularChild"/>
+    <superKinds itemref="docSchema:Block"/>
   </Kind>
 
   <!--
@@ -786,7 +786,7 @@
   -->
   <Kind itemName="ToolbarItem">
     <classes key="python">osaf.framework.blocks.ControlBlocks.ToolbarItem</classes>
-    <superKinds itemref="docSchema:ContainerChild"/>
+    <superKinds itemref="docSchema:Block"/>
 
     <Attribute itemName="toolbarLocation">
       <type itemref="String"/>

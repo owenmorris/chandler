@@ -523,18 +523,20 @@ class wxStatusBar (wx.StatusBar):
             self.Show (block.open)
 
     def __del__(self):
-        Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
         del Globals.association [self.blockUUID]
 
 
-class StatusBar(RectangularChild):
+class StatusBar(Block):
     def instantiateWidget (self, parent, parentWindow):
+        frame = Globals.wxApplication.mainFrame
+        assert frame.GetStatusBar() == None
         widget = wxStatusBar (Globals.association [self.parentBlock.itsUUID],
                               Block.getWidgetID(self))
+        frame.SetStatusBar (widget)
         return widget, None, None
 
 
-class ToolbarItem(RectangularChild):
+class ToolbarItem(Block):
     """
       Under construction
     """

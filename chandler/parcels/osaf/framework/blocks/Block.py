@@ -32,11 +32,46 @@ class Block(Item):
         event.Post (args)
 
     def render (self, parent, parentWindow):
-        """
-          ContainerChild overrides render to recursively call
-        instantiateWidget on a tree of Blocks.
-        """
-        pass
+        try:
+            method = getattr (self, "instantiateWidget")
+        except AttributeError:
+            return
+        else:
+            oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
+            Globals.wxApplication.ignoreSynchronizeWidget = True
+            try:
+                (widget, parent, parentWindow) = method (parent, parentWindow)
+            finally:
+                Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+            """
+              Store the wxWindows version of the object in the association, so
+            given the block we can find the associated wxWindows object.
+            """
+            if widget:
+                UUID = self.itsUUID
+                """
+                  Currently not all wxWidget objects have a __del__
+                funcation to removed themselves from the association when they
+                are deleted. However, they should. Bug #1177. For now I'll comment
+                out the assert and log the bugs
+    
+                assert not Globals.association.has_key(UUID)
+                """
+                if __debug__ and Globals.association.has_key(UUID):
+                    Globals.repository.find (UUID).itsPath
+                    logging.warn("Bug #1177: item %s doesn't remove it's widget from the association",
+                                 str (Globals.repository.find (UUID).itsPath))
+                Globals.association[UUID] = widget
+                widget.blockUUID = UUID
+                """
+                  After the blocks are wired up, give the window a chance
+                to synchronize itself to any persistent state.
+                """
+                parent = widget
+                parentWindow = widget
+                for child in self.childrenBlocks:
+                    child.render (parent, parentWindow)
+                self.synchronizeWidget()
 
     def instantiateWidget(self, parent, parentWindow):
         """
@@ -140,43 +175,7 @@ class Block(Item):
 
 
 class ContainerChild(Block):
-    def render (self, parent, parentWindow):
-        oldIgnoreSynchronizeWidget = Globals.wxApplication.ignoreSynchronizeWidget
-        Globals.wxApplication.ignoreSynchronizeWidget = True
-        try:
-            (widget, parent, parentWindow) = self.instantiateWidget (parent, parentWindow)
-        finally:
-            Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
-        """
-          Store the wxWindows version of the object in the association, so
-        given the block we can find the associated wxWindows object.
-        """
-        if widget:
-            UUID = self.itsUUID
-            """
-              Currently not all wxWidget objects have a __del__
-            funcation to removed themselves from the association when they
-            are deleted. However, they should. Bug #1177. For now I'll comment
-            out the assert and log the bugs
-
-            assert not Globals.association.has_key(UUID)
-            """
-            if __debug__ and Globals.association.has_key(UUID):
-                Globals.repository.find (UUID).itsPath
-                logging.warn("Bug #1177: item %s doesn't remove it's widget from the association",
-                             str (Globals.repository.find (UUID).itsPath))
-            Globals.association[UUID] = widget
-            widget.blockUUID = UUID
-            """
-              After the blocks are wired up, give the window a chance
-            to synchronize itself to any persistent state.
-            """
-            parent = widget
-            parentWindow = widget
-            for child in self.childrenBlocks:
-                child.render (parent, parentWindow)
-            self.synchronizeWidget()
-        return widget
+    pass
 
     
 class wxRectangularChild (wx.Panel):
@@ -189,7 +188,6 @@ class wxRectangularChild (wx.Panel):
             self.Show (block.open)
 
     def __del__(self):
-        Globals.notificationManager.Unsubscribe(self.subscriptionUUID)
         del Globals.association [self.blockUUID]
 
 

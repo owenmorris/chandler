@@ -148,25 +148,3 @@ class NavigationBar(Toolbar):
         wxURLBox = Globals.association[urlBox.itsUUID]
         wxURLBox.SetValue(path)
         
-        
-class ChandlerStatusBar(StatusBar):
-    def instantiateWidget(self, parent, parentWindow):
-        returnArguments = StatusBar.instantiateWidget(self, parent, parentWindow)
-        self.showOrHideStatusBar()
-        return returnArguments
-    
-    def OnViewStatusBarEvent(self, notification):
-        self.open = not self.open
-        self.showOrHideStatusBar()
-
-    def showOrHideStatusBar(self):
-        frame = Globals.wxApplication.mainFrame
-        statusBar = frame.GetStatusBar()
-        if statusBar.IsShown() != self.open:
-            statusBar.Show(self.open)
-            frame.Layout()
-            
-    def OnViewStatusBarEventUpdateUI(self, notification):
-        notification.data['Check'] = self.open
-        
-        

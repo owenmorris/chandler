@@ -4,7 +4,7 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-from Block import Block, RectangularChild, wxRectangularChild
+from Block import Block, RectangularChild, wxRectangularChild, ContainerChild
 from Node import Node
 from Styles import Font
 from repository.util.UUID import UUID
@@ -20,9 +20,9 @@ class wxBoxContainer (wxRectangularChild):
         if block.open:
             sizer = self.GetSizer()
             sizer.Clear()
-            for childWidget in self.GetChildren():
-                childBlock = Globals.repository.find (childWidget.blockUUID)
-                if childBlock.open:
+            for childBlock in block.childrenBlocks:
+                if childBlock.open and isinstance (childBlock, RectangularChild):
+                    childWidget = Globals.association [childBlock.itsUUID]
                     sizer.Add (childWidget,
                                childBlock.stretchFactor, 
                                childBlock.Calculate_wxFlag(), 
@@ -360,7 +360,7 @@ class TabbedContainer(RectangularChild):
                 break
 
         
-class Toolbar(RectangularChild):
+class Toolbar(ContainerChild):
     def instantiateWidget (self, parent, parentWindow):
         toolbar = Globals.wxApplication.mainFrame.CreateToolBar(wx.TB_HORIZONTAL)
         toolbar.SetToolBitmapSize((self.toolSize.width, self.toolSize.height))

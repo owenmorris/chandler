@@ -291,11 +291,6 @@
     Status Bar
   -->
   <StatusBar itemName="StatusBar">
-    <size>200,20</size>
-    <minimumSize>200,20</minimumSize>
-    <border>2.0, 2.0, 2.0, 2.0</border>
-    <alignmentEnum>grow</alignmentEnum>
-    <stretchFactor>0.0</stretchFactor>
   </StatusBar>
 
   <!-- 
@@ -522,7 +517,6 @@
     <!-- Layout children -->
     <childrenBlocks itemref="doc:BookmarksBar"/>
     <childrenBlocks itemref="doc:MainSplitter"/>
-    <childrenBlocks itemref="doc:StatusBar"/>
     
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
@@ -573,6 +567,9 @@
     <childrenBlocks itemref="doc:Spacer"/>
     <childrenBlocks itemref="doc:URLBox"/>
     
+    <!-- StatusBar -->
+    <childrenBlocks itemref="doc:StatusBar"/>
+
     <!-- Layout children -->
     <childrenBlocks itemref="doc:BookmarksContainer"/>
     
