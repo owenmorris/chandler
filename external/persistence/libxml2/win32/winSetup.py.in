@@ -61,7 +61,7 @@ if missing("libxml2-py.c") or missing("libxml2.py"):
     generated.close()
     result.close()
 
-modules = [ 'libxml2' ]
+modules = [ 'libxml2', 'drv_libxml2' ]
 c_files = [ 'libxml2-py.c', 'libxml.c', 'types.c' ]
 includes= [ xml_includes ]
 libs    = [ 'libxml2_a', 'wsock32' ]
