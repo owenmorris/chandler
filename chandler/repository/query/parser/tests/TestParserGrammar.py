@@ -32,11 +32,19 @@ def test():
 
   # print parse('value_expr','x.y.z.f(1,2)')
 
+  ## NAME_EXPR
+  >>> print parse('name_expr','abc')
+  abc
+  >>> print parse('name_expr','$1')
+  $1
+
   ## UNARY_EXPR
   >>> print parse('unary_expr','abc')
   abc
   >>> print parse('unary_expr','-1')
   ['-', '1']
+  >>> print parse('unary_expr','not abc')
+  ['not', 'abc']
 
   # syntatically legal, but type illegal
   >>> print parse('unary_expr','-abc')
@@ -128,6 +136,8 @@ def test():
   ## FOR_EXPR
   >>> print parse('for_stmt','for i in x where i.name == "id"')
   ['for', 'i', 'x', ['==', ['path', ['i', 'name'], None], '"id"']]
+  >>> print parse('for_stmt','for i in $1 where i.name == "id"')
+  ['for', 'i', '$1', ['==', ['path', ['i', 'name'], None], '"id"']]
   >>> print parse('for_stmt', "for i in '//userdata/zaobaoitems' where i.channel.creator == 'Ted Leung'")
   ['for', 'i', "'//userdata/zaobaoitems'", ['==', ['path', ['i', 'channel', 'creator'], None], "'Ted Leung'"]]
   >>> print parse('for_stmt','for i in z where i.price < 10 and i.color == "green"')

@@ -28,14 +28,14 @@ def make_op(lhs, op, rhs):
 parser Query:
     ignore:    "[ \r\t\n]+"
     token NUM: '[0-9]+'
-    token FOR: '[Ff][Oo][Rr]'
-    token ID: '[a-zA-Z]+'
     token STRING: '"([^\\"]+|\\\\.)*"|\'([^\']+|\\\\.)*\''
-    token UNOP: '[+-]'
+    token PARAM: '\$[0-9]+'
+    token UNOP: '(not|\+|-)'
     token MULOP: '(\*|/|div|mod)'
     token ADDOP: '(\+|-)'
     token RELOP: '(==|!=|>=|<=|>|<)'
     token BOOLOP: '(and|or)'
+    token ID: '[a-zA-Z]+'
     token END: '$'
 
     rule for_stmt: 'for' ID 'in' 
@@ -82,6 +82,6 @@ parser Query:
                     ( ',' and_or_expr {{ result.append(and_or_expr) }} )*
                     {{ return result }}
 
-    rule name_expr: ID {{ return ID }}
+    rule name_expr: ID {{ return ID }} | PARAM {{ return PARAM }}
 
 %%
