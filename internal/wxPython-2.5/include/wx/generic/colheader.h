@@ -135,7 +135,6 @@ public:
 
 public:
 	wxString				m_LabelTextRef;
-	unsigned long			m_FontID;
 	long					m_TextJust;
 	wxBitmap				*m_BitmapRef;
 	long					m_OriginX;
@@ -295,9 +294,13 @@ protected:
 	void RefreshItem(
 		long				itemIndex );
 
+	long GetLabelWidth(
+		wxClientDC			*dc,
+		const wxString			&targetStr );
+
+	void DisposeItemList( void );
 	void SetViewDirty( void );
 	void RecalculateItemExtents( void );
-	void DisposeItemList( void );
 
 	long Draw( void );
 
@@ -328,7 +331,7 @@ protected:
 #endif
 
 protected:
-	// common part of all ctors
+	// called by all ctors
 	void Init( void );
 
 	// event handlers
@@ -341,16 +344,13 @@ protected:
 
 protected:
 	wxRect					m_NativeBoundsR;
+	wxFont				m_Font;
 	wxColumnHeaderItem		**m_ItemList;
 	long					m_ItemCount;
 	long					m_ItemSelected;
 	bool					m_BProportionalResizing;
 	bool					m_BVisibleSelection;
 	bool					m_BUseUnicode;
-
-	// fonts
-	wxFont		m_normalFont;
-	wxFont		m_boldFont;
 
 	DECLARE_DYNAMIC_CLASS(wxColumnHeader)
 	DECLARE_EVENT_TABLE()

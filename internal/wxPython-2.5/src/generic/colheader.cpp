@@ -166,6 +166,13 @@ void wxColumnHeader::Init( void )
 	m_BProportionalResizing = true;
 	m_BVisibleSelection = true;
 
+#if defined(__WXMAC__)
+	// NB: or kThemeSystemFontTag, kThemeViewsFontTag
+	m_Font.MacCreateThemeFont( kThemeSmallSystemFont );
+#else
+	m_Font.SetFamily( 0 );
+#endif
+
 #if wxUSE_UNICODE
 	m_BUseUnicode = true;
 #else
@@ -831,12 +838,6 @@ long					originX;
 	// set invariant values
 	itemInfo.m_BEnabled = true;
 
-#if defined(__WXMAC__)
-	itemInfo.m_FontID = kThemeSmallSystemFont;		// or kThemeSystemFontTag, kThemeViewsFontTag
-#else
-	itemInfo.m_FontID = 0;
-#endif
-
 	// set specified values
 	itemInfo.m_LabelTextRef = textBuffer;
 	itemInfo.m_TextJust = textJust;
@@ -1274,12 +1275,12 @@ long			resultV;
 #else
 wxClientDC	dc( this );
 
-	// NB: this case being used for both Mac and Generic
+	dc.SetFont( m_Font );
+
 	for (long i=0; i<m_ItemCount; i++)
 		if (GetItemBounds( i, &boundsR ))
 		{
 #if defined(__WXMAC__)
-			// no DC needed for Mac rendering (except for bitmaps)
 			resultV |= m_ItemList[i]->MacDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
 #else
 			resultV |= m_ItemList[i]->GenericDrawItem( this, &dc, &boundsR, m_BUseUnicode, m_BVisibleSelection );
@@ -1318,6 +1319,51 @@ long		originX, i;
 				originX += m_ItemList[i]->m_ExtentX;
 			}
 	}
+}
+
+long wxColumnHeader::GetLabelWidth(
+	wxClientDC			*dc,
+	const wxString			&targetStr )
+{
+long		resultV;
+
+	resultV = 0;
+
+	if (targetStr.IsEmpty())
+		return 0;
+
+#if defined(__WXMAC__)
+wxMacCFStringHolder	cfString( targetStr, m_Font.GetEncoding() );
+Point					xyPt;
+SInt16				baselineV;
+
+	xyPt.h = xyPt.v = 0;
+
+	GetThemeTextDimensions(
+		(CFStringRef)cfString,
+		m_Font.MacGetThemeFontID(),
+		kThemeStateActive,
+		false,
+		&xyPt,
+		&baselineV );
+
+	resultV = (long)(xyPt.h);
+
+#else
+wxCoord		targetWidth;
+
+	if (dc != NULL)
+	{
+		dc->SetFont( m_Font );
+		dc->DoGetTextExtent(
+			targetStr, &targetWidth,
+			NULL, NULL, NULL, NULL );
+
+		resultV = (long)targetWidth;
+	}
+#endif
+
+	return resultV;
 }
 
 // ================
@@ -1562,8 +1608,7 @@ void wxColumnHeaderEvent::Init( void )
 
 wxColumnHeaderItem::wxColumnHeaderItem()
 	:
-	m_FontID( 0 )
-	, m_TextJust( 0 )
+	m_TextJust( 0 )
 	, m_BitmapRef( NULL )
 	, m_OriginX( 0 )
 	, m_ExtentX( 0 )
@@ -1578,8 +1623,7 @@ wxColumnHeaderItem::wxColumnHeaderItem()
 wxColumnHeaderItem::wxColumnHeaderItem(
 	const wxColumnHeaderItem		*info )
 	:
-	m_FontID( 0 )
-	, m_TextJust( 0 )
+	m_TextJust( 0 )
 	, m_BitmapRef( NULL )
 	, m_OriginX( 0 )
 	, m_ExtentX( 0 )
@@ -1605,7 +1649,6 @@ void wxColumnHeaderItem::GetItemData(
 	if (info == NULL)
 		return;
 
-	info->m_FontID = m_FontID;
 	info->m_TextJust = m_TextJust;
 	info->m_OriginX = m_OriginX;
 	info->m_ExtentX = m_ExtentX;
@@ -1628,7 +1671,6 @@ void wxColumnHeaderItem::SetItemData(
 	if (info == NULL)
 		return;
 
-	m_FontID = info->m_FontID;
 	m_TextJust = info->m_TextJust;
 	m_OriginX = info->m_OriginX;
 	m_ExtentX = info->m_ExtentX;
@@ -1830,6 +1872,7 @@ ThemeButtonDrawInfo		drawInfo;
 RgnHandle				savedClipRgn;
 Rect					qdBoundsR;
 long					nativeTextJust;
+SInt16				nativeFontID;
 bool					bSelected, bHasIcon;
 OSStatus				errStatus;
 
@@ -1895,13 +1938,16 @@ OSStatus				errStatus;
 	// render the label text as/if specified
 	if (! bHasIcon && ! m_LabelTextRef.IsEmpty())
 	{
+		nativeFontID = dc->GetFont().MacGetThemeFontID();
+
 		if (bUseUnicode)
 		{
 		wxMacCFStringHolder	localCFSHolder( m_LabelTextRef, wxFONTENCODING_UNICODE );
 
 			errStatus =
 				(OSStatus)DrawThemeTextBox(
-					(CFStringRef)localCFSHolder, m_FontID, drawInfo.state, true,
+					(CFStringRef)localCFSHolder,
+					nativeFontID, drawInfo.state, true,
 					&qdBoundsR, nativeTextJust, NULL );
 		}
 		else
@@ -1913,7 +1959,8 @@ OSStatus				errStatus;
 			{
 				errStatus =
 					(OSStatus)DrawThemeTextBox(
-						cfLabelText, m_FontID, drawInfo.state, true,
+						cfLabelText,
+						nativeFontID, drawInfo.state, true,
 						&qdBoundsR, nativeTextJust, NULL );
 
 				CFRelease( cfLabelText );
