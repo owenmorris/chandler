@@ -47,9 +47,6 @@
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
   </List>
 
   <!-- Contact List -->
@@ -66,9 +63,6 @@
     <columnWidths>140</columnWidths>
     <columnWidths>130</columnWidths>
     <columnWidths>240</columnWidths>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
   </List>
 
   <!-- Note List -->
@@ -81,9 +75,6 @@
     <columnHeadings>Created On</columnHeadings>
     <columnWidths>270</columnWidths>
     <columnWidths>170</columnWidths>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
   </List>
 
   <!-- Month -->
@@ -93,9 +84,6 @@
     <daysPerWeek>7</daysPerWeek>
     <weeksPerView>6</weeksPerView>
     <offset>20</offset>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
   </calendarBlocks:MonthBlock>
 
   <!-- Week -->
@@ -105,9 +93,6 @@
     <daysPerView>7</daysPerView>
     <hoursPerView>24</hoursPerView>
     <offset>40</offset>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
   </calendarBlocks:WeekBlock>
 
   <!-- Mixed List -->
@@ -122,45 +107,30 @@
     <columnWidths>270</columnWidths>
     <columnWidths>150</columnWidths>
     <columnWidths>170</columnWidths>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
   </Summary>
 
   <ItemDetail itemName="CalendarEventDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
   </ItemDetail>
 
   <ItemDetail itemName="NoteDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
   </ItemDetail>
 
   <ItemDetail itemName="ContactDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
   </ItemDetail>
 
   <ItemDetail itemName="MixedItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
   </ItemDetail>
 
   <ItemDetail itemName="MonthItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
   </ItemDetail>
 
   <ItemDetail itemName="WeekItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
-    <size>100,50</size>
-    <minimumSize>100,50</minimumSize>
   </ItemDetail>
 
 
@@ -170,9 +140,6 @@
     <childrenBlocks itemref="view:CalendarEventDetail"/>
 
     <eventBoundary>True</eventBoundary>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
   </SplitterWindow>
 
@@ -182,9 +149,6 @@
     <childrenBlocks itemref="view:NoteDetail"/>
 
     <eventBoundary>True</eventBoundary>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
   </SplitterWindow>
 
@@ -194,9 +158,6 @@
     <childrenBlocks itemref="view:ContactDetail"/>
 
     <eventBoundary>True</eventBoundary>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
   </SplitterWindow>
 
@@ -206,9 +167,6 @@
     <childrenBlocks itemref="view:MixedItemDetail"/>
 
     <eventBoundary>True</eventBoundary>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
   </SplitterWindow>
 
@@ -218,9 +176,6 @@
     <childrenBlocks itemref="view:MonthItemDetail"/>
 
     <eventBoundary>True</eventBoundary>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
   </SplitterWindow>
 
@@ -230,9 +185,6 @@
     <childrenBlocks itemref="view:WeekItemDetail"/>
 
     <eventBoundary>True</eventBoundary>
-
-    <size>600,200</size>
-    <minimumSize>400,100</minimumSize>
     <border>1.0, 1.0, 1.0, 1.0</border>
   </SplitterWindow>
 

@@ -79,7 +79,6 @@
   </MenuItem>
   
   <MenuItem itemName="FileSeparator1">
-    <title></title>
     <menuLocation>FileMenu</menuLocation>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
@@ -107,7 +106,6 @@
   </MenuItem>
 
   <MenuItem itemName="EditSeparator1">
-    <title></title>
     <menuLocation>EditMenu</menuLocation>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
@@ -134,7 +132,6 @@
   </MenuItem>
   
   <MenuItem itemName="EditSeparator2">
-    <title></title>
     <menuLocation>EditMenu</menuLocation>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
@@ -461,7 +458,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </SplitterWindow>
   
-  <BoxContainer itemName="BookmarksContainer">
+  <BoxContainer itemName="MainBoxContainer">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:BookmarksBar"/>
     <childrenBlocks itemref="doc:MainSplitter"/>
@@ -473,7 +470,6 @@
 
   <View itemName="MainView"
         itemClass="osaf.views.main.Main.MainView">
-    <parentBlock itemref="core:None"/>
 
     <!-- Menus -->
     <childrenBlocks itemref="doc:FileMenu"/>
@@ -515,7 +511,7 @@
     <childrenBlocks itemref="doc:StatusBar"/>
 
     <!-- Layout children -->
-    <childrenBlocks itemref="doc:BookmarksContainer"/>
+    <childrenBlocks itemref="doc:MainBoxContainer"/>
     
     <!-- Block Events -->
     <blockEvents itemref="doc:ShowHideSidebar"/>

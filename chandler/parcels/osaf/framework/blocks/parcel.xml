@@ -262,6 +262,7 @@
       <type itemref="docSchema:Block"/>
       <cardinality>single</cardinality>
       <inverseAttribute itemref="docSchema:Block/childrenBlocks"/>
+      <defaultValue itemref="None"/>
     </Attribute>
   
     <Attribute itemName="childrenBlocks">
@@ -392,7 +393,7 @@
 
     <Attribute itemName="title">
       <type itemref="String"/>
-      <required>True</required>
+      <defaultValue type="String"></defaultValue>
     </Attribute>
     
     <Enumeration itemName="operationEnumType">
