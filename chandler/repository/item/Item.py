@@ -377,6 +377,8 @@ class Item(object):
                                    self._kind.getOtherName(name))
 
                 elif isinstance(old, RefDict):
+                    if old is value:
+                        return value
                     old.clear()
 
                 else:
