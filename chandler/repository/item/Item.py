@@ -38,11 +38,13 @@ class Item(object):
         
         self._name = name or self._uuid.str64()
         self._root = None
-        self._parent = parent
 
         self._kind = None
         self._setKind(kind)
-        self._setRoot(parent._addItem(self))
+
+        if parent is not None:
+            self._parent = parent
+            self._setRoot(parent._addItem(self))
 
     def __iter__(self):
 
@@ -867,26 +869,31 @@ class ItemHandler(xml.sax.ContentHandler):
         self.name = None
         self.kind = None
         self.cls = None
+        self.parentRef = None
                 
     def itemEnd(self, itemHandler, attrs):
 
         cls = (self.cls or
                self.kind and getattr(self.kind, 'Class', Item) or
                Item)
-        self.item = item = cls(self.name, self.repository, self.kind,
+
+        if self.parentRef is not None:
+            parent = self.repository.find(self.parentRef)
+        else:
+            parent = self.parent
+
+        self.item = item = cls(self.name, parent, self.kind,
                                _uuid = UUID(attrs.get('uuid')),
                                _attributes = self.attributes,
                                _references = self.references,
                                _afterLoadHooks = self.afterLoadHooks)
 
+        if parent is None:
+            self.repository._addOrphan(self.parentRef, item)
+
         for value in item._references.itervalues():
             if isinstance(value, RefDict):
                 value._item = item
-
-        if hasattr(self, 'parentRef'):
-            item._parentRef = self.parentRef
-        elif self.parent is not None:
-            item.move(self.parent)
 
         for ref in self.refs:
             other = item.find(ref[1])

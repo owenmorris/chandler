@@ -159,17 +159,13 @@ class RefDict(object):
 
     def __getitem__(self, key):
 
-        value = self._dict.__getitem__(key)
-        if value is not None:
-            value = value.other(self._item)
-
-        return value
+        return self._dict.__getitem__(key).other(self._item)
 
     def __setitem__(self, key, value):
 
         old = self._dict.get(key)
         
-        if old is not None and isinstance(old, ItemRef):
+        if isinstance(old, ItemRef):
             if isinstance(value, ItemRef):
                 old._detach(self._item, self._name,
                             old.other(self._item), self._otherName)
@@ -178,7 +174,7 @@ class RefDict(object):
                               old.other(self._item), value, self._otherName)
                 return
 
-        elif not isinstance(value, ItemRef):
+        if not isinstance(value, ItemRef):
             value = ItemRef(self._item, self._name, value, self._otherName)
             
         self._dict.__setitem__(key, value)

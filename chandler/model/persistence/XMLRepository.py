@@ -63,17 +63,13 @@ class XMLRepository(Repository):
 
         def load(container):
 
-            cover = Repository.stub(self)
             hooks = []
 
             for value in container.query("/item"):
-                self._loadItemString(value.asDocument().getContent(), cover,
+                self._loadItemString(value.asDocument().getContent(),
                                      verbose=verbose, afterLoadHooks=hooks)
-            for item in cover:
-                if item.__dict__.has_key('_parentRef'):
-                    item.move(self.find(item._parentRef))
-                    del item._parentRef
 
+            self.resolveOrphans()
             for hook in hooks:
                 hook()
 

@@ -36,21 +36,16 @@ class FileRepository(Repository):
 
     def _loadRoot(self, dir, verbose=False):
 
-        cover = Repository.stub(self)
         hooks = []
 
         contents = file(os.path.join(self._dir, dir, 'contents.lst'), 'r')
         for uuid in contents.readlines():
             self._loadItemFile(os.path.join(self._dir, dir,
                                             uuid[:-1] + '.item'),
-                               cover, verbose=verbose, afterLoadHooks=hooks)
+                               verbose=verbose, afterLoadHooks=hooks)
         contents.close()
-        
-        for item in cover:
-            if item.__dict__.has_key('_parentRef'):
-                item.move(self.find(item._parentRef))
-                del item._parentRef
 
+        self.resolveOrphans()
         for hook in hooks:
             hook()
 

@@ -28,7 +28,8 @@ class Repository(object):
         self._roots = {}
         self._registry = {}
         self._unresolvedRefs = []
-
+        self._orphans = []
+        
     def open(self):
         pass
 
@@ -67,6 +68,10 @@ class Repository(object):
     def _unregisterItem(self, item):
 
         del self._registry[item.getUUID()]
+
+    def _addOrphan(self, parentRef, item):
+
+        self._orphans.append((parentRef, item))
 
     def getPath(self, path):
         'Return the path of the repository relative to its item, always //.'
@@ -129,8 +134,7 @@ class Repository(object):
         if not packs:
             packs = Item('Packs', self, None)
 
-        cover = Repository.stub(self)
-        xml.sax.parse(path, PackHandler(path, parent, cover, verbose))
+        xml.sax.parse(path, PackHandler(path, parent, self, verbose))
 
     def dir(self, item=None, path=None):
         'Print out a listing of each item in the repository or under item.'
@@ -167,28 +171,33 @@ class Repository(object):
                     
             self._unresolvedRefs.pop(i)
 
+    def resolveOrphans(self):
+
+        for orphan in self._orphans:
+            orphan[1].move(self.find(orphan[0]))
+        self._orphans = []
 
     def load(self, verbose=False):
         raise NotImplementedError, "Repository.load"
 
-    def _loadItemFile(self, path, cover,
+    def _loadItemFile(self, path,
                       parent=None, verbose=False, afterLoadHooks=None):
 
         if verbose:
             print path
             
-        handler = ItemHandler(cover, parent or self, afterLoadHooks)
+        handler = ItemHandler(self, parent or self, afterLoadHooks)
         xml.sax.parse(path, handler)
 
         return handler.item
 
-    def _loadItemString(self, string, cover,
+    def _loadItemString(self, string,
                         parent=None, verbose=False, afterLoadHooks=None):
 
         if verbose:
             print string
             
-        handler = ItemHandler(cover, parent or self, afterLoadHooks)
+        handler = ItemHandler(self, parent or self, afterLoadHooks)
         xml.sax.parseString(string, handler)
 
         return handler.item
@@ -205,43 +214,3 @@ class Repository(object):
 
     def saveItem(self, item, **args):
         raise NotImplementedError, "Repository.saveItem"
-
-
-    class stub(object):
-
-        def __init__(self, repository):
-            super(Repository.stub, self).__init__()
-            self.repository = repository
-            self.registry = []
-
-        def __iter__(self):
-            return self.registry.__iter__()
-
-        def _addItem(self, item):
-            return item
-            
-        def _removeItem(self, item):
-            pass
-
-        def _registerItem(self, item):
-            self.registry.append(item)
-            self.repository._registerItem(item)
-
-        def _unregisterItem(self, item):
-            pass
-
-        def _loadItemFile(self, path, parent):
-            return self.repository._loadItemFile(path, self, parent)
-
-        def _appendRef(self, item, name, other, otherName, otherCard, itemRef):
-            self.repository._appendRef(item, name, other, otherName, otherCard,
-                                       itemRef)
-
-        def resolveRefs(self, verbose=False):
-            self.repository.resolveRefs(verbose)
-
-        def find(self, spec):
-            return self.repository.find(spec)
-
-        def loadPack(self, path, parent=None, verbose=False):
-            return self.repository.loadPack(path, parent, verbose)
