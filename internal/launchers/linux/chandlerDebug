@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ "$CHANDLERHOME" = "" ]
+then
+    CHANDLERHOME=`dirname $0`
+fi
+
+if [ "$CHANDLERBIN" = "" ]
+then
+    CHANDLERBIN=$CHANDLERHOME
+fi
+
+export LD_LIBRARY_PATH=$CHANDLERBIN/debug/dbxml/lib:$CHANDLERBIN/debug/db/lib:$CHANDLERBIN/debug/lib
+export PYTHONPATH=$CHANDLERHOME:$CHANDLERHOME/parcels
+export PYTHONHOME=$CHANDLERBIN/debug
+
+cd $CHANDLERHOME
+
+$CHANDLERBIN/debug/bin/python Chandler.py $*

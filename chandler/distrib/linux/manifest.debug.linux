@@ -110,9 +110,6 @@ README.linux.txt
 src=chandler
 dest=
 chandlerDebug
-src=chandler/debug/lib
-dest=debug/lib
-chandler_bin
 # and the launch scripts
 src=chandler/debug
 dest=debug

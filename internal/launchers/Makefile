@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=0.4-2
+RELVER=0.4-3
 LAUNCHERS=$(INTERNAL)/launchers
 
 BUILD=build_$(SNAP)
@@ -53,22 +53,23 @@ endif
 ifeq ($(OS),Linux)
 
 ifeq ($(DEBUG),1)
-LAUNCHER_FILES=./chandlerDebug $(SNAP)/lib/chandler_bin
+LAUNCHER=chandlerDebug
+LAUNCHER_FILES=./$(LAUNCHER)
 else
-LAUNCHER_FILES=./chandler $(SNAP)/lib/chandler_bin
+LAUNCHER=chandler
+LAUNCHER_FILES=./$(LAUNCHER)
 endif
 LIB_FILES=
 
 ARCHIVE: $(LAUNCHERS)/linux/
 
+# Nothing to be done for clean
 clean:
-	$(MAKE) -C linux -k DEBUG=$(DEBUG) clean
 
 build:
 	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
 	cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
-	cd $(LAUNCHERS)/linux; \
-	make
+	cp $(LAUNCHERS)/linux/$(LAUNCHER) $(BUILD_ROOT)/$(LAUNCHER)
 
 endif
 
