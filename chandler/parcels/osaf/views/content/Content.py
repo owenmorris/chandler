@@ -65,21 +65,33 @@ class CalendarListDelegate (ControlBlocks.ListDelegate):
 
 
 class ContactListDelegate(ControlBlocks.ListDelegate):
-    def ElementText (self, index, column):
+    def valOrEmpty(self, element, attrList):
+        if len(attrList)==0:
+            return element
+        attr=attrList[0]
+        if element.hasAttributeValue(attr):
+            if element.getAttributeAspect(attr, "cardinality") == "single":
+                r=element.getAttributeValue(attr)
+            else:
+                r=element.getAttributeValue(attr).first()
+            return self.valOrEmpty(r, attrList[1:])
+        else:
+            return ""
+
+    def ElementText (self, index, column): 
         counterpart = Globals.repository.find (self.counterpartUUID)
         result = counterpart.contentSpec.indexResult (index) 
         if column == 0:
-            return result.contactName.firstName
+            return self.valOrEmpty(result, ("contactName", "firstName"))
         elif column == 1:
-            return result.contactName.lastName
+            return self.valOrEmpty(result, ("contactName", "lastName"))
         elif column == 2:
-            return result.homeSection.phoneNumbers.first().phoneNumber
+            return self.valOrEmpty(result, ("homeSection", "phoneNumbers", "phoneNumber"))
         elif column == 3:
-            return result.homeSection.emailAddresses.first().emailAddress
+            return self.valOrEmpty(result, ("homeSection", "emailAddresses", "emailAddress"))
         elif __debug__:
             assert False, "Bad column"
         return ""
-
 
 class MixedListDelegate(ControlBlocks.ListDelegate):
     def ElementText (self, index, column):
