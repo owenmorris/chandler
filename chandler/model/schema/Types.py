@@ -76,6 +76,10 @@ class String(Type):
     makeValue = classmethod(makeValue)
 
 
+class Symbol(String):
+    pass
+
+
 class Integer(Type):
 
     def makeValue(cls, data):
