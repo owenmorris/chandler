@@ -24,6 +24,7 @@ import vobject
 import WebDAV
 
 logger = logging.getLogger('Sharing')
+logger.setLevel(logging.INFO)
 
 
 SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
@@ -309,7 +310,7 @@ class ShareConduit(ContentModel.ChandlerItem):
     def put(self):
         """ Transfer entire 'contents', transformed, to server. """
 
-        location = self._getLocation()
+        location = self.getLocation()
         logger.info("Starting PUT of %s" % (location))
 
         self.itsView.commit() # Make sure locally modified items have had
@@ -358,7 +359,7 @@ class ShareConduit(ContentModel.ChandlerItem):
 
     def get(self):
 
-        location = self._getLocation()
+        location = self.getLocation()
         logger.info("Starting GET of %s" % (location))
 
         self.resourceList = self._getResourceList(location)
@@ -399,7 +400,7 @@ class ShareConduit(ContentModel.ChandlerItem):
 
     # Methods that subclasses *must* implement:
 
-    def _getLocation(self):
+    def getLocation(self):
         """ Return a string representing where the share is being exported
             to or imported from, such as a URL or a filesystem path
         """
@@ -415,7 +416,7 @@ class ShareConduit(ContentModel.ChandlerItem):
     def _getResourceList(self, location):
         """ Return a dictionary representing what items exist in the remote
             share. """
-        # 'location' is a location returned from _getLocation
+        # 'location' is a location returned from getLocation
         # The returned dictionary should be keyed on a string that uniquely
         # identifies a resource in the remote share.  For example, a url
         # path or filesystem path.  The values of the dictionary should
@@ -553,7 +554,7 @@ class FileSystemConduit(ShareConduit):
         # @@@ Probably should remove any slashes, or warn if there are any?
         self.shareName = self.shareName.strip("/")
 
-    def _getLocation(self): # must implement
+    def getLocation(self): # must implement
         if self.hasAttributeValue("sharePath") and \
          self.hasAttributeValue("shareName"):
             return os.path.join(self.sharePath, self.shareName)
@@ -566,10 +567,10 @@ class FileSystemConduit(ShareConduit):
                 fileName = self.SHAREFILE
             else:
                 fileName = "%s.xml" % item.externalUUID
-            return os.path.join(self._getLocation(), fileName)
+            return os.path.join(self.getLocation(), fileName)
 
         elif style == ImportExportFormat.STYLE_SINGLE:
-            return self._getLocation()
+            return self.getLocation()
 
         else:
             print "@@@ Raise an exception here"
@@ -619,9 +620,9 @@ class FileSystemConduit(ShareConduit):
 
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
-            return os.path.isdir(self._getLocation())
+            return os.path.isdir(self.getLocation())
         elif style == ImportExportFormat.STYLE_SINGLE:
-            return os.path.isfile(self._getLocation())
+            return os.path.isfile(self.getLocation())
         else:
             print "@@@ Raise an exception here"
 
@@ -636,7 +637,7 @@ class FileSystemConduit(ShareConduit):
 
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
-            path = self._getLocation()
+            path = self.getLocation()
             if not os.path.exists(path):
                 os.mkdir(path)
 
@@ -646,7 +647,7 @@ class FileSystemConduit(ShareConduit):
         if not self.exists():
             raise NotFound()
 
-        path = self._getLocation()
+        path = self.getLocation()
 
         style = self.share.format.fileStyle()
         if style == ImportExportFormat.STYLE_DIRECTORY:
@@ -694,11 +695,12 @@ class WebDAVConduit(ShareConduit):
 
     def __getClient(self):
         if self.client is None:
+            logger.info("...creating new client")
             self.client = WebDAV.Client(self.host, port=self.port,
              username=self.username, password=self.password, useSSL=False)
         return self.client
 
-    def _getLocation(self):  # must implement
+    def getLocation(self):  # must implement
         """ Return the url of the share """
         # @@@ need to handle https
         if self.port == 80:
@@ -747,7 +749,7 @@ class WebDAVConduit(ShareConduit):
         style = self.share.format.fileStyle()
 
         if style == ImportExportFormat.STYLE_DIRECTORY:
-            url = self._getLocation()
+            url = self.getLocation()
             resp = self.__getClient().mkcol(url)
             # @@@ Raise an exception if already exists?
             # print "response from mkcol:", resp.read()
@@ -799,7 +801,7 @@ class WebDAVConduit(ShareConduit):
 
         if style == ImportExportFormat.STYLE_DIRECTORY:
 
-            resources = self.__getClient().ls(location)
+            resources = self.__getClient().ls(location + "/")
             for (path, etag) in resources:
                 resourceList[path] = { 'data' : etag }
 
@@ -815,7 +817,7 @@ class WebDAVConduit(ShareConduit):
 
     def _dumpState(self):
         # print " - - - - - - - - - "
-        # resourceList = self._getResourceList(self._getLocation())
+        # resourceList = self._getResourceList(self.getLocation())
         # print
         # print "On server:"
         # for (path, value) in resourceList.iteritems():

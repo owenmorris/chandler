@@ -4,6 +4,7 @@ __copyright__ = "Copyright (c) 2005 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import httplib
+import socket
 import mimetypes
 import base64
 import libxml2
@@ -72,13 +73,19 @@ class Client(object):
 
         resources = []
         resp = self.propfind(url, depth=1, extraHeaders=extraHeaders)
+        if resp.status != httplib.MULTI_STATUS:
+            raise "ERROR, got status %d" % resp.status # @@@
 
         # Parse the propfind, pulling out the URLs for each child along
         # with their ETAGs, and storing them in the resourceList dictionary:
         text = resp.read()
         # @@@ Hack to avoid libxml2 complaints:
         text = text.replace('="DAV:"', '="http://osafoundation.org/dav"')
-        doc = libxml2.parseDoc(text)
+        try:
+            doc = libxml2.parseDoc(text)
+        except:
+            print "parsing response failed:", text
+            raise
         node = doc.children.children
         while node:
             if node.type == "element":
@@ -116,6 +123,26 @@ class Client(object):
              base64.encodestring(self.username + ':' + self.password).strip()
             extraHeaders = extraHeaders.copy()
             extraHeaders['Authorization'] = auth
-        self.conn.request(method, url, body, extraHeaders)
-        return self.conn.getresponse()
+
+        # @@@MOR Rewrite all this retry code:
+        try:
+            self.conn.request(method, url, body, extraHeaders)
+        except httplib.CannotSendRequest:
+            print "Got a 'cannotsendrequest', so reconnecting and retrying"
+            self.connect()
+            self.conn.request(method, url, body, extraHeaders)
+        except socket.error, e:
+            print "Got a request socket error", e
+            print "Reconnecting and retrying"
+            self.connect()
+            self.conn.request(method, url, body, extraHeaders)
+        try:
+            response = self.conn.getresponse()
+        except socket.error, e:
+            print "Got a response socket error", e
+            print "Reconnecting and retrying"
+            self.connect()
+            self.conn.request(method, url, body, extraHeaders)
+            response = self.conn.getresponse()
+        return response
 
