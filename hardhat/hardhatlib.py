@@ -597,6 +597,17 @@ def test(buildenv, module_name):
 # end test()
 
 
+def generateDocs(buildenv, module_name):
+    os.chdir(buildenv['root'])
+    # log(buildenv, HARDHAT_MESSAGE, module_name, "Building")
+    module_path = buildenv['root'] + os.sep + module_name + os.sep + \
+     "__hardhat__.py"
+    module = module_from_file(buildenv, module_path, module_name)
+    os.chdir(module_name)
+    module.generateDocs(buildenv)
+    # log(buildenv, HARDHAT_MESSAGE, module_name, "Back from build")
+# end build()
+
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -30,6 +30,7 @@ def usage():
     print "-d          use debug version"
     print "-D VERSION  create a distribution, using VERSION as the version string"
     # print "-e          show environment variables in hardhat.log (on by default)"
+    print "-g          generate documentation (via XSLT transform)"
     print "-h          display this help"
     print "-l FILE(S)  lint Python file(s) using PyChecker"
     print "-n          non-interactive (won't prompt during scrubbing)"
@@ -48,7 +49,7 @@ False = 0
 
 # Check the command line
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "bBcCdD:ehlno:rsStvx")
+    opts, args = getopt.getopt(sys.argv[1:], "bBcCdD:eghlno:rsStvx")
 except getopt.GetoptError:
     usage()
     sys.exit(1)
@@ -163,6 +164,9 @@ try:
 
         if opt == "-e":
             buildenv['showenv'] = 1
+
+        if opt == "-g":
+            hardhatlib.generateDocs(buildenv, curmodulepath)
 
         if opt == "-h":
             usage()
