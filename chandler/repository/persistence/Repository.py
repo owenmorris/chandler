@@ -208,6 +208,8 @@ class RepositoryView(object):
         self._stubs = []
         self._status = RepositoryView.OPEN
 
+        repository.store.attachView(self)
+
     def __str__(self):
 
         return "<%s for %s>" %(type(self).__name__, self._thread.getName())
@@ -244,6 +246,8 @@ class RepositoryView(object):
         self._childrenRegistry.clear()
 
         self._status &= ~RepositoryView.OPEN
+
+        self.repository.store.detachView(self)
 
     def isOpen(self):
 
@@ -622,6 +626,12 @@ class Store(object):
 
     def getDocContent(self, doc):
         raise NotImplementedError, "Store.getDocContent"
+
+    def attachView(self, view):
+        pass
+
+    def detachView(self, view):
+        pass
 
 
 class OnDemandRepository(Repository):

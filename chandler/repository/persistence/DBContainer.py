@@ -38,6 +38,14 @@ class DBContainer(object):
         self._db.close()
         self._db = None
 
+    def attachView(self, view):
+
+        pass
+
+    def detachView(self, view):
+
+        pass
+
     def put(self, key, value):
 
         self._db.put(key, value, txn=self.store.txn)

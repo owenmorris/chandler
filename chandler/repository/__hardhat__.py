@@ -1,4 +1,5 @@
-import os, hardhatlib
+
+import os, sys, hardhatlib
 
 info = {
         'name': 'repository',
@@ -11,7 +12,7 @@ dependencies = (
 
 def build(buildenv):
 
-    # Build UUID Extension and install it
+    # Build UUID extension and install it
 
     os.chdir(os.path.join("util", "ext"))
 
@@ -29,13 +30,14 @@ def build(buildenv):
 
     os.chdir("../..")
 
-    # Build API documentation into api subdirectory
+    # Build API documentation into api subdirectory (except dos windows)
 
-#    hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
-#                      '-o api -v -n chandlerdb',
-#                      '--inheritance listed',
-#                      '--no-private',
-#                      'item', 'schema')
+    if buildenv['os'] != 'win' or sys.platform == 'cygwin':
+        hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
+                          '-o api -v -n chandlerdb',
+                          '--inheritance listed',
+                          '--no-private',
+                          'item', 'schema')
 
 
 def clean(buildenv):

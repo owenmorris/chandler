@@ -416,16 +416,26 @@ class IndexContainer(FileContainer):
 
         super(IndexContainer, self).__init__(store, name, txn, create)
 
-        attachCurrentThread()
         if create:
+            attachCurrentThread()
             directory = DbDirectory(txn, self._db, store._blocks._db,
                                     DB_DIRTY_READ)
             indexWriter = IndexWriter(directory, StandardAnalyzer(), True)
             indexWriter.close()
+            detachCurrentThread()
 
     def close(self):
 
         super(IndexContainer, self).close()
+
+    def attachView(self, view):
+
+        super(IndexContainer, self).attachView(view)
+        attachCurrentThread()
+
+    def detachView(self, view):
+
+        super(IndexContainer, self).detachView(view)
         detachCurrentThread()
 
     def getIndexWriter(self):

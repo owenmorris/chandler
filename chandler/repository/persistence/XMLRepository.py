@@ -164,6 +164,14 @@ class XMLContainer(object):
         else:
             self._xml.open(txn, DB_DIRTY_READ | DB_THREAD)
 
+    def attachView(self, view):
+
+        pass
+
+    def detachView(self, view):
+
+        pass
+
     def loadItem(self, version, uuid):
 
         store = self.store
@@ -366,6 +374,28 @@ class XMLStore(Store):
         self._binary.close()
         self._index.close()
         self._blocks.close()
+
+    def attachView(self, view):
+
+        self._data.attachView(view)
+        self._refs.attachView(view)
+        self._versions.attachView(view)
+        self._history.attachView(view)
+        self._text.attachView(view)
+        self._binary.attachView(view)
+        self._index.attachView(view)
+        self._blocks.attachView(view)
+
+    def detachView(self, view):
+
+        self._data.detachView(view)
+        self._refs.detachView(view)
+        self._versions.detachView(view)
+        self._history.detachView(view)
+        self._text.detachView(view)
+        self._binary.detachView(view)
+        self._index.detachView(view)
+        self._blocks.detachView(view)
 
     def loadItem(self, version, uuid):
 
