@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import cStringIO
 
 from datetime import datetime
-from struct import pack, unpack
+from struct import pack
 
 from bsddb.db import DBLockDeadlockError, DBNotFoundError
 from bsddb.db import DB_DIRTY_READ, DB_LOCK_WRITE
@@ -105,6 +105,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
         before = datetime.now()
         count = len(self._log)
+        size = 0L
         txnStarted = False
         lock = None
         
@@ -133,8 +134,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                                          history)
                 
                     for item in self._log:
-                        self._saveItem(item, newVersion,
-                                       data, versions, history)
+                        size += self._saveItem(item, newVersion,
+                                               data, versions, history)
 
             except DBLockDeadlockError:
                 self.logger.info('restarting commit aborted by deadlock')
@@ -147,11 +148,12 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 continue
             
             except:
-                self.logger.exception('aborting transaction')
+                self.logger.exception('aborting transaction (%ld bytes)', size)
                 if txnStarted:
                     store._abortTransaction()
                 if lock:
                     env.lock_put(lock)
+                    lock = None
 
                 raise
 
@@ -192,8 +194,9 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                     env.lock_put(lock)
 
                 if count > 0:
-                    self.logger.info('%s committed %d items in %s',
-                                     self, count, datetime.now() - before)
+                    self.logger.info('%s committed %d items (%ld bytes) in %s',
+                                     self, count, size,
+                                     datetime.now() - before)
                 return
 
     def _saveItem(self, item, newVersion, data, versions, history):
@@ -209,6 +212,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 versions.setDocVersion(uuid, newVersion, 0)
                 history.writeVersion(uuid, newVersion, 0, item.getDirty())
 
+            return 0
+
         else:
             if self.isDebug():
                 self.logger.debug('Saving version %d of %s',
@@ -221,11 +226,15 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             generator.endDocument()
 
             doc = XmlDocument()
-            doc.setContent(out.getvalue())
+            content = out.getvalue()
+            size = len(content)
+            doc.setContent(content)
             out.close()
             docId = data.putDocument(doc)
             versions.setDocVersion(uuid, newVersion, docId)
             history.writeVersion(uuid, newVersion, docId, item.getDirty())
+
+            return size
 
     def _mergeItems(self, items, oldVersion, newVersion, history):
 
@@ -460,7 +469,9 @@ class XMLText(Text):
 
         if self._dirty:
             self._version += 1
-            view.repository.store._text.put(self._makeKey(), self._data)
+            out = view.repository.store._text.createFile(self._makeKey())
+            out.write(self._data)
+            out.close()
 
         attrs = {}
         attrs['version'] = str(self._version)
@@ -476,7 +487,7 @@ class XMLText(Text):
 
     def _makeKey(self):
 
-        return "%s%s" %(self._uuid._uuid, pack('>l', ~self._version))
+        return pack('>16sl', self._uuid._uuid, ~self._version)
 
     def _textEnd(self, view, data, attrs):
 
@@ -495,17 +506,17 @@ class XMLText(Text):
         else:
             self._uuid = UUID(data)
 
-    def _setData(self, text):
+    def _setData(self, data):
 
-        super(XMLText, self)._setData(text)
+        super(XMLText, self)._setData(data)
         self._dirty = True
 
-    def _getData(self):
+    def _getBufferedInputStream(self):
 
         if self._uuid is None:
-            return super(XMLText, self)._getData()
+            return super(XMLText, self)._getBufferedInputStream()
 
-        return self._view.repository.store._text.get(self._makeKey())
+        return self._view.repository.store._text.openFile(self._makeKey())
 
 
 class XMLBinary(Binary):
@@ -526,7 +537,9 @@ class XMLBinary(Binary):
 
         if self._dirty:
             self._version += 1
-            view.repository.store._binary.put(self._makeKey(), self._data)
+            out = view.repository.store._binary.createFile(self._makeKey())
+            out.write(self._data)
+            out.close()
 
         attrs = {}
         attrs['version'] = str(self._version)
@@ -541,7 +554,7 @@ class XMLBinary(Binary):
 
     def _makeKey(self):
 
-        return "%s%s" %(self._uuid._uuid, pack('>l', ~self._version))
+        return pack('>16sl', self._uuid._uuid, ~self._version)
 
     def _binaryEnd(self, view, data, attrs):
 
@@ -562,9 +575,9 @@ class XMLBinary(Binary):
         super(XMLBinary, self)._setData(data)
         self._dirty = True
 
-    def _getData(self):
+    def _getBufferedInputStream(self):
 
         if self._uuid is None:
-            return super(XMLBinary, self)._getData()
+            return super(XMLBinary, self)._getBufferedInputStream()
 
-        return self._view.repository.store._binary.get(self._makeKey())
+        return self._view.repository.store._binary.openFile(self._makeKey())

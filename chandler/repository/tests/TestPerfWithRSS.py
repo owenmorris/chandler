@@ -64,9 +64,10 @@ class TestPerfWithRSS(unittest.TestCase):
                 self.rep.logger.info(feed.url)
 #                print data
                 feed.Update(data)
-                repository.commit()
+#                repository.commit()
             except Exception, e:
-                self.rep.logger.error(feed.url,":",e)
+                pass
+#                self.rep.logger.error(feed.url,":",e)
 
         try:
             repository.commit()

@@ -505,6 +505,11 @@ class RefDict(LinkedMap):
         for value in valueList:
             self.append(value)
 
+    def update(self, dictionary):
+
+        for value in dictionary.itervalues():
+            self.append(value)
+
     def append(self, item, alias=None):
 
         self.__setitem__(item._refName(self._name), item, alias=alias)
