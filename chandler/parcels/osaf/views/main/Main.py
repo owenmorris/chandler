@@ -82,6 +82,7 @@ class MainView(View):
         self.onAddRepositoryViewEvent(notification)
         self.onAddMixedViewEvent(notification)
         self.onAddStockQuoteEvent(notification)
+        self.onAddKindViewsEvent(notification)
         
     def onAddDemoViewEvent(self, notification):
         self._addNewView('//parcels/osaf/views/demo/TabBox')
@@ -95,6 +96,20 @@ class MainView(View):
     def onAddStockQuoteEvent(self, notification):
         self._addNewView('//parcels/osaf/examples/stockquote/views/StockQuoteView')
 
+    def onAddNoteViewEvent(self, notification):
+        self._addNewView('//parcels/osaf/views/content/NoteListView')
+
+    def onAddTaskViewEvent(self, notification):
+        self._addNewView('//parcels/osaf/views/content/TaskListView')
+
+    def onAddMailViewEvent(self, notification):
+        self._addNewView('//parcels/osaf/views/content/MailListView')
+
+    def onAddKindViewsEvent(self, notification):
+        self.onAddNoteViewEvent(notification)
+        self.onAddTaskViewEvent(notification)
+        self.onAddMailViewEvent(notification)
+        
     def _addNewView(self, path):
         sidebarCollection = Globals.repository.findPath('//parcels/osaf/views/main/sidebarItemCollection')
         newView = Globals.repository.findPath(path)

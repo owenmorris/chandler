@@ -64,11 +64,11 @@
   <!-- Root -->
   <ContentItemDetail itemName="DetailRoot"
                      itemClass="osaf.framework.blocks.detail.Detail.DetailRoot">
-    <childrenBlocks itemref="doc:DetailChild"/>
+    <childrenBlocks itemref="doc:DetailTrunk"/>
   </ContentItemDetail>
 
-  <ContentItemDetail itemName="DetailChild"
-                     itemClass="osaf.framework.blocks.detail.Detail.DetailChild">
+  <ContentItemDetail itemName="DetailTrunk"
+                     itemClass="osaf.framework.blocks.detail.Detail.DetailTrunk">
     <!-- child blocks -->
     <childrenBlocks itemref="doc:MarkupBar1"/>
     <childrenBlocks itemref="doc:FromAndToArea"/>

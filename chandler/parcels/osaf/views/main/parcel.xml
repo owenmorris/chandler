@@ -335,6 +335,44 @@
     <helpString>Adds the mixed list view to the sidebar</helpString>
   </MenuItem>
 
+  <MenuItem itsName="TestSeparator2">
+    <location>AddAdditionalViewsItem</location>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
+  <MenuItem itsName="AddNoteViewItem">
+    <title>Add Note-Kind View</title>
+    <location>AddAdditionalViewsItem</location>
+    <event itemref="events:AddNoteView"/>
+    <helpString>Adds the Note-Kind view to the sidebar</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="AddTaskViewItem">
+    <title>Add Task-Kind View</title>
+    <location>AddAdditionalViewsItem</location>
+    <event itemref="events:AddTaskView"/>
+    <helpString>Adds the Task-Kind view to the sidebar</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="AddMailViewItem">
+    <title>Add Mail-Kind View</title>
+    <location>AddAdditionalViewsItem</location>
+    <event itemref="events:AddMailView"/>
+    <helpString>Adds the Mail-Kind view to the sidebar</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="AddKindViewsItem">
+    <title>Add all Kind-specific Views</title>
+    <location>AddAdditionalViewsItem</location>
+    <event itemref="events:AddKindViews"/>
+    <helpString>Adds the Kind-specific views to the sidebar</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="TestSeparator3">
+    <location>AddAdditionalViewsItem</location>
+    <menuItemKind>Separator</menuItemKind>
+  </MenuItem>
+  
   <MenuItem itsName="AddStockQuoteItem">
     <title>Add Stock Quote</title>
     <location>AddAdditionalViewsItem</location>
@@ -579,7 +617,7 @@
   <contentModel:NamedCollection itsName="sidebarItemCollection">
     <inclusions uuidOf="content:InListView"/>
     <inclusions uuidOf="content:OutListView"/>
-    <inclusions uuidOf="content:NewCalendarListView"/>
+    <inclusions uuidOf="content:CalendarListView"/>
     <inclusions uuidOf="content:NewContactListView"/>
     <inclusions uuidOf="content:JunkListView"/>
     <inclusions uuidOf="content:TrashListView"/>
@@ -672,6 +710,12 @@
     <childrenBlocks itemref="doc:AddDemoViewItem"/>
     <childrenBlocks itemref="doc:AddRepositoryViewItem"/>
     <childrenBlocks itemref="doc:AddMixedViewItem"/>
+    <childrenBlocks itemref="doc:TestSeparator2"/>
+    <childrenBlocks itemref="doc:AddNoteViewItem"/>
+    <childrenBlocks itemref="doc:AddTaskViewItem"/>
+    <childrenBlocks itemref="doc:AddMailViewItem"/>
+    <childrenBlocks itemref="doc:AddKindViewsItem"/>
+    <childrenBlocks itemref="doc:TestSeparator3"/>
     <childrenBlocks itemref="doc:AddStockQuoteItem"/>
     
     <childrenBlocks itemref="doc:HelpMenu"/>

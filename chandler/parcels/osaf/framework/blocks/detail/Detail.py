@@ -13,6 +13,7 @@ import osaf.contentmodel.mail.Mail as Mail
 import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.Notes as Notes
+import osaf.contentmodel.contacts.Contacts as Contacts
 import wx
 
 """
@@ -73,7 +74,7 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         item= self.selectedItem()
         self.synchronizeDetailView(item)
         
-class DetailChild(ControlBlocks.ContentItemDetail):
+class DetailTrunk(ControlBlocks.ContentItemDetail):
     """
       First Child of the Detail Root.
     """
@@ -185,11 +186,12 @@ class MarkupBar (DetailSyncronizer, DynamicContainerBlocks.Toolbar):
         bar = tool.dynamicParent
         item = bar.selectedItem()
         if item is not None:
-            whichKindID = tool.stampAspectKind().itsUUID
+            aspectKind = tool.stampAspectKind()
             if bar.widget.GetToolState(tool.toolID):
-                item.StampKind(whichKindID)
+                operation = 'add'
             else:
-                item.UnStampKind(whichKindID)
+                operation = 'remove'
+            item.StampKind(operation, aspectKind)
             # DLDTBD - notify the world that the item has a new kind.
             self.relayoutParents()        
 
@@ -362,12 +364,19 @@ class ToEditField (EditTextAttribute):
        
     def loadAttributeIntoWidget (self, item, widget):
         whoContacts = item.who # get redirected who list
-        whoString = ''
-        if len(whoContacts) > 0:
+        try:
+            numContacts = len(whoContacts)
+        except:
+            numContacts = 0            
+        if numContacts > 0:
             whoNames = []
             for whom in whoContacts.values():
                 whoNames.append(whom.getItemDisplayName())
             whoString = ', '.join(whoNames)
+        else:
+            whoString = ''
+            if isinstance(whoContacts, Contacts.ContactName):
+                whoString = whoContacts.firstName + ' ' + whoContacts.lastName
         widget.SetValue(whoString)
 
 class FromEditField (EditTextAttribute):

@@ -12,6 +12,8 @@
              xmlns:calendarBlocks="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"
              xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
              xmlns:calendarModel="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
+             xmlns:mailModel="http://osafoundation.org/parcels/osaf/contentmodel/mail"
+             xmlns:taskModel="http://osafoundation.org/parcels/osaf/contentmodel/tasks"
              xmlns:contactsModel="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
              xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
              xmlns:view="http://osafoundation.org/parcels/osaf/views/content"
@@ -21,7 +23,7 @@
 
   <!-- Queries -->
   <contentModel:Query itsName="calendarQuery">
-     <data itemref="calendarModel:CalendarEvent"/>
+     <data itemref="calendarModel:CalendarEventAspect"/>
   </contentModel:Query>
   <contentModel:NamedCollection itsName="calendarItemCollection">
     <rule itemref="view:calendarQuery"/>
@@ -32,6 +34,20 @@
   </contentModel:Query>
   <contentModel:NamedCollection itsName="notesItemCollection">
     <rule itemref="view:notesQuery"/>
+  </contentModel:NamedCollection>
+
+  <contentModel:Query itsName="taskQuery">
+    <data itemref="taskModel:TaskAspect"/>
+  </contentModel:Query>
+  <contentModel:NamedCollection itsName="taskItemCollection">
+    <rule itemref="view:taskQuery"/>
+  </contentModel:NamedCollection>
+
+  <contentModel:Query itsName="mailQuery">
+    <data itemref="mailModel:MailMessageAspect"/>
+  </contentModel:Query>
+  <contentModel:NamedCollection itsName="mailItemCollection">
+    <rule itemref="view:mailQuery"/>
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="contactQuery">
@@ -102,18 +118,6 @@
     <columnWidths>240</columnWidths>
   </List>
 
-  <!-- Note List -->
-  <List itsName="NoteList">
-    <contents itemref="view:notesItemCollection"/>
-
-    <elementDelegate>osaf.views.content.Content.NoteListDelegate</elementDelegate>
-
-    <columnData>Description</columnData>
-    <columnData>Created On</columnData>
-    <columnWidths>270</columnWidths>
-    <columnWidths>170</columnWidths>
-  </List>
-
   <!-- Calendar Blocks -->
   <CharacterStyle itsName="CalendarTitle">
     <fontStyle>bold</fontStyle>
@@ -181,8 +185,8 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <!-- New Calendar List -->
-  <Table itsName="NewCalendarList">
+  <!-- Calendar List -->
+  <Table itsName="CalendarList">
     <contents itemref="view:calendarItemCollection"/>
 
     <columnData>who</columnData>
@@ -207,9 +211,35 @@
     <columnWidths>170</columnWidths>
   </Table>
 
-  <!-- Notes List -->
-  <Table itsName="NotesList">
+  <!-- Note List -->
+  <Table itsName="NoteList">
     <contents itemref="view:notesItemCollection"/>
+
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
+
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
+  </Table>
+
+  <!-- Task List -->
+  <Table itsName="TaskList">
+    <contents itemref="view:taskItemCollection"/>
+
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
+
+    <columnWidths>270</columnWidths>
+    <columnWidths>150</columnWidths>
+    <columnWidths>170</columnWidths>
+  </Table>
+
+  <!-- Mail List -->
+  <Table itsName="MailList">
+    <contents itemref="view:mailItemCollection"/>
 
     <columnData>who</columnData>
     <columnData>about</columnData>
@@ -274,12 +304,23 @@
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
 
+  <!-- Note View -->
+  <SplitterWindow itsName="NoteListView">
+    <displayName>NoteList</displayName>
 
-  <!-- Calendar View -->
-  <SplitterWindow itsName="CalendarListView">
-    <displayName>OldCalendar</displayName>
+    <childrenBlocks itemref="view:NoteList"/>
+    <childrenBlocks itemref="detail:DetailRoot"/>
 
-    <childrenBlocks itemref="view:CalendarList"/>
+    <eventBoundary>True</eventBoundary>
+    <border>1.0, 1.0, 1.0, 1.0</border>
+    <splitPercentage>0.2</splitPercentage>
+  </SplitterWindow>
+
+  <!-- Task View -->
+  <SplitterWindow itsName="TaskListView">
+    <displayName>TaskList</displayName>
+
+    <childrenBlocks itemref="view:TaskList"/>
     <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
@@ -287,12 +328,12 @@
     <splitPercentage>0.2</splitPercentage>
   </SplitterWindow>
 
-  <!-- Notes View -->
-  <SplitterWindow itsName="NoteListView">
-    <displayName>NotesList</displayName>
+  <!-- Mail View -->
+  <SplitterWindow itsName="MailListView">
+    <displayName>MailList</displayName>
 
-    <childrenBlocks itemref="view:NoteList"/>
-    <childrenBlocks itemref="detail:DetailRoot"/>
+    <childrenBlocks itemref="view:MailList"/>
+    <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -344,11 +385,11 @@
     <splitPercentage>0.2</splitPercentage>
   </SplitterWindow>
 
-  <!-- New Calendar View -->
-  <SplitterWindow itsName="NewCalendarListView">
+  <!-- Calendar View -->
+  <SplitterWindow itsName="CalendarListView">
     <displayName>Calendar</displayName>
 
-    <childrenBlocks itemref="view:NewCalendarList"/>
+    <childrenBlocks itemref="view:CalendarList"/>
     <childrenBlocks itemref="detail:DetailRoot" copy="DetailRoot"/>
 
     <eventBoundary>True</eventBoundary>
