@@ -53,6 +53,7 @@ def init(root):
     if os.name == 'nt':
 	buildenv['os'] = 'win'
 	buildenv['oslabel'] = 'win'
+	buildenv['root_dos'] = buildenv['root']
 	buildenv['path'] = os.environ['path']
     elif os.name == 'posix':
 	buildenv['os'] = 'posix'
@@ -68,6 +69,17 @@ def init(root):
 	    buildenv['os'] = 'win'
 	    buildenv['oslabel'] = 'win'
 	    buildenv['path'] = os.environ['PATH']
+	    try:
+		cygpath = os.popen("/bin/cygpath -w " + buildenv['root'], "r")
+		buildenv['root_dos'] = cygpath.readline()
+		buildenv['root_dos'] = buildenv['root_dos'][:-1]
+		cygpath.close()
+	    except Exception, e:
+		print e
+		print "Unable to call 'cygpath' to determine DOS-equivalent for OSAFROOT"
+		print "Either make sure that 'cygpath' is in your PATH or run the Windows version"
+		print "of Python from http://python.org/, rather than the Cygwin Python"
+		raise HardHatError
 
     else: 
         raise HardHatUnknownPlatformError
@@ -666,8 +678,25 @@ def setupEnvironment(buildenv):
 	 os.pathsep + buildenv['path']
 	os.putenv('BUILDMODE', 'release')
 
+
     # log(buildenv, HARDHAT_MESSAGE, 'hardhat', "Setting path to " + path)
-    os.putenv('path', path)
+    # os.putenv('path', path)
+    if sys.platform == 'cygwin':
+	# Even though we're under cygwin, we're going to be launching 
+        # external programs that expect PATH to be in DOS format, so
+        # convert it
+	try:
+	    cygpath = os.popen("/bin/cygpath -wp \"" + path + "\"", "r")
+	    path = cygpath.readline()
+	    path = path[:-1]
+	    cygpath.close()
+	except Exception, e:
+	    print e
+	    print "Unable to call 'cygpath' to determine DOS-equivalent for PATH"
+	    print "Either make sure that 'cygpath' is in your PATH or run the Windows version"
+	    print "of Python from http://python.org/, rather than the Cygwin Python"
+	    raise HardHatError
+
     os.putenv('PATH', path)
 
     if buildenv['os'] == 'posix':
@@ -1220,6 +1249,13 @@ def findInPath(path,fileName):
 	    if os.path.isfile(os.path.join(dir, fileName + ".exe")):
 		return os.path.join(dir, fileName + ".exe")
     return None
+
+def toCygwinPath(path):
+    if path[1:3] == ":\\":
+	path = path[0] + path[2:]
+	path = "/cygdrive/" + path
+	path = string.join(string.split(path, "\\"), "/")
+    return path
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # Exception Classes
