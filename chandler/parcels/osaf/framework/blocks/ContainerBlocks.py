@@ -244,7 +244,7 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
         super (wxTabbedContainer, self).__init__ (*arguments, **keywords)
         self.selectedTab = 0
         
-        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnSelectionChanged,
+        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.OnWXSelectionChanged,
                   id=self.GetId())
 
     def CalculateWXStyle(self, block):
@@ -261,7 +261,7 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
         return style
     CalculateWXStyle = classmethod(CalculateWXStyle)
 
-    def OnSelectionChanged (self, event):
+    def OnWXSelectionChanged (self, event):
         if not Globals.wxApplication.ignoreSynchronizeWidget:
             self.selectedTab = event.GetSelection()
             page = self.GetPage(self.selectedTab)
