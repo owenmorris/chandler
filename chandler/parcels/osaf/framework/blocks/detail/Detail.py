@@ -38,8 +38,11 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
     """
       Root of the Detail View.
     """
+    # @@@ There's a lot of overlap between onSetContentsEvent and onSelectItemEvent, and scrungy old
+    # code related to selection down the block tree - we'll revisit it all in 0.6
+
     def onSetContentsEvent (self, event):
-        self.selection = event.arguments['item']
+        self.__changeSelection(event.arguments['item'])
 
     def onSelectItemEvent (self, event):
         """
@@ -48,17 +51,31 @@ class DetailRoot (ControlBlocks.ContentItemDetail):
         """
         # Finish changes to previous selected item 
         self.finishSelectionChanges () 
-        """
-          Remember the new selected ContentItem.
-        """
-        self.selection = event.arguments['item']
-
+        
+        # Remember the new selected ContentItem.
+        self.__changeSelection(event.arguments['item'])
+ 
         # Synchronize to this item; this'll swap in an appropriate detail trunk.
         self.synchronizeWidget()
         if __debug__:
             dumpSelectItem = False
             if dumpSelectItem:
                 self.dumpShownHierarchy ('onSelectItemEvent')
+    
+    def __changeSelection(self, item):
+        # @@@BJS For now, avoid dirtying selection if it's already right
+        # (This optimization may get done in the repository in 0.6...)
+        if self.selection != item:
+            self.selection = item
+        
+        # Make sure the itemcollection that we monitor includes only the selected item.
+        if len(self.contents.inclusions) != 1 or self.contents.inclusions.first() is not item:
+            self.contents.inclusions.clear()
+            self.contents.add(item)
+
+    def onCollectionChanged(self, event):
+        self.finishSelectionChanges()
+        super(DetailRoot, self).onCollectionChanged(event) # does synchronizeWidget for us.
 
     def selectedItem(self):
         # return the item being viewed

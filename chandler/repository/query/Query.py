@@ -200,10 +200,9 @@ class Query(Item.Item):
 
         # we can commit before we've compiled the query
         #@@@ This should be an error, I think
-        if not self.queryString or self.queryString == "":
+        self._ensureQueryIsCurrent()
+        if not self.queryString:
             return
-        else:
-            self._ensureQueryIsCurrent()
         changed = False
 
         #@@@ change this to batch notifications

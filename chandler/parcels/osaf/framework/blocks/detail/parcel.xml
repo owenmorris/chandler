@@ -92,6 +92,15 @@
   </BlockEvent>
 
   <!--
+    An item collection we use to get notifications about the DV
+  -->  
+  <content:ItemCollection itsName="DetailViewSelectedItemCollection">
+    <displayName>DetailViewSelectedItemCollection</displayName>
+    <indexName value="dvSelectedItem"/>
+    <_rule value=""/> <!-- the selected item will get added to inclusions at runtime. -->
+  </content:ItemCollection>
+  
+  <!--
     Layout blocks
   -->
   
@@ -104,6 +113,7 @@
     <size>80,20</size>
     <minimumSize>80,40</minimumSize>
     <eventBoundary>True</eventBoundary>
+    <contents itemref="doc:DetailViewSelectedItemCollection"/>
   </DetailRoot>
 
   <!-- All our subtrees are of this kind, so we can find 'em. -->
