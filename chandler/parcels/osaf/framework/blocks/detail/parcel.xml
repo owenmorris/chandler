@@ -151,7 +151,7 @@
   <!-- prototype for the above ToolbarItem -->
   <Choice itemName="TriageChoice">
     <choices>Processing</choices>
-    <choices>Defered until</choices>
+    <choices>Deferred until</choices>
     <choices>Processed</choices>
     <choices>Junk</choices>
     <choices>Trash</choices>
@@ -398,7 +398,7 @@
     <childrenBlocks itemref="doc:EmailAddressArea"/>
     <childrenBlocks itemref="doc:DateTime"/>
     <childrenBlocks itemref="doc:CalendarStartTime"/>
-    <childrenBlocks itemref="doc:CalendarEndTime"/>
+    <childrenBlocks itemref="doc:CalendarDuration"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
     <stretchFactor>2</stretchFactor>
@@ -485,7 +485,7 @@
   </StaticText>
   
   <ContentItemDetail itsName="CalendarStartTime"
-                     itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
+                     itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
     <childrenBlocks itemref="doc:StaticCalendarStartTime"/>
     <childrenBlocks itemref="doc:EditCalendarStartTime"/>
     <!-- Attributes -->
@@ -496,7 +496,7 @@
   </ContentItemDetail>
  
   <StaticText itsName="StaticCalendarStartTime"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticCalendarRedirectAttribute">
+              itemClass="osaf.framework.blocks.detail.Detail.StaticTimeAttribute">
     <title>Start Time</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -505,7 +505,7 @@
   </StaticText>
   
   <EditText itsName="EditCalendarStartTime"
-            itemClass="osaf.framework.blocks.detail.Detail.EditCalendarRedirectTimeAttribute">
+            itemClass="osaf.framework.blocks.detail.Detail.EditTimeAttribute">
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -515,28 +515,27 @@
     <minimumSize>380, 30</minimumSize>
   </EditText>
 
-  <ContentItemDetail itsName="CalendarEndTime"
-                     itemClass="osaf.framework.blocks.detail.Detail.LabeledTextAttributeBlock">
-    <childrenBlocks itemref="doc:StaticCalendarEndTime"/>
-    <childrenBlocks itemref="doc:EditCalendarEndTime"/>
+  <ContentItemDetail itsName="CalendarDuration"
+                     itemClass="osaf.framework.blocks.detail.Detail.CalendarEventBlock">
+    <childrenBlocks itemref="doc:StaticCalendarDuration"/>
+    <childrenBlocks itemref="doc:EditCalendarDuration"/>
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
-    <selectedItemsAttribute>endTime</selectedItemsAttribute>
     <minimumSize>380, 24</minimumSize>
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
-  <StaticText itsName="StaticCalendarEndTime"
-              itemClass="osaf.framework.blocks.detail.Detail.StaticCalendarRedirectAttribute">
-    <title>End Time</title>
+  <StaticText itsName="StaticCalendarDuration"
+              itemClass="osaf.framework.blocks.detail.Detail.StaticDurationAttribute">
+    <title>Duration</title>
     <characterStyle itemref="doc:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
     <minimumSize>80, 24</minimumSize>
   </StaticText>
   
-  <EditText itsName="EditCalendarEndTime"
-            itemClass="osaf.framework.blocks.detail.Detail.EditCalendarRedirectTimeAttribute">
+  <EditText itsName="EditCalendarDuration"
+            itemClass="osaf.framework.blocks.detail.Detail.EditDurationAttribute">
     <characterStyle itemref="doc:TextStyle"/>
     <lineStyleEnum>SingleLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>

@@ -121,7 +121,7 @@
   <core:Enumeration itemName="processingStatusEnum">
     <core:displayName>Processing Status Enum</core:displayName>
     <core:values>processing</core:values>
-    <core:values>defered</core:values>
+    <core:values>deferred</core:values>
     <core:values>done</core:values>
     <core:values>junk</core:values>
     <core:values>trash</core:values>

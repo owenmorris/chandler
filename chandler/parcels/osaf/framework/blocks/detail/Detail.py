@@ -16,7 +16,7 @@ import osaf.contentmodel.tasks.Task as Task
 import osaf.contentmodel.calendar.Calendar as Calendar
 import osaf.contentmodel.contacts.Contacts as Contacts
 import repository.item.Query as Query
-import time as DateTime
+import mx.DateTime as DateTime
 import wx
 
 """
@@ -235,7 +235,7 @@ class DateTimeBlock (StaticTextLabel):
     Currently this is static text, but soon it will need to be editable
     """
     def shouldShow (self, item):
-        # only shown for non-CalendarEventMixn kinds
+        # only shown for non-CalendarEventMixin kinds
         calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
         return not item.isItemOf (calendarMixinKind)
 
@@ -716,20 +716,32 @@ class EditEmailAddressAttribute (EditRedirectAttribute):
 """
 Classes to support CalendarEvent details
 """
-class StaticCalendarRedirectAttribute (StaticRedirectAttribute):
+class CalendarEventBlock (DetailSynchronizer, LabeledTextAttributeBlock):
     def shouldShow (self, item):
-        # only shown for CalendarEventMixn kinds
+        # only shown for CalendarEventMixin kinds
         calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
         return item.isItemOf (calendarMixinKind)
 
-class EditCalendarRedirectTimeAttribute (EditRedirectAttribute):
+class StaticTimeAttribute (StaticTextLabel):
+    def shouldShow (self, item):
+        # only shown for CalendarEventMixin kinds
+        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        shouldShow = item.isItemOf (calendarMixinKind)
+        return shouldShow
+
+    def staticTextLabelValue (self, item):
+        timeLabel = self.title + _(': ')
+        return timeLabel
+
+
+class EditTimeAttribute (EditRedirectAttribute):
     """
     An attribute-based edit field for Time Values
     Our parent block knows which attribute we edit.
     """
-    timeFormat = '%Y-%m-%d %H:%M %p'
+    timeFormat = '%Y-%m-%d %I:%M %p'
     def shouldShow (self, item):
-        # only shown for CalendarEventMixn kinds
+        # only shown for CalendarEventMixin kinds
         calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
         return item.isItemOf (calendarMixinKind)
 
@@ -740,20 +752,23 @@ class EditCalendarRedirectTimeAttribute (EditRedirectAttribute):
         dateString = widget.GetValue().strip('?')
         try:
             # convert to Date/Time
-            tupleDate = DateTime.strptime (dateString, self.timeFormat)
-        except: 
+            theDate = DateTime.Parser.DateTimeFromString (dateString)
+        except ValueError: 
             pass
-        else:
-            theDate = DateTime.mktime (tupleDate)
+        except DateTime.RangeError:
+            pass
         try:
             # save the new Date/Time
-            item.setAttributeValue(self.whichAttribute(), theDate)
+            whichTimeAttribute = self.whichAttribute()
+            if 'start' in whichTimeAttribute:
+                item.ChangeStart (theDate)
+            else:
+                item.setAttributeValue(whichTimeAttribute, theDate)
         except:
             # DLDTBD figure out reasonable exceptions to catch during conversion
             dateString = dateString + '?'
         else:
-            tupleTime = DateTime.localtime (theDate)
-            dateString = DateTime.strftime (self.timeFormat, tupleTime)
+            dateString = theDate.strftime (self.timeFormat)
 
         # redisplay the processed Date/Time in the widget
         widget.SetValue(dateString)
@@ -768,8 +783,66 @@ class EditCalendarRedirectTimeAttribute (EditRedirectAttribute):
         except AttributeError:
             value = ''
         else:
-            tupleTime = DateTime.localtime (dateTime)
-            value = DateTime.strftime (self.timeFormat, tupleTime)
+            value = dateTime.strftime (self.timeFormat)
+        widget.SetValue (value)
+
+class StaticDurationAttribute (StaticTextLabel):
+    """
+      Static Text that displays the name of the selected item's Attribute
+    """
+    def shouldShow (self, item):
+        # only shown for CalendarEventMixin kinds
+        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        return item.isItemOf (calendarMixinKind)
+
+    def staticTextLabelValue (self, item):
+        durationLabel = self.title + _(': ')
+        return durationLabel
+
+class EditDurationAttribute (EditRedirectAttribute):
+    """
+    An attribute-based edit field for Duration Values
+    Our parent block knows which attribute we edit.
+    """
+    durationFormat = '%I:%M'
+    def shouldShow (self, item):
+        # only shown for CalendarEventMixin kinds
+        calendarMixinKind = Calendar.CalendarParcel.getCalendarEventMixinKind()
+        return item.isItemOf (calendarMixinKind)
+
+    def saveAttributeFromWidget(self, item, widget):
+        """"
+          Update the attribute from the user edited string in the widget.
+        """
+        durationString = widget.GetValue().strip('?')
+        try:
+            # convert to Date/Time
+            theDuration = DateTime.Parser.DateTimeDeltaFromString (durationString)
+        except ValueError: 
+            pass
+        try:
+            # save the new duration
+            item.duration = theDuration
+        except:
+            # DLDTBD figure out reasonable exceptions to catch during conversion
+            durationString = dateString + '?'
+        else:
+            durationString = theDuration.strftime (self.durationFormat)
+
+        # redisplay the processed Date/Time in the widget
+        widget.SetValue(durationString)
+
+
+    def loadAttributeIntoWidget(self, item, widget):
+        """"
+          Update the widget display based on the value in the attribute.
+        """
+        try:
+            theDuration = item.duration
+        except AttributeError:
+            value = '?'
+        else:
+            value = theDuration.strftime (self.durationFormat)
         widget.SetValue (value)
 
 
