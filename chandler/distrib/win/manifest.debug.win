@@ -22,12 +22,11 @@ xerces-c_2_3_0D.dll
 
 # Grab all py, pyc, etc. from debug/bin/DLLs and debug/bin/Lib
 src=debug/bin
-dest=bin
+dest=
 glob=*.py,*.pyc,*.pyo,*.pyd,*.so,*.dll
 recursive=yes
 DLLs
 Lib
-
 
 # Grab Chandler.py, version.py and LICENSE.txt
 src=Chandler
