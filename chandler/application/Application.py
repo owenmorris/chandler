@@ -90,7 +90,7 @@ class Application(Persistent):
         else:
             self.splashWasShown = 0
         if self.splashWasShown < 2:
-            pageLocation = 'application' + os.sep + 'welcome.html'
+            pageLocation = os.path.join ('application', 'welcome.html')
             splash = SplashScreen(None, _("Welcome to Chandler"),
                                   pageLocation, false)
             splash.ShowModal()
@@ -207,10 +207,9 @@ class wxApplication (wxApp):
         
         wxLocale_AddCatalogLookupPathPrefix('locale')
         self.locale.AddCatalog('Chandler.mo')
-        gettext.install('Chandler', self.chandlerDirectory + os.sep + 'locale')
+        gettext.install('Chandler', os.path.join (self.chandlerDirectory, 'locale'))
         
-        resourceFile = "application" +\
-                        os.sep + "application.xrc"
+        resourceFile = os.path.join ("application", "application.xrc")
         """
           Check for the file's existence in debugging code
         """
@@ -360,7 +359,7 @@ class wxApplication (wxApp):
         """
           Show the splash screen in response to the about command
         """
-        pageLocation = 'application' + os.sep + 'welcome.html'
+        pageLocation = os.path.join ('application', 'welcome.html')
         splash = SplashScreen(app.wxMainFrame, _("About Chandler"), 
                               pageLocation, useTimer=false)
         splash.ShowModal()
@@ -403,9 +402,9 @@ class wxApplication (wxApp):
         assert (os.path.exists (path) and os.path.isdir(path))
 
         if (relDir and \
-            (os.path.exists(path + os.sep + "__init__.py")  or \
-             os.path.exists(path + os.sep + "__init__.pyc") or \
-             os.path.exists(path + os.sep + "__init__.pyo"))   \
+            (os.path.exists(os.path.join (path, "__init__.py"))  or \
+             os.path.exists(os.path.join (path, "__init__.pyc")) or \
+             os.path.exists(os.path.join (path, "__init__.pyo")))   \
             ):
             importArgument = relDir.replace (os.sep, '.')
             """
@@ -453,9 +452,9 @@ class wxApplication (wxApp):
           Recurse through all the subdirectories for more parcels.
         """
         for pathComponent in os.listdir(path):
-            if os.path.isdir(path + os.sep + pathComponent):
-                self.LoadParcelsInDirectory(baseDir, os.path.join(relDir,
-                 pathComponent))
+            if os.path.isdir (os.path.join (path, pathComponent)):
+                self.LoadParcelsInDirectory (baseDir,
+                                             os.path.join(relDir, pathComponent))
 
     def OnCommand(self, event):
         """
