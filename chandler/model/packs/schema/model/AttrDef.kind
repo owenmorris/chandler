@@ -7,6 +7,7 @@
 
     <refs name="AttrDefs">
         <ref name="Required" type="path">//Schema/Model/Attributes/Required</ref>
+        <ref name="Persist" type="path">//Schema/Model/Attributes/Persist</ref>
         <ref name="Cardinality" type="path">//Schema/Model/Attributes/Cardinality</ref>
         <ref name="Type" type="path">//Schema/Model/Attributes/Type</ref>
         <ref name="Default" type="path">//Schema/Model/Attributes/Default</ref>

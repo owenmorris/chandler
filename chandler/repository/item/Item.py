@@ -152,6 +152,126 @@ class Item(object):
         elif isinstance(value, RefDict):
             value.clear()
 
+    def getValue(self, attribute, key, default=None):
+        'Get a value from a multi-valued attribute.'
+
+        value = self._attributes.get(attribute, None)
+
+        if value is None:
+            return default
+
+        if isinstance(value, dict):
+            return value.get(key, default)
+
+        if isinstance(value, list):
+            if len(value) < key:
+                return value[key]
+            else:
+                return default
+
+        raise TypeError, attribute + " is not multi-valued"
+
+    def setValue(self, attribute, value, key):
+        'Set a value for a multi-valued attribute for a given key.'
+
+        attrValue = self._attributes.get(attribute, None)
+
+        if attrValue is None:
+            card = self.getAttrAspect(attribute, 'Cardinality', 'single')
+            isItem = isinstance(value, Item)
+
+            if card == 'dict':
+                if isItem:
+                    attrValue = RefDict(self, self._otherName(attribute))
+                else:
+                    attrValue = {key: value}
+                    return
+            elif card == 'list':
+                if isItem:
+                    attrValue = RefList(self, attribute,
+                                        self._otherName(attribute))
+                else:
+                    attrValue = [value]
+                    return
+            else:
+                raise TypeError, attribute + " is not multi-valued"
+
+            self._attributes[attribute] = attrValue
+
+        attrValue[key] = value
+
+    def addValue(self, attribute, value, key=None):
+        'Add a value for a multi-valued attribute for a given optional key.'
+
+        attrValue = self._attributes.get(attribute, None)
+
+        if attrValue is None:
+            self.setValue(attribute, key, value)
+        elif isinstance(attrValue, dict):
+            attrValue[key] = value
+        elif isinstance(attrValue, list):
+            attrValue.append(value)
+        else:
+            self.setAttribute(attribute, value)
+
+    def hasKey(self, attribute, key):
+        'Tell where a multi-valued attribute has a value for a given key.'
+
+        value = self._attributes.get(attribute, None)
+
+        if isinstance(value, dict):
+            return value.has_key(key)
+        elif isinstance(value, list):
+            return 0 <= key and key < len(value)
+        elif value is not None:
+            raise TypeError, attribute + " is not multi-valued"
+
+        return False
+
+    def hasValue(self, attribute, value):
+        'Tell where a multi-valued attribute has a given value.'
+
+        attrValue = self._attributes.get(attribute, None)
+
+        if isinstance(attrValue, dict):
+            for v in attrValue.itervalues():
+                if v == value:
+                    return True
+        elif isinstance(attrValue, list):
+            try:
+                return attrValue.index(value) >= 0
+            except ValueError:
+                return False
+        elif value is not None:
+            raise TypeError, attribute + " is not multi-valued"
+
+        return False
+
+    def removeValue(self, attribute, key):
+        'Remove a value from multi-valued attribute for a given key.'
+
+        value = self._attributes.get(attribute, None)
+
+        if isinstance(value, dict):
+            del value[key]
+        elif isinstance(value, list):
+            value.pop(key)
+        elif value is not None:
+            self.removeAttribute(attribute)
+
+    def attach(self, attribute, item):
+        '''Attach an item to attribute.
+
+        The item is added to the endpoint if it is multi-valued. The item
+        replaces the endpoint if it is single-valued.'''
+        
+        self.addValue(attribute, item, item.refName(attribute))
+
+    def detach(self, attribute, item):
+        'Detach an item from an attribute.'
+
+        self.removeValue(attribute, item.refName(attribute))
+
     def _removeRef(self, name):
 
         del self._attributes[name]
@@ -307,10 +427,13 @@ class Item(object):
                          str(self._parent.getUUID()), generator)
 
         for attr in self._attributes.iteritems():
-            attrType = self.getAttrAspect(attr[0], 'Type')
-            attrCard = self.getAttrAspect(attr[0], 'Cardinality', 'single')
-            self._xmlValue(attr[0], attr[1], 'attribute',
-                           attrType, attrCard, '\n    ', generator, withSchema)
+            if self.getAttrAspect(attr[0], 'Persist', True):
+                print attr[0]
+                attrType = self.getAttrAspect(attr[0], 'Type')
+                attrCard = self.getAttrAspect(attr[0], 'Cardinality', 'single')
+                self._xmlValue(attr[0], attr[1], 'attribute',
+                               attrType, attrCard, '\n    ',
+                               generator, withSchema)
 
         generator.characters('\n')
         generator.endElement('item')

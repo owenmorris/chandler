@@ -11,9 +11,38 @@ from MetaKind import MetaKind
 
 class Kind(Item):
 
+    def __init__(self, name, parent, kind, **_kwds):
+
+        super(Kind, self).__init__(name, parent, kind, **_kwds)
+
+        self._attributes['NotFoundAttrDefs'] = []  # recursion avoidance
+        
     def getAttrDef(self, name):
 
-        return self.AttrDefs.get(name)
+        attrDef = self.getValue('AttrDefs', name)
+        if attrDef is None:
+            attrDef = self.getValue('InheritedAttrDefs', name)
+            if attrDef is None:
+                return self.inheritAttrDef(name)
+
+        return attrDef
+
+    def inheritAttrDef(self, name):
+
+        if self.hasAttribute('SuperKind'):
+            if self.hasValue('NotFoundAttrDefs', name):
+                return None
+        
+            for superKind in self.SuperKind:
+                attrDef = superKind.getAttrDef(name)
+                if attrDef is not None:
+                    self.attach('InheritedAttrDefs', attrDef)
+                    return attrDef
+                
+            if not self.hasValue('NotFoundAttrDefs', name):
+                self.addValue('NotFoundAttrDefs', name)
+
+        return None
 
 
 class KindKind(Kind):
@@ -36,5 +65,8 @@ Kind.kind = MetaKind(Kind, { 'SuperKind': { 'Required': False,
                              'AttrDefs': { 'Required': True,
                                            'Cardinality': 'dict',
                                            'OtherName': 'Kinds' },
+                             'NotFoundAttrDefs': { 'Required': True,
+                                                   'Cardinality': 'list',
+                                                   'Persist': False },
                              'Class': { 'Required': False,
                                         'Cardinality': 'single' } })

@@ -30,7 +30,7 @@ class AttrDef(Item):
 
     def refName(self, name):
 
-        if name == 'AttrDefs':
+        if name == 'AttrDefs' or name == 'InheritedAttrDefs':
             return self._name
 
         return super(AttrDef, self).refName(name)

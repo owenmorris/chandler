@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <name>Persist</name>
+    <kind type="path">//Schema/Model/AttrDef</kind>
+
+    <ref name="Type" type="path">//Schema/Model/Types/Bool</ref>
+    <attribute name="Cardinality">single</attribute>
+    <attribute name="Default" type="bool">True</attribute>
+</item>
