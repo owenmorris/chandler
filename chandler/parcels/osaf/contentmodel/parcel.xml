@@ -21,7 +21,7 @@
     <description>What project does this item belong to?</description>
     <cardinality>set</cardinality>
     <type itemref="pim:Project"/>
-    <inverseAttribute itemref="pim:items"/>
+    <inverseAttribute itemref="pim:projectItems"/>
   </Attribute>
 
   <Attribute itemName="folders">
@@ -29,7 +29,7 @@
     <description>What folders is this item filed in?</description>
     <cardinality>set</cardinality>
     <type itemref="pim:Folder"/>
-    <inverseAttribute itemref="pim:items"/>
+    <inverseAttribute itemref="pim:folderItems"/>
   </Attribute>
   
   <Attribute itemName="name">
@@ -75,8 +75,8 @@
     <inverseAttribute itemref="pim:parentProject"/>
   </Attribute>
 
-  <Attribute itemName="items">
-    <displayName>items</displayName>
+  <Attribute itemName="projectItems">
+    <displayName>project items</displayName>
     <description>items can be organized into projects</description>
     <cardinality>set</cardinality>
     <type itemref="pim:InformationItem"/>
@@ -90,12 +90,12 @@
     <attributes itemref="description"/>
     <attributes itemref="pim:parentProject"/>
     <attributes itemref="pim:subProjects"/>
-    <attributes itemref="pim:items"/>
+    <attributes itemref="pim:projectItems"/>
   </Kind>
 
 <!-- Folder -->
-  <Attribute itemName="items">
-    <displayName>items</displayName>
+  <Attribute itemName="folderItems">
+    <displayName>folder items</displayName>
     <description>What's in the folder?</description>
     <cardinality>list</cardinality>
     <type itemref="Item"/>
@@ -127,7 +127,7 @@
     <superKinds itemref="Item"/>
     <attributes itemref="pim:name"/>
     <attributes itemref="description"/>
-    <attributes itemref="pim:items"/>
+    <attributes itemref="pim:folderItems"/>
     <attributes itemref="pim:type"/>
   </Kind>
 
