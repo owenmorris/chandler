@@ -27,7 +27,7 @@ def LoadDependency(repository, uri, searchPath):
 
 def FindParcelFile(uri, searchPath):
     path = ""
-    uri = string.lstrip(uri, "//parcels")
+    uri = uri[10:] # strip out "//parcels"
     for part in string.split(uri, '/'):
         path = os.path.join(path, part)
     path = os.path.join(path, 'parcel.xml')
