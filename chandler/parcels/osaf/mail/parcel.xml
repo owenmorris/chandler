@@ -7,7 +7,7 @@
      xmlns:mail="http://osafoundation.org/parcels/osaf/mail">
 
   <content:IMAPAccount itsName="PredefinedIMAPAccount">
-    <displayName>IMAP</displayName>
+    <displayName>Incoming mail</displayName>
     <!-- This points replyToAddress to the email address item below-->
     <replyToAddress itemref="mail:PredefinedReplyAddress" />
     <!-- This points to the SMTPAccount item below -->
@@ -18,7 +18,7 @@
   <content:EmailAddress itsName="PredefinedReplyAddress" />
 
   <content:SMTPAccount itsName="PredefinedSMTPAccount">
-    <displayName>SMTP</displayName>
+    <displayName>Outgoing mail</displayName>
     <currentItemOf itemref="current:SMTPAccount"/>
   </content:SMTPAccount>
 

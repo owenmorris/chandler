@@ -97,6 +97,7 @@ PANELS = {
         "id" : "IMAPPanel",
         "saveHandler" : IMAPSaveHandler,
         "displayName" : "IMAP_DESCRIPTION",
+        "description" : "Incoming mail (IMAP)",
     },
     "SMTP" : {
         "fields" : {
@@ -135,6 +136,7 @@ PANELS = {
         },
         "id" : "SMTPPanel",
         "displayName" : "SMTP_DESCRIPTION",
+        "description" : "Outgoing mail (SMTP)",
     },
     "WebDAV" : {
         "fields" : {
@@ -179,6 +181,7 @@ PANELS = {
         },
         "id" : "WebDAVPanel",
         "displayName" : "WEBDAV_DESCRIPTION",
+        "description" : "Sharing (WebDAV)",
         "callbacks" : (
             ("WEBDAV_TEST", "OnTestWebDAV"),
         )
@@ -230,10 +233,12 @@ class AccountPreferencesDialog(wx.Dialog):
 
         typeNames = []
         for (key, value) in PANELS.iteritems():
-            typeNames.append(key)
+            # store a tuple with account type description, and name
+            typeNames.append( (value['description'], key) )
         typeNames.sort()
-        for name in typeNames:
-            self.choiceNewType.Append(name)
+        for (description, name) in typeNames:
+            newIndex = self.choiceNewType.Append(description)
+            self.choiceNewType.SetClientData(newIndex, name)
         self.choiceNewType.SetSelection(0)
 
         self.currentIndex = None # the list index of account in detail panel
@@ -589,7 +594,7 @@ class AccountPreferencesDialog(wx.Dialog):
         if selection == 0:
             return
 
-        accountType = self.choiceNewType.GetString(selection)
+        accountType = self.choiceNewType.GetClientData(selection)
         self.choiceNewType.SetSelection(0)
 
         accountName = "New %s account" % accountType

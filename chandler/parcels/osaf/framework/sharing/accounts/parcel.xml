@@ -12,7 +12,7 @@
     >
 
     <share:WebDAVAccount itsName="OSAFWebDAVAccount">
-        <displayName value="OSAF WebDAV"/>
+        <displayName value="OSAF sharing"/>
         <currentItemOf itemref="current:WebDAVAccount"/>
         <host value="pilikia.osafoundation.org"/>
         <path value="/dev1"/>
@@ -23,7 +23,7 @@
     </share:WebDAVAccount>
 
     <share:WebDAVAccount itsName="XythosWebDAVAccount">
-        <displayName value="Xythos WebDAV"/>
+        <displayName value="Xythos sharing"/>
         <host value="www.sharemation.com"/>
         <path value="/OSAFdot5"/>
         <username value="OSAFdot5"/>
@@ -33,7 +33,7 @@
     </share:WebDAVAccount>
 
     <share:WebDAVAccount itsName="VenueWebDAVAccount">
-        <displayName value="Venue WebDAV"/>
+        <displayName value="Venue sharing"/>
         <host value="webdav.venuecom.com"/>
         <path value="/calendar/OSAFdot5/calendars"/>
         <username value="OSAFdot5"/>
