@@ -244,7 +244,7 @@
     <issues>see also: MessageDataModelIssues</issues>
     <issues>We want people to be able to use e-mail messages as tasks, so the data model needs to reflect that.  We might want ot make it so that an Item can be both an Email Message and a Task.  Or we might want to just add a few lightweight taskish attribute to the Email Message Kind: attributes like 'priority', 'due-by date', and 'has been done'.</issues>
     <issues>We might also want to add a few derived attributes, like 'message size' or 'has been forwarded'.</issues>
-    <superKinds itemref="pim:InformationItem"/>
+    <superKinds itemref="pim:ContentItem"/>
     <attributes itemref="email:subject"/>
     <attributes itemref="email:sentTo"/>
     <attributes itemref="email:toAddress"/>

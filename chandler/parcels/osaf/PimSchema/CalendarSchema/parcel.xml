@@ -60,7 +60,7 @@
   <Attribute itemName="participants">
     <displayName>Participants</displayName>
     <cardinality>list</cardinality>
-    <type itemref="contact:ContactEntity"/>
+    <type itemref="contact:Contact"/>
     <inverseAttribute itemref="cal:participatingIn"/>
   </Attribute>
 
@@ -74,14 +74,14 @@
   <Attribute itemName="organizer">
     <displayName>Meeting Organizer</displayName>
     <cardinality>single</cardinality>
-    <type itemref="contact:ContactEntity"/>
+    <type itemref="contact:Contact"/>
     <superAttribute itemref="cal:participants"/>
   </Attribute>
 
   <Attribute itemName="attendees">
     <displayName>Meeting Attendee</displayName>
     <cardinality>list</cardinality>
-    <type itemref="contact:ContactEntity"/>
+    <type itemref="contact:Contact"/>
     <superAttribute itemref="cal:participants"/>
   </Attribute>
 

@@ -148,7 +148,7 @@
     <displayName>Task</displayName>
     <issues>possible alternate names: 'Action Item' or 'To Do Item'</issues>
     <issues>see also: TaskDataModelIssues</issues>
-    <superKinds itemref="pim:InformationItem"/>
+    <superKinds itemref="pim:ContentItem"/>
     <attributes itemref="task:name"/>
     <attributes itemref="task:notes"/>
     <attributes itemref="task:timeFrame"/>
@@ -187,7 +187,7 @@
     <displayName>estimated by</displayName>
     <description>...add description here...</description>
     <cardinality>single</cardinality>
-    <type itemref="contact:ContactEntity"/>
+    <type itemref="contact:Contact"/>
   </Attribute>
 
   <Attribute itemName="confidence">
@@ -228,14 +228,14 @@
     <displayName>assigned by</displayName>
     <description>@@@ -- should be Person or Agent</description>
     <cardinality>single</cardinality>
-    <type itemref="contact:ContactEntity"/>
+    <type itemref="contact:Contact"/>
   </Attribute>
 
   <Attribute itemName="assignedTo">
     <displayName>assigned to</displayName>
     <description>@@@ -- should be Person or Group</description>
     <cardinality>single</cardinality>
-    <type itemref="contact:ContactEntity"/>
+    <type itemref="contact:Contact"/>
   </Attribute>
 
   <Attribute itemName="furtherDelegation">

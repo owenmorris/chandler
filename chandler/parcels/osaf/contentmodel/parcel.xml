@@ -6,131 +6,158 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//Parcels/OSAF/PimSchema"
-        itemName="PimSchema"
-        xmlns="//Schema/Core"
-        xmlns:pim="//Parcels/OSAF/PimSchema">
+<core:Parcel describes="//Parcels/OSAF/PimSchema"
+             itemName="PimSchema"
+             xmlns:core="//Schema/Core"
+             xmlns:parcel="//Schema/Core/Parcel"
+             xmlns="//Parcels/OSAF/PimSchema">
 
-  <displayName>Pim Schema</displayName>
-  <description>Pim schema for the 0.3 release</description>
-  <version>0.3</version>
-  <author>Open Source Applications Foundation</author>
+  <core:displayName>Pim Schema</core:displayName>
+  <core:description>Pim schema for the 0.3 release</core:description>
+  <core:version>0.3</core:version>
+  <core:author>Open Source Applications Foundation</core:author>
 
-<!-- Information Item -->
-  <Attribute itemName="projects">
-    <displayName>projects</displayName>
-    <description>What project does this item belong to?</description>
-    <cardinality>list</cardinality>
-    <type itemref="pim:Project"/>
-    <inverseAttribute itemref="pim:projectItems"/>
-  </Attribute>
+  <core:Attribute itemName="name">
+    <core:displayName>name</core:displayName>
+    <core:description>names of objects</core:description>
+    <core:cardinality>single</core:cardinality>
+    <core:type itemref="core:String"/>
+  </core:Attribute>
 
-  <Attribute itemName="folders">
-    <displayName>folders</displayName>
-    <description>What folders is this item filed in?</description>
-    <cardinality>list</cardinality>
-    <type itemref="pim:Folder"/>
-    <inverseAttribute itemref="pim:folderItems"/>
-  </Attribute>
-  
-  <Attribute itemName="name">
-    <displayName>name</displayName>
-    <description>names of objects</description>
-    <cardinality>single</cardinality>
-    <type itemref="String"/>
-  </Attribute>
+<!-- Content Item -->
+  <core:Attribute itemName="projects">
+    <core:displayName>projects</core:displayName>
+    <core:description>List of projects this item belongs to.</core:description>
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="Project"/>
+    <core:inverseAttribute itemref="itemsInProject"/>
+  </core:Attribute>
 
-  <Kind itemName="InformationItem">
-    <displayName>Information Item</displayName>
-    <examples>an Calendar Event -- 'Lunch with Tug'</examples>
-    <examples>a Contact -- 'Terry Smith'</examples>
-    <examples>a Task -- 'mail 1040 to IRS'</examples>
-    <examples>a Sailing Ship -- 'The Beagle'</examples>
-    <description>
-      Items can appear in Views.
-      Queries return collections of Items.
-      Users can add attributes to Items.
-      Everything is a type of Item.
-    </description>
-    <issues>@@@ -- add a categories attribute, to keep track of what 'virtual folders' the item appears in</issues>
-    <superKinds itemref="Item"/>
-    <attributes itemref="pim:projects"/>
-    <attributes itemref="pim:folders"/>
-  </Kind>
+  <core:Attribute itemName="groups">
+    <core:displayName>groups</core:displayName>
+    <core:description>List of groups this item belongs to.</core:description>
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="Group"/>
+    <core:inverseAttribute itemref="itemsInGroup"/>
+  </core:Attribute>
+
+  <core:Attribute itemName="attachedNotes">
+    <core:displayName>attached notes</core:displayName>
+    <core:description>Notes attached to this content item.</core:description>
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="ContentItem"/>
+    <core:inverseAttribute itemref="attachedToItems"/>
+  </core:Attribute>
+
+  <core:Attribute itemName="attachedToItems">
+    <core:displayName>attached to item</core:displayName>
+    <core:description>List of items this "note" is attached to.</core:description>
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="ContentItem"/>
+    <core:inverseAttribute itemref="attachedNotes"/>
+  </core:Attribute>
+
+  <core:Attribute itemName="fyiLinks">
+    <core:displayName>fyi links</core:displayName>
+    <core:description>@@@</core:description>
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="ContentItem"/>
+    <core:inverseAttribute itemref="fyiLinkedToItems"/>
+  </core:Attribute>
+
+  <core:Attribute itemName="fyiLinkedToItems">
+    <core:displayName>fyi linked to item</core:displayName>
+    <core:description>List of items this item is fyiLinked to.</core:description>
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="ContentItem"/>
+    <core:inverseAttribute itemref="fyiLinks"/>
+  </core:Attribute>
+
+  <core:Attribute itemName="creator">
+    <core:displayName>creator</core:displayName>
+    <core:description>Link to the user who created the item.</core:description>
+    <core:issues>The type should be Contact, but we have a circular dependency problem to fix. Perhaps this attribute definition should live in the contacts parcel, and modify the ContentItem kind?</core:issues>
+    <core:cardinality>single</core:cardinality>
+    <core:type itemref="ContentItem"/>
+    <core:inverseAttribute itemref="itemsCreated"/>
+  </core:Attribute>
+
+  <core:Attribute itemName="itemsCreated">
+    <core:displayName>items created</core:displayName>
+    <core:description>List of content items created by this user.</core:description>
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="ContentItem"/>
+    <core:inverseAttribute itemref="creator"/>
+  </core:Attribute>
+
+  <core:Kind itemName="ContentItem">
+    <core:displayName>Content Item</core:displayName>
+    <core:examples>an Calendar Event -- 'Lunch with Tug'</core:examples>
+    <core:examples>a Contact -- 'Terry Smith'</core:examples>
+    <core:examples>a Task -- 'mail 1040 to IRS'</core:examples>
+    <core:examples>a Sailing Ship -- 'The Beagle'</core:examples>
+    <core:description>@@@</core:description>
+    <core:attributes itemref="projects"/>
+    <core:attributes itemref="groups"/>
+    <core:attributes itemref="creator"/>
+    <core:attributes itemref="itemsCreated"/>
+    <core:attributes itemref="parcel:createdOn"/>
+    <core:attributes itemref="parcel:modifiedOn"/>
+    <core:attributes itemref="fyiLinks"/>
+    <core:attributes itemref="fyiLinkedToItems"/>
+    <core:attributes itemref="attachedNotes"/>
+    <core:attributes itemref="attachedToItems"/>
+  </core:Kind>
 
 
 <!-- Project -->
-  <Attribute itemName="parentProject">
-    <displayName>parent project</displayName>
-    <description>projects can be organized into hierarchies</description>
-    <cardinality>single</cardinality>
-    <type itemref="pim:Project"/>
-    <inverseAttribute itemref="pim:subProjects"/>
-  </Attribute>
+  <core:Attribute itemName="parentProject">
+    <core:displayName>parent project</core:displayName>
+    <core:description>projects can be organized into hierarchies</core:description>
+    <core:cardinality>single</core:cardinality>
+    <core:type itemref="Project"/>
+    <core:inverseAttribute itemref="subProjects"/>
+  </core:Attribute>
 
-  <Attribute itemName="subProjects">
-    <displayName>sub projects</displayName>
-    <description>projects can be organized into hierarchies</description>
-    <cardinality>list</cardinality>
-    <type itemref="pim:Project"/>
-    <inverseAttribute itemref="pim:parentProject"/>
-  </Attribute>
+  <core:Attribute itemName="subProjects">
+    <core:displayName>sub projects</core:displayName>
+    <core:description>projects can be organized into hierarchies</core:description>
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="Project"/>
+    <core:inverseAttribute itemref="parentProject"/>
+  </core:Attribute>
 
-  <Attribute itemName="projectItems">
-    <displayName>project items</displayName>
-    <description>items can be organized into projects</description>
-    <cardinality>list</cardinality>
-    <type itemref="pim:InformationItem"/>
-    <inverseAttribute itemref="pim:projects"/>
-  </Attribute>
+  <core:Attribute itemName="itemsInProject">
+    <core:displayName>project items</core:displayName>
+    <core:description>List of items in a project.</core:description>
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="ContentItem"/>
+    <core:inverseAttribute itemref="projects"/>
+  </core:Attribute>
 
-  <Kind itemName="Project">
-    <displayName>Project</displayName>
-    <superKinds itemref="Item"/>
-    <attributes itemref="pim:name"/>
-    <attributes itemref="description"/>
-    <attributes itemref="pim:parentProject"/>
-    <attributes itemref="pim:subProjects"/>
-    <attributes itemref="pim:projectItems"/>
-  </Kind>
+  <core:Kind itemName="Project">
+    <core:displayName>Project</core:displayName>
+    <core:attributes itemref="name"/>
+    <core:attributes itemref="parentProject"/>
+    <core:attributes itemref="subProjects"/>
+    <core:attributes itemref="itemsInProject"/>
+  </core:Kind>
 
-<!-- Folder -->
-  <Attribute itemName="folderItems">
-    <displayName>folder items</displayName>
-    <description>What's in the folder?</description>
-    <cardinality>list</cardinality>
-    <type itemref="Item"/>
-  </Attribute>
+<!-- Group -->
+  <core:Attribute itemName="itemsInGroup">
+    <core:displayName>items in group</core:displayName>
+    <core:description>List of items in a group.</core:description>
+    <core:cardinality>list</core:cardinality>
+    <core:type itemref="ContentItem"/>
+  </core:Attribute>
 
-  <Attribute itemName="folderType">
-    <displayName>type</displayName>
-    <description>What types of items should the folder be expected to hold?</description>
-    <cardinality>list</cardinality>
-    <type itemref="Taxon"/>
-  </Attribute>
+  <core:Kind itemName="Group">
+    <core:displayName>Group</core:displayName>
+    <core:description>@@@</core:description>
+    <core:superKinds itemref="ContentItem"/>
+    <core:attributes itemref="name"/>
+    <core:attributes itemref="itemsInGroup"/>
+  </core:Kind>
 
-  <Kind itemName="Folder">
-    <displayName>Folder</displayName>
-    <examples>Inbox</examples>
-    <examples>Sent</examples>
-    <examples>Spam</examples>
-    <examples>Work address list</examples>
-    <examples>Drafts</examples>
-    <examples>Recipes</examples>
-    <examples>E-mail folders</examples>
-    <examples>agent change log</examples>
-    <examples>agent registry</examples>
-    <examples>address book</examples>
-    <examples>change log</examples>
-    <description>
-      A Folder represents a folder of e-mail messages (a mailbox) or a folder of any other type of Item.
-    </description>
-    <superKinds itemref="Item"/>
-    <attributes itemref="pim:name"/>
-    <attributes itemref="description"/>
-    <attributes itemref="pim:folderItems"/>
-    <attributes itemref="pim:folderType"/>
-  </Kind>
-
-</Parcel>
+</core:Parcel>
      
