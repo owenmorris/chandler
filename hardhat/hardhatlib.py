@@ -33,6 +33,7 @@ defaults = {
     'version'           : 'release',
     'showlog'           : False,
     'interactive'       : True,
+    'outputdir'         : "",
 }
 
 def init(buildenv):

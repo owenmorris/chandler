@@ -34,6 +34,7 @@ def usage():
     print "-h          display this help"
     # print "-i          inspect system (not implemented)"
     print "-n          non-interactive (won't prompt during scrubbing)"
+    print "-o DIR      output directory used when creating a distribution (-D)"
     print "-r          use release version (this is the default)"
     # print "-s          spawn an interactive shell"
     print "-s          scrub MODULE (remove all local files not in CVS)"
@@ -76,7 +77,7 @@ if string.find(projectRoot, ' ') >= 0:
 
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "abBcCdD:ehinrsStvx")
+    opts, args = getopt.getopt(sys.argv[1:], "abBcCdD:ehino:rsStvx")
 except getopt.GetoptError:
     usage()
     sys.exit(1)
@@ -177,6 +178,9 @@ try:
 
         if opt == "-n":
             buildenv['interactive'] = False
+
+        if opt == "-o":
+            buildenv['outputdir'] = arg
 
         if opt == "-r":
             buildenv['version'] = 'release'
