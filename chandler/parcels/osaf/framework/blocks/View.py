@@ -100,7 +100,7 @@ class View(BoxContainer):
     def OnPasteEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
 
-    def OnGetTreeListData (self, notification):
+    def OnGetTreeListDataEvent (self, notification):
         node = notification.data['node']
         item = node.GetData()
         if item:

@@ -177,6 +177,12 @@
     <attributes itemref="docSchema:BlockEvent/methodName"/>
   </Kind>
 
+  <!--
+  <docSchema:BlockEvent itemName="BugForMorgen">
+    <name>Can't find name attribute</name>
+  </docSchema:BlockEvent>
+  -->
+
   <Kind itemName="ChoiceEvent">
     <classes key="python">OSAF.framework.blocks.Block.ChoiceEvent</classes>
     <superKinds itemref="docSchema:BlockEvent"/>
