@@ -31,6 +31,33 @@ endif
 BUILD=build_$(SNAP)
 
 
+ifeq ($(OS),Darwin)
+
+snap: 
+	cd $(BUILD_ROOT); \
+        tar -cvzf $(PYLUCENE)/$(SNAP).tar.gz \
+                  $(SNAP)/$(SITE)/PyLucene.py \
+                  $(SNAP)/$(SITE)/_PyLucene.so \
+                  $(SNAP)/db/lib/libdb_java-4.2.jnilib \
+                  $(SNAP)/db/lib/libdb_java-4.2.la \
+                  $(SNAP)/lib/libgcc_s.1.0.dylib \
+                  $(SNAP)/lib/libgcj.4.dylib \
+                  $(SNAP)/lib/libstdc++.6.dylib
+
+else
+
+snap: 
+	cd $(BUILD_ROOT); \
+        tar -cvzf $(PYLUCENE)/$(SNAP).tar.gz \
+                  $(SNAP)/$(SITE)/PyLucene.py \
+                  $(SNAP)/$(SITE)/_PyLucene.so \
+                  $(SNAP)/db/lib/libdb_java-4.2.so \
+                  $(SNAP)/lib/libgcc_s.so.1 \
+                  $(SNAP)/lib/libgcj.so.4 \
+                  $(SNAP)/lib/libstdc++.so.5
+
+endif
+
 default: all
 
 apply: patches
@@ -43,17 +70,6 @@ build: apply
 
 expand: lucene-$(VERSION)-src.tar.gz
 	tar xvzf lucene-$(VERSION)-src.tar.gz
-
-snap: 
-	cd $(BUILD_ROOT); \
-        tar -cvzf $(PYLUCENE)/$(SNAP).tar.gz \
-                  $(SNAP)/$(SITE)/PyLucene.py \
-                  $(SNAP)/$(SITE)/_PyLucene.so \
-                  $(SNAP)/db/lib/libdb_java-4.2.jnilib \
-                  $(SNAP)/db/lib/libdb_java-4.2.la \
-                  $(SNAP)/lib/libgcc_s.1.0.dylib \
-                  $(SNAP)/lib/libgcj.4.dylib \
-                  $(SNAP)/lib/libstdc++.6.dylib
 
 clean:
 	rm -rf $(BUILD)
