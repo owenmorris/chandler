@@ -667,7 +667,7 @@
 
 
     <Kind itsName="EmailAddress">
-        <superKinds ref="Item" />
+        <superKinds ref="content:ContentItem" />
         <displayName value="Email Address Kind" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.EmailAddress" />
         <examples value="abe@osafoundation.org" />
