@@ -656,12 +656,22 @@ class Dictionary(Collection):
                                  generator, withSchema)
         generator.endElement('values')
 
+    def makeValue(cls, data):
+
+        result = {}
+        for pair in data.split(','):
+            key, value = pair.split(':')
+            result[key] = value
+
+        return result
+
     def _empty(self):
 
         return PersistentDict(None, None)
 
     handlerName = classmethod(handlerName)
-
+    makeValue = classmethod(makeValue)
+    
 
 class List(Collection):
 
@@ -684,8 +694,13 @@ class List(Collection):
                                  generator, withSchema)
         generator.endElement('values')
     
+    def makeValue(cls, data):
+
+        return data.split(',')
+
     def _empty(self):
 
         return PersistentList(None, None)
     
     handlerName = classmethod(handlerName)
+    makeValue = classmethod(makeValue)
