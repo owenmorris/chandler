@@ -365,12 +365,6 @@
         <displayName value="MIME Note" />
         <description value="MIMEBase and Note, rolled into one" />
 
-        <Attribute itsName="charset">
-            <displayName value="Character set" />
-            <type itemref="String" />
-            <initialValue type="String" value="ISO=8859-1" />
-        </Attribute>
-
         <Attribute itsName="filename">
             <displayName value="File name" />
             <type itemref="String" />
@@ -387,6 +381,18 @@
         <superKinds itemref="mail:MIMENote" />
         <classes key="python" value="osaf.contentmodel.mail.Mail.MIMEText" />
         <displayName value="MIME Text Kind" />
+
+        <Attribute itsName="charset">
+            <displayName value="Character set encoding" />
+            <type itemref="String" />
+            <initialValue type="String" value="utf-8" />
+        </Attribute>
+
+        <Attribute itsName="lang">
+            <displayName value="Character set Language" />
+            <type itemref="String" />
+            <initialValue type="String" value="en" />
+        </Attribute>
     </Kind>
 
     <Kind itsName="MIMEBinary">
