@@ -257,6 +257,17 @@
     <helpString>Generate 10 notes</helpString>
   </MenuItem>
 
+  <MenuItem itemName="ImportContactItem">
+    <title>Import Contacts from Outlook CSV</title>
+    <operation>InsertBefore</operation>
+    <menuLocation>TestMenu</menuLocation>
+    <itemLocation/>
+    <menuItemKind>Normal</menuItemKind>
+    <accel/>
+    <event itemref="events:ImportContacts"/>
+    <helpString>import Contacts from contacts.csv</helpString>
+  </MenuItem>
+
   <MenuItem itemName="CheckRepositoryItem">
     <title>Check Repository</title>
     <operation>InsertBefore</operation>
