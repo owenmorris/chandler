@@ -258,7 +258,7 @@ class JabberClient:
     def FixExtraBlanks(self, str):
         result = string.replace(str, ' ', '')
         result = xmlstream.XMLunescape(result)
-        result = string.replace(result, '--b--', ' ')
+        #result = string.replace(result, '--b--', ' ')
         return result
 
     # send a response to a view request back to the initiator
@@ -374,7 +374,7 @@ class JabberClient:
         # for simplicity's sake, we'll send them back one at a time at
         # first, and then later tweak for better performance
         resultList = []
-        granularity = 1
+        granularity = 3
         for resultObject in objectList:
             resultList.append(resultObject)
             if len(resultList) >= granularity:
@@ -411,13 +411,15 @@ class JabberClient:
     def EncodeObjectList(self, objectList):
         viewStr = cPickle.dumps(objectList)		
         # escape blanks in the pickled data, so we can later strip the ones jabber adds
-        viewStr = string.replace(viewStr, ' ', '--b--')
+        #viewStr = string.replace(viewStr, ' ', '--b--')
+        viewStr = base64.encodestring(viewStr)
         return viewStr
     
     # decode an objectlist from a text string, using base65 and cPickle
     def DecodeObjectList(self, objectStr):
         mappedResponse = objectStr.encode('ascii')
         mappedResponse = self.FixExtraBlanks(mappedResponse)
+        mappedResponse = base64.decodestring(viewStr)
         objectList = cPickle.loads(mappedResponse)	
         return objectList
     
