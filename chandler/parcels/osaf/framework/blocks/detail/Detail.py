@@ -3,7 +3,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import repository.parcel.Parcel as Parcel
+import application
 import application.Globals as Globals
 import osaf.framework.blocks.Block as Block
 import osaf.framework.blocks.ControlBlocks as ControlBlocks
@@ -16,7 +16,7 @@ Detail.py
 Classes for the ContentItem Detail View
 """
 
-class DetailParcel(Parcel.Parcel):
+class DetailParcel(application.Parcel.Parcel):
     pass
 
 class Headline(ControlBlocks.StaticText):

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel describes="//parcels/osaf/examples"
-        itemName="examples"
-        xmlns="//Schema/Core">
+        itsName="examples"
+        xmlns="http://osafoundation.org/parcels/core">
 
 </Parcel>

@@ -6,11 +6,11 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/contentmodel/notes"
-        itemName="notes"
-	itemClass="osaf.contentmodel.notes.Notes.NotesParcel"
-        xmlns="//Schema/Core"
-        xmlns:content="//parcels/osaf/contentmodel"
-        xmlns:notes="//parcels/osaf/contentmodel/notes">
+        itsName="notes"
+        itemClass="osaf.contentmodel.notes.Notes.NotesParcel"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
+        xmlns:notes="http://osafoundation.org/parcels/osaf/contentmodel/notes">
 
   <displayName>Notes Content Model</displayName>
   <version>0.3</version>
@@ -18,19 +18,19 @@
 
   <!-- Note -->
 
-  <Attribute itemName="title">
+  <Attribute itsName="title">
     <displayName>Title</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="body">
+  <Attribute itsName="body">
     <displayName>Body</displayName>
     <cardinality>single</cardinality>
     <type itemref="Text"/>
   </Attribute>
 
-  <Attribute itemName="attachedNotes">
+  <Attribute itsName="attachedNotes">
     <displayName>Contained Notes</displayName>
     <description>Notes contained in this content item.</description>
     <issues>deletePolicy should be cascade</issues>
@@ -39,7 +39,7 @@
     <inverseAttribute itemref="notes:attachedToItems"/>
   </Attribute>
 
-  <Attribute itemName="attachedToItems">
+  <Attribute itsName="attachedToItems">
     <displayName>Contained in Item</displayName>
     <description>If this Note is a free-standing independent item, then this attribute will be empty. If this Note is contained in some other item, then this attribute will point to that item.</description>
     <cardinality>single</cardinality>
@@ -48,7 +48,7 @@
     <inverseAttribute itemref="notes:attachedNotes"/>
   </Attribute>
 
-  <Kind itemName="Note">
+  <Kind itsName="Note">
     <displayName>Note</displayName>
     <superKinds itemref="content:ContentItem"/>
     <displayAttribute itemref="notes:title"/>
@@ -60,7 +60,7 @@
 
   <!-- Conversation -->
 
-  <Attribute itemName="conversations">
+  <Attribute itsName="conversations">
     <displayName>Conversations</displayName>
     <description>Conversations about this content item.</description>
     <issues>deletePolicy should be cascade</issues>
@@ -69,7 +69,7 @@
     <inverseAttribute itemref="notes:subjectItem"/>
   </Attribute>
 
-  <Attribute itemName="subjectItem">
+  <Attribute itsName="subjectItem">
     <displayName>Subject Item</displayName>
     <description>If this Conversation is a free-standing independent item, then this attribute will be empty. If this Conversation is contained in some other item, then this attribute will point to that item.</description>
     <cardinality>single</cardinality>
@@ -78,7 +78,7 @@
     <inverseAttribute itemref="notes:conversations"/>
   </Attribute>
 
-  <Attribute itemName="conversationLines">
+  <Attribute itsName="conversationLines">
     <displayName>Conversation Lines</displayName>
     <description>The list of lines of dialog in this conversation.</description>
     <issues>deletePolicy should be cascade</issues>
@@ -87,7 +87,7 @@
     <inverseAttribute itemref="notes:containedInConversation"/>
   </Attribute>
 
-  <Kind itemName="Conversation">
+  <Kind itsName="Conversation">
     <displayName>Conversation</displayName>
     <superKinds itemref="content:ContentItem"/>
     <attributes itemref="notes:subjectItem"/>
@@ -97,27 +97,27 @@
 
   <!-- Conversation -->
 
-  <Attribute itemName="author">
+  <Attribute itsName="author">
     <displayName>Author</displayName>
     <issues>This should be a Contact, or perhaps it should be either a Contact or a String.</issues>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
   
-  <Attribute itemName="line">
+  <Attribute itsName="line">
     <displayName>Line</displayName>
     <description>A line of text in a conversation, such as "okay, let's meet at 5:00".</description>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="timestamp">
+  <Attribute itsName="timestamp">
     <displayName>Timestamp</displayName>
     <cardinality>single</cardinality>
     <type itemref="DateTime"/>
   </Attribute>
 
-  <Attribute itemName="containedInConversation">
+  <Attribute itsName="containedInConversation">
     <displayName>Contained in Conversation</displayName>
     <description>The Conversation that this line is a part of.</description>
     <cardinality>single</cardinality>
@@ -126,7 +126,7 @@
     <inverseAttribute itemref="notes:conversationLines"/>
   </Attribute>
 
-  <Kind itemName="ConversationLine">
+  <Kind itsName="ConversationLine">
     <superKinds itemref="Item"/>
     <displayName>Conversation Line</displayName>
     <issues>Perhaps for performance reasons we should implement 'ConversationLine' as a struct rather than a first-class Kind.</issues>

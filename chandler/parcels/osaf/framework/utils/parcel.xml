@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel describes="//parcels/osaf/framework/utils"
-        itemName="utils"
-        xmlns="//Schema/Core">
+        itsName="utils"
+        xmlns="http://osafoundation.org/parcels/core">
 
   <displayName>empty parcel</displayName>
   <description>empty parcel</description>

@@ -23,7 +23,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
     def testMail(self):
         """ Simple test for creating instances of email related kinds """
 
-        self.loadParcel("osaf/contentmodel/mail")
+        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/mail")
 
         def _verifyMailMessage(message):
             pass

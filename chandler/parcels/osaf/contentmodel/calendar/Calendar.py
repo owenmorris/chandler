@@ -7,17 +7,15 @@ __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
-
-import repository.parcel.Parcel as Parcel
+import application
 import repository.item.Item as Item
 
 import osaf.contentmodel.ContentModel as ContentModel
-import application.Globals as Globals
 
 import mx.DateTime as DateTime
 
 
-class CalendarParcel(Parcel.Parcel):
+class CalendarParcel(application.Parcel.Parcel):
 
     def _setUUIDs(self):
         calendarEventKind = self['CalendarEvent']
@@ -40,7 +38,7 @@ class CalendarParcel(Parcel.Parcel):
         self._setUUIDs()
 
     def startupParcel(self):
-        Parcel.Parcel.startupParcel(self)
+        super(CalendarParcel, self).startupParcel()
         self._setUUIDs()
 
     def getCalendarEventKind(cls):

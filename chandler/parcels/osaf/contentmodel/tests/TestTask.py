@@ -39,7 +39,7 @@ class TaskTest(TestContentModel.ContentModelTestCase):
             self.assertEqual(task.getWho(), ' ')
             self.assertEqual(task.getDate(), ' ')
         
-        self.loadParcel("osaf/contentmodel/tasks")
+        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/tasks")
 
         # Check that the globals got created by the parcel
         taskPath = Path('//parcels/osaf/contentmodel/tasks')

@@ -6,63 +6,63 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/views/demo"
-             itemName="demo"
-             xmlns:core="//Schema/Core"
-             xmlns="//parcels/osaf/framework/blocks"
-             xmlns:doc="//parcels/osaf/views/demo"
-             xmlns:events="//parcels/osaf/framework/blocks/Events"
-             xmlns:main="//parcels/osaf/views/main">
+             itsName="demo"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:doc="http://osafoundation.org/parcels/osaf/views/demo"
+             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
+             xmlns:main="http://osafoundation.org/parcels/osaf/views/main">
 
   <core:version>0.3</core:version>
 
   <!--
     Styles
   -->
-  <CharacterStyle itemName="TitleStyle">
+  <CharacterStyle itsName="TitleStyle">
     <fontStyle>bold</fontStyle>
   </CharacterStyle>  
 
-  <CharacterStyle itemName="TextStyle">
+  <CharacterStyle itsName="TextStyle">
     <fontSize>10.0</fontSize>
   </CharacterStyle>
 
   <!--
     Events
   -->
-  <ChoiceEvent itemName="ChooseIntroTab">
+  <ChoiceEvent itsName="ChooseIntroTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
     <methodName>onChoiceEvent</methodName>
     <choice>Intro</choice>
   </ChoiceEvent>  
   
-  <ChoiceEvent itemName="ChooseButtonsTab">
+  <ChoiceEvent itsName="ChooseButtonsTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
     <methodName>onChoiceEvent</methodName>
     <choice>Buttons</choice>
   </ChoiceEvent>
 
-  <ChoiceEvent itemName="ChooseControlsTab">
+  <ChoiceEvent itsName="ChooseControlsTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
     <methodName>onChoiceEvent</methodName>
     <choice>Controls</choice>
   </ChoiceEvent>
   
-  <ChoiceEvent itemName="ChooseHTMLTab">
+  <ChoiceEvent itsName="ChooseHTMLTab">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
     <methodName>onChoiceEvent</methodName>
     <choice>HTML</choice>
   </ChoiceEvent>
 
-  <BlockEvent itemName="ReloadText">
+  <BlockEvent itsName="ReloadText">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
   </BlockEvent>
 
-  <BlockEvent itemName="AddText">
+  <BlockEvent itsName="AddText">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="doc:Tabs"/>
   </BlockEvent>
@@ -70,7 +70,7 @@
   <!--
     Menus
   -->
-  <Menu itemName="DemoMenu">
+  <Menu itsName="DemoMenu">
     <title>Block Demo</title>
     <operation>InsertBefore</operation>
     <menuLocation></menuLocation>
@@ -81,7 +81,7 @@
   <!--
     Menu Items
   -->
-  <MenuItem itemName="IntroMenuItem">
+  <MenuItem itsName="IntroMenuItem">
     <title>Intro Tab</title>
     <operation>InsertBefore</operation>
     <menuLocation>DemoMenu</menuLocation>
@@ -92,7 +92,7 @@
     <helpString></helpString>
   </MenuItem>
 
-  <MenuItem itemName="ButtonsMenuItem">
+  <MenuItem itsName="ButtonsMenuItem">
     <title>Buttons Tab</title>
     <operation>InsertBefore</operation>
     <menuLocation>DemoMenu</menuLocation>
@@ -103,7 +103,7 @@
     <helpString></helpString>
   </MenuItem>
 
-  <MenuItem itemName="ControlsMenuItem">
+  <MenuItem itsName="ControlsMenuItem">
     <title>Controls Tab</title>
     <operation>InsertBefore</operation>
     <menuLocation>DemoMenu</menuLocation>
@@ -114,7 +114,7 @@
     <helpString></helpString>
   </MenuItem>
 
-  <MenuItem itemName="HTMLMenuItem">
+  <MenuItem itsName="HTMLMenuItem">
     <title>HTML Tab</title>
     <operation>InsertBefore</operation>
     <menuLocation>DemoMenu</menuLocation>
@@ -128,7 +128,7 @@
   <!--
     Layout blocks
   -->
-  <StaticText itemName="IntroTitle">
+  <StaticText itsName="IntroTitle">
     <!-- Attributes -->
     <textAlignmentEnum>Center</textAlignmentEnum>
     <characterStyle itemref="doc:TitleStyle"/>
@@ -139,7 +139,7 @@
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
-  <StaticText itemName="IntroTextBlank">
+  <StaticText itsName="IntroTextBlank">
     <!-- Attributes -->
     <characterStyle itemref="doc:TextStyle"/>
     <title></title>
@@ -150,7 +150,7 @@
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
-  <StaticText itemName="IntroTextOne">
+  <StaticText itsName="IntroTextOne">
     <!-- Attributes -->
     <characterStyle itemref="doc:TextStyle"/>
     <title>The demo view demonstrates the new CPIA functionality and some of the available blocks.  It is used as an example for</title>
@@ -162,7 +162,7 @@
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
-  <StaticText itemName="IntroTextTwo">
+  <StaticText itsName="IntroTextTwo">
     <!-- Attributes -->
     <characterStyle itemref="doc:TextStyle"/>
     <title>developers new to Chandler to see the kinds of blocks that are available and as a test framework</title>
@@ -173,7 +173,7 @@
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
-  <StaticText itemName="IntroTextThree">
+  <StaticText itsName="IntroTextThree">
     <!-- Attributes -->
     <characterStyle itemref="doc:TextStyle"/>
     <title>for blocks.</title>
@@ -184,7 +184,7 @@
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
  
-  <StaticText itemName="IntroInstructionsBlank">
+  <StaticText itsName="IntroInstructionsBlank">
     <!-- Attributes -->
     <characterStyle itemref="doc:TextStyle"/>
     <title></title>
@@ -195,7 +195,7 @@
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
-  <StaticText itemName="IntroInstructions">
+  <StaticText itsName="IntroInstructions">
     <!-- Attributes -->
     <characterStyle itemref="doc:TextStyle"/>
     <title>Click through the tabs to view the kinds of blocks that Chandler supports.</title>
@@ -206,7 +206,7 @@
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
-  <BoxContainer itemName="IntroTab">
+  <BoxContainer itsName="IntroTab">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:IntroTitle"/>
     <childrenBlocks itemref="doc:IntroTextBlank"/>
@@ -224,7 +224,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </BoxContainer>
 
-  <StaticText itemName="ButtonHeader">
+  <StaticText itsName="ButtonHeader">
     <!-- Attributes -->
     <textAlignmentEnum>Center</textAlignmentEnum>
     <characterStyle itemref="doc:TextStyle"/>
@@ -236,7 +236,7 @@
     <stretchFactor>0.0</stretchFactor>
   </StaticText>  
 
-  <Button itemName="TextButton">
+  <Button itsName="TextButton">
     <!-- Attributes -->
     <title>Add Text</title>
     <buttonKind>Text</buttonKind>
@@ -249,7 +249,7 @@
     <stretchFactor>0.0</stretchFactor>
   </Button>
   
-  <Button itemName="ImageButton">
+  <Button itsName="ImageButton">
     <!-- Attributes -->
     <buttonKind>Image</buttonKind>
     <icon>application/images/refresh.png</icon>
@@ -262,7 +262,7 @@
     <stretchFactor>0.0</stretchFactor>
   </Button>
 
-  <Button itemName="ToggleButton">
+  <Button itsName="ToggleButton">
     <!-- Attributes -->
     <title>Toggle</title>
     <buttonKind>Toggle</buttonKind>
@@ -274,7 +274,7 @@
     <stretchFactor>0.0</stretchFactor>
   </Button>
 
-  <BoxContainer itemName="ButtonsSizer">
+  <BoxContainer itsName="ButtonsSizer">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:ImageButton"/>
     <childrenBlocks itemref="doc:ToggleButton"/>
@@ -286,7 +286,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </BoxContainer>
   
-  <EditText itemName="ButtonText">
+  <EditText itsName="ButtonText">
     <!-- Attributes -->
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -298,7 +298,7 @@
     <border>3.0, 3.0, 3.0, 3.0</border>
   </EditText>
 
-  <BoxContainer itemName="ButtonsTab">
+  <BoxContainer itsName="ButtonsTab">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:ButtonHeader"/>
     <childrenBlocks itemref="doc:ButtonsSizer"/>
@@ -312,7 +312,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </BoxContainer>
   
-  <RadioBox itemName="RadioExample">
+  <RadioBox itsName="RadioExample">
     <!-- Attributes -->
     <title>Radio Box Example</title>
     <choices>One</choices>
@@ -329,7 +329,7 @@
     <stretchFactor>0.0</stretchFactor>
   </RadioBox>
   
-  <ComboBox itemName="ComboExample">
+  <ComboBox itsName="ComboExample">
     <!-- Attributes -->
     <selection>First</selection>    
     <choices>First</choices>
@@ -342,7 +342,7 @@
     <stretchFactor>0.0</stretchFactor>
   </ComboBox>
 
-  <BoxContainer itemName="RadioSizer">
+  <BoxContainer itsName="RadioSizer">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:RadioExample"/>
 
@@ -352,7 +352,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </BoxContainer>
   
-  <BoxContainer itemName="ComboSizer">
+  <BoxContainer itsName="ComboSizer">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:ComboExample"/>
 
@@ -362,7 +362,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </BoxContainer>
 
-  <BoxContainer itemName="ControlsTab">
+  <BoxContainer itsName="ControlsTab">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:RadioSizer"/>
     <childrenBlocks itemref="doc:ComboSizer"/>
@@ -375,7 +375,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </BoxContainer>
 
-  <HTML itemName="HTMLExample">
+  <HTML itsName="HTMLExample">
     <!-- Attributes -->
     <url>parcels/osaf/views/demo/example.html</url>
 
@@ -384,7 +384,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </HTML>
 
-  <BoxContainer itemName="HTMLTab">
+  <BoxContainer itsName="HTMLTab">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:HTMLExample"/>
     <!-- Attributes -->
@@ -395,7 +395,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </BoxContainer>
 
-  <TabbedContainer itemName="Tabs"
+  <TabbedContainer itsName="Tabs"
                    itemClass="osaf.views.demo.Demo.DemoTabs">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:IntroTab"/>
@@ -415,7 +415,7 @@
     <border>3.0, 3.0, 3.0, 3.0</border>
   </TabbedContainer>
   
-  <BoxContainer itemName="TabBox">
+  <BoxContainer itsName="TabBox">
     <!-- Menus -->
     <childrenBlocks itemref="doc:DemoMenu"/>
     <childrenBlocks itemref="doc:IntroMenuItem"/>    

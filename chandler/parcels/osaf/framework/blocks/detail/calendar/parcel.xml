@@ -6,13 +6,13 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/framework/blocks/detail/calendar"
-             itemName="calendar"
-             xmlns="//parcels/osaf/framework/blocks"
-             xmlns:core="//Schema/Core"
-             xmlns:blocks="//parcels/osaf/framework/blocks"
-             xmlns:content="//parcels/osaf/contentmodel"
-             xmlns:detail="//parcels/osaf/framework/blocks/detail"
-             xmlns:doc="//parcels/osaf/framework/blocks/detail/calendar">
+             itsName="calendar"
+             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
+             xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
+             xmlns:doc="http://osafoundation.org/parcels/osaf/framework/blocks/detail/calendar">
 
   <core:version>0.3</core:version>
 
@@ -21,7 +21,7 @@
   -->
   
   <!-- Root -->
-  <ContentItemDetail itemName="DetailRoot">
+  <ContentItemDetail itsName="DetailRoot">
     <childrenBlocks itemref="doc:MarkupBar"/>
     <childrenBlocks itemref="doc:FromAndToArea"/>
     <childrenBlocks itemref="doc:CoreIndent"/>
@@ -37,7 +37,7 @@
   </ContentItemDetail>
 
   <!-- MarkupBar -->
-  <ContentItemDetail itemName="MarkupBar">
+  <ContentItemDetail itsName="MarkupBar">
     <childrenBlocks itemref="doc:MarkupString"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground2"/>
@@ -45,7 +45,7 @@
     <stretchFactor>0</stretchFactor>
   </ContentItemDetail>
  
-  <StaticText itemName="MarkupString">
+  <StaticText itsName="MarkupString">
     <title>Markup Bar</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -53,28 +53,28 @@
   </StaticText>
   
   <!-- FromAndToArea -->
-  <ContentItemDetail itemName="FromAndToArea">
+  <ContentItemDetail itsName="FromAndToArea">
     <childrenBlocks itemref="doc:FromArea"/>
     <childrenBlocks itemref="doc:ToArea"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
   </ContentItemDetail>
  
-  <ContentItemDetail itemName="FromArea">
+  <ContentItemDetail itsName="FromArea">
     <childrenBlocks itemref="doc:FromString"/>
     <childrenBlocks itemref="doc:FromEditField"/>
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
   </ContentItemDetail>
 
-  <StaticText itemName="FromString">
+  <StaticText itsName="FromString">
     <title>Organizer: </title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
   </StaticText>
   
-  <detail:FromEditField itemName="FromEditField">
+  <detail:FromEditField itsName="FromEditField">
     <characterStyle itemref="detail:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -82,21 +82,21 @@
     <textAlignmentEnum>Left</textAlignmentEnum>
   </detail:FromEditField>
 
-  <ContentItemDetail itemName="ToArea">
+  <ContentItemDetail itsName="ToArea">
     <childrenBlocks itemref="doc:ToString"/>
     <childrenBlocks itemref="doc:ToEditField1"/>
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
   </ContentItemDetail>
  
-  <StaticText itemName="ToString">
+  <StaticText itsName="ToString">
     <title>Attendees: </title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
   </StaticText>
   
-  <detail:ToEditField itemName="ToEditField1">
+  <detail:ToEditField itsName="ToEditField1">
     <characterStyle itemref="detail:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -105,7 +105,7 @@
   </detail:ToEditField>
 
   <!-- CoreIndent -->
-  <ContentItemDetail itemName="CoreIndent">
+  <ContentItemDetail itsName="CoreIndent">
     <childrenBlocks itemref="doc:Indent"/>
     <childrenBlocks itemref="doc:CoreArea"/>
     <childrenBlocks itemref="doc:Indent2"/>
@@ -113,20 +113,20 @@
     <stretchFactor>2</stretchFactor>
   </ContentItemDetail>
  
-  <ContentItemDetail itemName="Indent">
+  <ContentItemDetail itsName="Indent">
     <!-- Attributes -->
     <size>80,80</size>
     <stretchFactor>0</stretchFactor>
   </ContentItemDetail>
  
-  <ContentItemDetail itemName="Indent2">
+  <ContentItemDetail itsName="Indent2">
     <!-- Attributes -->
     <size>80,80</size>
     <stretchFactor>0</stretchFactor>
   </ContentItemDetail>
  
   <!-- CoreArea -->
-  <ContentItemDetail itemName="CoreArea">
+  <ContentItemDetail itsName="CoreArea">
     <childrenBlocks itemref="doc:Headline"/>
     <childrenBlocks itemref="doc:DateTime"/>
     <!-- Attributes -->
@@ -134,14 +134,14 @@
     <stretchFactor>2</stretchFactor>
   </ContentItemDetail>
  
-  <detail:Headline itemName="Headline">
+  <detail:Headline itsName="Headline">
     <title>Core</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
   </detail:Headline>
   
-  <detail:DateTimeBlock itemName="DateTime">
+  <detail:DateTimeBlock itsName="DateTime">
     <title>Date/Time</title>
     <characterStyle itemref="detail:TextStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -149,7 +149,7 @@
   </detail:DateTimeBlock>
     
   <!-- StampedEmailArea -->
-  <ContentItemDetail itemName="StampedEmailArea">
+  <ContentItemDetail itsName="StampedEmailArea">
     <childrenBlocks itemref="doc:StampedEmailString"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
@@ -157,7 +157,7 @@
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
-  <StaticText itemName="StampedEmailString">
+  <StaticText itsName="StampedEmailString">
     <title>Stamped Email</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -165,7 +165,7 @@
   </StaticText>
   
   <!-- NotesArea -->
-  <ContentItemDetail itemName="NotesArea">
+  <ContentItemDetail itsName="NotesArea">
     <childrenBlocks itemref="doc:NotesString"/>
     <childrenBlocks itemref="doc:TheNotes"/>
     <!-- Attributes -->
@@ -174,14 +174,14 @@
     <stretchFactor>3</stretchFactor>
   </ContentItemDetail>
   
-  <StaticText itemName="NotesString">
+  <StaticText itsName="NotesString">
     <title>Notes</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
   </StaticText>
   
-  <detail:NoteBody itemName="TheNotes">
+  <detail:NoteBody itsName="TheNotes">
     <characterStyle itemref="detail:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>RichText</textStyleEnum>
@@ -191,7 +191,7 @@
   </detail:NoteBody>
 
   <!-- MessagesArea -->
-  <ContentItemDetail itemName="MessagesArea">
+  <ContentItemDetail itsName="MessagesArea">
     <childrenBlocks itemref="doc:MessagesString"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
@@ -199,7 +199,7 @@
     <stretchFactor>1</stretchFactor>
   </ContentItemDetail>
   
-  <StaticText itemName="MessagesString">
+  <StaticText itsName="MessagesString">
     <title>Messages</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -207,7 +207,7 @@
   </StaticText>
   
   <!-- SharingBar -->
-  <ContentItemDetail itemName="SharingBar">
+  <ContentItemDetail itsName="SharingBar">
     <childrenBlocks itemref="doc:SharingString"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground2"/>
@@ -215,7 +215,7 @@
     <stretchFactor>0</stretchFactor>
   </ContentItemDetail>
   
-  <StaticText itemName="SharingString">
+  <StaticText itsName="SharingString">
     <title>Sharing Bar</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -223,7 +223,7 @@
   </StaticText>
   
   <!-- LabelingArea -->
-  <ContentItemDetail itemName="LabelingArea">
+  <ContentItemDetail itsName="LabelingArea">
     <childrenBlocks itemref="doc:LabelingString"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
@@ -231,7 +231,7 @@
     <stretchFactor>1.0</stretchFactor>
   </ContentItemDetail>
   
-  <StaticText itemName="LabelingString">
+  <StaticText itsName="LabelingString">
     <title>See Also</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    

@@ -6,14 +6,14 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/contentmodel/tasks"
-        itemName="tasks"
+        itsName="tasks"
         itemClass="osaf.contentmodel.tasks.Task.TaskParcel"
-        xmlns="//Schema/Core"
-        xmlns:content="//parcels/osaf/contentmodel"
-        xmlns:mail="//parcels/osaf/contentmodel/mail"
-        xmlns:contact="//parcels/osaf/contentmodel/contacts"
-        xmlns:cal="//parcels/osaf/contentmodel/calendar"
-        xmlns:tasks="//parcels/osaf/contentmodel/tasks">
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
+        xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
+        xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
+        xmlns:cal="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
+        xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks">
 
   <displayName>Task Content Model</displayName>
   <description>Kinds and Attributes related to Task functionality. 
@@ -25,7 +25,7 @@
 
   <!-- Task attributes -->
 
-  <Attribute itemName="requestor">
+  <Attribute itsName="requestor">
     <displayName>Requestor</displayName>
     <issues>Type could be Contact, EmailAddress or String</issues>
     <issues>Think about using the icalendar terminology</issues>
@@ -33,14 +33,14 @@
     <inverseAttribute itemref="tasks:requestedTasks"/>
   </Attribute>
 
-  <Attribute itemName="requestedTasks">
+  <Attribute itsName="requestedTasks">
     <displayName>Requested Tasks</displayName>
     <cardinality>list</cardinality>
     <type itemref="tasks:Task"/>
     <inverseAttribute itemref="tasks:requestor"/>
   </Attribute>
 
-  <Attribute itemName="requestee">
+  <Attribute itsName="requestee">
     <displayName>Requestee</displayName>
     <issues>Type could be Contact, EmailAddress or String</issues>
     <issues>Think about using the icalendar terminology</issues>
@@ -48,7 +48,7 @@
     <inverseAttribute itemref="tasks:taskRequests"/>
   </Attribute>
 
-  <Attribute itemName="taskRequests">
+  <Attribute itsName="taskRequests">
     <displayName>Task Requests</displayName>
     <description>List of tasks requested for the contact</description>
     <cardinality>list</cardinality>
@@ -56,26 +56,26 @@
     <inverseAttribute itemref="tasks:requestee"/>
   </Attribute>
 
-  <Attribute itemName="dependsOn">
+  <Attribute itsName="dependsOn">
     <displayName>Depends On</displayName>
     <cardinality>list</cardinality>
     <type itemref="tasks:Task"/>
     <inverseAttribute itemref="tasks:preventsProgressOn"/>
   </Attribute>
 
-  <Attribute itemName="preventsProgressOn">
+  <Attribute itsName="preventsProgressOn">
     <displayName>Blocks</displayName>
     <cardinality>list</cardinality>
     <type itemref="tasks:Task"/>
     <inverseAttribute itemref="tasks:dependsOn"/>
   </Attribute>
 
-  <Attribute itemName="status">
+  <Attribute itsName="status">
     <displayName>Status</displayName>
     <type itemref="tasks:TaskStatusEnum"/>
   </Attribute>
 
-  <Enumeration itemName="TaskStatusEnum">
+  <Enumeration itsName="TaskStatusEnum">
     <displayName>Task Status</displayName>
     <values>todo</values>
     <values>blocked</values>
@@ -83,13 +83,13 @@
     <values>deferred</values>
   </Enumeration>
 
-  <Attribute itemName="dueDate">
+  <Attribute itsName="dueDate">
     <displayName>Due date</displayName>
     <type itemref="DateTime"/>
   </Attribute>
 
 
-  <Kind itemName="Task">
+  <Kind itsName="Task">
     <displayName>Task</displayName>
     <issues>Do we want to support the idea of tasks having sub-tasks? If so, then we need to add attributes for 'superTask' and 'subTasks'.</issues>
     <issues>Task should maybe have a 'Timezone' attribute.</issues>

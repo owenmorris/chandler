@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
-<core:Parcel itemName="mail"
-             xmlns:core="//Schema/Core"
-             xmlns:content="//parcels/osaf/contentmodel/mail"
-             xmlns:mail="//parcels/osaf/mail"
-             xmlns:task="//parcels/osaf/framework/tasks">
+<core:Parcel itsName="mail"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel/mail"
+             xmlns:mail="http://osafoundation.org/parcels/osaf/mail"
+             xmlns:task="http://osafoundation.org/parcels/osaf/framework/tasks">
 
-  <!--content:EmailAccount itemName="IMAPAccount One">
+  <!--content:EmailAccount itsName="IMAPAccount One">
     <content:displayName>IMAP Server</content:displayName>
     <content:serverName>localhost</content:serverName>
     <content:accountType>IMAP4</content:accountType>
@@ -15,14 +15,14 @@
     <content:serverPort>143</content:serverPort>
   </content:EmailAccount-->
 
-  <task:Task itemName="IMAPMailClient">
-    <task:Schedule itemName="MailSchedule">
+  <task:Task itsName="IMAPMailClient">
+    <task:Schedule itsName="MailSchedule">
       <task:startTime>2003-11-11 11:11:11+0800</task:startTime>
       <!--task:enabled>False</task:enabled-->
       <task:repeatFlag>True</task:repeatFlag>
       <task:repeatDelay>00:00:01:00</task:repeatDelay>
     </task:Schedule>
-    <task:Action itemName="GetMail" itemClass="osaf.mail.IMAPMailTask.MailDownloadAction"/>
+    <task:Action itsName="GetMail" itemClass="osaf.mail.IMAPMailTask.MailDownloadAction"/>
 
     <task:schedule itemref="mail:IMAPMailClient/MailSchedule"/>
     <task:actions itemref="mail:IMAPMailClient/GetMail"/>

@@ -7,14 +7,14 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import repository.parcel.Parcel as Parcel
+import application
 import repository.item.Item as Item
 import mx.DateTime as DateTime
 import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
 
 
-class TaskParcel(Parcel.Parcel):
+class TaskParcel(application.Parcel.Parcel):
     def startupParcel(self):
         super(TaskParcel, self).startupParcel()
         self._setUUIDs()
@@ -26,7 +26,7 @@ class TaskParcel(Parcel.Parcel):
     def _setUUIDs(self):
         taskKind = self['Task']
         TaskParcel.taskKindID = taskKind.itsUUID
-        
+
     def getTaskKind(cls):
         assert cls.taskKindID, "Task parcel not yet loaded"
         return Globals.repository[cls.taskKindID]
@@ -34,7 +34,7 @@ class TaskParcel(Parcel.Parcel):
     getTaskKind = classmethod(getTaskKind)
 
     taskKindID = None
-    
+
 class Task(ContentModel.ContentItem):
 
     def __init__(self, name=None, parent=None, kind=None):

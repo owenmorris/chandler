@@ -6,18 +6,18 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/framework/tasks"
-        itemName="tasks"
-        xmlns="//Schema/Core"
-        xmlns:sched="//parcels/osaf/framework/tasks">
+        itsName="tasks"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:sched="http://osafoundation.org/parcels/osaf/framework/tasks">
 
   <displayName>Task Schema</displayName>
 
   <!-- Kind: Action -->
 
-  <Kind itemName="Action">
+  <Kind itsName="Action">
     <displayName>Action</displayName>
 
-    <Enumeration itemName="ActionTypeEnum">
+    <Enumeration itsName="ActionTypeEnum">
       <values>none</values>
       <values>script</values>
       <values>expression</values>
@@ -25,59 +25,59 @@
       <values>classmethod</values>
     </Enumeration>
 
-    <Attribute itemName="actionType">
+    <Attribute itsName="actionType">
       <displayName>Action Type</displayName>
       <type itemref="sched:Action/ActionTypeEnum"/>
       <cardinality>single</cardinality>
       <!-- <defaultValue>none</defaultValue> -->
     </Attribute>
   
-    <Attribute itemName="actionScript">
+    <Attribute itsName="actionScript">
       <displayName>Action Script</displayName>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
   
-    <Attribute itemName="actionValue">
+    <Attribute itsName="actionValue">
       <displayName>Action Script</displayName>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="actionFilePath">
+    <Attribute itsName="actionFilePath">
       <displayName>Action Script</displayName>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="asyncFlag">
+    <Attribute itsName="asyncFlag">
       <displayName>Asynchronous Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
       <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
 
-    <Attribute itemName="wxThreadFlag">
+    <Attribute itsName="wxThreadFlag">
       <displayName>Asynchronous Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
       <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
     
-    <Attribute itemName="confirmFlag">
+    <Attribute itsName="confirmFlag">
       <displayName>Request Confirmation Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
       <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
 
-    <Attribute itemName="actionPermissionRequest">
+    <Attribute itsName="actionPermissionRequest">
       <displayName>Action Script</displayName>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="actionOwner">
+    <Attribute itsName="actionOwner">
       <displayName>Action Instruction Backlink</displayName>
       <type itemref="sched:Task"/>
       <cardinality>list</cardinality>
@@ -100,28 +100,28 @@
 
   <!-- Kind: Schedule -->
 
-  <Kind itemName="Schedule">
+  <Kind itsName="Schedule">
     <displayName>Timed Condition</displayName>
 
-    <Attribute itemName="startTime">
+    <Attribute itsName="startTime">
       <displayName>Start Time</displayName>
       <type itemref="DateTime"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="repeatFlag">
+    <Attribute itsName="repeatFlag">
       <displayName>Repeat Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="repeatDelay">
+    <Attribute itsName="repeatDelay">
       <displayName>Repeat Delay</displayName>
       <type itemref="DateTimeDelta"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="scheduleOwner">
+    <Attribute itsName="scheduleOwner">
       <displayName>Schedule Owner</displayName>
       <type itemref="sched:Task"/>
       <cardinality>single</cardinality>
@@ -138,24 +138,24 @@
 
   <!-- Kind: Instruction -->
 
-  <Kind itemName="Task">
+  <Kind itsName="Task">
     <displayName>Task</displayName>
 
-    <Attribute itemName="enabled">
+    <Attribute itsName="enabled">
       <displayName>Enabled Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
       <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
 
-    <Attribute itemName="schedule">
+    <Attribute itsName="schedule">
       <displayName>Instruction Schedule</displayName>
       <type itemref="sched:Schedule"/>
       <cardinality>single</cardinality>
       <inverseAttribute itemref="sched:Schedule/scheduleOwner"/>
     </Attribute>
   
-    <Attribute itemName="actions">
+    <Attribute itsName="actions">
       <displayName>Instruction Actions</displayName>
       <type itemref="sched:Action"/>
       <cardinality>list</cardinality>

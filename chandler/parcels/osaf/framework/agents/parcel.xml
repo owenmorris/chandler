@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel describes="//parcels/osaf/framework/agents"
-        itemName="agents"
-        xmlns="//Schema/Core">
+        itsName="agents"
+        xmlns="http://osafoundation.org/parcels/core">
 
   <displayName>The Agent Parcel</displayName>
   <description>All of the core agent stuff lives here</description>

@@ -6,17 +6,17 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/framework"
-        itemName="framework"
-        xmlns="//Schema/Core"
-        xmlns:app="//parcels/osaf/framework"
-        xmlns:events="//parcels/osaf/framework/notifications/schema">
+        itsName="framework"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:app="http://osafoundation.org/parcels/osaf/framework"
+        xmlns:events="http://osafoundation.org/parcels/osaf/framework/notifications/schema">
 
   <displayName>Application Schema</displayName>
   <description>Schemas used by the Chandler Application</description>
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
 
-  <events:Event itemName="commit_history"/>
-  <events:Event itemName="query_changed"/>
+  <events:Event itsName="commit_history"/>
+  <events:Event itsName="query_changed"/>
 
 </Parcel>

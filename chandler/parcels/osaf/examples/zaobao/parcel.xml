@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <Parcel describes="//parcels/osaf/examples/zaobao"
-        itemName="zaobao"
+        itsName="zaobao"
         itemClass="osaf.examples.zaobao.RSSData.ZaoBaoParcel"
-        xmlns="//Schema/Core"
-        xmlns:zaobao="//parcels/osaf/examples/zaobao"
-        xmlns:fw="//parcels/osaf/framework"
-        xmlns:task="//parcels/osaf/framework/tasks"
-        xmlns:content="//parcels/osaf/contentmodel"
-        xmlns:docSchema="//parcels/osaf/framework/blocks">
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:zaobao="http://osafoundation.org/parcels/osaf/examples/zaobao"
+        xmlns:fw="http://osafoundation.org/parcels/osaf/framework"
+        xmlns:task="http://osafoundation.org/parcels/osaf/framework/tasks"
+        xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
+        xmlns:docSchema="http://osafoundation.org/parcels/osaf/framework/blocks">
 
   <displayName>ZaoBao RSS Schema</displayName>
   <description>RSS schema for ZaoBao parcel for 0.4 release</description>
   <version>0.1</version>
 
 
-  <Attribute itemName="link">
+  <Attribute itsName="link">
     <displayName>Web URL</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="category">
+  <Attribute itsName="category">
     <displayName>Category</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="creator">
+  <Attribute itsName="creator">
     <displayName>Creator</displayName>
     <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="date">
+  <Attribute itsName="date">
     <displayName>Date</displayName>
     <cardinality>single</cardinality>
     <type itemref="DateTime"/>
@@ -42,48 +42,48 @@
 
   <!-- Kind: RSSChannel -->
 
-  <Kind itemName="RSSChannel">
+  <Kind itsName="RSSChannel">
     <displayName>RSS Channel</displayName>
 
     <!-- Feed specific attributes -->
-    <Attribute itemName="url">
+    <Attribute itsName="url">
       <displayName>URL</displayName>
       <cardinality>single</cardinality>
       <type itemref="String"/>
     </Attribute>
   
-    <Attribute itemName="etag">
+    <Attribute itsName="etag">
       <displayName>eTag</displayName>
       <cardinality>single</cardinality>
       <type itemref="String"/>
     </Attribute>
   
-    <Attribute itemName="lastModified">
+    <Attribute itsName="lastModified">
       <displayName>Last Modified</displayName>
       <cardinality>single</cardinality>
       <type itemref="DateTime"/>
     </Attribute>
 
     <!-- channel attributes -->
-    <Attribute itemName="copyright">
+    <Attribute itsName="copyright">
       <displayName>Copyright</displayName>
       <cardinality>single</cardinality>
       <type itemref="String"/>
     </Attribute>
 
-    <Attribute itemName="language">
+    <Attribute itsName="language">
       <displayName>Language</displayName>
       <cardinality>single</cardinality>
       <type itemref="String"/>
     </Attribute>
 
-    <Attribute itemName="isUnread">
+    <Attribute itsName="isUnread">
       <displayName>Is Unread</displayName>
       <cardinality>single</cardinality>
       <type itemref="Boolean"/>
     </Attribute>
   
-    <Attribute itemName="items">
+    <Attribute itsName="items">
       <displayName>Items</displayName>
       <cardinality>list</cardinality>
       <type itemref="zaobao:RSSItem"/>
@@ -111,17 +111,17 @@
 
   <!-- Kind: RSSItem -->
 
-  <Kind itemName="RSSItem">
+  <Kind itsName="RSSItem">
     <displayName>RSS Item</displayName>
 
-    <Attribute itemName="channel">
+    <Attribute itsName="channel">
       <displayName>Channel</displayName>
       <cardinality>single</cardinality>
       <type itemref="zaobao:RSSChannel"/>
       <inverseAttribute itemref="zaobao:RSSChannel/items"/>
     </Attribute>
 
-    <Attribute itemName="content">
+    <Attribute itsName="content">
       <cardinality>single</cardinality>
       <type itemref="Text"/>
     </Attribute>
@@ -141,16 +141,16 @@
   <!-- ZaoBao Task Definition -->
 
 
-  <task:Task itemName="ZaoBaoTask">
+  <task:Task itsName="ZaoBaoTask">
     <displayName>ZaoBao Scheduled Task</displayName>
 
-    <task:Schedule itemName="ZaoBaoSchedule">
+    <task:Schedule itsName="ZaoBaoSchedule">
       <task:startTime>2003-11-11 11:11:11+0800</task:startTime>
       <task:repeatFlag>True</task:repeatFlag>
       <task:repeatDelay>00:00:05:00</task:repeatDelay>
     </task:Schedule>
 
-    <task:Action itemName="GetFeeds" itemClass="osaf.examples.zaobao.ZaoBaoTask.UpdateAction">
+    <task:Action itsName="GetFeeds" itemClass="osaf.examples.zaobao.ZaoBaoTask.UpdateAction">
       <description>Gets and updates all the feeds</description>
     </task:Action>
 
@@ -161,7 +161,7 @@
 
 
   <!-- view related stuff -->
-  <Kind itemName="ZaoBaoItemDetail">
+  <Kind itsName="ZaoBaoItemDetail">
     <classes key="python">osaf.examples.zaobao.blocks.ZaoBaoItemDetail</classes>
     <superKinds itemref="docSchema:ItemDetail"/>
   </Kind>  

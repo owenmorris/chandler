@@ -6,58 +6,58 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/views/zaobao"
-             itemName="zaobao"
-             xmlns:core="//Schema/Core"
-             xmlns="//parcels/osaf/framework/blocks"
-             xmlns:doc="//parcels/osaf/views/zaobao"
-             xmlns:events="//parcels/osaf/framework/blocks/Events"
-             xmlns:zb="//parcels/osaf/examples/zaobao">
+             itsName="zaobao"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:doc="http://osafoundation.org/parcels/osaf/views/zaobao"
+             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
+             xmlns:zb="http://osafoundation.org/parcels/osaf/examples/zaobao">
 
   <core:version>0.3</core:version>
 
   <!-- RSS Channels -->
-  <zb:RSSChannel itemName="osaf">
+  <zb:RSSChannel itsName="osaf">
     <displayName>Loading... OSAF News</displayName>
     <zb:url>http://www.osafoundation.org/rss/2.0/</zb:url>
   </zb:RSSChannel>
-  <zb:RSSChannel itemName="chandlerwiki">
+  <zb:RSSChannel itsName="chandlerwiki">
     <displayName>Loading... Chandler Wiki</displayName>
     <zb:url>http://wiki.osafoundation.org/twiki/bin/view/Chandler/WebRss?skin=rss</zb:url>
   </zb:RSSChannel>
-  <zb:RSSChannel itemName="junglewiki">
+  <zb:RSSChannel itsName="junglewiki">
     <displayName>Loading... Jungle Wiki</displayName>
     <zb:url>http://wiki.osafoundation.org/twiki/bin/view/Jungle/WebRss?skin=rss</zb:url>
   </zb:RSSChannel>
-  <zb:RSSChannel itemName="ted">
+  <zb:RSSChannel itsName="ted">
     <displayName>Loading... Ted Leung on the air</displayName>
     <zb:url>http://www.sauria.com/blog?flav=rss</zb:url>
   </zb:RSSChannel>
-  <zb:RSSChannel itemName="zaobao">
+  <zb:RSSChannel itsName="zaobao">
     <displayName>Loading... ZaoBao news</displayName>
     <zb:url>http://blogs.osafoundation.org/zaobao/index.rdf</zb:url>
   </zb:RSSChannel>
-  <zb:RSSChannel itemName="chao">
+  <zb:RSSChannel itsName="chao">
     <displayName>Loading... Chao's Blog</displayName>
     <zb:url>http://blogs.osafoundation.org/chao/index.rdf</zb:url>
   </zb:RSSChannel>
-  <zb:RSSChannel itemName="lessig">
+  <zb:RSSChannel itsName="lessig">
     <displayName>Loading... Lessig Blog</displayName>
     <zb:url>http://lessig.org/blog/index.xml</zb:url>
   </zb:RSSChannel>
-  <zb:RSSChannel itemName="diveintomark">
+  <zb:RSSChannel itsName="diveintomark">
     <displayName>Loading... dive in to mark</displayName>
     <zb:url>http://diveintomark.org/xml/rss.xml</zb:url>
   </zb:RSSChannel>
 
 
   <!-- Styles -->
-  <CharacterStyle itemName="HeaderCharacterStyle">
+  <CharacterStyle itsName="HeaderCharacterStyle">
     <fontStyle>bold</fontStyle>
   </CharacterStyle>  
 
   <!-- The main ZaoBao view -->
 
-  <Tree itemName="ZaoBaoTree">
+  <Tree itsName="ZaoBaoTree">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoTreeDelegate</elementDelegate>
     <rootPath itemref="zb:RSSChannel"/>
 
@@ -70,12 +70,12 @@
     <minimumSize>400,100</minimumSize>
   </Tree>
 
-  <zb:ZaoBaoItemDetail itemName="ItemDetail">
+  <zb:ZaoBaoItemDetail itsName="ItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
   </zb:ZaoBaoItemDetail>
 
-  <EditText itemName="NewChannel">
+  <EditText itsName="NewChannel">
     <size>100,20</size>
     <minimumSize>100,20</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
@@ -86,7 +86,7 @@
     <characterStyle itemref="doc:HeaderCharacterStyle"/>
   </EditText>
 
-  <BoxContainer itemName="ItemViewBox">
+  <BoxContainer itsName="ItemViewBox">
     <size>200,100</size>
     <minimumSize>200,100</minimumSize>
     <border>2.0, 2.0, 2.0, 2.0</border>
@@ -97,7 +97,7 @@
 
   </BoxContainer>
 
-  <HTML itemName="AboutZaoBao">
+  <HTML itsName="AboutZaoBao">
     <url>parcels/osaf/examples/zaobao/AboutZaoBao.html</url>
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
@@ -105,7 +105,7 @@
     <border>1.0, 1.0, 1.0, 1.0</border>
   </HTML>
 
-  <SplitterWindow itemName="ZaoBaoView">
+  <SplitterWindow itsName="ZaoBaoView">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -117,7 +117,7 @@
 
   <!-- Example single channel view -->
 
-  <Tree itemName="ChannelList">
+  <Tree itsName="ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:osaf"/>
 
@@ -130,12 +130,12 @@
     <minimumSize>400,100</minimumSize>
   </Tree>
 
-  <zb:ZaoBaoItemDetail itemName="ChannelItemDetail">
+  <zb:ZaoBaoItemDetail itsName="ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
   </zb:ZaoBaoItemDetail>
 
-  <SplitterWindow itemName="ZaoBaoChannelView">
+  <SplitterWindow itsName="ZaoBaoChannelView">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -147,7 +147,7 @@
   
 
 
-  <Tree itemName="chandlerwiki_ChannelList">
+  <Tree itsName="chandlerwiki_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:chandlerwiki"/>
 
@@ -160,12 +160,12 @@
     <minimumSize>400,100</minimumSize>
   </Tree>
 
-  <zb:ZaoBaoItemDetail itemName="chandlerwiki_ChannelItemDetail">
+  <zb:ZaoBaoItemDetail itsName="chandlerwiki_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
   </zb:ZaoBaoItemDetail>
 
-  <SplitterWindow itemName="chandlerwiki_ZaoBaoChannelView">
+  <SplitterWindow itsName="chandlerwiki_ZaoBaoChannelView">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -176,7 +176,7 @@
   </SplitterWindow>
 
 
-  <Tree itemName="junglewiki_ChannelList">
+  <Tree itsName="junglewiki_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:junglewiki"/>
 
@@ -189,12 +189,12 @@
     <minimumSize>400,100</minimumSize>
   </Tree>
 
-  <zb:ZaoBaoItemDetail itemName="junglewiki_ChannelItemDetail">
+  <zb:ZaoBaoItemDetail itsName="junglewiki_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
   </zb:ZaoBaoItemDetail>
 
-  <SplitterWindow itemName="junglewiki_ZaoBaoChannelView">
+  <SplitterWindow itsName="junglewiki_ZaoBaoChannelView">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -206,7 +206,7 @@
 
 
 
-  <Tree itemName="ted_ChannelList">
+  <Tree itsName="ted_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:ted"/>
 
@@ -219,12 +219,12 @@
     <minimumSize>400,100</minimumSize>
   </Tree>
 
-  <zb:ZaoBaoItemDetail itemName="ted_ChannelItemDetail">
+  <zb:ZaoBaoItemDetail itsName="ted_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
   </zb:ZaoBaoItemDetail>
 
-  <SplitterWindow itemName="ted_ZaoBaoChannelView">
+  <SplitterWindow itsName="ted_ZaoBaoChannelView">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -236,7 +236,7 @@
   
 
 
-  <Tree itemName="zaobao_ChannelList">
+  <Tree itsName="zaobao_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:zaobao"/>
 
@@ -249,12 +249,12 @@
     <minimumSize>400,100</minimumSize>
   </Tree>
 
-  <zb:ZaoBaoItemDetail itemName="zaobao_ChannelItemDetail">
+  <zb:ZaoBaoItemDetail itsName="zaobao_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
   </zb:ZaoBaoItemDetail>
 
-  <SplitterWindow itemName="zaobao_ZaoBaoChannelView">
+  <SplitterWindow itsName="zaobao_ZaoBaoChannelView">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -267,7 +267,7 @@
 
 
 
-  <Tree itemName="chao_ChannelList">
+  <Tree itsName="chao_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:chao"/>
 
@@ -280,12 +280,12 @@
     <minimumSize>400,100</minimumSize>
   </Tree>
 
-  <zb:ZaoBaoItemDetail itemName="chao_ChannelItemDetail">
+  <zb:ZaoBaoItemDetail itsName="chao_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
   </zb:ZaoBaoItemDetail>
 
-  <SplitterWindow itemName="chao_ZaoBaoChannelView">
+  <SplitterWindow itsName="chao_ZaoBaoChannelView">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -298,7 +298,7 @@
 
 
 
-  <Tree itemName="lessig_ChannelList">
+  <Tree itsName="lessig_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:lessig"/>
 
@@ -311,12 +311,12 @@
     <minimumSize>400,100</minimumSize>
   </Tree>
 
-  <zb:ZaoBaoItemDetail itemName="lessig_ChannelItemDetail">
+  <zb:ZaoBaoItemDetail itsName="lessig_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
   </zb:ZaoBaoItemDetail>
 
-  <SplitterWindow itemName="lessig_ZaoBaoChannelView">
+  <SplitterWindow itsName="lessig_ZaoBaoChannelView">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>
@@ -329,7 +329,7 @@
 
 
 
-  <Tree itemName="mark_ChannelList">
+  <Tree itsName="mark_ChannelList">
     <elementDelegate>osaf.examples.zaobao.blocks.ZaoBaoListDelegate</elementDelegate>
     <rootPath itemref="doc:diveintomark"/>
 
@@ -342,12 +342,12 @@
     <minimumSize>400,100</minimumSize>
   </Tree>
 
-  <zb:ZaoBaoItemDetail itemName="mark_ChannelItemDetail">
+  <zb:ZaoBaoItemDetail itsName="mark_ChannelItemDetail">
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
   </zb:ZaoBaoItemDetail>
 
-  <SplitterWindow itemName="mark_ZaoBaoChannelView">
+  <SplitterWindow itsName="mark_ZaoBaoChannelView">
     <eventBoundary>True</eventBoundary>
     <size>900,580</size>
     <minimumSize>900,580</minimumSize>

@@ -40,17 +40,6 @@ def repositoryCallback(changes, notification, **kwds):
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 class NMTest(RepositoryTestCase.RepositoryTestCase):
     """ Notification Manager TestCase """
-    def _loadParcel(self, relPath):
-        """ load only the parcel we need (and it's dependencies) """
-        import repository.parcel.LoadParcels as LoadParcels
-
-        self.parceldir = os.path.join(self.rootdir, 'chandler', 'parcels')
-
-        uri = "//parcels/%s" % relPath
-        uri = uri.replace(os.path.sep, "/")
-        parcelDir = os.path.join(self.rootdir, 'chandler', 'parcels', relPath)
-        LoadParcels.LoadParcel(parcelDir, uri, self.parceldir, self.rep)
-        self.assert_(self.rep.findPath(uri))
 
     def setUp(self):
         super(NMTest,self)._setup(self)
@@ -68,12 +57,7 @@ class NMTest(RepositoryTestCase.RepositoryTestCase):
         Globals.notificationManager = NotificationManager()
 
         # Load the parcels
-        #
-        #self.parceldir = os.path.join(self.rootdir, 'chandler', 'parcels')
-        #import repository.parcel.LoadParcels as LoadParcels
-        #LoadParcels.LoadParcels(self.parceldir, self.rep)
-        self._loadParcel("osaf/framework/notifications/schema")
-        self._loadParcel("osaf/framework")
+        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/notifications/schema")
 
 
     def test_Subscribe(self):

@@ -3,8 +3,8 @@
 <!-- Copyright (c) 2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel itemName="stockquote"
-        xmlns="//Schema/Core">
+<Parcel itsName="stockquote"
+        xmlns="http://osafoundation.org/parcels/core">
 
   <displayName>Stock Quote</displayName>
 

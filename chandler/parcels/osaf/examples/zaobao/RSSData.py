@@ -3,10 +3,10 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import application
 import application.Globals as Globals
 from repository.item.Item import Item
 from repository.util.Path import Path
-from repository.parcel.Parcel import Parcel
 from osaf.contentmodel.ContentModel import ContentItem
 import mx.DateTime
 import types
@@ -15,7 +15,7 @@ import feedparser
 ##
 # ZaoBaoParcel
 ##
-class ZaoBaoParcel(Parcel):
+class ZaoBaoParcel(application.Parcel.Parcel):
     def _setUUIDs(self, parent):
 
         # hackery to avoid threading conflicts

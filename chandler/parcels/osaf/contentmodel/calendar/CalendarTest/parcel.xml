@@ -8,15 +8,15 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/contentmodel/calendar/CalendarTest"
-             itemName="CalendarTest"
-             xmlns:core="//Schema/Core"
-             xmlns="//parcels/osaf/contentmodel/calendar">
+             itsName="CalendarTest"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns="http://osafoundation.org/parcels/osaf/contentmodel/calendar">
 
   <core:displayName>Calendar Tests</core:displayName>
   <core:description>Sample events</core:description>
   <core:version>0.3</core:version>
 
-  <CalendarEvent itemName="LunchWTug">
+  <CalendarEvent itsName="LunchWTug">
     <headline>Lunch with Tug</headline>
     <transparency>busy</transparency>
   </CalendarEvent>

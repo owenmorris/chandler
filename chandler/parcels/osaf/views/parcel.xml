@@ -6,8 +6,8 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/views"
-        itemName="views"
-        xmlns="//Schema/Core">
+        itsName="views"
+        xmlns="http://osafoundation.org/parcels/core">
 
   <description>Chandler views</description>
   <version>0.3</version>

@@ -6,18 +6,18 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/views/repositoryviewer"
-             itemName="repositoryviewer"
-             xmlns:core="//Schema/Core"
-             xmlns="//parcels/osaf/framework/blocks"
-             xmlns:doc="//parcels/osaf/views/repositoryviewer"
-             xmlns:events="//parcels/osaf/framework/blocks/Events">
+             itsName="repositoryviewer"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:doc="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
+             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events">
 
   <core:version>0.3</core:version>
 
   <!--
     Menus
   -->
-  <Menu itemName="RepositoryMenu">
+  <Menu itsName="RepositoryMenu">
     <title>Repository Viewer</title>
     <operation>InsertBefore</operation>
     <menuLocation></menuLocation>
@@ -28,7 +28,7 @@
   <!--
     Menu Items
   -->
-  <MenuItem itemName="BlankItem">
+  <MenuItem itsName="BlankItem">
     <title>Do Something...</title>
     <operation>InsertBefore</operation>
     <menuLocation>RepositoryMenu</menuLocation>
@@ -41,7 +41,7 @@
   <!--
     Layout blocks
   -->
-  <Tree itemName="RepositoryTree">
+  <Tree itsName="RepositoryTree">
     <!-- Attributes -->
     <elementDelegate>osaf.views.repositoryviewer.Repository.RepositoryDelegate</elementDelegate>
 
@@ -62,14 +62,14 @@
     <minimumSize>400,100</minimumSize>
   </Tree>
  
-  <ItemDetail itemName="ItemDetail"
+  <ItemDetail itsName="ItemDetail"
               itemClass="osaf.views.repositoryviewer.Repository.RepositoryItemDetail">
     <!-- Attributes -->
     <size>100,50</size>
     <minimumSize>100,50</minimumSize>
   </ItemDetail>
 
-  <SplitterWindow itemName="RepositoryBox">
+  <SplitterWindow itsName="RepositoryBox">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:RepositoryTree"/>
     <childrenBlocks itemref="doc:ItemDetail"/>

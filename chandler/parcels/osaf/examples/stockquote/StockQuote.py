@@ -1,19 +1,16 @@
 __copyright__ = "Copyright (c) 2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import application
 from application import Globals
 from osaf.framework.blocks.ContainerBlocks import BoxContainer
-from repository.parcel.Parcel import Parcel
 from SOAPpy import WSDL
 
-class StockQuoteViewParcel(Parcel):
-
-    def __init__(self, name, parent, kind):
-        Parcel.__init__(self, name, parent, kind)
+class StockQuoteViewParcel(application.Parcel.Parcel):
 
     def startupParcel(self):
         # Make sure our view is in the sidebar
-        Parcel.startupParcel(self)
+        super(StockQuoteViewParcel, self).startupParcel()
         rep = self.itsView
         urlRoot = rep.findPath("//parcels/osaf/views/main/URLRoot")
         sqNode = rep.findPath("//parcels/osaf/examples/stockquote/views/StockQuoteViewNode")

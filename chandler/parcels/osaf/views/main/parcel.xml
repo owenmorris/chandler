@@ -6,15 +6,15 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/views/main"
-             itemName="main"
-             xmlns:core="//Schema/Core"
-             xmlns="//parcels/osaf/framework/blocks"
-             xmlns:doc="//parcels/osaf/views/main"
-             xmlns:events="//parcels/osaf/framework/blocks/Events"
-             xmlns:repository="//parcels/osaf/views/repositoryviewer"
-             xmlns:demo="//parcels/osaf/views/demo"
-             xmlns:content="//parcels/osaf/views/content"
-             xmlns:zaobao="//parcels/osaf/views/zaobao">
+             itsName="main"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:doc="http://osafoundation.org/parcels/osaf/views/main"
+             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
+             xmlns:repository="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
+             xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
+             xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
+             xmlns:zaobao="http://osafoundation.org/parcels/osaf/views/zaobao">
 
   <core:version>0.3</core:version>
 
@@ -22,19 +22,19 @@
     Events
   -->
 
-  <BlockEvent itemName="ShowHideSidebar">
+  <BlockEvent itsName="ShowHideSidebar">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onShowHideEvent</methodName>
     <dispatchToBlock itemref="doc:Sidebar"/>
   </BlockEvent>
 
-  <BlockEvent itemName="ShowHideBookmarksBar">
+  <BlockEvent itsName="ShowHideBookmarksBar">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onShowHideEvent</methodName>
     <dispatchToBlock itemref="doc:BookmarksBar"/>
   </BlockEvent>
 
-  <BlockEvent itemName="ShowHideStatusBar">
+  <BlockEvent itsName="ShowHideStatusBar">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <methodName>onShowHideEvent</methodName>
     <dispatchToBlock itemref="doc:StatusBar"/>
@@ -43,26 +43,26 @@
   <!--
     Menus
   -->
-  <Menu itemName="FileMenu">
+  <Menu itsName="FileMenu">
     <title>File</title>
   </Menu>
 
-  <Menu itemName="EditMenu">
+  <Menu itsName="EditMenu">
     <title>Edit</title>
   </Menu>
     
-  <Menu itemName="ViewMenu">
+  <Menu itsName="ViewMenu">
     <title>View</title>
   </Menu>
 
-  <Menu itemName="TestMenu">
+  <Menu itsName="TestMenu">
     <title>Test</title>
   </Menu>
 
   <!--
     Menu Items
   -->
-  <MenuItem itemName="NewTabItem">
+  <MenuItem itsName="NewTabItem">
     <title>New Tab</title>
     <menuLocation>FileMenu</menuLocation>
     <accel>N</accel>
@@ -70,7 +70,7 @@
     <event itemref="events:New"/>
   </MenuItem>
   
-  <MenuItem itemName="CloseTabItem">
+  <MenuItem itsName="CloseTabItem">
     <title>Close Tab</title>
     <menuLocation>FileMenu</menuLocation>
     <accel>W</accel>
@@ -78,12 +78,12 @@
     <event itemref="events:Close"/>
   </MenuItem>
   
-  <MenuItem itemName="FileSeparator1">
+  <MenuItem itsName="FileSeparator1">
     <menuLocation>FileMenu</menuLocation>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
-  <MenuItem itemName="QuitItem">
+  <MenuItem itsName="QuitItem">
     <title>Quit</title>
     <menuLocation>FileMenu</menuLocation>
     <accel>Q</accel>
@@ -91,121 +91,121 @@
     <event itemref="events:Quit"/>
   </MenuItem>
   
-  <MenuItem itemName="UndoItem">
+  <MenuItem itsName="UndoItem">
     <title>Undo</title>
     <menuLocation>EditMenu</menuLocation>
     <accel>Z</accel>
     <event itemref="events:Undo"/>
   </MenuItem>
 
-  <MenuItem itemName="RedoItem">
+  <MenuItem itsName="RedoItem">
     <title>Redo</title>
     <menuLocation>EditMenu</menuLocation>
     <accel>Y</accel>
     <event itemref="events:Redo"/>
   </MenuItem>
 
-  <MenuItem itemName="EditSeparator1">
+  <MenuItem itsName="EditSeparator1">
     <menuLocation>EditMenu</menuLocation>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
-  <MenuItem itemName="CutItem">
+  <MenuItem itsName="CutItem">
     <title>Cut</title>
     <menuLocation>EditMenu</menuLocation>
     <accel>X</accel>
     <event itemref="events:Cut"/>
   </MenuItem>
 
-  <MenuItem itemName="CopyItem">
+  <MenuItem itsName="CopyItem">
     <title>Copy</title>
     <menuLocation>EditMenu</menuLocation>
     <accel>C</accel>
     <event itemref="events:Copy"/>
   </MenuItem>
 
-  <MenuItem itemName="PasteItem">
+  <MenuItem itsName="PasteItem">
     <title>Paste</title>
     <menuLocation>EditMenu</menuLocation>
     <accel>V</accel>
     <event itemref="events:Paste"/>
   </MenuItem>
   
-  <MenuItem itemName="EditSeparator2">
+  <MenuItem itsName="EditSeparator2">
     <menuLocation>EditMenu</menuLocation>
     <menuItemKind>Separator</menuItemKind>
   </MenuItem>
   
-  <MenuItem itemName="PreferencesItem">
+  <MenuItem itsName="PreferencesItem">
     <title>Preferences</title>
     <menuLocation>EditMenu</menuLocation>
     <event itemref="events:Preferences"/>
   </MenuItem>
 
-  <MenuItem itemName="ViewSideBarItem">
+  <MenuItem itsName="ViewSideBarItem">
     <title>View Sidebar</title>
     <menuLocation>ViewMenu</menuLocation>
     <menuItemKind>Check</menuItemKind>
     <event itemref="doc:ShowHideSidebar"/>
   </MenuItem>
 
-  <MenuItem itemName="ViewNavigationBarItem">
+  <MenuItem itsName="ViewNavigationBarItem">
     <title>View Navigation Bar</title>
     <menuLocation>ViewMenu</menuLocation>
     <menuItemKind>Check</menuItemKind>
     <event itemref="events:ViewNavigationBar"/>
   </MenuItem>
 
-  <MenuItem itemName="ViewBookmarksBarItem">
+  <MenuItem itsName="ViewBookmarksBarItem">
     <title>View Bookmarks Bar</title>
     <menuLocation>ViewMenu</menuLocation>
     <menuItemKind>Check</menuItemKind>
     <event itemref="doc:ShowHideBookmarksBar"/>
   </MenuItem>
 
-  <MenuItem itemName="ViewStatusBarItem">
+  <MenuItem itsName="ViewStatusBarItem">
     <title>View Status Bar</title>
     <menuLocation>ViewMenu</menuLocation>
     <menuItemKind>Check</menuItemKind>
     <event itemref="doc:ShowHideStatusBar"/>
   </MenuItem>
 
-  <MenuItem itemName="GenerateAllItem">
+  <MenuItem itsName="GenerateAllItem">
     <title>Generate Content Items</title>
     <menuLocation>TestMenu</menuLocation>
     <event itemref="events:GenerateContentItems"/>
     <helpString>generates sample items: 5 contacts, 5 notes, 5 events</helpString>
   </MenuItem>
 
-  <MenuItem itemName="GenerateContactItem">
+  <MenuItem itsName="GenerateContactItem">
     <title>Generate Contacts</title>
     <menuLocation>TestMenu</menuLocation>
     <event itemref="events:GenerateContacts"/>
     <helpString>generates 10 sample contacts</helpString>
   </MenuItem>
 
-  <MenuItem itemName="GenerateCalendarItem">
+  <MenuItem itsName="GenerateCalendarItem">
     <title>Generate Calendar Event Items</title>
     <menuLocation>TestMenu</menuLocation>
     <event itemref="events:GenerateCalendarEventItems"/>
     <helpString>generates 10 sample calendar events</helpString>
   </MenuItem>
 
-  <MenuItem itemName="GenerateNoteItem">
+  <MenuItem itsName="GenerateNoteItem">
     <title>Generate Notes</title>
     <menuLocation>TestMenu</menuLocation>
     <event itemref="events:GenerateNotes"/>
     <helpString>Generate 10 notes</helpString>
   </MenuItem>
 
-  <MenuItem itemName="ImportContactItem">
+  <MenuItem itsName="ImportContactItem">
     <title>Import Contacts from Outlook CSV</title>
     <menuLocation>TestMenu</menuLocation>
     <event itemref="events:ImportContacts"/>
     <helpString>import Contacts from contacts.csv</helpString>
   </MenuItem>
 
-  <MenuItem itemName="CheckRepositoryItem">
+  <MenuItem itsName="CheckRepositoryItem">
     <title>Check Repository</title>
     <menuLocation>TestMenu</menuLocation>
     <event itemref="events:CheckRepository"/>
@@ -215,7 +215,7 @@
   <!--
     Toolbars
   -->
-  <NavigationBar itemName="NavigationBar">
+  <NavigationBar itsName="NavigationBar">
     <!-- Attributes -->
     <toolSize>13,13</toolSize>
   </NavigationBar>
@@ -223,7 +223,7 @@
   <!--
     ToolbarItems
   -->
-  <ToolbarItem itemName="BackButton">
+  <ToolbarItem itsName="BackButton">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:NavigationBar"/>
     <title>Back</title>
@@ -233,7 +233,7 @@
     <statusMessage>Go to the previous view</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="ForwardButton">
+  <ToolbarItem itsName="ForwardButton">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:NavigationBar"/>
     <title>Forward</title>
@@ -243,7 +243,7 @@
     <statusMessage>Go to the next view</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="RefreshButton">
+  <ToolbarItem itsName="RefreshButton">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:NavigationBar"/>
     <title>Forward</title>
@@ -253,13 +253,13 @@
     <statusMessage>Refresh the current view</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="Spacer">
+  <ToolbarItem itsName="Spacer">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:NavigationBar"/>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
-  <ToolbarItem itemName="URLBox">
+  <ToolbarItem itsName="URLBox">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:NavigationBar"/>
     <title>URLBox</title>
@@ -270,13 +270,13 @@
   <!--
     Status Bar
   -->
-  <StatusBar itemName="StatusBar">
+  <StatusBar itsName="StatusBar">
   </StatusBar>
 
   <!-- 
     About Chandler View 
   -->
-  <HTML itemName="AboutChandlerHTML">
+  <HTML itsName="AboutChandlerHTML">
     <url>application/welcome.html</url>
     <eventBoundary>True</eventBoundary>
     <border>1.0, 1.0, 1.0, 1.0</border>
@@ -285,7 +285,7 @@
   <!--
     Sidebar locations
   -->
-  <Node itemName="URLRoot">
+  <Node itsName="URLRoot">
     <displayName></displayName>
     <children itemref="doc:AboutChandler"/>
     <children itemref="doc:Repository"/>
@@ -299,22 +299,22 @@
     <children itemref="doc:WeekView"/>
   </Node>
 
-  <Node itemName="AboutChandler">
+  <Node itsName="AboutChandler">
     <displayName>About Chandler</displayName>
     <item itemref="doc:AboutChandlerHTML"/>
   </Node>
 
-  <Node itemName="Repository">
+  <Node itsName="Repository">
     <displayName>Repository</displayName>
     <item itemref="repository:RepositoryBox"/>
   </Node>
 
-  <Node itemName="Demo">
+  <Node itsName="Demo">
     <displayName>Block Demo</displayName>
     <item itemref="demo:TabBox"/>
   </Node>
 
-  <Node itemName="ZaoBao">
+  <Node itsName="ZaoBao">
     <displayName>ZaoBao</displayName>
     <item itemref="zaobao:AboutZaoBao"/>
     <children itemref="doc:OSAFRSS"/>
@@ -327,66 +327,66 @@
     <children itemref="doc:MarkRSS"/>
   </Node>
 
-  <Node itemName="OSAFRSS">
+  <Node itsName="OSAFRSS">
     <displayName>OSAF News</displayName>
     <item itemref="zaobao:ZaoBaoChannelView"/>
   </Node>
-  <Node itemName="TedRSS">
+  <Node itsName="TedRSS">
     <displayName>Ted Leung on the air</displayName>
     <item itemref="zaobao:ted_ZaoBaoChannelView"/>
   </Node>
-  <Node itemName="ChandlerWikiRSS">
+  <Node itsName="ChandlerWikiRSS">
     <displayName>Chandler Wiki</displayName>
     <item itemref="zaobao:chandlerwiki_ZaoBaoChannelView"/>
   </Node>
-  <Node itemName="JungleWikiRSS">
+  <Node itsName="JungleWikiRSS">
     <displayName>Jungle Wiki</displayName>
     <item itemref="zaobao:junglewiki_ZaoBaoChannelView"/>
   </Node>
-  <Node itemName="ZaoBaoRSS">
+  <Node itsName="ZaoBaoRSS">
     <displayName>ZaoBao News</displayName>
     <item itemref="zaobao:zaobao_ZaoBaoChannelView"/>
   </Node>
-  <Node itemName="ChaoRSS">
+  <Node itsName="ChaoRSS">
     <displayName>Chao's Blog</displayName>
     <item itemref="zaobao:chao_ZaoBaoChannelView"/>
   </Node>
-  <Node itemName="LessigRSS">
+  <Node itsName="LessigRSS">
     <displayName>Lessig Blog</displayName>
     <item itemref="zaobao:lessig_ZaoBaoChannelView"/>
   </Node>
 
-  <Node itemName="MarkRSS">
+  <Node itsName="MarkRSS">
     <displayName>dive in to mark</displayName>
     <item itemref="zaobao:mark_ZaoBaoChannelView"/>
   </Node>
 
-  <Node itemName="CalendarView">
+  <Node itsName="CalendarView">
     <displayName>Calendar</displayName>
     <item itemref="content:CalendarListView"/>
   </Node>
 
-  <Node itemName="ContactsView">
+  <Node itsName="ContactsView">
     <displayName>Contacts</displayName>
     <item itemref="content:ContactListView"/>
   </Node>
 
-  <Node itemName="NotesView">
+  <Node itsName="NotesView">
     <displayName>Notes</displayName>
     <item itemref="content:NoteListView"/>
   </Node>
 
-  <Node itemName="MixedView">
+  <Node itsName="MixedView">
     <displayName>Mixed</displayName>
     <item itemref="content:MixedListView"/>
   </Node>
 
-  <Node itemName="MonthView">
+  <Node itsName="MonthView">
     <displayName>Month</displayName>
     <item itemref="content:MonthView"/>
   </Node>
 
-  <Node itemName="WeekView">
+  <Node itsName="WeekView">
     <displayName>Week</displayName>
     <item itemref="content:WeekView"/>
   </Node>
@@ -394,24 +394,24 @@
   <!--
     Bookmarks
   -->
-  <Node itemName="BookmarksRoot">
+  <Node itsName="BookmarksRoot">
     <displayName></displayName>
     <children itemref="doc:RepositoryBookmark"/>
     <children itemref="doc:ZaoBaoBookmark"/>
     <children itemref="doc:ContactsViewBookmark"/>
   </Node>
 
-  <Node itemName="RepositoryBookmark">
+  <Node itsName="RepositoryBookmark">
     <displayName>Repository</displayName>
     <item itemref="repository:RepositoryBox"/>
   </Node>
 
-  <Node itemName="ZaoBaoBookmark">
+  <Node itsName="ZaoBaoBookmark">
     <displayName>ZaoBao</displayName>
     <item itemref="zaobao:ZaoBaoView"/>
   </Node>
   
-  <Node itemName="ContactsViewBookmark">
+  <Node itsName="ContactsViewBookmark">
     <displayName>Contacts</displayName>
     <item itemref="content:ContactListView"/>
   </Node>
@@ -419,7 +419,7 @@
   <!--
     Layout blocks
   -->
-  <TabbedContainer itemName="TabbedView"
+  <TabbedContainer itsName="TabbedView"
                    itemClass="osaf.views.main.TabbedView.TabbedView">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:AboutChandlerHTML"/>
@@ -431,7 +431,7 @@
     <border>3.0, 3.0, 3.0, 3.0</border>
   </TabbedContainer>  
 
-  <Tree itemName="Sidebar">
+  <Tree itsName="Sidebar">
     <!-- Attributes -->
     <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <selection itemref="doc:AboutChandler"/>
@@ -440,14 +440,14 @@
     <rootPath  itemref="doc:URLRoot"/>
   </Tree>
  
-  <BookmarksBar itemName="BookmarksBar">
+  <BookmarksBar itsName="BookmarksBar">
     <!-- Attributes -->
     <bookmarksPath itemref="doc:BookmarksRoot"/>
     <border>2.0, 2.0, 2.0, 2.0</border>
     <stretchFactor>0.0</stretchFactor>
   </BookmarksBar>
 
-  <SplitterWindow itemName="MainSplitter">
+  <SplitterWindow itsName="MainSplitter">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:Sidebar"/>
     <childrenBlocks itemref="doc:TabbedView"/>
@@ -458,7 +458,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </SplitterWindow>
   
-  <BoxContainer itemName="MainBoxContainer">
+  <BoxContainer itsName="MainBoxContainer">
     <!-- Layout children -->
     <childrenBlocks itemref="doc:BookmarksBar"/>
     <childrenBlocks itemref="doc:MainSplitter"/>
@@ -468,7 +468,7 @@
     <border>2.0, 2.0, 2.0, 2.0</border>
   </BoxContainer>
 
-  <View itemName="MainView"
+  <View itsName="MainView"
         itemClass="osaf.views.main.Main.MainView">
 
     <!-- Menus -->

@@ -23,7 +23,7 @@ class NotesTest(TestContentModel.ContentModelTestCase):
     def testNotes(self):
         """ Simple test for creating instances of note related kinds """
 
-        self.loadParcel("osaf/contentmodel/notes")
+        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel/notes")
 
         def _verifyNote(note):
             self.assertEqual(note.title, "sample note")

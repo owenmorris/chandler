@@ -6,13 +6,13 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/framework/blocks/detail/notes"
-             itemName="notes"
-             xmlns="//parcels/osaf/framework/blocks"
-             xmlns:core="//Schema/Core"
-             xmlns:blocks="//parcels/osaf/framework/blocks"
-             xmlns:content="//parcels/osaf/contentmodel"
-             xmlns:detail="//parcels/osaf/framework/blocks/detail"
-             xmlns:doc="//parcels/osaf/framework/blocks/detail/notes">
+             itsName="notes"
+             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
+             xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
+             xmlns:doc="http://osafoundation.org/parcels/osaf/framework/blocks/detail/notes">
 
   <core:version>0.3</core:version>
 
@@ -21,7 +21,7 @@
   -->
   
   <!-- Root -->
-  <ContentItemDetail itemName="DetailRoot">
+  <ContentItemDetail itsName="DetailRoot">
     <childrenBlocks itemref="doc:MarkupBar"/>
     <childrenBlocks itemref="doc:FromAndToArea"/>
     <childrenBlocks itemref="doc:CoreIndent"/>
@@ -37,7 +37,7 @@
   </ContentItemDetail>
 
   <!-- MarkupBar -->
-  <detail:MarkupBar itemName="MarkupBar">
+  <detail:MarkupBar itsName="MarkupBar">
     <childrenBlocks itemref="doc:TriageButton"/>
     <childrenBlocks itemref="doc:Triage"/>
     <childrenBlocks itemref="doc:SharingButton"/>
@@ -62,7 +62,7 @@
   <!--
     ToolbarItems
   -->
-  <ToolbarItem itemName="TriageButton">
+  <ToolbarItem itsName="TriageButton">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Triage</title>
@@ -72,7 +72,7 @@
     <statusMessage>Decide when to do...</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="Triage">
+  <ToolbarItem itsName="Triage">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Triage</title>
@@ -81,14 +81,14 @@
     <prototype itemref="doc:TriageCombo"/>
   </ToolbarItem>
   
-  <ComboBox itemName="TriageCombo">
+  <ComboBox itsName="TriageCombo">
     <selection>Processing</selection>
     <choices>Processing</choices>
     <choices>Defered until</choices>
     <choices>Processed</choices>
   </ComboBox>
   
-  <ToolbarItem itemName="SharingButton">
+  <ToolbarItem itsName="SharingButton">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Sharing</title>
@@ -97,7 +97,7 @@
     <statusMessage>Enable sharing</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="TaskButton">
+  <ToolbarItem itsName="TaskButton">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Task</title>
@@ -106,7 +106,7 @@
     <statusMessage>Make into a Task</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="CalendarButton">
+  <ToolbarItem itsName="CalendarButton">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Calendar</title>
@@ -115,13 +115,13 @@
     <statusMessage>Put onto the Calendar</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="Spacer1">
+  <ToolbarItem itsName="Spacer1">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <toolbarItemKind>Separator</toolbarItemKind>
   </ToolbarItem>
 
-  <ToolbarItem itemName="NeedsReplyButton">
+  <ToolbarItem itsName="NeedsReplyButton">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Needs reply</title>
@@ -130,14 +130,14 @@
     <statusMessage>Needs a reply</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="Spacer2">
+  <ToolbarItem itsName="Spacer2">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <toolbarItemKind>Separator</toolbarItemKind>
     <title>4</title>
   </ToolbarItem>
 
-  <ToolbarItem itemName="OutboxFlag">
+  <ToolbarItem itsName="OutboxFlag">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Outbox</title>
@@ -146,7 +146,7 @@
     <statusMessage>In the Out box</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="RepliedFlag">
+  <ToolbarItem itsName="RepliedFlag">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Replied</title>
@@ -155,7 +155,7 @@
     <statusMessage>A reply has been sent</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="ForwardedFlag">
+  <ToolbarItem itsName="ForwardedFlag">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Forwarded</title>
@@ -164,7 +164,7 @@
     <statusMessage>Has been forwarded</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="RedirectedFlag">
+  <ToolbarItem itsName="RedirectedFlag">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Redirected</title>
@@ -173,7 +173,7 @@
     <statusMessage>Message has been redirected</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="DraftFlag">
+  <ToolbarItem itsName="DraftFlag">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Draft</title>
@@ -182,7 +182,7 @@
     <statusMessage>Message saved as a draft</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="QueuedFlag">
+  <ToolbarItem itsName="QueuedFlag">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Queued</title>
@@ -191,14 +191,14 @@
     <statusMessage>Message has been queued</statusMessage>
   </ToolbarItem>
 
-  <ToolbarItem itemName="Spacer3">
+  <ToolbarItem itsName="Spacer3">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <toolbarItemKind>Separator</toolbarItemKind>
     <title>4</title>
   </ToolbarItem>
 
-  <ToolbarItem itemName="PrivateButton">
+  <ToolbarItem itsName="PrivateButton">
     <!-- Attributes -->
     <toolbarLocation itemref="doc:MarkupBar"/>
     <title>Private</title>
@@ -208,28 +208,28 @@
   </ToolbarItem>
 
   <!-- FromAndToArea -->
-  <ContentItemDetail itemName="FromAndToArea">
+  <ContentItemDetail itsName="FromAndToArea">
     <childrenBlocks itemref="doc:FromArea"/>
     <childrenBlocks itemref="doc:ToArea"/>
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
   </ContentItemDetail>
  
-  <ContentItemDetail itemName="FromArea">
+  <ContentItemDetail itsName="FromArea">
     <childrenBlocks itemref="doc:FromString"/>
     <childrenBlocks itemref="doc:FromEditField1"/>
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
   </ContentItemDetail>
 
-  <StaticText itemName="FromString">
+  <StaticText itsName="FromString">
     <title>From: </title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
   </StaticText>
   
-  <detail:FromEditField itemName="FromEditField1">
+  <detail:FromEditField itsName="FromEditField1">
     <characterStyle itemref="detail:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -237,21 +237,21 @@
     <textAlignmentEnum>Left</textAlignmentEnum>
   </detail:FromEditField>
 
-  <ContentItemDetail itemName="ToArea">
+  <ContentItemDetail itsName="ToArea">
     <childrenBlocks itemref="doc:ToString"/>
     <childrenBlocks itemref="doc:ToEditField1"/>
     <!-- Attributes -->
     <orientationEnum>Horizontal</orientationEnum>
   </ContentItemDetail>
  
-  <StaticText itemName="ToString">
+  <StaticText itsName="ToString">
     <title>To: </title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Left</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
   </StaticText>
   
-  <detail:ToEditField itemName="ToEditField1">
+  <detail:ToEditField itsName="ToEditField1">
     <characterStyle itemref="detail:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>PlainText</textStyleEnum>
@@ -260,7 +260,7 @@
   </detail:ToEditField>
 
   <!-- CoreIndent -->
-  <ContentItemDetail itemName="CoreIndent">
+  <ContentItemDetail itsName="CoreIndent">
     <childrenBlocks itemref="doc:Indent"/>
     <childrenBlocks itemref="doc:CoreArea"/>
     <childrenBlocks itemref="doc:Indent2"/>
@@ -268,20 +268,20 @@
     <stretchFactor>2</stretchFactor>
   </ContentItemDetail>
  
-  <ContentItemDetail itemName="Indent">
+  <ContentItemDetail itsName="Indent">
     <!-- Attributes -->
     <size>80,80</size>
     <stretchFactor>0</stretchFactor>
   </ContentItemDetail>
  
-  <ContentItemDetail itemName="Indent2">
+  <ContentItemDetail itsName="Indent2">
     <!-- Attributes -->
     <size>80,80</size>
     <stretchFactor>0</stretchFactor>
   </ContentItemDetail>
  
   <!-- CoreArea -->
-  <ContentItemDetail itemName="CoreArea">
+  <ContentItemDetail itsName="CoreArea">
     <childrenBlocks itemref="doc:Headline"/>
     <childrenBlocks itemref="doc:DateTime"/>
     <!-- Attributes -->
@@ -289,14 +289,14 @@
     <stretchFactor>2</stretchFactor>
   </ContentItemDetail>
  
-  <detail:Headline itemName="Headline">
+  <detail:Headline itsName="Headline">
     <title>Core</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
   </detail:Headline>
   
-  <detail:DateTimeBlock itemName="DateTime">
+  <detail:DateTimeBlock itsName="DateTime">
     <title>Date/Time</title>
     <characterStyle itemref="detail:TextStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -304,7 +304,7 @@
   </detail:DateTimeBlock>
   
   <!-- StampedEmailArea -->
-  <ContentItemDetail itemName="StampedEmailArea">
+  <ContentItemDetail itsName="StampedEmailArea">
     <childrenBlocks itemref="doc:StampedEmailString"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
@@ -312,7 +312,7 @@
     <stretchFactor>0.0</stretchFactor>
   </ContentItemDetail>
  
-  <StaticText itemName="StampedEmailString">
+  <StaticText itsName="StampedEmailString">
     <title>Stamped Email</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -320,7 +320,7 @@
   </StaticText>
   
   <!-- NotesArea -->
-  <ContentItemDetail itemName="NotesArea">
+  <ContentItemDetail itsName="NotesArea">
     <childrenBlocks itemref="doc:NotesString"/>
     <childrenBlocks itemref="doc:TheNotes"/>
     <!-- Attributes -->
@@ -329,14 +329,14 @@
     <stretchFactor>3</stretchFactor>
   </ContentItemDetail>
   
-  <StaticText itemName="NotesString">
+  <StaticText itsName="NotesString">
     <title>Notes</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
     <stretchFactor>0.0</stretchFactor>
   </StaticText>
   
-  <detail:NoteBody itemName="TheNotes">
+  <detail:NoteBody itsName="TheNotes">
     <characterStyle itemref="detail:TextStyle"/>
     <lineStyleEnum>MultiLine</lineStyleEnum>
     <textStyleEnum>RichText</textStyleEnum>
@@ -346,7 +346,7 @@
   </detail:NoteBody>
 
   <!-- MessagesArea -->
-  <ContentItemDetail itemName="MessagesArea">
+  <ContentItemDetail itsName="MessagesArea">
     <childrenBlocks itemref="doc:MessagesString"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
@@ -354,7 +354,7 @@
     <stretchFactor>1</stretchFactor>
   </ContentItemDetail>
   
-  <StaticText itemName="MessagesString">
+  <StaticText itsName="MessagesString">
     <title>Messages</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -362,7 +362,7 @@
   </StaticText>
   
   <!-- SharingBar -->
-  <ContentItemDetail itemName="SharingBar">
+  <ContentItemDetail itsName="SharingBar">
     <childrenBlocks itemref="doc:SharingString"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground2"/>
@@ -370,7 +370,7 @@
     <stretchFactor>0</stretchFactor>
   </ContentItemDetail>
   
-  <StaticText itemName="SharingString">
+  <StaticText itsName="SharingString">
     <title>Sharing Bar</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    
@@ -378,7 +378,7 @@
   </StaticText>
   
   <!-- LabelingArea -->
-  <ContentItemDetail itemName="LabelingArea">
+  <ContentItemDetail itsName="LabelingArea">
     <childrenBlocks itemref="doc:LabelingString"/>
     <!-- Attributes -->
     <colorStyle itemref="detail:GrayBackground3"/>
@@ -386,7 +386,7 @@
     <stretchFactor>1.0</stretchFactor>
   </ContentItemDetail>
   
-  <StaticText itemName="LabelingString">
+  <StaticText itsName="LabelingString">
     <title>See Also</title>
     <characterStyle itemref="detail:LabelStyle"/>
     <textAlignmentEnum>Center</textAlignmentEnum>    

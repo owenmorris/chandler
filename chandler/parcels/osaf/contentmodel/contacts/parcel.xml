@@ -6,35 +6,35 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/contentmodel/contacts"
-        itemName="contacts"
+        itsName="contacts"
         itemClass="osaf.contentmodel.contacts.Contacts.ContactsParcel"
-        xmlns="//Schema/Core"
-        xmlns:content="//parcels/osaf/contentmodel"
-        xmlns:mail="//parcels/osaf/contentmodel/mail"
-        xmlns:calendar="//parcels/osaf/contentmodel/calendar"
-        xmlns:contact="//parcels/osaf/contentmodel/contacts"
-        xmlns:tasks="//parcels/osaf/contentmodel/tasks">
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
+        xmlns:mail="http://osafoundation.org/parcels/osaf/contentmodel/mail"
+        xmlns:calendar="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
+        xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
+        xmlns:tasks="http://osafoundation.org/parcels/osaf/contentmodel/tasks">
 
   <displayName>Contact Content Model</displayName>
   <description>Contact schema for the 0.3 release</description>
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
 
-  <Attribute itemName="contactName">
+  <Attribute itsName="contactName">
     <displayName>Contact Name</displayName>
     <description>A reference to an item that represents the name of this contact.</description>
     <type itemref="contact:ContactName"/>
     <inverseAttribute itemref="contact:contactNameOwner"/>
   </Attribute>
 
-  <Attribute itemName="contactNameOwner">
+  <Attribute itsName="contactNameOwner">
     <displayName>Contact</displayName>
     <description>The contact item that this name is part of.</description>
     <type itemref="contact:Contact"/>
     <inverseAttribute itemref="contact:contactName"/>
   </Attribute>
 
-  <Attribute itemName="sections">
+  <Attribute itsName="sections">
     <displayName>Sections</displayName>
     <description>A list of sections of contact info. For example, my Contact for my mom might have sections like 'home', 'work', 'at studio', 'vermont house'.</description>
     <cardinality>list</cardinality>
@@ -42,21 +42,21 @@
     <inverseAttribute itemref="contact:sectionOwner"/>
   </Attribute>
 
-  <Attribute itemName="sectionOwner">
+  <Attribute itsName="sectionOwner">
     <displayName>Owner of Section</displayName>
     <description>A reference to the contact that this section is a part of.</description>
     <type itemref="contact:Contact"/>
     <inverseAttribute itemref="contact:sections"/>
   </Attribute>
 
-  <Attribute itemName="homeSectionFor">
+  <Attribute itsName="homeSectionFor">
     <displayName>Home Section For</displayName>
     <description>A reference to the contact if this is the contact's home section.</description>
     <type itemref="contact:Contact"/>
     <inverseAttribute itemref="contact:homeSection"/>
   </Attribute>
 
-  <Attribute itemName="workSectionFor">
+  <Attribute itsName="workSectionFor">
     <displayName>Work Section For</displayName>
     <description>A reference to the contact if this is the contact's work section.</description>
     <type itemref="contact:Contact"/>
@@ -64,52 +64,52 @@
   </Attribute>
 
 
-  <Attribute itemName="workSection">
+  <Attribute itsName="workSection">
     <displayName>Work Section</displayName>
     <description>A section of the contact for keeping track of work phone, work address, etc.</description>
     <type itemref="contact:ContactSection"/>
     <inverseAttribute itemref="contact:workSectionFor"/>
   </Attribute>
 
-  <Attribute itemName="homeSection">
+  <Attribute itsName="homeSection">
     <displayName>Home Section</displayName>
     <description>A section of the contact for keeping track of home phone, home address, etc.</description>
     <type itemref="contact:ContactSection"/>
     <inverseAttribute itemref="contact:homeSectionFor"/>
   </Attribute>
 
-  <Attribute itemName="birthday">
+  <Attribute itsName="birthday">
     <displayName>Birthday</displayName>
     <description>Date of birth, like 'July 19, 1971', or 'July 19', or 'July 1971'.</description>
     <type itemref="RelativeDateTime"/>
   </Attribute>
 
-  <Enumeration itemName="GenderEnum">
+  <Enumeration itsName="GenderEnum">
     <values>Unknown</values>
     <values>Female</values>
     <values>Male</values>
   </Enumeration>
 
-  <Attribute itemName="gender">
+  <Attribute itsName="gender">
     <displayName>Gender</displayName>
     <description>Gender could be 'Female', 'Male', 'Unknown'.</description>
     <type itemref="contact:GenderEnum"/>
   </Attribute>
 
-  <Attribute itemName="isCompany">
+  <Attribute itsName="isCompany">
     <displayName>Business?</displayName>
     <description>Is this a company?</description>
     <type itemref="Boolean"/>
   </Attribute>
 
-  <Attribute itemName="creator">
+  <Attribute itsName="creator">
     <displayName>Created By</displayName>
     <description>Link to the user who created the item.</description>
     <type itemref="contact:Contact"/>
     <inverseAttribute itemref="contact:itemsCreated"/>
   </Attribute>
 
-  <Attribute itemName="itemsCreated">
+  <Attribute itsName="itemsCreated">
     <displayName>Items Created</displayName>
     <description>List of content items created by this user.</description>
     <cardinality>list</cardinality>
@@ -117,21 +117,21 @@
     <inverseAttribute itemref="contact:creator"/>
   </Attribute>
 
-  <Attribute itemName="onceBelongedTo">
+  <Attribute itsName="onceBelongedTo">
     <displayName>Once Belonged To</displayName>
     <description>We keep some old email addresses on file, just so we can still associate old email messages with the contacts who sent them.  If this email address is being kept for that reason, then this attribute will point to the contact that the email address used to belong to.</description>
     <type itemref="contact:Contact"/>
     <inverseAttribute itemref="contact:pastEmailAddresses"/>
   </Attribute>
 
-  <Attribute itemName="pastEmailAddresses">
+  <Attribute itsName="pastEmailAddresses">
     <displayName>Past Email Addresses</displayName>
     <cardinality>list</cardinality>
     <type itemref="mail:EmailAddress"/>
     <inverseAttribute itemref="contact:onceBelongedTo"/>
   </Attribute>
 
-  <Kind itemName="Contact">
+  <Kind itsName="Contact">
     <displayName>Contact</displayName>
     <description>An entry in an address book. Typically represents either a person or a company.</description>
     <issues>We might want to keep track of lots of sharing information like 'Permissions I've given them', 'Items of mine they've subscribed to', 'Items of theirs I've subscribed to', etc.</issues>
@@ -154,21 +154,21 @@
 
   <!-- Contact Section -->
 
-  <Attribute itemName="phoneNumbers">
+  <Attribute itsName="phoneNumbers">
     <displayName>Phone Numbers</displayName>
     <cardinality>list</cardinality>
     <type itemref="contact:PhoneNumber"/>
     <inverseAttribute itemref="contact:phoneNumberOwner"/>
   </Attribute>
 
-  <Attribute itemName="emailAddresses">
+  <Attribute itsName="emailAddresses">
     <displayName>Email Addresses</displayName>
     <cardinality>list</cardinality>
     <type itemref="mail:EmailAddress"/>
     <inverseAttribute itemref="contact:emailAddressOwner"/>
   </Attribute>
 
-  <Attribute itemName="emailAddressOwner">
+  <Attribute itsName="emailAddressOwner">
     <displayName>Email Address Owner</displayName>
     <description>The Contact that this address is</description>
     <issues>only one owner -- single cardinality implies that two contacts cannot have the same email address</issues>
@@ -176,65 +176,65 @@
     <inverseAttribute itemref="contact:emailAddresses"/>
   </Attribute>
 
-  <Attribute itemName="streetAddresses">
+  <Attribute itsName="streetAddresses">
     <displayName>Street Addresses</displayName>
     <cardinality>list</cardinality>
     <type itemref="contact:StreetAddress"/>
     <inverseAttribute itemref="contact:streetAddressOwner"/>
   </Attribute>
 
-  <Attribute itemName="jabberAddresses">
+  <Attribute itsName="jabberAddresses">
     <displayName>Jabber Addresses</displayName>
     <cardinality>list</cardinality>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="webPages">
+  <Attribute itsName="webPages">
     <displayName>Web Pages</displayName>
     <cardinality>list</cardinality>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="jobTitle">
+  <Attribute itsName="jobTitle">
     <displayName>Job Title</displayName>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="employer">
+  <Attribute itsName="employer">
     <displayName>Employer</displayName>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="photos">
+  <Attribute itsName="photos">
     <displayName>Photo URLs</displayName>
     <issues>For now this is just a list of strings that can have URLs that point to photos. Eventually it would be nice if Chandler had a Kind called Photo, where Photo items could either have URLs that point to photos or have photo binaries stored in the repository.</issues>
     <cardinality>list</cardinality>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="spouse">
+  <Attribute itsName="spouse">
     <displayName>Spouse</displayName>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="anniversary">
+  <Attribute itsName="anniversary">
     <displayName>Wedding Anniversary</displayName>
     <type itemref="RelativeDateTime"/>
   </Attribute>
 
-  <Attribute itemName="children">
+  <Attribute itsName="children">
     <displayName>Children</displayName>
     <cardinality>list</cardinality>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="instantMessageAddresses">
+  <Attribute itsName="instantMessageAddresses">
     <displayName>Instant Message Addresses</displayName>
     <cardinality>list</cardinality>
     <type itemref="String"/>
   </Attribute>
 
-  <Kind itemName="ContactSection">
+  <Kind itsName="ContactSection">
     <superKinds itemref="Item"/>
     <displayName>Contact Section</displayName>
     <description>A section of contact info. For example, my Contact for my mom might have sections like 'home', 'work', 'at studio', 'vermont house'.</description>
@@ -261,41 +261,41 @@
 
   <!-- Attributes used in ContactName -->
 
-  <Attribute itemName="fullName">
+  <Attribute itsName="fullName">
     <displayName>Full Name</displayName>
     <description>The complete name of this person, like "Dr. Sara Anne Gibson". We probably want this attribute to be derived from other attributes like firstName and lastName.</description>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="sortName">
+  <Attribute itsName="sortName">
     <displayName>Sort Name</displayName>
     <description>The name we should use sorting, like "Sara", or "Gibson".</description>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="firstName">
+  <Attribute itsName="firstName">
     <displayName>First Name</displayName>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="middleName">
+  <Attribute itsName="middleName">
     <displayName>Middle Name</displayName>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="lastName">
+  <Attribute itsName="lastName">
     <displayName>Last Name</displayName>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="nickname">
+  <Attribute itsName="nickname">
     <displayName>Nickname</displayName>
     <type itemref="String"/>
   </Attribute>
 
   <!-- ContactName Item Definition -->
 
-  <Kind itemName="ContactName">
+  <Kind itsName="ContactName">
     <superKinds itemref="Item"/>
     <displayName>Contact Name</displayName>
     <description>The name of a contact, like "Dr. Sara Anne Gibson", or "Denver Hospital".</description>
@@ -318,58 +318,58 @@
   </Kind>
 
   <!-- Street Address -->
-  <Attribute itemName="fullAddress">
+  <Attribute itsName="fullAddress">
     <displayName>Full Address</displayName>
     <description>The value for fullAddress should be derived. It should be a concatenation of the values of the other attributes like streetAddress and locality.</description>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="postOfficeBox">
+  <Attribute itsName="postOfficeBox">
     <displayName>PO Box</displayName>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="extendedAddress">
+  <Attribute itsName="extendedAddress">
     <displayName>Extended Address</displayName>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="streetAddress">
+  <Attribute itsName="streetAddress">
     <displayName>Street Address</displayName>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="locality">
+  <Attribute itsName="locality">
     <displayName>Locality</displayName>
     <description>Usually a city.</description>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="region">
+  <Attribute itsName="region">
     <displayName>Region</displayName>
     <description>Usually a state or province.</description>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="postalCode">
+  <Attribute itsName="postalCode">
     <displayName>Postal Code</displayName>
     <description>A United States zipcode, or in general a Postal Code.</description>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="countryName">
+  <Attribute itsName="countryName">
     <displayName>Country Name</displayName>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="streetAddressOwner">
+  <Attribute itsName="streetAddressOwner">
     <displayName>Owner of Address</displayName>
     <description>The ContactSection that this StreetAddress belongs to.</description>
     <type itemref="contact:ContactSection"/>
     <inverseAttribute itemref="contact:streetAddresses"/>
   </Attribute>
 
-  <Kind itemName="StreetAddress">
+  <Kind itsName="StreetAddress">
     <superKinds itemref="Item"/>
     <displayName>Street Address</displayName>
     <examples>543 Howard St. 5th Floor, San Francisco, CA 94105</examples>
@@ -388,7 +388,7 @@
 
   <!-- Phone Number -->
 
-  <Enumeration itemName="PhoneTypeEnum">
+  <Enumeration itsName="PhoneTypeEnum">
     <values>msg</values>
     <values>pref</values>
     <values>voice</values>
@@ -404,26 +404,26 @@
     <values>voice</values>
   </Enumeration>
 
-  <Attribute itemName="phoneNumber">
+  <Attribute itsName="phoneNumber">
     <displayName>Phone Number</displayName>
     <type itemref="String"/>
   </Attribute>
 
-  <Attribute itemName="phoneType">
+  <Attribute itsName="phoneType">
     <displayName>Phone Type</displayName>
     <description>One or more vCard types.</description>
     <cardinality>list</cardinality>
     <type itemref="contact:PhoneTypeEnum"/>
   </Attribute>
 
-  <Attribute itemName="phoneNumberOwner">
+  <Attribute itsName="phoneNumberOwner">
     <displayName>Owner of Phone Number</displayName>
     <description>The ContactSection that this phone number is part of.</description>
     <type itemref="contact:ContactSection"/>
     <inverseAttribute itemref="contact:phoneNumbers"/>
   </Attribute>
 
-  <Kind itemName="PhoneNumber">
+  <Kind itsName="PhoneNumber">
     <superKinds itemref="Item"/>
     <displayName>Phone Number</displayName>
     <displayAttribute itemref="contact:phoneNumber"/>

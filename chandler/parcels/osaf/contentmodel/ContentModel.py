@@ -6,12 +6,12 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import repository.parcel.Parcel as Parcel
+from application.Parcel import Parcel
 import repository.item.Item as Item
 
 import application.Globals as Globals
 
-class ContentModel(Parcel.Parcel):
+class ContentModel(Parcel):
 
     # The parcel knows the UUIDs for the Kinds, once the parcel is loaded
     contentItemKindID = None
@@ -35,7 +35,7 @@ class ContentModel(Parcel.Parcel):
         self._setUUIDs(parent)
 
     def startupParcel(self):
-        Parcel.Parcel.startupParcel(self)
+        super(ContentModel, self).startupParcel()
         repository = self.itsView
         parent = repository.findPath('//userdata/contentitems')
         if not parent:

@@ -9,7 +9,6 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, os
 
-import repository.parcel.LoadParcels as LoadParcels
 import repository.tests.RepositoryTestCase as RepositoryTestCase
 import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
@@ -18,36 +17,25 @@ class ContentModelTestCase(RepositoryTestCase.RepositoryTestCase):
     def setUp(self):
         super(ContentModelTestCase,self)._setup(self)
 
-        self.testdir = os.path.join(self.rootdir, 'chandler', 'parcels',
+        self.testdir = os.path.join(self.rootdir, 'chandler', 'parcels', \
          'osaf', 'contentmodel', 'tests')
 
         super(ContentModelTestCase,self)._openRepository(self)
 
         Globals.repository = self.rep
-        self.parceldir = os.path.join(self.rootdir, 'chandler', 'parcels')
 
         # Create and start the notification manager -- this is needed for
         # ItemCollections
         from osaf.framework.notifications.NotificationManager import NotificationManager
         Globals.notificationManager = NotificationManager()
 
-        self.loadParcel("osaf/framework/notifications/schema")
-
-    def loadParcel(self, relPath):
-        """
-        load only the parcel we need (and it's dependencies)
-        """
-        uri = "//parcels/%s" % relPath
-        uri = uri.replace(os.path.sep, "/")
-        parcelDir = os.path.join(self.rootdir, 'chandler', 'parcels', relPath)
-        LoadParcels.LoadParcel(parcelDir, uri, self.parceldir, self.rep)
-        self.assert_(self.rep.findPath(uri))
+        self.loadParcel("http://osafoundation.org/parcels/osaf/framework/notifications/schema")
 
 class ContentItemTest(ContentModelTestCase):
 
     def testContentItem(self):
 
-        self.loadParcel("osaf/contentmodel")
+        self.loadParcel("http://osafoundation.org/parcels/osaf/contentmodel")
 
         # Check that the globals got created by the parcel
         self.assert_(ContentModel.ContentModel.getContentItemParent())

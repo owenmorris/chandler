@@ -3,15 +3,15 @@
 <!-- Copyright (c) 2004 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel itemName="views"
-        xmlns="//Schema/Core"
-        xmlns:blocks="//parcels/osaf/framework/blocks"
-        xmlns:views="//parcels/osaf/examples/stockquote/views"
+<Parcel itsName="views"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
+        xmlns:views="http://osafoundation.org/parcels/osaf/examples/stockquote/views"
         itemClass="osaf.examples.stockquote.StockQuote.StockQuoteViewParcel">
 
   <!-- The main block for the view: -->
 
-  <blocks:BoxContainer itemName="StockQuoteView"
+  <blocks:BoxContainer itsName="StockQuoteView"
         itemClass="osaf.examples.stockquote.StockQuote.StockQuoteView">
 
     <displayName>Stock Quote</displayName>
@@ -23,7 +23,7 @@
     <minimumSize>0,0</minimumSize>
     <blockEvents itemref="views:GetQuoteEvent"/>
 
-    <blocks:BoxContainer itemName="layout">
+    <blocks:BoxContainer itsName="layout">
       <childrenBlocks itemref="views:StockQuoteView/GetQuoteButton"/>
       <childrenBlocks itemref="views:StockQuoteView/SymbolText"/>
       <childrenBlocks itemref="views:StockQuoteView/ValueLabel"/>
@@ -35,7 +35,7 @@
 
     <!-- The button -->
 
-    <blocks:Button itemName="GetQuoteButton">
+    <blocks:Button itsName="GetQuoteButton">
       <title>Get Quote</title>
       <buttonKind>Text</buttonKind>
       <event itemref="views:GetQuoteEvent"/>
@@ -48,7 +48,7 @@
 
     <!-- The text box -->
 
-    <blocks:EditText itemName="SymbolText">
+    <blocks:EditText itsName="SymbolText">
       <lineStyleEnum>SingleLine</lineStyleEnum>
       <textAlignmentEnum>Left</textAlignmentEnum>
       <textStyleEnum>PlainText</textStyleEnum>
@@ -64,7 +64,7 @@
     </blocks:EditText>
 
     <!-- The value label -->
-    <blocks:StaticText itemName="ValueLabel">
+    <blocks:StaticText itsName="ValueLabel">
       <textAlignmentEnum>Left</textAlignmentEnum>
       <characterStyle itemref="views:StockQuoteView/TextStyle"/>
       <title>$</title>
@@ -76,7 +76,7 @@
     </blocks:StaticText>  
 
     <!-- The Title Label -->
-    <blocks:StaticText itemName="TitleLabel">
+    <blocks:StaticText itsName="TitleLabel">
       <textAlignmentEnum>Center</textAlignmentEnum>
       <characterStyle itemref="views:StockQuoteView/TitleStyle"/>
       <title>Web Services Sample Parcel</title>
@@ -87,7 +87,7 @@
     </blocks:StaticText>  
 
     <!-- A style for normal text -->
-    <blocks:CharacterStyle itemName="TextStyle">
+    <blocks:CharacterStyle itsName="TextStyle">
       <fontFamily>DefaultUIFont</fontFamily>
       <fontSize>10.0</fontSize>
       <fontStyle></fontStyle>
@@ -95,7 +95,7 @@
     </blocks:CharacterStyle>
 
     <!-- A style for title text -->
-    <blocks:CharacterStyle itemName="TitleStyle">
+    <blocks:CharacterStyle itsName="TitleStyle">
       <fontFamily>DefaultUIFont</fontFamily>
       <fontSize>16.0</fontSize>
       <fontStyle>bold</fontStyle>
@@ -106,7 +106,7 @@
 
   <!-- The event that the button fires -->
 
-  <blocks:BlockEvent itemName="GetQuoteEvent">
+  <blocks:BlockEvent itsName="GetQuoteEvent">
     <dispatchEnum>SendToBlock</dispatchEnum>
     <dispatchToBlock itemref="views:StockQuoteView"/>
     <methodName>OnGetQuoteEvent</methodName>
@@ -114,7 +114,7 @@
 
   <!-- The node that is added to the side bar -->
 
-  <blocks:Node itemName="StockQuoteViewNode">
+  <blocks:Node itsName="StockQuoteViewNode">
     <displayName>Stock Quote</displayName>
     <item itemref="views:StockQuoteView"/>
   </blocks:Node>

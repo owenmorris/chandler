@@ -6,7 +6,7 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/framework/twisted"
-        itemName="twisted"
-        xmlns="//Schema/Core">
+        itsName="twisted"
+        xmlns="http://osafoundation.org/parcels/core">
 
 </Parcel>

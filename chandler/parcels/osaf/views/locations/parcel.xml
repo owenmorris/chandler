@@ -6,22 +6,22 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/views/locations"
-             itemName="locations"
-             xmlns:core="//Schema/Core"
-             xmlns="//parcels/osaf/framework/blocks"
-             xmlns:main="//parcels/osaf/views/main"
-             xmlns:doc="//parcels/osaf/views/locations"
-             xmlns:repository="//parcels/osaf/views/repositoryviewer"
-             xmlns:demo="//parcels/osaf/views/demo"
-             xmlns:content="//parcels/osaf/views/content"
-             xmlns:zaobao="//parcels/osaf/views/zaobao">
+             itsName="locations"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:main="http://osafoundation.org/parcels/osaf/views/main"
+             xmlns:doc="http://osafoundation.org/parcels/osaf/views/locations"
+             xmlns:repository="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
+             xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
+             xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
+             xmlns:zaobao="http://osafoundation.org/parcels/osaf/views/zaobao">
 
   <core:version>0.3</core:version>
 
   <!--
     URL Nodes
   -->
-  <Node itemName="URLRoot">
+  <Node itsName="URLRoot">
     <displayName></displayName>
     <children itemref="doc:AboutChandler"/>
     <children itemref="doc:Repository"/>
@@ -35,22 +35,22 @@
     <children itemref="doc:WeekView"/>
   </Node>
 
-  <Node itemName="AboutChandler">
+  <Node itsName="AboutChandler">
     <displayName>About Chandler</displayName>
     <item itemref="main:AboutChandlerHTML"/>
   </Node>
 
-  <Node itemName="Repository">
+  <Node itsName="Repository">
     <displayName>Repository</displayName>
     <item itemref="repository:RepositoryBox"/>
   </Node>
 
-  <Node itemName="Demo">
+  <Node itsName="Demo">
     <displayName>Block Demo</displayName>
     <item itemref="demo:TabBox"/>
   </Node>
 
-  <Node itemName="ZaoBao">
+  <Node itsName="ZaoBao">
     <displayName>ZaoBao</displayName>
     <item itemref="zaobao:AboutZaoBao"/>
     <children itemref="doc:OSAFRSS"/>
@@ -61,58 +61,58 @@
     <children itemref="doc:MarkRSS"/>
   </Node>
 
-  <Node itemName="OSAFRSS">
+  <Node itsName="OSAFRSS">
     <displayName>OSAF News</displayName>
     <item itemref="zaobao:ZaoBaoChannelView"/>
   </Node>
-  <Node itemName="TedRSS">
+  <Node itsName="TedRSS">
     <displayName>Ted Leung on the air</displayName>
     <item itemref="zaobao:ted_ZaoBaoChannelView"/>
   </Node>
-  <Node itemName="ZaoBaoRSS">
+  <Node itsName="ZaoBaoRSS">
     <displayName>ZaoBao News</displayName>
     <item itemref="zaobao:zaobao_ZaoBaoChannelView"/>
   </Node>
-  <Node itemName="ChaoRSS">
+  <Node itsName="ChaoRSS">
     <displayName>Chao's Blog</displayName>
     <item itemref="zaobao:chao_ZaoBaoChannelView"/>
   </Node>
-  <Node itemName="LessigRSS">
+  <Node itsName="LessigRSS">
     <displayName>Lessig Blog</displayName>
     <item itemref="zaobao:lessig_ZaoBaoChannelView"/>
   </Node>
 
-  <Node itemName="MarkRSS">
+  <Node itsName="MarkRSS">
     <displayName>dive in to mark</displayName>
     <item itemref="zaobao:mark_ZaoBaoChannelView"/>
   </Node>
 
-  <Node itemName="CalendarView">
+  <Node itsName="CalendarView">
     <displayName>Calendar</displayName>
     <item itemref="content:CalendarListView"/>
   </Node>
 
-  <Node itemName="ContactsView">
+  <Node itsName="ContactsView">
     <displayName>Contacts</displayName>
     <item itemref="content:ContactListView"/>
   </Node>
 
-  <Node itemName="NotesView">
+  <Node itsName="NotesView">
     <displayName>Notes</displayName>
     <item itemref="content:NoteListView"/>
   </Node>
 
-  <Node itemName="MixedView">
+  <Node itsName="MixedView">
     <displayName>Mixed</displayName>
     <item itemref="content:MixedListView"/>
   </Node>
 
-  <Node itemName="MonthView">
+  <Node itsName="MonthView">
     <displayName>Month</displayName>
     <item itemref="content:MonthView"/>
   </Node>
 
-  <Node itemName="WeekView">
+  <Node itsName="WeekView">
     <displayName>Week</displayName>
     <item itemref="content:WeekView"/>
   </Node>

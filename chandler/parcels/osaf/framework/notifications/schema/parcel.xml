@@ -6,15 +6,15 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/framework/notifications/schema"
-        itemName="schema"
-        xmlns="//Schema/Core"
-        xmlns:events="//parcels/osaf/framework/notifications/schema">
+        itsName="schema"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:events="http://osafoundation.org/parcels/osaf/framework/notifications/schema">
 
   <displayName>Notification Schema</displayName>
   <description>notification</description>
   <version>0.0</version>
 
-  <Kind itemName="Event">
+  <Kind itsName="Event">
     <displayName>Chandler Event</displayName>
     <superKinds itemref="Item"/>
     <classes key="python">osaf.framework.notifications.schema.Event.Event</classes>

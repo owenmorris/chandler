@@ -6,7 +6,7 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/framework/notifications"
-        itemName="notifications"
-        xmlns="//Schema/Core">
+        itsName="notifications"
+        xmlns="http://osafoundation.org/parcels/core">
 
 </Parcel>

@@ -6,26 +6,26 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/framework/utils/indexer"
-        itemName="indexer"
-        xmlns="//Schema/Core"
-        xmlns:indexes="//parcels/osaf/framework/utils/indexer">
+        itsName="indexer"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:indexes="http://osafoundation.org/parcels/osaf/framework/utils/indexer">
 
   <displayName>Indexer Schema</displayName>
   <description>Indexer schema</description>
   <version>0.0</version>
 
-  <Attribute itemName="indexedBy">
+  <Attribute itsName="indexedBy">
     <displayName>indexes this item belongs to</displayName>
     <type itemref="indexes:Index"/>
     <cardinality>list</cardinality>
     <inverseAttribute itemref="indexes:Index/items"/>
   </Attribute>
 
-  <Kind itemName="Index">
+  <Kind itsName="Index">
     <displayName>Index</displayName>
     <description>Holds a list of item refs</description>
 
-    <Attribute itemName="items">
+    <Attribute itsName="items">
       <displayName>List of items</displayName>
       <type itemref="Item"/>
       <cardinality>list</cardinality>

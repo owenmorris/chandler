@@ -6,13 +6,13 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/framework/blocks/detail"
-             itemName="detail"
+             itsName="detail"
 	     itemClass="osaf.framework.blocks.detail.Detail.DetailParcel"
-             xmlns="//parcels/osaf/framework/blocks"
-             xmlns:core="//Schema/Core"
-             xmlns:blocks="//parcels/osaf/framework/blocks"
-             xmlns:content="//parcels/osaf/contentmodel"
-             xmlns:doc="//parcels/osaf/framework/blocks/detail">
+             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:content="http://osafoundation.org/parcels/osaf/contentmodel"
+             xmlns:doc="http://osafoundation.org/parcels/osaf/framework/blocks/detail">
 
   <core:version>0.3</core:version>
 
@@ -20,32 +20,32 @@
     SCHEMA 
   -->
  
-  <core:Kind itemName="DateTimeBlock">
+  <core:Kind itsName="DateTimeBlock">
     <classes key="python">osaf.framework.blocks.detail.Detail.DateTimeBlock</classes>
     <superKinds itemref="blocks:StaticText"/>
   </core:Kind>    
 
-  <core:Kind itemName="ToEditField">
+  <core:Kind itsName="ToEditField">
     <classes key="python">osaf.framework.blocks.detail.Detail.ToEditField</classes>
     <superKinds itemref="blocks:EditText"/>
   </core:Kind>    
 
-  <core:Kind itemName="FromEditField">
+  <core:Kind itsName="FromEditField">
     <classes key="python">osaf.framework.blocks.detail.Detail.FromEditField</classes>
     <superKinds itemref="blocks:EditText"/>
   </core:Kind>    
 
-  <core:Kind itemName="NoteBody">
+  <core:Kind itsName="NoteBody">
     <classes key="python">osaf.framework.blocks.detail.Detail.NoteBody</classes>
     <superKinds itemref="blocks:EditText"/>
   </core:Kind>
   
-  <core:Kind itemName="Headline">
+  <core:Kind itsName="Headline">
     <classes key="python">osaf.framework.blocks.detail.Detail.Headline</classes>
     <superKinds itemref="blocks:StaticText"/>
   </core:Kind>
   
-  <core:Kind itemName="MarkupBar">
+  <core:Kind itsName="MarkupBar">
     <classes key="python">osaf.framework.blocks.detail.Detail.MarkupBar</classes>
     <superKinds itemref="blocks:Toolbar"/>
   </core:Kind>
@@ -54,29 +54,29 @@
   <!--
     Styles
   -->
-  <CharacterStyle itemName="TextStyle">
+  <CharacterStyle itsName="TextStyle">
     <fontFamily>DefaultUIFont</fontFamily>
     <fontSize>12.0</fontSize>
     <fontStyle></fontStyle>
     <fontName></fontName>
   </CharacterStyle>
 
-  <CharacterStyle itemName="LabelStyle">
+  <CharacterStyle itsName="LabelStyle">
     <fontFamily>DefaultUIFont</fontFamily>
     <fontSize>14.0</fontSize>
     <fontStyle></fontStyle>
     <fontName></fontName>
   </CharacterStyle>
 
-  <ColorStyle itemName="GrayBackground1">
+  <ColorStyle itsName="GrayBackground1">
     <backgroundColor>240,240,240,240</backgroundColor>
   </ColorStyle>
   
-  <ColorStyle itemName="GrayBackground2">
+  <ColorStyle itsName="GrayBackground2">
     <backgroundColor>181,181,181,181</backgroundColor>
   </ColorStyle>
   
-  <ColorStyle itemName="GrayBackground3">
+  <ColorStyle itsName="GrayBackground3">
     <backgroundColor>204,204,204,204</backgroundColor>
   </ColorStyle>
       

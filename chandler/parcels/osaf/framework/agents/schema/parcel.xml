@@ -9,11 +9,11 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/framework/agents/schema"
-        itemName="schema"
-        xmlns="//Schema/Core"
-        xmlns:agents="//parcels/osaf/framework/agents/schema"
-        xmlns:blah="//parcels/osaf/framework/utils"
-        xmlns:indexes="//parcels/osaf/framework/utils/indexer">
+        itsName="schema"
+        xmlns="http://osafoundation.org/parcels/core"
+        xmlns:agents="http://osafoundation.org/parcels/osaf/framework/agents/schema"
+        xmlns:blah="http://osafoundation.org/parcels/osaf/framework/utils"
+        xmlns:indexes="http://osafoundation.org/parcels/osaf/framework/utils/indexer">
 
   <displayName>Agent Schema</displayName>
   <description>Agent schema for the 0.2 release</description>
@@ -21,10 +21,10 @@
 
   <!-- Kind: Action -->
 
-  <Kind itemName="Action">
+  <Kind itsName="Action">
     <displayName>Action</displayName>
 
-    <Enumeration itemName="ActionTypeEnum">
+    <Enumeration itsName="ActionTypeEnum">
       <values>none</values>
       <values>script</values>
       <values>expression</values>
@@ -32,66 +32,66 @@
       <values>classmethod</values>
     </Enumeration>
 
-    <Attribute itemName="actionType">
+    <Attribute itsName="actionType">
       <displayName>Action Type</displayName>
       <type itemref="agents:Action/ActionTypeEnum"/>
       <cardinality>single</cardinality>
       <!-- <defaultValue>none</defaultValue> -->
     </Attribute>
   
-    <Attribute itemName="actionScript">
+    <Attribute itsName="actionScript">
       <displayName>Action Script</displayName>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
   
-    <Attribute itemName="actionValue">
+    <Attribute itsName="actionValue">
       <displayName>Action Script</displayName>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="actionFilePath">
+    <Attribute itsName="actionFilePath">
       <displayName>Action Script</displayName>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="asyncFlag">
+    <Attribute itsName="asyncFlag">
       <displayName>Asynchronous Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
       <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
 
-    <Attribute itemName="wxThreadFlag">
+    <Attribute itsName="wxThreadFlag">
       <displayName>Asynchronous Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
       <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
     
-    <Attribute itemName="confirmFlag">
+    <Attribute itsName="confirmFlag">
       <displayName>Request Confirmation Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
       <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
 
-    <Attribute itemName="actionPermissionRequest">
+    <Attribute itsName="actionPermissionRequest">
       <displayName>Action Script</displayName>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="actionOwner">
+    <Attribute itsName="actionOwner">
       <displayName>Action Instruction Backlink</displayName>
       <type itemref="agents:Instruction"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="agents:Instruction/actions"/>
     </Attribute>
   
-    <Attribute itemName="actionRepertoireOwner">
+    <Attribute itsName="actionRepertoireOwner">
       <displayName>Action Repertoire Backlink</displayName>
       <type itemref="agents:Repertoire"/>
       <cardinality>single</cardinality>
@@ -112,7 +112,7 @@
     <classes key="python">osaf.framework.agents.schema.Action.Action</classes>
   </Kind>
 
-  <Kind itemName="DialogAction">
+  <Kind itsName="DialogAction">
     <displayName>Dialog Action</displayName>
     <superKinds itemref="agents:Action"/>
     <classes key="python">osaf.framework.agents.schema.DialogAction.DialogAction</classes>
@@ -121,24 +121,24 @@
 
   <!-- Kind: Condition -->
   
-  <Kind itemName="Condition">
+  <Kind itsName="Condition">
     <displayName>Condition</displayName>
 
     <!-- what is this really used for? -->
-    <Enumeration itemName="ConditionTypeEnum">
+    <Enumeration itsName="ConditionTypeEnum">
       <values>none</values>
       <values>notification</values>
       <values>timed</values>
     </Enumeration>
 
-    <Attribute itemName="conditionType">
+    <Attribute itsName="conditionType">
       <displayName>Condition Type</displayName>
       <type itemref="agents:Condition/ConditionTypeEnum"/>
       <cardinality>single</cardinality>
       <!-- <defaultValue>none</defaultValue> -->
     </Attribute>
 
-    <Enumeration itemName="ConditionFilterModeEnum">
+    <Enumeration itsName="ConditionFilterModeEnum">
       <values>none</values>
       <values>listequals</values>
       <values>equals</values>
@@ -147,39 +147,39 @@
       <values>matches</values>
     </Enumeration>
 
-    <Attribute itemName="conditionFilterMode">
+    <Attribute itsName="conditionFilterMode">
       <displayName>Filter comparison mode</displayName>
       <type itemref="agents:Condition/ConditionFilterModeEnum"/>
       <cardinality>single</cardinality>
       <!-- <defaultValue>none</defaultValue> -->
     </Attribute>
 
-    <Attribute itemName="conditionValue">
+    <Attribute itsName="conditionValue">
       <displayName>Value for filtering</displayName>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
   
-    <Attribute itemName="conditionAttribute">
+    <Attribute itsName="conditionAttribute">
       <displayName>Attribute of data to compare with</displayName>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
   
-    <Attribute itemName="conditionNotification">
+    <Attribute itsName="conditionNotification">
       <displayName>Condition Notification</displayName>
       <type itemref="Item"/>
       <cardinality>single</cardinality>
     </Attribute>
   
-    <Attribute itemName="conditionOwner">
+    <Attribute itsName="conditionOwner">
       <displayName>Condition Owner</displayName>
       <type itemref="agents:Instruction"/>
       <cardinality>single</cardinality>
       <inverseAttribute itemref="agents:Instruction/condition"/>
     </Attribute>
 
-    <Attribute itemName="conditionRepertoireOwner">
+    <Attribute itsName="conditionRepertoireOwner">
       <displayName>Action Repertoire Backlink</displayName>
       <type itemref="agents:Repertoire"/>
       <cardinality>single</cardinality>
@@ -200,28 +200,28 @@
 
   <!-- Kind: Schedule -->
 
-  <Kind itemName="Schedule">
+  <Kind itsName="Schedule">
     <displayName>Timed Condition</displayName>
 
-    <Attribute itemName="startTime">
+    <Attribute itsName="startTime">
       <displayName>Start Time</displayName>
       <type itemref="DateTime"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="repeatFlag">
+    <Attribute itsName="repeatFlag">
       <displayName>Repeat Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="repeatDelay">
+    <Attribute itsName="repeatDelay">
       <displayName>Repeat Delay</displayName>
       <type itemref="DateTimeDelta"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="scheduleOwner">
+    <Attribute itsName="scheduleOwner">
       <displayName>Schedule Owner</displayName>
       <type itemref="agents:Instruction"/>
       <cardinality>single</cardinality>
@@ -238,45 +238,45 @@
 
   <!-- Kind: Instruction -->
 
-  <Kind itemName="Instruction">
+  <Kind itsName="Instruction">
     <displayName>Instruction</displayName>
 
-    <Attribute itemName="enabled">
+    <Attribute itsName="enabled">
       <displayName>Enabled Flag</displayName>
       <type itemref="Boolean"/>
       <cardinality>single</cardinality>
       <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
 
-    <Attribute itemName="schedule">
+    <Attribute itsName="schedule">
       <displayName>Instruction Schedule</displayName>
       <type itemref="agents:Schedule"/>
       <cardinality>single</cardinality>
       <inverseAttribute itemref="agents:Schedule/scheduleOwner"/>
     </Attribute>
   
-    <Attribute itemName="condition">
+    <Attribute itsName="condition">
       <displayName>Instruction Condition</displayName>
       <type itemref="agents:Condition"/>
       <cardinality>single</cardinality>
       <inverseAttribute itemref="agents:Condition/conditionOwner"/>
     </Attribute>
   
-    <Attribute itemName="actions">
+    <Attribute itsName="actions">
       <displayName>Instruction Actions</displayName>
       <type itemref="agents:Action"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="agents:Action/actionOwner"/>
     </Attribute>
   
-    <Attribute itemName="instructionOwner">
+    <Attribute itsName="instructionOwner">
       <displayName>Owning Agent</displayName>
       <type itemref="agents:AgentItem"/>
       <cardinality>single</cardinality>
       <inverseAttribute itemref="agents:AgentItem/instructions"/>
     </Attribute>
 
-    <Attribute itemName="timers">
+    <Attribute itsName="timers">
       <displayName>Timers</displayName>
       <type itemref="UUID"/>
       <cardinality>dict</cardinality>
@@ -295,24 +295,24 @@
   
   <!-- Kind: Repertoire -->
 
-  <Kind itemName="Repertoire">
+  <Kind itsName="Repertoire">
     <displayName>Repertoire</displayName>
 
-    <Attribute itemName="possibleActions">
+    <Attribute itsName="possibleActions">
       <displayName>Possible Actions</displayName>
       <type itemref="agents:Action"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="agents:Action/actionRepertoireOwner"/>
     </Attribute>
 
-    <Attribute itemName="possibleConditions">
+    <Attribute itsName="possibleConditions">
       <displayName>Possible Conditions</displayName>
       <type itemref="agents:Condition"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="agents:Condition/conditionRepertoireOwner"/>
     </Attribute>
   
-    <Attribute itemName="repertoireOwner">
+    <Attribute itsName="repertoireOwner">
       <displayName>Owning Agent</displayName>
       <type itemref="agents:AgentItem"/>
       <cardinality>single</cardinality>
@@ -329,48 +329,48 @@
   
   <!-- Kind: AgentItem -->
 
-  <Kind itemName="AgentItem">
+  <Kind itsName="AgentItem">
     <displayName>The Agent</displayName>
 
-    <Attribute itemName="roles">
+    <Attribute itsName="roles">
       <displayName>Agent Roles</displayName>
       <type itemref="String"/>
       <cardinality>list</cardinality>
     </Attribute>
 
-    <Attribute itemName="repertoire">
+    <Attribute itsName="repertoire">
       <displayName>Agent Repertoire</displayName>
       <type itemref="agents:Repertoire"/>
       <cardinality>single</cardinality>
       <inverseAttribute itemref="agents:Repertoire/repertoireOwner"/>
     </Attribute>
 
-    <Attribute itemName="instructions">
+    <Attribute itsName="instructions">
       <displayName>Agent Instructions</displayName>
       <type itemref="agents:Instruction"/>
       <cardinality>list</cardinality>
       <inverseAttribute itemref="agents:Instruction/instructionOwner"/>
     </Attribute>
 
-    <Attribute itemName="sourceFile">
+    <Attribute itsName="sourceFile">
       <displayName>Path of Source File</displayName>
       <type itemref="String"/>
       <cardinality>single</cardinality>
     </Attribute>
 
-    <Attribute itemName="status">
+    <Attribute itsName="status">
       <displayName>Status Dictionary</displayName>
       <type itemref="String"/>
       <cardinality>dict</cardinality>
     </Attribute>
 
-    <Attribute itemName="imageData">
+    <Attribute itsName="imageData">
       <displayName>Image Data</displayName>
       <type itemref="String"/>
       <cardinality>dict</cardinality>
     </Attribute>
 
-    <Attribute itemName="prefData">
+    <Attribute itsName="prefData">
       <displayName>Preference Data</displayName>
       <type itemref="String"/>
       <cardinality>dict</cardinality>

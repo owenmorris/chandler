@@ -7,13 +7,13 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/contentmodel"
-             itemName="contentmodel"
-             xmlns:core="//Schema/Core"
-             xmlns:notes="//parcels/osaf/contentmodel/notes"
-             xmlns:contact="//parcels/osaf/contentmodel/contacts"
-             xmlns:blocks="//parcels/osaf/framework/blocks"
-             xmlns:events="//parcels/osaf/framework/notifications/schema"
-             xmlns="//parcels/osaf/contentmodel"
+             itsName="contentmodel"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns:notes="http://osafoundation.org/parcels/osaf/contentmodel/notes"
+             xmlns:contact="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
+             xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:events="http://osafoundation.org/parcels/osaf/framework/notifications/schema"
+             xmlns="http://osafoundation.org/parcels/osaf/contentmodel"
              itemClass="osaf.contentmodel.ContentModel.ContentModel">
 
   <core:displayName>Chandler Content Model</core:displayName>
@@ -22,14 +22,14 @@
   <core:author>Open Source Applications Foundation</core:author>
 
 <!-- Content Item -->
-  <core:Enumeration itemName="ImportanceEnum">
+  <core:Enumeration itsName="ImportanceEnum">
     <core:displayName>Importance Enum</core:displayName>
     <core:values>important</core:values>
     <core:values>normal</core:values>
     <core:values>fyi</core:values>
   </core:Enumeration>
 
-  <core:Attribute itemName="importance">
+  <core:Attribute itsName="importance">
     <core:displayName>Importance</core:displayName>
     <core:description>Most items are of normal importance (no value need be show), 
       however some things may be flagged either highly important or merely 'fyi'.</core:description>
@@ -38,20 +38,20 @@
     <core:type itemref="ImportanceEnum"/>
   </core:Attribute>
 
-  <core:Enumeration itemName="ContextEnum">
+  <core:Enumeration itsName="ContextEnum">
     <core:displayName>Context Enum</core:displayName>
     <core:values>home</core:values>
     <core:values>work</core:values>
   </core:Enumeration>
 
-  <core:Attribute itemName="context">
+  <core:Attribute itsName="context">
     <core:displayName>Context</core:displayName>
     <core:description>Context can be home, work, or another value provided by the user</core:description>
     <core:cardinality>single</core:cardinality>
     <core:type itemref="ContextEnum"/>
   </core:Attribute>
 
-  <core:Attribute itemName="whoAttribute">
+  <core:Attribute itsName="whoAttribute">
     <core:displayName>Who</core:displayName>
     <core:description>The attribute used to describe "who" for this content item</core:description>
     <core:issues>Should this apply to the kind or the item?</core:issues>
@@ -60,7 +60,7 @@
     <core:defaultValue type="core:Symbol">creator</core:defaultValue>
   </core:Attribute>
 
-  <core:Attribute itemName="aboutAttribute">
+  <core:Attribute itsName="aboutAttribute">
     <core:displayName>About</core:displayName>
     <core:description>The attribute used to describe "about" for this content item</core:description>
     <core:issues>Should this apply to the kind or the item?</core:issues>
@@ -69,7 +69,7 @@
     <core:defaultValue type="core:Symbol">displayName</core:defaultValue>
   </core:Attribute>
 
-  <core:Attribute itemName="dateAttribute">
+  <core:Attribute itsName="dateAttribute">
     <core:displayName>Date</core:displayName>
     <core:description>The attribute with the most relevant date for this content item</core:description>
     <core:issues>Should this apply to the kind or the item?</core:issues>
@@ -78,7 +78,7 @@
     <core:defaultValue type="core:Symbol">createdOn</core:defaultValue>
   </core:Attribute>
 
-  <core:Kind itemName="ContentItem">
+  <core:Kind itsName="ContentItem">
     <core:superKinds itemref="core:Item"/>
     <core:displayName>Content Item</core:displayName>
     <core:examples>an Calendar Event -- 'Lunch with Tug'</core:examples>
@@ -102,7 +102,7 @@
   </core:Kind>
 
 <!-- Project -->
-  <core:Attribute itemName="parentProject">
+  <core:Attribute itsName="parentProject">
     <core:displayName>Parent Project</core:displayName>
     <core:description>Projects can be organized into hierarchies. Each project can have one parent.</core:description>
     <core:cardinality>single</core:cardinality>
@@ -110,7 +110,7 @@
     <core:inverseAttribute itemref="subProjects"/>
   </core:Attribute>
 
-  <core:Attribute itemName="subProjects">
+  <core:Attribute itsName="subProjects">
     <core:displayName>Sub Projects</core:displayName>
     <core:description>Projects can be organized into hierarchies. Each project can have many sub-projects.</core:description>
     <core:cardinality>list</core:cardinality>
@@ -118,7 +118,7 @@
     <core:inverseAttribute itemref="parentProject"/>
   </core:Attribute>
 
-  <core:Kind itemName="Project">
+  <core:Kind itsName="Project">
     <core:superKinds itemref="core:Item"/>
     <core:displayName>Project</core:displayName>
     <core:examples>my "Housewarming Party" project</core:examples>
@@ -133,7 +133,7 @@
   </core:Kind>
 
 <!-- Group -->
-  <core:Kind itemName="Group">
+  <core:Kind itsName="Group">
     <core:displayName>"Playlist"/"Item Collection"</core:displayName>
     <core:description>See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject</core:description>
     <core:issues>We still need to work out some issues about how "playlists"/"item collections" are modeled.</core:issues>
@@ -149,37 +149,37 @@
     Chandler Query
   -->
 
-  <core:Enumeration itemName="queryEnumType">
+  <core:Enumeration itsName="queryEnumType">
     <core:values>Kind</core:values>
   </core:Enumeration>
 
-  <core:Attribute itemName="queryEnum">
+  <core:Attribute itsName="queryEnum">
     <core:type itemref="queryEnumType"/>
     <core:defaultValue type="queryEnumType">Kind</core:defaultValue>
   </core:Attribute>
 
-  <core:Attribute itemName="data">
+  <core:Attribute itsName="data">
     <core:type itemref="core:Item"/>
     <core:cardinality>list</core:cardinality>
   </core:Attribute>
 
-  <core:Attribute itemName="results">
+  <core:Attribute itsName="results">
     <core:type itemref="core:Item"/>
     <core:cardinality>list</core:cardinality>
   </core:Attribute>
 
-  <core:Attribute itemName="resultsStale">
+  <core:Attribute itsName="resultsStale">
     <core:type itemref="core:Boolean"/>
     <core:defaultValue type="core:Boolean">True</core:defaultValue>
   </core:Attribute>
 
-  <core:Attribute itemName="queryOwner">
+  <core:Attribute itsName="queryOwner">
     <core:type itemref="core:Item"/>
     <core:cardinality>list</core:cardinality>
     <core:inverseAttribute itemref="rule"/>
   </core:Attribute>
 
-  <core:Kind itemName="Query">
+  <core:Kind itsName="Query">
     <core:classes key="python">osaf.contentmodel.Query.Query</core:classes>
     <core:superKinds itemref="core:Item"/>
 
@@ -194,39 +194,39 @@
   <!-- Item Collection stuff -->
 
   <!-- this gets sent whenever the items in a collection change -->
-  <events:Event itemName="collection_changed"/>
+  <events:Event itsName="collection_changed"/>
 
 
-  <core:Attribute itemName="collectionOwner">
+  <core:Attribute itsName="collectionOwner">
     <core:type itemref="core:Item"/>
     <core:cardinality>list</core:cardinality>
     <core:inverseAttribute itemref="blocks:Block/contents"/>
   </core:Attribute>
 
-  <core:Attribute itemName="rule">
+  <core:Attribute itsName="rule">
     <core:displayName>Rule</core:displayName>
     <core:cardinality>single</core:cardinality>
     <core:type itemref="Query"/>
     <core:inverseAttribute itemref="queryOwner"/>
   </core:Attribute>
 
-  <core:Attribute itemName="inclusions">
+  <core:Attribute itsName="inclusions">
     <core:cardinality>list</core:cardinality>
     <core:type itemref="core:UUID"/>
   </core:Attribute>
 
-  <core:Attribute itemName="exclusions">
+  <core:Attribute itsName="exclusions">
     <core:cardinality>list</core:cardinality>
     <core:type itemref="core:UUID"/>
   </core:Attribute>
 
-  <core:Kind itemName="ItemCollection">
+  <core:Kind itsName="ItemCollection">
     <core:superKinds itemref="core:Item"/>
     <core:displayName>Item Collection</core:displayName>
     <core:attributes itemref="collectionOwner"/>
   </core:Kind>
 
-  <core:Kind itemName="NamedCollection">
+  <core:Kind itsName="NamedCollection">
     <core:superKinds itemref="ItemCollection"/>
     <core:displayName>Named Collection</core:displayName>
     <core:attributes itemref="rule"/>
@@ -235,7 +235,7 @@
     <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
   </core:Kind>
 
-  <core:Kind itemName="AdHocCollection">
+  <core:Kind itsName="AdHocCollection">
     <core:superKinds itemref="ItemCollection"/>
     <core:displayName>Ad-Hoc Collection</core:displayName>
     <core:attributes itemref="inclusions"/>
@@ -243,7 +243,7 @@
     <core:classes key="python">osaf.contentmodel.ItemCollection.ItemCollection</core:classes>
   </core:Kind>
 
-  <core:Kind itemName="EphemeralCollection">
+  <core:Kind itsName="EphemeralCollection">
     <core:superKinds itemref="ItemCollection"/>
     <core:displayName>Ephemeral Collection</core:displayName>
     <core:attributes itemref="rule"/>

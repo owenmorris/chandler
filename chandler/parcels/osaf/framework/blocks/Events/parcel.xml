@@ -6,16 +6,16 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/framework/blocks/Events"
-             itemName="Events"
-             xmlns:core="//Schema/Core"
-             xmlns="//parcels/osaf/framework/blocks"
-             xmlns:events="//parcels/osaf/framework/blocks/Events">
+             itsName="Events"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events">
 
   <description>Events, need to be defined in a different parcel than the schema because 
 of a limitation of the XML format, which will be eliminated</description>
   <version>0.3</version>
 
-  <EventList itemName="GlobalEvents">
+  <EventList itsName="GlobalEvents">
     <subscribeAlwaysEvents itemref="events:New"/>
     <subscribeAlwaysEvents itemref="events:Close"/>
     <subscribeAlwaysEvents itemref="events:Quit"/>
@@ -36,76 +36,76 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:CheckRepository"/>
   </EventList>
 
-  <BlockEvent itemName="New">
+  <BlockEvent itsName="New">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="Close">
+  <BlockEvent itsName="Close">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="Quit">
+  <BlockEvent itsName="Quit">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="Undo">
+  <BlockEvent itsName="Undo">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="Redo">
+  <BlockEvent itsName="Redo">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="Cut">
+  <BlockEvent itsName="Cut">
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="Copy">
+  <BlockEvent itsName="Copy">
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="Paste">
+  <BlockEvent itsName="Paste">
     <dispatchEnum>FocusBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="Preferences">
+  <BlockEvent itsName="Preferences">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="ViewNavigationBar">
+  <BlockEvent itsName="ViewNavigationBar">
     <dispatchEnum>Broadcast</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="SelectionChanged">
+  <BlockEvent itsName="SelectionChanged">
     <dispatchEnum>Broadcast</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="EnterPressed">
+  <BlockEvent itsName="EnterPressed">
     <dispatchEnum>Broadcast</dispatchEnum>
   </BlockEvent>
 
   <!-- Test Events -->
-  <BlockEvent itemName="GenerateContentItems">
+  <BlockEvent itsName="GenerateContentItems">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="GenerateContacts">
+  <BlockEvent itsName="GenerateContacts">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="ImportContacts">
+  <BlockEvent itsName="ImportContacts">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="GenerateNotes">
+  <BlockEvent itsName="GenerateNotes">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="GenerateCalendarEventItems">
+  <BlockEvent itsName="GenerateCalendarEventItems">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 
-  <BlockEvent itemName="CheckRepository">
+  <BlockEvent itsName="CheckRepository">
     <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
   </BlockEvent>
 

@@ -6,52 +6,52 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel describes="//parcels/osaf/views/content"
-             itemName="content"
-             xmlns="//parcels/osaf/framework/blocks"
-	     xmlns:core="//Schema/Core"
-             xmlns:calendarBlocks="//parcels/osaf/framework/blocks/calendar"
-             xmlns:contentModel="//parcels/osaf/contentmodel"
-             xmlns:calendarModel="//parcels/osaf/contentmodel/calendar"
-             xmlns:noteModel="//parcels/osaf/contentmodel/notes"
-             xmlns:contactsModel="//parcels/osaf/contentmodel/contacts"
-             xmlns:notesDetail="//parcels/osaf/framework/blocks/detail/notes"	     
-             xmlns:calendarDetail="//parcels/osaf/framework/blocks/detail/calendar"	     
-             xmlns:view="//parcels/osaf/views/content">
+             itsName="content"
+             xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
+             xmlns:core="http://osafoundation.org/parcels/core"
+             xmlns:calendarBlocks="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"
+             xmlns:contentModel="http://osafoundation.org/parcels/osaf/contentmodel"
+             xmlns:calendarModel="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
+             xmlns:noteModel="http://osafoundation.org/parcels/osaf/contentmodel/notes"
+             xmlns:contactsModel="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
+             xmlns:notesDetail="http://osafoundation.org/parcels/osaf/framework/blocks/detail/notes"
+             xmlns:calendarDetail="http://osafoundation.org/parcels/osaf/framework/blocks/detail/calendar"
+             xmlns:view="http://osafoundation.org/parcels/osaf/views/content">
 
   <core:version>0.3</core:version>
 
   <!-- Queries -->
-  <contentModel:Query itemName="calendarQuery">
+  <contentModel:Query itsName="calendarQuery">
      <data itemref="calendarModel:CalendarEvent"/>
   </contentModel:Query>
-  <contentModel:NamedCollection itemName="calendarItemCollection">
+  <contentModel:NamedCollection itsName="calendarItemCollection">
     <rule itemref="view:calendarQuery"/>
   </contentModel:NamedCollection>
 
-  <contentModel:Query itemName="notesQuery">
+  <contentModel:Query itsName="notesQuery">
     <data itemref="noteModel:Note"/>
   </contentModel:Query>
-  <contentModel:NamedCollection itemName="notesItemCollection">
+  <contentModel:NamedCollection itsName="notesItemCollection">
     <rule itemref="view:notesQuery"/>
   </contentModel:NamedCollection>
 
-  <contentModel:Query itemName="contactQuery">
+  <contentModel:Query itsName="contactQuery">
     <data itemref="contactsModel:Contact"/>
   </contentModel:Query>
-  <contentModel:NamedCollection itemName="contactItemCollection">
+  <contentModel:NamedCollection itsName="contactItemCollection">
     <rule itemref="view:contactQuery"/>
   </contentModel:NamedCollection>
 
-  <contentModel:Query itemName="mixedQuery">
+  <contentModel:Query itsName="mixedQuery">
     <data itemref="calendarModel:CalendarEvent"/>
     <data itemref="noteModel:Note"/>
   </contentModel:Query>
-  <contentModel:NamedCollection itemName="mixedItemCollection">
+  <contentModel:NamedCollection itsName="mixedItemCollection">
     <rule itemref="view:mixedQuery"/>
   </contentModel:NamedCollection>
 
   <!-- Calendar List -->
-  <List itemName="CalendarList">
+  <List itsName="CalendarList">
     <contents itemref="view:calendarItemCollection"/>
 
     <elementDelegate>osaf.views.content.Content.CalendarListDelegate</elementDelegate>
@@ -65,7 +65,7 @@
   </List>
 
   <!-- Contact List -->
-  <List itemName="ContactList">
+  <List itsName="ContactList">
     <contents itemref="view:contactItemCollection"/>
 
     <elementDelegate>osaf.views.content.Content.ContactListDelegate</elementDelegate>
@@ -81,7 +81,7 @@
   </List>
 
   <!-- Note List -->
-  <List itemName="NoteList">
+  <List itsName="NoteList">
     <contents itemref="view:notesItemCollection"/>
 
     <elementDelegate>osaf.views.content.Content.NoteListDelegate</elementDelegate>
@@ -93,7 +93,7 @@
   </List>
 
   <!-- Month -->
-  <calendarBlocks:MonthBlock itemName="SummaryMonth">
+  <calendarBlocks:MonthBlock itsName="SummaryMonth">
     <contents itemref="view:calendarItemCollection"/>
 
     <daysPerWeek>7</daysPerWeek>
@@ -102,7 +102,7 @@
   </calendarBlocks:MonthBlock>
 
   <!-- Week -->
-  <calendarBlocks:WeekBlock itemName="SummaryWeek">
+  <calendarBlocks:WeekBlock itsName="SummaryWeek">
     <contents itemref="view:calendarItemCollection"/>
 
     <daysPerView>7</daysPerView>
@@ -111,7 +111,7 @@
   </calendarBlocks:WeekBlock>
 
   <!-- Mixed List -->
-  <Summary itemName="MixedList">
+  <Summary itsName="MixedList">
     <contents itemref="view:mixedItemCollection"/>
 
     <elementDelegate>osaf.views.content.Content.MixedListDelegate</elementDelegate>
@@ -124,25 +124,25 @@
     <columnWidths>170</columnWidths>
   </Summary>
 
-  <ItemDetail itemName="ContactDetail"
+  <ItemDetail itsName="ContactDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
 
-  <ItemDetail itemName="MixedItemDetail"
+  <ItemDetail itsName="MixedItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
 
-  <ItemDetail itemName="MonthItemDetail"
+  <ItemDetail itsName="MonthItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
 
-  <ItemDetail itemName="WeekItemDetail"
+  <ItemDetail itsName="WeekItemDetail"
               itemClass="osaf.views.content.Content.ContentItemDetail">
   </ItemDetail>
 
 
   <!-- Calendar View -->
-  <SplitterWindow itemName="CalendarListView">
+  <SplitterWindow itsName="CalendarListView">
     <childrenBlocks itemref="view:CalendarList"/>
     <childrenBlocks itemref="calendarDetail:DetailRoot"/>
 
@@ -152,7 +152,7 @@
   </SplitterWindow>
 
   <!-- Notes View -->
-  <SplitterWindow itemName="NoteListView">
+  <SplitterWindow itsName="NoteListView">
     <childrenBlocks itemref="view:NoteList"/>
     <childrenBlocks itemref="notesDetail:DetailRoot"/>
 
@@ -162,7 +162,7 @@
   </SplitterWindow>
 
   <!-- Contacts View -->
-  <SplitterWindow itemName="ContactListView">
+  <SplitterWindow itsName="ContactListView">
     <childrenBlocks itemref="view:ContactList"/>
     <childrenBlocks itemref="view:ContactDetail"/>
 
@@ -171,7 +171,7 @@
   </SplitterWindow>
 
   <!-- Mixed View -->
-  <SplitterWindow itemName="MixedListView">
+  <SplitterWindow itsName="MixedListView">
     <childrenBlocks itemref="view:MixedList"/>
     <childrenBlocks itemref="view:MixedItemDetail"/>
 
@@ -180,7 +180,7 @@
   </SplitterWindow>
 
   <!-- MonthView View -->
-  <SplitterWindow itemName="MonthView">
+  <SplitterWindow itsName="MonthView">
     <childrenBlocks itemref="view:SummaryMonth"/>
     <childrenBlocks itemref="view:MonthItemDetail"/>
 
@@ -189,7 +189,7 @@
   </SplitterWindow>
 
   <!-- Week View -->
-  <SplitterWindow itemName="WeekView">
+  <SplitterWindow itsName="WeekView">
     <childrenBlocks itemref="view:SummaryWeek"/>
     <childrenBlocks itemref="view:WeekItemDetail"/>
 

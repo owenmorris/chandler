@@ -6,18 +6,18 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import repository.parcel.Parcel as Parcel
+import application
 import repository.item.Item as Item
 import osaf.contentmodel.ContentModel as ContentModel
 import application.Globals as Globals
 
-class MailParcel(Parcel.Parcel):
+class MailParcel(application.Parcel.Parcel):
     def startupParcel(self):
-        Parcel.Parcel.startupParcel(self)
+        super(MailParcel, self).startupParcel()
         self._setUUIDs()
 
     def onItemLoad(self):
-        Parcel.Parcel.onItemLoad(self)
+        super(MailParcel, self).onItemLoad()
         self._setUUIDs()
 
     def _setUUIDs(self):

@@ -6,33 +6,33 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <Parcel describes="//parcels/osaf/framework/blocks/calendar"
-        itemName="calendar"
-        xmlns="//Schema/Core"
-	xmlns:blocks="//parcels/osaf/framework/blocks"
-	xmlns:calBlocks="//parcels/osaf/framework/blocks/calendar"
-	xmlns:events="//parcels/osaf/framework/notifications/schema">
+        itsName="calendar"
+        xmlns="http://osafoundation.org/parcels/core"
+	xmlns:blocks="http://osafoundation.org/parcels/osaf/framework/blocks"
+	xmlns:calBlocks="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"
+	xmlns:events="http://osafoundation.org/parcels/osaf/framework/notifications/schema">
 
   <description>calendar blocks</description>
   <version>0.3</version>
 
-  <Kind itemName="MonthBlock">
+  <Kind itsName="MonthBlock">
     <classes key="python">osaf.framework.blocks.calendar.CalendarBlocks.MonthBlock</classes>
     <superKinds itemref="blocks:RectangularChild"/>
 
-    <Attribute itemName="daysPerWeek">
+    <Attribute itsName="daysPerWeek">
       <type itemref="Integer"/>
     </Attribute>
-    <Attribute itemName="weeksPerView">
+    <Attribute itsName="weeksPerView">
       <type itemref="Integer"/>
     </Attribute>
-    <Attribute itemName="offset">
+    <Attribute itsName="offset">
       <type itemref="Integer"/>
     </Attribute>
 
-    <Attribute itemName="rangeStart">
+    <Attribute itsName="rangeStart">
       <type itemref="DateTime"/>
     </Attribute>
-    <Attribute itemName="rangeIncrement">
+    <Attribute itsName="rangeIncrement">
       <type itemref="RelativeDateTime"/>
     </Attribute>
 
@@ -43,24 +43,24 @@
     <attributes itemref="calBlocks:MonthBlock/rangeIncrement"/>
   </Kind>
 
-  <Kind itemName="WeekBlock">
+  <Kind itsName="WeekBlock">
     <classes key="python">osaf.framework.blocks.calendar.CalendarBlocks.WeekBlock</classes>
     <superKinds itemref="blocks:RectangularChild"/>
 
-    <Attribute itemName="daysPerView">
+    <Attribute itsName="daysPerView">
       <type itemref="Integer"/>
     </Attribute>
-    <Attribute itemName="hoursPerView">
+    <Attribute itsName="hoursPerView">
       <type itemref="Integer"/>
     </Attribute>
-    <Attribute itemName="offset">
+    <Attribute itsName="offset">
       <type itemref="Integer"/>
     </Attribute>
 
-    <Attribute itemName="rangeStart">
+    <Attribute itsName="rangeStart">
       <type itemref="DateTime"/>
     </Attribute>
-    <Attribute itemName="rangeIncrement">
+    <Attribute itsName="rangeIncrement">
       <type itemref="RelativeDateTime"/>
     </Attribute>
 
