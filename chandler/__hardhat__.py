@@ -115,18 +115,6 @@ def build(buildenv):
         os.chdir("win")
         if buildenv['version'] == 'release':
             hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCI71.DLL to release/bin")
-            hardhatlib.copyFile("msvci71.dll", buildenv['root'] + \
-             os.sep + "release" + os.sep + "bin")
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCP71.DLL to release/bin")
-            hardhatlib.copyFile("msvcp71.dll", buildenv['root'] + \
-             os.sep + "release" + os.sep + "bin")
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCR71.DLL to release/bin")
-            hardhatlib.copyFile("msvcr71.dll", buildenv['root'] + \
-             os.sep + "release" + os.sep + "bin")
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
              info['name'], "Copying MSVCR71.DLL to release/bin")
             hardhatlib.copyFile("msvcr71.dll", buildenv['root'] + \
              os.sep + "release" + os.sep + "bin")
@@ -135,18 +123,6 @@ def build(buildenv):
             hardhatlib.copyFile("RunRelease.bat", buildenv['root'] + \
              os.sep + "release")
         if buildenv['version'] == 'debug':
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCI71d.DLL to debug/bin")
-            hardhatlib.copyFile("msvci71d.dll", buildenv['root'] + \
-             os.sep + "debug" + os.sep + "bin")
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCP71d.DLL to debug/bin")
-            hardhatlib.copyFile("msvcp71d.dll", buildenv['root'] + \
-             os.sep + "debug" + os.sep + "bin")
-            hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
-             info['name'], "Copying MSVCR71d.DLL to debug/bin")
-            hardhatlib.copyFile("msvcr71d.dll", buildenv['root'] + \
-             os.sep + "debug" + os.sep + "bin")
             hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE,
              info['name'], "Copying MSVCR71D.DLL to debug/bin")
             hardhatlib.copyFile("msvcr71d.dll", buildenv['root'] + \
