@@ -40,15 +40,16 @@ OUT32DLL=out32dll
 DOMASM=do_masm.bat
 endif
 
-ms/$(DOMASM):
-	cd $(SRC);\
+$(SRC)/$(BUILD)/ms/$(DOMASM): $(SRC)/Configure
+	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
+	cp -r crypto ssl apps certs tools util ms include test $(BUILD)/;cd $(BUILD);\
 	$(MK1MF);\
 	chmod a+x ms/$(DOMASM);
 
-openssl: ms/$(DOMASM)
-	cd $(SRC); \
+openssl: $(SRC)/$(BUILD)/ms/$(DOMASM)
+	cd $(SRC)/$(BUILD); \
 	MAKEFLAGS=; \
-	perl Configure --openssldir=$(PREFIX) --install_prefix=$(PREFIX) $(CONF_OPT) VC-WIN32; \
+	perl ../Configure --openssldir=$(PREFIX) --install_prefix=$(PREFIX) $(CONF_OPT) VC-WIN32; \
 	ms/$(DOMASM); \
 	nmake -f ms/ntdll.mak;\
 	cd $(OUT32DLL); \
@@ -56,9 +57,9 @@ openssl: ms/$(DOMASM)
 	echo 'Installing...';\
 	cp -f ssleay32.dll $(PREFIX)/bin/; \
 	cp -f libeay32.dll $(PREFIX)/bin/; \
-	cp -f ssleay32.lib $(PREFIX)/bin/libs/; \
-	cp -f libeay32.lib $(PREFIX)/bin/libs/; \
-	cp -fr ../inc32/openssl $(PREFIX)/bin/Include;\
+	cp -f ssleay32.lib $(PREFIX)/lib/; \
+	cp -f libeay32.lib $(PREFIX)/lib/; \
+	cp -fr ../inc32/openssl $(PREFIX)/Include;\
 	echo 'Installation done.'
 
 snap: 
@@ -74,14 +75,12 @@ ifeq ($(OS),Darwin)
 openssl:   $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); \
 	$(MAKE) -f Makefile.ssl; \
-	if [ ! -d $(PREFIX)/lib ]; then \
-		mkdir -p $(PREFIX)/lib; \
-	fi; \
+	mkdir -p $(PREFIX)/lib; \
 	$(MAKE) -f Makefile.ssl install 
 
 $(SRC)/$(BUILD)/Makefile: $(SRC)/Configure
 	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
-	cp -r crypto ssl apps certs tools util include $(BUILD)/;cd $(BUILD);\
+	cp -r crypto ssl apps certs tools util doc include $(BUILD)/;cd $(BUILD);\
 	perl ../Configure -shared --openssldir=$(PREFIX) $(CONF_OPT) $(PLATFORM)
 
 snap: 
@@ -101,14 +100,12 @@ else
 openssl:   $(SRC)/$(BUILD)/Makefile
 	cd $(SRC)/$(BUILD); \
 	$(MAKE) -f Makefile.ssl; \
-	if [ ! -d $(PREFIX)/lib ]; then \
-		mkdir -p $(PREFIX)/lib; \
-	fi; \
+	mkdir -p $(PREFIX)/lib; \
 	$(MAKE) -f Makefile.ssl install
 
 $(SRC)/$(BUILD)/Makefile: $(SRC)/Configure
 	cd $(SRC); mkdir $(BUILD); cp Makefile.org *.h $(BUILD)/; \
-	cp -r crypto ssl apps certs tools util include $(BUILD)/;cd $(BUILD);\
+	cp -r crypto ssl apps certs tools util doc include $(BUILD)/;cd $(BUILD);\
 	perl ../Configure --openssldir=$(PREFIX) $(CONF_OPT) $(PLATFORM)
 
 snap: 
@@ -124,9 +121,8 @@ $(SRC)/Configure: apply
 expand: openssl-$(VERSION).tar.gz
 	tar xvzf openssl-$(VERSION).tar.gz
 
-apply: expand patches-$(VERSION)
-	patch -Nup0 < patches-$(VERSION); echo ok
-
+apply: expand 
+	echo ok
 
 clean:
 	rm -rf $(SRC)
