@@ -1,15 +1,54 @@
 """Schema definition support -- see ``schema.txt`` for docs"""
 
 __all__ = [
-   'Entity', 'Role', 'Relationship', 'One', 'Many', 'NullSet',
+   'Entity', 'Role', 'Relationship', 'One', 'Many', 'NullSet', 'LoadEvent',
    'RoleActivator', 'RelationshipClass'
 ]
 
 from models import Set
+from events import Event
 from types import ClassType
 ClassTypes = type, ClassType
 
 NullSet = Set(type=())
+
+
+def load_role(cls, name):
+    val = getattr(cls,name)
+    if not isinstance(val,Role):
+        raise AssertionError("Can't unpickle non-roles this way")
+    return val
+
+load_role.__safe_for_unpickling__ = True
+
+
+class LoadEvent(Event):
+    """A linkset is being created for the given role"""
+
+    __slots__ = 'role', '_linkset'
+
+    def __setLinkset(self,val):
+        """Set new linkset on sender, copying old one's receivers if needed"""
+        d = self.sender.__dict__
+        try:
+            ls = d[self.role]
+        except KeyError:
+            pass
+        else:
+            subscribe = val.subscribe
+            for rcv in ls.getReceivers(): subscribe(rcv,True)
+        d[self.role] = val
+        
+    linkset = property(
+        lambda self: self.sender.__dict__[self.role], __setLinkset,
+        doc = """Linkset to be used for the given sender and role"""
+    )
+       
+    def __init__(self,sender,role,linkset):
+        super(LoadEvent,self).__init__(sender,role=role,linkset=linkset)
+
+    def __repr__(self):
+        return "<Load event for %s of %s>" % (self.role,self.sender)
 
 
 def iterTypes(typ):
@@ -94,9 +133,9 @@ class Role(object):
             return NullSet
         try:
             return d[self]
-        except KeyError:
-            linkset = d[self] = self.newSet(ob)
-            return linkset
+        except KeyError:           
+            LoadEvent(ob,self,self.newSet(ob))
+            return d[self]
 
     def newSet(self,ob):
         """Return new default linkset for ``ob``"""
@@ -117,9 +156,18 @@ class Role(object):
             return "<Role %s of %s>" % (self.name,self.owner)
         return object.__repr__(self)
 
+    def __reduce_ex__(self,proto=0):
+        if self.owner is not None:
+            return load_role, (self.owner, self.name)
+        return object.__reduce_ex__(self,proto)
+
+
+NOT_GIVEN = object()
 
 class One(Role):
     """Single-valued role attribute"""
+
+    default = compute = NOT_GIVEN
 
     def newSet(self,ob):
         """Return new default linkset for ``ob``
@@ -128,7 +176,13 @@ class One(Role):
         prevents it from ever having more than one item in it.
         """
         s = super(One,self).newSet(ob)
-        s.subscribe(self.__limitMembers)
+        if self.compute is NOT_GIVEN:
+            if self.default is not NOT_GIVEN:
+                s.add(self.default)
+        else:
+            s.add(self.compute(ob))
+
+        s.subscribe(self.__limitMembers, True)
         return s
 
     def __limitMembers(self,event):

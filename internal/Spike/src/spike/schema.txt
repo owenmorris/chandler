@@ -118,6 +118,16 @@ membership changes::
 
     >>> Joe.age = 40    # no event, because we're not really changing anything
 
+Finally, the system issues "load events" whenever an attribute is initialized,
+so that a persistence framework can lazily load attribute values or monitor
+attributes for changes::
+
+    >>> schema.LoadEvent.subscribe(Bob, printIt)
+    >>> Bob.age = 68
+    <Load event for <Role age of <class 'Person'>> of Bob>
+
+    >>> Bob.age = 69    # attribute is already initialized, so no load event
+
 
 Entities and Values
 ===================
@@ -140,7 +150,7 @@ This identity-based comparison is Python's default behavior for user-defined
 classes, unless you override special methods like ``__hash__`` and ``__eq__``.
 
 Values, on the other hand, are normally hashed and compared by their *content*,
-because more than one value object can exist with the same contnet.  For
+because more than one value object can exist with the same content.  For
 example, one could create the string ``"A"`` and the string ``chr(65)``, and
 although these strings may be stored at different memory locations, their
 *content* is equal.  Many Python built-in types are value types, including
@@ -244,11 +254,67 @@ Role Objects
 ====================
 
 ``spike.schema`` offers two basic types of roles: ``schema.One`` and
-``schema.Many``.  The only difference between the two is in what happens when
+``schema.Many``.  The main differences between the two are in what happens when
 they are accessed as attributes, and how many items are allowed to be in the
 link set for that role on a given entity.
 
-XXX Derived, Mapping, computeValue/defaultValue (``One`` only)
+``Many`` roles are used to implement attributes whose value is a linkset.  You
+can set a ``Many`` attribute to any iterable, as long as it yields values of
+a type compatible with the atribute.  However, instead of replacing the linkset
+with the iterable, the linkset's *contents* are replaced, so that the attribute
+is always the same linkset.  You can also delete a ``Many`` attribute (using
+e.g. ``del Mary.children``), and this just empties the linkset without
+replacing it.   These rules ensure that any event receivers subscribed to the
+linkset will remain active.
+
+``One`` roles are used to implement attributes whose linkset contains at most
+one value.  When the linkset is empty, the attribute is "deleted", and trying
+to read the attribute produces an ``AttributeError``.  When the linkset
+contains an item, reading the attribute retrieves that item.
+
+``One`` roles also support defining an initial value (either constant or
+computed) to be used when the attribute is first accessed.  This can be done
+by setting either the ``default`` or ``compute`` attributes of the role, where
+``default`` is the value you would like to use, and ``compute`` is a callable
+that takes one argument (the entity whose attribute is being computed) and
+returns the value to be used::
+
+    >>> from datetime import datetime, timedelta
+    >>> now = datetime(2005, 2, 16, 13, 30)
+
+    >>> class Appointment(schema.Entity):
+    ...     start = schema.One(datetime, default=now)
+    ...     end = schema.One(
+    ...         datetime, compute=lambda self: self.start+timedelta(hours=1)
+    ...     )
+    ...     def __repr__(self):
+    ...         return "%s - %s" % (self.start,self.end.strftime("%H:%M:%S"))
+
+    >>> print Appointment()
+    2005-02-16 13:30:00 - 14:30:00
+
+If an attribute's initial value is defined using ``computed``, the calculation
+is performed at the time the attribute is first accessed::
+
+    >>> class CalcDemo(schema.Entity):
+    ...     def __calcIt(self):
+    ...         print "calculating"
+    ...         return 42
+    ...     demo = schema.One(int, compute=__calcIt)
+
+    >>> demo = CalcDemo()
+    >>> demo.demo
+    calculating
+    42
+
+The calculation is always performed on the first access, even if the first
+access is to immediately replace the calculated value with a new value::
+
+    >>> demo = CalcDemo()
+    >>> demo.demo = 19
+    calculating
+    >>> demo.demo
+    19
 
 
 The ``Role`` Base Type
@@ -256,7 +322,7 @@ The ``Role`` Base Type
 
 The base class for roles is ``schema.Role``.  It provides most of the
 default behavior of roles, so rather than duplicate examples for each
-individual role type, we'll examine the default behaviors first.
+individual role type, we'll examine the default behaviors here.
 
 All role objects have at least the following attributes and methods:
 
@@ -415,7 +481,7 @@ All role objects have at least the following attributes and methods:
 ``name`` (read-only)
     The name under which this role was first defined in an entity class or
     relationship, or ``None`` if the role has not been registered with a
-    class yet.
+    class yet::
 
         >>> role = schema.Role()
         >>> print role.name
@@ -428,7 +494,7 @@ All role objects have at least the following attributes and methods:
 
 ``owner`` (read-only)
     The entity or relationship class in which the role was defined, or ``None``
-    if the role has not been registered with a class yet.
+    if the role has not been registered with a class yet::
 
         >>> role = schema.Role()
         >>> print role.owner
@@ -456,15 +522,17 @@ All role objects have at least the following attributes and methods:
     the other role.  It also works for setting up self-recursive roles within a
     single type::
 
-    >>> class Kind(schema.Entity):
-    ...     name = schema.One(str)
-    ...     subkinds = schema.Many()
-    ...     superkinds = schema.Many(inverse=subkinds)
+        >>> class Kind(schema.Entity):
+        ...     name = schema.One(str)
+        ...     subkinds = schema.Many()
+        ...     superkinds = schema.Many(inverse=subkinds)
+        ...     def __repr__(self):
+        ...         return getattr(self,'name',object.__repr__(self))
 
-    >>> Kind.subkinds.types
-    (<class 'Kind'>,)
-    >>> Kind.superkinds.types
-    (<class 'Kind'>,)
+        >>> Kind.subkinds.types
+        (<class 'Kind'>,)
+        >>> Kind.superkinds.types
+        (<class 'Kind'>,)
 
 
 ``of(ob)``
@@ -483,7 +551,7 @@ All role objects have at least the following attributes and methods:
     ``spike.models``) is returned, and is cached in ``ob.__dict__``, where it
     will be used to answer future ``of()`` requests::
 
-        >>> aKind = Kind()
+        >>> aKind = Kind(name="aKind")
         >>> s = Kind.superkinds.of(aKind)
         >>> s
         Set([], type=Kind)
@@ -502,6 +570,10 @@ All role objects have at least the following attributes and methods:
 
 Creating Role Subclasses
 ========================
+
+If you're creating a custom kind of role for a specialized application, there
+are some methods you may need to override to ensure correct operation of your
+subclass:
 
 ``newSet(ob)``
     Return a new (possibly empty) default linkset for `ob`.  This method is
@@ -564,18 +636,54 @@ In order to allow storage services to support delayed loading of linksets, the
 ``Role.of()`` method initiates a ``schema.LoadEvent`` before creating a default
 linkset when the target object doesn't have a cached linkset for the role.
 The event's ``sender`` is the target object, its ``role`` is the role
-being requested, and its ``linkset`` is the new linkset that will be used.
+being requested, and its ``linkset`` is the new linkset that will be used::
+
+    >>> foo = Kind(name="foo")
+    >>> evt=schema.LoadEvent(foo, Kind.subkinds, Kind.subkinds.newSet(foo))
+
+    >>> evt.role
+    <Role subkinds of <class 'Kind'>>
+
+    >>> evt.linkset
+    Set([], type=Kind)
 
 Receivers of this event can add or remove items from the ``linkset``, or
-replace it altogether by replacing it with another observable set.  If a
-receiver replaces the ``linkset``, it should ensure that the new set has
-the same type restrictions and event receivers as the previous set.  (You
-can use the old linkset's ``getReceivers()`` method to obtain the old
-receivers, and you can then subscribe them to the new set.)
+replace it altogether by replacing it with another observable set::
+
+    >>> def autoload(event):
+    ...     if event.role is Kind.subkinds:
+    ...         event.linkset.add(Kind(name="Test"))
+    ...     print event
+    >>> schema.LoadEvent.subscribe(aKind,autoload)
+
+    >>> Kind.subkinds.of(aKind)
+    <Load event for <Role subkinds of <class 'Kind'>> of aKind>
+    Set([Test], type=Kind)
+
+If a receiver replaces the event's ``linkset``, the event will automatically
+copy the old linkset's subscriptions to the new linkset.  The receiver,
+however, is responsible for first ensuring that the new linkset's
+contents and type restrictions are correct::
+
+    >>> oldSet = evt.linkset
+    >>> list(oldSet.getReceivers())
+    [<function maintainInverse at ...>]
+
+    >>> from spike import models
+    >>> newSet = models.Set([], type=Kind)
+    >>> list(newSet.getReceivers())
+    []
+
+    >>> evt.linkset = newSet        # changing the linkset copies receivers
+    >>> list(newSet.getReceivers())
+    [<function maintainInverse at ...>]
+
 
 After all receivers have had a chance to affect the linkset, the role's
-``of()`` method will cache and return the event's ``linkset`` attribute.
+``of()`` method will cache and return the event's ``linkset`` attribute::
 
+    >>> Kind.subkinds.of(aKind)     # no message, since it's cached now
+    Set([Test], type=Kind)
 
 
 --------------------------
@@ -609,15 +717,15 @@ existing types (even ones defined in different parcels), not just new types.
 Note that relationship classes must be defined using exactly two roles::
 
     >>> class OneWay(schema.Relationship):
-    ...     thisWay = schema.Role()
+    ...     thisWay = schema.One()
     Traceback (most recent call last):
     ...
     ValueError: Relationship must have exactly two roles
 
     >>> class ThreeWay(schema.Relationship):
-    ...     thisWay = schema.Role()
-    ...     thatWay = schema.Role()
-    ...     otherWay = schema.Role()
+    ...     thisWay = schema.One()
+    ...     thatWay = schema.Many()
+    ...     otherWay = schema.One()
     Traceback (most recent call last):
     ...
     ValueError: Relationship must have exactly two roles
@@ -699,6 +807,46 @@ class is automatically added to the types of the inverse role::
     (<class 'E2'>,)
 
 
+Role Pickling
+=============
+
+Roles should be able to be pickled and unpickled as "global objects", meaning
+that they are singletons imported from a module, rather than objects whose
+state is saved in the pickle.  This is accomplished via the ``__reduce_ex__``
+method::
+
+    >>> Kind.subkinds.__reduce_ex__()
+    (<function load_role at ...>, (<class 'Kind'>, 'subkinds'))
+
+And the ``load_role`` function takes care of restoring pickled roles::
+
+    >>> schema.load_role(Kind, 'subkinds') is Kind.subkinds
+    True
+    >>> schema.load_role.__safe_for_unpickling__
+    True
+
+    >>> schema.load_role(Kind, 'xyz')
+    Traceback (most recent call last):
+    ...
+    AttributeError: type object 'Kind' has no attribute 'xyz'
+
+But it doesn't allow non-roles to be unpickled::
+
+    >>> schema.load_role(Kind, '__class__')
+    Traceback (most recent call last):
+    ...
+    AssertionError: Can't unpickle non-roles this way
+
+Of course, it's possible that a role might not have been used in a class, in
+which case it doesn't know its owner or name, and can't be reduced this way.
+So, arbitrary roles can still be pickled, at least in principle.  Roles just
+delegate to Python's built-in ``__reduce_ex__`` if the role has not been
+activated in a class, so any normal pickling restrictions will apply::
+
+    >>> schema.Role().__reduce_ex__()
+    (<...>, (<class '...schema.Role'>, <type 'object'>, None), {'types': ()})
+
+
 Type Flattening
 ===============
 
@@ -742,8 +890,6 @@ To Do
 
 Roles
 
-* Roles __reduce__ as global objects (so they don't get pickled)
-
 * Role knows its requiredness, and other metadata (policies?)
 
 * Role.__setattr__ doesn't allow setting unless current value is None/unset, or
@@ -757,7 +903,7 @@ Entity Classes
 
 Misc.
 
-* Support derived roles
+* Support derived roles, mappings
 
 * Unique keys via ``schema.Key(*roles)``
 
