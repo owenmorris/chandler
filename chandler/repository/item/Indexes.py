@@ -233,12 +233,12 @@ class AttributeIndex(SortedIndex):
 
     def insertKey(self, key, afterKey):
 
-        self._valueMap[key].addMonitor(self._attribute)
+        self._valueMap[key].monitorValue(self._attribute, True)
         super(AttributeIndex, self).insertKey(key, afterKey)
 
     def removeKey(self, key):
 
-        self._valueMap[key].removeMonitor(self._attribute)
+        self._valueMap[key].monitorValue(self._attribute, False)
         super(AttributeIndex, self).removeKey(key)
             
     def _xmlValues(self, generator, version, attrs, mode):

@@ -457,7 +457,7 @@ class Item(object):
 
     def _invokeMonitors(self, name, attrDict):
 
-        if attrDict._hasMonitors(name):
+        if attrDict._isMonitored(name):
             from repository.item.Monitors import Monitors
             Monitors.invoke('set', self, name)
 
@@ -469,7 +469,7 @@ class Item(object):
             if refDict is not None and item._uuid in refDict:
                 refDict.placeItem(item, None, indexName)
 
-    def addMonitor(self, name, _attrDict=None):
+    def monitorValue(self, name, set=True, _attrDict=None):
 
         if _attrDict is None:
             if self._values.has_key(name):
@@ -487,37 +487,15 @@ class Item(object):
                     for i in xrange(len(names) - 1):
                         item = item.getAttributeValue(names[i])
 
-                    return item.addMonitor(name)
+                    return item.monitorValue(name, set)
 
                 else:
                     _attrDict = self._values
 
-        _attrDict._addMonitor(name)
-
-    def removeMonitor(self, name, _attrDict=None):
-
-        if _attrDict is None:
-            if self._values.has_key(name):
-                _attrDict = self._values
-            elif self._references.has_key(name):
-                _attrDict = self._references
-            elif self._kind.getOtherName(name, default=None) is not None:
-                _attrDict = self._references
-            else:
-                redirect = self.getAttributeAspect(name, 'redirectTo',
-                                                   default=None)
-                if redirect is not None:
-                    item = self
-                    names = redirect.split('.')
-                    for i in xrange(len(names) - 1):
-                        item = item.getAttributeValue(names[i])
-
-                    return item.removeMonitor(name)
-
-                else:
-                    _attrDict = self._values
-
-        _attrDict._removeMonitor(name)
+        if set:
+            _attrDict._setMonitored(name)
+        else:
+            _attrDict._clearMonitored(name)
 
     def getAttributeValue(self, name, _attrDict=None, **kwds):
         """
@@ -1348,12 +1326,13 @@ class Item(object):
         if self._status & Item.NODIRTY:
             return False
 
-        if attrDict is not None:
-            assert attribute is not None
-            assert attrDict is not None
-            self._invokeMonitors(attribute, attrDict)
-
         if dirty:
+
+            if attrDict is not None:
+                assert attribute is not None
+                assert attrDict is not None
+                self._invokeMonitors(attribute, attrDict)
+
             self._lastAccess = Item._countAccess()
             if self._status & Item.DIRTY == 0:
                 repository = self.getRepositoryView()

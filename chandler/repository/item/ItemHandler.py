@@ -110,10 +110,6 @@ class ItemHandler(ContentHandler):
             else:
                 readOnly = False
 
-            monitors = attrs.get('monitors', None)
-            if monitors is not None:
-                self.references._addMonitor(name, int(monitors))
-
             cardinality = self.getCardinality(attribute, attrs)
 
             if cardinality != 'single':
@@ -423,10 +419,6 @@ class ItemHandler(ContentHandler):
                     value.setReadOnly()
                 elif isinstance(value, ItemValue):
                     value._setReadOnly()
-
-        monitors = attrs.get('monitors', None)
-        if monitors is not None:
-            self.values._addMonitor(attrs['name'], int(monitors))
 
     def valueEnd(self, itemHandler, attrs, **kwds):
 

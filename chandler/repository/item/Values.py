@@ -101,39 +101,25 @@ class Values(dict):
 
         return self._getFlags(key) & Values.TRANSIENT != 0
 
+    def _isMonitored(self, key):
+
+        return self._getFlags(key) & Values.MONITORED != 0
+
+    def _setTransient(self, key):
+
+        self._setFlag(key, Values.TRANSIENT)
+
+    def _setMonitored(self, key):
+
+        self._setFlag(key, Values.MONITORED)
+
     def _clearTransient(self, key):
 
         self._flags[key] &= ~Values.TRANSIENT
 
-    def _addMonitor(self, key, count=1):
+    def _clearMonitored(self, key):
 
-        if '_monitors' in self.__dict__:
-            self._monitors[key] += count
-        else:
-            self._monitors = { key: count }
-
-    def _hasMonitors(self, key):
-
-        return '_monitors' in self.__dict__ and key in self._monitors
-        #return True
-
-    def _removeMonitor(self, key):
-
-        monitors = self._getMonitors(key)
-
-        if monitors:
-            self._monitors[key] = monitors - 1
-        else:
-            raise AttributeError, 'no monitors on attribute %s' %(key)
-
-    def _getMonitors(self, key):
-
-        try:
-            return self._monitors[key]
-        except AttributeError:
-            return 0
-        except KeyError:
-            return 0
+        self._flags[key] &= ~Values.MONITORED
 
     def _xmlValues(self, generator, withSchema, version, mode):
 
@@ -169,12 +155,9 @@ class Values(dict):
                     attrCard = 'single'
                     attrId = None
 
-                monitors = self._getMonitors(key)
                 attrs = {}
                 if flags:
                     attrs['flags'] = str(flags)
-                if monitors:
-                    attrs['monitors'] = str(monitors)
 
                 try:
                     ItemHandler.xmlValue(repository, key, value, 'attribute',
@@ -185,8 +168,9 @@ class Values(dict):
                     raise
 
 
-    READONLY = 0x0001          # value is read-only
+    READONLY  = 0x0001         # value is read-only
     TRANSIENT = 0x0002         # value is transient
+    MONITORED = 0x0004         # value is monitored
     
 
 class References(Values):
@@ -223,12 +207,9 @@ class References(Values):
         for key, value in self.iteritems():
             if item.getAttributeAspect(key, 'persist', default=True):
                 flags = self._getFlags(key)
-                monitors = self._getMonitors(key)
                 attrs = {}
                 if flags:
                     attrs['flags'] = str(flags)
-                if monitors:
-                    attrs['monitors'] = str(monitors)
                 value._xmlValue(key, item, generator, withSchema, version,
                                 attrs, mode)
 

@@ -90,7 +90,7 @@ class Kind(Item):
             c = classobj(name, tuple(superClasses), {})
 
         self._values['classes'] = { 'python': c }
-        self._values._setFlag('classes', self._values.TRANSIENT)
+        self._values._setTransient('classes')
 
         return c
 
