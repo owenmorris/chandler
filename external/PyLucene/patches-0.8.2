@@ -1,6 +1,36 @@
 --- PyLucene-0.8.2/Makefile	Tue Nov  2 11:08:16 2004
-+++ PyLucene-0.8.2-patched/Makefile	Tue Nov  2 15:27:54 2004
-@@ -137,19 +137,21 @@
++++ PyLucene-0.8.2-patched/Makefile	Thu Nov  4 09:28:19 2004
+@@ -109,47 +109,49 @@
+ PYTHON_SITE=$(PREFIX_PYTHON)/lib/python$(PYTHON_VER)/site-packages
+ PYTHON_INC=$(PREFIX_PYTHON)/include/python$(PYTHON_VER)
+ PYLUCENE_LIB=$(BINDIR)/_PyLucene.so
+ LIBDB_JAVA_LIB=$(BINDIR)/libdb_java-4.2.jnilib
+ ifeq ($(DEBUG),1)
+ CCFLAGS=-O0 -g
+ LDFLAGS=-g
+ else
+-CCFLAGS=-O3
++CCFLAGS=-O2
+ LDFLAGS=
+ endif
+ else
+ 
+ ifeq ($(OS),Linux)
+ PYTHON_SITE=$(PREFIX_PYTHON)/lib/python$(PYTHON_VER)/site-packages
+ PYTHON_INC=$(PREFIX_PYTHON)/include/python$(PYTHON_VER)
+ PYLUCENE_LIB=$(BINDIR)/_PyLucene.so
+ LIBDB_JAVA_LIB=$(BINDIR)/libdb_java-4.2.so
+ ifeq ($(DEBUG),1)
+ CCFLAGS=-O0 -g -fPIC
+ LDFLAGS=-g
+ else
+-CCFLAGS=-O3 -fPIC
++CCFLAGS=-O2 -fPIC
+ LDFLAGS=
+ endif
+ else
+ 
+ ifeq ($(OS),Cygwin)
  PYTHON_SITE=`cygpath -aw $(PREFIX_PYTHON)/Lib/site-packages`
  PYTHON_INC=`cygpath -aw $(PREFIX_PYTHON)/Include`
  PYTHON_PC=`cygpath -aw $(PREFIX_PYTHON)/PC`
@@ -11,7 +41,8 @@
  LDFLAGS=-g
 +PYDBG=-DPy_TRACE_REFS
  else
- CCFLAGS=-O3
+-CCFLAGS=-O3
++CCFLAGS=-O2
  LDFLAGS=
 +PYDBG=
  endif
