@@ -164,7 +164,7 @@ class MainView(View):
     def onShowRepositoryHistoryEvent(self, notification):
         # triggered from "Test | Show Repository History" Menu
         repository = Globals.repository
-        repository.logger.info("Items changed in %s since last commit:", repository.view)
+        repository.logger.info("Items changed outside %s since last commit:", repository.view)
         repository.mapHistory(self._logChange)
 
     def onShowPyCrustEvent(self, notification):
