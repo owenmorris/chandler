@@ -67,7 +67,7 @@ def mixinAClass (self, myMixinClassImportPath):
 
 class MainThreadCallbackEvent(wx.PyEvent):
     def __init__(self, target, *args):
-        wx.PyEvent.__init__(self)
+        super (MainThreadCallbackEvent, self).__init__()
         self.SetEventType(wxEVT_MAIN_THREAD_CALLBACK)
         self.target = target
         self.args = args
@@ -76,7 +76,7 @@ class MainThreadCallbackEvent(wx.PyEvent):
 
 class MainFrame(wx.Frame):
     def __init__(self, *arguments, **keywords):
-        wx.Frame.__init__ (self, *arguments, **keywords)
+        super (MainFrame, self).__init__(*arguments, **keywords)
         self.SetBackgroundColour (wx.SystemSettings_GetColour(wx.SYS_COLOUR_3DFACE))
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         self.Bind(wx.EVT_CLOSE, self.OnSize)

@@ -17,7 +17,7 @@ import repository.util.UUID as UUID
 
 class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
     def __init__(self, canvas, item):
-        SimpleCanvas.wxSimpleDrawableObject.__init__(self, canvas)
+        super (CalendarItem, self).__init__ (canvas)
         self.item = item
 
     def PlaceItemOnCalendar(self):
@@ -59,7 +59,7 @@ class CalendarItem(SimpleCanvas.wxSimpleDrawableObject):
 
 class wxWeekBlock(SimpleCanvas.wxSimpleCanvas):
     def __init__(self, *arguments, **keywords):
-        SimpleCanvas.wxSimpleCanvas.__init__(self, *arguments, **keywords)
+        super (wxWeekBlock, self).__init__ (*arguments, **keywords)
         self.scheduleUpdate = False
         self.lastUpdateTime = 0
 
@@ -215,7 +215,7 @@ class WeekBlock(Block.RectangularChild):
 
 class wxMonthBlock(SimpleCanvas.wxSimpleCanvas):
     def __init__(self, *arguments, **keywords):
-        SimpleCanvas.wxSimpleCanvas.__init__(self, *arguments, **keywords)
+        super (wxMonthBlock, self).__init__ (*arguments, **keywords)
         self.scheduleUpdate = False
         self.lastUpdateTime = 0
 

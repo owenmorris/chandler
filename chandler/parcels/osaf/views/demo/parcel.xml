@@ -136,7 +136,6 @@
     <characterStyle itemref="doc:TitleStyle"/>
     <title>Demo View</title>
 
-    <size>600,200</size>
     <minimumSize>400,100</minimumSize>
     <border>3.0, 3.0, 3.0, 3.0</border>
     <stretchFactor>0.0</stretchFactor>

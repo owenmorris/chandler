@@ -618,6 +618,7 @@ class ToolbarItem(Block):
 
 class wxTreeAndList(DraggableWidget):
     def __init__(self, *arguments, **keywords):
+        super (wxTreeAndList, self).__init__ (*arguments, **keywords)
         self.scheduleUpdate = False
         self.lastUpdateTime = 0
         self.Bind(wx.EVT_TREE_ITEM_EXPANDING, self.OnExpanding, id=self.GetId())
@@ -820,16 +821,14 @@ class wxTreeAndList(DraggableWidget):
         self.ScrollTo (id)
 
  
-class wxTree(wx.TreeCtrl, wxTreeAndList):
+class wxTree(wxTreeAndList, wx.TreeCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxTree, self).__init__ (*arguments, **keywords)
-        wxTreeAndList.__init__ (self, *arguments, **keywords)
     
 
-class wxTreeList(wx.gizmos.TreeListCtrl, wxTreeAndList):
+class wxTreeList(wxTreeAndList, wx.gizmos.TreeListCtrl):
     def __init__(self, *arguments, **keywords):
         super (wxTreeList, self).__init__ (*arguments, **keywords)
-        wxTreeAndList.__init__ (self, *arguments, **keywords)
     
 
 class Tree(RectangularChild):

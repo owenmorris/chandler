@@ -6,7 +6,7 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import wx
 import application.Globals as Globals
 
-class DraggableWidget:
+class DraggableWidget (object):
     def SetDragData(self, itemUUID):
         dropSource = wx.DropSource(self)
         data = wx.CustomDataObject(wx.CustomDataFormat("ItemUUID"))
@@ -24,7 +24,7 @@ class DraggableWidget:
         """
         pass
             
-class DropReceiveWidget:
+class DropReceiveWidget (object):
     def __init__(self, *arguments, **keywords):
         dropTarget = DropTarget(self)
         self.SetDropTarget(dropTarget)
