@@ -1,7 +1,7 @@
 
 include ../Makefile.inc
 
-RELVER=2.5.3.1-3
+RELVER=2.5.3.1-4
 SRC=$(INTERNAL)/wxPython-2.5
 
 ifeq ($(DEBUG),1)
@@ -35,6 +35,7 @@ wxWidgets:
 wxPython:
 	cd $(SRC)/wxPython; \
         export WXWIN=`cygpath -aw $(SRC)`; MAKEFLAGS=; \
+	cp $(SRC)/wxPython/src/winxp.manifest $(BUILD_ROOT)/$(SNAP)/bin/chandler.exe.manifest; \
 	$(PYTHON) setup.py BUILD_BASE=$(BUILD) BUILD_ACTIVEX=0 \
                            USE_SWIG=0 \
                            SWIG=`cygpath -aw $(SWIG)` \
@@ -44,7 +45,7 @@ wxPython:
                            install \
                            FINAL=$(FINAL) HYBRID=0
 
-MANIFEST=$(SNAP)/$(SITE)/wx
+MANIFEST=$(SNAP)/$(SITE)/wx $(SNAP)/bin/chandler.exe.manifest
 
 clean:
 	rm -rf $(SRC)/wxPython/$(BUILD)
