@@ -453,11 +453,12 @@ def _createVersionFile(buildenv):
     versionFileHandle.close()
 
 
-def _transformFilesXslt(buildenv, transformFile, srcDir, destDir, fileList):
+def _transformFilesXslt(buildenv, transformFile, srcDir, destDir, outFile, 
+ fileList):
     """ Run the list of files through an XSLT transform
     """
     hardhatlib.log(buildenv, hardhatlib.HARDHAT_MESSAGE, info['name'], 
-     "Running XSLT processor")
+     "Running XSLT processor using " + transformFile)
 
     if buildenv['version'] == 'debug':
         python = buildenv['python_d']
@@ -481,6 +482,7 @@ def _transformFilesXslt(buildenv, transformFile, srcDir, destDir, fileList):
     for file in fileList:
         srcFile = srcDir + os.sep + file
         destFile = destDir + os.sep + file
+        destFile = os.path.join(os.path.dirname(destFile), outFile)
         try:
             os.makedirs(os.path.dirname(destFile))
         except Exception, e:
@@ -489,28 +491,47 @@ def _transformFilesXslt(buildenv, transformFile, srcDir, destDir, fileList):
             if buildenv['os'] == 'win':
                 hardhatlib.executeCommand( buildenv, info['name'], 
                  [xsltScript, 
-                 "--outfile="+destDir+os.sep+file,
+                 "--outfile="+destFile,
                  srcFile, transformFile 
                  ], 
                  "XSLT: " + file )
             else: 
                 hardhatlib.executeCommand( buildenv, info['name'], 
                  [python, xsltScript, 
-                 "--outfile="+destDir+os.sep+file,
+                 "--outfile="+destFile,
                  srcFile, transformFile 
                  ], 
                  "XSLT: " + file )
 
+
+def _findFiles(path, filename):
+    fileList = []
+    if os.path.isfile(os.path.join(path, filename)):
+        fileList.append(os.path.join(path, filename))
+    for name in os.listdir(path):
+        full_name = os.path.join(path, name)
+        if os.path.isdir(full_name):
+            fileList = fileList + _findFiles(full_name, filename)
+    return fileList
+
+
 def generateDocs(buildenv):
+
+    fileList = _findFiles(".", "parcel.xml")
+
     _transformFilesXslt(buildenv, 
-     os.path.join(buildenv['root'],"Chandler","model","schema","html_transform.xml"),
+     os.path.join(buildenv['root'],"Chandler","distrib","transforms","Kinds.xsl"),
      os.path.join(buildenv['root'],"Chandler"),
      os.path.join(buildenv['root'],buildenv['version'],"docs"),
-     [
-      os.path.join("parcels","OSAF","calendar","model","calendar.xml"),
-      os.path.join("parcels","OSAF","contacts","model","contacts.xml"),
-      os.path.join("application","agents","model","agents.xml"),
-      os.path.join("model","schema","CoreSchema.xml"),
-     ]
+     "Kinds.html",
+     fileList
+    )
+
+    _transformFilesXslt(buildenv, 
+     os.path.join(buildenv['root'],"Chandler","distrib","transforms","Attributes.xsl"),
+     os.path.join(buildenv['root'],"Chandler"),
+     os.path.join(buildenv['root'],buildenv['version'],"docs"),
+     "Attributes.html",
+     fileList
     )
 
