@@ -504,7 +504,10 @@ class AccountPreferencesDialog(wx.Dialog):
                 val = (control.GetValue() == True)
             elif valueType == "itemRef":
                 index = control.GetSelection()
-                val = control.GetClientData(index)
+                if index == -1:
+                    val = None
+                else:
+                    val = control.GetClientData(index)
             elif valueType == "integer":
                 val = int(control.GetValue().strip())
             data[field] = val
