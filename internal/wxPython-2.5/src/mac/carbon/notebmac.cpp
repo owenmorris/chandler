@@ -601,34 +601,43 @@ wxInt32 wxNotebook::MacControlHit(WXEVENTHANDLERREF WXUNUSED(handler) , WXEVENTR
 // virtual
 int wxNotebook::HitTest(const wxPoint& pt, long * flags) const
 {
-	ControlRef		nativeCntlRef = NULL;
-	RgnHandle		outRegion;
+	Rect			boundsR;
 	Point			localPt;
-	SInt16			tabsCount, i;
+	const size_t	countPages = GetPageCount();
 	int				resultV = wxNOT_FOUND;
 
-	if (m_peer != NULL)
-		nativeCntlRef = m_peer->GetControlRef();
-	if (nativeCntlRef != NULL)
+	// NB: is this appropriate, or is window-local preferred?
+	bool			bPointIsPaneLocal = true;
+
+	if ((countPages > 0) && (m_peer != NULL))
 	{
 		localPt.h = pt.x;
 		localPt.v = pt.y;
 
-		tabsCount = ::GetControlMaximum( nativeCntlRef );
-		outRegion = ::NewRgn();
-
-		for (i=1; i<=tabsCount; i++)
+		m_peer->GetRectInWindowCoords( &boundsR ) ;
+//		::GetControlBounds( nativeCntlRef, &boundsR );
+//		::GetTabContentRect( nativeCntlRef, &boundsR );
+		if (bPointIsPaneLocal)
 		{
-			::GetControlRegion( nativeCntlRef, i, outRegion );
-			if (!::EmptyRgn( outRegion ) && ::PtInRgn( localPt, outRegion ))
-			{
-				// NB: convert from one- to zero-based index
-				resultV = i - 1;
-				break;
-			}
+//			int		paneX, paneY;
+
+			// FIXME (04-May-04): the commented-out is preferable to using a
+			// simple zero-origin bounds test, but it doesn't work with Jed's DnD test.
+//			GetPosition( &paneX, &paneY );
+//			::OffsetRect( &boundsR, -paneX, -paneY );
+			::OffsetRect( &boundsR, -boundsR.left, -boundsR.top );
 		}
 
-		::DisposeRgn( outRegion );
+		// NB: this test also guarantees "boundsR" is non-empty
+		if (::PtInRect( localPt, &boundsR ))
+		{
+			if (HasFlag( wxNB_LEFT ) || HasFlag( wxNB_RIGHT ))
+				// vertical tabs
+				resultV = (((localPt.v - boundsR.top) * countPages) / (boundsR.bottom - boundsR.top)) + 1;
+			else
+				// horizontal tabs
+				resultV = (((localPt.h - boundsR.left) * countPages) / (boundsR.right - boundsR.left)) + 1;
+		}
 	}
 
 	// FIXME (04-May-04): for the present, only verifying point membership in tab sub-control
@@ -636,7 +645,7 @@ int wxNotebook::HitTest(const wxPoint& pt, long * flags) const
     {
         *flags = 0;
 
-		if (resultV >= 0)
+		if (resultV >= 1)
 			*flags |= wxNB_HITTEST_ONLABEL;
 
 #if 0
