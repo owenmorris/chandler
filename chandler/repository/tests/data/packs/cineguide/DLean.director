@@ -4,5 +4,5 @@
     <name>DLean</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">David Lean</attribute>
+    <attribute name="name">David Lean</attribute>
 </item>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>Movies</name>
+    <name>movies</name>
     <kind type="path">//Schema/Model/Attribute</kind>
 
     <attribute name="cardinality">list</attribute>
-    <attribute name="otherName">Actors</attribute>
+    <attribute name="otherName">actors</attribute>
 </item>

@@ -5,14 +5,14 @@
   <kind type="path">//Schema/Model/Kind</kind>
 
   <ref name="attributes">
-    <ref name="Director" type="path">/CineGuide/Attributes/Director</ref>
-    <ref name="Title" type="path">/CineGuide/Attributes/Title</ref>
-    <ref name="FrenchTitle" type="path">/CineGuide/Attributes/FrenchTitle</ref>
-    <ref name="Released" type="path">/CineGuide/Attributes/Released</ref>
-    <ref name="Actors" type="path">/CineGuide/Attributes/Actors</ref>
+    <ref name="director" type="path">/CineGuide/Attributes/director</ref>
+    <ref name="title" type="path">/CineGuide/Attributes/title</ref>
+    <ref name="frenchTitle" type="path">/CineGuide/Attributes/frenchTitle</ref>
+    <ref name="released" type="path">/CineGuide/Attributes/released</ref>
+    <ref name="actors" type="path">/CineGuide/Attributes/actors</ref>
   </ref>
 
-  <attribute name="displayAttribute">Title</attribute>
+  <attribute name="displayAttribute">title</attribute>
 
   <ref name="superKinds">
     <ref type="path">/Model/Item</ref>

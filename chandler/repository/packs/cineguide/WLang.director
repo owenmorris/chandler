@@ -4,5 +4,5 @@
     <name>WLang</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Walter Lang</attribute>
+    <attribute name="name">Walter Lang</attribute>
 </item>

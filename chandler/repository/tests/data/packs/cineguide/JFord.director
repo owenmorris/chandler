@@ -4,5 +4,5 @@
     <name>JFord</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">John Ford</attribute>
+    <attribute name="name">John Ford</attribute>
 </item>

@@ -4,5 +4,5 @@
     <name>MCacoyannis</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Michael Cacoyannis</attribute>
+    <attribute name="name">Michael Cacoyannis</attribute>
 </item>

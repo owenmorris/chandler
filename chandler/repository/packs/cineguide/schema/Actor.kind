@@ -5,10 +5,10 @@
   <kind type="path">//Schema/Model/Kind</kind>
 
   <ref name="attributes">
-    <ref name="Name" type="path">/CineGuide/Attributes/Name</ref>
-    <ref name="Born" type="path">/CineGuide/Attributes/Born</ref>
-    <ref name="Died" type="path">/CineGuide/Attributes/Died</ref>
-    <ref name="Movies" type="path">/CineGuide/Attributes/Movies</ref>
+    <ref name="name" type="path">/CineGuide/Attributes/name</ref>
+    <ref name="born" type="path">/CineGuide/Attributes/born</ref>
+    <ref name="died" type="path">/CineGuide/Attributes/died</ref>
+    <ref name="movies" type="path">/CineGuide/Attributes/movies</ref>
   </ref>
 
   <ref name="superKinds">

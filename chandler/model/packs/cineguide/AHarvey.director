@@ -4,5 +4,5 @@
     <name>AHarvey</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Anthony Harvey</attribute>
+    <attribute name="name">Anthony Harvey</attribute>
 </item>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>Title</name>
+    <name>title</name>
     <kind type="path">//Schema/Model/Attribute</kind>
 
     <ref name="type" type="path">//Schema/Model/Types/String</ref>

@@ -4,5 +4,5 @@
     <name>FCapra</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Frank Capra</attribute>
+    <attribute name="name">Frank Capra</attribute>
 </item>

@@ -4,5 +4,5 @@
     <name>SKramer</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Stanley Kramer</attribute>
+    <attribute name="name">Stanley Kramer</attribute>
 </item>

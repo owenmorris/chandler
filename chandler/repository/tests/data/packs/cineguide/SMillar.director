@@ -4,5 +4,5 @@
     <name>SMillar</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Stuart Millar</attribute>
+    <attribute name="name">Stuart Millar</attribute>
 </item>

@@ -4,5 +4,5 @@
     <name>FBorzage</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Frank Borzage</attribute>
+    <attribute name="name">Frank Borzage</attribute>
 </item>

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>Director</name>
+    <name>director</name>
     <kind type="path">//Schema/Model/Attribute</kind>
 
     <attribute name="cardinality">single</attribute>
     <attribute name="required">True</attribute>
-    <attribute name="otherName">Directed</attribute>
+    <attribute name="otherName">directed</attribute>
 </item>

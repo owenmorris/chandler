@@ -4,5 +4,5 @@
     <name>GCukor</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">George Cukor</attribute>
+    <attribute name="name">George Cukor</attribute>
 </item>

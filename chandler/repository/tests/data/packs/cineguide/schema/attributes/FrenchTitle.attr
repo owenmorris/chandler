@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>FrenchTitle</name>
+    <name>frenchTitle</name>
     <kind type="path">//Schema/Model/Attribute</kind>
 
     <ref name="type" type="path">//Schema/Model/Types/String</ref>
     <attribute name="cardinality">single</attribute>
     <attribute name="required">True</attribute>
-    <attribute name="inheritFrom">Title</attribute>
+    <attribute name="inheritFrom">title</attribute>
 </item>

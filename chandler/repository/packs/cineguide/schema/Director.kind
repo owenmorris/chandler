@@ -5,8 +5,8 @@
   <kind type="path">//Schema/Model/Kind</kind>
 
   <ref name="attributes">
-    <ref name="Name" type="path">/CineGuide/Attributes/Name</ref>
-    <ref name="Directed" type="path">/CineGuide/Attributes/Directed</ref>
+    <ref name="name" type="path">/CineGuide/Attributes/name</ref>
+    <ref name="directed" type="path">/CineGuide/Attributes/directed</ref>
   </ref>
 
   <ref name="superKinds">

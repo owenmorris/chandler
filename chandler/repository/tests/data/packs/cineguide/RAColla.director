@@ -4,5 +4,5 @@
     <name>RAColla</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Richard A. Colla</attribute>
+    <attribute name="name">Richard A. Colla</attribute>
 </item>

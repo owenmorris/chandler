@@ -4,5 +4,5 @@
     <name>GShaefer</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">George Shaefer</attribute>
+    <attribute name="name">George Shaefer</attribute>
 </item>

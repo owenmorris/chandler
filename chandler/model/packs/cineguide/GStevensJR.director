@@ -4,5 +4,5 @@
     <name>GStevensJR</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">George Stevens Jr.</attribute>
+    <attribute name="name">George Stevens Jr.</attribute>
 </item>

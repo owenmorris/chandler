@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 
 <item>
-    <name>Directed</name>
+    <name>directed</name>
     <kind type="path">//Schema/Model/Attribute</kind>
 
     <attribute name="cardinality">dict</attribute>
-    <attribute name="otherName">Director</attribute>
+    <attribute name="otherName">director</attribute>
 </item>

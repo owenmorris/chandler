@@ -4,5 +4,5 @@
     <name>GLaCava</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Gregory La Cava</attribute>
+    <attribute name="name">Gregory La Cava</attribute>
 </item>

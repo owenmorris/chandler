@@ -4,5 +4,5 @@
     <name>EKazan</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Elia Kazan</attribute>
+    <attribute name="name">Elia Kazan</attribute>
 </item>

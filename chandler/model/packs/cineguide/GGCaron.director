@@ -4,5 +4,5 @@
     <name>GGCaron</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Glenn Gordon Caron</attribute>
+    <attribute name="name">Glenn Gordon Caron</attribute>
 </item>

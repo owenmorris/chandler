@@ -4,5 +4,5 @@
     <name>MLeroy</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Melvin Leroy</attribute>
+    <attribute name="name">Melvin Leroy</attribute>
 </item>

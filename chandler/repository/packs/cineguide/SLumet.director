@@ -4,5 +4,5 @@
     <name>SLumet</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Sidney Lumet</attribute>
+    <attribute name="name">Sidney Lumet</attribute>
 </item>

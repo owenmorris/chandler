@@ -4,5 +4,5 @@
     <name>VMinelli</name>
     <kind type="path">//Schema/CineGuide/Director</kind>
 
-    <attribute name="Name">Vincente Minelli</attribute>
+    <attribute name="name">Vincente Minelli</attribute>
 </item>
