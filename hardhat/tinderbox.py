@@ -109,7 +109,7 @@ def main():
         log.close()
         SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", 
          treeName, logContents)
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, "The build failed", 
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, "status", 
          treeName, logContents)
         log = open(logFile, "w")
 
@@ -125,7 +125,7 @@ def main():
         log.close()
         SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", 
          treeName, logContents)
-        SendMail(fromAddr, mailtoAddr, startTime, buildName, "The build failed", 
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, "status", 
          treeName, logContents)
         log = open(logFile, "w")
 
@@ -178,7 +178,7 @@ def main():
             log.close()
             SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", 
              treeName, logContents)
-            SendMail(fromAddr, mailtoAddr, startTime, buildName, "The build failed", 
+            SendMail(fromAddr, mailtoAddr, startTime, buildName, "status", 
              treeName, logContents)
             log = open(logFile, "w")
 
@@ -194,7 +194,7 @@ def main():
             log.close()
             SendMail(fromAddr, alertAddr, startTime, buildName, "Unit tests failed", 
              treeName, logContents)
-            SendMail(fromAddr, mailtoAddr, startTime, buildName, "Unit tests failed", 
+            SendMail(fromAddr, mailtoAddr, startTime, buildName, "status", 
              treeName, logContents)
             log = open(logFile, "w")
         
