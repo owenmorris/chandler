@@ -10,8 +10,6 @@ from datetime import datetime
 from struct import pack
 
 from bsddb.db import DBLockDeadlockError, DBNotFoundError
-from bsddb.db import DB_DIRTY_READ, DB_LOCK_WRITE
-from dbxml import XmlDocument, XmlValue
 
 from repository.item.Item import Item
 from repository.item.Values import Values, ItemValue
@@ -34,6 +32,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         self._log = []
         self._notifications = RepositoryNotifications(repository)
+        self._indexWriter = None
         
     def logItem(self, item):
         
@@ -97,16 +96,6 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         return results
 
-
-class XMLRepositoryLocalView(XMLRepositoryView):
-
-    def __init__(self, repository):
-
-        super(XMLRepositoryLocalView, self).__init__(repository)
-
-        self._indexWriter = None
-        self._lock_id = self.repository._env.lock_id()
-        
     def createRefDict(self, item, name, otherName, persist):
 
         if persist:
@@ -125,7 +114,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
     def _startTransaction(self):
 
-        return self.repository.store._startTransaction()
+        return self.repository.store.startTransaction()
 
     def _commitTransaction(self):
 
@@ -134,7 +123,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             self._indexWriter.close()
             self._indexWriter = None
             
-        self.repository.store._commitTransaction()
+        self.repository.store.commitTransaction()
 
     def _abortTransaction(self):
 
@@ -142,7 +131,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             self._indexWriter.close()
             self._indexWriter = None
             
-        self.repository.store._abortTransaction()
+        self.repository.store.abortTransaction()
 
     def _getIndexWriter(self):
 
@@ -158,11 +147,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
         repository = self.repository
         store = repository.store
-        data = store._data
-        names = store._names
         versions = store._versions
         history = store._history
-        env = repository._env
 
         self._notifications.clear()
         histNotifications = None
@@ -180,10 +166,9 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
                 newVersion = versions.getVersion()
                 if count > 0:
-                    lock = env.lock_get(self._lock_id, self.itsUUID._uuid,
-                                        DB_LOCK_WRITE)
+                    lock = store.acquireLock()
                     newVersion += 1
-                    versions.put(self.itsUUID._uuid, pack('>l', ~newVersion))
+                    versions.setVersion(newVersion)
 
                     ood = {}
                     for item in self._log:
@@ -199,9 +184,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                                          history)
                 
                     for item in self._log:
-                        size += self._saveItem(item, newVersion,
-                                               data, names, versions, history,
-                                               ood)
+                        size += self._saveItem(item, newVersion, store, ood)
 
                 if newVersion > self.version:
                     histNotifications = RepositoryNotifications(repository)
@@ -228,8 +211,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                     self._commitTransaction()
 
                 if lock:
-                    env.lock_put(lock)
-                    lock = None
+                    lock = store.releaseLock(lock)
 
                 break
 
@@ -238,8 +220,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 if txnStarted:
                     self._abortTransaction()
                 if lock:
-                    env.lock_put(lock)
-                    lock = None
+                    lock = store.releaseLock(lock)
 
                 continue
             
@@ -248,8 +229,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 if txnStarted:
                     self._abortTransaction()
                 if lock:
-                    env.lock_put(lock)
-                    lock = None
+                    lock = store.releaseLock(lock)
 
                 raise
 
@@ -282,7 +262,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                              datetime.now() - before)
         self.prune(10000)
 
-    def _saveItem(self, item, newVersion, data, names, versions, history, ood):
+    def _saveItem(self, item, newVersion, store, ood):
 
         uuid = item._uuid
         isNew = item.isNew()
@@ -300,7 +280,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
         if uuid in ood:
             docId, oldDirty, newDirty = ood[uuid]
-            mergeWith = (data.getDocument(docId).getContent(),
+            mergeWith = (store._data.getDocument(docId).getContent(),
                          oldDirty, newDirty)
             if isDebug:
                 self.logger.debug('merging %s (%0.4x:%0.4x) with newest version',
@@ -313,47 +293,27 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         generator.startDocument()
         item._saveItem(generator, newVersion, mergeWith)
         generator.endDocument()
-        content = out.getvalue()
+        xml = out.getvalue()
         out.close()
 
-        size = len(content)
-
-        doc = XmlDocument()
-        doc.setContent(content)
-        if isDeleted:
-            doc.setMetaData('', '', 'deleted', XmlValue('True'))
-
-        try:
-            docId = data.putDocument(doc)
-        except:
-            self.logger.exception("putDocument failed, xml is: %s", content)
-            raise
-
-        if isDeleted:
-            parent, name = item.__dict__['_origName']
-            versions.setDocVersion(uuid, newVersion, 0)
-            history.writeVersion(uuid, newVersion, 0, item._status, parent)
-            self._notifications.changed(uuid, 'deleted', parent=parent)
-            names.writeName(parent, name, newVersion, None)
-
+        if '_origName' in item.__dict__:
+            origPN = item.__dict__['_origName']
+            del item.__dict__['_origName']
         else:
-            versions.setDocVersion(uuid, newVersion, docId)
-            history.writeVersion(uuid, newVersion, docId, item._status)
+            origPN = None
 
-            if isNew:
-                names.writeName(item.itsParent.itsUUID, item._name,
-                                newVersion, uuid)
-                self._notifications.changed(uuid, 'added')
-            else:
-                if '_origName' in item.__dict__:
-                    parent, name = item.__dict__['_origName']
-                    names.writeName(parent, name, newVersion, None)
-                    names.writeName(item.itsParent.itsUUID, item._name,
-                                    newVersion, uuid)
-                    del item.__dict__['_origName']
-                self._notifications.changed(uuid, 'changed')
+        store.saveItem(xml, uuid, newVersion,
+                       (item.itsParent.itsUUID, item._name), origPN,
+                       item._status)
+
+        if isDeleted:
+            self._notifications.changed(uuid, 'deleted', parent=origPN[0])
+        elif isNew:
+            self._notifications.changed(uuid, 'added')
+        else:
+            self._notifications.changed(uuid, 'changed')
                     
-        return size
+        return len(xml)
 
     def _mergeItems(self, items, oldVersion, newVersion, history):
 
@@ -373,16 +333,6 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                         raise NotImplementedError, 'Item %s may be mergeable but this particular merge (0x%x:0x%x) is not implemented yet' %(item.itsPath, newDirty, oldDirty)    
 
         history.apply(check, oldVersion, newVersion)
-
-
-class XMLRepositoryClientView(XMLRepositoryView):
-
-    def createRefDict(self, item, name, otherName, persist):
-
-        if persist:
-            return XMLClientRefDict(self, item, name, otherName)
-        else:
-            return TransientRefDict(item, name, otherName)
 
 
 class XMLRefDict(RefDict):
@@ -408,6 +358,10 @@ class XMLRefDict(RefDict):
 
         return self.view
 
+    def _getRefs(self):
+
+        return self.view.repository.store._refs
+
     def _loadRef(self, key):
 
         view = self.view
@@ -418,15 +372,7 @@ class XMLRefDict(RefDict):
         if key in self._deletedRefs:
             return None
 
-        return self._loadRef_(key)
-
-    def _loadRef_(self, key):
-
-        version = self._item._version
-        cursorKey = self._packKey(key)
-
-        return self.view.repository.store._refs.loadRef(version, key,
-                                                        cursorKey)
+        return self._getRefs().loadRef(self._key, self._item._version, key)
 
     def _changeRef(self, key, alias=None):
 
@@ -448,47 +394,12 @@ class XMLRefDict(RefDict):
 
     def _writeRef(self, key, version, uuid, previous, next, alias):
 
-        self._value.truncate(0)
-        self._value.seek(0)
-        if uuid is not None:
-            self._writeValue(uuid)
-            self._writeValue(previous)
-            self._writeValue(next)
-            self._writeValue(alias)
-        else:
-            self._writeValue(None)
-        value = self._value.getvalue()
-            
-        self.view.repository.store._refs.put(self._packKey(key, version),
-                                             value)
-
-    def _writeValue(self, value):
-        
-        if isinstance(value, UUID):
-            self._value.write('\0')
-            self._value.write(value._uuid)
-
-        elif isinstance(value, str):
-            self._value.write('\1')
-            self._value.write(pack('>H', len(value)))
-            self._value.write(value)
-
-        elif isinstance(value, unicode):
-            value = value.encode('utf-8')
-            self._value.write('\1')
-            self._value.write(pack('>H', len(value)))
-            self._value.write(value)
-
-        elif value is None:
-            self._value.write('\2')
-
-        else:
-            raise NotImplementedError, "value: %s, type: %s" %(value,
-                                                               type(value))
+        self._getRefs().saveRef(self._key, self._value, key, version,
+                                uuid, previous, next, alias)
 
     def _eraseRef(self, key):
 
-        self.view.repository.store._refs.delete(self._packKey(key))
+        self._getRefs().eraseRef(self._key, key)
 
     def resolveAlias(self, alias):
 
@@ -511,28 +422,14 @@ class XMLRefDict(RefDict):
         
         self._item = item
         if item is not None:
-            self._prepareKey(item._uuid, self._uuid)
+            self._prepareBuffers(item._uuid, self._uuid)
 
-    def _packKey(self, key, version=None):
-
-        self._key.truncate(32)
-        self._key.seek(0, 2)
-        self._key.write(key._uuid)
-        if version is not None:
-            self._key.write(pack('>l', ~version))
-
-        return self._key.getvalue()
-
-    def _prepareKey(self, uItem, uuid):
+    def _prepareBuffers(self, uItem, uuid):
 
         self._uuid = uuid
+        self._key = self._getRefs().prepareKey(uItem, uuid)
+        self._value = cStringIO.StringIO()            
 
-        self._key = cStringIO.StringIO()
-        self._key.write(uItem._uuid)
-        self._key.write(uuid._uuid)
-
-        self._value = cStringIO.StringIO()
-            
     def _xmlValues(self, generator, version, mode):
 
         if mode == 'save':
@@ -586,22 +483,6 @@ class XMLRefDict(RefDict):
             raise ValueError, mode
 
 
-class XMLClientRefDict(XMLRefDict):
-
-    def _prepareKey(self, uItem, uuid):
-
-        self._uItem = uItem
-        self._uuid = uuid
-            
-    def _loadRef_(self, key):
-
-        return self.view.repository.store.loadRef(self._item._version,
-                                                  self._uItem, self._uuid, key)
-
-    def _writeRef(self, key, version, uuid, previous, next, alias):
-        raise NotImplementedError, "XMLClientRefDict._writeRef"
-
-
 class XMLText(Text, ItemValue):
 
     def __init__(self, view, *args, **kwds):
@@ -620,10 +501,12 @@ class XMLText(Text, ItemValue):
         if self._dirty:
             store = self._view.repository.store
             if self._append:
-                out = store._text.appendFile(self._makeKey())
+                out = store._text.appendFile(store.lobName(uuid,
+                                                           self._version))
             else:
                 self._version += 1
-                out = store._text.createFile(self._makeKey())
+                out = store._text.createFile(store.lobName(uuid,
+                                                           self._version))
             out.write(self._data)
             out.close()
             self._data = ''
@@ -663,11 +546,7 @@ class XMLText(Text, ItemValue):
 
         return self._version
 
-    def _makeKey(self):
-
-        return pack('>16sl', self.getUUID()._uuid, ~self._version)
-
-    def _textEnd(self, data, attrs):
+    def load(self, data, attrs):
 
         self.mimetype = attrs.get('mimetype', 'text/plain')
         self._compression = attrs.get('compression', None)
@@ -696,8 +575,9 @@ class XMLText(Text, ItemValue):
         else:
             dataIn = None
 
-        text = self._view.repository.store._text
-        key = self._makeKey()
+        store = self._view.repository.store
+        text = store._text
+        key = store.lobName(self.getUUID(), self._version)
         
         if dataIn is not None:
             if self._append:
@@ -731,10 +611,12 @@ class XMLBinary(Binary, ItemValue):
         if self._dirty:
             store = self._view.repository.store
             if self._append:
-                out = store._binary.appendFile(self._makeKey())
+                out = store._binary.appendFile(store.lobName(uuid,
+                                                             self._version))
             else:
                 self._version += 1
-                out = store._binary.createFile(self._makeKey())
+                out = store._binary.createFile(store.lobName(uuid,
+                                                             self._version))
             out.write(self._data)
             out.close()
 
@@ -763,11 +645,7 @@ class XMLBinary(Binary, ItemValue):
 
         return self._version
 
-    def _makeKey(self):
-
-        return pack('>16sl', self._uuid._uuid, ~self._version)
-
-    def _binaryEnd(self, data, attrs):
+    def load(self, data, attrs):
 
         self.mimetype = attrs.get('mimetype', 'text/plain')
         self._compression = attrs.get('compression', None)
@@ -792,8 +670,9 @@ class XMLBinary(Binary, ItemValue):
         else:
             dataIn = None
 
-        binary = self._view.repository.store._binary
-        key = self._makeKey()
+        store = self._view.repository.store
+        binary = store._binary
+        key = store.lobName(self.getUUID(), self._version)
         
         if dataIn is not None:
             if self._append:

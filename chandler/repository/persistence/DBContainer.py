@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import UUIDext
+import UUIDext, cStringIO
 
 from struct import pack, unpack
 
@@ -74,6 +74,24 @@ class DBContainer(object):
 
 class RefContainer(DBContainer):
         
+    def prepareKey(self, uItem, uuid):
+
+        buffer = cStringIO.StringIO()
+        buffer.write(uItem._uuid)
+        buffer.write(uuid._uuid)
+
+        return buffer
+            
+    def _packKey(self, buffer, key, version=None):
+
+        buffer.truncate(32)
+        buffer.seek(0, 2)
+        buffer.write(key._uuid)
+        if version is not None:
+            buffer.write(pack('>l', ~version))
+
+        return buffer.getvalue()
+
     def _readValue(self, value, offset):
 
         code = value[offset]
@@ -92,14 +110,59 @@ class RefContainer(DBContainer):
 
         raise ValueError, code
 
-    def loadRef(self, version, key, cursorKey):
+    def _writeValue(self, buffer, value):
+        
+        if isinstance(value, UUID):
+            buffer.write('\0')
+            buffer.write(value._uuid)
+
+        elif isinstance(value, str):
+            buffer.write('\1')
+            buffer.write(pack('>H', len(value)))
+            buffer.write(value)
+
+        elif isinstance(value, unicode):
+            value = value.encode('utf-8')
+            buffer.write('\1')
+            buffer.write(pack('>H', len(value)))
+            buffer.write(value)
+
+        elif value is None:
+            buffer.write('\2')
+
+        else:
+            raise NotImplementedError, "value: %s, type: %s" %(value,
+                                                               type(value))
+
+    def saveRef(self, keyBuffer, buffer, key, version,
+                uuid, previous, next, alias):
+
+        buffer.truncate(0)
+        buffer.seek(0)
+        if uuid is not None:
+            self._writeValue(buffer, uuid)
+            self._writeValue(buffer, previous)
+            self._writeValue(buffer, next)
+            self._writeValue(buffer, alias)
+        else:
+            self._writeValue(buffer, None)
+            
+        self.put(self._packKey(keyBuffer, key, version), buffer.getvalue())
+
+    def eraseRef(self, buffer, key):
+
+        self.delete(self._packKey(buffer, key))
+
+    def loadRef(self, buffer, version, key):
+
+        cursorKey = self._packKey(buffer, key)
 
         while True:
             txnStarted = False
             cursor = None
 
             try:
-                txnStarted = self.store._startTransaction()
+                txnStarted = self.store.startTransaction()
                 cursor = self.cursor()
 
                 try:
@@ -155,8 +218,8 @@ class RefContainer(DBContainer):
                 if cursor:
                     cursor.close()
                 if txnStarted:
-                    self.store._abortTransaction()
-        
+                    self.store.abortTransaction()
+
     # has to run within the commit() transaction
     def deleteItem(self, item):
 
@@ -191,6 +254,10 @@ class VerContainer(DBContainer):
 
         return ~unpack('>l', self.get(Repository.itsUUID._uuid))[0]
 
+    def setVersion(self, version):
+        
+        self.put(Repository.itsUUID._uuid, pack('>l', ~version))
+
     def setDocVersion(self, uuid, version, docId):
 
         self.put(pack('>16sl', uuid._uuid, ~version), pack('>l', docId))
@@ -202,7 +269,7 @@ class VerContainer(DBContainer):
             cursor = None
 
             try:
-                txnStarted = self.store._startTransaction()
+                txnStarted = self.store.startTransaction()
                 cursor = self.cursor()
                 
                 try:
@@ -239,7 +306,7 @@ class VerContainer(DBContainer):
                 if cursor:
                     cursor.close()
                 if txnStarted:
-                    self.store._abortTransaction()
+                    self.store.abortTransaction()
 
     def getDocId(self, uuid, version):
 
@@ -248,7 +315,7 @@ class VerContainer(DBContainer):
             cursor = None
 
             try:
-                txnStarted = self.store._startTransaction()
+                txnStarted = self.store.startTransaction()
                 cursor = self.cursor()
 
                 try:
@@ -285,7 +352,7 @@ class VerContainer(DBContainer):
                 if cursor:
                     cursor.close()
                 if txnStarted:
-                    self.store._abortTransaction()
+                    self.store.abortTransaction()
 
     def deleteVersion(self, uuid):
 
@@ -360,7 +427,7 @@ class NamesContainer(DBContainer):
             cursor = None
 
             try:
-                txnStarted = self.store._startTransaction()
+                txnStarted = self.store.startTransaction()
                 cursor = self.cursor()
                 
                 try:
@@ -400,4 +467,4 @@ class NamesContainer(DBContainer):
                 if cursor:
                     cursor.close()
                 if txnStarted:
-                    self.store._abortTransaction()
+                    self.store.abortTransaction()

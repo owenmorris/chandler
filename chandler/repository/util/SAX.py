@@ -55,6 +55,10 @@ class XMLGenerator(object):
         self.out = out
         self.encoding = encoding
 
+    def getOutputStream(self):
+
+        return self.out
+
     def write(self, data):
 
         self.out.write(data)
@@ -91,29 +95,96 @@ class XMLGenerator(object):
     
     def characters(self, data):
 
-        if isinstance(data, unicode):
+        if data:
+            if isinstance(data, unicode):
+                data = data.encode(self.encoding)
+
+            self.out.write(escape(None, data))
+
+    def cdataSection(self, data, start=True, end=True):
+
+        if data and isinstance(data, unicode):
             data = data.encode(self.encoding)
 
-        self.out.write(escape(None, data))
+        if start:
+            self.out.write('<![CDATA[')
+        if data:
+            self.out.write(data)
+        if end:
+            self.out.write(']]>')
 
-    def cdataSection(self, data):
 
-        if isinstance(data, unicode):
-            data = data.encode(self.encoding)
+class XMLPrettyGenerator(XMLGenerator):
 
-        self.out.write('<![CDATA[')
-        self.out.write(data)
-        self.out.write(']]>')
+    def __init__(self, generator):
+
+        self.generator = generator
+        self._indent = '  '
+        self._indents = 0
+        self._nl = False
+        
+        super(XMLPrettyGenerator, self).__init__(None)
+
+    def getOutputStream(self):
+
+        return self.generator.getOutputStream()
+
+    def write(self, data):
+
+        self.generator.write(data)
+
+    def startDocument(self):
+
+        self._indents = 0
+        self.generator.startDocument()
+
+    def endDocument(self):
+
+        self.generator.endDocument()
+
+    def startElement(self, tag, attrs):
+
+        self.write('\n')
+        for i in xrange(self._indents):
+            self.write(self._indent)
+        self.generator.startElement(tag, attrs)
+        self._indents += 1
+
+    def endElement(self, tag):
+
+        self._indents -= 1
+        if self._nl:
+            self.write('\n')
+            for i in xrange(self._indents):
+                self.write(self._indent)
+        self.generator.endElement(tag)
+        self._nl = True
+        
+    def characters(self, data):
+
+        self.generator.characters(data)
+        self._nl = False
+
+    def cdataSection(self, data, start=True, end=True):
+
+        self.generator.cdataSection(data, start, end)
+        self._nl = False
 
 
 class XMLFilter(ContentHandler):
 
     def __init__(self, generator, *tags):
 
+        ContentHandler.__init__(self)
+
         self.generator = generator
         self.tags = tags
         self.foundTag = 0
         self.cdata = False
+
+    def getGenerator(self):
+
+        return self.generator
 
     def output(self):
 
@@ -122,6 +193,8 @@ class XMLFilter(ContentHandler):
     def parse(self, xml):
 
         createPushParser(self, xml, len(xml), 'filter').parseChunk('', 0, 1)
+        if self.errorOccurred():
+            raise self.saxError()
         
     def endDocument(self):
 

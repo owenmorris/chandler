@@ -6,11 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
 import sys, re, xmlrpclib, jabber
-
 from SOAPpy import SOAPServer
-
-from repository.persistence.XMLRepository import XMLRepository
-from repository.item.ItemRef import RefDict
 from repository.util.UUID import UUID
 
 
@@ -27,21 +23,16 @@ class RepositoryServer(object):
     def terminate(self):
         raise NotImplementedError, 'RepositoryServer.terminate'
 
-    def open(self):
-
-        self.store, viewClass = self.repository.serverOpen()
-        return ".".join((viewClass.__module__, viewClass.__name__))
-
     def call(self, method, signature, *args):
 
-        store = self.store
+        store = self.repository.store
         try:
             args = self.decode(signature, args)
             value = getattr(type(store), method)(store, *args)
             value = self.encode(signature, 0, value)
 
             return value
-        except:
+        except Exception:
             self.repository.logger.exception('RepositoryServer')
             raise
 
@@ -76,13 +67,11 @@ class RepositoryServer(object):
         c = signature[offset]
         
         if c == 'x':
-            return value
-        if c == 'd':
-            return self.store.getDocContent(value)
+            return value.encode('zlib').encode('base64')
         if c == 'u':
             return value.str64()
         if c == 's':
-            return value.encode('utf-8')
+            return value
         if c == 'i':
             return str(value)
 
@@ -102,7 +91,7 @@ class SOAPRepositoryServer(RepositoryServer):
 
         super(SOAPRepositoryServer, self).__init__(repository)
 
-        self.server = SOAPServer((host, port))
+        self.server = SOAPServer((host, port), encoding='utf-8')
         self.server.registerObject(self)
 
     def startup(self):

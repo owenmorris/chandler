@@ -852,7 +852,7 @@ class Text(Lob):
 
     def textEnd(self, itemHandler, attrs):
 
-        itemHandler.value._textEnd(itemHandler.data, attrs)
+        itemHandler.value.load(itemHandler.data, attrs)
         itemHandler.tagCounts[-1] -= 1
 
     def typeXML(self, value, generator, withSchema):
@@ -886,7 +886,7 @@ class Binary(Lob):
 
     def binaryEnd(self, itemHandler, attrs):
 
-        itemHandler.value._binaryEnd(itemHandler.data, attrs)
+        itemHandler.value.load(itemHandler.data, attrs)
         itemHandler.tagCounts[-1] -= 1
 
     def typeXML(self, value, generator, withSchema):

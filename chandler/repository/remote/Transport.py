@@ -4,18 +4,19 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import sys, re, xmlrpclib, jabber, libxml2
+import sys, re, xmlrpclib, jabber
 
+from libxml2 import createPushParser
 from SOAPpy import SOAPProxy
+
 from repository.util.UUID import UUID
-from repository.persistence.Repository import Store
 
 
 class RemoteError(ValueError):
     pass
 
 
-class Transport(Store):
+class Transport(object):
 
     def call(self, method, returnType, *args):
 
@@ -52,15 +53,13 @@ class Transport(Store):
         c = returnType[offset]
 
         if c == 'x':
-            return value
-        if c == 'd':
-            return value
+            return value.decode('base64').decode('zlib')
         if c == 'u':
             if value == 'None':
                 return None
             return UUID(value)
         if c == 's':
-            return unicode(value, 'utf-8')
+            return value
         if c == 'i':
             return long(value)
 
@@ -76,21 +75,13 @@ class Transport(Store):
 
         return self.call('getVersion', 'i')
 
-    def loadItem(self, version, uuid):
+    def serveItem(self, version, uuid):
 
-        return self.call('loadItem', 'd', version, uuid)
+        return self.call('serveItem', 'x', version, uuid)
     
-    def loadChild(self, version, uuid, name):
+    def serveChild(self, version, uuid, name):
 
-        return self.call('loadChild', 'd', version, uuid, name)
-
-    def loadRoots(self, version):
-
-        self.call('loadRoots', 'x', version)
-
-    def loadRef(self, version, uItem, uuid, key):
-
-        return self.call('loadRef', 'tuuuux', version, uItem, uuid, key)
+        return self.call('serveChild', 'x', version, uuid, name)
 
 
 class SOAPTransport(Transport):
@@ -100,25 +91,26 @@ class SOAPTransport(Transport):
         super(SOAPTransport, self).__init__(repository)
         self.url = url
 
-    def open(self, create=False):
+    def open(self):
 
-        self.server = SOAPProxy(self.url)
-        return self.server.open()
+        self.server = SOAPProxy(self.url, encoding='utf-8')
 
     def _call(self, method, *args):
 
         try:
             return self.server.call(method, *args)
         except Exception, e:
-            raise RemoteError, str(e)
+            raise
+#            raise RemoteError, str(e)
 
     def close(self):
         pass
 
     def parseDoc(self, doc, handler):
 
-        ctx = libxml2.createPushParser(handler, doc, len(doc), "item")
-        ctx.parseChunk('', 0, 1)
+        createPushParser(handler, doc, len(doc), "item").parseChunk('', 0, 1)
+        if handler.errorOccurred():
+            raise handler.saxError()
         
     def getDocUUID(self, doc):
 
@@ -145,15 +137,13 @@ class JabberTransport(Transport, jabber.Client):
         self.resource = names.group(4) or 'client'
         self.iqTo = you
 
-    def open(self, create=False):
+    def open(self):
 
         self.connect()
         if not self.auth(self.username, self.password, self.resource):
             self.disconnect()
             raise ValueError, "Auth failed %s %s" %(self.lastErr,
                                                     self.lastErrCode)
-
-        return self._call_('open')
 
     def close(self):
 

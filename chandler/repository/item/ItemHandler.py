@@ -303,7 +303,7 @@ class ItemHandler(ContentHandler):
             raise ValueError, self.tagAttrs[-1]['name']
 
         refDict = self.collections[-1]
-        refDict._prepareKey(self.uuid, UUID(self.data))
+        refDict._prepareBuffers(self.uuid, UUID(self.data))
 
     def attributeStart(self, itemHandler, attrs):
 
@@ -424,6 +424,12 @@ class ItemHandler(ContentHandler):
                 return self.repository[UUID(attrs['typeid'])].handlerName()
             except KeyError:
                 raise TypeError, "Type %s not found" %(attrs['typeid'])
+
+        if attrs.has_key('typepath'):
+            typeItem = self.repository.find(Path(attrs['typepath']))
+            if typeItem is None:
+                raise TypeError, "Type %s not found" %(attrs['typepath'])
+            return typeItem.handlerName()
 
         if attrs.has_key('type'):
             return attrs['type']

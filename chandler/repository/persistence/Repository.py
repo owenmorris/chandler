@@ -30,6 +30,12 @@ class VersionConflictError(RepositoryError):
     def getItem(self):
         return self.args[0]
 
+class NoSuchItemError(RepositoryError):
+    "No such item %s, version %d"
+
+    def __str__(self):
+        return self.__doc__ % self.args
+
 
 class Repository(object):
     """An abstract item repository.
@@ -53,10 +59,6 @@ class Repository(object):
     def open(self, create=False):
 
         self._init()
-
-    def serverOpen(self):
-
-        raise NotImplementedError, "Repository.serverOpen"
 
     def delete(self):
         
@@ -501,6 +503,10 @@ class RepositoryView(object):
 
         return path
 
+    def _getStore(self):
+
+        return self.repository.store
+
     def logItem(self, item):
 
         if not self.repository.isOpen():
@@ -603,6 +609,7 @@ class RepositoryView(object):
     
     logger = property(getLogger)
     debug = property(isDebug)
+    store = property(_getStore)
 
     OPEN = 0x1
     LOADING = 0x2
@@ -627,14 +634,23 @@ class Store(object):
     def loadItem(self, version, uuid):
         raise NotImplementedError, "Store.loadItem"
     
+    def serveItem(self, version, uuid):
+        raise NotImplementedError, "Store.serveItem"
+    
     def loadChild(self, version, uuid, name):
         raise NotImplementedError, "Store.loadChild"
+
+    def serveChild(self, version, uuid, name):
+        raise NotImplementedError, "Store.serveChild"
 
     def loadRoots(self, version):
         raise NotImplementedError, "Store.loadRoots"
 
     def loadRef(self, version, uItem, uuid, key):
         raise NotImplementedError, "Store.loadRef"
+
+    def loadRefs(self, version, uItem, uuid, firstKey):
+        raise NotImplementedError, "Store.loadRefs"
 
     def queryItems(self, version, query):
         raise NotImplementedError, "Store.queryItems"
@@ -674,8 +690,8 @@ class OnDemandRepositoryView(RepositoryView):
         
         super(OnDemandRepositoryView, self).__init__(repository)
 
-        self._hooks = None
         self.version = repository.store.getVersion()
+        self._hooks = None
         self._notRoots = {}
         
     def _loadDoc(self, doc):
@@ -836,7 +852,7 @@ class OnDemandRepositoryView(RepositoryView):
             self.logger.info('pruning %d items', count)
             for i in xrange(count):
                 registry[heapq.heappop(heap)[1]]._unloadItem()
-
+    
 
 class RepositoryNotifications(dict):
 
