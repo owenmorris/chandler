@@ -146,6 +146,7 @@ class wxApplication (wxApp):
     self.locale                   locale used for internationalization
     self.jabberClient             state of jabber client including presence dictionary
     self.repository               the model.persistence.Repository instance
+    self.deferredActions          list of deferred Actions to be run at idle time
     self.argv                     the command line arguments of the process
     
     In the future we may replace ZODB with another database that provides 
@@ -188,7 +189,8 @@ class wxApplication (wxApp):
         
         self.jabberClient = None
         self.presenceWindow = None
-
+        self.deferredActions = []
+        
         self.chandlerDirectory = os.path.dirname (os.path.abspath (sys.argv[0]))
 
         global app

@@ -38,4 +38,18 @@
       
     * added a repertoire with an action to the test agent
 
+2003-09-04 Andy Hertzfeld <andy@differnet.com>
+
+     * added ability to load subclasses of Agents and Actions, by adding a "class"
+       attribute to their domain schema definition
+       
+     * added a DeferredAction class, and the ability to run actions synchronously
+       with wxWindows, by adding an app.defereredActions list, and invoking
+       deferred actions in the ViewerParcel idle handler
+       
+     * implemented a DialogAction subclass, that displays a dialog with a message 
+       derived from a  template string and the data passed from an action
+       
+     * used DialogAction to make the test agent display a dialog with the
+       instant message body if it meets the condition
     

@@ -6,8 +6,8 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 import os
 import os.path
 
+
 from model.item.Item import Item
-from wxPython.wx import wxWave
 
 """
 The Action Class is a persistent object containing information about a particular action that can be
@@ -36,6 +36,17 @@ class Action(Item):
         """
         if self.hasAttributeValue('asyncFlag'):
             return self.asyncFlag
+        
+        return False
+    
+    def UseWxThread(self):
+        """
+           by default, actions run on the agent's thread, but they can be deferred to run synchronously
+           with the wxWindows.  This means they can safely make wxWindows calls, but they shouldn't be
+           time consuming
+        """
+        if self.hasAttributeValue('wxThreadFlag'):
+            return self.wxThreadFlag
         
         return False
     
@@ -80,4 +91,19 @@ class Action(Item):
            get the completion percentage of asynchronous actions
         '''
         return 0
+
     
+"""
+The DeferredAction class is a simple wrapper for an action that allows an actionto be invoked without 
+passing any parameters.
+"""
+class DeferredAction:
+    def __init__(self, action, agent, actionData):
+        self.action = action
+        self.agent = agent
+        self.actionData = actionData
+        
+    def Execute(self):
+        result = self.action.Execute(self.agent, self.actionData)
+        
+        

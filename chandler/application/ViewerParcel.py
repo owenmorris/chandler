@@ -275,9 +275,8 @@ class wxViewerParcel(wxPanel):
         """
         if hasattr (self, 'OnInit'):
             self.OnInit()
-            # connect to the idle event to check for notifications, if any
-            if len(self.model.GetNotificationList()) > 0:
-                EVT_IDLE(self, self.OnIdle)
+            # connect to the idle event to check for notifications and run deferred tasks
+            EVT_IDLE(self, self.OnIdle)
                 
         """
           OnInitData is called once per parcel class, the first time a parcel
@@ -521,7 +520,15 @@ class wxViewerParcel(wxPanel):
         notification = app.model.notificationManager.GetNextNotification(self.model.GetClientID())
         if notification != None:
             self.model.ReceiveNotification(notification)
-                    
+
+        # also, run any deferred actions that need to be run synchronously with wxWindows
+        # FIXME: we need to iterate the list better, in case it's being added to while we're looping
+        if len(app.deferredActions) > 0:
+            for action in app.deferredActions:
+                action.Execute()
+                
+            app.deferredActions = []
+            
     def OnReload(self):
         """
           Called when the reload button is clicked.  Override to add the

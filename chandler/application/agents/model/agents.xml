@@ -57,10 +57,16 @@
 
   <Attribute itemName="agents:asyncFlag">
     <displayName>Asynchronous Flag</displayName>
-    <type itemref="types:Bool"/>
+    <type itemref="types:Boolean"/>
     <cardinality>single</cardinality>
   </Attribute>
-  
+
+   <Attribute itemName="agents:wxThreadFlag">
+    <displayName>Asynchronous Flag</displayName>
+    <type itemref="types:Boolean"/>
+    <cardinality>single</cardinality>
+  </Attribute>
+   
   <Attribute itemName="agents:actionOwner">
     <displayName>Action Instruction Backlink</displayName>
     <type itemref="agents:Instruction"/>
@@ -85,11 +91,18 @@
       <attributes itemref="agents:actionValue"/>
       <attributes itemref="agents:actionFilePath"/>     
       <attributes itemref="agents:asyncFlag"/>
+      <attributes itemref="agents:wxThreadFlag"/>
       <attributes itemref="agents:actionOwner"/>
       <attributes itemref="agents:actionRepertoireOwner"/>
       <classes key="python">application.agents.model.Action.Action</classes>
     </Kind>
-  
+
+    <Kind itemName="agents:DialogAction">
+      <displayName>Dialog Action</displayName>
+      <superKinds itemref="agents:Action"/>
+      <classes key="python">application.agents.model.DialogAction.DialogAction</classes>
+    </Kind>
+
   <!-- Attributes used in Condition, which is a sub-class of action -->
   <Attribute itemName="agents:conditionType">
     <displayName>Condition Type</displayName>
@@ -159,7 +172,7 @@
   <!-- Attributes used in Instruction -->
   <Attribute itemName="agents:enabled">
     <displayName>Enabled Flag</displayName>
-    <type itemref="types:Bool"/>
+    <type itemref="types:Boolean"/>
     <cardinality>single</cardinality>
   </Attribute>
   
@@ -201,7 +214,7 @@
     <cardinality>list</cardinality>
     <inverseAttribute itemref="agents:actionRepertoireOwner"/>
   </Attribute>
-  
+
   <Attribute itemName="agents:possibleConditions">
     <displayName>Possible Conditions</displayName>
     <type itemref="agents:Condition"/>

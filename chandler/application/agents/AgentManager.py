@@ -189,8 +189,10 @@ class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
         self.agentItem = None
         self.currentItem = None
         self.lastContainer = None
+        self.inRepertoire = False
+        
         self.buffer = ""
-    
+        
     def _GetOptionalAttribute(self, attributeName, attributeDict):
         """
            utility routine to return an optional attribute from the passed-in
@@ -201,14 +203,33 @@ class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
                                                
         return None
     
+    def _MakeItem(self, moduleName, agentName):
+        """
+           magic utility routine that makes a new item dynamically, with the passed in moduleName
+        """
+        className = moduleName.split('.')[-1]      
+        classObject = getattr(__import__(moduleName, {}, {}, className), className)
+                
+        repository = self.agentManager.application.repository
+        container = repository.find("//Agents")
+        kind = repository.find("//Schema/AgentsSchema/" + className)              
+        return classObject(agentName, container, kind)
+          
     def startElement(self, name, attributes):
         self.buffer = ""
         repository = self.agentManager.application.repository
         
         if name == 'agent':
             agentName = self._GetOptionalAttribute('name', attributes)
-            agentFactory = AgentItemFactory(repository)
-            self.agentItem = agentFactory.NewItem(agentName)
+            
+            # if a class is specified, we have to import it on the fly
+            if attributes.has_key('class'):
+                moduleName = attributes['class']
+                self.agentItem = self._MakeItem(moduleName, agentName) 
+            # otherwise we use the Item class
+            else:
+                agentFactory = AgentItemFactory(repository)
+                self.agentItem = agentFactory.NewItem(agentName)
             
             self.currentItem = self.agentItem
             
@@ -219,6 +240,8 @@ class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
             self.attributeName = attributes['name']
         
         elif name == 'instruction':
+            self.inRepertoire = False
+            
             enabledText = self._GetOptionalAttribute('enabled', attributes)
             enabledFlag = enabledText == 'True'
             instructionFactory = InstructionFactory(repository) 
@@ -229,6 +252,8 @@ class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
             self.agentItem.AddInstruction(self.currentItem)
         
         elif name == 'repertoire':
+            self.inRepertoire = True
+            
             repertoireName = self._GetOptionalAttribute('name', attributes)
             repertoireFactory = RepertoireFactory(repository) 
             self.currentItem = repertoireFactory.NewItem(repertoireName)
@@ -237,6 +262,7 @@ class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
             
         elif name == 'condition':
             conditionName = self._GetOptionalAttribute('name', attributes)
+            
             conditionFactory = ConditionFactory(repository)
             self.currentItem = conditionFactory.NewItem(conditionName)
                         
@@ -244,14 +270,20 @@ class AgentXMLFileHandler(xml.sax.handler.ContentHandler):
             
         elif name == 'action':
             actionName = self._GetOptionalAttribute('name', attributes)
-            actionFactory = ActionFactory(repository)
-            self.currentItem = actionFactory.NewItem(actionName)
+            
+            # if a classname is specified, make the item dynamically
+            if attributes.has_key('class'):
+                moduleName = attributes['class']
+                self.currentItem = self._MakeItem(moduleName, actionName) 
+            else:     
+                actionFactory = ActionFactory(repository)
+                self.currentItem = actionFactory.NewItem(actionName)
             
             if actionName != None:
                 self.currentItem.setAttributeValue('actionName', actionName)
             
             self.lastContainer.AddAction(self.currentItem)                                                     
-    
+            
     def characters(self, data):
         self.buffer += data
                                 

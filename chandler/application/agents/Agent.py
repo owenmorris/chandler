@@ -9,6 +9,10 @@ import thread
 import time
 import random
 
+from wxPython.wx import wxWakeUpIdle
+
+from model.Action import *
+
 class Agent:
 
     def __init__(self, agentItem, agentManager):
@@ -112,12 +116,21 @@ class Agent:
     def LaunchNewActions(self, newActions, actionData):
         """
           launch the actions in the passed-in list
-        """       
+        """ 
+        result = None
         for action in newActions:
             if action.IsAsynchronous():
                 self.MakeTask(action, actionData)
             else:
-                result = action.Execute(self, actionData)
+                if action.UseWxThread():
+                    actionProxy = DeferredAction(action, self, actionData)
+                    self.agentManager.application.deferredActions.append(actionProxy)
+                    
+                     # call wxWakeUpIdle to give a chance for idle handlers to process the deferred action
+                    wxWakeUpIdle()
+                    
+                else:
+                    result = action.Execute(self, actionData)
                 
     def UpdateStatus(self):
         """
