@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\external\debug\bin\Include; ..\..\..\..\external\python\Python-2.3.3\Include;..\..\..\..\external\python\Python-2.3.3\PC"
+				AdditionalIncludeDirectories="..\..\..\..\external\debug\bin\Include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -71,7 +71,7 @@
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				OmitFramePointers="TRUE"
-				AdditionalIncludeDirectories="..\..\..\..\external\python\Python-2.3.3\Include;..\..\..\..\external\release\include;..\..\..\..\external\python\Python-2.3.3\PC"
+				AdditionalIncludeDirectories="..\..\..\..\external\release\bin\Include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				StringPooling="TRUE"
 				RuntimeLibrary="2"
