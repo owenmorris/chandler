@@ -54,13 +54,13 @@ $(SRC)/$(BUILD)/Makefile:
 	cd $(SRC); mkdir -p $(BUILD); cd $(BUILD); \
 	../configure --prefix=$(PREFIX) $(CONF_DBG)
 
-bz2: bzip2-$(BZIP2VERSION)/libbz2.a
+bzip2-$(BZIP2VERSION)/libbz2.a:
 	cd bzip2-$(BZIP2VERSION); \
         make libbz2.a; \
         install libbz2.a $(PREFIX)/lib; \
         install bzlib.h $(PREFIX)/include
 
-build: bz2 apply
+build: bzip2-$(BZIP2VERSION)/libbz2.a apply
 	cd $(SRC)/$(BUILD); \
 	$(MAKE) DB=$(PREFIX)/db $(COMP_OPT) install
 
