@@ -11,7 +11,7 @@ def init_context(protocol, dhpfile, certfile, cafile, verify, verify_depth=10):
     ctx = SSL.Context(protocol)
     ctx.set_tmp_dh(dhpfile)
     ctx.load_cert(certfile)
-    #ctx.load_verify_info(cafile)
+    ctx.load_verify_info(cafile)
     ctx.set_verify(verify, verify_depth)
     ctx.set_session_id_ctx('echod')
     ctx.set_info_callback()
