@@ -774,10 +774,18 @@ class FromEditField (EditTextAttribute):
             # system startup before the user account is setup.
             if item.itsKind.hasAttribute ('whoFrom'):
                 try:
-                    if isinstance(item, Mail.MailMessageMixin):
-                        item.whoFrom = item.getCurrentMeEmailAddress()
-                    else:
+                    # Determine which kind of item to assign based on the
+                    # types of the redirected-to attributes:
+                    type = item.getAttributeAspect('whoFrom', 'type')
+                    contactKind = \
+                     item.findPath("//parcels/osaf/contentmodel/contacts/Contact")
+                    if type is contactKind:
                         item.whoFrom = item.getCurrentMeContact()
+                    else:
+                        emailAddressKind = \
+                         item.findPath("//parcels/osaf/contentmodel/mail/EmailAddress")
+                        if type is emailAddressKind:
+                            item.whoFrom = item.getCurrentMeEmailAddress()
                 except AttributeError:
                     pass
 
