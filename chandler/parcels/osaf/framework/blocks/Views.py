@@ -23,11 +23,10 @@ class View(BoxContainer):
 
             """
               Comment in this code to see which events are dispatched -- DJA
-            try:
-                updateUI = notification.data['UpdateUI']
-            except KeyError:
-                print "Calling %s" % methodName
+
+            print "Calling %s" % methodName
             """
+
             member (notification)
             return True
         

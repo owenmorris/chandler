@@ -3,7 +3,7 @@
 
 __version__ = "$Revision$"
 __date__ = "$Date$"
-__copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
+__copyright__ = "Copyright (c) 200 Open Source Applications Foundation"
 __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import application.Globals as Globals
@@ -55,7 +55,12 @@ class RepositoryDelegate:
             parentUUID = notification.data['parent']
         except KeyError:
             item = Globals.repository.find (notification.data['uuid'])
-            parentUUID = item.itsParent.itsUUID
+            parent = item.itsParent
+            if not parent:
+                return
+
+            parentUUID = parent.itsUUID
+
         counterpart = Globals.repository.find (self.counterpartUUID)
         if counterpart.openedContainers.has_key (parentUUID):
             self.scheduleUpdate = True
