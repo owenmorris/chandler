@@ -2,6 +2,9 @@
 
 import os, hardhatutil, sys
 
+True = 1
+False = 0
+
 treeName = "Chandler"
 
 def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
@@ -25,7 +28,7 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
      buildVersion, clobber, log)
 
     if not ret:
-        return 0
+        return False
 
     # do release
     ret = Do(hardhatScript, "release", workingDir, outputDir, cvsVintage, 
@@ -108,9 +111,9 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     os.chdir(modeDir)
 
     moduleData = {}
-    needToScrubAll = 0
-    newModules = 0
-    changesAtAll = 0
+    needToScrubAll = False
+    newModules = False
+    changesAtAll = False
 
     for module in cvsModules:
         print "- - - -", module, "- - - - - - - - - - - - - - - - -"
@@ -120,8 +123,8 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
         moduleDir = os.path.join(modeDir, module)
         # does module's directory exist?
         if not os.path.exists(moduleDir):
-            newModules = 1
-            changesAtAll = 1
+            newModules = True
+            changesAtAll = True
             # check out that module
             os.chdir(modeDir)
             print "checking out", module
@@ -139,7 +142,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
             # dumpOutputList(outputList, log)
             if NeedsUpdate(outputList):
                 print "YES"
-                changesAtAll = 1
+                changesAtAll = True
                 moduleData[module]["changed"] = 1
                 # update it
                 os.chdir(moduleDir)
@@ -151,7 +154,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
                 if scrubAllModules.has_key(module):
                     print "we need to scrub everything"
                     log.write("Scrubbing everything before build\n")
-                    needToScrubAll = 1
+                    needToScrubAll = True
             else:
                 print "NO, unchanged"
                 log.write("Module unchanged" + "\n")
@@ -163,7 +166,7 @@ def Do(hardhatScript, mode, workingDir, outputDir, cvsVintage, buildVersion,
     print "Main module dir =", mainModuleDir
 
     if not changesAtAll:
-        return 0
+        return False
 
     if needToScrubAll:
         os.chdir(mainModuleDir)
@@ -262,17 +265,17 @@ def NeedsUpdate(outputList):
             continue
         if line[0] == "U":
             print "needs update because of", line
-            return 1
+            return True
         if line[0] == "P":
             print "needs update because of", line
-            return 1
+            return True
         if line[0] == "A":
             print "needs update because of", line
-            return 1
+            return True
         if line[0] == "R":
             print "needs update because of", line
-            return 1
-    return 0
+            return True
+    return False
 
 def CopyLog(file, fd):
     input = open(file, "r")
