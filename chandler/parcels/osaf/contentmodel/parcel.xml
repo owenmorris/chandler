@@ -19,65 +19,34 @@
   <core:version>0.3</core:version>
   <core:author>Open Source Applications Foundation</core:author>
 
-  <core:Attribute itemName="name">
-    <core:displayName>Name</core:displayName>
-    <core:description>A name that a user gives to an item they create.</core:description>
-    <core:issues>Should we just use "core:displayName" instead, rather than creating this new attribute, or should we make this a sub-attribute of "core:displayName"?</core:issues>
-    <core:issues>This should always be a single-line string that displays in a one-line text field rather than a scrolling text box.</core:issues>
-    <core:cardinality>single</core:cardinality>
-    <core:type itemref="core:String"/>
-  </core:Attribute>
-
-  <core:Enumeration itemName="PriorityLevel">
-    <core:displayName>Priority Level Enum</core:displayName>
-    <core:issues>Should we call this 'PriorityLevelEnum' instead of 'PriorityLevel', to be consistent with how we've named other Enumerations?</core:issues>
-    <core:values>high</core:values>
-    <core:values>medium</core:values>
-    <core:values>low</core:values>
+<!-- Content Item -->
+  <core:Enumeration itemName="ImportanceEnum">
+    <core:displayName>Importance Enum</core:displayName>
+    <core:values>important</core:values>
+    <core:values>normal</core:values>
+    <core:values>fyi</core:values>
   </core:Enumeration>
 
-  <core:Attribute itemName="priority">
-    <core:displayName>Priority</core:displayName>
-    <core:description>Priority can be 'high', 'medium', or 'low'.</core:description>
-    <core:description>This 'priority' attribute is also used in the mail schema, so we shouldn't make any changes here that would break e-mail interoperability features.</core:description>
+  <core:Attribute itemName="importance">
+    <core:displayName>Importance</core:displayName>
+    <core:description>Most items are of normal importance (no value need be show), 
+      however some things may be flagged either highly important or merely 'fyi'.</core:description>
+    <core:description>This attribute is also used in the mail schema, so we shouldn't make any changes here that would break e-mail interoperability features.</core:description>
     <core:cardinality>single</core:cardinality>
-    <core:type itemref="PriorityLevel"/>
+    <core:type itemref="ImportanceEnum"/>
   </core:Attribute>
 
-<!-- Content Item -->
-  <core:Attribute itemName="projects">
-    <core:displayName>Projects</core:displayName>
-    <core:description>List of projects this item belongs to.</core:description>
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="Project"/>
-    <core:inverseAttribute itemref="itemsInProject"/>
-  </core:Attribute>
+  <core:Enumeration itemName="ContextEnum">
+    <core:displayName>Context Enum</core:displayName>
+    <core:values>home</core:values>
+    <core:values>work</core:values>
+  </core:Enumeration>
 
-  <core:Attribute itemName="groups">
-    <core:displayName>"Playlists"/"Item Collections"</core:displayName>
-    <core:description>List of "playlists"/"item collections" this item belongs to.</core:description>
-    <core:issues>We still need to work out some issues about how "playlists"/"item collections" are modeled.</core:issues>
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="Group"/>
-    <core:inverseAttribute itemref="itemsInGroup"/>
-  </core:Attribute>
-
-  <core:Attribute itemName="fyiLinks">
-    <core:displayName>References</core:displayName>
-    <core:description>Items that the user wants to keep reference pointers to from this item.</core:description>
-    <core:issues>In our design meeting on 13 Jan 2004, we talked about deleting this attribute and implementing this feature using the "Playlists"/"Item Collections" attribute.</core:issues>
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="ContentItem"/>
-    <core:inverseAttribute itemref="fyiLinkedToItems"/>
-  </core:Attribute>
-
-  <core:Attribute itemName="fyiLinkedToItems">
-    <core:displayName>Items with References to this item</core:displayName>
-    <core:description>List of items that have references pointing to this item.</core:description>
-    <core:issues>In our design meeting on 13 Jan 2004, we talked about deleting this attribute and implementing this feature using the "Playlists"/"Item Collections" attribute.</core:issues>
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="ContentItem"/>
-    <core:inverseAttribute itemref="fyiLinks"/>
+  <core:Attribute itemName="context">
+    <core:displayName>Context</core:displayName>
+    <core:description>Context can be home, work, or another value provided by the user</core:description>
+    <core:cardinality>single</core:cardinality>
+    <core:type itemref="ContextEnum"/>
   </core:Attribute>
 
   <core:Attribute itemName="whoAttribute">
@@ -114,13 +83,11 @@
     <core:examples>a Contact -- 'Terry Smith'</core:examples>
     <core:examples>a Task -- 'mail 1040 to IRS'</core:examples>
     <core:description>Content Item is the abstract super-kind for things like Contacts, Calendar Events, Tasks, Mail Messages, and Notes. Content Items are user-level items, which a user might file, categorize, share, and delete.</core:description>
-    <core:attributes itemref="projects"/>
-    <core:attributes itemref="groups"/>
+    <core:attributes itemref="importance"/>
+    <core:attributes itemref="context"/>
     <core:attributes itemref="contact:creator"/>
     <core:attributes itemref="core:Parcel/createdOn"/>
     <core:attributes itemref="core:Parcel/modifiedOn"/>
-    <core:attributes itemref="fyiLinks"/>
-    <core:attributes itemref="fyiLinkedToItems"/>
     <core:attributes itemref="notes:attachedNotes"/>
     <core:attributes itemref="notes:conversations"/>
 
@@ -149,14 +116,6 @@
     <core:inverseAttribute itemref="parentProject"/>
   </core:Attribute>
 
-  <core:Attribute itemName="itemsInProject">
-    <core:displayName>Items in Project</core:displayName>
-    <core:description>List of items that are marked as being in this project.</core:description>
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="ContentItem"/>
-    <core:inverseAttribute itemref="projects"/>
-  </core:Attribute>
-
   <core:Kind itemName="Project">
     <core:superKinds itemref="core:Item"/>
     <core:displayName>Project</core:displayName>
@@ -164,32 +123,22 @@
     <core:examples>my department's "Move to new building" project</core:examples>
     <core:examples>my company's "Open Seattle Store" project</core:examples>
     <core:description>Users can create projects to help organize their work. Users can take content items (like tasks and mail messages) and assign them to different projects.</core:description>
-    <core:displayAttribute itemref="name"/>
-    <core:attributes itemref="name"/>
+    <core:displayAttribute itemref="core:displayName"/>
+    <core:attributes itemref="core:displayName"/>
     <core:attributes itemref="parentProject"/>
     <core:attributes itemref="subProjects"/>
-    <core:attributes itemref="itemsInProject"/>
     <core:classes key="python">osaf.contentmodel.ContentModel.Project</core:classes>
   </core:Kind>
 
 <!-- Group -->
-  <core:Attribute itemName="itemsInGroup">
-    <core:displayName>Items in the "Playlist"/"Item Collection"</core:displayName>
-    <core:description>List of items in the "playlist"/"item collection".</core:description>
-    <core:cardinality>list</core:cardinality>
-    <core:type itemref="ContentItem"/>
-    <core:inverseAttribute itemref="groups"/>
-  </core:Attribute>
-
   <core:Kind itemName="Group">
     <core:displayName>"Playlist"/"Item Collection"</core:displayName>
     <core:description>See http://wiki.osafoundation.org/twiki/bin/view/Jungle/CollectionProject</core:description>
     <core:issues>We still need to work out some issues about how "playlists"/"item collections" are modeled.</core:issues>
     <core:issues>We need to find a name for these things.</core:issues>
     <core:superKinds itemref="ContentItem"/>
-    <core:displayAttribute itemref="name"/>
-    <core:attributes itemref="name"/>
-    <core:attributes itemref="itemsInGroup"/>
+    <core:displayAttribute itemref="core:displayName"/>
+    <core:attributes itemref="core:displayName"/>
     <core:classes key="python">osaf.contentmodel.ContentModel.Group</core:classes>
   </core:Kind>
 

@@ -79,8 +79,6 @@ class ContentItem(Item.Item):
         if not kind:
             kind = ContentModel.getContentItemKind()
         Item.Item.__init__(self, name, parent, kind)
-        self.projects = []
-        self.groups = []
 
     def getWho(self):
         """Returns a string representation of the whoAttribute"""
@@ -129,8 +127,6 @@ class Project(Item.Item):
         if not kind:
             kind = ContentModel.getProjectKind()
         Item.Item.__init__(self, name, parent, kind)
-        self.itemsInProject = []
-        self.name = ''
 
 class Group(ContentItem):
     def __init__(self, name=None, parent=None, kind=None):
@@ -139,7 +135,5 @@ class Group(ContentItem):
         if not kind:
             kind = ContentModel.getGroupKind()
         ContentItem.__init__(self, name, parent, kind)
-        self.itemsInGroup = []
-        self.name = ''
     
     

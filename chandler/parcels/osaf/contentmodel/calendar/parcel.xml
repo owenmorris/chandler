@@ -213,13 +213,6 @@
     <type itemref="cal:TimeTransparency"/>
   </Attribute>
 
-  <Attribute itemName="priority">
-    <displayName>Priority</displayName>
-    <issues>Why is this an Integer instead of an Enumeration?  Do we really need a new 'priority' attribute here in the 'calendar' schema, or would it be better to re-use the 'priority' attribute already defined in 'contentmodel'? What do we need to do to interoperate with iCalendar?</issues>
-    <cardinality>single</cardinality>
-    <type itemref="Integer"/>
-  </Attribute>
-
   <Kind itemName="CalendarEvent">
     <displayName>Calendar Event/Task</displayName>
     <issues>Do we want to support the idea of tasks having sub-tasks? If so, then we need to add attributes for 'superTask' and 'subTasks'.</issues>
@@ -253,7 +246,7 @@
     <attributes itemref="cal:organizer"/>
     <attributes itemref="cal:attendees"/>
     <attributes itemref="cal:transparency"/>
-    <attributes itemref="cal:priority"/>
+    <attributes itemref="content:importance"/>
 
     <displayAttribute itemref="cal:headline"/>
 
@@ -265,9 +258,9 @@
     <superKinds itemref="Item"/>
     <displayName>Location</displayName>
     <issues>Location may not be calendar specific</issues>
-    <attributes itemref="content:name"/>
+    <attributes itemref="displayName"/>
     <attributes itemref="cal:eventsAtLocation"/>
-    <displayAttribute itemref="content:name"/>
+    <displayAttribute itemref="displayName"/>
     <classes key="python">osaf.contentmodel.calendar.Calendar.Location</classes>
   </Kind>
 
@@ -276,8 +269,8 @@
     <displayName>Calendar</displayName>
     <issues>Calendar should have an attribute that points to all the Calendar Events.</issues>
     <issues>Calendar should maybe have a 'Timezone' attribute.</issues>
-    <attributes itemref="content:name"/>
-    <displayAttribute itemref="content:name"/>
+    <attributes itemref="displayName"/>
+    <displayAttribute itemref="displayName"/>
     <classes key="python">osaf.contentmodel.calendar.Calendar.Calendar</classes>
   </Kind>
 

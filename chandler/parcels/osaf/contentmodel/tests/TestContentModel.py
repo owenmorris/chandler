@@ -37,25 +37,6 @@ class ContentItemTest(ContentModelTestCase):
 
         self.loadParcel("osaf/contentmodel")
 
-        def checkGroupItemLink(group, contentItem):
-            self.assertEqual(len(contentItem.groups), 1)
-            for item in contentItem.groups:
-                self.assertEqual(item, group)
-                
-            self.assertEqual(len(group.itemsInGroup), 1)
-            for item in group.itemsInGroup:
-                self.assertEqual(item, contentItem)
-
-        def checkProjectItemLink(project, contentItem):
-            self.assertEqual(len(project.itemsInProject), 1)
-            for item in project.itemsInProject:
-                self.assertEqual(item, contentItem)
-                
-            self.assertEqual(len(contentItem.projects), 1)
-            for item in contentItem.projects:
-                self.assertEqual(item, project)
-
-        
         # Check that the globals got created by the parcel
         self.assert_(ContentModel.ContentModel.getContentItemParent())
         self.assert_(ContentModel.ContentModel.getContentItemKind())
@@ -85,41 +66,32 @@ class ContentItemTest(ContentModelTestCase):
         self.assertEqual(repr(genericGroup.itsPath),
                          '//userdata/contentitems/genericGroup')
 
-        # These attributes should be empty, but should not be missing
-        self.assert_(not genericContentItem.projects)
-        self.assert_(not genericContentItem.groups)
-        self.assert_(not genericProject.name)
-        self.assert_(not genericProject.itemsInProject)
-        self.assert_(not genericGroup.name)
-        self.assert_(not genericGroup.itemsInGroup)
+        self.assertEqual(genericContentItem.whoAttribute, 'creator')
+        self.assertEqual(genericContentItem.dateAttribute, 'createdOn')
+        self.assertEqual(genericContentItem.aboutAttribute, 'displayName')
 
         # Set and test simple attributes
         genericContentItem.displayName = "Test Content Item"
+        genericContentItem.context = "work"
+        
+        self.assertEqual(genericContentItem.displayName, "Test Content Item")
+        self.assertEqual(genericContentItem.context, "work")
+        self.assertEqual(genericContentItem.getAbout(), "Test Content Item")
+        self.assertEqual(genericContentItem.getWho(), ' ')
+        self.assertEqual(genericContentItem.getDate(), ' ')
+        # Hmm.. someday we should make sure Who and Date always have values.
+        
         genericProject.name = "Test Project"
         genericGroup.name = "Test Group"
 
+
         self.assertEqual(genericProject.name, "Test Project")
         self.assertEqual(genericGroup.name, "Test Group")
-        self.assertEqual(genericContentItem.displayName, "Test Content Item")
 
-        # Link the contentItem to the project
-        genericContentItem.projects.append(genericProject)
-        checkProjectItemLink(genericProject, genericContentItem)
-        
-        # Link the group to the contentItem
-        genericGroup.itemsInGroup.append(genericContentItem)
-        checkGroupItemLink(genericGroup, genericContentItem)
 
-        self._reopenRepository()
-
-        # Look to see that projects and groups links still work
-        
-        project = self.rep.find("//userdata/contentitems/genericProject")
-        group = self.rep.find("//userdata/contentitems/genericGroup")
-        contentItem = self.rep.find("//userdata/contentitems/genericContentItem")
-
-        checkProjectItemLink(project, contentItem)
-        checkGroupItemLink(group, contentItem)
+        # Groups and projects aren't currently linked to Content Items
+        # One of these days we'll have to figure out how to hook them
+        # up or clean them out.  --Lisa
 
 if __name__ == "__main__":
     unittest.main()

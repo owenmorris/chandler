@@ -400,7 +400,7 @@
     <attributes itemref="mail:characterEncoding"/>
     <attributes itemref="mail:hasBeenRead"/>
     <attributes itemref="mail:status"/>
-    <attributes itemref="content:priority"/>
+    <attributes itemref="content:importance"/>
     <attributes itemref="mail:downloadAccount"/>
     <attributes itemref="mail:serverStatus"/>
     <attributes itemref="mail:deliveryStatus"/>

@@ -29,19 +29,19 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
                               "simple headline")
             self.assertEqual(event.getItemDisplayName(), "simple headline")
 
-            self.assertEqual(event.priority, 3)
-            self.assertEqual(event.getAttributeValue('priority'), 3)
+            self.assertEqual(event.importance, 'fyi')
+            self.assertEqual(event.getAttributeValue('importance'), 'fyi')
 
             self.assertEqual(event.transparency, "busy")
             self.assertEqual(event.getAttributeValue('transparency'), "busy")
 
         def _verifyCalendarItems(calendar, location, recurrence, reminder):
-            self.assertEqual(calendar.name, "simple calendar")
-            self.assertEqual(calendar.getAttributeValue('name'),
+            self.assertEqual(calendar.displayName, "simple calendar")
+            self.assertEqual(calendar.getAttributeValue('displayName'),
                               "simple calendar")
 
-            self.assertEqual(location.name, "simple location")
-            self.assertEqual(location.getAttributeValue('name'),
+            self.assertEqual(location.displayName, "simple location")
+            self.assertEqual(location.getAttributeValue('displayName'),
                               "simple location")
 
         # Check that the globals got created by the parcel
@@ -67,13 +67,13 @@ class CalendarTest(TestContentModel.ContentModelTestCase):
 
         # CalendarEvent properties
         calendarEventItem.headline = "simple headline"
-        calendarEventItem.priority = 3
+        calendarEventItem.importance = "fyi"
         calendarEventItem.transparency = "busy"
         _verifyCalendarEvent(calendarEventItem)
 
         # Calendar properties
-        calendarItem.name = "simple calendar"
-        locationItem.name = "simple location"
+        calendarItem.displayName = "simple calendar"
+        locationItem.displayName = "simple location"
         _verifyCalendarItems(calendarItem, locationItem,
                              recurrenceItem, reminderItem)
 
