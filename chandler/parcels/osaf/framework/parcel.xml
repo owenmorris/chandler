@@ -17,6 +17,8 @@
   <version>0.3</version>
   <author>Open Source Applications Foundation</author>
 
+  <events:Event itsName="commit_history"/>
+
   <webdav:Sharing itsName="GlobalShare"/>
 
 </Parcel>
