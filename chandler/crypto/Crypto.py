@@ -10,8 +10,12 @@ from M2Crypto import Rand, threading
 import os
 
 def getProfileDir():
-    # XXX This needs to be repaced by application level function
-    return 'crypto'
+    # XXX This needs to be replaced by application level function
+    import sys
+    pathComponents = sys.modules['crypto'].__file__.split (os.sep)
+    assert len (pathComponents) > 3
+    chandlerDirectory = os.sep.join(pathComponents[0:-2])
+    return os.path.join(chandlerDirectory, 'crypto')
 
 class Crypto(object):
     """
