@@ -73,7 +73,7 @@ Storage/System
     implementation tries to be non-Python-specific and non-Chandler-specific
     in various ways that would be unnecessary if its configuration and
     requirements were driven by the application definition, rather than the
-    other way around.    
+    other way around.
 
 Domain Model
     This layer is the heart of the application's functionality.  A domain model
@@ -87,7 +87,7 @@ Domain Model
     In Chandler today, domain model objects are implemented as repository-based
     Kinds, whose data model is defined by parcel.xml files.  These objects are
     not only based on repository-provided classes, they also access the
-    repository as part of their normal functioning.  
+    repository as part of their normal functioning.
 
     In Spike, the majority of the reasons why an object would directly use the
     repository will be eliminated, because the domain model will be represented
@@ -121,7 +121,7 @@ Modelling Layer
     will also allow the storage layer to request notification when a not-yet-
     loaded attribute is accessed, so the storage layer can retrieve the value
     on behalf of the modelling layer.
-    
+
 This is my general reference model for constructing reusable application
 architectures, so it's possible that this model will need further refinement
 for Chandler.  For example, I haven't done much with end user-programmable
@@ -314,44 +314,6 @@ that support may be simply by making it very easy to iterate over a set in
 a particular sort order, or to renumber items to match a specified sequence.
 
 
-Event Model
------------
-
-XXX to be continued
-
-Entity events:
-
-* Get attribute (autoload)
-* Get attribute (setup/default)
-* Get association (autoload)
-* Set attribute (override/convert value)
-* Set attribute (validation)
-* Set attribute (validation failure)
-* Set attribute (post-change success notification)
-* Object loaded w/outdated schema (?)
-
-Set/Dict events:
-
-* Add item (override/convert value)
-* Add item (validation)
-* Add item (validation failure)
-* Add item (post-change success notification)
-* Remove item (validation)
-* Remove item (validation failure)
-* Remove item (post-change success notification)
-* Collection autoload
-* Collection proxy?
-
-Misc.:
-
-* workspace loaded event (monitor object states to roll back upon error?)
-* inverse links
-* atomic operations (rollback current operation on error)
-* undo log via event listeners?
-* event aggregation?  suppression?
-* receiver prioritization (override getReceivers())
-
-
 Platform Extensibility
 ======================
 
@@ -388,5 +350,168 @@ definitions would designate the parcel class to be used for actually managing
 connections for that server, so the parcel would not actually be started until
 a connection of the appropriate type is received, thus avoiding the need to
 import the parcel at Chandler startup.
+
+In general, this will be handled via "delegates".  That is, by having objects
+that implement a required interface by importing the actual implementation and
+then delegating to it.  These "delegates" will then be registered at startup
+using information from the repository, rather than first starting the parcel
+and registering the objects directly.
+
+
+Spike's Package Layout
+======================
+
+Note: this is a work in progress; much is still TBD, and this is not an
+exhaustive list of the modules and packages that will appear in Spike, just the
+ones that I'm reasonably sure of at the moment.  Also, not all packages listed
+will actually be created or "finished" during the initial prototyping period.
+
+* Modelling Layer
+
+  ``spike.events``
+    Support for defining event types, and for subscribing to events
+
+  ``spike.models``
+    Base classes and support routines for "observable" objects and collections,
+    so that the domain, storage, and UI-related layers can observe domain-model
+    objects.
+
+  ``spike.schema``
+    Attribute descriptors and other support for defining metadata to describe
+    domain model objects for purposes of constraint checking, and introspection
+    by other layers.
+
+* Domain Model
+
+  Domain model code will go under a ``chandler`` package, with subpackages and
+  modules named according to the corresponding entities in today's ``osaf.*``
+  packages.  In a completed system, this would of course be the largest body of
+  code, but in Spike's initial prototyping this will be relatively narrow,
+  as there will be time only to implement a few illustrative content types.
+
+* Storage/System
+
+  ``spike.storage``
+    Base classes for workspaces, an in-memory workspace implementation, and
+    workspace->repository interfacing.  May become a subpackage with undo/redo
+    stuff, depending on time/resource availability.
+
+  ``spike.services``
+    Support for "background" tasks and services via Twisted, and inter-parcel
+    service registration and lookup.
+
+* Interaction Layer
+
+  ``spike.ui``
+    Subpackage with modules for menus, commands, and other interaction model
+    concepts.
+
+* Presentation Layer
+
+  ``spike.ui.views``
+    Subsystem for registering and retrieving presentations for commands and
+    other interaction-model concepts.
+
+  ``spike.ui.wx``
+    wxPython-specific presentation implementations.
+
+
+
+Misc. Notes
+===========
+
+This section is just in-progress requirements and design notes that will get
+moved to the documentation for the corresponding modules and packages as those
+subsystems are created.
+
+
+Interaction Requirements
+------------------------
+
+Command visibility and enabledness, based on view visibility and contents'
+selectedness.
+
+Do we need to activate/deactivate commands in groups? (like Eclipse's command
+sets)  In principle, no, but what if large groups change activation frequently?
+Will probably need to balance when/where command applicability is checked so as
+to avoid repetitive checking.
+
+
+Presentation Requirements
+-------------------------
+
+Map commands to keyboard accelerators, menu text and menu positions,
+toolbar buttons, icons, ordering.
+
+Map drag-and-drop operations to commands.
+
+
+Workspaces
+----------
+
+Add/remove item to workspace generates set add/remove events for corresponding
+extents.
+
+
+Schema
+------
+
+Association/association-end needs a concrete representation (to support dynamic
+association access), but it should still be easy to define simple uni- or bi-
+directional associations without a lot of overhead.  Ideally, it should be
+possible to define a bidirectional relationship without needing to use naming
+or import tricks to make the link.  Instead, we could maybe have something
+like::
+
+    inheritance = schema.Relationship("subclass","superclass")
+
+    class Kind(schema.Entity):
+         subclasses = schema.Collection(inheritance.subclass)
+         superclasses = schema.Collection(inheritance.superclass)
+
+thus allowing bidirectional relationships to be defined without needing to
+explicitly specify the type.  (Possible downside: if multiple types allowed to
+participate in a given end of the relationship, this may reduce type safety.)
+
+Referencing a type instead of one end of a "relationship" would implicitly
+create a relationship with an unnamed reverse end; in this way the dynamic API
+always has a relationship object to use for looking things up.
+
+
+Event Model
+-----------
+
+Entity events:
+
+* Get attribute (autoload)
+* Get attribute (setup/default)
+* Get association (autoload)
+* Set attribute (override/convert value)
+* Set attribute (validation)
+* Set attribute (validation failure)
+* Set attribute (post-change success notification)
+* Object loaded w/outdated schema (?)
+
+Set/Dict events:
+
+* Add item (override/convert value)
+* Add item (validation)
+* Add item (validation failure)
+* Add item (post-change success notification)
+* Remove item (validation)
+* Remove item (validation failure)
+* Remove item (post-change success notification)
+* Collection autoload
+* Collection proxy?
+
+Misc.:
+
+* workspace loaded event (monitor object states to roll back upon error?)
+* inverse links
+* atomic operations (rollback current operation on error)
+* undo log via event listeners?
+* event aggregation?  suppression?
+* receiver prioritization (override getReceivers())
+
 
 
