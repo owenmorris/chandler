@@ -114,11 +114,19 @@ class ItemHandler(xml.sax.ContentHandler):
             # If it has a key, assume its a dictionary of literals
             element = 'Dictionary'
             self.currentKey = attrs.getValue((None, 'key'))
+            if attrs.has_key((None, 'type')):
+                self.currentType = attrs.getValue((None, 'type'))
+            else:
+                self.currentType = None
             self.currentValue = ''
             
         else:
             # Otherwise, assume its a literal attribute
             element = 'Attribute'
+            if attrs.has_key((None, 'type')):
+                self.currentType = attrs.getValue((None, 'type'))
+            else:
+                self.currentType = None
             self.currentValue = ''
             
         # Add the tag to our context stack
@@ -183,18 +191,24 @@ class ItemHandler(xml.sax.ContentHandler):
         """ Creates a value from a string, based on the type
             of the attribute.
         """
-        assert self.currentItem, \
-               "No parent item at %s:%s" % (self.locator.getSystemId(),
-                                            self.locator.getLineNumber())
+        if self.currentType:
+            (namespace, name) = self.getNamespaceName(self.currentType)
+            type = self.findItem(namespace, name,
+                                 self.locator.getLineNumber())
+            value = type.makeValue(self.currentValue)
+        else:
+            assert self.currentItem, \
+                   "No parent item at %s:%s" % (self.locator.getSystemId(),
+                                                self.locator.getLineNumber())
 
-        kindItem = self.currentItem.kind
-        attributeItem = kindItem.getAttribute(local)
-
-        assert attributeItem, \
-               "Attribute not found at %s:%s" % (self.locator.getSystemId(),
-                                                 self.locator.getLineNumber())
+            kindItem = self.currentItem.kind
+            attributeItem = kindItem.getAttribute(local)
+            
+            assert attributeItem, \
+                   "No Attribute at %s:%s" % (self.locator.getSystemId(),
+                                              self.locator.getLineNumber())
         
-        value = attributeItem.type.makeValue(self.currentValue)
+            value = attributeItem.type.makeValue(self.currentValue)
         return value
 
     def findItem(self, namespace, name, line):
