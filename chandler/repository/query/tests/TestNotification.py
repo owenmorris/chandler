@@ -45,7 +45,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
 
         q.subscribe(notify_client, 'handle', False, True)
         self._checkQuery(lambda i: not 'i' in i.firstName, q.resultSet)
-        c = q.resultSet.next()
+        c = q.resultSet.first()
         self.assert_('i' in c.firstName)
         self.rep.commit()
 
@@ -105,7 +105,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self._checkQuery(lambda i: not 'i' in i.firstName, q.resultSet)
 
         # get an item from the query
-        c = q.resultSet.next()
+        c = q.resultSet.first()
         self.assert_('i' in c.firstName)
         self.rep.commit()
 
@@ -184,11 +184,11 @@ class TestNotification(QueryTestCase.QueryTestCase):
         self.rep.commit()
 
         union_query.subscribe(notify_client, 'handle', False, True)
-        union_query.resultSet.next() # force evaluation of some of the query at least
+        union_query.resultSet.first() # force evaluation of some of the query at least
 
         #test first query in union
         for1_query = self._compileQuery('testNotifyUnionQuery1','for i in "//parcels/osaf/contentmodel/calendar/CalendarEvent" where i.displayName == "Meeting"')        
-        one = for1_query.resultSet.next()
+        one = for1_query.resultSet.first()
         self.rep.commit()
         one.displayName = "Lunch"
 
@@ -203,7 +203,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         
         # test second query in union
         for2_query = self._compileQuery('testNotifyUnionQuery2','for i in "//parcels/osaf/contentmodel/Note" where contains(i.displayName,"idea")')
-        two = for2_query.resultSet.next()
+        two = for2_query.resultSet.first()
         self.rep.commit()
 
         origName = two.displayName
@@ -220,7 +220,7 @@ class TestNotification(QueryTestCase.QueryTestCase):
         # test third query in Union -- has an item traversal
         for3_query = self._compileQuery('testNotifyUnionQuery3','for i in "//parcels/osaf/contentmodel/contacts/Contact" where contains(i.contactName.firstName,"i")')
         
-        three = for3_query.resultSet.next()
+        three = for3_query.resultSet.first()
         self.rep.commit()
         origName = three.contactName.firstName
         assert 'i' in origName, "origName is %s" % origName

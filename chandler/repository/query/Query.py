@@ -206,23 +206,7 @@ class Query(Item.Item):
         """
         Return a generator of the query results
         """
-        return self.resultSet
-
-    def getResultSet(self):
-        return self.__generateResults()
-
-    resultSet = property(getResultSet)
-
-    def __generateResults(self):
-        if self.__queryHasChanged():
-            self._compile()
-        if self.queryString == "":
-            try:
-                self._resultSet.clear()
-            except AttributeError:
-                self._resultSet = []
-            self.stale = False
-        if self.stale:
+        if self.__resultsAreStale():
             try:
                 self._resultSet.clear()
             except:
@@ -234,7 +218,36 @@ class Query(Item.Item):
         else: 
             for i in self._resultSet:
                 yield i
-                
+
+    def getResultSet(self):
+        """
+        Return a reference collection of the query results
+        """
+        if self.__resultsAreStale():
+            try:
+                self._resultSet.clear()
+            except:
+                self._resultSet = []
+            self.stale = False
+            for i in self._logical_plan.execute():
+                self._resultSet.append(i)
+            return self._resultSet
+        else: 
+            return self._resultSet
+
+    resultSet = property(getResultSet)
+
+    def __resultsAreStale(self):
+        if self.__queryHasChanged():
+            self._compile()
+        if self.queryString == "":
+            try:
+                self._resultSet.clear()
+            except AttributeError:
+                self._resultSet = []
+            self.stale = False
+        return self.stale
+
     def __analyze(self, ast):
         """
         Produce a logical level query plan for the AST
