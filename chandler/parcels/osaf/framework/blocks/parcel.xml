@@ -75,6 +75,16 @@
   <Attribute itemName="textAlignmentEnum">
     <type itemref="docSchema:textAlignmentEnumType"/>
   </Attribute>
+  
+  <Enumeration itemName="orientationEnumType">
+    <values>Horizontal</values>
+    <values>Vertical</values>
+  </Enumeration>
+
+  <Attribute itemName="orientationEnum">
+    <type itemref="docSchema:orientationEnumType"/>
+  </Attribute>
+
     
   <!--
     Chandler Query
@@ -286,16 +296,7 @@
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.BoxContainer</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
 
-    <Enumeration itemName="orientationEnumType">
-      <values>Horizontal</values>
-      <values>Vertical</values>
-    </Enumeration>
-
-    <Attribute itemName="orientationEnum">
-      <type itemref="docSchema:BoxContainer/orientationEnumType"/>
-    </Attribute>
-
-    <attributes itemref="docSchema:BoxContainer/orientationEnum"/>
+    <attributes itemref="docSchema:orientationEnum"/>
   </Kind>
   
   <!--
@@ -584,20 +585,11 @@
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.SplitWindow</classes>
     <superKinds itemref="docSchema:RectangularChild"/>
     
-    <Enumeration itemName="orientationEnumType">
-      <values>Horizontal</values>
-      <values>Vertical</values>
-    </Enumeration>
-
-    <Attribute itemName="orientationEnum">
-      <type itemref="docSchema:BoxContainer/orientationEnumType"/>
-    </Attribute>
-
     <Attribute itemName="splitPercentage">
       <type itemref="Float"/>
     </Attribute>
 
-    <attributes itemref="docSchema:SplitWindow/orientationEnum"/>
+    <attributes itemref="docSchema:orientationEnum"/>
     <attributes itemref="docSchema:SplitWindow/splitPercentage"/>
   </Kind>  
 

@@ -127,7 +127,9 @@ class BoxContainer(RectangularChild):
         if self.parentBlock: 
             panel = wxPanel(parentWindow, -1)
             panel.SetSizer(sizer)
-            self.parentBlock.addToContainer(parent, panel, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+            self.parentBlock.addToContainer(parent, panel, 1, 
+                                            self.Calculate_wxFlag(), 
+                                            self.Calculate_wxBorder())
             return panel, sizer, panel
         else:
             parent.SetSizer(sizer)
@@ -320,7 +322,6 @@ class SplitWindow(RectangularChild):
         self.childrenToAdd.append(child)
 
     def handleChildren(self, window):
-
         children = window.GetChildren()
         width, height = window.GetSizeTuple()
         assert self.splitPercentage >= 0.0 and self.splitPercentage < 1.0
@@ -329,8 +330,6 @@ class SplitWindow(RectangularChild):
         else:
             window.SplitVertically(children[0], children[1], width * self.splitPercentage)
         return window
-
-
 
         assert (len (self.childrenToAdd) == 2)
         if self.orientationEnum == "Horizontal":
@@ -435,12 +434,10 @@ class TreeNode:
                                                 wxTreeItemData (data))
         self.treeList.SetItemHasChildren (childNodeId, hasChildren)
 
-
     def AddRootNode (self, data, title, hasChildren):
         rootNodeId = self.treeList.AddRoot (title, -1, -1, wxTreeItemData (data))
         self.treeList.SetItemHasChildren (rootNodeId, hasChildren)
         #self.treeList.Expand (rootNodeId)
-
                                              
     def GetData (self):
         if self.nodeId:
