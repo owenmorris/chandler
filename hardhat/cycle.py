@@ -29,6 +29,9 @@ def main():
     parser.add_option("-r", "--rsyncServer", action="store", type="string", dest="rsyncServer",
       default=defaultRsyncServer, help="Net address of server where builds get uploaded \n"
       " [default] " + defaultRsyncServer)
+    parser.add_option("-s", "--skipRSync", action="store_true", dest="skipRsync"
+      default=False, help="Skip rsync step\n"
+      " [default] False")
     parser.add_option("-s", "--script", action="store", dest="doScript",
       default="tinderbox.py", help="Script to run for the build\n"
       " [default] tinderbox.py")
@@ -83,6 +86,7 @@ def main():
              "-a", alertAddr, 
              "-t", mailtoAddr,
              "-r", options.rsyncServer,
+             "-s", options.skipRsync,
              "-p", options.project, args[0] ])
             hardhatutil.dumpOutputList(outputList)
         except:
