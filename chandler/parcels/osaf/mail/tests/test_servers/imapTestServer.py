@@ -22,6 +22,7 @@ DENY_CONNECTION = False
 DROP_CONNECTION = False
 BAD_TLS_RESPONSE = False
 TIMEOUT_RESPONSE = False
+TIMEOUT_DEFERRED = False
 SLOW_GREETING = False
 NO_MAILBOX = False
 SEND_CAPABILITY_IN_GREETING = False
@@ -156,6 +157,9 @@ class IMAPTestServer(basic.LineReceiver):
             self.sendResponse(NOOP_OK, line)
 
         elif "SELECT" in line.upper():
+            if TIMEOUT_DEFERRED:
+                return 
+
             if NO_MAILBOX or "INBOX" not in line.upper():
                 self.sendResponse(NO_MAILBOX_ERROR, line)
             else:
@@ -179,6 +183,8 @@ deny - Deny the connection
 drop - Drop the connection after sending the greeting
 bad_tls - Send a bad response to a STARTTLS
 timeout - Do not return a response to a Client request
+to_deferred - Do not return a response on a 'Select' request. This
+              will test Deferred callback handling
 slow - Wait 20 seconds after the connection is made to return a Server Greeting
 """
 
@@ -243,6 +249,11 @@ def processArgs():
         global TIMEOUT_RESPONSE
         TIMEOUT_RESPONSE = True
         printMessage("Timeout Response")
+
+    elif arg.lower() == 'to_deferred':
+        global TIMEOUT_DEFERRED
+        TIMEOUT_DEFERRED = True
+        printMessage("Timeout Deferred Response")
 
     elif arg.lower() == 'slow':
         global SLOW_GREETING
