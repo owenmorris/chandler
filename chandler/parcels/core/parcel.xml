@@ -42,6 +42,7 @@
   <namespaceMap key="Struct" value="//Schema/Core/Struct" />
   <namespaceMap key="Symbol" value="//Schema/Core/Symbol" />
   <namespaceMap key="Taxon" value="//Schema/Core/Taxon" />
+  <namespaceMap key="Tuple" value="//Schema/Core/Tuple" />
   <namespaceMap key="Type" value="//Schema/Core/Type" />
   <namespaceMap key="URL" value="//Schema/Core/URL" />
   <namespaceMap key="UUID" value="//Schema/Core/UUID" />
