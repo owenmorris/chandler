@@ -277,8 +277,7 @@ class wxList (DraggableWidget, wx.ListCtrl):
             item = self.blockItem.contents [event.GetIndex()]
             if self.blockItem.selection != item:
                 self.blockItem.selection = item
-            self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                                                              {'item':item})
+            self.blockItem.PostASelectionChangedEvent (item)
         event.Skip()
 
     def OnItemDrag(self, event):
@@ -415,6 +414,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.grid.EVT_GRID_COL_SIZE, self.OnColumnDrag)
         self.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.OnWXSelectionChanged)
+        self.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.OnSelectCell)
 
     def OnInit (self):
         elementDelegate = self.blockItem.elementDelegate
@@ -457,6 +457,22 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
             columnIndex = event.GetRowOrCol()
             self.blockItem.columnWidths [columnIndex] = self.GetColSize (columnIndex)
 
+    def OnSelectCell(self, event):
+        # Called by wxWidgets when a new cell is selected
+        currentItem = self.blockItem.selection
+        if currentItem is not None:
+            currentRow = self.blockItem.contents.index (currentItem)
+            selectedRow = event.GetRow()
+            if selectedRow != currentRow:
+                # selection moved up or down
+                self.SelectRow (selectedRow)
+                # remember the new selection
+                selectedItem = self.blockItem.contents [selectedRow]
+                self.blockItem.selection = selectedItem
+                # post a selection changed event
+                self.blockItem.PostASelectionChangedEvent (selectedItem)
+        event.Skip()
+
     def AddItem(self, itemUUID):
         item = Globals.repository.findUUID(itemUUID)
         self.blockItem.contents.add (item)
@@ -472,8 +488,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
                 for columnIndex in xrange (gridTable.GetNumberCols()):
                     self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
 
-            self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                                                              {'item':item})
+            self.blockItem.PostASelectionChangedEvent (item)
             self.blockItem.selectedColumn = self.blockItem.columnAttributeNames [event.GetCol()]
         event.Skip()
 
@@ -547,8 +562,7 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
             self.SetGridCursor (row, cursorColumn)
         else:
             self.ClearSelection()
-            self.blockItem.Post (Globals.repository.findPath ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                                 {'item':item})
+            self.blockItem.PostASelectionChangedEvent (item)
 
 
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
@@ -697,16 +711,12 @@ class Table (RectangularChild):
             self.onSelectionChangedEvent (notification)
             if notification.data['collection'] == True:
                 # tell the Detail View to select the whole collection
-                self.Post (Globals.repository.findPath \
-                           ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                           {'item':self.contents})
+                self.PostASelectionChangedEvent (self.contents)
         elif newSelection in self.contents:
             # select the item
             self.onSelectionChangedEvent (notification)
             # tell the Detail View about the new selection
-            self.Post (Globals.repository.findPath \
-                       ('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                       {'item':newSelection})
+            self.PostASelectionChangedEvent (newSelection)
 
 class RadioBox(RectangularChild):
     def instantiateWidget(self):
@@ -896,8 +906,7 @@ class wxTreeAndList(DraggableWidget):
             if self.blockItem.selection != selection:
                 self.blockItem.selection = selection
         
-                self.blockItem.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                                     {'item':selection})
+                self.blockItem.PostASelectionChangedEvent (selection)
         event.Skip()
 
     def OnItemDrag(self, event):
@@ -1028,8 +1037,7 @@ class wxItemDetail(wx.html.HtmlWindow):
         if not item:
             webbrowser.open(itemURL)
         else:
-            self.blockItem.Post (Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/SelectionChanged'),
-                                 {'item':item})
+            self.blockItem.PostASelectionChangedEvent (item)
 
     def wxSynchronizeWidget(self):
         if self.blockItem.selection:

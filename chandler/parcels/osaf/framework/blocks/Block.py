@@ -333,8 +333,10 @@ class wxRectangularChild (wx.Panel):
     CalculateWXFlag = classmethod(CalculateWXFlag)
     
 class RectangularChild(ContainerChild):
-    pass
-
+    def PostASelectionChangedEvent (self, item):
+        self.Post (Globals.repository.findPath (
+            '//parcels/osaf/framework/blocks/Events/SelectionChanged'),
+                   {'item':item})
     
 class BlockEvent(Event):
 
