@@ -69,7 +69,7 @@ class ItemHandler(ContentHandler):
             delegate = self.delegates[-1]
             if delegate.isValueReady(self):
                 self.delegates.pop()
-                value = delegate.getValue(self, self.data)
+                value = delegate.getParsedValue(self, self.data)
                 withValue = True
 
         if self.delegates:

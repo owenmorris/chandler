@@ -144,25 +144,6 @@ class Kind(Item):
 
         return False
 
-    def makeValue(self, data):
-
-        return SingleRef(UUID(data))
-
-    def typeXML(self, value, generator, withSchema):
-
-        generator.characters(value.getUUID().str64())
-
-    def handlerName(self):
-
-        return 'ref'
-    
-    def recognizes(self, value):
-
-        if isinstance(value, SingleRef):
-            return self.getRepository()[value.getUUID()].isItemOf(self)
-
-        return False
-
     def isSubKindOf(self, superKind):
 
         superKinds = self.getAttributeValue('superKinds',
@@ -179,6 +160,59 @@ class Kind(Item):
                     return True
 
         return False
+
+
+    # begin typeness of Kind as SingleRef
+    
+    def isValueReady(self, itemHandler):
+        return True
+
+    def startValue(self, itemHandler):
+        pass
+
+    def getParsedValue(self, itemHandler, data):
+        return self.makeValue(data)
+    
+    def makeValue(self, data):
+
+        if data == Kind.NoneString:
+            return None
+        
+        return SingleRef(UUID(data))
+
+    def makeString(self, data):
+
+        if data is None:
+            return Kind.NoneString
+        
+        return SingleRef(UUID(data))
+
+    def typeXML(self, value, generator, withSchema):
+
+        if value is None:
+            data = Kind.NoneString
+        else:
+            data = value.getUUID().str64()
+            
+        generator.characters(data)
+
+    def handlerName(self):
+
+        return 'ref'
+    
+    def recognizes(self, value):
+
+        if value is None:
+            return True
+
+        if isinstance(value, SingleRef):
+            return self.getRepository()[value.getUUID()].isItemOf(self)
+
+        return False
+
+    # end typeness of Kind as SingleRef
+
+    NoneString = "__NONE__"
 
 
 class ItemKind(Kind):

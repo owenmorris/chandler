@@ -94,8 +94,10 @@ class Type(Item):
     def isValueReady(self, itemHandler):
         return True
 
-    def getValue(self, itemHandler, data):
+    def getParsedValue(self, itemHandler, data):
         return self.makeValue(data)
+
+    NoneString = "__NONE__"
 
 
 class String(Type):
@@ -229,40 +231,93 @@ class Boolean(Type):
 class UUID(Type):
 
     def handlerName(self):
+
         return 'uuid'
 
     def makeValue(self, data):
+
+        if data == Type.NoneString:
+            return None
+
         return repository.util.UUID.UUID(data)
 
     def makeString(self, value):
+
+        if value is None:
+            return Type.NoneString
+        
         return value.str64()
+    
+    def recognizes(self, value):
+
+        return value is None or type(value) is repository.util.UUID.UUID
+
+    def eval(self, value):
+
+        return self.getRepository()[value]
 
 
 class SingleRef(Type):
 
     def handlerName(self):
+
         return 'ref'
     
     def makeValue(self, data):
+
+        if data == Type.NoneString:
+            return None
+        
         uuid = repository.util.UUID.UUID(data)
         return repository.util.SingleRef.SingleRef(uuid)
 
+    def makeString(self, value):
+
+        if value is None:
+            return Type.NoneString
+        
+        return str(value)
+    
+    def recognizes(self, value):
+
+        return (value is None or
+                type(value) is repository.util.SingleRef.SingleRef)
+
     def eval(self, value):
-        return self.getRepository()[value]
+
+        return self.getRepository()[value.getUUID()]
 
 
 class Path(Type):
 
     def handlerName(self):
+
         return 'path'
 
     def makeValue(self, data):
+
+        if data == Type.NoneString:
+            return None
+
         return repository.util.Path.Path(data)
 
+    def makeString(self, value):
+
+        if value is None:
+            return Type.NoneString
+        
+        return str(value)
+    
+    def recognizes(self, value):
+
+        return value is None or type(value) is repository.util.Path.Path
+
     def eval(self, value):
+
         item = self.find(value)
         if item is None:
             raise ValueError, 'Path %s evaluated to None' %(value)
+
         return item
 
 
@@ -278,7 +333,7 @@ class NoneType(Type):
         return None
 
     def makeString(self, value):
-        return "None"
+        return Type.NoneString
 
     def recognizes(self, value):
         return value is None
@@ -344,16 +399,18 @@ class Struct(Type):
     
     def _fieldXML(self, repository, value, fieldName, field, generator):
 
-        fieldValue = getattr(value, fieldName)
-        typeHandler = field.get('type', None)
+        fieldValue = getattr(value, fieldName, Item.Nil)
 
-        if typeHandler is None:
-            typeHandler = ItemHandler.typeHandler(repository, fieldValue)
+        if fieldValue is not Item.Nil:
+            typeHandler = field.get('type', None)
 
-        attrs = { 'name': fieldName, 'typeid': typeHandler._uuid.str64() }
-        generator.startElement('field', attrs)
-        generator.characters(typeHandler.makeString(fieldValue))
-        generator.endElement('field')
+            if typeHandler is None:
+                typeHandler = ItemHandler.typeHandler(repository, fieldValue)
+
+            attrs = { 'name': fieldName, 'typeid': typeHandler._uuid.str64() }
+            generator.startElement('field', attrs)
+            generator.characters(typeHandler.makeString(fieldValue))
+            generator.endElement('field')
 
     def fieldsStart(self, itemHandler, attrs):
 
@@ -388,13 +445,15 @@ class Struct(Type):
             for fieldName, field in self.fields.iteritems():
                 typeHandler = field.get('type', None)
                 if typeHandler is not None:
-                    if not typeHandler.recognizes(getattr(value, fieldName)):
+                    fieldValue = getattr(value, fieldName, Item.Nil)
+                    if not (fieldValue is Item.Nil or
+                            typeHandler.recognizes(fieldValue)):
                         return False
             return True
 
         return False
 
-    def getValue(self, itemHandler, data):
+    def getParsedValue(self, itemHandler, data):
 
         fields = itemHandler.fields
         
@@ -425,7 +484,9 @@ class Struct(Type):
 
         strings = []
         for fieldName, field in self.fields.iteritems():
-            strings.append("%s:%s" %(fieldName, getattr(value, fieldName)))
+            fieldValue = getattr(value, fieldName, Item.Nil)
+            if fieldValue is not Item.Nil:
+                strings.append("%s:%s" %(fieldName, fieldValue))
 
         return ",".join(strings)
     
@@ -444,7 +505,7 @@ class DateTime(Struct):
     def recognizes(self, value):
         return type(value) is self.getImplementationType()
 
-    def getValue(self, itemHandler, data):
+    def getParsedValue(self, itemHandler, data):
 
         flds = itemHandler.fields
         if flds is None:
@@ -483,7 +544,7 @@ class DateTimeDelta(Struct):
             super(DateTimeDelta, self)._fieldXML(repository, value,
                                                  fieldName, field, generator)
           
-    def getValue(self, itemHandler, data):
+    def getParsedValue(self, itemHandler, data):
 
         flds = itemHandler.fields
         if flds is None:
@@ -525,7 +586,7 @@ class RelativeDateTime(Struct):
                                                     fieldName, field,
                                                     generator)
           
-    def getValue(self, itemHandler, data):
+    def getParsedValue(self, itemHandler, data):
 
         flds = itemHandler.fields
         if flds is None:
@@ -553,7 +614,7 @@ class RelativeDateTime(Struct):
 
 class Collection(Type):
 
-    def getValue(self, itemHandler, data):
+    def getParsedValue(self, itemHandler, data):
 
         itemHandler.tagCounts.pop()
         itemHandler.attributes.pop()
@@ -684,7 +745,7 @@ class Text(Type):
             writer.write(data)
             writer.close()
     
-    def getValue(self, itemHandler, data):
+    def getParsedValue(self, itemHandler, data):
 
         value = itemHandler.value
         itemHandler.value = None
