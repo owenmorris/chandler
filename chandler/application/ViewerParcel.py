@@ -165,9 +165,6 @@ class ViewerParcel (ParcelV2):
                 node = node.GetNext()
         self.newAttribute ('description', 'The ' + self.displayName + ' parcel')
 
-        # register with the notification manager
-        Globals.notificationManager.Register(self.GetClientID())
-        
     def SynchronizeView (self):
         """
           If it isn't in the association we need to construct it and

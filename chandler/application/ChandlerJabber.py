@@ -69,7 +69,6 @@ class JabberClient:
         # this is used to give a one-time call to the roster after we log in
         self.rosterNotified = false
         
-        self.DeclareNotifications()
         self.ReadAccountFromPreferences()
          
     # reset the presence state
@@ -122,26 +121,6 @@ class JabberClient:
         self.name = self.application.model.preferences.GetPreferenceValue('chandler/identity/username')
         self.email = self.application.model.preferences.GetPreferenceValue('chandler/identity/emailaddress')
 
-    # define the notifications that we post
-    def DeclareNotifications(self):
-        # presence subscription request
-        nm = Globals.notificationManager
-
-        description = _("Someone has requested a subscription to your presence.")
-        nm.DeclareNotification('chandler/im/presence-request', nm.SYSTEM_CLIENT, 'unknown', description)
-
-        # presence changed
-        description = _("Someone's presence state has changed.")
-        nm.DeclareNotification('chandler/im/presence-changed', nm.SYSTEM_CLIENT, 'unknown', description)
-
-        # instant message arrived
-        description = _("You have received a new instant message.")
-        nm.DeclareNotification('chandler/im/message-arrived', nm.SYSTEM_CLIENT, 'unknown', description)
-        
-        # instant message sent
-        description = _("You have sent a new instant message.")
-        nm.DeclareNotification('chandler/im/message-sent', nm.SYSTEM_CLIENT, 'unknown', description)
-                                                
     # login to the Jabber server
     def Login(self):
         if self.loggedIn or not self.HasLoginInfo():
