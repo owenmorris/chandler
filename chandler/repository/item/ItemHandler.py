@@ -7,7 +7,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from repository.item.PersistentCollections import PersistentCollection
 from repository.item.PersistentCollections import PersistentList
 from repository.item.PersistentCollections import PersistentDict
-from repository.item.ItemRef import RefArgs, NoneRef
+from repository.item.ItemRef import RefArgs, NoneRef, ItemRef, UUIDStub
 from repository.item.Values import Values, References, ItemValue
 
 from repository.util.SingleRef import SingleRef
@@ -31,7 +31,8 @@ class ItemHandler(ContentHandler):
         self.afterLoadHooks = afterLoadHooks
         self.item = None
         self.instance = instance
-
+        self.handlerClass = ItemHandler
+        
         if repository not in ItemHandler.typeHandlers:
             ItemHandler.typeHandlers[repository] = {}
         
@@ -54,7 +55,7 @@ class ItemHandler(ContentHandler):
             delegateClass = type(delegate)
         else:
             delegate = self
-            delegateClass = ItemHandler
+            delegateClass = self.handlerClass
             
         method = getattr(delegateClass, tag + 'Start', None)
         if method is not None:
@@ -79,7 +80,7 @@ class ItemHandler(ContentHandler):
             delegateClass = type(delegate)
         else:
             delegate = self
-            delegateClass = ItemHandler
+            delegateClass = self.handlerClass
             
         attrs = self.tagAttrs.pop()
         method = getattr(delegateClass, self.tags.pop() + 'End', None)
@@ -109,20 +110,22 @@ class ItemHandler(ContentHandler):
                 readOnly = False
 
             cardinality = self.getCardinality(attribute, attrs)
-
             if cardinality != 'single':
                 if cardinality == 'dict':
                     self.repository.logger.warning("Warning, 'dict' cardinality for reference attribute %s on %s is deprecated, use 'list' instead", name, self.name or self.uuid)
+                self._setupRefDict(name, attribute, readOnly, attrs)
 
-                otherName = self.getOtherName(name, attribute, attrs)
-                if 'uuid' in attrs:
-                    uuid = UUID(attrs['uuid'])
-                else:
-                    uuid = None
-                refDict = self.repository._createRefDict(None, name, otherName,
-                                                         True, readOnly, uuid)
+    def _setupRefDict(self, name, attribute, readOnly, attrs):
+
+        otherName = self.getOtherName(name, attribute, attrs)
+        if 'uuid' in attrs:
+            uuid = UUID(attrs['uuid'])
+        else:
+            uuid = None
+        refDict = self.repository._createRefDict(None, name, otherName,
+                                                 True, readOnly, uuid)
                 
-                self.collections.append(refDict)
+        self.collections.append(refDict)
 
     def itemStart(self, itemHandler, attrs):
 
@@ -162,7 +165,7 @@ class ItemHandler(ContentHandler):
         else:
             item = self.item = cls.__new__(cls)
             pinned = 0
-            
+
         item._fillItem(self.name, self.parent, self.kind, uuid = self.uuid,
                        values = self.values, references = self.references,
                        afterLoadHooks = self.afterLoadHooks,
@@ -263,6 +266,7 @@ class ItemHandler(ContentHandler):
             attribute = self.attributes.pop()
             cardinality = self.getCardinality(attribute, attrs)
             otherCard = attrs.get('otherCard', None)
+            
         else:
             cardinality = 'single'
             otherCard = self.tagAttrs[-1].get('otherCard', None)
@@ -472,7 +476,7 @@ class ItemHandler(ContentHandler):
             otherName = self.kind.getOtherName(name, default=None)
 
         if otherName is None:
-            raise TypeError, 'Undefined other endpoint for %s/%s.%s of kind %s' %(self.parent.itsPath, self.name or self.uuid, name, self.kind.itsPath)
+            raise TypeError, 'Undefined other endpoint for %s.%s of kind %s' %(self.name or self.uuid, name, self.kind.itsPath)
 
         return otherName
 
@@ -509,21 +513,21 @@ class ItemHandler(ContentHandler):
     def makeValue(cls, typeName, data):
 
         try:
-            return ItemHandler.typeDispatch[typeName](data)
+            return cls.typeDispatch[typeName](data)
         except KeyError:
             raise ValueError, "Unknown type %s for data: %s" %(typeName, data)
 
     def typeHandler(cls, repository, value):
 
         try:
-            for uuid in cls.typeHandlers[repository][type(value)]:
+            for uuid in ItemHandler.typeHandlers[repository][type(value)]:
                 t = repository[uuid]
                 if t.recognizes(value):
                     return t
         except KeyError:
             pass
 
-        typeKind = repository[cls.typeHandlers[repository][None]]
+        typeKind = repository[ItemHandler.typeHandlers[repository][None]]
         types = typeKind.findTypes(value)
         if types:
             return types[0]
@@ -674,3 +678,82 @@ class ItemsHandler(ContentHandler):
                 self.items.append(self.itemHandler.item)
                 self.itemHandler.endDocument()
                 self.itemHandler = None
+
+
+class MergeHandler(ItemHandler):
+
+    def __init__(self, repository, origItem):
+
+        ItemHandler.__init__(self, repository, None, None, None)
+        self.origItem = origItem
+        self.handlerClass = MergeHandler
+
+    def itemEnd(self, itemHandler, attrs):
+
+        item = self.origItem
+        values = self.values
+        references = self.references
+
+        values._original = item._values
+        references._original = item._references
+
+        values._mergeChanges(item._values)
+        references._mergeChanges(item._references)
+
+        for key, value in item._references.iteritems():
+            if value._isRefDict():
+                references[key] = value
+
+        item._values = values
+        item._references = references
+
+        values._item = item
+        references._item = item
+
+    def refEnd(self, itemHandler, attrs):
+
+        if self.tags[-1] == 'item':
+            attribute = self.attributes.pop()
+            cardinality = self.getCardinality(attribute, attrs)
+        else:
+            return
+
+        if cardinality == 'single':     # cardinality of tag
+
+            if 'uuid' in attrs:         # ref collection
+                return
+            
+            typeName = attrs.get('type')
+
+            if typeName == 'none':
+                self.references[attrs['name']] = NoneRef
+                return
+
+            if typeName == 'uuid':
+                uuid = UUID(self.data)
+            else:
+                raise TypeError, (self.data, typeName)
+
+            name = attrs['name']
+            otherName = self.getOtherName(name, self.getAttribute(name), attrs)
+            self.references[name] = ItemRef(self.origItem, name,
+                                            UUIDStub(self.origItem, uuid),
+                                            otherName)
+
+    def kindEnd(self, itemHandler, attrs):
+
+        ItemHandler.kindEnd(self, itemHandler, attrs)
+        if self.kind is None:
+            raise AssertionError, 'no kind'
+
+    def parentEnd(self, itemHandler, attrs):
+        pass
+
+    def classEnd(self, itemHandler, attrs):
+        pass
+
+    def indexEnd(self, itemHandler, attrs):
+        pass
+
+    def _setupRefDict(self, name, attribute, readOnly, attrs):
+        pass

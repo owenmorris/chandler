@@ -40,6 +40,9 @@ class ItemRef(object):
     def _setItem(self, item):
         pass
 
+    def _isRefDict(self):
+        return False
+    
     def getItem(self):
         'Return the item this link was established from.'
         
@@ -127,10 +130,10 @@ class ItemRef(object):
         
         if item is self._item:
             if self._other._isItem():
-                self._item = UUIDStub(self._other, item)
+                self._item = UUIDStub(self._other, item._uuid)
         elif item is self._other:
             if self._item._isItem():
-                self._other = UUIDStub(self._item, item)
+                self._other = UUIDStub(self._item, item._uuid)
         else:
             raise ValueError, "%s doesn't reference %s" %(self, item)
 
@@ -207,7 +210,12 @@ class ItemRef(object):
         addAttr(attrs, 'alias', alias)
 
         if withSchema:
-            attrs['otherName'] = item._kind.getOtherName(name)
+            otherName = item._kind.getOtherName(name)
+            otherCard = other.getAttributeAspect(otherName, 'cardinality',
+                                                 default='single')
+            attrs['otherName'] = otherName
+            if otherCard != 'single':
+                attrs['otherCard'] = otherCard
 
         generator.startElement('ref', attrs)
         generator.characters(other._uuid.str64())
@@ -309,12 +317,12 @@ class ItemStub(Stub):
 
 class UUIDStub(Stub):
 
-    def __init__(self, item, other):
+    def __init__(self, item, uuid):
 
         super(UUIDStub, self).__init__()
 
         self.item = item
-        self.uuid = other._uuid
+        self.uuid = uuid
 
     def __repr__(self):
 
@@ -360,7 +368,7 @@ class RefArgs(object):
             other = repository.find(self.spec, load=False)
         else:
             other = item.find(self.spec, load=False)
-            
+
         if self.refName is None:
             if other is None:
                 raise ValueError, "refName to %s is unspecified, %s should be loaded before %s" %(self.spec, self.spec, item.itsPath)
@@ -498,9 +506,11 @@ class RefDict(LinkedMap):
         self._item = None
         if item is not None:
             self._setItem(item)
-        self._readOnly = readOnly
         self._indexes = None
+
         self._flags = RefDict.SETDIRTY
+        if readOnly:
+            self._flags |= RefDict.READONLY
         
         super(RefDict, self).__init__()
 
@@ -551,7 +561,7 @@ class RefDict(LinkedMap):
     def _setItem(self, item):
 
         if self._item is not None and self._item is not item:
-            raise ValueError, 'Item is already set'
+            raise AssertionError, 'Item is already set'
         
         self._item = item
 
@@ -770,7 +780,8 @@ class RefDict(LinkedMap):
         if not loading:
             if old is not None:
                 self.linkChanged(self._get(key), key)
-            self._setDirty(noMonitors=False)
+            else:
+                self._setDirty()
 
         if old is not None:
             item = self._getItem()
@@ -847,7 +858,7 @@ class RefDict(LinkedMap):
 
     def _removeRef(self, key, _detach=False):
 
-        if self._readOnly:
+        if self._flags & RefDict.READONLY:
             raise AttributeError, 'Value for %s on %s is read-only' %(self._name, self._item.itsPath)
 
         if self._indexes:
@@ -892,7 +903,7 @@ class RefDict(LinkedMap):
 
     def linkChanged(self, link, key):
 
-        if self._readOnly:
+        if self._flags & RefDict.READONLY:
             raise AttributeError, 'Value for %s on %s is read-only' %(self._name, self._item.itsPath)
 
         if key is not None:
@@ -1262,6 +1273,7 @@ class RefDict(LinkedMap):
         pass
 
     SETDIRTY = 0x0001
+    READONLY = 0x0002
 
 
 class TransientRefDict(RefDict):

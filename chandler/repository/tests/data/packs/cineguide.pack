@@ -21,6 +21,7 @@
   
   <item file="CineGuide.root">
     <item files="*.director" />
+    <item files="*.writer" />
     <item files="*.actor" />
     <item files="khepburn.movies" />
   </item>

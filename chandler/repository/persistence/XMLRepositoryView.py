@@ -12,6 +12,7 @@ from bsddb.db import DBLockDeadlockError, DBNotFoundError
 
 from repository.item.Item import Item
 from repository.item.ItemRef import TransientRefDict
+from repository.item.ItemHandler import MergeHandler
 from repository.persistence.RepositoryError import RepositoryError, MergeError
 from repository.persistence.RepositoryError import VersionConflictError
 from repository.persistence.RepositoryView import RepositoryView
@@ -35,7 +36,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
         self._log = []
         self._notifications = RepositoryNotifications()
         self._indexWriter = None
-        
+
     def _logItem(self, item):
         
         if super(XMLRepositoryView, self)._logItem(item):
@@ -196,7 +197,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
         if self._status & RepositoryView.COMMITTING == 0:
             if timing: tools.timing.begin("Repository commit")
-            
+
             try:
                 self._status |= RepositoryView.COMMITTING
 
@@ -381,21 +382,22 @@ class XMLRepositoryView(OnDemandRepositoryView):
                 if not i in l0:
                     l0.append(i)
 
-        def check(uuid, version, docId, status, parentId, dirties):
+        def check(uuid, version, docId, status, parent, dirties):
             item = self.find(uuid, False)
 
             if item is not None:
                 if item.isDirty():
                     oldDirty = status & Item.DIRTY
                     if uuid in merges:
-                        od, p, d = merges[uuid]
-                        merges[uuid] = (od | oldDirty, parentId,
+                        x, od, x, d = merges[uuid]
+                        merges[uuid] = (docId, od | oldDirty, parent,
                                         union(d, dirties))
                     else:
-                        merges[uuid] = (oldDirty, parentId, list(dirties))
-                else:
-                    if item._version < toVersion:
-                        unloads[uuid] = item
+                        merges[uuid] = (docId, oldDirty, parent,
+                                        list(dirties))
+
+                elif item._version < version:
+                    unloads[uuid] = item
                     
             if status & Item.DELETED:
                 histNotifications.history(uuid, 'deleted', parent=parent)
@@ -405,55 +407,58 @@ class XMLRepositoryView(OnDemandRepositoryView):
         history.apply(check, oldVersion, toVersion)
 
         try:
-            for uuid, (oldDirty, parentId, dirties) in merges.iteritems():
+            for uuid, (docId, oldDirty, parent, dirties) in merges.iteritems():
             
                 item = self.find(uuid, False)
                 newDirty = item.getDirty()
 
                 if newDirty & oldDirty & Item.NDIRTY:
-                    self._mergeNDIRTY(item, parentId, oldVersion, toVersion)
+                    self._mergeNDIRTY(item, parent, oldVersion, toVersion)
                     oldDirty &= ~Item.NDIRTY
-                    item._status |= Item.MERGED
+                    item._status |= Item.NMERGED
 
                 if newDirty & oldDirty & Item.CDIRTY:
                     item._children._mergeChanges(oldVersion, toVersion)
                     oldDirty &= ~Item.CDIRTY
-                    item._status |= Item.MERGED
+                    item._status |= Item.CMERGED
 
-#                if newDirty & oldDirty & Item.RDIRTY:
-#                    dirties = HashTuple(dirties)
-#                    for name in item._references._getDirties():
-#                        if name in dirties:
-#                            raise VersionConflictError, (item,
-#                                                         newDirty, oldDirty)
-#                    oldDirty &= ~Item.RDIRTY
-#                    item._status |= Item.MERGED
+                if newDirty & oldDirty & Item.RDIRTY:
+                    self._mergeRDIRTY(item, dirties)
+                    oldDirty &= ~Item.RDIRTY
+                    item._status |= Item.RMERGED
+
+                if newDirty & oldDirty & Item.VDIRTY:
+                    self._mergeVDIRTY(item, docId, dirties)
+                    oldDirty &= ~Item.VDIRTY
+                    item._status |= Item.VMERGED
+
+                if newDirty & oldDirty == 0:
+                    if oldDirty & Item.VDIRTY:
+                        self._mergeVDIRTY(item, docId, None)
+                        oldDirty &= ~Item.VDIRTY
+                        item._status |= Item.VMERGED
+                    if oldDirty & Item.RDIRTY:
+                        self._mergeRDIRTY(item, dirties)
+                        oldDirty &= ~Item.RDIRTY
+                        item._status |= Item.RMERGED
 
                 if newDirty and oldDirty:
                     raise VersionConflictError, (item, newDirty, oldDirty)
 
         except VersionConflictError:
             for uuid in merges.iterkeys():
-
                 item = self.find(uuid, False)
-                status = item._status
-
-                if status & Item.MERGED:
-                    if status & Item.CDIRTY:
-                        item._children._revertMerge()
-                    item._status &= ~Item.MERGED
+                if item._status & Item.MERGED:
+                    item._revertMerge()
 
             raise
 
         else:
             for uuid in merges.iterkeys():
-
                 item = self.find(uuid, False)
-                status = item._status
-
-                if status & Item.MERGED:
-                    if status & Item.CDIRTY:
-                        item._children._commitMerge()
+                if item._status & Item.MERGED:
+                    item._commitMerge(toVersion)
+                    self._i_merged(item)
 
     def _mergeNDIRTY(self, item, parentId, oldVersion, toVersion):
 
@@ -462,11 +467,56 @@ class XMLRepositoryView(OnDemandRepositoryView):
             s, d, p, v = self.store._history.getDocRecord(item._uuid,
                                                           oldVersion)
             if p != parentId and p != newParentId:
-                raise MergeError, ('rename', item, 'item %s moved to %s and %s' %(item._uuid, p, newParentId), MergeError.MOVE)
+                self._e_1_rename(item, p, newParentId)
     
         refs = self.store._refs
         key = refs.prepareKey(parentId, parentId)
         p, n, name = refs.loadRef(key, toVersion, item._uuid)
 
         if name != item._name:
-            raise MergeError, ('rename', item, 'item %s renamed to %s and %s' %(item._uuid, item._name, name), MergeError.RENAME)
+            self._e_2_rename(item, name)
+
+    def _mergeRDIRTY(self, item, dirties):
+
+        dirties = HashTuple(dirties)
+        for name in item._references._getDirties():
+            if name in dirties:
+                self._e_1_overlap(item, name)
+        item._references._dirties = dirties
+
+    def _mergeVDIRTY(self, item, docId, dirties):
+
+        if dirties is not None:
+            dirties = HashTuple(dirties)
+
+            for name in item._values._getDirties():
+                if name in dirties:
+                    self._e_2_overlap(item, name)
+            for name in item._references._getDirties():
+                if name in dirties:
+                    self._e_2_overlap(item, name)
+
+        store = self.repository.store
+        mergeHandler = MergeHandler(self, item)
+        doc = store._data.getDocument(docId)
+        store.parseDoc(doc, mergeHandler)
+
+    def _i_merged(self, item):
+
+        self.logger.info('%s merged %s with newer versions, merge status: 0x%0.4x', self, item.itsPath, (item._status & Item.MERGED) >> 16)
+
+    def _e_1_rename(self, item, parentId, newParentId):
+
+        raise MergeError, ('rename', item, 'item %s moved to %s and %s' %(item._uuid, parentId, newParentId), MergeError.MOVE)
+
+    def _e_2_rename(self, item, name):
+
+        raise MergeError, ('rename', item, 'item %s renamed to %s and %s' %(item._uuid, item._name, name), MergeError.RENAME)
+
+    def _e_1_overlap(self, item, name):
+        
+        raise MergeError, ('ref collections', item, 'merging ref collections is not yet implemented, overlapping attribute: %s' %(name), MergeError.BUG)
+
+    def _e_2_overlap(self, item, name):
+        
+        raise MergeError, ('values', item, 'merging values is not yet implemented, overlapping attribute: %s' %(name), MergeError.BUG)

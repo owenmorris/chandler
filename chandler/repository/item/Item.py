@@ -1481,12 +1481,15 @@ class Item(object):
         if copyFn is None:
             copyFn = copyOther
 
-        item._status |= Item.NODIRTY
-        item._values._copy(self._values, copyPolicy, copyFn)
-        item._references._copy(self._references, copyPolicy, copyFn)
-        item._status &= ~Item.NODIRTY
+        try:
+            item._status |= Item.NODIRTY
+            item._values._copy(self._values, copyPolicy, copyFn)
+            item._references._copy(self._references, copyPolicy, copyFn)
+        finally:
+            item._status &= ~Item.NODIRTY
+            
         item.setDirty(Item.NDIRTY)
-        
+
         if hasattr(cls, 'onItemCopy'):
             item.onItemCopy(self)
 
@@ -2344,6 +2347,33 @@ class Item(object):
         return self.getRepositoryView()._createRefDict(self, name, otherName,
                                                        persist, False, None)
 
+    def _commitMerge(self, version):
+
+        self._version = version
+        status = self._status
+
+        if status & Item.CMERGED:
+            self._children._commitMerge()
+        if status & Item.VMERGED:
+            self._values._commitMerge()
+            self._references._commitMerge()
+        if status & Item.RMERGED:
+            self._references._commitMerge()
+
+    def _revertMerge(self):
+
+        status = self._status
+
+        if status & Item.CMERGED:
+            self._children._revertMerge()
+        if status & Item.VMERGED:
+            self._values._revertMerge()
+            self._references._revertMerge()
+        if status & Item.RMERGED:
+            self._references._revertMerge()
+
+        self._status &= ~Item.MERGED
+
     def _countAccess(cls):
 
         cls.__access__ += 1
@@ -2376,14 +2406,20 @@ class Item(object):
     NDIRTY     = 0x0100           # parent or name changed
     CDIRTY     = 0x0200           # children list changed
     RDIRTY     = 0x0400           # ref collection changed
-    MERGED     = 0x0800
+
     SAVED      = 0x1000
     ADIRTY     = 0x2000           # acl(s) changed
     PINNED     = 0x4000           # auto-refresh, don't stale
     NODIRTY    = 0x8000           # turn off dirtying
-    
+
+    VMERGED    = VDIRTY << 16
+    RMERGED    = RDIRTY << 16
+    NMERGED    = NDIRTY << 16
+    CMERGED    = CDIRTY << 16
+
     VRDIRTY    = VDIRTY | RDIRTY
     DIRTY      = VDIRTY | RDIRTY | NDIRTY | CDIRTY
+    MERGED     = VMERGED | RMERGED | NMERGED | CMERGED
     SAVEMASK   = DIRTY | ADIRTY | NEW | DELETED | SCHEMA
 
     __access__ = 0L

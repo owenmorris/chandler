@@ -207,30 +207,55 @@ class RefContainer(DBContainer):
         # uItem, uCol, uRef, ~version -> uItem, version, uCol, uRef
         return pack('>16sl32s', key, ~unpack('>l', key[48:52])[0], key[16:48])
 
-    # has to run within the commit transaction or it may deadlock
     def applyHistory(self, fn, uuid, oldVersion, newVersion):
 
-        try:
-            cursor = self.cursor(self._history)
+        while True:
+            txnStarted = False
+            cursor = None
 
             try:
-                value = cursor.set_range(pack('>16sl', uuid._uuid,
-                                              oldVersion + 1),
-                                         flags=self._flags)
-            except DBNotFoundError:
+                txnStarted = self.store.startTransaction()
+                cursor = self.cursor(self._history)
+
+                try:
+                    value = cursor.set_range(pack('>16sl', uuid._uuid,
+                                                  oldVersion + 1),
+                                             flags=self._flags)
+                except DBNotFoundError:
+                    return
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(16)
+                        continue
+                    else:
+                        raise
+
+                try:
+                    while value is not None:
+                        uItem, version, uCol, uRef = unpack('>16sl16s16s',
+                                                            value[0])
+                        if version > newVersion or uItem != uuid._uuid:
+                            break
+
+                        fn(version, (UUID(uCol), UUID(uRef)),
+                           self._readRef(value[1]))
+
+                        value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(17)
+                        continue
+                    else:
+                        raise
+
                 return
 
-            while value is not None:
-                uItem, version, uCol, uRef = unpack('>16sl16s16s', value[0])
-                if version > newVersion or uItem != uuid._uuid:
-                    break
-
-                fn(version, (UUID(uCol), UUID(uRef)), self._readRef(value[1]))
-
-                value = cursor.next()
-
-        finally:
-            cursor.close()
+            finally:
+                if cursor is not None:
+                    cursor.close()
+                if txnStarted:
+                    self.store.abortTransaction()
 
     def deleteRef(self, keyBuffer, buffer, version, key):
 
@@ -305,7 +330,7 @@ class RefContainer(DBContainer):
                 return None
 
             finally:
-                if cursor:
+                if cursor is not None:
                     cursor.close()
                 if txnStarted:
                     self.store.abortTransaction()
@@ -431,47 +456,72 @@ class HistContainer(DBContainer):
             
         self.put(pack('>l16s', version, uuid._uuid), value)
 
-    # has to run within the commit transaction or it may deadlock
     def apply(self, fn, oldVersion, newVersion):
 
-        try:
-            cursor = self.cursor()
+        while True:
+            txnStarted = False
+            cursor = None
 
             try:
-                value = cursor.set_range(pack('>l', oldVersion + 1),
-                                         flags=self._flags)
-            except DBNotFoundError:
+                txnStarted = self.store.startTransaction()
+                cursor = self.cursor()
+
+                try:
+                    value = cursor.set_range(pack('>l', oldVersion + 1),
+                                             flags=self._flags)
+                except DBNotFoundError:
+                    return
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(18)
+                        continue
+                    else:
+                        raise
+
+                repositoryId = Repository.itsUUID._uuid
+
+                try:
+                    while value is not None:
+                        version, uuid = unpack('>l16s', value[0])
+                        if version > newVersion:
+                            break
+
+                        if uuid != repositoryId:
+                            value = value[1]
+                            status, = unpack('>l', value[0:4])
+                            value = value[4:]
+
+                            if status & Item.DELETED:
+                                docId, parentId = unpack('>l16s', value)
+                                parentId = UUID(parentId)
+                                dirties = HashTuple()
+                            else:
+                                docId, parentId = unpack('>l16s', value[0:20])
+                                parentId = UUID(parentId)
+                                value = value[20:]
+                                dirties = unpack('>%dl' %(len(value) >> 2),
+                                                 value)
+                                dirties = HashTuple(dirties)
+
+                            fn(UUID(uuid), version, docId, status, parentId,
+                               dirties)
+
+                        value = cursor.next()
+
+                except DBLockDeadlockError:
+                    if txnStarted:
+                        self._logDL(19)
+                        continue
+                    else:
+                        raise
+
                 return
 
-            repositoryId = Repository.itsUUID._uuid
-            
-            while value is not None:
-                version, uuid = unpack('>l16s', value[0])
-                if version > newVersion:
-                    break
-
-                if uuid != repositoryId:
-                    value = value[1]
-                    status, = unpack('>l', value[0:4])
-                    value = value[4:]
-
-                    if status & Item.DELETED:
-                        docId, parentId = unpack('>l16s', value)
-                        parentId = UUID(parentId)
-                        dirties = HashTuple()
-                    else:
-                        docId, parentId = unpack('>l16s', value[0:20])
-                        parentId = UUID(parentId)
-                        value = value[20:]
-                        dirties = unpack('>%dl' %(len(value) >> 2), value)
-                        dirties = HashTuple(dirties)
-
-                    fn(UUID(uuid), version, docId, status, parentId, dirties)
-
-                value = cursor.next()
-
-        finally:
-            cursor.close()
+            finally:
+                if cursor is not None:
+                    cursor.close()
+                if txnStarted:
+                    self.store.abortTransaction()
 
     def _readHistory(self, uuid, version):
 
@@ -518,7 +568,7 @@ class HistContainer(DBContainer):
                 return None, None, None, None
 
             finally:
-                if cursor:
+                if cursor is not None:
                     cursor.close()
                 if txnStarted:
                     self.store.abortTransaction()
@@ -608,7 +658,7 @@ class NamesContainer(DBContainer):
                 return None
 
             finally:
-                if cursor:
+                if cursor is not None:
                     cursor.close()
                 if txnStarted:
                     self.store.abortTransaction()
@@ -661,7 +711,7 @@ class NamesContainer(DBContainer):
                 return results
 
             finally:
-                if cursor:
+                if cursor is not None:
                     cursor.close()
                 if txnStarted:
                     self.store.abortTransaction()
@@ -744,7 +794,7 @@ class ACLContainer(DBContainer):
                 return None
 
             finally:
-                if cursor:
+                if cursor is not None:
                     cursor.close()
                 if txnStarted:
                     self.store.abortTransaction()
@@ -880,7 +930,7 @@ class IndexesContainer(DBContainer):
                 return None
 
             finally:
-                if cursor:
+                if cursor is not None:
                     cursor.close()
                 if txnStarted:
                     self.store.abortTransaction()

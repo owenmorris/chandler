@@ -106,13 +106,13 @@ class RepositoryView(object):
     def setDirty(self, dirty):
 
         if dirty:
-            self._status |= RepositoryView.CDIRTY
+            self._status |= Item.CDIRTY
         else:
-            self._status &= ~RepositoryView.CDIRTY
+            self._status &= ~Item.CDIRTY
 
     def isDirty(self):
 
-        return self._status & RepositoryView.CDIRTY != 0
+        return self._status & Item.CDIRTY != 0
 
     def closeView(self):
         """
@@ -136,7 +136,7 @@ class RepositoryView(object):
         self._deletedRegistry.clear()
         self._childrenRegistry.clear()
         del self._stubs[:]
-        self._status &= ~(RepositoryView.OPEN | RepositoryView.CDIRTY)
+        self._status &= ~(RepositoryView.OPEN | Item.CDIRTY)
 
         self.repository.store.detachView(self)
 
@@ -792,6 +792,17 @@ class RepositoryView(object):
 
         raise NotImplementedError, "%s.mapHistory" %(type(self))
         
+    def _commitMerge(self):
+
+        if self._status & Item.CMERGED:
+            self._roots._commitMerge()
+
+    def _revertMerge(self):
+
+        if self._status & Item.CMERGED:
+            self._roots._revertMerge()
+
+        self._status &= ~Item.MERGED
 
     itsUUID = property(__getUUID)
     itsName = property(__getName)
@@ -805,8 +816,11 @@ class RepositoryView(object):
     OPEN       = 0x0001
     LOADING    = 0x0002
     COMMITTING = 0x0004
-    CDIRTY     = 0x0008
-    
+
+    # flags from Item
+    # CDIRTY   = 0x0200
+    # merge flags
+
 
 class OnDemandRepositoryView(RepositoryView):
 

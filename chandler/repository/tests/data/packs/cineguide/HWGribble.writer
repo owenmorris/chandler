@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<item>
+    <name>HWGribble</name>
+    <kind type="path">//Schema/CineGuide/Kinds/Writer</kind>
+
+    <attribute name="name">Harry Wagstaff Gribble</attribute>
+</item>

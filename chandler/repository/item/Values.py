@@ -163,6 +163,17 @@ class Values(dict):
         except AttributeError:
             pass
 
+    def _mergeChanges(self, source):
+
+        if '_flags' in source.__dict__:
+            for key, flags in source._flags.iteritems():
+                self._setFlags(key, flags)
+                if flags & Values.DIRTY:
+                    if key in source:
+                        self[key] = source[key]
+                    elif key in self:
+                        del self[key]
+
     def _xmlValues(self, generator, withSchema, version, mode):
 
         from repository.item.ItemHandler import ItemHandler
@@ -175,8 +186,8 @@ class Values(dict):
             if kind is not None:
                 attribute = kind.getAttribute(key)
             else:
-                attribute = None                
-                
+                attribute = None
+
             if attribute is not None:
                 persist = attribute.getAspect('persist', default=True)
             else:
@@ -210,7 +221,20 @@ class Values(dict):
                     e.args = ("while saving attribute '%s' of item %s, %s" %(key, item.itsPath, e.args[0]),)
                     raise
 
+    def _commitMerge(self):
 
+        try:
+            del self._original
+        except AttributeError:
+            pass
+
+    def _revertMerge(self):
+
+        try:
+            self._item._values = self._original
+        except AttributeError:
+            pass
+    
     READONLY  = 0x0001         # value is read-only
     MONITORED = 0x0002         # value is monitored
     DIRTY     = 0x0100         # value is dirty
@@ -260,15 +284,38 @@ class References(Values):
 
     def _clearDirties(self):
 
-        try:
-            for key, flags in self._flags.iteritems():
-                if flags & Values.DIRTY:
-                    self._flags[key] &= ~Values.DIRTY
+        super(References, self)._clearDirties()
+        # clearing according to flags is not enough, flags not set on new items
+        for value in self.itervalues():
+            value._clearDirties()
 
-                    value = self.get(key)
-                    if value is not None:
-                        value._clearDirties()
-                        
+    def _commitMerge(self):
+
+        try:
+            del self._original
+        except AttributeError:
+            pass
+
+        try:
+            dirties = self._dirties
+            del self._dirties
+        except AttributeError:
+            dirties = None
+
+        if dirties is not None:
+            for key in self.iterkeys():
+                if key in dirties:
+                    self[key]._commitMerge()
+
+    def _revertMerge(self):
+
+        try:
+            self._item._references = self._original
+        except AttributeError:
+            pass
+
+        try:
+            del self._dirties
         except AttributeError:
             pass
 

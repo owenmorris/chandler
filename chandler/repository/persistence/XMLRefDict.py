@@ -6,7 +6,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 from cStringIO import StringIO
 
-from repository.item.Item import Children
+from repository.item.Item import Item, Children
 from repository.item.ItemRef import RefDict
 from repository.item.Indexes import NumericIndex
 from repository.persistence.RepositoryError import MergeError
@@ -34,7 +34,7 @@ class PersistentRefs(object):
 
         return self.view.repository.store._refs
 
-    def _copy(self, target):
+    def _copy_(self, target):
 
         target._changedRefs.clear()
         target._changedRefs.update(self._changedRefs)
@@ -240,9 +240,11 @@ class XMLRefDict(RefDict, PersistentRefs):
         if mode == 'save':
             store = self.view.repository.store
 
-#            if (not self._item._references._isDirty(self._name) and
-#                len(self._changedRefs) > 0):
-#                raise AssertionError, 'what ??'
+            item = self._item
+            if not (item.isNew() or
+                    item.isAttributeDirty(self._name, item._references) or
+                    len(self._changedRefs) == 0):
+                raise AssertionError, '%s.%s not marked dirty' %(Item.__repr__(item), self._name)
 
             for key, (op, oldAlias) in self._changedRefs.iteritems():
 
@@ -296,6 +298,11 @@ class XMLRefDict(RefDict, PersistentRefs):
         if self._indexes:
             for name, index in self._indexes.iteritems():
                 index._clearDirties()
+
+    def _commitMerge(self):
+
+        self._clear_()
+        PersistentRefs._setItem(self, self._item)
 
     def _createIndex(self, indexType, **kwds):
 
@@ -539,19 +546,17 @@ class XMLChildren(Children, PersistentRefs):
 
         PersistentRefs._clearDirties(self)
 
-    def _copy(self, target):
+    def _copy_(self, target):
 
-        Children._copy(self, target)
-        PersistentRefs._copy(self, target)
+        Children._copy_(self, target)
+        PersistentRefs._copy_(self, target)
         target._original = self
 
     def _commitMerge(self):
 
         try:
             del self._original
-            self.view.logger.info('%s merged children of %s with newer version',
-                                  self.view, self._item.itsPath)
-        except:
+        except AttributeError:
             pass
 
     def _revertMerge(self):
@@ -564,23 +569,23 @@ class XMLChildren(Children, PersistentRefs):
     def _mergeChanges(self, oldVersion, toVersion):
 
         target = self.view._createChildren(self._item)
-        self._copy(target)
+        self._copy_(target)
         self._item._setChildren(target)
 
         PersistentRefs._mergeChanges(target, oldVersion, toVersion)
 
     def _e_1_remove(self, *args):
-        raise MergeError, ('merging children', self._item, 'modified child %s was removed in other view' %(args), MergeError.MOVE)
+        raise MergeError, ('children', self._item, 'modified child %s was removed in other view' %(args), MergeError.MOVE)
 
     def _e_2_remove(self, *args):
-        raise MergeError, ('merging children', self._item, 'removed child %s was modified in other view' %(args), MergeError.MOVE)
+        raise MergeError, ('children', self._item, 'removed child %s was modified in other view' %(args), MergeError.MOVE)
 
     def _e_1_renames(self, *args):
-        raise MergeError, ('merging children', self._item, 'child %s renamed to %s and %s' %(args), MergeError.RENAME)
+        raise MergeError, ('children', self._item, 'child %s renamed to %s and %s' %(args), MergeError.RENAME)
 
     def _e_2_renames(self, *args):
-        raise MergeError, ('merging children', self._item, 'child %s named %s conflicts with child %s of same name' %(args), MergeError.NAME)
+        raise MergeError, ('children', self._item, 'child %s named %s conflicts with child %s of same name' %(args), MergeError.NAME)
 
     def _e_names(self, *args):
-        raise MergeError, ('merging children', self._item, 'child %s conflicts with other child %s, both are named %s' %(args), MergeError.NAME)
+        raise MergeError, ('children', self._item, 'child %s conflicts with other child %s, both are named %s' %(args), MergeError.NAME)
 

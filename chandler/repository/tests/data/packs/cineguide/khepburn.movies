@@ -10,6 +10,11 @@
     <attribute name="released">1932-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/GCukor</ref>
+    <ref name="writers">
+      <ref type="path">//CineGuide/CDane</ref>
+      <ref type="path">//CineGuide/HEstabrook</ref>
+      <ref type="path">//CineGuide/HWGribble</ref>
+    </ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
@@ -28,6 +33,10 @@
     <attribute name="released">1933-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/LSherman</ref>
+    <ref name="writers">
+      <ref type="path">//CineGuide/ZAkins</ref>
+      <ref type="path">//CineGuide/HJGreen</ref>
+    </ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
@@ -45,6 +54,11 @@
     <attribute name="released">1933-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/GCukor</ref>
+    <ref name="writers">
+      <ref type="path">//CineGuide/LMAlcott</ref>
+      <ref type="path">//CineGuide/SYMason</ref>
+      <ref type="path">//CineGuide/VHeerman</ref>
+    </ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
@@ -62,6 +76,10 @@
     <attribute name="released">1934-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/JCromwell</ref>
+    <ref name="writers">
+      <ref type="path">//CineGuide/LVollmer</ref>
+      <ref type="path">//CineGuide/JMurfin</ref>
+    </ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>
@@ -78,6 +96,12 @@
     <attribute name="released">1935-MM-DD</attribute>
 
     <ref name="director" type="path">//CineGuide/GStevens</ref>
+    <ref name="writers">
+      <ref type="path">//CineGuide/BTarkington</ref>
+      <ref type="path">//CineGuide/DYost</ref>
+      <ref type="path">//CineGuide/MOffner</ref>
+      <ref type="path">//CineGuide/JMurfin</ref>
+    </ref>
     <ref name="actors">
       <ref type="path">//CineGuide/KHepburn</ref>
     </ref>

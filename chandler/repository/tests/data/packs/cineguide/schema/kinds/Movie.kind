@@ -11,6 +11,7 @@
     <ref alias="titre" type="path">/CineGuide/Attributes/titre</ref>
     <ref alias="released" type="path">/CineGuide/Attributes/released</ref>
     <ref alias="actors" type="path">/CineGuide/Attributes/actors</ref>
+    <ref alias="writers" type="path">/CineGuide/Attributes/writers</ref>
     <ref alias="synopsis" type="path">/CineGuide/Attributes/synopsis</ref>
     <ref alias="website" type="path">/CineGuide/Attributes/website</ref>
   </ref>

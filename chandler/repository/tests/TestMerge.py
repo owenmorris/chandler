@@ -322,6 +322,103 @@ class TestMerge(RepositoryTestCase):
         self.assert_(names[0] == 'baz')
         self.assert_(len(names) == 3)
 
+    def testMergeNoOverlapRefCollections(self):
+
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        self.rep.loadPack(cineguidePack)
+        self.rep.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.actors.clear()
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.writers.clear()
+        main.commit()
+
+    def testMergeOverlapRefCollections(self):
+
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        self.rep.loadPack(cineguidePack)
+        self.rep.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.actors.clear()
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.actors.clear()
+
+        try:
+            main.commit()
+        except MergeError, e:
+            #print e
+            self.assert_(e.getReasonCode() == MergeError.BUG)
+        else:
+            self.assert_(False)
+
+    def testMergeNoOverlapRV(self):
+
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        self.rep.loadPack(cineguidePack)
+        self.rep.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.title = 'changed title'
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        k.movies.clear()
+        main.commit()
+
+        self.assert_(m.title == 'changed title')
+        self.assert_(len(m.actors) == 0)
+
+    def testMergeNoOverlapVR(self):
+
+        cineguidePack = os.path.join(self.testdir, 'data', 'packs',
+                                     'cineguide.pack')
+        self.rep.loadPack(cineguidePack)
+        self.rep.commit()
+
+        view = self.rep.createView('view')
+        main = self.rep.setCurrentView(view)
+
+        k = view.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.writers.clear()
+        view.commit()
+        
+        view = self.rep.setCurrentView(main)
+        k = main.findPath('//CineGuide/KHepburn')
+        m = k.movies.first()
+        m.title = 'changed title'
+        main.commit()
+
+        self.assert_(m.title == 'changed title')
+        self.assert_(len(m.writers) == 0)
+
 
 if __name__ == "__main__":
 #    import hotshot
