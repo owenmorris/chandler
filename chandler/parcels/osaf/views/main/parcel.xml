@@ -237,6 +237,7 @@
     <childrenBlocks itemref="doc:GenerateCalendarItem"/>
     <childrenBlocks itemref="doc:GenerateNoteItem"/>
     <childrenBlocks itemref="doc:ImportContactItem"/>
+    <childrenBlocks itemref="doc:SharingSubscribeToCollectionItem"/>
     <childrenBlocks itemref="doc:EditMailAccountItem"/>
     <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
@@ -430,9 +431,17 @@
     <helpString>import Contacts from contacts.csv</helpString>
   </MenuItem>
 
+  <MenuItem itsName="SharingSubscribeToCollectionItem">
+    <blockName>SharingSubscribeToCollection</blockName>
+    <title>Subscribe to Collection...</title>
+    <location>TestMenu</location>
+    <event itemref="events:SharingSubscribeToCollection"/>
+    <helpString>Subscribe to a published item collection</helpString>
+  </MenuItem>
+
   <MenuItem itsName="EditMailAccountItem">
     <blockName>EditMailAccountItem</blockName>
-    <title>Edit Mail Account</title>
+    <title>Edit Mail Account...</title>
     <location>TestMenu</location>
     <event itemref="events:EditMailAccount"/>
     <helpString>Edit email account settings</helpString>
@@ -456,7 +465,7 @@
 
   <MenuItem itsName="ShowPyCrustItem">
     <blockName>ShowPyCrustItem</blockName>
-    <title>Show PyCrust Debugger</title>
+    <title>Show PyCrust Debugger...</title>
     <location>TestMenu</location>
     <event itemref="events:ShowPyCrust"/>
     <helpString>Brings up an interactive Python shell</helpString>

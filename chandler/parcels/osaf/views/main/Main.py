@@ -38,9 +38,17 @@ class MainView(View):
 
     def onPasteEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
- 
+
     def onPreferencesEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
+
+    def onSharingSubscribeToCollectionEvent(self, notification):
+        url =  application.Application.promptUser( \
+         Globals.wxApplication.mainFrame, "Subscribe to Collection...", 
+         "Collection URL:", "http://webdav.osafoundation.org/")
+        if url is not None:
+            print "I would be subscribing to %s here" % url
+
 
     def onEditMailAccountEvent (self, notification):
         account = \
@@ -86,7 +94,6 @@ class MainView(View):
                 # Note: this commit, too, could get a conflict I suppose, so
                 # do we need to put this sort of conflict resolution in a loop?
                 print "Conflict resolved"
-
 
 
     def onGetNewMailEvent (self, notification):
