@@ -79,14 +79,13 @@ def Start(hardhatScript, workingDir, cvsVintage, buildVersion, clobber, log):
     ret = Do(hardhatScript, "debug", workingDir, outputDir, cvsVintage, 
      buildVersion, log)
 
-    modeDir = os.path.join(workingDir, "debug")
-    CopyLog(os.path.join(modeDir, logPath), log)
+    CopyLog(os.path.join(workingDir, logPath), log)
 
     # do release
     ret = Do(hardhatScript, "release", workingDir, outputDir, cvsVintage, 
      buildVersion, log)
-    modeDir = os.path.join(workingDir, "release")
-    CopyLog(os.path.join(modeDir, logPath), log)
+
+    CopyLog(os.path.join(workingDir, logPath), log)
 
     hardhatlib.log_rotate(buildenv)
 
