@@ -33,6 +33,12 @@ class RepositoryTestCase(unittest.TestCase):
         self.rep = XMLRepository(os.path.join(self.testdir, '__repository__'))
         self.rep.open()
 
+    def _find(self, item):
+        return self.rep.find(item)
+
+    _KIND_KIND = "//Schema/Core/Kind"
+    _ITEM_KIND = "//Schema/Core/Item"
+
     # Repository specific assertions
     def assertIsRoot(self, item):
         self.assert_(item in self.rep.getRoots())

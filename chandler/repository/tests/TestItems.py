@@ -19,7 +19,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
     def testItemParentChild(self):
         """Test basic attribute functionality, focusing on parent-child relationships"""
         # Test find()
-        kind = self.rep.find('//Schema/Core/Item')
+        kind = self._find('//Schema/Core/Item')
         self.assert_(kind is not None)
 
         # Test getItemDisplayName
@@ -90,7 +90,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        item = self.rep.find('//test')
+        item = self._find('//test')
         child1 = item['child1']
         child2 = item['child2']
         self.assertIsRoot(item)
@@ -129,7 +129,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        item = self.rep.find('//test')
+        item = self._find('//test')
         child1 = item['child1']
         child2 = item['child2']
         child3 = child2['child3']
@@ -146,7 +146,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
         
         # now write what we've done and read it back
         self._reopenRepository()
-        item = self.rep.find('//test')
+        item = self._find('//test')
         child1 = item['child1']
         child2 = item['child2']
         child3 = child2['child3']
@@ -158,7 +158,7 @@ class ItemsTest(RepositoryTestCase.RepositoryTestCase):
 
     def testAttributeIteration(self):
         """Test iteration over attributes"""
-        kind = self.rep.find('//Schema/Core/Kind')
+        kind = self._find('//Schema/Core/Kind')
         self.assert_(kind is not None)
 
         # Test iterating over literal attributes

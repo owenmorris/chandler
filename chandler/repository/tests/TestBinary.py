@@ -26,7 +26,7 @@ class TestBinary(RepositoryTestCase):
         self.rep.commit()
 
     def testBZ2Compressed(self):
-        khepburn = self.rep.find('//CineGuide/KHepburn')
+        khepburn = self._find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
         largeBinary = os.path.join(self.testdir, 'data', 'khepltr.jpg')
@@ -53,7 +53,7 @@ class TestBinary(RepositoryTestCase):
 
         self._reopenRepository()
 
-        khepburn = self.rep.find('//CineGuide/KHepburn')
+        khepburn = self._find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
         input = file(largeBinary, 'rb')
@@ -66,7 +66,7 @@ class TestBinary(RepositoryTestCase):
         self.assert_(data == picture)
 
     def testZlibCompressed(self):
-        khepburn = self.rep.find('//CineGuide/KHepburn')
+        khepburn = self._find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
         largeBinary = os.path.join(self.testdir, 'data', 'khepltr.jpg')
@@ -93,7 +93,7 @@ class TestBinary(RepositoryTestCase):
 
         self._reopenRepository()
 
-        khepburn = self.rep.find('//CineGuide/KHepburn')
+        khepburn = self._find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
         input = file(largeBinary, 'rb')
@@ -106,7 +106,7 @@ class TestBinary(RepositoryTestCase):
         self.assert_(data == picture)
 
     def testUncompressed(self):
-        khepburn = self.rep.find('//CineGuide/KHepburn')
+        khepburn = self._find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
         largeBinary = os.path.join(self.testdir, 'data', 'khepltr.jpg')
@@ -128,7 +128,7 @@ class TestBinary(RepositoryTestCase):
 
         self._reopenRepository()
 
-        khepburn = self.rep.find('//CineGuide/KHepburn')
+        khepburn = self._find('//CineGuide/KHepburn')
         self.assert_(khepburn is not None)
 
         input = file(largeBinary, 'rb')

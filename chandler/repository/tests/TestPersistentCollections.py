@@ -48,10 +48,10 @@ class PersistentCollectionsTest(AttributeTestCase.AttributeTestCase):
 
         self._reopenRepository()
         
-        manager = self.rep.find("//boss")
+        manager = self._find("//boss")
         emps = []
         for i in empNames:
-            emps.append(self.rep.find(Path('//', i)))
+            emps.append(self._find(Path('//', i)))
         self._checkManagerAndEmployeesList(manager, emps)
         
     
@@ -71,10 +71,10 @@ class PersistentCollectionsTest(AttributeTestCase.AttributeTestCase):
         self._checkManagerAndEmployeesDict(manager, emps)
         
         self._reopenRepository()
-        manager = self.rep.find('//boss')
+        manager = self._find('//boss')
         emps = {}
         for e in empNames:
-            emp = self.rep.find(Path('//', e))
+            emp = self._find(Path('//', e))
             emps[str(emp.getUUID())] = emp
         self._checkManagerAndEmployeesDict(manager,emps)
 
@@ -99,10 +99,10 @@ class PersistentCollectionsTest(AttributeTestCase.AttributeTestCase):
         self._checkManagerAndEmployeesDict(manager, emps)
         
         self._reopenRepository()
-        manager = self.rep.find('//boss')
+        manager = self._find('//boss')
         emps = {}
         for e in empNames:
-            emp = self.rep.find((Path('//', e)))
+            emp = self._find((Path('//', e)))
             emps[str(emp.getUUID())] = emp
         self._checkManagerAndEmployeesDict(manager,emps)
        

@@ -55,7 +55,7 @@ class RepositoryTest(RepositoryTestCase.RepositoryTestCase):
 
     def testFind(self):
         """ Make sure we can run find """
-        kind = self.rep.find('//Schema/Core/Kind')
+        kind = self._find('//Schema/Core/Kind')
         self.assert_(kind is not None)
         #TODO should check UUID
         pass

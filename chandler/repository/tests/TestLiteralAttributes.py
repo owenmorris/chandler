@@ -18,8 +18,8 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
 
     def testLiteralAttributes(self):
         """Test basic features of literal attributes"""
-        kind = self.rep.find('//Schema/Core/Kind')
-        itemKind = self.rep.find('//Schema/Core/Item')
+        kind = self._find('//Schema/Core/Kind')
+        itemKind = self._find('//Schema/Core/Item')
         self.assert_(itemKind is not None)
 
         kind1 = Item('kind1', self.rep, kind)
@@ -89,8 +89,8 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
             self.assertEquals(i.strings[3], 'Goofy')
             
         
-        kind = self.rep.find('//Schema/Core/Kind')                
-        itemKind = self.rep.find('//Schema/Core/Item')            
+        kind = self._find('//Schema/Core/Kind')                
+        itemKind = self._find('//Schema/Core/Item')            
         myKind = kind.newItem('listKind', self.rep)
                                                                   
         # create an attribute with cardinality list and add to the kind
@@ -115,7 +115,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
         
         # now write what we've done and read it back
         self._reopenRepository()
-        item = self.rep.find('//item')
+        item = self._find('//item')
         verifyItem(item)
 
         #test removeValue by removing values and checking
@@ -138,7 +138,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        item = self.rep.find('//item')
+        item = self._find('//item')
         self.failIf(item.hasValue('strings', 'Mickey'))
         self.failIf(item.hasValue('strings', 'Goofy'))
         self.failIf(item.hasValue('strings', 'Donald'))
@@ -177,8 +177,8 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
             self.assertEquals(i.strings['Goofy'], 'Dog')
 
         
-        kind = self.rep.find('//Schema/Core/Kind')                
-        itemKind = self.rep.find('//Schema/Core/Item')            
+        kind = self._find('//Schema/Core/Kind')                
+        itemKind = self._find('//Schema/Core/Item')            
         myKind = kind.newItem('dictKind', self.rep)
                                                                   
         # create an attribute with cardinality dict and add to the kind
@@ -202,7 +202,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
         
         # now write what we've done and read it back
         self._reopenRepository()
-        item = self.rep.find('//item')
+        item = self._find('//item')
         verifyItem(item)
 
         #test removeValue by removing values and checking
@@ -225,7 +225,7 @@ class LiteralAttributesTest(RepositoryTestCase.RepositoryTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        item = self.rep.find('//item')
+        item = self._find('//item')
         self.failIf('Mickey' in item.strings)
         self.failIf('Minnie' in item.strings)
         self.failIf('Goofy' in item.strings)

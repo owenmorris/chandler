@@ -17,8 +17,8 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
     def testReferenceAttributes(self):
         """Test bidirectional single valued attribute"""
-        kind = self.rep.find('//Schema/Core/Kind')
-        itemKind = self.rep.find('//Schema/Core/Item')
+        kind = self._find('//Schema/Core/Kind')
+        itemKind = self._find('//Schema/Core/Item')
         self.assert_(itemKind is not None)
 
         kind1 = Item('kind1', self.rep, kind)
@@ -59,11 +59,11 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        kind = self.rep.find('//Schema/Core/Kind')
-        itemKind = self.rep.find('//Schema/Core/Item')
-        kind1 = self.rep.find('//kind1')
-        item1 = self.rep.find('//item1')
-        item2 = self.rep.find('//item2')
+        kind = self._find('//Schema/Core/Kind')
+        itemKind = self._find('//Schema/Core/Item')
+        kind1 = self._find('//kind1')
+        item1 = self._find('//item1')
+        item2 = self._find('//item2')
 
         # check kind
         self.assert_(kind1.kind is kind)
@@ -92,8 +92,8 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        kind1 = self.rep.find('//kind1')
-        item2 = self.rep.find('//item2')
+        kind1 = self._find('//kind1')
+        item2 = self._find('//item2')
         self.failUnlessRaises(AttributeError, lambda: item2.kind)
         self.assertEquals(len(kind1.items), 1)
         self.failIf(item2 in kind1.items)
@@ -101,11 +101,11 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
     # support functions for testListReferenceAttributes and testDictReferenceAttributes
     def _findManagerAndEmployees(self):
         """Use find to retrieve our test data from the repository """
-        manager = self.rep.find('//boss')
-        emp1 = self.rep.find('//employee1')
-        emp2 = self.rep.find('//employee2')
-        emp3 = self.rep.find('//employee3')
-        emp4 = self.rep.find('//employee4')
+        manager = self._find('//boss')
+        emp1 = self._find('//employee1')
+        emp2 = self._find('//employee2')
+        emp3 = self._find('//employee3')
+        emp4 = self._find('//employee4')
         return (manager, [emp1, emp2, emp3, emp4])
 
     def _checkManagerAndEmployees(self, m, es):
@@ -120,13 +120,13 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        managerKind = self.rep.find('//manager')
+        managerKind = self._find('//manager')
         employeesAttribute = managerKind.getAttribute('employees')
         self.assert_(employeesAttribute is not None)
         self.assertEquals(employeesAttribute.cardinality, 'list')
         self.assertEquals(employeesAttribute.getAttributeValue('otherName'),
                           'manager')
-        employeeKind = self.rep.find('//employee')
+        employeeKind = self._find('//employee')
         managerAttribute = employeeKind.getAttribute('manager')
         self.assert_(managerAttribute is not None)
         self.assertEquals(managerAttribute.otherName,'employees')
@@ -173,13 +173,13 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        managerKind = self.rep.find('//manager')
+        managerKind = self._find('//manager')
         employeesAttribute = managerKind.getAttribute('employees')
         self.assert_(employeesAttribute is not None)
         self.assertEquals(employeesAttribute.cardinality, 'dict')
         self.assertEquals(employeesAttribute.getAttributeValue('otherName'),
                           'manager')        
-        employeeKind = self.rep.find('//employee')
+        employeeKind = self._find('//employee')
         managerAttribute = employeeKind.getAttribute('manager')
         self.assert_(managerAttribute is not None)
         self.assertEquals(managerAttribute.otherName,'employees')
@@ -223,7 +223,7 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
     def testSubAttributes(self):
         """Test attributes which have sub attributes (subAttributes and superAttribute attributes)"""
-        itemKind = self.rep.find('//Schema/Core/Item')
+        itemKind = self._find('//Schema/Core/Item')
         self.assert_(itemKind is not None)
 
         item = Item('item1', self.rep, itemKind)
@@ -252,7 +252,7 @@ class ReferenceAttributesTest(AttributeTestCase.AttributeTestCase):
 
         # now write what we've done and read it back
         self._reopenRepository()
-        item = self.rep.find('//item1')
+        item = self._find('//item1')
         itemKind = item.kind
         issuesAttr = itemKind.getAttribute('issues')
 
