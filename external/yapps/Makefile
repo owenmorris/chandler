@@ -28,6 +28,7 @@ expand: yapps$(VERSION)-expanded
 snap: 
 	cd $(BUILD_ROOT); \
 	find $(SNAP)/$(SITE)/yapps -name "*.pyc" | xargs rm -f; \
+	find $(SNAP)/$(SITE)/yapps -name "*.pyo" | xargs rm -f; \
 	tar -cvzf $(YAPPS)/yapps-$(SNAP)-$(RELVER).tar.gz \
 		$(SNAP)/$(SITE)/yapps; \
 	$(MD5) $(YAPPS)/yapps-$(SNAP)-$(RELVER).tar.gz > $(YAPPS)/yapps-$(SNAP)-$(RELVER).tar.gz.md5
@@ -50,3 +51,6 @@ patches:
 	diff -u yapps3/yapps2.py yapps3-patched/yapps2.py >> patches-$(VERSION); true
 	diff -u yapps3/parsetree.py yapps3-patched/parsetree.py >> patches-$(VERSION); true
 	diff -u yapps3/yapps_grammar.py yapps3-patched/yapps_grammar.py >> patches-$(VERSION); true
+
+_realclean::
+	rm -f yapps$(VERSION)*
