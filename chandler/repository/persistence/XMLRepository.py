@@ -452,7 +452,7 @@ class XMLRepository(OnDemandRepository):
 
             while value is not None:
                 version, = unpack('>l', value[0][0:4])
-                if version >= newVersion:
+                if version > newVersion:
                     break
 
                 yield UUID(value[0][4:20])
@@ -591,7 +591,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
 
                 for uuid in history.uuids(self, oldVersion, newVersion):
                     item = self._registry.get(uuid)
-                    if item is not None:
+                    if item is not None and item._version < newVersion:
                         if verbose:
                             print 'unloading version %d of %s' %(item._version,
                                                                  item.getItemPath())

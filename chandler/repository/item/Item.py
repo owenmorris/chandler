@@ -86,9 +86,6 @@ class Item(object):
 
     def __getattr__(self, name):
 
-        if self._status & Item.STALE:
-            raise ValueError, "item is stale: %s" %(self)
-
         return self.getAttributeValue(name)
 
     def __setattr__(self, name, value):
@@ -234,6 +231,9 @@ class Item(object):
         AttributeError. 
         Calling this method is only required when there is a name ambiguity
         between a python and a Chandler attribute, a situation best avoided."""
+
+        if self._status & Item.STALE:
+            raise ValueError, "item is stale: %s" %(self)
 
         try:
             if (_attrDict is self._values or
