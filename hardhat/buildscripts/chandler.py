@@ -212,12 +212,16 @@ def NeedsUpdate(outputList):
             # same type of hack as above
             continue
         if line[0] == "U":
+            print "needs update because of", line
             return 1
         if line[0] == "P":
+            print "needs update because of", line
             return 1
         if line[0] == "A":
+            print "needs update because of", line
             return 1
         if line[0] == "R":
+            print "needs update because of", line
             return 1
     return 0
 
