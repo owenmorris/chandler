@@ -391,7 +391,7 @@ class JabberClient:
     # is true when it's the last response to the request, and the url
     # is the view that should display the objects, which is typically
     # the one that initiated the request
-    def HandleObjectResponse(self, fromAddress, url, body, lastFlag):
+    def HandleObjectResponse(self, fromAddress, url, body, lastFlag):        
         # decode the string from the body of the received message to an objectlist
         objectList = self.DecodeObjectList(body)
         
@@ -410,13 +410,17 @@ class JabberClient:
     # encode an objectlist into a text string, using cPickle and base64 encoding
     def EncodeObjectList(self, objectList):
         viewStr = cPickle.dumps(objectList)		
-        return base64.encodestring(viewStr)
+        # escape blanks in the pickled data, so we can later strip the ones jabber adds
+        viewStr = string.replace(viewStr, ' ', '--b--')
+        return viewStr
     
     # decode an objectlist from a text string, using base65 and cPickle
     def DecodeObjectList(self, objectStr):
-        pickledStr = base64.decodestring(objectStr)
-        objectList = cPickle.loads(pickledStr)	
-        
+        mappedResponse = objectStr.encode('ascii')
+        mappedResponse = self.FixExtraBlanks(mappedResponse)
+        objectList = cPickle.loads(mappedResponse)	
+        return objectList
+    
     # put up a dialog to confirm the subscription request
     def ConfirmSubscription(self, subscriptionType, who):
         message = '%s wishes to %s to your presence information.  Do you approve?' % (who, subscriptionType)
