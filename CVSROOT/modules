@@ -46,3 +46,6 @@ chandler-system -a \
     osaf/chandler/wxpython \
     osaf/chandler/zodb \
     osaf/hardhat
+
+docs -a \
+    osaf/chandler/Chandler/distrib/docs
