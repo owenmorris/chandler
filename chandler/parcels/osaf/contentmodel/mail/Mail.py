@@ -603,9 +603,8 @@ class EmailAddress(Item.Item):
           Lookup the "me" emailAddress string.
         @return: C{String} the email address of the default account, or None
         """
-        # @@@ Morgen disabling this cache for now
-        # if cls._theMeAddress is not None:
-        #     return cls._theMeAddress
+        if cls._theMeAddress is not None:
+            return cls._theMeAddress
 
         # get the default IMAP address, and use it to find/build "me"
         import osaf.mail.imap as imap
@@ -621,6 +620,12 @@ class EmailAddress(Item.Item):
         cls._theMeAddress = address
         return address
     _getTheMeAddress = classmethod (_getTheMeAddress)
+
+    def invalidateMeAddressCache(cls):
+        """ If the notion of the "me" address is changed by anyone, this
+            cached copy of it should be invalidated. """
+        cls._theMeAddress = None
+    invalidateMeAddressCache = classmethod (invalidateMeAddressCache)
 
     def getCurrentMeEmailAddress (cls):
         """
