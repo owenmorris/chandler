@@ -43,10 +43,10 @@ chandler-system -a \
     osaf/chandler/epydoc \
     osaf/chandler/pyxml \
     osaf/chandler/SOAPpy \
-    osaf/chandler/wxpython \
     osaf/chandler/openssl \
     osaf/chandler/m2crypto \
     osaf/chandler/pyegads \
+    internal/wx \
     osaf/hardhat
 
 external external
