@@ -61,7 +61,12 @@
     <eventName>ButtonPressed</eventName>
     <dispatchToBlock itemref="doc:MarkupBar"/>
   </BlockEvent>
-
+    
+  <BlockEvent itsName="TogglePrivate">
+    <eventName>TogglePrivate</eventName>
+    <dispatchToBlock itemref="doc:MarkupBar"/>
+  </BlockEvent>
+  
   <BlockEvent itsName="SendShareItem">
     <eventName>SendShareItem</eventName>
     <dispatchToBlock itemref="doc:DetailRootTemplate"/>
@@ -109,11 +114,14 @@
     <childrenBlocks itemref="doc:MailMessageButton"/>
     <childrenBlocks itemref="doc:TaskStamp"/>
     <childrenBlocks itemref="doc:CalendarStamp"/>
+    <childrenBlocks itemref="doc:ToolbarItemSeparator"/>
+    <childrenBlocks itemref="doc:PrivateSwitchButton"/>
     <!-- Attributes -->
     <colorStyle itemref="doc:GrayBackground3"/>
     <toolSize>20,20</toolSize>
     <separatorWidth>50</separatorWidth>
     <subscribeWhenVisibleEvents itemref="doc:ButtonPressed"/>
+    <subscribeWhenVisibleEvents itemref="doc:TogglePrivate"/>
     <stretchFactor>0.0</stretchFactor>
   </Toolbar>
 
@@ -151,6 +159,22 @@
     <toggle>True</toggle>
     <helpString>Put this item onto the Calendar</helpString>
     <event itemref="doc:ButtonPressed"/>
+  </ToolbarItem>
+  
+  <ToolbarItem itsName="ToolbarItemSeparator">
+    <blockName></blockName>
+    <toolbarItemKind>Separator</toolbarItemKind>
+  </ToolbarItem>
+  
+  <ToolbarItem itsName="PrivateSwitchButton"
+               itemClass="osaf.framework.blocks.detail.Detail.PrivateSwitchButton">
+    <blockName>PrivateSwitchButton</blockName>
+    <title>Never share this item</title>
+    <bitmap>application/images/private.png</bitmap>
+    <toolbarItemKind>Button</toolbarItemKind>
+    <toggle>True</toggle>
+    <helpString>Never share this item</helpString>
+    <event itemref="doc:TogglePrivate"/>
   </ToolbarItem>
  
   <ContentItemDetail itsName="FromArea"

@@ -827,9 +827,10 @@ class ToolbarItem (Block.Block, DynamicChild):
         elif __debug__:
             assert False, "unknown toolbarItemKind"
         
-        # convert this object from a wx.ToolBarTool to a wxToolBarItem,
-        # so we can call methods on that widget class.
-        assert tool.__class__ is wxToolBarToolClass, "wx ToolBarTool class mismatch with ToolbarItem"
-        tool.__class__ = wxToolbarItem
+        if tool is not None:
+            # convert this object from a wx.ToolBarTool to a wxToolBarItem,
+            # so we can call methods on that widget class.
+            assert tool.__class__ is wxToolBarToolClass, "wx ToolBarTool class mismatch with ToolbarItem"
+            tool.__class__ = wxToolbarItem
         return tool
 

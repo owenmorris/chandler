@@ -429,7 +429,7 @@ class StaticToFromText (StaticTextLabel):
         return label
 
 class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
-    """   
+    """
       Markup Toolbar, for quick control over Items.
     Doesn't need to synchronizeItemDetail, because
     the individual ToolbarItems synchronizeItemDetail.
@@ -457,13 +457,24 @@ class MarkupBar (DetailSynchronizer, DynamicContainerBlocks.Toolbar):
             # notify the world that the item has a new kind.
             self.resynchronizeDetailView ()
 
-    def onButtonPressedEventUpdateUI (self, notification):
+    def onButtonPressedEventUpdateUI(self, notification):
         item = self.selectedItem()
         if item is not None:
             enable = item.isItemOf(ContentModel.ContentModel.getNoteKind())
         else:
             enable = False
         notification.data ['Enable'] = enable
+
+    def onTogglePrivateEvent(self, notification):
+        item = self.selectedItem()
+        if item is not None:
+            tool = notification.data['sender']
+            item.isPrivate = self.widget.GetToolState(tool.toolID)
+
+    """
+    def onTogglePrivateEventUpdateUI(self, notification):
+        notification.data ['Enable'] = True
+    """
 
 class DetailStampButton (DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
     """
@@ -520,6 +531,24 @@ class TaskStamp (DetailStampButton):
     def stampMixinKind(self):
         return Task.TaskParcel.getTaskMixinKind()
 
+
+class PrivateSwitchButton(DetailSynchronizer, DynamicContainerBlocks.ToolbarItem):
+    """
+      "Never share" button in the Markup Bar
+    """
+    def shouldShow (self, item):
+        # if the item is a collection, we should not show ourself
+        shouldShow = not isinstance (item, ItemCollection.ItemCollection)
+        return shouldShow
+
+    def synchronizeItemDetail (self, item):
+        # toggle this button to reflect the privateness of the selected item        
+        # @@@DLD remove workaround for bug 1712 - ToogleTool doesn't work on mac when bar hidden
+        if item.isPrivate:
+            self.dynamicParent.show (True) # if we're toggling a button down, the bar must be shown
+        self.dynamicParent.widget.ToggleTool(self.toolID, item.isPrivate)
+        return False
+        
 class EditTextAttribute (DetailSynchronizer, ControlBlocks.EditText):
     """
     EditText field connected to some attribute of a ContentItem

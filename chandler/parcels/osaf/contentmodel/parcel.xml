@@ -116,6 +116,10 @@
       <core:type itemref="core:Long"/>
       <core:initialValue type="core:Long">-1</core:initialValue>
     </core:Attribute>
+    <core:Attribute itsName="isPrivate">
+      <core:type itemref="core:Boolean"/>
+      <core:initialValue type="core:Boolean">False</core:initialValue>
+    </core:Attribute>
 
     <core:Attribute itsName="sharer">
       <description value="The person who initially published this item" />
