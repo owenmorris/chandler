@@ -510,21 +510,24 @@ class wxTable(DropReceiveWidget, wx.grid.Grid):
                 self.blockItem.selection = None
 
     def GoToItem(self, item):
-        row = self.blockItem.contents.index (item)
-
-        cursorColumn = 0
         try:
-            selectedColumn = self.blockItem.selectedColumn
-        except AttributeError:
+            row = self.blockItem.contents.index (item)
+        except LookupError:
             pass
         else:
-            for columnIndex in xrange (self.GetTable().GetNumberCols()):
-                if self.blockItem.columnAttributeNames [columnIndex] == selectedColumn:
-                    cursorColumn = columnIndex
-                    break
-
-        self.SelectRow (row)
-        self.SetGridCursor (row, cursorColumn)
+            cursorColumn = 0
+            try:
+                selectedColumn = self.blockItem.selectedColumn
+            except AttributeError:
+                pass
+            else:
+                for columnIndex in xrange (self.GetTable().GetNumberCols()):
+                    if self.blockItem.columnAttributeNames [columnIndex] == selectedColumn:
+                        cursorColumn = columnIndex
+                        break
+    
+            self.SelectRow (row)
+            self.SetGridCursor (row, cursorColumn)
 
 
 class AttributeRenderer (wx.grid.PyGridCellRenderer):
