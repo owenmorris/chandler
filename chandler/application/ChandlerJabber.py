@@ -129,7 +129,7 @@ class JabberClient:
             self.timer.Start(400)    
         else:
             wxMessageBox(_("There is an authentication problem. We can't log into the jabber server.  Perhaps your password is incorrect."))
-            #self.Logout()
+            self.Logout()
 
     # return all the status info about a given ID
     def GetStatusInfo(self, jabberID):
