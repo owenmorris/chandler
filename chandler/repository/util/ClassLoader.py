@@ -21,7 +21,7 @@ class ClassLoader(object):
             raise
         except:
             logging.getLogger('repository').exception('Importing class %s.%s failed', module, name)
-            raise ImportError, sys.exc_value, sys.exc_traceback
+            raise ImportError, (sys.exc_value, sys.exc_traceback)
 
         try:
             return getattr(m, name)

@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2003-2004 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-class ItemError:
+class ItemError(Exception):
 
     def getItem(self):
         return self.args[0]
