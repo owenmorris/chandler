@@ -15,6 +15,7 @@ import xml.sax
 import xml.sax.handler
 import logging
 
+from repository.parcel.Util import PrintItem
 from repository.parcel.Parcel import Parcel
 from repository.util.ClassLoader import ClassLoader
 
@@ -192,17 +193,21 @@ class ItemHandler(xml.sax.ContentHandler):
     def startPrefixMapping(self, prefix, uri):
         """ SAX2 callback for namespace prefixes """
 
-        # If we define a prefix mapping, it means we depend on
-        # the parcel. Load the uri, if it does not match the uri
-        # for this file.
-        if uri != self.uri:
-            self.callback(self.repository, uri, self.callbackArg)
-
-        # Save the prefix mapping, for use by itemref attributes
+        # Save the prefix mapping, for use by itemref attributes,
+        # and also used to determine which dependent parcels to load
+        # later on.
         self.mapping[prefix] = uri
 
     def endPrefixMapping(self, prefix):
         """ SAX2 callback for namespace prefixes """
+
+        # If we define a prefix mapping, it means we depend on
+        # the parcel. Load the uri, if it does not match the uri
+        # for this file.
+        uri = self.mapping[prefix]
+        if uri != self.uri:
+            self.callback(self.repository, uri, self.callbackArg)
+
         self.mapping[prefix] = None
 
     def makeValue(self, uri, local):
@@ -231,11 +236,18 @@ class ItemHandler(xml.sax.ContentHandler):
 
     def findItem(self, namespace, name, line):
         """ Find the item with the namespace indicated by prefix,
-            and with the given name.
+            and with the given name.  If it isn't yet in the repository
+            the try loading the parcel it's supposed to be in.
         """
 
         path = "%s/%s" % (namespace, name)
         item = self.repository.find(path)
+
+        # If the item doesn't yet exist, load the parcel it's supposed
+        # to be in and try again
+        if not item:
+            self.callback(self.repository, namespace, self.callbackArg)
+            item = self.repository.find(path)
 
         assert item, \
                "No item (%s) at %s:%s" % (path,

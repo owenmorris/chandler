@@ -13,7 +13,6 @@ from repository.parcel.ParcelLoader import ParcelLoader
 from repository.parcel.Parcel import Parcel
 from repository.persistence.Repository import RepositoryError
 
-
 def LoadDependency(repository, uri, searchPath):
     # Easy success if we find the parcel
     parcel = repository.find(uri)

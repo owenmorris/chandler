@@ -8,6 +8,7 @@ __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import ParcelLoaderTestCase, os, sys, unittest
 
+from repository.parcel.Util import PrintItem
 from repository.parcel.LoadParcels import LoadParcels
 from repository.item.Item import Item
 
@@ -21,6 +22,7 @@ class DependencyTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
         parcelDir = os.path.join(self.testdir, 'dependencyparcels')
         LoadParcels(parcelDir, self.rep)
         self.rep.commit()
+        # PrintItem("//parcels", self.rep)
 
         # Ensure depA Parcel was created with the right Kind and attrs
         depA = self.rep.find("//parcels/depA")
