@@ -1,12 +1,7 @@
 
 VERSION=0.3-0
 
-ifeq ($(DEBUG),1)
-SNAP=debug
-else
-SNAP=release
-DEBUG=0
-endif
+include Makefile.inc
 
 SYSTEMS=persistence/db \
         python \
@@ -41,17 +36,9 @@ SOURCES=persistence/db/db-4.2.52.tar.gz \
         SOAPpy/SOAPpy-0.10.2.tar.gz \
         pychecker/pychecker-0.8.13.tar.gz
 
-.PHONY: default env sources expand binaries clean all $(SYSTEMS)
+.PHONY: sources expand binaries $(SYSTEMS)
 
 default: all
-
-env:
-ifeq ($(BUILD_ROOT),)
-	echo BUILD_ROOT is not set && false
-endif
-ifeq ($(GCJ_HOME),)
-	echo GCJ_HOME is not set && false
-endif
 
 sources:
 	tar -cvf sources-$(VERSION).tar $(SOURCES)

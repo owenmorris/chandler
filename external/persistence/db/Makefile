@@ -3,24 +3,53 @@ VERSION=4.2.52
 DB=$(BUILD_ROOT)/persistence/db
 SRC=$(DB)/db-$(VERSION)
 
-ifeq ($(DEBUG),1)
+include ../../Makefile.inc
 
-CONF_DBG=--enable-debug
-PREFIX=$(BUILD_ROOT)/debug
-SNAP=debug
+
+ifeq ($(OS),Cygwin)
+
+BUILD=build_win32
+
+$(SRC)/$(BUILD)/Berkeley_DB.sln:
+	(cd win32; tar -cf - *.sln *.vcproj) | (cd $(SRC)/$(BUILD); tar -xf -)
+
+build: compile install
+
+compile: $(SRC)/$(BUILD)/Berkeley_DB.sln
+	cd $(SRC)/$(BUILD); \
+        devenv.com Berkeley_DB.sln /project build_all /build $(Snap)
+
+install:
+	mkdir -p $(PREFIX)/bin/db
+	mkdir -p $(PREFIX)/include
+	mkdir -p $(PREFIX)/lib
+	(cd $(SRC)/dbinc; tar cf - cxx_*.h) | (cd $(PREFIX)/include; tar xvf -)
+	(cd $(SRC)/$(BUILD); tar cf - *.h) | (cd $(PREFIX)/include; tar xvf -)
+	(cd $(SRC)/$(BUILD)/$(Snap); tar cf - *.dll) | (cd $(PREFIX)/bin; tar xvf -)
+	(cd $(SRC)/$(BUILD)/$(Snap); tar cf - *.exe) | (cd $(PREFIX)/bin/db; tar xvf -)
+	(cd $(SRC)/$(BUILD)/$(Snap); tar cf - *.lib *.exp) | (cd $(PREFIX)/lib; tar xvf -)
+
+clean:
+	cd $(SRC)/$(BUILD); \
+        devenv.com Berkeley_DB.sln /project build_all /clean $(Snap); \
+        rm Berkeley_DB.sln
+
+snap: 
+	cd $(BUILD_ROOT); \
+        tar -cvzf $(DB)/$(SNAP).tar.gz \
+                  $(SNAP)/bin/libdb*.dll \
+                  $(SNAP)/bin/db/db_*.exe
 
 else
 
+ifeq ($(DEBUG),1)
+CONF_DBG=--enable-debug
+else
 CONF_DBG=
-PREFIX=$(BUILD_ROOT)/release
-SNAP=release
-
 endif
 
+
 BUILD=build_$(SNAP)
-
-
-default: all
 
 $(SRC)/$(BUILD)/Makefile: patches
 	patch -Nup0 < patches; echo ok; \
@@ -34,11 +63,13 @@ build: $(SRC)/$(BUILD)/Makefile
 expand: db-$(VERSION).tar.gz
 	tar xvzf db-$(VERSION).tar.gz
 
+clean:
+	cd $(SRC); rm -rf $(BUILD)
+
 snap: 
 	cd $(BUILD_ROOT); \
         tar -cvzf $(DB)/$(SNAP).tar.gz $(SNAP)/db/bin $(SNAP)/db/lib
 
-clean:
-	cd $(SRC); rm -rf $(BUILD)
+endif
 
 all: build
