@@ -420,7 +420,7 @@ class XMLRefDict(RefDict):
                 generator.endElement('db')
 
         elif mode == 'serialize':
-            super(XMLRefDict, self)._xmlValues(generator, mode)
+            super(XMLRefDict, self)._xmlValues(generator, version, mode)
 
         else:
             raise ValueError, mode
