@@ -71,7 +71,6 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
                                                   self.__triggerEvent, wakeupCall.itsUUID)
 
     def __shutdown(self):
-        #XXX: Is there a means to unpin current calls
         for wakeupCall in self.wakeupCallies.values():
             if wakeupCall.handle is not None:
                 wakeupCall.handle.cancel()
@@ -95,7 +94,8 @@ class WakeupCaller(TwistedRepositoryViewManager.RepositoryViewManager):
         wakeupCall = self.wakeupCallies[uuid]
         assert wakeupCall is not None
 
-        self.threadPool.callInThread(self.__proxy, wakeupCall.callback.receiveWakeupCall, wakeupCall.itsUUID)
+        self.threadPool.callInThread(self.__proxy, wakeupCall.callback.receiveWakeupCall,
+                                     wakeupCall.itsUUID)
 
         if wakeupCall.repeat:
             wakeupCall.handle = reactor.callLater(wakeupCall.delay.seconds, self.execInView,
