@@ -372,11 +372,6 @@
             <includePolicy value="byRef"/>  <!-- @@@ is this right?  -->
         </core:Endpoint>
         <endpoints ref="Query/DefaultCloud/queryOwner"/>
-        <core:Endpoint itsName="data">
-            <attribute value="data"/>
-            <includePolicy value="byRef"/>  <!-- @@@ is this right?  -->
-        </core:Endpoint>
-        <endpoints ref="Query/DefaultCloud/data"/>
         <core:Endpoint itsName="results">
             <attribute value="results"/>
             <includePolicy value="byRef"/>  <!-- @@@ is this right?  -->
