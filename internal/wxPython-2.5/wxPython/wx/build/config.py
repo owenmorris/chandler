@@ -140,11 +140,11 @@ CONTRIBS_INC = ""  # A dir to add as an -I flag when compiling the contribs
 
 # Some MSW build settings
 
-FINAL = 0          # Mirrors use of same flag in wx makefiles,
+FINAL = 1          # Mirrors use of same flag in wx makefiles,
                    # (0 or 1 only) should probably find a way to
                    # autodetect this...
 
-HYBRID = 1         # If set and not debug or FINAL, then build a
+HYBRID = 0         # If set and not debug or FINAL, then build a
                    # hybrid extension that can be used by the
                    # non-debug version of python, but contains
                    # debugging symbols for wxWidgets and wxPython.
