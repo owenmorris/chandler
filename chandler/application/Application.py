@@ -8,11 +8,14 @@ __license__ = "OSAF License"
 import os, sys, stat, gettext, locale
 from wxPython.wx import *
 from wxPython.xrc import *
+
 from application.Preferences import Preferences
 from application.SplashScreen import SplashScreen
 from persistence import Persistent 
 from persistence.list import PersistentList
+
 import application.ChandlerWindow
+import PreferencesDialog
 
 from zodb import db 
 from zodb.storage.file import FileStorage
@@ -192,7 +195,8 @@ class wxApplication (wxApp):
         self.model.SynchronizeView()
         EVT_MENU(self, XRCID ("Quit"), self.OnQuit)
         EVT_MENU(self, XRCID ("About"), self.OnAbout)
-        
+        EVT_MENU(self, XRCID ("Preferences"), self.OnPreferences)
+
         self.homeDirectory = wxGetHomeDir() + os.sep + ".Chandler";
         if not os.path.exists (self.homeDirectory):
             os.makedirs (self.homeDirectory)
@@ -255,6 +259,18 @@ class wxApplication (wxApp):
         splash = SplashScreen(_("About Chandler"), useTimer=false)
         splash.Show(true)
 
+    # handle the preferences command by showing the preferences dialog
+    def OnPreferences(self, event):
+        """
+        Show the preferences dialog
+        """
+        title = _("Chandler Preferences")
+        dialog = PreferencesDialog.PreferencesDialog(app.wxMainFrame, title, self.model.preferences)
+
+        result = dialog.ShowModal()
+        if result == wxID_OK:
+            dialog.SavePreferences()
+            
     def LoadParcels(self):       
         """
            Load the parcels and call the class method to install them. Packages

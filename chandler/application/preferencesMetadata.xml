@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<PreferencesMetaData>
+
+<Preferences section="Identity">
+    <PreferenceItem key="username" label="Your Name" type="string" description="" />
+    <PreferenceItem key="emailaddress" label="Email Address" type="string" description="" />
+    <PreferenceItem key="jabberID" label="Jabber ID" type="string" description="" />
+    <PreferenceItem key="jabberpassword" label="Jabber Password" type="password" description="" />
+</Preferences>
+
+</PreferencesMetaData>

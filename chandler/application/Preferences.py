@@ -1,4 +1,3 @@
-__author__ = "John Anderson"
 __version__ = "$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright (c) 2003 Open Source Applications Foundation"
@@ -15,5 +14,13 @@ class Preferences (Persistent):
         self.windowSize = PersistentDict()
         self.windowSize['width'] = 850
         self.windowSize['height'] = 650
-
+        
+    def GetPreferenceValue(self, preferenceKey):
+        if hasattr(self, preferenceKey):
+            return self.__dict__[preferenceKey]
+        return None
+    
+    def SetPreferenceValue(self, preferenceKey, preferenceValue):
+        self.__dict__[preferenceKey] = preferenceValue
+      
 
