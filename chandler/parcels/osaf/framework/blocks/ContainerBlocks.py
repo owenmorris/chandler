@@ -505,6 +505,7 @@ class wxTreeList(wxTreeListCtrl):
         wxTreeListCtrl.__init__ (self, *arguments, **keywords)
         EVT_TREE_ITEM_EXPANDING(self, self.GetId(), self.OnExpanding)
         EVT_LIST_COL_END_DRAG(self, self.GetId(), self.OnColumnDrag)
+        EVT_TREE_SEL_CHANGED(self, self.GetId(), self.OnItemActivated)
  
     def OnExpanding(self, event):
         """
@@ -522,6 +523,14 @@ class wxTreeList(wxTreeListCtrl):
         columnIndex = event.GetColumn()
         counterpart.columnWidths [columnIndex] = self.GetColumnWidth (columnIndex)
 
+    def OnItemActivated(self, event):
+        arguments = {'node':TreeNode (event.GetItem(), self),
+                     'type':'Normal'}
+        event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/SelectionChanged')
+        notification = Notification(event, None, None)
+        notification.SetData(arguments)
+        Globals.notificationManager.PostNotification (notification)
+
 
 class TreeList(RectangularChild):
     def renderOneBlock(self, parent, parentWindow):
@@ -531,7 +540,16 @@ class TreeList(RectangularChild):
             info.SetText(self.columnHeadings[x])
             info.SetWidth(self.columnWidths[x])
             treeList.AddColumnInfo(info)
-
+        self.getParentBlock(parentWindow).addToContainer(parent, treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
+        """
+          We need to send a GetTreeListData event to the tree list to fill out it's root
+        item. Unfortunately, it isn't completely wired up because we haven't set the focus
+        and assigned the counterpartUUID, which are necessary for the event dispatch to
+        work. So we'll go the the extra work in this case to get it wired up before sending
+        the event. I couldn't think of a better solution -- DJA
+        """
+        treeList.SetFocus()
+        treeList.counterpartUUID = self.getUUID()
         arguments = {'node':TreeNode (None, treeList),
                      'type':'Normal'}
         event = Globals.repository.find('//parcels/OSAF/framework/blocks/Events/GetTreeListData')
@@ -539,7 +557,15 @@ class TreeList(RectangularChild):
         notification.SetData(arguments)
         Globals.notificationManager.PostNotification (notification)
 
-        self.getParentBlock(parentWindow).addToContainer(parent, treeList, 1, self.Calculate_wxFlag(), self.Calculate_wxBorder())
         return treeList, None, None
 
+class RepositoryTreeList(TreeList):
+    def OnGetTreeListDataEvent (self, notification):
+        node = notification.data['node']
+        item = node.GetData()
+        if item:
+            for child in item:
+                node.AddChildNode (child, child.getItemName(), child.hasChildren())
+        else:
+            node.AddRootNode (Globals.repository, '//', True)
 

@@ -702,7 +702,7 @@
     <orientationEnum>Vertical</orientationEnum>
   </BoxContainer>
     
-  <TreeList itemName="TreeList">
+  <RepositoryTreeList itemName="RepositoryTreeList">
     <columnHeadings>Item Name</columnHeadings>
     <columnHeadings>Display Name</columnHeadings>
     <columnHeadings>Kind</columnHeadings>
@@ -721,9 +721,9 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </TreeList>
+  </RepositoryTreeList>
  
-  <HTML itemName="HTML">
+  <ItemView itemName="ItemView">
     <url></url>
     <contentSpec itemref="doc:myQuery"/>
     <open>True</open>
@@ -733,13 +733,14 @@
     <border>0.0, 0.0, 0.0, 0.0</border>
     <alignmentEnum>grow</alignmentEnum>
     <stretchFactor>1.0</stretchFactor>
-  </HTML>
+  </ItemView>
 
   <SplitWindow itemName="RepositoryBox">
     <contentSpec itemref="doc:myQuery"/>
-    <childrenBlocks itemref="doc:TreeList"/>
-    <childrenBlocks itemref="doc:HTML"/>
+    <childrenBlocks itemref="doc:RepositoryTreeList"/>
+    <childrenBlocks itemref="doc:ItemView"/>
     <open>True</open>
+    <eventBoundary>True</eventBoundary>
 
     <size>517,564</size>
     <minimumSize>50,50</minimumSize>
@@ -793,6 +794,7 @@
     <blockEvents itemref="doc:ChooseEmbeddedTab"/>
 
     <open>True</open>
+    <eventBoundary>True</eventBoundary>
 
     <size>912,512</size>
     <minimumSize>50,50</minimumSize>

@@ -235,6 +235,7 @@
 
     <Attribute itemName="open">
       <type itemref="Boolean"/>
+      <defaultValue type="Boolean">False</defaultValue>
     </Attribute>
 
     <attributes itemref="docSchema:Block/contentSpec"/>
@@ -248,7 +249,7 @@
     View
   -->
   <Kind itemName="View">
-    <classes key="python">OSAF.framework.blocks.View.View</classes>
+    <classes key="python">OSAF.framework.blocks.Views.View</classes>
     <superKinds itemref="docSchema:BoxContainer"/>
 
     <attributes itemref="docSchema:blockEvents"/>
@@ -260,6 +261,13 @@
   <Kind itemName="ContainerChild">
     <classes key="python">OSAF.framework.blocks.ContainerBlocks.ContainerChild</classes>
     <superKinds itemref="docSchema:Block"/>
+
+    <Attribute itemName="eventBoundary">
+      <type itemref="Boolean"/>
+      <defaultValue type="Boolean">False</defaultValue>
+    </Attribute>
+
+    <attributes itemref="docSchema:ContainerChild/eventBoundary"/>
   </Kind>
 
   <!--
@@ -760,4 +768,15 @@
     <attributes itemref="docSchema:TreeList/columnWidths"/>
   </Kind>  
 
+  <Kind itemName="RepositoryTreeList">
+    <classes key="python">OSAF.framework.blocks.ContainerBlocks.RepositoryTreeList</classes>
+    <superKinds itemref="docSchema:TreeList"/>
+  </Kind>  
+
+  <Kind itemName="ItemView">
+    <classes key="python">OSAF.framework.blocks.Views.ItemView</classes>
+    <superKinds itemref="docSchema:HTML"/>
+  </Kind>  
+
 </Parcel>
+

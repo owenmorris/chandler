@@ -186,7 +186,7 @@ class wxApplicationNew (wxApp):
         
         # Globals.jabberClient.Login()
 
-        from OSAF.framework.blocks.View import View
+        from OSAF.framework.blocks.Views import View
         
         topView = Globals.repository.find('//parcels/OSAF/templates/top/TopView')
 
