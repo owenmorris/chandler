@@ -540,14 +540,21 @@ class Item(object):
         return (self._status & Item.DIRTY) != 0
 
     def setDirty(self, dirty=True):
+        """Set the dirty bit on the item so that it gets persisted.
 
+        Returns True if the dirty bit was changed from unset to set.
+        Returns False otherwise."""
+        
         if dirty:
             if self._status & Item.DIRTY == 0:
                 repository = self.getRepository()
                 if repository is not None and repository.addTransaction(self):
                     self._status |= Item.DIRTY
+                    return True
         else:
             self._status &= ~Item.DIRTY
+
+        return False
 
     def delete(self):
         """Delete this item and disconnect all its item references.

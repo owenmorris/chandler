@@ -112,7 +112,7 @@ class Kind(Namespace):
             return self.superKinds
 
         raise ValueError, 'No superKind for %s' %(self.getItemPath())
-
+        self.setDirty()
     def _xmlRefs(self, generator, withSchema, mode):
 
         for attr in self._references.items():

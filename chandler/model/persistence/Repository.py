@@ -323,42 +323,38 @@ class OnDemandRepository(Repository):
         super(OnDemandRepository, self).__init__(dbHome)
         self._hooks = None
 
-    def _setLoading(self):
-
-        loading = self._status & self.LOADING
-        if not loading:
-            self._status |= self.LOADING
-
-        return loading
-
-    def _resetLoading(self, loading):
-
-        if not loading:
-            self._status &= ~self.LOADING
-
-            if self._hooks:
-                try:
-                    for hook in self._hooks:
-                        hook()
-                finally:
-                    self._hooks = None
-
     def _loadXML(self, xml):
 
         try:
-            loading = self._setLoading()
+            loading = self._status & self.LOADING
             if not loading:
+                self._status |= self.LOADING
                 self._hooks = []
+
+            exception = None
 
             item = self._loadItemXML(xml, self._store,
                                      afterLoadHooks = self._hooks)
             if self.verbose:
                 print "loaded item %s" %(item.getItemPath())
 
-            return item
+        except:
+            if not loading:
+                self._status &= ~self.LOADING
+                self._hooks = None
+            raise
+        
+        else:
+            if not loading:
+                try:
+                    if self._hooks:
+                        for hook in self._hooks:
+                            hook()
+                finally:
+                    self._hooks = None
+                    self._status &= ~self.LOADING
 
-        finally:
-            self._resetLoading(loading)
+        return item
 
     def _loadItem(self, uuid):
 
