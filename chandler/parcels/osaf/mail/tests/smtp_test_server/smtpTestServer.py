@@ -14,7 +14,7 @@ PORT = 2500
 FROM_ACCEPT_LIST = ["brian@test.com", "osafuser@code-bear.com"]
 TO_ACCEPT_LIST = ["brian@test.com", "osafuser@code-bear.com"]
 
-"""Base 64 encoding of username: testuser passworf: testuser 
+"""Base 64 encoding of username: testuser password: testuser
 [0] = username\0password form
 [1] = username\0username\0password
 """
@@ -122,6 +122,9 @@ class SMTPTestServer(basic.LineReceiver):
                 self.sendCapabilities()
             else:
                 self.sendLine(UNKNOWN_COMMAND)
+
+        elif "RSET" in line.upper():
+            self.sendLine(OK_STRING)
 
         elif "HELO" in line.upper():
             self.sendCapabilities(True)
