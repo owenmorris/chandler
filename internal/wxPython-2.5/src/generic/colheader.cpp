@@ -1091,15 +1091,11 @@ long			resultV;
 		}
 	}
 
-#elif 0 && defined(__WXMAC__)
-	// no DC needed for Mac rendering (except for bitmaps)
-	for (long i=0; i<m_ItemCount; i++)
-		if (GetItemBounds( i, &boundsR ))
-			resultV |= m_ItemList[i]->DrawItem( this, NULL, &boundsR, m_BVisibleSelection );
-#else
+#elif 1 || defined(__WXMAC__)
 wxClientDC	dc( this );
 
 	// NB: this case being used for both Mac and GTK
+	// no DC needed for Mac rendering (except for bitmaps)
 	for (long i=0; i<m_ItemCount; i++)
 		if (GetItemBounds( i, &boundsR ))
 			resultV |= m_ItemList[i]->DrawItem( this, &dc, &boundsR, m_BVisibleSelection );
@@ -1304,6 +1300,7 @@ long wxColumnHeader::Win32ItemSelect(
 {
 HDITEM		itemData;
 HWND		targetViewRef;
+LONG			newFmt;
 long		resultV;
 
 	targetViewRef = GetHwnd();
@@ -1317,12 +1314,18 @@ long		resultV;
 	itemData.mask = HDI_FORMAT | HDI_WIDTH;
 	resultV = (long)Header_GetItem( targetViewRef, itemIndex, &itemData );
 
-	itemData.fmt &= ~(HDF_SORTDOWN | HDF_SORTUP);
+	newFmt = itemData.fmt & ~(HDF_SORTDOWN | HDF_SORTUP);
 	if (bSelected && bSortEnabled)
-		itemData.fmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
+		newFmt |= (bSortAscending ? HDF_SORTUP : HDF_SORTDOWN);
 
-	resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
-//	resultV = (long)SendMessage( mViewRef, itemRef->mBTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
+	if (itemData.fmt != newFmt)
+	{
+		itemData.fmt = newFmt;
+		resultV = (long)Header_SetItem( targetViewRef, itemIndex, &itemData );
+//		resultV = (long)SendMessage( mViewRef, itemRef->mBTextUnicode ? HDM_SETITEMW : HDM_SETITEMA, (WPARAM)itemIndex, (LPARAM)&itemData );
+	}
+	else
+		resultV = 1;
 
 	if (resultV == 0)
 		wxLogDebug( _T("Win32ItemSelect - SendMessage failed") );

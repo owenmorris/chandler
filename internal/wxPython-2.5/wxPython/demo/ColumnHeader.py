@@ -13,16 +13,22 @@ class TestPanel( wx.Panel ):
         wx.Panel.__init__( self, parent, -1, style=wx.NO_FULL_REPAINT_ON_RESIZE )
         self.log = log
 
+        # init (non-UI) demo vars
         # NB: should be 17 for Mac; 20 for all other platforms
         # wxColumnHeader can handle it
-        colHeight = 20
+        self.colHeight = 20
+        self.colStartX = 200
+        self.colStartY = 20
+
+        self.stepSize = 0
+        self.stepDir = -1
 
         # "no" to sort arrows for this list
         cntlID = 1001
         prompt = "ColumnHeader (%d)" %(cntlID)
-        l1 = wx.StaticText( self, -1, prompt, (190, 20), (200, 20) )
+        l1 = wx.StaticText( self, -1, prompt, (self.colStartX, self.colStartY), (200, 20) )
 
-        ch1 = wx.colheader.ColumnHeader( self, cntlID, (190, 40), (350, colHeight), 0 )
+        ch1 = wx.colheader.ColumnHeader( self, cntlID, (self.colStartX, self.colStartY + 20), (350, self.colHeight), 0 )
         dow = [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ]
         for v in dow:
             ch1.AppendItem( v, wx.colheader.COLUMNHEADER_JUST_Center, 50, 0, 0, 1 )
@@ -34,10 +40,10 @@ class TestPanel( wx.Panel ):
         # "yes" to sort arrows for this list
         cntlID = 1002
         prompt = "ColumnHeader (%d)" %(cntlID)
-        l2 = wx.StaticText( self, -1, prompt, (250, 70), (200, 20) )
+        l2 = wx.StaticText( self, -1, prompt, (self.colStartX, self.colStartY + 80), (200, 20) )
 
         # FIXME: charset - conditionalize the high ASCII value
-        ch2 = wx.colheader.ColumnHeader( self, cntlID, (250, 90), (270, colHeight), 0 )
+        ch2 = wx.colheader.ColumnHeader( self, cntlID, (self.colStartX, self.colStartY + 100), (270, self.colHeight), 0 )
         coffeeNames = [ "Juan", "ValdŽz", "coffee guy" ]
         for i, v in enumerate( coffeeNames ):
             ch2.AppendItem( v, wx.colheader.COLUMNHEADER_JUST_Left + i, 90, 0, 1, 1 )
@@ -48,31 +54,31 @@ class TestPanel( wx.Panel ):
         #ch2.SetToolTipString( "ColumnHeader (%d)" %(cntlID) )
 
         # add demo UI controls
-        l0 = wx.StaticText( self, -1, "[result]", (10, 140), (150, 20) )
+        miscControlsY = 175
+        l0O = wx.StaticText( self, -1, "Last Action", (10, miscControlsY), (150, 20) )
+        l0 = wx.StaticText( self, -1, "[result]", (10, miscControlsY + 20), (150, 20) )
         self.l0 = l0
 
-        btn = wx.Button( self, -1, "Delete Selected Item", (10, 35) )
-        self.Bind( wx.EVT_BUTTON, self.OnTestDeleteItemButton, btn )
-
-        btn = wx.Button( self, -1, "Add Bitmap Item", (10, 90) )
-        self.Bind( wx.EVT_BUTTON, self.OnTestAddBitmapItemButton, btn )
-
-        btn = wx.Button( self, -1, "Resize", (10, 210) )
-        self.Bind( wx.EVT_BUTTON, self.OnTestResizeButton, btn )
-        self.stepSize = 0
-        self.stepDir = -1
-
-        cb1 = wx.CheckBox( self, -1, "Enable", (10, 250), (100, 20), wx.NO_BORDER )
+        cb1 = wx.CheckBox( self, -1, "Enable", (self.colStartX, miscControlsY), (100, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestEnableCheckBox, cb1 )
         cb1.SetValue( True )
 
-        cb2 = wx.CheckBox( self, -1, "Visible Selection", (10, 275), (150, 20), wx.NO_BORDER )
+        cb2 = wx.CheckBox( self, -1, "Visible Selection", (self.colStartX + 120, miscControlsY), (150, 20), wx.NO_BORDER )
         self.Bind( wx.EVT_CHECKBOX, self.OnTestVisibleSelectionCheckBox, cb2 )
         cb2.SetValue( True )
 
+        btn = wx.Button( self, -1, "Resize", (10, self.colStartY) )
+        self.Bind( wx.EVT_BUTTON, self.OnTestResizeButton, btn )
+
+        btn = wx.Button( self, -1, "Delete Selection", (10, self.colStartY + 25) )
+        self.Bind( wx.EVT_BUTTON, self.OnTestDeleteItemButton, btn )
+
+        btn = wx.Button( self, -1, "Add Bitmap Item", (10, self.colStartY + 80 + 10) )
+        self.Bind( wx.EVT_BUTTON, self.OnTestAddBitmapItemButton, btn )
+
     def OnColumnHeaderClick( self, event ):
         ch = event.GetEventObject()
-        self.l0.SetLabel( "clicked (%d) - selected (%ld)" %(event.GetId(), ch.GetSelectedItem()) )
+        self.l0.SetLabel( "(%d): clicked - selected (%ld)" %(event.GetId(), ch.GetSelectedItem()) )
         # self.log.write( "Click! (%ld)\n" % event.GetEventType() )
 
     def OnTestDeleteItemButton( self, event ):
@@ -80,19 +86,22 @@ class TestPanel( wx.Panel ):
         itemIndex = ch.GetSelectedItem()
         if (itemIndex >= 0):
             ch.DeleteItem( itemIndex )
-            self.l0.SetLabel( "deleted item (%d) from (%d)" %(itemIndex, ch.GetId()) )
+            self.l0.SetLabel( "(%d): deleted item (%d)" %(ch.GetId(), itemIndex) )
         else:
-            self.l0.SetLabel( "header (%d): no item selected" %(ch.GetId()) )
+            self.l0.SetLabel( "(%d): no item selected" %(ch.GetId()) )
 
     def OnTestAddBitmapItemButton( self, event ):
         ch = self.ch2
         itemCount = ch.GetItemCount()
-        ch.AppendItem( "", wx.colheader.COLUMNHEADER_JUST_Center, 40, 0, 0, 1 )
-        testBmp = images.getTest2Bitmap()
-        ch.SetBitmapRef( itemCount, testBmp )
-        ch.SetSelectedItem( itemCount )
-        ch.ResizeToFit()
-        self.l0.SetLabel( "added bitmap item (%d) to (%d)" %(itemCount, ch.GetId()) )
+        if itemCount <= 8:
+             ch.AppendItem( "", wx.colheader.COLUMNHEADER_JUST_Center, 40, 0, 0, 1 )
+             testBmp = images.getTest2Bitmap()
+             ch.SetBitmapRef( itemCount, testBmp )
+             ch.SetSelectedItem( itemCount )
+             ch.ResizeToFit()
+             self.l0.SetLabel( "(%d): added bitmap item (%d)" %(ch.GetId(), itemCount) )
+        else:
+             self.l0.SetLabel( "(%d): enough items!" %(ch.GetId()) )
 
     def OnTestResizeButton( self, event ):
         curWidth = self.ch1.GetTotalUIExtent()
@@ -102,8 +111,8 @@ class TestPanel( wx.Panel ):
             if (self.stepSize == (-1)):
                 self.stepDir = 1
         self.stepSize = self.stepSize + self.stepDir
-        self.ch1.DoSetSize( 190, 40, curWidth + 40 * self.stepSize, 20, 0 )
-        self.l0.SetLabel( "resized (%d)" %(self.ch1.GetId()) )
+        self.ch1.DoSetSize( self.colStartX, self.colStartY + 20, curWidth + 40 * self.stepSize, 20, 0 )
+        self.l0.SetLabel( "(%d): resized" %(self.ch1.GetId()) )
 
     def OnTestEnableCheckBox( self, event ):
         curEnabled = self.ch1.IsEnabled()
