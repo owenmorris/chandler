@@ -182,6 +182,8 @@ class wxApplication (wxApp):
             EVT_MENU(self, XRCID ('Test3'), self.OnTest3)
             EVT_MENU(self, XRCID ('CreateNewRepository'), self.OnCreateNewRepository)
 
+        EVT_MENU(self, -1, self.OnMenuCommand)
+        self.InMenuCommand = false      #used by OnMenuCommand
         return true  #indicates we succeeded with initialization
 
     if __debug__:
@@ -275,3 +277,23 @@ class wxApplication (wxApp):
                 theClass.path = pathToPackage
                 theClass.Install ()
 
+    def OnMenuCommand(self, event):
+        """
+          Catch menu commands and pass them along to the viewerParcels.
+        First we let the application get a crack at the event, if it
+        doesn't handle it we pass it along to the window that has the
+        focus (i.e. the viewerParcel). In the event the viewerParcel doesn't
+        handle the event we'll get recursively called, so we use
+        InMenuCommand to ignore recursive calls.
+          For some unknown reason ProcessEvent on the focusWindow always
+        returns true, even when the event isn't processed, so we don't
+        try the focusWindow first, followed by the application if it doesn't
+        get processed.
+        """
+        if not self.InMenuCommand:
+            self.InMenuCommand = true
+            activeParcel = self.wxMainFrame.activeParcel
+            if not activeParcel != None:
+                activeParcel.GetEventHandler().ProcessEvent(event)
+            self.InMenuCommand = false
+            

@@ -121,6 +121,7 @@ class wxViewerParcel(wxPanel):
         value = wxPrePanel()
         self.this = value.this
         self._setOORInfo(self)
+        app.wxMainFrame.activeParcel = None
 
     def Setup(self, model, resources):
         """
@@ -137,13 +138,14 @@ class wxViewerParcel(wxPanel):
         displayed.
         """
         self.AddViewParcelMenu ()
-        self.SetFocus ()
+        app.wxMainFrame.activeParcel = self
     
     def Deactivate(self):
         """
           Override to do tasks that need to happen just before your parcel is
         replaced with anoter.
         """
+        app.wxMainFrame.activeParcel = None
         self.RemoveViewParcelMenu ()
     
     def GetMenuName(self):
