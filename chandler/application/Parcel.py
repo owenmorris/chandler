@@ -1245,8 +1245,9 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                          % (namespace, name)
                         self.saveExplanation(explanation)
                         raise ParcelException(explanation)
+                    # Note, for references we record a UUID in the ValueSet
                     assignmentTuple = \
-                     (attributeName, reference, None)
+                     (attributeName, str(reference.itsUUID), None)
 
                 if old.assignmentExists(assignmentTuple):
                     # This assignment appeared in the XML file from before;
@@ -1298,7 +1299,7 @@ class ParcelItemHandler(xml.sax.ContentHandler):
                     raise ParcelException(explanation)
 
                 assignmentTuple = \
-                 (attributeName, reference.itsUUID, None)
+                 (attributeName, str(reference.itsUUID), None)
 
                 if old.assignmentExists(assignmentTuple):
                     # This assignment appeared in the XML file from before;
@@ -1432,8 +1433,6 @@ class ValueSet(object):
         """ Returns True if the ValueSet has this assignment in it. False
             otherwise.
         """
-        value = repr(value) # makes it easier to compare non-strings
-
         if attrName not in self.assignments:
             return False
 
@@ -1451,8 +1450,6 @@ class ValueSet(object):
     def removeAssignment(self, (attrName, value, key)):
         """ Remove an assignment from the ValueSet.
         """
-        value = repr(value) # makes it easier to compare non-strings
-
         if attrName not in self.assignments:
             return
 
@@ -1469,7 +1466,6 @@ class ValueSet(object):
     def addAssignment(self, (attrName, value, key)):
         """ Add an assignment to the ValueSet.
         """
-        value = repr(value) # makes it easier to compare non-strings
         card = self.item.getAttributeAspect(attrName, "cardinality")
 
         # add attribute to assignments dictionary if not already there
@@ -1512,23 +1508,55 @@ class ValueSet(object):
             assignment.
         """
         for (attrName, value, key) in self.getAssignments():
+            # First, see if this is a ref collection, since we handle those
+            # differently; to remove an item from a ref collection, we use
+            # removeItem( ) which takes an item parameter -- therefore we
+            # first need to findUUID() the item.
+            attr = self.item.getAttributeValue(attrName)
+            if isinstance(attr,
+             repository.persistence.XMLRepositoryView.XMLRefDict):
+                # value is a UUID -- let's load the associated item and then
+                # remove it from this collection
+                otherItem = self.item.findUUID(value)
+                attr.removeItem(otherItem)
+                print "Reload: item %s, unassigning %s = '%s'" % \
+                 (self.item.itsPath, attrName, otherItem.itsPath)
+                continue
+
             card = self.item.getAttributeAspect(attrName, "cardinality")
             if card == "dict":
                 print "Reload: item %s, unassigning %s[%s] = '%s'" % \
                  (self.item.itsPath, attrName, key, value)
                 self.item.removeValue(attrName, key)
             elif card == "list":
+                # For list and single cardinality attributes, unassigning
+                # requires matching "value" to the item's attribute value.
+                # For itemrefs, we need to instead match the UUID; that's
+                # why we check to see if the value is an item first.
                 list = self.item.getAttributeValue(attrName)
                 for listValue in list:
-                    if repr(listValue) == value:
-                        list.remove(listValue)
+                    if isinstance(listValue, repository.item.Item.Item):
+                        if str(listValue.itsUUID) == value:
+                            list.remove(listValue)
+                            print "Reload: item %s, unassigning %s = '%s'" % \
+                             (self.item.itsPath, attrName, listValue.itsPath)
+                    else:
+                        if str(listValue) == value:
+                            list.remove(listValue)
+                            print "Reload: item %s, unassigning %s = '%s'" % \
+                             (self.item.itsPath, attrName, value)
+            else:
+                attrValue = self.item.getAttributeValue(attrName)
+                if isinstance(attrValue, repository.item.Item.Item):
+                    if str(attrValue.itsUUID) == value:
+                        self.item.removeAttributeValue(attrName)
+                        print "Reload: item %s, unassigning %s = '%s'" % \
+                         (self.item.itsPath, attrName, attrValue.itsPath)
+                else:
+                    if str(attrValue) == value:
+                        self.item.removeAttributeValue(attrName)
                         print "Reload: item %s, unassigning %s = '%s'" % \
                          (self.item.itsPath, attrName, value)
-            else:
-                if repr(self.item.getAttributeValue(attrName)) == value:
-                    print "Reload: item %s, unassigning %s = '%s'" % \
-                     (self.item.itsPath, attrName, value)
-                    self.item.removeAttributeValue(attrName)
 
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
