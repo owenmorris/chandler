@@ -173,10 +173,10 @@
       <values>grow</values>
       <values>growConstrainAspectRatio</values>
       <values>alignCenter</values>
-      <values>alignCenterTop</values>
-      <values>alignCenterLeft</values>
-      <values>alignCenterBottom</values>
-      <values>alignCenterRight</values>
+      <values>alignTopCenter</values>
+      <values>alignMiddleLeft</values>
+      <values>alignBottomCenter</values>
+      <values>alignMiddleRight</values>
       <values>alignTopLeft</values>
       <values>alignTopRight</values>
       <values>alignBottomLeft</values>

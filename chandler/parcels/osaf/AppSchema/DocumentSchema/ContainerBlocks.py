@@ -16,13 +16,13 @@ class ContainerChild(Block):
             flag = wxSHAPED
         elif self.alignmentEnum == 'alignCenter':
             flag = wxALIGN_CENTER
-        elif self.alignmentEnum == 'alignCenterTop':
+        elif self.alignmentEnum == 'alignTopCenter':
             flag = wxALIGN_TOP
-        elif self.alignmentEnum == 'alignCenterLeft':
+        elif self.alignmentEnum == 'alignMiddleLeft':
             flag = wxALIGN_LEFT
-        elif self.alignmentEnum == 'alignCenterBottom':
+        elif self.alignmentEnum == 'alignBottomCenter':
             flag = wxALIGN_BOTTOM
-        elif self.alignmentEnum == 'alignCenterRight':
+        elif self.alignmentEnum == 'alignMiddleRight':
             flag = wxALIGN_RIGHT
         elif self.alignmentEnum == 'alignTopLeft':
             flag = wxALIGN_TOP | wxALIGN_LEFT
