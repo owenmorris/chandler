@@ -4,16 +4,48 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
+import sys, traceback
 
 from libxml2mod import xmlEncodeSpecialChars as escape
 from libxml2 import SAXCallback, createPushParser
+from cStringIO import StringIO
+
+
+class SAXError(Exception):
+    pass
 
 
 class ContentHandler(SAXCallback):
+
+    def __init__(self):
+
+        self.exception = None
     
     def cdataBlock(self, data):
         
         self.characters(data)
+
+    def saveException(self):
+
+        type, value, stack = sys.exc_info()
+        self.exception = traceback.format_exception(type, value, stack)
+
+    def errorOccurred(self):
+
+        return self.exception is not None
+
+    def saxError(self):
+
+        try:
+            buffer = StringIO()
+            buffer.write("(nested exception traceback below)\n\n")
+            for text in self.exception:
+                buffer.write(text)
+
+            return SAXError(buffer.getvalue())
+
+        finally:
+            buffer.close()
 
 
 class XMLGenerator(object):

@@ -333,6 +333,8 @@ class XMLContainer(object):
         string = doc.getContent()
         ctx = libxml2.createPushParser(handler, string, len(string), "doc")
         ctx.parseChunk('', 0, 1)
+        if handler.errorOccurred():
+            raise handler.saxError()
             
     def getDocUUID(self, doc):
 

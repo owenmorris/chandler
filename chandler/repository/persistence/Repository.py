@@ -358,7 +358,10 @@ class RepositoryView(object):
         if not packs:
             packs = Item('Packs', self, None)
 
-        libxml2.SAXParseFile(PackHandler(path, parent, self), path, 0)
+        handler = PackHandler(path, parent, self)
+        libxml2.SAXParseFile(handler, path, 0)
+        if handler.errorOccurred():
+            raise handler.saxError()
 
     def dir(self, item=None, path=None):
         'Print out a listing of each item in the repository or under item.'
@@ -396,7 +399,9 @@ class RepositoryView(object):
             
         handler = ItemsHandler(self, parent or self, afterLoadHooks)
         libxml2.SAXParseFile(handler, path, 0)
-
+        if handler.errorOccurred():
+            raise handler.saxError()
+        
         return handler.items
 
     def _loadItemString(self, string, parent=None, afterLoadHooks=None):
@@ -411,6 +416,8 @@ class RepositoryView(object):
         handler = ItemHandler(self, parent or self, afterLoadHooks)
         ctx = libxml2.createPushParser(handler, string, len(string), "item")
         ctx.parseChunk('', 0, 1)
+        if handler.errorOccurred():
+            raise handler.saxError()
 
         return handler.item
 

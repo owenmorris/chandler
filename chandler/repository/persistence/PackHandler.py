@@ -18,6 +18,8 @@ class PackHandler(ContentHandler):
 
     def __init__(self, path, parent, repository):
 
+        ContentHandler.__init__(self)
+
         self.path = path
         self.cwd = [ os.path.dirname(path) ]
         self.parent = [ parent ]
@@ -30,16 +32,18 @@ class PackHandler(ContentHandler):
 
     def endDocument(self):
 
-        self.repository._resolveStubs()
+        if not self.errorOccurred():
+            self.repository._resolveStubs()
 
     def startElement(self, tag, attrs):
 
-        self.data = ''
-        method = getattr(PackHandler, tag + 'Start', None)
-        if method is not None:
-            method(self, attrs)
+        if not self.errorOccurred():
+            self.data = ''
+            method = getattr(PackHandler, tag + 'Start', None)
+            if method is not None:
+                method(self, attrs)
             
-        self.tagAttrs.append(attrs)
+            self.tagAttrs.append(attrs)
 
     def characters(self, data):
 
@@ -47,11 +51,12 @@ class PackHandler(ContentHandler):
 
     def endElement(self, tag):
 
-        attrs = self.tagAttrs.pop()
+        if not self.errorOccurred():
+            attrs = self.tagAttrs.pop()
 
-        method = getattr(PackHandler, tag + 'End', None)
-        if method is not None:
-            method(self, attrs)
+            method = getattr(PackHandler, tag + 'End', None)
+            if method is not None:
+                method(self, attrs)
 
     def packStart(self, attrs):
 
@@ -60,9 +65,13 @@ class PackHandler(ContentHandler):
 
         if attrs.has_key('file'):
             if not self.repository.find(Path('//', 'Packs', attrs['name'])):
-                self.repository.loadPack(os.path.join(self.cwd[-1],
-                                                      attrs['file']),
-                                         self.parent[-1])
+                try:
+                    self.repository.loadPack(os.path.join(self.cwd[-1],
+                                                          attrs['file']),
+                                             self.parent[-1])
+                except Exception:
+                    self.saveException()
+                    return
 
         else:
             self.name = attrs['name']
@@ -108,6 +117,8 @@ class PackHandler(ContentHandler):
                 if exp.match(file):
                     parent = self.loadItem(os.path.join(self.cwd[-1], file),
                                            self.parent[-1])
+                    if self.errorOccurred():
+                        return
             
         self.parent.append(parent)
 
@@ -121,16 +132,25 @@ class PackHandler(ContentHandler):
         if attrs.has_key('cwd'):
             self.cwd.pop()
 
-        if attrs.get('afterLoadHooks', 'False') == 'True':
-            for hook in self.hooks.pop():
-                hook()
+        try:
+            if attrs.get('afterLoadHooks', 'False') == 'True':
+                for hook in self.hooks.pop():
+                    hook()
+        except Exception:
+            self.saveException()
+            return
 
     def loadItem(self, file, parent):
 
-        items = self.repository._loadItemsFile(file, parent,
-                                               afterLoadHooks=self.hooks[-1])
+        try:
+            items = self.repository._loadItemsFile(file, parent,
+                                                   afterLoadHooks=self.hooks[-1])
 
-        for item in items:
-            item._status |= item.NEW
+            for item in items:
+                item._status |= item.NEW
 
-        return items[0]
+            return items[0]
+
+        except Exception:
+            self.saveException()
+            return

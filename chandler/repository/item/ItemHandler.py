@@ -26,6 +26,8 @@ class ItemHandler(ContentHandler):
     
     def __init__(self, repository, parent, afterLoadHooks):
 
+        ContentHandler.__init__(self)
+
         self.repository = repository
         self.parent = parent
         self.afterLoadHooks = afterLoadHooks
@@ -611,6 +613,8 @@ class ItemsHandler(ContentHandler):
 
     def __init__(self, repository, parent, afterLoadHooks):
 
+        ContentHandler.__init__(self)
+
         self.repository = repository
         self.parent = parent
         self.afterLoadHooks = afterLoadHooks
@@ -622,26 +626,36 @@ class ItemsHandler(ContentHandler):
         
     def startElement(self, tag, attrs):
 
-        if tag == 'item':
-            self.itemHandler = ItemHandler(self.repository, self.parent,
-                                           self.afterLoadHooks)
-            self.itemHandler.startDocument()
+        if self.exception is None:
+            if tag == 'item':
+                self.itemHandler = ItemHandler(self.repository, self.parent,
+                                               self.afterLoadHooks)
+                self.itemHandler.startDocument()
 
-        if self.itemHandler is not None:
-            self.itemHandler.startElement(tag, attrs)
+            if self.itemHandler is not None:
+                try:
+                    self.itemHandler.startElement(tag, attrs)
+                except Exception:
+                    self.saveException()
+                    return
 
     def characters(self, data):
 
-        if self.itemHandler is not None:
+        if self.exception is None and self.itemHandler is not None:
             self.itemHandler.characters(data)
 
     def endElement(self, tag):
 
-        if self.itemHandler is not None:
-            self.itemHandler.endElement(tag)
-
-        if tag == 'item':
-            item = self.itemHandler.item
-            self.items.append(self.itemHandler.item)
-            self.itemHandler.endDocument()
-            self.itemHandler = None
+        if self.exception is None:
+            if self.itemHandler is not None:
+                try:
+                    self.itemHandler.endElement(tag)
+                except Exception:
+                    self.saveException()
+                    return
+            
+            if tag == 'item':
+                item = self.itemHandler.item
+                self.items.append(self.itemHandler.item)
+                self.itemHandler.endDocument()
+                self.itemHandler = None
