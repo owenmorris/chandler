@@ -91,7 +91,7 @@ def main():
 
         treeName = mod.treeName
 
-        SendMail(fromAddr, options.toAddr, startTime, buildName, "building", 
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, "building", 
          treeName, None)
 
         ret = mod.Start(hardhatFile, buildDir, "-D'"+ nowString + "'", 
@@ -107,7 +107,9 @@ def main():
         log = open(logFile, "r")
         logContents = log.read()
         log.close()
-        SendMail(fromAddr, options.alertAddr, startTime, buildName, "The build failed", 
+        SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", 
+         treeName, logContents)
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, "The build failed", 
          treeName, logContents)
         log = open(logFile, "w")
 
@@ -121,7 +123,9 @@ def main():
         log = open(logFile, "r")
         logContents = log.read()
         log.close()
-        SendMail(fromAddr, options.alertAddr, startTime, buildName, "The build failed", 
+        SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", 
+         treeName, logContents)
+        SendMail(fromAddr, mailtoAddr, startTime, buildName, "The build failed", 
          treeName, logContents)
         log = open(logFile, "w")
 
@@ -172,7 +176,9 @@ def main():
             log = open(logFile, "r")
             logContents = log.read()
             log.close()
-            SendMail(fromAddr, options.alertAddr, startTime, buildName, "The build failed", 
+            SendMail(fromAddr, alertAddr, startTime, buildName, "The build failed", 
+             treeName, logContents)
+            SendMail(fromAddr, mailtoAddr, startTime, buildName, "The build failed", 
              treeName, logContents)
             log = open(logFile, "w")
 
@@ -186,7 +192,9 @@ def main():
             log = open(logFile, "r")
             logContents = log.read()
             log.close()
-            SendMail(fromAddr, options.alertAddr, startTime, buildName, "Unit tests failed", 
+            SendMail(fromAddr, alertAddr, startTime, buildName, "Unit tests failed", 
+             treeName, logContents)
+            SendMail(fromAddr, mailtoAddr, startTime, buildName, "Unit tests failed", 
              treeName, logContents)
             log = open(logFile, "w")
         
