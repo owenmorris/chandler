@@ -242,7 +242,7 @@ def messageObjectToKind(view, messageObject, messageText=None):
 
     body = (constants.LF.join(bodyBuffer)).replace(constants.CR, constants.EMPTY)
 
-    m.body = utils.strToText(m, "body", body, indexText=True)
+    m.body = utils.strToText(m, "body", body)
 
     __parseHeaders(view, messageObject, m)
 
@@ -639,8 +639,7 @@ def __handleText(view, mimePart, parentMIMEContainer, bodyBuffer, counter, buf, 
             mimeText.lang = lang
 
         #XXX: This may cause issues since Note no longer a parent
-        mimeText.body = utils.strToText(mimeText, "body", getUnicodeValue(body, charset), \
-                                        indexText=True)
+        mimeText.body = utils.strToText(mimeText, "body", getUnicodeValue(body, charset))
 
         parentMIMEContainer.mimeParts.append(mimeText)
         parentMIMEContainer.hasMimeParts = True
