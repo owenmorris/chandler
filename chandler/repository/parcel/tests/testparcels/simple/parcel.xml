@@ -5,21 +5,14 @@
 <!-- Copyright (c) 2003 Open Source Applications Foundation -->
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
-<Parcel describes="//parcels/simple"
-        itemName="simple"
+<Parcel itemName="simple"
         xmlns="//Schema/Core"
-        xmlns:simple="//parcels/simple">
+        xmlns:simple="//parcels/simple" >
 
-  <displayName>Simple</displayName>
+  <displayName>Simple Parcel</displayName>
   <description>Simple Parcel Loader Test Schema</description>
   <version>0.1</version>
   <author>Open Source Applications Foundation</author>
-
-  <Attribute itemName="TestAttribute">
-    <displayName>Test Attribute</displayName>
-    <cardinality>single</cardinality>
-    <type itemref="String"/>
-  </Attribute>
 
   <Kind itemName="TestKind">
     <displayName>Test Kind</displayName>
@@ -31,5 +24,11 @@
     <superKinds itemref="simple:TestKind"/>
     <displayName>Subclass Test Kind</displayName>
   </Kind>
+
+  <Attribute itemName="TestAttribute">
+    <displayName>Test Attribute</displayName>
+    <cardinality>single</cardinality>
+    <type itemref="String"/>
+  </Attribute>
 
 </Parcel>

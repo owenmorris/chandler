@@ -20,16 +20,17 @@ class SimpleParcelLoaderTestCase(ParcelLoaderTestCase.ParcelLoaderTestCase):
             make sure the repository contains what we expect.
         """
 
-        parcelDir = os.path.join(self.testdir, 'testparcels', 'simple')
-        LoadParcel(parcelDir, '//parcels/simple', None, self.rep)
+        parcelDir = os.path.join(self.testdir, 'testparcels', 'simple', 'data')
+        parcelRoot = os.path.join(self.testdir, 'testparcels' )
+        LoadParcel(parcelDir, '//parcels/simple/data', parcelRoot, self.rep)
         self.rep.commit()
-        # PrintItem("//parcels", self.rep)
+        PrintItem("//parcels", self.rep)
 
         # Ensure the simple Parcel was created with the right Kind and attrs
         simpleParcel = self.rep.find("//parcels/simple")
         self.assertEqual(simpleParcel.kind,
          self.rep.find('//Schema/Core/Parcel'))
-        self.assertEqual(simpleParcel.displayName, "Simple")
+        self.assertEqual(simpleParcel.displayName, "Simple Parcel")
         self.assertEqual(simpleParcel.description, 
          "Simple Parcel Loader Test Schema")
         self.assertEqual(simpleParcel.version, "0.1")
