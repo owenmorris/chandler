@@ -10,7 +10,7 @@ import wx
 import os
 from application.SplashScreen import SplashScreen
 from application.Parcel import Manager as ParcelManager
-
+from osaf.mail.IMAPMailTask import IMAPDownloader
 import osaf.framework.utils.imports.OutlookContacts as OutlookContacts
 import osaf.contentmodel.tests.GenerateItems as GenerateItems
 
@@ -39,6 +39,11 @@ class MainView(View):
         
     def onPreferencesEventUpdateUI (self, notification):
         notification.data ['Enable'] = False
+        
+    def onGetNewMailEvent (self, notification):
+        accountList = [Globals.repository.findPath('//parcels/osaf/mail/IMAPAccount One')]
+        account = accountList[0]
+        IMAPDownloader (account.itsUUID, account.displayName + str(account.itsUUID)).getMail()
         
     # Test Methods
 

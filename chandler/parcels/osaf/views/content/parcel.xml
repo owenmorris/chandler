@@ -84,6 +84,7 @@
   </contentModel:NamedCollection>
 
   <contentModel:Query itsName="inQuery">
+    <data itemref="mailModel:MailMessage"/>
   </contentModel:Query>
 
   <contentModel:NamedCollection itsName="inItemCollection">

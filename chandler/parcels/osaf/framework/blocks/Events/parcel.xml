@@ -28,6 +28,7 @@ of a limitation of the XML format, which will be eliminated</description>
     <subscribeAlwaysEvents itemref="events:Paste"/>
     <subscribeAlwaysEvents itemref="events:Preferences"/>
     <subscribeAlwaysEvents itemref="events:NewItemCollectionItem"/>
+    <subscribeAlwaysEvents itemref="events:GetNewMail"/>
     <subscribeAlwaysEvents itemref="events:ViewNavigationBar"/>
     <subscribeAlwaysEvents itemref="events:SelectionChanged"/>
     <subscribeAlwaysEvents itemref="events:EnterPressed"/>
@@ -87,6 +88,10 @@ of a limitation of the XML format, which will be eliminated</description>
     <items itemref="content:UntitledView"/>
     <copyItems>True</copyItems>
   </ModifyContentsEvent>
+
+  <BlockEvent itsName="GetNewMail">
+    <dispatchEnum>ActiveViewBubbleUp</dispatchEnum>
+  </BlockEvent>
 
   <BlockEvent itsName="ViewNavigationBar">
     <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>

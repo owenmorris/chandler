@@ -387,6 +387,14 @@
     <helpString>import Contacts from contacts.csv</helpString>
   </MenuItem>
 
+  <MenuItem itsName="GetNewMailItem">
+    <blockName>GetNewMailItem</blockName>
+    <title>Get Mail</title>
+    <location>TestMenu</location>
+    <event itemref="events:GetNewMail"/>
+    <helpString>Gets new email from IMAP server</helpString>
+  </MenuItem>
+
   <MenuItem itsName="CheckRepositoryItem">
     <blockName>CheckRepositoryItem</blockName>
     <title>Check Repository</title>
@@ -853,6 +861,7 @@
     <childrenBlocks itemref="doc:GenerateCalendarItem"/>
     <childrenBlocks itemref="doc:GenerateNoteItem"/>
     <childrenBlocks itemref="doc:ImportContactItem"/>
+    <childrenBlocks itemref="doc:GetNewMailItem"/>
     <childrenBlocks itemref="doc:CheckRepositoryItem"/>
     <childrenBlocks itemref="doc:ShowPyCrustItem"/>
     <childrenBlocks itemref="doc:ReloadParcelsItem"/>
