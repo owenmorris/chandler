@@ -138,3 +138,112 @@
      else
  	if test -x "$with_python"
  	then
+--- libxml2-2.6.3/win32/configure.js	2003-12-02 02:25:40.000000000 -0800
++++ libxml2-2.6.3-patched/win32/configure.js	2003-12-12 15:49:02.000000000 -0800
+@@ -53,6 +53,7 @@
+ var withSax1 = true;
+ var withLegacy = true;
+ var withOutput = true;
++var withPattern = false;
+ var withPython = false;
+ /* Win32 build options. */
+ var dirSep = "\\";
+@@ -158,17 +159,17 @@
+ /* Discovers the version we are working with by reading the apropriate
+    configuration file. Despite its name, this also writes the configuration
+    file included by our makefile. */
+-function discoverVersion()
++function discoverVersion(build_version)
+ {
+ 	var fso, cf, vf, ln, s;
+ 	fso = new ActiveXObject("Scripting.FileSystemObject");
+ 	cf = fso.OpenTextFile(configFile, 1);
+ 	if (compiler == "msvc")
+-		versionFile = ".\\config.msvc";
++		versionFile = build_version + ".\\config.msvc";
+ 	else if (compiler == "mingw")
+-		versionFile = ".\\config.mingw";
++		versionFile = build_version + ".\\config.mingw";
+ 	else if (compiler == "bcb")
+-		versionFile = ".\\config.bcb";
++		versionFile = build_version + ".\\config.bcb";
+ 	vf = fso.CreateTextFile(versionFile, true);
+ 	vf.WriteLine("# " + versionFile);
+ 	vf.WriteLine("# This file is generated automatically by " + WScript.ScriptName + ".");
+@@ -314,6 +315,8 @@
+ 			of.WriteLine(s.replace(/\@WITH_LEGACY\@/, withLegacy? "1" : "0"));
+ 		} else if (s.search(/\@WITH_OUTPUT\@/) != -1) {
+ 			of.WriteLine(s.replace(/\@WITH_OUTPUT\@/, withOutput? "1" : "0"));
++		} else if (s.search(/\@WITH_PATTERN\@/) != -1) {
++			of.WriteLine(s.replace(/\@WITH_PATTERN\@/, withPattern? "1" : "0"));
+ 		} else
+ 			of.WriteLine(ln);
+ 	}
+@@ -323,8 +326,8 @@
+ /* Configures Python bindings. Otherwise identical to the above */
+ function configureLibxmlPy()
+ {
+-	var pyOptsFileIn = srcDirXml + "\\python\\setup.py.in";
+-	var pyOptsFile = srcDirXml + "\\python\\setup.py";
++	var pyOptsFileIn = srcDirXml + "\\python\\winSetup.py.in";
++	var pyOptsFile = srcDirXml + "\\python\\winSetup.py";
+ 	var fso, ofi, of, ln, s;
+ 	fso = new ActiveXObject("Scripting.FileSystemObject");
+ 	ofi = fso.OpenTextFile(pyOptsFileIn, 1);
+@@ -532,7 +535,7 @@
+ 	buildSoPrefix = "$(PREFIX)" + dirSep + "lib";
+ 
+ // Discover the version.
+-discoverVersion();
++discoverVersion(buildDebug ? "debug" : "release");
+ if (error != 0) {
+ 	WScript.Echo("Version discovery failed, aborting.");
+ 	WScript.Quit(error);
+--- libxml2-2.6.3/win32/Makefile.msvc	2003-11-28 23:58:21.000000000 -0800
++++ libxml2-2.6.3-patched/win32/Makefile.msvc	2004-01-28 18:02:11.000000000 -0800
+@@ -15,7 +15,9 @@
+ # There should never be a need to modify anything below this line.
+ # ----------------------------------------------------------------
+ 
+-AUTOCONF = .\config.msvc
++BUILD_VERSION=.
++
++AUTOCONF = $(BUILD_VERSION)\config.msvc
+ !include $(AUTOCONF)
+ 
+ # Names of various input and output components.
+@@ -27,10 +29,10 @@
+ XML_A = $(XML_BASENAME)_a.lib
+ 
+ # Place where we let the compiler put its output.
+-BINDIR = bin.msvc
+-XML_INTDIR = int.msvc
+-XML_INTDIR_A = int.a.msvc
+-UTILS_INTDIR = int.utils.msvc
++BINDIR = $(BUILD_VERSION)\bin.msvc
++XML_INTDIR = $(BUILD_VERSION)\int.msvc
++XML_INTDIR_A = $(BUILD_VERSION)\int.a.msvc
++UTILS_INTDIR = $(BUILD_VERSION)\int.utils.msvc
+ 
+ # The preprocessor and its options.
+ CPP = cl.exe /EP
+@@ -39,6 +41,10 @@
+ CPPFLAGS = $(CPPFLAGS) /D "_REENTRANT"
+ !endif
+ 
++!if "$(DEBUG)" == "1"
++CRUNTIME = $(CRUNTIME)d
++!endif
++
+ # The compiler and its options.
+ CC = cl.exe
+ CFLAGS = /nologo /D "WIN32" /D "_WINDOWS" /D "_MBCS" /W1 $(CRUNTIME)
+@@ -217,7 +223,7 @@
+ 	copy $(BINDIR)\$(XML_A) $(LIBPREFIX)
+ 	copy $(BINDIR)\$(XML_IMP) $(LIBPREFIX)
+ 	copy $(BINDIR)\*.exe $(BINPREFIX)
+-	-copy $(BINDIR)\*.pdb $(BINPREFIX)
++	if exist $(BINDIR)\*.pdb copy $(BINDIR)\*.pdb $(BINPREFIX)
+ 
+ # This is a target for me, to make a binary distribution. Not for the public use,
+ # keep your hands off :-)

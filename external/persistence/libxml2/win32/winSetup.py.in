@@ -1,0 +1,101 @@
+#!/usr/bin/python -u
+#
+# Setup script for libxml2 and libxslt if found
+#
+import sys, os
+from distutils.core import setup, Extension
+
+# Below ROOT, we expect to find include, include/libxml2, lib and bin.
+# On *nix, it is not needed (but should not harm), 
+# on Windows, it is set by configure.js.
+ROOT = os.path.join('..', 'win32', '@prefix@')
+
+# Thread-enabled libxml2
+with_threads = @WITH_THREADS@
+
+def missing(file):
+    if os.access(file, os.R_OK) == 0:
+        return 1
+    return 0
+
+# those are examined to find 
+# - libxml/tree.h
+includes_dir = [ os.path.join(ROOT, 'include') ];
+
+xml_includes=""
+for dir in includes_dir:
+    if not missing(os.path.join(dir, 'libxml', 'tree.h')):
+        xml_includes = dir
+	break;
+
+if xml_includes == "":
+    print "failed to find headers for libxml2: update includes_dir"
+    sys.exit(1)
+
+# those are added in the linker search path for libraries
+libdirs = [ os.path.join(ROOT, 'lib') ]
+
+xml_files = ["libxml2-api.xml", "libxml2-python-api.xml",
+             "libxml.c", "libxml.py", "libxml_wrap.h", "types.c",
+	     "xmlgenerator.py", "README", "TODO"]
+
+if missing("libxml2-py.c") or missing("libxml2.py"):
+    try:
+	try:
+	    import xmlgenerator
+	except:
+	    import generator
+    except:
+	print "failed to find and generate stubs for libxml2, aborting ..."
+	print sys.exc_type, sys.exc_value
+	sys.exit(1)
+
+    head = open("libxml.py", "r")
+    generated = open("libxml2class.py", "r")
+    result = open("libxml2.py", "w")
+    for line in head.readlines():
+	result.write(line)
+    for line in generated.readlines():
+	result.write(line)
+    head.close()
+    generated.close()
+    result.close()
+
+modules = [ 'libxml2' ]
+c_files = [ 'libxml2-py.c', 'libxml.c', 'types.c' ]
+includes= [ xml_includes ]
+libs    = [ 'libxml2_a', 'wsock32' ]
+macros  = []
+if with_threads:
+    macros.append(('_REENTRANT','1'))
+
+extens=[Extension('libxml2mod', c_files,
+                  include_dirs=includes,
+                  library_dirs=libdirs, 
+                  libraries=libs, 
+                  define_macros=macros)] 
+
+if missing("MANIFEST"):
+
+    manifest = open("MANIFEST", "w")
+    manifest.write("setup.py\n")
+    for file in xml_files:
+        manifest.write(file + "\n")
+    manifest.close()
+
+setup (name = "libxml2-python",
+       # On *nix, the version number is created from setup.py.in
+       # On windows, it is set by configure.js
+       version = "@LIBXML_VERSION@",
+       description = "libxml2 package",
+       author = "Daniel Veillard",
+       author_email = "veillard@redhat.com",
+       url = "http://xmlsoft.org/python.html",
+       licence="MIT Licence",
+       py_modules=modules,
+       ext_modules=extens,
+       ext_package=None,
+       data_files=[])
+
+sys.exit(0)
+
