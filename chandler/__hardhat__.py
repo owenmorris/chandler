@@ -56,7 +56,7 @@ def build(buildenv):
                                 'distrib/win/launcher/launcher.sln',
                                 '/build', version.capitalize(),
                                 '/out', 'output.txt' ],
-                              'Building launcher ' + version),
+                              'Building launcher ' + version,
                               0, 'output.txt')
 
 
