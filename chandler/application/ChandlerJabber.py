@@ -253,13 +253,10 @@ class JabberClient:
     def IsSubscribed(self, jabberID):
         realIDs = self.roster.getJIDs()
         searchID = str(jabberID).lower()
-        print "issub", jabberID, realIDs, searchID
         for realID in realIDs:
             idParts = str(realID).split('/')
             if idParts[0].lower() == searchID:
-                print "true"
                 return true
-        print "False"
         return false
         
     # logout from the jabber server and terminate the connection
@@ -523,7 +520,7 @@ class JabberClient:
                 self.connection.send(Presence(to=who, type='unsubscribed'))
                 self.connection.send(Presence(to=who, type='unsubscribe'))
             
-            self.NotifyPresenceChanged(jabberID)
+            self.NotifyPresenceChanged(who)
                 
         self.confirmDialog = None
         
