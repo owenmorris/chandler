@@ -16,4 +16,4 @@ export PYTHONHOME=$CHANDLERBIN/debug
 
 cd $CHANDLERHOME
 
-$CHANDLERBIN/debug/bin/python Chandler.py $*
+$CHANDLERBIN/debug/bin/python_d Chandler.py $*
