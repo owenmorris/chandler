@@ -227,7 +227,27 @@ class wxViewerParcel(wxPanel):
         """
         self.model = model
         self.resources = resources
-        self.OnInit()
+        parcelDictionary = app.parcels[id(self.model.__class__)]
+        self.data = parcelDictionary['data']
+        """
+          OnInit does general initialization, which can only be done after
+        __init__ has been called.
+        """
+        if hasattr (self, 'OnInit'):
+            self.OnInit()
+        """
+          OnInitData is called once per parcel class, the first time a parcel
+        is displayed. It's a good place to store global data that can't be
+        persisted on a per class basis, e.g. open file handles.
+          If you need per instance data you can add a dictionary to the 
+        per class data, and if this turns out to be a common need, I'll add it
+        to wxPacelViewer -- DJA
+        """
+        if not self.data.has_key ('__OnInitDataCalled__'):
+            if hasattr (self, 'OnInitData'):
+                self.OnInitData()
+            self.data['__OnInitDataCalled__'] = 1
+
         # Only bind erase background on Windows for flicker reasons
         if wxPlatform == '__WXMSW__':
             EVT_ERASE_BACKGROUND (self, self.OnEraseBackground)

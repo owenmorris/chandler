@@ -20,7 +20,7 @@ import PreferencesDialog
 import ChandlerJabber
 import PresencePanel
 
-from zodb import db 
+from zodb import db
 from zodb.storage.file import FileStorage
 from application.repository.Repository import Repository
 from application.ImportExport import ImportExport
@@ -127,7 +127,7 @@ class wxApplication (wxApp):
     self.association              a dictionary mapping persistent object ids
                                   to non-persistent wxPython counterparts
     self.chandlerDirectory        directory containing chandler executable
-    self.parcels                  global list of parcel classes
+    self.parcels                  global dictionary of parcel classes
     self.model                    the persistent counterpart
     self.storage                  ZODB low level database
     self.db                       ZODB high level database (object cache)
@@ -169,7 +169,7 @@ class wxApplication (wxApp):
         self.applicationResources=None
         self.association={}
         self.chandlerDirectory=None
-        self.parcels=[]
+        self.parcels={}
         self.storage=None
         self.model=None
         
@@ -334,7 +334,7 @@ class wxApplication (wxApp):
         before the dot is the file, (CalendarView.py) and the second string is
         the class e.g. CalendarView. See calendar/__init__.py for an example.
         """
-        self.parcels=[]
+        self.parcels={}
         """
           We've got to have a parcel directory..
         """
@@ -366,7 +366,12 @@ class wxApplication (wxApp):
                 """
                 assert (hasattr (module, parcelClassStrings[1]))
                 theClass = module.__dict__[parcelClassStrings[1]]
-                self.parcels.append (theClass)
+                """
+                  Currently parcels each have a class and data, which is a
+                non persistent dictionary.
+                """
+                self.parcels[id(theClass)] = {'class' : theClass,
+                                                     'data' : {} }
                 theClass.path = pathToPackage
                 theClass.Install ()
 
