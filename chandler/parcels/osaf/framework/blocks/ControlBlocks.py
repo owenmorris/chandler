@@ -58,7 +58,7 @@ class Button(RectangularChild):
         except AttributeError:
             pass
         else:
-            self.Post(event, {'item':self})
+            self.post(event, {'item':self})
 
                               
 class wxCheckBox(ShownSynchronizer, wx.CheckBox):
@@ -134,7 +134,7 @@ class wxEditText(ShownSynchronizer, wx.TextCtrl):
         self.SetSizeHints(minW=minW, minH=minH)
 
     def OnEnterPressed(self, event):
-        self.blockItem.PostEventByName ('EnterPressed', {'text':self.GetValue()})
+        self.blockItem.postEventByName ('EnterPressed', {'text':self.GetValue()})
         event.Skip()
 
 class EditText(RectangularChild):
@@ -343,7 +343,7 @@ class wxList (DraggableWidget, wx.ListCtrl):
             item = self.blockItem.contents [event.GetIndex()]
             if self.blockItem.selection != item:
                 self.blockItem.selection = item
-            self.blockItem.PostEventByName("SelectItemBroadcast", {'item':item})
+            self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
         event.Skip()
 
     def OnItemDrag(self, event):
@@ -551,7 +551,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
                     gridTable = self.GetTable()
                     for columnIndex in xrange (gridTable.GetNumberCols()):
                         self.SetColLabelValue (columnIndex, gridTable.GetColLabelValue (columnIndex))
-                self.blockItem.PostEventByName("SelectItemBroadcast", {'item':item})
+                self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
         event.Skip()
 
     def OnSize(self, event):
@@ -655,7 +655,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
             self.blockItem.selection = []
             self.blockItem.selectedItemToView = None
             self.ClearSelection()
-        self.blockItem.PostEventByName("SelectItemBroadcast", {'item':item})
+        self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
 
     def DeleteSelection (self):
         self.blockItem.contents.beginUpdate()
@@ -680,7 +680,7 @@ class wxTable(DraggableWidget, DropReceiveWidget, wx.grid.Grid):
         self.blockItem.selectedItemToView = None
         Globals.repository.commit()
         self.blockItem.contents.endUpdate()
-        self.blockItem.PostEventByName("SelectItemBroadcast", {'item':None})
+        self.blockItem.postEventByName("SelectItemBroadcast", {'item':None})
 
 
 class GridCellAttributeRenderer (wx.grid.PyGridCellRenderer):
@@ -813,6 +813,11 @@ class Table (RectangularChild):
     def instantiateWidget (self):
         return wxTable (self.parentBlock.widget, Block.getWidgetID(self))
 
+    def onSetContentsEvent (self, event):
+        item = event.arguments ['item']
+        if isinstance (item, ItemCollection):
+            self.contents = item
+
     def onSelectItemEvent (self, event):
         item = event.arguments ['item']
         if item != self.selectedItemToView:
@@ -828,7 +833,7 @@ class Table (RectangularChild):
             else:
                 self.widget.SelectBlock (row, 0, row, self.widget.GetColumnCount() - 1)
                 self.widget.MakeCellVisible (row, 0)
-            self.PostEventByName("SelectItemBroadcast", {'item':item})
+            self.postEventByName("SelectItemBroadcast", {'item':item})
 
     def onDeleteEvent (self, event):
         self.widget.DeleteSelection()
@@ -876,14 +881,23 @@ class StaticText(RectangularChild):
 
     
 class wxStatusBar (ShownSynchronizer, wx.StatusBar):
-    def __init__(self, *arguments, **keywords):
-        super (wxStatusBar, self).__init__ (*arguments, **keywords)
+    def __init__(self, *arguments, **keyWords):
+        super (wxStatusBar, self).__init__ (*arguments, **keyWords)
         self.gauge = wx.Gauge(self, -1, 100, size=(125, 30), style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
-        self.gauge.Show(False)            
+        self.gauge.Show(False)
+
+    def Destroy(self):
+        self.blockItem.getFrame().SetStatusBar(None)
+        super (wxStatusBar, self).Destroy()
+        
+    def wxSynchronizeWidget(self):
+        super (wxStatusBar, self).wxSynchronizeWidget()
+        self.blockItem.getFrame().Layout()
+
 
 class StatusBar(Block):
     def instantiateWidget (self):
-        frame = Globals.wxApplication.mainFrame
+        frame = self.getFrame()
         widget = wxStatusBar (frame, Block.getWidgetID(self))
         frame.SetStatusBar (widget)
         return widget
@@ -915,7 +929,6 @@ class StatusBar(Block):
     def onShowHideEvent(self, event):
         self.isShown = not self.isShown
         self.synchronizeWidget()
-        Globals.wxApplication.mainFrame.Layout()
 
 
 """
@@ -1017,7 +1030,7 @@ class wxTreeAndList(DraggableWidget):
             if self.blockItem.selection != selection:
                 self.blockItem.selection = selection
         
-                self.blockItem.PostEventByName("SelectItemBroadcast", {'item':selection})
+                self.blockItem.postEventByName("SelectItemBroadcast", {'item':selection})
         event.Skip()
 
     def OnItemDrag(self, event):
@@ -1148,7 +1161,7 @@ class wxItemDetail(wx.html.HtmlWindow):
         if not item:
             webbrowser.open(itemURL)
         else:
-            self.blockItem.PostEventByName("SelectItemBroadcast", {'item':item})
+            self.blockItem.postEventByName("SelectItemBroadcast", {'item':item})
 
     def wxSynchronizeWidget(self):
         if self.blockItem.selection is not None:
@@ -1217,7 +1230,10 @@ class wxPyTimer(wx.PyTimer):
         event.SetEventType(wx.wxEVT_TIMER)
         event.SetId(Block.getWidgetID(self.blockItem))
         Globals.wxApplication.OnCommand(event)
-        
+
+    def __del__(self):
+       Block.wxOnDestroyWidget (self)
+
 class Timer(Block):
     """
     A Timer block. Fires (sending a BlockEvent) at a particular time.
@@ -1226,7 +1242,7 @@ class Timer(Block):
     def instantiateWidget (self):
         timer = wxPyTimer(self.parentBlock.widget)
         return timer
-        
+
     def setFiringTime(self, when):
         # First turn off the old timer
         timer = self.widget

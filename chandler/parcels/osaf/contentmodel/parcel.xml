@@ -66,6 +66,10 @@
             <inverseAttribute itemref="blocks:Block/contents"/>
         </Attribute>
 
+        <attributes itemref="blocks:Block/viewContainer"/>
+
+        <attributes itemref="blocks:Block/detailItemOwner"/>
+
         <Attribute itsName="createdOn">
             <displayName>Created On</displayName>
             <description>DateTime this item was created</description>
@@ -332,7 +336,6 @@
       <Attribute itsName="parentProject">
         <displayName>Parent Project</displayName>
         <description>Projects can be organized into hierarchies. Each project can have one parent.</description>
-        <cardinality>single</cardinality>
         <type itemref="cm:Project"/>
         <inverseAttribute itemref="cm:Project/subProjects"/>
       </Attribute>

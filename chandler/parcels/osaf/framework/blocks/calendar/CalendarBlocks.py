@@ -277,7 +277,7 @@ class CalendarBlock(Block.RectangularChild):
         self.widget.renderDateChanged()
 
     def postDateChanged(self):
-        self.PostEventByName('SelectedDateChanged', {'start':self.rangeStart})
+        self.postEventByName('SelectedDateChanged', {'start':self.rangeStart})
 
     # date methods
 
@@ -576,7 +576,7 @@ class wxMiniCalendar(wx.calendar.CalendarCtrl):
                             wx.calendar.CAL_SHOW_HOLIDAYS)
 
     def OnWXSelectItem(self, event):
-        self.blockItem.PostEventByName ('SelectedDateChanged',
+        self.blockItem.postEventByName ('SelectedDateChanged',
                                         {'start': self.getSelectedDate()})
 
     def getSelectedDate(self):

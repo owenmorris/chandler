@@ -20,13 +20,13 @@ import application.Globals as Globals
 
 class ContentModel(Parcel):
 
-    contentitemsPath = Path('//userdata/contentitems')
+    contentitemsPath = Path('//userdata')
 
-    # Cached UUID of //userdata/contentitems
+    # Cached UUID of //userdata
     contentItemParentID = None
 
     def getContentItemParent(cls):
-        """ Return //userdata/contentitems or create if non-existent """
+        """ Return //userdata or create if non-existent """
 
         def makeContainer(parent, name, child):
             if child is None:
@@ -54,7 +54,7 @@ class ContentModel(Parcel):
 
 class ChandlerItem(Item.Item):
     """ Subclasses of ChandlerItem get the following behavior for free:
-        1. parent will automatically be set to //userdata/contentitems
+        1. parent will automatically be set to //userdata
         2. kind will be determined from the particular subclass's myKindPath
 
         All subclasses should have myKindID initialized to None, and set
@@ -419,7 +419,7 @@ class ContentItem(ChandlerItem):
         return contacts.Contacts.Contact.getCurrentMeContact()
 
     def setStatusMessage (cls, message, *args):
-        Globals.mainView.setStatusMessage (message, *args)
+        Globals.views[0].setStatusMessage (message, *args)
     setStatusMessage = classmethod (setStatusMessage)
 
 """

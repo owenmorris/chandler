@@ -16,6 +16,7 @@ import repository.item.Query as ItemQuery
 import chandlerdb.util.UUID as UUID
 import email.Utils as Utils
 import re as re
+import application.Globals as Globals
 
 from repository.util.Path import Path
 
@@ -428,8 +429,7 @@ class MailMessageMixin(MIMEContainer):
         We assume we want to send this MailMessage here.
         """
         # message the main view to do the work
-        targetView = self.itsView.findPath('//parcels/osaf/views/main/MainView')
-        targetView.PostEventByName('SendMail', {'item': self})
+        Globals.views[0].postEventByName('SendMail', {'item': self})
 
 class MailMessage(MailMessageMixin, Notes.Note):
     myKindID = None

@@ -8,8 +8,7 @@
 <core:Parcel itsName="Events"
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
-             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
-             xmlns:content="http://osafoundation.org/parcels/osaf/views/content">
+             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events">
 
   <description>Events need to be defined in a different parcel than the schema because of a
 limitation of the XML format. Applicaiton specific events should not be located here. 
@@ -36,6 +35,7 @@ application specific parcels here</description>
     <eventsForNamedDispatch itemref="events:SelectedDateChanged"/>
     <eventsForNamedDispatch itemref="events:SelectItemBroadcast"/>
     <eventsForNamedDispatch itemref="events:SelectItemBroadcastInsideActiveView"/>
+    <eventsForNamedDispatch itemref="events:SetContents"/>
     <eventsForNamedDispatch itemref="events:Undo"/>
 
     <eventsForNamedDispatch itemref="events:EnterPressed"/>
@@ -121,6 +121,11 @@ application specific parcels here</description>
     <blockName>SelectItemBroadcastInsideActiveView</blockName>
     <methodName>onSelectItemEvent</methodName>
     <dispatchEnum>BroadcastInsideActiveViewEventBoundary</dispatchEnum>
+  </BlockEvent>
+
+  <BlockEvent itsName="SetContents">
+    <blockName>SetContents</blockName>
+    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
   </BlockEvent>
 
   <BlockEvent itsName="Undo">

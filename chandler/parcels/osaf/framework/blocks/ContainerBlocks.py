@@ -9,17 +9,22 @@ from DragAndDrop import DropReceiveWidget as DropReceiveWidget
 from DynamicContainerBlocks import Toolbar as Toolbar
 from Styles import Font
 from chandlerdb.util.UUID import UUID
+from repository.item.Item import Item
+from osaf.contentmodel.ItemCollection import ItemCollection
 import wx
 import time
 
 
 class wxBoxContainer (wxRectangularChild):
-
     def wxSynchronizeWidget(self, *arguments, **keywords):
         super (wxBoxContainer, self).wxSynchronizeWidget (*arguments, **keywords)
         
         if self.blockItem.isShown:
             sizer = self.GetSizer()
+            if not sizer:
+                sizer = wx.BoxSizer ({'Horizontal': wx.HORIZONTAL,
+                                    'Vertical': wx.VERTICAL} [self.blockItem.orientationEnum])
+            self.SetSizer (sizer)
             sizer.Clear()
             for childBlock in self.blockItem.childrenBlocks:
                 if childBlock.isShown and isinstance (childBlock, RectangularChild):
@@ -30,29 +35,9 @@ class wxBoxContainer (wxRectangularChild):
             self.Layout()
 
 class BoxContainer (RectangularChild):
-    def instantiateWidget (self):
-        if self.parentBlock:
-            parentWidget = self.parentBlock.widget
-        else:
-            parentWidget = Globals.wxApplication.mainFrame
- 
-        widget = wxBoxContainer (parentWidget, Block.getWidgetID(self))
-        widget.SetSizer (self.createSizer())
-
-        return widget
+    def instantiateWidget (self): 
+        return wxBoxContainer (self.parentBlock.widget, Block.getWidgetID(self))
     
-    def createSizer(self):
-        if self.orientationEnum == 'Horizontal':
-            orientation = wx.HORIZONTAL
-        else:
-            orientation = wx.VERTICAL
-
-        sizer = wx.BoxSizer(orientation)
-        sizer.SetMinSize((self.minimumSize.width, self.minimumSize.height))
-        
-        return sizer
-
-
 class wxLayoutChooser(wxBoxContainer):
     def __init__(self, *arguments, **keywords):
         super (wxLayoutChooser, self).__init__ (*arguments, **keywords)
@@ -125,10 +110,7 @@ class LayoutChooser(BoxContainer):
         self.selection = LayoutChooser.NONE_SELECTED
 
         parentWidget = self.parentBlock.widget 
-        widget = wxLayoutChooser(parentWidget, Block.getWidgetID(self))
-        widget.SetSizer (self.createSizer())
-
-        return widget
+        return wxLayoutChooser(parentWidget, Block.getWidgetID(self))
 
     def changeSelection(self, selectionIndex):
         self.widget.setSelectedChoice(selectionIndex)
@@ -163,12 +145,9 @@ class wxScrolledContainer (wx.ScrolledWindow):
         
 class ScrolledContainer(BoxContainer):
     def instantiateWidget (self):
-        widget = wxScrolledContainer (self.parentBlock.widget, Block.getWidgetID(self))
-        widget.SetSizer (self.createSizer())
-        
-        return widget
-    
-  
+        return wxScrolledContainer (self.parentBlock.widget, Block.getWidgetID(self))    
+
+
 class SelectionContainer(BoxContainer):
     """
     SelectionContainer
@@ -319,7 +298,59 @@ class SplitterWindow(RectangularChild):
                                  (self.size.width, self.size.height),
                                  style=wxSplitterWindow.CalculateWXStyle(self))
                 
+
+class wxTabbedViewContainer(DropReceiveWidget, wx.Notebook):
+    def wxSynchronizeWidget(self):
+        pass
+
+    def CalculateWXStyle(self, block):
+        return {
+            'Top': 0,
+            'Bottom': wx.NB_BOTTOM, 
+            'Left': wx.NB_LEFT,
+            'Right': wx.NB_RIGHT,
+        } [block.tabPositionEnumEnum]
+    CalculateWXStyle = classmethod(CalculateWXStyle)
     
+class wxViewContainer (wxBoxContainer):
+    pass
+
+
+class ViewContainer(BoxContainer):
+    def instantiateWidget (self):
+        """
+        There is a repository bug where copying trees of blocks won't copy parentBlock
+        when it's initialValue is None -- DJA
+        """
+        try:
+            parentBlock = self.parentBlock
+        except AttributeError:
+            self.parentBlock = None
+        """
+          Somewhat of a hack: When the ViewContainer is the root of all the blocks
+        it doesn't have a parent block widget, so in that case we use the mainFrame.
+        """
+        if self.parentBlock:
+            parentWidget = self.parentBlock.widget
+        else:
+            parentWidget = self.getFrame()
+
+        if self.hasTabs:
+            return wxTabbedViewContainer (parentWidget, 
+                                          Block.getWidgetID(self),
+                                          wx.DefaultPosition,
+                                          (self.size.width, self.size.height),
+                                          style=wxTabbedViewContainer.CalculateWXStyle(self))
+        else:
+            return wxViewContainer (parentWidget)
+    
+    def onChoiceEvent (self, event):
+        choice = event.choice
+        for view in self.views:
+            if view.getItemDisplayName() == choice:
+                self.postEventByName('SelectItemBroadcast', {'item':view})
+                break
+
 class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
     def __init__(self, *arguments, **keywords):
         super (wxTabbedContainer, self).__init__ (*arguments, **keywords)
@@ -348,8 +379,7 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
             if self.selectedTab != selection:
                 self.selectedTab = selection
                 page = self.GetPage(self.selectedTab)
-                Globals.mainView.onSetActiveView(page.blockItem)
-                self.blockItem.PostEventByName("SelectItemBroadcast", {'item':page.blockItem})
+                self.blockItem.postEventByName("SelectItemBroadcast", {'item':page.blockItem})
         event.Skip()
         
     def OnRequestDrop(self, x, y):
@@ -395,7 +425,6 @@ class wxTabbedContainer(DropReceiveWidget, wx.Notebook):
             index += 1
         self.SetSelection(self.selectedTab)
         page = self.GetPage(self.selectedTab)
-        Globals.mainView.onSetActiveView(page.blockItem) 
         self.Thaw()
                 
 
@@ -417,8 +446,209 @@ class TabbedContainer(RectangularChild):
 
     def _getBlockName(self, block):
         try:
-            contents = block.contents
+            item = block.contents
         except AttributeError:
-            return block.getAttributeValue('displayName')
+            item = block
+            
+        try:
+            return item.displayName
+        except AttributeError:
+            return ""
+
+
+class TabbedView(TabbedContainer):
+    def ChangeCurrentTab(self, item):
+        if hasattr (self, 'widget'):
+            # tabbed container hasn't been rendered yet
+            activeTab = self.widget.GetSelection()
+            itemName = self._getBlockName(item)
+            found = False
+            for tabIndex in range(self.widget.GetPageCount()):
+                tabName = self.widget.GetPageText(tabIndex)
+                if tabName == itemName:
+                    found = True
+                    self.widget.SetSelection(tabIndex)
+            self.parentBlock.widget.Freeze()
+            if not found:
+                page = self.widget.GetPage(activeTab)
+                previousChild = self.childrenBlocks.previous(page.blockItem)
+                page.blockItem.parentBlock = None
+    
+                item.parentBlock = self 
+                self.childrenBlocks.placeItem(item, previousChild)
+                item.render()                
+                item.widget.SetSize (self.widget.GetClientSize())                
+            self.synchronizeWidget()
+            self.parentBlock.widget.Thaw()
+
+    def onNewEvent (self, event):
+        "Create a new tab"
+        originalItem = Globals.repository.findPath('parcels/osaf/views/content/UntitledView')
+        userdata = Globals.repository.findPath('//userdata')
+        newItem = originalItem.copy(parent=userdata, cloudAlias='default')
+        newItem.contents.displayName = self._getUniqueName("Untitled")
+        
+        self.widget.selectedTab = self.widget.GetPageCount()
+        newItem.parentBlock = self
+        self.parentBlock.widget.Freeze()
+        newItem.render()
+        self.synchronizeWidget()
+        self.parentBlock.widget.Thaw()
+        self.postEventByName ('SelectItemBroadcast', {'item':newItem})
+
+    def onCloseEvent (self, event):
+        """
+          Will either close the current tab (if not data is present
+        in the sender) or will close the tab specified by data.
+        """
+        try:
+            item = event.arguments['sender'].data
+        except AttributeError:
+            pageIndex = self.widget.GetSelection()
         else:
-            return contents.getAttributeValue('displayName')
+            for tabIndex in range (self.widget.GetPageCount()):
+                tabName = self.widget.GetPageText(tabIndex)
+                if tabName == self._getBlockName(item):
+                    found = True
+                    pageIndex = tabIndex
+            if not found:
+                # Tab isn't actually open
+                return
+        if pageIndex == self.widget.GetSelection():
+            if pageIndex == (self.widget.GetPageCount() - 1):
+                self.widget.selectedTab = pageIndex - 1
+            else:
+                self.widget.selectedTab = pageIndex
+        elif pageIndex < self.widget.GetSelection():
+            self.widget.selectedTab = self.widget.GetSelection() - 1
+        page = self.widget.GetPage(pageIndex)
+        page.blockItem.parentBlock = None
+        self.parentBlock.widget.Freeze()        
+        self.synchronizeWidget()
+        self.parentBlock.widget.Thaw()
+        self.postEventByName ('SelectItemBroadcast',
+                              {'item':self.widget.GetPage(self.widget.selectedTab).blockItem})
+
+    def onOpenEvent (self, event):
+        "Opens the chosen item in a new tab"
+        item = event.arguments['sender'].arguments
+        found = False
+        for tabIndex in range (self.widget.GetPageCount()):
+            tabName = self.widget.GetPageText (tabIndex)
+            if tabName == self._getBlockName(item):
+                found = True
+                self.widget.SetSelection(tabIndex)
+        if not found:
+            self.widget.selectedTab = self.widget.GetPageCount()
+            item.parentBlock = self
+            self.parentBlock.widget.Freeze()
+            item.render()
+            item.widget.SetSize (self.widget.GetClientSize())
+            self.synchronizeWidget()
+            self.parentBlock.widget.Thaw()
+            self.postEventByName ('SelectItemBroadcast', {'item':item})
+        
+    def onCloseEventUpdateUI(self, event):
+        event.arguments['Enable'] = (self.widget.GetPageCount() > 1)
+        
+    def _getUniqueName (self, name):
+        if not self.hasChild(name):
+            return name
+        number = 1
+        uniqueName = name + "-" + str(number)
+        while self.hasChild(uniqueName):
+            number += 1
+            uniqueName = name + "-" + str(number)
+        return uniqueName
+
+        
+class wxDetailPanel (wxBoxContainer):
+    def wxSynchronizeWidget(self, *arguments, **keywords):
+        if self.blockItem.isShown:
+            self.blockItem.InstallTreeOfBlocks()
+        super (wxDetailPanel, self).wxSynchronizeWidget (*arguments, **keywords)
+
+class DetailBlock(BoxContainer):
+    def instantiateWidget (self):
+        return wxDetailPanel (self.parentBlock.widget)
+
+    def onSelectItemEvent (self, event):
+        self.detailItem = event.arguments['item']
+        self.widget.wxSynchronizeWidget()
+
+    def InstallTreeOfBlocks (self):
+        # $$$ Repository bug doesn't let us have an initial value for detailItem
+        # fix later. DJA
+        try:
+            detailItem = self.detailItem
+        except AttributeError:
+            newView = None
+        else:
+            newView = self.viewCache.GetViewForItem (detailItem)
+
+        oldView = self.childrenBlocks.first()
+
+        if not newView is oldView:
+            if not oldView is None:
+                oldView.unRender()
+
+            self.childrenBlocks = []
+
+            if not newView is None:
+                self.childrenBlocks.append (newView)
+                """
+                  Seems like we should always mark new views with an event boundary
+                """
+                assert newView.eventBoundary
+                newView.postEventByName("SetContents", {'item':detailItem})
+
+                newView.render()
+
+# @@@BJS: "reload parcels" needs to blow away this cache!
+
+class DetailViewCache (Item):
+    def GetViewForItem (self, item):
+        view = None
+        if not item is None:
+            kindUUID = item.itsUUID
+            try:
+                viewUUID = self.kindUUIDToViewUUID [kindUUID]
+            except KeyError:
+                kindString = str (item.itsKind.itsName)
+                try:
+                    name = {"MailMessage":"EmailRootTemplate",
+                            "CalendarEvent":"CalendarRootTemplate"} [kindString]
+                except KeyError:
+                    pass
+                else:
+                    # @@@BJS: work in progress...
+                    # NOT: For now, just use the old detail view
+                    # was: template = Globals.repository.findPath ("//parcels/osaf/framework/blocks/detail/DetailRootTemplate")
+                    template = Globals.repository.findPath ("//parcels/osaf/framework/blocks/detail/" + name)
+                    view = template.copy (parent = Globals.repository.findPath ("//userdata"),
+                                          cloudAlias="default")
+                    self.kindUUIDToViewUUID [kindUUID] = view.itsUUID
+            else:
+                view = Globals.repository.findUUID (viewUUID)
+        return view
+
+
+class SidebarDetailViewCache (Item):
+    def GetViewForItem (self, item):
+        view = None
+        try:
+            viewUUID = self.itemCollectionUUIDToViewUUID [item.itsUUID]
+        except KeyError:
+            if isinstance (item, ItemCollection):
+                template = Globals.repository.findPath (self.treeTemplatePath)
+                view = template.copy (parent = Globals.repository.findPath ("//userdata"),
+                                      cloudAlias="default")
+                self.itemCollectionUUIDToViewUUID [item.itsUUID] = view.itsUUID
+            elif isinstance (item, Block):
+                """
+                  We don't copy the view because it's already copied to the soup
+                """
+                view = item
+        else:
+            view = Globals.repository.find (viewUUID)
+        return view

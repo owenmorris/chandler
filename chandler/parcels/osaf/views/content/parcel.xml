@@ -16,7 +16,6 @@
              xmlns:contactsModel="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
              xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
              xmlns:view="http://osafoundation.org/parcels/osaf/views/content"
-             xmlns:main="http://osafoundation.org/parcels/osaf/views/main"
              xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events">
 
   <core:version>0.3</core:version>
@@ -71,6 +70,68 @@
     <_rule value="for i in '//parcels/osaf/contentmodel/mail/MailMessageMixin' where i.isOutbound == True"/>
   </contentModel:ItemCollection>
 
+  <!-- LayoutSelector -->
+  <Toolbar itsName="LayoutSelector">
+    <blockName>LayoutSelector</blockName>
+    <childrenBlocks itemref="view:ListButton"/>
+    <childrenBlocks itemref="view:MonthButton"/>
+    <childrenBlocks itemref="view:WeekButton"/>
+    <childrenBlocks itemref="view:DayButton"/>
+    <!-- Attributes -->
+    <toolSize>16,16</toolSize>
+    <separatorWidth>100</separatorWidth>
+    <stretchFactor>0.0</stretchFactor>
+  </Toolbar>
+
+  <BlockEvent itsName="ChangeLayout">
+    <blockName>ChangeLayout</blockName>
+    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
+  </BlockEvent>
+
+  <!--
+    ToolbarItems
+  -->
+  <ToolbarItem itsName="ListButton">
+    <blockName>ListButton</blockName>
+    <title>List View</title>
+    <bitmap>application/images/list.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display in list view</helpString>
+    <event itemref="view:ChangeLayout"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="MonthButton">
+    <blockName>MonthButton</blockName>
+    <title>Month View</title>
+    <bitmap>application/images/month.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display in month view</helpString>
+    <event itemref="view:ChangeLayout"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="WeekButton">
+    <blockName>WeekButton</blockName>
+    <title>Week View</title>
+    <bitmap>application/images/week.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display in week view</helpString>
+    <event itemref="view:ChangeLayout"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="DayButton">
+    <blockName>DayButton</blockName>
+    <title>Day View</title>
+    <bitmap>application/images/day.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display in day view</helpString>
+    <event itemref="view:ChangeLayout"/>
+  </ToolbarItem>
+
+
   <!-- Calendar Blocks -->
   <CharacterStyle itsName="CalendarTitle">
     <fontStyle>bold</fontStyle>
@@ -97,147 +158,9 @@
     <columnWidths>130</columnWidths>
   </Table>
 
-  <!-- All Summary View -->
-  <LayoutChooser itsName="AllSummary">
-    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
-    <choices itemref="view:AllTable"/>
-    <choices itemref="view:AllMonth"/>
-    <choices itemref="view:AllWeek"/>
-    <choices itemref="view:AllDay"/>    
-    <orientationEnum>Vertical</orientationEnum>
-  </LayoutChooser>
-  
-  <!-- All Table -->
-  <Table itsName="AllTable">
-    <contents itemref="view:allItemCollection"/>
-
-    <columnHeadings></columnHeadings>
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
-
-    <columnData>itsKind</columnData>
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
-    
-    <columnWidths>20</columnWidths>
-    <columnWidths>130</columnWidths>
-    <columnWidths>130</columnWidths>
-    <columnWidths>130</columnWidths>
-  </Table>
-
-  <!-- AllMonth -->
-  <calendarBlocks:CanvasMonth itsName="AllMonth">
-    <contents itemref="view:allItemCollection"/>
-  </calendarBlocks:CanvasMonth>
-
-  <!-- AllWeek -->
-  <calendarBlocks:CanvasWeek itsName="AllWeek">
-    <contents itemref="view:allItemCollection"/>
-    <daysPerView>7</daysPerView>
-  </calendarBlocks:CanvasWeek>
-
-  <!-- AllDay -->
-  <calendarBlocks:CanvasWeek itsName="AllDay">
-    <contents itemref="view:allItemCollection"/>
-    <daysPerView>1</daysPerView>
-  </calendarBlocks:CanvasWeek>
-
-  <LayoutChooser itsName="InSummary">
-    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
-    <choices itemref="view:InTable"/>
-    <choices itemref="view:InMonth"/>
-    <choices itemref="view:InWeek"/>
-    <choices itemref="view:InDay"/>    
-    <orientationEnum>Vertical</orientationEnum>
-  </LayoutChooser>
-
-  <!-- In Table -->
-  <Table itsName="InTable">
-    <contents itemref="view:inItemCollection"/>
-
-    <columnHeadings></columnHeadings>
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
-
-    <columnData>itsKind</columnData>
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
-    
-    <columnWidths>20</columnWidths>
-    <columnWidths>130</columnWidths>
-    <columnWidths>130</columnWidths>
-    <columnWidths>130</columnWidths>
-  </Table>
-
-  <!-- InMonth -->
-  <calendarBlocks:CanvasMonth itsName="InMonth">
-    <contents itemref="view:inItemCollection"/>
-  </calendarBlocks:CanvasMonth>
-
-  <!-- InWeek -->
-  <calendarBlocks:CanvasWeek itsName="InWeek">
-    <contents itemref="view:inItemCollection"/>
-    <daysPerView>7</daysPerView>
-  </calendarBlocks:CanvasWeek>
-
-  <!-- InDay -->
-  <calendarBlocks:CanvasWeek itsName="InDay">
-    <contents itemref="view:inItemCollection"/>
-    <daysPerView>1</daysPerView>
-  </calendarBlocks:CanvasWeek>
-
-  <LayoutChooser itsName="OutSummary">
-    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
-    <choices itemref="view:OutTable"/>
-    <choices itemref="view:OutMonth"/>
-    <choices itemref="view:OutWeek"/>
-    <choices itemref="view:OutDay"/>    
-    <orientationEnum>Vertical</orientationEnum>
-  </LayoutChooser>
-
-  <!-- Out Table -->
-  <Table itsName="OutTable">
-    <contents itemref="view:outItemCollection"/>
-
-    <columnHeadings></columnHeadings>
-    <columnHeadings>who</columnHeadings>
-    <columnHeadings>about</columnHeadings>
-    <columnHeadings>date</columnHeadings>
-
-    <columnData>itsKind</columnData>
-    <columnData>who</columnData>
-    <columnData>about</columnData>
-    <columnData>date</columnData>
-    
-    <columnWidths>20</columnWidths>
-    <columnWidths>130</columnWidths>
-    <columnWidths>130</columnWidths>
-    <columnWidths>130</columnWidths>
-  </Table>
-  
-  <!-- OutMonth -->
-  <calendarBlocks:CanvasMonth itsName="OutMonth">
-    <contents itemref="view:outItemCollection"/>
-  </calendarBlocks:CanvasMonth>
-
-  <!-- OutWeek -->
-  <calendarBlocks:CanvasWeek itsName="OutWeek">
-    <contents itemref="view:outItemCollection"/>
-    <daysPerView>7</daysPerView>
-  </calendarBlocks:CanvasWeek>
-
-  <!-- OutDay -->
-  <calendarBlocks:CanvasWeek itsName="OutDay">
-    <contents itemref="view:outItemCollection"/>
-    <daysPerView>1</daysPerView>
-  </calendarBlocks:CanvasWeek>
 
   <LayoutChooser itsName="CalendarSummary">
-    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
+    <childrenBlocks itemref="view:LayoutSelector" copy="LayoutSelector"/>
     <choices itemref="view:CalendarTable"/>
     <choices itemref="view:CalendarMonth"/>
     <choices itemref="view:CalendarWeek"/>
@@ -363,7 +286,7 @@
   </Table>
 
   <LayoutChooser itsName="UntitledSummary">
-    <childrenBlocks itemref="main:LayoutSelector" copy="LayoutSelector"/>
+    <childrenBlocks itemref="view:LayoutSelector" copy="LayoutSelector"/>
     <choices itemref="view:UntitledTable"/>
     <choices itemref="view:UntitledMonth"/>
     <choices itemref="view:UntitledWeek"/>
@@ -452,41 +375,9 @@
     <orientationEnum>Vertical</orientationEnum>
   </SplitterWindow>
 
-  <!-- All View -->
-  <SplitterWindow itsName="AllView">
-    <contents itemref="view:allItemCollection"/>
-
-    <childrenBlocks itemref="view:AllSummary"/>
-    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
-
-    <eventBoundary>True</eventBoundary>
-    <orientationEnum>Vertical</orientationEnum>
-  </SplitterWindow>
-
-  <!-- In View -->
-  <SplitterWindow itsName="InView">
-    <contents itemref="view:inItemCollection"/>
-
-    <childrenBlocks itemref="view:InSummary"/>
-    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
-
-    <eventBoundary>True</eventBoundary>
-    <orientationEnum>Vertical</orientationEnum>
-  </SplitterWindow>
-
-  <!-- Out View -->
-  <SplitterWindow itsName="OutView">
-    <contents itemref="view:outItemCollection"/>
-
-    <childrenBlocks itemref="view:OutSummary"/>
-    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
-
-    <eventBoundary>True</eventBoundary>
-    <orientationEnum>Vertical</orientationEnum>
-  </SplitterWindow>
-
   <!-- Calendar View -->
   <SplitterWindow itsName="CalendarView">
+    <displayName>Calendar Demo</displayName>
     <contents itemref="view:calendarItemCollection"/>
 
     <childrenBlocks itemref="view:CalendarSummary"/>

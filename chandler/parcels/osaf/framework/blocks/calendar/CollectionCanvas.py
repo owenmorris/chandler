@@ -473,8 +473,8 @@ class wxCollectionCanvas(wx.ScrolledWindow,
     def DrawCanvas(self, dc):
         # Find update rect in scrolled coordinates
         updateRect = self.GetUpdateRegion().GetBox()
-        (xBuffer, yBuffer) = self.CalcUnscrolledPosition((updateRect.GetLeft(),
-                                                          updateRect.GetTop()))
+        point = self.CalcUnscrolledPosition((updateRect.GetLeft(),
+                                             updateRect.GetTop()))
         wBuffer = updateRect.GetWidth()
         hBuffer = updateRect.GetHeight()
 
@@ -482,17 +482,17 @@ class wxCollectionCanvas(wx.ScrolledWindow,
         memoryDC = wx.MemoryDC()
         buffer = wx.EmptyBitmap(wBuffer, hBuffer)
         memoryDC.SelectObject(buffer)
-        memoryDC.SetDeviceOrigin(-xBuffer, -yBuffer)
+        memoryDC.SetDeviceOrigin(-point.x, -point.y)
 
         memoryDC.BeginDrawing()
 
         self.DrawBackground(memoryDC)
         self.DrawCells(memoryDC)
 
-        dc.Blit(xBuffer, yBuffer,
+        dc.Blit(point.x, point.y,
                 wBuffer, hBuffer,
                 memoryDC,
-                xBuffer, yBuffer)
+                point.x, point.y)
 
         memoryDC.EndDrawing()      
         
@@ -578,5 +578,5 @@ class CollectionBlock(Block.RectangularChild):
         """
         Convenience method for posting a selection changed event.
         """
-        self.PostEventByName('SelectItemBroadcast', {'item':self.selection})
+        self.postEventByName('SelectItemBroadcast', {'item':self.selection})
 

@@ -473,6 +473,17 @@ class wxMenu(wx.Menu):
     def wxSynchronizeWidget(self):
         self.blockItem.synchronizeItems()
 
+    def __del__(self):
+        for child in self.blockItem.childrenBlocks:
+            try:
+                widget = child.widget
+            except AttributeError:
+                pass
+            else:
+                if isinstance (widget, wx.MenuItem):
+                    Block.Block.wxOnDestroyWidget (widget)
+        Block.Block.wxOnDestroyWidget (self)
+            
     def __cmp__ (self, other):
         """
           CPIA and wxWidgets have different ideas about how submenus work.
@@ -533,16 +544,23 @@ class wxMenu(wx.Menu):
             self.InsertMenu (index, 0, newItem.title, newItem.widget, newItem.helpString)
         
 class wxMenuBar (wx.MenuBar):
-    def __init__(self, *arguments, **keywords):
-        super (wxMenuBar, self).__init__ (*arguments, **keywords)
-        # install the menu bar in the main frame
-        frame = Globals.wxApplication.mainFrame
-        if frame:
-            frame.SetMenuBar(self)
+    def Destroy(self):
+        """
+          We need to override Destroy to remove the MenuBar from mainFrame.
+        We don't need to call wxOnDestroyWidget since wxMenuBar is a subclass of
+        wxWindow, which sends a EVT_WINDOW_DESTROY which ends up calling wxOnDestroyWidget
+        for us.
+          Overriding __del__ doesn't work here since calling SetMenuBar (None) when the
+        menuBar is being destroyed causes the application to crash -- probably because
+        wxWidgets tries to access the MenuBar when it's almost already deleted. Overriding
+        Destroy catches the menuBar before it's deleted unstead of just before it's disposed.
+        """
+        self.blockItem.getFrame().SetMenuBar(None)
+        super (wxMenuBar, self).Destroy()
 
     def wxSynchronizeWidget(self):
         self.blockItem.synchronizeItems()
-            
+
     """
       wxWindows doesn't implement convenient menthods for dealing
     with menus, so we'll write our own: getMenuItems, removeItem
@@ -593,7 +611,10 @@ class MenuItem (Block.Block, DynamicChild):
 class MenuBar (Block.Block, DynamicContainer):
     def instantiateWidget (self):
         self.ensureDynamicChildren ()
-        return wxMenuBar()
+        widget = wxMenuBar()
+        self.getFrame().SetMenuBar(widget)
+        return widget
+
 
     def synchronizeItems(self):
         """

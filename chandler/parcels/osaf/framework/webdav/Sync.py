@@ -435,7 +435,7 @@ def getItem(dav):
     if not newItem:
         # create a new item for the davItem
         kind = davItem.itsKind
-        newItem = kind.newItem(None, repository.findPath('//userdata/contentitems'))
+        newItem = kind.newItem(None, repository.findPath('//userdata'))
         newItem.sharedURL = dav.url
         newItem.sharedUUID = origUUID
         # set the version to avoid sync thinking there are local changes

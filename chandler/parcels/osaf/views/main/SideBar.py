@@ -9,27 +9,6 @@ import osaf.framework.blocks.Block as Block
 import wx
 
 
-class SideBarDelegate (ControlBlocks.AttributeDelegate):
-    def GetElementValue (self, row, column):
-        item = self.blockItem.contents [row]
-        try:
-            item = item.contents
-        except AttributeError:
-            pass
-        return item, self.blockItem.columnData [column]
-
-    def SetElementValue (self, row, column, value):
-        view = self.blockItem.contents[row]
-        item = view
-        try:
-            item = item.contents
-        except AttributeError:
-            pass
-        attributeName = self.blockItem.columnData [column]
-        item.setAttributeValue (attributeName, value)
-        view.synchronizeWidget()
-        
-
 class wxSidebar(ControlBlocks.wxTable):
     def OnRequestDrop(self, x, y):
         self.dropRow = self.YToRow(y)

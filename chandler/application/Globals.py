@@ -16,9 +16,9 @@ from repository.util.Path import Path
 chandlerDirectory = None      # Directory containing chandler executable
 parcelManager = None          # parcelManager
 repository = None             # The repository
-mainView = None               # The main View
+mainViewRoot = None           # The main View
 wxApplication = None          # The wxWindows application object
-activeView = None             # The last view that was displayed
+views = []                    # A list of nested views
 crypto = None                 # Cryptographic services
 wakeupCaller = None           # WakeupCaller Service
 options = None                # Command line options

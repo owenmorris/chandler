@@ -67,7 +67,7 @@ def main():
             for details.
             """
             import wingdbstub
-        if application.Globals.options.komodo:
+        if __debug__ and application.Globals.options.komodo:
             """
             Check for -komodo command line argument; if specified, try to connect to
             an already-running Komodo instance.  See:

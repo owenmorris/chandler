@@ -6,10 +6,10 @@
 <!-- License: http://osafoundation.org/Chandler_0.1_license_terms.htm -->
 
 <core:Parcel itsName="main"
+             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
              xmlns:core="http://osafoundation.org/parcels/core"
              xmlns="http://osafoundation.org/parcels/osaf/framework/blocks"
              xmlns:doc="http://osafoundation.org/parcels/osaf/views/main"
-             xmlns:events="http://osafoundation.org/parcels/osaf/framework/blocks/Events"
              xmlns:repository="http://osafoundation.org/parcels/osaf/views/repositoryviewer"
              xmlns:demo="http://osafoundation.org/parcels/osaf/views/demo"
              xmlns:content="http://osafoundation.org/parcels/osaf/views/content"
@@ -19,6 +19,7 @@
              xmlns:calendar="http://osafoundation.org/parcels/osaf/framework/blocks/calendar"
              xmlns:calendarModel="http://osafoundation.org/parcels/osaf/contentmodel/calendar"
              xmlns:contacts="http://osafoundation.org/parcels/osaf/contentmodel/contacts"
+             xmlns:detail="http://osafoundation.org/parcels/osaf/framework/blocks/detail"
              >
 
   <core:version>0.3</core:version>
@@ -27,30 +28,41 @@
     Block Events
   -->
 
+  <ModifyContentsEvent itsName="AddToSidebar">
+    <blockName>AddToSidebar</blockName>
+    <methodName>onModifyContentsEvent</methodName>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
+  </ModifyContentsEvent>
+
   <BlockEvent itsName="EditAccountPreferences">
     <blockName>EditAccountPreferences</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <KindParameterizedEvent itsName="NewCalendar">
     <blockName>NewCalendar</blockName>
     <kindParameter itemref="calendarModel:CalendarEvent"/>
     <methodName>onNewEvent</methodName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </KindParameterizedEvent>
 
   <KindParameterizedEvent itsName="NewContact">
     <blockName>NewContact</blockName>
     <kindParameter itemref="contacts:Contact"/>
     <methodName>onNewEvent</methodName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </KindParameterizedEvent>
 
   <ModifyContentsEvent itsName="NewItemCollection">
     <blockName>NewItemCollection</blockName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
     <methodName>onModifyContentsEvent</methodName>
-    <items itemref="content:UntitledView"/>
+    <items itemref="content:untitledItemCollection"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <copyItems>True</copyItems>
   </ModifyContentsEvent>
 
@@ -58,86 +70,101 @@
     <blockName>NewMailMessage</blockName>
     <kindParameter itemref="mail:MailMessage"/>
     <methodName>onNewEvent</methodName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </KindParameterizedEvent>
 
   <KindParameterizedEvent itsName="NewNote">
     <blockName>NewNote</blockName>
     <kindParameter itemref="contentModel:Note"/>
     <methodName>onNewEvent</methodName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </KindParameterizedEvent>
 
   <KindParameterizedEvent itsName="NewTask">
     <blockName>NewTask</blockName>
     <kindParameter itemref="tasks:Task"/>
     <methodName>onNewEvent</methodName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </KindParameterizedEvent>
 
   <BlockEvent itsName="RequestSelectSidebarItem">
     <blockName>RequestSelectSidebarItem</blockName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ShareSidebarCollection">
     <blockName>ShareSidebarCollection</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ManageSidebarCollection">
     <blockName>ManageSidebarCollection</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ShowColumn">
     <blockName>ShowColumn</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ShowHideNavigationBar">
     <blockName>ShowHideNavigationBar</blockName>
     <methodName>onShowHideEvent</methodName>
-    <destinationBlockReference itemref="doc:NavigationBar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>NavigationBar</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ShowHideSidebar">
     <blockName>ShowHideSidebar</blockName>
     <methodName>onShowHideEvent</methodName>
-    <destinationBlockReference itemref="doc:SidebarBoxContainer"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>SidebarBoxContainer</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ShowHideStatusBar">
     <blockName>ShowHideStatusBar</blockName>
     <methodName>onShowHideEvent</methodName>
-    <destinationBlockReference itemref="doc:StatusBar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>StatusBar</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="SyncAll">
     <blockName>SyncAll</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="SyncWebDAV">
     <blockName>SyncWebDAV</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="SendMail">
     <blockName>SendMail</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ShareItem">
     <blockName>ShareItem</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <!-- Test Block Events -->
 
   <ModifyContentsEvent itsName="AddAllAdditionalViews">
     <blockName>AddAllAdditionalViews</blockName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
     <items itemref="repository:RepositoryView"/>
@@ -150,21 +177,24 @@
   
   <ModifyContentsEvent itsName="AddContactsView">
     <blockName>AddContactsView</blockName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:ContactsView"/>
   </ModifyContentsEvent>
 
   <ModifyContentsEvent itsName="AddDemoView">
     <blockName>AddDemoView</blockName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="demo:BlockDemoView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddKindViews">
     <blockName>AddKindViews</blockName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:NotesView"/>
     <items itemref="content:TasksView"/>
@@ -173,42 +203,48 @@
   
   <ModifyContentsEvent itsName="AddMailView">
     <blockName>AddMailView</blockName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:MailView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddMixedView">
     <blockName>AddMixedView</blockName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:MixedView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddNotesView">
     <blockName>AddNotesView</blockName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:NotesView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddRepositoryView">
     <blockName>AddRepositoryView</blockName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="repository:RepositoryView"/>
   </ModifyContentsEvent>
   
   <ModifyContentsEvent itsName="AddTasksView">
     <blockName>AddTasksView</blockName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
     <methodName>onModifyContentsEvent</methodName>
     <items itemref="content:TasksView"/>
   </ModifyContentsEvent>
   
   <BlockEvent itsName="CheckRepository">
     <blockName>CheckRepository</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
  <BlockEvent itsName="ImportIcalendar">
@@ -223,67 +259,80 @@
 
   <BlockEvent itsName="CommitRepository">
     <blockName>CommitRepository</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="GenerateCalendarEventItems">
     <blockName>GenerateCalendarEventItems</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="GenerateContacts">
     <blockName>GenerateContacts</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="GenerateContentItems">
     <blockName>GenerateContentItems</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="GenerateNotes">
     <blockName>GenerateNotes</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="GetNewMail">
     <blockName>GetNewMail</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="LogRepositoryHistory">
     <blockName>LogRepositoryHistory</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="LogViewChanges">
     <blockName>LogViewChanges</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ReloadParcels">
     <blockName>ReloadParcels</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ResendSharingInvitations">
     <blockName>ResendSharingInvitations</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
   
   <BlockEvent itsName="ShareCollection">
     <blockName>ShareCollection</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
   
   <BlockEvent itsName="SharingSubscribeToCollection">
     <blockName>SharingSubscribeToCollection</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ShowPyCrust">
     <blockName>ShowPyCrust</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
 
   <BlockEvent itsName="ShareTool">
@@ -293,7 +342,8 @@
   
   <BlockEvent itsName="SyncCollection">
     <blockName>SyncCollection</blockName>
-    <destinationBlockReference itemref="doc:MainView"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainView</dispatchToBlockName>
   </BlockEvent>
   
   <!--
@@ -388,6 +438,7 @@
   <Menu itsName="TestMenu">
     <blockName>TestMenu</blockName>
     <title>&amp;Test</title>
+    <childrenBlocks itemref="doc:SkinsMenuItem"/>
     <childrenBlocks itemref="doc:GenerateAllItem"/>
     <childrenBlocks itemref="doc:GenerateContactItem"/>
     <childrenBlocks itemref="doc:GenerateCalendarItem"/>
@@ -875,6 +926,42 @@
     <helpString value="Move to the previous item"/>
   </MenuItem>
 
+  <Menu itsName="SkinsMenuItem">
+    <blockName>SkinsMenu</blockName>
+    <title>Skins</title>
+    <helpString>Change user-interface skin</helpString>
+    <childrenBlocks itemref="doc:HorizontalMenuItem"/>
+    <childrenBlocks itemref="doc:VerticalMenuItem"/>
+  </Menu>
+
+  <MenuItem itsName="HorizontalMenuItem">
+    <blockName>HorizontalMenuItem</blockName>
+    <title>Horizontal splitter</title>
+    <event itemref="doc:ChooseMainView2"/>
+    <helpString>Switch to skin with horizontal splitter</helpString>
+  </MenuItem>
+
+  <MenuItem itsName="VerticalMenuItem">
+    <blockName>VerticalMenuItem</blockName>
+    <title>Vertical splitter</title>
+    <event itemref="doc:ChooseMainView"/>
+    <helpString>Switch to skin with vertical splitter</helpString>
+  </MenuItem>
+
+  <ChoiceEvent itsName="ChooseMainView">
+    <methodName>onChoiceEvent</methodName>
+    <choice>MainView</choice>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainViewRoot</dispatchToBlockName>
+  </ChoiceEvent>  
+  
+  <ChoiceEvent itsName="ChooseMainView2">
+    <methodName>onChoiceEvent</methodName>
+    <choice>MainView2</choice>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>MainViewRoot</dispatchToBlockName>
+  </ChoiceEvent>  
+  
   <MenuItem itsName="GenerateAllItem">
     <blockName>GenerateAllItem</blockName>
     <title>Generate Content Items</title>
@@ -1219,7 +1306,8 @@
     <blockName>KindFilterAll</blockName>
     <kindParameter itemref="core:None" />
     <methodName>onKindParameterizedEvent</methodName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </KindParameterizedEvent>
 
   <ToolbarItem itsName="KindFilterMessageItem">
@@ -1235,7 +1323,8 @@
     <blockName>KindFilterMessage</blockName>
     <kindParameter itemref="mail:MailMessageMixin"/>
     <methodName>onKindParameterizedEvent</methodName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </KindParameterizedEvent>
 
   <ToolbarItem itsName="KindFilterEventItem">
@@ -1251,7 +1340,8 @@
     <blockName>KindFilterEvent</blockName>
     <kindParameter itemref="calendarModel:CalendarEventMixin"/>
     <methodName>onKindParameterizedEvent</methodName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </KindParameterizedEvent>
 
   <ToolbarItem itsName="KindFilterTaskItem">
@@ -1267,92 +1357,40 @@
     <blockName>KindFilterTask</blockName>
     <kindParameter itemref="tasks:TaskMixin"/>
     <methodName>onKindParameterizedEvent</methodName>
-    <destinationBlockReference itemref="doc:Sidebar"/>
+    <dispatchEnum>SendToBlockByName</dispatchEnum>
+    <dispatchToBlockName>Sidebar</dispatchToBlockName>
   </KindParameterizedEvent>
 
   <!--
     Status Bar
   -->
   <StatusBar itsName="StatusBar">
+    <blockName>StatusBar</blockName>
   </StatusBar>
-
-  <!-- LayoutSelector -->
-  <Toolbar itsName="LayoutSelector">
-    <blockName>LayoutSelector</blockName>
-    <childrenBlocks itemref="doc:ListViewButton"/>
-    <childrenBlocks itemref="doc:MonthViewButton"/>
-    <childrenBlocks itemref="doc:WeekViewButton"/>
-    <childrenBlocks itemref="doc:DayViewButton"/>
-    <!-- Attributes -->
-    <toolSize>16,16</toolSize>
-    <separatorWidth>100</separatorWidth>
-    <stretchFactor>0.0</stretchFactor>
-  </Toolbar>
-
-  <BlockEvent itsName="ChangeLayout">
-    <blockName>ChangeLayout</blockName>
-    <dispatchEnum>BroadcastInsideMyEventBoundary</dispatchEnum>
-  </BlockEvent>
-
-  <!--
-    ToolbarItems
-  -->
-  <ToolbarItem itsName="ListViewButton">
-    <blockName>ListViewButton1</blockName>
-    <title>List View</title>
-    <bitmap>application/images/list.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in list mode</helpString>
-    <event itemref="doc:ChangeLayout"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="MonthViewButton">
-    <blockName>MonthViewButton1</blockName>
-    <title>Month View</title>
-    <bitmap>application/images/month.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in month mode</helpString>
-    <event itemref="doc:ChangeLayout"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="WeekViewButton">
-    <blockName>WeekViewButton1</blockName>
-    <title>Week View</title>
-    <bitmap>application/images/week.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in week mode</helpString>
-    <event itemref="doc:ChangeLayout"/>
-  </ToolbarItem>
-
-  <ToolbarItem itsName="DayViewButton">
-    <blockName>DayViewButton1</blockName>
-    <title>Day View</title>
-    <bitmap>application/images/day.png</bitmap>
-    <selectedBitmap></selectedBitmap>
-    <toolbarItemKind>Radio</toolbarItemKind>
-    <helpString>Display the view in day mode</helpString>
-    <event itemref="doc:ChangeLayout"/>
-  </ToolbarItem>
-
 
   <!--
     Layout blocks
   -->
   <TabbedContainer itsName="TabbedView"
-                   itemClass="osaf.views.main.TabbedView.TabbedView">
+                   itemClass="osaf.framework.blocks.ContainerBlocks.TabbedView">
     <!-- Layout children -->
-    <childrenBlocks itemref="content:AllView"/>
-
-    <!-- Attributes -->
-    <tabPosEnum>Top</tabPosEnum>
+    <childrenBlocks itemref="doc:SidebarDetailView"/>
   </TabbedContainer>  
+
+  <DetailBlock itsName="SidebarDetailView">
+    <blockName>SidebarDetailView</blockName>
+    <detailItem itemref="content:allItemCollection"/>
+    <viewCache itemref="doc:SidebarDetailViewCache"/>
+  </DetailBlock>
+
+  <SidebarDetailViewCache itsName="SidebarDetailViewCache">
+    <treeTemplatePath>//parcels/osaf/views/main/SidebarDetailViewTemplate</treeTemplatePath>
+  </SidebarDetailViewCache>
 
   <calendar:MiniCalendar itsName="MiniCalendar"/>
 
   <BoxContainer itsName="SidebarBoxContainer">
+    <blockName>SidebarBoxContainer</blockName>
     <!-- Layout children -->
     <childrenBlocks itemref="doc:KindFilterBar"/>
     <childrenBlocks itemref="doc:Sidebar"/>
@@ -1363,9 +1401,9 @@
   </BoxContainer>
 
   <contentModel:ItemCollection itsName="sidebarItemCollection">
-    <_inclusions itemref="content:AllView"/>
-    <_inclusions itemref="content:InView"/>
-    <_inclusions itemref="content:OutView"/>
+    <_inclusions itemref="content:allItemCollection"/>
+    <_inclusions itemref="content:inItemCollection"/>
+    <_inclusions itemref="content:outItemCollection"/>
     <_inclusions itemref="content:CalendarView"/>
   </contentModel:ItemCollection>
   
@@ -1384,11 +1422,19 @@
     <event itemref="events:Close"/>
   </ContextMenuItem>
 
+  <BoxContainer itsName="MainBoxContainer">
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:NavigationBar"/>
+    <childrenBlocks itemref="doc:MainSplitter"/>
+    
+    <!-- Attributes -->
+    <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
+
   <Table itsName="Sidebar"
          itemClass="osaf.views.main.SideBar.Sidebar">
     <blockName>Sidebar</blockName>
     <contents itemref="doc:sidebarItemCollection"/>
-    <elementDelegate>osaf.views.main.SideBar.SideBarDelegate</elementDelegate>
     <columnHeadings></columnHeadings>
     <columnData>displayName</columnData>
     <columnWidths>150</columnWidths>
@@ -1403,17 +1449,130 @@
 
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
-    <splitPercentage>0.20</splitPercentage>
+    <splitPercentage>0.2</splitPercentage>
   </SplitterWindow>
   
-  <BoxContainer itsName="MainBoxContainer">
-    <!-- Layout children -->
-    <childrenBlocks itemref="doc:NavigationBar"/>
-    <childrenBlocks itemref="doc:MainSplitter"/>
-    
-    <!-- Attributes -->
+  <SplitterWindow itsName="SidebarDetailViewTemplate">
+    <childrenBlocks itemref="doc:SummaryView"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
+
+    <eventBoundary>True</eventBoundary>
     <orientationEnum>Vertical</orientationEnum>
-  </BoxContainer>
+  </SplitterWindow>
+
+  <LayoutChooser itsName="SummaryView">
+    <blockName>SummaryViewChooser</blockName>
+    <childrenBlocks itemref="doc:LayoutToolbar"/>
+    <childrenBlocks itemref="doc:Table"/>
+    <choices itemref="doc:Table"/>
+    <choices itemref="doc:Month"/>
+    <choices itemref="doc:Week"/>
+    <choices itemref="doc:Day"/>    
+    <orientationEnum>Vertical</orientationEnum>
+  </LayoutChooser>
+
+  <!--
+    Layout Toolbar
+  -->
+  <Toolbar itsName="LayoutToolbar">
+    <childrenBlocks itemref="doc:ListViewButton"/>
+    <childrenBlocks itemref="doc:MonthViewButton"/>
+    <childrenBlocks itemref="doc:WeekViewButton"/>
+    <childrenBlocks itemref="doc:DayViewButton"/>
+    <!-- Attributes -->
+    <toolSize>16,16</toolSize>
+    <separatorWidth>100</separatorWidth>
+    <stretchFactor>0.0</stretchFactor>
+  </Toolbar>
+
+  <!--
+    Layout ToolbarItems
+  -->
+  <ToolbarItem itsName="ListViewButton">
+    <blockName>ListViewButton1</blockName>
+    <title>List View</title>
+    <bitmap>application/images/list.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in list mode</helpString>
+    <event itemref="content:ChangeLayout"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="MonthViewButton">
+    <blockName>MonthViewButton1</blockName>
+    <title>Month View</title>
+    <bitmap>application/images/month.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in month mode</helpString>
+    <event itemref="content:ChangeLayout"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="WeekViewButton">
+    <blockName>WeekViewButton1</blockName>
+    <title>Week View</title>
+    <bitmap>application/images/week.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in week mode</helpString>
+    <event itemref="content:ChangeLayout"/>
+  </ToolbarItem>
+
+  <ToolbarItem itsName="DayViewButton">
+    <blockName>DayViewButton1</blockName>
+    <title>Day View</title>
+    <bitmap>application/images/day.png</bitmap>
+    <selectedBitmap></selectedBitmap>
+    <toolbarItemKind>Radio</toolbarItemKind>
+    <helpString>Display the view in day mode</helpString>
+    <event itemref="content:ChangeLayout"/>
+  </ToolbarItem>
+
+  <!-- Table -->
+  <Table itsName="Table">
+    <contents itemref="core:None"/>
+
+    <columnHeadings></columnHeadings>
+    <columnHeadings>who</columnHeadings>
+    <columnHeadings>about</columnHeadings>
+    <columnHeadings>date</columnHeadings>
+
+    <columnData>itsKind</columnData>
+    <columnData>who</columnData>
+    <columnData>about</columnData>
+    <columnData>date</columnData>
+    
+    <columnWidths>20</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+    <columnWidths>130</columnWidths>
+  </Table>
+
+  <!-- Month -->
+  <calendar:CanvasMonth itsName="Month">
+    <contents itemref="core:None"/>
+  </calendar:CanvasMonth>
+
+  <!-- Week -->
+  <calendar:CanvasWeek itsName="Week">
+    <contents itemref="core:None"/>
+    <daysPerView>7</daysPerView>
+  </calendar:CanvasWeek>
+
+  <!-- Day -->
+  <calendar:CanvasWeek itsName="Day">
+    <contents itemref="core:None"/>
+    <daysPerView>1</daysPerView>
+  </calendar:CanvasWeek>
+
+  <DetailBlock itsName="DetailView">
+    <blockName>DetailView</blockName>
+    <detailItem itemref="content:allItemCollection"/>
+    <viewCache itemref="doc:DetailViewCache"/>
+  </DetailBlock>
+
+  <DetailViewCache itsName="DetailViewCache">
+  </DetailViewCache>
 
   <BlockEvent itsName="ReminderTime">
     <blockName>ReminderTime</blockName>
@@ -1434,16 +1593,12 @@
   <View itsName="MainView"
         itemClass="osaf.views.main.Main.MainView">
 
-    <!-- Menus -->
-    <childrenBlocks itemref="doc:MenuBar"/>
-    
-    <!-- StatusBar -->
-    <childrenBlocks itemref="doc:StatusBar"/>
+    <displayName>MainView</displayName>
+    <blockName>MainView</blockName>
 
-    <!-- Layout children -->
+    <childrenBlocks itemref="doc:MenuBar"/>
+    <childrenBlocks itemref="doc:StatusBar"/>
     <childrenBlocks itemref="doc:MainBoxContainer"/>
-    
-    <!-- Reminder timer -->
     <childrenBlocks itemref="doc:ReminderTimer"/>
     
     <!-- Block Events dispatched by name -->
@@ -1451,11 +1606,95 @@
     <eventsForNamedDispatch itemref="doc:SendMail"/>
     <eventsForNamedDispatch itemref="doc:ShareItem"/>
 
+    <orientationEnum>Vertical</orientationEnum>
+    <size>1024,720</size>
+    <eventBoundary>True</eventBoundary>
+    <viewContainer itemref="doc:MainViewRoot"/>
+  </View>
+
+  <View itsName="MainView2"
+        itemClass="osaf.views.main.Main.MainView">
+
+    <displayName>MainView2</displayName>
+    <blockName>MainView</blockName>
+
+
+    <childrenBlocks itemref="doc:MenuBar" copy="MenuBar2"/>
+    <childrenBlocks itemref="doc:StatusBar" copy="StatusBar2"/>
+    <childrenBlocks itemref="doc:MainBoxContainer2"/>
+    <childrenBlocks itemref="doc:ReminderTimer" copy="ReminderTimer2"/>
+    
+    <!-- Block Events dispatched by name -->
+    <eventsForNamedDispatch itemref="doc:RequestSelectSidebarItem"/>
+    <eventsForNamedDispatch itemref="doc:SendMail"/>
+    <eventsForNamedDispatch itemref="doc:ShareItem"/>
+
+    <orientationEnum>Vertical</orientationEnum>
+    <size>1024,720</size>
+    <eventBoundary>True</eventBoundary>
+    <viewContainer itemref="doc:MainViewRoot"/>
+  </View>
+
+  <BoxContainer itsName="MainBoxContainer2">
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:NavigationBar" copy="NavigationBar2"/>
+    <childrenBlocks itemref="doc:MainSplitter2"/>
+    
     <!-- Attributes -->
     <orientationEnum>Vertical</orientationEnum>
+  </BoxContainer>
 
+  <SplitterWindow itsName="MainSplitter2">
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:SidebarBoxContainer" copy="SidebarBoxContainer2"/>
+    <childrenBlocks itemref="doc:TabbedView2"/>
+
+    <!-- Attributes -->
+    <orientationEnum>Vertical</orientationEnum>
+    <splitPercentage>0.2</splitPercentage>
+  </SplitterWindow>
+  
+  <TabbedContainer itsName="TabbedView2"
+                   itemClass="osaf.framework.blocks.ContainerBlocks.TabbedView">
+    <!-- Layout children -->
+    <childrenBlocks itemref="doc:SidebarDetailView2"/>
+  </TabbedContainer>  
+
+  <DetailBlock itsName="SidebarDetailView2">
+    <blockName>SidebarDetailView</blockName>
+    <detailItem itemref="content:allItemCollection"/>
+    <viewCache itemref="doc:SidebarDetailViewCache2"/>
+  </DetailBlock>
+
+  <SidebarDetailViewCache itsName="SidebarDetailViewCache2">
+    <treeTemplatePath>//parcels/osaf/views/main/SidebarDetailViewTemplate2</treeTemplatePath>
+  </SidebarDetailViewCache>
+
+  <SplitterWindow itsName="SidebarDetailViewTemplate2">
+    <childrenBlocks itemref="doc:SummaryView" copy="SummaryView2"/>
+    <childrenBlocks itemref="detail:DetailRootTemplate" copy="DetailRoot"/>
+
+    <eventBoundary>True</eventBoundary>
+    <orientationEnum>Horizontal</orientationEnum>
+  </SplitterWindow>
+
+  <ViewContainer itsName="MainViewRoot">
+    <blockName>MainViewRoot</blockName>
     <size>1024,720</size>
-  </View>
+    <views itemref="doc:MainView"/>
+    <views itemref="doc:MainView2"/>
+    <childrenBlocks itemref="doc:MainDetailView"/>
+  </ViewContainer>
+
+  <DetailBlock itsName="MainDetailView">
+    <blockName>MainDetailView</blockName>
+    <detailItem itemref="doc:MainView"/>
+    <childrenBlocks itemref="doc:MainView"/>
+    <viewCache itemref="doc:MainDetailViewCache"/>
+  </DetailBlock>
+
+  <SidebarDetailViewCache itsName="MainDetailViewCache">
+  </SidebarDetailViewCache>
 
   <contentModel:Note itsName="WelcomeNote">
       <displayName value="Welcome to Chandler 0.4"/>

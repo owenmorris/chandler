@@ -87,7 +87,8 @@ class MainFrame(wx.Frame):
         these changes, since they weren't caused by user actions.
         """
         Globals.wxApplication.ignoreSynchronizeWidget = True
-        Globals.wxApplication.mainFrame = None
+        Globals.wxApplication.frame = None
+        Globals.mainViewRoot.frame = None
         self.Destroy()
 
     def OnSize(self, event):
@@ -96,9 +97,9 @@ class MainFrame(wx.Frame):
         which will cause the parent class to get a crack at the event.
         """
         if not Globals.wxApplication.ignoreSynchronizeWidget:
-            Globals.mainView.size.width = self.GetSize().x
-            Globals.mainView.size.height = self.GetSize().y
-            Globals.mainView.setDirty(Globals.mainView.VDIRTY, 'size', Globals.mainView._values)   # Temporary repository hack -- DJA
+            Globals.mainViewRoot.size.width = self.GetSize().x
+            Globals.mainViewRoot.size.height = self.GetSize().y
+            Globals.mainViewRoot.setDirty(Globals.mainViewRoot.VDIRTY, 'size', Globals.mainViewRoot._values)   # Temporary repository hack -- DJA
         event.Skip()
 
 class wxApplication (wx.App):
@@ -252,7 +253,7 @@ class wxApplication (wx.App):
         self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(wx.EVT_MENU, self.OnCommand, id=-1)
         self.Bind(wx.EVT_UPDATE_UI, self.OnCommand, id=-1)
-        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy, id=-1)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroyWindow, id=-1)
         self.Bind(wx.EVT_SHOW, self.OnShow, id=-1)
 
         """
@@ -264,84 +265,94 @@ class wxApplication (wx.App):
         self.__twistedReactorManager.startReactor()
 
         """
-          Load and display the main chandler view.
+          The main view's root is the only item in the soup (e.g. //userdata) with a name
+          that isn't it's UUID. We need the name to look it up. If the main view's root
+          isn't found then make a copy into the soup with the right name.
         """
-        mainView = Globals.repository.findPath('//parcels/osaf/views/main/MainView')
+        mainViewRoot = Globals.repository.findPath('//userdata/MainViewRoot')
+        if not mainViewRoot:
+            template = Globals.repository.findPath ("//parcels/osaf/views/main/MainViewRoot")
+            assert (template)
+            mainViewRoot = template.copy (parent = Globals.repository.findPath ("//userdata"),
+                                          name = "MainViewRoot",
+                                          cloudAlias="default")
+        self.mainFrame = MainFrame(None,
+                                   -1,
+                                   "Chandler",
+                                   size=(mainViewRoot.size.width, mainViewRoot.size.height),
+                                   style=wx.DEFAULT_FRAME_STYLE)
+        Globals.mainViewRoot = mainViewRoot
+        mainViewRoot.frame = self.mainFrame
+        """
+          Register to some global events for name lookup.
+        """
+        globalEvents = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
+        from osaf.framework.blocks.Block import Block
+        Block.addToNameToItemUUIDDictionary (globalEvents.eventsForNamedDispatch,
+                                             Block.eventNameToItemUUID)
 
-        if mainView:
-            self.mainFrame = MainFrame(None,
-                                       -1,
-                                       "Chandler",
-                                       size=(mainView.size.width, mainView.size.height),
-                                       style=wx.DEFAULT_FRAME_STYLE)
-            Globals.mainView = mainView
-            """
-              Register to some global events for name lookup.
-            """
-            globalEvents = Globals.repository.findPath('//parcels/osaf/framework/blocks/Events/GlobalEvents')
-            from osaf.framework.blocks.Block import Block
-            Block.addToNameToItemUUIDDictionary (globalEvents.eventsForNamedDispatch,
-                                                 Block.eventNameToItemUUID)
+        self.ignoreSynchronizeWidget = False
+        self.RenderMainView ()
 
-            self.ignoreSynchronizeWidget = False
-            self.RenderMainView ()
+        if '-prof' in sys.argv:
+            import hotshot, hotshot.stats
+            prof = hotshot.Profile('commit.log')
+            prof.runcall(Globals.repository.commit)
+            prof.close()
+            stats = hotshot.stats.load('commit.log')
+            stats.strip_dirs()
+            stats.sort_stats('time', 'calls')
+            stats.print_stats(125)
+        else:
+            Globals.repository.commit()
+            
+        self.mainFrame.Show()
 
-            if '-prof' in sys.argv:
-                import hotshot, hotshot.stats
-                prof = hotshot.Profile('commit.log')
-                prof.runcall(Globals.repository.commit)
-                prof.close()
-                stats = hotshot.stats.load('commit.log')
-                stats.strip_dirs()
-                stats.sort_stats('time', 'calls')
-                stats.print_stats(125)
-            else:
-                Globals.repository.commit()
-                
-            self.mainFrame.Show()
+        from osaf.framework.wakeup.WakeupCaller import WakeupCaller
+        Globals.wakeupCaller = WakeupCaller()
+        Globals.wakeupCaller.startup()
 
-            from osaf.framework.wakeup.WakeupCaller import WakeupCaller
-            Globals.wakeupCaller = WakeupCaller()
-            Globals.wakeupCaller.startup()
+        tools.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
 
-            tools.timing.end("wxApplication OnInit") #@@@Temporary testing tool written by Morgen -- DJA
-
-            return True                     #indicates we succeeded with initialization
-        return False                        #or failed.
+        return True                     #indicates we succeeded with initialization
 
     def RenderMainView (self):
-        mainView = Globals.mainView
-        mainView.lastDynamicBlock = False
-        mainView.onSetActiveView(mainView)
-
-        mainView.render()
-
+        mainViewRoot = Globals.mainViewRoot
+        mainViewRoot.lastDynamicBlock = False
+        assert len (Globals.views) == 0
+        mainViewRoot.render()
         """
-          We have to wire up the block mainView, it's widget and sizer to a new
+          We have to wire up the block mainViewRoot, it's widget and sizer to a new
         sizer that we add to the mainFrame.
         """
         sizer = wx.BoxSizer (wx.HORIZONTAL)
         self.mainFrame.SetSizer (sizer)
         from osaf.framework.blocks.Block import wxRectangularChild
-        sizer.Add (mainView.widget,
-                   mainView.stretchFactor, 
-                   wxRectangularChild.CalculateWXFlag(mainView), 
-                   wxRectangularChild.CalculateWXBorder(mainView))
+        sizer.Add (mainViewRoot.widget,
+                   mainViewRoot.stretchFactor, 
+                   wxRectangularChild.CalculateWXFlag(mainViewRoot), 
+                   wxRectangularChild.CalculateWXBorder(mainViewRoot))
         self.mainFrame.Layout()
 
     def UnRenderMainView (self):
-        mainView = Globals.mainView
-        self.mainFrame
-
-        mainView.unRender()
-
-        oldSizer = self.mainFrame.GetSizer()
-        oldSizer.DeleteWindows()
+        mainViewRoot = Globals.mainViewRoot.unRender()
+        assert len (Globals.views) == 0
         self.mainFrame.SetSizer (None)
-        statusBar = self.mainFrame.GetStatusBar()
-        self.mainFrame.SetStatusBar (None)
-        statusBar.Destroy()
 
+    if __debug__:
+        def PrintTree (self, widget, indent):
+            sizer = widget.GetSizer()
+            if sizer:
+                for sizerItem in sizer.GetChildren():
+                    if sizerItem.IsWindow():
+                        window = sizerItem.GetWindow()
+                        try:
+                            name = window.blockItem.blockName
+                        except AttributeError:
+                            name = window.blockItem
+                        print indent, name
+                        self.PrintTree (window, indent + "  ")
+        
     def GetImage (self, name):
         return wx.Image("application/images/" + name + ".png", wx.BITMAP_TYPE_PNG).ConvertToBitmap()
 
@@ -375,7 +386,7 @@ class wxApplication (wx.App):
                         pass
  
 
-                block.Post (blockEvent, arguments)
+                block.post (blockEvent, arguments)
  
                 if updateUIEvent:
                     try:
@@ -399,10 +410,10 @@ class wxApplication (wx.App):
         else:
             event.Skip()
 
-    def OnDestroy(self, event):
+    def OnDestroyWindow(self, event):
+        from osaf.framework.blocks.Block import Block
         widget = event.GetWindow()
-        if hasattr (widget, 'blockItem'):
-            widget.blockItem.onDestroyWidget()
+        Block.wxOnDestroyWidget (event.GetWindow())
         event.Skip()
 
     def OnShow(self, event):
@@ -582,7 +593,6 @@ class TransportWrapper (object):
         except AttributeError:
             return self.nonItem
         else:
-            repView = Globals.mainView
-            item = repView.findUUID (theUUID)
+            item = Globals.mainViewRoot.findUUID (theUUID)
             return item
         

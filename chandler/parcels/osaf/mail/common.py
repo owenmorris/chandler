@@ -103,5 +103,5 @@ def NotifyUIAsync(message, logger=None, callable='setStatusMessage', **keys):
         logger(message)
 
     if Globals.wxApplication is not None: # test framework has no wxApplication
-        Globals.wxApplication.CallItemMethodAsync(Globals.mainView, callable,
+        Globals.wxApplication.CallItemMethodAsync(Globals.views[0], callable,
                                                    message, **keys)

@@ -231,8 +231,7 @@ class ItemCollection(ContentModel.ContentItem):
           Share this Item, or Send it (if it's an Email)
         """
         # message the mainView to do the bulk of the work, showing progress
-        targetView = self.itsView.findPath ('//parcels/osaf/views/main/MainView')
-        targetView.PostEventByName ('ShareItem', {'item': self})
+        Globals.views[0].postEventByName ('ShareItem', {'item': self})
 
     def __len__ (self):
         return len (self.results)

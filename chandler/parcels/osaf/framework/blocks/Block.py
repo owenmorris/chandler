@@ -11,10 +11,7 @@ import logging
 
 
 class Block(Item):
-    def __init__(self, *arguments, **keywords):
-        super (Block, self).__init__ (*arguments, **keywords)
-
-    def Post (self, event, arguments):
+    def post (self, event, arguments):
         """
           Events that are posted by the block pass along the block
         that sent it.
@@ -26,20 +23,26 @@ class Block(Item):
                 pass
             arguments ['sender'] = self
             event.arguments = arguments
-            Globals.mainView.dispatchEvent (event)
+            self.dispatchEvent (event)
         finally:
             try:
                 event.arguments = stackedArguments
             except UnboundLocalError:
                 delattr (event, 'arguments')
 
-    def PostEventByName (self, eventName, args):
+    def postEventByName (self, eventName, args):
         assert self.eventNameToItemUUID.has_key (eventName), "Event name " + eventName + " not found"
         list = self.eventNameToItemUUID [eventName]
-        self.Post (Globals.repository.find (list [0]), args)
+        self.post (Globals.repository.find (list [0]), args)
 
     eventNameToItemUUID = {}           # A dictionary mapping event names to event UUIDS
     blockNameToItemUUID = {}           # A dictionary mapping rendered block names to block UUIDS
+
+    def findBlockByName (theClass, name):
+        assert theClass.blockNameToItemUUID.has_key (name), "Block name " + name + " not found"
+        list = theClass.blockNameToItemUUID [name]
+        return Globals.repository.find (list[0])
+    findBlockByName = classmethod (findBlockByName)
 
     def addToNameToItemUUIDDictionary (theClass, list, dictionary):
         for item in list:
@@ -128,6 +131,11 @@ class Block(Item):
                                                         self.eventNameToItemUUID)
                 self.addToNameToItemUUIDDictionary ([self],
                                                     self.blockNameToItemUUID)
+                """
+                  Keep list of blocks that are have event boundarys in the global list views.
+                """
+                if self.eventBoundary:
+                    self.pushView()
 
                 try:
                     method = getattr (type (self.widget), 'Freeze')
@@ -158,16 +166,36 @@ class Block(Item):
                     method (self.widget)
 
     def unRender (self):
+        try:
+            widget = self.widget
+        except AttributeError:
+            pass
+        else:
+            if not isinstance (widget, wx.ToolBarToolBase):
+                """
+                  Remove child from parent before destroying child.
+                """
+                if isinstance (widget, wx.Window):
+                    parent = widget.GetParent()
+                    if parent:
+                        parent.RemoveChild (widget)
+
+                try:
+                    method = getattr (type(widget), 'Destroy')
+                except AttributeError:
+                    pass
+                else:
+                    method (widget)
+
         for child in self.childrenBlocks:
             child.unRender()
-        if hasattr (self, 'widget') and not isinstance (self.widget, wx.ToolBarToolBase):
-            try:
-                member = getattr (type(self.widget), 'Destroy')
-            except AttributeError:
-                pass
-            else:
-                wx.CallAfter (member, self.widget)
-
+        try:
+            lastView = Globals.views[-1]
+        except IndexError:
+            pass
+        else:
+            if lastView == self:
+                Globals.views.pop()
 
     def onCollectionChanged (self, action):
         """
@@ -180,6 +208,11 @@ class Block(Item):
 
     MINIMUM_WX_ID = 2500
     MAXIMUM_WX_ID = 4999
+
+    def wxOnDestroyWidget (theClass, widget):
+        if hasattr (widget, 'blockItem'):
+            widget.blockItem.onDestroyWidget()
+    wxOnDestroyWidget = classmethod (wxOnDestroyWidget)
 
     def onDestroyWidget (self):
         """
@@ -250,7 +283,7 @@ class Block(Item):
                 return focusWindow.blockItem
             except AttributeError:
                 focusWindow = focusWindow.GetParent()
-        return Globals.mainView
+        return Globals.views[0]
     getFocusBlock = classmethod (getFocusBlock)
 
     def onShowHideEvent(self, event):
@@ -262,30 +295,11 @@ class Block(Item):
         event.arguments['Check'] = self.isShown
 
     def onModifyContentsEvent(self, event):
-        operation = event.operation
-
-        # 'collection' is an item collection that we want our new view
-        # to contain
-        collection = event.arguments.get('collection', None)
-
-        # we'll put the copies in //userdata
-        userdata = Globals.repository.findPath('//userdata')
-
-        for item in event.items:
+        def modifyContents (item):
             if event.copyItems:
-                copies = { } # This will contain all the copied items
-                item = item.copy(parent=userdata, cloudAlias='default',
-                 copies=copies)
+                item = item.copy(parent=userdata, cloudAlias='default')
 
-                # Return the newly created view back to the caller:
-                event.arguments ['view'] = item
-
-                if collection is not None:
-                    untitledItemCollection = item.contents
-                    
-                    for copy in untitledItemCollection.contentsOwner:
-                        copy.contents = collection
-
+            operation = event.operation
             if operation == 'toggle':
                 try:
                     index = self.contents.index (item)
@@ -295,6 +309,19 @@ class Block(Item):
                     operation = 'remove'
             method = getattr (type(self.contents), operation)
             method (self.contents, item)
+        
+        if event.copyItems:
+            userdata = Globals.repository.findPath('//userdata')
+
+        for item in event.items:
+            modifyContents (item)
+        try:
+            items = event.arguments ['items']
+        except KeyError:
+            pass
+        else:
+            for item in items:
+                modifyContents (item)
 
     def synchronizeWidget (self):
         """
@@ -322,6 +349,192 @@ class Block(Item):
                     method (self.widget)
                 finally:
                     Globals.wxApplication.ignoreSynchronizeWidget = oldIgnoreSynchronizeWidget
+
+    def pushView (self):
+        """ 
+        Pushes a new view on to our list of views.
+        
+        @param self: the new view
+        @type block: C{Block}
+        @param Globals.mainViewRoot.lastDynamicBlock: the last block synched
+        @type lastDynamicBlock: C{DynamicBlock}, or C{False} for no previous block,
+                    or C{True} for forced resync.
+
+          Currently, we're limited to a depth of three nested views
+        """
+        assert len (Globals.views) <= 3
+        Globals.views.append (self)
+
+        def synchToDynamicBlock (block, isChild):
+            """
+            Function to set and remember the dynamic Block we synch to.
+            If it's a child block, it will be used so we must sync, and 
+            remember it for later.
+            If it's not a child, we only need to sync if we had a different
+            block last time.
+            """
+            previous = Globals.mainViewRoot.lastDynamicBlock
+            if isChild:
+                Globals.mainViewRoot.lastDynamicBlock = block
+            elif previous and previous is not block:
+                Globals.mainViewRoot.lastDynamicBlock = False
+            else:
+                return
+
+            block.synchronizeDynamicBlocks ()
+
+        """
+          Cruise up the parent hierarchy looking for the first
+        block that can act as a DynamicChild or DynamicContainer
+        (Menu, MenuBar, ToolbarItem, etc). 
+        If it's a child, or it's not the same Block found the last time 
+        the focus changed (or if we are forcing a rebuild) then we need 
+        to rebuild the Dynamic Containers.
+        """
+        candidate = None
+        block = self
+        while (block):
+            for child in block.childrenBlocks:
+                try:
+                    method = getattr (type (child), 'isDynamicChild')
+                except AttributeError:
+                    pass
+                else:
+                    if candidate is None:
+                        candidate = child
+                    isChild = method(child)
+                    if isChild:
+                        synchToDynamicBlock (child, True)
+                        return
+            block = block.parentBlock
+        # none found, to remove dynamic additions we synch to the Active View
+        #assert candidate, "Couldn't find a dynamic child to synchronize with"
+        if candidate:
+            synchToDynamicBlock (candidate, False)
+
+    def getFrame(self):
+        """
+          Cruse up the tree of blocks looking for the top-most block that
+        has a python attribute, which is the wxWidgets wxFrame window.
+        """
+        block = self
+        while (block.parentBlock):
+            block = block.parentBlock
+        return block.frame
+
+    def dispatchEvent (theClass, event):
+        
+        def callMethod (block, methodName, event):
+            """
+              Call method named methodName on block
+            """
+            try:
+                member = getattr (type(block), methodName)
+            except AttributeError:
+                return False
+
+            """
+              Comment in this code to see which events are dispatched -- DJA
+              ... to which blocks -- BJS
+
+            print "Calling %s.%s" % (block.itsPath, methodName)
+            """
+
+            member (block, event)
+            return True
+        
+        def bubbleUpCallMethod (block, methodName, event):
+            """
+              Call a method on a block or if it doesn't handle it try it's parents
+            """
+            while (block):
+                if  callMethod (block, methodName, event):
+                    break
+                block = block.parentBlock
+        
+        def broadcast (block, methodName, event, childTest):
+            
+            #"""
+            #commented out for testing new dispatch mechanism
+              #Call method named methodName on every block and it's children
+            #who pass the childTest except for the block that posted the event,
+            #to avoid recursive calls.
+            #"""
+            #if block != event.arguments['sender']:
+                #callMethod (block, methodName, event)
+            callMethod (block, methodName, event)
+            for child in block.childrenBlocks:
+                if childTest (child):
+                    broadcast (child, methodName, event, childTest)
+
+        """
+          Construct method name based upon the type of the event.
+        """
+        try:
+            methodName = event.methodName
+        except AttributeError:
+            methodName = 'on' + event.blockName + 'Event'
+
+        try:
+            updateUI = event.arguments['UpdateUI']
+        except KeyError:
+            pass
+        else:
+            methodName += 'UpdateUI'
+
+        dispatchEnum = event.dispatchEnum
+        if dispatchEnum == 'SendToBlockByReference':
+            callMethod (event.destinationBlockReference, methodName, event)
+
+        elif dispatchEnum == 'SendToBlockByName':
+            callMethod (Block.findBlockByName (event.dispatchToBlockName), methodName, event)
+
+        elif dispatchEnum == 'BroadcastInsideMyEventBoundary':
+            block = event.arguments['sender']
+            while (not block.eventBoundary and block.parentBlock):
+                block = block.parentBlock
+                
+            broadcast (block,
+                       methodName,
+                       event,
+                       lambda child: (child is not None and
+                                      child.isShown and 
+                                      not child.eventBoundary))
+
+        elif dispatchEnum == 'BroadcastInsideActiveViewEventBoundary':
+            try:
+                block = Globals.views [1]
+            except IndexError:
+                pass
+            else:                
+                broadcast (block,
+                           methodName,
+                           event,
+                           lambda child: (child is not None and
+                                          child.isShown and 
+                                          not child.eventBoundary))
+
+        elif dispatchEnum == 'BroadcastEverywhere':
+            broadcast (Globals.views[0],
+                       methodName,
+                       event,
+                       lambda child: (child is not None and child.isShown))
+
+        elif dispatchEnum == 'FocusBubbleUp':
+            block = theClass.getFocusBlock()
+            bubbleUpCallMethod (block, methodName, event)
+
+        elif dispatchEnum == 'ActiveViewBubbleUp':
+            try:
+                block = Globals.views [1]
+            except IndexError:
+                pass
+            else:                
+                bubbleUpCallMethod (block, methodName, event)
+
+        elif __debug__:
+            assert (False)
+    dispatchEvent = classmethod (dispatchEvent)
 
 class ShownSynchronizer:
     """

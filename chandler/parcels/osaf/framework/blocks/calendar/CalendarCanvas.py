@@ -112,7 +112,7 @@ class CalendarBlock(CollectionCanvas.CollectionBlock):
         """
         Convenience method for changing the selected date.
         """
-        self.PostEventByName ('SelectedDateChanged',{'start':self.rangeStart})
+        self.postEventByName ('SelectedDateChanged',{'start':self.rangeStart})
 
     # Managing the date range
 

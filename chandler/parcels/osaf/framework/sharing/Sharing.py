@@ -29,7 +29,6 @@ logger.setLevel(logging.INFO)
 
 SHARING = "http://osafoundation.org/parcels/osaf/framework/sharing"
 EVENTS = "http://osafoundation.org/parcels/osaf/framework/blocks/Events"
-MAINVIEW = "http://osafoundation.org/parcels/osaf/views/main"
 CONTENT = "http://osafoundation.org/parcels/osaf/contentmodel"
 WEBDAV_MODEL = "http://osafoundation.org/parcels/osaf/framework/webdav"
 
@@ -91,14 +90,13 @@ def subscribeToWebDavCollection(url):
          (url, repr(e), str(e)))
         raise
 
-    # Add the collection to the sidebar by...
-    event = Globals.parcelManager.lookup(MAINVIEW, "NewItemCollection")
-    args = {'collection':collection}
-    # ...creating a new view (which gets returned as args['view'])...
-    event.Post(args)
+    mainView = Globals.view[0]
+    mainView.postEventByName ("AddToSidebar", {'items':[collection]})
     Globals.repository.commit()
     # ...and selecting that view in the sidebar
-    Globals.mainView.selectView(args['view'], showInDetailView=collection)
+    mainView.postEventByName('RequestSelectSidebarItem', {'item':collection})
+    mainView.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':collection})
+
 
 
 def manualSubscribeToCollection():

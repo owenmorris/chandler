@@ -50,7 +50,7 @@ class TaskTest(TestContentModel.ContentModelTestCase):
 
         self._reopenRepository()
 
-        contentItemParent = self.rep.findPath("//userdata/contentitems")
+        contentItemParent = self.rep.findPath("//userdata")
 
         taskItem2 = contentItemParent.getItemChild("TestTask")
         _verifyTask(taskItem2)

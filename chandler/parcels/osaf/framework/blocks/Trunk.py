@@ -36,58 +36,34 @@ class TrunkParentBlock(ContainerBlocks.SelectionContainer):
     on its detailContents. It uses a TrunkDelegate to do the heavy lifting.
     """    
     def instantiateWidget(self):
-       widget = wxTrunkParentBlock(self.parentBlock.widget)
-       widget.SetSizer(self.createSizer())
-       return widget
+       return wxTrunkParentBlock(self.parentBlock.widget)
     
     def installTreeOfBlocks(self):
         """ Maybe replace our children with a trunk of blocks appropriate for our content """
         newView = None
         try:
             # @@@ Should be this:
-            # detailContents = self.detailContents
+            # detailItem = self.detailItem
             # -- but until SelectionContainer goes away, we do this:
-            detailContents = self.selectedItem()
+            detailItem = self.selectedItem()
         except AttributeError:
-            detailContents = None
+            detailItem = None
         else:
-            if detailContents is not None:
-                newView = self.trunkDelegate.getTrunkForItem(detailContents)
+            if detailItem is not None:
+                newView = self.trunkDelegate.getTrunkForItem(detailItem)
             
         oldView = self.childrenBlocks.first()
         if not newView is oldView:
-            self.childrenBlocks = []
-
-            if oldView is not None:
+            if not oldView is None:
                 oldView.unRender()
+
+            self.childrenBlocks = []
 
             if newView is not None:
                 self.childrenBlocks.append(newView)
-                
-                # @@@ For now, sends SelectItem, until the DV can be updated to
-                # use onContentsChanged (or whatever)... this should be: 
-                # newView.PostEventByName("SelectItem", {'item': detailContents})
-                # It's surprising the amount of work necessary to create an event --
-                # all because it's an Item
-                parent = Globals.repository.findPath ('//userdata')
-                kind = Globals.repository.findPath('//parcels/osaf/framework/blocks/BlockEvent')
-                event = Block.BlockEvent (None, parent, kind)
-                try:
-                    event.arguments = {'item': detailContents }
-                    newView.onSelectItemEvent (event)
-                finally:
-                    event.delete()
-                
+                newView.postEventByName("SetContents", {'item':detailItem})
                 newView.render()
 
-                sizer = self.widget.GetSizer()
-                sizer.Clear()
-                sizer.Add(newView.widget,
-                          newView.stretchFactor, 
-                          Block.wxRectangularChild.CalculateWXFlag (newView), 
-                          Block.wxRectangularChild.CalculateWXBorder (newView))
-            
-            self.widget.Layout()
 
 class TrunkDelegate(Item):
     """

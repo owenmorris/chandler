@@ -177,7 +177,7 @@ class MailTest(TestContentModel.ContentModelTestCase):
 
         self._reopenRepository()
 
-        contentItemParent = self.rep.findPath("//userdata/contentitems")
+        contentItemParent = self.rep.findPath("//userdata")
         outbound = contentItemParent.getItemChild("mailItems")
 
         mailMessageItem = outbound.getItemChild("mailMessageItem")

@@ -35,6 +35,10 @@ class DetailRoot (Trunk.TrunkParentBlock):
     """
       Root of the Detail View.
     """
+    ## Currently lives in the SummaryView which causes problems -- DJA
+    #def onSetContentsEvent (self, event):
+        #self.onSelectItemEvent (event)
+
     def onSelectItemEvent (self, event):
         """
           A DetailTrunk is an event boundary; this keeps all the events 
@@ -252,7 +256,10 @@ class DetailTrunkDelegate (Trunk.TrunkDelegate):
         """ 
         Overrides to use the item's kind as our cache key
         """
-        return item and item.itsKind
+        if item is None:
+            return None
+        else:
+            return item.itsKind
     
     def _makeTrunkForCacheKey(self, keyItem):
         """ 

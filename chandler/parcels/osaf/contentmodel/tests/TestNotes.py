@@ -59,7 +59,7 @@ class NotesTest(TestContentModel.ContentModelTestCase):
 
         self._reopenRepository()
 
-        contentItemParent = self.rep.findPath("//userdata/contentitems")
+        contentItemParent = self.rep.findPath("//userdata")
         
         noteItem = contentItemParent.getItemChild("noteItem")
         

@@ -17,7 +17,6 @@
 
   <Attribute itsName="TestAttribute">
     <displayName>Test Attribute</displayName>
-    <cardinality>single</cardinality>
     <type itemref="String"/>
   </Attribute>
 

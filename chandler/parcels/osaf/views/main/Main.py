@@ -27,6 +27,8 @@ from osaf.framework.blocks.ControlBlocks import Timer
 import osaf.mail.sharing as MailSharing
 import osaf.mail.smtp as smtp
 import application.dialogs.ReminderDialog as ReminderDialog
+from osaf.framework.blocks.Block import Block
+from osaf.contentmodel.ItemCollection import ItemCollection
 import osaf.framework.utils.imports.icalendar as ical
 
 class MainView(View):
@@ -105,10 +107,10 @@ class MainView(View):
             itemName = 'ContactsView'
         else:
             itemName = 'AllView'
-        self.PostEventByName ('RequestSelectSidebarItem', {'itemName':itemName})
+        self.postEventByName ('RequestSelectSidebarItem', {'itemName':itemName})
 
         # Tell the ActiveView to select our new item
-        self.PostEventByName ('SelectItemBroadcastInsideActiveView', {'item':newItem})
+        self.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':newItem})
 
     def onPasteEventUpdateUI (self, event):
         event.arguments ['Enable'] = False
@@ -120,15 +122,20 @@ class MainView(View):
         self.printEvent(False)
 
     def printEvent(self, isPreview):
-        for item in Globals.activeView.childrenBlocks:
-            for canvas in item.childrenBlocks:
-                if isinstance(canvas, CollectionCanvas.CollectionBlock):
-                    printObject = Printing.Printing(Globals.wxApplication.mainFrame, canvas.widget)
-                    if isPreview:
-                        printObject.OnPrintPreview()
-                    else:
-                        printObject.OnPrint()
-                    return
+        try:
+            activeView = Globals.views [1]
+        except IndexError:
+            pass
+        else:
+            for item in activeView.childrenBlocks:
+                for canvas in item.childrenBlocks:
+                    if isinstance(canvas, CollectionCanvas.CollectionBlock):
+                        printObject = Printing.Printing(Globals.wxApplication.mainFrame, canvas.widget)
+                        if isPreview:
+                            printObject.OnPrintPreview()
+                        else:
+                            printObject.OnPrint()
+                        return
         message = "Printing is currently only supported when viewing week/month/day view of the calendar."
         dialog = wx.MessageDialog(None, message, 'Chandler', wx.OK | wx.ICON_INFORMATION)
         dialog.ShowModal()
@@ -158,24 +165,6 @@ class MainView(View):
         self.setStatusMessage (_("committing changes to the repository..."))
         Globals.repository.commit()
         self.setStatusMessage ('')
-
-    def selectView(self, view, showInDetailView=False):
-        """
-          Given a view, select it in the sidebar. 
-        Optionally display an item in the detail view.
-        @param view: the view to select in the sidebar
-        @type view: C{Block}
-        @param showInDetailView: the item (or None) for the Detail View; False disables
-        @type showInDetailView: C{Item} or None.  False disables notifying the Detail View.
-        """
-
-        # Tell the sidebar we want to select this view
-        self.PostEventByName('RequestSelectSidebarItem', {'item':view})
-
-        if showInDetailView is not False:
-            # Tell the ActiveView to select the item (usually a collection)
-            # It will pass the item on to the Detail View.
-            self.PostEventByName ('SelectItemBroadcastInsideActiveView', {'item':showInDetailView})
 
     def setStatusMessage (self, statusMessage, progressPercentage=-1, alert=False):
         """
@@ -242,10 +231,6 @@ class MainView(View):
         originalName = itemCollection.displayName
         if not "Shared" in itemCollection.displayName:
             itemCollection.displayName = _("%s (Shared)") % itemCollection.displayName
-        # @@@ Update the sidebar to display new collection name (hack for 0.4)
-        sidebarPath = '//parcels/osaf/views/main/Sidebar'
-        sidebar = Globals.repository.findPath (sidebarPath)
-        sidebar.synchronizeWidget()
 
         # Sync the collection with WebDAV
         self.setStatusMessage (_("accessing WebDAV server"))
@@ -280,20 +265,13 @@ class MainView(View):
     def getSidebarSelectedCollection (self):
         """
           Return the sidebar's selected item collection.
-
-          The sidebar is a table, whose contents is a collection.
-        The selection is a table (one of the splitters), 
-        whose contents is a collection.
         """
-        sidebarPath = '//parcels/osaf/views/main/Sidebar'
-        sidebar = Globals.repository.findPath (sidebarPath)
-        selectedBlock = sidebar.contents [sidebar.widget.GetGridCursorRow ()]
-        assert selectedBlock, "No selected block in the Sidebar"
-        try:
-            selectionContents = selectedBlock.contents
-        except AttributeError:
-            selectionContents = None
-        return selectionContents
+        item = Block.findBlockByName ("Sidebar").selectedItemToView
+        if not isinstance (item, ItemCollection):
+            item = None
+        return item
+        
+        return Block.findBlockByName ("Sidebar").selectedItemToView
 
     def _logChange(self, item, version, status, values, references):
         logger = item.itsView.logger
@@ -488,7 +466,7 @@ class MainView(View):
         # Tell the ActiveView to select the collection
         # It will pass the collection on to the Detail View.
 
-        self.PostEventByName ('SelectItemBroadcastInsideActiveView', {'item':self.getSidebarSelectedCollection ()})
+        self.postEventByName ('SelectItemBroadcastInsideActiveView', {'item':self.getSidebarSelectedCollection ()})
 
         
     def onShareSidebarCollectionEventUpdateUI (self, event):

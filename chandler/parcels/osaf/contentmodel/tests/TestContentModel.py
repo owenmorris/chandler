@@ -62,11 +62,11 @@ class ContentItemTest(ContentModelTestCase):
         self.assertEqual(genericGroup.itsParent, contentItemParent)
         
         self.assertEqual(repr(genericContentItem.itsPath),
-                         '//userdata/contentitems/genericContentItem')
+                         '//userdata/genericContentItem')
         self.assertEqual(repr(genericProject.itsPath),
-                         '//userdata/contentitems/genericProject')
+                         '//userdata/genericProject')
         self.assertEqual(repr(genericGroup.itsPath),
-                         '//userdata/contentitems/genericGroup')
+                         '//userdata/genericGroup')
 
         # Set and test simple attributes
         genericContentItem.displayName = "Test Content Item"

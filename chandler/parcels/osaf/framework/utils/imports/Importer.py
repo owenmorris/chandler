@@ -19,7 +19,7 @@ class Importer:
     """
     def __init__(self, destination=None):
         if destination == None:
-            self.destination=Globals.repository.findPath("//userdata/contentitems")
+            self.destination=Globals.repository.findPath("//userdata")
         else:
             self.destination=Globals.repository.findPath(destination)
         self.lineNumber=0
