@@ -47,7 +47,10 @@ class Server(Item):
         for res in self.resources:
             logger.info("   Hooking up /%s to resource '%s'" % \
              (str(res.location), str(res.displayName)))
-            root.putChild(res.location, res.getResource())
+            resourceInstance = res.getResource()
+            # Give the main thread repository view to the resource instance
+            resourceInstance.repositoryView = self.itsView
+            root.putChild(res.location, resourceInstance)
 
         # Hook up all associated directories to a location under the docroot
         for directory in self.directories:

@@ -1,7 +1,7 @@
 import os, sys, string, traceback
 
 from twisted.web import resource
-import application.Globals as Globals
+# import application.Globals as Globals
 import repository
 import application
 from repository.item.Item import Item
@@ -19,52 +19,63 @@ from repository.util.SingleRef import SingleRef
 class RepoResource(resource.Resource):
     isLeaf = True
     def render_GET(self, request):
-        try:
-            mode = request.args.get('mode', [None])[0]
 
-            # Make sure we have the latest
-            Globals.repository.refresh()
+        try: # Outer try to render any exceptions
 
-            if not request.postpath or not request.postpath[0]:
-                path = "//"
-            else:
-                path = "//%s" % ("/".join(request.postpath))
-            result = "<html><head><title>Chandler : %s</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>" % request.path
-            result += "<body>"
+            try: # Inner try/finally to handle restoration of current view
 
-            if mode == "kindquery":
-                item = Globals.repository.findPath(path)
-                result += "<div>"
-                result += RenderKindQuery(item)
-                result += "</div>"
+                mode = request.args.get('mode', [None])[0]
 
-            elif mode == "search":
-                text = request.args.get('text', [None])[0]
-                result += RenderSearchResults(text)
+                # The Server item will give us the repositoryView during
+                # startup.  Set it to be the current view and restore the
+                # previous view when we're done.
+                repoView = self.repositoryView
+                prevView = repoView.setCurrentView()
 
-            elif path != "//":
-                item = Globals.repository.findPath(path)
-                if item is None:
-                    result += "<h3>Item not found: %s</h3>" % path
-                    return str(result)
+                if not request.postpath or not request.postpath[0]:
+                    path = "//"
+                else:
+                    path = "//%s" % ("/".join(request.postpath))
+                result = "<html><head><title>Chandler : %s</title><link rel='stylesheet' href='/site.css' type='text/css' /></head>" % request.path
+                result += "<body>"
 
-                result += "<div>"
-                result += RenderItem(item)
-                result += "</div>"
-            else:
-                result += RenderSearchForm()
-                result += "<p>"
-                result += RenderRoots()
-                result += "<p>"
-                result += RenderKinds()
-                result += "<p>"
-                result += RenderAllClouds()
-        except Exception, e:
+                if mode == "kindquery":
+                    item = repoView.findPath(path)
+                    result += "<div>"
+                    result += RenderKindQuery(repoView, item)
+                    result += "</div>"
+
+                elif mode == "search":
+                    text = request.args.get('text', [None])[0]
+                    result += RenderSearchResults(repoView, text)
+
+                elif path != "//":
+                    item = repoView.findPath(path)
+                    if item is None:
+                        result += "<h3>Item not found: %s</h3>" % path
+                        return str(result)
+
+                    result += "<div>"
+                    result += RenderItem(repoView, item)
+                    result += "</div>"
+                else:
+                    result += RenderSearchForm(repoView)
+                    result += "<p>"
+                    result += RenderRoots(repoView)
+                    result += "<p>"
+                    result += RenderKinds(repoView)
+                    result += "<p>"
+                    result += RenderAllClouds(repoView)
+
+            finally: # inner try
+                prevView.setCurrentView()
+
+        except Exception, e: # outer try
             result = "<html>Caught an exception: %s<br> %s</html>" % (e, "<br>".join(traceback.format_tb(sys.exc_traceback)))
 
         return str(result)
 
-def RenderSearchForm():
+def RenderSearchForm(repoView):
     result = ""
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
     result += "<tr class='toprow'>\n"
@@ -79,14 +90,14 @@ def RenderSearchForm():
     result += "</td></tr></table></form>\n"
     return result
 
-def RenderSearchResults(text):
+def RenderSearchResults(repoView, text):
     result = ""
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
     result += "<tr class='toprow'>\n"
     result += "<td><b>PyLucene Search Results for <i>%s</i> :</b></td>\n" % text
     result += "</tr>\n"
     count = 0
-    for (item, attribute) in Globals.repository.searchItems(text):
+    for (item, attribute) in repoView.searchItems(text):
         result += oddEvenRow(count)
         result += "<td><a href=%s>%s</a></td>" % (toLink(item.itsPath), item.getItemDisplayName())
         result += "</tr>"
@@ -94,7 +105,7 @@ def RenderSearchResults(text):
     result += "</table></form>\n"
     return result
 
-def RenderRoots():
+def RenderRoots(repoView):
     result = ""
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
     result += "<tr class='toprow'>\n"
@@ -104,19 +115,19 @@ def RenderRoots():
     result += "<tr class='oddrow'>\n"
     result += "<td>"
     result += "<div class='tree'>"
-    for child in Globals.repository.iterRoots():
+    for child in repoView.iterRoots():
         result += "<a href=%s>//%s</a> &nbsp;  " % (toLink(child.itsPath), child.itsName)
     result += "</div>"
     result += "</td></tr></table>\n"
     return result
 
-def RenderKinds():
+def RenderKinds(repoView):
     result = ""
     items = {}
     tree = {}
     for item in repository.item.Query.KindQuery().run(
      [
-      Globals.repository.findPath("//Schema/Core/Kind"),
+      repoView.findPath("//Schema/Core/Kind"),
      ]
     ):
         items[item.itsPath] = item
@@ -130,7 +141,7 @@ def RenderKinds():
     result += "<tr class='oddrow'>\n"
     result += "<td>"
     result += "<div class='tree'>"
-    result += _RenderNode(tree)
+    result += _RenderNode(repoView, tree)
     result += "</div>"
     result += "</td></tr></table>\n"
 
@@ -149,7 +160,7 @@ def _insertItem(node, path, item):
 
 
 
-def _RenderNode(node, depth=1):
+def _RenderNode(repoView, node, depth=1):
     result = ""
 
     keys = node.keys()
@@ -177,7 +188,7 @@ def _RenderNode(node, depth=1):
             #     result += "&nbsp;&nbsp;&nbsp;"
             result += "<li>"
             result += "<b>%s</b>" % key
-            result += _RenderNode(node[key], depth+1)
+            result += _RenderNode(repoView, node[key], depth+1)
             result += "</ul>"
 
     return result
@@ -198,7 +209,7 @@ def _getAllClouds(kind):
                 yield (cloud, alias)
 
 
-def RenderAllClouds():
+def RenderAllClouds(repoView):
     result = ""
 
     result += "<table width=100% border=0 cellpadding=4 cellspacing=0>\n"
@@ -211,7 +222,7 @@ def RenderAllClouds():
     result += "<div class='tree'>"
 
     clouds = {}
-    for cloud in repository.item.Query.KindQuery().run([Globals.repository.findPath("//Schema/Core/Cloud")]):
+    for cloud in repository.item.Query.KindQuery().run([repoView.findPath("//Schema/Core/Cloud")]):
         clouds[cloud.itsPath] = cloud
     keys = clouds.keys()
     keys.sort()
@@ -251,7 +262,7 @@ def RenderAllClouds():
     return result
 
 
-def RenderClouds(kind):
+def RenderClouds(repoView, kind):
     """ Given a kind, return a representation of the default cloud """
 
     result = ""
@@ -297,7 +308,7 @@ def RenderClouds(kind):
     return result
 
 
-def RenderCloudItems(rootItem):
+def RenderCloudItems(repoView, rootItem):
     """ Given an item, for each related cloud, show all items that belong
         to the cloud. """
 
@@ -331,7 +342,7 @@ def RenderCloudItems(rootItem):
 
     return result
 
-def RenderKindQuery(item):
+def RenderKindQuery(repoView, item):
 
     result = ""
 
@@ -364,7 +375,7 @@ def RenderKindQuery(item):
     return result
 
 
-def RenderItem(item):
+def RenderItem(repoView, item):
 
     result = ""
 
@@ -591,7 +602,7 @@ def RenderItem(item):
             result += "%s" % name
             result += "</td><td valign=top>"
             try:
-                theType = TypeHandler.typeHandler(Globals.repository.view,
+                theType = TypeHandler.typeHandler(repoView,
                  value)
                 typeName = theType.getImplementationType().__name__
                 result += "<b>(%s)</b> " % typeName
@@ -606,17 +617,14 @@ def RenderItem(item):
             result += "</td></tr>\n"
             count += 1
 
-        elif isinstance(value, SingleRef):
+        elif isinstance(value, Item):
             result += oddEvenRow(count)
             result += "<td valign=top>"
             result += "%s" % name
             result += "</td><td valign=top>"
-            target = item.getAttributeValue(name, default=None)
-            if target is not None:
-                result += "<a href=%s>%s</a><br>" % (toLink(target.itsPath),
-                 target.getItemDisplayName())
-            else:
-                result += " None"
+            result += "<b>(itemref)</b> "
+            result += "<a href=%s>%s</a><br>" % (toLink(value.itsPath),
+              value.getItemDisplayName())
             result += "</td></tr>\n"
             count += 1
 
@@ -626,7 +634,7 @@ def RenderItem(item):
             result += "<td valign=top>"
             result += "%s" % name
             result += "</td><td valign=top>"
-            theType = TypeHandler.typeHandler(Globals.repository.view, value)
+            theType = TypeHandler.typeHandler(repoView, value)
             typeName = theType.getImplementationType().__name__
             result += "<b>(%s)</b> " % typeName
             result += ' <a href="%s">%s</a><br>' %(value, value)
@@ -639,7 +647,7 @@ def RenderItem(item):
             result += "<td valign=top>"
             result += "%s" % name
             result += "</td><td valign=top>"
-            theType = TypeHandler.typeHandler(Globals.repository.view, value)
+            theType = TypeHandler.typeHandler(repoView, value)
             typeName = theType.getImplementationType().__name__
             result += "<b>(%s)</b> " % typeName
             try:
@@ -656,7 +664,7 @@ def RenderItem(item):
 
         # Cloud info
         result += "<br />\n"
-        result += RenderClouds(item)
+        result += RenderClouds(repoView, item)
 
 
     return result
