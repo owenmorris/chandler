@@ -6,6 +6,9 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 from repository.item.Item import Item
 
 class Index(Item):
+    def __init__(self, *args, **kwds):
+        super(Index, self).__init__(*args, **kwds)
+        self.items = []
     def addItem(self, item):
         self.addValue('items', item)
     def removeItem(self, item):
