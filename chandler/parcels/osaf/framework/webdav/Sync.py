@@ -13,6 +13,44 @@ import logging
 log = logging.getLogger('sharing')
 log.setLevel(logging.DEBUG)
 
+
+class HistoryChecker(object):
+    """
+    Used to see if an item has 'really' changed (where sharing is concerned)
+    since the last time it was synced.
+    """
+    def __init__(self, item):
+        self.item = item
+        self.dirty = False
+
+    def isDirty(self):
+        if not self.dirty:
+            sharedVersion = self.item.sharedVersion
+            if sharedVersion == 0:
+                sharedVersion = 1
+            self.item.itsView.mapHistory(self._histfunc,
+                                         sharedVersion,
+                                         self.item._version)
+        return self.dirty
+
+    def _histfunc(self, item, version, status, values, references):
+        if self.dirty:
+            return
+        if self.item == item:
+            log.debug('Checking dirty...')
+            log.debug('  values: %s' % (values))
+            log.debug('  refs:   %s' % (references))
+            for value in values:
+                if value not in [u'etag', u'sharedURL', u'sharedVersion']:
+                    self.dirty = True
+                    return
+
+            for reference in references:
+                if reference not in [u'itemCollectionResults']:
+                    self.dirty = True
+                    return
+
+
 def syncItem(dav, item):
     # changes flags
     needsPut = False
@@ -22,11 +60,18 @@ def syncItem(dav, item):
     # see if the local version has changed by comparing the last shared version
     # with the item's current version
     if item.sharedVersion != item._version:
-        localChanges = True
+        if item.sharedVersion == -1:
+            localChanges = True
+        else:
+            localChanges = HistoryChecker(item).isDirty()
 
-    etag = item.getAttributeValue('etag', default=None)
-    if etag:
-        davETag = dav.etag
+    try:
+        # fetch the server item here. so we don't have to do it below for serverChanges.
+        # we should really send along an If-Modified header
+        davItem = DAVItem.DAVItem(dav)
+        davETag = davItem.etag
+        etag = item.getAttributeValue('etag', default=None)
+
         # set serverChanges based on if the etags match
         serverChanges = (etag != davETag)
 
@@ -34,7 +79,7 @@ def syncItem(dav, item):
         # and weak ones...  for now, pretend they are the same!
         if serverChanges:
             serverChanges = (etag != str('W/' + davETag))
-    else:
+    except Dav.NotFound:
         # this is the first time this item has been shared.
         needsPut = True
         localChanges = True
@@ -43,6 +88,7 @@ def syncItem(dav, item):
     log.info('Syncing %s (%s)' % (unicode(dav.url), item.getItemDisplayName()))
     log.info('|- needsPut      %s' % (needsPut))
     log.info('|- localChanges  %s' % (localChanges))
+    log.info('|  `- versions   %s : %s' % (item.sharedVersion, item._version))
     log.info('`- serverChanges %s' % (serverChanges))
     if serverChanges:
         log.info('   |-- our etag  %s' % (etag))
@@ -53,12 +99,11 @@ def syncItem(dav, item):
         item.etag = dav.etag
 
     if serverChanges:
-        # pull down server changes
-        davItem = DAVItem.DAVItem(dav)
-
+        # Use the davItem we fetched earlier
         # merge any local changes with server changes
         merge(dav, item, davItem, localChanges)
 
+        del davItem
 
     if localChanges:
         # put back merged local changes
@@ -69,7 +114,6 @@ def syncItem(dav, item):
         # maybe use a "ptag" property instead of etags so we can change it
         # whenever
         dav.putResource(item.itsKind.itsName, 'text/plain')
-
 
     if serverChanges or localChanges:
         # Make sure we have the latest etag and lastModified
@@ -186,7 +230,7 @@ def syncToServer(dav, item):
                     log.debug('Cant export %s -- Not a ContentItem' % (str(value)))
 
                 props += makePropString(name, namespace, '<itemref>%s</itemref>' % (unicode(durl)))
-                    
+
             elif atype is not None:
                 atypepath = "%s" % (atype.itsPath)
                 try:
@@ -216,7 +260,7 @@ def syncToServer(dav, item):
 
             # in theory, this should be done by the cloud, but the results
             # aren't showing up in the cloud...
-            DAV(durl).put(i)
+            #DAV(durl).put(i)
             listData += '<itemref>' + unicode(durl) + '</itemref>'
         props += makePropString('results', '//special/case', listData)
     #
@@ -337,14 +381,16 @@ def getItem(dav):
     # Fetch the headers (uuid, kind, etag, lastmodified) from the WebDAV server.
     davItem = DAVItem.DAVItem(dav, True)
 
-    sharing = repository.findPath('//parcels/osaf/framework/GlobalShare') 
+    sharing = repository.findPath('//parcels/osaf/framework/GlobalShare')
 
     # get the exported item's UUID and see if we have already fetched it
     origUUID = davItem.itsUUID
     try:
         newItem = repository.findUUID(sharing.itemMap[origUUID])
+        log.info('Updating existing item %s' % (newItem))
     except: # XXX figure out if this is a KeyError or an AttributeError
         newItem = None
+        log.info('Existing item not found for %s' % (unicode(dav.url)))
 
     if not newItem:
         # create a new item for the davItem
@@ -354,8 +400,6 @@ def getItem(dav):
         newItem.sharedUUID = origUUID
         # set the version to avoid sync thinking there are local changes
         newItem.sharedVersion = newItem._version
-        # XXX set a bogus etag so it doesn't try to put
-        newItem.etag = "bad-etag"
 
         # toss this in to the itemMap so we can find it later
         sharing.itemMap[origUUID] = newItem.itsUUID
