@@ -23,6 +23,8 @@ class RdfNamespace(object):
         self.prefix = prefix
 
     def __getattr__(self, name):
+        if name.startswith("__") and name.endswith("__"):
+            raise AttributeError
         return self.prefix + name
 
     def __getitem__(self, name):
