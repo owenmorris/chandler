@@ -1540,3 +1540,17 @@ def syncAll(view):
         if share.active:
             share.sync()
 
+
+def checkForActiveShares(view):
+    """ See if there are any non-hidden, active shares.
+
+    @param view: The repository view object
+    @type view: L{repository.persistence.RepositoryView}
+    @return: True if there are non-hidden, active shares; False otherwise
+    """
+
+    shareKind = view.findPath("//parcels/osaf/framework/sharing/Share")
+    for share in KindQuery().run([shareKind]):
+        if share.active and not share.hidden:
+            return True
+    return False
