@@ -344,7 +344,10 @@ class ItemHandler(xml.sax.ContentHandler):
         for (type, attributeName, namespace, name, key, line) in attributes:
 
             if type == self._DELAYED_REFERENCE:
-                reference = self.findItem(namespace, name, line)
+                if namespace == "//Schema/Core" and name == "None":
+                    reference = None
+                else:
+                    reference = self.findItem(namespace, name, line)
 
                 # @@@ Special cases to resolve
                 if attributeName == 'inverseAttribute':
@@ -364,6 +367,7 @@ class ItemHandler(xml.sax.ContentHandler):
                 # is not None then use is as a dict key.
 
                 attributeTypePath = namespace
+
 
                 value = self.makeValue(item, attributeName, attributeTypePath,
                  name, line)
