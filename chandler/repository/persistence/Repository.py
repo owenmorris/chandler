@@ -260,8 +260,10 @@ class RepositoryView(object):
                 try:
                     return self._registry[spec]
                 except KeyError:
-                    if load:
+                    if load is True:
                         return self._loadItem(spec)
+                    elif load:
+                        return self._loadDoc(load)
 
         elif isinstance(spec, str) or isinstance(spec, unicode):
             if (spec[0] != '/' and
