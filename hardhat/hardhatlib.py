@@ -1267,7 +1267,7 @@ def handleManifest(buildenv, filename, fatalErrors=True):
                     copyto = os.path.join(buildenv['distdir'], params["dest"],
                      line)
                     createpath = os.path.dirname(copyto)
-                    _mkdirs(createpath)
+                    mkdirs(createpath)
                     if os.path.islink(abspath):
                         linkto = os.readlink(abspath)
                         os.symlink(linkto, copyto)
@@ -1352,7 +1352,7 @@ def _copyTree(srcdir, destdir, recursive, patterns, excludes):
             if os.path.isfile(match) and not match in excludesMatch:
                 try:
                     if not os.path.exists(destdir):
-                        _mkdirs(destdir)
+                        mkdirs(destdir)
                     if os.path.islink(match):
                         linkto = os.readlink(match)
                         os.symlink(linkto, os.path.join(destdir,match))
@@ -1370,7 +1370,7 @@ def _copyTree(srcdir, destdir, recursive, patterns, excludes):
                 _copyTree(full_name, os.path.join(destdir, name), True, 
                  patterns, excludes)
 
-def _mkdirs(newdir, mode=0777):
+def mkdirs(newdir, mode=0777):
     try: 
         os.makedirs(newdir, mode)
     except OSError, err:
@@ -1379,7 +1379,7 @@ def _mkdirs(newdir, mode=0777):
             raise
 
 def copyFile(srcfile, destdir):
-    _mkdirs(destdir)
+    mkdirs(destdir)
     shutil.copy(srcfile, destdir)
 
 
@@ -1389,7 +1389,7 @@ def copyFiles(srcdir, destdir, patterns):
         for match in matches:
             if os.path.isfile(match):
                 if not os.path.exists(destdir):
-                    _mkdirs(destdir)
+                    mkdirs(destdir)
                 shutil.copy(match, destdir)
 
 def copyTree(srcdir, destdir, patterns, excludes):
@@ -1421,7 +1421,7 @@ def copyTree(srcdir, destdir, patterns, excludes):
             if os.path.isfile(match) and not match in excludesMatch:
                 try:
                     if not os.path.exists(destdir):
-                        _mkdirs(destdir)
+                        mkdirs(destdir)
                     if os.path.islink(match):
                         linkto = os.readlink(match)
                         os.symlink(linkto, os.path.join(destdir,match))
