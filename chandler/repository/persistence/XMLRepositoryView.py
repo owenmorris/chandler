@@ -11,7 +11,7 @@ from struct import pack, unpack
 
 from bsddb.db import DBLockDeadlockError, DBNotFoundError
 from bsddb.db import DB_DIRTY_READ, DB_LOCK_WRITE
-from dbxml import XmlQueryContext, XmlUpdateContext, XmlDocument
+from dbxml import XmlDocument
 
 from repository.item.Item import Item
 from repository.item.ItemRef import RefDict, TransientRefDict
@@ -27,7 +27,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
         super(XMLRepositoryView, self).__init__(repository)
 
         self._log = []
-        self.version = self.repository.call('_versions', 'getVersion', self)
+        self.version = self.repository.store.getVersion(self)
 
     def _startTransaction(self):
 
@@ -40,7 +40,7 @@ class XMLRepositoryView(OnDemandRepositoryView):
     def getRoots(self):
         'Return a list of the roots in the repository.'
 
-        self.repository.call('_store', 'loadRoots', self)
+        self.repository.store.loadRoots(self)
         return super(XMLRepositoryView, self).getRoots()
 
     def logItem(self, item):
@@ -78,50 +78,6 @@ class XMLRepositoryLocalView(XMLRepositoryView):
         self._txn = None
         super(XMLRepositoryLocalView, self).__init__(repository)
 
-    def _getCtx(self):
-
-        try:
-            return self._ctx
-
-        except AttributeError:
-            self._ctx = XmlQueryContext()
-            self._ctx.setReturnType(XmlQueryContext.ResultDocuments)
-            self._ctx.setEvaluationType(XmlQueryContext.Lazy)
-
-            return self._ctx
-
-    def _getUpdateCtx(self):
-
-        try:
-            return self._updateCtx
-
-        except AttributeError:
-            self._updateCtx = XmlUpdateContext(self.repository._store._xml)
-
-            return self._updateCtx
-
-    def _getUUIDExpr(self):
-
-        try:
-            return self._uuidExpr
-        except AttributeError:
-            xml = self.repository._store._xml
-            xpath = "/item[@uuid=$uuid]"
-            self._uuidExpr = xml.parseXPathExpression(None, xpath,
-                                                      self.ctx)
-            return self._uuidExpr
-
-    def _getContainerExpr(self):
-
-        try:
-            return self._containerExpr
-        except AttributeError:
-            xml = self.repository._store._xml
-            xpath = "/item[container=$uuid and name=$name and number(@version)<=$version]"
-            self._containerExpr = xml.parseXPathExpression(None, xpath,
-                                                           self.ctx)
-            return self._containerExpr
-
     def createRefDict(self, item, name, otherName, persist):
 
         if persist:
@@ -150,9 +106,11 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
         repository = self.repository
         verbose = repository.verbose
-        versions = repository._versions
+        store = repository.store
+        data = store._data
+        versions = store._versions
+        history = store._history
         env = repository._env
-        history = repository._history
 
         before = datetime.now()
         count = len(self._log)
@@ -164,17 +122,15 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
                 newVersion = versions.getVersion(self)
                 if count > 0:
-                    lock = env.lock_get(env.lock_id(),
-                                        self.ROOT_ID._uuid,
+                    lock = env.lock_get(env.lock_id(), self.ROOT_ID._uuid,
                                         DB_LOCK_WRITE)
                     newVersion += 1
                     versions.put(self, self.ROOT_ID._uuid,
                                  pack('>l', ~newVersion))
                 
-                    store = repository._store
                     for item in self._log:
                         self._saveItem(item, newVersion,
-                                       store, versions, history, verbose)
+                                       data, versions, history, verbose)
 
             except DBLockDeadlockError:
                 print 'restarting commit aborted by deadlock'
@@ -236,7 +192,7 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                                                        datetime.now() - before)
                 return
 
-    def _saveItem(self, item, newVersion, store, versions, history, verbose):
+    def _saveItem(self, item, newVersion, data, versions, history, verbose):
 
         uuid = item.getUUID()
         if item.isNew():
@@ -273,18 +229,20 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             doc = XmlDocument()
             doc.setContent(out.getvalue())
             out.close()
-            docId = store.putDocument(self, doc)
+            docId = data.putDocument(self, doc)
             versions.setDocVersion(self, uuid, newVersion, docId)
             history.writeVersion(self, uuid, newVersion, docId)
 
-    ctx = property(_getCtx)
-    updateCtx = property(_getUpdateCtx)
-    uuidExpr = property(_getUUIDExpr)
-    containerExpr = property(_getContainerExpr)
 
 
 class XMLRepositoryClientView(XMLRepositoryView):
-    pass
+
+    def createRefDict(self, item, name, otherName, persist):
+
+        if persist:
+            return XMLClientRefDict(self, item, name, otherName)
+        else:
+            return TransientRefDict(item, name, otherName)
 
 
 class XMLRefDict(RefDict):
@@ -296,12 +254,12 @@ class XMLRefDict(RefDict):
                 super(XMLRefDict._log, self).append(value)
 
 
-    def __init__(self, repository, item, name, otherName):
+    def __init__(self, view, item, name, otherName):
         
         self._log = XMLRefDict._log()
         self._item = None
         self._uuid = UUID()
-        self.view = repository
+        self.view = view
         self._deletedRefs = {}
         
         super(XMLRefDict, self).__init__(item, name, otherName)
@@ -325,7 +283,7 @@ class XMLRefDict(RefDict):
             txnStarted = False
             try:
                 txnStarted = view._startTransaction()
-                cursor = view.repository._refs.cursor(view)
+                cursor = view.repository.store._refs.cursor(view)
 
                 try:
                     cursorKey = self._packKey(key)
@@ -406,8 +364,9 @@ class XMLRefDict(RefDict):
             self._writeValue(None)
         value = self._value.getvalue()
             
-        self.view.repository._refs.put(self.view, self._packKey(key, version),
-                                       value)
+        self.view.repository.store._refs.put(self.view,
+                                             self._packKey(key, version),
+                                             value)
 
     def _writeValue(self, value):
         
@@ -445,7 +404,7 @@ class XMLRefDict(RefDict):
 
     def _eraseRef(self, key):
 
-        self.view.repository._refs.delete(self.view, self._packKey(key))
+        self.view.repository.store._refs.delete(self.view, self._packKey(key))
 
     def _setItem(self, item):
 
@@ -498,7 +457,6 @@ class XMLRefDict(RefDict):
                         
                 elif entry[0] == 1:
                     self._writeRef(entry[1], version, None, None, None, None)
-#                    self._eraseRef(entry[1])
 
                 else:
                     raise ValueError, entry[0]
@@ -521,3 +479,19 @@ class XMLRefDict(RefDict):
 
         else:
             raise ValueError, mode
+
+
+class XMLClientRefDict(XMLRefDict):
+
+    def _prepareKey(self, uItem, uuid):
+
+        self._uItem = uItem
+        self._uuid = uuid
+            
+    def _loadRef(self, key):
+
+        return self.view.repository.store.loadRef(self.view,
+                                                  self._uItem, self._uuid, key)
+
+    def _writeRef(self, key, version, uuid, previous, next, alias):
+        raise NotImplementedError, "XMLClientRefDict._writeRef"

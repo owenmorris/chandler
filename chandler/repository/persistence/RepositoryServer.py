@@ -29,12 +29,12 @@ class RepositoryServer(object):
 
     def open(self):
 
-        self._stores, viewClass = self.repository.serverOpen()
+        self.store, viewClass = self.repository.serverOpen()
         return (viewClass.__module__, viewClass.__name__)
 
-    def call(self, store, method, *args):
+    def call(self, method, *args):
 
-        store = self._stores[store]
+        store = self.store
         return getattr(type(store), method)(store, *args)
 
 

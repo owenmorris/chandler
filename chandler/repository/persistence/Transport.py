@@ -12,16 +12,27 @@ from repository.util.UUID import UUID
 from repository.persistence.Repository import Store
 
 
-class Transport(object):
+class Transport(Store):
 
-    def open(self):
-        raise NotImplementedError, "Transport.open"
-        
-    def close(self):
-        raise NotImplementedError, "Transport.close"
-        
-    def call(self, store, method, *args):
+    def call(self, method, view, *args):
+
         raise NotImplementedError, "Transport.call"
+
+    def loadItem(self, view, uuid):
+
+        return self.call('loadItem', view, uuid)
+    
+    def loadChild(self, view, uuid, name):
+
+        return self.call('loadChild', view, uuid, name)
+
+    def loadRoots(self, view):
+
+        self.call('loadRoots', view)
+
+    def getVersion(self, view):
+
+        return self.call('getVersion', view)
 
 
 class SOAPTransport(Transport):
@@ -30,15 +41,15 @@ class SOAPTransport(Transport):
         super(SOAPTransport, self).__init__()
         self.url = url
 
-    def open(self):
+    def open(self, create=False):
         self.server = SOAPProxy(self.url)
         return self.server.open()
 
     def close(self):
         pass
 
-    def call(self, store, method, *args):
-        return self.server.call(store, method, *args)
+    def call(self, method, view, *args):
+        return self.server.call(method, view.version, *args)
         
     def parseDoc(self, doc, handler):
         parseString(doc, handler)
@@ -66,7 +77,7 @@ class JabberTransport(Transport, jabber.Client):
         self.resource = names.group(4) or 'client'
         self.iqTo = you
 
-    def open(self):
+    def open(self, create=False):
 
         self.connect()
         if not self.auth(self.username, self.password, self.resource):
@@ -80,9 +91,9 @@ class JabberTransport(Transport, jabber.Client):
 
         self.disconnect()
 
-    def call(self, store, method, *args):
+    def call(self, method, view, *args):
 
-        return self._call('call', store, method, *args)
+        return self._call('call', method, view.version, *args)
 
     def _call(self, method, *args):
         

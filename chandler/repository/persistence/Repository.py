@@ -474,7 +474,12 @@ class RepositoryView(object):
 
 class Store(object):
 
-    def open(self):
+    def __init__(self, repository):
+
+        super(Store, self).__init__()
+        self.repository = repository
+
+    def open(self, create=False):
         raise NotImplementedError, "Store.open"
 
     def close(self):
@@ -483,18 +488,15 @@ class Store(object):
     def loadItem(self, view, uuid):
         raise NotImplementedError, "Store.loadItem"
     
-    def loadChild(self, view, parent, name):
+    def loadChild(self, view, uuid, name):
         raise NotImplementedError, "Store.loadChild"
 
     def loadRoots(self, view):
         raise NotImplementedError, "Store.loadRoots"
 
-    def deleteDocument(self, view, doc):
-        raise NotImplementedError, "Store.deleteDocument"
+    def loadRef(self, view, uItem, uuid, key):
+        raise NotImplementedError, "Store.loadRef"
 
-    def putDocument(self, view, doc):
-        raise NotImplementedError, "Store.putDocument"
-        
     def parseDoc(self, doc, handler):
         raise NotImplementedError, "Store.parseDoc"
 
@@ -529,7 +531,7 @@ class OnDemandRepositoryView(RepositoryView):
 
             exception = None
 
-            item = self._loadItemDoc(doc, self.repository._store,
+            item = self._loadItemDoc(doc, self.repository.store,
                                      afterLoadHooks = self._hooks)
 
             uuid = item._uuid
@@ -564,7 +566,7 @@ class OnDemandRepositoryView(RepositoryView):
     def _loadItem(self, uuid):
 
         if not uuid in self._deletedRegistry:
-            doc = self.repository._store.loadItem(self, uuid)
+            doc = self.repository.store.loadItem(self, uuid)
 
             if doc is not None:
                 if self.repository.verbose:
@@ -584,7 +586,7 @@ class OnDemandRepositoryView(RepositoryView):
         else:
             uuid = self.ROOT_ID
 
-        store = self.repository._store
+        store = self.repository.store
         doc = store.loadChild(self, uuid, name)
                 
         if doc is not None:
