@@ -10,9 +10,6 @@ __license__ = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 import unittest, sys
 
-# hack to be able to run with hardhat, figure out something better
-sys.path.append('c:\osaf\osaf\chandler\Chandler')
-
 from application.model.EventItem import EventItem
 
 class TestEmptyProperties(unittest.TestCase):
