@@ -160,6 +160,7 @@
          type="path" otherCard="list">/Core/Symbol</ref>
 
     <attribute name="cardinality">single</attribute>
+    <attribute name="defaultValue">displayName</attribute>
   </item>
 
 </items>

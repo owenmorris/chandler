@@ -177,9 +177,18 @@ class Item(object):
                 old = _attrDict.get(name)
 
                 if isinstance(old, ItemRef):
-                    old.reattach(self, name,
-                                 old.other(self), value, self._otherName(name))
-                    return value
+                    if isItem:
+                        # reattaching on original endpoint
+                        old.reattach(self, name,
+                                     old.other(self), value,
+                                     self._otherName(name))
+                        return value
+                    elif isRef:
+                        # reattaching on other endpoint, can't reuse ItemRef
+                        old.detach(self, name, old.other(self),
+                                   self._otherName(name))
+                    else:
+                        raise TypeError, type(value)
                 elif isinstance(old, RefDict):
                     old.clear()
                 elif old is not None:
