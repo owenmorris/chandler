@@ -1,4 +1,4 @@
-import os, os.path, re, hardhatlib
+import os, os.path, re, hardhatlib, sys
 
 info = {
         'name':'M2Crypto 0.12',
@@ -9,7 +9,7 @@ dependencies = ('openssl',
                 #'swig', # XXX swig in path is required at the moment
                )
 
-def build(buildenv):
+def build(buildenv):    
     if buildenv['version'] == 'release':
         hardhatlib.executeCommand(buildenv, info['name'],
          [buildenv['python'], 'setup.py', 'build', '--build-base=build_release', 'install'],
@@ -19,7 +19,21 @@ def build(buildenv):
         hardhatlib.executeCommand(buildenv, info['name'],
          [buildenv['python_d'], 'setup.py', 'build', '--build-base=build_debug', '--debug', 'install',
           '--force'],
-         "Building and installing debug")
+         "Building and installing debug")    
+
+    if buildenv['os'] == 'win' and sys.platform == 'cygwin':
+        if buildenv['version'] == 'release':
+            hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
+                              '-o build_release/api_doc -v -n M2Crypto',
+                              '--inheritance listed',
+                              '--no-private',
+                              'build_release/lib.win32-2.3/M2Crypto')
+        if buildenv['version'] == 'debug':
+            hardhatlib.epydoc(buildenv, info['name'], 'Generating API docs',
+                              '-o build_debug/api_doc -v -n M2Crypto',
+                              '--inheritance listed',
+                              '--no-private',
+                              'build_debug/lib.win32-2.3/M2Crypto')
 
 
 def clean(buildenv):
