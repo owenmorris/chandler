@@ -18,3 +18,6 @@ snap:
 
 clean:
 	rm -rf $(BUILD)
+
+upload: UUIDext-$(SNAP)-$(RELVER).tar.gz
+	scp UUIDext-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)

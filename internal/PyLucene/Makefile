@@ -96,3 +96,6 @@ apply: patches
 
 clean:
 	rm -rf $(BUILD)
+
+upload: PyLucene-$(SNAP)-$(RELVER).tar.gz
+	scp PyLucene-$(SNAP)-$(RELVER).tar.gz $(UPLOAD)
