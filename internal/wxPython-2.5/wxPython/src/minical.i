@@ -121,7 +121,8 @@ public:
                        const wxSize& size = wxDefaultSize,
                        long style = 0,
                        const wxString& name = wxCalendarNameStr);
-        wxMiniCalendar();
+
+        %name(PreMiniCalendar)wxMiniCalendar();
         void SetDate(const wxDateTime& date);
         const wxDateTime& GetDate() const;
         bool SetLowerDateLimit(const wxDateTime& date = wxDefaultDateTime);
