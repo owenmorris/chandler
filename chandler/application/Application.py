@@ -355,7 +355,7 @@ class wxApplication (wx.App):
                 """
                 assert updateUIEvent
             else:
-                arguments = {'wxEvent':event}
+                arguments = {}
                 if updateUIEvent:
                     arguments ['UpdateUI'] = True
                 else:

@@ -225,11 +225,11 @@
     <Cloud itsName="DefaultCloud">
         <Endpoint itsName="destinationBlockReference">
             <attribute value="destinationBlockReference"/>
-            <includePolicy value="byCloud"/>
-            <cloudAlias value="default"/>
+            <includePolicy value="byValue"/>
         </Endpoint>
         <endpoints itemref="docSchema:BlockEvent/DefaultCloud/destinationBlockReference"/>
     </Cloud>
+    <clouds alias="default" itemref="docSchema:BlockEvent/DefaultCloud"/>
   </Kind>
 
   <Kind itsName="ChoiceEvent">
@@ -734,6 +734,7 @@
         </Endpoint>
         <endpoints itemref="docSchema:ContextMenuItem/DefaultCloud/event"/>
     </Cloud>
+    <clouds alias="default" itemref="docSchema:ContextMenuItem/DefaultCloud"/>
   </Kind>
   <!--
     EditText
