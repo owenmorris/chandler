@@ -12,7 +12,7 @@ Version 0.4
 </center>
 
 <p> This document is an introduction to the features of the Chandler
-repository. It's not meant to be an exhaustive coverage of the entire
+repository. It's not meant to give exhaustive coverage of the entire
 API or all of the cool features. Instead it is meant help you get up to
 speed so that you can do common repository tasks.</p>
 
@@ -20,8 +20,8 @@ speed so that you can do common repository tasks.</p>
 The Chandler repository supports some features which are unusual when 
 compared to most storage systems. The unit of storage in Chandler is the
 Item.  Items are interesting in a number of ways.  You can extend the schema
-that describes an item by adding a new attribute to an item -- this causes the
-schema to be updated.   Chandler items can also refer to other Chandler items. 
+that describes an Item by adding a new attribute to an Item -- this causes the
+schema to be updated.   Chandler Items can also refer to other Chandler Items. 
 In most object like storage systems references are unidirectional, like pointers.
 In the Chandler data model, references can be bidirectional -- each end of the 
 reference is aware of the other end.
@@ -30,7 +30,7 @@ reference is aware of the other end.
 <p>
 Another unusual feature of the Chandler repository is the concurrency model.  
 Chandler uses an optimistic concurrency control mechanism based on versions of 
-items.  If you are familiar with CVS, you will find some conceptual similarities.
+Items.  If you are familiar with CVS, you will find some conceptual similarities.
 The biggest thing to be aware of is that commits can fail due to version conflicts,
 and that your application is responsible for recovering from these failures.
 </p>
@@ -38,28 +38,28 @@ and that your application is responsible for recovering from these failures.
 <h2>Chandler Data Model</h2>
 
 <p> Chandler's repository stores and retrieves persistent objects called
-"items"; these items are arranged in a hierarchy, and are addressable
+"Items"; these Items are arranged in a hierarchy, and are addressable
 either by their unique identifier (UUID) or by their path within the
-hierarchy (e.g. <span class="path">//Schema/Core/Kind</span>).  There are special items called
-"kinds" which play the role of classes in the object-oriented world.
-Items can be thought of as instances of kinds, and take on the
-characteristics described by their kind. For example, a kind determines
-what attributes an item has and what code implements an item's behavior.
+hierarchy (e.g. <span class="path">//Schema/Core/Kind</span>).  There are special Items called
+"Kinds" which play the role of classes in the object-oriented world.
+Items can be thought of as instances of Kinds, and take on the
+characteristics described by their Kind. For example, a Kind determines
+what attributes an Item has and what code implements an Item's behavior.
 An attribute contains meta information including its name (how you
 refer to it in Python), cardinality (single or multi-valued) and type
 (what kind of value can be assigned). </p>
 
 <p>
-There are two ways to create items in the repository:  loading them in from
+There are two ways to create Items in the repository:  loading them in from
 XML files known as "parcels", or by using the repository API directly.
 </p>
 
 <h2>Parcel Loading</h2>
-<p> A parcel is a set of items (defined in an XML file) to be loaded
+<p> A parcel is a set of Items (defined in an XML file) to be loaded
 into the repository and, optionally, code implementing custom behavior
-for those items.  When Chandler starts up, the Chandler/parcels
+for those Items.  When Chandler starts up, the Chandler/parcels
 directory is recursively searched for "parcel.xml" files which are
-then parsed by the parcel loader.  The items for a parcel are loaded
+then parsed by the parcel loader.  The Items for a parcel are loaded
 into the repository path <span class="path">//parcels</span>, using a path determined by the
 parcel's location on disk.  For example, a parcel being loaded from
 <span class="file">Chandler/parcels/OSAF/contentmodel/calendar/parcel.xml</span>
@@ -119,17 +119,19 @@ will be stored in the repository at the path
 </pre>
 
 As the parcel loader parses the XML, whenever it sees an element with
-the <span class="code">itsName</span> attribute it creates an item in the repository.
+the <span class="code">itsName</span> attribute it creates an Item in the repository.
 For a parcel file, the outermost element should be Parcel. When defining
-kinds and attributes, use elements of Kind and Attribute.  Remember that
-all elements of these types must be in the XML namespace http://osafoundation.org/parcels/core.  The nesting arrangement of the items in a parcel file will
+Kinds and attributes, use elements of Kind and Attribute.  Remember that
+all elements of these types must be in the XML namespace http://osafoundation.org/parcels/core.  The nesting arrangement of the Items in a parcel file will
 be duplicated in the repository hierarchy.  </p>
-
-<p> First the <span class="code">&lt;Parcel&gt;</span> element:  its
-<span class="code">itsName</span> attribute is used to name the item in the repository.
-By convention a parcel item's name needs to match the directory in which the
+<p />
+The <span class="code">&lt;namespace&gt;</span> element tells the parcel manager which namespace should be associated with this parcel.  Note that we are using a dummy namespace URI "http://testparcels.org/simple" in this example.  You should use a meaningful namespace URI for your parcels.
+<p />
+<p>Now let's look at the <span class="code">&lt;Parcel&gt;</span> element:  its
+<span class="code">itsName</span> attribute is used to name the Item in the repository.
+By convention a parcel Item's name needs to match the directory in which the
 parcel.xml file resides (in this case, "simple").  The parcel loader will
-create an item of kind "//Schema/Core/Parcel" in the repository, with a path
+create an Item of Kind "//Schema/Core/Parcel" in the repository, with a path
 of <span class="path">//parcels/simple</span>.
 </p>
 
@@ -139,25 +141,25 @@ value to one of the parent element's attributes.  In the example, the
 parcel's <span class="code">displayName</span> attribute is assigned the literal
 "Simple Parcel".  Another type of assignment is a reference; if an element
 has an <span class="code">itemref</span>, then instead of a literal assignment, a
-reference to the specified item is assigned.  For example, within the
-"TestKind" item, a reference to the "TestAttribute" item (also defined
+reference to the specified Item is assigned.  For example, within the
+"TestKind" Item, a reference to the "TestAttribute" Item (also defined
 in this file) is assigned to TestKind's "attributes" attribute.  </p>
 
 <p>The result of parsing this file will be:
 <ul>
-<li>A parcel item at <span class="path">//parcels/simple</span> (with displayName="Simple Parcel")
-<li>A kind item at <span class="path">//parcels/simple/TestKind</span> (with displayName = "Test Kind", attributes = [<span class="path">//parcels/simple/TestAttribute</span>, <span class="path">//parcels/simple/ListAttribute</span>, <span class="path">//parcels/simple/DictAttribute</span> ], and displayAttribute = <span class="path">//parcels/simple/TestAttribute</span>)
-<li>A kind item at <span class="path">//parcels/simple/SubKind</span> (with displayName = "Subclass of Test Kind", superKinds = <span class="path">//parcels/simple/TestKind</span>
-<li>An attribute item at <span class="path">//parcels/simple/TestAttribute</span> (with displayName = "Test Attribute", cardinality = "single", and type = <span class="path">//Schema/Core/String</span>)
-<li>An attribute item at <span class="path">//parcels/simple/ListAttribute</span> (with displayName = "List Attribute", cardinality = "list", and type = <span class="path">//Schema/Core/String</span>)
-<li>An attribute item at <span class="path">//parcels/simple/DictAttribute</span> (with displayName = "Dict Attribute", cardinality = "dict", and type = <span class="path">//Schema/Core/String</span>)
+<li>A parcel Item at <span class="path">//parcels/simple</span> (with displayName="Simple Parcel")
+<li>A Kind Item at <span class="path">//parcels/simple/TestKind</span> (with displayName = "Test Kind", attributes = [<span class="path">//parcels/simple/TestAttribute</span>, <span class="path">//parcels/simple/ListAttribute</span>, <span class="path">//parcels/simple/DictAttribute</span> ], and displayAttribute = <span class="path">//parcels/simple/TestAttribute</span>)
+<li>A Kind Item at <span class="path">//parcels/simple/SubKind</span> (with displayName = "Subclass of Test Kind", superKinds = <span class="path">//parcels/simple/TestKind</span>
+<li>An attribute Item at <span class="path">//parcels/simple/TestAttribute</span> (with displayName = "Test Attribute", cardinality = "single", and type = <span class="path">//Schema/Core/String</span>)
+<li>An attribute Item at <span class="path">//parcels/simple/ListAttribute</span> (with displayName = "List Attribute", cardinality = "list", and type = <span class="path">//Schema/Core/String</span>)
+<li>An attribute Item at <span class="path">//parcels/simple/DictAttribute</span> (with displayName = "Dict Attribute", cardinality = "dict", and type = <span class="path">//Schema/Core/String</span>)
 </ul>
 </p>
 
 <p>So what does this mean in terms of the data model? 
 <ol>
-<li>Our simple schema has defined two kinds (TestKind and SubKind) and an attribute (TestAttribute)
-<li>We have declared that instances of TestKind (items whose kind is TestKind) have 3 attributes named "TestAttribute", "ListAttribute", and "DictAttribute" (by assigning to the "attributes" attribute)
+<li>Our simple schema has defined two Kinds (TestKind and SubKind) and an attribute (TestAttribute)
+<li>We have declared that instances of TestKind (Items whose Kind is TestKind) have 3 attributes named "TestAttribute", "ListAttribute", and "DictAttribute" (by assigning to the "attributes" attribute)
 <li>We have declared that SubKind is a "subclass" of TestKind (by assigning to the "superKinds" attribute).  SubKind will inherit the characteristics of
 TestKind, including the list of allowed attributes.
 </ol>
@@ -166,7 +168,7 @@ TestKind, including the list of allowed attributes.
 <h3>Defining Data</h3>
 
 <p>Let's create some data based on this schema.  As of
-the 0.3 release, you need to put your data (non schema) items in a
+the 0.3 release, you need to put your data (non schema) Items in a
 separate parcel file from your schema, so we've put this in
 <span class="file">Chandler/repository/parcel/tests/testparcels/simple/data/parcel.xml</span>: </p>
 <pre>
@@ -189,17 +191,17 @@ separate parcel file from your schema, so we've put this in
 &lt;/Parcel&gt;
 </pre>
 <p>
-When this parcel is loaded, three new items will be added to the repository:
+When this parcel is loaded, three new Items will be added to the repository:
 <ul>
-<li>A parcel item at <span class="path">//parcels/simple/data</span>
-<li>A TestKind item at <span class="path">//parcels/simple/data/item1</span> (with TestAttribute="xyzzy")
-<li>A SubKind item at <span class="path">//parcels/simple/data/item2</span> (with TestAttribute="plugh")
-<li>A TestKind item at <span class="path">//parcels/simple/data/item3</span> (with TestAttribute="xyzzy" - because the initialValue for TestAttribute is "xyzzy")
+<li>A parcel Item at <span class="path">//parcels/simple/data</span>
+<li>A TestKind Item at <span class="path">//parcels/simple/data/item1</span> (with TestAttribute="xyzzy")
+<li>A SubKind Item at <span class="path">//parcels/simple/data/item2</span> (with TestAttribute="plugh")
+<li>A TestKind Item at <span class="path">//parcels/simple/data/item3</span> (with TestAttribute="xyzzy" - because the initialValue for TestAttribute is "xyzzy")
 </ul>
 </p>
 
 <p>We were able to assign to the "TestAttribute" for item1 because we declared
-it was an attribute of TestKind.  Since the data model honors kind inheritence,
+it was an attribute of TestKind.  Since the data model honors Kind inheritence,
 all instances of SubKind also have the "TestAttribute" attribute, and therefore
 we could assign it to item2 as well.</p>
 
@@ -216,7 +218,7 @@ application global, <span class="code">application.Globals.repository</span> who
 repository that the current Chandler instance is using.  I'm going to
 show you how to obtain a repository object from scratch.  
 <p />
-Use the Chandler build tool, <span class="code">hardhat</span>, to run an interactive python session.  You'll want to be in the "chandler" director when you do this.
+Use the Chandler build tool, <span class="code">hardhat</span>, to run an interactive python session.  You'll want to be in the "chandler" directory when you do this.
 <pre>
 > cd osaf/chandler
 > ../hardhat/hardhat.py -i
@@ -243,7 +245,7 @@ for the repository directory.
 rep = XMLRepository(os.path.join('.', '__repository__'))
 </pre>
 <p />
-Once we have a repository we can create it:
+Once we have a repository object we can call the create method to actually create the repository on disk.:
 <p />
 <pre class="codebox">rep.create()
 </pre>
@@ -286,7 +288,7 @@ manager.loadParcels(namespaces)
 We call the method<span class="code">ParcelManager.getManager</span> in order to get an instance of the Parcel loader.  The first argument, <span class="code">rep</span>, is the repository that we've just created.
 The second argument is a list of directories to search for parcels.  The first element in the list  is the directory containing the parcel.xml file for our data parcel.  The second element is the root of the OSAF supplied parcels.  The list <span class="code">namespaces</span> is a list of namespaces (URI's) for the parcels that you want to load.
 In this case, our data parcel depends on our schema parcel, and so the
-schema will be loaded as well. </p>
+schema will automatically be loaded as well. </p>
 
 <p>To see what's in the repository, we can print out part of its contents
 using <span class="code">PrintItem( )</span>:</p>
@@ -333,11 +335,11 @@ PrintItem("//parcels/simple", rep)
                         'type': 'ab8c18ea-18c2-11d9-85f4-000a959a114e'}
     version: 0.1 &lt;type 'unicode'&gt;
 </pre>
-
+Note the inclusion of UUID's (strings that like 'ab8c18ea-18c2-11d9-85f4-000a959a114e').
 <h3>Working with Items</h3>
 
 <p>
-One way to retrieve an item from the repository is to ask for it by its
+One way to retrieve an Item from the repository is to ask for it by its
 path.  So to fetch item1:
 </p>
 
@@ -353,7 +355,7 @@ item1 = rep.findPath("//parcels/simple/data/item1")
 &lt;Item: item1 843636cc-55bd-11d8-f385-000a95bb2738&gt;
 </span>
 
-<p>This shows the item's class name (this may change to be the kind), name, and UUID.  Every item in the repository has a unique identifier or UUID.  You can  use the <span class="code">itsUUID</span> attribute to get an item's UUID.</p>
+<p>This shows the Item's class name (this may change to be the Kind), name, and UUID.  Every Item in the repository has a unique identifier or UUID.  You can  use the <span class="code">itsUUID</span> attribute to get an Item's UUID.</p>
 <p />
 <pre class="codebox">uuid = item1.itsUUID
 </pre>
@@ -364,121 +366,124 @@ You can use the <span class="code">findUUID</span> method to find by using an It
 </pre>
 <p />
 Note: at the moment, you should be careful when using UUID's to find
-items, because UUID's really are unique, are never recycled, and it's possible 
+Items, because UUID's really are unique, are never recycled, and it's possible 
 for you to use a UUID that existed in some older version of your repository, but
 which doesn't exist anymore in the current repository if it was recreated.
 <p />
-Once you have an item, there are some basic things that you can do
+Once you have an Item, there are some basic things that you can do
 with it.  We've already seen that you can get the UUID using
 <span class="code">getUUID()</span>.   Here are some other things that you can do:
 <p />
 <table>
 <tr><td>
 <span class="code">Item.itsName</span></td>
-<td>get the name of the item</td></tr>
+<td>get the name of the Item</td></tr>
 <tr><td>
 <span class="code">Item.itsParent</span></td>
-<td>get the item which is the parent of this item
+<td>get the Item which is the parent of this Item
 </td></tr>
 <tr><td>
 <span class="code">Item.itsPath</span></td>
-<td>get the path to this item
+<td>get the path to this Item
 </td></tr>
 <tr><td>
 <span class="code">Item.getItemDisplayName()</span></td>
-<td>get the displayable name for this item
+<td>get the displayable name for this Item
 </td></tr>
 </table>
 <p>Note that in our example, <span class="code">item1.getItemDisplayName()</span>
 will evaluate to "xyzzy".  Why?  In our schema we defined TestAttribute
 to be TestKind's "displayAttribute", therefore that attribute's value
-is returned by <span class="code">getItemDisplayName()</span>.  If an item's kind
-does not have a displayAttribute, then the item's name will be returned
+is returned by <span class="code">getItemDisplayName()</span>.  If an Item's Kind
+does not have a displayAttribute, then the Item's name will be returned
 instead.</p>
 
 <h3>Parents and children</h3>
-<p> As you've seen in these examples, items can be arranged in a
-parent/child hierarchy.  This can be useful for related groups of items.
-When you create an item, you specify what its parent will be.  Items can
-have the repository as their parent.  So let's 
-add a new instance of TestKind.  To do this, we first need to retrieve
-the TestKind item:</p>
+<p> As you've seen in these examples, Items can be arranged in a
+parent/child hierarchy.  This can be useful for related groups of Items.
+When you create an Item, you specify what its parent will be.  Items can
+have the repository as their parent.  
+<p />
+Let's look at adding a new instance of TestKind.  To do this, we first need to retrieve
+the TestKind Item:</p>
 
 <pre class="codebox">testKind = rep.findPath("//parcels/simple/TestKind")
 </pre>
 
-<p>Next we need to fetch the item that will be our new item's parent:</p>
+<p>Next we need to fetch the Item that will be our new Item's parent:</p>
 
 <pre class="codebox">data = rep.findPath("//parcels/simple/data")
 </pre>
 
-<p>Next we tell the kind to create a new item as a child of data:</p>
+<p>Next we tell the Kind to create a new Item as a child of data:</p>
 
 <pre class="codebox">newItem = testKind.newItem("newItem", data)
 </pre>
 <p>
-The first argument to the newItem() method is the name of the item, and the 
-second argument is the parent of the item.  </p>
+The first argument to the newItem() method is the name of the Item, and the 
+second argument is the parent of the Item.  </p>
 
-You can test whether or not an item has any children
+You can test whether or not an Item has any children
 <p />
 <pre class="codebox">print data.hasChildren()
 </pre>
 <p />
-You can iterate through the children of an item
+You can iterate through the children of an Item
 <p />
 <pre class="codebox">for child in data.iterChildren():
     print child
 </pre>
 <p />
-You can test whether or not an item has a child with a particular name
+You can test whether or not an Item has a child with a particular name
 <p />
 <pre class="codebox">print data.hasChild("newItem")
 </pre>
 <p />
-You can get a child by providing its name  (there are 2 ways shown below, the first returns <span class="code">None</span>
-if the child is not found, the other raises a <span class="code">KeyError</span> exception instead)
-<p />
+You can get a child by providing its name.  There are 2 ways of doing this. The first way returns <span class="code">None</span>
+if the child is not found: 
 <pre class="codebox">print data.getItemChild("newItem")
+</pre>
 
+The second way raises a <span class="code">KeyError</span> exception instead):
+<pre class="codebox">
 print data['newItem']
 </pre>
 <p />
 
-You can rearrange the children of an item by using the <span class="code">placeChild()</span> method.
+You can rearrange the children of an Item by using the <span class="code">placeChild()</span> method.
 <p />
 <pre class="codebox">data.placeChild(data.getItemChild("newItem"), None)</pre>
-<p> will make the 'item3' child the first child of <span class="code">data</span>.
+<p> will make the 'newItem' child the first child of <span class="code">data</span>.
 The first argument is the child you want to move, the second argument
 is the child that you want to place the first child after.
 You supply <span class="code">None</span> to place the child as the first child.  </p>
 
 <p>
-To change an Item's parent you would use the <span class="code">move()</span> method.  If I wanted to take 'item3' and make it a child of the repository, the code would look like this:
+To change an Item's parent you would use the <span class="code">move()</span> method.  If I wanted to take 'newItem' and make it a child of the repository, the code would look like this:
 <p />
 <pre class="codebox">newItem.move(rep)
 </pre>
 <p />
-The first argument to move is the new root for the item being moved.  You can also specify where the item will be among the new root's children by specifying a 2nd and 3rd argument, which specify the children preceding and following the new item. 
+The first argument to move is the new root for the Item being moved.  You can also specify where the Item will be among the new root's children by specifying a 2nd and 3rd argument, which specify the children preceding and following the new Item. 
 <p />
 
 <h3>Attributes</h3>
-All of the data in Chandler items is stored as attributes.  Attributes are themselves items, albeit of a special type (the recursion has to stop somewhere).  The API for attributes has been designed to look as much like the Python API for working with attributes.
+All of the data in Chandler Items is stored as attributes.  Attributes are themselves Items, albeit of a special type (the recursion has to stop somewhere).  The API for attributes has been designed to look as much like the Python API for working with Python attributes.
 
-If we look at the item we created, <span class="code">newItem</span> we can set its attribute values using the normal Python syntax:
+If we look at the Item we created, <span class="code">newItem</span> we can set its attribute values using the normal Python syntax:
 <p />
 <pre class="codebox">newItem.TestAttribute = 'Testing'
 </pre>
 <p />
-Sets the value of newItem's attribute to Testing.  We can retrieve the value of the <span class="code">TestAttribute</span> attribute by executing
+Sets the value of newItem's <em>TestAttribute</em> attribute to Testing.  We can retrieve the value of the <span class="code">TestAttribute</span> attribute by executing
 <p />
 <pre class="codebox">newItem.TestAttribute
 </pre>
-<p> Where do attributes come from? In the Chandler data model, the kind
-for an item determines what attributes are available.  In the case
-of the kind for parcels, there are a number of attributes available.
-To find out what attributes are available on a kind, we can look at the
-<span class="code">attributes</span> attribute of that kind: </p>
+<p> Where do attributes come from? In the Chandler data model, the Kind
+for an Item determines what attributes are available.  In the case
+of the Kind for parcels, there are a number of attributes available.
+To find out what attributes are available on a Kind, we can look at the
+<span class="code">attributes</span> attribute of that Kind: </p>
 
 <pre class="codebox">parcelKindItem = rep.findPath("//Schema/Core/Parcel")
 for i in parcelKindItem.attributes:
@@ -499,19 +504,20 @@ Which will produce output that looks like this:
 </pre></span>
 
 <p> However, this list only includes attributes that were directly
-assigned to the <span class="path">//Schema/Core/Parcel</span> kind -- this kind is a subkind of
+assigned to the <span class="path">//Schema/Core/Parcel</span> Kind -- this Kind is a Subkind of
 <span class="path">//Schema/Core/Item</span> and therefore it inherits Item's attributes as well.
 <p>
-There are two kinds of attributes. Literal valued attributes store
+There are two Kinds of attributes. Literal valued attributes store
 literal values of various types, such as numbers (integers, longs,
 complex), strings, dates, and so forth.  Reference valued attributes
-store bi-directional references to Chandler items.  Attributes also
-have a cardinality.  They can be single valued or multiple valued.
+store bi-directional references to Chandler Items. 
+<p />
+Attributes also have a cardinality.  They can be single valued or multiple valued.
 Multiple valued attributes are treated as either lists, accessible by
 numeric index, or as dictionaries, accessible by keys.  Multivalued
 reference attributes are treated as lists. 
 
-The <span class="code">Item.iterAttributeValues()</span> method will produce an iterator that will let you access all the attributes for an item, including thos attributes inherited from superkinds:
+The <span class="code">Item.iterAttributeValues()</span> method will produce an iterator that will let you access all the attributes for an Item, including thos attributes inherited from Superkinds:
 <pre class="codebox">
 parcel = rep.findPath("//parcels/simple")
 for i in parcel.iterAttributeValues():
@@ -556,9 +562,9 @@ produces:
 ('kind', &lt;Kind: Parcel 760888e8-55c7-11d8-f88d-000a95bb2738&gt;)
 </pre></span>
 
-<p> You can use python's list and dictionary operations on multivalued
+<p> You can use Python's list and dictionary operations on multivalued
 literal attributes.  Multivalued references attributes are a different
-story.  The repository provides an API on items that allows you to
+story.  Items have an API that allows you to
 manipulate the values of multi-valued reference attributes.  Let's try
 this with the <span class="code">attributes</span> attribute of <span class="code">parcelKindItem</span>
 which is a list valued reference attribute.  </p>
@@ -584,12 +590,12 @@ Which produces the expected result:
 &lt;Attribute: publisher 7609f124-55c7-11d8-f88d-000a95bb2738&gt;
 </span>
 <p />
-To add a new item to the list, all you would do is:
+To add a new Item to the list, all you would do is:
 <p />
 <pre class="codebox">parcelKindItem.addValue('attributes',item.itsUUID, item)
 </pre>
 <p />
-To remove the value of an item in the list use removeValue:
+To remove the value of an Item in the list use removeValue:
 <p />
 <pre class="codebox">parcelKindItem.removeValue('attributes',a.itsUUID)
 </pre>
@@ -601,10 +607,10 @@ You can also use Python operations like <span class="code">del</span> to remove 
 <h3>Saving data</h3>
 
 <p> The whole point of using the repository is that you want your data
-to become persistent.  When you create an item or update an item, that
-item becomes dirty.  You can uses the <span class="code">Item.isDirty()</span> method
-to see if a particular item is dirty.   You use the <span class="code">commit()</span>
-method on the repository to make your changed items persistent.  Your code
+to become persistent.  When you create an Item or update an Item, that
+Item becomes dirty.  You can uses the <span class="code">Item.isDirty()</span> method
+to see if a particular Item is dirty.   You use the <span class="code">commit()</span>
+method on the repository to make your changed Items persistent.  Your code
 would look something like this: </p>
 
 <pre class="codebox">rep.commit()</pre>
@@ -615,7 +621,7 @@ commit groups of changes.   It also means that transactions are used
 to manage concurrent access to the repository so that agents and other
 Python threads can access the repository safely.  An important thing for
 you to know is that it is possible for commits to fail.  This will happen
-when an item that you want to commit has been modified by someone else
+when an Item that you want to commit has been modified by someone else
 between the time that you read it and the time you tried to commit it.
 When this happens the <span class="code">commit</span> method will raise an exception.
 At this point it is up to you redo the work in your transaction.  </p>
@@ -640,6 +646,15 @@ $Revision$<br>
 $Date$<br>
 $Author$<br>
 $Log$
+Revision 1.11  2004/10/21 22:30:39  twl
+Commit branched docs to trunk
+
+Revision 1.9.2.2  2004/10/19 21:19:06  twl
+Incorporate Ducky's feedback
+
+Revision 1.9.2.1  2004/10/18 21:27:03  twl
+Committing doc changes to branch
+
 Revision 1.10  2004/10/15 18:31:04  twl
 Bugs 2112, 2113 (Doc bugs)
 Incorporate review feedback

@@ -12,11 +12,11 @@ Chandler Query System</title>
 </center>
 
 <h2>Overview</h2>
-The Chandler Repository provides a mechanism for performing queries over the contents of the repository.  These queries are declarative: you specify a set of conditions that you want Items to satisfy, and the query processor takes care of retrieving the relevant items.  Queries are specified using strings, and the syntax of these strings is inspired by XQuery.
+The Chandler Repository provides a mechanism for performing queries over the contents of the repository.  These queries are declarative: you specify a set of conditions that you want Items to satisfy, and the query processor takes care of retrieving the relevant items.  Queries are specified using strings, and the syntax of these strings is inspired by <a href="http://www.w3.org/XML/Query">XQuery</a>.
 <p />
 An unusual feature of the query system is the ability to have a query subscribe to changes in the repository.  When items are changed, the repository is able to notify the query of that change.  The query processor determines whether that change would cause the item to become part of the result of an existing query, or whether the change would cause the item to no longer be part of a query result set.  This allows queries to keep their result set up to date automatically.
 <p/>
-Throughout this document we'll use the following terms:
+If you haven't already read the document, "The Busy Developer's Guide to the Chandler repository", you should do so before continuing.  Throughout this document we'll use the following terms:
 
 <dl>
 <dt>query</dt>
@@ -31,7 +31,7 @@ Throughout this document we'll use the following terms:
 
 <h2>Python API</h2>
 
-The first thing that you'll need to know when working with queries is how to create them.  If you are working within the Chandler Parcel system, then you will be working with queries via parcel.xml when you deal with ItemCollections.  When working with queries via parcel.xml, you will only need to know about the string syntax for queries, which is described in the next section.  Here's an example of parcel.xml usage, the ItemCollection for the task list:
+The first thing that you'll need to know when working with queries is how to create them.  If you are working within the Chandler Parcel system, then you will be working with queries via parcel.xml when you deal with ItemCollections.  When working with queries via parcel.xml, you will only need to know about the string syntax for queries, which is described in the next section.  Here's an example of parcel.xml usage, the ItemCollection for Chandler's task list:
 
 <pre class="codebox">
   &lt;contentModel:ItemCollection itsName="taskItemCollection"&gt;
@@ -39,6 +39,7 @@ The first thing that you'll need to know when working with queries is how to cre
     &lt;_rule value="<b>for i in '//parcels/osaf/contentmodel/tasks/TaskMixin' where True</b>"/&gt;
   &lt;/contentModel:ItemCollection&gt;
 </pre>
+You just supply a query string as the value of the <em>_rule</em> attribute.
 <p />
 
 To use a query from Python, your code will look something like this
@@ -60,7 +61,7 @@ Once you have an instance of Query, you can call the <span class="code">execute<
 <p />
 You can update the value of the query string by changing the value of the attribute queryString:
 
-<pre class="codebox">q.queryString = "for i in '//Schema/Core/Kind' where True"</pre>
+<pre class="codebox">q.queryString = "for i in '//parcels/osaf/contentmodel/contacts/Contact' where True"</pre>
 
 The query string may be the empty string, "".  In this case, the result set of the query is empty.
 
@@ -70,17 +71,19 @@ If your <b>for</b> query is iterating over Kinds, and you want to include items 
 <pre class="codebox">q.recursive = True</pre>
 
 <p />
-If your query uses parameters, you should set the args attribute to a dict containing the arguments. The keys of the dict should be strings that begin with "$".
+Parameters allow you to use values from your Python code in a query.  Parameter names are strings that begin with "$".  To use parameters, you should set the query's <em>args</em> attribute to a dict containing the arguments. 
 
-This code shows how to pass reference collection as a parameter to a query.  You pass a tuple containing the UUID of the Chandler item that has a reference collection attribute and the name of the reference collection attribute (a string).
-<pre class="codebox">q.args["$name"] = (item.itsUUID, attributeName)</pre>
+This code shows how to pass reference collection as a parameter to a query.  The parameter name is <em>$name</em>.   The value of <em>$name</em> is a tuple containing the UUID of the Chandler item that has a reference collection attribute and the name of the reference collection attribute (a string).
+<pre class="codebox">
+q.args = {}
+q.args["$name"] = (item.itsUUID, attributeName)</pre>
 
-This code shows how to pass an ordinary value -- this allows you to make comparisons to data in your python code (indicated by the variable name in this case). 
-<pre class="codebox">q.args["$0"] = [ name ]</pre>
+This code shows how to pass an ordinary value -- this allows you to make comparisons to data in your Python code (indicated by the variable name in this case).   The name of the parameter is <em>$myname</em> and it's value is a list containing the value of the variable name from your Python code.
+<pre class="codebox">q.args["$myname1"] = [ name ]</pre>
 
 <p />
 
-You can view the entire API for the Query class online.
+You can view the entire API for the Query class <a href="http://o11n.org/docs/current/api/">online</a>.
 
 <h2>Query String Syntax</h2>
 
@@ -101,20 +104,20 @@ The result set of a <b>for</b> query is the set of items in <em>set</em> which s
 
 Here's what you need to supply for the various portions of a <b>for</b> query:
 <p />
-<em>var</em> is the iteration variable for the query.  For now, you should use 'i'. This constraint will be removed in the future.
+<em>var</em> is the iteration variable for the query.  For now, you must use 'i'. This constraint will be removed in the future.
 <p />
 <em>set</em> specifies a set of Items to apply the <em>boolean-condition</em> to.
 This allows you to issue a query over a subset of the repository.  At the moment you can supply one of three possibilities for <em>set</em>:
 <ul>
 <li>repository paths for Kind names</li>
-These paths must enclosed in either "" or ''.
+These paths must enclosed in either single quotes(') or double quotes(").
 <p />
 The result of the query below is the set of all Contact items whose contactName child item's firstName attribute contains the letter 'a'.  It shows the use of a Kind name as the source.  In the where clause, we see the use of the iteration variable <em>i</em>, as well as the names of attributes (<em>contactName</em>, <em>firstName</em>).  This example also shows the use of the <em>contains</em> function.
 <pre class="codebox">q.queryString = """for i in '//parcels/osaf/contentmodel/contacts/Contact' 
     where contains(i.contactName.firstName,'a')"""</pre>
 
 <li>parameters</li>
-A parameter is a string which begins with $. You can pass a ref-collection as a parameter to do a query over a ref-collection.
+A parameter is a string which begins with $. You can pass a ref-collection as a parameter to do a query over a ref-collection.  See "The Busy Developer's Guide to the Chandler repository" for more on ref-collections
 <p />
 This query illustrates the use of a parameter, <em>$1</em> as the source set.
 
@@ -124,7 +127,7 @@ This query illustrates the use of a parameter, <em>$1</em> as the source set.
 If you specify ftcontains, the source set is the result of a full text query using the Lucene query specified by the string <em>lucene-query</em>.  This result contains a set of Items where the search text appears in any attribute whose name is listed in <em>attr-name1</em>, ..., <em>attr-namen</em>. The list of attributes names is optional (all attributes will be searched in this case).
 <p />
 
-This query demonstrates the use of a full text query for the source set.  The lucene query is <em>femme AND homme</em> which returns all items containing the text <em>femme</em> and the text <em>homme</em>.  Since we've provided an attribute argument to <em>ftcontains</em>, <em>synopsis</em>, the source set will be only those items whose <em>synopsis</em> attribute contains the text <em>femme</em> and the text <em>homme</em>.  The query's where clause shows the use of the <em>len</em> function to further limit the items that will be in the query result.
+This query demonstrates the use of a full text query for the source set.  The lucene query is "femme AND homme" which returns all items containing the text "femme" and the text "homme".  Since we've provided an attribute argument, <em>synopsis</em>, to <b>ftcontains</b>,  the source set will be only those items whose <em>synopsis</em> attribute contains the text "femme" and the text "homme".  The query's where clause shows the use of the <em>len</em> function to further limit the items that will be in the query result.
 
 <pre class="codebox">q.queryString = """for i in ftcontains('femme AND homme','synopsis')
     where len(i.title) < 10"""</pre>
@@ -137,10 +140,13 @@ Here are the elements that you can use in the boolean condition (A BNF grammar f
 
 <p />
 <h4>The iteration variable for the query</h4>
-At the moment, just the variable <em>i</em>
+At the moment, just the variable <em>i</em>.  In the future more variable names will be allowed.
 
 <h4>The names of Chandler item attributes</h4>
-You may use the attributes of an item.
+You may use the attributes of an Item.  For example, most Items have an <em>itsName</em> attribute, so
+<pre class="codebox">i.itsName
+</pre>
+will give the value of itsName for the current value of <em>i</em>.  You can also call methods on Items (since method names are attributes)
 
 <h4>Literal values</h4>
 <dl>
@@ -149,11 +155,11 @@ You may use the attributes of an item.
 <dt>string literals</dt>
 <dd>String literals must be enclosed in either single (&apos;) or double (&quot;) quotes.</dd>
 <dt>boolean literals</dt>
-<dd>The Python boolean literals 'True' and 'False'</dd>
+<dd>The Python boolean literals <code>True</code> and <code>False</code></dd>
 </dl>
 
 <h4>Parameters</h4>
-This query shows that you can use parameters (like <em>$0</em>) in the where clause as well, allowing you to use run time values from the python environment inside a query.
+This query shows that you can use parameters (like <em>$0</em>) in the <b>where</b> clause as well, allowing you to use run time values from your Python program inside a query.
 
 <pre class="codebox">q.queryString="""for i in "//Schema/Core/Kind" 
     where contains(i.itsName,$0)"""</pre>
@@ -173,10 +179,10 @@ This query shows that you can use parameters (like <em>$0</em>) in the where cla
 <h4>Boolean operators</h4>
 <dl>
 <dt><span class="code"><em>expr1</em> and <em>expr2</em></span></dt>
-<dd>Perform the logical and of <em>expr1</em> and <em>expr2</em></dd>
+<dd>Perform the logical "AND" of <em>expr1</em> and <em>expr2</em></dd>
 
 <span class="code"><em>expr1</em> or <em>expr2</em></span></dt>
-<dd>Perform the logical or of <em>expr1</em> and <em>expr2</em></dd>
+<dd>Perform the logical "OR" of <em>expr1</em> and <em>expr2</em></dd>
 
 <span class="code">not <em>expr</em></span></dt>
 <dd>Negate <em>expr</em></dd>
@@ -225,18 +231,18 @@ This query shows that you can use parameters (like <em>$0</em>) in the where cla
 <dd>Produce the remainder of dividing the numeric expression <em>expr1</em> by the numeric expression <em>expr2</em></dd>
 </dl>
 <h4>Dates</h4>
-You can supply dates and times in eGenix mxDateTime ISO format like this: 
+You can supply dates and times in <a href="http://www.egenix.com/files/python/mxDateTime.html#ISO">eGenix mxDateTime ISO</a> format like this: 
 <dt><span class="code">date(<em>ISO-date-string</em>)</span></dt>
 <dd>Construct a date instance that represents <em>ISO-date-string</em></dd>
 <p />
-This example shows how to use dates in a query.  Note the use of the <em>date</em> constructor to create a data literal which is then compared to the <em>startTime</em> attribute of <em>i</em> (<em>i</em> will be a <em>CalendarEvent</em>)
+This example shows how to use dates in a query.  Note the use of the <em>date</em> constructor to create a date literal which is then compared to the <em>startTime</em> attribute of <em>i</em> (<em>i</em> will be a <em>CalendarEvent</em>)
 <pre class="codebox">q.queryString="""for i in '//parcels/osaf/contentmodel/calendar/CalendarEvent' 
     where i.startTime > date('2004-09-31 12:34:56')"""</pre>
 
 <p />
 <h4>Functions</h4>
 <br />
-The set of available functions is fixed but easily extended
+At the moment there are only three functions that you can call from queries.  We will be expanding this set of functions as the system develops.
 <dl>
 <dt><span class="code">len(<em>expr</em>)</span></dt>
 <dd>Return the length of <em>expr</em>.  <em>expr</em> can be a string or a list Kind</dd>
@@ -388,6 +394,15 @@ $Revision$<br>
 $Date$<br>
 $Author$<br>
 $Log$
+Revision 1.3  2004/10/21 22:30:39  twl
+Commit branched docs to trunk
+
+Revision 1.1.2.2  2004/10/19 20:03:02  twl
+Incorporate Ducky's feedback
+
+Revision 1.1.2.1  2004/10/18 21:27:03  twl
+Committing doc changes to branch
+
 Revision 1.2  2004/10/15 18:31:04  twl
 Bugs 2112, 2113 (Doc bugs)
 Incorporate review feedback
