@@ -89,9 +89,7 @@ class Action(Item):
             elif actionType == 'expression':
                 result = eval(script)
             elif actionType == 'inline':
-                print "about to run ", script
                 exec script
-                print "back from running"
             else:
                 # FIXME: should probably throw an exception here
                 print "unknown action type", agent.GetName(), self.GetName(), self.actionType

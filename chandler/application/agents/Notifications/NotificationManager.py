@@ -14,7 +14,6 @@ While listening to "Mystery Achievement" :-)
 """
 
 from NotificationQueue import NotificationQueue
-#from DeclarationEntry import DeclarationEntry
 import Queue
 import re
 import thread
@@ -71,15 +70,16 @@ class NotificationManager(Persistent):
 
         
     def Unregister(self,clientID):
-        self.messageTable.DeleteQueue(clientID)
-
         try:
+            self.messageTable.DeleteQueue(clientID)
             index = self.subscriberList.index(clientID)
             del self.subscriberList[index]
         except ValueError:
             # FIXME: should throw a 'NotRegistered' exception here?
             pass
-    
+        except KeyError:
+            raise SubscriberNotFound, clientID
+ 
     def IsRegistered(self, clientID):
         try:
             index = self.subscriberList.index(clientID)
@@ -440,8 +440,7 @@ class Declarations(Persistent):
          
     
     def AddDeclaration(self, name, description, type, clientID = 0):
-        if self.subscriptions.has_key(name) and \
-           self.subscriptions[name].GetType() == type:
+        if self.subscriptions.has_key(name):
             return False
         else:
             self.subscriptions[name] = DeclarationEntry(name, clientID, type, \
