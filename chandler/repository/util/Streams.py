@@ -87,7 +87,7 @@ class CompressedInputStream(object):
 
         self.decompressor = self._decompressor()
         self.inputStream = inputStream
-        self.extra_data = ''
+        self.extra_data = None
 
     def _decompressor(self):
 
@@ -95,37 +95,45 @@ class CompressedInputStream(object):
         
     def read(self, length = -1):
 
-        if len(self.extra_data) > 0:
-            data = self.extra_data
-            self.extra_data = ''
+        if self.extra_data is not None:
+            data = self.extra_data.read(length)
+            if len(data) > 0:
+                return data
+
+            self.extra_data.close()
+            self.extra_data = None
             
-        else:
-            data = ''
-            while len(data) == 0:
-                unused_data = ''
-                while len(data) == 0 and len(unused_data) == 0:
-                    data = self.inputStream.read(length)
-                    if len(data) == 0:
-                        return ''
+        data = ''
+        while len(data) == 0:
+            unused_data = ''
+            while len(data) == 0 and len(unused_data) == 0:
+                raw = self.inputStream.read(length)
+                if len(raw) == 0:
+                    return ''
 
-                    data = self.decompressor.decompress(data)
-                    unused_data = self.decompressor.unused_data
+                try:
+                    data = self.decompressor.decompress(raw)
+                except EOFError:   # only way to find out
+                    self.decompressor = self._decompressor()
+                    data = self.decompressor.decompress(raw)
+
+                unused_data = self.decompressor.unused_data
         
-                if len(unused_data) > 0:
-                    buffer = StringIO()
-                    buffer.write(data)
+            if len(unused_data) > 0:
+                buffer = StringIO()
+                buffer.write(data)
 
-                    while len(unused_data) > 0:
-                        self.decompressor = self._decompressor()
-                        buffer.write(self.decompressor.decompress(unused_data))
-                        unused_data = self.decompressor.unused_data
+                while len(unused_data) > 0:
+                    self.decompressor = self._decompressor()
+                    buffer.write(self.decompressor.decompress(unused_data))
+                    unused_data = self.decompressor.unused_data
 
-                    data = buffer.getvalue()
-                    buffer.close()
+                data = buffer.getvalue()
+                buffer.close()
 
-            if length > 0 and len(data) > length:
-                self.extra_data = data[length:]
-                data = data[0:length]
+        if length > 0 and len(data) > length:
+            self.extra_data = StringIO(data)
+            data = self.extra_data.read(length)
 
         return data
 
