@@ -35,10 +35,7 @@ class StringReader(object):
         if text is None:
             return None
         
-        if length >= len(text):
-            length = -1
-            
-        if length == -1:
+        if length == -1 or length >= len(text):
             self.unicodeText = None
             return text
 
