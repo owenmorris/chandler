@@ -8,7 +8,7 @@ from wxPython.wx import *
 import Globals, ChandlerJabber
 import repository.parcel.LoadParcels as LoadParcels
 import repository.schema.AutoItem as AutoItem
-
+from repository.persistence.XMLRepository import XMLRepository
 
 """
   Event used to post callbacks on the UI thread
@@ -104,23 +104,14 @@ class wxApplicationNew (wxApp):
 
         """
           Open the repository.
-        -file argument to use file repository
         -create argument forces a new repository.
         -recover argument runs recovery when opening after a crash.
         Load the Repository after the path has been altered, but before
         the parcels are loaded. 
         """
-        repositoryPath = os.path.join(Globals.chandlerDirectory, "__repository__")
-        if '-file' in sys.argv:
-            moduleName = 'repository.persistence.FileRepository'
-            className = 'FileRepository'
-        else:
-            moduleName = 'repository.persistence.XMLRepository'
-            className = 'XMLRepository'
-
-        repositoryClass = getattr(__import__(moduleName, {}, {}, className), className)
-
-        Globals.repository = repositoryClass(repositoryPath)
+        repositoryPath = os.path.join(Globals.chandlerDirectory,
+                                      "__repository__")
+        Globals.repository = XMLRepository(repositoryPath)
 
         if '-create' in sys.argv:
             Globals.repository.create()

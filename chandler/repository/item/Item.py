@@ -667,7 +667,8 @@ class Item(object):
                         self._status |= Item.DIRTY
                         return True
                     elif self._status & Item.NEW:
-                        print 'logging of new item %s failed' %(self.getItemPath())
+                        repository.logger.warning('logging of new item %s failed',
+                                                  self.getItemPath())
         else:
             self._status &= ~Item.DIRTY
 

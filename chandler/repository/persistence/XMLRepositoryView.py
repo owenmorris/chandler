@@ -73,7 +73,6 @@ class XMLRepositoryLocalView(XMLRepositoryView):
     def commit(self):
 
         repository = self.repository
-        verbose = repository.verbose
         store = repository.store
         data = store._data
         versions = store._versions
@@ -98,10 +97,10 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                 
                     for item in self._log:
                         self._saveItem(item, newVersion,
-                                       data, versions, history, verbose)
+                                       data, versions, history)
 
             except DBLockDeadlockError:
-                print 'restarting commit aborted by deadlock'
+                self.logger.info('restarting commit aborted by deadlock')
                 if txnStarted:
                     store._abortTransaction()
                 if lock:
@@ -124,9 +123,8 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                         item._setSaved(newVersion)
                     del self._log[:]
 
-                if verbose:
-                    print 'refreshing view from version %d to %d' %(self.version,
-                                                                    newVersion)
+                self.logger.debug('refreshing view from version %d to %d',
+                                  self.version, newVersion)
 
                 if newVersion > self.version:
                     try:
@@ -136,9 +134,10 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                         for uuid in history.uuids(oldVersion, newVersion):
                             item = self._registry.get(uuid)
                             if item is not None and item._version < newVersion:
-                                if verbose:
-                                    print 'unloading version %d of %s' %(item._version,
-                                                                         item.getItemPath())
+                                if self.isDebug():
+                                    self.logger.debug('unloading version %d of %s',
+                                                      item._version,
+                                                      item.getItemPath())
                                 item._unloadItem()
                     except:
                         if txnStarted:
@@ -152,11 +151,11 @@ class XMLRepositoryLocalView(XMLRepositoryView):
                     env.lock_put(lock)
 
                 if count > 0:
-                    print 'committed %d items in %s' %(count,
-                                                       datetime.now() - before)
+                    self.logger.info('committed %d items in %s',
+                                     count, datetime.now() - before)
                 return
 
-    def _saveItem(self, item, newVersion, data, versions, history, verbose):
+    def _saveItem(self, item, newVersion, data, versions, history):
 
         uuid = item.getUUID()
         if item.isNew():
@@ -173,16 +172,16 @@ class XMLRepositoryLocalView(XMLRepositoryView):
 
             del self._deletedRegistry[uuid]
             if version is not None:
-                if verbose:
-                    print 'Removing version %d of %s' %(item._version,
-                                                        item.getItemPath())
+                if self.isDebug():
+                    self.logger.debug('Removing version %d of %s',
+                                      item._version, item.getItemPath())
                 versions.setDocVersion(uuid, newVersion, 0)
                 history.writeVersion(uuid, newVersion, 0)
 
         else:
-            if verbose:
-                print 'Saving version %d of %s' %(newVersion,
-                                                  item.getItemPath())
+            if self.isDebug():
+                self.logger.debug('Saving version %d of %s',
+                                  newVersion, item.getItemPath())
 
             out = cStringIO.StringIO()
             generator = xml.sax.saxutils.XMLGenerator(out, 'utf-8')
@@ -196,7 +195,6 @@ class XMLRepositoryLocalView(XMLRepositoryView):
             docId = data.putDocument(doc)
             versions.setDocVersion(uuid, newVersion, docId)
             history.writeVersion(uuid, newVersion, docId)
-
 
 
 class XMLRepositoryClientView(XMLRepositoryView):

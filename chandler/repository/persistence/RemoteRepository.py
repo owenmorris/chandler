@@ -27,14 +27,14 @@ class RemoteRepository(OnDemandRepository):
         
         self.store = transport
         
-    def create(self, verbose=False):
+    def create(self):
 
         raise NotImplementedError, "RemoteRepository.create"
 
-    def open(self, verbose=False, create=False):
+    def open(self, create=False):
 
         if not self.isOpen():
-            super(RemoteRepository, self).open(verbose)
+            super(RemoteRepository, self).open()
             className = self.store.open(create)
             self.viewClass = ClassLoader.loadClass(className)
             self._status |= self.OPEN

@@ -41,10 +41,10 @@ class XMLRepository(OnDemandRepository):
         super(XMLRepository, self).__init__(dbHome)
         self._env = None
         
-    def create(self, verbose=False):
+    def create(self):
 
         if not self.isOpen():
-            super(XMLRepository, self).create(verbose)
+            super(XMLRepository, self).create()
             self._create()
             self._status |= self.OPEN
 
@@ -80,10 +80,10 @@ class XMLRepository(OnDemandRepository):
                         os.remove(f)
         os.path.walk(self.dbHome, purge, None)
 
-    def open(self, verbose=False, create=False, recover=False):
+    def open(self, create=False, recover=False):
 
         if not self.isOpen():
-            super(XMLRepository, self).open(verbose)
+            super(XMLRepository, self).open()
             self._env = self._createEnv()
             
             try:

@@ -113,22 +113,30 @@ class ItemRef(object):
 
     def check(self, item, name):
 
+        logger = item.getRepository().logger
+        
         try:
             other = self.other(item)
         except DanglingRefError, e:
-            print 'DanglingRefError', e
+            logger.error('DanglingRefError: %s', e)
         except ValueError, e:
-            print 'ValueError', e
+            logger.error('ValueError: %s', e)
         else:
             if other.isStale():
-                print 'Found stale item %s at %s of kind %s' %(other, other.getItemPath(), other._kind.getItemPath())
+                logger.error('Found stale item %s at %s of kind %s',
+                             other, other.getItemPath(),
+                             other._kind.getItemPath())
             else:
                 otherName = item.getAttributeAspect(name, 'otherName',
                                                     default=None)
-                otherOtherName = other.getAttributeAspect(otherName, 'otherName',
+                otherOtherName = other.getAttributeAspect(otherName,
+                                                          'otherName',
                                                           default=None)
                 if otherOtherName != name:
-                    print "otherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s" %(item._kind.getItemPath(), name, otherName, other._item._kind.getItemPath(), otherName, otherOtherName)
+                    logger.error("otherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s",
+                                 item._kind.getItemPath(), name, otherName,
+                                 other._item._kind.getItemPath(), otherName,
+                                 otherOtherName)
 
     def _refCount(self):
 
@@ -536,9 +544,10 @@ class RefDict(LinkedMap):
                            old.other(item), self._otherName)
             else:
                 if value is not old.other(item):
-                    print 'Warning: reattaching %s for %s on %s' %(value,
-                                                                   old.other(item),
-                                                                   self._name)
+                    self._getRepository().logger.warning('Warning: reattaching %s for %s on %s',
+                                                         value,
+                                                         old.other(item),
+                                                         self._name)
                     old.reattach(item, self._name,
                                  old.other(item), value, self._otherName)
                 return old
@@ -755,28 +764,38 @@ class RefDict(LinkedMap):
     def check(self, item, name):
 
         l = len(self)
-
+        logger = self._getRepository().logger
+        
         key = self.firstKey()
         while key:
             try:
                 other = self[key]
             except DanglingRefError, e:
-                print 'DanglingRefError on %s.%s: %s' %(self._item.getItemPath(), self._name, e)
+                logger.error('DanglingRefError on %s.%s: %s',
+                             self._item.getItemPath(), self._name, e)
             except KeyError, e:
-                print 'KeyError on %s.%s: %s' %(self._item.getItemPath(), self._name, e)
+                logger.error('KeyError on %s.%s: %s',
+                             self._item.getItemPath(), self._name, e)
             else:
                 if other.isStale():
-                    print 'Found stale item %s at %s of kind %s' %(other, other.getItemPath(), other._kind.getItemPath())
+                    logger.error('Found stale item %s at %s of kind %s',
+                                 other, other.getItemPath(),
+                                 other._kind.getItemPath())
                 else:
                     name = other.getAttributeAspect(self._otherName, 'otherName', default=None)
                     if name != self._name:
-                        print "OtherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s" %(other._kind.getItemPath(),self._otherName, name, self._item._kind.getItemPath(), self._name, self._otherName)
+                        logger.error("OtherName for attribute %s.%s, %s, does not match otherName for attribute %s.%s, %s",
+                                     other._kind.getItemPath(),
+                                     self._otherName, name,
+                                     self._item._kind.getItemPath(),
+                                     self._name, self._otherName)
                         
             l -= 1
             key = self.nextKey(key)
             
         if l != 0:
-            print "Iterator on %s.%s doesn't match length (%d left for %d total)" %(self._item.getItemPath(), self._name, l, len(self))
+            logger.error("Iterator on %s.%s doesn't match length (%d left for %d total)",
+                         self._item.getItemPath(), self._name, l, len(self))
 
 
 class TransientRefDict(RefDict):

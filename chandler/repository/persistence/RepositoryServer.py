@@ -5,7 +5,7 @@ __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
 
-import sys, re, xmlrpclib, jabber, traceback
+import sys, re, xmlrpclib, jabber
 
 from SOAPpy import SOAPServer
 
@@ -42,7 +42,7 @@ class RepositoryServer(object):
 
             return value
         except:
-            traceback.print_exc(file=sys.stdout)
+            self.repository.logger.exception('RepositoryServer')
             raise
 
     def decode(self, signature, args):
@@ -178,7 +178,7 @@ class JabberRepositoryServer(RepositoryServer, jabber.Client):
             else:
                 result = "<error>No such method: %s</error>" %(func)
         except Exception, e:
-            traceback.print_exc(file=sys.stdout)
+            self.repository.logger.exception('RepositoryServer')
             result = "<error><![CDATA[%s]]></error>" %(e)
 
         iq.setQueryPayload(result)

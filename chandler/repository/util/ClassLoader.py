@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import sys, traceback
+import sys, logging
 
 class ClassLoader(object):
 
@@ -20,8 +20,9 @@ class ClassLoader(object):
         except ImportError:
             raise
         except Exception, e:
-            traceback.print_exc(file=sys.stdout)
-            raise ImportError, 'Importing class %s.%s failed with %s' %(module, name, e)
+            logging.getLogger('repository').exception('Importing class %s.%s failed',
+                                                      module, name)
+            raise ImportError, 'see log for details'
         
         try:
             cls = getattr(m, name)
@@ -32,7 +33,8 @@ class ClassLoader(object):
         except AttributeError:
             raise ImportError, "Module %s has no class %s" %(module, name)
         except Exception, e:
-            traceback.print_exc(file=sys.stdout)
-            raise ImportError, 'Importing class %s.%s failed with %s' %(module, name, e)
+            logging.getLogger('repository').exception('Importing class %s.%s failed',
+                                                      module, name)
+            raise ImportError, 'see log for details'
 
     loadClass = classmethod(loadClass)

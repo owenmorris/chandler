@@ -16,13 +16,12 @@ from repository.item.Item import Item
 class PackHandler(xml.sax.ContentHandler):
     'A SAX ContentHandler implementation responsible for loading packs.'
 
-    def __init__(self, path, parent, repository, verbose):
+    def __init__(self, path, parent, repository):
 
         self.path = path
         self.cwd = [ os.path.dirname(path) ]
         self.parent = [ parent ]
         self.repository = repository
-        self.verbose = verbose
         self.hooks = [ None ]
 
     def startDocument(self):
@@ -63,7 +62,7 @@ class PackHandler(xml.sax.ContentHandler):
             if not self.repository.find(Path('//', 'Packs', attrs['name'])):
                 self.repository.loadPack(os.path.join(self.cwd[-1],
                                                       attrs['file']),
-                                         self.parent[-1], self.verbose)
+                                         self.parent[-1])
 
         else:
             self.name = attrs['name']
@@ -128,9 +127,6 @@ class PackHandler(xml.sax.ContentHandler):
 
     def loadItem(self, file, parent):
 
-        if self.verbose:
-            print file
-            
         items = self.repository._loadItemsFile(file, parent,
                                                afterLoadHooks=self.hooks[-1])
 

@@ -4,7 +4,7 @@ __date__      = "$Date$"
 __copyright__ = "Copyright (c) 2002 Open Source Applications Foundation"
 __license__   = "http://osafoundation.org/Chandler_0.1_license_terms.htm"
 
-import os, os.path, xml.sax, threading
+import sys, os, os.path, xml.sax, threading, logging
 
 from repository.util.UUID import UUID
 from repository.util.Path import Path
@@ -33,13 +33,13 @@ class Repository(object):
         self._status = 0
         self._threaded = ThreadLocal()
 
-    def create(self, verbose=False):
+    def create(self):
 
-        self._init(verbose)
+        self._init()
         
-    def open(self, verbose=False, create=False):
+    def open(self, create=False):
 
-        self._init(verbose)
+        self._init()
 
     def serverOpen(self):
 
@@ -49,11 +49,18 @@ class Repository(object):
         
         raise NotImplementedError, "Repository.delete"
 
-    def _init(self, verbose):
+    def _init(self):
 
         self._status = 0
-        self.verbose = verbose
-        
+        self.logger = logging.getLogger('repository')
+
+        if '-debug' in sys.argv:
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.INFO)
+        if '-stderr' in sys.argv or not self.logger.root.handlers:
+            self.logger.addHandler(logging.StreamHandler())
+            
     def _isRepository(self):
         return True
 
@@ -125,9 +132,9 @@ class Repository(object):
 
         return self.view.find(spec, _index, load)
 
-    def loadPack(self, path, parent=None, verbose=False):
+    def loadPack(self, path, parent=None):
 
-        self.view.loadPack(path, parent, verbose)
+        self.view.loadPack(path, parent)
 
     def dir(self, item=None, path=None):
 
@@ -254,14 +261,14 @@ class RepositoryView(object):
 
         return self.find(spec)
 
-    def loadPack(self, path, parent=None, verbose=False):
+    def loadPack(self, path, parent=None):
         'Load items from the pack definition file at path.'
 
         packs = self.getRoot('Packs')
         if not packs:
             packs = Item('Packs', self, None)
 
-        xml.sax.parse(path, PackHandler(path, parent, self, verbose))
+        xml.sax.parse(path, PackHandler(path, parent, self))
 
     def dir(self, item=None, path=None):
         'Print out a listing of each item in the repository or under item.'
@@ -277,7 +284,7 @@ class RepositoryView(object):
                 self.dir(child, path)
             path.pop()
 
-    def _resolveStubs(self, verbose=True):
+    def _resolveStubs(self):
 
         i = 0
         for ref in self._stubs[:]:
@@ -285,40 +292,37 @@ class RepositoryView(object):
                 try:
                     other = ref.getOther()
                 except DanglingRefError:
-                    if verbose:
-                        print "%s -> %s is missing" %(ref, ref._other)
+                    if self.isDebug():
+                        self.logger.debug("%s -> %s is missing",
+                                          ref, ref._other)
                     i += 1
                     continue
 
             self._stubs.pop(i)
         
-    def _loadItemsFile(self, path, parent=None, verbose=False,
-                       afterLoadHooks=None):
+    def _loadItemsFile(self, path, parent=None, afterLoadHooks=None):
 
-        if verbose:
-            print path
+        self.logger.debug(path)
             
         handler = ItemsHandler(self, parent or self, afterLoadHooks)
         xml.sax.parse(path, handler)
 
         return handler.items
 
-    def _loadItemString(self, string, parent=None, verbose=False,
-                        afterLoadHooks=None):
+    def _loadItemString(self, string, parent=None, afterLoadHooks=None):
 
-        if verbose:
-            print string[51:73]
+        if self.isDebug():
+            self.logger.debug(string[51:73])
             
         handler = ItemHandler(self, parent or self, afterLoadHooks)
         xml.sax.parseString(string, handler)
 
         return handler.item
 
-    def _loadItemDoc(self, doc, parser, parent=None, verbose=False,
-                     afterLoadHooks=None):
+    def _loadItemDoc(self, doc, parser, parent=None, afterLoadHooks=None):
 
-        if verbose:
-            print string[51:73]
+        if self.isDebug():
+            self.logger.debug(self.repository.store.getDocContent(doc)[51:73])
             
         handler = ItemHandler(self, parent or self, afterLoadHooks)
         parser.parseDoc(doc, handler)
@@ -465,7 +469,17 @@ class RepositoryView(object):
 
         return Repository.ROOT_ID
 
+    def getLogger(self):
+
+        return self.repository.logger
+
+    def isDebug(self):
+
+        return self.repository.logger.getEffectiveLevel() <= logging.DEBUG
+
     ROOT_ID = property(getUUID)
+    logger = property(getLogger)
+    debug = property(isDebug)
     LOADING = 0x1
     
 
@@ -545,10 +559,10 @@ class OnDemandRepositoryView(RepositoryView):
                 del self._childrenRegistry[uuid]
                 item._children = children
                 children._setItem(item)
-                
-            if self.repository.verbose:
-                print "loaded version %d of %s" %(item._version,
-                                                  item.getItemPath())
+
+            if self.isDebug():
+                self.logger.debug("loaded version %d of %s",
+                                  item._version, item.getItemPath())
 
         except:
             if not loading:
@@ -574,8 +588,7 @@ class OnDemandRepositoryView(RepositoryView):
             doc = self.repository.store.loadItem(self.version, uuid)
 
             if doc is not None:
-                if self.repository.verbose:
-                    print "loading item %s" %(uuid)
+                self.logger.debug("loading item %s", uuid)
                 return self._loadDoc(doc)
 
         return None
@@ -599,12 +612,13 @@ class OnDemandRepositoryView(RepositoryView):
 
             if (not self._deletedRegistry or
                 not uuid in self._deletedRegistry):
-                if self.repository.verbose:
+                if self.isDebug():
                     if parent is not None and parent is not self:
-                        print "loading child %s of %s" %(name,
-                                                         parent.getItemPath())
+                        self.logger.debug("loading child %s of %s",
+                                          name, parent.getItemPath())
                     else:
-                        print "loading root %s" %(name)
+                        self.logger.debug("loading root %s", name)
+                    
                 return self._loadDoc(doc)
 
         return None

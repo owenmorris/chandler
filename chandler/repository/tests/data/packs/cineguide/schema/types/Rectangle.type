@@ -20,5 +20,4 @@
   <attribute name="implementationTypes" cardinality="dict" type="class">
     <value name="python">repository.tests.Types.Rectangle</value>
   </attribute>
-
 </item>

@@ -22,16 +22,16 @@ class FileRepository(Repository):
     item files in a given directory. It can then load them back to restore
     the same exact item hierarchy."""
 
-    def create(self, verbose=False):
+    def create(self):
 
         if not self.isOpen():
-            super(FileRepository, self).create(verbose)
+            super(FileRepository, self).create()
             self._status |= Repository.OPEN
 
-    def open(self, verbose=False, create=False):
+    def open(self, create=False):
 
         if not self.isOpen():
-            super(FileRepository, self).open(verbose)
+            super(FileRepository, self).open()
             self._status |= self.OPEN
             self.view._load()
 
@@ -81,13 +81,12 @@ class FileRepositoryView(RepositoryView):
 
         hooks = []
         dbHome = self.repository.dbHome
-        verbose = self.repository.verbose
         
         contents = file(os.path.join(dbHome, dir, 'contents.lst'), 'r')
         for uuid in contents.readlines():
             self._loadItemsFile(os.path.join(dbHome, dir,
                                              uuid[:-1] + '.item'),
-                                verbose=verbose, afterLoadHooks=hooks)
+                                afterLoadHooks=hooks)
         contents.close()
 
         for hook in hooks:
@@ -150,7 +149,7 @@ class FileRepositoryView(RepositoryView):
         contents.close()
 
         after = datetime.now()
-        print 'committed %d items in %s' %(count, after - before)
+        self.logger.info('committed %d items in %s', count, after - before)
         
     def _saveItems(self, root, withSchema=False):
 
@@ -179,16 +178,14 @@ class FileRepositoryView(RepositoryView):
             raise ValueError, "%s exists but is not a directory" %(dir)
 
         rootContents = file(os.path.join(dir, 'contents.lst'), 'w')
-        count = commit(root, self, rootContents,
-                       verbose = self.repository.verbose)
+        count = commit(root, self, rootContents)
         rootContents.close()
 
         return count
 
     def _saveItem(self, item, **args):
 
-        if args.get('verbose'):
-            print item.getItemPath()
+        self.logger.debug(item.getItemPath())
             
         uuid = item.getUUID().str16()
         filename = os.path.join(self.repository.dbHome,

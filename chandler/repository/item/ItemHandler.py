@@ -100,7 +100,8 @@ class ItemHandler(xml.sax.ContentHandler):
 
             if cardinality != 'single':
                 if cardinality == 'dict':
-                    print "Warning, 'dict' cardinality for reference attribute %s on %s is deprecated, use 'list' instead" %(name, self.name)
+                    self.repository.logger.warning("Warning, 'dict' cardinality for reference attribute %s on %s is deprecated, use 'list' instead",
+                                                   name, self.name)
 
                 otherName = self.getOtherName(name, attribute, attrs)
                 refDict = self.repository.createRefDict(None, name,
