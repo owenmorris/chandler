@@ -63,7 +63,7 @@ def loadConfig(chandlerDirectory):
                       # option name, (value, short cmd, long cmd, type flag, default, environment variable, help text)
     _configItems = { 'parcelDir':  ('-p', '--parcelDir',  's', None,  'PARCELDIR',         'Location for private/user parcels'),
                      'webserver':  ('-W', '--webserver',  'b', False, 'CHANDLERWEBSERVER', 'Activate the built-in webserver'),
-                     'profileDir': ('-P', '--profileDir', 's', None,  'PROFILE_DIR',       'location of the Chandler Repository'),
+                     'profileDir': ('-P', '--profileDir', 's', None,  'PROFILEDIR',        'location of the Chandler Repository'),
                      'profile':    ('',   '--prof',       'b', False, None, 'save profiling data'),
                      'stderr':     ('-e', '--stderr',     'b', False, None, 'Echo error output to log file'),
                      'create':     ('-c', '--create',     'b', False, None, 'Force creation of a new repository'),
