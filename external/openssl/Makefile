@@ -56,6 +56,7 @@ openssl: $(SRC)/$(BUILD)/ms/$(DOMASM)
 # to make sure Chandler will find our DLLs and not anything in Windows
 # system directories.
 snap: 
+	tar -cvzf $(SNAP).tar.gz . --no-recursion
 
 else
 
