@@ -30,7 +30,8 @@ Chandler osaf/chandler/Chandler
 hardhat osaf/hardhat
 
 chandler-app -a \
-    osaf/chandler/Chandler
+    osaf/chandler/Chandler \
+    osaf/hardhat
 
 chandler-system -a \
     osaf/chandler/Chandler \
