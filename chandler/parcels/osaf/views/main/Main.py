@@ -351,7 +351,6 @@ class MainView(View):
             # create the zaobao channel and send it to the sidebar
             channel = osaf.examples.zaobao.RSSData.NewChannelFromURL(view=self.itsView, url=url, update=True)
             if channel:
-                print "Adding " + str(channel) + " to sidebar"
                 self.postEventByName ('AddToSidebarWithoutCopying', {'items':[channel]})
                 self.itsView.commit()
             else:
