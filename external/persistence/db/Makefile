@@ -21,10 +21,10 @@ compile: $(SRC)/$(BUILD)/Berkeley_DB.sln
 
 install:
 	mkdir -p $(PREFIX)/bin/db
-	mkdir -p $(PREFIX)/include
+	mkdir -p $(PREFIX)/include/db
 	mkdir -p $(PREFIX)/lib
-	(cd $(SRC)/dbinc; tar cf - cxx_*.h) | (cd $(PREFIX)/include; tar xvf -)
-	(cd $(SRC)/$(BUILD); tar cf - *.h) | (cd $(PREFIX)/include; tar xvf -)
+	(cd $(SRC)/dbinc; tar cf - cxx_*.h) | (cd $(PREFIX)/include/db; tar xvf -)
+	(cd $(SRC)/$(BUILD); tar cf - *.h) | (cd $(PREFIX)/include/db; tar xvf -)
 	(cd $(SRC)/$(BUILD)/$(Snap); tar cf - *.dll) | (cd $(PREFIX)/bin; tar xvf -)
 	(cd $(SRC)/$(BUILD)/$(Snap); tar cf - *.exe) | (cd $(PREFIX)/bin/db; tar xvf -)
 	(cd $(SRC)/$(BUILD)/$(Snap); tar cf - *.lib *.exp) | (cd $(PREFIX)/lib; tar xvf -)

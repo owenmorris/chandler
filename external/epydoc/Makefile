@@ -2,23 +2,27 @@
 VERSION=2.0
 EPYDOC=$(BUILD_ROOT)/epydoc
 SRC=$(EPYDOC)/epydoc-$(VERSION)
-OS=$(shell uname)
+
+include ../Makefile.inc
 
 ifeq ($(DEBUG),1)
 
 DIST_OPT=--debug
-PREFIX=$(BUILD_ROOT)/debug
-SNAP=debug
 PYTHON=python_d
 
 else
 
 DIST_OPT=
-PREFIX=$(BUILD_ROOT)/release
-SNAP=release
 PYTHON=python
 
 endif
+
+ifeq ($(OS),Cygwin)
+
+PYTHON:=$(PREFIX)/bin/$(PYTHON).exe
+SITE=bin/Lib/site-packages
+
+else
 
 ifeq ($(OS),Darwin)
 
@@ -29,6 +33,8 @@ else
 
 PYTHON:=$(PREFIX)/bin/$(PYTHON)
 SITE=lib/python2.3/site-packages
+
+endif
 
 endif
 

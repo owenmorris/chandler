@@ -1,5 +1,5 @@
 
-VERSION=0.3-0
+VERSION=0.3-1
 
 include Makefile.inc
 
@@ -22,6 +22,7 @@ SYSTEMS=persistence/db \
 SOURCES=persistence/db/db-4.2.52.tar.gz \
         python/Python-2.3.3.tgz \
         python/bzip2-1.0.2.tar.gz \
+        python/zlib-1.2.1.tar.gz \
         epydoc/epydoc-2.0.tar.gz \
         wx/wxpython.tar.gz \
         persistence/xerces-c/xerces-c-src2_4_0.tar.gz \

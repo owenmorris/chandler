@@ -1,3 +1,4 @@
 *.gz *.tgz
 Python-*
 bzip2-*
+zlib-*
