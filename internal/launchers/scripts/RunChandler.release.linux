@@ -1,0 +1,3 @@
+#!/bin/sh
+cd ../chandler
+PYTHONPATH=. PYTHONHOME=../release LD_LIBRARY_PATH=../release/lib:../release/db/lib:../release/dbxml/lib ../release/bin/python -O Chandler.py $*

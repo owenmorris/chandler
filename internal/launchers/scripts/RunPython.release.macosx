@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ "$CHANDLERHOME" = "" ]
+then
+    CHANDLERHOME=`pwd`
+fi
+
+if [ -d $CHANDLERHOME/chandler -a -f $CHANDLERHOME/release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python ]
+then
+    echo "Using $CHANDLERHOME/release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python"
+    echo ""
+else
+    echo "Error:  Please set CHANDLERHOME environment variable to point"
+    echo "        to the directory that contains the chandler and release"
+    echo "        subdirectories, then rerun RunPython"
+    exit 1
+fi
+
+CHANDLERDIR=$CHANDLERHOME/chandler PYTHONPATH=$CHANDLERHOME/chandler PYTHONHOME=$CHANDLERHOME/release/Library/Frameworks/Python.framework/Versions/2.3 DYLD_LIBRARY_PATH=$CHANDLERHOME/release/lib:$CHANDLERHOME/release/dbxml/lib:$CHANDLERHOME/release/db/lib DYLD_FRAMEWORK_PATH=$CHANDLERHOME/release/Library/Frameworks exec $CHANDLERHOME/release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python -O $*

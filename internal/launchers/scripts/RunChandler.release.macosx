@@ -1,0 +1,3 @@
+#!/bin/sh
+cd ../chandler
+PYTHONPATH=. PYTHONHOME=../release/Library/Frameworks/Python.framework/Versions/2.3 DYLD_LIBRARY_PATH=../release/lib:../release/db/lib:../release/dbxml/lib DYLD_FRAMEWORK_PATH=../release/Library/Frameworks exec ../release/Library/Frameworks/Python.framework/Versions/2.3/Resources/Python.app/Contents/MacOS/Python -O Chandler.py $*

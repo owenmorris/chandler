@@ -6,10 +6,16 @@ LAUNCHERS=$(INTERNAL)/launchers
 
 BUILD=build_$(SNAP)
 
-ifeq ($(DEBUG),1)
-    DEBUG=$DEBUG
+# ifeq ($(DEBUG),1)
+#     DEBUG=$DEBUG
+# else
+#     undef DEBUG
+# endif
+
+ifeq ($(PLATFORM),windows)
+    SCRIPT_EXTENTION=".bat"
 else
-    undef DEBUG
+    SCRIPT_EXTENTION=
 endif
 
 ifeq ($(OS),Darwin)
@@ -20,10 +26,12 @@ ARCHIVE: $(LAUNCHERS)/linux/$(BUILD)/chandler \
          $(LAUNCHERS)/win/
 
 build:
-	cd $(LAUNCHERS)/linux; \
-	make; \
-	cd $(LAUNCHERS)/win;
-	make
+	cp $(LAUNCHERS)/scripts/RunChandler.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunChandler$(SCRIPT_EXTENTION)
+	cp $(LAUNCHERS)/scripts/RunPython.$(SNAP).$(PLATFORM) $(BUILD_ROOT)/$(SNAP)/RunPython$(SCRIPT_EXTENTION)
+#	cd $(LAUNCHERS)/linux; \
+#	make; \
+#	cd $(LAUNCHERS)/win;
+#	make
 
 snap: 
 	cd $(BUILD_ROOT); \

@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ "$CHANDLERHOME" = "" ]
+then
+    CHANDLERHOME=`pwd`
+fi
+
+if [ -d $CHANDLERHOME/chandler -a -f $CHANDLERHOME/debug/bin/python_d ]
+then
+    echo "Using $CHANDLERHOME/debug/bin/python_d"
+    echo ""
+else
+    echo "Error:  Please set CHANDLERHOME environment variable to point"
+    echo "        to the directory that contains the chandler and debug"
+    echo "        subdirectories, then rerun RunPython"
+    exit 1
+fi
+
+CHANDLERDIR=$CHANDLERHOME/chandler PYTHONPATH=$CHANDLERHOME/chandler PYTHONHOME=$CHANDLERHOME/debug LD_LIBRARY_PATH=$CHANDLERHOME/debug/lib:$CHANDLERHOME/debug/dbxml/lib:$CHANDLERHOME/debug/db/lib $CHANDLERHOME/debug/bin/python_d $*
